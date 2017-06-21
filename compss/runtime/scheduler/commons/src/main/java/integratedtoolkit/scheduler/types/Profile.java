@@ -1,39 +1,32 @@
 package integratedtoolkit.scheduler.types;
 
-import integratedtoolkit.types.implementations.Implementation;
-import integratedtoolkit.types.resources.Worker;
-import integratedtoolkit.types.resources.WorkerResourceDescription;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+
 /**
- * Class used to register the characteristics of the execution of one execution
- * or generate a statistic summary of a set of executions.
+ * Class used to register the characteristics of the execution of one execution or generate a statistic summary of a set
+ * of executions.
  * <p>
- * To obtain the characteristics of a single execution, a new Profile is
- * created. At the beggining of the execution, the start method is invoked to
- * obtain the necessary measurements to characterize the execution. Upon the end
- * of the execution, the end() method is called and the Profile class collects
- * the necessary values, and analyzes their initial value to prepare the
- * execution summary.
+ * To obtain the characteristics of a single execution, a new Profile is created. At the beginning of the execution, the
+ * start method is invoked to obtain the necessary measurements to characterize the execution. Upon the end of the
+ * execution, the end() method is called and the Profile class collects the necessary values, and analyzes their initial
+ * value to prepare the execution summary.
  * <p>
- * To obtain the statistic report of several executions, their profiles need to
- * be merged using the accumulate method. (Accumulate overrides the internal
- * values of the Profile, it is recommended to accumulate all the values on an
- * empty Profile).
+ * To obtain the statistic report of several executions, their profiles need to be merged using the accumulate method.
+ * (Accumulate overrides the internal values of the Profile, it is recommended to accumulate all the values on an empty
+ * Profile).
  *
  *
- * To generate a Profile instance with customized values, Profile.Builder
- * enables the creation of a new profile instance and set its initial values.
+ * To generate a Profile instance with customized values, Profile.Builder enables the creation of a new profile instance
+ * and set its initial values.
  *
  * <p>
  * Data currently provided:
  * <ul>
- * <li> Execution time
+ * <li>Execution time
  * </ul>
  *
- *
- * @author flordan
  */
 public class Profile {
 
@@ -44,6 +37,7 @@ public class Profile {
     private long minTime;
     private long averageTime;
     private long maxTime;
+
 
     public Profile() {
         this.executions = 0;
@@ -153,12 +147,14 @@ public class Profile {
         return "executions=" + executions + " minTime=" + minTime + " avgTime=" + averageTime + " maxTime=" + maxTime;
     }
 
+
     public static class Builder {
 
         private long minExecutionTime = Long.MAX_VALUE;
         private long maxExecutionTime = Long.MIN_VALUE;
         private long avgExecutionTime = DEFAULT_EXECUTION_TIME;
         private long executions = 0;
+
 
         public Builder() {
         }

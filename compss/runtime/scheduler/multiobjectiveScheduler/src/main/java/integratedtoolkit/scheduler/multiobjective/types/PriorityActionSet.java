@@ -5,6 +5,7 @@ import integratedtoolkit.scheduler.types.AllocatableAction;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 
+
 public class PriorityActionSet {
 
     private final PriorityQueue<AllocatableAction> noCoreActions;
@@ -12,6 +13,8 @@ public class PriorityActionSet {
     private final PriorityQueue<AllocatableAction> priority;
     public final Comparator<AllocatableAction> comparator;
 
+
+    @SuppressWarnings("unchecked")
     public PriorityActionSet(Comparator<AllocatableAction> comparator) {
         this.comparator = comparator;
         noCoreActions = new PriorityQueue<>(1, comparator);
@@ -19,16 +22,18 @@ public class PriorityActionSet {
         coreActions = new PriorityQueue[0];
     }
 
+    @SuppressWarnings("unchecked")
     public PriorityActionSet(PriorityActionSet clone) {
         comparator = clone.comparator;
-        noCoreActions = new PriorityQueue(clone.noCoreActions);
+        noCoreActions = new PriorityQueue<AllocatableAction>(clone.noCoreActions);
         coreActions = new PriorityQueue[clone.coreActions.length];
         for (int idx = 0; idx < coreActions.length; idx++) {
-            coreActions[idx] = new PriorityQueue(clone.coreActions[idx]);
+            coreActions[idx] = new PriorityQueue<AllocatableAction>(clone.coreActions[idx]);
         }
         priority = new PriorityQueue<>(clone.priority);
     }
 
+    @SuppressWarnings("unchecked")
     public void offer(AllocatableAction action) {
         if (((MOSchedulingInformation) action.getSchedulingInfo()).isToReschedule()) {
             Integer coreId = action.getCoreId();
@@ -40,9 +45,9 @@ public class PriorityActionSet {
                 if (coreId < coreActions.length) {
                     currentPeek = coreActions[coreId].peek();
                 } else {
-                    //Resize coreActions array
+                    // Resize coreActions array
                     int originalSize = this.coreActions.length;
-                    PriorityQueue<AllocatableAction>[] coreActions = new PriorityQueue[coreId + 1];
+                    PriorityQueue<AllocatableAction>[] coreActions = (PriorityQueue<AllocatableAction>[]) new PriorityQueue[coreId + 1];
                     System.arraycopy(this.coreActions, 0, coreActions, 0, originalSize);
                     for (int coreIdx = originalSize; coreIdx < coreId + 1; coreIdx++) {
                         coreActions[coreIdx] = new PriorityQueue<>(1, comparator);
@@ -91,8 +96,7 @@ public class PriorityActionSet {
 
     public AllocatableAction peek() {
         AllocatableAction currentPeek = priority.peek();
-        while (currentPeek != null
-                && !((MOSchedulingInformation) currentPeek.getSchedulingInfo()).isToReschedule()) {
+        while (currentPeek != null && !((MOSchedulingInformation) currentPeek.getSchedulingInfo()).isToReschedule()) {
             removeFirst(currentPeek.getCoreId());
             currentPeek = priority.peek();
         }
@@ -100,11 +104,10 @@ public class PriorityActionSet {
     }
 
     public PriorityQueue<AllocatableAction> peekAll() {
-        PriorityQueue<AllocatableAction> peeks = new PriorityQueue(coreActions.length + 1, comparator);
+        PriorityQueue<AllocatableAction> peeks = new PriorityQueue<AllocatableAction>(coreActions.length + 1, comparator);
 
         AllocatableAction currentCore = noCoreActions.peek();
-        if (currentCore != null
-                && !((MOSchedulingInformation) currentCore.getSchedulingInfo()).isToReschedule()) {
+        if (currentCore != null && !((MOSchedulingInformation) currentCore.getSchedulingInfo()).isToReschedule()) {
             noCoreActions.poll();
             currentCore = noCoreActions.peek();
         }
@@ -114,8 +117,7 @@ public class PriorityActionSet {
 
         for (PriorityQueue<AllocatableAction> core : coreActions) {
             currentCore = core.peek();
-            if (currentCore != null
-                    && !((MOSchedulingInformation) currentCore.getSchedulingInfo()).isToReschedule()) {
+            if (currentCore != null && !((MOSchedulingInformation) currentCore.getSchedulingInfo()).isToReschedule()) {
                 core.poll();
                 currentCore = core.peek();
             }
@@ -143,7 +145,7 @@ public class PriorityActionSet {
     public int size() {
         int size = 0;
         size += noCoreActions.size();
-        for (PriorityQueue pq : coreActions) {
+        for (PriorityQueue<AllocatableAction> pq : coreActions) {
             size += pq.size();
         }
         return size;

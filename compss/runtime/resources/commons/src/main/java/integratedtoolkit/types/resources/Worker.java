@@ -14,6 +14,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+
 public abstract class Worker<T extends WorkerResourceDescription> extends Resource {
 
     // Logger
@@ -43,6 +44,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     private final int maxFPGATaskCount;
     private int usedOthersTaskCount = 0;
     private final int maxOthersTaskCount;
+
 
     @SuppressWarnings("unchecked")
     public Worker(String name, T description, COMPSsNode worker, int limitOfTasks, HashMap<String, String> sharedDisks) {
@@ -355,6 +357,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         return runnable;
     }
 
+    @SuppressWarnings("unchecked")
     public LinkedList<Implementation> getRunnableImplementations(int coreId) {
         LinkedList<Implementation> runnable = new LinkedList<>();
         for (Implementation impl : this.executableImpls[coreId]) {
@@ -369,6 +372,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         return this.idealSimultaneousTasks[coreId] > 0;
     }
 
+    @SuppressWarnings("unchecked")
     public LinkedList<Implementation> canRunNow(LinkedList<Implementation> candidates) {
         LinkedList<Implementation> runnable = new LinkedList<>();
         for (Implementation impl : candidates) {

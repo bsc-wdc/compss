@@ -2,6 +2,7 @@ package integratedtoolkit.types.resources.updates;
 
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 
+
 public class PerformedIncrease<T extends WorkerResourceDescription> extends ResourceUpdate<T> {
 
     public PerformedIncrease(T increase) {
@@ -20,10 +21,10 @@ public class PerformedIncrease<T extends WorkerResourceDescription> extends Reso
 
     @Override
     public void waitForCompletion() throws InterruptedException {
-        //Do nothing. Already completed
+        // Do nothing. Already completed
     }
 
     public void notifyCompletion() {
-        //Do nothing. Already completed.
+        // Do nothing. Already completed.
     }
 }

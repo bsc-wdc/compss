@@ -12,9 +12,10 @@ import java.util.LinkedList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
+
 public class MOSchedulingInformation extends SchedulingInformation {
 
-    //Lock to avoid multiple threads to modify the content at the same time
+    // Lock to avoid multiple threads to modify the content at the same time
     private final ReentrantLock l = new ReentrantLock();
 
     private boolean scheduled = false;
@@ -24,16 +25,17 @@ public class MOSchedulingInformation extends SchedulingInformation {
 
     private int openGaps = 0;
 
-    //Allocatable actions that the action depends on due to resource availability
+    // Allocatable actions that the action depends on due to resource availability
     private final LinkedList<Gap> resourcePredecessors;
 
-    //Allocatable actions depending on the allocatable action due to resource availability
+    // Allocatable actions depending on the allocatable action due to resource availability
     private LinkedList<AllocatableAction> resourceSuccessors;
 
-    //Action Scheduling is being optimized locally
+    // Action Scheduling is being optimized locally
     private boolean onOptimization = false;
     private boolean toReschedule = false;
     private final LinkedList<AllocatableAction> optimizingSuccessors;
+
 
     public <T extends WorkerResourceDescription> MOSchedulingInformation(ResourceScheduler<T> enforcedTargetResource) {
         super(enforcedTargetResource);
@@ -133,9 +135,7 @@ public class MOSchedulingInformation extends SchedulingInformation {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder(
-                "\tlastUpdate: " + lastUpdate + "\n"
-                + "\texpectedStart: " + expectedStart + "\n"
-                + "\texpectedEnd:" + expectedEnd + "\n");
+                "\tlastUpdate: " + lastUpdate + "\n" + "\texpectedStart: " + expectedStart + "\n" + "\texpectedEnd:" + expectedEnd + "\n");
         sb.append("\t").append("schedPredecessors: ");
         for (Gap g : getPredecessors()) {
             sb.append(" ").append(g.getOrigin());

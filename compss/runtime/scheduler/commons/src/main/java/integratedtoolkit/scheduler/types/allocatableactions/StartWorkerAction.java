@@ -20,26 +20,23 @@ import integratedtoolkit.util.ErrorManager;
 
 import java.util.LinkedList;
 
+
 public class StartWorkerAction<T extends WorkerResourceDescription> extends AllocatableAction {
 
     private final ResourceScheduler<T> worker;
     private final Implementation impl;
+
 
     /*
      * ***************************************************************************************************************
      * CONSTRUCTOR
      * ***************************************************************************************************************
      */
-    @SuppressWarnings("unchecked")
-    public StartWorkerAction(
-            SchedulingInformation schedulingInformation,
-            ResourceScheduler<T> worker,
-            TaskScheduler ts
-    ) {
+    public StartWorkerAction(SchedulingInformation schedulingInformation, ResourceScheduler<T> worker, TaskScheduler ts) {
         super(schedulingInformation, ts.getOrchestrator());
         this.worker = worker;
         if (worker.getResource().getType() == Type.WORKER) {
-            Worker mw = worker.getResource();
+            Worker<T> mw = worker.getResource();
             impl = new MethodImplementation("", "", null, null, (MethodResourceDescription) mw.getDescription());
         } else {
             impl = new ServiceImplementation(null, "", "", "", "");
@@ -65,6 +62,7 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
     protected void doAction() {
         (new Thread() {
 
+            @SuppressWarnings("unchecked")
             @Override
             public void run() {
                 Worker<WorkerResourceDescription> workerResource = (Worker<WorkerResourceDescription>) worker.getResource();
@@ -101,16 +99,16 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
     protected void doFailed() {
         // Notify worker available
         LOGGER.info("Worker " + worker.getName() + " could not be started.");
-        //Worker<T, I> wNode = this.worker.getResource();
+        // Worker<T, I> wNode = this.worker.getResource();
 
         // Remove from the pool
-        //ResourceManager.removeWorker(wNode);
+        // ResourceManager.removeWorker(wNode);
         // Remove all resources assigned to the node
-        //ResourceDescription rd = wNode.getDescription();
-        //rd.reduce(rd);
+        // ResourceDescription rd = wNode.getDescription();
+        // rd.reduce(rd);
         // Update the CE and Implementations that can run (none)
-        //this.worker.getResource().updatedFeatures();
-        //this.ts.updatedWorker(wNode);
+        // this.worker.getResource().updatedFeatures();
+        // this.ts.updatedWorker(wNode);
     }
 
     /*
@@ -132,7 +130,7 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
 
     @Override
     public Implementation[] getImplementations() {
-        Implementation[] impls = new Implementation[]{impl};
+        Implementation[] impls = new Implementation[] { impl };
         return impls;
     }
 
@@ -142,8 +140,8 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
     }
 
     @Override
-    public <T extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(ResourceScheduler<T> r) {
-        LinkedList impls = new LinkedList<>();
+    public <R extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(ResourceScheduler<R> r) {
+        LinkedList<Implementation> impls = new LinkedList<>();
         if (r == this.worker) {
             impls.add(this.impl);
         }
@@ -151,23 +149,26 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
     }
 
     @Override
-    public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker, Score actionScore) {
+    public <R extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<R> targetWorker, Score actionScore) {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
         schedule((ResourceScheduler<WorkerResourceDescription>) this.worker, this.impl);
     }
 
     @Override
-    public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Score actionScore)
+    public <R extends WorkerResourceDescription> void schedule(ResourceScheduler<R> targetWorker, Score actionScore)
             throws BlockedActionException, UnassignedActionException {
         schedule(targetWorker, this.impl);
     }
 
     @Override
-    public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Implementation impl) throws BlockedActionException, UnassignedActionException {
+    public <R extends WorkerResourceDescription> void schedule(ResourceScheduler<R> targetWorker, Implementation impl)
+            throws BlockedActionException, UnassignedActionException {
+
         if (targetWorker != getEnforcedTargetResource()) {
             throw new UnassignedActionException();
         }

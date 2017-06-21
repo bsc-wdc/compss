@@ -9,7 +9,8 @@ import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import org.json.JSONObject;
 
-public class FIFODataResourceScheduler< T extends WorkerResourceDescription> extends ReadyResourceScheduler<T> {
+
+public class FIFODataResourceScheduler<T extends WorkerResourceDescription> extends ReadyResourceScheduler<T> {
 
     /**
      * New ready resource scheduler instance
@@ -50,6 +51,7 @@ public class FIFODataResourceScheduler< T extends WorkerResourceDescription> ext
         return new Score(actionPriority, resourceScore, waitingScore, implementationScore);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl, Score resourceScore) {
 

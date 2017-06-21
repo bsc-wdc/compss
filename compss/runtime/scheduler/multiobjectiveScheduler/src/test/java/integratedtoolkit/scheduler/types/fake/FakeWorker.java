@@ -5,6 +5,7 @@ import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.Worker;
 
+
 public class FakeWorker extends Worker<MethodResourceDescription> {
 
     public FakeWorker(MethodResourceDescription description, int limitOfTasks) {

@@ -42,6 +42,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+
 public class ExecutionAction extends AllocatableAction {
 
     // Fault tolerance parameters
@@ -59,6 +60,7 @@ public class ExecutionAction extends AllocatableAction {
     private int transferErrors = 0;
     protected int executionErrors = 0;
 
+
     /**
      * Creates a new execution action
      *
@@ -67,9 +69,7 @@ public class ExecutionAction extends AllocatableAction {
      * @param producer
      * @param task
      */
-    @SuppressWarnings("unchecked")
-    public ExecutionAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator,
-            TaskProducer producer, Task task) {
+    public ExecutionAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator, TaskProducer producer, Task task) {
 
         super(schedulingInformation, orchestrator);
 
@@ -206,7 +206,8 @@ public class ExecutionAction extends AllocatableAction {
 
             doInputTransfers();
         } else {
-            ErrorManager.warn("Transfers for running task " + task.getId() + " on worker " + getAssignedResource().getName() + " have failed.");
+            ErrorManager
+                    .warn("Transfers for running task " + task.getId() + " on worker " + getAssignedResource().getName() + " have failed.");
             this.notifyError();
         }
     }
@@ -223,8 +224,8 @@ public class ExecutionAction extends AllocatableAction {
 
         // Register job
         jobs.add(job.getJobId());
-        JOB_LOGGER.info(
-                (this.getExecutingResources().size() > 1 ? "Rescheduled" : "New") + " Job " + job.getJobId() + " (Task: " + task.getId() + ")");
+        JOB_LOGGER.info((this.getExecutingResources().size() > 1 ? "Rescheduled" : "New") + " Job " + job.getJobId() + " (Task: "
+                + task.getId() + ")");
         JOB_LOGGER.info("  * Method name: " + task.getTaskDescription().getName());
         JOB_LOGGER.info("  * Target host: " + this.getAssignedResource().getName());
 
@@ -259,10 +260,10 @@ public class ExecutionAction extends AllocatableAction {
         JOB_LOGGER.error("Received a notification for job " + jobId + " with state FAILED");
         ++executionErrors;
         if (transferErrors + executionErrors < SUBMISSION_CHANCES) {
-            JOB_LOGGER.error("Job " + job.getJobId() + " for running task " + task.getId() + " on worker " + this.getAssignedResource().getName()
-                    + " has failed; resubmitting task to the same worker.");
-            ErrorManager.warn("Job " + job.getJobId() + " for running task " + task.getId() + " on worker " + this.getAssignedResource().getName()
-                    + " has failed; resubmitting task to the same worker.");
+            JOB_LOGGER.error("Job " + job.getJobId() + " for running task " + task.getId() + " on worker "
+                    + this.getAssignedResource().getName() + " has failed; resubmitting task to the same worker.");
+            ErrorManager.warn("Job " + job.getJobId() + " for running task " + task.getId() + " on worker "
+                    + this.getAssignedResource().getName() + " has failed; resubmitting task to the same worker.");
             job.setHistory(Job.JobHistory.RESUBMITTED);
             profile.start();
             JobDispatcher.dispatch(job);
@@ -282,7 +283,8 @@ public class ExecutionAction extends AllocatableAction {
 
         // Notify end
         int jobId = job.getJobId();
-        JOB_LOGGER.info("Received a notification for job " + jobId + " with state OK (avg. duration: " + profile.getAverageExecutionTime() + ")");
+        JOB_LOGGER.info(
+                "Received a notification for job " + jobId + " with state OK (avg. duration: " + profile.getAverageExecutionTime() + ")");
 
         // Job finished, update info about the generated/updated data
         doOutputTransfers(job);
@@ -429,7 +431,6 @@ public class ExecutionAction extends AllocatableAction {
         return getCoreElementExecutors(task.getTaskDescription().getId());
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public final Implementation[] getImplementations() {
         List<Implementation> coreImpls = CoreManager.getCoreImplementations(task.getTaskDescription().getId());
@@ -469,6 +470,7 @@ public class ExecutionAction extends AllocatableAction {
         return computedScore;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public final void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
         // COMPUTE RESOURCE CANDIDATES
@@ -559,7 +561,8 @@ public class ExecutionAction extends AllocatableAction {
     }
 
     @Override
-    public final <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Implementation impl) throws BlockedActionException, UnassignedActionException {
+    public final <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Implementation impl)
+            throws BlockedActionException, UnassignedActionException {
         if (targetWorker == null || impl == null) {
             throw new UnassignedActionException();
         }
@@ -570,7 +573,7 @@ public class ExecutionAction extends AllocatableAction {
         }
 
         if (// Resource is not compatible with the implementation
-                !targetWorker.getResource().canRun(impl)
+        !targetWorker.getResource().canRun(impl)
                 // already ran on the resource
                 || this.getExecutingResources().contains(targetWorker)) {
 

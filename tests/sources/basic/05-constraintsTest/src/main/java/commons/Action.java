@@ -17,9 +17,11 @@ import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CoreManager;
 
+
 public class Action extends AllocatableAction {
 
     private final int coreId;
+
 
     public Action(ActionOrchestrator orchestrator, int coreId) {
 
@@ -43,12 +45,10 @@ public class Action extends AllocatableAction {
     }
 
     @Override
-    public <T extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(
-            ResourceScheduler<T> r) {
+    public <T extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(ResourceScheduler<T> r) {
         return r.getExecutableImpls(coreId);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public Implementation[] getImplementations() {
         List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
@@ -87,9 +87,7 @@ public class Action extends AllocatableAction {
     }
 
     @Override
-    public <T extends WorkerResourceDescription> Score schedulingScore(
-            ResourceScheduler<T> targetWorker,
-            Score actionScore) {
+    public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker, Score actionScore) {
         return new Score(0, 0, 0, 0);
     }
 
@@ -99,24 +97,24 @@ public class Action extends AllocatableAction {
     }
 
     @Override
-    public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker,
-            Score actionScore) throws BlockedActionException, UnassignedActionException {
+    public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Score actionScore)
+            throws BlockedActionException, UnassignedActionException {
 
     }
 
     @Override
-    public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker,
-            Implementation impl) throws BlockedActionException, UnassignedActionException {
+    public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Implementation impl)
+            throws BlockedActionException, UnassignedActionException {
 
     }
 
+    @SuppressWarnings("unchecked")
     public HashMap<Worker<?>, LinkedList<Implementation>> findAvailableWorkers() {
         HashMap<Worker<?>, LinkedList<Implementation>> m = new HashMap<>();
 
-        LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> compatibleWorkers = getCoreElementExecutors(
-                coreId);
+        LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> compatibleWorkers = getCoreElementExecutors(coreId);
         for (ResourceScheduler<? extends WorkerResourceDescription> ui : compatibleWorkers) {
-            Worker<WorkerResourceDescription> r = (Worker<WorkerResourceDescription>)ui.getResource();
+            Worker<WorkerResourceDescription> r = (Worker<WorkerResourceDescription>) ui.getResource();
             LinkedList<Implementation> compatibleImpls = r.getExecutableImpls(coreId);
             LinkedList<Implementation> runnableImpls = new LinkedList<>();
             for (Implementation impl : compatibleImpls) {

@@ -33,8 +33,8 @@
   target_expected2=$'COMPSsWorker02\nCOMPSsWorker02\nCOMPSsWorker02\nCOMPSsWorker02\nCOMPSsWorker02'
   target_got=$(cat $runtime_log | grep "* Target host:" | awk {' print $NF '})
   
-  score_expected_useless=$'0.0\n0.0\n0.0\n0.0' 
-  score_expected_useful=$'1.0\n1.0\n1.0\n1.0'
+  score_expected_useless=$'0\n0\n0\n0' 
+  score_expected_useful=$'2\n2\n2\n2'
   score_got_w1=$(cat $runtime_log | grep Score | grep COMPSsWorker01 | awk {' print $9 '} | tr ":" " " | tr "," " " | awk {' print $2 '} | tail -n 4)
   score_got_w2=$(cat $runtime_log | grep Score | grep COMPSsWorker02 | awk {' print $9 '} | tr ":" " " | tr "," " " | awk {' print $2 '} | tail -n 4)
 

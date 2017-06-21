@@ -14,10 +14,11 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
 
+
 public class LocalOptimizationState {
 
     private final long updateId;
-    private final ResourceScheduler worker;
+    private final ResourceScheduler<WorkerResourceDescription> worker;
 
     private final LinkedList<Gap> gaps = new LinkedList<>();
     private double runningCost;
@@ -32,7 +33,7 @@ public class LocalOptimizationState {
     private int[][] runningImplementationsCount;
     private long endRunningActions;
 
-    //Actions considered to be running
+    // Actions considered to be running
     private final LinkedList<AllocatableAction> runningActions;
 
     // Actions not depending on other actions scheduled on the same resource
@@ -45,11 +46,9 @@ public class LocalOptimizationState {
     private AllocatableAction resourceBlockingAction;
     private AllocatableAction dataBlockingAction;
 
-    public LocalOptimizationState(
-            long updateId,
-            ResourceScheduler<WorkerResourceDescription> rs,
-            Comparator<AllocatableAction> readyComparator,
-            Comparator<AllocatableAction> selectionComparator) {
+
+    public LocalOptimizationState(long updateId, ResourceScheduler<WorkerResourceDescription> rs,
+            Comparator<AllocatableAction> readyComparator, Comparator<AllocatableAction> selectionComparator) {
         this.updateId = updateId;
         this.worker = rs;
         ResourceDescription rd = rs.getResource().getDescription();
@@ -81,7 +80,7 @@ public class LocalOptimizationState {
     }
 
     public LinkedList<Gap> reserveResources(ResourceDescription resources, long startTime) {
-        LinkedList<Gap> previousGaps = new LinkedList();
+        LinkedList<Gap> previousGaps = new LinkedList<>();
         // Remove requirements from resource description
         ResourceDescription requirements = resources.copy();
         Iterator<Gap> gapIt = gaps.iterator();
@@ -106,13 +105,13 @@ public class LocalOptimizationState {
 
             if (gapAction != null) {
                 MOSchedulingInformation gapDSI = (MOSchedulingInformation) gapAction.getSchedulingInfo();
-                //Remove resources from the first gap
+                // Remove resources from the first gap
                 gapDSI.addGap();
             }
 
-            //If the gap has been fully used
+            // If the gap has been fully used
             if (rd.isDynamicUseless()) {
-                //Remove the gap
+                // Remove the gap
                 remove = true;
                 if (gapAction != null) {
                     MOSchedulingInformation gapDSI = (MOSchedulingInformation) gapAction.getSchedulingInfo();
@@ -144,7 +143,7 @@ public class LocalOptimizationState {
         this.action = action;
         if (this.action != null) {
             missingResources = this.action.getAssignedImplementation().getRequirements().copy();
-            //Check if the new peek can run in the already freed resources.
+            // Check if the new peek can run in the already freed resources.
             for (Gap gap : gaps) {
                 ResourceDescription empty = gap.getResources().copy();
                 topStartTime = gap.getInitialTime();
@@ -265,10 +264,10 @@ public class LocalOptimizationState {
     public AllocatableAction pollActionForGap(Gap gap) {
         AllocatableAction gapAction = null;
         PriorityQueue<AllocatableAction> peeks = selectableActions.peekAll();
-        //Get Main action to fill the gap
+        // Get Main action to fill the gap
         while (!peeks.isEmpty() && gapAction == null) {
             AllocatableAction candidate = peeks.poll();
-            //Check times
+            // Check times
             MOSchedulingInformation candidateDSI = (MOSchedulingInformation) candidate.getSchedulingInfo();
             long start = candidateDSI.getExpectedStart();
             if (start > gap.getEndTime()) {
@@ -284,7 +283,7 @@ public class LocalOptimizationState {
                 continue;
             }
 
-            //Check description
+            // Check description
             if (gap.getResources().canHostDynamic(impl)) {
                 selectableActions.removeFirst(candidate.getCoreId());
                 gapAction = candidate;
@@ -323,13 +322,9 @@ public class LocalOptimizationState {
         return dataBlockingAction;
     }
 
-    public void classifyAction(
-            AllocatableAction action,
-            boolean hasInternal,
-            boolean hasExternal,
-            boolean hasResourcePredecessors,
+    public void classifyAction(AllocatableAction action, boolean hasInternal, boolean hasExternal, boolean hasResourcePredecessors,
             long startTime) {
-        if (!hasInternal) { //Not needs to wait for some blocked action to end
+        if (!hasInternal) { // Not needs to wait for some blocked action to end
             if (hasExternal) {
                 if (startTime == 0) {
                     selectableActions.offer(action);
@@ -338,7 +333,7 @@ public class LocalOptimizationState {
                 } else {
                     readyActions.add(action);
                 }
-            } else //has no dependencies
+            } else // has no dependencies
             {
                 if (hasResourcePredecessors) {
                     selectableActions.offer(action);
@@ -447,7 +442,7 @@ public class LocalOptimizationState {
         }
     }
 
-    //CONSUMPTIONS
+    // CONSUMPTIONS
     public void updateConsumptions(AllocatableAction action) {
         Implementation impl = action.getAssignedImplementation();
         MOProfile p = (MOProfile) worker.getProfile(impl);

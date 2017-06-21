@@ -40,9 +40,10 @@ import java.util.concurrent.Semaphore;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+
 /**
- * Component used as interface between the task analysis and the task scheduler
- * Manage and handles requests for task execution, task status, etc.
+ * Component used as interface between the task analysis and the task scheduler Manage and handles requests for task
+ * execution, task status, etc.
  *
  */
 public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrator {
@@ -65,12 +66,13 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     private static final String ERR_LOAD_SCHEDULER = "Error loading scheduler";
     private static final String ERROR_QUEUE_OFFER = "ERROR: TaskDispatcher queue offer error on ";
 
+
     /**
      * Creates a new task dispatcher instance
      *
      */
     @SuppressWarnings("unchecked")
-    public TaskDispatcher() {
+    public <A extends WorkerResourceDescription> TaskDispatcher() {
         requestQueue = new LinkedBlockingDeque<>();
         dispatcher = new Thread(this);
         dispatcher.setName("Task Dispatcher");
@@ -102,8 +104,9 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         }
 
         // Insert workers
-        for (Worker<? extends WorkerResourceDescription> worker : ResourceManager.getAllWorkers()) {
-            scheduler.updateWorker(worker, new PerformedIncrease(worker.getDescription()));
+        for (Worker<?> worker : ResourceManager.getAllWorkers()) {
+            Worker<A> w = (Worker<A>) worker;
+            scheduler.updateWorker(w, new PerformedIncrease<A>(w.getDescription()));
         }
         LOGGER.info("Initialization finished");
     }
@@ -257,10 +260,9 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <T extends WorkerResourceDescription> void updatedResource(Worker<T> r, ResourceUpdate<T> modification) {
-        WorkerUpdateRequest<T> request = new WorkerUpdateRequest(r, modification);
+        WorkerUpdateRequest<T> request = new WorkerUpdateRequest<>(r, modification);
         addPrioritaryRequest(request);
     }
 
@@ -304,8 +306,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
             LOGGER.debug("Registering new CoreElement");
         }
         Semaphore sem = new Semaphore(0);
-        CERegistration request = new CERegistration(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs,
-                sem);
+        CERegistration request = new CERegistration(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs, sem);
         addRequest(request);
 
         // Waiting for registration
@@ -356,13 +357,12 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         }
     }
 
-    @SuppressWarnings("unchecked")
     private TaskScheduler constructScheduler() {
         TaskScheduler scheduler = null;
         try {
             String schedFQN = System.getProperty(ITConstants.IT_SCHEDULER);
             Class<?> schedClass = Class.forName(schedFQN);
-            Constructor schedCnstr = schedClass.getDeclaredConstructors()[0];
+            Constructor<?> schedCnstr = schedClass.getDeclaredConstructors()[0];
             scheduler = (TaskScheduler) schedCnstr.newInstance();
             if (DEBUG) {
                 LOGGER.debug("Loaded scheduler " + scheduler);

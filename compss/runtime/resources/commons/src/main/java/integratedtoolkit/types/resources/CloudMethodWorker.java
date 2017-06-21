@@ -10,21 +10,24 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+
 public class CloudMethodWorker extends MethodWorker {
 
     // Pending removals
     private final LinkedList<PendingReduction<MethodResourceDescription>> pendingReductions;
     private final CloudMethodResourceDescription toRemove;
 
-    public CloudMethodWorker(CloudMethodResourceDescription description,
-            COMPSsWorker worker, int limitOfTasks, HashMap<String, String> sharedDisks) {
+
+    public CloudMethodWorker(CloudMethodResourceDescription description, COMPSsWorker worker, int limitOfTasks,
+            HashMap<String, String> sharedDisks) {
+
         super(description.getName(), description, worker, limitOfTasks, sharedDisks);
         this.toRemove = new CloudMethodResourceDescription();
         this.pendingReductions = new LinkedList<>();
     }
 
-    public CloudMethodWorker(String name, CloudMethodResourceDescription description,
-            MethodConfiguration config, HashMap<String, String> sharedDisks) {
+    public CloudMethodWorker(String name, CloudMethodResourceDescription description, MethodConfiguration config,
+            HashMap<String, String> sharedDisks) {
 
         super(name, description, config, sharedDisks);
 
@@ -98,9 +101,9 @@ public class CloudMethodWorker extends MethodWorker {
             // Performing as many as possible reductions
             synchronized (pendingReductions) {
                 if (!pendingReductions.isEmpty()) {
-                    Iterator<PendingReduction< MethodResourceDescription>> prIt = pendingReductions.iterator();
+                    Iterator<PendingReduction<MethodResourceDescription>> prIt = pendingReductions.iterator();
                     while (prIt.hasNext()) {
-                        PendingReduction< MethodResourceDescription> pRed = prIt.next();
+                        PendingReduction<MethodResourceDescription> pRed = prIt.next();
                         if (available.containsDynamic(pRed.getModification())) {
                             // Perform reduction
                             available.reduce(pRed.getModification());
@@ -122,7 +125,7 @@ public class CloudMethodWorker extends MethodWorker {
         }
     }
 
-    public synchronized void applyReduction(PendingReduction pRed) {
+    public synchronized void applyReduction(PendingReduction<MethodResourceDescription> pRed) {
         MethodResourceDescription reduction = (MethodResourceDescription) pRed.getModification();
         synchronized (description) {
             description.reduce(reduction);

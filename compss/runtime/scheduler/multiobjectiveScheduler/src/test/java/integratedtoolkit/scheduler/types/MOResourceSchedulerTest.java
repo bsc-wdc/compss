@@ -18,10 +18,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-/**
- *
- * @author flordan
- */
+
 public class MOResourceSchedulerTest {
 
     private static final double DEFAULT_IDLE_POWER = 1;
@@ -42,8 +39,11 @@ public class MOResourceSchedulerTest {
     private static final double SET_POWER = 4.3;
     private static final double SET_PRICE = 0.45;
 
-    private static final String SET_PROFILE = "{\"maxTime\":" + (SET_MAX_EXECUTION_TIME) + ",\"executions\":" + (SET_EXECUTION_COUNT) + ",\"avgTime\":" + (SET_AVG_EXECUTION_TIME) + ",\"minTime\":" + (SET_MIN_EXECUTION_TIME) + ",\"power\":" + (SET_POWER) + ",\"price\":" + (SET_PRICE) + "}";
+    private static final String SET_PROFILE = "{\"maxTime\":" + (SET_MAX_EXECUTION_TIME) + ",\"executions\":" + (SET_EXECUTION_COUNT)
+            + ",\"avgTime\":" + (SET_AVG_EXECUTION_TIME) + ",\"minTime\":" + (SET_MIN_EXECUTION_TIME) + ",\"power\":" + (SET_POWER)
+            + ",\"price\":" + (SET_PRICE) + "}";
     private static FakeWorker worker;
+
 
     @BeforeClass
     public static void setUpClass() {
@@ -88,7 +88,7 @@ public class MOResourceSchedulerTest {
 
     @Test
     public void testNull() {
-        MOResourceScheduler rs = new MOResourceScheduler(worker, null);
+        MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker, null);
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
             for (Implementation impl : impls) {
@@ -96,7 +96,8 @@ public class MOResourceSchedulerTest {
                 try {
                     checkUnsetProfile(p);
                 } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on null test");
+                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core "
+                            + impl.getCoreId() + " on null test");
                 }
             }
         }
@@ -110,7 +111,8 @@ public class MOResourceSchedulerTest {
 
     @Test
     public void testEmpty() {
-        MOResourceScheduler rs = new MOResourceScheduler(worker, new JSONObject("{\"implementations\":{}}"));
+        MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker,
+                new JSONObject("{\"implementations\":{}}"));
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
             for (Implementation impl : impls) {
@@ -118,7 +120,8 @@ public class MOResourceSchedulerTest {
                 try {
                     checkUnsetProfile(p);
                 } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on empty test");
+                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core "
+                            + impl.getCoreId() + " on empty test");
                 }
             }
         }
@@ -132,7 +135,9 @@ public class MOResourceSchedulerTest {
 
     @Test
     public void testAllSetNoPrice() {
-        MOResourceScheduler rs = new MOResourceScheduler(worker, new JSONObject("{\"idlePrice\": " + SET_IDLE_PRICE + ", \"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_PROFILE + "," + "\"ClassA.methodB\":" + SET_PROFILE + "}}"));
+        MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker,
+                new JSONObject("{\"idlePrice\": " + SET_IDLE_PRICE + ", \"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + ","
+                        + "\"ClassB.methodA\":" + SET_PROFILE + "," + "\"ClassA.methodB\":" + SET_PROFILE + "}}"));
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
             for (Implementation impl : impls) {
@@ -140,7 +145,8 @@ public class MOResourceSchedulerTest {
                 try {
                     checkSetProfile(p);
                 } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on all set no-price test");
+                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core "
+                            + impl.getCoreId() + " on all set no-price test");
                 }
             }
         }
@@ -154,7 +160,9 @@ public class MOResourceSchedulerTest {
 
     @Test
     public void testAllSetNoPower() {
-        MOResourceScheduler rs = new MOResourceScheduler(worker, new JSONObject("{\"idlePrice\": " + SET_IDLE_PRICE + ", \"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_PROFILE + "," + "\"ClassA.methodB\":" + SET_PROFILE + "}}"));
+        MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker,
+                new JSONObject("{\"idlePrice\": " + SET_IDLE_PRICE + ", \"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + ","
+                        + "\"ClassB.methodA\":" + SET_PROFILE + "," + "\"ClassA.methodB\":" + SET_PROFILE + "}}"));
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
             for (Implementation impl : impls) {
@@ -162,7 +170,8 @@ public class MOResourceSchedulerTest {
                 try {
                     checkSetProfile(p);
                 } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on all set no-power  test");
+                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core "
+                            + impl.getCoreId() + " on all set no-power  test");
                 }
             }
         }
@@ -176,7 +185,10 @@ public class MOResourceSchedulerTest {
 
     @Test
     public void testAllSet() {
-        MOResourceScheduler rs = new MOResourceScheduler(worker, new JSONObject("{\"idlePower\": " + SET_IDLE_POWER + ", \"idlePrice\": " + SET_IDLE_PRICE + ", \"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_PROFILE + "," + "\"ClassA.methodB\":" + SET_PROFILE + "}}"));
+        MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker,
+                new JSONObject("{\"idlePower\": " + SET_IDLE_POWER + ", \"idlePrice\": " + SET_IDLE_PRICE
+                        + ", \"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_PROFILE + ","
+                        + "\"ClassA.methodB\":" + SET_PROFILE + "}}"));
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
             for (Implementation impl : impls) {
@@ -184,7 +196,8 @@ public class MOResourceSchedulerTest {
                 try {
                     checkSetProfile(p);
                 } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on all set test");
+                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core "
+                            + impl.getCoreId() + " on all set test");
                 }
             }
         }
@@ -198,9 +211,12 @@ public class MOResourceSchedulerTest {
 
     @Test
     public void testAllSetCopy() {
-        MOResourceScheduler rs = new MOResourceScheduler(worker, new JSONObject("{\"idlePower\": " + SET_IDLE_POWER + ", \"idlePrice\": " + SET_IDLE_PRICE + ", \"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_PROFILE + "," + "\"ClassA.methodB\":" + SET_PROFILE + "}}"));
+        MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker,
+                new JSONObject("{\"idlePower\": " + SET_IDLE_POWER + ", \"idlePrice\": " + SET_IDLE_PRICE
+                        + ", \"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_PROFILE + ","
+                        + "\"ClassA.methodB\":" + SET_PROFILE + "}}"));
         JSONObject jo = rs.toJSONObject();
-        rs = new MOResourceScheduler(worker, jo);
+        rs = new MOResourceScheduler<MethodResourceDescription>(worker, jo);
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
             for (Implementation impl : impls) {
@@ -208,7 +224,8 @@ public class MOResourceSchedulerTest {
                 try {
                     checkSetProfile(p);
                 } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on all set test");
+                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core "
+                            + impl.getCoreId() + " on all set test");
                 }
             }
         }
@@ -262,9 +279,16 @@ public class MOResourceSchedulerTest {
         }
     }
 
+
     private class CheckerException extends Exception {
 
+        /**
+         * Runtime exceptions are always 2L
+         */
+        private static final long serialVersionUID = 2L;
+
         private final String feature;
+
 
         public CheckerException(String feature) {
             this.feature = feature;

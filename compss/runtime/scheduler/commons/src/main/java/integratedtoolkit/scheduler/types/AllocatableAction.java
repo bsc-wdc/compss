@@ -21,9 +21,9 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+
 /**
- * Abstract representation of an Allocatable Action (task execution, task
- * transfer, etc.)
+ * Abstract representation of an Allocatable Action (task execution, task transfer, etc.)
  *
  */
 public abstract class AllocatableAction {
@@ -39,6 +39,7 @@ public abstract class AllocatableAction {
         FINISHED, // Action has been successfully completed
         FAILED // Action has failed
     }
+
 
     // Logger
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
@@ -203,8 +204,7 @@ public abstract class AllocatableAction {
     /**
      * Tells if the action has to run in the same resource as another action.
      *
-     * @return {@literal true} if the action scheduling is constrained to a
-     * certain resource.
+     * @return {@literal true} if the action scheduling is constrained to a certain resource.
      */
     public final boolean isTargetResourceEnforced() {
         return schedulingInfo.getEnforcedTargetResource() != null;
@@ -217,8 +217,7 @@ public abstract class AllocatableAction {
     /**
      * Tells if the action has to run in the same resource as another action.
      *
-     * @return {@literal true} if the action scheduling is constrained to a
-     * certain resource.
+     * @return {@literal true} if the action scheduling is constrained to a certain resource.
      */
     public final boolean isSchedulingConstrained() {
         return !schedulingInfo.getConstrainingPredecessors().isEmpty();
@@ -378,12 +377,9 @@ public abstract class AllocatableAction {
         // Gets the lock on the action
         lock.lock();
         if ( // has an assigned resource where to run
-                selectedResource != null
-                && // has not been started yet
-                state == State.RUNNABLE
-                && // has no data dependencies with other methods
-                !hasDataPredecessors()
-                && // scheduler does not block the execution
+        selectedResource != null && // has not been started yet
+                state == State.RUNNABLE && // has no data dependencies with other methods
+                !hasDataPredecessors() && // scheduler does not block the execution
                 schedulingInfo.isExecutable()) {
 
             // Invalid scheduling -> Should run in a specific resource and the assigned resource is not the required
@@ -448,8 +444,7 @@ public abstract class AllocatableAction {
     }
 
     /**
-     * Returns if the AllocatableAction needs to reserve some resources for its
-     * execution
+     * Returns if the AllocatableAction needs to reserve some resources for its execution
      *
      * @return
      */
@@ -460,14 +455,14 @@ public abstract class AllocatableAction {
      *
      * @return
      */
+    @SuppressWarnings("unchecked")
     private boolean areEnoughResources() {
         Worker<WorkerResourceDescription> w = (Worker<WorkerResourceDescription>) selectedResource.getResource();
         return w.canRunNow(selectedImpl.getRequirements());
     }
 
     /**
-     * Returns if the AllocatableAction releases some resources after its
-     * execution
+     * Returns if the AllocatableAction releases some resources after its execution
      *
      * @return
      */
@@ -477,9 +472,10 @@ public abstract class AllocatableAction {
      * Reserves the needed resources to run the action
      *
      */
+    @SuppressWarnings("unchecked")
     private void reserveResources() {
         if (isToReserveResources()) {
-            Worker<WorkerResourceDescription> w = (Worker< WorkerResourceDescription>) selectedResource.getResource();
+            Worker<WorkerResourceDescription> w = (Worker<WorkerResourceDescription>) selectedResource.getResource();
             resourceConsumption = w.runTask(selectedImpl.getRequirements());
         }
     }
@@ -496,9 +492,10 @@ public abstract class AllocatableAction {
      * Releases the needed resources to run the action
      *
      */
+    @SuppressWarnings("unchecked")
     private void releaseResources() {
         if (isToReleaseResources()) {
-            Worker<WorkerResourceDescription> w = (Worker< WorkerResourceDescription>) selectedResource.getResource();
+            Worker<WorkerResourceDescription> w = (Worker<WorkerResourceDescription>) selectedResource.getResource();
             w.endTask(resourceConsumption);
         }
     }
@@ -518,8 +515,7 @@ public abstract class AllocatableAction {
     protected abstract void doAction();
 
     /**
-     * Operations to perform when AA has been successfully completed. It calls
-     * specific operation doCompleted
+     * Operations to perform when AA has been successfully completed. It calls specific operation doCompleted
      *
      * @return
      */
@@ -547,8 +543,7 @@ public abstract class AllocatableAction {
     }
 
     /**
-     * Operations to perform when AA has raised an error. Calls specific
-     * operation doError
+     * Operations to perform when AA has raised an error. Calls specific operation doError
      *
      * @throws integratedtoolkit.scheduler.exceptions.FailedActionException
      */
@@ -566,8 +561,7 @@ public abstract class AllocatableAction {
     }
 
     /**
-     * Operations to perform when AA has totally failed Calls specific operation
-     * doFailed
+     * Operations to perform when AA has totally failed Calls specific operation doFailed
      *
      * @return
      */
@@ -582,11 +576,11 @@ public abstract class AllocatableAction {
                 selectedResource.cancelAction(this);
                 cancelled = true;
             } catch (ActionNotFoundException anfe) {
-                //Action could not be cancelled since it was not scheduled to the resource
-                //Wait until a new resource is assigned
+                // Action could not be cancelled since it was not scheduled to the resource
+                // Wait until a new resource is assigned
                 while (selectedResource != null) {
                 }
-                //Try to cancel its execution on the new resource
+                // Try to cancel its execution on the new resource
             }
         }
         // Predecessors -> ignore Action
@@ -653,18 +647,19 @@ public abstract class AllocatableAction {
      * Tells is the action can run in a given resource.
      *
      * @param <W>
-     * @param r Resource where the action should run.
+     * @param r
+     *            Resource where the action should run.
      *
      * @return {@literal true} if the action can run in the given resource.
      */
     public abstract <W extends WorkerResourceDescription> boolean isCompatible(Worker<W> r);
 
     /**
-     * Returns all the implementations for the action that can run on the given
-     * resource.
+     * Returns all the implementations for the action that can run on the given resource.
      *
      * @param <T>
-     * @param r resource that should run the action
+     * @param r
+     *            resource that should run the action
      *
      * @return list of the action implementations that can run on the resource.
      */

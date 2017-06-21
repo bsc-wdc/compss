@@ -24,10 +24,9 @@ import commons.Action;
 import commons.ConstantValues;
 
 
-/*
- * Checks the resources information stored inside the Runtime.
- * Takes the project.xml / resources information and the ITF information
- * Checks the mapping between ITF CoreElement and runnable resources (static constraint check)
+/**
+ * Checks the resources information stored inside the Runtime. Takes the project.xml / resources information and the ITF
+ * information Checks the mapping between ITF CoreElement and runnable resources (static constraint check)
  */
 public class TestCompatible {
 
@@ -57,7 +56,6 @@ public class TestCompatible {
      * RESOURCE MANAGER TEST IMPLEMENTATION
      * **********************************************************************************************************
      */
-    @SuppressWarnings("unchecked")
     private static void resourceManagerTest() {
         coreCount = CoreManager.getCoreCount();
 

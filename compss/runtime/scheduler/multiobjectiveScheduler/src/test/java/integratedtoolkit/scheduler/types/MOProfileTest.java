@@ -10,10 +10,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-/**
- *
- * @author flordan
- */
+
 public class MOProfileTest {
 
     private static final long DEFAULT_MIN_EXECUTION_TIME = Long.MAX_VALUE;
@@ -29,6 +26,7 @@ public class MOProfileTest {
     private static final long SET_EXECUTION_COUNT = 3l;
     private static final double SET_POWER = 4.3;
     private static final double SET_PRICE = 0.45;
+
 
     @BeforeClass
     public static void setUpClass() {
@@ -117,14 +115,9 @@ public class MOProfileTest {
 
     @Test
     public void testCompleteJSON() {
-        MOProfile p = new MOProfile(new JSONObject("{"
-                + "\"executions\":" + SET_EXECUTION_COUNT + ","
-                + "\"maxTime\":" + SET_MAX_EXECUTION_TIME + ","
-                + "\"minTime\":" + SET_MIN_EXECUTION_TIME + ","
-                + "\"avgTime\":" + SET_AVG_EXECUTION_TIME + ","
-                + "\"power\":" + SET_POWER + ","
-                + "\"price\":" + SET_PRICE
-                + "}"));
+        MOProfile p = new MOProfile(new JSONObject("{" + "\"executions\":" + SET_EXECUTION_COUNT + "," + "\"maxTime\":"
+                + SET_MAX_EXECUTION_TIME + "," + "\"minTime\":" + SET_MIN_EXECUTION_TIME + "," + "\"avgTime\":" + SET_AVG_EXECUTION_TIME
+                + "," + "\"power\":" + SET_POWER + "," + "\"price\":" + SET_PRICE + "}"));
         if (p.getExecutionCount() != SET_EXECUTION_COUNT) {
             fail("Invalid  execution count on complete JSON constructor");
         }
@@ -147,13 +140,9 @@ public class MOProfileTest {
 
     @Test
     public void testNoExecCountJSON() {
-        MOProfile p = new MOProfile(new JSONObject("{"
-                + "\"maxTime\":" + SET_MAX_EXECUTION_TIME + ","
-                + "\"minTime\":" + SET_MIN_EXECUTION_TIME + ","
-                + "\"avgTime\":" + SET_AVG_EXECUTION_TIME + ","
-                + "\"power\":" + SET_POWER + ","
-                + "\"price\":" + SET_PRICE
-                + "}"));
+        MOProfile p = new MOProfile(
+                new JSONObject("{" + "\"maxTime\":" + SET_MAX_EXECUTION_TIME + "," + "\"minTime\":" + SET_MIN_EXECUTION_TIME + ","
+                        + "\"avgTime\":" + SET_AVG_EXECUTION_TIME + "," + "\"power\":" + SET_POWER + "," + "\"price\":" + SET_PRICE + "}"));
         if (p.getExecutionCount() != DEFAULT_EXECUTION_COUNT) {
             fail("Invalid  execution count on no execution count JSON constructor");
         }
@@ -176,13 +165,9 @@ public class MOProfileTest {
 
     @Test
     public void testNoMinJSON() {
-        MOProfile p = new MOProfile(new JSONObject("{"
-                + "\"executions\":" + SET_EXECUTION_COUNT + ","
-                + "\"maxTime\":" + SET_MAX_EXECUTION_TIME + ","
-                + "\"avgTime\":" + SET_AVG_EXECUTION_TIME + ","
-                + "\"power\":" + SET_POWER + ","
-                + "\"price\":" + SET_PRICE
-                + "}"));
+        MOProfile p = new MOProfile(
+                new JSONObject("{" + "\"executions\":" + SET_EXECUTION_COUNT + "," + "\"maxTime\":" + SET_MAX_EXECUTION_TIME + ","
+                        + "\"avgTime\":" + SET_AVG_EXECUTION_TIME + "," + "\"power\":" + SET_POWER + "," + "\"price\":" + SET_PRICE + "}"));
         if (p.getExecutionCount() != SET_EXECUTION_COUNT) {
             fail("Invalid execution count on no min JSON constructor");
         }
@@ -205,13 +190,9 @@ public class MOProfileTest {
 
     @Test
     public void testNoAverageJSON() {
-        MOProfile p = new MOProfile(new JSONObject("{"
-                + "\"executions\":" + SET_EXECUTION_COUNT + ","
-                + "\"maxTime\":" + SET_MAX_EXECUTION_TIME + ","
-                + "\"minTime\":" + SET_MIN_EXECUTION_TIME + ","
-                + "\"power\":" + SET_POWER + ","
-                + "\"price\":" + SET_PRICE
-                + "}"));
+        MOProfile p = new MOProfile(
+                new JSONObject("{" + "\"executions\":" + SET_EXECUTION_COUNT + "," + "\"maxTime\":" + SET_MAX_EXECUTION_TIME + ","
+                        + "\"minTime\":" + SET_MIN_EXECUTION_TIME + "," + "\"power\":" + SET_POWER + "," + "\"price\":" + SET_PRICE + "}"));
         if (p.getExecutionCount() != SET_EXECUTION_COUNT) {
             fail("Invalid execution count on no average JSON constructor");
         }
@@ -234,13 +215,9 @@ public class MOProfileTest {
 
     @Test
     public void testNoMaxJSON() {
-        MOProfile p = new MOProfile(new JSONObject("{"
-                + "\"executions\":" + SET_EXECUTION_COUNT + ","
-                + "\"minTime\":" + SET_MIN_EXECUTION_TIME + ","
-                + "\"avgTime\":" + SET_AVG_EXECUTION_TIME + ","
-                + "\"power\":" + SET_POWER + ","
-                + "\"price\":" + SET_PRICE
-                + "}"));
+        MOProfile p = new MOProfile(
+                new JSONObject("{" + "\"executions\":" + SET_EXECUTION_COUNT + "," + "\"minTime\":" + SET_MIN_EXECUTION_TIME + ","
+                        + "\"avgTime\":" + SET_AVG_EXECUTION_TIME + "," + "\"power\":" + SET_POWER + "," + "\"price\":" + SET_PRICE + "}"));
         if (p.getExecutionCount() != SET_EXECUTION_COUNT) {
             fail("Invalid execution count on no max JSON constructor");
         }
@@ -263,13 +240,9 @@ public class MOProfileTest {
 
     @Test
     public void testNoPowerJSON() {
-        MOProfile p = new MOProfile(new JSONObject("{"
-                + "\"executions\":" + SET_EXECUTION_COUNT + ","
-                + "\"maxTime\":" + SET_MAX_EXECUTION_TIME + ","
-                + "\"minTime\":" + SET_MIN_EXECUTION_TIME + ","
-                + "\"avgTime\":" + SET_AVG_EXECUTION_TIME + ","
-                + "\"price\":" + SET_PRICE
-                + "}"));
+        MOProfile p = new MOProfile(new JSONObject(
+                "{" + "\"executions\":" + SET_EXECUTION_COUNT + "," + "\"maxTime\":" + SET_MAX_EXECUTION_TIME + "," + "\"minTime\":"
+                        + SET_MIN_EXECUTION_TIME + "," + "\"avgTime\":" + SET_AVG_EXECUTION_TIME + "," + "\"price\":" + SET_PRICE + "}"));
         if (p.getExecutionCount() != SET_EXECUTION_COUNT) {
             fail("Invalid execution count on no max JSON constructor");
         }
@@ -293,13 +266,9 @@ public class MOProfileTest {
     @Test
 
     public void testNoPriceJSON() {
-        MOProfile p = new MOProfile(new JSONObject("{"
-                + "\"executions\":" + SET_EXECUTION_COUNT + ","
-                + "\"maxTime\":" + SET_MAX_EXECUTION_TIME + ","
-                + "\"minTime\":" + SET_MIN_EXECUTION_TIME + ","
-                + "\"avgTime\":" + SET_AVG_EXECUTION_TIME + ","
-                + "\"power\":" + SET_POWER
-                + "}"));
+        MOProfile p = new MOProfile(new JSONObject(
+                "{" + "\"executions\":" + SET_EXECUTION_COUNT + "," + "\"maxTime\":" + SET_MAX_EXECUTION_TIME + "," + "\"minTime\":"
+                        + SET_MIN_EXECUTION_TIME + "," + "\"avgTime\":" + SET_AVG_EXECUTION_TIME + "," + "\"power\":" + SET_POWER + "}"));
         if (p.getExecutionCount() != SET_EXECUTION_COUNT) {
             fail("Invalid execution count on no price JSON constructor");
         }
@@ -322,14 +291,9 @@ public class MOProfileTest {
 
     @Test
     public void toJSONObjectTest() {
-        MOProfile original = new MOProfile(new JSONObject("{"
-                + "\"executions\":" + SET_EXECUTION_COUNT + ","
-                + "\"maxTime\":" + SET_MAX_EXECUTION_TIME + ","
-                + "\"minTime\":" + SET_MIN_EXECUTION_TIME + ","
-                + "\"avgTime\":" + SET_AVG_EXECUTION_TIME + ","
-                + "\"power\":" + SET_POWER + ","
-                + "\"price\":" + SET_PRICE
-                + "}"));
+        MOProfile original = new MOProfile(new JSONObject("{" + "\"executions\":" + SET_EXECUTION_COUNT + "," + "\"maxTime\":"
+                + SET_MAX_EXECUTION_TIME + "," + "\"minTime\":" + SET_MIN_EXECUTION_TIME + "," + "\"avgTime\":" + SET_AVG_EXECUTION_TIME
+                + "," + "\"power\":" + SET_POWER + "," + "\"price\":" + SET_PRICE + "}"));
         JSONObject jsonObject = original.toJSONObject();
         MOProfile p = new MOProfile(jsonObject);
         if (p.getExecutionCount() != SET_EXECUTION_COUNT) {

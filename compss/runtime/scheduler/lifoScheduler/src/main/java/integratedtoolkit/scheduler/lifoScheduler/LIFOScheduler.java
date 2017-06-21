@@ -10,9 +10,9 @@ import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import org.json.JSONObject;
 
+
 /**
- * Representation of a Scheduler that considers only ready tasks and sorts them
- * in LIFO mode
+ * Representation of a Scheduler that considers only ready tasks and sorts them in LIFO mode
  *
  */
 public class LIFOScheduler extends ReadyScheduler {
@@ -33,7 +33,7 @@ public class LIFOScheduler extends ReadyScheduler {
      * *********************************************************************************************************
      */
     @Override
-    public <T extends WorkerResourceDescription> LIFOResourceScheduler generateSchedulerForResource(Worker<T> w, JSONObject json) {
+    public <T extends WorkerResourceDescription> LIFOResourceScheduler<T> generateSchedulerForResource(Worker<T> w, JSONObject json) {
         // LOGGER.info("[LIFOScheduler] Generate scheduler for resource " + w.getName());
         return new LIFOResourceScheduler<>(w, json);
     }
@@ -52,10 +52,8 @@ public class LIFOScheduler extends ReadyScheduler {
      * *********************************************************************************************************
      */
     @Override
-    public <T extends WorkerResourceDescription> void purgeFreeActions(
-            LinkedList<AllocatableAction> dataFreeActions,
-            LinkedList<AllocatableAction> resourceFreeActions,
-            LinkedList<AllocatableAction> blockedCandidates,
+    public <T extends WorkerResourceDescription> void purgeFreeActions(LinkedList<AllocatableAction> dataFreeActions,
+            LinkedList<AllocatableAction> resourceFreeActions, LinkedList<AllocatableAction> blockedCandidates,
             ResourceScheduler<T> resource) {
 
         LinkedList<AllocatableAction> unassignedReadyActions = this.unassignedReadyActions.getAllActions();

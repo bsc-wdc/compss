@@ -20,66 +20,66 @@ import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.concurrent.Semaphore;
 
+
 public class MOScheduleOptimizer extends Thread {
 
-    private static long OPTIMIZATION_THRESHOLD = 5_000;
-    private MOScheduler scheduler;
-    private boolean stop = false;
+    // private static long OPTIMIZATION_THRESHOLD = 5_000;
+    // private MOScheduler scheduler;
+    // private boolean stop = false;
     private Semaphore sem = new Semaphore(0);
+
 
     public MOScheduleOptimizer(MOScheduler scheduler) {
         this.setName("ScheduleOptimizer");
-        this.scheduler = scheduler;
+        // this.scheduler = scheduler;
     }
 
     public void run() {
-        long lastUpdate = System.currentTimeMillis();
+        // long lastUpdate = System.currentTimeMillis();
         try {
             Thread.sleep(500);
         } catch (InterruptedException ie) {
-            //Do nothing
+            // Do nothing
         }
-        /*while (!stop) {
-            long optimizationTS = System.currentTimeMillis();
-            Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers = scheduler.getWorkers();
-            globalOptimization(optimizationTS, workers);
-            lastUpdate = optimizationTS;
-            waitForNextIteration(lastUpdate);
-        }*/
+        // while (!stop) {
+        // long optimizationTS = System.currentTimeMillis();
+        // Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers = scheduler.getWorkers();
+        // globalOptimization(optimizationTS, workers);
+        // lastUpdate = optimizationTS;
+        // waitForNextIteration(lastUpdate);
+        // }
         sem.release();
     }
 
     public void shutdown() throws InterruptedException {
-        stop = true;
+        // stop = true;
         this.interrupt();
         sem.acquire();
     }
 
-    private void waitForNextIteration(long lastUpdate) {
-        long difference = OPTIMIZATION_THRESHOLD - (System.currentTimeMillis() - lastUpdate);
-        if (difference > 0) {
-            try {
-                Thread.sleep(difference);
-            } catch (InterruptedException ie) {
-                //Do nothing. Wake up in case of shutdown received
-            }
-        }
-    }
+    // private void waitForNextIteration(long lastUpdate) {
+    // long difference = OPTIMIZATION_THRESHOLD - (System.currentTimeMillis() - lastUpdate);
+    // if (difference > 0) {
+    // try {
+    // Thread.sleep(difference);
+    // } catch (InterruptedException ie) {
+    // Thread.currentThread.interrupt();
+    // }
+    // }
 
     /*--------------------------------------------------
      ---------------------------------------------------
      --------------- Local  optimization ---------------
      ---------------------------------------------------
      --------------------------------------------------*/
-    public void globalOptimization(long optimizationTS,
-            Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers
-    ) {
+    @SuppressWarnings("unchecked")
+    public void globalOptimization(long optimizationTS, Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers) {
         int workersCount = workers.size();
         if (workersCount == 0) {
             return;
         }
         OptimizationWorker[] optimizedWorkers = new OptimizationWorker[workersCount];
-        LinkedList<OptimizationWorker> receivers = new LinkedList();
+        LinkedList<OptimizationWorker> receivers = new LinkedList<>();
         int i = 0;
         for (ResourceScheduler<? extends WorkerResourceDescription> worker : workers) {
             optimizedWorkers[i] = new OptimizationWorker((MOResourceScheduler<WorkerResourceDescription>) worker);
@@ -91,7 +91,7 @@ public class MOScheduleOptimizer extends Thread {
             optimizationTS = System.currentTimeMillis();
             hasDonated = false;
             System.out.println("-----------------------------------------");
-            //Perform local optimizations
+            // Perform local optimizations
             for (OptimizationWorker ow : optimizedWorkers) {
                 ow.localOptimization(optimizationTS);
                 System.out.println(ow.getName() + " will end at " + ow.getDonationIndicator());
@@ -118,14 +118,13 @@ public class MOScheduleOptimizer extends Thread {
         }
     }
 
-    public static LinkedList<OptimizationWorker> determineDonorAndReceivers(
-            OptimizationWorker[] workers,
-            LinkedList<OptimizationWorker> receivers
-    ) {
+    public static LinkedList<OptimizationWorker> determineDonorAndReceivers(OptimizationWorker[] workers,
+            LinkedList<OptimizationWorker> receivers) {
+
         receivers.clear();
         PriorityQueue<OptimizationWorker> receiversPQ = new PriorityQueue<OptimizationWorker>(1, getReceptionComparator());
         long topIndicator = Long.MIN_VALUE;
-        LinkedList<OptimizationWorker> top = new LinkedList();
+        LinkedList<OptimizationWorker> top = new LinkedList<>();
 
         for (OptimizationWorker ow : workers) {
             long indicator = ow.getDonationIndicator();
@@ -156,6 +155,7 @@ public class MOScheduleOptimizer extends Thread {
      --------------------------------------------------*/
     public static Comparator<AllocatableAction> getSelectionComparator() {
         return new Comparator<AllocatableAction>() {
+
             @Override
             public int compare(AllocatableAction action1, AllocatableAction action2) {
                 int priority = Integer.compare(action1.getPriority(), action2.getPriority());
@@ -170,6 +170,7 @@ public class MOScheduleOptimizer extends Thread {
 
     public static Comparator<AllocatableAction> getDonationComparator() {
         return new Comparator<AllocatableAction>() {
+
             @Override
             public int compare(AllocatableAction action1, AllocatableAction action2) {
                 MOSchedulingInformation action1DSI = (MOSchedulingInformation) action1.getSchedulingInfo();
@@ -186,6 +187,7 @@ public class MOScheduleOptimizer extends Thread {
 
     public static final Comparator<OptimizationWorker> getReceptionComparator() {
         return new Comparator<OptimizationWorker>() {
+
             @Override
             public int compare(OptimizationWorker worker1, OptimizationWorker worker2) {
                 return Long.compare(worker1.getDonationIndicator(), worker2.getDonationIndicator());
@@ -240,14 +242,16 @@ public class MOScheduleOptimizer extends Thread {
                 unscheduleFromWorker(action);
                 scheduleOnWorker(action, bestImpl, receiver);
             } catch (ActionNotFoundException anfe) {
-                //Action was already moved from the resource. Recompute Optimizations!!!
+                // Action was already moved from the resource. Recompute Optimizations!!!
             }
             return true;
         }
         return false;
     }
 
+
     private MOScore dummyScore = new MOScore(0, 0, 0, 0, 0, 0);
+
 
     public void scheduleOnWorker(AllocatableAction action, Implementation impl, OptimizationWorker ow) {
         boolean failedSpecificScheduling = false;
@@ -259,7 +263,7 @@ public class MOScheduleOptimizer extends Thread {
                 failedSpecificScheduling = true;
             }
         } catch (BlockedActionException bae) {
-            //Can not happen since there was an original source
+            // Can not happen since there was an original source
         } catch (UnassignedActionException be) {
             failedSpecificScheduling = true;
         }
@@ -273,16 +277,16 @@ public class MOScheduleOptimizer extends Thread {
                 try {
                     action.tryToLaunch();
                 } catch (InvalidSchedulingException ise2) {
-                    //Impossible exception if schedule method on action is ok.
+                    // Impossible exception if schedule method on action is ok.
                 }
             } catch (BlockedActionException | UnassignedActionException be) {
-                //Can not happen since there was an original source
+                // Can not happen since there was an original source
             }
         }
     }
 
     public void unscheduleFromWorker(AllocatableAction action) throws ActionNotFoundException {
-        MOResourceScheduler resource = (MOResourceScheduler) action.getAssignedResource();
+        MOResourceScheduler<?> resource = (MOResourceScheduler<?>) action.getAssignedResource();
         resource.unscheduleAction(action);
     }
 }

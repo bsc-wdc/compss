@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.TreeSet;
 
+
 public class WorkerPool {
 
     // Resource Sets:
@@ -22,6 +23,7 @@ public class WorkerPool {
 
     // TreeSet : Priority on criticalSet based on cost
     private final TreeSet<CloudMethodWorker> criticalOrder;
+
 
     public WorkerPool() {
         staticSet = new HashMap<>();
@@ -175,6 +177,7 @@ public class WorkerPool {
      *
      * @return a list with all the resources available
      */
+    @SuppressWarnings("unchecked")
     public LinkedList<Worker<? extends WorkerResourceDescription>> findAllResources() {
         LinkedList<Worker<? extends WorkerResourceDescription>> workers = new LinkedList<>();
 
@@ -255,23 +258,21 @@ public class WorkerPool {
         sb.append(prefix).append("]").append("\n");
 
         /*
-         //Cores
-         sb.append(prefix).append("CORES = [").append("\n");
-         for (int i = 0; i < CoreManager.getCoreCount(); i++) {
-         sb.append(prefix).append("\t").append("CORE = [").append("\n");
-         sb.append(prefix).append("\t").append("\t").append("ID = ").append(i).append("\n");
-         sb.append(prefix).append("\t").append("\t").append("MAXTASKCOUNT = ").append(coreMaxTaskCount[i]).append("\n");
-         sb.append(prefix).append("\t").append("\t").append("TORESOURCE = [").append("\n");
-         for (Worker<?,?> r : coreToResource[i]) {
-         sb.append(prefix).append("\t").append("\t").append("\t").append("RESOURCE = [").append("\n");
-         sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("NAME = ").append(r.getName()).append("\n");
-         sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("SIMTASKS = ").append(r.getSimultaneousTasks()[i]).append("\n");
-         sb.append(prefix).append("\t").append("\t").append("\t").append("]").append("\n");
-         }
-         sb.append(prefix).append("\t").append("\t").append("]").append("\n");
-         sb.append(prefix).append("\t").append("]").append("\n");
-         }
-         sb.append(prefix).append("]").append("\n");*/
+         * //Cores sb.append(prefix).append("CORES = [").append("\n"); for (int i = 0; i < CoreManager.getCoreCount();
+         * i++) { sb.append(prefix).append("\t").append("CORE = [").append("\n");
+         * sb.append(prefix).append("\t").append("\t").append("ID = ").append(i).append("\n");
+         * sb.append(prefix).append("\t").append("\t").append("MAXTASKCOUNT = ").append(coreMaxTaskCount[i]).append("\n"
+         * ); sb.append(prefix).append("\t").append("\t").append("TORESOURCE = [").append("\n"); for (Worker<?,?> r :
+         * coreToResource[i]) {
+         * sb.append(prefix).append("\t").append("\t").append("\t").append("RESOURCE = [").append("\n");
+         * sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("NAME = ").append(r.getName()).
+         * append("\n");
+         * sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("SIMTASKS = ").append(r.
+         * getSimultaneousTasks()[i]).append("\n");
+         * sb.append(prefix).append("\t").append("\t").append("\t").append("]").append("\n"); }
+         * sb.append(prefix).append("\t").append("\t").append("]").append("\n");
+         * sb.append(prefix).append("\t").append("]").append("\n"); } sb.append(prefix).append("]").append("\n");
+         */
         return sb.toString();
     }
 

@@ -5,7 +5,6 @@ import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.scheduler.multiobjective.types.MOProfile;
 import integratedtoolkit.scheduler.multiobjective.types.MOScore;
 import integratedtoolkit.scheduler.types.AllocatableAction;
-import integratedtoolkit.scheduler.types.ObjectValue;
 import integratedtoolkit.scheduler.types.Score;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.Worker;
@@ -15,13 +14,14 @@ import integratedtoolkit.util.ResourceOptimizer;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.PriorityQueue;
 import org.json.JSONObject;
+
 
 public class MOScheduler extends TaskScheduler {
 
     private final MOScore dummyScore = new MOScore(0, 0, 0, 0, 0, 0);
     private final MOScheduleOptimizer schedOptimizer = new MOScheduleOptimizer(this);
+
 
     public MOScheduler() {
         schedOptimizer.start();
@@ -33,13 +33,14 @@ public class MOScheduler extends TaskScheduler {
     }
 
     @Override
-    public <T extends WorkerResourceDescription> MOResourceScheduler generateSchedulerForResource(Worker<T> w, JSONObject json) {
+    public <T extends WorkerResourceDescription> MOResourceScheduler<T> generateSchedulerForResource(Worker<T> w, JSONObject json) {
         // LOGGER.debug("[LoadBalancingScheduler] Generate scheduler for resource " + w.getName());
         return new MOResourceScheduler<>(w, json);
     }
 
     @Override
-    public <T extends WorkerResourceDescription> MOSchedulingInformation generateSchedulingInformation(ResourceScheduler<T> enforcedTargetResource) {
+    public <T extends WorkerResourceDescription> MOSchedulingInformation generateSchedulingInformation(
+            ResourceScheduler<T> enforcedTargetResource) {
         return new MOSchedulingInformation(enforcedTargetResource);
     }
 
@@ -55,7 +56,7 @@ public class MOScheduler extends TaskScheduler {
         super.shutdown();
         Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers = this.getWorkers();
         System.out.println("End Profiles:");
-        for (ResourceScheduler worker : workers) {
+        for (ResourceScheduler<?> worker : workers) {
             System.out.println("\t" + worker.getName());
             for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
                 for (Implementation impl : CoreManager.getCoreImplementations(coreId)) {
@@ -69,9 +70,9 @@ public class MOScheduler extends TaskScheduler {
         }
         try {
             schedOptimizer.shutdown();
-            //Ascetic.stop();
+            // Ascetic.stop();
         } catch (InterruptedException ie) {
-            //No need to do anything.
+            // No need to do anything.
         }
     }
 
@@ -81,21 +82,21 @@ public class MOScheduler extends TaskScheduler {
     }
 
     /**
-     * Notifies to the scheduler that some actions have become free of data
-     * dependencies or resource dependencies.
+     * Notifies to the scheduler that some actions have become free of data dependencies or resource dependencies.
      *
      * @param <T>
-     * @param dataFreeActions IN, list of actions free of data dependencies
-     * @param resourceFreeActions IN, list of actions free of resource
-     * dependencies
-     * @param blockedCandidates OUT, list of blocked candidates
-     * @param resource Resource where the previous task was executed
+     * @param dataFreeActions
+     *            IN, list of actions free of data dependencies
+     * @param resourceFreeActions
+     *            IN, list of actions free of resource dependencies
+     * @param blockedCandidates
+     *            OUT, list of blocked candidates
+     * @param resource
+     *            Resource where the previous task was executed
      */
     @Override
-    public <T extends WorkerResourceDescription> void handleDependencyFreeActions(
-            LinkedList<AllocatableAction> dataFreeActions,
-            LinkedList<AllocatableAction> resourceFreeActions,
-            LinkedList<AllocatableAction> blockedCandidates,
+    public <T extends WorkerResourceDescription> void handleDependencyFreeActions(LinkedList<AllocatableAction> dataFreeActions,
+            LinkedList<AllocatableAction> resourceFreeActions, LinkedList<AllocatableAction> blockedCandidates,
             ResourceScheduler<T> resource) {
 
         HashSet<AllocatableAction> freeTasks = new HashSet<>();

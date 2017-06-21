@@ -16,13 +16,13 @@ import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.Resource.Type;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
-import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
 import integratedtoolkit.types.resources.updates.PendingReduction;
 import integratedtoolkit.types.resources.updates.ResourceUpdate;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.ResourceManager;
 
 import java.util.LinkedList;
+
 
 public class ReduceWorkerAction<T extends WorkerResourceDescription> extends AllocatableAction {
 
@@ -31,18 +31,14 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     private final Implementation impl;
     private final PendingReduction<T> ru;
 
+
     /*
      * ***************************************************************************************************************
      * CONSTRUCTOR
      * ***************************************************************************************************************
      */
-    @SuppressWarnings("unchecked")
-    public ReduceWorkerAction(
-            SchedulingInformation schedulingInformation,
-            ResourceScheduler<T> worker,
-            TaskScheduler ts,
-            ResourceUpdate<T> modification
-    ) {
+    public ReduceWorkerAction(SchedulingInformation schedulingInformation, ResourceScheduler<T> worker, TaskScheduler ts,
+            ResourceUpdate<T> modification) {
         super(schedulingInformation, ts.getOrchestrator());
         this.worker = worker;
         this.ts = ts;
@@ -53,7 +49,6 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
             impl = new ServiceImplementation(null, "", "", "", "");
         }
     }
-
 
     /*
      * ***************************************************************************************************************
@@ -73,6 +68,8 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     @Override
     protected void doAction() {
         (new Thread() {
+
+            @SuppressWarnings("unchecked")
             @Override
             public void run() {
                 Thread.currentThread().setName(worker.getName() + " stopper");
@@ -127,17 +124,17 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
 
     @Override
     public Implementation[] getImplementations() {
-        Implementation[] impls = new Implementation[]{impl};
+        Implementation[] impls = new Implementation[] { impl };
         return impls;
     }
 
     @Override
-    public <T extends WorkerResourceDescription> boolean isCompatible(Worker<T> r) {
+    public <R extends WorkerResourceDescription> boolean isCompatible(Worker<R> r) {
         return (r == worker.getResource());
     }
 
     @Override
-    public <T extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(ResourceScheduler<T> r) {
+    public <R extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(ResourceScheduler<R> r) {
         LinkedList<Implementation> impls = new LinkedList<>();
         if (r == worker) {
             impls.add(impl);
@@ -146,22 +143,28 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     }
 
     @Override
-    public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker, Score actionScore) {
+    public <R extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<R> targetWorker, Score actionScore) {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
         schedule((ResourceScheduler<WorkerResourceDescription>) worker, impl);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
-        schedule((ResourceScheduler< WorkerResourceDescription>) targetWorker, impl);
+    public <R extends WorkerResourceDescription> void schedule(ResourceScheduler<R> targetWorker, Score actionScore)
+            throws BlockedActionException, UnassignedActionException {
+
+        schedule((ResourceScheduler<WorkerResourceDescription>) targetWorker, impl);
     }
 
     @Override
-    public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Implementation impl) throws BlockedActionException, UnassignedActionException {
+    public <R extends WorkerResourceDescription> void schedule(ResourceScheduler<R> targetWorker, Implementation impl)
+            throws BlockedActionException, UnassignedActionException {
+
         if (targetWorker != getEnforcedTargetResource()) {
             throw new UnassignedActionException();
         }

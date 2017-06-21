@@ -24,6 +24,7 @@ import org.apache.logging.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+
 /**
  *
  * Scheduler representation for a given worker
@@ -43,11 +44,12 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
 
     // Worker assigned to the resource scheduler
     protected final Worker<T> myWorker;
-    //Modifications pending to be applied
-    private final LinkedList<ResourceUpdate> pendingModifications;
+    // Modifications pending to be applied
+    private final LinkedList<ResourceUpdate<T>> pendingModifications;
 
     // Profile information of the task executions
     private Profile[][] profiles;
+
 
     /**
      * Constructs a new Resource Scheduler associated to the worker @w
@@ -125,8 +127,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     }
 
     /**
-     * Returns the implementations of the core @id that can be executed by the
-     * resource
+     * Returns the implementations of the core @id that can be executed by the resource
      *
      * @param coreId
      * @return
@@ -140,7 +141,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      *
      * @param modification
      */
-    public final void pendingModification(ResourceUpdate modification) {
+    public final void pendingModification(ResourceUpdate<T> modification) {
         pendingModifications.add(modification);
     }
 
@@ -158,7 +159,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      *
      * @param modification
      */
-    public final void completedModification(ResourceUpdate modification) {
+    public final void completedModification(ResourceUpdate<T> modification) {
         pendingModifications.remove(modification);
     }
 
@@ -259,7 +260,6 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * @param jsonImpl
      * @return a profile object for an action.
      */
-    @SuppressWarnings("unchecked")
     public Profile generateProfileForImplementation(Implementation impl, JSONObject jsonImpl) {
         return new Profile(jsonImpl);
     }
@@ -271,7 +271,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * @param action
      * @return a profile object for an action.
      */
-    public <T extends WorkerResourceDescription> Profile generateProfileForRun(AllocatableAction action) {
+    public <R extends WorkerResourceDescription> Profile generateProfileForRun(AllocatableAction action) {
         return new Profile();
     }
 
@@ -282,7 +282,6 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * @param implId
      * @return
      */
-    @SuppressWarnings("unchecked")
     public final Profile getProfile(int coreId, int implId) {
         return profiles[coreId][implId];
     }
@@ -293,7 +292,6 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * @param impl
      * @return
      */
-    @SuppressWarnings("unchecked")
     public final Profile getProfile(Implementation impl) {
         if (impl != null) {
             if (impl.getCoreId() != null) {
@@ -304,8 +302,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     }
 
     /**
-     * Updates the execution profile of implementation @impl by accumulating the
-     * profile @profile
+     * Updates the execution profile of implementation @impl by accumulating the profile @profile
      *
      * @param impl
      * @param profile
@@ -424,10 +421,10 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     }
 
     /**
-     * Tries to launch blocked actions on resource. When an action cannot be
-     * launched, its successors are not tried
+     * Tries to launch blocked actions on resource. When an action cannot be launched, its successors are not tried
      *
      */
+    @SuppressWarnings("unchecked")
     public final void tryToLaunchBlockedActions() {
         LOGGER.debug("[ResourceScheduler] Try to launch blocked actions on resource " + getName());
         while (this.hasBlockedActions()) {
@@ -438,7 +435,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
                     firstBlocked.resumeExecution();
                     this.removeFirstBlocked();
                 } catch (ActionNotWaitingException anwe) {
-                    //Not possible. If the task is in blocked list it is waiting
+                    // Not possible. If the task is in blocked list it is waiting
                 }
             } else {
                 break;
@@ -523,8 +520,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     }
 
     /**
-     * Returns the score of a given implementation @impl for action @action with
-     * a fixed resource score @resourceScore
+     * Returns the score of a given implementation @impl for action @action with a fixed resource score @resourceScore
      *
      * @param action
      * @param params
@@ -532,6 +528,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * @param resourceScore
      * @return
      */
+    @SuppressWarnings("unchecked")
     public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl, Score resourceScore) {
         // LOGGER.debug("[ResourceScheduler] Generate implementation score for action " + action);
         long actionPriority = resourceScore.getActionScore();

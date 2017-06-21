@@ -25,10 +25,28 @@ string readline(const char* inPipe) {
 }
 
 
+streambuf * redirect_output(const char * filenm, ofstream& filestr)
+{
+  streambuf *newsb, *oldsb;
+  filestr.open(filenm);
+  oldsb = cout.rdbuf();     // back up cout's streambuf
+  newsb = filestr.rdbuf();       // get file's streambuf
+  cout.rdbuf(newsb);        // assign streambuf to cout
+  return oldsb;
+}
+
+
+void restore_output(streambuf * oldsb, ofstream& filestr)
+{
+  cout.rdbuf(oldsb);        // restore cout's original streambuf
+  filestr.close();
+}
+
 
 void runThread(const char* inPipe, const char* outPipe){
 
-    ofstream outFile;
+    ofstream outFile, jobOut, jobErr;
+	streambuf *oldOutsb, *oldErrsb;
     string command;
 	string output;
 
@@ -59,15 +77,19 @@ void runThread(const char* inPipe, const char* outPipe){
                    	executeArgs = vector<string>(commandArgs.begin() + i, commandArgs.end());
                	}
             }
-
+/*
 			ofstream job_out(commandArgs[2].c_str());
 			job_out << "This is a sample output.\n";
 			job_out.close();	
+*/
 
+			oldOutsb = redirect_output(commandArgs[2].c_str(), jobOut);
+			oldErrsb = redirect_output(commandArgs[3].c_str(), jobErr);
+/*
 			ofstream job_err(commandArgs[3].c_str());
             job_err << "This is a sample error.\n";
             job_err.close();
-
+*/
 			executeArgsC = new char*[executeArgs.size()];
 
 			for (int i = 0; i < executeArgs.size(); i++){
@@ -76,6 +98,9 @@ void runThread(const char* inPipe, const char* outPipe){
 			}
 
 			int ret = execute(executeArgs.size(), executeArgsC, cache);
+
+			restore_output(oldOutsb, jobOut);
+			restore_output(oldErrsb, jobErr);
 
 			ostringstream out_ss;
 			out_ss << END_TASK_TAG << " " << commandArgs[1] << " " << ret << endl;
@@ -123,6 +148,8 @@ int main(int argc, char **argv) {
     }
 
     fflush(NULL);
+
+	
    
     boost::asio::io_service ioService;
     boost::thread_group threadpool;

@@ -451,6 +451,8 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
         pyextrae.eventandcounters(TASK_EVENTS, 0)
         pyextrae.eventandcounters(TASK_EVENTS, SERIALIZATION)
 
+    # this will contain the same as to_serialize but we will store the whole
+    # file identifier string instead of simply the file_name
     from copy import deepcopy
     _output_objects = deepcopy(to_serialize)
 
@@ -508,6 +510,7 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
                 else:
                     print 'ADDING OBJECT TO CACHE'
                     local_cache.add(forig, obj)
+
 
 
 def masterCode(f, self_module, is_instance, has_varargs, has_keywords, has_defaults, has_return,

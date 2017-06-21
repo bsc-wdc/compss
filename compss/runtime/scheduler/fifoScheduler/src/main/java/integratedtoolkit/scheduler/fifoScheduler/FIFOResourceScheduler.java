@@ -9,6 +9,7 @@ import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import org.json.JSONObject;
 
+
 public class FIFOResourceScheduler<T extends WorkerResourceDescription> extends ReadyResourceScheduler<T> {
 
     /**
@@ -50,6 +51,7 @@ public class FIFOResourceScheduler<T extends WorkerResourceDescription> extends 
         return new Score(actionPriority, resourceScore, waitingScore, implementationScore);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl, Score resourceScore) {
         // LOGGER.debug("[FIFOResourceScheduler] Generate implementation score for action " + action);

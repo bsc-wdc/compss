@@ -8,10 +8,12 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+
 public class SchedulingInformation {
 
     // List of active resources per core
     private static final ArrayList<LinkedList<ResourceScheduler<? extends WorkerResourceDescription>>> CORE_TO_WORKERS = new ArrayList<>();
+
 
     public static void updateCoreCount(int newCoreCount) {
         for (int currentCoreCount = CORE_TO_WORKERS.size(); currentCoreCount < newCoreCount; ++currentCoreCount) {
@@ -20,7 +22,6 @@ public class SchedulingInformation {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public static <T extends WorkerResourceDescription> void changesOnWorker(ResourceScheduler<T> ui) {
         // Remove the previous description of the worker
         for (LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> coreToWorker : CORE_TO_WORKERS) {
@@ -37,7 +38,6 @@ public class SchedulingInformation {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public static LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> getCoreElementExecutors(int coreId) {
         LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> res = new LinkedList<>();
         for (ResourceScheduler<? extends WorkerResourceDescription> rs : CORE_TO_WORKERS.get(coreId)) {
@@ -46,10 +46,12 @@ public class SchedulingInformation {
         return res;
     }
 
+
     // Execution Information
     private final List<AllocatableAction> constrainingPredecessors;
     // Resource execution information
     private final ResourceScheduler<? extends WorkerResourceDescription> enforcedTargetResource;
+
 
     public <T extends WorkerResourceDescription> SchedulingInformation(ResourceScheduler<T> enforcedTargetResource) {
         constrainingPredecessors = new LinkedList<>();

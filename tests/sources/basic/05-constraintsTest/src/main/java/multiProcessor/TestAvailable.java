@@ -5,12 +5,9 @@ import java.util.Map.Entry;
 
 import integratedtoolkit.api.impl.COMPSsRuntimeImpl;
 import integratedtoolkit.scheduler.types.ActionOrchestrator;
-import integratedtoolkit.scheduler.types.Profile;
-import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.MethodWorker;
 import integratedtoolkit.types.resources.Worker;
-import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CoreManager;
 import integratedtoolkit.util.ResourceManager;
 
@@ -18,9 +15,9 @@ import commons.Action;
 import commons.ConstantValues;
 
 
-/*
- * Checks the dynamic constraint management.
- * Uses the two coreElements defined in the interface allocating them to a unique Worker (XML files)
+/**
+ * Checks the dynamic constraint management. Uses the two coreElements defined in the interface allocating them to a
+ * unique Worker (XML files)
  */
 public class TestAvailable {
 
@@ -60,7 +57,7 @@ public class TestAvailable {
      * GPU CUs (internalMemory=1), 1 FPGA CU) CE2 -> 1 CPU CUs, 1 FPGA , 2 OTHER CUs , nodeMemSize= 2.0) CE3 -> 1 CPU
      * CUs, 2 GPU CU (internalMemory=3) CE4 -> 1 CPU CUs (internalMemory=3); ***************************************
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private static void availableResourcesTest() {
         // Get CoreCount
         coreCount = CoreManager.getCoreCount();

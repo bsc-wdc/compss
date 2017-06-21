@@ -3,6 +3,7 @@ package integratedtoolkit.scheduler.multiobjective.types;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.types.resources.ResourceDescription;
 
+
 public class Gap {
 
     private final long initialTime;
@@ -10,6 +11,7 @@ public class Gap {
     private final AllocatableAction origin;
     private final ResourceDescription resources;
     private final int capacity;
+
 
     public Gap(long start, long endTime, AllocatableAction origin, ResourceDescription resources, int capacity) {
         this.initialTime = start;
@@ -45,6 +47,7 @@ public class Gap {
 
     @Override
     public String toString() {
-        return "<" + initialTime + "->" + endTime + ", " + origin + ", " + resources.getDynamicDescription() + ", with " + capacity + " slots >";
+        return "<" + initialTime + "->" + endTime + ", " + origin + ", " + resources.getDynamicDescription() + ", with " + capacity
+                + " slots >";
     }
 }

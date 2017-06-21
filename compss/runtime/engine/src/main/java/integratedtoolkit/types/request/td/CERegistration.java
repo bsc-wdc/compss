@@ -1,9 +1,7 @@
 package integratedtoolkit.types.request.td;
 
 import integratedtoolkit.components.impl.TaskScheduler;
-import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.types.resources.MethodResourceDescription;
-import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CoreManager;
 import integratedtoolkit.util.EnvironmentLoader;
 import integratedtoolkit.util.ErrorManager;
@@ -23,6 +21,7 @@ import integratedtoolkit.util.ResourceManager;
 import java.util.LinkedList;
 import java.util.List;
 
+
 public class CERegistration extends TDRequest {
 
     private final String coreElementSignature;
@@ -31,6 +30,7 @@ public class CERegistration extends TDRequest {
     private final MethodType implType;
     private final String[] implTypeArgs;
     private final Semaphore sem;
+
 
     /**
      * Creates a new CoreElement registration request
@@ -123,7 +123,8 @@ public class CERegistration extends TDRequest {
                 if (dfScript == null || dfScript.isEmpty()) {
                     ErrorManager.error("Empty dfScript annotation for DECAF method " + this.coreElementSignature);
                 }
-                m = new DecafImplementation(dfScript, dfExecutor, dfLib, decafWorkingDir, decafRunner, coreId, implId, this.implConstraints);
+                m = new DecafImplementation(dfScript, dfExecutor, dfLib, decafWorkingDir, decafRunner, coreId, implId,
+                        this.implConstraints);
                 break;
             case BINARY:
                 if (this.implTypeArgs.length != 2) {

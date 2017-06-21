@@ -8,9 +8,11 @@ import integratedtoolkit.scheduler.types.Score;
 
 import java.util.LinkedList;
 
+
 public class MOScore extends Score {
 
     private static final OptimizationParameter OPTIMIZATION_PARAM = MOConfiguration.getSchedulerOptimization();
+    
     /*
      * actionScore -> task Priority
      * resourceScore -> Expected Resource Availability
@@ -23,6 +25,7 @@ public class MOScore extends Score {
     private final long expectedDataAvailable;
     private final double expectedCost;
     private final double expectedEnergy;
+
 
     public MOScore(long taskPriority, long dataAvailability, long resourceAvailability, long execTime, double energy, double cost) {
         super(taskPriority, resourceAvailability, Math.max(resourceAvailability, dataAvailability), execTime);
@@ -99,14 +102,9 @@ public class MOScore extends Score {
 
     @Override
     public String toString() {
-        return "[MOScore = ["
-                + "Action Priority:" + this.actionScore + ", "
-                + "Resource Availability:" + this.resourceScore + ", "
-                + "Data Availability:" + this.expectedDataAvailable + ", "
-                + "Expected Start Timestamp:" + this.waitingScore + ", "
-                + "Expected Execution Time:" + this.implementationScore + ", "
-                + "Expected Execution Consumption:" + this.expectedEnergy + ", "
-                + "Expected Execution Cost:" + this.expectedCost
-                + "]" + "]";
+        return "[MOScore = [" + "Action Priority:" + this.actionScore + ", " + "Resource Availability:" + this.resourceScore + ", "
+                + "Data Availability:" + this.expectedDataAvailable + ", " + "Expected Start Timestamp:" + this.waitingScore + ", "
+                + "Expected Execution Time:" + this.implementationScore + ", " + "Expected Execution Consumption:" + this.expectedEnergy
+                + ", " + "Expected Execution Cost:" + this.expectedCost + "]" + "]";
     }
 }

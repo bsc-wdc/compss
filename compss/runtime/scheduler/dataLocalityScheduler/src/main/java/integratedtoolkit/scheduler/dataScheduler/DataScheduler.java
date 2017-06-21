@@ -10,9 +10,9 @@ import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import org.json.JSONObject;
 
+
 /**
- * Representation of a Scheduler that considers only ready tasks and sorts them
- * in data locality
+ * Representation of a Scheduler that considers only ready tasks and sorts them in data locality
  *
  */
 public class DataScheduler extends ReadyScheduler {
@@ -33,7 +33,7 @@ public class DataScheduler extends ReadyScheduler {
      * *********************************************************************************************************
      */
     @Override
-    public <T extends WorkerResourceDescription> DataResourceScheduler generateSchedulerForResource(Worker<T> w, JSONObject json) {
+    public <T extends WorkerResourceDescription> DataResourceScheduler<T> generateSchedulerForResource(Worker<T> w, JSONObject json) {
         // LOGGER.debug("[DataScheduler] Generate scheduler for resource " + w.getName());
         return new DataResourceScheduler<>(w, json);
     }
@@ -52,10 +52,8 @@ public class DataScheduler extends ReadyScheduler {
      * *********************************************************************************************************
      */
     @Override
-    public <T extends WorkerResourceDescription> void purgeFreeActions(
-            LinkedList<AllocatableAction> dataFreeActions,
-            LinkedList<AllocatableAction> resourceFreeActions,
-            LinkedList<AllocatableAction> blockedCandidates,
+    public <T extends WorkerResourceDescription> void purgeFreeActions(LinkedList<AllocatableAction> dataFreeActions,
+            LinkedList<AllocatableAction> resourceFreeActions, LinkedList<AllocatableAction> blockedCandidates,
             ResourceScheduler<T> resource) {
 
         // Schedules all possible free actions (LIFO type)

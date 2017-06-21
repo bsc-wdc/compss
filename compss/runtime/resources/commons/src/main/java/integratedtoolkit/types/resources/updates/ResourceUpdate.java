@@ -2,24 +2,27 @@ package integratedtoolkit.types.resources.updates;
 
 import integratedtoolkit.types.resources.ResourceDescription;
 
-public abstract class ResourceUpdate< T extends ResourceDescription> {
+
+public abstract class ResourceUpdate<T extends ResourceDescription> {
 
     public static enum Type {
-
-        INCREASE,
-        REDUCE
+        INCREASE, // Increasing resource capabilities
+        REDUCE // Reducing resource capabilities
     }
+
+
     private final T modification;
+
 
     protected ResourceUpdate(T modification) {
         this.modification = modification;
     }
 
-    public abstract Type getType();
-
     public final T getModification() {
         return modification;
     }
+
+    public abstract Type getType();
 
     public abstract boolean checkCompleted();
 

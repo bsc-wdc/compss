@@ -2,7 +2,6 @@ package integratedtoolkit.types.allocatableactions;
 
 import java.util.List;
 
-import integratedtoolkit.components.impl.ResourceScheduler;
 import integratedtoolkit.components.impl.TaskProducer;
 import integratedtoolkit.scheduler.types.ActionOrchestrator;
 import integratedtoolkit.scheduler.types.SchedulingInformation;
@@ -13,6 +12,7 @@ import integratedtoolkit.types.job.JobStatusListener;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 
+
 /**
  * Representation of a multi-node execution action
  *
@@ -21,6 +21,7 @@ public class MultiNodeExecutionAction extends ExecutionAction {
 
     private final MultiNodeGroup group;
     private int multiNodeId = MultiNodeGroup.UNASSIGNED_ID;
+
 
     /**
      * Creates a new master action with a fixed amount of slaves
@@ -31,8 +32,8 @@ public class MultiNodeExecutionAction extends ExecutionAction {
      * @param task
      * @param group
      */
-    public MultiNodeExecutionAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator,
-            TaskProducer producer, Task task, MultiNodeGroup group) {
+    public MultiNodeExecutionAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator, TaskProducer producer,
+            Task task, MultiNodeGroup group) {
 
         super(schedulingInformation, orchestrator, producer, task);
 

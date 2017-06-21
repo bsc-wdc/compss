@@ -13,6 +13,7 @@ import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import java.util.LinkedList;
 
+
 public class OptimizationAction extends AllocatableAction {
 
     public OptimizationAction() {
@@ -60,7 +61,7 @@ public class OptimizationAction extends AllocatableAction {
     }
 
     @Override
-    public boolean isCompatible(Worker r) {
+    public <W extends WorkerResourceDescription> boolean isCompatible(Worker<W> r) {
         return true;
     }
 
@@ -85,12 +86,14 @@ public class OptimizationAction extends AllocatableAction {
     }
 
     @Override
-    public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
+    public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Score actionScore)
+            throws BlockedActionException, UnassignedActionException {
 
     }
 
     @Override
-    public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Implementation impl) throws BlockedActionException, UnassignedActionException {
+    public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Implementation impl)
+            throws BlockedActionException, UnassignedActionException {
 
     }
 

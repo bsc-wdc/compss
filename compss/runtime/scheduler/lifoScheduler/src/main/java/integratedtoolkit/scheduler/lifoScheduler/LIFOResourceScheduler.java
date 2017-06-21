@@ -49,6 +49,7 @@ public class LIFOResourceScheduler<T extends WorkerResourceDescription> extends 
         return new Score(actionPriority, resourceScore, waitingScore, implementationScore);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl, Score resourceScore) {
         // LOGGER.debug("[LIFOScheduler] Generate implementation score for action " + action);

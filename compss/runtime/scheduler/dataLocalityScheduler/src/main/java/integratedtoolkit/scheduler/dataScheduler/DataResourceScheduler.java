@@ -9,7 +9,8 @@ import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import org.json.JSONObject;
 
-public class DataResourceScheduler<T extends WorkerResourceDescription> extends ReadyResourceScheduler< T> {
+
+public class DataResourceScheduler<T extends WorkerResourceDescription> extends ReadyResourceScheduler<T> {
 
     /**
      * New ready resource scheduler instance
@@ -48,6 +49,7 @@ public class DataResourceScheduler<T extends WorkerResourceDescription> extends 
         return new Score(actionPriority, resourceScore, waitingScore, 0);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl, Score resourceScore) {
         // LOGGER.debug("[DataResourceScheduler] Generate implementation score for action " + action);

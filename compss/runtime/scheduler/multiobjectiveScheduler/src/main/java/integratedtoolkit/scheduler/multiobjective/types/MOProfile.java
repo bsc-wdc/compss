@@ -7,6 +7,7 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+
 public class MOProfile extends Profile {
 
     private static final double DEFAULT_PRICE = 0;
@@ -14,6 +15,7 @@ public class MOProfile extends Profile {
 
     private double power;
     private double price;
+
 
     public MOProfile() {
         super();
@@ -86,10 +88,12 @@ public class MOProfile extends Profile {
         return super.getContent() + " power=" + power + " price=" + price;
     }
 
+
     public static class Builder extends Profile.Builder {
 
         private double power = DEFAULT_POWER;
         private double price = DEFAULT_PRICE;
+
 
         public Builder() {
             super();

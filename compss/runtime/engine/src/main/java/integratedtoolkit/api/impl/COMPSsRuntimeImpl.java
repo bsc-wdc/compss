@@ -19,7 +19,6 @@ import integratedtoolkit.loader.total.ObjectRegistry;
 
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.scheduler.types.ActionOrchestrator;
-import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.types.annotations.parameter.DataType;
 import integratedtoolkit.types.annotations.parameter.Direction;
 import integratedtoolkit.types.annotations.parameter.Stream;
@@ -46,6 +45,7 @@ import integratedtoolkit.util.Tracer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 
 public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
@@ -106,6 +106,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
          */
         Comm.init();
     }
+
 
     // Code Added to support configuration files
     private static void setPropertiesFromRuntime(RuntimeConfigManager manager) {
@@ -349,7 +350,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * COMPSsRuntime INTERFACE IMPLEMENTATION
      * ********************************************************************************************************
      */
-    @SuppressWarnings("rawtypes")
     /**
      * Starts the COMPSs Runtime
      *
@@ -482,8 +482,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /**
-     * Returns the action orchestrator associated to the runtime (only for
-     * testing purposes)
+     * Returns the action orchestrator associated to the runtime (only for testing purposes)
      *
      * @return
      */
@@ -656,8 +655,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /**
-     * Notifies the Runtime that there are no more tasks created by the current
-     * appId
+     * Notifies the Runtime that there are no more tasks created by the current appId
      */
     @Override
     public void noMoreTasks(Long appId, boolean terminate) {
@@ -897,7 +895,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
         return finalPath;
     }
-    
 
     /*
      * ************************************************************************************************************
@@ -966,7 +963,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
         return hashCode;
     }
-    
+
     private String mainAccessToFile(String fileName, DataLocation loc, AccessMode am, String destDir) {
         // Tell the AP that the application wants to access a file.
         FileAccessParams fap = new FileAccessParams(am, loc);

@@ -5,8 +5,6 @@ import java.util.Map.Entry;
 
 import integratedtoolkit.api.impl.COMPSsRuntimeImpl;
 import integratedtoolkit.scheduler.types.ActionOrchestrator;
-import integratedtoolkit.scheduler.types.Profile;
-import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CoreManager;
@@ -15,9 +13,9 @@ import commons.Action;
 import commons.ConstantValues;
 
 
-/*
- * Checks the dynamic constraint management.
- * Uses the two coreElements defined in the interface allocating them to a unique Worker (XML files)
+/**
+ * Checks the dynamic constraint management. Uses the two coreElements defined in the interface allocating them to a
+ * unique Worker (XML files)
  */
 public class TestAvailable {
 
@@ -53,7 +51,7 @@ public class TestAvailable {
      * AVAILABLE RESOURCES TEST IMPLEMENTATION
      * ********************************************************************************************************
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private static void availableResourcesTest() {
         // Get CoreCount
         coreCount = CoreManager.getCoreCount();

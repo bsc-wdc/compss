@@ -14,9 +14,9 @@ import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import org.json.JSONObject;
 
+
 /**
- * Representation of a Scheduler that considers only ready tasks and sorts them
- * in FIFO mode + data locality
+ * Representation of a Scheduler that considers only ready tasks and sorts them in FIFO mode + data locality
  *
  */
 public class FIFODataScheduler extends ReadyScheduler {
@@ -37,7 +37,7 @@ public class FIFODataScheduler extends ReadyScheduler {
      * *********************************************************************************************************
      */
     @Override
-    public <T extends WorkerResourceDescription> FIFODataResourceScheduler generateSchedulerForResource(Worker<T> w, JSONObject json) {
+    public <T extends WorkerResourceDescription> FIFODataResourceScheduler<T> generateSchedulerForResource(Worker<T> w, JSONObject json) {
         // LOGGER.debug("[FIFODataScheduler] Generate scheduler for resource " + w.getName());
         return new FIFODataResourceScheduler<>(w, json);
     }
@@ -56,10 +56,8 @@ public class FIFODataScheduler extends ReadyScheduler {
      * *********************************************************************************************************
      */
     @Override
-    public <T extends WorkerResourceDescription> void purgeFreeActions(
-            LinkedList<AllocatableAction> dataFreeActions,
-            LinkedList<AllocatableAction> resourceFreeActions,
-            LinkedList<AllocatableAction> blockedCandidates,
+    public <T extends WorkerResourceDescription> void purgeFreeActions(LinkedList<AllocatableAction> dataFreeActions,
+            LinkedList<AllocatableAction> resourceFreeActions, LinkedList<AllocatableAction> blockedCandidates,
             ResourceScheduler<T> resource) {
 
         LOGGER.debug("[DataScheduler] Treating dependency free actions");

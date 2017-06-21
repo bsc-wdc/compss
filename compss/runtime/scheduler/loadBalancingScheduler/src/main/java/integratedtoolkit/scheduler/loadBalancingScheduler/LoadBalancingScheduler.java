@@ -11,9 +11,9 @@ import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import org.json.JSONObject;
 
+
 /**
- * Representation of a Scheduler that considers only ready tasks and uses
- * resource empty policy
+ * Representation of a Scheduler that considers only ready tasks and uses resource empty policy
  *
  */
 public class LoadBalancingScheduler extends ReadyScheduler {
@@ -34,7 +34,9 @@ public class LoadBalancingScheduler extends ReadyScheduler {
      * *********************************************************************************************************
      */
     @Override
-    public <T extends WorkerResourceDescription> LoadBalancingResourceScheduler generateSchedulerForResource(Worker<T> w, JSONObject json) {
+    public <T extends WorkerResourceDescription> LoadBalancingResourceScheduler<T> generateSchedulerForResource(Worker<T> w,
+            JSONObject json) {
+
         // LOGGER.debug("[LoadBalancingScheduler] Generate scheduler for resource " + w.getName());
         return new LoadBalancingResourceScheduler<>(w, json);
     }
@@ -53,10 +55,8 @@ public class LoadBalancingScheduler extends ReadyScheduler {
      * *********************************************************************************************************
      */
     @Override
-    public <T extends WorkerResourceDescription> void purgeFreeActions(
-            LinkedList<AllocatableAction> dataFreeActions,
-            LinkedList<AllocatableAction> resourceFreeActions,
-            LinkedList<AllocatableAction> blockedCandidates,
+    public <T extends WorkerResourceDescription> void purgeFreeActions(LinkedList<AllocatableAction> dataFreeActions,
+            LinkedList<AllocatableAction> resourceFreeActions, LinkedList<AllocatableAction> blockedCandidates,
             ResourceScheduler<T> resource) {
 
         LinkedList<AllocatableAction> unassignedReadyActions = this.unassignedReadyActions.getAllActions();

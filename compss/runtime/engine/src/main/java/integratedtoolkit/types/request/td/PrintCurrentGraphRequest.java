@@ -16,10 +16,10 @@ import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.concurrent.Semaphore;
 
+
 /**
- * The DeleteIntermediateFilesRequest represents a request to delete the
- * intermediate files of the execution from all the worker nodes of the resource
- * pool.
+ * The DeleteIntermediateFilesRequest represents a request to delete the intermediate files of the execution from all
+ * the worker nodes of the resource pool.
  */
 public class PrintCurrentGraphRequest extends TDRequest {
 
@@ -35,11 +35,12 @@ public class PrintCurrentGraphRequest extends TDRequest {
      */
     private BufferedWriter graph;
 
+
     /**
      * Constructs a GetCurrentScheduleRequest
      *
-     * @param sem Semaphore to synchronize until the representation is
-     * constructed
+     * @param sem
+     *            Semaphore to synchronize until the representation is constructed
      *
      */
     public PrintCurrentGraphRequest(Semaphore sem, BufferedWriter graph) {
@@ -48,8 +49,7 @@ public class PrintCurrentGraphRequest extends TDRequest {
     }
 
     /**
-     * Returns the semaphore to synchronize until the representation is
-     * constructed
+     * Returns the semaphore to synchronize until the representation is constructed
      *
      * @result Semaphore to synchronize until the representation is constructed
      *
@@ -59,18 +59,16 @@ public class PrintCurrentGraphRequest extends TDRequest {
     }
 
     /**
-     * Changes the semaphore to synchronize until the representation is
-     * constructed
+     * Changes the semaphore to synchronize until the representation is constructed
      *
-     * @param sem New semaphore to synchronize until the representation is
-     * constructed
+     * @param sem
+     *            New semaphore to synchronize until the representation is constructed
      *
      */
     public void setSemaphore(Semaphore sem) {
         this.sem = sem;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void process(TaskScheduler ts) throws ShutdownException {
         try {
@@ -118,7 +116,7 @@ public class PrintCurrentGraphRequest extends TDRequest {
             graph.write(prefix + prefix + "}");
             graph.newLine();
 
-            //Room for unassigned tasks 
+            // Room for unassigned tasks
             graph.write(prefix + prefix + "subgraph cluster_room" + roomIndex + " {");
             ++roomIndex;
             graph.newLine();

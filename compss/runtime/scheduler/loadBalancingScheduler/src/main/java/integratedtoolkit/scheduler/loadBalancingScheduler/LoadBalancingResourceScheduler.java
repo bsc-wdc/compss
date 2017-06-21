@@ -11,6 +11,7 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.types.parameter.Parameter;
 import org.json.JSONObject;
 
+
 public class LoadBalancingResourceScheduler<T extends WorkerResourceDescription> extends ReadyResourceScheduler<T> {
 
     /**
@@ -73,6 +74,7 @@ public class LoadBalancingResourceScheduler<T extends WorkerResourceDescription>
         return resourceScore;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl, Score resourceScore) {
         // LOGGER.debug("[LoadBalancing] Generate implementation score for action " + action);

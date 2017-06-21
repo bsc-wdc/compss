@@ -5,27 +5,21 @@ import java.util.LinkedList;
 import integratedtoolkit.components.impl.ResourceScheduler;
 import integratedtoolkit.scheduler.readyScheduler.ReadyScheduler;
 import integratedtoolkit.scheduler.types.AllocatableAction;
-import integratedtoolkit.scheduler.types.DataScore;
-import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.scheduler.types.Score;
-import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
-
+import org.json.JSONObject;
 
 /**
- * Representation of a Scheduler that considers only ready tasks and sorts them in data locality
- * 
- * @param <P>
- * @param <T>
- * @param <I>
+ * Representation of a Scheduler that considers only ready tasks and sorts them
+ * in data locality
+ *
  */
-public class DataScheduler<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
-        extends ReadyScheduler<P, T, I> {
+public class DataScheduler extends ReadyScheduler {
 
     /**
      * Constructs a new Ready Scheduler instance
-     * 
+     *
      */
     public DataScheduler() {
         super();
@@ -38,17 +32,16 @@ public class DataScheduler<P extends Profile, T extends WorkerResourceDescriptio
      * *********************************************************************************************************
      * *********************************************************************************************************
      */
-
     @Override
-    public ResourceScheduler<P, T, I> generateSchedulerForResource(Worker<T, I> w) {
+    public <T extends WorkerResourceDescription> DataResourceScheduler generateSchedulerForResource(Worker<T> w, JSONObject json) {
         // LOGGER.debug("[DataScheduler] Generate scheduler for resource " + w.getName());
-        return new DataResourceScheduler<P, T, I>(w);
+        return new DataResourceScheduler<>(w, json);
     }
 
     @Override
-    public Score generateActionScore(AllocatableAction<P, T, I> action) {
+    public Score generateActionScore(AllocatableAction action) {
         // LOGGER.debug("[DataScheduler] Generate Action Score for " + action);
-        return new DataScore(action.getPriority(), 0, 0, 0);
+        return new Score(action.getPriority(), 0, 0, 0);
     }
 
     /*
@@ -58,17 +51,19 @@ public class DataScheduler<P extends Profile, T extends WorkerResourceDescriptio
      * *********************************************************************************************************
      * *********************************************************************************************************
      */
-    
     @Override
-    protected void purgeFreeActions(LinkedList<AllocatableAction<P, T, I>> dataFreeActions,
-            LinkedList<AllocatableAction<P, T, I>> resourceFreeActions, LinkedList<AllocatableAction<P, T, I>> blockedCandidates,
-            ResourceScheduler<P, T, I> resource){
+    public <T extends WorkerResourceDescription> void purgeFreeActions(
+            LinkedList<AllocatableAction> dataFreeActions,
+            LinkedList<AllocatableAction> resourceFreeActions,
+            LinkedList<AllocatableAction> blockedCandidates,
+            ResourceScheduler<T> resource) {
+
+        // Schedules all possible free actions (LIFO type)
         LOGGER.debug("[DataScheduler] Treating dependency free actions");
-        
-        LinkedList<AllocatableAction<P, T, I>> unassignedReadyActions = getUnassignedActions();
+
+        LinkedList<AllocatableAction> unassignedReadyActions = this.unassignedReadyActions.getAllActions();
         this.unassignedReadyActions.removeAllActions();
         dataFreeActions.addAll(unassignedReadyActions);
-        
     }
 
 }

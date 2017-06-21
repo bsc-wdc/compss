@@ -1,11 +1,11 @@
 package integratedtoolkit.types.fake;
 
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.Worker;
 
-
-public class FakeWorker extends Worker<MethodResourceDescription, FakeImplementation> {
+public class FakeWorker extends Worker<MethodResourceDescription> {
 
     public FakeWorker(MethodResourceDescription description, int limitOfTasks) {
         super("a", description, new FakeNode(), limitOfTasks, null);
@@ -27,12 +27,12 @@ public class FakeWorker extends Worker<MethodResourceDescription, FakeImplementa
     }
 
     @Override
-    public boolean canRun(FakeImplementation implementation) {
+    public boolean canRun(Implementation implementation) {
         return true;
     }
 
     @Override
-    public Integer fitCount(FakeImplementation impl) {
+    public Integer fitCount(Implementation impl) {
         return 10;
     }
 

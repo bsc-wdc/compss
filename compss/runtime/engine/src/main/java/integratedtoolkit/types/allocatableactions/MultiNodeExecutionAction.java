@@ -5,44 +5,36 @@ import java.util.List;
 import integratedtoolkit.components.impl.ResourceScheduler;
 import integratedtoolkit.components.impl.TaskProducer;
 import integratedtoolkit.scheduler.types.ActionOrchestrator;
-import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.scheduler.types.SchedulingInformation;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.types.Task.TaskState;
-import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.job.JobStatusListener;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 
-
 /**
  * Representation of a multi-node execution action
- * 
- * @param <P>
- * @param <T>
- * @param <I>
+ *
  */
-public class MultiNodeExecutionAction<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
-        extends ExecutionAction<P, T, I> {
+public class MultiNodeExecutionAction extends ExecutionAction {
 
-    private final MultiNodeGroup<P, T, I> group;
+    private final MultiNodeGroup group;
     private int multiNodeId = MultiNodeGroup.UNASSIGNED_ID;
-
 
     /**
      * Creates a new master action with a fixed amount of slaves
-     * 
+     *
      * @param schedulingInformation
+     * @param orchestrator
      * @param producer
      * @param task
-     * @param numSlaves
-     * @param forcedResource
+     * @param group
      */
-    public MultiNodeExecutionAction(SchedulingInformation<P, T, I> schedulingInformation, ActionOrchestrator<P, T, I> orchestrator,
-            TaskProducer producer, Task task, ResourceScheduler<P, T, I> forcedResource, MultiNodeGroup<P, T, I> group) {
+    public MultiNodeExecutionAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator,
+            TaskProducer producer, Task task, MultiNodeGroup group) {
 
-        super(schedulingInformation, orchestrator, producer, task, forcedResource);
+        super(schedulingInformation, orchestrator, producer, task);
 
         this.group = group;
     }
@@ -99,14 +91,15 @@ public class MultiNodeExecutionAction<P extends Profile, T extends WorkerResourc
         }
     }
 
-    protected Job<?> submitJob(int transferGroupId, JobStatusListener<P, T, I> listener) {
+    @Override
+    protected Job<?> submitJob(int transferGroupId, JobStatusListener listener) {
         // This part can only be executed by the master action
         if (DEBUG) {
             LOGGER.debug(this.toString() + " starts job creation");
         }
-        Worker<T, I> w = selectedResource.getResource();
+        Worker<? extends WorkerResourceDescription> w = this.getAssignedResource().getResource();
         List<String> slaveNames = group.getSlavesNames();
-        Job<?> job = w.newJob(this.task.getId(), this.task.getTaskDescription(), this.selectedImpl, slaveNames, listener);
+        Job<?> job = w.newJob(this.task.getId(), this.task.getTaskDescription(), this.getAssignedImplementation(), slaveNames, listener);
         job.setTransferGroupId(transferGroupId);
         job.setHistory(Job.JobHistory.NEW);
 
@@ -125,7 +118,7 @@ public class MultiNodeExecutionAction<P extends Profile, T extends WorkerResourc
             super.doCompleted();
         } else {
             // The action is assigned as slave, end profile
-            selectedResource.profiledExecution(selectedImpl, profile);
+            this.getAssignedResource().profiledExecution(this.getAssignedImplementation(), profile);
             task.decreaseExecutionCount();
         }
     }

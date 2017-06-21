@@ -9,13 +9,11 @@ import java.util.concurrent.Semaphore;
 
 import integratedtoolkit.types.data.DataAccessId;
 
-
 public class RegisterDataAccessRequest extends APRequest {
 
     private AccessParams access;
     private Semaphore sem;
     private DataAccessId response;
-
 
     public RegisterDataAccessRequest(AccessParams access, Semaphore sem) {
         this.access = access;
@@ -47,7 +45,7 @@ public class RegisterDataAccessRequest extends APRequest {
     }
 
     @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?, ?> td) {
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         DataAccessId daId = dip.registerDataAccess(this.access);
         this.response = daId;
         sem.release();

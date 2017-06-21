@@ -1,11 +1,11 @@
 package integratedtoolkit.types.resources;
 
+import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.COMPSsNode;
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.configuration.Configuration;
 import integratedtoolkit.util.CoreManager;
-import integratedtoolkit.log.Loggers;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -14,15 +14,18 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+public abstract class Worker<T extends WorkerResourceDescription> extends Resource {
 
-public abstract class Worker<T extends WorkerResourceDescription, I extends Implementation<T>> extends Resource {
+    // Logger
+    protected static final Logger LOGGER = LogManager.getLogger(Loggers.RM_COMP);
+    protected static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     protected final T description;
 
     // CoreIds that can be executed by this resource
     private LinkedList<Integer> executableCores;
     // Implementations that can be executed by the resource
-    private LinkedList<I>[] executableImpls;
+    private LinkedList<Implementation>[] executableImpls;
     // ImplIds per core that can be executed by this resource
     private int[][] implSimultaneousTasks;
 
@@ -30,20 +33,16 @@ public abstract class Worker<T extends WorkerResourceDescription, I extends Impl
     private int[] coreSimultaneousTasks;
     // Number of tasks that can be run simultaneously per core id (maxTaskCount not considered)
     private int[] idealSimultaneousTasks;
+
     // Task count
-    private int usedTaskCount = 0;
-    private final int maxTaskCount;
+    private int usedCPUTaskCount = 0;
+    private final int maxCPUTaskCount;
     private int usedGPUTaskCount = 0;
     private final int maxGPUTaskCount;
     private int usedFPGATaskCount = 0;
     private final int maxFPGATaskCount;
     private int usedOthersTaskCount = 0;
     private final int maxOthersTaskCount;
-
-    // Logger
-    protected static final Logger LOGGER = LogManager.getLogger(Loggers.RM_COMP);
-    protected static final boolean DEBUG = LOGGER.isDebugEnabled();
-
 
     @SuppressWarnings("unchecked")
     public Worker(String name, T description, COMPSsNode worker, int limitOfTasks, HashMap<String, String> sharedDisks) {
@@ -60,7 +59,7 @@ public abstract class Worker<T extends WorkerResourceDescription, I extends Impl
         }
 
         this.description = description;
-        this.maxTaskCount = limitOfTasks;
+        this.maxCPUTaskCount = limitOfTasks;
         this.maxGPUTaskCount = 0;
         this.maxFPGATaskCount = 0;
         this.maxOthersTaskCount = 0;
@@ -81,13 +80,13 @@ public abstract class Worker<T extends WorkerResourceDescription, I extends Impl
         }
 
         this.description = description;
-        this.maxTaskCount = config.getLimitOfTasks();
+        this.maxCPUTaskCount = config.getLimitOfTasks();
         this.maxGPUTaskCount = config.getLimitOfGPUTasks();
         this.maxFPGATaskCount = config.getLimitOfFPGATasks();
         this.maxOthersTaskCount = config.getLimitOfOTHERSTasks();
     }
 
-    public Worker(Worker<T, I> w) {
+    public Worker(Worker<T> w) {
         super(w);
         this.coreSimultaneousTasks = w.coreSimultaneousTasks;
         this.idealSimultaneousTasks = w.idealSimultaneousTasks;
@@ -97,8 +96,8 @@ public abstract class Worker<T extends WorkerResourceDescription, I extends Impl
 
         this.description = w.description;
 
-        this.maxTaskCount = w.maxTaskCount;
-        this.usedTaskCount = w.usedTaskCount;
+        this.maxCPUTaskCount = w.maxCPUTaskCount;
+        this.usedCPUTaskCount = w.usedCPUTaskCount;
         this.maxGPUTaskCount = w.maxGPUTaskCount;
         this.usedGPUTaskCount = w.usedGPUTaskCount;
         this.maxFPGATaskCount = w.maxFPGATaskCount;
@@ -111,12 +110,12 @@ public abstract class Worker<T extends WorkerResourceDescription, I extends Impl
         return description;
     }
 
-    public int getMaxTaskCount() {
-        return this.maxTaskCount;
+    public int getMaxCPUTaskCount() {
+        return this.maxCPUTaskCount;
     }
 
-    public int getUsedTaskCount() {
-        return this.usedTaskCount;
+    public int getUsedCPUTaskCount() {
+        return this.usedCPUTaskCount;
     }
 
     public int getMaxGPUTaskCount() {
@@ -143,12 +142,12 @@ public abstract class Worker<T extends WorkerResourceDescription, I extends Impl
         return this.usedOthersTaskCount;
     }
 
-    private void decreaseUsedTaskCount() {
-        this.usedTaskCount--;
+    private void decreaseUsedCPUTaskCount() {
+        this.usedCPUTaskCount--;
     }
 
-    private void increaseUsedTaskCount() {
-        this.usedTaskCount++;
+    private void increaseUsedCPUTaskCount() {
+        this.usedCPUTaskCount++;
     }
 
     private void decreaseUsedGPUTaskCount() {
@@ -175,8 +174,11 @@ public abstract class Worker<T extends WorkerResourceDescription, I extends Impl
         this.usedOthersTaskCount++;
     }
 
-    public void resetUsedTaskCount() {
-        usedTaskCount = 0;
+    public void resetUsedTaskCounts() {
+        usedCPUTaskCount = 0;
+        usedGPUTaskCount = 0;
+        usedFPGATaskCount = 0;
+        usedOthersTaskCount = 0;
     }
 
     /*-------------------------------------------------------------------------
@@ -201,7 +203,7 @@ public abstract class Worker<T extends WorkerResourceDescription, I extends Impl
             wasExecutable[coreId] = true;
         }
         this.executableCores.clear();
-        LinkedList<I>[] executableImpls = new LinkedList[coreCount];
+        LinkedList<Implementation>[] executableImpls = new LinkedList[coreCount];
         int[][] implSimultaneousTasks = new int[coreCount][];
         int[] coreSimultaneousTasks = new int[coreCount];
         int[] idealSimultaneousTasks = new int[coreCount];
@@ -217,11 +219,10 @@ public abstract class Worker<T extends WorkerResourceDescription, I extends Impl
                 }
             } else {
                 boolean executableCore = false;
-                List<Implementation<?>> impls = CoreManager.getCoreImplementations(coreId);
+                List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
                 implSimultaneousTasks[coreId] = new int[impls.size()];
                 executableImpls[coreId] = new LinkedList<>();
-                for (Implementation<?> i : impls) {
-                    I impl = (I) i;
+                for (Implementation impl : impls) {
                     if (canRun(impl)) {
                         int simultaneousCapacity = simultaneousCapacity(impl);
                         idealSimultaneousTasks[coreId] = Math.max(idealSimultaneousTasks[coreId], simultaneousCapacity);
@@ -254,11 +255,10 @@ public abstract class Worker<T extends WorkerResourceDescription, I extends Impl
         idealSimultaneousTasks = new int[coreCount];
         for (int coreId = 0; coreId < coreCount; coreId++) {
             boolean executableCore = false;
-            List<Implementation<?>> impls = CoreManager.getCoreImplementations(coreId);
+            List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
             implSimultaneousTasks[coreId] = new int[impls.size()];
             executableImpls[coreId] = new LinkedList<>();
-            for (Implementation<?> i : impls) {
-                I impl = (I) i;
+            for (Implementation impl : impls) {
                 if (canRun(impl)) {
                     int simultaneousCapacity = simultaneousCapacity(impl);
                     idealSimultaneousTasks[coreId] = Math.max(idealSimultaneousTasks[coreId], simultaneousCapacity);
@@ -270,7 +270,7 @@ public abstract class Worker<T extends WorkerResourceDescription, I extends Impl
                 }
             }
             if (executableCore) {
-                coreSimultaneousTasks[coreId] = Math.min(this.getMaxTaskCount(), idealSimultaneousTasks[coreId]);
+                coreSimultaneousTasks[coreId] = Math.min(this.getMaxCPUTaskCount(), idealSimultaneousTasks[coreId]);
                 executableCores.add(coreId);
             }
         }
@@ -280,11 +280,11 @@ public abstract class Worker<T extends WorkerResourceDescription, I extends Impl
         return executableCores;
     }
 
-    public LinkedList<I>[] getExecutableImpls() {
+    public LinkedList<Implementation>[] getExecutableImpls() {
         return executableImpls;
     }
 
-    public LinkedList<I> getExecutableImpls(int coreId) {
+    public LinkedList<Implementation> getExecutableImpls(int coreId) {
         return executableImpls[coreId];
     }
 
@@ -296,8 +296,8 @@ public abstract class Worker<T extends WorkerResourceDescription, I extends Impl
         return coreSimultaneousTasks;
     }
 
-    public Integer simultaneousCapacity(I impl) {
-        return Math.min(fitCount(impl), this.getMaxTaskCount());
+    public Integer simultaneousCapacity(Implementation impl) {
+        return Math.min(fitCount(impl), this.getMaxCPUTaskCount());
     }
 
     public String getResourceLinks(String prefix) {
@@ -346,18 +346,18 @@ public abstract class Worker<T extends WorkerResourceDescription, I extends Impl
     }
 
     @SuppressWarnings("unchecked")
-    public LinkedList<I>[] getRunnableImplementations() {
+    public LinkedList<Implementation>[] getRunnableImplementations() {
         int coreCount = CoreManager.getCoreCount();
-        LinkedList<I>[] runnable = new LinkedList[coreCount];
+        LinkedList<Implementation>[] runnable = new LinkedList[coreCount];
         for (int coreId = 0; coreId < coreCount; coreId++) {
             runnable[coreId] = getRunnableImplementations(coreId);
         }
         return runnable;
     }
 
-    public LinkedList<I> getRunnableImplementations(int coreId) {
-        LinkedList<I> runnable = new LinkedList<>();
-        for (I impl : this.executableImpls[coreId]) {
+    public LinkedList<Implementation> getRunnableImplementations(int coreId) {
+        LinkedList<Implementation> runnable = new LinkedList<>();
+        for (Implementation impl : this.executableImpls[coreId]) {
             if (canRunNow((T) impl.getRequirements())) {
                 runnable.add(impl);
             }
@@ -369,9 +369,9 @@ public abstract class Worker<T extends WorkerResourceDescription, I extends Impl
         return this.idealSimultaneousTasks[coreId] > 0;
     }
 
-    public LinkedList<I> canRunNow(LinkedList<I> candidates) {
-        LinkedList<I> runnable = new LinkedList<>();
-        for (I impl : candidates) {
+    public LinkedList<Implementation> canRunNow(LinkedList<Implementation> candidates) {
+        LinkedList<Implementation> runnable = new LinkedList<>();
+        for (Implementation impl : candidates) {
             if (canRunNow((T) impl.getRequirements())) {
                 runnable.add(impl);
             }
@@ -381,7 +381,7 @@ public abstract class Worker<T extends WorkerResourceDescription, I extends Impl
 
     public boolean canRunNow(T consumption) {
         // Available slots
-        boolean canRun = this.getUsedTaskCount() < this.getMaxTaskCount();
+        boolean canRun = this.getUsedCPUTaskCount() < this.getMaxCPUTaskCount();
         canRun = canRun && ((this.getUsedGPUTaskCount() < this.getMaxGPUTaskCount()) || !this.usesGPU(consumption));
         canRun = canRun && ((this.getUsedFPGATaskCount() < this.getMaxFPGATaskCount()) || !this.usesFPGA(consumption));
         canRun = canRun && ((this.getUsedOthersTaskCount() < this.getMaxOthersTaskCount()) || !this.usesOthers(consumption));
@@ -394,7 +394,7 @@ public abstract class Worker<T extends WorkerResourceDescription, I extends Impl
             LOGGER.debug("End task received. Releasing resource " + getName());
         }
 
-        this.decreaseUsedTaskCount();
+        this.decreaseUsedCPUTaskCount();
         if (this.usesGPU(consumption)) {
             this.decreaseUsedGPUTaskCount();
         }
@@ -408,12 +408,12 @@ public abstract class Worker<T extends WorkerResourceDescription, I extends Impl
     }
 
     public T runTask(T consumption) {
-        if (this.usedTaskCount < this.maxTaskCount) {
+        if (this.usedCPUTaskCount < this.maxCPUTaskCount) {
             // There are free task-slots
             T reserved = reserveResource(consumption);
             if (reserved != null) {
                 // Consumption can be hosted
-                this.increaseUsedTaskCount();
+                this.increaseUsedCPUTaskCount();
                 if (this.usesGPU(consumption)) {
                     this.increaseUsedGPUTaskCount();
                 }
@@ -436,10 +436,10 @@ public abstract class Worker<T extends WorkerResourceDescription, I extends Impl
 
     public abstract String getMonitoringData(String prefix);
 
-    public abstract boolean canRun(I implementation);
+    public abstract boolean canRun(Implementation implementation);
 
     // Internal private methods depending on the resourceType
-    public abstract Integer fitCount(I impl);
+    public abstract Integer fitCount(Implementation impl);
 
     public abstract boolean hasAvailable(T consumption);
 
@@ -465,11 +465,11 @@ public abstract class Worker<T extends WorkerResourceDescription, I extends Impl
         w.announceDestruction();
     }
 
-    public abstract Worker<T, I> getSchedulingCopy();
+    public abstract Worker<T> getSchedulingCopy();
 
     @Override
     public String toString() {
-        return "Worker " + description + " with usedTaskCount = " + usedTaskCount + " and maxTaskCount = " + maxTaskCount
+        return "Worker " + description + " with usedTaskCount = " + usedCPUTaskCount + " and maxTaskCount = " + maxCPUTaskCount
                 + " with the following description " + description;
     }
 

@@ -7,7 +7,6 @@ import java.io.ObjectOutput;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.implementations.Implementation.TaskType;
 
-
 public class ServiceResourceDescription extends WorkerResourceDescription {
 
     private final String serviceName;
@@ -15,7 +14,6 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
     private final String port;
 
     private int connections;
-
 
     public ServiceResourceDescription(String serviceName, String namespace, String port, int connections) {
         this.serviceName = serviceName;
@@ -37,7 +35,7 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
     }
 
     @Override
-    public boolean canHost(Implementation<?> impl) {
+    public boolean canHost(Implementation impl) {
         if (impl.getTaskType() == TaskType.SERVICE) {
             ServiceResourceDescription s = (ServiceResourceDescription) impl.getRequirements();
             return s.serviceName.compareTo(serviceName) == 0 && s.namespace.compareTo(namespace) == 0 && s.port.compareTo(port) == 0
@@ -47,7 +45,7 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
     }
 
     @Override
-    public boolean canHostDynamic(Implementation<?> impl) {
+    public boolean canHostDynamic(Implementation impl) {
         int conRequired = ((ServiceResourceDescription) impl.getRequirements()).connections;
         return conRequired <= connections;
     }
@@ -110,4 +108,8 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
         return new ServiceResourceDescription(serviceName, namespace, port, connections);
     }
 
+    @Override
+    public String getDynamicDescription() {
+        return "Connections:" + this.connections;
+    }
 }

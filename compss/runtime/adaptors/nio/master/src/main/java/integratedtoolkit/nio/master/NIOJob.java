@@ -32,7 +32,7 @@ public class NIOJob extends Job<NIOWorkerNode> {
     private final List<String> slaveWorkersNodeNames;
 
 
-    public NIOJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, List<String> slaveWorkersNodeNames,
+    public NIOJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res, List<String> slaveWorkersNodeNames,
             JobListener listener) {
 
         super(taskId, taskParams, impl, res, listener);

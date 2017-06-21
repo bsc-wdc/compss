@@ -66,11 +66,10 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
     private final DeadlineThread dead;
     private final TreeSet<VM> vmsToDelete;
     private final LinkedList<VM> vmsAlive;
-    
+
     private static final Object ipToVMLock = new Object();
     private static final Object vmsLock = new Object();
     private static final Object vmsToDeleteLock = new Object();
-
 
     /**
      * New abstract connector implementation
@@ -90,12 +89,12 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
         if (estCreationTimeStr != null) {
             meanCreationTime = Integer.parseInt(estCreationTimeStr) * S_TO_MS;
         } else {
-        	String maxCreationTimeStr = props.get(PROP_MAX_VM_CREATION_TIME);
-        	if (maxCreationTimeStr != null) {
-        		meanCreationTime = Integer.parseInt(maxCreationTimeStr) * S_TO_MS;
-        	} else {
-        		meanCreationTime = INITIAL_CREATION_TIME;
-        	}
+            String maxCreationTimeStr = props.get(PROP_MAX_VM_CREATION_TIME);
+            if (maxCreationTimeStr != null) {
+                meanCreationTime = Integer.parseInt(maxCreationTimeStr) * S_TO_MS;
+            } else {
+                meanCreationTime = INITIAL_CREATION_TIME;
+            }
         }
 
         LOGGER.debug("[Abstract Connector] Initial mean creation time is" + meanCreationTime);
@@ -140,16 +139,16 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
     private synchronized VM tryToReuseVM(CloudMethodResourceDescription requested) {
         String imageReq = requested.getImage().getImageName();
         VM reusedVM = null;
-        synchronized(vmsToDeleteLock) {
+        synchronized (vmsToDeleteLock) {
             for (VM vm : vmsToDelete) {
                 if (!vm.getDescription().getImage().getImageName().equals(imageReq)) {
                     continue;
                 }
-    
+
                 if (!vm.getDescription().contains(requested)) {
                     continue;
                 }
-    
+
                 reusedVM = vm;
                 reusedVM.setToDelete(false);
                 vmsToDelete.remove(reusedVM);
@@ -180,7 +179,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
         terminate = true;
         dead.terminate();
 
-        synchronized(ipToVMLock) {
+        synchronized (ipToVMLock) {
             for (VM vm : IPToVM.values()) {
                 LOGGER.info("[Abstract Connector] Retrieving data from VM " + vm.getName());
                 vm.getWorker().retrieveData(false);
@@ -201,18 +200,18 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
                 }
             }
         }
-        
+
         // Clear all
-        synchronized(ipToVMLock) {
+        synchronized (ipToVMLock) {
             IPToVM.clear();
         }
-        synchronized(vmsToDeleteLock) {
+        synchronized (vmsToDeleteLock) {
             vmsToDelete.clear();
         }
         synchronized (vmsLock) {
             vmsAlive.clear();
         }
-        
+
         // Close connector
         close();
     }
@@ -232,15 +231,13 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
     }
 
     /**
-     * Contacts the Cloud Provider to create a new resource according to the provided description.
+     * Contacts the Cloud Provider to create a new resource according to the
+     * provided description.
      *
-     * @param name
-     *            Request name
-     * @param rd
-     *            Description of the required resources
+     * @param name Request name
+     * @param rd Description of the required resources
      * @return the internal Provider Id of the resources
-     * @throws ConnectorException
-     *             there was a problem during the VM Creation
+     * @throws ConnectorException there was a problem during the VM Creation
      *
      */
     public abstract Object create(String name, CloudMethodResourceDescription rd) throws ConnectorException;
@@ -249,7 +246,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
     public VM waitCreation(Object envId, CloudMethodResourceDescription requested) throws ConnectorException {
         CloudMethodResourceDescription granted = waitUntilCreation(envId, requested);
         VM vm = new VM(envId, granted);
-        vm.setRequestTime( powerOnVMTimestamp.remove(envId) );
+        vm.setRequestTime(powerOnVMTimestamp.remove(envId));
         LOGGER.info("[Abstract Connector] Virtual machine created: " + vm);
         float oneHourCost = getMachineCostPerHour(granted);
         currentCostPerHour += oneHourCost;
@@ -259,15 +256,13 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
 
     /**
      *
-     * Waits until some requested resources are created and available to the external user.
+     * Waits until some requested resources are created and available to the
+     * external user.
      *
-     * @param endId
-     *            Internal Provider Id for the requested resources
-     * @param requested
-     *            Description of the requested resources
+     * @param endId Internal Provider Id for the requested resources
+     * @param requested Description of the requested resources
      * @return description of the granted resources
-     * @throws ConnectorException
-     *             An error ocurred during the resources wait.
+     * @throws ConnectorException An error ocurred during the resources wait.
      */
     public abstract CloudMethodResourceDescription waitUntilCreation(Object endId, CloudMethodResourceDescription requested)
             throws ConnectorException;
@@ -275,7 +270,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
     @Override
     public void vmReady(VM vmInfo) throws ConnectorException {
         synchronized (this) {
-            vmInfo.setStartTime( System.currentTimeMillis() );
+            vmInfo.setStartTime(System.currentTimeMillis());
             vmInfo.computeCreationTime();
 
             long totaltime = meanCreationTime * createdVMs;
@@ -290,13 +285,13 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
     @Override
     public VM pause(CloudMethodWorker worker) {
         String ip = worker.getName();
-        
-        synchronized(ipToVMLock) {
+
+        synchronized (ipToVMLock) {
             VM vmInfo = IPToVM.get(ip);
-            if (vmInfo!=null && canBeSaved(vmInfo)) {
+            if (vmInfo != null && canBeSaved(vmInfo)) {
                 LOGGER.info("[Abstract Connector] Virtual machine saved: " + vmInfo);
                 vmInfo.setToDelete(true);
-                synchronized(vmsToDeleteLock) {
+                synchronized (vmsToDeleteLock) {
                     vmsToDelete.add(vmInfo);
                 }
                 return null;
@@ -326,21 +321,21 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
 
     private synchronized void addMachine(VM vmInfo) {
         String ip = vmInfo.getName();
-        synchronized(ipToVMLock) {
+        synchronized (ipToVMLock) {
             IPToVM.put(ip, vmInfo);
         }
-        synchronized(vmsLock) {
+        synchronized (vmsLock) {
             vmsAlive.add(vmInfo);
         }
     }
 
     private synchronized void removeMachine(VM vmInfo) {
-        
-    	synchronized(ipToVMLock) {
+
+        synchronized (ipToVMLock) {
             IPToVM.remove(vmInfo.getName());
         }
-        
-        synchronized(vmsLock) {
+
+        synchronized (vmsLock) {
             vmsAlive.remove(vmInfo);
         }
         LOGGER.debug("[Abstract Connector] VM removed in the connector");
@@ -362,7 +357,8 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
     }
 
     /**
-     * Returns the machine cost per time slot for a given Resource Description @rd
+     * Returns the machine cost per time slot for a given Resource Description
+     * @rd
      *
      * @param rd
      * @return
@@ -408,7 +404,6 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
         return mod < limit - DELETE_SAFETY_INTERVAL; // my deadline is less than 2 min away
     }
 
-
     /**
      * Deadline thread for VM timeout
      *
@@ -435,42 +430,40 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
                 synchronized (vmsLock) {
                     if (vmsAlive.isEmpty()) {
                         // LOGGER.info("MONITOR STATUS DEAD no VMs alive");
-                        sleepTime= getSleepTime();
+                        sleepTime = getSleepTime();
                         LOGGER.debug("[Abstract Connector] No VMs alive deadline sleep set to " + sleepTime + " ms.");
                         continue;
                     } else {
                         sleepTime = getSleepTime();
                         LOGGER.debug("[Abstract Connector] VMs alive initial sleep set to " + sleepTime + " ms.");
-                       try{
-                        	Iterator<VM> vms = vmsAlive.iterator();
-                        	while (vms.hasNext()) {
-                        		VM vmInfo = vms.next();
-                        		long timeLeft = timeLeft(vmInfo.getStartTime());
-                        		// LOGGER.info("MONITOR STATUS DEAD next VM " + vmInfo.ip + " @ " + vmInfo.startTime + " --> " + timeLeft);
-                        		if (timeLeft < DELETE_SAFETY_INTERVAL) {
-                        			if (vmInfo.isToDelete()) {
-                        				LOGGER.info("[Abstract Connector] Deleting vm " + vmInfo.getName()
-                                            + " because is marked to delete and it is on the safety delete interval");
-                        				vmsAlive.pollFirst();
-                        				synchronized(vmsToDeleteLock) {
-                        					vmsToDelete.remove(vmInfo);
-                        				}
-                        				DeletionThread dt;
-                        				dt = new DeletionThread((Operations) AbstractConnector.this, vmInfo);
-                        				dt.start();
-                        			}
-                        		} else {
-                        			if (sleepTime > timeLeft - DELETE_SAFETY_INTERVAL) {
-                        				sleepTime = timeLeft - DELETE_SAFETY_INTERVAL;
-                        				LOGGER.debug("[Abstract Connector] Resetting sleep time because a interval near to finish " + sleepTime + " ms.");
-                        			}
-                        		}
-                        	}
-                        }catch(ConcurrentModificationException e){
-                        	LOGGER.debug("[Abstract Connector] Concurrent modification in deadline thread. Ignoring", e);
-                        	sleepTime = 1_000l;
+                        try {
+                            Iterator<VM> vms = vmsAlive.iterator();
+                            while (vms.hasNext()) {
+                                VM vmInfo = vms.next();
+                                long timeLeft = timeLeft(vmInfo.getStartTime());
+                                // LOGGER.info("MONITOR STATUS DEAD next VM " + vmInfo.ip + " @ " + vmInfo.startTime + " --> " + timeLeft);
+                                if (timeLeft < DELETE_SAFETY_INTERVAL) {
+                                    if (vmInfo.isToDelete()) {
+                                        LOGGER.info("[Abstract Connector] Deleting vm " + vmInfo.getName()
+                                                + " because is marked to delete and it is on the safety delete interval");
+                                        vmsAlive.pollFirst();
+                                        synchronized (vmsToDeleteLock) {
+                                            vmsToDelete.remove(vmInfo);
+                                        }
+                                        DeletionThread dt;
+                                        dt = new DeletionThread((Operations) AbstractConnector.this, vmInfo);
+                                        dt.start();
+                                    }
+                                } else if (sleepTime > timeLeft - DELETE_SAFETY_INTERVAL) {
+                                    sleepTime = timeLeft - DELETE_SAFETY_INTERVAL;
+                                    LOGGER.debug("[Abstract Connector] Resetting sleep time because a interval near to finish " + sleepTime + " ms.");
+                                }
+                            }
+                        } catch (ConcurrentModificationException e) {
+                            LOGGER.debug("[Abstract Connector] Concurrent modification in deadline thread. Ignoring", e);
+                            sleepTime = 1_000l;
                         }
-                        
+
                     }
                 }
             }
@@ -482,10 +475,10 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
                 return MINIM_DEADLINE_INTERVAL;
             } else {
                 time = time - DELETE_SAFETY_INTERVAL;
-                if (time > MAX_DEADLINE_INTERVAL){
-                	return MAX_DEADLINE_INTERVAL;
-                }else{
-                	return time;
+                if (time > MAX_DEADLINE_INTERVAL) {
+                    return MAX_DEADLINE_INTERVAL;
+                } else {
+                    return time;
                 }
             }
         }
@@ -516,7 +509,6 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
     private class Ender extends Thread {
 
         private final AbstractConnector ac;
-
 
         public Ender(AbstractConnector ac) {
             this.ac = ac;

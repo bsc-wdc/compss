@@ -14,7 +14,6 @@ import java.util.Map.Entry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 public class CoreManager {
 
     // LOGGER
@@ -28,7 +27,7 @@ public class CoreManager {
     private static final String WARN_UNREGISTERED_IMPL = "Unregistered implementation. Skipping addition";
 
     // List of implementations of each coreElement
-    private static final List<List<Implementation<?>>> IMPLEMENTATIONS = new LinkedList<>();
+    private static final List<List<Implementation>> IMPLEMENTATIONS = new LinkedList<>();
     // List of signatures of each implementation of each coreElement
     // The first signature is always the signature of the coreElement
     private static final List<List<String>> SIGNATURES = new LinkedList<>();
@@ -38,10 +37,9 @@ public class CoreManager {
     // Structure counters
     private static int coreCount = 0;
 
-
     /**
      * Private constructor to avoid instantiation
-     * 
+     *
      */
     private CoreManager() {
         throw new NonInstantiableException("CoreManager");
@@ -49,7 +47,7 @@ public class CoreManager {
 
     /**
      * Returns the number of registered CoreElements
-     * 
+     *
      * @return
      */
     public static int getCoreCount() {
@@ -58,9 +56,9 @@ public class CoreManager {
 
     /**
      * Registers a new Method as Core Element if it doesn't exist
-     * 
+     *
      * @param signature
-     * 
+     *
      * @return the methodId assigned to the new Core Element
      */
     public static Integer registerNewCoreElement(String signature) {
@@ -82,7 +80,7 @@ public class CoreManager {
         // Increase the coreCount counter
         ++coreCount;
         // Register the coreElement
-        List<Implementation<?>> impls = new LinkedList<>();
+        List<Implementation> impls = new LinkedList<>();
         IMPLEMENTATIONS.add(impls);
         // Register the signature
         List<String> signs = new LinkedList<>();
@@ -95,14 +93,15 @@ public class CoreManager {
     }
 
     /**
-     * Registers a new Implementation for a given CoreElement The coreElement MUST have been previously registered The
-     * impls and signs must have the same size and are sorted
-     * 
+     * Registers a new Implementation for a given CoreElement The coreElement
+     * MUST have been previously registered The impls and signs must have the
+     * same size and are sorted
+     *
      * @param coreId
      * @param impls
      * @param signs
      */
-    public static void registerNewImplementations(int coreId, List<Implementation<?>> impls, List<String> signs) {
+    public static void registerNewImplementations(int coreId, List<Implementation> impls, List<String> signs) {
         if (coreId < 0 || coreId >= coreCount) {
             ErrorManager.error(ERROR_UNREGISTERED_CORE_ELEMENT + coreId);
             return;
@@ -119,7 +118,7 @@ public class CoreManager {
         }
 
         // Register all the new implementations
-        List<Implementation<?>> coreImplementations = IMPLEMENTATIONS.get(coreId);
+        List<Implementation> coreImplementations = IMPLEMENTATIONS.get(coreId);
         coreImplementations.addAll(impls);
         IMPLEMENTATIONS.set(coreId, coreImplementations);
 
@@ -135,8 +134,9 @@ public class CoreManager {
     }
 
     /**
-     * Returns the CoreId associated to a registered signature The coreId MUST have been previously registered
-     * 
+     * Returns the CoreId associated to a registered signature The coreId MUST
+     * have been previously registered
+     *
      * @param signature
      * @return
      */
@@ -158,9 +158,10 @@ public class CoreManager {
     }
 
     /**
-     * Returns the signature of a given implementationId of a give coreElementId The coreId MUST have been previously
-     * registered The implId MUST have been previously registered
-     * 
+     * Returns the signature of a given implementationId of a give coreElementId
+     * The coreId MUST have been previously registered The implId MUST have been
+     * previously registered
+     *
      * @param coreId
      * @param implId
      * @return
@@ -182,7 +183,7 @@ public class CoreManager {
 
     /**
      * Gets the map of registered signatures and coreIds
-     * 
+     *
      * @return the map of registered signatures and coreIds
      */
     public static Map<String, Integer> getSignaturesToId() {
@@ -211,7 +212,7 @@ public class CoreManager {
      *
      * @return the implementations for a Core Element
      */
-    public static List<Implementation<?>> getCoreImplementations(int coreId) {
+    public static List<Implementation> getCoreImplementations(int coreId) {
         if (coreId < 0 || coreId >= coreCount) {
             ErrorManager.error(ERROR_UNREGISTERED_CORE_ELEMENT);
             return null;
@@ -222,7 +223,7 @@ public class CoreManager {
 
     /**
      * Returns the number of implementations of a Core Element
-     * 
+     *
      * @param coreId
      * @return the number of implementations of a Core Element
      */
@@ -236,19 +237,19 @@ public class CoreManager {
     }
 
     /**
-     * Looks for all the cores from in the annotated Interface which constraint are fullfilled by the resource
-     * description passed as a parameter
+     * Looks for all the cores from in the annotated Interface which constraint
+     * are fullfilled by the resource description passed as a parameter
      *
-     * @param rd
-     *            ResourceDescription to find cores compatible to
+     * @param rd ResourceDescription to find cores compatible to
      *
-     * @return the list of cores which constraints are fulfilled by th described resource
+     * @return the list of cores which constraints are fulfilled by th described
+     * resource
      */
     public static List<Integer> findExecutableCores(ResourceDescription rd) {
         List<Integer> executableList = new LinkedList<>();
 
         for (int coreId = 0; coreId < coreCount; ++coreId) {
-            for (Implementation<?> impl : IMPLEMENTATIONS.get(coreId)) {
+            for (Implementation impl : IMPLEMENTATIONS.get(coreId)) {
                 if (rd.canHost(impl)) {
                     // Add core to executable list
                     executableList.add(coreId);
@@ -273,7 +274,7 @@ public class CoreManager {
         sb.append("Core Count: ").append(coreCount).append("\n");
         for (int coreId = 0; coreId < coreCount; coreId++) {
             sb.append("\tCore ").append(coreId).append(":\n");
-            for (Implementation<?> impl : IMPLEMENTATIONS.get(coreId)) {
+            for (Implementation impl : IMPLEMENTATIONS.get(coreId)) {
                 sb.append("\t\t -").append(impl.toString()).append("\n");
             }
         }

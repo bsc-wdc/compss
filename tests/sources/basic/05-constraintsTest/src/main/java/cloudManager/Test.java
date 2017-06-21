@@ -51,7 +51,7 @@ public class Test {
         coreCount = CoreManager.getCoreCount();
         for (int coreId = 0; coreId < coreCount; coreId++) {
             System.out.println("[LOG] Checking Core" + coreId);
-            for (Implementation<?> impl : CoreManager.getCoreImplementations(coreId)) {
+            for (Implementation impl : CoreManager.getCoreImplementations(coreId)) {
                 if (impl.getTaskType().equals(TaskType.METHOD)) {
                     System.out.println("[LOG]\t Checking Implementation: " + impl.getImplementationId());
                     System.out.println("\t\t Checking obtained compatible cloud images");

@@ -7,15 +7,13 @@ import integratedtoolkit.components.impl.TaskDispatcher;
 import integratedtoolkit.types.data.location.DataLocation;
 import java.util.concurrent.Semaphore;
 
-
 public class AlreadyAccessedRequest extends APRequest {
 
-    private DataLocation loc;
+    private final DataLocation loc;
 
     private Semaphore sem;
 
     private boolean response;
-
 
     public AlreadyAccessedRequest(DataLocation loc, Semaphore sem) {
         this.loc = loc;
@@ -43,7 +41,7 @@ public class AlreadyAccessedRequest extends APRequest {
     }
 
     @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?, ?> td) {
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         boolean aa = dip.alreadyAccessed(this.loc);
         this.response = aa;
         sem.release();

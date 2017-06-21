@@ -234,7 +234,7 @@ public class IDLParser {
 
         // Add the implementation to the core element
         int implId = CoreManager.getNumberCoreImplementations(coreId);
-        List<Implementation<?>> newImpls = new LinkedList<>();
+        List<Implementation> newImpls = new LinkedList<>();
         MethodImplementation m = new MethodImplementation(declaringClass, methodName, coreId, implId, currConstraints);
         newImpls.add(m);
         List<String> newSigns = new LinkedList<>();

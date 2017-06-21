@@ -3,11 +3,9 @@ package integratedtoolkit.types.resources;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.configuration.ServiceConfiguration;
 
-
-public class ServiceWorker extends Worker<ServiceResourceDescription, Implementation<ServiceResourceDescription>> {
+public class ServiceWorker extends Worker<ServiceResourceDescription> {
 
     private String wsdl;
-
 
     public ServiceWorker(String wsdl, ServiceResourceDescription description, ServiceConfiguration conf) {
         super(wsdl, description, conf, null);
@@ -45,7 +43,7 @@ public class ServiceWorker extends Worker<ServiceResourceDescription, Implementa
     }
 
     @Override
-    public Integer fitCount(Implementation<ServiceResourceDescription> impl) {
+    public Integer fitCount(Implementation impl) {
         return Integer.MAX_VALUE;
     }
 
@@ -53,20 +51,20 @@ public class ServiceWorker extends Worker<ServiceResourceDescription, Implementa
     public boolean hasAvailable(ServiceResourceDescription consumption) {
         return true;
     }
-    
+
     @Override
-    public boolean usesGPU(ServiceResourceDescription consumption){
-    	return false;
+    public boolean usesGPU(ServiceResourceDescription consumption) {
+        return false;
     }
-    
+
     @Override
-    public boolean usesFPGA(ServiceResourceDescription consumption){
-    	return false;
+    public boolean usesFPGA(ServiceResourceDescription consumption) {
+        return false;
     }
-    
+
     @Override
-    public boolean usesOthers(ServiceResourceDescription consumption){
-    	return false;
+    public boolean usesOthers(ServiceResourceDescription consumption) {
+        return false;
     }
 
     @Override
@@ -81,7 +79,7 @@ public class ServiceWorker extends Worker<ServiceResourceDescription, Implementa
 
     @Override
     public void releaseAllResources() {
-        super.resetUsedTaskCount();
+        super.resetUsedTaskCounts();
     }
 
     @Override
@@ -92,7 +90,7 @@ public class ServiceWorker extends Worker<ServiceResourceDescription, Implementa
     @Override
     public String getMonitoringData(String prefix) {
         StringBuilder sb = new StringBuilder();
-        sb.append(prefix).append("<TotalComputingUnits>").append(this.getMaxTaskCount()).append("</TotalComputingUnits>").append("\n");
+        sb.append(prefix).append("<TotalComputingUnits>").append(this.getMaxCPUTaskCount()).append("</TotalComputingUnits>").append("\n");
         return sb.toString();
     }
 
@@ -114,7 +112,7 @@ public class ServiceWorker extends Worker<ServiceResourceDescription, Implementa
     }
 
     @Override
-    public boolean canRun(Implementation<ServiceResourceDescription> implementation) {
+    public boolean canRun(Implementation implementation) {
         switch (implementation.getTaskType()) {
             case SERVICE:
                 ServiceResourceDescription s = (ServiceResourceDescription) implementation.getRequirements();
@@ -135,7 +133,7 @@ public class ServiceWorker extends Worker<ServiceResourceDescription, Implementa
     }
 
     @Override
-    public Worker<ServiceResourceDescription, Implementation<ServiceResourceDescription>> getSchedulingCopy() {
+    public ServiceWorker getSchedulingCopy() {
         return new ServiceWorker(this);
     }
 

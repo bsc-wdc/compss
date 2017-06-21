@@ -43,7 +43,6 @@ import integratedtoolkit.util.Tracer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 public abstract class Resource implements Comparable<Resource> {
 
     public enum Type {
@@ -51,7 +50,6 @@ public abstract class Resource implements Comparable<Resource> {
         WORKER, // For the worker nodes
         SERVICE // For services
     }
-
 
     // Log and debug
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
@@ -66,7 +64,6 @@ public abstract class Resource implements Comparable<Resource> {
 
     private final LinkedList<LogicalData> obsoletes = new LinkedList<>();
     private final HashSet<LogicalData> privateFiles = new HashSet<>();
-
 
     public Resource(String name, Configuration conf, HashMap<String, String> sharedDisks) {
         this.name = name;
@@ -92,7 +89,7 @@ public abstract class Resource implements Comparable<Resource> {
 
     /**
      * Starts a resource execution
-     * 
+     *
      * @throws Exception
      */
     public void start() throws InitNodeException {
@@ -105,9 +102,9 @@ public abstract class Resource implements Comparable<Resource> {
     }
 
     /**
-     * Returns the Resource associated to the given name @name Null if any resource has been registered with the
-     * name @name
-     * 
+     * Returns the Resource associated to the given name @name Null if any
+     * resource has been registered with the name @name
+     *
      * @param name
      * @return
      */
@@ -123,7 +120,7 @@ public abstract class Resource implements Comparable<Resource> {
 
     /**
      * Returns all the LogicalData stored in the host
-     * 
+     *
      * @param
      * @return
      */
@@ -147,7 +144,7 @@ public abstract class Resource implements Comparable<Resource> {
 
     /**
      * Adds a new LogicalData available in the host
-     * 
+     *
      * @param ld
      */
     public void addLogicalData(LogicalData ld) {
@@ -158,7 +155,7 @@ public abstract class Resource implements Comparable<Resource> {
 
     /**
      * Marks a file as obsolete
-     * 
+     *
      * @param obsolete
      */
     public final void addObsolete(LogicalData obsolete) {
@@ -180,7 +177,7 @@ public abstract class Resource implements Comparable<Resource> {
 
     /**
      * Clears the list of obsolete files
-     * 
+     *
      * @return
      */
     public final LinkedList<LogicalData> clearObsoletes() {
@@ -193,7 +190,7 @@ public abstract class Resource implements Comparable<Resource> {
 
     /**
      * Returns the node name
-     * 
+     *
      * @return
      */
     public String getName() {
@@ -202,7 +199,7 @@ public abstract class Resource implements Comparable<Resource> {
 
     /**
      * Returns the node associated to the resource
-     * 
+     *
      * @return
      */
     public COMPSsNode getNode() {
@@ -211,7 +208,7 @@ public abstract class Resource implements Comparable<Resource> {
 
     /**
      * Returns the internal URI representation of the given MultiURI
-     * 
+     *
      * @param u
      * @throws UnstartedNodeException
      */
@@ -221,7 +218,7 @@ public abstract class Resource implements Comparable<Resource> {
 
     /**
      * Creates a new Job
-     * 
+     *
      * @param taskId
      * @param taskParams
      * @param impl
@@ -229,7 +226,7 @@ public abstract class Resource implements Comparable<Resource> {
      * @param listener
      * @return
      */
-    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, List<String> slaveWorkersNodeNames,
+    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, List<String> slaveWorkersNodeNames,
             JobListener listener) {
 
         return node.newJob(taskId, taskParams, impl, this, slaveWorkersNodeNames, listener);
@@ -237,7 +234,7 @@ public abstract class Resource implements Comparable<Resource> {
 
     /**
      * Retrives a given data
-     * 
+     *
      * @param dataId
      * @param tgtDataId
      * @param reason
@@ -254,7 +251,7 @@ public abstract class Resource implements Comparable<Resource> {
 
     /**
      * Retrieves a given data
-     * 
+     *
      * @param ld
      * @param tgtData
      * @param reason
@@ -266,7 +263,7 @@ public abstract class Resource implements Comparable<Resource> {
 
     /**
      * Retrieves a given data
-     * 
+     *
      * @param dataId
      * @param newName
      * @param tgtDataId
@@ -281,7 +278,7 @@ public abstract class Resource implements Comparable<Resource> {
 
     /**
      * Retrieves a given data
-     * 
+     *
      * @param dataId
      * @param newName
      * @param tgtData
@@ -295,7 +292,7 @@ public abstract class Resource implements Comparable<Resource> {
 
     /**
      * Retrieves a given data
-     * 
+     *
      * @param ld
      * @param newName
      * @param tgtData
@@ -316,7 +313,7 @@ public abstract class Resource implements Comparable<Resource> {
 
     /**
      * Retrieves a given data
-     * 
+     *
      * @param dataId
      * @param target
      * @param reason
@@ -335,7 +332,7 @@ public abstract class Resource implements Comparable<Resource> {
 
     /**
      * Retrieves a given data
-     * 
+     *
      * @param dataId
      * @param target
      * @param tgtData
@@ -349,7 +346,7 @@ public abstract class Resource implements Comparable<Resource> {
 
     /**
      * Retrieves a given data
-     * 
+     *
      * @param srcData
      * @param target
      * @param tgtData
@@ -362,7 +359,7 @@ public abstract class Resource implements Comparable<Resource> {
 
     /**
      * Returns the complete remote path of a given data
-     * 
+     *
      * @param type
      * @param name
      * @return
@@ -373,7 +370,7 @@ public abstract class Resource implements Comparable<Resource> {
 
     /**
      * Retrieves all the data from the Resource
-     * 
+     *
      * @param saveUniqueData
      */
     public void retrieveData(boolean saveUniqueData) {
@@ -441,7 +438,7 @@ public abstract class Resource implements Comparable<Resource> {
 
     /**
      * Deletes the intermediate data
-     * 
+     *
      */
     public void deleteIntermediate() {
         node.deleteTemporary();
@@ -449,7 +446,7 @@ public abstract class Resource implements Comparable<Resource> {
 
     /**
      * Stops the resource
-     * 
+     *
      * @param sl
      */
     public void stop(ShutdownListener sl) {
@@ -460,7 +457,7 @@ public abstract class Resource implements Comparable<Resource> {
 
     /**
      * Stops the Execution Manager of the resource
-     * 
+     *
      */
     private void shutdownExecutionManager() {
         if (DEBUG) {
@@ -618,7 +615,7 @@ public abstract class Resource implements Comparable<Resource> {
 
     /**
      * Returns the Resource type
-     * 
+     *
      * @return
      */
     public abstract Type getType();

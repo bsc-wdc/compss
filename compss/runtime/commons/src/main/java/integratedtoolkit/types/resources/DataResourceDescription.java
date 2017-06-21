@@ -24,10 +24,10 @@ public class DataResourceDescription extends ResourceDescription {
     // Optional information: Storage
     protected float storageSize = UNASSIGNED_FLOAT;
     protected String storageType = UNASSIGNED_STR;
-    
+
     /**
      * New empty data Resource Description
-     * 
+     *
      */
     public DataResourceDescription() {
         // Only for externalization
@@ -38,7 +38,7 @@ public class DataResourceDescription extends ResourceDescription {
 
     /**
      * New Data Resource description with host @host and path @path
-     * 
+     *
      * @param host
      * @param path
      */
@@ -50,7 +50,7 @@ public class DataResourceDescription extends ResourceDescription {
 
     /**
      * Clone method for Data Resource Description
-     * 
+     *
      * @param clone
      */
     public DataResourceDescription(DataResourceDescription clone) {
@@ -69,7 +69,7 @@ public class DataResourceDescription extends ResourceDescription {
 
     /**
      * Returns the host
-     * 
+     *
      * @return
      */
     public String getHost() {
@@ -78,7 +78,7 @@ public class DataResourceDescription extends ResourceDescription {
 
     /**
      * Returns the path
-     * 
+     *
      * @return
      */
     public String getPath() {
@@ -87,7 +87,7 @@ public class DataResourceDescription extends ResourceDescription {
 
     /**
      * Returns the storage size
-     * 
+     *
      * @return
      */
     public float getStorageSize() {
@@ -96,7 +96,7 @@ public class DataResourceDescription extends ResourceDescription {
 
     /**
      * Sets a new storage size
-     * 
+     *
      * @param storageSize
      */
     public void setStorageSize(float storageSize) {
@@ -107,7 +107,7 @@ public class DataResourceDescription extends ResourceDescription {
 
     /**
      * Returns the storage type
-     * 
+     *
      * @return
      */
     public String getStorageType() {
@@ -116,7 +116,7 @@ public class DataResourceDescription extends ResourceDescription {
 
     /**
      * Sets a new storage type
-     * 
+     *
      * @param storageType
      */
     public void setStorageType(String storageType) {
@@ -126,7 +126,7 @@ public class DataResourceDescription extends ResourceDescription {
     }
 
     @Override
-    public boolean canHost(Implementation<?> impl) {
+    public boolean canHost(Implementation impl) {
         // DataNodes can not run any implementation
         return false;
     }
@@ -142,7 +142,7 @@ public class DataResourceDescription extends ResourceDescription {
     }
 
     @Override
-    public boolean canHostDynamic(Implementation<?> impl) {
+    public boolean canHostDynamic(Implementation impl) {
         // DataNodes can not run any implementation
         return false;
     }
@@ -183,4 +183,8 @@ public class DataResourceDescription extends ResourceDescription {
         return "[DATANODE " + "HOST=" + this.host + " " + "PATH=" + this.path + " " + "]";
     }
 
+    @Override
+    public String getDynamicDescription() {
+        return "";
+    }
 }

@@ -12,11 +12,9 @@ import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.annotations.parameter.DataType;
 
-
-public abstract class AbstractMethodImplementation extends Implementation<MethodResourceDescription> implements Externalizable {
+public abstract class AbstractMethodImplementation extends Implementation implements Externalizable {
 
     private static final Lang LANG;
-
 
     public enum MethodType {
         METHOD, // For native methods
@@ -26,7 +24,6 @@ public abstract class AbstractMethodImplementation extends Implementation<Method
         BINARY, // For binary methods
         DECAF // For decaf methods
     }
-
 
     static {
         // Compute language
@@ -43,7 +40,6 @@ public abstract class AbstractMethodImplementation extends Implementation<Method
 
         LANG = l;
     }
-
 
     public AbstractMethodImplementation() {
         // For externalizable
@@ -98,6 +94,11 @@ public abstract class AbstractMethodImplementation extends Implementation<Method
     public abstract MethodType getMethodType();
 
     public abstract String getMethodDefinition();
+
+    @Override
+    public MethodResourceDescription getRequirements() {
+        return (MethodResourceDescription) requirements;
+    }
 
     @Override
     public String toString() {

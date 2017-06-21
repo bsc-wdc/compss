@@ -22,9 +22,9 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 /**
- * Abstract representation of a COMPSs Node. Can be a master, a worker or a service
+ * Abstract representation of a COMPSs Node. Can be a master, a worker or a
+ * service
  *
  */
 public abstract class COMPSsNode implements Comparable<COMPSsNode> {
@@ -36,10 +36,9 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
     protected static final String DELETE_ERR = "Error deleting intermediate files";
     protected static final String URI_CREATION_ERR = "Error creating new URI";
 
-
     /**
      * Creates a new node
-     * 
+     *
      */
     public COMPSsNode() {
         // Nothing to do since there are no attributes to initialize
@@ -47,21 +46,21 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
 
     /**
      * Returns the node name
-     * 
+     *
      * @return
      */
     public abstract String getName();
 
     /**
      * Starts the node process
-     * 
+     *
      * @throws InitNodeException
      */
     public abstract void start() throws InitNodeException;
 
     /**
      * Sets the internal URI of the given URIs
-     * 
+     *
      * @param u
      * @throws UnstartedNodeException
      */
@@ -69,20 +68,21 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
 
     /**
      * Adds a new job to the node
-     * 
+     *
      * @param taskId
      * @param taskparams
      * @param impl
      * @param res
+     * @param slaveWorkersNodeNames
      * @param listener
      * @return
      */
-    public abstract Job<?> newJob(int taskId, TaskDescription taskparams, Implementation<?> impl, Resource res,
+    public abstract Job<?> newJob(int taskId, TaskDescription taskparams, Implementation impl, Resource res,
             List<String> slaveWorkersNodeNames, JobListener listener);
 
     /**
      * Sends an specific data to the node
-     * 
+     *
      * @param srcData
      * @param loc
      * @param target
@@ -95,7 +95,7 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
 
     /**
      * Retrieves an specific data from the node
-     * 
+     *
      * @param srcData
      * @param source
      * @param target
@@ -115,7 +115,7 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
 
     /**
      * Returns the complete path of the data with name @name within the node
-     * 
+     *
      * @param type
      * @param name
      * @return
@@ -124,13 +124,13 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
 
     /**
      * Deletes the temporary node folder
-     * 
+     *
      */
     public abstract void deleteTemporary();
 
     /**
      * Generates the tracing package in the node
-     * 
+     *
      * @return
      */
     public abstract boolean generatePackage();
@@ -138,13 +138,13 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
     /**
      * Shuts down the execution manager of the node
      *
-     * @return
+     * @param sl
      */
     public abstract void shutdownExecutionManager(ExecutorShutdownListener sl);
 
     /**
      * Generates the debug information in the node
-     * 
+     *
      * @return
      */
     public abstract boolean generateWorkersDebugInfo();

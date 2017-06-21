@@ -60,7 +60,7 @@ public class TestAvailable {
      * GPU CUs (internalMemory=1), 1 FPGA CU) CE2 -> 1 CPU CUs, 1 FPGA , 2 OTHER CUs , nodeMemSize= 2.0) CE3 -> 1 CPU
      * CUs, 2 GPU CU (internalMemory=3) CE4 -> 1 CPU CUs (internalMemory=3); ***************************************
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private static void availableResourcesTest() {
         // Get CoreCount
         coreCount = CoreManager.getCoreCount();
@@ -133,8 +133,7 @@ public class TestAvailable {
          * ************************************************* Check internal memory
          * ***********************************************
          */
-        ActionOrchestrator<Profile, WorkerResourceDescription, Implementation<WorkerResourceDescription>> orchestrator = (ActionOrchestrator<Profile, WorkerResourceDescription, Implementation<WorkerResourceDescription>>) COMPSsRuntimeImpl
-                .getOrchestrator();
+        ActionOrchestrator orchestrator = COMPSsRuntimeImpl.getOrchestrator();
         Action a = new Action(orchestrator, ce3);
         if (a.findAvailableWorkers().containsKey(worker)) {
             System.out.println("[ERROR] Available resources internalMemorySize filter inside Processor annotation is not working");
@@ -151,7 +150,6 @@ public class TestAvailable {
          * ************************************************* Reserve and free for GPU and FPGA computingUnits test
          * ***********************************************
          */
-
         System.out.println("Worker " + NAME_WORKER + ": " + worker.getDescription());
         System.out.println("Implementation 1: " + CoreManager.getCoreImplementations(ce1).get(0));
 
@@ -219,7 +217,6 @@ public class TestAvailable {
         // System.out.println("FREE");
         // System.out.println("TOTAL: " + ((MethodWorker)worker).getAvailable());
         // System.out.println();
-
         System.out.println("[LOG] * Multi-processors test passed");
     }
 

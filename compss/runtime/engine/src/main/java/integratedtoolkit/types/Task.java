@@ -10,17 +10,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-
 /**
  * Representation of a Task
- * 
+ *
  */
 public class Task implements Comparable<Task> {
 
     // Task ID management
     private static final int FIRST_TASK_ID = 1;
     private static AtomicInteger nextTaskId = new AtomicInteger(FIRST_TASK_ID);
-
 
     /**
      * Task states
@@ -32,7 +30,6 @@ public class Task implements Comparable<Task> {
         FINISHED, // Task has finished successfully
         FAILED // Task has failed
     }
-
 
     // Task fields
     private final long appId;
@@ -49,15 +46,14 @@ public class Task implements Comparable<Task> {
 
     // Scheduling info
     private Task enforcingTask;
-    private final List<ExecutionAction<?, ?, ?>> executions;
+    private final List<ExecutionAction> executions;
 
     // Execution count information
     private int executionCount;
 
-
     /**
      * Creates a new task with the given parameters
-     * 
+     *
      * @param appId
      * @param methodClass
      * @param methodName
@@ -83,7 +79,7 @@ public class Task implements Comparable<Task> {
 
     /**
      * Creates a new task with the given parameters
-     * 
+     *
      * @param appId
      * @param namespace
      * @param service
@@ -107,7 +103,7 @@ public class Task implements Comparable<Task> {
 
     /**
      * Returns the current number of generated tasks
-     * 
+     *
      * @return
      */
     public static int getCurrentTaskCount() {
@@ -116,7 +112,7 @@ public class Task implements Comparable<Task> {
 
     /**
      * Adds a data dependency from the @producer to this task
-     * 
+     *
      * @param producer
      */
     public void addDataDependency(Task producer) {
@@ -126,7 +122,7 @@ public class Task implements Comparable<Task> {
 
     /**
      * Release all the tasks that are data dependent to this task
-     * 
+     *
      */
     public void releaseDataDependents() {
         for (Task t : this.successors) {
@@ -137,7 +133,7 @@ public class Task implements Comparable<Task> {
 
     /**
      * Returns all the successor tasks
-     * 
+     *
      * @return
      */
     public List<Task> getSuccessors() {
@@ -146,7 +142,7 @@ public class Task implements Comparable<Task> {
 
     /**
      * Returns all the predecessor tasks
-     * 
+     *
      * @return
      */
     public List<Task> getPredecessors() {
@@ -155,7 +151,7 @@ public class Task implements Comparable<Task> {
 
     /**
      * Sets the synchronization id of the task to @syncId
-     * 
+     *
      */
     public void setSynchronizationId(int syncId) {
         this.synchronizationId = syncId;
@@ -163,7 +159,7 @@ public class Task implements Comparable<Task> {
 
     /**
      * Returns the syncrhonization Id of the task
-     * 
+     *
      * @return
      */
     public int getSynchronizationId() {
@@ -172,7 +168,7 @@ public class Task implements Comparable<Task> {
 
     /**
      * Returns the app id
-     * 
+     *
      * @return
      */
     public long getAppId() {
@@ -181,7 +177,7 @@ public class Task implements Comparable<Task> {
 
     /**
      * Returns the task id
-     * 
+     *
      * @return
      */
     public int getId() {
@@ -190,7 +186,7 @@ public class Task implements Comparable<Task> {
 
     /**
      * Returns the task status
-     * 
+     *
      * @return
      */
     public TaskState getStatus() {
@@ -199,7 +195,7 @@ public class Task implements Comparable<Task> {
 
     /**
      * Sets a new task status
-     * 
+     *
      * @param status
      */
     public void setStatus(TaskState status) {
@@ -208,7 +204,7 @@ public class Task implements Comparable<Task> {
 
     /**
      * Sets the task as enforcing
-     * 
+     *
      * @param task
      */
     public void setEnforcingTask(Task task) {
@@ -217,7 +213,7 @@ public class Task implements Comparable<Task> {
 
     /**
      * Returns whether the task is free or not
-     * 
+     *
      * @return
      */
     public boolean isFree() {
@@ -226,7 +222,7 @@ public class Task implements Comparable<Task> {
 
     /**
      * Sets a new execution count for the task
-     * 
+     *
      * @param executionCount
      */
     public void setExecutionCount(int executionCount) {
@@ -235,7 +231,7 @@ public class Task implements Comparable<Task> {
 
     /**
      * Decreases the execution count of the task
-     * 
+     *
      */
     public void decreaseExecutionCount() {
         --this.executionCount;
@@ -243,7 +239,7 @@ public class Task implements Comparable<Task> {
 
     /**
      * Returns the task description
-     * 
+     *
      * @return
      */
     public TaskDescription getTaskDescription() {
@@ -252,7 +248,7 @@ public class Task implements Comparable<Task> {
 
     /**
      * Returns whether the task is scheduling forced or not
-     * 
+     *
      * @return
      */
     public boolean isSchedulingForced() {
@@ -261,7 +257,7 @@ public class Task implements Comparable<Task> {
 
     /**
      * Returns the associated enforcing task
-     * 
+     *
      * @return
      */
     public Task getEnforcingTask() {
@@ -270,7 +266,7 @@ public class Task implements Comparable<Task> {
 
     /**
      * Returns the DOT description of the task (only for monitoring)
-     * 
+     *
      * @return
      */
     public String getDotDescription() {
@@ -298,7 +294,7 @@ public class Task implements Comparable<Task> {
 
     /**
      * Returns the task legend description (only for monitoring)
-     * 
+     *
      * @return
      */
     public String getLegendDescription() {
@@ -313,7 +309,7 @@ public class Task implements Comparable<Task> {
 
     /**
      * Returns the method name associated to this task
-     * 
+     *
      * @return
      */
     public String getMethodName() {
@@ -323,7 +319,7 @@ public class Task implements Comparable<Task> {
 
     /**
      * Returns the task color (only for monitoring)
-     * 
+     *
      * @return
      */
     public String getColor() {
@@ -334,19 +330,19 @@ public class Task implements Comparable<Task> {
 
     /**
      * Adds a new execution to the task
-     * 
+     *
      * @param execution
      */
-    public void addExecution(ExecutionAction<?, ?, ?> execution) {
+    public void addExecution(ExecutionAction execution) {
         this.executions.add(execution);
     }
 
     /**
      * Returns the executions of the task
-     * 
+     *
      * @return
      */
-    public List<ExecutionAction<?, ?, ?>> getExecutions() {
+    public List<ExecutionAction> getExecutions() {
         return executions;
     }
 

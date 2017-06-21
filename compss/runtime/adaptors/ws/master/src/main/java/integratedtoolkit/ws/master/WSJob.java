@@ -82,7 +82,7 @@ public class WSJob extends Job<ServiceInstance> {
         }
     }
 
-    public WSJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, JobListener listener) {
+    public WSJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res, JobListener listener) {
         super(taskId, taskParams, impl, res, listener);
         this.returnValue = null;
     }

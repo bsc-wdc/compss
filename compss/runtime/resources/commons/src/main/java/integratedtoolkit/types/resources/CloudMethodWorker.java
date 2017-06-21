@@ -1,32 +1,31 @@
 package integratedtoolkit.types.resources;
 
 import integratedtoolkit.types.COMPSsWorker;
-import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.CloudImageDescription;
 import integratedtoolkit.types.resources.configuration.MethodConfiguration;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
+import integratedtoolkit.types.resources.updates.PendingReduction;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.concurrent.Semaphore;
-
 
 public class CloudMethodWorker extends MethodWorker {
 
     // Pending removals
-    private final LinkedList<PendingReduction> pendingReductions;
+    private final LinkedList<PendingReduction<MethodResourceDescription>> pendingReductions;
     private final CloudMethodResourceDescription toRemove;
 
-
-    public CloudMethodWorker(CloudMethodResourceDescription description, COMPSsWorker worker, int limitOfTasks,
-            HashMap<String, String> sharedDisks) {
+    public CloudMethodWorker(CloudMethodResourceDescription description,
+            COMPSsWorker worker, int limitOfTasks, HashMap<String, String> sharedDisks) {
         super(description.getName(), description, worker, limitOfTasks, sharedDisks);
         this.toRemove = new CloudMethodResourceDescription();
         this.pendingReductions = new LinkedList<>();
     }
 
-    public CloudMethodWorker(String name, CloudMethodResourceDescription description, MethodConfiguration config,
-            HashMap<String, String> sharedDisks) {
-        
+    public CloudMethodWorker(String name, CloudMethodResourceDescription description,
+            MethodConfiguration config, HashMap<String, String> sharedDisks) {
+
         super(name, description, config, sharedDisks);
 
         if (this.description != null) {
@@ -51,17 +50,19 @@ public class CloudMethodWorker extends MethodWorker {
 
     @Override
     public String getMonitoringData(String prefix) {
-        // TODO: Add full information about description (mem type, each processor information, etc)
         StringBuilder sb = new StringBuilder();
-        sb.append(super.getMonitoringData(prefix));
+        sb.append(prefix).append(super.getMonitoringData(prefix));
+
         String providerName = ((CloudMethodResourceDescription) description).getProviderName();
         if (providerName == null) {
-            providerName = new String("");
+            providerName = "";
         }
         sb.append(prefix).append("<Provider>").append(providerName).append("</Provider>").append("\n");
-        String imageName = ((CloudMethodResourceDescription) description).getImage().getImageName();
-        if (imageName == null) {
-            imageName = new String("");
+
+        CloudImageDescription image = ((CloudMethodResourceDescription) description).getImage();
+        String imageName = "";
+        if (image != null) {
+            imageName = image.getImageName();
         }
         sb.append(prefix).append("<Image>").append(imageName).append("</Image>").append("\n");
 
@@ -89,96 +90,75 @@ public class CloudMethodWorker extends MethodWorker {
 
     @Override
     public synchronized void releaseResource(MethodResourceDescription consumption) {
-        LOGGER.debug("[CloudMethodWorker] Checking " + this.getName()+ " cloud resource to release...");
+        LOGGER.debug("Checking cloud resources to release...");
         // Freeing task constraints
-        super.releaseResource(consumption);
+        synchronized (available) {
+            super.releaseResource(consumption);
 
-        // Performing as much as possible reductions
-        synchronized (pendingReductions) {
-            if (!pendingReductions.isEmpty()) {
-                PendingReduction[] lpr = pendingReductions.toArray(new PendingReduction[pendingReductions.size()]);
-                for (PendingReduction pRed : lpr) {
-                    if (isValidReduction(pRed.reduction)) {
-                        // Perform reduction
-                        synchronized (available) {
-                            available.reduce(pRed.reduction);
+            // Performing as many as possible reductions
+            synchronized (pendingReductions) {
+                if (!pendingReductions.isEmpty()) {
+                    Iterator<PendingReduction< MethodResourceDescription>> prIt = pendingReductions.iterator();
+                    while (prIt.hasNext()) {
+                        PendingReduction< MethodResourceDescription> pRed = prIt.next();
+                        if (available.containsDynamic(pRed.getModification())) {
+                            // Perform reduction
+                            available.reduce(pRed.getModification());
+
+                            // Untag pending to remove reduction
+                            synchronized (toRemove) {
+                                toRemove.reduce(pRed.getModification());
+                            }
+                            // Reduction is done, release sem
+                            LOGGER.debug("Releasing cloud resource " + this.getName());
+                            pRed.notifyCompletion();
+                            prIt.remove();
+                        } else {
+                            break;
                         }
-                        // Untag pending to remove reduction
-                        synchronized (toRemove) {
-                            toRemove.reduce(pRed.reduction);
-                        }
-                        // Reduction is done, release sem
-                        LOGGER.debug("[CloudMethodWorker] Releasing cloud resource " + this.getName());
-                        pRed.sem.release();
-                        pendingReductions.remove(pRed);
-                    } else {
-                        break;
                     }
                 }
             }
         }
     }
 
-    public synchronized Semaphore reduceFeatures(CloudMethodResourceDescription reduction) {
-    	LOGGER.debug("[CloudMethodWorker] Reducing features for " + this.getName());
-    	Semaphore sem = null;
-    	synchronized (pendingReductions) {
-    		synchronized (description) {
-    			description.reduce(reduction);
-    		}
-    		
-    		if (hasAvailable(reduction)) {
-    			synchronized (available) {
-    				available.reduce(reduction);
-    			}
-    		} else {
-    			if (this.getUsedTaskCount() > 0) {
-    				// This resource is still running tasks. Wait for them to finish...
-    				// Mark to remove and enqueue pending reduction
-    				synchronized (toRemove) {
-    					toRemove.reduce(reduction);
-    				}
-    				PendingReduction pRed = new PendingReduction(reduction);
-                
-                    pendingReductions.add(pRed);
-               
-                    sem = pRed.sem;
-    			} else {
-    				// Resource is not executing tasks. We can erase it, nothing to do
-    			}
-    		}
-    	}
-        updatedFeatures();
-
-        return sem;
-    }
-
-    private boolean isValidReduction(MethodResourceDescription red) {
-        synchronized (available) {
-            boolean fits = available.containsDynamic(red);
-
-            /*if (logger.isDebugEnabled()) {
-                logger.debug("[CloudMethodWorker] Cloud Method reduction received:");
-                logger.debug("[CloudMethodWorker] With result: " + fits);
-            }*/
-
-            return fits;
+    public synchronized void applyReduction(PendingReduction pRed) {
+        MethodResourceDescription reduction = (MethodResourceDescription) pRed.getModification();
+        synchronized (description) {
+            description.reduce(reduction);
         }
+        synchronized (available) {
+            if (!hasAvailable(reduction) && this.getUsedCPUTaskCount() > 0) {
+
+                // This resource is still running tasks. Wait for them to finish...
+                // Mark to remove and enqueue pending reduction
+                synchronized (toRemove) {
+                    toRemove.increase(reduction);
+                }
+                synchronized (pendingReductions) {
+                    pendingReductions.add(pRed);
+                }
+            } else {
+                // Resource is not executing tasks. We can erase it, nothing to do
+                available.reduce(reduction);
+                pRed.notifyCompletion();
+            }
+        }
+
+        updatedFeatures();
     }
 
     @Override
     public boolean hasAvailable(MethodResourceDescription consumption) {
         synchronized (available) {
             synchronized (toRemove) {
-                consumption.increase(toRemove);
-                boolean fits = available.containsDynamic(consumption);
-                consumption.reduce(toRemove);
-
-                /*if (logger.isDebugEnabled()) {
-                    logger.debug("[CloudMethodWorker]Cloud Method Worker received:");
-                    logger.debug("[CloudMethodWorker] With result: " + fits);
-                }*/
-
+                consumption.increaseDynamic(toRemove);
+                boolean fits = super.hasAvailable(consumption);
+                consumption.reduceDynamic(toRemove);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Cloud Method Worker received:");
+                    LOGGER.debug("With result: " + fits);
+                }
                 return fits;
             }
         }
@@ -191,30 +171,10 @@ public class CloudMethodWorker extends MethodWorker {
             }
         }
     }
-    
+
     @Override
-    public Worker<MethodResourceDescription, Implementation<MethodResourceDescription>> getSchedulingCopy() {
+    public CloudMethodWorker getSchedulingCopy() {
         return new CloudMethodWorker(this);
     }
-    
-
-    private class PendingReduction {
-
-        private CloudMethodResourceDescription reduction;
-        private Semaphore sem;
-
-
-        private PendingReduction(CloudMethodResourceDescription reduction) {
-            this.reduction = reduction;
-            this.sem = new Semaphore(0);
-        }
-        
-    }
-
-
-	public boolean hasPendingReductions() {
-		
-		return (pendingReductions!=null && !pendingReductions.isEmpty());
-	}
 
 }

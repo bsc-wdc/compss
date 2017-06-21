@@ -6,12 +6,10 @@ import integratedtoolkit.components.impl.TaskAnalyser;
 import integratedtoolkit.components.impl.TaskDispatcher;
 import java.util.concurrent.Semaphore;
 
-
 public class EndOfAppRequest extends APRequest {
 
     private Long appId;
     private Semaphore sem;
-
 
     public EndOfAppRequest(Long appId, Semaphore sem) {
         this.appId = appId;
@@ -35,7 +33,7 @@ public class EndOfAppRequest extends APRequest {
     }
 
     @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?, ?> td) {
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         ta.noMoreTasks(this);
     }
 

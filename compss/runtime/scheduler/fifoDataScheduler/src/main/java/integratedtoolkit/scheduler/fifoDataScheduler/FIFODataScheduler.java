@@ -8,27 +8,22 @@ import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.scheduler.readyScheduler.ReadyScheduler;
 import integratedtoolkit.scheduler.types.AllocatableAction;
-import integratedtoolkit.scheduler.types.FIFODataScore;
 import integratedtoolkit.scheduler.types.ObjectValue;
-import integratedtoolkit.scheduler.types.Profile;
-import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.scheduler.types.Score;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
-
+import org.json.JSONObject;
 
 /**
- * Representation of a Scheduler that considers only ready tasks and sorts them in FIFO mode + data locality
- * 
- * @param <P>
- * @param <T>
- * @param <I>
+ * Representation of a Scheduler that considers only ready tasks and sorts them
+ * in FIFO mode + data locality
+ *
  */
-public class FIFODataScheduler<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
-        extends ReadyScheduler<P, T, I> {
+public class FIFODataScheduler extends ReadyScheduler {
 
     /**
      * Constructs a new Ready Scheduler instance
-     * 
+     *
      */
     public FIFODataScheduler() {
         super();
@@ -41,17 +36,16 @@ public class FIFODataScheduler<P extends Profile, T extends WorkerResourceDescri
      * *********************************************************************************************************
      * *********************************************************************************************************
      */
-
     @Override
-    public ResourceScheduler<P, T, I> generateSchedulerForResource(Worker<T, I> w) {
+    public <T extends WorkerResourceDescription> FIFODataResourceScheduler generateSchedulerForResource(Worker<T> w, JSONObject json) {
         // LOGGER.debug("[FIFODataScheduler] Generate scheduler for resource " + w.getName());
-        return new FIFODataResourceScheduler<P, T, I>(w);
+        return new FIFODataResourceScheduler<>(w, json);
     }
 
     @Override
-    public FIFODataScore generateActionScore(AllocatableAction<P, T, I> action) {
+    public Score generateActionScore(AllocatableAction action) {
         // LOGGER.debug("[FIFODataScheduler] Generate Action Score for " + action);
-        return new FIFODataScore(action.getPriority(), 0, 0, 0);
+        return new Score(action.getPriority(), 0, 0, 0);
     }
 
     /*
@@ -61,24 +55,26 @@ public class FIFODataScheduler<P extends Profile, T extends WorkerResourceDescri
      * *********************************************************************************************************
      * *********************************************************************************************************
      */
-
     @Override
-    protected void purgeFreeActions(LinkedList<AllocatableAction<P, T, I>> dataFreeActions,
-            LinkedList<AllocatableAction<P, T, I>> resourceFreeActions, LinkedList<AllocatableAction<P, T, I>> blockedCandidates,
-            ResourceScheduler<P, T, I> resource){
+    public <T extends WorkerResourceDescription> void purgeFreeActions(
+            LinkedList<AllocatableAction> dataFreeActions,
+            LinkedList<AllocatableAction> resourceFreeActions,
+            LinkedList<AllocatableAction> blockedCandidates,
+            ResourceScheduler<T> resource) {
+
         LOGGER.debug("[DataScheduler] Treating dependency free actions");
-        
-        PriorityQueue<ObjectValue<AllocatableAction<P, T, I>>> executableActions = new PriorityQueue<>();
-        for (AllocatableAction<P, T, I> action : dataFreeActions) {
-            FIFODataScore actionScore = this.generateActionScore(action);
-            FIFODataScore fullScore = (FIFODataScore) action.schedulingScore(resource, actionScore);
-            ObjectValue<AllocatableAction<P, T, I>> obj = new ObjectValue<>(action, fullScore);
+
+        PriorityQueue<ObjectValue<AllocatableAction>> executableActions = new PriorityQueue<>();
+        for (AllocatableAction action : dataFreeActions) {
+            Score actionScore = this.generateActionScore(action);
+            Score fullScore = action.schedulingScore(resource, actionScore);
+            ObjectValue<AllocatableAction> obj = new ObjectValue<>(action, fullScore);
             executableActions.add(obj);
         }
         dataFreeActions.clear();
         while (!executableActions.isEmpty()) {
-            ObjectValue<AllocatableAction<P, T, I>> obj = executableActions.poll();
-            AllocatableAction<P, T, I> freeAction = obj.getObject();
+            ObjectValue<AllocatableAction> obj = executableActions.poll();
+            AllocatableAction freeAction = obj.getObject();
             try {
                 scheduleAction(freeAction, resource, obj.getScore());
                 tryToLaunch(freeAction);
@@ -89,10 +85,9 @@ public class FIFODataScheduler<P extends Profile, T extends WorkerResourceDescri
                 dataFreeActions.add(freeAction);
             }
         }
-        LinkedList<AllocatableAction<P, T, I>> unassignedReadyActions = getUnassignedActions();
+        LinkedList<AllocatableAction> unassignedReadyActions = this.unassignedReadyActions.getAllActions();
         this.unassignedReadyActions.removeAllActions();
         dataFreeActions.addAll(unassignedReadyActions);
-        
     }
 
 }

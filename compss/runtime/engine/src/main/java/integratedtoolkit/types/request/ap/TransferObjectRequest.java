@@ -10,9 +10,9 @@ import java.util.concurrent.Semaphore;
 import integratedtoolkit.types.data.DataAccessId;
 import integratedtoolkit.types.data.LogicalData;
 
-
 /**
- * The TransferObjectRequest is a request for an object contained in a remote worker
+ * The TransferObjectRequest is a request for an object contained in a remote
+ * worker
  */
 public class TransferObjectRequest extends APRequest {
 
@@ -34,14 +34,11 @@ public class TransferObjectRequest extends APRequest {
      */
     private LogicalData target;
 
-
     /**
      * Constructs a new TransferObjectRequest
      *
-     * @param daId
-     *            Object required, data id + version
-     * @param sem
-     *            Semaphore where to synchronize until the operation is done
+     * @param daId Object required, data id + version
+     * @param sem Semaphore where to synchronize until the operation is done
      */
     public TransferObjectRequest(DataAccessId daId, Semaphore sem) {
         this.daId = daId;
@@ -60,8 +57,7 @@ public class TransferObjectRequest extends APRequest {
     /**
      * Sets the requested data id and version
      *
-     * @param daId
-     *            data id + version of the required object
+     * @param daId data id + version of the required object
      */
     public void setDaId(DataAccessId daId) {
         this.daId = daId;
@@ -77,10 +73,11 @@ public class TransferObjectRequest extends APRequest {
     }
 
     /**
-     * Sets the semaphore where to synchronize until the requested object can be read
+     * Sets the semaphore where to synchronize until the requested object can be
+     * read
      *
-     * @param sem
-     *            the semaphore where to synchronize until the requested object can be read
+     * @param sem the semaphore where to synchronize until the requested object
+     * can be read
      */
     public void setSemaphore(Semaphore sem) {
         this.sem = sem;
@@ -107,15 +104,14 @@ public class TransferObjectRequest extends APRequest {
     /**
      * Sets the requested object.
      *
-     * @param response
-     *            The requested object.
+     * @param response The requested object.
      */
     public void setResponse(Object response) {
         this.response = response;
     }
 
     @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?, ?> td) {
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         this.target = dip.transferObjectValue(this);
     }
 
@@ -124,9 +120,9 @@ public class TransferObjectRequest extends APRequest {
         return APRequestType.TRANSFER_OBJECT;
     }
 
-	public void setTargetData(LogicalData ld) {
-		this.target = ld;
-		
-	}
+    public void setTargetData(LogicalData ld) {
+        this.target = ld;
+
+    }
 
 }

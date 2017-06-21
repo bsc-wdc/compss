@@ -3,29 +3,25 @@ package integratedtoolkit.types.fake;
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.scheduler.types.ActionOrchestrator;
 import integratedtoolkit.scheduler.types.AllocatableAction;
-import integratedtoolkit.scheduler.types.Profile;
-import integratedtoolkit.types.resources.MethodResourceDescription;
 
+public class FakeActionOrchestrator implements ActionOrchestrator {
 
-public class FakeActionOrchestrator implements ActionOrchestrator<Profile, MethodResourceDescription, FakeImplementation> {
+    private final TaskScheduler ts;
 
-    private final TaskScheduler<Profile, MethodResourceDescription, FakeImplementation> ts;
-
-
-    public FakeActionOrchestrator(TaskScheduler<Profile, MethodResourceDescription, FakeImplementation> ts) {
+    public FakeActionOrchestrator(TaskScheduler ts) {
         super();
         this.ts = ts;
     }
 
     // Notification thread
     @Override
-    public void actionCompletion(AllocatableAction<Profile, MethodResourceDescription, FakeImplementation> action) {
+    public void actionCompletion(AllocatableAction action) {
         ts.actionCompleted(action);
     }
 
     // Notification thread
     @Override
-    public void actionError(AllocatableAction<Profile, MethodResourceDescription, FakeImplementation> action) {
+    public void actionError(AllocatableAction action) {
         ts.errorOnAction(action);
     }
 

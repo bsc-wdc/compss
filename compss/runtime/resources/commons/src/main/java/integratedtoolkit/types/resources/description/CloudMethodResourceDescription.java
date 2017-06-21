@@ -4,7 +4,6 @@ import integratedtoolkit.types.CloudImageDescription;
 import integratedtoolkit.types.annotations.Constraints;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 
-
 public class CloudMethodResourceDescription extends MethodResourceDescription {
 
     public static final CloudMethodResourceDescription EMPTY = new CloudMethodResourceDescription();
@@ -14,7 +13,6 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
     private String name = "";
     private String type = "";
     private CloudImageDescription image = null;
-
 
     public CloudMethodResourceDescription() {
         super();

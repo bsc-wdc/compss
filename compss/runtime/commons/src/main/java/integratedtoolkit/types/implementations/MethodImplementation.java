@@ -7,14 +7,12 @@ import java.io.ObjectOutput;
 
 import integratedtoolkit.types.resources.MethodResourceDescription;
 
-
 public class MethodImplementation extends AbstractMethodImplementation implements Externalizable {
 
     private String declaringClass;
     // In C implementations could have different method names
     private String alternativeMethod;
-    
-    
+
     public MethodImplementation() {
         // For externalizable
         super();
@@ -24,7 +22,7 @@ public class MethodImplementation extends AbstractMethodImplementation implement
             MethodResourceDescription annot) {
 
         super(coreId, implementationId, annot);
-        
+
         this.declaringClass = methodClass;
         this.alternativeMethod = altMethodName;
     }
@@ -40,7 +38,7 @@ public class MethodImplementation extends AbstractMethodImplementation implement
     public String getAlternativeMethodName() {
         return alternativeMethod;
     }
-    
+
     public void setAlternativeMethodName(String alternativeMethod) {
         this.alternativeMethod = alternativeMethod;
     }
@@ -49,14 +47,14 @@ public class MethodImplementation extends AbstractMethodImplementation implement
     public MethodType getMethodType() {
         return MethodType.METHOD;
     }
-    
+
     @Override
     public String getMethodDefinition() {
         StringBuilder sb = new StringBuilder();
         sb.append("[DECLARING CLASS=").append(declaringClass);
         sb.append(", METHOD NAME=").append(alternativeMethod);
         sb.append("]");
-        
+
         return sb.toString();
     }
 
@@ -64,7 +62,7 @@ public class MethodImplementation extends AbstractMethodImplementation implement
     public String toString() {
         return super.toString() + " Method declared in class " + declaringClass + "." + alternativeMethod + ": " + requirements.toString();
     }
-    
+
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         super.readExternal(in);

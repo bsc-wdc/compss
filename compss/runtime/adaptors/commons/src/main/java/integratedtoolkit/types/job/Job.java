@@ -21,7 +21,7 @@ public abstract class Job<T extends COMPSsWorker> {
     // Job identifier management
     protected static final int FIRST_JOB_ID = 1;
     protected static int nextJobId = FIRST_JOB_ID;
-    
+
     // Language
     protected static final String LANG = System.getProperty(ITConstants.IT_LANG);
 
@@ -36,22 +36,20 @@ public abstract class Job<T extends COMPSsWorker> {
     private final String pythonpathFromFile;
     private final String workerPythonpath;
 
-
     // Job history
     public enum JobHistory {
-        NEW, 
-        RESUBMITTED_FILES, 
-        RESUBMITTED, 
+        NEW,
+        RESUBMITTED_FILES,
+        RESUBMITTED,
         FAILED
     }
-
 
     // Information of the job
     protected int jobId;
 
     protected final int taskId;
     protected final TaskDescription taskParams;
-    protected final Implementation<?> impl;
+    protected final Implementation impl;
     protected final Resource worker;
     protected final JobListener listener;
 
@@ -61,17 +59,16 @@ public abstract class Job<T extends COMPSsWorker> {
     protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
     protected static final boolean debug = logger.isDebugEnabled();
 
-
     /**
      * Creates a new job instance with the given parameters
-     * 
+     *
      * @param taskId
      * @param task
      * @param impl
      * @param res
      * @param listener
      */
-    public Job(int taskId, TaskDescription task, Implementation<?> impl, Resource res, JobListener listener) {
+    public Job(int taskId, TaskDescription task, Implementation impl, Resource res, JobListener listener) {
         jobId = nextJobId++;
         this.taskId = taskId;
         this.history = JobHistory.NEW;
@@ -83,7 +80,7 @@ public abstract class Job<T extends COMPSsWorker> {
         /*
          * Setup job environment variables ****************************************
          */
-        /*
+ /*
          * This variables are only used by GAT since NIO loads them from the worker rather than specific variables per
          * job
          */
@@ -115,7 +112,7 @@ public abstract class Job<T extends COMPSsWorker> {
 
     /**
      * Returns the job id
-     * 
+     *
      * @return
      */
     public int getJobId() {
@@ -124,6 +121,7 @@ public abstract class Job<T extends COMPSsWorker> {
 
     /**
      * Returns the task params
+     *
      * @return
      */
     public TaskDescription getTaskParams() {
@@ -132,7 +130,7 @@ public abstract class Job<T extends COMPSsWorker> {
 
     /**
      * Returns the job history
-     * 
+     *
      * @return
      */
     public JobHistory getHistory() {
@@ -141,7 +139,7 @@ public abstract class Job<T extends COMPSsWorker> {
 
     /**
      * Sets a new job history
-     * 
+     *
      * @param newHistoryState
      */
     public void setHistory(JobHistory newHistoryState) {
@@ -150,7 +148,7 @@ public abstract class Job<T extends COMPSsWorker> {
 
     /**
      * Returns the resource assigned to the job execution
-     * 
+     *
      * @return
      */
     public Resource getResource() {
@@ -159,7 +157,7 @@ public abstract class Job<T extends COMPSsWorker> {
 
     /**
      * Returns the job classpath
-     * 
+     *
      * @return
      */
     public String getClasspath() {
@@ -168,7 +166,7 @@ public abstract class Job<T extends COMPSsWorker> {
 
     /**
      * Returns the job pythonpath
-     * 
+     *
      * @return
      */
     public String getPythonpath() {
@@ -177,7 +175,7 @@ public abstract class Job<T extends COMPSsWorker> {
 
     /**
      * Returns the resource node assigned to the job
-     * 
+     *
      * @return
      */
     @SuppressWarnings("unchecked")
@@ -187,7 +185,7 @@ public abstract class Job<T extends COMPSsWorker> {
 
     /**
      * Returns the job listener associated to the job
-     * 
+     *
      * @return
      */
     public JobListener getListener() {
@@ -196,16 +194,16 @@ public abstract class Job<T extends COMPSsWorker> {
 
     /**
      * Returns the core implementation
-     * 
+     *
      * @return
      */
-    public Implementation<?> getImplementation() {
+    public Implementation getImplementation() {
         return this.impl;
     }
 
     /**
      * Sets the transfer group id
-     * 
+     *
      * @param transferId
      */
     public void setTransferGroupId(int transferId) {
@@ -214,15 +212,16 @@ public abstract class Job<T extends COMPSsWorker> {
 
     /**
      * Returns the transfer group id
+     *
      * @return
      */
     public int getTransferGroupId() {
         return this.transferId;
     }
-    
+
     /**
      * Returns the return value of the job
-     * 
+     *
      * @return
      */
     public Object getReturnValue() {
@@ -231,32 +230,32 @@ public abstract class Job<T extends COMPSsWorker> {
 
     /**
      * Actions to submit the job
-     * 
+     *
      * @throws Exception
      */
     public abstract void submit() throws Exception;
 
     /**
      * Actions to stop the job
-     * 
+     *
      * @throws Exception
      */
     public abstract void stop() throws Exception;
 
     /**
      * Returns the hostname
-     * 
+     *
      * @return
      */
     public abstract String getHostName();
 
     /**
      * Returns the task type of the job
-     * 
+     *
      * @return
      */
     public abstract TaskType getType();
-    
+
     @Override
     public abstract String toString();
 

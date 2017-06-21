@@ -5,7 +5,7 @@ import integratedtoolkit.api.COMPSs;
 
 public class Main {
 
-    private static final int WAIT_RUNTIME = 5_000;
+    private static final int WAIT_RUNTIME = 10_000;
     private static final int NUM_WORKERS = 2;
 
 

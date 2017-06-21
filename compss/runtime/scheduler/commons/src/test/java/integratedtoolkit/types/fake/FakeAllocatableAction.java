@@ -6,15 +6,14 @@ import integratedtoolkit.scheduler.exceptions.FailedActionException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.scheduler.types.ActionOrchestrator;
 import integratedtoolkit.scheduler.types.AllocatableAction;
-import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.scheduler.types.Score;
-import integratedtoolkit.types.resources.MethodResourceDescription;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.Worker;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 import java.util.LinkedList;
 
-
-public class FakeAllocatableAction extends AllocatableAction<Profile, MethodResourceDescription, FakeImplementation> {
+public class FakeAllocatableAction extends AllocatableAction {
 
     private static int[] executions;
     private static int[] error;
@@ -22,34 +21,33 @@ public class FakeAllocatableAction extends AllocatableAction<Profile, MethodReso
 
     private int fakeId;
 
-
-    public FakeAllocatableAction(ActionOrchestrator<Profile, MethodResourceDescription, FakeImplementation> td, int id) {
-        super(new FakeSI(), td);
+    public FakeAllocatableAction(ActionOrchestrator td, int id) {
+        super(new FakeSI(null), td);
         this.fakeId = id;
     }
 
     public int getFakeId() {
         return this.fakeId;
     }
-    
+
     public static void resize(int size) {
         FakeAllocatableAction.executions = new int[size];
         FakeAllocatableAction.error = new int[size];
         FakeAllocatableAction.failed = new int[size];
     }
-    
+
     public static int getSize() {
         return FakeAllocatableAction.executions.length;
     }
-    
+
     public static int getExecution(int id) {
         return FakeAllocatableAction.executions[id];
     }
-    
+
     public static int getError(int id) {
         return FakeAllocatableAction.error[id];
     }
-    
+
     public static int getFailed(int id) {
         return FakeAllocatableAction.failed[id];
     }
@@ -83,13 +81,12 @@ public class FakeAllocatableAction extends AllocatableAction<Profile, MethodReso
     }
 
     @Override
-    public LinkedList<FakeImplementation> getCompatibleImplementations(
-            ResourceScheduler<Profile, MethodResourceDescription, FakeImplementation> r) {
+    public <T extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(ResourceScheduler<T> r) {
         return null;
     }
 
     @Override
-    public LinkedList<ResourceScheduler<Profile, MethodResourceDescription, FakeImplementation>> getCompatibleWorkers() {
+    public LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> getCompatibleWorkers() {
         return null;
     }
 
@@ -99,23 +96,18 @@ public class FakeAllocatableAction extends AllocatableAction<Profile, MethodReso
     }
 
     @Override
-    public boolean isCompatible(Worker<MethodResourceDescription, FakeImplementation> r) {
+    public <T extends WorkerResourceDescription> boolean isCompatible(Worker<T> r) {
         return true;
     }
 
     @Override
-    public boolean areEnoughResources() {
-        return true;
+    public boolean isToReserveResources() {
+        return false;
     }
 
     @Override
-    protected void reserveResources() {
-
-    }
-
-    @Override
-    protected void releaseResources() {
-
+    public boolean isToReleaseResources() {
+        return false;
     }
 
     @Override
@@ -124,20 +116,19 @@ public class FakeAllocatableAction extends AllocatableAction<Profile, MethodReso
     }
 
     @Override
-    public void schedule(ResourceScheduler<Profile, MethodResourceDescription, FakeImplementation> targetWorker, Score actionScore)
+    public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Score actionScore)
             throws BlockedActionException, UnassignedActionException {
 
     }
 
     @Override
-    public void schedule(ResourceScheduler<Profile, MethodResourceDescription, FakeImplementation> targetWorker, FakeImplementation impl)
+    public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Implementation impl)
             throws BlockedActionException, UnassignedActionException {
 
     }
 
     @Override
-    public Score schedulingScore(ResourceScheduler<Profile, MethodResourceDescription, FakeImplementation> targetWorker,
-            Score actionScore) {
+    public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker, Score actionScore) {
         return null;
     }
 

@@ -141,7 +141,7 @@ public class Test {
             System.exit(-1);
         }
 
-        List<Implementation<?>> implementations = CoreManager.getCoreImplementations(coreId);
+        List<Implementation> implementations = CoreManager.getCoreImplementations(coreId);
         System.out.println("[LOG] \t Has " + implementations.size() + " implementations registered");
         if (declaringClassesItf[coreId].length != implementations.size()) {
             System.out.println(coreToName[coreId] + " has " + implementations.size() + " registered implementations and there are "

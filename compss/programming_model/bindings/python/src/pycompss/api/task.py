@@ -1,11 +1,11 @@
 #
-#  Copyright 2.02-2017 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2012-2017 Barcelona Supercomputing Center (www.bsc.es)
 #
-#  Licensed under the Apache License, Version 2.0 (the "License");
+#  Licensed under the Apache License, Version 2.1 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+#      http://www.apache.org/licenses/LICENSE-2.1
 #
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
@@ -415,9 +415,6 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
         spec_args = spec_args + toadd
 
     # Discover hidden objects passed as files
-    print 'CALLING REVEAL_OBJECTS'
-    # this will contain the same as to_serialize but we will store the whole
-    # file identifier string instead of simply the file_name
     real_values, to_serialize = reveal_objects(args,
                                                spec_args,
                                                self_kwargs,
@@ -453,8 +450,7 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
 
     # this will contain the same as to_serialize but we will store the whole
     # file identifier string instead of simply the file_name
-    from copy import deepcopy
-    _output_objects = deepcopy(to_serialize)
+    _output_objects = []
 
     if returns:
         # If there is multireturn then serialize each one on a different file
@@ -481,7 +477,6 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
     # deal with INOUT_OUT vs CACHE separately
     if local_cache is not None:
         for (obj, value) in _output_objects:
-            print 'PROCESSING %s %s'%(obj, value)
             forig, fdest, preserve, write_final, fname = value.split(':')
             preserve, write_final = list(map(lambda x : x == "true", [preserve, write_final]))
             # here we can assume that forig != fdest
@@ -497,20 +492,16 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
                     raise Exception("THIS SHOULD NEVER HAPPEN!!!111!!11ONE")
                     local_cache.hit(fdest)
                 else:
-                    print 'ADDING OUT OBJECT TO CACHE'
                     local_cache.add(fdest, obj)
             else:
                 # We do not want to preserve the old object => overwrite the
                 # cached object. Set_object preserves the hit amount
                 # (this is why we do not delete the old version on reveal_objects)
                 if cache_contains_orig:
-                    print 'CHANGING CACHE OBJECT - WE DO NOT WANT TO PRESERVE IT'
                     local_cache.set_object(forig, obj)
                     local_cache.hit(forig)
                 else:
-                    print 'ADDING OBJECT TO CACHE'
                     local_cache.add(forig, obj)
-
 
 
 def masterCode(f, self_module, is_instance, has_varargs, has_keywords, has_defaults, has_return,
@@ -747,10 +738,22 @@ def reveal_objects(values,
 
         if compss_type == Type.FILE and p.type != Type.FILE:
             # Getting ids and file names from passed files and objects patern is "originalDataID:destinationDataID;flagToPreserveOriginalData:flagToWrite:PathToFile"
-            forig, fdest, preserve, write_final, fname = value.split(':')
-            print 'REVEAL OBJECTS - PROCESSING: %s'%value
-            preserve, write_final = list(map(lambda x : x == "true", [preserve, write_final]))
-            suffix_name = forig
+            # forig, fdest, preserve, write_final, fname = value.split(':')
+            complete_fname = value.split(':')
+            if len(complete_fname) > 1:
+                # In NIO we get more information
+                forig = complete_fname[0]
+                fdest = complete_fname[1]
+                preserve = complete_fname[2]
+                write_final = complete_fname[3]
+                fname = complete_fname[4]
+                preserve, write_final = list(map(lambda x: x == "true", [preserve, write_final]))
+                suffix_name = forig
+            else:
+                # In GAT we only get the name --> disable cache
+                fname = complete_fname[0]
+                # local_cache = None   # Cache must be disabled.
+
             value = fname
             # For COMPSs it is a file, but it is actually a Python object
             logger.debug("Processing a hidden object in parameter %d", i)
@@ -763,10 +766,8 @@ def reveal_objects(values,
                     is_object_in_cache = local_cache.has_object(suffix_name)
                     # First, lets try to retrieve the object
                     if is_object_in_cache:
-                        print 'CACHE HIT, OBJECT WILL CHANGE'
                         obj = local_cache.get(suffix_name)
                     else:
-                        print 'CACHE MISS, READING FROM DISK'
                         obj = deserialize_from_file(value)
                     # Check if we want to preserve it
                     if preserve:
@@ -775,10 +776,8 @@ def reveal_objects(values,
                         # can be interpreted as a hit to our object. If not,
                         # then we can simply add it
                         if is_object_in_cache:
-                            print 'CACHE HIT'
                             local_cache.hit(suffix_name)
                         else:
-                            print 'REVEAL OBJECTS - ADDING OBJECT TO CACHE'
                             local_cache.add(suffix_name, obj)
                     # A possible approach when preserve is not true could consist
                     # in deleting the current object and then adding the new one
@@ -794,15 +793,13 @@ def reveal_objects(values,
                     # from the cache (and add it if not possible). This is what
                     # happens when, for example, the object is an IN.
                     if local_cache.has_object(suffix_name):
-                        print 'CACHE HIT'
                         obj = local_cache.get(suffix_name)
                         local_cache.hit(suffix_name)
                     else:
-                        print 'CACHE MISS - ADDING'
                         obj = deserialize_from_file(value)
                         local_cache.add(suffix_name, obj)
             else:
-                # Cache is not enable; read from disk
+                # Cache is not enabled; read from disk
                 obj = deserialize_from_file(value)
             real_values.append(obj)
             if p.direction != Direction.IN:
@@ -810,7 +807,18 @@ def reveal_objects(values,
         else:
             print('compss_type' + str(compss_type)+ ' type'+ str(p.type))
             if compss_type == Type.FILE:
-                forig,fdest,preserve,write_final,fname = value.split(':')
+                # forig, fdest, preserve, write_final, fname = value.split(':')
+                complete_fname = value.split(':')
+                if len(complete_fname) > 1:
+                    # In NIO we get more information
+                    forig = complete_fname[0]
+                    fdest = complete_fname[1]
+                    preserve = complete_fname[2]
+                    write_final = complete_fname[3]
+                    fname = complete_fname[4]
+                else:
+                    # In GAT we only get the name
+                    fname = complete_fname[0]
                 value = fname
             real_values.append(value)
     return real_values, to_serialize

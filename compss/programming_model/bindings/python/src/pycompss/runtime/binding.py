@@ -362,9 +362,12 @@ def synchronize(obj, mode):
     # The main program won't work with the old object anymore, update mapping
     objid_to_filename[new_obj_id] = file_name
     task_objects[new_obj_id] = new_obj
-    # Do not let python free old objects until compss_stop, otherwise python could reuse object ids.
-    # del objid_to_filename[obj_id]
-    # del task_objects[obj_id]
+    # If we are the only referrers to the old object, then we can safely delete it
+    # all objects have at least two references, so refcount = 3 implies that the only
+    # extra reference is precisely ours, which implies that we can delete the object
+    if obj_id != new_obj_id and sys.getrefcount(task_objects[obj_id]) <= 3:
+        del objid_to_filename[obj_id]
+        del task_objects[obj_id]
 
     logger.debug("Now object with id %d and %s has mapping %s" % (new_obj_id, type(new_obj), file_name))
 

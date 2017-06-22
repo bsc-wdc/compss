@@ -210,6 +210,9 @@ public class MethodConfiguration extends Configuration {
         } else {
             this.host = "";
         }
+        String newHost = this.getHost().replace("/", "_").replace(":", "_"); // Replace nasty characters
+        String sandboxWorkingDir = this.getWorkingDir() + DEPLOYMENT_ID + File.separator + newHost + File.separator;
+        this.setSandboxWorkingDir(sandboxWorkingDir);
     }
 
     public String getUser() {

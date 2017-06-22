@@ -28,7 +28,7 @@
 
     <!-- COMMUNICATION -->
     <!-- Integratedtoolkit.Communication: DEFAULT = DEBUG -->
-    <Logger name="Communication" additivity="FALSE" level="debug">
+    <Logger name="Communication" additivity="FALSE" level="info">
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
     <Logger name="integratedtoolkit.Communication" additivity="FALSE" level="debug">

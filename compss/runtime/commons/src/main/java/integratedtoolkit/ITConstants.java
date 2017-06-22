@@ -89,6 +89,9 @@ public class ITConstants {
     public static final String IT_STORAGE_CONF = "it.storage.conf";
     public static final String IT_TASK_EXECUTION = "it.task.execution";
     public static final String EXECUTION_INTERNAL = "compss";
+    
+    // Persistent worker c property
+	public static final String IT_WORKER_PERSISTENT_C = "it.worker.persistent.c";
 
     // System properties for Instrumentation flags
     public static final String IT_TO_FILE = "it.to.file";
@@ -131,6 +134,8 @@ public class ITConstants {
             + "configuration" + File.separator + "xml" + File.separator + "projects" + File.separator + "project_schema.xsd";
 
     public static final String DEFAULT_GAT_ADAPTOR_LOCATION = System.getenv(GAT_LOC) + File.separator + "lib" + File.separator + "adaptors";
+	public static final String DEFAULT_PERSISTENT_C = "false";
+
 
     private ITConstants() {
         throw new NonInstantiableException("ITConstants");

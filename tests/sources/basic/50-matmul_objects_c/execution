@@ -14,7 +14,7 @@
   #----------------------------------------------------------------------------------
   #Compiling C app
   cd ${base_app_dir}
-  $(dirname ${COMPSs_exec})/buildapp Matmul
+  $(dirname ${COMPSs_exec})/compss_build_app Matmul
   if [ $? -ne 0 ]; then
      echo "[ERROR] Cannot compile C app. See errors above."
      exit 1

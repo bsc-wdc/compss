@@ -135,48 +135,48 @@ void generate_prolog()
   fprintf(workerFile, "\n");
   // Args consistent with Runtime [0, NUM_INTERNAL_ARGS]: executable, tracing, taskId, workerDebug, storageConf, method_type, className, methodName, 
   //                                                      numSlaves, [slaves], numCus, hasTarget, returnType, numAppParams
-  fprintf(workerFile, "\tprintf(\"\\n\");\n");
-  fprintf(workerFile, "\tprintf(\"----------------- C WORKER -----------------\\n\");\n");
-  fprintf(workerFile, "\tprintf(\"Total number of parameters: %%d\\n\", argc);\n");
-  fprintf(workerFile, "\tif (argc < MIN_NUM_INTERNAL_ARGS) {\n");
-  fprintf(workerFile, "\t\tprintf(\"ERROR: Incorrect number of COMPSs internal parameters\\n\");\n");
-  fprintf(workerFile, "\t\tprintf(\"Aborting...\\n\");\n");
-  fprintf(workerFile, "\t\treturn -1;\n");	
-  fprintf(workerFile, "\t}\n");
+  fprintf(workerFile, "\t cout << endl;\n");
+  fprintf(workerFile, "\t cout << \"----------------- C WORKER -----------------\" << endl;\n");
+  fprintf(workerFile, "\t cout << \"Total number of parameters: \" << argc << endl;\n");
+  fprintf(workerFile, "\t if (argc < MIN_NUM_INTERNAL_ARGS) {\n");
+  fprintf(workerFile, "\t\t cout << \"ERROR: Incorrect number of COMPSs internal parameters\"<< endl;\n");
+  fprintf(workerFile, "\t\t cout << \"Aborting...\" << endl;\n");
+  fprintf(workerFile, "\t\t return -1; \n");	
+  fprintf(workerFile, "\t }\n");
   fprintf(workerFile, "\n");
   // Log args
-  fprintf(workerFile, "\tprintf(\"Executable: %%s\\n\", argv[0]);\n");
-  fprintf(workerFile, "\tprintf(\"Tracing: %%s\\n\", argv[1]);\n");
-  fprintf(workerFile, "\tprintf(\"Task Id: %%s\\n\", argv[2]);\n");
-  fprintf(workerFile, "\tprintf(\"Worker Debug: %%s\\n\", argv[3]);\n");
-  fprintf(workerFile, "\tprintf(\"StorageConf: %%s\\n\", argv[4]);\n");
-  fprintf(workerFile, "\tprintf(\"MethodType: %%s\\n\", argv[5]);\n");
-  fprintf(workerFile, "\tprintf(\"ClassName: %%s\\n\", argv[6]);\n");
-  fprintf(workerFile, "\tprintf(\"MethodName: %%s\\n\", argv[7]);\n");
-  fprintf(workerFile, "\tprintf(\"NumSlaves: %%s\\n\", argv[8]);\n");
-  fprintf(workerFile, "\tint numSlaves=atoi(argv[8]);\n");
-  fprintf(workerFile, "\tfor(int i = 0; i < numSlaves; ++i) {\n");
-  fprintf(workerFile, "\t\tprintf(\"Slave %%d has name %%s\\n\", i, argv[NUM_BASE_ARGS + i]);\n");
-  fprintf(workerFile, "\t}\n");
-  fprintf(workerFile, "\tint NUM_INTERNAL_ARGS=NUM_BASE_ARGS + numSlaves;\n");
-  fprintf(workerFile, "\tprintf(\"NumComputingUnits: %%s\\n\", argv[NUM_INTERNAL_ARGS++]);\n");
+  fprintf(workerFile, "\t cout << \"Executable: \" << argv[0] << endl;\n");
+  fprintf(workerFile, "\t cout << \"Tracing: \" <<  argv[1] << endl;\n");
+  fprintf(workerFile, "\t cout << \"Task Id: \" << argv[2] << endl;\n");
+  fprintf(workerFile, "\t cout << \"Worker Debug: \" << argv[3] << endl;\n");
+  fprintf(workerFile, "\t cout << \"StorageConf: \" << argv[4] << endl;\n");
+  fprintf(workerFile, "\t cout << \"MethodType: \" << argv[5] << endl;\n");
+  fprintf(workerFile, "\t cout << \"ClassName: \" << argv[6] << endl;\n");
+  fprintf(workerFile, "\t cout << \"MethodName: \" << argv[7] << endl;\n");
+  fprintf(workerFile, "\t cout << \"NumSlaves: \" << argv[8] << endl;\n");
+  fprintf(workerFile, "\t int numSlaves=atoi(argv[8]);\n");
+  fprintf(workerFile, "\t for (int i = 0; i < numSlaves; ++i) {\n");
+  fprintf(workerFile, "\t\t cout <<\"Slave \" << i << \" has name \" << argv[NUM_BASE_ARGS + i] << endl;\n");
+  fprintf(workerFile, "\t }\n");
+  fprintf(workerFile, "\t int NUM_INTERNAL_ARGS=NUM_BASE_ARGS + numSlaves;\n");
+  fprintf(workerFile, "\t cout << \"NumComputingUnits: \" << argv[NUM_INTERNAL_ARGS++] << endl;\n");
 
-  fprintf(workerFile, "\tprintf(\"HasTarget: %%s\\n\", argv[NUM_INTERNAL_ARGS++]);\n");
-  fprintf(workerFile, "\tprintf(\"ReturnType: %%s\\n\", argv[NUM_INTERNAL_ARGS++]);\n");
-  fprintf(workerFile, "\tprintf(\"Num App Params: %%s\\n\", argv[NUM_INTERNAL_ARGS++]);\n");
+  fprintf(workerFile, "\t cout << \"HasTarget: \" << argv[NUM_INTERNAL_ARGS++] << endl;\n");
+  fprintf(workerFile, "\t cout << \"ReturnType: \" << argv[NUM_INTERNAL_ARGS++] << endl;\n");
+  fprintf(workerFile, "\t cout << \"Num App Params: \" << argv[NUM_INTERNAL_ARGS++] << endl;\n");
 
-  fprintf(workerFile, "\tprintf(\"Application Arguments:\\n\");\n");
-  fprintf(workerFile, "\tfor(int i = NUM_INTERNAL_ARGS; i < argc; i++)\n");
-  fprintf(workerFile, "\t\tprintf(\"\\t%%s\\n\",argv[i]);\n");
-  fprintf(workerFile, "\t\tfflush(NULL);\n");
+  fprintf(workerFile, "\t cout << \"Application Arguments:\" << endl;\n");
+  fprintf(workerFile, "\t for(int i = NUM_INTERNAL_ARGS; i < argc; i++) { \n");
+  fprintf(workerFile, "\t\t cout << \"\t\" << argv[i] << endl;\n");
+  fprintf(workerFile, "\t }\n");
+  fprintf(workerFile, "\t cout << flush;\n");
   fprintf(workerFile, "\n");
 
   // Get OpName and OpCode
-  fprintf(workerFile, "\tenum operationCode opCod;\n");
-  fprintf(workerFile, "\tchar *opName;\n");
-  fprintf(workerFile, "\topName = strdup(argv[METHOD_NAME_POS]);\n");
-  fprintf(workerFile, "\tprintf(\"OpName: %%s\\n\", opName);\n");
-  fprintf(workerFile, "\tfflush(NULL);\n");
+  fprintf(workerFile, "\t enum operationCode opCod;\n");
+  fprintf(workerFile, "\t char *opName;\n");
+  fprintf(workerFile, "\t opName = strdup(argv[METHOD_NAME_POS]);\n");
+  fprintf(workerFile, "\t cout << \"OpName: \" << opName << endl;\n");
   fprintf(workerFile, "\n");
   fprintf(workerFile, "\tfor(int i=0; i < N_OPS; i++) {\n");
   fprintf(workerFile, "\t\tif(strcmp(operationName[i], opName) == 0) {\n");
@@ -184,17 +184,15 @@ void generate_prolog()
   fprintf(workerFile, "\t\t\tbreak;\n");
   fprintf(workerFile, "\t\t}\n");
   fprintf(workerFile, "\t}\n");
-  fprintf(workerFile, "\tprintf(\"OpCode: %%d\\n\", (int)opCod);\n");
+  fprintf(workerFile, "\t cout << \"OpCode: \" << (int)opCod << endl;\n");
   fprintf(workerFile, "\n");
  
   // Add end header logger
-  fprintf(workerFile, "\tprintf(\"--------------------------------------------\\n\");\n");
-  fprintf(workerFile, "\tprintf(\"\\n\");\n");
-  fprintf(workerFile, "\tfflush(NULL);\n");
+  fprintf(workerFile, "\t cout << \"--------------------------------------------\"<< endl << endl << flush;\n");
 
   // OpCode switch
-  fprintf(workerFile, "\tint arg_offset = NUM_INTERNAL_ARGS;\n");
-  fprintf(workerFile, "\tswitch(opCod)\n");
+  fprintf(workerFile, "\t int arg_offset = NUM_INTERNAL_ARGS;\n");
+  fprintf(workerFile, "\t switch(opCod)\n");
   fprintf(workerFile, "\t {\n");
  
   // Include file headers 
@@ -234,12 +232,12 @@ void generate_epilogue(void)
 {
   char *c;
   // Close switch clause
-  fprintf(workerFile, "\t}\n");
+  fprintf(workerFile, "\t }\n");
   fprintf(workerFile, "\n");
   // If this point is reached, no operation has been selected
   // Raise error for incorrect method execution
-  fprintf(workerFile, "\tprintf(\"Incorrect Operation Code. Aborting...\\n\");\n");
-  fprintf(workerFile, "\treturn -1;\n");
+  fprintf(workerFile, "\t cout << \"Incorrect Operation Code. Aborting...\"<< endl << flush;\n");
+  fprintf(workerFile, "\t return -1;\n");
   fprintf(workerFile, "}\n");
   
   fprintf(includeFile, "\n");
@@ -594,6 +592,167 @@ static void generate_execute_call(FILE *outFile, function *func)
   
 }
 
+static void add_object_arg_worker_treatment(FILE *outFile, argument *arg)
+{
+	fprintf(outFile, "\t\t\t cout << \"[C Binding] Treating object %s ...\" << endl << flush;\n", arg->name);
+	fprintf(outFile, "\t\t\t arg_offset += 3;\n");
+        fprintf(outFile, "\t\t\t char* %s_filename_og = strdup(argv[arg_offset]);\n", arg->name);
+        fprintf(outFile, "\t\t\t char* %s_filename, *%s_orig_id, *%s_dest_id, *%s_pres_data, *%s_write_data;\n", arg->name, arg->name, arg->name, arg->name, arg->name);
+	fprintf(outFile, "\t\t\t %s_filename = %s_filename_og ;\n", arg->name, arg->name);
+        fprintf(outFile, "\t\t\t %s_orig_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
+	fprintf(outFile, "\t\t\t cout << \"[C Binding] Checkin object data id for %s ...\" << endl << flush;\n", arg->name);
+        //Check if there is data id information in the value
+	fprintf(outFile, "\t\t\t if (%s_orig_id != NULL && %s_filename != NULL){ \n", arg->name, arg->name);
+	// There is data information
+	fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Managing object data id for %s ...\" << endl << flush;\n", arg->name);
+        fprintf(outFile, "\t\t\t\t %s_dest_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
+        fprintf(outFile, "\t\t\t\t %s_pres_data = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
+        fprintf(outFile, "\t\t\t\t %s_write_data = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
+	
+        fprintf(outFile, "\t\t\t\t string %s_orig_id_str(%s_orig_id);\n", arg->name, arg->name);
+        fprintf(outFile, "\t\t\t\t string %s_dest_id_str(%s_dest_id);\n", arg->name, arg->name);
+	switch (arg->dir){
+	    case in_dir: 
+		//when argument is in
+        	fprintf(outFile, "\t\t\t\t if (cache.find(%s_orig_id_str) == cache.end()){\n", arg->name, arg->name);
+        	fprintf(outFile, "\t\t\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
+        	fprintf(outFile, "\t\t\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
+        	if (arg->type == string_dt || arg->type == wstring_dt){
+			fprintf(outFile, "\t\t\t\t\t string %s_in_string;\n", arg->name);
+          		fprintf(outFile, "\t\t\t\t\t %s_ia >> %s_in_string;\n", arg->name, arg->name);
+          		fprintf(outFile, "\t\t\t\t\t %s_ifs.close();\n", arg->name);
+          		fprintf(outFile, "\t\t\t\t\t %s = strdup(%s_in_string.c_str());\n", arg->name, arg->name);
+		} else {
+			fprintf(outFile, "\t\t\t\t\t %s_ia >> *%s;\n", arg->name, arg->name);
+        		fprintf(outFile, "\t\t\t\t\t %s_ifs.close();\n", arg->name);
+		}
+        	fprintf(outFile, "\t\t\t\t\t cache[%s_dest_id_str] = (void*)%s;\n", arg->name, arg->name);
+        	fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Object \" << %s_dest_id_str << \" has been added to the cache.\" << endl << flush;\n", arg->name);
+        
+        	fprintf(outFile, "\t\t\t\t } else {\n");
+        	fprintf(outFile, "\t\t\t\t\t %s = (%s*)cache[%s_orig_id_str];\n", arg->name, arg->classname, arg->name);
+        	fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Object \" << %s_orig_id_str << \" has been read from the cache.\" << endl << flush;\n", arg->name);
+        	fprintf(outFile, "\t\t\t\t }\n");
+		break;
+	    case inout_dir:
+        	//when argument is inout
+		fprintf(outFile, "\t\t\t\t if ((string(%s_pres_data) == \"true\")|| (cache.find(%s_orig_id_str) == cache.end())){\n", arg->name, arg->name, arg->name);
+          	fprintf(outFile, "\t\t\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
+          	fprintf(outFile, "\t\t\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
+          	if (arg->type == string_dt || arg->type == wstring_dt){
+                        fprintf(outFile, "\t\t\t\t\t string %s_in_string;\n", arg->name);
+                        fprintf(outFile, "\t\t\t\t\t %s_ia >> %s_in_string;\n", arg->name, arg->name);
+                        fprintf(outFile, "\t\t\t\t\t %s_ifs.close();\n", arg->name);
+                        fprintf(outFile, "\t\t\t\t\t %s = strdup(%s_in_string.c_str());\n", arg->name, arg->name);
+                } else {
+                        fprintf(outFile, "\t\t\t\t\t %s_ia >> *%s;\n", arg->name, arg->name);
+                        fprintf(outFile, "\t\t\t\t\t %s_ifs.close();\n", arg->name);
+                }
+          	fprintf(outFile, "\t\t\t\t\t cache[%s_dest_id_str] = (void*)%s;\n", arg->name, arg->name);
+          	fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Object \" << %s_dest_id_str << \" has been added to the cache.\" << endl << flush;\n", arg->name);
+
+          	fprintf(outFile, "\t\t\t\t } else {\n");
+          	fprintf(outFile, "\t\t\t\t\t %s = (%s*)cache[%s_orig_id_str];\n", arg->name, arg->classname, arg->name);
+          	fprintf(outFile, "\t\t\t\t\t if (string(%s_pres_data) == \"false\"){\n", arg->name);
+        	fprintf(outFile, "\t\t\t\t\t\t cache.erase(%s_orig_id_str);\n", arg->name);
+        	fprintf(outFile, "\t\t\t\t\t\t cout << \"[C Binding] Object \" << %s_orig_id_str << \" has been removed from the cache.\" << endl << flush;\n", arg->name);
+        	fprintf(outFile, "\t\t\t\t\t }\n");
+          	fprintf(outFile, "\t\t\t\t\t cache[%s_dest_id_str] = (void*)%s;\n", arg->name, arg->name);
+          	fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Object \" << %s_orig_id_str << \" has been read from the cache.\" << endl << flush;\n", arg->name);
+          	fprintf(outFile, "\t\t\t\t }\n");
+		break;
+	    case out_dir:
+		//when argument is out
+		fprintf(outFile, "\t\t\t\t cache[%s_dest_id_str] = (void*)%s;\n", arg->name, arg->name);
+      		fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Object \" << %s_dest_id_str << \" has been added to the cache.\" << endl << flush;\n", arg->name);	
+		break;
+	    default:;
+		
+	}
+
+	//No data information case (required for GAT Adaptor)
+	fprintf(outFile, "\t\t\t } else {\n");
+	fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Data ID not found in argument value. Reseting filename \" << endl << flush;\n", arg->name);
+	fprintf(outFile, "\t\t\t\t %s_filename = %s_filename_og ;\n", arg->name, arg->name);
+	fprintf(outFile, "\t\t\t }\n");
+        fprintf(outFile, "\t\t\t\t arg_offset += 1;\n\n");
+}
+
+static void add_file_arg_worker_treatment(FILE *outFile, argument *arg)
+{
+        fprintf(outFile, "\t\t\t arg_offset += 3;\n");
+	fprintf(outFile, "\t\t\t %s_og = strdup(argv[arg_offset]);\n", arg->name);
+        fprintf(outFile, "\t\t\t char *%s, *%s_orig_id, *%s_dest_id, *%s_pres_data, *%s_write_data;\n", arg->name, arg->name, arg->name, arg->name, arg->name);
+	fprintf(outFile, "\t\t\t %s = %s_og;\n", arg->name, arg->name);
+	fprintf(outFile, "\t\t\t %s_orig_id = strsep(&%s,\":\");\n", arg->name, arg->name);
+	fprintf(outFile, "\t\t\t if (%s_orig_id != NULL && %s != NULL){ \n", arg->name, arg->name);
+        fprintf(outFile, "\t\t\t\t %s_dest_id = strsep(&%s,\":\");\n", arg->name, arg->name);
+        fprintf(outFile, "\t\t\t\t %s_pres_data = strsep(&%s,\":\");\n", arg->name, arg->name);
+        fprintf(outFile, "\t\t\t\t %s_write_data = strsep(&%s,\":\");\n", arg->name, arg->name);
+	fprintf(outFile, "\t\t\t }\n");
+        fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
+}
+
+static void add_other_arg_worker_treatment(FILE *outFile, argument *arg){
+      // arg_offset -> type
+      // arg_offset+1 -> stream
+      // arg_offset+2 -> prefix
+      // arg_offset+3 -> value
+      if (arg->dir == in_dir){
+	fprintf(outFile, "\t\t\t arg_offset += 3;\n");
+	switch (arg->type) {
+        	case char_dt:
+        	case wchar_dt:
+			fprintf(outFile, "\t\t\t %s = argv[arg_offset][0];\n", arg->name);
+			break;	
+        	case boolean_dt:
+          		fprintf(outFile, "\t\t\t %s = argv[arg_offset]? 1 : 0;\n", arg->name);
+          		break;
+		case int_dt:
+        	case short_dt:
+          		fprintf(outFile, "\t\t\t %s = atoi(argv[arg_offset]);\n", arg->name);
+          		break;
+        	case long_dt:
+          		fprintf(outFile, "\t\t\t %s = atol(argv[arg_offset]);\n", arg->name);
+          		break;
+        	case longlong_dt:
+          		fprintf(outFile, "\t\t\t %s = atoll(argv[arg_offset]);\n", arg->name);
+          		break;
+        	case float_dt:
+          		fprintf(outFile, "\t\t\t %s = strtof(argv[arg_offset], NULL);\n", arg->name);
+          		break;
+        	case double_dt:
+          		fprintf(outFile, "\t\t\t %s = strtod(argv[arg_offset], NULL);\n", arg->name);
+          		break;
+        	case string_dt:
+        	case wstring_dt:
+          		fprintf(outFile, "\t\t\t int %s_nwords = atoi(argv[arg_offset]);\n", arg->name);
+          		fprintf(outFile, "\t\t\t \n");
+          		fprintf(outFile, "\t\t\t int word_i;\n");
+          		fprintf(outFile, "\t\t\t int %s_size = 0;\n", arg->name);
+          		fprintf(outFile, "\t\t\t for (word_i=1; word_i<=%s_nwords; word_i++) {\n", arg->name);
+          		fprintf(outFile, "\t\t\t\t %s_size += strlen(argv[arg_offset + word_i]);\n", arg->name);
+          		fprintf(outFile, "\t\t\t }\n");
+          		fprintf(outFile, "\t\t\t %s = (char *) malloc(%s_size + %s_nwords);\n", arg->name,arg->name,arg->name);
+          		fprintf(outFile, "\t\t\t \n");
+          		fprintf(outFile, "\t\t\t for (word_i=1; word_i<=%s_nwords; word_i++) {\n", arg->name);
+          		fprintf(outFile, "\t\t\t\t arg_offset += 1;\n");
+          		fprintf(outFile, "\t\t\t\t if (word_i == 1)\n");
+          		fprintf(outFile, "\t\t\t\t\t strcat(%s, argv[arg_offset]);\n", arg->name);
+          		fprintf(outFile, "\t\t\t\t else {\n");
+          		fprintf(outFile, "\t\t\t\t\t strcat(%s, \" \");\n", arg->name);
+          		fprintf(outFile, "\t\t\t\t\t strcat(%s, argv[arg_offset]);\n", arg->name);
+          		fprintf(outFile, "\t\t\t\t }\n");
+          		fprintf(outFile, "\t\t\t }\n");
+          		break;
+		default:;
+      	}
+	fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
+      }else{
+	add_object_arg_worker_treatment(outFile, arg);
+      }		
+}
+
 static void generate_worker_case(FILE *outFile, function *func)
 {
   argument *arg;
@@ -609,7 +768,7 @@ static void generate_worker_case(FILE *outFile, function *func)
     fprintf(outFile, "\t\t\t %s this_%s;\n", func->classname, func->classname);
     fprintf(outFile, "\t\t\t \n");
     fprintf(outFile, "\t\t\t arg_offset += 1;\n");
-	fprintf(outFile, "\t\t\t char *this_filename = strdup(argv[arg_offset]);\n");
+    fprintf(outFile, "\t\t\t char *this_filename = strdup(argv[arg_offset]);\n");
     fprintf(outFile, "\t\t\t char *this_orig_id = strsep(&this_filename,\":\");\n");
     fprintf(outFile, "\t\t\t char *this_dest_id = strsep(&this_filename,\":\");\n");
     fprintf(outFile, "\t\t\t char *this_pres_data = strsep(&this_filename,\":\");\n");
@@ -687,126 +846,6 @@ static void generate_worker_case(FILE *outFile, function *func)
   
   arg = func->first_argument;
   while (arg != NULL) { 
-    if (arg->dir == in_dir) {
-      // arg_offset -> type
-      // arg_offset+1 -> stream
-      // arg_offset+2 -> prefix
-      // arg_offset+3 -> value
-      
-      switch (arg->type) {
-	case char_dt:
-	case wchar_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
-	  fprintf(outFile, "\t\t\t %s = argv[arg_offset][0];\n", arg->name);
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
-	  break;
-	case boolean_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
-	  fprintf(outFile, "\t\t\t %s = argv[arg_offset]? 1 : 0;\n", arg->name);
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
-	  break;
-	case short_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
-	  fprintf(outFile, "\t\t\t %s = atoi(argv[arg_offset]);\n", arg->name);
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
-	  break;
-	case long_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
-	  fprintf(outFile, "\t\t\t %s = atol(argv[arg_offset]);\n", arg->name);
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
-	  break;
-	case longlong_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
-	  fprintf(outFile, "\t\t\t %s = atoll(argv[arg_offset]);\n", arg->name);
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
-	  break;
-	case int_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
-	  fprintf(outFile, "\t\t\t %s = atoi(argv[arg_offset]);\n", arg->name);
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
-	  break;
-	case float_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
-	  fprintf(outFile, "\t\t\t %s = strtof(argv[arg_offset], NULL);\n", arg->name);
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
-	  break;
-	case double_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
-	  fprintf(outFile, "\t\t\t %s = strtod(argv[arg_offset], NULL);\n", arg->name);
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
-	  break;
-	case file_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
-          fprintf(outFile, "\t\t\t %s_og = strdup(argv[arg_offset]);\n", arg->name);
-          fprintf(outFile, "\t\t\t char *%s = %s_og;\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t char *%s_orig_id = strsep(&%s,\":\");\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t char *%s_dest_id = strsep(&%s,\":\");\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t char *%s_pres_data = strsep(&%s,\":\");\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t char *%s_write_data = strsep(&%s,\":\");\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
-	  break;
-	case string_dt:
-	case wstring_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
-	  fprintf(outFile, "\t\t\t int %s_nwords = atoi(argv[arg_offset]);\n", arg->name);
-          //fprintf(outFile, "\t\t\t printf(\"String Num Words: %%d\\n\", %s_nwords);\n", arg->name);
-	  fprintf(outFile, "\t\t\t \n");
-	  fprintf(outFile, "\t\t\t int word_i;\n");
-	  fprintf(outFile, "\t\t\t int %s_size = 0;\n", arg->name);
-	  fprintf(outFile, "\t\t\t for (word_i=1; word_i<=%s_nwords; word_i++) {\n", arg->name);
-	  fprintf(outFile, "\t\t\t\t %s_size += strlen(argv[arg_offset + word_i]);\n", arg->name);
-	  fprintf(outFile, "\t\t\t }\n");
-	  fprintf(outFile, "\t\t\t %s = (char *) malloc(%s_size + %s_nwords);\n", arg->name,arg->name,arg->name);
-	  fprintf(outFile, "\t\t\t \n");
-	  fprintf(outFile, "\t\t\t for (word_i=1; word_i<=%s_nwords; word_i++) {\n", arg->name);
-	  fprintf(outFile, "\t\t\t\t arg_offset += 1;\n");
-	  fprintf(outFile, "\t\t\t\t if (word_i == 1)\n");
-	  fprintf(outFile, "\t\t\t\t\t strcat(%s, argv[arg_offset]);\n", arg->name);
-	  fprintf(outFile, "\t\t\t\t else {\n");
-	  fprintf(outFile, "\t\t\t\t\t strcat(%s, \" \");\n", arg->name);
-	  fprintf(outFile, "\t\t\t\t\t strcat(%s, argv[arg_offset]);\n", arg->name);
-	  fprintf(outFile, "\t\t\t\t }\n");
-	  fprintf(outFile, "\t\t\t }\n");
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
-	  break;
-	case object_dt:
-      fprintf(outFile, "\t\t\t arg_offset += 3;\n");
-	  fprintf(outFile, "\t\t\t char *%s_filename_og = strdup(argv[arg_offset]);\n", arg->name);
-	  fprintf(outFile, "\t\t\t char *%s_filename = %s_filename_og ;\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t\t char *%s_orig_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name); 
-      fprintf(outFile, "\t\t\t char *%s_dest_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t\t char *%s_pres_data = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t\t char *%s_write_data = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
-
-	  fprintf(outFile, "\t\t\t string %s_orig_id_str(%s_orig_id);\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t\t string %s_dest_id_str(%s_dest_id);\n", arg->name, arg->name);
-	
-	  fprintf(outFile, "\t\t\t if (cache.find(%s_orig_id_str) == cache.end()){\n", arg->name, arg->name);	  
-	  fprintf(outFile, "\t\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t\t\t %s_ia >> *%s;\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t\t\t %s_ifs.close();\n", arg->name);
-	  fprintf(outFile, "\t\t\t\t cache[%s_dest_id_str] = (void*)%s;\n", arg->name, arg->name);
-      fprintf(outFile, "\t\t\t\t cout << \"[Persistent C] Object \" << %s_dest_id_str << \" has been added to the cache.\" << endl;\n", arg->name);
-
-
-	  fprintf(outFile, "\t\t\t }\n");
-	  fprintf(outFile, "\t\t\t else{\n");
-	  fprintf(outFile, "\t\t\t\t %s = (%s*)cache[%s_orig_id_str];\n", arg->name, arg->classname, arg->name);
-	  fprintf(outFile, "\t\t\t\t cout << \"[Persistent C] Object \" << %s_orig_id_str << \" has been read from the cache.\" << endl;\n", arg->name);
-	  fprintf(outFile, "\t\t\t}\n");
-
-      fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
-
-	  break;
-	case void_dt:
-	case any_dt:
-	case null_dt:
-	default:;
-      }
-    }
-    
-    if (arg->dir == inout_dir) {
       switch (arg->type) {
 	case char_dt:
 	case wchar_dt:
@@ -817,140 +856,26 @@ static void generate_worker_case(FILE *outFile, function *func)
 	case int_dt:
 	case float_dt:
 	case double_dt:
-	case object_dt:
-      fprintf(outFile, "\t\t\t arg_offset += 3;\n");
-	  fprintf(outFile, "\t\t\t char *%s_filename_og = strdup(argv[arg_offset]);\n", arg->name);
-      fprintf(outFile, "\t\t\t char *%s_filename = %s_filename_og ;\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t\t char *%s_orig_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
-      fprintf(outFile, "\t\t\t char *%s_dest_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
-      fprintf(outFile, "\t\t\t char *%s_pres_data = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
-      fprintf(outFile, "\t\t\t char *%s_write_data = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
-
-	  fprintf(outFile, "\t\t\t string %s_orig_id_str(%s_orig_id);\n", arg->name, arg->name);
-      fprintf(outFile, "\t\t\t string %s_dest_id_str(%s_dest_id);\n", arg->name, arg->name);
-
-	  fprintf(outFile, "\t\t\t if ((string(%s_pres_data) == \"true\")|| (cache.find(%s_orig_id_str) == cache.end())){\n", arg->name, arg->name, arg->name);
-      fprintf(outFile, "\t\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
-      fprintf(outFile, "\t\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
-      fprintf(outFile, "\t\t\t\t %s_ia >> *%s;\n", arg->name, arg->name);
-      fprintf(outFile, "\t\t\t\t %s_ifs.close();\n", arg->name);
-	  fprintf(outFile, "\t\t\t\t cache[%s_dest_id_str] = (void*)%s;\n", arg->name, arg->name);
-      fprintf(outFile, "\t\t\t\t cout << \"[Persistent C] Object \" << %s_dest_id_str << \" has been added to the cache.\" << endl;\n", arg->name);
-
-
-      fprintf(outFile, "\t\t\t }\n");
-      fprintf(outFile, "\t\t\t else{\n");
-      fprintf(outFile, "\t\t\t\t %s = (%s*)cache[%s_orig_id_str];\n", arg->name, arg->classname, arg->name);
-      fprintf(outFile, "\t\t\t\t cache.erase(%s_orig_id_str);\n", arg->name);
-	  fprintf(outFile, "\t\t\t\t cache[%s_dest_id_str] = (void*)%s;\n", arg->name, arg->name);
-      fprintf(outFile, "\t\t\t\t cout << \"[Persistent C] Object \" << %s_orig_id_str << \" has been read from the cache.\" << endl;\n", arg->name);
-      fprintf(outFile, "\t\t\t}\n");
-
-      fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
-
-
-	  break;
 	case string_dt:
-	case wstring_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
-	  fprintf(outFile, "\t\t\t char *%s_filename_og = strdup(argv[arg_offset]);\n", arg->name);
-          fprintf(outFile, "\t\t\t char *%s_filename = %s_filename_og ;\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t\t char *%s_orig_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t char *%s_dest_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t char *%s_pres_data = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t char *%s_write_data = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t\t string %s_in_string;\n", arg->name);
-	  fprintf(outFile, "\t\t\t %s_ia >> %s_in_string;\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t\t %s_ifs.close();\n", arg->name);
-	  fprintf(outFile, "\t\t\t %s = strdup(%s_in_string.c_str());\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
+        case wstring_dt:
+	  add_other_arg_worker_treatment(outFile, arg);
 	  break;
 	case file_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
-	  fprintf(outFile, "\t\t\t %s_og = strdup(argv[arg_offset]);\n", arg->name);
-	  fprintf(outFile, "\t\t\t char *%s = %s_og ;\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t char *%s_orig_id = strsep(&%s,\":\");\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t char *%s_dest_id = strsep(&%s,\":\");\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t char *%s_pres_data = strsep(&%s,\":\");\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t char *%s_write_data = strsep(&%s,\":\");\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
+	  add_file_arg_worker_treatment(outFile, arg); 
+	  break;
+	case object_dt:
+	  add_object_arg_worker_treatment(outFile, arg);
 	  break;
 	case void_dt:
 	case any_dt:
 	case null_dt:
 	default:;
       }
-    }
-    
-	 if (arg->dir == out_dir) {
-      switch (arg->type) {
-    case char_dt:
-    case wchar_dt:
-    case boolean_dt:
-    case short_dt:
-    case long_dt:
-    case longlong_dt:
-    case int_dt:
-    case float_dt:
-    case double_dt:
-    case object_dt:
-      fprintf(outFile, "\t\t\t arg_offset += 3;\n");
-      fprintf(outFile, "\t\t\t char *%s_filename_og = strdup(argv[arg_offset]);\n", arg->name);
-      fprintf(outFile, "\t\t\t char *%s_filename = %s_filename_og ;\n", arg->name, arg->name);
-      fprintf(outFile, "\t\t\t char *%s_orig_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
-      fprintf(outFile, "\t\t\t char *%s_dest_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
-      fprintf(outFile, "\t\t\t char *%s_pres_data = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
-      fprintf(outFile, "\t\t\t char *%s_write_data = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
-
-      fprintf(outFile, "\t\t\t string %s_orig_id_str(%s_orig_id);\n", arg->name, arg->name);
-      fprintf(outFile, "\t\t\t string %s_dest_id_str(%s_dest_id);\n", arg->name, arg->name);
-
-      fprintf(outFile, "\t\t\t cache[%s_dest_id_str] = (void*)%s;\n", arg->name, arg->name);
-      fprintf(outFile, "\t\t\t cout << \"[Persistent C] Object \" << %s_dest_id_str << \" has been added to the cache.\" << endl;\n", arg->name);
-
-      fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
-
-      break;
-    case string_dt:
-    case wstring_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
-      fprintf(outFile, "\t\t\t char *%s_filename_og = strdup(argv[arg_offset]);\n", arg->name);
-          fprintf(outFile, "\t\t\t char *%s_filename = %s_filename_og ;\n", arg->name, arg->name);
-      fprintf(outFile, "\t\t\t char *%s_orig_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t char *%s_dest_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t char *%s_pres_data = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t char *%s_write_data = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
-      fprintf(outFile, "\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
-      fprintf(outFile, "\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
-      fprintf(outFile, "\t\t\t string %s_in_string;\n", arg->name);
-      fprintf(outFile, "\t\t\t %s_ia >> %s_in_string;\n", arg->name, arg->name);
-      fprintf(outFile, "\t\t\t %s_ifs.close();\n", arg->name);
-      fprintf(outFile, "\t\t\t %s = strdup(%s_in_string.c_str());\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
-      break;
-    case file_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
-      fprintf(outFile, "\t\t\t %s_og = strdup(argv[arg_offset]);\n", arg->name);
-      fprintf(outFile, "\t\t\t char *%s = %s_og ;\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t char *%s_orig_id = strsep(&%s,\":\");\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t char *%s_dest_id = strsep(&%s,\":\");\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t char *%s_pres_data = strsep(&%s,\":\");\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t char *%s_write_data = strsep(&%s,\":\");\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
-      break;
-    case void_dt:
-    case any_dt:
-    case null_dt:
-    default:;
-      }
-    }
-
     arg = arg->next_argument;
   }
-  //Add function call
-  fprintf(outFile, "\t\t\tprintf(\"calling function %s.%s\");\n \t\t\tfflush(NULL);\n", func->classname, func->methodname);
+  
+//Add function call
+  fprintf(outFile, "\t\t\t cout << \"[C Binding] Calling function %s.%s\" << endl << flush;\n", func->classname, func->methodname);
 
   if (( func->classname != NULL ) && (func->access_static == 0)){
     fprintf(outFile, "\t\t\t this_%s.%s(", func->classname, func->methodname);
@@ -1114,14 +1039,8 @@ static void generate_worker_case(FILE *outFile, function *func)
         if (arg->dir != in_dir) {
                 fprintf(outFile, "\t\t\t free(%s_filename_og);\n", arg->name);
         }
-	    break;
+	break;
       case object_dt:
-		fprintf(outFile, "\t\t\t if (string(%s_pres_data) == \"false\"){\n", arg->name);
-    	fprintf(outFile, "\t\t\t\t %s* %s_erase = (%s*)cache[%s_orig_id_str];\n", arg->classname, arg->name, arg->classname, arg->name);
-        fprintf(outFile, "\t\t\t\t cache.erase(%s_orig_id_str);\n", arg->name);
-        fprintf(outFile, "\t\t\t\t cout << \"[Persistent C] Object \" << %s_orig_id_str << \" has been removed from the cache.\" << endl;\n", arg->name);
-        fprintf(outFile, "\t\t\t }\n");
-
         fprintf(outFile, "\t\t\t free(%s_filename_og);\n", arg->name);
         break;
       case file_dt:
@@ -1132,8 +1051,8 @@ static void generate_worker_case(FILE *outFile, function *func)
         if (arg->dir != in_dir) {
                 fprintf(outFile, "\t\t\t free(%s_filename_og);\n", arg->name);
         }
-	    fprintf(outFile, "\t\t\t free(%s);\n", arg->name);
-	    break;
+	fprintf(outFile, "\t\t\t free(%s);\n", arg->name);
+	break;
       case void_dt:
       case any_dt:
       case null_dt:

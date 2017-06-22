@@ -52,6 +52,8 @@ DEFAULT_DEBUGGER=false
 DEFAULT_DEBUGGER_ARGUMENT=true
 DEFAULT_DEBUGGER_PORT=9999
 
+DEFAULT_PERSISTENT_WORKER_C=false
+
 APPLICATION_ERROR="Error: Application name not provided"
 LANGUAGE_ERROR="Value of option --lang must be: java, c or python"
 JAVA_HOME_ERROR="Error: Cannot find Java JRE installation. Please set JAVA_HOME."
@@ -146,6 +148,8 @@ show_opts() {
     --PyObject_serialize=<bool>             Only for Python Binding. Enable the object serialization to string when possible (true/false).
                                             Default: $DEFAULT_PyOBJECT_SERIALIZE
 
+    --persistent_worker_c=<bool>            Only for C Binding. Enable the persistent worker in c (true/false).
+                                            Default: $DEFAULT_PERSISTENT_WORKER_C
 
 * Application name:
     For Java applications:   Fully qualified name of the application
@@ -523,6 +527,10 @@ get_args() {
             # Enable the object to string serialization (only for PyCOMPSs applications)
             PyObject_serialize=$(echo $OPTARG | sed -e 's/PyObject_serialize=//g')
             ;;
+	  persistent_worker_c=*)
+            # Enable the persistent worker for C binding (only for C-binding applications)
+            persistent_worker_c=$(echo $OPTARG | sed -e 's/persistent_worker_c=//g')
+            ;;
 	  *)
 	    # Flag didn't match any patern. Raise exception
 	    display_error "Bad argument: $OPTARG"
@@ -785,6 +793,9 @@ check_args() {
       appdir=$DEFAULT_APPDIR
     fi
   fi
+  if [ -z "$persistent_worker_c"]; then
+	persistent_worker_c=$DEFAULT_PERSISTENT_WORKER_C
+  fi
 }
 
 execute_runtime() {
@@ -871,6 +882,7 @@ add_jvm_opts_c() {
   /bin/cat >> ${jvm_options_file} << EOT
 -Djava.class.path=${cp}:${IT_HOME}/Runtime/compss-engine.jar:${CLASSPATH}
 -Dit.constraints.file=$fullAppPath.idl
+-Dit.worker.persistent.c=${persistent_worker_c}
 EOT
 }
 

@@ -156,6 +156,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
     }
 
     protected static void stopAll() {
+    	logger.debug("GAT stopping all jobs");
         for (GATJob job : RUNNING_JOBS) {
             try {
                 job.stop();
@@ -167,6 +168,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
 
     @Override
     public void stop() throws Exception {
+    	logger.debug("GAT stop job " + this.jobId);
         if (GATjob != null) {
             MetricDefinition md = GATjob.getMetricDefinitionByName(JOB_STATUS);
             Metric m = md.createMetric();
@@ -178,6 +180,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
     // MetricListener interface implementation
     @Override
     public void processMetricEvent(MetricEvent value) {
+    	
         Job job = (Job) value.getSource();
         JobState newJobState = (JobState) value.getValue();
         JobDescription jd = (JobDescription) job.getJobDescription();
@@ -208,6 +211,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
                     if (localFile.length() > 0) {
                         GATjob = null;
                         RUNNING_JOBS.remove(this);
+                        ErrorManager.warn("Error when creating file.");
                         listener.jobFailed(this, JobEndStatus.EXECUTION_FAILED);
                     } else {
                         if (!debug) {
@@ -253,6 +257,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
 
     private JobDescription prepareJob() throws Exception {
         // Get the information related to the job
+    	logger.debug("Preparing GAT Job " + this.jobId);
         TaskDescription taskParams = this.taskParams;
         
         String targetPath = getResourceNode().getInstallDir();
@@ -543,7 +548,8 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
     }
 
     private void processParameters(String sandboxPath, ArrayList<String> symlinks, ArrayList<String> lArgs) {
-        lArgs.add(Boolean.toString(taskParams.hasTargetObject()));
+    	logger.debug("Processing parameters for GAT job " + this.jobId);
+    	lArgs.add(Boolean.toString(taskParams.hasTargetObject()));
 
         // Add return type
         if (taskParams.hasReturnValue()) {

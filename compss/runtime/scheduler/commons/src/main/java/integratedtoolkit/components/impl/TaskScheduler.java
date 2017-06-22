@@ -111,7 +111,7 @@ public class TaskScheduler {
      *
      */
     public void shutdown() {
-        System.out.println(this.toJSONObject());
+        LOGGER.debug("Profile is: " + this.toJSONObject());
         // Stop Resource Optimizer
         ro.shutdown();
     }

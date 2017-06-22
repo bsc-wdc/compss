@@ -38,7 +38,7 @@
   N=4
   M=8
   val=12.34
-  expectedTime=30s
+  expectedTime=360s
 
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
      --project=${base_app_dir}/project.xml \

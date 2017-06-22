@@ -674,6 +674,22 @@ static void add_object_arg_worker_treatment(FILE *outFile, argument *arg)
 	fprintf(outFile, "\t\t\t } else {\n");
 	fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Data ID not found in argument value. Reseting filename \" << endl << flush;\n", arg->name);
 	fprintf(outFile, "\t\t\t\t %s_filename = %s_filename_og ;\n", arg->name, arg->name);
+	switch (arg->dir){
+            case in_dir:
+	    case inout_dir:
+		fprintf(outFile, "\t\t\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
+                fprintf(outFile, "\t\t\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
+                if (arg->type == string_dt || arg->type == wstring_dt){
+                        fprintf(outFile, "\t\t\t\t\t string %s_in_string;\n", arg->name);
+                        fprintf(outFile, "\t\t\t\t\t %s_ia >> %s_in_string;\n", arg->name, arg->name);
+                        fprintf(outFile, "\t\t\t\t\t %s_ifs.close();\n", arg->name);
+                        fprintf(outFile, "\t\t\t\t\t %s = strdup(%s_in_string.c_str());\n", arg->name, arg->name);
+                } else {
+                        fprintf(outFile, "\t\t\t\t\t %s_ia >> *%s;\n", arg->name, arg->name);
+                        fprintf(outFile, "\t\t\t\t\t %s_ifs.close();\n", arg->name);
+                }
+	    break;
+	}
 	fprintf(outFile, "\t\t\t }\n");
         fprintf(outFile, "\t\t\t\t arg_offset += 1;\n\n");
 }
@@ -689,6 +705,8 @@ static void add_file_arg_worker_treatment(FILE *outFile, argument *arg)
         fprintf(outFile, "\t\t\t\t %s_dest_id = strsep(&%s,\":\");\n", arg->name, arg->name);
         fprintf(outFile, "\t\t\t\t %s_pres_data = strsep(&%s,\":\");\n", arg->name, arg->name);
         fprintf(outFile, "\t\t\t\t %s_write_data = strsep(&%s,\":\");\n", arg->name, arg->name);
+	fprintf(outFile, "\t\t\t } else {\n");
+	fprintf(outFile, "\t\t\t\t %s = %s_og;\n", arg->name, arg->name);
 	fprintf(outFile, "\t\t\t }\n");
         fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 }

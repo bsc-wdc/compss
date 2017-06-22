@@ -23,7 +23,7 @@ DEFAULT_CPU_AFFINITY="automatic"
 DEFAULT_GPU_AFFINITY="automatic"
 DEFAULT_TASK_EXECUTION=compss
 DEFAULT_STORAGE_CONF=null
-
+DEFAULT_PERSISTENT_WORKER_C=false
 
 ###############################################
 # ERROR CONSTANTS DECLARATION
@@ -255,7 +255,8 @@ worker_cmd() {
             ${custom_extrae_file} \
             ${nodeId} \
             ${storage_conf} \
-            ${taskExecution}"
+            ${taskExecution} \
+	    ${persistent_worker_c}"
 }
 
 ###############################################
@@ -449,6 +450,11 @@ get_args() {
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
+        persistent_worker_c=*)
+          persistent_worker_c=$(echo $OPTARG | sed -e 's/persistent_worker_c=//g')
+          # Keep it for runcompss (to add them to master)
+          args_pass="$args_pass --$OPTARG"
+          ;;
         prolog=*)
           action=$(echo $OPTARG | sed -e 's/prolog=//g')
           prologActions[numPrologActions]="$action"
@@ -576,6 +582,10 @@ check_args() {
 
   if [ -z "${taskExecution}" ]; then
     taskExecution=${DEFAULT_TASK_EXECUTION}
+  fi
+  
+  if [ -z "${persistent_worker_c}" ]; then
+    persistent_worker_c=${DEFAULT_PERSISTENT_WORKER_C}
   fi
 
   ###############################################################
@@ -1193,6 +1203,10 @@ EOT
 				<Property>
                                         <Name>jvm_opts_str</Name>
                                         <Value>${jvm_workers_opts_str}</Value>
+                                </Property>
+			 	<Property>
+                                        <Name>network</Name>
+                                        <Value>${network}</Value>
                                 </Property>
                 		<Property>
                     			<Name>estimated-creation-time</Name>

@@ -330,7 +330,13 @@ public class WorkerStarter {
             executionType = ITConstants.EXECUTION_INTERNAL;
             LOGGER.warn("No executionType passed");
         }
-
+        
+        //configure persistent_worker_c execution
+        String worker_persistent_c = System.getProperty(ITConstants.IT_WORKER_PERSISTENT_C);
+        if (worker_persistent_c == null || worker_persistent_c.isEmpty() || worker_persistent_c.equals("null")) {
+        	worker_persistent_c = ITConstants.DEFAULT_PERSISTENT_C;
+            LOGGER.warn("No persistent c passed");
+        }
         /*
          * ************************************************************************************************************
          * BUILD COMMAND
@@ -392,7 +398,9 @@ public class WorkerStarter {
         // Storage parameters
         cmd[nextPosition++] = storageConf;
         cmd[nextPosition++] = executionType;
-
+        
+        //persistent_c parameter
+        cmd[nextPosition++] = worker_persistent_c;
         return cmd;
     }
 

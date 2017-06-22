@@ -83,6 +83,7 @@ public class NIOWorker extends NIOAgent {
     private static String storageConf;
     private static String executionType;
 
+    private static boolean persistentC;
     // Internal components
     private final ExecutionManager executionManager;
     private final DataManager dataManager;
@@ -198,6 +199,10 @@ public class NIOWorker extends NIOAgent {
         } else {
             return storageConf;
         }
+    }
+    
+    public static boolean isPersistentCEnabled() {
+        return persistentC;
     }
 
     public ExecutionManager getExecutionManager() {
@@ -666,6 +671,7 @@ public class NIOWorker extends NIOAgent {
         try {
             for (String name : obsolete) {
                 if (name.startsWith(File.separator)) {
+                	WORKER_LOGGER.debug("Removing file " + name);
                     File f = new File(name);
                     if (!f.delete()) {
                         WORKER_LOGGER.error("Error removing file " + f.getAbsolutePath());
@@ -961,6 +967,8 @@ public class NIOWorker extends NIOAgent {
 
         storageConf = args[22];
         executionType = args[23];
+        
+        persistentC = Boolean.parseBoolean(args[24]);
 
         // Print arguments
         if (isWorkerDebugEnabled) {
@@ -991,7 +999,9 @@ public class NIOWorker extends NIOAgent {
 
             WORKER_LOGGER.debug("StorageConf: " + storageConf);
             WORKER_LOGGER.debug("executionType: " + executionType);
-
+            
+            WORKER_LOGGER.debug("Persistent c: " + persistentC);
+            
             WORKER_LOGGER.debug("Remove Sanbox WD: " + removeWD);
         }
 

@@ -248,6 +248,7 @@ public abstract class Executor implements Runnable {
 
             // Clean-up previous versions if any
             if (workingDir.exists()) {
+            	LOGGER.debug("Deleting folder "+ workingDir.toString());
                 workingDir.delete();
             }
 
@@ -263,6 +264,7 @@ public abstract class Executor implements Runnable {
             File workingDir = twd.getWorkingDir();
             if (workingDir != null && workingDir.exists()) {
                 try {
+                	LOGGER.debug("Deleting sandbox "+ workingDir.toPath());
                     Files.deleteIfExists(workingDir.toPath());
                 } catch (IOException e) {
                     LOGGER.warn("Error deleting sandbox " + e.getMessage());

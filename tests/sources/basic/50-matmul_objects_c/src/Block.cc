@@ -28,7 +28,12 @@ Block::Block(int bSize) {
 //#ifdef COMPSS_WORKER
 
 void Block::init(int bSize, double initVal) {
-        for (int i=0; i<bSize; i++) {
+        M = bSize;
+        data.resize(M);
+        for (int i=0; i<M; i++) {
+                data[i].resize(M);
+        }
+	for (int i=0; i<bSize; i++) {
                 for (int j=0; j<bSize; j++) {
                         data[i][j] = initVal;
                 }

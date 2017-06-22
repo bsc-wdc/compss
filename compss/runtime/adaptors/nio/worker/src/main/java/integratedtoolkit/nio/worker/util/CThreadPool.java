@@ -7,12 +7,13 @@ import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.nio.worker.exceptions.InitializationException;
 import integratedtoolkit.nio.worker.executors.CExecutor;
 import integratedtoolkit.nio.worker.executors.ExternalExecutor;
+import integratedtoolkit.util.ErrorManager;
 
 
 public class CThreadPool extends ExternalThreadPool {
 
     private static final String C_PIPER = "c_piper.sh";
-    // private static final String PERSISTENT_WORKER_C = "/worker/persistent_worker_c";
+    private static final String PERSISTENT_WORKER_C = "/worker/persistent_worker_c";
 
 
     public CThreadPool(NIOWorker nw, int size) {
@@ -43,15 +44,19 @@ public class CThreadPool extends ExternalThreadPool {
         StringBuilder cmd = new StringBuilder();
 
         cmd.append(ITConstants.Lang.C).append(ExternalExecutor.TOKEN_SEP);
-        // No persistent version
-        cmd.append(installDir).append(ExternalThreadPool.PIPER_SCRIPT_RELATIVE_PATH).append(C_PIPER).append(ExternalExecutor.TOKEN_SEP);
-
-        // Persistent version (uncomment for testing)
-        /*
-         * if (nw.getAppDir()!=null && !nw.getAppDir().isEmpty()){
-         * cmd.append(nw.getAppDir()).append(PERSISTENT_WORKER_C).append(ExternalExecutor.TOKEN_SEP); }else{
-         * ErrorManager.warn("Appdir is not defined. It is mandatory for c/c++ binding"); return null; }
-         */
+        if (!NIOWorker.isPersistentCEnabled()){
+        	// No persistent version
+        	cmd.append(installDir).append(ExternalThreadPool.PIPER_SCRIPT_RELATIVE_PATH).append(C_PIPER).append(ExternalExecutor.TOKEN_SEP);
+        }else{
+        	// Persistent version (uncomment for testing)
+        
+        	if (nw.getAppDir()!=null && !nw.getAppDir().isEmpty()){
+        		cmd.append(nw.getAppDir()).append(PERSISTENT_WORKER_C).append(ExternalExecutor.TOKEN_SEP); 
+        	}else{
+        		ErrorManager.warn("Appdir is not defined. It is mandatory for c/c++ binding"); 
+        		return null; 
+        	}
+        }
 
         cmd.append(writePipeFiles.length).append(ExternalExecutor.TOKEN_SEP);
         for (int i = 0; i < writePipeFiles.length; ++i) {

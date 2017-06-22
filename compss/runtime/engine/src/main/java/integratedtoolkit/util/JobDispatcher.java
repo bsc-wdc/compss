@@ -51,6 +51,9 @@ public class JobDispatcher {
         @Override
         public void processRequests() {
             while (true) {
+            	if (DEBUG) {
+                    LOGGER.debug("Waiting for new jobs to submit...");
+                }
                 Job<?> job = queue.dequeue();
                 if (job == null) {
                     break;
@@ -62,6 +65,11 @@ public class JobDispatcher {
                     }
                 } catch (Exception ex) {
                     LOGGER.error(SUBMISSION_ERROR + job.getJobId(), ex);
+                    /* System err is added because in GAT tests when time-out loggers are stopped 
+                     * earlier than the rest of the runtime and the stack trace give information 
+                     * about what is happening */ 
+                    System.err.println(SUBMISSION_ERROR + job.getJobId());
+                    ex.printStackTrace();
                     job.getListener().jobFailed(job, JobEndStatus.SUBMISSION_FAILED);
                 }
             }

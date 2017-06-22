@@ -102,7 +102,7 @@ void generate_prolog()
   fprintf(stubsFile, "#include <limits.h>\n");
   fprintf(stubsFile, "#include <string.h>\n");
   fprintf(stubsFile, "#include <fstream>\n");
-  fprintf(stubsFile, "#include <jni.h>\n");
+  //fprintf(stubsFile, "#include <jni.h>\n");
   fprintf(stubsFile, "#include <boost/archive/text_iarchive.hpp>\n");
   fprintf(stubsFile, "#include <boost/archive/text_oarchive.hpp>\n");
   fprintf(stubsFile, "#include <GS_compss.h>\n");

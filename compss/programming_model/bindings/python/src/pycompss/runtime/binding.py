@@ -365,7 +365,7 @@ def synchronize(obj, mode):
     # If we are the only referrers to the old object, then we can safely delete it
     # all objects have at least two references, so refcount = 3 implies that the only
     # extra reference is precisely ours, which implies that we can delete the object
-    if obj_id != new_obj_id and sys.getrefcount(task_objects[obj_id]) <= 3:
+    if obj_id != new_obj_id and not isinstance(task_objects[obj_id], Future):
         del objid_to_filename[obj_id]
         del task_objects[obj_id]
 

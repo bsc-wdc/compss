@@ -12,9 +12,8 @@
   cp -f ${source_base_dir}/resources.xml ${target_base_dir}/resources.xml
 
   cp -rf ${source_base_dir}/src ${target_base_dir}/src
-  cp -f ${source_base_dir}/Test.cc ${target_base_dir}/Test.cc
-  cp -f ${source_base_dir}/Test-constants.h ${target_base_dir}/Test-constants.h
-  cp -f ${source_base_dir}/Test-functions.cc ${target_base_dir}/Test-functions.cc
-  cp -f ${source_base_dir}/Test.idl ${target_base_dir}/Test.idl
+  cp -f ${source_base_dir}/TestStatic.cc ${target_base_dir}/TestStatic.cc
+  cp -f ${source_base_dir}/TestStatic-functions.cc ${target_base_dir}/TestStatic-functions.cc
+  cp -f ${source_base_dir}/TestStatic.idl ${target_base_dir}/TestStatic.idl
   cp -f ${source_base_dir}/skip ${target_base_dir}/skip
 

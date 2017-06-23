@@ -3,6 +3,10 @@
 #include <boost/asio/io_service.hpp>
 #include <boost/bind.hpp>
 #include <boost/thread/thread.hpp>
+//#include <pthread.h>
+#include <sys/types.h>
+#include <sys/syscall.h>
+#define gettid() syscall(SYS_gettid)
 
 using namespace std;
 
@@ -23,6 +27,25 @@ string readline(const char* inPipe) {
 	
 	return command;
 }
+
+
+streambuf * redirect_error(const char * filenm, ofstream& filestr)
+{
+  streambuf *newsb, *oldsb;
+  filestr.open(filenm);
+  oldsb = cerr.rdbuf();     // back up cout's streambuf
+  newsb = filestr.rdbuf();       // get file's streambuf
+  cerr.rdbuf(newsb);        // assign streambuf to cout
+  return oldsb;
+}
+
+
+void restore_error(streambuf * oldsb, ofstream& filestr)
+{
+  cerr.rdbuf(oldsb);        // restore cout's original streambuf
+  filestr.close();
+}
+
 
 
 streambuf * redirect_output(const char * filenm, ofstream& filestr)
@@ -77,19 +100,34 @@ void runThread(const char* inPipe, const char* outPipe){
                    	executeArgs = vector<string>(commandArgs.begin() + i, commandArgs.end());
                	}
             }
-/*
-			ofstream job_out(commandArgs[2].c_str());
-			job_out << "This is a sample output.\n";
-			job_out.close();	
-*/
 
 			oldOutsb = redirect_output(commandArgs[2].c_str(), jobOut);
-			oldErrsb = redirect_output(commandArgs[3].c_str(), jobErr);
-/*
-			ofstream job_err(commandArgs[3].c_str());
-            job_err << "This is a sample error.\n";
-            job_err.close();
-*/
+            oldErrsb = redirect_error(commandArgs[3].c_str(), jobErr);
+
+			
+			for (int i = 0; i < commandArgs.size(); i++) {
+				if (commandArgs[i] == "taskset"){
+					cpu_set_t to_assign;
+					CPU_ZERO(&to_assign);
+					string assignedCpuString = commandArgs[i+2];
+					vector<int>assignedCpus;
+					stringstream ss_cpus(assignedCpuString);
+					int cpu;
+					//Read integers from the list of cpus assigned, ignore commas
+					while (ss_cpus >> cpu){
+						CPU_SET(cpu, &to_assign);
+						if (ss_cpus.peek() == ',') ss_cpus.ignore();
+					}
+				
+					if(sched_setaffinity(gettid(), sizeof(cpu_set_t), &to_assign) < 0) {
+    					cout << "[Persistent C] Error during sched_setaffinity call!" << endl;
+  					}
+
+
+				}
+			}
+
+
 			executeArgsC = new char*[executeArgs.size()];
 
 			for (int i = 0; i < executeArgs.size(); i++){
@@ -100,7 +138,7 @@ void runThread(const char* inPipe, const char* outPipe){
 			int ret = execute(executeArgs.size(), executeArgsC, cache);
 
 			restore_output(oldOutsb, jobOut);
-			restore_output(oldErrsb, jobErr);
+			restore_error(oldErrsb, jobErr);
 
 			ostringstream out_ss;
 			out_ss << END_TASK_TAG << " " << commandArgs[1] << " " << ret << endl;
@@ -110,6 +148,7 @@ void runThread(const char* inPipe, const char* outPipe){
             outFile << output;
 			fflush(NULL);
 			outFile.close();
+	
 		}
     }
 

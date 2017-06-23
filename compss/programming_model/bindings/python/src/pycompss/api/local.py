@@ -41,7 +41,6 @@ def local(input_function):
             old_id = id(obj)
             new_val = compss_wait_on(obj)
             replace(obj, new_val)
-            del task_objects[old_id]
 
     def wrapped_function(*args, **kwargs):
         gc.collect()

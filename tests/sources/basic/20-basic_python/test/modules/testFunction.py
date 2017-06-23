@@ -55,6 +55,10 @@ class testFunction(unittest.TestCase):
         o = MyClass(i)
         return o
 
+    @task(B=INOUT)
+    def function_increment(self, A, B):
+        B[0] = B[0] + A[0]
+
     def test_function_primitives(self):
         """ Test function_primitives"""
         from pycompss.api.api import compss_wait_on
@@ -145,3 +149,11 @@ class testFunction(unittest.TestCase):
         o = function_without_params()
         o = compss_wait_on(o)
         self.assertEqual(o, 1)
+
+    def test_in_inout(self):
+        """ Test when the function has the same object as IN and INOUT """
+        from pycompss.api.api import compss_wait_on
+        res = [1]
+        self.function_increment(res, res)
+        res = compss_wait_on(res)
+        self.assertEqual(res[0], 2)

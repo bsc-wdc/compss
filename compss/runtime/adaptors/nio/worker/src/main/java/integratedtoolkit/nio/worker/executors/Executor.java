@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Iterator;
 import java.util.List;
@@ -248,7 +249,7 @@ public abstract class Executor implements Runnable {
 
             // Clean-up previous versions if any
             if (workingDir.exists()) {
-            	LOGGER.debug("Deleting folder "+ workingDir.toString());
+                LOGGER.debug("Deleting folder " + workingDir.toString());
                 workingDir.delete();
             }
 
@@ -264,12 +265,43 @@ public abstract class Executor implements Runnable {
             File workingDir = twd.getWorkingDir();
             if (workingDir != null && workingDir.exists()) {
                 try {
-                	LOGGER.debug("Deleting sandbox "+ workingDir.toPath());
+                    LOGGER.debug("Deleting sandbox " + workingDir.toPath());
                     Files.deleteIfExists(workingDir.toPath());
                 } catch (IOException e) {
                     LOGGER.warn("Error deleting sandbox " + e.getMessage());
                 }
             }
+        }
+    }
+
+    /**
+     * Check whether file1 corresponds to a file with a higher version than file2
+     * 
+     * @param file1
+     *            first file name
+     * @param file2
+     *            second file name
+     * @return True if file1 has a higher version. False otherwise (This includes the case where the name file's format is not correct)
+     */
+    private boolean isMajorVersion(String file1, String file2) {
+        String[] version1array = file1.split("_")[0].split("v");
+        String[] version2array = file2.split("_")[0].split("v");
+        if (version1array.length < 2 || version2array.length < 2) {
+            return false;
+        }
+        Integer version1int = null;
+        Integer version2int = null;
+        try{
+            version1int = Integer.parseInt(version1array[1]);
+            version2int = Integer.parseInt(version2array[1]);
+        } catch(NumberFormatException e){
+            return false;
+        }
+        if (version1int > version2int){
+            return true;
+        }
+        else {
+            return false;
         }
     }
 
@@ -300,8 +332,17 @@ public abstract class Executor implements Runnable {
                     if (renamedFile.exists()) {
                         // IN or INOUT File creating a symbolic link
                         if (!newOrigFile.exists()) {
-                            LOGGER.debug("Creating symlink" + newOrigFile.toPath() + " pointing to " + renamedFile.toPath());
+                            LOGGER.debug("Creating symlink " + newOrigFile.toPath() + " pointing to " + renamedFile.toPath());
                             Files.createSymbolicLink(newOrigFile.toPath(), renamedFile.toPath());
+                        }else{
+                            if (Files.isSymbolicLink(newOrigFile.toPath())){
+                                Path oldRenamed = Files.readSymbolicLink(newOrigFile.toPath());
+                                LOGGER.debug("Checking if " + renamedFile.getName() + " is equal to " + oldRenamed.getFileName().toString());
+                                if (isMajorVersion(renamedFile.getName(), oldRenamed.getFileName().toString())) {
+                                    Files.delete(newOrigFile.toPath());
+                                    Files.createSymbolicLink(newOrigFile.toPath(), renamedFile.toPath());
+                                }
+                            }
                         }
                     }
                 }

@@ -600,7 +600,7 @@ static void add_object_arg_worker_treatment(FILE *outFile, argument *arg)
         fprintf(outFile, "\t\t\t char* %s_filename, *%s_orig_id, *%s_dest_id, *%s_pres_data, *%s_write_data;\n", arg->name, arg->name, arg->name, arg->name, arg->name);
 	fprintf(outFile, "\t\t\t %s_filename = %s_filename_og ;\n", arg->name, arg->name);
         fprintf(outFile, "\t\t\t %s_orig_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
-	fprintf(outFile, "\t\t\t cout << \"[C Binding] Checkin object data id for %s ...\" << endl << flush;\n", arg->name);
+	fprintf(outFile, "\t\t\t cout << \"[C Binding] Checking object data id for %s ...\" << endl << flush;\n", arg->name);
         //Check if there is data id information in the value
 	fprintf(outFile, "\t\t\t if (%s_orig_id != NULL && %s_filename != NULL){ \n", arg->name, arg->name);
 	// There is data information
@@ -653,12 +653,13 @@ static void add_object_arg_worker_treatment(FILE *outFile, argument *arg)
 
           	fprintf(outFile, "\t\t\t\t } else {\n");
           	fprintf(outFile, "\t\t\t\t\t %s = (%s*)cache[%s_orig_id_str];\n", arg->name, arg->classname, arg->name);
+			fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Object \" << %s_orig_id_str << \" has been read from the cache.\" << endl << flush;\n", arg->name);
           	fprintf(outFile, "\t\t\t\t\t if (string(%s_pres_data) == \"false\"){\n", arg->name);
         	fprintf(outFile, "\t\t\t\t\t\t cache.erase(%s_orig_id_str);\n", arg->name);
         	fprintf(outFile, "\t\t\t\t\t\t cout << \"[C Binding] Object \" << %s_orig_id_str << \" has been removed from the cache.\" << endl << flush;\n", arg->name);
         	fprintf(outFile, "\t\t\t\t\t }\n");
           	fprintf(outFile, "\t\t\t\t\t cache[%s_dest_id_str] = (void*)%s;\n", arg->name, arg->name);
-          	fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Object \" << %s_orig_id_str << \" has been read from the cache.\" << endl << flush;\n", arg->name);
+          	fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Object \" << %s_dest_id_str << \" has been added to the cache.\" << endl << flush;\n", arg->name);
           	fprintf(outFile, "\t\t\t\t }\n");
 		break;
 	    case out_dir:

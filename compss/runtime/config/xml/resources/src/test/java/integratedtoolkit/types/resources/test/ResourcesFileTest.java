@@ -57,7 +57,7 @@ public class ResourcesFileTest {
     private static final String ERROR_JCLOUDS_XML = "JClouds XML doesn't exist";
 
     // Test Logger
-    private static final Logger logger = LogManager.getLogger("Console");
+    private static final Logger LOGGER = LogManager.getLogger("Console");
 
 
     @BeforeClass
@@ -116,7 +116,7 @@ public class ResourcesFileTest {
         File defaultResources = new File(DEFAULT_XML_PATH);
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(defaultResources, xsd, logger);
+        ResourcesFile resources = new ResourcesFile(defaultResources, xsd, LOGGER);
 
         // Checkers
         assertNotNull(resources);
@@ -141,7 +141,7 @@ public class ResourcesFileTest {
         String defaultResources = buildXMLString();
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(defaultResources, xsd, logger);
+        ResourcesFile resources = new ResourcesFile(defaultResources, xsd, LOGGER);
 
         // Checkers
         assertNotNull(resources);
@@ -165,7 +165,7 @@ public class ResourcesFileTest {
         File defaultResources = new File(DEFAULT_XML_PATH);
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(defaultResources, xsd_path, logger);
+        ResourcesFile resources = new ResourcesFile(defaultResources, xsd_path, LOGGER);
 
         // Checkers
         assertNotNull(resources);
@@ -189,7 +189,7 @@ public class ResourcesFileTest {
         String defaultResources = buildXMLString();
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(defaultResources, xsd_path, logger);
+        ResourcesFile resources = new ResourcesFile(defaultResources, xsd_path, LOGGER);
 
         // Checkers
         assertNotNull(resources);
@@ -217,7 +217,7 @@ public class ResourcesFileTest {
         File defaultResources = new File(DEFAULT_XML_PATH);
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(defaultResources, xsd_path, logger);
+        ResourcesFile resources = new ResourcesFile(defaultResources, xsd_path, LOGGER);
 
         // Checkers
         assertNotNull(resources);
@@ -237,7 +237,7 @@ public class ResourcesFileTest {
         File defaultResources = new File(DEFAULT_XML_PATH);
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(defaultResources, xsd_path, logger);
+        ResourcesFile resources = new ResourcesFile(defaultResources, xsd_path, LOGGER);
 
         // Checkers
         assertNotNull(resources);
@@ -260,7 +260,7 @@ public class ResourcesFileTest {
         File fullResources = new File(FULL_XML_PATH);
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(fullResources, xsd_path, logger);
+        ResourcesFile resources = new ResourcesFile(fullResources, xsd_path, LOGGER);
 
         // Checkers
         assertNotNull(resources);
@@ -280,7 +280,7 @@ public class ResourcesFileTest {
         File gridResources = new File(GRID_XML_PATH);
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(gridResources, xsd_path, logger);
+        ResourcesFile resources = new ResourcesFile(gridResources, xsd_path, LOGGER);
 
         // Checkers
         assertNotNull(resources);
@@ -300,7 +300,7 @@ public class ResourcesFileTest {
         File servicesResources = new File(SERVICES_XML_PATH);
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(servicesResources, xsd_path, logger);
+        ResourcesFile resources = new ResourcesFile(servicesResources, xsd_path, LOGGER);
 
         // Checkers
         assertNotNull(resources);
@@ -320,7 +320,7 @@ public class ResourcesFileTest {
         File rocciResources = new File(ROCCI_XML_PATH);
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(rocciResources, xsd_path, logger);
+        ResourcesFile resources = new ResourcesFile(rocciResources, xsd_path, LOGGER);
 
         // Checkers
         assertNotNull(resources);
@@ -340,7 +340,7 @@ public class ResourcesFileTest {
         File gceResources = new File(JCLOUDS_GCE_XML_PATH);
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(gceResources, xsd_path, logger);
+        ResourcesFile resources = new ResourcesFile(gceResources, xsd_path, LOGGER);
 
         // Checkers
         assertNotNull(resources);
@@ -414,7 +414,7 @@ public class ResourcesFileTest {
         String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(xsd_path, logger);
+        ResourcesFile resources = new ResourcesFile(xsd_path, LOGGER);
         List<ProcessorType> processors = new LinkedList<ProcessorType>();
         processors.add(proc);
         List<AdaptorType> adaptors = new LinkedList<AdaptorType>();
@@ -459,7 +459,7 @@ public class ResourcesFileTest {
         String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(xsd_path, logger);
+        ResourcesFile resources = new ResourcesFile(xsd_path, LOGGER);
         resources.addComputeNode(nodeName, procName, cu, arch, speed, type, internalMemorySize,
         		ResourcesFile.createProcessorProperty(key, value), adaptorName,
                 maxPort, minPort, executor, user, memSize, null, storageSize, null, osType, null, null);
@@ -510,7 +510,7 @@ public class ResourcesFileTest {
         String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(xsd_path, logger);
+        ResourcesFile resources = new ResourcesFile(xsd_path, LOGGER);
         resources.addComputeNode(nodeName, procName, cu, arch, speed, null,-1f, ResourcesFile.createProcessorProperty(key, value), adaptorName, batch,
                 queues, interactive, gatprop, user, memSize, null, storageSize, null, osType, null, null);
         ComputeNodeType cn = resources.getComputeNode(nodeName);

@@ -10,6 +10,9 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 public class MOProfileTest {
 
@@ -27,13 +30,18 @@ public class MOProfileTest {
     private static final double SET_POWER = 4.3;
     private static final double SET_PRICE = 0.45;
 
+    // Test Logger
+    private static final Logger LOGGER = LogManager.getLogger("Console");
+
 
     @BeforeClass
     public static void setUpClass() {
+        LOGGER.debug("Setup Class");
     }
 
     @AfterClass
     public static void tearDownClass() {
+        LOGGER.debug("End");
     }
 
     @Before

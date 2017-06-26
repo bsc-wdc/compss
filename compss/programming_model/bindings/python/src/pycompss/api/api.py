@@ -96,7 +96,8 @@ def compss_wait_on(*args):
         # Private function used below (recursively)
         def wait_on_list(l):
             # check if the object is in our task_objects dictionary
-            obj_id = id(l)
+            from pycompss.runtime.binding import get_object_id
+            obj_id = get_object_id(l)
             if obj_id in task_objects:
                 return synchronize(l, compss_mode)
             else:

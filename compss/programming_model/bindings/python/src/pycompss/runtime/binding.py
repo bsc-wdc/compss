@@ -80,6 +80,21 @@ objs_written_by_mp = {}  # obj_id -> compss_file_name
 # cross-module variable (set/modified from launch.py)
 object_conversion = False
 
+# Identifier handling
+current_id = 1
+id2obj = {}
+
+def get_object_id(obj):
+    global current_id
+    for identifier in id2obj:
+        if id2obj[identifier] is obj:
+            return identifier
+    # This object was not in our object database, lets assign it an identifier
+    # and store it
+    id2obj[current_id] = obj
+    current_id += 1
+    return current_id-1
+
 # Enable or disable the management of *args parameters as a whole tuple built (and serialized)
 # on the master and sent to the workers. When disabled, the parameters passed to a task with
 # *args are serialized independently and the tuple is built on the worker.
@@ -311,7 +326,8 @@ def register_ce(coreElement):
                                  implTypeArgs)
     logger.debug("CE with signature %s registered." % (ce_signature))
 
-
+#QUESTION: What is the purpose of this getter? task_objects is global and
+# from this precise module
 def get_task_objects():
     """
     This method retrieves the dictionary that contains the objects used as parameters for the tasks.
@@ -333,7 +349,7 @@ def synchronize(obj, mode):
     # TODO - CUANDO SE LLAME A compss.get_file, anadir un booleano diferenciando si es fichero u objeto
     # Objetivo: mejorar el detalle de las trazas. Esto se tiene que implementar primero en el runtime, despues
     # adaptar el api de C, y finalmente anadir el booleano aqui.
-
+    global current_id
     if 'getID' in dir(obj) and obj.getID() is not None:
         obj_id = obj.getID()
         if obj_id not in task_objects:
@@ -347,31 +363,33 @@ def synchronize(obj, mode):
             new_obj = getByID(file_name)
             return new_obj
 
-    logger.debug("Synchronizing object %d with mode %s" % (id(obj), mode))
 
-    obj_id = id(obj)
+    obj_id = get_object_id(obj)
     if obj_id not in task_objects:
         return obj
+
+
+    logger.debug("Synchronizing object %d with mode %s" % (obj_id, mode))
 
     file_name = objid_to_filename[obj_id]
     compss_file = compss.get_file(file_name, mode)
 
     new_obj = deserialize_from_file(compss_file)
-    new_obj_id = id(new_obj)
+    new_obj_id = get_object_id(new_obj)
 
     # The main program won't work with the old object anymore, update mapping
     objid_to_filename[new_obj_id] = file_name
     task_objects[new_obj_id] = new_obj
-
-    ## Warning. It is not possible to delete safely the objects (as the following
-    ##          comment states. When an object is removed, the id can be reused,
-    ##          and may lead to wrong object synchronization.
-    # If we are the only referrers to the old object, then we can safely delete it
-    # all objects have at least two references, so refcount = 3 implies that the only
-    # extra reference is precisely ours, which implies that we can delete the object
-    ##if obj_id != new_obj_id and not isinstance(task_objects[obj_id], Future):
-    ##    del objid_to_filename[obj_id]
-    ##    del task_objects[obj_id]
+    # TODO: Devise a proper deletion criteria
+    # TODO: Get runtime notifications about obsolete objects
+    # this would let us delete more objects, leaving more free space
+    '''
+    if obj_id != new_obj_id and not isinstance(task_objects[obj_id], Future):
+        print 'Deleting obj %s (new one is %s)'%(str(obj_id), str(new_obj_id))
+        objid_to_filename.pop(obj_id)
+        task_objects.pop(obj_id)
+        id2obj.pop(obj_id)
+    '''
 
     logger.debug("Now object with id %d and %s has mapping %s" % (new_obj_id, type(new_obj), file_name))
 
@@ -510,6 +528,7 @@ def build_return_objects(self_kwargs, spec_args):
     :param spec_args:
     :return:
     """
+    global current_id
     ret_type = self_kwargs['returns']
     fileNames = {}  # return files locations
     if ret_type:
@@ -531,8 +550,8 @@ def build_return_objects(self_kwargs, spec_args):
                 else:
                     fue = Future()         # modules, functions, methods
                 fu.append(fue)
-                logger.debug("Setting object %d of %s as a future" % (id(fue), type(fue)))
-                obj_id = id(fue)
+                obj_id = get_object_id(fue)
+                logger.debug("Setting object %d of %s as a future" % (obj_id, type(fue)))
                 ret_filename = temp_dir + temp_obj_prefix + str(obj_id)
                 objid_to_filename[obj_id] = ret_filename
                 task_objects[obj_id] = fue
@@ -556,8 +575,8 @@ def build_return_objects(self_kwargs, spec_args):
                     fu = Future()
             else:
                 fu = Future()  # modules, functions, methods
-            logger.debug("Setting object %d of %s as a future" % (id(fu), type(fu)))
-            obj_id = id(fu)
+            obj_id = get_object_id(fu)
+            logger.debug("Setting object %d of %s as a future" % (obj_id, type(fu)))
             ret_filename = temp_dir + temp_obj_prefix + str(obj_id)
             objid_to_filename[obj_id] = ret_filename
             task_objects[obj_id] = fu
@@ -850,7 +869,8 @@ def turn_into_file(p):
         t = type(p.value)
         p.value = t()
     '''
-    obj_id = id(p.value)
+    global current_id
+    obj_id = get_object_id(p.value)
     file_name = objid_to_filename.get(obj_id)
     if file_name is None:
         # This is the first time a task accesses this object
@@ -885,10 +905,12 @@ def clean_objects():
     """
     Clean the objects stored in the global dictionaries:
         * task_objects dict
+        * id2obj dict
         * objid_to_filename dict
         * objs_written_by_mp dict
     """
     task_objects.clear()
+    id2obj.clear()
     objid_to_filename.clear()
     objs_written_by_mp.clear()
 

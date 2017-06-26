@@ -10,6 +10,9 @@ import integratedtoolkit.types.resources.components.Processor;
 import integratedtoolkit.util.CoreManager;
 import java.util.LinkedList;
 import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -44,9 +47,13 @@ public class MOResourceSchedulerTest {
             + ",\"price\":" + (SET_PRICE) + "}";
     private static FakeWorker worker;
 
+    // Test Logger
+    private static final Logger LOGGER = LogManager.getLogger("Console");
+
 
     @BeforeClass
     public static void setUpClass() {
+        LOGGER.debug("Setup Class");
         // Method resource description and its slots
         Processor p = new Processor();
         p.setComputingUnits(4);
@@ -76,6 +83,7 @@ public class MOResourceSchedulerTest {
 
     @AfterClass
     public static void tearDownClass() {
+        LOGGER.debug("End");
     }
 
     @Before

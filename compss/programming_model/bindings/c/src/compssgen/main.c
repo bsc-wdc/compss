@@ -51,11 +51,11 @@ int main(int argc, char **argv)
 	}
 	yyparse();
 	if (can_generate()) {
-        printf("Generate prolog");
+        	printf("Generating prolog\n");
 		generate_prolog();
-        printf("Generate body");
+        	printf("Generating body\n");
 		generate_body();
-        printf("Generate epilog");
+        	printf("Generating epilog\n");
 		generate_epilogue();
 	} else {
 		printf("No code generated.\n");

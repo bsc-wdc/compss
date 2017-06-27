@@ -1,8 +1,8 @@
 GCC=g++
 CFLAGS=-std=c++0x -g -fpermissive -I. 
 
-CFILES=Block.cc Matrix.cc
-C_OBJ=Block.o Matrix.o
+CFILES=Block.cc 
+C_OBJ=Block.o
 
 
 all: clean compile_master compile_worker deploy
@@ -16,7 +16,6 @@ compile_master:
 compile_worker:
 	@echo "Building application for workers..."
 	$(GCC) -DCOMPSS_WORKER $(CFLAGS) -c Block.cc
-	$(GCC) -DCOMPSS_WORKER $(CFLAGS) -c Matrix.cc 
 	ar rvs libworker.a $(C_OBJ)
 	ranlib libworker.a
 

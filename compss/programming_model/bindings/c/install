@@ -10,10 +10,10 @@
   clean_env() {
     cd ${working_dir}/bindinglib
     ./clean.sh
-    cd ${working_dir}/gsbuilder
-    ./clean.sh
-    cd ${working_dir}/gsstubgen
-    ./clean.sh
+    #cd ${working_dir}/gsbuilder
+    #./clean.sh
+    #cd ${working_dir}/gsstubgen
+    #./clean.sh
     cd ${working_dir}/compssbuilder
     ./clean.sh
     cd ${working_dir}/compssgen
@@ -119,22 +119,22 @@
   ######################################################
   # GSBuilder
   ######################################################
-  echo " "
-  echo "Installing GS Builder Library..."
-  echo " "
-  cd ${working_dir}/gsbuilder
-  install ${build_root} "GS Builder"
-  cd ${working_dir}
+  #echo " "
+  #echo "Installing GS Builder Library..."
+  #echo " "
+  #cd ${working_dir}/gsbuilder
+  #install ${build_root} "GS Builder"
+  #cd ${working_dir}
 
   ######################################################
   # GSStubGen
   ######################################################
-  echo " "
-  echo "Installing GSStubGen..."
-  echo " "
-  cd ${working_dir}/gsstubgen
-  install ${build_root} "GS Stub Gen"
-  cd ${working_dir}
+  #echo " "
+  #echo "Installing GSStubGen..."
+  #echo " "
+  #cd ${working_dir}/gsstubgen
+  #install ${build_root} "GS Stub Gen"
+  #cd ${working_dir}
   
   ######################################################
   # COMPSsBuilder
@@ -147,7 +147,7 @@
   cd ${working_dir}
 
   ######################################################
-  # GSStubGen
+  # COMPSsStubGen
   ######################################################
   echo " "
   echo "Installing COMPSs Stub Genenerator ..."

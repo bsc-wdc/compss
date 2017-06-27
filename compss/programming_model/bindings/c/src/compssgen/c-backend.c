@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
@@ -387,7 +386,12 @@ static void generate_prototype(FILE *outFile, function *current_function)
 static void generate_class_includes(FILE *outFile, function *current_function)
 {
   argument *current_argument;
-  
+  if (current_function->classname != NULL){
+	 fprintf(outFile, "#include \"%s.h\";\n", current_function->classname);
+  }
+  if (current_function->return_type == object_dt){
+	fprintf(outFile, "#include \"%s.h\";\n", current_function->return_typename);
+  }  
   current_argument = current_function->first_argument;
   while (current_argument != NULL) {
     if (current_argument->type == object_dt) {
@@ -417,8 +421,9 @@ static void generate_parameter_marshalling(FILE *outFile, function *func)
   if (( func->classname != NULL ) && (func->access_static == 0)){
     i = j*3;
     fprintf(outFile, "\t char *this_filename;\n");
-    fprintf(outFile, "\t found = GS_register(this, (datatype)%d, inout_dir, \"%s\", this_filename);\n", object_dt, func->classname);
+    fprintf(outFile, "\t found = GS_register(this, (datatype)%d, (direction)%d, \"%s\", this_filename);\n", object_dt, inout_dir, func->classname);
     fprintf(outFile, "\t if (!found) {\n");
+    fprintf(outFile, "\t\t cout << \"Target object not found in registry. Serializing to \" << this_filename << endl << flush;\n");
     fprintf(outFile, "\t\t ofstream this_ofs(this_filename, std::ofstream::trunc);\n");
     fprintf(outFile, "\t\t archive::text_oarchive this_oa(this_ofs);\n");
     fprintf(outFile, "\t\t this_oa << *this;\n");
@@ -442,8 +447,10 @@ static void generate_parameter_marshalling(FILE *outFile, function *func)
     i = j*3;
     fprintf(outFile, "\t %s return_object;\n", func->return_typename);
     fprintf(outFile, "\t char *return_filename;\n");
-    fprintf(outFile, "\t found = GS_register(&return_object, (datatype)%d, null_dir, \"%s\", return_filename);\n", object_dt, func->return_typename);
+    fprintf(outFile, "\t found = GS_register(&return_object, (datatype)%d, (direction)%d, \"%s\", return_filename);\n", object_dt, out_dir, func->return_typename);
+    //TODO: Return type should not be serialized
     fprintf(outFile, "\t if (!found) {\n");
+    fprintf(outFile, "\t\t cout << \"Return object not found in registry. Serializing to \" << return_filename << endl << flush;\n");
     fprintf(outFile, "\t\t ofstream return_ofs(return_filename, std::ofstream::trunc);\n");
     fprintf(outFile, "\t\t archive::text_oarchive return_oa(return_ofs);\n");
     fprintf(outFile, "\t\t return_oa << return_object;\n");
@@ -483,6 +490,7 @@ static void generate_parameter_marshalling(FILE *outFile, function *func)
 	  fprintf(outFile, "\t char *%s_filename;\n", arg->name);
 	  fprintf(outFile, "\t found = GS_register(%s, (datatype)%d, (direction)%d, \"%s\", %s_filename);\n", arg->name, arg->type, arg->dir, arg->classname, arg->name);
 	  fprintf(outFile, "\t if (!found) {\n");
+	  fprintf(outFile, "\t\t cout << \"Object not found in registry. Serializing to \" << %s_filename << endl << flush;\n" , arg->name);
 	  fprintf(outFile, "\t\t ofstream %s_ofs(%s_filename, std::ofstream::trunc);\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t archive::text_oarchive %s_oa(%s_ofs);\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t %s_oa << *%s;\n", arg->name, arg->name);
@@ -500,6 +508,7 @@ static void generate_parameter_marshalling(FILE *outFile, function *func)
 	  fprintf(outFile, "\t char *%s_filename;\n", arg->name);
 	  fprintf(outFile, "\t found = GS_register(%s, (datatype)%d, (direction)%d, \"%s\", %s_filename);\n", arg->name, arg->dir, arg->type, arg->classname, arg->name);
 	  fprintf(outFile, "\t if (!found) {\n");
+	  fprintf(outFile, "\t\t cout << \"Object not found in registry. Serializing to \" << %s_filename << endl << flush;\n" , arg->name);
 	  fprintf(outFile, "\t\t ofstream %s_ofs(%s_filename, std::ofstream::trunc);\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t archive::text_oarchive %s_oa(%s_ofs);\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t string %s_out_string (*%s);\n", arg->name, arg->name);
@@ -532,6 +541,7 @@ static void generate_parameter_marshalling(FILE *outFile, function *func)
 	  fprintf(outFile, "\t char *%s_filename;\n", arg->name);
 	  fprintf(outFile, "\t found = GS_register(%s, (datatype)%d, (direction)%d, \"%s\", %s_filename);\n", arg->name, arg->type, arg->dir, arg->classname, arg->name);
 	  fprintf(outFile, "\t if (!found) {\n");
+	  fprintf(outFile, "\t\t cout << \"Object not found in registry. Serializing to \" << %s_filename << endl << flush;\n" , arg->name); 
 	  fprintf(outFile, "\t\t ofstream %s_ofs(%s_filename, std::ofstream::trunc);\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t archive::text_oarchive %s_oa(%s_ofs);\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t %s_oa << %s;\n", arg->name, arg->name);
@@ -571,7 +581,14 @@ static void generate_execute_call(FILE *outFile, function *func)
   
   int arg_count = func->argument_count;
   
-  if (( func->classname != NULL ) && (func->access_static == 0)) arg_count++;
+  if ( func->classname != NULL ){
+	class_name = func->classname; 
+	if (func->access_static == 0) {
+		arg_count++;
+        	hasTarget = strdup("true");
+	}
+  }
+
   if ( func->return_type != void_dt ) arg_count++;
   
   fprintf(outFile, "\t char *method_name = strdup(\"%s\");\n", func->name);
@@ -581,21 +598,22 @@ static void generate_execute_call(FILE *outFile, function *func)
   fprintf(outFile, "\n");
   
   if ( func->return_type != void_dt ){
-    fprintf(outFile, "\n\t //Implicit synchronization\n");
-    fprintf(outFile, "\t debug_printf(\"[   BINDING]  -  @%%s  -  Implicit synchronization of return value\\n\", method_name);\n");
-    fprintf(outFile, "\t compss_wait_on(return_object);\n");
-    fprintf(outFile, "\n\t return return_object;\n");
-    fprintf(outFile, "\n");
+	if ( func->return_type != object_dt){
+    		fprintf(outFile, "\t debug_printf(\"[   BINDING]  -  @%%s  -  Implicit synchronization of return value\\n\", method_name);\n");
+    		fprintf(outFile, "\t compss_wait_on(return_object);\n");
+	}
+    	fprintf(outFile, "\n\t return return_object;\n");
+    	fprintf(outFile, "\n");
   }
   
   fprintf(outFile, "\t free(method_name);\n");
   
 }
 
-static void add_object_arg_worker_treatment(FILE *outFile, argument *arg)
+static void add_object_arg_worker_treatment(FILE *outFile, argument *arg, int initOffset)
 {
 	fprintf(outFile, "\t\t\t cout << \"[C Binding] Treating object %s ...\" << endl << flush;\n", arg->name);
-	fprintf(outFile, "\t\t\t arg_offset += 3;\n");
+	fprintf(outFile, "\t\t\t arg_offset += %d;\n", initOffset);
         fprintf(outFile, "\t\t\t char* %s_filename_og = strdup(argv[arg_offset]);\n", arg->name);
         fprintf(outFile, "\t\t\t char* %s_filename, *%s_orig_id, *%s_dest_id, *%s_pres_data, *%s_write_data;\n", arg->name, arg->name, arg->name, arg->name, arg->name);
 	fprintf(outFile, "\t\t\t %s_filename = %s_filename_og ;\n", arg->name, arg->name);
@@ -614,7 +632,9 @@ static void add_object_arg_worker_treatment(FILE *outFile, argument *arg)
 	switch (arg->dir){
 	    case in_dir: 
 		//when argument is in
+		fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Checking if object %s with id \"<< %s_orig_id_str << \" is in cache.\" << endl << flush;\n", arg->name, arg->name);
         	fprintf(outFile, "\t\t\t\t if (cache.find(%s_orig_id_str) == cache.end()){\n", arg->name, arg->name);
+                fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Deserializing object %s.\" << endl << flush;\n", arg->name);
         	fprintf(outFile, "\t\t\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
         	fprintf(outFile, "\t\t\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
         	if (arg->type == string_dt || arg->type == wstring_dt){
@@ -636,8 +656,10 @@ static void add_object_arg_worker_treatment(FILE *outFile, argument *arg)
 		break;
 	    case inout_dir:
         	//when argument is inout
+		fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Checking object %s with id \"<< %s_orig_id_str << \" and preserve_data \" << %s_pres_data << \" is in cache.\" << endl << flush;\n", arg->name, arg->name, arg->name);
 		fprintf(outFile, "\t\t\t\t if ((string(%s_pres_data) == \"true\")|| (cache.find(%s_orig_id_str) == cache.end())){\n", arg->name, arg->name, arg->name);
-          	fprintf(outFile, "\t\t\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
+          	fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Deserializing object %s.\" << endl << flush;\n", arg->name);
+		fprintf(outFile, "\t\t\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
           	fprintf(outFile, "\t\t\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
           	if (arg->type == string_dt || arg->type == wstring_dt){
                         fprintf(outFile, "\t\t\t\t\t string %s_in_string;\n", arg->name);
@@ -768,7 +790,7 @@ static void add_other_arg_worker_treatment(FILE *outFile, argument *arg){
       	}
 	fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
       }else{
-	add_object_arg_worker_treatment(outFile, arg);
+	add_object_arg_worker_treatment(outFile, arg,3);
       }		
 }
 
@@ -782,9 +804,20 @@ static void generate_worker_case(FILE *outFile, function *func)
   replace_char(func_name, ':', '_');
   fprintf(outFile, "\t case %sOp:\n", func_name);
   fprintf(outFile, "\t\t {\n");
-  
+  printf("\t\t Adding parameter unmarshalling...\n");
+  fflush(NULL); 
   if (( func->classname != NULL ) && (func->access_static == 0)){
-    fprintf(outFile, "\t\t\t %s this_%s;\n", func->classname, func->classname);
+	argument *th = (argument *)malloc(sizeof(argument));
+	th->name="target_obj";
+	th->type=object_dt;
+	th->dir=inout_dir;
+	th->classname=func->classname;
+        printf("\t\t Adding target object unmarshalling...\n");
+	fflush(NULL);
+	fprintf(outFile, "\t\t\t %s* %s = new %s();\n", th->classname, th->name, th->classname);
+	add_object_arg_worker_treatment(outFile, th, 3);
+	free(th);
+    /*fprintf(outFile, "\t\t\t %s this_%s;\n", func->classname, func->classname);
     fprintf(outFile, "\t\t\t \n");
     fprintf(outFile, "\t\t\t arg_offset += 1;\n");
     fprintf(outFile, "\t\t\t char *this_filename = strdup(argv[arg_offset]);\n");
@@ -796,12 +829,18 @@ static void generate_worker_case(FILE *outFile, function *func)
     fprintf(outFile, "\t\t\t ifstream this_ifs(this_filename);\n");
     fprintf(outFile, "\t\t\t archive::text_iarchive this_ia(this_ifs);\n");
     fprintf(outFile, "\t\t\t this_ia >> this_%s;\n", func->classname);
-    fprintf(outFile, "\t\t\t this_ifs.close();\n\n");
+    fprintf(outFile, "\t\t\t this_ifs.close();\n\n");*/
   }
   
   if ( func->return_type != void_dt ){
-    fprintf(outFile, "\t\t\t %s return_object;\n", func->return_typename);
-    fprintf(outFile, "\t\t\t \n");
+    argument *ret = (argument *)malloc(sizeof(argument));
+        ret->name="return_object";
+        ret->type=object_dt;
+        ret->dir=out_dir;
+	ret->classname=func->return_typename;
+        fprintf(outFile, "\t\t\t %s* %s = new %s();\n", ret->classname, ret->name, ret->classname);
+        add_object_arg_worker_treatment(outFile, ret, 3);
+    /*fprintf(outFile, "\t\t\t \n");
     fprintf(outFile, "\t\t\t arg_offset += 1;\n");
     fprintf(outFile, "\t\t\t char *return_filename = strdup(argv[arg_offset]);\n");
     fprintf(outFile, "\t\t\t char *return_orig_id = strsep(&return_filename,\":\");\n");
@@ -812,7 +851,7 @@ static void generate_worker_case(FILE *outFile, function *func)
     fprintf(outFile, "\t\t\t ifstream return_ifs(return_filename);\n");
     fprintf(outFile, "\t\t\t archive::text_iarchive return_ia(return_ifs);\n");
     fprintf(outFile, "\t\t\t return_ia >> return_object;\n");
-    fprintf(outFile, "\t\t\t return_ifs.close();\n\n");
+    fprintf(outFile, "\t\t\t return_ifs.close();\n\n");*/
   }
   
   arg = func->first_argument;
@@ -883,7 +922,7 @@ static void generate_worker_case(FILE *outFile, function *func)
 	  add_file_arg_worker_treatment(outFile, arg); 
 	  break;
 	case object_dt:
-	  add_object_arg_worker_treatment(outFile, arg);
+	  add_object_arg_worker_treatment(outFile, arg, 3);
 	  break;
 	case void_dt:
 	case any_dt:
@@ -892,14 +931,17 @@ static void generate_worker_case(FILE *outFile, function *func)
       }
     arg = arg->next_argument;
   }
-  
-//Add function call
+  printf("\t\t Adding function call unmarshalling...\n");
+  fflush(NULL);
+  //Add function call
   fprintf(outFile, "\t\t\t cout << \"[C Binding] Calling function %s.%s\" << endl << flush;\n", func->classname, func->methodname);
 
-  if (( func->classname != NULL ) && (func->access_static == 0)){
-    fprintf(outFile, "\t\t\t this_%s.%s(", func->classname, func->methodname);
+  if (( func->classname != NULL ) && (func->access_static == 0) && (func->return_type == void_dt)){
+    fprintf(outFile, "\t\t\t target_obj->%s(", func->methodname);
+  } else if (( func->classname != NULL ) && (func->access_static == 0) && (func->return_type == void_dt)){
+    fprintf(outFile, "\t\t\t *return_object = target_obj->%s(", func->methodname);
   } else if ( func->return_type != void_dt ){
-    fprintf(outFile, "\t\t\t return_object = %s(", func->name);
+    fprintf(outFile, "\t\t\t *return_object = %s(", func->name);
   } else {
     fprintf(outFile, "\t\t\t %s(", func->name);
   }
@@ -979,20 +1021,27 @@ static void generate_worker_case(FILE *outFile, function *func)
   
   fprintf(outFile, "\n");
   
+  printf("\t\t Adding out parameter marshalling...\n");
+  fflush(NULL);
+  
   if (( func->classname != NULL ) && (func->access_static == 0)){
-	fprintf(outFile, "\t\t\t cache[(p_%s.filename()).string()] = (void*)%s;\n", arg->name, arg->name);
-    fprintf(outFile, "\t\t\t ofstream this_ofs(this_filename, std::ofstream::trunc);\n");
+    
+    fprintf(outFile, "\t\t\t cout << \"[C Binding] Treating target object\" << endl << flush;\n");
+    fprintf(outFile, "\t\t\t ofstream this_ofs(target_obj_filename, std::ofstream::trunc);\n");
     fprintf(outFile, "\t\t\t archive::text_oarchive this_oa(this_ofs);\n");
-    fprintf(outFile, "\t\t\t this_oa << this_%s;\n", func->classname);
+    fprintf(outFile, "\t\t\t cout << \"[C Binding] Deserializing target object\" << endl << flush;\n");
+    fprintf(outFile, "\t\t\t this_oa << *target_obj;\n");
     fprintf(outFile, "\t\t\t this_ofs.flush();\n");
     fprintf(outFile, "\t\t\t this_ofs.close();\n");
     j++;
   }
   
   if ( func->return_type != void_dt ){
-    fprintf(outFile, "\t\t\t ofstream return_ofs(return_filename, std::ofstream::trunc);\n");
+    fprintf(outFile, "\t\t\t cout << \"[C Binding] Treating return object\" << endl << flush;\n");
+    fprintf(outFile, "\t\t\t ofstream return_ofs(return_object_filename, std::ofstream::trunc);\n");
     fprintf(outFile, "\t\t\t archive::text_oarchive return_oa(return_ofs);\n");
-    fprintf(outFile, "\t\t\t return_oa << return_object;\n");
+    fprintf(outFile, "\t\t\t cout << \"[C Binding] Deserializing return object\" << endl << flush;\n");
+    fprintf(outFile, "\t\t\t return_oa << *return_object;\n");
     fprintf(outFile, "\t\t\t return_ofs.flush();\n");
     fprintf(outFile, "\t\t\t return_ofs.close();\n");
     j++;
@@ -1013,7 +1062,7 @@ static void generate_worker_case(FILE *outFile, function *func)
 	case float_dt:
 	case double_dt:
 	case object_dt:
-	  fprintf(outFile, "\t\t\t ofstream %s_ofs(%s_filename, std::ofstream::trunc);\n", arg->name, arg->name);
+	  fprintf(outFile, "\t\t\t\t ofstream %s_ofs(%s_filename, std::ofstream::trunc);\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t\t\t archive::text_oarchive %s_oa(%s_ofs);\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t\t\t %s_oa << *%s;\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t\t\t %s_ofs.flush();\n", arg->name);
@@ -1042,7 +1091,14 @@ static void generate_worker_case(FILE *outFile, function *func)
     arg = arg->next_argument;
     j++;
   }
-  
+  printf("\t\t Adding memory free...\n");
+  fflush(NULL);
+  if (( func->classname != NULL ) && (func->access_static == 0)){
+	fprintf(outFile, "\t\t\t free(target_obj_filename_og);\n", func->classname);
+  }
+  if ( func->return_type != void_dt ){
+	fprintf(outFile, "\t\t\t free(return_object_filename_og);\n");
+  }
   arg = func->first_argument;
   while (arg != NULL) {
     switch (arg->type) {
@@ -1103,23 +1159,39 @@ void generate_body(void)
   
   current_function = get_first_function();
   while (current_function != NULL) {
+    printf("Treating function: %s\n", current_function->name);
+    printf("\t Generating prototype in stubs... \n");
+    fflush(NULL);
     generate_prototype(stubsFile, current_function);
     fprintf(stubsFile, "\n");
     fprintf(stubsFile, "{\n");
+    printf("\t Generating parameters' buffers in stubs... \n");
+    fflush(NULL);
     generate_parameter_buffers(stubsFile, current_function);
+    printf("\t Generating parameters' marshalling in stubs... \n");
+    fflush(NULL);
     generate_parameter_marshalling(stubsFile, current_function);
+    printf("\t Generating runtime execute calls in stubs... \n");
+    fflush(NULL);
     generate_execute_call(stubsFile, current_function);
     fprintf(stubsFile, "}\n");
     fprintf(stubsFile, "\n");
-    
+    printf("\t Generating worker functions... \n");
+    fflush(NULL);
     generate_worker_case(workerFile, current_function);
     
     // If the current function is not an object method
+    printf("\t Generating class includes... \n");
+    fflush(NULL);
+    generate_class_includes(includeFile, current_function);
+    
     if ( strstr(current_function->name, "::") == NULL) {
-      generate_class_includes(includeFile, current_function);
+      printf("\t Generating prototypes in ...\n");
+      fflush(NULL);
       generate_prototype(includeFile, current_function);
       fprintf(includeFile, ";\n");
     }
+
     
     current_function = current_function->next_function;
   }

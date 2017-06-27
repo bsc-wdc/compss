@@ -72,6 +72,7 @@ void compss_wait_on(T &obj) {
   ifs.close();
   
   // No longer needed, the current version of the object is in memory now
+  compss_delete_file(entry.filename);
   remove(entry.filename);
   remove(runtime_filename);
   objectMap.erase(&obj);

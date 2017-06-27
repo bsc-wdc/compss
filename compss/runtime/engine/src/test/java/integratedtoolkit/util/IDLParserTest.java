@@ -152,7 +152,7 @@ public class IDLParserTest {
         
         String constraintsFile = this.getClass().getResource("class_test.idl").getPath();
         IDLParser.parseIDLMethods(constraintsFile);
-        assertEquals(CoreManager.getCoreCount(), 1);
+        assertEquals(CoreManager.getCoreCount(), 3);
 
         System.out.println("[IDL-Loader]: *** Checking Core Element 0");
         List<Implementation> implList = CoreManager.getCoreImplementations(0);
@@ -162,6 +162,9 @@ public class IDLParserTest {
         MethodImplementation impl = (MethodImplementation) implList.get(0);
         System.out.println(impl.getDeclaringClass());
         assertEquals(impl.getDeclaringClass(), "Block");
+        
+        System.out.println("[IDL-Loader]: *** Checking Core Element 1");
+        
     }
 
 }

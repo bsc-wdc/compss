@@ -27,6 +27,7 @@ Block::Block(int bSize) {
 
 #ifdef COMPSS_WORKER
 static void Block::generate(Block *b, int bSize, double initVal) {
+	cout << "Running create..." << endl << flush;
 	b->M = bSize;
         b->data.resize(bSize);
         for (int i=0; i<bSize; i++) {
@@ -41,12 +42,18 @@ static void Block::generate(Block *b, int bSize, double initVal) {
 }
 
 static Block Block::create(int bSize, double initVal){
+	cout << "Running create..." << endl << flush;
 	Block b(bSize);
+        cout << "Initializing block..." << endl << flush;
 	for (int i=0; i<bSize; i++) {
                 for (int j=0; j<bSize; j++) {
                         b.data[i][j] = initVal;
                 }
         }
+	b.print();
+	cout << "Returning block" << endl << flush;
+
+	return b;
 }
 
 void Block::init(int bSize, double initVal) {
@@ -62,14 +69,19 @@ void Block::init(int bSize, double initVal) {
         }
 }
 
-void Block::multiply(Block block1, Block block2) {
+void Block::multiply(Block *block1, Block *block2) {
+	cout << "Running create..." << endl << flush;
 	for (int i=0; i<M; i++) {
 		for (int j=0; j<M; j++) {
 			for (int k=0; k<M; k++) {
-				data[i][j] += block1.data[i][k] * block2.data[k][j];
+				cout << data[i][j] << flush;
+				cout << " " << block1->data[i][k] << flush; 
+				cout << " * "<< block2->data[k][j] << endl <<flush;
+				data[i][j] += block1->data[i][k] * block2->data[k][j];
 			}
 		}
 	}
+	cout << "End of create..." << endl << flush;
 }
 
 #endif

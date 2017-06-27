@@ -15,5 +15,5 @@
   cp -f ${source_base_dir}/TestStatic.cc ${target_base_dir}/TestStatic.cc
   cp -f ${source_base_dir}/TestStatic-functions.cc ${target_base_dir}/TestStatic-functions.cc
   cp -f ${source_base_dir}/TestStatic.idl ${target_base_dir}/TestStatic.idl
-  cp -f ${source_base_dir}/skip ${target_base_dir}/skip
+  #cp -f ${source_base_dir}/skip ${target_base_dir}/skip
 

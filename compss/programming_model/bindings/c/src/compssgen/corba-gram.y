@@ -45,28 +45,17 @@ interface:	TOK_INTERFACE TOK_IDENTIFIER { begin_interface($2); } TOK_LEFT_CUR_BR
 		TOK_RIGHT_CUR_BRAKET TOK_SEMICOLON { end_interface(); }
 ;
 
-constraints0: /* Empty */
-		| constraints1 TOK_SEMICOLON
-;
-
-constraints1: constraint
-		| constraints1 TOK_COMMA constraint { begin_constraints(); }
-		| error
-;
-
-constraint:	/* Empty */
-		| TOK_IDENTIFIER TOK_EQUAL TOK_DBLQUOTE { add_constraint($1); } 
-		| error
-;
 
 prototypes:	/* Empty */
-		| prototypes prototype constraints0
+		| prototypes prototype 
 ;
 
 
 prototype:	data_type TOK_IDENTIFIER {  begin_function($2); add_static(0); add_return_type($1, ""); } TOK_LEFT_PARENTHESIS { begin_arguments(); } arguments0 { end_arguments(); }	TOK_RIGHT_PARENTHESIS { end_function(); } TOK_SEMICOLON
+		| data_type TOK_IDENTIFIER {  begin_function($2); add_static(0); add_return_type($1, ""); } TOK_LEFT_PARENTHESIS { begin_arguments(); } arguments0 { end_arguments(); }   TOK_RIGHT_PARENTHESIS { end_function(); } TOK_SEMICOLON
 		| TOK_IDENTIFIER TOK_IDENTIFIER { begin_function($2); add_static(0); add_return_type(object_dt, $1); } TOK_LEFT_PARENTHESIS { begin_arguments(); } arguments0 { end_arguments(); }	TOK_RIGHT_PARENTHESIS { end_function(); } TOK_SEMICOLON
 		| TOK_STATIC TOK_IDENTIFIER TOK_IDENTIFIER { begin_function($3); add_static(1); add_return_type(object_dt, $2); } TOK_LEFT_PARENTHESIS { begin_arguments(); } arguments0 { end_arguments(); }	TOK_RIGHT_PARENTHESIS { end_function(); } TOK_SEMICOLON
+		| TOK_STATIC data_type TOK_IDENTIFIER { begin_function($3); add_static(1); add_return_type($2, ""); } TOK_LEFT_PARENTHESIS { begin_arguments(); } arguments0 { end_arguments(); }   TOK_RIGHT_PARENTHESIS { end_function(); } TOK_SEMICOLON
 		| error TOK_SEMICOLON
 ;
 

@@ -160,7 +160,14 @@ public class IDLParser {
     private static void parseCFunction(String line, MethodResourceDescription currConstraints, CImplementation implementation) {
         StringBuilder implementedTaskSignatureBuffer = new StringBuilder();
         StringBuilder implementationSignatureBuffer = new StringBuilder();
-
+        boolean isStatic = false, hasReturn = false;
+        if (line.startsWith("static ")){
+        	isStatic = true;
+        	line = line.replace("static ","");
+        }
+        if (!line.startsWith("void ")){
+        	hasReturn = true;
+        }
         line = line.replaceAll("[(|)|,|;|\n|\t]", " ");
         String[] splits = line.split("\\s+");
         CImplementation task = loadCImplementation(splits[1]);
@@ -172,7 +179,14 @@ public class IDLParser {
             implementedTaskSignatureBuffer.append(methodName).append("(");
         }
         implementationSignatureBuffer.append(methodName).append("(");
-
+        /*if (declaringClass!="NULL" && !isStatic){
+        	implementedTaskSignatureBuffer.append("FILE_T").append(",");
+            implementationSignatureBuffer.append("FILE_T").append(",");
+        }*/
+        if (hasReturn){
+        	implementedTaskSignatureBuffer.append("FILE_T").append(",");
+            implementationSignatureBuffer.append("FILE_T").append(",");
+        }
         // Computes the method's signature
         for (int i = 2; i < splits.length; i++) {
             String paramDirection = splits[i++];
@@ -230,7 +244,7 @@ public class IDLParser {
             // The coreId already exists
             coreId = CoreManager.getCoreId(taskSignature);
         }
-        LOGGER.debug("CoreId for task" + taskSignature + " is " + coreId);
+        LOGGER.debug("CoreId for task " + taskSignature + " is " + coreId);
 
         // Add the implementation to the core element
         int implId = CoreManager.getNumberCoreImplementations(coreId);

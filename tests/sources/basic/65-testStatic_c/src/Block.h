@@ -41,7 +41,7 @@ public:
 
 	static void generate(Block *b, int bSize, double initVal);
 
-	void multiply(Block block1, Block block2);
+	void multiply(Block *block1, Block *block2);
 
 	void print();
 

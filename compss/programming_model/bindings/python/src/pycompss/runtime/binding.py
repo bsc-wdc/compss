@@ -31,6 +31,7 @@ import types
 import os
 import sys
 import re
+import uuid
 import inspect
 import logging
 import traceback
@@ -82,18 +83,27 @@ object_conversion = False
 
 # Identifier handling
 current_id = 1
+# Object identifiers will be of the form runtime_id-current_id
+# This way we avoid to have two objects from different applications having
+# the same identifier
+runtime_id = str(uuid.uuid1())
 id2obj = {}
 
 def get_object_id(obj):
     global current_id
+    global runtime_id
     for identifier in id2obj:
         if id2obj[identifier] is obj:
             return identifier
     # This object was not in our object database, lets assign it an identifier
     # and store it
-    id2obj[current_id] = obj
+    # As mentioned before, identifiers are of the form runtime_id-current_id
+    # in order to avoid having two objects from different applications with
+    # the same identifier (and thus file name)
+    new_id = '%s-%d'%(runtime_id, current_id)
+    id2obj[new_id] = obj
     current_id += 1
-    return current_id-1
+    return new_id
 
 # Enable or disable the management of *args parameters as a whole tuple built (and serialized)
 # on the master and sent to the workers. When disabled, the parameters passed to a task with
@@ -369,7 +379,7 @@ def synchronize(obj, mode):
         return obj
 
 
-    logger.debug("Synchronizing object %d with mode %s" % (obj_id, mode))
+    logger.debug("Synchronizing object %s with mode %s" % (obj_id, mode))
 
     file_name = objid_to_filename[obj_id]
     compss_file = compss.get_file(file_name, mode)
@@ -391,7 +401,7 @@ def synchronize(obj, mode):
         id2obj.pop(obj_id)
     '''
 
-    logger.debug("Now object with id %d and %s has mapping %s" % (new_obj_id, type(new_obj), file_name))
+    logger.debug("Now object with id %s and %s has mapping %s" % (new_obj_id, type(new_obj), file_name))
 
     if mode != Direction.IN:
         objs_written_by_mp[new_obj_id] = compss_file
@@ -551,7 +561,7 @@ def build_return_objects(self_kwargs, spec_args):
                     fue = Future()         # modules, functions, methods
                 fu.append(fue)
                 obj_id = get_object_id(fue)
-                logger.debug("Setting object %d of %s as a future" % (obj_id, type(fue)))
+                logger.debug("Setting object %s of %s as a future" % (obj_id, type(fue)))
                 ret_filename = temp_dir + temp_obj_prefix + str(obj_id)
                 objid_to_filename[obj_id] = ret_filename
                 task_objects[obj_id] = fue
@@ -576,7 +586,7 @@ def build_return_objects(self_kwargs, spec_args):
             else:
                 fu = Future()  # modules, functions, methods
             obj_id = get_object_id(fu)
-            logger.debug("Setting object %d of %s as a future" % (obj_id, type(fu)))
+            logger.debug("Setting object %s of %s as a future" % (obj_id, type(fu)))
             ret_filename = temp_dir + temp_obj_prefix + str(obj_id)
             objid_to_filename[obj_id] = ret_filename
             task_objects[obj_id] = fu
@@ -877,12 +887,12 @@ def turn_into_file(p):
         task_objects[obj_id] = p.value
         file_name = temp_dir + temp_obj_prefix + str(obj_id)
         objid_to_filename[obj_id] = file_name
-        logger.debug("Mapping object %d to file %s" % (obj_id, file_name))
+        logger.debug("Mapping object %s to file %s" % (obj_id, file_name))
         serialize_to_file(p.value, file_name)
     elif obj_id in objs_written_by_mp:
         # Main program generated the last version
         compss_file = objs_written_by_mp.pop(obj_id)
-        logger.debug("Serializing object %d to file %s" % (obj_id, compss_file))
+        logger.debug("Serializing object %s to file %s" % (obj_id, compss_file))
         serialize_to_file(p.value, compss_file)
     p.value = file_name
 

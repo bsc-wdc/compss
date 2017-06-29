@@ -48,11 +48,12 @@
   execute_application() {
     local COMPSsExec=$1
     local comm=$2
-    local COMPSsLogFolder=$3
-    local appBaseDir=$4
-    local appLogDir=$5
-    local skip=$6
-    local MAX_RETRIES=$7
+    local runcompss_opts=$3
+    local COMPSsLogFolder=$4
+    local appBaseDir=$5
+    local appLogDir=$6
+    local skip=$7
+    local MAX_RETRIES=$8
 
     if [ "${skip}" == "true" ] && [ -f ${appBaseDir}/skip ]; then
       # Mark test as skip
@@ -67,7 +68,8 @@
         mkdir -p ${appLogDirWithRetries}
 
         # Specific test Execute
-        ./execution ${COMPSsExec} ${comm} ${appBaseDir} ${COMPSsLogFolder} ${appLogDirWithRetries} ${retries}
+	echo "Executing test application"
+        ./execution ${COMPSsExec} ${comm} ${runcompss_opts} ${appBaseDir} ${COMPSsLogFolder} ${appLogDirWithRetries} ${retries}
         testExitValue=$?
 
         # Clean environment if needed

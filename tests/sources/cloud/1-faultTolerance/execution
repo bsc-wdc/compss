@@ -3,6 +3,7 @@
   #Obtain parameters
   COMPSs_exec=$1
   comm=$2
+  runcompss_opts=$3
   base_app_dir=$3
   COMPSs_log_folder=$4
   target_log_folder=$5
@@ -37,6 +38,7 @@
      --resources=${base_app_dir}/resources_fileTransfer.xml \
      --debug \
      --comm=$comm \
+     ${runcompss_opts} \
      --lang=java \
      --classpath=${base_app_dir}/faultTolerance.jar \
      fileTransfer.FaultTolerance 2 > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
@@ -74,6 +76,7 @@
      --resources=${base_app_dir}/resources_taskSubmission.xml \
      --debug \
      --comm=$comm \
+     ${runcompss_opts} \
      --lang=java \
      --classpath=${base_app_dir}/faultTolerance.jar \
      taskSubmission.FaultTolerance 200 1000 > >(tee ${output_log}) 2> >(tee ${error_log} >&2)

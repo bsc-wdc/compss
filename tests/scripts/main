@@ -257,7 +257,7 @@ EOT
     fi
     IT_HOME="/opt/COMPSs/"
     comm=integratedtoolkit.nio.master.NIOAdaptor
-
+    runcompss_opts="-d"
     # Set environment variables from configuration file
     source_configuration
 
@@ -308,12 +308,14 @@ EOT
     fi
      
     # Erase IT folder
-    echo "---- Erase current .COMPSs folder"
+    echo "---- Erase current .COMPSs folder ${COMPSs_log_folder}"
     rm -rf ${COMPSs_log_folder}
 
     # Execute tests
-    $(dirname $0)/execute_local_specific ${test} ${COMPSs_exec} ${comm} ${target_base_dir} ${COMPSs_log_folder} ${skip} ${retry}
+    echo "---- Executing specific test "
+    $(dirname $0)/execute_local_specific ${test} ${COMPSs_exec} ${comm} ${runcompss_opts} ${target_base_dir} ${COMPSs_log_folder} ${skip} ${retry}
     if [ $? -ne 0 ]; then
+      echo "ERROR: executing specific local test"
       exit 1
     else 
       exit 0
@@ -338,7 +340,7 @@ EOT
     rm -rf ${COMPSs_log_folder}
 
     # Execute tests
-    $(dirname $0)/execute_local ${COMPSs_exec} ${comm} ${target_base_dir} ${COMPSs_log_folder} ${skip} ${retry}
+    $(dirname $0)/execute_local ${COMPSs_exec} ${comm} ${runcompss_opts} ${target_base_dir} ${COMPSs_log_folder} ${skip} ${retry}
     if [ $? -ne 0 ]; then
       exit 1
     else
@@ -362,6 +364,7 @@ EOT
     connector_jar="rocci-conn.jar"
     connector_class="es.bsc.conn.rocci.ROCCI"
     comm=integratedtoolkit.nio.master.NIOAdaptor
+    runcompss_opts="-d"
     remote_COMPSs=/opt/
 
     # Set environment variables from configuration file
@@ -407,7 +410,7 @@ EOT
     rm -rf ${COMPSs_log_folder}
 
     # Execute tests
-    ${target_base_dir}/execute_cloud_tests ${logs_location} ${log_folder} ${COMPSs_exec} ${comm} ${num_test} ${template_id} ${vm_type} ${cloud_owner} ${skip} ${retry}
+    ${target_base_dir}/execute_cloud_tests ${logs_location} ${log_folder} ${COMPSs_exec} ${comm} ${runcompss_opts} ${num_test} ${template_id} ${vm_type} ${cloud_owner} ${skip} ${retry}
     if [ $? -ne 0 ]; then
        exitValue=1
     fi
@@ -426,7 +429,7 @@ EOT
     IT_HOME="/opt/COMPSs/"
     java_apps="true"
     comm=integratedtoolkit.nio.master.NIOAdaptor
-
+    runcompss_opts="-d"
     # Set environment variables from configuration file
     source_configuration
      
@@ -459,7 +462,7 @@ EOT
     rm -rf ${COMPSs_log_folder}
 
     # Execute tests
-    $(dirname $0)/execute_devel ${COMPSs_exec} ${comm} ${target_base_dir} ${COMPSs_log_folder} ${skip} ${retry}
+    $(dirname $0)/execute_devel ${COMPSs_exec} ${comm} ${runcompss_opts} ${target_base_dir} ${COMPSs_log_folder} ${skip} ${retry}
     if [ $? -ne 0 ]; then
       exit 1
     else

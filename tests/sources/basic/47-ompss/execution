@@ -3,10 +3,11 @@
   #Obtain parameters
   COMPSs_exec=$1
   comm=$2
-  base_app_dir=$3
-  COMPSs_log_folder=$4
-  target_log_folder=$5
-  retryNum=$6
+  runcompss_opts=$3
+  base_app_dir=$4
+  COMPSs_log_folder=$5
+  target_log_folder=$6
+  retryNum=$7
   
   #Global exit variable
   exitValue=0
@@ -41,6 +42,7 @@
      --debug \
      --lang=java \
      --comm=$comm \
+     ${runcompss_opts} \
      --classpath=${base_app_dir}/ompss.jar \
      testOMPSS.Main > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
   

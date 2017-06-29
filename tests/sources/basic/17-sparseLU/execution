@@ -3,10 +3,11 @@
   #Obtain parameters
   COMPSs_exec=$1
   comm=$2
-  base_app_dir=$3
-  COMPSs_log_folder=$4
-  target_log_folder=$5
-  retryNum=$6
+  runcompss_opts=$3
+  base_app_dir=$4
+  COMPSs_log_folder=$5
+  target_log_folder=$6
+  retryNum=$7
   
   #Global exit variable
   exitValue=0
@@ -36,6 +37,7 @@
      --classpath=${base_app_dir}/sparseLU.jar \
      --debug \
      --comm=$comm \
+     ${runcompss_opts} \
      --project=${base_app_dir}/project_sparseLU.xml \
      --resources=${base_app_dir}/resources_sparseLU.xml \
      sparseLU.arrays.SparseLU $path_ain $path_aout > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
@@ -83,6 +85,7 @@
      --classpath=${base_app_dir}/sparseLU.jar \
      --debug \
      --comm=$comm \
+    ${runcompss_opts} \
      --project=${base_app_dir}/project_sparseLU.xml \
      --resources=${base_app_dir}/resources_sparseLU.xml \
      sparseLU.objects.SparseLU $path_ain $path_aout > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
@@ -131,6 +134,7 @@
      --classpath=${base_app_dir}/sparseLU.jar \
      --debug \
      --comm=$comm \
+     ${runcompss_opts} \
      --project=${base_app_dir}/project_sparseLU.xml \
      --resources=${base_app_dir}/resources_sparseLU.xml \
      sparseLU.files.SparseLU $path_ain $path_aout_got > >(tee ${output_log}) 2> >(tee ${error_log} >&2)

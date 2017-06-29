@@ -4,10 +4,11 @@
   # Get script parameters
   COMPSsExec=$1
   comm=$2
-  baseDir=$3
-  COMPSsLogFolder=$4
-  skip=$5
-  MAX_RETRIES=$6
+  runcompss_opts=$3
+  baseDir=$4
+  COMPSsLogFolder=$5
+  skip=$6
+  MAX_RETRIES=$7
 
   # Set script variables
   appsBaseDir=${baseDir}/apps_basic
@@ -32,7 +33,7 @@
       appBaseDir=${baseDir}/${app}
       appLogDir=${logsBaseDir}/${app}
 
-      execute_application ${COMPSsExec} ${comm} ${COMPSsLogFolder} ${appBaseDir} ${appLogDir} ${skip} ${MAX_RETRIES}
+      execute_application ${COMPSsExec} ${comm} ${runcompss_opts} ${COMPSsLogFolder} ${appBaseDir} ${appLogDir} ${skip} ${MAX_RETRIES}
     fi
   done
 

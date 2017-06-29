@@ -1,14 +1,15 @@
-  #!/bin/bash
+#!/bin/bash
 
   #Obtain parameters
   COMPSs_exec=$1
   comm=$2
-  base_app_dir=$3
-  COMPSs_log_folder=$4
-  target_log_folder=$5
-  master_template_id=$6
-  os_type=$7
-  owner=$8
+  runcompss_opts=$3
+  base_app_dir=$4
+  COMPSs_log_folder=$5
+  target_log_folder=$6
+  master_template_id=$7
+  os_type=$8
+  owner=$9
   appName=Simple
 
   LOCAL_USERNAME=$(whoami)
@@ -62,6 +63,7 @@
      --resources=${base_app_dir}/resources_dockerProvider.xml \
      --debug \
      --comm=$comm \
+     ${runcompss_opts} \
      --lang=java \
      --classpath=${base_app_dir}/${appName}.jar:${remote_app_dir}/${appName}.jar \
      simple.Simple $counterVal $numTasks $minVM $maxVM $creationTime > >(tee ${output_log}) 2> >(tee ${error_log} >&2)

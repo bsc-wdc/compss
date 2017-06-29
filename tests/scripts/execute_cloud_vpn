@@ -6,12 +6,13 @@
   base_log_folder=$2
   COMPSs_exec=$3
   comm=$4
-  num_test=$5
-  template_id=$6
-  os_type=$7
-  cloud_owner=$8
-  skip=$9
-  MAX_RETRIES=${10}
+  runcompss_opts=$5
+  num_test=$6
+  template_id=$7
+  os_type=$8
+  cloud_owner=$9
+  skip=$10
+  MAX_RETRIES=${11}
 
   cloud_base_dir="$(dirname $0)/apps_cloud"
   COMPSs_log_folder="${logs_location}/.COMPSs"
@@ -31,7 +32,7 @@
          log_folder="${base_log_folder}/$app"
          mkdir -p ${log_folder}
          cd ${cloud_base_dir}/$app
-         ./execution ${COMPSs_exec} ${comm} "${cloud_base_dir}/$app" ${COMPSs_log_folder} ${log_folder} ${template_id} ${os_type} ${cloud_owner}
+         ./execution ${COMPSs_exec} ${comm} ${runcompss_opts} "${cloud_base_dir}/$app" ${COMPSs_log_folder} ${log_folder} ${template_id} ${os_type} ${cloud_owner}
          if [ $? -ne 0 ]; then
             exitValue=1
             results="${results}1"
@@ -73,7 +74,7 @@
      log_folder="${base_log_folder}/$app"
      mkdir -p ${log_folder}
      cd ${cloud_base_dir}/$app
-     ./execution ${COMPSs_exec} ${comm} "${cloud_base_dir}/$app" ${COMPSs_log_folder} ${log_folder} ${template_id} ${os_type} ${cloud_owner}
+     ./execution ${COMPSs_exec} ${comm} ${runcompss_opts} "${cloud_base_dir}/$app" ${COMPSs_log_folder} ${log_folder} ${template_id} ${os_type} ${cloud_owner}
      if [ $? -ne 0 ]; then
         exitValue=1
         results="1"

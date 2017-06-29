@@ -6,10 +6,11 @@
   testNum=$1
   COMPSsExec=$2
   comm=$3
-  baseDir=$4
-  COMPSsLogFolder=$5
-  skip=$6
-  MAX_RETRIES=$7
+  runcompss_opts=$4
+  baseDir=$5
+  COMPSsLogFolder=$6
+  skip=$7
+  MAX_RETRIES=$8
 
   # Set script variables
   appsBaseDir=${baseDir}/apps_basic
@@ -39,7 +40,7 @@
      appLogDir="${logsBaseDir}/app$testNum"
   fi
 
-  execute_application ${COMPSsExec} ${comm} ${COMPSsLogFolder} ${appBaseDir} ${appLogDir} ${skip} ${MAX_RETRIES}
+  execute_application ${COMPSsExec} ${comm} ${runcompss_opts} ${COMPSsLogFolder} ${appBaseDir} ${appLogDir} ${skip} ${MAX_RETRIES}
   
   # Show Result table
   print_result "BASIC SPECIFIC" $results

@@ -354,10 +354,20 @@ def getOldCode(filePath):
     tasks = {}
     collapsed = ''.join(fileTasks).strip()  # Collapse all lines into a single one
     # Then split by "@" and filter the empty results, then iterate concatenating "@" to all results.
-    # TODO CHECK IF MULTIPLE DECORATORS CAN BE SUPPORTED
     tsks = [('@' + l) for l in filter(None, collapsed.split('@'))]
-    # Add functions to dictionary by function name:
+    # Take into account that other decorators my be over @task, so it is necessary to collapse the function stack
+    prefixes = ("@implement", "@constraint", "@decaf", "@mpi", "@ompss", "@binary", "@opencl")
+    tsksStacked = []
+    tsk = ""
     for t in tsks:
+        if any(map(t.startswith, prefixes)):
+            tsk += t
+        if t.startswith("@task"):
+            tsk += t
+            tsksStacked.append(tsk)
+            tsk = ""
+    # Add functions to dictionary by function name:
+    for t in tsksStacked:
         taskCode = t.strip()   # Example: '@task(returns=int)\ndef mytask(v):\n    return v+1'
         taskHeader = t.split('\ndef')[1]
         taskName = taskHeader.replace('(', ' (').split(' ')[1].strip()

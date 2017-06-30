@@ -29,8 +29,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -331,7 +332,7 @@ public class Comm {
      */
     public static synchronized String dataDump() {
         StringBuilder sb = new StringBuilder("DATA DUMP\n");
-        for (Map.Entry<String, LogicalData> lde : data.entrySet()) {
+        for (Entry<String, LogicalData> lde : data.entrySet()) {
             sb.append("\t *").append(lde.getKey()).append(":\n");
             LogicalData ld = lde.getValue();
             for (MultiURI u : ld.getURIs()) {
@@ -359,7 +360,7 @@ public class Comm {
      * @param host
      * @return
      */
-    public static HashSet<LogicalData> getAllData(Resource host) {
+    public static Set<LogicalData> getAllData(Resource host) {
         // logger.debug("Get all data from host: " + host.getName());
         return host.getAllDataFromHost();
     }

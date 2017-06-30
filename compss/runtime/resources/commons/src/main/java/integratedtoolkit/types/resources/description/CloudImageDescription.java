@@ -11,11 +11,13 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+
 
 public class CloudImageDescription {
 
     private final String imageName;
-    private final HashMap<String, String> properties;
+    private final Map<String, String> properties;
 
     // Operating System
     private String operatingSystemType = MethodResourceDescription.UNASSIGNED_STR;
@@ -26,7 +28,7 @@ public class CloudImageDescription {
     // Packages
     private List<ApplicationPackage> packages;
     // SharedDisks
-    private HashMap<String, String> sharedDisks;
+    private Map<String, String> sharedDisks;
     // Creation Time
     private int creationTime = MethodResourceDescription.UNASSIGNED_INT;
     // Price
@@ -36,6 +38,7 @@ public class CloudImageDescription {
     private List<String> queues;
     // Configuration
     private MethodConfiguration config;
+
 
     public CloudImageDescription(String imageName, Map<String, String> providerProperties) {
         this.imageName = imageName;
@@ -104,7 +107,7 @@ public class CloudImageDescription {
     }
 
     public List<String[]> getPackagesList() {
-        LinkedList<String[]> packs = new LinkedList<>();
+        List<String[]> packs = new LinkedList<>();
         for (ApplicationPackage p : this.packages) {
             String[] str_pack = new String[2];
             str_pack[0] = p.getSource();
@@ -130,11 +133,11 @@ public class CloudImageDescription {
         this.packages.add(p);
     }
 
-    public HashMap<String, String> getSharedDisks() {
+    public Map<String, String> getSharedDisks() {
         return sharedDisks;
     }
 
-    public void setSharedDisks(HashMap<String, String> sharedDisks) {
+    public void setSharedDisks(Map<String, String> sharedDisks) {
         if (sharedDisks != null && !sharedDisks.isEmpty()) {
             this.sharedDisks = new HashMap<>(sharedDisks);
         }
@@ -170,7 +173,7 @@ public class CloudImageDescription {
 
     public void setQueues(List<String> queues) {
         if (queues != null) {
-            this.queues = new ArrayList<>(queues);
+            this.queues = new LinkedList<>(queues);
         }
     }
 
@@ -200,7 +203,7 @@ public class CloudImageDescription {
         return imageName;
     }
 
-    public HashMap<String, String> getProperties() {
+    public Map<String, String> getProperties() {
         return properties;
     }
 
@@ -218,10 +221,10 @@ public class CloudImageDescription {
         sb.append(prefix).append("\t").append("CLASSPATH = ").append(this.getConfig().getClasspath()).append("\n");
         sb.append(prefix).append("\t").append("PYTHONPATH = ").append(this.getConfig().getPythonpath()).append("\n");
         sb.append(prefix).append("\t").append("USER = ").append(this.getConfig().getUser()).append("\n");
-        sb.append(prefix).append("\t").append("PASSWORD = ").append(this.getProperties()
-                .get(AbstractSSHConnector.PROPERTY_PASSW_NAME)).append("\n");
+        sb.append(prefix).append("\t").append("PASSWORD = ").append(this.getProperties().get(AbstractSSHConnector.PROPERTY_PASSW_NAME))
+                .append("\n");
         sb.append(prefix).append("\t").append("SHARED_DISKS = [").append("\n");
-        for (java.util.Map.Entry<String, String> entry : this.sharedDisks.entrySet()) {
+        for (Entry<String, String> entry : this.sharedDisks.entrySet()) {
             sb.append(prefix).append("\t").append("\t").append("SHARED_DISK = [").append("\n");
             sb.append(prefix).append("\t").append("\t").append("\t").append("DISK_NAME = ").append(entry.getKey()).append("\n");
             sb.append(prefix).append("\t").append("\t").append("\t").append("MOUNT_POINT = ").append(entry.getValue()).append("\n");

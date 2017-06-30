@@ -23,9 +23,8 @@ import integratedtoolkit.types.resources.updates.PerformedIncrease;
 import integratedtoolkit.types.resources.updates.ResourceUpdate;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
@@ -60,8 +59,8 @@ public class ResourceManager {
     private static ResourceUser resourceUser;
 
     // Loggers
-    private static final Logger resourcesLogger = LogManager.getLogger(Loggers.RESOURCES);
-    private static final Logger runtimeLogger = LogManager.getLogger(Loggers.RM_COMP);
+    private static final Logger RESOURCES_LOGGER = LogManager.getLogger(Loggers.RESOURCES);
+    private static final Logger RUNTIME_LOGGER = LogManager.getLogger(Loggers.RM_COMP);
 
 
     /*
@@ -135,7 +134,7 @@ public class ResourceManager {
      * @param sharedDisks
      *            Shared Disk descriptions (diskName->mountpoint)
      */
-    public static void updateMasterConfiguration(HashMap<String, String> sharedDisks) {
+    public static void updateMasterConfiguration(Map<String, String> sharedDisks) {
         Comm.getAppHost().updateSharedDisk(sharedDisks);
         try {
             Comm.getAppHost().start();
@@ -151,46 +150,46 @@ public class ResourceManager {
      */
     public static void stopNodes() {
         // Log resource
-        resourcesLogger.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
-        resourcesLogger.info("INFO_MSG = [Stopping all workers]");
-        runtimeLogger.info("Stopping all workers");
+        RESOURCES_LOGGER.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
+        RESOURCES_LOGGER.info("INFO_MSG = [Stopping all workers]");
+        RUNTIME_LOGGER.info("Stopping all workers");
 
         // Stop all Cloud VM
         if (cloudManager.isUseCloud()) {
             // Transfer files
-            resourcesLogger.debug("DEBUG_MSG = [Terminating cloud instances...]");
+            RESOURCES_LOGGER.debug("DEBUG_MSG = [Terminating cloud instances...]");
             try {
                 cloudManager.terminateALL();
-                resourcesLogger.info("TOTAL_EXEC_COST = " + cloudManager.getTotalCost());
+                RESOURCES_LOGGER.info("TOTAL_EXEC_COST = " + cloudManager.getTotalCost());
             } catch (Exception e) {
-                resourcesLogger.error(ITConstants.TS + ": " + DEL_VM_ERR, e);
+                RESOURCES_LOGGER.error(ITConstants.TS + ": " + DEL_VM_ERR, e);
             }
-            resourcesLogger.info("INFO_MSG = [Cloud instances terminated]");
+            RESOURCES_LOGGER.info("INFO_MSG = [Cloud instances terminated]");
         }
 
         // Stop static workers - Order its destruction from runtime and transfer files
         // Physical worker (COMM) is erased now - because of cloud
         if (pool != null && !pool.getStaticResources().isEmpty()) {
-            resourcesLogger.debug("DEBUG_MSG = [Resource Manager retrieving data from workers...]");
+            RESOURCES_LOGGER.debug("DEBUG_MSG = [Resource Manager retrieving data from workers...]");
             for (Worker<? extends WorkerResourceDescription> r : pool.getStaticResources()) {
                 r.retrieveData(false);
             }
             Semaphore sem = new Semaphore(0);
             ShutdownListener sl = new ShutdownListener(sem);
-            resourcesLogger.debug("DEBUG_MSG = [Resource Manager stopping workers...]");
+            RESOURCES_LOGGER.debug("DEBUG_MSG = [Resource Manager stopping workers...]");
             for (Worker<? extends WorkerResourceDescription> r : pool.getStaticResources()) {
                 r.stop(sl);
             }
 
-            resourcesLogger.debug("DEBUG_MSG = [Waiting for workers to shutdown...]");
+            RESOURCES_LOGGER.debug("DEBUG_MSG = [Waiting for workers to shutdown...]");
             sl.enable();
 
             try {
                 sem.acquire();
             } catch (Exception e) {
-                resourcesLogger.error("ERROR_MSG= [ERROR: Exception raised on worker shutdown]");
+                RESOURCES_LOGGER.error("ERROR_MSG= [ERROR: Exception raised on worker shutdown]");
             }
-            resourcesLogger.info("INFO_MSG = [Workers stopped]");
+            RESOURCES_LOGGER.info("INFO_MSG = [Workers stopped]");
         }
     }
 
@@ -216,7 +215,7 @@ public class ResourceManager {
      *
      * @return list of all the resources
      */
-    public static LinkedList<Worker<? extends WorkerResourceDescription>> getAllWorkers() {
+    public static List<Worker<? extends WorkerResourceDescription>> getAllWorkers() {
         return pool.findAllResources();
     }
 
@@ -246,9 +245,9 @@ public class ResourceManager {
             }
         }
         // Log new resource
-        resourcesLogger.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
-        resourcesLogger.info("INFO_MSG = [New resource available in the pool. Name = " + worker.getName() + "]");
-        runtimeLogger.info("New " + ((worker.getType() == Type.SERVICE) ? "service" : "computeNode") + " available in the pool. Name = "
+        RESOURCES_LOGGER.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
+        RESOURCES_LOGGER.info("INFO_MSG = [New resource available in the pool. Name = " + worker.getName() + "]");
+        RUNTIME_LOGGER.info("New " + ((worker.getType() == Type.SERVICE) ? "service" : "computeNode") + " available in the pool. Name = "
                 + worker.getName());
     }
 
@@ -308,7 +307,8 @@ public class ResourceManager {
      * @throws integratedtoolkit.connectors.ConnectorException
      */
     public static CloudProvider registerCloudProvider(String providerName, Integer limitOfVMs, String runtimeConnectorClass,
-            String connectorJarPath, String connectorMainClass, HashMap<String, String> connectorProperties) throws ConnectorException {
+            String connectorJarPath, String connectorMainClass, Map<String, String> connectorProperties) throws ConnectorException {
+
         return cloudManager.registerCloudProvider(providerName, limitOfVMs, runtimeConnectorClass, connectorJarPath, connectorMainClass,
                 connectorProperties);
     }
@@ -337,9 +337,9 @@ public class ResourceManager {
         resourceUser.updatedResource(worker, ru);
 
         // Log new resource
-        resourcesLogger.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
-        resourcesLogger.info("INFO_MSG = [New resource available in the pool. Name = " + worker.getName() + "]");
-        runtimeLogger.info("New resource available in the pool. Name = " + worker.getName());
+        RESOURCES_LOGGER.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
+        RESOURCES_LOGGER.info("INFO_MSG = [New resource available in the pool. Name = " + worker.getName() + "]");
+        RUNTIME_LOGGER.info("New resource available in the pool. Name = " + worker.getName());
     }
 
     /**
@@ -371,9 +371,9 @@ public class ResourceManager {
         resourceUser.updatedResource(worker, ru);
 
         // Log modified resource
-        resourcesLogger.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
-        resourcesLogger.info("INFO_MSG = [Resource modified. Name = " + worker.getName() + "]");
-        runtimeLogger.info("Resource modified. Name = " + worker.getName());
+        RESOURCES_LOGGER.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
+        RESOURCES_LOGGER.info("INFO_MSG = [Resource modified. Name = " + worker.getName() + "]");
+        RUNTIME_LOGGER.info("Resource modified. Name = " + worker.getName());
     }
 
     /**
@@ -410,9 +410,9 @@ public class ResourceManager {
         }
 
         // Log new resource
-        resourcesLogger.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
-        resourcesLogger.info("INFO_MSG = [Resource removed from the pool. Name = " + worker.getName() + "]");
-        runtimeLogger.info("Resource removed from the pool. Name = " + worker.getName());
+        RESOURCES_LOGGER.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
+        RESOURCES_LOGGER.info("INFO_MSG = [Resource removed from the pool. Name = " + worker.getName() + "]");
+        RUNTIME_LOGGER.info("Resource removed from the pool. Name = " + worker.getName());
     }
 
     public static void terminateResource(CloudMethodWorker worker, CloudMethodResourceDescription reduction) {
@@ -530,7 +530,7 @@ public class ResourceManager {
      *
      * @return
      */
-    public static LinkedList<CloudMethodWorker> getDynamicResources() {
+    public static List<CloudMethodWorker> getDynamicResources() {
         synchronized (pool) {
             return pool.getDynamicResources();
         }
@@ -578,7 +578,7 @@ public class ResourceManager {
         return cloudManager.getProvider(name);
     }
 
-    public static LinkedList<ResourceCreationRequest> getPendingCreationRequests() {
+    public static List<ResourceCreationRequest> getPendingCreationRequests() {
         return cloudManager.getPendingRequests();
     }
 
@@ -595,8 +595,7 @@ public class ResourceManager {
      */
     public static String getPendingRequestsMonitorData(String prefix) {
         StringBuilder sb = new StringBuilder();
-        LinkedList<ResourceCreationRequest> rcr = cloudManager.getPendingRequests();
-        for (ResourceCreationRequest r : rcr) {
+        for (ResourceCreationRequest r : cloudManager.getPendingRequests()) {
             // TODO: Add more information (i.e. information per processor, memory type, etc.)
             sb.append(prefix).append("<Resource id=\"requested new VM\">").append("\n");
             sb.append(prefix).append("\t").append("<CPUComputingUnits>").append(0).append("</CPUComputingUnits>").append("\n");
@@ -620,7 +619,7 @@ public class ResourceManager {
      *
      */
     public static void printResourcesState() {
-        resourcesLogger.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
+        RESOURCES_LOGGER.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
         StringBuilder resourceState = new StringBuilder();
 
         resourceState.append("RESOURCES_INFO = [").append("\n");
@@ -688,7 +687,7 @@ public class ResourceManager {
         }
 
         resourceState.append("]"); // END CLOUD_INFO
-        resourcesLogger.info(resourceState.toString());
+        RESOURCES_LOGGER.info(resourceState.toString());
     }
 
     /**

@@ -7,9 +7,9 @@ import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.configuration.Configuration;
 import integratedtoolkit.util.CoreManager;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,9 +24,9 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     protected final T description;
 
     // CoreIds that can be executed by this resource
-    private LinkedList<Integer> executableCores;
+    private List<Integer> executableCores;
     // Implementations that can be executed by the resource
-    private LinkedList<Implementation>[] executableImpls;
+    private List<Implementation>[] executableImpls;
     // ImplIds per core that can be executed by this resource
     private int[][] implSimultaneousTasks;
 
@@ -47,8 +47,9 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
 
 
     @SuppressWarnings("unchecked")
-    public Worker(String name, T description, COMPSsNode worker, int limitOfTasks, HashMap<String, String> sharedDisks) {
+    public Worker(String name, T description, COMPSsNode worker, int limitOfTasks, Map<String, String> sharedDisks) {
         super(worker, sharedDisks);
+
         int coreCount = CoreManager.getCoreCount();
         this.coreSimultaneousTasks = new int[coreCount];
         this.idealSimultaneousTasks = new int[coreCount];
@@ -68,8 +69,9 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     }
 
     @SuppressWarnings("unchecked")
-    public Worker(String name, T description, Configuration config, HashMap<String, String> sharedDisks) {
+    public Worker(String name, T description, Configuration config, Map<String, String> sharedDisks) {
         super(name, config, sharedDisks);
+
         int coreCount = CoreManager.getCoreCount();
         this.coreSimultaneousTasks = new int[coreCount];
         this.idealSimultaneousTasks = new int[coreCount];
@@ -205,7 +207,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
             wasExecutable[coreId] = true;
         }
         this.executableCores.clear();
-        LinkedList<Implementation>[] executableImpls = new LinkedList[coreCount];
+        List<Implementation>[] executableImpls = new LinkedList[coreCount];
         int[][] implSimultaneousTasks = new int[coreCount][];
         int[] coreSimultaneousTasks = new int[coreCount];
         int[] idealSimultaneousTasks = new int[coreCount];
@@ -278,15 +280,15 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         }
     }
 
-    public LinkedList<Integer> getExecutableCores() {
+    public List<Integer> getExecutableCores() {
         return executableCores;
     }
 
-    public LinkedList<Implementation>[] getExecutableImpls() {
+    public List<Implementation>[] getExecutableImpls() {
         return executableImpls;
     }
 
-    public LinkedList<Implementation> getExecutableImpls(int coreId) {
+    public List<Implementation> getExecutableImpls(int coreId) {
         return executableImpls[coreId];
     }
 
@@ -336,8 +338,8 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
      * ************************************************************************
      * ************************************************************************
      * -----------------------------------------------------------------------*/
-    public LinkedList<Integer> getRunnableCores() {
-        LinkedList<Integer> cores = new LinkedList<>();
+    public List<Integer> getRunnableCores() {
+        List<Integer> cores = new LinkedList<>();
         int coreCount = CoreManager.getCoreCount();
         for (int coreId = 0; coreId < coreCount; coreId++) {
             if (!getRunnableImplementations(coreId).isEmpty()) {
@@ -348,9 +350,9 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     }
 
     @SuppressWarnings("unchecked")
-    public LinkedList<Implementation>[] getRunnableImplementations() {
+    public List<Implementation>[] getRunnableImplementations() {
         int coreCount = CoreManager.getCoreCount();
-        LinkedList<Implementation>[] runnable = new LinkedList[coreCount];
+        List<Implementation>[] runnable = new LinkedList[coreCount];
         for (int coreId = 0; coreId < coreCount; coreId++) {
             runnable[coreId] = getRunnableImplementations(coreId);
         }
@@ -358,8 +360,8 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     }
 
     @SuppressWarnings("unchecked")
-    public LinkedList<Implementation> getRunnableImplementations(int coreId) {
-        LinkedList<Implementation> runnable = new LinkedList<>();
+    public List<Implementation> getRunnableImplementations(int coreId) {
+        List<Implementation> runnable = new LinkedList<>();
         for (Implementation impl : this.executableImpls[coreId]) {
             if (canRunNow((T) impl.getRequirements())) {
                 runnable.add(impl);
@@ -373,8 +375,8 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     }
 
     @SuppressWarnings("unchecked")
-    public LinkedList<Implementation> canRunNow(LinkedList<Implementation> candidates) {
-        LinkedList<Implementation> runnable = new LinkedList<>();
+    public List<Implementation> canRunNow(LinkedList<Implementation> candidates) {
+        List<Implementation> runnable = new LinkedList<>();
         for (Implementation impl : candidates) {
             if (canRunNow((T) impl.getRequirements())) {
                 runnable.add(impl);

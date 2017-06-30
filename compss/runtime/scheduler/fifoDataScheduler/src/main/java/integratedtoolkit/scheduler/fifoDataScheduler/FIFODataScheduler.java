@@ -1,8 +1,5 @@
 package integratedtoolkit.scheduler.fifoDataScheduler;
 
-import java.util.LinkedList;
-import java.util.PriorityQueue;
-
 import integratedtoolkit.components.impl.ResourceScheduler;
 import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
@@ -12,6 +9,10 @@ import integratedtoolkit.scheduler.types.ObjectValue;
 import integratedtoolkit.scheduler.types.Score;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
+
+import java.util.List;
+import java.util.PriorityQueue;
+
 import org.json.JSONObject;
 
 
@@ -56,9 +57,8 @@ public class FIFODataScheduler extends ReadyScheduler {
      * *********************************************************************************************************
      */
     @Override
-    public <T extends WorkerResourceDescription> void purgeFreeActions(LinkedList<AllocatableAction> dataFreeActions,
-            LinkedList<AllocatableAction> resourceFreeActions, LinkedList<AllocatableAction> blockedCandidates,
-            ResourceScheduler<T> resource) {
+    public <T extends WorkerResourceDescription> void purgeFreeActions(List<AllocatableAction> dataFreeActions,
+            List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
 
         LOGGER.debug("[DataScheduler] Treating dependency free actions");
 
@@ -83,7 +83,8 @@ public class FIFODataScheduler extends ReadyScheduler {
                 dataFreeActions.add(freeAction);
             }
         }
-        LinkedList<AllocatableAction> unassignedReadyActions = this.unassignedReadyActions.getAllActions();
+
+        List<AllocatableAction> unassignedReadyActions = this.unassignedReadyActions.getAllActions();
         this.unassignedReadyActions.removeAllActions();
         dataFreeActions.addAll(unassignedReadyActions);
     }

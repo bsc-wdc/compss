@@ -18,6 +18,7 @@ import integratedtoolkit.util.CoreManager;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import commons.Action;
@@ -67,7 +68,7 @@ public class TestCompatible {
             System.out.println("[LOG] Checking Core" + coreId);
 
             Action a = new Action(orchestrator, coreId);
-            HashMap<Worker<?>, LinkedList<Implementation>> m = a.findAvailableWorkers();
+            Map<Worker<?>, List<Implementation>> m = a.findAvailableWorkers();
 
             // For the test construction, all implementations can be run. Check it
             if (m.size() == 0) {
@@ -85,12 +86,12 @@ public class TestCompatible {
 
     }
 
-    private static void checkCoreResources(int coreId, HashMap<Worker<?>, LinkedList<Implementation>> hm) {
+    private static void checkCoreResources(int coreId, Map<Worker<?>, List<Implementation>> hm) {
         // Revert Map
-        HashMap<Implementation, LinkedList<Worker<?>>> hm_reverted = new HashMap<>();
-        for (Entry<Worker<?>, LinkedList<Implementation>> entry_hm : hm.entrySet()) {
+        Map<Implementation, List<Worker<?>>> hm_reverted = new HashMap<>();
+        for (Entry<Worker<?>, List<Implementation>> entry_hm : hm.entrySet()) {
             for (Implementation impl : entry_hm.getValue()) {
-                LinkedList<Worker<?>> aux = hm_reverted.get(impl);
+                List<Worker<?>> aux = hm_reverted.get(impl);
                 if (aux == null) {
                     aux = new LinkedList<Worker<?>>();
                 }
@@ -100,7 +101,7 @@ public class TestCompatible {
         }
 
         // Check Resources assigned to each implementation
-        for (java.util.Map.Entry<Implementation, LinkedList<Worker<?>>> entry : hm_reverted.entrySet()) {
+        for (Entry<Implementation, List<Worker<?>>> entry : hm_reverted.entrySet()) {
             System.out.println("[LOG] ** Checking Implementation " + entry.getKey());
             System.out.println("[LOG] **** Number of resources = " + entry.getValue().size());
             for (Worker<?> resource : entry.getValue()) {

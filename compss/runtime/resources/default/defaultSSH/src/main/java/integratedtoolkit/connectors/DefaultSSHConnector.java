@@ -13,15 +13,15 @@ import integratedtoolkit.util.Classpath;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Constructor;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+
 /**
- * Default SSH Connector implementation to use specific SSH connectors'
- * interface
+ * Default SSH Connector implementation to use specific SSH connectors' interface
  *
  */
 public class DefaultSSHConnector extends AbstractSSHConnector {
@@ -36,9 +36,9 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
 
     private ConnectorProxy connector;
 
+
     /**
-     * Constructs a new Default SSH Connector and instantiates the specific
-     * connector implementation
+     * Constructs a new Default SSH Connector and instantiates the specific connector implementation
      *
      * @param provider
      * @param connectorJarPath
@@ -47,7 +47,7 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
      * @throws ConnectorException
      */
     public DefaultSSHConnector(CloudProvider provider, String connectorJarPath, String connectorMainClass,
-            HashMap<String, String> connectorProperties) throws ConnectorException {
+            Map<String, String> connectorProperties) throws ConnectorException {
 
         super(provider, connectorProperties);
 
@@ -102,7 +102,8 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
     @Override
     public Object create(String name, CloudMethodResourceDescription cmrd) throws ConnectorException {
         LOGGER.debug("Create connection " + name);
-        return connector.create(Converter.getHardwareDescription(cmrd), Converter.getSoftwareDescription(cmrd), cmrd.getImage().getProperties());
+        return connector.create(Converter.getHardwareDescription(cmrd), Converter.getSoftwareDescription(cmrd),
+                cmrd.getImage().getProperties());
 
     }
 

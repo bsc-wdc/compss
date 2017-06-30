@@ -68,7 +68,6 @@
         mkdir -p ${appLogDirWithRetries}
 
         # Specific test Execute
-	echo "Executing test application"
         ./execution ${COMPSsExec} ${comm} ${runcompss_opts} ${appBaseDir} ${COMPSsLogFolder} ${appLogDirWithRetries} ${retries}
         testExitValue=$?
 

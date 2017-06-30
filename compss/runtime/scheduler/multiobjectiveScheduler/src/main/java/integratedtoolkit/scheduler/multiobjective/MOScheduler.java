@@ -12,14 +12,19 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CoreManager;
 import integratedtoolkit.util.ResourceOptimizer;
 import integratedtoolkit.util.SchedulingOptimizer;
+
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+
 import org.json.JSONObject;
+
 
 public class MOScheduler extends TaskScheduler {
 
     private final MOScore dummyScore = new MOScore(0, 0, 0, 0, 0, 0);
+
 
     public MOScheduler() {
     }
@@ -78,22 +83,23 @@ public class MOScheduler extends TaskScheduler {
     }
 
     /**
-     * Notifies to the scheduler that some actions have become free of data
-     * dependencies or resource dependencies.
+     * Notifies to the scheduler that some actions have become free of data dependencies or resource dependencies.
      *
      * @param <T>
-     * @param dataFreeActions IN, list of actions free of data dependencies
-     * @param resourceFreeActions IN, list of actions free of resource
-     * dependencies
-     * @param blockedCandidates OUT, list of blocked candidates
-     * @param resource Resource where the previous task was executed
+     * @param dataFreeActions
+     *            IN, list of actions free of data dependencies
+     * @param resourceFreeActions
+     *            IN, list of actions free of resource dependencies
+     * @param blockedCandidates
+     *            OUT, list of blocked candidates
+     * @param resource
+     *            Resource where the previous task was executed
      */
     @Override
-    public <T extends WorkerResourceDescription> void handleDependencyFreeActions(LinkedList<AllocatableAction> dataFreeActions,
-            LinkedList<AllocatableAction> resourceFreeActions, LinkedList<AllocatableAction> blockedCandidates,
-            ResourceScheduler<T> resource) {
+    public <T extends WorkerResourceDescription> void handleDependencyFreeActions(List<AllocatableAction> dataFreeActions,
+            List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
 
-        HashSet<AllocatableAction> freeTasks = new HashSet<>();
+        Set<AllocatableAction> freeTasks = new HashSet<>();
         freeTasks.addAll(dataFreeActions);
         freeTasks.addAll(resourceFreeActions);
         for (AllocatableAction freeAction : freeTasks) {

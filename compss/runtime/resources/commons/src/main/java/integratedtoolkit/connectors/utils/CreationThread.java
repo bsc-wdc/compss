@@ -17,9 +17,10 @@ import integratedtoolkit.util.ResourceManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
+
 
 /**
  * Helper thread for VM creation
@@ -54,6 +55,7 @@ public class CreationThread extends Thread {
     private final CloudProvider provider;
     private final ResourceCreationRequest rcr;
     private final VM reused;
+
 
     /**
      * New helper thread for VM creation with the given properties
@@ -92,7 +94,7 @@ public class CreationThread extends Thread {
         CloudMethodResourceDescription requested = rcr.getRequested();
         VM granted;
 
-        if (reused == null) { // If the resources does not exist --> Create           
+        if (reused == null) { // If the resources does not exist --> Create
             this.setName("Creation Thread " + name);
             try {
                 granted = createResourceOnProvider(requested);
@@ -104,15 +106,15 @@ public class CreationThread extends Thread {
             if (DEBUG) {
                 RUNTIME_LOGGER.debug("Resource " + granted.getName() + " with id  " + granted.getEnvId() + " has been created ");
             }
-            RESOURCE_LOGGER.info("RESOURCE_GRANTED = [\n\tNAME = " + granted.getName() + "\n\tSTATUS = ID "
-                    + granted.getEnvId() + " CREATED\n]");
+            RESOURCE_LOGGER
+                    .info("RESOURCE_GRANTED = [\n\tNAME = " + granted.getName() + "\n\tSTATUS = ID " + granted.getEnvId() + " CREATED\n]");
         } else {
             granted = reused;
             if (DEBUG) {
                 RUNTIME_LOGGER.debug("Resource " + granted.getName() + " with id  " + granted.getEnvId() + " has been reused ");
             }
-            RESOURCE_LOGGER.info("RESOURCE_GRANTED = [\n\tNAME = " + reused.getName() + "\n\tSTATUS = ID "
-                    + granted.getEnvId() + " REUSED\n]");
+            RESOURCE_LOGGER
+                    .info("RESOURCE_GRANTED = [\n\tNAME = " + reused.getName() + "\n\tSTATUS = ID " + granted.getEnvId() + " REUSED\n]");
         }
         String grantedName = granted.getName();
         this.setName("Creation Thread " + grantedName);
@@ -229,7 +231,7 @@ public class CreationThread extends Thread {
     private CloudMethodWorker prepareNewResource(VM vm) throws ConnectorException {
         CloudMethodResourceDescription granted = vm.getDescription();
         CloudImageDescription cid = granted.getImage();
-        HashMap<String, String> workerProperties = cid.getProperties();
+        Map<String, String> workerProperties = cid.getProperties();
         String user = cid.getConfig().getUser();
         String password = workerProperties.get(AbstractConnector.PROPERTY_PASSW_NAME);
         try {

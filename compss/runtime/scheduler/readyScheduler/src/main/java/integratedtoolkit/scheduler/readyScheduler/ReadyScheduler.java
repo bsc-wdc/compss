@@ -11,11 +11,12 @@ import integratedtoolkit.scheduler.types.Score;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.ActionSet;
 
-import java.util.LinkedList;
+import java.util.List;
 import java.util.PriorityQueue;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 
 /**
  * Representation of a Scheduler that considers only ready tasks
@@ -27,6 +28,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
 
     protected final ActionSet unassignedReadyActions;
+
 
     /**
      * Constructs a new Ready Scheduler instance
@@ -70,34 +72,32 @@ public abstract class ReadyScheduler extends TaskScheduler {
         }
     }
 
-    protected <T extends WorkerResourceDescription> void scheduleAction(AllocatableAction action, ResourceScheduler<T> targetWorker, Score actionScore)
-            throws BlockedActionException, UnassignedActionException {
+    protected <T extends WorkerResourceDescription> void scheduleAction(AllocatableAction action, ResourceScheduler<T> targetWorker,
+            Score actionScore) throws BlockedActionException, UnassignedActionException {
         if (!action.hasDataPredecessors()) {
             action.schedule(targetWorker, actionScore);
         }
     }
 
     @Override
-    public LinkedList<AllocatableAction> getUnassignedActions() {
+    public List<AllocatableAction> getUnassignedActions() {
         return unassignedReadyActions.getAllActions();
     }
 
     @Override
-    public final <T extends WorkerResourceDescription> void handleDependencyFreeActions(
-            LinkedList<AllocatableAction> dataFreeActions,
-            LinkedList<AllocatableAction> resourceFreeActions,
-            LinkedList<AllocatableAction> blockedCandidates,
-            ResourceScheduler<T> resource) {
+    public final <T extends WorkerResourceDescription> void handleDependencyFreeActions(List<AllocatableAction> dataFreeActions,
+            List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
+
         purgeFreeActions(dataFreeActions, resourceFreeActions, blockedCandidates, resource);
         tryToLaunchFreeActions(dataFreeActions, resourceFreeActions, blockedCandidates, resource);
     }
 
-    protected abstract <T extends WorkerResourceDescription> void purgeFreeActions(LinkedList<AllocatableAction> dataFreeActions,
-            LinkedList<AllocatableAction> resourceFreeActions,
-            LinkedList<AllocatableAction> blockedCandidates,
-            ResourceScheduler<T> resource);
+    protected abstract <T extends WorkerResourceDescription> void purgeFreeActions(List<AllocatableAction> dataFreeActions,
+            List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource);
 
-    private <T extends WorkerResourceDescription> void tryToLaunchFreeActions(LinkedList<AllocatableAction> dataFreeActions, LinkedList<AllocatableAction> resourceFreeActions, LinkedList<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
+    private <T extends WorkerResourceDescription> void tryToLaunchFreeActions(List<AllocatableAction> dataFreeActions,
+            List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
+
         // Try to launch all the data free actions and the resource free actions
         PriorityQueue<ObjectValue<AllocatableAction>> executableActions = new PriorityQueue<>();
         for (AllocatableAction freeAction : dataFreeActions) {

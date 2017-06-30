@@ -6,7 +6,7 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import java.util.LinkedList;
+import java.util.List;
 
 import es.bsc.comm.Connection;
 import es.bsc.comm.nio.NIONode;
@@ -15,7 +15,7 @@ import es.bsc.comm.nio.NIONode;
 public class CommandNewTask extends Command implements Externalizable {
 
     // List of the data to erase
-    private LinkedList<String> obsolete;
+    private List<String> obsolete;
     // Job description
     private NIOTask task;
 
@@ -24,7 +24,7 @@ public class CommandNewTask extends Command implements Externalizable {
         super();
     }
 
-    public CommandNewTask(NIOTask t, LinkedList<String> obsolete) {
+    public CommandNewTask(NIOTask t, List<String> obsolete) {
         super();
         this.task = t;
         this.obsolete = obsolete;
@@ -44,7 +44,7 @@ public class CommandNewTask extends Command implements Externalizable {
     @SuppressWarnings("unchecked")
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        obsolete = (LinkedList<String>) in.readObject();
+        obsolete = (List<String>) in.readObject();
         task = (NIOTask) in.readObject();
 
     }

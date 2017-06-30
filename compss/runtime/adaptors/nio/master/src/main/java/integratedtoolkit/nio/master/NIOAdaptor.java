@@ -49,9 +49,12 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
@@ -88,15 +91,15 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     // private static final String SER_RCV_ERR =
     // "Error serializing received object";
 
-    private static final HashSet<NIOWorkerNode> NODES = new HashSet<>();
+    private static final Set<NIOWorkerNode> NODES = new HashSet<>();
 
-    private static final ConcurrentHashMap<Integer, NIOJob> RUNNING_JOBS = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<Integer, NIOJob> RUNNING_JOBS = new ConcurrentHashMap<>();
 
-    private static final HashMap<Integer, LinkedList<Copy>> GROUP_TO_COPY = new HashMap<>();
+    private static final Map<Integer, LinkedList<Copy>> GROUP_TO_COPY = new HashMap<>();
 
-    private static final HashMap<Connection, ClosingWorker> STOPPING_NODES = new HashMap<>();
+    private static final Map<Connection, ClosingWorker> STOPPING_NODES = new HashMap<>();
 
-    private static final HashMap<Connection, ClosingExecutor> STOPPING_EXECUTORS = new HashMap<>();
+    private static final Map<Connection, ClosingExecutor> STOPPING_EXECUTORS = new HashMap<>();
 
     private Semaphore tracingGeneration = new Semaphore(0);
     private Semaphore workersDebugInfo = new Semaphore(0);
@@ -230,7 +233,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     @Override
     public void stop() {
         LOGGER.debug("NIO Adaptor stopping workers...");
-        HashSet<NIOWorkerNode> workers = new HashSet<NIOWorkerNode>();
+        Set<NIOWorkerNode> workers = new HashSet<>();
         workers.addAll(NODES);
 
         Semaphore sem = new Semaphore(0);
@@ -260,8 +263,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         Resource res = job.getResource();
         NIOWorkerNode worker = (NIOWorkerNode) res.getNode();
 
-        LinkedList<LogicalData> obsoletes = res.clearObsoletes();
-        LinkedList<String> obsoleteRenamings = new LinkedList<>();
+        List<LogicalData> obsoletes = res.clearObsoletes();
+        List<String> obsoleteRenamings = new LinkedList<>();
         for (LogicalData ld : obsoletes) {
             obsoleteRenamings.add(ld.getName());
         }
@@ -271,7 +274,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    public void receivedNewTask(NIONode master, NIOTask t, LinkedList<String> obsoleteFiles) {
+    public void receivedNewTask(NIONode master, NIOTask t, List<String> obsoleteFiles) {
         // Can not run any task. Do nothing
     }
 
@@ -385,7 +388,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    public void handleRequestedDataNotAvailableError(LinkedList<DataRequest> failedRequests, String dataId) {
+    public void handleRequestedDataNotAvailableError(List<DataRequest> failedRequests, String dataId) {
         for (DataRequest dr : failedRequests) {
             MasterDataRequest mdr = (MasterDataRequest) dr;
             Copy c = (Copy) mdr.getOperation();
@@ -395,7 +398,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    public void receivedValue(Destination type, String dataId, Object object, LinkedList<DataRequest> achievedRequests) {
+    public void receivedValue(Destination type, String dataId, Object object, List<DataRequest> achievedRequests) {
         for (DataRequest dr : achievedRequests) {
             MasterDataRequest mdr = (MasterDataRequest) dr;
             Copy c = (Copy) mdr.getOperation();
@@ -460,7 +463,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     // Return the data that a worker should be obtaining and has not yet confirmed
     @Override
-    public LinkedList<DataOperation> getPending() {
+    public List<DataOperation> getPending() {
         return new LinkedList<DataOperation>();
     }
 

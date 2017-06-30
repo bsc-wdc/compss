@@ -9,12 +9,15 @@ import integratedtoolkit.types.resources.description.CloudImageDescription;
 import integratedtoolkit.types.resources.description.CloudInstanceTypeDescription;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
 import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 
 /**
  *
@@ -23,6 +26,7 @@ import org.junit.Test;
 public class CloudManagerTest {
 
     public static final String RUNTIME_CONNECTOR = "integratedtoolkit.connectors.fake.FakeConnector";
+
 
     @BeforeClass
     public static void setUpClass() {
@@ -164,7 +168,7 @@ public class CloudManagerTest {
         cm.setInitialVMs(2);
         cm.setMaxVMs(5);
 
-        //Check ignoring nulls
+        // Check ignoring nulls
         cm.setMinVMs(null);
         if (cm.getMinVMs() != 1) {
             fail("Cloud Manager does not properly maintain the Min VMs boundary");
@@ -419,7 +423,7 @@ public class CloudManagerTest {
 
     private static CloudProvider createProvider(CloudManager cm) {
         String providerName = "Provider" + (int) (Math.random() * 10000);
-        HashMap<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<>();
         CloudProvider cp = null;
         try {
             cp = cm.registerCloudProvider(providerName, 0, RUNTIME_CONNECTOR, null, null, properties);

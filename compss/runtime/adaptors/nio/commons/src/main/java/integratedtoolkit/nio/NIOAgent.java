@@ -1,6 +1,9 @@
 package integratedtoolkit.nio;
 
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import es.bsc.comm.Connection;
 import es.bsc.comm.TransferManager;
@@ -39,7 +42,7 @@ public abstract class NIOAgent {
 
     protected static final String NIO_EVENT_MANAGER_CLASS = NIOEventManager.class.getCanonicalName();
     public static final String ID = NIOAgent.class.getCanonicalName();
-    
+
     public static final int NUM_PARAMS_PER_WORKER_SH = 5;
     public static final int NUM_PARAMS_NIO_WORKER = 25;
     public static final String BINDER_DISABLED = "disabled";
@@ -55,16 +58,16 @@ public abstract class NIOAgent {
     private Connection closingConnection = null;
 
     // Requests related to a DataId
-    protected final HashMap<String, LinkedList<DataRequest>> dataToRequests;
+    protected final Map<String, List<DataRequest>> dataToRequests;
     // Data requests that will be transferred
     private final LinkedList<DataRequest> pendingRequests;
     // Ongoing transfers
-    private final HashMap<Connection, String> ongoingTransfers;
+    private final Map<Connection, String> ongoingTransfers;
 
     // Transfers to send as soon as there is a slot available
     // TODO
-    // private LinkedList<Data> prioritaryData; 
-    //IP of the master node
+    // private LinkedList<Data> prioritaryData;
+    // IP of the master node
     protected String masterIP;
     protected static int masterPort;
     protected NIONode masterNode;
@@ -111,7 +114,7 @@ public abstract class NIOAgent {
     public NIONode getMaster() {
         return masterNode;
     }
-    
+
     public static TransferManager getTransferManager() {
         return TM;
     }
@@ -133,7 +136,7 @@ public abstract class NIOAgent {
      * @param dataId
      * @return
      */
-    protected LinkedList<DataRequest> getDataRequests(String dataId) {
+    protected List<DataRequest> getDataRequests(String dataId) {
         return dataToRequests.get(dataId);
     }
 
@@ -177,7 +180,7 @@ public abstract class NIOAgent {
                 CommandDataDemand cdd = new CommandDataDemand(this, remoteData, tracingID);
                 ongoingTransfers.put(c, dr.getSource().getName());
                 c.sendCommand(cdd);
-            	
+
                 if (NIOTracer.isActivated()) {
                     c.receive();
                 }
@@ -214,7 +217,7 @@ public abstract class NIOAgent {
      * @param dr
      */
     public void addTransferRequest(DataRequest dr) {
-        LinkedList<DataRequest> list = dataToRequests.get(dr.getSource().getName());
+        List<DataRequest> list = dataToRequests.get(dr.getSource().getName());
         if (list == null) {
             list = new LinkedList<DataRequest>();
             dataToRequests.put(dr.getSource().getName(), list);
@@ -285,10 +288,10 @@ public abstract class NIOAgent {
             return;
         }
         releaseReceiveSlot();
-        LinkedList<DataRequest> requests = dataToRequests.remove(dataId);
-        HashMap<String, LinkedList<DataRequest>> byTarget = new HashMap<>();
+        List<DataRequest> requests = dataToRequests.remove(dataId);
+        Map<String, List<DataRequest>> byTarget = new HashMap<>();
         for (DataRequest req : requests) {
-            LinkedList<DataRequest> sameTarget = byTarget.get(req.getTarget());
+            List<DataRequest> sameTarget = byTarget.get(req.getTarget());
             if (sameTarget == null) {
                 sameTarget = new LinkedList<DataRequest>();
                 byTarget.put(req.getTarget(), sameTarget);
@@ -305,7 +308,7 @@ public abstract class NIOAgent {
         }
 
         if (byTarget.size() == 1) {
-            String targetName = requests.getFirst().getTarget();
+            String targetName = requests.get(0).getTarget();
             receivedValue(t.getDestination(), targetName, t.getObject(), requests);
         } else {
             if (t.isFile()) {
@@ -313,9 +316,9 @@ public abstract class NIOAgent {
             } else {
                 receivedValue(t.getDestination(), dataId, t.getObject(), byTarget.remove(dataId));
             }
-            for (java.util.Map.Entry<String, LinkedList<DataRequest>> entry : byTarget.entrySet()) {
+            for (Entry<String, List<DataRequest>> entry : byTarget.entrySet()) {
                 String targetName = entry.getKey();
-                LinkedList<DataRequest> reqs = entry.getValue();
+                List<DataRequest> reqs = entry.getValue();
                 try {
                     if (t.isFile()) {
                         Files.copy((new File(t.getFileName())).toPath(), (new File(targetName)).toPath());
@@ -345,7 +348,7 @@ public abstract class NIOAgent {
      * @param requester
      * @param filesToSend
      */
-    public void receivedShutdown(Connection requester, LinkedList<Data> filesToSend) {
+    public void receivedShutdown(Connection requester, List<Data> filesToSend) {
         LOGGER.debug("Command for shutdown received. Preparing for shutdown...");
         closingConnection = requester;
         finish = true;
@@ -440,7 +443,7 @@ public abstract class NIOAgent {
         }
 
         releaseReceiveSlot();
-        LinkedList<DataRequest> requests = dataToRequests.remove(dataId);
+        List<DataRequest> requests = dataToRequests.remove(dataId);
         handleRequestedDataNotAvailableError(requests, dataId);
         requestTransfers();
 
@@ -465,13 +468,13 @@ public abstract class NIOAgent {
     public abstract void setMaster(NIONode master);
 
     public abstract boolean isMyUuid(String uuid);
-    
+
     // This will use the TreeMap to set the corresponding worker starter as ready
     public abstract void setWorkerIsReady(String nodeName);
 
     public abstract String getWorkingDir();
 
-    public abstract void receivedNewTask(NIONode master, NIOTask t, LinkedList<String> obsoleteFiles);
+    public abstract void receivedNewTask(NIONode master, NIOTask t, List<String> obsoleteFiles);
 
     public abstract Object getObject(String s) throws SerializedObjectException;
 
@@ -482,9 +485,9 @@ public abstract class NIOAgent {
 
     // Called when a value couldn't be RETRIEVED because, for example, the file
     // to be retrieved it didn't exist in the sender
-    public abstract void handleRequestedDataNotAvailableError(LinkedList<DataRequest> failedRequests, String dataId);
+    public abstract void handleRequestedDataNotAvailableError(List<DataRequest> failedRequests, String dataId);
 
-    public abstract void receivedValue(Destination type, String dataId, Object object, LinkedList<DataRequest> achievedRequests);
+    public abstract void receivedValue(Destination type, String dataId, Object object, List<DataRequest> achievedRequests);
 
     public abstract void copiedData(int transfergroupID);
 

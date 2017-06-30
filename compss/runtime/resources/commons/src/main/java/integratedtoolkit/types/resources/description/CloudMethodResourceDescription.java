@@ -5,6 +5,9 @@ import integratedtoolkit.types.resources.MethodResourceDescription;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 
 public class CloudMethodResourceDescription extends MethodResourceDescription {
@@ -13,7 +16,7 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
 
     // Resource Description
     private String name = "";
-    private final HashMap<CloudInstanceTypeDescription, int[]> typeComposition = new HashMap<>();
+    private final Map<CloudInstanceTypeDescription, int[]> typeComposition = new HashMap<>();
     private CloudImageDescription image = null;
 
 
@@ -32,7 +35,7 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
     public CloudMethodResourceDescription(CloudMethodResourceDescription clone) {
         super(clone);
         name = clone.name;
-        for (java.util.Map.Entry<CloudInstanceTypeDescription, int[]> entry : clone.typeComposition.entrySet()) {
+        for (Entry<CloudInstanceTypeDescription, int[]> entry : clone.typeComposition.entrySet()) {
             typeComposition.put(entry.getKey(), new int[] { entry.getValue()[0] });
         }
         image = clone.image;
@@ -57,7 +60,7 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
         this.name = name;
     }
 
-    public HashMap<CloudInstanceTypeDescription, int[]> getTypeComposition() {
+    public Map<CloudInstanceTypeDescription, int[]> getTypeComposition() {
         return typeComposition;
     }
 
@@ -81,15 +84,15 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
 
     public void increase(CloudMethodResourceDescription cmrd) {
         super.increase(cmrd);
-        for (java.util.Map.Entry<CloudInstanceTypeDescription, int[]> typeCount : cmrd.getTypeComposition().entrySet()) {
+        for (Entry<CloudInstanceTypeDescription, int[]> typeCount : cmrd.getTypeComposition().entrySet()) {
             CloudInstanceTypeDescription type = typeCount.getKey();
             int[] count = typeCount.getValue();
             addInstances(type, count[0]);
         }
     }
 
-    public LinkedList<CloudInstanceTypeDescription> getPossibleReductions() {
-        LinkedList<CloudInstanceTypeDescription> reductions = new LinkedList<>();
+    public List<CloudInstanceTypeDescription> getPossibleReductions() {
+        List<CloudInstanceTypeDescription> reductions = new LinkedList<>();
         for (CloudInstanceTypeDescription type : typeComposition.keySet()) {
             reductions.add(type);
         }
@@ -118,7 +121,7 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
 
     public void reduce(CloudMethodResourceDescription cmrd) {
         super.reduce(cmrd);
-        for (java.util.Map.Entry<CloudInstanceTypeDescription, int[]> typeCount : cmrd.getTypeComposition().entrySet()) {
+        for (Entry<CloudInstanceTypeDescription, int[]> typeCount : cmrd.getTypeComposition().entrySet()) {
             CloudInstanceTypeDescription type = typeCount.getKey();
             int[] count = typeCount.getValue();
             removeInstances(type, count[0]);
@@ -139,7 +142,7 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
         sb.append("[CLOUD");
         sb.append(" IMAGE=").append((this.image == null) ? "NULL" : this.image.getImageName());
         sb.append(" TYPE_COMPOSITION=[");
-        for (java.util.Map.Entry<CloudInstanceTypeDescription, int[]> entry : typeComposition.entrySet()) {
+        for (Entry<CloudInstanceTypeDescription, int[]> entry : typeComposition.entrySet()) {
             sb.append(" ").append(entry.getKey().getName()).append("=").append(entry.getValue()[0]);
         }
         sb.append("]]");
@@ -152,7 +155,7 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
         sb.append(prefix).append("\t").append("VIRTUAL_INSTANCE = [").append("\n");
         sb.append(prefix).append("\t").append("\t").append("NAME = ").append(name).append("\n");
         sb.append(prefix).append("\t").append("\t").append("COMPONENTS = [").append("\n");
-        for (java.util.Map.Entry<CloudInstanceTypeDescription, int[]> component : typeComposition.entrySet()) {
+        for (Entry<CloudInstanceTypeDescription, int[]> component : typeComposition.entrySet()) {
             String componentName = component.getKey().getName();
             int[] amount = component.getValue();
             sb.append(prefix).append("\t").append("\t").append("\t").append("COMPONENT = [").append("\n");

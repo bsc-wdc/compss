@@ -7,9 +7,10 @@ import integratedtoolkit.types.resources.configuration.MethodConfiguration;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
 import integratedtoolkit.types.resources.updates.PendingReduction;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
+
 
 public class CloudMethodWorker extends MethodWorker {
 
@@ -18,8 +19,9 @@ public class CloudMethodWorker extends MethodWorker {
     private final CloudMethodResourceDescription toRemove;
     private final CloudProvider provider;
 
-    public CloudMethodWorker(String name, CloudProvider provider, CloudMethodResourceDescription description, COMPSsWorker worker, int limitOfTasks,
-            HashMap<String, String> sharedDisks) {
+
+    public CloudMethodWorker(String name, CloudProvider provider, CloudMethodResourceDescription description, COMPSsWorker worker,
+            int limitOfTasks, Map<String, String> sharedDisks) {
 
         super(name, description, worker, limitOfTasks, sharedDisks);
         this.provider = provider;
@@ -28,7 +30,7 @@ public class CloudMethodWorker extends MethodWorker {
     }
 
     public CloudMethodWorker(String name, CloudProvider provider, CloudMethodResourceDescription description, MethodConfiguration config,
-            HashMap<String, String> sharedDisks) {
+            Map<String, String> sharedDisks) {
 
         super(name, description, config, sharedDisks);
         this.provider = provider;

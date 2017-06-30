@@ -19,9 +19,6 @@ import integratedtoolkit.types.resources.components.Processor;
 import integratedtoolkit.types.resources.updates.ResourceUpdate;
 import integratedtoolkit.util.ResourceManager;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -29,6 +26,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
+
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 
 public class AllocatableActionTest {
@@ -653,9 +655,9 @@ public class AllocatableActionTest {
             throws BlockedActionException, UnassignedActionException, InvalidSchedulingException {
 
         FakeResourceScheduler resource = (FakeResourceScheduler) action.getAssignedResource();
-        LinkedList<AllocatableAction> dataFree = action.completed();
-        LinkedList<AllocatableAction> resourceFree = resource.unscheduleAction(action);
-        HashSet<AllocatableAction> freeTasks = new HashSet<>();
+        List<AllocatableAction> dataFree = action.completed();
+        List<AllocatableAction> resourceFree = resource.unscheduleAction(action);
+        Set<AllocatableAction> freeTasks = new HashSet<>();
         freeTasks.addAll(dataFree);
         freeTasks.addAll(resourceFree);
 
@@ -667,7 +669,7 @@ public class AllocatableActionTest {
 
     public void error(FakeAllocatableAction action) throws BlockedActionException, UnassignedActionException, InvalidSchedulingException {
         FakeResourceScheduler resource = (FakeResourceScheduler) action.getAssignedResource();
-        LinkedList<AllocatableAction> resourceFree;
+        List<AllocatableAction> resourceFree;
         try {
             action.error();
             resourceFree = resource.unscheduleAction(action);

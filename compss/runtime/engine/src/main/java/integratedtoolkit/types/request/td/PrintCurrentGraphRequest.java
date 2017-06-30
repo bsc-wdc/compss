@@ -12,8 +12,9 @@ import integratedtoolkit.util.ResourceManager;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.PriorityQueue;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
 
 
@@ -73,7 +74,7 @@ public class PrintCurrentGraphRequest extends TDRequest {
     public void process(TaskScheduler ts) throws ShutdownException {
         try {
             PriorityQueue<Task> pending = new PriorityQueue<>();
-            HashSet<Task> tasks = new HashSet<>();
+            Set<Task> tasks = new HashSet<>();
             String prefix = "  ";
 
             // Header options
@@ -101,7 +102,7 @@ public class PrintCurrentGraphRequest extends TDRequest {
             graph.newLine();
             graph.write(prefix + prefix + prefix + "color=red");
             graph.newLine();
-            LinkedList<AllocatableAction> blockedActions = ts.getBlockedActions();
+            List<AllocatableAction> blockedActions = ts.getBlockedActions();
             for (AllocatableAction action : blockedActions) {
                 if (action instanceof ExecutionAction) {
                     ExecutionAction se = (ExecutionAction) action;
@@ -128,7 +129,7 @@ public class PrintCurrentGraphRequest extends TDRequest {
             graph.newLine();
             graph.write(prefix + prefix + prefix + "color=orange");
             graph.newLine();
-            LinkedList<AllocatableAction> unassignedActions = ts.getUnassignedActions();
+            List<AllocatableAction> unassignedActions = ts.getUnassignedActions();
             for (AllocatableAction action : unassignedActions) {
                 if (action instanceof ExecutionAction) {
                     ExecutionAction se = (ExecutionAction) action;
@@ -163,7 +164,7 @@ public class PrintCurrentGraphRequest extends TDRequest {
                 graph.newLine();
                 graph.write(prefix + prefix + prefix + prefix + "color=green");
                 graph.newLine();
-                LinkedList<AllocatableAction> hostedActions = ts.getHostedActions(worker);
+                List<AllocatableAction> hostedActions = ts.getHostedActions(worker);
                 for (AllocatableAction action : hostedActions) {
                     if (action instanceof ExecutionAction) {
                         ExecutionAction se = (ExecutionAction) action;
@@ -242,7 +243,7 @@ public class PrintCurrentGraphRequest extends TDRequest {
 
             /* Write edges *************************************************** */
             for (Task t : tasks) {
-                HashSet<Task> successors = new HashSet<>();
+                Set<Task> successors = new HashSet<>();
                 successors.addAll(t.getSuccessors());
                 for (Task t2 : successors) {
                     graph.write(prefix + t.getId() + " -> " + t2.getId() + ";");

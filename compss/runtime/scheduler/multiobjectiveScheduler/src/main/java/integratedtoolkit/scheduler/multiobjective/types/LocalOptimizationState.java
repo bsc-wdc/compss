@@ -8,10 +8,12 @@ import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.ResourceDescription;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CoreManager;
+
 import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.PriorityQueue;
 
 
@@ -34,7 +36,7 @@ public class LocalOptimizationState {
     private long endRunningActions;
 
     // Actions considered to be running
-    private final LinkedList<AllocatableAction> runningActions;
+    private final List<AllocatableAction> runningActions;
 
     // Actions not depending on other actions scheduled on the same resource
     // Sorted by data dependencies release
@@ -49,6 +51,7 @@ public class LocalOptimizationState {
 
     public LocalOptimizationState(long updateId, ResourceScheduler<WorkerResourceDescription> rs,
             Comparator<AllocatableAction> readyComparator, Comparator<AllocatableAction> selectionComparator) {
+
         this.updateId = updateId;
         this.worker = rs;
         ResourceDescription rd = rs.getResource().getDescription();
@@ -79,8 +82,8 @@ public class LocalOptimizationState {
         return updateId;
     }
 
-    public LinkedList<Gap> reserveResources(ResourceDescription resources, long startTime) {
-        LinkedList<Gap> previousGaps = new LinkedList<>();
+    public List<Gap> reserveResources(ResourceDescription resources, long startTime) {
+        List<Gap> previousGaps = new LinkedList<>();
         // Remove requirements from resource description
         ResourceDescription requirements = resources.copy();
         Iterator<Gap> gapIt = gaps.iterator();
@@ -94,7 +97,7 @@ public class LocalOptimizationState {
         return previousGaps;
     }
 
-    private boolean checkGapForReserve(Gap g, ResourceDescription requirements, long reserveStart, LinkedList<Gap> previousGaps) {
+    private boolean checkGapForReserve(Gap g, ResourceDescription requirements, long reserveStart, List<Gap> previousGaps) {
         boolean remove = false;
         AllocatableAction gapAction = g.getOrigin();
         ResourceDescription rd = g.getResources();
@@ -207,7 +210,7 @@ public class LocalOptimizationState {
         gaps.removeFirst();
     }
 
-    public LinkedList<Gap> getGaps() {
+    public List<Gap> getGaps() {
         return gaps;
     }
 
@@ -344,7 +347,7 @@ public class LocalOptimizationState {
         }
     }
 
-    public LinkedList<AllocatableAction> getRunningActions() {
+    public List<AllocatableAction> getRunningActions() {
         return runningActions;
     }
 
@@ -386,8 +389,7 @@ public class LocalOptimizationState {
     }
 
     public void releaseDataSuccessors(MOSchedulingInformation dsi, long timeLimit) {
-
-        LinkedList<AllocatableAction> successors = dsi.getOptimizingSuccessors();
+        List<AllocatableAction> successors = dsi.getOptimizingSuccessors();
         for (AllocatableAction successor : successors) {
             MOSchedulingInformation successorDSI = (MOSchedulingInformation) successor.getSchedulingInfo();
             int missingParams = 0;
@@ -395,7 +397,7 @@ public class LocalOptimizationState {
             boolean retry = true;
             while (retry) {
                 try {
-                    LinkedList<AllocatableAction> predecessors = successor.getDataPredecessors();
+                    List<AllocatableAction> predecessors = successor.getDataPredecessors();
                     for (AllocatableAction predecessor : predecessors) {
                         MOSchedulingInformation predDSI = ((MOSchedulingInformation) predecessor.getSchedulingInfo());
                         if (predecessor.getAssignedResource() != worker) {
@@ -425,7 +427,7 @@ public class LocalOptimizationState {
     }
 
     public void blockDataSuccessors(MOSchedulingInformation dsi) {
-        LinkedList<AllocatableAction> successors = dsi.getOptimizingSuccessors();
+        List<AllocatableAction> successors = dsi.getOptimizingSuccessors();
         for (AllocatableAction successor : successors) {
             MOSchedulingInformation sucDSI = (MOSchedulingInformation) successor.getSchedulingInfo();
             sucDSI.lock();

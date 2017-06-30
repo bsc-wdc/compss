@@ -2,17 +2,15 @@ package integratedtoolkit.types;
 
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
 
-
 public class ResourceCreationRequest {
 
-    private final String provider;
+    private final CloudProvider provider;
     private final CloudMethodResourceDescription requested;
-    private final int[][] requestedSimultaneousTaskCount;
+    private int[][] requestedSimultaneousTaskCount;
 
-
-    public ResourceCreationRequest(CloudMethodResourceDescription requestedResource, int[][] simultaneousTasks, String provider) {
+    public ResourceCreationRequest(CloudMethodResourceDescription requestedResource, int[][] simultaneousTasks, CloudProvider cp) {
         requested = requestedResource;
-        this.provider = provider;
+        this.provider = cp;
         requestedSimultaneousTaskCount = simultaneousTasks;
     }
 
@@ -20,11 +18,15 @@ public class ResourceCreationRequest {
         return requestedSimultaneousTaskCount;
     }
 
+    public void updateRequestedSimultaneousTaskCount(int[][] newRequestedSimultaneousTaskCount) {
+        requestedSimultaneousTaskCount = newRequestedSimultaneousTaskCount;
+    }
+
     public CloudMethodResourceDescription getRequested() {
         return requested;
     }
 
-    public String getProvider() {
+    public CloudProvider getProvider() {
         return provider;
     }
 

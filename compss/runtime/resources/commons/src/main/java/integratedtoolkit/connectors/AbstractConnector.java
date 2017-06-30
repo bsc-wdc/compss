@@ -15,6 +15,7 @@ import integratedtoolkit.connectors.utils.CreationThread;
 import integratedtoolkit.connectors.utils.DeletionThread;
 import integratedtoolkit.connectors.utils.Operations;
 import integratedtoolkit.log.Loggers;
+import integratedtoolkit.types.CloudProvider;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
 import integratedtoolkit.types.ResourceCreationRequest;
 import integratedtoolkit.types.resources.CloudMethodWorker;
@@ -48,17 +49,17 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.CONNECTORS);
 
     // Timer properties
-    private static long INITIAL_CREATION_TIME = ONE_MIN;
-    private static long MINIM_DEADLINE_INTERVAL = 10_000;
-    private static long DELETE_SAFETY_INTERVAL = HALF_MIN;
-    private static long MAX_DEADLINE_INTERVAL = ONE_MIN;
+    private static final long INITIAL_CREATION_TIME = ONE_MIN;
+    private static final long MINIM_DEADLINE_INTERVAL = 10_000;
+    private static final long DELETE_SAFETY_INTERVAL = HALF_MIN;
+    private static final long MAX_DEADLINE_INTERVAL = ONE_MIN;
 
     private float currentCostPerHour;
     private final float deletedMachinesCost;
     private long meanCreationTime; // MS
     private int createdVMs;
 
-    private final String providerName;
+    private final CloudProvider provider;
     private final ConcurrentHashMap<String, VM> IPToVM;
     private final ConcurrentHashMap<Object, Long> powerOnVMTimestamp;
     private boolean terminate = false;
@@ -67,18 +68,14 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
     private final TreeSet<VM> vmsToDelete;
     private final LinkedList<VM> vmsAlive;
 
-    private static final Object ipToVMLock = new Object();
-    private static final Object vmsLock = new Object();
-    private static final Object vmsToDeleteLock = new Object();
-
     /**
      * New abstract connector implementation
      *
-     * @param providerName
+     * @param provider
      * @param props
      */
-    public AbstractConnector(String providerName, Map<String, String> props) {
-        this.providerName = providerName;
+    public AbstractConnector(CloudProvider provider, Map<String, String> props) {
+        this.provider = provider;
         IPToVM = new ConcurrentHashMap<>();
         powerOnVMTimestamp = new ConcurrentHashMap<>();
         vmsToDelete = new TreeSet<>();
@@ -122,12 +119,12 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
         VM vmInfo = tryToReuseVM(rR.getRequested());
         if (vmInfo != null) {
             LOGGER.info("[Abstract Connector] Reusing VM: " + vmInfo);
-            CreationThread ct = new CreationThread((Operations) this, vmInfo.getName(), providerName, rR, vmInfo);
+            CreationThread ct = new CreationThread((Operations) this, vmInfo.getName(), rR.getProvider(), rR, vmInfo);
             ct.start();
             return true;
         }
         try {
-            CreationThread ct = new CreationThread((Operations) this, name, providerName, rR, null);
+            CreationThread ct = new CreationThread((Operations) this, name, rR.getProvider(), rR, null);
             ct.start();
         } catch (Exception e) {
             LOGGER.info("[Abstract Connector] ResourceRequest failed", e);
@@ -139,7 +136,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
     private synchronized VM tryToReuseVM(CloudMethodResourceDescription requested) {
         String imageReq = requested.getImage().getImageName();
         VM reusedVM = null;
-        synchronized (vmsToDeleteLock) {
+        synchronized (vmsToDelete) {
             for (VM vm : vmsToDelete) {
                 if (!vm.getDescription().getImage().getImageName().equals(imageReq)) {
                     continue;
@@ -179,7 +176,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
         terminate = true;
         dead.terminate();
 
-        synchronized (ipToVMLock) {
+        synchronized (IPToVM) {
             for (VM vm : IPToVM.values()) {
                 LOGGER.info("[Abstract Connector] Retrieving data from VM " + vm.getName());
                 vm.getWorker().retrieveData(false);
@@ -202,13 +199,13 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
         }
 
         // Clear all
-        synchronized (ipToVMLock) {
+        synchronized (IPToVM) {
             IPToVM.clear();
         }
-        synchronized (vmsToDeleteLock) {
+        synchronized (vmsToDelete) {
             vmsToDelete.clear();
         }
-        synchronized (vmsLock) {
+        synchronized (vmsAlive) {
             vmsAlive.clear();
         }
 
@@ -286,12 +283,12 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
     public VM pause(CloudMethodWorker worker) {
         String ip = worker.getName();
 
-        synchronized (ipToVMLock) {
+        synchronized (IPToVM) {
             VM vmInfo = IPToVM.get(ip);
             if (vmInfo != null && canBeSaved(vmInfo)) {
                 LOGGER.info("[Abstract Connector] Virtual machine saved: " + vmInfo);
                 vmInfo.setToDelete(true);
-                synchronized (vmsToDeleteLock) {
+                synchronized (vmsToDelete) {
                     vmsToDelete.add(vmInfo);
                 }
                 return null;
@@ -321,21 +318,21 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
 
     private synchronized void addMachine(VM vmInfo) {
         String ip = vmInfo.getName();
-        synchronized (ipToVMLock) {
+        synchronized (IPToVM) {
             IPToVM.put(ip, vmInfo);
         }
-        synchronized (vmsLock) {
+        synchronized (vmsAlive) {
             vmsAlive.add(vmInfo);
         }
     }
 
     private synchronized void removeMachine(VM vmInfo) {
 
-        synchronized (ipToVMLock) {
+        synchronized (IPToVM) {
             IPToVM.remove(vmInfo.getName());
         }
 
-        synchronized (vmsLock) {
+        synchronized (vmsAlive) {
             vmsAlive.remove(vmInfo);
         }
         LOGGER.debug("[Abstract Connector] VM removed in the connector");
@@ -344,7 +341,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
     @Override
     public Float getTotalCost() {
         float aliveMachinesCost = 0;
-        synchronized (vmsLock) {
+        synchronized (vmsAlive) {
             long now = System.currentTimeMillis();
             for (VM vm : vmsAlive) {
                 long numSlots = getNumSlots(now, vm.getStartTime());
@@ -358,6 +355,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
 
     /**
      * Returns the machine cost per time slot for a given Resource Description
+     *
      * @rd
      *
      * @param rd
@@ -418,7 +416,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
 
         @Override
         public void run() {
-            Thread.currentThread().setName("[Abstract Connector] Connector " + providerName + " deadline");
+            Thread.currentThread().setName("[Abstract Connector] Connector " + provider.getName() + " deadline");
 
             long sleepTime = 1_000l;
             while (keepGoing) {
@@ -427,7 +425,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
                     Thread.sleep(sleepTime);
                 } catch (Exception e) {
                 }
-                synchronized (vmsLock) {
+                synchronized (vmsAlive) {
                     if (vmsAlive.isEmpty()) {
                         // LOGGER.info("MONITOR STATUS DEAD no VMs alive");
                         sleepTime = getSleepTime();
@@ -447,7 +445,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
                                         LOGGER.info("[Abstract Connector] Deleting vm " + vmInfo.getName()
                                                 + " because is marked to delete and it is on the safety delete interval");
                                         vmsAlive.pollFirst();
-                                        synchronized (vmsToDeleteLock) {
+                                        synchronized (vmsToDelete) {
                                             vmsToDelete.remove(vmInfo);
                                         }
                                         DeletionThread dt;

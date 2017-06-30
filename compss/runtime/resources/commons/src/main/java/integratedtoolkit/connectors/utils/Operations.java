@@ -2,7 +2,7 @@ package integratedtoolkit.connectors.utils;
 
 import integratedtoolkit.connectors.ConnectorException;
 import integratedtoolkit.connectors.VM;
-import integratedtoolkit.types.CloudImageDescription;
+import integratedtoolkit.types.resources.description.CloudImageDescription;
 import integratedtoolkit.types.resources.CloudMethodWorker;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
 

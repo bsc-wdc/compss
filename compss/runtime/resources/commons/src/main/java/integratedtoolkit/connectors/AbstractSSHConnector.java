@@ -23,11 +23,11 @@ import com.jcraft.jsch.SftpProgressMonitor;
 import integratedtoolkit.connectors.utils.KeyManager;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.ApplicationPackage;
-import integratedtoolkit.types.CloudImageDescription;
-
+import integratedtoolkit.types.CloudProvider;
+import integratedtoolkit.types.resources.description.CloudImageDescription;
 
 public abstract class AbstractSSHConnector extends AbstractConnector {
-    
+
     // Properties' names
     private static final String VM_USER = "vm-user";
     private static final String VM_PASS = "vm-password";
@@ -47,7 +47,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.CONNECTORS);
-    
+
     // Error messages
     private static final String ERROR_NO_KEYPAIR = "Error: There is no key pair to configure. Please create one with the ssh-keygen tool";
     private static final String ERROR_CONFIGURING_ACCESS = "Error configuring access for ";
@@ -70,9 +70,8 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     private final String keyPairName;
     private final String keyPairLocation;
 
-
-    public AbstractSSHConnector(String providerName, Map<String, String> props) {
-        super(providerName, props);
+    public AbstractSSHConnector(CloudProvider provider, Map<String, String> props) {
+        super(provider, props);
 
         String propUser = props.get(VM_USER);
         defaultUser = (propUser != null) ? propUser : DEFAULT_DEFAULT_USER;
@@ -82,7 +81,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
         String propKeypairLocation = props.get(VM_KEYPAIR_LOCATION);
         keyPairLocation = (propKeypairLocation != null) ? propKeypairLocation : DEFAULT_KEYPAIR_LOCATION;
-        
+
         defaultPassword = props.get(VM_PASS);
     }
 
@@ -94,8 +93,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     }
 
     /**
-     * @param defaultUser
-     *            the defaultUser to set
+     * @param defaultUser the defaultUser to set
      */
     protected void setDefaultUser(String defaultUser) {
         this.defaultUser = defaultUser;
@@ -132,10 +130,10 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
             }
             if (password != null || defaultPassword != null) {
                 setPassword = true;
-                if (password == null){
-                	passwordOrKeyPair = defaultPassword;
-                }else{
-                	passwordOrKeyPair = password;
+                if (password == null) {
+                    passwordOrKeyPair = defaultPassword;
+                } else {
+                    passwordOrKeyPair = password;
                 }
                 LOGGER.debug("First access done by password");
             } else if (keyPairName != null) {
@@ -238,8 +236,8 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
             String target = p.getTarget();
 
             // Adding classpath in bashrc
-            String command = "echo \"\nfor i in " + target +
-                    "/*.jar ; do\n\texport CLASSPATH=\\$CLASSPATH:\\$i\ndone\" >> ~/.bashrc";
+            String command = "echo \"\nfor i in " + target
+                    + "/*.jar ; do\n\texport CLASSPATH=\\$CLASSPATH:\\$i\ndone\" >> ~/.bashrc";
 
             executeTask(workerIP, user, setPassword, passwordOrKeyPair, command);
         }
@@ -250,7 +248,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
         // Scan key ------------------------------------------------------------
         String key = new String();
-        String[] cmd = { "/bin/sh", "-c", "ssh-keyscan -t rsa,dsa " + workerIP };
+        String[] cmd = {"/bin/sh", "-c", "ssh-keyscan -t rsa,dsa " + workerIP};
         int errors = 0;
         String errorString = null;
         while (key.isEmpty() && errors < KNOWN_HOSTS_MAX_ALLOWED_ERRORS) {
@@ -321,8 +319,8 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
         // Insert key to known hosts ------------------------------------------------------
         LOGGER.debug("Modifiying known hosts");
-        cmd = new String[] { "/bin/sh", "-c", "/bin/echo " + "\"" + key + "\"" + " >> " + System.getProperty("user.home") + File.separator
-                + ".ssh" + File.separator + "known_hosts" };
+        cmd = new String[]{"/bin/sh", "-c", "/bin/echo " + "\"" + key + "\"" + " >> " + System.getProperty("user.home") + File.separator
+            + ".ssh" + File.separator + "known_hosts"};
 
         synchronized (knownHosts) {
             errors = 0;
@@ -349,7 +347,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
                         // Sleep until next retry
                         try {
-                            Thread.sleep(RETRY_TIME * (long)1_000);
+                            Thread.sleep(RETRY_TIME * (long) 1_000);
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
                         }
@@ -406,14 +404,14 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
     private void executeTask(String workerIP, String user, boolean setPassword, String passwordOrKeyPair, String command)
             throws ConnectorException {
-        
+
         int numRetries = 0;
         ConnectorException reason = null;
         do {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Executing command: " + command);
             }
-            
+
             // Try to execute command
             try {
                 boolean success = tryToExecuteCommand(workerIP, user, setPassword, passwordOrKeyPair, command);
@@ -429,7 +427,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                 LOGGER.error("Retrying: " + numRetries + " of " + MAX_ALLOWED_ERRORS);
                 reason = new ConnectorException(ERROR_EXCEPTION_EXEC_COMMAND + user + "@" + workerIP, ce);
             }
-            
+
             // Sleep between connection retries
             try {
                 long sleepTime = RETRY_TIME * S_TO_MS;
@@ -438,7 +436,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                 LOGGER.warn("Sleep between CMD execution interrupted", ie);
                 Thread.currentThread().interrupt();
             }
-            
+
         } while (numRetries < MAX_ALLOWED_ERRORS);
 
         // This code is only reached if command was unsuccessful
@@ -523,17 +521,17 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
     private String readInputStream(InputStream is) throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
-        
+
         try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is))) {
             String line;
             while ((line = bufferedReader.readLine()) != null) {
                 stringBuilder.append(line);
                 stringBuilder.append('\n');
-            } 
+            }
         } catch (IOException ioe) {
             throw ioe;
         }
-        
+
         return stringBuilder.toString();
     }
 
@@ -574,11 +572,11 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                         if (password) {
                             LOGGER.debug("Session created as " + user + "@" + host + " with password.");
                         } else {
-                            LOGGER.debug("Session created as " + user + "@" + host + " with public key " + keyPairOrPassword); 
+                            LOGGER.debug("Session created as " + user + "@" + host + " with public key " + keyPairOrPassword);
                         }
                     }
                     return session;
-                    
+
                 } else {
                     ++errors;
                     if (password) {
@@ -597,7 +595,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                     session.disconnect();
                 }
             }
-            
+
             // Sleep between retries
             try {
                 Thread.sleep(RETRY_TIME * errors * S_TO_MS);
@@ -617,12 +615,10 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
         }
     }
 
-
     private static class PackageTransferProgressMonitor implements SftpProgressMonitor {
 
         private long max = 1;
         private long count = 0;
-
 
         public PackageTransferProgressMonitor() {
             // Values initialized in static. Nothing to do

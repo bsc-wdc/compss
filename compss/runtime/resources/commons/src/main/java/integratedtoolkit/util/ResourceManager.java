@@ -7,20 +7,17 @@ import integratedtoolkit.connectors.ConnectorException;
 import integratedtoolkit.exceptions.InitNodeException;
 import integratedtoolkit.exceptions.NoResourceAvailableException;
 import integratedtoolkit.log.Loggers;
+import integratedtoolkit.types.CloudProvider;
 import integratedtoolkit.types.ResourceCreationRequest;
-import integratedtoolkit.types.ResourcesState;
 import integratedtoolkit.types.project.exceptions.ProjectFileValidationException;
 import integratedtoolkit.types.resources.CloudMethodWorker;
 import integratedtoolkit.types.resources.Resource.Type;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.MethodWorker;
-import integratedtoolkit.types.resources.ServiceResourceDescription;
-import integratedtoolkit.types.resources.ServiceWorker;
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.types.resources.configuration.MethodConfiguration;
-import integratedtoolkit.types.resources.configuration.ServiceConfiguration;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
 import integratedtoolkit.types.resources.exceptions.ResourcesFileValidationException;
 import integratedtoolkit.types.resources.updates.PendingReduction;
@@ -36,11 +33,11 @@ import java.util.concurrent.Semaphore;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 /**
- * The ResourceManager class is an utility to manage all the resources available for the cores execution. It keeps
- * information about the features of each resource and is used as an endpoint to discover which resources can run a core
- * in a certain moment, the total and the available number of slots.
+ * The ResourceManager class is an utility to manage all the resources available
+ * for the cores execution. It keeps information about the features of each
+ * resource and is used as an endpoint to discover which resources can run a
+ * core in a certain moment, the total and the available number of slots.
  *
  */
 public class ResourceManager {
@@ -59,6 +56,7 @@ public class ResourceManager {
     private static final String DEL_VM_ERR = "ERROR: Canot delete VMs";
 
     // Information about resources
+    private static CloudManager cloudManager;
     private static WorkerPool pool;
     private static int[] poolCoreMaxConcurrentTasks;
     private static ResourceUser resourceUser;
@@ -72,29 +70,37 @@ public class ResourceManager {
      * ******************************************************************** INITIALIZER METHOD
      ********************************************************************/
     /**
-     * Constructs a new ResourceManager using the Resources xml file content. First of all, an empty resource pool is
-     * created and the Cloud Manager is initialized without any providers. Secondly the resource file is validated and
-     * parsed and the toplevel xml nodes are processed in different ways depending on its type: - Resource: a new
-     * Physical resource is added to the resource pool with the same id as its Name attribute and as many slots as
-     * indicated in the project file. If it has 0 slots or it is not on the project xml, the resource is not included.
+     * Constructs a new ResourceManager using the Resources xml file content.
+     * First of all, an empty resource pool is created and the Cloud Manager is
+     * initialized without any providers. Secondly the resource file is
+     * validated and parsed and the toplevel xml nodes are processed in
+     * different ways depending on its type: - Resource: a new Physical resource
+     * is added to the resource pool with the same id as its Name attribute and
+     * as many slots as indicated in the project file. If it has 0 slots or it
+     * is not on the project xml, the resource is not included.
      *
-     * - Service: a new Physical resource is added to the resource pool with the same id as its wsdl attribute and as
-     * many slots as indicated in the project file. If it has 0 slots or it is not on the project xml, the resource is
-     * not included.
+     * - Service: a new Physical resource is added to the resource pool with the
+     * same id as its wsdl attribute and as many slots as indicated in the
+     * project file. If it has 0 slots or it is not on the project xml, the
+     * resource is not included.
      *
-     * - Cloud Provider: if there is any CloudProvider in the project file with the same name, a new Cloud Provider is
-     * added to the CloudManager with its name attribute value as identifier. The CloudManager is configured as
-     * described between the project xml and the resources file. From the resource file it gets the properties which
-     * describe how to connect with it: the connector path, the endpoint, ... Other properties required to manage the
-     * resources are specified on the project file: i.e. the maximum amount of resource deployed on that provider. Some
-     * configurations depend on both files. One of them is the list of usable images. The images offered by the cloud
-     * provider are on a list on the resources file, where there are specified the name and the software description of
-     * that image. On the project file there is a description of how the resources created with that image must be used:
-     * username, working directory,... Only the images that have been described in both files are added to the
-     * CloudManager
+     * - Cloud Provider: if there is any CloudProvider in the project file with
+     * the same name, a new Cloud Provider is added to the cloudManager with its
+     * name attribute value as identifier. The cloudManager is configured as
+     * described between the project xml and the resources file. From the
+     * resource file it gets the properties which describe how to connect with
+     * it: the connector path, the endpoint, ... Other properties required to
+     * manage the resources are specified on the project file: i.e. the maximum
+     * amount of resource deployed on that provider. Some configurations depend
+     * on both files. One of them is the list of usable images. The images
+     * offered by the cloud provider are on a list on the resources file, where
+     * there are specified the name and the software description of that image.
+     * On the project file there is a description of how the resources created
+     * with that image must be used: username, working directory,... Only the
+     * images that have been described in both files are added to the
+     * cloudManager
      *
-     * @param resUser
-     *            class to notify resource changes
+     * @param resUser object to notify resource changes
      *
      */
     public static void load(ResourceUser resUser) {
@@ -106,7 +112,7 @@ public class ResourceManager {
         poolCoreMaxConcurrentTasks = new int[CoreManager.getCoreCount()];
 
         // Initialize the Cloud structures (even if we won't need them)
-        CloudManager.initialize();
+        cloudManager = new CloudManager();
 
         // Load Resources and Project file and cross validate them
         try {
@@ -121,9 +127,33 @@ public class ResourceManager {
 
     }
 
-    /*
-     * ******************************************************************** SHUTDOWN METHOD
-     ********************************************************************/
+    /**
+     * Reinitializes the ResourceManager
+     *
+     * @param resUser obect to notify resource changes
+     */
+    public static void clear(ResourceUser resUser) {
+        resourceUser = resUser;
+        pool = new WorkerPool();
+        poolCoreMaxConcurrentTasks = new int[CoreManager.getCoreCount()];
+        cloudManager = new CloudManager();
+    }
+
+    /**
+     * Reconfigures the master node adding its shared disks
+     *
+     * @param sharedDisks Shared Disk descriptions (diskName->mountpoint)
+     */
+    public static void updateMasterConfiguration(HashMap<String, String> sharedDisks) {
+        Comm.getAppHost().updateSharedDisk(sharedDisks);
+        try {
+            Comm.getAppHost().start();
+        } catch (InitNodeException e) {
+            ErrorManager.error("Error updating master configuration", e);
+
+        }
+    }
+
     /**
      * Stops all the nodes within the pool
      *
@@ -135,12 +165,12 @@ public class ResourceManager {
         runtimeLogger.info("Stopping all workers");
 
         // Stop all Cloud VM
-        if (CloudManager.isUseCloud()) {
+        if (cloudManager.isUseCloud()) {
             // Transfer files
             resourcesLogger.debug("DEBUG_MSG = [Terminating cloud instances...]");
             try {
-                CloudManager.terminateALL();
-                resourcesLogger.info("TOTAL_EXEC_COST = " + CloudManager.getTotalCost());
+                cloudManager.terminateALL();
+                resourcesLogger.info("TOTAL_EXEC_COST = " + cloudManager.getTotalCost());
             } catch (Exception e) {
                 resourcesLogger.error(ITConstants.TS + ": " + DEL_VM_ERR, e);
             }
@@ -174,8 +204,12 @@ public class ResourceManager {
     }
 
     /*
-     * ******************************************************************** STATIC POOL METHODS
-     ********************************************************************/
+     ********************************************************************
+     ********************************************************************
+     *************************  POOL METHODS ****************************
+     ********************************************************************
+     ********************************************************************
+     */
     /**
      * Returns a worker instance with the given name @name
      *
@@ -205,31 +239,16 @@ public class ResourceManager {
     }
 
     /**
-     * Reconfigures the master node adding its shared disks
-     *
-     * @param sharedDisks
-     *            Shared Disk descriptions (diskName->mountpoint)
-     */
-    public static void updateMasterConfiguration(HashMap<String, String> sharedDisks) {
-        Comm.getAppHost().updateSharedDisk(sharedDisks);
-        try {
-            Comm.getAppHost().start();
-        } catch (InitNodeException e) {
-            ErrorManager.error("Error updating master configuration", e);
-
-        }
-    }
-
-    /**
      * Initializes a new Method Worker
      *
      * @param name
      * @param rd
      * @param sharedDisks
      * @param mc
+     *
+     * @return the created method Worker
      */
-    public static void newMethodWorker(String name, MethodResourceDescription rd, HashMap<String, String> sharedDisks,
-            MethodConfiguration mc) {
+    private static MethodWorker newMethodWorker(String name, MethodResourceDescription rd, HashMap<String, String> sharedDisks, MethodConfiguration mc) {
         // Compute task count
         int taskCount;
         int limitOfTasks = mc.getLimitOfTasks();
@@ -275,21 +294,15 @@ public class ResourceManager {
 
         MethodWorker newResource = new MethodWorker(name, rd, mc, sharedDisks);
         addStaticResource(newResource);
+        return newResource;
     }
 
     /**
-     * Initializes a new Service Worker. Returns true if the worker has been created, false otherwise
      *
-     * @param wsdl
-     * @param sd
-     * @param sc
+     * @param <T>
+     * @param worker
      */
-    public static void newServiceWorker(String wsdl, ServiceResourceDescription sd, ServiceConfiguration sc) {
-        ServiceWorker newResource = new ServiceWorker(wsdl, sd, sc);
-        addStaticResource(newResource);
-    }
-
-    private static <T extends WorkerResourceDescription> void addStaticResource(Worker<T> worker) {
+    public static <T extends WorkerResourceDescription> void addStaticResource(Worker<T> worker) {
         synchronized (pool) {
             worker.updatedFeatures();
             pool.addStaticResource(worker);
@@ -323,15 +336,46 @@ public class ResourceManager {
     public static void coreElementUpdates(List<Integer> updatedCores) {
         synchronized (pool) {
             pool.coreElementUpdates(updatedCores);
-            CloudManager.newCoreElementsDetected(updatedCores);
+            cloudManager.newCoreElementsDetected(updatedCores);
         }
     }
 
     /*
-     * ******************************************************************** CLOUD METHODS
-     ********************************************************************/
-    public static void createResources(String provider, String instanceType, String imageName) {
-        CloudManager.askForResources(provider, instanceType, imageName);
+     ********************************************************************
+     ********************************************************************
+     ************************** CLOUD METHODS ***************************
+     ********************************************************************
+     ********************************************************************
+     */
+    /**
+     * Sets the boundaries on the cloud elasticity
+     *
+     * @param minVMs lower number of VMs allowed
+     * @param initialVMs initial number of VMs
+     * @param maxVMs higher number of VMs allowed
+     */
+    public static void setCloudVMsBoundaries(Integer minVMs, Integer initialVMs, Integer maxVMs) {
+        cloudManager.setInitialVMs(initialVMs);
+        cloudManager.setMinVMs(minVMs);
+        cloudManager.setMaxVMs(maxVMs);
+    }
+
+    /**
+     * Adds a new Provider to the Cloud section management (and enables the
+     * cloud usage)
+     *
+     * @param providerName
+     * @param limitOfVMs
+     * @param runtimeConnectorClass
+     * @param connectorJarPath
+     * @param connectorMainClass
+     * @param connectorProperties
+     * @return
+     * @throws integratedtoolkit.connectors.ConnectorException
+     */
+    public static CloudProvider registerCloudProvider(String providerName, Integer limitOfVMs, String runtimeConnectorClass, String connectorJarPath, String connectorMainClass,
+            HashMap<String, String> connectorProperties) throws ConnectorException {
+        return cloudManager.registerCloudProvider(providerName, limitOfVMs, runtimeConnectorClass, connectorJarPath, connectorMainClass, connectorProperties);
     }
 
     /**
@@ -339,10 +383,12 @@ public class ResourceManager {
      *
      * @param origin
      * @param worker
+     * @param granted
      */
-    public static void addCloudWorker(ResourceCreationRequest origin, CloudMethodWorker worker) {
+    public static void addCloudWorker(ResourceCreationRequest origin, CloudMethodWorker worker, CloudMethodResourceDescription granted) {
         synchronized (pool) {
-            CloudManager.confirmedRequest(origin, worker);
+            CloudProvider cloudProvider = origin.getProvider();
+            cloudProvider.confirmedCreation(origin, worker, granted);
             worker.updatedFeatures();
             pool.addDynamicResource(worker);
             pool.defineCriticalSet();
@@ -368,11 +414,11 @@ public class ResourceManager {
      * @param worker
      * @param extension
      */
-    public static void increasedCloudWorker(ResourceCreationRequest origin, CloudMethodWorker worker,
-            CloudMethodResourceDescription extension) {
+    public static void increasedCloudWorker(ResourceCreationRequest origin, CloudMethodWorker worker, CloudMethodResourceDescription extension) {
 
         synchronized (pool) {
-            CloudManager.confirmedRequest(origin, worker);
+            CloudProvider cloudProvider = origin.getProvider();
+            cloudProvider.confirmedCreation(origin, worker, extension);
             int[] maxTaskCount = worker.getSimultaneousTasks();
             for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {
                 poolCoreMaxConcurrentTasks[coreId] -= maxTaskCount[coreId];
@@ -408,6 +454,7 @@ public class ResourceManager {
     /**
      * Decreases the capabilities of a given cloud worker
      *
+     * @param <R>
      * @param worker
      * @param modification
      */
@@ -418,7 +465,6 @@ public class ResourceManager {
             for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {
                 poolCoreMaxConcurrentTasks[coreId] -= maxTaskCount[coreId];
             }
-
             worker.applyReduction((PendingReduction<MethodResourceDescription>) modification);
             maxTaskCount = worker.getSimultaneousTasks();
             for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {
@@ -434,8 +480,11 @@ public class ResourceManager {
     }
 
     public static void terminateResource(CloudMethodWorker worker, CloudMethodResourceDescription reduction) {
-        pool.delete(worker);
-        CloudManager.destroyResources(worker, reduction);
+        if (worker.getDescription().getTypeComposition().isEmpty()) {
+            pool.delete(worker);
+        }
+        CloudProvider cp = worker.getProvider();
+        cp.requestResourceReduction(worker, reduction);
     }
 
     /**
@@ -444,7 +493,7 @@ public class ResourceManager {
      * @return
      */
     public static boolean useCloud() {
-        return CloudManager.isUseCloud();
+        return cloudManager.isUseCloud();
     }
 
     /**
@@ -455,7 +504,7 @@ public class ResourceManager {
      */
     public static Long getCreationTime() throws Exception {
         try {
-            return CloudManager.getNextCreationTime();
+            return cloudManager.getNextCreationTime();
         } catch (ConnectorException e) {
             throw new Exception(e);
         }
@@ -467,22 +516,42 @@ public class ResourceManager {
      * @return the cost per hour of the whole pool
      */
     public static float getCurrentCostPerHour() {
-        return CloudManager.currentCostPerHour();
+        return cloudManager.currentCostPerHour();
     }
 
     /**
-     * The CloudManager computes the accumulated cost of the execution
+     * The cloudManager computes the accumulated cost of the execution
      *
      * @return cost of the whole execution
      */
     public static float getTotalCost() {
-        return CloudManager.getTotalCost();
+        return cloudManager.getTotalCost();
     }
 
     /*
      * **********************************************************************************************************
      * GETTERS
      ***********************************************************************************************************/
+    public static int getMaxCloudVMs() {
+        return cloudManager.getMaxVMs();
+    }
+
+    public static int getInitialCloudVMs() {
+        return cloudManager.getInitialVMs();
+    }
+
+    public static int getMinCloudVMs() {
+        return cloudManager.getMinVMs();
+    }
+
+    public static int getCurrentVMCount() {
+        return cloudManager.getCurrentVMCount();
+    }
+
+    public static long getNextCreationTime() throws Exception {
+        return cloudManager.getNextCreationTime();
+    }
+
     /**
      * Returns the total slots per per core
      *
@@ -490,7 +559,7 @@ public class ResourceManager {
      */
     public static int[] getTotalSlots() {
         int[] counts = new int[CoreManager.getCoreCount()];
-        int[] cloudCount = CloudManager.getPendingCoreCounts();
+        int[] cloudCount = cloudManager.getPendingCoreCounts();
         synchronized (pool) {
 
             for (int i = 0; i < counts.length; i++) {
@@ -532,7 +601,8 @@ public class ResourceManager {
     }
 
     /**
-     * Returns the dynamic resources available at the pool that are in the critical set
+     * Returns the dynamic resources available at the pool that are in the
+     * critical set
      *
      * @return
      */
@@ -543,7 +613,8 @@ public class ResourceManager {
     }
 
     /**
-     * Returns the dynamic resources available at the pool that are NOT in the critical set
+     * Returns the dynamic resources available at the pool that are NOT in the
+     * critical set
      *
      * @return
      */
@@ -565,72 +636,23 @@ public class ResourceManager {
         }
     }
 
-    /**
-     * Refuses a cloud creation request
-     *
-     * @param rcr
-     */
-    public static void refuseCloudRequest(ResourceCreationRequest rcr) {
-        CloudManager.refusedRequest(rcr);
+    public static Collection<CloudProvider> getAvailableCloudProviders() {
+        return cloudManager.getProviders();
+    }
+
+    public static CloudProvider getCloudProvider(String name) {
+        return cloudManager.getProvider(name);
     }
 
     public static LinkedList<ResourceCreationRequest> getPendingCreationRequests() {
-        return CloudManager.getPendingRequests();
+        return cloudManager.getPendingRequests();
     }
 
     /*
      * ************************************************************************************************************
      * LOGGER METHODS
-     ***********************************************************************************************************/
-    /**
-     * Returns the resources state
-     *
-     * @return
+     **********************************************************************************************************
      */
-    public static ResourcesState getResourcesState() {
-        ResourcesState state = new ResourcesState();
-        synchronized (pool) {
-            // Set resources information
-            for (Worker<? extends WorkerResourceDescription> resource : pool.findAllResources()) {
-                if (resource.getType().equals(Type.WORKER)) {
-                    int cores = ((MethodResourceDescription) resource.getDescription()).getTotalCPUComputingUnits();
-                    float memory = ((MethodResourceDescription) resource.getDescription()).getMemorySize();
-                    // Last boolean equals true because this resource is active
-                    state.addHost(resource.getName(), resource.getType().toString(), cores, memory, resource.getSimultaneousTasks(), true);
-                } else {
-                    // Services doesn't have cores/memory
-                    // Last boolean equals true because this resource is active
-                    state.addHost(resource.getName(), resource.getType().toString(), 0, (float) 0.0, resource.getSimultaneousTasks(), true);
-                }
-            }
-        }
-        // Set cloud information
-        state.setUseCloud(CloudManager.isUseCloud());
-        if (state.getUseCloud()) {
-            try {
-                state.setCreationTime(CloudManager.getNextCreationTime());
-            } catch (Exception ex) {
-                state.setCreationTime(120000l);
-            }
-            state.setCurrentCloudVMCount(CloudManager.getCurrentVMCount());
-
-            for (ResourceCreationRequest rcr : CloudManager.getPendingRequests()) {
-                int[][] simTasks = rcr.requestedSimultaneousTaskCount();
-                for (int coreId = 0; coreId < simTasks.length; coreId++) {
-                    int coreSlots = 0;
-                    for (int implId = 0; implId < simTasks[coreId].length; ++implId) {
-                        coreSlots += Math.max(coreSlots, simTasks[coreId][implId]);
-                    }
-                    // Last boolean equals false because this resource is pending
-                    state.updateHostInfo(rcr.getRequested().getName(), rcr.getRequested().getType(),
-                            rcr.getRequested().getTotalCPUComputingUnits(), rcr.getRequested().getMemorySize(), coreId, coreSlots, false);
-                }
-            }
-        }
-
-        return state;
-    }
-
     /**
      * Prints out the information about the pending requests
      *
@@ -639,20 +661,20 @@ public class ResourceManager {
      */
     public static String getPendingRequestsMonitorData(String prefix) {
         StringBuilder sb = new StringBuilder();
-        LinkedList<ResourceCreationRequest> rcr = CloudManager.getPendingRequests();
+        LinkedList<ResourceCreationRequest> rcr = cloudManager.getPendingRequests();
         for (ResourceCreationRequest r : rcr) {
             // TODO: Add more information (i.e. information per processor, memory type, etc.)
             sb.append(prefix).append("<Resource id=\"requested new VM\">").append("\n");
-            sb.append(prefix + "\t").append("<CPUComputingUnits>").append(0).append("</CPUComputingUnits>").append("\n");
-            sb.append(prefix + "\t").append("<GPUComputingUnits>").append(0).append("</GPUComputingUnits>").append("\n");
-            sb.append(prefix + "\t").append("<FPGAComputingUnits>").append(0).append("</FPGAComputingUnits>").append("\n");
-            sb.append(prefix + "\t").append("<OTHERComputingUnits>").append(0).append("</OTHERComputingUnits>").append("\n");
-            sb.append(prefix + "\t").append("<Memory>").append(0).append("</Memory>").append("\n");
-            sb.append(prefix + "\t").append("<Disk>").append(0).append("</Disk>").append("\n");
-            sb.append(prefix + "\t").append("<Provider>").append(r.getProvider()).append("</Provider>").append("\n");
-            sb.append(prefix + "\t").append("<Image>").append(r.getRequested().getImage().getImageName()).append("</Image>").append("\n");
-            sb.append(prefix + "\t").append("<Status>").append("Creating").append("</Status>").append("\n");
-            sb.append(prefix + "\t").append("<Tasks>").append("</Tasks>").append("\n");
+            sb.append(prefix).append("\t").append("<CPUComputingUnits>").append(0).append("</CPUComputingUnits>").append("\n");
+            sb.append(prefix).append("\t").append("<GPUComputingUnits>").append(0).append("</GPUComputingUnits>").append("\n");
+            sb.append(prefix).append("\t").append("<FPGAComputingUnits>").append(0).append("</FPGAComputingUnits>").append("\n");
+            sb.append(prefix).append("\t").append("<OTHERComputingUnits>").append(0).append("</OTHERComputingUnits>").append("\n");
+            sb.append(prefix).append("\t").append("<Memory>").append(0).append("</Memory>").append("\n");
+            sb.append(prefix).append("\t").append("<Disk>").append(0).append("</Disk>").append("\n");
+            sb.append(prefix).append("\t").append("<Provider>").append(r.getProvider()).append("</Provider>").append("\n");
+            sb.append(prefix).append("\t").append("<Image>").append(r.getRequested().getImage().getImageName()).append("</Image>").append("\n");
+            sb.append(prefix).append("\t").append("<Status>").append("Creating").append("</Status>").append("\n");
+            sb.append(prefix).append("\t").append("<Tasks>").append("</Tasks>").append("\n");
             sb.append(prefix).append("</Resource>").append("\n");
         }
         return sb.toString();
@@ -664,7 +686,73 @@ public class ResourceManager {
      */
     public static void printResourcesState() {
         resourcesLogger.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
-        resourcesLogger.info(getResourcesState().toString());
+        StringBuilder resourceState = new StringBuilder();
+
+        resourceState.append("RESOURCES_INFO = [").append("\n");
+        synchronized (pool) {
+            for (Worker<? extends WorkerResourceDescription> resource : pool.findAllResources()) {
+                resourceState.append("\t").append("RESOURCE = [").append("\n");
+                resourceState.append("\t\t").append("NAME = ").append(resource.getName()).append("\n");
+                resourceState.append("\t\t").append("TYPE = ").append(resource.getType().toString()).append("\n");
+                if (resource.getType() == Type.SERVICE) {
+                    resourceState.append("\t\t").append("CPUS = 0\n");
+                    resourceState.append("\t\t").append("MEMORY = 0\n");
+                } else {
+                    MethodResourceDescription mrd = (MethodResourceDescription) resource.getDescription();
+                    resourceState.append("\t\t").append("CPUS = ").append(mrd.getTotalCPUComputingUnits()).append("\n");
+                    resourceState.append("\t\t").append("MEMORY = ").append(mrd.getMemorySize()).append("\n");
+                }
+                int[] coreSlots = resource.getSimultaneousTasks();
+                resourceState.append("\t\t").append("CAN_RUN = [").append("\n");
+                for (int i = 0; i < coreSlots.length; i++) {
+                    resourceState.append("\t\t\t").append("CORE = [").append("\n");
+                    resourceState.append("\t\t\t").append("\t").append("COREID = ").append(i).append("\n");
+                    resourceState.append("\t\t\t").append("\t").append("NUM_SLOTS = ").append(coreSlots[i]).append("\n");
+                    resourceState.append("\t\t\t").append("]").append("\n");
+                }
+                resourceState.append("\t\t").append("]").append("\n"); // End CAN_RUN
+                resourceState.append("\t").append("]\n"); // End RESOURCE
+            }
+        }
+        resourceState.append("]").append("\n"); // END RESOURCES_INFO
+
+        resourceState.append("CLOUD_INFO = [").append("\n");
+
+        if (cloudManager.isUseCloud()) {
+            resourceState.append("\t").append("CURRENT_CLOUD_VM_COUNT = ").append(cloudManager.getCurrentVMCount()).append("\n");
+            try {
+                resourceState.append("\t").append("CREATION_TIME = ").append(Long.toString(cloudManager.getNextCreationTime())).append("\n");
+            } catch (Exception ex) {
+                resourceState.append("\t").append("CREATION_TIME = ").append(120000l).append("\n");
+            }
+            resourceState.append("\t").append("PENDING_RESOURCES = [").append("\n");
+            for (ResourceCreationRequest rcr : cloudManager.getPendingRequests()) {
+                resourceState.append("\t\t").append("RESOURCE = [").append("\n");
+                CloudMethodResourceDescription cmrd = rcr.getRequested();
+                resourceState.append("\t\t\t").append("NAME = ").append(cmrd.getName()).append("\n");
+                resourceState.append("\t\t\t").append("TYPE = ").append(Type.WORKER.toString()).append("\n");
+                resourceState.append("\t\t\t").append("CPUS = ").append(cmrd.getTotalCPUComputingUnits()).append("\n");
+                resourceState.append("\t\t\t").append("MEMORY = ").append(cmrd.getMemorySize()).append("\n");
+                resourceState.append("\t\t\t").append("CAN_RUN = [").append("\n");
+                int[][] simTasks = rcr.requestedSimultaneousTaskCount();
+                for (int coreId = 0; coreId < simTasks.length; coreId++) {
+                    int coreSlots = 0;
+                    for (int implId = 0; implId < simTasks[coreId].length; implId++) {
+                        coreSlots = Math.max(coreSlots, simTasks[coreId][implId]);
+                    }
+                    resourceState.append("\t\t\t\t").append("CORE = [").append("\n");
+                    resourceState.append("\t\t\t\t\t").append("COREID = ").append(coreId).append("\n");
+                    resourceState.append("\t\t\t\t\t").append("NUM_SLOTS = ").append(coreSlots).append("\n");
+                    resourceState.append("\t\t\t\t").append("]").append("\n");
+                }
+                resourceState.append("\t\t\t").append("]").append("\n"); // End CAN_RUN
+                resourceState.append("\t\t").append("]").append("\n"); // End RESOURCE
+            }
+            resourceState.append("\t").append("]").append("\n"); // End PENDING_RESOURCES
+        }
+
+        resourceState.append("]"); // END CLOUD_INFO
+        resourcesLogger.info(resourceState.toString());
     }
 
     /**
@@ -677,7 +765,7 @@ public class ResourceManager {
         StringBuilder sb = new StringBuilder();
         sb.append(prefix).append("TIMESTAMP = ").append(String.valueOf(System.currentTimeMillis())).append("\n");
         sb.append(pool.getCurrentState(prefix)).append("\n");
-        sb.append(CloudManager.getCurrentState(prefix));
+        sb.append(cloudManager.getCurrentState(prefix));
         return sb.toString();
     }
 

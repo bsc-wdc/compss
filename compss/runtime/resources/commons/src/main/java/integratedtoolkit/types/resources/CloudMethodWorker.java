@@ -1,7 +1,8 @@
 package integratedtoolkit.types.resources;
 
 import integratedtoolkit.types.COMPSsWorker;
-import integratedtoolkit.types.CloudImageDescription;
+import integratedtoolkit.types.CloudProvider;
+import integratedtoolkit.types.resources.description.CloudImageDescription;
 import integratedtoolkit.types.resources.configuration.MethodConfiguration;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
 import integratedtoolkit.types.resources.updates.PendingReduction;
@@ -10,26 +11,27 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-
 public class CloudMethodWorker extends MethodWorker {
 
     // Pending removals
     private final LinkedList<PendingReduction<MethodResourceDescription>> pendingReductions;
     private final CloudMethodResourceDescription toRemove;
+    private final CloudProvider provider;
 
-
-    public CloudMethodWorker(CloudMethodResourceDescription description, COMPSsWorker worker, int limitOfTasks,
+    public CloudMethodWorker(String name, CloudProvider provider, CloudMethodResourceDescription description, COMPSsWorker worker, int limitOfTasks,
             HashMap<String, String> sharedDisks) {
 
-        super(description.getName(), description, worker, limitOfTasks, sharedDisks);
+        super(name, description, worker, limitOfTasks, sharedDisks);
+        this.provider = provider;
         this.toRemove = new CloudMethodResourceDescription();
         this.pendingReductions = new LinkedList<>();
     }
 
-    public CloudMethodWorker(String name, CloudMethodResourceDescription description, MethodConfiguration config,
+    public CloudMethodWorker(String name, CloudProvider provider, CloudMethodResourceDescription description, MethodConfiguration config,
             HashMap<String, String> sharedDisks) {
 
         super(name, description, config, sharedDisks);
+        this.provider = provider;
 
         if (this.description != null) {
             // Add name
@@ -42,8 +44,13 @@ public class CloudMethodWorker extends MethodWorker {
 
     public CloudMethodWorker(CloudMethodWorker cmw) {
         super(cmw);
+        this.provider = cmw.provider;
         this.toRemove = cmw.toRemove.copy();
         this.pendingReductions = cmw.pendingReductions;
+    }
+
+    public CloudProvider getProvider() {
+        return provider;
     }
 
     @Override
@@ -52,11 +59,16 @@ public class CloudMethodWorker extends MethodWorker {
     }
 
     @Override
+    public CloudMethodResourceDescription getDescription() {
+        return (CloudMethodResourceDescription) super.getDescription();
+    }
+
+    @Override
     public String getMonitoringData(String prefix) {
         StringBuilder sb = new StringBuilder();
         sb.append(prefix).append(super.getMonitoringData(prefix));
 
-        String providerName = ((CloudMethodResourceDescription) description).getProviderName();
+        String providerName = provider.getName();
         if (providerName == null) {
             providerName = "";
         }
@@ -77,7 +89,7 @@ public class CloudMethodWorker extends MethodWorker {
             available.increase(increment);
         }
         synchronized (description) {
-            description.increase(increment);
+            ((CloudMethodResourceDescription) this.description).increase(increment);
         }
         updatedFeatures();
     }
@@ -126,9 +138,9 @@ public class CloudMethodWorker extends MethodWorker {
     }
 
     public synchronized void applyReduction(PendingReduction<MethodResourceDescription> pRed) {
-        MethodResourceDescription reduction = (MethodResourceDescription) pRed.getModification();
+        CloudMethodResourceDescription reduction = (CloudMethodResourceDescription) pRed.getModification();
         synchronized (description) {
-            description.reduce(reduction);
+            ((CloudMethodResourceDescription) this.description).reduce(reduction);
         }
         synchronized (available) {
             if (!hasAvailable(reduction) && this.getUsedCPUTaskCount() > 0) {

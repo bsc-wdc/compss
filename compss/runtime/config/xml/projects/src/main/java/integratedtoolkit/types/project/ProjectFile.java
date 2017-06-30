@@ -24,7 +24,6 @@ import integratedtoolkit.types.project.exceptions.ProjectFileValidationException
 import integratedtoolkit.types.project.exceptions.InvalidElementException;
 import integratedtoolkit.types.project.jaxb.*;
 
-
 public class ProjectFile {
 
     // JAXB context
@@ -48,8 +47,8 @@ public class ProjectFile {
      * CONSTRUCTORS
      **************************************/
     /**
-     * Creates a ProjectFile instance from a given XML file. The XML is validated against the given schema and
-     * internally validated
+     * Creates a ProjectFile instance from a given XML file. The XML is
+     * validated against the given schema and internally validated
      *
      * @param xml
      * @param xsd
@@ -76,8 +75,8 @@ public class ProjectFile {
     }
 
     /**
-     * Creates a ProjectFile instance from a given XML string. The XML is validated against the given schema and
-     * internally validated
+     * Creates a ProjectFile instance from a given XML string. The XML is
+     * validated against the given schema and internally validated
      *
      * @param xmlString
      * @param xsd
@@ -104,8 +103,8 @@ public class ProjectFile {
     }
 
     /**
-     * Creates a ProjectFile instance from a given XML file. The XML is validated against the given path of the schema
-     * and internally validated
+     * Creates a ProjectFile instance from a given XML file. The XML is
+     * validated against the given path of the schema and internally validated
      *
      * @param xml
      * @param xsdPath
@@ -134,8 +133,8 @@ public class ProjectFile {
     }
 
     /**
-     * Creates a ProjectFile instance from a given XML string. The XML is validated against the given path of the schema
-     * and internally validated
+     * Creates a ProjectFile instance from a given XML string. The XML is
+     * validated against the given path of the schema and internally validated
      *
      * @param xmlString
      * @param xsdPath
@@ -242,7 +241,8 @@ public class ProjectFile {
     }
 
     /**
-     * Returns the instance of the MasterNode. Null if not found (but XSD schema doesn't allow it)
+     * Returns the instance of the MasterNode. Null if not found (but XSD schema
+     * doesn't allow it)
      *
      * @return
      */
@@ -622,7 +622,8 @@ public class ProjectFile {
     }
 
     /**
-     * Returns the application information of a given ComputeNode. Null if not defined
+     * Returns the application information of a given ComputeNode. Null if not
+     * defined
      *
      * @param cn
      * @return
@@ -691,7 +692,8 @@ public class ProjectFile {
     }
 
     /**
-     * Returns the declared properties of a given Adaptor within a given ComputeNode
+     * Returns the declared properties of a given Adaptor within a given
+     * ComputeNode
      *
      * @param cn
      * @param adaptorName
@@ -804,7 +806,7 @@ public class ProjectFile {
      * @param c
      * @return
      */
-    public int getInitialVMs(CloudType c) {
+    public Integer getInitialVMs(CloudType c) {
         List<JAXBElement<?>> elements = c.getCloudProviderOrInitialVMsOrMinimumVMs();
         if (elements != null) {
             for (JAXBElement<?> elem : elements) {
@@ -814,7 +816,7 @@ public class ProjectFile {
             }
         }
 
-        return -1;
+        return null;
     }
 
     /**
@@ -823,7 +825,7 @@ public class ProjectFile {
      * @param c
      * @return
      */
-    public int getMinVMs(CloudType c) {
+    public Integer getMinVMs(CloudType c) {
         List<JAXBElement<?>> elements = c.getCloudProviderOrInitialVMsOrMinimumVMs();
         if (elements != null) {
             for (JAXBElement<?> elem : elements) {
@@ -833,7 +835,7 @@ public class ProjectFile {
             }
         }
 
-        return -1;
+        return null;
     }
 
     /**
@@ -842,7 +844,7 @@ public class ProjectFile {
      * @param c
      * @return
      */
-    public int getMaxVMs(CloudType c) {
+    public Integer getMaxVMs(CloudType c) {
         List<JAXBElement<?>> elements = c.getCloudProviderOrInitialVMsOrMinimumVMs();
         if (elements != null) {
             for (JAXBElement<?> elem : elements) {
@@ -852,7 +854,7 @@ public class ProjectFile {
             }
         }
 
-        return -1;
+        return null;
     }
 
     public String getUser(ImageType image) {
@@ -1090,7 +1092,8 @@ public class ProjectFile {
     }
 
     /**
-     * Adds a new ComputeNode with the given information and returns the instance of the new ComputeNode
+     * Adds a new ComputeNode with the given information and returns the
+     * instance of the new ComputeNode
      *
      * @param name
      * @param installDir
@@ -1136,7 +1139,8 @@ public class ProjectFile {
     }
 
     /**
-     * Adds a new ComputeNode with the given information and returns the instance of the new ComputeNode
+     * Adds a new ComputeNode with the given information and returns the
+     * instance of the new ComputeNode
      *
      * @param name
      * @param installDir
@@ -1149,7 +1153,8 @@ public class ProjectFile {
     }
 
     /**
-     * Adds a new ComputeNode with the given information and returns the instance of the new ComputeNode
+     * Adds a new ComputeNode with the given information and returns the
+     * instance of the new ComputeNode
      *
      * @param name
      * @param installDir
@@ -1174,7 +1179,8 @@ public class ProjectFile {
     }
 
     /**
-     * Adds a new ComputeNode with the given information and returns the instance of the new ComputeNode
+     * Adds a new ComputeNode with the given information and returns the
+     * instance of the new ComputeNode
      *
      * @param name
      * @param installDir
@@ -1203,7 +1209,8 @@ public class ProjectFile {
     }
 
     /**
-     * Adds a new ComputeNode with the given information and returns the instance of the new ComputeNode
+     * Adds a new ComputeNode with the given information and returns the
+     * instance of the new ComputeNode
      *
      * @param name
      * @param installDir
@@ -1242,7 +1249,8 @@ public class ProjectFile {
     }
 
     /**
-     * Adds a new DataNode with the given information and returns the instance of the new DataNode
+     * Adds a new DataNode with the given information and returns the instance
+     * of the new DataNode
      *
      * @param name
      * @return
@@ -1256,7 +1264,8 @@ public class ProjectFile {
     }
 
     /**
-     * Adds a new DataNode with the given information and returns the instance of the new DataNode
+     * Adds a new DataNode with the given information and returns the instance
+     * of the new DataNode
      *
      * @param name
      * @return
@@ -1271,7 +1280,8 @@ public class ProjectFile {
     }
 
     /**
-     * Adds a new DataNode with the given information and returns the instance of the new DataNode
+     * Adds a new DataNode with the given information and returns the instance
+     * of the new DataNode
      *
      * @param name
      * @return
@@ -1304,7 +1314,8 @@ public class ProjectFile {
     }
 
     /**
-     * Adds a new Service with the given information and returns the instance of the new Service
+     * Adds a new Service with the given information and returns the instance of
+     * the new Service
      *
      * @param wsdl
      * @return
@@ -1318,7 +1329,8 @@ public class ProjectFile {
     }
 
     /**
-     * Adds a new Service with the given information and returns the instance of the new Service
+     * Adds a new Service with the given information and returns the instance of
+     * the new Service
      *
      * @param wsdl
      * @param limitOfTasks
@@ -1354,7 +1366,8 @@ public class ProjectFile {
     }
 
     /**
-     * Adds a new Cloud with the given information and returns the instance of the new Cloud
+     * Adds a new Cloud with the given information and returns the instance of
+     * the new Cloud
      *
      * @param cps
      * @return
@@ -1376,7 +1389,8 @@ public class ProjectFile {
     }
 
     /**
-     * Adds a new Cloud with the given information and returns the instance of the new Cloud
+     * Adds a new Cloud with the given information and returns the instance of
+     * the new Cloud
      *
      * @param cps
      * @param initialVMs
@@ -1450,7 +1464,8 @@ public class ProjectFile {
     }
 
     /**
-     * Adds a new CloudProvider with the given information and returns the instance of the new CloudProvider
+     * Adds a new CloudProvider with the given information and returns the
+     * instance of the new CloudProvider
      *
      * @param name
      * @param images
@@ -1463,7 +1478,8 @@ public class ProjectFile {
     }
 
     /**
-     * Adds a new CloudProvider with the given information and returns the instance of the new CloudProvider
+     * Adds a new CloudProvider with the given information and returns the
+     * instance of the new CloudProvider
      *
      * @param name
      * @param images
@@ -1484,7 +1500,8 @@ public class ProjectFile {
     }
 
     /**
-     * Adds a new CloudProvider with the given information and returns the instance of the new CloudProvider
+     * Adds a new CloudProvider with the given information and returns the
+     * instance of the new CloudProvider
      *
      * @param name
      * @param images
@@ -1505,7 +1522,8 @@ public class ProjectFile {
     }
 
     /**
-     * Adds a new CloudProvider with the given information and returns the instance of the new CloudProvider
+     * Adds a new CloudProvider with the given information and returns the
+     * instance of the new CloudProvider
      *
      * @param name
      * @param images
@@ -1515,7 +1533,7 @@ public class ProjectFile {
      */
     public CloudProviderType addCloudProvider(String name, List<ImageType> images, List<InstanceTypeType> instances)
             throws InvalidElementException {
-        
+
         ImagesType imagesList = new ImagesType();
         if (images != null) {
             for (ImageType im : images) {
@@ -1533,7 +1551,8 @@ public class ProjectFile {
     }
 
     /**
-     * Adds a new CloudProvider with the given information and returns the instance of the new CloudProvider
+     * Adds a new CloudProvider with the given information and returns the
+     * instance of the new CloudProvider
      *
      * @param name
      * @param images
@@ -1545,7 +1564,7 @@ public class ProjectFile {
      */
     public CloudProviderType addCloudProvider(String name, List<ImageType> images, InstanceTypesType instances, int limitOfVMs,
             CloudPropertiesType properties) throws InvalidElementException {
-        
+
         ImagesType imagesList = new ImagesType();
         if (images != null) {
             for (ImageType im : images) {
@@ -1557,7 +1576,8 @@ public class ProjectFile {
     }
 
     /**
-     * Adds a new CloudProvider with the given information and returns the instance of the new CloudProvider
+     * Adds a new CloudProvider with the given information and returns the
+     * instance of the new CloudProvider
      *
      * @param name
      * @param images
@@ -1569,7 +1589,7 @@ public class ProjectFile {
      */
     public CloudProviderType addCloudProvider(String name, ImagesType images, List<InstanceTypeType> instances, int limitOfVMs,
             CloudPropertiesType properties) throws InvalidElementException {
-        
+
         InstanceTypesType instancesList = new InstanceTypesType();
         if (instances != null) {
             for (InstanceTypeType ins : instances) {
@@ -1581,7 +1601,8 @@ public class ProjectFile {
     }
 
     /**
-     * Adds a new CloudProvider with the given information and returns the instance of the new CloudProvider
+     * Adds a new CloudProvider with the given information and returns the
+     * instance of the new CloudProvider
      *
      * @param name
      * @param images
@@ -1593,7 +1614,7 @@ public class ProjectFile {
      */
     public CloudProviderType addCloudProvider(String name, List<ImageType> images, List<InstanceTypeType> instances, int limitOfVMs,
             CloudPropertiesType properties) throws InvalidElementException {
-        
+
         ImagesType imagesList = new ImagesType();
         if (images != null) {
             for (ImageType im : images) {
@@ -1611,7 +1632,8 @@ public class ProjectFile {
     }
 
     /**
-     * Adds a new CloudProvider with the given information and returns the instance of the new CloudProvider
+     * Adds a new CloudProvider with the given information and returns the
+     * instance of the new CloudProvider
      *
      * @param name
      * @param images
@@ -1647,8 +1669,8 @@ public class ProjectFile {
      * SETTERS: HELPERS FOR SECOND LEVEL ELEMENTS
      **************************************/
     /**
-     * Sets the general cloud properties to an existing cloud Returns true if all modifications have been performed,
-     * false otherwise
+     * Sets the general cloud properties to an existing cloud Returns true if
+     * all modifications have been performed, false otherwise
      *
      * @param initialVMs
      * @param minVMs
@@ -1692,7 +1714,7 @@ public class ProjectFile {
 
     /**
      * Adds the given image @image to the cloudProvider with name =
-     * 
+     *
      * @cloudProviderName Returns true if image is inserted, false otherwise
      *
      * @param cloudProviderName
@@ -1727,7 +1749,7 @@ public class ProjectFile {
 
     /**
      * Adds the given instance @instance to the cloudProvider with name =
-     * 
+     *
      * @cloudProviderName Returns true if instance is inserted, false otherwise
      *
      * @param cloudProviderName
@@ -1781,7 +1803,7 @@ public class ProjectFile {
 
     public static ImageType createImage(String name, String installDir, String workingDir, String user, String appDir, String libPath,
             String cp, String pypath, int limitOfTasks, PackageType pack, AdaptorsListType adaptors) {
-        
+
         ImageType image = new ImageType();
 
         // Mandatory elements
@@ -1893,7 +1915,7 @@ public class ProjectFile {
      */
     public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys, ExternalAdaptorProperties externalproperties,
             String user) {
-        
+
         AdaptorType adaptor = new AdaptorType();
         adaptor.setName(name);
 
@@ -1925,7 +1947,7 @@ public class ProjectFile {
      */
     public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys, List<PropertyAdaptorType> externalProperties,
             String user) {
-        
+
         AdaptorType adaptor = new AdaptorType();
         adaptor.setName(name);
 
@@ -1965,7 +1987,7 @@ public class ProjectFile {
      */
     public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive,
             NIOAdaptorProperties nioproperties, String user) {
-        
+
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
             BatchType b = new BatchType();
@@ -1997,7 +2019,7 @@ public class ProjectFile {
      */
     public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive, String gatproperties,
             String user) {
-        
+
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
             BatchType b = new BatchType();
@@ -2029,7 +2051,7 @@ public class ProjectFile {
      */
     public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive,
             ExternalAdaptorProperties externalProperties, String user) {
-        
+
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
             BatchType b = new BatchType();
@@ -2061,7 +2083,7 @@ public class ProjectFile {
      */
     public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive,
             List<PropertyAdaptorType> externalProperties, String user) {
-        
+
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
             BatchType b = new BatchType();
@@ -2088,7 +2110,8 @@ public class ProjectFile {
      * DELETERS: MAIN ELEMENTS
      **************************************/
     /**
-     * Deletes the MasterNode Returns true if deletion is successfull, false otherwise
+     * Deletes the MasterNode Returns true if deletion is successfull, false
+     * otherwise
      *
      * @return
      */
@@ -2108,7 +2131,8 @@ public class ProjectFile {
     }
 
     /**
-     * Deletes the ComputeNode with name = @name Returns true if deletion is successfull, false otherwise
+     * Deletes the ComputeNode with name = @name Returns true if deletion is
+     * successfull, false otherwise
      *
      * @param name
      * @return
@@ -2132,7 +2156,8 @@ public class ProjectFile {
     }
 
     /**
-     * Deletes the DataNode with name = @name Returns true if deletion is successfull, false otherwise
+     * Deletes the DataNode with name = @name Returns true if deletion is
+     * successfull, false otherwise
      *
      * @param name
      * @return
@@ -2156,7 +2181,8 @@ public class ProjectFile {
     }
 
     /**
-     * Deletes the Service with wsdl = @wsdl Returns true if deletion is successfull, false otherwise
+     * Deletes the Service with wsdl = @wsdl Returns true if deletion is
+     * successfull, false otherwise
      *
      * @param name
      * @return
@@ -2180,7 +2206,8 @@ public class ProjectFile {
     }
 
     /**
-     * Deletes the Cloud Returns true if deletion is successfull, false otherwise
+     * Deletes the Cloud Returns true if deletion is successfull, false
+     * otherwise
      *
      * @return
      */
@@ -2200,7 +2227,8 @@ public class ProjectFile {
     }
 
     /**
-     * Deletes the CloudProvider with name = @name Returns true if deletion is successfull, false otherwise
+     * Deletes the CloudProvider with name = @name Returns true if deletion is
+     * successfull, false otherwise
      *
      * @param name
      * @return

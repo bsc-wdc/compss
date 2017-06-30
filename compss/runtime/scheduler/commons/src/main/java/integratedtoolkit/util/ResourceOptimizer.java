@@ -27,9 +27,10 @@ import java.util.PriorityQueue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+
 public class ResourceOptimizer extends Thread {
 
-    //WARNING MESSAGES
+    // WARNING MESSAGES
     private static final String WARN_NO_RESOURCE_MATCHES = "WARN: No resource matches the constraints";
     private static final String WARN_NO_COMPATIBLE_TYPE = "WARN: Cannot find any compatible instanceType";
     private static final String WARN_NO_COMPATIBLE_IMAGE = "WARN: Cannot find any compatible Image";
@@ -48,8 +49,7 @@ public class ResourceOptimizer extends Thread {
     // Error messages
     private static final String ERROR_OPT_RES = "Error optimizing resources.";
     private static final String PERSISTENT_BLOCK_ERR = "Unschedulable tasks detected.\n"
-            + "COMPSs has found tasks with constraints that cannot be fulfilled.\n"
-            + "Shutting down COMPSs now...";
+            + "COMPSs has found tasks with constraints that cannot be fulfilled.\n" + "Shutting down COMPSs now...";
 
     protected final TaskScheduler ts;
     private boolean running;
@@ -63,6 +63,7 @@ public class ResourceOptimizer extends Thread {
     // The first run execution won't take into account this check.
     // That's why it's initialized to -1, to know when it's the first run.
     private int everythingBlockedRetryCount = -1;
+
 
     public ResourceOptimizer(TaskScheduler ts) {
         if (DEBUG) {
@@ -110,7 +111,7 @@ public class ResourceOptimizer extends Thread {
                         }
                     }
                 } catch (InterruptedException ex) {
-                    //Do nothing. It was interrupted to trigger another optimization
+                    // Do nothing. It was interrupted to trigger another optimization
                 }
 
             } catch (Exception e) {
@@ -149,14 +150,11 @@ public class ResourceOptimizer extends Thread {
                 if (everythingBlockedRetryCount < EVERYTHING_BLOCKED_MAX_RETRIES) {
                     // Retries limit not reached. Warn the user...
                     int retriesLeft = EVERYTHING_BLOCKED_MAX_RETRIES - everythingBlockedRetryCount;
-                    ErrorManager.warn(
-                            "No task could be scheduled to any of the available resources.\n"
+                    ErrorManager.warn("No task could be scheduled to any of the available resources.\n"
                             + "This could end up blocking COMPSs. Will check it again in " + (SLEEP_TIME / 1_000) + " seconds.\n"
-                            + "Possible causes: \n"
-                            + "    -Network problems: non-reachable nodes, sshd service not started, etc.\n"
-                            + "    -There isn't any computing resource that fits the defined tasks constraints.\n"
-                            + "If this happens " + retriesLeft + " more time" + (retriesLeft > 1 ? "s" : "") + ", the runtime will shutdown."
-                    );
+                            + "Possible causes: \n" + "    -Network problems: non-reachable nodes, sshd service not started, etc.\n"
+                            + "    -There isn't any computing resource that fits the defined tasks constraints.\n" + "If this happens "
+                            + retriesLeft + " more time" + (retriesLeft > 1 ? "s" : "") + ", the runtime will shutdown.");
                 } else {
                     // Retry limit reached. Error and shutdown.
                     ErrorManager.error(PERSISTENT_BLOCK_ERR);
@@ -175,8 +173,8 @@ public class ResourceOptimizer extends Thread {
      * *********************************************************************************************************
      */
     /**
-     * Triggers the creation of the initial VMs to acomplish the expected
-     * minimum VMs and ensure that there are workers to run every type of task
+     * Triggers the creation of the initial VMs to acomplish the expected minimum VMs and ensure that there are workers
+     * to run every type of task
      */
     protected void initialCreations() {
         int alreadyCreated = addBasicNodes();
@@ -185,24 +183,19 @@ public class ResourceOptimizer extends Thread {
     }
 
     /**
-     * Asks for the VM needed for the runtime to be able to execute all method
-     * cores.
+     * Asks for the VM needed for the runtime to be able to execute all method cores.
      *
-     * First it groups the constraints of all the methods per Architecture and
-     * tries to merge included resource descriptions in order to reduce the
-     * amount of required VMs. It also tries to join the unassigned architecture
-     * methods with the closer constraints of a defined one. After that it
-     * distributes the Initial VM Count among the architectures taking into
-     * account the number of methods that can be run in each architecture.
+     * First it groups the constraints of all the methods per Architecture and tries to merge included resource
+     * descriptions in order to reduce the amount of required VMs. It also tries to join the unassigned architecture
+     * methods with the closer constraints of a defined one. After that it distributes the Initial VM Count among the
+     * architectures taking into account the number of methods that can be run in each architecture.
      *
-     * If the amount of different constraints is higher than the Initial VM
-     * count it applies an agressive merge method to each architecture in order
-     * to fulfill the initial Constraint. It creates a single VM for each final
-     * method constraint.
+     * If the amount of different constraints is higher than the Initial VM count it applies an agressive merge method
+     * to each architecture in order to fulfill the initial Constraint. It creates a single VM for each final method
+     * constraint.
      *
-     * Although these aggressive merges, the amount of different constraints can
-     * be higher than the initial VM Count constraint. In this case, it violates
-     * the initial VM constraint and asks for more resources.
+     * Although these aggressive merges, the amount of different constraints can be higher than the initial VM Count
+     * constraint. In this case, it violates the initial VM constraint and asks for more resources.
      *
      * @return the amount of requested VM
      */
@@ -220,40 +213,30 @@ public class ResourceOptimizer extends Thread {
             return 0;
         }
 
-
         /*
-         * constraintsPerArquitecture has loaded all constraint for each task.
-         * architectures has a list of all the architecture names.
+         * constraintsPerArquitecture has loaded all constraint for each task. architectures has a list of all the
+         * architecture names.
          *
-         * e.g.
-         * architectures                     constraintsPerArquitecture
-         * Intel                =               |MR1|--|MR2|
-         * AMD                  =               |MR3|
-         * [unassigned]         =               |MR4|--|MR5|
+         * e.g. architectures constraintsPerArquitecture Intel = |MR1|--|MR2| AMD = |MR3| [unassigned] = |MR4|--|MR5|
          */
         HashMap<String, LinkedList<ConstraintsCore>> arch2Constraints = classifyArchitectures(unfulfilledConstraints);
 
         /*
-         * Tries to reduce the number of machines per architecture by
-         * entering constraints in another core's constraints
+         * Tries to reduce the number of machines per architecture by entering constraints in another core's constraints
          *
          */
         reduceArchitecturesConstraints(arch2Constraints);
 
         /*
-         * Checks if there are enough Vm for a Unassigned Arquitecture
-         * If not it set each unassigned task into the architecture with the most similar task
-         * e.g.
-         * constraintsPerArquitecture
-         * Intel --> |MR1|--|MR2|--|MR5|
-         * AMD --> |MR3|--|MR4|
+         * Checks if there are enough Vm for a Unassigned Arquitecture If not it set each unassigned task into the
+         * architecture with the most similar task e.g. constraintsPerArquitecture Intel --> |MR1|--|MR2|--|MR5| AMD -->
+         * |MR3|--|MR4|
          *
          */
         reassignUnassignedConstraints(arch2Constraints);
 
         /*
-         * Tries to reduce the number of machines per architecture by
-         * entering constraints in another core's constraints
+         * Tries to reduce the number of machines per architecture by entering constraints in another core's constraints
          *
          */
         reduceArchitecturesConstraints(arch2Constraints);
@@ -266,17 +249,13 @@ public class ResourceOptimizer extends Thread {
                 ResourceCreationRequest rcr = askForResources(cc.desc, false);
                 if (rcr != null) {
                     StringBuilder compositionString = new StringBuilder();
-                    for (java.util.Map.Entry<CloudInstanceTypeDescription, int[]> entry : rcr.getRequested().getTypeComposition().entrySet()) {
-                        compositionString.append(" \t\tTYPE = [\n")
-                                .append("\t\t\tNAME = ").append(entry.getKey().getName())
-                                .append("\t\t\tCOUNT= ").append(entry.getValue()[0])
-                                .append("\t\t]\n");
+                    for (java.util.Map.Entry<CloudInstanceTypeDescription, int[]> entry : rcr.getRequested().getTypeComposition()
+                            .entrySet()) {
+                        compositionString.append(" \t\tTYPE = [\n").append("\t\t\tNAME = ").append(entry.getKey().getName())
+                                .append("\t\t\tCOUNT= ").append(entry.getValue()[0]).append("\t\t]\n");
                     }
-                    RESOURCES_LOGGER.info("ORDER_CREATION = [\n"
-                            + "\tTYPE = " + compositionString.toString() + "\n"
-                            + "\tPROVIDER = " + rcr.getProvider().getName() + "\n"
-                            + "]"
-                    );
+                    RESOURCES_LOGGER.info("ORDER_CREATION = [\n" + "\tTYPE = " + compositionString.toString() + "\n" + "\tPROVIDER = "
+                            + rcr.getProvider().getName() + "\n" + "]");
                     if (DEBUG) {
                         StringBuilder sb = new StringBuilder();
                         sb.append("EXPECTED_SIM_TASKS = [").append("\n");
@@ -298,9 +277,8 @@ public class ResourceOptimizer extends Thread {
         }
 
         if (DEBUG) {
-            RESOURCES_LOGGER.debug("DEBUG_MSG = [\n"
-                    + "\tIn order to be able to execute all cores, Resource Manager has asked for " + createdCount + " Cloud resources\n"
-                    + "]");
+            RESOURCES_LOGGER.debug("DEBUG_MSG = [\n" + "\tIn order to be able to execute all cores, Resource Manager has asked for "
+                    + createdCount + " Cloud resources\n" + "]");
         }
         return createdCount;
     }
@@ -329,8 +307,7 @@ public class ResourceOptimizer extends Thread {
     }
 
     /**
-     * Classifies the constraints depending on their architecture and leaves it
-     * on coreResourceList
+     * Classifies the constraints depending on their architecture and leaves it on coreResourceList
      *
      * @param constraints
      * @return list with all the architectures' names
@@ -467,19 +444,16 @@ public class ResourceOptimizer extends Thread {
     /**
      * Asks for the rest of VM that user wants to start with.
      *
-     * After executing the addBasicNodes, it might happen that the number of
-     * initial VMs constrained by the user is still not been fulfilled. The
-     * addBasicNodes creates up to as much VMs as different methods. If the
-     * initial VM Count is higher than this number of methods then there will be
-     * still some VM requests missing.
+     * After executing the addBasicNodes, it might happen that the number of initial VMs constrained by the user is
+     * still not been fulfilled. The addBasicNodes creates up to as much VMs as different methods. If the initial VM
+     * Count is higher than this number of methods then there will be still some VM requests missing.
      *
-     * The addExtraNodes creates this difference of VMs. First it tries to merge
-     * the method constraints that are included into another methods. And
-     * performs a less aggressive and more equal distribution.
+     * The addExtraNodes creates this difference of VMs. First it tries to merge the method constraints that are
+     * included into another methods. And performs a less aggressive and more equal distribution.
      *
-     * @param alreadyCreated number of already requested VMs
-     * @return the number of extra VMs created to fulfill the Initial VM Count
-     * constraint
+     * @param alreadyCreated
+     *            number of already requested VMs
+     * @return the number of extra VMs created to fulfill the Initial VM Count constraint
      */
     public static int addExtraNodes(int alreadyCreated) {
         int initialVMsCount = ResourceManager.getInitialCloudVMs();
@@ -489,79 +463,46 @@ public class ResourceOptimizer extends Thread {
         }
 
         if (DEBUG) {
-            RESOURCES_LOGGER.debug("DEBUG_MSG = [\n"
-                    + "\tALREADY_CREATED_INSTANCES = " + alreadyCreated + "\n"
-                    + "\tMAXIMUM_NEW_PETITIONS = " + vmCount + "\n"
-                    + "]");
+            RESOURCES_LOGGER.debug("DEBUG_MSG = [\n" + "\tALREADY_CREATED_INSTANCES = " + alreadyCreated + "\n"
+                    + "\tMAXIMUM_NEW_PETITIONS = " + vmCount + "\n" + "]");
         }
 
         /*
-         * Tries to reduce the number of machines by
-         * entering methodConstraints in another method's machine
+         * Tries to reduce the number of machines by entering methodConstraints in another method's machine
          *
          */
- /*
-        LinkedList<CloudWorkerDescription> requirements = new LinkedList<CloudWorkerDescription>();
-        for (int coreId = 0; coreId < CoreManager.coreCount; coreId++) {
-            Implementation impl = CoreManager.getCoreImplementations(coreId)[0];
-            if (impl.getType() == Type.METHOD) {
-                WorkerDescription wd = (WorkerDescription) impl.getRequirements();
-                requirements.add(new CloudWorkerDescription(wd));
-            }
-        }
-        if (requirements.size() == 0) {
-            return 0;
-        }
-        requirements = reduceConstraints(requirements);
-
-        int numTasks = requirements.size();
-        int[] vmCountPerContraint = new int[numTasks];
-        int[] coreCountPerConstraint = new int[numTasks];
-
-        for (int index = 0; index < numTasks; index++) {
-            vmCountPerContraint[index] = 1;
-            coreCountPerConstraint[index] = requirements.get(index).getSlots();
-        }
-
-        for (int i = 0; i < vmCount; i++) {
-            float millor = 0.0f;
-            int opcio = 0;
-            for (int j = 0; j < requirements.size(); j++) {
-                if (millor < ((float) coreCountPerConstraint[j] / (float) vmCountPerContraint[j])) {
-                    opcio = j;
-                    millor = ((float) coreCountPerConstraint[j] / (float) vmCountPerContraint[j]);
-                }
-            }
-            ResourceCreationRequest rcr = CloudManager.askForResources(requirements.get(opcio), false);
-
-            LOGGER.info(
-                    "CREATION_ORDER = [\n"
-                    + "\tTYPE = " + rcr.getRequested().getType() + "\n"
-                    + "\tPROVIDER = " + rcr.getProvider() + "\n"
-                    + "\tREASON = Fulfill the initial Cloud instances constraint\n"
-                    + "]");
-            if (DEBUG) {
-                StringBuilder sb = new StringBuilder("EXPECTED_INSTANCE_SIM_TASKS = [");
-                int[][] simultaneousImpls = rcr.requestedSimultaneousTaskCount();
-                for (int core = 0; core < simultaneousImpls.length; ++core) {
-                    int simultaneousTasks = 0;
-                    for (int j = 0; j < simultaneousImpls[core].length; ++j) {
-                        if (simultaneousTasks < simultaneousImpls[core][j]) {
-                            simultaneousTasks = simultaneousImpls[core][j];
-                        }
-                    }
-                    sb.append("\t").append("CORE = [").append("\n");
-                    sb.append("\t").append("\t").append("COREID = ").append(core).append("\n");
-                    sb.append("\t").append("\t").append("SIM_TASKS = ").append(simultaneousTasks).append("\n");
-                    sb.append("\t").append("]").append("\n");
-                    sb.append(", ").append(simultaneousTasks);
-                }
-                sb.append("]");
-                logger.debug(sb.toString());
-            }
-
-            vmCountPerContraint[opcio]++;
-        }
+        /*
+         * LinkedList<CloudWorkerDescription> requirements = new LinkedList<CloudWorkerDescription>(); for (int coreId =
+         * 0; coreId < CoreManager.coreCount; coreId++) { Implementation impl =
+         * CoreManager.getCoreImplementations(coreId)[0]; if (impl.getType() == Type.METHOD) { WorkerDescription wd =
+         * (WorkerDescription) impl.getRequirements(); requirements.add(new CloudWorkerDescription(wd)); } } if
+         * (requirements.size() == 0) { return 0; } requirements = reduceConstraints(requirements);
+         * 
+         * int numTasks = requirements.size(); int[] vmCountPerContraint = new int[numTasks]; int[]
+         * coreCountPerConstraint = new int[numTasks];
+         * 
+         * for (int index = 0; index < numTasks; index++) { vmCountPerContraint[index] = 1;
+         * coreCountPerConstraint[index] = requirements.get(index).getSlots(); }
+         * 
+         * for (int i = 0; i < vmCount; i++) { float millor = 0.0f; int opcio = 0; for (int j = 0; j <
+         * requirements.size(); j++) { if (millor < ((float) coreCountPerConstraint[j] / (float)
+         * vmCountPerContraint[j])) { opcio = j; millor = ((float) coreCountPerConstraint[j] / (float)
+         * vmCountPerContraint[j]); } } ResourceCreationRequest rcr =
+         * CloudManager.askForResources(requirements.get(opcio), false);
+         * 
+         * LOGGER.info( "CREATION_ORDER = [\n" + "\tTYPE = " + rcr.getRequested().getType() + "\n" + "\tPROVIDER = " +
+         * rcr.getProvider() + "\n" + "\tREASON = Fulfill the initial Cloud instances constraint\n" + "]"); if (DEBUG) {
+         * StringBuilder sb = new StringBuilder("EXPECTED_INSTANCE_SIM_TASKS = ["); int[][] simultaneousImpls =
+         * rcr.requestedSimultaneousTaskCount(); for (int core = 0; core < simultaneousImpls.length; ++core) { int
+         * simultaneousTasks = 0; for (int j = 0; j < simultaneousImpls[core].length; ++j) { if (simultaneousTasks <
+         * simultaneousImpls[core][j]) { simultaneousTasks = simultaneousImpls[core][j]; } }
+         * sb.append("\t").append("CORE = [").append("\n");
+         * sb.append("\t").append("\t").append("COREID = ").append(core).append("\n");
+         * sb.append("\t").append("\t").append("SIM_TASKS = ").append(simultaneousTasks).append("\n");
+         * sb.append("\t").append("]").append("\n"); sb.append(", ").append(simultaneousTasks); } sb.append("]");
+         * logger.debug(sb.toString()); }
+         * 
+         * vmCountPerContraint[opcio]++; }
          */
         return vmCount;
     }
@@ -694,8 +635,8 @@ public class ResourceOptimizer extends Thread {
 
         // Check Recommended creations
         if ((maxNumberOfVMs == null || maxNumberOfVMs > currentCloudVMCount) && workload.getReadyCount() > 1) {
-            RUNTIME_LOGGER.debug("[Resource Optimizer] Current VM (" + currentCloudVMCount + ") count smaller than maximum VMs (" + maxNumberOfVMs
-                    + ")");
+            RUNTIME_LOGGER.debug("[Resource Optimizer] Current VM (" + currentCloudVMCount + ") count smaller than maximum VMs ("
+                    + maxNumberOfVMs + ")");
             float[] creationRecommendations = recommendCreations(coreCount, creationTime, readyMinCoreTime, readyMeanCoreTime,
                     readyMaxCoreTime, totalSlots, realSlots);
             if (optionalIncrease(creationRecommendations)) {
@@ -878,7 +819,8 @@ public class ResourceOptimizer extends Thread {
                 }
                 if (aggressive && recommendations[coreId] > 0) {
                     if (DEBUG) {
-                        RUNTIME_LOGGER.debug("\t\tVM removed because of agressive and recomendations > 0 (" + recommendations[coreId] + ")");
+                        RUNTIME_LOGGER
+                                .debug("\t\tVM removed because of agressive and recomendations > 0 (" + recommendations[coreId] + ")");
                     }
                     add = true;
                     break;
@@ -901,17 +843,11 @@ public class ResourceOptimizer extends Thread {
             if (rcr != null) {
                 StringBuilder compositionString = new StringBuilder();
                 for (java.util.Map.Entry<CloudInstanceTypeDescription, int[]> entry : rcr.getRequested().getTypeComposition().entrySet()) {
-                    compositionString.append(" \t\tTYPE = [\n")
-                            .append("\t\t\tNAME = ").append(entry.getKey().getName())
-                            .append("\t\t\tCOUNT= ").append(entry.getValue()[0])
-                            .append("\t\t]\n");
+                    compositionString.append(" \t\tTYPE = [\n").append("\t\t\tNAME = ").append(entry.getKey().getName())
+                            .append("\t\t\tCOUNT= ").append(entry.getValue()[0]).append("\t\t]\n");
                 }
-                RESOURCES_LOGGER.info(
-                        "ORDER_CREATION = [\n"
-                        + "\tTYPE_COMPOSITION = [" + compositionString.toString() + "]\n"
-                        + "\tPROVIDER = " + rcr.getProvider() + "\n"
-                        + "]"
-                );
+                RESOURCES_LOGGER.info("ORDER_CREATION = [\n" + "\tTYPE_COMPOSITION = [" + compositionString.toString() + "]\n"
+                        + "\tPROVIDER = " + rcr.getProvider() + "\n" + "]");
                 if (DEBUG) {
                     StringBuilder sb = new StringBuilder();
                     sb.append("EXPECTED_SIM_TASKS = [").append("\n");
@@ -967,8 +903,8 @@ public class ResourceOptimizer extends Thread {
             long remainingLoad = aggregatedMeanCoreTime[coreId] - embraceableLoad;
             if (DEBUG) {
                 RUNTIME_LOGGER.debug("[Resource Optimizer] * Calculating increase recomendations");
-                RUNTIME_LOGGER.debug("\tRemaining load = " + aggregatedMeanCoreTime[coreId] + "-( " + totalSlots[coreId] + " * " + creationTime
-                        + " ) = " + remainingLoad);
+                RUNTIME_LOGGER.debug("\tRemaining load = " + aggregatedMeanCoreTime[coreId] + "-( " + totalSlots[coreId] + " * "
+                        + creationTime + " ) = " + remainingLoad);
             }
             if (remainingLoad > 0) {
                 creations[coreId] = (int) (remainingLoad / creationTime);
@@ -1024,8 +960,10 @@ public class ResourceOptimizer extends Thread {
                 double unusedTime = (((double) embraceableLoad) / (double) 2) - (double) aggregatedMeanCoreTime[coreId];
                 destructions[coreId] = (float) (unusedTime / (double) limitTime);
                 if (DEBUG) {
-                    RUNTIME_LOGGER.debug("\tembraceableLoad [ " + coreId + "] = " + limitTime + " * " + realSlots[coreId] + " = " + embraceableLoad);
-                    RUNTIME_LOGGER.debug("\tunused [ " + coreId + "] =  ( " + embraceableLoad + " / 2) - " + aggregatedMeanCoreTime[coreId] + " = " + unusedTime);
+                    RUNTIME_LOGGER.debug(
+                            "\tembraceableLoad [ " + coreId + "] = " + limitTime + " * " + realSlots[coreId] + " = " + embraceableLoad);
+                    RUNTIME_LOGGER.debug("\tunused [ " + coreId + "] =  ( " + embraceableLoad + " / 2) - " + aggregatedMeanCoreTime[coreId]
+                            + " = " + unusedTime);
                     RUNTIME_LOGGER.debug("\tdestructions [ " + coreId + "] = " + destructions[coreId]);
                 }
             } else {
@@ -1036,10 +974,12 @@ public class ResourceOptimizer extends Thread {
         return destructions;
     }
 
+
     private static class ConstraintsCore {
 
         private CloudMethodResourceDescription desc;
         private LinkedList<ConstraintsCore>[] cores;
+
 
         @SuppressWarnings("unchecked")
         public ConstraintsCore(CloudMethodResourceDescription desc, int core, LinkedList<ConstraintsCore> coreList) {
@@ -1091,6 +1031,7 @@ public class ResourceOptimizer extends Thread {
         private final float value;
         private final boolean prioritary;
 
+
         public ValueResourceDescription(MethodResourceDescription constraints, float value, boolean prioritary) {
             this.constraints = constraints;
             this.value = value;
@@ -1123,6 +1064,7 @@ public class ResourceOptimizer extends Thread {
         }
     }
 
+
     public ResourceCreationRequest askForResources(CloudProvider cp, String instanceName, String imageName) {
         CloudMethodResourceDescription constraints = cp.getResourceDescription(instanceName, imageName);
         if (constraints == null) {
@@ -1134,39 +1076,36 @@ public class ResourceOptimizer extends Thread {
     }
 
     /**
-     * Asks for the described resources to a Cloud provider. The CloudManager
-     * checks the best resource that each provider can offer. Then it picks one
-     * of them and it constructs a resourceRequest describing the resource and
-     * which cores can be executed on it. This ResourceRequest will be used to
-     * ask for that resource creation to the Cloud Provider and returned if the
-     * application is accepted.
+     * Asks for the described resources to a Cloud provider. The CloudManager checks the best resource that each
+     * provider can offer. Then it picks one of them and it constructs a resourceRequest describing the resource and
+     * which cores can be executed on it. This ResourceRequest will be used to ask for that resource creation to the
+     * Cloud Provider and returned if the application is accepted.
      *
-     * @param requirements description of the resource expected to receive
-     * @param contained {@literal true} if we want the request to ask for a
-     * resource contained in the description; else, the result contains the
-     * passed in description.
-     * @return Description of the ResourceRequest sent to the CloudProvider.
-     * {@literal Null} if any of the Cloud Providers can offer a resource like
-     * the requested one.
+     * @param requirements
+     *            description of the resource expected to receive
+     * @param contained
+     *            {@literal true} if we want the request to ask for a resource contained in the description; else, the
+     *            result contains the passed in description.
+     * @return Description of the ResourceRequest sent to the CloudProvider. {@literal Null} if any of the Cloud
+     *         Providers can offer a resource like the requested one.
      */
     public static ResourceCreationRequest askForResources(MethodResourceDescription requirements, boolean contained) {
         return askForResources(1, requirements, contained);
     }
 
     /**
-     * The CloudManager ask for resources that can execute certain amount of
-     * cores at the same time. It checks the best resource that each provider
-     * can offer to execute that amount of cores and picks one of them. It
-     * constructs a resourceRequest describing the resource and which cores can
-     * be executed on it. This ResourceRequest will be used to ask for that
-     * resource creation to the Cloud Provider and returned if the application
-     * is accepted.
+     * The CloudManager ask for resources that can execute certain amount of cores at the same time. It checks the best
+     * resource that each provider can offer to execute that amount of cores and picks one of them. It constructs a
+     * resourceRequest describing the resource and which cores can be executed on it. This ResourceRequest will be used
+     * to ask for that resource creation to the Cloud Provider and returned if the application is accepted.
      *
-     * @param amount amount of slots
-     * @param requirements features of the resource
-     * @param contained {@literal true} if we want the request to ask for a
-     * resource contained in the description; else, the result contains the
-     * passed in description.
+     * @param amount
+     *            amount of slots
+     * @param requirements
+     *            features of the resource
+     * @param contained
+     *            {@literal true} if we want the request to ask for a resource contained in the description; else, the
+     *            result contains the passed in description.
      * @return
      */
     public static ResourceCreationRequest askForResources(Integer amount, MethodResourceDescription requirements, boolean contained) {
@@ -1190,14 +1129,15 @@ public class ResourceOptimizer extends Thread {
         return bestProvider.requestResourceCreation(bestConstraints);
     }
 
-    public static CloudMethodResourceDescription getBestIncreaseOnProvider(CloudProvider cp, Integer amount, MethodResourceDescription requirements, boolean contained) {
+    public static CloudMethodResourceDescription getBestIncreaseOnProvider(CloudProvider cp, Integer amount,
+            MethodResourceDescription requirements, boolean contained) {
         // Check Cloud capabilities
         if (!cp.canHostMoreInstances()) {
             return null;
         }
 
         // Select all the compatible types
-        LinkedList<CloudInstanceTypeDescription> instances = cp.getCompatibleTypes(requirements);
+        List<CloudInstanceTypeDescription> instances = cp.getCompatibleTypes(requirements);
         if (instances.isEmpty()) {
             RESOURCES_LOGGER.warn(WARN_NO_COMPATIBLE_TYPE);
             return null;
@@ -1214,7 +1154,7 @@ public class ResourceOptimizer extends Thread {
         // Pick an image to be loaded in the Type (or return null)
         if (type != null) {
             // Select all the compatible images
-            LinkedList<CloudImageDescription> images = cp.getCompatibleImages(requirements);
+            List<CloudImageDescription> images = cp.getCompatibleImages(requirements);
             if (!images.isEmpty()) {
                 CloudImageDescription image = images.get(0);
                 result = new CloudMethodResourceDescription(type, image);
@@ -1229,7 +1169,7 @@ public class ResourceOptimizer extends Thread {
         return result;
     }
 
-    private static CloudInstanceTypeDescription selectContainingInstance(LinkedList<CloudInstanceTypeDescription> instances,
+    private static CloudInstanceTypeDescription selectContainingInstance(List<CloudInstanceTypeDescription> instances,
             MethodResourceDescription constraints, int amount) {
 
         CloudInstanceTypeDescription result = null;
@@ -1240,7 +1180,8 @@ public class ResourceOptimizer extends Thread {
             MethodResourceDescription rd = type.getResourceDescription();
             int slots = rd.canHostSimultaneously(constraints);
             float distance = slots - amount;
-            RESOURCES_LOGGER.debug("Can host: slots = " + slots + " amount = " + amount + " distance = " + distance + " bestDistance = " + bestDistance);
+            RESOURCES_LOGGER.debug(
+                    "Can host: slots = " + slots + " amount = " + amount + " distance = " + distance + " bestDistance = " + bestDistance);
             if (distance > 0.0) {
                 continue;
             }
@@ -1265,7 +1206,7 @@ public class ResourceOptimizer extends Thread {
         return result;
     }
 
-    private static CloudInstanceTypeDescription selectContainedInstance(LinkedList<CloudInstanceTypeDescription> instances,
+    private static CloudInstanceTypeDescription selectContainedInstance(List<CloudInstanceTypeDescription> instances,
             MethodResourceDescription constraints, int amount) {
 
         CloudInstanceTypeDescription bestType = null;
@@ -1276,7 +1217,8 @@ public class ResourceOptimizer extends Thread {
             MethodResourceDescription rd = type.getResourceDescription();
             int slots = rd.canHostSimultaneously(constraints);
             float distance = slots - amount;
-            RESOURCES_LOGGER.debug("Can host: slots = " + slots + " amount = " + amount + " distance = " + distance + " bestDistance = " + bestDistance);
+            RESOURCES_LOGGER.debug(
+                    "Can host: slots = " + slots + " amount = " + amount + " distance = " + distance + " bestDistance = " + bestDistance);
             if (distance < 0.0) {
                 continue;
             }
@@ -1303,26 +1245,25 @@ public class ResourceOptimizer extends Thread {
     }
 
     /**
-     * Given a set of resources, it checks every possible modification of the
-     * resource and returns the one that better fits with the destruction
-     * recommendations.
+     * Given a set of resources, it checks every possible modification of the resource and returns the one that better
+     * fits with the destruction recommendations.
      *
-     * The decision-making algorithm tries to minimize the number of affected CE
-     * that weren't recommended to be modified, minimize the number of slots
-     * that weren't requested to be destroyed and maximize the number of slots
+     * The decision-making algorithm tries to minimize the number of affected CE that weren't recommended to be
+     * modified, minimize the number of slots that weren't requested to be destroyed and maximize the number of slots
      * that can be removed and they were requested for.
      *
-     * @param resourceSet set of resources
-     * @param destroyRecommendations number of slots to be removed for each CE
+     * @param resourceSet
+     *            set of resources
+     * @param destroyRecommendations
+     *            number of slots to be removed for each CE
      * @return an object array defining the best solution.
      *
-     * 0-> (Resource) selected Resource.
+     *         0-> (Resource) selected Resource.
      *
-     * 1->(CloudTypeInstanceDescription) Type to be destroyed to be destroyed.
+     *         1->(CloudTypeInstanceDescription) Type to be destroyed to be destroyed.
      *
-     * 2-> (int[]) record of the #CE with removed slots and that they shouldn't
-     * be modified, #slots that will be destroyed and they weren't recommended,
-     * #slots that will be removed and they were asked to be.
+     *         2-> (int[]) record of the #CE with removed slots and that they shouldn't be modified, #slots that will be
+     *         destroyed and they weren't recommended, #slots that will be removed and they were asked to be.
      *
      */
     private Object[] getBestDestruction(Collection<CloudMethodWorker> resourceSet, float[] destroyRecommendations) {

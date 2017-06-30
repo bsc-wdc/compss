@@ -17,10 +17,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-/**
- *
- * @author flordan
- */
+
 public class ResourceSchedulerTest {
 
     private static final long DEFAULT_MIN_EXECUTION_TIME = Long.MAX_VALUE;
@@ -33,10 +30,14 @@ public class ResourceSchedulerTest {
     private static final long SET_MAX_EXECUTION_TIME = 10;
     private static final long SET_EXECUTION_COUNT = 3l;
 
-    private static final String SET_PROFILE = "{\"maxTime\":" + (SET_MAX_EXECUTION_TIME) + ",\"executions\":" + (SET_EXECUTION_COUNT) + ",\"avgTime\":" + (SET_AVG_EXECUTION_TIME) + ",\"minTime\":" + (SET_MIN_EXECUTION_TIME) + "}";
-    private static final String SET_AND_UPDATED_PROFILE = "{\"maxTime\":" + (SET_MAX_EXECUTION_TIME + 1) + ",\"executions\":" + (SET_EXECUTION_COUNT + 1) + ",\"avgTime\":" + (SET_AVG_EXECUTION_TIME + 1) + ",\"minTime\":" + (SET_MIN_EXECUTION_TIME + 1) + "}";
+    private static final String SET_PROFILE = "{\"maxTime\":" + (SET_MAX_EXECUTION_TIME) + ",\"executions\":" + (SET_EXECUTION_COUNT)
+            + ",\"avgTime\":" + (SET_AVG_EXECUTION_TIME) + ",\"minTime\":" + (SET_MIN_EXECUTION_TIME) + "}";
+    private static final String SET_AND_UPDATED_PROFILE = "{\"maxTime\":" + (SET_MAX_EXECUTION_TIME + 1) + ",\"executions\":"
+            + (SET_EXECUTION_COUNT + 1) + ",\"avgTime\":" + (SET_AVG_EXECUTION_TIME + 1) + ",\"minTime\":" + (SET_MIN_EXECUTION_TIME + 1)
+            + "}";
 
     private static FakeWorker worker;
+
 
     @BeforeClass
     public static void setUpClass() {
@@ -81,7 +82,7 @@ public class ResourceSchedulerTest {
 
     @Test
     public void testNull() {
-        ResourceScheduler rs = new ResourceScheduler(worker, null);
+        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker, null);
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
             for (Implementation impl : impls) {
@@ -89,7 +90,8 @@ public class ResourceSchedulerTest {
                 try {
                     checkUnsetProfile(p);
                 } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on null test");
+                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core "
+                            + impl.getCoreId() + " on null test");
                 }
             }
         }
@@ -97,7 +99,7 @@ public class ResourceSchedulerTest {
 
     @Test
     public void testEmpty() {
-        ResourceScheduler rs = new ResourceScheduler(worker, new JSONObject("{\"implementations\":{}}"));
+        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker, new JSONObject("{\"implementations\":{}}"));
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
             for (Implementation impl : impls) {
@@ -105,7 +107,8 @@ public class ResourceSchedulerTest {
                 try {
                     checkUnsetProfile(p);
                 } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on empty test");
+                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core "
+                            + impl.getCoreId() + " on empty test");
                 }
             }
         }
@@ -113,8 +116,8 @@ public class ResourceSchedulerTest {
 
     @Test
     public void testMethodB() {
-
-        ResourceScheduler rs = new ResourceScheduler(worker, new JSONObject("{\"implementations\":{\"ClassA.methodB\":" + SET_PROFILE + "}}"));
+        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker,
+                new JSONObject("{\"implementations\":{\"ClassA.methodB\":" + SET_PROFILE + "}}"));
 
         List<Implementation> impls = CoreManager.getCoreImplementations(0);
         for (Implementation impl : impls) {
@@ -122,7 +125,8 @@ public class ResourceSchedulerTest {
             try {
                 checkUnsetProfile(p);
             } catch (CheckerException ce) {
-                fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on MethodB test");
+                fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId()
+                        + " on MethodB test");
             }
         }
         impls = CoreManager.getCoreImplementations(1);
@@ -131,15 +135,16 @@ public class ResourceSchedulerTest {
             try {
                 checkSetProfile(p);
             } catch (CheckerException ce) {
-                fail("Invalid " + ce.getFeature() + " for set implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on MethodB test");
+                fail("Invalid " + ce.getFeature() + " for set implementation " + impl.getImplementationId() + " core " + impl.getCoreId()
+                        + " on MethodB test");
             }
         }
     }
 
     @Test
     public void testMethodBUpdated() {
-
-        ResourceScheduler rs = new ResourceScheduler(worker, new JSONObject("{\"implementations\":{\"ClassA.methodB\":" + SET_AND_UPDATED_PROFILE + "}}"));
+        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker,
+                new JSONObject("{\"implementations\":{\"ClassA.methodB\":" + SET_AND_UPDATED_PROFILE + "}}"));
 
         List<Implementation> impls = CoreManager.getCoreImplementations(0);
         for (Implementation impl : impls) {
@@ -147,7 +152,8 @@ public class ResourceSchedulerTest {
             try {
                 checkUnsetProfile(p);
             } catch (CheckerException ce) {
-                fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on MethodB updated test");
+                fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId()
+                        + " on MethodB updated test");
             }
         }
         impls = CoreManager.getCoreImplementations(1);
@@ -156,15 +162,16 @@ public class ResourceSchedulerTest {
             try {
                 checkSetAndIncreasedProfile(p);
             } catch (CheckerException ce) {
-                fail("Invalid " + ce.getFeature() + " for set implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on MethodB updated test");
+                fail("Invalid " + ce.getFeature() + " for set implementation " + impl.getImplementationId() + " core " + impl.getCoreId()
+                        + " on MethodB updated test");
             }
         }
     }
 
     @Test
     public void testMethodANullSet() {
-
-        ResourceScheduler rs = new ResourceScheduler(worker, new JSONObject("{\"implementations\":{\"ClassB.methodA\":" + SET_PROFILE + "}}"));
+        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker,
+                new JSONObject("{\"implementations\":{\"ClassB.methodA\":" + SET_PROFILE + "}}"));
 
         List<Implementation> impls = CoreManager.getCoreImplementations(0);
         for (Implementation impl : impls) {
@@ -173,13 +180,15 @@ public class ResourceSchedulerTest {
                 try {
                     checkUnsetProfile(p);
                 } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on MethodA null-set test");
+                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core "
+                            + impl.getCoreId() + " on MethodA null-set test");
                 }
             } else {
                 try {
                     checkSetProfile(p);
                 } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for set implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on MethodA null-set test");
+                    fail("Invalid " + ce.getFeature() + " for set implementation " + impl.getImplementationId() + " core "
+                            + impl.getCoreId() + " on MethodA null-set test");
                 }
             }
         }
@@ -190,15 +199,16 @@ public class ResourceSchedulerTest {
             try {
                 checkUnsetProfile(p);
             } catch (CheckerException ce) {
-                fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on MethodA null-set test");
+                fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId()
+                        + " on MethodA null-set test");
             }
         }
     }
 
     @Test
     public void testMethodASetNull() {
-
-        ResourceScheduler rs = new ResourceScheduler(worker, new JSONObject("{\"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "}}"));
+        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker,
+                new JSONObject("{\"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "}}"));
 
         List<Implementation> impls = CoreManager.getCoreImplementations(0);
         for (Implementation impl : impls) {
@@ -207,13 +217,15 @@ public class ResourceSchedulerTest {
                 try {
                     checkUnsetProfile(p);
                 } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on MethodA set-null test");
+                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core "
+                            + impl.getCoreId() + " on MethodA set-null test");
                 }
             } else {
                 try {
                     checkSetProfile(p);
                 } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for set implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on MethodA set-null test");
+                    fail("Invalid " + ce.getFeature() + " for set implementation " + impl.getImplementationId() + " core "
+                            + impl.getCoreId() + " on MethodA set-null test");
                 }
             }
         }
@@ -224,15 +236,16 @@ public class ResourceSchedulerTest {
             try {
                 checkUnsetProfile(p);
             } catch (CheckerException ce) {
-                fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on MethodA set-null test");
+                fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId()
+                        + " on MethodA set-null test");
             }
         }
     }
 
     @Test
     public void testMethodASetSet() {
-
-        ResourceScheduler rs = new ResourceScheduler(worker, new JSONObject("{\"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_PROFILE + "}}"));
+        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker, new JSONObject(
+                "{\"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_PROFILE + "}}"));
 
         List<Implementation> impls = CoreManager.getCoreImplementations(0);
         for (Implementation impl : impls) {
@@ -240,7 +253,8 @@ public class ResourceSchedulerTest {
             try {
                 checkSetProfile(p);
             } catch (CheckerException ce) {
-                fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on MethodA set-set test");
+                fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId()
+                        + " on MethodA set-set test");
             }
         }
 
@@ -250,15 +264,16 @@ public class ResourceSchedulerTest {
             try {
                 checkUnsetProfile(p);
             } catch (CheckerException ce) {
-                fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on MethodA set-set test");
+                fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId()
+                        + " on MethodA set-set test");
             }
         }
     }
 
     @Test
     public void testMethodAUpdatedNull() {
-
-        ResourceScheduler rs = new ResourceScheduler(worker, new JSONObject("{\"implementations\":{\"ClassA.methodA\":" + SET_AND_UPDATED_PROFILE + "}}"));
+        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker,
+                new JSONObject("{\"implementations\":{\"ClassA.methodA\":" + SET_AND_UPDATED_PROFILE + "}}"));
 
         List<Implementation> impls = CoreManager.getCoreImplementations(0);
         for (Implementation impl : impls) {
@@ -267,13 +282,15 @@ public class ResourceSchedulerTest {
                 try {
                     checkUnsetProfile(p);
                 } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on MethodA updated-null test");
+                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core "
+                            + impl.getCoreId() + " on MethodA updated-null test");
                 }
             } else {
                 try {
                     this.checkSetAndIncreasedProfile(p);
                 } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for set implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on MethodA updated-null test");
+                    fail("Invalid " + ce.getFeature() + " for set implementation " + impl.getImplementationId() + " core "
+                            + impl.getCoreId() + " on MethodA updated-null test");
                 }
             }
         }
@@ -284,15 +301,16 @@ public class ResourceSchedulerTest {
             try {
                 checkUnsetProfile(p);
             } catch (CheckerException ce) {
-                fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on MethodA updated-null test");
+                fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId()
+                        + " on MethodA updated-null test");
             }
         }
     }
 
     @Test
     public void testMethodANullUpdated() {
-
-        ResourceScheduler rs = new ResourceScheduler(worker, new JSONObject("{\"implementations\":{\"ClassB.methodA\":" + SET_AND_UPDATED_PROFILE + "}}"));
+        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker,
+                new JSONObject("{\"implementations\":{\"ClassB.methodA\":" + SET_AND_UPDATED_PROFILE + "}}"));
 
         List<Implementation> impls = CoreManager.getCoreImplementations(0);
         for (Implementation impl : impls) {
@@ -301,13 +319,15 @@ public class ResourceSchedulerTest {
                 try {
                     checkUnsetProfile(p);
                 } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on MethodA null-updated test");
+                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core "
+                            + impl.getCoreId() + " on MethodA null-updated test");
                 }
             } else {
                 try {
                     this.checkSetAndIncreasedProfile(p);
                 } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for set implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on MethodA null-updated test");
+                    fail("Invalid " + ce.getFeature() + " for set implementation " + impl.getImplementationId() + " core "
+                            + impl.getCoreId() + " on MethodA null-updated test");
                 }
             }
         }
@@ -318,15 +338,16 @@ public class ResourceSchedulerTest {
             try {
                 checkUnsetProfile(p);
             } catch (CheckerException ce) {
-                fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on MethodA null-updated test");
+                fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId()
+                        + " on MethodA null-updated test");
             }
         }
     }
 
     @Test
     public void testMethodASetUpdated() {
-
-        ResourceScheduler rs = new ResourceScheduler(worker, new JSONObject("{\"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_AND_UPDATED_PROFILE + "}}"));
+        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker, new JSONObject(
+                "{\"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_AND_UPDATED_PROFILE + "}}"));
 
         List<Implementation> impls = CoreManager.getCoreImplementations(0);
         for (Implementation impl : impls) {
@@ -335,13 +356,15 @@ public class ResourceSchedulerTest {
                 try {
                     checkSetProfile(p);
                 } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on MethodA set-updated test");
+                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core "
+                            + impl.getCoreId() + " on MethodA set-updated test");
                 }
             } else {
                 try {
                     this.checkSetAndIncreasedProfile(p);
                 } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for set implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on MethodA set-updated test");
+                    fail("Invalid " + ce.getFeature() + " for set implementation " + impl.getImplementationId() + " core "
+                            + impl.getCoreId() + " on MethodA set-updated test");
                 }
             }
         }
@@ -352,14 +375,17 @@ public class ResourceSchedulerTest {
             try {
                 checkUnsetProfile(p);
             } catch (CheckerException ce) {
-                fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on MethodA set-updated test");
+                fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId()
+                        + " on MethodA set-updated test");
             }
         }
     }
 
     @Test
     public void testAllSet() {
-        ResourceScheduler rs = new ResourceScheduler(worker, new JSONObject("{\"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_PROFILE + "," + "\"ClassA.methodB\":" + SET_PROFILE + "}}"));
+        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker,
+                new JSONObject("{\"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_PROFILE + ","
+                        + "\"ClassA.methodB\":" + SET_PROFILE + "}}"));
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
             for (Implementation impl : impls) {
@@ -367,7 +393,8 @@ public class ResourceSchedulerTest {
                 try {
                     checkSetProfile(p);
                 } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on all set test");
+                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core "
+                            + impl.getCoreId() + " on all set test");
                 }
             }
         }
@@ -375,9 +402,11 @@ public class ResourceSchedulerTest {
 
     @Test
     public void testAllSetCopy() {
-        ResourceScheduler rs = new ResourceScheduler(worker, new JSONObject("{\"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_PROFILE + "," + "\"ClassA.methodB\":" + SET_PROFILE + "}}"));
+        ResourceScheduler<MethodResourceDescription> rs = new ResourceScheduler<>(worker,
+                new JSONObject("{\"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_PROFILE + ","
+                        + "\"ClassA.methodB\":" + SET_PROFILE + "}}"));
         JSONObject jo = rs.toJSONObject();
-        rs = new ResourceScheduler(worker, jo);
+        rs = new ResourceScheduler<>(worker, jo);
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
             for (Implementation impl : impls) {
@@ -385,7 +414,8 @@ public class ResourceSchedulerTest {
                 try {
                     checkSetProfile(p);
                 } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core " + impl.getCoreId() + " on copy test");
+                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId() + " core "
+                            + impl.getCoreId() + " on copy test");
                 }
             }
         }
@@ -436,9 +466,16 @@ public class ResourceSchedulerTest {
         }
     }
 
+
     private class CheckerException extends Exception {
 
+        /**
+         * All Runtime Exceptions have serial ID 2L
+         */
+        private static final long serialVersionUID = 2L;
+
         private final String feature;
+
 
         public CheckerException(String feature) {
             this.feature = feature;

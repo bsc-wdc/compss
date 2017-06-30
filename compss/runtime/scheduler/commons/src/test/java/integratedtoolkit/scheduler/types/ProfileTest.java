@@ -9,10 +9,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-/**
- *
- * @author flordan
- */
+
 public class ProfileTest {
 
     private static final long DEFAULT_MIN_EXECUTION_TIME = Long.MAX_VALUE;
@@ -24,6 +21,7 @@ public class ProfileTest {
     private static final long SET_AVG_EXECUTION_TIME = 5;
     private static final long SET_MAX_EXECUTION_TIME = 10;
     private static final long SET_EXECUTION_COUNT = 3l;
+
 
     @BeforeClass
     public static void setUpClass() {
@@ -94,12 +92,8 @@ public class ProfileTest {
 
     @Test
     public void testCompleteJSON() {
-        Profile p = new Profile(new JSONObject("{"
-                + "\"executions\":" + SET_EXECUTION_COUNT + ","
-                + "\"maxTime\":" + SET_MAX_EXECUTION_TIME + ","
-                + "\"minTime\":" + SET_MIN_EXECUTION_TIME + ","
-                + "\"avgTime\":" + SET_AVG_EXECUTION_TIME
-                + "}"));
+        Profile p = new Profile(new JSONObject("{" + "\"executions\":" + SET_EXECUTION_COUNT + "," + "\"maxTime\":" + SET_MAX_EXECUTION_TIME
+                + "," + "\"minTime\":" + SET_MIN_EXECUTION_TIME + "," + "\"avgTime\":" + SET_AVG_EXECUTION_TIME + "}"));
         if (p.getExecutionCount() != SET_EXECUTION_COUNT) {
             fail("Invalid  execution count on complete JSON constructor");
         }
@@ -116,11 +110,8 @@ public class ProfileTest {
 
     @Test
     public void testNoExecCountJSON() {
-        Profile p = new Profile(new JSONObject("{"
-                + "\"maxTime\":" + SET_MAX_EXECUTION_TIME + ","
-                + "\"minTime\":" + SET_MIN_EXECUTION_TIME + ","
-                + "\"avgTime\":" + SET_AVG_EXECUTION_TIME
-                + "}"));
+        Profile p = new Profile(new JSONObject("{" + "\"maxTime\":" + SET_MAX_EXECUTION_TIME + "," + "\"minTime\":" + SET_MIN_EXECUTION_TIME
+                + "," + "\"avgTime\":" + SET_AVG_EXECUTION_TIME + "}"));
         if (p.getExecutionCount() != DEFAULT_EXECUTION_COUNT) {
             fail("Invalid  execution count on no execution count JSON constructor");
         }
@@ -137,11 +128,8 @@ public class ProfileTest {
 
     @Test
     public void testNoMinJSON() {
-        Profile p = new Profile(new JSONObject("{"
-                + "\"executions\":" + SET_EXECUTION_COUNT + ","
-                + "\"maxTime\":" + SET_MAX_EXECUTION_TIME + ","
-                + "\"avgTime\":" + SET_AVG_EXECUTION_TIME
-                + "}"));
+        Profile p = new Profile(new JSONObject("{" + "\"executions\":" + SET_EXECUTION_COUNT + "," + "\"maxTime\":" + SET_MAX_EXECUTION_TIME
+                + "," + "\"avgTime\":" + SET_AVG_EXECUTION_TIME + "}"));
         if (p.getExecutionCount() != SET_EXECUTION_COUNT) {
             fail("Invalid execution count on no min JSON constructor");
         }
@@ -158,11 +146,8 @@ public class ProfileTest {
 
     @Test
     public void testNoAverageJSON() {
-        Profile p = new Profile(new JSONObject("{"
-                + "\"executions\":" + SET_EXECUTION_COUNT + ","
-                + "\"maxTime\":" + SET_MAX_EXECUTION_TIME + ","
-                + "\"minTime\":" + SET_MIN_EXECUTION_TIME
-                + "}"));
+        Profile p = new Profile(new JSONObject("{" + "\"executions\":" + SET_EXECUTION_COUNT + "," + "\"maxTime\":" + SET_MAX_EXECUTION_TIME
+                + "," + "\"minTime\":" + SET_MIN_EXECUTION_TIME + "}"));
         if (p.getExecutionCount() != SET_EXECUTION_COUNT) {
             fail("Invalid execution count on no average JSON constructor");
         }
@@ -179,11 +164,8 @@ public class ProfileTest {
 
     @Test
     public void testNoMaxJSON() {
-        Profile p = new Profile(new JSONObject("{"
-                + "\"executions\":" + SET_EXECUTION_COUNT + ","
-                + "\"minTime\":" + SET_MIN_EXECUTION_TIME + ","
-                + "\"avgTime\":" + SET_AVG_EXECUTION_TIME
-                + "}"));
+        Profile p = new Profile(new JSONObject("{" + "\"executions\":" + SET_EXECUTION_COUNT + "," + "\"minTime\":" + SET_MIN_EXECUTION_TIME
+                + "," + "\"avgTime\":" + SET_AVG_EXECUTION_TIME + "}"));
         if (p.getExecutionCount() != SET_EXECUTION_COUNT) {
             fail("Invalid execution count on no max JSON constructor");
         }
@@ -200,12 +182,9 @@ public class ProfileTest {
 
     @Test
     public void toJSONObjectTest() {
-        Profile original = new Profile(new JSONObject("{"
-                + "\"executions\":" + SET_EXECUTION_COUNT + ","
-                + "\"maxTime\":" + SET_MAX_EXECUTION_TIME + ","
-                + "\"minTime\":" + SET_MIN_EXECUTION_TIME + ","
-                + "\"avgTime\":" + SET_AVG_EXECUTION_TIME
-                + "}"));
+        Profile original = new Profile(
+                new JSONObject("{" + "\"executions\":" + SET_EXECUTION_COUNT + "," + "\"maxTime\":" + SET_MAX_EXECUTION_TIME + ","
+                        + "\"minTime\":" + SET_MIN_EXECUTION_TIME + "," + "\"avgTime\":" + SET_AVG_EXECUTION_TIME + "}"));
         JSONObject jsonObject = original.toJSONObject();
         Profile p = new Profile(jsonObject);
         if (p.getExecutionCount() != SET_EXECUTION_COUNT) {

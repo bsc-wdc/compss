@@ -6,6 +6,7 @@ import integratedtoolkit.types.resources.MethodResourceDescription;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+
 public class CloudMethodResourceDescription extends MethodResourceDescription {
 
     public static final CloudMethodResourceDescription EMPTY = new CloudMethodResourceDescription();
@@ -14,6 +15,7 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
     private String name = "";
     private final HashMap<CloudInstanceTypeDescription, int[]> typeComposition = new HashMap<>();
     private CloudImageDescription image = null;
+
 
     public CloudMethodResourceDescription() {
         super();
@@ -31,14 +33,14 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
         super(clone);
         name = clone.name;
         for (java.util.Map.Entry<CloudInstanceTypeDescription, int[]> entry : clone.typeComposition.entrySet()) {
-            typeComposition.put(entry.getKey(), new int[]{entry.getValue()[0]});
+            typeComposition.put(entry.getKey(), new int[] { entry.getValue()[0] });
         }
         image = clone.image;
     }
 
     public CloudMethodResourceDescription(CloudInstanceTypeDescription type, CloudImageDescription image) {
         super(type.getResourceDescription());
-        typeComposition.put(type, new int[]{1});
+        typeComposition.put(type, new int[] { 1 });
         this.image = image;
     }
 
@@ -64,7 +66,7 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
         if (counts != null) {
             counts[0] += count;
         } else {
-            typeComposition.put(type, new int[]{count});
+            typeComposition.put(type, new int[] { count });
         }
     }
 
@@ -73,7 +75,7 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
         if (counts != null) {
             counts[0]++;
         } else {
-            typeComposition.put(type, new int[]{1});
+            typeComposition.put(type, new int[] { 1 });
         }
     }
 
@@ -87,7 +89,7 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
     }
 
     public LinkedList<CloudInstanceTypeDescription> getPossibleReductions() {
-        LinkedList<CloudInstanceTypeDescription> reductions = new LinkedList();
+        LinkedList<CloudInstanceTypeDescription> reductions = new LinkedList<>();
         for (CloudInstanceTypeDescription type : typeComposition.keySet()) {
             reductions.add(type);
         }

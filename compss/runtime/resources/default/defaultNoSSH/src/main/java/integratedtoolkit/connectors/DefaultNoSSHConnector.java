@@ -1,7 +1,6 @@
 package integratedtoolkit.connectors;
 
 import es.bsc.conn.Connector;
-import es.bsc.conn.exceptions.ConnException;
 import es.bsc.conn.types.VirtualResource;
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.connectors.conn.util.ConnectorProxy;
@@ -21,9 +20,9 @@ import java.util.Map.Entry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+
 /**
- * Default SSH Connector implementation to use specific SSH connectors'
- * interface
+ * Default SSH Connector implementation to use specific SSH connectors' interface
  *
  */
 public class DefaultNoSSHConnector extends AbstractConnector {
@@ -33,16 +32,15 @@ public class DefaultNoSSHConnector extends AbstractConnector {
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.CONNECTORS);
     private static final String WARN_NO_IT_HOME = "WARN: IT_HOME not defined, no default connectors loaded";
-    private static final String ERROR_NO_CONN = "ERROR: Connector specific implementation is null";
 
     // Constraints default values
     private static final float UNASSIGNED_FLOAT = -1.0f;
 
     private ConnectorProxy connector;
 
+
     /**
-     * Constructs a new Default SSH Connector and instantiates the specific
-     * connector implementation
+     * Constructs a new Default SSH Connector and instantiates the specific connector implementation
      *
      * @param provider
      * @param connectorJarPath
@@ -105,8 +103,8 @@ public class DefaultNoSSHConnector extends AbstractConnector {
     @Override
     public Object create(String name, CloudMethodResourceDescription cmrd) throws ConnectorException {
         LOGGER.debug("Create connection " + name);
-        return connector.create(Converter.getHardwareDescription(cmrd), Converter.getSoftwareDescription(cmrd), cmrd.getImage().getProperties());
-
+        return connector.create(Converter.getHardwareDescription(cmrd), Converter.getSoftwareDescription(cmrd),
+                cmrd.getImage().getProperties());
     }
 
     @Override
@@ -126,7 +124,6 @@ public class DefaultNoSSHConnector extends AbstractConnector {
     @Override
     public long getTimeSlot() {
         return connector.getTimeSlot(TWO_MIN);
-
     }
 
     @Override
@@ -136,17 +133,13 @@ public class DefaultNoSSHConnector extends AbstractConnector {
     }
 
     @Override
-    public void configureAccess(String IP, String user, String password)
-            throws ConnectorException {
+    public void configureAccess(String IP, String user, String password) throws ConnectorException {
         // TODO Nothing to do
-
     }
 
     @Override
-    public void prepareMachine(String IP, CloudImageDescription cid)
-            throws ConnectorException {
+    public void prepareMachine(String IP, CloudImageDescription cid) throws ConnectorException {
         // TODO Nothing to do
-
     }
 
 }

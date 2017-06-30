@@ -36,6 +36,7 @@ import org.apache.logging.log4j.Logger;
 
 import org.xml.sax.SAXException;
 
+
 public class ResourceLoader {
 
     // Resources XML and XSD
@@ -52,6 +53,7 @@ public class ResourceLoader {
 
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.RM_COMP);
+
 
     public static void load(String resources_XML, String resources_XSD, String project_XML, String project_XSD)
             throws ResourcesFileValidationException, ProjectFileValidationException, NoResourceAvailableException {
@@ -93,8 +95,7 @@ public class ResourceLoader {
         LOGGER.info("ResourceLoader loading Runtime");
 
         /*
-         * *************************************************************** 
-         * Resources and project have been loaded and
+         * *************************************************************** Resources and project have been loaded and
          * validated We need to cross validate them and load the information in the runtime
          * 
          * WARNING: When the JAXB class is set by package information, it refers to the PROJECT.XML, when the JAXB class
@@ -361,7 +362,8 @@ public class ResourceLoader {
         return true;
     }
 
-    private static MethodWorker createMethodWorker(String name, MethodResourceDescription rd, HashMap<String, String> sharedDisks, MethodConfiguration mc) {
+    private static MethodWorker createMethodWorker(String name, MethodResourceDescription rd, HashMap<String, String> sharedDisks,
+            MethodConfiguration mc) {
         // Compute task count
         int taskCount;
         int limitOfTasks = mc.getLimitOfTasks();
@@ -528,7 +530,8 @@ public class ResourceLoader {
         // Add Cloud Provider to CloudManager *****************************************/
         CloudProvider provider;
         try {
-            provider = ResourceManager.registerCloudProvider(cpName, limitOfVMs, runtimeConnector, connectorJarPath, connectorMainClass, properties);
+            provider = ResourceManager.registerCloudProvider(cpName, limitOfVMs, runtimeConnector, connectorJarPath, connectorMainClass,
+                    properties);
         } catch (Exception e) {
             ErrorManager.warn("Exception loading CloudProvider " + cpName, e);
             return false;
@@ -543,8 +546,8 @@ public class ResourceLoader {
         return true;
     }
 
-    private static CloudImageDescription createImage(ImageType im_project,
-            integratedtoolkit.types.resources.jaxb.ImageType im_resources, HashMap<String, String> properties) {
+    private static CloudImageDescription createImage(ImageType im_project, integratedtoolkit.types.resources.jaxb.ImageType im_resources,
+            HashMap<String, String> properties) {
 
         String imageName = im_project.getName();
         LOGGER.debug("Loading Image" + imageName);
@@ -639,7 +642,7 @@ public class ResourceLoader {
 
     private static CloudInstanceTypeDescription createInstance(integratedtoolkit.types.resources.jaxb.InstanceTypeType instance) {
         // Add the name
-        String name = instance.getName();
+        // String name = instance.getName();
         String type = instance.getName();
         MethodResourceDescription mrd = new MethodResourceDescription();
 

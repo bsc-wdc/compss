@@ -343,7 +343,7 @@ def getOldCode(filePath):
     functions = {}
     collapsed = ''.join(fileFunctions).strip()      # Collapse all lines into a single one
     # Then split by "def" and filter the empty results, then iterate concatenating "def" to all results.
-    funcs = [('def' + l) for l in filter(None, collapsed.split('def'))]
+    funcs = [('def ' + l) for l in filter(None, collapsed.split('def '))]
     # Add functions to dictionary by function name:
     for f in funcs:
         funcCode = f.strip()

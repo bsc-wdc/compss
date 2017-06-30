@@ -1,21 +1,19 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project 
+	xmlns="http://maven.apache.org/POM/4.0.0" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
 	<!-- GENERAL INFORMATION -->
-	<artifactId>compss-defaultNoSSH-connector</artifactId>
+	<artifactId>compss-default-connector-commons</artifactId>
 	<packaging>jar</packaging>
 	<parent>
 		<groupId>es.bsc.compss</groupId>
-		<artifactId>compss-resources</artifactId>
-<version>2.1.rc1706</version>
+		<artifactId>compss-connectors-default</artifactId>
+		<version>2.1.rc1706</version>
 		<relativePath>..</relativePath>
 	</parent>
-
-
 	<!-- PROJECT INFORMATION -->
-	<name>COMPSs default No SSH Connector</name>
-	<description>COMPSs Default No SSH Connector</description>
+	<name>COMPSs Commons for default SSH Connector</name>
+	<description>Library with COMPSs classes for Default SSH Connector</description>
 	<url>http://www.bsc.es</url>
 	<licenses>
 		<license>
@@ -27,18 +25,14 @@
 		<name>BSC</name>
 		<url>http://www.bsc.es</url>
 	</organization>
-
 	<!-- PROPERTIES -->
-	<properties>
-	</properties>
-
+	<properties></properties>
 	<!-- DEPENDENCIES -->
 	<dependencies>
 		<dependency>
 			<groupId>es.bsc</groupId>
 			<artifactId>connectors-all</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>es.bsc.compss</groupId>
 			<artifactId>compss-resources-commons</artifactId>
@@ -50,7 +44,6 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
 	<!-- BUILD -->
 	<build>
 		<finalName>${project.artifactId}</finalName>
@@ -63,7 +56,6 @@
 					<target>${maven.compiler.target}</target>
 				</configuration>
 			</plugin>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
@@ -123,14 +115,14 @@
 									<destFileName>vmm-conn.jar</destFileName>
 								</artifactItem>
 								<artifactItem>
-                                                                        <groupId>es.bsc</groupId>
-                                                                        <artifactId>slurm-conn</artifactId>
-                                                                        <version>${conn.version}</version>
-                                                                        <type>jar</type>
-                                                                        <overWrite>false</overWrite>
-                                                                        <outputDirectory>${project.build.directory}/cloud-conn/</outputDirectory>
-                                                                        <destFileName>slurm-conn.jar</destFileName>
-                                                                </artifactItem>
+									<groupId>es.bsc</groupId>
+									<artifactId>slurm-conn</artifactId>
+									<version>${conn.version}</version>
+									<type>jar</type>
+									<overWrite>false</overWrite>
+									<outputDirectory>${project.build.directory}/cloud-conn/</outputDirectory>
+									<destFileName>slurm-conn.jar</destFileName>
+								</artifactItem>
 								<artifactItem>
 									<groupId>es.bsc</groupId>
 									<artifactId>docker-conn</artifactId>

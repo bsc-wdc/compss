@@ -4,14 +4,8 @@ import integratedtoolkit.ITConstants;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.CloudProvider;
 import integratedtoolkit.connectors.ConnectorException;
-import integratedtoolkit.types.CloudImageDescription;
-import integratedtoolkit.types.implementations.Implementation;
-import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.ResourceCreationRequest;
-import integratedtoolkit.types.resources.Resource;
-import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
-import integratedtoolkit.types.resources.CloudMethodWorker;
-import integratedtoolkit.types.resources.MethodResourceDescription;
+import integratedtoolkit.types.resources.description.CloudInstanceTypeDescription;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -36,79 +30,106 @@ public class CloudManager {
     private static final String WARN_NO_IT_HOME_RESOURCES = "WARN_MSG = [IT_HOME NOT DEFINED, NO DEFAULT CONNECTORS LOADED]";
     private static final String WARN_NO_CONNECTORS_FOLDER = "WARN: Connectors folder not defined, no default connectors loaded";
     private static final String WARN_NO_CONNECTORS_FOLDER_RESOURCES = "WARN_MSG = [CONNECTORS FOLDER NOT DEFINED, NO DEFAULT CONNECTORS LOADED]";
-    private static final String WARN_NO_RESOURCE_MATCHES = "WARN: No resource matches the constraints";
-    private static final String WARN_CANNOT_TURN_ON = "WARN: Connector cannot turn on resource";
-    private static final String WARN_EXCEPTION_TURN_ON = "WARN: Connector exception on turn on resource";
 
-    private static boolean useCloud;
-    private static int initialVMs = 0;
-    private static int minVMs = 0;
-    private static int maxVMs = -1;
+    private static final Logger RUNTIME_LOGGER = LogManager.getLogger(Loggers.CM_COMP);
+    private static final Logger RESOURCES_LOGGER = LogManager.getLogger(Loggers.RESOURCES);
+
+    /*static {
+        RUNTIME_LOGGER.debug("Loading runtime connectors to classpath...");
+
+        String itHome = System.getenv(ITConstants.IT_HOME);
+        if (itHome == null || itHome.isEmpty()) {
+            RESOURCES_LOGGER.warn(WARN_NO_IT_HOME_RESOURCES);
+            RUNTIME_LOGGER.warn(WARN_NO_IT_HOME);
+        } else {
+            String connPath = itHome + CONNECTORS_REL_PATH;
+            try {
+                Classpath.loadPath(connPath, RUNTIME_LOGGER);
+            } catch (FileNotFoundException fnfe) {
+                ErrorManager.warn("Connector jar " + connPath + " not found.");
+                RESOURCES_LOGGER.warn(WARN_NO_CONNECTORS_FOLDER_RESOURCES);
+                RUNTIME_LOGGER.warn(WARN_NO_CONNECTORS_FOLDER);
+            }
+        }
+    }*/
 
     /**
      * Relation between a Cloud provider name and its representation
      */
-    private static HashMap<String, CloudProvider> providers;
-    /**
-     * Relation between a resource name and the representation of the Cloud
-     * provider that support it
-     */
-    private static HashMap<String, CloudProvider> VM2Provider;
+    private final HashMap<String, CloudProvider> providers;
 
-    private static final LinkedList<ResourceCreationRequest> pendingRequests = new LinkedList<>();
-    private static int[] pendingCoreCount = new int[CoreManager.getCoreCount()];
-
-    private static final Logger runtimeLogger = LogManager.getLogger(Loggers.CM_COMP);
-    private static final Logger resourcesLogger = LogManager.getLogger(Loggers.RESOURCES);
+    private boolean useCloud;
+    private int initialVMs = 0;
+    private int minVMs = 0;
+    private int maxVMs = Integer.MAX_VALUE;
 
     /**
      * Initializes the internal data structures
      *
      */
-    public static void initialize() {
-        runtimeLogger.info("Initializing Cloud Manager");
+    public CloudManager() {
+        RUNTIME_LOGGER.info("Initializing Cloud Manager");
         useCloud = false;
         providers = new HashMap<>();
-        VM2Provider = new HashMap<>();
-
-        loadRuntimeConnectorJars();
     }
 
-    /**
-     * Configures the runtime to use the Cloud to adapt the resource pool
-     *
-     * @param useCloud true if enabled
-     */
-    public static void setUseCloud(boolean useCloud) {
-        CloudManager.useCloud = useCloud;
-    }
-
-    public static int getInitialVMs() {
-        return initialVMs;
-    }
-
-    public static void setInitialVMs(int initialVMs) {
-        if (initialVMs > 0) {
-            CloudManager.initialVMs = initialVMs;
-        }
-    }
-
-    public static int getMinVMs() {
+    public int getMinVMs() {
         return minVMs;
     }
 
-    public static void setMinVMs(int minVMs) {
-        if (minVMs > 0) {
-            CloudManager.minVMs = minVMs;
+    public int getMaxVMs() {
+        if (this.maxVMs > this.minVMs) {
+            return maxVMs;
+        } else {
+            return this.minVMs;
         }
     }
 
-    public static int getMaxVMs() {
-        return maxVMs;
+    public int getInitialVMs() {
+        int initialVMs = this.initialVMs;
+        if (initialVMs > this.maxVMs) {
+            initialVMs = this.maxVMs;
+        }
+        if (initialVMs < this.minVMs) {
+            initialVMs = this.minVMs;
+        }
+        return initialVMs;
     }
 
-    public static void setMaxVMs(int maxVMs) {
-        CloudManager.maxVMs = maxVMs;
+    public void setMinVMs(Integer minVMs) {
+        if (minVMs != null) {
+            if (minVMs > 0) {
+                this.minVMs = minVMs;
+                if (minVMs > maxVMs) {
+                    ErrorManager.warn("Cloud: MaxVMs (" + maxVMs + ") is lower than MinVMs (" + this.minVMs + "). The current MaxVMs value (" + maxVMs + ") is ignored until MinVMs (" + this.minVMs + ") is lower than it");
+                }
+            } else {
+                this.minVMs = 0;
+            }
+        }
+    }
+
+    public void setMaxVMs(Integer maxVMs) {
+        if (maxVMs != null) {
+            if (maxVMs > 0) {
+                this.maxVMs = maxVMs;
+            } else {
+                this.maxVMs = 0;
+            }
+            if (minVMs > maxVMs) {
+                ErrorManager.warn("Cloud: MaxVMs (" + this.maxVMs + ") is lower than MinVMs (" + this.minVMs + "). The current MaxVMs value (" + this.maxVMs + ") is ignored until MinVMs (" + this.minVMs + ") is higher than it");
+            }
+        }
+    }
+
+    public void setInitialVMs(Integer initialVMs) {
+        if (initialVMs != null) {
+            if (initialVMs > 0) {
+                this.initialVMs = initialVMs;
+            } else {
+                this.initialVMs = 0;
+            }
+        }
     }
 
     /**
@@ -116,74 +137,44 @@ public class CloudManager {
      *
      * @return true if it is used
      */
-    public static boolean isUseCloud() {
+    public boolean isUseCloud() {
         return useCloud;
     }
 
     /**
      * Adds a new Provider to the management
      *
-     * @param providerName Identifier of that cloud provider
-     * @param limitOfVMs Max amount of VMs that can be running at the same time
-     * for that Cloud provider
-     * @param connectorJarPath Package name of the connector required to
-     * interact with the provider
-     * @param connectorMainClass Class name of the connector required to
-     * interact with the provider
-     * @param connectorProperties Properties to configure the connector
+     * @param providerName
+     * @param limitOfVMs
+     * @param runtimeConnectorClass
+     * @param connectorJarPath
+     * @param connectorMainClass
+     * @param connectorProperties
      *
-     * @throws ConnectorException Loading the connector by reflection
+     * @return
+     * @throws integratedtoolkit.connectors.ConnectorException
      */
-    public static void newCloudProvider(String providerName, Integer limitOfVMs, String connectorJarPath, String connectorMainClass,
+    public CloudProvider registerCloudProvider(String providerName, Integer limitOfVMs, String runtimeConnectorClass, String connectorJarPath, String connectorMainClass,
             HashMap<String, String> connectorProperties) throws ConnectorException {
 
-        CloudProvider cp = new CloudProvider(providerName, limitOfVMs, connectorJarPath, connectorMainClass, connectorProperties);
-        providers.put(providerName, cp);
+        CloudProvider cp = new CloudProvider(providerName, limitOfVMs, runtimeConnectorClass, connectorJarPath, connectorMainClass, connectorProperties);
+        useCloud = true;
+        providers.put(cp.getName(), cp);
+        return cp;
     }
 
-    /**
-     * Adds an image description to a Cloud Provider
-     *
-     * @param providerName Identifier of the Cloud provider
-     * @param cid Description of the features offered by that image
-     * @throws Exception the cloud provider does not exist
-     */
-    public static void addImageToProvider(String providerName, CloudImageDescription cid) throws Exception {
-
-        CloudProvider cp = providers.get(providerName);
-        if (cp == null) {
-            throw new Exception("Inexistent Cloud Provider " + providerName);
-        }
-        cp.addCloudImage(cid);
+    public Collection<CloudProvider> getProviders() {
+        return providers.values();
     }
 
-    /**
-     * Adds an instance type description to a Cloud Provider
-     *
-     * @param providerName Identifier of the Cloud provider
-     * @param rd Description of the features offered by that instance type
-     * @throws Exception the cloud provider does not exist
-     */
-    public static void addInstanceTypeToProvider(String providerName, CloudMethodResourceDescription rd) throws Exception {
-        CloudProvider cp = providers.get(providerName);
-        if (cp == null) {
-            throw new Exception("Inexistent Cloud Provider " + providerName);
+    public CloudProvider getProvider(String name) {
+        if (providers.containsKey(name)) {
+            return providers.get(name);
         }
-        cp.addInstanceType(rd);
+        return null;
     }
 
-    public static void newCoreElementsDetected(List<Integer> newCores) {
-        pendingCoreCount = new int[CoreManager.getCoreCount()];
-        for (ResourceCreationRequest rcr : pendingRequests) {
-            int[][] reqCounts = rcr.requestedSimultaneousTaskCount();
-            for (int coreId = 0; coreId < reqCounts.length; coreId++) {
-                int coreSlots = 0;
-                for (int implId = 0; implId < reqCounts[coreId].length; implId++) {
-                    coreSlots = Math.max(coreSlots, reqCounts[coreId][implId]);
-                }
-                pendingCoreCount[coreId] += coreSlots;
-            }
-        }
+    public void newCoreElementsDetected(List<Integer> newCores) {
         for (CloudProvider cp : providers.values()) {
             cp.newCoreElementsDetected(newCores);
         }
@@ -201,7 +192,11 @@ public class CloudManager {
      *
      * @return Returns all the pending creation requests
      */
-    public static LinkedList<ResourceCreationRequest> getPendingRequests() {
+    public LinkedList<ResourceCreationRequest> getPendingRequests() {
+        LinkedList<ResourceCreationRequest> pendingRequests = new LinkedList<>();
+        for (CloudProvider cp : providers.values()) {
+            pendingRequests.addAll(cp.getPendingRequests());
+        }
         return pendingRequests;
     }
 
@@ -211,288 +206,16 @@ public class CloudManager {
      *
      * @return Returns all the pending creation requests
      */
-    public static int[] getPendingCoreCounts() {
-        return pendingCoreCount;
-    }
-
-    /**
-     * Asks for the described resources to a Cloud provider. The CloudManager
-     * checks the best resource that each provider can offer. Then it picks one
-     * of them and it constructs a resourceRequest describing the resource and
-     * which cores can be executed on it. This ResourceRequest will be used to
-     * ask for that resource creation to the Cloud Provider and returned if the
-     * application is accepted.
-     *
-     * @param requirements description of the resource expected to receive
-     * @param contained {@literal true} if we want the request to ask for a
-     * resource contained in the description; else, the result contains the
-     * passed in description.
-     * @return Description of the ResourceRequest sent to the CloudProvider.
-     * {@literal Null} if any of the Cloud Providers can offer a resource like
-     * the requested one.
-     */
-    public static ResourceCreationRequest askForResources(MethodResourceDescription requirements, boolean contained) {
-        return askForResources(1, requirements, contained);
-    }
-
-    /**
-     * The CloudManager ask for resources that can execute certain amount of
-     * cores at the same time. It checks the best resource that each provider
-     * can offer to execute that amount of cores and picks one of them. It
-     * constructs a resourceRequest describing the resource and which cores can
-     * be executed on it. This ResourceRequest will be used to ask for that
-     * resource creation to the Cloud Provider and returned if the application
-     * is accepted.
-     *
-     * @param amount amount of slots
-     * @param requirements features of the resource
-     * @param contained {@literal true} if we want the request to ask for a
-     * resource contained in the description; else, the result contains the
-     * passed in description.
-     * @return
-     */
-    public static ResourceCreationRequest askForResources(Integer amount, MethodResourceDescription requirements, boolean contained) {
-        // Search best resource
-        CloudProvider bestProvider = null;
-        CloudMethodResourceDescription bestConstraints = null;
-        Float bestValue = Float.MAX_VALUE;
+    public int[] getPendingCoreCounts() {
+        int coreCount = CoreManager.getCoreCount();
+        int[] pendingCoreCounts = new int[coreCount];
         for (CloudProvider cp : providers.values()) {
-            CloudMethodResourceDescription rc = cp.getBestIncrease(amount, requirements, contained);
-            if (rc != null && rc.getValue() < bestValue) {
-                bestProvider = cp;
-                bestConstraints = rc;
-                bestValue = rc.getValue();
+            int[] providerCounts = cp.getPendingCoreCounts();
+            for (int coreId = 0; coreId < providerCounts.length; coreId++) {
+                pendingCoreCounts[coreId] += providerCounts[coreId];
             }
         }
-        if (bestConstraints == null) {
-            runtimeLogger.warn(WARN_NO_RESOURCE_MATCHES);
-            return null;
-        }
-
-        // Code only executed if a resource fits the constraints
-        int coreCount = CoreManager.getCoreCount();
-        int[][] simultaneousCounts = bestProvider.getSimultaneousImpls(bestConstraints.getType());
-        if (simultaneousCounts == null) {
-            simultaneousCounts = new int[coreCount][];
-            for (int coreId = 0; coreId < coreCount; coreId++) {
-                List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
-                int implsSize = impls.size();
-                simultaneousCounts[coreId] = new int[implsSize];
-                for (int implId = 0; implId < implsSize; ++implId) {
-                    Implementation impl = impls.get(implId);
-                    if (impl.getTaskType() == TaskType.METHOD) {
-                        MethodResourceDescription description = (MethodResourceDescription) impl.getRequirements();
-                        if (description != null) {
-                            Integer into = bestConstraints.canHostSimultaneously(description);
-                            simultaneousCounts[coreId][implId] = into;
-                        }
-                    }
-                }
-            }
-        }
-
-        runtimeLogger.debug("[Cloud Manager] Asking for resource creation " + bestConstraints.getName() + " with image"
-                + bestConstraints.getImage().getImageName());
-        ResourceCreationRequest rcr = new ResourceCreationRequest(bestConstraints, simultaneousCounts, bestProvider.getName());
-
-        try {
-            if (bestProvider.turnON(rcr)) {
-                pendingRequests.add(rcr);
-                int[][] reqCounts = rcr.requestedSimultaneousTaskCount();
-                for (int coreId = 0; coreId < reqCounts.length; coreId++) {
-                    int coreSlots = 0;
-                    for (int implId = 0; implId < reqCounts[coreId].length; implId++) {
-                        coreSlots = Math.max(coreSlots, reqCounts[coreId][implId]);
-                    }
-                    pendingCoreCount[coreId] += coreSlots;
-                }
-                return rcr;
-            } else {
-                runtimeLogger.warn(WARN_CANNOT_TURN_ON);
-                return null;
-            }
-        } catch (Exception e) {
-            runtimeLogger.warn(WARN_EXCEPTION_TURN_ON, e);
-            return null;
-        }
-    }
-
-    public static ResourceCreationRequest askForResources(String provider, String instanceName, String imageName) {
-        CloudProvider cp = providers.get(provider);
-        if (provider == null) {
-            runtimeLogger.warn(WARN_EXCEPTION_TURN_ON);
-            return null;
-        }
-        CloudMethodResourceDescription constraints = cp.getResourceDescription(instanceName, imageName);
-        if (constraints == null) {
-            runtimeLogger.warn(WARN_EXCEPTION_TURN_ON);
-            return null;
-        }
-        // Code only executed if a resource fits the constraints
-        int coreCount = CoreManager.getCoreCount();
-        int[][] simultaneousCounts = cp.getSimultaneousImpls(constraints.getType());
-        if (simultaneousCounts == null) {
-            simultaneousCounts = new int[coreCount][];
-            for (int coreId = 0; coreId < coreCount; coreId++) {
-                List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
-                int implsSize = impls.size();
-                simultaneousCounts[coreId] = new int[implsSize];
-                for (int implId = 0; implId < implsSize; ++implId) {
-                    Implementation impl = impls.get(implId);
-                    if (impl.getTaskType() == TaskType.METHOD) {
-                        MethodResourceDescription description = (MethodResourceDescription) impl.getRequirements();
-                        if (description != null) {
-                            Integer into = constraints.canHostSimultaneously(description);
-                            simultaneousCounts[coreId][implId] = into;
-                        }
-                    }
-                }
-            }
-        }
-
-        runtimeLogger.debug("Asking for resource creation");
-        ResourceCreationRequest rcr = new ResourceCreationRequest(constraints, simultaneousCounts, provider);
-        try {
-            if (cp.turnON(rcr)) {
-                pendingRequests.add(rcr);
-                int[][] reqCounts = rcr.requestedSimultaneousTaskCount();
-                for (int coreId = 0; coreId < reqCounts.length; coreId++) {
-                    int coreSlots = 0;
-                    for (int implId = 0; implId < reqCounts[coreId].length; implId++) {
-                        coreSlots = Math.max(coreSlots, reqCounts[coreId][implId]);
-                    }
-                    pendingCoreCount[coreId] += coreSlots;
-                }
-                return rcr;
-            } else {
-                runtimeLogger.warn(WARN_CANNOT_TURN_ON);
-                return null;
-            }
-        } catch (Exception e) {
-            runtimeLogger.warn(WARN_EXCEPTION_TURN_ON, e);
-            return null;
-        }
-    }
-
-    public static void confirmedRequest(ResourceCreationRequest rcr, CloudMethodWorker r) {
-        pendingRequests.remove(rcr);
-        int[][] reqCounts = rcr.requestedSimultaneousTaskCount();
-        for (int coreId = 0; coreId < reqCounts.length; coreId++) {
-            int coreSlots = 0;
-            for (int implId = 0; implId < reqCounts[coreId].length; implId++) {
-                coreSlots = Math.max(coreSlots, reqCounts[coreId][implId]);
-            }
-            pendingCoreCount[coreId] -= coreSlots;
-        }
-        String provider = rcr.getProvider();
-        CloudProvider cp = providers.get(provider);
-        String vmName = r.getName();
-        VM2Provider.put(vmName, cp);
-        cp.createdVM(vmName, (CloudMethodResourceDescription) r.getDescription());
-    }
-
-    public static void refusedRequest(ResourceCreationRequest rcr) {
-        pendingRequests.remove(rcr);
-        int[][] reqCounts = rcr.requestedSimultaneousTaskCount();
-        for (int coreId = 0; coreId < reqCounts.length; coreId++) {
-            int coreSlots = 0;
-            for (int implId = 0; implId < reqCounts[coreId].length; implId++) {
-                coreSlots = Math.max(coreSlots, reqCounts[coreId][implId]);
-            }
-            pendingCoreCount[coreId] -= coreSlots;
-        }
-        CloudProvider cp = providers.get(rcr.getProvider());
-        cp.refusedWorker(rcr.getRequested());
-    }
-
-    /**
-     * Given a set of resources, it checks every possible modification of the
-     * resource and returns the one that better fits with the destruction
-     * recommendations.
-     *
-     * The decision-making algorithm tries to minimize the number of affected CE
-     * that weren't recommended to be modified, minimize the number of slots
-     * that weren't requested to be destroyed and maximize the number of slots
-     * that can be removed and they were requested for.
-     *
-     * @param resourceSet set of resources
-     * @param destroyRecommendations number of slots to be removed for each CE
-     * @return an object array defining the best solution. 0-> (Resource)
-     * selected Resource. 1-> (int[]) record of the #CE with removed slots and
-     * that they shouldn't be modified, #slots that will be destroyed and they
-     * weren't recommended, #slots that will be removed and they were asked to
-     * be. 2->(int[]) #slots to be removed by each CE. 3->(ResourceDescription)
-     * description of the resource to be destroyed.
-     *
-     *
-     */
-    public static Object[] getBestDestruction(Collection<CloudMethodWorker> resourceSet, float[] destroyRecommendations) {
-        CloudProvider cp;
-        float[] bestRecord = new float[3];
-        bestRecord[0] = Float.MAX_VALUE;
-        bestRecord[1] = Float.MAX_VALUE;
-        bestRecord[2] = Float.MIN_VALUE;
-        Resource bestResource = null;
-        CloudProvider bestCP = null;
-        String bestType = null;
-        CloudMethodResourceDescription bestRD = null;
-
-        for (CloudMethodWorker res : resourceSet) {
-            cp = VM2Provider.get(res.getName());
-            if (cp == null) { // it's not a cloud machine
-                continue;
-            }
-
-            HashMap<String, Object[]> typeToPoints = cp.getPossibleReductions(res, destroyRecommendations);
-
-            for (Entry<String, Object[]> destruction : typeToPoints.entrySet()) {
-                String typeName = destruction.getKey();
-                Object[] description = destruction.getValue();
-                float[] values = (float[]) description[0];
-                CloudMethodResourceDescription rd = (CloudMethodResourceDescription) description[1];
-                if (bestRecord[0] == values[0]) {
-                    if (bestRecord[1] == values[1]) {
-                        if (bestRecord[2] < values[2]) {
-                            bestRecord = values;
-                            bestResource = res;
-                            bestType = typeName;
-                            bestCP = cp;
-                            bestRD = rd;
-                        }
-                    } else if (bestRecord[1] > values[1]) {
-                        bestRecord = values;
-                        bestResource = res;
-                        bestType = typeName;
-                        bestCP = cp;
-                        bestRD = rd;
-                    }
-                } else if (bestRecord[0] > values[0]) {
-                    bestRecord = values;
-                    bestResource = res;
-                    bestType = typeName;
-                    bestCP = cp;
-                    bestRD = rd;
-                }
-            }
-        }
-        if (bestResource != null) {
-            Object[] ret = new Object[4];
-            ret[0] = bestResource;
-            ret[1] = bestRecord;
-            ret[2] = bestCP.getSimultaneousImpls(bestType);
-            ret[3] = bestRD;
-            return ret;
-        } else {
-            return null;
-        }
-    }
-
-    public static void destroyResources(CloudMethodWorker res, CloudMethodResourceDescription reduction) {
-        runtimeLogger.debug("[Cloud Manager] Destroying resource " + res.getName() + " for reduction");
-        CloudProvider cp = VM2Provider.get(res.getName());
-        if (cp != null) {
-            cp.turnOff(res, reduction);
-        }
+        return pendingCoreCounts;
     }
 
     /**
@@ -500,14 +223,13 @@ public class CloudManager {
      *
      * @throws ConnectorException
      */
-    public static void terminateALL() throws ConnectorException {
-        runtimeLogger.debug("[Cloud Manager] Terminate ALL resources");
+    public void terminateALL() throws ConnectorException {
+        RUNTIME_LOGGER.debug("[Cloud Manager] Terminate ALL resources");
         if (providers != null) {
             for (Entry<String, CloudProvider> vm : providers.entrySet()) {
                 CloudProvider cp = vm.getValue();
                 cp.terminateAll();
             }
-            VM2Provider.clear();
         }
     }
 
@@ -516,7 +238,7 @@ public class CloudManager {
      *
      * @return the cost per hour of the whole pool
      */
-    public static float currentCostPerHour() {
+    public float currentCostPerHour() {
         float total = 0;
         for (CloudProvider cp : providers.values()) {
             total += cp.getCurrentCostPerHour();
@@ -528,7 +250,7 @@ public class CloudManager {
      * The CloudManager notifies to all the connectors the end of generation of
      * new tasks
      */
-    public static void stopReached() {
+    public void stopReached() {
         for (CloudProvider cp : providers.values()) {
             cp.stopReached();
         }
@@ -539,7 +261,7 @@ public class CloudManager {
      *
      * @return cost of the whole execution
      */
-    public static float getTotalCost() {
+    public float getTotalCost() {
         float total = 0;
         for (CloudProvider cp : providers.values()) {
             total += cp.getTotalCost();
@@ -554,7 +276,7 @@ public class CloudManager {
      * @return time required for a resource to be ready
      * @throws Exception can not get the creation time for some providers.
      */
-    public static long getNextCreationTime() throws Exception {
+    public long getNextCreationTime() throws Exception {
         long total = 0;
         for (CloudProvider cp : providers.values()) {
             total = Math.max(total, cp.getNextCreationTime());
@@ -562,7 +284,7 @@ public class CloudManager {
         return total;
     }
 
-    public static long getTimeSlot() throws Exception {
+    public long getTimeSlot() throws Exception {
         long total = Long.MAX_VALUE;
         for (CloudProvider cp : providers.values()) {
             total = Math.min(total, cp.getTimeSlot());
@@ -575,7 +297,7 @@ public class CloudManager {
      *
      * @return amount of machines on the Cloud
      */
-    public static int getCurrentVMCount() {
+    public int getCurrentVMCount() {
         int total = 0;
         for (CloudProvider cp : providers.values()) {
             total += cp.getCurrentVMCount();
@@ -583,7 +305,7 @@ public class CloudManager {
         return total;
     }
 
-    public static String getCurrentState(String prefix) {
+    public String getCurrentState(String prefix) {
         StringBuilder sb = new StringBuilder();
         // Current state
         sb.append(prefix).append("CLOUD = [").append("\n");
@@ -595,39 +317,18 @@ public class CloudManager {
 
         // Pending requests
         sb.append(prefix).append("\t").append("PENDING_REQUESTS = [").append("\n");
-        for (ResourceCreationRequest rcr : pendingRequests) {
-            sb.append(prefix).append("\t").append("\t").append("REQUEST = ").append(rcr.getRequested().getType()).append("\n");
+        for (CloudProvider cp : providers.values()) {
+            for (ResourceCreationRequest rcr : cp.getPendingRequests()) {
+                HashMap<CloudInstanceTypeDescription, int[]> composition = rcr.getRequested().getTypeComposition();
+                //REQUEST ARE COMPOSED OF A SINGLE INSTANCE TYPE
+                for (CloudInstanceTypeDescription citd : composition.keySet()) {
+                    sb.append(prefix).append("\t").append("\t").append("REQUEST = ").append(citd.getName()).append("\n");
+                }
+            }
         }
         sb.append(prefix).append("\t").append("]").append("\n");
         sb.append(prefix).append("]");
 
         return sb.toString();
-    }
-
-    public static CloudProvider getProvider(String name) {
-        if (providers.containsKey(name)) {
-            return providers.get(name);
-        }
-        return null;
-    }
-
-    private static void loadRuntimeConnectorJars() {
-        runtimeLogger.debug("Loading runtime connectors to classpath...");
-
-        String itHome = System.getenv(ITConstants.IT_HOME);
-        if (itHome == null || itHome.isEmpty()) {
-            resourcesLogger.warn(WARN_NO_IT_HOME_RESOURCES);
-            runtimeLogger.warn(WARN_NO_IT_HOME);
-            return;
-        }
-
-        String connPath = itHome + CONNECTORS_REL_PATH;
-        try {
-            Classpath.loadPath(connPath, runtimeLogger);
-        } catch (FileNotFoundException fnfe) {
-            ErrorManager.warn("Connector jar " + connPath + " not found.");
-            resourcesLogger.warn(WARN_NO_CONNECTORS_FOLDER_RESOURCES);
-            runtimeLogger.warn(WARN_NO_CONNECTORS_FOLDER);
-        }
     }
 }

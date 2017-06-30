@@ -1,15 +1,17 @@
 package cloudManager;
 
 import commons.ConstantValues;
-import integratedtoolkit.types.CloudImageDescription;
+import integratedtoolkit.types.CloudProvider;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.implementations.MethodImplementation;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.components.Processor;
+import integratedtoolkit.types.resources.description.CloudImageDescription;
+import integratedtoolkit.types.resources.description.CloudInstanceTypeDescription;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
-import integratedtoolkit.util.CloudManager;
 import integratedtoolkit.util.CoreManager;
+import integratedtoolkit.util.ResourceManager;
 
 
 /*
@@ -49,6 +51,7 @@ public class Test {
 
         // Check for each implementation the correctness of its resources
         coreCount = CoreManager.getCoreCount();
+        CloudProvider cp = ResourceManager.getCloudProvider("BSC");
         for (int coreId = 0; coreId < coreCount; coreId++) {
             System.out.println("[LOG] Checking Core" + coreId);
             for (Implementation impl : CoreManager.getCoreImplementations(coreId)) {
@@ -58,8 +61,7 @@ public class Test {
 
                     MethodImplementation mImpl = (MethodImplementation) impl;
 
-                    for (CloudImageDescription cid_gci : CloudManager.getProvider("BSC").getCloudImageManager()
-                            .getCompatibleImages(mImpl.getRequirements())) {
+                    for (CloudImageDescription cid_gci : cp.getCompatibleImages(mImpl.getRequirements())) {
                         System.out.println("\t\t\t Checking compatible Image: " + cid_gci.getImageName());
                         String res = checkImplementationAssignedToCloudImage(mImpl.getRequirements(), cid_gci);
                         if (res != null) {
@@ -70,13 +72,12 @@ public class Test {
                         }
                     }
                     System.out.println("\t\t Checking obtained compatible cloud types");
-                    for (CloudMethodResourceDescription gct : CloudManager.getProvider("BSC").getCloudTypeManager()
-                            .getCompatibleTypes(new CloudMethodResourceDescription(mImpl.getRequirements()))) {
-                        if (gct.canHostSimultaneously(mImpl.getRequirements()) < 1) {
+                    for (CloudInstanceTypeDescription type : cp.getCompatibleTypes(new CloudMethodResourceDescription(mImpl.getRequirements()))) {
+                        if (type.getResourceDescription().canHostSimultaneously(mImpl.getRequirements()) < 1) {
                             continue;
                         }
-                        System.out.println("\t\t\t Checking compatible Type: " + gct.getType());
-                        String res = checkImplementationAssignedToType(mImpl.getRequirements(), gct);
+                        System.out.println("\t\t\t Checking compatible Type: " + type.getName());
+                        String res = checkImplementationAssignedToType(mImpl.getRequirements(), type.getResourceDescription());
                         if (res != null) {
                             String error = "[ERROR] Implementation: Core = " + coreId + " Impl = " + impl.getImplementationId() + ". ";
                             error = error.concat("Implementation and type not matching on: " + res);
@@ -119,7 +120,7 @@ public class Test {
         return null;
     }
 
-    private static String checkImplementationAssignedToType(MethodResourceDescription rdImpl, CloudMethodResourceDescription rdType) {
+    private static String checkImplementationAssignedToType(MethodResourceDescription rdImpl, MethodResourceDescription rdType) {
         /*
          * *********************************************** 
          * COMPUTING UNITS

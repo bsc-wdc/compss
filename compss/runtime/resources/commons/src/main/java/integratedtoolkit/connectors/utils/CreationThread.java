@@ -5,9 +5,10 @@ import integratedtoolkit.connectors.AbstractConnector;
 import integratedtoolkit.connectors.ConnectorException;
 import integratedtoolkit.connectors.VM;
 import integratedtoolkit.log.Loggers;
+import integratedtoolkit.types.CloudProvider;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
 import integratedtoolkit.types.ResourceCreationRequest;
-import integratedtoolkit.types.CloudImageDescription;
+import integratedtoolkit.types.resources.description.CloudImageDescription;
 import integratedtoolkit.types.resources.CloudMethodWorker;
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.types.resources.configuration.MethodConfiguration;
@@ -50,7 +51,7 @@ public class CreationThread extends Thread {
 
     private final Operations operations;
     private final String name; // Id for the CloudProvider or IP if VM is reused
-    private final String provider;
+    private final CloudProvider provider;
     private final ResourceCreationRequest rcr;
     private final VM reused;
 
@@ -63,7 +64,7 @@ public class CreationThread extends Thread {
      * @param rR
      * @param reused
      */
-    public CreationThread(Operations operations, String name, String provider, ResourceCreationRequest rR, VM reused) {
+    public CreationThread(Operations operations, String name, CloudProvider provider, ResourceCreationRequest rR, VM reused) {
         this.setName("Creation Thread " + name);
 
         this.operations = operations;
@@ -113,8 +114,8 @@ public class CreationThread extends Thread {
             RESOURCE_LOGGER.info("RESOURCE_GRANTED = [\n\tNAME = " + reused.getName() + "\n\tSTATUS = ID "
                     + granted.getEnvId() + " REUSED\n]");
         }
-
-        this.setName("Creation Thread " + granted.getName());
+        String grantedName = granted.getName();
+        this.setName("Creation Thread " + grantedName);
         CloudMethodWorker r = ResourceManager.getDynamicResource(granted.getName());
         if (r == null) { // Resources are provided in a new VM
             if (reused == null) { // And are new --> Initiate VM
@@ -132,14 +133,14 @@ public class CreationThread extends Thread {
                 }
             } else {
                 int limitOfTasks = granted.getDescription().getTotalCPUComputingUnits();
-                r = new CloudMethodWorker(granted.getDescription(), granted.getNode(), limitOfTasks,
+                r = new CloudMethodWorker(grantedName, provider, granted.getDescription(), granted.getNode(), limitOfTasks,
                         rcr.getRequested().getImage().getSharedDisks());
                 if (DEBUG) {
-                    RUNTIME_LOGGER.debug("Worker for new resource " + granted.getName() + " set.");
+                    RUNTIME_LOGGER.debug("Worker for new resource " + grantedName + " set.");
                 }
             }
             granted.setWorker(r);
-            ResourceManager.addCloudWorker(rcr, r);
+            ResourceManager.addCloudWorker(rcr, r, granted.getDescription());
         } else {
             // Resources are provided in an existing VM
             ResourceManager.increasedCloudWorker(rcr, r, granted.getDescription());
@@ -260,7 +261,7 @@ public class CreationThread extends Thread {
         }
         mc.setHost(granted.getName());
 
-        worker = new CloudMethodWorker(granted.getName(), granted, mc, cid.getSharedDisks());
+        worker = new CloudMethodWorker(granted.getName(), provider, granted, mc, cid.getSharedDisks());
 
         try {
             worker.announceCreation();

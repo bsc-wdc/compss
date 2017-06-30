@@ -3,12 +3,16 @@ package integratedtoolkit.util;
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.scheduler.types.WorkloadState;
+import integratedtoolkit.types.CloudProvider;
+import integratedtoolkit.types.resources.description.CloudInstanceTypeDescription;
+import integratedtoolkit.types.resources.description.CloudImageDescription;
 import integratedtoolkit.types.ResourceCreationRequest;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.implementations.MethodImplementation;
 import integratedtoolkit.types.resources.CloudMethodWorker;
 import integratedtoolkit.types.resources.MethodResourceDescription;
+import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.components.Processor;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
 
@@ -25,10 +29,17 @@ import org.apache.logging.log4j.Logger;
 
 public class ResourceOptimizer extends Thread {
 
+    //WARNING MESSAGES
+    private static final String WARN_NO_RESOURCE_MATCHES = "WARN: No resource matches the constraints";
+    private static final String WARN_NO_COMPATIBLE_TYPE = "WARN: Cannot find any compatible instanceType";
+    private static final String WARN_NO_COMPATIBLE_IMAGE = "WARN: Cannot find any compatible Image";
+    private static final String WARN_NO_VALID_INSTANCE = "WARN: Cannot find a containing/contained instanceType";
+    private static final String WARN_EXCEPTION_TURN_ON = "WARN: Connector exception on turn on resource";
+
     // Loggers
     protected static final Logger RESOURCES_LOGGER = LogManager.getLogger(Loggers.RESOURCES);
-    protected static final Logger LOGGER = LogManager.getLogger(Loggers.RM_COMP);
-    protected static final boolean DEBUG = LOGGER.isDebugEnabled();
+    protected static final Logger RUNTIME_LOGGER = LogManager.getLogger(Loggers.RM_COMP);
+    protected static final boolean DEBUG = RUNTIME_LOGGER.isDebugEnabled();
 
     // Sleep times
     private static final int SLEEP_TIME = 10_000;
@@ -55,12 +66,12 @@ public class ResourceOptimizer extends Thread {
 
     public ResourceOptimizer(TaskScheduler ts) {
         if (DEBUG) {
-            LOGGER.debug("[Resource Optimizer] Initializing Resource Optimizer");
+            RUNTIME_LOGGER.debug("[Resource Optimizer] Initializing Resource Optimizer");
         }
         this.setName("ResourceOptimizer");
         this.ts = ts;
         redo = false;
-        LOGGER.info("[Resource Optimizer] Initialization finished");
+        RUNTIME_LOGGER.info("[Resource Optimizer] Initialization finished");
     }
 
     @Override
@@ -84,7 +95,7 @@ public class ResourceOptimizer extends Thread {
                         applyPolicies(workload);
 
                         // There is a potentialBlock in cloud only if all the possible VMs have been created
-                        int VMsBeingCreated = CloudManager.getPendingRequests().size();
+                        int VMsBeingCreated = ResourceManager.getPendingCreationRequests().size();
                         potentialBlock = potentialBlock && (VMsBeingCreated == 0);
                     }
 
@@ -103,7 +114,7 @@ public class ResourceOptimizer extends Thread {
                 }
 
             } catch (Exception e) {
-                LOGGER.error(ERROR_OPT_RES, e);
+                RUNTIME_LOGGER.error(ERROR_OPT_RES, e);
             }
         }
     }
@@ -252,12 +263,20 @@ public class ResourceOptimizer extends Thread {
             while (!unfulfilledConstraints[coreId].isEmpty()) {
                 ConstraintsCore cc = unfulfilledConstraints[coreId].removeFirst();
                 cc.confirmed();
-                ResourceCreationRequest rcr = CloudManager.askForResources(cc.desc, false);
+                ResourceCreationRequest rcr = askForResources(cc.desc, false);
                 if (rcr != null) {
+                    StringBuilder compositionString = new StringBuilder();
+                    for (java.util.Map.Entry<CloudInstanceTypeDescription, int[]> entry : rcr.getRequested().getTypeComposition().entrySet()) {
+                        compositionString.append(" \t\tTYPE = [\n")
+                                .append("\t\t\tNAME = ").append(entry.getKey().getName())
+                                .append("\t\t\tCOUNT= ").append(entry.getValue()[0])
+                                .append("\t\t]\n");
+                    }
                     RESOURCES_LOGGER.info("ORDER_CREATION = [\n"
-                            + "\tTYPE = " + rcr.getRequested().getType() + "\n"
-                            + "\tPROVIDER = " + rcr.getProvider() + "\n"
-                            + "]");
+                            + "\tTYPE = " + compositionString.toString() + "\n"
+                            + "\tPROVIDER = " + rcr.getProvider().getName() + "\n"
+                            + "]"
+                    );
                     if (DEBUG) {
                         StringBuilder sb = new StringBuilder();
                         sb.append("EXPECTED_SIM_TASKS = [").append("\n");
@@ -463,7 +482,7 @@ public class ResourceOptimizer extends Thread {
      * constraint
      */
     public static int addExtraNodes(int alreadyCreated) {
-        int initialVMsCount = CloudManager.getInitialVMs();
+        int initialVMsCount = ResourceManager.getInitialCloudVMs();
         int vmCount = initialVMsCount - alreadyCreated;
         if (vmCount <= 0) {
             return 0;
@@ -555,13 +574,13 @@ public class ResourceOptimizer extends Thread {
      * *********************************************************************************************************
      */
     protected void applyPolicies(WorkloadState workload) {
-        int currentCloudVMCount = CloudManager.getCurrentVMCount();
-        Integer maxNumberOfVMs = (CloudManager.getMaxVMs() > 0) ? CloudManager.getMaxVMs() : null;
-        Integer minNumberOfVMs = CloudManager.getMinVMs();
+        int currentCloudVMCount = ResourceManager.getCurrentVMCount();
+        Integer maxNumberOfVMs = ResourceManager.getMaxCloudVMs();
+        Integer minNumberOfVMs = ResourceManager.getMinCloudVMs();
 
         long creationTime;
         try {
-            creationTime = CloudManager.getNextCreationTime();
+            creationTime = ResourceManager.getNextCreationTime();
         } catch (Exception ex) {
             creationTime = 120_000l;
         }
@@ -631,7 +650,7 @@ public class ResourceOptimizer extends Thread {
             totalPendingTasks = totalPendingTasks + pendingCounts[i];
         }
         if (DEBUG) {
-            LOGGER.debug("[Resource Optimizer] Applying VM optimization policies (currentVMs: " + currentCloudVMCount + " maxVMs: "
+            RUNTIME_LOGGER.debug("[Resource Optimizer] Applying VM optimization policies (currentVMs: " + currentCloudVMCount + " maxVMs: "
                     + maxNumberOfVMs + " minVMs: " + minNumberOfVMs + ")");
         }
 
@@ -641,7 +660,7 @@ public class ResourceOptimizer extends Thread {
             LinkedList<Integer> requiredVMs = checkNeededMachines(noResourceCount, noResourceCounts, totalSlots);
 
             if (!requiredVMs.isEmpty()) {
-                LOGGER.debug("[Resource Optimizer] Required VMs. Mandatory Increase");
+                RUNTIME_LOGGER.debug("[Resource Optimizer] Required VMs. Mandatory Increase");
                 float[] creationRecommendations = recommendCreations(coreCount, creationTime, readyMinCoreTime, readyMeanCoreTime,
                         readyMaxCoreTime, totalSlots, realSlots);
                 for (Integer coreId : requiredVMs) {
@@ -654,7 +673,7 @@ public class ResourceOptimizer extends Thread {
 
             // For accomplishing the minimum amount of vms
             if (minNumberOfVMs != null && minNumberOfVMs > currentCloudVMCount) {
-                LOGGER.debug("[Resource Optimizer] Current VM (" + currentCloudVMCount + ") count smaller than minimum VMs ("
+                RUNTIME_LOGGER.debug("[Resource Optimizer] Current VM (" + currentCloudVMCount + ") count smaller than minimum VMs ("
                         + minNumberOfVMs + "). Mandatory Increase");
                 float[] creationRecommendations = orderCreations(coreCount, creationTime, readyMinCoreTime, readyMeanCoreTime,
                         readyMaxCoreTime, totalSlots, realSlots);
@@ -663,7 +682,7 @@ public class ResourceOptimizer extends Thread {
             }
             // For not exceeding the VM top limit
             if (maxNumberOfVMs != null && maxNumberOfVMs < currentCloudVMCount) {
-                LOGGER.debug("[Resource Optimizer] Current VM (" + currentCloudVMCount + ") count bigger than maximum VMs ("
+                RUNTIME_LOGGER.debug("[Resource Optimizer] Current VM (" + currentCloudVMCount + ") count bigger than maximum VMs ("
                         + maxNumberOfVMs + "). Mandatory reduction");
                 float[] destroyRecommendations = deleteRecommendations(coreCount, SLEEP_TIME, pendingMinCoreTime, pendingMeanCoreTime,
                         pendingMaxCoreTime, totalSlots, realSlots);
@@ -675,7 +694,7 @@ public class ResourceOptimizer extends Thread {
 
         // Check Recommended creations
         if ((maxNumberOfVMs == null || maxNumberOfVMs > currentCloudVMCount) && workload.getReadyCount() > 1) {
-            LOGGER.debug("[Resource Optimizer] Current VM (" + currentCloudVMCount + ") count smaller than maximum VMs (" + maxNumberOfVMs
+            RUNTIME_LOGGER.debug("[Resource Optimizer] Current VM (" + currentCloudVMCount + ") count smaller than maximum VMs (" + maxNumberOfVMs
                     + ")");
             float[] creationRecommendations = recommendCreations(coreCount, creationTime, readyMinCoreTime, readyMeanCoreTime,
                     readyMaxCoreTime, totalSlots, realSlots);
@@ -685,7 +704,7 @@ public class ResourceOptimizer extends Thread {
         }
         // Check Recommended destructions
         if ((minNumberOfVMs == null || minNumberOfVMs < currentCloudVMCount) && totalPendingTasks == 0 && workload.getReadyCount() == 0) {
-            LOGGER.debug(
+            RUNTIME_LOGGER.debug(
                     "[Resource Optimizer] Current VM (" + currentCloudVMCount + ") count bigger than minimum VMs (" + minNumberOfVMs + ")");
             float[] destroyRecommendations = deleteRecommendations(coreCount, SLEEP_TIME, pendingMinCoreTime, pendingMeanCoreTime,
                     pendingMaxCoreTime, totalSlots, realSlots);
@@ -742,7 +761,7 @@ public class ResourceOptimizer extends Thread {
     private boolean optionalReduction(float[] destroyRecommendations) {
         LinkedList<CloudMethodWorker> nonCritical = trimReductionOptions(ResourceManager.getNonCriticalDynamicResources(),
                 destroyRecommendations);
-        Object[] nonCriticalSolution = CloudManager.getBestDestruction(nonCritical, destroyRecommendations);
+        Object[] nonCriticalSolution = getBestDestruction(nonCritical, destroyRecommendations);
 
         CloudMethodWorker res;
         float[] record;
@@ -757,17 +776,17 @@ public class ResourceOptimizer extends Thread {
         // slotsRemovingCount = (int[][]) nonCriticalSolution[2];
         rd = (CloudMethodResourceDescription) nonCriticalSolution[3];
         if (DEBUG) {
-            LOGGER.debug("[Resource Optimizer] Best resource to remove is " + res.getName() + "and record is [" + record[0] + ","
+            RUNTIME_LOGGER.debug("[Resource Optimizer] Best resource to remove is " + res.getName() + "and record is [" + record[0] + ","
                     + record[1] + "," + record[2]);
         }
         if (record[1] > 0 && res.getUsedCPUTaskCount() > 0) {
-            LOGGER.debug("[Resource Optimizer] Optional destroy recommendation not applied");
+            RUNTIME_LOGGER.debug("[Resource Optimizer] Optional destroy recommendation not applied");
             return false;
         } else {
-            LOGGER.debug("[Resource Optimizer] Optional destroy recommendation applied");
+            RUNTIME_LOGGER.debug("[Resource Optimizer] Optional destroy recommendation applied");
             CloudMethodResourceDescription finalDescription = rd;
             finalDescription.setName(res.getName());
-            CloudManager.destroyResources(res, finalDescription);
+            ResourceManager.reduceCloudWorker(res, finalDescription);
             return true;
         }
     }
@@ -778,8 +797,8 @@ public class ResourceOptimizer extends Thread {
         // LinkedList<CloudMethodWorker> critical = checkCriticalSafeness (critical);
         LinkedList<CloudMethodWorker> nonCritical = trimReductionOptions(ResourceManager.getNonCriticalDynamicResources(),
                 destroyRecommendations);
-        Object[] criticalSolution = CloudManager.getBestDestruction(critical, destroyRecommendations);
-        Object[] nonCriticalSolution = CloudManager.getBestDestruction(nonCritical, destroyRecommendations);
+        Object[] criticalSolution = getBestDestruction(critical, destroyRecommendations);
+        Object[] nonCriticalSolution = getBestDestruction(nonCritical, destroyRecommendations);
 
         boolean criticalIsBetter;
         if (criticalSolution == null) {
@@ -792,8 +811,8 @@ public class ResourceOptimizer extends Thread {
             criticalIsBetter = true;
         } else {
             criticalIsBetter = false;
-            float[] noncriticalValues = (float[]) nonCriticalSolution[1];
-            float[] criticalValues = (float[]) criticalSolution[1];
+            float[] noncriticalValues = (float[]) nonCriticalSolution[2];
+            float[] criticalValues = (float[]) criticalSolution[2];
 
             if (noncriticalValues[0] == criticalValues[0]) {
                 if (noncriticalValues[1] == criticalValues[1]) {
@@ -809,32 +828,32 @@ public class ResourceOptimizer extends Thread {
         }
 
         CloudMethodWorker res;
+        CloudMethodResourceDescription cmrd;
         // float[] record;
         // int[][] slotsRemovingCount;
-        CloudMethodResourceDescription rd;
+        CloudInstanceTypeDescription citd;
 
         if (criticalIsBetter) {
             res = (CloudMethodWorker) criticalSolution[0];
-            // record = (float[]) criticalSolution[1];
-            // slotsRemovingCount = (int[][]) criticalSolution[2];
-            rd = (CloudMethodResourceDescription) criticalSolution[3];
+            citd = (CloudInstanceTypeDescription) criticalSolution[1];
         } else {
             if (nonCriticalSolution == null) {
                 return;
             }
             res = (CloudMethodWorker) nonCriticalSolution[0];
-            // record = (float[]) nonCriticalSolution[1];
-            // slotsRemovingCount = (int[][]) nonCriticalSolution[2];
-            rd = (CloudMethodResourceDescription) nonCriticalSolution[3];
+            citd = (CloudInstanceTypeDescription) nonCriticalSolution[1];
         }
-        CloudMethodResourceDescription finalDescription = new CloudMethodResourceDescription(rd);
+        cmrd = (CloudMethodResourceDescription) res.getDescription();
+        CloudImageDescription cid = cmrd.getImage();
+
+        CloudMethodResourceDescription finalDescription = new CloudMethodResourceDescription(citd, cid);
         finalDescription.setName(res.getName());
-        CloudManager.destroyResources(res, finalDescription);
+        ResourceManager.reduceCloudWorker(res, finalDescription);
     }
 
     private LinkedList<CloudMethodWorker> trimReductionOptions(Collection<CloudMethodWorker> options, float[] recommendations) {
         if (DEBUG) {
-            LOGGER.debug("[Resource Optimizer] * Trimming reduction options");
+            RUNTIME_LOGGER.debug("[Resource Optimizer] * Trimming reduction options");
         }
         LinkedList<CloudMethodWorker> resources = new LinkedList<>();
         Iterator<CloudMethodWorker> it = options.iterator();
@@ -844,14 +863,14 @@ public class ResourceOptimizer extends Thread {
             boolean aggressive = false;// (resource.getUsedTaskCount() == 0);
             boolean add = !aggressive;
             if (DEBUG) {
-                LOGGER.debug("\tEvaluating " + resource.getName() + ". Default reduction is " + add);
+                RUNTIME_LOGGER.debug("\tEvaluating " + resource.getName() + ". Default reduction is " + add);
             }
             LinkedList<Integer> executableCores = resource.getExecutableCores();
             for (int coreId : executableCores) {
 
                 if (!aggressive && recommendations[coreId] < 1) {
                     if (DEBUG) {
-                        LOGGER.debug(
+                        RUNTIME_LOGGER.debug(
                                 "\t\tVM not removed because of not agressive and recomendations < 1 (" + recommendations[coreId] + ")");
                     }
                     add = false;
@@ -859,7 +878,7 @@ public class ResourceOptimizer extends Thread {
                 }
                 if (aggressive && recommendations[coreId] > 0) {
                     if (DEBUG) {
-                        LOGGER.debug("\t\tVM removed because of agressive and recomendations > 0 (" + recommendations[coreId] + ")");
+                        RUNTIME_LOGGER.debug("\t\tVM removed because of agressive and recomendations > 0 (" + recommendations[coreId] + ")");
                     }
                     add = true;
                     break;
@@ -867,7 +886,7 @@ public class ResourceOptimizer extends Thread {
             }
             if (add) {
                 if (DEBUG) {
-                    LOGGER.debug("\t\tVM added to candidate to remove.");
+                    RUNTIME_LOGGER.debug("\t\tVM added to candidate to remove.");
                 }
                 resources.add(resource);
             }
@@ -878,13 +897,21 @@ public class ResourceOptimizer extends Thread {
     private static ResourceCreationRequest requestOneCreation(PriorityQueue<ValueResourceDescription> pq, boolean include) {
         ValueResourceDescription v;
         while ((v = pq.poll()) != null) {
-            ResourceCreationRequest rcr = CloudManager.askForResources(v.value < 1 ? 1 : (int) v.value, v.constraints, include);
+            ResourceCreationRequest rcr = askForResources(v.value < 1 ? 1 : (int) v.value, v.constraints, include);
             if (rcr != null) {
+                StringBuilder compositionString = new StringBuilder();
+                for (java.util.Map.Entry<CloudInstanceTypeDescription, int[]> entry : rcr.getRequested().getTypeComposition().entrySet()) {
+                    compositionString.append(" \t\tTYPE = [\n")
+                            .append("\t\t\tNAME = ").append(entry.getKey().getName())
+                            .append("\t\t\tCOUNT= ").append(entry.getValue()[0])
+                            .append("\t\t]\n");
+                }
                 RESOURCES_LOGGER.info(
                         "ORDER_CREATION = [\n"
-                        + "\tTYPE = " + rcr.getRequested().getType() + "\n"
+                        + "\tTYPE_COMPOSITION = [" + compositionString.toString() + "]\n"
                         + "\tPROVIDER = " + rcr.getProvider() + "\n"
-                        + "]");
+                        + "]"
+                );
                 if (DEBUG) {
                     StringBuilder sb = new StringBuilder();
                     sb.append("EXPECTED_SIM_TASKS = [").append("\n");
@@ -939,14 +966,14 @@ public class ResourceOptimizer extends Thread {
             long embraceableLoad = totalTime;
             long remainingLoad = aggregatedMeanCoreTime[coreId] - embraceableLoad;
             if (DEBUG) {
-                LOGGER.debug("[Resource Optimizer] * Calculating increase recomendations");
-                LOGGER.debug("\tRemaining load = " + aggregatedMeanCoreTime[coreId] + "-( " + totalSlots[coreId] + " * " + creationTime
+                RUNTIME_LOGGER.debug("[Resource Optimizer] * Calculating increase recomendations");
+                RUNTIME_LOGGER.debug("\tRemaining load = " + aggregatedMeanCoreTime[coreId] + "-( " + totalSlots[coreId] + " * " + creationTime
                         + " ) = " + remainingLoad);
             }
             if (remainingLoad > 0) {
                 creations[coreId] = (int) (remainingLoad / creationTime);
                 if (DEBUG) {
-                    LOGGER.debug("\tRecomended slots = " + creations[coreId] + " ( " + remainingLoad + " / " + creationTime + " )");
+                    RUNTIME_LOGGER.debug("\tRecomended slots = " + creations[coreId] + " ( " + remainingLoad + " / " + creationTime + " )");
                 }
             } else {
                 creations[coreId] = 0;
@@ -978,7 +1005,7 @@ public class ResourceOptimizer extends Thread {
             long[] aggregatedMaxCoreTime, int[] totalSlots, int[] realSlots) {
 
         if (DEBUG) {
-            LOGGER.debug(
+            RUNTIME_LOGGER.debug(
                     "[Resource Optimizer] * Delete Recomendations calculations:\n\tcoreCount: " + coreCount + " limitTime: " + limitTime);
         }
         float[] destructions = new float[coreCount];
@@ -989,17 +1016,17 @@ public class ResourceOptimizer extends Thread {
             if (embraceableLoad == 0l) {
                 destructions[coreId] = 0;
                 if (DEBUG) {
-                    LOGGER.debug(
+                    RUNTIME_LOGGER.debug(
                             "\tembraceableLoad [ " + coreId + "] = " + limitTime + " * " + realSlots[coreId] + " = " + embraceableLoad);
-                    LOGGER.debug("\tdestructions [ " + coreId + "] = 0");
+                    RUNTIME_LOGGER.debug("\tdestructions [ " + coreId + "] = 0");
                 }
             } else if (aggregatedMinCoreTime[coreId] > 0) {
                 double unusedTime = (((double) embraceableLoad) / (double) 2) - (double) aggregatedMeanCoreTime[coreId];
                 destructions[coreId] = (float) (unusedTime / (double) limitTime);
                 if (DEBUG) {
-                    LOGGER.debug("\tembraceableLoad [ " + coreId + "] = " + limitTime + " * " + realSlots[coreId] + " = " + embraceableLoad);
-                    LOGGER.debug("\tunused [ " + coreId + "] =  ( " + embraceableLoad + " / 2) - " + aggregatedMeanCoreTime[coreId] + " = " + unusedTime);
-                    LOGGER.debug("\tdestructions [ " + coreId + "] = " + destructions[coreId]);
+                    RUNTIME_LOGGER.debug("\tembraceableLoad [ " + coreId + "] = " + limitTime + " * " + realSlots[coreId] + " = " + embraceableLoad);
+                    RUNTIME_LOGGER.debug("\tunused [ " + coreId + "] =  ( " + embraceableLoad + " / 2) - " + aggregatedMeanCoreTime[coreId] + " = " + unusedTime);
+                    RUNTIME_LOGGER.debug("\tdestructions [ " + coreId + "] = " + destructions[coreId]);
                 }
             } else {
                 destructions[coreId] = embraceableLoad / limitTime;
@@ -1048,7 +1075,7 @@ public class ResourceOptimizer extends Thread {
 
         @Override
         public String toString() {
-            LinkedList<Integer> cores = new LinkedList<Integer>();
+            LinkedList<Integer> cores = new LinkedList<>();
             for (int i = 0; i < CoreManager.getCoreCount(); i++) {
                 if (this.cores[i] != null) {
                     cores.add(i);
@@ -1094,6 +1121,291 @@ public class ResourceOptimizer extends Thread {
         public String toString() {
             return value + (prioritary ? "!" : "") + constraints;
         }
+    }
+
+    public ResourceCreationRequest askForResources(CloudProvider cp, String instanceName, String imageName) {
+        CloudMethodResourceDescription constraints = cp.getResourceDescription(instanceName, imageName);
+        if (constraints == null) {
+            RUNTIME_LOGGER.warn(WARN_EXCEPTION_TURN_ON);
+            return null;
+        }
+
+        return cp.requestResourceCreation(constraints);
+    }
+
+    /**
+     * Asks for the described resources to a Cloud provider. The CloudManager
+     * checks the best resource that each provider can offer. Then it picks one
+     * of them and it constructs a resourceRequest describing the resource and
+     * which cores can be executed on it. This ResourceRequest will be used to
+     * ask for that resource creation to the Cloud Provider and returned if the
+     * application is accepted.
+     *
+     * @param requirements description of the resource expected to receive
+     * @param contained {@literal true} if we want the request to ask for a
+     * resource contained in the description; else, the result contains the
+     * passed in description.
+     * @return Description of the ResourceRequest sent to the CloudProvider.
+     * {@literal Null} if any of the Cloud Providers can offer a resource like
+     * the requested one.
+     */
+    public static ResourceCreationRequest askForResources(MethodResourceDescription requirements, boolean contained) {
+        return askForResources(1, requirements, contained);
+    }
+
+    /**
+     * The CloudManager ask for resources that can execute certain amount of
+     * cores at the same time. It checks the best resource that each provider
+     * can offer to execute that amount of cores and picks one of them. It
+     * constructs a resourceRequest describing the resource and which cores can
+     * be executed on it. This ResourceRequest will be used to ask for that
+     * resource creation to the Cloud Provider and returned if the application
+     * is accepted.
+     *
+     * @param amount amount of slots
+     * @param requirements features of the resource
+     * @param contained {@literal true} if we want the request to ask for a
+     * resource contained in the description; else, the result contains the
+     * passed in description.
+     * @return
+     */
+    public static ResourceCreationRequest askForResources(Integer amount, MethodResourceDescription requirements, boolean contained) {
+        // Search best resource
+        CloudProvider bestProvider = null;
+        CloudMethodResourceDescription bestConstraints = null;
+        Float bestValue = Float.MAX_VALUE;
+        for (CloudProvider cp : ResourceManager.getAvailableCloudProviders()) {
+            CloudMethodResourceDescription rc = getBestIncreaseOnProvider(cp, amount, requirements, contained);
+            if (rc != null && rc.getValue() < bestValue) {
+                bestProvider = cp;
+                bestConstraints = rc;
+                bestValue = rc.getValue();
+            }
+        }
+        if (bestConstraints == null) {
+            RUNTIME_LOGGER.warn(WARN_NO_RESOURCE_MATCHES);
+            return null;
+        }
+
+        return bestProvider.requestResourceCreation(bestConstraints);
+    }
+
+    public static CloudMethodResourceDescription getBestIncreaseOnProvider(CloudProvider cp, Integer amount, MethodResourceDescription requirements, boolean contained) {
+        // Check Cloud capabilities
+        if (!cp.canHostMoreInstances()) {
+            return null;
+        }
+
+        // Select all the compatible types
+        LinkedList<CloudInstanceTypeDescription> instances = cp.getCompatibleTypes(requirements);
+        if (instances.isEmpty()) {
+            RESOURCES_LOGGER.warn(WARN_NO_COMPATIBLE_TYPE);
+            return null;
+        }
+
+        CloudMethodResourceDescription result = null;
+        CloudInstanceTypeDescription type = null;
+        if (contained) {
+            type = selectContainedInstance(instances, requirements, amount);
+        } else {
+            type = selectContainingInstance(instances, requirements, amount);
+        }
+
+        // Pick an image to be loaded in the Type (or return null)
+        if (type != null) {
+            // Select all the compatible images
+            LinkedList<CloudImageDescription> images = cp.getCompatibleImages(requirements);
+            if (!images.isEmpty()) {
+                CloudImageDescription image = images.get(0);
+                result = new CloudMethodResourceDescription(type, image);
+                result.setValue(cp.getInstanceCostPerHour(result));
+            } else {
+                RESOURCES_LOGGER.warn(WARN_NO_COMPATIBLE_IMAGE);
+            }
+        } else {
+            RESOURCES_LOGGER.warn(WARN_NO_VALID_INSTANCE);
+        }
+
+        return result;
+    }
+
+    private static CloudInstanceTypeDescription selectContainingInstance(LinkedList<CloudInstanceTypeDescription> instances,
+            MethodResourceDescription constraints, int amount) {
+
+        CloudInstanceTypeDescription result = null;
+        MethodResourceDescription bestDescription = null;
+        float bestDistance = Integer.MIN_VALUE;
+
+        for (CloudInstanceTypeDescription type : instances) {
+            MethodResourceDescription rd = type.getResourceDescription();
+            int slots = rd.canHostSimultaneously(constraints);
+            float distance = slots - amount;
+            RESOURCES_LOGGER.debug("Can host: slots = " + slots + " amount = " + amount + " distance = " + distance + " bestDistance = " + bestDistance);
+            if (distance > 0.0) {
+                continue;
+            }
+
+            if (distance > bestDistance) {
+                result = type;
+                bestDescription = type.getResourceDescription();
+                bestDistance = distance;
+            } else if (distance == bestDistance && bestDescription != null) {
+                if (bestDescription.getValue() != null && rd.getValue() != null && bestDescription.getValue() > rd.getValue()) {
+                    // Evaluate optimal candidate
+                    result = type;
+                    bestDescription = type.getResourceDescription();
+                    bestDistance = distance;
+                }
+            }
+        }
+
+        if (result == null) {
+            return null;
+        }
+        return result;
+    }
+
+    private static CloudInstanceTypeDescription selectContainedInstance(LinkedList<CloudInstanceTypeDescription> instances,
+            MethodResourceDescription constraints, int amount) {
+
+        CloudInstanceTypeDescription bestType = null;
+        MethodResourceDescription bestDescription = null;
+        float bestDistance = Integer.MAX_VALUE;
+
+        for (CloudInstanceTypeDescription type : instances) {
+            MethodResourceDescription rd = type.getResourceDescription();
+            int slots = rd.canHostSimultaneously(constraints);
+            float distance = slots - amount;
+            RESOURCES_LOGGER.debug("Can host: slots = " + slots + " amount = " + amount + " distance = " + distance + " bestDistance = " + bestDistance);
+            if (distance < 0.0) {
+                continue;
+            }
+
+            if (distance < bestDistance) {
+                bestType = type;
+                bestDescription = type.getResourceDescription();
+                bestDistance = distance;
+            } else if (distance == bestDistance && bestDescription != null) {
+                if (bestDescription.getValue() != null && rd.getValue() != null && bestDescription.getValue() > rd.getValue()) {
+                    // Evaluate optimal candidate
+                    bestType = type;
+                    bestDescription = type.getResourceDescription();
+                    bestDistance = distance;
+                }
+            }
+
+        }
+
+        if (bestType == null) {
+            return null;
+        }
+        return bestType;
+    }
+
+    /**
+     * Given a set of resources, it checks every possible modification of the
+     * resource and returns the one that better fits with the destruction
+     * recommendations.
+     *
+     * The decision-making algorithm tries to minimize the number of affected CE
+     * that weren't recommended to be modified, minimize the number of slots
+     * that weren't requested to be destroyed and maximize the number of slots
+     * that can be removed and they were requested for.
+     *
+     * @param resourceSet set of resources
+     * @param destroyRecommendations number of slots to be removed for each CE
+     * @return an object array defining the best solution.
+     *
+     * 0-> (Resource) selected Resource.
+     *
+     * 1->(CloudTypeInstanceDescription) Type to be destroyed to be destroyed.
+     *
+     * 2-> (int[]) record of the #CE with removed slots and that they shouldn't
+     * be modified, #slots that will be destroyed and they weren't recommended,
+     * #slots that will be removed and they were asked to be.
+     *
+     */
+    private Object[] getBestDestruction(Collection<CloudMethodWorker> resourceSet, float[] destroyRecommendations) {
+        CloudProvider cp;
+        float[] bestRecord = new float[3];
+        bestRecord[0] = Float.MAX_VALUE;
+        bestRecord[1] = Float.MAX_VALUE;
+        bestRecord[2] = Float.MIN_VALUE;
+        Resource bestResource = null;
+        CloudInstanceTypeDescription bestType = null;
+
+        for (CloudMethodWorker res : resourceSet) {
+            cp = res.getProvider();
+            if (cp == null) { // it's not a cloud machine
+                continue;
+            }
+
+            HashMap<CloudInstanceTypeDescription, float[]> typeToPoints = getPossibleReductions(res, destroyRecommendations);
+
+            for (Map.Entry<CloudInstanceTypeDescription, float[]> destruction : typeToPoints.entrySet()) {
+                CloudInstanceTypeDescription type = destruction.getKey();
+                float[] values = destruction.getValue();
+                if (bestRecord[0] == values[0]) {
+                    if (bestRecord[1] == values[1]) {
+                        if (bestRecord[2] < values[2]) {
+                            bestRecord = values;
+                            bestResource = res;
+                            bestType = type;
+                        }
+                    } else if (bestRecord[1] > values[1]) {
+                        bestRecord = values;
+                        bestResource = res;
+                        bestType = type;
+                    }
+                } else if (bestRecord[0] > values[0]) {
+                    bestRecord = values;
+                    bestResource = res;
+                    bestType = type;
+                }
+            }
+        }
+        if (bestResource != null) {
+            Object[] ret = new Object[3];
+            ret[0] = bestResource;
+            ret[1] = bestType;
+            ret[2] = bestRecord;
+            return ret;
+        } else {
+            return null;
+        }
+    }
+
+    // Type -> [# modified CE that weren't requested,
+    // #slots removed that weren't requested,
+    // #slots removed that were requested]
+    private HashMap<CloudInstanceTypeDescription, float[]> getPossibleReductions(CloudMethodWorker res, float[] recommendedSlots) {
+        HashMap<CloudInstanceTypeDescription, float[]> reductions = new HashMap<>();
+        LinkedList<CloudInstanceTypeDescription> types = res.getDescription().getPossibleReductions();
+
+        for (CloudInstanceTypeDescription type : types) {
+            int[] reducedSlots = type.getSlotsCore();
+            float[] values = new float[3];
+            for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
+                if (res.canRun(coreId)) {
+                    if (recommendedSlots[coreId] < 1 && reducedSlots[coreId] > 0) {
+                        values[0]++; // Adding a desired CE whose slots will be
+                        // destroyed
+                        values[1] += reducedSlots[coreId]; // all reduced slots
+                        // weren't requested
+                    } else {
+                        float dif = (float) reducedSlots[coreId] - recommendedSlots[coreId];
+                        if (dif < 0) {
+                            values[2] += reducedSlots[coreId];
+                        } else {
+                            values[2] += recommendedSlots[coreId];
+                            values[1] += dif;
+                        }
+                    }
+                }
+            }
+            reductions.put(type, values);
+        }
+        return reductions;
     }
 
 }

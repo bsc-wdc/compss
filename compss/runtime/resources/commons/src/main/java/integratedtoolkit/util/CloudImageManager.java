@@ -1,9 +1,10 @@
 package integratedtoolkit.util;
 
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.types.CloudImageDescription;
+import integratedtoolkit.types.resources.description.CloudImageDescription;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
+import java.util.Collection;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -116,6 +117,15 @@ public class CloudImageManager {
      */
     public Set<String> getAllImageNames() {
         return images.keySet();
+    }
+
+    /**
+     * Return all the images offered by that Cloud Provider
+     *
+     * @return set of images offered by that Cloud Provider
+     */
+    public Collection<CloudImageDescription> getAllImages() {
+        return images.values();
     }
 
     public String getCurrentState(String prefix) {

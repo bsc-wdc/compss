@@ -41,7 +41,6 @@ import org.apache.logging.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-
 public class TaskScheduler {
 
     // Logger
@@ -63,7 +62,6 @@ public class TaskScheduler {
 
     // Profiles from resources that have already been turned off
     private Profile[][] offVMsProfiles;
-
 
     /**
      * Construct a new Task Scheduler
@@ -175,8 +173,8 @@ public class TaskScheduler {
      * *********************************************************************************************************
      */
     /**
-     * New Core Elements have been detected; the Task Scheduler needs to be notified to modify any internal structure
-     * using that information.
+     * New Core Elements have been detected; the Task Scheduler needs to be
+     * notified to modify any internal structure using that information.
      *
      */
     public final void coreElementsUpdated() {
@@ -277,10 +275,10 @@ public class TaskScheduler {
      * *********************************************************************************************************
      */
     /**
-     * Introduces a new action in the Scheduler system. The method should place the action in a resource hurriedly
+     * Introduces a new action in the Scheduler system. The method should place
+     * the action in a resource hurriedly
      *
-     * @param action
-     *            Action to be scheduled.
+     * @param action Action to be scheduled.
      */
     public final void newAllocatableAction(AllocatableAction action) {
         LOGGER.info("[TaskScheduler] Registering new AllocatableAction " + action);
@@ -299,10 +297,10 @@ public class TaskScheduler {
     }
 
     /**
-     * Registers an action as completed and releases all the resource and data dependencies.
+     * Registers an action as completed and releases all the resource and data
+     * dependencies.
      *
-     * @param action
-     *            action that has finished
+     * @param action action that has finished
      */
     @SuppressWarnings("unchecked")
     public final void actionCompleted(AllocatableAction action) {
@@ -341,11 +339,11 @@ public class TaskScheduler {
     }
 
     /**
-     * Registers an error on the action given as a parameter. The action itself processes the error and triggers with
-     * any possible solution to re-execute it. This code is executed only on re-schedule (no resubmit)
+     * Registers an error on the action given as a parameter. The action itself
+     * processes the error and triggers with any possible solution to re-execute
+     * it. This code is executed only on re-schedule (no resubmit)
      *
-     * @param action
-     *            action raising the error
+     * @param action action raising the error
      */
     @SuppressWarnings("unchecked")
     public final void errorOnAction(AllocatableAction action) {
@@ -426,12 +424,12 @@ public class TaskScheduler {
     }
 
     /**
-     * Plans the execution of a given action in one of the compatible resources. The solution should be computed
-     * hurriedly since it blocks the runtime thread and this initial allocation can be modified by the scheduler later
+     * Plans the execution of a given action in one of the compatible resources.
+     * The solution should be computed hurriedly since it blocks the runtime
+     * thread and this initial allocation can be modified by the scheduler later
      * on the execution.
      *
-     * @param action
-     *            Action whose execution has to be allocated
+     * @param action Action whose execution has to be allocated
      * @param actionScore
      * @throws integratedtoolkit.scheduler.exceptions.BlockedActionException
      *
@@ -446,17 +444,15 @@ public class TaskScheduler {
     }
 
     /**
-     * Notifies to the scheduler that some actions have become free of data dependencies or resource dependencies.
+     * Notifies to the scheduler that some actions have become free of data
+     * dependencies or resource dependencies.
      *
      * @param <T>
-     * @param dataFreeActions
-     *            IN, list of actions free of data dependencies
-     * @param resourceFreeActions
-     *            IN, list of actions free of resource dependencies
-     * @param blockedCandidates
-     *            OUT, list of blocked candidates
-     * @param resource
-     *            Resource where the previous task was executed
+     * @param dataFreeActions IN, list of actions free of data dependencies
+     * @param resourceFreeActions IN, list of actions free of resource
+     * dependencies
+     * @param blockedCandidates OUT, list of blocked candidates
+     * @param resource Resource where the previous task was executed
      */
     public <T extends WorkerResourceDescription> void handleDependencyFreeActions(LinkedList<AllocatableAction> dataFreeActions,
             LinkedList<AllocatableAction> resourceFreeActions, LinkedList<AllocatableAction> blockedCandidates,
@@ -501,11 +497,11 @@ public class TaskScheduler {
     }
 
     /**
-     * Notifies to the scheduler that there have been changes in the load of a resource.
+     * Notifies to the scheduler that there have been changes in the load of a
+     * resource.
      *
      * @param <T>
-     * @param resource
-     *            updated resource
+     * @param resource updated resource
      */
     public <T extends WorkerResourceDescription> void workerLoadUpdate(ResourceScheduler<T> resource) {
         LOGGER.info("[TaskScheduler] Update load on worker " + resource.getName());
@@ -543,11 +539,12 @@ public class TaskScheduler {
     }
 
     /**
-     * Registers a new Worker node for the scheduler to use it and creates the corresponding ResourceScheduler
+     * Registers a new Worker node for the scheduler to use it and creates the
+     * corresponding ResourceScheduler
      *
-     * @param worker
-     *            Worker to incorporate
-     * @return the ResourceScheduler that will manage the scheduling for the given worker
+     * @param worker Worker to incorporate
+     * @return the ResourceScheduler that will manage the scheduling for the
+     * given worker
      */
     private <T extends WorkerResourceDescription> ResourceScheduler<T> addWorker(Worker<T> worker, JSONObject jsonResource) {
         ResourceScheduler<T> ui = generateSchedulerForResource(worker, jsonResource);
@@ -560,8 +557,7 @@ public class TaskScheduler {
     /**
      * Contextualizes the worker by creating a new action StartWorker
      *
-     * @param ui
-     *            ResourceScheduler whose worker is to contextualize.
+     * @param ui ResourceScheduler whose worker is to contextualize.
      */
     private <T extends WorkerResourceDescription> void startWorker(ResourceScheduler<T> ui) {
         StartWorkerAction<T> action = new StartWorkerAction<T>(generateSchedulingInformation(ui), ui, this);
@@ -574,12 +570,11 @@ public class TaskScheduler {
     }
 
     /**
-     * New worker has been detected; the Task Scheduler is notified to modify any internal structure using that
-     * information.
+     * New worker has been detected; the Task Scheduler is notified to modify
+     * any internal structure using that information.
      *
      * @param <T>
-     * @param resource
-     *            new worker
+     * @param resource new worker
      */
     protected <T extends WorkerResourceDescription> void workerDetected(ResourceScheduler<T> resource) {
         // There are no internal structures worker-related. No need to do
@@ -675,7 +670,8 @@ public class TaskScheduler {
 
     @SuppressWarnings("unchecked")
     private <T extends WorkerResourceDescription> void reducedWorkerResources(ResourceScheduler<T> worker, ResourceUpdate<T> modification) {
-        if (worker.getExecutableCores().isEmpty()) {
+        CloudMethodWorker cloudWorker = (CloudMethodWorker) worker.getResource();
+        if (!cloudWorker.getDescription().getTypeComposition().isEmpty()) {
             synchronized (workers) {
                 workers.remove(((ResourceScheduler<WorkerResourceDescription>) worker).getResource());
                 int coreCount = CoreManager.getCoreCount();
@@ -699,18 +695,16 @@ public class TaskScheduler {
                 // Can not be blocked nor unassigned
             }
         } else {
-            ResourceManager.terminateResource((CloudMethodWorker) worker.getResource(),
-                    (CloudMethodResourceDescription) modification.getModification());
+            ResourceManager.terminateResource(cloudWorker, (CloudMethodResourceDescription) modification.getModification());
         }
     }
 
     /**
-     * One worker has been removed from the pool; the Task Scheduler is notified to modify any internal structure using
-     * that information.
+     * One worker has been removed from the pool; the Task Scheduler is notified
+     * to modify any internal structure using that information.
      *
      * @param <T>
-     * @param resource
-     *            removed worker
+     * @param resource removed worker
      */
     protected <T extends WorkerResourceDescription> void workerRemoved(ResourceScheduler<T> resource) {
         LOGGER.info("[TaskScheduler] Remove worker " + resource.getName());
@@ -1108,11 +1102,9 @@ public class TaskScheduler {
         return null;
     }
 
-
     private class WorkersMap {
 
         private final HashMap<Worker<? extends WorkerResourceDescription>, ResourceScheduler<? extends WorkerResourceDescription>> map = new HashMap<>();
-
 
         public <T extends WorkerResourceDescription> void put(Worker<T> w, ResourceScheduler<T> rs) {
             map.put(w, rs);

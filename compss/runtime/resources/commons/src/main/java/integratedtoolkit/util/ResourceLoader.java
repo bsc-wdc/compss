@@ -13,17 +13,20 @@ import integratedtoolkit.connectors.AbstractConnector;
 import integratedtoolkit.exceptions.ConstructConfigurationException;
 import integratedtoolkit.exceptions.NoResourceAvailableException;
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.types.CloudImageDescription;
+import integratedtoolkit.types.CloudProvider;
+import integratedtoolkit.types.resources.description.CloudImageDescription;
 import integratedtoolkit.types.project.ProjectFile;
 import integratedtoolkit.types.project.exceptions.ProjectFileValidationException;
 import integratedtoolkit.types.project.jaxb.*;
 import integratedtoolkit.types.resources.DataResourceDescription;
 import integratedtoolkit.types.resources.MethodResourceDescription;
+import integratedtoolkit.types.resources.MethodWorker;
 import integratedtoolkit.types.resources.ResourcesFile;
 import integratedtoolkit.types.resources.ServiceResourceDescription;
+import integratedtoolkit.types.resources.ServiceWorker;
 import integratedtoolkit.types.resources.configuration.MethodConfiguration;
 import integratedtoolkit.types.resources.configuration.ServiceConfiguration;
-import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
+import integratedtoolkit.types.resources.description.CloudInstanceTypeDescription;
 import integratedtoolkit.types.resources.exceptions.ResourcesFileValidationException;
 import integratedtoolkit.types.resources.jaxb.EndpointType;
 import integratedtoolkit.types.resources.jaxb.ProcessorPropertyType;
@@ -32,7 +35,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import org.xml.sax.SAXException;
-
 
 public class ResourceLoader {
 
@@ -50,7 +52,7 @@ public class ResourceLoader {
 
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.RM_COMP);
-    
+
     public static void load(String resources_XML, String resources_XSD, String project_XML, String project_XSD)
             throws ResourcesFileValidationException, ProjectFileValidationException, NoResourceAvailableException {
 
@@ -312,8 +314,8 @@ public class ResourceLoader {
 
         /* Pass all the information to the ResourceManager to insert it into the Runtime ** */
         LOGGER.debug("Adding method worker " + name);
-        ResourceManager.newMethodWorker(name, mrd, sharedDisks, config);
-
+        MethodWorker methodWorker = createMethodWorker(name, mrd, sharedDisks, config);
+        ResourceManager.addStaticResource(methodWorker);
         // If we have reached this point the method worker has been correctly created
         return true;
     }
@@ -352,38 +354,68 @@ public class ResourceLoader {
 
         /* Pass all the information to the ResourceManager to insert it into the Runtime ** */
         LOGGER.debug("Adding service worker " + wsdl);
-        ResourceManager.newServiceWorker(wsdl, srd, config);
+
+        ServiceWorker newResource = new ServiceWorker(wsdl, srd, config);
+        ResourceManager.addStaticResource(newResource);
+
         return true;
     }
 
-    private static boolean loadCloud(CloudType cloud) {
-        int initialVMs = project.getInitialVMs(cloud);
-        int minVMs = project.getMinVMs(cloud);
-        int maxVMs = project.getMaxVMs(cloud);
+    private static MethodWorker createMethodWorker(String name, MethodResourceDescription rd, HashMap<String, String> sharedDisks, MethodConfiguration mc) {
+        // Compute task count
+        int taskCount;
+        int limitOfTasks = mc.getLimitOfTasks();
+        int computingUnits = rd.getTotalCPUComputingUnits();
 
-        // Make sure maxVMs is bigger than minVMs
-        if (maxVMs != -1 && minVMs != -1 && maxVMs < minVMs) {
-            ErrorManager.warn("Cloud: MaxVMs (" + maxVMs + ") is lower than MinVMs (" + minVMs + "). Setting MaxVMs value to MinVMs");
-            maxVMs = minVMs;
+        if (limitOfTasks < 0 && computingUnits < 0) {
+            taskCount = 0;
+        } else {
+            taskCount = Math.max(limitOfTasks, computingUnits);
         }
-        // Make initialVMs between min and max
-        if (initialVMs < minVMs) {
-            initialVMs = minVMs;
+
+        mc.setLimitOfTasks(taskCount);
+
+        limitOfTasks = mc.getLimitOfGPUTasks();
+        computingUnits = rd.getTotalGPUComputingUnits();
+
+        if (limitOfTasks < 0 && computingUnits < 0) {
+            taskCount = 0;
+        } else {
+            taskCount = Math.max(limitOfTasks, computingUnits);
         }
-        if (initialVMs > maxVMs) {
-            initialVMs = maxVMs;
+        mc.setLimitOfGPUTasks(taskCount);
+
+        limitOfTasks = mc.getLimitOfFPGATasks();
+        computingUnits = rd.getTotalFPGAComputingUnits();
+
+        if (limitOfTasks < 0 && computingUnits < 0) {
+            taskCount = 0;
+        } else {
+            taskCount = Math.max(limitOfTasks, computingUnits);
         }
+        mc.setLimitOfFPGATasks(taskCount);
+
+        limitOfTasks = mc.getLimitOfOTHERSTasks();
+        computingUnits = rd.getTotalOTHERComputingUnits();
+
+        if (limitOfTasks < 0 && computingUnits < 0) {
+            taskCount = 0;
+        } else {
+            taskCount = Math.max(limitOfTasks, computingUnits);
+        }
+        mc.setLimitOfOTHERSTasks(taskCount);
+
+        MethodWorker methodWorker = new MethodWorker(name, rd, mc, sharedDisks);
+        return methodWorker;
+    }
+
+    private static boolean loadCloud(CloudType cloud) {
+        Integer initialVMs = project.getInitialVMs(cloud);
+        Integer minVMs = project.getMinVMs(cloud);
+        Integer maxVMs = project.getMaxVMs(cloud);
 
         // Set parameters to CloudManager taking into account that if they are not defined we load default values
-        if (initialVMs > 0) {
-            CloudManager.setInitialVMs(initialVMs);
-        }
-        if (minVMs > 0) {
-            CloudManager.setMinVMs(minVMs);
-        }
-        if (maxVMs > 0) {
-            CloudManager.setMaxVMs(maxVMs);
-        }
+        ResourceManager.setCloudVMsBoundaries(minVMs, initialVMs, maxVMs);
 
         // Load cloud providers
         boolean cloudEnabled = false;
@@ -398,7 +430,6 @@ public class ResourceLoader {
             }
         }
 
-        CloudManager.setUseCloud(cloudEnabled);
         return cloudEnabled;
     }
 
@@ -406,6 +437,7 @@ public class ResourceLoader {
             integratedtoolkit.types.resources.jaxb.CloudProviderType cp_resources) {
 
         String cpName = cp_project.getName();
+        String runtimeConnector = System.getProperty(ITConstants.IT_CONN);
         String connectorJarPath = "";
         String connectorMainClass = "";
         HashMap<String, String> properties = new HashMap<>();
@@ -430,18 +462,18 @@ public class ResourceLoader {
                 }
             }
         }
-        
+
         // Add application name property for some connectors (i.e. docker, vmm)
         String appName = System.getProperty(ITConstants.IT_APP_NAME);
         appName = appName.toLowerCase();
         appName = appName.replace('.', '-');
-        properties.put(AbstractConnector.PROP_APP_NAME, appName);       
+        properties.put(AbstractConnector.PROP_APP_NAME, appName);
 
         /* Add images/instances information ******************** */
         int limitOfVMs = -1;
         int maxCreationTime = -1; // Seconds
         LinkedList<CloudImageDescription> images = new LinkedList<>();
-        LinkedList<CloudMethodResourceDescription> instanceTypes = new LinkedList<>();
+        LinkedList<CloudInstanceTypeDescription> instanceTypes = new LinkedList<>();
         objList = cp_project.getImagesOrInstanceTypesOrLimitOfVMs();
         if (objList != null) {
             for (Object obj : objList) {
@@ -452,7 +484,7 @@ public class ResourceLoader {
                         // Try to create image
                         integratedtoolkit.types.resources.jaxb.ImageType im_resources = resources.getImage(cp_resources,
                                 im_project.getName());
-                        CloudImageDescription cid = createImage(cpName, im_project, im_resources, properties);
+                        CloudImageDescription cid = createImage(im_project, im_resources, properties);
 
                         // Add to images list
                         if (cid != null) {
@@ -473,7 +505,7 @@ public class ResourceLoader {
                         integratedtoolkit.types.resources.jaxb.InstanceTypeType instance_resources = resources.getInstance(cp_resources,
                                 instanceName);
                         if (instance_resources != null) {
-                            CloudMethodResourceDescription cmrd = createInstance(cpName, instance_resources);
+                            CloudInstanceTypeDescription cmrd = createInstance(instance_resources);
 
                             // Add to instance list
                             if (cmrd != null) {
@@ -489,34 +521,34 @@ public class ResourceLoader {
                 }
             }
         }
-        if (maxCreationTime > 0){
-        	properties.put(AbstractConnector.PROP_MAX_VM_CREATION_TIME, Integer.toString(maxCreationTime));
+        if (maxCreationTime > 0) {
+            properties.put(AbstractConnector.PROP_MAX_VM_CREATION_TIME, Integer.toString(maxCreationTime));
         }
-        
+
         // Add Cloud Provider to CloudManager *****************************************/
+        CloudProvider provider;
         try {
-            CloudManager.newCloudProvider(cpName, limitOfVMs, connectorJarPath, connectorMainClass, properties);
-            for (CloudImageDescription cid : images) {
-                CloudManager.addImageToProvider(cpName, cid);
-            }
-            for (CloudMethodResourceDescription instance : instanceTypes) {
-                CloudManager.addInstanceTypeToProvider(cpName, instance);
-            }
+            provider = ResourceManager.registerCloudProvider(cpName, limitOfVMs, runtimeConnector, connectorJarPath, connectorMainClass, properties);
         } catch (Exception e) {
             ErrorManager.warn("Exception loading CloudProvider " + cpName, e);
             return false;
         }
-
+        for (CloudImageDescription cid : images) {
+            provider.addCloudImage(cid);
+        }
+        for (CloudInstanceTypeDescription instance : instanceTypes) {
+            provider.addInstanceType(instance);
+        }
         /* If we reach this point CP is loaded **************************************** */
         return true;
     }
 
-    private static CloudImageDescription createImage(String cp_name, ImageType im_project,
+    private static CloudImageDescription createImage(ImageType im_project,
             integratedtoolkit.types.resources.jaxb.ImageType im_resources, HashMap<String, String> properties) {
 
         String imageName = im_project.getName();
-        LOGGER.debug("Loading Image"+ imageName);
-        CloudImageDescription cid = new CloudImageDescription(cp_name, imageName, properties);
+        LOGGER.debug("Loading Image" + imageName);
+        CloudImageDescription cid = new CloudImageDescription(imageName, properties);
 
         /* Add properties given by the resources file **************************************** */
         cid.setOperatingSystemType(resources.getOperatingSystemType(im_resources));
@@ -605,12 +637,11 @@ public class ResourceLoader {
         return cid;
     }
 
-    private static CloudMethodResourceDescription createInstance(String cpName,
-            integratedtoolkit.types.resources.jaxb.InstanceTypeType instance) {
+    private static CloudInstanceTypeDescription createInstance(integratedtoolkit.types.resources.jaxb.InstanceTypeType instance) {
         // Add the name
         String name = instance.getName();
         String type = instance.getName();
-        CloudMethodResourceDescription cmrd = new CloudMethodResourceDescription(cpName, name, type);
+        MethodResourceDescription mrd = new MethodResourceDescription();
 
         List<integratedtoolkit.types.resources.jaxb.ProcessorType> processors = resources.getProcessors(instance);
         if (processors != null) {
@@ -624,23 +655,23 @@ public class ResourceLoader {
                 ProcessorPropertyType procProp = resources.getProcessorProperty(p);
                 String propKey = (procProp != null) ? procProp.getKey() : "";
                 String propValue = (procProp != null) ? procProp.getValue() : "";
-                cmrd.addProcessor(procName, computingUnits, architecture, speed, procType, internalMemory, propKey, propValue);
+                mrd.addProcessor(procName, computingUnits, architecture, speed, procType, internalMemory, propKey, propValue);
             }
         }
 
-        cmrd.setMemorySize(resources.getMemorySize(instance));
-        cmrd.setMemoryType(resources.getMemoryType(instance));
+        mrd.setMemorySize(resources.getMemorySize(instance));
+        mrd.setMemoryType(resources.getMemoryType(instance));
 
-        cmrd.setStorageSize(resources.getStorageSize(instance));
-        cmrd.setStorageType(resources.getStorageType(instance));
+        mrd.setStorageSize(resources.getStorageSize(instance));
+        mrd.setStorageType(resources.getStorageType(instance));
 
         integratedtoolkit.types.resources.jaxb.PriceType p = resources.getPrice(instance);
         if (p != null) {
-            cmrd.setPriceTimeUnit(p.getTimeUnit());
-            cmrd.setPricePerUnit(p.getPricePerUnit());
+            mrd.setPriceTimeUnit(p.getTimeUnit());
+            mrd.setPricePerUnit(p.getPricePerUnit());
         }
 
-        return cmrd;
+        return new CloudInstanceTypeDescription(type, mrd);
     }
 
     private static void loadDataNode(DataNodeType dn_project, integratedtoolkit.types.resources.jaxb.DataNodeType dn_resources) {

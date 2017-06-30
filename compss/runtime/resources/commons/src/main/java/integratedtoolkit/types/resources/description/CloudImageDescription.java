@@ -1,7 +1,8 @@
-package integratedtoolkit.types;
+package integratedtoolkit.types.resources.description;
 
 import integratedtoolkit.connectors.AbstractConnector;
 import integratedtoolkit.connectors.AbstractSSHConnector;
+import integratedtoolkit.types.ApplicationPackage;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.configuration.MethodConfiguration;
 
@@ -13,7 +14,6 @@ import java.util.Map;
 
 public class CloudImageDescription {
 
-    private final String providerName;
     private final String imageName;
     private final HashMap<String, String> properties;
 
@@ -37,8 +37,7 @@ public class CloudImageDescription {
     // Configuration
     private MethodConfiguration config;
 
-    public CloudImageDescription(String cloudProviderName, String imageName, Map<String, String> providerProperties) {
-        this.providerName = cloudProviderName;
+    public CloudImageDescription(String imageName, Map<String, String> providerProperties) {
         this.imageName = imageName;
 
         this.appSoftware = new LinkedList<>();
@@ -195,10 +194,6 @@ public class CloudImageDescription {
         }
         this.properties.put(AbstractConnector.ADAPTOR_MAX_PORT_PROPERTY_NAME, maxPort);
         this.properties.put(AbstractConnector.ADAPTOR_MIN_PORT_PROPERTY_NAME, minPort);
-    }
-
-    public String getProviderName() {
-        return providerName;
     }
 
     public String getImageName() {

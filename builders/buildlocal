@@ -378,7 +378,7 @@ install() {
     fi
   done
 
-  #Schedulers
+  # Schedulers
   echo "--- Copy schedulers"
   rm -r ${tmpDir}/compss/runtime/scheduler/commons
   schedulers=$(find ${tmpDir}/compss/runtime/scheduler/ -name "*.jar")
@@ -386,7 +386,7 @@ install() {
     cp $scheduler ${targetDir}/Runtime/scheduler/
   done
 
-  #Connectors
+  # Connectors
   echo "--- Copy Runtime Connectors"
   connectors=$(find ${tmpDir}/compss/runtime/resources/ -name "*.jar" | grep -v "cloud-conn")
   for conn in $connectors; do
@@ -398,7 +398,7 @@ install() {
     cp $conn ${targetDir}/Runtime/cloud-conn/
   done
 
-  #Engine
+  # Engine
   echo "--- Copy engine"
   cp ${tmpDir}/compss/runtime/compss-engine.jar ${targetDir}/Runtime/
  

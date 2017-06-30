@@ -7,7 +7,6 @@ import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.resources.configuration.MethodConfiguration;
 
-
 public class MethodWorker extends Worker<MethodResourceDescription> {
 
     private String name;
@@ -15,6 +14,15 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     // Available resource capabilities
     protected final MethodResourceDescription available;
 
+    // Task count
+    private int usedCPUTaskCount = 0;
+    private final int maxCPUTaskCount;
+    private int usedGPUTaskCount = 0;
+    private final int maxGPUTaskCount;
+    private int usedFPGATaskCount = 0;
+    private final int maxFPGATaskCount;
+    private int usedOthersTaskCount = 0;
+    private final int maxOthersTaskCount;
 
     public MethodWorker(String name, MethodResourceDescription description, COMPSsWorker worker, int limitOfTasks,
             Map<String, String> sharedDisks) {
@@ -22,6 +30,11 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
         super(name, description, worker, limitOfTasks, sharedDisks);
         this.name = name;
         available = new MethodResourceDescription(description);
+
+        this.maxCPUTaskCount = limitOfTasks;
+        this.maxGPUTaskCount = 0;
+        this.maxFPGATaskCount = 0;
+        this.maxOthersTaskCount = 0;
     }
 
     public MethodWorker(String name, MethodResourceDescription description, MethodConfiguration conf, Map<String, String> sharedDisks) {
@@ -29,16 +42,34 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
         super(name, description, conf, sharedDisks);
         this.name = name;
         this.available = new MethodResourceDescription(description); // clone
+        this.maxCPUTaskCount = conf.getLimitOfTasks();
+        this.maxGPUTaskCount = conf.getLimitOfGPUTasks();
+        this.maxFPGATaskCount = conf.getLimitOfFPGATasks();
+        this.maxOthersTaskCount = conf.getLimitOfOTHERSTasks();
     }
 
     public MethodWorker(MethodWorker mw) {
         super(mw);
         this.available = mw.available.copy();
+
+        this.maxCPUTaskCount = mw.maxCPUTaskCount;
+        this.usedCPUTaskCount = mw.usedCPUTaskCount;
+        this.maxGPUTaskCount = mw.maxGPUTaskCount;
+        this.usedGPUTaskCount = mw.usedGPUTaskCount;
+        this.maxFPGATaskCount = mw.maxFPGATaskCount;
+        this.usedFPGATaskCount = mw.usedFPGATaskCount;
+        this.maxOthersTaskCount = mw.maxOthersTaskCount;
+        this.usedOthersTaskCount = mw.usedOthersTaskCount;
     }
 
     @Override
     public String getName() {
         return this.name;
+    }
+
+    @Override
+    protected int limitIdealSimultaneousTasks(int ideal) {
+        return Math.min(this.getMaxCPUTaskCount(), ideal);
     }
 
     public MethodResourceDescription getAvailable() {
@@ -88,19 +119,82 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
         }
     }
 
-    @Override
-    public boolean usesGPU(MethodResourceDescription consumption) {
-        return (consumption.getTotalGPUComputingUnits() > 0);
+    public int getMaxCPUTaskCount() {
+        return this.maxCPUTaskCount;
+    }
+
+    public int getUsedCPUTaskCount() {
+        return this.usedCPUTaskCount;
+    }
+
+    public int getMaxGPUTaskCount() {
+        return this.maxGPUTaskCount;
+    }
+
+    public int getUsedGPUTaskCount() {
+        return this.usedGPUTaskCount;
+    }
+
+    public int getMaxFPGATaskCount() {
+        return this.maxFPGATaskCount;
+    }
+
+    public int getUsedFPGATaskCount() {
+        return this.usedFPGATaskCount;
+    }
+
+    public int getMaxOthersTaskCount() {
+        return this.maxOthersTaskCount;
+    }
+
+    public int getUsedOthersTaskCount() {
+        return this.usedOthersTaskCount;
+    }
+
+    private void decreaseUsedCPUTaskCount() {
+        this.usedCPUTaskCount--;
+    }
+
+    private void increaseUsedCPUTaskCount() {
+        this.usedCPUTaskCount++;
+    }
+
+    private void decreaseUsedGPUTaskCount() {
+        this.usedGPUTaskCount--;
+    }
+
+    private void increaseUsedGPUTaskCount() {
+        this.usedGPUTaskCount++;
+    }
+
+    private void decreaseUsedFPGATaskCount() {
+        this.usedFPGATaskCount--;
+    }
+
+    private void increaseUsedFPGATaskCount() {
+        this.usedFPGATaskCount++;
+    }
+
+    private void decreaseUsedOthersTaskCount() {
+        this.usedOthersTaskCount--;
+    }
+
+    private void increaseUsedOthersTaskCount() {
+        this.usedOthersTaskCount++;
     }
 
     @Override
-    public boolean usesFPGA(MethodResourceDescription consumption) {
-        return (consumption.getTotalFPGAComputingUnits() > 0);
+    public void resetUsedTaskCounts() {
+        super.resetUsedTaskCounts();
+        usedCPUTaskCount = 0;
+        usedGPUTaskCount = 0;
+        usedFPGATaskCount = 0;
+        usedOthersTaskCount = 0;
     }
 
     @Override
-    public boolean usesOthers(MethodResourceDescription consumption) {
-        return (consumption.getTotalOTHERComputingUnits() > 0);
+    public Integer simultaneousCapacity(Implementation impl) {
+        return Math.min(super.simultaneousCapacity(impl), this.getMaxCPUTaskCount());
     }
 
     @Override
@@ -175,6 +269,61 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     }
 
     @Override
+    public boolean canRunNow(MethodResourceDescription consumption) {
+        boolean canRun = super.canRunNow(consumption);
+
+        // Available slots
+        canRun = canRun && this.getUsedCPUTaskCount() < this.getMaxCPUTaskCount() || !consumption.containsCPU();
+        canRun = canRun && ((this.getUsedGPUTaskCount() < this.getMaxGPUTaskCount()) || !consumption.containsGPU());
+        canRun = canRun && ((this.getUsedFPGATaskCount() < this.getMaxFPGATaskCount()) || !consumption.containsFPGA());
+        canRun = canRun && ((this.getUsedOthersTaskCount() < this.getMaxOthersTaskCount()) || !consumption.containsOthers());
+        canRun = canRun && this.hasAvailable(consumption);
+        return canRun;
+    }
+
+    @Override
+    public void endTask(MethodResourceDescription consumption) {
+        if (DEBUG) {
+            LOGGER.debug("End task received. Releasing resource " + getName());
+        }
+        if (consumption.containsCPU()) {
+            this.decreaseUsedCPUTaskCount();
+        }
+        if (consumption.containsGPU()) {
+            this.decreaseUsedGPUTaskCount();
+        }
+        if (consumption.containsFPGA()) {
+            this.decreaseUsedFPGATaskCount();
+        }
+        if (consumption.containsOthers()) {
+            this.decreaseUsedOthersTaskCount();
+        }
+        super.endTask(consumption);
+    }
+
+    @Override
+    public MethodResourceDescription runTask(MethodResourceDescription consumption) {
+        MethodResourceDescription reserved = super.runTask(consumption);
+        if (reserved != null) {
+            // Consumption can be hosted
+            if (consumption.containsCPU()) {
+                this.increaseUsedCPUTaskCount();
+            }
+            if (consumption.containsGPU()) {
+                this.increaseUsedGPUTaskCount();
+            }
+            if (consumption.containsFPGA()) {
+                this.increaseUsedFPGATaskCount();
+            }
+            if (consumption.containsOthers()) {
+                this.increaseUsedOthersTaskCount();
+            }
+            return reserved;
+        }
+        return reserved;
+    }
+
+    @Override
     public String getResourceLinks(String prefix) {
         StringBuilder sb = new StringBuilder(super.getResourceLinks(prefix));
         sb.append(prefix).append("TYPE = WORKER").append("\n");
@@ -191,4 +340,9 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
         return new MethodWorker(this);
     }
 
+    @Override
+    public String toString() {
+        return "Worker " + description + " with usedTaskCount = " + usedCPUTaskCount + " and maxTaskCount = " + maxCPUTaskCount
+                + " with the following description " + description;
+    }
 }

@@ -819,6 +819,22 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         this.value = value;
     }
 
+    public boolean containsCPU() {
+        return getTotalCPUComputingUnits() > 0;
+    }
+
+    public boolean containsGPU() {
+        return getTotalGPUComputingUnits() > 0;
+    }
+
+    public boolean containsFPGA() {
+        return getTotalFPGAComputingUnits() > 0;
+    }
+
+    public boolean containsOthers() {
+        return getTotalOTHERComputingUnits() > 0;
+    }
+
     /*
      * ******************************************* 
      * METHOD-RESOURCE OPERATIONS

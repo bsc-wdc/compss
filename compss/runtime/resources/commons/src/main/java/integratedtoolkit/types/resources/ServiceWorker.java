@@ -52,20 +52,6 @@ public class ServiceWorker extends Worker<ServiceResourceDescription> {
         return true;
     }
 
-    @Override
-    public boolean usesGPU(ServiceResourceDescription consumption) {
-        return false;
-    }
-
-    @Override
-    public boolean usesFPGA(ServiceResourceDescription consumption) {
-        return false;
-    }
-
-    @Override
-    public boolean usesOthers(ServiceResourceDescription consumption) {
-        return false;
-    }
 
     @Override
     public ServiceResourceDescription reserveResource(ServiceResourceDescription consumption) {
@@ -90,7 +76,7 @@ public class ServiceWorker extends Worker<ServiceResourceDescription> {
     @Override
     public String getMonitoringData(String prefix) {
         StringBuilder sb = new StringBuilder();
-        sb.append(prefix).append("<TotalComputingUnits>").append(this.getMaxCPUTaskCount()).append("</TotalComputingUnits>").append("\n");
+        sb.append(prefix).append("<TotalComputingUnits></TotalComputingUnits>").append("\n");
         return sb.toString();
     }
 

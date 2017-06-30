@@ -42,22 +42,6 @@ public class FakeWorker extends Worker<MethodResourceDescription> {
     }
 
     @Override
-    public boolean usesGPU(MethodResourceDescription consumption) {
-        LOGGER.debug("fake worker <T>");
-        return false;
-    }
-
-    @Override
-    public boolean usesFPGA(MethodResourceDescription consumption) {
-        return false;
-    }
-
-    @Override
-    public boolean usesOthers(MethodResourceDescription consumption) {
-        return false;
-    }
-
-    @Override
     public MethodResourceDescription reserveResource(MethodResourceDescription consumption) {
         return consumption;
     }

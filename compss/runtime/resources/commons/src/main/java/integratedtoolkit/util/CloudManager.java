@@ -34,7 +34,7 @@ public class CloudManager {
     private static final Logger RUNTIME_LOGGER = LogManager.getLogger(Loggers.CM_COMP);
     private static final Logger RESOURCES_LOGGER = LogManager.getLogger(Loggers.RESOURCES);
 
-    /*static {
+    static {
         RUNTIME_LOGGER.debug("Loading runtime connectors to classpath...");
 
         String itHome = System.getenv(ITConstants.IT_HOME);
@@ -51,7 +51,7 @@ public class CloudManager {
                 RUNTIME_LOGGER.warn(WARN_NO_CONNECTORS_FOLDER);
             }
         }
-    }*/
+    }
 
     /**
      * Relation between a Cloud provider name and its representation

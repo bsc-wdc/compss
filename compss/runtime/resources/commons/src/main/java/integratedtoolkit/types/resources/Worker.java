@@ -14,7 +14,6 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 public abstract class Worker<T extends WorkerResourceDescription> extends Resource {
 
     // Logger
@@ -35,17 +34,6 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     // Number of tasks that can be run simultaneously per core id (maxTaskCount not considered)
     private int[] idealSimultaneousTasks;
 
-    // Task count
-    private int usedCPUTaskCount = 0;
-    private final int maxCPUTaskCount;
-    private int usedGPUTaskCount = 0;
-    private final int maxGPUTaskCount;
-    private int usedFPGATaskCount = 0;
-    private final int maxFPGATaskCount;
-    private int usedOthersTaskCount = 0;
-    private final int maxOthersTaskCount;
-
-
     @SuppressWarnings("unchecked")
     public Worker(String name, T description, COMPSsNode worker, int limitOfTasks, Map<String, String> sharedDisks) {
         super(worker, sharedDisks);
@@ -62,10 +50,6 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         }
 
         this.description = description;
-        this.maxCPUTaskCount = limitOfTasks;
-        this.maxGPUTaskCount = 0;
-        this.maxFPGATaskCount = 0;
-        this.maxOthersTaskCount = 0;
     }
 
     @SuppressWarnings("unchecked")
@@ -84,10 +68,6 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         }
 
         this.description = description;
-        this.maxCPUTaskCount = config.getLimitOfTasks();
-        this.maxGPUTaskCount = config.getLimitOfGPUTasks();
-        this.maxFPGATaskCount = config.getLimitOfFPGATasks();
-        this.maxOthersTaskCount = config.getLimitOfOTHERSTasks();
     }
 
     public Worker(Worker<T> w) {
@@ -100,89 +80,13 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
 
         this.description = w.description;
 
-        this.maxCPUTaskCount = w.maxCPUTaskCount;
-        this.usedCPUTaskCount = w.usedCPUTaskCount;
-        this.maxGPUTaskCount = w.maxGPUTaskCount;
-        this.usedGPUTaskCount = w.usedGPUTaskCount;
-        this.maxFPGATaskCount = w.maxFPGATaskCount;
-        this.usedFPGATaskCount = w.usedFPGATaskCount;
-        this.maxOthersTaskCount = w.maxOthersTaskCount;
-        this.usedOthersTaskCount = w.usedOthersTaskCount;
     }
 
     public T getDescription() {
         return description;
     }
 
-    public int getMaxCPUTaskCount() {
-        return this.maxCPUTaskCount;
-    }
-
-    public int getUsedCPUTaskCount() {
-        return this.usedCPUTaskCount;
-    }
-
-    public int getMaxGPUTaskCount() {
-        return this.maxGPUTaskCount;
-    }
-
-    public int getUsedGPUTaskCount() {
-        return this.usedGPUTaskCount;
-    }
-
-    public int getMaxFPGATaskCount() {
-        return this.maxFPGATaskCount;
-    }
-
-    public int getUsedFPGATaskCount() {
-        return this.usedFPGATaskCount;
-    }
-
-    public int getMaxOthersTaskCount() {
-        return this.maxOthersTaskCount;
-    }
-
-    public int getUsedOthersTaskCount() {
-        return this.usedOthersTaskCount;
-    }
-
-    private void decreaseUsedCPUTaskCount() {
-        this.usedCPUTaskCount--;
-    }
-
-    private void increaseUsedCPUTaskCount() {
-        this.usedCPUTaskCount++;
-    }
-
-    private void decreaseUsedGPUTaskCount() {
-        this.usedGPUTaskCount--;
-    }
-
-    private void increaseUsedGPUTaskCount() {
-        this.usedGPUTaskCount++;
-    }
-
-    private void decreaseUsedFPGATaskCount() {
-        this.usedFPGATaskCount--;
-    }
-
-    private void increaseUsedFPGATaskCount() {
-        this.usedFPGATaskCount++;
-    }
-
-    private void decreaseUsedOthersTaskCount() {
-        this.usedOthersTaskCount--;
-    }
-
-    private void increaseUsedOthersTaskCount() {
-        this.usedOthersTaskCount++;
-    }
-
     public void resetUsedTaskCounts() {
-        usedCPUTaskCount = 0;
-        usedGPUTaskCount = 0;
-        usedFPGATaskCount = 0;
-        usedOthersTaskCount = 0;
     }
 
     /*-------------------------------------------------------------------------
@@ -274,13 +178,18 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
                 }
             }
             if (executableCore) {
-                coreSimultaneousTasks[coreId] = Math.min(this.getMaxCPUTaskCount(), idealSimultaneousTasks[coreId]);
+                coreSimultaneousTasks[coreId] = limitIdealSimultaneousTasks(idealSimultaneousTasks[coreId]);
                 executableCores.add(coreId);
             }
         }
     }
 
+    protected int limitIdealSimultaneousTasks(int ideal) {
+        return ideal;
+    }
+
     public List<Integer> getExecutableCores() {
+
         return executableCores;
     }
 
@@ -301,7 +210,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     }
 
     public Integer simultaneousCapacity(Implementation impl) {
-        return Math.min(fitCount(impl), this.getMaxCPUTaskCount());
+        return fitCount(impl);
     }
 
     public String getResourceLinks(String prefix) {
@@ -387,57 +296,19 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
 
     public boolean canRunNow(T consumption) {
         // Available slots
-        boolean canRun = this.getUsedCPUTaskCount() < this.getMaxCPUTaskCount();
-        canRun = canRun && ((this.getUsedGPUTaskCount() < this.getMaxGPUTaskCount()) || !this.usesGPU(consumption));
-        canRun = canRun && ((this.getUsedFPGATaskCount() < this.getMaxFPGATaskCount()) || !this.usesFPGA(consumption));
-        canRun = canRun && ((this.getUsedOthersTaskCount() < this.getMaxOthersTaskCount()) || !this.usesOthers(consumption));
-        canRun = canRun && this.hasAvailable(consumption);
-        return canRun;
+        return this.hasAvailable(consumption);
     }
 
     public void endTask(T consumption) {
         if (DEBUG) {
             LOGGER.debug("End task received. Releasing resource " + getName());
         }
-
-        this.decreaseUsedCPUTaskCount();
-        if (this.usesGPU(consumption)) {
-            this.decreaseUsedGPUTaskCount();
-        }
-        if (this.usesFPGA(consumption)) {
-            this.decreaseUsedFPGATaskCount();
-        }
-        if (this.usesOthers(consumption)) {
-            this.decreaseUsedOthersTaskCount();
-        }
         releaseResource(consumption);
     }
 
     public T runTask(T consumption) {
-        if (this.usedCPUTaskCount < this.maxCPUTaskCount) {
-            // There are free task-slots
-            T reserved = reserveResource(consumption);
-            if (reserved != null) {
-                // Consumption can be hosted
-                this.increaseUsedCPUTaskCount();
-                if (this.usesGPU(consumption)) {
-                    this.increaseUsedGPUTaskCount();
-                }
-                if (this.usesFPGA(consumption)) {
-                    this.increaseUsedFPGATaskCount();
-                }
-                if (this.usesOthers(consumption)) {
-                    this.increaseUsedOthersTaskCount();
-                }
-                return reserved;
-            } else {
-                // Consumption cannot be hosted
-                return null;
-            }
-        }
-
-        // Consumption cannot be hosted
-        return null;
+        // There are free task-slots
+        return reserveResource(consumption);
     }
 
     public abstract String getMonitoringData(String prefix);
@@ -448,12 +319,6 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     public abstract Integer fitCount(Implementation impl);
 
     public abstract boolean hasAvailable(T consumption);
-
-    public abstract boolean usesGPU(T consumption);
-
-    public abstract boolean usesFPGA(T consumption);
-
-    public abstract boolean usesOthers(T consumption);
 
     public abstract T reserveResource(T consumption);
 
@@ -475,8 +340,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
 
     @Override
     public String toString() {
-        return "Worker " + description + " with usedTaskCount = " + usedCPUTaskCount + " and maxTaskCount = " + maxCPUTaskCount
-                + " with the following description " + description;
+        return "Worker " + description + " with the following description " + description;
     }
 
 }

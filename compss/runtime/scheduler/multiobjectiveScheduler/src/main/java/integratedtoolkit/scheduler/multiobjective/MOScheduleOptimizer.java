@@ -12,6 +12,7 @@ import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.scheduler.types.Score;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
+import integratedtoolkit.util.SchedulingOptimizer;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.ConcurrentModificationException;
@@ -20,41 +21,43 @@ import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.concurrent.Semaphore;
 
+public class MOScheduleOptimizer extends SchedulingOptimizer<MOScheduler> {
 
-public class MOScheduleOptimizer extends Thread {
-
-    // private static long OPTIMIZATION_THRESHOLD = 5_000;
-    // private MOScheduler scheduler;
-    // private boolean stop = false;
+    private static long OPTIMIZATION_THRESHOLD = 5_000;
+    private boolean stop = false;
     private Semaphore sem = new Semaphore(0);
 
-
     public MOScheduleOptimizer(MOScheduler scheduler) {
-        this.setName("ScheduleOptimizer");
-        // this.scheduler = scheduler;
+        super(scheduler);
     }
 
+    @Override
     public void run() {
-        // long lastUpdate = System.currentTimeMillis();
+        long lastUpdate = System.currentTimeMillis();
         try {
             Thread.sleep(500);
         } catch (InterruptedException ie) {
             // Do nothing
         }
-        // while (!stop) {
-        // long optimizationTS = System.currentTimeMillis();
-        // Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers = scheduler.getWorkers();
-        // globalOptimization(optimizationTS, workers);
-        // lastUpdate = optimizationTS;
-        // waitForNextIteration(lastUpdate);
-        // }
+        while (!stop) {
+            long optimizationTS = System.currentTimeMillis();
+            Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers = scheduler.getWorkers();
+            // globalOptimization(optimizationTS, workers);
+            lastUpdate = optimizationTS;
+            // waitForNextIteration(lastUpdate);
+        }
         sem.release();
     }
 
-    public void shutdown() throws InterruptedException {
-        // stop = true;
+    @Override
+    public void shutdown() {
+        stop = true;
         this.interrupt();
-        sem.acquire();
+        try {
+            sem.acquire();
+        } catch (InterruptedException ie) {
+            //Do nothing
+        }
     }
 
     // private void waitForNextIteration(long lastUpdate) {
@@ -73,7 +76,8 @@ public class MOScheduleOptimizer extends Thread {
      ---------------------------------------------------
      --------------------------------------------------*/
     @SuppressWarnings("unchecked")
-    public void globalOptimization(long optimizationTS, Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers) {
+    public void globalOptimization(long optimizationTS, Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers
+    ) {
         int workersCount = workers.size();
         if (workersCount == 0) {
             return;
@@ -249,9 +253,7 @@ public class MOScheduleOptimizer extends Thread {
         return false;
     }
 
-
     private MOScore dummyScore = new MOScore(0, 0, 0, 0, 0, 0);
-
 
     public void scheduleOnWorker(AllocatableAction action, Implementation impl, OptimizationWorker ow) {
         boolean failedSpecificScheduling = false;

@@ -27,6 +27,7 @@ import integratedtoolkit.util.CoreManager;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.ResourceManager;
 import integratedtoolkit.util.ResourceOptimizer;
+import integratedtoolkit.util.SchedulingOptimizer;
 import integratedtoolkit.util.Tracer;
 
 import java.util.Collection;
@@ -59,6 +60,7 @@ public class TaskScheduler {
     private int[] readyCounts;
 
     private final ResourceOptimizer ro;
+    private final SchedulingOptimizer so;
 
     // Profiles from resources that have already been turned off
     private Profile[][] offVMsProfiles;
@@ -81,6 +83,9 @@ public class TaskScheduler {
             }
             offVMsProfiles[coreId] = implProfiles;
         }
+        // Start SchedulingOptimizer
+        so = generateSchedulingOptimizer();
+        so.start();
         // Start ResourceOptimizer
         ro = generateResourceOptimizer();
         ro.start();
@@ -112,6 +117,7 @@ public class TaskScheduler {
         LOGGER.debug("Profile is: " + this.toJSONObject());
         // Stop Resource Optimizer
         ro.shutdown();
+        so.shutdown();
     }
 
     /*
@@ -121,6 +127,26 @@ public class TaskScheduler {
      * *********************************************************************************************************
      * *********************************************************************************************************
      */
+    /**
+     * Generates the Resource Optimizer for the scheduler.
+     *
+     * @return new instance of the specific Resource Optimizer for the Task
+     * Scheduler.
+     */
+    public ResourceOptimizer generateResourceOptimizer() {
+        return new ResourceOptimizer(this);
+    }
+
+    /**
+     * Generates the Scheduling Optimizer for the scheduler.
+     *
+     * @return new instance of the specific Scheduling Optimizer for the Task
+     * Scheduler.
+     */
+    public SchedulingOptimizer generateSchedulingOptimizer() {
+        return new SchedulingOptimizer<>(this);
+    }
+
     public Profile generateProfile() {
         return new Profile();
     }
@@ -161,9 +187,6 @@ public class TaskScheduler {
         return new Score(action.getPriority(), 0, 0, 0);
     }
 
-    public ResourceOptimizer generateResourceOptimizer() {
-        return new ResourceOptimizer(this);
-    }
 
     /*
      * *********************************************************************************************************

@@ -11,20 +11,17 @@ import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CoreManager;
 import integratedtoolkit.util.ResourceOptimizer;
+import integratedtoolkit.util.SchedulingOptimizer;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import org.json.JSONObject;
 
-
 public class MOScheduler extends TaskScheduler {
 
     private final MOScore dummyScore = new MOScore(0, 0, 0, 0, 0, 0);
-    private final MOScheduleOptimizer schedOptimizer = new MOScheduleOptimizer(this);
-
 
     public MOScheduler() {
-        schedOptimizer.start();
     }
 
     @Override
@@ -68,12 +65,6 @@ public class MOScheduler extends TaskScheduler {
                 }
             }
         }
-        try {
-            schedOptimizer.shutdown();
-            // Ascetic.stop();
-        } catch (InterruptedException ie) {
-            // No need to do anything.
-        }
     }
 
     @Override
@@ -81,18 +72,21 @@ public class MOScheduler extends TaskScheduler {
         return new MOResourceOptimizer(this);
     }
 
+    @Override
+    public SchedulingOptimizer generateSchedulingOptimizer() {
+        return new MOScheduleOptimizer(this);
+    }
+
     /**
-     * Notifies to the scheduler that some actions have become free of data dependencies or resource dependencies.
+     * Notifies to the scheduler that some actions have become free of data
+     * dependencies or resource dependencies.
      *
      * @param <T>
-     * @param dataFreeActions
-     *            IN, list of actions free of data dependencies
-     * @param resourceFreeActions
-     *            IN, list of actions free of resource dependencies
-     * @param blockedCandidates
-     *            OUT, list of blocked candidates
-     * @param resource
-     *            Resource where the previous task was executed
+     * @param dataFreeActions IN, list of actions free of data dependencies
+     * @param resourceFreeActions IN, list of actions free of resource
+     * dependencies
+     * @param blockedCandidates OUT, list of blocked candidates
+     * @param resource Resource where the previous task was executed
      */
     @Override
     public <T extends WorkerResourceDescription> void handleDependencyFreeActions(LinkedList<AllocatableAction> dataFreeActions,

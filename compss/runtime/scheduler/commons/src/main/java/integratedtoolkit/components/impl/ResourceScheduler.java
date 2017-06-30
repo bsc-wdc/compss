@@ -18,6 +18,7 @@ import java.util.PriorityQueue;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,14 +39,14 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     protected static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     // Task running in the resource
-    private final LinkedList<AllocatableAction> running;
+    private final List<AllocatableAction> running;
     // Task without enough resources to be executed right now
     protected final PriorityQueue<AllocatableAction> blocked;
 
     // Worker assigned to the resource scheduler
     protected final Worker<T> myWorker;
     // Modifications pending to be applied
-    private final LinkedList<ResourceUpdate<T>> pendingModifications;
+    private final List<ResourceUpdate<T>> pendingModifications;
 
     // Profile information of the task executions
     private Profile[][] profiles;
@@ -113,7 +114,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      *
      * @return
      */
-    public final LinkedList<Integer> getExecutableCores() {
+    public final List<Integer> getExecutableCores() {
         return this.myWorker.getExecutableCores();
     }
 
@@ -122,7 +123,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      *
      * @return
      */
-    public final LinkedList<Implementation>[] getExecutableImpls() {
+    public final List<Implementation>[] getExecutableImpls() {
         return this.myWorker.getExecutableImpls();
     }
 
@@ -132,7 +133,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * @param coreId
      * @return
      */
-    public final LinkedList<Implementation> getExecutableImpls(int coreId) {
+    public final List<Implementation> getExecutableImpls(int coreId) {
         return this.myWorker.getExecutableImpls(coreId);
     }
 
@@ -345,7 +346,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      *
      * @return
      */
-    public final LinkedList<AllocatableAction> getHostedActions() {
+    public final List<AllocatableAction> getHostedActions() {
         return this.running;
     }
 
@@ -466,7 +467,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * @return
      * @throws integratedtoolkit.scheduler.exceptions.ActionNotFoundException
      */
-    public LinkedList<AllocatableAction> unscheduleAction(AllocatableAction action) throws ActionNotFoundException {
+    public List<AllocatableAction> unscheduleAction(AllocatableAction action) throws ActionNotFoundException {
         LOGGER.debug("[ResourceScheduler] Unschedule action " + action + " on resource " + getName());
         return new LinkedList<>();
     }
@@ -561,7 +562,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     public JSONObject toJSONObject() {
         JSONObject jsonObject = new JSONObject();
         int coreCount = CoreManager.getCoreCount();
-        HashMap<String, JSONObject> implsMap = new HashMap<>();
+        Map<String, JSONObject> implsMap = new HashMap<>();
 
         for (int coreId = 0; coreId < coreCount; coreId++) {
             List<Implementation> impls = CoreManager.getCoreImplementations(coreId);

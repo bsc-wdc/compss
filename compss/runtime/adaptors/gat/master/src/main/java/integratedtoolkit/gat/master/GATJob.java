@@ -77,7 +77,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
     private static final String CALLBACK_PROCESSING_ERR = "Error processing callback for job";
     private static final String TERM_ERR = "Error terminating";
 
-    private static final LinkedList<GATJob> RUNNING_JOBS = new LinkedList<>();
+    private static final List<GATJob> RUNNING_JOBS = new LinkedList<>();
 
     // Brokers - TODO: Problem if many resources used
     private Map<String, ResourceBroker> brokers = new TreeMap<String, ResourceBroker>();
@@ -156,7 +156,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
     }
 
     protected static void stopAll() {
-    	logger.debug("GAT stopping all jobs");
+        logger.debug("GAT stopping all jobs");
         for (GATJob job : RUNNING_JOBS) {
             try {
                 job.stop();
@@ -168,7 +168,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
 
     @Override
     public void stop() throws Exception {
-    	logger.debug("GAT stop job " + this.jobId);
+        logger.debug("GAT stop job " + this.jobId);
         if (GATjob != null) {
             MetricDefinition md = GATjob.getMetricDefinitionByName(JOB_STATUS);
             Metric m = md.createMetric();
@@ -180,7 +180,6 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
     // MetricListener interface implementation
     @Override
     public void processMetricEvent(MetricEvent value) {
-    	
         Job job = (Job) value.getSource();
         JobState newJobState = (JobState) value.getValue();
         JobDescription jd = (JobDescription) job.getJobDescription();
@@ -257,9 +256,9 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
 
     private JobDescription prepareJob() throws Exception {
         // Get the information related to the job
-    	logger.debug("Preparing GAT Job " + this.jobId);
+        logger.debug("Preparing GAT Job " + this.jobId);
         TaskDescription taskParams = this.taskParams;
-        
+
         String targetPath = getResourceNode().getInstallDir();
         String targetHost = getResourceNode().getHost();
         String targetUser = getResourceNode().getUser();
@@ -278,7 +277,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         lArgs.add(LANG);
         lArgs.add(getResourceNode().getWorkingDir());
         lArgs.add(getResourceNode().getLibPath());
-        LinkedList<LogicalData> obsoleteFiles = getResource().clearObsoletes();
+        List<LogicalData> obsoleteFiles = getResource().clearObsoletes();
         if (obsoleteFiles != null) {
             lArgs.add("" + obsoleteFiles.size());
             for (LogicalData ld : obsoleteFiles) {
@@ -288,7 +287,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         } else {
             lArgs.add("0");
         }
-        
+
         // Check sandbox working dir
         boolean isSpecific = false;
         String sandboxDir = null;
@@ -388,24 +387,24 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
                 break;
             case DECAF:
                 DecafImplementation decafImpl = (DecafImplementation) absImpl;
-                lArgs.add(targetPath+DecafImplementation.SCRIPT_PATH);
+                lArgs.add(targetPath + DecafImplementation.SCRIPT_PATH);
                 String dfScript = decafImpl.getDfScript();
-                if (!dfScript.startsWith(File.separator)){
-                	String appPath = getResourceNode().getAppDir();
-                	dfScript = appPath + File.separator+ dfScript;
+                if (!dfScript.startsWith(File.separator)) {
+                    String appPath = getResourceNode().getAppDir();
+                    dfScript = appPath + File.separator + dfScript;
                 }
                 lArgs.add(dfScript);
                 String dfExecutor = decafImpl.getDfExecutor();
                 if (dfExecutor == null || dfExecutor.isEmpty() || dfExecutor.equals(Constants.UNASSIGNED)) {
-                	dfExecutor = "executor.sh";
+                    dfExecutor = "executor.sh";
                 }
-                if (!dfExecutor.startsWith(File.separator) && !dfExecutor.startsWith("./")){
-                	dfExecutor = "./" + dfExecutor;
+                if (!dfExecutor.startsWith(File.separator) && !dfExecutor.startsWith("./")) {
+                    dfExecutor = "./" + dfExecutor;
                 }
                 lArgs.add(dfExecutor);
                 String dfLib = decafImpl.getDfLib();
                 if (dfLib == null || dfLib.isEmpty()) {
-                	dfLib = Constants.UNASSIGNED;
+                    dfLib = Constants.UNASSIGNED;
                 }
                 lArgs.add(dfLib);
                 lArgs.add(decafImpl.getMpiRunner());
@@ -548,8 +547,8 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
     }
 
     private void processParameters(String sandboxPath, ArrayList<String> symlinks, ArrayList<String> lArgs) {
-    	logger.debug("Processing parameters for GAT job " + this.jobId);
-    	lArgs.add(Boolean.toString(taskParams.hasTargetObject()));
+        logger.debug("Processing parameters for GAT job " + this.jobId);
+        lArgs.add(Boolean.toString(taskParams.hasTargetObject()));
 
         // Add return type
         if (taskParams.hasReturnValue()) {

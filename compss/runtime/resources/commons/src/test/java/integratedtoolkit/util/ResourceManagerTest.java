@@ -22,6 +22,8 @@ import integratedtoolkit.types.resources.description.CloudMethodResourceDescript
 import integratedtoolkit.types.resources.updates.PendingReduction;
 import integratedtoolkit.types.resources.updates.ResourceUpdate;
 import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
@@ -470,7 +472,7 @@ public class ResourceManagerTest {
 
     private static CloudProvider addProvider() {
         String providerName = "Provider" + (int) (Math.random() * 10000);
-        HashMap<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<>();
         CloudProvider cp = null;
         try {
             cp = ResourceManager.registerCloudProvider(providerName, 0, RUNTIME_CONNECTOR, null, null, properties);

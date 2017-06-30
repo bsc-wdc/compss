@@ -14,7 +14,7 @@ import integratedtoolkit.util.Classpath;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Constructor;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.logging.log4j.LogManager;
@@ -49,7 +49,7 @@ public class DefaultNoSSHConnector extends AbstractConnector {
      * @throws ConnectorException
      */
     public DefaultNoSSHConnector(CloudProvider provider, String connectorJarPath, String connectorMainClass,
-            HashMap<String, String> connectorProperties) throws ConnectorException {
+            Map<String, String> connectorProperties) throws ConnectorException {
 
         super(provider, connectorProperties);
 

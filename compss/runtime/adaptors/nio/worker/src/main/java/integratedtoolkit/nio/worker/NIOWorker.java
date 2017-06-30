@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -200,7 +200,7 @@ public class NIOWorker extends NIOAgent {
             return storageConf;
         }
     }
-    
+
     public static boolean isPersistentCEnabled() {
         return persistentC;
     }
@@ -239,7 +239,7 @@ public class NIOWorker extends NIOAgent {
     }
 
     @Override
-    public void receivedNewTask(NIONode master, NIOTask task, LinkedList<String> obsoleteFiles) {
+    public void receivedNewTask(NIONode master, NIOTask task, List<String> obsoleteFiles) {
         WORKER_LOGGER.info("Received Job " + task);
 
         if (NIOTracer.isActivated()) {
@@ -508,7 +508,7 @@ public class NIOWorker extends NIOAgent {
     // The master abruptly finishes the connection. The NIOMessageHandler
     // handles this as an error, which treats with its function handleError,
     // and notifies the worker in this case.
-    public void handleRequestedDataNotAvailableError(LinkedList<DataRequest> failedRequests, String dataId) {
+    public void handleRequestedDataNotAvailableError(List<DataRequest> failedRequests, String dataId) {
         for (DataRequest dr : failedRequests) { // For every task pending on this request, flag it as an error
             WorkerDataRequest wdr = (WorkerDataRequest) dr;
             wdr.getTransferringTask().decreaseParams();
@@ -556,7 +556,7 @@ public class NIOWorker extends NIOAgent {
     }
 
     @Override
-    public void receivedValue(Destination type, String dataId, Object object, LinkedList<DataRequest> achievedRequests) {
+    public void receivedValue(Destination type, String dataId, Object object, List<DataRequest> achievedRequests) {
         if (type == Transfer.Destination.OBJECT) {
             WORKER_LOGGER.info("Received data " + dataId + " with associated object " + object);
             storeObject(dataId, object);
@@ -667,11 +667,11 @@ public class NIOWorker extends NIOAgent {
     }
 
     // Remove obsolete files and objects
-    public void removeObsolete(LinkedList<String> obsolete) {
+    public void removeObsolete(List<String> obsolete) {
         try {
             for (String name : obsolete) {
                 if (name.startsWith(File.separator)) {
-                	WORKER_LOGGER.debug("Removing file " + name);
+                    WORKER_LOGGER.debug("Removing file " + name);
                     File f = new File(name);
                     if (!f.delete()) {
                         WORKER_LOGGER.error("Error removing file " + f.getAbsolutePath());
@@ -967,7 +967,7 @@ public class NIOWorker extends NIOAgent {
 
         storageConf = args[22];
         executionType = args[23];
-        
+
         persistentC = Boolean.parseBoolean(args[24]);
 
         // Print arguments
@@ -999,9 +999,9 @@ public class NIOWorker extends NIOAgent {
 
             WORKER_LOGGER.debug("StorageConf: " + storageConf);
             WORKER_LOGGER.debug("executionType: " + executionType);
-            
+
             WORKER_LOGGER.debug("Persistent c: " + persistentC);
-            
+
             WORKER_LOGGER.debug("Remove Sanbox WD: " + removeWD);
         }
 

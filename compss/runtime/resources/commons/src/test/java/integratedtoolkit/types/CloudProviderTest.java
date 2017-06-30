@@ -1,5 +1,7 @@
 package integratedtoolkit.types;
 
+import static org.junit.Assert.fail;
+
 import integratedtoolkit.connectors.fake.FakeConnector;
 import integratedtoolkit.types.fake.FakeNode;
 import integratedtoolkit.types.resources.CloudMethodWorker;
@@ -7,21 +9,25 @@ import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.description.CloudImageDescription;
 import integratedtoolkit.types.resources.description.CloudInstanceTypeDescription;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
+
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 
 public class CloudProviderTest {
 
     public static final String PROVIDER_NAME = "Provider" + (int) (Math.random() * 10000);
     public static final String RUNTIME_CONNECTOR = FakeConnector.class.getName();
     public static final String CID_PROPERTY_TEST_TAG = "TAG" + (int) (Math.random() * 10000);
+
 
     @BeforeClass
     public static void setUpClass() {
@@ -41,7 +47,7 @@ public class CloudProviderTest {
 
     @Test
     public void testNewProvider() throws Exception {
-        HashMap<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<>();
         CloudProvider cp = null;
         try {
             cp = new CloudProvider(PROVIDER_NAME, 0, RUNTIME_CONNECTOR, null, null, properties);
@@ -57,7 +63,7 @@ public class CloudProviderTest {
 
     @Test
     public void testOneImage() {
-        HashMap<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<>();
         CloudProvider cp = null;
         try {
             cp = new CloudProvider(PROVIDER_NAME, 0, RUNTIME_CONNECTOR, null, null, properties);
@@ -67,7 +73,7 @@ public class CloudProviderTest {
         }
 
         String image1Name = "IMAGE" + (int) (Math.random() * 10000);
-        HashMap<String, String> imageProperties = new HashMap<>();
+        Map<String, String> imageProperties = new HashMap<>();
         String img1PropValue = "VALUE" + (int) (Math.random() * 10000);
         imageProperties.put(CID_PROPERTY_TEST_TAG, img1PropValue);
         CloudImageDescription cid1 = new CloudImageDescription(image1Name, imageProperties);
@@ -84,14 +90,15 @@ public class CloudProviderTest {
         try {
             checkRetrievedImage(retrieved1, image1Name, img1PropValue);
         } catch (Exception e) {
-            fail("Cloud Provider is not storing properly the Images. The provider " + e.getMessage() + " on the one single image scenario.");
+            fail("Cloud Provider is not storing properly the Images. The provider " + e.getMessage()
+                    + " on the one single image scenario.");
         }
 
     }
 
     @Test
     public void testTwoImages() {
-        HashMap<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<>();
         CloudProvider cp = null;
         try {
             cp = new CloudProvider(PROVIDER_NAME, 0, RUNTIME_CONNECTOR, null, null, properties);
@@ -101,7 +108,7 @@ public class CloudProviderTest {
         }
 
         String image1Name = "IMAGE" + (int) (Math.random() * 10000);
-        HashMap<String, String> imageProperties = new HashMap<>();
+        Map<String, String> imageProperties = new HashMap<>();
         String img1PropValue = "VALUE" + (int) (Math.random() * 10000);
         imageProperties.put(CID_PROPERTY_TEST_TAG, img1PropValue);
         CloudImageDescription cid1 = new CloudImageDescription(image1Name, imageProperties);
@@ -130,7 +137,7 @@ public class CloudProviderTest {
                 fail("Cloud Provider is not storing properly the Images. Cannot find one image name on the two images scenario.");
                 break;
             default:
-            //Works properly
+                // Works properly
         }
 
         if (imageNames.size() != 2) {
@@ -157,7 +164,7 @@ public class CloudProviderTest {
         if (name.compareTo(retrieved.getImageName()) != 0) {
             throw new Exception("The retrieved image has not the same name");
         }
-        HashMap<String, String> props = retrieved.getProperties();
+        Map<String, String> props = retrieved.getProperties();
         if (props == null) {
             throw new Exception("The retrieved image has no properties");
         }
@@ -169,7 +176,7 @@ public class CloudProviderTest {
 
     @Test
     public void testOneInstanceType() {
-        HashMap<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<>();
         CloudProvider cp = null;
         try {
             cp = new CloudProvider(PROVIDER_NAME, 0, RUNTIME_CONNECTOR, null, null, properties);
@@ -196,13 +203,14 @@ public class CloudProviderTest {
         try {
             checkRetrievedType(retrieved1, type1Name, type1Memory);
         } catch (Exception e) {
-            fail("Cloud Provider is not storing properly the Images. The provider " + e.getMessage() + " on the one single template scenario.");
+            fail("Cloud Provider is not storing properly the Images. The provider " + e.getMessage()
+                    + " on the one single template scenario.");
         }
     }
 
     @Test
     public void testTwoInstanceType() {
-        HashMap<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<>();
         CloudProvider cp = null;
         try {
             cp = new CloudProvider(PROVIDER_NAME, 0, RUNTIME_CONNECTOR, null, null, properties);
@@ -241,7 +249,7 @@ public class CloudProviderTest {
                 fail("Cloud Provider is not storing properly the Templates. Cannot find one template name on the two templates scenario.");
                 break;
             default:
-            //Works properly
+                // Works properly
         }
 
         if (instanceNames.size() != 2) {
@@ -252,13 +260,15 @@ public class CloudProviderTest {
         try {
             checkRetrievedType(retrieved1, type1Name, type1Memory);
         } catch (Exception e) {
-            fail("Cloud Provider is not storing properly the Templates. The provider " + e.getMessage() + " on the two templates scenario.");
+            fail("Cloud Provider is not storing properly the Templates. The provider " + e.getMessage()
+                    + " on the two templates scenario.");
         }
         CloudInstanceTypeDescription retrieved2 = cp.getInstanceType(type2Name);
         try {
             checkRetrievedType(retrieved2, type2Name, type2Memory);
         } catch (Exception e) {
-            fail("Cloud Provider is not storing properly the Templates. The provider " + e.getMessage() + " on the two templates scenario.");
+            fail("Cloud Provider is not storing properly the Templates. The provider " + e.getMessage()
+                    + " on the two templates scenario.");
         }
     }
 
@@ -270,7 +280,7 @@ public class CloudProviderTest {
 
     @Test
     public void testTurnOn() {
-        HashMap<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<>();
         CloudProvider cp = null;
         try {
             cp = new CloudProvider(PROVIDER_NAME, 0, RUNTIME_CONNECTOR, null, null, properties);
@@ -302,7 +312,7 @@ public class CloudProviderTest {
         if (cp.getCurrentVMCount() != 1) {
             fail("Cloud Provider is not properly accounting the number of requested VMs");
         }
-        LinkedList<ResourceCreationRequest> pendingRequests = cp.getPendingRequests();
+        List<ResourceCreationRequest> pendingRequests = cp.getPendingRequests();
         if (!pendingRequests.contains(crc)) {
             fail("Cloud Provider is not properly registering the pending creations requests");
         }
@@ -334,7 +344,7 @@ public class CloudProviderTest {
 
     @Test
     public void testRefusedOneTurnOn() {
-        HashMap<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<>();
         CloudProvider cp = null;
         try {
             cp = new CloudProvider(PROVIDER_NAME, 0, RUNTIME_CONNECTOR, null, null, properties);
@@ -366,7 +376,7 @@ public class CloudProviderTest {
             fail("Cloud Provider is not properly accounting the number of requested VMs");
         }
 
-        LinkedList<ResourceCreationRequest> pendingRequests = cp.getPendingRequests();
+        List<ResourceCreationRequest> pendingRequests = cp.getPendingRequests();
         if (!pendingRequests.contains(crc)) {
             fail("Cloud Provider is not properly registering the pending creations requests");
         }
@@ -387,7 +397,7 @@ public class CloudProviderTest {
 
     @Test
     public void testRefusedTwoTurnOn() {
-        HashMap<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<>();
         CloudProvider cp = null;
         try {
             cp = new CloudProvider(PROVIDER_NAME, 0, RUNTIME_CONNECTOR, null, null, properties);
@@ -431,7 +441,7 @@ public class CloudProviderTest {
         if (cp.getCurrentVMCount() != 1) {
             fail("Cloud Provider is not properly accounting the number of requested VMs");
         }
-        LinkedList<ResourceCreationRequest> pendingRequests = cp.getPendingRequests();
+        List<ResourceCreationRequest> pendingRequests = cp.getPendingRequests();
         if (!pendingRequests.contains(crc)) {
             fail("Cloud Provider is not properly registering the pending creations requests");
         }
@@ -449,7 +459,7 @@ public class CloudProviderTest {
 
     @Test
     public void testCreateOneVMOneResourceSameDescription() {
-        HashMap<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<>();
         CloudProvider cp = null;
         try {
             cp = new CloudProvider(PROVIDER_NAME, 0, RUNTIME_CONNECTOR, null, null, properties);
@@ -474,7 +484,7 @@ public class CloudProviderTest {
         if (cp.getCurrentVMCount() != 1) {
             fail("Cloud Provider is not properly accounting the number of requested VMs");
         }
-        LinkedList<ResourceCreationRequest> pendingRequests = cp.getPendingRequests();
+        List<ResourceCreationRequest> pendingRequests = cp.getPendingRequests();
         Set<CloudMethodWorker> workers = cp.getHostedWorkers();
         if (!pendingRequests.contains(crc)) {
             fail("Cloud Provider is not properly registering the pending creations requests");
@@ -508,7 +518,7 @@ public class CloudProviderTest {
 
     @Test
     public void testCreateOneVMOneResourceDifferentDescription() {
-        HashMap<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<>();
         CloudProvider cp = null;
         try {
             cp = new CloudProvider(PROVIDER_NAME, 0, RUNTIME_CONNECTOR, null, null, properties);
@@ -539,7 +549,7 @@ public class CloudProviderTest {
         if (cp.getCurrentVMCount() != 2) {
             fail("Cloud Provider is not properly accounting the number of requested VMs");
         }
-        LinkedList<ResourceCreationRequest> pendingRequests = cp.getPendingRequests();
+        List<ResourceCreationRequest> pendingRequests = cp.getPendingRequests();
         Set<CloudMethodWorker> workers = cp.getHostedWorkers();
         if (!pendingRequests.isEmpty()) {
             fail("Cloud Provider is not properly registering the pending creations requests");
@@ -554,7 +564,7 @@ public class CloudProviderTest {
 
     @Test
     public void testCreateTwoVMTwoResources() {
-        HashMap<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<>();
         CloudProvider cp = null;
         try {
             cp = new CloudProvider(PROVIDER_NAME, 0, RUNTIME_CONNECTOR, null, null, properties);
@@ -594,7 +604,7 @@ public class CloudProviderTest {
         if (cp.getCurrentVMCount() != 2) {
             fail("Cloud Provider is not properly accounting the number of requested VMs");
         }
-        LinkedList<ResourceCreationRequest> pendingRequests = cp.getPendingRequests();
+        List<ResourceCreationRequest> pendingRequests = cp.getPendingRequests();
         Set<CloudMethodWorker> workers = cp.getHostedWorkers();
         if (pendingRequests.size() != 1) {
             fail("Cloud Provider is not properly registering the pending creations requests");
@@ -629,7 +639,7 @@ public class CloudProviderTest {
 
     @Test
     public void testCreateTwoVMOneResource() {
-        HashMap<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<>();
         CloudProvider cp = null;
         try {
             cp = new CloudProvider(PROVIDER_NAME, 0, RUNTIME_CONNECTOR, null, null, properties);
@@ -663,7 +673,7 @@ public class CloudProviderTest {
         if (cp.getCurrentVMCount() != 2) {
             fail("Cloud Provider is not properly accounting the number of requested VMs");
         }
-        LinkedList<ResourceCreationRequest> pendingRequests = cp.getPendingRequests();
+        List<ResourceCreationRequest> pendingRequests = cp.getPendingRequests();
         Set<CloudMethodWorker> workers = cp.getHostedWorkers();
         if (pendingRequests.size() != 1) {
             fail("Cloud Provider is not properly registering the pending creations requests");
@@ -695,7 +705,7 @@ public class CloudProviderTest {
 
     @Test
     public void testDestroyOneVMOneResource() {
-        HashMap<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<>();
         CloudProvider cp = null;
         try {
             cp = new CloudProvider(PROVIDER_NAME, 0, RUNTIME_CONNECTOR, null, null, properties);
@@ -729,7 +739,7 @@ public class CloudProviderTest {
         if (cp.getCurrentVMCount() != 0) {
             fail("Cloud Provider is not properly accounting the number of requested VMs");
         }
-        LinkedList<ResourceCreationRequest> pendingRequests = cp.getPendingRequests();
+        List<ResourceCreationRequest> pendingRequests = cp.getPendingRequests();
         Set<CloudMethodWorker> workers = cp.getHostedWorkers();
         if (!pendingRequests.isEmpty()) {
             fail("Cloud Provider is not properly registering the pending creations requests");
@@ -742,7 +752,7 @@ public class CloudProviderTest {
 
     @Test
     public void testDestroyTwoVMTwoResources() {
-        HashMap<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<>();
         CloudProvider cp = null;
         try {
             cp = new CloudProvider(PROVIDER_NAME, 0, RUNTIME_CONNECTOR, null, null, properties);
@@ -808,7 +818,7 @@ public class CloudProviderTest {
 
     @Test
     public void testDestroyTwoVMOneResource() {
-        HashMap<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<>();
         CloudProvider cp = null;
         try {
             cp = new CloudProvider(PROVIDER_NAME, 0, RUNTIME_CONNECTOR, null, null, properties);

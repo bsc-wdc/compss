@@ -55,15 +55,15 @@ public abstract class AllocatableAction {
     private final long id;
 
     // Allocatable actions that the action depends on due data dependencies
-    private final LinkedList<AllocatableAction> dataPredecessors;
+    private final List<AllocatableAction> dataPredecessors;
     // Allocatable actions depending on the allocatable action due data dependencies
-    private final LinkedList<AllocatableAction> dataSuccessors;
+    private final List<AllocatableAction> dataSuccessors;
 
     private State state;
     private ResourceScheduler<? extends WorkerResourceDescription> selectedResource;
     private Implementation selectedImpl;
     private WorkerResourceDescription resourceConsumption;
-    private final LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> executingResources;
+    private final List<ResourceScheduler<? extends WorkerResourceDescription>> executingResources;
 
     private final SchedulingInformation schedulingInfo;
 
@@ -142,7 +142,7 @@ public abstract class AllocatableAction {
      *
      * @return
      */
-    public final LinkedList<AllocatableAction> getDataPredecessors() {
+    public final List<AllocatableAction> getDataPredecessors() {
         return dataPredecessors;
     }
 
@@ -151,7 +151,7 @@ public abstract class AllocatableAction {
      *
      * @return
      */
-    public final LinkedList<AllocatableAction> getDataSuccessors() {
+    public final List<AllocatableAction> getDataSuccessors() {
         return dataSuccessors;
     }
 
@@ -262,7 +262,7 @@ public abstract class AllocatableAction {
      * @param coreId
      * @return
      */
-    protected final LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> getCoreElementExecutors(int coreId) {
+    protected final List<ResourceScheduler<? extends WorkerResourceDescription>> getCoreElementExecutors(int coreId) {
         return SchedulingInformation.getCoreElementExecutors(coreId);
     }
 
@@ -500,7 +500,7 @@ public abstract class AllocatableAction {
         }
     }
 
-    public final LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> getExecutingResources() {
+    public final List<ResourceScheduler<? extends WorkerResourceDescription>> getExecutingResources() {
         return executingResources;
     }
 
@@ -519,7 +519,7 @@ public abstract class AllocatableAction {
      *
      * @return
      */
-    public final LinkedList<AllocatableAction> completed() {
+    public final List<AllocatableAction> completed() {
         // Mark as finished
         state = State.FINISHED;
 
@@ -531,7 +531,7 @@ public abstract class AllocatableAction {
         // Action notification
         doCompleted();
         // Release data dependencies of the task
-        LinkedList<AllocatableAction> freeTasks = new LinkedList<>();
+        List<AllocatableAction> freeTasks = new LinkedList<>();
         for (AllocatableAction aa : dataSuccessors) {
             aa.dataPredecessorDone(this);
             if (!aa.hasDataPredecessors()) {
@@ -565,7 +565,7 @@ public abstract class AllocatableAction {
      *
      * @return
      */
-    public final LinkedList<AllocatableAction> failed() {
+    public final List<AllocatableAction> failed() {
         // Mark as failed
         this.state = State.FAILED;
 
@@ -589,7 +589,7 @@ public abstract class AllocatableAction {
         }
 
         // Triggering failure on Data Successors
-        LinkedList<AllocatableAction> failed = new LinkedList<>();
+        List<AllocatableAction> failed = new LinkedList<>();
         for (AllocatableAction succ : dataSuccessors) {
             failed.addAll(succ.failed());
         }
@@ -634,7 +634,7 @@ public abstract class AllocatableAction {
      *
      * @return list of resources able to run the action
      */
-    public abstract LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> getCompatibleWorkers();
+    public abstract List<ResourceScheduler<? extends WorkerResourceDescription>> getCompatibleWorkers();
 
     /**
      * Returns all the possible implementations for the action.
@@ -663,7 +663,7 @@ public abstract class AllocatableAction {
      *
      * @return list of the action implementations that can run on the resource.
      */
-    public abstract <T extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(ResourceScheduler<T> r);
+    public abstract <T extends WorkerResourceDescription> List<Implementation> getCompatibleImplementations(ResourceScheduler<T> r);
 
     /**
      * Returns the action priority

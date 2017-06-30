@@ -427,7 +427,7 @@ public class ExecutionAction extends AllocatableAction {
      * ***************************************************************************************************************
      */
     @Override
-    public final LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> getCompatibleWorkers() {
+    public final List<ResourceScheduler<? extends WorkerResourceDescription>> getCompatibleWorkers() {
         return getCoreElementExecutors(task.getTaskDescription().getId());
     }
 
@@ -449,7 +449,7 @@ public class ExecutionAction extends AllocatableAction {
     }
 
     @Override
-    public final <T extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(ResourceScheduler<T> r) {
+    public final <T extends WorkerResourceDescription> List<Implementation> getCompatibleImplementations(ResourceScheduler<T> r) {
         return r.getExecutableImpls(task.getTaskDescription().getId());
     }
 
@@ -474,7 +474,7 @@ public class ExecutionAction extends AllocatableAction {
     @Override
     public final void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
         // COMPUTE RESOURCE CANDIDATES
-        LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> candidates = new LinkedList<>();
+        List<ResourceScheduler<? extends WorkerResourceDescription>> candidates = new LinkedList<>();
         if (this.isTargetResourceEnforced()) {
             // The scheduling is forced to a given resource
             candidates.add((ResourceScheduler<WorkerResourceDescription>) this.getEnforcedTargetResource());

@@ -3,8 +3,8 @@ package integratedtoolkit.scheduler.types;
 import integratedtoolkit.components.impl.ResourceScheduler;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CoreManager;
-import java.util.ArrayList;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -12,7 +12,7 @@ import java.util.List;
 public class SchedulingInformation {
 
     // List of active resources per core
-    private static final ArrayList<LinkedList<ResourceScheduler<? extends WorkerResourceDescription>>> CORE_TO_WORKERS = new ArrayList<>();
+    private static final List<List<ResourceScheduler<? extends WorkerResourceDescription>>> CORE_TO_WORKERS = new ArrayList<>();
 
 
     public static void updateCoreCount(int newCoreCount) {
@@ -24,7 +24,7 @@ public class SchedulingInformation {
 
     public static <T extends WorkerResourceDescription> void changesOnWorker(ResourceScheduler<T> ui) {
         // Remove the previous description of the worker
-        for (LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> coreToWorker : CORE_TO_WORKERS) {
+        for (List<ResourceScheduler<? extends WorkerResourceDescription>> coreToWorker : CORE_TO_WORKERS) {
             coreToWorker.remove(ui);
         }
 
@@ -32,14 +32,14 @@ public class SchedulingInformation {
         SchedulingInformation.updateCoreCount(CoreManager.getCoreCount());
 
         // Add the new description of the worker
-        LinkedList<Integer> executableCores = ui.getExecutableCores();
+        List<Integer> executableCores = ui.getExecutableCores();
         for (int coreId : executableCores) {
             CORE_TO_WORKERS.get(coreId).add(ui);
         }
     }
 
-    public static LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> getCoreElementExecutors(int coreId) {
-        LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> res = new LinkedList<>();
+    public static List<ResourceScheduler<? extends WorkerResourceDescription>> getCoreElementExecutors(int coreId) {
+        List<ResourceScheduler<? extends WorkerResourceDescription>> res = new LinkedList<>();
         for (ResourceScheduler<? extends WorkerResourceDescription> rs : CORE_TO_WORKERS.get(coreId)) {
             res.add(rs);
         }

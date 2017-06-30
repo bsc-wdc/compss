@@ -13,14 +13,15 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+
 /**
- * The CloudManager class is an utility to manage all the cloud interactions and
- * hide the details of each provider.
+ * The CloudManager class is an utility to manage all the cloud interactions and hide the details of each provider.
  */
 public class CloudManager {
 
@@ -56,12 +57,13 @@ public class CloudManager {
     /**
      * Relation between a Cloud provider name and its representation
      */
-    private final HashMap<String, CloudProvider> providers;
+    private final Map<String, CloudProvider> providers;
 
     private boolean useCloud;
     private int initialVMs = 0;
     private int minVMs = 0;
     private int maxVMs = Integer.MAX_VALUE;
+
 
     /**
      * Initializes the internal data structures
@@ -101,7 +103,9 @@ public class CloudManager {
             if (minVMs > 0) {
                 this.minVMs = minVMs;
                 if (minVMs > maxVMs) {
-                    ErrorManager.warn("Cloud: MaxVMs (" + maxVMs + ") is lower than MinVMs (" + this.minVMs + "). The current MaxVMs value (" + maxVMs + ") is ignored until MinVMs (" + this.minVMs + ") is lower than it");
+                    ErrorManager
+                            .warn("Cloud: MaxVMs (" + maxVMs + ") is lower than MinVMs (" + this.minVMs + "). The current MaxVMs value ("
+                                    + maxVMs + ") is ignored until MinVMs (" + this.minVMs + ") is lower than it");
                 }
             } else {
                 this.minVMs = 0;
@@ -117,7 +121,9 @@ public class CloudManager {
                 this.maxVMs = 0;
             }
             if (minVMs > maxVMs) {
-                ErrorManager.warn("Cloud: MaxVMs (" + this.maxVMs + ") is lower than MinVMs (" + this.minVMs + "). The current MaxVMs value (" + this.maxVMs + ") is ignored until MinVMs (" + this.minVMs + ") is higher than it");
+                ErrorManager
+                        .warn("Cloud: MaxVMs (" + this.maxVMs + ") is lower than MinVMs (" + this.minVMs + "). The current MaxVMs value ("
+                                + this.maxVMs + ") is ignored until MinVMs (" + this.minVMs + ") is higher than it");
             }
         }
     }
@@ -154,10 +160,11 @@ public class CloudManager {
      * @return
      * @throws integratedtoolkit.connectors.ConnectorException
      */
-    public CloudProvider registerCloudProvider(String providerName, Integer limitOfVMs, String runtimeConnectorClass, String connectorJarPath, String connectorMainClass,
-            HashMap<String, String> connectorProperties) throws ConnectorException {
+    public CloudProvider registerCloudProvider(String providerName, Integer limitOfVMs, String runtimeConnectorClass,
+            String connectorJarPath, String connectorMainClass, Map<String, String> connectorProperties) throws ConnectorException {
 
-        CloudProvider cp = new CloudProvider(providerName, limitOfVMs, runtimeConnectorClass, connectorJarPath, connectorMainClass, connectorProperties);
+        CloudProvider cp = new CloudProvider(providerName, limitOfVMs, runtimeConnectorClass, connectorJarPath, connectorMainClass,
+                connectorProperties);
         useCloud = true;
         providers.put(cp.getName(), cp);
         return cp;
@@ -192,8 +199,8 @@ public class CloudManager {
      *
      * @return Returns all the pending creation requests
      */
-    public LinkedList<ResourceCreationRequest> getPendingRequests() {
-        LinkedList<ResourceCreationRequest> pendingRequests = new LinkedList<>();
+    public List<ResourceCreationRequest> getPendingRequests() {
+        List<ResourceCreationRequest> pendingRequests = new LinkedList<>();
         for (CloudProvider cp : providers.values()) {
             pendingRequests.addAll(cp.getPendingRequests());
         }
@@ -201,8 +208,7 @@ public class CloudManager {
     }
 
     /**
-     * Queries the amount of tasks that will be able to run simulataneously once
-     * all the VMs have been created
+     * Queries the amount of tasks that will be able to run simulataneously once all the VMs have been created
      *
      * @return Returns all the pending creation requests
      */
@@ -247,8 +253,7 @@ public class CloudManager {
     }
 
     /**
-     * The CloudManager notifies to all the connectors the end of generation of
-     * new tasks
+     * The CloudManager notifies to all the connectors the end of generation of new tasks
      */
     public void stopReached() {
         for (CloudProvider cp : providers.values()) {
@@ -270,11 +275,11 @@ public class CloudManager {
     }
 
     /**
-     * Returns how long will take a resource to be ready since the CloudManager
-     * asks for it.
+     * Returns how long will take a resource to be ready since the CloudManager asks for it.
      *
      * @return time required for a resource to be ready
-     * @throws Exception can not get the creation time for some providers.
+     * @throws Exception
+     *             can not get the creation time for some providers.
      */
     public long getNextCreationTime() throws Exception {
         long total = 0;
@@ -319,8 +324,8 @@ public class CloudManager {
         sb.append(prefix).append("\t").append("PENDING_REQUESTS = [").append("\n");
         for (CloudProvider cp : providers.values()) {
             for (ResourceCreationRequest rcr : cp.getPendingRequests()) {
-                HashMap<CloudInstanceTypeDescription, int[]> composition = rcr.getRequested().getTypeComposition();
-                //REQUEST ARE COMPOSED OF A SINGLE INSTANCE TYPE
+                Map<CloudInstanceTypeDescription, int[]> composition = rcr.getRequested().getTypeComposition();
+                // REQUEST ARE COMPOSED OF A SINGLE INSTANCE TYPE
                 for (CloudInstanceTypeDescription citd : composition.keySet()) {
                     sb.append(prefix).append("\t").append("\t").append("REQUEST = ").append(citd.getName()).append("\n");
                 }

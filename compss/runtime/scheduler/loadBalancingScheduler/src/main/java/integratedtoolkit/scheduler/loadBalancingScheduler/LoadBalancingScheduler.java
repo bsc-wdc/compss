@@ -1,7 +1,5 @@
 package integratedtoolkit.scheduler.loadBalancingScheduler;
 
-import java.util.LinkedList;
-
 import integratedtoolkit.components.impl.ResourceScheduler;
 import integratedtoolkit.scheduler.readyScheduler.ReadyScheduler;
 import integratedtoolkit.scheduler.types.AllocatableAction;
@@ -9,6 +7,9 @@ import integratedtoolkit.schedulerloadBalancingScheduler.types.LoadBalancingScor
 import integratedtoolkit.scheduler.types.Score;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
+
+import java.util.List;
+
 import org.json.JSONObject;
 
 
@@ -55,11 +56,10 @@ public class LoadBalancingScheduler extends ReadyScheduler {
      * *********************************************************************************************************
      */
     @Override
-    public <T extends WorkerResourceDescription> void purgeFreeActions(LinkedList<AllocatableAction> dataFreeActions,
-            LinkedList<AllocatableAction> resourceFreeActions, LinkedList<AllocatableAction> blockedCandidates,
-            ResourceScheduler<T> resource) {
+    public <T extends WorkerResourceDescription> void purgeFreeActions(List<AllocatableAction> dataFreeActions,
+            List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
 
-        LinkedList<AllocatableAction> unassignedReadyActions = this.unassignedReadyActions.getAllActions();
+        List<AllocatableAction> unassignedReadyActions = this.unassignedReadyActions.getAllActions();
         this.unassignedReadyActions.removeAllActions();
         dataFreeActions.addAll(unassignedReadyActions);
     }

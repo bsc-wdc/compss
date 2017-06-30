@@ -3,12 +3,12 @@ package integratedtoolkit.scheduler.multiobjective;
 import integratedtoolkit.components.impl.ResourceScheduler;
 import integratedtoolkit.scheduler.multiobjective.types.Gap;
 import integratedtoolkit.scheduler.types.AllocatableAction;
-
 import integratedtoolkit.scheduler.types.SchedulingInformation;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
-import java.util.Iterator;
 
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -26,15 +26,15 @@ public class MOSchedulingInformation extends SchedulingInformation {
     private int openGaps = 0;
 
     // Allocatable actions that the action depends on due to resource availability
-    private final LinkedList<Gap> resourcePredecessors;
+    private final List<Gap> resourcePredecessors;
 
     // Allocatable actions depending on the allocatable action due to resource availability
-    private LinkedList<AllocatableAction> resourceSuccessors;
+    private List<AllocatableAction> resourceSuccessors;
 
     // Action Scheduling is being optimized locally
     private boolean onOptimization = false;
     private boolean toReschedule = false;
-    private final LinkedList<AllocatableAction> optimizingSuccessors;
+    private final List<AllocatableAction> optimizingSuccessors;
 
 
     public <T extends WorkerResourceDescription> MOSchedulingInformation(ResourceScheduler<T> enforcedTargetResource) {
@@ -66,7 +66,7 @@ public class MOSchedulingInformation extends SchedulingInformation {
         return b;
     }
 
-    public LinkedList<Gap> getPredecessors() {
+    public List<Gap> getPredecessors() {
         return resourcePredecessors;
     }
 
@@ -90,7 +90,7 @@ public class MOSchedulingInformation extends SchedulingInformation {
         resourceSuccessors.add(successor);
     }
 
-    public LinkedList<AllocatableAction> getSuccessors() {
+    public List<AllocatableAction> getSuccessors() {
         return resourceSuccessors;
     }
 
@@ -102,8 +102,8 @@ public class MOSchedulingInformation extends SchedulingInformation {
         resourceSuccessors.clear();
     }
 
-    public LinkedList<AllocatableAction> replaceSuccessors(LinkedList<AllocatableAction> newSuccessors) {
-        LinkedList<AllocatableAction> oldSuccessors = resourceSuccessors;
+    public List<AllocatableAction> replaceSuccessors(List<AllocatableAction> newSuccessors) {
+        List<AllocatableAction> oldSuccessors = resourceSuccessors;
         resourceSuccessors = newSuccessors;
         return oldSuccessors;
     }
@@ -206,7 +206,7 @@ public class MOSchedulingInformation extends SchedulingInformation {
         optimizingSuccessors.add(action);
     }
 
-    public LinkedList<AllocatableAction> getOptimizingSuccessors() {
+    public List<AllocatableAction> getOptimizingSuccessors() {
         return optimizingSuccessors;
     }
 

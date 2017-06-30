@@ -20,14 +20,16 @@ import integratedtoolkit.types.resources.ResourceDescription;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CoreManager;
+
 import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.HashSet;
-
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -185,12 +187,12 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
     }
 
     @Override
-    public LinkedList<AllocatableAction> unscheduleAction(AllocatableAction action) throws ActionNotFoundException {
+    public List<AllocatableAction> unscheduleAction(AllocatableAction action) throws ActionNotFoundException {
         super.unscheduleAction(action);
-        LinkedList<AllocatableAction> freeActions = new LinkedList<>();
+        List<AllocatableAction> freeActions = new LinkedList<>();
 
         MOSchedulingInformation actionDSI = (MOSchedulingInformation) action.getSchedulingInfo();
-        LinkedList<Gap> resources = new LinkedList<>();
+        List<Gap> resources = new LinkedList<>();
 
         // Block all predecessors
         for (Gap pGap : actionDSI.getPredecessors()) {
@@ -230,7 +232,7 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         actionDSI.clearPredecessors();
 
         // Block all successors
-        LinkedList<MOSchedulingInformation> successorsDSIs = new LinkedList<MOSchedulingInformation>();
+        List<MOSchedulingInformation> successorsDSIs = new LinkedList<MOSchedulingInformation>();
         for (AllocatableAction successor : actionDSI.getSuccessors()) {
             MOSchedulingInformation succDSI = (MOSchedulingInformation) successor.getSchedulingInfo();
             succDSI.lock();
@@ -327,7 +329,7 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         addGap(new Gap(Long.MIN_VALUE, Long.MAX_VALUE, null, myWorker.getDescription().copy(), 0));
     }
 
-    private void scheduleUsingGaps(AllocatableAction action, LinkedList<Gap> gaps) {
+    private void scheduleUsingGaps(AllocatableAction action, List<Gap> gaps) {
         long expectedStart = 0;
         // Compute start time due to data dependencies
         for (AllocatableAction predecessor : action.getDataPredecessors()) {
@@ -358,8 +360,8 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         Implementation impl = action.getAssignedImplementation();
         MOProfile p = (MOProfile) getProfile(impl);
         ResourceDescription constraints = impl.getRequirements().copy();
-        LinkedList<Gap> predecessors = new LinkedList<>();
-        Iterator<Gap> gapIt = gaps.descendingIterator();
+        List<Gap> predecessors = new LinkedList<>();
+        Iterator<Gap> gapIt = ((LinkedList<Gap>) gaps).descendingIterator();
         boolean fullyCoveredReqs = false;
         // Compute predecessors and update gaps
         // Check gaps before data start
@@ -446,7 +448,7 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         }
     }
 
-    private void useGap(Gap gap, ResourceDescription resources, LinkedList<Gap> predecessors) {
+    private void useGap(Gap gap, ResourceDescription resources, List<Gap> predecessors) {
         AllocatableAction predecessor = (AllocatableAction) gap.getOrigin();
         ResourceDescription gapResource = gap.getResources();
         ResourceDescription usedResources = ResourceDescription.reduceCommonDynamics(gapResource, resources);
@@ -479,8 +481,8 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         // Scan actions: Filters ready and selectable actions
         scanActions(state);
         // Gets all the pending schedulings
-        LinkedList<AllocatableAction> newPendingSchedulings = new LinkedList<>();
-        LinkedList<AllocatableAction> pendingSchedulings;
+        List<AllocatableAction> newPendingSchedulings = new LinkedList<>();
+        List<AllocatableAction> pendingSchedulings;
         synchronized (gaps) {
             MOSchedulingInformation opDSI = (MOSchedulingInformation) opAction.getSchedulingInfo();
             pendingSchedulings = opDSI.replaceSuccessors(newPendingSchedulings);
@@ -490,7 +492,7 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         classifyPendingUnschedulings(state);
 
         // ClassifyActions
-        LinkedList<Gap> newGaps = rescheduleTasks(state, actions);
+        List<Gap> newGaps = rescheduleTasks(state, actions);
         /*
          * System.out.println("\t is running: "); for (AllocatableAction aa : state.getRunningActions()) {
          * System.out.println("\t\t" + aa + " with" + " implementation " + ((aa.getAssignedImplementation() == null) ?
@@ -512,7 +514,7 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
             gaps.clear();
             gaps.addAll(newGaps);
             MOSchedulingInformation opDSI = (MOSchedulingInformation) opAction.getSchedulingInfo();
-            LinkedList<AllocatableAction> successors = opDSI.getSuccessors();
+            List<AllocatableAction> successors = opDSI.getSuccessors();
             for (AllocatableAction action : successors) {
                 actions.add(action);
                 MOSchedulingInformation actionDSI = (MOSchedulingInformation) action.getSchedulingInfo();
@@ -533,11 +535,11 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
     // that have data dependencies with tasks scheduled in other nodes. Actions
     // with dependencies with actions scheduled in the same node, are not
     // classified in any list since we cannot know the start time.
-    public LinkedList<AllocatableAction> scanActions(LocalOptimizationState state) {
-        LinkedList<AllocatableAction> runningActions = new LinkedList<AllocatableAction>();
+    public List<AllocatableAction> scanActions(LocalOptimizationState state) {
+        List<AllocatableAction> runningActions = new LinkedList<AllocatableAction>();
         PriorityQueue<AllocatableAction> actions = new PriorityQueue<AllocatableAction>(1, getScanComparator());
         MOSchedulingInformation blockSI = (MOSchedulingInformation) dataBlockingAction.getSchedulingInfo();
-        LinkedList<AllocatableAction> blockActions = blockSI.getSuccessors();
+        List<AllocatableAction> blockActions = blockSI.getSuccessors();
         for (AllocatableAction gapAction : blockActions) {
             MOSchedulingInformation dsi = (MOSchedulingInformation) gapAction.getSchedulingInfo();
             dsi.lock();
@@ -578,7 +580,7 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
             boolean hasExternal = false;
             long startTime = 0;
             try {
-                LinkedList<AllocatableAction> dPreds = action.getDataPredecessors();
+                List<AllocatableAction> dPreds = action.getDataPredecessors();
                 for (AllocatableAction dPred : dPreds) {
                     MOSchedulingInformation dPredDSI = (MOSchedulingInformation) dPred.getSchedulingInfo();
                     if (dPred.getAssignedResource() == this) {
@@ -605,7 +607,7 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
 
             // Resource Dependencies analysis
             boolean hasResourcePredecessors = false;
-            LinkedList<Gap> rPredGaps = actionDSI.getPredecessors();
+            List<Gap> rPredGaps = actionDSI.getPredecessors();
             for (Gap rPredGap : rPredGaps) {
                 AllocatableAction rPred = rPredGap.getOrigin();
                 MOSchedulingInformation rPredDSI = (MOSchedulingInformation) rPred.getSchedulingInfo();
@@ -635,7 +637,7 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         return runningActions;
     }
 
-    public void classifyPendingSchedulings(LinkedList<AllocatableAction> pendingSchedulings, LocalOptimizationState state) {
+    public void classifyPendingSchedulings(List<AllocatableAction> pendingSchedulings, LocalOptimizationState state) {
         for (AllocatableAction action : pendingSchedulings) {
             // Action has an artificial resource dependency with the opAction
             MOSchedulingInformation actionDSI = (MOSchedulingInformation) action.getSchedulingInfo();
@@ -647,7 +649,7 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
             boolean hasExternal = false;
             long startTime = 0;
             try {
-                LinkedList<AllocatableAction> dPreds = action.getDataPredecessors();
+                List<AllocatableAction> dPreds = action.getDataPredecessors();
                 for (AllocatableAction dPred : dPreds) {
                     MOSchedulingInformation dPredDSI = (MOSchedulingInformation) dPred.getSchedulingInfo();
                     if (dPred.getAssignedResource() == this) {
@@ -680,14 +682,14 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
     public void classifyPendingUnschedulings(LocalOptimizationState state) {
         for (AllocatableAction unscheduledAction : pendingUnschedulings) {
             MOSchedulingInformation actionDSI = (MOSchedulingInformation) unscheduledAction.getSchedulingInfo();
-            LinkedList<AllocatableAction> successors = actionDSI.getOptimizingSuccessors();
+            List<AllocatableAction> successors = actionDSI.getOptimizingSuccessors();
             for (AllocatableAction successor : successors) {
                 // Data Dependencies analysis
                 boolean hasInternal = false;
                 boolean hasExternal = false;
                 long startTime = 0;
                 try {
-                    LinkedList<AllocatableAction> dPreds = successor.getDataPredecessors();
+                    List<AllocatableAction> dPreds = successor.getDataPredecessors();
                     for (AllocatableAction dPred : dPreds) {
                         MOSchedulingInformation dPredDSI = (MOSchedulingInformation) dPred.getSchedulingInfo();
                         if (dPred.getAssignedResource() == this) {
@@ -720,7 +722,7 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
     }
 
     @SuppressWarnings("unchecked")
-    public LinkedList<Gap> rescheduleTasks(LocalOptimizationState state, PriorityQueue<AllocatableAction> rescheduledActions) {
+    public List<Gap> rescheduleTasks(LocalOptimizationState state, PriorityQueue<AllocatableAction> rescheduledActions) {
         /*
          * 
          * ReadyActions contains those actions that have no dependencies with other actions scheduled on the node, but
@@ -777,8 +779,7 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
                  * End Event:
                  * 
                  */
-                LinkedList<SchedulingEvent> result = e.process(state, (MOResourceScheduler<WorkerResourceDescription>) this,
-                        rescheduledActions);
+                List<SchedulingEvent> result = e.process(state, (MOResourceScheduler<WorkerResourceDescription>) this, rescheduledActions);
                 for (SchedulingEvent r : result) {
                     schedulingQueue.offer(r);
                 }

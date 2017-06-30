@@ -12,9 +12,9 @@ import integratedtoolkit.util.CloudTypeManager;
 import integratedtoolkit.util.CoreManager;
 
 import java.lang.reflect.Constructor;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -43,7 +43,7 @@ public class CloudProvider {
     private final Cost cost;
 
     private int currentVMCount;
-    private final LinkedList<ResourceCreationRequest> pendingRequests;
+    private final List<ResourceCreationRequest> pendingRequests;
     private int[] pendingCoreCount;
 
     // Loggers
@@ -51,7 +51,7 @@ public class CloudProvider {
 
 
     public CloudProvider(String providerName, Integer limitOfVMs, String runtimeConnectorClass, String connectorJarPath,
-            String connectorMainClass, HashMap<String, String> connectorProperties) throws ConnectorException {
+            String connectorMainClass, Map<String, String> connectorProperties) throws ConnectorException {
 
         this.name = providerName;
         this.limitOfVMs = limitOfVMs;
@@ -64,7 +64,7 @@ public class CloudProvider {
         // infrastructure dependent connector
         try {
             Class<?> conClass = Class.forName(runtimeConnectorClass);
-            Class<?>[] parameterTypes = new Class<?>[] { CloudProvider.class, String.class, String.class, HashMap.class };
+            Class<?>[] parameterTypes = new Class<?>[] { CloudProvider.class, String.class, String.class, Map.class };
             Constructor<?> ctor = conClass.getConstructor(parameterTypes);
             Object conector = ctor.newInstance(this, connectorJarPath, connectorMainClass, connectorProperties);
             connector = (Connector) conector;
@@ -77,8 +77,7 @@ public class CloudProvider {
     }
 
     /*
-     * ----------------------------------------
-     * ------- Cloud Provider Builders --------
+     * ---------------------------------------- ------- Cloud Provider Builders --------
      * ----------------------------------------
      */
     /**
@@ -120,8 +119,7 @@ public class CloudProvider {
     }
 
     /*
-     * ----------------------------------------- 
-     * ------------- Basic Queries -------------
+     * ----------------------------------------- ------------- Basic Queries -------------
      * ----------------------------------------
      */
     public String getName() {
@@ -185,8 +183,7 @@ public class CloudProvider {
     }
 
     /*
-     * ----------------------------------------- 
-     * ------------- State Changes -------------
+     * ----------------------------------------- ------------- State Changes -------------
      * -----------------------------------------
      */
     public void stopReached() {
@@ -276,7 +273,7 @@ public class CloudProvider {
         hostedWorkers.add(worker);
     }
 
-    public LinkedList<ResourceCreationRequest> getPendingRequests() {
+    public List<ResourceCreationRequest> getPendingRequests() {
         return pendingRequests;
     }
 
@@ -286,7 +283,7 @@ public class CloudProvider {
 
     public void requestResourceReduction(CloudMethodWorker worker, CloudMethodResourceDescription reduction) {
         LOGGER.debug("[Cloud Manager] Destroying resource " + worker.getName() + " for reduction");
-        HashMap<CloudInstanceTypeDescription, int[]> composition = reduction.getTypeComposition();
+        Map<CloudInstanceTypeDescription, int[]> composition = reduction.getTypeComposition();
         for (int[] typeCount : composition.values()) {
             currentVMCount -= typeCount[0];
         }
@@ -305,8 +302,7 @@ public class CloudProvider {
     }
 
     /*
-     * ------------------------------------------ 
-     * ------- Recommendation Queries ----------
+     * ------------------------------------------ ------- Recommendation Queries ----------
      * ------------------------------------------
      */
     public boolean canHostMoreInstances() {
@@ -331,8 +327,7 @@ public class CloudProvider {
     }
 
     /*
-     * ----------------------------------------- 
-     * ------------- Debug Queries -------------
+     * ----------------------------------------- ------------- Debug Queries -------------
      * ----------------------------------------
      */
     public String getCurrentState(String prefix) {

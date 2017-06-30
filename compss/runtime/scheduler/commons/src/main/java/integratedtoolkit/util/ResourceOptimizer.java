@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.PriorityQueue;
 
 import org.apache.logging.log4j.LogManager;
@@ -201,7 +202,7 @@ public class ResourceOptimizer extends Thread {
      */
     public static int addBasicNodes() {
         int coreCount = CoreManager.getCoreCount();
-        LinkedList<ConstraintsCore>[] unfulfilledConstraints = getUnfulfilledConstraints();
+        List<ConstraintsCore>[] unfulfilledConstraints = getUnfulfilledConstraints();
         int unfulfilledConstraintsCores = 0;
         for (int coreId = 0; coreId < coreCount; coreId++) {
             if (unfulfilledConstraints[coreId].size() > 0) {
@@ -219,7 +220,7 @@ public class ResourceOptimizer extends Thread {
          *
          * e.g. architectures constraintsPerArquitecture Intel = |MR1|--|MR2| AMD = |MR3| [unassigned] = |MR4|--|MR5|
          */
-        HashMap<String, LinkedList<ConstraintsCore>> arch2Constraints = classifyArchitectures(unfulfilledConstraints);
+        Map<String, List<ConstraintsCore>> arch2Constraints = classifyArchitectures(unfulfilledConstraints);
 
         /*
          * Tries to reduce the number of machines per architecture by entering constraints in another core's constraints
@@ -244,13 +245,12 @@ public class ResourceOptimizer extends Thread {
         int createdCount = 0;
         for (int coreId = 0; coreId < coreCount; coreId++) {
             while (!unfulfilledConstraints[coreId].isEmpty()) {
-                ConstraintsCore cc = unfulfilledConstraints[coreId].removeFirst();
+                ConstraintsCore cc = unfulfilledConstraints[coreId].remove(0);
                 cc.confirmed();
                 ResourceCreationRequest rcr = askForResources(cc.desc, false);
                 if (rcr != null) {
                     StringBuilder compositionString = new StringBuilder();
-                    for (java.util.Map.Entry<CloudInstanceTypeDescription, int[]> entry : rcr.getRequested().getTypeComposition()
-                            .entrySet()) {
+                    for (Entry<CloudInstanceTypeDescription, int[]> entry : rcr.getRequested().getTypeComposition().entrySet()) {
                         compositionString.append(" \t\tTYPE = [\n").append("\t\t\tNAME = ").append(entry.getKey().getName())
                                 .append("\t\t\tCOUNT= ").append(entry.getValue()[0]).append("\t\t]\n");
                     }
@@ -285,9 +285,9 @@ public class ResourceOptimizer extends Thread {
 
     // Removes from the list all the Constraints fullfilled by existing resources
     @SuppressWarnings("unchecked")
-    private static LinkedList<ConstraintsCore>[] getUnfulfilledConstraints() {
+    private static List<ConstraintsCore>[] getUnfulfilledConstraints() {
         int coreCount = CoreManager.getCoreCount();
-        LinkedList<ConstraintsCore>[] unfulfilledConstraints = new LinkedList[coreCount];
+        List<ConstraintsCore>[] unfulfilledConstraints = new LinkedList[coreCount];
         int[] maxSimTasks = ResourceManager.getTotalSlots();
         for (int coreId = 0; coreId < coreCount; coreId++) {
             unfulfilledConstraints[coreId] = new LinkedList<>();
@@ -312,8 +312,8 @@ public class ResourceOptimizer extends Thread {
      * @param constraints
      * @return list with all the architectures' names
      */
-    private static HashMap<String, LinkedList<ConstraintsCore>> classifyArchitectures(LinkedList<ConstraintsCore>[] constraints) {
-        HashMap<String, LinkedList<ConstraintsCore>> archs = new HashMap<>();
+    private static Map<String, List<ConstraintsCore>> classifyArchitectures(List<ConstraintsCore>[] constraints) {
+        Map<String, List<ConstraintsCore>> archs = new HashMap<>();
 
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             if (constraints[coreId] != null) {
@@ -321,7 +321,7 @@ public class ResourceOptimizer extends Thread {
                     List<String> runnableArchitectures = cc.desc.getArchitectures();
                     for (String arch : runnableArchitectures) {
                         // Insert element into HashMap
-                        LinkedList<ConstraintsCore> archConstr = archs.get(arch);
+                        List<ConstraintsCore> archConstr = archs.get(arch);
                         if (archConstr == null) {
                             archConstr = new LinkedList<>();
                             archs.put(arch, archConstr);
@@ -334,8 +334,8 @@ public class ResourceOptimizer extends Thread {
         return archs;
     }
 
-    private static void reduceArchitecturesConstraints(HashMap<String, LinkedList<ConstraintsCore>> arch2Ctrs) {
-        for (LinkedList<ConstraintsCore> arch : arch2Ctrs.values()) {
+    private static void reduceArchitecturesConstraints(Map<String, List<ConstraintsCore>> arch2Ctrs) {
+        for (List<ConstraintsCore> arch : arch2Ctrs.values()) {
             ConstraintsCore[] ctrs = new ConstraintsCore[arch.size()];
             int i = 0;
             for (ConstraintsCore cc : arch) {
@@ -365,11 +365,11 @@ public class ResourceOptimizer extends Thread {
 
     }
 
-    private static void reassignUnassignedConstraints(HashMap<String, LinkedList<ConstraintsCore>> arch2Ctrs) {
+    private static void reassignUnassignedConstraints(Map<String, List<ConstraintsCore>> arch2Ctrs) {
         /*
          * ATTENTION: Since this method is only evaluated from constraints, there is only 1 PROCESSOR and 1 ARCHITECTURE
          */
-        LinkedList<ConstraintsCore> unassignedList = arch2Ctrs.get(CloudMethodResourceDescription.UNASSIGNED_STR);
+        List<ConstraintsCore> unassignedList = arch2Ctrs.get(CloudMethodResourceDescription.UNASSIGNED_STR);
         if (unassignedList == null) {
             return;
         }
@@ -377,7 +377,7 @@ public class ResourceOptimizer extends Thread {
             return;
         }
         if (arch2Ctrs.size() == 2) {
-            for (Map.Entry<String, LinkedList<ConstraintsCore>> ctrs : arch2Ctrs.entrySet()) {
+            for (Entry<String, List<ConstraintsCore>> ctrs : arch2Ctrs.entrySet()) {
                 if (ctrs.getKey().compareTo(CloudMethodResourceDescription.UNASSIGNED_STR) == 0) {
                     continue;
                 } else {
@@ -387,8 +387,8 @@ public class ResourceOptimizer extends Thread {
             }
         }
 
-        LinkedList<ConstraintsCore> assignedList = new LinkedList<>();
-        for (Map.Entry<String, LinkedList<ConstraintsCore>> ctrs : arch2Ctrs.entrySet()) {
+        List<ConstraintsCore> assignedList = new LinkedList<>();
+        for (Entry<String, List<ConstraintsCore>> ctrs : arch2Ctrs.entrySet()) {
             if (ctrs.getKey().compareTo(CloudMethodResourceDescription.UNASSIGNED_STR) == 0) {
                 continue;
             } else {
@@ -398,7 +398,7 @@ public class ResourceOptimizer extends Thread {
         }
 
         while (!unassignedList.isEmpty()) {
-            ConstraintsCore unassigned = unassignedList.removeFirst();
+            ConstraintsCore unassigned = unassignedList.remove(0);
             CloudMethodResourceDescription candidate = unassigned.desc;
             String bestArch = CloudMethodResourceDescription.UNASSIGNED_STR;
             Float bestDifference = Float.MAX_VALUE;
@@ -598,7 +598,7 @@ public class ResourceOptimizer extends Thread {
         // Check if there is some mandatory creation/destruction
         if (!cleanUp) {
             // For CE without resources where to run
-            LinkedList<Integer> requiredVMs = checkNeededMachines(noResourceCount, noResourceCounts, totalSlots);
+            List<Integer> requiredVMs = checkNeededMachines(noResourceCount, noResourceCounts, totalSlots);
 
             if (!requiredVMs.isEmpty()) {
                 RUNTIME_LOGGER.debug("[Resource Optimizer] Required VMs. Mandatory Increase");
@@ -655,7 +655,7 @@ public class ResourceOptimizer extends Thread {
         }
     }
 
-    private void mandatoryIncrease(float[] creationRecommendations, LinkedList<Integer> requiredVMs) {
+    private void mandatoryIncrease(float[] creationRecommendations, List<Integer> requiredVMs) {
         PriorityQueue<ValueResourceDescription> pq = new PriorityQueue<>();
 
         boolean[] required = new boolean[creationRecommendations.length];
@@ -700,7 +700,7 @@ public class ResourceOptimizer extends Thread {
     }
 
     private boolean optionalReduction(float[] destroyRecommendations) {
-        LinkedList<CloudMethodWorker> nonCritical = trimReductionOptions(ResourceManager.getNonCriticalDynamicResources(),
+        List<CloudMethodWorker> nonCritical = trimReductionOptions(ResourceManager.getNonCriticalDynamicResources(),
                 destroyRecommendations);
         Object[] nonCriticalSolution = getBestDestruction(nonCritical, destroyRecommendations);
 
@@ -733,10 +733,9 @@ public class ResourceOptimizer extends Thread {
     }
 
     private void mandatoryReduction(float[] destroyRecommendations) {
-        LinkedList<CloudMethodWorker> critical = trimReductionOptions(ResourceManager.getCriticalDynamicResources(),
-                destroyRecommendations);
+        List<CloudMethodWorker> critical = trimReductionOptions(ResourceManager.getCriticalDynamicResources(), destroyRecommendations);
         // LinkedList<CloudMethodWorker> critical = checkCriticalSafeness (critical);
-        LinkedList<CloudMethodWorker> nonCritical = trimReductionOptions(ResourceManager.getNonCriticalDynamicResources(),
+        List<CloudMethodWorker> nonCritical = trimReductionOptions(ResourceManager.getNonCriticalDynamicResources(),
                 destroyRecommendations);
         Object[] criticalSolution = getBestDestruction(critical, destroyRecommendations);
         Object[] nonCriticalSolution = getBestDestruction(nonCritical, destroyRecommendations);
@@ -792,11 +791,11 @@ public class ResourceOptimizer extends Thread {
         ResourceManager.reduceCloudWorker(res, finalDescription);
     }
 
-    private LinkedList<CloudMethodWorker> trimReductionOptions(Collection<CloudMethodWorker> options, float[] recommendations) {
+    private List<CloudMethodWorker> trimReductionOptions(Collection<CloudMethodWorker> options, float[] recommendations) {
         if (DEBUG) {
             RUNTIME_LOGGER.debug("[Resource Optimizer] * Trimming reduction options");
         }
-        LinkedList<CloudMethodWorker> resources = new LinkedList<>();
+        List<CloudMethodWorker> resources = new LinkedList<>();
         Iterator<CloudMethodWorker> it = options.iterator();
         while (it.hasNext()) {
 
@@ -806,7 +805,7 @@ public class ResourceOptimizer extends Thread {
             if (DEBUG) {
                 RUNTIME_LOGGER.debug("\tEvaluating " + resource.getName() + ". Default reduction is " + add);
             }
-            LinkedList<Integer> executableCores = resource.getExecutableCores();
+            List<Integer> executableCores = resource.getExecutableCores();
             for (int coreId : executableCores) {
 
                 if (!aggressive && recommendations[coreId] < 1) {
@@ -877,8 +876,8 @@ public class ResourceOptimizer extends Thread {
      * *****************************************************************************************************************
      * *****************************************************************************************************************
      */
-    private LinkedList<Integer> checkNeededMachines(int noResourceCount, int[] noResourceCountPerCore, int[] slotCountPerCore) {
-        LinkedList<Integer> needed = new LinkedList<>();
+    private List<Integer> checkNeededMachines(int noResourceCount, int[] noResourceCountPerCore, int[] slotCountPerCore) {
+        List<Integer> needed = new LinkedList<>();
         if (noResourceCount == 0) {
             return needed;
         }
@@ -978,11 +977,11 @@ public class ResourceOptimizer extends Thread {
     private static class ConstraintsCore {
 
         private CloudMethodResourceDescription desc;
-        private LinkedList<ConstraintsCore>[] cores;
+        private List<ConstraintsCore>[] cores;
 
 
         @SuppressWarnings("unchecked")
-        public ConstraintsCore(CloudMethodResourceDescription desc, int core, LinkedList<ConstraintsCore> coreList) {
+        public ConstraintsCore(CloudMethodResourceDescription desc, int core, List<ConstraintsCore> coreList) {
             this.desc = desc;
             this.cores = new LinkedList[CoreManager.getCoreCount()];
             this.cores[core] = coreList;
@@ -1015,7 +1014,7 @@ public class ResourceOptimizer extends Thread {
 
         @Override
         public String toString() {
-            LinkedList<Integer> cores = new LinkedList<>();
+            List<Integer> cores = new LinkedList<>();
             for (int i = 0; i < CoreManager.getCoreCount(); i++) {
                 if (this.cores[i] != null) {
                     cores.add(i);
@@ -1281,7 +1280,7 @@ public class ResourceOptimizer extends Thread {
                 continue;
             }
 
-            HashMap<CloudInstanceTypeDescription, float[]> typeToPoints = getPossibleReductions(res, destroyRecommendations);
+            Map<CloudInstanceTypeDescription, float[]> typeToPoints = getPossibleReductions(res, destroyRecommendations);
 
             for (Map.Entry<CloudInstanceTypeDescription, float[]> destruction : typeToPoints.entrySet()) {
                 CloudInstanceTypeDescription type = destruction.getKey();
@@ -1319,9 +1318,9 @@ public class ResourceOptimizer extends Thread {
     // Type -> [# modified CE that weren't requested,
     // #slots removed that weren't requested,
     // #slots removed that were requested]
-    private HashMap<CloudInstanceTypeDescription, float[]> getPossibleReductions(CloudMethodWorker res, float[] recommendedSlots) {
-        HashMap<CloudInstanceTypeDescription, float[]> reductions = new HashMap<>();
-        LinkedList<CloudInstanceTypeDescription> types = res.getDescription().getPossibleReductions();
+    private Map<CloudInstanceTypeDescription, float[]> getPossibleReductions(CloudMethodWorker res, float[] recommendedSlots) {
+        Map<CloudInstanceTypeDescription, float[]> reductions = new HashMap<>();
+        List<CloudInstanceTypeDescription> types = res.getDescription().getPossibleReductions();
 
         for (CloudInstanceTypeDescription type : types) {
             int[] reducedSlots = type.getSlotsCore();

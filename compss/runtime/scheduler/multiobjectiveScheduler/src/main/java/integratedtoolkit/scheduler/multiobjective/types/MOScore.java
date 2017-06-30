@@ -1,26 +1,23 @@
 package integratedtoolkit.scheduler.multiobjective.types;
 
+import java.util.List;
+
 import integratedtoolkit.scheduler.multiobjective.MOSchedulingInformation;
 import integratedtoolkit.scheduler.multiobjective.config.MOConfiguration;
 import integratedtoolkit.scheduler.multiobjective.config.MOConfiguration.OptimizationParameter;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.scheduler.types.Score;
 
-import java.util.LinkedList;
-
 
 public class MOScore extends Score {
 
     private static final OptimizationParameter OPTIMIZATION_PARAM = MOConfiguration.getSchedulerOptimization();
-    
+
     /*
-     * actionScore -> task Priority
-     * resourceScore -> Expected Resource Availability
-     * expectedDataAvailable -> expected time when data dependencies will be ready (take into account transfers)
-     * waitingScore --> Expected time when the execution would start
-     * implementationScore -> ExecutionTime
-     * expectedCost -> Expected monetary cost of the execution
-     * expectedEnergy -> Expected energy consumption of the execution
+     * actionScore -> task Priority resourceScore -> Expected Resource Availability expectedDataAvailable -> expected
+     * time when data dependencies will be ready (take into account transfers) waitingScore --> Expected time when the
+     * execution would start implementationScore -> ExecutionTime expectedCost -> Expected monetary cost of the
+     * execution expectedEnergy -> Expected energy consumption of the execution
      */
     private final long expectedDataAvailable;
     private final double expectedCost;
@@ -84,7 +81,7 @@ public class MOScore extends Score {
         return action.getPriority();
     }
 
-    public long getDataPredecessorTime(LinkedList<AllocatableAction> predecessors) {
+    public long getDataPredecessorTime(List<AllocatableAction> predecessors) {
         long dataTime = 0;
         for (AllocatableAction pred : predecessors) {
             dataTime = Math.max(dataTime, ((MOSchedulingInformation) pred.getSchedulingInfo()).getExpectedEnd());

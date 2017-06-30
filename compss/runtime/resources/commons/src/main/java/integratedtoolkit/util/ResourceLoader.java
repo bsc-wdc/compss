@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
@@ -166,7 +167,7 @@ public class ResourceLoader {
     }
 
     private static void loadMaster(MasterNodeType master) {
-        HashMap<String, String> sharedDisks = new HashMap<>();
+        Map<String, String> sharedDisks = new HashMap<>();
         List<Object> masterInformation = master.getSharedDisksOrPrice();
         if (masterInformation != null) {
             for (Object obj : masterInformation) {
@@ -244,7 +245,7 @@ public class ResourceLoader {
         }
 
         // Add Shared Disks (Name, mountpoint)
-        HashMap<String, String> sharedDisks = resources.getSharedDisks(cn_resources);
+        Map<String, String> sharedDisks = resources.getSharedDisks(cn_resources);
         if (sharedDisks != null) {
             List<String> declaredSharedDisks = resources.getSharedDisks_names();
             for (String diskName : sharedDisks.keySet()) {
@@ -362,8 +363,9 @@ public class ResourceLoader {
         return true;
     }
 
-    private static MethodWorker createMethodWorker(String name, MethodResourceDescription rd, HashMap<String, String> sharedDisks,
+    private static MethodWorker createMethodWorker(String name, MethodResourceDescription rd, Map<String, String> sharedDisks,
             MethodConfiguration mc) {
+        
         // Compute task count
         int taskCount;
         int limitOfTasks = mc.getLimitOfTasks();
@@ -442,7 +444,7 @@ public class ResourceLoader {
         String runtimeConnector = System.getProperty(ITConstants.IT_CONN);
         String connectorJarPath = "";
         String connectorMainClass = "";
-        HashMap<String, String> properties = new HashMap<>();
+        Map<String, String> properties = new HashMap<>();
 
         /* Add Endpoint information from resources.xml */
         EndpointType endpoint = cp_resources.getEndpoint();
@@ -547,7 +549,7 @@ public class ResourceLoader {
     }
 
     private static CloudImageDescription createImage(ImageType im_project, integratedtoolkit.types.resources.jaxb.ImageType im_resources,
-            HashMap<String, String> properties) {
+            Map<String, String> properties) {
 
         String imageName = im_project.getName();
         LOGGER.debug("Loading Image" + imageName);
@@ -574,7 +576,7 @@ public class ResourceLoader {
         cid.setCreationTime(resources.getCreationTime(im_resources));
 
         // Add Shared Disks (Name, mountpoint)
-        HashMap<String, String> sharedDisks = resources.getSharedDisks(im_resources);
+        Map<String, String> sharedDisks = resources.getSharedDisks(im_resources);
         if (sharedDisks != null) {
             List<String> declaredSharedDisks = resources.getSharedDisks_names();
             for (String diskName : sharedDisks.keySet()) {

@@ -32,16 +32,18 @@ import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.SharedDiskManager;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
 
 import integratedtoolkit.util.Tracer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 
 public abstract class Resource implements Comparable<Resource> {
 
@@ -51,21 +53,23 @@ public abstract class Resource implements Comparable<Resource> {
         SERVICE // For services
     }
 
+
     // Log and debug
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
     public static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     // List of all created resources
-    private static final LinkedList<Resource> AVAILABLE_RESOURCES = new LinkedList<>();
+    private static final List<Resource> AVAILABLE_RESOURCES = new LinkedList<>();
 
     protected final String name;
     private final COMPSsNode node;
-    protected HashMap<String, String> sharedDisks;
+    protected Map<String, String> sharedDisks;
 
-    private final LinkedList<LogicalData> obsoletes = new LinkedList<>();
-    private final HashSet<LogicalData> privateFiles = new HashSet<>();
+    private final List<LogicalData> obsoletes = new LinkedList<>();
+    private final Set<LogicalData> privateFiles = new HashSet<>();
 
-    public Resource(String name, Configuration conf, HashMap<String, String> sharedDisks) {
+
+    public Resource(String name, Configuration conf, Map<String, String> sharedDisks) {
         this.name = name;
         this.node = Comm.initWorker(name, conf);
         this.sharedDisks = sharedDisks;
@@ -73,7 +77,7 @@ public abstract class Resource implements Comparable<Resource> {
         AVAILABLE_RESOURCES.add(this);
     }
 
-    public Resource(COMPSsNode node, HashMap<String, String> sharedDisks) {
+    public Resource(COMPSsNode node, Map<String, String> sharedDisks) {
         this.name = node.getName();
         this.node = node;
         this.sharedDisks = sharedDisks;
@@ -102,8 +106,8 @@ public abstract class Resource implements Comparable<Resource> {
     }
 
     /**
-     * Returns the Resource associated to the given name @name Null if any
-     * resource has been registered with the name @name
+     * Returns the Resource associated to the given name @name Null if any resource has been registered with the
+     * name @name
      *
      * @param name
      * @return
@@ -124,12 +128,12 @@ public abstract class Resource implements Comparable<Resource> {
      * @param
      * @return
      */
-    public HashSet<LogicalData> getAllDataFromHost() {
-        HashSet<LogicalData> data = new HashSet<>();
+    public Set<LogicalData> getAllDataFromHost() {
+        Set<LogicalData> data = new HashSet<>();
 
-        LinkedList<String> sharedDisks = SharedDiskManager.getAllSharedNames(this);
+        List<String> sharedDisks = SharedDiskManager.getAllSharedNames(this);
         for (String diskName : sharedDisks) {
-            HashSet<LogicalData> sharedData = SharedDiskManager.getAllSharedFiles(diskName);
+            Set<LogicalData> sharedData = SharedDiskManager.getAllSharedFiles(diskName);
             if (sharedData != null) {
                 data.addAll(sharedData);
             }
@@ -169,7 +173,7 @@ public abstract class Resource implements Comparable<Resource> {
         }
 
         // Remove from shared disk files
-        LinkedList<String> sharedDisks = SharedDiskManager.getAllSharedNames(this);
+        List<String> sharedDisks = SharedDiskManager.getAllSharedNames(this);
         for (String diskName : sharedDisks) {
             SharedDiskManager.removeLogicalData(diskName, obsolete);
         }
@@ -180,9 +184,9 @@ public abstract class Resource implements Comparable<Resource> {
      *
      * @return
      */
-    public final LinkedList<LogicalData> clearObsoletes() {
+    public final List<LogicalData> clearObsoletes() {
         synchronized (obsoletes) {
-            LinkedList<LogicalData> obs = obsoletes;
+            List<LogicalData> obs = obsoletes;
             obsoletes.clear();
             return obs;
         }
@@ -233,7 +237,7 @@ public abstract class Resource implements Comparable<Resource> {
     }
 
     /**
-     * Retrives a given data
+     * Retrieves a given data
      *
      * @param dataId
      * @param tgtDataId
@@ -379,8 +383,8 @@ public abstract class Resource implements Comparable<Resource> {
         }
         Semaphore sem = new Semaphore(0);
         SafeCopyListener listener = new SafeCopyListener(sem);
-        HashSet<LogicalData> lds = getAllDataFromHost();
-        HashMap<String, String> disks = SharedDiskManager.terminate(this);
+        Set<LogicalData> lds = getAllDataFromHost();
+        Map<String, String> disks = SharedDiskManager.terminate(this);
         COMPSsNode masterNode = Comm.getAppHost().getNode();
         for (LogicalData ld : lds) {
             ld.notifyToInProgressCopiesEnd(listener);

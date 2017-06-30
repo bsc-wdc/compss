@@ -8,7 +8,7 @@ import integratedtoolkit.types.uri.MultiURI;
 import integratedtoolkit.util.ErrorManager;
 
 import java.io.File;
-import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
@@ -194,7 +194,7 @@ public class MasterResource extends Resource {
         if (!directory.exists()) {
             return false;
         }
-        
+
         File[] files = directory.listFiles();
         if (files != null) {
             for (File f : files) {
@@ -207,7 +207,7 @@ public class MasterResource extends Resource {
                 }
             }
         }
-        
+
         return directory.delete();
     }
 
@@ -260,9 +260,8 @@ public class MasterResource extends Resource {
         }
     }
 
-    public void updateSharedDisk(HashMap<String, String> sharedDisks) {
+    public void updateSharedDisk(Map<String, String> sharedDisks) {
         super.sharedDisks = sharedDisks;
-
     }
 
 }

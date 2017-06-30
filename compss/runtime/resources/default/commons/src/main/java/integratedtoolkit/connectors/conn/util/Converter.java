@@ -9,10 +9,11 @@ import integratedtoolkit.types.resources.configuration.MethodConfiguration;
 import integratedtoolkit.types.resources.description.CloudImageDescription;
 import integratedtoolkit.types.resources.description.CloudInstanceTypeDescription;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+
 
 public class Converter {
 
@@ -20,13 +21,13 @@ public class Converter {
     private static final String CPU_TYPE = "CPU";
     private static final float UNASSIGNED_FLOAT = -1.0f;
 
+
     private Converter() {
     }
 
     /**
      *********************************************************************
-     ************************ COMPSs TO CONN *****************************
-     * ********************************************************************
+     ************************ COMPSs TO CONN ***************************** ********************************************************************
      */
     /**
      *
@@ -43,17 +44,17 @@ public class Converter {
         int timeUnit = cmrd.getPriceTimeUnit();
         float priceUnit = cmrd.getPricePerUnit();
         String imageName = cmrd.getImage().getImageName();
-        HashMap<CloudInstanceTypeDescription, int[]> composition = cmrd.getTypeComposition();
+        Map<CloudInstanceTypeDescription, int[]> composition = cmrd.getTypeComposition();
         String instanceType = null;
         for (CloudInstanceTypeDescription type : composition.keySet()) {
             instanceType = type.getName();
             break;
         }
-        HashMap<String, String> imageProp = cmrd.getImage().getProperties();
+
+        Map<String, String> imageProp = cmrd.getImage().getProperties();
         // FIXME Using CPU Computing units, should check all units
-        return new HardwareDescription(processors, cpuCores, memSize,
-                memType, storageSize, storageType, timeUnit, priceUnit,
-                imageName, instanceType, imageProp);
+        return new HardwareDescription(processors, cpuCores, memSize, memType, storageSize, storageType, timeUnit, priceUnit, imageName,
+                instanceType, imageProp);
     }
 
     public static SoftwareDescription getSoftwareDescription(CloudMethodResourceDescription cmrd) {
@@ -100,7 +101,8 @@ public class Converter {
      * @param requested
      * @return
      */
-    public static CloudMethodResourceDescription toCloudMethodResourceDescription(VirtualResource vr, CloudMethodResourceDescription requested) {
+    public static CloudMethodResourceDescription toCloudMethodResourceDescription(VirtualResource vr,
+            CloudMethodResourceDescription requested) {
         CloudMethodResourceDescription cmrd = new CloudMethodResourceDescription();
         setHardwareInResourceDescription(cmrd, vr.getHd(), requested);
         setSoftwareInResourceDescription(cmrd, vr.getSd(), requested);
@@ -124,7 +126,9 @@ public class Converter {
         return processors;
     }
 
-    private static CloudImageDescription getCloudImageDescription(HardwareDescription hd, SoftwareDescription sd, CloudMethodResourceDescription requested) {
+    private static CloudImageDescription getCloudImageDescription(HardwareDescription hd, SoftwareDescription sd,
+            CloudMethodResourceDescription requested) {
+
         CloudImageDescription from = requested.getImage();
         CloudImageDescription cid = new CloudImageDescription(hd.getImageName(), hd.getImageProperties());
         cid.setOperatingSystemType(sd.getOperatingSystemType());
@@ -140,7 +144,9 @@ public class Converter {
         return cid;
     }
 
-    private static void setHardwareInResourceDescription(CloudMethodResourceDescription cmrd, HardwareDescription hd, CloudMethodResourceDescription requested) {
+    private static void setHardwareInResourceDescription(CloudMethodResourceDescription cmrd, HardwareDescription hd,
+            CloudMethodResourceDescription requested) {
+
         cmrd.setProcessors(getCOMPSsProcessors(hd.getProcessors()));
         cmrd.setMemorySize(hd.getMemorySize());
         cmrd.setMemoryType(hd.getMemoryType());
@@ -148,12 +154,14 @@ public class Converter {
         cmrd.setStorageType(hd.getStorageType());
         cmrd.setPricePerUnit(hd.getPricePerUnit());
         cmrd.setPriceTimeUnit(hd.getPriceTimeUnit());
-        for (Map.Entry<CloudInstanceTypeDescription, int[]> type : requested.getTypeComposition().entrySet()) {
+        for (Entry<CloudInstanceTypeDescription, int[]> type : requested.getTypeComposition().entrySet()) {
             cmrd.addInstances(type.getKey(), type.getValue()[0]);
         }
     }
 
-    private static void setSoftwareInResourceDescription(CloudMethodResourceDescription cmrd, SoftwareDescription sd, CloudMethodResourceDescription requested) {
+    private static void setSoftwareInResourceDescription(CloudMethodResourceDescription cmrd, SoftwareDescription sd,
+            CloudMethodResourceDescription requested) {
+
         cmrd.setOperatingSystemType(sd.getOperatingSystemType());
         cmrd.setOperatingSystemDistribution(sd.getOperatingSystemDistribution());
         cmrd.setOperatingSystemVersion(sd.getOperatingSystemVersion());

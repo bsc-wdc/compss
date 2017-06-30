@@ -6,7 +6,8 @@ import es.bsc.conn.types.HardwareDescription;
 import es.bsc.conn.types.SoftwareDescription;
 import es.bsc.conn.types.VirtualResource;
 import integratedtoolkit.connectors.ConnectorException;
-import java.util.HashMap;
+import java.util.Map;
+
 
 public class ConnectorProxy {
 
@@ -15,6 +16,7 @@ public class ConnectorProxy {
 
     private final Connector connector;
 
+
     public ConnectorProxy(Connector conn) throws ConnectorException {
         if (conn == null) {
             throw new ConnectorException(ERROR_NO_CONN);
@@ -22,7 +24,9 @@ public class ConnectorProxy {
         this.connector = conn;
     }
 
-    public Object create(HardwareDescription hardwareDescription, SoftwareDescription softwareDescription, HashMap<String, String> properties) throws ConnectorException {
+    public Object create(HardwareDescription hardwareDescription, SoftwareDescription softwareDescription, Map<String, String> properties)
+            throws ConnectorException {
+
         if (connector == null) {
             throw new ConnectorException(ERROR_NO_CONN);
         }

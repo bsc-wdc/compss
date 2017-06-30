@@ -6,6 +6,8 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.TreeSet;
@@ -15,14 +17,14 @@ public class WorkerPool {
 
     // Resource Sets:
     // Static Resources (read from xml)
-    private final HashMap<String, Worker<? extends WorkerResourceDescription>> staticSet;
+    private final Map<String, Worker<? extends WorkerResourceDescription>> staticSet;
     // Critical Resources (can't be destroyed by periodical resource policy)
-    private final HashMap<String, CloudMethodWorker> criticalSet;
+    private final Map<String, CloudMethodWorker> criticalSet;
     // Non Critical Resources (can be destroyed by periodical resource policy)
-    private final HashMap<String, CloudMethodWorker> nonCriticalSet;
+    private final Map<String, CloudMethodWorker> nonCriticalSet;
 
     // TreeSet : Priority on criticalSet based on cost
-    private final TreeSet<CloudMethodWorker> criticalOrder;
+    private final Set<CloudMethodWorker> criticalOrder;
 
 
     public WorkerPool() {
@@ -72,8 +74,8 @@ public class WorkerPool {
         return resource;
     }
 
-    public LinkedList<CloudMethodWorker> getDynamicResources() {
-        LinkedList<CloudMethodWorker> resources = new LinkedList<>();
+    public List<CloudMethodWorker> getDynamicResources() {
+        List<CloudMethodWorker> resources = new LinkedList<>();
         resources.addAll(criticalSet.values());
         resources.addAll(nonCriticalSet.values());
 
@@ -140,14 +142,14 @@ public class WorkerPool {
 
             String resourceName;
             for (Worker<? extends WorkerResourceDescription> res : staticSet.values()) {
-                LinkedList<Integer> cores = res.getExecutableCores();
+                List<Integer> cores = res.getExecutableCores();
                 for (int i = 0; i < cores.size(); i++) {
                     runnable[cores.get(i)] = true;
                 }
             }
             for (CloudMethodWorker resource : criticalOrder) {
                 resourceName = resource.getName();
-                LinkedList<Integer> executableCores = resource.getExecutableCores();
+                List<Integer> executableCores = resource.getExecutableCores();
                 boolean needed = false;
                 for (int i = 0; i < executableCores.size() && !needed; i++) {
                     needed = needed || !runnable[executableCores.get(i)];
@@ -178,8 +180,8 @@ public class WorkerPool {
      * @return a list with all the resources available
      */
     @SuppressWarnings("unchecked")
-    public LinkedList<Worker<? extends WorkerResourceDescription>> findAllResources() {
-        LinkedList<Worker<? extends WorkerResourceDescription>> workers = new LinkedList<>();
+    public List<Worker<? extends WorkerResourceDescription>> findAllResources() {
+        List<Worker<? extends WorkerResourceDescription>> workers = new LinkedList<>();
 
         if (staticSet != null && !staticSet.isEmpty()) {
             Object[] arrayStaticSet = staticSet.values().toArray();

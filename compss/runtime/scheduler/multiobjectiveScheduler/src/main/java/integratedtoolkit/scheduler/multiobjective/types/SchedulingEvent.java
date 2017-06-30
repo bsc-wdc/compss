@@ -8,8 +8,8 @@ import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.ResourceDescription;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import java.util.Comparator;
-
 import java.util.LinkedList;
+import java.util.List;
 import java.util.PriorityQueue;
 
 
@@ -39,7 +39,7 @@ public abstract class SchedulingEvent implements Comparable<SchedulingEvent> {
 
     protected abstract int getPriority();
 
-    public abstract LinkedList<SchedulingEvent> process(LocalOptimizationState state, MOResourceScheduler<WorkerResourceDescription> worker,
+    public abstract List<SchedulingEvent> process(LocalOptimizationState state, MOResourceScheduler<WorkerResourceDescription> worker,
             PriorityQueue<AllocatableAction> rescheduledActions);
 
 
@@ -60,9 +60,10 @@ public abstract class SchedulingEvent implements Comparable<SchedulingEvent> {
         }
 
         @Override
-        public LinkedList<SchedulingEvent> process(LocalOptimizationState state, MOResourceScheduler<WorkerResourceDescription> worker,
+        public List<SchedulingEvent> process(LocalOptimizationState state, MOResourceScheduler<WorkerResourceDescription> worker,
                 PriorityQueue<AllocatableAction> rescheduledActions) {
-            LinkedList<SchedulingEvent> enabledEvents = new LinkedList<>();
+
+            List<SchedulingEvent> enabledEvents = new LinkedList<>();
             MOSchedulingInformation dsi = (MOSchedulingInformation) action.getSchedulingInfo();
 
             // Set the expected Start time and endTime of the action
@@ -76,7 +77,7 @@ public abstract class SchedulingEvent implements Comparable<SchedulingEvent> {
             // Remove resources from the state and fill the gaps before its execution
             dsi.clearPredecessors();
             dsi.clearSuccessors();
-            LinkedList<Gap> tmpGaps = state.reserveResources(action.getAssignedImplementation().getRequirements(), expectedTimeStamp);
+            List<Gap> tmpGaps = state.reserveResources(action.getAssignedImplementation().getRequirements(), expectedTimeStamp);
 
             for (Gap tmpGap : tmpGaps) {
                 AllocatableAction gapAction = tmpGap.getOrigin();
@@ -161,7 +162,7 @@ public abstract class SchedulingEvent implements Comparable<SchedulingEvent> {
                     }
                 }
 
-                LinkedList<Gap> extendedGaps = new LinkedList<>();
+                List<Gap> extendedGaps = new LinkedList<>();
                 // Fill Concurrent
                 for (Gap g : availableGaps) {
                     Gap extendedGap = new Gap(g.getInitialTime(), gap.getEndTime(), g.getOrigin(), g.getResources(), g.getCapacity());
@@ -229,9 +230,10 @@ public abstract class SchedulingEvent implements Comparable<SchedulingEvent> {
         }
 
         @Override
-        public LinkedList<SchedulingEvent> process(LocalOptimizationState state, MOResourceScheduler<WorkerResourceDescription> worker,
+        public List<SchedulingEvent> process(LocalOptimizationState state, MOResourceScheduler<WorkerResourceDescription> worker,
                 PriorityQueue<AllocatableAction> rescheduledActions) {
-            LinkedList<SchedulingEvent> enabledEvents = new LinkedList<>();
+
+            List<SchedulingEvent> enabledEvents = new LinkedList<>();
             MOSchedulingInformation dsi = (MOSchedulingInformation) action.getSchedulingInfo();
             dsi.setOnOptimization(false);
 
@@ -286,7 +288,7 @@ public abstract class SchedulingEvent implements Comparable<SchedulingEvent> {
         }
 
         @Override
-        public LinkedList<SchedulingEvent> process(LocalOptimizationState state, MOResourceScheduler<WorkerResourceDescription> worker,
+        public List<SchedulingEvent> process(LocalOptimizationState state, MOResourceScheduler<WorkerResourceDescription> worker,
                 PriorityQueue<AllocatableAction> rescheduledActions) {
             MOSchedulingInformation dsi = (MOSchedulingInformation) action.getSchedulingInfo();
             dsi.setOnOptimization(false);

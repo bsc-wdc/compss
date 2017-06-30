@@ -1,11 +1,12 @@
 package integratedtoolkit.types.resources;
 
-import java.util.HashMap;
+import java.util.Map;
 
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.resources.configuration.MethodConfiguration;
+
 
 public class MethodWorker extends Worker<MethodResourceDescription> {
 
@@ -14,16 +15,17 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     // Available resource capabilities
     protected final MethodResourceDescription available;
 
-    public MethodWorker(String name, MethodResourceDescription description,
-            COMPSsWorker worker, int limitOfTasks, HashMap<String, String> sharedDisks) {
+
+    public MethodWorker(String name, MethodResourceDescription description, COMPSsWorker worker, int limitOfTasks,
+            Map<String, String> sharedDisks) {
 
         super(name, description, worker, limitOfTasks, sharedDisks);
         this.name = name;
         available = new MethodResourceDescription(description);
     }
 
-    public MethodWorker(String name, MethodResourceDescription description,
-            MethodConfiguration conf, HashMap<String, String> sharedDisks) {
+    public MethodWorker(String name, MethodResourceDescription description, MethodConfiguration conf, Map<String, String> sharedDisks) {
+
         super(name, description, conf, sharedDisks);
         this.name = name;
         this.available = new MethodResourceDescription(description); // clone
@@ -110,14 +112,14 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     public String getMonitoringData(String prefix) {
         // TODO: Add full information about description (mem type, each processor information, etc)
         StringBuilder sb = new StringBuilder();
-        sb.append(prefix).append("<TotalCPUComputingUnits>").append(description.getTotalCPUComputingUnits()).append("</TotalCPUComputingUnits>")
-                .append("\n");
-        sb.append(prefix).append("<TotalGPUComputingUnits>").append(description.getTotalGPUComputingUnits()).append("</TotalGPUComputingUnits>")
-                .append("\n");
-        sb.append(prefix).append("<TotalFPGAComputingUnits>").append(description.getTotalFPGAComputingUnits()).append("</TotalFPGAComputingUnits>")
-                .append("\n");
-        sb.append(prefix).append("<TotalOTHERComputingUnits>").append(description.getTotalOTHERComputingUnits()).append("</TotalOTHERComputingUnits>")
-                .append("\n");
+        sb.append(prefix).append("<TotalCPUComputingUnits>").append(description.getTotalCPUComputingUnits())
+                .append("</TotalCPUComputingUnits>").append("\n");
+        sb.append(prefix).append("<TotalGPUComputingUnits>").append(description.getTotalGPUComputingUnits())
+                .append("</TotalGPUComputingUnits>").append("\n");
+        sb.append(prefix).append("<TotalFPGAComputingUnits>").append(description.getTotalFPGAComputingUnits())
+                .append("</TotalFPGAComputingUnits>").append("\n");
+        sb.append(prefix).append("<TotalOTHERComputingUnits>").append(description.getTotalOTHERComputingUnits())
+                .append("</TotalOTHERComputingUnits>").append("\n");
         sb.append(prefix).append("<Memory>").append(description.getMemorySize()).append("</Memory>").append("\n");
         sb.append(prefix).append("<Disk>").append(description.getStorageSize()).append("</Disk>").append("\n");
         return sb.toString();

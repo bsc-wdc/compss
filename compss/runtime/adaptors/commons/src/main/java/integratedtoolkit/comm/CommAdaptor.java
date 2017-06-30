@@ -1,6 +1,6 @@
 package integratedtoolkit.comm;
 
-import java.util.LinkedList;
+import java.util.List;
 
 import integratedtoolkit.exceptions.ConstructConfigurationException;
 import integratedtoolkit.types.COMPSsWorker;
@@ -41,7 +41,7 @@ public interface CommAdaptor {
     public COMPSsWorker initWorker(String workerName, Configuration config);
 
     /**
-     * Stops the Communicatio Adaptor
+     * Stops the Communication Adaptor
      */
     public void stop();
 
@@ -50,7 +50,7 @@ public interface CommAdaptor {
      * 
      * @return
      */
-    public LinkedList<DataOperation> getPending();
+    public List<DataOperation> getPending();
 
     /**
      * Returns the complete Master URI

@@ -6,12 +6,15 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
+
 
 public class ActionSet {
 
-    private final LinkedList<AllocatableAction> noCore;
-    private LinkedList<AllocatableAction>[] coreIndexed;
+    private final List<AllocatableAction> noCore;
+    private List<AllocatableAction>[] coreIndexed;
     private int[] counts;
+
 
     @SuppressWarnings("unchecked")
     public ActionSet() {
@@ -31,7 +34,7 @@ public class ActionSet {
         int oldCoreCount = coreIndexed.length;
         if (oldCoreCount < newCoreCount) {
             // Increase the coreIndexed and the counts arrays
-            LinkedList<AllocatableAction>[] coreIndexed = new LinkedList[newCoreCount];
+            List<AllocatableAction>[] coreIndexed = new LinkedList[newCoreCount];
             int[] counts = new int[newCoreCount];
             int coreId = 0;
             for (; coreId < oldCoreCount; coreId++) {
@@ -65,7 +68,7 @@ public class ActionSet {
         return this.counts;
     }
 
-    public LinkedList<AllocatableAction> getActions(Integer coreId) {
+    public List<AllocatableAction> getActions(Integer coreId) {
         if (coreId == null) {
             return this.noCore;
         } else {
@@ -73,8 +76,8 @@ public class ActionSet {
         }
     }
 
-    public LinkedList<AllocatableAction> getAllActions() {
-        LinkedList<AllocatableAction> runnable = new LinkedList<>();
+    public List<AllocatableAction> getAllActions() {
+        List<AllocatableAction> runnable = new LinkedList<>();
         runnable.addAll(this.noCore);
 
         for (int core = 0; core < this.coreIndexed.length; ++core) {
@@ -93,8 +96,8 @@ public class ActionSet {
         }
     }
 
-    public <T extends WorkerResourceDescription> LinkedList<AllocatableAction> removeAllCompatibleActions(Worker<T> r) {
-        LinkedList<AllocatableAction> runnable = new LinkedList<>();
+    public <T extends WorkerResourceDescription> List<AllocatableAction> removeAllCompatibleActions(Worker<T> r) {
+        List<AllocatableAction> runnable = new LinkedList<>();
         Iterator<AllocatableAction> actions = this.noCore.iterator();
         while (actions.hasNext()) {
             AllocatableAction action = actions.next();
@@ -104,7 +107,7 @@ public class ActionSet {
             }
         }
 
-        LinkedList<Integer> executableCores = r.getExecutableCores();
+        List<Integer> executableCores = r.getExecutableCores();
         for (int core : executableCores) {
             runnable.addAll(coreIndexed[core]);
             this.coreIndexed[core] = new LinkedList<>();
@@ -113,8 +116,8 @@ public class ActionSet {
         return runnable;
     }
 
-    public LinkedList<AllocatableAction> removeAllActions() {
-        LinkedList<AllocatableAction> runnable = new LinkedList<>();
+    public List<AllocatableAction> removeAllActions() {
+        List<AllocatableAction> runnable = new LinkedList<>();
         Iterator<AllocatableAction> actions = this.noCore.iterator();
         while (actions.hasNext()) {
             AllocatableAction action = actions.next();

@@ -13,11 +13,13 @@ import integratedtoolkit.scheduler.types.Score;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.SchedulingOptimizer;
+
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.PriorityQueue;
 import java.util.concurrent.Semaphore;
 
@@ -201,7 +203,7 @@ public class MOScheduleOptimizer extends SchedulingOptimizer<MOScheduler> {
 
     private boolean move(AllocatableAction action, OptimizationWorker donor, OptimizationWorker receiver) {
         System.out.println("Trying to move " + action + " from " + donor + " to " + "receiver");
-        LinkedList<AllocatableAction> dataPreds = action.getDataPredecessors();
+        List<AllocatableAction> dataPreds = action.getDataPredecessors();
         long dataAvailable = 0;
         try {
             for (AllocatableAction dataPred : dataPreds) {
@@ -216,7 +218,7 @@ public class MOScheduleOptimizer extends SchedulingOptimizer<MOScheduler> {
         Implementation bestImpl = null;
         long bestTime = Long.MAX_VALUE;
 
-        LinkedList<Implementation> impls = action.getCompatibleImplementations(receiver.getResource());
+        List<Implementation> impls = action.getCompatibleImplementations(receiver.getResource());
 
         MOScore bestScore = null;
         for (Implementation impl : impls) {

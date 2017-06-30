@@ -1,9 +1,5 @@
 package commons;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-
 import integratedtoolkit.components.impl.ResourceScheduler;
 import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.FailedActionException;
@@ -16,6 +12,11 @@ import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CoreManager;
+
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 
 public class Action extends AllocatableAction {
@@ -40,12 +41,12 @@ public class Action extends AllocatableAction {
     }
 
     @Override
-    public LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> getCompatibleWorkers() {
+    public List<ResourceScheduler<? extends WorkerResourceDescription>> getCompatibleWorkers() {
         return getCoreElementExecutors(coreId);
     }
 
     @Override
-    public <T extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(ResourceScheduler<T> r) {
+    public <T extends WorkerResourceDescription> List<Implementation> getCompatibleImplementations(ResourceScheduler<T> r) {
         return r.getExecutableImpls(coreId);
     }
 
@@ -109,14 +110,14 @@ public class Action extends AllocatableAction {
     }
 
     @SuppressWarnings("unchecked")
-    public HashMap<Worker<?>, LinkedList<Implementation>> findAvailableWorkers() {
-        HashMap<Worker<?>, LinkedList<Implementation>> m = new HashMap<>();
+    public Map<Worker<?>, List<Implementation>> findAvailableWorkers() {
+        Map<Worker<?>, List<Implementation>> m = new HashMap<>();
 
-        LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> compatibleWorkers = getCoreElementExecutors(coreId);
+        List<ResourceScheduler<? extends WorkerResourceDescription>> compatibleWorkers = getCoreElementExecutors(coreId);
         for (ResourceScheduler<? extends WorkerResourceDescription> ui : compatibleWorkers) {
             Worker<WorkerResourceDescription> r = (Worker<WorkerResourceDescription>) ui.getResource();
-            LinkedList<Implementation> compatibleImpls = r.getExecutableImpls(coreId);
-            LinkedList<Implementation> runnableImpls = new LinkedList<>();
+            List<Implementation> compatibleImpls = r.getExecutableImpls(coreId);
+            List<Implementation> runnableImpls = new LinkedList<>();
             for (Implementation impl : compatibleImpls) {
                 if (r.canRunNow(impl.getRequirements())) {
                     runnableImpls.add(impl);

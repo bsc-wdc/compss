@@ -501,7 +501,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         }
     }
 
-    public void submitTask(NIOJob job, LinkedList<String> obsolete) throws UnstartedNodeException {
+    public void submitTask(NIOJob job, List<String> obsolete) throws UnstartedNodeException {
         if (node == null) {
             throw new UnstartedNodeException();
         }

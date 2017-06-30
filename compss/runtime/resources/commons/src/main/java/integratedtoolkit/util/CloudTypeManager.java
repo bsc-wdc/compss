@@ -11,12 +11,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+
 public class CloudTypeManager {
 
     /**
      * Relation between the name of an template and its features
      */
     private final HashMap<String, CloudInstanceTypeDescription> types;
+
 
     /**
      * Constructs a new CloudImageManager
@@ -28,24 +30,24 @@ public class CloudTypeManager {
     /**
      * Adds a new instance type which can be used by the Cloud Provider
      *
-     * @param type Description of the resource
+     * @param type
+     *            Description of the resource
      */
     public void addType(CloudInstanceTypeDescription type) {
         types.put(type.getName(), type);
     }
 
     /**
-     * Finds all the types provided by the Cloud Provider which fulfill the
-     * resource description.
+     * Finds all the types provided by the Cloud Provider which fulfill the resource description.
      *
-     * @param requested description of the features that the image must provide
-     * @return The best instance type provided by the Cloud Provider which
-     * fulfills the resource description
+     * @param requested
+     *            description of the features that the image must provide
+     * @return The best instance type provided by the Cloud Provider which fulfills the resource description
      */
-    public LinkedList<CloudInstanceTypeDescription> getCompatibleTypes(MethodResourceDescription requested) {
-        LinkedList<CloudInstanceTypeDescription> compatiblesList = new LinkedList<>();
-        if (types.isEmpty()) {
-            for (CloudInstanceTypeDescription type : types.values()) {
+    public List<CloudInstanceTypeDescription> getCompatibleTypes(MethodResourceDescription requested) {
+        List<CloudInstanceTypeDescription> compatiblesList = new LinkedList<>();
+        if (!this.types.isEmpty()) {
+            for (CloudInstanceTypeDescription type : this.types.values()) {
                 MethodResourceDescription resources = type.getResourceDescription();
                 if (resources.contains(requested)) {
                     // Satisfies the constraints, add compatible
@@ -54,6 +56,7 @@ public class CloudTypeManager {
             }
         } else {
             CloudInstanceTypeDescription citd = new CloudInstanceTypeDescription("NO TYPE", requested);
+            compatiblesList.add(citd);
         }
         return compatiblesList;
     }

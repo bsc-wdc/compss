@@ -25,6 +25,7 @@ import java.util.HashSet;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+
 public class CloudProvider {
 
     private static final String WARN_NO_VALID_INSTANCE = "WARN: Cannot find a containing/contained instanceType";
@@ -48,9 +49,9 @@ public class CloudProvider {
     // Loggers
     private static final Logger LOGGER = LogManager.getLogger(Loggers.CM_COMP);
 
-    public CloudProvider(String providerName, Integer limitOfVMs, String runtimeConnectorClass, String connectorJarPath, String connectorMainClass,
-            HashMap<String, String> connectorProperties)
-            throws ConnectorException {
+
+    public CloudProvider(String providerName, Integer limitOfVMs, String runtimeConnectorClass, String connectorJarPath,
+            String connectorMainClass, HashMap<String, String> connectorProperties) throws ConnectorException {
 
         this.name = providerName;
         this.limitOfVMs = limitOfVMs;
@@ -63,7 +64,7 @@ public class CloudProvider {
         // infrastructure dependent connector
         try {
             Class<?> conClass = Class.forName(runtimeConnectorClass);
-            Class<?>[] parameterTypes = new Class<?>[]{CloudProvider.class, String.class, String.class, HashMap.class};
+            Class<?>[] parameterTypes = new Class<?>[] { CloudProvider.class, String.class, String.class, HashMap.class };
             Constructor<?> ctor = conClass.getConstructor(parameterTypes);
             Object conector = ctor.newInstance(this, connectorJarPath, connectorMainClass, connectorProperties);
             connector = (Connector) conector;
@@ -76,14 +77,15 @@ public class CloudProvider {
     }
 
     /*
-     * ---------------------------------------- 
+     * ----------------------------------------
      * ------- Cloud Provider Builders --------
      * ----------------------------------------
      */
     /**
      * Adds an image description to the Cloud Provider
      *
-     * @param cid Description of the features offered by that image
+     * @param cid
+     *            Description of the features offered by that image
      */
     public void addCloudImage(CloudImageDescription cid) {
         imgManager.add(cid);
@@ -92,7 +94,8 @@ public class CloudProvider {
     /**
      * Adds an instance type description to a Cloud Provider
      *
-     * @param rd Description of the features offered by that instance type
+     * @param rd
+     *            Description of the features offered by that instance type
      *
      */
     public void addInstanceType(CloudInstanceTypeDescription rd) {
@@ -145,7 +148,7 @@ public class CloudProvider {
         return typeManager.getType(name);
     }
 
-    public LinkedList<CloudInstanceTypeDescription> getCompatibleTypes(MethodResourceDescription requirements) {
+    public List<CloudInstanceTypeDescription> getCompatibleTypes(MethodResourceDescription requirements) {
         return typeManager.getCompatibleTypes(requirements);
     }
 
@@ -161,7 +164,7 @@ public class CloudProvider {
         return imgManager.getImage(name);
     }
 
-    public LinkedList<CloudImageDescription> getCompatibleImages(MethodResourceDescription requirements) {
+    public List<CloudImageDescription> getCompatibleImages(MethodResourceDescription requirements) {
         return imgManager.getCompatibleImages(requirements);
     }
 
@@ -193,7 +196,8 @@ public class CloudProvider {
     public ResourceCreationRequest requestResourceCreation(CloudMethodResourceDescription instanceDescription) {
         int[][] simultaneousCounts = computeSimultaneousCounts(instanceDescription);
         ResourceCreationRequest rcr = new ResourceCreationRequest(instanceDescription, simultaneousCounts, this);
-        LOGGER.debug("[Cloud Manager] Asking for resource creation " + instanceDescription.getName() + " with image " + instanceDescription.getImage().getImageName());
+        LOGGER.debug("[Cloud Manager] Asking for resource creation " + instanceDescription.getName() + " with image "
+                + instanceDescription.getImage().getImageName());
         boolean isRequestAccepted = connector.turnON("compss" + UUID.randomUUID().toString(), rcr);
         if (isRequestAccepted) {
             CloudMethodResourceDescription cmrd = rcr.getRequested();
@@ -302,7 +306,7 @@ public class CloudProvider {
 
     /*
      * ------------------------------------------ 
-     * -------- Recommendation Queries ----------
+     * ------- Recommendation Queries ----------
      * ------------------------------------------
      */
     public boolean canHostMoreInstances() {

@@ -160,13 +160,14 @@ public class IDLParser {
     private static void parseCFunction(String line, MethodResourceDescription currConstraints, CImplementation implementation) {
         StringBuilder implementedTaskSignatureBuffer = new StringBuilder();
         StringBuilder implementationSignatureBuffer = new StringBuilder();
-        boolean isStatic = false, hasReturn = false;
-        if (line.startsWith("static ")){
-        	isStatic = true;
-        	line = line.replace("static ","");
+        // boolean isStatic = false;
+        boolean hasReturn = false;
+        if (line.startsWith("static ")) {
+            // isStatic = true;
+            line = line.replace("static ", "");
         }
-        if (!line.startsWith("void ")){
-        	hasReturn = true;
+        if (!line.startsWith("void ")) {
+            hasReturn = true;
         }
         line = line.replaceAll("[(|)|,|;|\n|\t]", " ");
         String[] splits = line.split("\\s+");
@@ -179,12 +180,12 @@ public class IDLParser {
             implementedTaskSignatureBuffer.append(methodName).append("(");
         }
         implementationSignatureBuffer.append(methodName).append("(");
-        /*if (declaringClass!="NULL" && !isStatic){
-        	implementedTaskSignatureBuffer.append("FILE_T").append(",");
-            implementationSignatureBuffer.append("FILE_T").append(",");
-        }*/
-        if (hasReturn){
-        	implementedTaskSignatureBuffer.append("FILE_T").append(",");
+        /*
+         * if (declaringClass!="NULL" && !isStatic){ implementedTaskSignatureBuffer.append("FILE_T").append(",");
+         * implementationSignatureBuffer.append("FILE_T").append(","); }
+         */
+        if (hasReturn) {
+            implementedTaskSignatureBuffer.append("FILE_T").append(",");
             implementationSignatureBuffer.append("FILE_T").append(",");
         }
         // Computes the method's signature

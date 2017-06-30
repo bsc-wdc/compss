@@ -29,19 +29,19 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-/**
- *
- * @author flordan
- */
+
 public class ResourceManagerTest {
 
+    public static final String RUNTIME_CONNECTOR = "integratedtoolkit.connectors.fake.FakeConnector";
+
     private ResourceUser rus = new ResourceUser() {
+
         @Override
         public <T extends WorkerResourceDescription> void updatedResource(Worker<T> r, ResourceUpdate<T> modification) {
 
         }
     };
-    public static final String RUNTIME_CONNECTOR = "integratedtoolkit.connectors.fake.FakeConnector";
+
 
     @BeforeClass
     public static void setUpClass() {
@@ -63,7 +63,7 @@ public class ResourceManagerTest {
 
     @Test
     public void testStaticWorkersOperations() {
-        //Add Method Resource 1
+        // Add Method Resource 1
         MethodResourceDescription mrd1 = new MethodResourceDescription();
         Float memory1 = 10f + (float) Math.random();
         mrd1.setMemorySize(memory1);
@@ -92,7 +92,7 @@ public class ResourceManagerTest {
             fail("ResourceManager is not properly adding Method Workers");
         }
 
-        //Add Method Resource 2
+        // Add Method Resource 2
         MethodResourceDescription mrd2 = new MethodResourceDescription();
         Float memory2 = 10f + (float) Math.random();
         mrd2.setMemorySize(memory2);
@@ -119,7 +119,7 @@ public class ResourceManagerTest {
         if (((MethodResourceDescription) ResourceManager.getWorker(worker2Name).getDescription()).getMemorySize() != mrd2.getMemorySize()) {
             fail("ResourceManager is not properly adding Method Workers");
         }
-        //Add Service Resource 1
+        // Add Service Resource 1
         ServiceResourceDescription srd1 = new ServiceResourceDescription("service1", "namespace1", "port1", 2);
         ServiceConfiguration sc1 = null;
         try {
@@ -215,16 +215,14 @@ public class ResourceManagerTest {
         }
 
         CloudProvider cp1 = addProvider();
-        if (ResourceManager.getAvailableCloudProviders().size() != 1
-                || !ResourceManager.getAvailableCloudProviders().contains(cp1)) {
+        if (ResourceManager.getAvailableCloudProviders().size() != 1 || !ResourceManager.getAvailableCloudProviders().contains(cp1)) {
             fail("ResourceManager does not properly register cloud providers");
         }
         if (!ResourceManager.useCloud()) {
             fail("ResourceManager does not detect that the cloud has been enabled");
         }
         CloudProvider cp2 = addProvider();
-        if (ResourceManager.getAvailableCloudProviders().size() != 2
-                || !ResourceManager.getAvailableCloudProviders().contains(cp1)
+        if (ResourceManager.getAvailableCloudProviders().size() != 2 || !ResourceManager.getAvailableCloudProviders().contains(cp1)
                 || !ResourceManager.getAvailableCloudProviders().contains(cp2)) {
             fail("ResourceManager does not properly register cloud providers");
         }
@@ -239,30 +237,24 @@ public class ResourceManagerTest {
         CloudMethodResourceDescription cmrd1 = createResourceDescriptionFromProvider(cp1);
         ResourceCreationRequest rcr1 = cp1.requestResourceCreation(cmrd1);
 
-        if (ResourceManager.getPendingCreationRequests().size() != 1
-                || !ResourceManager.getPendingCreationRequests().contains(rcr1)) {
+        if (ResourceManager.getPendingCreationRequests().size() != 1 || !ResourceManager.getPendingCreationRequests().contains(rcr1)) {
             fail("ResourceManager is not properly registering the pending resouce creations");
         }
         String vmName1 = "VM" + (int) (Math.random() * 1000);
         ExtendedCloudMethodWorker cmw1 = new ExtendedCloudMethodWorker(vmName1, cp1, cmrd1, new FakeNode(vmName1), 0, new HashMap<>());
         ResourceManager.addCloudWorker(rcr1, cmw1, cmrd1);
-        if (!ResourceManager.getPendingCreationRequests().isEmpty()
-                || ResourceManager.getPendingCreationRequests().contains(rcr1)) {
+        if (!ResourceManager.getPendingCreationRequests().isEmpty() || ResourceManager.getPendingCreationRequests().contains(rcr1)) {
             fail("ResourceManager is not properly registering the pending resouce creations");
         }
-        if (ResourceManager.getDynamicResources().size() != 1
-                || ResourceManager.getAllWorkers().size() != 1
-                || ResourceManager.getDynamicResource(vmName1) != cmw1
-                || ResourceManager.getWorker(vmName1) != cmw1) {
+        if (ResourceManager.getDynamicResources().size() != 1 || ResourceManager.getAllWorkers().size() != 1
+                || ResourceManager.getDynamicResource(vmName1) != cmw1 || ResourceManager.getWorker(vmName1) != cmw1) {
             fail("ResourceManager is not properly adding the new cloud resources");
         }
         CloudMethodResourceDescription reduction1 = new CloudMethodResourceDescription(cmrd1);
-        ResourceManager.reduceResource(cmw1, new PendingReduction(reduction1));
+        ResourceManager.reduceResource(cmw1, new PendingReduction<>(reduction1));
         ResourceManager.terminateResource(cmw1, reduction1);
-        if (!ResourceManager.getDynamicResources().isEmpty()
-                || !ResourceManager.getAllWorkers().isEmpty()
-                || ResourceManager.getDynamicResource(vmName1) != null
-                || ResourceManager.getWorker(vmName1) != null) {
+        if (!ResourceManager.getDynamicResources().isEmpty() || !ResourceManager.getAllWorkers().isEmpty()
+                || ResourceManager.getDynamicResource(vmName1) != null || ResourceManager.getWorker(vmName1) != null) {
             fail("ResourceManager is not properly removing the new cloud resources");
         }
 
@@ -286,8 +278,7 @@ public class ResourceManagerTest {
         CloudMethodResourceDescription cmrd3 = createResourceDescriptionFromProvider(cp1);
         ResourceCreationRequest rcr3 = cp1.requestResourceCreation(cmrd3);
 
-        if (ResourceManager.getPendingCreationRequests().size() != 3
-                || !ResourceManager.getPendingCreationRequests().contains(rcr1)
+        if (ResourceManager.getPendingCreationRequests().size() != 3 || !ResourceManager.getPendingCreationRequests().contains(rcr1)
                 || !ResourceManager.getPendingCreationRequests().contains(rcr2)
                 || !ResourceManager.getPendingCreationRequests().contains(rcr3)) {
             fail("ResourceManager is not properly registering the pending resouce creations");
@@ -296,33 +287,27 @@ public class ResourceManagerTest {
         String vmName1 = "VM" + (int) (Math.random() * 1000);
         ExtendedCloudMethodWorker cmw1 = new ExtendedCloudMethodWorker(vmName1, cp1, cmrd1, new FakeNode(vmName1), 0, new HashMap<>());
         ResourceManager.addCloudWorker(rcr1, cmw1, cmrd1);
-        if (ResourceManager.getPendingCreationRequests().size() != 2
-                || ResourceManager.getPendingCreationRequests().contains(rcr1)) {
+        if (ResourceManager.getPendingCreationRequests().size() != 2 || ResourceManager.getPendingCreationRequests().contains(rcr1)) {
             fail("ResourceManager is not properly registering the pending resouce creations");
         }
-        if (ResourceManager.getDynamicResources().size() != 1
-                || ResourceManager.getAllWorkers().size() != 1
-                || ResourceManager.getDynamicResource(vmName1) != cmw1
-                || ResourceManager.getWorker(vmName1) != cmw1) {
+        if (ResourceManager.getDynamicResources().size() != 1 || ResourceManager.getAllWorkers().size() != 1
+                || ResourceManager.getDynamicResource(vmName1) != cmw1 || ResourceManager.getWorker(vmName1) != cmw1) {
             fail("ResourceManager is not properly adding the new cloud resources");
         }
 
         String vmName2 = "VM" + (int) (Math.random() * 1000);
         ExtendedCloudMethodWorker cmw2 = new ExtendedCloudMethodWorker(vmName2, cp2, cmrd2, new FakeNode(vmName2), 0, new HashMap<>());
         ResourceManager.addCloudWorker(rcr2, cmw2, cmrd2);
-        if (ResourceManager.getPendingCreationRequests().size() != 1
-                || ResourceManager.getPendingCreationRequests().contains(rcr2)) {
+        if (ResourceManager.getPendingCreationRequests().size() != 1 || ResourceManager.getPendingCreationRequests().contains(rcr2)) {
             fail("ResourceManager is not properly registering the pending resouce creations");
         }
-        if (ResourceManager.getDynamicResources().size() != 2
-                || ResourceManager.getAllWorkers().size() != 2
-                || ResourceManager.getDynamicResource(vmName2) != cmw2
-                || ResourceManager.getWorker(vmName2) != cmw2) {
+        if (ResourceManager.getDynamicResources().size() != 2 || ResourceManager.getAllWorkers().size() != 2
+                || ResourceManager.getDynamicResource(vmName2) != cmw2 || ResourceManager.getWorker(vmName2) != cmw2) {
             fail("ResourceManager is not properly adding the new cloud resources");
         }
 
         CloudMethodResourceDescription reduction1 = new CloudMethodResourceDescription(cmrd1);
-        ResourceManager.reduceResource(cmw1, new PendingReduction(reduction1));
+        ResourceManager.reduceResource(cmw1, new PendingReduction<>(reduction1));
         ResourceManager.terminateResource(cmw1, reduction1);
         if (ResourceManager.getPendingCreationRequests().size() != 1) {
             fail("ResourceManager is not properly registering the pending resouce creations");
@@ -330,10 +315,8 @@ public class ResourceManagerTest {
         if (ResourceManager.getCurrentVMCount() != 2) {
             fail("ResourceManager is not properly keeping track of the created VMs");
         }
-        if (ResourceManager.getDynamicResources().size() != 1
-                || ResourceManager.getAllWorkers().size() != 1
-                || ResourceManager.getDynamicResource(vmName1) != null
-                || ResourceManager.getWorker(vmName1) != null) {
+        if (ResourceManager.getDynamicResources().size() != 1 || ResourceManager.getAllWorkers().size() != 1
+                || ResourceManager.getDynamicResource(vmName1) != null || ResourceManager.getWorker(vmName1) != null) {
             fail("ResourceManager is not properly removing the new cloud resources");
         }
 
@@ -347,20 +330,16 @@ public class ResourceManagerTest {
         if (!ResourceManager.getPendingCreationRequests().isEmpty()) {
             fail("ResourceManager is not properly registering the pending resouce creations");
         }
-        if (ResourceManager.getDynamicResources().size() != 2
-                || ResourceManager.getAllWorkers().size() != 2
-                || ResourceManager.getDynamicResource(vmName3) != cmw3
-                || ResourceManager.getWorker(vmName3) != cmw3) {
+        if (ResourceManager.getDynamicResources().size() != 2 || ResourceManager.getAllWorkers().size() != 2
+                || ResourceManager.getDynamicResource(vmName3) != cmw3 || ResourceManager.getWorker(vmName3) != cmw3) {
             fail("ResourceManager is not properly adding the new cloud resources");
         }
 
         CloudMethodResourceDescription reduction2 = new CloudMethodResourceDescription(cmrd2);
-        ResourceManager.reduceResource(cmw2, new PendingReduction(reduction2));
+        ResourceManager.reduceResource(cmw2, new PendingReduction<>(reduction2));
         ResourceManager.terminateResource(cmw2, reduction2);
-        if (ResourceManager.getDynamicResources().size() != 1
-                || ResourceManager.getAllWorkers().size() != 1
-                || ResourceManager.getDynamicResource(vmName2) != null
-                || ResourceManager.getWorker(vmName2) != null) {
+        if (ResourceManager.getDynamicResources().size() != 1 || ResourceManager.getAllWorkers().size() != 1
+                || ResourceManager.getDynamicResource(vmName2) != null || ResourceManager.getWorker(vmName2) != null) {
             fail("ResourceManager is not properly removing the new cloud resources");
         }
         if (!cmw2.isTerminated()) {
@@ -373,8 +352,7 @@ public class ResourceManagerTest {
 
         CloudMethodResourceDescription cmrd4 = createResourceDescriptionFromProvider(cp1);
         ResourceCreationRequest rcr4 = cp1.requestResourceCreation(cmrd4);
-        if (ResourceManager.getPendingCreationRequests().size() != 1
-                || !ResourceManager.getPendingCreationRequests().contains(rcr4)) {
+        if (ResourceManager.getPendingCreationRequests().size() != 1 || !ResourceManager.getPendingCreationRequests().contains(rcr4)) {
             fail("ResourceManager is not properly registering the pending resouce creations");
         }
         if (ResourceManager.getCurrentVMCount() != 2) {
@@ -390,10 +368,8 @@ public class ResourceManagerTest {
         if (!ResourceManager.getPendingCreationRequests().isEmpty()) {
             fail("ResourceManager is not properly registering the pending resouce creations");
         }
-        if (ResourceManager.getDynamicResources().size() != 1
-                || ResourceManager.getAllWorkers().size() != 1
-                || ResourceManager.getDynamicResource(vmName3) != cmw3
-                || ResourceManager.getWorker(vmName3) != cmw3) {
+        if (ResourceManager.getDynamicResources().size() != 1 || ResourceManager.getAllWorkers().size() != 1
+                || ResourceManager.getDynamicResource(vmName3) != cmw3 || ResourceManager.getWorker(vmName3) != cmw3) {
             fail("ResourceManager is not properly removing the new cloud resources");
         }
         if (ResourceManager.getCurrentVMCount() != 2) {
@@ -406,12 +382,10 @@ public class ResourceManagerTest {
         }
 
         CloudMethodResourceDescription reduction4 = new CloudMethodResourceDescription(cmrd4);
-        ResourceManager.reduceResource(cmw3, new PendingReduction(reduction4));
+        ResourceManager.reduceResource(cmw3, new PendingReduction<>(reduction4));
         ResourceManager.terminateResource(cmw3, reduction4);
-        if (ResourceManager.getDynamicResources().size() != 1
-                || ResourceManager.getAllWorkers().size() != 1
-                || ResourceManager.getDynamicResource(vmName3) != cmw3
-                || ResourceManager.getWorker(vmName3) != cmw3) {
+        if (ResourceManager.getDynamicResources().size() != 1 || ResourceManager.getAllWorkers().size() != 1
+                || ResourceManager.getDynamicResource(vmName3) != cmw3 || ResourceManager.getWorker(vmName3) != cmw3) {
             fail("ResourceManager is not properly removing the new cloud resources");
         }
         if (ResourceManager.getCurrentVMCount() != 1) {
@@ -424,12 +398,10 @@ public class ResourceManagerTest {
         }
 
         CloudMethodResourceDescription reduction3 = new CloudMethodResourceDescription(cmrd3);
-        ResourceManager.reduceResource(cmw3, new PendingReduction(reduction3));
+        ResourceManager.reduceResource(cmw3, new PendingReduction<>(reduction3));
         ResourceManager.terminateResource(cmw3, reduction3);
-        if (!ResourceManager.getDynamicResources().isEmpty()
-                || !ResourceManager.getAllWorkers().isEmpty()
-                || ResourceManager.getDynamicResource(vmName3) != null
-                || ResourceManager.getWorker(vmName3) != null) {
+        if (!ResourceManager.getDynamicResources().isEmpty() || !ResourceManager.getAllWorkers().isEmpty()
+                || ResourceManager.getDynamicResource(vmName3) != null || ResourceManager.getWorker(vmName3) != null) {
             fail("ResourceManager is not properly removing the new cloud resources");
         }
         if (ResourceManager.getCurrentVMCount() != 0) {
@@ -442,7 +414,8 @@ public class ResourceManagerTest {
         }
     }
 
-    private static MethodWorker createMethodWorker(String name, MethodResourceDescription rd, HashMap<String, String> sharedDisks, MethodConfiguration mc) {
+    private static MethodWorker createMethodWorker(String name, MethodResourceDescription rd, HashMap<String, String> sharedDisks,
+            MethodConfiguration mc) {
         // Compute task count
         int taskCount;
         int limitOfTasks = mc.getLimitOfTasks();

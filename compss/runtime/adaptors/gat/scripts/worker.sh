@@ -63,10 +63,17 @@
           echo "[WORKER.SH] Link $1 -> ${sandbox}/${2}"
       	  ln -s $1 ${sandbox}/${2}
         else
-          echo "[WORKER.SH] WARN: Cannot create link because ${sandbox}/$2 already exsists"
+          newVer=$(basename $1 | tr "_" "\t" | awk '{ print $1 }' | tr "v" "\t" | awk '{ print $2 }')
+          oldVer=$(basename $(echo $(readlink -f ${sandbox}/${2})) | tr "_" "\t" | awk '{ print $1 }' | tr "v" "\t" | awk '{ print $2 }')
+          if (( newVer > oldVer )); then
+            ln -sf $1 ${sandbox}/${2}
+            echo "[WORKER.SH] WARN: Updating link ${sandbox}/$2 that already exists"
+          else
+            echo "[WORKER.SH] WARN: Cannot create link because ${sandbox}/$2 already exists"
+          fi
         fi
       else
-        echo "[WORKER.SH] WARN: Cannot create link because $1 doesn't exsist"
+        echo "[WORKER.SH] WARN: Cannot create link because $1 doesn't exists"
       fi
       
       # Add to treat after task management

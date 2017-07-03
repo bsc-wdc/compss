@@ -2,7 +2,7 @@
 #define GS_TEMPLATES_H
 
 // Uncomment the following define to get debug information.
-#define DEBUG_BINDING
+//#define DEBUG_BINDING
 
 #ifdef DEBUG_BINDING
 #define debug_printf(args...) printf(args)
@@ -54,16 +54,17 @@ template <> inline void compss_wait_on<char *>(char * &obj);
 
 template <class T>
 void compss_wait_on(T &obj) {
+  debug_printf("[C-BINDING]  -  @compss_wait_on  -  Ref: %p\n", &obj);
   Entry entry = objectMap[&obj];
   char *runtime_filename;
   
-  debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.type: %d\n", entry.type);
-  debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.classname: %s\n", entry.classname);
-  debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", entry.filename);
+  debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.type: %d\n", entry.type);
+  debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.classname: %s\n", entry.classname);
+  debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", entry.filename);
   
   GS_Get_File(entry.filename, in_dir, &runtime_filename);
-  debug_printf("[   BINDING]  -  @compss_wait_on  -  template class\n");  
-  debug_printf("[   BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
+  debug_printf("[C-BINDING]  -  @compss_wait_on  -  template class\n");  
+  debug_printf("[C-BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
 
   ifstream ifs(runtime_filename);
 

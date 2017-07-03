@@ -394,16 +394,15 @@ def synchronize(obj, mode):
     objid_to_filename[new_obj_id] = file_name
     task_objects[new_obj_id] = new_obj
 
-    # TODO: Devise a proper deletion criteria
-    # TODO: Get runtime notifications about obsolete objects
-    # this would let us delete more objects, leaving more free space
-
+    # If the object has changed and the previous version is not pending to be
+    # synced then we can delete the objects and its representative file
     if obj_id != new_obj_id and obj_id not in pending_to_sync:
         print 'Deleting obj %s (new one is %s)'%(str(obj_id), str(new_obj_id))
         compss.delete_file(objid_to_filename[obj_id])
         objid_to_filename.pop(obj_id)
         task_objects.pop(obj_id)
         id2obj.pop(obj_id)
+    # A recently synced object is no longer pending to be synced
     if new_obj_id in pending_to_sync:
         pending_to_sync.pop(new_obj_id)
 

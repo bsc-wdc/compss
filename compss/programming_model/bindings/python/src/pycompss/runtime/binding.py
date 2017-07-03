@@ -77,6 +77,9 @@ task_objects = {}
 # Objects that have been accessed by the main program
 objs_written_by_mp = {}  # obj_id -> compss_file_name
 
+# Objects that are pending to be synced
+pending_to_sync = {}
+
 # Enable or disable small objects conversion to strings
 # cross-module variable (set/modified from launch.py)
 object_conversion = False
@@ -390,16 +393,19 @@ def synchronize(obj, mode):
     # The main program won't work with the old object anymore, update mapping
     objid_to_filename[new_obj_id] = file_name
     task_objects[new_obj_id] = new_obj
+
     # TODO: Devise a proper deletion criteria
     # TODO: Get runtime notifications about obsolete objects
     # this would let us delete more objects, leaving more free space
-    '''
-    if obj_id != new_obj_id and not isinstance(task_objects[obj_id], Future):
+
+    if obj_id != new_obj_id and obj_id not in pending_to_sync:
         print 'Deleting obj %s (new one is %s)'%(str(obj_id), str(new_obj_id))
+        compss.delete_file(objid_to_filename[obj_id])
         objid_to_filename.pop(obj_id)
         task_objects.pop(obj_id)
         id2obj.pop(obj_id)
-    '''
+    pending_to_sync[new_obj_id] = new_obj
+
 
     logger.debug("Now object with id %s and %s has mapping %s" % (new_obj_id, type(new_obj), file_name))
 
@@ -879,9 +885,10 @@ def turn_into_file(p):
         t = type(p.value)
         p.value = t()
     '''
-    global current_id
     obj_id = get_object_id(p.value)
     file_name = objid_to_filename.get(obj_id)
+    if p.direction == Direction.INOUT:
+        pending_to_sync[obj_id] = p.value
     if file_name is None:
         # This is the first time a task accesses this object
         task_objects[obj_id] = p.value

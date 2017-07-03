@@ -397,7 +397,7 @@ def synchronize(obj, mode):
     # If the object has changed and the previous version is not pending to be
     # synced then we can delete the objects and its representative file
     if obj_id != new_obj_id and obj_id not in pending_to_sync:
-        print 'Deleting obj %s (new one is %s)'%(str(obj_id), str(new_obj_id))
+        logger.debug('Deleting obj %s (new one is %s)'%(str(obj_id), str(new_obj_id)))
         compss.delete_file(objid_to_filename[obj_id])
         objid_to_filename.pop(obj_id)
         task_objects.pop(obj_id)

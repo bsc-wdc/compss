@@ -394,13 +394,18 @@ def synchronize(obj, mode):
     objid_to_filename[new_obj_id] = file_name
     task_objects[new_obj_id] = new_obj
 
+    # TODO: Devise a proper deletion criteria
+    # TODO: Get runtime notifications about obsolete objects
+    # this would let us delete more objects, leaving more free space
+
     if obj_id != new_obj_id and obj_id not in pending_to_sync:
         print 'Deleting obj %s (new one is %s)'%(str(obj_id), str(new_obj_id))
         compss.delete_file(objid_to_filename[obj_id])
         objid_to_filename.pop(obj_id)
         task_objects.pop(obj_id)
         id2obj.pop(obj_id)
-    pending_to_sync[new_obj_id] = new_obj
+    if new_obj_id in pending_to_sync:
+        pending_to_sync.pop(new_obj_id)
 
 
     logger.debug("Now object with id %s and %s has mapping %s" % (new_obj_id, type(new_obj), file_name))

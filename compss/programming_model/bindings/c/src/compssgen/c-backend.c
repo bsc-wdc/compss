@@ -412,6 +412,75 @@ static void generate_parameter_buffers(FILE *outFile, function *func)
   fprintf(outFile, "\n");
 }
 
+static void add_object_arg_master_treatment(FILE *outFile, argument *arg, int i)
+{
+	fprintf(outFile, "\t char *%s_filename;\n", arg->name);
+        fprintf(outFile, "\t found = GS_register(%s, (datatype)%d, (direction)%d, \"%s\", %s_filename);\n", arg->name, arg->type, arg->dir, arg->classname, arg->name);
+	if (( arg->dir == in_dir) || (arg->dir == inout_dir)){
+          	fprintf(outFile, "\t if (!found) {\n");
+          	fprintf(outFile, "\t\t cout << \"Object not found in registry. Serializing to \" << %s_filename << endl << flush;\n" , arg->name);
+          	fprintf(outFile, "\t\t ofstream %s_ofs(%s_filename, std::ofstream::trunc);\n", arg->name, arg->name);
+          	fprintf(outFile, "\t\t archive::text_oarchive %s_oa(%s_ofs);\n", arg->name, arg->name);
+          	if (arg->type == string_dt || arg->type == wstring_dt){
+			fprintf(outFile, "\t\t string %s_out_string (*%s);\n", arg->name, arg->name);
+		        fprintf(outFile, "\t\t %s_oa << %s_out_string;\n", arg->name, arg->name);
+		} else {
+			fprintf(outFile, "\t\t %s_oa << *%s;\n", arg->name, arg->name);
+		}
+          	fprintf(outFile, "\t\t %s_ofs.flush();\n", arg->name);
+          	fprintf(outFile, "\t\t %s_ofs.close();\n", arg->name);
+          	fprintf(outFile, "\t }\n");
+	}
+        fprintf(outFile, "\t arrayObjs[%d] = &%s_filename;\n", i, arg->name);
+        fprintf(outFile, "\t int param%d = %d;\n", i+1, file_dt);
+        fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+1, i+1);
+        fprintf(outFile, "\t int param%d = %d;\n", i+2, inout_dir);
+        fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+2, i+2);
+	
+}
+
+static void add_other_arg_master_treatment(FILE *outFile, argument *arg, int i)
+{
+
+	if ( arg->dir == in_dir){
+	  fprintf(outFile, "\t arrayObjs[%d] = &%s;\n", i, arg->name);
+	  fprintf(outFile, "\t int param%d = %d;\n", i+1, arg->type);
+          fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+1, i+1);
+          fprintf(outFile, "\t int param%d = %d;\n", i+2, arg->dir);
+          fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+2, i+2);
+	}else{
+	  switch (arg->type) {
+        	case char_dt:
+        	case wchar_dt:
+        	case boolean_dt:
+        	case short_dt:
+        	case long_dt:
+        	case longlong_dt:
+        	case int_dt:
+        	case float_dt:
+        	case double_dt:
+        	case object_dt:
+        	case string_dt:
+        	case wstring_dt:
+          		add_object_arg_master_treatment(outFile,arg,i);
+			break;
+        	case file_dt:
+          		fprintf(outFile, "\t arrayObjs[%d] = &%s;\n", i, arg->name);
+          		fprintf(outFile, "\t int param%d = %d;\n", i+1, arg->type);
+          		fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+1, i+1);
+          		fprintf(outFile, "\t int param%d = %d;\n", i+2, arg->dir);
+          		fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+2, i+2);
+          		break;
+        	case void_dt:
+        	case any_dt:
+        	case null_dt:
+        	default:;
+	  }
+      	}
+		
+
+}
+
 static void generate_parameter_marshalling(FILE *outFile, function *func)
 {
   argument *arg;
@@ -475,7 +544,6 @@ static void generate_parameter_marshalling(FILE *outFile, function *func)
   while (arg != NULL) {
     i = j*3;
     
-    if (arg->dir == out_dir || arg->dir == inout_dir) {
       switch (arg->type) {
 	case char_dt:
 	case wchar_dt:
@@ -486,83 +554,20 @@ static void generate_parameter_marshalling(FILE *outFile, function *func)
 	case int_dt:
 	case float_dt:
 	case double_dt:
-	case object_dt:
-	  fprintf(outFile, "\t char *%s_filename;\n", arg->name);
-	  fprintf(outFile, "\t found = GS_register(%s, (datatype)%d, (direction)%d, \"%s\", %s_filename);\n", arg->name, arg->type, arg->dir, arg->classname, arg->name);
-	  fprintf(outFile, "\t if (!found) {\n");
-	  fprintf(outFile, "\t\t cout << \"Object not found in registry. Serializing to \" << %s_filename << endl << flush;\n" , arg->name);
-	  fprintf(outFile, "\t\t ofstream %s_ofs(%s_filename, std::ofstream::trunc);\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t archive::text_oarchive %s_oa(%s_ofs);\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t %s_oa << *%s;\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t %s_ofs.flush();\n", arg->name);
-	  fprintf(outFile, "\t\t %s_ofs.close();\n", arg->name);
-	  fprintf(outFile, "\t }\n");
-	  fprintf(outFile, "\t arrayObjs[%d] = &%s_filename;\n", i, arg->name);
-	  fprintf(outFile, "\t int param%d = %d;\n", i+1, file_dt);
-	  fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+1, i+1);
-	  fprintf(outFile, "\t int param%d = %d;\n", i+2, inout_dir);
-	  fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+2, i+2);
-	  break;
 	case string_dt:
-	case wstring_dt:
-	  fprintf(outFile, "\t char *%s_filename;\n", arg->name);
-	  fprintf(outFile, "\t found = GS_register(%s, (datatype)%d, (direction)%d, \"%s\", %s_filename);\n", arg->name, arg->dir, arg->type, arg->classname, arg->name);
-	  fprintf(outFile, "\t if (!found) {\n");
-	  fprintf(outFile, "\t\t cout << \"Object not found in registry. Serializing to \" << %s_filename << endl << flush;\n" , arg->name);
-	  fprintf(outFile, "\t\t ofstream %s_ofs(%s_filename, std::ofstream::trunc);\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t archive::text_oarchive %s_oa(%s_ofs);\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t string %s_out_string (*%s);\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t %s_oa << %s_out_string;\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t %s_ofs.flush();\n", arg->name);
-	  fprintf(outFile, "\t\t %s_ofs.close();\n", arg->name);
-	  fprintf(outFile, "\t }\n");
-	  fprintf(outFile, "\t arrayObjs[%d] = &%s_filename;\n", i, arg->name);
-	  fprintf(outFile, "\t int param%d = %d;\n", i+1, file_dt);
-	  fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+1, i+1);
-	  fprintf(outFile, "\t int param%d = %d;\n", i+2, inout_dir);
-	  fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+2, i+2);
-	  break;
+        case wstring_dt:
 	case file_dt:
-	  //fprintf(outFile, "\t GS_register(%s, (datatype)%d, (direction)%d, \"%s\", *%s);\n", arg->name, arg->type, arg->dir, arg->classname, arg->name);
-	  fprintf(outFile, "\t arrayObjs[%d] = &%s;\n", i, arg->name);
-	  fprintf(outFile, "\t int param%d = %d;\n", i+1, arg->type);
-	  fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+1, i+1);
-	  fprintf(outFile, "\t int param%d = %d;\n", i+2, arg->dir);
-	  fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+2, i+2);
-	  break;
+		add_other_arg_master_treatment(outFile,arg,i);
+		break;
+	case object_dt:
+		add_object_arg_master_treatment(outFile,arg,i);
+	  	break;
 	case void_dt:
 	case any_dt:
 	case null_dt:
 	default:;
       }
-    } else {
-      switch (arg->type) {
-	case object_dt:
-	  fprintf(outFile, "\t char *%s_filename;\n", arg->name);
-	  fprintf(outFile, "\t found = GS_register(%s, (datatype)%d, (direction)%d, \"%s\", %s_filename);\n", arg->name, arg->type, arg->dir, arg->classname, arg->name);
-	  fprintf(outFile, "\t if (!found) {\n");
-	  fprintf(outFile, "\t\t cout << \"Object not found in registry. Serializing to \" << %s_filename << endl << flush;\n" , arg->name); 
-	  fprintf(outFile, "\t\t ofstream %s_ofs(%s_filename, std::ofstream::trunc);\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t archive::text_oarchive %s_oa(%s_ofs);\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t %s_oa << %s;\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t %s_ofs.flush();\n", arg->name);
-	  fprintf(outFile, "\t\t %s_ofs.close();\n", arg->name);
-	  fprintf(outFile, "\t }\n");
-	  fprintf(outFile, "\t arrayObjs[%d] = &%s_filename;\n", i, arg->name);
-	  fprintf(outFile, "\t int param%d = %d;\n", i+1, file_dt);
-	  fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+1, i+1);
-	  fprintf(outFile, "\t int param%d = %d;\n", i+2, arg->dir);
-	  fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+2, i+2);
-	  break;
-	default:
-	  fprintf(outFile, "\t arrayObjs[%d] = &%s;\n", i, arg->name);
-	  fprintf(outFile, "\t int param%d = %d;\n", i+1, arg->type);
-	  fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+1, i+1);
-	  fprintf(outFile, "\t int param%d = %d;\n", i+2, arg->dir);
-	  fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+2, i+2);
-	  break;
-      }
-    }
+    
     
     fprintf(outFile, "\n");
     

@@ -26,11 +26,11 @@ void GS_clean() {
 void compss_ifstream(char * filename, ifstream& ifs) {
   char *runtime_filename;
 
-  debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", filename);
+  debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", filename);
 
   GS_Get_File(filename, in_dir, &runtime_filename);
 
-  debug_printf("[   BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
+  debug_printf("[C-BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
 
   ifs.open(runtime_filename);
 }
@@ -39,11 +39,11 @@ void compss_ifstream(char * filename, ifstream& ifs) {
 void compss_ofstream(char * filename, ofstream& ofs) {
   char *runtime_filename;
 
-  debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", filename);
+  debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", filename);
 
   GS_Get_File(filename, out_dir, &runtime_filename);
 
-  debug_printf("[   BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
+  debug_printf("[C-BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
 
   ofs.open(runtime_filename);
 }
@@ -54,7 +54,7 @@ FILE* compss_fopen(char * filename, char * mode) {
   FILE* file;
   enum direction dir;
 
-  debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", filename);
+  debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", filename);
   
   if (strcmp(mode, "r") == 0){
 	dir = in_dir;
@@ -78,7 +78,7 @@ FILE* compss_fopen(char * filename, char * mode) {
 
   GS_Get_File(filename, dir, &runtime_filename);
   
-  debug_printf("[   BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
+  debug_printf("[C-BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
   
   file = fopen(runtime_filename, mode);
    
@@ -109,10 +109,10 @@ int GS_register(void *ref, datatype type, direction dir, char *classname, char *
   Entry entry;
   int result = 0;
   
-  debug_printf("[   BINDING]  -  @GS_register  -  Ref: %p\n", (char *)ref);
+  debug_printf("[C-BINDING]  -  @GS_register  -  Ref: %p\n", (char *)ref);
   
   if (dir == null_dir) {
-    debug_printf("[   BINDING]  -  @GS_register  -  Direction is null \n"); 
+    debug_printf("[C-BINDING]  -  @GS_register  -  Direction is null \n"); 
     dir = out_dir;
   }
   
@@ -120,7 +120,7 @@ int GS_register(void *ref, datatype type, direction dir, char *classname, char *
     // OUT / INOUT. Create new version
     entry = objectMap[ref];
     if (entry.filename == NULL) {
-      debug_printf("[   BINDING]  -  @GS_register  -  ENTRY ADDED\n");
+      debug_printf("[C-BINDING]  -  @GS_register  -  ENTRY ADDED\n");
       entry.type = type;
       entry.classname = strdup(classname);
       
@@ -128,7 +128,7 @@ int GS_register(void *ref, datatype type, direction dir, char *classname, char *
     	  entry.filename =  strdup("compss-serialized-obj_XXXXXX");
     	  int fd = mkstemp(entry.filename);
     	  if (fd== -1){
-    		  printf("[   BINDING]  -  @GS_register  -  ERROR creating temporal file\n");
+    		  printf("[C-BINDING]  -  @GS_register  -  ERROR creating temporal file\n");
     		  return 1;
     	  }
       } else {
@@ -138,16 +138,16 @@ int GS_register(void *ref, datatype type, direction dir, char *classname, char *
       objectMap[ref] = entry;
    
     } else {
-      debug_printf("[   BINDING]  -  @GS_register  -  ENTRY FOUND\n");
+      debug_printf("[C-BINDING]  -  @GS_register  -  ENTRY FOUND\n");
       result = 1;
     }
     
-    debug_printf("[   BINDING]  -  @GS_register  -  Entry.type: %d\n", entry.type);
-    debug_printf("[   BINDING]  -  @GS_register  -  Entry.classname: %s\n", entry.classname);
-    debug_printf("[   BINDING]  -  @GS_register  -  Entry.filename: %s\n", entry.filename);
+    debug_printf("[C-BINDING]  -  @GS_register  -  Entry.type: %d\n", entry.type);
+    debug_printf("[C-BINDING]  -  @GS_register  -  Entry.classname: %s\n", entry.classname);
+    debug_printf("[C-BINDING]  -  @GS_register  -  Entry.filename: %s\n", entry.filename);
     
     filename = strdup(entry.filename);
-    debug_printf("[   BINDING]  -  @GS_register  -  setting filename: %s\n", filename);
+    debug_printf("[C-BINDING]  -  @GS_register  -  setting filename: %s\n", filename);
     
   } else {
     // IN
@@ -155,31 +155,31 @@ int GS_register(void *ref, datatype type, direction dir, char *classname, char *
       entry = objectMap[ref];
       
       if (entry.filename == NULL) {
-    	  debug_printf("[   BINDING]  -  @GS_register  -  ENTRY ADDED\n");
+    	  debug_printf("[C-BINDING]  -  @GS_register  -  ENTRY ADDED\n");
     	  entry.type = type;
     	  entry.classname = strdup(classname);
     	  entry.filename =  strdup("compss-serialized-obj_XXXXXX");
     	  int fd = mkstemp(entry.filename);
     	  if (fd== -1){
-    		  printf("[   BINDING]  -  @GS_register  -  ERROR creating temporal file\n");
+    		  printf("[C-BINDING]  -  @GS_register  -  ERROR creating temporal file\n");
     		  return 1;
     	  }
     	  objectMap[ref] = entry;
       } else {
-    	  debug_printf("[   BINDING]  -  @GS_register  -  ENTRY FOUND\n");
+    	  debug_printf("[C-BINDING]  -  @GS_register  -  ENTRY FOUND\n");
 	result = 1;
       }
       
-      debug_printf("[   BINDING]  -  @GS_register  -  Entry.type: %d\n", entry.type);
-      debug_printf("[   BINDING]  -  @GS_register  -  Entry.classname: %s\n", entry.classname);
-      debug_printf("[   BINDING]  -  @GS_register  -  Entry.filename: %s\n", entry.filename);
+      debug_printf("[C-BINDING]  -  @GS_register  -  Entry.type: %d\n", entry.type);
+      debug_printf("[C-BINDING]  -  @GS_register  -  Entry.classname: %s\n", entry.classname);
+      debug_printf("[C-BINDING]  -  @GS_register  -  Entry.filename: %s\n", entry.filename);
       
       filename = strdup(entry.filename);
-      debug_printf("[   BINDING]  -  @GS_register  -  setting filename: %s\n", filename);
+      debug_printf("[C-BINDING]  -  @GS_register  -  setting filename: %s\n", filename);
     }
   }
   
-  debug_printf("[   BINDING]  -  @GS_register  -  Filename: %s\n", filename);
-  debug_printf("[   BINDING]  -  @GS_register  - Result is %d\n", result);
+  debug_printf("[C-BINDING]  -  @GS_register  -  Filename: %s\n", filename);
+  debug_printf("[C-BINDING]  -  @GS_register  - Result is %d\n", result);
   return result;
 }

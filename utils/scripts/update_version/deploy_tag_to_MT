@@ -23,14 +23,14 @@
 
   # Set parameters
   version=$1
-  builderFolder="mn"
-  builderScript="buildMN"
-  MNuser=compss
-  MNendpoint=mn1.bsc.es
+  builderFolder="mt"
+  builderScript="buildMT"
+  MTuser=compss
+  MTendpoint=mt1.bsc.es
 
   # Call generic script
   cd ${scriptDir}
-  ./deploy_tag_to_SC ${version} ${buildFolder} ${buildScript} ${MNuser} ${MNendpoint}
+  ./deploy_tag_to_SC ${version} ${buildFolder} ${buildScript} ${MTuser} ${MTendpoint}
   cd -
 
   # END

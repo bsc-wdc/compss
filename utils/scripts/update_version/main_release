@@ -30,7 +30,11 @@ usage() {
   ./update_documentation ${version}
   ./generate_tag ${version}
   ./mvn_deploy_tag ${version}
+
+  # Deploy to SCs
   ./deploy_tag_to_MN ${version}
+  ./deploy_tag_to_Nord ${version}
+  ./deploy_tag_to_MT ${version}
 
   # END
   echo "ALL SUCCESS!"

@@ -67,6 +67,7 @@ TRACING_ERROR="Value of option --tracing must be: false, true, basic or advanced
 #---------------------------------------------------
 show_opts() {
   cat <<EOT
+
   Tools enablers:
     --graph=<bool>, --graph, -g             Generation of the complete graph (true/false)
                                             When no value is provided it is set to ${DEFAULT_GRAPH_ARGUMENT}

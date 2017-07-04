@@ -382,7 +382,6 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
     # Retrieve internal parameters from worker.py.
     tracing = kwargs.get('compss_tracing')
     process_name = kwargs.get('compss_process_name')
-    local_cache = kwargs.get('compss_local_cache')
 
     if tracing:
         import pyextrae
@@ -419,7 +418,6 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
                                                spec_args,
                                                self_kwargs,
                                                kwargs['compss_types'],
-                                               local_cache,
                                                process_name,
                                                returns)
 
@@ -473,35 +471,6 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
 
     if len(to_serialize) > 0:
         serialize_objects(to_serialize)
-
-    # deal with INOUT_OUT vs CACHE separately
-    if local_cache is not None:
-        for (obj, value) in _output_objects:
-            forig, fdest, preserve, write_final, fname = value.split(':')
-            preserve, write_final = list(map(lambda x : x == "true", [preserve, write_final]))
-            # here we can assume that forig != fdest
-            suf_file_name = fdest
-            file_size = os.path.getsize(fname)
-            cache_contains_orig = local_cache.has_object(forig)
-            cache_contains_dest = local_cache.has_object(fdest)
-            # We want to preserve the old version of the INOUT object.
-            if preserve:
-                # This should never happen (we cannot have a recently created
-                # object previously stored)
-                if cache_contains_dest:
-                    raise Exception("THIS SHOULD NEVER HAPPEN!!!111!!11ONE")
-                    local_cache.hit(fdest)
-                else:
-                    local_cache.add(fdest, obj)
-            else:
-                # We do not want to preserve the old object => overwrite the
-                # cached object. Set_object preserves the hit amount
-                # (this is why we do not delete the old version on reveal_objects)
-                if cache_contains_orig:
-                    local_cache.set_object(forig, obj)
-                    local_cache.hit(forig)
-                else:
-                    local_cache.add(forig, obj)
 
 
 def masterCode(f, self_module, is_instance, has_varargs, has_keywords, has_defaults, has_return,
@@ -691,7 +660,7 @@ def get_default_args(f):
 
 def reveal_objects(values,
                    spec_args, deco_kwargs, compss_types,
-                   local_cache, process_name, returns):
+                   process_name, returns):
     """
     Function that goes through all parameters in order to
     find and open the files.
@@ -699,7 +668,6 @@ def reveal_objects(values,
     :param spec_args: <List> - Specific arguments.
     :param deco_kwargs: <List> - The decoratos.
     :param compss_types: <List> - The types of the values.
-    :param local_cache: <Dictionary> - Local cache dictionary.
     :param process_name: <String> - Process name (id).
     :param returns: If the function returns a value. Type = Boolean.
     :return: a list with the real values
@@ -750,57 +718,12 @@ def reveal_objects(values,
                 preserve, write_final = list(map(lambda x: x == "true", [preserve, write_final]))
                 suffix_name = forig
             else:
-                # In GAT we only get the name --> disable cache
                 fname = complete_fname[0]
-                # local_cache = None   # Cache must be disabled.
 
             value = fname
             # For COMPSs it is a file, but it is actually a Python object
             logger.debug("Processing a hidden object in parameter %d", i)
-            if local_cache is not None:
-                if forig != fdest:
-                    # The object will be written. So we must check if we can
-                    # retrieve the old version (that is, the "input" version)
-                    # from the cache and then check if we want to preserve
-                    # this old version in our cache
-                    is_object_in_cache = local_cache.has_object(suffix_name)
-                    # First, lets try to retrieve the object
-                    if is_object_in_cache:
-                        obj = local_cache.get(suffix_name)
-                    else:
-                        obj = deserialize_from_file(value)
-                    # Check if we want to preserve it
-                    if preserve:
-                        # If we want to preserve the object it means that we
-                        # want it to stay on our cache. If it already was, this
-                        # can be interpreted as a hit to our object. If not,
-                        # then we can simply add it
-                        if is_object_in_cache:
-                            local_cache.hit(suffix_name)
-                        else:
-                            local_cache.add(suffix_name, obj)
-                    # A possible approach when preserve is not true could consist
-                    # in deleting the current object and then adding the new one
-                    # However, this approach would delete information as the
-                    # hits on this object. What we do instead is to call
-                    # the set_object method, which replaces the cached object
-                    # "inner object" with the new one.
-                    # This replacement is done after the users function has
-                    # been called. This is why you do not see an else to the
-                    # if preserve conditional.
-                else:
-                    # The object will not be modified. Let's try to get it
-                    # from the cache (and add it if not possible). This is what
-                    # happens when, for example, the object is an IN.
-                    if local_cache.has_object(suffix_name):
-                        obj = local_cache.get(suffix_name)
-                        local_cache.hit(suffix_name)
-                    else:
-                        obj = deserialize_from_file(value)
-                        local_cache.add(suffix_name, obj)
-            else:
-                # Cache is not enabled; read from disk
-                obj = deserialize_from_file(value)
+            obj = deserialize_from_file(value)
             real_values.append(obj)
             if p.direction != Direction.IN:
                 to_serialize.append((obj, value))

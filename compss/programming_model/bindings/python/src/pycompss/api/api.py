@@ -75,7 +75,6 @@ def barrier():
     """
     compss_barrier()
 
-#TODO: make it variadic (what to do with the to_write flag???)
 def compss_wait_on(*args):
     def _compss_wait_on(obj, to_write=True):
         """

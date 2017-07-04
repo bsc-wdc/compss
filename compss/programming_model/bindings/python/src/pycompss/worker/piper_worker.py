@@ -68,7 +68,6 @@ INIT = "init"  # -- worker.py debug tracing #thr pipes_CMD pipes_RESULT
 EXECUTE_TASK_TAG = "task"  # -- "task" taskId jobOut jobErr task_params
 END_TASK_TAG = "endTask"  # -- "endTask" taskId endStatus
 QUIT_TAG = "quit"  # -- "quit"
-USE_CACHE = False
 
 ######################
 #  Processes body
@@ -100,12 +99,6 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
     alive = True
     stdout = sys.stdout
     stderr = sys.stderr
-
-
-    local_cache = None
-    if USE_CACHE:
-        from persistent_cache import Cache
-        local_cache = Cache(size_limit = 1024**3)
 
     logger.debug("[PYTHON WORKER] Starting process " + str(process_name))
     while alive:
@@ -154,7 +147,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                                 err = open(job_err, 'w')
                                 sys.stdout = out
                                 sys.stderr = err
-                                exitvalue = execute_task(process_name, storage_conf, line[9:], local_cache)
+                                exitvalue = execute_task(process_name, storage_conf, line[9:])
                                 sys.stdout = stdout
                                 sys.stderr = stderr
                                 out.close()
@@ -193,7 +186,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
 #####################################
 # Execute Task Method - Task handler
 #####################################
-def execute_task(process_name, storage_conf, params, local_cache):
+def execute_task(process_name, storage_conf, params):
     """
     ExecuteTask main method
     """
@@ -207,11 +200,10 @@ def execute_task(process_name, storage_conf, params, local_cache):
         from storage.api import getByID
         from storage.api import TaskContext
 
-    # COMPSs keywords for tasks (ie: tracing, cache data structures...)
+    # COMPSs keywords for tasks (ie: tracing, process name...)
     compss_kwargs = {
         'compss_tracing' : tracing,
         'compss_process_name': process_name,
-        'compss_local_cache': local_cache,
         'compss_storage_conf': storage_conf
     }
 

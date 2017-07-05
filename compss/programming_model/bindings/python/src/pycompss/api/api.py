@@ -76,7 +76,7 @@ def barrier():
     compss_barrier()
 
 def compss_wait_on(*args):
-    def _compss_wait_on(obj, to_write=True):
+    def _compss_wait_on(obj, to_write=False):
         """
         Waits on an object.
         @param obj: Object to wait on.

@@ -1,0 +1,52 @@
+#!/bin/bash
+
+  #Obtain parameters
+  output_file=$1 
+  target_log_folder=$2
+  
+  # Log files
+  runtime_log="${target_log_folder}/runtime.log"
+
+  #----------------------------------------------------------------------------------
+  # Check output standard out status
+  if [ -f ${output_file} ]; then
+     result_expected="------------------------------------------------------------"
+     test_result=$(tail -1 ${output_file})
+     if [ "${result_expected}" != "${test_result}" ]; then
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
+        exit 1
+     fi
+  else
+     echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
+     exit 1
+  fi
+  # Check that ErrorManager has not generated any ERROR or FATAL message.
+  if $(cat "${output_file}" "${runtime_log}" | tr '\n' ' ' | grep -E -q "[ERRMGR].*(ERROR|FATAL):.*.*Shutting"); then
+    echo "ERROR: ERRMGR RAISED A FATAL ERROR. TEST FAILED." | tee -a ${output_file}
+    exit 1
+  fi
+
+  #---------------------------------------------------------------------------------- 
+  # Compute result status
+  init_counter=$(cat ${output_file} | grep "Initial counter value" | cut -c 26-)
+  final_counter_got=$(cat ${output_file} | grep "Final counter value" | cut -c 24-)
+  final_counter_expected=$((init_counter+2))
+  if [ "$final_counter_got" != "$final_counter_expected" ]; then
+    echo "ERROR ON TASKS SCHEDULE" | tee -a ${output_file}
+    echo "EXPECTED FIRST INCREMENT: $final_counter_expected" | tee -a ${output_file}
+    echo "GOT:      $final_counter_got" | tee -a ${output_file}
+    exit 1
+  fi
+  
+  lot_expected=1
+  lot_got=$(cat ${runtime_log} | grep "CMD" | grep "Limit Of Tasks" | awk {' print $NF '})
+  if [ "${lot_expected}" != "${lot_got}" ]; then
+    echo "ERROR ON LIMIT OF TASKS" | tee -a ${output_file}
+    echo "EXPECTED: ${lot_expected}" | tee -a ${output_file}
+    echo "GOT: ${lot_got}" | tee -a ${output_file}
+    exit 1
+  fi
+  
+  # All OK
+  exit 0
+  

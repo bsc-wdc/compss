@@ -96,6 +96,8 @@
 		<module>63-decaf</module>
 		<!-- Module 64 is 64-decaf_python -->
 		<!-- Module 65 is 65-testStatic_c -->
+		<module>66-limitOfTasks</module>
+
 		<!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

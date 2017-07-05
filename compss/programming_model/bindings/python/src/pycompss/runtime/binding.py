@@ -385,7 +385,10 @@ def synchronize(obj, mode):
     logger.debug("Synchronizing object %s with mode %s" % (obj_id, mode))
 
     file_name = objid_to_filename[obj_id]
-    compss_file = compss.get_file(file_name, mode)
+    if obj_id not in objs_written_by_mp:
+        compss_file = compss.get_file(file_name, mode)
+    else:
+        compss_file = objs_written_by_mp[obj_id]
 
     new_obj = deserialize_from_file(compss_file)
     new_obj_id = get_object_id(new_obj)
@@ -408,9 +411,7 @@ def synchronize(obj, mode):
 
 
     logger.debug("Now object with id %s and %s has mapping %s" % (new_obj_id, type(new_obj), file_name))
-
-    if mode != Direction.IN:
-        objs_written_by_mp[new_obj_id] = compss_file
+    objs_written_by_mp[new_obj_id] = compss_file
 
     return new_obj
 

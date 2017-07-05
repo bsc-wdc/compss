@@ -17,6 +17,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
+/**
+ * Task Result Reader
+ *
+ */
 public class TaskResultReader extends Thread {
 
     private static final Logger logger = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
@@ -37,6 +41,11 @@ public class TaskResultReader extends Thread {
     private Semaphore stopSem;
 
 
+    /**
+     * Create a new task result reader on a given pipe
+     * 
+     * @param readPipeFile
+     */
     public TaskResultReader(String readPipeFile) {
         this.readPipeFile = readPipeFile;
 

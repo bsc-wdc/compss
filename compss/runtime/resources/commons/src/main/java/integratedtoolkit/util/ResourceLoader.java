@@ -365,52 +365,36 @@ public class ResourceLoader {
 
     private static MethodWorker createMethodWorker(String name, MethodResourceDescription rd, Map<String, String> sharedDisks,
             MethodConfiguration mc) {
-        
+
         // Compute task count
-        int taskCount;
-        int limitOfTasks = mc.getLimitOfTasks();
-        int computingUnits = rd.getTotalCPUComputingUnits();
-
-        if (limitOfTasks < 0 && computingUnits < 0) {
-            taskCount = 0;
-        } else {
-            taskCount = Math.max(limitOfTasks, computingUnits);
-        }
-
+        int taskCount = getValidMinimum(mc.getLimitOfTasks(), rd.getTotalCPUComputingUnits());
         mc.setLimitOfTasks(taskCount);
 
-        limitOfTasks = mc.getLimitOfGPUTasks();
-        computingUnits = rd.getTotalGPUComputingUnits();
+        int taskCountGPU = getValidMinimum(mc.getLimitOfGPUTasks(), rd.getTotalGPUComputingUnits());
+        mc.setLimitOfGPUTasks(taskCountGPU);
 
-        if (limitOfTasks < 0 && computingUnits < 0) {
-            taskCount = 0;
-        } else {
-            taskCount = Math.max(limitOfTasks, computingUnits);
-        }
-        mc.setLimitOfGPUTasks(taskCount);
+        int taskCountFPGA = getValidMinimum(mc.getLimitOfFPGATasks(), rd.getTotalFPGAComputingUnits());
+        mc.setLimitOfFPGATasks(taskCountFPGA);
 
-        limitOfTasks = mc.getLimitOfFPGATasks();
-        computingUnits = rd.getTotalFPGAComputingUnits();
+        int taskCountOther = getValidMinimum(mc.getLimitOfOTHERSTasks(), rd.getTotalOTHERComputingUnits());
+        mc.setLimitOfOTHERSTasks(taskCountOther);
 
-        if (limitOfTasks < 0 && computingUnits < 0) {
-            taskCount = 0;
-        } else {
-            taskCount = Math.max(limitOfTasks, computingUnits);
-        }
-        mc.setLimitOfFPGATasks(taskCount);
-
-        limitOfTasks = mc.getLimitOfOTHERSTasks();
-        computingUnits = rd.getTotalOTHERComputingUnits();
-
-        if (limitOfTasks < 0 && computingUnits < 0) {
-            taskCount = 0;
-        } else {
-            taskCount = Math.max(limitOfTasks, computingUnits);
-        }
-        mc.setLimitOfOTHERSTasks(taskCount);
-
+        // Create the method worker
         MethodWorker methodWorker = new MethodWorker(name, rd, mc, sharedDisks);
         return methodWorker;
+    }
+
+    private static int getValidMinimum(int x, int y) {
+        if (x < 0 && y < 0) {
+            return 0;
+        }
+        if (x < 0) {
+            return y;
+        }
+        if (y < 0) {
+            return x;
+        }
+        return Math.min(x, y);
     }
 
     private static boolean loadCloud(CloudType cloud) {

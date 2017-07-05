@@ -1,6 +1,7 @@
 package integratedtoolkit.scheduler.multiobjective;
 
 import integratedtoolkit.components.impl.ResourceScheduler;
+import integratedtoolkit.log.Loggers;
 import integratedtoolkit.scheduler.exceptions.ActionNotFoundException;
 import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.InvalidSchedulingException;
@@ -30,6 +31,8 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -39,6 +42,9 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
     public static final long DATA_TRANSFER_DELAY = 200;
     private static final double DEFAULT_IDLE_POWER = 1;
     private static final double DEFAULT_IDLE_PRICE = 0;
+
+    // Logger
+    protected static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
 
     private final LinkedList<Gap> gaps;
     private double pendingActionsEnergy = 0;
@@ -171,18 +177,14 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
      --------------------------------------------------*/
     @Override
     public void scheduleAction(AllocatableAction action) {
-        try {
-            synchronized (gaps) {
-                if (opAction != null) { // If optimization in progress
-                    ((MOSchedulingInformation) opAction.getSchedulingInfo()).addSuccessor(action);
-                    Gap opActionGap = new Gap(0, 0, opAction, action.getAssignedImplementation().getRequirements().copy(), 0);
-                    ((MOSchedulingInformation) action.getSchedulingInfo()).addPredecessor(opActionGap);
-                } else {
-                    scheduleUsingGaps(action, gaps);
-                }
+        synchronized (gaps) {
+            if (opAction != null) { // If optimization in progress
+                ((MOSchedulingInformation) opAction.getSchedulingInfo()).addSuccessor(action);
+                Gap opActionGap = new Gap(0, 0, opAction, action.getAssignedImplementation().getRequirements().copy(), 0);
+                ((MOSchedulingInformation) action.getSchedulingInfo()).addPredecessor(opActionGap);
+            } else {
+                scheduleUsingGaps(action, gaps);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
@@ -859,11 +861,11 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
                     action.tryToLaunch();
                 } catch (InvalidSchedulingException ise2) {
                     // Impossible exception.
-                    ise2.printStackTrace();
+                    LOGGER.error(ise2);
                 }
             } catch (BlockedActionException | UnassignedActionException be) {
                 // Can not happen since there was an original source
-                be.printStackTrace();
+                LOGGER.error(be);
             }
         }
         return launched;

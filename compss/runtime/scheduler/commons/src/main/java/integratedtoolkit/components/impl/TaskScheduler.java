@@ -44,6 +44,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
+/**
+ * Basic Task scheduler implementation that only taskes care of data dependencies
+ *
+ */
 public class TaskScheduler {
 
     // Logger
@@ -148,6 +152,11 @@ public class TaskScheduler {
         return new SchedulingOptimizer<>(this);
     }
 
+    /**
+     * Generates a profile for an action
+     * 
+     * @return
+     */
     public Profile generateProfile() {
         return new Profile();
     }
@@ -547,7 +556,7 @@ public class TaskScheduler {
      * @param rs
      */
     public final <T extends WorkerResourceDescription> void updateWorker(Worker<T> worker, ResourceUpdate<T> rs) {
-        ResourceScheduler<T> ui = (ResourceScheduler<T>) workers.get(worker);
+        ResourceScheduler<T> ui = workers.get(worker);
         if (ui == null) {
             // Register worker if it's the first time it is useful.
             ui = addWorker(worker, getJSONForResource(worker));
@@ -584,7 +593,7 @@ public class TaskScheduler {
      *            ResourceScheduler whose worker is to contextualize.
      */
     private <T extends WorkerResourceDescription> void startWorker(ResourceScheduler<T> ui) {
-        StartWorkerAction<T> action = new StartWorkerAction<T>(generateSchedulingInformation(ui), ui, this);
+        StartWorkerAction<T> action = new StartWorkerAction<>(generateSchedulingInformation(ui), ui, this);
         try {
             action.schedule(ui, (Score) null);
             action.tryToLaunch();
@@ -622,7 +631,7 @@ public class TaskScheduler {
     private <T extends WorkerResourceDescription> void reduceWorkerResources(ResourceScheduler<T> worker, ResourceUpdate<T> modification) {
         worker.pendingModification(modification);
         SchedulingInformation schedInfo = generateSchedulingInformation(worker);
-        ReduceWorkerAction<T> action = new ReduceWorkerAction<T>(schedInfo, worker, this, modification);
+        ReduceWorkerAction<T> action = new ReduceWorkerAction<>(schedInfo, worker, this, modification);
         try {
             action.schedule(worker, (Score) null);
             action.tryToLaunch();
@@ -1080,6 +1089,11 @@ public class TaskScheduler {
         return coresInfo.toString();
     }
 
+    /**
+     * Dumps the Scheduler information to a JSON Object
+     * 
+     * @return
+     */
     public JSONObject toJSONObject() {
         JSONObject json = new JSONObject();
         JSONObject resources = new JSONObject();

@@ -109,7 +109,7 @@ public abstract class ExternalExecutor extends Executor {
             case DECAF:
                 DecafInvoker decafInvoker = new DecafInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
                 executeNonNativeMethod(outputsBasename, decafInvoker);
-                break;  
+                break;
             case OMPSS:
                 OmpSsInvoker ompssInvoker = new OmpSsInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
                 executeNonNativeMethod(outputsBasename, ompssInvoker);
@@ -278,12 +278,13 @@ public abstract class ExternalExecutor extends Executor {
             switch (type) {
                 case FILE_T:
                     // Passing originalName link instead of renamed file
-                	String destFile = new File(np.getValue().toString()).getName();
-                	String originalFile = "";
-                	if (np.getData()!=null){
-                		originalFile = np.getData().getName();
-                	}
-                    lArgs.add(originalFile+":"+destFile+":"+ np.isPreserveSourceData()+":"+np.isWriteFinalValue()+":"+np.getOriginalName());
+                    String destFile = new File(np.getValue().toString()).getName();
+                    String originalFile = "";
+                    if (np.getData() != null) {
+                        originalFile = np.getData().getName();
+                    }
+                    lArgs.add(originalFile + ":" + destFile + ":" + np.isPreserveSourceData() + ":" + np.isWriteFinalValue() + ":"
+                            + np.getOriginalName());
                     break;
                 case OBJECT_T:
                 case PSCO_T:

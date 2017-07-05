@@ -277,6 +277,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             LOGGER.debug("LD Target " + sc.getTargetData());
             LOGGER.debug("FROM: " + sc.getPreferredSource());
             LOGGER.debug("TO: " + sc.getTargetLoc());
+            LOGGER.debug("MUST PRESERVE: " + sc.mustPreserveSourceData());
         }
 
         LogicalData source = sc.getSourceData();
@@ -347,8 +348,12 @@ public class NIOWorkerNode extends COMPSsWorker {
         String targetHostname = this.getName();
         LogicalData srcLD = sc.getSourceData();
         LogicalData targetLD = sc.getTargetData();
+        boolean preserveSource = sc.mustPreserveSourceData();
 
-        LOGGER.debug("Ask for new Version of " + srcLD.getName() + " with id " + srcLD.getId() + " to " + targetHostname);
+        if (DEBUG) {
+            LOGGER.debug("Ask for new Version of " + srcLD.getName() + " with id " + srcLD.getId() + " to " + targetHostname
+                    + " with must preserve " + preserveSource);
+        }
 
         // Get the PSCOId to replicate
         String pscoId = srcLD.getId();
@@ -359,7 +364,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             NIOTracer.emitEvent(NIOTracer.Event.STORAGE_NEWVERSION.getId(), NIOTracer.Event.STORAGE_NEWVERSION.getType());
         }
         try {
-            String newId = StorageItf.newVersion(pscoId, Comm.getAppHost().getName());
+            String newId = StorageItf.newVersion(pscoId, preserveSource, Comm.getAppHost().getName());
             LOGGER.debug("Register new new version of " + pscoId + " as " + newId);
             sc.setFinalTarget(newId);
             if (targetLD != null) {

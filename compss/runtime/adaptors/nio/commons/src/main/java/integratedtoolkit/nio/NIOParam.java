@@ -29,6 +29,7 @@ public class NIOParam implements Externalizable {
 
     public NIOParam(DataType type, Stream stream, String prefix, boolean preserveSourceData, boolean writeFinalValue, Object value,
             Data data, String originalName) {
+        
         this.type = type;
         this.stream = stream;
         this.prefix = prefix;

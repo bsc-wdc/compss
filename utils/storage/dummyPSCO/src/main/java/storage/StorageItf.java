@@ -234,7 +234,7 @@ public final class StorageItf {
      * @return
      * @throws StorageException
      */
-    public static String newVersion(String id, String hostName) throws StorageException {
+    public static String newVersion(String id, boolean preserveSource, String hostName) throws StorageException {
         LOGGER.info("NEW VERSION: " + id + " on host " + hostName);
 
         // New version always copies PSCO from master

@@ -355,7 +355,7 @@ public abstract class Invoker {
             			this.nw.storeObject(renamings[i], this.nt.getParams().get(i).getValue());
             			break;
             		default:
-            			// Update task params for TaskResult command
+            			// Update task parameters for TaskResult command
             			Object res = (this.hasTarget && i == this.numParams - 1) ? this.target.getValue() : this.values[i];
             			this.nt.getParams().get(i).setValue(res);
             			this.nw.storeObject(renamings[i], res);

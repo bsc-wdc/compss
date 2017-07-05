@@ -2,6 +2,7 @@ package storage;
 
 import java.util.List;
 
+
 /**
  * Representation of the Storage ITF
  *
@@ -63,14 +64,16 @@ public final class StorageItf {
     }
 
     /**
-     * Create a new version of the PSCO id @id in the host @hostname Returns the id of the new version
+     * Create a new version of the PSCO id @id in the host @hostname. The flag preserveSource indicates whether the PSCO
+     * with ID @id must be preserved or can be removed. The method returns the id of the new version
      * 
      * @param id
+     * @param preserveSource
      * @param hostName
      * @return
      * @throws StorageException
      */
-    public static String newVersion(String id, String hostName) throws StorageException {
+    public static String newVersion(String id, boolean preserveSource, String hostName) throws StorageException {
         throw new StorageException(STORAGE_NOT_FOUND_MESSAGE);
     }
 

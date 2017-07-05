@@ -28,6 +28,7 @@ public class StorageObject implements StubItf {
      * 
      * @return
      */
+    @Override
     public String getID() {
         throw new UnsupportedOperationException();
     }
@@ -37,6 +38,7 @@ public class StorageObject implements StubItf {
      * 
      * @param id
      */
+    @Override
     public void makePersistent(String id) {
         throw new UnsupportedOperationException();
     }
@@ -44,6 +46,7 @@ public class StorageObject implements StubItf {
     /**
      * Deletes the persistent object occurrences
      */
+    @Override
     public void deletePersistent() {
         throw new UnsupportedOperationException();
     }

@@ -11,8 +11,8 @@ public class CallbackEvent {
      *
      */
     public static enum EventType {
-        FAIL, 
-        SUCCESS;
+        FAIL, // Call failed
+        SUCCESS; // Call success
 
         private EventType() {
         }

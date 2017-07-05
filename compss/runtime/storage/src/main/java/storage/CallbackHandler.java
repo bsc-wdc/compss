@@ -7,7 +7,7 @@ package storage;
 public abstract class CallbackHandler {
 
     /**
-     * Empty callback handler intantiation
+     * Empty callback handler instantiation
      * 
      */
     public CallbackHandler() {

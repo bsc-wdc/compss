@@ -5,7 +5,6 @@ import java.io.Serializable;
 
 /**
  * Exception representation for errors when calling the Storage ITF
- * 
  *
  */
 public class StorageException extends Exception implements Serializable {

@@ -306,7 +306,13 @@ public class CloudProvider {
      * ------------------------------------------
      */
     public boolean canHostMoreInstances() {
-        return limitOfVMs != null && limitOfVMs != -1 && currentVMCount >= limitOfVMs;
+        if (limitOfVMs == null ){
+        	return true;
+        }
+        if (limitOfVMs == -1) {
+        	return true;
+        }
+        return currentVMCount < limitOfVMs;
     }
 
     public CloudMethodResourceDescription getResourceDescription(String instanceTypeName, String imageName) {

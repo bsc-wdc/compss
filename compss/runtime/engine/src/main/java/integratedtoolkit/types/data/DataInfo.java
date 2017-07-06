@@ -49,6 +49,16 @@ public abstract class DataInfo {
     public DataInstanceId getCurrentDataInstanceId() {
         return currentVersion.getDataInstanceId();
     }
+    
+    public DataInstanceId getPreviousDataInstanceId() {
+    	DataVersion dv =versions.get(currentVersionId-1);
+    	if (dv!=null){
+    		return dv.getDataInstanceId();
+    	}else{
+    		return null;
+    	}
+    }
+
 
     public void willBeRead() {
         currentVersion.willBeRead();

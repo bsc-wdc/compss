@@ -17,6 +17,7 @@ import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.types.data.AccessParams;
 import integratedtoolkit.types.data.AccessParams.AccessMode;
+import integratedtoolkit.types.data.AccessParams.FileAccessParams;
 import integratedtoolkit.types.data.DataAccessId;
 import integratedtoolkit.types.data.DataAccessId.RAccessId;
 import integratedtoolkit.types.data.DataAccessId.RWAccessId;
@@ -26,6 +27,7 @@ import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.ResultFile;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.data.location.DataLocation.Protocol;
+import integratedtoolkit.types.request.ap.FinishFileAccessRequest;
 import integratedtoolkit.types.request.ap.TransferRawFileRequest;
 import integratedtoolkit.types.request.ap.AlreadyAccessedRequest;
 import integratedtoolkit.types.request.ap.GetResultFilesRequest;
@@ -204,7 +206,26 @@ public class AccessProcessor implements Runnable, TaskProducer {
         }
     }
 
-    /**
+    public void finishAccessToFile(DataLocation sourceLocation, AccessParams.FileAccessParams fap, String destDir) {
+        boolean alreadyAccessed = alreadyAccessed(sourceLocation);
+
+        if (!alreadyAccessed) {
+            LOGGER.debug("File not accessed before. Nothing to do");
+            return;
+        }
+
+        // Tell the DM that the application wants to access a file.
+        finishFileAccess(fap);
+       
+    }
+    
+    private void finishFileAccess(FileAccessParams fap) {
+    	if (!requestQueue.offer(new FinishFileAccessRequest(fap))) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "finishing file access");
+        }
+	}
+
+	/**
      * Notifies a main access to a given file @sourceLocation in mode @fap
      *
      * @param sourceLocation

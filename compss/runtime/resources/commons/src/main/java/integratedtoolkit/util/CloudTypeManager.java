@@ -1,15 +1,19 @@
 package integratedtoolkit.util;
 
+import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.description.CloudInstanceTypeDescription;
-import java.util.Collection;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class CloudTypeManager {
@@ -19,11 +23,12 @@ public class CloudTypeManager {
      */
     private final HashMap<String, CloudInstanceTypeDescription> types;
 
-
+    private static final Logger logger = LogManager.getLogger(Loggers.CM_COMP);
     /**
      * Constructs a new CloudImageManager
      */
     public CloudTypeManager() {
+    	logger.debug("Initializing CloudTypeManager");
         types = new HashMap<>();
     }
 
@@ -34,6 +39,7 @@ public class CloudTypeManager {
      *            Description of the resource
      */
     public void addType(CloudInstanceTypeDescription type) {
+    	logger.debug("Add new type description " +type.getName());
         types.put(type.getName(), type);
     }
 

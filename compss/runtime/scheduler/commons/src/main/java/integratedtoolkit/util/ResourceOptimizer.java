@@ -36,6 +36,8 @@ public class ResourceOptimizer extends Thread {
     private static final String WARN_NO_COMPATIBLE_TYPE = "WARN: Cannot find any compatible instanceType";
     private static final String WARN_NO_COMPATIBLE_IMAGE = "WARN: Cannot find any compatible Image";
     private static final String WARN_NO_VALID_INSTANCE = "WARN: Cannot find a containing/contained instanceType";
+    private static final String WARN_NO_MORE_INSTANCES = "WARN: Cloud Provider cannot host more instances";
+    private static final String WARN_NO_POSIBLE_INCREASE = "WARN: Cloud Provider cannot increase resources";
     private static final String WARN_EXCEPTION_TURN_ON = "WARN: Connector exception on turn on resource";
 
     // Loggers
@@ -803,7 +805,7 @@ public class ResourceOptimizer extends Thread {
             boolean aggressive = false;// (resource.getUsedTaskCount() == 0);
             boolean add = !aggressive;
             if (DEBUG) {
-                RUNTIME_LOGGER.debug("\tEvaluating " + resource.getName() + ". Default reduction is " + add);
+                RUNTIME_LOGGER.debug("\t Evaluating " + resource.getName() + ". Default reduction is " + add);
             }
             List<Integer> executableCores = resource.getExecutableCores();
             for (int coreId : executableCores) {
@@ -1118,6 +1120,12 @@ public class ResourceOptimizer extends Thread {
                 bestProvider = cp;
                 bestConstraints = rc;
                 bestValue = rc.getValue();
+            }else if (rc != null && bestConstraints == null){
+            	bestProvider = cp;
+                bestConstraints = rc;
+                bestValue = rc.getValue();
+            }else{
+            	RUNTIME_LOGGER.warn(WARN_NO_POSIBLE_INCREASE +" ("+ cp.getName()+")");
             }
         }
         if (bestConstraints == null) {
@@ -1130,15 +1138,18 @@ public class ResourceOptimizer extends Thread {
 
     public static CloudMethodResourceDescription getBestIncreaseOnProvider(CloudProvider cp, Integer amount,
             MethodResourceDescription requirements, boolean contained) {
-        // Check Cloud capabilities
+    	RUNTIME_LOGGER.debug("[Resource Optimizer] Getting best increase in provider " + cp.getName());
+    	// Check Cloud capabilities
         if (!cp.canHostMoreInstances()) {
+        	RUNTIME_LOGGER.warn(WARN_NO_MORE_INSTANCES);
             return null;
         }
 
         // Select all the compatible types
         List<CloudInstanceTypeDescription> instances = cp.getCompatibleTypes(requirements);
+        RUNTIME_LOGGER.debug("[Resource Optimizer] There are "+ instances.size() + " instances compatible.");
         if (instances.isEmpty()) {
-            RESOURCES_LOGGER.warn(WARN_NO_COMPATIBLE_TYPE);
+            RUNTIME_LOGGER.warn(WARN_NO_COMPATIBLE_TYPE);
             return null;
         }
 
@@ -1154,15 +1165,16 @@ public class ResourceOptimizer extends Thread {
         if (type != null) {
             // Select all the compatible images
             List<CloudImageDescription> images = cp.getCompatibleImages(requirements);
+            RUNTIME_LOGGER.debug("[Resource Optimizer] There are "+ images.size() + " images compatible.");
             if (!images.isEmpty()) {
                 CloudImageDescription image = images.get(0);
                 result = new CloudMethodResourceDescription(type, image);
                 result.setValue(cp.getInstanceCostPerHour(result));
             } else {
-                RESOURCES_LOGGER.warn(WARN_NO_COMPATIBLE_IMAGE);
+                RUNTIME_LOGGER.warn(WARN_NO_COMPATIBLE_IMAGE);
             }
         } else {
-            RESOURCES_LOGGER.warn(WARN_NO_VALID_INSTANCE);
+            RUNTIME_LOGGER.warn(WARN_NO_VALID_INSTANCE);
         }
 
         return result;
@@ -1179,8 +1191,8 @@ public class ResourceOptimizer extends Thread {
             MethodResourceDescription rd = type.getResourceDescription();
             int slots = rd.canHostSimultaneously(constraints);
             float distance = slots - amount;
-            RESOURCES_LOGGER.debug(
-                    "Can host: slots = " + slots + " amount = " + amount + " distance = " + distance + " bestDistance = " + bestDistance);
+            RUNTIME_LOGGER.debug("[Resource Optimizer] Can host: slots = " + slots + 
+            		" amount = " + amount + " distance = " + distance + " bestDistance = " + bestDistance);
             if (distance > 0.0) {
                 continue;
             }
@@ -1216,8 +1228,8 @@ public class ResourceOptimizer extends Thread {
             MethodResourceDescription rd = type.getResourceDescription();
             int slots = rd.canHostSimultaneously(constraints);
             float distance = slots - amount;
-            RESOURCES_LOGGER.debug(
-                    "Can host: slots = " + slots + " amount = " + amount + " distance = " + distance + " bestDistance = " + bestDistance);
+            RUNTIME_LOGGER.debug("[Resource Optimizer] Can host: slots = " + slots + " amount = " + amount + 
+            		" distance = " + distance + " bestDistance = " + bestDistance);
             if (distance < 0.0) {
                 continue;
             }

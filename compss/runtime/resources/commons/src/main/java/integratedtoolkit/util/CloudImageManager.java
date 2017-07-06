@@ -34,7 +34,7 @@ public class CloudImageManager {
      * Constructs a new CloudImageManager
      */
     public CloudImageManager() {
-        logger.info("Initializing CloudImageManager");
+        logger.debug("Initializing CloudImageManager");
         images = new HashMap<>();
     }
 
@@ -45,7 +45,7 @@ public class CloudImageManager {
      *            Description of the image
      */
     public void add(CloudImageDescription cid) {
-        logger.debug("Add new Image description");
+        logger.debug("Add new Image description " + cid.getImageName());
         images.put(cid.getImageName(), cid);
     }
 

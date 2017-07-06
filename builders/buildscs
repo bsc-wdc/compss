@@ -1,0 +1,32 @@
+#!/bin/bash -e
+
+  # Define directories
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  SCS_BASE_DIR=${SCRIPT_DIR}/scs/
+
+  # Define remote parameters
+  SCuser=compss
+  SCtmp=/home/bsc19/compss/tmpCOMPSs/
+  SCtarget=/apps/COMPSs/Trunk
+
+  # Install on each enabled supercomputer
+  ENABLED_SCS=("nord" "mt") #("mn" "nord" "mt")
+  SCS_SCRIPT_NAMES=("buildNord" "buildMT") #("buildMN" "buildNord" "buildMT")
+
+  echo "Installing COMPSs at SCs"
+
+  for i in "${!ENABLED_SCS[@]}"; do
+    SCName="${ENABLED_SCS[$i]}"
+    SCscript="${SCS_SCRIPT_NAMES[$i]}"
+
+    echo "-- Installing COMPSs at $SCName SuperComputer"
+    cd ${SCS_BASE_DIR}/$SCName
+    ./"${SCscript}" "$SCuser" "$SCtmp" "$SCtarget"
+    cd ${SCRIPT_DIR}
+    echo "-- COMPSs at $SCName Installed!"
+  done
+
+  # DONE
+  echo "COMPSs Successfully installed in all SuperComputers"
+  exit 0
+

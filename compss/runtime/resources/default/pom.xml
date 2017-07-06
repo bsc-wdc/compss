@@ -9,7 +9,7 @@
 	<packaging>pom</packaging>
 	<parent>
 		<groupId>es.bsc.compss</groupId>
-		<artifactId>compss-runtime</artifactId>
+		<artifactId>compss-resources</artifactId>
 		<version>2.1.rc1706</version>
 		<relativePath>..</relativePath>
 	</parent>

@@ -122,7 +122,27 @@ public class DataInfoProvider {
         // Version management
         return willAccess(mode, fileInfo);
     }
+    
+    public void finishFileAccess(AccessMode mode, DataLocation location) {
+    	DataInfo fileInfo;
+        String locationKey = location.getLocationKey();
+        Integer fileId = nameToId.get(locationKey);
 
+        // First access to this file
+        if (fileId == null) {
+               LOGGER.warn("File " + location.getLocationKey() + " has not been accessed before");
+               return;
+        }
+        fileInfo = idToData.get(fileId);
+        DataAccessId daid = getAccess(mode, fileInfo);
+        if (daid == null){
+        	LOGGER.warn("File " + location.getLocationKey() + " has not been accessed before");
+            return;
+        }
+        dataHasBeenAccessed(daid);
+               
+    }
+    	
     /**
      * DataAccess interface: registers a new object access
      * 
@@ -261,6 +281,35 @@ public class DataInfoProvider {
                     LOGGER.debug(sb.toString());
                 }
                 break;
+        }
+        return daId;
+    }
+    
+    private DataAccessId getAccess(AccessMode mode, DataInfo di) {
+        // Version management
+        DataAccessId daId = null;
+        DataInstanceId currentInstance = di.getCurrentDataInstanceId();
+        if (currentInstance!=null){
+        	switch (mode) {
+            	case R:
+            		daId = new RAccessId(currentInstance);
+            		break;
+
+            	case W:
+            		daId = new WAccessId(di.getCurrentDataInstanceId());
+            		break;
+            	case RW:
+            		boolean preserveSourceData = di.isToBeRead();
+            		DataInstanceId readInstance = di.getPreviousDataInstanceId();
+            		if (readInstance !=null){
+            			daId = new RWAccessId(readInstance, currentInstance, preserveSourceData);
+            		}else{
+            			LOGGER.warn("Previous instance for data" + di.getDataId() + " is null." );
+            		}
+            		break;
+        	}
+        }else{
+        	LOGGER.warn("Current instance for data" + di.getDataId() + " is null." );
         }
         return daId;
     }

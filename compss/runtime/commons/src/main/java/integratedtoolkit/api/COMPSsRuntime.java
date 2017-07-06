@@ -145,6 +145,15 @@ public interface COMPSsRuntime {
      * @return
      */
     public String openFile(String fileName, Direction mode);
+    
+    /**
+     * close the opened file version
+     * 
+     * @param fileName
+     * @param mode
+     * @return
+     */
+    public void closeFile(String fileName, Direction mode);
 
     /**
      * Deletes the specified version of a file

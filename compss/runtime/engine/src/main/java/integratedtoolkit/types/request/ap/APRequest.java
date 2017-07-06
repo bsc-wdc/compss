@@ -44,6 +44,7 @@ public abstract class APRequest extends Request {
         GRAPHSTATE,
         TASKSTATE,
         DELETE_FILE,
+        FINISH_ACCESS_FILE,
         DEBUG
     }
 

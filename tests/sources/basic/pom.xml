@@ -97,7 +97,8 @@
 		<!-- Module 64 is 64-decaf_python -->
 		<!-- Module 65 is 65-testStatic_c -->
 		<module>66-limitOfTasks</module>
-
+		<module>67-elasticityJava</module>
+                <!-- Module 68 is 68-elasticity_python -->
 		<!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

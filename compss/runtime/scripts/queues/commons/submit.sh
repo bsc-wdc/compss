@@ -78,6 +78,10 @@ show_opts() {
                                             Default: ${DEFAULT_QUEUE}
     --reservation=<name>                    Reservation to use when submitting the job. 
                                             Default: ${DEFAULT_RESERVATION}
+    --constraints=<constraints>		    Constraints to pass to queue system.
+					    Default: ${DEFAULT_CONSTRAINTS}
+    --qos=<qos>				    Quality of Service to pass to the queue system.
+					    Default: ${DEFAULT_QOS}
     --job_dependency=<jobID>                Postpone job execution until the job dependency has ended.
                                             Default: ${DEFAULT_DEPENDENCY_JOB}
     --storage_home=<string>                 Root installation dir of the storage implementation
@@ -246,6 +250,12 @@ get_args() {
           reservation=*)
             reservation=$(echo $OPTARG | sed -e 's/reservation=//g')
             ;;
+	  qos=*)
+            qos=$(echo $OPTARG | sed -e 's/qos=//g')
+            ;;
+	  constraints=*)
+            constraints=$(echo $OPTARG | sed -e 's/constraints=//g')
+            ;;
           job_dependency=*)
             dependencyJob=$(echo $OPTARG | sed -e 's/job_dependency=//g')
             ;;
@@ -313,6 +323,14 @@ check_args() {
 
   if [ -z "${reservation}" ]; then
     reservation=${DEFAULT_RESERVATION}
+  fi
+
+  if [ -z "${constraints}" ]; then
+    constraints=${DEFAULT_CONSTRAINTS}
+  fi
+  
+  if [ -z "${qos}" ]; then
+    qos=${DEFAULT_QOS}
   fi
 
   if [ -z "${dependencyJob}" ]; then
@@ -468,12 +486,36 @@ EOT
     fi
   fi
 
+  # QoS
+  if [ -n "${QARG_QOS}" ]; then
+    if [ "${qos}" != "default" ]; then
+      if [ -z "${DISABLE_QARG_QOS}" ] || ["${DISABLE_QARG_QOS}" == "false" ]; then
+      	cat >> $TMP_SUBMIT_SCRIPT << EOT
+#${QUEUE_CMD} ${QARG_QOS}${QUEUE_SEPARATOR}${qos}
+EOT
+      fi
+    fi
+  fi
+  
+  # Constraints
+  if [ -n "${QARG_CONSTRAINTS}" ]; then
+    if [ "${constraints}" != "disabled" ]; then
+      if [ -z "${DISABLE_QARG_CONSTRAINTS}" ] || ["${DISABLE_QARG_CONSTRAINTS}" == "false" ]; then
+        cat >> $TMP_SUBMIT_SCRIPT << EOT
+#${QUEUE_CMD} ${QARG_CONSTRAINTS}${QUEUE_SEPARATOR}${constraints}
+EOT
+      fi
+    fi
+  fi
+
   # Node memory
   if [ -n "${QARG_MEMORY}" ]; then
     if [ "${node_memory}" != "disabled" ]; then
-      cat >> $TMP_SUBMIT_SCRIPT << EOT
+      if [ -z "${DISABLE_QARG_MEMORY}" ] || [ "${DISABLE_QARG_MEMORY}" == "false" ]; then
+          cat >> $TMP_SUBMIT_SCRIPT << EOT
 #${QUEUE_CMD} ${QARG_MEMORY}${QUEUE_SEPARATOR}${node_memory}
 EOT
+      fi
     fi
   fi
 

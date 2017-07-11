@@ -676,8 +676,10 @@ public class NIOWorker extends NIOAgent {
                     if (!f.delete()) {
                         WORKER_LOGGER.error("Error removing file " + f.getAbsolutePath());
                     }
-                } else {
-                    removeFromCache(name);
+                }
+                String dataName = new File(name).getName();
+                if(dataManager.checkPresence(dataName)) {
+                    removeFromCache(dataName);
                 }
             }
         } catch (Exception e) {

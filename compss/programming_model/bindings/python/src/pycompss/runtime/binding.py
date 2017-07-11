@@ -394,6 +394,7 @@ def synchronize(obj, mode):
 
     # The main program won't work with the old object anymore, update mapping
     objid_to_filename[new_obj_id] = objid_to_filename[obj_id].replace(obj_id, new_obj_id)
+    objs_written_by_mp[new_obj_id] = objid_to_filename[new_obj_id]
     task_objects[new_obj_id] = new_obj
     serialize_to_file(new_obj, objid_to_filename[new_obj_id])
 

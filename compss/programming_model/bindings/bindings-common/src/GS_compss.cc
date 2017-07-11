@@ -33,6 +33,7 @@ jmethodID midRegisterCE; 	/* ID of the RegisterCE method in the integratedtoolki
 jmethodID midEmitEvent; 	/* ID of the EmitEvent method in the integratedtoolkit.api.impl.COMPSsRuntimeImpl class  */
 
 jmethodID midOpenFile; 		/* ID of the openFile method in the integratedtoolkit.api.impl.COMPSsRuntimeImpl class  */
+jmethodID midCloseFile;
 jmethodID midDeleteFile; 	/* ID of the deleteFile method in the integratedtoolkit.api.impl.COMPSsRuntimeImpl class  */
 
 jmethodID midBarrier; 		/* ID of the barrier method in the integratedtoolkit.api.impl.COMPSsRuntimeImpl class  */
@@ -221,6 +222,13 @@ void init_jni_types() {
 
   // openFile method
   midOpenFile = env->GetMethodID(clsITimpl, "openFile", "(Ljava/lang/String;Lintegratedtoolkit/types/annotations/parameter/Direction;)Ljava/lang/String;");
+  if (env->ExceptionOccurred()) {
+    env->ExceptionDescribe();
+    exit(1);
+  }
+
+  // closeFile method
+  midCloseFile = env->GetMethodID(clsITimpl, "closeFile", "(Ljava/lang/String;Lintegratedtoolkit/types/annotations/parameter/Direction;)V");
   if (env->ExceptionOccurred()) {
     env->ExceptionDescribe();
     exit(1);
@@ -895,6 +903,29 @@ void GS_Get_File(char *file_name, int mode, char **buf)
   env->ReleaseStringUTFChars(jstr, cstr);
 
   debug_printf("[   BINDING]  -  @GS_Get_File  -  COMPSs filename: %s\n", *buf);
+}
+
+extern "C" void GS_Close_File(char *file_name, int mode) {
+
+  switch ((enum direction) mode) {
+    case in_dir:
+      env->CallVoidMethod(jobjIT, midCloseFile, env->NewStringUTF(file_name), jobjParDirIN);
+      break;
+    case out_dir:
+      env->CallVoidMethod(jobjIT, midCloseFile, env->NewStringUTF(file_name), jobjParDirOUT);
+      break;
+    case inout_dir:
+      env->CallVoidMethod(jobjIT, midCloseFile, env->NewStringUTF(file_name), jobjParDirINOUT);
+      break;
+    default:
+      break;
+  }
+
+  if (env->ExceptionOccurred()) {
+      env->ExceptionDescribe();
+      exit(1);
+  }
+  debug_printf("[   BINDING]  -  @GS_Close_File  -  COMPSs filename: %s\n", file_name);
 }
 
 

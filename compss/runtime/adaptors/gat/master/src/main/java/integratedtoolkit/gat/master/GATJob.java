@@ -277,7 +277,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         lArgs.add(LANG);
         lArgs.add(getResourceNode().getWorkingDir());
         lArgs.add(getResourceNode().getLibPath());
-        List<LogicalData> obsoleteFiles = getResource().clearObsoletes();
+        List<LogicalData> obsoleteFiles = getResource().getObsoletes();
         if (obsoleteFiles != null) {
             lArgs.add("" + obsoleteFiles.size());
             for (LogicalData ld : obsoleteFiles) {
@@ -287,7 +287,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         } else {
             lArgs.add("0");
         }
-
+        getResource().clearObsoletes();
         // Check sandbox working dir
         boolean isSpecific = false;
         String sandboxDir = null;

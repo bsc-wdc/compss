@@ -180,15 +180,22 @@ public abstract class Resource implements Comparable<Resource> {
     }
 
     /**
-     * Clears the list of obsolete files
-     *
-     * @return
+     * Gets the list of obsolete files
+     * @return List of logicalData objects
      */
-    public final List<LogicalData> clearObsoletes() {
+    public final List<LogicalData> getObsoletes() {
         synchronized (obsoletes) {
             List<LogicalData> obs = obsoletes;
-            obsoletes.clear();
             return obs;
+        }
+    }
+
+    /**
+     * Clears the list of obsolete files
+     */
+    public final void clearObsoletes() {
+        synchronized (obsoletes) {
+            obsoletes.clear();
         }
     }
 

@@ -23,7 +23,6 @@ from test.modules.test_tasks import multireturn, power, merge
 from test.modules.test_tasks import function_moduleObject, Foo
 
 def main_program():
-
     test_function_primitives()
     test_function_files()
     test_function_objects()
@@ -55,7 +54,7 @@ def main_program():
     test_generator()
 
     test_lambda_return()
-    test_generator_return()
+    #test_generator_return()
 
     test_all_class_tasks()
 
@@ -65,6 +64,7 @@ def main_program():
 
     test_moduleObject()
 
+    pass
 
 def test_function_primitives():
     print "test_function_primitives"

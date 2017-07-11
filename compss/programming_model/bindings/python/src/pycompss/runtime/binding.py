@@ -77,9 +77,6 @@ task_objects = {}
 # Objects that have been accessed by the main program
 objs_written_by_mp = {}  # obj_id -> compss_file_name
 
-# Objects that are pending to be synced
-pending_to_sync = {}
-
 # Enable or disable small objects conversion to strings
 # cross-module variable (set/modified from launch.py)
 object_conversion = False
@@ -92,12 +89,16 @@ current_id = 1
 runtime_id = str(uuid.uuid1())
 id2obj = {}
 
-def get_object_id(obj):
+def get_object_id(obj, force_insertion=False):
     global current_id
     global runtime_id
     for identifier in id2obj:
         if id2obj[identifier] is obj:
-            return identifier
+            if force_insertion:
+                id2obj.pop(identifier)
+                break
+            else:
+                return identifier
     # This object was not in our object database, lets assign it an identifier
     # and store it
     # As mentioned before, identifiers are of the form runtime_id-current_id
@@ -133,7 +134,8 @@ class Future(object):
     """
     Future object class definition.
     """
-    pass
+    def __init__(self):
+        self.__hidden_id = str(uuid.uuid1)
 
 
 ###############################################################################
@@ -385,35 +387,25 @@ def synchronize(obj, mode):
     logger.debug("Synchronizing object %s with mode %s" % (obj_id, mode))
 
     file_name = objid_to_filename[obj_id]
-    if obj_id not in objs_written_by_mp:
-        compss_file = compss.get_file(file_name, mode)
-    else:
-        compss_file = objs_written_by_mp[obj_id]
-
+    compss_file = compss.get_file(file_name, mode)
     new_obj = deserialize_from_file(compss_file)
-    new_obj_id = get_object_id(new_obj)
+    compss.close_file(file_name, mode)
+    new_obj_id = get_object_id(new_obj, True)
 
     # The main program won't work with the old object anymore, update mapping
-    objid_to_filename[new_obj_id] = file_name
+    objid_to_filename[new_obj_id] = objid_to_filename[obj_id].replace(obj_id, new_obj_id)
     task_objects[new_obj_id] = new_obj
+    serialize_to_file(new_obj, objid_to_filename[new_obj_id])
 
-    # If the object has changed and the previous version is not pending to be
-    # synced then we can delete the objects and its representative file
-    if obj_id != new_obj_id and obj_id not in pending_to_sync:
-        logger.debug('Deleting obj %s (new one is %s)'%(str(obj_id), str(new_obj_id)))
-        compss.delete_file(objid_to_filename[obj_id])
-        objid_to_filename.pop(obj_id)
-        task_objects.pop(obj_id)
-        id2obj.pop(obj_id)
-    # A recently synced object is no longer pending to be synced
-    if new_obj_id in pending_to_sync:
-        pending_to_sync.pop(new_obj_id)
-
+    logger.debug('Deleting obj %s (new one is %s)'%(str(obj_id), str(new_obj_id)))
+    #delete_file(objid_to_filename[obj_id])
+    objid_to_filename.pop(obj_id)
+    task_objects.pop(obj_id)
 
     logger.debug("Now object with id %s and %s has mapping %s" % (new_obj_id, type(new_obj), file_name))
-    objs_written_by_mp[new_obj_id] = compss_file
 
     return new_obj
+
 
 
 def process_task(f, module_name, class_name, ftype, has_return, spec_args, args, kwargs, self_kwargs, num_nodes, replicated, distributed):
@@ -888,8 +880,6 @@ def turn_into_file(p):
     '''
     obj_id = get_object_id(p.value)
     file_name = objid_to_filename.get(obj_id)
-    if p.direction == Direction.INOUT:
-        pending_to_sync[obj_id] = p.value
     if file_name is None:
         # This is the first time a task accesses this object
         task_objects[obj_id] = p.value

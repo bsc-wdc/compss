@@ -399,7 +399,7 @@ def synchronize(obj, mode):
     serialize_to_file(new_obj, objid_to_filename[new_obj_id])
 
     logger.debug('Deleting obj %s (new one is %s)'%(str(obj_id), str(new_obj_id)))
-    #delete_file(objid_to_filename[obj_id])
+    compss.delete_file(compss_file)
     objid_to_filename.pop(obj_id)
     task_objects.pop(obj_id)
 

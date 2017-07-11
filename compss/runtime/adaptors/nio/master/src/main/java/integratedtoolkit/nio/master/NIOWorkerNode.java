@@ -254,6 +254,8 @@ public class NIOWorkerNode extends COMPSsWorker {
     public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
             EventListener listener) {
 
+        if(ld == null) return;
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Obtain Data " + ld.getName() + " as " + target);
         }

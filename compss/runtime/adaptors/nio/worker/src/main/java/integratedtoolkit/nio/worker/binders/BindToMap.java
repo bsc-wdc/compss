@@ -15,6 +15,7 @@ import integratedtoolkit.log.Loggers;
 
 import integratedtoolkit.nio.worker.exceptions.InvalidMapException;
 import integratedtoolkit.nio.worker.exceptions.UnsufficientAvailableComputingUnitsException;
+import integratedtoolkit.util.Tracer;
 
 
 /**
@@ -81,6 +82,7 @@ public class BindToMap implements ThreadBinder {
         String cmdOutput = null;
         ProcessBuilder pb = new ProcessBuilder("lscpu");
         try {
+            pb.environment().remove(Tracer.LD_PRELOAD);
             Process process = pb.start();
 
             // Disable inputs to process

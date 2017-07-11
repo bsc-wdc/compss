@@ -263,12 +263,12 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         Resource res = job.getResource();
         NIOWorkerNode worker = (NIOWorkerNode) res.getNode();
 
-        List<LogicalData> obsoletes = res.clearObsoletes();
+        List<LogicalData> obsoletes = res.getObsoletes();
         List<String> obsoleteRenamings = new LinkedList<>();
         for (LogicalData ld : obsoletes) {
-            obsoleteRenamings.add(ld.getName());
+            obsoleteRenamings.add(worker.getWorkingDir()+File.separator+ld.getName());
         }
-
+        res.clearObsoletes();
         RUNNING_JOBS.put(job.getJobId(), job);
         worker.submitTask(job, obsoleteRenamings);
     }

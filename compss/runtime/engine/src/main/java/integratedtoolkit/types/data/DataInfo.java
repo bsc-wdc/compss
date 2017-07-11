@@ -73,7 +73,7 @@ public abstract class DataInfo {
         if (readVersion.hasBeenRead()) {
             versions.remove(versionId);
             //return (this.toDelete && versions.size() == 0);
-            return (versions.size() == 0);
+            return versions.isEmpty();
         }
         return false;
     }
@@ -91,7 +91,7 @@ public abstract class DataInfo {
         if (writtenVersion.hasBeenWritten()) {
             versions.remove(versionId);
             //return (this.toDelete && versions.size() == 0);
-            return (versions.size() == 0);
+            return versions.isEmpty();
         }
         return false;
     }
@@ -108,7 +108,7 @@ public abstract class DataInfo {
                     versions.remove(version.getDataInstanceId().getVersionId());
                 }
             }
-            if (versions.size() == 0) {
+            if (versions.isEmpty()) {
                 return true;
             }
         }
@@ -118,9 +118,7 @@ public abstract class DataInfo {
     public boolean delete() {
         //this.toDelete = true;
         if (deletionBlocks > 0) {
-            for (DataVersion version : versions.values()) {
-                pendingDeletions.add(version);
-            }
+            pendingDeletions.addAll(versions.values());
         } else {
             LinkedList<Integer> removedVersions = new LinkedList<>();
             for (DataVersion version : versions.values()) {
@@ -131,7 +129,7 @@ public abstract class DataInfo {
             for (int versionId : removedVersions) {
                 versions.remove(versionId);
             }
-            if (versions.size() == 0) {
+            if (versions.isEmpty()) {
                 return true;
             }
         }

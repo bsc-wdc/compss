@@ -318,11 +318,12 @@ public class Comm {
      * @return
      */
     public static synchronized LogicalData getData(String dataId) {
+        LogicalData retVal = data.get(dataId);
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Get data " + data.get(dataId));
+            LOGGER.debug("Get data " + retVal);
         }
 
-        return data.get(dataId);
+        return retVal;
     }
 
     /**

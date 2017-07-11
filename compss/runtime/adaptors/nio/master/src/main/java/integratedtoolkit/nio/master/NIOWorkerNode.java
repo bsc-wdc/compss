@@ -519,7 +519,6 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     public void setStarted(boolean b) {
         started = b;
-
     }
 
 }

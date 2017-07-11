@@ -248,6 +248,13 @@ delete_file(PyObject *self, PyObject *args)
     return Py_BuildValue("i", result);
 }
 
+static PyObject*
+close_file(PyObject* self, PyObject* args) {
+  char *file_name = PyString_AsString(PyTuple_GetItem(args, 0));
+  int mode = (int)PyInt_AsLong(PyTuple_GetItem(args, 1));
+  GS_Close_File(file_name, mode);
+  Py_RETURN_NONE;
+}
 
 static PyObject *
 barrier(PyObject *self, PyObject *args)
@@ -327,6 +334,8 @@ static PyMethodDef CompssMethods[] = {
     { "get_file", get_file, METH_VARARGS, "Get a file for opening. The file can contain an object." },
 
     { "delete_file", delete_file, METH_VARARGS, "Delete a file." },
+
+    { "close_file", close_file, METH_VARARGS, "Close a file." },
 
     { "barrier", barrier, METH_VARARGS, "Perform a barrier until the tasks already submitted have finished." },
 

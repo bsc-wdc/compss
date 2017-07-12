@@ -1,0 +1,5 @@
+interface simple {
+	//@Constraints(ComputingUnits=2, memoryPhysicalSize = 0.3f, storageSize = 3.0f);
+	@Constraints(MemoryPhysicalSize = 0.3f);
+	void increment(inout File filename);
+};

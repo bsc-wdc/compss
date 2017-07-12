@@ -28,11 +28,11 @@
   targetDir=$1
   scriptDir=$(dirname $0)
 
-  modules="intel/2017.4 transfer/1.0 bsc/1.0 impi/2017.4 mkl/2017.4 python/2.7.13 boost/1.64.0_py2 java/8u131"
+  modules="intel/2017.4 transfer/1.0 bsc/1.0 impi/2017.4 openmpi mkl/2017.4 python/2.7.13 boost/1.64.0_py2 java/8u131"
   additionalExports=""
   queues_cfg="mn.cfg"
-  extrae_with_openmpi="false"
-  openmpi_version="/1.8.1"
+  extrae_with_openmpi="true"
+  openmpi_version="/1.10.4"
   extrae_with_impi="true"
   impi_version=""
   #echo " salloc -p interactive /bin/bash -c \"${scriptDir}/buildSC_aux ${targetDir} '${modules}' '${additionalExports}' '${queues_cfg}' '${extrae_with_openmpi}' '${openmpi_version}' '${extrae_with_impi}' '${impi_version}'\""

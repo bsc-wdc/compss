@@ -704,20 +704,27 @@ public class ResourceOptimizer extends Thread {
     private boolean optionalReduction(float[] destroyRecommendations) {
         List<CloudMethodWorker> nonCritical = trimReductionOptions(ResourceManager.getNonCriticalDynamicResources(),
                 destroyRecommendations);
+        if (DEBUG) {
+            RUNTIME_LOGGER.debug("[Resource Optimizer] Searching for best destruction");
+        }
         Object[] nonCriticalSolution = getBestDestruction(nonCritical, destroyRecommendations);
-
         CloudMethodWorker res;
         float[] record;
-        CloudMethodResourceDescription rd;
+        CloudInstanceTypeDescription rd;
         // int[][] slotsRemovingCount;
 
-        if (nonCriticalSolution == null) {
-            return false;
+        if (nonCriticalSolution == null || nonCriticalSolution[0]== null 
+        		|| nonCriticalSolution[1]== null || nonCriticalSolution[2]== null) {
+        	if (DEBUG) {
+                RUNTIME_LOGGER.warn("[Resource Optimizer] No solution found");
+        	}
+        	return false;
         }
+        
         res = (CloudMethodWorker) nonCriticalSolution[0];
-        record = (float[]) nonCriticalSolution[1];
-        // slotsRemovingCount = (int[][]) nonCriticalSolution[2];
-        rd = (CloudMethodResourceDescription) nonCriticalSolution[3];
+        rd = (CloudInstanceTypeDescription) nonCriticalSolution[1];
+        record = (float[]) nonCriticalSolution[2];
+        
         if (DEBUG) {
             RUNTIME_LOGGER.debug("[Resource Optimizer] Best resource to remove is " + res.getName() + "and record is [" + record[0] + ","
                     + record[1] + "," + record[2]);
@@ -727,7 +734,7 @@ public class ResourceOptimizer extends Thread {
             return false;
         } else {
             RUNTIME_LOGGER.debug("[Resource Optimizer] Optional destroy recommendation applied");
-            CloudMethodResourceDescription finalDescription = rd;
+            CloudMethodResourceDescription finalDescription = new CloudMethodResourceDescription(rd, res.getDescription().getImage());
             finalDescription.setName(res.getName());
             ResourceManager.reduceCloudWorker(res, finalDescription);
             return true;
@@ -1278,7 +1285,8 @@ public class ResourceOptimizer extends Thread {
      *
      */
     private Object[] getBestDestruction(Collection<CloudMethodWorker> resourceSet, float[] destroyRecommendations) {
-        CloudProvider cp;
+        
+    	CloudProvider cp;
         float[] bestRecord = new float[3];
         bestRecord[0] = Float.MAX_VALUE;
         bestRecord[1] = Float.MAX_VALUE;
@@ -1289,7 +1297,10 @@ public class ResourceOptimizer extends Thread {
         for (CloudMethodWorker res : resourceSet) {
             cp = res.getProvider();
             if (cp == null) { // it's not a cloud machine
-                continue;
+            	if (DEBUG) {
+            		RUNTIME_LOGGER.debug("Resource " + res.getName() + " is not cloud. Skipping...");
+            	}
+            	continue;
             }
 
             Map<CloudInstanceTypeDescription, float[]> typeToPoints = getPossibleReductions(res, destroyRecommendations);
@@ -1297,6 +1308,10 @@ public class ResourceOptimizer extends Thread {
             for (Map.Entry<CloudInstanceTypeDescription, float[]> destruction : typeToPoints.entrySet()) {
                 CloudInstanceTypeDescription type = destruction.getKey();
                 float[] values = destruction.getValue();
+                if (DEBUG) {
+                	RUNTIME_LOGGER.debug("Type: " +type.getName() + " value 0: " + values[0]+ " (" +bestRecord[0]+") "+
+                			" value 1: " + values[1]+ " (" +bestRecord[1]+") "+ " value 2: " + values[2]+ " (" +bestRecord[2]+")");
+                }
                 if (bestRecord[0] == values[0]) {
                     if (bestRecord[1] == values[1]) {
                         if (bestRecord[2] < values[2]) {
@@ -1323,6 +1338,7 @@ public class ResourceOptimizer extends Thread {
             ret[2] = bestRecord;
             return ret;
         } else {
+        	RUNTIME_LOGGER.warn("Best resource to remove not found");
             return null;
         }
     }

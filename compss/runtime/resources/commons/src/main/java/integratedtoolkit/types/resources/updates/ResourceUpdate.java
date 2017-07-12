@@ -21,6 +21,15 @@ public abstract class ResourceUpdate<T extends ResourceDescription> {
     public final T getModification() {
         return modification;
     }
+    
+    public boolean isIncrease(){
+    	return getType().equals(Type.INCREASE);
+    }
+    
+    public boolean isReduce(){
+    	return getType().equals(Type.REDUCE);
+    }
+    
 
     public abstract Type getType();
 

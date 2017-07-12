@@ -319,10 +319,9 @@ public class Comm {
      */
     public static synchronized LogicalData getData(String dataId) {
         LogicalData retVal = data.get(dataId);
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Get data " + retVal);
+        if (retVal==null) {
+            LOGGER.warn("Get data " + dataId + " is null.");
         }
-
         return retVal;
     }
 

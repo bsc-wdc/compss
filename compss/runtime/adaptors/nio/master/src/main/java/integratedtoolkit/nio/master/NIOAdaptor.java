@@ -285,7 +285,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    public boolean isMyUuid(String uuid) {
+    public boolean isMyUuid(String uuid, String nodeName) {
         // This is used on NIOWorker to check sent UUID against worker UUID
         return false;
     }

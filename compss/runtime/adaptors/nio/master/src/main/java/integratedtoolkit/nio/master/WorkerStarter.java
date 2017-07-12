@@ -479,7 +479,8 @@ public class WorkerStarter {
             String user = node.getUser();
 
             // Clean worker working directory
-            String sandboxWorkingDir = node.getBaseWorkingDir() + DEPLOYMENT_ID + File.separator;
+            //String sandboxWorkingDir = node.getBaseWorkingDir() + DEPLOYMENT_ID + File.separator + host + File.separator;
+            String sandboxWorkingDir = node.getWorkingDir();
             String[] command = getCleanWorkerWorkingDir(sandboxWorkingDir);
             if (command != null) {
                 executeCommand(user, node.getName(), command);

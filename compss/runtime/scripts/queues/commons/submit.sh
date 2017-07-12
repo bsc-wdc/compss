@@ -78,10 +78,20 @@ show_opts() {
                                             Default: ${DEFAULT_QUEUE}
     --reservation=<name>                    Reservation to use when submitting the job. 
                                             Default: ${DEFAULT_RESERVATION}
+EOT
+   if [ -z "${DISABLE_QARG_CONSTRAINTS}" ] || [ "${DISABLE_QARG_CONSTRAINTS}" == "false" ]; then
+    cat <<EOT
     --constraints=<constraints>		    Constraints to pass to queue system.
-					    Default: ${DEFAULT_CONSTRAINTS}
+					    Default: ${DEFAULT_CONSTRAINTS}  
+EOT
+  fi
+  if [ -z "${DISABLE_QARG_QOS}" ] || [ "${DISABLE_QARG_QOS}" == "false" ]; then
+    cat <<EOT
     --qos=<qos>				    Quality of Service to pass to the queue system.
 					    Default: ${DEFAULT_QOS}
+EOT
+  fi
+    cat <<EOT 
     --job_dependency=<jobID>                Postpone job execution until the job dependency has ended.
                                             Default: ${DEFAULT_DEPENDENCY_JOB}
     --storage_home=<string>                 Root installation dir of the storage implementation
@@ -144,6 +154,12 @@ log_args() {
   echo "GPUs per node:             ${gpus_per_node}"
   echo "Job dependency:            ${dependencyJob}"
   echo "Exec-Time:                 ${wc_limit}"
+  if [ -z "${DISABLE_QARG_QOS}" ] || [ "${DISABLE_QARG_QOS}" == "false" ]; then
+    echo "QoS:                       ${qos}"
+  fi
+  if [ -z "${DISABLE_QARG_CONSTRAINTS}" ] || [ "${DISABLE_QARG_CONSTRAINTS}" == "false" ]; then
+    echo "Constraints:               ${constraints}"
+  fi
   echo "Storage Home:              ${storage_home}"
   echo "Storage Properties:        ${storage_props}"
   local other=$(echo ${args_pass} | sed 's/\ --/\n\t\t\t--/g')
@@ -489,7 +505,7 @@ EOT
   # QoS
   if [ -n "${QARG_QOS}" ]; then
     if [ "${qos}" != "default" ]; then
-      if [ -z "${DISABLE_QARG_QOS}" ] || ["${DISABLE_QARG_QOS}" == "false" ]; then
+      if [ -z "${DISABLE_QARG_QOS}" ] || [ "${DISABLE_QARG_QOS}" == "false" ]; then
       	cat >> $TMP_SUBMIT_SCRIPT << EOT
 #${QUEUE_CMD} ${QARG_QOS}${QUEUE_SEPARATOR}${qos}
 EOT
@@ -500,7 +516,7 @@ EOT
   # Constraints
   if [ -n "${QARG_CONSTRAINTS}" ]; then
     if [ "${constraints}" != "disabled" ]; then
-      if [ -z "${DISABLE_QARG_CONSTRAINTS}" ] || ["${DISABLE_QARG_CONSTRAINTS}" == "false" ]; then
+      if [ -z "${DISABLE_QARG_CONSTRAINTS}" ] || [ "${DISABLE_QARG_CONSTRAINTS}" == "false" ]; then
         cat >> $TMP_SUBMIT_SCRIPT << EOT
 #${QUEUE_CMD} ${QARG_CONSTRAINTS}${QUEUE_SEPARATOR}${constraints}
 EOT

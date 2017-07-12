@@ -177,8 +177,8 @@ public class NIOWorker extends NIOAgent {
     }
 
     @Override
-    public boolean isMyUuid(String uuid) {
-        return uuid.equals(this.deploymentId);
+    public boolean isMyUuid(String uuid, String nodeName) {
+        return uuid.equals(this.deploymentId) && nodeName.equals(this.host);
     }
 
     public static boolean isWorkerDebugEnabled() {

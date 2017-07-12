@@ -98,21 +98,31 @@ public class NIOTracer extends Tracer {
     public static void generatePackage() {
         emitEvent(Event.STOP.getId(), Event.STOP.getType());
         if (debug) {
-            logger.debug("Generating package of " + nodeName + ", with " + scriptDir);
+            logger.debug("[NIOTracer] Generating trace package of " + nodeName);
         }
         emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
 
         synchronized (Tracer.class) {
+        	if (debug) {
+                logger.debug("[NIOTracer] Disabling pthreads.");
+            }
             Wrapper.SetOptions(Wrapper.EXTRAE_ENABLE_ALL_OPTIONS & ~Wrapper.EXTRAE_PTHREAD_OPTION);
 
+            if (debug) {
+                logger.debug("[NIOTracer] Finishing extrae.");
+            }
             // End wrapper
             Wrapper.Fini();
+        }
+        if (debug) {
+            logger.debug("[NIOTracer] Executing command " + scriptDir + TRACE_SCRIPT_PATH + " package " + workingDir + " " + nodeName + " " + hostID);
         }
         // Generate package
         ProcessBuilder pb = new ProcessBuilder(scriptDir + TRACE_SCRIPT_PATH, "package", workingDir, nodeName, hostID);
         pb.environment().remove(LD_PRELOAD);
         Process p = null;
         try {
+        	
             p = pb.start();
         } catch (IOException e) {
             logger.error("Error generating " + nodeName + " package", e);

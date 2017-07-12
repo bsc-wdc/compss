@@ -74,8 +74,9 @@ public class DeletionThread extends Thread {
             this.vm = this.operations.pause(worker);
         }
         if (vm != null) {
-            CloudMethodWorker cloudWorker = vm.getWorker();
-            if (cloudWorker.shouldBeStopped()) {
+            CloudMethodWorker cloudWorker = vm.getWorker(); 
+            //I think this part now is not needed
+            /*if (cloudWorker.shouldBeStopped()) {
                 cloudWorker.retrieveData(true);
                 Semaphore sem = new Semaphore(0);
                 ShutdownListener sl = new ShutdownListener(sem);
@@ -93,7 +94,7 @@ public class DeletionThread extends Thread {
                 }
             } else if (DEBUG) {
                 RUNTIME_LOGGER.debug("[Deletion Thread] Worker " + cloudWorker.getName() + " should not be stopped.");
-            }
+            }*/
             if (DEBUG) {
                 RUNTIME_LOGGER.debug("[Deletion Thread] Worker " + cloudWorker.getName() + " stopped. Powering of the VM");
             }

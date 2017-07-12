@@ -14,7 +14,7 @@
   # BLAUNCH start ----------------------------------------------------
   # Check that the current machine has not already awaken any WORKER in PORT and for app UUID
   worker_class="integratedtoolkit.nio.worker.NIOWorker"
-  pid=$(ps -elfa | grep ${worker_class} | grep ${appUuid} | grep ${worker_port} | grep -v grep | awk '{print $4}')
+  pid=$(ps -elfa | grep ${worker_class} | grep ${appUuid} | grep ${hostName} | grep ${worker_port} | grep -v grep | awk '{print $4}')
   if [ "$pid" != "" ]; then
     if [ "$debug" == "true" ]; then
        echo "Worker already awaken. Nothing to do"

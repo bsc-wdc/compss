@@ -467,7 +467,7 @@ public abstract class NIOAgent {
     // Must be implemented on both sides (Master will do anything)
     public abstract void setMaster(NIONode master);
 
-    public abstract boolean isMyUuid(String uuid);
+    public abstract boolean isMyUuid(String uuid, String nodeName);
 
     // This will use the TreeMap to set the corresponding worker starter as ready
     public abstract void setWorkerIsReady(String nodeName);

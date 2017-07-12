@@ -46,7 +46,7 @@
     exit 1
   fi
 
-  ./configure --enable-debug --enable-gettimeofday-clock \
+  ./configure --enable-gettimeofday-clock \
               --without-unwind \
               --without-dyninst \
               --without-binutils \

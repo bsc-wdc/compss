@@ -2295,8 +2295,6 @@ void Backend_Finalize (void)
 #if defined(OMP_SUPPORT) && defined(OMPT_INSTRUMENTATION)
         ompt_finalize ();
 #endif
-	printf("Backend_fini");
-        fflush(NULL);
 
 	if (!Extrae_getAppendingEventsToGivenPID(NULL))
 	{
@@ -2307,19 +2305,13 @@ void Backend_Finalize (void)
 			Online_Stop();
 		}
 #endif /* HAVE_ONLINE */
-		printf("Backend_fini_2");
-                fflush(NULL);
 		/* Stop collecting information from dynamic memory instrumentation */
 		Extrae_set_trace_io (FALSE);
 		
-		printf("Backend_fini_3");
-        	fflush(NULL);
 		/* Stop collecting information from dynamic memory instrumentation */
 		Extrae_set_trace_malloc (FALSE);
 
 		/* Stop sampling right now */
-		printf("Backend_fini_4");
-        	fflush(NULL);
 		Extrae_setSamplingEnabled (FALSE);
 		unsetTimeSampling ();
 
@@ -2332,8 +2324,6 @@ void Backend_Finalize (void)
 #if !defined(IS_BG_MACHINE)
 		Extrae_AnnotateTopology (TRUE, TIME);
 #endif
-		printf("Backend_fini_5");
-        	fflush(NULL);
 		/* Write files back to disk , 1st part will include flushing events*/
 		for (thread = 0; thread < get_maximum_NumOfThreads(); thread++) 
 		{
@@ -2347,8 +2337,6 @@ void Backend_Finalize (void)
 			Extrae_Flush_Wrapper_setCounters (TRUE);
 		}
 
-		printf("Backend_fini_6");
-        	fflush(NULL);
 		/* Final write files to disk, include renaming of the filenames,
 		   do not need counters here */
 		Extrae_Flush_Wrapper_setCounters (FALSE);
@@ -2361,8 +2349,6 @@ void Backend_Finalize (void)
 				Backend_Finalize_close_mpits (getpid(), thread, FALSE);
 			}
 		}
-	        printf("Backend_fini_7");
-        	fflush(NULL);
 		/* Free allocated memory */
 		{
 			if (TASKID == 0)
@@ -2397,8 +2383,6 @@ void Backend_Finalize (void)
 			HWC_CleanUp (get_maximum_NumOfThreads());
 #endif
 		}
-		printf("Backend_fini_8");
-        	fflush(NULL);
 
 		if (TASKID == 0 && Extrae_isProcessMaster())
 			fprintf (stdout, PACKAGE_NAME": Application has ended. Tracing has been terminated.\n");

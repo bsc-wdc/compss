@@ -26,17 +26,17 @@
   
   expectedTime=3600s
   counterVal=1
-  numTasks=100
+  numTasks=35
   minVM=1
   maxVM=3
-  creationTime=1800
+  creationTime=20
 
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
      --project=${base_app_dir}/project.xml \
      --resources=${base_app_dir}/resources.xml \
      --debug \
      --comm=$comm \
-     --conn=integratedtoolkit.connectors.DefaultNoSSHConnector \ 
+     --conn=integratedtoolkit.connectors.DefaultNoSSHConnector \
      ${runcompss_opts} \
      --lang=java \
      --classpath=${base_app_dir}/${appName}.jar \
@@ -55,7 +55,7 @@
      cp -rf ${COMPSs_log_folder}/simple.SimpleElasticity_0${retryNum}/* ${target_log_folder}
   
      #Check result
-     sleep 60
+     sleep 10
      ${base_app_dir}/result ${output_log} ${target_log_folder} $minVM $maxVM
      exitValue=$?
   fi

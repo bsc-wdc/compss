@@ -74,7 +74,7 @@ public class SimpleElasticity {
                 fos.close();
                 SimpleImpl.increment(counterName + i);
             }
-
+	    
             // Open the file and print final counter value (should be 2)
             for (int i = 0; i < increment; i++) {
                 fis = new FileInputStream(counterName + i);
@@ -86,12 +86,35 @@ public class SimpleElasticity {
                     System.out.println("FAIL: Incorrect final value at counter" + i);
                     System.exit(-1);
                 }
+		if (i==2){
+			long sleepTime = creationTime * (maxVM - minVM) * 800;
+            		System.out.println("Waiting " + sleepTime + " ms for the elastic VMs to be created");
+            		Thread.sleep(sleepTime);
+			currentRes = ResourceManager.getAllWorkers().size();
+            		if (currentRes != maxVM) {
+                		System.out.println("FAIL: Max VMs incorrect " + currentRes + " (" + minVM + ")");
+                		System.exit(-1);
+            		} else {
+                		System.out.println("** Intermediate VM creation  OK **");
+            		}
+		}
+
             }
-            System.out.println("[ATTENTION] Elasticity on VM's must be checked on result script");
+            System.out.println("[ATTENTION] Elasticity on VM's must be also checked on result script");
             System.out.println("** Application values OK **");
-            long sleepTime = creationTime * 2 * 1000;
+            long sleepTime = creationTime * 1500;
             System.out.println("Waiting " + sleepTime + " ms for the elastic VMs to be removed");
             Thread.sleep(sleepTime);
+	   
+            // Check number of initial VMs
+            System.out.println("[LOG] Checking initial number of VMs " + minVM);
+            currentRes = ResourceManager.getAllWorkers().size();
+            if (currentRes != minVM) {
+                System.out.println("FAIL: Initial VMs incorrect " + currentRes + " (" + minVM + ")");
+                System.exit(-1);
+            } else {
+                System.out.println("** Intermediate VM destruction  OK **");
+            }
         } catch (Exception ioe) {
             System.out.println("[ERROR] Exception found");
             ioe.printStackTrace();

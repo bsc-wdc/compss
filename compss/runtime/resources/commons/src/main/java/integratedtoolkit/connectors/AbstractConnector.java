@@ -440,7 +440,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
                                 VM vmInfo = vms.next();
                                 long timeLeft = timeLeft(vmInfo.getStartTime());
                                 // LOGGER.info("MONITOR STATUS DEAD next VM " + vmInfo.ip + " @ " + vmInfo.startTime + " --> " + timeLeft);
-                                if (timeLeft < DELETE_SAFETY_INTERVAL) {
+                                if (timeLeft <= DELETE_SAFETY_INTERVAL) {
                                     if (vmInfo.isToDelete()) {
                                         LOGGER.info("[Abstract Connector] Deleting vm " + vmInfo.getName()
                                                 + " because is marked to delete and it is on the safety delete interval");
@@ -454,7 +454,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
                                     }
                                 } else if (sleepTime > timeLeft - DELETE_SAFETY_INTERVAL) {
                                     sleepTime = timeLeft - DELETE_SAFETY_INTERVAL;
-                                    LOGGER.debug("[Abstract Connector] Resetting sleep time because a interval near to finish " + sleepTime + " ms.");
+                                    LOGGER.debug("[Abstract Connector] Evaluating sleep time for "+vmInfo.getName()+" because an interval near to finish " + sleepTime + " ms.");
                                 }
                             }
                         } catch (ConcurrentModificationException e) {
@@ -493,8 +493,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
                 return 0;
             }
             long result = limit - ((now - time) % limit);
-            // LOGGER.info("MONITOR STATUS DEAD Started at "+time+" now is "+now+" remaining --> "+(now - time)+" "
-            // +result+" ms to deadline");
+            LOGGER.debug("Calculating sleep time at "+time+" now is "+now+": remaining --> "+ limit + " - " + (now - time)+" % "+limit +" = "+ result + " ms to deadline");
             return result;
         }
 

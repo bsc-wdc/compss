@@ -87,6 +87,7 @@ JNIEnv* create_vm(JavaVM ** jvm) {
   vector<JavaVMOption> options;
 
   string line; // buffer for line read
+  debug_printf("[   BINDING]  -  @create_vm  -  reading file in JVM_OPTIONS_FILE\n" );
   const char *file = strdup(getenv("JVM_OPTIONS_FILE")); // path to the file with jvm options
   ifstream fin; // input file stream
 
@@ -96,6 +97,8 @@ JNIEnv* create_vm(JavaVM ** jvm) {
       // read in one line at a time
       getline(fin, line);
       // read data from file
+      debug_printf("[   BINDING]  -  @create_vm  -  reading line: \n");
+      debug_printf("[   BINDING]  -  @create_vm  - %s\n", line.data());
       string fileOption = strdup(line.data());
       if (fileOption != "") {
         JavaVMOption *option = new JavaVMOption();
@@ -133,6 +136,7 @@ JNIEnv* create_vm(JavaVM ** jvm) {
           debug_printf("[   BINDING]  -  @create_vm  -  option %s\n", option->optionString);
         } else {
           // It is an environment variable
+          debug_printf("[   BINDING]  -  @create_vm  -  Putting environment variable\n");
           int ret = putenv(strdup(fileOption.data()));
           if (ret < 0) {
             debug_printf("[   BINDING]  -  @create_vm  -  Cannot put environment variable: %s", fileOption.data());
@@ -159,7 +163,7 @@ JNIEnv* create_vm(JavaVM ** jvm) {
   vm_args.options = new JavaVMOption[vm_args.nOptions];
   copy(options.begin(), options.end(), vm_args.options);
   vm_args.ignoreUnrecognized = false;
-
+  debug_printf("[   BINDING]  -  @create_vm  -  Launching JVM\n");
   int ret = JNI_CreateJavaVM(jvm, (void**) &env, &vm_args);
   if (ret < 0){
     debug_printf("[   BINDING]  -  @create_vm  -  Unable to Launch JVM - %i\n", ret);
@@ -788,7 +792,7 @@ void GS_ExecuteTask(long _appId, char *class_name, char *method_name, int priori
 
   bool _has_target = false;
   if (has_target != 0) _has_target = true;
-
+  
   jobjOBJArr = (jobjectArray)env->NewObjectArray(num_params*5, clsObject, env->NewObject(clsObject,midObjCon));
 
   for (int i = 0; i < num_params; i++) {

@@ -109,7 +109,7 @@ public class DefaultNoSSHConnector extends AbstractConnector {
 
     @Override
     public CloudMethodResourceDescription waitUntilCreation(Object id, CloudMethodResourceDescription requested) throws ConnectorException {
-        LOGGER.debug("Waiting for " + (String) id);
+        LOGGER.debug("Waiting for " + id);
         VirtualResource vr = connector.waitUntilCreation(id);
         CloudMethodResourceDescription cmrd = Converter.toCloudMethodResourceDescription(vr, requested);
         LOGGER.debug("Return cloud method resource description " + cmrd.toString());

@@ -369,11 +369,16 @@ void Extrae_init_Wrapper (void)
 
 void Extrae_fini_Wrapper (void)
 {
+	printf("Extrae_fini");
+	fflush(NULL);
 	/* Finalize only if its initialized by Extrae_init call */
 	if (Extrae_is_initialized_Wrapper() == EXTRAE_INITIALIZED_EXTRAE_INIT)
 	{
 		/* If the application is MPI the MPI wrappers are responsible
 		   for gathering and generating the .MPITS file*/
+		printf("Extrae_fini_2");
+	        fflush(NULL);
+
 		if (!Extrae_get_ApplicationIsMPI() && !Extrae_get_ApplicationIsSHMEM())
 			/* If we are appending into the file (i.e. using the cmd-line) don't
 			   change the already existing .mpits file */
@@ -381,10 +386,16 @@ void Extrae_fini_Wrapper (void)
 				Generate_Task_File_List();
 
 		/* Finalize tracing library */
+		printf("Extrae_fini_3");
+	        fflush(NULL);
+
 		Backend_Finalize ();
 
 		/* Call additional code to finalize the task including
 	     MPI_Finalize,... */
+		printf("Extrae_fini_4");
+                fflush(NULL);
+
 		Extrae_finalize_task();
 	}
 }

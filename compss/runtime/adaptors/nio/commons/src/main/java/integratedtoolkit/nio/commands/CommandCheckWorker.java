@@ -32,7 +32,7 @@ public class CommandCheckWorker extends Command implements Externalizable {
 
     @Override
     public void handle(Connection c) {
-        if (agent.isMyUuid(this.uuid)) {
+        if (agent.isMyUuid(this.uuid, this.nodeName)) {
         	if (agent.getMaster() == null) {
         		agent.setMaster((NIONode) c.getNode());
         	}

@@ -46,7 +46,7 @@
     exit 1
   fi
 
-  ./configure --enable-gettimeofday-clock \
+  ./configure --enable-debug --enable-gettimeofday-clock \
               --without-unwind \
               --without-dyninst \
               --without-binutils \
@@ -54,7 +54,7 @@
               ${papiArg} \
               --with-java-jdk=${JAVA_HOME} \
               --disable-openmp \
-              --disable-nanos \
+              --enable-nanos \
               --disable-smpss \
               --enable-instrument-io \
               --prefix=${targetDir} \

@@ -149,6 +149,7 @@ public class CloudMethodWorker extends MethodWorker {
 
                 // This resource is still running tasks. Wait for them to finish...
                 // Mark to remove and enqueue pending reduction
+            	LOGGER.debug("Resource in use. Adding pending reduction");
                 synchronized (toRemove) {
                     toRemove.increase(reduction);
                 }

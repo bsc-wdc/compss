@@ -557,11 +557,13 @@ public class TaskScheduler {
      */
     public final <T extends WorkerResourceDescription> void updateWorker(Worker<T> worker, ResourceUpdate<T> rs) {
         ResourceScheduler<T> ui = workers.get(worker);
-        if (ui == null) {
+        if (ui == null) { 
             // Register worker if it's the first time it is useful.
             ui = addWorker(worker, getJSONForResource(worker));
-            startWorker(ui);
-            workerDetected(ui);
+            if (rs.isIncrease()){
+            	startWorker(ui);
+            	workerDetected(ui);
+            }
         }
 
         if (rs.checkCompleted()) {

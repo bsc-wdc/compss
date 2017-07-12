@@ -144,9 +144,14 @@ public class BindToMap implements ThreadBinder {
                     threadsPerCore = Integer.parseInt(threadsPerCoreSTR);
                 }
             } else if (line.contains("NUMA node") && line.contains("CPU(s):")) {
+                while (line.contains("  ")){
+                    line = line.replaceAll("  ", " ");
+                }
                 String[] lineValues = line.split(" ");
-                String coresDescription = lineValues[lineValues.length - 1];
-                numaDescription.add(coresDescription);
+                if (lineValues.length == 4){
+                    String coresDescription = lineValues[lineValues.length - 1];
+                    numaDescription.add(coresDescription);    
+                }
             } else if (line.contains("CPU(s):")) {
                 String[] lineValues = line.split(" ");
                 String numCPUsSTR = lineValues[lineValues.length - 1];

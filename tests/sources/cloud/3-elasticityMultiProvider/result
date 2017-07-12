@@ -33,10 +33,10 @@
   elasticity_value_EXPECTED=$'1\n2'
   elasticity_creation_GOT=$(cat ${target_log_folder}/resources.log | grep "RESOURCE_GRANTED" | wc -l)
   elasticity_creation_EXPECTED="$maxVM"
-  elasticity_destruction_GOT=$(cat ${target_log_folder}/resources.log | grep "Shutting down" | wc -l)
+  elasticity_destruction_GOT=$(cat ${target_log_folder}/resources.log | grep "Resource removed from pool" | wc -l)
   elasticity_destruction_EXPECTED=$(expr $maxVM - $minVM)
   elasticity_termination_GOT=$(cat ${target_log_folder}/runtime.log | grep "Destroying VM" | wc -l)
-  elasticity_termination_EXPECTED=$minVM
+  elasticity_termination_EXPECTED=$maxVM
   
   
   if [ "${elasticity_value_GOT}" != "${elasticity_value_EXPECTED}" ]; then

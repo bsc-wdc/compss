@@ -14,7 +14,7 @@ public class SimpleImpl {
             int count = fis.read();
             fis.close();
             try {
-                Thread.sleep(30_000);
+                Thread.sleep(15_000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

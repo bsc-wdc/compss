@@ -36,7 +36,7 @@ import traceback
 import cStringIO as StringIO
 import cPickle as pickle
 from serialization.extendedSupport import copy_generator, pickle_generator, GeneratorSnapshot
-from object_properties import has_numpy_objects
+from object_properties import object_belongs_to_module
 
 try:
     import dill
@@ -57,8 +57,9 @@ def get_serializer_priority(obj=[]):
     @param obj: Object to be analysed.
     @return: List -> The serializers sorted by priority in descending order
     """
-    return [numpy, pickle, dill]
-    #return [pickle, dill]
+    if object_belongs_to_module(obj, 'numpy'):
+        return [numpy, pickle, dill]
+    return [pickle, dill]
 
 def get_serializers():
     """
@@ -142,7 +143,7 @@ def deserialize_from_handler(handler):
     @return: The object deserialized.
     """
     # get the most common order of the serializers
-    serializers = get_serializers()
+    serializers = get_serializer_priority(numpy.zeros(1))
     original_position = handler.tell()
     # let's try to deserialize
     for serializer in serializers:
@@ -155,7 +156,6 @@ def deserialize_from_handler(handler):
                 ret = copy_generator(ret)[0]
             return ret
         except:
-            print("ENTERING EXCEPT!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             pass
     # we are not able to deserialize the contents from file_name with any of our
     # serializers

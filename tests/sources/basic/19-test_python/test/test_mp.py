@@ -51,7 +51,7 @@ def main_program():
     # test_argfunc()   # can not be done if the function is defined within the same file as __main__
                        # pickle limitation
     test_lambda()
-    test_generator()
+    #test_generator()
 
     test_lambda_return()
     #test_generator_return()

@@ -37,10 +37,16 @@ import cStringIO as StringIO
 import cPickle as pickle
 from serialization.extendedSupport import copy_generator, pickle_generator, GeneratorSnapshot
 from object_properties import has_numpy_objects
+
 try:
     import dill
 except:
     import cPickle as dill
+
+try:
+    import numpy
+except:
+    import cPickle as numpy
 
 class SerializerException(Exception):
     pass
@@ -51,7 +57,8 @@ def get_serializer_priority(obj=[]):
     @param obj: Object to be analysed.
     @return: List -> The serializers sorted by priority in descending order
     """
-    return [pickle, dill]
+    return [numpy, pickle, dill]
+    #return [pickle, dill]
 
 def get_serializers():
     """
@@ -87,8 +94,14 @@ def serialize_to_handler(obj, handler):
         # general case
         else:
             try:
-                serializer.dump(obj, handler, protocol=serializer.HIGHEST_PROTOCOL)
-                success = True
+                if serializer.__name__ == 'numpy' and type(obj).__module__ == numpy.__name__:
+                    serializer.save(handler, obj)
+                    success = True
+                else:
+                    serializer.dump(obj, handler, protocol=serializer.HIGHEST_PROTOCOL)
+                    success = True
+                #serializer.dump(obj, handler, protocol=serializer.HIGHEST_PROTOCOL)
+                #success = True
             except:
                 pass
         i += 1
@@ -142,6 +155,7 @@ def deserialize_from_handler(handler):
                 ret = copy_generator(ret)[0]
             return ret
         except:
+            print("ENTERING EXCEPT!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             pass
     # we are not able to deserialize the contents from file_name with any of our
     # serializers

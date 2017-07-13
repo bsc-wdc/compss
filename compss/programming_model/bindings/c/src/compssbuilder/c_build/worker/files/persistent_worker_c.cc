@@ -1,11 +1,8 @@
 #include "executor.h"
-
-#include <boost/asio/io_service.hpp>
-#include <boost/bind.hpp>
-#include <boost/thread/thread.hpp>
-//#include <pthread.h>
-#include <sys/types.h>
-#include <sys/syscall.h>
+//#include <mutex>
+//#include <boost/asio/io_service.hpp>
+//#include <boost/bind.hpp>
+//#include <boost/thread/thread.hpp>
 #define gettid() syscall(SYS_gettid)
 
 using namespace std;
@@ -15,6 +12,27 @@ map<string, void*> cache;
 string END_TASK_TAG = "endTask";
 string QUIT_TAG = "quit";
 string EXECUTE_TASK_TAG = "task";
+
+struct arg_t {
+	char * inPipe;
+	char * outPipe;
+	customStream *csOut;
+	customStream *csErr;
+};
+
+/*
+ostream& operator<<(ostream &out, const int &obj){
+
+    mutex mu;
+
+    mu.lock();
+    out << obj;
+    cout << "testing" << endl;
+    mu.unlock();
+
+    return out;
+}*/
+
 
 //Reads a command when the other end of the pipe is written
 string readline(const char* inPipe) {
@@ -66,12 +84,32 @@ void restore_output(streambuf * oldsb, ofstream& filestr)
 }
 
 
-void runThread(const char* inPipe, const char* outPipe){
+void *runThread(void * arg){
 
-    ofstream outFile, jobOut, jobErr;
-	streambuf *oldOutsb, *oldErrsb;
+	cout << "start run thread" << endl;
+
+//    #ifdef OMPSS_ENABLED
+//    nanos_admit_current_thread();
+    cout << "enabled" << endl;
+//    #endif
+
+
+
+
+    ofstream outFile;
+	//ofstream *jobOut, *jobErr;
+	//streambuf *oldOutsb, *oldErrsb;
     string command;
 	string output;
+
+	char *inPipe, *outPipe;
+
+	struct arg_t *args = (struct arg_t *)arg;
+
+	inPipe = args->inPipe;
+	outPipe = args->outPipe;
+	customStream *csOut = args->csOut;
+	customStream *csErr = args->csErr;
 
 	while(true){
 		
@@ -101,9 +139,14 @@ void runThread(const char* inPipe, const char* outPipe){
                	}
             }
 
-			oldOutsb = redirect_output(commandArgs[2].c_str(), jobOut);
-            oldErrsb = redirect_error(commandArgs[3].c_str(), jobErr);
+			//oldOutsb = redirect_output(commandArgs[2].c_str(), jobOut);
+            //oldErrsb = redirect_error(commandArgs[3].c_str(), jobErr);
 
+			ofstream * jobOut = new ofstream(commandArgs[2].c_str());
+			ofstream * jobErr = new ofstream(commandArgs[3].c_str());
+						
+			csOut->registerThread(jobOut->rdbuf());
+			csErr->registerThread(jobErr->rdbuf());
 			
 			for (int i = 0; i < commandArgs.size(); i++) {
 				if (commandArgs[i] == "taskset"){
@@ -137,8 +180,14 @@ void runThread(const char* inPipe, const char* outPipe){
 
 			int ret = execute(executeArgs.size(), executeArgsC, cache);
 
-			restore_output(oldOutsb, jobOut);
-			restore_error(oldErrsb, jobErr);
+			//restore_output(oldOutsb, jobOut);
+			//restore_error(oldErrsb, jobErr);
+
+			csOut->unregisterThread();
+			csErr->unregisterThread();
+
+			jobOut->close();
+			jobErr->close();
 
 			ostringstream out_ss;
 			out_ss << END_TASK_TAG << " " << commandArgs[1] << " " << ret << endl;
@@ -149,10 +198,21 @@ void runThread(const char* inPipe, const char* outPipe){
 			fflush(NULL);
 			outFile.close();
 	
+			
+
 		}
     }
 
-	cout << "[Persistent C] Thread " << boost::this_thread::get_id() << " quitting with output " << output << endl;
+	cout << "[Persistent C] Thread " << gettid() << " quitting with output " << output << endl;
+
+//    #ifdef OMPSS_ENABLED
+    cout << "disabling" << endl;
+ //       nanos_expel_current_thread();
+    cout << "disabled" << endl;
+//    #endif
+
+
+	return 0;
 
 }
 
@@ -188,19 +248,42 @@ int main(int argc, char **argv) {
 
     fflush(NULL);
 
-	
-   
-    boost::asio::io_service ioService;
-    boost::thread_group threadpool;
 
-    boost::asio::io_service::work work(ioService);
-    for (int i = 0; i < numInPipes; i++){
-            threadpool.create_thread(
-                    boost::bind(runThread, inPipes[i], outPipes[i])
-            );
-    }
-    threadpool.join_all();
- 
+	streambuf* outbuf = cout.rdbuf();
+	streambuf* errbuf = cerr.rdbuf();
+
+    customStream *csOut = new customStream(cout.rdbuf());
+	customStream *csErr = new customStream(cerr.rdbuf());
+
+    cout.rdbuf(csOut);
+	cerr.rdbuf(csErr);
+
+	pthread_t threadpool[numInPipes];
+	arg_t arguments[numInPipes];
+
+
+
+	for (int i = 0; i < numInPipes; i++){
+		arguments[i].inPipe = inPipes[i];
+		arguments[i].outPipe = outPipes[i];
+		arguments[i].csOut = csOut;
+		arguments[i].csErr = csErr;
+		if(pthread_create(&threadpool[i], NULL, runThread, &arguments[i])){
+			fprintf(stderr, "Error creating thread\n");
+			return 1;
+		}
+	}
+
+	for (int i = 0; i < numInPipes; i++){
+		if(pthread_join(threadpool[i], NULL)){
+			fprintf(stderr, "Error joining thread\n");
+			return 1;  
+		}
+	}
+	
+	cout.rdbuf(outbuf);
+	cerr.rdbuf(errbuf);
+
     cout << "[Persistent C] Worker shutting down" << endl;
    
     return 0;

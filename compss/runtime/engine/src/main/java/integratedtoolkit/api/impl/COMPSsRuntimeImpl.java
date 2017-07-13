@@ -895,61 +895,57 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
         return finalPath;
     }
-    
+
     @Override
     public void closeFile(String fileName, Direction mode) {
-    	 
-    	/*if (Tracer.isActivated()) {
-             Tracer.emitEvent(Tracer.Event.CLOSE_FILE.getId(), Tracer.Event.CLOSE_FILE.getType());
-         }*/
+        // if (Tracer.isActivated()) {
+        // Tracer.emitEvent(Tracer.Event.CLOSE_FILE.getId(), Tracer.Event.CLOSE_FILE.getType());
+        // }
 
-         LOGGER.info("Closing " + fileName + " in mode " + mode);
+        LOGGER.info("Closing " + fileName + " in mode " + mode);
 
-         // Parse arguments to internal structures
-         DataLocation loc;
-         try {
-             loc = createLocation(fileName);
-         } catch (Exception e) {
-             ErrorManager.fatal(ERROR_FILE_NAME, e);
-             return;
-         }
+        // Parse arguments to internal structures
+        DataLocation loc;
+        try {
+            loc = createLocation(fileName);
+        } catch (Exception e) {
+            ErrorManager.fatal(ERROR_FILE_NAME, e);
+            return;
+        }
 
-         AccessMode am = null;
-         switch (mode) {
-             case IN:
-                 am = AccessMode.R;
-                 break;
-             case OUT:
-                 am = AccessMode.W;
-                 break;
-             case INOUT:
-                 am = AccessMode.RW;
-                 break;
-         }
+        AccessMode am = null;
+        switch (mode) {
+            case IN:
+                am = AccessMode.R;
+                break;
+            case OUT:
+                am = AccessMode.W;
+                break;
+            case INOUT:
+                am = AccessMode.RW;
+                break;
+        }
 
-         // Request AP that the application wants to access a FILE or a EXTERNAL_PSCO
-         String finalPath;
-         switch (loc.getType()) {
-             case PRIVATE:
-             case SHARED:
-                 finishAccessToFile(fileName, loc, am, null);
-                 if (LOGGER.isDebugEnabled()) {
-                     LOGGER.debug("Closing file " + loc.getPath());
-                 }
-                 break;
-             case PERSISTENT:
-                 /*finalPath = finishAccessToExternalObject(fileName, loc);
-                 if (LOGGER.isDebugEnabled()) {
-                     LOGGER.debug("External Object target Location: " + finalPath);
-                 }
-                 break;*/
-             default:
-                 ErrorManager.error("ERROR: Unrecognised protocol requesting closeFile " + fileName);
-         }
+        // Request AP that the application wants to access a FILE or a EXTERNAL_PSCO
+        switch (loc.getType()) {
+            case PRIVATE:
+            case SHARED:
+                finishAccessToFile(fileName, loc, am, null);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Closing file " + loc.getPath());
+                }
+                break;
+            case PERSISTENT:
+                // Nothing to do
+                ErrorManager.warn("WARN: Cannot close file " + fileName + " with PSCO protocol");
+                break;
+            default:
+                ErrorManager.error("ERROR: Unrecognised protocol requesting closeFile " + fileName);
+        }
 
-         /*if (Tracer.isActivated()) {
-             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-         }*/
+        // if (Tracer.isActivated()) {
+        // Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+        // }
     }
 
     /*
@@ -1018,13 +1014,13 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
 
         return hashCode;
-    } 
-    
+    }
+
     private void finishAccessToFile(String fileName, DataLocation loc, AccessMode am, String destDir) {
-    	FileAccessParams fap = new FileAccessParams(am, loc);
+        FileAccessParams fap = new FileAccessParams(am, loc);
         ap.finishAccessToFile(loc, fap, destDir);
     }
-    
+
     private String mainAccessToFile(String fileName, DataLocation loc, AccessMode am, String destDir) {
         // Tell the AP that the application wants to access a file.
         FileAccessParams fap = new FileAccessParams(am, loc);

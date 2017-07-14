@@ -41,6 +41,16 @@ import pycompss.runtime.binding as binding
 
 app_path = None
 
+def get_logging_cfg_file(log_level):
+    logging_cfg_file = 'logging.json'
+    cfg_files = {
+        'debug': 'logging.json.debug',
+        'info': 'logging.json.off',
+        'off': 'logging.json.off'
+    }
+    if log_level in cfg_files:
+        logging_cfg_file = cfg_files[log_level]
+    return logging_cfg_file
 
 def main():
     '''
@@ -48,7 +58,6 @@ def main():
     python $PYCOMPSS_HOME/pycompss/runtime/launch.py $log_level $PyObject_serialize $storageConf $fullAppPath $application_args
     '''
 
-    # TODO: get rid of that global variable (is it possible?)
     global app_path
 
     compss_start()
@@ -83,23 +92,13 @@ def main():
     # Get application execution path
     app_path = sys.argv[0]
 
-    logPath = get_logPath()
-    binding.temp_dir = mkdtemp(prefix='pycompss', dir=logPath + '/tmpFiles/')
+    binding_log_path = get_logPath()
+    log_path = os.path.join(os.getenv('IT_HOME'), 'Bindings', 'python', 'log')
+    binding.temp_dir = mkdtemp(prefix='pycompss', dir=binding_log_path + '/tmpFiles/')
 
-    # logging
-    if log_level == "debug":
-        init_logging(os.getenv('IT_HOME') +
-                     '/Bindings/python/log/logging.json.debug', logPath)
-    elif log_level == "info":
-        init_logging(os.getenv('IT_HOME') +
-                     '/Bindings/python/log/logging.json.off', logPath)
-    elif log_level == "off":
-        init_logging(os.getenv('IT_HOME') +
-                     '/Bindings/python/log/logging.json.off', logPath)
-    else:
-        # Default
-        init_logging(os.getenv('IT_HOME') +
-                     '/Bindings/python/log/logging.json', logPath)
+    logging_cfg_file = get_logging_cfg_file(log_level)
+
+    init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
     logger = logging.getLogger("pycompss.runtime.launch")
 
     # Get JVM options
@@ -109,7 +108,7 @@ def main():
 
     try:
         logger.debug("--- START ---")
-        logger.debug("PyCOMPSs Log path: %s" % logPath)
+        logger.debug("PyCOMPSs Log path: %s" % binding_log_path)
         if persistent_storage:
             logger.debug("Storage configuration file: %s" % storage_conf)
             initStorage(config_file_path=storage_conf)
@@ -119,10 +118,10 @@ def main():
             finishStorage()
         logger.debug("--- END ---")
     except SystemExit as e:
-	        if e.code == 0:
-	            pass
-	        else:
-	            print "[ ERROR ]: User program ended with exitcode %s"%e.code
+            if e.code == 0:
+                pass
+            else:
+                print "[ ERROR ]: User program ended with exitcode %s"%e.code
     except SerializerException:
         # If an object that can not be serialized has been used as a parameter.
         exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -130,10 +129,10 @@ def main():
         for line in lines:
             if app_path in line:
                 print "[ ERROR ]: In: " + line,
-
-    compss_stop()
-    sys.stdout.flush()
-    sys.stderr.flush()
+    finally:
+        compss_stop()
+        sys.stdout.flush()
+        sys.stderr.flush()
 
     # --- Execution finished ---
 

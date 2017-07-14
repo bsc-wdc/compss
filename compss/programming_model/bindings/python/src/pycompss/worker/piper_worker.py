@@ -150,6 +150,8 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                                 exitvalue = execute_task(process_name, storage_conf, line[9:])
                                 sys.stdout = stdout
                                 sys.stderr = stderr
+                                sys.stdout.flush()
+                                sys.stderr.flush()
                                 out.close()
                                 err.close()
 

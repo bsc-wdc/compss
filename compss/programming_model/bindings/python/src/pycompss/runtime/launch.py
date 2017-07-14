@@ -52,21 +52,32 @@ def get_logging_cfg_file(log_level):
         logging_cfg_file = cfg_files[log_level]
     return logging_cfg_file
 
+def parse_arguments():
+    import argparse
+    parser = argparse.ArgumentParser(description="PyCOMPSs application launcher")
+    parser.add_argument('log_level', help='Logging level [debug|info|off]')
+    parser.add_argument('object_conversion', help='Object_conversion [true|false]')
+    parser.add_argument('storage_configuration', help='Storage configuration [null|*]')
+    parser.add_argument('app_path', help='Application path')
+    parser.add_argument('app_args', nargs='*', help='Application arguments')
+    return parser.parse_args()
+
 def main():
     '''
     General call:
     python $PYCOMPSS_HOME/pycompss/runtime/launch.py $log_level $PyObject_serialize $storageConf $fullAppPath $application_args
     '''
-
     global app_path
 
     compss_start()
 
+    args = parse_arguments()
+
     # Get log_level
-    log_level = sys.argv[1]
+    log_level = args.log_level
 
     # Get object_conversion boolean
-    o_c = sys.argv[2]
+    o_c = args.object_conversion
     if o_c.lower() == 'true':
         # set cross-module variable
         binding.object_conversion = True
@@ -75,7 +86,7 @@ def main():
         binding.object_conversion = False
 
     # Get storage configuration at master
-    storage_conf = sys.argv[3]
+    storage_conf = args.storage_configuration
     persistent_storage = False
     if storage_conf != 'null':
         persistent_storage = True
@@ -87,10 +98,10 @@ def main():
 
     # Remove launch.py, log_level and object_conversion from sys.argv,
     # It will be inherited by the app through execfile
-    sys.argv = sys.argv[4:]
+    sys.argv = args.app_args
 
     # Get application execution path
-    app_path = sys.argv[0]
+    app_path = args.app_path
 
     binding_log_path = get_logPath()
     log_path = os.path.join(os.getenv('IT_HOME'), 'Bindings', 'python', 'log')

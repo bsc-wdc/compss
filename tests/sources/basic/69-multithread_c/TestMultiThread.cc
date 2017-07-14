@@ -69,15 +69,6 @@ void *thread_function1(void* unused){
         return 0;
     }
 
-    FILE* test = compss_fopen(fileName1, "r");
-
-    int c;
-    c = getc(test);
-    putchar(c);
-
-    fclose(test);
-
-
 }
 
 
@@ -90,7 +81,7 @@ void *thread_function2(void* unused){
 	file fileName2 = strdup(FILE_NAME2);
 
 	cout << "file created" << endl;
-/*
+
     // Write file
     ofstream fos;
 	cout << "before ofstream" << endl;
@@ -104,7 +95,7 @@ void *thread_function2(void* unused){
         return 0;
     }
     cout << "Initial counter value is " << initialValue << endl;	
-*/
+
     // Execute increment
     increment(fileName2);
 
@@ -127,14 +118,6 @@ void *thread_function2(void* unused){
         cerr << "[ERROR] Unable to open file" << endl;
         return 0;
     }
-
-    FILE* test = compss_fopen(fileName2, "r");
-
-    int c;
-    c = getc(test);
-    putchar(c);
-
-    fclose(test);
 
 
 }

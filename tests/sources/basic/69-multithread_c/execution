@@ -47,7 +47,7 @@
      --comm=$comm \
      --lang=c \
      ${runcompss_opts} \
-     ${base_app_dir}/master/TestMultiThread > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+     ${base_app_dir}/master/TestMultiThread 3 > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
   
   #Check timeout
   if [[ "$?" = "124" ]]; then

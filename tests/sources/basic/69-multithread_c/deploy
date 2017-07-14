@@ -15,5 +15,5 @@
   cp -f ${source_base_dir}/TestMultiThread.cc ${target_base_dir}/TestMultiThread.cc
   cp -f ${source_base_dir}/TestMultiThread-functions.cc ${target_base_dir}/TestMultiThread-functions.cc
   cp -f ${source_base_dir}/TestMultiThread.idl ${target_base_dir}/TestMultiThread.idl
-  cp -f ${source_base_dir}/skip ${target_base_dir}/skip
+  #cp -f ${source_base_dir}/skip ${target_base_dir}/skip
 

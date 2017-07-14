@@ -47,7 +47,6 @@ stop_runtime(PyObject *self, PyObject *args)
     return Py_BuildValue("i", 0);
 }
 
-
 static PyObject *
 process_task(PyObject *self, PyObject *args)
 {

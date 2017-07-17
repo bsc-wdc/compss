@@ -34,7 +34,7 @@ def local(input_function):
     from pycompss.runtime.binding import get_object_id, pending_to_synchronize
 
     def must_sync(obj):
-        return isinstance(obj, Future) or get_object_id(obj) in pending_to_synchronize
+        return get_object_id(obj) in pending_to_synchronize
 
     def sync_if_needed(obj):
         if must_sync(obj):

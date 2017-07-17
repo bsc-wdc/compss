@@ -396,7 +396,7 @@ def synchronize(obj, mode):
     objs_written_by_mp[new_obj_id] = objid_to_filename[new_obj_id]
 
     logger.debug('Deleting obj %s (new one is %s)'%(str(obj_id), str(new_obj_id)))
-    compss.delete_file(compss_file)
+    compss.delete_file(objid_to_filename[obj_id])
     objid_to_filename.pop(obj_id)
     pending_to_synchronize.pop(obj_id)
 

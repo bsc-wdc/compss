@@ -91,13 +91,16 @@ current_id = 1
 runtime_id = str(uuid.uuid1())
 id2obj = {}
 
-def get_object_id(obj, force_insertion=False):
+def get_object_id(obj, assign_new_key=False, force_insertion=False):
     '''Gets the identifier of an object. If not found or we are forced to,
     we create a new identifier for this object, deleting the old one if
-    necessary.
+    necessary. We can also query for some object without adding it in case of
+    failure.
     '''
     global current_id
     global runtime_id
+    # force_insertion implies assign_new_key
+    assert not force_insertion or assign_new_key
     for identifier in id2obj:
         if id2obj[identifier] is obj:
             if force_insertion:
@@ -105,15 +108,17 @@ def get_object_id(obj, force_insertion=False):
                 break
             else:
                 return identifier
-    # This object was not in our object database or we were forced to remove it,
-    # lets assign it an identifier and store it
-    # As mentioned before, identifiers are of the form runtime_id-current_id
-    # in order to avoid having two objects from different applications with
-    # the same identifier (and thus file name)
-    new_id = '%s-%d'%(runtime_id, current_id)
-    id2obj[new_id] = obj
-    current_id += 1
-    return new_id
+    if assign_new_key:
+        # This object was not in our object database or we were forced to remove it,
+        # lets assign it an identifier and store it
+        # As mentioned before, identifiers are of the form runtime_id-current_id
+        # in order to avoid having two objects from different applications with
+        # the same identifier (and thus file name)
+        new_id = '%s-%d'%(runtime_id, current_id)
+        id2obj[new_id] = obj
+        current_id += 1
+        return new_id
+    return None
 
 # Enable or disable the management of *args parameters as a whole tuple built (and serialized)
 # on the master and sent to the workers. When disabled, the parameters passed to a task with
@@ -384,7 +389,7 @@ def synchronize(obj, mode):
     compss_file = compss.get_file(file_name, mode)
     new_obj = deserialize_from_file(compss_file)
     compss.close_file(file_name, mode)
-    new_obj_id = get_object_id(new_obj, True)
+    new_obj_id = get_object_id(new_obj, True, True)
 
     # The main program won't work with the old object anymore, update mapping
     objid_to_filename[new_obj_id] = objid_to_filename[obj_id].replace(obj_id, new_obj_id)
@@ -546,7 +551,7 @@ def build_return_objects(self_kwargs, spec_args):
             for i in ret_type:
                 fue = Future()
                 fu.append(fue)
-                obj_id = get_object_id(fue)
+                obj_id = get_object_id(fue, True)
                 logger.debug('Setting object %s of %s as a future' % (obj_id, type(fue)))
                 ret_filename = os.path.join(temp_dir, temp_obj_prefix, str(obj_id))
                 objid_to_filename[obj_id] = ret_filename
@@ -571,7 +576,7 @@ def build_return_objects(self_kwargs, spec_args):
                     fu = Future()
             else:
                 fu = Future()  # modules, functions, methods
-            obj_id = get_object_id(fu)
+            obj_id = get_object_id(fu, True)
             logger.debug('Setting object %s of %s as a future' % (obj_id, type(fu)))
             ret_filename = temp_dir + temp_obj_prefix + str(obj_id)
             objid_to_filename[obj_id] = ret_filename
@@ -858,7 +863,7 @@ def turn_into_file(p):
         t = type(p.value)
         p.value = t()
     '''
-    obj_id = get_object_id(p.value)
+    obj_id = get_object_id(p.value, True)
     file_name = objid_to_filename.get(obj_id)
     if file_name is None:
         # This is the first time a task accesses this object

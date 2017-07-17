@@ -13,8 +13,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-"""
-@author: etejedor
+'''@author: etejedor
 @author: fconejer
 @author: srodrig1
 
@@ -22,22 +21,21 @@ PyCOMPSs Binding - Launch
 =========================
   This file contains the __main__ method.
   It is called from pycompssext script with the user and environment parameters.
-"""
+'''
 import os
 import sys
 import logging
+import traceback
+import pycompss.runtime.binding as binding
 from tempfile import mkdtemp
 from pycompss.api.api import compss_start, compss_stop
-from pycompss.runtime.binding import get_logPath
+from pycompss.runtime.binding import get_log_path
 from pycompss.util.logs import init_logging
-from pycompss.util.jvmParser import convertToDict
+from pycompss.util.jvm_parser import convert_to_dict
 from pycompss.util.serializer import SerializerException
 from pycompss.util.object_properties import is_module_available
 from pycompss.util.optional_modules import show_optional_module_warnings
 from random import randint
-import traceback
-import pycompss.runtime.binding as binding
-
 
 app_path = None
 
@@ -54,7 +52,7 @@ def get_logging_cfg_file(log_level):
 
 def parse_arguments():
     import argparse
-    parser = argparse.ArgumentParser(description="PyCOMPSs application launcher")
+    parser = argparse.ArgumentParser(description='PyCOMPSs application launcher')
     parser.add_argument('log_level', help='Logging level [debug|info|off]')
     parser.add_argument('object_conversion', help='Object_conversion [true|false]')
     parser.add_argument('storage_configuration', help='Storage configuration [null|*]')
@@ -63,83 +61,73 @@ def parse_arguments():
     return parser.parse_args()
 
 def main():
-    '''
-    General call:
+    ''' General call:
     python $PYCOMPSS_HOME/pycompss/runtime/launch.py $log_level $PyObject_serialize $storageConf $fullAppPath $application_args
     '''
     global app_path
 
+    # Start the runtime, see bindings commons
     compss_start()
 
+    # See parse_arguments, defined above
     args = parse_arguments()
 
     # Get log_level
     log_level = args.log_level
 
     # Get object_conversion boolean
-    o_c = args.object_conversion
-    if o_c.lower() == 'true':
-        # set cross-module variable
-        binding.object_conversion = True
-    else:
-        # set cross-module variable
-        binding.object_conversion = False
+    binding.object_conversion = args.object_conversion == 'true'
 
     # Get storage configuration at master
     storage_conf = args.storage_configuration
     persistent_storage = False
     if storage_conf != 'null':
         persistent_storage = True
-        from storage.api import init as initStorage
-        from storage.api import finish as finishStorage
+        from storage.api import init as init_storage
+        from storage.api import finish as finish_storage
 
-    # Enable or disable the use of mmap
-    # serializer.mmap_file_storage = False
-
-    # Remove launch.py, log_level and object_conversion from sys.argv,
-    # It will be inherited by the app through execfile
+    # Remove non-application arguments from the command line argument list
     sys.argv = args.app_args
 
     # Get application execution path
     app_path = args.app_path
 
-    binding_log_path = get_logPath()
+    binding_log_path = get_log_path()
     log_path = os.path.join(os.getenv('IT_HOME'), 'Bindings', 'python', 'log')
-    binding.temp_dir = mkdtemp(prefix='pycompss', dir=binding_log_path + '/tmpFiles/')
+    binding.temp_dir = mkdtemp(prefix='pycompss', dir=os.path.join(binding_log_path, 'tmpFiles/'))
 
     logging_cfg_file = get_logging_cfg_file(log_level)
 
     init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
-    logger = logging.getLogger("pycompss.runtime.launch")
+    logger = logging.getLogger('pycompss.runtime.launch')
 
     # Get JVM options
     jvm_opts = os.environ['JVM_OPTIONS_FILE']
-    opts = convertToDict(jvm_opts)
+    opts = convert_to_dict(jvm_opts)
     # storage_conf = opts.get('-Dit.storage.conf')
 
     try:
-        logger.debug("--- START ---")
-        logger.debug("PyCOMPSs Log path: %s" % binding_log_path)
+        logger.debug('--- START ---')
+        logger.debug('PyCOMPSs Log path: %s' % binding_log_path)
         if persistent_storage:
-            logger.debug("Storage configuration file: %s" % storage_conf)
-            initStorage(config_file_path=storage_conf)
+            logger.debug('Storage configuration file: %s' % storage_conf)
+            init_storage(config_file_path=storage_conf)
         show_optional_module_warnings()
         execfile(app_path, globals())    # MAIN EXECUTION
         if persistent_storage:
-            finishStorage()
-        logger.debug("--- END ---")
+            finish_storage()
+        logger.debug('--- END ---')
     except SystemExit as e:
-            if e.code == 0:
-                pass
-            else:
-                print "[ ERROR ]: User program ended with exitcode %s"%e.code
+            if e.code != 0:
+                print '[ ERROR ]: User program ended with exitcode %s.'%e.code
+                print '\t\tShutting down runtime...'
     except SerializerException:
         # If an object that can not be serialized has been used as a parameter.
         exc_type, exc_value, exc_traceback = sys.exc_info()
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
         for line in lines:
             if app_path in line:
-                print "[ ERROR ]: In: " + line,
+                print '[ ERROR ]: In: ' + line,
     finally:
         compss_stop()
         sys.stdout.flush()
@@ -154,7 +142,7 @@ def main():
 
 # Version 4.0
 def launch_pycompss_application(app, func, args=[], kwargs={},
-                log_level="off",
+                log_level='off',
                 o_c=False,
                 debug=False,
                 graph=False,
@@ -242,17 +230,17 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
 
     # Configure logging
     app_path = app
-    logPath = get_logPath()
+    log_path = get_log_path()
     if debug:
         # DEBUG
-        init_logging(it_home + '/Bindings/python/log/logging.json.debug', logPath)
+        init_logging(it_home + '/Bindings/python/log/logging.json.debug', log_path)
     else:
         # NO DEBUG
-        init_logging(it_home + '/Bindings/python/log/logging.json', logPath)
+        init_logging(it_home + '/Bindings/python/log/logging.json', log_path)
     logger = logging.getLogger("pycompss.runtime.launch")
 
-    logger.debug("--- START ---")
-    logger.debug("PyCOMPSs Log path: %s" % logPath)
+    logger.debug('--- START ---')
+    logger.debug('PyCOMPSs Log path: %s' % log_path)
     saved_argv = sys.argv
     sys.argv = args
     # Execution:
@@ -265,7 +253,7 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
         result = methodToCall(*args, **kwargs)
     # Recover the system arguments
     sys.argv = saved_argv
-    logger.debug("--- END ---")
+    logger.debug('--- END ---')
 
     compss_stop()
 
@@ -273,8 +261,7 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
 
 
 def initialize_compss(config):
-    '''
-    Creates the initialization files for the runtime start (java options file).
+    '''Creates the initialization files for the runtime start (java options file).
     Receives a dictionary (config) with the configuration parameters.
     WARNING!!! if new parameters are included in the runcompss launcher,
     they have to be considered in this configuration. Otherwise, the runtime will not start.
@@ -487,17 +474,17 @@ def initialize_compss(config):
 #
 #     # Configure logging
 #     app_path = app
-#     logPath = get_logPath()
+#     log_path = get_log_path()
 #     if debug:
 #         # DEBUG
-#         init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json.debug', logPath)
+#         init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json.debug', log_path)
 #     else:
 #         # NO DEBUG
-#         init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json', logPath)
+#         init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json', log_path)
 #     logger = logging.getLogger("pycompss.runtime.launch")
 #
 #     logger.debug("--- START ---")
-#     logger.debug("PyCOMPSs Log path: %s" % logPath)
+#     logger.debug("PyCOMPSs Log path: %s" % log_path)
 #     saved_argv = sys.argv
 #     sys.argv = args
 #     # Execution:
@@ -564,13 +551,13 @@ def initialize_compss(config):
 #
 #     # Configure logging
 #     app_path = app
-#     logPath = get_logPath()
-#     init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json.debug', logPath)   # 1.3 DEBUG
-#     #init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json', logPath)        # 1.3 NO DEBUG
+#     log_path = get_log_path()
+#     init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json.debug', log_path)   # 1.3 DEBUG
+#     #init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json', log_path)        # 1.3 NO DEBUG
 #     logger = logging.getLogger("pycompss.runtime.launch")
 #
 #     logger.debug("--- START ---")
-#     logger.debug("PyCOMPSs Log path: %s" % logPath)
+#     logger.debug("PyCOMPSs Log path: %s" % log_path)
 #     saved_argv = sys.argv
 #     sys.argv = args
 #     # Execution:
@@ -637,13 +624,13 @@ def initialize_compss(config):
 #
 #     # Configure logging
 #     app_path = app
-#     logPath = get_logPath()
-#     #init_logging(os.getenv('IT_HOME') + '/../Bindings/python/log/logging.json.debug', logPath) # 1.3 DEBUG
-#     init_logging(os.getenv('IT_HOME') + '/../Bindings/python/log/logging.json', logPath)        # 1.3 NO DEBUG
+#     log_path = get_log_path()
+#     #init_logging(os.getenv('IT_HOME') + '/../Bindings/python/log/logging.json.debug', log_path) # 1.3 DEBUG
+#     init_logging(os.getenv('IT_HOME') + '/../Bindings/python/log/logging.json', log_path)        # 1.3 NO DEBUG
 #     logger = logging.getLogger("pycompss.runtime.launch")
 #
 #     logger.debug("--- START ---")
-#     logger.debug("PyCOMPSs Log path: %s" % logPath)
+#     logger.debug("PyCOMPSs Log path: %s" % log_path)
 #     saved_argv = sys.argv
 #     sys.argv = args
 #     # Execution:
@@ -668,8 +655,7 @@ def initialize_compss(config):
 # Deprecated - Use version 3.0 #
 ################################
 def pycompss_launch(app, args, kwargs):    # UNIFIED PORTAL - HBP
-    """
-    PyCOMPSs launch function - Debugging - UNIFIED PORTAL (HBP)
+    '''PyCOMPSs launch function - Debugging - UNIFIED PORTAL (HBP)
 
     This function enables to execute a pycompss application from parameters.
     Useful for PyCOMPSs binding debugging from Eclipse IDE.
@@ -680,7 +666,7 @@ def pycompss_launch(app, args, kwargs):    # UNIFIED PORTAL - HBP
     @param kwargs: Arguments dictionary.
 
     @return: The execution result.
-    """
+    '''
     import os
     it_home = os.environ['IT_HOME']
     pythonpath = os.environ['PYTHONPATH']
@@ -713,8 +699,8 @@ def pycompss_launch(app, args, kwargs):    # UNIFIED PORTAL - HBP
     # from pycompss.api.api import compss_start, compss_stop
     compss_start()
 
-    logPath = get_logPath()
-    init_logging(os.getenv('IT_HOME') + '/../Bindings/python/log/logging.json', logPath)  # 1.3
+    log_path = get_log_path()
+    init_logging(os.getenv('IT_HOME') + '/../Bindings/python/log/logging.json', log_path)  # 1.3
     # init_logging(os.getenv('IT_HOME') + '/bindings/python/log/logging.json')            # 1.2
 
     result = app(*args, **kwargs)
@@ -724,8 +710,7 @@ def pycompss_launch(app, args, kwargs):    # UNIFIED PORTAL - HBP
     return result
 
 
+''' This is the PyCOMPSs entry point
 '''
-    This is the PyCOMPSs entry point
-'''
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

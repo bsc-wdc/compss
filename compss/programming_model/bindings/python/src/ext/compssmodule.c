@@ -274,11 +274,11 @@ get_logging_path(PyObject *self, PyObject *args)
 {
     //printf ("####C#### GET LOG PATH\n");
 
-	char *logPath;
-	GS_Get_AppDir(&logPath);
+	char *log_path;
+	GS_Get_AppDir(&log_path);
 
-	//printf("####C#### COMPSs log path %s\n", &logPath);
-    return Py_BuildValue("s", logPath);
+	//printf("####C#### COMPSs log path %s\n", &log_path);
+    return Py_BuildValue("s", log_path);
 
 }
 

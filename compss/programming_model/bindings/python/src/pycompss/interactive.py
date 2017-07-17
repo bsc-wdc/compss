@@ -13,13 +13,12 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-"""
-@author: fconejer
+'''@author: fconejer
 
 PyCOMPSs Binding - Interactive API
 ==================================
 Provides the current start and stop for the use of pycompss interactively.
-"""
+'''
 
 import os
 import logging
@@ -29,20 +28,20 @@ import time
 # from multiprocessing import Process
 from pycompss.api.api import compss_start
 from pycompss.api.api import compss_stop
-from pycompss.runtime.binding import get_logPath
-from pycompss.runtime.binding import get_task_objects
+from pycompss.runtime.binding import get_log_path
+from pycompss.runtime.binding import get_pending_to_synchronize
 from pycompss.runtime.launch import initialize_compss
 from pycompss.util.logs import init_logging
 import pycompss.runtime.binding as binding
 
 persistent_storage = False
 myUuid = 0
-app_path = "InteractiveMode"  # Warning! The name should start with InteractiveMode due to @task checks it explicitly.
+app_path = 'InteractiveMode'  # Warning! The name should start with InteractiveMode due to @task checks it explicitly.
 running = False               #          If has to be changed, it is necessary to update the task decorator.
 process = None
 
 
-def start(log_level="off",
+def start(log_level='off',
           o_c=False,
           debug=False,
           graph=False,
@@ -66,8 +65,8 @@ def start(log_level="off",
           scheduler='integratedtoolkit.scheduler.loadBalancingScheduler.LoadBalancingScheduler',
           jvmWorkers='-Xms1024m,-Xmx1024m,-Xmn400m',
           verbose=False,
-          cpuAffinity="automatic",
-          gpuAffinity="automatic"
+          cpuAffinity='automatic',
+          gpuAffinity='automatic'
           ):
     launchPath = os.path.dirname(os.path.abspath(__file__))
     # it_home = launchPath without the last 3 folders (Bindings/python/pycompss/runtime)
@@ -185,20 +184,20 @@ def start(log_level="off",
     # Get application execution path
     # app_path = sys.argv[0]  ############ not needed --> interactive mode
 
-    logPath = get_logPath()
-    binding.temp_dir = mkdtemp(prefix='pycompss', dir=logPath + '/tmpFiles/')
-    print "* - Log path : " + logPath
+    log_path = get_log_path()
+    binding.temp_dir = mkdtemp(prefix='pycompss', dir=log_path + '/tmpFiles/')
+    print "* - Log path : " + log_path
 
     # Logging setup
     if log_level == "debug":
-        init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json.debug', logPath)
+        init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json.debug', log_path)
     elif log_level == "info":
-        init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json.off', logPath)
+        init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json.off', log_path)
     elif log_level == "off":
-        init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json.off', logPath)
+        init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json.off', log_path)
     else:
         # Default
-        init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json', logPath)
+        init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json', log_path)
     logger = logging.getLogger("pycompss.runtime.launch")
 
     printSetup(verbose,
@@ -208,7 +207,7 @@ def start(log_level="off",
                comm, conn, masterName, masterPort, scheduler, jvmWorkers)
 
     logger.debug("--- START ---")
-    logger.debug("PyCOMPSs Log path: %s" % logPath)
+    logger.debug("PyCOMPSs Log path: %s" % log_path)
     if storageConf != None:
         logger.debug("Storage configuration file: %s" % storageConf)
         from storage.api import init as initStorage
@@ -270,7 +269,7 @@ def stop(sync=False):
         print "Synchronizing all future objects left on the user scope."
         logger.debug("Synchronizing all future objects left on the user scope.")
         from pycompss.api.api import compss_wait_on
-        task_objects = get_task_objects()
+        pending_to_synchronize = get_pending_to_synchronize()
 
         ipython = globals()['__builtins__']['get_ipython']()
         # import pprint
@@ -284,7 +283,7 @@ def stop(sync=False):
                     print "Found a future object: ", str(k)
                     logger.debug("Found a future object: %s" % (k,))
                     ipython.__dict__['user_ns'][k] = compss_wait_on(objK)
-                elif obj_id in task_objects:
+                elif obj_id in pending_to_synchronize:
                     print "Found an object to synchronize: ", str(k)
                     logger.debug("Found an object to synchronize: %s" % (k,))
                     ipython.__dict__['user_ns'][k] = compss_wait_on(objK)

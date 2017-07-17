@@ -27,7 +27,7 @@ from pycompss.runtime.binding import start_runtime, stop_runtime
 from pycompss.runtime.binding import get_file, delete_file
 from pycompss.runtime.binding import compss_barrier
 from pycompss.runtime.binding import synchronize, get_compss_mode
-from pycompss.runtime.binding import get_task_objects
+from pycompss.runtime.binding import get_pending_to_synchronize
 
 from pycompss.runtime.binding import Future
 import types
@@ -90,14 +90,14 @@ def compss_wait_on(*args):
             mode = 'r'
         compss_mode = get_compss_mode(mode)
 
-        task_objects = get_task_objects()
+        pending_to_synchronize = get_pending_to_synchronize()
 
         # Private function used below (recursively)
         def wait_on_list(l):
-            # check if the object is in our task_objects dictionary
+            # check if the object is in our pending_to_synchronize dictionary
             from pycompss.runtime.binding import get_object_id
             obj_id = get_object_id(l)
-            if obj_id in task_objects:
+            if obj_id in pending_to_synchronize:
                 return synchronize(l, compss_mode)
             else:
                 if type(l) == list:

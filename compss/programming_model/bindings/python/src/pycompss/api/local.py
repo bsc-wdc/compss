@@ -13,8 +13,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-"""
-@author: srodrig1
+'''@author: srodrig1
 
 PyCOMPSs API - LocalTask
 ===================
@@ -22,7 +21,7 @@ PyCOMPSs API - LocalTask
     decorator for non-task functions that may receive future objects
     as parameters (i.e: their inputs are pycompss task outputs).
     It also handles INOUTs
-"""
+'''
 from pycompss.api.api import compss_wait_on
 from pycompss.runtime.binding import Future
 from pycompss.util.replace import replace
@@ -38,7 +37,6 @@ def local(input_function):
 
     def sync_if_needed(obj):
         if must_sync(obj):
-            old_id = id(obj)
             new_val = compss_wait_on(obj)
             replace(obj, new_val)
 

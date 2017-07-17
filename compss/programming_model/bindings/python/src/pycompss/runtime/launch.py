@@ -87,7 +87,7 @@ def main():
         from storage.api import finish as finish_storage
 
     # Remove non-application arguments from the command line argument list
-    sys.argv = args.app_args
+    sys.argv = [args.app_path] + args.app_args
 
     # Get application execution path
     app_path = args.app_path

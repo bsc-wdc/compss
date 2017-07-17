@@ -732,8 +732,6 @@ int check_and_attach()
 	    return 1; 
         }
   } else {
-        
-        printf("[   BINDING]  -  @check_an_attach - res %d\n",res);
         // attached
 	return 0;
   }

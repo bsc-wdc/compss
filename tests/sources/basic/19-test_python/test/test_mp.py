@@ -56,7 +56,7 @@ def main_program():
     test_lambda_return()
     #test_generator_return()
 
-    test_all_class_tasks()
+    #test_all_class_tasks()
 
     test_multireturn()
 

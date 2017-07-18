@@ -1,8 +1,4 @@
 #include "executor.h"
-//#include <mutex>
-//#include <boost/asio/io_service.hpp>
-//#include <boost/bind.hpp>
-//#include <boost/thread/thread.hpp>
 #define gettid() syscall(SYS_gettid)
 
 using namespace std;
@@ -19,19 +15,6 @@ struct arg_t {
 	customStream *csOut;
 	customStream *csErr;
 };
-
-/*
-ostream& operator<<(ostream &out, const int &obj){
-
-    mutex mu;
-
-    mu.lock();
-    out << obj;
-    cout << "testing" << endl;
-    mu.unlock();
-
-    return out;
-}*/
 
 
 //Reads a command when the other end of the pipe is written
@@ -88,17 +71,15 @@ void *runThread(void * arg){
 
 	cout << "start run thread" << endl;
 
-//    #ifdef OMPSS_ENABLED
-//    nanos_admit_current_thread();
+#ifdef OMPSS_ENABLED
+    nanos_admit_current_thread();
     cout << "enabled" << endl;
-//    #endif
+#endif
 
 
 
 
     ofstream outFile;
-	//ofstream *jobOut, *jobErr;
-	//streambuf *oldOutsb, *oldErrsb;
     string command;
 	string output;
 
@@ -139,9 +120,6 @@ void *runThread(void * arg){
                	}
             }
 
-			//oldOutsb = redirect_output(commandArgs[2].c_str(), jobOut);
-            //oldErrsb = redirect_error(commandArgs[3].c_str(), jobErr);
-
 			ofstream * jobOut = new ofstream(commandArgs[2].c_str());
 			ofstream * jobErr = new ofstream(commandArgs[3].c_str());
 						
@@ -180,9 +158,6 @@ void *runThread(void * arg){
 
 			int ret = execute(executeArgs.size(), executeArgsC, cache);
 
-			//restore_output(oldOutsb, jobOut);
-			//restore_error(oldErrsb, jobErr);
-
 			csOut->unregisterThread();
 			csErr->unregisterThread();
 
@@ -205,11 +180,12 @@ void *runThread(void * arg){
 
 	cout << "[Persistent C] Thread " << gettid() << " quitting with output " << output << endl;
 
-//    #ifdef OMPSS_ENABLED
+#ifdef OMPSS_ENABLED
     cout << "disabling" << endl;
- //       nanos_expel_current_thread();
+	nanos_leave_team();
+    nanos_expel_current_thread();
     cout << "disabled" << endl;
-//    #endif
+#endif
 
 
 	return 0;
@@ -283,6 +259,8 @@ int main(int argc, char **argv) {
 	
 	cout.rdbuf(outbuf);
 	cerr.rdbuf(errbuf);
+
+	//nanos_expel_current_thread();
 
     cout << "[Persistent C] Worker shutting down" << endl;
    

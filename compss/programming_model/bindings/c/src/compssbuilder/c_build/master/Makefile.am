@@ -3,14 +3,14 @@ bin_PROGRAMS = PACKAGE
 
 ACLOCAL_AMFLAGS=-I m4
 
-PACKAGE_CPPFLAGS = --std=c++11 -I../../src -I../../include -Wno-write-strings -I$(CS_HOME)/../bindings-common/include -I$(CS_HOME)/include -w
+PACKAGE_CPPFLAGS = --std=gnu++11 -I../../src -I../../include -Wno-write-strings -I$(CS_HOME)/../bindings-common/include -I$(CS_HOME)/include -w
 
 PACKAGE_SOURCES = PACKAGE-stubs.cc \
         PACKAGE.cc
 
 PACKAGE_LDFLAGS =
 
-PACKAGE_LDADD = -L../../lib -lmaster -L$(JAVA_HOME)/jre/lib/$(ARCH)/$(SUBFLDR) -ljvm -ldl -L$(CS_HOME)/../bindings-common/lib -lbindings_common -L$(CS_HOME)/lib -lcbindings -lboost_iostreams -lboost_serialization
+PACKAGE_LDADD = -L../../lib -lmaster -L$(JAVA_HOME)/jre/lib/$(ARCH)/$(SUBFLDR) -ljvm -ldl -L$(CS_HOME)/../bindings-common/lib -lbindings_common -L$(CS_HOME)/lib -lcbindings -lboost_iostreams -lboost_serialization -lpthread
 
 COMPSSGEN_FLAGS =
 

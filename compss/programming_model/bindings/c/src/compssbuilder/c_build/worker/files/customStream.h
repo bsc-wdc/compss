@@ -3,7 +3,7 @@
 #include <pthread.h>
 #include <sys/types.h>
 #include <sys/syscall.h>
-#include <mutex>
+//#include <mutex>
 #define gettid() syscall(SYS_gettid)
 
 
@@ -13,7 +13,8 @@ class customStream : public streambuf {
 
 map<int, streambuf*> files;
 streambuf* defaultBuf;
-mutex mtx;
+//mutex mtx;
+pthread_mutex_t mtx;
 
 public : 
 
@@ -25,15 +26,19 @@ public :
 	customStream(const char * data, unsigned int len);
 
 	void registerThread(streambuf* threadsb){
-		mtx.lock();
+//		mtx.lock();
+		pthread_mutex_lock(&mtx);
 		files[gettid()] = threadsb;
-		mtx.unlock();
+		pthread_mutex_unlock(&mtx);
+//		mtx.unlock();
 	};
 
 	void unregisterThread(){
-		mtx.lock();
+//		mtx.lock();
+		pthread_mutex_lock(&mtx);
 		files.erase(gettid());
-		mtx.unlock();
+		pthread_mutex_unlock(&mtx);
+//		mtx.unlock();
 	};
 
 private:

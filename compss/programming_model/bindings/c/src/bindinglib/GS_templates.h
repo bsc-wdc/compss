@@ -73,6 +73,7 @@ void compss_wait_on(T &obj) {
   ifs.close();
   
   // No longer needed, the current version of the object is in memory now
+  GS_Close_File(entry.filename, in_dir);
   compss_delete_file(entry.filename);
   remove(entry.filename);
   remove(runtime_filename);

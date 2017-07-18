@@ -113,7 +113,7 @@
   # Perform specific biding call (THE CALL IS BLOCKING)
   echo "[BINDINGS PIPER] Initializing specific binding for $binding"
   echo "[BINDINGS PIPER] Making call: $bindingExecutable $bindingArgs"
-  $bindingExecutable $bindingArgs &
+  eval $bindingExecutable $bindingArgs &
   bindingPID=$!
 
   # Wait for binding executable completion

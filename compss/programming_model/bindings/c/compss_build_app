@@ -66,9 +66,10 @@ if [ "${WITH_OMPSS}" != "" ]; then
   # Flag is defined, check value
   if [ $WITH_OMPSS == 1 ]; then
     export CC="mcc"
-    export CFLAGS="--ompss"
+    export CFLAGS="$CFLAGS --ompss"
     export CXX="mcxx"
-    export CXXFLAGS="--ompss"
+    export CXXFLAGS="$CXXFLAGS --ompss"
+	export CPPFLAGS="$CPPFLAGS -DOMPSS_ENABLED"
   fi
 fi
 if [ "${WITH_CUDA}" != "" ]; then

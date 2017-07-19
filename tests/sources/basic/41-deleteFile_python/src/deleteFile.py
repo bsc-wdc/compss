@@ -6,10 +6,10 @@ PyCOMPSs Delete File test
     This file represents PyCOMPSs Testbench.
     Checks the delete file functionality.
 """
-        
+
 from pycompss.api.api import compss_wait_on
 from pycompss.api.api import compss_open
-from pycompss.api.api import compss_delete
+from pycompss.api.api import compss_delete_file
 from tasks import increment, increment2
 
 def main_program():
@@ -34,15 +34,15 @@ def main_program():
         # Read new value
         print "After sending task"
         if i == 0:
-            compss_delete(counterName)
-        compss_delete(counterNameIN)
-        compss_delete(counterNameOUT)
+            compss_delete_file(counterName)
+        compss_delete_file(counterNameIN)
+        compss_delete_file(counterNameOUT)
 
     fis = compss_open(counterName, 'r+')
     finalValue = fis.read()
     fis.close()
     print "Final counter value is " + finalValue
-    compss_delete(counterName)
+    compss_delete_file(counterName)
 
 
 

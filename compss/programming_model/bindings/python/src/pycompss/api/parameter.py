@@ -20,11 +20,11 @@
 PyCOMPSs API - Parameter
 ========================
     This file contains the clases needed for the parameter definition.
-    1. Direction.
+    1. DIRECTION.
         - IN
         - OUT
         - INOUT
-    2. Type.
+    2. TYPE.
         - FILE
         - BOOLEAN
         - STRING
@@ -34,25 +34,26 @@ PyCOMPSs API - Parameter
         - OBJECT
         - PSCO
         - EXTERNAL_PSCO
-    3. Stream.
+    3. STREAM.
         - STDIN
         - STDOUT
         - STDERR
         - UNSPECIFIED
-    4. Parameter.
-    5. Aliases.
+    4. PREFIX.
+    5. Parameter.
+    6. Aliases.
 """
 
 
 # Numbers match both C and Java enums
-class Direction:
+class DIRECTION:
     IN = 0
     OUT = 1
     INOUT = 2
 
 
 # Numbers match both C and Java enums
-class Type:
+class TYPE:
     BOOLEAN = 0
     CHAR = 1
     # BYTE = 2      # Does not exist in python
@@ -68,49 +69,76 @@ class Type:
     EXTERNAL_PSCO = 12	# PSCO (type for PSCOs from bindings)
 
 # Numbers match both C and Java enums
-class Stream:
+class STREAM:
     STDIN = 0
     STDOUT = 1
     STDERR = 2
     UNSPECIFIED = 3
+
+# String that identifies the prefix
+class PREFIX:
+    PREFIX = "null"
+
 
 class Parameter:
     """
     Parameter class
     Used to group the type, direction and value of a parameter
     """
-    def __init__(self, p_type=None, p_direction=Direction.IN, p_stream=Stream.UNSPECIFIED):
+    def __init__(self, p_type=None, p_direction=DIRECTION.IN, p_stream=STREAM.UNSPECIFIED, p_prefix=PREFIX.PREFIX):
         self.type = p_type
         self.direction = p_direction
         self.stream = p_stream
+        self.prefix = p_prefix
         self.value = None    # placeholder for parameter value
+
+    def setDirection(self, direction):
+        self.direction = direction
+
+    def setStream(self, stream):
+        self.stream = stream
+
+    def setPrefix(self, prefix):
+        self.prefix = prefix
 
 
 # Aliases for objects (just direction)
 IN = Parameter()
-OUT = Parameter(p_direction=Direction.OUT)
-INOUT = Parameter(p_direction=Direction.INOUT)
+OUT = Parameter(p_direction=DIRECTION.OUT)
+INOUT = Parameter(p_direction=DIRECTION.INOUT)
+
+# Aliases for streams (just stream direction)
+STDIN = STREAM.STDIN
+STDOUT = STREAM.STDOUT
+STDERR = STREAM.STDERR
 
 # Aliases for files with direction
-FILE = Parameter(p_type=Type.FILE)
-FILE_IN = Parameter(p_type=Type.FILE)
-FILE_OUT = Parameter(p_type=Type.FILE, p_direction=Direction.OUT)
-FILE_INOUT = Parameter(p_type=Type.FILE, p_direction=Direction.INOUT)
+FILE = Parameter(p_type=TYPE.FILE)
+FILE_IN = Parameter(p_type=TYPE.FILE)
+FILE_OUT = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT)
+FILE_INOUT = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.INOUT)
+
+# Aliases for files with stream
+FILE_STDIN = Parameter(p_type=TYPE.FILE, p_stream=STREAM.STDIN)
+FILE_STDERR = Parameter(p_type=TYPE.FILE, p_stream=STREAM.STDERR)
+FILE_STDOUT = Parameter(p_type=TYPE.FILE, p_stream=STREAM.STDOUT)
 
 # Aliases for files with direction and stream
-FILE_STDIN = Parameter(p_type=Type.FILE, p_stream=Stream.STDIN)
-FILE_STDERR = Parameter(p_type=Type.FILE, p_stream=Stream.STDERR)
-FILE_STDOUT = Parameter(p_type=Type.FILE, p_stream=Stream.STDOUT)
-FILE_IN_STDIN = Parameter(p_type=Type.FILE, p_direction=Direction.IN, p_stream=Stream.STDIN)
-FILE_IN_STDERR = Parameter(p_type=Type.FILE, p_direction=Direction.IN, p_stream=Stream.STDERR)
-FILE_IN_STDOUT = Parameter(p_type=Type.FILE, p_direction=Direction.IN, p_stream=Stream.STDOUT)
-FILE_OUT_STDIN = Parameter(p_type=Type.FILE, p_direction=Direction.OUT, p_stream=Stream.STDIN)
-FILE_OUT_STDERR = Parameter(p_type=Type.FILE, p_direction=Direction.OUT, p_stream=Stream.STDERR)
-FILE_OUT_STDOUT = Parameter(p_type=Type.FILE, p_direction=Direction.OUT, p_stream=Stream.STDOUT)
-FILE_INOUT_STDIN = Parameter(p_type=Type.FILE, p_direction=Direction.INOUT, p_stream=Stream.STDIN)
-FILE_INOUT_STDERR = Parameter(p_type=Type.FILE, p_direction=Direction.INOUT, p_stream=Stream.STDERR)
-FILE_INOUT_STDOUT = Parameter(p_type=Type.FILE, p_direction=Direction.INOUT, p_stream=Stream.STDOUT)
+FILE_IN_STDIN = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.IN, p_stream=STREAM.STDIN)
+FILE_IN_STDERR = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.IN, p_stream=STREAM.STDERR)
+FILE_IN_STDOUT = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.IN, p_stream=STREAM.STDOUT)
+FILE_OUT_STDIN = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT, p_stream=STREAM.STDIN)
+FILE_OUT_STDERR = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT, p_stream=STREAM.STDERR)
+FILE_OUT_STDOUT = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT, p_stream=STREAM.STDOUT)
+FILE_INOUT_STDIN = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.INOUT, p_stream=STREAM.STDIN)
+FILE_INOUT_STDERR = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.INOUT, p_stream=STREAM.STDERR)
+FILE_INOUT_STDOUT = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.INOUT, p_stream=STREAM.STDOUT)
 
+# Aliases for parameter definition as dictionary
+Type = "type"           # parameter type
+Direction = "direction" # parameter type
+Stream = "stream"       # parameter stream
+Prefix = "prefix"       # parameter prefix
 
 # Java max and min integer and long values
 JAVA_MAX_INT = 2147483647

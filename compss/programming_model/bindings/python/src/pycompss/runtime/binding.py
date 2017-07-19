@@ -21,8 +21,13 @@ PyCOMPSs Binding - Binding
 ==========================
     This file contains the Python binding auxiliary classes and methods.
 '''
-
-from pycompss.api.parameter import *
+from pycompss.api.parameter import Parameter
+from pycompss.api.parameter import TYPE
+from pycompss.api.parameter import DIRECTION
+from pycompss.api.parameter import STREAM
+from pycompss.api.parameter import PREFIX
+from pycompss.api.parameter import JAVA_MIN_INT, JAVA_MAX_INT
+from pycompss.api.parameter import JAVA_MIN_LONG, JAVA_MAX_LONG
 from pycompss.util.serializer import *
 from pycompss.util.sizer import total_sizeof
 
@@ -42,25 +47,25 @@ from shutil import rmtree
 import compss
 
 # Types conversion dictionary from python to COMPSs
-python_to_compss = {types.IntType: Type.INT,          # int
-                    types.LongType: Type.LONG,        # long
-                    types.FloatType: Type.DOUBLE,     # float
-                    types.BooleanType: Type.BOOLEAN,  # bool
-                    types.StringType: Type.STRING,    # str
+python_to_compss = {types.IntType: TYPE.INT,          # int
+                    types.LongType: TYPE.LONG,        # long
+                    types.FloatType: TYPE.DOUBLE,     # float
+                    types.BooleanType: TYPE.BOOLEAN,  # bool
+                    types.StringType: TYPE.STRING,    # str
                     # The type of instances of user-defined classes
-                    # types.InstanceType: Type.OBJECT,
+                    # types.InstanceType: TYPE.OBJECT,
                     # The type of methods of user-defined class instances
-                    # types.MethodType: Type.OBJECT,
+                    # types.MethodType: TYPE.OBJECT,
                     # The type of user-defined old-style classes
-                    # types.ClassType: Type.OBJECT,
+                    # types.ClassType: TYPE.OBJECT,
                     # The type of modules
-                    # types.ModuleType: Type.OBJECT,
+                    # types.ModuleType: TYPE.OBJECT,
                     # The type of tuples (e.g. (1, 2, 3, 'Spam'))
-                    types.TupleType: Type.OBJECT,
+                    types.TupleType: TYPE.OBJECT,
                     # The type of lists (e.g. [0, 1, 2, 3])
-                    types.ListType: Type.OBJECT,
+                    types.ListType: TYPE.OBJECT,
                     # The type of dictionaries (e.g. {'Bacon': 1, 'Ham': 0})
-                    types.DictType: Type.OBJECT
+                    types.DictType: TYPE.OBJECT
                     }
 
 # Set temporary dir
@@ -448,7 +453,7 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args, args,
     self_kwargs, is_future = infer_types_and_serialize_objects(spec_args, first_par, num_pars, fileNames, self_kwargs, args)
 
     # Build values and COMPSs types and directions
-    values, compss_types, compss_directions = build_values_types_directions(ftype, first_par, num_pars, spec_args, self_kwargs, is_future)
+    values, compss_types, compss_directions, compss_streams, compss_prefixes = build_values_types_directions(ftype, first_par, num_pars, spec_args, self_kwargs, is_future)
 
     # Get priority
     has_priority = self_kwargs['priority']
@@ -464,12 +469,18 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args, args,
         values_str = ''
         types_str = ''
         direct_str = ''
+        streams_str = ''
+        prefixes_str = ''
         for v in values:
             values_str += str(v) + ' '
         for t in compss_types:
             types_str += str(t) + ' '
         for d in compss_directions:
             direct_str += str(d) + ' '
+        for s in compss_streams:
+            streams_str += str(s) + ' '
+        for p in compss_prefixes:
+            prefixes_str += str(p) + ' '
         logger.debug('Processing task:')
         logger.debug('\t- App id: ' + str(app_id))
         logger.debug('\t- Path: ' + path)
@@ -483,11 +494,13 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args, args,
         logger.debug('\t- Values: ' + values_str)
         logger.debug('\t- COMPSs types: ' + types_str)
         logger.debug('\t- COMPSs directions: ' + direct_str)
+        logger.debug('\t- COMPSs streams: ' + streams_str)
+        logger.debug('\t- COMPSs prefixes: ' + prefixes_str)
 
-    # Check that there is the same amount of values as their types, as well as their directions.
-    assert(len(values) == len(compss_types) and len(values) == len(compss_directions))
+    # Check that there is the same amount of values as their types, as well as their directions, streams and prefixes.
+    assert(len(values) == len(compss_types) and len(values) == len(compss_directions) == len(compss_streams) == len(compss_prefixes))
 
-    ''' # OLD - DEPRECATED
+    '''
     # Submit task to the runtime (call to the C extension):
     # Parameters:
     #    0 - <Integer>   - application id (by default always 0 due to it is not currently needed for the signature)
@@ -498,12 +511,8 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args, args,
     #    5 - [<String>]  - task parameters (basic types or file paths for objects)
     #    6 - [<Integer>] - parameters types (number corresponding to the type of each parameter)
     #    7 - [<Integer>] - parameters directions (number corresponding to the direction of each parameter)
-    compss.process_task(app_id,
-                        path,
-                        f.__name__,
-                        has_priority,
-                        has_target,
-                        values, compss_types, compss_directions)
+    #    8 - [<Integer>] - parameters streams (number corresponding to the stream of each parameter)
+    #    9 - [<String>]  - parameters prefixes (sting corresponding to the prefix of each parameter)
     '''
 
     compss.process_task(app_id,
@@ -513,7 +522,7 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args, args,
                         replicated,
                         distributed,
                         has_target,
-                        values, compss_types, compss_directions)
+                        values, compss_types, compss_directions, compss_streams, compss_prefixes)
 
     # Return the future object/s corresponding to the task
     # This object will substitute the user expected return from the task and will be used later for
@@ -559,7 +568,7 @@ def build_return_objects(self_kwargs, spec_args):
                 fileNames['compss_retvalue' + str(pos)] = ret_filename
                 # Once determined the filename where the returns are going to be stored, create a new Parameter object
                 # for each return object
-                self_kwargs['compss_retvalue' + str(pos)] = Parameter(p_type=Type.FILE, p_direction=Direction.OUT)
+                self_kwargs['compss_retvalue' + str(pos)] = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT)
                 spec_args.append('compss_retvalue' + str(pos))
                 pos += 1
             self_kwargs['num_returns'] = pos    # Update the amount of objects to be returned
@@ -587,6 +596,24 @@ def build_return_objects(self_kwargs, spec_args):
 
     return fu, fileNames, self_kwargs, spec_args
 
+def fromDictToParameter(d):
+    '''convert a Dict defined by a user for a parameter into a real Parameter object
+    :param d: Dictionary (mandatory to have 'Type' key).
+    :return: Parameter object.
+    '''
+    from pycompss.api.parameter import Type
+    from pycompss.api.parameter import Direction
+    from pycompss.api.parameter import Stream
+    from pycompss.api.parameter import Prefix
+    t = d[Type]
+    if Direction in d:
+        t.setDirection(d[Direction])
+    if Stream in d:
+        t.setStream(d[Stream])
+    if Prefix in d:
+        t.setPrefix(d[Prefix])
+    return t
+
 def infer_types_and_serialize_objects(spec_args, first_par, num_pars, fileNames, self_kwargs, args):
     '''Infer COMPSs types for the task parameters and serialize them.
     :param spec_args: <List of strings> - Names of the task arguments
@@ -606,6 +633,10 @@ def infer_types_and_serialize_objects(spec_args, first_par, num_pars, fileNames,
             logger.debug('Adding default decoration for param %s' % spec_arg)
             p = Parameter()
             self_kwargs[spec_arg] = p
+        elif type(p) is dict:
+            # The user has provided some information about a parameter within the @task parameter
+            logger.debug('Checking decoration for param %s' % spec_arg)
+            p = fromDictToParameter(p)
         if spec_args[0] != 'self':
             # It is a function
             if i < len(args):
@@ -633,9 +664,9 @@ def infer_types_and_serialize_objects(spec_args, first_par, num_pars, fileNames,
             p.type = python_to_compss.get(val_type)
             if p.type is None:
                 if 'getID' in dir(p.value) and p.value.getID() is not None:  # criteria for persistent object
-                    p.type = Type.EXTERNAL_PSCO
+                    p.type = TYPE.EXTERNAL_PSCO
                 else:
-                    p.type = Type.OBJECT
+                    p.type = TYPE.OBJECT
             logger.debug('\t- Inferred type: %d' % p.type)
 
         # Convert small objects to string if object_conversion enabled
@@ -660,7 +691,7 @@ def serialize_object_into_file(p, is_future, i, val_type):
     :param val_type: value type
     :return: p (whose type can have been modified)
     '''
-    if p.type == Type.OBJECT or is_future.get(i):
+    if p.type == TYPE.OBJECT or is_future.get(i):
         # 2nd condition: real type can be primitive,
         # but now it's acting as a future (object)
         try:
@@ -683,17 +714,17 @@ def serialize_object_into_file(p, is_future, i, val_type):
             print('[ ERROR ]: Value: %s' % p.value)
             raise  # raise the exception up tu launch.py in order to point where the error is in the user code.
             # return fu  # the execution continues, but without processing this task
-    elif p.type == Type.EXTERNAL_PSCO:
+    elif p.type == TYPE.EXTERNAL_PSCO:
         manage_persistent_object(p)
-    elif p.type == Type.INT:
+    elif p.type == TYPE.INT:
         if p.value > JAVA_MAX_INT or p.value < JAVA_MIN_INT:
             # This must go through Java as a long to prevent overflow
             # with Java int
-            p.type = Type.LONG
-    elif p.type == Type.LONG:
+            p.type = TYPE.LONG
+    elif p.type == TYPE.LONG:
         if p.value > JAVA_MAX_LONG or p.value < JAVA_MIN_LONG:
             # This must be serialized to prevent overflow with Java long
-            p.type = Type.OBJECT
+            p.type = TYPE.OBJECT
             turn_into_file(p)
     return p
 
@@ -711,7 +742,7 @@ def convert_object_to_string(p, is_future, max_obj_arg_size, policy='objectSize'
         # Check if the object is small in order to serialize it.
         # This alternative evaluates the size of the object before serializing the object.
         # Warning: calculate the size of a python object can be difficult in terms of time and precision
-        if (p.type == Type.OBJECT or p.type == Type.STRING) and not is_future.get(i) and p.direction == Direction.IN:
+        if (p.type == TYPE.OBJECT or p.type == TYPE.STRING) and not is_future.get(i) and p.direction == DIRECTION.IN:
             if not isinstance(p.value, basestring) and isinstance(p.value, (list, dict, tuple, deque, set, frozenset)):
                 # check object size
                 # bytes = sys.getsizeof(p.value)  # does not work properly with recursive object
@@ -727,14 +758,14 @@ def convert_object_to_string(p, is_future, max_obj_arg_size, policy='objectSize'
                         v = serialize_to_string(p.value)  # can not use protocol=HIGHEST_PROTOCOL due to it is sent as a parameter
                         v = '\'' + v + '\''
                         p.value = v
-                        p.type = Type.STRING
+                        p.type = TYPE.STRING
                         logger.debug('Inferred type modified (Object converted to String).')
                     except SerializerException:
                         p.value = real_value
-                        p.type = Type.OBJECT
+                        p.type = TYPE.OBJECT
                         logger.debug('The object cannot be converted due to: not serializable.')
                 else:
-                    p.type = Type.OBJECT
+                    p.type = TYPE.OBJECT
                     logger.debug('Inferred type reestablished to Object.')
                     # if the parameter converts to an object, release the size to be used for converted objects?
                     # No more objects can be converted
@@ -744,7 +775,7 @@ def convert_object_to_string(p, is_future, max_obj_arg_size, policy='objectSize'
     elif policy == 'serializedSize':
         # Check if the object is small in order to serialize it.
         # This alternative evaluates the size after serializing the parameter
-        if (p.type == Type.OBJECT or p.type == Type.STRING) and not is_future.get(i) and p.direction == Direction.IN:
+        if (p.type == TYPE.OBJECT or p.type == TYPE.STRING) and not is_future.get(i) and p.direction == DIRECTION.IN:
             if not isinstance(p.value, basestring):
                 real_value = p.value
                 try:
@@ -758,11 +789,11 @@ def convert_object_to_string(p, is_future, max_obj_arg_size, policy='objectSize'
                         # Cannot run program '/bin/bash'...: error=7, La lista de argumentos es demasiado larga
                         logger.debug('The object size is less than 320 kb.')
                         p.value = v
-                        p.type = Type.STRING
+                        p.type = TYPE.STRING
                         logger.debug('Inferred type modified (Object converted to String).')
                     else:
                         p.value = real_value
-                        p.type = Type.OBJECT
+                        p.type = TYPE.OBJECT
                         logger.debug('Inferred type reestablished to Object.')
                         # if the parameter converts to an object, release the size to be used for converted objects?
                         # No more objects can be converted
@@ -771,7 +802,7 @@ def convert_object_to_string(p, is_future, max_obj_arg_size, policy='objectSize'
                         #    max_obj_arg_size = 320000
                 except PicklingError:
                     p.value = real_value
-                    p.type = Type.OBJECT
+                    p.type = TYPE.OBJECT
                     logger.debug('The object cannot be converted due to: not serializable.')
     else:
         logger.debug('[ERROR] Wrong convert_objects_to_strings policy.')
@@ -792,6 +823,9 @@ def build_values_types_directions(ftype, first_par, num_pars, spec_args, deco_kw
     values = []
     compss_types = []
     compss_directions = []
+    compss_streams = []
+    compss_prefixes = []
+
     # Build the range of elements
     if ftype == Function_Type.INSTANCE_METHOD:
         ra = range(1, num_pars)
@@ -802,13 +836,18 @@ def build_values_types_directions(ftype, first_par, num_pars, spec_args, deco_kw
     for i in ra:
         spec_arg = spec_args[i]
         p = deco_kwargs[spec_arg]
+        if type(p) is dict:
+            # The user has provided some information about a parameter within the @task parameter
+            p = fromDictToParameter(p)
         values.append(p.value)
-        if p.type == Type.OBJECT or is_future.get(i):
-            compss_types.append(Type.FILE)
+        if p.type == TYPE.OBJECT or is_future.get(i):
+            compss_types.append(TYPE.FILE)
         else:
             compss_types.append(p.type)
         compss_directions.append(p.direction)
-    return values, compss_types, compss_directions
+        compss_streams.append(p.stream)
+        compss_prefixes.append(p.prefix)
+    return values, compss_types, compss_directions, compss_streams, compss_prefixes
 
 
 def manage_persistent_object(p):
@@ -817,9 +856,9 @@ def manage_persistent_object(p):
     In particular, saves the object id provided by the persistent storage (getID()) into the pending_to_synchronize dictionary.
     :param p: wrapper of the object to manage
     '''
-    p.type = Type.EXTERNAL_PSCO
+    p.type = TYPE.EXTERNAL_PSCO
     obj_id = p.value.getID()
-    pending_to_synchronize[obj_id] = p.value #obj_id
+    pending_to_synchronize[obj_id] = p.value # obj_id
     p.value = obj_id
     #print 'XXXXXXXXXXXXXXXXXXXXXX'
     #print 'p : ', str(p)
@@ -831,14 +870,14 @@ def manage_persistent_object(p):
     # TODO: This code will have to be reviewed when the final implementation of Persistent workers is done.
     obj_id = id(p.value)
     file_name = objid_to_filename.get(obj_id)
-    if p.direction == Direction.IN and file_name is None and obj_id not in objs_written_by_mp:
+    if p.direction == DIRECTION.IN and file_name is None and obj_id not in objs_written_by_mp:
         # This is the first time a task accesses this object
-        p.type = Type.EXTERNAL_PSCO
+        p.type = TYPE.EXTERNAL_PSCO
         obj_id = p.value.getID()
         pending_to_synchronize[obj_id] = obj_id
         p.value = obj_id
     else:
-        p.type = Type.OBJECT
+        p.type = TYPE.OBJECT
         turn_into_file(p)
     '''
 
@@ -857,7 +896,7 @@ def turn_into_file(p):
     print 'p.type      : ', p.type
     print 'p.direction : ', p.direction
     print 'XXXXXXXXXXXXXXXXX'
-    if p.direction == Direction.OUT:
+    if p.direction == DIRECTION.OUT:
         # If the parameter is out, infer the type and create an empty instance
         # of the same type as the original parameter:
         t = type(p.value)
@@ -886,11 +925,11 @@ def get_compss_mode(pymode):
     :return: Direction object (IN/INOUT/OUT)
     '''
     if pymode.startswith('w'):
-        return Direction.OUT
+        return DIRECTION.OUT
     elif pymode.startswith('r+') or pymode.startswith('a'):
-        return Direction.INOUT
+        return DIRECTION.INOUT
     else:
-        return Direction.IN
+        return DIRECTION.IN
 
 
 def clean_objects():

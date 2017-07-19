@@ -33,7 +33,8 @@ from exceptions import ValueError
 from multiprocessing import Process, Queue, Pipe
 import thread_affinity
 
-from pycompss.api.parameter import Type, JAVA_MAX_INT, JAVA_MIN_INT
+from pycompss.api.parameter import TYPE
+from pycompss.api.parameter import JAVA_MIN_INT, JAVA_MAX_INT
 from pycompss.util.serializer import serialize_to_file, deserialize_from_file, deserialize_from_string, SerializerException
 from pycompss.util.logs import init_logging_worker
 
@@ -160,6 +161,21 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                                 logger.debug("[PYTHON WORKER %s] - Pipe %s END TASK MESSAGE: %s" %(str(process_name),
                                                                                                    str(output_pipe),
                                                                                                    str(message)))
+                                # The return message should be:
+                                #
+                                # TaskResult ==> jobId exitValue List<Object>
+                                #
+                                # Where List<Object> has D length:
+                                # D = #parameters + (hasTarget ? 1 : 0) + (hasReturn ? 1 : 0)
+                                # And contains:
+                                # - Null if it NOT a PSCO
+                                # - PSCOId (String) if is a PSCO
+                                #
+                                # This has to be sent through the pipe with the endTask message.
+                                # Can be simplified if necessary.
+                                # If the task had an object or file as parameter and the worker returns the id,
+                                # the runtime can change the type (and locations) to a EXTERNAL_OBJ_T.
+
                                 with open(output_pipe, 'w+') as out_pipe:
                                     out_pipe.write(message)
                             except Exception, e:
@@ -270,7 +286,7 @@ def execute_task(process_name, storage_conf, params):
         streams.append(pStream)
         prefixes.append(pPrefix)
 
-        if pType == Type.FILE:
+        if pType == TYPE.FILE:
             ## check if it is a persistent object --- TO REMOVE THESE LINES
             #if 'getID' in dir(pValue) and pValue.getID() is not None:
             #    po = getByID(pValue.getID())
@@ -278,11 +294,11 @@ def execute_task(process_name, storage_conf, params):
             #else:
             #    values.append(pValue)
             values.append(pValue)
-        elif pType == Type.EXTERNAL_PSCO:
+        elif pType == TYPE.EXTERNAL_PSCO:
             po = getByID(pValue)
             values.append(po)
             pos += 1  # Skip info about direction (R, W)
-        elif pType == Type.STRING:
+        elif pType == TYPE.STRING:
             num_substrings = int(pValue)
             aux = ''
             first_substring = True
@@ -306,9 +322,9 @@ def execute_task(process_name, storage_conf, params):
             values.append(aux)
             logger.debug("[PYTHON WORKER %s] \t * Final Value: %s" % (process_name, str(aux)))
             pos += num_substrings
-        elif pType == Type.INT:
+        elif pType == TYPE.INT:
             values.append(int(pValue))
-        elif pType == Type.LONG:
+        elif pType == TYPE.LONG:
             l = long(pValue)
             if l > JAVA_MAX_INT or l < JAVA_MIN_INT:
                 # A Python int was converted to a Java long to prevent overflow
@@ -316,14 +332,14 @@ def execute_task(process_name, storage_conf, params):
                 # would have been passed as a serialized object.
                 l = int(l)
             values.append(l)
-        elif pType == Type.DOUBLE:
+        elif pType == TYPE.DOUBLE:
             values.append(float(pValue))
-        elif pType == Type.BOOLEAN:
+        elif pType == TYPE.BOOLEAN:
             if pValue == 'true':
                 values.append(True)
             else:
                 values.append(False)
-        # elif (pType == Type.OBJECT):
+        # elif (pType == TYPE.OBJECT):
         #    pass
         else:
             logger.fatal("[PYTHON WORKER %s] Invalid type (%d) for parameter %d" % (process_name, pType, i))
@@ -424,7 +440,7 @@ def execute_task(process_name, storage_conf, params):
             logger.debug("[PYTHON WORKER %s] Processing callee, a hidden object of %s in file %s" % (process_name, file_name, type(obj)))
             values.insert(0, obj)
             types.pop()
-            types.insert(0, Type.OBJECT)
+            types.insert(0, TYPE.OBJECT)
 
             def task_execution_2():
                 # if tracing:

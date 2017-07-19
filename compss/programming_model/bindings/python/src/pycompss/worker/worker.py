@@ -31,7 +31,7 @@ import sys
 import traceback
 from exceptions import ValueError
 
-from pycompss.api.parameter import Type, JAVA_MAX_INT, JAVA_MIN_INT
+from pycompss.api.parameter import TYPE, JAVA_MAX_INT, JAVA_MIN_INT
 from pycompss.util.serializer import serialize_to_file, deserialize_from_file, deserialize_from_string, SerializerException
 from pycompss.util.logs import init_logging_worker
 
@@ -117,18 +117,18 @@ def compss_worker(persistent_storage):
         streams.append(pStream)
         prefixes.append(pPrefix)
 
-        if pType == Type.FILE:
+        if pType == TYPE.FILE:
             # check if it is a persistent object
             if 'getID' in dir(pValue) and pValue.getID() is not None:
                 po = getByID(pValue.getID())
                 values.append(po)
             else:
                 values.append(pValue)
-        elif pType == Type.EXTERNAL_PSCO:
+        elif pType == TYPE.EXTERNAL_PSCO:
             po = getByID(pValue)
             values.append(po)
             pos += 1  # Skip info about direction (R, W)
-        elif pType == Type.STRING:
+        elif pType == TYPE.STRING:
             num_substrings = int(pValue)
             aux = ''
             first_substring = True
@@ -152,9 +152,9 @@ def compss_worker(persistent_storage):
             values.append(aux)
             logger.debug("\t * Final Value: " + str(aux))
             pos += num_substrings
-        elif pType == Type.INT:
+        elif pType == TYPE.INT:
             values.append(int(pValue))
-        elif pType == Type.LONG:
+        elif pType == TYPE.LONG:
             l = long(pValue)
             if l > JAVA_MAX_INT or l < JAVA_MIN_INT:
                 # A Python int was converted to a Java long to prevent overflow
@@ -162,14 +162,14 @@ def compss_worker(persistent_storage):
                 # would have been passed as a serialized object.
                 l = int(l)
             values.append(l)
-        elif pType == Type.DOUBLE:
+        elif pType == TYPE.DOUBLE:
             values.append(float(pValue))
-        elif pType == Type.BOOLEAN:
+        elif pType == TYPE.BOOLEAN:
             if pValue == 'true':
                 values.append(True)
             else:
                 values.append(False)
-        # elif (pType == Type.OBJECT):
+        # elif (pType == TYPE.OBJECT):
         #    pass
         else:
             logger.fatal("Invalid type (%d) for parameter %d" % (ptype, i))
@@ -254,7 +254,7 @@ def compss_worker(persistent_storage):
             logger.debug("Processing callee, a hidden object of %s in file %s" % (file_name, type(obj)))
             values.insert(0, obj)
             types.pop()
-            types.insert(0, Type.OBJECT)
+            types.insert(0, TYPE.OBJECT)
 
             if persistent_storage:
                 with TaskContext(logger, values, config_file_path=storage_conf):

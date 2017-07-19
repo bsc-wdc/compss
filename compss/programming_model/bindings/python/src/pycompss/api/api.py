@@ -60,7 +60,7 @@ def compss_open(file_name, mode='r'):
     return open(compss_name, mode)
 
 
-def compss_delete(file_name):
+def compss_delete_file(file_name):
     """
     Delete a file -> Calls runtime.
     :param file_name: File name.
@@ -117,7 +117,20 @@ def compss_wait_on(*args):
     ret = map(_compss_wait_on, args)
     return ret[0] if len(ret) == 1 else ret
 
-
+def compss_delete_object(obj):
+    import compss
+    from pycompss.runtime.binding import get_object_id, objid_to_filename, pending_to_synchronize
+    obj_id = get_object_id(obj, False, False)
+    if obj_id is None:
+        return False
+    file_name = objid_to_filename[obj_id]
+    objid_to_filename.pop(obj_id)
+    try:
+        pending_to_synchronize.pop(obj_id)
+    except:
+        pass
+    compss.delete_file(file_name)
+    return True
 ##############
 # DEPRECATED #
 ##############

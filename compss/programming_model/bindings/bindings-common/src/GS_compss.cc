@@ -420,14 +420,16 @@ void init_jni_types() {
 
 
 void process_param(void **params, int i, jobjectArray jobjOBJArr) {
-  // params is of the form:     value type direction
+  // params     is of the form: value type direction stream prefix
   // jobjOBJArr is of the form: value type direction stream prefix
 
   debug_printf("[   BINDING]  -  @process_param\n");
 
-  void *parVal = params[3*i];
-  int parType = *(int*)params[3*i + 1];
-  int parDirect = *(int*)params[3*i + 2];
+  void *parVal = params[5*i];
+  int parType = *(int*)params[5*i + 1];
+  int parDirect = *(int*)params[5*i + 2];
+  int parStream = *(int*)params[5*i + 3];
+  void *parPrefix = params[5*i + 4];
 
   int pv = 5*i, pt = 5*i + 1, pd = 5*i + 2, ps = 5*i + 3, pp = 5*i + 4;
 
@@ -630,10 +632,27 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
   }
 
   // Add param stream
-  env->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamUNSPECIFIED);
+  debug_printf ("[   BINDING]  -  @process_param  -  ENUM STREAM: %d\n", (enum stream) parStream);
+  switch ((enum stream) parStream) {
+    case STD_IN:
+      env->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamSTDIN);
+      break;
+    case STD_OUT:
+      env->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamSTDOUT);
+      break;
+    case STD_ERR:
+      env->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamSTDERR);
+      break;
+    default:
+      env->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamUNSPECIFIED);
+      break;
+  }
 
   // Add param prefix
-  env->SetObjectArrayElement(jobjOBJArr, pp, jobjParPrefixEMPTY);
+  debug_printf ("[   BINDING]  -  @process_param  -  PREFIX: %s\n", *(char **)parPrefix);
+  jstring jobjParPrefix = env->NewStringUTF(*(char **)parPrefix);
+  env->SetObjectArrayElement(jobjOBJArr, pp, jobjParPrefix);
+  //env->SetObjectArrayElement(jobjOBJArr, pp, jobjParPrefixEMPTY);
 }
 
 // ******************************
@@ -725,11 +744,11 @@ int check_and_attach()
 {
   jint res = jvm->GetEnv((void **)&env, JNI_VERSION_1_8);
   if (res == JNI_EDETACHED) {
-        debug_printf("[   BINDING]  -  @check_an_attach - Attaching\n");  	
+        debug_printf("[   BINDING]  -  @check_an_attach - Attaching\n");
         if (jvm->AttachCurrentThread((void **) &env, NULL) != 0) {
             printf("Failed to attach to the JVM");
         }else{
-	    return 1; 
+	    return 1;
         }
   } else {
         // attached
@@ -783,7 +802,7 @@ void GS_Get_AppDir(char **buf)
   jstring jstr = NULL;
   jboolean isCopy;
   int isAttached = check_and_attach();
-  
+
   jstr = (jstring)env->CallObjectMethod(jobjIT, midAppDir);
   if (env->ExceptionOccurred()) {
     env->ExceptionDescribe();
@@ -798,14 +817,14 @@ void GS_Get_AppDir(char **buf)
   if (isAttached == 1){
   	jvm->DetachCurrentThread();
   }
-  
+
   debug_printf("[   BINDING]  -  @GS_Get_AppDir  -  directory name: %s\n", *buf);
 }
 
 void GS_ExecuteTask(long _appId, char *class_name, char *method_name, int priority, int has_target, int num_params, void **params)
 {
   int isAttached = check_and_attach();
- 
+
   jobjectArray jobjOBJArr; /*  array of Objects to be passed to executeTask */
 
   debug_printf ("[   BINDING]  -  @GS_ExecuteTask\n");
@@ -815,7 +834,7 @@ void GS_ExecuteTask(long _appId, char *class_name, char *method_name, int priori
 
   bool _has_target = false;
   if (has_target != 0) _has_target = true;
-  
+
   jobjOBJArr = (jobjectArray)env->NewObjectArray(num_params*5, clsObject, env->NewObject(clsObject,midObjCon));
 
   for (int i = 0; i < num_params; i++) {
@@ -837,9 +856,9 @@ void GS_ExecuteTaskNew(long _appId, char *signature, int priority, int num_nodes
 {
 
   jobjectArray jobjOBJArr; /* array of Objects to be passed to executeTask */
-  
+
   int isAttached = check_and_attach();
-  
+
   debug_printf ("[   BINDING]  -  @GS_ExecuteTaskNew\n");
 
   bool _priority = false;
@@ -909,7 +928,7 @@ void GS_RegisterCE(char *CESignature, char *ImplSignature, char *ImplConstraints
   if (isAttached==1){
  	 jvm->DetachCurrentThread();
   }
-  
+
   debug_printf("[   BINDING]  -  @GS_RegisterCE  -  Task registered: %s\n", CESignature);
 }
 
@@ -920,7 +939,7 @@ void GS_Get_File(char *file_name, int mode, char **buf)
   const char *cstr;
   jstring jstr = NULL;
   jboolean isCopy;
-  
+
   int isAttached = check_and_attach();
 
   switch ((enum direction) mode) {
@@ -952,7 +971,7 @@ void GS_Get_File(char *file_name, int mode, char **buf)
 }
 
 void GS_Close_File(char *file_name, int mode) {
-  
+
   int isAttached = check_and_attach();
 
   switch ((enum direction) mode) {
@@ -983,7 +1002,7 @@ void GS_Close_File(char *file_name, int mode) {
 void GS_Delete_File(char *file_name, int **buf)
 {
   int isAttached = check_and_attach();
- 
+
   env->CallVoidMethod(jobjIT, midDeleteFile, env->NewStringUTF(file_name));
   if (env->ExceptionOccurred()) {
       env->ExceptionDescribe();
@@ -992,21 +1011,21 @@ void GS_Delete_File(char *file_name, int **buf)
   if (isAttached==1){
   	jvm->DetachCurrentThread();
   }
-  
+
   debug_printf("[   BINDING]  -  @GS_Delete_File  -  COMPSs filename: %s\n", file_name);
 }
 
 
 void GS_Barrier(long _appId)
 {
-  int isAttached = check_and_attach();  
+  int isAttached = check_and_attach();
 
   env->CallVoidMethod(jobjIT, midBarrier, appId);
   if (env->ExceptionOccurred()) {
       env->ExceptionDescribe();
       exit(1);
   }
-  
+
   if (isAttached==1){
     jvm->DetachCurrentThread();
   }
@@ -1033,4 +1052,3 @@ void GS_EmitEvent(int type, long id)
   	jvm->DetachCurrentThread();
   }
 }
-

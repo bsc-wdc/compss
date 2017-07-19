@@ -5,7 +5,6 @@ from pycompss.api.api import barrier, compss_open
 from pycompss.api.binary import binary
 from pycompss.api.constraint import constraint
 
-
 @binary(binary="date", workingDir="/tmp")
 @task()
 def myDate(dprefix, param):
@@ -22,26 +21,19 @@ def myDateConstrained(dprefix, param):
 def mySedIN(expression, file):
     pass
 
-# skipped
 @binary(binary="sed", workingDir=".")
-#@task(file=Parameter(Type.FILE, Direction.INOUT, Stream.STDOUT))
-@task(file=FILE_INOUT_STDOUT)
+@task(file=FILE_INOUT)
 def mySedINOUT(flag, expression, file):
+    pass
+
+@binary(binary="grep", workingDir=".")
+#@task(infile=Parameter(TYPE.FILE, DIRECTION.IN, STREAM.STDIN), result=Parameter(TYPE.FILE, DIRECTION.OUT, STREAM.STDOUT))
+#@task(infile={Type:FILE_IN, Stream:STDIN}, result={Type:FILE_OUT, Stream:STDOUT})
+@task(infile={Type:FILE_IN_STDIN}, result={Type:FILE_OUT_STDOUT})
+def myGrepper(keyword, infile, result):
     pass
 
 '''
-# skipped
-@binary(binary="sed", workingDir=".")
-@task(file={TYPE=FILE_INOUT, STREAM="STDOUT"})
-def mySedINOUT(flag, expression, file):
-    pass
-
-# skipped
-@binary(binary="grep", workingDir=".")
-@task(infile={TYPE=FILE_IN, STREAM="STDIN"}, Result={TYPE=FILE_OUT, STREAM="STDOUT"})
-def myGrepper(keyword, infile result):
-    pass
-
 # skipped
 @binary(binary="ls")
 @task(hide={TYPE=FILE_IN, PREFIX="--hide="}, show={TYPE=FILE_IN, PREFIX="#"})
@@ -64,7 +56,9 @@ class testBinaryDecorator(unittest.TestCase):
         mySedIN('s/Hi/HELLO/g', infile)
         barrier()
 
-    @unittest.skip("The redirection has to be done through streams -> ignoring")
+    '''
+    # Fails when retrieving the file... doesn't exist?
+    # @unittest.skip("Fails to retrieve the inout file.")
     def testFileManagementINOUT(self):
         inoutfile = "src/inoutfile"
         mySedINOUT('-i', 's/Hi/HELLO/g', inoutfile)
@@ -74,16 +68,10 @@ class testBinaryDecorator(unittest.TestCase):
         print "XXXXXXXXXXXX"
         print content_r
         print "XXXXXXXXXXXX"
+    '''
 
-    @unittest.skip("Redirection not supported yet -> ignoring")
     def testFileManagement(self):
-        infile = "infile"
-        outfile = "outfile"
+        infile = "src/infile"
+        outfile = "src/grepoutfile"
         myGrepper("Hi", infile, outfile)
         barrier()
-        with compss_open(outfile, "r") as fout_r:
-            content_r = fout_r.read()
-        # Check if there are only lines containint "Hi"
-        print "XXXXXXXXXXXX"
-        print content_r
-        print "XXXXXXXXXXXX"

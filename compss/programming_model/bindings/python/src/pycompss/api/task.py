@@ -73,7 +73,9 @@ class task(object):
             self.kwargs['isDistributed'] = False
 
         # Pre-process decorator arguments
-        from pycompss.api.parameter import Parameter, Type, Direction
+        from pycompss.api.parameter import Parameter
+        from pycompss.api.parameter import TYPE
+        from pycompss.api.parameter import DIRECTION
         import copy
 
         if i_am_at_master():
@@ -86,12 +88,12 @@ class task(object):
                     self.kwargs[arg_name] = pcopy
 
         if self.kwargs['isModifier']:
-            direction = Direction.INOUT
+            direction = DIRECTION.INOUT
         else:
-            direction = Direction.IN
+            direction = DIRECTION.IN
 
         # Add callee object parameter
-        self.kwargs['self'] = Parameter(p_type=Type.OBJECT, p_direction=direction)
+        self.kwargs['self'] = Parameter(p_type=TYPE.OBJECT, p_direction=direction)
 
         # Check the return type:
         if self.kwargs['returns']:
@@ -102,14 +104,14 @@ class task(object):
             if not hasattr(self.kwargs['returns'], '__len__') or type(self.kwargs['returns']) is type:
                 # Simple return
                 retType = getCOMPSsType(self.kwargs['returns'])
-                self.kwargs['compss_retvalue'] = Parameter(p_type=retType, p_direction=Direction.OUT)
+                self.kwargs['compss_retvalue'] = Parameter(p_type=retType, p_direction=DIRECTION.OUT)
             else:
                 # Multi return
                 i = 0
                 returns = []
                 for r in self.kwargs['returns']:  # This adds only one? - yep
                     retType = getCOMPSsType(r)
-                    returns.append(Parameter(p_type=retType, p_direction=Direction.OUT))
+                    returns.append(Parameter(p_type=retType, p_direction=DIRECTION.OUT))
                 self.kwargs['compss_retvalue'] = tuple(returns)
 
         logger.debug("Init @task decorator finished.")
@@ -566,6 +568,13 @@ def masterCode(f, self_module, is_instance, has_varargs, has_keywords, has_defau
     if has_keywords:  # **kwargs
         aakwargs = '**' + self_spec_args.keywords  # Name used for the **kwargs
         args_names.append(aakwargs)
+        '''
+        # Check if some of the **kwargs are used as vals
+        if len(vals_names) > len(vals):
+            for i in range(len(vals), len(vals_names)):
+                vals.append(kwargs[vals_names[i]])
+                kwargs.pop(vals_names[i])
+        '''
         # The **kwargs dictionary is considered as a single dictionary object.
         args_vals.append(kwargs)
 
@@ -615,37 +624,37 @@ def getCOMPSsType(value):
     :param value: Value to analyse
     :return: The Type of the value
     """
-    from pycompss.api.parameter import Type
+    from pycompss.api.parameter import TYPE
     if type(value) is bool:
-        return Type.BOOLEAN
+        return TYPE.BOOLEAN
     elif type(value) is str and len(value) == 1:
-        return Type.CHAR           # Char does not exist as char. Only for strings of length 1.
+        return TYPE.CHAR           # Char does not exist as char. Only for strings of length 1.
     elif type(value) is str and len(value) > 1:
-        return Type.STRING
+        return TYPE.STRING
     #elif type(value) is byte:     # byte does not exist in python (instead bytes is an str alias)
-    #    return Type.BYTE
+    #    return TYPE.BYTE
     # elif type(value) is short:   # short does not exist in python... they are integers.
-    #    return Type.SHORT
+    #    return TYPE.SHORT
     elif type(value) is int:
-        return Type.INT
+        return TYPE.INT
     elif type(value) is long:
-        return Type.LONG
+        return TYPE.LONG
     elif type(value) is float:
-        return Type.DOUBLE
+        return TYPE.DOUBLE
     # elif type(value) is double:  # In python, floats are doubles.
-    #     return Type.DOUBLE
+    #     return TYPE.DOUBLE
     elif type(value) is str:
-        return Type.STRING
+        return TYPE.STRING
     # elif type(value) is :       # Unavailable
-    #     return Type.OBJECT
+    #     return TYPE.OBJECT
     # elif type(value) is :       # Unavailable # TODO: THIS TYPE WILL HAVE TO BE USED INSTEAD OF EXTERNAL
-    #     return Type.PSCO
+    #     return TYPE.PSCO
     # elif 'getID' in dir(value):
     #     # It is a storage object, but at this point we do not know if its going to be persistent or not.
-    #     return Type.EXTERNAL_PSCO
+    #     return TYPE.EXTERNAL_PSCO
     else:
         # Default type
-        return Type.FILE
+        return TYPE.FILE
 
 
 def get_default_args(f):
@@ -672,7 +681,9 @@ def reveal_objects(values,
     :param returns: If the function returns a value. Type = Boolean.
     :return: a list with the real values
     """
-    from pycompss.api.parameter import Parameter, Type, Direction
+    from pycompss.api.parameter import Parameter
+    from pycompss.api.parameter import TYPE
+    from pycompss.api.parameter import DIRECTION
 
     num_pars = len(spec_args)
     real_values = []
@@ -688,10 +699,10 @@ def reveal_objects(values,
         if i == 0:
             if spec_arg == 'self':  # callee object
                 if deco_kwargs['isModifier']:
-                    d = Direction.INOUT
+                    d = DIRECTION.INOUT
                 else:
-                    d = Direction.IN
-                deco_kwargs[spec_arg] = Parameter(p_type=Type.OBJECT, p_direction=d)
+                    d = DIRECTION.IN
+                deco_kwargs[spec_arg] = Parameter(p_type=TYPE.OBJECT, p_direction=d)
             elif inspect.isclass(value):  # class (it's a class method)
                 real_values.append(value)
                 continue
@@ -704,7 +715,7 @@ def reveal_objects(values,
         def elapsed(start):
             return time.time() - start
 
-        if compss_type == Type.FILE and p.type != Type.FILE:
+        if compss_type == TYPE.FILE and p.type != TYPE.FILE:
             # Getting ids and file names from passed files and objects patern is "originalDataID:destinationDataID;flagToPreserveOriginalData:flagToWrite:PathToFile"
             # forig, fdest, preserve, write_final, fname = value.split(':')
             complete_fname = value.split(':')
@@ -725,11 +736,11 @@ def reveal_objects(values,
             logger.debug("Processing a hidden object in parameter %d", i)
             obj = deserialize_from_file(value)
             real_values.append(obj)
-            if p.direction != Direction.IN:
+            if p.direction != DIRECTION.IN:
                 to_serialize.append((obj, value))
         else:
             print('compss_type' + str(compss_type)+ ' type'+ str(p.type))
-            if compss_type == Type.FILE:
+            if compss_type == TYPE.FILE:
                 # forig, fdest, preserve, write_final, fname = value.split(':')
                 complete_fname = value.split(':')
                 if len(complete_fname) > 1:

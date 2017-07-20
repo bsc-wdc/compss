@@ -8,8 +8,7 @@ from distutils.core import setup, Extension
 from distutils.command.install import install
 from distutils import log
 
-'''
-	Distutils installer. This script will be called by pip when:
+'''Distutils installer. This script will be called by pip when:
 	- We want to create a distributable (sdist) tar.gz
 	- We want to build the C extension (build and build_ext)
 	- We want to install pyCOMPSs (install)
@@ -23,8 +22,7 @@ bindings_location = os.path.join('COMPSs', 'Bindings')
 target_path = os.path.join(site.getsitepackages()[0], 'pycompss')
 
 def check_system():
-        '''
-                Check that we have a proper python version and a
+        '''Check that we have a proper python version and a
                 proper OS (i.e: not windows)
                 Also, check that we have JAVA_HOME defined
         '''
@@ -35,8 +33,7 @@ def check_system():
         # check we have JAVA_HOME defined
         assert 'JAVA_HOME' in os.environ, 'JAVA_HOME is not defined'
 
-'''
-	Pre-install operation: download and install COMPSs
+'''Pre-install operation: download and install COMPSs
 	This will try to stop the installation if some error is
 	found during that part. However, some sub-scripts dont
 	propagate the errors they find, so there is not absolute
@@ -47,8 +44,7 @@ if 'install' in sys.argv[1:]:
 	check_system()
 	backend_install(target_path)
 
-'''
-	Setup function.
+'''Setup function.
 '''
 setup (name='pycompss',
 	version=open('VERSION.txt').read().rstrip(),

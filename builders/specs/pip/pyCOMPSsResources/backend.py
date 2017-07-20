@@ -7,18 +7,18 @@ import shutil
 import tarfile
 import subprocess
 
-'''
-  This is a function that downloads the COMPSs installable from the specified repository and version
-  and installs it. It is intended to be called from the setup.py script when we are installing.  
-  It also leaves a script on /etc/profile.d/compss.sh equivalent to the "compssenv" one on
-  the supercomputers packages.
 
-  Since this script calls another script which calls another script which calls... it may be
-  possible that not all errors will be properly caught, leading to incomplete installations.
-'''
 
 def install(target_path):
-	# download and decompress the COMPSs_version.tar.gz file	
+    '''This function downloads the COMPSs installable from the specified repository and version
+      and installs it. It is intended to be called from the setup.py script when we are installing.
+      It also leaves a script on /etc/profile.d/compss.sh equivalent to the "compssenv" one on
+      the supercomputers packages.
+
+      Since this script calls another script which calls another script which calls... it may be
+      possible that not all errors will be properly caught, leading to incomplete installations.
+    '''
+	# download and decompress the COMPSs_version.tar.gz file
 	base_url = open('url','r').read().rstrip()
 	version_name = open('VERSION.txt','r').read().rstrip()
 	tgz_name = 'COMPSs_{0}.tar.gz'.format(version_name)
@@ -35,7 +35,7 @@ def install(target_path):
 	# call the SuperComputers install script
 	if subprocess.call(['./COMPSs/install', target_path]) != 0:
 		raise Exception('COMPSs install script ended with some error. Plase check stdout & stderr for more info.')
-	
+
 	pref = os.path.join(target_path, 'COMPSs')
 
 	# create a script that defines some environment variables

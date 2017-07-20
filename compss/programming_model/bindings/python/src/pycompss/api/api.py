@@ -65,7 +65,7 @@ def compss_delete_file(file_name):
     Delete a file -> Calls runtime.
     :param file_name: File name.
     """
-    delete_file(file_name)
+    return delete_file(file_name)
 
 
 def barrier():
@@ -119,10 +119,11 @@ def compss_wait_on(*args):
 
 def compss_delete_object(obj):
     import compss
-    from pycompss.runtime.binding import get_object_id, objid_to_filename, pending_to_synchronize
+    from pycompss.runtime.binding import get_object_id, objid_to_filename, pending_to_synchronize, id2obj
     obj_id = get_object_id(obj, False, False)
     if obj_id is None:
         return False
+    id2obj.pop(obj_id)
     file_name = objid_to_filename[obj_id]
     objid_to_filename.pop(obj_id)
     try:

@@ -1,13 +1,12 @@
-"""
-@author: fconejer
-  
+'''@author: fconejer
+
 PyCOMPSs Delete File Testbench Tasks
 ====================================
-"""
-    
+'''
+
 from pycompss.api.task import task
 from pycompss.api.parameter import *
-  
+
 @task(counterFile = FILE_INOUT)
 def increment(counterFile):
     # Read value
@@ -29,3 +28,7 @@ def increment2(counterFileIn, counterFileOut):
     fos = open(counterFileOut, 'w')
     fos.write(str(int(value) + 1))
     fos.close()
+
+@task(returns = list)
+def increment_object(x):
+    return [x[0]+1]

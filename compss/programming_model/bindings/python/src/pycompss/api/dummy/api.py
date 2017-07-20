@@ -13,39 +13,36 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-"""
-@author: fconejer
+'''@author: fconejer
 
 PyCOMPSs Dummy API
 ==================
     This file defines the public PyCOMPSs API functions without functionality.
     It implements a dummy compss_open and compss_wait_on functions.
-"""
+'''
 
 
 def compss_open(obj):
-    """
-    Dummy compss_open
+    '''Dummy compss_open
     :param obj: The object to open
     :return: The same object defined as parameter
-    """
+    '''
     return obj
 
 
 def compss_delete(file_name):
-    """
-    Dummy compss_delete
+    '''Dummy compss_delete
     :param file_name: File name.
-    """
+    '''
     pass
-  
+
 
 def barrier():
     """
     Dummy barrier
     """
     pass
-  
+
 
 def compss_wait_on(obj):
     """

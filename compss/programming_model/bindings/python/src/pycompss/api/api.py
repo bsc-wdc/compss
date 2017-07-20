@@ -13,15 +13,14 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-"""
-@author: etejedor
+'''@author: etejedor
 @author: fconejer
 
 PyCOMPSs API
 ============
     This file defines the public PyCOMPSs API functions.
     It implements the start, stop, open and wait_on functions.
-"""
+'''
 
 from pycompss.runtime.binding import start_runtime, stop_runtime
 from pycompss.runtime.binding import get_file, delete_file
@@ -34,16 +33,14 @@ import types
 
 
 def compss_start():
-    """
-    Starts the runtime.
-    """
+    '''Starts the runtime.
+    '''
     start_runtime()
 
 
 def compss_stop():
-    """
-    Stops the runtime.
-    """
+    '''Stops the runtime.
+    '''
     stop_runtime()
 
 

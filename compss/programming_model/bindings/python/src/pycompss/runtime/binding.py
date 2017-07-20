@@ -192,11 +192,12 @@ def delete_file(file_name):
     :param file_name: File name to remove
     '''
     logger.debug('Deleting file %s' %(file_name))
-    result = compss.delete_file(file_name)
-    if result == 'true':
+    result = compss.delete_file(file_name) == 'true'
+    if result:
         logger.debug('File %s successfully deleted.' % (file_name))
     else:
         logger.error('Failed to remove file %s.' % (file_name))
+    return result
 
 
 def compss_barrier():

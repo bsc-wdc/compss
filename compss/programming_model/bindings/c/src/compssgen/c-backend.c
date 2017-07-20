@@ -404,10 +404,12 @@ static void generate_class_includes(FILE *outFile, function *current_function)
 static void generate_parameter_buffers(FILE *outFile, function *func)
 {
   int k = 0;
-  if (( func->classname != NULL ) && (func->access_static == 0)) k = k + 3;
-  if ( func->return_type != void_dt ) k = k + 3;
+  //There is a target object
+  if (( func->classname != NULL ) && (func->access_static == 0)) k = k + 5;
+  //There is a return type
+  if ( func->return_type != void_dt ) k = k + 5;
   
-  fprintf(outFile, "\t void *arrayObjs[%d];\n", k + func->argument_count * 3);
+  fprintf(outFile, "\t void *arrayObjs[%d];\n", k + func->argument_count * 5);
   fprintf(outFile, "\t int found;\n");
   fprintf(outFile, "\n");
 }
@@ -436,6 +438,10 @@ static void add_object_arg_master_treatment(FILE *outFile, argument *arg, int i)
         fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+1, i+1);
         fprintf(outFile, "\t int param%d = %d;\n", i+2, inout_dir);
         fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+2, i+2);
+        fprintf(outFile, "\t int param%d = %d;\n", i+3, 3);
+        fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+3, i+3);
+        fprintf(outFile, "\t char *param%d = \"null\";\n", i+4);
+        fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+4, i+4);
 	
 }
 
@@ -448,6 +454,10 @@ static void add_other_arg_master_treatment(FILE *outFile, argument *arg, int i)
           fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+1, i+1);
           fprintf(outFile, "\t int param%d = %d;\n", i+2, arg->dir);
           fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+2, i+2);
+          fprintf(outFile, "\t int param%d = %d;\n", i+3, 3);
+          fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+3, i+3);
+          fprintf(outFile, "\t char *param%d = \"null\";\n", i+4);
+          fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+4, i+4);
 	}else{
 	  switch (arg->type) {
         	case char_dt:
@@ -470,6 +480,10 @@ static void add_other_arg_master_treatment(FILE *outFile, argument *arg, int i)
           		fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+1, i+1);
           		fprintf(outFile, "\t int param%d = %d;\n", i+2, arg->dir);
           		fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+2, i+2);
+                        fprintf(outFile, "\t int param%d = %d;\n", i+3, 3);
+    			fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+3, i+3);
+    			fprintf(outFile, "\t char *param%d = \"null\";\n", i+4);
+    			fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+4, i+4);
           		break;
         	case void_dt:
         	case any_dt:
@@ -488,7 +502,8 @@ static void generate_parameter_marshalling(FILE *outFile, function *func)
   int i = 0;
   
   if (( func->classname != NULL ) && (func->access_static == 0)){
-    i = j*3;
+    //i=j*3
+    i = j*5;
     fprintf(outFile, "\t char *this_filename;\n");
     fprintf(outFile, "\t found = GS_register(this, (datatype)%d, (direction)%d, \"%s\", this_filename);\n", object_dt, inout_dir, func->classname);
     fprintf(outFile, "\t if (!found) {\n");
@@ -507,13 +522,20 @@ static void generate_parameter_marshalling(FILE *outFile, function *func)
     
     fprintf(outFile, "\t int param%d = %d;\n", i+2, inout_dir);
     fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+2, i+2);
+   
+    fprintf(outFile, "\t int param%d = %d;\n", i+3, 3);
+    fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+3, i+3);
+
+    fprintf(outFile, "\t char *param%d = \"null\";\n", i+4);
+    fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+4, i+4);
     
     fprintf(outFile, "\n");
     j++;
   }
   
   if ( func->return_type != void_dt ){
-    i = j*3;
+    //i = j*3;
+    i = j*5;
     fprintf(outFile, "\t %s return_object;\n", func->return_typename);
     fprintf(outFile, "\t char *return_filename;\n");
     fprintf(outFile, "\t found = GS_register(&return_object, (datatype)%d, (direction)%d, \"%s\", return_filename);\n", object_dt, out_dir, func->return_typename);
@@ -535,6 +557,12 @@ static void generate_parameter_marshalling(FILE *outFile, function *func)
     fprintf(outFile, "\t int param%d = %d;\n", i+2, inout_dir);
     fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+2, i+2);
     
+    fprintf(outFile, "\t int param%d = %d;\n", i+3, 3);
+    fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+3, i+3);
+
+    fprintf(outFile, "\t char *param%d = \"null\";\n", i+4);
+    fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+4, i+4);
+ 
     fprintf(outFile, "\n");
     j++;
   }
@@ -542,8 +570,8 @@ static void generate_parameter_marshalling(FILE *outFile, function *func)
   
   arg = func->first_argument;
   while (arg != NULL) {
-    i = j*3;
-    
+    i = j*5;
+    //i = j*3;
       switch (arg->type) {
 	case char_dt:
 	case wchar_dt:
@@ -599,7 +627,7 @@ static void generate_execute_call(FILE *outFile, function *func)
   fprintf(outFile, "\t char *method_name = strdup(\"%s\");\n", func->name);
   
   fprintf(outFile, "\t GS_ExecuteTask(0L, \"%s\", method_name, 0, %s, %d, (void**)arrayObjs);\n", class_name, hasTarget, arg_count);
-  
+  fprintf(outFile, "\t debug_printf(\"[   BINDING]  -  @%%s  -  Task submited in the runtime\\n\", method_name);\n"); 
   fprintf(outFile, "\n");
   
   if ( func->return_type != void_dt ){
@@ -610,8 +638,9 @@ static void generate_execute_call(FILE *outFile, function *func)
     	fprintf(outFile, "\n\t return return_object;\n");
     	fprintf(outFile, "\n");
   }
-  
+  fprintf(outFile, "\t debug_printf(\"[   BINDING]  -  @%%s  -  Free method name\\n\", method_name);\n");
   fprintf(outFile, "\t free(method_name);\n");
+  fprintf(outFile, "\t debug_printf(\"[   BINDING]  -  End of task submission.\\n\");\n");
   
 }
 

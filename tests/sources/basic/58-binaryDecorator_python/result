@@ -28,7 +28,6 @@
   fi
 
   #----------------------------------------------------------------------------------
-  # TODO: Check inout and output files consolidation
 
   jobs_logs="${target_log_folder}/jobs"
 
@@ -38,28 +37,32 @@
     echo "ERROR: TASK FAILED: testFunctionalUsage function failed." | tee -a ${output_file}
     exit 1
   fi
+
   monday=$(grep -r -l "date -d next monday" $jobs_logs)
   mondayDate=$(date -d "next monday")
   if ! $(cat "$monday" | grep -E -q "$mondayDate"); then
     echo "ERROR: TASK FAILED: testFunctionalUsageWithConstraint function failed." | tee -a ${output_file}
     exit 1
   fi
+
   hello=$(grep -r -l "HELLO, this is a simple test to grep." $jobs_logs)
   if [[ -z "$hello" ]]; then
      echo "ERROR: TASK FAILED: testFileManagementIN function failed." | tee -a ${output_file}
     exit 1
   fi
+
   if grep -q "do" src/grepoutfile; then
     echo "ERROR: TASK FAILED: testFileManagement function failed."  | tee -a ${output_file}
     exit 1
   fi
-  lss=`grep -r "ls -l --hide=" $jobs_logs`
-  myLs=$(echo $lss | grep -r -l "infile --sort=size")
+
+  myLs=$(grep -r -l "ls -l --hide=.*infile.* --sort=size" $jobs_logs)
   if [[ -z "$myLs" ]]; then
      echo "ERROR: TASK FAILED: testFilesAndPrefix function failed." | tee -a ${output_file}
     exit 1
   fi
-  myLs2=$(echo $lss | grep -r -l "inoutfile --sort=time")
+
+  myLs2=$(grep -r -l "ls -l --hide=.*inoutfile.* --sort=time" $jobs_logs)
   if [[ -z "$myLs2" ]]; then
      echo "ERROR: TASK FAILED: testFilesAndPrefixWithoutType function failed." | tee -a ${output_file}
     exit 1

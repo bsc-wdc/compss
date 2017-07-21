@@ -28,7 +28,6 @@
   fi
 
   #----------------------------------------------------------------------------------
-  # TODO: Check inout and output files consolidation
 
   jobs_logs="${target_log_folder}/jobs"
 

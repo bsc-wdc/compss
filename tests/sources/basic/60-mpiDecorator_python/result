@@ -38,6 +38,7 @@
     echo "ERROR: TASK FAILED: testFunctionalUsage function failed." | tee -a ${output_file}
     exit 1
   fi
+
   monday=$(grep -r -l "date -d next monday" $jobs_logs)
   mondayDate=$(date -d "next monday")
   if ! $(cat "$monday" | grep -E -q "$mondayDate"); then
@@ -51,6 +52,47 @@
     fi
   fi
 
+  hellofile=$(grep -r -l "sed s/Hi/HELLO/g" $jobs_logs)
+  hello=$(grep -r -l "HELLO, this is a simple test to grep." $hellofile)
+  if [[ -z "$hello" ]]; then
+     echo "ERROR: TASK FAILED: testFileManagementIN function failed." | tee -a ${output_file}
+    exit 1
+  else
+    apearances=$(cat "$hellofile" | grep "HELLO" | wc -l)
+    if [ ! "$apearances" -eq "17" ]; then
+      echo "ERROR: TASK FAILED: testFileManagementIN function computingNodes parameter failed." | tee -a ${output_file}
+      exit 1
+    fi
+  fi
+
+  if grep -q "do" src/grepoutfile; then
+    echo "ERROR: TASK FAILED: testFileManagement function failed."  | tee -a ${output_file}
+    exit 1
+  fi
+
+  myLs=$(grep -r -l "ls -l --hide=.*infile.* --sort=size" $jobs_logs)
+  if [[ -z "$myLs" ]]; then
+     echo "ERROR: TASK FAILED: testFilesAndPrefix function failed." | tee -a ${output_file}
+    exit 1
+  else
+      apearances=$(cat "$myLs" | grep "infile" | wc -l)
+      if [ ! "$apearances" -eq "3" ]; then
+        echo "ERROR: TASK FAILED: testFilesAndPrefix function computingNodes parameter failed." | tee -a ${output_file}
+        exit 1
+      fi
+  fi
+
+  myLs2=$(grep -r -l "ls -l --hide=.*inoutfile.* --sort=time" $jobs_logs)
+  if [[ -z "$myLs2" ]]; then
+     echo "ERROR: TASK FAILED: testFilesAndPrefixWithoutType function failed." | tee -a ${output_file}
+    exit 1
+  else
+    apearances=$(cat "$myLs2" | grep "inoutfile" | wc -l)
+    if [ ! "$apearances" -eq "3" ]; then
+      echo "ERROR: TASK FAILED: testFilesAndPrefixWithoutType function computingNodes parameter failed." | tee -a ${output_file}
+      exit 1
+    fi
+  fi
 
   #----------------------------------------------------------------------------------
   # Grep for unit test errors (ERROR or FAIL)

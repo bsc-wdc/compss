@@ -22,7 +22,7 @@ def mySedIN(expression, file):
     pass
 
 @binary(binary="sed", workingDir=".")
-@task(file=FILE_INOUT_STDIN)
+@task(file=FILE_INOUT)
 def mySedINOUT(flag, expression, file):
     pass
 

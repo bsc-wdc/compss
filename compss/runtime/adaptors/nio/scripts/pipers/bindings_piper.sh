@@ -7,7 +7,11 @@
     # Get number of threads
     numThreads=$1
     shift 1
-
+    # Get Data pipes
+    dataCMDpipe=$1
+    dataRESULTpipe=$2
+    shift 2
+    
     # Get CMD pipes
     CMDpipes=()
     numPipesCMD=$1
@@ -70,7 +74,10 @@
       # the subprocess has correctly finished
       kill -15 $bindingPID > /dev/null
     fi
-
+    # remove data pipes
+    rm -f ${dataCMDpipe} ${dataRESULTpipe}
+    
+    # remove job pipes
     for i in "${CMDpipes[@]}"; do
       rm -f $i
     done
@@ -95,6 +102,15 @@
 
   # Log
   echo "[BINDINGS PIPER] NumThreads: $numThreads"
+  
+  # Clean and Create data pipes
+  echo "[BINDINGS PIPER] Data CMD Pipe: $dataCMDpipe"
+  rm -f $dataCMDpipe
+  mkfifo $dataCMDpipe
+  
+  echo "[BINDINGS PIPER] Data RESULT Pipe: $dataRESULTpipe"
+  rm -f $dataRESULTpipe
+  mkfifo $dataRESULTpipe
 
   # Clean and Create CMD Pipes
   for i in "${CMDpipes[@]}"; do

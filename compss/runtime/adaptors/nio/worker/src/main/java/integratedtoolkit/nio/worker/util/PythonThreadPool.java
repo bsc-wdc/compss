@@ -86,4 +86,15 @@ public class PythonThreadPool extends ExternalThreadPool {
         }
         return workingDir;
     }
+
+	@Override
+	public void removeExternalData(String dataID) {
+		// Nothing to do in current python worker version (It could be useful when cache available)
+	}
+
+	@Override
+	public boolean serializeExternalData(String name, String path) {
+		// Nothing to do with current python worker version (It could be useful when cache available)
+		return false;
+	}
 }

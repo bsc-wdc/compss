@@ -497,10 +497,13 @@ public class ResourceManager {
         int[] counts = new int[CoreManager.getCoreCount()];
         int[] cloudCount = cloudManager.getPendingCoreCounts();
         synchronized (pool) {
-
-            for (int i = 0; i < counts.length; i++) {
-                counts[i] = poolCoreMaxConcurrentTasks[i] + cloudCount[i];
-            }
+        	for (int i = 0; i < counts.length; i++) {
+        		if ( i<cloudCount.length ){
+        			counts[i] = poolCoreMaxConcurrentTasks[i] + cloudCount[i];
+        		}else {
+        			counts[i] = poolCoreMaxConcurrentTasks[i];
+        		}
+        	}
         }
         return counts;
     }

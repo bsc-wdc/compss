@@ -12,11 +12,13 @@ def main_program():
         exit(-1) 
     INITIAL_VALUE = int(sys.argv[1])
     numTasks = int(sys.argv[2])
-    
+    import time
+    time.sleep(5) #Seconds
+ 
     # Initialize counter files
     for i in range(numTasks):
         initializeCounter(FILENAME + str(i))
-    	printCounterValue(FILENAME + str(i), i)
+    	#printCounterValue(FILENAME + str(i), i)
       
     # Execute increment
     for i in range(numTasks):
@@ -42,7 +44,7 @@ def printCounterValue(filePath, pos):
     from pycompss.api.api import compss_open
     
     # Read value counter 1
-    fis = compss_open(filePath, 'r+')
+    fis = compss_open(filePath, 'r')
     counter = fis.read()
     fis.close()
     

@@ -35,37 +35,41 @@ int main(int argc, char **argv)
 
 	// Log init test
         printf("[   TEST] Test of C types within COMPSs.\n");
-
+	fflush(NULL);
 	// Char (char_dt, wchar_dt)
 	char c = TEST_VALUE_CHAR;
 	char_size(c, filename);
 	printf("[   TEST] Testing {in} char inside a task.\n");
-
+        fflush(NULL);
 	// String (string_dt)
 	char *s = strdup(TEST_VALUE_STRING);
 	string_size(s, filename);
 	printf("[   TEST] Testing {in} string inside a task.\n");
+	fflush(NULL);
 
 	// Integer (int_dt)
 	int i = TEST_VALUE_INT;
 	int_size(i, filename);
 	printf("[   TEST] Testing {in} int inside a task.\n");
+	fflush(NULL);
 
 	// Short (short_dt)
 	short si = TEST_VALUE_SHORT;
 	short_size(si, filename);
 	printf("[   TEST] Testing {in} short inside a task.\n");
+	fflush(NULL);
 
 	// Long (long_dt)
 	long li = TEST_VALUE_LONG;
 	long_size(li, filename);
 	printf("[   TEST] Testing {in} long inside a task.\n");
+	fflush(NULL);
 
 	// Float (float_dt)
 	float f = TEST_VALUE_FLOAT;
 	float_size(f, filename);
 	printf("[   TEST] Testing {in} float inside a task.\n");
-
+	
 	// Double (double_dt)
 	double d = TEST_VALUE_DOUBLE;
 	double_size(d, filename);

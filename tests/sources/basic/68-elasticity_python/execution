@@ -25,7 +25,7 @@
   
   expectedTime=3000s
   counterVal=1
-  numTasks=100
+  numTasks=40
 
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
      --project=${base_app_dir}/project.xml \

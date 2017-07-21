@@ -1,5 +1,7 @@
 package integratedtoolkit.nio.worker.components;
 
+import java.io.File;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -17,6 +19,7 @@ import integratedtoolkit.nio.worker.exceptions.InitializationException;
 import integratedtoolkit.nio.worker.exceptions.UnsufficientAvailableComputingUnitsException;
 import integratedtoolkit.nio.worker.exceptions.UnsufficientAvailableCoresException;
 import integratedtoolkit.nio.worker.util.CThreadPool;
+import integratedtoolkit.nio.worker.util.ExternalThreadPool;
 import integratedtoolkit.nio.worker.util.JavaThreadPool;
 import integratedtoolkit.nio.worker.util.JobsThreadPool;
 import integratedtoolkit.nio.worker.util.PythonThreadPool;
@@ -174,5 +177,34 @@ public class ExecutionManager {
                 this.binderGPUs.releaseComputingUnits(jobId);
         }
     }
+    
+    public void removeExternalData(String absFileName){
+    	if (this.pool instanceof ExternalThreadPool){
+    		//Get dataId from file name
+    		String filename = new File(absFileName).getName();
+    		//Check if filename follow the object id pattern.
+    		if (filename.startsWith("d") && filename.endsWith(".IT")){
+    			int index = filename.indexOf('_');
+    			if (index>0){
+    				String dataId = filename.substring(0, index);
+    				((ExternalThreadPool) this.pool).removeExternalData(dataId);
+    			}
+    			
+    		}	
+    				
+    	}
+    	
+    }
+
+	public boolean serializeExternalData(String name, String path) {
+		if (this.pool instanceof ExternalThreadPool){
+			return ((ExternalThreadPool) this.pool).serializeExternalData(name, path);
+		}
+		return false;
+	}
+    
+    
+
+
 
 }

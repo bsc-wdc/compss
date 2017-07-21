@@ -19,6 +19,7 @@ import es.bsc.comm.nio.NIONode;
 import es.bsc.comm.stage.Transfer;
 import es.bsc.comm.stage.Transfer.Destination;
 import integratedtoolkit.ITConstants;
+import integratedtoolkit.ITConstants.Lang;
 import integratedtoolkit.nio.NIOAgent;
 import integratedtoolkit.nio.NIOParam;
 import integratedtoolkit.nio.NIOTask;
@@ -500,7 +501,16 @@ public class NIOWorker extends NIOAgent {
 
     @Override
     protected void handleDataToSendNotAvailable(Connection c, Data d) {
-        ErrorManager.warn("Data " + d.getName() + "in this worker " + this.getHostName() + " could not be sent to master.");
+    	//Now only manage at C (python could do the same when cache available)
+        if (Lang.valueOf(lang.toUpperCase()) == Lang.C){
+        	String path = d.getFirstURI().getPath();
+        	if (executionManager.serializeExternalData(d.getName(), path)){
+        		c.sendDataFile(path);
+        		return;
+        	}
+        }
+        // If error or not external
+    	ErrorManager.warn("Data " + d.getName() + "in this worker " + this.getHostName() + " could not be sent to master.");
         c.finishConnection();
     }
 
@@ -675,6 +685,10 @@ public class NIOWorker extends NIOAgent {
                     File f = new File(name);
                     if (!f.delete()) {
                         WORKER_LOGGER.error("Error removing file " + f.getAbsolutePath());
+                    }
+                    //Now only manage at C (python could do the same when cache available)
+                    if (Lang.valueOf(lang.toUpperCase()) == Lang.C){
+                    	executionManager.removeExternalData(name);
                     }
                 }
                 String dataName = new File(name).getName();

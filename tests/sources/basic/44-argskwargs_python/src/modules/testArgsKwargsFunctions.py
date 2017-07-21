@@ -7,7 +7,7 @@ from pycompss.api.parameter import *
 def argTask(*args):
     print "ARG: ", args
     return sum(args)
-  
+
 @task(returns=int)
 def varargTask(v, w, *args):
     print "V: ", v
@@ -19,14 +19,14 @@ def varargTask(v, w, *args):
 def kwargTask(**kwargs):
     print "KARG: ", kwargs
     return len(kwargs)
-  
+
 @task(returns=int)
 def varkwargTask(v, w , **kwargs):
     print "V: ", v
     print "W: ", w
     print "KARG: ", kwargs
     return (v * w) + len(kwargs)
-  
+
 @task(returns=int)
 def argkwargTask(*args, **kwargs):
     print "ARG: ", args
@@ -49,6 +49,21 @@ def varargdefaultkwargTask(v, w, s = 2, *args, **kwargs):
     print "ARGS: ", args
     print "KWARG: ", kwargs
     return (v * w) + sum(args) + len(kwargs) + s
+
+@task(returns=int)
+def taskUnrollDict(a, b, **kwargs):
+    print "a: ", a
+    print "b: ", b
+    print "kwargs: ", kwargs
+    return a+b
+
+@task(returns=int)
+def taskUnrollDictWithDefaults(a=1, b=2, **kwargs):
+    print "a: ", a
+    print "b: ", b
+    print "kwargs: ", kwargs
+    return a+b
+
 
 class testArgsKwargsFunctions(unittest.TestCase):
 
@@ -198,3 +213,29 @@ class testArgsKwargsFunctions(unittest.TestCase):
         pending = varargdefaultkwargTask(1, 2, 3, 4, five=5)
         result = compss_wait_on(pending)
         self.assertEqual(result, 10)
+
+    '''
+        FUNCTION WITH **KWARGS AND DICT UNROLLING
+    '''
+
+    def testKwargsDictUnrolling(self):
+        z = {'a':10, 'b':20, 'c':30}
+        pending = taskUnrollDict(**z)
+        result = compss_wait_on(pending)
+        self.assertEqual(result, 30)
+
+    def testKwargsDictUnrollingControl(self):
+        pending = taskUnrollDict(10, 20, c=30)
+        result = compss_wait_on(pending)
+        self.assertEqual(result, 30)
+
+    def testKwargsDictUnrollingDefaults(self):
+        z = {'a':10, 'b':20, 'c':30}
+        pending = taskUnrollDictWithDefaults(**z)
+        result = compss_wait_on(pending)
+        self.assertEqual(result, 30)
+
+    def testKwargsDictUnrollingDefaultsControl(self):
+        pending = taskUnrollDictWithDefaults()
+        result = compss_wait_on(pending)
+        self.assertEqual(result, 3)

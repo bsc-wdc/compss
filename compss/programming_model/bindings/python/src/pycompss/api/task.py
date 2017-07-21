@@ -538,6 +538,7 @@ def masterCode(f, self_module, is_instance, has_varargs, has_keywords, has_defau
         for p in self_spec_args.args[len(args):num_params]:
             if p in kwargs:
                 argsList.append(kwargs[p])
+                kwargs.pop(p)
             else:
                 for dp in default_params:
                     if p in dp[0]:
@@ -568,13 +569,11 @@ def masterCode(f, self_module, is_instance, has_varargs, has_keywords, has_defau
     if has_keywords:  # **kwargs
         aakwargs = '**' + self_spec_args.keywords  # Name used for the **kwargs
         args_names.append(aakwargs)
-        '''
         # Check if some of the **kwargs are used as vals
         if len(vals_names) > len(vals):
             for i in range(len(vals), len(vals_names)):
                 vals.append(kwargs[vals_names[i]])
                 kwargs.pop(vals_names[i])
-        '''
         # The **kwargs dictionary is considered as a single dictionary object.
         args_vals.append(kwargs)
 

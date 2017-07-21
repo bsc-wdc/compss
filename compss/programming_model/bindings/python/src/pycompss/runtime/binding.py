@@ -597,23 +597,28 @@ def build_return_objects(self_kwargs, spec_args):
 
     return fu, fileNames, self_kwargs, spec_args
 
+
 def fromDictToParameter(d):
     '''convert a Dict defined by a user for a parameter into a real Parameter object
     :param d: Dictionary (mandatory to have 'Type' key).
     :return: Parameter object.
     '''
+    from pycompss.api.parameter import Parameter
     from pycompss.api.parameter import Type
     from pycompss.api.parameter import Direction
     from pycompss.api.parameter import Stream
     from pycompss.api.parameter import Prefix
-    t = d[Type]
+    if not Type in d:  # If no Type specified => IN
+        d[Type] = Parameter()
+    p = d[Type]
     if Direction in d:
-        t.setDirection(d[Direction])
+        p.setDirection(d[Direction])
     if Stream in d:
-        t.setStream(d[Stream])
+        p.setStream(d[Stream])
     if Prefix in d:
-        t.setPrefix(d[Prefix])
-    return t
+        p.setPrefix(d[Prefix])
+    return p
+
 
 def infer_types_and_serialize_objects(spec_args, first_par, num_pars, fileNames, self_kwargs, args):
     '''Infer COMPSs types for the task parameters and serialize them.

@@ -49,9 +49,19 @@
      echo "ERROR: TASK FAILED: testFileManagementIN function failed." | tee -a ${output_file}
     exit 1
   fi
-
   if grep -q "do" src/grepoutfile; then
     echo "ERROR: TASK FAILED: testFileManagement function failed."  | tee -a ${output_file}
+    exit 1
+  fi
+  lss=`grep -r "ls -l --hide=" $jobs_logs`
+  myLs=$(echo $lss | grep -r -l "infile --sort=size")
+  if [[ -z "$myLs" ]]; then
+     echo "ERROR: TASK FAILED: testFilesAndPrefix function failed." | tee -a ${output_file}
+    exit 1
+  fi
+  myLs2=$(echo $lss | grep -r -l "inoutfile --sort=time")
+  if [[ -z "$myLs2" ]]; then
+     echo "ERROR: TASK FAILED: testFilesAndPrefixWithoutType function failed." | tee -a ${output_file}
     exit 1
   fi
 

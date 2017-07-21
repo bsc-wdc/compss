@@ -22,7 +22,7 @@ def mySedIN(expression, file):
     pass
 
 @binary(binary="sed", workingDir=".")
-@task(file=FILE_INOUT)
+@task(file=FILE_INOUT_STDIN)
 def mySedINOUT(flag, expression, file):
     pass
 
@@ -33,13 +33,15 @@ def mySedINOUT(flag, expression, file):
 def myGrepper(keyword, infile, result):
     pass
 
-'''
-# skipped
 @binary(binary="ls")
-@task(hide={TYPE=FILE_IN, PREFIX="--hide="}, show={TYPE=FILE_IN, PREFIX="#"})
-def myLs(flag, hide, show):
+@task(hide={Type:FILE_IN, Prefix:"--hide="}, sort={Type:IN, Prefix:"--sort="})
+def myLs(flag, hide, sort):
     pass
-'''
+
+@binary(binary="ls")
+@task(hide={Type:FILE_IN, Prefix:"--hide="}, sort={Prefix:"--sort="})
+def myLsWithoutType(flag, hide, sort):
+    pass
 
 class testBinaryDecorator(unittest.TestCase):
 
@@ -56,9 +58,8 @@ class testBinaryDecorator(unittest.TestCase):
         mySedIN('s/Hi/HELLO/g', infile)
         barrier()
 
-    '''
     # Fails when retrieving the file... doesn't exist?
-    # @unittest.skip("Fails to retrieve the inout file.")
+    @unittest.skip("Fails to retrieve the inout file.")
     def testFileManagementINOUT(self):
         inoutfile = "src/inoutfile"
         mySedINOUT('-i', 's/Hi/HELLO/g', inoutfile)
@@ -68,10 +69,23 @@ class testBinaryDecorator(unittest.TestCase):
         print "XXXXXXXXXXXX"
         print content_r
         print "XXXXXXXXXXXX"
-    '''
 
     def testFileManagement(self):
         infile = "src/infile"
         outfile = "src/grepoutfile"
         myGrepper("Hi", infile, outfile)
+        barrier()
+
+    def testFilesAndPrefix(self):
+        flag = '-l'
+        infile = "src/infile"
+        sort = "size"
+        myLs(flag ,infile, sort)
+        barrier()
+
+    def testFilesAndPrefixWithoutType(self):
+        flag = '-l'
+        infile = "src/inoutfile"
+        sort = "time"
+        myLsWithoutType(flag ,infile, sort)
         barrier()

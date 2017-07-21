@@ -34,8 +34,8 @@ public class CThreadPool extends ExternalThreadPool {
             t.start();
             i = i + 1;
         }
-
         sem.acquireUninterruptibly(this.size);
+        logger.debug("Finished C ThreadPool");
     }
 
     @Override
@@ -51,9 +51,9 @@ public class CThreadPool extends ExternalThreadPool {
         	// Persistent version
         
         	if (nw.getAppDir()!=null && !nw.getAppDir().isEmpty()){
-        		cmd.append(nw.getAppDir()).append(PERSISTENT_WORKER_C).append(ExternalExecutor.TOKEN_SEP);
+        		cmd.append("NX_ARGS='--enable-block' ").append(nw.getAppDir()).append(PERSISTENT_WORKER_C).append(ExternalExecutor.TOKEN_SEP);
         		//Adding Data pipes in the case of persistent worker
-        		cmd.append(writeDataPipeFile).append(ExternalExecutor.TOKEN_SEP).append(readDataPipeFile); 
+        		cmd.append(writeDataPipeFile).append(ExternalExecutor.TOKEN_SEP).append(readDataPipeFile).append(ExternalExecutor.TOKEN_SEP); 
         	}else{
         		ErrorManager.warn("Appdir is not defined. It is mandatory for c/c++ binding"); 
         		return null; 
@@ -83,15 +83,20 @@ public class CThreadPool extends ExternalThreadPool {
 		/* 
 		 * TODO ADD MANAGEMENT OF EXTERNAL DATA REMOVE 
 		 * Send external Data removements through data pipes
+		 * Send data id to remove to persistent worker
+		 * If in cache, delete (persistent.cc)
+		 * In persistent, keep reading data pipe, delete if necessary
 		 */
 		
 	}
 
 	@Override
-	public boolean serializeExternalData(String name, String path) {
+	public boolean serializeExternalData(String dataId, String path) {
 		/* 
 		 * TODO ADD MANAGEMENT OF EXTERNAL DATA REMOVE 
 		 * Send external Data serialization through data pipes
+		 * Check if the data is expected, then serialize
+		 * Return true if serialization was done, false otherwise
 		 */
 		return false;
 	}

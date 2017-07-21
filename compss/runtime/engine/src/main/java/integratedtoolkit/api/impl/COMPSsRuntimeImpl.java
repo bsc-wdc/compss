@@ -584,7 +584,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
-
+        LOGGER.info("Task from method " + methodName + " in " + methodClass +" created.");
         return task;
     }
 

@@ -48,10 +48,12 @@ public class CThreadPool extends ExternalThreadPool {
         	// No persistent version
         	cmd.append(installDir).append(ExternalThreadPool.PIPER_SCRIPT_RELATIVE_PATH).append(C_PIPER).append(ExternalExecutor.TOKEN_SEP);
         }else{
-        	// Persistent version (uncomment for testing)
+        	// Persistent version
         
         	if (nw.getAppDir()!=null && !nw.getAppDir().isEmpty()){
-        		cmd.append(nw.getAppDir()).append(PERSISTENT_WORKER_C).append(ExternalExecutor.TOKEN_SEP); 
+        		cmd.append(nw.getAppDir()).append(PERSISTENT_WORKER_C).append(ExternalExecutor.TOKEN_SEP);
+        		//Adding Data pipes in the case of persistent worker
+        		cmd.append(writeDataPipeFile).append(ExternalExecutor.TOKEN_SEP).append(readDataPipeFile); 
         	}else{
         		ErrorManager.warn("Appdir is not defined. It is mandatory for c/c++ binding"); 
         		return null; 
@@ -75,5 +77,23 @@ public class CThreadPool extends ExternalThreadPool {
     public Map<String, String> getEnvironment(NIOWorker nw) {
         return CExecutor.getEnvironment(nw);
     }
+
+	@Override
+	public void removeExternalData(String dataID) {
+		/* 
+		 * TODO ADD MANAGEMENT OF EXTERNAL DATA REMOVE 
+		 * Send external Data removements through data pipes
+		 */
+		
+	}
+
+	@Override
+	public boolean serializeExternalData(String name, String path) {
+		/* 
+		 * TODO ADD MANAGEMENT OF EXTERNAL DATA REMOVE 
+		 * Send external Data serialization through data pipes
+		 */
+		return false;
+	}
 
 }

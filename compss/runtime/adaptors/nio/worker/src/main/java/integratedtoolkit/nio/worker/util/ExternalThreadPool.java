@@ -38,6 +38,10 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
     protected final String[] writePipeFiles; // Pipe for sending executions
     protected final String[] readPipeFiles; // Pipe to read results
     protected TaskResultReader[] taskResultReader;
+    // Added to send data commands to binding
+    protected final String writeDataPipeFile; // Pipe for sending data commands
+    protected final String readDataPipeFile; // Pipe to read data commands results
+    
     private Process piper;
     private StreamGobbler outputGobbler;
     private StreamGobbler errorGobbler;
@@ -58,7 +62,11 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
             writePipeFiles[i] = workingDir + PIPE_FILE_BASENAME + UUID.randomUUID().hashCode();
             readPipeFiles[i] = workingDir + PIPE_FILE_BASENAME + UUID.randomUUID().hashCode();
         }
-
+        
+        // Prepare data pipes
+        writeDataPipeFile = workingDir + PIPE_FILE_BASENAME + UUID.randomUUID().hashCode();
+        readDataPipeFile = workingDir + PIPE_FILE_BASENAME + UUID.randomUUID().hashCode();
+        
         if (logger.isDebugEnabled()) {
             logger.debug("PIPE Script: " + piperScript);
 
@@ -77,6 +85,10 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
             }
             reads.append("\n");
             logger.debug(reads.toString());
+            
+            //Data pipes
+            logger.debug("WRITE DATA PIPE: " + writeDataPipeFile);
+            logger.debug("READ DATA PIPE: " + readDataPipeFile);
         }
 
         // Init main ProcessBuilder
@@ -94,11 +106,14 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
     }
 
     private String constructGeneralArgs() {
-        // General Args are of the form: NUM_THREADS 2 pipeW1 pipeW2 2 pipeR1 pipeR2
+        // General Args are of the form: NUM_THREADS dataPipeW dataPipeR 2 pipeW1 pipeW2 2 pipeR1 pipeR2 
         StringBuilder cmd = new StringBuilder();
-
+        
         cmd.append(size).append(ExternalExecutor.TOKEN_SEP);
 
+        cmd.append(writeDataPipeFile).append(ExternalExecutor.TOKEN_SEP);
+        cmd.append(readDataPipeFile).append(ExternalExecutor.TOKEN_SEP);
+        
         cmd.append(writePipeFiles.length).append(ExternalExecutor.TOKEN_SEP);
         for (int i = 0; i < writePipeFiles.length; ++i) {
             cmd.append(writePipeFiles[i]).append(ExternalExecutor.TOKEN_SEP);
@@ -243,5 +258,16 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
      * @return
      */
     public abstract Map<String, String> getEnvironment(NIOWorker nw);
+    /**
+     * Request to delete a data in the external binding
+     * 
+     * @param data identifier
+     * @return True if success, false if not removed
+     */
+    public abstract void removeExternalData(String dataID);
+
+	public abstract boolean serializeExternalData(String name, String path);
+		
+    
 
 }

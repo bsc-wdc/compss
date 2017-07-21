@@ -198,27 +198,30 @@ void *runThread(void * arg){
 
 
 int main(int argc, char **argv) {
-    if (argc < 4) {
+    if (argc < 6) {
         printf("ERROR: Incorrect number of COMPSs internal parameters\n");
         printf("Aborting...\n");
         return -1;
     }
+    //Data pipes
+    char* inDataPipe = argv[1];
+    char* outDataPipe = argv[2];
     //Reading in pipes
-    printf("numInPipes %s.\n", argv[1]);
-    int numInPipes=atoi(argv[1]);
+    printf("numInPipes %s.\n", argv[3]);
+    int numInPipes=atoi(argv[3]);
     printf("Detected %d in pipes.\n", numInPipes);
     char* inPipes[numInPipes];
     for (int i=0; i<numInPipes; i++){
-        inPipes[i] = argv[i+2];
+        inPipes[i] = argv[i+4];
         printf("In pipe %d: %s\n",i, inPipes[i]);
     }
     //Reading out pipes
-    printf("numInPipes %s.\n", argv[numInPipes+2]);
-    int numOutPipes=atoi(argv[numInPipes+2]);
+    printf("numInPipes %s.\n", argv[numInPipes+4]);
+    int numOutPipes=atoi(argv[numInPipes+4]);
     printf("Detected %d out pipes.\n", numOutPipes);
     char* outPipes[numOutPipes];
     for (int i=0; i<numOutPipes; i++){
-        outPipes[i] = argv[i+numInPipes+3];
+        outPipes[i] = argv[i+numInPipes+5];
 	printf("Out pipe %d: %s\n",i, outPipes[i]);
     }
 

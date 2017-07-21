@@ -1,17 +1,3 @@
-if [ "$EUID" -eq 0 ]; then
-
-	read -r -p "This action will uninstall pyCOMPSs from your machine, are you sure? [Y/n]" RESPONSE
-	if [ "$RESPONSE" = "Y" ]; then
-
-		rm -rf ##SITE_PACKAGES##/pycompss
-		rm -rf ##SITE_PACKAGES##/compss.so
-		rm -rf ##COMPSS_PATH##
-		rm /etc/profile.d/compss.sh
-
-	fi
-
-fi
-
 export IT_HOME=##COMPSS_PATH##
 export PATH=$PATH:##COMPSS_PATH##/Runtime/scripts/user
 export CLASSPATH=$CLASSPATH:##COMPSS_PATH##/Runtime/compss-engine.jar

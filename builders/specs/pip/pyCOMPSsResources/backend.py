@@ -10,14 +10,14 @@ import subprocess
 
 
 def install(target_path):
-    '''This function downloads the COMPSs installable from the specified repository and version
-      and installs it. It is intended to be called from the setup.py script when we are installing.
-      It also leaves a script on /etc/profile.d/compss.sh equivalent to the "compssenv" one on
-      the supercomputers packages.
+    	'''This function downloads the COMPSs installable from the specified repository and version
+      	and installs it. It is intended to be called from the setup.py script when we are installing.
+      	It also leaves a script on /etc/profile.d/compss.sh equivalent to the "compssenv" one on
+      	the supercomputers packages.
 
-      Since this script calls another script which calls another script which calls... it may be
-      possible that not all errors will be properly caught, leading to incomplete installations.
-    '''
+      	Since this script calls another script which calls another script which calls... it may be
+      	possible that not all errors will be properly caught, leading to incomplete installations.
+    	'''
 	# download and decompress the COMPSs_version.tar.gz file
 	base_url = open('url','r').read().rstrip()
 	version_name = open('VERSION.txt','r').read().rstrip()

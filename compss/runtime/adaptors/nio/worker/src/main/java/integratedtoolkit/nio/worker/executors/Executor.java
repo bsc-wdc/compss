@@ -37,6 +37,7 @@ public abstract class Executor implements Runnable {
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
     protected static final boolean WORKER_DEBUG = LOGGER.isDebugEnabled();
     private static final String ERROR_OUT_FILES = "ERROR: One or more OUT files have not been created by task with Method Definition [";
+    private static final String WARN_ATOMIC_MOVE = "WARN: AtomicMoveNotSupportedException. File cannot be atomically moved. Trying to move without atomic";
 
     // Attached component NIOWorker
     private final NIOWorker nw;
@@ -374,33 +375,57 @@ public abstract class Executor implements Runnable {
                 if (!renamedFilePath.equals(newOriginalFilePath)) {
                     File newOrigFile = new File(newOriginalFilePath);
                     File renamedFile = new File(renamedFilePath);
-                    if (renamedFile.exists() && Files.isSymbolicLink(newOrigFile.toPath())) {
-                        // If a symbolic link is created remove it (IN INOUT)
-                        LOGGER.debug("Deleting symlink" + newOrigFile.toPath());
-                        Files.delete(newOrigFile.toPath());
-                    } else if (!renamedFile.exists() && newOrigFile.exists() && !Files.isSymbolicLink(newOrigFile.toPath())) {
-                        // If an output file is created move to the renamed path (OUT Case)
-                        LOGGER.debug("Moving " + newOrigFile.toPath().toString() + " to " + renamedFile.toPath().toString());
-                        try {
-                            Files.move(newOrigFile.toPath(), renamedFile.toPath(), StandardCopyOption.ATOMIC_MOVE);
-                        } catch (AtomicMoveNotSupportedException amnse) {
-                            LOGGER.warn(
-                                    "WARN: AtomicMoveNotSupportedException. File cannot be atomically moved. Trying to move without atomic");
-                            Files.move(newOrigFile.toPath(), renamedFile.toPath());
+
+                    if (renamedFile.exists()) {
+                        // IN, INOUT
+                        if (newOrigFile.exists()) {
+                            if (Files.isSymbolicLink(newOrigFile.toPath())) {
+                                // If a symbolic link is created remove it
+                                LOGGER.debug("Deleting symlink " + newOrigFile.toPath());
+                                Files.delete(newOrigFile.toPath());
+                            } else {
+                                // Rewrite inout param by moving the new file to the renaming
+                                move(newOrigFile.toPath(), renamedFile.toPath());
+                            }
+                        } else {
+                            // Both files exist and are updated
+                            LOGGER.debug("Repeated data for " + renamedFilePath + ". Nothing to do");
                         }
-                    } else if (renamedFile.exists() && !newOrigFile.exists()) {
-                        LOGGER.debug("Repeated data for " + renamedFilePath + ". Nothing to do");
                     } else {
-                        // Unexpected case
-                        LOGGER.error("Unexpected case: A Problem occurred with File " + renamedFilePath
-                                + ". Either this file or the original name " + newOriginalFilePath + " do not exist.");
-                        System.err.println("Unexpected case: A Problem occurred with File " + renamedFilePath
-                                + ". Either this file or the original name " + newOriginalFilePath + " do not exist.");
-                        throw new JobExecutionException("A Problem occurred with File " + renamedFilePath
-                                + ". Either this file or the original name " + newOriginalFilePath + " do not exist.");
+                        // OUT
+                        if (newOrigFile.exists()) {
+                            if (Files.isSymbolicLink(newOrigFile.toPath())) {
+                                // Unexpected case
+                                String msg = "ERROR: Unexpected case. A Problem occurred with File " + renamedFilePath
+                                        + ". Either this file or the original name " + newOriginalFilePath + " do not exist.";
+                                LOGGER.error(msg);
+                                System.err.println(msg);
+                                throw new JobExecutionException(msg);
+                            } else {
+                                // If an output file is created move to the renamed path (OUT Case)
+                                move(newOrigFile.toPath(), renamedFile.toPath());
+                            }
+                        } else {
+                            // Error output file does not exist
+                            String msg = "ERROR: Output file " + newOriginalFilePath + " does not exist";
+                            // Unexpected case
+                            LOGGER.error(msg);
+                            System.err.println(msg);
+                            throw new JobExecutionException(msg);
+                        }
                     }
                 }
             }
+        }
+    }
+
+    private void move(Path origFilePath, Path renamedFilePath) throws IOException {
+        LOGGER.debug("Moving " + origFilePath.toString() + " to " + renamedFilePath.toString());
+        try {
+            Files.move(origFilePath, renamedFilePath, StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException amnse) {
+            LOGGER.warn(WARN_ATOMIC_MOVE);
+            Files.move(origFilePath, renamedFilePath);
         }
     }
 

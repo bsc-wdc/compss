@@ -10,6 +10,10 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import integratedtoolkit.util.EnvironmentLoader;
 
 
+/**
+ * Tests the different possibilities of loading a environment variable
+ *
+ */
 public class EnvironmentLoaderTest {
 
     private static final String VALUE1 = "1";
@@ -131,13 +135,45 @@ public class EnvironmentLoaderTest {
 
         assertEquals(expressionValue, VALUE1 + "/" + VALUE2);
     }
-    
+
     @Test
     public void doubleEnv5() {
         String expression = "${var1}/$var2";
         String expressionValue = EnvironmentLoader.loadFromEnvironment(expression);
 
         assertEquals(expressionValue, VALUE1 + "/" + VALUE2);
+    }
+
+    @Test
+    public void scapedEnvVar1() {
+        String expression = "\\${var}";
+        String expressionValue = EnvironmentLoader.loadFromEnvironment(expression);
+
+        assertEquals(expressionValue, "${var}");
+    }
+
+    @Test
+    public void scapedEnvVar2() {
+        String expression = "\\$var";
+        String expressionValue = EnvironmentLoader.loadFromEnvironment(expression);
+
+        assertEquals(expressionValue, "$var");
+    }
+
+    @Test
+    public void scapedEnvVar3() {
+        String expression = "/tmp/\\${var}";
+        String expressionValue = EnvironmentLoader.loadFromEnvironment(expression);
+
+        assertEquals(expressionValue, PATH1 + "${var}");
+    }
+
+    @Test
+    public void scapedEnvVar4() {
+        String expression = "/tmp/${var1}/\\${var}/$var2";
+        String expressionValue = EnvironmentLoader.loadFromEnvironment(expression);
+
+        assertEquals(expressionValue, PATH1 + VALUE1 + "/${var}/" + VALUE2);
     }
 
 }

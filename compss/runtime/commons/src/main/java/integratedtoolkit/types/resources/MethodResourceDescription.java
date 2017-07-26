@@ -6,6 +6,7 @@ import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.resources.components.Processor;
 import integratedtoolkit.util.EnvironmentLoader;
+import integratedtoolkit.util.ErrorManager;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -14,6 +15,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+
 
 public class MethodResourceDescription extends WorkerResourceDescription {
 
@@ -27,28 +29,28 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /* Tags for key-value string constraints description **************** */
     // !!!!!!!!!! WARNING: Coherent with constraints class
-    public static final String PROC_NAME = "ProcessorName";
-    public static final String COMPUTING_UNITS = "ComputingUnits";
-    public static final String PROC_SPEED = "ProcessorSpeed";
-    public static final String PROC_ARCH = "ProcessorArchitecture";
-    public static final String PROC_TYPE = "ProcessorType";
-    public static final String PROC_MEM_SIZE = "ProcessorInternalMemorySize";
-    public static final String PROC_PROP_NAME = "ProcessorPropertyName";
-    public static final String PROC_PROP_VALUE = "ProcessorPropertyValue";
-    public static final String MEM_SIZE = "MemorySize";
-    public static final String MEM_TYPE = "MemoryType";
-    public static final String STORAGE_SIZE = "StorageSize";
-    public static final String STORAGE_TYPE = "StorageType";
-    public static final String OS_TYPE = "OperatingSystemType";
-    public static final String OS_DISTRIBUTION = "OperatingSystemDistribution";
-    public static final String OS_VERSION = "OperatingSystemVersion";
-    public static final String APP_SOFTWARE = "AppSoftware";
-    public static final String HOST_QUEUES = "HostQueues";
-    public static final String WALL_CLOCK_LIMIT = "WallClockLimit";
+    private static final String PROC_NAME = "processorname";
+    private static final String COMPUTING_UNITS = "computingunits";
+    private static final String PROC_SPEED = "processorspeed";
+    private static final String PROC_ARCH = "processorarchitecture";
+    private static final String PROC_TYPE = "processortype";
+    private static final String PROC_MEM_SIZE = "processorinternalmemorysize";
+    private static final String PROC_PROP_NAME = "processorpropertyname";
+    private static final String PROC_PROP_VALUE = "processorpropertyvalue";
+    private static final String MEM_SIZE = "memorysize";
+    private static final String MEM_TYPE = "memorytype";
+    private static final String STORAGE_SIZE = "storagesize";
+    private static final String STORAGE_TYPE = "storagetype";
+    private static final String OS_TYPE = "operatingsystemtype";
+    private static final String OS_DISTRIBUTION = "operatingsystemdistribution";
+    private static final String OS_VERSION = "operatingsystemversion";
+    private static final String APP_SOFTWARE = "appsoftware";
+    private static final String HOST_QUEUES = "hostqueues";
+    private static final String WALL_CLOCK_LIMIT = "wallclocklimit";
 
     /* Resource Description properties ********************************** */
     // Processor
-    protected List<Processor> processors = new LinkedList<Processor>();
+    protected List<Processor> processors = new LinkedList<>();
     protected int totalCPUComputingUnits = ZERO_INT;
     protected int totalCPUs = ZERO_INT;
     protected int totalGPUComputingUnits = ZERO_INT;
@@ -83,8 +85,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
 
     /*
-     * ******************************************* 
-     * CONSTRUCTORS
+     * ******************************************* CONSTRUCTORS
      *******************************************/
     public MethodResourceDescription() {
         super();
@@ -100,9 +101,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
 
     /**
-     * Creates a MethodResourceDescription representing a set of constraints The
-     * constraints are validated and loaded through this process. If any error
-     * occurs an exception is raised to the user through the ErrorManager
+     * Creates a MethodResourceDescription representing a set of constraints The constraints are validated and loaded
+     * through this process. If any error occurs an exception is raised to the user through the ErrorManager
      *
      * @param constraints
      */
@@ -343,7 +343,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
 
     /**
-     * For python constraints
+     * For Python constraints
      *
      * @param description
      */
@@ -419,10 +419,17 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     }
 
+    /**
+     * Adds a constraint from bindings (ignores letter case)
+     * 
+     * @param key
+     * @param val
+     * @param proc
+     */
     private void addConstraints(String key, String val, Processor proc) {
         val = EnvironmentLoader.loadFromEnvironment(val);
         if (val != null && !val.isEmpty()) {
-            switch (key) {
+            switch (key.toLowerCase()) {
                 case PROC_NAME:
                     proc.setName(val);
                     break;
@@ -485,7 +492,9 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                 case WALL_CLOCK_LIMIT:
                     this.wallClockLimit = Integer.valueOf(val);
                     break;
-
+                default:
+                    ErrorManager.warn("WARN: Unrecognised constraint " + key + ". Skipping constraint");
+                    break;
             }
         }
 
@@ -543,8 +552,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
 
     /*
-     * ******************************************* 
-     * GETTERS AND SETTERS
+     * ******************************************* GETTERS AND SETTERS
      *******************************************/
     public List<Processor> getProcessors() {
         return processors;
@@ -836,8 +844,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
 
     /*
-     * ******************************************* 
-     * METHOD-RESOURCE OPERATIONS
+     * ******************************************* METHOD-RESOURCE OPERATIONS
      *******************************************/
     // This method tries to substitute the implicit default values by defined mr2 values.
     // Keeps the already defined values (do NOT overwrite)
@@ -1381,8 +1388,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
 
     /*
-     * ******************************************* 
-     * EXTERNALIZATION
+     * ******************************************* EXTERNALIZATION
      *******************************************/
     @SuppressWarnings("unchecked")
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {

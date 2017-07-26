@@ -3,7 +3,11 @@ package integratedtoolkit.nio.worker.util;
 import java.io.File;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import integratedtoolkit.ITConstants;
+import integratedtoolkit.log.Loggers;
 import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.nio.worker.exceptions.InitializationException;
 import integratedtoolkit.nio.worker.executors.ExternalExecutor;
@@ -12,12 +16,26 @@ import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.nio.NIOTracer;
 
 
-
+/**
+ * Representation of a Python Thread Pool
+ *
+ */
 public class PythonThreadPool extends ExternalThreadPool {
 
+    // Logger
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_POOL);
+
+    // Python worker relative path
     private static final String WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator + "worker" + File.separator
             + "piper_worker.py";
 
+
+    /**
+     * Creates a new Python Thread Pool associated to the given worker and with fixed size
+     * 
+     * @param nw
+     * @param size
+     */
     public PythonThreadPool(NIOWorker nw, int size) {
         super(nw, size);
     }
@@ -26,8 +44,9 @@ public class PythonThreadPool extends ExternalThreadPool {
      * Starts the threads of the pool
      * 
      */
+    @Override
     public void startThreads() throws InitializationException {
-        logger.info("Start threads of ThreadPool");
+        LOGGER.info("Start threads of ThreadPool");
         int i = 0;
         for (Thread t : workerThreads) {
             PythonExecutor executor = new PythonExecutor(nw, this, queue, writePipeFiles[i], taskResultReader[i]);
@@ -43,7 +62,8 @@ public class PythonThreadPool extends ExternalThreadPool {
     @Override
     public String getLaunchCommand() {
         // Specific launch command is of the form: binding bindingExecutor bindingArgs
-        // The bindingArgs are of the form python -u piper_worker.py debug tracing storageConf #threads cmdPipes resultPipes
+        // The bindingArgs are of the form python -u piper_worker.py debug tracing storageConf #threads cmdPipes
+        // resultPipes
 
         StringBuilder cmd = new StringBuilder();
 
@@ -76,25 +96,25 @@ public class PythonThreadPool extends ExternalThreadPool {
     }
 
     @Override
-    protected String getPBWorkingDir(){
+    protected String getPBWorkingDir() {
         String workingDir = nw.getWorkingDir();
-        if (NIOTracer.isActivated()){
+        if (NIOTracer.isActivated()) {
             workingDir += "python";
-            if(! new File(workingDir).mkdirs()){
+            if (!new File(workingDir).mkdirs()) {
                 ErrorManager.error("Could not create working dir for python tracefiles, path: " + workingDir);
             }
         }
         return workingDir;
     }
 
-	@Override
-	public void removeExternalData(String dataID) {
-		// Nothing to do in current python worker version (It could be useful when cache available)
-	}
+    @Override
+    public void removeExternalData(String dataID) {
+        // Nothing to do in current python worker version (It could be useful when cache available)
+    }
 
-	@Override
-	public boolean serializeExternalData(String name, String path) {
-		// Nothing to do with current python worker version (It could be useful when cache available)
-		return false;
-	}
+    @Override
+    public boolean serializeExternalData(String name, String path) {
+        // Nothing to do with current python worker version (It could be useful when cache available)
+        return false;
+    }
 }

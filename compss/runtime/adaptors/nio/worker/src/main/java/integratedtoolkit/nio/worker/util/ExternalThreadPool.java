@@ -6,7 +6,11 @@ import java.io.PrintStream;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import integratedtoolkit.ITConstants;
+import integratedtoolkit.log.Loggers;
 import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.nio.worker.executors.ExternalExecutor;
 import integratedtoolkit.util.ErrorManager;
@@ -20,6 +24,9 @@ import integratedtoolkit.nio.NIOTracer;
  * 
  */
 public abstract class ExternalThreadPool extends JobsThreadPool {
+
+    // Logger
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_POOL);
 
     // Logger messages
     private static final String ERROR_PB = "Error starting ProcessBuilder";
@@ -41,12 +48,18 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
     // Added to send data commands to binding
     protected final String writeDataPipeFile; // Pipe for sending data commands
     protected final String readDataPipeFile; // Pipe to read data commands results
-    
+
     private Process piper;
     private StreamGobbler outputGobbler;
     private StreamGobbler errorGobbler;
 
 
+    /**
+     * Instantiates a generic external thread pool associated to the given worker and with fixed size
+     * 
+     * @param nw
+     * @param size
+     */
     public ExternalThreadPool(NIOWorker nw, int size) {
         super(nw, size);
 
@@ -62,13 +75,13 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
             writePipeFiles[i] = workingDir + PIPE_FILE_BASENAME + UUID.randomUUID().hashCode();
             readPipeFiles[i] = workingDir + PIPE_FILE_BASENAME + UUID.randomUUID().hashCode();
         }
-        
+
         // Prepare data pipes
         writeDataPipeFile = workingDir + PIPE_FILE_BASENAME + UUID.randomUUID().hashCode();
         readDataPipeFile = workingDir + PIPE_FILE_BASENAME + UUID.randomUUID().hashCode();
-        
-        if (logger.isDebugEnabled()) {
-            logger.debug("PIPE Script: " + piperScript);
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("PIPE Script: " + piperScript);
 
             StringBuilder writes = new StringBuilder();
             writes.append("WRITE PIPE Files: ");
@@ -76,7 +89,7 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
                 writes.append(writePipeFiles[i]).append(" ");
             }
             writes.append("\n");
-            logger.debug(writes.toString());
+            LOGGER.debug(writes.toString());
 
             StringBuilder reads = new StringBuilder();
             reads.append("READ PIPE Files: ");
@@ -84,11 +97,11 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
                 reads.append(readPipeFiles[i]).append(" ");
             }
             reads.append("\n");
-            logger.debug(reads.toString());
-            
-            //Data pipes
-            logger.debug("WRITE DATA PIPE: " + writeDataPipeFile);
-            logger.debug("READ DATA PIPE: " + readDataPipeFile);
+            LOGGER.debug(reads.toString());
+
+            // Data pipes
+            LOGGER.debug("WRITE DATA PIPE: " + writeDataPipeFile);
+            LOGGER.debug("READ DATA PIPE: " + readDataPipeFile);
         }
 
         // Init main ProcessBuilder
@@ -101,19 +114,19 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
         }
 
         // Add Shutdown Hook to ensure all sub-processes are closed
-        logger.debug("Add ExternalExecutor shutdown hook");
+        LOGGER.debug("Add ExternalExecutor shutdown hook");
         Runtime.getRuntime().addShutdownHook(new Ender(this));
     }
 
     private String constructGeneralArgs() {
-        // General Args are of the form: NUM_THREADS dataPipeW dataPipeR 2 pipeW1 pipeW2 2 pipeR1 pipeR2 
+        // General Args are of the form: NUM_THREADS dataPipeW dataPipeR 2 pipeW1 pipeW2 2 pipeR1 pipeR2
         StringBuilder cmd = new StringBuilder();
-        
+
         cmd.append(size).append(ExternalExecutor.TOKEN_SEP);
 
         cmd.append(writeDataPipeFile).append(ExternalExecutor.TOKEN_SEP);
         cmd.append(readDataPipeFile).append(ExternalExecutor.TOKEN_SEP);
-        
+
         cmd.append(writePipeFiles.length).append(ExternalExecutor.TOKEN_SEP);
         for (int i = 0; i < writePipeFiles.length; ++i) {
             cmd.append(writePipeFiles[i]).append(ExternalExecutor.TOKEN_SEP);
@@ -130,12 +143,12 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
     private void init() {
         // Init PB to launch commands to bindings
         // Command of the form: bindings_piper.sh NUM_THREADS 2 pipeW1 pipeW2 2 pipeR1 pipeR2 binding args
-        logger.info("Init piper ProcessBuilder");
+        LOGGER.info("Init piper ProcessBuilder");
         String generalArgs = constructGeneralArgs();
         String specificArgs = getLaunchCommand();
-        if (specificArgs== null){
-        	ErrorManager.error(ERROR_GC);
-        	return;
+        if (specificArgs == null) {
+            ErrorManager.error(ERROR_GC);
+            return;
         }
         ProcessBuilder pb = new ProcessBuilder(piperScript, generalArgs, specificArgs);
         try {
@@ -149,13 +162,13 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
             pb.environment().remove(NIOTracer.LD_PRELOAD);
             pb.environment().remove(NIOTracer.EXTRAE_CONFIG_FILE);
 
-            if (NIOTracer.isActivated()){
+            if (NIOTracer.isActivated()) {
                 NIOTracer.emitEvent(Long.parseLong(NIOTracer.getHostID()), NIOTracer.getSyncType());
             }
 
             piper = pb.start();
 
-            logger.debug("Starting stdout/stderr gobblers ...");
+            LOGGER.debug("Starting stdout/stderr gobblers ...");
             try {
                 piper.getOutputStream().close();
             } catch (IOException e) {
@@ -163,8 +176,8 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
             }
             PrintStream out = ((ThreadPrintStream) System.out).getStream();
             PrintStream err = ((ThreadPrintStream) System.err).getStream();
-            outputGobbler = new StreamGobbler(piper.getInputStream(), out, logger);
-            errorGobbler = new StreamGobbler(piper.getErrorStream(), err, logger);
+            outputGobbler = new StreamGobbler(piper.getInputStream(), out, LOGGER);
+            errorGobbler = new StreamGobbler(piper.getErrorStream(), err, LOGGER);
             outputGobbler.start();
             errorGobbler.start();
         } catch (IOException e) {
@@ -180,7 +193,7 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
         }
     }
 
-    protected String getPBWorkingDir(){
+    protected String getPBWorkingDir() {
         return nw.getWorkingDir();
     }
 
@@ -193,12 +206,13 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
      * Stops specific language components. It is executed after all the threads in the pool have been stopped
      * 
      */
+    @Override
     protected void specificStop() {
         // Wait for piper process builder to end
         // Check out end status and close gobblers
         try {
             int exitCode = piper.waitFor();
-            if (NIOTracer.isActivated()){
+            if (NIOTracer.isActivated()) {
                 NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getSyncType());
             }
             outputGobbler.join();
@@ -228,7 +242,7 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
         }
 
         // ---------------------------------------------------------------------------
-        logger.info("ExternalThreadPool finished");
+        LOGGER.info("ExternalThreadPool finished");
     }
 
     /**
@@ -237,7 +251,7 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
      * @param etp
      */
     public static void ender(ExternalThreadPool etp) {
-        logger.info("Starting ExternalThreadPool ender");
+        LOGGER.info("Starting ExternalThreadPool ender");
         // Destroys the bash process
         etp.piper.destroy();
 
@@ -258,16 +272,23 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
      * @return
      */
     public abstract Map<String, String> getEnvironment(NIOWorker nw);
+
     /**
      * Request to delete a data in the external binding
      * 
-     * @param data identifier
+     * @param data
+     *            identifier
      * @return True if success, false if not removed
      */
     public abstract void removeExternalData(String dataID);
 
-	public abstract boolean serializeExternalData(String name, String path);
-		
-    
+    /**
+     * Requests to serialize an external data to the given path
+     * 
+     * @param name
+     * @param path
+     * @return
+     */
+    public abstract boolean serializeExternalData(String name, String path);
 
 }

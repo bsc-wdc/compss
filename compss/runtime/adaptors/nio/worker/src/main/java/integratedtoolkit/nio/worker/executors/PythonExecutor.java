@@ -28,7 +28,7 @@ public class PythonExecutor extends ExternalExecutor {
     public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits,
             int[] assignedGPUs) {
 
-        // The execution command in python is empty (the handler adds the pre-command and the application args)
+        // The execution command in Python is empty (the handler adds the pre-command and the application args)
         return new ArrayList<>();
     }
 

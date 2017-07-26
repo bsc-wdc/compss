@@ -4,14 +4,13 @@ import integratedtoolkit.connectors.ConnectorException;
 import integratedtoolkit.connectors.VM;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.resources.CloudMethodWorker;
-import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
 
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 
 /**
  * Support thread for VM destruction
@@ -29,6 +28,7 @@ public class DeletionThread extends Thread {
     private final CloudMethodWorker worker;
     private final CloudMethodResourceDescription reduction;
     private VM vm;
+
 
     /**
      * Creates a new support thread for VM reduction with the given properties
@@ -74,27 +74,19 @@ public class DeletionThread extends Thread {
             this.vm = this.operations.pause(worker);
         }
         if (vm != null) {
-            CloudMethodWorker cloudWorker = vm.getWorker(); 
-            //I think this part now is not needed
-            /*if (cloudWorker.shouldBeStopped()) {
-                cloudWorker.retrieveData(true);
-                Semaphore sem = new Semaphore(0);
-                ShutdownListener sl = new ShutdownListener(sem);
-                RUNTIME_LOGGER.info("[Deletion Thread] Stopping worker " + cloudWorker.getName() + "...");
-                cloudWorker.stop(sl);
-
-                sl.enable();
-                try {
-                    sem.acquire();
-                } catch (Exception e) {
-                    RESOURCE_LOGGER.error("ERROR: Exception raised on worker shutdown");
-                }
-                if (DEBUG) {
-                    RUNTIME_LOGGER.debug("[Deletion Thread] Stopping worker " + cloudWorker.getName() + "...");
-                }
-            } else if (DEBUG) {
-                RUNTIME_LOGGER.debug("[Deletion Thread] Worker " + cloudWorker.getName() + " should not be stopped.");
-            }*/
+            CloudMethodWorker cloudWorker = vm.getWorker();
+            // I think this part now is not needed
+            /*
+             * if (cloudWorker.shouldBeStopped()) { cloudWorker.retrieveData(true); Semaphore sem = new Semaphore(0);
+             * ShutdownListener sl = new ShutdownListener(sem); RUNTIME_LOGGER.info("[Deletion Thread] Stopping worker "
+             * + cloudWorker.getName() + "..."); cloudWorker.stop(sl);
+             * 
+             * sl.enable(); try { sem.acquire(); } catch (Exception e) {
+             * RESOURCE_LOGGER.error("ERROR: Exception raised on worker shutdown"); } if (DEBUG) {
+             * RUNTIME_LOGGER.debug("[Deletion Thread] Stopping worker " + cloudWorker.getName() + "..."); } } else if
+             * (DEBUG) { RUNTIME_LOGGER.debug("[Deletion Thread] Worker " + cloudWorker.getName() +
+             * " should not be stopped."); }
+             */
             if (DEBUG) {
                 RUNTIME_LOGGER.debug("[Deletion Thread] Worker " + cloudWorker.getName() + " stopped. Powering of the VM");
             }

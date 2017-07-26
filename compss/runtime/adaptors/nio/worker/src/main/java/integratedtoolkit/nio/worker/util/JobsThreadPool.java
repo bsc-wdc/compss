@@ -17,8 +17,7 @@ import integratedtoolkit.util.RequestQueue;
  */
 public abstract class JobsThreadPool {
 
-    protected static final Logger logger = LogManager.getLogger(Loggers.WORKER_POOL);
-    protected static final boolean debug = logger.isDebugEnabled();
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_POOL);
 
     protected static final String JOB_THREADS_POOL_NAME = "JobsThreadPool";
 
@@ -40,7 +39,7 @@ public abstract class JobsThreadPool {
      *            Request Dispatcher associated to the pool which implements the function executed by the threads
      */
     public JobsThreadPool(NIOWorker nw, int size) {
-        logger.info("Init JobsThreadPool");
+        LOGGER.info("Init JobsThreadPool");
         this.nw = nw;
         this.size = size;
 
@@ -72,7 +71,7 @@ public abstract class JobsThreadPool {
      * threads and wait until they process the null objects inserted which will stop them.
      */
     public void stopThreads() {
-        logger.info("Stopping Jobs Thread Pool");
+        LOGGER.info("Stopping Jobs Thread Pool");
         /*
          * Empty queue to discard any pending requests and make threads finish
          */
@@ -87,10 +86,10 @@ public abstract class JobsThreadPool {
         sem.acquireUninterruptibly(this.size);
 
         // Stop specific language components
-        logger.info("Performing specific stop");
+        LOGGER.info("Performing specific stop");
         specificStop();
 
-        logger.info("ThreadPool stopped");
+        LOGGER.info("ThreadPool stopped");
     }
 
     /**

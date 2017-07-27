@@ -23,8 +23,8 @@
 
   # Set parameters
   version=$1
-  builderFolder="mn"
-  builderScript="buildMN"
+  buildFolder="mn"
+  buildScript="buildMN"
   MNuser=compss
   MNendpoint=mn1.bsc.es
 

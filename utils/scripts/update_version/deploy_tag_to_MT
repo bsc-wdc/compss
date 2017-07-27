@@ -23,8 +23,8 @@
 
   # Set parameters
   version=$1
-  builderFolder="mt"
-  builderScript="buildMT"
+  buildFolder="mt"
+  buildScript="buildMT"
   MTuser=compss
   MTendpoint=mt1.bsc.es
 

@@ -23,8 +23,8 @@
 
   # Set parameters
   version=$1
-  builderFolder="nord"
-  builderScript="buildNord"
+  buildFolder="nord"
+  buildScript="buildNord"
   nordUser=compss
   nordEndpoint=nord1.bsc.es
 

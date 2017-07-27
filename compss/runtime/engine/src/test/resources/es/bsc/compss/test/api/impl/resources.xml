@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourcesList>
+	<ComputeNode Name="localhost">
+		<Processor Name="MainProcessor">
+			<ComputingUnits>4</ComputingUnits>
+		</Processor>
+		<Adaptors>
+			<Adaptor Name="compss.test.dummyAdaptor.DummyAdaptor">
+				<SubmissionSystem>
+					<Batch>
+						<Queue>sequential</Queue>
+						<Queue>training</Queue>
+					</Batch>
+					<Interactive />
+				</SubmissionSystem>
+				<User>user</User>
+				<Properties>
+					<Property>
+						<Name>P1</Name>
+						<Value>V1</Value>
+					</Property>
+					<Property>
+						<Name>P2</Name>
+						<Value>V2</Value>
+					</Property>
+				</Properties>
+
+			</Adaptor>
+		</Adaptors>
+	</ComputeNode>
+</ResourcesList>

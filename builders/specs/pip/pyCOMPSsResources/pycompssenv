@@ -1,4 +1,4 @@
-export IT_HOME=##COMPSS_PATH##
+export COMPSS_HOME=##COMPSS_PATH##
 export PATH=$PATH:##COMPSS_PATH##/Runtime/scripts/user
 export CLASSPATH=$CLASSPATH:##COMPSS_PATH##/Runtime/compss-engine.jar
 export PATH=$PATH:##COMPSS_PATH##/Bindings/c/bin

@@ -23,7 +23,7 @@
 
   #----------------------------------------------------------------------------------
   #Generating project.xml
-  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project.xml
+  sed -i '/<InstallDir>/c<InstallDir>'${COMPSS_HOME}'<\/InstallDir>' ${base_app_dir}/project.xml
   sed -i '/<AppDir>/c<AppDir>'${base_app_dir}'\/<\/AppDir>' ${base_app_dir}/project.xml
 
   #----------------------------------------------------------------------------------

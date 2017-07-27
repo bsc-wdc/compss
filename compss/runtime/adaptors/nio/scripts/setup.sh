@@ -137,7 +137,7 @@
     # Prepare the worker command
     local JAVA=java
     local worker_jar=${scriptDir}/../../../../adaptors/nio/worker/compss-adaptors-nio-worker.jar
-    local main_worker_class=integratedtoolkit.nio.worker.NIOWorker
+    local main_worker_class=es.bsc.compss.nio.worker.NIOWorker
     cmd=$JAVA" \
       ${jvmFlags} \
       -XX:+PerfDisableSharedMem \

@@ -62,15 +62,15 @@ def start(log_level='off',
           conn='',
           masterName='',
           masterPort='',
-          scheduler='integratedtoolkit.scheduler.loadBalancingScheduler.LoadBalancingScheduler',
+          scheduler='es.bsc.compss.scheduler.loadBalancingScheduler.LoadBalancingScheduler',
           jvmWorkers='-Xms1024m,-Xmx1024m,-Xmn400m',
           verbose=False,
           cpuAffinity='automatic',
           gpuAffinity='automatic'
           ):
     launchPath = os.path.dirname(os.path.abspath(__file__))
-    # it_home = launchPath without the last 3 folders (Bindings/python/pycompss/runtime)
-    it_home = os.path.sep.join(launchPath.split(os.path.sep)[:-3])
+    # compss_home = launchPath without the last 3 folders (Bindings/python/pycompss/runtime)
+    compss_home = os.path.sep.join(launchPath.split(os.path.sep)[:-3])
 
     # Get environment variables
     cp = os.getcwd() + '/'
@@ -79,7 +79,7 @@ def start(log_level='off',
     ld_library_path = os.environ['LD_LIBRARY_PATH']
 
     # Set extrae dependencies
-    extrae_home = it_home + '/Dependencies/extrae'
+    extrae_home = compss_home + '/Dependencies/extrae'
     extrae_lib = extrae_home + '/lib'
     os.environ['EXTRAE_HOME'] = extrae_home
     os.environ['LD_LIBRARY_PATH'] = extrae_lib + ':' + ld_library_path
@@ -123,14 +123,14 @@ def start(log_level='off',
 
     # Build a dictionary with all variables needed for initializing the runtime.
     config = {}
-    config['it_home'] = it_home
+    config['compss_home'] = compss_home
     config['debug'] = debug
     if project_xml is None:
-        config['project_xml'] = it_home + os.path.sep + 'Runtime/configuration/xml/projects/default_project.xml'
+        config['project_xml'] = compss_home + os.path.sep + 'Runtime/configuration/xml/projects/default_project.xml'
     else:
         config['project_xml'] = project_xml
     if resources_xml is None:
-        config['resources_xml'] = it_home + os.path.sep + 'Runtime/configuration/xml/resources/default_resources.xml'
+        config['resources_xml'] = compss_home + os.path.sep + 'Runtime/configuration/xml/resources/default_resources.xml'
     else:
         config['resources_xml'] = resources_xml
     config['summary'] = summary
@@ -190,14 +190,14 @@ def start(log_level='off',
 
     # Logging setup
     if log_level == "debug":
-        init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json.debug', log_path)
+        init_logging(os.getenv('COMPSS_HOME') + '/Bindings/python/log/logging.json.debug', log_path)
     elif log_level == "info":
-        init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json.off', log_path)
+        init_logging(os.getenv('COMPSS_HOME') + '/Bindings/python/log/logging.json.off', log_path)
     elif log_level == "off":
-        init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json.off', log_path)
+        init_logging(os.getenv('COMPSS_HOME') + '/Bindings/python/log/logging.json.off', log_path)
     else:
         # Default
-        init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json', log_path)
+        init_logging(os.getenv('COMPSS_HOME') + '/Bindings/python/log/logging.json', log_path)
     logger = logging.getLogger("pycompss.runtime.launch")
 
     printSetup(verbose,
@@ -373,7 +373,7 @@ def startP(log_level="off",
           comm='NIO',
           masterName='',
           masterPort='43000',
-          scheduler='integratedtoolkit.scheduler.defaultscheduler.DefaultScheduler',
+          scheduler='es.bsc.compss.scheduler.defaultscheduler.DefaultScheduler',
           jvmWorkers='-Xms1024m,-Xmx1024m,-Xmn400m'
           ):
     global running

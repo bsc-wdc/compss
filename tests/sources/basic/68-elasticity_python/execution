@@ -14,7 +14,7 @@
   
   #----------------------------------------------------------------------------------
   #Create project and resources XML
-  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project.xml
+  sed -i '/<InstallDir>/c<InstallDir>'${COMPSS_HOME}'<\/InstallDir>' ${base_app_dir}/project.xml
   
   #----------------------------------------------------------------------------------
   #Run application 1 - One Provider with PYTHON
@@ -32,7 +32,7 @@
      --resources=${base_app_dir}/resources.xml \
      --debug \
      --comm=$comm \
-     --conn=integratedtoolkit.connectors.DefaultNoSSHConnector \
+     --conn=es.bsc.compss.connectors.DefaultNoSSHConnector \
      ${runcompss_opts} \
      --lang=python \
      --pythonpath=${base_app_dir} \

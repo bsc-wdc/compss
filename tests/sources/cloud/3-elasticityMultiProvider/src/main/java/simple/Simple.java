@@ -1,6 +1,6 @@
 package simple;
 
-import integratedtoolkit.util.ResourceManager;
+import es.bsc.compss.util.ResourceManager;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;

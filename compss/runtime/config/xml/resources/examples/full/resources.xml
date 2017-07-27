@@ -16,7 +16,7 @@
         <Host>localhost</Host>
         <Path>/tmp/</Path>
         <Adaptors>
-            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
                 <SubmissionSystem>
                     <Interactive/>
                 </SubmissionSystem>
@@ -26,7 +26,7 @@
                 </Ports>
                 <User>user</User>
             </Adaptor>
-            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
                 <SubmissionSystem>
                     <Batch>
                         <Queue>sequential</Queue>
@@ -74,7 +74,7 @@
         <Host>localhost</Host>
         <Path>/tmp/</Path>
         <Adaptors>
-            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
                 <SubmissionSystem>
                     <Interactive/>
                 </SubmissionSystem>
@@ -89,7 +89,7 @@
         <Host>localhost</Host>
         <Path>/tmp/</Path>
         <Adaptors>
-            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
                 <SubmissionSystem>
                     <Batch>
                         <Queue>sequential</Queue>
@@ -147,7 +147,7 @@
             <InternalMemorySize>0.01</InternalMemorySize>
         </Processor>
         <Adaptors>
-            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
                 <SubmissionSystem>
                     <Interactive/>
                 </SubmissionSystem>
@@ -189,7 +189,7 @@
             <Speed>3.0</Speed>
         </Processor>
         <Adaptors>
-            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
                 <SubmissionSystem>
                     <Interactive/>
                 </SubmissionSystem>
@@ -218,7 +218,7 @@
             <ComputingUnits>4</ComputingUnits>
         </Processor>
         <Adaptors>
-            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
                 <SubmissionSystem>
                     <Interactive/>
                 </SubmissionSystem>
@@ -244,7 +244,7 @@
         <Images>
             <Image Name="Image_bsc_full">
                 <Adaptors>
-                    <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+                    <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
                         <SubmissionSystem>
                             <Interactive/>
                         </SubmissionSystem>
@@ -272,7 +272,7 @@
             </Image>
             <Image Name="Image_bsc_empty">
                 <Adaptors>
-                    <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+                    <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
                         <SubmissionSystem>
                             <Interactive/>
                         </SubmissionSystem>
@@ -322,7 +322,7 @@
         <Images>
             <Image Name="Image_bsc_empty">
                 <Adaptors>
-                    <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+                    <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
                         <SubmissionSystem>
                             <Interactive/>
                         </SubmissionSystem>

@@ -1,6 +1,6 @@
 package distributedTask;
 
-import integratedtoolkit.api.COMPSs;
+import es.bsc.compss.api.COMPSs;
 
 
 public class Main {

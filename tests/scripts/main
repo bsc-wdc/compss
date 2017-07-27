@@ -255,8 +255,8 @@ EOT
     else
        target_base_dir="/home/$user/tests_all_local"
     fi
-    IT_HOME="/opt/COMPSs/"
-    comm=integratedtoolkit.nio.master.NIOAdaptor
+    COMPSS_HOME="/opt/COMPSs/"
+    comm=es.bsc.compss.nio.master.NIOAdaptor
     runcompss_opts="-d"
     # Set environment variables from configuration file
     source_configuration
@@ -264,10 +264,10 @@ EOT
     # Set the rest of environment variables 
     source_base_dir="$(pwd)/$(dirname $0)/../sources"
     COMPSs_log_folder="$HOME/.COMPSs"
-    COMPSs_exec="$IT_HOME/Runtime/scripts/user/runcompss"
+    COMPSs_exec="$COMPSS_HOME/Runtime/scripts/user/runcompss"
 
     # Export base variables
-    export IT_HOME=$IT_HOME
+    export COMPSS_HOME=$COMPSS_HOME
     export JAVA_HOME=$JAVA_HOME
 
     # Select between one execution or all tests
@@ -359,11 +359,11 @@ EOT
     user=$(whoami)
     target_base_dir="/home/$user/tests_cloud_vpn"
     logs_location="/home/$user"
-    IT_HOME="/opt/COMPSs/"
+    COMPSS_HOME="/opt/COMPSs/"
     connector_server="https://bscgrid20.bsc.es:11443/"
     connector_jar="rocci-conn.jar"
     connector_class="es.bsc.conn.rocci.ROCCI"
-    comm=integratedtoolkit.nio.master.NIOAdaptor
+    comm=es.bsc.compss.nio.master.NIOAdaptor
     runcompss_opts="-d"
     remote_COMPSs=/opt/
 
@@ -371,8 +371,8 @@ EOT
     source_configuration
 
     # Set the rest of environment variables
-    COMPSs_location="${IT_HOME}"
-    COMPSs_exec="${IT_HOME}/Runtime/scripts/user/runcompss"
+    COMPSs_location="${COMPSS_HOME}"
+    COMPSs_exec="${COMPSS_HOME}/Runtime/scripts/user/runcompss"
     source_base_dir="$(pwd)/$(dirname $0)/../sources/cloud"
     log_folder="${target_base_dir}/logs"
     template_id=107
@@ -381,7 +381,7 @@ EOT
     COMPSs_log_folder="$HOME/.COMPSs"
 
     # Export base variables
-    export IT_HOME=$IT_HOME
+    export COMPSS_HOME=$COMPSS_HOME
     export JAVA_HOME=$JAVA_HOME
 
     # Compile sources cloud
@@ -426,9 +426,9 @@ EOT
     #Set Default environment variables
     user=$(whoami)
     target_base_dir="/home/$user/tests_devel"
-    IT_HOME="/opt/COMPSs/"
+    COMPSS_HOME="/opt/COMPSs/"
     java_apps="true"
-    comm=integratedtoolkit.nio.master.NIOAdaptor
+    comm=es.bsc.compss.nio.master.NIOAdaptor
     runcompss_opts="-d"
     # Set environment variables from configuration file
     source_configuration
@@ -437,10 +437,10 @@ EOT
     source_base_dir="$(pwd)/$(dirname $0)/../sources/$environment"
     logs_location="$HOME"
     COMPSs_log_folder="$HOME/.COMPSs"
-    COMPSs_exec="$IT_HOME/Runtime/scripts/user/runcompss"
+    COMPSs_exec="$COMPSS_HOME/Runtime/scripts/user/runcompss"
 
     # Export base variables
-    export IT_HOME=$IT_HOME
+    export COMPSS_HOME=$COMPSS_HOME
     export JAVA_HOME=$JAVA_HOME
 
     # Compile tests

@@ -7,7 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import binary.BINARY;
-import integratedtoolkit.api.COMPSs;
+import es.bsc.compss.api.COMPSs;
 
 
 public class Main {

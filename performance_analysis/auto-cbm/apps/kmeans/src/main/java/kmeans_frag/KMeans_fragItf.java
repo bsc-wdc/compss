@@ -15,9 +15,9 @@
  */
 package kmeans_frag;
 
-import integratedtoolkit.types.annotations.Method;
-import integratedtoolkit.types.annotations.Parameter;
-import integratedtoolkit.types.annotations.Parameter.Type;
+import es.bsc.compss.types.annotations.Method;
+import es.bsc.compss.types.annotations.Parameter;
+import es.bsc.compss.types.annotations.Parameter.Type;
 
 
 public interface KMeans_fragItf {

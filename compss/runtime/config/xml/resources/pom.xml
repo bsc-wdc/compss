@@ -68,7 +68,7 @@
 					<extension>true</extension>
 					<schemaFiles>resources_schema.xsd</schemaFiles>
 					<generateDirectory>${basedir}/src/main/java/</generateDirectory>
-					<generatePackage>integratedtoolkit.types.resources.jaxb</generatePackage>
+					<generatePackage>es.bsc.compss.types.resources.jaxb</generatePackage>
 				</configuration>
 			</plugin>
 		</plugins>

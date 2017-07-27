@@ -23,7 +23,7 @@ for i in $(seq 1 $NUM_WORKERS); do
             <Size>${MEMORY}</Size> \n\
         </Memory> \n\
         <Adaptors> \n\
-            <Adaptor Name=\"integratedtoolkit.nio.master.NIOAdaptor\"> \n\
+            <Adaptor Name=\"es.bsc.compss.nio.master.NIOAdaptor\"> \n\
                 <SubmissionSystem> \n\
                     <Interactive/> \n\
                 </SubmissionSystem> \n\
@@ -32,7 +32,7 @@ for i in $(seq 1 $NUM_WORKERS); do
                     <MaxPort>$((40000 + 2*($i-1) + 2))</MaxPort>\n \
                 </Ports> \n\
             </Adaptor> \n\
-            <Adaptor Name=\"integratedtoolkit.gat.master.GATAdaptor\"> \n\
+            <Adaptor Name=\"es.bsc.compss.gat.master.GATAdaptor\"> \n\
                 <SubmissionSystem> \n\
                     <Batch> \n\
                         <Queue>sequential</Queue> \n\
@@ -56,7 +56,7 @@ echo -e "\
             <Image Name=\"$IMAGE_NAME\"> \n\
                 <CreationTime>$CREATION_TIME</CreationTime> \n\
                 <Adaptors> \n\
-                    <Adaptor Name=\"integratedtoolkit.nio.master.NIOAdaptor\"> \n\
+                    <Adaptor Name=\"es.bsc.compss.nio.master.NIOAdaptor\"> \n\
                         <SubmissionSystem> \n\
                             <Interactive /> \n\
                         </SubmissionSystem> \n\
@@ -65,7 +65,7 @@ echo -e "\
                             <MaxPort>43003</MaxPort> \n\
                         </Ports> \n\
                     </Adaptor> \n\
-                    <Adaptor Name=\"integratedtoolkit.gat.master.GATAdaptor\"> \n\
+                    <Adaptor Name=\"es.bsc.compss.gat.master.GATAdaptor\"> \n\
                         <SubmissionSystem> \n\
                             <Batch> \n\
                                 <Queue>sequential</Queue> \n\

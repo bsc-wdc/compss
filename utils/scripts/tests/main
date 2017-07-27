@@ -29,7 +29,7 @@
 
   # Exec tests
   echo "-- Running NIO tests..."
-  comm=integratedtoolkit.nio.master.NIOAdaptor
+  comm=es.bsc.compss.nio.master.NIOAdaptor
   ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no ${vm_user}@${vm_ip} "/home/${vm_user}/tests/execute_cloud_block1 $distr $comm"
   echo "       Success" 
 

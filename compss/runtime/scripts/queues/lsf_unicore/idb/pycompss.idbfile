@@ -15,7 +15,7 @@
 <jsdl:Argument Type="choice" ValidValues="off info debug" Default="off">$Log_Level</jsdl:Argument>
 <jsdl:Argument Type="choice" ValidValues="true false" Default="false">$Tracing</jsdl:Argument>
 <jsdl:Argument Type="choice" ValidValues="true false" Default="false">$Graph</jsdl:Argument>
-<jsdl:Argument Type="choice" ValidValues="integratedtoolkit.nio.master.NIOAdaptor integratedtoolkit.gat.master.GATAdaptor" Default="integratedtoolkit.nio.master.NIOAdaptor">$Comm</jsdl:Argument>
+<jsdl:Argument Type="choice" ValidValues="es.bsc.compss.nio.master.NIOAdaptor es.bsc.compss.gat.master.GATAdaptor" Default="es.bsc.compss.nio.master.NIOAdaptor">$Comm</jsdl:Argument>
 <jsdl:Argument Type="filename" Description="PyCOMPSs archive containing the executable code." MimeType="">$PYCOMPSSFILE</jsdl:Argument>
 <jsdl:Argument>$ARGUMENTS?</jsdl:Argument>
 </jsdl:POSIXApplication>

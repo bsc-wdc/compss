@@ -22,7 +22,7 @@
         </Application>
         <LimitOfTasks>4</LimitOfTasks>
         <Adaptors>
-            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
                 <SubmissionSystem>
                     <Interactive/>
                 </SubmissionSystem>
@@ -32,7 +32,7 @@
                 </Ports>
                 <User>user</User>
             </Adaptor>
-            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
                 <SubmissionSystem>
                     <Batch>
                         <Queue>sequential</Queue>
@@ -90,7 +90,7 @@
     </ComputeNode>
     <DataNode Name="DN_full">
         <Adaptors>
-            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
                 <SubmissionSystem>
                     <Batch>
                         <Queue>sequential</Queue>
@@ -143,7 +143,7 @@
                         <Target>/tmp/Worker/</Target>
                     </Package>
                     <Adaptors>
-                        <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+                        <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
                             <SubmissionSystem>
 <Interactive/>
                             </SubmissionSystem>

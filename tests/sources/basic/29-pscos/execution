@@ -14,7 +14,7 @@
   
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
-  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project.xml
+  sed -i '/<InstallDir>/c<InstallDir>'${COMPSS_HOME}'<\/InstallDir>' ${base_app_dir}/project.xml
   
   #----------------------------------------------------------------------------------
   # Create all working dir folders
@@ -54,7 +54,7 @@ EOF
      --lang=java \
      --comm=$comm \
      --storage_conf=${storageConf} \
-     --jvm_workers_opts="-Dit.worker.removeWD=true" \
+     --jvm_workers_opts="-Dcompss.worker.removeWD=true" \
      ${runcompss_opts} \
      --classpath=${base_app_dir}/pscos.jar:${storageImplPath} \
      testPSCOInternal.Internal > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
@@ -102,7 +102,7 @@ EOF
      --lang=java \
      --comm=$comm \
      --storage_conf=${storageConf} \
-     --jvm_workers_opts="-Dit.worker.removeWD=true" \
+     --jvm_workers_opts="-Dcompss.worker.removeWD=true" \
      --task_execution=external \
      --classpath=${base_app_dir}/pscos.jar:${storageImplPath} \
      testPSCOExternal.External > >(tee ${output_log}) 2> >(tee ${error_log} >&2)

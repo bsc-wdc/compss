@@ -6,8 +6,8 @@
   usage() {
     echo " " 
     echo "ERROR: Incorrect number of parameters"
-    echo " Usage: ./install_bindings <IT_HOME>"
-    echo "        IT_HOME must be a full path"
+    echo " Usage: ./install_bindings <COMPSS_HOME>"
+    echo "        COMPSS_HOME must be a full path"
     echo " "
     exit 1
   }

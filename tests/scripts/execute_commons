@@ -13,7 +13,7 @@
   
     # Clean possible remaining test processes
     $(ps x -o  "%r %c" | grep "runcompss" | awk {' print $1 '} | xargs -r -i kill -9 -{})
-    $(ps -elfa | grep "java" | grep "integratedtoolkit.nio.worker.NIOWorker" | awk {' print $4 '} | xargs -r kill -9)
+    $(ps -elfa | grep "java" | grep "es.bsc.compss.nio.worker.NIOWorker" | awk {' print $4 '} | xargs -r kill -9)
     $(ps -elfa | grep piper | grep -v grep | awk {' print $4 '} | xargs -r kill -9)
 
     # Sleep after cleanning test environment

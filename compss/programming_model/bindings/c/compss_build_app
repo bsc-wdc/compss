@@ -34,10 +34,10 @@ export SUBFLDR=$subfolder
 
 # GS HOME
 if [ -z $CS_HOME ]; then
-  if [ -z $IT_HOME ]; then
+  if [ -z $COMPSS_HOME ]; then
     export CS_HOME=/opt/COMPSs/Bindings/c
   else
-    export CS_HOME=$IT_HOME/Bindings/c
+    export CS_HOME=$COMPSS_HOME/Bindings/c
   fi
 fi
 export COMPSSGEN=$CS_HOME/bin/compss_generator

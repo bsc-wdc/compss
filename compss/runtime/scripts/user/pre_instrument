@@ -1,42 +1,42 @@
-#!/bin/sh
+#!/bin/bash
 
-if [ $# -lt 4 ]
-then
-echo
-echo "Usage:"
-echo "./pre_instrument.sh app_classpath runtime_inst_dir dest_dir full_class_name method_labels..."
-exit 127
-fi
+  if [ $# -lt 4 ]; then
+    echo
+    echo "Usage:"
+    echo "./pre_instrument.sh app_classpath runtime_inst_dir dest_dir full_class_name method_labels..."
+    exit 127
+  fi
+  
+  userDir=$HOME
+  scriptDir=$(pwd)
+  
+  appClassPath=$1
+  runtimeInstDir=$2
+  destDir=$3
+  fullAppName=$4
+  shift 4
+  libDir=$runtimeInstDir/Runtime/
+  
+  echo -e "\n----------------- Instrumenting $fullAppName --------------------------\n"
+  cd $destDir
+  runtimeClassPath=$libDir/compss-engine.jar
+  
+  java \
+    -XX:+PerfDisableSharedMem \
+    -XX:-UsePerfData \
+    -XX:+UseG1GC \
+    -XX:+UseThreadPriorities \
+    -XX:ThreadPriorityPolicy=42 \
+    -Dlog4j.configurationFile=$runtimeInstDir/Runtime/configuration/log/COMPSsMaster-log4j.instrument \
+    -Dcompss.to.file=true \
+    -classpath $appClassPath:$runtimeClassPath \
+    es.bsc.compss.loader.AddOrchestration $fullAppName $@ 
 
-userDir=~
-scriptDir=`pwd`
+  if [ $? -ne 0 ]; then
+  	echo "Error pre-instrumenting class";
+  	exit 1;
+  fi
 
-appClassPath=$1
-runtimeInstDir=$2
-destDir=$3
-fullAppName=$4
-shift 4
-libDir=$runtimeInstDir/Runtime/
+  echo
+  echo ------------------------------------------------------------
 
-echo -e "\n----------------- Instrumenting $fullAppName --------------------------\n"
-
-cd $destDir
-
-runtimeClassPath=$libDir/compss-engine.jar
-
-java \
--XX:+PerfDisableSharedMem \
--XX:-UsePerfData \
--XX:+UseG1GC \
--XX:+UseThreadPriorities \
--XX:ThreadPriorityPolicy=42 \
--Dlog4j.configurationFile=$runtimeInstDir/Runtime/configuration/log/COMPSsMaster-log4j.instrument \
--Dit.to.file=true \
--classpath $appClassPath:$runtimeClassPath \
-integratedtoolkit.loader.AddOrchestration $fullAppName $@ 
-if [ $? -ne 0 ]; then
-	echo "Error pre-instrumenting class";
-	exit 1;
-fi
-echo
-echo ------------------------------------------------------------

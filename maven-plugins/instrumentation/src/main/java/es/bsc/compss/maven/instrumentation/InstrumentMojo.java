@@ -161,9 +161,9 @@ public class InstrumentMojo
 				urls[i] = new File(cp.get(i)).toURI().toURL();
 			}
 			URLClassLoader urlLoader = new URLClassLoader(urls);
-			System.setProperty("it.to.file", "true");
+			System.setProperty("compss.to.file", "true");
 			Class<?> runClass = urlLoader
-					.loadClass("integratedtoolkit.loader.ITAppLoader");
+					.loadClass("es.bsc.compss.loader.ITAppLoader");
 			Object[] arguments = new Object[] {new String[]{"total", cl}};
 			Method main = runClass.getDeclaredMethod("main", new Class[]{String[].class});
 			main.invoke(null, arguments);

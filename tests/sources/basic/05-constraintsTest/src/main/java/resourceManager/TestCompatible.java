@@ -1,19 +1,19 @@
 package resourceManager;
 
-import integratedtoolkit.api.impl.COMPSsRuntimeImpl;
-import integratedtoolkit.scheduler.types.ActionOrchestrator;
-import integratedtoolkit.types.implementations.Implementation;
-import integratedtoolkit.types.implementations.Implementation.TaskType;
-import integratedtoolkit.types.implementations.MethodImplementation;
-import integratedtoolkit.types.implementations.ServiceImplementation;
-import integratedtoolkit.types.resources.MethodResourceDescription;
-import integratedtoolkit.types.resources.MethodWorker;
-import integratedtoolkit.types.resources.Resource;
-import integratedtoolkit.types.resources.ServiceResourceDescription;
-import integratedtoolkit.types.resources.ServiceWorker;
-import integratedtoolkit.types.resources.Worker;
-import integratedtoolkit.types.resources.components.Processor;
-import integratedtoolkit.util.CoreManager;
+import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
+import es.bsc.compss.scheduler.types.ActionOrchestrator;
+import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.implementations.Implementation.TaskType;
+import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.implementations.ServiceImplementation;
+import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.MethodWorker;
+import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.types.resources.ServiceResourceDescription;
+import es.bsc.compss.types.resources.ServiceWorker;
+import es.bsc.compss.types.resources.Worker;
+import es.bsc.compss.types.resources.components.Processor;
+import es.bsc.compss.util.CoreManager;
 
 import java.util.HashMap;
 import java.util.LinkedList;

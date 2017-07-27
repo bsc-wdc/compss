@@ -3,13 +3,13 @@ package multiProcessor;
 import java.util.LinkedList;
 import java.util.Map.Entry;
 
-import integratedtoolkit.api.impl.COMPSsRuntimeImpl;
-import integratedtoolkit.scheduler.types.ActionOrchestrator;
-import integratedtoolkit.types.resources.MethodResourceDescription;
-import integratedtoolkit.types.resources.MethodWorker;
-import integratedtoolkit.types.resources.Worker;
-import integratedtoolkit.util.CoreManager;
-import integratedtoolkit.util.ResourceManager;
+import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
+import es.bsc.compss.scheduler.types.ActionOrchestrator;
+import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.MethodWorker;
+import es.bsc.compss.types.resources.Worker;
+import es.bsc.compss.util.CoreManager;
+import es.bsc.compss.util.ResourceManager;
 
 import commons.Action;
 import commons.ConstantValues;

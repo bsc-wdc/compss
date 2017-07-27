@@ -1,6 +1,6 @@
 {
     "name": "COMPSs_cloud_test",
-    "command": "/home/alberts/compssBuilds/COMPSs//Runtime/scripts/user/runcompss --project=/home/alberts/tests_cloud_vpn/apps_cloud/app07/project_mesosFramework.xml --resources=/home/alberts/tests_cloud_vpn/apps_cloud/app07/resources_mesosFramework.xml --debug --comm=integratedtoolkit.nio.master.NIOAdaptor --lang=java --classpath=/home/alberts/tests_cloud_vpn/apps_cloud/app07/Simple.jar simple.Simple 1 100 1 4 30",
+    "command": "/home/alberts/compssBuilds/COMPSs//Runtime/scripts/user/runcompss --project=/home/alberts/tests_cloud_vpn/apps_cloud/app07/project_mesosFramework.xml --resources=/home/alberts/tests_cloud_vpn/apps_cloud/app07/resources_mesosFramework.xml --debug --comm=es.bsc.compss.nio.master.NIOAdaptor --lang=java --classpath=/home/alberts/tests_cloud_vpn/apps_cloud/app07/Simple.jar simple.Simple 1 100 1 4 30",
     "shell": true,
     "epsilon": "PT30M",
     "executor": "",

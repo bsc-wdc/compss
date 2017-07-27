@@ -6,13 +6,13 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import commons.ConstantValues;
-import integratedtoolkit.types.annotations.Constants;
-import integratedtoolkit.types.annotations.Constraints;
-import integratedtoolkit.types.annotations.task.Method;
-import integratedtoolkit.types.implementations.Implementation;
-import integratedtoolkit.types.implementations.MethodImplementation;
-import integratedtoolkit.types.resources.MethodResourceDescription;
-import integratedtoolkit.util.CoreManager;
+import es.bsc.compss.types.annotations.Constants;
+import es.bsc.compss.types.annotations.Constraints;
+import es.bsc.compss.types.annotations.task.Method;
+import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.util.CoreManager;
 
 
 /*

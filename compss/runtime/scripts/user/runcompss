@@ -32,17 +32,17 @@ DEFAULT_APPDIR=$(pwd)
 DEFAULT_STORAGE_CONF="None"
 DEFAULT_PyOBJECT_SERIALIZE=false
 
-DEFAULT_COMMUNICATION_ADAPTOR=integratedtoolkit.nio.master.NIOAdaptor
-#DEFAULT_COMMUNICATION_ADAPTOR=integratedtoolkit.gat.master.GATAdaptor
-DEFFAULT_CONNECTOR=integratedtoolkit.connectors.DefaultSSHConnector
+DEFAULT_COMMUNICATION_ADAPTOR=es.bsc.compss.nio.master.NIOAdaptor
+#DEFAULT_COMMUNICATION_ADAPTOR=es.bsc.compss.gat.master.GATAdaptor
+DEFFAULT_CONNECTOR=es.bsc.compss.connectors.DefaultSSHConnector
 DEFAULT_MASTER_PORT="[43000,44000]"
 DEFAULT_MASTER_NAME=""
-#DEFAULT_SCHEDULER=integratedtoolkit.scheduler.fullGraphScheduler.FullGraphScheduler
-#DEFAULT_SCHEDULER=integratedtoolkit.scheduler.fifoScheduler.FIFOScheduler
-#DEFAULT_SCHEDULER=integratedtoolkit.scheduler.fifoDataScheduler.FIFODataScheduler
-#DEFAULT_SCHEDULER=integratedtoolkit.components.impl.TaskScheduler
-DEFAULT_SCHEDULER=integratedtoolkit.scheduler.loadBalancingScheduler.LoadBalancingScheduler
-RUNTIME_LOADER=integratedtoolkit.loader.ITAppLoader
+#DEFAULT_SCHEDULER=es.bsc.compss.scheduler.fullGraphScheduler.FullGraphScheduler
+#DEFAULT_SCHEDULER=es.bsc.compss.scheduler.fifoScheduler.FIFOScheduler
+#DEFAULT_SCHEDULER=es.bsc.compss.scheduler.fifoDataScheduler.FIFODataScheduler
+#DEFAULT_SCHEDULER=es.bsc.compss.components.impl.TaskScheduler
+DEFAULT_SCHEDULER=es.bsc.compss.scheduler.loadBalancingScheduler.LoadBalancingScheduler
+RUNTIME_LOADER=es.bsc.compss.loader.ITAppLoader
 DEFAULT_JVM_MASTER=""
 DEFAULT_JVM_WORKERS="-Xms1024m,-Xmx1024m,-Xmn400m"
 DEFAULT_CPU_AFFINITY="automatic" # disabled, automatic, user string
@@ -103,16 +103,16 @@ show_opts() {
     --extrae_config_file=<path>             Sets a custom extrae config file. Must be in a shared disk between all COMPSs workers.
                                             Default: ${DEFAULT_EXTRAE_CONFIG_FILE}
     --comm=<ClassName>                      Class that implements the adaptor for communications
-                                            Supported adaptors: integratedtoolkit.nio.master.NIOAdaptor | integratedtoolkit.gat.master.GATAdaptor
+                                            Supported adaptors: es.bsc.compss.nio.master.NIOAdaptor | es.bsc.compss.gat.master.GATAdaptor
                                             Default: ${DEFAULT_COMMUNICATION_ADAPTOR}
     --conn=<className>                      Class that implements the runtime connector for the cloud
-                                            Supported connectors: integratedtoolkit.connectors.DefaultSSHConnector
-								  | integratedtoolkit.connectors.DefaultNoSSHConnector
+                                            Supported connectors: es.bsc.compss.connectors.DefaultSSHConnector
+								  | es.bsc.compss.connectors.DefaultNoSSHConnector
                                             Default: ${DEFAULT_CONNECTOR}
     --scheduler=<className>	            Class that implements the Scheduler for COMPSs
-                                            Supported schedulers: integratedtoolkit.scheduler.fullGraphScheduler.FullGraphScheduler
-                                                                  | integratedtoolkit.scheduler.fifoScheduler.FIFOScheduler
-                                                                  | integratedtoolkit.scheduler.resourceEmptyScheduler.ResourceEmptyScheduler
+                                            Supported schedulers: es.bsc.compss.scheduler.fullGraphScheduler.FullGraphScheduler
+                                                                  | es.bsc.compss.scheduler.fifoScheduler.FIFOScheduler
+                                                                  | es.bsc.compss.scheduler.resourceEmptyScheduler.ResourceEmptyScheduler
                                             Default: ${DEFAULT_SCHEDULER}
     --library_path=<path>                   Non-standard directories to search for libraries (e.g. Java JVM library, Python library, C binding library)
                                             Default: Working Directory
@@ -291,23 +291,23 @@ check_env() {
   fi
   
   # Command to simulate realpath
-  IT_HOME=$(cd $(dirname $0)/../../.. ; pwd)
-  export IT_HOME=${IT_HOME}
+  COMPSS_HOME=$(cd $(dirname $0)/../../.. ; pwd)
+  export COMPSS_HOME=${COMPSS_HOME}
 
   if [ -z "$DEFAULT_PROJECT" ]; then
-    DEFAULT_PROJECT=${IT_HOME}/Runtime/configuration/xml/projects/default_project.xml
+    DEFAULT_PROJECT=${COMPSS_HOME}/Runtime/configuration/xml/projects/default_project.xml
   fi
 
   if [ -z "$DEFAULT_RESOURCES" ]; then
-    DEFAULT_RESOURCES=${IT_HOME}/Runtime/configuration/xml/resources/default_resources.xml
+    DEFAULT_RESOURCES=${COMPSS_HOME}/Runtime/configuration/xml/resources/default_resources.xml
   fi
 
   if [ -z "${GAT_LOCATION}" ]; then
-    GAT_LOCATION=${IT_HOME}/Dependencies/JAVA_GAT
+    GAT_LOCATION=${COMPSS_HOME}/Dependencies/JAVA_GAT
   fi
 
   if [ -z "${EXTRAE_HOME}" ]; then
-    EXTRAE_HOME=${IT_HOME}/Dependencies/extrae
+    EXTRAE_HOME=${COMPSS_HOME}/Dependencies/extrae
   fi
 
   if [ -z "${EXTRAE_LIB}" ]; then
@@ -643,9 +643,9 @@ check_args() {
     display_error "${TRACING_ERROR}"
   fi
   if [ $tracing -eq 1 ]; then
-    extraeFile=${IT_HOME}/Runtime/configuration/xml/tracing/extrae_basic.xml
+    extraeFile=${COMPSS_HOME}/Runtime/configuration/xml/tracing/extrae_basic.xml
   elif [ $tracing -eq 2 ]; then
-    extraeFile=${IT_HOME}/Runtime/configuration/xml/tracing/extrae_advanced.xml
+    extraeFile=${COMPSS_HOME}/Runtime/configuration/xml/tracing/extrae_advanced.xml
   fi
 
   # Overwrite extraeFile if already defined
@@ -837,60 +837,61 @@ ${jvm_debugger_opts}
 -XX:+UseG1GC
 -XX:+UseThreadPriorities
 -XX:ThreadPriorityPolicy=42
--Dlog4j.configurationFile=${IT_HOME}/Runtime/configuration/log/${itlog4j_file}
--Dit.to.file=false
--Dit.project.file=${projFile}
--Dit.resources.file=${resFile}
--Dit.project.schema=${IT_HOME}/Runtime/configuration/xml/projects/project_schema.xsd
--Dit.resources.schema=${IT_HOME}/Runtime/configuration/xml/resources/resources_schema.xsd
--Dit.lang=${lang}
--Dit.summary=${summary}
--Dit.task.execution=$taskExecution
--Dit.storage.conf=$storageConf
--Dit.core.count=${task_count}
--Dit.appName=${appName}
--Dit.uuid=${uuid}
--Dit.baseLogDir=${base_log_dir}
--Dit.specificLogDir=${specific_log_dir}
--Dit.appLogDir=/tmp/${uuid}/
--Dit.graph=${graph}
--Dit.monitor=${monitoring}
--Dit.tracing=${tracing}
--Dit.extrae.file=${custom_extrae_config_file}
--Dit.comm=${comm}
--Dit.conn=${conn}
--Dit.masterName=${master_name}
--Dit.masterPort=${master_port}
--Dit.scheduler=${scheduler}
+-Dlog4j.configurationFile=${COMPSS_HOME}/Runtime/configuration/log/${itlog4j_file}
+-Dcompss.to.file=false
+-Dcompss.project.file=${projFile}
+-Dcompss.resources.file=${resFile}
+-Dcompss.project.schema=${COMPSS_HOME}/Runtime/configuration/xml/projects/project_schema.xsd
+-Dcompss.resources.schema=${COMPSS_HOME}/Runtime/configuration/xml/resources/resources_schema.xsd
+-Dcompss.lang=${lang}
+-Dcompss.summary=${summary}
+-Dcompss.task.execution=$taskExecution
+-Dcompss.storage.conf=$storageConf
+-Dcompss.core.count=${task_count}
+-Dcompss.appName=${appName}
+-Dcompss.uuid=${uuid}
+-Dcompss.baseLogDir=${base_log_dir}
+-Dcompss.specificLogDir=${specific_log_dir}
+-Dcompss.appLogDir=/tmp/${uuid}/
+-Dcompss.graph=${graph}
+-Dcompss.monitor=${monitoring}
+-Dcompss.tracing=${tracing}
+-Dcompss.extrae.file=${custom_extrae_config_file}
+-Dcompss.comm=${comm}
+-Dcompss.conn=${conn}
+-Dcompss.masterName=${master_name}
+-Dcompss.masterPort=${master_port}
+-Dcompss.scheduler=${scheduler}
 -Dgat.adaptor.path=${GAT_LOCATION}/lib/adaptors
--Dit.gat.broker.adaptor=sshtrilead
--Dit.gat.file.adaptor=sshtrilead
--Dit.worker.cp=${cp}:${CLASSPATH}
--Dit.worker.jvm_opts=${jvm_workers_opts}
--Dit.worker.cpu_affinity=${worker_cpu_affinity}
--Dit.worker.gpu_affinity=${worker_gpu_affinity}
+-Dgat.debug=false
+-Dgat.broker.adaptor=sshtrilead
+-Dgat.file.adaptor=sshtrilead
+-Dcompss.worker.cp=${cp}:${CLASSPATH}
+-Dcompss.worker.jvm_opts=${jvm_workers_opts}
+-Dcompss.worker.cpu_affinity=${worker_cpu_affinity}
+-Dcompss.worker.gpu_affinity=${worker_gpu_affinity}
 EOT
 }
 
 add_jvm_opts_java() {
   /bin/cat >> ${jvm_options_file} << EOT
 -noverify
--classpath ${cp}:${IT_HOME}/Runtime/compss-engine.jar:${CLASSPATH}
+-classpath ${cp}:${COMPSS_HOME}/Runtime/compss-engine.jar:${CLASSPATH}
 EOT
 }
 
 add_jvm_opts_c() {
   /bin/cat >> ${jvm_options_file} << EOT
--Djava.class.path=${cp}:${IT_HOME}/Runtime/compss-engine.jar:${CLASSPATH}
--Dit.constraints.file=$fullAppPath.idl
--Dit.worker.persistent.c=${persistent_worker_c}
+-Djava.class.path=${cp}:${COMPSS_HOME}/Runtime/compss-engine.jar:${CLASSPATH}
+-Dcompss.constraints.file=$fullAppPath.idl
+-Dcompss.worker.persistent.c=${persistent_worker_c}
 EOT
 }
 
 add_jvm_opts_python() {
   /bin/cat >> ${jvm_options_file} << EOT
--Djava.class.path=${cp}:${IT_HOME}/Runtime/compss-engine.jar:${CLASSPATH}
--Dit.worker.pythonpath=${PYTHONPATH}
+-Djava.class.path=${cp}:${COMPSS_HOME}/Runtime/compss-engine.jar:${CLASSPATH}
+-Dcompss.worker.pythonpath=${PYTHONPATH}
 EOT
 }
 
@@ -919,8 +920,8 @@ exec_java() {
 
 exec_c() {
   # Export needed variables
-  if [ -d ${IT_HOME}/Bindings/c ]; then
-    local CPP_COMPSS_HOME=${IT_HOME}/Bindings/c
+  if [ -d ${COMPSS_HOME}/Bindings/c ]; then
+    local CPP_COMPSS_HOME=${COMPSS_HOME}/Bindings/c
     export CPP_PATH=${CPP_COMPSS_HOME}:$cp
   else
     export CPP_PATH=$cp
@@ -936,13 +937,13 @@ exec_c() {
   fi
   libjavafolder=$(dirname $libjava)
 
-  export LD_LIBRARY_PATH=$library_path:${LD_LIBRARY_PATH}:$libjavafolder:${IT_HOME}/Bindings/bindings-common/lib:${IT_HOME}/Bindings/c/lib
+  export LD_LIBRARY_PATH=$library_path:${LD_LIBRARY_PATH}:$libjavafolder:${COMPSS_HOME}/Bindings/bindings-common/lib:${COMPSS_HOME}/Bindings/c/lib
 
   export JVM_OPTIONS_FILE=${jvm_options_file}
 
   # Launch application
   echo "JVM_OPTIONS_FILE: $JVM_OPTIONS_FILE"
-  echo "IT_HOME: $IT_HOME"
+  echo "COMPSS_HOME: $COMPSS_HOME"
   echo "Args: $application_args"
   echo " "
 
@@ -961,12 +962,12 @@ exec_c() {
 
 exec_python() {
   # Python Storage API
-  storageApi=${IT_HOME}/Dependencies/
+  storageApi=${COMPSS_HOME}/Dependencies/
   cp=$cp:$storageApi
 
   # Export needed variables
-  if [ -d $IT_HOME/Bindings/python ]; then
-    PYCOMPSS_HOME=${IT_HOME}/Bindings/python
+  if [ -d ${COMPSS_HOME}/Bindings/python ]; then
+    PYCOMPSS_HOME=${COMPSS_HOME}/Bindings/python
     export PYTHONPATH=${PYCOMPSS_HOME}:$cp:$PYTHONPATH
   else
     export PYTHONPATH=$cp:$PYTHONPATH
@@ -982,7 +983,7 @@ exec_python() {
   fi     
   libjavafolder=$(dirname $libjava)
 
-  export LD_LIBRARY_PATH=$library_path:${LD_LIBRARY_PATH}:$libjavafolder:${IT_HOME}/Bindings/bindings-common/lib
+  export LD_LIBRARY_PATH=$library_path:${LD_LIBRARY_PATH}:$libjavafolder:${COMPSS_HOME}/Bindings/bindings-common/lib
 
   export JVM_OPTIONS_FILE=${jvm_options_file}
 
@@ -1021,3 +1022,4 @@ clean_env() {
 
   # Real runtime execution
   execute_runtime
+

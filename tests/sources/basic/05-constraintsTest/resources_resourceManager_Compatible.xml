@@ -28,7 +28,7 @@
             <Application>SPARK</Application>
         </Software>
         <Adaptors>
-            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
                 <SubmissionSystem>
                     <Batch>
                         <Queue>another</Queue>
@@ -40,7 +40,7 @@
                     <MaxPort>43002</MaxPort>
                 </Ports>
             </Adaptor>
-            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
                 <SubmissionSystem>
                     <Batch>
                         <Queue>another</Queue>
@@ -84,7 +84,7 @@
             <Application>COMPSS</Application>
         </Software>
         <Adaptors>
-            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
                 <SubmissionSystem>
                     <Batch>
                         <Queue>sequential</Queue>
@@ -98,7 +98,7 @@
                     <MaxPort>43003</MaxPort>
                 </Ports>
             </Adaptor>
-            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
                 <SubmissionSystem>
                     <Batch>
                         <Queue>sequential</Queue>
@@ -149,7 +149,7 @@
             <Application>JAVA</Application>
         </Software>
         <Adaptors>
-            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
                 <SubmissionSystem>
                     <Batch>
                         <Queue>debug</Queue>
@@ -162,7 +162,7 @@
                     <MaxPort>43004</MaxPort>
                 </Ports>
             </Adaptor>
-            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
                 <SubmissionSystem>
                     <Batch>
                         <Queue>debug</Queue>
@@ -208,7 +208,7 @@
         	<Version>SP2</Version>
         </OperatingSystem>
         <Adaptors>
-            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
                 <SubmissionSystem>
                     <Interactive/>
                 </SubmissionSystem>
@@ -217,7 +217,7 @@
                     <MaxPort>43005</MaxPort>
                 </Ports>
             </Adaptor>
-            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
                 <SubmissionSystem>
                     <Interactive/>
                 </SubmissionSystem>
@@ -257,7 +257,7 @@
             <Application>PYTHON</Application>
         </Software>
         <Adaptors>
-            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
                 <SubmissionSystem>
                 	<Batch>
                         <Queue>debug</Queue>
@@ -270,7 +270,7 @@
                     <MaxPort>43006</MaxPort>
                 </Ports>
             </Adaptor>
-            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
                 <SubmissionSystem>
                 	<Batch>
                         <Queue>debug</Queue>

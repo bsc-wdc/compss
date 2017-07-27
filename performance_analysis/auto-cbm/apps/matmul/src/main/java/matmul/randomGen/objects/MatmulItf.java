@@ -15,8 +15,8 @@
  */
 package matmul.randomGen.objects;
 
-import integratedtoolkit.types.annotations.Method;
-import integratedtoolkit.types.annotations.Parameter;
+import es.bsc.compss.types.annotations.Method;
+import es.bsc.compss.types.annotations.Parameter;
 
 
 public interface MatmulItf {

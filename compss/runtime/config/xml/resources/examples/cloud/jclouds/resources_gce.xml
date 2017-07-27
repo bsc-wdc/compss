@@ -10,7 +10,7 @@
             <Image Name="https://www.googleapis.com/compute/v1/projects/GCE-PROJECT-NAME/global/images/IMAGE-NAME">
                 <CreationTime>120</CreationTime>
                 <Adaptors>
-                    <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+                    <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
                         <SubmissionSystem>
                             <Interactive/>
                         </SubmissionSystem>

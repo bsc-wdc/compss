@@ -15,51 +15,51 @@
     </Root>
 
     <!-- RUNTIME ROOT -->
-    <!-- IntegratedToolkit: DEFAULT = OFF -->
-    <Logger name="integratedtoolkit" additivity="FALSE" level="off">
+    <!-- es.bsc.compss: DEFAULT = OFF -->
+    <Logger name="es.bsc.compss" additivity="FALSE" level="off">
       <AppenderRef ref="Console"/>
     </Logger>
 
     <!-- COMMUNICATION -->
-    <!-- Integratedtoolkit.Communication: DEFAULT = OFF -->
+    <!-- es.bsc.compss.Communication: DEFAULT = OFF -->
     <Logger name="Communication" additivity="FALSE" level="off">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="integratedtoolkit.Communication" additivity="FALSE" level="off">
+    <Logger name="es.bsc.compss.Communication" additivity="FALSE" level="off">
       <AppenderRef ref="Console"/>
     </Logger>
 
-    <!-- Integratedtoolkit.Components.Tracing: DEFAULT = ERROR -->
-    <Logger name="integratedtoolkit.Components.Tracing" additivity="FALSE" level="error">
+    <!-- es.bsc.compss.Components.Tracing: DEFAULT = ERROR -->
+    <Logger name="es.bsc.compss.Components.Tracing" additivity="FALSE" level="error">
       <AppenderRef ref="Console"/>
     </Logger>
 
     <!-- WORKER -->
     <!-- IntegratedToolkit.Worker: DEFAULT = ERROR -->
-    <Logger name="integratedtoolkit.Worker" additivity="FALSE" level="error">
+    <Logger name="es.bsc.compss.Worker" additivity="FALSE" level="error">
       <AppenderRef ref="Console"/>
     </Logger>
 
     <!-- WORKER SUBCOMPONENTS. DEFAULT = OFF -->
-    <Logger name="integratedtoolkit.Worker.ExecManager" additivity="FALSE" level="off">
+    <Logger name="es.bsc.compss.Worker.ExecManager" additivity="FALSE" level="off">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="integratedtoolkit.Worker.DataManager" additivity="FALSE" level="off">
+    <Logger name="es.bsc.compss.Worker.DataManager" additivity="FALSE" level="off">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="integratedtoolkit.Worker.ThreadPool" additivity="FALSE" level="off">
+    <Logger name="es.bsc.compss.Worker.ThreadPool" additivity="FALSE" level="off">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="integratedtoolkit.Worker.Executor" additivity="FALSE" level="off">
+    <Logger name="es.bsc.compss.Worker.Executor" additivity="FALSE" level="off">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="integratedtoolkit.Worker.ThreadBinder" additivity="FALSE" level="off">
+    <Logger name="es.bsc.compss.Worker.ThreadBinder" additivity="FALSE" level="off">
       <AppenderRef ref="Console"/>
     </Logger>
 
     <!-- STORAGE -->
-    <!-- Integratedtoolkit.Storage: DEFAULT = OFF -->
-    <Logger name="integratedtoolkit.Storage" additivity="FALSE" level="off">
+    <!-- es.bsc.compss.Storage: DEFAULT = OFF -->
+    <Logger name="es.bsc.compss.Storage" additivity="FALSE" level="off">
       <AppenderRef ref="Console"/>
     </Logger>
 

@@ -24,7 +24,7 @@
         <!-- </Application> -->
         <!-- <LimitOfTasks></LimitOfTasks> -->
         <Adaptors>
-            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
                 <SubmissionSystem>
                     <Interactive/>
                 </SubmissionSystem>
@@ -42,7 +42,7 @@ EOT
 
     cat >> ${file} << EOT
             </Adaptor>
-            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
                 <SubmissionSystem>
                     <Batch>
                         <Queue>sequential</Queue>

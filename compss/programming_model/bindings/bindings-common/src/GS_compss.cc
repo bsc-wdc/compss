@@ -26,28 +26,28 @@ JavaVM * jvm;
 
 jobject appId;
 
-jmethodID midAppDir; 		/* ID of the getApplicationDirectory method in the integratedtoolkit.api.impl.COMPSsRuntimeImpl class  */
-jmethodID midExecute; 		/* ID of the executeTask method in the integratedtoolkit.api.impl.COMPSsRuntimeImpl class  */
-jmethodID midExecuteNew;	/* ID of the executeTask method in the integratedtoolkit.api.impl.COMPSsRuntimeImpl class  */
-jmethodID midRegisterCE; 	/* ID of the RegisterCE method in the integratedtoolkit.api.impl.COMPSsRuntimeImpl class  */
-jmethodID midEmitEvent; 	/* ID of the EmitEvent method in the integratedtoolkit.api.impl.COMPSsRuntimeImpl class  */
+jmethodID midAppDir; 		/* ID of the getApplicationDirectory method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
+jmethodID midExecute; 		/* ID of the executeTask method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
+jmethodID midExecuteNew;	/* ID of the executeTask method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
+jmethodID midRegisterCE; 	/* ID of the RegisterCE method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
+jmethodID midEmitEvent; 	/* ID of the EmitEvent method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
 
-jmethodID midOpenFile; 		/* ID of the openFile method in the integratedtoolkit.api.impl.COMPSsRuntimeImpl class  */
+jmethodID midOpenFile; 		/* ID of the openFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
 jmethodID midCloseFile;
-jmethodID midDeleteFile; 	/* ID of the deleteFile method in the integratedtoolkit.api.impl.COMPSsRuntimeImpl class  */
+jmethodID midDeleteFile; 	/* ID of the deleteFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
 
-jmethodID midBarrier; 		/* ID of the barrier method in the integratedtoolkit.api.impl.COMPSsRuntimeImpl class  */
+jmethodID midBarrier; 		/* ID of the barrier method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
 
-jobject jobjParDirIN; 		/* Instance of the integratedtoolkit.types.annotations.parameter.Direction class */
-jobject jobjParDirINOUT; 	/* Instance of the integratedtoolkit.types.annotations.parameter.Direction class */
-jobject jobjParDirOUT; 		/* Instance of the integratedtoolkit.types.annotations.parameter.Direction class */
+jobject jobjParDirIN; 		/* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
+jobject jobjParDirINOUT; 	/* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
+jobject jobjParDirOUT; 		/* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
 
-jobject jobjParStreamSTDIN;     /* Instance of the integratedtoolkit.types.annotations.parameter.Stream class */
-jobject jobjParStreamSTDOUT;    /* Instance of the integratedtoolkit.types.annotations.parameter.Stream class */
-jobject jobjParStreamSTDERR;    /* Instance of the integratedtoolkit.types.annotations.parameter.Stream class */
-jobject jobjParStreamUNSPECIFIED; /* Instance of the integratedtoolkit.types.annotations.parameter.Stream class */
+jobject jobjParStreamSTDIN;     /* Instance of the es.bsc.compss.types.annotations.parameter.Stream class */
+jobject jobjParStreamSTDOUT;    /* Instance of the es.bsc.compss.types.annotations.parameter.Stream class */
+jobject jobjParStreamSTDERR;    /* Instance of the es.bsc.compss.types.annotations.parameter.Stream class */
+jobject jobjParStreamUNSPECIFIED; /* Instance of the es.bsc.compss.types.annotations.parameter.Stream class */
 
-jstring jobjParPrefixEMPTY;     /* Instance of the integratedtoolkit.types.annotations.Constants.PREFIX_EMPTY */
+jstring jobjParPrefixEMPTY;     /* Instance of the es.bsc.compss.types.annotations.Constants.PREFIX_EMPTY */
 
 jclass clsObject; 		/*  java.lang.Object class */
 jmethodID midObjCon; 		/* ID of the java.lang.Object class constructor method */
@@ -182,10 +182,10 @@ void destroy_vm(JavaVM * jvm) {
 }
 
 void init_jni_types() {
-  jclass clsParDir; 		/* integratedtoolkit.types.annotations.parameter.Direction class */
-  jmethodID midParDirCon; 	/* ID of the integratedtoolkit.types.annotations.parameter.Direction class constructor method */
-  jclass clsParStream;          /* integratedtoolkit.types.annotations.parameter.Stream class */
-  jmethodID midParStreamCon;    /* integratedtoolkit.types.annotations.parameter.Stream class constructor method */
+  jclass clsParDir; 		/* es.bsc.compss.types.annotations.parameter.Direction class */
+  jmethodID midParDirCon; 	/* ID of the es.bsc.compss.types.annotations.parameter.Direction class constructor method */
+  jclass clsParStream;          /* es.bsc.compss.types.annotations.parameter.Stream class */
+  jmethodID midParStreamCon;    /* es.bsc.compss.types.annotations.parameter.Stream class constructor method */
 
   debug_printf ("[   BINDING]  -  @Init JNI Methods\n");
 
@@ -225,14 +225,14 @@ void init_jni_types() {
   }
 
   // openFile method
-  midOpenFile = env->GetMethodID(clsITimpl, "openFile", "(Ljava/lang/String;Lintegratedtoolkit/types/annotations/parameter/Direction;)Ljava/lang/String;");
+  midOpenFile = env->GetMethodID(clsITimpl, "openFile", "(Ljava/lang/String;Les/bsc/compss/types/annotations/parameter/Direction;)Ljava/lang/String;");
   if (env->ExceptionOccurred()) {
     env->ExceptionDescribe();
     exit(1);
   }
 
   // closeFile method
-  midCloseFile = env->GetMethodID(clsITimpl, "closeFile", "(Ljava/lang/String;Lintegratedtoolkit/types/annotations/parameter/Direction;)V");
+  midCloseFile = env->GetMethodID(clsITimpl, "closeFile", "(Ljava/lang/String;Les/bsc/compss/types/annotations/parameter/Direction;)V");
   if (env->ExceptionOccurred()) {
     env->ExceptionDescribe();
     exit(1);
@@ -256,12 +256,12 @@ void init_jni_types() {
 
   debug_printf ("[   BINDING]  -  @Init JNI Direction Types\n");
 
-  clsParDir = env->FindClass("integratedtoolkit/types/annotations/parameter/Direction");
+  clsParDir = env->FindClass("es/bsc/compss/types/annotations/parameter/Direction");
   if (env->ExceptionOccurred()) {
     env->ExceptionDescribe();
     exit(1);
   }
-  midParDirCon = env->GetStaticMethodID(clsParDir, "valueOf", "(Ljava/lang/String;)Lintegratedtoolkit/types/annotations/parameter/Direction;");
+  midParDirCon = env->GetStaticMethodID(clsParDir, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/Direction;");
   if (env->ExceptionOccurred()) {
     env->ExceptionDescribe();
     exit(1);
@@ -286,12 +286,12 @@ void init_jni_types() {
 
   debug_printf ("[   BINDING]  -  @Init JNI Stream Types\n");
 
-  clsParStream = env->FindClass("integratedtoolkit/types/annotations/parameter/Stream");
+  clsParStream = env->FindClass("es/bsc/compss/types/annotations/parameter/Stream");
   if (env->ExceptionOccurred()) {
     env->ExceptionDescribe();
     exit(1);
   }
-  midParStreamCon = env->GetStaticMethodID(clsParStream, "valueOf", "(Ljava/lang/String;)Lintegratedtoolkit/types/annotations/parameter/Stream;");
+  midParStreamCon = env->GetStaticMethodID(clsParStream, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/Stream;");
   if (env->ExceptionOccurred()) {
     env->ExceptionDescribe();
     exit(1);
@@ -433,15 +433,15 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
 
   int pv = 5*i, pt = 5*i + 1, pd = 5*i + 2, ps = 5*i + 3, pp = 5*i + 4;
 
-  jclass clsParType = NULL; /* integratedtoolkit.types.annotations.parameter.DataType class */
-  clsParType = env->FindClass("integratedtoolkit/types/annotations/parameter/DataType");
+  jclass clsParType = NULL; /* es.bsc.compss.types.annotations.parameter.DataType class */
+  clsParType = env->FindClass("es/bsc/compss/types/annotations/parameter/DataType");
   if (env->ExceptionOccurred()) {
     env->ExceptionDescribe();
     exit(1);
   }
 
-  jmethodID midParTypeCon = NULL; /* ID of the integratedtoolkit.api.COMPSsRuntime$DataType class constructor method */
-  midParTypeCon = env->GetStaticMethodID(clsParType, "valueOf", "(Ljava/lang/String;)Lintegratedtoolkit/types/annotations/parameter/DataType;");
+  jmethodID midParTypeCon = NULL; /* ID of the es.bsc.compss.api.COMPSsRuntime$DataType class constructor method */
+  midParTypeCon = env->GetStaticMethodID(clsParType, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/DataType;");
   if (env->ExceptionOccurred()) {
     env->ExceptionDescribe();
     exit(1);
@@ -674,7 +674,7 @@ void GS_On()
   }
 
   //Obtaining Classes
-  clsITimpl = env->FindClass("integratedtoolkit/api/impl/COMPSsRuntimeImpl");
+  clsITimpl = env->FindClass("es/bsc/compss/api/impl/COMPSsRuntimeImpl");
   if (env->ExceptionOccurred()) {
     env->ExceptionDescribe();
     printf("[   BINDING]  -  @GS_On  -  Error looking for the COMPSsRuntimeImpl class\n");

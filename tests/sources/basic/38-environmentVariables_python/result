@@ -33,7 +33,7 @@
   #          However, if the application has ended, the constraints are correctly loaded because the resource can strictly
   #          execute the task
   exitValue=0
-  if [ "${comm}" == "integratedtoolkit.nio.master.NIOAdaptor" ]; then
+  if [ "${comm}" == "es.bsc.compss.nio.master.NIOAdaptor" ]; then
     processorExpected="PROCESSOR MainProcessor TYPE=CPU COMPUTING_UNITS=2 SPEED=2.4 INTERNAL_MEMORY=-1.0 ARCHITECTURE=amd64 PROP_NAME=ThreadAffinity PROP_VALUE=Big"
     generalExpected="GENERAL_COUNTS TOTAL_CPUs=1 TOTAL_CPU_CU=2 TOTAL_GPUs=0 TOTAL_GPU_CU=0 TOTAL_FPGAs=0 TOTAL_FPGA_CU=0 TOTAL_OTHERs=0 TOTAL_OTHER_CU=0"
     memoryExpected="MEMORY SIZE=8.0 TYPE=Volatile"

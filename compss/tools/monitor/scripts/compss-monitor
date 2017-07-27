@@ -22,18 +22,18 @@ configure() {
   export JRE_HOME
   echo "   Success"
 
-  #Checking IT_HOME
-  echo "* Checking IT_HOME..."
-  if [ -z "${IT_HOME}" ]; then
-    echo "WARNING: IT_HOME not defined. Trying default location /opt/COMPSs/"
+  #Checking COMPSS_HOME
+  echo "* Checking COMPSS_HOME..."
+  if [ -z "${COMPSS_HOME}" ]; then
+    echo "WARNING: COMPSS_HOME not defined. Trying default location /opt/COMPSs/"
     if [ -d "/opt/COMPSs/Tools/monitor/apache-tomcat" ]; then
        export TOMCAT_HOME=/opt/COMPSs/Tools/monitor/apache-tomcat
     else
-       echo "ERROR: IT_HOME not defined and default location empty"
+       echo "ERROR: COMPSS_HOME not defined and default location empty"
        exit 1
     fi
   else
-    export TOMCAT_HOME=${IT_HOME}/Tools/monitor/apache-tomcat
+    export TOMCAT_HOME=${COMPSS_HOME}/Tools/monitor/apache-tomcat
   fi
   local configuration_path="${TOMCAT_HOME}/conf/${configuration_file}"
   echo "   Success"
@@ -155,7 +155,7 @@ case "$1" in
     ;;
   *)
     echo "Usage: $SCRIPTNAME { start | stop | restart | reset | clean }"
-    echo "    If IT_HOME is defined, configuration parameters are taken from \$\{IT_HOME\}/Tools/monitor/apache-tomcat/conf/compss-monitor.conf file"
+    echo "    If COMPSS_HOME is defined, configuration parameters are taken from \$\{COMPSS_HOME\}/Tools/monitor/apache-tomcat/conf/compss-monitor.conf file"
     echo "    Otherwise, configuration parameters are taken from /opt/COMPSs/Tools/monitor/apache-tomcat/conf/compss-monitor.conf file"
     exit 1
     ;;

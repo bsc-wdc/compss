@@ -13,7 +13,7 @@ DEFAULT_CLASSPATH=$(pwd)
 DEFAULT_PYTHONPATH=$(pwd)
 DEFAULT_DEBUG=off
 DEFAULT_LOG_LEVEL_ARG=debug
-DEFAULT_COMMUNICATION_ADAPTOR=integratedtoolkit.nio.master.NIOAdaptor
+DEFAULT_COMMUNICATION_ADAPTOR=es.bsc.compss.nio.master.NIOAdaptor
 DEFAULT_TRACING=false
 DEFAULT_TRACING_ARG=true
 DEFAULT_CUSTOM_EXTRAE_FILE="null"
@@ -190,13 +190,13 @@ load_tracing_env() {
   
   if [ ! -z "$impi" ]; then
     # Load Extrae IMPI
-    export EXTRAE_HOME=${IT_HOME}/Dependencies/extrae-impi/
+    export EXTRAE_HOME=${COMPSS_HOME}/Dependencies/extrae-impi/
   elif [ ! -z "$openmpi" ]; then
     # Load Extrae OpenMPI
-    export EXTRAE_HOME=${IT_HOME}/Dependencies/extrae-openmpi/
+    export EXTRAE_HOME=${COMPSS_HOME}/Dependencies/extrae-openmpi/
   else 
     # Load sequential extrae
-    export EXTRAE_HOME=${IT_HOME}/Dependencies/extrae/
+    export EXTRAE_HOME=${COMPSS_HOME}/Dependencies/extrae/
   fi
 
   # Clean tmp file
@@ -223,9 +223,9 @@ worker_cmd() {
   local maxReceive=5
   local worker_port=43001
   if [ -z "${container_image}" ]; then
-     WCMD="${IT_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh"
+     WCMD="${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh"
   else 
-     WCMD="singularity exec $container_image ${IT_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh"
+     WCMD="singularity exec $container_image ${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh"
   fi
   WCMD="$WCMD ${library_path} \
             ${appdir} \
@@ -267,9 +267,9 @@ master_cmd() {
 
   # WARNING: SETS GLOBAL SCRIPT VARIABLE MCMD
   if [ -z "${container_image}" ]; then
-    MCMD="${IT_HOME}/Runtime/scripts/user/runcompss"
+    MCMD="${COMPSS_HOME}/Runtime/scripts/user/runcompss"
   else
-    MCMD="singularity exec $container_image ${IT_HOME}/Runtime/scripts/user/runcompss"
+    MCMD="singularity exec $container_image ${COMPSS_HOME}/Runtime/scripts/user/runcompss"
   fi
   MCMD="$MCMD --project=${PROJECT_FILE} \
             --resources=${RESOURCES_FILE} \
@@ -494,7 +494,7 @@ get_args() {
           ;;
         elasticity=*)
           elasticity=$(echo $OPTARG | sed -e 's/elasticity=//g')
-	  args_pass="$args_pass --conn=integratedtoolkit.connectors.DefaultNoSSHConnector"
+	  args_pass="$args_pass --conn=es.bsc.compss.connectors.DefaultNoSSHConnector"
           ;;
 	*)
           # Flag didn't match any patern. Add to COMPSs 
@@ -741,16 +741,16 @@ check_args() {
 set_variables() { 
   # Set script variables
   if [ -z "${container_image}" ]; then
-      export IT_HOME=${IT_HOME}
-      export GAT_LOCATION=${IT_HOME}/Dependencies/JAVA_GAT
-      worker_install_dir=${IT_HOME}
+      export COMPSS_HOME=${COMPSS_HOME}
+      export GAT_LOCATION=${COMPSS_HOME}/Dependencies/JAVA_GAT
+      worker_install_dir=${COMPSS_HOME}
   else
       if [ -z "${container_compss_path}" ]; then
-              export IT_HOME=/opt/COMPSs/
+              export COMPSS_HOME=/opt/COMPSs/
               export GAT_LOCATION=/opt/COMPSs/Dependencies/JAVA_GAT
               worker_install_dir=/opt/COMPSs
       else
-              export IT_HOME=${container_compss_path}/
+              export COMPSS_HOME=${container_compss_path}/
               export GAT_LOCATION=${container_compss_path}/Dependencies/JAVA_GAT
               worker_install_dir=${container_compss_path}/
       fi
@@ -1115,7 +1115,7 @@ EOT
           		<Application>COMPSS</Application>
       		</Software>
       		<Adaptors>
-          		<Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+          		<Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
               			<SubmissionSystem>
                   			<Interactive/>
               			</SubmissionSystem>
@@ -1306,7 +1306,7 @@ EOT
           <Application>COMPSS</Application>
       </Software>
       <Adaptors>
-          <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+          <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
               <SubmissionSystem>
                   <Interactive/>
               </SubmissionSystem>
@@ -1316,7 +1316,7 @@ EOT
                   <RemoteExecutionCommand>${REMOTE_EXECUTOR}</RemoteExecutionCommand>
               </Ports>
           </Adaptor>
-          <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+          <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
               <SubmissionSystem>
                   <Interactive/>
               </SubmissionSystem>
@@ -1369,7 +1369,7 @@ EOT
   
   # Set script variables
   scriptDir=$(dirname $0)
-  IT_HOME=${scriptDir}/../../../
+  COMPSS_HOME=${scriptDir}/../../../
   
   numPrologActions=0
   declare -a prologActions

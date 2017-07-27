@@ -1,9 +1,9 @@
 package tracing;
 
-import integratedtoolkit.types.annotations.Parameter;
-import integratedtoolkit.types.annotations.parameter.Type;
-import integratedtoolkit.types.annotations.parameter.Direction;
-import integratedtoolkit.types.annotations.task.Method;
+import es.bsc.compss.types.annotations.Parameter;
+import es.bsc.compss.types.annotations.parameter.Type;
+import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.task.Method;
 
 
 public interface TracingItf {

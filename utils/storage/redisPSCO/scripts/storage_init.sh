@@ -154,10 +154,19 @@
   get_redis_instantiation_command() {
     # $1 = host
     # $2 = path
-    if (($REDIS_REMOTE_COMMAND == "ssh"))
+    if [ "$REDIS_REMOTE_COMMAND" == "ssh" ];
     then
-      echo "$REDIS_REMOTE_COMMAND $1 \"cd $2; ls; nohup redis-server ./redis.conf\"&"
-      return;
+      echo "ssh $1 \"cd $2; redis-server redis.conf --daemonize yes\""
+    elif [ "$REDIS_REMOTE_COMMAND" == "blaunch" ];
+    then
+      echo "BLAUNCH Pending to implement!"
+    elif [ "$REDIS_REMOTE_COMMAND" == "srun" ];
+    then
+      echo "SRUN Pending to implement!"
+    else
+      echo "ERROR: \"$REDIS_REMOTE_COMMAND\" is not a valid instantiation command or it is not supported"
+      echo "Supported commands are: ssh, blaunch, and srun"
+      exit 1
     fi
   }
 
@@ -165,16 +174,28 @@
   # MAIN FUNCTIONS
   #---------------------------------------------------------
   REDIS_TEMPLATE="bind 0.0.0.0\nport REDIS_PORT\ncluster-enabled yes\ncluster-config-file nodes.conf\ncluster-node-timeout REDIS_NODE_TIMEOUT\nappendonly yes"
+  # Default values
+  # The idea is to replace these values by the desired ones in the --storage_conf file
+  # The values below form a valid sample configuration anyway
   REDIS_HOME=/tmp/redis_cluster
   REDIS_PORT=6379
   REDIS_NODE_TIMEOUT=5000
   REDIS_REPLICAS=0
   REDIS_REMOTE_COMMAND=ssh
+
   STORAGE_HOME=$(dirname $0)/../
 
   get_args "$@"
   check_args
   log_args
+
+  echo "REDIS CONFIGURATION PARAMETERS"
+  echo "REDIS_HOME:           $REDIS_HOME"
+  echo "REDIS_PORT:           $REDIS_PORT"
+  echo "REDIS_NODE_TIMEOUT:   $REDIS_NODE_TIMEOUT"
+  echo "REDIS_REPLICAS:       $REDIS_REPLICAS"
+  echo "REDIS_REMOTE_COMMAND: $REDIS_REMOTE_COMMAND"
+  echo "-----------------------"
 
   ############################
   ## STORAGE DEPENDENT CODE ##
@@ -193,6 +214,15 @@
       done
   );
 
+  echo "RESOLVED REDIS NODES"
+  echo "MASTER NODE: $storage_master_node"
+  for worker_node in $worker_nodes
+  do
+    echo "WORKER NODE: $worker_node"
+  done
+
+  echo "-----------------------"
+
   # Compute the amount of needed redis instances
   # The amount of needed instances can be computed as follows:
   # max(3, (replicas + 1)*num_locations))
@@ -200,11 +230,12 @@
   # standalone mode). Also, we need to have a Redis master in all of our nodes and we need their replicas too
   all_instances_locations=("${storage_master_node} ${worker_nodes[@]}");
   num_locations=$(wc -w <<< "${all_instances_locations}");
-  needed_instances=$(($((REDIS_REPLICAS + 1))*num_locations));
-  if (($needed_instances < 3));
+  eff_locations=$num_locations
+  if (($eff_locations < 3));
   then
-    needed_instances=3;
+    eff_locations=3;
   fi
+  needed_instances=$(($((REDIS_REPLICAS + 1))*eff_locations));
 
   # Create the Redis sandboxes for our instances
   # A Redis instance is located at a given host and listens to a given port
@@ -215,9 +246,10 @@
   # port for Redis 6379, and the next official port is 6389 by some strange software, so it is generally safe
   # to establish ports this way
   # See https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers
-  # A redis sandbox consist of a folder named after the port we are going to use that contains a redis.conf file
+  # A redis sandbox consists of a folder named after the port we are going to use that contains a redis.conf file
   # See REDIS_TEMPLATE and the line that seds it to redis_conf below to see what it is being done here
   current_instances=0;
+  node_ids="";
   while (($current_instances < $needed_instances))
   do
     for instance_location in ${all_instances_locations}
@@ -233,21 +265,21 @@
       # Compute the path of the sandbox for this instance
       redis_path=${REDIS_HOME}/${redis_port};
       # Create the folder structure (and remove the previous one if needed). This part can be done with ssh
+      # It is needed to remove the old storage version because they may contain nodes.conf files of old clusters
+      # that may not coincide with the configuration we want in this execution
       ssh $instance_location "rm -rf ${redis_path}; mkdir -p ${redis_path}; echo -e \"${redis_conf}\" > ${redis_path}/redis.conf;";
       # Launch the redis instance
-      # This part is on an specific function because the neede command may vary from one queue system to another
-      get_redis_instantiation_command $instance_location ${redis_path}
+      # This part is on an specific function because the needed command may vary from one queue system to another
+      eval $(get_redis_instantiation_command $instance_location ${redis_path})
       current_instances=$((current_instances+1));
+      node_name=${instance_location}:${redis_port}
+      node_ids="${node_ids} $node_name"
+      echo "CREATED REDIS INSTANCE IN $node_name"
     done
   done
-
-
-  # Determine masters and slaves, replicas and so on
-  
   # Create a cluster with the instances
   # We should detect failures when trying to create the cluster
-
-
+  echo "yes" | redis-trib.rb create --replicas $REDIS_REPLICAS $node_ids
 
   ############################
   ## END                    ##

@@ -129,7 +129,6 @@ public class TaskScheduler {
         so.shutdown();
         try {
             this.updateState();
-            System.out.println(jsm.getString());
             LOGGER.debug("Profile is: " + jsm.getString());
         } catch (Exception e) {
             e.printStackTrace();
@@ -349,7 +348,6 @@ public class TaskScheduler {
      */
     @SuppressWarnings("unchecked")
     public final void actionCompleted(AllocatableAction action) {
-        System.out.println("Ha acabat la acció " + action);
         LOGGER.info("[TaskScheduler] Action completed " + action);
         // Mark action as finished
         removeFromReady(action);

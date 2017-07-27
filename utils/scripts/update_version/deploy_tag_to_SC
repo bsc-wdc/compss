@@ -4,7 +4,7 @@
     exitValue=$1
   
     echo " "
-    echo "Usage $0 <version> <builderFolder> <builderScript> <SCuser> <SCendpoint>"
+    echo "Usage $0 <version> <buildFolder> <buildScript> <SCuser> <SCendpoint>"
     echo " "
   
     exit $exitValue
@@ -31,7 +31,7 @@
     mvn -U clean install
 
     cd ${buildersDir}
-    ./${builderScript} ${SCuser} /home/bsc19/${SCuser}/tmpCOMPSs/ /apps/COMPSs/$version
+    ./${buildScript} ${SCuser} /home/bsc19/${SCuser}/tmpCOMPSs/ /apps/COMPSs/$version
 
     cd ${scriptDir}
   }
@@ -77,8 +77,8 @@ EOT
   buildersDir=${baseDir}/builders/scs/${buildFolder}
 
   # LOG
-  echo "Deploying COMPSs Tag version ${version} to ${builderFolder}"
-  echo "  - Builder Script: ${builderScript}"
+  echo "Deploying COMPSs Tag version ${version} to ${buildersDir}"
+  echo "  - Builder Script: ${buildScript}"
   echo "  - Credentials:    ${SCuser}@${SCendpoint}"
   echo " "
 
@@ -91,7 +91,7 @@ EOT
   #---------------------------------------------------------------------
   # NOTIFY SUCCESS
   echo " "
-  echo "FINISHED! COMPSs Tag version ${version} deployed to ${builderFolder}"
+  echo "FINISHED! COMPSs Tag version ${version} deployed to ${buildersDir}"
   echo " "
 
   # END

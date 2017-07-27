@@ -375,7 +375,6 @@ public abstract class AllocatableAction {
      * @throws InvalidSchedulingException
      */
     public final void tryToLaunch() throws InvalidSchedulingException {
-        System.out.println("Intentem llançar " + this);
         // Gets the lock on the action
         lock.lock();
         if ( // has an assigned resource where to run
@@ -435,7 +434,6 @@ public abstract class AllocatableAction {
     }
 
     private void run() {
-        System.out.println("Llança " + this);
         // Actually runs the action. This function is called only once per action (except for reschedules)
         // Blocks other tryToLaunch
         state = State.RUNNING;

@@ -36,7 +36,6 @@ import org.apache.logging.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-
 public class MOResourceScheduler<T extends WorkerResourceDescription> extends ResourceScheduler<T> {
 
     public static final long DATA_TRANSFER_DELAY = 200;
@@ -54,6 +53,9 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
     private double runningActionsEnergy = 0;
     private double runningActionsCost = 0;
 
+    private double runActionsEnergy = 0;
+    private double runActionsCost = 0;
+
     private OptimizationAction opAction;
     private final Set<AllocatableAction> pendingUnschedulings = new HashSet<>();
     private AllocatableAction resourceBlockingAction = new OptimizationAction();
@@ -62,9 +64,8 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
     private final double idlePower;
     private final double idlePrice;
 
-
-    public MOResourceScheduler(Worker<T> w, JSONObject resourceJSON) {
-        super(w, resourceJSON);
+    public MOResourceScheduler(Worker<T> w, JSONObject resourceJSON, JSONObject implsJSON) {
+        super(w, resourceJSON, implsJSON);
         gaps = new LinkedList<>();
         addGap(new Gap(Long.MIN_VALUE, Long.MAX_VALUE, null, myWorker.getDescription().copy(), 0));
         implementationsCount = new int[CoreManager.getCoreCount()][];
@@ -420,18 +421,23 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
 
         // Add dependencies
         // Unlock access to predecessor
+        StringBuilder sb = new StringBuilder(action.toString() + "  preceeded by ");
+
         for (Gap pGap : predecessors) {
             AllocatableAction predecessor = pGap.getOrigin();
-            MOSchedulingInformation predDSI = ((MOSchedulingInformation) predecessor.getSchedulingInfo());
-            if (predDSI.isScheduled()) {
-                long predEnd = predDSI.getExpectedEnd();
-                expectedStart = Math.max(expectedStart, predEnd);
-                predDSI.addSuccessor(action);
+            if (predecessor != null) {
+                MOSchedulingInformation predDSI = ((MOSchedulingInformation) predecessor.getSchedulingInfo());
+                if (predDSI.isScheduled()) {
+                    long predEnd = predDSI.getExpectedEnd();
+                    expectedStart = Math.max(expectedStart, predEnd);
+                    predDSI.addSuccessor(action);
+                }
+                predDSI.unlock();
             }
-            predDSI.unlock();
             schedInfo.addPredecessor(pGap);
+            sb.append(pGap.getOrigin()).append(" with ").append(pGap.getResources().getDynamicDescription()).append(", ");
         }
-
+        System.out.println(sb.toString());
         // Compute end time
         schedInfo.setExpectedStart(expectedStart);
         long expectedEnd = expectedStart;
@@ -454,9 +460,11 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         AllocatableAction predecessor = (AllocatableAction) gap.getOrigin();
         ResourceDescription gapResource = gap.getResources();
         ResourceDescription usedResources = ResourceDescription.reduceCommonDynamics(gapResource, resources);
-        if (predecessor != null && !usedResources.isDynamicUseless()) {
-            MOSchedulingInformation predDSI = ((MOSchedulingInformation) predecessor.getSchedulingInfo());
-            predDSI.lock();
+        if (usedResources.isDynamicConsuming()) {
+            if (predecessor != null) {
+                MOSchedulingInformation predDSI = ((MOSchedulingInformation) predecessor.getSchedulingInfo());
+                predDSI.lock();
+            }
             Gap g = new Gap(gap.getInitialTime(), Long.MAX_VALUE, predecessor, usedResources, 0);
             predecessors.add(g);
         }
@@ -612,18 +620,20 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
             List<Gap> rPredGaps = actionDSI.getPredecessors();
             for (Gap rPredGap : rPredGaps) {
                 AllocatableAction rPred = rPredGap.getOrigin();
-                MOSchedulingInformation rPredDSI = (MOSchedulingInformation) rPred.getSchedulingInfo();
-                if (rPredDSI.tryToLock()) {
-                    if (rPredDSI.isScheduled()) {
-                        hasResourcePredecessors = true;
-                        if (!rPredDSI.isOnOptimization()) {
-                            rPredDSI.setOnOptimization(true);
-                            actions.add(rPred);
+                if (rPred != null) {
+                    MOSchedulingInformation rPredDSI = (MOSchedulingInformation) rPred.getSchedulingInfo();
+                    if (rPredDSI.tryToLock()) {
+                        if (rPredDSI.isScheduled()) {
+                            hasResourcePredecessors = true;
+                            if (!rPredDSI.isOnOptimization()) {
+                                rPredDSI.setOnOptimization(true);
+                                actions.add(rPred);
+                            } else {
+                                rPredDSI.unlock();
+                            }
                         } else {
                             rPredDSI.unlock();
                         }
-                    } else {
-                        rPredDSI.unlock();
                     }
                 }
                 // else the predecessor was already executed
@@ -725,6 +735,16 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
 
     @SuppressWarnings("unchecked")
     public List<Gap> rescheduleTasks(LocalOptimizationState state, PriorityQueue<AllocatableAction> rescheduledActions) {
+        this.runActionsCost = 0;
+        this.runActionsEnergy = 0;
+        for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
+            for (int implId = 0; implId < CoreManager.getNumberCoreImplementations(coreId); implId++) {
+                MOProfile profile = (MOProfile) this.getProfile(coreId, implId);
+                runActionsEnergy += profile.getPower() * profile.getExecutionCount() * profile.getAverageExecutionTime();
+                runActionsCost += profile.getPrice() * profile.getExecutionCount() * profile.getAverageExecutionTime();
+            }
+        }
+
         /*
          * 
          * ReadyActions contains those actions that have no dependencies with other actions scheduled on the node, but
@@ -957,6 +977,10 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         return idlePower;
     }
 
+    public double getRunActionsEnergy() {
+        return this.runActionsEnergy;
+    }
+
     public double getRunningActionsEnergy() {
         return this.runningActionsEnergy;
     }
@@ -969,11 +993,15 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         return idlePrice;
     }
 
+    public double getRunActionsCost() {
+        return this.runActionsCost;
+    }
+
     public double getRunningActionsCost() {
         return this.runningActionsCost;
     }
 
-    public double getActionsCost() {
+    public double getScheduledActionsCost() {
         return this.pendingActionsCost;
     }
 
@@ -1026,5 +1054,24 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         json.put("idlePower", idlePower);
         json.put("idlePrice", idlePrice);
         return json;
+    }
+
+    @Override
+    public JSONObject updateJSON(JSONObject oldResource) {
+        JSONObject difference = super.updateJSON(oldResource);
+        double diff = idlePower;
+        if (oldResource.has("idlePower")) {
+            diff -= oldResource.getDouble("idlePower");
+        }
+        difference.put("idlePower", diff);
+        oldResource.put("idlePower", idlePower);
+
+        diff = idlePrice;
+        if (oldResource.has("idlePrice")) {
+            diff -= oldResource.getDouble("idlePrice");
+        }
+        difference.put("idlePrice", diff);
+        oldResource.put("idlePrice", idlePrice);
+        return difference;
     }
 }

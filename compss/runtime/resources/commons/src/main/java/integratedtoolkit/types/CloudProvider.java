@@ -25,7 +25,6 @@ import java.util.HashSet;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 public class CloudProvider {
 
     private static final String WARN_NO_VALID_INSTANCE = "WARN: Cannot find a containing/contained instanceType";
@@ -49,7 +48,6 @@ public class CloudProvider {
     // Loggers
     private static final Logger LOGGER = LogManager.getLogger(Loggers.CM_COMP);
 
-
     public CloudProvider(String providerName, Integer limitOfVMs, String runtimeConnectorClass, String connectorJarPath,
             String connectorMainClass, Map<String, String> connectorProperties) throws ConnectorException {
 
@@ -64,7 +62,7 @@ public class CloudProvider {
         // infrastructure dependent connector
         try {
             Class<?> conClass = Class.forName(runtimeConnectorClass);
-            Class<?>[] parameterTypes = new Class<?>[] { CloudProvider.class, String.class, String.class, Map.class };
+            Class<?>[] parameterTypes = new Class<?>[]{CloudProvider.class, String.class, String.class, Map.class};
             Constructor<?> ctor = conClass.getConstructor(parameterTypes);
             Object conector = ctor.newInstance(this, connectorJarPath, connectorMainClass, connectorProperties);
             connector = (Connector) conector;
@@ -83,8 +81,7 @@ public class CloudProvider {
     /**
      * Adds an image description to the Cloud Provider
      *
-     * @param cid
-     *            Description of the features offered by that image
+     * @param cid Description of the features offered by that image
      */
     public void addCloudImage(CloudImageDescription cid) {
         imgManager.add(cid);
@@ -93,8 +90,7 @@ public class CloudProvider {
     /**
      * Adds an instance type description to a Cloud Provider
      *
-     * @param rd
-     *            Description of the features offered by that instance type
+     * @param rd Description of the features offered by that instance type
      *
      */
     public void addInstanceType(CloudInstanceTypeDescription rd) {
@@ -183,7 +179,8 @@ public class CloudProvider {
     }
 
     /*
-     * ----------------------------------------- ------------- State Changes -------------
+     * -----------------------------------------
+     * ------------- State Changes -------------
      * -----------------------------------------
      */
     public void stopReached() {
@@ -306,11 +303,11 @@ public class CloudProvider {
      * ------------------------------------------
      */
     public boolean canHostMoreInstances() {
-        if (limitOfVMs == null ){
-        	return true;
+        if (limitOfVMs == null) {
+            return true;
         }
         if (limitOfVMs == -1) {
-        	return true;
+            return true;
         }
         return currentVMCount < limitOfVMs;
     }

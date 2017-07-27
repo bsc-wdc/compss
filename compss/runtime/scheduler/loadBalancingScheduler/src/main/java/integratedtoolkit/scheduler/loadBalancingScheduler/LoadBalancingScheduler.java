@@ -12,9 +12,9 @@ import java.util.List;
 
 import org.json.JSONObject;
 
-
 /**
- * Representation of a Scheduler that considers only ready tasks and uses resource empty policy
+ * Representation of a Scheduler that considers only ready tasks and uses
+ * resource empty policy
  *
  */
 public class LoadBalancingScheduler extends ReadyScheduler {
@@ -36,10 +36,10 @@ public class LoadBalancingScheduler extends ReadyScheduler {
      */
     @Override
     public <T extends WorkerResourceDescription> LoadBalancingResourceScheduler<T> generateSchedulerForResource(Worker<T> w,
-            JSONObject json) {
+            JSONObject resJSON, JSONObject implJSON) {
 
         // LOGGER.debug("[LoadBalancingScheduler] Generate scheduler for resource " + w.getName());
-        return new LoadBalancingResourceScheduler<>(w, json);
+        return new LoadBalancingResourceScheduler<>(w, resJSON, implJSON);
     }
 
     @Override

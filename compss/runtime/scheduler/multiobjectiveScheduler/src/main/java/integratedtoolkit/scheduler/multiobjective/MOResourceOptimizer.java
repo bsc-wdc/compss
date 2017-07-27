@@ -6,38 +6,44 @@ import integratedtoolkit.scheduler.multiobjective.types.MOProfile;
 import integratedtoolkit.scheduler.multiobjective.types.MOScore;
 import integratedtoolkit.scheduler.types.Score;
 import integratedtoolkit.scheduler.types.WorkloadState;
+import integratedtoolkit.types.CloudProvider;
 import integratedtoolkit.types.ResourceCreationRequest;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.CloudMethodWorker;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
+import integratedtoolkit.types.resources.description.CloudImageDescription;
+import integratedtoolkit.types.resources.description.CloudInstanceTypeDescription;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
-import integratedtoolkit.util.CloudManager;
+import integratedtoolkit.types.resources.updates.ResourceUpdate;
 import integratedtoolkit.util.CoreManager;
+import integratedtoolkit.util.JSONStateManager;
 import integratedtoolkit.util.ResourceManager;
 import integratedtoolkit.util.ResourceOptimizer;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import org.json.JSONObject;
 
 public class MOResourceOptimizer extends ResourceOptimizer {
 
     private static final long CREATION_TIME = 0l;
+    private Map<CloudInstanceTypeDescription, MOProfile> defaultProfiles;
 
     public MOResourceOptimizer(MOScheduler ts) {
         super(ts);
-    }
-
-/*    @Override
-    protected void initialCreations() {
-        try {
-            Thread.sleep(40_000l);
-        } catch (Exception e) {
+        defaultProfiles = new HashMap<>();
+        for (CloudProvider cp : ResourceManager.getAvailableCloudProviders()) {
+            for (CloudInstanceTypeDescription citd : cp.getAllTypes()) {
+                JSONObject JSONcitd = ts.getJSONForCloudInstanceTypeDescription(cp, citd);
+                System.out.println(citd.getName() + " --> " + JSONcitd);
+            }
         }
     }
-
+    /*
     @Override
     protected void applyPolicies(WorkloadState workload) {
         try {
@@ -48,6 +54,21 @@ public class MOResourceOptimizer extends ResourceOptimizer {
             double powerBoundary = MOConfiguration.getPowerBoundary();
             double priceBoundary = MOConfiguration.getPriceBoundary();
 
+            long[] elapsedTime = new long[1];
+            double[] elapsedEnergy = new double[1];
+            double[] elapsedCost = new double[1];
+            double[] elapsedPower = new double[1];
+            double[] elapsedPrice = new double[1];
+
+            Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers = ts.getWorkers();
+            List<ResourceCreationRequest> creations = ResourceManager.getPendingCreationRequests();
+            Resource[] allResources = new Resource[workers.size() + creations.size()];
+            int[] load = new int[workload.getCoreCount()];
+
+            HashMap<String, Integer> pendingCreations = new HashMap<>();
+            HashMap<String, Integer> pendingReductions = new HashMap<>();
+            ConfigurationCost actualCost = getContext(allResources, load, workers, creations, pendingCreations, pendingReductions, elapsedTime, elapsedEnergy, elapsedCost, elapsedPower, elapsedPrice);
+
             addToLog("Boundaries\n"
                     + "\tTime: " + timeBoundary + "s\n"
                     + "\tEnergy: " + energyBoundary + "Wh\n"
@@ -55,24 +76,18 @@ public class MOResourceOptimizer extends ResourceOptimizer {
                     + "\tPower: " + powerBoundary + "W\n"
                     + "\tPrice: " + priceBoundary + "€/h\n");
 
-            long elapsedTime = Ascetic.getAccumulatedTime();
-            double elapsedEnergy = Ascetic.getExpectedAccumulatedEnergy();
-            double elapsedCost = Ascetic.getExpectedAccumulatedCost();
-            double elapsedPower = 0d;//Ascetic.getCurrentPower();
-            double elapsedPrice = 0d;//Ascetic.getCurrentPrice();
-
             addToLog("Elapsed\n"
-                    + "\tTime: " + elapsedTime + "s\n"
-                    + "\tEnergy: " + elapsedEnergy + "Wh\n"
-                    + "\tCost: " + elapsedCost + "€\n"
-                    + "\tPower: " + elapsedPower + "W\n"
-                    + "\tPrice: " + elapsedPrice + "€/h\n");
+                    + "\tTime: " + elapsedTime[0] + "s\n"
+                    + "\tEnergy: " + elapsedEnergy[0] + "Wh\n"
+                    + "\tCost: " + elapsedCost[0] + "€\n"
+                    + "\tPower: " + elapsedPower[0] + "W\n"
+                    + "\tPrice: " + elapsedPrice[0] + "€/h\n");
 
-            long timeBudget = timeBoundary - elapsedTime;
-            double energyBudget = energyBoundary - elapsedEnergy;
-            double costBudget = costBoundary - elapsedCost;
-            double powerBudget = powerBoundary - elapsedPower;
-            double priceBudget = priceBoundary - elapsedPrice;
+            long timeBudget = timeBoundary - elapsedTime[0];
+            double energyBudget = energyBoundary - elapsedEnergy[0];
+            double costBudget = costBoundary - elapsedCost[0];
+            double powerBudget = powerBoundary - elapsedPower[0];
+            double priceBudget = priceBoundary - elapsedPrice[0];
             addToLog("Budget\n"
                     + "\tTime: " + timeBudget + "s\n"
                     + "\tEnergy: " + energyBudget + "Wh - " + (energyBudget * 3600) + "J\n"
@@ -80,21 +95,12 @@ public class MOResourceOptimizer extends ResourceOptimizer {
                     + "\tPower: " + powerBudget + "W\n"
                     + "\tPrice: " + priceBudget + "€/h\n");
 
-            Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers = ts.getWorkers();
-            LinkedList<ResourceCreationRequest> creations = CloudManager.getPendingRequests();
-            Resource[] allResources = new Resource[workers.size() + creations.size()];
-
             addToLog("Current Resources\n");
-            int[] load = new int[workload.getCoreCount()];
-
             addToLog("Workload Info:\n");
             for (int coreId = 0; coreId < workload.getCoreCount(); coreId++) {
                 addToLog("\tCore " + coreId + ": " + load[coreId] + "\n");
             }
 
-            HashMap<String, Integer> pendingCreations = new HashMap<>();
-            HashMap<String, Integer> pendingReductions = new HashMap<>();
-            ConfigurationCost actualCost = getContext(allResources, load, workers, creations, pendingCreations, pendingReductions);
             Action actualAction = new Action(actualCost);
             addToLog(actualAction.toString());
 
@@ -102,59 +108,88 @@ public class MOResourceOptimizer extends ResourceOptimizer {
             Action currentSim = new Action(simCost);
             addToLog(currentSim.toString());
 
-            LinkedList<Action> actions = generatePossibleActions(allResources, load, pendingCreations, pendingReductions);
+            LinkedList<Action> actions = generatePossibleActions(allResources, load);
             Action action = this.selectBestAction(currentSim, actions, timeBudget, energyBudget, costBudget, powerBudget, priceBudget);
             addToLog("Action to perform: " + action.title + "\n");
             printLog();
-            LOGGER.debug("ASCETIC: Performing " + action.title);
             action.perform();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private LinkedList<Action> generatePossibleActions(Resource[] allResources, int[] load, HashMap<String, Integer> pendingCreations, HashMap<String, Integer> pendingReductions) {
+    private LinkedList<Action> generatePossibleActions(Resource[] allResources, int[] load) {
         LinkedList<Action> actions = new LinkedList<>();
-        for (String componentName : Ascetic.getComponentNames()) {
-            Integer pendingCreation = pendingCreations.get(componentName);
-            if (pendingCreation == null) {
-                pendingCreation = 0;
-            }
-            if (Ascetic.canReplicateComponent(componentName, pendingCreation)) {
-                Resource[] resources = new Resource[allResources.length + 1];
-                System.arraycopy(allResources, 0, resources, 0, allResources.length);
-                resources[allResources.length] = createResourceForComponent(componentName);
-                ConfigurationCost cc = simulate(load, resources, 0, 0, 0);
-                Action a = new Action.Add(componentName, cc);
-                addToLog(a.toString());
-                actions.add(a);
-            }
+
+        //Generate all possible resource acquisitions
+        if (ResourceManager.getCurrentVMCount() < ResourceManager.getMaxCloudVMs()) {
+            generatePossibleResourceAcquisitions(actions, allResources, load);
         }
 
+        //Generate all possible resource releases
+        if (ResourceManager.getCurrentVMCount() > ResourceManager.getMinCloudVMs()) {
+            generatePossibleResourceReleases(actions, allResources, load);
+        }
+        return actions;
+    }
+
+    private void generatePossibleResourceAcquisitions(LinkedList<Action> actions, Resource[] allResources, int[] load) {
+        for (CloudProvider cp : ResourceManager.getAvailableCloudProviders()) {
+            if (!cp.canHostMoreInstances()) {
+                continue;
+            }
+            for (CloudInstanceTypeDescription citd : cp.getAllTypes()) {
+                for (CloudImageDescription cid : cp.getAllImages()) {
+                    Resource[] resources = new Resource[allResources.length + 1];
+                    System.arraycopy(allResources, 0, resources, 0, allResources.length);
+                    resources[allResources.length] = createResourceForComponent(citd, cid);
+                    ConfigurationCost cc = simulate(load, resources, 0, 0, 0);
+                    Action a = new Action.Add(cp, citd, cid, cc);
+                    addToLog(a.toString());
+                    actions.add(a);
+                }
+            }
+
+        }
+    }
+
+    private void generatePossibleResourceReleases(LinkedList<Action> actions, Resource[] allResources, int[] load) {
         for (int i = 0; i < allResources.length; i++) {
             Resource excludedWorker = allResources[i];
-
+            Worker w = excludedWorker.getResource();
+            if (!(w.getDescription() instanceof CloudMethodResourceDescription)) {
+                continue;
+            }
+            CloudMethodResourceDescription description = (CloudMethodResourceDescription) w.getDescription();
             if (!(excludedWorker.hasPendingModifications())) {
-                String componentName = ((CloudMethodResourceDescription) excludedWorker.getResource().getDescription()).getType();
-                Integer pendingReduction = pendingReductions.get(componentName);
-                if (pendingReduction == null) {
-                    pendingReduction = 0;
-                }
-                if (Ascetic.canTerminateVM(excludedWorker.getResource(), pendingReduction)) {
-                    Resource[] resources = new Resource[allResources.length - 1];
-                    System.arraycopy(allResources, 0, resources, 0, i);
-                    System.arraycopy(allResources, i + 1, resources, i, resources.length - i);
-                    long time = excludedWorker.startTime;
-                    double energy = excludedWorker.idlePower * time + excludedWorker.startEnergy;
-                    double cost = excludedWorker.startCost;
-                    ConfigurationCost cc = simulate(load, resources, time, energy, cost);
-                    Action a = new Action.Remove(excludedWorker, cc);
+                CloudImageDescription image = description.getImage();
+                for (CloudInstanceTypeDescription typeReduction : description.getPossibleReductions()) {
+                    CloudMethodResourceDescription reductionDescription = new CloudMethodResourceDescription(typeReduction, image);
+                    CloudMethodResourceDescription reducedDescription = new CloudMethodResourceDescription(description);
+                    reducedDescription.reduce(reductionDescription);
+                    ConfigurationCost cc;
+                    if (reducedDescription.getTypeComposition().isEmpty()) {
+                        Resource[] resources = new Resource[allResources.length - 1];
+                        System.arraycopy(allResources, 0, resources, 0, i);
+                        System.arraycopy(allResources, i + 1, resources, i, resources.length - i);
+                        long time = excludedWorker.startTime;
+                        double energy = excludedWorker.idlePower * time + excludedWorker.startEnergy;
+                        double cost = excludedWorker.startCost;
+                        cc = simulate(load, resources, time, energy, cost);
+                    } else {
+                        allResources[i] = reduceResourceForComponent(excludedWorker, reducedDescription);
+                        long time = excludedWorker.startTime;
+                        double energy = excludedWorker.idlePower * time + excludedWorker.startEnergy;
+                        double cost = excludedWorker.startCost;
+                        cc = simulate(load, allResources, time, energy, cost);
+                        allResources[i] = excludedWorker;
+                    }
+                    Action a = new Action.Remove(excludedWorker, typeReduction, cc);
                     addToLog(a.toString());
                     actions.add(a);
                 }
             }
         }
-        return actions;
     }
 
     private Action selectBestAction(Action currentAction, LinkedList<Action> candidates, long timeBudget, double energyBudget, double costBudget, double powerBudget, double priceBudget) {
@@ -312,7 +347,17 @@ public class MOResourceOptimizer extends ResourceOptimizer {
         return false;
     }
 
-    private ConfigurationCost getContext(Resource[] allResources, int[] load, Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers, LinkedList<ResourceCreationRequest> creations, HashMap<String, Integer> pendingCreations, HashMap<String, Integer> pendingDestructions) {
+    private ConfigurationCost getContext(Resource[] allResources, int[] load, Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers,
+            List<ResourceCreationRequest> creations, HashMap<String, Integer> pendingCreations, HashMap<String, Integer> pendingDestructions,
+            long[] elapsedTime, double[] elapsedEnergy, double[] elapsedCost, double[] elapsedPower, double[] elapsedPrice
+    ) {
+
+        elapsedTime[0] = 0;
+        elapsedEnergy[0] = 0;
+        elapsedCost[0] = 0;
+        elapsedPower[0] = 0;
+        elapsedPrice[0] = 0;
+
         long time = 0;
         double actionsCost = 0;
         double idlePrice = 0;
@@ -330,15 +375,21 @@ public class MOResourceOptimizer extends ResourceOptimizer {
             time = Math.max(time, aw.getLastGapExpectedStart());
             addToLog("\t\tTime:" + aw.getLastGapExpectedStart() + " ms -> total " + time + "\n");
 
-            actionsCost += aw.getActionsCost();
-            addToLog("\t\tactions Cost:" + aw.getActionsCost() + " € -> total " + actionsCost + "€\n");
+            elapsedCost[0] += aw.getRunActionsCost();
+            addToLog("\t\tExecuted Actions Cost:" + aw.getRunActionsCost() + " € -> total " + elapsedCost[0] + "€\n");
+
+            actionsCost += aw.getScheduledActionsCost();
+            addToLog("\t\tScheduled Actions Cost:" + aw.getScheduledActionsCost() + " € -> total " + actionsCost + "€\n");
 
             r.idlePrice = aw.getIdlePrice();
             idlePrice += r.idlePrice;
             addToLog("\t\tIdle Price:" + r.idlePrice + " € -> total " + idlePrice + "€\n");
 
+            elapsedEnergy[0] += aw.getRunActionsEnergy();
+            addToLog("\t\tExecuted Actions Energy:" + aw.getRunActionsEnergy() + " mJ -> total " + elapsedEnergy[0] + "mJ\n");
+
             actionsEnergy += aw.getScheduledActionsEnergy();
-            addToLog("\t\tactions Energy:" + aw.getScheduledActionsEnergy() + " mJ -> total " + actionsEnergy + "mJ\n");
+            addToLog("\t\tScheduled Actions Energy:" + aw.getScheduledActionsEnergy() + " mJ -> total " + actionsEnergy + "mJ\n");
 
             r.idlePower = aw.getIdlePower();
             idlePower += r.idlePower;
@@ -389,6 +440,7 @@ public class MOResourceOptimizer extends ResourceOptimizer {
                 addToLog(coreInfo[coreId].toString());
             }
             if (r.hasPendingModifications()) {
+
                 String componentType = ((CloudMethodResourceDescription) r.getResource().getDescription()).getType();
                 Integer pendingDestruction = pendingCreations.get(componentType);
                 if (pendingDestruction == null) {
@@ -409,7 +461,7 @@ public class MOResourceOptimizer extends ResourceOptimizer {
             }
             pendingCreation++;
             pendingCreations.put(componentType, pendingCreation);
-            Resource r = createResourceForComponent(crc.getRequested().getType());
+            Resource r = createResourceForComponent(crc.getRequested());
             allResources[resourceId] = r;
 
             addToLog("\t\tTime: 0 ms -> total " + time + "\n");
@@ -556,6 +608,13 @@ public class MOResourceOptimizer extends ResourceOptimizer {
             return true;
         }
 
+        private List<ResourceUpdate> getPendingModifications() {
+            if (worker != null) {
+                return worker.getPendingModifications();
+            }
+            return new LinkedList<>();
+        }
+
         private Worker getResource() {
             if (worker != null) {
                 return worker.getResource();
@@ -572,22 +631,86 @@ public class MOResourceOptimizer extends ResourceOptimizer {
 
     }
 
-    private Resource createResourceForComponent(String componentName) {
+    private Resource reduceResourceForComponent(Resource excludedWorker, CloudMethodResourceDescription reduction) {
+        Resource clone = new Resource();
+        clone.worker = excludedWorker.worker;
+        clone.idlePower = excludedWorker.idlePower;
+        clone.idlePrice = excludedWorker.idlePrice;
+        clone.capacity = new int[excludedWorker.capacity.length];
+        System.arraycopy(excludedWorker.capacity, 0, clone.capacity, 0, excludedWorker.capacity.length);
+        clone.startTime = excludedWorker.startTime;
+        clone.startEnergy = excludedWorker.startEnergy;
+        clone.startCost = excludedWorker.startCost;
+        clone.time = excludedWorker.time;
+        clone.counts = excludedWorker.counts;
+        Map<CloudInstanceTypeDescription, int[]> composition = reduction.getTypeComposition();
+        for (Map.Entry<CloudInstanceTypeDescription, int[]> component : composition.entrySet()) {
+            CloudInstanceTypeDescription type = component.getKey();
+            int count = component.getValue()[0];
+            MethodResourceDescription rd = type.getResourceDescription();
+
+            clone.idlePower -= Ascetic.getPower(componentName) * count;
+            clone.idlePrice -= Ascetic.getPrice(componentName) * count;
+            for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
+                List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
+                MOProfile[] profiles = new MOProfile[impls.size()];
+                for (int i = 0; i < impls.size(); i++) {
+                    profiles[i] = getPredefinedProfile(type, impls.get(i));
+                }
+                Implementation impl = getBestImplementation(impls, profiles);
+                clone.capacity[coreId] -= rd.canHostSimultaneously((MethodResourceDescription) impl.getRequirements()) * count;
+            }
+        }
+        return clone;
+    }
+
+    private Resource createResourceForComponent(CloudMethodResourceDescription cmrd) {
+        Resource r = new Resource();
+        Map<CloudInstanceTypeDescription, int[]> composition = cmrd.getTypeComposition();
+        r.capacity = new int[CoreManager.getCoreCount()];
+        r.profiles = new MOProfile[CoreManager.getCoreCount()];
+
+        for (Map.Entry<CloudInstanceTypeDescription, int[]> component : composition.entrySet()) {
+            CloudInstanceTypeDescription type = component.getKey();
+            int count = component.getValue()[0];
+            MethodResourceDescription rd = type.getResourceDescription();
+
+            r.idlePower += Ascetic.getPower(componentName) * count;
+            r.idlePrice += Ascetic.getPrice(componentName) * count;
+
+            for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
+                List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
+                MOProfile[] profiles = new MOProfile[impls.size()];
+                for (int i = 0; i < impls.size(); i++) {
+                    profiles[i] = getPredefinedProfile(type, impls.get(i));
+                }
+                Implementation impl = getBestImplementation(impls, profiles);
+                r.capacity[coreId] += rd.canHostSimultaneously((MethodResourceDescription) impl.getRequirements()) * count;
+                r.profiles[coreId].accumulate(getPredefinedProfile(type, impl));
+            }
+        }
+
+        r.startTime = CREATION_TIME;
+        r.clear();
+        return r;
+    }
+
+    private Resource createResourceForComponent(CloudInstanceTypeDescription citd, CloudImageDescription cid) {
         Resource r = new Resource();
         r.idlePower = Ascetic.getPower(componentName);
         r.idlePrice = Ascetic.getPrice(componentName);
-        MethodResourceDescription rd = Ascetic.getComponentDescription(componentName);
+        MethodResourceDescription rd = citd.getResourceDescription();
         r.capacity = new int[CoreManager.getCoreCount()];
         r.profiles = new MOProfile[CoreManager.getCoreCount()];
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
             MOProfile[] profiles = new MOProfile[impls.size()];
             for (int i = 0; i < impls.size(); i++) {
-                profiles[i] = new PredefinedProfile(componentName, impls.get(i));
+                profiles[i] = getPredefinedProfile(citd, impls.get(i));
             }
             Implementation impl = getBestImplementation(impls, profiles);
             r.capacity[coreId] = rd.canHostSimultaneously((MethodResourceDescription) impl.getRequirements());
-            r.profiles[coreId] = new PredefinedProfile(componentName, impl);
+            r.profiles[coreId] = getPredefinedProfile(citd, impl);
         }
         r.startTime = CREATION_TIME;
         r.clear();
@@ -667,34 +790,40 @@ public class MOResourceOptimizer extends ResourceOptimizer {
 
         public static class Add extends Action {
 
-            String component;
+            private final CloudProvider provider;
+            private final CloudInstanceTypeDescription instance;
+            private final CloudImageDescription image;
 
-            public Add(String component, ConfigurationCost cost) {
+            public Add(CloudProvider provider, CloudInstanceTypeDescription component, CloudImageDescription image, ConfigurationCost cost) {
                 super(cost);
                 this.title = "Add " + component;
-                this.component = component;
+                this.provider = provider;
+                this.image = image;
+                this.instance = component;
             }
 
             public void perform() {
-                LOGGER.debug("ASCETIC: Performing Add action " + this);
-                ResourceManager.createResources("Ascetic", component, component + "-img");
+                RUNTIME_LOGGER.debug("ASCETIC: Performing Add action " + this);
+                CloudMethodResourceDescription cmrd = new CloudMethodResourceDescription(instance, image);
+                provider.requestResourceCreation(cmrd);
             }
         }
 
         public static class Remove extends Action {
 
-            Resource res;
+            private final Resource res;
+            private final CloudInstanceTypeDescription citd;
 
-            public Remove(Resource res, ConfigurationCost cost) {
+            public Remove(Resource res, CloudInstanceTypeDescription reduction, ConfigurationCost cost) {
                 super(cost);
                 title = "Remove " + res.getName();
+                this.citd = reduction;
                 this.res = res;
             }
 
             public void perform() {
-                LOGGER.debug("ASCETIC: Performing Remove action " + this);
                 CloudMethodWorker worker = (CloudMethodWorker) res.getResource();
-                CloudMethodResourceDescription reduction = new CloudMethodResourceDescription((CloudMethodResourceDescription) worker.getDescription());
+                CloudMethodResourceDescription reduction = new CloudMethodResourceDescription(citd, worker.getDescription().getImage());
                 ResourceManager.reduceCloudWorker(worker, reduction);
             }
         }
@@ -714,7 +843,6 @@ public class MOResourceOptimizer extends ResourceOptimizer {
             this.cost = (idlePrice * ((double) (time / 3_600_000))) + fixedCost;
             this.power = idlePower + (fixedEnergy / time);
             this.price = idlePrice + (double) ((fixedCost * 3_600_000) / time);
-
         }
 
         @Override
@@ -727,27 +855,8 @@ public class MOResourceOptimizer extends ResourceOptimizer {
         }
     }
 
-    private class PredefinedProfile extends MOProfile {
-
-        double power;
-        double price;
-
-        public PredefinedProfile(String componentName, Implementation impl) {
-            super();
-            long defaultTime = Ascetic.getExecutionTime(componentName, impl);
-            this.minTime = defaultTime;
-            this.averageTime = defaultTime;
-            this.maxTime = defaultTime;
-            this.power = Ascetic.getPower(componentName, impl);
-            this.price = Ascetic.getPrice(componentName, impl);
-        }
-
-        public double getPower() {
-            return power;
-        }
-
-        public double getPrice() {
-            return price;
-        }
+    private MOProfile getPredefinedProfile(CloudInstanceTypeDescription citd, Implementation impl) {
+        JSONObject json = new JSONObject("");
+        return new MOProfile(json);
     }*/
 }

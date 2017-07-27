@@ -3,23 +3,25 @@ package integratedtoolkit.scheduler.types;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-
 /**
- * Class used to register the characteristics of the execution of one execution or generate a statistic summary of a set
- * of executions.
+ * Class used to register the characteristics of the execution of one execution
+ * or generate a statistic summary of a set of executions.
  * <p>
- * To obtain the characteristics of a single execution, a new Profile is created. At the beginning of the execution, the
- * start method is invoked to obtain the necessary measurements to characterize the execution. Upon the end of the
- * execution, the end() method is called and the Profile class collects the necessary values, and analyzes their initial
- * value to prepare the execution summary.
+ * To obtain the characteristics of a single execution, a new Profile is
+ * created. At the beginning of the execution, the start method is invoked to
+ * obtain the necessary measurements to characterize the execution. Upon the end
+ * of the execution, the end() method is called and the Profile class collects
+ * the necessary values, and analyzes their initial value to prepare the
+ * execution summary.
  * <p>
- * To obtain the statistic report of several executions, their profiles need to be merged using the accumulate method.
- * (Accumulate overrides the internal values of the Profile, it is recommended to accumulate all the values on an empty
- * Profile).
+ * To obtain the statistic report of several executions, their profiles need to
+ * be merged using the accumulate method. (Accumulate overrides the internal
+ * values of the Profile, it is recommended to accumulate all the values on an
+ * empty Profile).
  *
  *
- * To generate a Profile instance with customized values, Profile.Builder enables the creation of a new profile instance
- * and set its initial values.
+ * To generate a Profile instance with customized values, Profile.Builder
+ * enables the creation of a new profile instance and set its initial values.
  *
  * <p>
  * Data currently provided:
@@ -37,7 +39,6 @@ public class Profile {
     private long minTime;
     private long averageTime;
     private long maxTime;
-
 
     public Profile() {
         this.executions = 0;
@@ -118,9 +119,14 @@ public class Profile {
         Profile profile = (Profile) p;
         long totalExecutions = executions + profile.executions;
         if (totalExecutions > 0) {
-            minTime = Math.min(minTime, profile.minTime);
+            if (executions == 0) {
+                minTime = profile.minTime;
+                maxTime = profile.maxTime;
+            } else {
+                minTime = Math.min(minTime, profile.minTime);
+                maxTime = Math.max(maxTime, profile.maxTime);
+            }
             averageTime = (profile.averageTime * profile.executions + executions * averageTime) / totalExecutions;
-            maxTime = Math.max(maxTime, profile.maxTime);
             executions = totalExecutions;
         }
     }
@@ -132,6 +138,69 @@ public class Profile {
         jo.put("avgTime", averageTime);
         jo.put("maxTime", maxTime);
         return jo;
+    }
+
+    public JSONObject updateJSON(JSONObject jo) {
+        JSONObject difference = new JSONObject();
+
+        long oldExecutions = 0;
+        long oldAvg = 0;
+
+        if (jo.has("executions")) {
+            oldExecutions = jo.getLong("executions");
+        }
+
+        if (jo.has("avgTime")) {
+            oldAvg = jo.getLong("avgTime");
+        }
+
+        long newExecutions = this.executions - oldExecutions;
+        jo.put("executions", this.executions);
+        jo.put("minTime", this.minTime);
+        jo.put("avgTime", this.averageTime);
+        jo.put("maxTime", this.maxTime);
+
+        difference.put("executions", executions - oldExecutions);
+        difference.put("minTime", this.minTime);
+        difference.put("avgTime", this.averageTime);
+        long oldTime = oldAvg * oldExecutions;
+        long newTime = this.averageTime * this.executions;
+        if (newExecutions > 0) {
+            difference.put("avgTime", (newTime - oldTime) / newExecutions);
+        } else {
+            difference.put("avgTime", 0);
+        }
+
+        return difference;
+    }
+
+    public void accumulateJSON(JSONObject jo) {
+        long oldExecutions = 0;
+        long oldMin = Long.MAX_VALUE;
+        long oldMax = Long.MIN_VALUE;
+        long oldAvg = 0;
+
+        if (jo.has("executions")) {
+            oldExecutions = jo.getLong("executions");
+        }
+        if (jo.has("minTime")) {
+            oldMin = jo.getLong("minTime");
+        }
+        if (jo.has("maxTime")) {
+            oldMax = jo.getLong("maxTime");
+        }
+        if (jo.has("avgTime")) {
+            oldAvg = jo.getLong("avgTime");
+        }
+
+        jo.put("executions", this.executions + oldExecutions);
+
+        if (this.executions > 0) {
+            jo.put("minTime", Math.min(minTime, oldMin));
+            jo.put("maxTime", Math.max(maxTime, oldMax));
+            jo.put("avgTime", (oldAvg * oldExecutions + averageTime * executions) / (this.executions + oldExecutions));
+        }
+
     }
 
     public Profile copy() {
@@ -147,6 +216,9 @@ public class Profile {
         return "executions=" + executions + " minTime=" + minTime + " avgTime=" + averageTime + " maxTime=" + maxTime;
     }
 
+    public void clearExecutionCount() {
+        this.executions = 0;
+    }
 
     public static class Builder {
 
@@ -154,7 +226,6 @@ public class Profile {
         private long maxExecutionTime = Long.MIN_VALUE;
         private long avgExecutionTime = DEFAULT_EXECUTION_TIME;
         private long executions = 0;
-
 
         public Builder() {
         }

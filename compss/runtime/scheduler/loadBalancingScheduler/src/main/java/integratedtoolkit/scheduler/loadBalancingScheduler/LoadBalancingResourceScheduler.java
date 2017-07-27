@@ -11,17 +11,17 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.types.parameter.Parameter;
 import org.json.JSONObject;
 
-
 public class LoadBalancingResourceScheduler<T extends WorkerResourceDescription> extends ReadyResourceScheduler<T> {
 
     /**
      * New ready resource scheduler instance
      *
      * @param w
-     * @param json
+     * @param resJSON
+     * @param implJSON
      */
-    public LoadBalancingResourceScheduler(Worker<T> w, JSONObject json) {
-        super(w, json);
+    public LoadBalancingResourceScheduler(Worker<T> w, JSONObject resJSON, JSONObject implJSON) {
+        super(w, resJSON, implJSON);
     }
 
     /*

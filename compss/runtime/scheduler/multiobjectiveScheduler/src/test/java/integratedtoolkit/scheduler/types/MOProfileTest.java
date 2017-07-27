@@ -10,10 +10,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-
 public class MOProfileTest {
 
     private static final long DEFAULT_MIN_EXECUTION_TIME = Long.MAX_VALUE;
@@ -30,18 +26,12 @@ public class MOProfileTest {
     private static final double SET_POWER = 4.3;
     private static final double SET_PRICE = 0.45;
 
-    // Test Logger
-    private static final Logger LOGGER = LogManager.getLogger("Console");
-
-
     @BeforeClass
     public static void setUpClass() {
-        LOGGER.debug("Setup Class");
     }
 
     @AfterClass
     public static void tearDownClass() {
-        LOGGER.debug("End");
     }
 
     @Before
@@ -250,7 +240,7 @@ public class MOProfileTest {
     public void testNoPowerJSON() {
         MOProfile p = new MOProfile(new JSONObject(
                 "{" + "\"executions\":" + SET_EXECUTION_COUNT + "," + "\"maxTime\":" + SET_MAX_EXECUTION_TIME + "," + "\"minTime\":"
-                        + SET_MIN_EXECUTION_TIME + "," + "\"avgTime\":" + SET_AVG_EXECUTION_TIME + "," + "\"price\":" + SET_PRICE + "}"));
+                + SET_MIN_EXECUTION_TIME + "," + "\"avgTime\":" + SET_AVG_EXECUTION_TIME + "," + "\"price\":" + SET_PRICE + "}"));
         if (p.getExecutionCount() != SET_EXECUTION_COUNT) {
             fail("Invalid execution count on no max JSON constructor");
         }
@@ -276,7 +266,7 @@ public class MOProfileTest {
     public void testNoPriceJSON() {
         MOProfile p = new MOProfile(new JSONObject(
                 "{" + "\"executions\":" + SET_EXECUTION_COUNT + "," + "\"maxTime\":" + SET_MAX_EXECUTION_TIME + "," + "\"minTime\":"
-                        + SET_MIN_EXECUTION_TIME + "," + "\"avgTime\":" + SET_AVG_EXECUTION_TIME + "," + "\"power\":" + SET_POWER + "}"));
+                + SET_MIN_EXECUTION_TIME + "," + "\"avgTime\":" + SET_AVG_EXECUTION_TIME + "," + "\"power\":" + SET_POWER + "}"));
         if (p.getExecutionCount() != SET_EXECUTION_COUNT) {
             fail("Invalid execution count on no price JSON constructor");
         }

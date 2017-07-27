@@ -11,9 +11,9 @@ import java.util.List;
 
 import org.json.JSONObject;
 
-
 /**
- * Representation of a Scheduler that considers only ready tasks and sorts them in FIFO mode
+ * Representation of a Scheduler that considers only ready tasks and sorts them
+ * in FIFO mode
  *
  */
 public class FIFOScheduler extends ReadyScheduler {
@@ -34,9 +34,9 @@ public class FIFOScheduler extends ReadyScheduler {
      * *********************************************************************************************************
      */
     @Override
-    public <T extends WorkerResourceDescription> FIFOResourceScheduler<T> generateSchedulerForResource(Worker<T> w, JSONObject json) {
+    public <T extends WorkerResourceDescription> FIFOResourceScheduler<T> generateSchedulerForResource(Worker<T> w, JSONObject resJSON, JSONObject implJSON) {
         // LOGGER.debug("[FIFOScheduler] Generate scheduler for resource " + w.getName());
-        return new FIFOResourceScheduler<>(w, json);
+        return new FIFOResourceScheduler<>(w, resJSON, implJSON);
     }
 
     @Override

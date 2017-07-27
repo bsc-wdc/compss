@@ -1370,7 +1370,10 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                     // Satisfies compatibility
                     isProcessorCompatible = true;
                     // Include commons
-                    common.addProcessor(getDynamicCommonsProcessor(pThis, p));
+                    Processor commonProcessor = getDynamicCommonsProcessor(pThis, p);
+                    if (commonProcessor.getComputingUnits() > 0) {
+                        common.addProcessor(commonProcessor);
+                    }
                 }
                 i = i + 1;
             }
@@ -1383,7 +1386,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             common.setMemoryType(this.getMemoryType());
             common.setMemorySize(Math.min(this.memorySize, otherMRD.getMemorySize()));
         }
-
+        
         return common;
     }
 
@@ -1456,6 +1459,11 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     @Override
     public boolean isDynamicUseless() {
         return (this.getMemorySize() <= 0.0 && this.totalCPUComputingUnits < 1);
+    }
+
+    @Override
+    public boolean isDynamicConsuming() {
+        return (this.getMemorySize() > 0.0 || this.totalCPUComputingUnits > 0);
     }
 
     @Override
@@ -1556,7 +1564,6 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
         for (Processor pThis : this.processors) {
             sb.append(pThis.getComputingUnits() + " " + pThis.getArchitecture() + " cores");
-
         }
 
         // Memory

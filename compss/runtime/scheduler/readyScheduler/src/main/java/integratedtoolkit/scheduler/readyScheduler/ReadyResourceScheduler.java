@@ -20,10 +20,11 @@ public abstract class ReadyResourceScheduler< T extends WorkerResourceDescriptio
      * New ready resource scheduler instance
      *
      * @param w
-     * @param json
+     * @param resJSON
+     * @param implJSON
      */
-    public ReadyResourceScheduler(Worker<T> w, JSONObject json) {
-        super(w, json);
+    public ReadyResourceScheduler(Worker<T> w, JSONObject resJSON, JSONObject implJSON) {
+        super(w, resJSON, implJSON);
     }
 
     @Override

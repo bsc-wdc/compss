@@ -1,5 +1,5 @@
 %define name	 	compss-runtime 
-%define version		2.1.rc1706
+%define version		2.1.rc1707
 %define release		1
 
 Requires: compss-engine, compss-worker

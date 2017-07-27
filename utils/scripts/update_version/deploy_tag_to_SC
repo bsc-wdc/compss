@@ -39,7 +39,7 @@
   addModule() {
     echo "- Add module file"
     auxScriptName=module_script.aux
-    auxScriptFile=${scriptiDir}/${auxScriptName}
+    auxScriptFile=${scriptDir}/${auxScriptName}
     cat > ${auxScriptFile} << EOT
 #!/bin/bash -e
 

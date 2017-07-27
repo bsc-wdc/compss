@@ -38,22 +38,22 @@ configure() {
   local configuration_path="${TOMCAT_HOME}/conf/${configuration_file}"
   echo "   Success"
 
-  #Checking IT_MONITOR
-  echo "* Checking IT_MONITOR..."
-  if [ -z "${IT_MONITOR}" ]; then
-    echo "Warning: IT_MONITOR not defined."
+  #Checking COMPSS_MONITOR
+  echo "* Checking COMPSS_MONITOR..."
+  if [ -z "${COMPSS_MONITOR}" ]; then
+    echo "Warning: COMPSS_MONITOR not defined."
     if [ -f ${configuration_path} ]; then
       echo "  Loading from configuration file."
-      varDefinition=$(cat ${configuration_path} | grep "IT_MONITOR")
+      varDefinition=$(cat ${configuration_path} | grep "COMPSS_MONITOR")
       export $varDefinition
     else
       echo "Warning: Configuration file not found."
       echo "  Loading default values"
-      IT_MONITOR=/root/.COMPSs/
+      COMPSS_MONITOR=/root/.COMPSs/
     fi
   fi
-  echo "     IT_MONITOR=$IT_MONITOR"
-  export IT_MONITOR
+  echo "     COMPSS_MONITOR=$COMPSS_MONITOR"
+  export COMPSS_MONITOR
   echo "   Success"
 
   echo "* Checking COMPSs Monitor Port..."
@@ -100,7 +100,7 @@ configure() {
 
 erase() {
   ### Erases COMPSs Monitor enrionment variables ###
-  unset IT_MONITOR
+  unset COMPSS_MONITOR
   unset TOMCAT_HOME
   unset COMPSs_MONITOR_PORT
   unset COMPSs_MONITOR_TIMEOUT

@@ -381,7 +381,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 LOGGER.debug("Initializing components");
 
                 // Initialize object registry for bindings if needed
-                // String lang = System.getProperty(COMPSsConstants.IT_LANG);
+                // String lang = System.getProperty(COMPSsConstants.LANG);
                 // if (lang != COMPSsConstants.Lang.JAVA.name() && oReg == null) {
                 // oReg = new ObjectRegistry(this);
                 // }

@@ -21,7 +21,7 @@ public class Constants {
     public static final String GRAPH_EXECUTION_DONE_PATH = File.separator + "svg" + File.separator + "graph_execution_done.svg";
     public static final String NO_CONNECTION_IMG_PATH = File.separator + "compss-monitor" + File.separator + "svg" + File.separator
             + "loadGraphNoConnection.png";
-    public static final String IT_MONITOR_DEFAULT = File.separator + "root" + File.separator + ".COMPSs" + File.separator;
+    public static final String COMPSS_MONITOR_DEFAULT = File.separator + "root" + File.separator + ".COMPSs" + File.separator;
 
     // Runtime files structure
     public static final String RUNTIME_LOG = "runtime.log";

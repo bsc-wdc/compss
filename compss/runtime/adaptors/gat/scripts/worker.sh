@@ -20,7 +20,7 @@
   if [ ! -d $workingDir ]; then
     mkdir -p $workingDir
   fi
-  export IT_WORKING_DIR=$workingDir
+  export COMPSS_WORKING_DIR=$workingDir
   
   cd $workingDir
 
@@ -116,7 +116,7 @@
   # Move to app dir and execute
   #-------------------------------------
   appDir=$1
-  export IT_APP_DIR=$appDir
+  export COMPSS_APP_DIR=$appDir
 
   # Add support for non-native tasks
   methodType=$7

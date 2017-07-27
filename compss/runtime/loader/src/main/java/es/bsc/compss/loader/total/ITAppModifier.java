@@ -37,7 +37,7 @@ public class ITAppModifier {
     private static final boolean IS_WS_CLASS = System.getProperty(COMPSsConstants.COMPSS_IS_WS) != null
             && System.getProperty(COMPSsConstants.COMPSS_IS_WS).equals("true") ? true : false;
 
-    // Flag to instrument main method. if IT_IS_MAINCLASS main class not defined (Default case) isMain gets true;
+    // Flag to instrument main method. if COMPSS_IS_MAINCLASS main class not defined (Default case) isMain gets true;
     private static final boolean IS_MAIN_CLASS = System.getProperty(COMPSsConstants.COMPSS_IS_MAINCLASS) != null
             && System.getProperty(COMPSsConstants.COMPSS_IS_MAINCLASS).equals("false") ? false : true;
 

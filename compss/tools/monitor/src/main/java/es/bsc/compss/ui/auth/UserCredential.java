@@ -132,7 +132,7 @@ public class UserCredential {
     }
 
     private void loadDefaultOrEnvironmentUser() {
-        if (System.getenv("IT_MONITOR") == null) {
+        if (System.getenv("COMPSS_MONITOR") == null) {
             logger.debug("Loading default user");
             this.username = Constants.USER_DEFAULT;
         } else {
@@ -142,12 +142,12 @@ public class UserCredential {
     }
 
     private void loadDefaultOrEnvironmentLogFolder() {
-        if (System.getenv("IT_MONITOR") == null) {
+        if (System.getenv("COMPSS_MONITOR") == null) {
             logger.debug("Loading default user");
             this.COMPSs_BASE_LOG = System.getProperty("user.home") + RELATIVE_LOG_LOCATION;
         } else {
             logger.debug("Loading environment user");
-            this.COMPSs_BASE_LOG = System.getenv("IT_MONITOR");
+            this.COMPSs_BASE_LOG = System.getenv("COMPSS_MONITOR");
         }
     }
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
   # Get script parameters from environment
-  IT_HOME=$IT_HOME
+  COMPSS_HOME=$COMPSS_HOME
   LSB_DJOB_HOSTFILE=$LSB_DJOB_HOSTFILE
 
   # Get script parameters from unicore
@@ -24,7 +24,7 @@
   echo "---------------------------"
   echo "PyCOMPSs 4 UNICORE Launcher"
   echo "---------------------------"
-  echo "IT_HOME: " $IT_HOME
+  echo "COMPSS_HOME: " $COMPSS_HOME
   echo "LSB_DJOB_HOSTFILE: " $LSB_DJOB_HOSTFILE
   echo "tasks_per_node: " $tasks_per_node
   echo "tasks_in_master: " $tasks_in_master
@@ -40,7 +40,7 @@
   pwd=$(pwd)
   #echo "pwd: " $pwd
 
-  bindingsPath=$IT_HOME/Bindings/bindings-common/lib
+  bindingsPath=$COMPSS_HOME/Bindings/bindings-common/lib
 
   cp=$cp":"$ClassPath":"$pwd":"$bindingsPath":"$JAVA_HOME":"$JAVA_HOME/jre/lib/amd64/server/
   library_path=$library_path":"$bindingsPath":"$JAVA_HOME":"$JAVA_HOME/jre/lib/amd64/server/
@@ -58,17 +58,17 @@
   echo "absoluteRealApp: " $absoluteRealApp
   echo "arguments: " $arguments
 
-  bindingsPath=$IT_HOME/Bindings/bindings-common/lib
+  bindingsPath=$COMPSS_HOME/Bindings/bindings-common/lib
 
   echo "---------------------------"
 
-  ${IT_HOME}/Runtime/scripts/user/launch_compss \
+  ${COMPSS_HOME}/Runtime/scripts/user/launch_compss \
        --
 
   #Set script variables
-  export IT_HOME=${IT_HOME}
-  export GAT_LOCATION=${IT_HOME}/Dependencies/JAVA_GAT
-  worker_install_dir=${IT_HOME}/Runtime/scripts/system/
+  export COMPSS_HOME=${COMPSS_HOME}
+  export GAT_LOCATION=${COMPSS_HOME}/Dependencies/JAVA_GAT
+  worker_install_dir=${COMPSS_HOME}/Runtime/scripts/system/
   if [ "${worker_WD_type}" == "gpfs" ]; then
      worker_working_dir=$(mktemp -d -p /gpfs/${HOME})
   elif [ "${worker_WD_type}" == "scratch" ]; then
@@ -165,7 +165,7 @@ EOT
       </Disk>
     </Disks>
     <Adaptors>
-      <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
+      <Adaptor name="es.bsc.compss.nio.master.NIOAdaptor">
          <MinPort>43001</MinPort>
          <MaxPort>43001</MaxPort>
       </Adaptor>
@@ -219,7 +219,7 @@ EOT
       </Disk>
     </Disks>
     <Adaptors>
-      <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
+      <Adaptor name="es.bsc.compss.nio.master.NIOAdaptor">
          <MinPort>43001</MinPort>
          <MaxPort>43001</MaxPort>
       </Adaptor>
@@ -256,8 +256,8 @@ EOT
 
   #---------------------------------------------------------------------------------------
   # Launch the application with COMPSs
-  #MPI_CMD="mpirun -timestamp-output -n 1 -H $MASTER_NODE ${IT_HOME}/scripts/user/runcompss --project=${PROJECT_FILE} --resources=${RESOURCES_FILE} --uuid=$uuid $*"
-  MPI_CMD="mpirun -timestamp-output -n 1 -H $MASTER_NODE ${IT_HOME}/scripts/user/runcompss --project=${PROJECT_FILE} --resources=${RESOURCES_FILE} --uuid=$uuid --lang=python --log_level=${log_level} --tracing=${tracing} --graph=$graph --library_path=$Library_Path --classpath=$cp --comm=$Comm $absoluteRealApp $arguments"
+  #MPI_CMD="mpirun -timestamp-output -n 1 -H $MASTER_NODE ${COMPSS_HOME}/Runtime/scripts/user/runcompss --project=${PROJECT_FILE} --resources=${RESOURCES_FILE} --uuid=$uuid $*"
+  MPI_CMD="mpirun -timestamp-output -n 1 -H $MASTER_NODE ${COMPSS_HOME}/Runtime/scripts/user/runcompss --project=${PROJECT_FILE} --resources=${RESOURCES_FILE} --uuid=$uuid --lang=python --log_level=${log_level} --tracing=${tracing} --graph=$graph --library_path=$Library_Path --classpath=$cp --comm=$Comm $absoluteRealApp $arguments"
   if [ "${comm/NIO}" != "${comm}" ]; then
     # Adapt debug flag to worker script
     if [ "${log_level}" == "debug" ]; then
@@ -273,7 +273,7 @@ EOT
     fi
     hostid=1
     for node in ${USED_WORKERS}; do
-      MPI_CMD=$MPI_CMD" : -n 1 -H $node ${IT_HOME}/scripts/system/adaptors/nio/persistent_worker_starter.sh ${library_path} null ${cp} ${debug} ${worker_working_dir} ${tasks_per_node} 5 5 $node${network} 43001 43000 ${tracing} ${hostid} ${worker_install_dir} ${uuid}"
+      MPI_CMD=$MPI_CMD" : -n 1 -H $node ${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh ${library_path} null ${cp} ${debug} ${worker_working_dir} ${tasks_per_node} 5 5 $node${network} 43001 43000 ${tracing} ${hostid} ${worker_install_dir} ${uuid}"
       hostid=$((hostid+1))
     done
   fi

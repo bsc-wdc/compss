@@ -20,7 +20,7 @@
   
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
-  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project.xml
+  sed -i '/<InstallDir>/c<InstallDir>'${COMPSS_HOME}'<\/InstallDir>' ${base_app_dir}/project.xml
   
   #----------------------------------------------------------------------------------
   # Create all working dir folders
@@ -42,7 +42,7 @@
      --debug \
      --comm=$comm \
      -tg \
-     --scheduler=integratedtoolkit.scheduler.lifoScheduler.LIFOScheduler \
+     --scheduler=es.bsc.compss.scheduler.lifoScheduler.LIFOScheduler \
      ${runcompss_opts} \
      --classpath=${base_app_dir}/schedulerLifo.jar \
      schedulerLifo.Main ${TASK_WIDTH} ${TASK_DEPTH} ${TASK_CHILDS} ${INIT_VALUE} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)

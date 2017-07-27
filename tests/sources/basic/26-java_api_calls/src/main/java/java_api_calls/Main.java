@@ -1,6 +1,6 @@
 package java_api_calls;
 
-import integratedtoolkit.api.COMPSs;
+import es.bsc.compss.api.COMPSs;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;

@@ -34,7 +34,7 @@
         </Capabilities>
         <Requirements/>
         <Adaptors>
-            <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
+            <Adaptor name="es.bsc.compss.nio.master.NIOAdaptor">
                 <MinPort>43001</MinPort>
                 <MaxPort>43002</MaxPort>
             </Adaptor>
@@ -77,7 +77,7 @@
         </Capabilities>
         <Requirements/>
         <Adaptors>
-            <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
+            <Adaptor name="es.bsc.compss.nio.master.NIOAdaptor">
                 <MinPort>43003</MinPort>
                 <MaxPort>43004</MaxPort>
             </Adaptor>
@@ -120,7 +120,7 @@
         </Capabilities>
         <Requirements/>
         <Adaptors>
-            <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
+            <Adaptor name="es.bsc.compss.nio.master.NIOAdaptor">
                 <MinPort>43005</MinPort>
                 <MaxPort>43006</MaxPort>
             </Adaptor>
@@ -163,7 +163,7 @@
         </Capabilities>
         <Requirements/>
         <Adaptors>
-            <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
+            <Adaptor name="es.bsc.compss.nio.master.NIOAdaptor">
                 <MinPort>43007</MinPort>
                 <MaxPort>43008</MaxPort>
             </Adaptor>
@@ -178,14 +178,14 @@
 
     <CloudProvider name="BSC">
         <Server>https://bscgrid20:11443/</Server>
-        <Connector>integratedtoolkit.connectors.test.Test</Connector>
+        <Connector>es.bsc.compss.connectors.test.Test</Connector>
         <ImageList>
             <Image name="uuid_test_XX_unstable_XX">
                 <Architecture>amd64</Architecture>
                 <OSType>Linux</OSType>
                 <ApplicationSoftware><Software>Hmmer</Software></ApplicationSoftware>
                 <Adaptors>
-                    <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
+                    <Adaptor name="es.bsc.compss.nio.master.NIOAdaptor">
                         <MinPort>43100</MinPort>
                         <MaxPort>43110</MaxPort>
                     </Adaptor>
@@ -257,7 +257,7 @@
         </Capabilities>
         <Requirements/>
         <Adaptors>
-            <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
+            <Adaptor name="es.bsc.compss.nio.master.NIOAdaptor">
                 <MinPort>43009</MinPort>
                 <MaxPort>43010</MaxPort>
             </Adaptor>

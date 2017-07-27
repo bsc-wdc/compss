@@ -6,7 +6,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import integratedtoolkit.api.COMPSs;
+import es.bsc.compss.api.COMPSs;
 
 import binary.BINARY;
 import mpi.MPI;

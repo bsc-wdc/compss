@@ -7,7 +7,7 @@ import org.apache.logging.log4j.Logger;
 public class StorageObject implements StubItf {
 
     // Logger: According to Loggers.STORAGE
-    private static final Logger logger = LogManager.getLogger("integratedtoolkit.Storage");
+    private static final Logger logger = LogManager.getLogger("compss.Storage");
 
     private String id = null;
 

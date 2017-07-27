@@ -31,7 +31,7 @@ import storage.utils.Serializer;
 public final class StorageItf {
 
     // Logger According to Loggers.STORAGE
-    private static final Logger LOGGER = LogManager.getLogger("integratedtoolkit.Storage");
+    private static final Logger LOGGER = LogManager.getLogger("compss.Storage");
 
     // Error Messages
     private static final String ERROR_HOSTNAME = "ERROR: Cannot find localhost hostname";

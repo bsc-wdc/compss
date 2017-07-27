@@ -1,6 +1,6 @@
 package fileTransfer;
 
-import integratedtoolkit.types.annotations.task.Method;
+import es.bsc.compss.types.annotations.task.Method;
 
 
 public interface FaultToleranceItf {

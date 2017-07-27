@@ -69,7 +69,7 @@
 					<schemaDirectory>${basedir}</schemaDirectory>
 					<schemaFiles>project_schema.xsd</schemaFiles>
 					<generateDirectory>${basedir}/src/main/java/</generateDirectory>
-					<generatePackage>integratedtoolkit.types.project.jaxb</generatePackage>
+					<generatePackage>es.bsc.compss.types.project.jaxb</generatePackage>
 				</configuration>
 			</plugin>
 		</plugins>

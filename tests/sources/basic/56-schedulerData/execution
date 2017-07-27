@@ -20,7 +20,7 @@
   
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
-  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project.xml
+  sed -i '/<InstallDir>/c<InstallDir>'${COMPSS_HOME}'<\/InstallDir>' ${base_app_dir}/project.xml
   
   #----------------------------------------------------------------------------------
   # Create all working dir folders
@@ -43,7 +43,7 @@
      --comm=$comm \
      ${runcompss_opts} \
      -tg \
-     --scheduler=integratedtoolkit.scheduler.dataScheduler.DataScheduler \
+     --scheduler=es.bsc.compss.scheduler.dataScheduler.DataScheduler \
      --classpath=${base_app_dir}/schedulerData.jar \
      schedulerData.Main ${TASK_WIDTH} ${TASK_DEPTH} ${TASK_CHILDS} ${INIT_VALUE} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
   

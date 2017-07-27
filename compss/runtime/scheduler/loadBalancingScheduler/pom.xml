@@ -3,11 +3,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- GENERAL INFORMATION -->
-	<artifactId>compss-scheduler-loadBalancing</artifactId>
+	<artifactId>es.bsc.compss.scheduler-loadBalancing</artifactId>
 	<packaging>jar</packaging>
 	<parent>
 		<groupId>es.bsc.compss</groupId>
-		<artifactId>compss-scheduler</artifactId>
+		<artifactId>es.bsc.compss.scheduler</artifactId>
 <version>2.1.rc1706</version>
 		<relativePath>..</relativePath>
 	</parent>
@@ -32,7 +32,7 @@
 	<dependencies>
         <dependency>
             <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-scheduler-ready</artifactId>
+            <artifactId>es.bsc.compss.scheduler-ready</artifactId>
             <version>${project.version}</version>
         </dependency>
 		<dependency>

@@ -33,7 +33,7 @@
 		<!-- Runtime dependencies -->
 		<dependency>
 			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-loader</artifactId>
+			<artifactId>es.bsc.compss.loader</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
@@ -43,7 +43,7 @@
 		</dependency>
 		<dependency>
 			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-scheduler-commons</artifactId>
+			<artifactId>es.bsc.compss.scheduler-commons</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 

@@ -83,7 +83,7 @@
   for scheduler in $schedulers; do
     cp $scheduler ${COMPSs_target}/Runtime/scheduler/
   done
-  rm -r ${COMPSs_target}/Runtime/scheduler/compss-scheduler-commons.jar
+  rm -r ${COMPSs_target}/Runtime/scheduler/es.bsc.compss.scheduler-commons.jar
 
   #Engine
   cp ${trunk_rel_path}/compss/runtime/compss-engine.jar ${COMPSs_target}/Runtime/

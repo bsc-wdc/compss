@@ -6,10 +6,10 @@
     <Console name="Console" target="SYSTEM_OUT">
       <PatternLayout pattern="[(%r) %6c{1}]  -  %m%n"/>
     </Console>
-    <File name="COMPSsRuntimeLog" fileName="${sys:it.appLogDir}/runtime.log" immediateFlush="false" append="false">
+    <File name="COMPSsRuntimeLog" fileName="${sys:compss.appLogDir}/runtime.log" immediateFlush="false" append="false">
       <PatternLayout pattern="[(%r)(%d) %19c{1}]    @%-15.15M  -  %m%n"/>
     </File>
-    <File name="COMPSsResourcesLog" fileName="${sys:it.appLogDir}/resources.log" immediateFlush="false" append="false">
+    <File name="COMPSsResourcesLog" fileName="${sys:compss.appLogDir}/resources.log" immediateFlush="false" append="false">
       <PatternLayout pattern="%m%n"/>
     </File>
   </Appenders>
@@ -21,129 +21,129 @@
     </Root>
 
     <!-- RUNTIME ROOT -->
-    <!-- Integratedtoolkit: DEFAULT = OFF -->
-    <Logger name="integratedtoolkit" additivity="FALSE" level="error">
+    <!-- es.bsc.compss: DEFAULT = OFF -->
+    <Logger name="es.bsc.compss" additivity="FALSE" level="error">
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
 
     <!-- COMMUNICATION -->
-    <!-- Integratedtoolkit.Communication: DEFAULT = ERROR -->
+    <!-- es.bsc.compss.Communication: DEFAULT = ERROR -->
     <Logger name="Communication" additivity="FALSE" level="error">
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
-    <Logger name="integratedtoolkit.Communication" additivity="FALSE" level="error">
+    <Logger name="es.bsc.compss.Communication" additivity="FALSE" level="error">
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
 
     <!-- RUNTIME LOADER -->
-    <!-- Integratedtoolkit.Loader: DEFAULT = ERROR -->
-    <Logger name="integratedtoolkit.Loader" additivity="FALSE" level="error">
+    <!-- es.bsc.compss.Loader: DEFAULT = ERROR -->
+    <Logger name="es.bsc.compss.Loader" additivity="FALSE" level="error">
       <AppenderRef ref="Console"/>
     </Logger>
-    <!-- Integratedtoolkit.LoaderUtils: DEFAULT = OFF -->
-    <Logger name="integratedtoolkit.LoaderUtils" additivity="FALSE" level="error">
+    <!-- es.bsc.compss.LoaderUtils: DEFAULT = OFF -->
+    <Logger name="es.bsc.compss.LoaderUtils" additivity="FALSE" level="error">
       <AppenderRef ref="Console"/>
     </Logger>
 
     <!-- RUNTIME API -->
-    <!-- Integratedtoolkit.API: DEFAULT = WARN -->
-    <Logger name="integratedtoolkit.API" additivity="FALSE" level="warn">
+    <!-- es.bsc.compss.API: DEFAULT = WARN -->
+    <Logger name="es.bsc.compss.API" additivity="FALSE" level="warn">
       <AppenderRef ref="Console"/>
     </Logger>
 
     <!-- PROJECT AND RESOURCES XML PARSERS -->
-    <!-- Integratedtoolkit.Xml: DEFAULT = OFF -->
-    <Logger name="integratedtoolkit.Xml" additivity="FALSE" level="off">
+    <!-- es.bsc.compss.Xml: DEFAULT = OFF -->
+    <Logger name="es.bsc.compss.Xml" additivity="FALSE" level="off">
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
-    <!-- Integratedtoolkit.Xml.Resources: DEFAULT = OFF -->
-    <Logger name="integratedtoolkit.Xml.Resources" additivity="FALSE" level="off">
+    <!-- es.bsc.compss.Xml.Resources: DEFAULT = OFF -->
+    <Logger name="es.bsc.compss.Xml.Resources" additivity="FALSE" level="off">
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
-    <!-- Integratedtoolkit.Xml.Project: DEFAULT = OFF -->
-    <Logger name="integratedtoolkit.Xml.Project" additivity="FALSE" level="off">
+    <!-- es.bsc.compss.Xml.Project: DEFAULT = OFF -->
+    <Logger name="es.bsc.compss.Xml.Project" additivity="FALSE" level="off">
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
 
     <!-- RUNTIME RESOURCES -->
-    <!-- Integratedtoolkit.Resources: DEFAULT = ERROR -->
-    <Logger name="integratedtoolkit.Resources" additivity="FALSE" level="error">
+    <!-- es.bsc.compss.Resources: DEFAULT = ERROR -->
+    <Logger name="es.bsc.compss.Resources" additivity="FALSE" level="error">
       <AppenderRef ref="COMPSsResourcesLog"/>
     </Logger>
 
     <!-- RUNTIME MAIN SUBCOMPONENTS -->
-    <!-- Integratedtoolkit.Components: DEFAULT = ERROR -->
-    <Logger name="integratedtoolkit.Components" additivity="FALSE" level="error">
+    <!-- es.bsc.compss.Components: DEFAULT = ERROR -->
+    <Logger name="es.bsc.compss.Components" additivity="FALSE" level="error">
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
-    <!-- Integratedtoolkit.Components.TaskProcessor: DEFAULT = ERROR -->
-    <Logger name="integratedtoolkit.Components.TaskProcessor" additivity="FALSE" level="error">
+    <!-- es.bsc.compss.Components.TaskProcessor: DEFAULT = ERROR -->
+    <Logger name="es.bsc.compss.Components.TaskProcessor" additivity="FALSE" level="error">
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
-    <!-- Integratedtoolkit.Components.TaskDispatcher: DEFAULT = ERROR -->
-    <Logger name="integratedtoolkit.Components.TaskDispatcher" additivity="FALSE" level="error">
+    <!-- es.bsc.compss.Components.TaskDispatcher: DEFAULT = ERROR -->
+    <Logger name="es.bsc.compss.Components.TaskDispatcher" additivity="FALSE" level="error">
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
-    <!-- Integratedtoolkit.Components.ResourceManager: DEFAULT = ERROR -->
-    <Logger name="integratedtoolkit.Components.ResourceManager" additivity="FALSE" level="error">
+    <!-- es.bsc.compss.Components.ResourceManager: DEFAULT = ERROR -->
+    <Logger name="es.bsc.compss.Components.ResourceManager" additivity="FALSE" level="error">
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
-    <!-- Integratedtoolkit.Components.CloudManager: DEFAULT = ERROR -->
-    <Logger name="integratedtoolkit.Components.CloudManager" additivity="FALSE" level="error">
+    <!-- es.bsc.compss.Components.CloudManager: DEFAULT = ERROR -->
+    <Logger name="es.bsc.compss.Components.CloudManager" additivity="FALSE" level="error">
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
-    <!-- Integratedtoolkit.Components.ErrorManager: DEFAULT = ERROR -->
-    <Logger name="integratedtoolkit.Components.ErrorManager" additivity="FALSE" level="error">
+    <!-- es.bsc.compss.Components.ErrorManager: DEFAULT = ERROR -->
+    <Logger name="es.bsc.compss.Components.ErrorManager" additivity="FALSE" level="error">
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
-    <!-- Integratedtoolkit.Components.Tracing: DEFAULT = ERROR -->
-    <Logger name="integratedtoolkit.Components.Tracing" additivity="FALSE" level="error">
+    <!-- es.bsc.compss.Components.Tracing: DEFAULT = ERROR -->
+    <Logger name="es.bsc.compss.Components.Tracing" additivity="FALSE" level="error">
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
 
     <!-- RUNTIME TASK PROCESSING SUBCOMPONENTS -->
-    <!-- Integratedtoolkit.Components.TaskProcessor.TaskAnalyser: DEFAULT = ERROR -->
-    <Logger name="integratedtoolkit.Components.TaskProcessor.TaskAnalyser" additivity="FALSE" level="error">
+    <!-- es.bsc.compss.Components.TaskProcessor.TaskAnalyser: DEFAULT = ERROR -->
+    <Logger name="es.bsc.compss.Components.TaskProcessor.TaskAnalyser" additivity="FALSE" level="error">
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
-    <!-- Integratedtoolkit.Components.TaskProcessor.DataInfoProvider: DEFAULT = ERROR -->
-    <Logger name="integratedtoolkit.Components.TaskProcessor.DataInfoProvider" additivity="FALSE" level="error">
+    <!-- es.bsc.compss.Components.TaskProcessor.DataInfoProvider: DEFAULT = ERROR -->
+    <Logger name="es.bsc.compss.Components.TaskProcessor.DataInfoProvider" additivity="FALSE" level="error">
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
 
     <!-- RUNTIME TASK DISPATCHER SUBCOMPONENTS -->
-    <!-- Integratedtoolkit.Components.TaskDispatcher.FileTransferManager: DEFAULT = ERROR -->
-    <Logger name="integratedtoolkit.Components.TaskDispatcher.TaskScheduler" additivity="FALSE" level="error">
+    <!-- es.bsc.compss.Components.TaskDispatcher.FileTransferManager: DEFAULT = ERROR -->
+    <Logger name="es.bsc.compss.Components.TaskDispatcher.TaskScheduler" additivity="FALSE" level="error">
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
-    <!-- Integratedtoolkit.Components.TaskDispatcher.FileTransferManager: DEFAULT = ERROR -->
-    <Logger name="integratedtoolkit.Components.TaskDispatcher.JobManager" additivity="FALSE" level="error">
+    <!-- es.bsc.compss.Components.TaskDispatcher.FileTransferManager: DEFAULT = ERROR -->
+    <Logger name="es.bsc.compss.Components.TaskDispatcher.JobManager" additivity="FALSE" level="error">
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
-    <!-- Integratedtoolkit.Components.TaskDispatcher.FileTransferManager: DEFAULT = ERROR -->
-    <Logger name="integratedtoolkit.Components.TaskDispatcher.FileTransferManager" additivity="FALSE" level="error">
+    <!-- es.bsc.compss.Components.TaskDispatcher.FileTransferManager: DEFAULT = ERROR -->
+    <Logger name="es.bsc.compss.Components.TaskDispatcher.FileTransferManager" additivity="FALSE" level="error">
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
 
     <!-- CONNECTORS -->
-    <!-- Integratedtoolkit.Connectors: DEFAULT = ERROR -->
-    <Logger name="integratedtoolkit.Connectors" additivity="FALSE" level="ERROR">
+    <!-- es.bsc.compss.Connectors: DEFAULT = ERROR -->
+    <Logger name="es.bsc.compss.Connectors" additivity="FALSE" level="ERROR">
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
-    <!-- Integratedtoolkit.ConnectorsUtils: DEFAULT = ERROR -->
-    <Logger name="integratedtoolkit.ConnectorsUtils" additivity="FALSE" level="ERROR">
+    <!-- es.bsc.compss.ConnectorsUtils: DEFAULT = ERROR -->
+    <Logger name="es.bsc.compss.ConnectorsUtils" additivity="FALSE" level="ERROR">
       <AppenderRef ref="COMPSsResourcesLog"/>
     </Logger>
 
     <!-- WORKER -->
-    <!-- Integratedtoolkit.Worker: DEFAULT = OFF -->
-    <Logger name="integratedtoolkit.Worker" additivity="FALSE" level="off">
+    <!-- es.bsc.compss.Worker: DEFAULT = OFF -->
+    <Logger name="es.bsc.compss.Worker" additivity="FALSE" level="off">
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
 
     <!-- STORAGE -->
-    <!-- Integratedtoolkit.Storage: DEFAULT = ERROR -->
-    <Logger name="integratedtoolkit.Storage" additivity="FALSE" level="error">
+    <!-- es.bsc.compss.Storage: DEFAULT = ERROR -->
+    <Logger name="es.bsc.compss.Storage" additivity="FALSE" level="error">
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
 

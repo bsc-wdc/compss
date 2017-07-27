@@ -21,7 +21,7 @@
             </Memory>
         </Capabilities>
         <Adaptors>
-            <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
+            <Adaptor name="es.bsc.compss.nio.master.NIOAdaptor">
                 <MinPort>43001</MinPort>
                 <MaxPort>43002</MaxPort>
             </Adaptor>

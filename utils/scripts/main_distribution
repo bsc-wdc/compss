@@ -232,7 +232,7 @@
     cat > $cfgFile << EOT
 user=$(whoami)
 target_base_dir=${log_folder}/tests/
-comm=integratedtoolkit.nio.master.NIOAdaptor
+comm=es.bsc.compss.nio.master.NIOAdaptor
 JAVA_HOME=${JAVA_HOME}
 EOT
     cd ${trunk_base}/tests/scripts/

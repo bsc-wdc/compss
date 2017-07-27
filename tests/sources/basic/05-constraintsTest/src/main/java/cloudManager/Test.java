@@ -1,17 +1,17 @@
 package cloudManager;
 
 import commons.ConstantValues;
-import integratedtoolkit.types.CloudProvider;
-import integratedtoolkit.types.implementations.Implementation;
-import integratedtoolkit.types.implementations.Implementation.TaskType;
-import integratedtoolkit.types.implementations.MethodImplementation;
-import integratedtoolkit.types.resources.MethodResourceDescription;
-import integratedtoolkit.types.resources.components.Processor;
-import integratedtoolkit.types.resources.description.CloudImageDescription;
-import integratedtoolkit.types.resources.description.CloudInstanceTypeDescription;
-import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
-import integratedtoolkit.util.CoreManager;
-import integratedtoolkit.util.ResourceManager;
+import es.bsc.compss.types.CloudProvider;
+import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.implementations.Implementation.TaskType;
+import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.components.Processor;
+import es.bsc.compss.types.resources.description.CloudImageDescription;
+import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
+import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
+import es.bsc.compss.util.CoreManager;
+import es.bsc.compss.util.ResourceManager;
 
 
 /*

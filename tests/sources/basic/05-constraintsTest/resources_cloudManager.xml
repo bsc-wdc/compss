@@ -11,7 +11,7 @@
 		<Images>
 			<Image Name="Image_Linux">
 				<Adaptors>
-					<Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+					<Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
 						<SubmissionSystem>
 							<Batch>
 								<Queue>sequential</Queue>
@@ -25,7 +25,7 @@
 							<MaxPort>43003</MaxPort>
 						</Ports>
 					</Adaptor>
-					<Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+					<Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
 						<SubmissionSystem>
 							<Batch>
 								<Queue>sequential</Queue>
@@ -55,7 +55,7 @@
 
 			<Image Name="Image_Windows">
 				<Adaptors>
-					<Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+					<Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
 						<SubmissionSystem>
 							<Batch>
 								<Queue>sequential</Queue>
@@ -68,7 +68,7 @@
 							<MaxPort>43003</MaxPort>
 						</Ports>
 					</Adaptor>
-					<Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+					<Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
 						<SubmissionSystem>
 							<Batch>
 								<Queue>sequential</Queue>
@@ -96,7 +96,7 @@
 			
 			<Image Name="Image_MacOS">
 				<Adaptors>
-					<Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+					<Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
 						<SubmissionSystem>
 							<Batch>
 								<Queue>another</Queue>
@@ -108,7 +108,7 @@
 							<MaxPort>43003</MaxPort>
 						</Ports>
 					</Adaptor>
-					<Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+					<Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
 						<SubmissionSystem>
 							<Batch>
 								<Queue>another</Queue>

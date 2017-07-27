@@ -1,17 +1,17 @@
 package commons;
 
-import integratedtoolkit.components.impl.ResourceScheduler;
-import integratedtoolkit.scheduler.exceptions.BlockedActionException;
-import integratedtoolkit.scheduler.exceptions.FailedActionException;
-import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
-import integratedtoolkit.scheduler.types.ActionOrchestrator;
-import integratedtoolkit.scheduler.types.AllocatableAction;
-import integratedtoolkit.scheduler.types.SchedulingInformation;
-import integratedtoolkit.scheduler.types.Score;
-import integratedtoolkit.types.implementations.Implementation;
-import integratedtoolkit.types.resources.Worker;
-import integratedtoolkit.types.resources.WorkerResourceDescription;
-import integratedtoolkit.util.CoreManager;
+import es.bsc.compss.components.impl.ResourceScheduler;
+import es.bsc.compss.scheduler.exceptions.BlockedActionException;
+import es.bsc.compss.scheduler.exceptions.FailedActionException;
+import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
+import es.bsc.compss.scheduler.types.ActionOrchestrator;
+import es.bsc.compss.scheduler.types.AllocatableAction;
+import es.bsc.compss.scheduler.types.SchedulingInformation;
+import es.bsc.compss.scheduler.types.Score;
+import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.resources.Worker;
+import es.bsc.compss.types.resources.WorkerResourceDescription;
+import es.bsc.compss.util.CoreManager;
 
 import java.util.HashMap;
 import java.util.LinkedList;

@@ -1,6 +1,6 @@
 package simpleTests;
 
-import integratedtoolkit.api.COMPSs;
+import es.bsc.compss.api.COMPSs;
 import utils.GenericObject;
 import utils.TasksImplementation;
 

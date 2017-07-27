@@ -1,11 +1,11 @@
 package testMPI;
 
-import integratedtoolkit.types.annotations.Constraints;
-import integratedtoolkit.types.annotations.Parameter;
-import integratedtoolkit.types.annotations.parameter.Direction;
-import integratedtoolkit.types.annotations.parameter.Stream;
-import integratedtoolkit.types.annotations.parameter.Type;
-import integratedtoolkit.types.annotations.task.MPI;
+import es.bsc.compss.types.annotations.Constraints;
+import es.bsc.compss.types.annotations.Parameter;
+import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.Type;
+import es.bsc.compss.types.annotations.task.MPI;
 
 
 public interface MainItf {

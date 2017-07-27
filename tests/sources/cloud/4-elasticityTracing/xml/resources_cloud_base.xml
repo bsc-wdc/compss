@@ -6,7 +6,7 @@
             <ComputingUnits>2</ComputingUnits>
         </Processor>
         <Adaptors>
-            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
                 <SubmissionSystem>
                     <Interactive/>
                 </SubmissionSystem>
@@ -15,7 +15,7 @@
                     <MaxPort>43002</MaxPort>
                 </Ports>
             </Adaptor>
-            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
                 <SubmissionSystem>
                     <Batch>
                         <Queue>sequential</Queue>
@@ -38,7 +38,7 @@
 			<Image Name="uuid_XX_compss_testing_XX">
 				<CreationTime>60</CreationTime>
 				<Adaptors>
-					<Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+					<Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
 						<SubmissionSystem>
 							<Interactive />
 						</SubmissionSystem>
@@ -47,7 +47,7 @@
 							<MaxPort>43110</MaxPort>
 						</Ports>
 					</Adaptor>
-					<Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+					<Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
 						<SubmissionSystem>
 							<Batch>
 								<Queue>sequential</Queue>

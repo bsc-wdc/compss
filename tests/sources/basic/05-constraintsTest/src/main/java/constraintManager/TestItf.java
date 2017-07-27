@@ -1,7 +1,7 @@
 package constraintManager;
 
-import integratedtoolkit.types.annotations.Constraints;
-import integratedtoolkit.types.annotations.task.Method;
+import es.bsc.compss.types.annotations.Constraints;
+import es.bsc.compss.types.annotations.task.Method;
 
 
 public interface TestItf {

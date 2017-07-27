@@ -26,7 +26,7 @@
   # Check that task-bindings events are present and the # is correct
 
   # GAT does not support task tracing
-  if [ "${comm}" != "integratedtoolkit.gat.master.GATAdaptor" ]; then
+  if [ "${comm}" != "es.bsc.compss.gat.master.GATAdaptor" ]; then
 
       evts_tasks=$(grep -c ":${TASK_EVENTS}:[1-9][0-9]*" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
       evts_tasks_end=$(grep -c "${TASK_EVENTS}:0" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)

@@ -267,7 +267,7 @@ mvn -U clean install                         #Compiles all the application's sou
 1. Create your configuration file named WhatEver.cfg
     !!! ATTENTION:   a) Only use the following variables:
                          target_base_dir        OPTIONAL
-                         IT_HOME                OPTIONAL
+                         COMPSS_HOME                OPTIONAL
                          JAVA_HOME              MANDATORY
                      b) Be sure that your configuration defines only this variables.
     !!! It's recommended to base your new configuration file in an already existing one (local.cfg)
@@ -280,7 +280,7 @@ mvn -U clean install                         #Compiles all the application's sou
 1. Create your configuration file named WhatEver.cfg
     !!! ATTENTION:   a) Only use the following variables:
                          target_base_dir        OPTIONAL
-                         IT_HOME                OPTIONAL
+                         COMPSS_HOME                OPTIONAL
                          JAVA_HOME              MANDATORY
                          java_apps              OPTIONAL
                      b) Be sure that your configuration defines only this variables.
@@ -296,7 +296,7 @@ mvn -U clean install                         #Compiles all the application's sou
                          user                   OPTIONAL
                          bscgrid20_user         OPTIONAL
                          target_base_dir        OPTIONAL
-                         IT_HOME                OPTIONAL
+                         COMPSS_HOME                OPTIONAL
                          connector_server       OPTIONAL
                          connector_class        OPTIONAL
                          JAVA_HOME              MANDATORY
@@ -313,7 +313,7 @@ mvn -U clean install                         #Compiles all the application's sou
                          user                   OPTIONAL
                          target_base_dir        OPTIONAL
                          logs_location          OPTIONAL
-                         IT_HOME                OPTIONAL
+                         COMPSS_HOME                OPTIONAL
                          connector_server       OPTIONAL
                          connector_class        OPTIONAL
                          JAVA_HOME              MANDATORY

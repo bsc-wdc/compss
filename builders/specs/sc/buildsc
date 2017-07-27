@@ -98,7 +98,7 @@
   for scheduler in $schedulers; do
     cp $scheduler ${COMPSs_target}/Runtime/scheduler/
   done
-  rm ${COMPSs_target}/Runtime/scheduler/compss-scheduler-commons.jar
+  rm ${COMPSs_target}/Runtime/scheduler/es.bsc.compss.scheduler-commons.jar
 
   #Connectors
   echo "--- Copy Runtime Connectors"

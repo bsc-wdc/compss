@@ -1,11 +1,11 @@
 package multiProcessor;
 
-import integratedtoolkit.types.annotations.Constraints;
-import integratedtoolkit.types.annotations.Parameter;
-import integratedtoolkit.types.annotations.parameter.Type;
-import integratedtoolkit.types.annotations.parameter.Direction;
-import integratedtoolkit.types.annotations.Processor;
-import integratedtoolkit.types.annotations.task.Method;
+import es.bsc.compss.types.annotations.Constraints;
+import es.bsc.compss.types.annotations.Parameter;
+import es.bsc.compss.types.annotations.parameter.Type;
+import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.Processor;
+import es.bsc.compss.types.annotations.task.Method;
 
 
 public interface TestAvailableItf {

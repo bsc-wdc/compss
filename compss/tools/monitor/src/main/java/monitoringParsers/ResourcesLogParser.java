@@ -8,10 +8,10 @@ import java.util.Vector;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.bsc.compss.commons.Loggers;
-import com.bsc.compss.ui.Constants;
-import com.bsc.compss.ui.Properties;
-import com.bsc.compss.ui.StateData;
+import es.bsc.compss.commons.Loggers;
+import es.bsc.compss.ui.Constants;
+import es.bsc.compss.ui.Properties;
+import es.bsc.compss.ui.StateData;
 
 
 public class ResourcesLogParser {

@@ -7,7 +7,7 @@
     <packaging>jar</packaging>
     <parent>
         <groupId>es.bsc.compss</groupId>
-        <artifactId>compss-connectors-default</artifactId>
+        <artifactId>es.bsc.compss.connectors-default</artifactId>
         <version>2.1.rc1706</version>
         <relativePath>..</relativePath>
     </parent>

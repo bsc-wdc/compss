@@ -120,14 +120,23 @@ def compss_delete_object(obj):
     obj_id = get_object_id(obj, False, False)
     if obj_id is None:
         return False
-    id2obj.pop(obj_id)
-    file_name = objid_to_filename[obj_id]
-    objid_to_filename.pop(obj_id)
+    try:
+        id2obj.pop(obj_id)
+    except:
+        pass
+    try:
+        file_name = objid_to_filename[obj_id]
+        compss.delete_file(file_name)
+    except:
+        pass
+    try:
+        objid_to_filename.pop(obj_id)
+    except:
+        pass
     try:
         pending_to_synchronize.pop(obj_id)
     except:
         pass
-    compss.delete_file(file_name)
     return True
 ##############
 # DEPRECATED #

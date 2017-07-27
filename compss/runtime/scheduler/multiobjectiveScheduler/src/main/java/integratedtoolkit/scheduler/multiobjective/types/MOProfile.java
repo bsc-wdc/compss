@@ -7,7 +7,6 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-
 public class MOProfile extends Profile {
 
     private static final double DEFAULT_PRICE = 0;
@@ -15,7 +14,6 @@ public class MOProfile extends Profile {
 
     private double power;
     private double price;
-
 
     public MOProfile() {
         super();
@@ -74,6 +72,26 @@ public class MOProfile extends Profile {
     }
 
     @Override
+    public JSONObject updateJSON(JSONObject jo) {
+        JSONObject difference = super.updateJSON(jo);
+        
+        double diff = this.power;
+        if (jo.has("power")) {
+            diff -= jo.getDouble("power");
+        }
+        difference.put("power", diff);
+        jo.put("power", this.power);
+
+        diff = this.price;
+        if (jo.has("price")) {
+            diff -= jo.getDouble("price");
+        }
+        difference.put("price", diff);
+        jo.put("price", this.price);
+        return difference;
+    }
+
+    @Override
     public Profile copy() {
         return new MOProfile(this);
     }
@@ -88,12 +106,10 @@ public class MOProfile extends Profile {
         return super.getContent() + " power=" + power + " price=" + price;
     }
 
-
     public static class Builder extends Profile.Builder {
 
         private double power = DEFAULT_POWER;
         private double price = DEFAULT_PRICE;
-
 
         public Builder() {
             super();

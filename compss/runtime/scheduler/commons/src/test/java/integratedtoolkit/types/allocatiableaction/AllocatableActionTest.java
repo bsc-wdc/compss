@@ -32,7 +32,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-
 public class AllocatableActionTest {
 
     private static MethodResourceDescription description;
@@ -47,7 +46,6 @@ public class AllocatableActionTest {
 
         }
     };
-
 
     @BeforeClass
     public static void setUpClass() {
@@ -68,7 +66,7 @@ public class AllocatableActionTest {
         ts.setOrchestrator(fao);
 
         // Resource Scheduler
-        rs = new FakeResourceScheduler(new FakeWorker(description, maxSlots), null);
+        rs = new FakeResourceScheduler(new FakeWorker(description, maxSlots), null, null);
     }
 
     @AfterClass
@@ -96,7 +94,7 @@ public class AllocatableActionTest {
         instance.assignResource(rs);
         instance.tryToLaunch();
         // Check if it was executed
-        checkExecutions(new int[] { 1 });
+        checkExecutions(new int[]{1});
     }
 
     /**
@@ -132,7 +130,7 @@ public class AllocatableActionTest {
             instance3.assignResource(rs);
             instance0.tryToLaunch();
             completed(instance0);
-            checkExecutions(new int[] { 1, 0, 0, 0 });
+            checkExecutions(new int[]{1, 0, 0, 0});
         } catch (Exception e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -154,7 +152,7 @@ public class AllocatableActionTest {
             instance1.addDataPredecessor(instance0);
             instance0.tryToLaunch();
             completed(instance0);
-            checkExecutions(new int[] { 1, 1, 0, 0 });
+            checkExecutions(new int[]{1, 1, 0, 0});
         } catch (Throwable e) {
             e.printStackTrace(System.out);
             fail(e.getMessage());
@@ -176,7 +174,7 @@ public class AllocatableActionTest {
             addResourceDependency(instance0, instance1);
             instance0.tryToLaunch();
             completed(instance0);
-            checkExecutions(new int[] { 1, 1, 0, 0 });
+            checkExecutions(new int[]{1, 1, 0, 0});
         } catch (Throwable e) {
             e.printStackTrace(System.out);
             fail(e.getMessage());
@@ -199,7 +197,7 @@ public class AllocatableActionTest {
             instance2.addDataPredecessor(instance0);
             instance0.tryToLaunch();
             completed(instance0);
-            checkExecutions(new int[] { 1, 1, 1, 0 });
+            checkExecutions(new int[]{1, 1, 1, 0});
         } catch (Throwable e) {
             e.printStackTrace(System.out);
             fail(e.getMessage());
@@ -222,7 +220,7 @@ public class AllocatableActionTest {
             addResourceDependency(instance0, instance2);
             instance0.tryToLaunch();
             completed(instance0);
-            checkExecutions(new int[] { 1, 1, 1, 0 });
+            checkExecutions(new int[]{1, 1, 1, 0});
         } catch (Throwable e) {
             e.printStackTrace(System.out);
             fail(e.getMessage());
@@ -245,7 +243,7 @@ public class AllocatableActionTest {
             addResourceDependency(instance0, instance2);
             instance0.tryToLaunch();
             completed(instance0);
-            checkExecutions(new int[] { 1, 1, 1, 0 });
+            checkExecutions(new int[]{1, 1, 1, 0});
         } catch (Throwable e) {
             e.printStackTrace(System.out);
             fail(e.getMessage());
@@ -268,7 +266,7 @@ public class AllocatableActionTest {
             addResourceDependency(instance0, instance2);
             instance0.tryToLaunch();
             completed(instance0);
-            checkExecutions(new int[] { 1, 1, 1, 0 });
+            checkExecutions(new int[]{1, 1, 1, 0});
         } catch (Throwable e) {
             e.printStackTrace(System.out);
             fail(e.getMessage());
@@ -291,10 +289,10 @@ public class AllocatableActionTest {
             instance2.addDataPredecessor(instance1);
             instance0.tryToLaunch();
             completed(instance0);
-            checkExecutions(new int[] { 1, 0, 0, 0 });
+            checkExecutions(new int[]{1, 0, 0, 0});
             instance1.tryToLaunch();
             completed(instance1);
-            checkExecutions(new int[] { 1, 1, 1, 0 });
+            checkExecutions(new int[]{1, 1, 1, 0});
         } catch (Throwable e) {
             e.printStackTrace(System.out);
             fail(e.getMessage());
@@ -317,10 +315,10 @@ public class AllocatableActionTest {
             addResourceDependency(instance1, instance2);
             instance0.tryToLaunch();
             completed(instance0);
-            checkExecutions(new int[] { 1, 0, 0, 0 });
+            checkExecutions(new int[]{1, 0, 0, 0});
             instance1.tryToLaunch();
             completed(instance1);
-            checkExecutions(new int[] { 1, 1, 1, 0 });
+            checkExecutions(new int[]{1, 1, 1, 0});
         } catch (Throwable e) {
             e.printStackTrace(System.out);
             fail(e.getMessage());
@@ -343,10 +341,10 @@ public class AllocatableActionTest {
             addResourceDependency(instance1, instance2);
             instance0.tryToLaunch();
             completed(instance0);
-            checkExecutions(new int[] { 1, 0, 0, 0 });
+            checkExecutions(new int[]{1, 0, 0, 0});
             instance1.tryToLaunch();
             completed(instance1);
-            checkExecutions(new int[] { 1, 1, 1, 0 });
+            checkExecutions(new int[]{1, 1, 1, 0});
         } catch (Throwable e) {
             e.printStackTrace(System.out);
             fail(e.getMessage());
@@ -369,10 +367,10 @@ public class AllocatableActionTest {
             instance2.addDataPredecessor(instance1);
             instance0.tryToLaunch();
             completed(instance0);
-            checkExecutions(new int[] { 1, 0, 0, 0 });
+            checkExecutions(new int[]{1, 0, 0, 0});
             instance1.tryToLaunch();
             completed(instance1);
-            checkExecutions(new int[] { 1, 1, 1, 0 });
+            checkExecutions(new int[]{1, 1, 1, 0});
         } catch (Throwable e) {
             e.printStackTrace(System.out);
             fail(e.getMessage());
@@ -422,21 +420,21 @@ public class AllocatableActionTest {
 
             task1.tryToLaunch();
             task2.tryToLaunch();
-            checkExecutions(new int[] { 1, 1, 0, 0, 0, 0, 0 });
+            checkExecutions(new int[]{1, 1, 0, 0, 0, 0, 0});
             completed(task1);
-            checkExecutions(new int[] { 1, 1, 1, 0, 0, 0, 0 });
+            checkExecutions(new int[]{1, 1, 1, 0, 0, 0, 0});
             completed(task2);
-            checkExecutions(new int[] { 1, 1, 1, 0, 0, 0, 0 });
+            checkExecutions(new int[]{1, 1, 1, 0, 0, 0, 0});
             completed(task3);
-            checkExecutions(new int[] { 1, 1, 1, 1, 0, 0, 0 });
+            checkExecutions(new int[]{1, 1, 1, 1, 0, 0, 0});
             completed(task4);
-            checkExecutions(new int[] { 1, 1, 1, 1, 1, 1, 0 });
+            checkExecutions(new int[]{1, 1, 1, 1, 1, 1, 0});
             completed(task5);
-            checkExecutions(new int[] { 1, 1, 1, 1, 1, 1, 0 });
+            checkExecutions(new int[]{1, 1, 1, 1, 1, 1, 0});
             completed(task6);
-            checkExecutions(new int[] { 1, 1, 1, 1, 1, 1, 1 });
+            checkExecutions(new int[]{1, 1, 1, 1, 1, 1, 1});
             completed(task7);
-            checkExecutions(new int[] { 1, 1, 1, 1, 1, 1, 1 });
+            checkExecutions(new int[]{1, 1, 1, 1, 1, 1, 1});
         } catch (Throwable e) {
             e.printStackTrace(System.out);
             fail(e.getMessage());
@@ -462,9 +460,9 @@ public class AllocatableActionTest {
             instance1.assignResource(rs);
             instance0.tryToLaunch();
             error(instance0);
-            checkExecutions(new int[] { 1, 0 });
-            checkErrors(new int[] { 1, 0 });
-            checkFailed(new int[] { 0, 0 });
+            checkExecutions(new int[]{1, 0});
+            checkErrors(new int[]{1, 0});
+            checkFailed(new int[]{0, 0});
         } catch (Throwable e) {
             e.printStackTrace(System.out);
             fail(e.getMessage());
@@ -481,16 +479,16 @@ public class AllocatableActionTest {
             instance1.assignResource(rs);
             instance0.tryToLaunch();
             error(instance0);
-            checkExecutions(new int[] { 1, 0 });
-            checkErrors(new int[] { 1, 0 });
-            checkFailed(new int[] { 0, 0 });
+            checkExecutions(new int[]{1, 0});
+            checkErrors(new int[]{1, 0});
+            checkFailed(new int[]{0, 0});
 
             instance0.assignResource(rs);
             instance0.tryToLaunch();
             error(instance0);
-            checkExecutions(new int[] { 2, 0 });
-            checkErrors(new int[] { 2, 0 });
-            checkFailed(new int[] { 1, 0 });
+            checkExecutions(new int[]{2, 0});
+            checkErrors(new int[]{2, 0});
+            checkFailed(new int[]{1, 0});
         } catch (Throwable e) {
             e.printStackTrace(System.out);
             fail(e.getMessage());
@@ -516,25 +514,25 @@ public class AllocatableActionTest {
             addResourceDependency(instance0, instance2);
             addResourceDependency(instance0, instance3);
             instance0.tryToLaunch();
-            checkExecutions(new int[] { 1, 0, 0, 0 });
-            checkErrors(new int[] { 0, 0, 0, 0 });
-            checkFailed(new int[] { 0, 0, 0, 0 });
+            checkExecutions(new int[]{1, 0, 0, 0});
+            checkErrors(new int[]{0, 0, 0, 0});
+            checkFailed(new int[]{0, 0, 0, 0});
             error(instance0);
-            checkExecutions(new int[] { 1, 0, 0, 1 });
-            checkErrors(new int[] { 1, 0, 0, 0 });
-            checkFailed(new int[] { 0, 0, 0, 0 });
+            checkExecutions(new int[]{1, 0, 0, 1});
+            checkErrors(new int[]{1, 0, 0, 0});
+            checkFailed(new int[]{0, 0, 0, 0});
 
             instance0.assignResource(rs);
             addResourceDependency(instance3, instance0);
             completed(instance3);
-            checkExecutions(new int[] { 2, 0, 0, 1 });
-            checkErrors(new int[] { 1, 0, 0, 0 });
-            checkFailed(new int[] { 0, 0, 0, 0 });
+            checkExecutions(new int[]{2, 0, 0, 1});
+            checkErrors(new int[]{1, 0, 0, 0});
+            checkFailed(new int[]{0, 0, 0, 0});
 
             completed(instance0);
-            checkExecutions(new int[] { 2, 1, 1, 1 });
-            checkErrors(new int[] { 1, 0, 0, 0 });
-            checkFailed(new int[] { 0, 0, 0, 0 });
+            checkExecutions(new int[]{2, 1, 1, 1});
+            checkErrors(new int[]{1, 0, 0, 0});
+            checkFailed(new int[]{0, 0, 0, 0});
 
         } catch (Throwable e) {
             e.printStackTrace(System.out);
@@ -560,28 +558,28 @@ public class AllocatableActionTest {
             addResourceDependency(instance1, instance2);
             addResourceDependency(instance2, instance3);
             instance0.tryToLaunch();
-            checkExecutions(new int[] { 1, 0, 0, 0 });
-            checkErrors(new int[] { 0, 0, 0, 0 });
-            checkFailed(new int[] { 0, 0, 0, 0 });
+            checkExecutions(new int[]{1, 0, 0, 0});
+            checkErrors(new int[]{0, 0, 0, 0});
+            checkFailed(new int[]{0, 0, 0, 0});
             error(instance0);
-            checkExecutions(new int[] { 1, 1, 0, 0 });
-            checkErrors(new int[] { 1, 0, 0, 0 });
-            checkFailed(new int[] { 0, 0, 0, 0 });
+            checkExecutions(new int[]{1, 1, 0, 0});
+            checkErrors(new int[]{1, 0, 0, 0});
+            checkFailed(new int[]{0, 0, 0, 0});
 
             instance0.assignResource(rs);
             instance0.tryToLaunch();
-            checkExecutions(new int[] { 2, 1, 0, 0 });
-            checkErrors(new int[] { 1, 0, 0, 0 });
-            checkFailed(new int[] { 0, 0, 0, 0 });
+            checkExecutions(new int[]{2, 1, 0, 0});
+            checkErrors(new int[]{1, 0, 0, 0});
+            checkFailed(new int[]{0, 0, 0, 0});
 
             error(instance0);
-            checkExecutions(new int[] { 2, 1, 0, 0 });
-            checkErrors(new int[] { 2, 0, 0, 0 });
-            checkFailed(new int[] { 1, 0, 1, 0 });
+            checkExecutions(new int[]{2, 1, 0, 0});
+            checkErrors(new int[]{2, 0, 0, 0});
+            checkFailed(new int[]{1, 0, 1, 0});
             completed(instance1);
-            checkExecutions(new int[] { 2, 1, 0, 1 });
-            checkErrors(new int[] { 2, 0, 0, 0 });
-            checkFailed(new int[] { 1, 0, 1, 0 });
+            checkExecutions(new int[]{2, 1, 0, 1});
+            checkErrors(new int[]{2, 0, 0, 0});
+            checkFailed(new int[]{1, 0, 1, 0});
         } catch (Throwable e) {
             e.printStackTrace(System.out);
             fail(e.getMessage());
@@ -616,30 +614,30 @@ public class AllocatableActionTest {
             addResourceDependency(instance3, instance4);
             addResourceDependency(instance3, instance5);
             instance0.tryToLaunch();
-            checkExecutions(new int[] { 1, 0, 0, 0, 0, 0 });
-            checkErrors(new int[] { 0, 0, 0, 0, 0, 0 });
-            checkFailed(new int[] { 0, 0, 0, 0, 0, 0 });
+            checkExecutions(new int[]{1, 0, 0, 0, 0, 0});
+            checkErrors(new int[]{0, 0, 0, 0, 0, 0});
+            checkFailed(new int[]{0, 0, 0, 0, 0, 0});
             error(instance0);
-            checkExecutions(new int[] { 1, 1, 1, 0, 0, 0 });
-            checkErrors(new int[] { 1, 0, 0, 0, 0, 0 });
-            checkFailed(new int[] { 0, 0, 0, 0, 0, 0 });
+            checkExecutions(new int[]{1, 1, 1, 0, 0, 0});
+            checkErrors(new int[]{1, 0, 0, 0, 0, 0});
+            checkFailed(new int[]{0, 0, 0, 0, 0, 0});
             instance0.assignResource(rs);
             instance0.tryToLaunch();
-            checkExecutions(new int[] { 2, 1, 1, 0, 0, 0 });
-            checkErrors(new int[] { 1, 0, 0, 0, 0, 0 });
-            checkFailed(new int[] { 0, 0, 0, 0, 0, 0 });
+            checkExecutions(new int[]{2, 1, 1, 0, 0, 0});
+            checkErrors(new int[]{1, 0, 0, 0, 0, 0});
+            checkFailed(new int[]{0, 0, 0, 0, 0, 0});
             error(instance0);
-            checkExecutions(new int[] { 2, 1, 1, 0, 0, 0 });
-            checkErrors(new int[] { 2, 0, 0, 0, 0, 0 });
-            checkFailed(new int[] { 1, 0, 0, 1, 0, 0 });
+            checkExecutions(new int[]{2, 1, 1, 0, 0, 0});
+            checkErrors(new int[]{2, 0, 0, 0, 0, 0});
+            checkFailed(new int[]{1, 0, 0, 1, 0, 0});
             completed(instance1);
-            checkExecutions(new int[] { 2, 1, 1, 0, 0, 0 });
-            checkErrors(new int[] { 2, 0, 0, 0, 0, 0 });
-            checkFailed(new int[] { 1, 0, 0, 1, 0, 0 });
+            checkExecutions(new int[]{2, 1, 1, 0, 0, 0});
+            checkErrors(new int[]{2, 0, 0, 0, 0, 0});
+            checkFailed(new int[]{1, 0, 0, 1, 0, 0});
             completed(instance2);
-            checkExecutions(new int[] { 2, 1, 1, 0, 1, 1 });
-            checkErrors(new int[] { 2, 0, 0, 0, 0, 0 });
-            checkFailed(new int[] { 1, 0, 0, 1, 0, 0 });
+            checkExecutions(new int[]{2, 1, 1, 0, 1, 1});
+            checkErrors(new int[]{2, 0, 0, 0, 0, 0});
+            checkFailed(new int[]{1, 0, 0, 1, 0, 0});
         } catch (Throwable e) {
             e.printStackTrace(System.out);
             fail(e.getMessage());

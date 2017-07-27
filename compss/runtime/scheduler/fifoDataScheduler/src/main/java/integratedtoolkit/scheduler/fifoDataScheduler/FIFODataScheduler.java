@@ -15,9 +15,9 @@ import java.util.PriorityQueue;
 
 import org.json.JSONObject;
 
-
 /**
- * Representation of a Scheduler that considers only ready tasks and sorts them in FIFO mode + data locality
+ * Representation of a Scheduler that considers only ready tasks and sorts them
+ * in FIFO mode + data locality
  *
  */
 public class FIFODataScheduler extends ReadyScheduler {
@@ -38,9 +38,9 @@ public class FIFODataScheduler extends ReadyScheduler {
      * *********************************************************************************************************
      */
     @Override
-    public <T extends WorkerResourceDescription> FIFODataResourceScheduler<T> generateSchedulerForResource(Worker<T> w, JSONObject json) {
+    public <T extends WorkerResourceDescription> FIFODataResourceScheduler<T> generateSchedulerForResource(Worker<T> w, JSONObject resJSON, JSONObject implJSON) {
         // LOGGER.debug("[FIFODataScheduler] Generate scheduler for resource " + w.getName());
-        return new FIFODataResourceScheduler<>(w, json);
+        return new FIFODataResourceScheduler<>(w, resJSON, implJSON);
     }
 
     @Override

@@ -9,17 +9,16 @@ import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import org.json.JSONObject;
 
-
 public class DataResourceScheduler<T extends WorkerResourceDescription> extends ReadyResourceScheduler<T> {
 
     /**
      * New ready resource scheduler instance
      *
      * @param w
-     * @param json
+     * @param resJSON
      */
-    public DataResourceScheduler(Worker<T> w, JSONObject json) {
-        super(w, json);
+    public DataResourceScheduler(Worker<T> w, JSONObject resJSON, JSONObject implJSON) {
+        super(w, resJSON, implJSON);
     }
 
     /*

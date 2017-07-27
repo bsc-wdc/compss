@@ -44,9 +44,9 @@ public class MOScheduleOptimizer extends SchedulingOptimizer<MOScheduler> {
         while (!stop) {
             long optimizationTS = System.currentTimeMillis();
             Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers = scheduler.getWorkers();
-            // globalOptimization(optimizationTS, workers);
+            globalOptimization(optimizationTS, workers);
             lastUpdate = optimizationTS;
-            // waitForNextIteration(lastUpdate);
+            waitForNextIteration(lastUpdate);
         }
         sem.release();
     }
@@ -62,15 +62,16 @@ public class MOScheduleOptimizer extends SchedulingOptimizer<MOScheduler> {
         }
     }
 
-    // private void waitForNextIteration(long lastUpdate) {
-    // long difference = OPTIMIZATION_THRESHOLD - (System.currentTimeMillis() - lastUpdate);
-    // if (difference > 0) {
-    // try {
-    // Thread.sleep(difference);
-    // } catch (InterruptedException ie) {
-    // Thread.currentThread.interrupt();
-    // }
-    // }
+    private void waitForNextIteration(long lastUpdate) {
+        long difference = OPTIMIZATION_THRESHOLD - (System.currentTimeMillis() - lastUpdate);
+        if (difference > 0) {
+            try {
+                Thread.sleep(difference);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
 
     /*--------------------------------------------------
      ---------------------------------------------------
@@ -78,8 +79,7 @@ public class MOScheduleOptimizer extends SchedulingOptimizer<MOScheduler> {
      ---------------------------------------------------
      --------------------------------------------------*/
     @SuppressWarnings("unchecked")
-    public void globalOptimization(long optimizationTS, Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers
-    ) {
+    public void globalOptimization(long optimizationTS, Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers) {
         int workersCount = workers.size();
         if (workersCount == 0) {
             return;
@@ -202,7 +202,7 @@ public class MOScheduleOptimizer extends SchedulingOptimizer<MOScheduler> {
     }
 
     private boolean move(AllocatableAction action, OptimizationWorker donor, OptimizationWorker receiver) {
-        System.out.println("Trying to move " + action + " from " + donor + " to " + "receiver");
+        System.out.println("Trying to move " + action + " from " + donor.getName() + " to " + receiver.getName());
         List<AllocatableAction> dataPreds = action.getDataPredecessors();
         long dataAvailable = 0;
         try {

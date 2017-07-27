@@ -65,12 +65,12 @@ public class CloudInstanceTypeDescription {
         return this.slotsImpl.length;
     }
 
-    public int[] getSpecificSlotsImpl(int i) {
-        return this.slotsImpl[i];
+    public int[] getSpecificSlotsImpl(int coreId) {
+        return this.slotsImpl[coreId];
     }
 
-    public int getSpecificSlotsImpl(int i, int j) {
-        return this.slotsImpl[i][j];
+    public int getSpecificSlotsImpl(int coreId, int implId) {
+        return this.slotsImpl[coreId][implId];
     }
 
     public void setSlotsImpl(int[][] slotsImpl) {

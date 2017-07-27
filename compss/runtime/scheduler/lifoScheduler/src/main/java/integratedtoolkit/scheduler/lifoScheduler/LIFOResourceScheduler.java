@@ -15,10 +15,11 @@ public class LIFOResourceScheduler<T extends WorkerResourceDescription> extends 
      * New ready resource scheduler instance
      *
      * @param w
-     * @param json
+     * @param resJSON
+     * @param implJSON
      */
-    public LIFOResourceScheduler(Worker<T> w, JSONObject json) {
-        super(w, json);
+    public LIFOResourceScheduler(Worker<T> w, JSONObject resJSON, JSONObject implJSON) {
+        super(w, resJSON, implJSON);
     }
 
     /*

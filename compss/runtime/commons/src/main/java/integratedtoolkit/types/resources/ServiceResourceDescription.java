@@ -88,6 +88,11 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
     }
 
     @Override
+    public boolean isDynamicConsuming() {
+        return connections > 0;
+    }
+
+    @Override
     public String toString() {
         return "[SERVICE " + "NAMESPACE=" + this.namespace + " " + "SERVICE_NAME=" + this.getServiceName() + " " + "PORT=" + this.port + " "
                 + "CONNECTIONS=" + this.connections + "]";

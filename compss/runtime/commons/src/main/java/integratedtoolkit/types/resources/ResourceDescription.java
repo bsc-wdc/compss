@@ -97,6 +97,13 @@ public abstract class ResourceDescription implements Externalizable {
     public abstract boolean isDynamicUseless();
 
     /**
+     * Returns if the resource is defines some consumption
+     *
+     * @return
+     */
+    public abstract boolean isDynamicConsuming();
+
+    /**
      * Reduce only the common dynamic capabilities
      *
      * @param gapResource

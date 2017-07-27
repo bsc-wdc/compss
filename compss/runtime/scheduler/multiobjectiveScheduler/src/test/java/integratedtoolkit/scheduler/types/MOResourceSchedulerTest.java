@@ -21,7 +21,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-
 public class MOResourceSchedulerTest {
 
     private static final double DEFAULT_IDLE_POWER = 1;
@@ -50,10 +49,8 @@ public class MOResourceSchedulerTest {
     // Test Logger
     private static final Logger LOGGER = LogManager.getLogger("Console");
 
-
     @BeforeClass
     public static void setUpClass() {
-        LOGGER.debug("Setup Class");
         // Method resource description and its slots
         Processor p = new Processor();
         p.setComputingUnits(4);
@@ -83,7 +80,6 @@ public class MOResourceSchedulerTest {
 
     @AfterClass
     public static void tearDownClass() {
-        LOGGER.debug("End");
     }
 
     @Before
@@ -96,7 +92,7 @@ public class MOResourceSchedulerTest {
 
     @Test
     public void testNull() {
-        MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker, null);
+        MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker, null, null);
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
             for (Implementation impl : impls) {
@@ -120,7 +116,7 @@ public class MOResourceSchedulerTest {
     @Test
     public void testEmpty() {
         MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker,
-                new JSONObject("{\"implementations\":{}}"));
+                new JSONObject("{\"implementations\":{}}"), null);
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
             for (Implementation impl : impls) {
@@ -145,7 +141,7 @@ public class MOResourceSchedulerTest {
     public void testAllSetNoPrice() {
         MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker,
                 new JSONObject("{\"idlePrice\": " + SET_IDLE_PRICE + ", \"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + ","
-                        + "\"ClassB.methodA\":" + SET_PROFILE + "," + "\"ClassA.methodB\":" + SET_PROFILE + "}}"));
+                        + "\"ClassB.methodA\":" + SET_PROFILE + "," + "\"ClassA.methodB\":" + SET_PROFILE + "}}"), null);
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
             for (Implementation impl : impls) {
@@ -170,7 +166,7 @@ public class MOResourceSchedulerTest {
     public void testAllSetNoPower() {
         MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker,
                 new JSONObject("{\"idlePrice\": " + SET_IDLE_PRICE + ", \"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + ","
-                        + "\"ClassB.methodA\":" + SET_PROFILE + "," + "\"ClassA.methodB\":" + SET_PROFILE + "}}"));
+                        + "\"ClassB.methodA\":" + SET_PROFILE + "," + "\"ClassA.methodB\":" + SET_PROFILE + "}}"), null);
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
             for (Implementation impl : impls) {
@@ -196,7 +192,7 @@ public class MOResourceSchedulerTest {
         MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker,
                 new JSONObject("{\"idlePower\": " + SET_IDLE_POWER + ", \"idlePrice\": " + SET_IDLE_PRICE
                         + ", \"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_PROFILE + ","
-                        + "\"ClassA.methodB\":" + SET_PROFILE + "}}"));
+                        + "\"ClassA.methodB\":" + SET_PROFILE + "}}"), null);
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
             for (Implementation impl : impls) {
@@ -222,9 +218,9 @@ public class MOResourceSchedulerTest {
         MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker,
                 new JSONObject("{\"idlePower\": " + SET_IDLE_POWER + ", \"idlePrice\": " + SET_IDLE_PRICE
                         + ", \"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_PROFILE + ","
-                        + "\"ClassA.methodB\":" + SET_PROFILE + "}}"));
+                        + "\"ClassA.methodB\":" + SET_PROFILE + "}}"), null);
         JSONObject jo = rs.toJSONObject();
-        rs = new MOResourceScheduler<MethodResourceDescription>(worker, jo);
+        rs = new MOResourceScheduler<MethodResourceDescription>(worker, jo, null);
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
             for (Implementation impl : impls) {
@@ -287,7 +283,6 @@ public class MOResourceSchedulerTest {
         }
     }
 
-
     private class CheckerException extends Exception {
 
         /**
@@ -296,7 +291,6 @@ public class MOResourceSchedulerTest {
         private static final long serialVersionUID = 2L;
 
         private final String feature;
-
 
         public CheckerException(String feature) {
             this.feature = feature;

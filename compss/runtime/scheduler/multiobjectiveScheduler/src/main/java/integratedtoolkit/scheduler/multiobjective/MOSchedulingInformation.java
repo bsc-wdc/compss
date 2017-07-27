@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
-
 public class MOSchedulingInformation extends SchedulingInformation {
 
     // Lock to avoid multiple threads to modify the content at the same time
@@ -36,7 +35,6 @@ public class MOSchedulingInformation extends SchedulingInformation {
     private boolean toReschedule = false;
     private final List<AllocatableAction> optimizingSuccessors;
 
-
     public <T extends WorkerResourceDescription> MOSchedulingInformation(ResourceScheduler<T> enforcedTargetResource) {
         super(enforcedTargetResource);
         resourcePredecessors = new LinkedList<>();
@@ -59,9 +57,11 @@ public class MOSchedulingInformation extends SchedulingInformation {
 
     @Override
     public final boolean isExecutable() {
-        boolean b;
+        boolean b = true;
         lock();
-        b = resourcePredecessors.isEmpty();
+        for (Gap g : resourcePredecessors) {
+            b = b && (g.getOrigin() == null);
+        }
         unlock();
         return b;
     }

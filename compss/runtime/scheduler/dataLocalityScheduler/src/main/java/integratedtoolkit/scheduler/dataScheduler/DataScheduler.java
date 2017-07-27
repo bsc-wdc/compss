@@ -11,9 +11,9 @@ import java.util.List;
 
 import org.json.JSONObject;
 
-
 /**
- * Representation of a Scheduler that considers only ready tasks and sorts them in data locality
+ * Representation of a Scheduler that considers only ready tasks and sorts them
+ * in data locality
  *
  */
 public class DataScheduler extends ReadyScheduler {
@@ -34,9 +34,9 @@ public class DataScheduler extends ReadyScheduler {
      * *********************************************************************************************************
      */
     @Override
-    public <T extends WorkerResourceDescription> DataResourceScheduler<T> generateSchedulerForResource(Worker<T> w, JSONObject json) {
+    public <T extends WorkerResourceDescription> DataResourceScheduler<T> generateSchedulerForResource(Worker<T> w, JSONObject resJSON, JSONObject implJSON) {
         // LOGGER.debug("[DataScheduler] Generate scheduler for resource " + w.getName());
-        return new DataResourceScheduler<>(w, json);
+        return new DataResourceScheduler<>(w, resJSON, implJSON);
     }
 
     @Override

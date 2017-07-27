@@ -25,7 +25,6 @@ import org.apache.logging.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-
 /**
  *
  * Scheduler representation for a given worker
@@ -51,14 +50,13 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     // Profile information of the task executions
     private Profile[][] profiles;
 
-
     /**
      * Constructs a new Resource Scheduler associated to the worker @w
      *
      * @param w
-     * @param jsonObject
+     * @param defaultResource
      */
-    public ResourceScheduler(Worker<T> w, JSONObject jsonObject) {
+    public ResourceScheduler(Worker<T> w, JSONObject defaultResource, JSONObject defaultImplementations) {
         this.running = new LinkedList<>();
         this.blocked = new PriorityQueue<>(20, new Comparator<AllocatableAction>() {
 
@@ -72,17 +70,17 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
 
         this.myWorker = w;
         this.pendingModifications = new LinkedList<>();
-        JSONObject implMap;
-        if (jsonObject != null) {
+        JSONObject resMap;
+        if (defaultResource != null) {
             try {
-                implMap = jsonObject.getJSONObject("implementations");
+                resMap = defaultResource.getJSONObject("implementations");
             } catch (JSONException je) {
-                implMap = null;
+                resMap = null;
             }
         } else {
-            implMap = null;
+            resMap = null;
         }
-        this.profiles = loadProfiles(implMap);
+        this.profiles = loadProfiles(resMap, defaultImplementations);
 
     }
 
@@ -128,7 +126,8 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     }
 
     /**
-     * Returns the implementations of the core @id that can be executed by the resource
+     * Returns the implementations of the core @id that can be executed by the
+     * resource
      *
      * @param coreId
      * @return
@@ -147,12 +146,21 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     }
 
     /**
-     * Returns if there are pending modification on the resources not
+     * Returns if there are pending modification on the resources
      *
      * @return
      */
     public final boolean hasPendingModifications() {
         return !pendingModifications.isEmpty();
+    }
+
+    /**
+     * Returns if the pending modifications on the resources
+     *
+     * @return
+     */
+    public final List<ResourceUpdate<T>> getPendingModifications() {
+        return pendingModifications;
     }
 
     /**
@@ -172,10 +180,12 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     /**
      * Prepares the default profiles for each implementation cores
      *
-     * @param implMap
+     * @param resMap default profile values for the resource
+     * @param implMap default profile values for the implementation
+     *
      * @return default profile structure
      */
-    protected final Profile[][] loadProfiles(JSONObject implMap) {
+    protected final Profile[][] loadProfiles(JSONObject resMap, JSONObject implMap) {
         Profile[][] profiles;
         int coreCount = CoreManager.getCoreCount();
         profiles = new Profile[coreCount][];
@@ -184,17 +194,27 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
             int implCount = impls.size();
             profiles[coreId] = new Profile[implCount];
             for (Implementation impl : impls) {
-                JSONObject jsonImpl;
-                if (implMap != null) {
+                String signature = CoreManager.getSignature(coreId, impl.getImplementationId());
+                JSONObject jsonImpl = null;
+                if (resMap != null) {
                     try {
-                        jsonImpl = implMap.getJSONObject(CoreManager.getSignature(coreId, impl.getImplementationId()));
+                        jsonImpl = resMap.getJSONObject(signature);
+                        profiles[coreId][impl.getImplementationId()] = generateProfileForImplementation(impl, jsonImpl);
                     } catch (JSONException je) {
-                        jsonImpl = null;
+                        //Do nothing
                     }
-                } else {
-                    jsonImpl = null;
                 }
-                profiles[coreId][impl.getImplementationId()] = generateProfileForImplementation(impl, jsonImpl);
+                if (profiles[coreId][impl.getImplementationId()] == null) {
+                    if (implMap != null) {
+                        try {
+                            jsonImpl = implMap.getJSONObject(signature);
+                        } catch (JSONException je) {
+                            //Do nothing
+                        }
+                    }
+                    profiles[coreId][impl.getImplementationId()] = generateProfileForImplementation(impl, jsonImpl);
+                    profiles[coreId][impl.getImplementationId()].clearExecutionCount();
+                }
             }
         }
         return profiles;
@@ -303,7 +323,8 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     }
 
     /**
-     * Updates the execution profile of implementation @impl by accumulating the profile @profile
+     * Updates the execution profile of implementation @impl by accumulating the
+     * profile @profile
      *
      * @param impl
      * @param profile
@@ -422,7 +443,8 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     }
 
     /**
-     * Tries to launch blocked actions on resource. When an action cannot be launched, its successors are not tried
+     * Tries to launch blocked actions on resource. When an action cannot be
+     * launched, its successors are not tried
      *
      */
     @SuppressWarnings("unchecked")
@@ -521,7 +543,8 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     }
 
     /**
-     * Returns the score of a given implementation @impl for action @action with a fixed resource score @resourceScore
+     * Returns the score of a given implementation @impl for action @action with
+     * a fixed resource score @resourceScore
      *
      * @param action
      * @param params
@@ -574,6 +597,33 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
         }
         jsonObject.put("implementations", implsMap);
         return jsonObject;
+    }
+
+    public JSONObject updateJSON(JSONObject oldResource) {
+        JSONObject difference = new JSONObject();
+        JSONObject implsDiff = new JSONObject();
+        difference.put("implementations", implsDiff);
+
+        JSONObject implsMap = oldResource.getJSONObject("implementations");
+
+        int coreCount = CoreManager.getCoreCount();
+        for (int coreId = 0; coreId < coreCount; coreId++) {
+            int implCount = CoreManager.getNumberCoreImplementations(coreId);
+            for (int implId = 0; implId < implCount; implId++) {
+                String signature = CoreManager.getSignature(coreId, implId);
+                if (implsMap.has(signature)) {
+                    JSONObject impl = implsMap.getJSONObject(signature);
+                    JSONObject diff = profiles[coreId][implId].updateJSON(impl);
+                    implsDiff.put(signature, diff);
+                } else {
+                    JSONObject implProfile = profiles[coreId][implId].toJSONObject();
+                    implsMap.put(signature, implProfile);
+                    implsDiff.put(signature, implProfile);
+                }
+            }
+        }
+
+        return difference;
     }
 
     @Override

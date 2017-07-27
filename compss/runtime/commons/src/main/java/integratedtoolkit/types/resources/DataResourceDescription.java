@@ -179,6 +179,12 @@ public class DataResourceDescription extends ResourceDescription {
     }
 
     @Override
+    public boolean isDynamicConsuming() {
+        // A DataNode cannot be useless
+        return false;
+    }
+
+    @Override
     public String toString() {
         return "[DATANODE " + "HOST=" + this.host + " " + "PATH=" + this.path + " " + "]";
     }

@@ -28,7 +28,6 @@ import java.util.PriorityQueue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 public class ResourceOptimizer extends Thread {
 
     // WARNING MESSAGES
@@ -68,15 +67,19 @@ public class ResourceOptimizer extends Thread {
     // That's why it's initialized to -1, to know when it's the first run.
     private int everythingBlockedRetryCount = -1;
 
-
     public ResourceOptimizer(TaskScheduler ts) {
         if (DEBUG) {
             RUNTIME_LOGGER.debug("[Resource Optimizer] Initializing Resource Optimizer");
         }
         this.setName("ResourceOptimizer");
         this.ts = ts;
+
         redo = false;
         RUNTIME_LOGGER.info("[Resource Optimizer] Initialization finished");
+    }
+
+    public void coreElementsUpdated() {
+
     }
 
     @Override
@@ -184,8 +187,8 @@ public class ResourceOptimizer extends Thread {
      * ****************************************** ***************************************************************
      */
     /**
-     * Triggers the creation of the initial VMs to acomplish the expected minimum VMs and ensure that there are workers
-     * to run every type of task
+     * Triggers the creation of the initial VMs to acomplish the expected
+     * minimum VMs and ensure that there are workers to run every type of task
      */
     protected void initialCreations() {
         int alreadyCreated = addBasicNodes();
@@ -194,19 +197,24 @@ public class ResourceOptimizer extends Thread {
     }
 
     /**
-     * Asks for the VM needed for the runtime to be able to execute all method cores.
+     * Asks for the VM needed for the runtime to be able to execute all method
+     * cores.
      *
-     * First it groups the constraints of all the methods per Architecture and tries to merge included resource
-     * descriptions in order to reduce the amount of required VMs. It also tries to join the unassigned architecture
-     * methods with the closer constraints of a defined one. After that it distributes the Initial VM Count among the
-     * architectures taking into account the number of methods that can be run in each architecture.
+     * First it groups the constraints of all the methods per Architecture and
+     * tries to merge included resource descriptions in order to reduce the
+     * amount of required VMs. It also tries to join the unassigned architecture
+     * methods with the closer constraints of a defined one. After that it
+     * distributes the Initial VM Count among the architectures taking into
+     * account the number of methods that can be run in each architecture.
      *
-     * If the amount of different constraints is higher than the Initial VM count it applies an agressive merge method
-     * to each architecture in order to fulfill the initial Constraint. It creates a single VM for each final method
-     * constraint.
+     * If the amount of different constraints is higher than the Initial VM
+     * count it applies an agressive merge method to each architecture in order
+     * to fulfill the initial Constraint. It creates a single VM for each final
+     * method constraint.
      *
-     * Although these aggressive merges, the amount of different constraints can be higher than the initial VM Count
-     * constraint. In this case, it violates the initial VM constraint and asks for more resources.
+     * Although these aggressive merges, the amount of different constraints can
+     * be higher than the initial VM Count constraint. In this case, it violates
+     * the initial VM constraint and asks for more resources.
      *
      * @return the amount of requested VM
      */
@@ -315,7 +323,8 @@ public class ResourceOptimizer extends Thread {
     }
 
     /**
-     * Classifies the constraints depending on their architecture and leaves it on coreResourceList
+     * Classifies the constraints depending on their architecture and leaves it
+     * on coreResourceList
      *
      * @param constraints
      * @return list with all the architectures' names
@@ -452,16 +461,19 @@ public class ResourceOptimizer extends Thread {
     /**
      * Asks for the rest of VM that user wants to start with.
      *
-     * After executing the addBasicNodes, it might happen that the number of initial VMs constrained by the user is
-     * still not been fulfilled. The addBasicNodes creates up to as much VMs as different methods. If the initial VM
-     * Count is higher than this number of methods then there will be still some VM requests missing.
+     * After executing the addBasicNodes, it might happen that the number of
+     * initial VMs constrained by the user is still not been fulfilled. The
+     * addBasicNodes creates up to as much VMs as different methods. If the
+     * initial VM Count is higher than this number of methods then there will be
+     * still some VM requests missing.
      *
-     * The addExtraNodes creates this difference of VMs. First it tries to merge the method constraints that are
-     * included into another methods. And performs a less aggressive and more equal distribution.
+     * The addExtraNodes creates this difference of VMs. First it tries to merge
+     * the method constraints that are included into another methods. And
+     * performs a less aggressive and more equal distribution.
      *
-     * @param alreadyCreated
-     *            number of already requested VMs
-     * @return the number of extra VMs created to fulfill the Initial VM Count constraint
+     * @param alreadyCreated number of already requested VMs
+     * @return the number of extra VMs created to fulfill the Initial VM Count
+     * constraint
      */
     public static int addExtraNodes(int alreadyCreated) {
         int initialVMsCount = ResourceManager.getInitialCloudVMs();
@@ -478,7 +490,7 @@ public class ResourceOptimizer extends Thread {
         /*
          * Tries to reduce the number of machines by entering methodConstraints in another method's machine
          */
-        /*
+ /*
          * LinkedList<CloudWorkerDescription> requirements = new LinkedList<CloudWorkerDescription>(); for (int coreId =
          * 0; coreId < CoreManager.coreCount; coreId++) { Implementation impl =
          * CoreManager.getCoreImplementations(coreId)[0]; if (impl.getType() == Type.METHOD) { WorkerDescription wd =
@@ -990,12 +1002,10 @@ public class ResourceOptimizer extends Thread {
         return destructions;
     }
 
-
     private static class ConstraintsCore {
 
         private CloudMethodResourceDescription desc;
         private List<ConstraintsCore>[] cores;
-
 
         @SuppressWarnings("unchecked")
         public ConstraintsCore(CloudMethodResourceDescription desc, int core, List<ConstraintsCore> coreList) {
@@ -1047,7 +1057,6 @@ public class ResourceOptimizer extends Thread {
         private final float value;
         private final boolean prioritary;
 
-
         public ValueResourceDescription(MethodResourceDescription constraints, float value, boolean prioritary) {
             this.constraints = constraints;
             this.value = value;
@@ -1080,7 +1089,6 @@ public class ResourceOptimizer extends Thread {
         }
     }
 
-
     public ResourceCreationRequest askForResources(CloudProvider cp, String instanceName, String imageName) {
         CloudMethodResourceDescription constraints = cp.getResourceDescription(instanceName, imageName);
         if (constraints == null) {
@@ -1092,36 +1100,39 @@ public class ResourceOptimizer extends Thread {
     }
 
     /**
-     * Asks for the described resources to a Cloud provider. The CloudManager checks the best resource that each
-     * provider can offer. Then it picks one of them and it constructs a resourceRequest describing the resource and
-     * which cores can be executed on it. This ResourceRequest will be used to ask for that resource creation to the
-     * Cloud Provider and returned if the application is accepted.
+     * Asks for the described resources to a Cloud provider. The CloudManager
+     * checks the best resource that each provider can offer. Then it picks one
+     * of them and it constructs a resourceRequest describing the resource and
+     * which cores can be executed on it. This ResourceRequest will be used to
+     * ask for that resource creation to the Cloud Provider and returned if the
+     * application is accepted.
      *
-     * @param requirements
-     *            description of the resource expected to receive
-     * @param contained
-     *            {@literal true} if we want the request to ask for a resource contained in the description; else, the
-     *            result contains the passed in description.
-     * @return Description of the ResourceRequest sent to the CloudProvider. {@literal Null} if any of the Cloud
-     *         Providers can offer a resource like the requested one.
+     * @param requirements description of the resource expected to receive
+     * @param contained {@literal true} if we want the request to ask for a
+     * resource contained in the description; else, the result contains the
+     * passed in description.
+     * @return Description of the ResourceRequest sent to the CloudProvider.
+     * {@literal Null} if any of the Cloud Providers can offer a resource like
+     * the requested one.
      */
     public static ResourceCreationRequest askForResources(MethodResourceDescription requirements, boolean contained) {
         return askForResources(1, requirements, contained);
     }
 
     /**
-     * The CloudManager ask for resources that can execute certain amount of cores at the same time. It checks the best
-     * resource that each provider can offer to execute that amount of cores and picks one of them. It constructs a
-     * resourceRequest describing the resource and which cores can be executed on it. This ResourceRequest will be used
-     * to ask for that resource creation to the Cloud Provider and returned if the application is accepted.
+     * The CloudManager ask for resources that can execute certain amount of
+     * cores at the same time. It checks the best resource that each provider
+     * can offer to execute that amount of cores and picks one of them. It
+     * constructs a resourceRequest describing the resource and which cores can
+     * be executed on it. This ResourceRequest will be used to ask for that
+     * resource creation to the Cloud Provider and returned if the application
+     * is accepted.
      *
-     * @param amount
-     *            amount of slots
-     * @param requirements
-     *            features of the resource
-     * @param contained
-     *            {@literal true} if we want the request to ask for a resource contained in the description; else, the
-     *            result contains the passed in description.
+     * @param amount amount of slots
+     * @param requirements features of the resource
+     * @param contained {@literal true} if we want the request to ask for a
+     * resource contained in the description; else, the result contains the
+     * passed in description.
      * @return
      */
     public static ResourceCreationRequest askForResources(Integer amount, MethodResourceDescription requirements, boolean contained) {
@@ -1153,7 +1164,6 @@ public class ResourceOptimizer extends Thread {
 
     public static CloudMethodResourceDescription getBestIncreaseOnProvider(CloudProvider cp, Integer amount,
             MethodResourceDescription requirements, boolean contained) {
-        
         RUNTIME_LOGGER.debug("[Resource Optimizer] Getting best increase in provider " + cp.getName());
         // Check Cloud capabilities
         if (!cp.canHostMoreInstances()) {
@@ -1272,25 +1282,26 @@ public class ResourceOptimizer extends Thread {
     }
 
     /**
-     * Given a set of resources, it checks every possible modification of the resource and returns the one that better
-     * fits with the destruction recommendations.
+     * Given a set of resources, it checks every possible modification of the
+     * resource and returns the one that better fits with the destruction
+     * recommendations.
      *
-     * The decision-making algorithm tries to minimize the number of affected CE that weren't recommended to be
-     * modified, minimize the number of slots that weren't requested to be destroyed and maximize the number of slots
+     * The decision-making algorithm tries to minimize the number of affected CE
+     * that weren't recommended to be modified, minimize the number of slots
+     * that weren't requested to be destroyed and maximize the number of slots
      * that can be removed and they were requested for.
      *
-     * @param resourceSet
-     *            set of resources
-     * @param destroyRecommendations
-     *            number of slots to be removed for each CE
+     * @param resourceSet set of resources
+     * @param destroyRecommendations number of slots to be removed for each CE
      * @return an object array defining the best solution.
      *
-     *         0-> (Resource) selected Resource.
+     * 0-> (Resource) selected Resource.
      *
-     *         1->(CloudTypeInstanceDescription) Type to be destroyed to be destroyed.
+     * 1->(CloudTypeInstanceDescription) Type to be destroyed to be destroyed.
      *
-     *         2-> (int[]) record of the #CE with removed slots and that they shouldn't be modified, #slots that will be
-     *         destroyed and they weren't recommended, #slots that will be removed and they were asked to be.
+     * 2-> (int[]) record of the #CE with removed slots and that they shouldn't
+     * be modified, #slots that will be destroyed and they weren't recommended,
+     * #slots that will be removed and they were asked to be.
      *
      */
     private Object[] getBestDestruction(Collection<CloudMethodWorker> resourceSet, float[] destroyRecommendations) {

@@ -101,7 +101,7 @@
     if [ ! -d $workingDir ]; then
   	/bin/mkdir -p $workingDir
     fi
-    export IT_WORKING_DIR=$workingDir
+    export COMPSS_WORKING_DIR=$workingDir
     mkdir -p $workingDir/log
     mkdir -p $workingDir/jobs
 
@@ -121,7 +121,7 @@
     fi
   
     # Set appDir
-    export IT_APP_DIR=$appDir
+    export COMPSS_APP_DIR=$appDir
     if [ "$appDir" != "null" ]; then
     	add_to_classpath "$appDir"
     	add_to_classpath "$appDir/lib"

@@ -29,9 +29,7 @@
   MNendpoint=mn1.bsc.es
 
   # Call generic script
-  cd ${scriptDir}
   ./deploy_tag_to_SC ${version} ${buildFolder} ${buildScript} ${MNuser} ${MNendpoint}
-  cd -
 
   # END
   exit 0

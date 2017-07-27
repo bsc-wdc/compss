@@ -29,9 +29,7 @@
   MTendpoint=mt1.bsc.es
 
   # Call generic script
-  cd ${scriptDir}
   ./deploy_tag_to_SC ${version} ${buildFolder} ${buildScript} ${MTuser} ${MTendpoint}
-  cd -
 
   # END
   exit 0

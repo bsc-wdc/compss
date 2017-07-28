@@ -43,7 +43,7 @@
     cat > ${auxScriptFile} << EOT
 #!/bin/bash -e
 
-    cp /apps/modules/modulefiles/tools/COMPSs/trunk /apps/modules/modulefiles/tools/COMPSs/$version
+    cp /apps/modules/modulefiles/tools/COMPSs/Trunk /apps/modules/modulefiles/tools/COMPSs/$version
     sed -i '/set PROG_VERSION /cset PROG_VERSION  '$version'' /apps/modules/modulefiles/tools/COMPSs/$version
     chmod 775 /apps/modules/modulefiles/tools/COMPSs/$version
 EOT

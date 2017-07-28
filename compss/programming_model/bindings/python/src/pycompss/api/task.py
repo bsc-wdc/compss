@@ -245,16 +245,17 @@ class task(object):
 
             if not i_am_at_master() and (not is_nested):
                 # Task decorator worker body code.
-                workerCode(f,
-                           self.is_instance,
-                           self.has_varargs,
-                           self.has_keywords,
-                           self.has_defaults,
-                           self.has_return,
-                           args,
-                           kwargs,
-                           self.kwargs,
-                           self.spec_args)
+                newTypes, newValues = workerCode(f,
+                                                 self.is_instance,
+                                                 self.has_varargs,
+                                                 self.has_keywords,
+                                                 self.has_defaults,
+                                                 self.has_return,
+                                                 args,
+                                                 kwargs,
+                                                 self.kwargs,
+                                                 self.spec_args)
+                return newTypes, newValues
             else:
                 # Task decorator master body code.
                 # Returns the future object that will be used instead of the
@@ -363,8 +364,7 @@ def registerTask(f, module, is_instance):
 
 def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_return,
                args, kwargs, self_kwargs, self_spec_args):
-    """
-    Task decorator body executed in the workers.
+    """ Task decorator body executed in the workers.
     Its main function is to execute to execute the function decorated as task.
     Prior to the execution, the worker needs to retrieve the necessary parameters.
     These parameters will be used for the invocation of the function.
@@ -380,10 +380,16 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
     :param kwargs: <Dictionary> - Contains the named objects that the function has been called with.
     :param self_kwargs: <Dictionary> - Decorator keywords dictionary.
     :param self_spec_args: <Named Tuple> - Function argspect
+    :return: Two lists: newTypes and newValues.
     """
     # Retrieve internal parameters from worker.py.
     tracing = kwargs.get('compss_tracing')
     process_name = kwargs.get('compss_process_name')
+
+    # types = kwargs['compss_types']
+    # values = args
+    newTypes = []
+    newValues = []
 
     if tracing:
         import pyextrae
@@ -391,8 +397,8 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
         pyextrae.eventandcounters(TASK_EVENTS, SERIALIZATION)
 
     spec_args = self_spec_args.args
-
     toadd = []
+
     # Check if there is *arg parameter in the task
     if has_varargs:
         if binding.aargs_as_tuple:
@@ -405,6 +411,7 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
                 num_aargs -= 1
             for i in range(num_aargs):
                 toadd.append('*' + self_spec_args.varargs + str(i))
+
     # Check if there is **kwarg parameters in the task
     if has_keywords:
         toadd.append(self_spec_args.keywords)
@@ -471,8 +478,16 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
             ret_filename = ret_filename.split(':')[-1]
             to_serialize.append((ret, ret_filename))
 
+    # Check if the values and types have changed after the task execution:
+    # I.e.- an object that has been made persistent within the task may be detected here,
+    # and the type change done within the outputTypes list.
+    newTypes, newValues, to_serialize = checkValueChanges(kwargs['compss_types'],
+                                                          list(args),
+                                                          to_serialize)
     if len(to_serialize) > 0:
         serialize_objects(to_serialize)
+
+    return newTypes, newValues
 
 
 def masterCode(f, self_module, is_instance, has_varargs, has_keywords, has_defaults, has_return,
@@ -617,6 +632,69 @@ def getTopDecorator(code):
                 return "pycompss.api." + dk.lower()  # each decorator __name__
 
 
+def checkValueChanges(types, values, to_serialize):
+    """
+    Check if the input values have changed and adapt its types accordingly.
+    Considers also changes that may affect to the to_serialize list.
+    Note: This function can also return the real_to_serialize list, which contains the objects that should be
+          serialized after checking the changes. For example, if a return is a simple type (int), it can be considered
+          within the newTypes and newValues, poped from the to_serialize list, and returned on the task return pipe.
+          However, the runtime does not support getting values from the return pipe. For this reason, we continue using
+          the to_serialize list to serialize the return object into the return file. Consequently, the
+          real_to_serialize variable is not currently used, but should be considered when the runtime provides support
+          for returning simple objects through the pipe.
+    Warning: Due to the runtime does not support gathering values from the output pipe at worker, all values will be
+             set to null but the PSCOs that may have changed.
+    :param types: List of types of the values list
+    :param values: List of values used as task input
+    :param to_serialize: List of objects to be serialized
+    :return: Three lists, the new types, new values and new to_serialize list.
+    """
+    assert len(types) == len(values), 'Inconsistent state: type-value length mismatch.'
+    from pycompss.api.parameter import TYPE
+    '''
+    real_to_serialize=[]
+    # Analise all to_serialize objects
+    for ts in to_serialize:
+        # ts[0] == real object to serialize
+        # ts[1] == file path where to serialize
+        pos = 0
+        changed = False
+        for i in values:
+            if isinstance(i, str) and ts[1] in i:
+                values[pos] = ts[0]  # Include the real value within the values list
+                # Update the new type
+                changed = True
+            pos += 1
+        if not changed:
+            real_to_serialize.append(ts)
+    '''
+    # Update the existing PSCOS with their id.
+    for i in range(len(types)):
+        if types[i] == TYPE.EXTERNAL_PSCO:
+            values[i] = values[i].getID()
+    real_to_serialize=[]
+    # Analise only PSCOS from to_serialize objects list
+    for ts in to_serialize:
+        # ts[0] == real object to serialize
+        # ts[1] == file path where to serialize
+        pos = 0
+        changed = False
+        for i in values:
+            if isinstance(i, str) and getCOMPSsType(ts[0]) == TYPE.EXTERNAL_PSCO and ts[1] in i:
+                values[pos] = ts[0].getID()  # Include the PSCO id in the values list
+                types[pos] = TYPE.EXTERNAL_PSCO
+                changed = True
+            pos += 1
+        if not changed:
+            real_to_serialize.append(ts)
+    # Put all values that do not match the EXTERNAL_PSCO type to null
+    for i in range(len(types)):
+        if not types[i] == TYPE.EXTERNAL_PSCO:
+            values[i] = 'null'
+    return types, values, real_to_serialize
+
+
 def getCOMPSsType(value):
     """
     Retrieve the value type mapped to COMPSs types.
@@ -644,13 +722,19 @@ def getCOMPSsType(value):
     #     return TYPE.DOUBLE
     elif type(value) is str:
         return TYPE.STRING
-    # elif type(value) is :       # Unavailable
+    # elif type(value) is :       # Unavailable  # The runtime does not support python objects
     #     return TYPE.OBJECT
-    # elif type(value) is :       # Unavailable # TODO: THIS TYPE WILL HAVE TO BE USED INSTEAD OF EXTERNAL
+    # elif type(value) is :       # Unavailable  # PSCOs not persisted will be handled as objects (as files)
     #     return TYPE.PSCO
-    # elif 'getID' in dir(value):
-    #     # It is a storage object, but at this point we do not know if its going to be persistent or not.
-    #     return TYPE.EXTERNAL_PSCO
+    elif 'getID' in dir(value):
+        try:
+            if value.getID() is not None:  # the 'getID' + id == criteria for persistent object
+                return TYPE.EXTERNAL_PSCO
+        except TypeError:
+            # A PSCO class has been used to check its type (when checking the return).
+            # Since we still don't know if it is going to be persistend inside, we assume that it is not.
+            # It will be checked later on the worker side when the task finishes.
+            return TYPE.FILE
     else:
         # Default type
         return TYPE.FILE

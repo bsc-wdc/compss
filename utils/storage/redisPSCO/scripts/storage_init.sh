@@ -154,6 +154,11 @@
   get_redis_instantiation_command() {
     # $1 = host
     # $2 = path
+
+    # SSH: This command simply opens an SSH connection to the target node and executes the command
+    # SSH assumes the following:
+    #     1) There is passwordless access to the destination
+    #     2) The target machine has no zombie-killer mechanism
     if [ "$REDIS_REMOTE_COMMAND" == "ssh" ];
     then
       echo "ssh $1 \"cd $2; redis-server redis.conf --daemonize yes\""

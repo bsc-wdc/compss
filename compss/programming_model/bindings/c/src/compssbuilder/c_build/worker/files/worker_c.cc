@@ -4,7 +4,7 @@ std::map<std::string, void*> cache;
 std::map<std::string, int> types;
 
 int main(int argc, char **argv) {
-    int out = execute(argc, argv, cache, types, 0);
+    int out = execute(argc, argv, cache, types, 1);
     if (out == 0){
         printf("Task executed successfully");
     }else{

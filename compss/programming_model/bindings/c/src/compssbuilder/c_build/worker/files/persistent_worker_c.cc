@@ -157,7 +157,7 @@ void *runThread(void * arg){
 				strcpy(executeArgsC[i], executeArgs[i].c_str());
 			}
 			//last integer indicates if output date is going to be serialized at the end of the task execution 0=no 1=yes 
-			int ret = execute(executeArgs.size(), executeArgsC, cache, types, 0);
+			int ret = execute(executeArgs.size(), executeArgsC, cache, types, 1);
 
 			csOut->unregisterThread();
 			csErr->unregisterThread();

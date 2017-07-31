@@ -72,7 +72,7 @@
 
       # Ignore kill output because if it doesn't exist it means that
       # the subprocess has correctly finished
-      kill -15 $bindingPID > /dev/null
+      kill -15 $bindingPID &> /dev/null
     fi
     # remove data pipes
     rm -f ${dataCMDpipe} ${dataRESULTpipe}

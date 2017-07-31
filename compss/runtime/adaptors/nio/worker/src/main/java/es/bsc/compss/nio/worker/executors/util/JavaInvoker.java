@@ -100,7 +100,7 @@ public class JavaInvoker extends Invoker {
         }
 
         try {
-            logger.info("Invoked " + method.getName() + " of " + target + " in " + nw.getHostName());
+            LOGGER.info("Invoked " + method.getName() + " of " + target + " in " + nw.getHostName());
             retValue = method.invoke(target.getValue(), values);
         } catch (Exception e) {
             throw new JobExecutionException(ERROR_TASK_EXECUTION, e);
@@ -148,10 +148,10 @@ public class JavaInvoker extends Invoker {
         }
 
         // Call Storage executeTask
-        if (logger.isDebugEnabled()) {
-            logger.info("External ExecuteTask " + method.getName() + " with target PSCO Id " + id + " in " + nw.getHostName());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.info("External ExecuteTask " + method.getName() + " with target PSCO Id " + id + " in " + nw.getHostName());
         } else {
-            logger.info("External ExecuteTask " + method.getName());
+            LOGGER.info("External ExecuteTask " + method.getName());
         }
 
         if (NIOTracer.isActivated()) {
@@ -162,7 +162,7 @@ public class JavaInvoker extends Invoker {
         try {
             String call_result = StorageItf.executeTask(id, descriptor, values, nw.getHostName(), callback);
 
-            logger.debug(call_result);
+            LOGGER.debug(call_result);
 
             // Wait for execution
             callback.waitForCompletion();
@@ -189,7 +189,7 @@ public class JavaInvoker extends Invoker {
             try {
                 retValue = callback.getResult();
             } catch (StorageException e) {
-                logger.warn(WARN_RET_VALUE_EXCEPTION, e);
+                LOGGER.warn(WARN_RET_VALUE_EXCEPTION, e);
                 retValue = null;
             }
         }
@@ -215,7 +215,7 @@ public class JavaInvoker extends Invoker {
         @Override
         protected void eventListener(CallbackEvent e) {
             this.event = e;
-            logger.debug("Received event task finished with callback id " + event.getRequestID());
+            LOGGER.debug("Received event task finished with callback id " + event.getRequestID());
 
             synchronized (this) {
                 this.notifyAll();

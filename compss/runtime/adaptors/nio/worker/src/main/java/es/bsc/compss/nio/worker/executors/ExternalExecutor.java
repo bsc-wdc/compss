@@ -13,6 +13,7 @@ import es.bsc.compss.nio.worker.executors.util.Invoker;
 import es.bsc.compss.nio.worker.executors.util.MPIInvoker;
 import es.bsc.compss.nio.worker.executors.util.OmpSsInvoker;
 import es.bsc.compss.nio.worker.executors.util.OpenCLInvoker;
+import es.bsc.compss.nio.worker.util.ExternalTaskStatus;
 import es.bsc.compss.nio.worker.util.JobsThreadPool;
 import es.bsc.compss.nio.worker.util.TaskResultReader;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
@@ -321,43 +322,33 @@ public abstract class ExternalExecutor extends Executor {
         boolean done = false;
         int retries = 0;
         while (!done && retries < MAX_RETRIES) {
-            FileOutputStream output = null;
-            try {
-                // Send to pipe : task tID command(jobOut jobErr externalCMD) \n
-                String taskCMD = EXECUTE_TASK_TAG + TOKEN_SEP + jobId + TOKEN_SEP + command + TOKEN_NEW_LINE;
+            // Send to pipe : task tID command(jobOut jobErr externalCMD) \n
+            String taskCMD = EXECUTE_TASK_TAG + TOKEN_SEP + jobId + TOKEN_SEP + command + TOKEN_NEW_LINE;
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("EXECUTOR COMMAND: " + taskCMD);
+            }
 
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("EXECUTOR COMMAND: " + taskCMD);
-                }
-
-                output = new FileOutputStream(writePipe, true);
+            try (FileOutputStream output = new FileOutputStream(writePipe, true);) {
                 output.write(taskCMD.getBytes());
                 output.flush();
+
+                done = true;
             } catch (Exception e) {
                 LOGGER.debug("Error on pipe write. Retry");
                 ++retries;
-            } finally {
-                if (output != null) {
-                    try {
-                        output.close();
-                    } catch (Exception e) {
-                        if (NIOTracer.isActivated()) {
-                            emitEndTask();
-                        }
-                        throw new JobExecutionException("Job " + jobId + " has failed. Cannot close pipe");
-                    }
-                }
             }
-            done = true;
         }
+
         if (!done) {
             if (NIOTracer.isActivated()) {
                 emitEndTask();
             }
+            LOGGER.error("ERROR: Could not execute job " + jobId + " because cannot write in pipe");
             throw new JobExecutionException("Job " + jobId + " has failed. Cannot write in pipe");
         }
 
         // Retrieving job result
+        LOGGER.debug("Waiting for job " + jobId + " completion");
         Semaphore sem = new Semaphore(0);
         taskResultReader.askForTaskEnd(jobId, sem);
         try {
@@ -365,19 +356,34 @@ public abstract class ExternalExecutor extends Executor {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-        int exitValue = taskResultReader.getExitValue(jobId);
+        LOGGER.debug("Job " + jobId + " completed. Retrieving task result");
+        ExternalTaskStatus taskStatus = taskResultReader.getTaskStatus(jobId);
+
+        // Check task exit value
+        Integer exitValue = taskStatus.getExitValue();
+        if (exitValue != 0) {
+            if (NIOTracer.isActivated()) {
+                emitEndTask();
+            }
+            throw new JobExecutionException("Job " + jobId + " has failed. Exit values is " + exitValue);
+        }
+
+        // Update parameters
+        LOGGER.debug("Updating parameters for job " + jobId);
+        for (int i = 0; i < taskStatus.getNumParameters(); ++i) {
+            DataType paramType = taskStatus.getParameterType(i);
+            if (paramType.equals(DataType.EXTERNAL_OBJECT_T)) {
+                String paramValue = taskStatus.getParameterValue(i);
+                nt.getParams().get(i).setType(DataType.EXTERNAL_OBJECT_T);
+                nt.getParams().get(i).setValue(paramValue);
+            }
+        }
 
         // Emit end task trace
         if (NIOTracer.isActivated()) {
             emitEndTask();
         }
-
-        LOGGER.debug("Task finished");
-        if (exitValue != 0) {
-            throw new JobExecutionException("Job " + jobId + " has failed. Exit values is " + exitValue);
-        } else {
-            LOGGER.debug("Job " + jobId + " has finished with exit value 0");
-        }
+        LOGGER.debug("Job " + jobId + " has finished with exit value 0");
     }
 
     private void emitStartTask(int taskId, int taskType) {

@@ -26,7 +26,7 @@ import storage.StubItf;
 
 public abstract class Invoker {
 
-    protected static final Logger logger = LogManager.getLogger(Loggers.WORKER_INVOKER);
+    protected static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_INVOKER);
 
     private static final String ERROR_SERIALIZED_OBJ = "ERROR: Cannot obtain object";
     private static final String ERROR_PERSISTENT_OBJ = "ERROR: Cannot getById persistent object";
@@ -369,7 +369,7 @@ public abstract class Invoker {
         if (this.retValue != null) {
             String renaming = (String) this.nt.getParams().getLast().getValue();
             if (debug) {
-                logger.debug("Store return value " + this.retValue + " as " + renaming);
+                LOGGER.debug("Store return value " + this.retValue + " as " + renaming);
             }
             // Always stored because it can only be a OUT object
             this.nw.storeObject(renaming.substring(renaming.lastIndexOf('/') + 1), this.retValue);

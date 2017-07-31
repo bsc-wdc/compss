@@ -43,7 +43,6 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.uri.MultiURI;
-import es.bsc.compss.types.uri.SimpleURI;
 
 import java.io.File;
 import java.util.HashMap;
@@ -105,6 +104,10 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     private Semaphore workersDebugInfo = new Semaphore(0);
 
 
+    /**
+     * New NIOAdaptor instance
+     * 
+     */
     public NIOAdaptor() {
         super(MAX_SEND, MAX_RECEIVE, MASTER_PORT);
         File file = new File(JOBS_DIR);
@@ -116,7 +119,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     @Override
     public void init() {
         LOGGER.info("Initializing NIO Adaptor...");
-        masterNode = new NIONode(null, MASTER_PORT);
+        this.masterNode = new NIONode(null, MASTER_PORT);
 
         // Instantiate the NIO Message Handler
         final NIOMessageHandler mhm = new NIOMessageHandler(this);
@@ -225,6 +228,11 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         return worker;
     }
 
+    /**
+     * Notice the removal of a worker
+     * 
+     * @param worker
+     */
     public void removedNode(NIOWorkerNode worker) {
         LOGGER.debug("Remove worker " + worker.getName());
         NODES.remove(worker);
@@ -308,12 +316,13 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         // Update information
         List<DataType> taskResultTypes = tr.getParamTypes();
         for (int i = 0; i < taskResultTypes.size(); ++i) {
-            switch (taskResultTypes.get(i)) {
+            DataType newType = taskResultTypes.get(i);
+            switch (newType) {
                 case PSCO_T:
                 case EXTERNAL_OBJECT_T:
                     String pscoId = (String) tr.getParamValue(i);
                     DependencyParameter dp = (DependencyParameter) nj.getTaskParams().getParameters()[i];
-                    updateParameter(pscoId, dp);
+                    updateParameter(newType, pscoId, dp);
                     break;
                 default:
                     // We only update information about PSCOs or EXTERNAL_OBJECTS
@@ -340,32 +349,49 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         c.finishConnection();
     }
 
-    private void updateParameter(String pscoId, DependencyParameter dp) {
-        switch (dp.getType()) {
+    private void updateParameter(DataType newType, String pscoId, DependencyParameter dp) {
+        DataType previousType = dp.getType();
+        switch (previousType) {
             case PSCO_T:
             case EXTERNAL_OBJECT_T:
-                // The parameter was already a PSCO, we only update the information just in case
-                dp.setDataTarget(pscoId);
+                if (previousType.equals(newType)) {
+                    // The parameter was already a PSCO, we only update the information just in case
+                    dp.setDataTarget(pscoId);
+                } else {
+                    // The parameter types do not match, log exception
+                    LOGGER.warn("WARN: Cannot update parameter " + dp.getDataTarget() + " because types are not compatible");
+                }
                 break;
             default:
                 // The parameter was an OBJECT or a FILE, we change its type and value and register its new location
-                String renaming = dp.getDataTarget();
-
-                // Update COMM information
-                String targetPath = Protocol.PERSISTENT_URI.getSchema() + pscoId;
-                SimpleURI targetURI = new SimpleURI(targetPath);
-                try {
-                    DataLocation loc = DataLocation.createLocation(Comm.getAppHost(), targetURI);
-                    Comm.registerLocation(renaming, loc);
-                } catch (Exception e) {
-                    ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath + " for " + renaming, e);
-                }
-
-                // Update Task information
-                dp.setType(DataType.PSCO_T);
-                dp.setDataTarget(pscoId);
+                registerUpdatedParameter(newType, pscoId, dp);
                 break;
         }
+    }
+
+    private void registerUpdatedParameter(DataType newType, String pscoId, DependencyParameter dp) {
+        // The parameter was an OBJECT or a FILE, we change its type and value and register its new location
+        String renaming = dp.getDataTarget();
+
+        // Update COMM information
+        switch (newType) {
+            case PSCO_T:
+                Comm.registerPSCO(renaming, pscoId);
+                break;
+            case EXTERNAL_OBJECT_T:
+                if (renaming.contains("/")) {
+                    renaming = renaming.substring(renaming.lastIndexOf('/') + 1);
+                }
+                Comm.registerExternalPSCO(renaming, pscoId);
+                break;
+            default:
+                LOGGER.warn("WARN: Invalid new type " + newType + " for parameter " + renaming);
+                break;
+        }
+
+        // Update Task information
+        dp.setType(newType);
+        dp.setDataTarget(pscoId);
     }
 
     public void registerCopy(Copy c) {

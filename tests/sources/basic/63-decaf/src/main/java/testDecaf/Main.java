@@ -12,8 +12,13 @@ import decaf.DECAF;
 public class Main {
 
     private static final int SLEEP_TIME = 5_000;
-    private static final String[] lines = {"Executing decaf data-flow generator: "+System.getenv("PWD")+"/decaf/test.py mpirun -H ",
+    /*private static final String[] lines = {"Executing decaf data-flow generator: "+System.getenv("PWD")+"/decaf/test.py mpirun -H ",
     	"Executing python script.", "Executing decaf data-flow: ./test.sh", "Executing binary"};
+    */
+
+    private static final String[] lines = {"Executing decaf data-flow generator: "+System.getenv("PWD")+"/decaf/test.py ",
+        "Executing python script.", "Executing decaf data-flow: ./test.sh", "Executing binary"};
+    
 
 
     public static void main(String[] args) {
@@ -90,6 +95,7 @@ public class Main {
         }
     	
     	if (lineNum==0){
+			/* OLD Version
 			if (nodes == 1 && tasks ==2){
 				String alt1=lines[0] + "COMPSsWorker01,COMPSsWorker01 -n 2";
 				String alt2=lines[0] + "COMPSsWorker02,COMPSsWorker02 -n 2";
@@ -128,7 +134,14 @@ public class Main {
 			}else{
 				System.err.println("[ERROR] incorrect number of nodes or tasks (nodes: "+nodes+", tasks: "+tasks+")");
 				System.exit(1);
-			}
+			}*/
+			// New version
+                        String alt1=lines[0] + "-n "+ tasks;
+                        if (!line.equals(alt1)){
+                                System.err.println("[ERROR] line 0 is not correct : \""+line+"\" options is: \""+alt1+"\"");
+                                System.exit(1);
+                        }
+
 		}else{
 			if (!line.equals(lines[lineNum])){
 				System.err.println("[ERROR] line " + lineNum + " is not correct: "+line);

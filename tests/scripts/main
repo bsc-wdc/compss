@@ -22,6 +22,7 @@
   DEFAULT_RETRY=3
   DEFAULT_ONLY_LANG=${NONE_LANG}
 
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
   #----------------------------------------------------------------------------------------------- 
   # Display functions
@@ -70,9 +71,10 @@ EOT
      echo "************************************"
      echo "* Displaying local tests numbering *"
      echo "************************************"
-     for entry in $(ls $(pwd)/$(dirname $0)/../sources/basic/); do
-         if [ "$entry" != "pom.xml" ]; then
-            echo "- $entry"
+     for entry in "${SCRIPT_DIR}"/../sources/basic/*; do
+         name=$(basename "$entry")
+         if [ "$name" != "pom.xml" ]; then
+            echo "- $name"
          fi
      done
      echo " "
@@ -84,7 +86,7 @@ EOT
   display_error() {
     local error_msg=$1
 
-    echo $error_msg
+    echo "$error_msg"
     echo " "
 
     info
@@ -139,7 +141,7 @@ EOT
               exit 0
               ;;
             skip=*)
-              skip=$(echo $OPTARG | sed -e 's/skip=//g')
+              skip=${OPTARG//skip=/}
               ;;
             skip)
               skip=true
@@ -148,13 +150,13 @@ EOT
               skip=false
               ;;
             retry=*)
-              retry=$(echo $OPTARG | sed -e 's/retry=//g')
+              retry=${OPTARG//retry=/}
               ;;
             retry)
               retry=${DEFAULT_RETRY}
               ;;
             only-lang=*)
-              onlyLang=$(echo $OPTARG | sed -e 's/only-lang=//g')
+              onlyLang=${OPTARG//only-lang=/}
               ;;
             only-java)
               onlyLang=${JAVA_LANG}
@@ -256,13 +258,13 @@ EOT
        target_base_dir="/home/$user/tests_all_local"
     fi
     COMPSS_HOME="/opt/COMPSs/"
-    comm=es.bsc.compss.nio.master.NIOAdaptor
+    comm="es.bsc.compss.nio.master.NIOAdaptor"
     runcompss_opts="-d"
     # Set environment variables from configuration file
     source_configuration
 
     # Set the rest of environment variables 
-    source_base_dir="$(pwd)/$(dirname $0)/../sources"
+    source_base_dir="${SCRIPT_DIR}/../sources"
     COMPSs_log_folder="$HOME/.COMPSs"
     COMPSs_exec="$COMPSS_HOME/Runtime/scripts/user/runcompss"
 
@@ -279,41 +281,48 @@ EOT
   }
 
   execute_tests_local_specific() {
-    test=$(echo ${environment:6} | sed 's/.*0 *\([1-9]*[0-9]\).*/\1/')
+    test=$(echo "${environment:6}" | sed 's/.*0 *\([1-9]*[0-9]\).*/\1/')
 
     # Add 0 on numbers lower than 10
-    if [ $test -lt 10 ]; then
+    if [ "$test" -lt 10 ]; then
       test=0$test
     fi
 
     # Select appName
-    appName=$(ls ${source_base_dir}/basic/ | grep $test)
+    for path in "${source_base_dir}"/basic/*; do
+      name=$(basename "$path")
+      if [[ "$name" = "$test"* ]]; then
+        appName="$name"
+        break
+      fi
+    done
+
     if [ -z "$appName" ]; then
       echo "[ERROR] Cannot find source folder"
       echo "******* Allowed folders are: "
-      echo "$(ls ${source_base_dir}/basic/)"
+      ls "${source_base_dir}"/basic/
       exit 1
     fi
 
     # Compile tests
-    $(dirname $0)/compile_sources_local_specific ${source_base_dir} $appName
+    "${SCRIPT_DIR}"/compile_sources_local_specific "${source_base_dir}" "$appName"
     if [ $? -ne 0 ]; then
       exit 1
     fi
 
     # Deploy tests
-    $(dirname $0)/deploy_sources_local_specific ${source_base_dir} $appName $test ${target_base_dir}
+    "${SCRIPT_DIR}"/deploy_sources_local_specific "${source_base_dir}" "$appName" "$test" "${target_base_dir}"
     if [ $? -ne 0 ]; then
       exit 1
     fi
      
     # Erase IT folder
     echo "---- Erase current .COMPSs folder ${COMPSs_log_folder}"
-    rm -rf ${COMPSs_log_folder}
+    rm -rf "${COMPSs_log_folder}"
 
     # Execute tests
     echo "---- Executing specific test "
-    $(dirname $0)/execute_local_specific ${test} ${COMPSs_exec} ${comm} ${runcompss_opts} ${target_base_dir} ${COMPSs_log_folder} ${skip} ${retry}
+    "${SCRIPT_DIR}"/execute_local_specific "${test}" "${COMPSs_exec}" "${comm}" "${runcompss_opts}" "${target_base_dir}" "${COMPSs_log_folder}" "${skip}" "${retry}"
     if [ $? -ne 0 ]; then
       echo "ERROR: executing specific local test"
       exit 1
@@ -324,23 +333,23 @@ EOT
  
   execute_tests_local_all() {
     # Compile tests
-    $(dirname $0)/compile_sources_local ${source_base_dir}
+    "${SCRIPT_DIR}"/compile_sources_local "${source_base_dir}"
     if [ $? -ne 0 ]; then
       exit 1
     fi
  
     # Deploy tests
-    $(dirname $0)/deploy_sources_local ${source_base_dir} ${target_base_dir} ${onlyLang}
+    "${SCRIPT_DIR}"/deploy_sources_local "${source_base_dir}" "${target_base_dir}" "${onlyLang}"
     if [ $? -ne 0 ]; then
       exit 1
     fi
      
     # Erase COMPSs log folder
     echo "---- Erase current .COMPSs folder"
-    rm -rf ${COMPSs_log_folder}
+    rm -rf "${COMPSs_log_folder}"
 
     # Execute tests
-    $(dirname $0)/execute_local ${COMPSs_exec} ${comm} ${runcompss_opts} ${target_base_dir} ${COMPSs_log_folder} ${skip} ${retry}
+    "${SCRIPT_DIR}"/execute_local "${COMPSs_exec}" "${comm}" "${runcompss_opts}" "${target_base_dir}" "${COMPSs_log_folder}" "${skip}" "${retry}"
     if [ $? -ne 0 ]; then
       exit 1
     else
@@ -373,7 +382,7 @@ EOT
     # Set the rest of environment variables
     COMPSs_location="${COMPSS_HOME}"
     COMPSs_exec="${COMPSS_HOME}/Runtime/scripts/user/runcompss"
-    source_base_dir="$(pwd)/$(dirname $0)/../sources/cloud"
+    source_base_dir="${SCRIPT_DIR}/../sources/cloud"
     log_folder="${target_base_dir}/logs"
     template_id=107
     vm_type="ubuntu"
@@ -385,10 +394,10 @@ EOT
     export JAVA_HOME=$JAVA_HOME
 
     # Compile sources cloud
-    $(dirname $0)/compile_sources_cloud_vpn ${source_base_dir}
+    "${SCRIPT_DIR}"/compile_sources_cloud_vpn "${source_base_dir}"
 
     # Deploy tests
-    $(dirname $0)/deploy_sources_cloud_vpn ${source_base_dir} ${target_base_dir} ${log_folder} ${COMPSs_location} ${cloud_owner} ${connector_server} ${connector_jar} ${connector_class} ${remote_COMPSs}
+    "${SCRIPT_DIR}"/deploy_sources_cloud_vpn "${source_base_dir}" "${target_base_dir}" "${log_folder}" "${COMPSs_location}" "${cloud_owner}" "${connector_server}" "${connector_jar}" "${connector_class}" "${remote_COMPSs}"
     if [ $? -ne 0 ]; then
       exit 1
     fi
@@ -397,7 +406,7 @@ EOT
     if [ "${environment}" = "cloudvpn" ]; then
       num_test="all"
     else
-      num_test=$(echo ${environment:9} | sed 's/.*0 *\([1-9]*[0-9]\).*/\1/')
+      num_test=$(echo "${environment:9}" | sed 's/.*0 *\([1-9]*[0-9]\).*/\1/')
     fi 
     # Check it's not faultTolerance test (not allowed on VPN mode)
     if [ "${num_test}" = "1" ]; then
@@ -407,10 +416,10 @@ EOT
 
     # Erase COMPSs log folder
     echo "---- Erase current .COMPSs folder"
-    rm -rf ${COMPSs_log_folder}
+    rm -rf "${COMPSs_log_folder}"
 
     # Execute tests
-    ${target_base_dir}/execute_cloud_tests ${logs_location} ${log_folder} ${COMPSs_exec} ${comm} ${runcompss_opts} ${num_test} ${template_id} ${vm_type} ${cloud_owner} ${skip} ${retry}
+    "${target_base_dir}"/execute_cloud_tests "${logs_location}" "${log_folder}" "${COMPSs_exec}" "${comm}" "${runcompss_opts}" "${num_test}" "${template_id}" "${vm_type}" "${cloud_owner}" "${skip}" "${retry}"
     if [ $? -ne 0 ]; then
        exitValue=1
     fi
@@ -434,7 +443,7 @@ EOT
     source_configuration
      
     # Set the rest of environment variables 
-    source_base_dir="$(pwd)/$(dirname $0)/../sources/$environment"
+    source_base_dir="${SCRIPT_DIR}/../sources/$environment"
     logs_location="$HOME"
     COMPSs_log_folder="$HOME/.COMPSs"
     COMPSs_exec="$COMPSS_HOME/Runtime/scripts/user/runcompss"
@@ -445,24 +454,24 @@ EOT
 
     # Compile tests
     if [ "$java_apps" == "true" ]; then
-      $(dirname $0)/compile_sources_devel ${source_base_dir}
+      "${SCRIPT_DIR}"/compile_sources_devel "${source_base_dir}"
       if [ $? -ne 0 ]; then
         exit 1
       fi
     fi
 
     # Deploy tests
-    $(dirname $0)/deploy_sources_devel ${source_base_dir} ${target_base_dir}
+    "${SCRIPT_DIR}"/deploy_sources_devel "${source_base_dir}" "${target_base_dir}"
     if [ $? -ne 0 ]; then
       exit 1
     fi
 
     # Erase COMPSs log folder
     echo "---- Erase current COMPSs log folder"
-    rm -rf ${COMPSs_log_folder}
+    rm -rf "${COMPSs_log_folder}"
 
     # Execute tests
-    $(dirname $0)/execute_devel ${COMPSs_exec} ${comm} ${runcompss_opts} ${target_base_dir} ${COMPSs_log_folder} ${skip} ${retry}
+    "${SCRIPT_DIR}"/execute_devel "${COMPSs_exec}" "${comm}" "${runcompss_opts}" "${target_base_dir}" "${COMPSs_log_folder}" "${skip}" "${retry}"
     if [ $? -ne 0 ]; then
       exit 1
     else
@@ -480,12 +489,14 @@ EOT
 
   source_configuration() {
     if [[ $configuration = */* ]]; then
-      source $configuration
+      # shellcheck source=../configurations/local.cfg
+      source "$configuration"
       if [ $? -ne 0 ]; then
         exit 1
       fi
     else
-      source $(dirname $0)/../configurations/$configuration
+      # shellcheck source=../configurations/local.cfg
+      source "${SCRIPT_DIR}/../configurations/$configuration"
       if [ $? -ne 0 ]; then
         exit 1
       fi
@@ -503,7 +514,7 @@ EOT
   #----------------------------------------------------------------------------------------------- 
   
   # Get and check arguments
-  get_args $@
+  get_args "$@"
   check_args
 
   # Execute tests

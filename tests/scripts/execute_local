@@ -11,34 +11,35 @@
   MAX_RETRIES=$7
 
   # Set script variables
-  appsBaseDir=${baseDir}/apps_basic
-  logsBaseDir=${baseDir}/logs
+  appsBaseDir="${baseDir}"/apps_basic
+  logsBaseDir="${baseDir}"/logs
 
   exitValue=0
   results=""
 
   #--------------------------------------------------------------------------------
   # Source common execution script
-  scriptDir=$(pwd)/$(dirname $0)  
-  source ${scriptDir}/execute_commons
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  # shellcheck source=./execute_commons
+  source "${SCRIPT_DIR}"/execute_commons
 
   #--------------------------------------------------------------------------------
   echo " "
   echo "**Testing Basic Block Apps"
   echo " "
 
-  appFolders=$(ls ${appsBaseDir})
-  for app in ${appFolders}; do
-    appBaseDir=${appsBaseDir}/${app}
-    appLogDir=${logsBaseDir}/${app}
+  for path in ${appsBaseDir}/*; do
+    app=$(basename "$path")
+    appBaseDir="${appsBaseDir}"/"${app}"
+    appLogDir="${logsBaseDir}"/"${app}"
 
-    execute_application ${COMPSsExec} ${comm} ${runcompss_opts} ${COMPSsLogFolder} ${appBaseDir} ${appLogDir} ${skip} ${MAX_RETRIES} 
+    execute_application "${COMPSsExec}" "${comm}" "${runcompss_opts}" "${COMPSsLogFolder}" "${appBaseDir}" "${appLogDir}" "${skip}" "${MAX_RETRIES}"
   done
 
   # Show Result table
-  print_result "BASIC" $results
+  print_result "BASIC" "$results"
 
   #--------------------------------------------------------------------------------
-  #EXIT
-  exit $exitValue
+  # EXIT
+  exit "$exitValue"
 

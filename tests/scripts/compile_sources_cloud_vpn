@@ -1,21 +1,22 @@
 #!/bin/bash
 
-  #Get parameters
+  # Get parameters
   source_base_dir=$1
 
-  #Compile basic apps
-  cd ${source_base_dir}
+  # Compile basic apps
+  cd "${source_base_dir}" || exit 1
+
   echo "---- Compiling cloud block java sources"
   mvn -U clean install
-  #Check errors
+  # Check errors
   if [ $? -ne 0 ]; then
      echo "ERROR: CANNOT COMPILE CLOUD BLOCK JAVA APPS"
      exit 1
   fi
 
-  #Go to main folder
-  cd ../../scripts
+  # Go to main folder
+  cd ../../scripts || exit 1
 
-  #Exit all ok
+  # Exit all ok
   exit 0
 

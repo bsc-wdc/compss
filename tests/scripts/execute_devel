@@ -11,36 +11,36 @@
   MAX_RETRIES=$7
 
   # Set script variables
-  appsBaseDir=${baseDir}/apps_basic
-  logsBaseDir=${baseDir}/logs
+  logsBaseDir="${baseDir}"/logs
 
   exitValue=0
   results=""
 
   #--------------------------------------------------------------------------------
   # Source common execution script
-  scriptDir=$(pwd)/$(dirname $0)  
-  source ${scriptDir}/execute_commons
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  # shellcheck source=./execute_commons
+  source "${SCRIPT_DIR}"/execute_commons
 
   #--------------------------------------------------------------------------------
   echo " "
   echo "**Testing Development Apps"
   echo " "
 
-  appFolders=$(ls ${baseDir})
-  for app in ${appFolders}; do
+  for path in ${baseDir}/*; do
+    app=$(basename "$path")
     if [ "$app" != "logs" ]; then
-      appBaseDir=${baseDir}/${app}
-      appLogDir=${logsBaseDir}/${app}
+      appBaseDir="${baseDir}"/"${app}"
+      appLogDir="${logsBaseDir}"/"${app}"
 
-      execute_application ${COMPSsExec} ${comm} ${runcompss_opts} ${COMPSsLogFolder} ${appBaseDir} ${appLogDir} ${skip} ${MAX_RETRIES}
+      execute_application "${COMPSsExec}" "${comm}" "${runcompss_opts}" "${COMPSsLogFolder}" "${appBaseDir}" "${appLogDir}" "${skip}" "${MAX_RETRIES}"
     fi
   done
 
   # Show Result table
-  print_result "DEVELOPMENT" $results
+  print_result "DEVELOPMENT" "$results"
 
   #--------------------------------------------------------------------------------
-  #EXIT
-  exit $exitValue
+  # EXIT
+  exit "$exitValue"
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
   #--------------------------------------------------------------------------------
-  #Set global variables
+  # Set global variables
   logs_location=$1
   base_log_folder=$2
   COMPSs_exec=$3
@@ -11,11 +11,12 @@
   template_id=$7
   os_type=$8
   cloud_owner=$9
-  skip=$10
-  MAX_RETRIES=${11}
+  #skip=${10}
+  #MAX_RETRIES=${11}
 
-  cloud_base_dir="$(dirname $0)/apps_cloud"
-  COMPSs_log_folder="${logs_location}/.COMPSs"
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  cloud_base_dir="${SCRIPT_DIR}"/apps_cloud
+  COMPSs_log_folder="${logs_location}"/.COMPSs
 
   exitValue=0
 
@@ -24,15 +25,15 @@
   echo "**Testing Cloud Block App ${num_test}"
  
   if [ "${num_test}" = "all" ]; then
-     app_folders=$(ls ${cloud_base_dir})
      appCounter=1
      results=""
-     for app in ${app_folders}; do
+     for path in ${cloud_base_dir}/*; do
+       app=$(basename "$path")
        if [ "$app" != "app01" ]; then               #Test number 1 not allowed in this mode
          log_folder="${base_log_folder}/$app"
-         mkdir -p ${log_folder}
-         cd ${cloud_base_dir}/$app
-         ./execution ${COMPSs_exec} ${comm} ${runcompss_opts} "${cloud_base_dir}/$app" ${COMPSs_log_folder} ${log_folder} ${template_id} ${os_type} ${cloud_owner}
+         mkdir -p "${log_folder}"
+         cd "${cloud_base_dir}"/"$app" || continue
+         ./execution "${COMPSs_exec}" "${comm}" "${runcompss_opts}" "${cloud_base_dir}/$app" "${COMPSs_log_folder}" "${log_folder}" "${template_id}" "${os_type}" "${cloud_owner}"
          if [ $? -ne 0 ]; then
             exitValue=1
             results="${results}1"
@@ -47,14 +48,14 @@
        sleep 1
      done
 
-     #Show Result table
+     # Show Result table
      counter=2
      pos=0
      echo
      echo -e "\e[34m------------------------------------------------------------------------"
      echo -e "\e[34m------------------------------------------------------------------------"
      echo -e "\e[34m   Application Name                                      TEST STATUS"
-     while [ $counter -lt $appCounter ]; do
+     while [ "$counter" -lt "$appCounter" ]; do
        if [ "${results:$pos:1}" == "0" ]; then
           echo -e "\e[34m [TEST RESULT] Application CLOUD BLOCK $counter ..................... \e[32mOK"
        else
@@ -72,9 +73,9 @@
      results=""
      app="app0${num_test}"
      log_folder="${base_log_folder}/$app"
-     mkdir -p ${log_folder}
-     cd ${cloud_base_dir}/$app
-     ./execution ${COMPSs_exec} ${comm} ${runcompss_opts} "${cloud_base_dir}/$app" ${COMPSs_log_folder} ${log_folder} ${template_id} ${os_type} ${cloud_owner}
+     mkdir -p "${log_folder}"
+     cd "${cloud_base_dir}"/"$app" || exit 1
+     ./execution "${COMPSs_exec}" "${comm}" "${runcompss_opts}" "${cloud_base_dir}/$app" "${COMPSs_log_folder}" "${log_folder}" "${template_id}" "${os_type}" "${cloud_owner}"
      if [ $? -ne 0 ]; then
         exitValue=1
         results="1"
@@ -82,7 +83,7 @@
         results="0"
      fi
 
-     #Show Result table
+     # Show Result table
      echo
      echo -e "\e[34m------------------------------------------------------------------------"
      echo -e "\e[34m------------------------------------------------------------------------"
@@ -99,6 +100,6 @@
      echo -e "\e[0m"
   fi 
   #--------------------------------------------------------------------------------
-  #EXIT
-  exit $exitValue
+  # EXIT
+  exit "$exitValue"
 

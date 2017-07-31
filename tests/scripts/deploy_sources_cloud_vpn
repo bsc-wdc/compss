@@ -1,67 +1,68 @@
 #!/bin/bash -e
 
-    sources_dir=$1
-    target_dir=$2
-    log_dir=$3
-    COMPSs_location=$4
-    cloud_owner=$5
-    connector_server=$6
-    connector_jar=$7
-    connector_class=$8
-    remoteCOMPSs=$9
+  # Script variables
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-    current_loc=$(pwd)
+  # Script parameters
+  sources_dir=$1
+  target_dir=$2
+  log_dir=$3
+  COMPSs_location=$4
+  cloud_owner=$5
+  connector_server=$6
+  connector_jar=$7
+  connector_class=$8
+  remoteCOMPSs=$9
 
-    # Erase current deployment
-    echo "---- Erasing current deployment"
-    rm -rf ${target_dir}
+  # Erase current deployment
+  echo "---- Erasing current deployment"
+  rm -rf "${target_dir}"
     
-    # Create new deployment structure
-    echo "---- Creating new deployment structure"
-    mkdir -p ${target_dir}
-    mkdir -p ${target_dir}/apps_cloud
-    mkdir -p ${log_dir}
+  # Create new deployment structure
+  echo "---- Creating new deployment structure"
+  mkdir -p "${target_dir}"/apps_cloud
+  mkdir -p "${log_dir}"
  
-    # Deploy scripts
-    echo "---- Deploying main scripts for execution"
-    cp -f ${sources_dir}/../../scripts/execute_cloud_vpn ${target_dir}/execute_cloud_tests
+  # Deploy scripts
+  echo "---- Deploying main scripts for execution"
+  cp -f "${sources_dir}"/../../scripts/execute_cloud_vpn "${target_dir}"/execute_cloud_tests
 
-    # Packing COMPSs
-    echo "---- Packing COMPSs current installation"
-    tmpDir=$(mktemp -d)
-    mkdir ${tmpDir}/COMPSs/
-    cp -r ${COMPSs_location}/* ${tmpDir}/COMPSs/
-    cd ${tmpDir} 
-    tar zcf ${target_dir}/COMPSs.tar.gz COMPSs
-    rm -rf ${tmpDir}
-    cd ${current_loc}
+  # Packing COMPSs
+  echo "---- Packing COMPSs current installation"
+  tmpDir=$(mktemp -d)
+  mkdir "${tmpDir}"/COMPSs/
+  cp -r "${COMPSs_location}"/* "${tmpDir}"/COMPSs/
+  cd "${tmpDir}"
+  tar zcf "${target_dir}"/COMPSs.tar.gz COMPSs
+  rm -rf "${tmpDir}"
+  cd "${SCRIPT_DIR}"
    
-    # TEST CLOUD BLOCK APPS
-    echo "---- Deploying Cloud Block Apps"
-    cloud_app_folders=$(ls ${sources_dir})
-    counter=1
-    for app in $cloud_app_folders; do
-       if [ "$app" != "pom.xml" ]; then
-          if [ $counter -lt 10 ]; then
-             target="${target_dir}/apps_cloud/app0$counter"
-          else
-             target="${target_dir}/apps_cloud/app$counter"
-          fi
-          mkdir $target
-          ${sources_dir}/$app/deploy "${sources_dir}/$app" $target ${cloud_owner}
+  # TEST CLOUD BLOCK APPS
+  echo "---- Deploying Cloud Block Apps"
+  counter=1
+  for path in "${sources_dir}"/*; do
+    app=$(basename "$path")
+    if [ "$app" != "pom.xml" ]; then
+      if [ $counter -lt 10 ]; then
+        target="${target_dir}/apps_cloud/app0$counter"
+      else
+        target="${target_dir}/apps_cloud/app$counter"
+      fi
+      mkdir "$target"
+      "${sources_dir}"/"$app"/deploy "${sources_dir}/$app" "$target" "${cloud_owner}"
 
-          projects=$(ls ${target} | grep -s project | cat)
-          for proj in $projects; do
-             sed -i '/<InstallDir>remote_COMPSs<\/InstallDir>/c<InstallDir>'${remoteCOMPSs}'\/COMPSs\/<\/InstallDir>' ${target}/${proj}
-             sed -i '/<\/Image>/c<Package><Source>'${target_dir}\/COMPSs.tar.gz'<\/Source><Target>'${remoteCOMPSs}'<\/Target><\/Package><\/Image>' ${target}/${proj}
-          done
-          resources=$(ls ${target} | grep -s resources | cat)
-          for res in $resources; do
-             sed -i '/<Server>/c<Server>'${connector_server}'<\/Server>' ${target}/${res}
-             sed -i '/<ConnectorJar>/c<ConnectorJar>'${connector_jar}'<\/ConnectorJar>' ${target}/${res}
-             sed -i '/<ConnectorClass>/c<ConnectorClass>'${connector_class}'<\/ConnectorClass>' ${target}/${res}   
-          done
-          counter=$((counter+1))
-       fi
-    done
+      projects=$(ls "${target}" | grep -s project | cat)
+      for proj in $projects; do
+        sed -i '/<InstallDir>remote_COMPSs<\/InstallDir>/c<InstallDir>'"${remoteCOMPSs}"'\/COMPSs\/<\/InstallDir>' "${target}"/"${proj}"
+        sed -i '/<\/Image>/c<Package><Source>'"${target_dir}"'\/COMPSs.tar.gz<\/Source><Target>'"${remoteCOMPSs}"'<\/Target><\/Package><\/Image>' "${target}"/"${proj}"
+      done
+      resources=$(ls "${target}" | grep -s resources | cat)
+      for res in $resources; do
+        sed -i '/<Server>/c<Server>'"${connector_server}"'<\/Server>' "${target}"/"${res}"
+        sed -i '/<ConnectorJar>/c<ConnectorJar>'"${connector_jar}"'<\/ConnectorJar>' "${target}"/"${res}"
+        sed -i '/<ConnectorClass>/c<ConnectorClass>'"${connector_class}"'<\/ConnectorClass>' "${target}"/"${res}"
+      done
+      counter=$((counter+1))
+    fi
+  done
 

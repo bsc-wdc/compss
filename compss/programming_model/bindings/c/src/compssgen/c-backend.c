@@ -1131,7 +1131,10 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
   
   printf("\t\t Adding out parameter marshalling...\n");
   fflush(NULL);
-  
+  //TODO: Generate if for activating/deactivating serialization of outputs. Uncomment lines and test 
+  /* 
+  fprintf(outFile, "\t\t\t if (serializeOut){\n");
+  */
   if (( func->classname != NULL ) && (func->access_static == 0)){
     
     fprintf(outFile, "\t\t\t cout << \"[C Binding] Treating target object\" << endl << flush;\n");
@@ -1199,6 +1202,11 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
     arg = arg->next_argument;
     j++;
   }
+  //TODO: end of if for activating/deactivating serialization of outputs. Uncomment lines and test 
+  /* 
+  fprintf(outFile, "\t\t\t }\n");
+  */  
+
   printf("\t\t Adding memory free...\n");
   fflush(NULL);
   if (( func->classname != NULL ) && (func->access_static == 0)){

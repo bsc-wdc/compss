@@ -4,6 +4,7 @@
 using namespace std;
 
 map<string, void*> cache;
+map<string,int> types;
 
 string END_TASK_TAG = "endTask";
 string QUIT_TAG = "quit";
@@ -155,8 +156,8 @@ void *runThread(void * arg){
 				executeArgsC[i] = new char[executeArgs[i].size() + 1];
 				strcpy(executeArgsC[i], executeArgs[i].c_str());
 			}
-
-			int ret = execute(executeArgs.size(), executeArgsC, cache);
+			//last integer indicates if output date is going to be serialized at the end of the task execution 0=no 1=yes 
+			int ret = execute(executeArgs.size(), executeArgsC, cache, types, 0);
 
 			csOut->unregisterThread();
 			csErr->unregisterThread();
@@ -169,7 +170,7 @@ void *runThread(void * arg){
 			output = out_ss.str();
 
 			outFile.open(outPipe);
-            outFile << output;
+                        outFile << output;
 			fflush(NULL);
 			outFile.close();
 	
@@ -182,7 +183,7 @@ void *runThread(void * arg){
 
 #ifdef OMPSS_ENABLED
     cout << "disabling" << endl;
-	nanos_leave_team();
+    nanos_leave_team();
     nanos_expel_current_thread();
     cout << "disabled" << endl;
 #endif
@@ -231,10 +232,10 @@ int main(int argc, char **argv) {
 	streambuf* outbuf = cout.rdbuf();
 	streambuf* errbuf = cerr.rdbuf();
 
-    customStream *csOut = new customStream(cout.rdbuf());
+        customStream *csOut = new customStream(cout.rdbuf());
 	customStream *csErr = new customStream(cerr.rdbuf());
 
-    cout.rdbuf(csOut);
+        cout.rdbuf(csOut);
 	cerr.rdbuf(csErr);
 
 	pthread_t threadpool[numInPipes];

@@ -14,7 +14,7 @@ public class GenericInvoker {
 	private static final int NUM_BASE_MPI_ARGS = 6;
 	private static final int NUM_BASE_OMPSS_ARGS = 1;
 	private static final int NUM_BASE_BINARY_ARGS = 1;
-	private static final int NUM_BASE_DECAF_ARGS = 9;
+	private static final int NUM_BASE_DECAF_ARGS = 7;
 	private static final String OMP_NUM_THREADS = "OMP_NUM_THREADS";
 
 	public static Object invokeMPIMethod(String mpiRunner, String mpiBinary,
@@ -113,10 +113,14 @@ public class GenericInvoker {
 		cmd[2] = dfExecutor;
 		cmd[3] = dfLib;
 		cmd[4] = mpiRunner;
-		cmd[5] = "-H";
-		cmd[6] = workers;
-		cmd[7] = "-n";
-		cmd[8] = numProcs;
+		cmd[5] = "-n";
+                cmd[6] = numProcs;
+                /* Version With hosts
+                 * cmd[5] = "-H";
+                 * cmd[6] = workers;
+                 * cmd[7] = "-n";
+                 * cmd[8] = numProcs;
+                 */
 
 		for (int i = 0; i < binaryParams.size(); ++i) {
 			cmd[NUM_BASE_DECAF_ARGS + i] = binaryParams.get(i);

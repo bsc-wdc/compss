@@ -2,7 +2,8 @@
 df_script=$1
 df_executor=$2
 df_lib=$3
-shift 3
+mpirunner=$4
+shift 4
 echo "Executing decaf data-flow generator: $df_script $@" 
 python $df_script $@
 

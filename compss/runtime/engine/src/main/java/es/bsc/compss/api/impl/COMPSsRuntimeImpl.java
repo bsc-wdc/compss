@@ -850,8 +850,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         DataLocation loc;
         try {
             loc = createLocation(fileName);
-        } catch (Exception e) {
-            ErrorManager.fatal(ERROR_FILE_NAME, e);
+        } catch (IOException ioe) {
+            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
             return null;
         }
 

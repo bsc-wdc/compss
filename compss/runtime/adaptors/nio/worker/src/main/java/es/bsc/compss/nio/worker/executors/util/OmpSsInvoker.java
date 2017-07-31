@@ -30,7 +30,7 @@ public class OmpSsInvoker extends Invoker {
 
     @Override
     public Object invokeMethod() throws JobExecutionException {
-        logger.info("Invoked " + ompssBinary + " in " + nw.getHostName());
+        LOGGER.info("Invoked " + ompssBinary + " in " + nw.getHostName());
         try {
             return GenericInvoker.invokeOmpSsMethod(this.ompssBinary, this.values, this.hasReturn, this.streams, this.prefixes,
                     this.taskSandboxWorkingDir);

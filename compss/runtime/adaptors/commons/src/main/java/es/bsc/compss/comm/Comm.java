@@ -272,14 +272,14 @@ public class Comm {
      * @param id
      * @return
      */
-    private static synchronized LogicalData registerPSCO(String dataId, String id) {
+    public static synchronized LogicalData registerPSCO(String dataId, String id) {
         String targetPath = Protocol.PERSISTENT_URI.getSchema() + id;
         DataLocation location = null;
         try {
             SimpleURI uri = new SimpleURI(targetPath);
             location = DataLocation.createLocation(appHost, uri);
-        } catch (IOException e) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
+        } catch (IOException ioe) {
+            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, ioe);
         }
 
         LogicalData logicalData = data.get(dataId);

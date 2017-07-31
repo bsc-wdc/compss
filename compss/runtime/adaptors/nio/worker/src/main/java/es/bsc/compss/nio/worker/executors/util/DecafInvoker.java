@@ -70,7 +70,7 @@ public class DecafInvoker extends Invoker {
     }
 
     private Object invokeMPIMethod() throws JobExecutionException {
-        logger.info("Invoked " + this.dfScript + " in " + this.nw.getHostName());
+        LOGGER.info("Invoked " + this.dfScript + " in " + this.nw.getHostName());
         try {
             return GenericInvoker.invokeDecafMethod(nw.getInstallDir() + DecafImplementation.SCRIPT_PATH, this.dfScript, this.dfExecutor,
                     this.dfLib, this.mpiRunner, this.values, this.hasReturn, this.streams, this.prefixes, this.taskSandboxWorkingDir);

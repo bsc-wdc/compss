@@ -518,6 +518,7 @@ public class NIOWorker extends NIOAgent {
     // The master abruptly finishes the connection. The NIOMessageHandler
     // handles this as an error, which treats with its function handleError,
     // and notifies the worker in this case.
+    @Override
     public void handleRequestedDataNotAvailableError(List<DataRequest> failedRequests, String dataId) {
         for (DataRequest dr : failedRequests) { // For every task pending on this request, flag it as an error
             WorkerDataRequest wdr = (WorkerDataRequest) dr;
@@ -540,25 +541,18 @@ public class NIOWorker extends NIOAgent {
             File fout = new File(baseJobPath + ".out");
             File ferr = new File(baseJobPath + ".err");
             if (!fout.exists() || !ferr.exists()) {
-                FileOutputStream fos = null;
-                try {
-                    String errorMessage = "Worker closed because the data " + dataId + " couldn't be retrieved.";
-                    fos = new FileOutputStream(fout);
-                    fos.write(errorMessage.getBytes());
-                    fos.close();
-                    fos = new FileOutputStream(ferr);
-                    fos.write(errorMessage.getBytes());
-                    fos.close();
-                } catch (IOException e) {
-                    WORKER_LOGGER.error("IOException", e);
-                } finally {
-                    if (fos != null) {
-                        try {
-                            fos.close();
-                        } catch (IOException e) {
-                            WORKER_LOGGER.error("IOException", e);
-                        }
-                    }
+                String errorMessage = "Worker closed because the data " + dataId + " couldn't be retrieved.";
+                try (FileOutputStream outputStream = new FileOutputStream(fout)) {
+                    outputStream.write(errorMessage.getBytes());
+                    outputStream.close();
+                } catch (IOException ioe) {
+                    WORKER_LOGGER.error("IOException writing worker output file: " + fout, ioe);
+                }
+                try (FileOutputStream errorStream = new FileOutputStream(ferr)) {
+                    errorStream.write(errorMessage.getBytes());
+                    errorStream.close();
+                } catch (IOException ioe) {
+                    WORKER_LOGGER.error("IOException writing worker error file: " + ferr, ioe);
                 }
             }
         }

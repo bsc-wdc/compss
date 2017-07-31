@@ -53,7 +53,7 @@ public class MPIInvoker extends Invoker {
     }
 
     private Object invokeMPIMethod() throws JobExecutionException {
-        logger.info("Invoked " + this.mpiBinary + " in " + this.nw.getHostName());
+        LOGGER.info("Invoked " + this.mpiBinary + " in " + this.nw.getHostName());
         try {
             return GenericInvoker.invokeMPIMethod(this.mpiRunner, this.mpiBinary, this.values, this.hasReturn, this.streams, this.prefixes,
                     this.taskSandboxWorkingDir);

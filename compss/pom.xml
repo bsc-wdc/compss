@@ -258,7 +258,7 @@
 		<repository>
 			<id>grid-repo</id>
 			<name>BSC Grid computing and Clusters group</name>
-			<url>http://compss.bsc.es/artifactory/grid-devel-repo</url>
+			<url>http://compssdev.bsc.es/artifactory/libs-release</url>
 		</repository>
 	</repositories>
 
@@ -281,7 +281,7 @@
 		<repository>
 			<id>grid-repo</id>
 			<name>BSC Grid computing and Clusters group</name>
-			<url>http://compss.bsc.es/artifactory/grid-devel-repo</url>
+			<url>http://compssdev.bsc.es/artifactory/libs-release</url>
 		</repository>
 	</distributionManagement>
 

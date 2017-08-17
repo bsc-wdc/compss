@@ -393,8 +393,14 @@ def synchronize(obj, mode):
 
     file_name = objid_to_filename[obj_id]
     compss_file = compss.get_file(file_name, mode)
-    new_obj = deserialize_from_file(compss_file)
-    compss.close_file(file_name, mode)
+
+    # Runtime can return a path or a PSCOId
+    if compss_file.startswith('/'):
+        new_obj = deserialize_from_file(compss_file)
+        compss.close_file(file_name, mode)
+    else:
+        from storage.api import getByID
+        new_obj = getByID(compss_file)
     new_obj_id = get_object_id(new_obj, True, True)
 
     # The main program won't work with the old object anymore, update mapping

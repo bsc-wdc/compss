@@ -351,6 +351,11 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     private void updateParameter(DataType newType, String pscoId, DependencyParameter dp) {
         DataType previousType = dp.getType();
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Updating parameter " + dp.getDataTarget() + " from type " + previousType + " to type " + newType + " with id "
+                    + pscoId);
+        }
+
         switch (previousType) {
             case PSCO_T:
             case EXTERNAL_OBJECT_T:

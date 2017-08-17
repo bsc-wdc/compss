@@ -3,6 +3,7 @@ package es.bsc.compss.nio.master;
 import java.util.LinkedList;
 import java.util.List;
 
+import es.bsc.compss.comm.Comm;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.commands.Data;
@@ -14,6 +15,7 @@ import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.RAccessId;
 import es.bsc.compss.types.data.DataAccessId.RWAccessId;
+import es.bsc.compss.types.data.DataAccessId.WAccessId;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.Implementation;
@@ -110,6 +112,30 @@ public class NIOJob extends Job<NIOWorkerNode> {
                         preserveSourceData = false;
                     }
 
+                    // Workaround for Python PSCOs in return
+                    // Check if the parameter has a valid PSCO and change its type
+                    String renaming;
+                    DataAccessId faId = dPar.getDataAccessId();
+                    if (faId instanceof WAccessId) {
+                        // Write mode
+                        WAccessId waId = (WAccessId) faId;
+                        renaming = waId.getWrittenDataInstance().getRenaming();
+                    } else if (faId instanceof RWAccessId) {
+                        // Read write mode
+                        RWAccessId rwaId = (RWAccessId) faId;
+                        renaming = rwaId.getWrittenDataInstance().getRenaming();
+                    } else {
+                        // Read only mode
+                        RAccessId raId = (RAccessId) faId;
+                        renaming = raId.getReadDataInstance().getRenaming();
+                    }
+                    String pscoId = Comm.getData(renaming).getId();
+                    if (pscoId != null && type.equals(DataType.FILE_T)) {
+                        param.setType(DataType.EXTERNAL_OBJECT_T);
+                        type = param.getType();
+                    }
+
+                    // Create the NIO Param
                     boolean writeFinalValue = !(dAccId instanceof RAccessId); // Only store W and RW
                     np = new NIOParam(type, param.getStream(), param.getPrefix(), preserveSourceData, writeFinalValue, value,
                             (Data) dPar.getDataSource(), dPar.getOriginalName());

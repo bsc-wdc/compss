@@ -23,8 +23,6 @@
   sudo zypper install -y libxml2-devel boost-devel tcsh
   # Extrae dependencies
   sudo zypper install -y libxml2 gcc-fortran papi papi-devel
-
-  export JAVA_HOME=/usr/lib64/jvm/java-1.8.0-openjdk-1.8.0/
   echo "      Success"
 
   

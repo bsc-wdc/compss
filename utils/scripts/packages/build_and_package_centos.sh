@@ -34,7 +34,6 @@ EOT
   
   # Export variables for build
   source /etc/profile.d/maven.sh
-  export JAVA_HOME=/usr/lib/jvm/java-openjdk/
   echo "      Success"
 
   

@@ -22,8 +22,6 @@
   sudo apt-get -y --force-Yes install libxml2-dev libboost-serialization-dev libboost-iostreams-dev csh
   # Extrae dependencies
   sudo apt-get -y --force-Yes install libxml2 gfortran
-
-  export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
   echo "      Success"
  
 

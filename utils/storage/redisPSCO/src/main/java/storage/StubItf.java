@@ -1,5 +1,7 @@
 package storage;
 
+import java.io.IOException;
+
 public interface StubItf {
 
     /**
@@ -14,7 +16,7 @@ public interface StubItf {
      *
      * @param id
      */
-    public abstract void makePersistent(String id);
+    public abstract void makePersistent(String id) throws IOException, StorageException;
 
     /**
      * Removes persistent object

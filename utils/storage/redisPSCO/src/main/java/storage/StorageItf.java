@@ -8,13 +8,12 @@ import java.util.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import redis.clients.jedis.Jedis;
+import storage.utils.Serializer;
 
-// TODO: averiguar donde hay que levantar redis
-// TODO: averiguar como obtener los nodos disponibles
 public final class StorageItf {
 
     // Logger According to Loggers.STORAGE
-    private static final Logger LOGGER = LogManager.getLogger("integratedtoolkit.Storage");
+    private static final Logger LOGGER = LogManager.getLogger("compss.Storage");
 
     // Error Messages
     private static final String ERROR_HOSTNAME = "ERROR_HOSTNAME";
@@ -28,27 +27,12 @@ public final class StorageItf {
     private static final String ID_EXTENSION = ".ID";
     private static final String PSCO_EXTENSION = ".PSCO";
 
-    // Worker Hostnames
-    private static final LinkedList<String> HOSTNAMES = new LinkedList<>();
-
-    // Redis constants
-    // Redis recommends to have at least three master nodes for clusters
-    private static final int REDIS_MIN_MASTERS = 3;
-
-    // redis.confg configuration template
-    private static final String REDIS_CONF_TEMPLATE = String.join(
-            System.getProperty("line.separator"),
-            "bind 0.0.0.0",
-            "port ##REDIS_PORT##",
-            "cluster-enabled yes",
-            "cluster-config-file nodes.conf",
-            "cluster-node-timeout ##NODE_TIMEOUT##",
-            "appendonly yes"
-    );
-
     // Redis variables
     // Client connection
     private static Jedis redisConnection;
+    private static Properties storageConfiguration;
+
+    private String[] hosts;
 
 
     static {
@@ -88,13 +72,16 @@ public final class StorageItf {
     }
 
     /**
-     * Initializes the persistent storage Configuration file must contain all the worker hostnames, one by line
+     * Initializes the persistent storage
+     * Configuration file must contain all the worker hostnames, one by line
      *
      * @param storageConf Path to the storage configuration File
      * @throws StorageException
      */
     public static void init(String storageConf) throws StorageException, IOException {
-
+        //TODO: Make it work properly, at the moment we will assume that we must establish a connection with
+        //TODO: the localhost port 6379
+        redisConnection = new Jedis("127.0.0.1", 6379);
     }
 
     /**
@@ -103,7 +90,7 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static void finish() throws StorageException {
-
+        redisConnection.close();
     }
 
     /**
@@ -114,6 +101,7 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static List<String> getLocations(String id) throws StorageException {
+        if(true) throw new StorageException("Redis does not support this feature");
         return null;
     }
 
@@ -125,7 +113,7 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static void newReplica(String id, String hostName) throws StorageException {
-
+        throw new StorageException("Redis does not support this feature");
     }
 
     /**
@@ -148,7 +136,14 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static Object getByID(String id) throws StorageException {
-        return null;
+        byte[] serializedObject = redisConnection.get(id.getBytes());
+        Object ret = null;
+        try {
+            ret = Serializer.deserialize(serializedObject);
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return ret;
     }
 
     /**
@@ -201,7 +196,13 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static void makePersistent(Object o, String id) throws StorageException {
-
+        byte[] serializedObject = null;
+        try {
+            serializedObject = Serializer.serialize(o);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        redisConnection.set(id.getBytes(), serializedObject);
     }
 
     /**
@@ -210,12 +211,41 @@ public final class StorageItf {
      * @param id
      */
     public static void removeById(String id) {
-
+        redisConnection.del(id.getBytes());
     }
 
+
+
+
+    // ONLY FOR TESTING PURPOSES
+    static class MyStorageObject extends StorageObject {
+        private String innerString;
+
+        public MyStorageObject(String myString) {
+            innerString = myString;
+        }
+
+        public String getInnerString() {
+            return innerString;
+        }
+
+        public void setInnerString(String innerString) {
+            this.innerString = innerString;
+        }
+    }
+
+    /**
+     * ONLY FOR TESTING PURPOSES
+     * @param args
+     */
     public static void main(String[] args) {
         try {
-            init("utils/storage/redisPSCO/src/main/resources/config.properties");
+            init("I DONT CARE");
+            String myObject = "This is an object";
+            StorageItf.makePersistent(myObject, "prueba");
+            Object retrieved = StorageItf.getByID("prueba");
+            System.out.println((String)retrieved);
+            StorageItf.removeById("prueba");
         } catch(StorageException e) {
             e.printStackTrace();
         } catch (IOException e) {

@@ -32,7 +32,7 @@ public final class StorageItf {
     private static Jedis redisConnection;
     private static Properties storageConfiguration;
 
-    private String[] hosts;
+    private static String[] hosts;
 
 
     static {
@@ -82,6 +82,7 @@ public final class StorageItf {
         //TODO: Make it work properly, at the moment we will assume that we must establish a connection with
         //TODO: the localhost port 6379
         redisConnection = new Jedis("127.0.0.1", 6379);
+        hosts = new String[]{"127.0.0.1:6379"};
     }
 
     /**
@@ -95,14 +96,14 @@ public final class StorageItf {
 
     /**
      * Returns all the valid locations of a given id
-     * 
+     * WARNING: Given that Redis has no immediate mechanisms to retrieve this information, we will return
+     * all the nodes instead, because a connection to any of them will grant us that we can retrieve it
      * @param id
      * @return
      * @throws StorageException
      */
     public static List<String> getLocations(String id) throws StorageException {
-        if(true) throw new StorageException("Redis does not support this feature");
-        return null;
+        return Arrays.asList(hosts);
     }
 
     /**
@@ -135,21 +136,19 @@ public final class StorageItf {
      * @return
      * @throws StorageException
      */
-    public static Object getByID(String id) throws StorageException {
+    public static Object getByID(String id) throws StorageException, IOException, ClassNotFoundException {
+        LOGGER.debug("Retrieving serialized object...");
         byte[] serializedObject = redisConnection.get(id.getBytes());
-        Object ret = null;
-        try {
-            ret = Serializer.deserialize(serializedObject);
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
+        LOGGER.debug("Serialized object has been retrieved!");
+        Object ret = Serializer.deserialize(serializedObject);
+        LOGGER.debug("Object has been deserialized!");
         return ret;
     }
 
     /**
      * Executes the task into persistent storage
      * 
-     * @param id
+     * @param id 
      * @param descriptor
      * @param values
      * @param hostName
@@ -195,14 +194,12 @@ public final class StorageItf {
      * @param id
      * @throws StorageException
      */
-    public static void makePersistent(Object o, String id) throws StorageException {
-        byte[] serializedObject = null;
-        try {
-            serializedObject = Serializer.serialize(o);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public static void makePersistent(Object o, String id) throws StorageException, IOException {
+        LOGGER.debug("Serializing the object...");
+        byte[]  serializedObject = Serializer.serialize(o);
+        LOGGER.debug("Object serialized! Adding to Redis...");
         redisConnection.set(id.getBytes(), serializedObject);
+        LOGGER.debug("Object has been added to Redis");
     }
 
     /**
@@ -211,7 +208,9 @@ public final class StorageItf {
      * @param id
      */
     public static void removeById(String id) {
+        LOGGER.debug("Deleting object with id " + id);
         redisConnection.del(id.getBytes());
+        LOGGER.debug("Object deleted!");
     }
 
 
@@ -238,7 +237,7 @@ public final class StorageItf {
      * ONLY FOR TESTING PURPOSES
      * @param args
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ClassNotFoundException {
         try {
             init("I DONT CARE");
             String myObject = "This is an object";

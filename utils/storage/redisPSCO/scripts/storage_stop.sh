@@ -102,7 +102,7 @@
   # Function to log received arguments
   ####################
   log_args() {
-    echo "--- STORAGE_INIT.SH ---"
+    echo "--- STORAGE_STOP.SH ---"
     echo "Job ID:              $jobId"
     echo "Master Node:         $master_node"
     echo "Storage Master Node: $storage_master_node"

@@ -61,8 +61,6 @@ public class Internal {
         Person p = new Person("PName2", 2, 2);
         p.makePersistent(id);
 
-        System.out.println("I am about to call the task!!!");
-
         InternalImpl.taskPSCOInOut(p);
 
         String name = p.getName();

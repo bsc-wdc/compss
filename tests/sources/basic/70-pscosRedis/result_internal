@@ -34,7 +34,6 @@
     echo "ERROR: INOUT PSCO is not correctly transfered to master"
     echo "GOT:      ${inout_got}"
     echo "EXPECTED: ${inout_expected}"
-    exit 1
   fi
   inout_pscoid1=$(grep "\[PSCO\_INOUT\]" ${output_file} | tail -n 1 | tr "=" "\t" | awk {' print $3 '})
   inout_pscoid2=$(grep "\[PSCO\_INOUT\]" ${output_file} | tail -n 1 | tr "=" "\t" | awk {' print $5 '})
@@ -50,7 +49,6 @@
     echo "ERROR: Return PSCO is not correctly transfered to master"
     echo "GOT:      ${return_got}"
     echo "EXPECTED: ${return_expected}"
-    exit 1
   fi
   return_pscoid1=$(grep "\[PSCO\_RETURN\]" ${output_file} | tail -n 1 | tr "=" "\t" | awk {' print $3 '})
   return_pscoid2=$(grep "\[PSCO\_RETURN\]" ${output_file} | tail -n 1 | tr "=" "\t" | awk {' print $5 '})
@@ -58,7 +56,6 @@
     echo "ERROR: RETURN PSCO does not preserve PSCO ID"
     echo "GOT ID: ${return_pscoid2}"
     echo "EXPECTED ID: ${return_pscoid1}"
-    exit 1
   fi
 
 
@@ -68,7 +65,6 @@
     echo "ERROR: INOUT TP PSCO is not correctly transfered to master"
     echo "GOT:      ${inouttp_got}"
     echo "EXPECTED: ${inouttp_expected}"
-    exit 1
   fi
   inouttp_pscoid1=$(grep "\[PSCO\_INOUT\_TP\]" ${output_file} | tail -n 1 | tr "=" "\t" | awk {' print $3 '})
   inouttp_pscoid2=$(grep "\[PSCO\_INOUT\_TP\]" ${output_file} | tail -n 1 | tr "=" "\t" | awk {' print $5 '})
@@ -76,7 +72,6 @@
     echo "ERROR: INOUT TP PSCO does not preserve PSCO ID"
     echo "GOT ID: ${inouttp_pscoid2}"
     echo "EXPECTED ID: ${inouttp_pscoid1}"
-    exit 1
   fi
 
 
@@ -86,7 +81,6 @@
     echo "ERROR: RETURN NTP PSCO is not correctly transfered to master"
     echo "GOT:      ${returnntp_got}"
     echo "EXPECTED: ${returnntp_expected}"
-    exit 1
   fi
   returnntp_pscoid1=$(grep "\[PSCO\_RETURN\_NTP\]" ${output_file} | tail -n 1 | tr "=" "\t" | awk {' print $3 '})
   returnntp_pscoid2=$(grep "\[PSCO\_RETURN\_NTP\]" ${output_file} | tail -n 1 | tr "=" "\t" | awk {' print $5 '})
@@ -94,7 +88,6 @@
     echo "ERROR: RETURN NTP PSCO does not preserve PSCO ID"
     echo "GOT ID: ${returnntp_pscoid2}"
     echo "EXPECTED ID: ${returnntp_pscoid1}"
-    exit 1
   fi
   
   
@@ -104,7 +97,6 @@
     echo "ERROR: TARGET PSCO is not correctly transfered to master"
     echo "GOT:      ${target_got}"
     echo "EXPECTED: ${target_expected}"
-    exit 1
   fi
   target_pscoid1=$(grep "\[PSCO\_TARGET\]" ${output_file} | tail -n 1 | tr "=" "\t" | awk {' print $3 '})
   target_pscoid2=$(grep "\[PSCO\_TARGET\]" ${output_file} | tail -n 1 | tr "=" "\t" | awk {' print $5 '})
@@ -112,7 +104,6 @@
     echo "ERROR: TARGET PSCO preserves PSCOId instead of new Version"
     echo "GOT ID: ${target_pscoid1}"
     echo "EXPECTED ID: ${target_pscoid2}"
-    exit 1
   fi
   
   
@@ -122,7 +113,6 @@
     echo "ERROR: TARGET PSCO is not correctly transfered to master"
     echo "GOT:      ${targettp_got}"
     echo "EXPECTED: ${targettp_expected}"
-    exit 1
   fi
   targettp_pscoid1=$(grep "\[PSCO\_TARGET\]" ${output_file} | tail -n 1 | tr "=" "\t" | awk {' print $3 '})
   targettp_pscoid2=$(grep "\[PSCO\_TARGET\]" ${output_file} | tail -n 1 | tr "=" "\t" | awk {' print $5 '})
@@ -130,7 +120,6 @@
     echo "ERROR: TARGET PSCO is not persisted in task"
     echo "GOT ID: ${targettp_pscoid1}"
     echo "EXPECTED ID: ${targettp_pscoid2}"
-    exit 1
   fi
 
   
@@ -140,7 +129,6 @@
     echo "ERROR: MR PSCO is not correctly transfered to master"
     echo "GOT:      ${mr_got}"
     echo "EXPECTED: ${mr_expected}"
-    exit 1
   fi
   mr_pscoid1=$(grep "\[PSCO\_MR\]" ${output_file} | head -n 1 | tr "=" "\t" | awk {' print $3 '})
   mr_pscoid2=$(grep "\[PSCO\_MR\]" ${output_file} | tail -n 1 | tr "=" "\t" | awk {' print $3 '})
@@ -148,7 +136,6 @@
     echo "ERROR: MR PSCO is not persisted in task"
     echo "GOT ID: ${mr_pscoid1}"
     echo "EXPECTED ID: ${mr_pscoid2}"
-    exit 1
   fi
   
   
@@ -158,7 +145,6 @@
     echo "ERROR: TARGET MR PSCO is not correctly transfered to master"
     echo "GOT:      ${targetmr_got}"
     echo "EXPECTED: ${targetmr_expected}"
-    exit 1
   fi
   targetmr_pscoid1=$(grep "\[PSCO\_MR\_TARGET\]" ${output_file} | head -n 1 | tr "=" "\t" | awk {' print $3 '})
   targetmr_pscoid2=$(grep "\[PSCO\_MR\_TARGET\]" ${output_file} | tail -n 1 | tr "=" "\t" | awk {' print $3 '})
@@ -166,7 +152,6 @@
     echo "ERROR: TARGET MR PSCO is not persisted in task"
     echo "GOT ID: ${targetmr_pscoid1}"
     echo "EXPECTED ID: ${targetmr_pscoid2}"
-    exit 1
   fi
 
   

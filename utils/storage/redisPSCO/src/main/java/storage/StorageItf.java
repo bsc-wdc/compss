@@ -13,7 +13,7 @@ import storage.utils.Serializer;
 public final class StorageItf {
 
     // Logger According to Loggers.STORAGE
-    private static final Logger LOGGER = LogManager.getLogger("compss.Storage");
+    private static final Logger LOGGER = LogManager.getLogger("es.bsc.compss.Storage");
 
     // Error Messages
     private static final String ERROR_HOSTNAME = "ERROR_HOSTNAME";
@@ -79,10 +79,11 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static void init(String storageConf) throws StorageException, IOException {
-        //TODO: Make it work properly, at the moment we will assume that we must establish a connection with
+        System.out.println("StorageCONF = " + storageConf);
+        //TODO: Make it work properly, at the moment we will assume that we must establish a connection with localhost
         //TODO: the localhost port 6379
         redisConnection = new Jedis("127.0.0.1", 6379);
-        hosts = new String[]{"127.0.0.1:6379"};
+        hosts = new String[]{"COMPSsWorker01"};
     }
 
     /**
@@ -125,8 +126,14 @@ public final class StorageItf {
      * @return
      * @throws StorageException
      */
-    public static String newVersion(String id, boolean preserveSource, String hostName) throws StorageException {
-        return null;
+    public static String newVersion(String id, boolean preserveSource, String hostName) throws StorageException, IOException, ClassNotFoundException {
+        Object obj = getByID(id);
+        String new_id = UUID.randomUUID().toString();
+        makePersistent(obj, new_id);
+        if(!preserveSource) {
+            removeById(id);
+        }
+        return new_id;
     }
 
     /**
@@ -137,11 +144,9 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static Object getByID(String id) throws StorageException, IOException, ClassNotFoundException {
-        LOGGER.debug("Retrieving serialized object...");
         byte[] serializedObject = redisConnection.get(id.getBytes());
-        LOGGER.debug("Serialized object has been retrieved!");
         Object ret = Serializer.deserialize(serializedObject);
-        LOGGER.debug("Object has been deserialized!");
+        ((StorageObject)ret).setID(id);
         return ret;
     }
 
@@ -195,11 +200,11 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static void makePersistent(Object o, String id) throws StorageException, IOException {
-        LOGGER.debug("Serializing the object...");
         byte[]  serializedObject = Serializer.serialize(o);
-        LOGGER.debug("Object serialized! Adding to Redis...");
-        redisConnection.set(id.getBytes(), serializedObject);
-        LOGGER.debug("Object has been added to Redis");
+        String result = redisConnection.set(id.getBytes(), serializedObject);
+        if(!result.equals("OK")) {
+            throw new StorageException("Redis returned an error while trying to store object with id " + id);
+        }
     }
 
     /**
@@ -208,12 +213,8 @@ public final class StorageItf {
      * @param id
      */
     public static void removeById(String id) {
-        LOGGER.debug("Deleting object with id " + id);
         redisConnection.del(id.getBytes());
-        LOGGER.debug("Object deleted!");
     }
-
-
 
 
     // ONLY FOR TESTING PURPOSES

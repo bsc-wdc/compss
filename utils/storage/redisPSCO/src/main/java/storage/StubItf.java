@@ -16,6 +16,7 @@ public interface StubItf {
      *
      * @param id
      */
+    //TODO: Add StorageException in the header of ALL interfaces (it does not make sense to catch it)
     public abstract void makePersistent(String id) throws IOException, StorageException;
 
     /**

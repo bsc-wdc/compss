@@ -62,6 +62,7 @@ public class StorageObject implements StubItf {
         logger.debug("Object persisted!");
     }
 
+
     /**
      * Persist the object.
      * The identifier will be a pseudo-randomly generated UUID
@@ -87,16 +88,6 @@ public class StorageObject implements StubItf {
      */
     //TODO: Is this the intended behaviour?
     protected void setID(String id) throws IOException, StorageException {
-        // If the object was already identified then it means that it was also persisted
-        // lets re-insert it to maintain consistency
-        if(this.id != null) {
-            // Remove the object from the storage system (old id)
-            StorageItf.removeById(id);
-            // Set the new id an re-add it to the storage
-            // This may cause Redis to store the object on a different node than the previous one
-            StorageItf.makePersistent(this, id);
-        }
-        // Assign the new id to the object in a safe, consistent way
         this.id = id;
     }
 }

@@ -7,7 +7,7 @@ import org.apache.logging.log4j.Logger;
 public class StorageObject implements StubItf {
 
     // Logger: According to Loggers.STORAGE
-    private static final Logger logger = LogManager.getLogger("compss.Storage");
+    private static final Logger LOGGER = LogManager.getLogger("es.bsc.compss.Storage");
 
     private String id = null;
 
@@ -45,10 +45,10 @@ public class StorageObject implements StubItf {
     @Override
     public void makePersistent(String id) {
         try {
-            StorageItf.makePersistent(this, id);
             this.id = id;
+            StorageItf.makePersistent(this, id);
         } catch (StorageException e) {
-            logger.error("Exception serializing object", e);
+            LOGGER.error("Exception serializing object", e);
         }
     }
 

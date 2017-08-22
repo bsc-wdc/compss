@@ -28,9 +28,12 @@ public final class StorageItf {
     private static final String PSCO_EXTENSION = ".PSCO";
 
     // Redis variables
+
+    // This port is the official Redis Port
+    // The storage API will assume that, given a hostname, there is a Redis Server listening there
+    private static final int REDIS_PORT = 6379;
     // Client connection
     private static Jedis redisConnection;
-    private static Properties storageConfiguration;
 
     private static List<String> hosts = new ArrayList<>();
 
@@ -47,21 +50,6 @@ public final class StorageItf {
         }
         MASTER_HOSTNAME = hostname;
         MASTER_WORKING_DIR = BASE_WORKING_DIR + File.separator + MASTER_HOSTNAME + File.separator;
-    }
-
-
-    /**
-     * Reads a config.properties file and returns a Properties object
-     * @param path String with path to the cfg file
-     * @return Properties object
-     * @throws IOException If file not found or wrong formatting
-     */
-    private static Properties getPropertiesFromFile(String path) throws IOException {
-        FileInputStream fis = new FileInputStream(path);
-        Properties ret = new Properties();
-        ret.load(fis);
-        fis.close();
-        return ret;
     }
 
     /**

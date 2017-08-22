@@ -20,7 +20,9 @@
 
   cp -f ${source_base_dir}/project.xml ${target_base_dir}/project.xml
   cp -f ${source_base_dir}/resources.xml ${target_base_dir}/resources.xml
-  cp -f ${source_base_dir}/skip ${target_base_dir}/skip
   cp -f ${source_base_dir}/execution ${target_base_dir}/execution
   cp -f ${source_base_dir}/result_internal ${target_base_dir}/result_internal
   cp -f ${source_base_dir}/result_external ${target_base_dir}/result_external
+
+  cp -f ${source_base_dir}/skip ${target_base_dir}/skip
+

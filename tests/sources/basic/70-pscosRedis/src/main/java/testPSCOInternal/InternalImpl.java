@@ -3,6 +3,7 @@ package testPSCOInternal;
 import java.util.UUID;
 
 import storage.StorageException;
+import storage.StorageItf;
 import storageManager.StorageManager;
 import model.Computer;
 import model.Person;
@@ -18,14 +19,6 @@ public class InternalImpl {
         int age = p.getAge();
         int numC = p.getNumComputers();
         System.out.println("[LOG] Person " + name + " with age " + age + " has " + numC + " computers");
-
-        // Manually persist object to storage
-        try {
-            StorageManager.persist(p);
-        } catch (StorageException e) {
-            System.err.println(ERROR_PERSIST);
-            e.printStackTrace();
-        }
     }
 
     public static void taskPSCOInOut(Person p) {
@@ -45,12 +38,9 @@ public class InternalImpl {
         System.out.println("[LOG] Person " + name + " with age " + age + " has " + numC + " computers");
 
         // Manually persist object to storage
-        try {
-            StorageManager.persist(p);
-        } catch (StorageException e) {
-            System.err.println(ERROR_PERSIST);
-            e.printStackTrace();
-        }
+        String pId = p.getID();
+        p.deletePersistent();
+        p.makePersistent(pId);
     }
 
     public static Person taskPSCOReturn(String name, int age, int numC, String id) {
@@ -58,12 +48,9 @@ public class InternalImpl {
         p.makePersistent(id);
 
         // Manually persist object to storage
-        try {
-            StorageManager.persist(p);
-        } catch (StorageException e) {
-            System.err.println(ERROR_PERSIST);
-            e.printStackTrace();
-        }
+        String pId = p.getID();
+        p.deletePersistent();
+        p.makePersistent(pId);
 
         return p;
     }
@@ -83,12 +70,9 @@ public class InternalImpl {
         p.makePersistent(id);
 
         // Manually persist object to storage
-        try {
-            StorageManager.persist(p);
-        } catch (StorageException e) {
-            System.err.println(ERROR_PERSIST);
-            e.printStackTrace();
-        }
+        String pId = p.getID();
+        p.deletePersistent();
+        p.makePersistent(pId);
 
         return id;
     }
@@ -101,13 +85,9 @@ public class InternalImpl {
     public static Person taskMap(String newName, Person p) {
         p.setName(newName);
 
-        // Manually persist object to storage
-        try {
-            StorageManager.persist(p);
-        } catch (StorageException e) {
-            System.err.println(ERROR_PERSIST);
-            e.printStackTrace();
-        }
+        String pId = p.getID();
+        p.deletePersistent();
+        p.makePersistent(pId);
 
         return p;
     }
@@ -120,12 +100,9 @@ public class InternalImpl {
         }
 
         // Manually persist object to storage
-        try {
-            StorageManager.persist(p1);
-        } catch (StorageException e) {
-            System.err.println(ERROR_PERSIST);
-            e.printStackTrace();
-        }
+        String pId = p1.getID();
+        p1.deletePersistent();
+        p1.makePersistent(pId);
 
         return p1;
     }

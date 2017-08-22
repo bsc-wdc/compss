@@ -11,7 +11,7 @@ import storage.StubItf;
 
 /*
  * WARN: THIS STORAGE MANAGER IS DESIGNED TO BE USED WITH THE
- *       COMPSS DUMMY STORAGE (trunk/utils/storage/dummyPSCO)
+ *       COMPSS REDIS STORAGE (trunk/utils/storage/redisPSCO)
  */
 public class StorageManager {
 
@@ -22,18 +22,7 @@ public class StorageManager {
 
 
     public static void persist(StubItf o) throws StorageException {
-        String id = o.getID();
-        if (id != null) {
-            List<String> hostnames = StorageItf.getLocations(id);
-            for (String h : hostnames) {
-                String path = BASE_WORKING_DIR + h + File.separator + id + PSCO_EXTENSION;
-                try {
-                    Serializer.serialize(o, path);
-                } catch (IOException e) {
-                    throw new StorageException(ERROR_SERIALIZE + id, e);
-                }
-            }
-        }
+        StorageItf.newVersion(o.getID(), false, "none");
     }
 
 }

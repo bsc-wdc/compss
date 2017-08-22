@@ -37,6 +37,7 @@ EOF
   # Set Storage implementation location
   storageImplPath=${base_app_dir}/jars/compss-redisPSCO.jar
 
+  # Set a single standalone Redis instance
   redis-server --daemonize yes
 
   #----------------------------------------------------------------------------------
@@ -89,45 +90,9 @@ EOF
 
   #----------------------------------------------------------------------------------
   # Run application 2 - Java PSCOs externalExecution
-  echo
-  echo "*** RUNNING JAVA APPLICATION PSCOs externalExecution"
-  log_folder="${target_log_folder}/externalExecution"
-  mkdir -p ${log_folder}
-  output_log="${log_folder}/testPSCO_externalExecution_0${retryNum}.outputlog"
-  error_log="${log_folder}/testPSCO_externalExecution_0${retryNum}.errorlog"
-  expectedTime=60s
 
-  timeout --signal=2 $expectedTime ${COMPSs_exec} \
-     --project=${base_app_dir}/project.xml \
-     --resources=${base_app_dir}/resources.xml \
-     --debug \
-     --lang=java \
-     --comm=$comm \
-     --storage_conf=${storageConf} \
-     --jvm_workers_opts="-Dcompss.worker.removeWD=true" \
-     --task_execution=external \
-     --classpath=${base_app_dir}/pscosRedis.jar:${storageImplPath}:${base_app_dir}/jedis.jar \
-     testPSCOExternal.External > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
-
+  # Kill the Redis instance
   pkill redis
-
-
-  #Check timeout
-  if [[ "$?" = "124" ]]; then
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/testPSCOExternal.External_0${retryNum}/* ${log_folder}
-
-     #Report time out
-     echo "[WARNING] Java Application timed out" >> ${output_log}
-     ev2=124
-  else
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/testPSCOExternal.External_0${retryNum}/* ${log_folder}
-
-     #Check result
-     ${base_app_dir}/result_external ${output_log} ${log_folder}
-     ev2=$?
-  fi
 
   #----------------------------------------------------------------------------------
   #Return execution status

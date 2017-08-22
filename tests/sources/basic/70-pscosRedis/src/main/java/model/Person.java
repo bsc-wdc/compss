@@ -77,12 +77,9 @@ public class Person extends StorageObject implements Serializable {
         System.out.println("[LOG] Person " + name + " with age " + age + " has " + computers.size() + " computers");
 
         // Manually persist object to storage
-        try {
-            StorageManager.persist(this);
-        } catch (StorageException e) {
-            System.err.println(ERROR_PERSIST);
-            e.printStackTrace();
-        }
+        String pId = getID();
+        deletePersistent();
+        makePersistent(pId);
     }
 
     // Task
@@ -100,12 +97,9 @@ public class Person extends StorageObject implements Serializable {
         this.makePersistent(id);
 
         // Manually persist object to storage
-        try {
-            StorageManager.persist(this);
-        } catch (StorageException e) {
-            System.err.println(ERROR_PERSIST);
-            e.printStackTrace();
-        }
+        String pId = getID();
+        deletePersistent();
+        makePersistent(pId);
     }
 
     // Task
@@ -125,12 +119,9 @@ public class Person extends StorageObject implements Serializable {
         System.out.println("[LOG] Person " + name + " with age " + age + " has " + computers.size() + " computers");
 
         // Manually persist object to storage
-        try {
-            StorageManager.persist(this);
-        } catch (StorageException e) {
-            System.err.println(ERROR_PERSIST);
-            e.printStackTrace();
-        }
+        String pId = getID();
+        deletePersistent();
+        makePersistent(pId);
     }
     
     // Task
@@ -138,12 +129,9 @@ public class Person extends StorageObject implements Serializable {
         this.setName(newName);
 
         // Manually persist object to storage
-        try {
-            StorageManager.persist(this);
-        } catch (StorageException e) {
-            System.err.println(ERROR_PERSIST);
-            e.printStackTrace();
-        }
+        String pId = getID();
+        deletePersistent();
+        makePersistent(pId);
     }
 
     // Task
@@ -155,12 +143,9 @@ public class Person extends StorageObject implements Serializable {
         }
 
         // Manually persist object to storage
-        try {
-            StorageManager.persist(this);
-        } catch (StorageException e) {
-            System.err.println(ERROR_PERSIST);
-            e.printStackTrace();
-        }
+        String pId = getID();
+        deletePersistent();
+        makePersistent(pId);
     }
 
 }

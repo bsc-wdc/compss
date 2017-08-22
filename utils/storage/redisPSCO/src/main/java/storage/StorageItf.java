@@ -32,7 +32,7 @@ public final class StorageItf {
     private static Jedis redisConnection;
     private static Properties storageConfiguration;
 
-    private static String[] hosts;
+    private static List<String> hosts = new ArrayList<>();
 
 
     static {
@@ -79,11 +79,13 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static void init(String storageConf) throws StorageException, IOException {
-        System.out.println("StorageCONF = " + storageConf);
-        //TODO: Make it work properly, at the moment we will assume that we must establish a connection with localhost
-        //TODO: the localhost port 6379
-        redisConnection = new Jedis("127.0.0.1", 6379);
-        hosts = new String[]{"COMPSsWorker01"};
+        BufferedReader br = new BufferedReader(new FileReader(storageConf));
+        String line = null;
+        while((line = br.readLine()) != null) {
+            hosts.add(line.trim());
+        }
+        // We should be able to connect to the master node with no problem
+        redisConnection = new Jedis(hosts.get(0), 6379);
     }
 
     /**
@@ -104,7 +106,7 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static List<String> getLocations(String id) throws StorageException {
-        return Arrays.asList(hosts);
+        return hosts;
     }
 
     /**
@@ -218,7 +220,7 @@ public final class StorageItf {
 
 
     // ONLY FOR TESTING PURPOSES
-    static class MyStorageObject extends StorageObject {
+    static class MyStorageObject extends StorageObject implements  Serializable {
         private String innerString;
 
         public MyStorageObject(String myString) {
@@ -240,11 +242,11 @@ public final class StorageItf {
      */
     public static void main(String[] args) throws ClassNotFoundException {
         try {
-            init("I DONT CARE");
-            String myObject = "This is an object";
+            init("/home/srodrig1/svn/compss/framework/trunk/utils/storage/redisPSCO/scripts/sample_hosts");
+            MyStorageObject myObject = new MyStorageObject("This is an object");
             StorageItf.makePersistent(myObject, "prueba");
             Object retrieved = StorageItf.getByID("prueba");
-            System.out.println((String)retrieved);
+            System.out.println(((MyStorageObject)retrieved).getInnerString());
             StorageItf.removeById("prueba");
         } catch(StorageException e) {
             e.printStackTrace();

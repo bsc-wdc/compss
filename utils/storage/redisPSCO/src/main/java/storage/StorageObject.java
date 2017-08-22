@@ -53,13 +53,10 @@ public class StorageObject implements StubItf {
         // There was no given identifier, lets compute a random one
         if(id == null) {
             id = UUID.randomUUID().toString();
-            logger.debug("Object to persist had no preferred ID, assigning random id:" + id);
         }
         this.id = id;
         // Call the storage API
-        logger.debug("Persisting the object...");
         StorageItf.makePersistent(this, id);
-        logger.debug("Object persisted!");
     }
 
 

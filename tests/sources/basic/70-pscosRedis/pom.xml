@@ -3,12 +3,12 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- GENERAL INFORMATION -->
-	<artifactId>29-pscos</artifactId>
+	<artifactId>70-pscosRedis</artifactId>
 	<packaging>jar</packaging>
 	<parent>
 		<groupId>es.bsc.compss.tests</groupId>
 		<artifactId>compss-tests-basic</artifactId>
-<version>2.1.rc1707</version>
+		<version>2.1.rc1707</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -38,8 +38,18 @@
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-storage</artifactId>
             <version>${project.version}</version>
-        </dependency>
+    </dependency>
+
+		<dependency>
+			<groupId>redis.clients</groupId>
+			<artifactId>jedis</artifactId>
+			<version>2.9.0</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+
 	</dependencies>
+
 
 	<!-- BUILD SETTINGS -->
 	<build>
@@ -53,7 +63,7 @@
 					<target>${maven.compiler.target}</target>
 				</configuration>
 			</plugin>
-
+			
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>

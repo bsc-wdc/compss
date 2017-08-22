@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>es.bsc.compss.tests</groupId>
 		<artifactId>compss-tests</artifactId>
-<version>2.1.rc1707</version>
+		<version>2.1.rc1707</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -64,41 +64,42 @@
 		<module>31-graph</module>
 		<module>32-remoteFile</module>
 		<!-- Module 33 is 33-implementations_c -->
-                <module>34-noEmptyConstructor</module>
-                <module>35-replicatedTask</module>
-                <module>36-environmentVariables</module>
-                <module>37-nonNativeTasks</module>
+		<module>34-noEmptyConstructor</module>
+		<module>35-replicatedTask</module>
+		<module>36-environmentVariables</module>
+		<module>37-nonNativeTasks</module>
 		<!-- Module 38 is 38-environmentVariables_python -->
-                <!-- Module 39 is 39-barrier_python -->
+		<!-- Module 39 is 39-barrier_python -->
 		<module>40-deleteFileJava</module>
 		<!-- Module 41 is 41-deleteFile_python -->
-                <module>42-monitor</module>
-                <module>43-distributedTask</module>
-                <!-- Module 44 is 44-argskwargs_python -->
-                <!-- Module 45 is 45-pscos_python -->
-                <!-- Module 46 is 46-files_python -->
-                <module>47-ompss</module>
+		<module>42-monitor</module>
+		<module>43-distributedTask</module>
+		<!-- Module 44 is 44-argskwargs_python -->
+		<!-- Module 45 is 45-pscos_python -->
+		<!-- Module 46 is 46-files_python -->
+		<module>47-ompss</module>
 		<module>48-schedulerDefault</module>
-                <!-- Module 49 is 49-localtask_python -->
-                <!-- Module 50 is 50-matmul_objects_c -->
-                <!-- Module 51 is 51-matmul_files_c -->
-                <!-- Module 52 is 52-deleteFile_c -->
-                <module>53-schedulerFifo</module>
-                <module>54-schedulerLifo</module>
-                <module>55-schedulerFifoData</module>
-                <module>56-schedulerData</module>
+		<!-- Module 49 is 49-local_python -->
+		<!-- Module 50 is 50-matmul_objects_c -->
+		<!-- Module 51 is 51-matmul_files_c -->
+		<!-- Module 52 is 52-deleteFile_c -->
+		<module>53-schedulerFifo</module>
+		<module>54-schedulerLifo</module>
+		<module>55-schedulerFifoData</module>
+		<module>56-schedulerData</module>
 		<module>57-multiImplementations</module>
-                <!-- Module 58 is 58-binaryDecorator_python -->
-                <!-- Module 59 is 59-ompssDecorator_python -->
-                <!-- Module 60 is 60-mpiDecorator_python -->
-                <!-- Module 61 is 61-openclDecorator_python -->
-                <!-- Module 62 is 62-implementsDecorator_python -->
+		<!-- Module 58 is 58-binaryDecorator_python -->
+		<!-- Module 59 is 59-ompssDecorator_python -->
+		<!-- Module 60 is 60-mpiDecorator_python -->
+		<!-- Module 61 is 61-openclDecorator_python -->
+		<!-- Module 62 is 62-implementsDecorator_python -->
 		<module>63-decaf</module>
 		<!-- Module 64 is 64-decaf_python -->
 		<!-- Module 65 is 65-testStatic_c -->
 		<module>66-limitOfTasks</module>
 		<module>67-elasticityJava</module>
-                <!-- Module 68 is 68-elasticity_python -->
+		<!-- Module 68 is 68-elasticity_python -->
 		<!-- Add new modules below. Respect numbering -->
+		<module>70-pscosRedis</module>
 	</modules>
 </project>

@@ -1,9 +1,0 @@
-model/Person.class
-testPSCOInternal/Internal.class
-testPSCOExternal/ExternalItf.class
-model/Computer.class
-storageManager/StorageManager.class
-storageManager/Serializer.class
-testPSCOExternal/External.class
-testPSCOInternal/InternalImpl.class
-testPSCOInternal/InternalItf.class

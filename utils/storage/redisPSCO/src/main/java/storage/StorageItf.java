@@ -105,7 +105,7 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static void newReplica(String id, String hostName) throws StorageException {
-        throw new StorageException("Redis does not support this feature");
+        throw new StorageException("Redis does not support this feature.");
     }
 
     /**
@@ -153,6 +153,7 @@ public final class StorageItf {
      */
     public static String executeTask(String id, String descriptor, Object[] values, String hostName, CallbackHandler callback)
             throws StorageException {
+        if(true) throw new StorageException("Redis does not support this feature.");
         return null;
     }
 
@@ -163,6 +164,7 @@ public final class StorageItf {
      * @return
      */
     public static Object getResult(CallbackEvent event) throws StorageException {
+        if(true) throw new StorageException("Redis does not support this feature.");
         return null;
     }
 
@@ -235,10 +237,9 @@ public final class StorageItf {
             StorageItf.makePersistent(myObject, "prueba");
             Object retrieved = StorageItf.getByID("prueba");
             System.out.println(((MyStorageObject)retrieved).getInnerString());
+            myObject.updatePersistent();
             StorageItf.removeById("prueba");
-        } catch(StorageException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch(StorageException | IOException e) {
             e.printStackTrace();
         }
     }

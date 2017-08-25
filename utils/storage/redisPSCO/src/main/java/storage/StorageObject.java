@@ -11,7 +11,7 @@ import java.util.UUID;
 public class StorageObject implements StubItf {
 
     // Logger: According to Loggers.STORAGE
-    private static final Logger logger = LogManager.getLogger("compss.Storage");
+    private static final Logger logger = LogManager.getLogger("es.bsc.compss.Storage");
 
     private String id = null;
 
@@ -47,7 +47,6 @@ public class StorageObject implements StubItf {
      */
     @Override
     public void makePersistent(String id) throws IOException, StorageException {
-        System.out.println("persistent obj...");
         // The object is already persisted
         if(this.id != null) return;
         // There was no given identifier, lets compute a random one
@@ -87,4 +86,20 @@ public class StorageObject implements StubItf {
     protected void setID(String id) throws IOException, StorageException {
         this.id = id;
     }
+
+    /**
+     * Updates the object in the database.
+     * That is, removes the current version and then adds the in-memory one with
+     * the same identifier.
+     */
+    public void updatePersistent() {
+        String pId = this.getID();
+        this.deletePersistent();
+        try {
+            this.makePersistent(pId);
+        } catch (IOException | StorageException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

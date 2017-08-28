@@ -93,9 +93,6 @@ public class Person extends StorageObject implements Serializable {
 
         System.out.println("[LOG] Person " + name + " with age " + age + " has " + computers.size() + " computers");
 
-        // Persist
-        this.makePersistent(id);
-
         // Manually persist object to storage
         String pId = getID();
         deletePersistent();

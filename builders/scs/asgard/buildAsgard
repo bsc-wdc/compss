@@ -1,0 +1,54 @@
+#!/bin/bash -e 
+ 
+  #############################################################
+  # Name: buildAsgard
+  # Description: SCRIPT FOR Asgard COMPSs BUILD
+  # Parameters: <Asgard_user> Asgard user account. Preferable with ssh keys inserted
+  #             <FullTmpPath> Tmp path on Asgard for deployment
+  #             <FullTargetPath> Base Target Installation folder on Asgard
+  #############################################################
+
+  ####################
+  # FUNCTIONS
+  ####################
+  usage() {
+    echo " Usage: buildAsgard <Asgard_user> <FullTmpPath> <FullTargetPath>"
+    echo " "
+  }
+
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -eq 1 ]; then
+    if [ "$1" == "usage" ]; then
+      usage
+      exit 0
+    fi
+  fi
+  if [ $# -ne 3 ]; then
+    echo "Incorrect number of parameters"
+    usage
+    exit 1
+  fi
+
+  # SET SCRIPT VARIABLES
+  scriptDir=$(pwd)/$(dirname $0)
+
+  Asgarduser=$1
+  AsgardtmpDir=$2
+  AsgardtargetDir=$3
+  AsgardloginNode=asgard
+  AsgardauxScript=${scriptDir}/buildAsgard_aux
+  PRELOAD_ENV=""
+
+  # Perform installation
+  cd ${scriptDir}/../commons
+  ./buildSC ${Asgarduser} ${AsgardloginNode} ${AsgardtmpDir} ${AsgardtargetDir} ${AsgardauxScript} "${PRELOAD_ENV}"
+  exitStatus=$?
+  cd ${scriptDir}
+
+  # END
+  exit $exitStatus
+

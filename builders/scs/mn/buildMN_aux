@@ -28,10 +28,10 @@
   targetDir=$1
   scriptDir=$(dirname $0)
 
-  modules="intel/2017.4 transfer/1.0 bsc/1.0 impi/2017.4 openmpi mkl/2017.4 python/2.7.13 boost/1.64.0_py2 java/8u131"
+  modules="intel/2017.4 transfer/1.0 bsc/1.0 impi/2017.4 mkl/2017.4 python/2.7.13 boost/1.64.0_py2 java/8u131 gcc/7.1.0"
   additionalExports=""
   queues_cfg="mn.cfg"
-  extrae_with_openmpi="true"
+  extrae_with_openmpi="false"
   openmpi_version="/1.10.4"
   extrae_with_impi="true"
   impi_version=""

@@ -85,11 +85,17 @@ public class DefaultNoSSHConnector extends AbstractConnector {
             Class<?> conClass = Class.forName(connectorMainClass);
             Constructor<?> constructor = conClass.getDeclaredConstructors()[0];
             conn = (Connector) constructor.newInstance(connectorProperties);
+            LOGGER.debug("Ending connector creaton handling");
         } catch (FileNotFoundException fnfe) {
+            LOGGER.error("Specific connector jar file not found", fnfe);
             throw new ConnectorException("Specific Connector jar file (" + connectorJarPath + ") not found", fnfe);
         } catch (Exception e) {
+            LOGGER.error("Exception creating connector",e);
             throw new ConnectorException(e);
         } finally {
+            if(conn == null){
+                LOGGER.fatal("Connector constructor null");
+            }
             connector = new ConnectorProxy(conn);
         }
     }

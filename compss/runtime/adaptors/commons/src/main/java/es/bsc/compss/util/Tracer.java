@@ -592,28 +592,31 @@ public abstract class Tracer {
     private static void cleanMasterPackage() {
         String filename = DataLocation.Protocol.FILE_URI.getSchema() + "master_compss_trace.tar.gz";
 
-        DataLocation source;
+        String filePath;
         try {
             SimpleURI uri = new SimpleURI(filename);
-            source = DataLocation.createLocation(Comm.getAppHost(), uri);
+            filePath = new File(uri.getPath()).getCanonicalPath();
         } catch (Exception e) {
             ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + filename, e);
             return;
         }
 
         if (debug) {
-            logger.debug("Tracing: Removing tracing master package: " + source.getPath());
+            logger.debug("Tracing: Removing tracing master package: " + filePath);
         }
 
         File f;
         try {
-            f = new File(source.getPath());
+            f = new File(filePath);
             boolean deleted = f.delete();
             if (!deleted) {
                 ErrorManager.warn("Unable to remove tracing temporary files of master node.");
+            } else if (debug){
+                logger.debug("Deleted master tracing package.");
             }
         } catch (Exception e) {
-            ErrorManager.warn("Unable to remove tracing temporary files of master node.", e);
+            ErrorManager.warn("Exception while trying to remove tracing temporary " +
+                    "files of master node.", e);
         }
     }
 

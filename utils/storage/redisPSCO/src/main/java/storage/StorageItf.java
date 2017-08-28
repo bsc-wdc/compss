@@ -18,8 +18,6 @@ public final class StorageItf {
     // Error Messages
     private static final String ERROR_HOSTNAME = "ERROR_HOSTNAME";
 
-    // Directories
-    private static final String BASE_WORKING_DIR = File.separator + "tmp" + File.separator + "PSCO" + File.separator;
 
     private static final String MASTER_HOSTNAME;
 
@@ -34,8 +32,6 @@ public final class StorageItf {
     private static List<String> hosts = new ArrayList<>();
 
     private static HashMap<String, String> previousVersion = new HashMap<>();
-
-    private static String LOCALHOST = "127.0.0.1";
 
     static {
         String hostname = null;
@@ -65,12 +61,21 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static void init(String storageConf) throws StorageException, IOException {
-        BufferedReader br = new BufferedReader(new FileReader(storageConf));
-        String line = null;
-        while((line = br.readLine()) != null) {
-            hosts.add(line.trim());
+        LOGGER.info("[LOG] Configuration received: " + storageConf);
+        try (BufferedReader br = new BufferedReader(new FileReader(storageConf))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                hosts.add(line.trim());
+                System.out.println("Adding " + line.trim() + " to list of known hosts...");
+            }
+        } catch (FileNotFoundException e) {
+            throw new StorageException("Could not find configuration file", e);
+        } catch (IOException e) {
+            throw new StorageException("Could not open configuration file", e);
         }
-        // We should be able to connect to the master node with no problem
+        assert(!hosts.isEmpty());
+        System.out.println("MASTER_HOSTNAME = " + MASTER_HOSTNAME);
+        System.out.flush();
         redisConnection = new Jedis(MASTER_HOSTNAME, REDIS_PORT);
     }
 
@@ -116,14 +121,13 @@ public final class StorageItf {
      */
     public static String newVersion(String id, boolean preserveSource, String hostName) throws StorageException, IOException, ClassNotFoundException {
         Object obj = getByID(id);
-        String new_id = UUID.randomUUID().toString();
-        previousVersion.put(new_id, id);
-        makePersistent(obj, new_id);
+        String newId = UUID.randomUUID().toString();
+        previousVersion.put(newId, id);
+        makePersistent(obj, newId);
         if(!preserveSource) {
-            removeById(id);
-            previousVersion.remove(new_id);
+            consolidateVersion(newId);
         }
-        return new_id;
+        return newId;
     }
 
     /**

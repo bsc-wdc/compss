@@ -16,7 +16,7 @@
 	<name>Redis PSCOs Test</name>
 	<description>Redis Persistent Objects Test</description>
 	<url>http://compss.bsc.es/projects/bar/wiki/pscos</url>
-	<inceptionYear>2014</inceptionYear>
+	<inceptionYear>2017</inceptionYear>
 	<licenses>
 		<license>
 			<name>Apache License, Version 2.0</name>
@@ -30,15 +30,17 @@
 
 	<!-- DEPENDENCIES -->
 	<dependencies>
+
 		<dependency>
 			<groupId>es.bsc.compss</groupId>
 			<artifactId>compss-api</artifactId>
 		</dependency>
+
 		<dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-storage</artifactId>
             <version>${project.version}</version>
-    </dependency>
+    	</dependency>
 
 		<dependency>
 			<groupId>redis.clients</groupId>
@@ -63,7 +65,7 @@
 					<target>${maven.compiler.target}</target>
 				</configuration>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>

@@ -88,9 +88,6 @@ EOF
   #Create all working dir folders
   mkdir -p /tmp/COMPSsWorker01/
 
-  #----------------------------------------------------------------------------------
-  # Run application 2 - Java PSCOs externalExecution
-
   # Kill the Redis instance
   pkill redis
 

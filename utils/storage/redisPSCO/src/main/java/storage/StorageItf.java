@@ -22,10 +22,6 @@ public final class StorageItf {
     private static final String BASE_WORKING_DIR = File.separator + "tmp" + File.separator + "PSCO" + File.separator;
 
     private static final String MASTER_HOSTNAME;
-    private static final String MASTER_WORKING_DIR;
-
-    private static final String ID_EXTENSION = ".ID";
-    private static final String PSCO_EXTENSION = ".PSCO";
 
     // Redis variables
 
@@ -37,6 +33,9 @@ public final class StorageItf {
 
     private static List<String> hosts = new ArrayList<>();
 
+    private static HashMap<String, String> previousVersion = new HashMap<>();
+
+    private static String LOCALHOST = "127.0.0.1";
 
     static {
         String hostname = null;
@@ -49,7 +48,6 @@ public final class StorageItf {
             System.exit(1);
         }
         MASTER_HOSTNAME = hostname;
-        MASTER_WORKING_DIR = BASE_WORKING_DIR + File.separator + MASTER_HOSTNAME + File.separator;
     }
 
     /**
@@ -73,7 +71,7 @@ public final class StorageItf {
             hosts.add(line.trim());
         }
         // We should be able to connect to the master node with no problem
-        redisConnection = new Jedis(hosts.get(0), 6379);
+        redisConnection = new Jedis(MASTER_HOSTNAME, REDIS_PORT);
     }
 
     /**
@@ -119,9 +117,11 @@ public final class StorageItf {
     public static String newVersion(String id, boolean preserveSource, String hostName) throws StorageException, IOException, ClassNotFoundException {
         Object obj = getByID(id);
         String new_id = UUID.randomUUID().toString();
+        previousVersion.put(new_id, id);
         makePersistent(obj, new_id);
         if(!preserveSource) {
             removeById(id);
+            previousVersion.remove(new_id);
         }
         return new_id;
     }
@@ -176,8 +176,13 @@ public final class StorageItf {
      */
     public static void consolidateVersion(String idFinal) throws StorageException {
         LOGGER.info("Consolidating version for " + idFinal);
-
-        // Nothing to do in this dummy implementation
+        idFinal = previousVersion.get(idFinal);
+        previousVersion.remove(idFinal);
+        while(idFinal != null) {
+            removeById(idFinal);
+            idFinal = previousVersion.get(idFinal);
+            previousVersion.remove(idFinal);
+        }
     }
 
     /*

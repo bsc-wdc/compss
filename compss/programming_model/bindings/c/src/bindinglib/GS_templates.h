@@ -25,7 +25,8 @@
 #include <string.h>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
-
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
 using namespace std;
 using namespace boost;
 
@@ -66,9 +67,12 @@ void compss_wait_on(T &obj) {
   debug_printf("[C-BINDING]  -  @compss_wait_on  -  template class\n");  
   debug_printf("[C-BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
 
-  ifstream ifs(runtime_filename);
-
+  /*ifstream ifs(runtime_filename);
   archive::text_iarchive ia(ifs);
+  */
+  ifstream ifs(runtime_filename, std::ios::binary);
+  archive::binary_iarchive ia(ifs);
+
   ia >> obj;
   ifs.close();
   

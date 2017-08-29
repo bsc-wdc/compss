@@ -75,6 +75,10 @@ void generate_stubs_prolog()
   //fprintf(stubsFile, "#include <jni.h>\n");
   fprintf(stubsFile, "#include <boost/archive/text_iarchive.hpp>\n");
   fprintf(stubsFile, "#include <boost/archive/text_oarchive.hpp>\n");
+  //Added for binary serialization
+  fprintf(stubsFile, "#include <boost/archive/binary_iarchive.hpp>\n");
+  fprintf(stubsFile, "#include <boost/archive/binary_oarchive.hpp>\n");
+
   fprintf(stubsFile, "#include <GS_compss.h>\n");
   fprintf(stubsFile, "#include <param_metadata.h>\n");
   fprintf(stubsFile, "#include \"%s\"\n", includeName);
@@ -100,6 +104,10 @@ void generate_worker_prolog()
   fprintf(workerFile, "#include <fstream>\n");
   fprintf(workerFile, "#include <boost/archive/text_iarchive.hpp>\n");
   fprintf(workerFile, "#include <boost/archive/text_oarchive.hpp>\n");
+  //added for binary serialization
+  fprintf(workerFile, "#include <boost/archive/binary_iarchive.hpp>\n");
+  fprintf(workerFile, "#include <boost/archive/binary_oarchive.hpp>\n");
+
   fprintf(workerFile, "#include <boost/filesystem.hpp>\n");
 
   fprintf(workerFile, "#include \"%s\"\n", includeName);
@@ -438,8 +446,12 @@ static void generate_remove_and_serialize_case(FILE *outFile, Types current_type
   fprintf(outFile, "int serializeData(string id, char* filename, std::map<std::string, void*>& cache, std::map<std::string, int>& types)\n");
   fprintf(outFile, "{\n");
   fprintf(outFile, "\n");
-  fprintf(outFile, "\t ofstream ofs(filename, std::ofstream::trunc);\n");
-  fprintf(outFile, "\t archive::text_oarchive oa(ofs);\n");
+  /*fprintf(outFile, "\t ofstream ofs(filename, std::ofstream::trunc);\n");
+  fprintf(outFile, "\t archive::text_oarchive oa(ofs);\n");*/
+  //Added for binary
+  fprintf(outFile, "\t ofstream ofs(filename, std::ofstream::trunc | std::ios::binary);\n");
+  fprintf(outFile, "\t archive::binary_oarchive oa(ofs);\n");
+
   fprintf(outFile, "\t int typeCode = types[id];\n");
   fprintf(outFile, "\t switch(typeCode)\n");
   fprintf(outFile, "\t {\n");
@@ -508,8 +520,11 @@ static void add_object_arg_master_treatment(FILE *outFile, argument *arg, int i)
 	if (( arg->dir == in_dir) || (arg->dir == inout_dir)){
           	fprintf(outFile, "\t if (!found) {\n");
           	fprintf(outFile, "\t\t cout << \"Object not found in registry. Serializing to \" << %s_filename << endl << flush;\n" , arg->name);
-          	fprintf(outFile, "\t\t ofstream %s_ofs(%s_filename, std::ofstream::trunc);\n", arg->name, arg->name);
-          	fprintf(outFile, "\t\t archive::text_oarchive %s_oa(%s_ofs);\n", arg->name, arg->name);
+          	/*fprintf(outFile, "\t\t ofstream %s_ofs(%s_filename, std::ofstream::trunc);\n", arg->name, arg->name);
+                fprintf(outFile, "\t\t archive::text_oarchive %s_oa(%s_ofs);\n", arg->name, arg->name);*/
+		//Added for binary serialization
+		fprintf(outFile, "\t\t ofstream %s_ofs(%s_filename, std::ofstream::trunc | std::ios::binary);\n", arg->name, arg->name);
+          	fprintf(outFile, "\t\t archive::binary_oarchive %s_oa(%s_ofs);\n", arg->name, arg->name);
           	if (arg->type == string_dt || arg->type == wstring_dt){
 			fprintf(outFile, "\t\t string %s_out_string (*%s);\n", arg->name, arg->name);
 		        fprintf(outFile, "\t\t %s_oa << %s_out_string;\n", arg->name, arg->name);
@@ -595,8 +610,12 @@ static void generate_parameter_marshalling(FILE *outFile, function *func)
     fprintf(outFile, "\t found = GS_register(this, (datatype)%d, (direction)%d, \"%s\", this_filename);\n", object_dt, inout_dir, func->classname);
     fprintf(outFile, "\t if (!found) {\n");
     fprintf(outFile, "\t\t cout << \"Target object not found in registry. Serializing to \" << this_filename << endl << flush;\n");
-    fprintf(outFile, "\t\t ofstream this_ofs(this_filename, std::ofstream::trunc);\n");
-    fprintf(outFile, "\t\t archive::text_oarchive this_oa(this_ofs);\n");
+    /*fprintf(outFile, "\t\t ofstream this_ofs(this_filename, std::ofstream::trunc);\n");
+    fprintf(outFile, "\t\t archive::text_oarchive this_oa(this_ofs);\n");*/
+    //Added for binary serialization
+    fprintf(outFile, "\t\t ofstream this_ofs(this_filename, std::ofstream::trunc | std::ios::binary);\n");
+    fprintf(outFile, "\t\t archive::binary_oarchive this_oa(this_ofs);\n");
+
     fprintf(outFile, "\t\t this_oa << *this;\n");
     fprintf(outFile, "\t\t this_ofs.flush();\n");
     fprintf(outFile, "\t\t this_ofs.close();\n");
@@ -629,8 +648,11 @@ static void generate_parameter_marshalling(FILE *outFile, function *func)
     //TODO: Return type should not be serialized
     fprintf(outFile, "\t if (!found) {\n");
     fprintf(outFile, "\t\t cout << \"Return object not found in registry. Serializing to \" << return_filename << endl << flush;\n");
-    fprintf(outFile, "\t\t ofstream return_ofs(return_filename, std::ofstream::trunc);\n");
-    fprintf(outFile, "\t\t archive::text_oarchive return_oa(return_ofs);\n");
+    /*fprintf(outFile, "\t\t ofstream return_ofs(return_filename, std::ofstream::trunc);\n");
+    fprintf(outFile, "\t\t archive::text_oarchive return_oa(return_ofs);\n");*/
+    //Added for binary serialization
+    fprintf(outFile, "\t\t ofstream return_ofs(return_filename, std::ofstream::trunc | std::ios::binary);\n");
+    fprintf(outFile, "\t\t archive::binary_oarchive return_oa(return_ofs);\n");
     fprintf(outFile, "\t\t return_oa << return_object;\n");
     fprintf(outFile, "\t\t return_ofs.flush();\n");
     fprintf(outFile, "\t\t return_ofs.close();\n");
@@ -761,9 +783,12 @@ static void add_object_arg_worker_treatment(FILE *outFile, argument *arg, int in
 		fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Checking if object %s with id \"<< %s_orig_id_str << \" is in cache.\" << endl << flush;\n", arg->name, arg->name);
         	fprintf(outFile, "\t\t\t\t if (cache.find(%s_orig_id_str) == cache.end()){\n", arg->name, arg->name);
                 fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Deserializing object %s.\" << endl << flush;\n", arg->name);
-        	fprintf(outFile, "\t\t\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
-        	fprintf(outFile, "\t\t\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
-        	if (arg->type == string_dt || arg->type == wstring_dt){
+        	/*fprintf(outFile, "\t\t\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
+        	fprintf(outFile, "\t\t\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);*/
+		//Added for binary serialization
+        	fprintf(outFile, "\t\t\t\t\t ifstream %s_ifs(%s_filename, std::ios::binary);\n", arg->name, arg->name);
+                fprintf(outFile, "\t\t\t\t\t archive::binary_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
+		if (arg->type == string_dt || arg->type == wstring_dt){
 			fprintf(outFile, "\t\t\t\t\t string %s_in_string;\n", arg->name);
           		fprintf(outFile, "\t\t\t\t\t %s_ia >> %s_in_string;\n", arg->name, arg->name);
           		fprintf(outFile, "\t\t\t\t\t %s_ifs.close();\n", arg->name);
@@ -787,8 +812,11 @@ static void add_object_arg_worker_treatment(FILE *outFile, argument *arg, int in
 		fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Checking object %s with id \"<< %s_orig_id_str << \" and preserve_data \" << %s_pres_data << \" is in cache.\" << endl << flush;\n", arg->name, arg->name, arg->name);
 		fprintf(outFile, "\t\t\t\t if ((string(%s_pres_data) == \"true\")|| (cache.find(%s_orig_id_str) == cache.end())){\n", arg->name, arg->name, arg->name);
           	fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Deserializing object %s.\" << endl << flush;\n", arg->name);
-		fprintf(outFile, "\t\t\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
-          	fprintf(outFile, "\t\t\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
+		/*fprintf(outFile, "\t\t\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
+          	fprintf(outFile, "\t\t\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);*/
+                //Added for binary serialization
+		fprintf(outFile, "\t\t\t\t\t ifstream %s_ifs(%s_filename, std::ios::binary);\n", arg->name, arg->name);
+                fprintf(outFile, "\t\t\t\t\t archive::binary_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
           	if (arg->type == string_dt || arg->type == wstring_dt){
                         fprintf(outFile, "\t\t\t\t\t string %s_in_string;\n", arg->name);
                         fprintf(outFile, "\t\t\t\t\t %s_ia >> %s_in_string;\n", arg->name, arg->name);
@@ -833,8 +861,11 @@ static void add_object_arg_worker_treatment(FILE *outFile, argument *arg, int in
 	switch (arg->dir){
             case in_dir:
 	    case inout_dir:
-		fprintf(outFile, "\t\t\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
-                fprintf(outFile, "\t\t\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
+		/*fprintf(outFile, "\t\t\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
+                fprintf(outFile, "\t\t\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);*/
+		//Added for binary serialization
+		fprintf(outFile, "\t\t\t\t\t ifstream %s_ifs(%s_filename, std::ios::binary);\n", arg->name, arg->name);
+                fprintf(outFile, "\t\t\t\t\t archive::binary_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
                 if (arg->type == string_dt || arg->type == wstring_dt){
                         fprintf(outFile, "\t\t\t\t\t string %s_in_string;\n", arg->name);
                         fprintf(outFile, "\t\t\t\t\t %s_ia >> %s_in_string;\n", arg->name, arg->name);
@@ -1138,8 +1169,11 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
   if (( func->classname != NULL ) && (func->access_static == 0)){
     
     fprintf(outFile, "\t\t\t cout << \"[C Binding] Treating target object\" << endl << flush;\n");
-    fprintf(outFile, "\t\t\t ofstream this_ofs(target_obj_filename, std::ofstream::trunc);\n");
-    fprintf(outFile, "\t\t\t archive::text_oarchive this_oa(this_ofs);\n");
+    /*fprintf(outFile, "\t\t\t ofstream this_ofs(target_obj_filename, std::ofstream::trunc);\n");
+    fprintf(outFile, "\t\t\t archive::text_oarchive this_oa(this_ofs);\n");*/
+    //Added for binary serialization
+    fprintf(outFile, "\t\t\t ofstream this_ofs(target_obj_filename, std::ofstream::trunc | std::ios::binary);\n");
+    fprintf(outFile, "\t\t\t archive::binary_oarchive this_oa(this_ofs);\n");
     fprintf(outFile, "\t\t\t cout << \"[C Binding] Deserializing target object\" << endl << flush;\n");
     fprintf(outFile, "\t\t\t this_oa << *target_obj;\n");
     fprintf(outFile, "\t\t\t this_ofs.flush();\n");
@@ -1149,8 +1183,12 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
   
   if ( func->return_type != void_dt ){
     fprintf(outFile, "\t\t\t cout << \"[C Binding] Treating return object\" << endl << flush;\n");
-    fprintf(outFile, "\t\t\t ofstream return_ofs(return_object_filename, std::ofstream::trunc);\n");
-    fprintf(outFile, "\t\t\t archive::text_oarchive return_oa(return_ofs);\n");
+    /*fprintf(outFile, "\t\t\t ofstream return_ofs(return_object_filename, std::ofstream::trunc);\n");
+    fprintf(outFile, "\t\t\t archive::text_oarchive return_oa(return_ofs);\n");*/
+    //Added for binary serialization
+    fprintf(outFile, "\t\t\t ofstream return_ofs(return_object_filename, std::ofstream::trunc | std::ios::binary);\n");
+    fprintf(outFile, "\t\t\t archive::binary_oarchive return_oa(return_ofs);\n");
+
     fprintf(outFile, "\t\t\t cout << \"[C Binding] Deserializing return object\" << endl << flush;\n");
     fprintf(outFile, "\t\t\t return_oa << *return_object;\n");
     fprintf(outFile, "\t\t\t return_ofs.flush();\n");
@@ -1173,16 +1211,22 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
 	case float_dt:
 	case double_dt:
 	case object_dt:
-	  fprintf(outFile, "\t\t\t\t ofstream %s_ofs(%s_filename, std::ofstream::trunc);\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t\t\t archive::text_oarchive %s_oa(%s_ofs);\n", arg->name, arg->name);
+          /*fprintf(outFile, "\t\t\t\t ofstream %s_ofs(%s_filename, std::ofstream::trunc);\n", arg->name, arg->name);
+          fprintf(outFile, "\t\t\t\t archive::text_oarchive %s_oa(%s_ofs);\n", arg->name, arg->name);*/
+	  //Added for binary serialization
+	  fprintf(outFile, "\t\t\t\t ofstream %s_ofs(%s_filename, std::ofstream::trunc | std::ios::binary);\n", arg->name, arg->name);
+	  fprintf(outFile, "\t\t\t\t archive::binary_oarchive %s_oa(%s_ofs);\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t\t\t %s_oa << *%s;\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t\t\t %s_ofs.flush();\n", arg->name);
 	  fprintf(outFile, "\t\t\t\t %s_ofs.close();\n", arg->name);
 	  break;
 	case string_dt:
 	case wstring_dt:
-	  fprintf(outFile, "\t\t\t\t ofstream %s_ofs(%s_filename, std::ofstream::trunc);\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t\t\t archive::text_oarchive %s_oa(%s_ofs);\n", arg->name, arg->name);
+	  /*fprintf(outFile, "\t\t\t\t ofstream %s_ofs(%s_filename, std::ofstream::trunc);\n", arg->name, arg->name);
+	  fprintf(outFile, "\t\t\t\t archive::text_oarchive %s_oa(%s_ofs);\n", arg->name, arg->name);*/
+          //Added for binary serialization
+          fprintf(outFile, "\t\t\t\t ofstream %s_ofs(%s_filename, std::ofstream::trunc | std::ios::binary);\n", arg->name, arg->name);
+          fprintf(outFile, "\t\t\t\t archive::binary_oarchive %s_oa(%s_ofs);\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t\t\t string %s_out_string (%s);\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t\t\t %s_oa << %s_out_string;\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t\t\t %s_ofs.flush();\n", arg->name);

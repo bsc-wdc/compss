@@ -7,7 +7,10 @@ import java.util.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisCluster;
+import redis.clients.jedis.exceptions.JedisDataException;
 import storage.utils.Serializer;
 
 public final class StorageItf {
@@ -26,8 +29,15 @@ public final class StorageItf {
     // This port is the official Redis Port
     // The storage API will assume that, given a hostname, there is a Redis Server listening there
     private static final int REDIS_PORT = 6379;
-    // Client connection
-    private static Jedis redisConnection;
+    // Client connections
+    // Given that the client classes that are needed to establish a connection with a Redis backend are
+    // different for standalone and cluster cases, we are going to first try to establish a connection with
+    // the cluster client, and, if it fails, with the standalone client
+    // Given that JedisCluster and Jedis are classes that share no common ancestor, this is the cleanest way I can
+    // come up with.
+    private static JedisCluster redisClusterConnection;
+    private static Jedis        redisConnection;
+    private static boolean      clusterMode = true;
 
     private static List<String> hosts = new ArrayList<>();
 
@@ -76,7 +86,14 @@ public final class StorageItf {
         assert(!hosts.isEmpty());
         System.out.println("MASTER_HOSTNAME = " + MASTER_HOSTNAME);
         System.out.flush();
-        redisConnection = new Jedis(MASTER_HOSTNAME, REDIS_PORT);
+        try {
+            // TODO: Ask Jedis guys why JedisCluster needs a HostAndPort and why Jedis needs a String and an Integer
+            redisClusterConnection = new JedisCluster(new HostAndPort(MASTER_HOSTNAME, REDIS_PORT));
+        } catch (JedisDataException e) {
+            LOGGER.info("[LOG]: Failed to establish a connection in cluster mode, switching to standalone...");
+            clusterMode = false;
+            redisConnection = new Jedis(MASTER_HOSTNAME, REDIS_PORT);
+        }
     }
 
     /**
@@ -85,7 +102,16 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static void finish() throws StorageException {
-        redisConnection.close();
+        if(clusterMode) {
+            try {
+                redisClusterConnection.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            redisConnection.close();
+        }
     }
 
     /**
@@ -138,7 +164,9 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static Object getByID(String id) throws StorageException, IOException, ClassNotFoundException {
-        byte[] serializedObject = redisConnection.get(id.getBytes());
+        byte[] serializedObject = clusterMode ?
+                redisClusterConnection.get(id.getBytes()) :
+                redisConnection.get(id.getBytes());
         Object ret = Serializer.deserialize(serializedObject);
         ((StorageObject)ret).setID(id);
         return ret;
@@ -157,8 +185,7 @@ public final class StorageItf {
      */
     public static String executeTask(String id, String descriptor, Object[] values, String hostName, CallbackHandler callback)
             throws StorageException {
-        if(true) throw new StorageException("Redis does not support this feature.");
-        return null;
+        throw new StorageException("Redis does not support this feature.");
     }
 
     /**
@@ -202,7 +229,9 @@ public final class StorageItf {
      */
     public static void makePersistent(Object o, String id) throws StorageException, IOException {
         byte[]  serializedObject = Serializer.serialize(o);
-        String result = redisConnection.set(id.getBytes(), serializedObject);
+        String result = clusterMode ?
+                redisClusterConnection.set(id.getBytes(), serializedObject) :
+                redisConnection.set(id.getBytes(), serializedObject);
         if(!result.equals("OK")) {
             throw new StorageException("Redis returned an error while trying to store object with id " + id);
         }
@@ -214,7 +243,12 @@ public final class StorageItf {
      * @param id
      */
     public static void removeById(String id) {
-        redisConnection.del(id.getBytes());
+        if(clusterMode) {
+            redisClusterConnection.del(id.getBytes());
+        }
+        else {
+            redisConnection.del(id.getBytes());
+        }
     }
 
 

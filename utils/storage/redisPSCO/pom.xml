@@ -28,6 +28,13 @@
 			<scope>compile</scope>
 		</dependency>
 
+		<!-- NEEDED FOR REDIS CLIENT -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-pool2</artifactId>
+			<version>2.0</version>
+		</dependency>
+
 		<!-- LOG4j -->
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
@@ -54,6 +61,29 @@
 					<target>${maven.compiler.target}</target>
 				</configuration>
 			</plugin>
+
+			<!-- Shade the dependencies (jedis and apache commons) into a single uber jar -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<transformers>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<mainClass>es.bsc.compss.storage.StorageItf</mainClass>
+								</transformer>
+							</transformers>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
 		</plugins>
 
 

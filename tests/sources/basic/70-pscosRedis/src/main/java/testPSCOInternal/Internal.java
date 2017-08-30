@@ -1,9 +1,12 @@
 package testPSCOInternal;
 
 import java.util.LinkedList;
+import java.util.Stack;
 import java.util.UUID;
 
 import model.Person;
+import storage.StorageException;
+import storage.StorageItf;
 
 
 public class Internal {
@@ -44,6 +47,15 @@ public class Internal {
         // ------------------------------------------------------------------------
         System.out.println("[LOG] Test PSCO MERGE-REDUCE WITH TARGET");
         testMergeReduceTarget();
+
+        // ------------------------------------------------------------------------
+        System.out.println("[LOG] Test PSCO NEW-VERSION - CONSOLIDATE-VERSION");
+        try {
+            testNewVersionAndConsolidate();
+        } catch (StorageException e) {
+            e.printStackTrace();
+            System.out.println("[LOG][PSCO_NEW_VERSION_CONSOLIDATE]: ERROR");
+        }
 
     }
 
@@ -210,6 +222,36 @@ public class Internal {
         int numC = p1.getNumComputers();
         System.out.println("[LOG][PSCO_MR_TARGET] Person " + name + " with age " + age + " has " + numC + " computers");
         System.out.println("[LOG][PSCO_MR_TARGET] EndId = " + p1.getID());
+    }
+
+    private static void testNewVersionAndConsolidate() throws StorageException {
+        Person original = new Person("Original", 0, 0);
+        original.makePersistent("Original");
+        Stack< String > personStack = new Stack<>();
+        personStack.push("Original");
+        System.out.println("[LOG][PSCO_NEW_VERSION_CONSOLIDATE] Id 0: Original");
+        for(int i=1; i<=10; ++i) {
+            original.setAge(i);
+            original.setName("person_"+i);
+            String oldId = original.getID();
+            String newId = StorageItf.newVersion(oldId, true, "none");
+            original = (Person)StorageItf.getByID(newId);
+            System.out.println("[LOG][PSCO_NEW_VERSION_CONSOLIDATE] Id " + i + ": " + newId);
+            personStack.push(newId);
+        }
+        StorageItf.consolidateVersion(personStack.pop());
+        boolean success = true;
+        while(!personStack.isEmpty() && success) {
+            String currentId = personStack.pop();
+            try {
+                StorageItf.getByID(currentId);
+                System.out.println("[LOG][PSCO_NEW_VERSION_CONSOLIDATE] Error, id " + currentId + " is still in Redis!");
+                success = false;
+            } catch(StorageException e) {
+                System.out.println("[LOG][PSCO_NEW_VERSION_CONSOLIDATE] Ok, id " + currentId + " is no longer in Redis!");
+            }
+        }
+        System.out.println("[LOG][PSCO_NEW_VERSION_CONSOLIDATE]: " + (success ? "OK" : "ERROR"));
     }
 
 }

@@ -1,9 +1,9 @@
 #!/bin/bash
 
   #Obtain parameters
-  output_file=$1 
+  output_file=$1
   target_log_folder=$2
-  
+
   # Log files
   runtime_log="${target_log_folder}/runtime.log"
 
@@ -89,8 +89,8 @@
     echo "GOT ID: ${returnntp_pscoid2}"
     echo "EXPECTED ID: ${returnntp_pscoid1}"
   fi
-  
-  
+
+
   target_got=$(grep "\[PSCO\_TARGET\]" ${output_file} | head -n 1)
   target_expected="[LOG][PSCO_TARGET] Person Another with age 10 has 3 computers"
   if [ "${target_got}" != "${target_expected}" ]; then
@@ -105,8 +105,8 @@
     echo "GOT ID: ${target_pscoid1}"
     echo "EXPECTED ID: ${target_pscoid2}"
   fi
-  
-  
+
+
   targettp_got=$(grep "\[PSCO\_TARGET\_TP\]" ${output_file} | head -n 1)
   targettp_expected="[LOG][PSCO_TARGET_TP] Person Another with age 10 has 2 computers"
   if [ "${targettp_got}" != "${targettp_expected}" ]; then
@@ -122,7 +122,7 @@
     echo "EXPECTED ID: ${targettp_pscoid2}"
   fi
 
-  
+
   mr_got=$(grep "\[PSCO\_MR\]" ${output_file} | tail -n 2 | head -n 1)
   mr_expected="[LOG][PSCO_MR] Person NewName0,NewName1,NewName2,NewName3 with age 6 has 6 computers"
   if [ "${mr_got}" != "${mr_expected}" ]; then
@@ -137,8 +137,8 @@
     echo "GOT ID: ${mr_pscoid1}"
     echo "EXPECTED ID: ${mr_pscoid2}"
   fi
-  
-  
+
+
   targetmr_got=$(grep "\[PSCO\_MR\_TARGET\]" ${output_file} | tail -n 2 | head -n 1)
   targetmr_expected="[LOG][PSCO_MR_TARGET] Person NewName0,NewName1,NewName2,NewName3 with age 6 has 6 computers"
   if [ "${targetmr_got}" != "${targetmr_expected}" ]; then
@@ -154,8 +154,13 @@
     echo "EXPECTED ID: ${targetmr_pscoid2}"
   fi
 
-  
-  #---------------------------------------------------------------------------------- 
+  result_newversion_consolidate=$(grep "\[LOG\]\[PSCO\_NEW\_VERSION\_CONSOLIDATE\]: OK" ${output_file})
+  if [ -z "$result_newversion_consolidate" ]; then
+    echo "ERROR: NEWVERSION-CONSOLIDATE does not work properly!"
+    exit 1
+  fi
+
+
+  #----------------------------------------------------------------------------------
   # ALL OK. Report result status
   exit 0
-  

@@ -37,6 +37,25 @@ EOF
   # Set Storage implementation location
   storageImplPath=${base_app_dir}/jars/compss-redisPSCO.jar
 
+  # Download the specified Redis Version, unzip it, compile the redis-server
+  # utility, move it to the main folder and execute the main test
+  REDIS_VERSION=$(cat REDIS-VERSION)
+  REDIS_URL=http://download.redis.io/releases
+  REDIS_FOLDER=redis-${REDIS_VERSION}
+  REDIS_TAR_NAME=${REDIS_FOLDER}.tar.gz
+  # Download Redis
+  wget ${REDIS_URL}/${REDIS_TAR_NAME}
+  # Uncompress it
+  tar -xzvf ${REDIS_TAR_NAME}
+  rm ${REDIS_TAR_NAME}
+  # Go to the Redis directory and compile the redis-server utility
+  cd ${REDIS_FOLDER}
+  make redis-server
+  cd ..
+  # Move the redis-server executable to the main folder
+  cp ${REDIS_FOLDER}/src/redis-server redis-server
+  rm -rf ${REDIS_FOLDER}
+
   # Set a single standalone Redis instance
   ./redis-server --daemonize yes
 

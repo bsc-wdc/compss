@@ -120,7 +120,7 @@ public class Person extends StorageObject implements Serializable {
         deletePersistent();
         makePersistent(pId);
     }
-    
+
     // Task
     public void taskMap(String newName) {
         this.setName(newName);

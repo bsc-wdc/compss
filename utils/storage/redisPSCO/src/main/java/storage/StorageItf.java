@@ -21,12 +21,12 @@ public final class StorageItf {
     // Error Messages
     private static final String ERROR_HOSTNAME = "ERROR_HOSTNAME";
 
-
     private static final String MASTER_HOSTNAME;
 
     // Redis variables
 
     // This port is the official Redis Port
+    // See https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers
     // The storage API will assume that, given a hostname, there is a Redis Server listening there
     private static final int REDIS_PORT = 6379;
     // Client connections
@@ -84,8 +84,6 @@ public final class StorageItf {
             throw new StorageException("Could not open configuration file", e);
         }
         assert(!hosts.isEmpty());
-        System.out.println("MASTER_HOSTNAME = " + MASTER_HOSTNAME);
-        System.out.flush();
         try {
             // TODO: Ask Jedis guys why JedisCluster needs a HostAndPort and why Jedis needs a String and an Integer
             redisClusterConnection = new JedisCluster(new HostAndPort(MASTER_HOSTNAME, REDIS_PORT));
@@ -167,6 +165,9 @@ public final class StorageItf {
         byte[] serializedObject = clusterMode ?
                 redisClusterConnection.get(id.getBytes()) :
                 redisConnection.get(id.getBytes());
+        if(serializedObject == null) {
+            throw  new StorageException("Object with id " + id + " is not in Redis!");
+        }
         Object ret = Serializer.deserialize(serializedObject);
         ((StorageObject)ret).setID(id);
         return ret;
@@ -195,8 +196,7 @@ public final class StorageItf {
      * @return
      */
     public static Object getResult(CallbackEvent event) throws StorageException {
-        if(true) throw new StorageException("Redis does not support this feature.");
-        return null;
+        throw new StorageException("Redis does not support this feature.");
     }
 
     /**
@@ -207,12 +207,14 @@ public final class StorageItf {
      */
     public static void consolidateVersion(String idFinal) throws StorageException {
         LOGGER.info("Consolidating version for " + idFinal);
+        // Skip final version
         idFinal = previousVersion.get(idFinal);
-        previousVersion.remove(idFinal);
         while(idFinal != null) {
+            LOGGER.info("Removing version " + idFinal);
             removeById(idFinal);
+            String oldId = idFinal;
             idFinal = previousVersion.get(idFinal);
-            previousVersion.remove(idFinal);
+            previousVersion.remove(oldId);
         }
     }
 

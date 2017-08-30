@@ -57,7 +57,6 @@ def parse_arguments():
     parser.add_argument('object_conversion', help='Object_conversion [true|false]')
     parser.add_argument('storage_configuration', help='Storage configuration [null|*]')
     parser.add_argument('app_path', help='Application path')
-    parser.add_argument('app_args', nargs='*', help='Application arguments')
     return parser.parse_args()
 
 def main():
@@ -70,7 +69,12 @@ def main():
     compss_start()
 
     # See parse_arguments, defined above
+    # In order to avoid parsing user arguments, we are going to remove user args from sys.argv
+    user_sys_argv = sys.argv[5:]
+    sys.argv = sys.argv[:5]
     args = parse_arguments()
+    # We are done, now sys.argv must contain user args only
+    sys.argv = [args.app_path] + user_sys_argv
 
     # Get log_level
     log_level = args.log_level
@@ -85,9 +89,6 @@ def main():
         persistent_storage = True
         from storage.api import init as init_storage
         from storage.api import finish as finish_storage
-
-    # Remove non-application arguments from the command line argument list
-    sys.argv = [args.app_path] + args.app_args
 
     # Get application execution path
     app_path = args.app_path

@@ -16,9 +16,9 @@ def main():
     parser.add_argument('-a', '--alpha', type=int, help="Alpha parameter", required=True)
     parser.add_argument('-b', '--beta', type=int, help="Beta parameter", required=True)
     parser.add_argument('-g', '--gamma', type=int, help="Gamma parameter", required=True)
-    parser.add_argument('-d', '--delta', type=int, help="Delta parameter",
+    parser.add_argument('-d', '--delta', type=str, help="Delta parameter",
                         required=True)
-    parser.add_argument('-e', '--epsilon', type=int, help="Epsilon parameter",
+    parser.add_argument('-e', '--epsilon', type=float, help="Epsilon parameter",
                         required=True)
     parser.add_argument('-z', '--zeta', type=int, help="Zeta parameter",
                         required=True)
@@ -32,16 +32,17 @@ def main():
     zeta = args.zeta
 
     values = [alpha, beta, gamma, delta, epsilon, zeta]
-    expected_values = [6, 66, 666, 6666, 66666, 666666]
+    expected_values = [6, 66, 666, "z6666", 6.6, 666666]
 
     for v in values:
-        assign(v)
+        if type(v) == int:
+            assign(v)
 
     if values == expected_values:
         print("Argparse received the expected arguments and values:\n%s" % values)
     else:
         print("Argparse did not received the expected arguments and values\n",
-               "Expected: %s\nGot: %s" % (expected_values, found))
+               "Expected: %s\nGot: %s" % (expected_values, values))
 
 
 

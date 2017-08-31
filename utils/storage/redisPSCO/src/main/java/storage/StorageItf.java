@@ -7,10 +7,7 @@ import java.util.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import redis.clients.jedis.HostAndPort;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.*;
 import redis.clients.jedis.exceptions.JedisDataException;
 import storage.utils.Serializer;
 
@@ -30,6 +27,7 @@ public final class StorageItf {
     // See https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers
     // The storage API will assume that, given a hostname, there is a Redis Server listening there
     private static final int REDIS_PORT = 6379;
+    private static final int REDIS_MAX_CLIENTS = 1<<19;
     // Client connections
     // Given that the client classes that are needed to establish a connection with a Redis backend are
     // different for standalone and cluster cases, we are going to first try to establish a connection with
@@ -91,7 +89,9 @@ public final class StorageItf {
         } catch (JedisDataException e) {
             LOGGER.info("[LOG]: Failed to establish a connection in cluster mode, switching to standalone...");
             clusterMode = false;
-            redisConnection = new JedisPool(MASTER_HOSTNAME, REDIS_PORT);
+            JedisPoolConfig poolConfig = new JedisPoolConfig();
+            poolConfig.setMaxTotal(REDIS_MAX_CLIENTS);
+            redisConnection = new JedisPool(poolConfig, MASTER_HOSTNAME, REDIS_PORT);
         }
     }
 

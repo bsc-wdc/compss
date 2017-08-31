@@ -14,7 +14,7 @@
      result_expected="------------------------------------------------------------"
      test_result=$(tail -1 ${output_file})
      if [ "${result_expected}" != "${test_result}" ]; then
-        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
+        echo "SOME ERROR WAS FOUND. CHECK ERROsRS ABOVE." | tee -a ${output_file}
         exit 1
      fi
   else

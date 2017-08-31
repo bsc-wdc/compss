@@ -36,7 +36,7 @@
      --debug \
      --comm=$comm \
      ${runcompss_opts} \
-     ${base_app_dir}/test/argparse.py -a 6 -b 66 -g 666 --delta 6666 --epsilon 66666 --zeta 666666 > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+     ${base_app_dir}/test/argparse.py -a 6 -b 66 -g 666 --delta z6666 --epsilon 6.6 --zeta 666666 > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
 
   #Check timeout
   if [[ "$?" = "124" ]]; then

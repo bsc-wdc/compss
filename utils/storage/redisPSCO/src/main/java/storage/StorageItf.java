@@ -10,6 +10,7 @@ import org.apache.logging.log4j.Logger;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
+import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisDataException;
 import storage.utils.Serializer;
 
@@ -36,7 +37,7 @@ public final class StorageItf {
     // Given that JedisCluster and Jedis are classes that share no common ancestor, this is the cleanest way I can
     // come up with.
     private static JedisCluster redisClusterConnection;
-    private static Jedis        redisConnection;
+    private static JedisPool        redisConnection;
     private static boolean      clusterMode = true;
 
     private static List<String> hosts = new ArrayList<>();
@@ -66,7 +67,7 @@ public final class StorageItf {
     /**
      * Initializes the persistent storage
      * Configuration file must contain all the worker hostnames, one by line
-     *
+     * TODO: What to do with storage conf? StorageItf.init needs different content wrt storage_init.sh
      * @param storageConf Path to the storage configuration File
      * @throws StorageException
      */
@@ -90,7 +91,7 @@ public final class StorageItf {
         } catch (JedisDataException e) {
             LOGGER.info("[LOG]: Failed to establish a connection in cluster mode, switching to standalone...");
             clusterMode = false;
-            redisConnection = new Jedis(MASTER_HOSTNAME, REDIS_PORT);
+            redisConnection = new JedisPool(MASTER_HOSTNAME, REDIS_PORT);
         }
     }
 
@@ -121,6 +122,11 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static List<String> getLocations(String id) throws StorageException {
+        if (clusterMode) {
+            //TODO: Fix Jedis API
+            return hosts;
+        }
+        // We are in standalone mode, return all our hosts
         return hosts;
     }
 
@@ -164,7 +170,7 @@ public final class StorageItf {
     public static Object getByID(String id) throws StorageException, IOException, ClassNotFoundException {
         byte[] serializedObject = clusterMode ?
                 redisClusterConnection.get(id.getBytes()) :
-                redisConnection.get(id.getBytes());
+                redisConnection.getResource().get(id.getBytes());
         if(serializedObject == null) {
             throw  new StorageException("Object with id " + id + " is not in Redis!");
         }
@@ -233,7 +239,7 @@ public final class StorageItf {
         byte[]  serializedObject = Serializer.serialize(o);
         String result = clusterMode ?
                 redisClusterConnection.set(id.getBytes(), serializedObject) :
-                redisConnection.set(id.getBytes(), serializedObject);
+                redisConnection.getResource().set(id.getBytes(), serializedObject);
         if(!result.equals("OK")) {
             throw new StorageException("Redis returned an error while trying to store object with id " + id);
         }
@@ -249,10 +255,9 @@ public final class StorageItf {
             redisClusterConnection.del(id.getBytes());
         }
         else {
-            redisConnection.del(id.getBytes());
+            redisConnection.getResource().del(id.getBytes());
         }
     }
-
 
     // ONLY FOR TESTING PURPOSES
     static class MyStorageObject extends StorageObject implements  Serializable {

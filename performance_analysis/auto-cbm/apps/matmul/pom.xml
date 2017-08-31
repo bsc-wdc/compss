@@ -2,10 +2,10 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   	<modelVersion>4.0.0</modelVersion>
 
-	<parent>		
+	<parent>
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>auto-cbm</artifactId>
-<version>2.1.rc1709</version>
+        <version>2.1.rc1709</version>
 		<relativePath>../..</relativePath>
 	</parent>
 
@@ -34,8 +34,8 @@
                 <url>http://repo1.maven.apache.org/maven2</url>
            </repository>
            <repository>
-                <id>grid-repo</id>
-                <name>BSC Grid computing and Clusters group</name>
+                <id>compss-repo</id>
+                <name>BSC Workflows and Distributed Computing group</name>
                 <url>http://compssdev.bsc.es/artifactory/libs-release</url>
            </repository>
 
@@ -60,11 +60,11 @@
 					<execution>
 						<id>copy</id>
 						<phase>validate</phase>
-						 <goals> 
-		                                	<goal>copy-dependencies</goal> 
-		                           	 </goals> 
+						 <goals>
+		                                	<goal>copy-dependencies</goal>
+		                           	 </goals>
 						<configuration>
-							<outputDirectory>${project.build.directory}/lib</outputDirectory> 
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
 							<silent>true</silent>
 						</configuration>
 					</execution>

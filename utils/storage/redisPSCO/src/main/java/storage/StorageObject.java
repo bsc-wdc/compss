@@ -50,6 +50,7 @@ public class StorageObject implements StubItf {
         // The object is already persisted
         if(this.id != null) return;
         // There was no given identifier, lets compute a random one
+
         if(id == null) {
             id = UUID.randomUUID().toString();
         }

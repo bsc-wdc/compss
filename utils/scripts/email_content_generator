@@ -18,7 +18,7 @@
   echo "All test results for all distributions should have OK status" >> $email
 
   # Copy result table for each distribution
-  logFile=$WORKSPACE/logs/$distr/full_exec.log
+  logFile=$WORKSPACE/framework/logs/$distr/full_exec.log
   echo " " >> $email
   echo "DISTRIBUTION: $distr" >> $email
   echo "FULL LOG: $logFile" >> $email

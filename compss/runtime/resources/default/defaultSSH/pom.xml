@@ -30,7 +30,7 @@
     <!-- DEPENDENCIES -->
     <dependencies>
         <dependency>
-            <groupId>es.bsc</groupId>
+            <groupId>es.bsc.conn</groupId>
             <artifactId>connectors-all</artifactId>
         </dependency>
         <dependency>

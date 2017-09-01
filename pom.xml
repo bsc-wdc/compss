@@ -48,9 +48,9 @@
 
 	<!-- SOURCE CONTROL MANAGEMENT -->
         <scm>
-                <connection>scm:svn:http://compss.bsc.es/svn/compss/framework/trunk</connection>
-                <developerConnection>scm:svn:http://compss.bsc.es/svn/compss/framework/trunk</developerConnection>
-                <url>http://compss.bsc.es/svn/compss/framework/trunk</url>
+                <connection>scm:git:http://compssdev.bsc.es/gitlab/compss/framework.git</connection>
+                <developerConnection>scm:git:http://compssdev.bsc.es/gitlab/compss/framework.git</developerConnection>
+                <url>http://compssdev.bsc.es/gitlab/compss/framework.git</url>
         </scm>
 
         <!-- REPOSITORIES -->
@@ -97,6 +97,6 @@
 		<module>compss</module>
 		<module>tests/sources</module>
 		<module>performance_analysis/auto-cbm</module>
-		<module>maven-plugins/instrumentation</module>
+		<!--<module>maven-plugins/instrumentation</module>-->
 	</modules>
 </project>

@@ -150,16 +150,36 @@ public class TraceMerger {
             HashMap<Integer, List<LineInfo>> workerSyncEvents = getSyncEvents(workerFile.getPath(), workerID);
 
             writeWorkerEvents(masterSyncEvents, workerSyncEvents, cleanLines, workerID);
-
-            // TODO: do not remove because merging may fail
+            
             if (!debug) {
-            logger.debug("Not removing folder " + workingDir + File.separator + traceSubDir + File.separator + workerSubDir
-                    + " because merging may fail.");
-            // removeFolder(workingDir + File.separator + traceSubDir + File.separator + workerSubDir);
+                logger.debug("Removing folder " + workingDir + File.separator + traceSubDir + File
+                    .separator + workerSubDir);
+                try{
+                    removeFolder(workingDir + File.separator + traceSubDir + File.separator +
+                            workerSubDir);
+                } catch (Exception e) {
+                    logger.warn("Could not remove python temporal tracing folder.\n" + e.toString());
+                }
             }
         }
         masterWriter.close();
         logger.debug("Merging finished.");
+    }
+
+    private void removeFolder(String sandBox) throws IOException {
+        File wdirFile = new File(sandBox);
+        remove(wdirFile);
+    }
+
+    private void remove(File f) throws IOException {
+        if (f.exists()) {
+            if (f.isDirectory()) {
+                for (File child : f.listFiles()) {
+                    remove(child);
+                }
+            }
+            Files.delete(f.toPath());
+        }
     }
 
     private void add(HashMap<Integer, List<LineInfo>> map, Integer key, LineInfo newValue) {

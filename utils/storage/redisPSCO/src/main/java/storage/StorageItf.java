@@ -35,7 +35,7 @@ public final class StorageItf {
     // Given that JedisCluster and Jedis are classes that share no common ancestor, this is the cleanest way I can
     // come up with.
     private static JedisCluster redisClusterConnection;
-    private static JedisPool        redisConnection;
+    private static JedisPool    redisConnection;
     private static boolean      clusterMode = true;
 
     private static List<String> hosts = new ArrayList<>();

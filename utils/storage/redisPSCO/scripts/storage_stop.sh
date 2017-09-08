@@ -155,11 +155,11 @@
     # $1 = host
     # $2 = path
     # $3 = port
-    # It is more than likely that we do not need to explicitly kill the storage processes given the zombie-control
+    # It is more than likely that we do not need to explicitly kill the storage processes given the postjob-control
     # that many supercomputers have
     if [ "$REDIS_REMOTE_COMMAND" == "ssh" ];
     then
-      echo "ssh $1 \"ps -ef | grep redis-server.*:$3 | grep -v grep | awk '{ print \\\$2 }' | xargs kill -9 \""
+      echo "ssh $1 \"ps -ef | grep redis-server.*:$3 | grep -v grep | awk '{ print \\\$2 }' | xargs kill -9; pkill redis\""
     elif [ "$REDIS_REMOTE_COMMAND" == "blaunch" ];
     then
       echo "BLAUNCH Pending to implement!"

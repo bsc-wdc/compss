@@ -88,8 +88,8 @@
   #Engine
   cp ${trunk_rel_path}/compss/runtime/compss-engine.jar ${COMPSs_target}/Runtime/
 
-  #Clean svn files
-  find ${COMPSs_target} -name .svn -print0 | xargs -0 rm -rf  
+  #Clean git files
+  find ${COMPSs_target} -name '.git' -exec rm -rf {} \;
 
   for rt in ${release_types}; do
     echo " "

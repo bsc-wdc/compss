@@ -30,8 +30,8 @@ echo ""
 echo "DISTRIBUTE WORKSPACE SEVERO TO NODES"
 echo ""
 
-rsync -arv --exclude '.svn' ${TRUNK} bscgrid05.bsc.es:${HOME}/
-rsync -arv --exclude '.svn' ${TRUNK} bscgrid06.bsc.es:${HOME}/
-rsync -arv --exclude '.svn' ${TRUNK} bscgrid20.bsc.es:${HOME}/
+rsync -arv --exclude '.git' ${TRUNK} bscgrid05.bsc.es:${HOME}/
+rsync -arv --exclude '.git' ${TRUNK} bscgrid06.bsc.es:${HOME}/
+rsync -arv --exclude '.git' ${TRUNK} bscgrid20.bsc.es:${HOME}/
 
 echo "DONE!"

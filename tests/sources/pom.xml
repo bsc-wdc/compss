@@ -67,9 +67,9 @@
 
 	<!-- SOURCE CONTROL MANAGEMENT -->
 	<scm>
-		<connection>scm:svn:http://compss.bsc.es/svn/compss/tests/sources</connection>
-		<developerConnection>scm:svn:http://compss.bsc.es/svn/compss/tests/sources</developerConnection>
-		<url>http://compss.bsc.es/svn/compss/tests/sources</url>
+		<connection>scm:git:http://compssdev.bsc.es/gitlab/compss/framework.git</connection>
+		<developerConnection>scm:git:http://compssdev.bsc.es/gitlab/compss/framework.git</developerConnection>
+		<url>http://compssdev.bsc.es/gitlab/compss/framework.git</url>
 	</scm>
 	
 	<!-- REPOSITORIES -->

@@ -20,7 +20,7 @@ ACLOCAL_AMFLAGS=-I config
 @SET_MAKE@
 
 dist-hook:
-	rm -fr `find $(distdir) -name .svn`
+	rm -fr `find $(distdir) -name .git`
 
 #
 # Create EXAMPLE directory and copy there the example
@@ -500,7 +500,7 @@ endif
 	$(top_srcdir)/substitute-all $(SED) "@sub_PREFIXDIR@" "${prefix}" $(DESTDIR)$(datadir)/example
 	rm null # Remove null file created at the beginning
 # SVN installations may have some subversion control files
-	find $(DESTDIR)$(datadir)/example -name .svn -delete
+	find $(DESTDIR)$(datadir)/example -name .git -delete
 	find $(DESTDIR)$(datadir)/example -name null -delete
 
 uninstall-local:

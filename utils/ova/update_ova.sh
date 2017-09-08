@@ -6,7 +6,7 @@
 
   # Sync data
   svnUser=cramonco
-  ./sync_with_svn.sh $svnUser
+  ./sync_with_git.sh $svnUser
 
   # Test tutorial apps
   # TODO: Currently this step is done manually

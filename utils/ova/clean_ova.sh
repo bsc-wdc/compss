@@ -12,10 +12,9 @@
   sudo apt-get -y --force-Yes clean
 
   # Clean subversion
-  echo "Cleanning SVN/MAVEN/COMPSs files"
+  echo "Cleanning GIT/MAVEN/COMPSs files"
   cd $ROOT_FOLDER
-  sudo find . -name ".svn" | xargs -r -i -t rm -rf {}
-  sudo find . -name ".subversion" | xargs -r -i -t rm -rf {}
+  sudo find . -name ".git" | xargs -r -i -t rm -rf {}
   sudo find . -name ".m2" | xargs -r -i -t rm -rf {}
   sudo find . -name ".COMPSs" | xargs -r -i -t rm -rf {}
 

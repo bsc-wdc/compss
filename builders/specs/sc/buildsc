@@ -137,8 +137,8 @@
   cp -r ${trunk_rel_path}/compss/programming_model/bindings/c ${COMPSs_target}/Bindings/
   echo "--- Copy python-binding files"
   cp -r ${trunk_rel_path}/compss/programming_model/bindings/python ${COMPSs_target}/Bindings/
-  #Clean svn files
-  find ${COMPSs_target} -name .svn -print0 | xargs -0 rm -rf  
+  #Clean git files
+  find ${COMPSs_target} -name '.git' -exec rm -rf {} \;  #Cleans git files
 
   #---------------------------------------------------------------------------
   # Add specific SC install and env files

@@ -38,7 +38,7 @@
   cp -rf ${trunk_rel_path}/RELEASE_NOTES ${target}
 
   cd tmp/SOURCES/
-  find . -name .svn | xargs rm -rf  #Cleans svn files
+  find . -name '.git' -exec rm -rf {} \;  #Cleans git files
   tar czf ${package_name}-${COMPSS_VERSION}.tar.gz ${package_name}-${COMPSS_VERSION}
   if [ $? -ne 0 ]; then
 	echo "Error compressing package"

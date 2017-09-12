@@ -37,7 +37,7 @@
       echo "Cmd: $cmd ${paramsToCOMPSsWorker}"
   fi
 
-  nohup $cmd ${paramsToCOMPSsWorker} 1>$workingDir/log/worker_${hostName}.out 2> $workingDir/log/worker_${hostName}.err | echo $! &
+  setsid $cmd ${paramsToCOMPSsWorker} 1>$workingDir/log/worker_${hostName}.out 2> $workingDir/log/worker_${hostName}.err < /dev/null | echo $! &
   endCode=$?
 
   post_launch

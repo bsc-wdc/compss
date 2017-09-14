@@ -227,10 +227,10 @@
   mkdir -p $COMPSS_STORAGE_CFG_DIR
 
   # Write the nodes to the storage config that is needed for COMPSs 
-  echo ${storage_master_node} >>  $COMPSS_STORAGE_CFG_FILE
+  echo ${storage_master_node}${network} >>  $COMPSS_STORAGE_CFG_FILE
   for worker_node in $worker_nodes
   do
-    echo ${worker_node} >> $COMPSS_STORAGE_CFG_FILE
+    echo ${worker_node}${network} >> $COMPSS_STORAGE_CFG_FILE
   done
 
   # Pre-step: Resolve the nodes names to IPs (if needed)

@@ -17,7 +17,6 @@
   #---------------------------------------------------------
   ERROR_PROPS_FILE="Cannot find storage properties file"
   ERROR_GENERATE_CONF="Cannot generate conf file"
-  ERROR_START_DATACLAY="Cannot start dataClay"
  
 
   #---------------------------------------------------------
@@ -175,6 +174,10 @@
     fi
   }
 
+  get_args "$@"
+  check_args
+  log_args
+
   #---------------------------------------------------------
   # MAIN FUNCTIONS
   #---------------------------------------------------------
@@ -182,17 +185,13 @@
   # Default values
   # The idea is to replace these values by the desired ones in the --storage_conf file
   # The values below form a valid sample configuration anyway
-  REDIS_HOME=/tmp/redis_cluster
+  REDIS_HOME=/tmp/redis_cluster/${jobId}
   REDIS_PORT=6379
   REDIS_NODE_TIMEOUT=5000
   REDIS_REPLICAS=0
   REDIS_REMOTE_COMMAND=ssh
 
   STORAGE_HOME=$(dirname $0)/../
-
-  get_args "$@"
-  check_args
-  log_args
 
   echo "REDIS CONFIGURATION PARAMETERS"
   echo "REDIS_HOME:           $REDIS_HOME"
@@ -202,22 +201,51 @@
   echo "REDIS_REMOTE_COMMAND: $REDIS_REMOTE_COMMAND"
   echo "-----------------------"
 
+  # These paths are needed for COMPSs because the runtime
+  # will systematically look for a storage.cfg file here
+  # if storage_home has been defined
+  COMPSS_STORAGE_DIR=$HOME/.COMPSs/${jobId}/storage  
+  COMPSS_STORAGE_CFG_DIR=$COMPSS_STORAGE_DIR/cfgfiles
+  COMPSS_STORAGE_CFG_FILE=$COMPSS_STORAGE_CFG_DIR/storage.properties
+
+  echo "COMPSS PATH PARAMETERS"
+  echo "COMPSS_STORAGE_DIR:      $COMPSS_STORAGE_DIR"
+  echo "COMPSS_STORAGE_CFG_DIR:  $COMPSS_STORAGE_CFG_DIR"
+  echo "COMPSS_STORAGE_CFG_FILE: $COMPSS_STORAGE_CFG_FILE"
+  echo "-----------------------"
   ############################
   ## STORAGE DEPENDENT CODE ##
   ############################
+  
+  # These paths are needed to be available because COMPSs will look
+  # for storage stuff there, and there is no way to change it
+  # Note that REDIS_HOME is a different variable
+  # This is intentional because the $HOME directory may be shared, so
+  # we may end up creating Redis instances sandboxes for two different instances
+  # in a same location if they have the same port
+  mkdir -p $COMPSS_STORAGE_DIR
+  mkdir -p $COMPSS_STORAGE_CFG_DIR
+
+  # Write the nodes to the storage config that is needed for COMPSs 
+  echo ${storage_master_node} >>  $COMPSS_STORAGE_CFG_FILE
+  for worker_node in $worker_nodes
+  do
+    echo ${worker_node} >> $COMPSS_STORAGE_CFG_FILE
+  done
 
   # Pre-step: Resolve the nodes names to IPs (if needed)
-  # This is due to the Redis limitation that imposes that it only works well when IPs are
+  # This is due to the Redis backend limitation that imposes that it only works well when IPs are
   # passed. Given that we have no guarantee about the locations format (i.e: we do not know if they are
   # going to be hostnames of IPs) then we must check if we got an IP and, if not, resolve it
   # see get_ip_address, valid_ip, and resolve_host_name to see what is being done here
-  storage_master_node=$(get_ip_address ${storage_master_node});
+  storage_master_node=$(get_ip_address ${storage_master_node}${network});
   worker_nodes=$(
     for worker_node in $worker_nodes
       do
-        echo $(get_ip_address $worker_node)
+        echo $(get_ip_address ${worker_node}${network})
       done
   );
+
 
   echo "RESOLVED REDIS NODES"
   echo "MASTER NODE: $storage_master_node"
@@ -225,6 +253,8 @@
   do
     echo "WORKER NODE: $worker_node"
   done
+
+  echo "WORKING DIRECTORY: $(pwd)"
 
   echo "-----------------------"
 

@@ -65,7 +65,6 @@ public final class StorageItf {
     /**
      * Initializes the persistent storage
      * Configuration file must contain all the worker hostnames, one by line
-     * TODO: What to do with storage conf? StorageItf.init needs different content wrt storage_init.sh
      * @param storageConf Path to the storage configuration File
      * @throws StorageException
      */
@@ -85,13 +84,13 @@ public final class StorageItf {
         assert(!hosts.isEmpty());
         try {
             // TODO: Ask Jedis guys why JedisCluster needs a HostAndPort and why Jedis needs a String and an Integer
-            redisClusterConnection = new JedisCluster(new HostAndPort(MASTER_HOSTNAME, REDIS_PORT));
+            redisClusterConnection = new JedisCluster(new HostAndPort(hosts.get(0), REDIS_PORT));
         } catch (JedisDataException e) {
             LOGGER.info("[LOG]: Failed to establish a connection in cluster mode, switching to standalone...");
             clusterMode = false;
             JedisPoolConfig poolConfig = new JedisPoolConfig();
             poolConfig.setMaxTotal(REDIS_MAX_CLIENTS);
-            redisConnection = new JedisPool(poolConfig, MASTER_HOSTNAME, REDIS_PORT);
+            redisConnection = new JedisPool(poolConfig, hosts.get(0), REDIS_PORT);
         }
     }
 

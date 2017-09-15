@@ -119,6 +119,9 @@ def compss_worker(persistent_storage):
 
         if pType == TYPE.FILE:
             # check if it is a persistent object
+            #TODO: I find that it makes no sense to identify PSCOs this way
+            # Why do not we simply check if the object of a subclass of the
+            # storage_object? 
             if 'getID' in dir(pValue) and pValue.getID() is not None:
                 po = getByID(pValue.getID())
                 values.append(po)

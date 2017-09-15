@@ -372,6 +372,10 @@ def synchronize(obj, mode):
     # Objetivo: mejorar el detalle de las trazas. Esto se tiene que implementar primero en el runtime, despues
     # adaptar el api de C, y finalmente anadir el booleano aqui.
     global current_id
+
+    #TODO: I find that it makes no sense to identify PSCOs this way
+    # Why do not we simply check if the object of a subclass of the
+    # storage_object? 
     if 'getID' in dir(obj) and obj.getID() is not None:
         obj_id = obj.getID()
         if obj_id not in pending_to_synchronize:

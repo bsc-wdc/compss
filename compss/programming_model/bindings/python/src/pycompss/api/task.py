@@ -726,6 +726,10 @@ def getCOMPSsType(value):
     #     return TYPE.OBJECT
     # elif type(value) is :       # Unavailable  # PSCOs not persisted will be handled as objects (as files)
     #     return TYPE.PSCO
+
+    #TODO: I find that it makes no sense to identify PSCOs this way
+    # Why do not we simply check if the object of a subclass of the
+    # storage_object? 
     elif 'getID' in dir(value):
         try:
             if value.getID() is not None:  # the 'getID' + id == criteria for persistent object

@@ -24,11 +24,13 @@ public class CloudTypeManager {
     private final HashMap<String, CloudInstanceTypeDescription> types;
 
     private static final Logger logger = LogManager.getLogger(Loggers.CM_COMP);
+
+
     /**
      * Constructs a new CloudImageManager
      */
     public CloudTypeManager() {
-    	logger.debug("Initializing CloudTypeManager");
+        logger.debug("Initializing CloudTypeManager");
         types = new HashMap<>();
     }
 
@@ -39,7 +41,7 @@ public class CloudTypeManager {
      *            Description of the resource
      */
     public void addType(CloudInstanceTypeDescription type) {
-    	logger.debug("Add new type description " +type.getName());
+        logger.debug("Add new type description " + type.getName());
         types.put(type.getName(), type);
     }
 
@@ -105,15 +107,12 @@ public class CloudTypeManager {
     public void newCoreElementsDetected(List<Integer> newCores) {
         int coreCount = CoreManager.getCoreCount();
         for (CloudInstanceTypeDescription type : types.values()) {
-            int[] slotsC = new int[coreCount];
             int[][] slotsI = new int[coreCount][];
             // Copy actual values
-            int[] slotsCore = type.getSlotsCore();
-            System.arraycopy(slotsCore, 0, slotsC, 0, slotsCore.length);
+            int[] slotsC = type.getSlotsCore().clone();
             for (int i = 0; i < type.getSlotsImplLength(); ++i) {
                 int[] slotsImpl = type.getSpecificSlotsImpl(i);
-                slotsI[i] = new int[slotsImpl.length];
-                System.arraycopy(slotsImpl, 0, slotsI[i], 0, slotsImpl.length);
+                slotsI[i] = slotsImpl.clone();
             }
             // Get new values
             for (int coreId : newCores) {

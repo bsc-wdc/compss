@@ -39,6 +39,10 @@ myUuid = 0
 app_path = 'InteractiveMode'  # Warning! The name should start with InteractiveMode due to @task checks it explicitly.
 running = False               #          If has to be changed, it is necessary to update the task decorator.
 process = None
+log_path = '/tmp/'
+graphing = False
+tracing = False
+monitoring = False
 
 
 def start(log_level='off',
@@ -85,15 +89,22 @@ def start(log_level='off',
     os.environ['EXTRAE_HOME'] = extrae_home
     os.environ['LD_LIBRARY_PATH'] = extrae_lib + ':' + ld_library_path
 
-    if trace == False:
+    if trace is False:
         trace = 0
-    elif trace == 'basic' or trace == True:
+    elif trace == 'basic' or trace is True:
         trace = 1
     elif trace == 'advanced':
         trace = 2
     else:
         print 'ERROR: Wrong tracing parameter ( [ True | basic ] | advanced | False)'
         return -1
+
+    global graphing
+    graphing = graph
+    global tracing
+    tracing = trace
+    global monitoring
+    monitoring = monitor
 
     exportGlobals()
 
@@ -170,7 +181,7 @@ def start(log_level='off',
     print "* - Starting COMPSs runtime...                       *"
     compss_start()
 
-    if o_c == True:
+    if o_c is True:
         # set cross-module variable
         binding.object_conversion = True
     else:
@@ -185,6 +196,7 @@ def start(log_level='off',
     # Get application execution path
     # app_path = sys.argv[0]  ############ not needed --> interactive mode
 
+    global log_path
     log_path = get_log_path()
     binding.temp_dir = mkdtemp(prefix='pycompss', dir=log_path + '/tmpFiles/')
     print "* - Log path : " + log_path
@@ -209,7 +221,7 @@ def start(log_level='off',
 
     logger.debug("--- START ---")
     logger.debug("PyCOMPSs Log path: %s" % log_path)
-    if storageConf != None:
+    if storageConf is not None:
         logger.debug("Storage configuration file: %s" % storageConf)
         from storage.api import init as initStorage
         initStorage(config_file_path=storageConf)
@@ -294,7 +306,7 @@ def stop(sync=False):
         print "Warning: some of the variables used with PyCOMPSs may"
         print "         have not been brought to the master."
 
-    if persistent_storage == True:
+    if persistent_storage is True:
         from storage.api import finish as finishStorage
         finishStorage()
 
@@ -307,6 +319,42 @@ def stop(sync=False):
     # os._exit(00)  # Explicit kernel restart # breaks Jupyter-notebook
 
     # --- Execution finished ---
+
+
+def showCurrentGraph(fit=False):
+    if graphing:
+        return __showGraph(name='current_graph', fit=fit)
+    else:
+        print 'Oops! Graph is not enabled in this execution.'
+        print '      Please, enable it by setting the graph flag when starting PyCOMPSs.'
+
+
+def showCompleteGraph(fit=False):
+    if graphing:
+        return __showGraph(name='complete_graph', fit=fit)
+    else:
+        print 'Oops! Graph is not enabled in this execution.'
+        print '      Please, enable it by setting the graph flag when starting PyCOMPSs.'
+
+
+def __showGraph(name='complete_graph', fit=False):
+    from graphviz import Source
+    file = open(log_path + '/monitor/' + name + '.dot', 'r')
+    text = file.read()
+    if fit:
+        # Convert to png and show full picture
+        filename = log_path + '/monitor/' + name
+        extension = 'png'
+        import os
+        if os.path.exists(filename + '.' + extension):
+            os.remove(filename + '.' + extension)
+        s = Source(text, filename=filename, format=extension)
+        s.render()
+        from IPython.display import Image
+        image = Image(filename=filename + '.' + extension)
+        return image
+    else:
+        return Source(text)
 
 
 ###################################################################################################

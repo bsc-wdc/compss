@@ -177,7 +177,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                                 logger.debug("[PYTHON WORKER %s] - Pipe %s END TASK MESSAGE: %s" %(str(process_name),
                                                                                                    str(output_pipe),
                                                                                                    str(message)))
-                                # The return message should be:
+                                # The return message is:
                                 #
                                 # TaskResult ==> jobId exitValue List<Object>
                                 #
@@ -187,8 +187,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                                 # - Null if it NOT a PSCO
                                 # - PSCOId (String) if is a PSCO
                                 #
-                                # This has to be sent through the pipe with the endTask message.
-                                # Can be simplified if necessary.
+                                # This is sent through the pipe with the endTask message.
                                 # If the task had an object or file as parameter and the worker returns the id,
                                 # the runtime can change the type (and locations) to a EXTERNAL_OBJ_T.
 

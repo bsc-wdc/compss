@@ -460,6 +460,7 @@ def get_input_params(num_params, logger, args, process_name, persistent_storage)
         streams.append(pStream)
         prefixes.append(pPrefix)
 
+        if pType == TYPE.FILE:
             #TODO: I find that it makes no sense to identify PSCOs this way
             # Why do not we simply check if the object of a subclass of the
             # storage_object?

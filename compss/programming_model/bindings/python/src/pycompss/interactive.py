@@ -71,6 +71,7 @@ def start(log_level='off',
     launchPath = os.path.dirname(os.path.abspath(__file__))
     # compss_home = launchPath without the last 3 folders (Bindings/python/pycompss/runtime)
     compss_home = os.path.sep.join(launchPath.split(os.path.sep)[:-3])
+    os.environ['COMPSS_HOME'] = compss_home
 
     # Get environment variables
     cp = os.getcwd() + '/'

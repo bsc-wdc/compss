@@ -1,9 +1,9 @@
 <?page title="COMPSs Monitor" contentType="text/html;charset=UTF-8"?>
-<?init class="com.bsc.compss.ui.auth.AuthenticationInit"?>
+<?init class="es.bsc.compss.ui.auth.AuthenticationInit"?>
 <zk>
     <window height="100%" border="none" contentStyle="overflow:auto;"
             apply="org.zkoss.bind.BindComposer"
-            viewModel="@id('cvm') @init('com.bsc.compss.ui.ConfigurationViewModel')">
+            viewModel="@id('cvm') @init('es.bsc.compss.ui.ConfigurationViewModel')">
 		<borderlayout width="100%">
 			<!-- COMPSs Header -->
 			<north border="none" size="20%">

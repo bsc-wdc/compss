@@ -1,6 +1,6 @@
 <?page title="COMPSs Monitor" contentType="text/html;charset=UTF-8"?>
 <zk>
-	<borderlayout apply="org.zkoss.bind.BindComposer" viewModel="@id('login') @init('com.bsc.compss.ui.Login')">
+	<borderlayout apply="org.zkoss.bind.BindComposer" viewModel="@id('login') @init('es.bsc.compss.ui.Login')">
 		<north border="none" height="125px">
 			<vlayout vflex="1">
 				<include src="/zul/header.zul" />				

@@ -1,4 +1,4 @@
-<?init class="com.bsc.compss.ui.auth.AuthenticationInit"?>
+<?init class="es.bsc.compss.ui.auth.AuthenticationInit"?>
 <zk xmlns:w="http://www.zkoss.org/2005/zk/client">
     <!-- Load Scripts for LoadGraph Tab -->
     <script type="text/javascript" src="http://www.google.com/jsapi" />
@@ -6,7 +6,7 @@
     
     <window height="100%" border="none" contentStyle="overflow:auto;"
             apply="org.zkoss.bind.BindComposer"
-            viewModel="@id('vm') @init('com.bsc.compss.ui.ViewModel')">
+            viewModel="@id('vm') @init('es.bsc.compss.ui.ViewModel')">
             
             <tabbox vflex="1" hflex="1">
             	<tabs>

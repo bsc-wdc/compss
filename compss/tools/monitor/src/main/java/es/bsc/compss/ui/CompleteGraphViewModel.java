@@ -103,28 +103,34 @@ public class CompleteGraphViewModel {
         // Create SVG
         String targetFullPath = System.getProperty("catalina.base") + File.separator + "webapps" + File.separator 
                 + "compss-monitor" + File.separator + target;
-        String[] createSVG = { "/bin/sh", "-c", "dot -T svg " + location + " > " + targetFullPath };
+        String[] createSVG = { "/bin/bash", "-c", "dot -T svg " + location + " > " + targetFullPath };
         Process p1 = Runtime.getRuntime().exec(createSVG);
         p1.waitFor();
         
-        //- If the complete graph is empty, throw exception to load empty graph image
+        // If the complete graph is empty, throw exception to load empty graph image
         File graphFile = new File(targetFullPath);
         if (!graphFile.exists() || graphFile.length() <= COMPLETE_GRAPH_EMPTY_SIZE) {
             throw new EmptyCompleteGraphException("Empty complete graph");
         }
 
         // Add JSPan.js configuration
-        String[] addJSScript = { "/bin/sh", "-c",
+        String[] addJSScript = { "/bin/bash", "-c",
                 "sed -i \"s/\\<g id\\=\\\"graph0/script xlink:href\\=\\\"SVGPan.js\\\"\\/\\>\\n\\<g id\\=\\\"viewport/\" "
                         + targetFullPath };
         Process p2 = Runtime.getRuntime().exec(addJSScript);
         p2.waitFor();
+        // Workaround for architectures with dot tool generating main graph as graph1 not graph0
+        String[] addJSScript2 = { "/bin/bash", "-c",
+                "sed -i \"s/\\<g id\\=\\\"graph1/script xlink:href\\=\\\"SVGPan.js\\\"\\/\\>\\n\\<g id\\=\\\"viewport/\" "
+                        + targetFullPath };
+        Process p3 = Runtime.getRuntime().exec(addJSScript2);
+        p3.waitFor();
 
-        String[] createViewBox = { "/bin/sh", "-c",
+        String[] createViewBox = { "/bin/bash", "-c",
                 "sed -i \"s/<svg .*/<svg xmlns\\=\\\"http:\\/\\/www.w3.org\\/2000\\/svg\\\" xmlns:xlink\\=\\\"http:\\/\\/www.w3.org\\/1999\\/xlink\\\"\\>/g\" "
                         + targetFullPath };
-        Process p3 = Runtime.getRuntime().exec(createViewBox);
-        p3.waitFor();
+        Process p4 = Runtime.getRuntime().exec(createViewBox);
+        p4.waitFor();
 
         // Load graph image
         logger.debug("Graph loaded");

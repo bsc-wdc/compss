@@ -1,5 +1,5 @@
 <?page title="COMPSs Monitor" contentType="text/html;charset=UTF-8"?>
-<?init class="com.bsc.compss.ui.auth.AuthenticationInit"?>
+<?init class="es.bsc.compss.ui.auth.AuthenticationInit"?>
 <zk>
 	<borderlayout width="100%">
 		<!-- COMPSs Header -->

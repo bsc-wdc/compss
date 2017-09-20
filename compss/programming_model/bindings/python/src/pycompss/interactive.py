@@ -338,21 +338,29 @@ def showCompleteGraph(fit=False):
 
 
 def __showGraph(name='complete_graph', fit=False):
-    from graphviz import Source
+    try:
+        from graphviz import Source
+    except ImportError:
+        print 'Oops! graphviz is not available.'
+        raise
     file = open(log_path + '/monitor/' + name + '.dot', 'r')
     text = file.read()
     if fit:
-        # Convert to png and show full picture
-        filename = log_path + '/monitor/' + name
-        extension = 'png'
-        import os
-        if os.path.exists(filename + '.' + extension):
-            os.remove(filename + '.' + extension)
-        s = Source(text, filename=filename, format=extension)
-        s.render()
-        from IPython.display import Image
-        image = Image(filename=filename + '.' + extension)
-        return image
+        try:
+            # Convert to png and show full picture
+            filename = log_path + '/monitor/' + name
+            extension = 'png'
+            import os
+            if os.path.exists(filename + '.' + extension):
+                os.remove(filename + '.' + extension)
+            s = Source(text, filename=filename, format=extension)
+            s.render()
+            from IPython.display import Image
+            image = Image(filename=filename + '.' + extension)
+            return image
+        except:
+            print 'Oops! Failed rendering the graph.'
+            raise
     else:
         return Source(text)
 

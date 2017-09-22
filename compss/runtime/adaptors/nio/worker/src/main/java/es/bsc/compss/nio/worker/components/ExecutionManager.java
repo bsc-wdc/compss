@@ -86,7 +86,7 @@ public class ExecutionManager {
         }
 
         // Instantiate CPU binders
-        LOGGER.debug("Instantiate CPU Binder");
+        LOGGER.debug("Instantiate CPU Binder with " + computingUnitsCPU +" CUs");
         switch (cpuMap) {
             case NIOAgent.BINDER_DISABLED:
                 this.binderCPUs = new Unbinded();
@@ -102,7 +102,7 @@ public class ExecutionManager {
         }
 
         // Instantiate GPU Binders
-        LOGGER.debug("Instantiate GPU Binder");
+        LOGGER.debug("Instantiate GPU Binder with " + computingUnitsGPU +" CUs");
         switch (gpuMap) {
             case NIOAgent.BINDER_DISABLED:
                 this.binderGPUs = new Unbinded();

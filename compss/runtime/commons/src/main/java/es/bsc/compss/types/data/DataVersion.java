@@ -1,7 +1,5 @@
 package es.bsc.compss.types.data;
 
-import es.bsc.compss.comm.Comm;
-
 
 public class DataVersion {
 
@@ -16,7 +14,6 @@ public class DataVersion {
         this.dataInstanceId = new DataInstanceId(dataId, versionId);
         this.writters = 0;
         this.toDelete = false;
-        Comm.registerData(dataInstanceId.getRenaming());
     }
 
     public DataInstanceId getDataInstanceId() {
@@ -48,7 +45,6 @@ public class DataVersion {
     public boolean delete() {
         toDelete = true;
         if (readers == 0 && writters == 0) {
-            Comm.removeData(dataInstanceId.getRenaming());
             return true;
         }
         return false;
@@ -59,7 +55,6 @@ public class DataVersion {
                 && writters == 0 // version has been generated
                 && readers == 0 // version has been read
         ) {
-            Comm.removeData(dataInstanceId.getRenaming());
             return true;
         }
         return false;

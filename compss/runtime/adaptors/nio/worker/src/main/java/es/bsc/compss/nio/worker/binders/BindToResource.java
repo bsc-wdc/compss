@@ -31,24 +31,26 @@ public class BindToResource implements ThreadBinder {
         int numAssignedCores = 0;
 
         // Assign free CUs to the job
-        synchronized (this.bindedComputingUnits) {
-            for (int coreId = 0; coreId < this.bindedComputingUnits.length; ++coreId) {
-                if (this.bindedComputingUnits[coreId] == -1) {
-                    this.bindedComputingUnits[coreId] = jobId;
-                    assignedCoreUnits[numAssignedCores] = coreId;
-                    numAssignedCores++;
-                }
-                if (numAssignedCores == numCUs) {
-                    break;
-                }
-            }
+        if (numCUs>0){
+        	synchronized (this.bindedComputingUnits) {
+        		for (int coreId = 0; coreId < this.bindedComputingUnits.length; ++coreId) {
+        			if (this.bindedComputingUnits[coreId] == -1) {
+        				this.bindedComputingUnits[coreId] = jobId;
+        				assignedCoreUnits[numAssignedCores] = coreId;
+        				numAssignedCores++;
+        			}
+        			if (numAssignedCores == numCUs) {
+        				break;
+        			}
+        		}
 
-            // If the job doesn't have all the CUs it needs, it cannot run on occupied ones
-            // Raise exception
-            if (numAssignedCores != numCUs) {
-                releaseComputingUnits(jobId);
-                throw new UnsufficientAvailableComputingUnitsException("Not enough available computing units for task execution");
-            }
+        		// If the job doesn't have all the CUs it needs, it cannot run on occupied ones
+        		// Raise exception
+        		if (numAssignedCores != numCUs) {
+        			releaseComputingUnits(jobId);
+        			throw new UnsufficientAvailableComputingUnitsException("Not enough available computing units for task execution");
+        		}
+        	}
         }
         return assignedCoreUnits;
     }

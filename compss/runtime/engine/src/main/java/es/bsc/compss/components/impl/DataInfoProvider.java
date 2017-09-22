@@ -109,7 +109,7 @@ public class DataInfoProvider {
 
             // Register the initial location of the file
             if (mode != AccessMode.W) {
-                Comm.registerLocation(fileInfo.getCurrentDataInstanceId().getRenaming(), location);
+                Comm.registerLocation(fileInfo.getCurrentDataVersion().getDataInstanceId().getRenaming(), location);
             }
         } else {
             // The file has already been accessed, all location are already registered
@@ -168,7 +168,7 @@ public class DataInfoProvider {
             idToData.put(aoId, oInfo);
 
             // Serialize this first version of the object to a file
-            DataInstanceId lastDID = oInfo.getCurrentDataInstanceId();
+            DataInstanceId lastDID = oInfo.getCurrentDataVersion().getDataInstanceId();
             String renaming = lastDID.getRenaming();
 
             // Inform the File Transfer Manager about the new file containing the object
@@ -213,7 +213,7 @@ public class DataInfoProvider {
             idToData.put(aoId, oInfo);
 
             // Serialize this first version of the object to a file
-            DataInstanceId lastDID = oInfo.getCurrentDataInstanceId();
+            DataInstanceId lastDID = oInfo.getCurrentDataVersion().getDataInstanceId();
             String renaming = lastDID.getRenaming();
 
             // Inform the File Transfer Manager about the new file containing the object
@@ -239,7 +239,7 @@ public class DataInfoProvider {
         switch (mode) {
             case R:
                 di.willBeRead();
-                daId = new RAccessId(di.getCurrentDataInstanceId());
+                daId = new RAccessId(di.getCurrentDataVersion());
                 if (DEBUG) {
                     StringBuilder sb = new StringBuilder("");
                     sb.append("Access:").append("\n");
@@ -252,7 +252,7 @@ public class DataInfoProvider {
 
             case W:
                 di.willBeWritten();
-                daId = new WAccessId(di.getCurrentDataInstanceId());
+                daId = new WAccessId(di.getCurrentDataVersion());
                 if (DEBUG) {
                     StringBuilder sb = new StringBuilder("");
                     sb.append("Access:").append("\n");
@@ -264,12 +264,11 @@ public class DataInfoProvider {
                 break;
 
             case RW:
-                boolean preserveSourceData = di.isToBeRead();
                 di.willBeRead();
-                DataInstanceId readInstance = di.getCurrentDataInstanceId();
+                DataVersion readInstance = di.getCurrentDataVersion();
                 di.willBeWritten();
-                DataInstanceId writtenInstance = di.getCurrentDataInstanceId();
-                daId = new RWAccessId(readInstance, writtenInstance, preserveSourceData);
+                DataVersion writtenInstance = di.getCurrentDataVersion();
+                daId = new RWAccessId(readInstance, writtenInstance);
                 if (DEBUG) {
                     StringBuilder sb = new StringBuilder("");
                     sb.append("Access:").append("\n");
@@ -288,7 +287,7 @@ public class DataInfoProvider {
     private DataAccessId getAccess(AccessMode mode, DataInfo di) {
         // Version management
         DataAccessId daId = null;
-        DataInstanceId currentInstance = di.getCurrentDataInstanceId();
+        DataVersion currentInstance = di.getCurrentDataVersion();
         if (currentInstance!=null){
         	switch (mode) {
             	case R:
@@ -296,13 +295,12 @@ public class DataInfoProvider {
             		break;
 
             	case W:
-            		daId = new WAccessId(di.getCurrentDataInstanceId());
+            		daId = new WAccessId(di.getCurrentDataVersion());
             		break;
             	case RW:
-            		boolean preserveSourceData = di.isToBeRead();
-            		DataInstanceId readInstance = di.getPreviousDataInstanceId();
+            		DataVersion readInstance = di.getPreviousDataVersion();
             		if (readInstance !=null){
-            			daId = new RWAccessId(readInstance, currentInstance, preserveSourceData);
+            			daId = new RWAccessId(readInstance, currentInstance);
             		}else{
             			LOGGER.warn("Previous instance for data" + di.getDataId() + " is null." );
             		}
@@ -369,7 +367,7 @@ public class DataInfoProvider {
     public String getLastRenaming(int code) {
         Integer aoId = codeToId.get(code);
         DataInfo oInfo = idToData.get(aoId);
-        return oInfo.getCurrentDataInstanceId().getRenaming();
+        return oInfo.getCurrentDataVersion().getDataInstanceId().getRenaming();
     }
 
     /**
@@ -433,7 +431,7 @@ public class DataInfoProvider {
     public DataInstanceId getLastDataAccess(int code) {
         Integer aoId = codeToId.get(code);
         DataInfo oInfo = idToData.get(aoId);
-        return oInfo.getCurrentDataInstanceId();
+        return oInfo.getCurrentDataVersion().getDataInstanceId();
     }
 
     /**
@@ -447,7 +445,7 @@ public class DataInfoProvider {
         for (Integer dataId : dataIds) {
             DataInfo dataInfo = idToData.get(dataId);
             if (dataInfo != null) {
-                versionIds.add(dataInfo.getCurrentDataInstanceId());
+                versionIds.add(dataInfo.getCurrentDataVersion().getDataInstanceId());
             } else {
                 versionIds.add(null);
             }
@@ -565,7 +563,7 @@ public class DataInfoProvider {
             }
             fileInfo.blockDeletions();
 
-            lastVersion = fileInfo.getCurrentDataInstanceId();
+            lastVersion = fileInfo.getCurrentDataVersion().getDataInstanceId();
 
             ResultFile rf = new ResultFile(lastVersion, fileInfo.getOriginalLocation());
 

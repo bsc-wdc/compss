@@ -3,6 +3,8 @@ package es.bsc.compss.types.data;
 import java.util.LinkedList;
 import java.util.TreeMap;
 
+import es.bsc.compss.comm.Comm;
+
 
 // Information about a datum and its versions
 public abstract class DataInfo {
@@ -33,6 +35,7 @@ public abstract class DataInfo {
         this.versions = new TreeMap<>();
         this.currentVersionId = FIRST_VERSION_ID;
         this.currentVersion = new DataVersion(dataId, 1);
+        Comm.registerData(currentVersion.getDataInstanceId().getRenaming());
         this.versions.put(currentVersionId, currentVersion);
         this.deletionBlocks = 0;
         this.pendingDeletions = new LinkedList<>();
@@ -46,7 +49,7 @@ public abstract class DataInfo {
         return currentVersionId;
     }
 
-    public DataInstanceId getCurrentDataInstanceId() {
+    /*public DataInstanceId getCurrentDataInstanceId() {
         return currentVersion.getDataInstanceId();
     }
     
@@ -57,7 +60,16 @@ public abstract class DataInfo {
     	}else{
     		return null;
     	}
+    }*/
+    
+    public DataVersion getCurrentDataVersion(){
+    	return currentVersion;
     }
+    
+    public DataVersion getPreviousDataVersion() {
+    	return versions.get(currentVersionId-1);
+    }
+    
 
 
     public void willBeRead() {
@@ -71,6 +83,7 @@ public abstract class DataInfo {
     public boolean versionHasBeenRead(int versionId) {
         DataVersion readVersion = versions.get(versionId);
         if (readVersion.hasBeenRead()) {
+        	Comm.removeData(readVersion.getDataInstanceId().getRenaming());
             versions.remove(versionId);
             //return (this.toDelete && versions.size() == 0);
             return versions.isEmpty();
@@ -81,6 +94,7 @@ public abstract class DataInfo {
     public void willBeWritten() {
         currentVersionId++;
         DataVersion newVersion = new DataVersion(dataId, currentVersionId);
+        Comm.registerData(newVersion.getDataInstanceId().getRenaming());
         newVersion.willBeWritten();
         versions.put(currentVersionId, newVersion);
         currentVersion = newVersion;
@@ -89,7 +103,8 @@ public abstract class DataInfo {
     public boolean versionHasBeenWritten(int versionId) {
         DataVersion writtenVersion = versions.get(versionId);
         if (writtenVersion.hasBeenWritten()) {
-            versions.remove(versionId);
+        	Comm.removeData(writtenVersion.getDataInstanceId().getRenaming());
+        	versions.remove(versionId);
             //return (this.toDelete && versions.size() == 0);
             return versions.isEmpty();
         }
@@ -105,6 +120,7 @@ public abstract class DataInfo {
         if (deletionBlocks == 0) {
             for (DataVersion version : pendingDeletions) {
                 if (version.delete()) {
+                	Comm.removeData(version.getDataInstanceId().getRenaming());
                     versions.remove(version.getDataInstanceId().getVersionId());
                 }
             }
@@ -123,6 +139,7 @@ public abstract class DataInfo {
             LinkedList<Integer> removedVersions = new LinkedList<>();
             for (DataVersion version : versions.values()) {
                 if (version.delete()) {
+                	Comm.removeData(version.getDataInstanceId().getRenaming());
                     removedVersions.add(version.getDataInstanceId().getVersionId());
                 }
             }

@@ -35,7 +35,8 @@ public abstract class DataAccessId implements Serializable {
         private static final long serialVersionUID = 1L;
 
         // File version read
-        private DataInstanceId readDataInstance;
+        //private DataInstanceId readDataInstance;
+        private DataVersion readDataVersion;
         // Source data preservation flag
         private boolean preserveSourceData = true;
 
@@ -45,11 +46,11 @@ public abstract class DataAccessId implements Serializable {
         }
 
         public RAccessId(int dataId, int rVersionId) {
-            this.readDataInstance = new DataInstanceId(dataId, rVersionId);
+            this.readDataVersion = new DataVersion(dataId, rVersionId);
         }
 
-        public RAccessId(DataInstanceId rdi) {
-            this.readDataInstance = rdi;
+        public RAccessId(DataVersion rdv) {
+            this.readDataVersion = rdv;
         }
 
         @Override
@@ -59,15 +60,15 @@ public abstract class DataAccessId implements Serializable {
 
         @Override
         public int getDataId() {
-            return readDataInstance.getDataId();
+            return readDataVersion.getDataInstanceId().getDataId();
         }
 
         public int getRVersionId() {
-            return readDataInstance.getVersionId();
+            return readDataVersion.getDataInstanceId().getVersionId();
         }
 
         public DataInstanceId getReadDataInstance() {
-            return readDataInstance;
+            return readDataVersion.getDataInstanceId();
         }
 
         public boolean isPreserveSourceData() {
@@ -76,7 +77,7 @@ public abstract class DataAccessId implements Serializable {
 
         @Override
         public String toString() {
-            return "Read data: " + readDataInstance + (preserveSourceData ? ", Preserved" : ", Erased");
+            return "Read data: " + readDataVersion.getDataInstanceId() + (preserveSourceData ? ", Preserved" : ", Erased");
         }
 
     }
@@ -93,7 +94,7 @@ public abstract class DataAccessId implements Serializable {
         private static final long serialVersionUID = 1L;
 
         // File version written
-        private DataInstanceId writtenDataInstance;
+        private DataVersion writtenDataVersion;
 
 
         public WAccessId() {
@@ -101,11 +102,11 @@ public abstract class DataAccessId implements Serializable {
         }
 
         public WAccessId(int dataId, int wVersionId) {
-            this.writtenDataInstance = new DataInstanceId(dataId, wVersionId);
+            this.writtenDataVersion = new DataVersion(dataId, wVersionId);
         }
 
-        public WAccessId(DataInstanceId wdi) {
-            this.writtenDataInstance = wdi;
+        public WAccessId(DataVersion wdi) {
+            this.writtenDataVersion = wdi;
         }
 
         @Override
@@ -115,20 +116,20 @@ public abstract class DataAccessId implements Serializable {
 
         @Override
         public int getDataId() {
-            return writtenDataInstance.getDataId();
+            return writtenDataVersion.getDataInstanceId().getDataId();
         }
 
         public int getWVersionId() {
-            return writtenDataInstance.getVersionId();
+            return writtenDataVersion.getDataInstanceId().getVersionId();
         }
 
         public DataInstanceId getWrittenDataInstance() {
-            return writtenDataInstance;
+            return writtenDataVersion.getDataInstanceId();
         }
 
         @Override
         public String toString() {
-            return "Written data: " + writtenDataInstance;
+            return "Written data: " + writtenDataVersion.getDataInstanceId();
         }
 
     }
@@ -145,21 +146,20 @@ public abstract class DataAccessId implements Serializable {
         private static final long serialVersionUID = 1L;
 
         // File version read
-        private DataInstanceId readDataInstance;
+        private DataVersion readDataVersion;
         // File version written
-        private DataInstanceId writtenDataInstance;
+        private DataVersion writtenDataVersion;
         // Source data preservation flag
-        private boolean preserveSourceData = false;
+        //private boolean preserveSourceData = false;
 
 
         public RWAccessId() {
             // For serialization
         }
 
-        public RWAccessId(DataInstanceId rdi, DataInstanceId wdi, boolean preserveSourceData) {
-            this.readDataInstance = rdi;
-            this.writtenDataInstance = wdi;
-            this.preserveSourceData = preserveSourceData;
+        public RWAccessId(DataVersion rdv, DataVersion wdv) {
+            this.readDataVersion = rdv;
+            this.writtenDataVersion = wdv;
         }
 
         @Override
@@ -169,33 +169,33 @@ public abstract class DataAccessId implements Serializable {
 
         @Override
         public int getDataId() {
-            return readDataInstance.getDataId();
+            return readDataVersion.getDataInstanceId().getDataId();
         }
 
         public int getRVersionId() {
-            return readDataInstance.getVersionId();
+            return readDataVersion.getDataInstanceId().getVersionId();
         }
 
         public int getWVersionId() {
-            return writtenDataInstance.getVersionId();
+            return writtenDataVersion.getDataInstanceId().getVersionId();
         }
 
         public DataInstanceId getReadDataInstance() {
-            return readDataInstance;
+            return readDataVersion.getDataInstanceId();
         }
 
         public DataInstanceId getWrittenDataInstance() {
-            return writtenDataInstance;
+            return writtenDataVersion.getDataInstanceId();
         }
 
         public boolean isPreserveSourceData() {
-            return preserveSourceData;
+            return readDataVersion.hasPendingLectures();
         }
 
         @Override
         public String toString() {
-            return "Read data: " + readDataInstance + ", Written data: " + writtenDataInstance
-                    + (preserveSourceData ? ", Preserved" : ", Erased");
+            return "Read data: " + readDataVersion.getDataInstanceId() + ", Written data: " + writtenDataVersion.getDataInstanceId()
+                    + (isPreserveSourceData() ? ", Preserved" : ", Erased");
         }
 
     }

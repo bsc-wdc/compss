@@ -182,7 +182,7 @@
     local retries=0
     local result="FAIL"
     while [ "${result}" != "DONE" ] && [ ${retries} -lt ${MAX_RETRIES} ]; do
-      result=$(curl -X POST "http://compss.bsc.es/COMPSsRepositoryService/COMPSsRepo/update?job=${JENKINS_JOB}&distribution=${distr}&type=${release_type}")
+      result=$(curl -X POST "http://compssdev.bsc.es/COMPSsRepositoryService/COMPSsRepo/update?job=${JENKINS_JOB}&distribution=${distr}&type=${release_type}")
       retries=$((retries + 1))
     
       if [ "${result}" != "DONE" ]; then
@@ -232,7 +232,7 @@
     cat > $cfgFile << EOT
 user=$(whoami)
 target_base_dir=${log_folder}/tests/
-comm=integratedtoolkit.nio.master.NIOAdaptor
+comm=es.bsc.compss.nio.master.NIOAdaptor
 JAVA_HOME=${JAVA_HOME}
 EOT
     cd ${trunk_base}/tests/scripts/
@@ -274,7 +274,7 @@ EOT
   # Define script variables
   script_dir=$(pwd)/$(dirname $0)
 
-  COMPSs_version=2.1.rc1706
+  COMPSs_version=2.1.rc1707
 
   JENKINS_JOB_BASENAME="COMPSs_Framework_Trunk_Build_"
   JENKINS_USER="jenkins"

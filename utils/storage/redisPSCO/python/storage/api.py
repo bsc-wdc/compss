@@ -87,6 +87,8 @@ def getByID(identifier):
         raise StorageException(error_message)
     return deserialize_from_string(serialized_contents)
 
+get_by_ID = getByID
+
 def makePersistent(obj):
     '''Persists an object to the Redis backend. Does nothing if the object
     is already persisted.

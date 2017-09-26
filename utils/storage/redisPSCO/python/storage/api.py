@@ -104,7 +104,7 @@ def getByID(identifier):
 
 get_by_ID = getByID
 
-def makePersistent(obj):
+def makePersistent(obj, identifier = None):
     '''Persists an object to the Redis backend. Does nothing if the object
     is already persisted.
     '''
@@ -112,7 +112,8 @@ def makePersistent(obj):
         # Non null identifier -> object is already persisted
         return
     # The object has no identifier, we need to assign it one
-    obj.pycompss_psco_identifier = str(uuid.uuid4())
+    obj.pycompss_psco_identifier = str(uuid.uuid4()) if identifier is None \
+    else identifier
     # Serialize the object and store the pair (id, serialized_object)
     serialized_object = serialize_to_string(obj)
     redis_connection.set(obj.pycompss_psco_identifier, serialized_object)

@@ -12,10 +12,9 @@ class storage_object(object):
   def __init__(self):
     '''Constructor method
     '''
-    # Id will be None until
+    # Id will be None until persisted
     self.pycompss_psco_identifier = None
 
-  #TODO: Why this method has no ID as parameter?
   def makePersistent(self):
     '''Stores the object in the Redis database
     '''
@@ -29,9 +28,14 @@ class storage_object(object):
   def delete(self):
     '''Deletes the object from the Redis database
     '''
-    pass
+    api.deletePersistent(self)
 
   def getID(self):
     '''Gets the ID of the object
     '''
     return self.pycompss_psco_identifier
+
+
+'''Add support for camelCase
+'''
+StorageObject = storage_object

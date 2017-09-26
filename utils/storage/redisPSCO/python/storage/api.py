@@ -46,7 +46,7 @@ def init(config_file_path=None, **kwargs):
     hosts = [x.strip() for x in config_file_handler.readlines()]
     config_file_handler.close()
     # We do not know if the current backend is a standalone redis server
-    # or a redis server. However, the Redis Cluster protocol is different from
+    # or a redis cluster. However, the Redis Cluster protocol is different from
     # the standalone Redis one, so if we try to establish a connection to a
     # cluster when there is a standalone instance, a exception will be thrown
     try:

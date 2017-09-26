@@ -1,5 +1,4 @@
-'''@author: fconejer
-
+'''
 PyCOMPSs Delete File Testbench Tasks
 ====================================
 '''

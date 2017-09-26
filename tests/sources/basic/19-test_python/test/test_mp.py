@@ -1,8 +1,4 @@
 """
-@author: etejedor
-@author: fconejer
-@author: srodrig1
-
 PyCOMPSs Testbench
 ==================
     This file represents PyCOMPSs Testbench.

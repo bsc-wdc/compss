@@ -251,8 +251,8 @@ EOT
     fi
 
     # Unninstall COMPSs if needed
-    local unninstaller_script="${script_dir}/installation/unninstall_compss_${distr}"
-    sudo "${unninstaller_script}"
+    local uninstaller_script="${script_dir}/installation/uninstall_compss_${distr}"
+    sudo "${uninstaller_script}"
     if [ $? -ne 0 ]; then
       echo "------------------------- WARNING -----------------------------"
       echo "Unninstall script failed on ${distr} either because"
@@ -295,7 +295,7 @@ EOT
     local retries=0
     local result="FAIL"
     while [ "${result}" != "DONE" ] && [ ${retries} -lt ${MAX_RETRIES} ]; do
-      result=$(curl -X POST "http://compss.bsc.es/COMPSsRepositoryService/COMPSsRepo/update?job=${JENKINS_JOB}&distribution=${distr}&type=${release_type}")
+      result=$(curl -X POST "http://compssdev.bsc.es/COMPSsRepositoryService/COMPSsRepo/update?job=${JENKINS_JOB}&distribution=${distr}&type=${release_type}")
       retries=$((retries + 1))
     
       if [ "${result}" != "DONE" ]; then
@@ -379,4 +379,3 @@ EOT
   fi
 
   exit $exitValue
-

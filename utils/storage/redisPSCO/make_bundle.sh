@@ -1,4 +1,5 @@
 #!/bin/bash
+# Author: Sergio Rodriguez Guasch < sergio.rodriguez at bsc dot es >
 # This script builds a bundle with all the needed stuff (aside from Redis backend)
 # to use the Redis storage API with COMPSs
 

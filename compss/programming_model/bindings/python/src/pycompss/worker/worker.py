@@ -14,10 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: etejedor
-@author: fconejer
-@author: srodrig1
-
 PyCOMPSs Worker
 ===============
     This file contains the worker code.

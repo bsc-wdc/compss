@@ -14,8 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: fconejer
-
 PyCOMPSs Core Element
 =====================
     This file contains the Core Element class, needed for the task registration.

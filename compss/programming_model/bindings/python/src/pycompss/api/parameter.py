@@ -14,9 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: etejedor
-@author: fconejer
-
 PyCOMPSs API - Parameter
 ========================
     This file contains the clases needed for the parameter definition.

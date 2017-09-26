@@ -14,8 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: fconejer
-
 PyCOMPSs Utils - Location
 ===================
     This file contains the methods to detect the origin of the call stack.

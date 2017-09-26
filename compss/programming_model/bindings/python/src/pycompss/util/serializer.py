@@ -14,8 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: srodrig1
-
 PyCOMPSs Utils: Data serializer/deserializer
 This file implements the main serialization/deserialization functions.
 All serialization/deserialization calls should be made using one of the following functions:

@@ -14,8 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: fconejer
-
 PyCOMPSs Utils - JVM Configuration Parser
 =========================================
     This file contains all methods required to parse the jvm options file.

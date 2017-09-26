@@ -14,8 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: fconejer
-
 PyCOMPSs Dummy API - Binary
 ===============================
     This file contains the dummy class binary used as decorator.

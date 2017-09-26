@@ -14,8 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: srodrig1
-
 PyCOMPSs Utils: Object properties.
 
 Offers some functions that check properties about objects.

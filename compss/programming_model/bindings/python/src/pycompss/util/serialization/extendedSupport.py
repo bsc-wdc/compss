@@ -1,5 +1,5 @@
 ### 
-# Recipe source:  http://en.sharejs.com/python/12922
+# Recipe source:  http://code.activestate.com/recipes/528949-copying-generators/
 # Improved with my sugar.
 ###
 

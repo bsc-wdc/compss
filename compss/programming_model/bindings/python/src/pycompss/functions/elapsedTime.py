@@ -14,8 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: fconejer
-
 PyCOMPSs Functions: Elapsed time decorator
 ==========================================
     This file defines the time it decorator to be used over the task decorator.

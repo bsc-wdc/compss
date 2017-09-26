@@ -14,10 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: fconejer
-@author: cramonco
-@author: srodrig1
-
 PyCOMPSs Persistent Worker
 ===========================
     This file contains the worker code.

@@ -13,10 +13,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-'''@author: etejedor
-@author: fconejer
-@author: srodrig1
-
+'''
 PyCOMPSs Binding - Binding
 ==========================
     This file contains the Python binding auxiliary classes and methods.

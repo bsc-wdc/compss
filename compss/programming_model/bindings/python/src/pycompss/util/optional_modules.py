@@ -14,7 +14,6 @@
 #  limitations under the License.
 #
 """
-    @author: srodrig1
     PyCOMPSs utils: Optional Modules
     This file contains a list, alongside with some functions, of the
     optional modules that are required in order to be able to use some

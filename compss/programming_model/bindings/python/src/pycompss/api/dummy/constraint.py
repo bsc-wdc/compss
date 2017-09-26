@@ -14,8 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: fconejer
-
 PyCOMPSs Dummy API - Constraint
 ===============================
     This file contains the dummy class constraint used as decorator.

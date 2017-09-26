@@ -14,8 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: scorella
-
 PyCOMPSs Functions: Data generators
 ===================================
     This file defines the common data producing functions.

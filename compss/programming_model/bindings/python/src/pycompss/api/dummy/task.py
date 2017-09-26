@@ -14,8 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: fconejer
-
 PyCOMPSs Dummy API - task
 =========================
     This file contains the dummy class task used as decorator.

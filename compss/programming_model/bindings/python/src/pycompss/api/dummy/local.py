@@ -13,9 +13,12 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-'''@author: srodrig1
-    Local decorator dummy
 '''
+PyCOMPSs Dummy API - local
+==========================
+    Local decorator dummy.
+'''
+
 def local(input_function):
     def wrapped_function(*args, **kwargs):
         return input_function(*args, **kwargs)

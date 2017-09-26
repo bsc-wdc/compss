@@ -1,9 +1,10 @@
 '''Redis Storage Object implementation for the PyCOMPSs Python Binding
 @author: srodrig1
 '''
+import uuid
+#import pycompss.storage.api
+import api
 
-#TODO: Consider to change the API in such a way that inherits from here
-#TODO: The presentation does not define the full signature of the Storage Object. What to do?
 class storage_object(object):
   '''Storage Object
   '''
@@ -11,21 +12,26 @@ class storage_object(object):
   def __init__(self):
     '''Constructor method
     '''
-    pass
+    # Id will be None until
+    self.pycompss_psco_identifier = None
 
   #TODO: Why this method has no ID as parameter?
   def makePersistent(self):
     '''Stores the object in the Redis database
     '''
-    pass
+    api.makePersistent(self)
+
+  def make_persistent(self):
+    '''Lowercase wrapper for makePersistent
+    '''
+    self.makePersistent()
 
   def delete(self):
     '''Deletes the object from the Redis database
     '''
     pass
-  
+
   def getID(self):
     '''Gets the ID of the object
     '''
-    pass
-
+    return self.pycompss_psco_identifier

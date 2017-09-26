@@ -99,6 +99,8 @@ def makePersistent(obj):
     serialized_object = serialize_to_string(obj)
     redis_connection.set(obj.pycompss_psco_identifier, serialized_object)
 
+make_persistent = makePersistent
+
 def deletePersistent(obj):
     '''Deletes a persisted object. If the object was not persisted, then
     nothing will be done.
@@ -110,3 +112,5 @@ def deletePersistent(obj):
     redis_connection.delete(obj.pycompss_psco_identifier)
     # Set key to None
     obj.pycompss_psco_identifier = None
+
+delete_persistent = deletePersistent

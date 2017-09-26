@@ -33,6 +33,7 @@ def init(config_file_path=None, **kwargs):
     to the instance/cluster
     '''
     global redis_connection
+    global hosts
     # If config_file_path is None we will assume that we only have localhost
     # as storage node
     if config_file_path is None:

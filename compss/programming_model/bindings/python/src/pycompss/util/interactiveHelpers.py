@@ -14,8 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: fconejer
-
 PyCOMPSs Binding - Interactive Mode Helpers
 ===========================================
 Provides auxiliar methods for the interactive mode.

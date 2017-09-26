@@ -14,8 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: fconejer
-
 PyCOMPSs Dummy API - Decaf
 ==========================
     This file contains the dummy class decaf used as decorator.

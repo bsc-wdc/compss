@@ -14,9 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: etejedor
-@author: fconejer
-
 PyCOMPSs Utils - logs
 =====================
     This file contains all logging methods.

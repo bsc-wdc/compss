@@ -14,8 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: scorella
-
 PyCOMPSs Functions: Map
 =======================
     This file defines the common map functions.

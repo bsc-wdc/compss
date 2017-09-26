@@ -14,8 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: fconejer
-
 PyCOMPSs API - MPI
 ==================
     This file contains the class mpi, needed for the mpi

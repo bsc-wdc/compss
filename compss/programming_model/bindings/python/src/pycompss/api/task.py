@@ -14,10 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: etejedor
-@author: fconejer
-@author: srodrig1
-
 PyCOMPSs API - Task
 ===================
     This file contains the class task, needed for the task definition and the

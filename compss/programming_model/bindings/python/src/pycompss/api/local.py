@@ -13,10 +13,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-'''@author: srodrig1
-
+'''
 PyCOMPSs API - LocalTask
-===================
+========================
     This file contains the @local decorator, which is intended to be a
     decorator for non-task functions that may receive future objects
     as parameters (i.e: their inputs are pycompss task outputs).

@@ -14,8 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: scorella
-
 PyCOMPSs Functions: Reduce
 ===================================
     This file defines the common reduce functions.

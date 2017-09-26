@@ -13,8 +13,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-'''@author: fconejer
-
+'''
 PyCOMPSs Dummy API
 ==================
     This file defines the public PyCOMPSs API functions without functionality.

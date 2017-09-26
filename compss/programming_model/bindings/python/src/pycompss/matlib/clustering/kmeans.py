@@ -14,8 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: scorella
-
 PyCOMPSs Mathematical Library: Clustering: KMeans
 =================================================
     This file contains the KMeans algorithm.

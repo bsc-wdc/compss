@@ -14,8 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: scorella
-
 PyCOMPSs Mathematical Library: Classification: Linear Regression
 ================================================================
     This file contains the linear regression algorithm.

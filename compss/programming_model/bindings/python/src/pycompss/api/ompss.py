@@ -14,8 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: fconejer
-
 PyCOMPSs API - OMPSS
 ==================
     This file contains the class constraint, needed for the OmpSs task

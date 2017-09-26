@@ -14,11 +14,8 @@
 #  limitations under the License.
 #
 """
-@author: fconejer
-@author: jejarque
-
 PyCOMPSs API - DECAF
-==================
+====================
     This file contains the class decaf, needed for the @decaf task
     definition through the decorator.
 """

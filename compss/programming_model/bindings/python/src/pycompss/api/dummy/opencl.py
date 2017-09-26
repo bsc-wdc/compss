@@ -14,8 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: fconejer
-
 PyCOMPSs Dummy API - OpenCL
 ===============================
     This file contains the dummy class OpenCL used as decorator.

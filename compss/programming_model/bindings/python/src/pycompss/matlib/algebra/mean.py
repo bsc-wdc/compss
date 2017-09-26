@@ -14,8 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: scorella
-
 PyCOMPSs Mathematical Library: Algebra: Mean
 ============================================
     This file contains the arithmetic mean algorithm.

@@ -14,8 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: fconejer
-
 PyCOMPSs Dummy API - MPI
 ========================
     This file contains the dummy class MPI used as decorator.

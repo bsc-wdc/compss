@@ -14,8 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: fconejer
-
 Utils - Object sizing algorithm
 ===============================
   This file contains the object sizing algorithm method.

@@ -14,8 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: fconejer
-
 PyCOMPSs Dummy API - OmpSs
 ==========================
     This file contains the dummy class OmpSs used as decorator.

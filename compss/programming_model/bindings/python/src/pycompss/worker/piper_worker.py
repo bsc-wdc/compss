@@ -93,6 +93,13 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
     level = logger.getEffectiveLevel()
     formatter = logging.Formatter(handler.formatter._fmt)
 
+    if storage_conf != 'null':
+        try:
+            from storage.api import initWorkerPostFork as initStorageAtWorkerPostFork
+            initStorageAtWorkerPostFork()
+        except:
+            logger.info("[PYTHON WORKER] Could not find initWorkerPostFork storage call. Ignoring it.")
+
     # TRACING
     # if tracing:
     #     pyextrae.eventandcounters(TASK_EVENTS, 0)

@@ -1,6 +1,4 @@
-'''@author: fconejer
-@author: srodrig1
-
+'''
 PyCOMPSs Delete File test
 =========================
     This file represents PyCOMPSs Testbench.

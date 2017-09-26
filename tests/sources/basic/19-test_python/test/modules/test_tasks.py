@@ -1,7 +1,4 @@
 """
-@author: etejedor
-@author: fconejer
-
 PyCOMPSs Testbench Tasks
 ========================
 """

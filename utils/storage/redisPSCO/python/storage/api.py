@@ -74,13 +74,27 @@ def init(config_file_path=None, **kwargs):
         # We are in standalone mode
         redis_connection = \
         redis.StrictRedis(host=hosts[0], port=REDIS_PORT)
-    # SrictRedis is not capable to know if we had success when connecting by
+    # StrictRedis is not capable to know if we had success when connecting by
     # simply calling the constructor. We need to perform an actual query to
     # the backend
     # If we had no success this first line should crash
     redis_connection.set('PYCOMPSS_TEST', 'OK')
     assert redis_connection.get('PYCOMPSS_TEST') == 'OK'
     redis_connection.delete('PYCOMPSS_TEST')
+
+def initWorker(config_file_path=None):
+    '''Per-worker init function
+    '''
+    init(config_file_path)
+
+init_worker = initWorker
+
+def finishWorker(*args, **kwargs):
+    '''Same as finish. No additional actions are needed
+    '''
+    pass
+
+finish_worker = finishWorker
 
 def finish(**kwargs):
     '''Finish the storage: Nothing to do, as Python redis clients have no
@@ -133,3 +147,27 @@ def deletePersistent(obj):
     obj.pycompss_psco_identifier = None
 
 delete_persistent = deletePersistent
+
+class TaskContext(object):
+    '''Here for compatibility purposes
+    '''
+    def __init__(self, logger, values, config_file_path=None):
+        self.logger = logger
+        self.values = values
+        self.config_file_path = config_file_path
+
+    def __enter__(self):
+        # Do something prolog
+
+        # Ready to start the task
+        self.logger.info("Prolog finished")
+        pass
+
+    def __exit__(self, type, value, traceback):
+        # Do something epilog
+
+        # Finished
+        self.logger.info("Epilog finished")
+        pass
+
+task_context = TaskContext

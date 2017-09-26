@@ -17,7 +17,6 @@
 This class is responsible to establish and to mantain a Redis connection to
 the backend, also it is responible of retrieving objects from it.
 As a reminder, objects are stored as a serialized byte array.
-@author: srodrig1 < sergio dot rodriguez at bsc dot es >
 '''
 import uuid
 import redis

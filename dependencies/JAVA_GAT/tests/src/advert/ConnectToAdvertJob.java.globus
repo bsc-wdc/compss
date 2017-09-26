@@ -10,9 +10,7 @@ import org.gridlab.gat.Preferences;
 import org.gridlab.gat.advert.AdvertService;
 import org.gridlab.gat.resources.Job;
 
-/**
- * @author rob
- */
+
 public class ConnectToAdvertJob {
     public static void main(String[] args) throws Exception {
         GATContext c = new GATContext();

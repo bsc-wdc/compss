@@ -15,10 +15,6 @@ import es.bsc.compss.types.resources.configuration.ServiceConfiguration;
 import es.bsc.compss.types.uri.MultiURI;
 import java.util.LinkedList;
 
-/**
- *
- * @author flordan
- */
 public class FakeServiceAdaptor implements CommAdaptor {
 
     @Override

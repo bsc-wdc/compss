@@ -16,8 +16,6 @@
 
 /*
   Wrappers that make possible to call thread (set|get)affinity from Python2
-
-  @author: srodrig1 (sergio.rodriguez at bsc.es)
 */
 #pragma once
 #include <Python.h>

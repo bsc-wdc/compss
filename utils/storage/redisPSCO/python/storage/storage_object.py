@@ -14,7 +14,6 @@
 #  limitations under the License.
 #
 '''Redis Storage Object implementation for the PyCOMPSs Python Binding
-@author: srodrig1
 '''
 import uuid
 import storage.api

@@ -15,10 +15,6 @@ import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import es.bsc.compss.types.uri.MultiURI;
 import java.util.LinkedList;
 
-/**
- *
- * @author flordan
- */
 public class FakeMethodAdaptor implements CommAdaptor {
 
     @Override

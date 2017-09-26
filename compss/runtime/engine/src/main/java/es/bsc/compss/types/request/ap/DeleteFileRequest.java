@@ -9,9 +9,11 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.data.FileInfo;
 import es.bsc.compss.types.data.location.DataLocation;
 
+
 public class DeleteFileRequest extends APRequest {
 
     private final DataLocation loc;
+
 
     public DeleteFileRequest(DataLocation loc) {
         this.loc = loc;
@@ -26,12 +28,15 @@ public class DeleteFileRequest extends APRequest {
         FileInfo fileInfo = dip.deleteData(loc);
 
         if (fileInfo == null) {
-            // File is not used by any task
-            File f = new File(loc.getPath());
+            // File is not used by any task, we can erase it
+
+            // Retrieve the first valid URI location (private locations have only 1, shared locations may have more)
+            String filePath = loc.getURIs().get(0).getPath();
+            File f = new File(filePath);
             if (f.delete()) {
-                LOGGER.info("File " + loc.getPath() + "deleted");
+                LOGGER.info("File " + filePath + "deleted");
             } else {
-                LOGGER.error("Error on deleting file " + loc.getPath());
+                LOGGER.error("Error on deleting file " + filePath);
             }
 
         } else { // file is involved in some task execution

@@ -17,8 +17,7 @@
 @author: srodrig1
 '''
 import uuid
-#import pycompss.storage.api
-import api
+import storage.api
 
 class storage_object(object):
     '''Storage Object
@@ -30,20 +29,25 @@ class storage_object(object):
         # Id will be None until persisted
         self.pycompss_psco_identifier = None
 
-    def makePersistent(self):
+    def makePersistent(self, identifier = None):
         '''Stores the object in the Redis database
         '''
-        api.makePersistent(self)
+        storage.api.makePersistent(self, identifier)
 
     def make_persistent(self):
         '''Support for underscore notation
         '''
         self.makePersistent()
 
-    def delete(self):
+    def deletePersistent(self):
         '''Deletes the object from the Redis database
         '''
-        api.deletePersistent(self)
+        storage.api.deletePersistent(self)
+
+    def delete_persistent(self):
+        '''Support for underscore notation
+        '''
+        self.deletePersistent()
 
     def getID(self):
         '''Gets the ID of the object

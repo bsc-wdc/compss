@@ -127,10 +127,12 @@ show_opts() {
     --jvm_worker_in_master_opts="<string>"  Extra options for the JVM of the COMPSs Worker in the Master Node. 
                                             Each option separed by "," and without blank spaces (Notice the quotes)
                                             Default: ${DEFAULT_JVM_WORKER_IN_MASTER}
-    --container_image=<path>                Runs the application by means of a singularity container image
+    --container_image=<path>                Runs the application by means of a container engine image
                                             Default: Empty
-    --container_compss_path=<path>          Path where compss is installed in the Singularity container image
+    --container_compss_path=<path>          Path where compss is installed in the container image
                                             Default: /opt/COMPSs
+    --container_opts="<string>"             Options to pass to the container engine
+					    Default: empty
     --elasticity=<max_extra_nodes>	    Activate elasticity specifiying the maximum extra nodes (ONLY AVAILABLE FORM SLURM CLUSTERS WITH NIO ADAPTOR)
 				            Default: 0
 
@@ -225,7 +227,7 @@ worker_cmd() {
   if [ -z "${container_image}" ]; then
      WCMD="${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh"
   else 
-     WCMD="singularity exec $container_image ${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh"
+     WCMD="singularity exec $container_opts $container_image ${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh"
   fi
   WCMD="$WCMD ${library_path} \
             ${appdir} \
@@ -269,7 +271,7 @@ master_cmd() {
   if [ -z "${container_image}" ]; then
     MCMD="${COMPSS_HOME}/Runtime/scripts/user/runcompss"
   else
-    MCMD="singularity exec $container_image ${COMPSS_HOME}/Runtime/scripts/user/runcompss"
+    MCMD="singularity exec $container_opts $container_image ${COMPSS_HOME}/Runtime/scripts/user/runcompss"
   fi
   MCMD="$MCMD --project=${PROJECT_FILE} \
             --resources=${RESOURCES_FILE} \
@@ -491,6 +493,9 @@ get_args() {
           ;;
         container_compss_path=*)
           container_compss_path=$(echo $OPTARG | sed -e 's/container_compss_path=//g')
+          ;;
+	container_opts=*)
+          container_opts=$(echo $OPTARG | sed -e 's/jvm_master_opts=//g')
           ;;
         elasticity=*)
           elasticity=$(echo $OPTARG | sed -e 's/elasticity=//g')
@@ -943,9 +948,13 @@ launch() {
 
   # Launch master
   master_cmd "${master_node}${network}"
-  MCMD="${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${MCMD} ${args_pass}"
+  #Old master launch with launch_command (removed maybe not necessary)
+  #MCMD="${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${MCMD} ${args_pass}"
+  MCMD="${MCMD} ${args_pass}"
   echo "CMD Master: $MCMD"
-  $MCMD&
+  #Old launch master do not need to run in background
+  #$MCMD&
+  $MCMD
 }
 
 ###############################################

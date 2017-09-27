@@ -564,13 +564,12 @@ check_args() {
     display_error "${ERROR_MASTER_NODE}"
   fi
   
-  if [ -z "${worker_nodes}" ]; then
+  if [ -z "${worker_nodes}" ] && [ "${DEFAULT_WORKER_IN_MASTER_CPUS}" -eq "0" ]; then
     if [ -z "${worker_in_master_cpus}" ]; then
       display_error "${ERROR_WORKER_NODES}"
     else
       worker_nodes=""
     fi
-
   fi
 
   if [ -z "${network}" ]; then
@@ -642,7 +641,7 @@ check_args() {
     fi 
   fi
 
-  if [ ${worker_in_master_cpus} -gt 0 ] && [ "${worker_in_master_memory}" == "${DEFAULT_WORKER_IN_MASTER_MEMORY}" ]; then
+  if [ ${worker_in_master_cpus} -gt 0 ] && [ ${worker_in_master_memory} -le 0 ]; then
     display_error "${ERROR_WORKER_IN_MASTER_MEMORY_NOT_SPECIFIED}"
   fi
 

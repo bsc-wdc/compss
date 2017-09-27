@@ -14,8 +14,8 @@
   ##########################################################
   # Script variables
   user=cc
-  instanceCreationTime=8        # Iterations over 30s
-  sshUpTime=6			# Iterations over 30s
+  instanceCreationTime=10        # Iterations over 30s
+  sshUpTime=8			# Iterations over 30s
   randomID=$RANDOM
   tmpFile=/tmp/compss-workers-${randomID}.tmp
   HALF_MIN=30s
@@ -47,7 +47,7 @@
   # Launch workers 
   echo "* Launching workers..."
   # Insert COMPSs Master key to OpenStack. Create workers with COMPSsMaster key authorized
-  nova keypair-add --pub_key /home/cc/.ssh/id_dsa.pub COMPSsMaster${randomID}
+  nova keypair-add --pub_key /home/cc/.ssh/id_rsa.pub COMPSsMaster${randomID}
 
   # Create workers
   for (( i=1; i<=$numWorkers; i++ )); do
@@ -59,7 +59,7 @@
 
   ##########################################################
   # Waiting Workers creation
-  echo "* Waiting for COMPSs Workers creation (eta 7 min)"
+  echo "* Waiting for COMPSs Workers creation (eta 5 min)"
   for (( i=1; i<=$instanceCreationTime; i++ )); do
     printf "."
     sleep ${HALF_MIN}
@@ -99,7 +99,7 @@
   echo "$masterIP     COMPSsMaster" >> $tmpFile
 
   # Configuring COMPSs Workers
-  echo "* Configuring COMPSs Workers... (eta 3 min)"
+  echo "* Configuring COMPSs Workers... (eta 4 min)"
   for (( i=1; i<=$sshUpTime; i++ )); do
     printf "."
     sleep ${HALF_MIN}
@@ -122,6 +122,10 @@
   project=/opt/COMPSs/Runtime/configuration/xml/projects/default_project.xml
   resources=/opt/COMPSs/Runtime/configuration/xml/resources/default_resources.xml
 
+  echo ""
+  echo "Provide the application path:"
+  read -r appDir
+
   cat > $project << EOT
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Project>
@@ -134,6 +138,9 @@ EOT
         <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
         <WorkingDir>/tmp/COMPSsWorker$i/</WorkingDir>
         <User>$user</User>
+	<Application>
+          <AppDir>$appDir/</AppDir>
+        </Application>
     </ComputeNode>
 
 EOT

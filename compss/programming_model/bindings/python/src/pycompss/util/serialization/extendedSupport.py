@@ -1,7 +1,8 @@
-### 
-# Recipe source:  http://code.activestate.com/recipes/528949-copying-generators/
-# Improved with my sugar.
-###
+'''
+Recipe source:  http://code.activestate.com/recipes/528949-copying-generators/
+                https://github.com/ActiveState/code/tree/master/recipes/Python/528951_Pickling_Generators
+Improved with my sugar.
+'''
 
 ###
 #

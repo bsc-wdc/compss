@@ -1,5 +1,5 @@
 #
-#  Copyright 2.02-2017 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -13,14 +13,15 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-'''
+
+"""
 PyCOMPSs API - LocalTask
 ========================
     This file contains the @local decorator, which is intended to be a
     decorator for non-task functions that may receive future objects
     as parameters (i.e: their inputs are pycompss task outputs).
     It also handles INOUTs
-'''
+"""
 from pycompss.api.api import compss_wait_on
 from pycompss.runtime.binding import Future
 from pycompss.util.replace import replace

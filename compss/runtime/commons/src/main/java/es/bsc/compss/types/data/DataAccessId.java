@@ -189,7 +189,7 @@ public abstract class DataAccessId implements Serializable {
         }
 
         public boolean isPreserveSourceData() {
-            return readDataVersion.hasPendingLectures();
+        	return readDataVersion.isOnlyReader();
         }
 
         @Override

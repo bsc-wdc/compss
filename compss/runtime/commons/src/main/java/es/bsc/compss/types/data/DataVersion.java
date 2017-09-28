@@ -31,6 +31,10 @@ public class DataVersion {
     public boolean hasPendingLectures() {
         return readers > 0;
     }
+    
+    public boolean isOnlyReader() {
+    	return readers > 1;
+    }
 
     public boolean hasBeenRead() {
         readers--;

@@ -87,7 +87,7 @@ public final class StorageItf {
 
     /**
      * Initializes the persistent storage Configuration file must contain all the worker hostnames, one by line
-     * 
+     *
      * @param storageConf
      * @throws StorageException
      */

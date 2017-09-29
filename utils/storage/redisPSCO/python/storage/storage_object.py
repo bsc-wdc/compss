@@ -34,10 +34,10 @@ class storage_object(object):
         '''
         storage.api.makePersistent(self, identifier)
 
-    def make_persistent(self):
+    def make_persistent(self, identifier = None):
         '''Support for underscore notation
         '''
-        self.makePersistent()
+        self.makePersistent(identifier)
 
     def deletePersistent(self):
         '''Deletes the object from the Redis database

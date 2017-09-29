@@ -34,7 +34,7 @@ import types
 import traceback
 import cStringIO as StringIO
 import cPickle as pickle
-from serialization.extendedSupport import copy_generator, pickle_generator, GeneratorSnapshot
+from serialization.extendedSupport import pickle_generator, convert_to_generator
 from object_properties import object_belongs_to_module
 
 try:
@@ -151,8 +151,8 @@ def deserialize_from_handler(handler):
         try:
             ret = serializer.load(handler)
             # special case: deserialized obj wraps a generator
-            if isinstance(ret, GeneratorSnapshot):
-                ret = copy_generator(ret)[0]
+            if isinstance(ret, tuple) and ret[0] == 'Th3N3xtEl3m3ntIsAG3n3r4t0r':
+                ret = convert_to_generator(ret[1])
             return ret
         except:
             pass

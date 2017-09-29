@@ -1,0 +1,26 @@
+#!/bin/bash -e
+
+  #Obtain parameter
+  source_base_dir=$1
+  target_base_dir=$2
+
+  # Build Redis Bundle (we will copy it later)
+  bundle_path=${source_base_dir}/../../../../utils/storage/redisPSCO/
+  bundle_name=COMPSs-Redis-bundle
+
+  # Build the Redis bundle as a deploy step
+  cd ${bundle_path}
+  ./make_bundle.sh
+  cd ${source_base_dir}
+
+  # Copy files
+  cp -f ${source_base_dir}/execution ${target_base_dir}/execution
+  cp -f ${source_base_dir}/result ${target_base_dir}/result
+  cp -f ${source_base_dir}/REDIS-VERSION ${target_base_dir}/REDIS-VERSION
+
+  cp -rf ${source_base_dir}/src ${target_base_dir}/src
+
+  cp -f ${source_base_dir}/project.xml ${target_base_dir}/project.xml
+  cp -f ${source_base_dir}/resources.xml ${target_base_dir}/resources.xml
+
+  cp -rf ${bundle_path}/${bundle_name} ${target_base_dir}/COMPSs-Redis-bundle

@@ -7,9 +7,10 @@ from pycompss.api.parameter import *
 def compute_sum(psco):
     return sum(psco.get_content())
 
-@task(returns=int)
+@task(psco = INOUT)
 def modifier_task(psco):
-    psco.set_contents('Goodbye World')
+    psco.set_content('Goodbye world')
+    from copy import deepcopy
     identifier = psco.getID()
     psco.delete_persistent()
     psco.make_persistent(identifier)
@@ -37,3 +38,7 @@ class TestRedis(unittest.TestCase):
 
     def testPSCOisCorrectlyModifiedInsideTask(self):
         from pycompss.api.api import compss_wait_on as sync
+        myPSCO = PSCO('Hello world')
+        modifier_task(myPSCO)
+        myPSCO = sync(myPSCO)
+        self.assertEqual('Goodbye world', myPSCO.get_content())

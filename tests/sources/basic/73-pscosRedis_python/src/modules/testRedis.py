@@ -15,6 +15,12 @@ def modifier_task(psco):
     psco.delete_persistent()
     psco.make_persistent(identifier)
 
+@task(returns=PSCO)
+def creator_task(obj):
+    myPSCO = PSCO(obj)
+    myPSCO.make_persistent()
+    return myPSCO
+
 class TestRedis(unittest.TestCase):
     def testMakePersistent(self):
         myPSCO = PSCO('Hello world')
@@ -42,3 +48,10 @@ class TestRedis(unittest.TestCase):
         modifier_task(myPSCO)
         myPSCO = sync(myPSCO)
         self.assertEqual('Goodbye world', myPSCO.get_content())
+
+    def testPSCOisCorrectlyCreatedInsideTask(self):
+        from pycompss.api.api import compss_wait_on as sync
+        obj = list(range(100))
+        myPSCO = creator_task(obj)
+        myPSCO = sync(myPSCO)
+        self.assertEqual(list(range(100)), myPSCO.get_content())

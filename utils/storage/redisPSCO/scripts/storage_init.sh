@@ -174,6 +174,11 @@
     fi
   }
 
+  REDIS_PORT=6379
+  REDIS_NODE_TIMEOUT=5000
+  REDIS_REPLICAS=0
+  REDIS_REMOTE_COMMAND=ssh
+
   get_args "$@"
   check_args
   log_args
@@ -186,10 +191,6 @@
   # The idea is to replace these values by the desired ones in the --storage_conf file
   # The values below form a valid sample configuration anyway
   REDIS_HOME=/tmp/redis_cluster/${jobId}
-  REDIS_PORT=6379
-  REDIS_NODE_TIMEOUT=5000
-  REDIS_REPLICAS=0
-  REDIS_REMOTE_COMMAND=ssh
 
   STORAGE_HOME=$(dirname $0)/../
 

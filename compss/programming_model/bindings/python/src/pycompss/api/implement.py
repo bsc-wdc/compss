@@ -94,9 +94,10 @@ class implement(object):
             ce_signature = anotherClass + '.' + anotherMethod
             coreElement.set_ce_signature(ce_signature)
 
-            # This is not needed since the arguments are already set by the task decorator.
-            #implArgs = [anotherClass, anotherMethod]
-            #coreElement.set_implTypeArgs(implArgs)
+            # This is not needed since the arguments are already set by the
+            # task decorator.
+            # implArgs = [anotherClass, anotherMethod]
+            # coreElement.set_implTypeArgs(implArgs)
 
             coreElement.set_implType("METHOD")
             func.__to_register__ = coreElement
@@ -107,7 +108,6 @@ class implement(object):
         else:
             # worker code
             pass
-
 
         @wraps(func)
         def implement_f(*args, **kwargs):

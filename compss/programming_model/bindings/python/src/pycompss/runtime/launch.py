@@ -17,8 +17,8 @@
 '''
 PyCOMPSs Binding - Launch
 =========================
-  This file contains the __main__ method.
-  It is called from pycompssext script with the user and environment parameters.
+This file contains the __main__ method.
+It is called from pycompssext script with the user and environment parameters.
 '''
 import os
 import sys
@@ -37,6 +37,7 @@ from random import randint
 
 app_path = None
 
+
 def get_logging_cfg_file(log_level):
     logging_cfg_file = 'logging.json'
     cfg_files = {
@@ -48,6 +49,7 @@ def get_logging_cfg_file(log_level):
         logging_cfg_file = cfg_files[log_level]
     return logging_cfg_file
 
+
 def parse_arguments():
     import argparse
     parser = argparse.ArgumentParser(description='PyCOMPSs application launcher')
@@ -57,8 +59,10 @@ def parse_arguments():
     parser.add_argument('app_path', help='Application path')
     return parser.parse_args()
 
+
 def main():
-    ''' General call:
+    '''
+    General call:
     python $PYCOMPSS_HOME/pycompss/runtime/launch.py $log_level $PyObject_serialize $storageConf $fullAppPath $application_args
     '''
     global app_path
@@ -67,7 +71,8 @@ def main():
     compss_start()
 
     # See parse_arguments, defined above
-    # In order to avoid parsing user arguments, we are going to remove user args from sys.argv
+    # In order to avoid parsing user arguments, we are going to remove user
+    # args from sys.argv
     user_sys_argv = sys.argv[5:]
     sys.argv = sys.argv[:5]
     args = parse_arguments()
@@ -118,7 +123,7 @@ def main():
         logger.debug('--- END ---')
     except SystemExit as e:
             if e.code != 0:
-                print '[ ERROR ]: User program ended with exitcode %s.'%e.code
+                print '[ ERROR ]: User program ended with exitcode %s.'% e.code
                 print '\t\tShutting down runtime...'
     except SerializerException:
         # If an object that can not be serialized has been used as a parameter.
@@ -141,35 +146,35 @@ def main():
 
 # Version 4.0
 def launch_pycompss_application(app, func, args=[], kwargs={},
-                log_level='off',
-                o_c=False,
-                debug=False,
-                graph=False,
-                trace=False,
-                monitor=None,
-                project_xml=None,
-                resources_xml=None,
-                summary=False,
-                taskExecution='compss',
-                storageConf=None,
-                taskCount=50,
-                appName=None,
-                uuid=None,
-                baseLogDir=None,
-                specificLogDir=None,
-                extraeCfg=None,
-                comm='NIO',
-                conn='es.bsc.compss.connectors.DefaultSSHConnector',
-                masterName='',
-                masterPort='43000',
-                scheduler='es.bsc.compss.scheduler.resourceEmptyScheduler.ResourceEmptyScheduler',
-                jvmWorkers='-Xms1024m,-Xmx1024m,-Xmn400m',
-                obj_conv=False,
-                mmap_files=False
-                ):
+                                log_level='off',
+                                o_c=False,
+                                debug=False,
+                                graph=False,
+                                trace=False,
+                                monitor=None,
+                                project_xml=None,
+                                resources_xml=None,
+                                summary=False,
+                                taskExecution='compss',
+                                storageConf=None,
+                                taskCount=50,
+                                appName=None,
+                                uuid=None,
+                                baseLogDir=None,
+                                specificLogDir=None,
+                                extraeCfg=None,
+                                comm='NIO',
+                                conn='es.bsc.compss.connectors.DefaultSSHConnector',
+                                masterName='',
+                                masterPort='43000',
+                                scheduler='es.bsc.compss.scheduler.resourceEmptyScheduler.ResourceEmptyScheduler',
+                                jvmWorkers='-Xms1024m,-Xmx1024m,-Xmn400m',
+                                obj_conv=False,
+                                mmap_files=False):
     global app_path
     launchPath = os.path.dirname(os.path.abspath(__file__))
-    # compss_home = launchPath without the last 4 folders (Bindings/python/pycompss/runtime)
+    # compss_home = launchPath without the last 4 folders:
+    # (Bindings/python/pycompss/runtime)
     compss_home = os.path.sep.join(launchPath.split(os.path.sep)[:-4])
 
     # Grab the existing PYTHONPATH and CLASSPATH values
@@ -190,11 +195,13 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
     config['compss_home'] = compss_home
     config['debug'] = debug
     if project_xml is None:
-        config['project_xml'] = compss_home + os.path.sep + 'Runtime/configuration/xml/projects/default_project.xml'
+        projXml = 'Runtime/configuration/xml/projects/default_project.xml'
+        config['project_xml'] = compss_home + os.path.sep + projXml
     else:
         config['project_xml'] = project_xml
     if resources_xml is None:
-        config['resources_xml'] = compss_home + os.path.sep + 'Runtime/configuration/xml/resources/default_resources.xml'
+        resXml = 'Runtime/configuration/xml/resources/default_resources.xml'
+        config['resources_xml'] = compss_home + os.path.sep + resXml
     else:
         config['resources_xml'] = resources_xml
     config['summary'] = summary
@@ -390,7 +397,7 @@ def initialize_compss(config):
     jvm_options_file.write('-Dcompss.worker.cpu_affinity=' + config['cpuAffinity'] + '\n')
     jvm_options_file.write('-Dcompss.worker.gpu_affinity=' + config['gpuAffinity'] + '\n')
     jvm_options_file.write('-Djava.class.path=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config['classpath'] + '\n')
-    jvm_options_file.write('-Dcompss.worker.pythonpath=' + config['cp'] + ':'+ config['pythonPath'] + '\n')
+    jvm_options_file.write('-Dcompss.worker.pythonpath=' + config['cp'] + ':' + config['pythonPath'] + '\n')
     jvm_options_file.close()
     os.close(fd)
     os.environ['JVM_OPTIONS_FILE'] = temp_path
@@ -399,8 +406,8 @@ def initialize_compss(config):
     # print "JVM_OPTIONS_FILE", temp_path
 
 
-
-''' This is the PyCOMPSs entry point
+'''
+This is the PyCOMPSs entry point
 '''
 if __name__ == '__main__':
     main()

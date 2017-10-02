@@ -42,7 +42,8 @@ class ompss(object):
         self.kwargs = kwargs
         logger.debug("Init @ompss decorator...")
 
-        # Get the computing nodes -- This parameter will have to go down until execution when invoked.
+        # Get the computing nodes: This parameter will have to go down until
+        # execution when invoked.
         if 'computingNodes' not in self.kwargs:
             self.kwargs['computingNodes'] = 1
         else:
@@ -112,13 +113,13 @@ class ompss(object):
             # worker code
             pass
 
-
         @wraps(func)
         def ompss_f(*args, **kwargs):
             # This is executed only when called.
             logger.debug("Executing ompss_f wrapper.")
 
-            # Set the computingNodes variable in kwargs for its usage in @task decorator
+            # Set the computingNodes variable in kwargs for its usage
+            # in @task decorator
             kwargs['computingNodes'] = self.kwargs['computingNodes']
 
             if len(args) > 0:

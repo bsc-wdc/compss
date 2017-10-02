@@ -27,6 +27,7 @@ import ctypes
 import inspect
 import collections
 
+
 def is_module_available(module_name):
     """
     Checks if a module is available in the current Python installation.
@@ -38,6 +39,7 @@ def is_module_available(module_name):
         return True
     except:
         return False
+
 
 def is_basic_iterable(obj):
     """
@@ -81,13 +83,14 @@ def get_object_hierarchy(obj):
     while object_stack:
         current_object = object_stack.pop()
         current_object_id = id(current_object)
-        if not current_object_id in vis:
+        if current_object_id not in vis:
             vis.add(current_object_id)
             yield current_object
             if hasattr(current_object, '__dict__'):
                 map(object_stack.append, current_object.__dict__.values())
             elif is_basic_iterable(current_object):
                 map(object_stack.append, iter(current_object))
+
 
 def has_subobjects_of_module(obj, module_name):
     """
@@ -108,12 +111,13 @@ def has_subobjects_of_module(obj, module_name):
             return True
     return False
 
+
 def has_numpy_objects(obj):
     """
     Checks if the given object is a numpy object or
     some of its subojects are.
     @param obj: An object
-    @return: Boolean -> True if obj is a numpy objects (or some of 
+    @return: Boolean -> True if obj is a numpy objects (or some of
     its subobjects). False otherwise
     """
     return has_subobjects_of_module(obj, 'numpy')

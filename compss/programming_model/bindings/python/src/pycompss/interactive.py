@@ -23,8 +23,6 @@ import os
 import logging
 from tempfile import mkdtemp
 import time
-# from random import randint
-# from multiprocessing import Process
 from pycompss.api.api import compss_start
 from pycompss.api.api import compss_stop
 from pycompss.runtime.binding import get_log_path
@@ -33,10 +31,13 @@ from pycompss.runtime.launch import initialize_compss
 from pycompss.util.logs import init_logging
 import pycompss.runtime.binding as binding
 
+
+# Warning! The name should start with 'InteractiveMode' due to @task checks
+# it explicitly. If changed, it is necessary to update the task decorator.
+app_path = 'InteractiveMode'
 persistent_storage = False
 myUuid = 0
-app_path = 'InteractiveMode'  # Warning! The name should start with InteractiveMode due to @task checks it explicitly.
-running = False               #          If has to be changed, it is necessary to update the task decorator.
+running = False
 process = None
 log_path = '/tmp/'
 graphing = False
@@ -72,7 +73,8 @@ def start(log_level='off',
           gpuAffinity='automatic'
           ):
     launchPath = os.path.dirname(os.path.abspath(__file__))
-    # compss_home = launchPath without the last 3 folders (Bindings/python/pycompss/runtime)
+    # compss_home = launchPath without the last 3 folders:
+    # Bindings/python/pycompss/runtime
     compss_home = os.path.sep.join(launchPath.split(os.path.sep)[:-3])
     os.environ['COMPSS_HOME'] = compss_home
 
@@ -95,7 +97,8 @@ def start(log_level='off',
     elif trace == 'advanced':
         trace = 2
     else:
-        print 'ERROR: Wrong tracing parameter ( [ True | basic ] | advanced | False)'
+        print 'ERROR: Wrong tracing parameter ( [ True | basic ] | \
+               advanced | False)'
         return -1
 
     global graphing
@@ -132,16 +135,18 @@ def start(log_level='off',
     # INITIALIZATION
     ##############################################################
 
-    # Build a dictionary with all variables needed for initializing the runtime.
+    # Build a dictionary with all variables needed for initializing the runtime
     config = {}
     config['compss_home'] = compss_home
     config['debug'] = debug
     if project_xml is None:
-        config['project_xml'] = compss_home + os.path.sep + 'Runtime/configuration/xml/projects/default_project.xml'
+        projPath = 'Runtime/configuration/xml/projects/default_project.xml'
+        config['project_xml'] = compss_home + os.path.sep + projPath
     else:
         config['project_xml'] = project_xml
     if resources_xml is None:
-        config['resources_xml'] = compss_home + os.path.sep + 'Runtime/configuration/xml/resources/default_resources.xml'
+        resPath = 'Runtime/configuration/xml/resources/default_resources.xml'
+        config['resources_xml'] = compss_home + os.path.sep + resPath
     else:
         config['resources_xml'] = resources_xml
     config['summary'] = summary
@@ -193,7 +198,7 @@ def start(log_level='off',
     # It will be inherited by the app through execfile
     # sys.argv = sys.argv[3:]
     # Get application execution path
-    # app_path = sys.argv[0]  ############ not needed --> interactive mode
+    # app_path = sys.argv[0]  # not needed in interactive mode
 
     global log_path
     log_path = get_log_path()
@@ -202,14 +207,18 @@ def start(log_level='off',
 
     # Logging setup
     if log_level == "debug":
-        init_logging(os.getenv('COMPSS_HOME') + '/Bindings/python/log/logging.json.debug', log_path)
+        jsonPath = '/Bindings/python/log/logging.json.debug'
+        init_logging(os.getenv('COMPSS_HOME') + jsonPath, log_path)
     elif log_level == "info":
-        init_logging(os.getenv('COMPSS_HOME') + '/Bindings/python/log/logging.json.off', log_path)
+        jsonPath = '/Bindings/python/log/logging.json.off'
+        init_logging(os.getenv('COMPSS_HOME') + jsonPath, log_path)
     elif log_level == "off":
-        init_logging(os.getenv('COMPSS_HOME') + '/Bindings/python/log/logging.json.off', log_path)
+        jsonPath = '/Bindings/python/log/logging.json.off'
+        init_logging(os.getenv('COMPSS_HOME') + jsonPath, log_path)
     else:
         # Default
-        init_logging(os.getenv('COMPSS_HOME') + '/Bindings/python/log/logging.json', log_path)
+        jsonPath = '/Bindings/python/log/logging.json'
+        init_logging(os.getenv('COMPSS_HOME') + jsonPath, log_path)
     logger = logging.getLogger("pycompss.runtime.launch")
 
     printSetup(verbose,
@@ -234,9 +243,9 @@ def start(log_level='off',
 
 
 def printSetup(verbose, log_level, o_c, debug, graph, trace, monitor,
-          project_xml, resources_xml, summary, taskExecution, storageConf,
-          taskCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
-          comm, conn, masterName, masterPort, scheduler, jvmWorkers):
+               project_xml, resources_xml, summary, taskExecution, storageConf,
+               taskCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
+               comm, conn, masterName, masterPort, scheduler, jvmWorkers):
     logger = logging.getLogger("pycompss.runtime.launch")
     output = ""
     output += "******************************************************\n"
@@ -364,15 +373,16 @@ def __showGraph(name='complete_graph', fit=False):
         return Source(text)
 
 
-###################################################################################################
-###################################################################################################
-###################################################################################################
+###############################################################################
+###############################################################################
+###############################################################################
 
 
 def exportGlobals():
-    # Super ugly, but I see no other way to define the app_path across the interactive execution without
-    # making the user to define it explicitly.
-    # It is necessary to define only one app_path because of the two decorators need to access the same information.
+    # Super ugly, but I see no other way to define the app_path across the
+    # interactive execution without making the user to define it explicitly.
+    # It is necessary to define only one app_path because of the two decorators
+    # need to access the same information.
     # if the file is created per task, the constraint will not be able to work.
     # Get ipython globals
     ipython = globals()['__builtins__']['get_ipython']()
@@ -380,7 +390,8 @@ def exportGlobals():
     # pprint.pprint(ipython.__dict__, width=1)
     # Extract user globals from ipython
     userGlobals = ipython.__dict__['ns_table']['user_global']
-    # Inject app_path variable to user globals so that task and constraint decorators can get it.
+    # Inject app_path variable to user globals so that task and constraint
+    # decorators can get it.
     temp_app_filename = os.getcwd() + '/' + "InteractiveMode_" + str(time.strftime('%d%m%y_%H%M%S')) + '.py'
     userGlobals['app_path'] = temp_app_filename
     global app_path
@@ -390,7 +401,8 @@ def exportGlobals():
 def cleanTempFiles():
     '''
     Remove any temporary files that may exist.
-    Currently: app_path, which contains the file path where all interactive code required by the worker is.
+    Currently: app_path, which contains the file path where all interactive
+    code required by the worker is.
     '''
     try:
         if os.path.exists(app_path):
@@ -399,76 +411,3 @@ def cleanTempFiles():
             os.remove(app_path + 'c')
     except OSError:
         print "[ERROR] An error has occurred when cleaning temporary files."
-
-
-###################################################################################################
-###################################################################################################
-###################################################################################################
-
-'''
-# Start PyCOMPSs as an independent process.
-# Not working on Jupyter-notebook, but may be useful for future implementations.
-
-def startP(log_level="off",
-          o_c=False,
-          debug=False,
-          graph=False,
-          trace=False,
-          monitor=None,
-          project_xml='/opt/COMPSs/Runtime/configuration/xml/projects/default_project.xml',
-          resources_xml='/opt/COMPSs/Runtime/configuration/xml/resources/default_resources.xml',
-          summary=False,
-          taskExecution='compss',
-          storageConf=None,
-          taskCount=50,
-          appName='Interactive',
-          uuid=None,
-          baseLogDir=None,
-          specificLogDir=None,
-          extraeCfg=None,
-          comm='NIO',
-          masterName='',
-          masterPort='43000',
-          scheduler='es.bsc.compss.scheduler.defaultscheduler.DefaultScheduler',
-          jvmWorkers='-Xms1024m,-Xmx1024m,-Xmn400m'
-          ):
-    global running
-    global process
-    if running:
-        print "You have currently a running PyCOMPSs instance."
-    else:
-        print "[iPyCOMPSs] Starting process..."
-
-        exportGlobals()
-
-        process = Process(target=start, args=(log_level, o_c, debug, graph, trace, monitor,
-                                              project_xml, resources_xml, summary, taskExecution,
-                                              storageConf, taskCount, appName, uuid, baseLogDir,
-                                              specificLogDir, extraeCfg, comm, masterName,
-                                              masterPort, scheduler, jvmWorkers, True))
-        process.daemon = True
-        process.start()
-        print "[iPyCOMPSs] Process started."
-        running = True
-'''
-
-'''
-# Stop PyCOMPSs process.
-# Not working on Jupyter-notebook, but may be useful for future implementations.
-
-def stopP(sync=False):
-    # stopProcess(sync)
-    global running
-    global process
-    if running:
-        print "[iPyCOMPSs] Terminating process..."
-        process.terminate()
-        process = Process(target=stop, args=(sync))
-        process.start()
-        process.join()
-        process.terminate()
-        print "[iPyCOMPSs] Process terminated."
-        running = False
-    else:
-        print "[iPyCOMPSs] There is not PyCOMPSs instance running."
-'''

@@ -104,7 +104,6 @@ class opencl(object):
             # worker code
             pass
 
-
         @wraps(func)
         def opencl_f(*args, **kwargs):
             # This is executed only when called.

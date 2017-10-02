@@ -104,7 +104,6 @@ class binary(object):
             # worker code
             pass
 
-
         @wraps(func)
         def binary_f(*args, **kwargs):
             # This is executed only when called.

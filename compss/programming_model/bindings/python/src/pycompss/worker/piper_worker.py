@@ -54,9 +54,8 @@ tracing = False
 debug = True
 processes = []
 
-#if sys.version_info >= (2, 7):
-#    import importlib
-
+# if sys.version_info >= (2, 7):
+#     import importlib
 
 
 #####################
@@ -66,6 +65,7 @@ INIT = "init"  # -- worker.py debug tracing #thr pipes_CMD pipes_RESULT
 EXECUTE_TASK_TAG = "task"  # -- "task" taskId jobOut jobErr task_params
 END_TASK_TAG = "endTask"  # -- "endTask" taskId endStatus
 QUIT_TAG = "quit"  # -- "quit"
+
 
 ######################
 #  Processes body
@@ -178,9 +178,9 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                                 message = END_TASK_TAG + " " + str(job_id) \
                                                        + " " + str(exitvalue) \
                                                        + " " + str(params) + "\n"
-                                logger.debug("[PYTHON WORKER %s] - Pipe %s END TASK MESSAGE: %s" %(str(process_name),
-                                                                                                   str(output_pipe),
-                                                                                                   str(message)))
+                                logger.debug("[PYTHON WORKER %s] - Pipe %s END TASK MESSAGE: %s" % (str(process_name),
+                                                                                                    str(output_pipe),
+                                                                                                    str(message)))
                                 # The return message is:
                                 #
                                 # TaskResult ==> jobId exitValue List<Object>
@@ -198,7 +198,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                                 with open(output_pipe, 'w+') as out_pipe:
                                     out_pipe.write(message)
                             except Exception, e:
-                                logger.exception("[PYTHON WORKER %s] Exception %s" %(str(process_name), str(e)))
+                                logger.exception("[PYTHON WORKER %s] Exception %s" % (str(process_name), str(e)))
                                 queue.put("EXCEPTION")
 
                             # Restore logger
@@ -269,7 +269,7 @@ def execute_task(process_name, storage_conf, params):
 
     # COMPSs keywords for tasks (ie: tracing, process name...)
     compss_kwargs = {
-        'compss_tracing' : tracing,
+        'compss_tracing': tracing,
         'compss_process_name': process_name,
         'compss_storage_conf': storage_conf
     }
@@ -305,17 +305,17 @@ def execute_task(process_name, storage_conf, params):
         logger.debug("[PYTHON WORKER %s] Num Params: %s" % (str(process_name), str(num_params)))
         logger.debug("[PYTHON WORKER %s] Args: %r" % (str(process_name), args))
 
-    #if tracing:
-    #    pyextrae.event(TASK_EVENTS, 0)
-    #    pyextrae.event(TASK_EVENTS, PARAMETER_PROCESSING)
+    # if tracing:
+    #     pyextrae.event(TASK_EVENTS, 0)
+    #     pyextrae.event(TASK_EVENTS, PARAMETER_PROCESSING)
 
     # Get all parameter values
     logger.debug("[PYTHON WORKER %s] Processing parameters:" % process_name)
     values, types, streams, prefixes = get_input_params(num_params, logger, args, process_name, persistent_storage)
 
-    #if tracing:
-    #    pyextrae.event(TASK_EVENTS, 0)
-    #    pyextrae.event(TASK_EVENTS, LOGGING)
+    # if tracing:
+    #     pyextrae.event(TASK_EVENTS, 0)
+    #     pyextrae.event(TASK_EVENTS, LOGGING)
 
     if logger.isEnabledFor(logging.DEBUG):
         logger.debug("[PYTHON WORKER %s] RUN TASK with arguments: " % process_name)
@@ -330,9 +330,9 @@ def execute_task(process_name, storage_conf, params):
         for t in types:
             logger.debug("[PYTHON WORKER %s] \t\t %s" % (process_name, str(t)))
 
-    #if tracing:
-    #    pyextrae.event(TASK_EVENTS, 0)
-    #    pyextrae.event(TASK_EVENTS, MODULES_IMPORT)
+    # if tracing:
+    #     pyextrae.event(TASK_EVENTS, 0)
+    #     pyextrae.event(TASK_EVENTS, MODULES_IMPORT)
 
     import_error = False
 
@@ -465,16 +465,6 @@ def get_input_params(num_params, logger, args, process_name, persistent_storage)
         prefixes.append(pPrefix)
 
         if pType == TYPE.FILE:
-            #TODO: I find that it makes no sense to identify PSCOs this way
-            # Why do not we simply check if the object of a subclass of the
-            # storage_object?
-            
-            ## check if it is a persistent object --- TO REMOVE THESE LINES
-            #if 'getID' in dir(pValue) and pValue.getID() is not None:
-            #    po = getByID(pValue.getID())
-            #    values.append(po)
-            #else:
-            #    values.append(pValue)
             values.append(pValue)
         elif pType == TYPE.EXTERNAL_PSCO:
             po = getByID(pValue)

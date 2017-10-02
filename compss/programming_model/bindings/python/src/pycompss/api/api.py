@@ -1,5 +1,5 @@
 #
-#  Copyright 2.02-2017 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -70,6 +70,7 @@ def barrier():
     """
     compss_barrier()
 
+
 def compss_wait_on(*args):
     def _compss_wait_on(obj, to_write=False):
         """
@@ -112,9 +113,13 @@ def compss_wait_on(*args):
     ret = map(_compss_wait_on, args)
     return ret[0] if len(ret) == 1 else ret
 
+
 def compss_delete_object(obj):
     import compss
-    from pycompss.runtime.binding import get_object_id, objid_to_filename, pending_to_synchronize, id2obj
+    from pycompss.runtime.binding import get_object_id
+    from pycompss.runtime.binding import objid_to_filename
+    from pycompss.runtime.binding import pending_to_synchronize
+    from pycompss.runtime.binding import id2obj
     obj_id = get_object_id(obj, False, False)
     if obj_id is None:
         return False
@@ -136,128 +141,3 @@ def compss_delete_object(obj):
     except:
         pass
     return True
-##############
-# DEPRECATED #
-##############
-
-# Version 4.0
-# ==============================================================================
-# def compss_wait_on(obj, to_write=True):
-#     """
-#     Waits on an object.
-#     @param obj: Object to wait on.
-#     @param to_write: Write enable?. Options = [True, False]. Default = True
-#     @return: An object of 'file' type.
-#     """
-#     # print "Waiting on", obj
-#     if to_write:
-#         mode = 'r+'
-#     else:
-#         mode = 'r'
-#     compss_mode = get_compss_mode(mode)
-#
-#     # Private function used below (recursively)
-#     def wait_on_list(l):
-#         if type(l) == list:
-#             return [wait_on_list(x) for x in l]
-#         else:
-#             return synchronize(l, compss_mode)
-#
-#     if isinstance(obj, Future) or not isinstance(obj, types.ListType):
-#         return synchronize(obj, compss_mode)
-#     else:
-#         if len(obj) == 0:  # FUTURE OBJECT
-#             return synchronize(obj, compss_mode)
-#         else:
-#             # Will be a List
-#             res = wait_on_list(obj)
-#             return res
-# ==============================================================================
-
-
-# Version 3.0
-# ==============================================================================
-# def compss_wait_on(obj, to_write=True):
-#     """
-#     Waits on an object.
-#     @param obj: Object to wait on.
-#     @param to_write: Write enable?. Options = [True, False]. Default = True
-#     @return: An object of 'file' type.
-#     """
-#     # print "Waiting on", obj
-#     if to_write:
-#         mode = 'r+'
-#     else:
-#         mode = 'r'
-#     compss_mode = get_compss_mode(mode)
-#
-#     if isinstance(obj, Future) or not isinstance(obj, types.ListType):
-#         return synchronize(obj, compss_mode)
-#     else:
-#         if len(obj) == 0:      # FUTURE OBJECT
-#             return synchronize(obj, compss_mode)
-#         else:
-#             # Will be a List
-#             io = iter(obj)  # get iterator
-#             res = []
-#             for o in io:
-#                 res.append(synchronize(o, compss_mode))
-#             return res
-# ==============================================================================
-
-
-# Version 2.0
-# ==============================================================================
-# def compss_wait_on(obj, to_write = True):
-#      """
-#      Waits on an object.
-#      @param obj: Object to wait on.
-#      @param to_write: Write enable?. Options = [True, False]. Default = True
-#      @return: An object of 'file' type.
-#      """
-#      #print "Waiting on", obj
-#      if to_write:
-#          mode = 'r+'
-#      else:
-#          mode = 'r'
-#      compss_mode = get_compss_mode(mode)
-#
-#      if isinstance(obj, Future)  or not isinstance(obj, types.ListType):
-#          return synchronize(obj, compss_mode)
-#      else:
-#          if isinstance(obj, collections.Iterable):
-#              if (len(obj) == 0): # FUTURE OBJECT
-#                  return synchronize(obj, compss_mode)
-#              else:
-#                  if  isinstance(obj, basestring):         # if str or unicode
-#                      return synchronize(obj, compss_mode)
-#                  else:
-#                      # will be a list, tuple or user object (iterable)
-#                      io = iter(obj) # get iterator
-#                      res = []
-#                      for o in io:
-#                          res.append(synchronize(o, compss_mode))
-#                      return res
-#          else:
-#              # not iterable
-#              return synchronize(obj, compss_mode)
-# ==============================================================================
-
-
-# Version 1.0
-# ==============================================================================
-# def compss_wait_on(obj, to_write = True):
-#     """
-#     Waits on an object.
-#     @param obj: Object to wait on.
-#     @param to_write: Write enable?. Options = [True, False]. Default = True
-#     @return: An object of 'file' type.
-#     """
-#     #print "Waiting on", obj
-#     if to_write:
-#         mode = 'r+'
-#     else:
-#         mode = 'r'
-#     compss_mode = get_compss_mode(mode)
-#     return synchronize(obj, compss_mode)
-# ==============================================================================

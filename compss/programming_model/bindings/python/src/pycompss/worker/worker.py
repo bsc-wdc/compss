@@ -68,12 +68,12 @@ def compss_worker(persistent_storage):
 
     numSlaves = int(args[2])
     slaves = []
-    for i in range(2,2+numSlaves):
+    for i in range(2, 2 + numSlaves):
         slaves.append(args[i])
     argPosition = 3 + numSlaves
 
     args = args[argPosition:]
-    cus=args[0]
+    cus = args[0]
 
     args = args[1:]
     has_target = args[0]
@@ -115,15 +115,18 @@ def compss_worker(persistent_storage):
         prefixes.append(pPrefix)
 
         if pType == TYPE.FILE:
+            '''
             # check if it is a persistent object
-            #TODO: I find that it makes no sense to identify PSCOs this way
+            # TODO: I find that it makes no sense to identify PSCOs this way
             # Why do not we simply check if the object of a subclass of the
-            # storage_object? 
+            # storage_object?
             if 'getID' in dir(pValue) and pValue.getID() is not None:
                 po = getByID(pValue.getID())
                 values.append(po)
             else:
                 values.append(pValue)
+            '''
+            values.append(pValue)
         elif pType == TYPE.EXTERNAL_PSCO:
             po = getByID(pValue)
             values.append(po)
@@ -312,13 +315,11 @@ if __name__ == "__main__":
     # num_params = int(sys.argv[i+3])
     # params = sys.argv[i+4..]
 
-
     persistent_storage = False
     if storage_conf != 'null':
         persistent_storage = True
         from storage.api import initWorker as initStorageAtWorker
         from storage.api import finishWorker as finishStorageAtWorker
-
 
     if tracing:
         import pyextrae.multiprocessing as pyextrae

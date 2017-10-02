@@ -47,8 +47,10 @@ try:
 except:
     import cPickle as numpy
 
+
 class SerializerException(Exception):
     pass
+
 
 def get_serializer_priority(obj=[]):
     """
@@ -60,6 +62,7 @@ def get_serializer_priority(obj=[]):
         return [numpy, pickle, dill]
     return [pickle, dill]
 
+
 def get_serializers():
     """
     Returns a list with the available serializers in the most common order
@@ -68,11 +71,13 @@ def get_serializers():
     """
     return get_serializer_priority()
 
+
 def serialize_to_handler(obj, handler):
     """
     Serialize an object to a handler.
     @param obj: Object to be serialized.
-    @param file_handler: A handler object. It must implement methods like write, writeline and similar stuff
+    @param file_handler: A handler object. It must implement methods like
+                         write, writeline and similar stuff
     """
     # get the serializer priority
     serializer_priority = get_serializer_priority(obj)
@@ -100,15 +105,14 @@ def serialize_to_handler(obj, handler):
                 else:
                     serializer.dump(obj, handler, protocol=serializer.HIGHEST_PROTOCOL)
                     success = True
-                #serializer.dump(obj, handler, protocol=serializer.HIGHEST_PROTOCOL)
-                #success = True
             except:
                 pass
         i += 1
 
     # if ret_value is None then all the serializers have failed
     if not success:
-        raise SerializerException('Cannot serialize object %s'%obj)
+        raise SerializerException('Cannot serialize object %s' % obj)
+
 
 def serialize_to_file(obj, file_name):
     """
@@ -120,6 +124,7 @@ def serialize_to_file(obj, file_name):
     serialize_to_handler(obj, handler)
     handler.close()
     return file_name
+
 
 def serialize_to_string(obj):
     """
@@ -160,6 +165,7 @@ def deserialize_from_handler(handler):
     # serializers
     raise SerializerException('Cannot deserialize object')
 
+
 def deserialize_from_file(file_name):
     """
     Deserializes the contents in a given file
@@ -170,6 +176,7 @@ def deserialize_from_file(file_name):
     ret = deserialize_from_handler(handler)
     handler.close()
     return ret
+
 
 def deserialize_from_string(serialized_content):
     """

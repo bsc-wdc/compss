@@ -96,7 +96,6 @@ class constraint(object):
             # worker code
             pass
 
-
         @wraps(func)
         def constrained_f(*args, **kwargs):
             # This is executed only when called.

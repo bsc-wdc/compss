@@ -64,7 +64,8 @@ class TYPE:
     FILE = 9
     OBJECT = 10         # Unavailable (can not pass an object directly to Java)
     PSCO = 11           # Unavailable (this type is reserved for Java PSCOs)
-    EXTERNAL_PSCO = 12	# PSCO (type for PSCOs from bindings)
+    EXTERNAL_PSCO = 12  # PSCO (type for PSCOs from bindings)
+
 
 # Numbers match both C and Java enums
 class STREAM:
@@ -72,6 +73,7 @@ class STREAM:
     STDOUT = 1
     STDERR = 2
     UNSPECIFIED = 3
+
 
 # String that identifies the prefix
 class PREFIX:
@@ -83,7 +85,8 @@ class Parameter:
     Parameter class
     Used to group the type, direction and value of a parameter
     """
-    def __init__(self, p_type=None, p_direction=DIRECTION.IN, p_stream=STREAM.UNSPECIFIED, p_prefix=PREFIX.PREFIX):
+    def __init__(self, p_type=None, p_direction=DIRECTION.IN,
+                 p_stream=STREAM.UNSPECIFIED, p_prefix=PREFIX.PREFIX):
         self.type = p_type
         self.direction = p_direction
         self.stream = p_stream
@@ -133,10 +136,10 @@ FILE_INOUT_STDERR = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.INOUT, p_s
 FILE_INOUT_STDOUT = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.INOUT, p_stream=STREAM.STDOUT)
 
 # Aliases for parameter definition as dictionary
-Type = "type"           # parameter type
-Direction = "direction" # parameter type
-Stream = "stream"       # parameter stream
-Prefix = "prefix"       # parameter prefix
+Type = "type"            # parameter type
+Direction = "direction"  # parameter type
+Stream = "stream"        # parameter stream
+Prefix = "prefix"        # parameter prefix
 
 # Java max and min integer and long values
 JAVA_MAX_INT = 2147483647

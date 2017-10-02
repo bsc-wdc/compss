@@ -38,7 +38,7 @@
     mkdir -p /opt/COMPSs/Runtime/scripts/system/c
     mkdir -p /opt/COMPSs/Runtime/scripts/user
     cp /opt/COMPSs/Bindings/c/bin/* /opt/COMPSs/Runtime/scripts/system/c
-    cp /opt/COMPSs/Bindings/c/buildapp /opt/COMPSs/Runtime/scripts/user/
+    cp /opt/COMPSs/Bindings/c/compss_build_app /opt/COMPSs/Runtime/scripts/user/
     echo " - COMPSs C-Binding structure created"
 
     # Set permissions

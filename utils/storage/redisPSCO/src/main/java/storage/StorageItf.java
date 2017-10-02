@@ -121,10 +121,6 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static List<String> getLocations(String id) throws StorageException {
-        if (clusterMode) {
-            //TODO: Fix Jedis API
-            return hosts;
-        }
         // We are in standalone mode, return all our hosts
         return hosts;
     }

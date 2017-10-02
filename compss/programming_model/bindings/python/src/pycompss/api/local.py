@@ -29,6 +29,7 @@ import ctypes
 import sys
 import gc
 
+
 def local(input_function):
     from pycompss.runtime.binding import get_object_id, pending_to_synchronize
 

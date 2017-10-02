@@ -20,6 +20,7 @@ PyCOMPSs Core Element
     This file contains the Core Element class, needed for the task registration.
 """
 
+
 # QUESTION: why is this a class instead of a named tuple?
 #   from collections import namedtuple
 #   CE = namedtuple('CE', 'ce_signature implSignature implConstraints implType implTypeArgs')
@@ -84,4 +85,3 @@ class CE:
         repr += '\t - Impl. type      : ' + self.implType + '\n'
         repr += '\t - Impl. type args : ' + ' '.join(self.implTypeArgs)
         return repr
-

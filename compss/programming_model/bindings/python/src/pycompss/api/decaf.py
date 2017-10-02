@@ -42,7 +42,8 @@ class decaf(object):
         self.kwargs = kwargs
         logger.debug("Init @decaf decorator...")
 
-        # Get the computing nodes -- This parameter will have to go down until execution when invoked.
+        # Get the computing nodes: This parameter will have to go down
+        # until execution when invoked.
         if 'computingNodes' not in self.kwargs:
             self.kwargs['computingNodes'] = 1
         else:
@@ -111,9 +112,9 @@ class decaf(object):
                 dfLib = self.kwargs['dfLib']
             else:
                 dfLib = '[unassigned]'   # Empty or '[unassigned]'
-            implSignature = 'DECAF.' + dfScript 
+            implSignature = 'DECAF.' + dfScript
             coreElement.set_implSignature(implSignature)
-            implArgs = [ dfScript, dfExecutor, dfLib, workingDir, runner]
+            implArgs = [dfScript, dfExecutor, dfLib, workingDir, runner]
             coreElement.set_implTypeArgs(implArgs)
             func.__to_register__ = coreElement
             # Do the task register if I am the top decorator
@@ -123,7 +124,6 @@ class decaf(object):
         else:
             # worker code
             pass
-
 
         @wraps(func)
         def decaf_f(*args, **kwargs):

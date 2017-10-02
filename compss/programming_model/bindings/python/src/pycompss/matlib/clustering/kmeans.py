@@ -85,7 +85,7 @@ def has_converged(mu, oldmu, epsilon, iter, maxIterations):
             else:
                 return False
         else:
-            # detencion pq se ha alcanzado el maximo de iteraciones
+            # Reached max iterations
             return True
 
 
@@ -154,7 +154,8 @@ def init(X, k, mode):
         return init_random(dim, k)
 
 
-def kmeans(data, k, numFrag=-1, maxIterations=10, epsilon=1e-4, initMode='random'):
+def kmeans(data, k, numFrag=-1, maxIterations=10, epsilon=1e-4,
+           initMode='random'):
     """
     kmeans: starting with a set of randomly chosen initial centers,
     one repeatedly assigns each imput point to its nearest center, and

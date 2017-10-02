@@ -42,7 +42,8 @@ class mpi(object):
         self.kwargs = kwargs
         logger.debug("Init @mpi decorator...")
 
-        # Get the computing nodes -- This parameter will have to go down until execution when invoked.
+        # Get the computing nodes: This parameter will have to go down until
+        # execution when invoked.
         if 'computingNodes' not in self.kwargs:
             self.kwargs['computingNodes'] = 1
         else:
@@ -113,13 +114,13 @@ class mpi(object):
             # worker code
             pass
 
-
         @wraps(func)
         def mpi_f(*args, **kwargs):
             # This is executed only when called.
             logger.debug("Executing mpi_f wrapper.")
 
-            # Set the computingNodes variable in kwargs for its usage in @task decorator
+            # Set the computingNodes variable in kwargs for its usage
+            # in @task decorator
             kwargs['computingNodes'] = self.kwargs['computingNodes']
 
             if len(args) > 0:

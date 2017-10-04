@@ -135,7 +135,7 @@ public class NIOTracer extends Tracer {
             StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), System.err, logger);
             outputGobbler.start();
             errorGobbler.start();
-            logger.debug("Created globbers");
+            logger.debug("Created gobblers");
         }
 
         try {

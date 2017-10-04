@@ -9,12 +9,21 @@ map<string,int> types;
 string END_TASK_TAG = "endTask";
 string QUIT_TAG = "quit";
 string EXECUTE_TASK_TAG = "task";
+string REMOVE_TAG = "remove";
+string SERIALIZE_TAG = "serialize";
+
+int endedThreads;
+
+pthread_mutex_t mtx;
 
 struct arg_t {
 	char * inPipe;
 	char * outPipe;
+	char * inDataPipe;
+	char * outDataPipe;
 	customStream *csOut;
 	customStream *csErr;
+	int nThreads;
 };
 
 
@@ -22,7 +31,6 @@ struct arg_t {
 string readline(const char* inPipe) {
 	ifstream inFile;
 	inFile.open( inPipe , ios::in);
-
 	string command;
 	getline(inFile,command);
 	inFile.close();
@@ -68,6 +76,28 @@ void restore_output(streambuf * oldsb, ofstream& filestr)
 }
 
 
+bool checkDataToRead(const char* inDataPipe){
+	cout << "before open" << endl;	
+	int fd = open(inDataPipe, O_RDONLY);
+	int flags = fcntl(fd, F_GETFL, 0);
+	fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+
+	char c;
+	int res = read(fd, &c, 1);
+
+	close(fd);
+	
+	cout << "result to be returned is " << res << endl;
+
+	if (res >= 0) {
+		cout << "something has been read" << endl;
+		return true;
+	}
+	cout << "there is nothing to read" << endl;
+
+	return false;
+}
+
 void *runThread(void * arg){
 
 	cout << "start run thread" << endl;
@@ -78,23 +108,35 @@ void *runThread(void * arg){
 #endif
 
 
-
+//	pthread_mutex_t mtx;
 
     ofstream outFile;
     string command;
 	string output;
 
 	char *inPipe, *outPipe;
+	char *inDataPipe, *outDataPipe;
 
 	struct arg_t *args = (struct arg_t *)arg;
 
 	inPipe = args->inPipe;
 	outPipe = args->outPipe;
+	inDataPipe = args->inDataPipe;
+	outDataPipe = args->outDataPipe;
 	customStream *csOut = args->csOut;
 	customStream *csErr = args->csErr;
+	int nThreads = args->nThreads;
 
 	while(true){
-		
+/*
+		if (checkDataToRead(inDataPipe)){
+			cout << "check succesful" << endl;
+			command = readline(inDataPipe);
+			cout << "command read is " << command << endl;
+		}
+*/
+		cout << "thread expecting to read command" << endl;
+
 		command = readline(inPipe);
 		
 		if (command != ""){
@@ -156,24 +198,44 @@ void *runThread(void * arg){
 				executeArgsC[i] = new char[executeArgs[i].size() + 1];
 				strcpy(executeArgsC[i], executeArgs[i].c_str());
 			}
-			//last integer indicates if output date is going to be serialized at the end of the task execution 0=no 1=yes 
-			int ret = execute(executeArgs.size(), executeArgsC, cache, types, 1);
+
+			for (int i = 0; i < 5; i++){
+				cout << executeArgs[i+14] << endl;
+			}
+
+			cout << "before execute" << endl;
+			//last integer indicates if output data is going to be serialized at the end of the task execution 0=no 1=yes 
+			int ret = execute(executeArgs.size(), executeArgsC, cache, types, 0);
+			cout << "after execute" << endl;
+
+			char* test_fname = executeArgsC[17];
+			char* auxstr = strsep(&test_fname,":");
+			char* test_id = strsep(&test_fname,":");
+            auxstr = strsep(&test_fname,":");
+            auxstr = strsep(&test_fname,":");
+
+			//serializeData(test_id, test_fname, cache, types);			
 
 			csOut->unregisterThread();
 			csErr->unregisterThread();
-
+			cout << "closing output files" << endl;
 			jobOut->close();
 			jobErr->close();
 
+			cout << "before writing result" << endl;
 			ostringstream out_ss;
 			out_ss << END_TASK_TAG << " " << commandArgs[1] << " " << ret << endl;
 			output = out_ss.str();
 
+
 			outFile.open(outPipe);
+			cout << "before result output" << endl;
                         outFile << output;
+			cout << "after result output" << endl;
 			fflush(NULL);
 			outFile.close();
 	
+			cout << "end of the function" << endl;
 			
 
 		}
@@ -188,6 +250,20 @@ void *runThread(void * arg){
     cout << "disabled" << endl;
 #endif
 
+	pthread_mutex_lock(&mtx);
+	endedThreads++;
+
+        cout << "TOTAL THREADS: " << nThreads << endl;
+        cout << "ENDED THREADS: " << endedThreads << endl;
+
+	if (endedThreads == nThreads){
+		ostringstream out_ss;
+        out_ss << QUIT_TAG << endl;
+        output = out_ss.str();
+		outFile.open(inDataPipe);
+		outFile << output;
+	}
+	pthread_mutex_unlock(&mtx);
 
 	return 0;
 
@@ -228,30 +304,92 @@ int main(int argc, char **argv) {
 
     fflush(NULL);
 
+    pthread_mutex_init(&mtx,NULL);
+
+	endedThreads = 0;
 
 	streambuf* outbuf = cout.rdbuf();
 	streambuf* errbuf = cerr.rdbuf();
 
-        customStream *csOut = new customStream(cout.rdbuf());
+    customStream *csOut = new customStream(cout.rdbuf());
 	customStream *csErr = new customStream(cerr.rdbuf());
 
-        cout.rdbuf(csOut);
+    cout.rdbuf(csOut);
 	cerr.rdbuf(csErr);
 
 	pthread_t threadpool[numInPipes];
 	arg_t arguments[numInPipes];
 
-
+	cout << "number of input pipes is " << numInPipes << endl;
 
 	for (int i = 0; i < numInPipes; i++){
 		arguments[i].inPipe = inPipes[i];
 		arguments[i].outPipe = outPipes[i];
+		arguments[i].inDataPipe = inDataPipe;
+		arguments[i].outDataPipe = outDataPipe;
 		arguments[i].csOut = csOut;
 		arguments[i].csErr = csErr;
+		arguments[i].nThreads = numInPipes;
 		if(pthread_create(&threadpool[i], NULL, runThread, &arguments[i])){
 			fprintf(stderr, "Error creating thread\n");
 			return 1;
 		}
+	}
+
+
+	string cmd;
+	
+	while (true){
+		cout << "expecting to read data command" << endl;
+
+		cmd = readline(inDataPipe);
+
+		cout << "starting iteration" << endl;
+
+		if (cmd != ""){
+
+			if (cmd == QUIT_TAG) {
+    	        cout << "[Persistent C] Quit received" << endl;
+        	    break;
+        	}
+
+			string aux;
+        	stringstream ss(cmd);
+
+        	vector<string> dataArgs;
+
+        	while (ss >> aux){
+            	dataArgs.push_back(aux);
+        	}
+
+			if (dataArgs[0] == REMOVE_TAG){
+				removeData(dataArgs[1], cache, types);	
+			}
+
+			if (dataArgs[0] == SERIALIZE_TAG){
+				cout << "before serialize" << endl;
+				serializeData(dataArgs[1], dataArgs[2].c_str(), cache, types);
+				cout << "after serialize" << endl;
+
+				ofstream outFile;
+				ostringstream out_ss;
+            	out_ss << true << endl;
+            	string output = out_ss.str();
+
+            	outFile.open(outDataPipe);
+            	cout << "before result output" << endl;
+                outFile << output;
+            	cout << "after result output" << endl;
+            	fflush(NULL);
+            	outFile.close();
+
+			}
+
+
+		}
+
+		cout << "ending iteration" << endl;
+
 	}
 
 	for (int i = 0; i < numInPipes; i++){

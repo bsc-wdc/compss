@@ -13,7 +13,6 @@ class customStream : public streambuf {
 
 map<int, streambuf*> files;
 streambuf* defaultBuf;
-//mutex mtx;
 pthread_mutex_t mtx;
 
 public : 
@@ -26,19 +25,15 @@ public :
 	customStream(const char * data, unsigned int len);
 
 	void registerThread(streambuf* threadsb){
-//		mtx.lock();
 		pthread_mutex_lock(&mtx);
 		files[gettid()] = threadsb;
 		pthread_mutex_unlock(&mtx);
-//		mtx.unlock();
 	};
 
 	void unregisterThread(){
-//		mtx.lock();
 		pthread_mutex_lock(&mtx);
 		files.erase(gettid());
 		pthread_mutex_unlock(&mtx);
-//		mtx.unlock();
 	};
 
 private:
@@ -57,7 +52,6 @@ private:
 
 	int overflow (int c){
 		
-//		mtx.lock();
 		int ret;
 
 		if (files.find(gettid()) != files.end()){
@@ -68,10 +62,6 @@ private:
         }
 
 
-//		ret = defaultBuf->sputc(c);
-
-//		mtx.unlock();
-
 		return ret;
 	};
 
@@ -79,15 +69,6 @@ private:
 
 	// This function is called when a flush is called by endl, adds an endline to the output
 	int sync(){
-//string output = filemap[gettid()];
-//		string output = filemap[gettid()].c_str();
-//		cout << endl;
-//		char s[] = {'\n'};
-//		int n = 1;
-//		defaultBuf->sputn(s,n);
-//		int r = defaultBuf->sputc('\n');
-
-//		mtx.lock();
 		int ret;
 
         if (files.find(gettid()) != files.end()){
@@ -97,12 +78,6 @@ private:
             ret = defaultBuf->pubsync();
         }
 
-//		mtx.unlock();
-
-//		ret = defaultBuf->pubsync();
-
-//		printf("ret is %d\n", ret);
-//		defaultBuf->rdbuf()->sputn(s,n);
 		return 0;
 	};
 

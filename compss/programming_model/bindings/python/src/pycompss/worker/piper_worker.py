@@ -173,11 +173,18 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                                 out.close()
                                 err.close()
 
-                                # endTask jobId exitValue message
-                                params = buildReturnParamsMessage(line[9:], newTypes, newValues)
-                                message = END_TASK_TAG + " " + str(job_id) \
-                                                       + " " + str(exitvalue) \
-                                                       + " " + str(params) + "\n"
+                                if exitvalue == 0:
+                                    # Task has finished without exceptions
+                                    # endTask jobId exitValue message
+                                    params = buildReturnParamsMessage(line[9:], newTypes, newValues)
+                                    message = END_TASK_TAG + " " + str(job_id) \
+                                                           + " " + str(exitvalue) \
+                                                           + " " + str(params) + "\n"
+                                else:
+                                    # An exception has been raised in task
+                                    message = END_TASK_TAG + " " + str(job_id) \
+                                              + " " + str(exitvalue) + "\n"
+
                                 logger.debug("[PYTHON WORKER %s] - Pipe %s END TASK MESSAGE: %s" % (str(process_name),
                                                                                                     str(output_pipe),
                                                                                                     str(message)))
@@ -367,7 +374,9 @@ def execute_task(process_name, storage_conf, params):
         logger.exception("[PYTHON WORKER %s] WORKER EXCEPTION - Attribute Error Exception" % process_name)
         logger.exception(''.join(line for line in lines))
         logger.exception("[PYTHON WORKER %s] Check that all parameters have been defined with an absolute import path (even if in the same file)" % process_name)
-        exit(1)
+        # If exception is raised during the task execution, newTypes and
+        # newValues are empty
+        return 1, newTypes, newValues
     # ==========================================================================
     except ImportError:
         import_error = True
@@ -377,7 +386,9 @@ def execute_task(process_name, storage_conf, params):
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
         logger.exception("[PYTHON WORKER %s] WORKER EXCEPTION" % process_name)
         logger.exception(''.join(line for line in lines))
-        return 1
+        # If exception is raised during the task execution, newTypes and
+        # newValues are empty
+        return 1, newTypes, newValues
 
     if import_error:
         logger.debug("[PYTHON WORKER %s] Could not import the module. Reason: Method in class." % process_name)

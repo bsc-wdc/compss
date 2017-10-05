@@ -68,7 +68,7 @@
   fi
 
   # wait for all processess to be killed by the OS
-  sleep 10
+  sleep 5
 
   #----------------------------------------------------------------------------------
   #Run application 2 - Test exception in Master after submitting tasks before sync
@@ -118,7 +118,7 @@
   fi
 
   # wait for all processess to be killed by the OS
-  sleep 10
+  sleep 5
 
   #----------------------------------------------------------------------------------
   #Run application 3 - Test exception in Master after submitting tasks before sync
@@ -172,7 +172,63 @@
     fi
   fi
 
+  # wait for all processess to be killed by the OS
+  sleep 5
+
   #----------------------------------------------------------------------------------
+  #Run application 4 - Test exception in Worker within task
+
+  echo
+  echo "*** RUNNING PYTHON APPLICATION TEST - EXCEPTIONS IN WORKER WITHIN TASK"
+
+  function app4 {
+      output_log="${target_log_folder}/exception_python_4${retryNum}.outputlog"
+      error_log="${target_log_folder}/exception_python_4${retryNum}.errorlog"
+      counterVal=1
+      expectedTime=60s
+
+      timeout --signal=2 $expectedTime ${COMPSs_exec} \
+         --classpath=${base_app_dir} \
+         --project=${base_app_dir}/project.xml \
+         --resources=${base_app_dir}/resources.xml \
+         --debug \
+         --comm=$comm \
+         ${runcompss_opts} \
+         ${base_app_dir}/test/excInTask.py > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+
+      #Check timeout
+      if [[ "$?" = "124" ]]; then
+         #Copy LOG files
+         cp -rf ${COMPSs_log_folder}/excInTask.py_0${retryNum}/* ${target_log_folder}
+         #Report timeout
+         echo "[WARNING] Python Application timed out" >> ${output_log}
+         exitValue=124
+      else
+         #Copy LOG files
+         cp -rf ${COMPSs_log_folder}/excInTask.py_0${retryNum}/* ${target_log_folder}
+         #Check result
+         ${base_app_dir}/resultInWorker ${output_log} ${error_log} ${target_log_folder}
+         exitValue=$?
+      fi
+  }
+
+  # Kind of a try catch, but without else... allows to continue when the exeption are raised.
+  if app4; then
+    if [ $exitValue -eq "0" ]; then
+      echo "Exception captured. Traceback and Exception message found - OK"
+    else
+      if [ $exitValue -eq "1" ]; then
+          echo "The traceback or the exception message could not be found - ERROR"
+          exit 1
+      else
+          echo "Invalid application result - ERROR"
+          exit 1
+      fi
+    fi
+  fi
+
+  #----------------------------------------------------------------------------------
+  # If this point is reached, everything has gone OK
   echo "---------------------------------"
   echo "--------   RESUME   -------------"
   echo "---------------------------------"
@@ -180,6 +236,7 @@
   echo "Exceptions at master after submitting tasks before sync: OK"
   echo "Exceptions at master after submitting tasks after sync: OK"
   echo "---------------------------------"
+  echo "Exceptions at worker: OK"
   echo "---------------------------------"
 
   #----------------------------------------------------------------------------------

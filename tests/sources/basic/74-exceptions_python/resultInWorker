@@ -1,0 +1,67 @@
+#!/bin/bash
+
+  # Obtain parameters
+  output_file=$1
+  error_file=$2
+  target_log_folder=$3
+
+  # Log files
+  runtime_log="${target_log_folder}/runtime.log"
+
+  #----------------------------------------------------------------------------------
+  # Check that ErrorManager has not generated any ERROR or FATAL message.
+  if $(cat "${output_file}" "${runtime_log}" | tr '\n' ' ' | grep -E -q "[ERRMGR].*(ERROR|FATAL):.*.*Shutting"); then
+    echo "ERRMGR did not raise a fatal error. TEST FAILED." | tee -a ${output_file}
+    exit 1
+  else
+    echo "ERRMGR raised a fatal error. TEST OK." | tee -a ${output_file}
+    # exit 0 # Continue with checks
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Compute result status
+  function findTraceback {
+    if grep -q "Traceback" "$1"; then
+      echo "Traceback found - OK"
+      if grep -q "GENERAL EXCEPTION RAISED - HAPPENED IN A TASK." "$1"; then
+        echo "Exception found - OK"
+        # Continue with checks
+      else
+        echo "Exception not found - ERROR"
+        exit 1
+      fi
+    else
+      echo "Traceback not found - ERROR"
+      exit 1
+    fi
+  }
+
+  if grep -q "ERRMGR" "$error_file"; then
+    echo "ERRMGR message found at error file - OK"
+    # Continue with checks
+  else
+    echo "ERRMGR message not found at error file - ERROR"
+    exit 1
+  fi
+
+  file="${target_log_folder}/jobs/job1_NEW.err"
+  if [ -f "$file" ] ; then
+	  echo "Job error file: $file FOUND."
+    findTraceback $file
+    # Continue with checks
+  else
+	  echo "Job error file: $file NOT FOUND."
+    exit 1
+  fi
+
+  file="${target_log_folder}/jobs/job1_RESUBMITTED.err"
+  if [ -f "$file" ] ; then
+	  echo "RESUBMITTED Job error file: $file FOUND."
+    findTraceback $file
+    # Continue with checks ?
+  else
+	  echo "RESUBMITTED Job error file: $file NOT FOUND."
+    exit 1
+  fi
+
+  exit 0

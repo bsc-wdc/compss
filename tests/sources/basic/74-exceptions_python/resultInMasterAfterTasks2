@@ -29,15 +29,6 @@
 
   #----------------------------------------------------------------------------------
   # Compute result status
-  #correct=$(cat ${output_file} | grep "Argparse received the expected arguments and values")
-  # Report result status
-  #if [ "${correct}" == "" ]; then
-  #   echo "ERROR: argparse did not received correct values" | tee -a ${output_file}
-  #   echo "EXPECTED: $(cat ${output_file} | grep Expected)" | tee -a ${output_file}
-  #   echo "GOT: $(cat ${output_file} | grep Got)" | tee -a ${output_file}
-  #   exit 1
-  #fi
-
   if grep -q "ERROR" "$output_file"; then
     echo "An ERROR occurred running the test - INVALID RESULT."
     exit 2
@@ -46,7 +37,7 @@
   if grep -q "Traceback" "$error_file"; then
     echo "Traceback found - OK"
     if grep -q "Exception: GENERAL EXCEPTION RAISED - HAPPENED AFTER SUBMITTING TASKS AT MASTER BUT AFTER SYNC." "$error_file"; then
-      echo "Exception foud - OK"
+      echo "Exception found - OK"
     else
       echo "Exception not found - ERROR"
       exit 1

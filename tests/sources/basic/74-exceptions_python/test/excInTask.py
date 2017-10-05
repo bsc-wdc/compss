@@ -2,18 +2,16 @@ from pycompss.api.task import task
 
 @task(returns=int)
 def increment(v):
+    raise Exception('GENERAL EXCEPTION RAISED - HAPPENED IN A TASK.')
     return v+1
 
 def main():
     from pycompss.api.api import compss_wait_on
-    raise Exception('GENERAL EXCEPTION RAISED - HAPPENED BEFORE SUBMITTING TASKS AT MASTER.')
-    values = [0, 100, 200, 300]
-    for i in range(4):
-        for j in range(10):
-            values[i] = increment(values[i])
-    result = compss_wait_on(values)
+    value = 0
+    value = increment(value)
+    result = compss_wait_on(value)
 
-    if result[0] == 10 and result[1] == 110 and result[2] == 210 and result[3] == 310:
+    if result == 1:
         print "- Result value: OK"
     else:
         print "- Result value: ERROR"

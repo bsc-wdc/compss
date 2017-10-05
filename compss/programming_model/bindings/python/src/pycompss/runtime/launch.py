@@ -122,9 +122,9 @@ def main():
             finish_storage()
         logger.debug('--- END ---')
     except SystemExit as e:
-            if e.code != 0:
-                print '[ ERROR ]: User program ended with exitcode %s.'% e.code
-                print '\t\tShutting down runtime...'
+        if e.code != 0:  # Seems this is not happening
+            print '[ ERROR ]: User program ended with exitcode %s.'% e.code
+            print '\t\tShutting down runtime...'
     except SerializerException:
         # If an object that can not be serialized has been used as a parameter.
         exc_type, exc_value, exc_traceback = sys.exc_info()

@@ -26,7 +26,7 @@
   echo "*** RUNNING PYTHON APPLICATION PYTHON DELETE FILE"
   output_log="${target_log_folder}/delete_python_0${retryNum}.outputlog"
   error_log="${target_log_folder}/delete_python_0${retryNum}.errorlog"
-  expectedTime=80s
+  expectedTime=120s
 
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
      --project=${base_app_dir}/project.xml \

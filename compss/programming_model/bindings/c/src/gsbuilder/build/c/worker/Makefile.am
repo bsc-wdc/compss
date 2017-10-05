@@ -11,7 +11,7 @@ PACKAGE_worker_SOURCES = \
 
 PACKAGE_worker_LDFLAGS =
 
-PACKAGE_worker_LDADD = -L../../lib -lworker -ldl -lboost_iostreams -lboost_serialization
+PACKAGE_worker_LDADD = -L../../lib -lworker -ldl -lboost_iostreams -lboost_serialization -lboost_system
 
 GSSTUBGEN_FLAGS = -n
 

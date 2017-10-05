@@ -29,7 +29,14 @@
   counterVal=1
   expectedTime=60s
 
-  timeout --signal=2 $expectedTime jupyter nbconvert --execute ${base_app_dir}/test/simple.ipynb > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+  if [[ $comm == *"GAT"* ]]; then
+    echo "Running a jupyter notebook test with GAT"
+    timeout --signal=2 $expectedTime jupyter nbconvert --execute ${base_app_dir}/test/simpleGAT.ipynb > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+  else
+    echo "Running a jupyter notebook test with NIO"
+    timeout --signal=2 $expectedTime jupyter nbconvert --execute ${base_app_dir}/test/simple.ipynb > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+  fi
+
 
   #Check timeout
   if [[ "$?" = "124" ]]; then
@@ -44,7 +51,7 @@
      cp -rf ${COMPSs_log_folder}/Interactive_0${retryNum}/* ${target_log_folder}
 
      #Check result
-     ${base_app_dir}/result ${output_log} ${error_log} ${target_log_folder} ${base_app_dir}
+     ${base_app_dir}/result ${output_log} ${error_log} ${target_log_folder} ${base_app_dir} ${comm}
      exitValue=$?
   fi
 

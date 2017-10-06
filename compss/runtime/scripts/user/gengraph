@@ -24,12 +24,20 @@
     fi
   }
 
+  usage() {
+    echo "ERROR: Incorrect number of parameters"
+    echo "Usage: $(dirname $0) <dotFile>"
+    exit 1
+  }
 
   ###################################
   # MAIN CODE
   ###################################
 
   # Get input dot file
+  if [ $# -ne 1 ]; then
+    usage
+  fi
   dotGraph=$1
 
   # Check dot version

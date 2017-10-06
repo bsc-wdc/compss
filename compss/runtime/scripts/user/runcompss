@@ -120,6 +120,8 @@ show_opts() {
                                             Default: Working Directory
     --appdir=<path>			    Path for the application class folder.
 					    Default: ${DEFAULT_APPDIR}
+    --pythonpath=<path>                     Additional folders or paths to add to the PYTHONPATH
+                                            Default: ${DEFAULT_PYTHONPATH}
     --base_log_dir=<path>                   Base directory to store COMPSs log files (a .COMPSs/ folder will be created inside this location)
                                             Default: User home
     --specific_log_dir=<path>               Use a specific directory to store COMPSs log files (the folder MUST exist and no sandbox is created)
@@ -144,11 +146,12 @@ show_opts() {
                                             Default: ${DEFAULT_GPU_AFFINITY}
     --task_count=<int>                      Only for C/Python Bindings. Maximum number of different functions/methods, invoked from the application, that have been selected as tasks
                                             Default: ${DEFAULT_TASK_COUNT}
-    --pythonpath=<path>                     Additional folders or paths to add to the PYTHONPATH
-                                            Default: ${DEFAULT_PYTHONPATH}
+	--input_profile=<string>				Path to the file which stores the input application profile
+											Default: Empty
+	--output_profile=<string>				Path to the file to store the application profile at the end of the execution
+											Default: Empty 
     --PyObject_serialize=<bool>             Only for Python Binding. Enable the object serialization to string when possible (true/false).
                                             Default: $DEFAULT_PyOBJECT_SERIALIZE
-
     --persistent_worker_c=<bool>            Only for C Binding. Enable the persistent worker in c (true/false).
                                             Default: $DEFAULT_PERSISTENT_WORKER_C
 
@@ -532,6 +535,14 @@ get_args() {
             # Enable the persistent worker for C binding (only for C-binding applications)
             persistent_worker_c=$(echo $OPTARG | sed -e 's/persistent_worker_c=//g')
             ;;
+      input_profile=*)
+            # Specify the file where there is stored the tasks profiles
+            input_profile=$(echo $OPTARG | sed -e 's/input_profile=//g')
+            ;;
+      output_profile=*)
+            # Specify the file where COMPSs will store the tasks profile
+            output_profile=$(echo $OPTARG | sed -e 's/output_profile=//g')
+            ;;
 	  *)
 	    # Flag didn't match any patern. Raise exception
 	    display_error "Bad argument: $OPTARG"
@@ -870,6 +881,8 @@ ${jvm_debugger_opts}
 -Dcompss.worker.jvm_opts=${jvm_workers_opts}
 -Dcompss.worker.cpu_affinity=${worker_cpu_affinity}
 -Dcompss.worker.gpu_affinity=${worker_gpu_affinity}
+-Dcompss.profile.input=${input_profile}
+-Dcompss.profile.output=${output_profile}
 EOT
 }
 

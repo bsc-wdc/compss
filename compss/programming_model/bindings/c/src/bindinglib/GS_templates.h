@@ -1,15 +1,6 @@
 #ifndef GS_TEMPLATES_H
 #define GS_TEMPLATES_H
 
-// Uncomment the following define to get debug information.
-//#define DEBUG_BINDING
-
-#ifdef DEBUG_BINDING
-#define debug_printf(args...) printf(args)
-#else
-#define debug_printf(args...) {}
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -72,21 +63,13 @@ void compss_wait_on(T &obj) {
   debug_printf("[C-BINDING]  -  @compss_wait_on  -  template class\n");  
   debug_printf("[C-BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
 
-
-
-//  ifstream ifs(runtime_filename);
-//  archive::text_iarchive ia(ifs);
-  
-
   ifstream ifs(runtime_filename, ios::binary );  
   archive::binary_iarchive ia(ifs);
-
-
 
   ia >> obj;
   ifs.close();
 
-  cout << "file serialised in compss wait" << endl;
+  debug_printf("[C-BINDING]  -  @compss_wait_on  - File serialization finished\n");
   
   // No longer needed, the current version of the object is in memory now
   GS_Close_File(entry.filename, in_dir);
@@ -147,14 +130,11 @@ void persistent_compss_wait_on(T &obj) {
 }
 */
 
-
-
 #else
 
 template <class T> void compss_wait_on(T &obj) { }
 template <class T> void persistent_compss_wait_on(T &obj) { }
 template <> void compss_wait_on<char *>(char * &obj) { }
-
 
 #endif /* COMPSS_WORKER */
 

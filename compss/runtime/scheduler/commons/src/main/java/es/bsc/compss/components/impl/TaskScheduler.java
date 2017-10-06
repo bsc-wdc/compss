@@ -129,7 +129,7 @@ public class TaskScheduler {
         so.shutdown();
         try {
             this.updateState();
-            LOGGER.debug("Profile is: " + jsm.getString());
+            jsm.write();
         } catch (Exception e) {
             e.printStackTrace();
         }

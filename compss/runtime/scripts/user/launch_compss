@@ -1110,7 +1110,7 @@ EOT
 EOT
   fi
   cat >> ${RESOURCES_FILE} << EOT
-                <CreationTime>120</CreationTime>
+                <CreationTime>10</CreationTime>
       		<OperatingSystem>
           		<Type>Linux</Type>
           		<Distribution>SMP</Distribution>
@@ -1196,6 +1196,23 @@ EOT
                     			<Name>master_name</Name>
                     			<Value>${master_node}</Value>
                 		</Property>
+EOT
+  if [ -z "${container_image}" ]; then
+          cat >> ${PROJECT_FILE} << EOT
+                        <Property>
+                    			<Name>slurm_over_ssh</Name>
+                    			<Value>false</Value>
+                		</Property>
+EOT
+  else
+  	     cat >> ${PROJECT_FILE} << EOT
+                        <Property>
+                    			<Name>slurm_over_ssh</Name>
+                    			<Value>true</Value>
+                		</Property>
+EOT
+  fi
+  cat >> ${PROJECT_FILE} << EOT
 				<Property>
                                         <Name>master_port</Name>
                                         <Value>${master_port}</Value>
@@ -1218,7 +1235,7 @@ EOT
                                 </Property>
                 		<Property>
                     			<Name>estimated-creation-time</Name>
-                    			<Value>100</Value>
+                    			<Value>10</Value>
                 		</Property>
             		</Properties>
 		<Images>
@@ -1236,7 +1253,7 @@ EOT
 				<InstallDir>${worker_install_dir}</InstallDir>
       				<WorkingDir>${worker_working_dir}</WorkingDir>
       				<Application>
-					<AppDir>${appdir}</AppDir>
+					    <AppDir>${appdir}</AppDir>
           				<LibraryPath>${library_path}</LibraryPath>
 					<Classpath>${cp}</Classpath>
 					<Pythonpath>${pythonpath}</Pythonpath>

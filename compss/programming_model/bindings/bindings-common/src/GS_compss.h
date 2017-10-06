@@ -1,6 +1,15 @@
 #ifndef GS_COMPSS_H
 #define GS_COMPSS_H
 
+// Uncomment the following define to get debug information.
+//#define DEBUG_BINDING
+
+#ifdef DEBUG_BINDING
+#define debug_printf(args...) printf(args); fflush(stdout);
+#else
+#define debug_printf(args...) {}
+#endif
+
 /*** ==============> API FUNCTIONS <================= ***/
 extern "C" void GS_On(void);
 extern "C" void GS_Off(void);

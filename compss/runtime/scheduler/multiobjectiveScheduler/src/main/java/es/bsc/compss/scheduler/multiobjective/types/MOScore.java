@@ -4,14 +4,11 @@ import java.util.List;
 
 import es.bsc.compss.scheduler.multiobjective.MOSchedulingInformation;
 import es.bsc.compss.scheduler.multiobjective.config.MOConfiguration;
-import es.bsc.compss.scheduler.multiobjective.config.MOConfiguration.OptimizationParameter;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Score;
 
 
 public class MOScore extends Score {
-
-    private static final OptimizationParameter OPTIMIZATION_PARAM = MOConfiguration.getSchedulerOptimization();
 
     /*
      * actionScore -> task Priority resourceScore -> Expected Resource Availability expectedDataAvailable -> expected
@@ -26,6 +23,7 @@ public class MOScore extends Score {
 
     public MOScore(long taskPriority, long dataAvailability, long resourceAvailability, long execTime, double energy, double cost) {
         super(taskPriority, resourceAvailability, Math.max(resourceAvailability, dataAvailability), execTime);
+        
         expectedDataAvailable = dataAvailability;
         expectedCost = cost;
         expectedEnergy = energy;
@@ -43,7 +41,7 @@ public class MOScore extends Score {
         long ownEnd = waitingScore + implementationScore;
         long otherEnd = otherDS.waitingScore + otherDS.implementationScore;
         long diffEnd = ownEnd - otherEnd;
-        switch (OPTIMIZATION_PARAM) {
+        switch (MOConfiguration.getSchedulerOptimization()) {
             case COST:
                 if (diffCost == 0) {
                     if (diffEnd == 0) {

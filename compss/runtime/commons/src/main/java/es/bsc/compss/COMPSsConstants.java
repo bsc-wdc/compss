@@ -64,11 +64,14 @@ public class COMPSsConstants {
 
     public static final String CONSTR_FILE = "compss.constraints.file";
     public static final String SCHEDULER = "compss.scheduler";
+    public static final String SCHEDULER_CONFIG_FILE = "compss.scheduler.config";
     public static final String TRACING = "compss.tracing";
     public static final String EXTRAE_CONFIG_FILE = "compss.extrae.file";
     public static final String PRESCHED = "compss.presched";
     public static final String GRAPH = "compss.graph";
     public static final String MONITOR = "compss.monitor";
+    public static final String INPUT_PROFILE = "compss.profile.input";
+    public static final String OUTPUT_PROFILE = "compss.profile.output";
 
     public static final String WORKER_CP = "compss.worker.cp";
     public static final String WORKER_PP = "compss.worker.pythonpath";

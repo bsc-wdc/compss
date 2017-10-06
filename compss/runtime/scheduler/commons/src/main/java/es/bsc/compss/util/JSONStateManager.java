@@ -1,11 +1,23 @@
 package es.bsc.compss.util;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+
+import es.bsc.compss.log.Loggers;
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.scheduler.types.Profile;
 import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.json.JSONException;
 
@@ -35,10 +47,37 @@ public class JSONStateManager {
     // */
 
     private final JSONObject jsonRepresentation;
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
+    
+    
+    public JSONStateManager(){
+    	String objectStr = "{}";
+    	String inputProfile = System.getProperty(COMPSsConstants.INPUT_PROFILE);
+    	if (inputProfile!=null && !inputProfile.isEmpty()){
+    		LOGGER.debug("Input profile detected. Reading from file "+ inputProfile);
+    		objectStr = manageInputProfile(inputProfile);
+    	}
+  
+    	jsonRepresentation = new JSONObject(objectStr);
+    	init();
+    }
+    
+    private String manageInputProfile(String inputProfile) {
+    	File f = new File (inputProfile);
+    	try {
+            byte[] bytes = Files.readAllBytes(f.toPath());
+            return new String(bytes,"UTF-8");
+        } catch (FileNotFoundException e) {
+            ErrorManager.warn("Error loading profile. File "+ f.getAbsolutePath() + " not found. Using default values");
+            return "{}";
+        } catch (IOException e) {
+        	ErrorManager.warn("Error loading profile. Exception reading "+ f.getAbsolutePath() + ". Using default values", e);
+        	return "{}";
+        }
+		
+	}
 
-
-    public JSONStateManager() {
-        jsonRepresentation = new JSONObject(JSON_DATA);
+	private void init() {
         JSONObject resources = getJSONForResources();
         if (resources == null) {
             addResources();
@@ -195,5 +234,30 @@ public class JSONStateManager {
 
     public String getString() {
         return jsonRepresentation.toString();
+    }
+    
+    public void write(){
+    	String outputProfile = System.getProperty(COMPSsConstants.OUTPUT_PROFILE);
+    	if (outputProfile!=null && !outputProfile.isEmpty()){
+    		LOGGER.debug("Output profile detected. Writting to file "+ outputProfile);
+    		writeOutputProfile(outputProfile);
+    	}
+    }
+    
+    public void writeOutputProfile(String filename){
+    	BufferedWriter writer = null;
+    	try {
+    	    writer = new BufferedWriter( new FileWriter(filename));
+    	    writer.write(jsonRepresentation.toString());
+    	} catch ( IOException e){
+    		ErrorManager.warn("Error loading profile. Exception reading "+ filename + ".",e);
+    	} finally {
+    	    try {
+    	        if ( writer != null)
+    	        writer.close( );
+    	    } catch ( IOException e){
+    	    	//Nothing to do
+    	    }
+    	}
     }
 }

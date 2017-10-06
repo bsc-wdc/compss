@@ -18,7 +18,7 @@ public class Main {
 
     private static final String[] lines = {"Executing decaf data-flow generator: "+System.getenv("PWD")+"/decaf/test.py ",
         "Executing python script.", "Executing decaf data-flow: ./test.sh", "Executing binary"};
-    
+    private static final String endLine0 = ".decafHostfile --args=";
 
 
     public static void main(String[] args) {
@@ -39,13 +39,13 @@ public class Main {
 
         // ------------------------------------------------------------------------
         System.out.println("[LOG] Test Decaf with 1 node");
-        testDecafSingleNode();
+        testDecafSingleNode("argument1", 2);
 
         System.out.println("[LOG] Test Decaf with 2 node");
-        testDecafMultipleNodes();
+        testDecafMultipleNodes("argument1", 2);
 
 	System.out.println("[LOG] Test Concurrent Decaf with 2 node");
-        testDecafConcurrentMultipleNodes();
+        testDecafConcurrentMultipleNodes("argument1", 2);
 
         // ------------------------------------------------------------------------
         System.out.println("[LOG] Decaf Test finished");
@@ -58,9 +58,9 @@ public class Main {
         System.exit(1);
     }
 
-    private static void testDecafSingleNode() {
+    private static void testDecafSingleNode(String arg1, int arg2) {
         String outputFile = "decafSingleOutput.txt";
-        int ev = DECAF.taskSingleDecaf(outputFile);
+        int ev = DECAF.taskSingleDecaf(arg1, arg2, outputFile);
 
         if (ev != 0) {
             System.err.println("[ERROR] Process returned non-zero exit value: " + ev);
@@ -72,7 +72,7 @@ public class Main {
             while ((line = br.readLine()) != null) { 
                 if (lineNum<lines.length){
                 	//System.out.println("[RESULT] Decaf Task1: " + line);
-                	checkLine(lineNum, 1 , 2, line);
+                	checkLine(lineNum, 1 , 2, arg1 + " " + arg2 , line);
                 	lineNum++;
                 }else{
                 	System.err.println("[ERROR] Process returned a file with more than "+ lines.length +" lines ");
@@ -86,7 +86,7 @@ public class Main {
         System.out.println("[LOG] Result must be checked on result script");
     }
 
-    private static void checkLine(int lineNum, int nodes, int tasks, String line) {
+    private static void checkLine(int lineNum, int nodes, int tasks, String arguments, String line) {
     	String hostname = "localhost";
     	try {
             hostname = InetAddress.getLocalHost().getHostName();
@@ -95,52 +95,18 @@ public class Main {
         }
     	
     	if (lineNum==0){
-			/* OLD Version
-			if (nodes == 1 && tasks ==2){
-				String alt1=lines[0] + "COMPSsWorker01,COMPSsWorker01 -n 2";
-				String alt2=lines[0] + "COMPSsWorker02,COMPSsWorker02 -n 2";
-				String alt3=lines[0] + hostname + ","+hostname+" -n 2";
-				if (!line.equals(alt1) && !line.equals(alt2) && !line.equals(alt3)){
-					System.err.println("[ERROR] line 0 is not correct for 1,2: \""+line+"\" options are: \""+alt1+","+alt2+"\"");
-					System.exit(1);
-				}
-			}else if (nodes == 2 && tasks == 4){
-				String alt1=lines[0]+"COMPSsWorker01,COMPSsWorker01,COMPSsWorker02,COMPSsWorker02 -n 4";
-				String alt2=lines[0]+"COMPSsWorker02,COMPSsWorker02,COMPSsWorker01,COMPSsWorker01 -n 4";
-				String alt3=lines[0]+hostname+","+hostname+",COMPSsWorker02,COMPSsWorker02 -n 4";
-				String alt4=lines[0]+hostname+","+hostname+",COMPSsWorker01,COMPSsWorker01 -n 4";
-				String alt5=lines[0]+"COMPSsWorker02,COMPSsWorker02,"+hostname+","+hostname+" -n 4";
-				String alt6=lines[0]+"COMPSsWorker01,COMPSsWorker01,"+hostname+","+hostname+" -n 4";
-				if (!line.equals(alt1) && !line.equals(alt2) && !line.equals(alt3) && !line.equals(alt4) 
-						&& !line.equals(alt5) && !line.equals(alt6)){
-					System.err.println("[ERROR] line 0 is not correct for 2,4: \""+line+"\" options are: \""+alt1+","+alt2+"\"");
-					System.exit(1);
-				}
-			}else if (nodes == 2 && tasks == 2){
-				String alt1=lines[0]+"COMPSsWorker01,COMPSsWorker01 -n 2";
-				String alt2=lines[0]+"COMPSsWorker02,COMPSsWorker02 -n 2";
-				String alt3=lines[0]+"COMPSsWorker01,COMPSsWorker02 -n 2";
-				String alt4=lines[0]+"COMPSsWorker02,COMPSsWorker01 -n 2";
-				String alt5=lines[0]+ hostname +",COMPSsWorker01 -n 2";
-				String alt6=lines[0]+ hostname +",COMPSsWorker02 -n 2";
-				String alt7=lines[0]+ "COMPSsWorker01,"+ hostname +" -n 2";
-				String alt8=lines[0]+ "COMPSsWorker02,"+ hostname +" -n 2";
-				if (!line.equals(alt1) && !line.equals(alt2) && !line.equals(alt3) && !line.equals(alt4)
-						&& !line.equals(alt5) && !line.equals(alt6)&& !line.equals(alt7) && !line.equals(alt8)){
-					System.err.println("[ERROR] line 0 is not correct for 2 , 2 : \""+line+"\" options are: \""+alt1+"\n"+alt2+"\n"+alt3+"\n"+alt4+
-							"\n"+alt5+"\n"+alt6+"\n"+alt7+"\n"+alt8+"\"");
-					System.exit(1);
-				}
-			}else{
-				System.err.println("[ERROR] incorrect number of nodes or tasks (nodes: "+nodes+", tasks: "+tasks+")");
-				System.exit(1);
-			}*/
-			// New version
-                        String alt1=lines[0] + "-n "+ tasks;
-                        if (!line.equals(alt1)){
-                                System.err.println("[ERROR] line 0 is not correct : \""+line+"\" options is: \""+alt1+"\"");
-                                System.exit(1);
-                        }
+    		String startLine=lines[0] + "-n "+ tasks + " --hostfile ";
+    		String endLine= endLine0 + "\""+arguments+"\"";
+    		if (!line.startsWith(startLine)){
+    			System.err.println("[ERROR] line 0 is not starting correctly : \""+line+
+    					"\" options is: \""+startLine+"\"");
+    			System.exit(1);
+    		}
+    		if (!line.endsWith(endLine)){
+    			System.err.println("[ERROR] line 0 is not ending correctly : \""+line+
+    					"\" options is: \""+endLine+"\"");
+    			System.exit(1);
+    		}
 
 		}else{
 			if (!line.equals(lines[lineNum])){
@@ -150,9 +116,9 @@ public class Main {
 		}
 	}
 
-	private static void testDecafMultipleNodes() {
+	private static void testDecafMultipleNodes(String arg1, int arg2) {
         String outputFile = "decafMultipleOutput.txt";
-        Integer ev = DECAF.taskMultipleDecaf(outputFile);
+        Integer ev = DECAF.taskMultipleDecaf(arg1, arg2, outputFile);
 
         if (ev != 0) {
             System.err.println("[ERROR] Process returned non-zero exit value: " + ev);
@@ -164,7 +130,7 @@ public class Main {
             while ((line = br.readLine()) != null) {
                 if (lineNum<lines.length){
                 	//System.out.println("[RESULT] Decaf Task1: " + line);
-                	checkLine(lineNum, 2 , 4, line);
+                	checkLine(lineNum, 2 , 4, arg1 + " " + arg2, line);
                 	lineNum++;
                 }else{
                 	System.err.println("[ERROR] Process returned a file with more than "+ lines.length +" lines ");
@@ -178,11 +144,11 @@ public class Main {
         System.out.println("[LOG] Result must be checked on result script");
     }
 
-    private static void testDecafConcurrentMultipleNodes() {
+    private static void testDecafConcurrentMultipleNodes(String arg1, int arg2) {
         String outputFile1 = "decafMultipleOutput1.txt";
         String outputFile2 = "decafMultipleOutput2.txt";
-        Integer ev1 = DECAF.taskConcurrentMultipleDecaf(outputFile1);
-        Integer ev2 = DECAF.taskConcurrentMultipleDecaf(outputFile2);
+        Integer ev1 = DECAF.taskConcurrentMultipleDecaf(arg1, arg2, outputFile1);
+        Integer ev2 = DECAF.taskConcurrentMultipleDecaf(arg1, arg2, outputFile2);
 
         if (ev1 != 0 || ev2 != 0) {
             System.err.println("[ERROR] One process returned non-zero exit value: " + ev1 + " or " + ev2);
@@ -194,7 +160,7 @@ public class Main {
             while ((line = br.readLine()) != null) {
                 if (lineNum<lines.length){
                 	//System.out.println("[RESULT] Decaf Task1: " + line);
-                	checkLine(lineNum, 2 , 2, line);
+                	checkLine(lineNum, 2 , 2, arg1 + " " + arg2, line);
                 	lineNum++;
                 }else{
                 	System.err.println("[ERROR] Process returned a file with more than "+ lines.length +" lines ");
@@ -211,7 +177,7 @@ public class Main {
             while ((line = br.readLine()) != null) {
                 if (lineNum<lines.length){
                 	//System.out.println("[RESULT] Decaf Task1: " + line);
-                	checkLine(lineNum, 2 , 2, line);
+                	checkLine(lineNum, 2 , 2, arg1 + " " + arg2, line);
                 	lineNum++;
                 }else{
                 	System.err.println("[ERROR] Process returned a file with more than "+ lines.length +" lines ");

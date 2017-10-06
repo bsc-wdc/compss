@@ -1,12 +1,15 @@
 package es.bsc.compss.worker.invokers;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.Stream;
-
+import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.worker.invokers.BinaryRunner.StreamSTD;
 
 public class GenericInvoker {
@@ -14,7 +17,7 @@ public class GenericInvoker {
 	private static final int NUM_BASE_MPI_ARGS = 6;
 	private static final int NUM_BASE_OMPSS_ARGS = 1;
 	private static final int NUM_BASE_BINARY_ARGS = 1;
-	private static final int NUM_BASE_DECAF_ARGS = 7;
+	private static final int NUM_BASE_DECAF_ARGS = 10;
 	private static final String OMP_NUM_THREADS = "OMP_NUM_THREADS";
 
 	public static Object invokeMPIMethod(String mpiRunner, String mpiBinary,
@@ -105,32 +108,34 @@ public class GenericInvoker {
 		StreamSTD streamValues = new StreamSTD();
 		ArrayList<String> binaryParams = BinaryRunner
 		        .createCMDParametersFromValues(values, streams, prefixes, streamValues);
-
+		String hostfile = writeHostfile(taskSandboxWorkingDir, workers);
 		// Prepare command
-		String[] cmd = new String[NUM_BASE_DECAF_ARGS + binaryParams.size()];
+		String[] cmd = new String[NUM_BASE_DECAF_ARGS];
 		cmd[0] = dfRunner;
 		cmd[1] = dfScript;
 		cmd[2] = dfExecutor;
 		cmd[3] = dfLib;
 		cmd[4] = mpiRunner;
 		cmd[5] = "-n";
-                cmd[6] = numProcs;
-                /* Version With hosts
-                 * cmd[5] = "-H";
-                 * cmd[6] = workers;
-                 * cmd[7] = "-n";
-                 * cmd[8] = numProcs;
-                 */
-
+        cmd[6] = numProcs;
+        cmd[7] = "--hostfile";
+        cmd[8] = hostfile;
+        
+        String args = new String();
 		for (int i = 0; i < binaryParams.size(); ++i) {
-			cmd[NUM_BASE_DECAF_ARGS + i] = binaryParams.get(i);
+		   if (i ==0){
+			   args = args.concat(binaryParams.get(i));
+		   }else{
+			   args = args.concat(" "+binaryParams.get(i));
+		   }
 		}
-
+		cmd[9] = "--args=\""+args+"\"";
+		
 		// Prepare environment
 		System.setProperty(OMP_NUM_THREADS, computingUnits);
 
 		// Debug command
-		System.out.print("[DECAF INVOKER] MPI CMD: ");
+		System.out.print("[DECAF INVOKER] Decaf CMD: ");
 		for (int i = 0; i < cmd.length; ++i) {
 			System.out.print(cmd[i] + " ");
 		}
@@ -142,6 +147,26 @@ public class GenericInvoker {
 		// Launch command
 		return BinaryRunner.executeCMD(cmd, hasReturn, streamValues,
 		        taskSandboxWorkingDir);
+	}
+
+	private static String writeHostfile(File taskSandboxWorkingDir,
+			String workers) throws InvokeExecutionException {
+		String filename = taskSandboxWorkingDir.getAbsolutePath()+File.separator+".decafHostfile";
+		BufferedWriter writer = null;
+    	try {
+    	    writer = new BufferedWriter( new FileWriter(filename));
+    	    writer.write(workers);
+    	} catch ( IOException e){
+    		throw new InvokeExecutionException("Error writing decaf hostfile", e);
+    	} finally {
+    	    try {
+    	        if ( writer != null)
+    	        	writer.close( );
+    	    } catch ( IOException e){
+    	    	//Nothing to do
+    	    }
+    	}
+		return filename;
 	}
 
 	public static Object invokeOmpSsMethod(String ompssBinary, Object[] values,

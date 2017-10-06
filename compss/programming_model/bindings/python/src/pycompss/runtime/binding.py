@@ -694,7 +694,7 @@ def infer_types_and_serialize_objects(spec_args, first_par, num_pars,
         # Convert small objects to string if object_conversion enabled
         # Check if the object is small in order not to serialize it.
         if object_conversion:
-            p, bytes = convert_object_to_string(p, is_future, max_obj_arg_size, policy='objectSize')
+            p, bytes = convert_object_to_string(p, is_future.get(i), max_obj_arg_size, policy='objectSize')
             max_obj_arg_size -= bytes
 
         # Serialize objects into files
@@ -766,13 +766,14 @@ def convert_object_to_string(p, is_future, max_obj_arg_size,
                    of the object serialized.
     :return: the object possibly converted to string
     '''
+    bytes = 0
     if policy == 'objectSize':
         # Check if the object is small in order to serialize it.
         # This alternative evaluates the size of the object before
         # serializing the object.
         # Warning: calculate the size of a python object can be difficult
         # in terms of time and precision
-        if (p.type == TYPE.OBJECT or p.type == TYPE.STRING) and not is_future.get(i) and p.direction == DIRECTION.IN:
+        if (p.type == TYPE.OBJECT or p.type == TYPE.STRING) and not is_future and p.direction == DIRECTION.IN:
             if not isinstance(p.value, basestring) and isinstance(p.value, (list, dict, tuple, deque, set, frozenset)):
                 # check object size
                 # bytes = sys.getsizeof(p.value)  # does not work properly with recursive object
@@ -785,9 +786,8 @@ def convert_object_to_string(p, is_future, max_obj_arg_size,
                     logger.debug('The object size is less than 320 kb.')
                     real_value = p.value
                     try:
-                        v = serialize_to_string(p.value)  # can not use protocol=HIGHEST_PROTOCOL due to it is sent as a parameter
-                        v = '\'' + v + '\''
-                        p.value = v
+                        v = serialize_to_string(p.value)
+                        p.value = v.encode('string_escape')
                         p.type = TYPE.STRING
                         logger.debug('Inferred type modified (Object converted to String).')
                     except SerializerException:
@@ -803,14 +803,15 @@ def convert_object_to_string(p, is_future, max_obj_arg_size,
                     # if max_obj_arg_size > 320000:
                     #     max_obj_arg_size = 320000
     elif policy == 'serializedSize':
+        from cPickle import PicklingError
         # Check if the object is small in order to serialize it.
         # This alternative evaluates the size after serializing the parameter
-        if (p.type == TYPE.OBJECT or p.type == TYPE.STRING) and not is_future.get(i) and p.direction == DIRECTION.IN:
+        if (p.type == TYPE.OBJECT or p.type == TYPE.STRING) and not is_future and p.direction == DIRECTION.IN:
             if not isinstance(p.value, basestring):
                 real_value = p.value
                 try:
-                    v = dumps(p.value)  # can not use protocol=HIGHEST_PROTOCOL due to it is passed as a parameter
-                    v = '\'' + v + '\''
+                    v = serialize_to_string(p.value)
+                    v = v.encode('string_escape')
                     # check object size
                     bytes = sys.getsizeof(v)
                     megabytes = bytes / 1000000  # truncate

@@ -147,7 +147,7 @@ def compss_worker(persistent_storage):
             real_value = aux
             try:
                 # try to recover the real object
-                aux = deserialize_from_string(aux)
+                aux = deserialize_from_string(aux.decode('string_escape'))
             except (SerializerException, ValueError, EOFError):
                 # was not an object
                 aux = real_value

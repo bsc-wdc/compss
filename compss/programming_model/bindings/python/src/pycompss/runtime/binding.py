@@ -22,8 +22,6 @@ PyCOMPSs Binding - Binding
 from pycompss.api.parameter import Parameter
 from pycompss.api.parameter import TYPE
 from pycompss.api.parameter import DIRECTION
-from pycompss.api.parameter import STREAM
-from pycompss.api.parameter import PREFIX
 from pycompss.api.parameter import JAVA_MIN_INT, JAVA_MAX_INT
 from pycompss.api.parameter import JAVA_MIN_LONG, JAVA_MAX_LONG
 from pycompss.util.serializer import *
@@ -31,12 +29,12 @@ from pycompss.util.sizer import total_sizeof
 
 import types
 import os
-import sys
 import re
 import uuid
 import inspect
 import logging
 import traceback
+
 from collections import *
 from shutil import rmtree
 

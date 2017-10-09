@@ -29,7 +29,10 @@ import traceback
 from exceptions import ValueError
 
 from pycompss.api.parameter import TYPE, JAVA_MAX_INT, JAVA_MIN_INT
-from pycompss.util.serializer import serialize_to_file, deserialize_from_file, deserialize_from_string, SerializerException
+from pycompss.util.serializer import serialize_to_file
+from pycompss.util.serializer import deserialize_from_file
+from pycompss.util.serializer import deserialize_from_string
+from pycompss.util.serializer import SerializerException
 from pycompss.util.logs import init_logging_worker
 
 SYNC_EVENTS = 8000666
@@ -175,7 +178,7 @@ def compss_worker(persistent_storage):
         # elif (pType == TYPE.OBJECT):
         #    pass
         else:
-            logger.fatal("Invalid type (%d) for parameter %d" % (ptype, i))
+            logger.fatal("Invalid type (%d) for parameter %d" % (pType, i))
             exit(1)
         pos += 4
 

@@ -27,7 +27,6 @@ import pycompss.runtime.binding as binding
 from pycompss.runtime.core_element import CE
 from pycompss.util.serializer import serialize_objects
 from pycompss.util.serializer import deserialize_from_file
-from pycompss.util.serializer import deserialize_from_string
 from pycompss.util.interactiveHelpers import updateTasksCodeFile
 from pycompss.util.location import i_am_at_master
 from functools import wraps

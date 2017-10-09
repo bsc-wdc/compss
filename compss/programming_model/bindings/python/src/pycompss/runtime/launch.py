@@ -31,9 +31,8 @@ from pycompss.runtime.binding import get_log_path
 from pycompss.util.logs import init_logging
 from pycompss.util.jvm_parser import convert_to_dict
 from pycompss.util.serializer import SerializerException
-from pycompss.util.object_properties import is_module_available
 from pycompss.util.optional_modules import show_optional_module_warnings
-from random import randint
+
 
 app_path = None
 

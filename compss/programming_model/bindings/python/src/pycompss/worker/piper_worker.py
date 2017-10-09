@@ -25,14 +25,17 @@ import os
 import signal
 import sys
 import traceback
-import thread_affinity
 from exceptions import ValueError
-from multiprocessing import Process, Queue, Pipe
+from multiprocessing import Process
+from multiprocessing import Queue
 import thread_affinity
 
 from pycompss.api.parameter import TYPE
 from pycompss.api.parameter import JAVA_MIN_INT, JAVA_MAX_INT
-from pycompss.util.serializer import serialize_to_file, deserialize_from_file, deserialize_from_string, SerializerException
+from pycompss.util.serializer import serialize_to_file
+from pycompss.util.serializer import deserialize_from_file
+from pycompss.util.serializer import deserialize_from_string
+from pycompss.util.serializer import SerializerException
 from pycompss.util.logs import init_logging_worker
 
 SYNC_EVENTS = 8000666

@@ -198,8 +198,6 @@ def start(log_level='off',
         # set cross-module variable
         binding.object_conversion = False
 
-    # Enable or disable the use of mmap
-    # serializer.mmap_file_storage = False
     # Remove launch.py, log_level and object_conversion from sys.argv,
     # It will be inherited by the app through execfile
     # sys.argv = sys.argv[3:]

@@ -166,11 +166,10 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
                                 comm='NIO',
                                 conn='',
                                 masterName='',
-                                masterPort='43000',
-                                scheduler='es.bsc.compss.scheduler.resourceEmptyScheduler.ResourceEmptyScheduler',
+                                masterPort='',
+                                scheduler='es.bsc.compss.scheduler.loadBalancingScheduler.LoadBalancingScheduler',
                                 jvmWorkers='-Xms1024m,-Xmx1024m,-Xmn400m',
                                 obj_conv=False,
-                                mmap_files=False,
                                 cpuAffinity='automatic',
                                 gpuAffinity='automatic',
                                 profileInput='',
@@ -188,8 +187,6 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
 
     # Enable/Disable object to string conversion
     binding.object_conversion = obj_conv
-    # Enable/Disable the use of mmap when serializing.
-    binding.mmap_file_storage = mmap_files
 
     # Get the filename and its path.
     file_name = os.path.splitext(os.path.basename(app))[0]

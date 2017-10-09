@@ -74,7 +74,7 @@ public final class StorageItf {
             String line;
             while ((line = br.readLine()) != null) {
                 hosts.add(line.trim());
-                System.out.println("Adding " + line.trim() + " to list of known hosts...");
+                LOGGER.info("Adding " + line.trim() + " to list of known hosts...");
             }
         } catch (FileNotFoundException e) {
             throw new StorageException("Could not find configuration file", e);
@@ -82,12 +82,14 @@ public final class StorageItf {
             throw new StorageException("Could not open configuration file", e);
         }
         assert(!hosts.isEmpty());
-        try {
+        clusterMode = hosts.size() > 1;
+        if(clusterMode) {
+            LOGGER.info("More than one host detected, enabling Client Cluster Mode");
             // TODO: Ask Jedis guys why JedisCluster needs a HostAndPort and why Jedis needs a String and an Integer
             redisClusterConnection = new JedisCluster(new HostAndPort(hosts.get(0), REDIS_PORT));
-        } catch (JedisDataException e) {
-            LOGGER.info("[LOG]: Failed to establish a connection in cluster mode, switching to standalone...");
-            clusterMode = false;
+        }
+        else {
+            LOGGER.info("Only one host detect, using standalone client...");
             JedisPoolConfig poolConfig = new JedisPoolConfig();
             poolConfig.setMaxTotal(REDIS_MAX_CLIENTS);
             redisConnection = new JedisPool(poolConfig, hosts.get(0), REDIS_PORT);

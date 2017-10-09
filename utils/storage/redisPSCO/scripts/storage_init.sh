@@ -174,6 +174,9 @@
     fi
   }
 
+  # Default values
+  # The idea is to replace these values by the desired ones in the --storage_conf file
+  # The values below form a valid sample configuration anyway
   REDIS_PORT=6379
   REDIS_NODE_TIMEOUT=5000
   REDIS_REPLICAS=0
@@ -187,9 +190,6 @@
   # MAIN FUNCTIONS
   #---------------------------------------------------------
   REDIS_TEMPLATE="bind 0.0.0.0\nport REDIS_PORT\ncluster-enabled yes\ncluster-config-file nodes.conf\ncluster-node-timeout REDIS_NODE_TIMEOUT\nappendonly yes"
-  # Default values
-  # The idea is to replace these values by the desired ones in the --storage_conf file
-  # The values below form a valid sample configuration anyway
   REDIS_HOME=/tmp/redis_cluster/${jobId}
 
   STORAGE_HOME=$(dirname $0)/../

@@ -157,20 +157,25 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
                                 summary=False,
                                 taskExecution='compss',
                                 storageConf=None,
-                                taskCount=50,
+                                coreCount=50,
                                 appName=None,
                                 uuid=None,
                                 baseLogDir=None,
                                 specificLogDir=None,
                                 extraeCfg=None,
                                 comm='NIO',
-                                conn='es.bsc.compss.connectors.DefaultSSHConnector',
+                                conn='',
                                 masterName='',
                                 masterPort='43000',
                                 scheduler='es.bsc.compss.scheduler.resourceEmptyScheduler.ResourceEmptyScheduler',
                                 jvmWorkers='-Xms1024m,-Xmx1024m,-Xmn400m',
                                 obj_conv=False,
-                                mmap_files=False):
+                                mmap_files=False,
+                                cpuAffinity='automatic',
+                                gpuAffinity='automatic',
+                                profileInput='',
+                                profileOutput=''
+                                ):
     global app_path
     launchPath = os.path.dirname(os.path.abspath(__file__))
     # compss_home = launchPath without the last 4 folders:
@@ -207,7 +212,7 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
     config['summary'] = summary
     config['taskExecution'] = taskExecution
     config['storageConf'] = storageConf
-    config['taskCount'] = taskCount
+    config['coreCount'] = coreCount
     if appName is None:
         config['appName'] = file_name
     else:
@@ -228,6 +233,10 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
     config['classpath'] = classpath
     config['jvmWorkers'] = jvmWorkers
     config['pythonPath'] = pythonpath
+    config['cpuAffinity'] = cpuAffinity
+    config['gpuAffinity'] = gpuAffinity
+    config['profileInput'] = profileInput
+    config['profileOutput'] = profileOutput
 
     initialize_compss(config)
 
@@ -272,14 +281,14 @@ def initialize_compss(config):
     WARNING!!! if new parameters are included in the runcompss launcher,
     they have to be considered in this configuration. Otherwise, the runtime will not start.
     * Current required parameters:
-        - 'compss_home'        = <String>       = COMPSs installation path
+        - 'compss_home'    = <String>       = COMPSs installation path
         - 'debug'          = <Boolean>      = Enable/Disable debugging (True|False)
         - 'project_xml'    = <String>       = Specific project.xml path
         - 'resources_xml'  = <String>       = Specific resources.xml path
         - 'summary'        = <Boolean>      = Enable/Disable summary (True|False)
         - 'taskExecution'  = <String>       = Who performs the task execution (normally "compss")
         - 'storageConf'    = None|<String>  = Storage configuration file path
-        - 'taskCount'      = <Integer>      = Number of tasks (for structure initialization purposes)
+        - 'coreCount'      = <Integer>      = Number of tasks (for structure initialization purposes)
         - 'appName'        = <String>       = Application name
         - 'uuid'           = None|<String>  = Application UUID
         - 'baseLogDir'     = None|<String>  = Base log path
@@ -297,8 +306,10 @@ def initialize_compss(config):
         - 'classpath'      = <String>       = CLASSPATH environment variable contents
         - 'pythonPath'     = <String>       = PYTHONPATH environment variable contents
         - 'jvmWorkers'     = <String>       = Worker's jvm configuration (example: "-Xms1024m,-Xmx1024m,-Xmn400m")
-        - 'cpuAffinity'
-        - 'gpuAffinity'
+        - 'cpuAffinity'    = <String>       = (default: automatic)
+        - 'gpuAffinity'    = <String>       = (default: automatic)
+        - 'profileInput'   = <String>       = profiling input
+        - 'profileOutput'  = <String>       = profiling output
     :param config: Configuration parameters dictionary
     '''
     from tempfile import mkstemp
@@ -332,10 +343,13 @@ def initialize_compss(config):
     else:
         jvm_options_file.write('-Dcompss.storage.conf=' + config['storageConf'] + '\n')
 
+    jvm_options_file.write('-Dcompss.core.count=' + str(config['coreCount']) + '\n')
+
     jvm_options_file.write('-Dcompss.appName=' + config['appName'] + '\n')
 
     if config['uuid'] is None:
-        myUuid = str(randint(0, 1000))
+        import uuid
+        myUuid = str(uuid.uuid4())
     else:
         myUuid = config['uuid']
 
@@ -390,12 +404,18 @@ def initialize_compss(config):
     jvm_options_file.write('-Dcompss.masterPort=' + config['masterPort'] + '\n')
     jvm_options_file.write('-Dcompss.scheduler=' + config['scheduler'] + '\n')
     jvm_options_file.write('-Dgat.adaptor.path=' + config['compss_home'] + '/Dependencies/JAVA_GAT/lib/adaptors\n')
+    if config['debug']:
+        jvm_options_file.write('-Dgat.debug=true\n')
+    else:
+        jvm_options_file.write('-Dgat.debug=false\n')
     jvm_options_file.write('-Dgat.broker.adaptor=sshtrilead\n')
     jvm_options_file.write('-Dgat.file.adaptor=sshtrilead\n')
-    jvm_options_file.write('-Dcompss.worker.cp=' + config['cp'] + ':' + config['classpath'] + '\n')
+    jvm_options_file.write('-Dcompss.worker.cp=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config['classpath'] + '\n')
     jvm_options_file.write('-Dcompss.worker.jvm_opts=' + config['jvmWorkers'] + '\n')
     jvm_options_file.write('-Dcompss.worker.cpu_affinity=' + config['cpuAffinity'] + '\n')
     jvm_options_file.write('-Dcompss.worker.gpu_affinity=' + config['gpuAffinity'] + '\n')
+    jvm_options_file.write('-Dcompss.profile.input=' + config['profileInput'] + '\n')
+    jvm_options_file.write('-Dcompss.profile.output=' + config['profileOutput'] + '\n')
     jvm_options_file.write('-Djava.class.path=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config['classpath'] + '\n')
     jvm_options_file.write('-Dcompss.worker.pythonpath=' + config['cp'] + ':' + config['pythonPath'] + '\n')
     jvm_options_file.close()

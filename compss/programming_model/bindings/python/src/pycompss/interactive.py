@@ -56,7 +56,7 @@ def start(log_level='off',
           summary=False,
           taskExecution='compss',
           storageConf=None,
-          taskCount=50,
+          coreCount=50,
           appName='Interactive',
           uuid=None,
           baseLogDir=None,
@@ -68,9 +68,11 @@ def start(log_level='off',
           masterPort='',
           scheduler='es.bsc.compss.scheduler.loadBalancingScheduler.LoadBalancingScheduler',
           jvmWorkers='-Xms1024m,-Xmx1024m,-Xmn400m',
-          verbose=False,
           cpuAffinity='automatic',
-          gpuAffinity='automatic'
+          gpuAffinity='automatic',
+          profileInput='',
+          profileOutput='',
+          verbose=False
           ):
     launchPath = os.path.dirname(os.path.abspath(__file__))
     # compss_home = launchPath without the last 3 folders:
@@ -94,8 +96,10 @@ def start(log_level='off',
         trace = 0
     elif trace == 'basic' or trace is True:
         trace = 1
+        os.environ['LD_PRELOAD'] = extrae_lib + '/libpttrace.so'
     elif trace == 'advanced':
         trace = 2
+        os.environ['LD_PRELOAD'] = extrae_lib + '/libpttrace.so'
     else:
         print 'ERROR: Wrong tracing parameter ( [ True | basic ] | \
                advanced | False)'
@@ -152,7 +156,7 @@ def start(log_level='off',
     config['summary'] = summary
     config['taskExecution'] = taskExecution
     config['storageConf'] = storageConf
-    config['taskCount'] = taskCount
+    config['coreCount'] = coreCount
     if appName is None:
         config['appName'] = 'Interactive'
     else:
@@ -175,6 +179,8 @@ def start(log_level='off',
     config['pythonPath'] = pythonPath
     config['cpuAffinity'] = cpuAffinity
     config['gpuAffinity'] = gpuAffinity
+    config['profileInput'] = profileInput
+    config['profileOutput'] = profileOutput
 
     initialize_compss(config)
 
@@ -224,8 +230,9 @@ def start(log_level='off',
     printSetup(verbose,
                log_level, o_c, debug, graph, trace, monitor,
                project_xml, resources_xml, summary, taskExecution, storageConf,
-               taskCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
-               comm, conn, masterName, masterPort, scheduler, jvmWorkers)
+               coreCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
+               comm, conn, masterName, masterPort, scheduler, jvmWorkers,
+               cpuAffinity, gpuAffinity, profileInput, profileOutput)
 
     logger.debug("--- START ---")
     logger.debug("PyCOMPSs Log path: %s" % log_path)
@@ -244,8 +251,9 @@ def start(log_level='off',
 
 def printSetup(verbose, log_level, o_c, debug, graph, trace, monitor,
                project_xml, resources_xml, summary, taskExecution, storageConf,
-               taskCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
-               comm, conn, masterName, masterPort, scheduler, jvmWorkers):
+               coreCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
+               comm, conn, masterName, masterPort, scheduler, jvmWorkers,
+               cpuAffinity, gpuAffinity, profileInput, profileOutput):
     logger = logging.getLogger("pycompss.runtime.launch")
     output = ""
     output += "******************************************************\n"
@@ -261,7 +269,7 @@ def printSetup(verbose, log_level, o_c, debug, graph, trace, monitor,
     output += "  - Summary           : " + str(summary) + "\n"
     output += "  - Task execution    : " + str(taskExecution) + "\n"
     output += "  - Storage conf.     : " + str(storageConf) + "\n"
-    output += "  - Task count        : " + str(taskCount) + "\n"
+    output += "  - Core count        : " + str(coreCount) + "\n"
     output += "  - Application name  : " + str(appName) + "\n"
     output += "  - UUID              : " + str(uuid) + "\n"
     output += "  - Base log dir.     : " + str(baseLogDir) + "\n"
@@ -273,6 +281,10 @@ def printSetup(verbose, log_level, o_c, debug, graph, trace, monitor,
     output += "  - Master port       : " + str(masterPort) + "\n"
     output += "  - Scheduler         : " + str(scheduler) + "\n"
     output += "  - JVM Workers       : " + str(jvmWorkers) + "\n"
+    output += "  - CPU affinity      : " + str(cpuAffinity) + "\n"
+    output += "  - GPU affinity      : " + str(gpuAffinity) + "\n"
+    output += "  - Profile input     : " + str(profileInput) + "\n"
+    output += "  - Profile output    : " + str(profileOutput) + "\n"
     output += "******************************************************"
     if verbose:
         print output

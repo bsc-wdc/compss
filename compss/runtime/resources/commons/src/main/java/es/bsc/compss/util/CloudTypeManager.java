@@ -6,6 +6,7 @@ import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -109,7 +110,7 @@ public class CloudTypeManager {
         for (CloudInstanceTypeDescription type : types.values()) {
             int[][] slotsI = new int[coreCount][];
             // Copy actual values
-            int[] slotsC = type.getSlotsCore().clone();
+            int[] slotsC = Arrays.copyOf(type.getSlotsCore(),coreCount);
             for (int i = 0; i < type.getSlotsImplLength(); ++i) {
                 int[] slotsImpl = type.getSpecificSlotsImpl(i);
                 slotsI[i] = slotsImpl.clone();

@@ -22,6 +22,7 @@ import es.bsc.compss.types.resources.updates.PendingReduction;
 import es.bsc.compss.types.resources.updates.PerformedIncrease;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -266,11 +267,27 @@ public class ResourceManager {
      */
     public static void coreElementUpdates(List<Integer> updatedCores) {
         synchronized (pool) {
+        	
             pool.coreElementUpdates(updatedCores);
             cloudManager.newCoreElementsDetected(updatedCores);
+            updateMaxConcurrentTasks(updatedCores);
+            
         }
     }
+    
+    private static void updateMaxConcurrentTasks(List<Integer> updatedCores){
+    	poolCoreMaxConcurrentTasks = Arrays.copyOf(poolCoreMaxConcurrentTasks, CoreManager.getCoreCount());
+    	List<Worker<? extends WorkerResourceDescription>> workers = pool.findAllResources();
+		for (Integer coreId : updatedCores) {
+			int total = 0;
+			for (Worker<? extends WorkerResourceDescription> w : workers) {
+				int[] maxTaskCount = w.getSimultaneousTasks();
+				total += maxTaskCount[coreId];
+			}
+			poolCoreMaxConcurrentTasks[coreId] = total;
 
+		}
+    }
     /*
      ********************************************************************
      ********************************************************************
@@ -495,13 +512,15 @@ public class ResourceManager {
      */
     public static int[] getTotalSlots() {
         int[] counts = new int[CoreManager.getCoreCount()];
-        int[] cloudCount = cloudManager.getPendingCoreCounts();
-        synchronized (pool) {
-        	for (int i = 0; i < counts.length; i++) {
-        		if ( i<cloudCount.length ){
-        			counts[i] = poolCoreMaxConcurrentTasks[i] + cloudCount[i];
-        		}else {
-        			counts[i] = poolCoreMaxConcurrentTasks[i];
+        if (CoreManager.getCoreCount()>0){
+        	int[] cloudCount = cloudManager.getPendingCoreCounts();
+        	synchronized (pool) {
+        		for (int i = 0; i < counts.length; i++) {
+        			if ( i<cloudCount.length ){
+        				counts[i] = poolCoreMaxConcurrentTasks[i] + cloudCount[i];
+        			}else {
+        				counts[i] = poolCoreMaxConcurrentTasks[i];
+        			}
         		}
         	}
         }

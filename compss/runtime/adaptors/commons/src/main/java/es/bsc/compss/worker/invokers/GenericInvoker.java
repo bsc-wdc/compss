@@ -152,10 +152,11 @@ public class GenericInvoker {
 	private static String writeHostfile(File taskSandboxWorkingDir,
 			String workers) throws InvokeExecutionException {
 		String filename = taskSandboxWorkingDir.getAbsolutePath()+File.separator+".decafHostfile";
+		String workersInLines = workers.replace(',', '\n');
 		BufferedWriter writer = null;
     	try {
     	    writer = new BufferedWriter( new FileWriter(filename));
-    	    writer.write(workers);
+    	    writer.write(workersInLines);
     	} catch ( IOException e){
     		throw new InvokeExecutionException("Error writing decaf hostfile", e);
     	} finally {

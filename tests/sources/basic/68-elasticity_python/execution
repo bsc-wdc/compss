@@ -23,10 +23,11 @@
   output_log="${target_log_folder}/oneProvider.outputlog"
   error_log="${target_log_folder}/oneProvider.errorlog"
   
-  expectedTime=3000s
+  expectedTime=3600s
   counterVal=1
   numTasks=40
-
+  minVM=1
+  maxVM=3
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
      --project=${base_app_dir}/project.xml \
      --resources=${base_app_dir}/resources.xml \
@@ -51,7 +52,7 @@
      cp -rf ${COMPSs_log_folder}/increment_elastic.py_0${retryNum}/* ${target_log_folder}
   
      #Check result
-     sleep 60
+     sleep 10
      ${base_app_dir}/result ${output_log} ${target_log_folder} $minVM $maxVM
      exitValue=$?
   fi

@@ -16,7 +16,7 @@
 	<!-- PROJECT INFORMATION -->
 	<name>SparseLU</name>
 	<description>Sparse Lu application</description>
-	<url>http://compss.bsc.es/projects/bar/wiki/sparseLu</url>
+	<url>http://compssdev.bsc.es/projects/bar/wiki/sparseLu</url>
 	<inceptionYear>2014</inceptionYear>
 	<licenses>
 		<license>

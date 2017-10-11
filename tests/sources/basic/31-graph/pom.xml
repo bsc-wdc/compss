@@ -16,7 +16,7 @@
 	<!-- PROJECT INFORMATION -->
 	<name>Graph Test</name>
 	<description>Graph Test running SparseLu</description>
-	<url>http://compss.bsc.es/projects/bar/wiki/graph</url>
+	<url>http://compssdev.bsc.es/projects/bar/wiki/graph</url>
 	<inceptionYear>2014</inceptionYear>
 	<licenses>
 		<license>

@@ -7,7 +7,7 @@
   zypper removerepo -f compss
 
   echo "Installing new version"
-  zypper addrepo -f http://compss.bsc.es/repo/rpms/testing/suse/${type} compss
+  zypper addrepo -f http://compssdev.bsc.es/repo/rpms/testing/suse/${type} compss
   zypper --non-interactive --no-gpg-checks refresh
   zypper install -y compss-framework
 

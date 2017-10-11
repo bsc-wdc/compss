@@ -15,7 +15,7 @@
 	<!-- PROJECT INFORMATION -->
 	<name>Redis PSCOs Test</name>
 	<description>Redis Persistent Objects Test</description>
-	<url>http://compss.bsc.es/projects/bar/wiki/pscos</url>
+	<url>http://compssdev.bsc.es/projects/bar/wiki/pscos</url>
 	<inceptionYear>2017</inceptionYear>
 	<licenses>
 		<license>

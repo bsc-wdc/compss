@@ -28,11 +28,14 @@ def main_program():
     print "Final counter values:"
     for i in range(numTasks):
         printCounterValue(FILENAME + str(i), i)
-    
+    print "** Application values OK **"
+    print "Waiting for VMs to be destroyed"
+    time.sleep(60)
+    print "Application ends" 
 
 def usage():
     print "[ERROR] Bad numnber of parameters"
-    print "    Usage: increment.py <counterValue> <numberOfTasks> <minVM> <maxVM> <creationTime>"
+    print "    Usage: increment.py <counterValue> <numberOfTasks> "
 
 def initializeCounter(filePath):
     # Write value counter
@@ -50,8 +53,12 @@ def printCounterValue(filePath, pos):
     
     # Print values
     print "- Counter" + str(pos) + " value is " + counter
+    expected = INITIAL_VALUE+1
+    if int(counter) != expected:
+        print " -Incorrect counter value " + counter + " expected " + str(expected)
+        exit(-1)
 
-@constraint(ProcessorCoreCount=2)
+@constraint(computingUnits="2")
 @task(filePath = FILE_INOUT)
 def increment(filePath):
     # Read value

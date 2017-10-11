@@ -279,10 +279,16 @@ public abstract class ExternalExecutor extends Executor {
             switch (type) {
                 case FILE_T:
                     // Passing originalName link instead of renamed file
-                    String destFile = new File(np.getValue().toString()).getName();
+                    
                     String originalFile = "";
                     if (np.getData() != null) {
                         originalFile = np.getData().getName();
+                        
+                    }
+                    String destFile = new File(np.getValue().toString()).getName();
+                    if (!isRuntimeRenamed(destFile)){
+                    	//Treat corner case: Destfile is original name. Parameter is INPUT with shared disk, so destfile should be the same as the input.
+                    	destFile = originalFile;
                     }
                     lArgs.add(originalFile + ":" + destFile + ":" + np.isPreserveSourceData() + ":" + np.isWriteFinalValue() + ":"
                             + np.getOriginalName());
@@ -308,7 +314,11 @@ public abstract class ExternalExecutor extends Executor {
         }
     }
 
-    private void executeExternal(int jobId, String command, NIOTask nt, NIOWorker nw) throws JobExecutionException {
+    private static boolean isRuntimeRenamed(String filename) {
+		return filename.startsWith("d") && filename.endsWith(".IT");
+	}
+
+	private void executeExternal(int jobId, String command, NIOTask nt, NIOWorker nw) throws JobExecutionException {
         // Emit start task trace
         int taskType = nt.getTaskType() + 1; // +1 Because Task ID can't be 0 (0 signals end task)
         int taskId = nt.getTaskId();

@@ -805,7 +805,7 @@ check_args() {
       appdir=$DEFAULT_APPDIR
     fi
   fi
-  if [ -z "$persistent_worker_c"]; then
+  if [ -z "$persistent_worker_c" ]; then
 	persistent_worker_c=$DEFAULT_PERSISTENT_WORKER_C
   fi
 }

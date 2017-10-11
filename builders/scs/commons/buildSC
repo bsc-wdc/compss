@@ -91,7 +91,7 @@
   echo "- Downloading Apache for COMSPs Monitor"
   cd ${tmpDir}
   TOMCAT_VER="7.0.65"
-  TOMCAT_URL="http://compss.bsc.es/repo/apache-tomcat/apache-tomcat-7.0.65.tar.gz"
+  TOMCAT_URL="http://compssdev.bsc.es/repo/apache-tomcat/apache-tomcat-7.0.65.tar.gz"
   wget ${TOMCAT_URL}
   mv apache-tomcat-${TOMCAT_VER}.tar.gz apache-tomcat.tar.gz
   cd ${scriptDir}

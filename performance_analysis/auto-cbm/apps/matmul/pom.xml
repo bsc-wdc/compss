@@ -15,7 +15,7 @@
 
 	<name>Matmul</name>
 	<description>Matrix Multiplication application</description>
-	<url>http://compss.bsc.es/projects/bar/wiki/application_pages/apps/java/matmul</url>
+	<url>http://compssdev.bsc.es/projects/bar/wiki/application_pages/apps/java/matmul</url>
 
 	<dependencies>
 		<dependency>

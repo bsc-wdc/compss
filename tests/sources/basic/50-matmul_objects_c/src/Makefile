@@ -1,6 +1,6 @@
 GCC=g++
-CFLAGS=-std=c++0x -g -fpermissive -I. 
-
+#CFLAGS=-std=c++0x -g -fpermissive -I. 
+CFLAGS=-g -fpermissive -I.
 CFILES=Block.cc Matrix.cc
 C_OBJ=Block.o Matrix.o
 

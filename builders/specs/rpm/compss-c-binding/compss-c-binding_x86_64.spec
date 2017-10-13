@@ -30,11 +30,11 @@ echo " "
 
 echo "   - Copy deployment files"
 mkdir -p COMPSs/Bindings/c_pack
-cp changelog COMPSs/
-cp LICENSE COMPSs/
-cp NOTICE COMPSs/
-cp README COMPSs/
-cp RELEASE_NOTES COMPSs/
+#cp changelog COMPSs/
+#cp LICENSE COMPSs/
+#cp NOTICE COMPSs/
+#cp README COMPSs/
+#cp RELEASE_NOTES COMPSs/
 cp -r c/* COMPSs/Bindings/c_pack/
 
 echo "   - Erase sources"
@@ -49,11 +49,11 @@ echo "* Installing COMPSs C-Binding..."
 
 mkdir -p $RPM_BUILD_ROOT/opt/COMPSs/Bindings/
 
-cp COMPSs/changelog $RPM_BUILD_ROOT/opt/COMPSs/
-cp COMPSs/LICENSE $RPM_BUILD_ROOT/opt/COMPSs/
-cp COMPSs/NOTICE $RPM_BUILD_ROOT/opt/COMPSs/
-cp COMPSs/README $RPM_BUILD_ROOT/opt/COMPSs/
-cp COMPSs/RELEASE_NOTES $RPM_BUILD_ROOT/opt/COMPSs/    
+#cp COMPSs/changelog $RPM_BUILD_ROOT/opt/COMPSs/
+#cp COMPSs/LICENSE $RPM_BUILD_ROOT/opt/COMPSs/
+#cp COMPSs/NOTICE $RPM_BUILD_ROOT/opt/COMPSs/
+#cp COMPSs/README $RPM_BUILD_ROOT/opt/COMPSs/
+#cp COMPSs/RELEASE_NOTES $RPM_BUILD_ROOT/opt/COMPSs/
 
 cp -r COMPSs/Bindings/c_pack/ $RPM_BUILD_ROOT/opt/COMPSs/Bindings/
 

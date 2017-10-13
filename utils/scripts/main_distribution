@@ -55,11 +55,8 @@
   }
 
   exec_distribution() {
-    # Setup VM
-    setup_vm
-
-    # Add trap for clean
-    trap clean_vm EXIT
+    # Setup Container
+    setup_container
 
     # Compile COMPSs
     compile
@@ -105,14 +102,14 @@
   #---------------------------------------------------------------------------------------------------------------------
   # SECOND LEVEL FUNCTIONS FOR GENERIC DISTRIBUTION
   #---------------------------------------------------------------------------------------------------------------------
-  setup_vm() {
+  setup_container() {
     echo -e "\e[0m"
     echo "**************************"
-    echo "***      Setup VM      ***"
+    echo "***  Setup Container   ***"
     echo "**************************"
     echo -e "\e[0m"
 
-    echo "-- Setting up VM hosts..."
+    echo "-- Setting up Container hosts..."
     sudo "${trunk_base}/tests/scripts/configure_hosts_insert"
     if [ $? -ne 0 ]; then
       display_error "Cannot configure hosts before tests"
@@ -123,14 +120,14 @@
   compile() {
     echo -e "\e[0m"
     echo "**************************"
-    echo "*** Compile COMPSs SVN ***"
+    echo "*** Compile COMPSs git ***"
     echo "**************************"
     echo -e "\e[0m"
 
     cd "${trunk_base}" || exit 1
     mvn -U clean install
     if [ $? -ne 0 ]; then
-      display_error "Cannot compile COMPSs SVN Revision"
+      display_error "Cannot compile COMPSs git Revision"
       exit 1
     fi
     cd "${script_dir}" || exit 1
@@ -228,38 +225,6 @@ EOT
     cd "${script_dir}" || exit 1
   }
 
-  clean_vm() {
-    echo -e "\e[0m"
-    echo "**************************"
-    echo "***      Clean VM      ***"
-    echo "**************************"
-    echo -e "\e[0m"
-
-    # Cleaning test files
-    echo "-- Cleaning test files"
-    if [ "${cfgFile}" != "" ]; then
-      rm -f "${cfgFile}"
-    fi
-    rm -rf ~/.COMPSs/
-
-    # Restoring VM hosts
-    echo "-- Restoring VM hosts..."
-    sudo "${trunk_base}/tests/scripts/configure_hosts_remove"
-    if [ $? -ne 0 ]; then
-      display_error "Cannot restore hosts after tests"
-      exit 1
-    fi
-
-    # Unninstall COMPSs if needed
-    local uninstaller_script="${script_dir}/installation/uninstall_compss_${distr}"
-    sudo "${uninstaller_script}"
-    if [ $? -ne 0 ]; then
-      echo "------------------------- WARNING -----------------------------"
-      echo "Unninstall script failed on ${distr} either because"
-      echo "COMPSs was not installed or because there was an internal error"                                                                                                                                                                                                   
-      echo "---------------------------------------------------------------"
-    fi
-  }
 
   #---------------------------------------------------------------------------------------------------------------------
   # SECOND LEVEL FUNCTIONS FOR SC DISTRIBUTION
@@ -355,7 +320,7 @@ EOT
   # Set environment
   set_env
   if [ $? -ne 0 ]; then
-    display_error "Cannot set script envrionment"
+    display_error "Cannot set script environment"
     exit 1
   fi
 

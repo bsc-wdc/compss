@@ -1,5 +1,5 @@
 %define name	 	compss-extrae 
-%define version		2.1.rc1709
+%define version		2.1.rc1707
 %define release		1
 
 Requires: compss-engine, libxml2 >= 2.5.0, libxml2-devel >= 2.5.0, libtool, automake, make, gcc-c++, gcc-fortran
@@ -12,10 +12,10 @@ License: Apache 2.0
 Group: Development/Libraries
 Source: %{name}-%{version}.tar.gz
 Distribution: Linux
-Vendor: Barcelona Supercomputing Center - Centro Nacional de Supercomputacion
-URL: http://compssdev.bsc.es
-Packager: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
-Prefix: /opt
+Vendor: Barcelona Supercomputing Center (BSC)
+URL: http://compss.bsc.es
+Packager: COMPSs Support <support-compss@bsc.es>
+Prefix: /opt/COMPSs/Dependencies/extrae
 BuildArch: noarch
 
 %description
@@ -66,18 +66,18 @@ export JAVA_LIB_DIR=${JAVA_LIB_DIR}
 
 # Install
 echo " - Creating COMPSs Extrae structure..."
-mkdir -p $RPM_BUILD_ROOT/opt/COMPSs/Dependencies/extrae
+mkdir -p ${RPM_BUILD_ROOT}/opt/COMPSs/Dependencies/extrae
 
 echo "   - Configure, compile and install"
 cd extrae
-./install $RPM_BUILD_ROOT/opt/COMPSs/Dependencies/extrae false
+./install ${RPM_BUILD_ROOT}/opt/COMPSs/Dependencies/extrae false
 cd ..
 
 echo " - COMPSs Extrae structure created"
 echo " "
 
 echo " - Setting Extrae permissions..."
-chmod 755 -R $RPM_BUILD_ROOT/opt/COMPSs/Dependencies/extrae
+chmod 755 -R ${RPM_BUILD_ROOT}/opt/COMPSs/Dependencies/extrae
 echo " - Extrae permissions set"
 echo " "
 
@@ -100,20 +100,16 @@ echo " "
 
 #------------------------------------------------------------------------------------
 %postun 
-rm -rf $RPM_BUILD_ROOT/opt/COMPSs/Dependencies/extrae
+rm -rf /opt/COMPSs/Dependencies/extrae
 echo "COMPSs Extrae Successfully uninstalled!"
 echo " "
 
 #------------------------------------------------------------------------------------
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Dependencies/extrae
 
 #------------------------------------------------------------------------------------
 %files 
-#%doc README
-#%doc changelog
-#%doc LICENSE
-#%doc NOTICE
-#%doc RELEASE_NOTES
 %defattr(-,root,root)
-/opt/COMPSs/
+/opt/COMPSs/Dependencies/extrae
+

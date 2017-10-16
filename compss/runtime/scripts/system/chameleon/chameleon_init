@@ -2,8 +2,8 @@
 
 basic_configure() {
   # Setup SSH keys for user
-  ssh-keygen -t rsa -f /home/cc/.ssh/id_rsa -N ""
-  cat /home/cc/.ssh/id_rsa.pub >> /home/cc/.ssh/authorized_keys
+  ssh-keygen -t dsa -f /home/cc/.ssh/id_dsa -N ""
+  cat /home/cc/.ssh/id_dsa.pub >> /home/cc/.ssh/authorized_keys
   chown -R cc:cc /home/cc/.ssh/
 }
 
@@ -16,7 +16,7 @@ extra_configure() {
 | |__| |_| | |  | |  __/ ___) \__ \ 
  \____\___/|_|  |_|_|   |____/|___/
 
-Welcome to COMPSs v2.1 at Chameleon!
+Welcome to COMPSs v1.4 at Chameleon!
 EOT
 
   echo "127.0.1.1       COMPSsMaster" >> /etc/hosts
@@ -35,7 +35,7 @@ EOT
 # Description:       COMPSs start configuration for Chameleon
 ### END INIT INFO
 
-# Author: Cristian Ramon-Cortes Vilarrodona  <cristian.ramoncortes.at.bsc.es>
+# Author: COMPSs Support <support-compss@bsc.es>
 
 NAME=chameleon_init
 PIDFILE=/var/run/$NAME.pid
@@ -46,7 +46,6 @@ case "$1" in
   start)
     echo "* Starting COMPSs Configuration for Chameleon"
     basic_configure
-    extra_configure
     ;;
   stop)
     echo "* Erasing COMPSs Configuration for Chameleon"

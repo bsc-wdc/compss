@@ -1,5 +1,5 @@
 %define name	 	compss-engine 
-%define version		2.1.rc1709
+%define version		2.1.rc1707
 %define release		1
 
 Requires: java-1_8_0-openjdk, xdg-utils, graphviz
@@ -11,9 +11,9 @@ License: Apache 2.0
 Group: Development/Libraries
 Source: %{name}-%{version}.tar.gz
 Distribution: Linux
-Vendor: Barcelona Supercomputing Center - Centro Nacional de Supercomputacion
-URL: http://compssdev.bsc.es
-Packager: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
+Vendor: Barcelona Supercomputing Center (BSC)
+URL: http://compss.bsc.es
+Packager: COMPSs Support <support-compss@bsc.es>
 Prefix: /opt
 BuildArch: noarch
 
@@ -146,23 +146,24 @@ echo " "
 
 #------------------------------------------------------------------------------------
 %postun 
-rm -rf $RPM_BUILD_ROOT/opt/COMPSs/
+rm -rf /opt/COMPSs/
 echo "COMPSs Runtime Engine Successfully uninstalled!"
 echo " "
 
 #------------------------------------------------------------------------------------
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/
 
 #------------------------------------------------------------------------------------
-%files 
-#%doc README
-#%doc changelog
-#%doc LICENSE
-#%doc NOTICE
-#%doc RELEASE_NOTES
-#%docdir /opt/COMPSs/Doc
-#%config /opt/COMPSs/Runtime/configuration/
-#%config /etc/profile.d/compss.sh
+%files
 %defattr(-,root,root)
-/opt/COMPSs/
+/opt/COMPSs/Runtime/ 
+/opt/COMPSs/Dependencies/
+%doc /opt/COMPSs/README
+%doc /opt/COMPSs/changelog
+%doc /opt/COMPSs/LICENSE
+%doc /opt/COMPSs/NOTICE
+%doc /opt/COMPSs/RELEASE_NOTES
+%docdir /opt/COMPSs/Doc/
+/opt/COMPSs/Doc/
+

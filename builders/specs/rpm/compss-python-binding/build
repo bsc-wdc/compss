@@ -63,4 +63,4 @@
 
   echo " "
   echo "* Cleaning all tmp files..."
-  rm -rf tmp/
+  rm -r tmp/

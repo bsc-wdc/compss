@@ -1,5 +1,5 @@
 %define name	 	compss-monitor 
-%define version		2.1.rc1709
+%define version		2.1.rc1707
 %define release		1
 
 Requires: compss-engine, xdg-utils, graphviz
@@ -11,11 +11,11 @@ License: Apache 2.0
 Group: Development/Libraries
 Source: %{name}-%{version}.tar.gz
 Distribution: Linux
-Vendor: Barcelona Supercomputing Center - Centro Nacional de Supercomputacion
-URL: http://compssdev.bsc.es
-Packager: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
+Vendor: Barcelona Supercomputing Center (BSC)
+URL: http://compss.bsc.es
+Packager: COMPSs Support <support-compss@bsc.es>
 Prefix: /opt
-BuildArch: x86_64
+ExclusiveArch: x86_64
 
 %description
 The BSC COMP Superscalar Monitor Tool.
@@ -50,12 +50,6 @@ cp monitor/target/classes/compss-monitor.conf COMPSs/Tools/monitor/apache-tomcat
 cp monitor/target/classes/server.xml COMPSs/Tools/monitor/apache-tomcat/conf/
 cp monitor/target/classes/*log4j* COMPSs/Tools/monitor/
 cp monitor/scripts/compss-monitor COMPSs/etc/init.d/
-#Doc
-cp changelog COMPSs/
-cp LICENSE COMPSs/
-cp NOTICE COMPSs/
-cp README COMPSs/
-cp RELEASE_NOTES COMPSs/
 
 echo "   - Erase sources"
 ls . | grep -v COMPSs | xargs rm -r
@@ -68,19 +62,19 @@ echo " "
 echo "* Installing COMPSs Monitor Tool..."
 
 echo " - Creating COMPSs Monitor Tool structure..."
-mkdir -p $RPM_BUILD_ROOT/opt/COMPSs/Tools/
-cp -r COMPSs/Tools/monitor $RPM_BUILD_ROOT/opt/COMPSs/Tools/
+mkdir -p ${RPM_BUILD_ROOT}/opt/COMPSs/Tools/
+cp -r COMPSs/Tools/monitor ${RPM_BUILD_ROOT}/opt/COMPSs/Tools/
 echo " - COMPSs Monitor Tool structure created"
 echo " "
 
 echo " - Adding compss-monitor to init.d..."
-mkdir -p $RPM_BUILD_ROOT/opt/COMPSs/etc/init.d/
-cp COMPSs/etc/init.d/compss-monitor $RPM_BUILD_ROOT/opt/COMPSs/etc/init.d/
+mkdir -p ${RPM_BUILD_ROOT}/opt/COMPSs/etc/init.d/
+cp COMPSs/etc/init.d/compss-monitor ${RPM_BUILD_ROOT}/opt/COMPSs/etc/init.d/
 echo " - Compss-monitor added to user init.d"
 echo " "
 
 echo " - Setting COMPSs Monitor Tool permissions..."
-chmod 755 -R $RPM_BUILD_ROOT/opt/COMPSs/Tools/monitor
+chmod 755 -R ${RPM_BUILD_ROOT}/opt/COMPSs/Tools/monitor
 echo " - COMPSs Monitor Tool permissions set"
 echo " "
 
@@ -94,7 +88,7 @@ echo "* Installing COMPSs Monitor Tool..."
 echo " "
 
 echo " - Adding compss-monitor to chkconfig..."
-cp $RPM_BUILD_ROOT/opt/COMPSs/etc/init.d/compss-monitor /etc/init.d/
+cp /opt/COMPSs/etc/init.d/compss-monitor /etc/init.d/
 chkconfig --add compss-monitor
 echo " - Compss-monitor added to chkconfig"
 echo " "
@@ -111,22 +105,19 @@ chkconfig --del compss-monitor
 
 #------------------------------------------------------------------------------------
 %postun 
-rm -rf $RPM_BUILD_ROOT/opt/COMPSs/Tools/monitor
+rm -rf /opt/COMPSs/Tools/monitor
 rm -f /etc/init.d/compss-monitor
 echo "COMPSs Monitor Tool Successfully uninstalled!"
 echo " "
 
 #------------------------------------------------------------------------------------
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Tools/monitor
+rm -f ${RPM_BUILD_ROOT}/etc/init.d/compss-monitor
 
 #------------------------------------------------------------------------------------
 %files 
-#%doc README
-#%doc changelog
-#%doc LICENSE
-#%doc NOTICE
-#%doc RELEASE_NOTES
-#%config /etc/init.d/compss-monitor
 %defattr(-,root,root)
-/opt/COMPSs/
+/opt/COMPSs/Tools/monitor
+/opt/COMPSs/etc/init.d/compss-monitor
+

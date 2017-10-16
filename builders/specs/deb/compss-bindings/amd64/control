@@ -4,5 +4,5 @@ Priority: optional
 Architecture: amd64
 Essential: no
 Depends: compss-bindings-common, compss-c-binding, compss-python-binding
-Maintainer: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
+Maintainer: COMPSs Support <support-compss@bsc.es>
 Description: The BSC COMP Superscalar Bindings.

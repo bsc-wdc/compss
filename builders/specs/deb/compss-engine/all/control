@@ -5,5 +5,5 @@ Architecture: all
 Essential: no
 Depends: openjdk-8-jdk, graphviz, xdg-utils, uuid-runtime
 Replaces: compss-worker
-Maintainer: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
+Maintainer: COMPSs Support <support-compss@bsc.es>
 Description: The BSC COMP Superscalar Engine.

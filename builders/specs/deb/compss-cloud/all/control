@@ -4,5 +4,5 @@ Priority: optional
 Architecture: all
 Essential: no
 Depends: compss-engine
-Maintainer: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
+Maintainer: COMPSs Support <support-compss@bsc.es>
 Description: The BSC COMP Superscalar Runtime Cloud Resources.

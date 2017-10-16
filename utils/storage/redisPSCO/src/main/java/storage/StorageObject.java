@@ -5,6 +5,8 @@ import org.apache.logging.log4j.Logger;
 import redis.clients.jedis.Jedis;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.UUID;
 
 
@@ -12,6 +14,8 @@ public class StorageObject implements StubItf {
 
     // Logger: According to Loggers.STORAGE
     private static final Logger logger = LogManager.getLogger("es.bsc.compss.Storage");
+
+    private String host;
 
     private String id = null;
 
@@ -50,13 +54,25 @@ public class StorageObject implements StubItf {
         // The object is already persisted
         if(this.id != null) return;
         // There was no given identifier, lets compute a random one
-
+        setHost();
         if(id == null) {
             id = UUID.randomUUID().toString();
         }
         this.id = id;
         // Call the storage API
         StorageItf.makePersistent(this, id);
+    }
+
+    private void setHost() {
+        String hostname = null;
+        try {
+            InetAddress localHost = InetAddress.getLocalHost();
+            hostname = localHost.getCanonicalHostName();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+        this.host = hostname;
     }
 
 
@@ -103,4 +119,11 @@ public class StorageObject implements StubItf {
         }
     }
 
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
 }

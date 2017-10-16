@@ -123,8 +123,16 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static List<String> getLocations(String id) throws StorageException {
-        // We are in standalone mode, return all our hosts
-        return hosts;
+        List<String> ret = new ArrayList<>();
+        Random rng = new Random(System.currentTimeMillis());
+        int start = Math.abs(rng.nextInt()) % hosts.size();
+        for(int i=0; i<hosts.size(); ++i) {
+            ret.add(
+                    hosts.get(start++)
+            );
+            start %= hosts.size();
+        }
+        return ret;
     }
 
     /**

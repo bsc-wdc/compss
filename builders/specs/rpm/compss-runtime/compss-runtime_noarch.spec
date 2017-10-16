@@ -1,5 +1,5 @@
 %define name	 	compss-runtime 
-%define version		2.1.rc1709
+%define version		2.1.rc1707
 %define release		1
 
 Requires: compss-engine, compss-worker
@@ -11,9 +11,9 @@ License: Apache 2.0
 Group: Development/Libraries
 Source: %{name}-%{version}.tar.gz
 Distribution: Linux
-Vendor: Barcelona Supercomputing Center - Centro Nacional de Supercomputacion
-URL: http://compssdev.bsc.es
-Packager: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
+Vendor: Barcelona Supercomputing Center (BSC)
+URL: http://compss.bsc.es
+Packager: COMPSs Support <support-compss@bsc.es>
 Prefix: /opt
 BuildArch: noarch
 

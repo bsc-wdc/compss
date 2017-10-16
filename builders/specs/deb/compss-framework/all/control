@@ -4,5 +4,5 @@ Priority: optional
 Architecture: all
 Essential: no
 Depends: compss-runtime, compss-bindings, compss-tools, compss-cloud
-Maintainer: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
+Maintainer: COMPSs Support <support-compss@bsc.es>
 Description: The BSC COMP Superscalar Framework.

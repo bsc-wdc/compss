@@ -1,5 +1,5 @@
 %define name	 	compss-python-binding 
-%define version		2.1.rc1709
+%define version		2.1.rc1707
 %define release		1
 
 Requires: compss-bindings-common, python-devel >= 2.7
@@ -11,11 +11,11 @@ License: Apache 2.0
 Group: Development/Libraries
 Source: %{name}-%{version}.tar.gz
 Distribution: Linux
-Vendor: Barcelona Supercomputing Center - Centro Nacional de Supercomputacion
-URL: http://compssdev.bsc.es
-Packager: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
-Prefix: /opt
-BuildArch: x86_64
+Vendor: Barcelona Supercomputing Center (BSC)
+URL: http://compss.bsc.es
+Packager: COMPSs Support <support-compss@bsc.es>
+Prefix: /opt/COMPSs/Bindings/python
+ExclusiveArch: x86_64
 
 %description
 The BSC COMP Superscalar Python-Binding.
@@ -65,20 +65,20 @@ export JAVA_LIB_DIR=${JAVA_LIB_DIR}
 
 # Install
 echo " - Creating COMPSs Python-Binding structure..."
-mkdir -p $RPM_BUILD_ROOT/opt/COMPSs/Bindings/
+mkdir -p ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/
 
 echo "   - Configure, compile and install"
 cd bindings-common/
 ./install_common
 cd ../python
-./install $RPM_BUILD_ROOT/opt/COMPSs/Bindings/python
+./install ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/python
 cd ..
 
 echo " - COMPSs Runtime Python-Binding structure created"
 echo " "
 
 echo " - Setting COMPSs Python-Binding permissions..."
-chmod 755 -R $RPM_BUILD_ROOT/opt/COMPSs/Bindings/python
+chmod 755 -R ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/python
 echo " - COMPSs Runtime Python-Binding permissions set"
 echo " "
 
@@ -106,20 +106,16 @@ echo " "
 
 #------------------------------------------------------------------------------------
 %postun 
-rm -rf $RPM_BUILD_ROOT/opt/COMPSs/Bindings/python
+rm -rf /opt/COMPSs/Bindings/python
 echo "COMPSs Python-Binding Successfully uninstalled!"
 echo " "
 
 #------------------------------------------------------------------------------------
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/python
 
 #------------------------------------------------------------------------------------
 %files 
-#%doc README
-#%doc changelog
-#%doc LICENSE
-#%doc NOTICE
-#%doc RELEASE_NOTES
 %defattr(-,root,root)
-/opt/COMPSs/
+/opt/COMPSs/Bindings/python
+

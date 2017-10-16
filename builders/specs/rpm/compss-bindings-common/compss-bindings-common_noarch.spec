@@ -1,9 +1,9 @@
 %define name	 	compss-bindings-common 
-%define version		2.1.rc1709
+%define version		2.1.rc1707
 %define release		1
 
 Requires: compss-engine, libtool, automake, make, gcc-c++
-Summary: The C libraries shared by BSC COMP Superscalar Bindings
+Summary: The C libraries shared by the COMP Superscalar Bindings
 Name: %{name}
 Version: %{version}
 Release: %{release}
@@ -11,10 +11,10 @@ License: Apache 2.0
 Group: Development/Libraries
 Source: %{name}-%{version}.tar.gz
 Distribution: Linux
-Vendor: Barcelona Supercomputing Center - Centro Nacional de Supercomputacion
-URL: http://compssdev.bsc.es
-Packager: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
-Prefix: /opt
+Vendor: Barcelona Supercomputing Center (BSC)
+URL: http://compss.bsc.es
+Packager: COMPSs Support <support-compss@bsc.es>
+Prefix: /opt/COMPSs/Bindings/bindings-common
 BuildArch: noarch
 
 %description
@@ -65,18 +65,18 @@ export JAVA_LIB_DIR=${JAVA_LIB_DIR}
 
 # Install
 echo " - Creating COMPSs Bindings-common structure..."
-mkdir -p $RPM_BUILD_ROOT/opt/COMPSs/Bindings/
+mkdir -p ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/
 
 echo "   - Configure, compile and install"
 cd bindings-common
-./install_common $RPM_BUILD_ROOT/opt/COMPSs/Bindings/bindings-common
+./install_common ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/bindings-common
 cd ..
 
 echo " - COMPSs Bindings-common structure created"
 echo " "
 
 echo " - Setting COMPSs Bindings-common permissions..."
-chmod 755 -R $RPM_BUILD_ROOT/opt/COMPSs/Bindings/bindings-common
+chmod 755 -R ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/bindings-common
 echo " - COMPSs Bindings-commmon permissions set"
 echo " "
 
@@ -99,20 +99,15 @@ echo " "
 
 #------------------------------------------------------------------------------------
 %postun 
-rm -rf $RPM_BUILD_ROOT/opt/COMPSs/Bindings/bindings-common
+rm -rf /opt/COMPSs/Bindings/bindings-common
 echo "COMPSs Bindings-common Successfully uninstalled!"
 echo " "
 
 #------------------------------------------------------------------------------------
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/bindings-common
 
 #------------------------------------------------------------------------------------
 %files 
-#%doc README
-#%doc changelog
-#%doc LICENSE
-#%doc NOTICE
-#%doc RELEASE_NOTES
 %defattr(-,root,root)
-/opt/COMPSs/
+/opt/COMPSs/Bindings/bindings-common/

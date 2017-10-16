@@ -60,17 +60,16 @@ def init(config_file_path=None, **kwargs):
     # with no port, one per line
     hosts = [x.strip() for x in config_file_handler.readlines()]
     config_file_handler.close()
-    # We do not know if the current backend is a standalone redis server
-    # or a redis cluster. However, the Redis Cluster protocol is different from
-    # the standalone Redis one, so if we try to establish a connection to a
-    # cluster when there is a standalone instance, a exception will be thrown
-    try:
+    # If we have more than one host then we will assume that our backend is a Redis
+    # cluster. If not, we will assume that we are dealing with a Redis standalone
+    # instance
+    if len(hosts) > 1:
         # Given that cluster clients are capable to perform master
         # slave hierarchy discovery, we will simply connect to the first
         # node we got
         redis_connection = \
         rediscluster.StrictRedisCluster(host=hosts[0], port=REDIS_PORT)
-    except:
+    else:
         # We are in standalone mode
         redis_connection = \
         redis.StrictRedis(host=hosts[0], port=REDIS_PORT)

@@ -3,9 +3,7 @@ package model;
 import java.io.Serializable;
 import java.util.LinkedList;
 
-import storage.StorageException;
 import storage.StorageObject;
-import storageManager.StorageManager;
 
 
 public class Person extends StorageObject implements Serializable {
@@ -14,8 +12,6 @@ public class Person extends StorageObject implements Serializable {
      * Serial ID for Objects outside the runtime
      */
     private static final long serialVersionUID = 3L;
-
-    private static final String ERROR_PERSIST = "[ERROR] Cannot persist object";
 
     private String name;
     private int age;

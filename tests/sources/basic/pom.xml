@@ -98,8 +98,15 @@
 		<!-- Module 65 is 65-testStatic_c -->
 		<module>66-limitOfTasks</module>
 		<module>67-elasticityJava</module>
-		<!-- Module 68 is 68-elasticity_python -->
+		<!-- Module 68 is 68 is 68-elasticity_python -->
+                <!-- Module 69 is 69-multithread_c -->
+                <module>70-pscosRedis</module>
+                <!-- Module 71 is 71-argparse_python -->
+                <!-- Module 72 is 72-jupyterNotebook_python -->
+                <!-- Module 73 is 73-pscosRedis_python -->
+                <!-- Module 74 is 74-exceptions_python -->
+                <module>75-workerEnvironment</module>
+
 		<!-- Add new modules below. Respect numbering -->
-		<module>70-pscosRedis</module>
 	</modules>
 </project>

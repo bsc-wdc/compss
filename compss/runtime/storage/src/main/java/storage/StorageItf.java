@@ -29,7 +29,6 @@ public final class StorageItf {
      */
     public static void init(String storageConf) throws StorageException {
         throw new StorageException(STORAGE_NOT_FOUND_MESSAGE);
-
     }
 
     /**

@@ -890,13 +890,13 @@ EOT
 add_jvm_opts_java() {
   /bin/cat >> ${jvm_options_file} << EOT
 -noverify
--classpath ${COMPSS_HOME}/Runtime/compss-engine.jar:${CLASSPATH}
+-classpath ${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar
 EOT
 }
 
 add_jvm_opts_c() {
   /bin/cat >> ${jvm_options_file} << EOT
--Djava.class.path=${COMPSS_HOME}/Runtime/compss-engine.jar:${CLASSPATH}
+-Djava.class.path=${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar
 -Dcompss.constraints.file=$fullAppPath.idl
 -Dcompss.worker.persistent.c=${persistent_worker_c}
 EOT
@@ -904,7 +904,7 @@ EOT
 
 add_jvm_opts_python() {
   /bin/cat >> ${jvm_options_file} << EOT
--Djava.class.path=${COMPSS_HOME}/Runtime/compss-engine.jar:${CLASSPATH}
+-Djava.class.path=${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar
 -Dcompss.worker.pythonpath=${PYTHONPATH}
 EOT
 }

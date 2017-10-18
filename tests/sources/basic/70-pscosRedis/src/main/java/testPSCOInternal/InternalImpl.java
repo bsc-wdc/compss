@@ -1,18 +1,11 @@
 package testPSCOInternal;
 
 import java.util.UUID;
-
-import storage.StorageException;
-import storage.StorageItf;
-import storageManager.StorageManager;
 import model.Computer;
 import model.Person;
 
 
 public class InternalImpl {
-
-    private static final String ERROR_PERSIST = "[ERROR] Cannot persist object";
-
 
     public static void taskPSCOIn(Person p) {
         String name = p.getName();

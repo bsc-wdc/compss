@@ -117,7 +117,7 @@
 
     # Set lib path
     if [ "$libPath" != "null" ]; then
-  	    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$libPath
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$libPath
     fi
   
     # Set appDir
@@ -131,6 +131,11 @@
     if [ "$cp" == "null" ]; then
   	cp=""
     fi
+
+    # Export environment
+    export CLASSPATH=$cpNW:$CLASSPATH
+    export PYTHONPATH=$pythonpath:$PYTHONPATH
+    export LD_LIBRARY_PATH=$libPathNW:$LD_LIBRARY_PATH
   }
   
   setup_jvm() {
@@ -146,7 +151,7 @@
       -XX:+UseThreadPriorities \
       -XX:ThreadPriorityPolicy=42 \
       -Dlog4j.configurationFile=${installDir}/Runtime/configuration/log/${itlog4j_file} \
-      -classpath $cp:$CLASSPATH:${worker_jar} \
+      -classpath $CLASSPATH:${worker_jar} \
       ${main_worker_class}"
   }
   
@@ -182,5 +187,5 @@
 
   clean_env() {
     echo "[persistent_worker.sh] Clean WD ${workingDir}"
-    rm -rf ${workingDir}
+    #rm -rf ${workingDir}
   }

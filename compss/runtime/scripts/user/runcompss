@@ -732,6 +732,7 @@ check_args() {
     cp="$fcp"
     echo "[  INFO] Relative Classpath resolved: $cp"
   fi
+  export CLASSPATH=$cp:$CLASSPATH
 
   if [ -z "$task_count" ]; then
     task_count=${DEFAULT_TASK_COUNT}
@@ -740,6 +741,7 @@ check_args() {
   if [ -z "$library_path" ]; then
     library_path=${DEFAULT_LIBRARY_PATH}
   fi
+  export LD_LIBRARY_PATH=$library_path:$LD_LIBRARY_PATH
 
   if [ -z "$uuid" ]; then
     uuid=$(uuidgen)
@@ -791,8 +793,7 @@ check_args() {
       pythonpath=$pythonpath":${DEFAULT_PYTHONPATH}"
     fi
     # Adds all given Pythonpaths to the global variable
-    PYTHONPATH=$PYTHONPATH":$pythonpath"
-    export PYTHONPATH
+    export PYTHONPATH=$pythonpath:$PYTHONPATH
 
     if [ -z "$PyObject_serialize" ]; then
       PyObject_serialize=$DEFAULT_PyOBJECT_SERIALIZE
@@ -877,7 +878,7 @@ ${jvm_debugger_opts}
 -Dgat.debug=false
 -Dgat.broker.adaptor=sshtrilead
 -Dgat.file.adaptor=sshtrilead
--Dcompss.worker.cp=${cp}:${CLASSPATH}
+-Dcompss.worker.cp=${CLASSPATH}
 -Dcompss.worker.jvm_opts=${jvm_workers_opts}
 -Dcompss.worker.cpu_affinity=${worker_cpu_affinity}
 -Dcompss.worker.gpu_affinity=${worker_gpu_affinity}
@@ -889,13 +890,13 @@ EOT
 add_jvm_opts_java() {
   /bin/cat >> ${jvm_options_file} << EOT
 -noverify
--classpath ${cp}:${COMPSS_HOME}/Runtime/compss-engine.jar:${CLASSPATH}
+-classpath ${COMPSS_HOME}/Runtime/compss-engine.jar:${CLASSPATH}
 EOT
 }
 
 add_jvm_opts_c() {
   /bin/cat >> ${jvm_options_file} << EOT
--Djava.class.path=${cp}:${COMPSS_HOME}/Runtime/compss-engine.jar:${CLASSPATH}
+-Djava.class.path=${COMPSS_HOME}/Runtime/compss-engine.jar:${CLASSPATH}
 -Dcompss.constraints.file=$fullAppPath.idl
 -Dcompss.worker.persistent.c=${persistent_worker_c}
 EOT
@@ -903,15 +904,12 @@ EOT
 
 add_jvm_opts_python() {
   /bin/cat >> ${jvm_options_file} << EOT
--Djava.class.path=${cp}:${COMPSS_HOME}/Runtime/compss-engine.jar:${CLASSPATH}
+-Djava.class.path=${COMPSS_HOME}/Runtime/compss-engine.jar:${CLASSPATH}
 -Dcompss.worker.pythonpath=${PYTHONPATH}
 EOT
 }
 
 exec_java() {
-  # Export needed variables
-  export LD_LIBRARY_PATH=$library_path:$LD_LIBRARY_PATH
-
   # Define command
   local java_opts=$(cat ${jvm_options_file} | tr '\n' ' ')
   local JAVACMD=$JAVA" ${java_opts}"
@@ -950,7 +948,7 @@ exec_c() {
   fi
   libjavafolder=$(dirname $libjava)
 
-  export LD_LIBRARY_PATH=$library_path:${LD_LIBRARY_PATH}:$libjavafolder:${COMPSS_HOME}/Bindings/bindings-common/lib:${COMPSS_HOME}/Bindings/c/lib
+  export LD_LIBRARY_PATH=$libjavafolder:${COMPSS_HOME}/Bindings/bindings-common/lib:${COMPSS_HOME}/Bindings/c/lib:${LD_LIBRARY_PATH}
 
   export JVM_OPTIONS_FILE=${jvm_options_file}
 
@@ -981,9 +979,7 @@ exec_python() {
   # Export needed variables
   if [ -d ${COMPSS_HOME}/Bindings/python ]; then
     PYCOMPSS_HOME=${COMPSS_HOME}/Bindings/python
-    export PYTHONPATH=${PYCOMPSS_HOME}:$cp:$PYTHONPATH
-  else
-    export PYTHONPATH=$cp:$PYTHONPATH
+    export PYTHONPATH=${PYCOMPSS_HOME}:$PYTHONPATH
   fi
 
   # Look for the JVM Library
@@ -996,7 +992,7 @@ exec_python() {
   fi     
   libjavafolder=$(dirname $libjava)
 
-  export LD_LIBRARY_PATH=$library_path:${LD_LIBRARY_PATH}:$libjavafolder:${COMPSS_HOME}/Bindings/bindings-common/lib
+  export LD_LIBRARY_PATH=$libjavafolder:${COMPSS_HOME}/Bindings/bindings-common/lib:${LD_LIBRARY_PATH}
 
   export JVM_OPTIONS_FILE=${jvm_options_file}
 

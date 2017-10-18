@@ -55,6 +55,7 @@
 
 #include "buffers.h"
 #include "utils.h"
+#include <pthread.h>
 
 #define EVENT_INDEX(buffer, event) (event - Buffer_GetFirst(buffer))
 #define ALL_BITS_SET 0xFFFFFFFF
@@ -158,24 +159,29 @@ Buffer_t * new_Buffer (int n_events, char *file, int enable_cache)
 	return buffer;
 }
 
+pthread_mutex_t free_mtx = PTHREAD_MUTEX_INITIALIZER;
 void Buffer_Free (Buffer_t *buffer)
 {
-	if (buffer != NULL)
-	{
-		xfree (buffer->FirstEvt);
-#if defined(HAVE_ONLINE)
-		pthread_mutex_destroy(&(buffer->Lock));
-#endif
-		xfree (buffer->Masks);
+  pthread_mutex_lock (&free_mtx);
 
-                xfree (buffer->CachedEvents);
-                if (buffer->VictimCache != NULL)
-		{
-			Buffer_Free(buffer->VictimCache);
-		}
-		xfree (buffer);
-	}
-}
+  if (buffer != NULL)
+  {
+    if (buffer->VictimCache != NULL)
+    {
+      xfree (buffer->VictimCache->FirstEvt);
+      xfree (buffer->VictimCache->Masks);
+      xfree (buffer->VictimCache->CachedEvents);
+      xfree (buffer->VictimCache);
+    }
+
+    xfree (buffer->FirstEvt);
+    xfree (buffer->Masks);
+    xfree (buffer->CachedEvents);
+    xfree (buffer);
+  }
+
+  pthread_mutex_unlock (&free_mtx);
+} 
 
 void Buffer_AddCachedEvent(Buffer_t *buffer, INT32 event_type)
 {

@@ -70,7 +70,7 @@
     # Get parameters
     jobId=$1
     master_node=$2
-    storage_master_node=$3
+    storage_master_node=$master_node
     worker_nodes=$4
     network=$5
     storageProps=$6

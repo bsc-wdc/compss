@@ -6,8 +6,9 @@ COMP Superscalar (COMPSs) is a programming model which aims to ease the developm
 such as Clusters, Grids and Clouds. COMP superscalar also features a runtime system that exploits the inherent parallelism of 
 applications at execution time.
 
-Release number 2.2 Camellia
-Release date: November-2017                                                                                                                                                                                                                     
+
+Release number: 2.2 Camellia
+Release date: November-2017
 -------------------------------
 New features:
         * Runtime:
@@ -41,7 +42,6 @@ Known Limitations:
 For further information, please refer to “COMPSs User Manual: Application development guide”.
 
 ------------------------------- 
-
 
 
 Please find more details about the COMP Superscalar framework at: 

@@ -28,7 +28,7 @@
     elif [ "${distr}" == "centos" ]; then
       JENKINS_JOB="${JENKINS_JOB_BASENAME}CentOS.7-docker"
     elif [ "${distr}" == "sc" ]; then
-      JENKINS_JOB="${JENKINS_JOB_BASENAME}SC-docker/framework"
+      JENKINS_JOB="${JENKINS_JOB_BASENAME}SC-docker/"
     else 
       display_error "Unknown distribution"
       exit 1

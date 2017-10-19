@@ -1,13 +1,13 @@
 COMP Superscalar Framework ChangeLog
 
 
-Release number 1.1.1
+Release number: 1.1.1
 Release date: 1-Oct-2013 
 -------------------------------
 This is the first public release of the COMP Superscalar Framework.
 
 
-Release number 1.1.2
+Release number: 1.1.2
 Release date: 5-Jun-2014 
 -------------------------------
  * C/C++ binding.
@@ -23,7 +23,7 @@ Release date: 5-Jun-2014
  * Create a COMPSs sandbox in the workers instead of JavaGAT's.
 
 
-Release number 1.2
+Release number: 1.2
 Release date: Nov-2014 
 -------------------------------
  * N implementations for task methods, each with its own constraints.
@@ -42,7 +42,7 @@ Release date: Nov-2014
  * Deprecated Azure GAT adaptor.
 
 
-Release number 1.3
+Release number: 1.3
 Release date: Nov-2015
 -------------------------------
 New features:
@@ -79,7 +79,7 @@ Known Limitations:
 For further information please refer to COMPSs User Manual: Application development
 
 
-Release number 1.4
+Release number: 1.4
 Release date: April-2016
 -------------------------------
 New features:
@@ -107,7 +107,7 @@ Known Limitations:
 For further information please refer to COMPSs User Manual: Application development
 
 
-Release number 2.0 Amapola (Poppy)
+Release number: 2.0 Amapola (Poppy)
 Release date: November-2016
 -------------------------------
 New features:
@@ -147,7 +147,7 @@ Known Limitations:
 For further information please refer to COMPSs User Manual: Application development
 
 
-Release number 2.1 Bougainvillea
+Release number: 2.1 Bougainvillea
 Release date: June-2017                                                                                                                                                                                                                     
 -------------------------------
 New features:
@@ -188,8 +188,9 @@ Known Limitations:
 
 For further information, please refer to “COMPSs User Manual: Application development guide”.
 
-Release number 2.2 Camellia
-Release date: November-2017                                                                                                                                                                                                                     
+
+Release number: 2.2 Camellia
+Release date: November-2017
 -------------------------------
 New features:
         * Runtime:

@@ -50,8 +50,8 @@ import org.apache.logging.log4j.Logger;
 public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     // Exception constants definition
-    private static final String WARN_IT_FILE_NOT_READ = "WARNING: IT Properties file could not be read";
-    private static final String WARN_FILE_EMPTY_DEFAULT = "WARNING: IT Properties file is null. Setting default values";
+    private static final String WARN_IT_FILE_NOT_READ = "WARNING: COMPSs Properties file could not be read";
+    private static final String WARN_FILE_EMPTY_DEFAULT = "WARNING: COMPSs Properties file is null. Setting default values";
     private static final String WARN_VERSION_PROPERTIES = "WARNING: COMPSs Runtime VERSION-BUILD properties file could not be read";
     private static final String ERROR_FILE_NAME = "ERROR: Cannot parse file name";
     private static final String WARN_WRONG_DIRECTION = "WARNING: Invalid parameter direction: ";

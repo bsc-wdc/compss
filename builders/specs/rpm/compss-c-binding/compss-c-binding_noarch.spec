@@ -93,7 +93,7 @@ echo " - Add binaries to path"
 mkdir -p /opt/COMPSs/Runtime/scripts/system/c
 mkdir -p /opt/COMPSs/Runtime/scripts/user
 cp /opt/COMPSs/Bindings/c_pack/bin/* /opt/COMPSs/Runtime/scripts/system/c
-cp /opt/COMPSs/Bindings/c_pack/buildapp /opt/COMPSs/Runtime/scripts/user/
+cp /opt/COMPSs/Bindings/c_pack/compss_build_app /opt/COMPSs/Runtime/scripts/user/
 
 echo " - Remove unneeded sources"
 rm -rf /opt/COMPSs/Runtime/Bindings/c_pack/
@@ -104,7 +104,7 @@ echo " "
 
 echo " - Setting COMPSs C-Binding permissions..."
 chmod 755 -R /opt/COMPSs/Runtime/scripts/system/c
-chmod 755 /opt/COMPSs/Runtime/scripts/user/buildapp
+chmod 755 /opt/COMPSs/Runtime/scripts/user/compss_build_app
 chmod 755 -R /opt/COMPSs/Bindings/c
 
 echo "Congratulations!"
@@ -118,7 +118,7 @@ echo " "
 %postun 
 rm -rf /opt/COMPSs/Bindings/c
 rm -rf /opt/COMPSs/Runtime/scripts/system/c
-rm -f /opt/COMPSs/Runtime/scripts/user/buildapp
+rm -f /opt/COMPSs/Runtime/scripts/user/compss_build_app
 echo "COMPSs C-Binding Successfully uninstalled!"
 echo " "
 
@@ -126,7 +126,7 @@ echo " "
 %clean
 rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/c
 rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Runtime/scripts/system/c
-rm -f ${RPM_BUILD_ROOT}/opt/COMPSs/Runtime/scripts/user/buildapp
+rm -f ${RPM_BUILD_ROOT}/opt/COMPSs/Runtime/scripts/user/compss_build_app
 
 #------------------------------------------------------------------------------------
 %files 

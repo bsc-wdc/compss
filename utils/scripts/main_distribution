@@ -28,12 +28,13 @@
     elif [ "${distr}" == "centos" ]; then
       JENKINS_JOB="${JENKINS_JOB_BASENAME}CentOS.7-docker"
     elif [ "${distr}" == "sc" ]; then
-      JENKINS_JOB="${JENKINS_JOB_BASENAME}SC-docker"
+      JENKINS_JOB="${JENKINS_JOB_BASENAME}SC-docker/framework"
     else 
       display_error "Unknown distribution"
       exit 1
     fi
     JENKINS_PACKAGES_PATH="/home/jenkins/jobs/${JENKINS_JOB}/workspace/builders/packages/"
+    JENKINS_LOGS_PATH="/home/jenkins/jobs/${JENKINS_JOB}/workspace/"
 
     # Define user variables
     trunk_base="${script_dir}/../../"				   # Base trunk folder
@@ -223,6 +224,9 @@ EOT
     #  exit 1
     #fi
     cd "${script_dir}" || exit 1
+
+    # Move logs to Jenkins master node
+    scp -r -o StrictHostKeyChecking=no "${log_base_folder}" "${JENKINS_USER}"@"${MASTER_VM}":"${JENKINS_LOGS_PATH}"
   }
 
   #---------------------------------------------------------------------------------------------------------------------

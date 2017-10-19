@@ -185,17 +185,17 @@ EOT
 }
 
 show_version() {
-  echo "COMPSs version 2.1 Bougainvillea"
+  echo "COMPSs version 2.2 Camellia"
   echo " "
 }
 
 show_full_version() {
   cat << EOF
-        .-~~-.--.            ____       __
-       :         )          |___ \     /  |
- .~ ~ -.\       /.- ~~ .      __) |     | |
- >       \`.   .'       <     / __/   _  | |
-(         .- -.         )   |_____| |_| |_|
+        .-~~-.--.            ____        ____ 
+       :         )          |___ \      |___ \\
+ .~ ~ -.\       /.- ~~ .      __) |       __) |
+ >       \`.   .'       <     / __/   _   / __/
+(         .- -.         )   |_____| |_| |_____|
  \`- -.-~  \`- -'  ~-.- -'
    (        :        )           _ _ .-:
     ~--.    :    .--~        .-~  .-~  }
@@ -214,26 +214,23 @@ EOF
 show_flower() {
   cat << EOF
 
-Bougainvillea (Bougainvillea spectabilis) - Flower
+Camellia (Camellia japonica) - Flower
 
-Bougainvillea, also known as buganvilla in Spain, is a genus of thorny 
-ornamental vines, bushes, and trees with flower-like spring leaves near
-its flowers. They are native plants of South America from Brazil west
-to Ecuador and south to southern Argentina (Chubut Province). 
+Camellia japonica is a flowering tree or shrub, usually 1.5–6 metres tall. 
+In the wild, flowering is between January and March. The flowers appear
+along the branches, particularly towards the ends, and have very short
+stems. They occur either alone or in pairs, and are 6–10 centimetres 
+across. There are about nine greenish bracteoles and sepals. 
 
-Different authors accept between 4 and 18 species in the genus. The 
-vine species grow anywhere from 1 to 12 m (3 to 40 ft.) tall, 
-scrambling over other plants with their spiky thorns. The thorns are
-tipped with a black, waxy substance. They are evergreen where rainfall 
-occurs all year, or deciduous if there is a dry season. The leaves are
-alternate, simple ovate-acuminate, 4–13 cm long and 2–6 cm broad. The 
-actual flower of the plant is small and generally white, but each 
-cluster of three flowers is surrounded by three or six bracts with the
-bright colours associated with the plant, including pink, magenta, 
-purple, red, orange, white, or yellow. 
+Flowers of the wild species have six or seven rose or white petals, each
+3–4.5 centimetres long by 1.5–2.5 centimetres wide. The numerous stamens 
+are 2.5–3.5 centimetres long, the outer whorl being joined at the base.
+The fruit consists of a globe-shaped capsule with three compartments 
+(locules), each with one or two large brown seeds. Fruiting occurs in 
+September to October in the wild.
 
-Check more information at:
-   https://en.wikipedia.org/wiki/Bougainvillea
+Check more information:
+   https://en.wikipedia.org/wiki/Camellia_japonica
 
 EOF
 }
@@ -241,22 +238,13 @@ EOF
 show_recipe() {
   cat << EOF
 
-Bougainvillea - Cocktail
+Camellia - Cocktail
 
-  100 ml pink, sparkling wine
-  100 ml fresh-squeezed orange juice 
-
-  75 ml pink, sparkling wine 
-  75 ml fresh-squeezed orange juice (preferably blood orange)
-  75 ml freshly-brewed, then cooled hibiscus tea
-  25 ml homemade grenadine:
-    1/4 cup sugar
-    1 cup unsweetened organic pomegranate juice
-    1/2 lemon
-  10 ml elderflower liqueur
-  10 ml maraschino liqueur
-  5 dashes cardamom bitters
-  bougainvillea blossoms for garnish
+  30 ml of Geen Tea
+  30 ml of White Rum
+  15 ml of Limoncello
+  1 barspoon of Elderflower
+  1 barspoon of Honey
 
 EOF
 }

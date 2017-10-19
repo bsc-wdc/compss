@@ -188,3 +188,37 @@ Known Limitations:
 
 For further information, please refer to “COMPSs User Manual: Application development guide”.
 
+Release number 2.2 Camellia
+Release date: November-2017                                                                                                                                                                                                                     
+-------------------------------
+New features:
+        * Runtime:
+                - Support Elasticity in SLURM-managed clusters
+                - Support for Elasticity with Singularity containers
+                - Integration of Decaf flows as COMPSs tasks
+                - Changed integratedtoolkit packages by es.bsc.compss (requires changes in Java application codes)
+
+        * Python:
+                - Support for Decaf applications as tasks
+                - External decorators (MPI, Binary, Decaf, etc.) extended with streams and prefixes support
+                - Added support for applications that use the argparse library
+                - Added support for dictionary unrolling on task call
+
+        * C:
+                - Persistent worker in C-binding (enabled with persistent_worker_c=true) 
+                - Inter-task object cache
+                - Support for object methods as tasks
+                - Added support applications with threads in master code
+
+Improvements:
+        - Integration with Jupyter-notebook improved
+        - Improved cleanup - Unused files removal
+        - Several bug fixes
+
+Known Limitations:
+        - Tasks that invoke Numpy and MKL may experience issues if tasks use a different number of MKL threads. This is due to
+          the fact that MKL reuses threads in the different calls and it does not change the number of threads from one call to another.
+	
+
+For further information, please refer to “COMPSs User Manual: Application development guide”.
+

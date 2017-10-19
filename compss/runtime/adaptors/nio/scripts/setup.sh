@@ -187,5 +187,5 @@
 
   clean_env() {
     echo "[persistent_worker.sh] Clean WD ${workingDir}"
-    #rm -rf ${workingDir}
+    rm -rf ${workingDir}
   }

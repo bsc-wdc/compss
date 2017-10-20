@@ -14,8 +14,8 @@ Distribution: Linux
 Vendor: Barcelona Supercomputing Center (BSC)
 URL: http://compss.bsc.es
 Packager: COMPSs Support <support-compss@bsc.es>
-Prefix: /opt
-BuildArch: x86_64
+Prefix: /opt/COMPSs/Runtime
+ExclusiveArch: x86_64
 
 %description
 The BSC COMP Superscalar Runtime Cloud Resources.
@@ -47,13 +47,6 @@ connectors=$(find ./resources/ -name "*.jar" | grep "cloud-conn")
 for conn in $connectors; do
   cp $conn COMPSs/Runtime/cloud-conn/
 done 
-
-#Doc
-cp changelog COMPSs/
-cp LICENSE COMPSs/
-cp NOTICE COMPSs/
-cp README COMPSs/
-cp RELEASE_NOTES COMPSs/
 
 echo "   - Erase sources"
 ls . | grep -v COMPSs | xargs rm -r
@@ -97,17 +90,19 @@ echo " "
 
 #------------------------------------------------------------------------------------
 %postun 
-rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Runtime/connectors
-rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Runtime/cloud-conn
-
+rm -rf /opt/COMPSs/Runtime/connectors
+rm -rf /opt/COMPSs/Runtime/cloud-conn
 echo "COMPSs Runtime Cloud Resources Successfully uninstalled!"
 echo " "
 
 #------------------------------------------------------------------------------------
 %clean
-rm -rf ${RPM_BUILD_ROOT}
+rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Runtime/connectors
+rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Runtime/cloud-conn
 
 #------------------------------------------------------------------------------------
 %files 
 %defattr(-,root,root)
-/opt/COMPSs/
+/opt/COMPSs/Runtime/connectors
+/opt/COMPSs/Runtime/cloud-conn
+

@@ -15,7 +15,7 @@ Vendor: Barcelona Supercomputing Center (BSC)
 URL: http://compss.bsc.es
 Packager: COMPSs Support <support-compss@bsc.es>
 Prefix: /opt
-BuildArch: x86_64
+ExclusiveArch: x86_64
 
 %description
 The BSC COMP Superscalar Runtime Worker.
@@ -133,15 +133,16 @@ echo " "
 
 #------------------------------------------------------------------------------------
 %postun 
-rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/
+rm -rf /opt/COMPSs/
 echo "COMPSs Runtime Worker Successfully uninstalled!"
 echo " "
 
 #------------------------------------------------------------------------------------
 %clean
-rm -rf ${RPM_BUILD_ROOT}
+rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/
 
 #------------------------------------------------------------------------------------
 %files 
 %defattr(-,root,root)
 /opt/COMPSs/
+

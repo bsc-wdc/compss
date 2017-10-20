@@ -15,7 +15,7 @@ Vendor: Barcelona Supercomputing Center (BSC)
 URL: http://compss.bsc.es
 Packager: COMPSs Support <support-compss@bsc.es>
 Prefix: /opt
-ExclusiveArch: x86_64
+BuildArch: x86_64
 
 %description
 The BSC COMP Superscalar Tools for COMPSs Runtime.

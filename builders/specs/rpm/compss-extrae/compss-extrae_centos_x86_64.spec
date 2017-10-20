@@ -14,8 +14,8 @@ Distribution: Linux
 Vendor: Barcelona Supercomputing Center (BSC)
 URL: http://compss.bsc.es
 Packager: COMPSs Support <support-compss@bsc.es>
-Prefix: /opt/COMPSs/Dependencies/extrae
-ExclusiveArch: x86_64
+Prefix: /opt
+BuildArch: x86_64
 
 %description
 The BSC Extrae trace extraction tool.
@@ -99,16 +99,15 @@ echo " "
 
 #------------------------------------------------------------------------------------
 %postun 
-rm -rf /opt/COMPSs/Dependencies/extrae
+rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Dependencies/extrae
 echo "COMPSs Extrae Successfully uninstalled!"
 echo " "
 
 #------------------------------------------------------------------------------------
 %clean
-rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Dependencies/extrae
+rm -rf ${RPM_BUILD_ROOT}
 
 #------------------------------------------------------------------------------------
 %files 
 %defattr(-,root,root)
-/opt/COMPSs/Dependencies/extrae
-
+/opt/COMPSs/

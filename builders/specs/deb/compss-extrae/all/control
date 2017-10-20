@@ -3,7 +3,7 @@ Version:
 Priority: optional
 Architecture: all
 Essential: no
-Depends: compss-engine, automake, libtool, libboost-serialization-dev, libboost-iostreams-dev, gfortran
+Depends: compss-engine, automake, libtool, libboost-all-dev, gfortran
 Suggests: papi-tools, libpapi-dev
 Maintainer: COMPSs Support <support-compss@bsc.es>
 Description: Extrae trace extraction tool.

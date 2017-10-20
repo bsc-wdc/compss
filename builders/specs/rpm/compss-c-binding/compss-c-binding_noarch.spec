@@ -14,7 +14,7 @@ Distribution: Linux
 Vendor: Barcelona Supercomputing Center (BSC)
 URL: http://compss.bsc.es
 Packager: COMPSs Support <support-compss@bsc.es>
-Prefix: /opt/COMPSs/Bindings/c
+Prefix: /opt
 BuildArch: noarch
 
 %description
@@ -30,6 +30,11 @@ echo " "
 
 echo "   - Copy deployment files"
 mkdir -p COMPSs/Bindings/c_pack
+cp changelog COMPSs/
+cp LICENSE COMPSs/
+cp NOTICE COMPSs/
+cp README COMPSs/
+cp RELEASE_NOTES COMPSs/
 cp -r c/* COMPSs/Bindings/c_pack/
 
 echo "   - Erase sources"
@@ -43,6 +48,13 @@ echo " "
 echo "* Installing COMPSs C-Binding..."
 
 mkdir -p ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/
+
+cp COMPSs/changelog $RPM_BUILD_ROOT/opt/COMPSs/
+cp COMPSs/LICENSE $RPM_BUILD_ROOT/opt/COMPSs/
+cp COMPSs/NOTICE $RPM_BUILD_ROOT/opt/COMPSs/
+cp COMPSs/README $RPM_BUILD_ROOT/opt/COMPSs/
+cp COMPSs/RELEASE_NOTES $RPM_BUILD_ROOT/opt/COMPSs/ 
+
 cp -r COMPSs/Bindings/c_pack/ ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/
 
 echo "* Setting COMPSs C-Binding permissions..."
@@ -116,20 +128,17 @@ echo " "
 
 #------------------------------------------------------------------------------------
 %postun 
-rm -rf /opt/COMPSs/Bindings/c
-rm -rf /opt/COMPSs/Runtime/scripts/system/c
-rm -f /opt/COMPSs/Runtime/scripts/user/compss_build_app
+rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/c
+rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Runtime/scripts/system/c
+rm -f ${RPM_BUILD_ROOT}/opt/COMPSs/Runtime/scripts/user/compss_build_app
 echo "COMPSs C-Binding Successfully uninstalled!"
 echo " "
 
 #------------------------------------------------------------------------------------
 %clean
-rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/c
-rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Runtime/scripts/system/c
-rm -f ${RPM_BUILD_ROOT}/opt/COMPSs/Runtime/scripts/user/compss_build_app
+rm -rf ${RPM_BUILD_ROOT}
 
 #------------------------------------------------------------------------------------
 %files 
 %defattr(-,root,root)
-/opt/COMPSs/Bindings/c_pack/
-
+/opt/COMPSs/

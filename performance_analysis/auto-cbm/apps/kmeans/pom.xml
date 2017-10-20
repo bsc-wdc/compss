@@ -9,15 +9,15 @@
 	<parent>		
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>auto-cbm</artifactId>
-<version>2.1.rc1709</version>
-	    	<relativePath>../..</relativePath>
+        <version>2.1.rc1709</version>
+        <relativePath>../..</relativePath>
 	</parent>
 	
 	<!-- PROJECT INFORMATION -->
 	<name>KMeans-frag</name>
 	<description>KMeans application</description>
 	<url>http://compssdev.bsc.es/projects/bar/wiki/kmeans</url>
-	<inceptionYear>2014</inceptionYear>
+    <inceptionYear>2014</inceptionYear>
 	<licenses>
 		<license>
 			<name>Apache License, Version 2.0</name>

@@ -14,7 +14,7 @@ Distribution: Linux
 Vendor: Barcelona Supercomputing Center (BSC)
 URL: http://compss.bsc.es
 Packager: COMPSs Support <support-compss@bsc.es>
-Prefix: /opt/COMPSs/Runtime
+Prefix: /opt
 BuildArch: noarch
 
 %description
@@ -47,6 +47,14 @@ connectors=$(find ./resources/ -name "*.jar" | grep "cloud-conn")
 for conn in $connectors; do
   cp $conn COMPSs/Runtime/cloud-conn/
 done 
+
+#Doc
+cp changelog COMPSs/
+cp LICENSE COMPSs/
+cp NOTICE COMPSs/
+cp README COMPSs/
+cp RELEASE_NOTES COMPSs/
+
 
 echo "   - Erase sources"
 ls . | grep -v COMPSs | xargs rm -r
@@ -90,19 +98,17 @@ echo " "
 
 #------------------------------------------------------------------------------------
 %postun 
-rm -rf /opt/COMPSs/Runtime/connectors
-rm -rf /opt/COMPSs/Runtime/cloud-conn
+rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Runtime/connectors
+rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Runtime/cloud-conn
 echo "COMPSs Runtime Cloud Resources Successfully uninstalled!"
 echo " "
 
 #------------------------------------------------------------------------------------
 %clean
-rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Runtime/connectors
-rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Runtime/cloud-conn
+rm -rf ${RPM_BUILD_ROOT}
 
 #------------------------------------------------------------------------------------
 %files 
 %defattr(-,root,root)
-/opt/COMPSs/Runtime/connectors/
-/opt/COMPSs/Runtime/cloud-conn/
+/opt/COMPSs/
 

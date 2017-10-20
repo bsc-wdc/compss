@@ -14,7 +14,7 @@ Distribution: Linux
 Vendor: Barcelona Supercomputing Center (BSC)
 URL: http://compss.bsc.es
 Packager: COMPSs Support <support-compss@bsc.es>
-Prefix: /opt/COMPSs/Bindings/bindings-common
+Prefix: /opt
 BuildArch: noarch
 
 %description
@@ -99,15 +99,15 @@ echo " "
 
 #------------------------------------------------------------------------------------
 %postun 
-rm -rf /opt/COMPSs/Bindings/bindings-common
+rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/bindings-common
 echo "COMPSs Bindings-common Successfully uninstalled!"
 echo " "
 
 #------------------------------------------------------------------------------------
 %clean
-rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/bindings-common
+rm -rf ${RPM_BUILD_ROOT}
 
 #------------------------------------------------------------------------------------
 %files 
 %defattr(-,root,root)
-/opt/COMPSs/Bindings/bindings-common/
+/opt/COMPSs/

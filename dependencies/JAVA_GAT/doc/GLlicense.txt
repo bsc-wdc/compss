@@ -27,7 +27,7 @@ the following conditions are met:
    documentation must retain the above copyright notice, the list of conditions
    and the following disclaimer. 
 
-2. The names "GAT ­ Grid Application Toolkit", "EU GridLab" or "GridLab" may be
+2. The names "GAT ï¿½ Grid Application Toolkit", "EU GridLab" or "GridLab" may be
    used to endorse or promote software, or products derived therefrom.
 
 3. You are under no obligation to provide anyone with bug fixes, patches,

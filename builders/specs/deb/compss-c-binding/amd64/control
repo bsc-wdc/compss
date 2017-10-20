@@ -3,6 +3,6 @@ Version:
 Priority: optional
 Architecture: amd64
 Essential: no
-Depends: compss-bindings-common, libboost-serialization-dev, libboost-iostreams-dev, libxml2-dev, csh
+Depends: compss-bindings-common, libboost-all-dev, libxml2-dev, csh
 Maintainer: COMPSs Support <support-compss@bsc.es>
 Description: The BSC COMP Superscalar C binding.

@@ -146,24 +146,15 @@ echo " "
 
 #------------------------------------------------------------------------------------
 %postun 
-rm -rf /opt/COMPSs/
+rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/
 echo "COMPSs Runtime Engine Successfully uninstalled!"
 echo " "
 
 #------------------------------------------------------------------------------------
 %clean
-rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/
+rm -rf ${RPM_BUILD_ROOT}
 
 #------------------------------------------------------------------------------------
 %files
 %defattr(-,root,root)
-/opt/COMPSs/Runtime/ 
-/opt/COMPSs/Dependencies/
-%doc /opt/COMPSs/README
-%doc /opt/COMPSs/changelog
-%doc /opt/COMPSs/LICENSE
-%doc /opt/COMPSs/NOTICE
-%doc /opt/COMPSs/RELEASE_NOTES
-%docdir /opt/COMPSs/Doc/
-/opt/COMPSs/Doc/
-
+/opt/COMPSs/

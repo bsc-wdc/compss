@@ -14,8 +14,8 @@ Distribution: Linux
 Vendor: Barcelona Supercomputing Center (BSC)
 URL: http://compss.bsc.es
 Packager: COMPSs Support <support-compss@bsc.es>
-Prefix: /opt/COMPSs/Bindings
-ExclusiveArch: x86_64
+Prefix: /opt
+BuildArch: x86_64
 
 %description
 The BSC COMP Superscalar Bindings for COMPSs Runtime.

@@ -14,7 +14,7 @@ Distribution: Linux
 Vendor: Barcelona Supercomputing Center (BSC)
 URL: http://compss.bsc.es
 Packager: COMPSs Support <support-compss@bsc.es>
-Prefix: /opt
+Prefix: /opt/COMPSs/Bindings/python
 BuildArch: noarch
 
 %description
@@ -106,15 +106,16 @@ echo " "
 
 #------------------------------------------------------------------------------------
 %postun 
-rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/python
+rm -rf /opt/COMPSs/Bindings/python
 echo "COMPSs Python-Binding Successfully uninstalled!"
 echo " "
 
 #------------------------------------------------------------------------------------
 %clean
-rm -rf ${RPM_BUILD_ROOT}
+rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/python
 
 #------------------------------------------------------------------------------------
 %files 
 %defattr(-,root,root)
-/opt/COMPSs/
+/opt/COMPSs/Bindings/python
+

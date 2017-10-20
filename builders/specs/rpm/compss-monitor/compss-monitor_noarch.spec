@@ -14,7 +14,7 @@ Distribution: Linux
 Vendor: Barcelona Supercomputing Center (BSC)
 URL: http://compss.bsc.es
 Packager: COMPSs Support <support-compss@bsc.es>
-Prefix: /opt
+Prefix: /opt/COMPSs/Tools/monitor
 BuildArch: noarch
 
 %description
@@ -50,14 +50,6 @@ cp monitor/target/classes/compss-monitor.conf COMPSs/Tools/monitor/apache-tomcat
 cp monitor/target/classes/server.xml COMPSs/Tools/monitor/apache-tomcat/conf/
 cp monitor/target/classes/*log4j* COMPSs/Tools/monitor/
 cp monitor/scripts/compss-monitor COMPSs/etc/init.d/
-
-#Doc
-cp changelog COMPSs/
-cp LICENSE COMPSs/
-cp NOTICE COMPSs/
-cp README COMPSs/
-cp RELEASE_NOTES COMPSs/
-
 
 echo "   - Erase sources"
 ls . | grep -v COMPSs | xargs rm -r
@@ -96,7 +88,7 @@ echo "* Installing COMPSs Monitor Tool..."
 echo " "
 
 echo " - Adding compss-monitor to chkconfig..."
-cp ${RPM_BUILD_ROOT}/opt/COMPSs/etc/init.d/compss-monitor /etc/init.d/
+cp /opt/COMPSs/etc/init.d/compss-monitor /etc/init.d/
 chkconfig --add compss-monitor
 echo " - Compss-monitor added to chkconfig"
 echo " "
@@ -113,15 +105,19 @@ chkconfig --del compss-monitor
 
 #------------------------------------------------------------------------------------
 %postun 
-rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Tools/monitor
+rm -rf /opt/COMPSs/Tools/monitor
+rm -f /etc/init.d/compss-monitor
 echo "COMPSs Monitor Tool Successfully uninstalled!"
 echo " "
 
 #------------------------------------------------------------------------------------
 %clean
-rm -rf ${RPM_BUILD_ROOT}
+rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Tools/monitor
+rm -f ${RPM_BUILD_ROOT}/etc/init.d/compss-monitor
 
 #------------------------------------------------------------------------------------
 %files 
 %defattr(-,root,root)
-/opt/COMPSs/
+/opt/COMPSs/Tools/monitor
+/opt/COMPSs/etc/init.d/compss-monitor 
+

@@ -133,13 +133,13 @@ echo " "
 
 #------------------------------------------------------------------------------------
 %postun 
-rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/
+rm -rf /opt/COMPSs/
 echo "COMPSs Runtime Worker Successfully uninstalled!"
 echo " "
 
 #------------------------------------------------------------------------------------
 %clean
-rm -rf ${RPM_BUILD_ROOT}
+rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/
 
 #------------------------------------------------------------------------------------
 %files 

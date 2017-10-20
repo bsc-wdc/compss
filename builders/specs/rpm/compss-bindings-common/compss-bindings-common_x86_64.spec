@@ -14,8 +14,8 @@ Distribution: Linux
 Vendor: Barcelona Supercomputing Center (BSC)
 URL: http://compss.bsc.es
 Packager: COMPSs Support <support-compss@bsc.es>
-Prefix: /opt
-BuildArch: x86_64
+Prefix: /opt/COMPSs/Bindings/bindings-common
+ExclusiveArch: x86_64
 
 %description
 The C libraries shared by the COMP Superscalar Bindings.
@@ -99,16 +99,16 @@ echo " "
 
 #------------------------------------------------------------------------------------
 %postun 
-rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/bindings-common
+rm -rf /opt/COMPSs/Bindings/bindings-common
 echo "COMPSs Bindings-common Successfully uninstalled!"
 echo " "
 
 #------------------------------------------------------------------------------------
 %clean
-rm -rf ${RPM_BUILD_ROOT}
+rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/bindings-common
 
 #------------------------------------------------------------------------------------
 %files 
 %defattr(-,root,root)
-/opt/COMPSs/
+/opt/COMPSs/Bindings/bindings-common
 

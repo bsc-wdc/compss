@@ -20,7 +20,7 @@
   set_env() {
     # Define jenkins job and path
     if [ "${distr}" == "ubuntu" ]; then
-      JENKINS_JOB="${JENKINS_JOB_BASENAME}Ubuntu.14-docker"
+      JENKINS_JOB="${JENKINS_JOB_BASENAME}Ubuntu.16-docker"
     elif [ "${distr}" == "debian" ]; then
       JENKINS_JOB="${JENKINS_JOB_BASENAME}Debian.9-docker"
     elif [ "${distr}" == "suse" ]; then

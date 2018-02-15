@@ -1,0 +1,35 @@
+stages:
+- build
+- cleanup_build
+- test
+- cleanup
+
+build_job:
+  stage: build
+  script:
+  - ./builders/buildlocal /opt/COMPSs
+  - echo "JAVA_HOME= $JAVA_HOME"
+
+cleanup_build_job:
+  stage: cleanup_build
+  script:
+  - rm -rf /opt/COMPSs
+  when: on_failure
+
+test_job:
+  stage: test
+  script:
+  - ./tests/scripts/main local local.cfg
+
+deploy_job:
+  stage: deploy
+  script:
+  - make deploy
+  when: manual
+
+cleanup_job:
+  stage: cleanup
+  script:
+  - rm -rf /opt/COMPSs
+  when: always
+

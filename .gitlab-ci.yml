@@ -7,9 +7,8 @@ stages:
 build_job:
   stage: build
   script:
-  - ./builders/buildlocal /opt/COMPSs
-  - echo "JAVA_HOME= $JAVA_HOME"
-  only: 
+  - sudo ./builders/buildlocal /opt/COMPSs
+  only:
   - trunk
 
 cleanup_build_job:
@@ -17,29 +16,22 @@ cleanup_build_job:
   script:
   - rm -rf /opt/COMPSs
   when: on_failure
-  only: 
+  only:
   - trunk
 
 test_job:
   stage: test
   script:
   - ./tests/scripts/main local local.cfg
-  only: 
-  - trunk
-
-deploy_job:
-  stage: deploy
-  script:
-  - make deploy
-  when: manual
-  only: 
+  only:
   - trunk
 
 cleanup_job:
   stage: cleanup
   script:
-  - rm -rf /opt/COMPSs
-  when: always
-  only: 
+  - sudo rm -rf /opt/COMPSs
+  - sudo rm -rf ~/.COMPSs
+  - sudo rm -rf /home/gitlab-runner/tests*
+  when: on_success
+  only:
   - trunk
-

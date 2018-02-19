@@ -71,7 +71,7 @@ if [ -z ${JAVA_HOME} ]; then
   JAVA_HOME=${JAVA_LIB_DIR}/../../../
 else
   echo " - Using defined JAVA_HOME installation: ${JAVA_HOME}"
-  libjvm=$(find ${JAVA_HOME} -name libjvm.so | head -n 1)
+  libjvm=$(find -L ${JAVA_HOME} -name libjvm.so | head -n 1)
   if [ -z $libjvm ]; then
     echo "ERROR: Invalid JAVA_HOME installation. No libjvm.so found"
     exit 1

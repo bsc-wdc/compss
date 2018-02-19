@@ -1,8 +1,6 @@
 stages:
 - build
-- cleanup_build
 - test
-- cleanup
 
 build_job:
   stage: build
@@ -12,30 +10,10 @@ build_job:
   - trunk
   - triggers
 
-cleanup_build_job:
-  stage: cleanup_build
-  script:
-  - rm -rf /opt/COMPSs
-  when: on_failure
-  only:
-  - trunk
-  - triggers
-
 test_job:
   stage: test
   script:
   - ./tests/scripts/main local local.cfg
-  only:
-  - trunk
-  - triggers
-
-cleanup_job:
-  stage: cleanup
-  script:
-  - sudo rm -rf /opt/COMPSs
-  - sudo rm -rf ~/.COMPSs
-  - sudo rm -rf /home/gitlab-runner/tests*
-  when: on_success
   only:
   - trunk
   - triggers

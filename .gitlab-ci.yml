@@ -10,6 +10,7 @@ build_job:
   - sudo ./builders/buildlocal /opt/COMPSs
   only:
   - trunk
+  - triggers
 
 cleanup_build_job:
   stage: cleanup_build
@@ -18,6 +19,7 @@ cleanup_build_job:
   when: on_failure
   only:
   - trunk
+  - triggers
 
 test_job:
   stage: test
@@ -25,6 +27,7 @@ test_job:
   - ./tests/scripts/main local local.cfg
   only:
   - trunk
+  - triggers
 
 cleanup_job:
   stage: cleanup
@@ -35,3 +38,4 @@ cleanup_job:
   when: on_success
   only:
   - trunk
+  - triggers

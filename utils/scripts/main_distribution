@@ -126,7 +126,6 @@
     echo -e "\e[0m"
 
     cd "${trunk_base}" || exit 1
-    echo "Using JDK: ${JAVA_HOME}"
     mvn -U clean install
     if [ $? -ne 0 ]; then
       display_error "Cannot compile COMPSs git Revision"

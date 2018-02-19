@@ -126,6 +126,7 @@
     echo -e "\e[0m"
 
     cd "${trunk_base}" || exit 1
+    echo "Using JDK: ${JAVA_HOME}"
     mvn -U clean install
     if [ $? -ne 0 ]; then
       display_error "Cannot compile COMPSs git Revision"
@@ -316,7 +317,7 @@ EOT
   # Log start of execution
   echo -e "\e[0m"
   echo "********************************"
-  echo "*** Start process on ${distr}  ***"
+  echo "*** Start process on ${distr} by user $(whoami)  ***"
   echo "********************************"
   echo -e "\e[0m"
  

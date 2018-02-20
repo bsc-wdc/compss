@@ -7,7 +7,7 @@ stages:
 build_job:
   stage: build
   script:
-  - sudo find . -name 'tmp' -exec rm -rf {} \;
+  - sudo rm -rf ./builders/tmp
   - sudo ./builders/buildlocal /opt/COMPSs
 
 cleanup_failure:

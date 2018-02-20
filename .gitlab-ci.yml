@@ -1,6 +1,16 @@
 stages:
+- clean
 - build
 - test
+- cleanup_build
+
+clean:
+  stage: clean
+  script:
+  - sudo rm -rf /opt/COMPSs
+  - sudo rm -rf /home/gitlab-runner/builds/*
+  - sudo rm -rf /home/gitlab-runner/tests*
+  - sudo rm -rf /home/gitlab-runner/.COMPSs
 
 build_job:
   stage: build
@@ -11,3 +21,11 @@ test_job:
   stage: test
   script:
   - ./tests/scripts/main local local.cfg
+
+
+cleanup_build_job:
+  stage: cleanup_build
+  script:
+  - sudo rm -rf /opt/COMPSs
+  when: on_success
+

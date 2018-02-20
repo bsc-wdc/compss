@@ -1,12 +1,22 @@
 stages:
 - build
+- clean
 - test
 - cleanup_build
 
 build_job:
   stage: build
   script:
+  - sudo find . -name 'tmp' -exec rm -rf {} \;
   - sudo ./builders/buildlocal /opt/COMPSs
+
+cleanup_failure:
+  stage: clean
+  script:
+  - sudo rm -rf /opt/COMPSs
+  - sudo rm -rf /home/gitlab-runner/tests*
+  - sudo rm -rf /home/gitlab-runner/.COMPSs
+  when: on_failure
 
 test_job:
   stage: test

@@ -49,7 +49,7 @@ cp -r doc/* COMPSs/Doc
 cp changelog COMPSs/
 cp LICENSE COMPSs/
 cp NOTICE COMPSs/
-cp README.md COMPSs/
+cp README.md.md COMPSs/
 cp RELEASE_NOTES COMPSs/
 
 #Dependencies

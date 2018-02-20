@@ -3,10 +3,6 @@ stages:
 - test
 - cleanup_build
 
-clean:
-  stage: clean
-  script:
-
 build_job:
   stage: build
   script:

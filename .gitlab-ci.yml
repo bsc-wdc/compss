@@ -11,7 +11,7 @@ build_job:
 test_job:
   stage: test
   script:
-  - ./tests/scripts/main local local.cfg
+  - echo "Disabled tests" #./tests/scripts/main local local.cfg
 
 
 cleanup_build_job:

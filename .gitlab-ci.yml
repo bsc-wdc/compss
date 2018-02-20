@@ -18,7 +18,6 @@ cleanup_build_job:
   stage: cleanup_build
   script:
   - sudo rm -rf /opt/COMPSs
-  - sudo rm -rf /home/gitlab-runner/builds/*
   - sudo rm -rf /home/gitlab-runner/tests*
   - sudo rm -rf /home/gitlab-runner/.COMPSs
 

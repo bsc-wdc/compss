@@ -282,7 +282,7 @@ install() {
   cp ${sourcesDir}/LICENSE ${tmpDir}
   cp ${sourcesDir}/NOTICE ${tmpDir}
   cp ${sourcesDir}/pom.xml ${tmpDir}
-  cp ${sourcesDir}/README ${tmpDir}
+  cp ${sourcesDir}/README.md ${tmpDir}
   cp ${sourcesDir}/RELEASE_NOTES ${tmpDir}
   find . -name '.git' -exec rm -rf {} \;  #Cleans git files
 

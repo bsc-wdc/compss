@@ -44,7 +44,7 @@
   cp ${trunk_rel_path}/changelog ${COMPSs_target}
   cp ${trunk_rel_path}/LICENSE ${COMPSs_target}
   cp ${trunk_rel_path}/NOTICE ${COMPSs_target}
-  cp README ${COMPSs_target}
+  cp README.md ${COMPSs_target}
   cp ${trunk_rel_path}/RELEASE_NOTES ${COMPSs_target}
 
   #Dependencies

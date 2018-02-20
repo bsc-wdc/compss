@@ -6,14 +6,8 @@ build_job:
   stage: build
   script:
   - sudo ./builders/buildlocal /opt/COMPSs
-  only:
-  - trunk
-  - triggers
 
 test_job:
   stage: test
   script:
   - ./tests/scripts/main local local.cfg
-  only:
-  - trunk
-  - triggers

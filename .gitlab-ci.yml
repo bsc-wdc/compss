@@ -7,8 +7,7 @@ stages:
 build_job:
   stage: build
   script:
-  - sudo ./builders/buildlocal /opt/COMPSs
-  - sudo chown -R gitlab-runner ./builders/*
+  - ./builders/buildlocal /opt/COMPSs
 
 cleanup_failure:
   stage: clean

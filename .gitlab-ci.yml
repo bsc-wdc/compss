@@ -8,6 +8,8 @@ build_job:
   stage: build
   script:
   - ./builders/buildlocal /opt/COMPSs
+  only: 
+  - triggers
 
 cleanup_failure:
   stage: clean
@@ -16,11 +18,15 @@ cleanup_failure:
   - sudo rm -rf /home/gitlab-runner/tests*
   - sudo rm -rf /home/gitlab-runner/.COMPSs
   when: on_failure
+  only:
+  - triggers
 
 test_job:
   stage: test
   script:
   - echo "Disabled tests" #./tests/scripts/main local local.cfg
+  only:
+  - triggers
 
 
 cleanup_build_job:
@@ -29,4 +35,5 @@ cleanup_build_job:
   - sudo rm -rf /opt/COMPSs
   - sudo rm -rf /home/gitlab-runner/tests*
   - sudo rm -rf /home/gitlab-runner/.COMPSs
-
+  only:
+  - triggers

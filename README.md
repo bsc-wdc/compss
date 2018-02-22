@@ -64,8 +64,7 @@ at our webpage (http://compss.bsc.es) or at doc/Sample_applications.pdf
         $ ./buildlocal [options] ${INSTALL_DIR}
 
 
-*************************************
-** Department of Computer Science  **
-** Barcelona Supercomputing Center **
-*************************************
+
+Department of Computer Science
+Barcelona Supercomputing Center
 

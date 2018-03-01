@@ -188,9 +188,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @return
      */
     public int newTask(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
-            Parameter[] parameters) {
+            boolean hasReturn, Parameter[] parameters) {
 
-        Task currentTask = new Task(appId, namespace, service, port, operation, priority, hasTarget, parameters);
+        Task currentTask = new Task(appId, namespace, service, port, operation, priority, hasTarget, hasReturn, parameters);
 
         if (!requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "new service task");

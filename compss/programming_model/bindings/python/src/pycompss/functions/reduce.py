@@ -1,25 +1,13 @@
-#
-#  Copyright Barcelona Supercomputing Center (www.bsc.es)
-#
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-#
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
 
 """
 PyCOMPSs Functions: Reduce
 ===================================
     This file defines the common reduce functions.
 """
-
+import sys
 
 def mergeReduce(function, data):
     """
@@ -31,7 +19,7 @@ def mergeReduce(function, data):
     :return: result of reduce the data to a single value
     """
     from collections import deque
-    q = deque(xrange(len(data)))
+    q = deque(range(len(data)))
     dataNew = data[:]
     while len(q):
         x = q.popleft()
@@ -53,14 +41,14 @@ def mergeNReduce(function, data):
     :return: List of results
     """
     from collections import deque
-    q = deque(xrange(len(data)))
+    q = deque(range(len(data)))
     numArgs = function.func_code.co_argcount
     while len(q) >= numArgs:
-        args = [q.popleft() for _ in xrange(numArgs)]
+        args = [q.popleft() for _ in range(numArgs)]
         data[args[0]] = function(*[data[i] for i in args])
         q.append(args[0])
     else:
-        args = [q.popleft() for _ in xrange(len(q))]
+        args = [q.popleft() for _ in range(len(q))]
         return [data[i] for i in args]
 
 
@@ -74,6 +62,10 @@ def simpleReduce(function, data):
     :return: result of reduce the data to a single value
     """
     try:
-        return reduce(function, data)
-    except Exception, e:
+        if sys.version_info >= (3, 0):
+            import functools
+            return functools.reduce(function, data)
+        else:
+            return reduce(function, data)
+    except Exception as e:
         raise e

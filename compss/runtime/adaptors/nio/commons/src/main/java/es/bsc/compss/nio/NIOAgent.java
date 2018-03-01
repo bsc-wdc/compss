@@ -248,6 +248,7 @@ public abstract class NIOAgent {
 
         if (path.startsWith(File.separator)) {
             File f = new File(path);
+            LOGGER.debug("INSIDE SENDATA");
             if (f.exists()) {
                 LOGGER.debug("Connection " + c.hashCode() + " will transfer file " + path + " as data " + d.getName());
                 c.sendDataFile(path);

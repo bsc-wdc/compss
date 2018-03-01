@@ -17,26 +17,27 @@ import java.util.Map.Entry;
 
 public class Converter {
 
-    // Constraints default values
-    private static final String CPU_TYPE = "CPU";
-    private static final float UNASSIGNED_FLOAT = -1.0f;
-
-
     private Converter() {
+        // Private constructor to avoid instantiation
     }
 
     /**
-     *********************************************************************
-     ************************ COMPSs TO CONN ***************************** ********************************************************************
+     *********************************************************************************************************************
+     *************************************** COMPSs TO CONN **************************************************************
+     * *******************************************************************************************************************
      */
+
     /**
-     *
+     * Returns the hardware description
+     * 
      * @param cmrd
      * @return
      */
     public static HardwareDescription getHardwareDescription(CloudMethodResourceDescription cmrd) {
         List<Processor> processors = Converter.getConnectorProcessors(cmrd.getProcessors());
-        int cpuCores = cmrd.getTotalCPUComputingUnits();
+        int cpuCU = cmrd.getTotalCPUComputingUnits();
+        int gpuCU = cmrd.getTotalGPUComputingUnits();
+        int fpgaCU = cmrd.getTotalFPGAComputingUnits();
         float memSize = cmrd.getMemorySize();
         String memType = cmrd.getMemoryType();
         float storageSize = cmrd.getStorageSize();
@@ -53,10 +54,16 @@ public class Converter {
 
         Map<String, String> imageProp = cmrd.getImage().getProperties();
         // FIXME Using CPU Computing units, should check all units
-        return new HardwareDescription(processors, cpuCores, memSize, memType, storageSize, storageType, timeUnit, priceUnit, imageName,
-                instanceType, imageProp);
+        return new HardwareDescription(processors, cpuCU, gpuCU, fpgaCU, memSize, memType, storageSize, storageType, timeUnit, priceUnit,
+                imageName, instanceType, imageProp);
     }
 
+    /**
+     * Returns the software description
+     * 
+     * @param cmrd
+     * @return
+     */
     public static SoftwareDescription getSoftwareDescription(CloudMethodResourceDescription cmrd) {
         String osType = cmrd.getOperatingSystemType();
         String osDist = cmrd.getOperatingSystemDistribution();
@@ -68,15 +75,35 @@ public class Converter {
         return new SoftwareDescription(osType, osDist, osVersion, apps, installDesc);
     }
 
+    /**
+     * Returns the virtual resource
+     * 
+     * @param id
+     * @param cmrd
+     * @return
+     */
     public static VirtualResource getVirtualResource(Object id, CloudMethodResourceDescription cmrd) {
         return new VirtualResource((String) id, getHardwareDescription(cmrd), getSoftwareDescription(cmrd),
                 cmrd.getImage().getProperties());
     }
 
+    /**
+     * Returns the connector processor
+     * 
+     * @param p
+     * @return
+     */
     private static Processor getConnectorProcessor(es.bsc.compss.types.resources.components.Processor p) {
-        return new Processor(p.getName(), p.getComputingUnits(), p.getSpeed(), p.getArchitecture(), p.getPropName(), p.getPropValue());
+        return new Processor(p.getName(), p.getComputingUnits(), p.getType(), p.getInternalMemory(), p.getSpeed(), p.getArchitecture(),
+                p.getPropName(), p.getPropValue());
     }
 
+    /**
+     * Returns the connector processor
+     * 
+     * @param processorList
+     * @return
+     */
     private static List<Processor> getConnectorProcessors(List<es.bsc.compss.types.resources.components.Processor> processorList) {
         List<Processor> processors = new LinkedList<>();
         for (es.bsc.compss.types.resources.components.Processor p : processorList) {
@@ -85,6 +112,12 @@ public class Converter {
         return processors;
     }
 
+    /**
+     * Returns the installation description
+     * 
+     * @param config
+     * @return
+     */
     private static InstallationDescription getInstallationDescription(MethodConfiguration config) {
         return new InstallationDescription(config.getInstallDir(), config.getAppDir(), config.getClasspath(), config.getPythonpath(),
                 config.getLibraryPath(), config.getWorkingDir(), config.getLimitOfTasks());
@@ -112,12 +145,24 @@ public class Converter {
         return cmrd;
     }
 
+    /**
+     * Returns the COMPSs processor
+     * 
+     * @param p
+     * @return
+     */
     private static es.bsc.compss.types.resources.components.Processor getCOMPSsProcessor(Processor p) {
         // FIXME Assuming that all processors have type CPU and no mem
         return new es.bsc.compss.types.resources.components.Processor(p.getName(), p.getComputingUnits(), p.getSpeed(), p.getArchitecture(),
-                CPU_TYPE, UNASSIGNED_FLOAT, p.getPropName(), p.getPropValue());
+                p.getType(), p.getInternalMemory(), p.getPropName(), p.getPropValue());
     }
 
+    /**
+     * Returns the COMPSs processors
+     * 
+     * @param processorList
+     * @return
+     */
     private static List<es.bsc.compss.types.resources.components.Processor> getCOMPSsProcessors(List<Processor> processorList) {
         List<es.bsc.compss.types.resources.components.Processor> processors = new LinkedList<>();
 
@@ -127,6 +172,14 @@ public class Converter {
         return processors;
     }
 
+    /**
+     * Returns the cloud image description
+     * 
+     * @param hd
+     * @param sd
+     * @param requested
+     * @return
+     */
     private static CloudImageDescription getCloudImageDescription(HardwareDescription hd, SoftwareDescription sd,
             CloudMethodResourceDescription requested) {
 
@@ -145,6 +198,13 @@ public class Converter {
         return cid;
     }
 
+    /**
+     * Sets the hardware inside the resource description
+     * 
+     * @param cmrd
+     * @param hd
+     * @param requested
+     */
     private static void setHardwareInResourceDescription(CloudMethodResourceDescription cmrd, HardwareDescription hd,
             CloudMethodResourceDescription requested) {
 
@@ -160,6 +220,13 @@ public class Converter {
         }
     }
 
+    /**
+     * Sets the software inside the resource description
+     * 
+     * @param cmrd
+     * @param sd
+     * @param requested
+     */
     private static void setSoftwareInResourceDescription(CloudMethodResourceDescription cmrd, SoftwareDescription sd,
             CloudMethodResourceDescription requested) {
 

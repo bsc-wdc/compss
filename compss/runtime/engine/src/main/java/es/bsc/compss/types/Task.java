@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+
 /**
  * Representation of a Task
  *
@@ -19,6 +20,7 @@ public class Task implements Comparable<Task> {
     // Task ID management
     private static final int FIRST_TASK_ID = 1;
     private static AtomicInteger nextTaskId = new AtomicInteger(FIRST_TASK_ID);
+
 
     /**
      * Task states
@@ -30,6 +32,7 @@ public class Task implements Comparable<Task> {
         FINISHED, // Task has finished successfully
         FAILED // Task has failed
     }
+
 
     // Task fields
     private final long appId;
@@ -51,8 +54,9 @@ public class Task implements Comparable<Task> {
     // Execution count information
     private int executionCount;
 
+
     /**
-     * Creates a new task with the given parameters
+     * Creates a new METHOD task with the given parameters
      *
      * @param appId
      * @param methodClass
@@ -78,7 +82,7 @@ public class Task implements Comparable<Task> {
     }
 
     /**
-     * Creates a new task with the given parameters
+     * Creates a new SERVICE task with the given parameters
      *
      * @param appId
      * @param namespace
@@ -90,12 +94,12 @@ public class Task implements Comparable<Task> {
      * @param parameters
      */
     public Task(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary, boolean hasTarget,
-            Parameter[] parameters) {
+            boolean hasReturn, Parameter[] parameters) {
 
         this.appId = appId;
         this.taskId = nextTaskId.getAndIncrement();
         this.status = TaskState.TO_ANALYSE;
-        this.taskDescription = new TaskDescription(namespace, service, port, operation, isPrioritary, hasTarget, parameters);
+        this.taskDescription = new TaskDescription(namespace, service, port, operation, isPrioritary, hasTarget, hasReturn, parameters);
         this.predecessors = new LinkedList<>();
         this.successors = new LinkedList<>();
         this.executions = new LinkedList<>();

@@ -1,22 +1,43 @@
 #!/bin/bash
 
+  #
+  # HELPER FUNCTIONS
+  #
+
+  clean() {
+    rm -rf "${SCRIPT_DIR}"/build
+  }
+
+
+  #
+  # SCRIPT GLOBAL CONSTANTS
+  #
+
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+
+  #
+  # MAIN
+  #
+
+  # Retrieve script arguments
   targetDir=$1
-  sourcesDir=$(pwd)
+
+  # Add trap for clean
+  trap clean EXIT
 
   # Install
+  echo "Installing in ${targetDir}"
   PYCOMPSS_HOME=${targetDir}
-  echo "Installing in $PYCOMPSS_HOME"
-  python ${sourcesDir}/setup.py install --install-lib=${PYCOMPSS_HOME}
+  export PYTHONPATH=$PYCOMPSS_HOME:$PYTHONPATH
+
+  python "${SCRIPT_DIR}"/setup.py install --install-lib="${PYCOMPSS_HOME}" -O2
   exitCode=$?
-
-  # Clean
-  rm -rf ${sourcesDir}/build
-
-  # Exit
   if [ $exitCode -ne 0 ]; then
-    echo "Error in Python binding package"
-    exit 1
-  else
-    exit 0
+    echo "ERROR: Cannot install PyCOMPSs"
+    exit $exitCode
   fi
+    
+  # Normal exit
+  exit 0
 

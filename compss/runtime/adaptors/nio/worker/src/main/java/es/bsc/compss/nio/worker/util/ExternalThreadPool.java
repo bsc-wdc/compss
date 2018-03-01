@@ -1,6 +1,7 @@
 package es.bsc.compss.nio.worker.util;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Map;
@@ -48,6 +49,7 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
     // Added to send data commands to binding
     protected final String writeDataPipeFile; // Pipe for sending data commands
     protected final String readDataPipeFile; // Pipe to read data commands results
+    protected static FileOutputStream writeDataStream;
 
     private Process piper;
     private StreamGobbler outputGobbler;
@@ -59,6 +61,7 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
      * 
      * @param nw
      * @param size
+     * @throws IOException
      */
     public ExternalThreadPool(NIOWorker nw, int size) {
         super(nw, size);
@@ -211,6 +214,7 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
         // Wait for piper process builder to end
         // Check out end status and close gobblers
         try {
+            LOGGER.info("Waiting for finishing piper process");
             int exitCode = piper.waitFor();
             if (NIOTracer.isActivated()) {
                 NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getSyncType());
@@ -255,7 +259,7 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
         // Destroys the bash process
         etp.piper.destroy();
 
-        // Pipes destroyed by bash TRAP on script
+        // Pipes are destroyed by bash TRAP on script
     }
 
     /**

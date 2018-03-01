@@ -300,6 +300,15 @@ public class CloudProvider {
     public Set<CloudMethodWorker> getHostedWorkers() {
         return hostedWorkers;
     }
+    
+    public CloudMethodWorker getHostedWorker(String name) {
+    	for (CloudMethodWorker vm : hostedWorkers) {
+    		if (vm.getName().equals(name)){
+    			return vm;
+    		}    
+        }
+    	return null;
+    }
 
     /*
      * ------------------------------------------ ------- Recommendation Queries ----------
@@ -363,5 +372,7 @@ public class CloudProvider {
         hostedWorkers.clear();
         connector.terminateAll();
     }
-
+    
+ 
+    
 }

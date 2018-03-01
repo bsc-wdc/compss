@@ -152,6 +152,11 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
         schedule((ResourceScheduler<WorkerResourceDescription>) worker, impl);
     }
+    
+    @Override
+    public void tryToSchedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
+        this.schedule(actionScore);
+    }
 
     @SuppressWarnings("unchecked")
     @Override

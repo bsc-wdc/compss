@@ -79,7 +79,7 @@ public class MOScore extends Score {
         return action.getPriority();
     }
 
-    public long getDataPredecessorTime(List<AllocatableAction> predecessors) {
+    public static long getDataPredecessorTime(List<AllocatableAction> predecessors) {
         long dataTime = 0;
         for (AllocatableAction pred : predecessors) {
             dataTime = Math.max(dataTime, ((MOSchedulingInformation) pred.getSchedulingInfo()).getExpectedEnd());

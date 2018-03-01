@@ -41,6 +41,11 @@ public class FakeWorker extends Worker<MethodResourceDescription> {
     public boolean hasAvailable(MethodResourceDescription consumption) {
         return true;
     }
+    
+    @Override
+    public boolean hasAvailableSlots() {
+        return true;
+    }
 
     @Override
     public MethodResourceDescription reserveResource(MethodResourceDescription consumption) {

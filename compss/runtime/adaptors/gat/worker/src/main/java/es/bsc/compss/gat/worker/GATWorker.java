@@ -10,7 +10,9 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
 import es.bsc.compss.util.Tracer;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -202,6 +204,7 @@ public class GATWorker {
             GATWorker.types = new Class[GATWorker.numParams - 1];
             GATWorker.values = new Object[GATWorker.numParams - 1];
         } else {
+
             GATWorker.types = new Class[GATWorker.numParams];
             GATWorker.values = new Object[GATWorker.numParams];
         }
@@ -213,16 +216,16 @@ public class GATWorker {
         GATWorker.renamings = new String[GATWorker.numParams];
 
         // Parse the parameter types and values
-        DataType[] dataTypes = DataType.values();
+        DataType[] dataTypesEnum = DataType.values();
         Stream[] dataStream = Stream.values();
         int argPosition = GATWorker.initialAppParamsPosition;
         for (int i = 0; i < GATWorker.numParams; i++) {
             // We need to use wrapper classes for basic types, reflection will unwrap automatically
             int argType_index = Integer.parseInt(args[argPosition]);
-            if (argType_index >= dataTypes.length) {
+            if (argType_index >= dataTypesEnum.length) {
                 ErrorManager.error(WARN_UNSUPPORTED_TYPE + argType_index);
             }
-            DataType argType = dataTypes[argType_index];
+            DataType argType = dataTypesEnum[argType_index];
             argPosition++;
 
             int argStream_index = Integer.parseInt(args[argPosition]);
@@ -541,25 +544,29 @@ public class GATWorker {
                 break;
             case MPI:
                 GATWorker.retValue = Invokers.invokeMPIMethod(GATWorker.methodDefinition[0], GATWorker.methodDefinition[1],
-                        GATWorker.target, GATWorker.values, GATWorker.hasReturn, GATWorker.streams, GATWorker.prefixes,
-                        GATWorker.taskSandboxWorkingDir);
+                        GATWorker.target, GATWorker.values, GATWorker.streams, GATWorker.prefixes, GATWorker.taskSandboxWorkingDir);
+                serializeBinaryExitValue();
                 break;
             case DECAF:
                 GATWorker.retValue = Invokers.invokeDecafMethod(GATWorker.methodDefinition[0], GATWorker.methodDefinition[1],
                         GATWorker.methodDefinition[2], GATWorker.methodDefinition[3], GATWorker.methodDefinition[4], GATWorker.target,
-                        GATWorker.values, GATWorker.hasReturn, GATWorker.streams, GATWorker.prefixes, GATWorker.taskSandboxWorkingDir);
+                        GATWorker.values, GATWorker.streams, GATWorker.prefixes, GATWorker.taskSandboxWorkingDir);
+                serializeBinaryExitValue();
                 break;
             case OMPSS:
                 GATWorker.retValue = Invokers.invokeOmpSsMethod(GATWorker.methodDefinition[0], GATWorker.target, GATWorker.values,
-                        GATWorker.hasReturn, GATWorker.streams, GATWorker.prefixes, GATWorker.taskSandboxWorkingDir);
+                        GATWorker.streams, GATWorker.prefixes, GATWorker.taskSandboxWorkingDir);
+                serializeBinaryExitValue();
                 break;
             case OPENCL:
                 GATWorker.retValue = Invokers.invokeOpenCLMethod(GATWorker.methodDefinition[0], GATWorker.target, GATWorker.values,
-                        GATWorker.hasReturn, GATWorker.streams, GATWorker.prefixes, GATWorker.taskSandboxWorkingDir);
+                        GATWorker.streams, GATWorker.prefixes, GATWorker.taskSandboxWorkingDir);
+                serializeBinaryExitValue();
                 break;
             case BINARY:
                 GATWorker.retValue = Invokers.invokeBinaryMethod(GATWorker.methodDefinition[0], GATWorker.target, GATWorker.values,
-                        GATWorker.hasReturn, GATWorker.streams, GATWorker.prefixes, GATWorker.taskSandboxWorkingDir);
+                        GATWorker.streams, GATWorker.prefixes, GATWorker.taskSandboxWorkingDir);
+                serializeBinaryExitValue();
                 break;
         }
 
@@ -629,6 +636,39 @@ public class GATWorker {
                     errMsg.append(info).append(" ");
                 }
                 ErrorManager.warn(errMsg.toString());
+            }
+        }
+    }
+
+    /**
+     * Serializes the binary exit value when required
+     * 
+     * @throws JobExecutionException
+     */
+    public static void serializeBinaryExitValue() {
+        System.out.println("Checking binary exit value serialization");
+
+        boolean isFile = GATWorker.isFile[GATWorker.isFile.length - 1];
+        String lastParamPrefix = GATWorker.prefixes[GATWorker.prefixes.length - 1];
+        String lastParamName = (String) GATWorker.values[GATWorker.values.length - 1];
+        if (GATWorker.debug) {
+            System.out.println("- Param isFile: " + isFile);
+            System.out.println("- Prefix: " + lastParamPrefix);
+        }
+
+        // Last parameter is a FILE with skip prefix => return in Python
+        // We cannot check it is OUT direction in GAT
+        if (isFile && lastParamPrefix.equals(Constants.PREFIX_SKIP)) {
+            // Write exit value to the file
+            System.out.println("Writing Binary Exit Value (" + GATWorker.retValue.toString() + ") to " + lastParamName);
+
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(lastParamName))) {
+                String value = "I" + GATWorker.retValue.toString() + "\n.\n";
+                writer.write(value);
+                writer.flush();
+            } catch (IOException ioe) {
+                System.err.println("ERROR: Cannot serialize binary exit value for bindings");
+                ioe.printStackTrace();
             }
         }
     }

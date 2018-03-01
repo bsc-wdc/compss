@@ -21,16 +21,16 @@ import org.gridlab.gat.resources.SoftwareDescription;
 public class GATTracer extends Tracer {
 
     public static Job startTracing(GATWorkerNode worker) {
-        if (debug) {
-            logger.debug("Starting trace for woker " + worker.getHost());
+        if (DEBUG) {
+            LOGGER.debug("Starting trace for woker " + worker.getHost());
         }
 
-        tracing_level = 1;
+        tracingLevel = 1;
 
         int numTasks = worker.getTotalComputingUnits();
         if (numTasks <= 0) {
-            if (debug) {
-                logger.debug("Resource " + worker.getName() + " has 0 slots, it won't appear in the trace");
+            if (DEBUG) {
+                LOGGER.debug("Resource " + worker.getName() + " has 0 slots, it won't appear in the trace");
             }
             return null;
         }
@@ -50,7 +50,7 @@ public class GATTracer extends Tracer {
         sd.setExecutable(worker.getInstallDir() + Tracer.TRACE_SCRIPT_PATH);
         sd.setArguments(new String[] { "init", worker.getWorkingDir(), String.valueOf(hostId), String.valueOf(numTasks) });
 
-        if (debug) {
+        if (DEBUG) {
             try {
                 org.gridlab.gat.io.File outFile = GAT.createFile(worker.getContext(),
                         Protocol.ANY_URI.getSchema() + File.separator + System.getProperty(COMPSsConstants.APP_LOG_DIR) + traceOutRelativePath);
@@ -72,7 +72,7 @@ public class GATTracer extends Tracer {
         try {
             URI brokerURI = new URI(uriString);
             ResourceBroker broker = GAT.createResourceBroker(worker.getContext(), brokerURI);
-            logger.debug("Starting tracer init job for worker " + uriString + " submited.");
+            LOGGER.debug("Starting tracer init job for worker " + uriString + " submited.");
             job = broker.submitJob(new JobDescription(sd));
         } catch (Exception e) {
             ErrorManager.warn("Error initializing tracing system in node " + worker.getHost(), e);
@@ -85,8 +85,8 @@ public class GATTracer extends Tracer {
         Long timeout = System.currentTimeMillis() + 60_000L;
         while (System.currentTimeMillis() < timeout) {
             if (isReady(job)) {
-                if (debug)
-                    logger.debug("Tracing ready");
+                if (DEBUG)
+                    LOGGER.debug("Tracing ready");
                 return;
             }
 
@@ -95,19 +95,19 @@ public class GATTracer extends Tracer {
             } catch (Exception e) {
             }
         }
-        logger.error("Error initializing tracing system, " + job + " job still pending.");
+        LOGGER.error("Error initializing tracing system, " + job + " job still pending.");
     }
 
     private static boolean isReady(Job job) {
         if (job != null) {
             if (job.getState() == Job.JobState.STOPPED) {
                 String uri = (String) ((JobDescription) job.getJobDescription()).getSoftwareDescription().getAttributes().get("uri");
-                if (debug) {
-                    logger.debug("Initialized tracing system in " + uri);
+                if (DEBUG) {
+                    LOGGER.debug("Initialized tracing system in " + uri);
                 }
                 return true;
             } else if (job.getState() == Job.JobState.SUBMISSION_ERROR) {
-                logger.error("Error initializing tracing system, host " + job);
+                LOGGER.error("Error initializing tracing system, host " + job);
                 return true;
             }
         }
@@ -115,7 +115,7 @@ public class GATTracer extends Tracer {
     }
 
     public static void emitEvent(long eventID, int eventType) {
-        logger.error("Emit event method based on Extrae JAVA API is not available for GAT tracing on workers. (Use Tracer class when instrumenting master.");
+        LOGGER.error("Emit event method based on Extrae JAVA API is not available for GAT tracing on workers. (Use Tracer class when instrumenting master.");
     }
 
     public static boolean generatePackage(GATWorkerNode node) {
@@ -135,7 +135,7 @@ public class GATTracer extends Tracer {
         try {
             traceScripts.add(new URI(Protocol.ANY_URI.getSchema() + user + host + File.separator + installDir + TRACE_SCRIPT_PATH));
         } catch (URISyntaxException e) {
-            logger.error("Error deleting tracing host", e);
+            LOGGER.error("Error deleting tracing host", e);
             return false;
         }
         String pars = "package " + workingDir + " " + host;

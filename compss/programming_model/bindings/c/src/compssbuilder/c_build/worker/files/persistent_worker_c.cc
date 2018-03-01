@@ -17,25 +17,32 @@ int endedThreads;
 pthread_mutex_t mtx;
 
 struct arg_t {
-	char * inPipe;
-	char * outPipe;
-	char * inDataPipe;
-	char * outDataPipe;
-	customStream *csOut;
-	customStream *csErr;
-	int nThreads;
+  char * inPipe;
+  char * outPipe;
+  char * inDataPipe;
+  char * outDataPipe;
+  customStream *csOut;
+  customStream *csErr;
+  int nThreads;
 };
+
+int get_compss_worker_lock(){
+  return pthread_mutex_lock(&mtx);
+}
+
+int release_compss_worker_lock(){
+  return pthread_mutex_unlock(&mtx);
+}
 
 
 //Reads a command when the other end of the pipe is written
 string readline(const char* inPipe) {
-	ifstream inFile;
-	inFile.open( inPipe , ios::in);
-	string command;
-	getline(inFile,command);
-	inFile.close();
-	
-	return command;
+  ifstream inFile;
+  inFile.open( inPipe , ios::in);
+  string command;
+  getline(inFile,command);
+  inFile.close();
+  return command;
 }
 
 
@@ -76,203 +83,128 @@ void restore_output(streambuf * oldsb, ofstream& filestr)
 }
 
 
-bool checkDataToRead(const char* inDataPipe){
-	cout << "before open" << endl;	
-	int fd = open(inDataPipe, O_RDONLY);
-	int flags = fcntl(fd, F_GETFL, 0);
-	fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-
-	char c;
-	int res = read(fd, &c, 1);
-
-	close(fd);
-	
-	cout << "result to be returned is " << res << endl;
-
-	if (res >= 0) {
-		cout << "something has been read" << endl;
-		return true;
-	}
-	cout << "there is nothing to read" << endl;
-
-	return false;
-}
-
 void *runThread(void * arg){
 
-	cout << "start run thread" << endl;
+    cout << "[Persistent C] Start compute thread with id " << gettid() << endl << flush;
 
 #ifdef OMPSS_ENABLED
     nanos_admit_current_thread();
-    cout << "enabled" << endl;
+    cout << "[Persistent C (Th " << gettid() <<")] Admitting thread to OmpSs runtime" << endl << flush;
 #endif
-
-
-//	pthread_mutex_t mtx;
 
     ofstream outFile;
     string command;
-	string output;
+    string output;
+    char *inPipe, *outPipe;
+    char *inDataPipe, *outDataPipe;
+    struct arg_t *args = (struct arg_t *)arg;
 
-	char *inPipe, *outPipe;
-	char *inDataPipe, *outDataPipe;
+    inPipe = args->inPipe;
+    outPipe = args->outPipe;
+    inDataPipe = args->inDataPipe;
+    outDataPipe = args->outDataPipe;
+    customStream *csOut = args->csOut;
+    customStream *csErr = args->csErr;
+    int nThreads = args->nThreads;
 
-	struct arg_t *args = (struct arg_t *)arg;
+    while(true){
+       cout << "[Persistent C (Th " << gettid() <<")] Waiting to read command..." << endl << flush;
+       command = readline(inPipe);
+       if (command != ""){
+          if (command == QUIT_TAG) {
+             cout << "[Persistent C (Th " << gettid() <<")] Quit received" << endl;
+             break;
+          }
 
-	inPipe = args->inPipe;
-	outPipe = args->outPipe;
-	inDataPipe = args->inDataPipe;
-	outDataPipe = args->outDataPipe;
-	customStream *csOut = args->csOut;
-	customStream *csErr = args->csErr;
-	int nThreads = args->nThreads;
+          cout << "[Persistent C (Th " << gettid() <<")] Command received. Reading arguments..." << endl << flush;
+	  string aux;
+          stringstream ss(command);
+    	  vector<string> commandArgs;
+          vector<string> executeArgs;
+          char** executeArgsC;
+          while (ss >> aux){
+              commandArgs.push_back(aux);
+          }
+          for (int i = 0; i < commandArgs.size(); i++) {   
+             int pos = commandArgs[i].find("worker_c");         
+             if (pos != -1){
+                executeArgs = vector<string>(commandArgs.begin() + i, commandArgs.end());
+             }
+          }
 
-	while(true){
-/*
-		if (checkDataToRead(inDataPipe)){
-			cout << "check succesful" << endl;
-			command = readline(inDataPipe);
-			cout << "command read is " << command << endl;
-		}
-*/
-		cout << "thread expecting to read command" << endl;
-
-		command = readline(inPipe);
-		
-		if (command != ""){
-
-			if (command == QUIT_TAG) {
-				cout << "[Persistent C] Quit received" << endl;
-				break;
-			}
-			string aux;
-            stringstream ss(command);
-
-			vector<string> commandArgs;
-        	vector<string> executeArgs;
-        	char** executeArgsC;
-
-            while (ss >> aux){
-               	commandArgs.push_back(aux);
-            }
-
-            for (int i = 0; i < commandArgs.size(); i++) {   
-               	int pos = commandArgs[i].find("worker_c");         
-               	if (pos != -1){
-                   	executeArgs = vector<string>(commandArgs.begin() + i, commandArgs.end());
-               	}
-            }
-
-			ofstream * jobOut = new ofstream(commandArgs[2].c_str());
-			ofstream * jobErr = new ofstream(commandArgs[3].c_str());
+          cout << "[Persistent C (Th " << gettid() <<")] Registering task output streams redirection..." << endl << flush;
+          ofstream * jobOut = new ofstream(commandArgs[2].c_str());
+	  ofstream * jobErr = new ofstream(commandArgs[3].c_str());
 						
-			csOut->registerThread(jobOut->rdbuf());
-			csErr->registerThread(jobErr->rdbuf());
+	  csOut->registerThread(jobOut->rdbuf());
+	  csErr->registerThread(jobErr->rdbuf());
 			
-			for (int i = 0; i < commandArgs.size(); i++) {
-				if (commandArgs[i] == "taskset"){
-					cpu_set_t to_assign;
-					CPU_ZERO(&to_assign);
-					string assignedCpuString = commandArgs[i+2];
-					vector<int>assignedCpus;
-					stringstream ss_cpus(assignedCpuString);
-					int cpu;
-					//Read integers from the list of cpus assigned, ignore commas
-					while (ss_cpus >> cpu){
-						CPU_SET(cpu, &to_assign);
-						if (ss_cpus.peek() == ',') ss_cpus.ignore();
-					}
+          cout << "[Persistent C (Th " << gettid() <<")] Setting affinity to the assigned to the cores assigned by the runtime..." << endl << flush;
+          for (int i = 0; i < commandArgs.size(); i++) {
+             if (commandArgs[i] == "taskset"){
+		cpu_set_t to_assign;
+                CPU_ZERO(&to_assign);
+                string assignedCpuString = commandArgs[i+2];
+                vector<int>assignedCpus;
+                stringstream ss_cpus(assignedCpuString);
+                int cpu;
+		//Read integers from the list of cpus assigned, ignore commas
+                while (ss_cpus >> cpu){
+                   CPU_SET(cpu, &to_assign);
+                   if (ss_cpus.peek() == ',') ss_cpus.ignore();
+                }
 				
-					if(sched_setaffinity(gettid(), sizeof(cpu_set_t), &to_assign) < 0) {
-    					cout << "[Persistent C] Error during sched_setaffinity call!" << endl;
-  					}
+                if(sched_setaffinity(gettid(), sizeof(cpu_set_t), &to_assign) < 0) {
+                   cout << "[Persistent C(Th " << gettid() <<")] WARN: Error during sched_setaffinity call! Ignoring affinity." << endl << flush;
+                }
+             }
+          }
 
+          cout << "[Persistent C (Th " << gettid() <<")] Starting task execution..." << endl << flush;
+          executeArgsC = new char*[executeArgs.size()];
+          for (int i = 0; i < executeArgs.size(); i++){
+             executeArgsC[i] = new char[executeArgs[i].size() + 1];
+             strcpy(executeArgsC[i], executeArgs[i].c_str());
+          }
+          for (int i = 0; i < 5; i++){
+             cout << executeArgs[i+14] << endl;
+          }
+          //last integer indicates if output data is going to be serialized at the end of the task execution 0=no 1=yes 
+	  int ret = execute(executeArgs.size(), executeArgsC, cache, types, 0);
+          
+	  cout << "[Persistent C (Th " << gettid() <<")] Task execution finished. Unregistering task output streams redirection..." << endl << flush;
+          csOut->unregisterThread();
+  	  csErr->unregisterThread();
+          
+          cout << "[Persistent C (Th " << gettid() <<")] Closing task output files..." << endl << flush;
+	  jobOut->close();
+	  jobErr->close();
 
-				}
-			}
-
-
-			executeArgsC = new char*[executeArgs.size()];
-
-			for (int i = 0; i < executeArgs.size(); i++){
-				executeArgsC[i] = new char[executeArgs[i].size() + 1];
-				strcpy(executeArgsC[i], executeArgs[i].c_str());
-			}
-
-			for (int i = 0; i < 5; i++){
-				cout << executeArgs[i+14] << endl;
-			}
-
-			cout << "before execute" << endl;
-			//last integer indicates if output data is going to be serialized at the end of the task execution 0=no 1=yes 
-			int ret = execute(executeArgs.size(), executeArgsC, cache, types, 0);
-			cout << "after execute" << endl;
-
-			char* test_fname = executeArgsC[17];
-			char* auxstr = strsep(&test_fname,":");
-			char* test_id = strsep(&test_fname,":");
-            auxstr = strsep(&test_fname,":");
-            auxstr = strsep(&test_fname,":");
-
-			//serializeData(test_id, test_fname, cache, types);			
-
-			csOut->unregisterThread();
-			csErr->unregisterThread();
-			cout << "closing output files" << endl;
-			jobOut->close();
-			jobErr->close();
-
-			cout << "before writing result" << endl;
-			ostringstream out_ss;
-			out_ss << END_TASK_TAG << " " << commandArgs[1] << " " << ret << endl;
-			output = out_ss.str();
-
-
-			outFile.open(outPipe);
-			cout << "before result output" << endl;
-                        outFile << output;
-			cout << "after result output" << endl;
-			fflush(NULL);
-			outFile.close();
-	
-			cout << "end of the function" << endl;
-			
-
-		}
-    }
-
-	cout << "[Persistent C] Thread " << gettid() << " quitting with output " << output << endl;
+	  cout << "[Persistent C (Th " << gettid() <<")] Writting result to the result pipe..." << endl << flush;
+          ostringstream out_ss;
+          out_ss << END_TASK_TAG << " " << commandArgs[1] << " " << ret << endl;
+          output = out_ss.str();
+          outFile.open(outPipe);
+          outFile << output << flush;
+	  //fflush(NULL);
+	  outFile.close();
+	  cout << "[Persistent C (Th " << gettid() <<")] Task processing finished." << endl << flush;
+      }else{
+	cout << "[Persistent C (Th " << gettid() <<")] Command is empty!." << endl << flush;
+      }
+   }
+   cout << "[Persistent C (Th " << gettid() << ")] Finalizing compute thread " << endl << flush;
 
 #ifdef OMPSS_ENABLED
-    cout << "disabling" << endl;
-    nanos_leave_team();
-    nanos_expel_current_thread();
-    cout << "disabled" << endl;
+   cout << "[Persistent C (Th " << gettid() << ")] Leaving OmpSs runtime..."  << endl << flush;
+   get_compss_worker_lock();
+   nanos_leave_team();
+   nanos_expel_current_thread();
+   release_compss_worker_lock();
 #endif
-
-	pthread_mutex_lock(&mtx);
-	endedThreads++;
-
-        cout << "TOTAL THREADS: " << nThreads << endl;
-        cout << "ENDED THREADS: " << endedThreads << endl;
-
-	if (endedThreads == nThreads){
-		ostringstream out_ss;
-        out_ss << QUIT_TAG << endl;
-        output = out_ss.str();
-		outFile.open(inDataPipe);
-		outFile << output;
-	}
-	pthread_mutex_unlock(&mtx);
-
-	return 0;
-
+   cout << "[Persistent C] Thread " << gettid() << " Finished." << endl << flush;
+   return 0;
 }
-
-
-
-
-
 
 int main(int argc, char **argv) {
     if (argc < 6) {
@@ -284,127 +216,106 @@ int main(int argc, char **argv) {
     char* inDataPipe = argv[1];
     char* outDataPipe = argv[2];
     //Reading in pipes
-    printf("numInPipes %s.\n", argv[3]);
     int numInPipes=atoi(argv[3]);
-    printf("Detected %d in pipes.\n", numInPipes);
+    printf("[Persistent C] Detected %d in pipes.\n", numInPipes);
     char* inPipes[numInPipes];
     for (int i=0; i<numInPipes; i++){
         inPipes[i] = argv[i+4];
-        printf("In pipe %d: %s\n",i, inPipes[i]);
     }
     //Reading out pipes
-    printf("numInPipes %s.\n", argv[numInPipes+4]);
     int numOutPipes=atoi(argv[numInPipes+4]);
-    printf("Detected %d out pipes.\n", numOutPipes);
+    printf("[Persistent C] Detected %d out pipes.\n", numOutPipes);
     char* outPipes[numOutPipes];
     for (int i=0; i<numOutPipes; i++){
         outPipes[i] = argv[i+numInPipes+5];
-	printf("Out pipe %d: %s\n",i, outPipes[i]);
     }
 
     fflush(NULL);
 
+    //maybe not need
     pthread_mutex_init(&mtx,NULL);
-
-	endedThreads = 0;
-
-	streambuf* outbuf = cout.rdbuf();
-	streambuf* errbuf = cerr.rdbuf();
-
+    endedThreads = 0;
+    
+    //Creating custom streams
+    streambuf* outbuf = cout.rdbuf();
+    streambuf* errbuf = cerr.rdbuf();
     customStream *csOut = new customStream(cout.rdbuf());
-	customStream *csErr = new customStream(cerr.rdbuf());
-
+    customStream *csErr = new customStream(cerr.rdbuf());
     cout.rdbuf(csOut);
-	cerr.rdbuf(csErr);
+    cerr.rdbuf(csErr);
 
-	pthread_t threadpool[numInPipes];
-	arg_t arguments[numInPipes];
+    cout << "[Persistent C] Creating " << numInPipes << " compute threads..."<< endl <<flush;
+    pthread_t threadpool[numInPipes];
+    arg_t arguments[numInPipes];
+    for (int i = 0; i < numInPipes; i++){
+       arguments[i].inPipe = inPipes[i];
+       arguments[i].outPipe = outPipes[i];
+       arguments[i].inDataPipe = inDataPipe;
+       arguments[i].outDataPipe = outDataPipe;
+       arguments[i].csOut = csOut;
+       arguments[i].csErr = csErr;
+       arguments[i].nThreads = numInPipes;
+       if(pthread_create(&threadpool[i], NULL, runThread, &arguments[i])){
+          fprintf(stderr, "Error creating thread\n");
+          return 1;
+       }
+    }
 
-	cout << "number of input pipes is " << numInPipes << endl;
+    cout << "[Persistent C] Starting data command mangement..."<< endl << flush;
+    string cmd;	
+    while (true){
+       cout << "[Persistent C] Waiting for data commands..."<< endl << flush; 
+       cmd = readline(inDataPipe);
+       if (cmd != ""){
+          if (cmd == QUIT_TAG) {
+    	     cout << "[Persistent C] Quit received as data command" << endl << flush;
+             break;
+          }
+          string aux;
+          stringstream ss(cmd);
+          vector<string> dataArgs;
+          while (ss >> aux){
+             dataArgs.push_back(aux);
+          }
+          if (dataArgs[0] == REMOVE_TAG){
+             cout << "[Persistent C] Manging remove data command..." << endl;
+             removeData(dataArgs[1], cache, types);	
+          }
+	  if (dataArgs[0] == SERIALIZE_TAG){
+             cout << "[Persistent C] Manging serialize data command..." << endl;
+             int result = serializeData(dataArgs[1], dataArgs[2].c_str(), cache, types);
+     
+             ofstream outFile;
+             ostringstream out_ss;
+             if (result == 0){ 
+                out_ss << true << endl;
+             }else{
+                out_ss << false << endl;
+             }
+             string output = out_ss.str();
+             cout << "[Persistent C] Returning "<< output <<" to data result pipe..." << endl << flush;
+             outFile.open(outDataPipe);
+             outFile << output << flush;
+             //fflush(NULL);
+             outFile.close();
+	  }
+       }else{
+	  cout << "[Persistent C] Empty data command!" << endl;
+       }
+    }
+    cout << "[Persistent C] Waiting for compute threads to end..." << endl << flush;
+    for (int i = 0; i < numInPipes; i++){
+       if(pthread_join(threadpool[i], NULL)){
+          fprintf(stderr, "Error joining thread\n");
+	  return 1;  
+       }
+    }
+    cout << "[Persistent C] Restoring default streams..." << endl << flush;	
+    cout.rdbuf(outbuf);
+    cerr.rdbuf(errbuf);
 
-	for (int i = 0; i < numInPipes; i++){
-		arguments[i].inPipe = inPipes[i];
-		arguments[i].outPipe = outPipes[i];
-		arguments[i].inDataPipe = inDataPipe;
-		arguments[i].outDataPipe = outDataPipe;
-		arguments[i].csOut = csOut;
-		arguments[i].csErr = csErr;
-		arguments[i].nThreads = numInPipes;
-		if(pthread_create(&threadpool[i], NULL, runThread, &arguments[i])){
-			fprintf(stderr, "Error creating thread\n");
-			return 1;
-		}
-	}
-
-
-	string cmd;
-	
-	while (true){
-		cout << "expecting to read data command" << endl;
-
-		cmd = readline(inDataPipe);
-
-		cout << "starting iteration" << endl;
-
-		if (cmd != ""){
-
-			if (cmd == QUIT_TAG) {
-    	        cout << "[Persistent C] Quit received" << endl;
-        	    break;
-        	}
-
-			string aux;
-        	stringstream ss(cmd);
-
-        	vector<string> dataArgs;
-
-        	while (ss >> aux){
-            	dataArgs.push_back(aux);
-        	}
-
-			if (dataArgs[0] == REMOVE_TAG){
-				removeData(dataArgs[1], cache, types);	
-			}
-
-			if (dataArgs[0] == SERIALIZE_TAG){
-				cout << "before serialize" << endl;
-				serializeData(dataArgs[1], dataArgs[2].c_str(), cache, types);
-				cout << "after serialize" << endl;
-
-				ofstream outFile;
-				ostringstream out_ss;
-            	out_ss << true << endl;
-            	string output = out_ss.str();
-
-            	outFile.open(outDataPipe);
-            	cout << "before result output" << endl;
-                outFile << output;
-            	cout << "after result output" << endl;
-            	fflush(NULL);
-            	outFile.close();
-
-			}
-
-
-		}
-
-		cout << "ending iteration" << endl;
-
-	}
-
-	for (int i = 0; i < numInPipes; i++){
-		if(pthread_join(threadpool[i], NULL)){
-			fprintf(stderr, "Error joining thread\n");
-			return 1;  
-		}
-	}
-	
-	cout.rdbuf(outbuf);
-	cerr.rdbuf(errbuf);
-
-	//nanos_expel_current_thread();
+    //nanos_expel_current_thread();
 
     cout << "[Persistent C] Worker shutting down" << endl;
-   
     return 0;
 } 

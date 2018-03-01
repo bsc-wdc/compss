@@ -183,9 +183,10 @@ public abstract class Resource implements Comparable<Resource> {
      * Gets the list of obsolete files
      * @return List of logicalData objects
      */
-    public final List<LogicalData> getObsoletes() {
+    public final LogicalData[] pollObsoletes() {
         synchronized (obsoletes) {
-            List<LogicalData> obs = obsoletes;
+            LogicalData[] obs = obsoletes.toArray(new LogicalData[obsoletes.size()]);
+            obsoletes.clear();
             return obs;
         }
     }

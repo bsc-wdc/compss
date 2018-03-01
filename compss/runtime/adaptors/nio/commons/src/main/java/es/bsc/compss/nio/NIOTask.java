@@ -129,7 +129,7 @@ public class NIOTask implements Externalizable {
      * 
      * @return
      */
-    public boolean isHasTarget() {
+    public boolean hasTarget() {
         return this.hasTarget;
     }
 
@@ -138,7 +138,7 @@ public class NIOTask implements Externalizable {
      * 
      * @return
      */
-    public boolean isHasReturn() {
+    public boolean hasReturn() {
         return this.hasReturn;
     }
 

@@ -7,6 +7,7 @@ import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Random;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -51,7 +52,7 @@ import es.bsc.compss.util.Tracer;
 public class NIOWorker extends NIOAgent {
 
     // General configuration attributes
-    private static final int MAX_RETRIES = 5;
+    private static final int MAX_RETRIES = 10;
 
     // Logger
     private static final Logger WORKER_LOGGER = LogManager.getLogger(Loggers.WORKER);
@@ -451,17 +452,42 @@ public class NIOWorker extends NIOAgent {
                         WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") preserves sources. COPYING");
                         WORKER_LOGGER.debug("         Source: " + source);
                         WORKER_LOGGER.debug("         Target: " + target);
-                        Files.copy(source.toPath(), target.toPath());
+                        // if (!source.exists() && (Lang.valueOf(getLang().toUpperCase()) != Lang.C)) {
+                        if (!source.exists()) {
+                            WORKER_LOGGER.debug("source does not exist, preserve data");
+                            WORKER_LOGGER.debug("lang is " + getLang());
+                            if (getLang().toUpperCase() != "C") {
+                                WORKER_LOGGER.debug(
+                                        "[ERROR] File " + loc.getPath() + " does not exist but it could be an object in cache. Ignoring.");
+                            }
+                            // TODO The file to be copied needs to be serialized to a file from cache (or serialize from
+                            // memory to memory
+                            // if possible with a specific function
+                        } else {
+                            WORKER_LOGGER.debug("before copy");
+                            Files.copy(source.toPath(), target.toPath());
+                            WORKER_LOGGER.debug("after copy");
+                        }
                     } else {
                         WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") erases sources. MOVING");
                         WORKER_LOGGER.debug("         Source: " + source);
                         WORKER_LOGGER.debug("         Target: " + target);
-                        try {
-                            Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
-                        } catch (AtomicMoveNotSupportedException amnse) {
-                            WORKER_LOGGER.warn(
-                                    "WARN: AtomicMoveNotSupportedException. File cannot be atomically moved. Trying to move without atomic");
-                            Files.move(source.toPath(), target.toPath());
+                        if (!source.exists()) {
+                            WORKER_LOGGER.debug("source does not exist, no preserve data");
+                            WORKER_LOGGER.debug("lang is " + getLang() + ", in uppercase is " + getLang().toUpperCase());
+                            if (getLang().toUpperCase() != "C") {
+                                WORKER_LOGGER
+                                        .debug("File " + loc.getPath() + " does not exist but it could be an object in cache. Ignoring.");
+                            }
+
+                        } else {
+                            try {
+                                Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
+                            } catch (AtomicMoveNotSupportedException amnse) {
+                                WORKER_LOGGER.warn(
+                                        "WARN: AtomicMoveNotSupportedException. File cannot be atomically moved. Trying to move without atomic");
+                                Files.move(source.toPath(), target.toPath());
+                            }
                         }
                     }
                     locationsInHost = true;
@@ -502,8 +528,10 @@ public class NIOWorker extends NIOAgent {
     @Override
     protected void handleDataToSendNotAvailable(Connection c, Data d) {
         // Now only manage at C (python could do the same when cache available)
+        WORKER_LOGGER.debug("handling data not available");
         if (Lang.valueOf(lang.toUpperCase()) == Lang.C) {
             String path = d.getFirstURI().getPath();
+            WORKER_LOGGER.debug("about to serialize");
             if (executionManager.serializeExternalData(d.getName(), path)) {
                 c.sendDataFile(path);
                 return;
@@ -585,7 +613,6 @@ public class NIOWorker extends NIOAgent {
 
     public void sendTaskDone(NIOTask nt, boolean successful) {
         int taskID = nt.getJobId();
-
         // Notify task done
         int retries = 0;
         Connection c = null;
@@ -602,7 +629,9 @@ public class NIOWorker extends NIOAgent {
                     return;
                 } else {
                     try {
-                        Thread.sleep(10);
+                        Random randomGenerator = new Random(System.currentTimeMillis());
+                        int waitNanos = (int) (50000 * randomGenerator.nextFloat());
+                        Thread.sleep(0, waitNanos);
                     } catch (InterruptedException e1) {
                         Thread.currentThread().interrupt();
                     }
@@ -618,17 +647,44 @@ public class NIOWorker extends NIOAgent {
         }
         CommandTaskDone cmd = new CommandTaskDone(this, tr, successful);
         c.sendCommand(cmd);
-
+        // Check that output files already exists. If not exists generate an empty one.
+        String taskFileOutName = workingDir + File.separator + "jobs" + File.separator + "job" + nt.getJobId() + "_" + nt.getHist() + ".out";
+        String taskFileErrName = workingDir + File.separator + "jobs" + File.separator + "job" + nt.getJobId() + "_" + nt.getHist() + ".err";
+        File fout = new File(taskFileOutName);
+        if (!fout.exists()){
+        	String errorMessage = "Autogenerated Empty file. An error was produced before generating any log in the stdout";
+            try (FileOutputStream outputStream = new FileOutputStream(fout)) {
+                outputStream.write(errorMessage.getBytes());
+                outputStream.close();
+            } catch (IOException ioe) {
+                WORKER_LOGGER.error("IOException writing worker output file: " + fout, ioe);
+            }
+        }
+        File ferr = new File(taskFileErrName);
+        if (!ferr.exists()) {
+            String errorMessage = "Autogenerated Empty file. An error was produced before generating any log in the stderr";
+            try (FileOutputStream errorStream = new FileOutputStream(ferr)) {
+                errorStream.write(errorMessage.getBytes());
+                errorStream.close();
+            } catch (IOException ioe) {
+                WORKER_LOGGER.error("IOException writing worker error file: " + ferr, ioe);
+            }
+        }
         if (isWorkerDebugEnabled) {
-            c.sendDataFile(workingDir + File.separator + "jobs" + File.separator + "job" + nt.getJobId() + "_" + nt.getHist() + ".out");
-            c.sendDataFile(workingDir + File.separator + "jobs" + File.separator + "job" + nt.getJobId() + "_" + nt.getHist() + ".err");
+        	WORKER_LOGGER.debug("Sending file " + taskFileOutName);
+            c.sendDataFile(taskFileOutName);
+        	WORKER_LOGGER.debug("Sending file " + taskFileErrName);
+            c.sendDataFile(taskFileErrName);
         } else {
             if (!successful) {
-                c.sendDataFile(workingDir + File.separator + "jobs" + File.separator + "job" + nt.getJobId() + "_" + nt.getHist() + ".out");
-                c.sendDataFile(workingDir + File.separator + "jobs" + File.separator + "job" + nt.getJobId() + "_" + nt.getHist() + ".err");
+            	WORKER_LOGGER.debug("Sending file " +taskFileOutName);
+                c.sendDataFile(taskFileOutName);
+            	WORKER_LOGGER.debug("Sending file " +taskFileErrName);
+                c.sendDataFile(taskFileErrName);
             }
         }
         c.finishConnection();
+        WORKER_LOGGER.debug("Task " + taskID + " send task done with " + retries + " retries");
     }
 
     // Check if this task is ready to execute
@@ -680,8 +736,9 @@ public class NIOWorker extends NIOAgent {
                     if (!f.delete()) {
                         WORKER_LOGGER.error("Error removing file " + f.getAbsolutePath());
                     }
+                    WORKER_LOGGER.debug("Still executing tho 2");
                     // Now only manage at C (python could do the same when cache available)
-                    if (Lang.valueOf(lang.toUpperCase()) == Lang.C) {
+                    if (Lang.valueOf(lang.toUpperCase()) == Lang.C && persistentC) {
                         executionManager.removeExternalData(name);
                     }
                 }

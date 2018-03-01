@@ -271,12 +271,11 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         Resource res = job.getResource();
         NIOWorkerNode worker = (NIOWorkerNode) res.getNode();
 
-        List<LogicalData> obsoletes = res.getObsoletes();
+        LogicalData[] obsoletes = res.pollObsoletes();
         List<String> obsoleteRenamings = new LinkedList<>();
         for (LogicalData ld : obsoletes) {
             obsoleteRenamings.add(worker.getWorkingDir() + File.separator + ld.getName());
         }
-        res.clearObsoletes();
         RUNNING_JOBS.put(job.getJobId(), job);
         worker.submitTask(job, obsoleteRenamings);
     }
@@ -311,7 +310,13 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void receivedTaskDone(Connection c, NIOTaskResult tr, boolean successful) {
-        NIOJob nj = RUNNING_JOBS.remove(tr.getTaskId());
+        int taskId = tr.getTaskId();
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Received Task done message for Task " + taskId);
+        }
+
+        // Update running jobs
+        NIOJob nj = RUNNING_JOBS.remove(taskId);
 
         // Update information
         List<DataType> taskResultTypes = tr.getParamTypes();
@@ -330,19 +335,35 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             }
         }
 
-        // Update out/err files
+        // Update NIO Job
         if (nj != null) {
-            JobHistory h = nj.getHistory();
+            // Mark task as finished and release waiters
+            JobHistory prevJobHistory = nj.getHistory();
             nj.taskFinished(successful);
-            if (WORKER_DEBUG) {
-                c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + h + ".out");
-                c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + h + ".err");
-            } else {
-                if (!successful) {
-                    c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + nj.getHistory() + ".out");
-                    c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + nj.getHistory() + ".err");
+            //JobHistory newJobHistory = nj.getHistory();
+
+            // Retrieve files if required
+            if (WORKER_DEBUG || !successful ) {
+                String jobOut = JOBS_DIR + "job" + nj.getJobId() + "_" + prevJobHistory + ".out";
+                String jobErr = JOBS_DIR + "job" + nj.getJobId() + "_" + prevJobHistory + ".err";
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Requesting JobOut " + jobOut + " for Task " + taskId);
+                    LOGGER.debug("Requesting JobErr " + jobErr + " for Task " + taskId);
                 }
+                c.receiveDataFile(jobOut);
+                c.receiveDataFile(jobErr);
             }
+            
+            /*if (!successful) {
+                String jobOut = JOBS_DIR + "job" + nj.getJobId() + "_" + newJobHistory + ".out";
+                String jobErr = JOBS_DIR + "job" + nj.getJobId() + "_" + newJobHistory + ".err";
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Requesting JobOut " + jobOut + " for Task " + taskId);
+                    LOGGER.debug("Requesting JobErr " + jobErr + " for Task " + taskId);
+                }
+                c.receiveDataFile(jobOut);
+                c.receiveDataFile(jobErr);
+            }*/
         }
 
         // Close connection

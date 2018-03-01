@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>es.bsc.compss.connectors-default</artifactId>
-<version>2.2.rc1801</version>
+        <version>2.2.rc1801</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<!-- PROJECT INFORMATION -->
@@ -30,7 +30,7 @@
 	<!-- DEPENDENCIES -->
 	<dependencies>
 		<dependency>
-			<groupId>es.bsc</groupId>
+			<groupId>es.bsc.conn</groupId>
 			<artifactId>connectors-all</artifactId>
 		</dependency>
 		<dependency>

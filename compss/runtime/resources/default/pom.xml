@@ -33,7 +33,7 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>es.bsc</groupId>
+				<groupId>es.bsc.conn</groupId>
 				<artifactId>connectors-all</artifactId>
 				<version>${conn.version}</version>
 			</dependency>

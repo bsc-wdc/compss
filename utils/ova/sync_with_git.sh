@@ -19,10 +19,10 @@
   cd $HOME
   #sudo rm -rf trunk
   sudo rm -rf tutorial_apps traces
-  #svn co http://compssdev.bsc.es/svn/compss/framework/trunk trunk --username $svnUser
-  # TODO: put here new apps repo svn co http://compssdev.bsc.es/svn/bar/tutorial_apps/ tutorial_apps
+  #svn co http://compss.bsc.es/svn/compss/framework/trunk trunk --username $svnUser
+  # TODO: put here new apps repo svn co http://compss.bsc.es/svn/bar/tutorial_apps/ tutorial_apps
   # --username $svnUser
-  # TODO: put here new traces rep svn co http://compssdev.bsc.es/svn/bar/traces traces --username
+  # TODO: put here new traces rep svn co http://compss.bsc.es/svn/bar/traces traces --username
   # $svnUser
   
   # Clean unneeded files

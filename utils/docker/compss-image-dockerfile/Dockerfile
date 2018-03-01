@@ -1,7 +1,7 @@
 FROM ubuntu:14.04
 RUN apt-get install -y wget && \
-    wget http://compssdev.bsc.es/releases/repofiles/repo_deb_ubuntu_x86-64.list -O /etc/apt/sources.list.d/compss-framework_x86-64.list && \
-    wget -qO - http://compssdev.bsc.es/repo/debs/deb-gpg-bsc-grid.pub.key | apt-key add - && \
+    wget http://compss.bsc.es/releases/repofiles/repo_deb_ubuntu_x86-64.list -O /etc/apt/sources.list.d/compss-framework_x86-64.list && \
+    wget -qO - http://compss.bsc.es/repo/debs/deb-gpg-bsc-grid.pub.key | apt-key add - && \
     apt-get update && \
     apt-get install -y compss-framework openssh-client openssh-server ssh && \
     echo "export PATH=$PATH:/opt/COMPSs/Runtime/scripts/user/" >> /root/.bashrc && \ 

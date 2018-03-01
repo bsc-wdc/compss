@@ -1,5 +1,5 @@
 %define name	 	compss-extrae 
-%define version		2.1.rc1709
+%define version		2.2.rc1801
 %define release		1
 
 Requires: compss-engine, libxml2 >= 2.5.0, libxml2-devel >= 2.5.0, libtool, automake, make, gcc-c++, gcc-fortran

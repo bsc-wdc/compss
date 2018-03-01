@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>compss-trunk</artifactId>
-<version>2.1.rc1709</version>
+<version>2.2.rc1801</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -240,9 +240,9 @@
 
 	<!-- SOURCE CONTROL MANAGEMENT -->
 	<scm>
-		<connection>scm:git:http://compssdev.bsc.es/gitlab/compss/framework.git</connection>
-		<developerConnection>scm:git:http://compssdev.bsc.es/gitlab/compss/framework.git</developerConnection>
-		<url>http://compssdev.bsc.es/gitlab/compss/framework.git</url>
+		<connection>scm:git:http://compss.bsc.es/gitlab/compss/framework.git</connection>
+		<developerConnection>scm:git:http://compss.bsc.es/gitlab/compss/framework.git</developerConnection>
+		<url>http://compss.bsc.es/gitlab/compss/framework.git</url>
 	</scm>
 
 	<!-- REPOSITORIES -->
@@ -258,7 +258,7 @@
 		<repository>
 			<id>compss-repo</id>
 			<name>BSC Workflows and Distributed Computing group</name>
-			<url>http://compssdev.bsc.es/artifactory/libs-release</url>
+			<url>http://compss.bsc.es/artifactory/libs-release</url>
 		</repository>
 	</repositories>
 
@@ -281,7 +281,7 @@
 		<repository>
 			<id>compss-repo</id>
 			<name>BSC Workflows and Distributed Computing group</name>
-			<url>http://compssdev.bsc.es/artifactory/libs-release</url>
+			<url>http://compss.bsc.es/artifactory/libs-release</url>
 		</repository>
 	</distributionManagement>
 

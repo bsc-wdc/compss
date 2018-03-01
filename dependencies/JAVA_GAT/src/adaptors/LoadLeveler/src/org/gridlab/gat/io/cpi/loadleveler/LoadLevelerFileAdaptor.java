@@ -2,7 +2,7 @@
  *  A JAVAGAT adaptor for LSF+GPFS Clusters
  *  
  *  	Author: Carlos Díaz
- *      Contact: support-compssdev.bsc.es
+ *      Contact: support-compss.bsc.es
  *
  *	Barcelona Supercomputing Center
  * 	www.bsc.es

@@ -9,14 +9,14 @@
 	<parent>
 		<groupId>es.bsc.compss.tests</groupId>
 		<artifactId>compss-tests</artifactId>
-<version>2.1.rc1709</version>
+<version>2.2.rc1801</version>
 		<relativePath>..</relativePath>
 	</parent>
 
 	<!-- PROJECT INFORMATION -->
 	<name>COMP Superscalar Tests - Basic</name>
 	<description>COMPSs Framework Tests - Basic Local </description>
-	<url>http://compssdev.bsc.es</url>
+	<url>http://compss.bsc.es</url>
 	<inceptionYear>2014</inceptionYear>
 	<licenses>
 		<license>

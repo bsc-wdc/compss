@@ -29,7 +29,7 @@
   echo " "
   echo " * Downloading and configuring Tomcat for COMP Superscalar Monitor..."
   TOMCAT_VER="7.0.65"
-  TOMCAT_URL="http://compssdev.bsc.es/repo/apache-tomcat/apache-tomcat-7.0.65.tar.gz"
+  TOMCAT_URL="http://compss.bsc.es/repo/apache-tomcat/apache-tomcat-7.0.65.tar.gz"
   wget $TOMCAT_URL
   tar xzf apache-tomcat-$TOMCAT_VER.tar.gz
   mv apache-tomcat-$TOMCAT_VER ${COMPSs_target}/Tools/monitor/apache-tomcat

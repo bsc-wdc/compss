@@ -4,8 +4,6 @@ import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.implementations.ServiceImplementation;
 import es.bsc.compss.types.parameter.Parameter;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ErrorManager;
 
@@ -33,6 +31,18 @@ public class TaskDescription implements Serializable {
     private final boolean hasReturn;
 
 
+    /**
+     * Task description creation for METHODS
+     * 
+     * @param signature
+     * @param isPrioritary
+     * @param numNodes
+     * @param isReplicated
+     * @param isDistributed
+     * @param hasTarget
+     * @param hasReturn
+     * @param parameters
+     */
     public TaskDescription(String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
             boolean hasTarget, boolean hasReturn, Parameter[] parameters) {
 
@@ -54,8 +64,19 @@ public class TaskDescription implements Serializable {
         }
     }
 
+    /**
+     * Task description creation for SERVICES
+     * 
+     * @param namespace
+     * @param service
+     * @param port
+     * @param operation
+     * @param isPrioritary
+     * @param hasTarget
+     * @param parameters
+     */
     public TaskDescription(String namespace, String service, String port, String operation, boolean isPrioritary, boolean hasTarget,
-            Parameter[] parameters) {
+            boolean hasReturn, Parameter[] parameters) {
 
         this.type = TaskType.SERVICE;
 
@@ -65,18 +86,11 @@ public class TaskDescription implements Serializable {
         this.mustDistribute = Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK);
 
         this.hasTarget = hasTarget;
+        this.hasReturn = hasReturn;
         this.parameters = parameters;
-        if (parameters.length == 0) {
-            this.hasReturn = false;
-        } else {
-            Parameter lastParam = parameters[parameters.length - 1];
-            DataType type = lastParam.getType();
-            this.hasReturn = (lastParam.getDirection() == Direction.OUT
-                    && (type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_OBJECT_T));
-        }
 
         this.signature = ServiceImplementation.getSignature(namespace, service, port, operation, hasTarget, hasReturn, parameters);
-        this.coreId = CoreManager.getCoreId(signature);
+        this.coreId = CoreManager.getCoreId(this.signature);
     }
 
     public Integer getId() {

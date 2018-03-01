@@ -14,6 +14,7 @@ public class ActionSet {
     private final List<AllocatableAction> noCore;
     private List<AllocatableAction>[] coreIndexed;
     private int[] counts;
+    private int totalActions;
 
 
     @SuppressWarnings("unchecked")
@@ -27,6 +28,7 @@ public class ActionSet {
             this.coreIndexed[coreId] = new LinkedList<>();
             this.counts[coreId] = 0;
         }
+        totalActions=0;
     }
 
     @SuppressWarnings("unchecked")
@@ -62,8 +64,13 @@ public class ActionSet {
             this.coreIndexed[core].add(aa);
             this.counts[core]++;
         }
+        totalActions++;
     }
 
+    public int getNumberTotalActions() {
+        return this.totalActions;
+    }
+    
     public int[] getActionCounts() {
         return this.counts;
     }
@@ -94,6 +101,7 @@ public class ActionSet {
             this.coreIndexed[coreId].remove(action);
             this.counts[coreId]--;
         }
+        totalActions--;
     }
 
     public <T extends WorkerResourceDescription> List<AllocatableAction> removeAllCompatibleActions(Worker<T> r) {
@@ -103,6 +111,7 @@ public class ActionSet {
             AllocatableAction action = actions.next();
             if (action.isCompatible(r)) {
                 actions.remove();
+                totalActions--;
                 runnable.add(action);
             }
         }
@@ -110,8 +119,10 @@ public class ActionSet {
         List<Integer> executableCores = r.getExecutableCores();
         for (int core : executableCores) {
             runnable.addAll(coreIndexed[core]);
+            totalActions = totalActions - this.counts[core];
             this.coreIndexed[core] = new LinkedList<>();
             this.counts[core] = 0;
+            
         }
         return runnable;
     }
@@ -130,6 +141,7 @@ public class ActionSet {
             this.coreIndexed[core] = new LinkedList<>();
             this.counts[core] = 0;
         }
+        totalActions = 0;
         return runnable;
     }
 

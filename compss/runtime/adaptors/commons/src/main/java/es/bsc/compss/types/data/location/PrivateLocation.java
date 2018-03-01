@@ -44,8 +44,8 @@ public class PrivateLocation extends DataLocation {
 
     @Override
     public MultiURI getURIInHost(Resource targetHost) {
-        if (uri.getHost().equals(targetHost)) {
-            return uri;
+        if (this.uri.getHost().equals(targetHost)) {
+            return this.uri;
         } else {
             return null;
         }
@@ -72,7 +72,7 @@ public class PrivateLocation extends DataLocation {
 
     @Override
     public String getLocationKey() {
-        return uri.getPath() + ":" + uri.getHost().getName();
+        return this.uri.getPath() + ":" + this.uri.getHost().getName();
     }
 
     @Override
@@ -83,7 +83,7 @@ public class PrivateLocation extends DataLocation {
         if (o.getClass() != PrivateLocation.class) {
             return (this.getClass().getName()).compareTo(PrivateLocation.class.toString());
         } else {
-            return uri.compareTo(((PrivateLocation) o).uri);
+            return this.uri.compareTo(((PrivateLocation) o).uri);
         }
     }
 

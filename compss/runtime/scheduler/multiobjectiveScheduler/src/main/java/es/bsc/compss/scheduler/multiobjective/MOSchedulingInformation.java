@@ -153,6 +153,7 @@ public class MOSchedulingInformation extends SchedulingInformation {
     }
 
     public boolean tryToLock() {
+        // System.out.println("[MOSI] trylock "+ this.hashCode() + "("+l.getHoldCount()+")");
         try {
             return l.tryLock(1, TimeUnit.MILLISECONDS);
         } catch (InterruptedException ie) {
@@ -161,14 +162,17 @@ public class MOSchedulingInformation extends SchedulingInformation {
     }
 
     public void lock() {
+        // System.out.println("[MOSI] Aquiring lock "+ this.hashCode() + "("+l.getHoldCount()+")");
         l.lock();
     }
 
     public void unlock() {
         l.unlock();
+        // System.out.println("[MOSI] Unlock "+ this.hashCode()+ "("+l.getHoldCount()+")");
     }
 
     public void unlockCompletely() {
+        // System.out.println("[MOSI] Unlock compleately "+ this.hashCode());
         while (l.getHoldCount() > 1) {
             l.unlock();
         }
@@ -204,8 +208,12 @@ public class MOSchedulingInformation extends SchedulingInformation {
         return this.toReschedule;
     }
 
-    public void optimizingSuccessor(AllocatableAction action) {
+    public void addOptimizingSuccessor(AllocatableAction action) {
         optimizingSuccessors.add(action);
+    }
+
+    public void removeOptimizingSuccessor(AllocatableAction action) {
+        optimizingSuccessors.remove(action);
     }
 
     public List<AllocatableAction> getOptimizingSuccessors() {

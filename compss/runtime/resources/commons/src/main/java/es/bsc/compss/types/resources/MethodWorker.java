@@ -7,6 +7,7 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 
+
 public class MethodWorker extends Worker<MethodResourceDescription> {
 
     private String name;
@@ -24,17 +25,18 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     private int usedOthersTaskCount = 0;
     private final int maxOthersTaskCount;
 
+
     public MethodWorker(String name, MethodResourceDescription description, COMPSsWorker worker, int limitOfTasks,
-            Map<String, String> sharedDisks) {
+            int limitGPUTasks, int limitFPGATasks, int limitOTHERTasks,Map<String, String> sharedDisks) {
 
         super(name, description, worker, limitOfTasks, sharedDisks);
         this.name = name;
         available = new MethodResourceDescription(description);
 
         this.maxCPUTaskCount = limitOfTasks;
-        this.maxGPUTaskCount = 0;
-        this.maxFPGATaskCount = 0;
-        this.maxOthersTaskCount = 0;
+        this.maxGPUTaskCount = limitGPUTasks;
+        this.maxFPGATaskCount = limitFPGATasks;
+        this.maxOthersTaskCount = limitOTHERTasks;
     }
 
     public MethodWorker(String name, MethodResourceDescription description, MethodConfiguration conf, Map<String, String> sharedDisks) {
@@ -117,6 +119,12 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
         synchronized (available) {
             return available.containsDynamic(consumption);
         }
+    }
+
+    @Override
+    public boolean hasAvailableSlots() {
+        return ((this.usedCPUTaskCount < this.maxCPUTaskCount) || (this.usedGPUTaskCount < this.maxGPUTaskCount)
+                || (this.usedFPGATaskCount < this.maxFPGATaskCount) || (this.usedOthersTaskCount < this.maxOthersTaskCount));
     }
 
     public int getMaxCPUTaskCount() {

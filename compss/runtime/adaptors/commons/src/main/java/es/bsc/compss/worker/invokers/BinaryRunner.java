@@ -22,11 +22,10 @@ public class BinaryRunner {
     private static final String ERROR_OUTPUTREADER = "ERROR: Cannot retrieve command output";
     private static final String ERROR_ERRORREADER = "ERROR: Cannot retrieve command error";
     private static final String ERROR_PROC_EXEC = "ERROR: Exception executing Binary command";
-    private static final String ERROR_PROC_EXIT_VALUE = "ERROR: Binary command exited with non-zero exit value ";
 
 
     /**
-     * Converts the values to the cmd standard and calculates with are the streamValues
+     * Converts the values to the CMD standard and calculates with are the streamValues
      * 
      * @param values
      * @param paramStreams
@@ -91,13 +90,11 @@ public class BinaryRunner {
      * Executes a given command @cmd with the stream redirections @streamValues
      * 
      * @param cmd
-     * @param hasReturn
      * @param streamValues
      * @return
      * @throws InvokeExecutionException
      */
-    public static Object executeCMD(String[] cmd, boolean hasReturn, StreamSTD streamValues, File taskSandboxWorkingDir)
-            throws InvokeExecutionException {
+    public static Object executeCMD(String[] cmd, StreamSTD streamValues, File taskSandboxWorkingDir) throws InvokeExecutionException {
 
         // Prepare command execution with redirections
         ProcessBuilder builder = new ProcessBuilder(cmd);
@@ -124,10 +121,10 @@ public class BinaryRunner {
             System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
             System.out.println("[BINARY EXECUTION WRAPPER] Executing binary command");
             process = builder.start();
-            
+
             // Disable inputs to process
             process.getOutputStream().close();
-            
+
             // Wait and retrieve exit value
             exitValue = process.waitFor();
         } catch (Exception e) {
@@ -138,10 +135,7 @@ public class BinaryRunner {
         }
 
         // Return exit value if requested, null if none
-        if (exitValue != 0) {
-            throw new InvokeExecutionException(ERROR_PROC_EXIT_VALUE + String.valueOf(exitValue));
-        }
-        return hasReturn ? exitValue : null;
+        return exitValue;
     }
 
     private static void logBinaryExecution(Process process, int exitValue, String fileOutPath, String fileErrPath)

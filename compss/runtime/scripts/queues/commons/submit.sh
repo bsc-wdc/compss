@@ -262,15 +262,19 @@ get_args() {
             ;;
           queue=*)
             queue=$(echo $OPTARG | sed -e 's/queue=//g')
+            args_pass="$args_pass --$OPTARG"
             ;;
           reservation=*)
             reservation=$(echo $OPTARG | sed -e 's/reservation=//g')
+            args_pass="$args_pass --$OPTARG"
             ;;
 	  qos=*)
             qos=$(echo $OPTARG | sed -e 's/qos=//g')
+            args_pass="$args_pass --$OPTARG"
             ;;
 	  constraints=*)
             constraints=$(echo $OPTARG | sed -e 's/constraints=//g')
+            args_pass="$args_pass --$OPTARG"
             ;;
           job_dependency=*)
             dependencyJob=$(echo $OPTARG | sed -e 's/job_dependency=//g')
@@ -643,7 +647,8 @@ cleanup() {
 ###############################################
 submit() {
   # Submit the job to the queue
-  eval ${SUBMISSION_CMD} ${SUBMISSION_PIPE}${TMP_SUBMIT_SCRIPT} 1>${TMP_SUBMIT_SCRIPT}.out 2>${TMP_SUBMIT_SCRIPT}.err
+  #eval ${SUBMISSION_CMD} ${SUBMISSION_PIPE}${TMP_SUBMIT_SCRIPT} 1>${TMP_SUBMIT_SCRIPT}.out 2>${TMP_SUBMIT_SCRIPT}.err
+  eval ${SUBMISSION_CMD} ${SUBMISSION_PIPE}${TMP_SUBMIT_SCRIPT}
   result=$?
 
   # Check if submission failed

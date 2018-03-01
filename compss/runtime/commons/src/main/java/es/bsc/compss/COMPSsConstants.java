@@ -72,7 +72,8 @@ public class COMPSsConstants {
     public static final String MONITOR = "compss.monitor";
     public static final String INPUT_PROFILE = "compss.profile.input";
     public static final String OUTPUT_PROFILE = "compss.profile.output";
-
+    public static final String EXTERNAL_ADAPTATION= "compss.external.adaptation";
+    
     public static final String WORKER_CP = "compss.worker.cp";
     public static final String WORKER_PP = "compss.worker.pythonpath";
     public static final String WORKER_JVM_OPTS = "compss.worker.jvm_opts";
@@ -106,6 +107,7 @@ public class COMPSsConstants {
     public static final String COMPSS_CONFIG = "compss.properties";
     public static final String COMPSS_CONFIG_LOCATION = "compss.properties.location";
     public static final String COMPSS_CONTEXT = "compss.context";
+    
 
     // LOG 4J
     public static final String LOG4J = "log4j.configurationFile";

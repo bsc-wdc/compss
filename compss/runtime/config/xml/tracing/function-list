@@ -8,3 +8,6 @@ deserialize_from_string
 deserialize_from_file
 serialize_to_file
 create_threads
+getByID
+makePersistent
+deletePersistent

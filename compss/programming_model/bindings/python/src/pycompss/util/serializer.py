@@ -1,18 +1,6 @@
-#
-#  Copyright Barcelona Supercomputing Center (www.bsc.es)
-#
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-#
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
 
 """
 PyCOMPSs Utils: Data serializer/deserializer
@@ -29,28 +17,37 @@ All serialization/deserialization calls should be made using one of the followin
 - deserialize_from_handler(handler) -> deserializes an object using the given handler, it also leaves the
                                        handler's pointer pointing to the end of the serialized object
 """
-import os
+import sys
 import types
 import traceback
-import cStringIO as StringIO
-import cPickle as pickle
-from serialization.extendedSupport import pickle_generator, convert_to_generator
-from object_properties import object_belongs_to_module
+from .serialization.extended_support import pickle_generator, convert_to_generator, GeneratorIndicator
+from .object_properties import object_belongs_to_module
+
+if sys.version_info >= (3, 0):
+    from io import StringIO
+    import pickle as pickle  # Uses _pickle if available
+else:
+    from cStringIO import StringIO
+    import cPickle as pickle
 
 try:
     import dill
 except:
-    import cPickle as dill
+    if sys.version_info >= (3, 0):
+        import pickle as dill
+    else:
+        import cPickle as dill
 
 try:
     import numpy
 except:
-    import cPickle as numpy
-
+    if sys.version_info >= (3, 0):
+        import pickle as numpy
+    else:
+        import cPickle as numpy
 
 class SerializerException(Exception):
     pass
-
 
 def get_serializer_priority(obj=[]):
     """
@@ -95,7 +92,7 @@ def serialize_to_handler(obj, handler):
                 pickle_generator(obj, handler, serializer)
                 success = True
             except:
-                pass
+                traceback.print_exc()
         # general case
         else:
             try:
@@ -106,11 +103,17 @@ def serialize_to_handler(obj, handler):
                     serializer.dump(obj, handler, protocol=serializer.HIGHEST_PROTOCOL)
                     success = True
             except:
+                # traceback.print_exc()  # No need to print all serializer exceptions
                 pass
         i += 1
 
     # if ret_value is None then all the serializers have failed
     if not success:
+        try:
+            traceback.print_exc()
+        except AttributeError:
+            # Bug fixed in 3.5 - issue10805
+            pass
         raise SerializerException('Cannot serialize object %s' % obj)
 
 
@@ -132,7 +135,7 @@ def serialize_to_string(obj):
     @param obj: Object to be serialized.
     @return: String -> the serialized content
     """
-    handler = StringIO.StringIO()
+    handler = StringIO()
     serialize_to_handler(obj, handler)
     ret = handler.getvalue()
     handler.close()
@@ -156,13 +159,19 @@ def deserialize_from_handler(handler):
         try:
             ret = serializer.load(handler)
             # special case: deserialized obj wraps a generator
-            if isinstance(ret, tuple) and ret[0] == 'Th3N3xtEl3m3ntIsAG3n3r4t0r':
+            if isinstance(ret, tuple) and ret and isinstance(ret[0], GeneratorIndicator):
                 ret = convert_to_generator(ret[1])
             return ret
         except:
+            # traceback.print_exc()  # No need to print all deserialize exceptions
             pass
     # we are not able to deserialize the contents from file_name with any of our
     # serializers
+    try:
+        traceback.print_exc()
+    except AttributeError:
+        # Bug fixed in 3.5 - issue10805
+        pass
     raise SerializerException('Cannot deserialize object')
 
 
@@ -184,7 +193,7 @@ def deserialize_from_string(serialized_content):
     @param serialized_content: A string with serialized contents
     @return: A deserialized object
     """
-    handler = StringIO.StringIO(serialized_content)
+    handler = StringIO(serialized_content)
     ret = deserialize_from_handler(handler)
     handler.close()
     return ret

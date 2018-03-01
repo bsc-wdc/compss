@@ -80,7 +80,6 @@ public class StopWorkerAction extends AllocatableAction {
                 Semaphore sem = new Semaphore(0);
                 ShutdownListener sl = new ShutdownListener(sem);
                 wResource.stop(sl);
-
                 sl.enable();
                 try {
                     sem.acquire();
@@ -102,19 +101,27 @@ public class StopWorkerAction extends AllocatableAction {
      */
     @Override
     protected void doCompleted() {
-        CloudMethodWorker cmw = (CloudMethodWorker) worker.getResource();
-        ResourceManager.terminateResource(cmw, (CloudMethodResourceDescription) ru.getModification());
+    	removeResource();
     }
 
-    @Override
+    private void removeResource() {
+    	Worker<? extends WorkerResourceDescription> w = worker.getResource();
+    	if (w instanceof CloudMethodWorker){
+    		CloudMethodWorker cmw = (CloudMethodWorker)w ;
+    		ResourceManager.terminateCloudResource(cmw, (CloudMethodResourceDescription) ru.getModification());
+    	}else{
+    		ResourceManager.removeWorker(w);
+    	}
+	}
+
+	@Override
     protected void doError() throws FailedActionException {
         throw new FailedActionException();
     }
 
     @Override
     protected void doFailed() {
-        CloudMethodWorker cmw = (CloudMethodWorker) worker.getResource();
-        ResourceManager.terminateResource(cmw, (CloudMethodResourceDescription) ru.getModification());
+        removeResource();
     }
 
     /*
@@ -164,6 +171,11 @@ public class StopWorkerAction extends AllocatableAction {
     @Override
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
         schedule((ResourceScheduler<WorkerResourceDescription>) worker, impl);
+    }
+    
+    @Override
+    public void tryToSchedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
+        this.schedule(actionScore);
     }
 
     @SuppressWarnings("unchecked")

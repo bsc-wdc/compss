@@ -65,7 +65,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     @Override
     public String getName() {
-        return config.getHost();
+        return this.config.getHost();
     }
 
     public NIOWorkerNode(String name, NIOConfiguration config, NIOAdaptor adaptor) {
@@ -78,8 +78,8 @@ public class NIOWorkerNode extends COMPSsWorker {
     public void start() throws InitNodeException {
         NIONode n = null;
         try {
-            workerStarter = new WorkerStarter(this);
-            n = workerStarter.startWorker();
+            this.workerStarter = new WorkerStarter(this);
+            n = this.workerStarter.startWorker();
         } catch (InitNodeException e) {
             ErrorManager.warn("There was an exception when initiating worker " + getName() + ".", e);
             throw e;
@@ -94,53 +94,53 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     @Override
     public String getUser() {
-        return config.getUser();
+        return this.config.getUser();
     }
 
     public String getHost() {
-        return config.getHost();
+        return this.config.getHost();
     }
 
     public String getInstallDir() {
-        return config.getInstallDir();
+        return this.config.getInstallDir();
     }
 
     public String getBaseWorkingDir() {
-        return config.getWorkingDir();
+        return this.config.getWorkingDir();
     }
 
     public String getWorkingDir() {
-        return config.getSandboxWorkingDir();
+        return this.config.getSandboxWorkingDir();
     }
 
     public String getAppDir() {
-        return config.getAppDir();
+        return this.config.getAppDir();
     }
 
     public String getLibPath() {
-        return config.getLibraryPath();
+        return this.config.getLibraryPath();
     }
 
     @Override
     public String getClasspath() {
-        return config.getClasspath();
+        return this.config.getClasspath();
     }
 
     @Override
     public String getPythonpath() {
-        return config.getPythonpath();
+        return this.config.getPythonpath();
     }
 
     public int getLimitOfTasks() {
-        return config.getLimitOfTasks();
+        return this.config.getLimitOfTasks();
     }
 
     public int getTotalComputingUnits() {
-        return config.getTotalComputingUnits();
+        return this.config.getTotalComputingUnits();
     }
 
     public int getTotalGPUs() {
-        return config.getTotalGPUComputingUnits();
+        return this.config.getTotalGPUComputingUnits();
     }
 
     public NIOConfiguration getConfiguration() {
@@ -398,7 +398,6 @@ public class NIOWorkerNode extends COMPSsWorker {
                 if (u != null) {
                     path = u.getPath();
                 } else {
-
                     path = c.getTargetLoc().getURIInHost(tgtRes).getPath();
                 }
             } else {
@@ -416,6 +415,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     @Override
     public void updateTaskCount(int processorCoreCount) {
+        // No need to do nothing
     }
 
     @Override

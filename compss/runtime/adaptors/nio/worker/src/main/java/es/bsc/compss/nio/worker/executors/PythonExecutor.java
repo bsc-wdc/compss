@@ -21,7 +21,7 @@ public class PythonExecutor extends ExternalExecutor {
 
 
     public PythonExecutor(NIOWorker nw, JobsThreadPool pool, RequestQueue<NIOTask> queue, String writePipe, TaskResultReader resultReader) {
-        super(nw, pool, queue, writePipe, resultReader);
+        super(nw, pool, queue, writePipe, resultReader); //WriteDataPipe is not used until Python has data management
     }
 
     @Override

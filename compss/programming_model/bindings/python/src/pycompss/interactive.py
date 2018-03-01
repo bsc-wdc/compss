@@ -1,18 +1,7 @@
-#
-#  Copyright Barcelona Supercomputing Center (www.bsc.es)
-#
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-#
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
 """
 PyCOMPSs Binding - Interactive API
 ==================================
@@ -56,14 +45,14 @@ def start(log_level='off',
           summary=False,
           taskExecution='compss',
           storageConf=None,
-          coreCount=50,
+          taskCount=50,
           appName='Interactive',
           uuid=None,
           baseLogDir=None,
           specificLogDir=None,
           extraeCfg=None,
           comm='NIO',
-          conn='',
+          conn='es.bsc.compss.connectors.DefaultSSHConnector',
           masterName='',
           masterPort='',
           scheduler='es.bsc.compss.scheduler.loadBalancingScheduler.LoadBalancingScheduler',
@@ -72,6 +61,8 @@ def start(log_level='off',
           gpuAffinity='automatic',
           profileInput='',
           profileOutput='',
+          scheduler_config='',
+          external_adaptation=False,
           verbose=False
           ):
     launchPath = os.path.dirname(os.path.abspath(__file__))
@@ -101,9 +92,13 @@ def start(log_level='off',
         trace = 2
         os.environ['LD_PRELOAD'] = extrae_lib + '/libpttrace.so'
     else:
-        print 'ERROR: Wrong tracing parameter ( [ True | basic ] | \
-               advanced | False)'
+        print('ERROR: Wrong tracing parameter ( [ True | basic ] | \
+               advanced | False)')
         return -1
+
+    if monitor is not None:
+        # Enable the graph if the monitoring is enabled
+        graph = True
 
     global graphing
     graphing = graph
@@ -112,28 +107,34 @@ def start(log_level='off',
     global monitoring
     monitoring = monitor
 
-    exportGlobals()
+    __export_globals__()
 
-    print "******************************************************"
-    print "*************** PyCOMPSs Interactive *****************"
-    print "******************************************************"
-    print "*          .-~~-.--.                ____       __    *"
-    print "*         :         )              |___ \     /  |   *"
-    print "*   .~ ~ -.\       /.- ~~ .          __) |     | |   *"
-    print "*   >       \`.   .'       <        / __/   _  | |   *"
-    print "*  (         .- -.         )       |_____| |_| |_|   *"
-    print "*   \`- -.-~  \`- -'  ~-.- -'                        *"
-    print "*     (        :        )           _ _ .-:          *"
-    print "*      ~--.    :    .--~        .-~  .-~  }          *"
-    print "*          ~-.-^-.-~ \_      .~  .-~   .~            *"
-    print "*                   \ \ '     \ '_ _ -~              *"
-    print "*                    \`.\`.    //                    *"
-    print "*           . - ~ ~-.__\`.\`-.//                     *"
-    print "*       .-~   . - ~  }~ ~ ~-.~-.                     *"
-    print "*     .' .-~      .-~       :/~-.~-./:               *"
-    print "*    /_~_ _ . - ~                 ~-.~-._            *"
-    print "*                                     ~-.<           *"
-    print "******************************************************"
+    print("********************************************************")
+    print( "*************** PyCOMPSs Interactive *******************")
+    print("********************************************************")
+    print("*          .-~~-.--.                ____        ____   *")
+    print("*         :         )              |___ \      |___ \  *")
+    print("*   .~ ~ -.\       /.- ~~ .          __) |       __) | *")
+    print("*   >       `.   .'       <         / __/   _   / __/  *")
+    print("*  (         .- -.         )       |_____| |_| |_____| *")
+    print("*   `- -.-~  `- -'  ~-.- -'                            *")
+    print("*     (        :        )           _ _ .-:            *")
+    print("*      ~--.    :    .--~        .-~  .-~  }            *")
+    print("*          ~-.-^-.-~ \_      .~  .-~   .~              *")
+    print("*                   \ \ '     \ '_ _ -~                *")
+    print("*                    \`.\`.    //                      *")
+    print("*           . - ~ ~-.__\`.\`-.//                       *")
+    print("*       .-~   . - ~  }~ ~ ~-.~-.                       *")
+    print("*     .' .-~      .-~       :/~-.~-./:                 *")
+    print("*    /_~_ _ . - ~                 ~-.~-._              *")
+    print("*                                     ~-.<             *")
+    print("********************************************************")
+
+    # print("*          .-~~-.--.                ____       _____   *")
+    # print("*         :         )              |___ \     |___ /   *")
+    # print("*   .~ ~ -.\       /.- ~~ .          __) |      |_ \   *")
+    # print("*   >       `.   .'       <         / __/   _   __) |  *")
+    # print("*  (         .- -.         )       |_____| |_| |___/   *")
 
     ##############################################################
     # INITIALIZATION
@@ -156,7 +157,7 @@ def start(log_level='off',
     config['summary'] = summary
     config['taskExecution'] = taskExecution
     config['storageConf'] = storageConf
-    config['coreCount'] = coreCount
+    config['taskCount'] = taskCount
     if appName is None:
         config['appName'] = 'Interactive'
     else:
@@ -181,6 +182,11 @@ def start(log_level='off',
     config['gpuAffinity'] = gpuAffinity
     config['profileInput'] = profileInput
     config['profileOutput'] = profileOutput
+    config['scheduler_config'] = scheduler_config
+    if external_adaptation:
+        config['external_adaptation'] = 'true'
+    else:
+        config['external_adaptation'] = 'false'
 
     initialize_compss(config)
 
@@ -188,7 +194,7 @@ def start(log_level='off',
     # RUNTIME START
     ##############################################################
 
-    print "* - Starting COMPSs runtime...                       *"
+    print("* - Starting COMPSs runtime...                       *")
     compss_start()
 
     if o_c is True:
@@ -207,7 +213,7 @@ def start(log_level='off',
     global log_path
     log_path = get_log_path()
     binding.temp_dir = mkdtemp(prefix='pycompss', dir=log_path + '/tmpFiles/')
-    print "* - Log path : " + log_path
+    print("* - Log path : " + log_path)
 
     # Logging setup
     if log_level == "debug":
@@ -228,9 +234,10 @@ def start(log_level='off',
     printSetup(verbose,
                log_level, o_c, debug, graph, trace, monitor,
                project_xml, resources_xml, summary, taskExecution, storageConf,
-               coreCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
+               taskCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
                comm, conn, masterName, masterPort, scheduler, jvmWorkers,
-               cpuAffinity, gpuAffinity, profileInput, profileOutput)
+               cpuAffinity, gpuAffinity, profileInput, profileOutput,
+               scheduler_config, external_adaptation)
 
     logger.debug("--- START ---")
     logger.debug("PyCOMPSs Log path: %s" % log_path)
@@ -243,61 +250,64 @@ def start(log_level='off',
 
     # MAIN EXECUTION
     # let the user write an interactive application
-    print "* - PyCOMPSs Runtime started... Have fun!            *"
-    print "******************************************************"
+    print("* - PyCOMPSs Runtime started... Have fun!            *")
+    print("******************************************************")
 
 
 def printSetup(verbose, log_level, o_c, debug, graph, trace, monitor,
                project_xml, resources_xml, summary, taskExecution, storageConf,
-               coreCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
+               taskCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
                comm, conn, masterName, masterPort, scheduler, jvmWorkers,
-               cpuAffinity, gpuAffinity, profileInput, profileOutput):
+               cpuAffinity, gpuAffinity, profileInput, profileOutput,
+               scheduler_config, external_adaptation):
     logger = logging.getLogger("pycompss.runtime.launch")
     output = ""
     output += "******************************************************\n"
     output += " CONFIGURATION: \n"
-    output += "  - Log level         : " + str(log_level) + "\n"
-    output += "  - Object conversion : " + str(o_c) + "\n"
-    output += "  - Debug             : " + str(debug) + "\n"
-    output += "  - Graph             : " + str(graph) + "\n"
-    output += "  - Trace             : " + str(trace) + "\n"
-    output += "  - Monitor           : " + str(monitor) + "\n"
-    output += "  - Project XML       : " + str(project_xml) + "\n"
-    output += "  - Resources XML     : " + str(resources_xml) + "\n"
-    output += "  - Summary           : " + str(summary) + "\n"
-    output += "  - Task execution    : " + str(taskExecution) + "\n"
-    output += "  - Storage conf.     : " + str(storageConf) + "\n"
-    output += "  - Core count        : " + str(coreCount) + "\n"
-    output += "  - Application name  : " + str(appName) + "\n"
-    output += "  - UUID              : " + str(uuid) + "\n"
-    output += "  - Base log dir.     : " + str(baseLogDir) + "\n"
-    output += "  - Specific log dir. : " + str(specificLogDir) + "\n"
-    output += "  - Extrae CFG        : " + str(extraeCfg) + "\n"
-    output += "  - COMM library      : " + str(comm) + "\n"
-    output += "  - CONN library      : " + str(conn) + "\n"
-    output += "  - Master name       : " + str(masterName) + "\n"
-    output += "  - Master port       : " + str(masterPort) + "\n"
-    output += "  - Scheduler         : " + str(scheduler) + "\n"
-    output += "  - JVM Workers       : " + str(jvmWorkers) + "\n"
-    output += "  - CPU affinity      : " + str(cpuAffinity) + "\n"
-    output += "  - GPU affinity      : " + str(gpuAffinity) + "\n"
-    output += "  - Profile input     : " + str(profileInput) + "\n"
-    output += "  - Profile output    : " + str(profileOutput) + "\n"
+    output += "  - Log level           : " + str(log_level) + "\n"
+    output += "  - Object conversion   : " + str(o_c) + "\n"
+    output += "  - Debug               : " + str(debug) + "\n"
+    output += "  - Graph               : " + str(graph) + "\n"
+    output += "  - Trace               : " + str(trace) + "\n"
+    output += "  - Monitor             : " + str(monitor) + "\n"
+    output += "  - Project XML         : " + str(project_xml) + "\n"
+    output += "  - Resources XML       : " + str(resources_xml) + "\n"
+    output += "  - Summary             : " + str(summary) + "\n"
+    output += "  - Task execution      : " + str(taskExecution) + "\n"
+    output += "  - Storage conf.       : " + str(storageConf) + "\n"
+    output += "  - Task count          : " + str(taskCount) + "\n"
+    output += "  - Application name    : " + str(appName) + "\n"
+    output += "  - UUID                : " + str(uuid) + "\n"
+    output += "  - Base log dir.       : " + str(baseLogDir) + "\n"
+    output += "  - Specific log dir.   : " + str(specificLogDir) + "\n"
+    output += "  - Extrae CFG          : " + str(extraeCfg) + "\n"
+    output += "  - COMM library        : " + str(comm) + "\n"
+    output += "  - CONN library        : " + str(conn) + "\n"
+    output += "  - Master name         : " + str(masterName) + "\n"
+    output += "  - Master port         : " + str(masterPort) + "\n"
+    output += "  - Scheduler           : " + str(scheduler) + "\n"
+    output += "  - JVM Workers         : " + str(jvmWorkers) + "\n"
+    output += "  - CPU affinity        : " + str(cpuAffinity) + "\n"
+    output += "  - GPU affinity        : " + str(gpuAffinity) + "\n"
+    output += "  - Profile input       : " + str(profileInput) + "\n"
+    output += "  - Profile output      : " + str(profileOutput) + "\n"
+    output += "  - Scheduler config    : " + str(scheduler_config) + "\n"
+    output += "  - External adaptation : " + str(external_adaptation) + "\n"
     output += "******************************************************"
     if verbose:
-        print output
+        print(output)
     logger.debug(output)
 
 
 def stop(sync=False):
-    print "******************************************************"
-    print "**************** STOPPING PyCOMPSs *******************"
-    print "******************************************************"
+    print("******************************************************")
+    print("**************** STOPPING PyCOMPSs *******************")
+    print("******************************************************")
 
     logger = logging.getLogger("pycompss.runtime.launch")
 
     if sync:
-        print "Synchronizing all future objects left on the user scope."
+        print("Synchronizing all future objects left on the user scope.")
         logger.debug("Synchronizing all future objects left on the user scope.")
         from pycompss.api.api import compss_wait_on
         pending_to_synchronize = get_pending_to_synchronize()
@@ -308,21 +318,20 @@ def stop(sync=False):
         raw_code = ipython.__dict__['user_ns']
         for k in raw_code:
             objK = raw_code[k]
-            obj_id = id(objK)
             if not k.startswith('_'):   # not internal objects
                 if type(objK) == binding.Future:
-                    print "Found a future object: ", str(k)
+                    print("Found a future object: %s" % str(k))
                     logger.debug("Found a future object: %s" % (k,))
                     ipython.__dict__['user_ns'][k] = compss_wait_on(objK)
-                elif obj_id in pending_to_synchronize:
-                    print "Found an object to synchronize: ", str(k)
+                elif objK in pending_to_synchronize.values():
+                    print("Found an object to synchronize: %s" % str(k))
                     logger.debug("Found an object to synchronize: %s" % (k,))
                     ipython.__dict__['user_ns'][k] = compss_wait_on(objK)
                 else:
                     pass
     else:
-        print "Warning: some of the variables used with PyCOMPSs may"
-        print "         have not been brought to the master."
+        print("Warning: some of the variables used with PyCOMPSs may")
+        print("         have not been brought to the master.")
 
     if persistent_storage is True:
         from storage.api import finish as finishStorage
@@ -330,36 +339,36 @@ def stop(sync=False):
 
     compss_stop()
 
-    cleanTempFiles()
+    __clean_temp_files__()
 
-    print "******************************************************"
+    print("******************************************************")
     logger.debug("--- END ---")
     # os._exit(00)  # Explicit kernel restart # breaks Jupyter-notebook
 
     # --- Execution finished ---
 
 
-def showCurrentGraph(fit=False):
+def __show_current_graph__(fit=False):
     if graphing:
-        return __showGraph(name='current_graph', fit=fit)
+        return __show_graph__(name='current_graph', fit=fit)
     else:
-        print 'Oops! Graph is not enabled in this execution.'
-        print '      Please, enable it by setting the graph flag when starting PyCOMPSs.'
+        print('Oops! Graph is not enabled in this execution.')
+        print('      Please, enable it by setting the graph flag when starting PyCOMPSs.')
 
 
-def showCompleteGraph(fit=False):
+def __show_complete_graph__(fit=False):
     if graphing:
-        return __showGraph(name='complete_graph', fit=fit)
+        return __show_graph__(name='complete_graph', fit=fit)
     else:
-        print 'Oops! Graph is not enabled in this execution.'
-        print '      Please, enable it by setting the graph flag when starting PyCOMPSs.'
+        print('Oops! Graph is not enabled in this execution.')
+        print('      Please, enable it by setting the graph flag when starting PyCOMPSs.')
 
 
-def __showGraph(name='complete_graph', fit=False):
+def __show_graph__(name='complete_graph', fit=False):
     try:
         from graphviz import Source
     except ImportError:
-        print 'Oops! graphviz is not available.'
+        print('Oops! graphviz is not available.')
         raise
     file = open(log_path + '/monitor/' + name + '.dot', 'r')
     text = file.read()
@@ -377,7 +386,7 @@ def __showGraph(name='complete_graph', fit=False):
             image = Image(filename=filename + '.' + extension)
             return image
         except:
-            print 'Oops! Failed rendering the graph.'
+            print('Oops! Failed rendering the graph.')
             raise
     else:
         return Source(text)
@@ -388,7 +397,7 @@ def __showGraph(name='complete_graph', fit=False):
 ###############################################################################
 
 
-def exportGlobals():
+def __export_globals__():
     # Super ugly, but I see no other way to define the app_path across the
     # interactive execution without making the user to define it explicitly.
     # It is necessary to define only one app_path because of the two decorators
@@ -408,7 +417,7 @@ def exportGlobals():
     app_path = temp_app_filename
 
 
-def cleanTempFiles():
+def __clean_temp_files__():
     '''
     Remove any temporary files that may exist.
     Currently: app_path, which contains the file path where all interactive
@@ -420,4 +429,4 @@ def cleanTempFiles():
         if os.path.exists(app_path + 'c'):
             os.remove(app_path + 'c')
     except OSError:
-        print "[ERROR] An error has occurred when cleaning temporary files."
+        print("[ERROR] An error has occurred when cleaning temporary files.")

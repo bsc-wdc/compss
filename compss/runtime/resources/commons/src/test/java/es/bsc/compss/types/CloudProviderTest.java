@@ -497,7 +497,7 @@ public class CloudProviderTest {
         }
 
         String vmName = "VM" + (int) (Math.random() * 1000);
-        CloudMethodWorker cmw = new CloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0, new HashMap<>());
+        CloudMethodWorker cmw = new CloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0,0,0,0, new HashMap<>());
         CloudMethodResourceDescription granted = new CloudMethodResourceDescription(citd, cid);
         cp.confirmedCreation(crc, cmw, granted);
         if (cp.getCurrentVMCount() != 1) {
@@ -542,7 +542,7 @@ public class CloudProviderTest {
         ResourceCreationRequest crc = cp.requestResourceCreation(cmrd);
 
         String vmName = "VM" + (int) (Math.random() * 1000);
-        CloudMethodWorker cmw = new CloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0, new HashMap<>());
+        CloudMethodWorker cmw = new CloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0, 0, 0, 0, new HashMap<>());
         CloudMethodResourceDescription granted = new CloudMethodResourceDescription(citd, cid);
         granted.addInstance(citd);
         cp.confirmedCreation(crc, cmw, granted);
@@ -594,10 +594,10 @@ public class CloudProviderTest {
         }
 
         String vmName = "VM" + (int) (Math.random() * 1000);
-        CloudMethodWorker cmw = new CloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0, new HashMap<>());
+        CloudMethodWorker cmw = new CloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0, 0, 0, 0, new HashMap<>());
 
         String vmName2 = "VM" + (int) (Math.random() * 1000);
-        CloudMethodWorker cmw2 = new CloudMethodWorker(vmName2, cp, cmrd, new FakeNode(vmName2), 0, new HashMap<>());
+        CloudMethodWorker cmw2 = new CloudMethodWorker(vmName2, cp, cmrd, new FakeNode(vmName2), 0, 0, 0, 0, new HashMap<>());
 
         CloudMethodResourceDescription granted = new CloudMethodResourceDescription(citd, cid);
         cp.confirmedCreation(crc, cmw, granted);
@@ -666,7 +666,7 @@ public class CloudProviderTest {
         ResourceCreationRequest crc2 = cp.requestResourceCreation(cmrd2);
 
         String vmName = "VM" + (int) (Math.random() * 1000);
-        CloudMethodWorker cmw = new CloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0, new HashMap<>());
+        CloudMethodWorker cmw = new CloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0, 0, 0, 0, new HashMap<>());
 
         CloudMethodResourceDescription granted = new CloudMethodResourceDescription(citd, cid);
         cp.confirmedCreation(crc, cmw, granted);

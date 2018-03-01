@@ -34,7 +34,7 @@ DEFAULT_PyOBJECT_SERIALIZE=false
 
 DEFAULT_COMMUNICATION_ADAPTOR=es.bsc.compss.nio.master.NIOAdaptor
 #DEFAULT_COMMUNICATION_ADAPTOR=es.bsc.compss.gat.master.GATAdaptor
-DEFFAULT_CONNECTOR=es.bsc.compss.connectors.DefaultSSHConnector
+DEFAULT_CONNECTOR=es.bsc.compss.connectors.DefaultSSHConnector
 DEFAULT_MASTER_PORT="[43000,44000]"
 DEFAULT_MASTER_NAME=""
 #DEFAULT_SCHEDULER=es.bsc.compss.scheduler.fullGraphScheduler.FullGraphScheduler
@@ -53,7 +53,7 @@ DEFAULT_DEBUGGER_ARGUMENT=true
 DEFAULT_DEBUGGER_PORT=9999
 
 DEFAULT_PERSISTENT_WORKER_C=false
-
+DEFAULT_EXTERNAL_ADAPTATION=false
 APPLICATION_ERROR="Error: Application name not provided"
 LANGUAGE_ERROR="Value of option --lang must be: java, c or python"
 JAVA_HOME_ERROR="Error: Cannot find Java JRE installation. Please set JAVA_HOME."
@@ -114,6 +114,8 @@ show_opts() {
                                                                   | es.bsc.compss.scheduler.fifoScheduler.FIFOScheduler
                                                                   | es.bsc.compss.scheduler.resourceEmptyScheduler.ResourceEmptyScheduler
                                             Default: ${DEFAULT_SCHEDULER}
+    --scheduler_config_file=<path>          Path to the file which contains the scheduler configuration.
+                                            Default: Empty
     --library_path=<path>                   Non-standard directories to search for libraries (e.g. Java JVM library, Python library, C binding library)
                                             Default: Working Directory
     --classpath=<path>                      Path for the application classes / modules
@@ -146,14 +148,16 @@ show_opts() {
                                             Default: ${DEFAULT_GPU_AFFINITY}
     --task_count=<int>                      Only for C/Python Bindings. Maximum number of different functions/methods, invoked from the application, that have been selected as tasks
                                             Default: ${DEFAULT_TASK_COUNT}
-	--input_profile=<string>				Path to the file which stores the input application profile
-											Default: Empty
-	--output_profile=<string>				Path to the file to store the application profile at the end of the execution
-											Default: Empty 
+    --input_profile=<path>                  Path to the file which stores the input application profile
+                                            Default: Empty
+    --output_profile=<path>                 Path to the file to store the application profile at the end of the execution
+                                            Default: Empty 
     --PyObject_serialize=<bool>             Only for Python Binding. Enable the object serialization to string when possible (true/false).
                                             Default: $DEFAULT_PyOBJECT_SERIALIZE
     --persistent_worker_c=<bool>            Only for C Binding. Enable the persistent worker in c (true/false).
                                             Default: $DEFAULT_PERSISTENT_WORKER_C
+    --enable_external_adaptation=<bool>     Enable external adaptation. This option will disable the Resource Optimizer.
+                                            Default: false
 
 * Application name:
     For Java applications:   Fully qualified name of the application
@@ -181,7 +185,7 @@ Usage: $0 [options] application_name application_arguments
     --version, -v 			    Print COMPSs version
 EOT
   show_opts
-  exit $exitValue
+  exit "$exitValue"
 }
 
 show_version() {
@@ -253,7 +257,7 @@ EOF
 display_error() {
   local error_msg=$1
 
-  echo $error_msg
+  echo "$error_msg"
   echo " "
 
   usage 1
@@ -265,7 +269,7 @@ error_msg() {
 
   # Display error
   echo
-  echo $error_msg
+  echo "$error_msg"
   echo
 
   # Exit
@@ -282,7 +286,7 @@ check_env() {
   fi
   
   # Command to simulate realpath
-  COMPSS_HOME=$(cd $(dirname $0)/../../.. ; pwd)
+  COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )"
   export COMPSS_HOME=${COMPSS_HOME}
 
   if [ -z "$DEFAULT_PROJECT" ]; then
@@ -307,9 +311,9 @@ check_env() {
 
   if [[ -z "$JAVA_HOME" ]]; then
     JAVA=java
-  elif [ -f $JAVA_HOME/jre/bin/java ]; then
+  elif [ -f "$JAVA_HOME"/jre/bin/java ]; then
     JAVA=$JAVA_HOME/jre/bin/java
-  elif [ -f $JAVA_HOME/bin/java ]; then
+  elif [ -f "$JAVA_HOME"/bin/java ]; then
     JAVA=$JAVA_HOME/bin/java
   else
     display_error "${JAVA_HOME_ERROR}"
@@ -375,15 +379,15 @@ get_args() {
             ;;
 	  project=*)
 	    # Custom project file
-	    projFile=$(echo $OPTARG | sed -e 's/project=//g')
-	    if [ ! -f $projFile ]; then
+	    projFile=${OPTARG//project=/}
+	    if [ ! -f "$projFile" ]; then
 	      echo "[ WARNING ]: Project XML file '$projFile' could not be found."
 	    fi
 	    ;;
 	  resources=*)
 	    # Custom resources file
-	    resFile=$(echo $OPTARG | sed -e 's/resources=//g')
-	    if [ ! -f $resFile ]; then
+	    resFile=${OPTARG//resources=/}
+	    if [ ! -f "$resFile" ]; then
 	      echo "[ WARNING ]: Resources XML file '$resFile' could not be found."
 	    fi
             ;;
@@ -391,19 +395,19 @@ get_args() {
             summary=true
             ;;
 	  storage_conf=*)
-            storageConf=`echo $OPTARG | sed -e 's/storage_conf=//g'`;
+            storageConf=${OPTARG//storage_conf=/}
             ;;
 	  task_execution=*)
 	    # Task execution under COMPSs or Storage
-	    taskExecution=$(echo $OPTARG | sed -e 's/task_execution=//g')
+	    taskExecution=${OPTARG//task_execution=/}
 	    ;;
 	  lang=*)
 	    # Language selection
-	    lang=$(echo $OPTARG | sed -e 's/lang=//g')
+	    lang=${OPTARG//lang=/}
 	    ;;
           log_level=*)
             # Enable different log_levels by user selection
-            log_level=$(echo $OPTARG | sed -e 's/log_level=//g')
+            log_level=${OPTARG//log_level=/}
             ;;
           debug*)
             # Enable debug in log level
@@ -411,7 +415,7 @@ get_args() {
             ;;
 	  graph=*)
 	    # Graph generation at the end of the execution with user option
-	    graph=$(echo $OPTARG | sed -e 's/graph=//g')
+	    graph=${OPTARG//graph=/}
 	    ;;
 	  graph)
 	    # Graph generation at the end of the execution by default arg
@@ -419,7 +423,7 @@ get_args() {
 	    ;;
           tracing=*)
             # Tracing system
-            tracing=$(echo $OPTARG | sed -e 's/tracing=//g')
+            tracing=${OPTARG//tracing=/}
             ;;
           tracing)
             # Tracing system
@@ -427,11 +431,11 @@ get_args() {
             ;;
           extrae_config_file=*)
             # Custom extrae config file
-            custom_extrae_config_file=$(echo $OPTARG | sed -e 's/extrae_config_file=//g')
+            custom_extrae_config_file=${OPTARG//extrae_config_file=/}
             ;;
 	  monitoring=*)
 	    # Value between monitor steps (ms)
-	    monitoring=$(echo $OPTARG | sed -e 's/monitoring=//g')
+	    monitoring=${OPTARG//monitoring=/}
 	    ;;
 	  monitoring)
 	    # Value between monitor steps (ms)
@@ -439,44 +443,44 @@ get_args() {
 	    ;;
 	  comm=*)
 	    # Communication adaptor main class
-	    comm=$(echo $OPTARG | sed -e 's/comm=//g')
+	    comm=${OPTARG//comm=/}
 	    ;;
 	  conn=*)
 	    # Communication connector main class
-	    conn=$(echo $OPTARG | sed -e 's/conn=//g')
+	    conn=${OPTARG//conn=/}
 	    ;;
           scheduler=*)
             # Scheduler main class
-            scheduler=$(echo $OPTARG | sed -e 's/scheduler=//g')
+            scheduler=${OPTARG//scheduler=/}
             ;;
 	  classpath=*)
 	    # Additional classpath
-	    cp=$(echo $OPTARG | sed -e 's/classpath=//g')
+	    cp=${OPTARG//classpath=/}
 	    ;;
 	  library_path=*)
 	    # Additional library path
-	    library_path=$(echo $OPTARG | sed -e 's/library_path=//g')
+	    library_path=${OPTARG//library_path=/}
 	    ;;
           jvm_master_opts=*)
             # Master JVM option
-            jvm_master_opts=$(echo $OPTARG | sed -e 's/jvm_master_opts=//g')
+            jvm_master_opts=${OPTARG//jvm_master_opts=/}
             ;;
           jvm_workers_opts=*)
             # Workers JVMs option
-            jvm_workers_opts=$(echo $OPTARG | sed -e 's/jvm_workers_opts=//g')
+            jvm_workers_opts=${OPTARG//jvm_workers_opts=/}
             ;;
           cpu_affinity=*)
             # Worker CPU affinity
-            worker_cpu_affinity=$(echo $OPTARG | sed -e 's/cpu_affinity=//g')
+            worker_cpu_affinity=${OPTARG//cpu_affinity=/}
             ;;
           gpu_affinity=*)
             # Worker GPU affinity
-            worker_gpu_affinity=$(echo $OPTARG | sed -e 's/gpu_affinity=//g')
+            worker_gpu_affinity=${OPTARG//gpu_affinity=/}
             ;;
           external_debugger=*)
             # Enable external debugger on specific port
             external_debugger=${DEFAULT_DEBUGGER_ARGUMENT}
-            external_debugger_port=$(echo $OPTARG | sed -e 's/external-debugger=//g')
+            external_debugger_port=${OPTARG//external-debugger=/}
             ;;
           external_debugger)
             # Enable default external debugger
@@ -485,51 +489,59 @@ get_args() {
             ;;
           base_log_dir=*)
             # Set a custom base log dir
-            base_log_dir=$(echo $OPTARG | sed -e 's/base_log_dir=//g')
+            base_log_dir=${OPTARG//base_log_dir=/}
             ;;
           specific_log_dir=*)
             # Set a custom specific log dir
-            specific_log_dir=$(echo $OPTARG | sed -e 's/specific_log_dir=//g')
+            specific_log_dir=${OPTARG//specific_log_dir=/}
             ;;
 	  uuid=*)
             # Preset an Application UUID
-            uuid=$(echo $OPTARG | sed -e 's/uuid=//g')
+            uuid=${OPTARG//uuid=/}
             ;;
           master_name=*)
             # Preset a Master hostname
-            master_name=$(echo $OPTARG | sed -e 's/master_name=//g')
+            master_name=${OPTARG//master_name=/}
             ;;
           master_port=*)
             # Preset a Master port
-            master_port=$(echo $OPTARG | sed -e 's/master_port=//g')
+            master_port=${OPTARG//master_port=/}
             ;;
           task_count=*)
             # Maximum task count. Only for bindings
-            task_count=$(echo $OPTARG | sed -e 's/task_count=//g')
+            task_count=${OPTARG//task_count=/}
             ;;
     	  appdir=*)
 	    # Main binary directory (only for C/C++ applications)
-	    task_count=$(echo $OPTARG | sed -e 's/appdir=//g')
+	    task_count=${OPTARG//appdir=/}
 	    ;;
           pythonpath=*)
             # Additional pythonpath
-            pythonpath=$(echo $OPTARG | sed -e 's/pythonpath=//g')
+            pythonpath=${OPTARG//pythonpath=/}
             ;;
           PyObject_serialize=*)
             # Enable the object to string serialization (only for PyCOMPSs applications)
-            PyObject_serialize=$(echo $OPTARG | sed -e 's/PyObject_serialize=//g')
+            PyObject_serialize=${OPTARG//PyObject_serialize=/}
             ;;
-	  persistent_worker_c=*)
+          persistent_worker_c=*)
             # Enable the persistent worker for C binding (only for C-binding applications)
-            persistent_worker_c=$(echo $OPTARG | sed -e 's/persistent_worker_c=//g')
+            persistent_worker_c=${OPTARG//persistent_worker_c=/}
             ;;
-      input_profile=*)
+          input_profile=*)
             # Specify the file where there is stored the tasks profiles
-            input_profile=$(echo $OPTARG | sed -e 's/input_profile=//g')
+            input_profile=${OPTARG//input_profile=/}
             ;;
-      output_profile=*)
+          output_profile=*)
             # Specify the file where COMPSs will store the tasks profile
-            output_profile=$(echo $OPTARG | sed -e 's/output_profile=//g')
+            output_profile=${OPTARG//output_profile=/}
+            ;;
+          scheduler_config_file=*)
+            # Specify the file where COMPSs will store the tasks profile
+            scheduler_config=${OPTARG//scheduler_config_file=/}
+            ;;
+          enable_external_adaptation=*)
+            # Enable the external adaptation (disables de Resource Optimizer) 
+            external_adaptation=${OPTARG//enable_external_adaptation=/}
             ;;
 	  *)
 	    # Flag didn't match any patern. Raise exception
@@ -562,6 +574,44 @@ get_args() {
   application_args=$*
 }
 
+###############################################
+# Infers the language from the Application Path
+# WARN: Sets global lang variable
+###############################################
+infer_language() {
+  local fullApp
+  local fileName
+  local extension
+  local isPython
+  local isPythonCompiled
+  local isC
+
+  fullApp=$1                                                                                                                                                                                                                                                                 
+
+  fileName=$(basename "$fullApp")
+  extension=${fileName##*.}
+  if [ "$extension" == "py" ] || [ "$extension" == "pyc" ]; then
+    echo "[  INFO] Inferred PYTHON language"
+    lang=python
+  else
+    # Try to infer language by file command
+    isPython=$(file "$fullAppPath" | grep "Python" | cat)
+    isPythonCompiled=$(file "$fullAppPath" | grep "python" | cat)
+    isC=$(file "$fullAppPath" | grep "executable" | cat)
+    if [ -n "$isPython" ] || [ -n "$isPythonCompiled" ]; then
+      echo "[  INFO] Inferred PYTHON language"
+      lang=python
+    elif [ -n "$isC" ]; then
+      echo "[  INFO] Inferred C/C++ language"
+      lang=c
+    else
+      # Lang cannot be infered or it's the default JAVA
+      echo "[  INFO] Using default language: ${DEFAULT_LANGUAGE}"
+      lang=${DEFAULT_LANGUAGE}
+    fi
+  fi
+}
+
 check_args() {
   if [ -z "${taskExecution}" ]; then
     echo "[  INFO] Using default execution type: ${DEFAULT_TASK_EXECUTION}"
@@ -583,29 +633,8 @@ check_args() {
   fi
 
   if [ -z "$lang" ]; then
-    # Try to infer language by extension
-    fileName=$(basename $fullAppPath)
-    extension=${fileName##*.}
-    if [ "$extension" == "py" ] || [ "$extension" == "pyc" ]; then
-      echo "[  INFO] Inferred PYTHON language"
-      lang=python
-    else
-      # Try to infer language by file command
-      isPython=$(file $fullAppPath | grep "Python" | cat)
-      isPythonCompiled=$(file $fullAppPath | grep "python" | cat)
-      isC=$(file $fullAppPath | grep "executable" | cat)
-      if [ -n "$isPython" ] || [ -n "$isPythonCompiled" ]; then
-        echo "[  INFO] Inferred PYTHON language"
-        lang=python
-      elif [ -n "$isC" ]; then
-        echo "[  INFO] Inferred C/C++ language"
-        lang=c
-      else
-        # Lang cannot be infered or it's the default JAVA
-        echo "[  INFO] Using default language: ${DEFAULT_LANGUAGE}"
-        lang=${DEFAULT_LANGUAGE}
-      fi
-    fi
+    # Try to infer language
+    infer_language "$fullAppPath"
   elif [ "$lang" = "java" ]; then
     lang=java
   elif [ "$lang" = "c" ]; then
@@ -699,13 +728,13 @@ check_args() {
   # Classpath
   if [ -z "$cp" ]; then
     cp=${DEFAULT_CLASSPATH}
-    for jar in $(ls ${DEFAULT_CLASSPATH} | grep *.jar); do
-       cp=$cp:${DEFAULT_CLASSPATH}/$jar
+    for jar in "${DEFAULT_CLASSPATH}"/*.jar; do
+       cp=$cp:$jar
     done
   else
     fcp=""
     for currcp in ${cp//:/$'\n'}; do
-      if [ ! ${currcp:0:1} == '/' ]; then # Relative paths to absolute
+      if [ ! "${currcp:0:1}" == '/' ]; then # Relative paths to absolute
         if [ -d "$currcp" ] || [ -f "$currcp" ]; then   # If the dir/file exists locally
 	  absdir="$(cd "$(dirname "$currcp")" && pwd)" # Get absolute dir
 	  file="$(basename "$currcp")"
@@ -744,13 +773,13 @@ check_args() {
   fi
 
   # JVM
-  if [ -z "${jvm_master_opts}" ]; then
+  if [ -z "${jvm_master_opts}" ] || [ "${jvm_master_opts}" = \"\" ]; then
     jvm_master_opts=${DEFAULT_JVM_MASTER}
   fi
   # Change jvm master opts separation character "," by " "
   jvm_master_opts=$(echo $jvm_master_opts | tr "," "\n")
 
-  if [ -z "${jvm_workers_opts}" ]; then
+  if [ -z "${jvm_workers_opts}" ] || [ "${jvm_workers_opts}" = \"\" ]; then
     jvm_workers_opts=${DEFAULT_JVM_WORKERS}
   fi
 
@@ -797,11 +826,14 @@ check_args() {
   if [ -z "$persistent_worker_c" ]; then
 	persistent_worker_c=$DEFAULT_PERSISTENT_WORKER_C
   fi
+  if [ -z "$external_adaptation" ]; then
+	external_adaptation=$DEFAULT_EXTERNAL_ADAPTATION
+  fi
 }
 
 execute_runtime() {
   # Create tmp dir for initial loggers configuration
-  mkdir /tmp/$uuid
+  mkdir /tmp/"$uuid"
 
   # Create JVM Options file
   appName=$(basename "$fullAppPath")
@@ -824,12 +856,9 @@ execute_runtime() {
 }
 
 generate_jvm_opts_file() {
-  jvm_options_file=$(mktemp)
-  if [ $? -ne 0 ]; then
-    display_error "${TMP_FILE_JVM_ERROR}"
-  fi
+  jvm_options_file=$(mktemp) || display_error "${TMP_FILE_JVM_ERROR}"
 
-  /bin/cat >> ${jvm_options_file} << EOT
+  cat >> "${jvm_options_file}" << EOT
 ${jvm_master_opts}
 ${jvm_debugger_opts}
 -XX:+PerfDisableSharedMem
@@ -872,18 +901,20 @@ ${jvm_debugger_opts}
 -Dcompss.worker.gpu_affinity=${worker_gpu_affinity}
 -Dcompss.profile.input=${input_profile}
 -Dcompss.profile.output=${output_profile}
+-Dcompss.scheduler.config=${scheduler_config}
+-Dcompss.external.adaptation=${external_adaptation}
 EOT
 }
 
 add_jvm_opts_java() {
-  /bin/cat >> ${jvm_options_file} << EOT
+  cat >> "${jvm_options_file}" << EOT
 -noverify
 -classpath ${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar
 EOT
 }
 
 add_jvm_opts_c() {
-  /bin/cat >> ${jvm_options_file} << EOT
+  cat >> "${jvm_options_file}" << EOT
 -Djava.class.path=${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar
 -Dcompss.constraints.file=$fullAppPath.idl
 -Dcompss.worker.persistent.c=${persistent_worker_c}
@@ -891,7 +922,7 @@ EOT
 }
 
 add_jvm_opts_python() {
-  /bin/cat >> ${jvm_options_file} << EOT
+  cat >> "${jvm_options_file}" << EOT
 -Djava.class.path=${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar
 -Dcompss.worker.pythonpath=${PYTHONPATH}
 EOT
@@ -899,15 +930,17 @@ EOT
 
 exec_java() {
   # Define command
-  local java_opts=$(cat ${jvm_options_file} | tr '\n' ' ')
-  local JAVACMD=$JAVA" ${java_opts}"
+  local java_opts
+  local JAVACMD
+  java_opts=$(cat "${jvm_options_file}" | tr '\n' ' ')
+  JAVACMD=$JAVA" ${java_opts}"
 
   if [ $tracing -gt 0 ]; then
     export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
   fi
 
   # Launch application
-  $JAVACMD ${RUNTIME_LOADER} total $fullAppPath $application_args
+  $JAVACMD ${RUNTIME_LOADER} total "$fullAppPath" ${application_args}
   endCode=$?
   if [ $tracing -gt 0 ]; then
       unset LD_PRELOAD  # no tracing check because if not set does nothing
@@ -919,7 +952,7 @@ exec_java() {
 
 exec_c() {
   # Export needed variables
-  if [ -d ${COMPSS_HOME}/Bindings/c ]; then
+  if [ -d "${COMPSS_HOME}/Bindings/c" ]; then
     local CPP_COMPSS_HOME=${COMPSS_HOME}/Bindings/c
     export CPP_PATH=${CPP_COMPSS_HOME}:$cp
   else
@@ -927,14 +960,14 @@ exec_c() {
   fi
 
   # Look for the JVM Library
-  libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.so | head -n 1)
+  libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
   if [ -z "$libjava" ]; then
-    libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.dylib | head -n 1)
+    libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
     if [ -z "$libjava" ]; then
       display_error "${JAVA_JRE_ERROR}"
     fi
   fi
-  libjavafolder=$(dirname $libjava)
+  libjavafolder=$(dirname "$libjava")
 
   export LD_LIBRARY_PATH=$libjavafolder:${COMPSS_HOME}/Bindings/bindings-common/lib:${COMPSS_HOME}/Bindings/c/lib:${LD_LIBRARY_PATH}
 
@@ -949,7 +982,7 @@ exec_c() {
   if [ $tracing -gt 0 ]; then
     export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
   fi
-  $fullAppPath $application_args
+  $fullAppPath ${application_args}
   endCode=$?
   if [ $tracing -gt 0 ]; then
       unset LD_PRELOAD  # no tracing check because if not set does nothing
@@ -965,30 +998,37 @@ exec_python() {
   cp=$cp:$storageApi
 
   # Export needed variables
-  if [ -d ${COMPSS_HOME}/Bindings/python ]; then
+  if [ -d "${COMPSS_HOME}/Bindings/python" ]; then
     PYCOMPSS_HOME=${COMPSS_HOME}/Bindings/python
     export PYTHONPATH=${PYCOMPSS_HOME}:$PYTHONPATH
   fi
 
   # Look for the JVM Library
-  libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.so | head -n 1)
+  libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
   if [ -z "$libjava" ]; then
-    libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.dylib | head -n 1)
+    libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
     if [ -z "$libjava" ]; then
       display_error "${JAVA_JRE_ERROR}"
     fi
   fi     
-  libjavafolder=$(dirname $libjava)
+  libjavafolder=$(dirname "$libjava")
 
   export LD_LIBRARY_PATH=$libjavafolder:${COMPSS_HOME}/Bindings/bindings-common/lib:${LD_LIBRARY_PATH}
 
   export JVM_OPTIONS_FILE=${jvm_options_file}
 
+  # Initialize python flags
+  if [ "$log_level" != "debug" ]; then
+    py_flags="-u -O"
+  else
+    py_flags="-u"
+  fi
+
   # Launch application
   if [ $tracing -gt 0 ]; then
     export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
   fi
-  python -u $PYCOMPSS_HOME/pycompss/runtime/launch.py $log_level $PyObject_serialize $storageConf $fullAppPath $application_args
+  python ${py_flags} "$PYCOMPSS_HOME"/pycompss/runtime/launch.py $log_level $PyObject_serialize $storageConf "$fullAppPath" ${application_args}
   endCode=$?
   if [ $tracing -gt 0 ]; then
       unset LD_PRELOAD  # no tracing check because if not set does nothing
@@ -1000,10 +1040,10 @@ exec_python() {
 
 clean_env() {
   # Delete JVM options file
-  rm -f ${jvm_options_file}
+  rm -f "${jvm_options_file}"
 
   # Delete tmp dir for initial loggers
-  rm -rf /tmp/$uuid
+  rm -rf "/tmp/$uuid"
 }
 
 #---------------------------------------------------
@@ -1011,7 +1051,7 @@ clean_env() {
 #---------------------------------------------------
   # Environment and arguments
   check_env
-  get_args $@
+  get_args "$@"
   check_args
 
   # Trap to ensure clean end

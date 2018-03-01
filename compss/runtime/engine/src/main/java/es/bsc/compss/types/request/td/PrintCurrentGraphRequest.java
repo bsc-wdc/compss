@@ -164,7 +164,7 @@ public class PrintCurrentGraphRequest extends TDRequest {
                 graph.newLine();
                 graph.write(prefix + prefix + prefix + prefix + "color=green");
                 graph.newLine();
-                List<AllocatableAction> hostedActions = ts.getHostedActions(worker);
+                AllocatableAction[] hostedActions = ts.getHostedActions(worker);
                 for (AllocatableAction action : hostedActions) {
                     if (action instanceof ExecutionAction) {
                         ExecutionAction se = (ExecutionAction) action;

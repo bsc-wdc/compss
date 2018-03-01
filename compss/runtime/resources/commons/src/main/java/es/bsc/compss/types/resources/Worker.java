@@ -319,6 +319,8 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     public abstract Integer fitCount(Implementation impl);
 
     public abstract boolean hasAvailable(T consumption);
+    
+    public abstract boolean hasAvailableSlots();
 
     public abstract T reserveResource(T consumption);
 

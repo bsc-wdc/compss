@@ -51,7 +51,10 @@ public abstract class ExternalExecutor extends Executor {
     public static final String TOKEN_SEP = " ";
     public static final String TOKEN_NEW_LINE = "\n";
     public static final String END_TASK_TAG = "endTask";
+    public static final String ERROR_TASK_TAG = "errorTask";
     public static final String QUIT_TAG = "quit";
+    public static final String REMOVE_TAG = "remove";
+    public static final String SERIALIZE_TAG = "serialize";
     private static final String EXECUTE_TASK_TAG = "task";
 
     private final String writePipe; // Pipe for sending executions
@@ -94,6 +97,7 @@ public abstract class ExternalExecutor extends Executor {
     @Override
     public void executeTask(NIOWorker nw, NIOTask nt, String outputsBasename, File taskSandboxWorkingDir, int[] assignedCoreUnits,
             int[] assignedGPUs) throws Exception {
+
         // Check if it is a native method or not
         switch (nt.getMethodType()) {
             case METHOD:
@@ -129,6 +133,10 @@ public abstract class ExternalExecutor extends Executor {
         addArguments(args, nt, nw);
 
         addThreadAffinity(args, assignedCoreUnits);
+        
+        addGPUAffinity(args, assignedGPUs);
+        
+        addHostlist(args);
 
         String externalCommand = getArgumentsAsString(args);
 
@@ -138,7 +146,16 @@ public abstract class ExternalExecutor extends Executor {
         executeExternal(nt.getJobId(), command, nt, nw);
     }
 
-    private void addThreadAffinity(ArrayList<String> args, int[] assignedCoreUnits) {
+    private void addHostlist(ArrayList<String> args) {
+		String hostlist = System.getProperty(Constants.COMPSS_HOSTNAMES);
+    	if (hostlist!=null && !hostlist.isEmpty()){
+    		args.add(hostlist);
+    	}else{
+    		args.add("-");
+    	}
+	}
+
+	private void addThreadAffinity(ArrayList<String> args, int[] assignedCoreUnits) {
         String computingUnits;
         if (assignedCoreUnits.length == 0) {
             computingUnits = "-";
@@ -146,6 +163,19 @@ public abstract class ExternalExecutor extends Executor {
             computingUnits = String.valueOf(assignedCoreUnits[0]);
             for (int i = 1; i < assignedCoreUnits.length; ++i) {
                 computingUnits = computingUnits + "," + assignedCoreUnits[i];
+            }
+        }
+        args.add(computingUnits);
+    }
+    
+    private void addGPUAffinity(ArrayList<String> args, int[] assignedGPUs) {
+        String computingUnits;
+        if (assignedGPUs.length == 0) {
+            computingUnits = "-";
+        } else {
+            computingUnits = String.valueOf(assignedGPUs[0]);
+            for (int i = 1; i < assignedGPUs.length; ++i) {
+                computingUnits = computingUnits + "," + assignedGPUs[i];
             }
         }
         args.add(computingUnits);
@@ -159,6 +189,7 @@ public abstract class ExternalExecutor extends Executor {
         System.out.println("[EXTERNAL EXECUTOR] executeNonNativeTask - Begin task execution");
         try {
             invoker.processTask();
+            invoker.serializeBinaryExitValue();
         } catch (JobExecutionException jee) {
             System.err.println("[EXTERNAL EXECUTOR] executeNonNativeTask - Error in task execution");
             jee.printStackTrace();
@@ -259,10 +290,10 @@ public abstract class ExternalExecutor extends Executor {
         lArgs.add(String.valueOf(nt.getResourceDescription().getTotalCPUComputingUnits()));
 
         // Add target
-        lArgs.add(Boolean.toString(nt.isHasTarget()));
+        lArgs.add(Boolean.toString(nt.hasTarget()));
 
         // Add return type
-        if (nt.isHasReturn()) {
+        if (nt.hasReturn()) {
             DataType returnType = nt.getParams().getLast().getType();
             lArgs.add(Integer.toString(returnType.ordinal()));
         } else {
@@ -279,16 +310,17 @@ public abstract class ExternalExecutor extends Executor {
             switch (type) {
                 case FILE_T:
                     // Passing originalName link instead of renamed file
-                    
+
                     String originalFile = "";
                     if (np.getData() != null) {
                         originalFile = np.getData().getName();
-                        
+
                     }
                     String destFile = new File(np.getValue().toString()).getName();
-                    if (!isRuntimeRenamed(destFile)){
-                    	//Treat corner case: Destfile is original name. Parameter is INPUT with shared disk, so destfile should be the same as the input.
-                    	destFile = originalFile;
+                    if (!isRuntimeRenamed(destFile)) {
+                        // Treat corner case: Destfile is original name. Parameter is INPUT with shared disk, so
+                        // destfile should be the same as the input.
+                        destFile = originalFile;
                     }
                     lArgs.add(originalFile + ":" + destFile + ":" + np.isPreserveSourceData() + ":" + np.isWriteFinalValue() + ":"
                             + np.getOriginalName());
@@ -315,10 +347,10 @@ public abstract class ExternalExecutor extends Executor {
     }
 
     private static boolean isRuntimeRenamed(String filename) {
-		return filename.startsWith("d") && filename.endsWith(".IT");
-	}
+        return filename.startsWith("d") && filename.endsWith(".IT");
+    }
 
-	private void executeExternal(int jobId, String command, NIOTask nt, NIOWorker nw) throws JobExecutionException {
+    private void executeExternal(int jobId, String command, NIOTask nt, NIOWorker nw) throws JobExecutionException {
         // Emit start task trace
         int taskType = nt.getTaskType() + 1; // +1 Because Task ID can't be 0 (0 signals end task)
         int taskId = nt.getTaskId();
@@ -341,7 +373,7 @@ public abstract class ExternalExecutor extends Executor {
             try (FileOutputStream output = new FileOutputStream(writePipe, true);) {
                 output.write(taskCMD.getBytes());
                 output.flush();
-
+                output.close();
                 done = true;
             } catch (Exception e) {
                 LOGGER.debug("Error on pipe write. Retry");

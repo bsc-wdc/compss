@@ -25,7 +25,8 @@ cleanup_failure:
 test_job:
   stage: test
   script:
-  - echo "Disabled tests" #./tests/scripts/main local local.cfg
+  #- echo "Disabled tests" #./tests/scripts/main local local.cfg
+  - ./tests/scripts/main local local.cfg
   only:
   - triggers
 

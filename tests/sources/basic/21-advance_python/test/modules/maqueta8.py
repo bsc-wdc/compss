@@ -32,16 +32,16 @@ def function_B(v):
 
 def app2(x, y, z):
     from pycompss.api.api import compss_wait_on
-    print "-----------"
-    print "sys.argv_"
-    print sys.argv
-    print "x_"
-    print x
-    print "y_"
-    print y
-    print "z_"
-    print z
-    print "-----------"
+    print("-----------")
+    print("sys.argv_")
+    print(sys.argv)
+    print("x_")
+    print(x)
+    print("y_")
+    print(y)
+    print("z_")
+    print(z)
+    print("-----------")
     fo1 = function_B(1)
     result = compss_wait_on(fo1)
     return result
@@ -67,15 +67,15 @@ def function_A(x, y, z):
 
 def app(a, b, c):
     from pycompss.api.api import compss_wait_on
-    print "In app"
-    print "sys.argv:"
-    print sys.argv
-    print "a:"
-    print a
-    print "b:"
-    print b
-    print "c:"
-    print c
+    print("In app")
+    print("sys.argv:")
+    print(sys.argv)
+    print("a:")
+    print(a)
+    print("b:")
+    print(b)
+    print("c:")
+    print(c)
     x = function_A(2, 2, 2)
     # print x
     x = compss_wait_on(x)

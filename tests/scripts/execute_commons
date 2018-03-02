@@ -12,9 +12,9 @@
     sleep 1s
   
     # Clean possible remaining test processes
-    $(ps x -o  "%r %c" | grep "runcompss" | awk {' print $1 '} | xargs -r -i kill -9 -{})
-    $(ps -elfa | grep "java" | grep "es.bsc.compss.nio.worker.NIOWorker" | awk {' print $4 '} | xargs -r kill -9)
-    $(ps -elfa | grep piper | grep -v grep | awk {' print $4 '} | xargs -r kill -9)
+    ps x -o  "%r %c" | grep "runcompss" | awk {' print $1 '} | xargs -r -i kill -9 -{}
+    ps -elfa | grep "java" | grep "es.bsc.compss.nio.worker.NIOWorker" | awk {' print $4 '} | xargs -r kill -9
+    ps -elfa | grep piper | grep -v grep | awk {' print $4 '} | xargs -r kill -9
 
     # Sleep after cleanning test environment
     sleep 1s
@@ -28,11 +28,11 @@
     local testExitValue=$1
     local retries=$2
 
-    if [ $testExitValue -ne 0 ]; then
+    if [ "$testExitValue" -ne 0 ]; then
       exitValue=1
       results="${results}3"
     else
-      if [ $retries -eq 2 ]; then
+      if [ "$retries" -eq 2 ]; then
         # Test OK on first try (but counter was increased)
         results="${results}0"
       else
@@ -55,17 +55,17 @@
     local skip=$7
     local MAX_RETRIES=$8
 
-    if [ "${skip}" == "true" ] && [ -f ${appBaseDir}/skip ]; then
+    if [ "${skip}" == "true" ] && [ -f "${appBaseDir}"/skip ]; then
       # Mark test as skip
       results="${results}2"
     else
       # Execute test with retries
-      cd ${appBaseDir}
+      cd "${appBaseDir}"
       local retries=1
       local testExitValue=3
       while [ $retries -le $MAX_RETRIES ] && [ $testExitValue -ne 0 ]; do
         local appLogDirWithRetries="${appLogDir}_${retries}"
-        mkdir -p ${appLogDirWithRetries}
+        mkdir -p "${appLogDirWithRetries}"
 
         # Specific test Execute
         ./execution ${COMPSsExec} ${comm} ${runcompss_opts} ${appBaseDir} ${COMPSsLogFolder} ${appLogDirWithRetries} ${retries}
@@ -102,7 +102,7 @@
     echo "   Application Name                                      TEST STATUS"
 
     # Test results
-    while [ $pos -lt ${numTests} ]; do
+    while [ $pos -lt "${numTests}" ]; do
       if [ $appCounter -lt 10 ]; then
         printCounter="0$appCounter"
       else

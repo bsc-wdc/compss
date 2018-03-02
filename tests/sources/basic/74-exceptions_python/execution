@@ -1,6 +1,23 @@
 #!/bin/bash -e
 
-  #Obtain parameters
+  #--------------------------------------------------------------------------------
+  # Clean orphans
+  clean_orphans() {
+    # Sleep before cleanning test environment
+    sleep 1s
+  
+    # Clean possible remaining test processes
+    ps x -o  "%r %c" | grep "runcompss" | awk {' print $1 '} | xargs -r -i kill -9 -{}                                                                                                                                                                                       
+    ps -elfa | grep "java" | grep "es.bsc.compss.nio.worker.NIOWorker" | awk {' print $4 '} | xargs -r kill -9
+    ps -elfa | grep piper | grep -v grep | awk {' print $4 '} | xargs -r kill -9
+
+    # Sleep after cleanning test environment
+    sleep 1s
+  }
+
+
+  #--------------------------------------------------------------------------------
+  # Obtain parameters
   COMPSs_exec=$1
   comm=$2
   runcompss_opts=$3
@@ -9,58 +26,61 @@
   target_log_folder=$6
   retryNum=$7
 
-  #Global exit variable
+  # Global exit variable
   exitValue=0
 
   #----------------------------------------------------------------------------------
-  #Generate Project.xml according to system
-  sed -i '/<InstallDir>/c<InstallDir>'${COMPSS_HOME}'<\/InstallDir>' ${base_app_dir}/project.xml
+  # Generate Project.xml according to system
+  sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/project.xml
 
   #----------------------------------------------------------------------------------
-  #Create all working dir folders
+  # Create all working dir folders
   mkdir -p /tmp/COMPSsWorker01/
 
   #----------------------------------------------------------------------------------
-  #Run application 1 - Test exception in Master before submitting tasks
+  # Run application 1 - Test exception in Master before submitting tasks
 
   echo
   echo "*** RUNNING PYTHON APPLICATION TEST - EXCEPTIONS IN MASTER BEFORE SUBMITTING TASKS"
 
   function app1 {
-      output_log="${target_log_folder}/exception_python_1${retryNum}.outputlog"
-      error_log="${target_log_folder}/exception_python_1${retryNum}.errorlog"
+      local output_log="${target_log_folder}/exception_python_1${retryNum}.outputlog"
+      local error_log="${target_log_folder}/exception_python_1${retryNum}.errorlog"
+      local app_log_folder="${target_log_folder}/execInMasterBeforeTasks/"
+      mkdir -p "${app_log_folder}"
+
       counterVal=1
-      expectedTime=60s
+      expectedTime=120s
 
       timeout --signal=2 $expectedTime ${COMPSs_exec} \
-         --classpath=${base_app_dir} \
-         --project=${base_app_dir}/project.xml \
-         --resources=${base_app_dir}/resources.xml \
+         --classpath="${base_app_dir}" \
+         --project="${base_app_dir}"/project.xml \
+         --resources="${base_app_dir}"/resources.xml \
          --debug \
-         --comm=$comm \
+         --comm="$comm" \
          ${runcompss_opts} \
-         ${base_app_dir}/test/excInMasterBeforeTasks.py > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+         "${base_app_dir}"/test/excInMasterBeforeTasks.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
-      #Check timeout
+      # Check timeout
       if [[ "$?" = "124" ]]; then
-         #Copy LOG files
-         cp -rf ${COMPSs_log_folder}/excInMasterBeforeTasks.py_0${retryNum}/* ${target_log_folder}
-         #Report timeout
-         echo "[WARNING] Python Application timed out" >> ${output_log}
+         # Copy LOG files
+         cp -rf "${COMPSs_log_folder}"/excInMasterBeforeTasks.py_0"${retryNum}"/* "${app_log_folder}"
+         # Report timeout
+         echo "[WARNING] Python Application timed out" | tee -a "${output_log}"
          exitValue=124
       else
-         #Copy LOG files
-         cp -rf ${COMPSs_log_folder}/excInMasterBeforeTasks.py_0${retryNum}/* ${target_log_folder}
-         #Check result
-         ${base_app_dir}/resultInMaster ${output_log} ${error_log} ${target_log_folder}
+         # Copy LOG files
+         cp -rf "${COMPSs_log_folder}"/excInMasterBeforeTasks.py_0"${retryNum}"/* "${app_log_folder}"
+         # Check result
+         "${base_app_dir}"/resultInMaster "${output_log}" "${error_log}" "${app_log_folder}"
          exitValue=$?
       fi
   }
 
   # Kind of a try catch, but without else... allows to continue when the exeption are raised.
   if app1; then
-    if [ $exitValue -eq "0" ]; then
-      echo "Exception captured. Traceback and Exception message found - OK"
+    if [ $exitValue -eq 0 ]; then
+      echo "Exception captured. Traceback and Exception message found - OK" 
     else
       echo "The traceback or the exception message could not be found - ERROR"
       exit 1
@@ -69,6 +89,7 @@
 
   # wait for all processess to be killed by the OS
   sleep 5
+  clean_orphans
 
   #----------------------------------------------------------------------------------
   #Run application 2 - Test exception in Master after submitting tasks before sync
@@ -77,32 +98,35 @@
   echo "*** RUNNING PYTHON APPLICATION TEST - EXCEPTIONS IN MASTER AFTER SUBMITTING TASKS BEFORE SYNC"
 
   function app2 {
-      output_log="${target_log_folder}/exception_python_2${retryNum}.outputlog"
-      error_log="${target_log_folder}/exception_python_2${retryNum}.errorlog"
+      local output_log="${target_log_folder}/exception_python_2${retryNum}.outputlog"
+      local error_log="${target_log_folder}/exception_python_2${retryNum}.errorlog"
+      local app_log_folder="${target_log_folder}/execInMasterAfterTasks/"
+      mkdir -p "${app_log_folder}"
+
       counterVal=1
-      expectedTime=60s
+      expectedTime=180s
 
       timeout --signal=2 $expectedTime ${COMPSs_exec} \
-         --classpath=${base_app_dir} \
-         --project=${base_app_dir}/project.xml \
-         --resources=${base_app_dir}/resources.xml \
+         --classpath="${base_app_dir}" \
+         --project="${base_app_dir}"/project.xml \
+         --resources="${base_app_dir}"/resources.xml \
          --debug \
-         --comm=$comm \
+         --comm="$comm" \
          ${runcompss_opts} \
-         ${base_app_dir}/test/excInMasterAfterTasks1.py > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+         "${base_app_dir}"/test/excInMasterAfterTasks1.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
-      #Check timeout
+      # Check timeout
       if [[ "$?" = "124" ]]; then
-         #Copy LOG files
-         cp -rf ${COMPSs_log_folder}/excInMasterAfterTasks1.py_0${retryNum}/* ${target_log_folder}
-         #Report timeout
-         echo "[WARNING] Python Application timed out" >> ${output_log}
+         # Copy LOG files
+         cp -rf "${COMPSs_log_folder}"/excInMasterAfterTasks1.py_0"${retryNum}"/* "${app_log_folder}"
+         # Report timeout
+         echo "[WARNING] Python Application timed out" | tee -a "${output_log}"
          exitValue=124
       else
-         #Copy LOG files
-         cp -rf ${COMPSs_log_folder}/excInMasterAfterTasks1.py_0${retryNum}/* ${target_log_folder}
-         #Check result
-         ${base_app_dir}/resultInMasterAfterTasks1 ${output_log} ${error_log} ${target_log_folder}
+         # Copy LOG files
+         cp -rf "${COMPSs_log_folder}"/excInMasterAfterTasks1.py_0"${retryNum}"/* "${app_log_folder}"
+         # Check result
+         "${base_app_dir}"/resultInMasterAfterTasks1 "${output_log}" "${error_log}" "${app_log_folder}"
          exitValue=$?
       fi
   }
@@ -119,6 +143,7 @@
 
   # wait for all processess to be killed by the OS
   sleep 5
+  clean_orphans
 
   #----------------------------------------------------------------------------------
   #Run application 3 - Test exception in Master after submitting tasks before sync
@@ -127,32 +152,35 @@
   echo "*** RUNNING PYTHON APPLICATION TEST - EXCEPTIONS IN MASTER AFTER SUBMITTING TASKS AFTER SYNC"
 
   function app3 {
-      output_log="${target_log_folder}/exception_python_3${retryNum}.outputlog"
-      error_log="${target_log_folder}/exception_python_3${retryNum}.errorlog"
+      local output_log="${target_log_folder}/exception_python_3${retryNum}.outputlog"
+      local error_log="${target_log_folder}/exception_python_3${retryNum}.errorlog"
+      local app_log_folder="${target_log_folder}/execInMasterAfterTasks/"
+      mkdir -p "${app_log_folder}"
+
       counterVal=1
-      expectedTime=60s
+      expectedTime=180s
 
       timeout --signal=2 $expectedTime ${COMPSs_exec} \
-         --classpath=${base_app_dir} \
-         --project=${base_app_dir}/project.xml \
-         --resources=${base_app_dir}/resources.xml \
+         --classpath="${base_app_dir}" \
+         --project="${base_app_dir}"/project.xml \
+         --resources="${base_app_dir}"/resources.xml \
          --debug \
-         --comm=$comm \
+         --comm="$comm" \
          ${runcompss_opts} \
-         ${base_app_dir}/test/excInMasterAfterTasks2.py > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+         "${base_app_dir}"/test/excInMasterAfterTasks2.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
-      #Check timeout
+      # Check timeout
       if [[ "$?" = "124" ]]; then
-         #Copy LOG files
-         cp -rf ${COMPSs_log_folder}/excInMasterAfterTasks2.py_0${retryNum}/* ${target_log_folder}
-         #Report timeout
-         echo "[WARNING] Python Application timed out" >> ${output_log}
+         # Copy LOG files
+         cp -rf "${COMPSs_log_folder}"/excInMasterAfterTasks2.py_0"${retryNum}"/* "${app_log_folder}"
+         # Report timeout
+         echo "[WARNING] Python Application timed out" | tee -a "${output_log}"
          exitValue=124
       else
-         #Copy LOG files
-         cp -rf ${COMPSs_log_folder}/excInMasterAfterTasks2.py_0${retryNum}/* ${target_log_folder}
-         #Check result
-         ${base_app_dir}/resultInMasterAfterTasks2 ${output_log} ${error_log} ${target_log_folder}
+         # Copy LOG files
+         cp -rf "${COMPSs_log_folder}"/excInMasterAfterTasks2.py_0"${retryNum}"/* "${app_log_folder}"
+         # Check result
+         "${base_app_dir}"/resultInMasterAfterTasks2 "${output_log}" "${error_log}" "${app_log_folder}"
          exitValue=$?
       fi
   }
@@ -174,6 +202,7 @@
 
   # wait for all processess to be killed by the OS
   sleep 5
+  clean_orphans
 
   #----------------------------------------------------------------------------------
   #Run application 4 - Test exception in Worker within task
@@ -182,32 +211,34 @@
   echo "*** RUNNING PYTHON APPLICATION TEST - EXCEPTIONS IN WORKER WITHIN TASK"
 
   function app4 {
-      output_log="${target_log_folder}/exception_python_4${retryNum}.outputlog"
-      error_log="${target_log_folder}/exception_python_4${retryNum}.errorlog"
-      counterVal=1
-      expectedTime=60s
+      local output_log="${target_log_folder}/exception_python_4${retryNum}.outputlog"
+      local error_log="${target_log_folder}/exception_python_4${retryNum}.errorlog"
+      local app_log_folder="${target_log_folder}/execInTask/"
+      mkdir -p "${app_log_folder}"
+
+      expectedTime=180s
 
       timeout --signal=2 $expectedTime ${COMPSs_exec} \
-         --classpath=${base_app_dir} \
-         --project=${base_app_dir}/project.xml \
-         --resources=${base_app_dir}/resources.xml \
+         --classpath="${base_app_dir}" \
+         --project="${base_app_dir}"/project.xml \
+         --resources="${base_app_dir}"/resources.xml \
          --debug \
-         --comm=$comm \
+         --comm="$comm" \
          ${runcompss_opts} \
-         ${base_app_dir}/test/excInTask.py > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+         "${base_app_dir}"/test/excInTask.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
-      #Check timeout
+      # Check timeout
       if [[ "$?" = "124" ]]; then
-         #Copy LOG files
-         cp -rf ${COMPSs_log_folder}/excInTask.py_0${retryNum}/* ${target_log_folder}
-         #Report timeout
-         echo "[WARNING] Python Application timed out" >> ${output_log}
+         # Copy LOG files
+         cp -rf "${COMPSs_log_folder}"/excInTask.py_0"${retryNum}"/* "${app_log_folder}"
+         # Report timeout
+         echo "[WARNING] Python Application timed out" | tee -a "${output_log}"
          exitValue=124
       else
-         #Copy LOG files
-         cp -rf ${COMPSs_log_folder}/excInTask.py_0${retryNum}/* ${target_log_folder}
-         #Check result
-         ${base_app_dir}/resultInWorker ${output_log} ${error_log} ${target_log_folder}
+         # Copy LOG files
+         cp -rf "${COMPSs_log_folder}"/excInTask.py_0"${retryNum}"/* "${app_log_folder}"
+         # Check result
+         "${base_app_dir}"/resultInWorker "${output_log}" "${error_log}" "${app_log_folder}"
          exitValue=$?
       fi
   }
@@ -240,5 +271,6 @@
   echo "---------------------------------"
 
   #----------------------------------------------------------------------------------
-  #Return execution status
+  # Return execution status
   exit $exitValue
+

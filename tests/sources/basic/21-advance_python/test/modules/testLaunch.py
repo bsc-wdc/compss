@@ -21,10 +21,10 @@ class testLaunch(unittest.TestCase):
         """
         time.sleep(20)
         from pycompss.runtime.launch import launch_pycompss_application
-        print self.app
+        print(self.app)
         app = os.path.abspath(modules.maqueta.__file__).replace('.pyc', '.py')
         x = launch_pycompss_application(app, 'main')
-        print x
+        print(x)
         self.assertEqual(x, 6)
 
     def test_launch_2(self):
@@ -38,7 +38,7 @@ class testLaunch(unittest.TestCase):
         kwargs = {}
         app = os.path.abspath(modules.maqueta3.__file__).replace('.pyc', '.py')
         x = launch_pycompss_application(app, 'app', args, kwargs)
-        print x
+        print(x)
         self.assertEqual(x, str(123))
 
     @unittest.skip("no pueden lanzarse todoos")
@@ -55,7 +55,7 @@ class testLaunch(unittest.TestCase):
         args = ['1', '2', '3']
         kwargs = {}
         x = launch_pycompss_application(app, 'app', args, kwargs)
-        print x
+        print(x)
         self.assertEqual(x, str(123))
 
     @unittest.skip("no pueden lanzarse todoos")
@@ -65,7 +65,7 @@ class testLaunch(unittest.TestCase):
         args = ['1', '2', '3']
         kwargs = {}
         x = launch_pycompss_application(app_path, 'app', args, kwargs)
-        print x
+        print(x)
         self.assertEqual(x, str(123))
 
     @unittest.skip("no pueden lanzarse todoos")
@@ -79,7 +79,7 @@ class testLaunch(unittest.TestCase):
                                         project_xml='/home/user/test_maqueta/xml/project.xml',
                                         resources_xml='/home/user/test_maqueta/xml/resources.xml',
                                         comm='NIO')
-        print x
+        print(x)
 
     def tearDown(self):
         self.path = None

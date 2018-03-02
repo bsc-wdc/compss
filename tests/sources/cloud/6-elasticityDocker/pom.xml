@@ -31,6 +31,11 @@
 	<!-- DEPENDENCIES -->
 	<dependencies>
 		<dependency>
+			<groupId>es.bsc.conn-clients</groupId>
+			<artifactId>docker-client</artifactId>
+			<version>1.5-11</version>
+		</dependency>
+		<dependency>
 			<groupId>es.bsc.compss</groupId>
 			<artifactId>compss-api</artifactId>
 		</dependency>

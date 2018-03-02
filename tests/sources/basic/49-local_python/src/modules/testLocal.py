@@ -1,7 +1,7 @@
 import gc
 import unittest
 import numpy as np
-from C import C
+from .C import C
 from pycompss.api.task import task
 from pycompss.api.parameter import *
 from pycompss.api.api import compss_wait_on

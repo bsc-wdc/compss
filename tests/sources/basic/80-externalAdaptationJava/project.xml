@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project>
+	<MasterNode />
+	<Cloud>
+		<InitialVMs>1</InitialVMs>
+		<MinimumVMs>1</MinimumVMs>
+		<MaximumVMs>3</MaximumVMs>
+		<CloudProvider Name="BSC">
+			<LimitOfVMs>3</LimitOfVMs>
+			<Properties>
+
+				<!-- Optional connector parameters -->
+				<Property>
+					<Name>estimated-creation-time</Name>
+					<Value>1</Value> <!-- Minutes -->
+				</Property>
+				<Property>
+					<Name>max-vm-creation-time</Name>
+					<Value>1</Value> <!-- Minutes -->
+				</Property>
+				<Property>
+					<Name>time-slot</Name>
+					<Value>1</Value> <!-- Minutes -->
+				</Property>
+				<Property>
+					<Name>max-connection-errors</Name>
+					<Value>5</Value>
+				</Property>
+
+			</Properties>
+			<Images>
+				<Image Name="image_1">
+					<InstallDir>e_COMPSs</InstallDir>
+					<WorkingDir>/tmp/elasticity/</WorkingDir>
+				</Image>
+				<Image Name="image_2">
+                                        <InstallDir>e_COMPSs</InstallDir>
+                                        <WorkingDir>/tmp/elasticity/</WorkingDir>
+                                </Image>
+				<Image Name="image_3">
+                                        <InstallDir>e_COMPSs</InstallDir>
+                                        <WorkingDir>/tmp/elasticity/</WorkingDir>
+                                </Image>
+			</Images>
+			<InstanceTypes>
+				<InstanceType Name="small" />
+				<InstanceType Name="large" />
+				<InstanceType Name="extra_large" />
+			</InstanceTypes>
+		</CloudProvider>
+	</Cloud>
+</Project>

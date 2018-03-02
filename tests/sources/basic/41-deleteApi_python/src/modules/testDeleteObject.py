@@ -6,7 +6,7 @@ PyCOMPSs Delete Object test
 '''
 import unittest
 from pycompss.api.api import compss_wait_on, compss_delete_object
-from tasks import increment_object
+from .tasks import increment_object
 
 class testDeleteObject(unittest.TestCase):
 

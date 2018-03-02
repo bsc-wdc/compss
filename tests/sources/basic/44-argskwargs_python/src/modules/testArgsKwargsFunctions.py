@@ -5,63 +5,63 @@ from pycompss.api.parameter import *
 
 @task(returns=int)
 def argTask(*args):
-    print "ARG: ", args
+    print("ARG: ", args)
     return sum(args)
 
 @task(returns=int)
 def varargTask(v, w, *args):
-    print "V: ", v
-    print "W: ", w
-    print "ARG: ", args
+    print("V: ", v)
+    print("W: ", w)
+    print("ARG: ", args)
     return (v * w) + sum(args)
 
 @task(returns=int)
 def kwargTask(**kwargs):
-    print "KARG: ", kwargs
+    print("KARG: ", kwargs)
     return len(kwargs)
 
 @task(returns=int)
 def varkwargTask(v, w , **kwargs):
-    print "V: ", v
-    print "W: ", w
-    print "KARG: ", kwargs
+    print("V: ", v)
+    print("W: ", w)
+    print("KARG: ", kwargs)
     return (v * w) + len(kwargs)
 
 @task(returns=int)
 def argkwargTask(*args, **kwargs):
-    print "ARG: ", args
-    print "KARG: ", kwargs
+    print("ARG: ", args)
+    print("KARG: ", kwargs)
     return sum(args) + len(kwargs)
 
 @task(returns=int)
 def varargkwargTask(v, w , *args, **kwargs):
-    print "V: ", v
-    print "W: ", w
-    print "ARG: ", args
-    print "KARG: ", kwargs
+    print("V: ", v)
+    print("W: ", w)
+    print("ARG: ", args)
+    print("KARG: ", kwargs)
     return (v * w) + sum(args) + len(kwargs)
 
 @task(returns=int)
 def varargdefaultkwargTask(v, w, s = 2, *args, **kwargs):
-    print "V: ", v
-    print "W: ", w
-    print "S: ", s
-    print "ARGS: ", args
-    print "KWARG: ", kwargs
+    print("V: ", v)
+    print("W: ", w)
+    print("S: ", s)
+    print("ARGS: ", args)
+    print("KWARG: ", kwargs)
     return (v * w) + sum(args) + len(kwargs) + s
 
 @task(returns=int)
 def taskUnrollDict(a, b, **kwargs):
-    print "a: ", a
-    print "b: ", b
-    print "kwargs: ", kwargs
+    print("a: ", a)
+    print("b: ", b)
+    print("kwargs: ", kwargs)
     return a+b
 
 @task(returns=int)
 def taskUnrollDictWithDefaults(a=1, b=2, **kwargs):
-    print "a: ", a
-    print "b: ", b
-    print "kwargs: ", kwargs
+    print("a: ", a)
+    print("b: ", b)
+    print("kwargs: ", kwargs)
     return a+b
 
 

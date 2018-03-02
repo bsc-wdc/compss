@@ -7,7 +7,7 @@ stages:
 build_job:
   stage: build
   script:
-  - mvn package sonar:sonar -Dsonar.host.url=http://bscgrid05.bsc.es/sonar/
+  - mvn install sonar:sonar -Dsonar.host.url=http://bscgrid05.bsc.es/sonar/
   - ./builders/buildlocal /opt/COMPSs
   only: 
   - triggers

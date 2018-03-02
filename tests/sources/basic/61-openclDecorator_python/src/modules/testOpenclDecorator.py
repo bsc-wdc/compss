@@ -1,7 +1,7 @@
 import unittest
 from pycompss.api.task import task
 from pycompss.api.parameter import *
-from pycompss.api.api import barrier
+from pycompss.api.api import compss_barrier
 from pycompss.api.opencl import opencl
 from pycompss.api.constraint import constraint
 
@@ -21,8 +21,8 @@ class testOpenclDecorator(unittest.TestCase):
 
     def testFunctionalUsage(self):
         myDate("-d", "next friday")
-        barrier()
+        compss_barrier()
 
     def testFunctionalUsageWithConstraint(self):
         myDateConstrained("-d", "next monday")
-        barrier()
+        compss_barrier()

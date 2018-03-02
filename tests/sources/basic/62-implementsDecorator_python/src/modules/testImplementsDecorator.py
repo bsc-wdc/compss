@@ -9,7 +9,7 @@ from pycompss.api.constraint import constraint
 @constraint(AppSoftware="NUMPY")
 @task(returns=list)
 def myfunctionWithNumpy(list1, list2):
-    print "myfunctionWithNumpy"
+    print("myfunctionWithNumpy")
     assert(len(list1) == len(list2))
     import numpy as np
     x = np.array(list1)
@@ -35,7 +35,7 @@ def myfunctionImplementation(list1, list2):
 @constraint(AppSoftware="NonNumpy")
 @task(returns=list)
 def addtwovectors(list1, list2):
-    print "addtwovectors"
+    print("addtwovectors")
     assert(len(list1) == len(list2))
     for i in range(len(list1)):
         list1[i] += list2[i]

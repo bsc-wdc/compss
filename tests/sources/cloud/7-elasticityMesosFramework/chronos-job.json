@@ -17,7 +17,7 @@
     "mem": 1024,
     "disabled": false,
     "uris": [],
-    "schedule": "R1/2016-10-24T10:15.000Z/PT24H",
+    "schedule": "R1//PT24H",
     "environmentVariables": [
         {
             "name": "MESOS_NATIVE_JAVA_LIBRARY",
@@ -29,4 +29,3 @@
         }
     ]
 }
-

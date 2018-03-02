@@ -14,7 +14,8 @@ class testFunction(unittest.TestCase):
     def function_primitives(self, i, l, f, b, s):
         types_list = [type(i), type(l), type(f), type(b), type(s)]
         #print "Primitive params: %d, %ld, %f, %d, %s % (i, l, f, b, s)"
-        return map(str, types_list)
+        print("TYPES_LIST: " + str(types_list))
+        return list(map(str, types_list))
 
     @task(fin=FILE, finout=FILE_INOUT, fout=FILE_OUT)
     def function_files(self, fin, finout, fout):
@@ -22,8 +23,8 @@ class testFunction(unittest.TestCase):
         finout_d = open(finout, 'r+')
         fout_d = open(fout, 'w')
 
-        print "- In file content:\n", fin_d.read()
-        print "- Inout file content:\n", finout_d.read()
+        print("- In file content:\n", fin_d.read())
+        print("- Inout file content:\n", finout_d.read())
         finout_d.write("\n===> INOUT FILE ADDED CONTENT")
         fout_d.write("OUT FILE CONTENT")
         fin_d.close()
@@ -33,7 +34,7 @@ class testFunction(unittest.TestCase):
     @task(returns=list)
     def function_objects(self, o, l, dic, tup, cplx, f):
         # Bug conocido no se puede devolver type(function): no es serializable
-        tipos = map(str, [type(o), type(l), type(dic), type(tup), type(cplx), type(f)])
+        tipos = list(map(str, [type(o), type(l), type(dic), type(tup), type(cplx), type(f)]))
         return tipos
 
     @task(returns=int)
@@ -42,7 +43,7 @@ class testFunction(unittest.TestCase):
 
     @task(returns=list)
     def function_fu_list_object(self, l):
-        for i in xrange(len(l)):
+        for i in range(len(l)):
             l[i] = l[i] + 1
         return l
 
@@ -62,9 +63,9 @@ class testFunction(unittest.TestCase):
     def test_function_primitives(self):
         """ Test function_primitives"""
         from pycompss.api.api import compss_wait_on
-        types_list = self.function_primitives(1, 1L, 1.0, True, 'a string')
+        types_list = self.function_primitives(1, 1, 1.0, True, 'a string')
         types_list = compss_wait_on(types_list)
-        res = map(str, [type(1), type(1L), type(1.0), type(True), type('a string')])
+        res = list(map(str, [type(1), type(1), type(1.0), type(True), type('a string')]))
         self.assertSequenceEqual(types_list, res)
 
     def test_function_files(self):
@@ -103,7 +104,7 @@ class testFunction(unittest.TestCase):
 
         v = self.function_objects(o, l, dic, tup, cplx, f)
         v = compss_wait_on(v)
-        res = map(str, [type(o), type(l), type(dic), type(tup), type(cplx), type(f)])
+        res = list(map(str, [type(o), type(l), type(dic), type(tup), type(cplx), type(f)]))
         self.assertSequenceEqual(v, res)
 
     def test_function_return_primitive(self):

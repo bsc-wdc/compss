@@ -28,6 +28,8 @@
   error_log="${target_log_folder}/python_test_0${retryNum}.errorlog"
   expectedTime=80s
 
+  export CUS=2
+
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
      --pythonpath=${base_app_dir}/src/ \
      --project=${base_app_dir}/project.xml \

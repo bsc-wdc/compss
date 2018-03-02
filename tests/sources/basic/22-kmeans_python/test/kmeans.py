@@ -64,17 +64,17 @@ def reduceCentersTask(a, b):
 
 
 def has_converged(mu, oldmu, epsilon, iter, maxIterations):
-    print "iter: " + str(iter)
-    print "maxIterations: " + str(maxIterations)
+    print("iter: " + str(iter))
+    print("maxIterations: " + str(maxIterations))
     if oldmu != []:
         if iter < maxIterations:
             aux = [np.linalg.norm(oldmu[i] - mu[i]) for i in range(len(mu))]
             distancia = sum(aux)
             if distancia < epsilon * epsilon:
-                print "Distancia_T: " + str(distancia)
+                print("Distancia_T: " + str(distancia))
                 return True
             else:
-                print "Distancia_F: " + str(distancia)
+                print("Distancia_F: " + str(distancia))
                 return False
         else:
             # detencion pq se ha alcanzado el maximo de iteraciones
@@ -105,7 +105,7 @@ def kmeans_frag(numV, k, dim, epsilon, maxIterations, numFrag):
 
     startTime = time.time()
     X = [genFragment(size, dim) for _ in range(numFrag)]
-    print "Points generation Time {} (s)".format(time.time() - startTime)
+    print("Points generation Time {} (s)".format(time.time() - startTime))
 
     mu = init_random(dim, k)
     oldmu = []
@@ -121,9 +121,9 @@ def kmeans_frag(numV, k, dim, epsilon, maxIterations, numFrag):
         mu = mergeReduce(reduceCentersTask, partialResult)
         mu = compss_wait_on(mu)
         mu = [mu[c][1] / mu[c][0] for c in mu]
-        print mu
+        print(mu)
         n += 1
-    print "Kmeans Time {} (s)".format(time.time() - startTime)
+    print("Kmeans Time {} (s)".format(time.time() - startTime))
     return (n, mu)
 
 if __name__ == "__main__":
@@ -137,4 +137,4 @@ if __name__ == "__main__":
 
     startTime = time.time()
     result = kmeans_frag(numV, k, dim, 1e-4, 10, numFrag)
-    print "Ellapsed Time {} (s)".format(time.time() - startTime)
+    print("Ellapsed Time {} (s)".format(time.time() - startTime))

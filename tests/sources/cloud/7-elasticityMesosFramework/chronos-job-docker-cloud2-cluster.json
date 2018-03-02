@@ -1,0 +1,29 @@
+{
+    "name": "COMPSs_2_chronos_test",
+    "command": "/opt/COMPSs/Runtime/scripts/user/runcompss --project=/mnt/mesos/sandbox/project_mesosFramework.xml --resources=/mnt/mesos/sandbox/resources_mesosFramework.xml --debug --comm=integratedtoolkit.nio.master.NIOAdaptor --lang=java --classpath=/mnt/mesos/sandbox/Simple.jar simple.Simple 1 25 1 3 60",
+    "shell": true,
+    "epsilon": "PT30M",
+    "executor": "",
+    "executorFlags": "",
+    "retries": 2,
+    "owner": "albert.serven@bsc.es",
+    "async": false,
+    "successCount": 190,
+    "errorCount": 3,
+    "lastSuccess": "2014-03-08T16:57:17.507Z",
+    "lastError": "2014-03-01T00:10:15.957Z",
+    "cpus": 0.5,
+    "disk": 5120,
+    "mem": 512,
+    "disabled": false,
+    "container": {
+        "type": "DOCKER",
+        "image": "compss/compss:2.0-mesos-0.28.2",
+        "network": "HOST"
+    },
+    "uris": [
+        "http://bscgrid05.bsc.es/~aserven/compss.2.0.cluster/Simple.tar.gz",
+        "http://bscgrid05.bsc.es/~aserven/compss.2.0.cluster/DockerKeys.tar.gz"
+    ],
+    "schedule": "R1//PT24H"
+}

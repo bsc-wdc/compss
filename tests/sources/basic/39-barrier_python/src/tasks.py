@@ -9,6 +9,6 @@ import time
 
 @task(returns = int)
 def get_hero():
-    print "Hero working."
+    print("Hero working.")
     time.sleep(1)
     return 1

@@ -38,7 +38,7 @@
       resourceScore=0
       waitingScore=0
       implScore=0
-      if [ "$actionScore" != "null" ]; then
+      if [ "$actionScore" != "null" ] && [ "$actionScore" != "" ]; then
         actionScore=$(echo $resource | tr " " "\n" | sed -n 8p | tr ":" " " | tr "," " " | awk {' print $2 '})
         resourceScore=$(echo $resource | tr " " "\n" | sed -n 9p | tr ":" " " | tr "," " " | awk {' print $2 '})
         waitingScore=$(echo $resource | tr " " "\n" | sed -n 10p | tr ":" " " | tr "," " " | awk {' print $2 '})
@@ -46,7 +46,7 @@
       fi
       
       # Update best
-      if [ "$actionScore" != "null" ]; then
+      if [ "$actionScore" != "null" ] && [ "$actionScore" != "" ]; then
         if [ "$bestActionScore" == "null" ]; then
           updateBest $actionScore $resourceScore $waitingScore $implScore $resourceId
         else

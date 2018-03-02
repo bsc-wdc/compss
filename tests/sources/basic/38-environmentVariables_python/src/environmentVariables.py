@@ -10,11 +10,11 @@ from tasks import constrained_func
 
 
 def main_program():
-    print "Test constraints"
+    print("Test constraints")
     v = 10
     o = constrained_func(v)
     o = compss_wait_on(o)
-    print "Test result = ", o
+    print("Test result = ", o)
     if (o == v*v*v):
         print("- Function as a parameter: OK")
     else:

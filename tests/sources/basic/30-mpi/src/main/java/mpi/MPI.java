@@ -14,4 +14,12 @@ public class MPI {
         return -1;
     }
 
+    public static Integer taskConcurrentSimple1(int[] data, String fileOut) {
+        return -1;
+    }
+
+    public static Integer taskConcurrentSimple2(int[] data, String fileOut) {
+        return -1;
+    }
+
 }

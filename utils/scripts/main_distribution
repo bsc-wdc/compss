@@ -17,6 +17,12 @@
     echo " "
   }
 
+  display_error_and_exit() {
+    local errMsg=$1
+    display_error "$errMsg"
+    exit 1
+  }
+
   set_env() {
     # Define jenkins job and path
     if [ "${distr}" == "ubuntu" ]; then
@@ -34,7 +40,6 @@
       exit 1
     fi
     JENKINS_PACKAGES_PATH="/home/jenkins/jobs/${JENKINS_JOB}/workspace/builders/packages/"
-    JENKINS_LOGS_PATH="/home/jenkins/jobs/${JENKINS_JOB}/workspace/"
 
     # Define user variables
     trunk_base="${script_dir}/../../"				   # Base trunk folder
@@ -106,31 +111,23 @@
   setup_container() {
     echo -e "\e[0m"
     echo "**************************"
-    echo "***  Setup Container   ***"
+    echo "***   Setup Container  ***"
     echo "**************************"
     echo -e "\e[0m"
 
     echo "-- Setting up Container hosts..."
-    sudo "${trunk_base}/tests/scripts/configure_hosts_insert"
-    if [ $? -ne 0 ]; then
-      display_error "Cannot configure hosts before tests"
-      exit 1
-    fi
+    sudo "${trunk_base}/tests/scripts/configure_hosts_insert" || display_error_and_exit "Cannot configure hosts before tests"
   }
 
   compile() {
     echo -e "\e[0m"
     echo "**************************"
-    echo "*** Compile COMPSs git ***"
+    echo "*** Compile COMPSs GIT ***"
     echo "**************************"
     echo -e "\e[0m"
 
     cd "${trunk_base}" || exit 1
-    mvn -U clean install
-    if [ $? -ne 0 ]; then
-      display_error "Cannot compile COMPSs git Revision"
-      exit 1
-    fi
+    mvn -U clean install || display_error_and_exit "Cannot compile COMPSs GIT Revision"
     cd "${script_dir}" || exit 1
   }
 
@@ -143,19 +140,11 @@
 
     if [[ ${DEBIAN_DISTRS} == *"${distr}"* ]]; then
       cd "${specs_base_folder}/deb/" || exit 1
-      ./builddeb "${distr}" "${COMPSs_version}"
-      if [ $? -ne 0 ]; then
-        display_error "Building DEB script failed"
-        exit 1
-      fi 
+      ./builddeb "${distr}" "${COMPSs_version}" || display_error_and_exit "Building DEB script failed"
       cd "${script_dir}" || exit 1
     elif [[ ${RPM_DISTRS} == *"${distr}"* ]]; then
       cd "${specs_base_folder}/rpm/" || exit 1
-      ./buildrpm "${distr}" "${COMPSs_version}"
-      if [ $? -ne 0 ]; then
-        display_error "Building RPM script failed"
-        exit 1
-      fi
+      ./buildrpm "${distr}" "${COMPSs_version}" || display_error_and_exit "Building RPM script failed"
       cd "${script_dir}" || exit 1
     else
       # Other (should never reach this point)
@@ -177,7 +166,8 @@
     ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${JENKINS_USER}"@"${MASTER_VM}" rm -rf "${JENKINS_PACKAGES_PATH}"
     ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${JENKINS_USER}"@"${MASTER_VM}" mkdir -p "${JENKINS_PACKAGES_PATH}"
     scp -r -o StrictHostKeyChecking=no "${package_base_folder}/${distr}" "${JENKINS_USER}"@"${MASTER_VM}":"${JENKINS_PACKAGES_PATH}"
-    if [ $? -ne 0 ]; then
+    local ev=$?
+    if [ $ev -ne 0 ]; then
       display_error "Cannot move packages to master node"
       exit 1
     fi
@@ -195,11 +185,7 @@
 
     local installer_script="${script_dir}/installation/install_compss_${distr}"
    
-    sudo "${installer_script}"
-    if [ $? -ne 0 ]; then
-      display_error "Cannot install unstable COMPSs version"
-      exit 1
-    fi
+    sudo "${installer_script}" || display_error_and_exit "Cannot install unstable COMPSs version"
   }
 
   run_tests() {
@@ -224,10 +210,8 @@ EOT
     #  exit 1
     #fi
     cd "${script_dir}" || exit 1
-
-    # Move logs to Jenkins master node
-    scp -r -o StrictHostKeyChecking=no "${log_base_folder}" "${JENKINS_USER}"@"${MASTER_VM}":"${JENKINS_LOGS_PATH}"
   }
+
 
   #---------------------------------------------------------------------------------------------------------------------
   # SECOND LEVEL FUNCTIONS FOR SC DISTRIBUTION
@@ -240,11 +224,7 @@ EOT
     echo -e "\e[0m"
 
     cd "${specs_base_folder}/sc" || exit 1
-    ./buildsc "${COMPSs_version}"
-    if [ $? -ne 0 ]; then
-      display_error "Building DEB script failed"
-      exit 1
-    fi 
+    ./buildsc "${COMPSs_version}" || display_error_and_exit "Building SC script failed"
     cd "${script_dir}" || exit 1
   }
 
@@ -316,16 +296,12 @@ EOT
   # Log start of execution
   echo -e "\e[0m"
   echo "********************************"
-  echo "*** Start process on ${distr} by user $(whoami)  ***"
+  echo "*** Start process on ${distr}  ***"
   echo "********************************"
   echo -e "\e[0m"
  
   # Set environment
-  set_env
-  if [ $? -ne 0 ]; then
-    display_error "Cannot set script environment"
-    exit 1
-  fi
+  set_env || display_error_and_exit "Cannot set script envrionment"
 
   # Execute distribution
   if [[ ${OTHER_DISTRS} == *"${distr}"* ]]; then
@@ -347,3 +323,4 @@ EOT
   fi
 
   exit $exitValue
+

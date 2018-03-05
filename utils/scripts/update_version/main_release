@@ -7,7 +7,7 @@ usage() {
   echo "Usage ./main_release <NEW_VERSION>"
   echo " "
 
-  exit $exitValue
+  exit "$exitValue"
 }
 
 
@@ -17,24 +17,24 @@ usage() {
   #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
   # Get base version from trunk
-  script_dir=$(pwd)/$(dirname $0)
-  trunk_dir=${script_dir}/../../../
-  baseVersion=$(cat ${trunk_dir}/pom.xml | grep "compss.version" | tr ">" "\t" | awk {' print $2 '} | tr "<" "\t" | awk {' print $1 '})
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  trunk_dir=${SCRIPT_DIR}/../../../
+  baseVersion=$(cat "${trunk_dir}/pom.xml" | grep "compss.version" | tr ">" "\t" | awk '{ print $2 }' | tr "<" "\t" | awk '{ print $1 }')
 
   # Compute version
   version=$1
 
   # Perform update process
   commitChanges="true"
-  ./update_trunk_version ${baseVersion} ${version} ${commitChanges}
-  ./update_documentation ${version}
-  ./generate_tag ${version}
-  ./mvn_deploy_tag ${version}
+  ./update_trunk_version "${baseVersion}" "${version}" "${commitChanges}"
+  ./update_documentation "${version}"
+  ./generate_tag "${version}"
+  ./mvn_deploy_tag "${version}"
 
   # Deploy to SCs
-  ./deploy_tag_to_MN ${version}
-  ./deploy_tag_to_Nord ${version}
-  ./deploy_tag_to_MT ${version}
+  ./deploy_tag_to_MN "${version}"
+  ./deploy_tag_to_Nord "${version}"
+  ./deploy_tag_to_MT "${version}"
 
   # END
   echo "ALL SUCCESS!"

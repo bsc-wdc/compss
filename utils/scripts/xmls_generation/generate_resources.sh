@@ -8,7 +8,7 @@
 
   write_header() {
     local file=$1
-    cat > $file << EOT
+    cat > "$file" << EOT
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourcesList>
 EOT
@@ -19,8 +19,9 @@ EOT
     local workerName=$2
     local file=$3
 
-    ${scriptDir}/addWorker_resources.sh "${user}" "$workerName" "$file"
-    if [ $? -ne 0 ]; then
+    "${SCRIPT_DIR}"/addWorker_resources.sh "${user}" "$workerName" "$file"
+    local ev=$?
+    if [ $ev -ne 0 ]; then
       echo "[GENERATE_RESOURCES] [ERROR] Cannot add $workerName to $file"
       exit 1
     fi
@@ -28,7 +29,7 @@ EOT
 
   write_footer() {
     local file=$1
-    cat >> $file << EOT
+    cat >> "$file" << EOT
 </ResourcesList>
 EOT
 
@@ -51,7 +52,7 @@ EOT
   workers="$@"
 
   # Global variable
-  scriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # Opening file
   echo "[GENERATE_RESOURCES] [DEBUG] Adding header"

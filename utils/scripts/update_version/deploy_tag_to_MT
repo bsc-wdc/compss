@@ -7,7 +7,7 @@
     echo "Usage $0 <version>"
     echo " "
   
-    exit $exitValue
+    exit "$exitValue"
   }
 
  
@@ -29,7 +29,7 @@
   MTendpoint=mt1.bsc.es
 
   # Call generic script
-  ./deploy_tag_to_SC ${version} ${buildFolder} ${buildScript} ${MTuser} ${MTendpoint}
+  ./deploy_tag_to_SC "${version}" ${buildFolder} ${buildScript} ${MTuser} ${MTendpoint}
 
   # END
   exit 0

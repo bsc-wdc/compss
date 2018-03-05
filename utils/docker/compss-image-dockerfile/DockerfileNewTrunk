@@ -1,0 +1,30 @@
+FROM ubuntu:16.04
+RUN apt-get update && \
+    apt-get install -y \
+        wget \
+        libtool \
+        automake \
+        build-essential \
+        libboost-serialization-dev \
+        libboost-iostreams-dev \
+        libxml2-dev \
+        csh \
+        openssh-client \
+        openssh-server \
+        ssh \
+        papi-tools \
+        subversion && \
+    wget http://compss.bsc.es/releases/repofiles/repo_deb_ubuntu_x86-64.list -O /etc/apt/sources.list.d/compss-framework_x86-64.list && \
+    wget -qO - http://compss.bsc.es/repo/debs/deb-gpg-bsc-grid.pub.key | apt-key add - && \
+    apt-get update && \
+    apt-get install -y compss-framework && \
+    echo "export PATH=$PATH:/opt/COMPSs/Runtime/scripts/user/" >> /root/.bashrc && \
+    mkdir /var/run/sshd && \
+    echo 'root:screencast' | chpasswd && \
+    sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+    sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd && \
+    echo "export VISIBLE=now" >> /etc/profile && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
+    yes yes | ssh-keygen -f /root/.ssh/id_rsa -t rsa -N '' > /dev/null && \
+    cat /root/.ssh/id_rsa.pub > /root/.ssh/authorized_keys
+ENV NOTVISIBLE "in users profile"

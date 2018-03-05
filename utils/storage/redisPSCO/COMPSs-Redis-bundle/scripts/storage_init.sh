@@ -181,6 +181,7 @@
   REDIS_NODE_TIMEOUT=5000
   REDIS_REPLICAS=0
   REDIS_REMOTE_COMMAND=ssh
+  REDIS_HOME=/tmp/redis_cluster
 
   get_args "$@"
   check_args
@@ -189,13 +190,14 @@
   #---------------------------------------------------------
   # MAIN FUNCTIONS
   #---------------------------------------------------------
-  REDIS_TEMPLATE="bind 0.0.0.0\nport REDIS_PORT\ncluster-enabled yes\ncluster-config-file nodes.conf\ncluster-node-timeout REDIS_NODE_TIMEOUT\nappendonly yes"
-  REDIS_HOME=/tmp/redis_cluster/${jobId}
+  REDIS_TEMPLATE="bind 0.0.0.0\nport REDIS_PORT\ncluster-enabled yes\ncluster-config-file nodes.conf\ncluster-node-timeout REDIS_NODE_TIMEOUT\nappendonly no"
+  REDIS_SANDBOX=$REDIS_HOME/${jobId}
 
   STORAGE_HOME=$(dirname $0)/../
 
   echo "REDIS CONFIGURATION PARAMETERS"
   echo "REDIS_HOME:           $REDIS_HOME"
+  echo "REDIS_SANDBOX:        $REDIS_SANDBOX"
   echo "REDIS_PORT:           $REDIS_PORT"
   echo "REDIS_NODE_TIMEOUT:   $REDIS_NODE_TIMEOUT"
   echo "REDIS_REPLICAS:       $REDIS_REPLICAS"
@@ -205,7 +207,7 @@
   # These paths are needed for COMPSs because the runtime
   # will systematically look for a storage.cfg file here
   # if storage_home has been defined
-  COMPSS_STORAGE_DIR=$HOME/.COMPSs/${jobId}/storage  
+  COMPSS_STORAGE_DIR=$HOME/.COMPSs/${jobId}/storage
   COMPSS_STORAGE_CFG_DIR=$COMPSS_STORAGE_DIR/cfgfiles
   COMPSS_STORAGE_CFG_FILE=$COMPSS_STORAGE_CFG_DIR/storage.properties
 
@@ -217,7 +219,7 @@
   ############################
   ## STORAGE DEPENDENT CODE ##
   ############################
-  
+
   # These paths are needed to be available because COMPSs will look
   # for storage stuff there, and there is no way to change it
   # Note that REDIS_HOME is a different variable
@@ -227,7 +229,7 @@
   mkdir -p $COMPSS_STORAGE_DIR
   mkdir -p $COMPSS_STORAGE_CFG_DIR
 
-  # Write the nodes to the storage config that is needed for COMPSs 
+  # Write the nodes to the storage config that is needed for COMPSs
   echo ${storage_master_node}${network} >>  $COMPSS_STORAGE_CFG_FILE
   for worker_node in $worker_nodes
   do
@@ -299,7 +301,7 @@
       # Replace the configuration template parameters with their values
       redis_conf=$(echo $REDIS_TEMPLATE | sed -s s/REDIS_PORT/$redis_port/ | sed -s s/REDIS_NODE_TIMEOUT/$REDIS_NODE_TIMEOUT/)
       # Compute the path of the sandbox for this instance
-      redis_path=${REDIS_HOME}/${redis_port};
+      redis_path=${REDIS_SANDBOX}/${redis_port};
       # Create the folder structure (and remove the previous one if needed). This part can be done with ssh
       # It is needed to remove the old storage version because they may contain nodes.conf files of old clusters
       # that may not coincide with the configuration we want in this execution

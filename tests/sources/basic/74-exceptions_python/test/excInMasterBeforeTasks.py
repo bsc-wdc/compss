@@ -14,10 +14,10 @@ def main():
     result = compss_wait_on(values)
 
     if result[0] == 10 and result[1] == 110 and result[2] == 210 and result[3] == 310:
-        print "- Result value: OK"
+        print("- Result value: OK")
     else:
-        print "- Result value: ERROR"
-        print "- This error is a root error. Please fix error at test 19."
+        print("- Result value: ERROR")
+        print("- This error is a root error. Please fix error at test 19.")
 
 
 if __name__=='__main__':

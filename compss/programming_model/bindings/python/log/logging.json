@@ -26,8 +26,8 @@
             "level": "ERROR",
             "formatter": "medium",
             "filename": "pycompss.log",
-            "maxBytes": "10485760",
-            "backupCount": "20",
+            "maxBytes": 10485760,
+            "backupCount": 20,
             "encoding": "utf8",
             "delay":"true"
         },
@@ -37,8 +37,8 @@
             "level": "ERROR",
             "formatter": "medium",
             "filename": "pycompss.err",
-            "maxBytes": "10485760",
-            "backupCount": "20",
+            "maxBytes": 10485760,
+            "backupCount": 20,
             "encoding": "utf8",
             "delay":"true"
         }
@@ -83,6 +83,21 @@
         "pycompss.api.implement": {
             "level": "ERROR",
             "handlers": ["debug_file_handler","error_file_handler"],
+            "propagate": "no"
+        },
+        "pycompss.api.parallel": {
+            "level": "ERROR",
+            "handlers": ["console"], 
+            "propagate": "no"
+        },
+        "pycompss.util.translators.code_replacer.code_replacer": {
+            "level": "ERROR",
+            "handlers": ["console"], 
+            "propagate": "no"
+        },
+        "pycompss.util.translators.scop2pscop2py.translator_scop2pscop2py": {
+            "level": "ERROR",
+            "handlers": ["console"], 
             "propagate": "no"
         },
         "pycompss.runtime.launch": {

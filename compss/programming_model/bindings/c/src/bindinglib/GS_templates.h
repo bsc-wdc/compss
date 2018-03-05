@@ -59,9 +59,12 @@ void compss_wait_on(T &obj) {
   debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.classname: %s\n", entry.classname);
   debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", entry.filename);
   
+  if (entry.classname == NULL) debug_printf("[C-BINDING]  -  ERROR  -  @compss_wait_on  -  Waiting on a null entry\n");
+
   GS_Get_File(entry.filename, in_dir, &runtime_filename);
   debug_printf("[C-BINDING]  -  @compss_wait_on  -  template class\n");  
   debug_printf("[C-BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
+
 
   ifstream ifs(runtime_filename, ios::binary );  
   archive::binary_iarchive ia(ifs);

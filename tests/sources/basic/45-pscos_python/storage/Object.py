@@ -20,7 +20,7 @@ Dummy SCO class
 WARNING! Only for testing purposes.
          Considers the persitence within the /tmp folder of the localhost.
 '''
-import api
+from . import api
 
 class SCO(object):
 

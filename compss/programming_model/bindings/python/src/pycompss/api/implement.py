@@ -1,18 +1,6 @@
-#
-#  Copyright Barcelona Supercomputing Center (www.bsc.es)
-#
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-#
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
 
 """
 PyCOMPSs API - Implement (Versioning)
@@ -20,15 +8,18 @@ PyCOMPSs API - Implement (Versioning)
     This file contains the class constraint, needed for the implement
     definition through the decorator.
 """
+
 import inspect
 import logging
 import os
 from functools import wraps
 from pycompss.runtime.binding import register_ce
 from pycompss.util.location import i_am_at_master
+from pycompss.util.location import i_am_within_scope
 
 
-logger = logging.getLogger(__name__)
+if __debug__:
+    logger = logging.getLogger(__name__)
 
 
 class implement(object):
@@ -37,15 +28,31 @@ class implement(object):
     __call__ methods, useful on mpi task creation.
     """
     def __init__(self, *args, **kwargs):
-        # store arguments passed to the decorator
-        self.args = args
-        self.kwargs = kwargs
-        logger.debug("Init @implement decorator...")
+        """
+        Store arguments passed to the decorator
         # self = itself.
         # args = not used.
-        # kwargs = dictionary with the given constraints.
+        # kwargs = dictionary with the given implement parameters.
+        :param args: Arguments
+        :param kwargs: Keyword arguments
+        """
+        self.args = args
+        self.kwargs = kwargs
+        self.scope = i_am_within_scope()
+        if self.scope and __debug__:
+            logger.debug("Init @implement decorator...")
 
     def __call__(self, func):
+        """
+        Parse and set the implementation parameters within the task core element.
+        :param func: Function to decorate
+        :return: Decorated function.
+        """
+        if not self.scope:
+            # from pycompss.api.dummy.implement import implement as dummy_implement
+            # d_i = dummy_implement(self.args, self.kwargs)
+            # return d_i.__call__(func)
+            raise Exception("The implement decorator only works within PyCOMPSs framework.")
 
         if i_am_at_master():
             # master code
@@ -103,7 +110,8 @@ class implement(object):
             func.__to_register__ = coreElement
             # Do the task register if I am the top decorator
             if func.__who_registers__ == __name__:
-                logger.debug("[@IMPLEMENT] I have to do the register of function %s in module %s" % (func.__name__, self.module))
+                if __debug__:
+                    logger.debug("[@IMPLEMENT] I have to do the register of function %s in module %s" % (func.__name__, self.module))
                 register_ce(coreElement)
         else:
             # worker code
@@ -112,7 +120,8 @@ class implement(object):
         @wraps(func)
         def implement_f(*args, **kwargs):
             # This is executed only when called.
-            logger.debug("Executing implement_f wrapper.")
+            if __debug__:
+                logger.debug("Executing implement_f wrapper.")
 
             # The 'self' for a method function is passed as args[0]
             slf = args[0]

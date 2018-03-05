@@ -51,7 +51,7 @@ class testDecorator(unittest.TestCase):
     def test_decorator_worker_list(self):
         """ Test time decorator with list worker"""
         from pycompss.api.api import compss_wait_on
-        tasks = [self.function_time_decorated_worker(self.x) for _ in xrange(5)]
+        tasks = [self.function_time_decorated_worker(self.x) for _ in range(5)]
         tasks = compss_wait_on(tasks)
         values = [t[0] for t in tasks]
         times = [t[1] for t in tasks]
@@ -61,7 +61,7 @@ class testDecorator(unittest.TestCase):
     def test_decorator_master_list(self):
         """ Test time decorator with list master"""
         from pycompss.api.api import compss_wait_on
-        tasks = [self.function_time_decorated_master(self.x) for _ in xrange(5)]
+        tasks = [self.function_time_decorated_master(self.x) for _ in range(5)]
         values = [t[0] for t in tasks]
         times = [t[1] for t in tasks]
         values = compss_wait_on(values)

@@ -8,14 +8,14 @@
 	<parent>
 		<groupId>es.bsc.compss.tests</groupId>
 		<artifactId>compss-tests-basic</artifactId>
-<version>2.1.rc1709</version>
+<version>2.2.rc1801</version>
 		<relativePath>..</relativePath>
 	</parent>
 
 	<!-- PROJECT INFORMATION -->
 	<name>LimitOfTasks</name>
 	<description>Limit Of Tasks application</description>
-	<url>http://compssdev.bsc.es/projects/bar/wiki/limitOfTasks</url>
+	<url>http://compss.bsc.es/projects/bar/wiki/limitOfTasks</url>
 	<inceptionYear>2014</inceptionYear>
 	<licenses>
 		<license>

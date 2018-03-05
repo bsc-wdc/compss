@@ -64,7 +64,9 @@ public class SharedDiskManager {
             machines = new LinkedList<Resource>();
             shared2Machines.put(diskName, machines);
         }
-        machines.add(host);
+        synchronized(machines){
+        	machines.add(host);
+        }
     }
 
     /**
@@ -168,7 +170,10 @@ public class SharedDiskManager {
         m = machine2Shareds.remove(host);
         if (m != null) {
             for (String sharedName : m.allShared) {
-                shared2Machines.get(sharedName).remove(host);
+            	List<Resource> machines = shared2Machines.get(sharedName);
+            	synchronized(machines){
+            		machines.remove(host);
+            	}
             }
         }
         if (m != null) {

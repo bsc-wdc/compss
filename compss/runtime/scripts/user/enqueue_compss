@@ -24,10 +24,12 @@ usage() {
   exitValue=$1
 
   # Load default CFG for default values
-  local defaultSC_cfg=${scriptDir}/../queues/cfgs/${DEFAULT_SC_CFG}.cfg
-  source ${defaultSC_cfg}
-  local defaultQS_cfg=${scriptDir}/../queues/${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg
-  source ${defaultQS_cfg}
+  local defaultSC_cfg=${SCRIPT_DIR}/../queues/cfgs/${DEFAULT_SC_CFG}.cfg
+  #shellcheck source=../queues/cfgs/default.cfg
+  source "${defaultSC_cfg}"
+  local defaultQS_cfg=${SCRIPT_DIR}/../queues/${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg
+  #shellcheck source=../queues/slurm/slurm.cfg
+  source "${defaultQS_cfg}"
   
   # Show usage
   cat <<EOT
@@ -43,9 +45,9 @@ Usage: $0 [queue_system_options] [COMPSs_options] application_name application_a
 
   Submission configuration: 
 EOT
-  ${scriptDir}/../queues/commons/submit.sh --opts 
+  "${SCRIPT_DIR}"/../queues/commons/submit.sh --opts 
 
-  exit $exitValue
+  exit "$exitValue"
 }
 
 ###############################################
@@ -54,9 +56,9 @@ EOT
 display_version() {
   local exitValue=$1
 
-  ${scriptDir}/runcompss --version
+  "${SCRIPT_DIR}"/runcompss --version
 
-  exit $exitValue
+  exit "$exitValue"
 }
 
 ###############################################
@@ -65,7 +67,7 @@ display_version() {
 display_error() {
   local error_msg=$1
   
-  echo $error_msg
+  echo "$error_msg"
   echo " "
   
   usage 1
@@ -108,7 +110,7 @@ get_args() {
             display_version 0
             ;;
 	  sc_cfg=*)
-	    sc_cfg=$(echo $OPTARG | sed -e 's/sc_cfg=//g')
+	    sc_cfg=${OPTARG//sc_cfg=/}
 	    ;;
           master_node=*)
             # Master node is automatically selected. Remove it from COMPSs flags
@@ -153,32 +155,34 @@ check_args() {
     sc_cfg=${sc_cfg}.cfg
   fi
    
-  local scCfgFullPath=${scriptDir}/../queues/cfgs/${sc_cfg}
+  local scCfgFullPath=${SCRIPT_DIR}/../queues/cfgs/${sc_cfg}
 
-  if [ ! -f ${scCfgFullPath} ]; then
+  if [ ! -f "${scCfgFullPath}" ]; then
     # CFG file doesn't exist
     display_error "${ERROR_CFG_SC}"   
   fi
  
   # Source SC CFG env
-  source ${scCfgFullPath}
+  # shellcheck source=../queues/slurm/slurm.cfg
+  source "${scCfgFullPath}"
 
   # Check queue configuration env
-  local queueCfgFullPath=${scriptDir}/../queues/${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg
-  if [ ! -f ${queueCfgFullPath} ]; then
+  local queueCfgFullPath=${SCRIPT_DIR}/../queues/${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg
+  if [ ! -f "${queueCfgFullPath}" ]; then
     # CFG file doesn't exist
     display_error "${ERROR_CFG_Q}" 
   fi
 
   # Source queue system CFG env
-  source ${queueCfgFullPath}
+  # shellcheck source=../queues/cfgs/default.cfg
+  source "${queueCfgFullPath}"
 }
 
 
 #---------------------------------------------------
 # MAIN EXECUTION
 #---------------------------------------------------
-  scriptDir=$(dirname $0)
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
   # Get command args
   get_args "$@"
@@ -187,7 +191,7 @@ check_args() {
   check_args
 
   # Submit command
-  ${scriptDir}/../queues/commons/submit.sh \
+  "${SCRIPT_DIR}"/../queues/commons/submit.sh \
        --sc_cfg=${sc_cfg} \
        ${args_pass}
 

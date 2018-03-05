@@ -10,20 +10,20 @@
 
   #----------------------------------------------------------------------------------
   # Check output standard out status
-  if [ -f ${output_file} ]; then
+  if [ -f "${output_file}" ]; then
      result_expected="------------------------------------------------------------"
-     test_result=$(tail -1 ${output_file})
+     test_result=$(tail -1 "${output_file}")
      if [ "${result_expected}" != "${test_result}" ]; then
-        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
         exit 1
      fi
   else
-     echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
+     echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
      exit 1
   fi
   # Check that ErrorManager has not generated any ERROR or FATAL message.
-  if $(cat "${output_file}" "${runtime_log}" | tr '\n' ' ' | grep -E -q "[ERRMGR].*(ERROR|FATAL):.*.*Shutting"); then
-    echo "ERROR: ERRMGR RAISED A FATAL ERROR. TEST FAILED." | tee -a ${output_file}
+  if cat "${output_file}" "${runtime_log}" | tr '\n' ' ' | grep -E -q "[ERRMGR].*(ERROR|FATAL):.*.*Shutting"; then
+    echo "ERROR: ERRMGR RAISED A FATAL ERROR. TEST FAILED." | tee -a "${output_file}"
     exit 1
   fi
 
@@ -31,40 +31,65 @@
 
   jobs_logs="${target_log_folder}/jobs"
 
-  friday=$(grep -r -l "date -d next friday" $jobs_logs)
-  fridayDate=$(date -d "next friday")
-  if ! $(cat "$friday" | grep -E -q "$fridayDate"); then
-    echo "ERROR: TASK FAILED: testFunctionalUsage function failed." | tee -a ${output_file}
+  friday_file=$(grep -r -l "date -d next friday" "$jobs_logs")
+  fridayDate1=$(LANG=en_US date -d "next friday")
+  fridayDate2=$(date -d "next friday")
+  friday=$(grep -E "$fridayDate1|$fridayDate2" "$friday_file")
+  if [ "$friday" = "" ]; then
+    echo "ERROR: TASK FAILED: testFunctionalUsage function failed." | tee -a "${output_file}"
+    echo "  - FILE:     $friday_file" | tee -a "${output_file}"
+    echo "  - GOT:      $friday" | tee -a "${output_file}"
+    echo "  - EXPECTED: $fridayDate1 or $fridayDate2" | tee -a "${output_file}"
     exit 1
   fi
 
-  monday=$(grep -r -l "date -d next monday" $jobs_logs)
-  mondayDate=$(date -d "next monday")
-  if ! $(cat "$monday" | grep -E -q "$mondayDate"); then
-    echo "ERROR: TASK FAILED: testFunctionalUsageWithConstraint function failed." | tee -a ${output_file}
+  monday_file=$(grep -r -l "date -d next monday" "$jobs_logs")
+  mondayDate1=$(LANG=en_US date -d "next monday")
+  mondayDate2=$(date -d "next monday")
+  monday=$(grep -E "$mondayDate1|$mondayDate2" "$monday_file")
+  if [ "$monday" = "" ]; then
+    echo "ERROR: TASK FAILED: testFunctionalUsageWithConstraint function failed." | tee -a "${output_file}"
+    echo "  - FILE:     $monday_file" | tee -a "${output_file}"
+    echo "  - GOT:      $monday" | tee -a "${output_file}"
+    echo "  - EXPECTED: $mondayDate1 or $mondayDate2" | tee -a "${output_file}"
     exit 1
   fi
 
-  hello=$(grep -r -l "HELLO, this is a simple test to grep." $jobs_logs)
+  tuesday_file=$(grep -r -l "date -d next tuesday" "$jobs_logs")
+  tuesdayDate1=$(LANG=en_US date -d "next tuesday")
+  tuesdayDate2=$(date -d "next tuesday")
+  tuesday=$(grep -E "$tuesdayDate1|$tuesdayDate2" "$tuesday_file")
+  if [ "$tuesday" = "" ]; then
+    echo "ERROR: TASK FAILED: testFunctionalUsageWithEnvVarConstraint function failed." | tee -a "${output_file}"
+    echo "  - FILE:     $tuesday_file" | tee -a "${output_file}"
+    echo "  - GOT:      $tuesday" | tee -a "${output_file}"
+    echo "  - EXPECTED: $tuesdayDate1 or $tuesdayDate2" | tee -a "${output_file}"
+    exit 1
+  elif grep "Null value obtained while loading \$CUS from environment" "${target_log_folder}"/runtime.log; then
+    echo "WARNING: TASK FAILED: testFunctionalUsageWithEnvVarConstraint function received NULL environment variable." | tee -a "${output_file}"
+    exit 1
+  fi
+
+  hello=$(grep -r -l "HELLO, this is a simple test to grep." "$jobs_logs")
   if [[ -z "$hello" ]]; then
-     echo "ERROR: TASK FAILED: testFileManagementIN function failed." | tee -a ${output_file}
+     echo "ERROR: TASK FAILED: testFileManagementIN function failed." | tee -a "${output_file}"
     exit 1
   fi
 
   if grep -q "do" src/grepoutfile; then
-    echo "ERROR: TASK FAILED: testFileManagement function failed."  | tee -a ${output_file}
+    echo "ERROR: TASK FAILED: testFileManagement function failed."  | tee -a "${output_file}"
     exit 1
   fi
 
-  myLs=$(grep -r -l "ls -l --hide=.*infile.* --sort=size" $jobs_logs)
+  myLs=$(grep -r -l "ls -l --hide=.*infile.* --sort=size" "$jobs_logs")
   if [[ -z "$myLs" ]]; then
-     echo "ERROR: TASK FAILED: testFilesAndPrefix function failed." | tee -a ${output_file}
+     echo "ERROR: TASK FAILED: testFilesAndPrefix function failed." | tee -a "${output_file}"
     exit 1
   fi
 
-  myLs2=$(grep -r -l "ls -l --hide=.*inoutfile.* --sort=time" $jobs_logs)
+  myLs2=$(grep -r -l "ls -l --hide=.*inoutfile.* --sort=time" "$jobs_logs")
   if [[ -z "$myLs2" ]]; then
-     echo "ERROR: TASK FAILED: testFilesAndPrefixWithoutType function failed." | tee -a ${output_file}
+     echo "ERROR: TASK FAILED: testFilesAndPrefixWithoutType function failed." | tee -a "${output_file}"
     exit 1
   fi
 
@@ -73,7 +98,7 @@
   errors=$(cat "${output_file}" "${error_file}" | grep "ERROR" | cat)
   fails=$(cat "${output_file}" "${error_file}" | grep "FAIL" | cat)
   if [ "${errors}" != "" ] || [ "${fails}" != "" ]; then
-    echo "ERROR: UNIT TEST RAISED AN ERROR." | tee -a ${output_file}
+    echo "ERROR: UNIT TEST RAISED AN ERROR." | tee -a "${output_file}"
     exit 1
   fi
 

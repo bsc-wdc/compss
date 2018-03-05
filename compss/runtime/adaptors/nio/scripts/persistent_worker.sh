@@ -5,8 +5,9 @@
   ######################
 
   # Load common setup functions --------------------------------------
-  scriptDir=$(dirname $0)
-  source ${scriptDir}/setup.sh
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  # shellcheck source=setup.sh
+  source ${SCRIPT_DIR}/setup.sh
 
   # Load parameters --------------------------------------------------
   load_parameters $@
@@ -19,7 +20,7 @@
     if [ "$debug" == "true" ]; then
        echo "Worker already awaken. Nothing to do"
     fi
-    echo $pid
+    echo "$pid"
     exit 0
   fi
  

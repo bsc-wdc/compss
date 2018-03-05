@@ -52,17 +52,17 @@ class testFunctions(unittest.TestCase):
         self.assertEqual(res, val)
 
     def test_map_seq(self):
-        res = map(self.lambdaFunction, self.data, self.data)
-        import __builtin__
-        cor = __builtin__.map(self.lambdaFunction, self.data, self.data)
+        res = list(map(self.lambdaFunction, self.data, self.data))
+        import builtins
+        cor = builtins.map(self.lambdaFunction, self.data, self.data)
         self.assertSequenceEqual(res, cor)
 
     def test_map(self):
         from pycompss.api.api import compss_wait_on
-        res = map(self.methodFunction, self.data, self.data)
+        res = list(map(self.methodFunction, self.data, self.data))
         res = compss_wait_on(res)
-        import __builtin__
-        cor = __builtin__.map(self.methodFunction, self.data, self.data)
+        import builtins
+        cor = builtins.map(self.methodFunction, self.data, self.data)
         cor = compss_wait_on(cor)
         self.assertSequenceEqual(res, cor)
 

@@ -25,17 +25,17 @@ def main_program():
         increment(FILENAME + str(i))
     
     # Write final counters state (sync)
-    print "Final counter values:"
+    print("Final counter values:")
     for i in range(numTasks):
         printCounterValue(FILENAME + str(i), i)
-    print "** Application values OK **"
-    print "Waiting for VMs to be destroyed"
+    print("** Application values OK **")
+    print("Waiting for VMs to be destroyed")
     time.sleep(60)
-    print "Application ends" 
+    print("Application ends") 
 
 def usage():
-    print "[ERROR] Bad numnber of parameters"
-    print "    Usage: increment.py <counterValue> <numberOfTasks> "
+    print("[ERROR] Bad numnber of parameters")
+    print("    Usage: increment.py <counterValue> <numberOfTasks> ")
 
 def initializeCounter(filePath):
     # Write value counter
@@ -52,10 +52,10 @@ def printCounterValue(filePath, pos):
     fis.close()
     
     # Print values
-    print "- Counter" + str(pos) + " value is " + counter
+    print("- Counter" + str(pos) + " value is " + counter)
     expected = INITIAL_VALUE+1
     if int(counter) != expected:
-        print " -Incorrect counter value " + counter + " expected " + str(expected)
+        print(" -Incorrect counter value " + counter + " expected " + str(expected))
         exit(-1)
 
 @constraint(computingUnits="2")

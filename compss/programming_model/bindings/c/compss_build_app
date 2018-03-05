@@ -1,5 +1,163 @@
 #!/bin/bash
 
+
+# FUNCTIONS DECLARATION
+#---------------------------------------------------
+show_opts() {
+  cat <<EOT
+
+  Tools enablers:
+    --ompss                                 Enables worker compilation with OmpSs Mercurium compiler
+                                            Default: Disabled
+    --cuda                                  Enables worker compilation with CUDA compilation flags
+                                            Default: Disabled
+    --opencl                                Enables worker compilation with openCL compilation flags
+                                            Default: Disabled
+    --with_ompss=<ompss_installation_path>  Enables worker compilation with OmpSs Mercurium compiler installed in a certain location
+                                            Default: Disabled
+    --mercurium_flgas="flags"               Specifies extra flags to pass to the mercurium compiler
+                                            Default: Empty
+    --with_cuda=<cuda_installation_path>    Enables worker compilation with CUDA installed in a certain location
+                                            Default: Disabled
+    --with_opencl=<ocl_installation_path>   Enables worker compilation with openCL installed in a certain location
+                                            Default: Disabled
+EOT
+}
+
+usage() {
+  exitValue=$1
+
+  cat <<EOT
+Usage: $0 [options] application_name application_arguments
+
+* Options:
+  General:
+    --help, -h                              Print this help message
+
+    --opts                                  Show available options
+
+    --version, -v                           Print COMPSs version
+EOT
+  show_opts
+  exit "$exitValue"
+}
+
+show_version() {
+  echo "COMPSs version 2.2 Camellia"
+  echo " "
+}
+
+# Displays parsing arguments errors
+display_error() {
+  local error_msg=$1
+
+  echo "$error_msg"
+  echo " "
+
+  usage 1
+}
+
+# Displays runtime/application errors
+error_msg() {
+  local error_msg=$1
+
+  # Display error
+  echo
+  echo "$error_msg"
+  echo
+
+  # Exit
+  exit 1
+}
+
+get_args() {
+  # Parse COMPSs Options
+  while getopts hvgtmd-: flag; do
+    # Treat the argument
+    case "$flag" in
+      h)
+        # Display help
+        usage 0
+        ;;
+      v)
+        # Display version
+        show_version
+        exit
+        ;;
+      -)
+        # Check more complex arguments
+        case "$OPTARG" in
+          help)
+            # Display help
+            usage 0
+            ;;
+          version)
+            # Show version
+            show_full_version
+            exit 0
+            ;;
+          opts)
+            # Display help
+            show_opts
+            exit 0
+            ;;
+	  debug)
+            debug=1
+	    ;;
+          instrument)
+            instrument=1
+            ;;
+          ompss)
+            ompss_enabled=1
+            ;;
+          cuda)
+            cuda_enabled=1
+            ;;
+          opencl)
+            opencl_enabled=1
+            ;;
+          with_ompss=*)
+            ompss_enabled=1
+            ompss_prefix=${OPTARG//with_ompss=/}
+            ;;
+          mercurium_flags=*)
+            ompss_flags=${OPTARG//mercurium_flags=/}
+            ;;
+          with_cuda=*)
+            cuda_enabled=1
+            cuda_prefix=${OPTARG//with_cuda=/}
+            ;;
+          with_opencl=*)
+            opencl_enabled=1
+            opencl_prefix=${OPTARG//with_opencl=/}
+            ;;
+          *)
+            # Flag didn't match any patern. Raise exception
+            display_error "Bad argument: $OPTARG"
+            ;;
+        esac
+        ;;
+      *)
+        # Flag didn't match any patern. End of COMPSs flags
+        break
+        ;;
+    esac
+  done
+  # Shift COMPSs arguments
+  shift $((OPTIND-1))
+
+  # Parse application name
+  if [[ $# -eq 0 ]]; then
+    display_error "Error application name not specified"
+  else
+    other_args=$*
+  fi
+}
+
+debug=0
+instrument=0
+get_args "$@"
+
 echo "*---------------------------------------------------------------------*"
 echo "*                                                                     *"
 echo "*               BSC - Barcelona Supercomputing Center                 *"     
@@ -16,21 +174,24 @@ echo "*                                                                     *"
 echo "*---------------------------------------------------------------------*"
 echo ""
 
-# Machine Arch Calculation
-machine_arch=$(uname -p | /usr/bin/cut -c 1);
-if [[ $machine_arch == i ]]; then
-  arch="i386"
-  subfolder="client"
+if [ $debug -eq 1 ]; then
+   export CPPFLAGS="$CPPFLAGS -DDEBUG_BINDING"
+   ompss_flags="${ompss_flags} --debug"
 fi
-	
-if [[ $machine_arch == x ]]; then
-  arch="amd64"
-  subfolder="server"
+
+if [ $instrument -eq 1 ]; then
+  ompss_flags="${ompss_flags} --instrument"
 fi
-echo "ARCHITECTURE: $arch"
-echo "SUBFOLDER: $subfolder"
-export ARCH=$arch
-export SUBFLDR=$subfolder
+
+# Setting Java folder
+libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.so | head -n 1)
+  if [ -z "$libjava" ]; then
+    libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.dylib | head -n 1)
+    if [ -z "$libjava" ]; then
+      display_error "${JAVA_JRE_ERROR}"
+    fi
+  fi
+export LIBJAVAFOLDER=$(dirname $libjava)
 
 # GS HOME
 if [ -z $CS_HOME ]; then
@@ -56,37 +217,42 @@ fi
 # Building Master and Worker
 export CC="gcc"
 export CXX="g++"
-$CS_HOME/bin/compss_build build master $@
+$CS_HOME/bin/compss_build build master ${other_args}
 if [ $? -ne 0 ]; then
   echo " "
   echo "Building binding failed, please check errors above!"
   exit 1
 fi
-if [ "${WITH_OMPSS}" != "" ]; then
+if [ "${ompss_enabled}" != "" ]; then
   # Flag is defined, check value
-  if [ $WITH_OMPSS == 1 ]; then
+  if [ ${ompss_enabled} == 1 ]; then
     export CC="mcc"
-    export CFLAGS="$CFLAGS --ompss"
+    export CFLAGS="$CFLAGS --ompss ${ompss_flags} $COMPSS_MCXX_FLAGS"
     export CXX="mcxx"
-    export CXXFLAGS="$CXXFLAGS --ompss"
-	export CPPFLAGS="$CPPFLAGS -DOMPSS_ENABLED"
+    export CXXFLAGS="$CXXFLAGS --ompss ${ompss_flags} $COMPSS_MCXX_FLAGS"
+    export CPPFLAGS="$CPPFLAGS -DOMPSS_ENABLED"
   fi
 fi
-if [ "${WITH_CUDA}" != "" ]; then
+if [ "${cuda_enabled}" != "" ]; then
   # Flag is defined, check value
-  if [ $WITH_CUDA == 1 ]; then
-      export LIBS="$LIBS -lcudart"
-      if [ -z $CUDA_HOME ]; then
-         export PATH=$PATH:/usr/local/cuda/bin
-         export LDFLAGS="$LDFLAGS -L/usr/local/cuda/lib64"
-      else
-         export PATH=$PATH:${CUDA_HOME}/bin
-         export LDFLAGS="$LDFLAGS -L${CUDA_HOME}/lib64"
-      fi
+  if [ ${cuda_enabled} == 1 ]; then
+    export LIBS="$LIBS -lcudart"
+    if [ -z ${cuda_prefix} ]; then
+        if [-z $CUDA_HOME ]; then
+           export PATH=$PATH:/usr/local/cuda/bin
+           export LDFLAGS="$LDFLAGS -L/usr/local/cuda/lib64"
+        else
+           export PATH=$PATH:${CUDA_HOME}/bin
+           export LDFLAGS="$LDFLAGS -L${CUDA_HOME}/lib64"
+        fi
+    else
+	export PATH=$PATH:${cuda_prefix}/bin
+    	export LDFLAGS="$LDFLAGS -L${cuda_prefix}/lib64"
+    fi
   fi
 fi
 
-$CS_HOME/bin/compss_build build worker $@
+$CS_HOME/bin/compss_build build worker ${other_args}
 if [ $? -ne 0 ]; then
     echo " "
     echo "Building binding failed, please check errors above!"

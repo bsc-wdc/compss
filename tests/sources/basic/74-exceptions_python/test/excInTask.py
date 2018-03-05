@@ -12,10 +12,10 @@ def main():
     result = compss_wait_on(value)
 
     if result == 1:
-        print "- Result value: OK"
+        print("- Result value: OK")
     else:
-        print "- Result value: ERROR"
-        print "- This error is a root error. Please fix error at test 19."
+        print("- Result value: ERROR")
+        print("- This error is a root error. Please fix error at test 19.")
 
 
 if __name__=='__main__':

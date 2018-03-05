@@ -1,5 +1,6 @@
 package es.bsc.compss.components.impl;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.exceptions.ActionNotFoundException;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
@@ -16,15 +17,18 @@ import es.bsc.compss.scheduler.types.WorkloadState;
 import es.bsc.compss.scheduler.types.allocatableactions.ReduceWorkerAction;
 import es.bsc.compss.scheduler.types.allocatableactions.StartWorkerAction;
 import es.bsc.compss.scheduler.types.allocatableactions.StopWorkerAction;
+import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
+import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
 import es.bsc.compss.util.ActionSet;
 import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.ExternalAdaptationManager;
 import es.bsc.compss.util.JSONStateManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.ResourceOptimizer;
@@ -52,7 +56,6 @@ public class TaskScheduler {
 
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
-
     // Reference to action orchestrator (Task Dispatcher)
     private ActionOrchestrator orchestrator;
 
@@ -67,6 +70,8 @@ public class TaskScheduler {
 
     private final ResourceOptimizer ro;
     private final SchedulingOptimizer<TaskScheduler> so;
+    private final boolean externalAdaptation;
+    private final ExternalAdaptationManager extAdaptationManager;
     protected final JSONStateManager jsm;
 
     // Profiles from resources that have already been turned off
@@ -78,6 +83,12 @@ public class TaskScheduler {
      *
      */
     public TaskScheduler() {
+    	String enableAdaptStr = System.getProperty(COMPSsConstants.EXTERNAL_ADAPTATION);
+    	if (enableAdaptStr!=null && !enableAdaptStr.isEmpty()){
+    		externalAdaptation=Boolean.parseBoolean(enableAdaptStr);
+    	}else{
+    		externalAdaptation=false;
+    	}
         this.workers = new WorkersMap();
         this.jsm = new JSONStateManager();
         this.blockedActions = new ActionSet();
@@ -98,6 +109,14 @@ public class TaskScheduler {
         // Start ResourceOptimizer
         ro = generateResourceOptimizer();
         ro.start();
+        // Start external adaptation
+        if (externalAdaptation){
+        	extAdaptationManager = generateExternalAdaptationManager();
+        	extAdaptationManager.start();
+        }else{
+        	extAdaptationManager=null;
+        }
+        
 
     }
 
@@ -125,8 +144,11 @@ public class TaskScheduler {
      */
     public void shutdown() {
         // Stop Resource Optimizer
-        ro.shutdown();
+    	ro.shutdown();
         so.shutdown();
+        if (externalAdaptation){
+        	extAdaptationManager.shutdown();
+        }
         try {
             this.updateState();
             jsm.write();
@@ -150,7 +172,16 @@ public class TaskScheduler {
     public ResourceOptimizer generateResourceOptimizer() {
         return new ResourceOptimizer(this);
     }
-
+    
+    /**
+     * Generates the externalAdaptationManager .
+     *
+     * @return new instance of the externalApatationManager for the Task Scheduler.
+     */
+    public ExternalAdaptationManager generateExternalAdaptationManager() {
+        return new ExternalAdaptationManager();
+    }
+    
     /**
      * Generates the Scheduling Optimizer for the scheduler.
      *
@@ -742,7 +773,7 @@ public class TaskScheduler {
                 // Can not be blocked nor unassigned
             }
         } else {
-            ResourceManager.terminateResource(cloudWorker, (CloudMethodResourceDescription) modification.getModification());
+            ResourceManager.terminateCloudResource(cloudWorker, (CloudMethodResourceDescription) modification.getModification());
         }
     }
 
@@ -808,6 +839,16 @@ public class TaskScheduler {
         // Parameter null to get all blocked actions
         return this.blockedActions.getActions(null);
     }
+    /**
+    * Returns a number of the blocked actions
+    *
+    * @return
+    */
+   public final int getNumberOfBlockedActions() {
+       return this.blockedActions.getNumberTotalActions();
+   }
+    
+    
 
     /**
      * Returns a list with the hosted actions on a given worker
@@ -816,13 +857,13 @@ public class TaskScheduler {
      * @param worker
      * @return
      */
-    public final <T extends WorkerResourceDescription> List<AllocatableAction> getHostedActions(Worker<T> worker) {
+    public final <T extends WorkerResourceDescription> AllocatableAction[] getHostedActions(Worker<T> worker) {
         LOGGER.info("[TaskScheduler] Get Hosted actions on worker " + worker.getName());
         ResourceScheduler<T> ui = workers.get(worker);
         if (ui != null) {
             return ui.getHostedActions();
         } else {
-            return new LinkedList<>();
+            return new AllocatableAction[0];
         }
     }
 
@@ -891,8 +932,8 @@ public class TaskScheduler {
                     coreProfile[coreId].accumulate(ui.getProfile(impl));
                 }
             }
-
-            List<AllocatableAction> runningActions = ui.getHostedActions();
+            
+            AllocatableAction[] runningActions = ui.getHostedActions();
             long now = System.currentTimeMillis();
             for (AllocatableAction running : runningActions) {
                 if (running.getImplementations().length > 0) {
@@ -1018,7 +1059,7 @@ public class TaskScheduler {
 
         ResourceScheduler<T> ui = workers.get(worker);
         if (ui != null) {
-            List<AllocatableAction> hostedActions = ui.getHostedActions();
+            AllocatableAction[] hostedActions = ui.getHostedActions();
             for (AllocatableAction action : hostedActions) {
                 runningActions.append(prefix);
                 runningActions.append("<Action>").append(action.toString()).append("</Action>");
@@ -1152,6 +1193,20 @@ public class TaskScheduler {
         }
     }
 
+    public boolean isExternalAdaptationEnabled(){
+    	return externalAdaptation;
+    }
+    
+    public JSONObject getJSONForCloudInstanceTypeDescription(CloudProvider cp, CloudInstanceTypeDescription ctid) {
+        return jsm.getJSONForCloudInstanceTypeDescription(cp, ctid);
+    }
+    
+    public JSONObject getJSONForImplementations(){
+    	return jsm.getJSONForImplementations();
+    }
+    /*public Profile getDefaultProfile(CloudProvider cp, CloudInstanceTypeDescription ctid, int coreId, int implId) {
+        return generateProfile(jsm.getJSONForImplementation(cp, ctid, coreId, implId));
+    }*/
 
     private class WorkersMap {
 

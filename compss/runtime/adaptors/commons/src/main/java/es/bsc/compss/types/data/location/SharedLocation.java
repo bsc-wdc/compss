@@ -48,15 +48,18 @@ public class SharedLocation extends DataLocation {
     @Override
     public List<MultiURI> getURIs() {
         List<MultiURI> uris = new LinkedList<>();
-        List<Resource> resList = SharedDiskManager.getAllMachinesfromDisk(diskName);
-        Resource[] resources = resList.toArray(new Resource[resList.size()]);
+        List<Resource> resList = SharedDiskManager.getAllMachinesfromDisk(this.diskName);
+        Resource[] resources;
+        synchronized (resList) {
+            resources = resList.toArray(new Resource[resList.size()]);
+        }
         for (Resource host : resources) {
-            String diskPath = SharedDiskManager.getMounpoint(host, diskName);
+            String diskPath = SharedDiskManager.getMounpoint(host, this.diskName);
             if (!diskPath.endsWith(File.separator)) {
                 diskPath = diskPath + File.separator;
             }
 
-            uris.add(new MultiURI(this.protocol, host, diskPath + path));
+            uris.add(new MultiURI(this.protocol, host, diskPath + this.path));
         }
 
         return uris;
@@ -64,7 +67,7 @@ public class SharedLocation extends DataLocation {
 
     @Override
     public List<Resource> getHosts() {
-        return SharedDiskManager.getAllMachinesfromDisk(diskName);
+        return SharedDiskManager.getAllMachinesfromDisk(this.diskName);
     }
 
     @Override
@@ -80,22 +83,22 @@ public class SharedLocation extends DataLocation {
             targetDisk = sharedloc.diskName;
             targetPath = sharedloc.path;
         }
-        return (targetDisk != null && targetDisk.contentEquals(diskName) && targetPath.contentEquals(targetPath));
+        return (targetDisk != null && targetDisk.contentEquals(this.diskName) && targetPath.contentEquals(targetPath));
     }
 
     @Override
     public String getSharedDisk() {
-        return diskName;
+        return this.diskName;
     }
 
     @Override
     public String getPath() {
-        return path;
+        return this.path;
     }
 
     @Override
     public String getLocationKey() {
-        return path + ":shared:" + diskName;
+        return this.path + ":shared:" + this.diskName;
     }
 
     @Override
@@ -107,9 +110,9 @@ public class SharedLocation extends DataLocation {
             return (this.getClass().getName()).compareTo(SharedLocation.class.toString());
         } else {
             SharedLocation sl = (SharedLocation) o;
-            int compare = diskName.compareTo(sl.diskName);
+            int compare = this.diskName.compareTo(sl.diskName);
             if (compare == 0) {
-                compare = path.compareTo(sl.path);
+                compare = this.path.compareTo(sl.path);
             }
             return compare;
         }
@@ -117,7 +120,7 @@ public class SharedLocation extends DataLocation {
 
     @Override
     public String toString() {
-        return "shared:" + diskName + File.separator + path;
+        return "shared:" + this.diskName + File.separator + this.path;
     }
 
 }

@@ -75,6 +75,7 @@ EOF
      --project=${base_app_dir}/project.xml \
      --resources=${base_app_dir}/resources.xml \
      --debug \
+     -g \
      --comm=$comm \
      ${runcompss_opts} \
      --lang=python \

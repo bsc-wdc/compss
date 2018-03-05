@@ -45,6 +45,16 @@
     exit 1
   fi
 
+  tuesday=$(grep -r -l "date -d next tuesday" $jobs_logs)
+  tuesdayDate=$(date -d "next tuesday")
+  if ! $(cat "$tuesday" | grep -E -q "$tuesdayDate"); then
+    echo "ERROR: TASK FAILED: testFunctionalUsageWithEnvVarConstraint function failed." | tee -a ${output_file}
+    exit 1
+  elif grep "Null value obtained while loading \$CUS from environment" ${target_log_folder}/runtime.log; then
+    echo "WARNING: TASK FAILED: testFunctionalUsageWithEnvVarConstraint function received NULL environment variable." | tee -a ${output_file}
+    exit 1
+  fi
+
   hello=$(grep -r -l "HELLO, this is a simple test to grep." $jobs_logs)
   if [[ -z "$hello" ]]; then
      echo "ERROR: TASK FAILED: testFileManagementIN function failed." | tee -a ${output_file}

@@ -2,7 +2,7 @@
  *  A JAVAGAT adaptor for LSF+GPFS Clusters
  *  
  *	Author: Carlos Díaz
- *      Contact: support-compssdev.bsc.es
+ *      Contact: support-compss.bsc.es
  *
  *	Barcelona Supercomputing Center
  * 	www.bsc.es
@@ -20,7 +20,7 @@
    OR IN A CLUSTER AT MASSACHUSETTS INSTITUTE OF TECHNOLOGY (MIT)
    		WE HAVE RUN AN IMPORTANT COMPSs APPLICATION ON THEM
    		WE INVITE YOU TO KNOW MORE ABOUT COMPSs RUNTIME ALSO
-   			http://compssdev.bsc.es
+   			http://compss.bsc.es
  
  * THE LSF BROKER ADAPTOR SENDS JOBS TO NODES USING THE blaunch COMMAND PRESENT ON LSF
  
@@ -30,5 +30,5 @@
 			 
  * THE LSF FILE ADAPTOR TRANSFERS FILES BETWEEN NODES
  
- * PLEASE FELL FREE TO SEND ANY QUESTION TO support-compssdev.bsc.es
+ * PLEASE FELL FREE TO SEND ANY QUESTION TO support-compss.bsc.es
 

@@ -8,10 +8,10 @@
 		</Endpoint>
 
 		<Images>
-			<Image Name="compss/compss:1.4.rc09">
-				<CreationTime>1</CreationTime>
+			<Image Name="compss/compss:2.0.rc1706">
+				<CreationTime>110</CreationTime>
 				<Adaptors>
-					<Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+					<Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
 						<SubmissionSystem>
 							<Interactive />
 						</SubmissionSystem>
@@ -20,7 +20,7 @@
 							<MaxPort>43003</MaxPort>
 						</Ports>
 					</Adaptor>
-					<Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+					<Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
 						<SubmissionSystem>
 							<Batch>
 								<Queue>sequential</Queue>
@@ -39,18 +39,15 @@
 					<ComputingUnits>1</ComputingUnits>
 				</Processor>
 				<Memory>
-					<Size>2.0</Size>
+					<Size>0.5</Size>
 				</Memory>
-				<Storage>
-					<Size>10.0</Size>
-				</Storage>
 			</InstanceType>
 			<InstanceType Name="medium">
 				<Processor Name="Processor1">
 					<ComputingUnits>2</ComputingUnits>
 				</Processor>
 				<Memory>
-					<Size>3.0</Size>
+					<Size>2.0</Size>
 				</Memory>
 				<Storage>
 					<Size>10.0</Size>

@@ -1,6 +1,7 @@
 package es.bsc.compss.nio.worker.components;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -52,6 +53,7 @@ public class ExecutionManager {
      * @param gpuMap
      * @param limitOfTasks
      * @throws InvalidMapException
+     * @throws IOException 
      */
     public ExecutionManager(NIOWorker nw, int computingUnitsCPU, int computingUnitsGPU, String cpuMap, String gpuMap, int limitOfTasks)
             throws InvalidMapException {
@@ -186,8 +188,8 @@ public class ExecutionManager {
             if (filename.startsWith("d") && filename.endsWith(".IT")) {
                 int index = filename.indexOf('_');
                 if (index > 0) {
-                    String dataId = filename.substring(0, index);
-                    ((ExternalThreadPool) this.pool).removeExternalData(dataId);
+                	LOGGER.debug("calling remove");
+                    ((ExternalThreadPool) this.pool).removeExternalData(filename);
                 }
 
             }

@@ -7,65 +7,65 @@ class testFiles(unittest.TestCase):
 
     @task(fin=FILE, returns=str)
     def fileIn(self, fin):
-        print "TEST FILE IN"
+        print("TEST FILE IN")
         # Open the file and read the content
         fin_d = open(fin, 'r')
         content = fin_d.read()
-        print "- In file content:\n", content
+        print("- In file content:\n", content)
         # Close and return the content
         fin_d.close()
         return content
 
     @task(finout=FILE_INOUT, returns=str)
     def fileInOut(self, finout):
-        print "TEST FILE INOUT"
+        print("TEST FILE INOUT")
         # Open the file and read the content
         finout_d = open(finout, 'r+')
         content = finout_d.read()
-        print "- Inout file content:\n", content
+        print("- Inout file content:\n", content)
         # Add some content
         content += "\n===> INOUT FILE ADDED CONTENT"
         finout_d.write("\n===> INOUT FILE ADDED CONTENT")
-        print "- Inout file content after modification:\n", content
+        print("- Inout file content after modification:\n", content)
         # Close and return with the modification
         finout_d.close()
         return content
 
     @task(fout=FILE_OUT, returns=str)
     def fileOut(self, fout, content):
-        print "TEST FILE OUT"
+        print("TEST FILE OUT")
         # Open the file for writting and write some content
         with open(fout, 'w') as fout_d:
             fout_d.write(content)
-        print "- Out file content added:\n", content
+        print("- Out file content added:\n", content)
         return content
 
     @task(returns=FILE)
     def returnFile(self, filename, content):
-        print "TEST RETURN FILE"
+        print("TEST RETURN FILE")
         # Open the file for writting and write some content
         fout_d = open(filename, 'w')
         fout_d.write(content)
-        print "- Out file name: ", filename
-        print "- Out file content added: ", content
+        print("- Out file name: ", filename)
+        print("- Out file content added: ", content)
         # Close and return the content written
         fout_d.close()
         return filename
 
     @task(returns=(FILE, FILE))
     def multireturnFile(self, content1, content2):
-        print "TEST MULTIRETURN FILE"
+        print("TEST MULTIRETURN FILE")
         filename1 = 'retFile1'
         filename2 = 'retFile2'
         # Open the file for writting and write some content
         fout_d1 = open(filename1, 'w')
         fout_d1.write(content1)
-        print "- Out file name: ", filename1
-        print "- Out file content added: ", content1
+        print("- Out file name: ", filename1)
+        print("- Out file content added: ", content1)
         fout_d2 = open(filename2, 'w')
         fout_d2.write(content2)
-        print "- Out file name: ", filename2
-        print "- Out file content added: ", content2
+        print("- Out file name: ", filename2)
+        print("- Out file content added: ", content2)
         # Close and return the content written
         fout_d1.close()
         fout_d2.close()
@@ -132,7 +132,7 @@ class testFiles(unittest.TestCase):
         self.assertEqual(res, fret, "strings are not equal: {}, {}".format(res, content))
         self.assertEqual(content_r, content, "strings are not equal: {}, {}".format(content_r, content))
 
-    @unittest.skip("not supported skipping")
+    @unittest.skip("not supported - skipping")
     def testMultiReturnFile(self):
         """ Test multireturn FILE """
         fretout1 = "retFile1"

@@ -241,7 +241,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         if (System.getProperty(COMPSsConstants.PROJ_SCHEMA) == null || System.getProperty(COMPSsConstants.PROJ_SCHEMA).isEmpty()) {
             System.setProperty(COMPSsConstants.PROJ_SCHEMA, COMPSsConstants.DEFAULT_PROJECT_SCHEMA);
         }
-        if (System.getProperty(COMPSsConstants.GAT_ADAPTOR_PATH) == null || System.getProperty(COMPSsConstants.GAT_ADAPTOR_PATH).isEmpty()) {
+        if (System.getProperty(COMPSsConstants.GAT_ADAPTOR_PATH) == null
+                || System.getProperty(COMPSsConstants.GAT_ADAPTOR_PATH).isEmpty()) {
             System.setProperty(COMPSsConstants.GAT_ADAPTOR_PATH, COMPSsConstants.DEFAULT_GAT_ADAPTOR_LOCATION);
         }
         if (System.getProperty(COMPSsConstants.COMM_ADAPTOR) == null || System.getProperty(COMPSsConstants.COMM_ADAPTOR).isEmpty()) {
@@ -294,7 +295,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                                 return stream;
                             } else {
                                 // System.err.println("IT properties file not found. Looking at parent ClassLoader");
-                                stream = COMPSsRuntimeImpl.class.getClassLoader().getParent().getResourceAsStream(COMPSsConstants.COMPSS_CONFIG);
+                                stream = COMPSsRuntimeImpl.class.getClassLoader().getParent()
+                                        .getResourceAsStream(COMPSsConstants.COMPSS_CONFIG);
                                 if (stream != null) {
                                     return stream;
                                 } else {
@@ -545,82 +547,110 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     public int executeTask(Long appId, String methodClass, String methodName, boolean isPrioritary, boolean hasTarget, int parameterCount,
             Object... parameters) {
 
-        return executeTask(appId, methodClass, methodName, isPrioritary, Constants.SINGLE_NODE,
+        return executeTask(appId, false, methodClass, methodName, null, isPrioritary, Constants.SINGLE_NODE,
                 Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK), Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK), hasTarget,
                 parameterCount, parameters);
     }
 
     /**
-     * Execute task: methods
+     * Execute task: methods with method class and method name
      *
-     * @param methodClass
      */
     @Override
     public int executeTask(Long appId, String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated,
             boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters) {
 
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
-        }
-
-        LOGGER.info("Creating task from method " + methodName + " in " + methodClass);
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(
-                    "There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
-        }
-
-        Parameter[] pars = processParameters(parameterCount, parameters);
-        boolean hasReturn = false;
-        if (pars.length != 0) {
-            Parameter lastParam = pars[pars.length - 1];
-            DataType type = lastParam.getType();
-            hasReturn = (lastParam.getDirection() == Direction.OUT
-                    && (type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_OBJECT_T));
-        }
-        String signature = MethodImplementation.getSignature(methodClass, methodName, hasTarget, hasReturn, pars);
-
-        int task = ap.newTask(appId, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, hasReturn, pars);
-
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-        }
-        LOGGER.info("Task from method " + methodName + " in " + methodClass +" created.");
-        return task;
+        return executeTask(appId, false, methodClass, methodName, null, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget,
+                parameterCount, parameters);
     }
 
     /**
-     * Execute task: methods
+     * Execute task: methods with signature
      */
     @Override
     public int executeTask(Long appId, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
             boolean hasTarget, int parameterCount, Object... parameters) {
 
+        return executeTask(appId, true, null, null, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget,
+                parameterCount, parameters);
+    }
+
+    /**
+     * Internal execute task to make API options only as a wrapper
+     * 
+     * @param appId
+     * @param hasSignature
+     *            indicates whether the signature parameter is valid or must be constructed from the methodName and
+     *            methodClass parameters
+     * @param methodClass
+     * @param methodName
+     * @param signature
+     * @param isPrioritary
+     * @param numNodes
+     * @param isReplicated
+     * @param isDistributed
+     * @param hasTarget
+     * @param parameterCount
+     * @param parameters
+     * @return
+     */
+    private int executeTask(Long appId, boolean hasSignature, String methodClass, String methodName, String signature, boolean isPrioritary,
+            int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters) {
+
+        // Tracing flag for task creation
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
         }
 
-        LOGGER.info("Creating task from method " + signature);
+        // Log the details
+        if (hasSignature) {
+            LOGGER.info("Creating task from method " + signature);
+        } else {
+            LOGGER.info("Creating task from method " + methodName + " in " + methodClass);
+        }
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(
                     "There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
         }
 
+        // Process the parameters
         Parameter[] pars = processParameters(parameterCount, parameters);
+        boolean hasReturn = hasReturn(pars);
+
+        // Create the signature if it is not created
+        if (!hasSignature) {
+            signature = MethodImplementation.getSignature(methodClass, methodName, hasTarget, hasReturn, pars);
+        }
+
+        // Register the task
+        int task = ap.newTask(appId, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, hasReturn, pars);
+
+        // End tracing event
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+        }
+
+        // Return the taskId
+        return task;
+    }
+
+    /**
+     * Returns whether the method parameters define a return or not
+     * 
+     * @param parameters
+     * @return
+     */
+    private boolean hasReturn(Parameter[] parameters) {
         boolean hasReturn = false;
-        if (pars.length != 0) {
-            Parameter lastParam = pars[pars.length - 1];
+        if (parameters.length != 0) {
+            Parameter lastParam = parameters[parameters.length - 1];
             DataType type = lastParam.getType();
             hasReturn = (lastParam.getDirection() == Direction.OUT
                     && (type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_OBJECT_T));
         }
 
-        int task = ap.newTask(appId, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, hasReturn, pars);
-
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-        }
-
-        return task;
+        return hasReturn;
     }
 
     /**
@@ -644,8 +674,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                     "There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
         }
 
+        // Process the parameters
         Parameter[] pars = processParameters(parameterCount, parameters);
-        int task = ap.newTask(appId, namespace, service, port, operation, isPrioritary, hasTarget, pars);
+        boolean hasReturn = hasReturn(pars);
+
+        // Register the task
+        int task = ap.newTask(appId, namespace, service, port, operation, isPrioritary, hasTarget, hasReturn, pars);
 
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());

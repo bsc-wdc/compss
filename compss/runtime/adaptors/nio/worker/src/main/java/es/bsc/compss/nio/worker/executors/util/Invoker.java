@@ -1,6 +1,9 @@
 package es.bsc.compss.nio.worker.executors.util;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Iterator;
 
 import org.apache.logging.log4j.LogManager;
@@ -17,6 +20,7 @@ import es.bsc.compss.nio.worker.NIOWorker;
 
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
+import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Stream;
 
@@ -30,7 +34,7 @@ public abstract class Invoker {
 
     private static final String ERROR_SERIALIZED_OBJ = "ERROR: Cannot obtain object";
     private static final String ERROR_PERSISTENT_OBJ = "ERROR: Cannot getById persistent object";
-    
+
     protected static final String ERROR_METHOD_DEFINITION = "Incorrect method definition for task of type ";
     protected static final String ERROR_TASK_EXECUTION = "ERROR: Exception executing task (user code)";
 
@@ -39,7 +43,7 @@ public abstract class Invoker {
     protected final File taskSandboxWorkingDir;
     protected final int[] assignedCoreUnits;
     private final boolean debug;
-    
+
     protected final MethodType methodType;
     protected final AbstractMethodImplementation impl;
     protected final int numParams;
@@ -52,29 +56,30 @@ public abstract class Invoker {
     protected final Object[] values;
     private final String[] renamings;
     private final boolean[] isFile;
-    private final boolean[] canBePSCO; 
+    private final boolean[] canBePSCO;
     private final boolean[] writeFinalValue;
     protected final TargetParam target;
     private Object retValue;
-    
+
 
     public Invoker(NIOWorker nw, NIOTask nt, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
         this.nw = nw;
         this.nt = nt;
         this.taskSandboxWorkingDir = taskSandboxWorkingDir;
         this.assignedCoreUnits = assignedCoreUnits;
-        
+
         this.debug = NIOWorker.isWorkerDebugEnabled();
-        
+
         /* Task information **************************************** */
         this.methodType = nt.getMethodType();
         this.impl = nt.getMethodImplementation();
-        this.hasTarget = nt.isHasTarget();
-        this.hasReturn = nt.isHasReturn();
+        this.hasTarget = nt.hasTarget();
+        this.hasReturn = nt.hasReturn();
         this.numParams = nt.getNumParams();
 
         /* Parameters information ********************************** */
-        this.totalNumberOfParams = this.hasTarget ? this.numParams - 1 : this.numParams; // Don't count target if needed (i.e. obj.func())
+        this.totalNumberOfParams = this.hasTarget ? this.numParams - 1 : this.numParams; // Don't count target if needed
+                                                                                         // (i.e. obj.func())
         this.types = new Class[this.totalNumberOfParams];
         this.values = new Object[this.totalNumberOfParams];
         this.streams = new Stream[this.numParams];
@@ -83,7 +88,7 @@ public abstract class Invoker {
         this.isFile = new boolean[this.numParams];
         this.canBePSCO = new boolean[this.numParams];
         this.writeFinalValue = new boolean[this.numParams]; // By default the boolean initializer is in false
-                                                  // False because basic types aren't nor written nor preserved
+        // False because basic types aren't nor written nor preserved
         this.target = new TargetParam();
 
         /* Parse the parameters ************************************ */
@@ -110,39 +115,71 @@ public abstract class Invoker {
                 System.out.print(" " + v);
             }
             System.out.println("");
-            
+
             System.out.print("  * Parameter streams:");
             for (Stream s : this.streams) {
                 System.out.print(" " + s.name());
             }
             System.out.println("");
-            
+
             System.out.print("  * Parameter prefixes:");
             for (String s : this.prefixes) {
                 System.out.print(" " + s);
             }
             System.out.println("");
+
+            System.out.println("  * Has Target: " + this.hasTarget);
+            System.out.println("  * Has Return: " + this.hasReturn);
         }
-        
+
         this.retValue = null;
     }
-    
+
     public void processTask() throws JobExecutionException {
         /* Invoke the requested method ****************************** */
         this.retValue = invoke();
-        
+
         /* Check SCO persistence for return and target ************** */
         checkSCOPersistence();
 
         /* Write to disk the updated values ************************* */
         writeUpdatedParameters();
     }
-    
+
+    public void serializeBinaryExitValue() throws JobExecutionException {
+        LOGGER.debug("Checking binary exit value serialization");
+
+        NIOParam lastParam = nt.getParams().getLast();
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("- Param Type: " + lastParam.getType().name());
+            LOGGER.debug("- Preserve source data: " + lastParam.isPreserveSourceData());
+            LOGGER.debug("- Write final value: " + lastParam.isWriteFinalValue());
+            LOGGER.debug("- Prefix: " + lastParam.getPrefix());
+        }
+        
+        // Last parameter is a FILE, direction OUT, with skip prefix => return in Python
+        if (lastParam.getType().equals(DataType.FILE_T) && !lastParam.isPreserveSourceData() && lastParam.isWriteFinalValue()
+                && lastParam.getPrefix().equals(Constants.PREFIX_SKIP)) {
+
+            // Write exit value to the file
+            String renaming = lastParam.getOriginalName();
+            LOGGER.info("Writing Binary Exit Value (" + this.retValue.toString() + ") to " + renaming);
+            
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(renaming))) {
+                String value = "I" + this.retValue.toString() + "\n.\n";
+                writer.write(value);
+                writer.flush();
+            } catch (IOException ioe) {
+                throw new JobExecutionException("ERROR: Cannot serialize binary exit value for bindings", ioe);
+            }
+        }
+    }
+
     private void processParameter(NIOParam np, int i) throws JobExecutionException {
         // We need to use wrapper classes for basic types, reflection will unwrap automatically
         this.streams[i] = np.getStream();
         this.prefixes[i] = np.getPrefix();
-        
+
         switch (np.getType()) {
             case BOOLEAN_T:
                 this.types[i] = boolean.class;
@@ -182,7 +219,6 @@ public abstract class Invoker {
                 break;
             case FILE_T:
                 this.types[i] = String.class;
-                //Changed to original names instead of renamed
                 this.values[i] = np.getOriginalName();
                 this.writeFinalValue[i] = np.isWriteFinalValue();
                 break;
@@ -318,7 +354,7 @@ public abstract class Invoker {
                     }
                     this.nt.getParams().get(i).setType(DataType.PSCO_T);
                     this.nt.getParams().get(i).setValue(id);
-                    
+
                     // We set it as non writable because we have already stored it
                     this.writeFinalValue[i] = false;
                 }
@@ -326,7 +362,7 @@ public abstract class Invoker {
         }
 
         // Check return
-        if (this.retValue != null) {
+        if (this.hasReturn && this.retValue != null) {
             // Check if it is a PSCO and has been persisted in task
             String id = null;
             try {
@@ -350,23 +386,23 @@ public abstract class Invoker {
         // Write to disk the updated object parameters, if any (including the target)
         for (int i = 0; i < this.numParams; i++) {
             if (this.writeFinalValue[i]) {
-            	switch (this.nt.getParams().get(i).getType()) {
-            		case FILE_T:
-            			this.nw.storeObject(renamings[i], this.nt.getParams().get(i).getValue());
-            			break;
-            		default:
-            			// Update task parameters for TaskResult command
-            			Object res = (this.hasTarget && i == this.numParams - 1) ? this.target.getValue() : this.values[i];
-            			this.nt.getParams().get(i).setValue(res);
-            			this.nw.storeObject(renamings[i], res);
-            	}
-               
+                switch (this.nt.getParams().get(i).getType()) {
+                    case FILE_T:
+                        this.nw.storeObject(renamings[i], this.nt.getParams().get(i).getValue());
+                        break;
+                    default:
+                        // Update task parameters for TaskResult command
+                        Object res = (this.hasTarget && i == this.numParams - 1) ? this.target.getValue() : this.values[i];
+                        this.nt.getParams().get(i).setValue(res);
+                        this.nw.storeObject(renamings[i], res);
+                }
+
             }
         }
 
         // Serialize the return value if existing
         // PSCOs are already stored, skip them
-        if (this.retValue != null) {
+        if (this.hasReturn && this.retValue != null) {
             String renaming = (String) this.nt.getParams().getLast().getValue();
             if (debug) {
                 LOGGER.debug("Store return value " + this.retValue + " as " + renaming);
@@ -390,7 +426,7 @@ public abstract class Invoker {
     private void emitStartTask() {
         int taskType = this.nt.getTaskType() + 1; // +1 Because Task ID can't be 0 (0 signals end task)
         int taskId = this.nt.getTaskId();
-        
+
         // TRACING: Emit start task
         if (NIOTracer.isActivated()) {
             NIOTracer.emitEventAndCounters(taskType, NIOTracer.getTaskEventsType());

@@ -441,7 +441,7 @@ EOT
     runcompss_opts="-d"
     # Set environment variables from configuration file
     source_configuration
-     
+
     # Set the rest of environment variables 
     source_base_dir="${SCRIPT_DIR}/../sources/$environment"
     logs_location="$HOME"

@@ -21,9 +21,9 @@ public class CloudMethodWorker extends MethodWorker {
 
 
     public CloudMethodWorker(String name, CloudProvider provider, CloudMethodResourceDescription description, COMPSsWorker worker,
-            int limitOfTasks, Map<String, String> sharedDisks) {
+            int limitOfTasks, int limitGPUTasks, int limitFPGATasks, int limitOTHERTasks, Map<String, String> sharedDisks) {
 
-        super(name, description, worker, limitOfTasks, sharedDisks);
+        super(name, description, worker, limitOfTasks, limitGPUTasks, limitFPGATasks, limitOTHERTasks, sharedDisks);
         this.provider = provider;
         this.toRemove = new CloudMethodResourceDescription();
         this.pendingReductions = new LinkedList<>();
@@ -168,7 +168,7 @@ public class CloudMethodWorker extends MethodWorker {
 
     @Override
     public boolean hasAvailable(MethodResourceDescription consumption) {
-        synchronized (available) {
+    	synchronized (available) {
             synchronized (toRemove) {
                 consumption.increaseDynamic(toRemove);
                 boolean fits = super.hasAvailable(consumption);

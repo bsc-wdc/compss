@@ -369,8 +369,8 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      *
      * @return
      */
-    public final List<AllocatableAction> getHostedActions() {
-        return this.running;
+    public final AllocatableAction[] getHostedActions() {
+        return this.running.toArray(new AllocatableAction[running.size()]);
     }
 
     /**

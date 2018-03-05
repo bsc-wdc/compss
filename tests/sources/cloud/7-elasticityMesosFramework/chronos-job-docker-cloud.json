@@ -18,19 +18,19 @@
     "disabled": false,
     "container": {
         "type": "DOCKER",
-        "image": "compss/compss:1.4.rc10-mesos-0.28.2",
+        "image": "compss/compss:2.0-mesos-0.28.2",
         "network": "HOST"
     },
     "uris": [
-        "http://bscgrid05.bsc.es/~aserven/COMPSs.tar.gz",
-        "http://bscgrid05.bsc.es/~aserven/Simple.tar.gz",
-        "http://bscgrid05.bsc.es/~aserven/dockerKeys.tar.gz"
+        /*"http://bscgrid05.bsc.es/~aserven/COMPSs.tar.gz",*/
+        "http://bscgrid05.bsc.es/~aserven/compss.2.0/Simple.tar.gz",
+        "http://bscgrid05.bsc.es/~aserven/compss.2.0/DockerKeys.tar.gz"
     ],
     "schedule": "R1//PT24H",
-    "environmentVariables": [
+    /*"environmentVariables": [
         {
             "name": "COMPSS_HOME",
             "value": "/mnt/mesos/sandbox/COMPSs"
         }
-    ]
+    ]*/
 }

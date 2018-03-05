@@ -9,6 +9,8 @@ import es.bsc.compss.util.SharedDiskManager;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -84,17 +86,25 @@ public abstract class DataLocation implements Comparable<DataLocation> {
                     + Protocol.ANY_URI.getSchema());
             protocol = Protocol.ANY_URI;
         }
-
         DataLocation loc = null;
         switch (protocol) {
             case FILE_URI:
                 // Local file
-                String canonicalPath = new File(uri.getPath()).getCanonicalPath();
+                String canonicalPath = null;
+                try {
+                    canonicalPath = new URI(uri.getPath()).normalize().getPath();
+                    if ('/' != canonicalPath.charAt(0)) {
+                        canonicalPath = new File(uri.getPath()).getCanonicalPath();
+                    }
+                } catch (URISyntaxException e) {
+                    canonicalPath = new File(uri.getPath()).getCanonicalPath();
+                }
                 LOGGER.debug("Creating new FileLocation: " + protocol.getSchema() + host.getName() + "@" + canonicalPath);
                 loc = createLocation(Protocol.FILE_URI, host, canonicalPath);
                 break;
             case SHARED_URI:
                 // Shared file of the form: shared://sharedDisk/path/file
+
                 int splitIndex = uri.getPath().indexOf(File.separator); // First slash occurrence
                 String diskName = uri.getPath().substring(0, splitIndex);
                 String path = uri.getPath().substring(splitIndex + 1);
@@ -117,7 +127,6 @@ public abstract class DataLocation implements Comparable<DataLocation> {
                 loc = createLocation(Protocol.ANY_URI, host, uri.getPath());
                 break;
         }
-
         return loc;
     }
 
@@ -133,9 +142,11 @@ public abstract class DataLocation implements Comparable<DataLocation> {
         String diskName = SharedDiskManager.getSharedName(host, path);
         if (diskName != null) {
             String mountpoint = SharedDiskManager.getMounpoint(host, diskName);
-            return new SharedLocation(protocol, diskName, path.substring(mountpoint.length()));
+            SharedLocation sharLoc = new SharedLocation(protocol, diskName, path.substring(mountpoint.length()));
+            return sharLoc;
         } else {
-            return new PrivateLocation(protocol, host, path);
+            PrivateLocation privLoc = new PrivateLocation(protocol, host, path);
+            return privLoc;
         }
     }
 

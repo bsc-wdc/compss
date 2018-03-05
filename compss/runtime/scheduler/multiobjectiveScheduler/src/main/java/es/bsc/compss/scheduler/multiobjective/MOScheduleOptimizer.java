@@ -1,11 +1,11 @@
 package es.bsc.compss.scheduler.multiobjective;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.exceptions.ActionNotFoundException;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.InvalidSchedulingException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
-import es.bsc.compss.scheduler.multiobjective.types.MOProfile;
 import es.bsc.compss.scheduler.multiobjective.types.MOScore;
 import es.bsc.compss.scheduler.multiobjective.types.OptimizationWorker;
 import es.bsc.compss.scheduler.types.AllocatableAction;
@@ -23,12 +23,17 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.concurrent.Semaphore;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 public class MOScheduleOptimizer extends SchedulingOptimizer<MOScheduler> {
 
-    private static long OPTIMIZATION_THRESHOLD = 5_000;
+    private static long OPTIMIZATION_THRESHOLD = 1_000;
     private boolean stop = false;
     private Semaphore sem = new Semaphore(0);
+    protected static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
+    protected static final String LOG_PREFIX = "[MOScheduleOptimizer] ";
 
 
     public MOScheduleOptimizer(MOScheduler scheduler) {
@@ -82,6 +87,7 @@ public class MOScheduleOptimizer extends SchedulingOptimizer<MOScheduler> {
      --------------------------------------------------*/
     @SuppressWarnings("unchecked")
     public void globalOptimization(long optimizationTS, Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers) {
+        LOGGER.debug(LOG_PREFIX + " --- Start Global Optimization ---");
         int workersCount = workers.size();
         if (workersCount == 0) {
             return;
@@ -98,32 +104,36 @@ public class MOScheduleOptimizer extends SchedulingOptimizer<MOScheduler> {
         while (hasDonated) {
             optimizationTS = System.currentTimeMillis();
             hasDonated = false;
-            System.out.println("-----------------------------------------");
+            LOGGER.debug(LOG_PREFIX + " --- Iteration of global Optimization ---");
             // Perform local optimizations
             for (OptimizationWorker ow : optimizedWorkers) {
+                LOGGER.debug(LOG_PREFIX + "Optimizing localy resource " + ow.getName());
                 ow.localOptimization(optimizationTS);
-                System.out.println(ow.getName() + " will end at " + ow.getDonationIndicator());
+                LOGGER.debug(LOG_PREFIX + "Resource " + ow.getName() + " will end at " + ow.getDonationIndicator());
             }
 
             LinkedList<OptimizationWorker> donors = determineDonorAndReceivers(optimizedWorkers, receivers);
 
             while (!hasDonated && !donors.isEmpty()) {
                 OptimizationWorker donor = donors.remove();
-                AllocatableAction candidate = donor.pollDonorAction();
-                if (candidate == null) {
-                    break;
-                }
-                Iterator<OptimizationWorker> recIt = receivers.iterator();
-                while (recIt.hasNext()) {
-                    OptimizationWorker receiver = recIt.next();
-                    if (move(candidate, donor, receiver)) {
-                        hasDonated = true;
-                        break;
+                AllocatableAction candidate;
+                while (!hasDonated && (candidate = donor.pollDonorAction()) != null) {
+                    /*
+                     * if (candidate == null) { break; }
+                     */
+                    Iterator<OptimizationWorker> recIt = receivers.iterator();
+                    while (recIt.hasNext()) {
+                        OptimizationWorker receiver = recIt.next();
+                        if (move(candidate, donor, receiver)) {
+                            hasDonated = true;
+                            break;
+                        }
                     }
                 }
             }
-            System.out.println("-----------------------------------------");
+            LOGGER.debug(LOG_PREFIX + "--- Optimization Iteration finished ---");
         }
+        LOGGER.debug(LOG_PREFIX + "--- Global Optimization finished ---");
     }
 
     public static LinkedList<OptimizationWorker> determineDonorAndReceivers(OptimizationWorker[] workers,
@@ -204,7 +214,7 @@ public class MOScheduleOptimizer extends SchedulingOptimizer<MOScheduler> {
     }
 
     private boolean move(AllocatableAction action, OptimizationWorker donor, OptimizationWorker receiver) {
-        System.out.println("Trying to move " + action + " from " + donor.getName() + " to " + receiver.getName());
+        LOGGER.debug(LOG_PREFIX + "Trying to move " + action + " from " + donor.getName() + " to " + receiver.getName());
         List<AllocatableAction> dataPreds = action.getDataPredecessors();
         long dataAvailable = 0;
         try {
@@ -218,48 +228,39 @@ public class MOScheduleOptimizer extends SchedulingOptimizer<MOScheduler> {
         }
 
         Implementation bestImpl = null;
-        long bestTime = Long.MAX_VALUE;
 
         List<Implementation> impls = action.getCompatibleImplementations(receiver.getResource());
 
-        MOScore bestScore = null;
+        Score bestScore = null;
         for (Implementation impl : impls) {
-            MOProfile p = (MOProfile) receiver.getResource().getProfile(impl);
-            long implScore = 0;
-            if (p != null) {
-                implScore = p.getAverageExecutionTime();
-            } else {
-                implScore = 0;
-            }
-            double energy = p.getPower() * implScore;
-            double cost = p.getPrice();
-            MOScore score = new MOScore(0, 0, 0, implScore, energy, cost);
+            MOScore actionScore = MOScheduler.getActionScore(action);
+            MOScore score = ((MOResourceScheduler<?>) (receiver.getResource())).generateMoveImplementationScore(action, null, impl,
+                    actionScore, (long) (OPTIMIZATION_THRESHOLD * 2.5));
             if (Score.isBetter(score, bestScore)) {
                 bestImpl = impl;
                 bestScore = score;
-                bestTime = p.getAverageExecutionTime();
             }
         }
-
-        MOSchedulingInformation dsi = (MOSchedulingInformation) action.getSchedulingInfo();
-        long currentEnd = dsi.getExpectedEnd();
-
-        if (bestImpl != null && currentEnd > receiver.getResource().getFirstGapExpectedStart() + bestTime) {
+        Implementation currentImpl = action.getAssignedImplementation();
+        MOScore actionScore = MOScheduler.getActionScore(action);
+        LOGGER.debug(LOG_PREFIX + "Calculating score for current execution");
+        MOScore currentScore = ((MOResourceScheduler<?>) (action.getAssignedResource())).generateCurrentImplementationScore(action,
+                currentImpl, actionScore);
+        LOGGER.debug(LOG_PREFIX + "Comparing scores: \n" + bestScore + "\n " + currentScore);
+        if (bestImpl != null && Score.isBetter(bestScore, currentScore)) {
             try {
-                System.out.println("Moving " + action + " from " + donor.getName() + " to " + receiver.getName());
+                LOGGER.debug(LOG_PREFIX + "Moving " + action + " from " + donor.getName() + " to " + receiver.getName());
                 unscheduleFromWorker(action);
                 scheduleOnWorker(action, bestImpl, receiver);
             } catch (ActionNotFoundException anfe) {
                 // Action was already moved from the resource. Recompute Optimizations!!!
             }
             return true;
+        } else {
+            LOGGER.debug(LOG_PREFIX + "Action " + action + " not moved because new position is not better than actual");
         }
         return false;
     }
-
-
-    private MOScore dummyScore = new MOScore(0, 0, 0, 0, 0, 0);
-
 
     public void scheduleOnWorker(AllocatableAction action, Implementation impl, OptimizationWorker ow) {
         boolean failedSpecificScheduling = false;
@@ -279,7 +280,7 @@ public class MOScheduleOptimizer extends SchedulingOptimizer<MOScheduler> {
         if (failedSpecificScheduling) {
             try {
                 long actionScore = MOScore.getActionScore(action);
-                long dataTime = dummyScore.getDataPredecessorTime(action.getDataPredecessors());
+                long dataTime = MOScore.getDataPredecessorTime(action.getDataPredecessors());
                 Score aScore = new MOScore(actionScore, dataTime, 0, 0, 0, 0);
                 action.schedule(aScore);
                 try {

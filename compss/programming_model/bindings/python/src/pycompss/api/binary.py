@@ -1,33 +1,25 @@
-#
-#  Copyright Barcelona Supercomputing Center (www.bsc.es)
-#
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-#
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
 """
 PyCOMPSs API - BINARY
 ==================
     This file contains the class constraint, needed for the binary task
     definition through the decorator.
 """
+
 import inspect
 import logging
 import os
 from functools import wraps
 from pycompss.runtime.binding import register_ce
 from pycompss.util.location import i_am_at_master
+from pycompss.util.location import i_am_within_scope
 
 
-logger = logging.getLogger(__name__)
+if __debug__:
+    logger = logging.getLogger(__name__)
 
 
 class binary(object):
@@ -36,15 +28,31 @@ class binary(object):
     __call__ methods, useful on mpi task creation.
     """
     def __init__(self, *args, **kwargs):
-        # store arguments passed to the decorator
-        self.args = args
-        self.kwargs = kwargs
-        logger.debug("Init @binary decorator...")
+        """
+        Store arguments passed to the decorator
         # self = itself.
         # args = not used.
         # kwargs = dictionary with the given constraints.
+        :param args: Arguments
+        :param kwargs: Keyword arguments
+        """
+        self.args = args
+        self.kwargs = kwargs
+        self.scope = i_am_within_scope()
+        if self.scope and __debug__:
+            logger.debug("Init @binary decorator...")
 
     def __call__(self, func):
+        """
+        Parse and set the binary parameters within the task core element.
+        :param func: Function to decorate
+        :return: Decorated function.
+        """
+        if not self.scope:
+            # from pycompss.api.dummy.binary import binary as dummy_binary
+            # d_b = dummy_binary(self.args, self.kwargs)
+            # return d_b.__call__(func)
+            raise Exception("The binary decorator only works within PyCOMPSs framework.")
 
         if i_am_at_master():
             # master code
@@ -97,7 +105,8 @@ class binary(object):
             func.__to_register__ = coreElement
             # Do the task register if I am the top decorator
             if func.__who_registers__ == __name__:
-                logger.debug("[@BINARY] I have to do the register of function %s in module %s" % (func.__name__, self.module))
+                if __debug__:
+                    logger.debug("[@BINARY] I have to do the register of function %s in module %s" % (func.__name__, self.module))
                 register_ce(coreElement)
         else:
             # worker code
@@ -106,7 +115,8 @@ class binary(object):
         @wraps(func)
         def binary_f(*args, **kwargs):
             # This is executed only when called.
-            logger.debug("Executing binary_f wrapper.")
+            if __debug__:
+                logger.debug("Executing binary_f wrapper.")
 
             if len(args) > 0:
                 # The 'self' for a method function is passed as args[0]

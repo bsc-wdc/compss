@@ -33,7 +33,7 @@ def main():
     b = 2
     c = 3
 
-    print "Start"
+    print("Start")
     start = time.time()
 
     result = function_A(a, b, c)    
@@ -47,19 +47,19 @@ def main():
     m = compss_wait_on(m)
 
     end = time.time()-start
-    print "Result:"
-    print result
+    print("Result:")
+    print(result)
     for i in range(c):
-        print "l:"
-        print l[i]
-        print "m:"
-        print m[i]
-    print "Ellapsed Time:"
-    print end
+        print("l:")
+        print(l[i])
+        print("m:")
+        print(m[i])
+    print("Ellapsed Time:")
+    print(end)
     
     
-    print "------------------------"
-    print "------------------------"
+    print("------------------------")
+    print("------------------------")
     
     return result
 

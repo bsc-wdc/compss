@@ -144,13 +144,13 @@ public class BindToMap implements ThreadBinder {
                     threadsPerCore = Integer.parseInt(threadsPerCoreSTR);
                 }
             } else if (line.contains("NUMA node") && line.contains("CPU(s):")) {
-                while (line.contains("  ")){
+                while (line.contains("  ")) {
                     line = line.replaceAll("  ", " ");
                 }
                 String[] lineValues = line.split(" ");
-                if (lineValues.length == 4){
+                if (lineValues.length == 4) {
                     String coresDescription = lineValues[lineValues.length - 1];
-                    numaDescription.add(coresDescription);    
+                    numaDescription.add(coresDescription);
                 }
             } else if (line.contains("CPU(s):")) {
                 String[] lineValues = line.split(" ");
@@ -206,14 +206,14 @@ public class BindToMap implements ThreadBinder {
         ArrayList<Integer> usedSockets = null;
 
         // Assign free CUs to the job
-        synchronized (this.bindedCPUs) {
+        synchronized (this) {
 
             usedSockets = recursiveBindingComputingUnits(jobId, numCUs, 0);
 
             // If the job doesn't have all the CUs it needs, it cannot run on occupied ones
             // Raise exception
             if (usedSockets == null) {
-                throw new UnsufficientAvailableComputingUnitsException("Not enough available computing units for task execution");
+                throw new UnsufficientAvailableComputingUnitsException("Not enough available computing units for task execution " + jobId);
             }
 
             // Handle assignedCoreUnits
@@ -248,7 +248,7 @@ public class BindToMap implements ThreadBinder {
 
     @Override
     public void releaseComputingUnits(int jobId) {
-        synchronized (this.bindedCPUs) {
+        synchronized (this) {
             for (int i = 0; i < this.bindedCPUs.size(); ++i) {
                 ArrayList<Integer> vector = this.bindedCPUs.get(i);
                 for (int j = 0; j < vector.size(); ++j) {
@@ -341,6 +341,7 @@ public class BindToMap implements ThreadBinder {
     private void updateSocketPriority() {
         ArrayList<Integer> sockets = new ArrayList<Integer>();
         ArrayList<Integer> availableSlots = new ArrayList<>();
+
         for (int i = 0; i < this.bindedCPUs.size(); ++i) {
             sockets.add(i);
             availableSlots.add(getAvailableSlots(this.bindedCPUs.get(i)));

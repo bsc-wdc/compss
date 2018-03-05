@@ -17,7 +17,6 @@ public class CExecutor extends ExternalExecutor {
 
     private static final String C_LIB_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "c" + File.separator + "lib";
     private static final String WORKER_C_RELATIVE_PATH = File.separator + "worker" + File.separator + "worker_c";
-
     private static final String LIBRARY_PATH_ENV = "LD_LIBRARY_PATH";
 
 
@@ -30,20 +29,17 @@ public class CExecutor extends ExternalExecutor {
             int[] assignedGPUs) {
         ArrayList<String> lArgs = new ArrayList<>();
 
-        LOGGER.debug("getting the task execution command");
-        LOGGER.debug("mida interna de la memoria de la gpu: " + nt.getResourceDescription().getProcessors().get(0).getInternalMemory());
-        if (nt.getResourceDescription().getProcessors().size() > 1)
-            LOGGER.debug(
-                    "mida interna de la memoria de la gpu-2: " + nt.getResourceDescription().getProcessors().get(1).getInternalMemory());
-
         // NX_ARGS string built from the Resource Description
         StringBuilder reqs = new StringBuilder();
         int numCUs = nt.getResourceDescription().getTotalCPUComputingUnits();
         reqs.append("NX_ARGS='--smp-cpus=").append(numCUs);
-
+        String compss_nx_args;
+        if ((compss_nx_args = System.getenv("COMPSS_NX_ARGS")) != null) {
+            reqs.append(" " + compss_nx_args);
+        }
         // Debug mode on
         if (WORKER_DEBUG) {
-            reqs.append(" --summary");
+            reqs.append(" --summary --verbose");
         }
 
         StringBuilder cuda_visible = new StringBuilder();
@@ -63,16 +59,6 @@ public class CExecutor extends ExternalExecutor {
 
             for (int j = 0; j < nt.getResourceDescription().getProcessors().size(); j++) {
                 Processor p = nt.getResourceDescription().getProcessors().get(j);
-                // logger.debug("processor type is " + p.getType());
-                // logger.debug("processor memory is " + p.getInternalMemory());
-                // boolean test1 = (p.getType().equals("GPU"));
-                // boolean test2 = (p.getInternalMemory() > 0.00001);
-                // boolean test3 = (p.getType() == "GPU" && p.getInternalMemory() > 100);
-                // boolean test4 = ((p.getType() == "GPU") && (p.getInternalMemory() > 100));
-                // logger.debug("test1 is " + test1);
-                // logger.debug("test2 is " + test2);
-                // logger.debug("test3 is " + test3);
-                // logger.debug("test4 is " + test4);
                 if (p.getType().equals("GPU") && p.getInternalMemory() > 0.00001) {
                     float bytes = p.getInternalMemory() * 1048576; // MB to byte conversion
                     int b_int = Math.round(bytes);

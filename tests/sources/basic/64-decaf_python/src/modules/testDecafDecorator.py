@@ -1,7 +1,7 @@
 import unittest
 from pycompss.api.task import task
 from pycompss.api.parameter import *
-from pycompss.api.api import barrier
+from pycompss.api.api import compss_barrier
 from pycompss.api.decaf import decaf
 from pycompss.api.constraint import constraint
 
@@ -25,12 +25,12 @@ class testDecafDecorator(unittest.TestCase):
 
     def testFunctionalUsage(self):
         myDecaf("outFile")
-        barrier()
+        compss_barrier()
 
     def testFunctionalUsageAll(self):
         myDecafAll("outFileAll")
-        barrier()
+        compss_barrier()
 
     def testFunctionalUsageWithConstraint(self):
         myDecafConstrained("outFileConstrained")
-        barrier()
+        compss_barrier()

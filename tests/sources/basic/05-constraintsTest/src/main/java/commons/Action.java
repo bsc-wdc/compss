@@ -96,6 +96,11 @@ public class Action extends AllocatableAction {
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
 
     }
+    
+    @Override
+    public void tryToSchedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
+
+    }
 
     @Override
     public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Score actionScore)

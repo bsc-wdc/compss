@@ -1,18 +1,6 @@
-#
-#  Copyright Barcelona Supercomputing Center (www.bsc.es)
-#
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-#
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
 
 """
 PyCOMPSs Worker
@@ -26,7 +14,7 @@ import logging
 import os
 import sys
 import traceback
-from exceptions import ValueError
+import base64
 
 from pycompss.api.parameter import TYPE, JAVA_MAX_INT, JAVA_MIN_INT
 from pycompss.util.serializer import serialize_to_file
@@ -34,6 +22,17 @@ from pycompss.util.serializer import deserialize_from_file
 from pycompss.util.serializer import deserialize_from_string
 from pycompss.util.serializer import SerializerException
 from pycompss.util.logs import init_logging_worker
+from pycompss.util.persistent_storage import get_by_ID
+
+
+if sys.version_info >= (3, 0):
+    long = int
+    str_escape = 'unicode_escape'
+else:
+    # Exception moved to built-in
+    from exceptions import ValueError
+    str_escape = 'string_escape'
+
 
 SYNC_EVENTS = 8000666
 
@@ -96,8 +95,7 @@ def compss_worker(persistent_storage):
         pyextrae.event(TASK_EVENTS, PARAMETER_PROCESSING)
 
     if persistent_storage:
-        from storage.api import getByID
-        from storage.api import TaskContext
+        from pycompss.util.persistent_storage import storage_task_context
 
     # Get all parameter values
     logger.debug("Processing parameters:")
@@ -118,20 +116,9 @@ def compss_worker(persistent_storage):
         prefixes.append(pPrefix)
 
         if pType == TYPE.FILE:
-            '''
-            # check if it is a persistent object
-            # TODO: I find that it makes no sense to identify PSCOs this way
-            # Why do not we simply check if the object of a subclass of the
-            # storage_object?
-            if 'getID' in dir(pValue) and pValue.getID() is not None:
-                po = getByID(pValue.getID())
-                values.append(po)
-            else:
-                values.append(pValue)
-            '''
             values.append(pValue)
         elif pType == TYPE.EXTERNAL_PSCO:
-            po = getByID(pValue)
+            po = get_by_ID(pValue)
             values.append(po)
             pos += 1  # Skip info about direction (R, W)
         elif pType == TYPE.STRING:
@@ -143,6 +130,8 @@ def compss_worker(persistent_storage):
                     aux += ' '
                 first_substring = False
                 aux += args[pos + j]
+            # Decode the string received
+            aux = base64.b64decode(aux.encode())
             #######
             # Check if the string is really an object
             # Required in order to recover objects passed as parameters.
@@ -150,10 +139,10 @@ def compss_worker(persistent_storage):
             real_value = aux
             try:
                 # try to recover the real object
-                aux = deserialize_from_string(aux.decode('string_escape'))
+                aux = deserialize_from_string(aux.decode(str_escape))
             except (SerializerException, ValueError, EOFError):
                 # was not an object
-                aux = real_value
+                aux = str(real_value.decode())
             #######
             values.append(aux)
             logger.debug("\t * Final Value: " + str(aux))
@@ -161,13 +150,13 @@ def compss_worker(persistent_storage):
         elif pType == TYPE.INT:
             values.append(int(pValue))
         elif pType == TYPE.LONG:
-            l = long(pValue)
-            if l > JAVA_MAX_INT or l < JAVA_MIN_INT:
+            my_l = long(pValue)
+            if my_l > JAVA_MAX_INT or my_l < JAVA_MIN_INT:
                 # A Python int was converted to a Java long to prevent overflow
                 # We are sure we will not overflow Python int, otherwise this
                 # would have been passed as a serialized object.
-                l = int(l)
-            values.append(l)
+                my_l = int(my_l)
+            values.append(my_l)
         elif pType == TYPE.DOUBLE:
             values.append(float(pValue))
         elif pType == TYPE.BOOLEAN:
@@ -216,7 +205,7 @@ def compss_worker(persistent_storage):
             logger.debug("Module successfully loaded (Python version < 2.7")
 
         if persistent_storage:
-            with TaskContext(logger, values, config_file_path=storage_conf):
+            with storage_task_context(logger, values, config_file_path=storage_conf):
                 getattr(module, method_name)(*values, compss_types=types, compss_tracing=tracing)
                 if tracing:
                     pyextrae.eventandcounters(TASK_EVENTS, 0)
@@ -263,7 +252,7 @@ def compss_worker(persistent_storage):
             types.insert(0, TYPE.OBJECT)
 
             if persistent_storage:
-                with TaskContext(logger, values, config_file_path=storage_conf):
+                with storage_task_context(logger, values, config_file_path=storage_conf):
                     getattr(klass, method_name)(*values, compss_types=types, compss_tracing=tracing)
                     if tracing:
                         pyextrae.eventandcounters(TASK_EVENTS, 0)
@@ -282,7 +271,7 @@ def compss_worker(persistent_storage):
             types.insert(0, None)    # class must be first type
 
             if persistent_storage:
-                with TaskContext(logger, values, config_file_path=storage_conf):
+                with storage_task_context(logger, values, config_file_path=storage_conf):
                     getattr(klass, method_name)(*values, compss_types=types, compss_tracing=tracing)
                     if tracing:
                         pyextrae.eventandcounters(TASK_EVENTS, 0)
@@ -300,8 +289,8 @@ def compss_worker(persistent_storage):
         logger.exception(''.join(line for line in lines))
         exit(1)
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     # Emit sync event if tracing is enabled
     tracing = sys.argv[1] == 'true'
     taskId = int(sys.argv[2])

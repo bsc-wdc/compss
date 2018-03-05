@@ -22,15 +22,15 @@ from pycompss.api.parameter import *
 @task(returns=int, priority=True)
 def function_A(x, y, z):
     result = x + y + z
-    print result
+    print(result)
     return result
 
 
 def app(a, b, c):
     from pycompss.api.api import compss_wait_on
-    print "In app"
+    print("In app")
     x = function_A(a, b, c)
-    print x
+    print(x)
     x = compss_wait_on(x)
-    print x
+    print(x)
     return x

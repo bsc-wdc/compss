@@ -52,8 +52,12 @@ public class LogicalData {
 
     // List of existing copies
     private final Set<DataLocation> locations = new TreeSet<>();
+    // List of hosts where the data has been used
+    private final Set<Resource> localLocations = new TreeSet<>();
     // In progress
     private final List<CopyInProgress> inProgress = new LinkedList<>();
+    // File's size. 
+    private float size;
 
     // Indicates if LogicalData has been ordered to save before
     private boolean isBeingSaved;
@@ -75,6 +79,7 @@ public class LogicalData {
         this.id = null;
 
         this.isBeingSaved = false;
+        this.size = 0;
     }
 
     /*
@@ -107,10 +112,29 @@ public class LogicalData {
     public synchronized Set<Resource> getAllHosts() {
         Set<Resource> list = new HashSet<>();
         for (DataLocation loc : this.locations) {
-            list.addAll(loc.getHosts());
+            List<Resource> hosts = loc.getHosts();
+        	synchronized(hosts){
+        		list.addAll(hosts);
+        	}
         }
 
         return list;
+    }
+    
+    /**
+     * Returns all the hosts where a task using the data has been scheduled
+     * 
+     * @return
+     */
+    public synchronized Set<Resource> getAllLocalHosts() {
+        return localLocations;
+    }
+    
+    /**
+     * Add a new location where a task using the data has been scheduled
+     */
+    public synchronized void addLocation(Resource res) {
+        localLocations.add(res);
     }
 
     /**
@@ -133,6 +157,14 @@ public class LogicalData {
 
     public synchronized Set<DataLocation> getLocations() {
         return this.locations;
+    }
+    
+    public synchronized void setSize(float size) {
+        this.size = size;
+    }
+    
+    public float getSize() {
+        return this.size;
     }
 
     /**

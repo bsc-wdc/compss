@@ -11,6 +11,7 @@ import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.ResourceCreationRequest;
 import es.bsc.compss.types.project.exceptions.ProjectFileValidationException;
 import es.bsc.compss.types.resources.CloudMethodWorker;
+import es.bsc.compss.types.resources.MethodWorker;
 import es.bsc.compss.types.resources.Resource.Type;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ShutdownListener;
@@ -403,6 +404,11 @@ public class ResourceManager {
         ResourceUpdate<MethodResourceDescription> modification = new PendingReduction<>(reduction);
         resourceUser.updatedResource(worker, modification);
     }
+    
+    public static void reduceWholeWorker(MethodWorker worker){
+    	ResourceUpdate<MethodResourceDescription> modification = new PendingReduction<>(worker.getDescription());
+        resourceUser.updatedResource(worker, modification);
+    }
 
     /**
      * Decreases the capabilities of a given cloud worker
@@ -424,21 +430,25 @@ public class ResourceManager {
                 poolCoreMaxConcurrentTasks[coreId] += maxTaskCount[coreId];
             }
             pool.defineCriticalSet();
+         // Log modified resource
+            RESOURCES_LOGGER.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
+            RESOURCES_LOGGER.info("INFO_MSG = [Resource modified. Name = " + worker.getName() + "]");
+            RUNTIME_LOGGER.info("Resource modified. Name = " + worker.getName());
         }
 
-        // Log new resource
-        RESOURCES_LOGGER.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
-        RESOURCES_LOGGER.info("INFO_MSG = [Resource removed from the pool. Name = " + worker.getName() + "]");
-        RUNTIME_LOGGER.info("Resource removed from the pool. Name = " + worker.getName());
     }
 
-    public static void terminateResource(CloudMethodWorker worker, CloudMethodResourceDescription reduction) {
+    public static void terminateCloudResource(CloudMethodWorker worker, CloudMethodResourceDescription reduction) {
         if (worker.getDescription().getTypeComposition().isEmpty()) {
             pool.delete(worker);
+            RESOURCES_LOGGER.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
+            RESOURCES_LOGGER.info("INFO_MSG = [Resource removed from the pool. Name = " + worker.getName() + "]");
+            RUNTIME_LOGGER.info("Resource removed from the pool. Name = " + worker.getName());
         }
         CloudProvider cp = worker.getProvider();
         cp.requestResourceReduction(worker, reduction);
     }
+
 
     /**
      * Returns whether the cloud is enabled or not

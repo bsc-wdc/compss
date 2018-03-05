@@ -1,24 +1,14 @@
-#
-#  Copyright Barcelona Supercomputing Center (www.bsc.es)
-#
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-#
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
 '''
 PyCOMPSs Binding - Launch
 =========================
 This file contains the __main__ method.
 It is called from pycompssext script with the user and environment parameters.
 '''
+
 import os
 import sys
 import logging
@@ -31,7 +21,6 @@ from pycompss.util.logs import init_logging
 from pycompss.util.jvm_parser import convert_to_dict
 from pycompss.util.serializer import SerializerException
 from pycompss.util.optional_modules import show_optional_module_warnings
-
 
 app_path = None
 
@@ -101,7 +90,8 @@ def main():
     logging_cfg_file = get_logging_cfg_file(log_level)
 
     init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
-    logger = logging.getLogger('pycompss.runtime.launch')
+    if __debug__:
+        logger = logging.getLogger('pycompss.runtime.launch')
 
     # Get JVM options
     jvm_opts = os.environ['JVM_OPTIONS_FILE']
@@ -109,27 +99,34 @@ def main():
     # storage_conf = opts.get('-Dcompss.storage.conf')
 
     try:
-        logger.debug('--- START ---')
-        logger.debug('PyCOMPSs Log path: %s' % binding_log_path)
+        if __debug__:
+            logger.debug('--- START ---')
+            logger.debug('PyCOMPSs Log path: %s' % binding_log_path)
         if persistent_storage:
-            logger.debug('Storage configuration file: %s' % storage_conf)
+            if __debug__:
+                logger.debug('Storage configuration file: %s' % storage_conf)
             init_storage(config_file_path=storage_conf)
         show_optional_module_warnings()
-        execfile(app_path, globals())    # MAIN EXECUTION
+        # MAIN EXECUTION
+        if sys.version_info >= (3, 0):
+            exec(compile(open(app_path).read(), app_path, 'exec'), globals())
+        else:
+            execfile(app_path, globals())    # MAIN EXECUTION
         if persistent_storage:
             finish_storage()
-        logger.debug('--- END ---')
+        if __debug__:
+            logger.debug('--- END ---')
     except SystemExit as e:
         if e.code != 0:  # Seems this is not happening
-            print '[ ERROR ]: User program ended with exitcode %s.'% e.code
-            print '\t\tShutting down runtime...'
+            print('[ ERROR ]: User program ended with exitcode %s.' % e.code)
+            print('\t\tShutting down runtime...')
     except SerializerException:
         # If an object that can not be serialized has been used as a parameter.
         exc_type, exc_value, exc_traceback = sys.exc_info()
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
         for line in lines:
             if app_path in line:
-                print '[ ERROR ]: In: ' + line,
+                print('[ ERROR ]: In: %s', line)
     finally:
         compss_stop()
         sys.stdout.flush()
@@ -155,14 +152,14 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
                                 summary=False,
                                 taskExecution='compss',
                                 storageConf=None,
-                                coreCount=50,
+                                taskCount=50,
                                 appName=None,
                                 uuid=None,
                                 baseLogDir=None,
                                 specificLogDir=None,
                                 extraeCfg=None,
                                 comm='NIO',
-                                conn='',
+                                conn='es.bsc.compss.connectors.DefaultSSHConnector',
                                 masterName='',
                                 masterPort='',
                                 scheduler='es.bsc.compss.scheduler.loadBalancingScheduler.LoadBalancingScheduler',
@@ -171,7 +168,9 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
                                 cpuAffinity='automatic',
                                 gpuAffinity='automatic',
                                 profileInput='',
-                                profileOutput=''
+                                profileOutput='',
+                                scheduler_config='',
+                                external_adaptation=False
                                 ):
     global app_path
     launchPath = os.path.dirname(os.path.abspath(__file__))
@@ -207,7 +206,7 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
     config['summary'] = summary
     config['taskExecution'] = taskExecution
     config['storageConf'] = storageConf
-    config['coreCount'] = coreCount
+    config['taskCount'] = taskCount
     if appName is None:
         config['appName'] = file_name
     else:
@@ -232,6 +231,11 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
     config['gpuAffinity'] = gpuAffinity
     config['profileInput'] = profileInput
     config['profileOutput'] = profileOutput
+    config['scheduler_config'] = scheduler_config
+    if external_adaptation:
+        config['external_adaptation'] = 'true'
+    else:
+        config['external_adaptation'] = 'false'
 
     initialize_compss(config)
 
@@ -283,7 +287,7 @@ def initialize_compss(config):
         - 'summary'        = <Boolean>      = Enable/Disable summary (True|False)
         - 'taskExecution'  = <String>       = Who performs the task execution (normally "compss")
         - 'storageConf'    = None|<String>  = Storage configuration file path
-        - 'coreCount'      = <Integer>      = Number of tasks (for structure initialization purposes)
+        - 'taskCount'      = <Integer>      = Number of tasks (for structure initialization purposes)
         - 'appName'        = <String>       = Application name
         - 'uuid'           = None|<String>  = Application UUID
         - 'baseLogDir'     = None|<String>  = Base log path
@@ -305,12 +309,15 @@ def initialize_compss(config):
         - 'gpuAffinity'    = <String>       = (default: automatic)
         - 'profileInput'   = <String>       = profiling input
         - 'profileOutput'  = <String>       = profiling output
+        - 'scheduler_config'    = <String>  = Path to the file which contains the scheduler configuration.
+        - 'external_adaptation' = <String>  = Enable external adaptation. This option will disable the Resource Optimizer.
     :param config: Configuration parameters dictionary
     '''
     from tempfile import mkstemp
     fd, temp_path = mkstemp()
     jvm_options_file = open(temp_path, 'w')
 
+    # JVM GENERAL OPTIONS
     jvm_options_file.write('-XX:+PerfDisableSharedMem\n')
     jvm_options_file.write('-XX:-UsePerfData\n')
     jvm_options_file.write('-XX:+UseG1GC\n')
@@ -338,7 +345,7 @@ def initialize_compss(config):
     else:
         jvm_options_file.write('-Dcompss.storage.conf=' + config['storageConf'] + '\n')
 
-    jvm_options_file.write('-Dcompss.core.count=' + str(config['coreCount']) + '\n')
+    jvm_options_file.write('-Dcompss.core.count=' + str(config['taskCount']) + '\n')
 
     jvm_options_file.write('-Dcompss.appName=' + config['appName'] + '\n')
 
@@ -411,14 +418,18 @@ def initialize_compss(config):
     jvm_options_file.write('-Dcompss.worker.gpu_affinity=' + config['gpuAffinity'] + '\n')
     jvm_options_file.write('-Dcompss.profile.input=' + config['profileInput'] + '\n')
     jvm_options_file.write('-Dcompss.profile.output=' + config['profileOutput'] + '\n')
+    jvm_options_file.write('-Dcompss.scheduler.config=' + config['scheduler_config'] + '\n')
+    jvm_options_file.write('-Dcompss.external.adaptation=' + config['external_adaptation'] + '\n')
+
+    # JVM OPTIONS - PYTHON
     jvm_options_file.write('-Djava.class.path=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config['classpath'] + '\n')
     jvm_options_file.write('-Dcompss.worker.pythonpath=' + config['cp'] + ':' + config['pythonPath'] + '\n')
     jvm_options_file.close()
     os.close(fd)
     os.environ['JVM_OPTIONS_FILE'] = temp_path
 
-    # print "Uncomment if you want to check the configuration file path."
-    # print "JVM_OPTIONS_FILE", temp_path
+    # print("Uncomment if you want to check the configuration file path.")
+    # print("JVM_OPTIONS_FILE: %s" % temp_path)
 
 
 '''

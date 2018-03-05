@@ -135,8 +135,11 @@ public class CreationThread extends Thread {
                 }
             } else {
                 int limitOfTasks = granted.getDescription().getTotalCPUComputingUnits();
+                int limitGPUTasks = granted.getDescription().getTotalGPUComputingUnits();
+                int limitFPGATasks = granted.getDescription().getTotalFPGAComputingUnits();
+                int limitOTHERTasks = granted.getDescription().getTotalOTHERComputingUnits();
                 r = new CloudMethodWorker(grantedName, provider, granted.getDescription(), granted.getNode(), limitOfTasks,
-                        rcr.getRequested().getImage().getSharedDisks());
+                        limitGPUTasks, limitFPGATasks, limitOTHERTasks, rcr.getRequested().getImage().getSharedDisks());
                 if (DEBUG) {
                     RUNTIME_LOGGER.debug("Worker for new resource " + grantedName + " set.");
                 }
@@ -262,7 +265,12 @@ public class CreationThread extends Thread {
             mc.setTotalComputingUnits(Math.max(limitOfTasks, computingUnits));
         }
         mc.setHost(granted.getName());
-
+        mc.setLimitOfGPUTasks(granted.getTotalGPUComputingUnits());
+        mc.setTotalGPUComputingUnits(granted.getTotalGPUComputingUnits());
+        mc.setLimitOfFPGATasks(granted.getTotalFPGAComputingUnits());
+        mc.setTotalFPGAComputingUnits(granted.getTotalFPGAComputingUnits());
+        mc.setLimitOfOTHERSTasks(granted.getTotalOTHERComputingUnits());
+        mc.setTotalOTHERComputingUnits(granted.getTotalOTHERComputingUnits());
         worker = new CloudMethodWorker(granted.getName(), provider, granted, mc, cid.getSharedDisks());
 
         try {

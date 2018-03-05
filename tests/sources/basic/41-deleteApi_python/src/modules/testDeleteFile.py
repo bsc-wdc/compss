@@ -6,7 +6,7 @@ PyCOMPSs Delete File test
 '''
 import unittest
 from pycompss.api.api import compss_wait_on, compss_open, compss_delete_file
-from tasks import increment, increment2
+from .tasks import increment, increment2
 
 class testDeleteFile(unittest.TestCase):
 
@@ -25,7 +25,7 @@ class testDeleteFile(unittest.TestCase):
             fos2.write(initial_value)
             fos.close()
             fos2.close()
-            print('Initial counter value is %s'%initial_value)
+            print(('Initial counter value is %s'%initial_value))
             # Execute increment
             increment(counter_name)
             increment2(counter_name_IN, counter_name_OUT)
@@ -39,5 +39,5 @@ class testDeleteFile(unittest.TestCase):
         fis = compss_open(counter_name, 'r+')
         final_value = fis.read()
         fis.close()
-        print('Final counter value is %s'%final_value)
+        print(('Final counter value is %s'%final_value))
         compss_delete_file(counter_name)

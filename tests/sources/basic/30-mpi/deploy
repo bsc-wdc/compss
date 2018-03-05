@@ -16,4 +16,6 @@
   
   cp -f ${source_base_dir}/execution ${target_base_dir}/execution
   cp -f ${source_base_dir}/result ${target_base_dir}/result
-  cp -f ${source_base_dir}/skip ${target_base_dir}/skip
+  
+  # Skip
+  cp -f "${source_base_dir}"/skip "${target_base_dir}"/skip 

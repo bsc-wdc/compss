@@ -254,7 +254,7 @@ public class ResourceManagerTest {
         }
         CloudMethodResourceDescription reduction1 = new CloudMethodResourceDescription(cmrd1);
         ResourceManager.reduceResource(cmw1, new PendingReduction<>(reduction1));
-        ResourceManager.terminateResource(cmw1, reduction1);
+        ResourceManager.terminateCloudResource(cmw1, reduction1);
         if (!ResourceManager.getDynamicResources().isEmpty() || !ResourceManager.getAllWorkers().isEmpty()
                 || ResourceManager.getDynamicResource(vmName1) != null || ResourceManager.getWorker(vmName1) != null) {
             fail("ResourceManager is not properly removing the new cloud resources");
@@ -310,7 +310,7 @@ public class ResourceManagerTest {
 
         CloudMethodResourceDescription reduction1 = new CloudMethodResourceDescription(cmrd1);
         ResourceManager.reduceResource(cmw1, new PendingReduction<>(reduction1));
-        ResourceManager.terminateResource(cmw1, reduction1);
+        ResourceManager.terminateCloudResource(cmw1, reduction1);
         if (ResourceManager.getPendingCreationRequests().size() != 1) {
             fail("ResourceManager is not properly registering the pending resouce creations");
         }
@@ -339,7 +339,7 @@ public class ResourceManagerTest {
 
         CloudMethodResourceDescription reduction2 = new CloudMethodResourceDescription(cmrd2);
         ResourceManager.reduceResource(cmw2, new PendingReduction<>(reduction2));
-        ResourceManager.terminateResource(cmw2, reduction2);
+        ResourceManager.terminateCloudResource(cmw2, reduction2);
         if (ResourceManager.getDynamicResources().size() != 1 || ResourceManager.getAllWorkers().size() != 1
                 || ResourceManager.getDynamicResource(vmName2) != null || ResourceManager.getWorker(vmName2) != null) {
             fail("ResourceManager is not properly removing the new cloud resources");
@@ -385,7 +385,7 @@ public class ResourceManagerTest {
 
         CloudMethodResourceDescription reduction4 = new CloudMethodResourceDescription(cmrd4);
         ResourceManager.reduceResource(cmw3, new PendingReduction<>(reduction4));
-        ResourceManager.terminateResource(cmw3, reduction4);
+        ResourceManager.terminateCloudResource(cmw3, reduction4);
         if (ResourceManager.getDynamicResources().size() != 1 || ResourceManager.getAllWorkers().size() != 1
                 || ResourceManager.getDynamicResource(vmName3) != cmw3 || ResourceManager.getWorker(vmName3) != cmw3) {
             fail("ResourceManager is not properly removing the new cloud resources");
@@ -401,7 +401,7 @@ public class ResourceManagerTest {
 
         CloudMethodResourceDescription reduction3 = new CloudMethodResourceDescription(cmrd3);
         ResourceManager.reduceResource(cmw3, new PendingReduction<>(reduction3));
-        ResourceManager.terminateResource(cmw3, reduction3);
+        ResourceManager.terminateCloudResource(cmw3, reduction3);
         if (!ResourceManager.getDynamicResources().isEmpty() || !ResourceManager.getAllWorkers().isEmpty()
                 || ResourceManager.getDynamicResource(vmName3) != null || ResourceManager.getWorker(vmName3) != null) {
             fail("ResourceManager is not properly removing the new cloud resources");

@@ -31,4 +31,18 @@ public interface MainItf {
 	    @Parameter(type = Type.FILE, direction = Direction.OUT, stream = Stream.STDOUT) String fileOut
 	);
 	
+	@MPI(binary = "${VEC_SUM_MPI_BINARY}", mpiRunner = "mpirun", computingNodes = "1")
+	@Constraints(computingUnits = "1", processorArchitecture = "amd64")
+	Integer taskConcurrentSimple1(
+	    @Parameter(type = Type.OBJECT, direction = Direction.IN) int[] data,
+	    @Parameter(type = Type.FILE, direction = Direction.OUT, stream = Stream.STDOUT) String fileOut
+	);
+	
+	@MPI(binary = "${VEC_SUM_MPI_BINARY}", mpiRunner = "mpirun", computingNodes = "1")
+	@Constraints(computingUnits = "2", processorArchitecture = "amd64")
+	Integer taskConcurrentSimple2(
+	    @Parameter(type = Type.OBJECT, direction = Direction.IN) int[] data,
+	    @Parameter(type = Type.FILE, direction = Direction.OUT, stream = Stream.STDOUT) String fileOut
+	);
+	
 }

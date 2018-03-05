@@ -13,6 +13,7 @@
 #include <iostream>
 #include <customStream.h>
 #include <fcntl.h>
+#include <compss_worker_lock.h>
 
 using namespace std;
  

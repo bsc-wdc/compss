@@ -123,16 +123,7 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static List<String> getLocations(String id) throws StorageException {
-        List<String> ret = new ArrayList<>();
-        Random rng = new Random(System.currentTimeMillis());
-        int start = Math.abs(rng.nextInt()) % hosts.size();
-        for(int i=0; i<hosts.size(); ++i) {
-            ret.add(
-                    hosts.get(start++)
-            );
-            start %= hosts.size();
-        }
-        return ret;
+        return hosts;
     }
 
     /**
@@ -146,6 +137,15 @@ public final class StorageItf {
         throw new StorageException("Redis does not support this feature.");
     }
 
+    private static void putInRedis(byte[] serializedObject, String id) throws StorageException {
+        String result = clusterMode ?
+                redisClusterConnection.set(id.getBytes(), serializedObject) :
+                redisConnection.getResource().set(id.getBytes(), serializedObject);
+        if(!result.equals("OK")) {
+            throw new StorageException("Redis returned an error while trying to store object with id " + id);
+        }
+    }
+
     /**
      * Create a new version of the PSCO id @id in the host @hostname Returns the id of the new version
      * 
@@ -155,10 +155,10 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static String newVersion(String id, boolean preserveSource, String hostName) throws StorageException, IOException, ClassNotFoundException {
-        Object obj = getByID(id);
+        byte[] obj = getBytesByID(id);
         String newId = UUID.randomUUID().toString();
         previousVersion.put(newId, id);
-        makePersistent(obj, newId);
+        putInRedis(obj, newId);
         if(!preserveSource) {
             consolidateVersion(newId);
         }
@@ -181,6 +181,16 @@ public final class StorageItf {
         }
         Object ret = Serializer.deserialize(serializedObject);
         ((StorageObject)ret).setID(id);
+        return ret;
+    }
+
+    private static byte[] getBytesByID(String id) throws StorageException {
+        byte[] ret = clusterMode ?
+                redisClusterConnection.get(id.getBytes()) :
+                redisConnection.getResource().get(id.getBytes());
+        if(ret == null) {
+            throw  new StorageException("Object with id " + id + " is not in Redis!");
+        }
         return ret;
     }
 

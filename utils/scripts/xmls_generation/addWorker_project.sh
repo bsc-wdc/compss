@@ -11,7 +11,7 @@
     local workerName=$2
     local file=$3
 
-    cat >> ${file} << EOT
+    cat >> "${file}" << EOT
 
     <ComputeNode Name="${workerName}">
         <InstallDir>/opt/COMPSs/</InstallDir>
@@ -35,12 +35,12 @@
 EOT
 
     if [ "${user}" != "" ]; then
-    cat >> ${file} << EOT
+    cat >> "${file}" << EOT
                 <User>${user}</User>
 EOT
     fi
 
-    cat >> ${file} << EOT
+    cat >> "${file}" << EOT
             </Adaptor>
             <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
                 <SubmissionSystem>
@@ -53,12 +53,12 @@ EOT
 EOT
 
     if [ "${user}" != "" ]; then
-    cat >> ${file} << EOT
+    cat >> "${file}" << EOT
                 <User>${user}</User>
 EOT
     fi
 
-    cat >> ${file} << EOT
+    cat >> "${file}" << EOT
                 <BrokerAdaptor>sshtrilead</BrokerAdaptor>
             </Adaptor>
         </Adaptors>

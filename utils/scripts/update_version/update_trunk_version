@@ -7,7 +7,7 @@ usage() {
   echo "Usage ./update_trunk_version <previousVersion> <newVersion> <commitChanges>"
   echo " "
 
-  exit $exitValue
+  exit "$exitValue"
 }
  
   #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -25,47 +25,47 @@ usage() {
   echo "Updating COMPSs from ${previousVersion} to ${newVersion}..."
 
   # Define script variables
-  script_dir=$(pwd)/$(dirname $0)
-  base_trunk_dir=${script_dir}/../../../
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  base_trunk_dir=${SCRIPT_DIR}/../../../
 
   #---------------------------------------------------------------------
   # Modify all pom files
   echo "- Modifying pom files..."
-  cd ${base_trunk_dir}
+  cd "${base_trunk_dir}"
   pomFiles=$(find . -name pom.xml)
   for pom in $pomFiles; do
     echo "    $pom"
-    sed -i '/<version>'${previousVersion}'<\/version>/c<version>'${newVersion}'<\/version>' $pom
-    sed -i '/<compss.version>'${previousVersion}'<\/compss.version>/c<compss.version>'${newVersion}'<\/compss.version>' $pom
+    sed -i '/<version>'"${previousVersion}"'<\/version>/c<version>'"${newVersion}"'<\/version>' "$pom"
+    sed -i '/<compss.version>'"${previousVersion}"'<\/compss.version>/c<compss.version>'"${newVersion}"'<\/compss.version>' "$pom"
   done
-  cd ${base_trunk_dir}
+  cd "${base_trunk_dir}"
 
   #---------------------------------------------------------------------
   # Modify python binding files
   echo "- Modifying binding files..."
   setupFile=${base_trunk_dir}/compss/programming_model/bindings/python/setup.py
   echo "    $setupFile"
-  sed -i 's/'${previousVersion}'/'${newVersion}'/g' $setupFile
+  sed -i 's/'"${previousVersion}"'/'"${newVersion}"'/g' "$setupFile"
 
   #---------------------------------------------------------------------
   # Modify utils/scripts
   echo "- Modifying utils/scripts files..."
-  cd ${base_trunk_dir}/utils/scripts/
+  cd "${base_trunk_dir}/utils/scripts/"
   files=$(grep -R -l "$previousVersion")
   for file in $files; do
     echo "    $file"
-    sed -i 's/'${previousVersion}'/'${newVersion}'/g' $file
+    sed -i 's/'"${previousVersion}"'/'"${newVersion}"'/g' "$file"
   done
-  cd ${base_trunk_dir}
+  cd "${base_trunk_dir}"
 
   #---------------------------------------------------------------------
   # Modify utils/storage
   echo "- Modifying utils/storage files..."
-  cd ${base_trunk_dir}/utils/storage/dummyPSCO/
+  cd "${base_trunk_dir}/utils/storage/dummyPSCO/"
   file="pom.xml"
   echo "    $file"
-  sed -i '/<version>'${previousVersion}'<\/version>/c<version>'${newVersion}'<\/version>' $file
-  cd ${base_trunk_dir}
+  sed -i '/<version>'"${previousVersion}"'<\/version>/c<version>'"${newVersion}"'<\/version>' "$file"
+  cd "${base_trunk_dir}"
 
   #---------------------------------------------------------------------
   # Modify builders version
@@ -74,28 +74,28 @@ usage() {
   buildlocal=${base_trunk_dir}/builders/buildlocal
   scREADME=${base_trunk_dir}/builders/specs/sc/README
   echo "    $buildpackages"
-  sed -i 's/'${previousVersion}'/'${newVersion}'/g' $buildpackages
+  sed -i 's/'"${previousVersion}"'/'"${newVersion}"'/g' "$buildpackages"
   echo "    $buildlocal"
-  sed -i 's/'${previousVersion}'/'${newVersion}'/g' $buildlocal
+  sed -i 's/'"${previousVersion}"'/'"${newVersion}"'/g' "$buildlocal"
   echo "    $scREADME"
-  sed -i 's/'${previousVersion}'/'${newVersion}'/g' $scREADME
+  sed -i 's/'"${previousVersion}"'/'"${newVersion}"'/g' "$scREADME"
 
   #---------------------------------------------------------------------
   # Modify COMPSs version in all RPM Spec files
   echo "- Modifying spec files..."
-  cd ${base_trunk_dir}/builders/specs/rpm/
+  cd "${base_trunk_dir}/builders/specs/rpm/"
   specFiles=$(find . -name *.spec)
   for spec in $specFiles; do
     echo "    $spec"
-    sed -i 's/\%define version\t\t'${previousVersion}'/\%define version\t\t'${newVersion}'/g' $spec
+    sed -i 's/\%define version\t\t'"${previousVersion}"'/\%define version\t\t'"${newVersion}"'/g' "$spec"
   done
-  cd ${base_trunk_dir}
+  cd "${base_trunk_dir}"
 
   #---------------------------------------------------------------------
   # COMMIT MODIFICATIONS IF NEEDED
   if [ "$commitChanges" == "true" ]; then
     echo "- Commiting modifications to svn"
-    cd ${base_trunk_dir}
+    cd "${base_trunk_dir}"
     svn commit -m "Update to version ${newVersion}"
   fi
 

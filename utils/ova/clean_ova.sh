@@ -1,8 +1,8 @@
 #!/bin/bash -e
 
   ROOT_FOLDER=/
-  SHAREDDISK=/sharedDisk/
- 
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
   # Clean apt
   echo "Cleaning APT-GET"
   sudo apt-get -y --force-Yes update
@@ -13,13 +13,13 @@
 
   # Clean subversion
   echo "Cleanning GIT/MAVEN/COMPSs files"
-  cd $ROOT_FOLDER
+  cd "$ROOT_FOLDER"
   sudo find . -name ".git" | xargs -r -i -t rm -rf {}
   sudo find . -name ".m2" | xargs -r -i -t rm -rf {}
   sudo find . -name ".COMPSs" | xargs -r -i -t rm -rf {}
 
   # Add 0's to image 
-  cd -
+  cd "$SCRIPT_DIR"
   echo "Adding 0's"
   ./clean_0s.sh
 

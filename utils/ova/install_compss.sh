@@ -1,8 +1,8 @@
 #!/bin/bash -e
   
-  TRUNK=$HOME/trunk/
-  BUILDERS=$HOME/trunk/builders
+  TRUNK="$HOME/trunk/"
+  BUILDERS="$TRUNK/builders"
 
-  cd $BUILDERS
+  cd "$BUILDERS"
   sudo -E ./buildlocal
 

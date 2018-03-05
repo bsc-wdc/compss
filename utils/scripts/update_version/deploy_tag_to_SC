@@ -7,7 +7,7 @@
     echo "Usage $0 <version> <buildFolder> <buildScript> <SCuser> <SCendpoint>"
     echo " "
   
-    exit $exitValue
+    exit "$exitValue"
   }
 
   getParams() {
@@ -27,20 +27,20 @@
 
   install() {
     echo "- Install to SC"
-    cd ${baseDir}
+    cd "${baseDir}"
     mvn -U clean install
 
-    cd ${buildersDir}
-    ./${buildScript} ${SCuser} /home/bsc19/${SCuser}/tmpCOMPSs/ /apps/COMPSs/$version
+    cd "${buildersDir}"
+    ./"${buildScript}" "${SCuser}" "/home/bsc19/${SCuser}/tmpCOMPSs/" "/apps/COMPSs/$version"
 
-    cd ${scriptDir}
+    cd "${SCRIPT_DIR}"
   }
 
   addModule() {
     echo "- Add module file"
     auxScriptName=module_script.aux
-    auxScriptFile=${scriptDir}/${auxScriptName}
-    cat > ${auxScriptFile} << EOT
+    auxScriptFile=${SCRIPT_DIR}/${auxScriptName}
+    cat > "${auxScriptFile}" << EOT
 #!/bin/bash -e
 
     cp /apps/modules/modulefiles/tools/COMPSs/Trunk /apps/modules/modulefiles/tools/COMPSs/$version
@@ -50,17 +50,17 @@ EOT
 
     trap clean EXIT
 
-    scp -o StrictHostKeyChecking=no ${auxScriptFile} ${SCuser}@${SCendpoint}:.
-    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no ${SCuser}@${SCendpoint} "chmod 775 ${auxScriptName}"
-    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no ${SCuser}@${SCendpoint} "./${auxScriptName}"
+    scp -o StrictHostKeyChecking=no "${auxScriptFile}" "${SCuser}@${SCendpoint}":.
+    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}@${SCendpoint}" "chmod 775 ${auxScriptName}"
+    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}@${SCendpoint}" "./${auxScriptName}"
   }
 
   clean() {
     echo "- Clean remote TMP files"
-    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no ${SCuser}@${SCendpoint} "rm -f ${auxScriptName}"
+    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}@${SCendpoint}" "rm -f ${auxScriptName}"
     
     echo "- Clean TMP files"
-    rm -f ${auxScriptFile}
+    rm -f "${auxScriptFile}"
   }
 
  
@@ -72,8 +72,8 @@ EOT
   getParams "$@"
 
   # Define script variables
-  scriptDir=$(pwd)/$(dirname $0)
-  baseDir=${scriptDir}/../../../../tags/${version}/
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  baseDir=${SCRIPT_DIR}/../../../../tags/${version}/
   buildersDir=${baseDir}/builders/scs/${buildFolder}
 
   # LOG

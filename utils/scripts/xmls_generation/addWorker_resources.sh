@@ -13,10 +13,10 @@
 
     ev=0
     if [ "$targetUser" == "" ]; then
-      result=$(ssh ${targetIP} $cmd)
+      result=$(ssh "${targetIP}" "$cmd")
       ev=$?
     else 
-      result=$(ssh ${targetUser}@${targetIP} $cmd)
+      result=$(ssh "${targetUser}@${targetIP}" "$cmd")
       ev=$?
     fi
 
@@ -38,7 +38,7 @@
     local osDistr=$9
     local osVersion=${10}
 
-    cat >> ${file} << EOT
+    cat >> "${file}" << EOT
     
     <ComputeNode Name="${workerName}">
         <Processor Name="P1">

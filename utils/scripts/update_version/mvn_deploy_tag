@@ -7,7 +7,7 @@ usage() {
   echo "Usage ./mvn_deploy_tag <version>"
   echo " "
 
-  exit $exitValue
+  exit "$exitValue"
 }
  
   #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -23,20 +23,20 @@ usage() {
   echo "Deploying COMPSs Tag ${version} to MVN..."
 
   # Define script variables
-  script_dir=$(pwd)/$(dirname $0)
-  base_dir=${script_dir}/../../../../tags/${version}/
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  base_dir=${SCRIPT_DIR}/../../../../tags/${version}/
 
   #---------------------------------------------------------------------
   # Deploy
   echo "- Compiling and installing"
-  cd ${base_dir}
+  cd "${base_dir}"
   mvn -U clean install
-  cd ${script_dir}
+  cd "${SCRIPT_DIR}"
 
   echo "- Deploying mvn"
-  cd ${base_dir}
+  cd "${base_dir}"
   mvn -U deploy
-  cd ${script_dir}
+  cd "${SCRIPT_DIR}"
 
   #---------------------------------------------------------------------
   # NOTIFY SUCCESS

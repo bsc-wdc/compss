@@ -17,21 +17,23 @@
 This class is responsible to establish and to mantain a Redis connection to
 the backend, also it is responible of retrieving objects from it.
 As a reminder, objects are stored as a serialized byte array.
+@author: srodrig1 < sergio dot rodriguez at bsc dot es >
 '''
 import uuid
 import redis
 import rediscluster
-from pycompss.util.serializer import serialize_to_string, deserialize_from_string
-
+from pycompss.util.serializer import serialize_to_string, deserialize_from_string, deserialize_from_handler
+__name__ = "redispycompss"
 
 '''Constants
 '''
 REDIS_PORT = 6379
+MAX_BLOCK_SIZE = 510 * 1024 * 1024
+#MAX_BLOCK_SIZE = 16
 
 '''Global variables
 They are declared only for visibility purposes
 '''
-
 redis_connection = None
 hosts = None
 
@@ -67,11 +69,11 @@ def init(config_file_path=None, **kwargs):
         # slave hierarchy discovery, we will simply connect to the first
         # node we got
         redis_connection = \
-        rediscluster.StrictRedisCluster(host=hosts[0], port=REDIS_PORT)
+            rediscluster.StrictRedisCluster(host=hosts[0], port=REDIS_PORT)
     else:
         # We are in standalone mode
         redis_connection = \
-        redis.StrictRedis(host=hosts[0], port=REDIS_PORT)
+            redis.StrictRedis(host=hosts[0], port=REDIS_PORT)
     # StrictRedis is not capable to know if we had success when connecting by
     # simply calling the constructor. We need to perform an actual query to
     # the backend
@@ -100,19 +102,44 @@ def finish(**kwargs):
     '''
     pass
 
-def getByID(identifier):
+def getByIDOld(identifier):
     '''Retrieves the object that has the given identifier from the Redis database.
     That is, given an identifier, retrieves the contents from the backend
     that correspond to this key, deserializes it and returns the reconstructed
     object.
     '''
-    serialized_contents = redis_connection.get(identifier)
-    # In case that we have read a None then it means that the requested object
-    # was not present in the Redis backend
-    if serialized_contents is None:
-        error_message = 'ERROR: Redis backend has no object with id %s'%identifier
-        raise StorageException(error_message)
-    return deserialize_from_string(serialized_contents)
+    global redis_connection
+    import io
+    with io.BytesIO() as bio:
+        num_blocks = int(redis_connection.llen(identifier))
+        for l in redis_connection.lrange(identifier, 0, num_blocks):
+            bio.write(l)
+        # In case that we have read a None then it means that the requested object
+        # was not present in the Redis backend
+        bio.seek(0)
+        ret = deserialize_from_handler(bio)
+    return ret
+
+def getByID(*identifiers):
+    '''Retrieves a set of objects from their identifiers by pipelining the get commands
+    '''
+    global redis_connection
+    p = redis_connection.pipeline()
+    # Stack the pipe calls
+    for identifier in identifiers:
+        num_blocks = int(redis_connection.llen(identifier))
+        p.lrange(identifier, 0, num_blocks)
+    # Get all the objects
+    ret = p.execute()
+    # Deserialize and delete the serialized contents for each object
+    for i in range(len(identifiers)):
+        ret[i] = deserialize_from_string(
+                b''.join(
+                    ret[i]
+                )
+            )
+        ret[i].pycompss_mark_as_unmodified()
+    return ret[0] if len(ret) == 1 else ret
 
 get_by_ID = getByID
 
@@ -128,7 +155,16 @@ def makePersistent(obj, identifier = None):
     else identifier
     # Serialize the object and store the pair (id, serialized_object)
     serialized_object = serialize_to_string(obj)
-    redis_connection.set(obj.pycompss_psco_identifier, serialized_object)
+    bytes_size = len(serialized_object)
+    num_blocks = (bytes_size + MAX_BLOCK_SIZE - 1) // MAX_BLOCK_SIZE
+    for block in range( num_blocks ):
+        l = block * MAX_BLOCK_SIZE
+        r = (block + 1) * MAX_BLOCK_SIZE
+        redis_connection.rpush(
+            obj.pycompss_psco_identifier, serialized_object[l : r]
+        )
+    # Object is now synced with backend
+    obj.pycompss_mark_as_unmodified()
 
 make_persistent = makePersistent
 
@@ -143,6 +179,8 @@ def deletePersistent(obj):
     redis_connection.delete(obj.pycompss_psco_identifier)
     # Set key to None
     obj.pycompss_psco_identifier = None
+    # Mark as unmodified
+    obj.pycompss_mark_as_unmodified()
 
 delete_persistent = deletePersistent
 
@@ -162,8 +200,17 @@ class TaskContext(object):
         pass
 
     def __exit__(self, type, value, traceback):
-        # Do something epilog
-
+        # Update all modified objects
+        print('XYZ VALUES: %s' % self.values)
+        for obj in self.values:
+            try:
+                if obj.pycompss_is_modified():
+                    print('Repersisting object %s' % obj)
+                    old_id = obj.getID()
+                    obj.delete_persistent()
+                    obj.make_persistent(old_id)
+            except:
+                pass
         # Finished
         self.logger.info("Epilog finished")
         pass

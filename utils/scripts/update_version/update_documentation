@@ -1,13 +1,13 @@
 #!/bin/bash
 
 usage() {
-  exitValue=$1
+  local exitValue=$1
 
   echo " "
   echo "Usage ./update_documentation <version>"
   echo " "
 
-  exit $exitValue
+  exit "$exitValue"
 }
  
   #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -23,84 +23,84 @@ usage() {
   echo "Creating COMPSs ${version} documentation..."
 
   # Define script variables
-  script_dir=$(pwd)/$(dirname $0)
-  trunk_dir=${script_dir}/../../../
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  trunk_dir=${SCRIPT_DIR}/../../../
   documentation_dir=${trunk_dir}/../documents/COMPSs_Manuals/
 
   #---------------------------------------------------------------------
   # Copy latest files
   echo "- Copy latest files"
-  svn cp ${documentation_dir}/latest ${documentation_dir}/${version}
+  svn cp "${documentation_dir}/latest" "${documentation_dir}/${version}"
 
   #---------------------------------------------------------------------
   # Update internal files version on new tag
   echo "- Update files version"
-  sed -i '/Version: /cVersion: '${version}'' ${documentation_dir}/${version}/README
-  docs=$(ls ${documentation_dir}/${version}/)
-  for doc in ${docs}; do
-    cd ${documentation_dir}/${version}/${doc}
+  sed -i '/Version: /cVersion: '"${version}"'' "${documentation_dir}/${version}/README"
+
+  for doc in ${documentation_dir}/${version}/*; do
+    cd "${doc}" || exit 1
     latexFile=$(ls *.tex | grep -v configuration.tex)
-    echo $latexFile
-    sed -i '/Version: /cVersion: '${version}'' README
-    sed -i '/\\def \\compssversion/c\\\def \\compssversion \{'${version}'\}' $latexFile
-    sed -i 's/<\<version\>>/'${version}'/g' $latexFile
-    cd ${script_dir}
+    echo "$latexFile"
+    sed -i '/Version: /cVersion: '"${version}"'' README
+    sed -i '/\\def \\compssversion/c\\\def \\compssversion \{'"${version}"'\}' "$latexFile"
+    sed -i 's/<\<version\>>/'"${version}"'/g' "$latexFile"
+    cd "${SCRIPT_DIR}" || exit 1
   done
 
   #---------------------------------------------------------------------
   # Update internal files version on latest
   echo "- Update files version"
-  sed -i '/Version: /cVersion: '${version}'' ${documentation_dir}/latest/README
-  docs=$(ls ${documentation_dir}/latest/)
-  for doc in ${docs}; do
-    cd ${documentation_dir}/latest/${doc}
+  sed -i '/Version: /cVersion: '"${version}"'' "${documentation_dir}/latest/README"
+
+  for doc in ${documentation_dir}/latest/*; do
+    cd "${doc}" || exit 1
     latexFile=$(ls *.tex | grep -v configuration.tex)
-    echo $latexFile
-    sed -i '/Version: /cVersion: '${version}'' README
-    sed -i '/\\def \\compssversion/c\\\def \\compssversion \{'${version}'\}' $latexFile
-    sed -i 's/<\<version\>>/'${version}'/g' $latexFile
-    cd ${script_dir}
+    echo "$latexFile"
+    sed -i '/Version: /cVersion: '"${version}"'' README
+    sed -i '/\\def \\compssversion/c\\\def \\compssversion \{'"${version}"'\}' "$latexFile"
+    sed -i 's/<\<version\>>/'"${version}"'/g' "$latexFile"
+    cd "${SCRIPT_DIR}" || exit 1
   done
 
   #---------------------------------------------------------------------
   # Generate PDF files
   echo "- Generate PDF files"
-  docs=$(ls ${documentation_dir}/${version}/)
-  for doc in ${docs}; do
-    cd ${documentation_dir}/${version}/${doc}
+
+  for doc in ${documentation_dir}/${version}/*; do
+    cd "${doc}" || exit 1
     latexFile=$(ls *.tex | grep -v configuration.tex) 
-    pdflatex -interaction=nonstopmode ${latexFile}
-    pdflatex -interaction=nonstopmode ${latexFile}
-    pdflatex -interaction=nonstopmode ${latexFile}
-    cd ${script_dir}
+    pdflatex -interaction=nonstopmode "${latexFile}"
+    pdflatex -interaction=nonstopmode "${latexFile}"
+    pdflatex -interaction=nonstopmode "${latexFile}"
+    cd "${SCRIPT_DIR}" || exit 1
   done
 
   #---------------------------------------------------------------------
   # Commit modifications
   echo "- Commit modifications"
-  cd ${documentation_dir}
+  cd "${documentation_dir}" || exit 1
   svn commit -m "Adding documentation new tag ${version}"
-  cd ${script_dir}
+  cd "${SCRIPT_DIR}" || exit 1
 
   #---------------------------------------------------------------------
   # Copy documentation
   echo "- Copy documentation to trunk"
   allowed_pdfs="COMPSs_Installation_Manual.pdf COMPSs_Supercomputers_Manual.pdf COMPSs_User_Manual_App_Development.pdf COMPSs_User_Manual_App_Exec.pdf COMPSs_Tracing_Manual.pdf"
-  pdfs=$(find ${documentation_dir} -name *.pdf)
+  pdfs=$(find "${documentation_dir}" -name *.pdf)
   for doc in ${pdfs}; do
-    docname=$(basename $doc)
-    if [[ *$docname* == ${allowed_pdfs} ]]; then
+    docname=$(basename "$doc")
+    if [[ *$docname* == "${allowed_pdfs}" ]]; then
       echo "*** Synchronizing $doc to trunk"
-      cp $doc ${trunk_dir}/doc/
+      cp "$doc" "${trunk_dir}/doc/"
     fi
   done
 
   #---------------------------------------------------------------------
   # Commit modifications
   echo "- Commit trunk modifications"
-  cd ${trunk_dir}/doc/
+  cd "${trunk_dir}/doc/" || exit 1
   svn commit -m "Adding documentation synchronized for new tag ${version}"
-  cd ${script_dir}
+  cd "${SCRIPT_DIR}" || exit 1
 
   #---------------------------------------------------------------------
   # NOTIFY SUCCESS

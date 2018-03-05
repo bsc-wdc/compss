@@ -7,7 +7,7 @@ usage() {
   echo "Usage ./generate_tag <version>"
   echo " "
 
-  exit $exitValue
+  exit "$exitValue"
 }
  
   #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -23,40 +23,40 @@ usage() {
   echo "Creating new COMPSs Tag ${version}..."
 
   # Define script variables
-  script_dir=$(pwd)/$(dirname $0)
-  trunk_dir=${script_dir}/../../../
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  trunk_dir=${SCRIPT_DIR}/../../../
   tags_dir=${trunk_dir}/../tags/
 
   #---------------------------------------------------------------------
   # Clean trunk
-  cd ${trunk_dir}
+  cd "${trunk_dir}"
   mvn -U clean
-  cd ${script_Dir}
+  cd "${SCRIPT_DIR}"
 
   #---------------------------------------------------------------------
   # Create tag
   echo "- Create tag"
-  echo "   ScriptDir: ${script_dir}"
+  echo "   ScriptDir: ${SCRIPT_DIR}"
   echo "   TrunkDir:  ${trunk_dir}"
   echo "   TagsDir:   ${tags_dir}"
-  svn cp ${trunk_dir} ${tags_dir}/${version}
+  svn cp "${trunk_dir}" "${tags_dir}/${version}"
 
   #---------------------------------------------------------------------
   # Add headers
   echo "- Generate header files"
-  sh ${tags_dir}/${version}/utils/scripts/header_setup/replace_all.sh
+  sh "${tags_dir}/${version}/utils/scripts/header_setup/replace_all.sh"
 
   #---------------------------------------------------------------------
   # Commit modifications
   echo "- Commit modifications"
-  cd ${tags_dir}
+  cd "${tags_dir}"
   svn commit -m "Adding new tag ${version}"
-  cd ${script_dir}
+  cd "${SCRIPT_DIR}"
 
   #---------------------------------------------------------------------
   # Clean tag
-  cd ${tags_dir}
-  rm -rf ${version}
+  cd "${tags_dir}"
+  rm -rf "${version}"
   svn up
 
   #---------------------------------------------------------------------

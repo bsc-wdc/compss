@@ -24,20 +24,22 @@
   workers="$@"
 
   # Global variable
-  scriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # Generate project
   echo "[GENERATE_ALL] [INFO] Generate project.xml file on ${projectFile}"
-  ${scriptDir}/generate_project.sh "${projectFile}" "${remoteUser}" "${workers}"
-  if [ $? -ne 0 ]; then
+  "${SCRIPT_DIR}"/generate_project.sh "${projectFile}" "${remoteUser}" "${workers}"
+  ev=$?
+  if [ $ev -ne 0 ]; then
     echo "[GENERATE_ALL] [ERROR] Cannot generate project file"
     exit 1
   fi
 
   # Generate project
   echo "[GENERATE_ALL] [INFO] Generate resources.xml file on ${resourcesFile}"
-  ${scriptDir}/generate_resources.sh "${resourcesFile}" "${remoteUser}" "${workers}"
-  if [ $? -ne 0 ]; then
+  "${SCRIPT_DIR}"/generate_resources.sh "${resourcesFile}" "${remoteUser}" "${workers}"
+  ev=$?
+  if [ $ev -ne 0 ]; then
     echo "[GENERATE_ALL] [ERROR] Cannot generate resources file"
     exit 1
   fi

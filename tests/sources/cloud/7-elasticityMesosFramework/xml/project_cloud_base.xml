@@ -8,34 +8,6 @@
 		<CloudProvider Name="BSC">
 			<LimitOfVMs>4</LimitOfVMs>
 			<Properties>
-				<Property>
-					<Name>mesos-framework-register-timeout</Name>
-                    <Value>30000</Value>
-				</Property>
-				<Property>
-					<Name>auth</Name>
-					<Value>x509</Value>
-				</Property>
-				<Property>
-					<Name>ca-path</Name>
-					<Value>/etc/grid-security/certificates</Value>
-				</Property>
-				<Property>
-					<Name>user-cred</Name>
-					<Value>jenkins-test.pem</Value>
-				</Property>
-				<Property>
-					<Name>password</Name>
-					<Value>jenkins-test2014</Value>
-				</Property>
-				<Property>
-					<Name>owner</Name>
-					<Value>jenkins-test</Value>
-				</Property>
-				<Property>
-					<Name>jobname</Name>
-					<Value>test-elasticity-oneProvider</Value>
-				</Property>
 
 				<!-- Optional connector parameters -->
 				<Property>
@@ -47,6 +19,11 @@
 					<Value>36</Value>
 				</Property>
 
+				<!-- <Property>
+					<Name>mesos-docker-network</Name>
+					<Value>compss-net</Value>
+				</Property> -->
+
 				<!-- Abstract SSH Connector parameters -->
 				<Property>
 					<Name>vm-user</Name>
@@ -54,7 +31,7 @@
 				</Property>
 				<Property>
 					<Name>vm-keypair-name</Name>
-					<Value>compss_rsa</Value>
+					<Value>compss_docker_test_rsa</Value>
 				</Property>
 				<Property>
 					<Name>vm-keypair-location</Name>
@@ -62,15 +39,15 @@
 				</Property>
 			</Properties>
 			<Images>
-				<Image Name="compss/compss:1.4.rc09">
+				<Image Name="compss/compss:2.0.rc1706">
 					<InstallDir>remote_COMPSs</InstallDir>
 					<WorkingDir>/root/</WorkingDir>
 					<User>root</User>
-                    <Application>
-                        <AppDir>/root/</AppDir>
-                    </Application>
+					<Application>
+						<AppDir>/root/</AppDir>
+					</Application>
 					<Package>
-                        <Source>Simple.tar.gz</Source>
+						<Source>Simple.tar.gz</Source>
 						<Target>/root</Target>
 					</Package>
 				</Image>

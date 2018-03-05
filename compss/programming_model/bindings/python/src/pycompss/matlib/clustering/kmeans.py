@@ -1,25 +1,12 @@
-#
-#  Copyright Barcelona Supercomputing Center (www.bsc.es)
-#
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-#
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
 
 """
 PyCOMPSs Mathematical Library: Clustering: KMeans
 =================================================
     This file contains the KMeans algorithm.
 """
-
 
 import numpy as np
 from pycompss.api.task import task
@@ -28,7 +15,7 @@ from pycompss.functions.reduce import mergeReduce
 
 def chunks(l, n, balanced=False):
     if not balanced or not len(l) % n:
-        for i in xrange(0, len(l), n):
+        for i in range(0, len(l), n):
             yield l[i:i + n]
     else:
         rest = len(l) % n
@@ -37,7 +24,7 @@ def chunks(l, n, balanced=False):
             yield l[start: start+n+1]
             rest -= 1
             start += n+1
-        for i in xrange(start, len(l), n):
+        for i in range(start, len(l), n):
             yield l[i:i + n]
 
 
@@ -98,7 +85,7 @@ def cost(Y, C):
 
 
 def bestMuKey(X, C):
-    w = [0 for i in xrange(len(C))]
+    w = [0 for i in range(len(C))]
     for x in X:
         bestmukey = min([(i[0], np.linalg.norm(x-np.array(C[i[0]])))
                         for i in enumerate(C)], key=lambda t: t[1])[0]

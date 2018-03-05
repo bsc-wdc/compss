@@ -1,6 +1,7 @@
 package es.bsc.compss.nio.worker.util;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
@@ -35,6 +36,7 @@ public class PythonThreadPool extends ExternalThreadPool {
      * 
      * @param nw
      * @param size
+     * @throws IOException
      */
     public PythonThreadPool(NIOWorker nw, int size) {
         super(nw, size);

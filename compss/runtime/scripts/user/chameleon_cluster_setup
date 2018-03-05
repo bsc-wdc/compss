@@ -3,7 +3,7 @@
   #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   #
   # Script Name: chameleon_cluster_setup
-  # Author:      COMPSs Support <support-compssdev.bsc.es>
+  # Author:      COMPSs Support <support-compss@bsc.es>
   #              Barcelona SuperComputing Center (BSC-CNS)
   #
   # Description: Script to setup a COMPSs cluster within a

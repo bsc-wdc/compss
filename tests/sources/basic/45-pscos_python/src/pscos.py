@@ -23,20 +23,20 @@ from models import InputData
 @task(returns=int)
 def simpleTask(r):
     val = r.get()
-    print "R: ", r
-    print "R.get = ", val
+    print("R: ", r)
+    print("R.get = ", val)
     return val * val
 
 
 @task(returns=mySO)
 def complexTask(p):
     v = p.get()
-    print "P: ", p
-    print "P.get: ", v
+    print("P: ", p)
+    print("P.get: ", v)
     q = mySO(v*10)
     q.makePersistent()
-    print "Q: ", q
-    print "Q.get = ", q.get()
+    print("Q: ", q)
+    print("Q.get = ", q.get())
     return q
 
 
@@ -83,19 +83,19 @@ def basicTest():
     '''
     from pycompss.api.api import compss_wait_on
     o = mySO(10)
-    print "BEFORE MAKEPERSISTENT: o.id: ", o.getID()
+    print("BEFORE MAKEPERSISTENT: o.id: ", o.getID())
     # Pesist the object to disk (it will be at /tmp/uuid.PSCO)
     o.makePersistent()
-    print "AFTER MAKEPERSISTENT:  o.id: ", o.getID()
+    print("AFTER MAKEPERSISTENT:  o.id: ", o.getID())
     v = simpleTask(o)
     v1 = compss_wait_on(v)
     # Remove the persisted object from disk (from /tmp/uuid.PSCO)
     o.deletePersistent()
     if v1 == 100:
-        print "- Simple Test Python PSCOs: OK"
+        print("- Simple Test Python PSCOs: OK")
         return True
     else:
-        print "- Simple Test Python PSCOs: ERROR"
+        print("- Simple Test Python PSCOs: ERROR")
         return False
 
 
@@ -124,10 +124,10 @@ def basic2Test():
     # print "X.get must be 10 = ", res1.get()
     # print "Y must be    100 = ", res2
     if p.get() == 1 and res1.get() == 10 and res2 == 100:
-        print "- Complex Test Python PSCOs: OK"
+        print("- Complex Test Python PSCOs: OK")
         return True
     else:
-        print "- Complex Test Python PSCOs: ERROR"
+        print("- Complex Test Python PSCOs: ERROR")
         return False
 
 
@@ -150,10 +150,10 @@ def WordCount():
     result = compss_wait_on(result)
 
     if result['This'] == 4 and result['is'] == 4 and result['a'] == 4 and result['test'] == 4:
-        print "- Python Wordcount 1 with PSCOs: OK"
+        print("- Python Wordcount 1 with PSCOs: OK")
         return True
     else:
-        print "- Python Wordcount 1 with PSCOs: ERROR"
+        print("- Python Wordcount 1 with PSCOs: ERROR")
         return False
 
 
@@ -177,14 +177,14 @@ def WordCount2():
 
     final = compss_wait_on(result)
 
-    print final.myd
+    print(final.myd)
     result = final.get()
 
     if result['This'] == 4 and result['is'] == 4 and result['a'] == 4 and result['test'] == 4:
-        print "- Python Wordcount 2 with PSCOs: OK"
+        print("- Python Wordcount 2 with PSCOs: OK")
         return True
     else:
-        print "- Python Wordcount 2 with PSCOs: ERROR"
+        print("- Python Wordcount 2 with PSCOs: ERROR")
         return False
 
 
@@ -192,40 +192,40 @@ def WordCount2():
 def transform1(o1, o2):
     pow2 = {}
     images = o1.get()
-    for k,v in images.iteritems():
+    for k,v in images.items():
         l = []
         for value in v:
             l.append(value * value)
             pow2[k] = l
     o2.set(pow2)
-    print "Function: Pow 2."
-    print "Transformation 1 result in o2: ", o2.get()
+    print("Function: Pow 2.")
+    print("Transformation 1 result in o2: ", o2.get())
 
 @task(o2=INOUT)
 def transform2(o1, o2):
     add1 = {}
     images = o1.get()
-    for k,v in images.iteritems():
+    for k,v in images.items():
         l = []
         for value in v:
             l.append(value + 1)
             add1[k] = l
     o2.set(add1)
-    print "Function: Add 1."
-    print "Transformation 2 result in o2: ", o2.get()
+    print("Function: Add 1.")
+    print("Transformation 2 result in o2: ", o2.get())
 
 @task(returns=InputData, o2=INOUT)
 def transform3(o1, o2):
     mult3 = {}
     images = o1.get()
-    for k,v in images.iteritems():
+    for k,v in images.items():
         l = []
         for value in v:
             l.append(value * 3)
             mult3[k] = l
     o2.set(mult3)
-    print "Function: Multiply per 3."
-    print "Transformation 3 result in o2: ", o2.get()
+    print("Function: Multiply per 3.")
+    print("Transformation 3 result in o2: ", o2.get())
     return o2
 
 
@@ -254,18 +254,18 @@ def TiramisuMockup():
     outTrans2 = compss_wait_on(out2)
     outTrans3 = compss_wait_on(out3)
 
-    print "OUTPUTS:"
-    print "Transformation 1: ", outTrans1.get()
-    print "Transformation 2: ", outTrans2.get()
-    print "Transformation 3: ", outTrans3.get()
-    print "RESULT: ", result.get()
+    print("OUTPUTS:")
+    print("Transformation 1: ", outTrans1.get())
+    print("Transformation 2: ", outTrans2.get())
+    print("Transformation 3: ", outTrans3.get())
+    print("RESULT: ", result.get())
 
     finalResults = result.get()
     if all(x == 6 for x in finalResults['first']) and all(x == 15 for x in finalResults['second']) and all(x == 30 for x in finalResults['third']) and all(x == 51 for x in finalResults['fourth']):
-        print "- Python Tiramisu Mockup with PSCOs: OK"
+        print("- Python Tiramisu Mockup with PSCOs: OK")
         return True
     else:
-        print "- Python Tiramisu Mockup with PSCOs: ERROR"
+        print("- Python Tiramisu Mockup with PSCOs: ERROR")
         return False
 
 
@@ -273,40 +273,40 @@ def TiramisuMockup():
 def transform1_2(o1, o2):
     pow2 = {}
     images = o1.get()
-    for k,v in images.iteritems():
+    for k,v in images.items():
         l = []
         for value in v:
             l.append(value * value)
             pow2[k] = l
     o2.set(pow2)
-    print "Function: Pow 2."
-    print "Transformation 1 result in o2: ", o2.get()
+    print("Function: Pow 2.")
+    print("Transformation 1 result in o2: ", o2.get())
 
 @task(o2=OUT)
 def transform2_2(o1, o2):
     add1 = {}
     images = o1.get()
-    for k,v in images.iteritems():
+    for k,v in images.items():
         l = []
         for value in v:
             l.append(value + 1)
             add1[k] = l
     o2.set(add1)
-    print "Function: Add 1."
-    print "Transformation 2 result in o2: ", o2.get()
+    print("Function: Add 1.")
+    print("Transformation 2 result in o2: ", o2.get())
 
 @task(returns=InputData, o2=OUT)
 def transform3_2(o1, o2):
     mult3 = {}
     images = o1.get()
-    for k,v in images.iteritems():
+    for k,v in images.items():
         l = []
         for value in v:
             l.append(value * 3)
             mult3[k] = l
     o2.set(mult3)
-    print "Function: Multiply per 3."
-    print "Transformation 3 result in o2: ", o2.get()
+    print("Function: Multiply per 3.")
+    print("Transformation 3 result in o2: ", o2.get())
     return o2
 
 
@@ -337,43 +337,43 @@ def TiramisuMockup2():
     outTrans2 = compss_wait_on(out2)
     outTrans3 = compss_wait_on(out3)
 
-    print "OUTPUTS:"
-    print "Transformation 1: ", outTrans1.get()
-    print "Transformation 2: ", outTrans2.get()
-    print "Transformation 3: ", outTrans3.get()
-    print "RESULT: ", result.get()
+    print("OUTPUTS:")
+    print("Transformation 1: ", outTrans1.get())
+    print("Transformation 2: ", outTrans2.get())
+    print("Transformation 3: ", outTrans3.get())
+    print("RESULT: ", result.get())
 
     finalResults = result.get()
     if all(x == 6 for x in finalResults['first']) and all(x == 15 for x in finalResults['second']) and all(x == 30 for x in finalResults['third']) and all(x == 51 for x in finalResults['fourth']):
-        print "- Python Tiramisu Mockup 2 with PSCOs: OK"
+        print("- Python Tiramisu Mockup 2 with PSCOs: OK")
         return True
     else:
-        print "- Python Tiramisu Mockup 2 with PSCOs: ERROR"
+        print("- Python Tiramisu Mockup 2 with PSCOs: ERROR")
         return False
 
 
 @task(sco=INOUT)
 def makePersistentInTaskAsParameter(sco):
-    print "sco: ", sco
-    print "sco.get = ", sco.get()
+    print("sco: ", sco)
+    print("sco.get = ", sco.get())
     sco.put(27)
-    print "Update sco value:"
-    print "sco.get = ", sco.get()
+    print("Update sco value:")
+    print("sco.get = ", sco.get())
     sco.makePersistent()
-    print "sco made persistent"
-    print "sco id: ", sco.getID()
+    print("sco made persistent")
+    print("sco id: ", sco.getID())
 
 
 @task(returns=mySO)
 def makePersistentInTaskAsReturn(sco):
-    print "sco: ", sco
-    print "sco.get = ", sco.get()
+    print("sco: ", sco)
+    print("sco.get = ", sco.get())
     sco.put(37)
-    print "Update sco value:"
-    print "sco.get = ", sco.get()
+    print("Update sco value:")
+    print("sco.get = ", sco.get())
     sco.makePersistent()
-    print "sco made persistent"
-    print "sco id: ", sco.getID()
+    print("sco made persistent")
+    print("sco id: ", sco.getID())
     return sco
 
 
@@ -388,10 +388,10 @@ def evaluateMakePersistentInTask():
     v = compss_wait_on(o)
     o.deletePersistent()
     if v.get() == 27:
-        print "- Persitence of PSCOS in task as INOUT parameter: OK"
+        print("- Persitence of PSCOS in task as INOUT parameter: OK")
         return True
     else:
-        print "- Persitence of PSCOS in task as INOUT parameter: ERROR"
+        print("- Persitence of PSCOS in task as INOUT parameter: ERROR")
         return False
 
 def evaluateMakePersistentInTask2():
@@ -406,10 +406,10 @@ def evaluateMakePersistentInTask2():
     v = compss_wait_on(sco)
     v.deletePersistent()
     if v.get() == 37:
-        print "- Persitence of PSCOS in task as return: OK"
+        print("- Persitence of PSCOS in task as return: OK")
         return True
     else:
-        print "- Persitence of PSCOS in task as return: ERROR"
+        print("- Persitence of PSCOS in task as return: ERROR")
         return False
 
 def main():
@@ -423,10 +423,10 @@ def main():
     results['persistInTask'] = evaluateMakePersistentInTask()
     results['persistInTask2'] = evaluateMakePersistentInTask2()
 
-    if all(x for x in results.values()):
-        print "- PSCOs TEST FINISHED SUCCESSFULLY."
+    if all(x for x in list(results.values())):
+        print("- PSCOs TEST FINISHED SUCCESSFULLY.")
     else:
-        print "- PSCOs TEST FINISHED WITH ERRORS."
+        print("- PSCOs TEST FINISHED WITH ERRORS.")
 
 if __name__ == '__main__':
     main()

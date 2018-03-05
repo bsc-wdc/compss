@@ -9,20 +9,20 @@
 
   #----------------------------------------------------------------------------------
   # Check output standard out status
-  if [ -f ${output_file} ]; then
+  if [ -f "${output_file}" ]; then
      result_expected="------------------------------------------------------------"
-     test_result=$(tail -1 ${output_file})
+     test_result=$(tail -1 "${output_file}")
      if [ "${result_expected}" != "${test_result}" ]; then
-        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
         exit 1
      fi
   else
-     echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
+     echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
      exit 1
   fi
   # Check that ErrorManager has not generated any ERROR or FATAL message.
-  if $(cat "${output_file}" "${runtime_log}" | tr '\n' ' ' | grep -E -q "[ERRMGR].*(ERROR|FATAL):.*.*Shutting"); then
-    echo "ERROR: ERRMGR RAISED A FATAL ERROR. TEST FAILED." | tee -a ${output_file}
+  if cat "${output_file}" "${runtime_log}" | tr '\n' ' ' | grep -E -q "[ERRMGR].*(ERROR|FATAL):.*.*Shutting"; then
+    echo "ERROR: ERRMGR RAISED A FATAL ERROR. TEST FAILED." | tee -a "${output_file}"
     exit 1
   fi
   
@@ -30,37 +30,53 @@
   # Check MPI task execution status
   exitValue=0
    
-  dotValue=$(cat ${output_file} | grep "TotalSum" | tr ":" "\t" | awk {' print $2 '})
+  dotValue=$(cat "${output_file}" | grep "TotalSum" | tr ":" "\t" | awk '{ print $2 }')
   
-  singleGOT=$(cat ${output_file}| grep "\[RESULT\] MPI Task1" | grep "MULTIPLICATION_RESULT" | awk {' print $NF '})
-  if [ $singleGOT -ne $dotValue ]; then
-    echo "ERROR: Single MPI execution failed" | tee -a ${output_file}
-    echo "  GOT: $singleGOT" | tee -a ${output_file}
-    echo "  EXPECTED: $dotValue" | tee -a ${output_file}
+  singleGOT=$(cat "${output_file}" | grep "\[RESULT\] MPI Task1" | grep "MULTIPLICATION_RESULT" | awk '{ print $NF }')
+  if [ "$singleGOT" -ne "$dotValue" ]; then
+    echo "ERROR: Single MPI execution failed" | tee -a "${output_file}"
+    echo "  GOT: $singleGOT" | tee -a "${output_file}"
+    echo "  EXPECTED: $dotValue" | tee -a "${output_file}"
     exitValue=1
   fi
   
-  multipleGOT=$(cat ${output_file}| grep "\[RESULT\] MPI Task2" | grep "MULTIPLICATION_RESULT" | awk {' print $NF '})
-  if [ $multipleGOT -ne $dotValue ]; then
-    echo "ERROR: Multiple MPI execution failed" | tee -a ${output_file}
-    echo "  GOT: $multipleGOT" | tee -a ${output_file}
-    echo "  EXPECTED: $dotValue" | tee -a ${output_file}
+  multipleGOT=$(cat "${output_file}" | grep "\[RESULT\] MPI Task2" | grep "MULTIPLICATION_RESULT" | awk '{ print $NF }')
+  if [ "$multipleGOT" -ne "$dotValue" ]; then
+    echo "ERROR: Multiple MPI execution failed" | tee -a "${output_file}"
+    echo "  GOT: $multipleGOT" | tee -a "${output_file}"
+    echo "  EXPECTED: $dotValue" | tee -a "${output_file}"
     exitValue=1
   fi
   
-  concurrent1GOT=$(cat ${output_file}| grep "\[RESULT\] MPI CONC Task1" | grep "MULTIPLICATION_RESULT" | awk {' print $NF '})
-  if [ $concurrent1GOT -ne $dotValue ]; then
-    echo "ERROR: Concurrent1 Multiple MPI execution failed" | tee -a ${output_file}
-    echo "  GOT: $concurrent1GOT" | tee -a ${output_file}
-    echo "  EXPECTED: $dotValue" | tee -a ${output_file}
+  concurrent1GOT=$(cat "${output_file}" | grep "\[RESULT\] MPI CONC Task1" | grep "MULTIPLICATION_RESULT" | awk '{ print $NF }')
+  if [ "$concurrent1GOT" -ne "$dotValue" ]; then
+    echo "ERROR: Concurrent1 Multiple MPI execution failed" | tee -a "${output_file}"
+    echo "  GOT: $concurrent1GOT" | tee -a "${output_file}"
+    echo "  EXPECTED: $dotValue" | tee -a "${output_file}"
     exitValue=1
   fi
   
-  concurrent2GOT=$(cat ${output_file}| grep "\[RESULT\] MPI CONC Task2" | grep "MULTIPLICATION_RESULT"  | awk {' print $NF '})
-  if [ $concurrent2GOT -ne $dotValue ]; then
-    echo "ERROR: Concurrent2 Multiple MPI execution failed" | tee -a ${output_file}
-    echo "  GOT: $concurrent2GOT" | tee -a ${output_file}
-    echo "  EXPECTED: $dotValue" | tee -a ${output_file}
+  concurrent2GOT=$(cat "${output_file}" | grep "\[RESULT\] MPI CONC Task2" | grep "MULTIPLICATION_RESULT"  | awk '{ print $NF }')
+  if [ "$concurrent2GOT" -ne "$dotValue" ]; then
+    echo "ERROR: Concurrent2 Multiple MPI execution failed" | tee -a "${output_file}"
+    echo "  GOT: $concurrent2GOT" | tee -a "${output_file}"
+    echo "  EXPECTED: $dotValue" | tee -a "${output_file}"
+    exitValue=1
+  fi
+
+  thconcurrent1GOT=$(cat "${output_file}" | grep "\[RESULT\] MPI THREADCONC Task1" | grep "MULTIPLICATION_RESULT" | awk '{ print $NF }')
+  if [ "$thconcurrent1GOT" -ne "$dotValue" ]; then
+    echo "ERROR: ThreadConcurrent1 Multiple MPI execution failed" | tee -a "${output_file}"
+    echo "  GOT: $thconcurrent1GOT" | tee -a "${output_file}"
+    echo "  EXPECTED: $dotValue" | tee -a "${output_file}"
+    exitValue=1
+  fi
+    
+  thconcurrent2GOT=$(cat "${output_file}" | grep "\[RESULT\] MPI THREADCONC Task2" | grep "MULTIPLICATION_RESULT"  | awk '{ print $NF }')
+  if [ "$thconcurrent2GOT" -ne "$dotValue" ]; then
+    echo "ERROR: Concurrent2 Multiple MPI execution failed" | tee -a "${output_file}"
+    echo "  GOT: $thconcurrent2GOT" | tee -a "${output_file}"
+    echo "  EXPECTED: $dotValue" | tee -a "${output_file}"
     exitValue=1
   fi
   
@@ -68,11 +84,11 @@
   # Check that MPI command from multi-node task uses more than one host
   jobOut=${target_log_folder}/jobs/job2_NEW.out
   numNodesExpected=4
-  numNodesGOT=$(cat ${jobOut} | grep "\[MPI INVOKER\] MPI CMD" | tr " " "\t" | awk {' print $9 '})
-  if [ ${numNodesGOT} -ne ${numNodesExpected} ]; then
-    echo "ERROR: Incorrect number of MPI Nodes for multi-node task." | tee -a ${output_file}
-    echo "  GOT: ${numNodesGOT}" | tee -a ${output_file}
-    echo "  EXPECTED: ${numNodesExpected}" | tee -a ${output_file}
+  numNodesGOT=$(cat "${jobOut}" | grep "\[MPI INVOKER\] MPI CMD" | tr " " "\t" | awk '{ print $9 }')
+  if [ "${numNodesGOT}" -ne "${numNodesExpected}" ]; then
+    echo "ERROR: Incorrect number of MPI Nodes for multi-node task." | tee -a "${output_file}"
+    echo "  GOT: ${numNodesGOT}" | tee -a "${output_file}"
+    echo "  EXPECTED: ${numNodesExpected}" | tee -a "${output_file}"
     exitValue=1
   fi
   
@@ -80,11 +96,11 @@
   # Check that MPI command from multi-node task uses two different hosts
   jobOut=${target_log_folder}/jobs/job2_NEW.out
   numNodesExpected=2
-  numNodesGOT=$(cat ${jobOut} | grep "\[MPI INVOKER\] MPI CMD" | tr " " "\t" | awk {' print $7 '} | tr "," "\n" | awk '!a[$0]++' | wc -l)
-  if [ ${numNodesGOT} -ne ${numNodesExpected} ]; then
-    echo "ERROR: Multi-node task not using different hosts" | tee -a ${output_file}
-    echo "  GOT: ${numNodesGOT}" | tee -a ${output_file}
-    echo "  EXPECTED: ${numNodesExpected}" | tee -a ${output_file}
+  numNodesGOT=$(cat "${jobOut}" | grep "\[MPI INVOKER\] MPI CMD" | tr " " "\t" | awk '{ print $7 }' | tr "," "\n" | awk '!a[$0]++' | wc -l)
+  if [ "${numNodesGOT}" -ne "${numNodesExpected}" ]; then
+    echo "ERROR: Multi-node task not using different hosts" | tee -a "${output_file}"
+    echo "  GOT: ${numNodesGOT}" | tee -a "${output_file}"
+    echo "  EXPECTED: ${numNodesExpected}" | tee -a "${output_file}"
     exitValue=1
   fi
   
@@ -92,11 +108,11 @@
   # Check that MPI command from multi-node concurrent task 1 uses more than one host
   jobOut=${target_log_folder}/jobs/job3_NEW.out
   numNodesExpected=2
-  numNodesGOT=$(cat ${jobOut} | grep "\[MPI INVOKER\] MPI CMD" | tr " " "\t" | awk {' print $9 '})
-  if [ ${numNodesGOT} -ne ${numNodesExpected} ]; then
-    echo "ERROR: Incorrect number of MPI Nodes for multi-node concurrent task 1." | tee -a ${output_file}
-    echo "  GOT: ${numNodesGOT}" | tee -a ${output_file}
-    echo "  EXPECTED: ${numNodesExpected}" | tee -a ${output_file}
+  numNodesGOT=$(cat "${jobOut}" | grep "\[MPI INVOKER\] MPI CMD" | tr " " "\t" | awk '{ print $9 }')
+  if [ "${numNodesGOT}" -ne "${numNodesExpected}" ]; then
+    echo "ERROR: Incorrect number of MPI Nodes for multi-node concurrent task 1." | tee -a "${output_file}"
+    echo "  GOT: ${numNodesGOT}" | tee -a "${output_file}"
+    echo "  EXPECTED: ${numNodesExpected}" | tee -a "${output_file}"
     exitValue=1
   fi
   
@@ -104,11 +120,23 @@
   # Check that MPI command from multi-node concurrent task 2 uses more than one host
   jobOut=${target_log_folder}/jobs/job3_NEW.out
   numNodesExpected=2
-  numNodesGOT=$(cat ${jobOut} | grep "\[MPI INVOKER\] MPI CMD" | tr " " "\t" | awk {' print $9 '})
-  if [ ${numNodesGOT} -ne ${numNodesExpected} ]; then
-    echo "ERROR: Incorrect number of MPI Nodes for multi-node concurrent task 2." | tee -a ${output_file}
-    echo "  GOT: ${numNodesGOT}" | tee -a ${output_file}
-    echo "  EXPECTED: ${numNodesExpected}" | tee -a ${output_file}
+  numNodesGOT=$(cat "${jobOut}" | grep "\[MPI INVOKER\] MPI CMD" | tr " " "\t" | awk '{ print $9 }')
+  if [ "${numNodesGOT}" -ne "${numNodesExpected}" ]; then
+    echo "ERROR: Incorrect number of MPI Nodes for multi-node concurrent task 2." | tee -a "${output_file}"
+    echo "  GOT: ${numNodesGOT}" | tee -a "${output_file}"
+    echo "  EXPECTED: ${numNodesExpected}" | tee -a "${output_file}"
+    exitValue=1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Check that MPI Thread concurrent use different CUs
+  jobOut1=${target_log_folder}/jobs/job5_NEW.out
+  jobOut2=${target_log_folder}/jobs/job6_NEW.out
+  cus1=$(cat "${jobOut1}" | grep "COMPSS_NUM_THREADS" | awk '{ print $NF }')
+  cus2=$(cat "${jobOut2}" | grep "COMPSS_NUM_THREADS" | awk '{ print $NF }')
+  if [ "$cus1" -eq "$cus2" ]; then
+    echo "ERROR: Thread concurrent have not independent properties"
+    echo "  GOT: CUS1 = $cus1 , CUS2 = $cus2"
     exitValue=1
   fi
 

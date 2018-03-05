@@ -24,3 +24,6 @@
   cp -f ${source_base_dir}/resources.xml ${target_base_dir}/resources.xml
 
   cp -rf ${bundle_path}/${bundle_name} ${target_base_dir}/COMPSs-Redis-bundle
+  
+  # Skip
+  cp -f "${source_base_dir}"/skip "${target_base_dir}"/skip 

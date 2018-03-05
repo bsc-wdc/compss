@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package es.bsc.compss.comm.fake;
 
 import es.bsc.compss.comm.CommAdaptor;
@@ -14,6 +9,7 @@ import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.resources.configuration.ServiceConfiguration;
 import es.bsc.compss.types.uri.MultiURI;
 import java.util.LinkedList;
+
 
 public class FakeServiceAdaptor implements CommAdaptor {
 

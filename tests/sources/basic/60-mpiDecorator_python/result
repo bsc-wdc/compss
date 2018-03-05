@@ -51,14 +51,30 @@
     fi
   fi
 
+  tuesday=$(grep -r -l "date -d next tuesday" $jobs_logs)
+  tuesdayDate=$(date -d "next tuesday")
+  if ! $(cat "$tuesday" | grep -E -q "$tuesdayDate"); then
+    echo "ERROR: TASK FAILED: testFunctionalUsageWithEnvVarConstraint function failed." | tee -a ${output_file}
+    exit 1
+  elif grep "Null value obtained while loading \$CUS from environment" ${target_log_folder}/runtime.log; then
+    echo "WARNING: TASK FAILED: testFunctionalUsageWithEnvVarConstraint function received NULL environment variable." | tee -a ${output_file}
+    exit 1
+  else
+    apearances=$(cat "$tuesday" | grep "$tuesdayDate" | wc -l)
+    if [ ! "$apearances" -eq "4" ]; then
+      echo "ERROR: TASK FAILED: testFunctionalUsageWithEnvVarConstraint function computingNodes parameter failed." | tee -a ${output_file}
+      exit 1
+    fi
+  fi
+
   hellofile=$(grep -r -l "sed s/Hi/HELLO/g" $jobs_logs)
   hello=$(grep -r -l "HELLO, this is a simple test to grep." $hellofile)
   if [[ -z "$hello" ]]; then
      echo "ERROR: TASK FAILED: testFileManagementIN function failed." | tee -a ${output_file}
     exit 1
   else
-    apearances=$(cat "$hellofile" | grep "HELLO" | wc -l)
-    if [ ! "$apearances" -eq "17" ]; then
+    apearances=$(cat "$hellofile" | grep "HELLO, this is a simple test to grep." | wc -l)
+    if [ ! "$apearances" -eq "16" ]; then
       echo "ERROR: TASK FAILED: testFileManagementIN function computingNodes parameter failed." | tee -a ${output_file}
       exit 1
     fi
@@ -71,11 +87,12 @@
 
   myLs=$(grep -r -l "ls -l --hide=.*infile.* --sort=size" $jobs_logs)
   if [[ -z "$myLs" ]]; then
-     echo "ERROR: TASK FAILED: testFilesAndPrefix function failed." | tee -a ${output_file}
+    echo "ERROR: TASK FAILED: testFilesAndPrefix function failed." | tee -a ${output_file}
     exit 1
   else
-      apearances=$(cat "$myLs" | grep "infile" | wc -l)
-      if [ ! "$apearances" -eq "3" ]; then
+      # Check how many infile are that are symlinks (start with l).
+      apearances=$(cat "$myLs" | grep "infile" | grep "^l" | wc -l)
+      if [ ! "$apearances" -eq "2" ]; then
         echo "ERROR: TASK FAILED: testFilesAndPrefix function computingNodes parameter failed." | tee -a ${output_file}
         exit 1
       fi
@@ -86,8 +103,9 @@
      echo "ERROR: TASK FAILED: testFilesAndPrefixWithoutType function failed." | tee -a ${output_file}
     exit 1
   else
-    apearances=$(cat "$myLs2" | grep "inoutfile" | wc -l)
-    if [ ! "$apearances" -eq "3" ]; then
+    # Check how many inoutfile are that are symlinks (start with l).
+    apearances=$(cat "$myLs2" | grep "inoutfile" | grep "^l" | wc -l)
+    if [ ! "$apearances" -eq "2" ]; then
       echo "ERROR: TASK FAILED: testFilesAndPrefixWithoutType function computingNodes parameter failed." | tee -a ${output_file}
       exit 1
     fi

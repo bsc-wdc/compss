@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>compss-trunk</artifactId>
-<version>2.1.rc1709</version>
+<version>2.2.rc1801</version>
 		<relativePath>../../</relativePath>
 	</parent>
 	
@@ -67,9 +67,9 @@
 
 	<!-- SOURCE CONTROL MANAGEMENT -->
 	<scm>
-		<connection>scm:git:http://compssdev.bsc.es/gitlab/compss/framework.git</connection>
-		<developerConnection>scm:git:http://compssdev.bsc.es/gitlab/compss/framework.git</developerConnection>
-		<url>http://compssdev.bsc.es/gitlab/compss/framework.git</url>
+		<connection>scm:svn:http://compss.bsc.es/svn/compss/tests/sources</connection>
+		<developerConnection>scm:svn:http://compss.bsc.es/svn/compss/tests/sources</developerConnection>
+		<url>http://compss.bsc.es/svn/compss/tests/sources</url>
 	</scm>
 	
 	<!-- REPOSITORIES -->
@@ -83,9 +83,9 @@
 			<url>http://repo1.maven.apache.org/maven2</url>
 		</repository>
 		<repository>
-			<id>compss-repo</id>
-			<name>BSC Workflows and Distributed Computing group</name>
-			<url>http://compssdev.bsc.es/artifactory/libs-release</url>
+			<id>grid-repo</id>
+			<name>BSC Grid computing and Clusters group</name>
+			<url>http://compss.bsc.es/artifactory/grid-devel-repo</url>
 	   	 </repository>
 	</repositories>
 
@@ -106,9 +106,9 @@
 	<!-- DISTRIBUTION MANAGEMENT -->
 	<distributionManagement>
 	    <repository>
-		<id>compss-repo</id>
-		<name>BSC Workflows and Distributed Computing group</name>
-		<url>http://compssdev.bsc.es/artifactory/libs-release</url>
+		<id>grid-repo</id>
+		<name>BSC Grid computing and Clusters group</name>
+		<url>http://compss.bsc.es/artifactory/grid-devel-repo</url>
    	    </repository>
 	</distributionManagement>
     

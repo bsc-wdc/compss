@@ -16,20 +16,16 @@
 				</Property>
 				<Property>
 					<Name>vm-keypair-name</Name>
-					<Value>compss_rsa</Value>
+					<Value>compss_docker_test_rsa</Value>
 				</Property>
 				<Property>
 					<Name>vm-keypair-location</Name>
 					<Value>~/.ssh/docker_keys</Value>
 				</Property>
-				<Property>
-					<Name>time-slot</Name>
-					<Value>1</Value>
-				</Property>
 			</Properties>
 
 			<Images>
-				<Image Name="compss/compss:1.4.rc09">
+				<Image Name="compss/compss:2.0.rc1706">
 					<InstallDir>remote_COMPSs</InstallDir>
 					<WorkingDir>/root/</WorkingDir>
 					<User>root</User>

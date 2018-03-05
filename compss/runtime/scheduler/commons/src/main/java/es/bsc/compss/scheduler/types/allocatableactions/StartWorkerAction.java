@@ -158,6 +158,11 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
         schedule((ResourceScheduler<WorkerResourceDescription>) this.worker, this.impl);
     }
+    
+    @Override
+    public void tryToSchedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
+        this.schedule(actionScore);
+    }
 
     @Override
     public <R extends WorkerResourceDescription> void schedule(ResourceScheduler<R> targetWorker, Score actionScore)

@@ -1,6 +1,7 @@
 package es.bsc.compss.scheduler.multiobjective.types;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.multiobjective.MOSchedulingInformation;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Profile;
@@ -16,12 +17,18 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class LocalOptimizationState {
 
     private final long updateId;
     private final ResourceScheduler<WorkerResourceDescription> worker;
-
+    
+    protected static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
+    protected static final boolean IS_DEBUG = LOGGER.isDebugEnabled();
+    protected static final String LOG_PREFIX = "[MOLocalOptimizationState] ";
+    
     private final LinkedList<Gap> gaps = new LinkedList<>();
     private double runningCost;
     private double totalCost;
@@ -138,7 +145,7 @@ public class LocalOptimizationState {
                 ResourceDescription.reduceCommonDynamics(empty, missingResources);
             }
         } else {
-            System.out.println("**** Action has null implementation. Nothing done at release resources *** ");
+        	LOGGER.debug(LOG_PREFIX + "Action has null implementation. Nothing done at release resources *** ");
         }
     }
 
@@ -239,12 +246,11 @@ public class LocalOptimizationState {
             if (impl.getCoreId() != null && impl.getImplementationId() != null) {
                 runningImplementationsCount[impl.getCoreId()][impl.getImplementationId()]++;
                 endRunningActions = Math.max(endRunningActions, pendingTime);
-                double power = p.getPower();
-                runningEnergy += pendingTime * power;
-                runningCost += p.getPrice();
+                runningEnergy += p.getPower() * pendingTime;
+                runningCost += p.getPrice() * pendingTime;
             }
         } else {
-            System.out.println("**** Action has a null implementation. Nothing done for reserving resources ***");
+            LOGGER.debug(LOG_PREFIX + "Action has a null implementation. Nothing done for reserving resources ***");
         }
     }
 
@@ -330,20 +336,27 @@ public class LocalOptimizationState {
         if (!hasInternal) { // Not needs to wait for some blocked action to end
             if (hasExternal) {
                 if (startTime == 0) {
+                	//System.out.println("Action added to selectable");
                     selectableActions.offer(action);
                 } else if (startTime == Long.MAX_VALUE) {
+                	//System.out.println("Action added to blocked");
                     dataBlockedAction(action);
                 } else {
+                	//System.out.println("Action added to ready");
                     readyActions.add(action);
                 }
             } else // has no dependencies
             {
                 if (hasResourcePredecessors) {
+                	//System.out.println("Action added to selectable");
                     selectableActions.offer(action);
                 } else {
+                	//System.out.println("Action added to running");
                     runningActions.add(action);
                 }
             }
+        }else{
+        	//System.out.println("Action not classified.");
         }
     }
 
@@ -453,7 +466,7 @@ public class LocalOptimizationState {
             long length = dsi.getExpectedEnd() - (dsi.getExpectedStart() < 0 ? 0 : dsi.getExpectedStart());
             implementationCount[impl.getCoreId()][impl.getImplementationId()]++;
             totalEnergy += p.getPower() * length;
-            totalCost += p.getPrice();
+            totalCost += p.getPrice()* length;
         }
     }
 

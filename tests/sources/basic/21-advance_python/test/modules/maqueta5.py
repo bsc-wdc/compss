@@ -39,8 +39,8 @@ def function_A(x, y, z):
 
 def app(a, b, c):
     from pycompss.api.api import compss_wait_on
-    print "In app"
-    print sys.argv
+    print("In app")
+    print(sys.argv)
     x = function_A(a, b, c)
     # print x
     x = compss_wait_on(x)

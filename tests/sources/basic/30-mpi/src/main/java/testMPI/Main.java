@@ -49,6 +49,10 @@ public class Main {
         testMPIConcurrentMultipleNodes();
 
         // ------------------------------------------------------------------------
+        System.out.println("[LOG] Test concurrent MPI with 1 node and different CUs");
+        testMPIConcurrentSingleNode();
+
+        // ------------------------------------------------------------------------
         System.out.println("[LOG] MPI Test finished");
     }
 
@@ -132,6 +136,38 @@ public class Main {
             String line;
             while ((line = br.readLine()) != null) {
                 System.out.println("[RESULT] MPI CONC Task2: " + line);
+            }
+        } catch (IOException ioe) {
+            System.err.println("[ERROR] Cannot read output file " + outputFile2);
+            System.exit(1);
+        }
+
+        System.out.println("[LOG] Result must be checked on result script");
+    }
+
+    private static void testMPIConcurrentSingleNode() {
+        String outputFile1 = "mpiConcurrentSingle1.txt";
+        String outputFile2 = "mpiConcurrentSingle2.txt";
+        Integer ev1 = MPI.taskConcurrentSimple1(data, outputFile1);
+        Integer ev2 = MPI.taskConcurrentSimple2(data, outputFile2);
+
+        if (ev1 != 0 || ev2 != 0) {
+            System.err.println("[ERROR] One process returned non-zero exit value: " + ev1 + " or " + ev2);
+            System.exit(1);
+        }
+        try (BufferedReader br = new BufferedReader(new FileReader(outputFile1))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                System.out.println("[RESULT] MPI THREADCONC Task1: " + line);
+            }
+        } catch (IOException ioe) {
+            System.err.println("[ERROR] Cannot read output file " + outputFile1);
+            System.exit(1);
+        }
+        try (BufferedReader br = new BufferedReader(new FileReader(outputFile2))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                System.out.println("[RESULT] MPI THREADCONC Task2: " + line);
             }
         } catch (IOException ioe) {
             System.err.println("[ERROR] Cannot read output file " + outputFile2);

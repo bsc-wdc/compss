@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
@@ -170,6 +171,11 @@ public class TaskResultReader extends Thread {
                         // Line of the form: "endTask" ID STATUS D paramType1 paramValue1 ... paramTypeD paramValueD
                         processEndTaskTag(result);
                         break;
+                    case ExternalExecutor.ERROR_TASK_TAG:
+                        LOGGER.debug("Received erroTask message: " + line);
+                        // We have received a fatal error from bindings, we notify error to every waiter and end
+                        processErrorTaskTag();
+                        return;
                     default:
                         LOGGER.warn("Unrecognised tag: " + result[0] + ". Skipping message");
                         break;
@@ -237,6 +243,28 @@ public class TaskResultReader extends Thread {
                 waiter.release();
                 jobIdsToWaiters.remove(jobId);
             }
+        }
+    }
+
+    private void processErrorTaskTag() {
+        synchronized (jobIdsToWaiters) {
+            // Release all waiters with failed value
+            for (Entry<Integer, Semaphore> entry : jobIdsToWaiters.entrySet()) {
+                Integer jobId = entry.getKey();
+                Semaphore waiter = entry.getValue();
+
+                Integer exitValue = -1;
+                ExternalTaskStatus taskStatus = new ExternalTaskStatus(exitValue);
+                // Add the task status to the set
+                synchronized (jobIdsToStatus) {
+                    jobIdsToStatus.put(jobId, taskStatus);
+                }
+                // Relase the waiter
+                waiter.release();
+            }
+
+            // Remove all waiters
+            jobIdsToWaiters.clear();
         }
     }
 

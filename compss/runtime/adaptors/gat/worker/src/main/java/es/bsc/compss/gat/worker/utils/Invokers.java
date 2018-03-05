@@ -44,37 +44,12 @@ public class Invokers {
         return retValue;
     }
 
-    public static Object invokeMPIMethod(String mpiRunner, String mpiBinary, Object target, Object[] values, boolean hasReturn,
-            Stream[] streams, String[] prefixes, File taskSandboxWorkingDir) {
-
-        Object retValue = null;
-        try {
-            retValue = GenericInvoker.invokeMPIMethod(mpiRunner, mpiBinary, values, hasReturn, streams, prefixes, taskSandboxWorkingDir);
-        } catch (InvokeExecutionException iee) {
-            ErrorManager.error(ERROR_INVOKE, iee);
-        }
-
-        return retValue;
-    }
-    
-    public static Object invokeDecafMethod(String dfRunner, String dfScript, String dfExecutor, String dfLib, String mpiRunner, Object target, Object[] values, boolean hasReturn,
-            Stream[] streams, String[] prefixes, File taskSandboxWorkingDir) {
-
-        Object retValue = null;
-        try {
-            retValue = GenericInvoker.invokeDecafMethod(dfRunner, dfScript, dfExecutor, dfLib, mpiRunner, values, hasReturn, streams, prefixes, taskSandboxWorkingDir);
-        } catch (InvokeExecutionException iee) {
-            ErrorManager.error(ERROR_INVOKE, iee);
-        }
-
-        return retValue;
-    }
-
-    public static Object invokeOmpSsMethod(String ompssBinary, Object target, Object[] values, boolean hasReturn, Stream[] streams,
+    public static Object invokeMPIMethod(String mpiRunner, String mpiBinary, Object target, Object[] values, Stream[] streams,
             String[] prefixes, File taskSandboxWorkingDir) {
+
         Object retValue = null;
         try {
-            retValue = GenericInvoker.invokeOmpSsMethod(ompssBinary, values, hasReturn, streams, prefixes, taskSandboxWorkingDir);
+            retValue = GenericInvoker.invokeMPIMethod(mpiRunner, mpiBinary, values, streams, prefixes, taskSandboxWorkingDir);
         } catch (InvokeExecutionException iee) {
             ErrorManager.error(ERROR_INVOKE, iee);
         }
@@ -82,18 +57,44 @@ public class Invokers {
         return retValue;
     }
 
-    public static Object invokeOpenCLMethod(String kernel, Object target, Object[] values, boolean hasReturn, Stream[] streams,
-            String[] prefixes, File taskSandboxWorkingDir) {
+    public static Object invokeDecafMethod(String dfRunner, String dfScript, String dfExecutor, String dfLib, String mpiRunner,
+            Object target, Object[] values, Stream[] streams, String[] prefixes, File taskSandboxWorkingDir) {
+
+        Object retValue = null;
+        try {
+            retValue = GenericInvoker.invokeDecafMethod(dfRunner, dfScript, dfExecutor, dfLib, mpiRunner, values, streams, prefixes,
+                    taskSandboxWorkingDir);
+        } catch (InvokeExecutionException iee) {
+            ErrorManager.error(ERROR_INVOKE, iee);
+        }
+
+        return retValue;
+    }
+
+    public static Object invokeOmpSsMethod(String ompssBinary, Object target, Object[] values, Stream[] streams, String[] prefixes,
+            File taskSandboxWorkingDir) {
+        Object retValue = null;
+        try {
+            retValue = GenericInvoker.invokeOmpSsMethod(ompssBinary, values, streams, prefixes, taskSandboxWorkingDir);
+        } catch (InvokeExecutionException iee) {
+            ErrorManager.error(ERROR_INVOKE, iee);
+        }
+
+        return retValue;
+    }
+
+    public static Object invokeOpenCLMethod(String kernel, Object target, Object[] values, Stream[] streams, String[] prefixes,
+            File taskSandboxWorkingDir) {
         ErrorManager.error("ERROR: OpenCL is not supported");
 
         return null;
     }
 
-    public static Object invokeBinaryMethod(String binary, Object target, Object[] values, boolean hasReturn, Stream[] streams,
-            String[] prefixes, File taskSandboxWorkingDir) {
+    public static Object invokeBinaryMethod(String binary, Object target, Object[] values, Stream[] streams, String[] prefixes,
+            File taskSandboxWorkingDir) {
         Object retValue = null;
         try {
-            retValue = GenericInvoker.invokeBinaryMethod(binary, values, hasReturn, streams, prefixes, taskSandboxWorkingDir);
+            retValue = GenericInvoker.invokeBinaryMethod(binary, values, streams, prefixes, taskSandboxWorkingDir);
         } catch (InvokeExecutionException iee) {
             ErrorManager.error(ERROR_INVOKE, iee);
         }

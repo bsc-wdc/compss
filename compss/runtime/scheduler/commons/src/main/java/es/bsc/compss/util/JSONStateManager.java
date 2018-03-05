@@ -12,6 +12,7 @@ import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.scheduler.types.Profile;
 import es.bsc.compss.types.CloudProvider;
+import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
@@ -35,49 +36,53 @@ public class JSONStateManager {
     // "{\"resources\":{\"COMPSsWorker01\":{\"implementations\":{\"increment(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590},\"reduce(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590}}}},\"implementations\":{\"increment(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590},\"reduce(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590}}}";
     // private static final String JSON_DATA =
     // "{\"resources\":{\"COMPSsWorker01\":{\"implementations\":{\"reduce(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590}}}},\"implementations\":{\"reduce(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590}}}";
-    // private static final String JSON_DATA = "{}";/*
-    private static final String JSON_DATA = "{" + "\"cloud\":{" + "\"BSC\":{"
-            + "\"small\":{\"implementations\":{\"increment(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590},\"reduce(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590}}},"
-            + "\"big\":{\"implementations\":{\"increment(FILE_T)simple.SimpleImpl\":{\"maxTime\":62,\"executions\":2,\"avgTime\":60,\"minTime\":59},\"reduce(FILE_T)simple.SimpleImpl\":{\"maxTime\":62,\"executions\":2,\"avgTime\":60,\"minTime\":59}}},"
-            + "}" + "}," + "\"resources\":{"
-            + "\"COMPSsWorker02\":{\"implementations\":{\"increment(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590},\"reduce(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590}}},"
-            + "\"COMPSsWorker01\":{\"implementations\":{\"increment(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590},\"reduce(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590}}}"
-            + "},"
-            + "\"implementations\":{\"increment(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":4,\"avgTime\":600,\"minTime\":590},\"reduce(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":4,\"avgTime\":600,\"minTime\":590}}}";
-    // */
+    // private static final String JSON_DATA = "{}";
+    // private static final String JSON_DATA = "{" + "\"cloud\":{" + "\"BSC\":{"
+    // +
+    // "\"small\":{\"implementations\":{\"increment(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590},\"reduce(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590}}},"
+    // +
+    // "\"big\":{\"implementations\":{\"increment(FILE_T)simple.SimpleImpl\":{\"maxTime\":62,\"executions\":2,\"avgTime\":60,\"minTime\":59},\"reduce(FILE_T)simple.SimpleImpl\":{\"maxTime\":62,\"executions\":2,\"avgTime\":60,\"minTime\":59}}},"
+    // + "}" + "}," + "\"resources\":{"
+    // +
+    // "\"COMPSsWorker02\":{\"implementations\":{\"increment(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590},\"reduce(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590}}},"
+    // +
+    // "\"COMPSsWorker01\":{\"implementations\":{\"increment(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590},\"reduce(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590}}}"
+    // + "},"
+    // +
+    // "\"implementations\":{\"increment(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":4,\"avgTime\":600,\"minTime\":590},\"reduce(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":4,\"avgTime\":600,\"minTime\":590}}}";
 
     private final JSONObject jsonRepresentation;
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
-    
-    
-    public JSONStateManager(){
-    	String objectStr = "{}";
-    	String inputProfile = System.getProperty(COMPSsConstants.INPUT_PROFILE);
-    	if (inputProfile!=null && !inputProfile.isEmpty()){
-    		LOGGER.debug("Input profile detected. Reading from file "+ inputProfile);
-    		objectStr = manageInputProfile(inputProfile);
-    	}
-  
-    	jsonRepresentation = new JSONObject(objectStr);
-    	init();
+
+
+    public JSONStateManager() {
+        String objectStr = "{}";
+        String inputProfile = System.getProperty(COMPSsConstants.INPUT_PROFILE);
+        if (inputProfile != null && !inputProfile.isEmpty()) {
+            LOGGER.debug("Input profile detected. Reading from file " + inputProfile);
+            objectStr = manageInputProfile(inputProfile);
+        }
+
+        jsonRepresentation = new JSONObject(objectStr);
+        init();
     }
-    
+
     private String manageInputProfile(String inputProfile) {
-    	File f = new File (inputProfile);
-    	try {
+        File f = new File(inputProfile);
+        try {
             byte[] bytes = Files.readAllBytes(f.toPath());
-            return new String(bytes,"UTF-8");
+            return new String(bytes, "UTF-8");
         } catch (FileNotFoundException e) {
-            ErrorManager.warn("Error loading profile. File "+ f.getAbsolutePath() + " not found. Using default values");
+            ErrorManager.warn("Error loading profile. File " + f.getAbsolutePath() + " not found. Using default values");
             return "{}";
         } catch (IOException e) {
-        	ErrorManager.warn("Error loading profile. Exception reading "+ f.getAbsolutePath() + ". Using default values", e);
-        	return "{}";
+            ErrorManager.warn("Error loading profile. Exception reading " + f.getAbsolutePath() + ". Using default values", e);
+            return "{}";
         }
-		
-	}
 
-	private void init() {
+    }
+
+    private void init() {
         JSONObject resources = getJSONForResources();
         if (resources == null) {
             addResources();
@@ -140,14 +145,21 @@ public class JSONStateManager {
     }
 
     public <T extends WorkerResourceDescription> JSONObject getJSONForResource(Worker<T> resource) {
-        try {
+    	
             JSONObject resourcesJSON = getJSONForResources();
             if (resourcesJSON != null) {
-                return resourcesJSON.getJSONObject(resource.getName());
+            	try {
+            		return resourcesJSON.getJSONObject(resource.getName());
+            	} catch (JSONException je) {
+            		if (resource instanceof CloudMethodWorker){
+            			CloudMethodWorker cmw = (CloudMethodWorker)resource;
+            			if (!cmw.getDescription().getTypeComposition().isEmpty()){
+            				return getJSONForCloudInstanceTypeDescription(cmw.getProvider(), cmw.getDescription().getTypeComposition().keySet().iterator().next());
+            			}
+            		}
+            	}
             }
-        } catch (JSONException je) {
-            // Do nothing it will return null
-        }
+        
         return null;
     }
 
@@ -235,29 +247,29 @@ public class JSONStateManager {
     public String getString() {
         return jsonRepresentation.toString();
     }
-    
-    public void write(){
-    	String outputProfile = System.getProperty(COMPSsConstants.OUTPUT_PROFILE);
-    	if (outputProfile!=null && !outputProfile.isEmpty()){
-    		LOGGER.debug("Output profile detected. Writting to file "+ outputProfile);
-    		writeOutputProfile(outputProfile);
-    	}
+
+    public void write() {
+        String outputProfile = System.getProperty(COMPSsConstants.OUTPUT_PROFILE);
+        if (outputProfile != null && !outputProfile.isEmpty()) {
+            LOGGER.debug("Output profile detected. Writting to file " + outputProfile);
+            writeOutputProfile(outputProfile);
+        }
     }
-    
-    public void writeOutputProfile(String filename){
-    	BufferedWriter writer = null;
-    	try {
-    	    writer = new BufferedWriter( new FileWriter(filename));
-    	    writer.write(jsonRepresentation.toString());
-    	} catch ( IOException e){
-    		ErrorManager.warn("Error loading profile. Exception reading "+ filename + ".",e);
-    	} finally {
-    	    try {
-    	        if ( writer != null)
-    	        writer.close( );
-    	    } catch ( IOException e){
-    	    	//Nothing to do
-    	    }
-    	}
+
+    public void writeOutputProfile(String filename) {
+        BufferedWriter writer = null;
+        try {
+            writer = new BufferedWriter(new FileWriter(filename));
+            writer.write(jsonRepresentation.toString());
+        } catch (IOException e) {
+            ErrorManager.warn("Error loading profile. Exception reading " + filename + ".", e);
+        } finally {
+            try {
+                if (writer != null)
+                    writer.close();
+            } catch (IOException e) {
+                // Nothing to do
+            }
+        }
     }
 }

@@ -7,8 +7,8 @@ stages:
 build_job:
   stage: build
   script:
-  - mvn package sonar:sonar -Dsonar.host.url=http://bscgrid05.bsc.es/sonar/
-  - ./builders/buildlocal /opt/COMPSs
+  - mvn install sonar:sonar -Dsonar.host.url=http://bscgrid05.bsc.es/sonar/
+  - sudo ./builders/buildlocal /opt/COMPSs
   only: 
   - triggers
 
@@ -25,7 +25,8 @@ cleanup_failure:
 test_job:
   stage: test
   script:
-  - echo "Disabled tests" #./tests/scripts/main local local.cfg
+  #- echo "Disabled tests" #./tests/scripts/main local local.cfg
+  - ./tests/scripts/main local local.cfg
   only:
   - triggers
 

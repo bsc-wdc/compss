@@ -23,7 +23,7 @@ public abstract class JobsThreadPool {
 
     protected final NIOWorker nw;
     protected final int size;
-    protected final Thread[] workerThreads;
+    protected Thread[] workerThreads;
     protected final RequestQueue<NIOTask> queue;
     protected final Semaphore sem;
 
@@ -43,9 +43,14 @@ public abstract class JobsThreadPool {
         this.nw = nw;
         this.size = size;
 
+        // Instantiate worker thread structure
         this.workerThreads = new Thread[this.size];
-        this.queue = new RequestQueue<>();
 
+        // Make system properties local to each thread
+        System.setProperties(new ThreadProperties(System.getProperties()));
+
+        // Instantiate the message queue and the stop semaphore
+        this.queue = new RequestQueue<>();
         this.sem = new Semaphore(size);
     }
 
@@ -88,7 +93,7 @@ public abstract class JobsThreadPool {
         // Stop specific language components
         LOGGER.info("Performing specific stop");
         specificStop();
-
+        joinThreads();
         LOGGER.info("ThreadPool stopped");
     }
 
@@ -97,6 +102,21 @@ public abstract class JobsThreadPool {
      * 
      */
     protected abstract void specificStop();
+
+    private void joinThreads() {
+        for (Thread t : this.workerThreads) {
+            if (t != null) {
+                try {
+                    t.join();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+        this.workerThreads = null;
+        
+        Runtime.getRuntime().gc();
+    }
 
     /**
      * Notifies that one of the threads as completed an action required by the Threadpool (start or stop)

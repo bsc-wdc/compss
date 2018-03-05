@@ -2,20 +2,16 @@ package es.bsc.compss.scheduler.multiobjective;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.components.impl.TaskScheduler;
+import es.bsc.compss.scheduler.multiobjective.config.MOConfiguration;
 import es.bsc.compss.scheduler.multiobjective.types.MOProfile;
 import es.bsc.compss.scheduler.multiobjective.types.MOScore;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Score;
-import es.bsc.compss.types.CloudProvider;
-import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
-import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ResourceOptimizer;
 import es.bsc.compss.util.SchedulingOptimizer;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,10 +21,8 @@ import org.json.JSONObject;
 
 public class MOScheduler extends TaskScheduler {
 
-    private final MOScore dummyScore = new MOScore(0, 0, 0, 0, 0, 0);
-
-
     public MOScheduler() {
+        MOConfiguration.load();
     }
 
     @Override
@@ -51,28 +45,28 @@ public class MOScheduler extends TaskScheduler {
 
     @Override
     public Score generateActionScore(AllocatableAction action) {
+        return getActionScore(action);
+    }
+
+    public static MOScore getActionScore(AllocatableAction action) {
         long actionScore = MOScore.getActionScore(action);
-        long dataTime = dummyScore.getDataPredecessorTime(action.getDataPredecessors());
+        long dataTime = MOScore.getDataPredecessorTime(action.getDataPredecessors());
         return new MOScore(actionScore, dataTime, 0, 0, 0, 0);
     }
 
     @Override
     public void shutdown() {
         super.shutdown();
-        Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers = this.getWorkers();
-        System.out.println("End Profiles:");
-        for (ResourceScheduler<?> worker : workers) {
-            System.out.println("\t" + worker.getName());
-            for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
-                for (Implementation impl : CoreManager.getCoreImplementations(coreId)) {
-                    System.out.println("\t\t" + CoreManager.getSignature(coreId, impl.getImplementationId()));
-                    MOProfile profile = (MOProfile) worker.getProfile(impl);
-                    System.out.println("\t\t\tTime " + profile.getAverageExecutionTime() + " ms");
-                    System.out.println("\t\t\tPower " + profile.getPower() + " W");
-                    System.out.println("\t\t\tCost " + profile.getPrice() + " €");
-                }
-            }
-        }
+        /*
+         * Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers = this.getWorkers();
+         * System.out.println("End Profiles:"); for (ResourceScheduler<?> worker : workers) { System.out.println("\t" +
+         * worker.getName()); for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) { for (Implementation
+         * impl : CoreManager.getCoreImplementations(coreId)) { System.out.println("\t\t" +
+         * CoreManager.getSignature(coreId, impl.getImplementationId())); MOProfile profile = (MOProfile)
+         * worker.getProfile(impl); System.out.println("\t\t\tTime " + profile.getAverageExecutionTime() + " ms");
+         * System.out.println("\t\t\tPower " + profile.getPower() + " W"); System.out.println("\t\t\tCost " +
+         * profile.getPrice() + " €"); } } }
+         */
     }
 
     @Override
@@ -110,11 +104,4 @@ public class MOScheduler extends TaskScheduler {
         }
     }
 
-    public JSONObject getJSONForCloudInstanceTypeDescription(CloudProvider cp, CloudInstanceTypeDescription ctid) {
-        return jsm.getJSONForCloudInstanceTypeDescription(cp, ctid);
-    }
-
-    public MOProfile getDefaultProfile(CloudProvider cp, CloudInstanceTypeDescription ctid, int coreId, int implId) {
-        return generateProfile(jsm.getJSONForImplementation(cp, ctid, coreId, implId));
-    }
 }

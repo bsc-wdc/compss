@@ -14,6 +14,8 @@
 #  limitations under the License.
 #
 """
+@author: fconejer
+
 Storage dummy connector
 =======================
     This file contains the functions that any storage that wants to be used

@@ -19,7 +19,7 @@
   ######################
   load_parameters() {
     # Script Variables
-    scriptDir=$(dirname $0)
+    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   
     # Get parameters
     libPath=$1
@@ -28,7 +28,7 @@
     numJvmFlags=$4
 
     jvmFlags=""
-    for i in $(seq 1 $numJvmFlags); do
+    for i in $(seq 1 "$numJvmFlags"); do
       pos=$((4 + i))
       jvmFlags="${jvmFlags} ${!pos}"
     done
@@ -36,7 +36,7 @@
     # Shift parameters for script and leave only the NIOWorker parameters
     paramsToShift=$((4 + numJvmFlags))
     shift ${paramsToShift}
-    paramsToCOMPSsWorker=$@ #"${*:1:21}"
+    paramsToCOMPSsWorker=$@
  
     # Catch some NIOWorker parameters
     debug=$1
@@ -78,6 +78,7 @@
 
       echo "- Tracing:             $tracing"
       echo "- ExtraeFile:          ${extraeFile}"
+      echo "- HostId:              ${hostId}"
     fi
 
     # Calculate Log4j file
@@ -85,6 +86,13 @@
       itlog4j_file=COMPSsWorker-log4j.debug
     else
       itlog4j_file=COMPSsWorker-log4j.off
+    fi
+
+    # Calculate must erase working dir
+    if [[ "$jvmFlags" == *"-Dcompss.worker.removeWD=false"* ]]; then
+      eraseWD="false"
+    else
+      eraseWD="true"
     fi
   }
   
@@ -98,20 +106,20 @@
     fi
 
     # Create sandbox
-    if [ ! -d $workingDir ]; then
-  	/bin/mkdir -p $workingDir
+    if [ ! -d "$workingDir" ]; then
+  	mkdir -p "$workingDir"
     fi
     export COMPSS_WORKING_DIR=$workingDir
-    mkdir -p $workingDir/log
-    mkdir -p $workingDir/jobs
+    mkdir -p "$workingDir"/log
+    mkdir -p "$workingDir"/jobs
 
     # Look for the JVM Library
-    libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.so | head -n 1)
+    libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
     if [ -z "$libjava" ]; then
-        libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.dylib | head -n 1)
+        libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
     fi
     if [ -n "$libjava" ]; then
-        libjavafolder=$(dirname $libjava)
+        libjavafolder=$(dirname "$libjava")
         export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$libjavafolder
     fi
 
@@ -141,7 +149,7 @@
   setup_jvm() {
     # Prepare the worker command
     local JAVA=java
-    local worker_jar=${scriptDir}/../../../../adaptors/nio/worker/compss-adaptors-nio-worker.jar
+    local worker_jar=${SCRIPT_DIR}/../../../../adaptors/nio/worker/compss-adaptors-nio-worker.jar
     local main_worker_class=es.bsc.compss.nio.worker.NIOWorker
     cmd=$JAVA" \
       ${jvmFlags} \
@@ -156,20 +164,20 @@
   }
   
   pre_launch() {
-    cd $workingDir
+    cd "$workingDir" || exit 1
   
     # Trace initialization
-    if [ $tracing -gt 0 ]; then
+    if [ "$tracing" -gt 0 ]; then
       if [ -z "${extraeFile}" ] || [ "${extraeFile}" == "null" ]; then
         # Only define extraeFile if it is not a custom location
-        extraeFile=${scriptDir}/../../../../configuration/xml/tracing/extrae_basic.xml
-        if [ $tracing -gt 1 ]; then
-          extraeFile=${scriptDir}/../../../../configuration/xml/tracing/extrae_advanced.xml
+        extraeFile=${SCRIPT_DIR}/../../../../configuration/xml/tracing/extrae_basic.xml
+        if [ "$tracing" -gt 1 ]; then
+          extraeFile=${SCRIPT_DIR}/../../../../configuration/xml/tracing/extrae_advanced.xml
         fi
       fi
       
       if [ -z "$EXTRAE_HOME" ]; then
-        export EXTRAE_HOME=${scriptDir}/../../../../../Dependencies/extrae/
+        export EXTRAE_HOME=${SCRIPT_DIR}/../../../../../Dependencies/extrae/
       fi
       
       export EXTRAE_LIB=${EXTRAE_HOME}/lib
@@ -180,12 +188,17 @@
   }
   
   post_launch() {
-    if [ $tracing -gt 0 ]; then
+    if [ "$tracing" -gt 0 ]; then
       unset LD_PRELOAD
     fi
   }
 
   clean_env() {
-    echo "[persistent_worker.sh] Clean WD ${workingDir}"
-    rm -rf ${workingDir}
+    if [ "$eraseWD" = "true" ]; then
+      echo "[persistent_worker.sh] Clean WD ${workingDir}"
+      rm -rf "${workingDir}"
+    else
+      echo "[persistent_worker.sh] Not cleaning WD ${workingDir}"
+    fi
   }
+

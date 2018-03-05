@@ -1,24 +1,36 @@
-/*
-  Copyright 2.02-2017 Barcelona Supercomputing Center (www.bsc.es)
-
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-
-      http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
-*/
 #include <Python.h>
 
 /* ****************************************************************** */
 
 #include <param_metadata.h>
 #include <stdio.h>
+
+//#ifndef DEBUG
+//#define //printf(...)
+//#endif
+
+struct module_state {
+    PyObject *error;
+};
+
+#if PY_MAJOR_VERSION >= 3
+    #define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
+    #define PyInt_FromLong PyLong_FromLong
+    #define PyInt_AsLong PyLong_AsLong
+    // #define PyString_AsString PyBytes_AsString
+#else
+    #define GETSTATE(m) (&_state)
+    static struct module_state _state;
+#endif
+
+static PyObject *
+error_out(PyObject *m) {
+    struct module_state *st = GETSTATE(m);
+    PyErr_SetString(st->error, "Compss extension module: Something bad happened");
+    return NULL;
+}
+
+//////////////////////////////////////////////////////////////
 
 
 struct list_int {
@@ -50,7 +62,7 @@ stop_runtime(PyObject *self, PyObject *args)
 static PyObject *
 process_task(PyObject *self, PyObject *args)
 {
-	  //printf ("####C#### PROCESS TASK\n");
+    //printf ("####C#### PROCESS TASK\n");
     long app_id;
     const char* signature;
     int priority, num_nodes, replicated, distributed, has_target;
@@ -66,19 +78,19 @@ process_task(PyObject *self, PyObject *args)
         return NULL;
     }
 
-  //printf ("####C#### App id: %ld\n", app_id);
-	//printf ("####C#### Signature: %s\n", signature);
-	//printf ("####C#### Priority: %d\n", priority);
-	//printf ("####C#### MPI Num nodes: %d\n", num_nodes);
-	//printf ("####C#### Replicated: %d\n", replicated);
-	//printf ("####C#### Distributed: %d\n", distributed);
-	//printf ("####C#### Has target: %d\n", has_target);
-  fflush(stdout);
+    //printf ("####C#### App id: %ld\n", app_id);
+    //printf ("####C#### Signature: %s\n", signature);
+    //printf ("####C#### Priority: %d\n", priority);
+    //printf ("####C#### MPI Num nodes: %d\n", num_nodes);
+    //printf ("####C#### Replicated: %d\n", replicated);
+    //printf ("####C#### Distributed: %d\n", distributed);
+    //printf ("####C#### Has target: %d\n", has_target);
+    fflush(stdout);
 
-	Py_ssize_t num_pars = PyList_Size(values);
-	//printf ("####C#### Num pars: %d\n", num_pars);
+    Py_ssize_t num_pars = PyList_Size(values);
+    //printf ("####C#### Num pars: %d\n", num_pars);
 
-  PyObject *type, *val, *direction, *stream, *prefix;
+    PyObject *type, *val, *direction, *stream, *prefix;
 
 	Py_ssize_t j, pj;
     long l;
@@ -96,19 +108,23 @@ process_task(PyObject *self, PyObject *args)
     // Get C types and directions
     for (j = 0; j < num_pars; j++) {
     	type = PyList_GetItem(compss_types, j); // this does not increment reference (we don't own it) so no need for decref
-    	direction = PyList_GetItem(compss_directions, j);
-      stream = PyList_GetItem(compss_streams, j);
-      prefix = PyList_GetItem(compss_prefixes, j);
+        direction = PyList_GetItem(compss_directions, j);
+        stream = PyList_GetItem(compss_streams, j);
+        prefix = PyList_GetItem(compss_prefixes, j);
 
     	c_types[j] = (int)PyInt_AsLong(type);
     	c_directions[j] = (int)PyInt_AsLong(direction);
-      c_streams[j] = (int)PyInt_AsLong(stream);
-      c_prefixes[j] = PyString_AsString(prefix);
+        c_streams[j] = (int)PyInt_AsLong(stream);
+        #if PY_MAJOR_VERSION >= 3
+            c_prefixes[j] = PyBytes_AsString(PyUnicode_AsEncodedString(prefix, "utf-8", "Error ~"));
+        #else
+            c_prefixes[j] = PyString_AsString(prefix);
+        #endif
 
     	//printf ("#### c_type: %d\n", c_types[j]);
     	//printf ("#### c_direction: %d\n", c_directions[j]);
-      //printf ("#### c_stream: %d\n", c_streams[j]);
-      //printf ("#### c_prefix: %s\n", c_prefixes[j]);
+        //printf ("#### c_stream: %d\n", c_streams[j]);
+        //printf ("#### c_prefix: %s\n", c_prefixes[j]);
 
     	switch ((enum datatype) c_types[j]) {
     	    case file_dt:
@@ -157,19 +173,31 @@ process_task(PyObject *self, PyObject *args)
     	params[pj] = (void *)c_values;
     	switch ((enum datatype) c_types[j]) {
             case file_dt:
-    			s = PyString_AsString(val);
+                #if PY_MAJOR_VERSION >= 3
+    			    s = PyBytes_AsString(PyUnicode_AsEncodedString(val, "utf-8", "Error ~"));
+    			#else
+                    s = PyString_AsString(val);
+    			#endif
     			*(char**)c_values = s;
     			//printf ("####C#### \t Arg %d (FILE): %s, add %ld\n", j, *(char**)c_values, c_values);
     			c_values += sizeof(char*);
     			break;
 	       case external_psco_dt:
-                s = PyString_AsString(val);
+	            #if PY_MAJOR_VERSION >= 3
+                    s = PyBytes_AsString(PyUnicode_AsEncodedString(val, "utf-8", "Error ~"));
+                #else
+                    s = PyString_AsString(val);
+     			#endif
                 *(char**)c_values = s;
                 //printf ("####C#### \t Arg %d (PERSISTENT): %s, add %ld\n", j, *(char**)c_values, c_values);
 			    c_values += sizeof(char*);
 			    break;
     	    case string_dt:
-    	    	s = PyString_AsString(val);
+    	        #if PY_MAJOR_VERSION >= 3
+    	    	    s = PyBytes_AsString(PyUnicode_AsEncodedString(val, "utf-8", "Error ~"));
+    	    	#else
+    	    	    s = PyString_AsString(val);
+    			#endif
     	    	*(char**)c_values = s;
     	    	//printf ("####C#### \t Arg %d (STRING): %s, add %ld\n", j, *(char**)c_values, c_values);
     	    	c_values += sizeof(char*);
@@ -203,8 +231,8 @@ process_task(PyObject *self, PyObject *args)
     	}
     	params[pj+1] = (void *)&c_types[j];
     	params[pj+2] = (void *)&c_directions[j];
-      params[pj+3] = (void *)&c_streams[j];
-      params[pj+4] = (void *)&c_prefixes[j];
+        params[pj+3] = (void *)&c_streams[j];
+        params[pj+4] = (void *)&c_prefixes[j];
     }
 
     // Invoke the C library
@@ -233,9 +261,13 @@ process_task(PyObject *self, PyObject *args)
 static PyObject *
 get_file(PyObject *self, PyObject *args)
 {
-    //printf ("####C#### GET FILE\n");
+    //printf("####C#### GET FILE\n");
 
-    char *file_name = PyString_AsString(PyTuple_GetItem(args, 0));
+    #if PY_MAJOR_VERSION >= 3
+        char *file_name = PyBytes_AsString(PyUnicode_AsEncodedString(PyTuple_GetItem(args, 0), "utf-8", "Error ~"));
+    #else
+        char *file_name = PyString_AsString(PyTuple_GetItem(args, 0));
+    #endif
     int mode = (int)PyInt_AsLong(PyTuple_GetItem(args, 1));
 
     char *compss_name;
@@ -250,29 +282,37 @@ get_file(PyObject *self, PyObject *args)
 static PyObject *
 delete_file(PyObject *self, PyObject *args)
 {
-    //printf ("####C#### DELETE FILE\n");
+    //printf("####C#### DELETE FILE\n");
 
-    char *file_name = PyString_AsString(PyTuple_GetItem(args, 0));
+    #if PY_MAJOR_VERSION >= 3
+        char *file_name = PyBytes_AsString(PyUnicode_AsEncodedString(PyTuple_GetItem(args, 0), "utf-8", "Error ~"));
+    #else
+        char *file_name = PyString_AsString(PyTuple_GetItem(args, 0));
+    #endif
     int *result;
     GS_Delete_File(file_name, &result);
 
-    //printf("####C#### COMPSs delete file name %s with result %i \n", (file_name, result));
+    //printf("####C#### COMPSs delete file name %s with result %s \n", (file_name, result));
 
     return Py_BuildValue("i", result);
 }
 
 static PyObject*
 close_file(PyObject* self, PyObject* args) {
-  char *file_name = PyString_AsString(PyTuple_GetItem(args, 0));
-  int mode = (int)PyInt_AsLong(PyTuple_GetItem(args, 1));
-  GS_Close_File(file_name, mode);
-  Py_RETURN_NONE;
+    #if PY_MAJOR_VERSION >= 3
+        char *file_name = PyBytes_AsString(PyUnicode_AsEncodedString(PyTuple_GetItem(args, 0), "utf-8", "Error ~"));
+    #else
+        char *file_name = PyString_AsString(PyTuple_GetItem(args, 0));
+    #endif
+    int mode = (int)PyInt_AsLong(PyTuple_GetItem(args, 1));
+    GS_Close_File(file_name, mode);
+    Py_RETURN_NONE;
 }
 
 static PyObject *
 barrier(PyObject *self, PyObject *args)
 {
-    //printf ("####C#### BARRIER\n");
+    //printf("####C#### BARRIER\n");
 
     long app_id = PyInt_AsLong(PyTuple_GetItem(args, 0));
     GS_Barrier(app_id);
@@ -320,8 +360,14 @@ register_core_element(PyObject *self, PyObject *args)
     char **ImplTypeArgs = (char**)malloc(num_params*sizeof(char*));
     int i;
     for (i=0; i<num_params; i++){
-        ImplTypeArgs[i] = ((PyStringObject*) PyList_GetItem(typeArgs, i))->ob_sval;
-        //printf ("####C#### Implementation Type Arg: %s\n", ((PyStringObject*) PyList_GetItem(typeArgs, i))->ob_sval);
+        #if PY_MAJOR_VERSION >= 3
+            ImplTypeArgs[i] = PyBytes_AsString(PyUnicode_AsEncodedString(PyList_GetItem(typeArgs, i), "utf-8", "Error ~"));
+            //printf ("####C#### Implementation Type Arg: %s\n", PyBytes_AsString(PyUnicode_AsEncodedString(PyList_GetItem(typeArgs, i), "utf-8", "Error ~")));
+        #else
+            ImplTypeArgs[i] = ((PyStringObject*) PyList_GetItem(typeArgs, i))->ob_sval;
+            //printf ("####C#### Implementation Type Arg: %s\n", ((PyStringObject*) PyList_GetItem(typeArgs, i))->ob_sval);
+        #endif
+
     }
 
 	// Invoke the C library
@@ -337,6 +383,8 @@ register_core_element(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef CompssMethods[] = {
+
+    { "error_out", (PyCFunction)error_out, METH_NOARGS, NULL},
 
     { "start_runtime", start_runtime, METH_VARARGS, "Start the COMPSs runtime." },
 
@@ -356,12 +404,57 @@ static PyMethodDef CompssMethods[] = {
 
     { "register_core_element", register_core_element, METH_VARARGS, "Registers a task in the Runtime." },
 
-    { NULL, NULL, 0, NULL } /* sentinel */
+    { NULL, NULL } /* sentinel */
 
 };
 
-PyMODINIT_FUNC
-initcompss(void)
+
+#if PY_MAJOR_VERSION >= 3
+    static int compss_traverse(PyObject *m, visitproc visit, void *arg) {
+        Py_VISIT(GETSTATE(m)->error);
+        return 0;
+    }
+    static int compss_clear(PyObject *m) {
+        Py_CLEAR(GETSTATE(m)->error);
+        return 0;
+    }
+    static struct PyModuleDef cModPy =
+    {
+        PyModuleDef_HEAD_INIT,
+        "compss",                      /* name of module */
+        NULL,                          /* module documentation, may be NULL */
+        sizeof(struct module_state),   /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
+        CompssMethods,
+        NULL,
+        compss_traverse,
+        compss_clear,
+        NULL
+    };
+    #define INITERROR return NULL
+    PyMODINIT_FUNC
+    PyInit_compss(void)
+#else
+    #define INITERROR return
+    void initcompss(void)
+#endif
 {
-    (void) Py_InitModule("compss", CompssMethods);
+    #if PY_MAJOR_VERSION >= 3
+        PyObject *module = PyModule_Create(&cModPy);
+    #else
+        PyObject *module = Py_InitModule("compss", CompssMethods);
+    #endif
+
+    if (module == NULL)
+        INITERROR;
+    struct module_state *st = GETSTATE(module);
+
+    st->error = PyErr_NewException("compss.Error", NULL, NULL);
+    if (st->error == NULL) {
+        Py_DECREF(module);
+        INITERROR;
+    }
+
+    #if PY_MAJOR_VERSION >= 3
+        return module;
+    #endif
 }

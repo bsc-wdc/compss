@@ -40,7 +40,7 @@
     <Logger name="es.bsc.compss.Loader" additivity="FALSE" level="error">
       <AppenderRef ref="Console"/>
     </Logger>
-    <!-- es.bsc.compss.LoaderUtils: DEFAULT = INFO -->
+    <!-- es.bsc.compss.LoaderUtils: DEFAULT = ERROR -->
     <Logger name="es.bsc.compss.LoaderUtils" additivity="FALSE" level="error">
       <AppenderRef ref="Console"/>
     </Logger>
@@ -127,17 +127,17 @@
 
     <!-- CONNECTORS -->
     <!-- es.bsc.compss.Connectors: DEFAULT = INFO -->
-    <Logger name="es.bsc.compss.Connectors" additivity="FALSE" level="INFO">
+    <Logger name="es.bsc.compss.Connectors" additivity="FALSE" level="info">
       <AppenderRef ref="COMPSsRuntimeLog"/>                                                                                                                                             
     </Logger>
     <!-- es.bsc.compss.ConnectorsUtils: DEFAULT = INFO -->
-    <Logger name="es.bsc.compss.ConnectorsUtils" additivity="FALSE" level="INFO">
+    <Logger name="es.bsc.compss.ConnectorsUtils" additivity="FALSE" level="info">
       <AppenderRef ref="COMPSsResourcesLog"/>
     </Logger>
 
     <!-- WORKER -->
-    <!-- es.bsc.compss.Worker: DEFAULT = DEBUG -->
-    <Logger name="es.bsc.compss.Worker" additivity="FALSE" level="debug">
+    <!-- es.bsc.compss.Worker: DEFAULT = INFO -->
+    <Logger name="es.bsc.compss.Worker" additivity="FALSE" level="info">
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
 

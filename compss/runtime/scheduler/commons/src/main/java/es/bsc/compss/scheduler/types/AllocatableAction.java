@@ -404,7 +404,14 @@ public abstract class AllocatableAction {
     private void execute() {
         // LOGGER.info(this + " execution starts on worker " + selectedResource.getName());
         // there are enough resources to host the actions and no waiting tasks in the queue
-        if (!isToReserveResources() || (!selectedResource.hasBlockedActions() && areEnoughResources())) {
+    	boolean reserve = isToReserveResources();
+    	boolean blocked = false;
+    	boolean enoughResources = false;
+    	if (reserve){
+    		blocked = selectedResource.hasBlockedActions();
+    		enoughResources = areEnoughResources();
+    	}
+    	if (!reserve || (!blocked && enoughResources)) {
             // register executing resource
             executingResources.add(selectedResource);
             // Run action
@@ -580,17 +587,20 @@ public abstract class AllocatableAction {
 
         // Cancel action
         boolean cancelled = false;
-        while (!cancelled) {
-            try {
-                selectedResource.cancelAction(this);
-                cancelled = true;
-            } catch (ActionNotFoundException anfe) {
-                // Action could not be cancelled since it was not scheduled to the resource
-                // Wait until a new resource is assigned
-                while (selectedResource != null) {
-                }
-                // Try to cancel its execution on the new resource
-            }
+        if (selectedResource != null) {
+        	while (!cancelled) {
+        		try {
+        			selectedResource.cancelAction(this);
+        			cancelled = true;
+        		} catch (ActionNotFoundException anfe) {
+        			// Action could not be cancelled since it was not scheduled to the resource
+        			// Wait until a new resource is assigned
+        			LOGGER.warn("[Allocatable Action] Action not found exception when cancelling " + this);
+        			while (selectedResource == null) {
+        			}
+        			// Try to cancel its execution on the new resource
+        		}
+        	}
         }
         // Predecessors -> ignore Action
         for (AllocatableAction pred : dataPredecessors) {
@@ -693,13 +703,22 @@ public abstract class AllocatableAction {
     public abstract <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker, Score actionScore);
 
     /**
-     * Schedules the action considering the @actionScore
+     * Schedules the action considering the @actionScore. Actions can be scheduled on full workers
      *
      * @param actionScore
      * @throws BlockedActionException
      * @throws UnassignedActionException
      */
     public abstract void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException;
+    
+    /**
+     * Schedules the action considering the @actionScore. Actions can only scheduled on workers with free slots
+     *
+     * @param actionScore
+     * @throws BlockedActionException
+     * @throws UnassignedActionException
+     */
+    public abstract void tryToSchedule(Score actionScore) throws BlockedActionException, UnassignedActionException;
 
     /**
      * Schedules the action to a given @targetWorker with score @actionScore

@@ -1,3 +1,6 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
 
 """
 PyCOMPSs API - OMPSS
@@ -5,15 +8,18 @@ PyCOMPSs API - OMPSS
     This file contains the class constraint, needed for the OmpSs task
     definition through the decorator.
 """
+
 import inspect
 import logging
 import os
 from functools import wraps
 from pycompss.runtime.binding import register_ce
 from pycompss.util.location import i_am_at_master
+from pycompss.util.location import i_am_within_scope
 
 
-logger = logging.getLogger(__name__)
+if __debug__:
+    logger = logging.getLogger(__name__)
 
 
 class ompss(object):
@@ -22,24 +28,52 @@ class ompss(object):
     __call__ methods, useful on mpi task creation.
     """
     def __init__(self, *args, **kwargs):
-        # store arguments passed to the decorator
-        self.args = args
-        self.kwargs = kwargs
-        logger.debug("Init @ompss decorator...")
-
-        # Get the computing nodes: This parameter will have to go down until
-        # execution when invoked.
-        if 'computingNodes' not in self.kwargs:
-            self.kwargs['computingNodes'] = 1
-        else:
-            self.kwargs['computingNodes'] = kwargs['computingNodes']
-        logger.debug("This MPI task will have " + str(self.kwargs['computingNodes']) + " computing nodes.")
-
+        """
+        Store arguments passed to the decorator
         # self = itself.
         # args = not used.
-        # kwargs = dictionary with the given constraints.
+        # kwargs = dictionary with the given ompss parameters
+        :param args: Arguments
+        :param kwargs: Keyword arguments
+        """
+        self.args = args
+        self.kwargs = kwargs
+        self.scope = i_am_within_scope()
+        if self.scope:
+            if __debug__:
+                logger.debug("Init @ompss decorator...")
+
+            # Get the computing nodes: This parameter will have to go down until
+            # execution when invoked.
+            if 'computingNodes' not in self.kwargs:
+                self.kwargs['computingNodes'] = 1
+            else:
+                cNs = kwargs['computingNodes']
+                if isinstance(cNs, int):
+                    self.kwargs['computingNodes'] = kwargs['computingNodes']
+                elif isinstance(cNs, str) and cNs.strip().startswith('$'):
+                    envVar = cNs.strip()[1:]  # Remove $
+                    if envVar.startswith('{'):
+                        envVar = envVar[1:-1]  # remove brackets
+                    self.kwargs['computingNodes'] = int(os.environ[envVar])
+                else:
+                    raise Exception("Wrong Computing Nodes value at MPI decorator.")
+            if __debug__:
+                logger.debug("This OMPSs task will have " + str(self.kwargs['computingNodes']) + " computing nodes.")
+        else:
+            pass
 
     def __call__(self, func):
+        """
+        Parse and set the ompss parameters within the task core element.
+        :param func: Function to decorate
+        :return: Decorated function.
+        """
+        if not self.scope:
+            # from pycompss.api.dummy.ompss import ompss as dummy_ompss
+            # d_o = dummy_ompss(self.args, self.kwargs)
+            # return d_o.__call__(func)
+            raise Exception("The ompss decorator only works within PyCOMPSs framework.")
 
         if i_am_at_master():
             # master code
@@ -92,7 +126,8 @@ class ompss(object):
             func.__to_register__ = coreElement
             # Do the task register if I am the top decorator
             if func.__who_registers__ == __name__:
-                logger.debug("[@OMPSS] I have to do the register of function %s in module %s" % (func.__name__, self.module))
+                if __debug__:
+                    logger.debug("[@OMPSS] I have to do the register of function %s in module %s" % (func.__name__, self.module))
                 register_ce(coreElement)
         else:
             # worker code
@@ -101,7 +136,8 @@ class ompss(object):
         @wraps(func)
         def ompss_f(*args, **kwargs):
             # This is executed only when called.
-            logger.debug("Executing ompss_f wrapper.")
+            if __debug__:
+                logger.debug("Executing ompss_f wrapper.")
 
             # Set the computingNodes variable in kwargs for its usage
             # in @task decorator

@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 
 	Block::generate(a, 2, 1.0);
         Block::generate(b, 2, 2.0);
-	/*compss_wait_on(*b);
+	compss_wait_on(*b);
 	if (b->data[0][0]!=2.0){
 		printf("Generated object not valid");
 		return -1;
@@ -43,7 +43,7 @@ int main(int argc, char **argv)
         if (a->data[0][0]!=1.0){
                 printf("Generated object not valid");
                 return -1;
-        }*/
+        }
 	
 	Block c = Block::create(2, 0.0);
 	compss_wait_on(c);

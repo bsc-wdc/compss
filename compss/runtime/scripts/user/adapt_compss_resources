@@ -1,0 +1,49 @@
+#!/bin/bash
+
+########################################
+# SCRIPT HELPER FUNCTIONS
+########################################
+get_args() {
+ node=$1
+ appId=$2
+ shift 2
+ params=$*
+}
+
+read_result() {
+   
+  echo "[Adaptation] Reading result $resultPipe"
+  result=$(ssh $node "read line < ${resultPipe} ; echo \$line")
+  if [ $? -ne 0 ] ; then
+	echo "[Adaptation] ssh command execution failed"
+        exit 1
+  fi
+  echo "[Adaptation] Read $result"
+  local command=($line)
+  local tag=${command[0]}
+	
+  if [ "$tag" == "ACK" ]; then
+     echo "[Adaptation] Action successfully done."
+     exit 0
+  else
+     echo "[Adaptation] $command"
+     exit 1
+  fi
+}
+
+write_command() {
+ echo "[Adaptation] writting command $params on $commandPipe"
+ ssh $node "echo $params >> $commandPipe"
+}
+
+########################################
+# MAIN
+########################################
+# Script variables
+# Arguments (1) app_master_node (2) appId (3)ADD/REMOVE (4) action args
+get_args $@
+# Launch one process per CMDPipe
+commandPipe="~/.COMPSs/${appId}/adaptation/command_pipe"
+resultPipe="~/.COMPSs/${appId}/adaptation/result_pipe"
+write_command
+read_result

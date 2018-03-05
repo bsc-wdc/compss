@@ -7,49 +7,49 @@ class testArgsKwargsInstanceMethods(unittest.TestCase):
 
     @task(returns=int)
     def argTask(self, *args):
-        print "ARG: ", args
+        print("ARG: ", args)
         return sum(args)
       
     @task(returns=int)
     def varargTask(self, v, w, *args):
-        print "V: ", v
-        print "W: ", w
-        print "ARG: ", args
+        print("V: ", v)
+        print("W: ", w)
+        print("ARG: ", args)
         return (v * w) + sum(args)
 
     @task(returns=int)
     def kwargTask(self, **kwargs):
-        print "KARG: ", kwargs
+        print("KARG: ", kwargs)
         return len(kwargs)
       
     @task(returns=int)
     def varkwargTask(self, v, w , **kwargs):
-        print "V: ", v
-        print "W: ", w
-        print "KARG: ", kwargs
+        print("V: ", v)
+        print("W: ", w)
+        print("KARG: ", kwargs)
         return (v * w) + len(kwargs)
       
     @task(returns=int)
     def argkwargTask(self, *args, **kwargs):
-        print "ARG: ", args
-        print "KARG: ", kwargs
+        print("ARG: ", args)
+        print("KARG: ", kwargs)
         return sum(args) + len(kwargs)
 
     @task(returns=int)
     def varargkwargTask(self, v, w , *args, **kwargs):
-        print "V: ", v
-        print "W: ", w
-        print "ARG: ", args
-        print "KARG: ", kwargs
+        print("V: ", v)
+        print("W: ", w)
+        print("ARG: ", args)
+        print("KARG: ", kwargs)
         return (v * w) + sum(args) + len(kwargs)
 
     @task(returns=int)
     def varargdefaultkwargTask(self, v, w, s = 2, *args, **kwargs):
-        print "V: ", v
-        print "W: ", w
-        print "S: ", s
-        print "ARGS: ", args
-        print "KWARG: ", kwargs
+        print("V: ", v)
+        print("W: ", w)
+        print("S: ", s)
+        print("ARGS: ", args)
+        print("KWARG: ", kwargs)
         return (v * w) + sum(args) + len(kwargs) + s
 
     '''

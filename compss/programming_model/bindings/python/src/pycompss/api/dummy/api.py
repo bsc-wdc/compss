@@ -1,18 +1,7 @@
-#
-#  Copyright Barcelona Supercomputing Center (www.bsc.es)
-#
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-#
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
 '''
 PyCOMPSs Dummy API
 ==================
@@ -21,32 +10,59 @@ PyCOMPSs Dummy API
 '''
 
 
-def compss_open(obj):
-    '''Dummy compss_open
-    :param obj: The object to open
-    :return: The same object defined as parameter
-    '''
-    return obj
-
-
-def compss_delete(file_name):
-    '''Dummy compss_delete
-    :param file_name: File name.
-    '''
+def compss_start():
+    """
+    Dummy runtime starter.
+    """
     pass
 
 
-def barrier():
+def compss_stop():
+    """
+    Dummy runtime stopper.
+    """
+    pass
+
+
+def compss_open(file_name, mode='r'):
+    """
+    Dummy compss_open
+    :param file_name: The file name to open
+    @return: An object of 'file' type.
+    @raise IOError: If the file can not be opened.
+    """
+    return open(file_name, mode)
+
+
+def compss_delete_file(file_name):
+    """
+    Dummy compss_delete
+    :param file_name: File name.
+    :return: Always True.
+    """
+    return True
+
+def compss_delete_object(obj):
+    """
+    Dummy compss_delete_object
+    :param obj: Object.
+    :return: Always True.
+    """
+    return True
+
+def compss_barrier():
     """
     Dummy barrier
     """
     pass
 
 
-def compss_wait_on(obj):
+def compss_wait_on(*args):
     """
     Dummy compss_wait_on
-    :param obj: The object to wait on.
-    :return: The same object defined as parameter
+    :param args: Objects to wait on
+    :return: The same objects defined as parameter
     """
-    return obj
+    ret = list(map(lambda o: o, args))
+    ret = ret[0] if len(ret) == 1 else ret
+    return ret

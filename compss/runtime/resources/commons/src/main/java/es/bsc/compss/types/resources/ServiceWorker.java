@@ -51,7 +51,11 @@ public class ServiceWorker extends Worker<ServiceResourceDescription> {
     public boolean hasAvailable(ServiceResourceDescription consumption) {
         return true;
     }
-
+    
+    @Override
+    public boolean hasAvailableSlots() {
+        return true;
+    }
 
     @Override
     public ServiceResourceDescription reserveResource(ServiceResourceDescription consumption) {

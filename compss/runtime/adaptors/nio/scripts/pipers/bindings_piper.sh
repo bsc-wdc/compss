@@ -17,24 +17,24 @@
     numPipesCMD=$1
     shift 1
     local i=0
-    while [ $i -lt $numPipesCMD ]; do
+    while [ $i -lt "$numPipesCMD" ]; do
       local arg_pos=$((i+1))
       CMDpipes[$i]=${!arg_pos}
       i=$((i+1))
     done
-    shift ${numPipesCMD}
+    shift "${numPipesCMD}"
 
     # Get RESULT pipes
     RESULTpipes=()
     numPipesRESULT=$1
     shift 1
     i=0
-    while [ $i -lt $numPipesRESULT ]; do
+    while [ $i -lt "$numPipesRESULT" ]; do
       local arg_pos=$((i+1))
       RESULTpipes[$i]=${!arg_pos}
       i=$((i+1))
     done
-    shift ${numPipesRESULT}
+    shift "${numPipesRESULT}"
 
     # Get binding
     binding=$1
@@ -45,18 +45,17 @@
         tracing=$1
         shift 1
         if [ "$tracing" == "true" ]; then
-            configPath="${scriptDir}/../../../../../configuration/xml/tracing"
-            escapedConfigPath=$(echo $configPath | sed 's_/_\\/_g')
+            configPath="${SCRIPT_DIR}/../../../../../configuration/xml/tracing"
+            escapedConfigPath=$(echo "$configPath" | sed 's_/_\\/_g')
             baseConfigFile="${configPath}/extrae_python_worker.xml"
             workerConfigFile="$(pwd)/extrae_python_worker.xml"
 
-            echo $(sed s/{{PATH}}/${escapedConfigPath}/g <<< $(cat ${baseConfigFile})) > ${workerConfigFile}
+            echo $(sed s/{{PATH}}/"${escapedConfigPath}"/g <<< $(cat "${baseConfigFile}")) > "${workerConfigFile}"
 
-            export PYTHONPATH=${scriptDir}/../../../../../../Dependencies/extrae/libexec/:${scriptDir}/../../../../../../Dependencies/extrae/lib/:${PYTHONPATH}
+            export PYTHONPATH=${SCRIPT_DIR}/../../../../../../Dependencies/extrae/libexec/:${SCRIPT_DIR}/../../../../../../Dependencies/extrae/lib/:${PYTHONPATH}
             export EXTRAE_CONFIG_FILE=${workerConfigFile}
         fi
     fi
-
 
     # Get binding additional executable and arguments
     bindingExecutable=$1
@@ -72,10 +71,10 @@
 
       # Ignore kill output because if it doesn't exist it means that
       # the subprocess has correctly finished
-      kill -15 $bindingPID &> /dev/null
+      kill -15 "$bindingPID" &> /dev/null
     fi
     # remove data pipes
-    rm -f ${dataCMDpipe} ${dataRESULTpipe}
+    rm -f "${dataCMDpipe}" "${dataRESULTpipe}"
     
     # remove job pipes
     for i in "${CMDpipes[@]}"; do
@@ -92,7 +91,7 @@
   ########################################
 
   # Actual script dir
-  scriptDir=$(dirname $0)
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # Arguments
   get_args $@
@@ -105,12 +104,12 @@
   
   # Clean and Create data pipes
   echo "[BINDINGS PIPER] Data CMD Pipe: $dataCMDpipe"
-  rm -f $dataCMDpipe
-  mkfifo $dataCMDpipe
+  rm -f "$dataCMDpipe"
+  mkfifo "$dataCMDpipe"
   
   echo "[BINDINGS PIPER] Data RESULT Pipe: $dataRESULTpipe"
-  rm -f $dataRESULTpipe
-  mkfifo $dataRESULTpipe
+  rm -f "$dataRESULTpipe"
+  mkfifo "$dataRESULTpipe"
 
   # Clean and Create CMD Pipes
   for i in "${CMDpipes[@]}"; do
@@ -129,6 +128,7 @@
   # Perform specific biding call (THE CALL IS BLOCKING)
   echo "[BINDINGS PIPER] Initializing specific binding for $binding"
   echo "[BINDINGS PIPER] Making call: $bindingExecutable $bindingArgs"
+
   eval $bindingExecutable $bindingArgs &
   bindingPID=$!
 
@@ -136,9 +136,19 @@
   wait $bindingPID
   exitValue=$?
 
+  # If process has failed, force exit on pipes
+  if [ $exitValue -ne 0 ]; then
+    for i in "${RESULTpipes[@]}"; do
+      if [ -f "$i" ]; then
+        echo "errorTask" >> $i
+      fi
+    done
+  fi
+  
   # Clean environment
   # Cleaned on TRAP
 
   # Exit message
   echo "[BINDINGS PIPER] Finished with status $exitValue"
   exit $exitValue
+

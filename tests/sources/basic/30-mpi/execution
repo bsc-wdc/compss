@@ -14,7 +14,7 @@
   
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
-  sed -i '/<InstallDir>/c<InstallDir>'${COMPSS_HOME}'<\/InstallDir>' ${base_app_dir}/project.xml
+  sed -i '/<InstallDir>/c<InstallDir>'${COMPSS_HOME}'<\/InstallDir>' "${base_app_dir}"/project.xml
   
   #----------------------------------------------------------------------------------
   # Create all working dir folders
@@ -28,7 +28,7 @@
   #----------------------------------------------------------------------------------
   # Add manual cleaner for the MPI binary
   clean() {
-    ps -elfa | grep "${binary}" | awk {' print $4 '} | xargs -i -t kill -9 {}
+    ps -elfa | grep "${binary}" | awk '{ print $4 }' | xargs -i -t kill -9 {}
   }
   trap clean EXIT
   
@@ -43,35 +43,34 @@
   error_log="${target_log_folder}/testMPI_0${retryNum}.errorlog"
   expectedTime=180s
   
-  timeout --signal=2 $expectedTime ${COMPSs_exec} \
-     --project=${base_app_dir}/project.xml \
-     --resources=${base_app_dir}/resources.xml \
+  timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+     --project="${base_app_dir}"/project.xml \
+     --resources="${base_app_dir}"/resources.xml \
      --debug \
      --lang=java \
-     --comm=$comm \
+     --comm="$comm" \
      ${runcompss_opts} \
-     --classpath=${base_app_dir}/mpi.jar \
-     testMPI.Main > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+     --classpath="${base_app_dir}"/mpi.jar \
+     testMPI.Main > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
   
-  
-  #Check timeout
+  # Check timeout
   if [[ "$?" = "124" ]]; then
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/testMPI.Main_0${retryNum}/* ${target_log_folder}
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}"/testMPI.Main_0"${retryNum}"/* "${target_log_folder}"
      
-     #Report time out
-     echo "[WARNING] Java Application timed out" >> ${output_log}
+     # Report time out
+     echo "[WARNING] Java Application timed out" | tee -a "${output_log}"
      exitValue=124
   else
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/testMPI.Main_0${retryNum}/* ${target_log_folder}
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}"/testMPI.Main_0"${retryNum}"/* "${target_log_folder}"
   
-     #Check result
-     ${base_app_dir}/result ${output_log} ${target_log_folder} 
+     # Check result
+     "${base_app_dir}"/result "${output_log}" "${target_log_folder}" 
      exitValue=$?
   fi
   
   
   #----------------------------------------------------------------------------------
-  #Return execution status
+  # Return execution status
   exit $exitValue

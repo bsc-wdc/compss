@@ -53,6 +53,7 @@ public class MOResourceSchedulerTest {
 
     @BeforeClass
     public static void setUpClass() {
+        LOGGER.info("Setup Class");
         // Method resource description and its slots
         Processor p = new Processor();
         p.setComputingUnits(4);

@@ -29,6 +29,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /* Tags for key-value string constraints description **************** */
     // !!!!!!!!!! WARNING: Coherent with constraints class
+    private static final String PROCESSORS = "processors";
     private static final String PROC_NAME = "processorname";
     private static final String COMPUTING_UNITS = "computingunits";
     private static final String PROC_SPEED = "processorspeed";
@@ -349,26 +350,91 @@ public class MethodResourceDescription extends WorkerResourceDescription {
      */
     public MethodResourceDescription(String description) {
         super();
-
-        // TODO: Change to support multi-processors in constraints
+        
+        // TODO: 
         // Warning: When coming from constrains, only 1 PROCESSOR is available with at least 1 CU
         Processor proc = new Processor();
-        proc.setComputingUnits(ONE_INT);
-
         if (description != null && !description.isEmpty()) {
             String[] constraints = description.split(";");
             for (String c : constraints) {
-                String key = c.split(":")[0].trim();
-                String val = c.split(":")[1].trim();
-                addConstraints(key, val, proc);
+                int sepIndex = c.indexOf(":");
+                if (sepIndex<0){
+                	ErrorManager.warn("WARN: Unrecognised constraint " + c + ". Skipping constraint");
+                	continue;
+                }
+            	String key = c.substring(0,sepIndex).trim();
+                String val = c.substring(sepIndex+1,c.length()).trim();
+                if (key.equals(PROCESSORS)){
+                	treatProcessorsList(val);
+                }else{
+                	addConstraints(key, val, proc);
+                }
             }
         }
-
-        // Add the information retrieved from the processor constraints
-        this.addProcessor(proc); // Increases the totalCUs
+        
+        if (proc.isCPU()){
+        	if (proc.isModified()){
+        		if (proc.getComputingUnits()==0){
+        			proc.setComputingUnits(ONE_INT);
+        		}
+        		this.addProcessor(proc);
+        	}else if (this.totalCPUs == 0) {
+        		//if processor has not been modified it must be added only if there are no CPU constraints already defined
+        		proc.setComputingUnits(ONE_INT);
+        		this.addProcessor(proc);
+        	}
+        }else{
+        	//If it is not CPU it must be added
+        	if (proc.getComputingUnits()==0){
+    			proc.setComputingUnits(ONE_INT);
+        	}
+        	this.addProcessor(proc);
+        	if (this.totalCPUs == 0) {
+        		//Task require to use at least a CPU 
+        		Processor p = new Processor();
+        		p.setComputingUnits(ONE_INT);
+        		this.addProcessor(p);
+        	}//else nothing to do
+        }
+   
     }
 
-    /**
+    private void treatProcessorsList(String processors) {
+		// Format [{processor constraints}, {processor constraints}]
+    	if (processors.startsWith("[") && processors.endsWith("]")){
+    		int procStartIndex = processors.indexOf("{");
+    		int procEndIndex = processors.indexOf("}");
+    		while (procStartIndex>0){
+    			if (procEndIndex>0 && procEndIndex>procStartIndex){
+    				treatProcessorInList(processors.substring(procStartIndex+1,procEndIndex));
+    				procStartIndex = processors.indexOf("{", procEndIndex);
+    				procEndIndex = processors.indexOf("}", procStartIndex);
+    			}else{
+    				ErrorManager.warn("WARN: Unrecognised processor definition (processors). Skipping processors");
+    				return;
+    			}
+    		}
+    	}else{
+    		ErrorManager.warn("WARN: Unrecognised processors list definition ("+processors+"). Skipping processors");
+    		
+    	}
+    }
+    private void treatProcessorInList(String processor){
+    	String[] processorConstraints = processor.split(",");
+    	Processor proc = new Processor();
+        for (int j = 0; j < processorConstraints.length; ++j) {
+            String key = processorConstraints[j].split(":")[0].trim();
+            String val = processorConstraints[j].split(":")[1].trim();
+            addConstraints(key, val, proc);
+        }
+        //CU must be 1 if not defined 
+        if (proc.getComputingUnits()==0){
+			proc.setComputingUnits(ONE_INT);
+        }
+        this.addProcessor(proc);
+	}
+
+	/**
      * For C constraints
      *
      * @param constraints
@@ -994,8 +1060,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     private boolean checkProcessors(MethodResourceDescription rc2) {
         for (Processor p : rc2.processors) {
-            if (!checkProcessor(p)) {
-                return false;
+        	if (!checkProcessor(p)) {
+        		return false;
             }
         }
 
@@ -1458,12 +1524,12 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     @Override
     public boolean isDynamicUseless() {
-        return (this.getMemorySize() <= 0.0 && this.totalCPUComputingUnits < 1);
+        return (this.getMemorySize() <= 0.0 && this.totalCPUComputingUnits < 1 && this.totalGPUComputingUnits < 1);
     }
 
     @Override
     public boolean isDynamicConsuming() {
-        return (this.getMemorySize() > 0.0 || this.totalCPUComputingUnits > 0);
+        return (this.getMemorySize() > 0.0 || this.totalCPUComputingUnits > 0 || this.totalGPUComputingUnits > 0);
     }
 
     @Override

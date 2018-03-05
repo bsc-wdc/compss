@@ -47,34 +47,34 @@ class MyClass(object):
 
     @task()
     def instance_method(self):
-        print "TEST"
-        print "- Instance method"
-        print "- Callee object:", self.field
+        print("TEST")
+        print("- Instance method")
+        print("- Callee object:", self.field)
         self.field = self.field * 2
 
     @task(isModifier = False)
     def instance_method_nonmodifier(self):
-        print "TEST"
-        print "- Instance method (nonmodifier)"
-        print "- Callee object:", self.field
+        print("TEST")
+        print("- Instance method (nonmodifier)")
+        print("- Callee object:", self.field)
 
     @classmethod
     @task()
     def class_method(cls):
-        print "TEST"
-        print "- Class method of class", cls
-        print "- Static field:", cls.static_field
+        print("TEST")
+        print("- Class method of class", cls)
+        print("- Static field:", cls.static_field)
 
     @task(returns=int)
     def return_value_square(self, v):
-        print "TEST"
-        print "self.field: ", self.field
-        print "- Return value square"
-        print "- Input value:", v
+        print("TEST")
+        print("self.field: ", self.field)
+        print("- Return value square")
+        print("- Input value:", v)
         self.v += v
-        print "- Self.v value: ", self.v
+        print("- Self.v value: ", self.v)
         o=v*v
-        print "- Output value:", o
+        print("- Output value:", o)
         return o
 
 
@@ -82,24 +82,24 @@ class MyClass(object):
 
 @task()
 def function_primitives(i, l, f, b, s):
-    print "TEST"
-    print "- Static Function"
-    print "- Primitive params: %d, %ld, %f, %d, %s" % (i, l, f, b, s)
+    print("TEST")
+    print("- Static Function")
+    print("- Primitive params: %d, %ld, %f, %d, %s" % (i, l, f, b, s))
 
 #@task(fin    = Parameter(p_type = Type.FILE),
 #      finout = Parameter(p_type = Type.FILE, p_direction = Direction.INOUT),
 #      fout   = Parameter(p_type = Type.FILE, p_direction = Direction.OUT))
 @task(fin = FILE, finout = FILE_INOUT, fout = FILE_OUT)
 def function_files(fin, finout, fout):
-    print "TEST"
-    print "- Static Function"
+    print("TEST")
+    print("- Static Function")
 
     fin_d = open(fin, 'r')
     finout_d = open(finout, 'r+')
     fout_d = open(fout, 'w')
 
-    print "- In file content:\n", fin_d.read()
-    print "- Inout file content:\n", finout_d.read()
+    print("- In file content:\n", fin_d.read())
+    print("- Inout file content:\n", finout_d.read())
     finout_d.write("\n===> INOUT FILE ADDED CONTENT")
     fout_d.write("OUT FILE CONTENT")
 
@@ -108,18 +108,18 @@ def function_files(fin, finout, fout):
     fout_d.close()
 
 def par_func():
-    print "- Function"
+    print("- Function")
 
 #@task(o = Parameter(p_direction = Direction.INOUT))
 @task(o = INOUT, l = INOUT, dic = INOUT, tup = INOUT, cplx = INOUT)
 def function_objects(o, l, dic, tup, cplx, f):
-    print "TEST"
-    print "- Static Function"
-    print "- MyClass object", o.field
-    print "- List", l
-    print "- Dictionary", dic
-    print "- Tuple", tup
-    print "- Complex", cplx
+    print("TEST")
+    print("- Static Function")
+    print("- MyClass object", o.field)
+    print("- List", l)
+    print("- Dictionary", dic)
+    print("- Tuple", tup)
+    print("- Complex", cplx)
 
     valuesDic=[("key3","value3"),("key4","value4")]
 
@@ -144,17 +144,17 @@ def function_objects(o, l, dic, tup, cplx, f):
 
 @task(returns = int)
 def function_return_primitive(i):
-    print "TEST"
-    print "- Static Function"
-    print "\t- Parameter:", i
+    print("TEST")
+    print("- Static Function")
+    print("\t- Parameter:", i)
     return i * 2
 
 @task(returns = MyClass)
 def function_return_object(i):
     o = MyClass(i)
-    print "TEST"
-    print "- Static Function"
-    print "\t- Parameter:", o
+    print("TEST")
+    print("- Static Function")
+    print("\t- Parameter:", o)
     return o
 
 
@@ -193,13 +193,13 @@ def function_fu_in_task(x):
 
 @task(returns = list)
 def function_fu_list_object(l):
-    for i in xrange(len(l)):
+    for i in range(len(l)):
         l[i] = l[i] + 1
     return l
 
 @task(returns = list)
 def function_fu_list_in_task(l):
-    for i in xrange(len(l)):
+    for i in range(len(l)):
         l[i] = l[i] + 1
     return l
 
@@ -210,7 +210,8 @@ def function_iterable_object_wait(x):
     print("\t- Parameter x: %s" %x)
     return x*x
 
-@task(returns = basestring)
+# @task(returns = basestring)  # just for python 2
+@task(returns = str)
 def function_wait_on_string(s):
     print("TEST")
     print("- Function wait_on string.")
@@ -235,27 +236,31 @@ def function_time_decorated_worker(x):
 
 @task(returns = int)
 def function_argfunc(f,v):
-    print "TEST"
-    print "- Function passed as parameter"
-    print "Function: ", f
+    print("TEST")
+    print("- Function passed as parameter")
+    print("Function: ", f)
     value = f(v)
     return value
 
 @task(returns = int)
 def function_lambda(f, v):
-    print "TEST"
-    print "- Function lambda passed as parameter"
-    print "Lambda: ", f
+    print("TEST")
+    print("- Function lambda passed as parameter")
+    print("Lambda: ", f)
     value = f(v)
     return value
 
 @task(returns = int)
 def function_generator(g):
-    print "TEST"
-    print "- Function generator passed as parameter"
-    print g
-    out = g.next()
-    print "Generator value: ", out
+    print("TEST")
+    print("- Function generator passed as parameter")
+    print(g)
+    import sys
+    if sys.version_info >= (3, 0):
+        out = next(g)
+    else:
+        out = g.next()
+    print("Generator value: ", out)
     return out
 
 @task(returns = types.LambdaType)
@@ -264,34 +269,42 @@ def function_lambda_return():
 
 @task(returns = types.GeneratorType)
 def function_generator_return(g):
-    print "TEST"
-    print "- Function return a generator"
-    print "Generator value: ", g.next()
+    print("TEST")
+    print("- Function return a generator")
+    import sys
+    if sys.version_info >= (3, 0):
+        print("Generator value: ", next(g))
+    else:
+        print("Generator value: ", g.next())
     return g
 
 
 @task(returns = (float, float))
 def multireturn(value):
-    print "Value: ", value
-    print "Type:  ", type(value)
+    print("Value: ", value)
+    print("Type:  ", type(value))
     return value, value*2
 
 @task(returns = float)
 def power(value):
-    print "Pow value: ", value
-    print "Result: ", value*value
+    print("Pow value: ", value)
+    print("Result: ", value*value)
     return value*value
 
 @task(returns = float)
 def merge(v1, v2):
-    print "Merge"
-    print "v1: ", v1
-    print "v2: ", v2
-    print "Result: ", v1+v2
+    print("Merge")
+    print("v1: ", v1)
+    print("v2: ", v2)
+    print("Result: ", v1+v2)
     return v1+v2
 
+import sys
+if sys.version_info >= (3, 0):
+    import _pickle as cPickle
+else:
+    import cPickle
 
-import cPickle
 class Foo(object):
     def __init__(self):
         self.mod=cPickle
@@ -304,9 +317,9 @@ class Foo(object):
 
 @task(returns = object)
 def function_moduleObject(value):
-    print "Test Module Object"
+    print("Test Module Object")
     v = value.get()
-    print "Value before: ", v
-    print "Value set to: ", v*v
+    print("Value before: ", v)
+    print("Value set to: ", v*v)
     value.set(v*v)
     return value

@@ -34,7 +34,7 @@ header_setup:
   stage: headers
   script:
   - ./utils/scripts/header_setup/replace_all.sh
-  - git commit -am 'ci: added missing headers'
+  - 'git commit -am "ci: added missing headers"'
   - git push http:${GIT_USER}:{GIT_PASSWD}@compss.bsc.es/gitlab/compss/framework.git ${CI_COMMIT_REF_NAME}
   only:
   - triggers
@@ -47,3 +47,4 @@ cleanup_build_job:
   - sudo rm -rf /home/gitlab-runner/.COMPSs
   only:
   - triggers
+

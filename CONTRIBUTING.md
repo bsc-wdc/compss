@@ -31,13 +31,13 @@ Requirements and considerations:
 
 ### 1. Checkout an up-to-date trunk branch
 
-1.a If you do not have a cloned repository yet issue:
+1.a If you **do not have a cloned repository** yet issue:
 
 `git clone http://USERNAME@compss.bsc.es/compss/framework.git`
 
 (you can remove the `USERNAME@` part, but you will be asked for your username everytime unless configured)
 
-1.b If you already have a cloned repository 
+1.b If you **already have a cloned repository**:
 
 ````
 git co trunk # checkout to trunk branch
@@ -46,7 +46,9 @@ git pull origin trunk # pull the changes present in the remote (origin) reposito
 
 ### 2. Create a branch for you development
 
- `git co -b name_of_the_feature_you_are_developing # co -b is a shorthand for creating and new branch and checking it out`
+Create a branch and start working on it:
+
+ `git co -b name_of_the_feature_you_are_developing` # co -b is a shorthand for creating and new branch and checking it out
  
  Try to use relevant and clear names for your branches, this way other users can now what is being worked on, and once the branch is merged it will be easy to keep track of the changes in case something breaks.
  

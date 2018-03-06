@@ -1,0 +1,54 @@
+#!/bin/bash -e 
+ 
+  #############################################################
+  # Name: buildP8
+  # Description: SCRIPT FOR CTE-Power8 COMPSs BUILD
+  # Parameters: <P8_user> CTE-Power8 user account. Preferable with ssh keys inserted
+  #             <FullTmpPath> Tmp path on CTE-Power8 for deployment
+  #             <FullTargetPath> Base Target Installation folder on CTE-Power8
+  #############################################################
+
+  ####################
+  # FUNCTIONS
+  ####################
+  usage() {
+    echo " Usage: buildP8 <P8_user> <FullTmpPath> <FullTargetPath>"
+    echo " "
+  }
+
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -eq 1 ]; then
+    if [ "$1" == "usage" ]; then
+      usage
+      exit 0
+    fi
+  fi
+  if [ $# -ne 3 ]; then
+    echo "Incorrect number of parameters"
+    usage
+    exit 1
+  fi
+
+  # SET SCRIPT VARIABLES
+  scriptDir=$(pwd)/$(dirname $0)
+
+  P8user=$1
+  P8tmpDir=$2
+  P8targetDir=$3
+  P8loginNode=p8login1.bsc.es
+  P8auxScript=${scriptDir}/buildP8_aux
+  PRELOAD_ENV=""
+
+  # Perform installation
+  cd ${scriptDir}/../commons
+  ./buildSC ${P8user} ${P8loginNode} ${P8tmpDir} ${P8targetDir} ${P8auxScript} "${PRELOAD_ENV}"
+  exitStatus=$?
+  cd ${scriptDir}
+
+  # END
+  exit $exitStatus
+

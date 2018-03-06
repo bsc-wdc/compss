@@ -1,17 +1,17 @@
 #!/bin/bash
  
   #############################################################
-  # Name: buildMT_aux
-  # Description: SCRIPT FOR LOCAL COMPSs BUILD in MinoTauro
+  # Name: buildP8_aux
+  # Description: SCRIPT FOR LOCAL COMPSs BUILD in CTE-Power8
   # Parameters: <targetDir> Base Target Installation folder
   #
   # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY 
-  #            EXECUTED FROM buildMT script
+  #            EXECUTED FROM buildP8 script
   #############################################################
 
   usage() {
     echo "Incorrect number of parameters"
-    echo " Usage: buildMT_aux <FullTargetPath>"
+    echo " Usage: buildP8_aux <FullTargetPath>"
     echo " "
     exit 1
   }
@@ -28,9 +28,11 @@
   targetDir=$1
   scriptDir=$(dirname $0)
 
-  modules="python/2.7.2 java boost"
-  additionalExports="export BOOST_CPPFLAGS=-I\${BOOST_INCLUDE} PATH=/apps/CEPBATOOLS/deps/libxml2/2.9.4/bin:$PATH"
-  queues_cfg="mt.cfg"
+  modules="python/2.7.13 boost jdk"
+# additionalExports="export BOOST_CPPFLAGS=-I\${BOOST_INCLUDE} PATH=/apps/CEPBATOOLS/deps/libxml2/2.9.4/bin:$PATH"
+#  additionalExports="export PATH=$PATH:/apps/JDK/SRC/jdk1.8.0_131 JAVA_HOME=/apps/JDK/SRC/jdk1.8.0_131"
+  additionalExports="export BOOST_CPPFLAGS=-I/apps/BOOST/1.64/include"
+  queues_cfg="p8.cfg"
   extrae_with_openmpi="false"
   openmpi_version=""
   extrae_with_impi="false"

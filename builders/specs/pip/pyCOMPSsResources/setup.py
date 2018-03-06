@@ -74,7 +74,6 @@ setup (name='pycompss',
 	],
 	install_requires = [
 		'wget',
-		'redis',
 		'setuptools'
 	],
 	license='Apache 2.0',

@@ -89,7 +89,7 @@
   cp ${trunk_rel_path}/compss/runtime/compss-engine.jar ${COMPSs_target}/Runtime/
 
   #Clean git files
-  find ${COMPSs_target} -name '.git' -exec rm -rf {} \;
+  find ${COMPSs_target} -name .git -print0 | xargs -0 rm -rf  
 
   for rt in ${release_types}; do
     echo " "

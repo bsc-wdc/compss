@@ -35,16 +35,16 @@ NO_TARGET_DIR="Warning: No install directory specified. Loading default location
 #---------------------------------------------------
 # SET SCRIPT VARIABLES
 #---------------------------------------------------
-scriptDir=$(pwd)/$(dirname $0)
-sourcesDir=$(pwd)/$(dirname $0)/..
-tmpDir=${scriptDir}/tmp
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SOURCES_DIR=${SCRIPT_DIR}/..
+TMP_DIR=${SCRIPT_DIR}/tmp
 
 
 #---------------------------------------------------
 # FUNCTIONS DECLARATION
 #---------------------------------------------------
 show_opts() {
-/bin/cat <<EOT
+  cat <<EOT
 * Options:
     --help, -h          Print this help message
 
@@ -84,11 +84,11 @@ EOT
 usage() { 
   exitValue=$1
   
-  /bin/cat <<EOT
+  cat <<EOT
 Usage: $0 [options] targetDir
 EOT
   show_opts
-  exit $exitValue
+  exit "$exitValue"
 }
 
 show_version() {
@@ -99,13 +99,13 @@ show_version() {
 # Displays arguments warnings
 display_warning() {
   local warn_msg=$1
-  echo $warn_msg
+  echo "$warn_msg"
 }
 
 # Displays parsing arguments errors
 display_error() {
   local error_msg=$1
-  echo $error_msg
+  echo "$error_msg"
   
   echo " "
   usage 1
@@ -175,7 +175,7 @@ get_args() {
             ;;
           user-exec=*)
             # Enables specific user mvn execution
-            user_exec=$(echo $OPTARG | sed -e 's/user-exec=//g')
+            user_exec=${OPTARG//user-exec=/}
             ;;
           skip-tests)
             # Disable mvn unit tests
@@ -247,51 +247,51 @@ warn_and_log_parameters() {
   echo "    !! Remember to export JAVA_HOME on root"
   sleep 5
 
-  echo "- targetDir  = ${targetDir}"
-  echo "- monitor    = ${monitor}"
-  echo "- bindings   = ${bindings}"
-  echo "- tracing    = ${tracing}"
-  echo "- scriptDir  = ${scriptDir}"
-  echo "- sourceDir  = ${sourcesDir}"
-  echo "- tmpDir     = ${tmpDir}"
+  echo "- Target DIR  = ${targetDir}"
+  echo "- Monitor     = ${monitor}"
+  echo "- Bindings    = ${bindings}"
+  echo "- Tracing     = ${tracing}"
+  echo "- SCRIPT_DIR  = ${SCRIPT_DIR}"
+  echo "- SOURCES DIR = ${SOURCES_DIR}"
+  echo "- TMP_DIR     = ${TMP_DIR}"
   sleep 5
 }
 
-install() {
+install_compss() {
   # COMPILE
   echo "- Compile sources"
-  cd ${sourcesDir}/compss/
+  cd "${SOURCES_DIR}/compss/"
   if [ "${user_exec}" == "${DEFAULT_USER}" ]; then
     echo "   (as root)"
     mvn -U clean package ${mvnTests}
   else 
     echo "   (as user ${user_exec})"
-    sudo -E -u ${user_exec} mvn clean install ${mvnTests}
+    sudo -E -u "${user_exec}" mvn clean install ${mvnTests}
   fi
-  cd ${scriptDir}
+  cd "${SCRIPT_DIR}"
 
   # COPY TRUNK
   echo "- Copy trunk to tmpdir"
-  rm -rf ${tmpDir}
-  mkdir -p ${tmpDir}
-  cp ${sourcesDir}/changelog ${tmpDir}
-  cp -r ${sourcesDir}/compss ${tmpDir}
-  cp -r ${sourcesDir}/dependencies ${tmpDir}
-  cp -r ${sourcesDir}/doc ${tmpDir}
-  cp -r ${sourcesDir}/files ${tmpDir}
-  cp ${sourcesDir}/LICENSE ${tmpDir}
-  cp ${sourcesDir}/NOTICE ${tmpDir}
-  cp ${sourcesDir}/pom.xml ${tmpDir}
-  cp ${sourcesDir}/README ${tmpDir}
-  cp ${sourcesDir}/RELEASE_NOTES ${tmpDir}
-  find . -name '.git' -exec rm -rf {} \;  #Cleans git files
+  rm -rf "${TMP_DIR}"
+  mkdir -p "${TMP_DIR}"
+  cp "${SOURCES_DIR}/changelog" "${TMP_DIR}"
+  cp -r "${SOURCES_DIR}/compss" "${TMP_DIR}"
+  cp -r "${SOURCES_DIR}/dependencies" "${TMP_DIR}"
+  cp -r "${SOURCES_DIR}/doc" "${TMP_DIR}"
+  cp -r "${SOURCES_DIR}/files" "${TMP_DIR}"
+  cp "${SOURCES_DIR}/LICENSE" "${TMP_DIR}"
+  cp "${SOURCES_DIR}/NOTICE" "${TMP_DIR}"
+  cp "${SOURCES_DIR}/pom.xml" "${TMP_DIR}"
+  cp "${SOURCES_DIR}/README" "${TMP_DIR}"
+  cp "${SOURCES_DIR}/RELEASE_NOTES" "${TMP_DIR}"
+  find . -name ".git" -type d -exec rm -r "{}" \; # Clean git files
 
   # CLEAN TRUNK COMPILATION
   if [ "${user_exec}" == "${DEFAULT_USER}" ]; then
     echo "- Clean sources"
-    cd ${sourcesDir}/compss/
+    cd "${SOURCES_DIR}/compss/"
     mvn -U clean
-    cd ${scriptDir}
+    cd "${SCRIPT_DIR}"
   fi
 
   # CREATE TARGET FOLDER
@@ -317,123 +317,124 @@ install() {
   echo "- Copy Runtime deployment files"
   #Doc
   echo "--- Copy docs"
-  find ${tmpDir}/doc/ -name *.html | xargs rm -rf
-  cp -r ${tmpDir}/doc/* ${targetDir}/Doc
-  cp ${tmpDir}/changelog ${targetDir}
-  cp ${tmpDir}/LICENSE ${targetDir}
-  cp ${tmpDir}/NOTICE ${targetDir}
-  cp ${tmpDir}/README ${targetDir}
-  cp ${tmpDir}/RELEASE_NOTES ${targetDir}
+  find "${TMP_DIR}/doc/" -name *.html -delete
+  cp -r "${TMP_DIR}"/doc/* ${targetDir}/Doc
+  cp "${TMP_DIR}/changelog" ${targetDir}
+  cp "${TMP_DIR}/LICENSE" ${targetDir}
+  cp "${TMP_DIR}/NOTICE" ${targetDir}
+  cp "${TMP_DIR}/README" ${targetDir}
+  cp "${TMP_DIR}/RELEASE_NOTES" ${targetDir}
 
   #Dependencies
   echo "--- Copy dependencies"
-  cp -r ${tmpDir}/dependencies/JAVA_GAT ${targetDir}/Dependencies/
-  cp -r ${tmpDir}/files/paraver ${targetDir}/Dependencies/  
+  cp -r "${TMP_DIR}/dependencies/JAVA_GAT" ${targetDir}/Dependencies/
+  cp -r "${TMP_DIR}/files/paraver" ${targetDir}/Dependencies/  
   if [ "$tracing" == "true" ]; then
-    cd ${tmpDir}/dependencies/extrae
+    cd "${TMP_DIR}/dependencies/extrae"
     ./install ${targetDir}/Dependencies/extrae false
-    if [ $? -ne 0 ]; then
+    ev=$?
+    if [ $ev -ne 0 ]; then
       echo "ERROR: Failed to install extrae dependency"
       exit 1
     fi
-    cd ${scriptDir}
+    cd "${SCRIPT_DIR}"
   fi
 
   # Config
   echo "--- Copy configuration"
-  find ${tmpDir}/compss/runtime/config -name src | xargs rm -rf
-  find ${tmpDir}/compss/runtime/config -name target | xargs rm -rf
-  find ${tmpDir}/compss/runtime/config -name pom.xml | xargs rm -rf
-  cp -r ${tmpDir}/compss/runtime/config/* ${targetDir}/Runtime/configuration/
+  find "${TMP_DIR}"/compss/runtime/config -name src -type d -prune -exec rm -r "{}" \;
+  find "${TMP_DIR}"/compss/runtime/config -name target -type d -prune -exec rm -r "{}" \;
+  find "${TMP_DIR}"/compss/runtime/config -name pom.xml -delete
+  cp -r "${TMP_DIR}"/compss/runtime/config/* ${targetDir}/Runtime/configuration/
   sed -i -e 's#/opt/COMPSs/#'${targetDir}'#g'  ${targetDir}/Runtime/configuration/xml/projects/default_project.xml
 
   # Scripts
   echo "--- Copy scripts"
-  cp -r ${tmpDir}/compss/runtime/scripts/* ${targetDir}/Runtime/scripts/
+  cp -r "${TMP_DIR}"/compss/runtime/scripts/* ${targetDir}/Runtime/scripts/
 
   #Adaptors
   echo "--- Copy adaptors"
-  find ${tmpDir}/compss/runtime/adaptors -name pom.xml | xargs rm -rf
-  rm -r ${tmpDir}/compss/runtime/adaptors/commons
-  path_source=${tmpDir}/compss/runtime/adaptors
+  find "${TMP_DIR}/compss/runtime/adaptors" -name pom.xml -delete
+  rm -r "${TMP_DIR}/compss/runtime/adaptors/commons"
+  path_source=${TMP_DIR}/compss/runtime/adaptors
   path_target=${targetDir}/Runtime/adaptors
   adaptors=$(ls ${path_source} | grep -v .*\.iml)
   for adaptor in $adaptors; do
-    mkdir ${path_target}/$adaptor
-    mkdir ${path_target}/$adaptor/master
-    cp ${path_source}/$adaptor/master/*.jar ${path_target}/$adaptor/master
-    if [ -f ${path_source}/$adaptor/master/properties ]; then
-      cp ${path_source}/$adaptor/master/properties ${path_target}/$adaptor/master
+    mkdir "${path_target}/$adaptor"
+    mkdir "${path_target}/$adaptor/master"
+    cp "${path_source}/$adaptor"/master/*.jar "${path_target}/$adaptor/master"
+    if [ -f "${path_source}/$adaptor/master/properties" ]; then
+      cp "${path_source}/$adaptor/master/properties" "${path_target}/$adaptor/master"
     fi
     if [ -d "${path_source}/$adaptor/worker/" ]; then
-      mkdir ${path_target}/$adaptor/worker
-      cp ${path_source}/$adaptor/worker/*.jar ${path_target}/$adaptor/worker
+      mkdir "${path_target}/$adaptor/worker"
+      cp "${path_source}/$adaptor"/worker/*.jar "${path_target}/$adaptor/worker"
     fi
-    if [ -f ${path_source}/$adaptor/worker/properties ]; then 
-      cp ${path_source}/$adaptor/worker/properties ${path_target}/$adaptor/worker
+    if [ -f "${path_source}/$adaptor/worker/properties" ]; then 
+      cp "${path_source}/$adaptor/worker/properties" "${path_target}/$adaptor/worker"
     fi
     if [ -d "${path_source}/$adaptor/scripts/" ]; then
-      mkdir -p ${targetDir}/Runtime/scripts/system/adaptors/$adaptor/
-      cp -r ${path_source}/$adaptor/scripts/* ${targetDir}/Runtime/scripts/system/adaptors/$adaptor/
+      mkdir -p "${targetDir}/Runtime/scripts/system/adaptors/$adaptor/"
+      cp -r "${path_source}/$adaptor"/scripts/* "${targetDir}/Runtime/scripts/system/adaptors/$adaptor/"
     fi
   done
 
   # Schedulers
   echo "--- Copy schedulers"
-  rm -r ${tmpDir}/compss/runtime/scheduler/commons
-  schedulers=$(find ${tmpDir}/compss/runtime/scheduler/ -name "*.jar")
-  for scheduler in $schedulers; do
-    cp $scheduler ${targetDir}/Runtime/scheduler/
-  done
+  rm -r "${TMP_DIR}/compss/runtime/scheduler/commons"
+  find "${TMP_DIR}/compss/runtime/scheduler/" -name "*.jar" -exec cp {} ${targetDir}/Runtime/scheduler/ \;
 
   # Connectors
   echo "--- Copy Runtime Connectors"
-  connectors=$(find ${tmpDir}/compss/runtime/resources/ -name "*.jar" | grep -v "cloud-conn")
+  connectors=$(find "${TMP_DIR}/compss/runtime/resources/" -name "*.jar" | grep -v "cloud-conn")
   for conn in $connectors; do
-    cp $conn ${targetDir}/Runtime/connectors/
+    cp "$conn" ${targetDir}/Runtime/connectors/
   done
   echo "--- Copy CONN Connectors"
-  connectors=$(find ${tmpDir}/compss/runtime/resources/ -name "*.jar" | grep "cloud-conn")
+  connectors=$(find "${TMP_DIR}/compss/runtime/resources/" -name "*.jar" | grep "cloud-conn")
   for conn in $connectors; do
-    cp $conn ${targetDir}/Runtime/cloud-conn/
+    cp "$conn" ${targetDir}/Runtime/cloud-conn/
   done
 
   # Engine
   echo "--- Copy engine"
-  cp ${tmpDir}/compss/runtime/compss-engine.jar ${targetDir}/Runtime/
+  cp "${TMP_DIR}/compss/runtime/compss-engine.jar" "${targetDir}/Runtime/"
  
   # TOOLS DEPLOYMENT
   if [ "$monitor" == "true" ]; then
     echo "- Deploying COMPSs Tools"
-    cd ${tmpDir}
-    TOMCAT_VER="7.0.65"
-    TOMCAT_URL="http://compss.bsc.es/repo/apache-tomcat/apache-tomcat-7.0.65.tar.gz"
+    cd "${TMP_DIR}"
+    TOMCAT_VER="8.5.23" #"7.0.65"
+    TOMCAT_PCK_NAME="apache-tomcat-${TOMCAT_VER}.tar.gz"
+    TOMCAT_URL="http://compss.bsc.es/repo/apache-tomcat/${TOMCAT_PCK_NAME}"
     wget $TOMCAT_URL
-    tar xzf apache-tomcat-$TOMCAT_VER.tar.gz
-    cd ${scriptDir}
-    mv ${tmpDir}/apache-tomcat-$TOMCAT_VER ${targetDir}/Tools/monitor/apache-tomcat/
-    rm -rf ${targetDir}/Tools/monitor/apache-tomcat/webapps/*
-    rm -f ${targetDir}/Tools/monitor/apache-tomcat/conf/server.xml
-    cp -r ${tmpDir}/compss/tools/monitor/target/*.war ${targetDir}/Tools/monitor/apache-tomcat/webapps/
-    cp ${tmpDir}/compss/tools/monitor/target/classes/compss-monitor.conf ${targetDir}/Tools/monitor/apache-tomcat/conf/
-    cp ${tmpDir}/compss/tools/monitor/target/classes/server.xml ${targetDir}/Tools/monitor/apache-tomcat/conf/
-    cp ${tmpDir}/compss/tools/monitor/target/classes/*log4j* ${targetDir}/Tools/monitor/
+    tar xzf ${TOMCAT_PCK_NAME}
+    cd "${SCRIPT_DIR}"
+    mv "${TMP_DIR}/apache-tomcat-$TOMCAT_VER" "${targetDir}/Tools/monitor/apache-tomcat/"
+    rm -rf "${targetDir}"/Tools/monitor/apache-tomcat/webapps/*
+    rm -f "${targetDir}"/Tools/monitor/apache-tomcat/conf/server.xml
+    cp -r "${TMP_DIR}"/compss/tools/monitor/target/*.war "${targetDir}/Tools/monitor/apache-tomcat/webapps/"
+    cp "${TMP_DIR}"/compss/tools/monitor/target/classes/compss-monitor.conf "${targetDir}/Tools/monitor/apache-tomcat/conf/"
+    cp "${TMP_DIR}"/compss/tools/monitor/target/classes/server.xml "${targetDir}/Tools/monitor/apache-tomcat/conf/"
+    cp "${TMP_DIR}"/compss/tools/monitor/target/classes/*log4j* "${targetDir}/Tools/monitor/"
   fi
 
-  #BINDINGS DEPLOYMENT
+  # BINDINGS DEPLOYMENT
   if [ "${bindings}" == "true" ]; then
     echo "- Deploying bindings-common files"
-    cd ${tmpDir}/compss/programming_model/bindings/bindings-common
-    ./install_common ${targetDir}/Bindings/bindings-common
-    if [ $? -ne 0 ]; then
+    cd "${TMP_DIR}/compss/programming_model/bindings/bindings-common"
+    ./install_common "${targetDir}/Bindings/bindings-common"
+    ev=$?
+    if [ $ev -ne 0 ]; then
       echo "ERROR: Failed to install bindings-common"
       exit 1
     fi
 
     echo "- Deploying c-binding files"
-    cd ${tmpDir}/compss/programming_model/bindings/c
-    ./install ${targetDir}/Bindings/c true
-    if [ $? -ne 0 ]; then
+    cd "${TMP_DIR}/compss/programming_model/bindings/c"
+    ./install "${targetDir}/Bindings/c" "true"
+    ev=$?
+    if [ $ev -ne 0 ]; then
       echo "ERROR: Failed to install C-binding"
       exit 1
     fi
@@ -441,13 +442,14 @@ install() {
     cp ${targetDir}/Bindings/c/bin/* ${targetDir}/Runtime/scripts/system/c
     cp ./compss_build_app ${targetDir}/Runtime/scripts/user/
     echo "- Deploying python-binding files"
-    cd ${tmpDir}/compss/programming_model/bindings/python
-    ./install ${targetDir}/Bindings/python
-    if [ $? -ne 0 ]; then
+    cd "${TMP_DIR}/compss/programming_model/bindings/python"
+    ./install "${targetDir}/Bindings/python"
+    ev=$?
+    if [ $ev -ne 0 ]; then
       echo "ERROR: Failed to install Python-binding"
       exit 1
     fi
-    cd ${scriptDir}
+    cd "${SCRIPT_DIR}"
   fi
 
   # ADD RUNCOMPSS TO PROFILE
@@ -494,7 +496,7 @@ install() {
   # ADD MONITOR SCRIPT TO ETC
   if [ "$monitor" == "true" ]; then 
     echo "- Add monitor script to init.d"
-    sudo cp ${tmpDir}/compss/tools/monitor/scripts/compss-monitor /etc/init.d/compss-monitor
+    sudo cp "${TMP_DIR}/compss/tools/monitor/scripts/compss-monitor" /etc/init.d/compss-monitor
     sudo chmod 755 /etc/init.d/compss-monitor
 
     system=$(which chkconfig | cat)
@@ -509,7 +511,7 @@ install() {
  
   # ERASE TMP FILES
   echo "- Erase tmp files"
-  rm -rf ${tmpDir}
+  rm -rf "${TMP_DIR}"
 
   # SET TARGETDIR PERMISSIONS
   echo "- Set COMPSs permissions"
@@ -521,10 +523,10 @@ install() {
 #---------------------------------------------------
 # MAIN EXECUTION
 #---------------------------------------------------
-  get_args $*
+  get_args "$@"
   check_args
   warn_and_log_parameters
-  install
+  install_compss
 
   # END
   echo "Congratulations!"

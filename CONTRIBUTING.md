@@ -68,7 +68,7 @@ If you want to share your branch with another user (for testing for example), to
 
 `git push origin name_of_the_feature_you_are_developing`
 
-4. Rebase your branch
+### 4. Rebase your branch
 
 While you work on your branch the tip of the trunk branch (latest trunk commit) may have changed because someone merged its work. In order to put your work on top of the last trunk commit you need to rebase your development branch as follows:
 
@@ -81,7 +81,7 @@ Once the process is finished you are ready to finally push your feature branch t
 `git push origin name_of_the_feature_you_are_developing`
 
 
-5. Open a Merge Request
+### 5. Open a Merge Request
 
 Trunk branch does not accept pushes to it. To merge the changes you need to issue a Merge Request (MR) using gitlab interface. Go to:
 
@@ -90,11 +90,11 @@ http://compss.bsc.es/gitlab/compss/framework/branches
 Your branch should be 0 commits behind trunk (if you did the rebase correctly) and some commits ahead (your commits). Select Merge Request to create one.
 Ideally you should assign the MR to someone so they can check that your changes and feature makes sense. You can add some more information for the reviewer as well as some tags if you use them.
 
-6. Merge changes
+### 6. Merge changes
 
 This MR will trigger a runner which will build the trunk you just committed and run the local suite of basic tests (and add the headers in case you forgot to). **Unless all tests are passed, you will not be able to merge your changes.** If you want, you can select 'Merge when pipeline succeeds' and the branch will automatically be merged once testing finishes.
 
-7. Pipeline failed
+### 7. Pipeline failed
 
 If you are here your MR tests failed. Fix your branch and just push the changes again. If the MR is still open, the push will cause the tests to run again. Please, run the tests locally first instead of playing trial-and-error with the gitlab runner or you will collapse it. 
 

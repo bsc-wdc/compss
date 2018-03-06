@@ -11,7 +11,7 @@ License: Apache 2.0
 Group: Development/Libraries
 Source: %{name}-%{version}.tar.gz
 Distribution: Linux
-Vendor: Barcelona Supercomputing Center (BSC)
+Vendor: Barcelona Supercomputing Center - Centro Nacional de Supercomputación
 URL: http://compss.bsc.es
 Packager: COMPSs Support <support-compss@bsc.es>
 Prefix: /opt/COMPSs/Bindings/bindings-common

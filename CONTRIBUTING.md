@@ -44,6 +44,12 @@ git co trunk # checkout to trunk branch
 git pull origin trunk # pull the changes present in the remote (origin) repository to your branch
 ```
 
+To make sure you are on trunk branch you can use either:
+
+```
+git br  # alias for git branch
+git st  # alias for git status
+```
 ### 2. Create a branch for you development
 
 Create a branch and start working on it:
@@ -52,11 +58,12 @@ Create a branch and start working on it:
  
  Try to use relevant and clear names for your branches, this way other users can now what is being worked on, and once the branch is merged it will be easy to keep track of the changes in case something breaks.
  
+ Again, you can check which branch you are with `git br` or `git st` 
 ### 3. Do your developments
 
 Git tracks changes not files so you need to add every change you want to commit to the staging area (which are the changes to be commit).
 
-To add a file's changes to the next commit issue (if this is the first time you are adding the file, git will start tracking the file and show any changes made to it with the command `git status` or alias `git st`)
+To add a file's changes to the next commit issue. if this is the first time you are adding the file, git will start tracking the file and show any changes made to it with the command `git status` or alias `git st`. To see which branch you are on you 
 
 `git add file_name`
 
@@ -94,7 +101,11 @@ Ideally you should assign the MR to someone so they can check that your changes 
 
 ### 6. Merge changes
 
-This MR will trigger a runner which will build the trunk you just committed and run the local suite of basic tests (and add the headers in case you forgot to). **Unless all tests are passed, you will not be able to merge your changes.** If you want, you can select 'Merge when pipeline succeeds' and the branch will automatically be merged once testing finishes.
+This MR will trigger a runner which will build the trunk you just committed and run the local suite of basic tests (and add the headers in case you forgot to). **Unless all tests are passed, you will not be able to merge your changes.** If you want, you can select 'Merge when pipeline succeeds' and the branch will automatically be merged once testing finishes. 
+
+If you selected the corresponding box, the remote branch will be deleted after the merge. However, your local branch will not be removed. To do so, first change to another branch (like trunk for example with `git co trunk`) and then issue:
+
+`git br -d branch_to_remove`
 
 ### 7. Pipeline failed
 

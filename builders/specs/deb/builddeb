@@ -3,22 +3,24 @@
   distribution=$1
   COMPSs_version=$2
 
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
   packages_runtime="compss-engine compss-worker compss-runtime"
   packages_bindings="compss-bindings-common compss-c-binding compss-python-binding compss-bindings"
-  packages_tools="compss-extrae compss-monitor compss-tools"
+  packages_tools="compss-extrae compss-monitor compss-pluto compss-tools"
   packages_cloud="compss-cloud"
   packages="${packages_runtime} ${packages_bindings} ${packages_tools} ${packages_cloud} compss-framework"
   architectures="amd64 all"
 
   for pack in ${packages}; do
-    cd ${pack}
+    cd "${pack}"
     for arch in ${architectures}; do
        echo " "
        echo " - Building ${pack} - ${arch} ..."
        echo " "
-      ./build ${distribution} ${arch} ${COMPSs_version} 
+      ./build "${distribution}" "${arch}" "${COMPSs_version}"
     done
-    cd ..
+    cd "$SCRIPT_DIR}"
     echo " "
   done
 

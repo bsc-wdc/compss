@@ -26,7 +26,7 @@
 
   # SET SCRIPT VARIABLES
   targetDir=$1
-  scriptDir=$(dirname $0)
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   modules=""
   py2_modules="ignore"
@@ -39,4 +39,4 @@
   extrae_with_impi="true"
   impi_version=""
 
-  ${scriptDir}/buildSC_aux ${targetDir} "${modules}" "${py2_modules}" "${py3_modules}" "${additionalExports}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}"
+  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${py2_modules}" "${py3_modules}" "${additionalExports}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}"

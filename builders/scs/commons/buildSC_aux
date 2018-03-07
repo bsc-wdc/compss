@@ -45,20 +45,22 @@
   extrae_with_impi=$9
   impi_version=${10}
 
-  scriptDir=$(dirname $0)
-  tmpDir=${scriptDir}/tmp
-
-  echo "- SC script Dir = ${scriptDir}"
-  echo "- SC tmp Dir    = ${tmpDir}"
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  TMP_DIR=${SCRIPT_DIR}/tmp
+  
+  echo "- SC script Dir = ${SCRIPT_DIR}"
+  echo "- SC tmp Dir    = ${TMP_DIR}"
   echo "- SC target Dir = ${targetDir}"
 
   # Load needed modules on MN
   echo "- Load modules on SC account"
   module purge
+  # shellcheck disable=SC2086
   module load ${modules}
-  if [ $? -ne 0 ]; then
+  ev=$?
+  if [ $ev -ne 0 ]; then
     echo "ERROR: Cannot load required modules"
-    exit 1
+    exit $ev
   fi
 
   # Save original path to remove libxml imports that crashes python binding in mt installation
@@ -69,57 +71,60 @@
   echo "NEW PATH=$PATH" 
   # CREATE TARGET FOLDER
   echo "- Create target folder"
-  rm -rf ${targetDir}
-  mkdir -p ${targetDir}
-  mkdir -p ${targetDir}/Doc
-  mkdir -p ${targetDir}/Dependencies
-  mkdir -p ${targetDir}/Dependencies/extrae
-  mkdir -p ${targetDir}/Runtime
-  mkdir -p ${targetDir}/Runtime/configuration
-  mkdir -p ${targetDir}/Runtime/scripts
-  mkdir -p ${targetDir}/Runtime/adaptors
-  mkdir -p ${targetDir}/Runtime/connectors
-  mkdir -p ${targetDir}/Runtime/cloud-conn
-  mkdir -p ${targetDir}/Runtime/scheduler
-  mkdir -p ${targetDir}/Tools
-  mkdir -p ${targetDir}/Tools/monitor
-  mkdir -p ${targetDir}/Bindings
-  mkdir -p ${targetDir}/Bindings/bindings-common
+  rm -rf "${targetDir}"
+  mkdir -p "${targetDir}"
+  mkdir -p "${targetDir}"/Doc
+  mkdir -p "${targetDir}"/Dependencies
+  mkdir -p "${targetDir}"/Dependencies/extrae
+  mkdir -p "${targetDir}"/Dependencies/pluto
+  mkdir -p "${targetDir}"/Runtime
+  mkdir -p "${targetDir}"/Runtime/configuration
+  mkdir -p "${targetDir}"/Runtime/scripts
+  mkdir -p "${targetDir}"/Runtime/adaptors
+  mkdir -p "${targetDir}"/Runtime/connectors
+  mkdir -p "${targetDir}"/Runtime/cloud-conn
+  mkdir -p "${targetDir}"/Runtime/scheduler
+  mkdir -p "${targetDir}"/Tools
+  mkdir -p "${targetDir}"/Tools/monitor
+  mkdir -p "${targetDir}"/Bindings
+  mkdir -p "${targetDir}"/Bindings/bindings-common
 
   # RUNTIME DEPLOYMENT
   echo "- Copy Runtime deployment files"
 
-  #Doc
+  # Doc
   echo "--- Copy docs"
-  find ${tmpDir}/doc/ -name *.html | xargs rm -rf
-  cp -r ${tmpDir}/doc/* ${targetDir}/Doc
-  cp ${tmpDir}/changelog ${targetDir}
-  cp ${tmpDir}/LICENSE ${targetDir}
-  cp ${tmpDir}/NOTICE ${targetDir}
-  cp ${tmpDir}/README.md ${targetDir}
-  cp ${tmpDir}/RELEASE_NOTES ${targetDir}
+  find "${TMP_DIR}"/doc/ -name "*.html" -print0 | xargs rm -rf
+  cp -r "${TMP_DIR}"/doc/* "${targetDir}"/Doc
+  cp "${TMP_DIR}"/changelog "${targetDir}"
+  cp "${TMP_DIR}"/LICENSE "${targetDir}"
+  cp "${TMP_DIR}"/NOTICE "${targetDir}"
+  cp "${TMP_DIR}"/README.md "${targetDir}"
+  cp "${TMP_DIR}"/RELEASE_NOTES "${targetDir}"
 
-  #Dependencies
+  # Dependencies
   echo "--- Copy dependencies"
-  cp -r ${tmpDir}/dependencies/JAVA_GAT ${targetDir}/Dependencies/
-  cp -r ${tmpDir}/files/paraver ${targetDir}/Dependencies/
-  cd ${tmpDir}/dependencies/extrae
+  cp -r "${TMP_DIR}"/dependencies/JAVA_GAT "${targetDir}"/Dependencies/
+  cp -r "${TMP_DIR}"/files/paraver "${targetDir}"/Dependencies/
 
   echo "---- Install extrae ----"
+  cd "${TMP_DIR}"/dependencies/extrae || exit 1
   # Sequential installation
-  ./install ${targetDir}/Dependencies/extrae false
-  if [ $? -ne 0 ]; then
+  ./install "${targetDir}"/Dependencies/extrae false
+  ev=$?
+  if [ $ev -ne 0 ]; then
     echo "ERROR: Failed to install extrae sequential dependency"
-    exit 1
+    exit $ev
   fi
 
   # OpenMPI
   if [ "${extrae_with_openmpi}" == "true" ]; then
-    module load openmpi${openmpi_version}
-    ./install ${targetDir}/Dependencies/extrae-openmpi true
-    if [ $? -ne 0 ]; then
+    module load openmpi"${openmpi_version}"
+    ./install "${targetDir}"/Dependencies/extrae-openmpi true
+    ev=$?
+    if [ $ev -ne 0 ]; then
       echo "ERROR: Failed to install extrae openmpi dependency"
-      exit 1
+      exit $ev
     fi
     module unload openmpi
   fi
@@ -127,177 +132,197 @@
   # IMPI
   if [ "${extrae_with_impi}" == "true" ]; then
     module load intel
-    module load impi${impi_version}
-    ./install ${targetDir}/Dependencies/extrae-impi true
-    if [ $? -ne 0 ]; then
+    module load impi"${impi_version}"
+    ./install "${targetDir}"/Dependencies/extrae-impi true
+    ev=$?
+    if [ $ev -ne 0 ]; then
       echo "ERROR: Failed to install extrae impi dependency"
-      exit 1
+      exit $ev
     fi
     module unload impi
   fi
-  cd ${scriptDir}
+  cd "${SCRIPT_DIR}" || exit 1
+
+  # PLUTO (for autoparallel)
+  echo "---- Install PLUTO ----"
+  cd "${TMP_DIR}"/dependencies/pluto || exit 1
+  ./install_pluto "${targetDir}"/Dependencies/pluto
+  ev=$?
+  if [ $ev -ne 0 ]; then
+    echo "ERROR: Failed to install PLUTO dependency"
+    exit $ev
+  fi
+  cd "${SCRIPT_DIR}" || exit 1
 
   # Restore original path
   export PATH=${originalPath}
 
   # Config
   echo "--- Copy configuration"
-  find ${tmpDir}/compss/runtime/config -name src | xargs rm -rf
-  find ${tmpDir}/compss/runtime/config -name target | xargs rm -rf
-  find ${tmpDir}/compss/runtime/config -name pom.xml | xargs rm -rf
-  cp -r ${tmpDir}/compss/runtime/config/* ${targetDir}/Runtime/configuration/
-  sed -i -e 's#/opt/COMPSs/#'${targetDir}'#g'  ${targetDir}/Runtime/configuration/xml/projects/default_project.xml
+  find "${TMP_DIR}"/compss/runtime/config -name src -print0 | xargs rm -rf
+  find "${TMP_DIR}"/compss/runtime/config -name target -print0 | xargs rm -rf
+  find "${TMP_DIR}"/compss/runtime/config -name pom.xml -print0 | xargs rm -rf
+  cp -r "${TMP_DIR}"/compss/runtime/config/* "${targetDir}"/Runtime/configuration/
+  sed -i -e 's#/opt/COMPSs/#'"${targetDir}"'#g'  "${targetDir}"/Runtime/configuration/xml/projects/default_project.xml
 
   # Scripts
   echo "--- Copy scripts"
-  cp -r ${tmpDir}/compss/runtime/scripts/* ${targetDir}/Runtime/scripts/
-  cp ${targetDir}/Runtime/scripts/queues/cfgs/${queues_cfg} ${targetDir}/Runtime/scripts/queues/cfgs/default.cfg
+  cp -r "${TMP_DIR}"/compss/runtime/scripts/* "${targetDir}"/Runtime/scripts/
+  cp "${targetDir}"/Runtime/scripts/queues/cfgs/"${queues_cfg}" "${targetDir}"/Runtime/scripts/queues/cfgs/default.cfg
 
   # Adaptors
   echo "--- Copy adaptors"
-  find ${tmpDir}/compss/runtime/adaptors -name pom.xml | xargs rm -rf
-  rm -r ${tmpDir}/compss/runtime/adaptors/commons
-  path_source=${tmpDir}/compss/runtime/adaptors
+  find "${TMP_DIR}/compss/runtime/adaptors" -name pom.xml -delete
+  find "${TMP_DIR}/compss/runtime/adaptors" -name "*.iml" -delete
+  rm -r "${TMP_DIR}/compss/runtime/adaptors/commons"
+  path_source=${TMP_DIR}/compss/runtime/adaptors
   path_target=${targetDir}/Runtime/adaptors
-  adaptors=$(ls ${path_source})
-  for adaptor in $adaptors; do
-    mkdir ${path_target}/$adaptor
-    mkdir ${path_target}/$adaptor/master
-    cp ${path_source}/$adaptor/master/*.jar ${path_target}/$adaptor/master
-    if [ -f ${path_source}/$adaptor/master/properties ]; then
-      cp ${path_source}/$adaptor/master/properties ${path_target}/$adaptor/master
+  for adaptor in ${path_source}/*; do
+    adaptor_name=$(basename "$adaptor")
+    mkdir "${path_target}/${adaptor_name}"
+    mkdir "${path_target}/${adaptor_name}"/master
+    cp "$adaptor"/master/*.jar "${path_target}"/"${adaptor_name}"/master
+    if [ -f "$adaptor"/master/properties ]; then
+      cp "$adaptor"/master/properties "${path_target}"/"${adaptor_name}"/master
     fi
-    if [ -d "${path_source}/$adaptor/worker/" ]; then
-      mkdir ${path_target}/$adaptor/worker
-      cp ${path_source}/$adaptor/worker/*.jar ${path_target}/$adaptor/worker
+    if [ -d "$adaptor"/worker/ ]; then
+      mkdir "${path_target}/${adaptor_name}"/worker
+      cp "$adaptor"/worker/*.jar "${path_target}"/"${adaptor_name}"/worker
     fi
-    if [ -f ${path_source}/$adaptor/worker/properties ]; then
-      cp ${path_source}/$adaptor/worker/properties ${path_target}/$adaptor/worker
+    if [ -f "$adaptor"/worker/properties ]; then
+      cp "$adaptor"/worker/properties "${path_target}"/"${adaptor_name}"/worker
     fi
-    if [ -d "${path_source}/$adaptor/scripts/" ]; then
-      mkdir -p ${targetDir}/Runtime/scripts/system/adaptors/$adaptor/
-      cp -r ${path_source}/$adaptor/scripts/* ${targetDir}/Runtime/scripts/system/adaptors/$adaptor/
+    if [ -d "$adaptor"/scripts/ ]; then
+      mkdir -p "${targetDir}"/Runtime/scripts/system/adaptors/"${adaptor_name}"
+      cp -r "$adaptor"/scripts/* "${targetDir}"/Runtime/scripts/system/adaptors/"${adaptor_name}"
     fi
   done
 
   # Schedulers
   echo "--- Copy schedulers"
-  rm -r ${tmpDir}/compss/runtime/scheduler/commons
-  schedulers=$(find ${tmpDir}/compss/runtime/scheduler/ -name "*.jar")
+  rm -r "${TMP_DIR}"/compss/runtime/scheduler/commons
+  schedulers=$(find "${TMP_DIR}"/compss/runtime/scheduler/ -name "*.jar")
   for scheduler in $schedulers; do
-    cp $scheduler ${targetDir}/Runtime/scheduler/
+    cp "$scheduler" "${targetDir}"/Runtime/scheduler/
   done
 
   #Connectors
   echo "--- Copy Runtime Connectors"
-  connectors=$(find ${tmpDir}/compss/runtime/resources/ -name "*.jar" | grep -v "cloud-conn")
+  connectors=$(find "${TMP_DIR}"/compss/runtime/resources/ -name "*.jar" | grep -v "cloud-conn")
   for conn in $connectors; do
-    cp $conn ${targetDir}/Runtime/connectors/
+    cp "$conn" "${targetDir}"/Runtime/connectors/
   done
   echo "--- Copy CONN Connectors"
-  connectors=$(find ${tmpDir}/compss/runtime/resources/ -name "*.jar" | grep "cloud-conn")
+  connectors=$(find "${TMP_DIR}"/compss/runtime/resources/ -name "*.jar" | grep "cloud-conn")
   for conn in $connectors; do
-    cp $conn ${targetDir}/Runtime/cloud-conn/
+    cp "$conn" "${targetDir}"/Runtime/cloud-conn/
   done
 
   # Engine
   echo "--- Copy engine"
-  cp ${tmpDir}/compss/runtime/compss-engine.jar ${targetDir}/Runtime/
-
+  cp "${TMP_DIR}"/compss/runtime/compss-engine.jar "${targetDir}"/Runtime/
+ 
   # TOOLS DEPLOYMENT
   echo "- Deploying COMPSs Tools"
-  cd ${tmpDir}
+  cd "${TMP_DIR}" || exit 1
   tar xzf apache-tomcat.tar.gz
-  cd ${scriptDir}
-  mv ${tmpDir}/apache-tomcat-* ${targetDir}/Tools/monitor/apache-tomcat/
-  rm -rf ${targetDir}/Tools/monitor/apache-tomcat/webapps/*
-  rm -f ${targetDir}/Tools/monitor/apache-tomcat/conf/server.xml
-  cp -r ${tmpDir}/compss/tools/monitor/target/*.war ${targetDir}/Tools/monitor/apache-tomcat/webapps/
-  cp ${tmpDir}/compss/tools/monitor/target/classes/compss-monitor.conf ${targetDir}/Tools/monitor/apache-tomcat/conf/
-  cp ${tmpDir}/compss/tools/monitor/target/classes/server.xml ${targetDir}/Tools/monitor/apache-tomcat/conf/
-  cp ${tmpDir}/compss/tools/monitor/target/classes/*log4j* ${targetDir}/Tools/monitor/
+  cd "${SCRIPT_DIR}" || exit 1
+  mv "${TMP_DIR}"/apache-tomcat-* "${targetDir}"/Tools/monitor/apache-tomcat/
+  rm -rf "${targetDir}"/Tools/monitor/apache-tomcat/webapps/*
+  rm -f "${targetDir}"/Tools/monitor/apache-tomcat/conf/server.xml
+  cp -r "${TMP_DIR}"/compss/tools/monitor/target/*.war "${targetDir}"/Tools/monitor/apache-tomcat/webapps/
+  cp "${TMP_DIR}"/compss/tools/monitor/target/classes/compss-monitor.conf "${targetDir}"/Tools/monitor/apache-tomcat/conf/
+  cp "${TMP_DIR}"/compss/tools/monitor/target/classes/server.xml "${targetDir}"/Tools/monitor/apache-tomcat/conf/
+  cp "${TMP_DIR}"/compss/tools/monitor/target/classes/*log4j* "${targetDir}"/Tools/monitor/
 
   # BINDINGS DEPLOYMENT
   echo "- Deploying bindings-common files"
-  cd ${tmpDir}/compss/programming_model/bindings/bindings-common
-  ./install_common ${targetDir}/Bindings/bindings-common
-  if [ $? -ne 0 ]; then
+  cd "${TMP_DIR}"/compss/programming_model/bindings/bindings-common || exit 1
+  ./install_common "${targetDir}"/Bindings/bindings-common
+  ev=$?
+  if [ $ev -ne 0 ]; then
     echo "ERROR: Failed to install bindings-common"
-    exit 1
+    exit $ev
   fi
   echo "- Deploying c-binding files"
-  cd ${tmpDir}/compss/programming_model/bindings/c
-  ./install ${targetDir}/Bindings/c true
-  if [ $? -ne 0 ]; then
+  cd "${TMP_DIR}"/compss/programming_model/bindings/c || exit 1
+  ./install "${targetDir}"/Bindings/c true
+  ev=$?
+  if [ $ev -ne 0 ]; then
     echo "ERROR: Failed to install C-binding"
-    exit 1
+    exit $ev
   fi
-  mkdir -p ${targetDir}/Runtime/scripts/system/c/
-  cp ${targetDir}/Bindings/c/bin/* ${targetDir}/Runtime/scripts/system/c
-  cp ./compss_build_app ${targetDir}/Runtime/scripts/user/
+  mkdir -p "${targetDir}"/Runtime/scripts/system/c/
+  cp "${targetDir}"/Bindings/c/bin/* "${targetDir}"/Runtime/scripts/system/c
+  cp ./compss_build_app "${targetDir}"/Runtime/scripts/user/
   echo "- Deploying python-binding files"
-  cd ${tmpDir}/compss/programming_model/bindings/python
+  cd "${TMP_DIR}"/compss/programming_model/bindings/python || exit 1
   if [ -n "$py2_modules" ]; then
     echo "    - For python 2"
     if [ "$py2_modules" != "ignore" ]; then
+      #shellcheck disable=SC2086
       module load ${py2_modules}
     fi
-    ./install ${targetDir}/Bindings/python false false python2
-    if [ $? -ne 0 ]; then
+    ./install "${targetDir}"/Bindings/python false false python2
+    ev=$?
+    if [ $ev -ne 0 ]; then
       echo "ERROR: Failed to install Python-binding for Python 2"
-      exit 1
+      exit $ev
     fi
     if [ "$py2_modules" != "ignore" ]; then
+      #shellcheck disable=SC2086
       module unload ${py2_modules}
     fi
   fi
   if [ -n "$py3_modules" ]; then
     echo "    - For python 3"
     if [ "$py3_modules" != "ignore" ]; then
+      #shellcheck disable=SC2086
       module load ${py3_modules}
     fi
     # If installed, unify installations (second boolean to true)
-    ./install ${targetDir}/Bindings/python false true python3
-    if [ $? -ne 0 ]; then
+    ./install "${targetDir}"/Bindings/python false true python3
+    ev=$?
+    if [ $ev -ne 0 ]; then
       echo "ERROR: Failed to install Python-binding for Python 3"
-      exit 1
+      exit $ev
     fi
   fi
-  cd ${scriptDir}
+  cd "${SCRIPT_DIR}" || exit 1
 
   # ADD RUNCOMPSS TO PROFILE
-  mkdir -p ${targetDir}/etc/profile.d/
+  mkdir -p "${targetDir}"/etc/profile.d/
   echo " - Adding runcompss to profile..."
-  echo "export PATH=\$PATH:${targetDir}/Runtime/scripts/user" > ${targetDir}/etc/profile.d/compss.sh
+  echo "export PATH=\$PATH:${targetDir}/Runtime/scripts/user" > "${targetDir}"/etc/profile.d/compss.sh
   echo " - Runcompss added to user profile"
   echo " "
   echo " - Adding compss-engine.jar to profile..."
-  echo "export CLASSPATH=\$CLASSPATH:${targetDir}/Runtime/compss-engine.jar" >> ${targetDir}/etc/profile.d/compss.sh
+  echo "export CLASSPATH=\$CLASSPATH:${targetDir}/Runtime/compss-engine.jar" >> "${targetDir}"/etc/profile.d/compss.sh
   echo " - compss-engine.jar added to user profile"
   echo " "
   echo " - Adding c-binaries to profile..."
-  echo "export PATH=\$PATH:${targetDir}/Bindings/c/bin" >> ${targetDir}/etc/profile.d/compss.sh
+  echo "export PATH=\$PATH:${targetDir}/Bindings/c/bin" >> "${targetDir}"/etc/profile.d/compss.sh
   echo " - c-binaries added to user profile"
   echo " "
-  # echo " - Adding PyCOMPSs to user profile..."
-  # echo "export PYTHONPATH=\$PYTHONPATH:${targetDir}/Bindings/python/" >> ${targetDir}/etc/profile.d/compss.sh
-  # echo " - PyCOMPSs added to user profile"
-  # echo " "
-
+  #echo " - Adding PyCOMPSs to user profile..."
+  #echo "export PYTHONPATH=\$PYTHONPATH:${targetDir}/Bindings/python/" >> "${targetDir}"/etc/profile.d/compss.sh
+  #echo " - PyCOMPSs added to user profile"
+  #echo " "
+ 
   # ADD MONITOR SCRIPT TO ETC
   echo "- Add monitor script to init.d"
-  mkdir -p ${targetDir}/etc/init.d/
-  cp ${tmpDir}/compss/tools/monitor/scripts/compss-monitor ${targetDir}/etc/init.d/
-  chmod 755 ${targetDir}/etc/init.d/compss-monitor
+  mkdir -p "${targetDir}"/etc/init.d/
+  cp "${TMP_DIR}"/compss/tools/monitor/scripts/compss-monitor "${targetDir}"/etc/init.d/
+  chmod 755 "${targetDir}"/etc/init.d/compss-monitor
 
   # ERASE TMP FILES
   echo "- Erase tmp files"
-  rm -rf ${tmpDir}
+  rm -rf "${TMP_DIR}"
 
   # SET TARGETDIR PERMISSIONS
   echo "- Set COMPSs permissions"
-  chmod -R 775 ${targetDir}
-  chmod -R 777 ${targetDir}/Runtime/configuration/
+  chmod -R 775 "${targetDir}"
+  chmod -R 777 "${targetDir}"/Runtime/configuration/
 
   # END
   exit 0

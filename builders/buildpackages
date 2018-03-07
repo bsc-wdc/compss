@@ -14,7 +14,7 @@
     echo " "
     echo " * Building Debian packages for ${distr}..."
     echo " "
-    ./builddeb ${distr} ${COMPSs_version}
+    ./builddeb "${distr}" ${COMPSs_version}
   done
   cd ..
 
@@ -23,7 +23,7 @@
     echo " "
     echo " * Building Red-Hat packages for ${distr}..."
     echo " "
-    ./buildrpm ${distr} ${COMPSs_version}
+    ./buildrpm "${distr}" ${COMPSs_version}
   done
   cd ..
 

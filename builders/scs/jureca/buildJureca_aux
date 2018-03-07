@@ -27,7 +27,7 @@
 
   # SET SCRIPT VARIABLES
   targetDir=$1
-  scriptDir=$(dirname $0)
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   modules="GCCcore/.5.4.0 Intel/2017.0.098-GCC-5.4.0 Java IntelMPI Python/2.7.12 Boost PAPI/5.5.0 Autotools/20150215"
   py2_modules="Python/2.7.12"
@@ -39,4 +39,4 @@
   extrae_with_impi="false"
   impi_version=""
 
-  ${scriptDir}/buildSC_aux ${targetDir} "${modules}" "${py2_modules}" "${py3_modules}" "${additionalExports}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}"
+  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${py2_modules}" "${py3_modules}" "${additionalExports}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}"

@@ -1,0 +1,15 @@
+#!/bin/bash -e
+
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  trunk_rel_path=../../../../
+  COMPSs_target=${SCRIPT_DIR}/tmp/opt/COMPSs
+
+  if [ -z "$JAVA_HOME" ]; then
+    echo "Please define \$JAVA_HOME"
+    exit 1
+  fi
+
+  cd ${trunk_rel_path}/dependencies/pluto
+  ./install_pluto "${COMPSs_target}"/Dependencies/pluto
+  cd "${SCRIPT_DIR}"
+

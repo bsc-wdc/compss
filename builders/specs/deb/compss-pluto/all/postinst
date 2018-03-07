@@ -1,0 +1,83 @@
+#!/bin/bash -e
+  
+  action=$1
+
+  if [ "$action" == "configure" ]; then
+    # Configure new version successfully installed
+    newversion=$1
+
+    # Find JAVA_HOME
+    if [ -z "${JAVA_HOME}" ]; then
+      echo " - Finding JAVA_HOME installation"
+      openjdk=$(dpkg --get-selections | grep -v deinstall | grep openjdk | grep headless | tail -n 1 | cut -f1)
+      libjvm=$(dpkg-query -L "$openjdk" | grep libjvm.so | head -n 1)
+      if [ -z "$libjvm" ]; then
+        echo "ERROR: Invalid JAVA_HOME installation. No libjvm.so found"
+        exit 1
+      fi
+      JAVA_LIB_DIR=$(dirname "$libjvm")
+      JAVA_HOME=${JAVA_LIB_DIR}/../../../
+    else 
+      echo " - Using defined JAVA_HOME installation: ${JAVA_HOME}"
+      libjvm=$(find -L "${JAVA_HOME}" -name libjvm.so | head -n 1)
+      if [ -z "$libjvm" ]; then
+        echo "ERROR: Invalid JAVA_HOME installation. No libjvm.so found"
+        exit 1
+      fi
+      JAVA_LIB_DIR=$(dirname "$libjvm")
+    fi
+    echo "Using JAVA_HOME=${JAVA_HOME}"
+    echo "Using JAVA_LIB_DIR=${JAVA_LIB_DIR}"                                                                                                                                           
+    export JAVA_HOME=${JAVA_HOME}
+    export JAVA_LIB_DIR=${JAVA_LIB_DIR}
+
+    # Configure
+    echo "   - Configure, compile and install"
+    cd /opt/COMPSs/Dependencies/pluto_install
+    ./install_pluto /opt/COMPSs/Dependencies/pluto
+    cd /opt/COMPSs/Dependencies/pluto
+    rm -rf /opt/COMPSs/Dependencies/pluto_install
+    echo " - COMPSs PLUTO structure created"
+    echo " "
+
+    echo " - Setting COMPSs PLUTO permissions..."
+    chmod 755 -R /opt/COMPSs/Dependencies/pluto
+    echo " - COMPSs PLUTO permissions set"
+    
+    echo " "
+    echo "Congratulations!"
+    echo " * COMPSs PLUTO $newversion successfully installed!"
+    echo " "
+  elif [ "$action" == "abort-remove" ]; then
+    if [ $# -eq 1 ]; then
+      # Generic abort remove
+      echo " "
+      echo " * Remove aborted."
+      echo " "
+    else 
+      # Abort remove in favour to a given package ($2=in-favour)
+      package=$3
+      newversion=$4
+      echo " "
+      echo " * Remove aborted in favour to $package - $newversion"
+      echo " "
+    fi
+  elif [ "$action" == "abort-deconfigure" ]; then
+    # $2=in-favour
+    failedpackage=$3
+    failedversion=$4
+    echo " "
+    echo " * Deconfigure aborted in favour to $failedpackage - $failedversion"
+    echo " "
+    if [ $# -eq 4 ]; then
+      # Without external removals
+      failedpackage=$3
+      failedversion=$4
+    else
+      # With removals ($5=removing)
+      removedpackage=$6
+      removedversion=$7
+      echo " * Removed $removedpackage-$removedversion"
+    fi
+  fi
+

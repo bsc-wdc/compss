@@ -33,7 +33,7 @@ Requirements and considerations:
 
 1.a If you **do not have a cloned repository** yet issue:
 
-`git clone http://USERNAME@compss.bsc.es/compss/framework.git`
+`git clone http://USERNAME@compss.bsc.es/gitlab/compss/framework.git`
 
 (you can remove the `USERNAME@` part, but you will be asked for your username everytime unless configured)
 

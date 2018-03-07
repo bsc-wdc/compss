@@ -97,12 +97,32 @@
             "handlers": ["console"], 
             "propagate": "no"
         },
+        "pycompss.util.translators.code_loader.code_loader": {
+            "level": "DEBUG",
+            "handlers": ["console"], 
+            "propagate": "no"
+        },
         "pycompss.util.translators.code_replacer.code_replacer": {
             "level": "DEBUG",
             "handlers": ["console"], 
             "propagate": "no"
         },
         "pycompss.util.translators.scop2pscop2py.translator_scop2pscop2py": {
+            "level": "DEBUG",
+            "handlers": ["console"], 
+            "propagate": "no"
+        },
+        "pycompss.util.translators.py2scop.translator_py2scop": {                                                                                                                                                                                                              
+            "level": "DEBUG",
+            "handlers": ["console"], 
+            "propagate": "no"
+        },
+        "pycompss.util.translators.scop2pscop2py.translator_scop2pscop2py": {
+            "level": "DEBUG",
+            "handlers": ["console"], 
+            "propagate": "no"
+        },
+        "pycompss.util.translators.py2pycompss.translator_py2pycompss": {
             "level": "DEBUG",
             "handlers": ["console"], 
             "propagate": "no"

@@ -46,9 +46,10 @@ cleanup_tests:
 header_setup:
   stage: headers
   script:
+  - git checkout ${CI_COMMIT_REF_NAME}
   - ./utils/scripts/header_setup/replace_all.sh
   - 'git commit -am "ci: added missing headers"'
-  - git push http:${GIT_USER}:{GIT_PASSWD}@compss.bsc.es/gitlab/compss/framework.git ${CI_COMMIT_REF_NAME}
+  - git push http:${GIT_USER}:${GIT_PASSWD}@compss.bsc.es/gitlab/compss/framework.git ${CI_COMMIT_REF_NAME}
   only:
   - triggers
 

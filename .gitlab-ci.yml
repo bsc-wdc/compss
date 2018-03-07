@@ -26,15 +26,14 @@ cleanup_failure:
 test_job:
   stage: test
   script:
-  - 'sudo chown -R gitlab-runner: *'
-  - ./tests/scripts/main local local.cfg
+  - sudo ./tests/scripts/main local local.cfg
   only:
   - triggers
 
 header_setup:
   stage: headers
   script:
-  - ./utils/scripts/header_setup/replace_all.sh
+  - sudo ./utils/scripts/header_setup/replace_all.sh
   - 'git commit -am "ci: added missing headers"'
   - git push http:${GIT_USER}:{GIT_PASSWD}@compss.bsc.es/gitlab/compss/framework.git ${CI_COMMIT_REF_NAME}
   only:

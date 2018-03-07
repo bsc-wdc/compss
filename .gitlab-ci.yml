@@ -9,6 +9,7 @@ stages:
 build_job:
   stage: build
   script:
+  - 'echo $(whoami)'
   - mvn install sonar:sonar -Dsonar.host.url=http://bscgrid05.bsc.es/sonar/
   - ./builders/buildlocal /opt/COMPSs
   only: 

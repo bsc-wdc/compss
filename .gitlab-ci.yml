@@ -2,6 +2,7 @@ stages:
 - build
 - clean
 - test
+- clean_test
 - headers
 - cleanup_build
 
@@ -9,7 +10,7 @@ build_job:
   stage: build
   script:
   - mvn install sonar:sonar -Dsonar.host.url=http://bscgrid05.bsc.es/sonar/
-  - sudo ./builders/buildlocal /opt/COMPSs
+  - ./builders/buildlocal /opt/COMPSs
   only: 
   - triggers
 
@@ -26,14 +27,25 @@ cleanup_failure:
 test_job:
   stage: test
   script:
-  - sudo ./tests/scripts/main local local.cfg
+  - ./tests/scripts/main local local.cfg
   only:
   - triggers
+
+cleanup_failure:
+  stage: clean_test
+  script:
+  - sudo rm -rf /opt/COMPSs
+  - sudo rm -rf /home/gitlab-runner/tests*
+  - sudo rm -rf /home/gitlab-runner/.COMPSs
+  when: on_failure
+  only:
+  - triggers
+
 
 header_setup:
   stage: headers
   script:
-  - sudo ./utils/scripts/header_setup/replace_all.sh
+  - ./utils/scripts/header_setup/replace_all.sh
   - 'git commit -am "ci: added missing headers"'
   - git push http:${GIT_USER}:{GIT_PASSWD}@compss.bsc.es/gitlab/compss/framework.git ${CI_COMMIT_REF_NAME}
   only:

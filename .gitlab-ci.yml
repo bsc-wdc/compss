@@ -10,7 +10,7 @@ build_job:
   stage: build
   script:
   - 'echo $(whoami)'
-  - mvn install sonar:sonar -Dsonar.host.url=http://bscgrid05.bsc.es/sonar/
+  #- mvn install sonar:sonar -Dsonar.host.url=http://bscgrid05.bsc.es/sonar/
   - ./builders/buildlocal /opt/COMPSs
   only: 
   - triggers
@@ -32,7 +32,7 @@ test_job:
   only:
   - triggers
 
-cleanup_failure:
+cleanup_tests:
   stage: clean_test
   script:
   - sudo rm -rf /opt/COMPSs

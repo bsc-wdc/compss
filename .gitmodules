@@ -1,0 +1,3 @@
+[submodule "dependencies/pluto"]
+	path = dependencies/pluto
+	url = https://github.com/cristianrcv/pluto.git

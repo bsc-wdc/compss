@@ -33,6 +33,14 @@ enum datatype {
         object_dt,
         psco_dt,
         external_psco_dt,
+//array types
+		array_char_dt,
+		array_byte_dt,
+		array_short_dt,
+		array_int_dt,
+		array_long_dt,
+		array_float_dt,
+		array_double_dt,
 
         wchar_dt,
         wstring_dt,
@@ -40,6 +48,7 @@ enum datatype {
         void_dt,
         any_dt,
         null_dt,
+
 };
 
 // MATCHES JAVA COMPSsRuntime PARAMETER API Enum

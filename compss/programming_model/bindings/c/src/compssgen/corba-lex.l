@@ -11,7 +11,7 @@ int line = 1;
 
 identifier [a-zA-Z][0-9a-zA-Z_:]*
 %%
-
+[0-9]+  yylval=atoi(yytext); return NUMBER;
 [ \t]+		/* Don't output spaces */
 
 \n		line++;
@@ -26,6 +26,8 @@ interface	return TOK_INTERFACE;
 \;		return TOK_SEMICOLON;
 \=		return TOK_EQUAL;
 \"[^"]*\"	yylval.name = yytext; return TOK_DBLQUOTE;
+\[		return TOK_LEFT_BRAKET;
+\]		return TOK_RIGHT_CUR_BRAKET;
 
 in			return TOK_IN;
 out			return TOK_OUT;

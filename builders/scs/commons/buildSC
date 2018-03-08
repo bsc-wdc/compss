@@ -49,7 +49,7 @@
   tmpDir=${SCRIPT_DIR}/tmp
   SCauxScript_generic=${SCRIPT_DIR}/buildSC_aux
 
-
+  # Log script variables
   echo "- SC user           = ${SCuser}"
   echo "- SC login node     = ${SCloginNode}"
   echo "- SC tmp Dir        = ${SCtmpDir}"
@@ -59,8 +59,17 @@
   echo "- Generic AuxScript = ${SCauxScript_generic}"
   echo "- Sources Dir       = ${sourcesDir}"
   echo "- Local tmp Dir     = ${tmpDir}"
-  sleep 5
+  sleep 5s
 
+  # Display warning for dummies
+  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+  echo "!WARN: SCtmpDir WILL BE COMPLETELY ERASED"
+  echo "!WARN: SCtmpDir = ${SCtmpDir}"
+  echo "!WARN: YOU HAVE 5s TO ABORT..."
+  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+  sleep 5s
+
+  # Compile sources
   echo "- Compile sources"
   cd "${sourcesDir}"/compss/
   mvn -U clean package

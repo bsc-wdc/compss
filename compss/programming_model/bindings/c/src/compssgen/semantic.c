@@ -181,7 +181,7 @@ char const* get_current_function_name()
 }
 
 
-void add_argument(enum direction dir, enum datatype dt, char *classname, char *name)
+void add_argument(enum direction dir, enum datatype dt, char *classname, char *name, int elements)
 {
 	argument *new_argument;
 	debug_printf("Add argument %i %i %s %s\n", dir, dt, classname, name);
@@ -200,50 +200,90 @@ void add_argument(enum direction dir, enum datatype dt, char *classname, char *n
 	}
 	new_argument = (argument *)malloc(sizeof(argument));
 	new_argument->name = strdup(name);
-
+	new_argument->elements = elements;
 	switch (dt) {
 		 case char_dt:
 		 case wchar_dt:
-			 new_argument->classname = "char";
+			 if (elements>0){
+				 new_argument->type = array_char_dt;
+				 new_argument->classname = "char[]";
+			 }else{
+				 new_argument->type = dt;
+				 new_argument->classname = "char";
+			 }
 			 break;
 		 case boolean_dt:
+			 new_argument->type = dt;
 			 new_argument->classname = "int";
 			 break;
 		 case short_dt:
-			 new_argument->classname = "short";
+			 if (elements>0){
+				 new_argument->type = array_short_dt;
+				 new_argument->classname = "short[]";
+			 }else{
+			 	 new_argument->type = dt;
+			 	 new_argument->classname = "short";
+			 }
 			 break;
 		 case long_dt:
-			 new_argument->classname = "long";
+			 if (elements>0){
+			 	 new_argument->type = array_long_dt;
+			 	 new_argument->classname = "long[]";
+			 }else{
+				 new_argument->type = dt;
+				 new_argument->classname = "long";
+			 }
 			 break;
 		 case longlong_dt:
+			 new_argument->type = dt;
 			 new_argument->classname = "long long";
 			 break;
 		 case int_dt:
-			 new_argument->classname = "int";
+			 if (elements>0){
+			 	 new_argument->type = array_int_dt;
+			 	 new_argument->classname = "int[]";
+			 }else{
+			 	new_argument->type = dt;
+			 	new_argument->classname = "int";
+			 }
 			 break;
 		 case float_dt:
-			 new_argument->classname = "float";
+			 if (elements>0){
+			 	 new_argument->type = array_float_dt;
+			 	 new_argument->classname = "float[]";
+			 }else{
+			   	 new_argument->type = dt;
+			   	 new_argument->classname = "float";
+			 }
 			 break;
 		 case double_dt:
-			 new_argument->classname = "double";
+			 if (elements>0){
+			 	 new_argument->type = array_double_dt;
+			 	 new_argument->classname = "double[]";
+			 }else{
+			   	 new_argument->type = dt;
+			   	 new_argument->classname = "double";
+			 }
 			 break;
 		 case object_dt:
+			 new_argument->type = dt;
 			 new_argument->classname = strdup(classname);
 			 break;
 		 case string_dt:
 		 case wstring_dt:
+			 new_argument->type = dt;
 			 new_argument->classname = "string";
 			 break;
 		 case file_dt:
 			 new_argument->classname = "File";
+			 new_argument->type = dt;
 			 break;
 		 case void_dt:
 		 case any_dt:
 		 case null_dt:
-		 default:;
+		 default:
+			 new_argument->type = dt;
 	 }
-
-	new_argument->type = dt;
 	new_argument->dir = dir;
 	new_argument->passing_in_order = 0;
 	new_argument->passing_out_order = 0;

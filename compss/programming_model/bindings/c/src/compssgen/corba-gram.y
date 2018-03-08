@@ -14,6 +14,7 @@ void yyerror(char *s);
 %}
 
 %union {
+    int			elements;
 	char		*name;
 	char		*classname;
 	enum datatype	dtype;
@@ -28,7 +29,7 @@ void yyerror(char *s);
 %token TOK_EQUAL TOK_DBLQUOTE
 
 %token <name> TOK_IDENTIFIER
-%type <dtype> data_type numeric_type
+%type <dtype> data_type numeric_type array_type
 %type <dir> direction
 
 
@@ -72,8 +73,9 @@ arguments1:	argument
 ;
 		
 
-argument:	direction data_type TOK_IDENTIFIER { add_argument($1, $2, "", $3); }
-		|	direction TOK_IDENTIFIER TOK_IDENTIFIER { add_argument($1, object_dt, $2, $3); }
+argument:	direction data_type TOK_IDENTIFIER { add_argument($1, $2, "", $3, 0); }
+		|	direction numeric_type TOK_LEFT_BRAKET NUMBER TOK_RIGHT_BRAKET TOK_IDENTIFIER { add_arggument($1, $2, "", $6, $4);}
+		|	direction TOK_IDENTIFIER TOK_IDENTIFIER { add_argument($1, object_dt, $2, $3, 0); }
 ;
 
 direction:	TOK_IN			{ $$ = in_dir; }

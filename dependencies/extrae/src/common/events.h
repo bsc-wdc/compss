@@ -86,6 +86,7 @@ unsigned IsMPICollective (unsigned EvType);
 #define SAMPLING_ADDRESS_TLB_HITORMISS_EV    32000005
 #define SAMPLING_ADDRESS_REFERENCE_COST_EV   32000006
 #define SAMPLING_ADDRESS_ALLOCATED_OBJECT_EV 32000007
+#define SAMPLING_ADDRESS_ALLOCATED_OBJECT_ALLOC_EV 32000009
 #define SAMPLING_ADDRESS_STATIC_OBJECT_EV    32000008
 #define SAMPLING_ADDRESS_ALLOCATED_OBJECT_CALLER_EV 32000100 /* internal purposes, not emitted into paraver tracefile */
 
@@ -153,13 +154,18 @@ enum {
 #define FREE_EV                  40000041
 #define CALLOC_EV                40000042
 #define REALLOC_EV               40000043
-#define POSIX_MEMALIGN_EV	 40000044
+#define POSIX_MEMALIGN_EV        40000044
 #define MEMKIND_MALLOC_EV         40000045
 #define MEMKIND_CALLOC_EV         40000046
 #define MEMKIND_REALLOC_EV        40000047
 #define MEMKIND_POSIX_MEMALIGN_EV 40000048
 #define MEMKIND_FREE_EV           40000049
 #define MEMKIND_PARTITION_EV      40001000
+#define KMPC_MALLOC_EV            40000062
+#define KMPC_FREE_EV              40000063
+#define KMPC_CALLOC_EV            40000064
+#define KMPC_REALLOC_EV           40000065
+#define KMPC_ALIGNED_MALLOC_EV    40000066
 
 enum
 {
@@ -373,6 +379,9 @@ enum {
 #define MPI_WIN_COMPLETE_EV          50000207
 #define MPI_WIN_WAIT_EV              50000208
 #define MPI_RMA_SIZE                 50001000
+#define MPI_RMA_TARGET_RANK          50001001
+#define MPI_RMA_ORIGIN_ADDR          50001002
+#define MPI_RMA_TARGET_DISP          50001003
 
 #define MPI_IREDUCE_EV               50000210
 #define MPI_IALLREDUCE_EV            50000211
@@ -388,13 +397,20 @@ enum {
 #define MPI_ISCATTERV_EV             50000221
 #define MPI_IREDUCESCAT_EV           50000222
 #define MPI_ISCAN_EV                 50000223
-
+#define MPI_REDUCE_SCATTER_BLOCK_EV  50000224
+#define MPI_IREDUCE_SCATTER_BLOCK_EV 50000225
+#define MPI_ALLTOALLW_EV	     50000226
+#define MPI_IALLTOALLW_EV	     50000227
+#define MPI_WIN_LOCK_EV              50000228
+#define MPI_WIN_UNLOCK_EV	     50000229
+#define MPI_GET_ACCUMULATE_EV	     50000230
 
 
 #define MPI_IPROBE_COUNTER_EV        50000300
 #define MPI_TIME_OUTSIDE_IPROBES_EV  50000301
 #define MPI_REQUEST_GET_STATUS_COUNTER_EV               50000302
 #define MPI_TIME_OUTSIDE_MPI_REQUEST_GET_STATUS_EV      50000303
+#define MPI_TIME_OUTSIDE_TESTS_EV    50000304
 
 /******************************************************************************
  *   User events for BG PERSONALITY
@@ -435,8 +451,8 @@ enum {
 #define WORK_EV                  60000011
 #define ENTERGATE_EV             60000012
 #define EXITGATE_EV              60000013
-#define ORDBEGIN_EV              60000014
-#define ORDEND_EV                60000015
+#define ORDBEGIN_EV              60000014 /* Not used, actually replaced by ORDERED_EV */
+#define ORDEND_EV                60000015 /* Not used, actually replaced by ORDERED_EV */
 #define JOIN_EV                  60000016
 #define DESCMARK_EV              60000017
 #define OMPFUNC_EV               60000018
@@ -444,7 +460,6 @@ enum {
 #define USRFUNC_EV               60000019
 #define USRFUNC_LINE_EV          60000119
 #define USRFUNC_EV_BB            60000219
-#define TASKID_EV                60000028
 #define TASK_EV                  60000021
 #define TASKWAIT_EV              60000022
 #define TASKFUNC_EV              60000023
@@ -454,9 +469,13 @@ enum {
 #define TASKGROUP_START_EV       60000025
 #define TASKGROUP_END_EV         60000026
 #define TASKGROUP_INGROUP_DEEP_EV 60000027
+#define TASKID_EV                60000028
+#define TASKLOOP_EV              60000029
+#define TASKLOOPID_EV            60010029
 #define OMPSETNUMTHREADS_EV      60000030
 #define OMPGETNUMTHREADS_EV      60000031
 #define NAMEDCRIT_NAME_EV        60000032 /* Critical address name */
+#define ORDERED_EV               60000033 /* Ordered section in ordered or doacross loop */
 #define OMPT_CRITICAL_EV         60000050
 #define OMPT_ATOMIC_EV           60000051
 #define OMPT_LOOP_EV             60000052
@@ -643,6 +662,14 @@ enum {
 #define LOCK_VAL                 3 /* Inside an acquire lock function. */
 #define UNLOCK_VAL               5 /* Inside a release lock function. */
 #define LOCKED_VAL               6 /* Locked Status. Mutex is locked. */
+
+/* 
+ * Ordered Values.
+ */
+#define OUTORDERED_VAL           0 /* Outside ordered section in ordered or doacross loop. */
+#define WAITORDERED_VAL          3 /* Waiting to enter ordered section in ordered or doacross loop */
+#define POSTORDERED_VAL          5 /* Signaling the exit from ordered section in ordered or doacross loop */
+#define INORDERED_VAL            6 /* Inside ordered section in ordered or doacross loop. */
 
 #if defined(DEAD_CODE)
 /* 
@@ -872,6 +899,9 @@ typedef enum
 /* 153 */   BLOCK_ID_LAPI_Amsend,
 /* 154 */   BLOCK_ID_LAPI_Rmw,
 /* 155 */   BLOCK_ID_LAPI_Waitcntr
+/* 156 */   BLOCK_ID_MPI_Reduce_scatter_block,
+/* 157 */   BLOCK_ID_MPI_Alltoallw,
+/* 158 */   BLOCK_ID_MPI_Get_accumulate
   
 } DimBlock;
 #endif
@@ -896,7 +926,9 @@ typedef enum
   GLOP_ID_MPI_Reduce         = 10,
   GLOP_ID_MPI_Allreduce      = 11,
   GLOP_ID_MPI_Reduce_scatter = 12,
-  GLOP_ID_MPI_Scan           = 13
+  GLOP_ID_MPI_Scan           = 13,
+  GLOP_ID_MPI_Reduce_scatter_block = 14,
+  GLOP_ID_MPI_Alltoallw		 = 15
 
 } DimCollectiveOp;
 

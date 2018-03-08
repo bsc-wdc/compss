@@ -23,7 +23,7 @@
 #include "common.h"
 #include "events.h"
 
-#define MPI_EVENTS 100
+#define MPI_EVENTS 108  /*Last added MPI_TIME_OUTSIDE_TESTS*/
 
 /******************************************************************************
  ***  IsMPI
@@ -56,7 +56,9 @@ static unsigned mpi_events[] = {
 	MPI_IREDUCE_EV, MPI_IALLREDUCE_EV, MPI_IBARRIER_EV, MPI_IBCAST_EV,
 	MPI_IALLTOALL_EV, MPI_IALLTOALLV_EV, MPI_IALLGATHER_EV, MPI_IALLGATHERV_EV,
 	MPI_IGATHER_EV, MPI_IGATHERV_EV, MPI_ISCATTER_EV, MPI_ISCATTERV_EV,
-	MPI_IREDUCESCAT_EV, MPI_ISCAN_EV
+	MPI_IREDUCESCAT_EV, MPI_ISCAN_EV, MPI_REDUCE_SCATTER_BLOCK_EV, MPI_IREDUCE_SCATTER_BLOCK_EV,
+	MPI_ALLTOALLW_EV, MPI_IALLTOALLW_EV, MPI_WIN_LOCK_EV, MPI_WIN_UNLOCK_EV,
+	MPI_GET_ACCUMULATE_EV, MPI_TIME_OUTSIDE_TESTS_EV
  };
 
 unsigned IsMPI (unsigned EvType)
@@ -72,7 +74,7 @@ unsigned IsMPI (unsigned EvType)
 /******************************************************************************
  ***  IsMISC
  ******************************************************************************/
-#define MISC_EVENTS 61
+#define MISC_EVENTS 66
 static unsigned misc_events[] = {FLUSH_EV, OPEN_EV, FOPEN_EV, READ_EV, WRITE_EV, FREAD_EV, FWRITE_EV, 
         PREAD_EV, PWRITE_EV, READV_EV, WRITEV_EV, PREADV_EV, PWRITEV_EV, APPL_EV, USER_EV,
 	HWC_DEF_EV, HWC_CHANGE_EV, HWC_EV, TRACING_EV, SET_TRACE_EV, CALLER_EV,
@@ -86,7 +88,8 @@ static unsigned misc_events[] = {FLUSH_EV, OPEN_EV, FOPEN_EV, READ_EV, WRITE_EV,
 	FORK_EV, WAIT_EV, WAITPID_EV, EXEC_EV, GETCPU_EV, CPU_EVENT_INTERVAL_EV, SYSTEM_EV,
 	MALLOC_EV, FREE_EV, CALLOC_EV, REALLOC_EV, POSIX_MEMALIGN_EV,
 	MEMKIND_MALLOC_EV, MEMKIND_CALLOC_EV, MEMKIND_REALLOC_EV, MEMKIND_POSIX_MEMALIGN_EV, MEMKIND_FREE_EV,
-	MEMKIND_PARTITION_EV, SYSCALL_EV
+	MEMKIND_PARTITION_EV, SYSCALL_EV,
+	KMPC_MALLOC_EV, KMPC_FREE_EV, KMPC_CALLOC_EV,	KMPC_REALLOC_EV, KMPC_ALIGNED_MALLOC_EV
  };
 
 unsigned IsMISC (unsigned EvType)
@@ -98,22 +101,26 @@ unsigned IsMISC (unsigned EvType)
     if (EvType>=SAMPLING_EV && EvType<=SAMPLING_EV+MAX_CALLERS)
         return TRUE;
     for (evt = 0; evt < MISC_EVENTS; evt++)
+		{
         if (misc_events[evt] == EvType)
+				{
             return TRUE;
+				}
+		}
 	return FALSE;
 }
 
 /******************************************************************************
  ***  IsOpenMP
  ******************************************************************************/
-#define OMP_EVENTS 28
+#define OMP_EVENTS 31
 static unsigned omp_events[] = { OMPFUNC_EV, PAR_EV, WSH_EV, BARRIEROMP_EV,
 	UNNAMEDCRIT_EV, NAMEDCRIT_EV, WORK_EV, JOIN_EV, OMPSETNUMTHREADS_EV,
 	OMPGETNUMTHREADS_EV, TASK_EV, TASKWAIT_EV, TASKFUNC_EV, TASKFUNC_LINE_EV,
 	OMPT_CRITICAL_EV, OMPT_ATOMIC_EV, OMPT_LOOP_EV, OMPT_WORKSHARE_EV,
 	OMPT_SECTIONS_EV, OMPT_SINGLE_EV, OMPT_MASTER_EV, TASKGROUP_START_EV,
-	TASKGROUP_END_EV, TASKID_EV, OMPT_TASKGROUP_IN_EV, OMPT_DEPENDENCE_EV,
-	OMPT_TASKFUNC_EV, OMP_STATS_EV };
+	TASKGROUP_END_EV, TASKID_EV, TASKLOOPID_EV, OMPT_TASKGROUP_IN_EV, OMPT_DEPENDENCE_EV,
+	OMPT_TASKFUNC_EV, OMP_STATS_EV, TASKLOOP_EV, ORDERED_EV };
 
 unsigned IsOpenMP (unsigned EvType)
 {
@@ -327,6 +334,10 @@ unsigned IsMPICollective(unsigned EvType)
       case MPI_SCATTERV_EV:
       case MPI_REDUCESCAT_EV:
       case MPI_SCAN_EV:
+      case MPI_REDUCE_SCATTER_BLOCK_EV:
+      case MPI_IREDUCE_SCATTER_BLOCK_EV:
+      case MPI_ALLTOALLW_EV:
+      case MPI_IALLTOALLW_EV:
          return TRUE;
       default:
          return FALSE;

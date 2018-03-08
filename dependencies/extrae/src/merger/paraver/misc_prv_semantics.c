@@ -95,10 +95,15 @@ static int Get_State (unsigned int EvType)
 		case MEMKIND_REALLOC_EV:
 		case CALLOC_EV:
 		case MEMKIND_CALLOC_EV:
+		case KMPC_MALLOC_EV:
+		case KMPC_CALLOC_EV:
+		case KMPC_REALLOC_EV:
+		case KMPC_ALIGNED_MALLOC_EV:
 			state = STATE_ALLOCMEM;
 	  break;
 		case FREE_EV:
 		case MEMKIND_FREE_EV:
+		case KMPC_FREE_EV:
 			state = STATE_FREEMEM;
 		break;
 		default:
@@ -1590,7 +1595,12 @@ static int DynamicMemory_Event (event_t * event,
 	unsigned long long EvValue = Get_EvValue (event);
 	int isBegin = EvValue == EVT_BEGIN;
 
-	if ((EvType == MALLOC_EV) || (EvType == MEMKIND_MALLOC_EV) || (EvType == MEMKIND_POSIX_MEMALIGN_EV) || (EvType == POSIX_MEMALIGN_EV))
+	if ((EvType == MALLOC_EV)                 ||
+	    (EvType == MEMKIND_MALLOC_EV)         ||
+	    (EvType == MEMKIND_POSIX_MEMALIGN_EV) ||
+	    (EvType == POSIX_MEMALIGN_EV)         ||
+	    (EvType == KMPC_MALLOC_EV)            ||
+	    (EvType == KMPC_ALIGNED_MALLOC_EV))
 	{
 		/* Malloc: in size, out pointer */
 		if (isBegin)
@@ -1615,11 +1625,12 @@ static int DynamicMemory_Event (event_t * event,
 					  SAMPLING_ADDRESS_ALLOCATED_OBJECT_CALLER_EV+u,
 					  thread_info->AddressSpace_calleraddresses[u]);
 			}
+
 			/* Emit event that will be replaced by the ID of the 
 			   location of structure allocation */
 			trace_paraver_event (cpu, ptask, task, thread,
 			  thread_info->AddressSpace_timeCreation,
-			  SAMPLING_ADDRESS_ALLOCATED_OBJECT_EV, 0);
+			  SAMPLING_ADDRESS_ALLOCATED_OBJECT_ALLOC_EV, 0);
 
 			trace_paraver_event (cpu, ptask, task, thread, time,
 			  DYNAMIC_MEM_POINTER_OUT_EV, EvParam);
@@ -1630,7 +1641,9 @@ static int DynamicMemory_Event (event_t * event,
 			  thread_info->AddressSpace_callertype);
 		}
 	}
-	else if ((EvType == FREE_EV) || (EvType == MEMKIND_FREE_EV))
+	else if ((EvType == FREE_EV)         ||
+	         (EvType == MEMKIND_FREE_EV) ||
+	         (EvType == KMPC_FREE_EV))
 	{
 		/* Free: in pointer */
 		if (isBegin)
@@ -1641,7 +1654,9 @@ static int DynamicMemory_Event (event_t * event,
 			AddressSpace_remove (task_info->AddressSpace, EvParam);
 		}
 	}
-	else if ((EvType == REALLOC_EV) || (EvType == MEMKIND_REALLOC_EV))
+	else if ((EvType == REALLOC_EV)         ||
+	         (EvType == MEMKIND_REALLOC_EV) ||
+	         (EvType == KMPC_REALLOC_EV))
 	{
 		/* Realloc: in size, in pointer (in EVT_BEGIN+1), out ptr*/
 		if (EvValue == EVT_BEGIN)
@@ -1670,7 +1685,9 @@ static int DynamicMemory_Event (event_t * event,
 		}
 	
 	}
-	else if ((EvType == CALLOC_EV) || (EvType == MEMKIND_CALLOC_EV))
+	else if ((EvType == CALLOC_EV)         ||
+	         (EvType == MEMKIND_CALLOC_EV) ||
+	         (EvType == KMPC_CALLOC_EV))
 	{
 		/* Calloc: in size, out pointer */
 		if (isBegin)
@@ -1817,6 +1834,11 @@ SingleEv_Handler_t PRV_MISC_Event_Handlers[] = {
 	{ MEMKIND_FREE_EV, DynamicMemory_Event },
 	{ MEMKIND_PARTITION_EV, DynamicMemory_Partition_Event },
 	{ SYSCALL_EV, SystemCall_Event },
+	{ KMPC_MALLOC_EV, DynamicMemory_Event },
+	{ KMPC_CALLOC_EV, DynamicMemory_Event },
+	{ KMPC_FREE_EV, DynamicMemory_Event },
+	{ KMPC_REALLOC_EV, DynamicMemory_Event },
+	{ KMPC_ALIGNED_MALLOC_EV, DynamicMemory_Event },
 	{ NULL_EV, NULL }
 };
 

@@ -107,9 +107,9 @@
 #include "mode.h"
 #include "events.h"
 #if defined(OMP_SUPPORT)
-# include "omp_probe.h"
-# include "omp_wrapper.h"
-# if defined(OMPT_INSTRUMENTATION)
+# include "omp-probe.h"
+# include "omp-common.h"
+# if defined(OMPT_SUPPORT)
 #  include "ompt-wrapper.h"
 # endif
 #endif
@@ -214,6 +214,9 @@ int tracejant_hwc_omp = TRUE;
 /***** Variable global per saber si pthread s'ha de tracejar **************/
 int tracejant_pthread = TRUE;
 
+/* Mutex to prevent double free's from dying pthreads */
+pthread_mutex_t pthreadFreeBuffer_mtx = PTHREAD_MUTEX_INITIALIZER;
+
 void Extrae_set_pthread_tracing (int b)
 { tracejant_pthread = b; }
 
@@ -307,20 +310,17 @@ char final_dir[TMP_DIR];
 char tmp_dir[TMP_DIR];
 
 
-/* Checks if there is a CPU event waiting to be emitted */
-int PENDING_TRACE_CPU_EVENT(int thread_id, iotimer_t current_time)
+/*
+ * Checks if there is a CPU event waiting to be emitted.
+ * Returns 1 if the thread never emitted a CPU event or if the user specified
+ * timer goes off.
+*/
+int
+PENDING_TRACE_CPU_EVENT(int thread_id, iotimer_t current_time)
 {
-	if (MinimumCPUEventTime > 0)
-	{
-		if (LastCPUEmissionTime[thread_id] == 0)
-		{
-			LastCPUEmissionTime[thread_id] = current_time;
-		}
-		else if ((current_time - LastCPUEmissionTime[thread_id]) >  MinimumCPUEventTime)
-		{
-			LastCPUEmissionTime[thread_id] = current_time;
-			return 1;
-		}
+	if ((LastCPUEmissionTime[thread_id] == 0) || (((current_time - LastCPUEmissionTime[thread_id]) >  MinimumCPUEventTime) && MinimumCPUEventTime > 0)) {
+		LastCPUEmissionTime[thread_id] = current_time;
+		return 1;
 	}
 
 	return 0;
@@ -1420,7 +1420,7 @@ int Extrae_Allocate_Task_Bitmap (int size)
 	return 0;
 }
 
-#if defined(OMP_SUPPORT) && !defined(OMPT_INSTRUMENTATION)
+#if defined(OMP_SUPPORT) 
 static int getnumProcessors (void)
 {
 	int numProcessors;
@@ -1438,7 +1438,7 @@ static int getnumProcessors (void)
 
 	return numProcessors;
 }
-#endif /* OMP_SUPPORT && !OMPT_INSTRUMENTATION */
+#endif /* OMP_SUPPORT */
 
 #if defined(PTHREAD_SUPPORT)
 
@@ -1482,15 +1482,24 @@ void Backend_Flush_pThread (pthread_t t)
 		{
 			pThreads[u] = (pthread_t)0; // This slot won't be used in the future
 
-			Buffer_Flush(TRACING_BUFFER(u));
-			Backend_Finalize_close_mpits (getpid(), u, FALSE);
+			pthread_mutex_lock(&pthreadFreeBuffer_mtx);
 
-			Buffer_Free (TRACING_BUFFER(u));
-			TRACING_BUFFER(u) = NULL;
+			if (TRACING_BUFFER(u) != NULL)
+			{
+				Buffer_Flush(TRACING_BUFFER(u));
+				Backend_Finalize_close_mpits (getpid(), u, FALSE);
+
+				Buffer_Free (TRACING_BUFFER(u));
+				TRACING_BUFFER(u) = NULL;
+			}
 #if defined(SAMPLING_SUPPORT)
-			Buffer_Free (SAMPLING_BUFFER(u));
-			SAMPLING_BUFFER(u) = NULL;
+			if (SAMPLING_BUFFER(u) != NULL)
+			{
+				Buffer_Free (SAMPLING_BUFFER(u));
+				SAMPLING_BUFFER(u) = NULL;
+			}
 #endif
+			pthread_mutex_unlock(&pthreadFreeBuffer_mtx);
 			break;
 		}
 }
@@ -1545,7 +1554,7 @@ int Backend_preInitialize (int me, int world_size, const char *config_file, int 
 	unsigned u;
 	int runningInDynInst = FALSE;
 	char trace_sym[TMP_DIR];
-#if defined(OMP_SUPPORT) && !defined(OMPT_INSTRUMENTATION)
+#if defined(OMP_SUPPORT) 
 	char *omp_value;
 	char *new_num_omp_threads_clause;
 	int numProcessors;
@@ -1627,63 +1636,62 @@ int Backend_preInitialize (int me, int world_size, const char *config_file, int 
 #endif
 
 #if defined(OMP_SUPPORT)
-# if !defined(OMPT_INSTRUMENTATION)
 
-	Extrae_OpenMP_init(me);
-
-	/* Obtain the number of runnable threads in this execution.
-	   Just check for OMP_NUM_THREADS env var (if this compilation
-	   allows instrumenting OpenMP */
-	numProcessors = getnumProcessors();
-
-	new_num_omp_threads_clause = (char*) malloc ((strlen("OMP_NUM_THREADS=xxxx")+1)*sizeof(char));
-	if (NULL == new_num_omp_threads_clause)
+# if defined(OMPT_SUPPORT)
+	if (!ompt_enabled)
+# endif /* OMPT_SUPPORT */
 	{
-		fprintf (stderr, PACKAGE_NAME": Unable to allocate memory for tentative OMP_NUM_THREADS\n");
-		exit (-1);
-	}
-	if (numProcessors >= 10000) /* xxxx in new_omp_threads_clause -> max 9999 */
-	{
-		fprintf (stderr, PACKAGE_NAME": Insufficient memory allocated for tentative OMP_NUM_THREADS\n");
-		exit (-1);
-	}
+		Extrae_OpenMP_init(me);
 
-	sprintf (new_num_omp_threads_clause, "OMP_NUM_THREADS=%d", numProcessors);
-	omp_value = getenv ("OMP_NUM_THREADS");
-	if (omp_value)
-	{
-		int num_of_threads = atoi (omp_value);
-		if (num_of_threads != 0)
+		/* Obtain the number of runnable threads in this execution.
+		   Just check for OMP_NUM_THREADS env var (if this compilation
+		   allows instrumenting OpenMP */
+		numProcessors = getnumProcessors();
+
+		new_num_omp_threads_clause = (char*) malloc ((strlen("OMP_NUM_THREADS=xxxx")+1)*sizeof(char));
+		if (NULL == new_num_omp_threads_clause)
 		{
-			current_NumOfThreads = maximum_NumOfThreads = num_of_threads;
-			if (me == 0)
-				fprintf (stdout, PACKAGE_NAME": OMP_NUM_THREADS set to %d\n", num_of_threads);
+			fprintf (stderr, PACKAGE_NAME": Unable to allocate memory for tentative OMP_NUM_THREADS\n");
+			exit (-1);
+		}
+		if (numProcessors >= 10000) /* xxxx in new_omp_threads_clause -> max 9999 */
+		{
+			fprintf (stderr, PACKAGE_NAME": Insufficient memory allocated for tentative OMP_NUM_THREADS\n");
+			exit (-1);
+		}
+
+		sprintf (new_num_omp_threads_clause, "OMP_NUM_THREADS=%d", numProcessors);
+		omp_value = getenv ("OMP_NUM_THREADS");
+		if (omp_value)
+		{
+			int num_of_threads = atoi (omp_value);
+			if (num_of_threads != 0)
+			{
+				current_NumOfThreads = maximum_NumOfThreads = num_of_threads;
+				if (me == 0)
+					fprintf (stdout, PACKAGE_NAME": OMP_NUM_THREADS set to %d\n", num_of_threads);
+			}
+			else
+			{
+				if (me == 0)
+					fprintf (stderr, PACKAGE_NAME": OMP_NUM_THREADS is not set, allocating buffers for %d thread(s)\n", numProcessors);
+				current_NumOfThreads = maximum_NumOfThreads = numProcessors;
+			}
 		}
 		else
 		{
 			if (me == 0)
-				fprintf (stderr,
-					PACKAGE_NAME": OMP_NUM_THREADS is mandatory for this tracing library!\n"\
-					PACKAGE_NAME": Setting OMP_NUM_THREADS to %d\n", numProcessors);
-			putenv (new_num_omp_threads_clause);
+				fprintf (stderr, PACKAGE_NAME": OMP_NUM_THREADS is not set, allocating buffers for %d thread(s)\n", numProcessors);
 			current_NumOfThreads = maximum_NumOfThreads = numProcessors;
 		}
 	}
-	else
-	{
-		if (me == 0)
-			fprintf (stderr,
-				PACKAGE_NAME": OMP_NUM_THREADS is mandatory for this tracing library!\n"\
-				PACKAGE_NAME": Setting OMP_NUM_THREADS to %d\n", numProcessors);
-		putenv (new_num_omp_threads_clause);
-		current_NumOfThreads = maximum_NumOfThreads = numProcessors;
-	}
-
-# endif /* OMPT_INSTRUMENTATION */
 
 #elif defined(SMPSS_SUPPORT) || defined(NANOS_SUPPORT) || defined (UPC_SUPPORT)
+
 	current_NumOfThreads = maximum_NumOfThreads = Extrae_get_num_threads();
+
 #else
+
 	/* If we don't support OpenMP we still have this running thread :) */
 	current_NumOfThreads = maximum_NumOfThreads = Extrae_get_num_threads();
 
@@ -1693,7 +1701,8 @@ int Backend_preInitialize (int me, int world_size, const char *config_file, int 
 			fprintf (stderr,
 				PACKAGE_NAME": Warning! OMP_NUM_THREADS is set but OpenMP is not supported!\n");
 	}
-#endif
+
+#endif /* OMP_SUPPORT */
 
 #endif /* STANDALONE */
 
@@ -1747,6 +1756,9 @@ int Backend_preInitialize (int me, int world_size, const char *config_file, int 
 	/* Remove the locals .sym file */
 	for (u = 0; u < get_maximum_NumOfThreads(); u++)
 	{
+		Backend_setInInstrumentation (u, FALSE);
+		Backend_setInSampling (u, FALSE);
+		
 		FileName_PTT(trace_sym, Get_TemporalDir(Extrae_get_initial_TASKID()),
 		  appl_name, hostname, getpid(), Extrae_get_initial_TASKID(), u,
 		  EXT_SYM);
@@ -1886,7 +1898,10 @@ int Backend_ChangeNumberOfThreads (unsigned numberofthreads)
 			Backend_ChangeNumberOfThreads_InInstrumentation (new_num_threads);
 			/* We leave... so, we're no longer in instrumentatin from this point */
 			for (u = get_maximum_NumOfThreads(); u < new_num_threads; u++)
+			{
 				Backend_setInInstrumentation (u, FALSE);
+				Backend_setInSampling (u, FALSE);
+			}
 	
 			/* Reallocate clock structures */
 			Clock_AllocateThreads (new_num_threads);
@@ -2084,10 +2099,6 @@ int Backend_postInitialize (int rank, int world_size, unsigned init_event,
 
 	/* Enable sampling capabilities */
 	Extrae_setSamplingEnabled (TRUE);
-
-#if defined(ENABLE_PEBS_SAMPLING)
-	Extrae_IntelPEBS_enable(TRUE);
-#endif
 
 	/* We leave... so, we're no longer in instrumentatin from this point */
 	for (u = 0; u < get_maximum_NumOfThreads(); u++)
@@ -2292,8 +2303,11 @@ void Backend_Finalize (void)
 	Extrae_OpenCL_fini ();
 #endif
 
-#if defined(OMP_SUPPORT) && defined(OMPT_INSTRUMENTATION)
-        ompt_finalize ();
+#if defined(OMP_SUPPORT) && defined(OMPT_SUPPORT)
+	if (ompt_enabled)
+	{
+		ompt_finalize ();
+	}
 #endif
 
 	if (!Extrae_getAppendingEventsToGivenPID(NULL))
@@ -2305,9 +2319,10 @@ void Backend_Finalize (void)
 			Online_Stop();
 		}
 #endif /* HAVE_ONLINE */
+
 		/* Stop collecting information from dynamic memory instrumentation */
 		Extrae_set_trace_io (FALSE);
-		
+
 		/* Stop collecting information from dynamic memory instrumentation */
 		Extrae_set_trace_malloc (FALSE);
 
@@ -2324,6 +2339,7 @@ void Backend_Finalize (void)
 #if !defined(IS_BG_MACHINE)
 		Extrae_AnnotateTopology (TRUE, TIME);
 #endif
+
 		/* Write files back to disk , 1st part will include flushing events*/
 		for (thread = 0; thread < get_maximum_NumOfThreads(); thread++) 
 		{
@@ -2342,13 +2358,18 @@ void Backend_Finalize (void)
 		Extrae_Flush_Wrapper_setCounters (FALSE);
 		for (thread = 0; thread < get_maximum_NumOfThreads(); thread++)
 		{
+			pthread_mutex_lock(&pthreadFreeBuffer_mtx);
+
 			if (TRACING_BUFFER(thread) != NULL)
 			{
 				TRACE_EVENT (TIME, APPL_EV, EVT_END);
 				Buffer_ExecuteFlushCallback (TRACING_BUFFER(thread));
 				Backend_Finalize_close_mpits (getpid(), thread, FALSE);
 			}
+
+			pthread_mutex_unlock(&pthreadFreeBuffer_mtx);
 		}
+	
 		/* Free allocated memory */
 		{
 			if (TASKID == 0)
@@ -2359,12 +2380,20 @@ void Backend_Finalize (void)
 #if defined(PTHREAD_SUPPORT)
 				pThreads[thread] = (pthread_t)0;
 #endif
-				Buffer_Free (TRACING_BUFFER(thread));
-				TRACING_BUFFER(thread) = NULL;
+				pthread_mutex_lock(&pthreadFreeBuffer_mtx);
+				if (TRACING_BUFFER(thread) != NULL)
+				{
+					Buffer_Free (TRACING_BUFFER(thread));
+					TRACING_BUFFER(thread) = NULL;
+				}
 #if defined(SAMPLING_SUPPORT)
-				Buffer_Free (SAMPLING_BUFFER(thread));
-				SAMPLING_BUFFER(thread) = NULL;
+				if (SAMPLING_BUFFER(thread) != NULL)
+				{
+					Buffer_Free (SAMPLING_BUFFER(thread));
+					SAMPLING_BUFFER(thread) = NULL;
+				}
 #endif
+				pthread_mutex_unlock(&pthreadFreeBuffer_mtx);
 			}
 			xfree(LastCPUEmissionTime);
 			xfree(LastCPUEvent);
@@ -2432,9 +2461,14 @@ void Backend_Finalize (void)
 	{
 		int pid;
 		Extrae_getAppendingEventsToGivenPID (&pid);
-		Buffer_Flush(TRACING_BUFFER(THREADID));
-		for (thread = 0; thread < get_maximum_NumOfThreads(); thread++) 
-			Backend_Finalize_close_mpits (pid, thread, TRUE);
+		pthread_mutex_lock(&pthreadFreeBuffer_mtx);
+		if (TRACING_BUFFER(THREADID) != NULL)
+		{
+			Buffer_Flush(TRACING_BUFFER(THREADID));
+			for (thread = 0; thread < get_maximum_NumOfThreads(); thread++) 
+				Backend_Finalize_close_mpits (pid, thread, TRUE);
+		}
+		pthread_mutex_unlock(&pthreadFreeBuffer_mtx);
 		remove_temporal_files ();
 	}
 }

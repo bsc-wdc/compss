@@ -455,7 +455,6 @@ int Paraver_ProcessTraceFiles (unsigned long nfiles,
 			    Type == OPENSHMEM_TYPE || Type == JAVA_TYPE)
 			{
 				task_t *task_info = GET_TASK_INFO(ptask, task);
-
 				Ev_Handler_t *handler = Semantics_getEventHandler (EvType);
 				if (handler != NULL)
 				{
@@ -675,7 +674,7 @@ int Paraver_ProcessTraceFiles (unsigned long nfiles,
 	}
 #endif
 
-	Paraver_JoinFiles (num_appl, get_merge_OutputTraceName(),
+	error = Paraver_JoinFiles (num_appl, get_merge_OutputTraceName(),
 	  fset, current_time, NodeCPUinfo, numtasks,
 	  taskid, records_per_task, get_option_merge_TreeFanOut());
 
@@ -706,8 +705,14 @@ int Paraver_ProcessTraceFiles (unsigned long nfiles,
 
 	if (0 == taskid)
 	{
-		fprintf (stdout, "mpi2prv: Congratulations! %s has been generated.\n",
-		  get_merge_OutputTraceName());
+		if (error == 0)
+		{
+			fprintf (stdout, "mpi2prv: Congratulations! %s has been generated.\n",
+			    get_merge_OutputTraceName());
+		} else
+		{
+			fprintf (stdout, "mpi2prv: WARNING! Merge process finished with errors. Trace file may be incomplete.\n");
+		}
 		fflush (stdout);
 	}
 

@@ -1,7 +1,7 @@
 
-SUBDIRS = src include manuals scripts etc tests
+SUBDIRS = src include scripts etc tests
 if GENERATE_DOCUMENTATION
-SUBDIRS += doc
+SUBDIRS += docs
 endif
 
 EXTRA_DIST = \
@@ -20,7 +20,7 @@ ACLOCAL_AMFLAGS=-I config
 @SET_MAKE@
 
 dist-hook:
-	rm -fr `find $(distdir) -name .git`
+	rm -fr `find $(distdir) -name .svn`
 
 #
 # Create EXAMPLE directory and copy there the example
@@ -500,7 +500,7 @@ endif
 	$(top_srcdir)/substitute-all $(SED) "@sub_PREFIXDIR@" "${prefix}" $(DESTDIR)$(datadir)/example
 	rm null # Remove null file created at the beginning
 # SVN installations may have some subversion control files
-	find $(DESTDIR)$(datadir)/example -name .git -delete
+	find $(DESTDIR)$(datadir)/example -name .svn -delete
 	find $(DESTDIR)$(datadir)/example -name null -delete
 
 uninstall-local:

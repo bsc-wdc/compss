@@ -1,6 +1,46 @@
 
 ChangeLog
  [ + added, - removed, * changed ]
+ * 09Jan2018 Added mutex to protect buffers' double frees from dying pthreads
+ * 27Oct2017 No longer set a value for OMP_NUM_THREADS if it was not defined by the user to avoid conflicts with schedulers that assign threads through omp_set_num_threads
+ + 26Oct2017 Added header file extrae_version.h
+ * 25Oct2017 Fixes compatibility issue accessing struct ucontext
+ * 16Oct2017 Reduces maximum number of arguments in intel-kmpc wrappers
+ + 13Oct2017 Added fallback mechanism for taskloop instrumentation that recovers from runtime internal copies of the instrumented parameters
+ * 10Oct2017 Changes RECHECK_INIT macro so it also allocates nested helpers
+ * 29Sep2017 Fixes missing OMP user functions in parallel loops
+ * 29Sep2017 Fixes invalid reference to task_helper in GOMP_task and callme_task
+ * 21Sep2017 Sampling macros now check if task events have to be stored
+ * 10Aug2017 Fixes confusing error message when merger reaches quota limit
+ * 20Jul2017 Fixed wrong dependencies with OMPT in OpenMP libraries
+ * 13Jul2017 Upgrade to v3.5.0
+ + 12Jul2017 New documentation using sphinx-doc
+ * 12Jul2017 Fixes configure check for without-cuda and without-cupti
+ * 10Jul2017 Make the I/O labels appear in the PCF only if each specific call has been used during the run
+ * 10Jul2017 Include elapsed time outside MPI in Test* calls
+ + 14Jun2017 Added instrumentation support for OpenMP taskloop and ordered directives
+ * 6Jun2017 Make DLB available by default
+ + 01Jun2017 Emits cpu_event for each OpenMP thread at least once
+ * 30May2017 Clears compilation warnings and MPI_HAS_MPI_F_STATUS_IGNORE bug
+ * 30May2017 Compiles and distributes a Fortran module to use the Extrae API
+ with Fortran programs
+ + 17May2017 Added instrumentation support for mpi_reduce_scatter_block, mpi_ireduce_scatter_block, mpi_alltoallw, mpi_ialltoallw, mpi_win_lock, mpi_win_unlock, mpi_get_accumulate
+ + 12May2017 Added compatibility with new events in CUPTI 5 for stream creation
+ * 10May2017 Upgraded pyextrae support for Python 3 and added submodule for CUDA tracing
+ + 02May2017 Adds intrumentation for kmpc dynamic memory routines
+ * 27Apr2017 Extrae_get_version API call now relies on the configure.ac value instead of using a separate include file
+ * 26Apr2017 Initializes a different PEBS fd for every thread
+ * 26Apr2017 Don't exit when the binary is linked against multiple OpenMP runtimes
+ * 24Apr2017 Applied patch to emit a different event for the allocation id events
+ * 20Apr2017 Fixes typo in the convenience library for Intel KMPC wrappers
+ * 12Apr2017 Fixes CUDA tracing when using CUPTI
+ * 12Apr2017 Fixed missing dependency with librt in clocks module
+ * 11Apr2017 Changed PEBS initialization to activate in all the threads
+ * 04Apr2017 Unifies GNU OpenMP APIs in a single library
+ * 23Mar2017 Added missing initialization of control variables to keep track when we're in instrumentation or sampling that prevented PEBS sampling to trigger
+ * 22Mar2017 Fixed configure checks for Java instrumentation support
+ * 15Mar2017 pyextrae no longer requires a list of functions to instrument to activate the tracing
+ * 03Mar2017 Fixed missing python scripts after make install
  * 14Feb2017 Fixed conflict between sampling and I/O tracing where we would capture I/O calls inside the sampling handler
  * 13Feb2017 Fixed critical bug in __kmpc_fork_call due to the use of the non-reentrant par_func variable to store the user task pointer 
  * 13Feb2017 Upgraded Dyninst compabitility to series 9.x 

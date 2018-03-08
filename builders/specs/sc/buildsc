@@ -138,7 +138,7 @@
   echo "--- Copy python-binding files"
   cp -r ${trunk_rel_path}/compss/programming_model/bindings/python ${COMPSs_target}/Bindings/
   #Clean git files
-  find ${COMPSs_target} -name '.git' -exec rm -rf {} \;  #Cleans git files
+  find ${COMPSs_target} -name '.git*' -exec rm -rf {} \;  #Cleans git files
 
   #---------------------------------------------------------------------------
   # Add specific SC install and env files

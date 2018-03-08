@@ -14,7 +14,7 @@
   # Clean subversion
   echo "Cleanning GIT/MAVEN/COMPSs files"
   cd "$ROOT_FOLDER"
-  sudo find . -name ".git" | xargs -r -i -t rm -rf {}
+  sudo find . -name ".git*"| xargs -r -i -t rm -rf {}
   sudo find . -name ".m2" | xargs -r -i -t rm -rf {}
   sudo find . -name ".COMPSs" | xargs -r -i -t rm -rf {}
 

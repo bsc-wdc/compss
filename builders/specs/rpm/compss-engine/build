@@ -36,7 +36,7 @@
   cp -rf ${trunk_rel_path}/pom.xml ${target}
 
   cd tmp/SOURCES/
-  find . -name '.git' -exec rm -rf {} \;  #Cleans git files
+  find . -name '.git*' -exec rm -rf {} \;  #Cleans git files
   tar czf ${package_name}-${COMPSS_VERSION}.tar.gz ${package_name}-${COMPSS_VERSION}
   if [ $? -ne 0 ]; then
 	echo "Error compressing package"

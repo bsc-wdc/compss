@@ -33,22 +33,20 @@ enum datatype {
         object_dt,
         psco_dt,
         external_psco_dt,
-//array types
-		array_char_dt,
-		array_byte_dt,
-		array_short_dt,
-		array_int_dt,
-		array_long_dt,
-		array_float_dt,
-		array_double_dt,
-
         wchar_dt,
         wstring_dt,
         longlong_dt,
         void_dt,
         any_dt,
         null_dt,
-
+		//array types
+		array_char_dt,
+		array_byte_dt,
+		array_short_dt,
+		array_int_dt,
+		array_long_dt,
+		array_float_dt,
+		array_double_dt
 };
 
 // MATCHES JAVA COMPSsRuntime PARAMETER API Enum
@@ -57,8 +55,7 @@ enum direction {
         in_dir = 0, 
         out_dir, 
         inout_dir, 
-
-        null_dir,
+        null_dir
 };
 
 // MATCHED JAVA COMPSsRuntime PARAMETER API Enum
@@ -67,7 +64,7 @@ enum stream {
 	STD_IN = 0,
 	STD_OUT,
 	STD_ERR,
-	UNSPECIFIED,
+	UNSPECIFIED
 };
 
 #endif /* PARAM_METADATA_H */

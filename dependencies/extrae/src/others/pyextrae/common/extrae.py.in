@@ -11,7 +11,7 @@ from collections import defaultdict
 
 USRFUNC_EV = 60000100
 
-ExtraeHome     = "@sub_PREFIX@"
+ExtraeHome     = os.getenv("EXTRAE_HOME")
 LibrarySeq     = ExtraeHome + "/lib/libseqtrace.so"
 LibrarySubProc = "./.libseqtrace-subprocess.so" 
 

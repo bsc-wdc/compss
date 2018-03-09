@@ -183,10 +183,10 @@ char const* get_current_function_name()
 }
 
 
-void add_argument(enum direction dir, enum datatype dt, char *classname, char *name, int elements)
+void add_argument(enum direction dir, enum datatype dt, char *classname, char *name, char* elements)
 {
 	argument *new_argument;
-	debug_printf("Add argument %i %i %s %s %d \n", dir, dt, classname, name, elements);
+	debug_printf("Add argument %i %i %s %s %s \n", dir, dt, classname, name, elements);
 	assert(current_function != NULL);
 	if (exists_argument(name)) {
 		fprintf(stderr, "%s:%i: Duplicated argument name '%s' in function '%s'\n",
@@ -202,11 +202,11 @@ void add_argument(enum direction dir, enum datatype dt, char *classname, char *n
 	}
 	new_argument = (argument *)malloc(sizeof(argument));
 	new_argument->name = strdup(name);
-	new_argument->elements = elements;
 	switch (dt) {
 		 case char_dt:
 		 case wchar_dt:
-			 if (elements>0){
+			 if (elements !=NULL){
+				 new_argument->elements = strdup(elements);
 				 new_argument->type = array_char_dt;
 				 new_argument->classname = "char[]";
 			 }else{
@@ -219,7 +219,8 @@ void add_argument(enum direction dir, enum datatype dt, char *classname, char *n
 			 new_argument->classname = "int";
 			 break;
 		 case short_dt:
-			 if (elements>0){
+			 if (elements != NULL){
+				 new_argument->elements = strdup(elements);
 				 new_argument->type = array_short_dt;
 				 new_argument->classname = "short[]";
 			 }else{
@@ -228,7 +229,8 @@ void add_argument(enum direction dir, enum datatype dt, char *classname, char *n
 			 }
 			 break;
 		 case long_dt:
-			 if (elements>0){
+			 if (elements != NULL){
+				 new_argument->elements = strdup(elements);
 			 	 new_argument->type = array_long_dt;
 			 	 new_argument->classname = "long[]";
 			 }else{
@@ -241,7 +243,8 @@ void add_argument(enum direction dir, enum datatype dt, char *classname, char *n
 			 new_argument->classname = "long long";
 			 break;
 		 case int_dt:
-			 if (elements>0){
+			 if (elements != NULL){
+				 new_argument->elements = strdup(elements);
 			 	 new_argument->type = array_int_dt;
 			 	 new_argument->classname = "int[]";
 			 }else{
@@ -250,7 +253,8 @@ void add_argument(enum direction dir, enum datatype dt, char *classname, char *n
 			 }
 			 break;
 		 case float_dt:
-			 if (elements>0){
+			 if (elements != NULL){
+				 new_argument->elements = strdup(elements);
 			 	 new_argument->type = array_float_dt;
 			 	 new_argument->classname = "float[]";
 			 }else{
@@ -259,7 +263,8 @@ void add_argument(enum direction dir, enum datatype dt, char *classname, char *n
 			 }
 			 break;
 		 case double_dt:
-			 if (elements>0){
+			 if (elements!=NULL){
+				 new_argument->elements = strdup(elements);
 			 	 new_argument->type = array_double_dt;
 			 	 new_argument->classname = "double[]";
 			 }else{

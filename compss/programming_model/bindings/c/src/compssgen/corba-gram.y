@@ -73,9 +73,9 @@ arguments1:	argument
 ;
 		
 
-argument:	direction data_type TOK_IDENTIFIER { add_argument($1, $2, "", $3, 0); }
-		|	direction TOK_LEFT_BRAKET TOK_IDENTIFIER TOK_RIGHT_BRAKET TOK_IDENTIFIER { add_argument($1, any_dt, "array", "array", 0);}
-		|	direction TOK_IDENTIFIER TOK_IDENTIFIER { add_argument($1, object_dt, $2, $3, 0); }
+argument:	direction data_type TOK_IDENTIFIER { add_argument($1, $2, "", $3, NULL); }
+		|	direction numeric_type TOK_LEFT_BRAKET TOK_IDENTIFIER TOK_RIGHT_BRAKET TOK_IDENTIFIER { add_argument($1, $2, "", $6, $4);}
+		|	direction TOK_IDENTIFIER TOK_IDENTIFIER { add_argument($1, object_dt, $2, $3, NULL); }
 ;
 
 direction:	TOK_IN			{ $$ = in_dir; }

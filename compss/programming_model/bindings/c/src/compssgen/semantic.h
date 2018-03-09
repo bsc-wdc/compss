@@ -34,7 +34,7 @@ struct argument
     enum stream     stream;
 	int passing_in_order;
 	int passing_out_order;
-	int elements;
+	char *elements;
 	argument *next_argument;
 };
 
@@ -79,7 +79,7 @@ void add_constraint(char *constraint);
 void end_arguments();
 int began_arguments();
 int get_next_argnum();
-void add_argument(enum direction dir, enum datatype dt, char *classname, char *name, int elements);
+void add_argument(enum direction dir, enum datatype dt, char *classname, char *name, char *elements);
 int can_generate();
 function *get_first_function();
 interface *get_main_interface();

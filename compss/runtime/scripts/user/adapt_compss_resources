@@ -13,7 +13,7 @@ get_args() {
 read_result() {
    
   echo "[Adaptation] Reading result $resultPipe"
-  result=$(ssh $node "read line < ${resultPipe} ; echo \$line")
+  result=$(ssh -o StrictHostKeyChecking=no $node "read line < ${resultPipe} ; echo \$line")
   if [ $? -ne 0 ] ; then
 	echo "[Adaptation] ssh command execution failed"
         exit 1
@@ -33,7 +33,7 @@ read_result() {
 
 write_command() {
  echo "[Adaptation] writting command $params on $commandPipe"
- ssh $node "echo $params >> $commandPipe"
+ ssh -o StrictHostKeyChecking=no $node "echo $params >> $commandPipe"
 }
 
 ########################################

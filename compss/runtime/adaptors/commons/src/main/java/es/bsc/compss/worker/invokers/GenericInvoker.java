@@ -144,7 +144,20 @@ public class GenericInvoker {
         ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(values, streams, prefixes, streamValues);
         String hostfile = writeHostfile(taskSandboxWorkingDir, workers);
         // Prepare command
-        String[] cmd = new String[NUM_BASE_DECAF_ARGS];
+        String args = new String();
+        for (int i = 0; i < binaryParams.size(); ++i) {
+            if (i == 0) {
+                args = args.concat(binaryParams.get(i));
+            } else {
+                args = args.concat(" " + binaryParams.get(i));
+            }
+        }
+        String[] cmd;
+        if (args.isEmpty()){
+        	cmd = new String[NUM_BASE_DECAF_ARGS-1];
+        }else{
+        	cmd = new String[NUM_BASE_DECAF_ARGS];
+        }
         cmd[0] = dfRunner;
         cmd[1] = dfScript;
         cmd[2] = dfExecutor;
@@ -154,17 +167,10 @@ public class GenericInvoker {
         cmd[6] = numProcs;
         cmd[7] = "--hostfile";
         cmd[8] = hostfile;
-
-        String args = new String();
-        for (int i = 0; i < binaryParams.size(); ++i) {
-            if (i == 0) {
-                args = args.concat(binaryParams.get(i));
-            } else {
-                args = args.concat(" " + binaryParams.get(i));
-            }
+        if (!args.isEmpty()){
+        	cmd[9] = "--args=\"" + args + "\"";
         }
-        cmd[9] = "--args=\"" + args + "\"";
-
+        
         // Prepare environment
         System.setProperty(OMP_NUM_THREADS, computingUnits);
 

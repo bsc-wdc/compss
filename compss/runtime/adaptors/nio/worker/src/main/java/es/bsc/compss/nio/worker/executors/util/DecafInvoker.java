@@ -58,7 +58,7 @@ public class DecafInvoker extends Invoker {
     @Override
     public Object invokeMethod() throws JobExecutionException {
         checkArguments();
-        return invokeMPIMethod();
+        return invokeDecafMethod();
     }
 
     private void checkArguments() throws JobExecutionException {
@@ -85,7 +85,7 @@ public class DecafInvoker extends Invoker {
         }
     }
 
-    private Object invokeMPIMethod() throws JobExecutionException {
+    private Object invokeDecafMethod() throws JobExecutionException {
         LOGGER.info("Invoked " + this.dfScript + " in " + this.nw.getHostName());
         try {
             return GenericInvoker.invokeDecafMethod(nw.getInstallDir() + DecafImplementation.SCRIPT_PATH, this.dfScript, this.dfExecutor,

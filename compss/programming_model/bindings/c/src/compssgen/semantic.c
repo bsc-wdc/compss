@@ -20,6 +20,8 @@
 #include <assert.h>
 #include "semantic.h"
 
+#define DEBUG 1
+
 #if 0 /* Unsupported on AIX */
 #ifdef DEBUG
 #define debug_printf(fmt, args...) printf(fmt, ## args)
@@ -184,7 +186,7 @@ char const* get_current_function_name()
 void add_argument(enum direction dir, enum datatype dt, char *classname, char *name, int elements)
 {
 	argument *new_argument;
-	debug_printf("Add argument %i %i %s %s\n", dir, dt, classname, name);
+	debug_printf("Add argument %i %i %s %s %d \n", dir, dt, classname, name, elements);
 	assert(current_function != NULL);
 	if (exists_argument(name)) {
 		fprintf(stderr, "%s:%i: Duplicated argument name '%s' in function '%s'\n",

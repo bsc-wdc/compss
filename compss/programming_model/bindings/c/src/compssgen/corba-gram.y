@@ -21,7 +21,7 @@ void yyerror(char *s);
 	enum direction	dir;
 }
 
-%token TOK_INTERFACE TOK_LEFT_CUR_BRAKET TOK_RIGHT_CUR_BRAKET TOK_LEFT_PARENTHESIS
+%token TOK_INTERFACE TOK_LEFT_CUR_BRAKET TOK_RIGHT_CUR_BRAKET TOK_LEFT_PARENTHESIS TOK_LEFT_BRAKET TOK_RIGHT_BRAKET
 %token TOK_RIGHT_PARENTHESIS TOK_COMMA TOK_SEMICOLON TOK_IN TOK_OUT TOK_INOUT TOK_FILE
 %token TOK_STATIC TOK_UNSIGNED TOK_VOID TOK_SHORT TOK_LONG TOK_LONGLONG TOK_INT TOK_FLOAT TOK_DOUBLE TOK_CHAR
 %token TOK_WCHAR TOK_BOOLEAN TOK_STRING TOK_WSTRING TOK_ANY
@@ -29,7 +29,8 @@ void yyerror(char *s);
 %token TOK_EQUAL TOK_DBLQUOTE
 
 %token <name> TOK_IDENTIFIER
-%type <dtype> data_type numeric_type array_type
+%token <elements> NUMBER
+%type <dtype> data_type numeric_type
 %type <dir> direction
 
 
@@ -53,7 +54,6 @@ prototypes:	/* Empty */
 
 
 prototype:	data_type TOK_IDENTIFIER {  begin_function($2); add_static(0); add_return_type($1, ""); } TOK_LEFT_PARENTHESIS { begin_arguments(); } arguments0 { end_arguments(); }	TOK_RIGHT_PARENTHESIS { end_function(); } TOK_SEMICOLON
-		| data_type TOK_IDENTIFIER {  begin_function($2); add_static(0); add_return_type($1, ""); } TOK_LEFT_PARENTHESIS { begin_arguments(); } arguments0 { end_arguments(); }   TOK_RIGHT_PARENTHESIS { end_function(); } TOK_SEMICOLON
 		| TOK_IDENTIFIER TOK_IDENTIFIER { begin_function($2); add_static(0); add_return_type(object_dt, $1); } TOK_LEFT_PARENTHESIS { begin_arguments(); } arguments0 { end_arguments(); }	TOK_RIGHT_PARENTHESIS { end_function(); } TOK_SEMICOLON
 		| TOK_STATIC TOK_IDENTIFIER TOK_IDENTIFIER { begin_function($3); add_static(1); add_return_type(object_dt, $2); } TOK_LEFT_PARENTHESIS { begin_arguments(); } arguments0 { end_arguments(); }	TOK_RIGHT_PARENTHESIS { end_function(); } TOK_SEMICOLON
 		| TOK_STATIC data_type TOK_IDENTIFIER { begin_function($3); add_static(1); add_return_type($2, ""); } TOK_LEFT_PARENTHESIS { begin_arguments(); } arguments0 { end_arguments(); }   TOK_RIGHT_PARENTHESIS { end_function(); } TOK_SEMICOLON
@@ -74,7 +74,7 @@ arguments1:	argument
 		
 
 argument:	direction data_type TOK_IDENTIFIER { add_argument($1, $2, "", $3, 0); }
-		|	direction numeric_type TOK_LEFT_BRAKET NUMBER TOK_RIGHT_BRAKET TOK_IDENTIFIER { add_arggument($1, $2, "", $6, $4);}
+		|	direction TOK_LEFT_BRAKET TOK_IDENTIFIER TOK_RIGHT_BRAKET TOK_IDENTIFIER { add_argument($1, any_dt, "array", "array", 0);}
 		|	direction TOK_IDENTIFIER TOK_IDENTIFIER { add_argument($1, object_dt, $2, $3, 0); }
 ;
 

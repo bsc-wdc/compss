@@ -4,9 +4,6 @@ gitlabSourceBranch=$1
 
 echo "*********** Compiling and testing branch ${gitlabSourceBranch} ****************";
 
-
-
-
 # Testing that the user did a rebase (auto-rebase if no conflicts detected)
 if git rebase origin/trunk; then
 	echo "Rebase was already done or it proceed without conflicts"

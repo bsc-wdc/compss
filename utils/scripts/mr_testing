@@ -4,7 +4,7 @@ gitlabSourceBranch=$1
 
 echo "*********** Compiling and testing branch ${gitlabSourceBranch} ****************";
 
-git checkout ${gitlabSourceBranch}
+
 
 
 # Testing that the user did a rebase (auto-rebase if no conflicts detected)

@@ -5,13 +5,7 @@ builders/tmp/
 
 # Ignore maven files
 dependency-reduced-pom.xml
-
-# Ignore JAXB files
-compss/runtime/config/xml/monitor/src/main/
-compss/runtime/config/xml/projects/src/main/java/META-INF/
-compss/runtime/config/xml/projects/src/main/java/es/bsc/compss/types/project/jaxb/
-compss/runtime/config/xml/resources/src/main/java/META-INF/
-compss/runtime/config/xml/resources/src/main/java/es/bsc/compss/types/resources/jaxb/
+pom.xml.versionsBackup
 
 # Ignore eclipse files
 .classpath
@@ -169,4 +163,16 @@ dkms.conf
 # Fortran module files
 *.mod
 *.smod
+
+# Ignore JAXB files
+compss/runtime/config/xml/monitor/src/main/
+compss/runtime/config/xml/projects/src/main/java/META-INF/
+compss/runtime/config/xml/projects/src/main/java/es/bsc/compss/types/project/jaxb/
+compss/runtime/config/xml/resources/src/main/java/META-INF/
+compss/runtime/config/xml/resources/src/main/java/es/bsc/compss/types/resources/jaxb/
+
+# Ignore PyCOMPSs AutoParallel submodule patches
+compss/programming_model/bindings/python/src/pycompss/api/parallel.py
+compss/programming_model/bindings/python/src/pycompss/api/tests
+compss/programming_model/bindings/python/src/pycompss/util/translators
 

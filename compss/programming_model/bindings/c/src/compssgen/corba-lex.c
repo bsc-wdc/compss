@@ -1135,7 +1135,7 @@ yylval.name = strdup(yytext); return TOK_IDENTIFIER;
 case 42:
 YY_RULE_SETUP
 #line 69 "corba-lex.l"
-yylval.elements=atoi(yytext); return NUMBER;
+yylval.name = strdup(yytext); return NUMBER;
 	YY_BREAK
 case 43:
 YY_RULE_SETUP

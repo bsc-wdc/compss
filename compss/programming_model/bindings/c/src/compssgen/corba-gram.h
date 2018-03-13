@@ -139,7 +139,7 @@ typedef union YYSTYPE
 /* Line 2058 of yacc.c  */
 #line 16 "corba-gram.y"
 
-    int			elements;
+    char		*elements;
 	char		*name;
 	char		*classname;
 	enum datatype	dtype;

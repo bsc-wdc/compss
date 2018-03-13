@@ -332,6 +332,7 @@ check_env() {
   fi
   export COMPSS_HOME=${COMPSS_HOME}
 
+  # Configuration files
   if [ -z "$DEFAULT_PROJECT" ]; then
     DEFAULT_PROJECT=${COMPSS_HOME}/Runtime/configuration/xml/projects/default_project.xml
   fi
@@ -340,10 +341,12 @@ check_env() {
     DEFAULT_RESOURCES=${COMPSS_HOME}/Runtime/configuration/xml/resources/default_resources.xml
   fi
 
+  # GAT Environment
   if [ -z "${GAT_LOCATION}" ]; then
     GAT_LOCATION=${COMPSS_HOME}/Dependencies/JAVA_GAT
   fi
 
+  # Extrae Environment
   if [ -z "${EXTRAE_HOME}" ]; then
     EXTRAE_HOME=${COMPSS_HOME}/Dependencies/extrae
   fi
@@ -352,6 +355,14 @@ check_env() {
     EXTRAE_LIB=${EXTRAE_HOME}/lib
   fi
 
+  # AutoParallel environment
+  if [ -z "${PLUTO_HOME}" ]; then
+    PLUTO_HOME=${COMPSS_HOME}/Dependencies/pluto/
+    export PLUTO_HOME=${PLUTO_HOME}
+    export PATH=${PLUTO_HOME}/bin:${PATH}
+  fi
+
+  # JAVA HOME
   if [[ -z "$JAVA_HOME" ]]; then
     JAVA=java
   elif [ -f "$JAVA_HOME"/jre/bin/java ]; then

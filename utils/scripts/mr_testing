@@ -1,0 +1,48 @@
+#!/bin/bash
+
+gitlabSourceBranch=$1
+
+echo "*********** Compiling and testing branch ${gitlabSourceBranch} ****************";
+
+
+
+
+# Testing that the user did a rebase (auto-rebase if no conflicts detected)
+if git rebase origin/trunk; then
+	echo "Rebase was already done or it proceed without conflicts"
+else
+	echo "Branch ${gitlabSourceBranch} was not rebased before pushing"
+    echo "Rebase your local branch with: git rebase trunk, and solve the conflicts before pushing again"
+	exit 1; # rebase failed stop job
+fi
+
+./utils/scripts/header_setup/replace_all.sh
+
+git add -u
+
+if git commit -m 'merged and added headers'; then
+	echo "Files with no headers detected, pushing commit with added headers"
+	git push http://${GIT_USER}:${GIT_PASSWORD}@compss.bsc.es/gitlab/compss/framework.git ${gitlabSourceBranch}
+    exit 1; # exit with error to forbid auto-merging after adding headers
+
+else
+	echo "All files contained headers, proceeding witht Tests"
+    # Fix jaxb problem
+    rm -rf ./compss/runtime/config/xml/projects
+    rm -rf ./compss/runtime/config/xml/resources
+    git checkout ./compss/runtime/config/xml/projects
+    git checkout ./compss/runtime/config/xml/resources
+
+    # Build trunk and test
+    sudo -E ./builders/buildlocal /opt/COMPSs
+    sudo ./tests/scripts/configure_hosts_insert
+    sudo chmod +x /etc/profile.d/compss.sh
+    . /etc/profile.d/compss.sh
+	./tests/scripts/main local local.cfg
+fi
+
+if [ $? -ne 0 ]; then
+  echo "ERROR";
+  exit 1;
+fi
+

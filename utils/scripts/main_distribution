@@ -205,10 +205,10 @@ JAVA_HOME=${JAVA_HOME}
 EOT
     cd "${trunk_base}/tests/scripts/" || exit 1
     ./main local "$cfgFile"
-    #if [ $? -ne 0 ]; then
-    #  display_error "Tests failed. Check errors above"
-    #  exit 1
-    #fi
+    if [ $? -ne 0 ]; then
+      display_error "Tests failed. Check errors above"
+      exit 1
+    fi
     cd "${script_dir}" || exit 1
   }
 

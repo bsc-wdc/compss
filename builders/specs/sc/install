@@ -110,7 +110,7 @@
   # Install PLUTO
   echo "- Install Pluto"
   cd "${SCRIPT_DIR}"/Dependencies/pluto
-  ./install_pluto "${targetDir}"/Dependencies/pluto true
+  ./install_pluto "${targetDir}"/Dependencies/pluto
   cd "${SCRIPT_DIR}"
   echo "   Success"
 

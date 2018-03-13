@@ -89,7 +89,7 @@
   cp "${sourcesDir}"/pom.xml "${tmpDir}"
   cp "${sourcesDir}"/README.md "${tmpDir}"
   cp "${sourcesDir}"/RELEASE_NOTES "${tmpDir}"
-  find . -name ".git*" -print0 | xargs rm -rf  #Cleans git files
+  find "${TMP_DIR}" -name ".git*" -print0 -exec rm -rf {} \; # Clean git files
 
   # CLEAN TRUNK COMPILATION
   echo "- Clean sources"

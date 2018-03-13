@@ -66,6 +66,6 @@ wstring		return TOK_WSTRING;
 <comment>"*"+"/"	BEGIN(INITIAL);
 
 {identifier}	yylval.name = strdup(yytext); return TOK_IDENTIFIER;
-[0-9]+  	yylval.elements=atoi(yytext); return NUMBER;
+[0-9]+  		yylval.name = strdup(yytext); return NUMBER;
 .			return TOK_ERROR;
 %%

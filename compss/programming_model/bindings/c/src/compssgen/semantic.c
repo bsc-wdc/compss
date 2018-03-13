@@ -153,9 +153,9 @@ void add_static(int val) {
 	current_function->access_static = val;
 }
 
-void add_return_type(enum datatype return_type, char *return_typename)
+void add_return_type(enum datatype return_type, char *return_typename, char* elements)
 {
-	debug_printf("Add return type %i\n", return_type);
+	debug_printf("Add return type %i (%s, %s)\n", return_type, return_typename, elements);
 	assert(current_function != NULL);
 	assert(current_function->return_type == null_dt);
 	/*
@@ -167,6 +167,44 @@ void add_return_type(enum datatype return_type, char *return_typename)
 	*/
 	current_function->return_type = return_type;
 	current_function->return_typename = strdup(return_typename);
+	if (elements !=NULL){
+		current_function->return_elements = strdup(elements);
+		switch (return_type) {
+			 case char_dt:
+			 case wchar_dt:
+				debug_printf("Change return type to %i\n", array_char_dt);
+				current_function->return_type = array_char_dt;
+				current_function->return_typename = "char *";
+				break;
+			 case short_dt:
+				 debug_printf("Change return type to %i\n", array_short_dt);
+				 current_function->return_type = array_short_dt;
+				 current_function->return_typename = "short *";
+				 break;
+			 case long_dt:
+				 debug_printf("Change return type to %i\n", array_long_dt);
+				 current_function->return_type = array_long_dt;
+				 current_function->return_typename = "long *";
+				 break;
+			 case int_dt:
+				 debug_printf("Change return type to %i\n", array_int_dt);
+				 current_function->return_type = array_int_dt;
+				 current_function->return_typename = "int *";
+				 break;
+			 case float_dt:
+				 debug_printf("Change return type to %i\n", array_float_dt);
+				 current_function->return_type = array_float_dt;
+				 current_function->return_typename = "float *";
+				 break;
+			 case double_dt:
+				 debug_printf("Change return type to %i\n", array_double_dt);
+				 current_function->return_type = array_double_dt;
+				 current_function->return_typename = "double *";
+				 break;
+			 default:
+				 ;
+		 }
+	}
 }
 
 void end_function()
@@ -208,7 +246,7 @@ void add_argument(enum direction dir, enum datatype dt, char *classname, char *n
 			 if (elements !=NULL){
 				 new_argument->elements = strdup(elements);
 				 new_argument->type = array_char_dt;
-				 new_argument->classname = "char[]";
+				 new_argument->classname = "char *";
 			 }else{
 				 new_argument->type = dt;
 				 new_argument->classname = "char";
@@ -222,7 +260,7 @@ void add_argument(enum direction dir, enum datatype dt, char *classname, char *n
 			 if (elements != NULL){
 				 new_argument->elements = strdup(elements);
 				 new_argument->type = array_short_dt;
-				 new_argument->classname = "short[]";
+				 new_argument->classname = "short *";
 			 }else{
 			 	 new_argument->type = dt;
 			 	 new_argument->classname = "short";
@@ -232,7 +270,7 @@ void add_argument(enum direction dir, enum datatype dt, char *classname, char *n
 			 if (elements != NULL){
 				 new_argument->elements = strdup(elements);
 			 	 new_argument->type = array_long_dt;
-			 	 new_argument->classname = "long[]";
+			 	 new_argument->classname = "long *";
 			 }else{
 				 new_argument->type = dt;
 				 new_argument->classname = "long";
@@ -246,7 +284,7 @@ void add_argument(enum direction dir, enum datatype dt, char *classname, char *n
 			 if (elements != NULL){
 				 new_argument->elements = strdup(elements);
 			 	 new_argument->type = array_int_dt;
-			 	 new_argument->classname = "int[]";
+			 	 new_argument->classname = "int *";
 			 }else{
 			 	new_argument->type = dt;
 			 	new_argument->classname = "int";
@@ -256,7 +294,7 @@ void add_argument(enum direction dir, enum datatype dt, char *classname, char *n
 			 if (elements != NULL){
 				 new_argument->elements = strdup(elements);
 			 	 new_argument->type = array_float_dt;
-			 	 new_argument->classname = "float[]";
+			 	 new_argument->classname = "float *";
 			 }else{
 			   	 new_argument->type = dt;
 			   	 new_argument->classname = "float";
@@ -266,7 +304,7 @@ void add_argument(enum direction dir, enum datatype dt, char *classname, char *n
 			 if (elements!=NULL){
 				 new_argument->elements = strdup(elements);
 			 	 new_argument->type = array_double_dt;
-			 	 new_argument->classname = "double[]";
+			 	 new_argument->classname = "double *";
 			 }else{
 			   	 new_argument->type = dt;
 			   	 new_argument->classname = "double";

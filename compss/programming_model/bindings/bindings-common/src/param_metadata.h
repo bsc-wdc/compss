@@ -38,15 +38,17 @@ enum datatype {
         longlong_dt,
         void_dt,
         any_dt,
-        null_dt,
-		//array types
+        //array types
 		array_char_dt,
 		array_byte_dt,
 		array_short_dt,
 		array_int_dt,
 		array_long_dt,
 		array_float_dt,
-		array_double_dt
+		array_double_dt,
+		//end of arrays
+		null_dt
+
 };
 
 // MATCHES JAVA COMPSsRuntime PARAMETER API Enum

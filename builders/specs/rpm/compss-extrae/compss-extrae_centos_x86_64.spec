@@ -1,4 +1,5 @@
-%define name	 	compss-extrae 
+%undefine _missing_build_ids_terminate_build
+%define name	 	compss-extrae
 %define version		2.2.rc1801
 %define release		1
 

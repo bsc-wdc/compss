@@ -22,7 +22,6 @@
   mkdir -p ${COMPSs_target}
   mkdir -p ${COMPSs_target}/Doc
   mkdir -p ${COMPSs_target}/Dependencies
-  mkdir -p ${COMPSs_target}/Dependencies/extrae
   mkdir -p ${COMPSs_target}/Runtime
   mkdir -p ${COMPSs_target}/Runtime/configuration
   mkdir -p ${COMPSs_target}/Runtime/scripts
@@ -131,15 +130,17 @@
   cp ${trunk_rel_path}/compss/tools/monitor/target/classes/compss-monitor.conf ${COMPSs_target}/Tools/monitor/apache-tomcat/conf/
   cp ${trunk_rel_path}/compss/tools/monitor/target/classes/server.xml ${COMPSs_target}/Tools/monitor/apache-tomcat/conf/
   cp ${trunk_rel_path}/compss/tools/monitor/target/classes/*log4j* ${COMPSs_target}/Tools/monitor/
-  #BINDINGS DEPLOYMENT
+
+  # BINDINGS DEPLOYMENT
   echo "--- Copy bindings-common files"
   cp -r ${trunk_rel_path}/compss/programming_model/bindings/bindings-common ${COMPSs_target}/Bindings/
   echo "--- Copy c-binding files"
   cp -r ${trunk_rel_path}/compss/programming_model/bindings/c ${COMPSs_target}/Bindings/
   echo "--- Copy python-binding files"
   cp -r ${trunk_rel_path}/compss/programming_model/bindings/python ${COMPSs_target}/Bindings/
-  #Clean git files
-  find ${COMPSs_target} -name '.git*' -exec rm -rf {} \;  #Cleans git files
+
+  # Clean git files
+  find "${COMPSs_target}" -name ".git*" -print0 -exec rm -rf {} \; # Clean git files
 
   #---------------------------------------------------------------------------
   # Add specific SC install and env files

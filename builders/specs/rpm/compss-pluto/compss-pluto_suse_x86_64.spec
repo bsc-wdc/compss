@@ -67,9 +67,6 @@ export JAVA_LIB_DIR=${JAVA_LIB_DIR}
 echo " - Creating COMPSs PLUTO structure..."
 mkdir -p ${RPM_BUILD_ROOT}/opt/COMPSs/Dependencies/pluto
 
-# Fix ISL version
-echo "#define GIT_HEAD_ID \"isl-0.12.1-172-g1b3ba3b7\"" > pluto/isl/gitversion.h
-
 echo "   - Configure, compile and install"
 cd pluto
 ./install_pluto ${RPM_BUILD_ROOT}/opt/COMPSs/Dependencies/pluto

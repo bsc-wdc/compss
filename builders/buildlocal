@@ -396,6 +396,10 @@ install_compss() {
   fi
   # Pluto
   if [ "$autoparallel" = "true" ]; then
+    # Add patch for git version
+    isl_version=$(cd "${SOURCES_DIR}"/dependencies/pluto/isl; git describe)
+    echo "#define GIT_HEAD_ID \"${isl_version}\"" > "${TMP_DIR}"/dependencies/pluto/isl/gitversion.h
+    # Normal install 
     cd "${TMP_DIR}"/dependencies/pluto
     ./install_pluto ${targetDir}/Dependencies/pluto
     ev=$?

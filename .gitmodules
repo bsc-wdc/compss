@@ -1,3 +1,6 @@
 [submodule "dependencies/pluto"]
 	path = dependencies/pluto
 	url = https://github.com/cristianrcv/pluto.git
+[submodule "dependencies/autoparallel"]
+	path = dependencies/autoparallel
+	url = https://github.com/cristianrcv/pycompss-pluto.git

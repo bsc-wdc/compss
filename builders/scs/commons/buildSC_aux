@@ -146,6 +146,9 @@
   # PLUTO (for autoparallel)
   echo "---- Install PLUTO ----"
   cd "${TMP_DIR}"/dependencies/pluto || exit 1
+  # Fix ISL version
+  echo "#define GIT_HEAD_ID \"isl-0.12.1-172-g1b3ba3b7\"" > "${TMP_DIR}"/Dependencies/pluto/isl/gitversion.h
+  # Install
   ./install_pluto "${targetDir}"/Dependencies/pluto
   ev=$?
   if [ $ev -ne 0 ]; then

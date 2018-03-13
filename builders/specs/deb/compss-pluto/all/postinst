@@ -31,7 +31,10 @@
     export JAVA_HOME=${JAVA_HOME}
     export JAVA_LIB_DIR=${JAVA_LIB_DIR}
 
-    # Configure
+    # Fix ISL version
+    echo "#define GIT_HEAD_ID \"isl-0.12.1-172-g1b3ba3b7\"" > /opt/COMPSs/Dependencies/pluto_install/isl/gitversion.h
+
+    # Configure, install
     echo "   - Configure, compile and install"
     cd /opt/COMPSs/Dependencies/pluto_install
     ./install_pluto /opt/COMPSs/Dependencies/pluto

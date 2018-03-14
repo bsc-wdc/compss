@@ -205,7 +205,7 @@ comm=es.bsc.compss.nio.master.NIOAdaptor
 JAVA_HOME=${JAVA_HOME}
 EOT
     cd "${trunk_base}/tests/scripts/" || exit 1
-    ./main local "$cfgFile"
+    ./main --retry=5 local "$cfgFile"
     if [ $? -ne 0 ]; then
       display_error "Tests failed. Check errors above"
       exit 1

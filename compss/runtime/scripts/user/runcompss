@@ -597,7 +597,7 @@ infer_language() {
     # Try to infer language by file command
     isPython=$(file "$fullAppPath" | grep "Python" | cat)
     isPythonCompiled=$(file "$fullAppPath" | grep "python" | cat)
-    isC=$(file "$fullAppPath" | grep "executable" | cat)
+    isC=$(file "$fullAppPath" | egrep "executable|ELF" | cat)
     if [ -n "$isPython" ] || [ -n "$isPythonCompiled" ]; then
       echo "[  INFO] Inferred PYTHON language"
       lang=python

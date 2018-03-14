@@ -17,6 +17,7 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
+#include <iostream>
 #include <stdio.h>
 #include <vector>
 #include <boost/archive/text_iarchive.hpp>

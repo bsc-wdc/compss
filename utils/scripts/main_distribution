@@ -196,6 +196,7 @@
     echo -e "\e[0m"
 
     echo "-- Running NIO tests..."
+    source /etc/profile.d/compss.sh
     cfgFile=$(mktemp -p "${log_folder}")
     cat > "$cfgFile" << EOT
 user=$(whoami)

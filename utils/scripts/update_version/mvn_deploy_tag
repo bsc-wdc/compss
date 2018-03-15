@@ -24,7 +24,7 @@ usage() {
 
   # Define script variables
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-  base_dir=${SCRIPT_DIR}/../../../../tags/${version}/
+  trunk_dir=${SCRIPT_DIR}/../../../
 
   #---------------------------------------------------------------------
   # Deploy
@@ -34,7 +34,7 @@ usage() {
   cd "${SCRIPT_DIR}"
 
   echo "- Deploying mvn"
-  cd "${base_dir}"
+  cd "${trunk_dir}"
   mvn -U deploy
   cd "${SCRIPT_DIR}"
 

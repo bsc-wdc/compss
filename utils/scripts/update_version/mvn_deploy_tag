@@ -29,7 +29,7 @@ usage() {
   #---------------------------------------------------------------------
   # Deploy
   echo "- Compiling and installing"
-  cd "${base_dir}"
+  cd "${trunk_dir}"
   mvn -U clean install
   cd "${SCRIPT_DIR}"
 

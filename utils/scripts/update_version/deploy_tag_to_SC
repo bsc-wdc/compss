@@ -27,7 +27,7 @@
 
   install() {
     echo "- Install to SC"
-    cd "${baseDir}"
+    cd "${trunk_dir}"
     mvn -U clean install
 
     cd "${buildersDir}"
@@ -73,8 +73,8 @@ EOT
 
   # Define script variables
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-  baseDir=${SCRIPT_DIR}/../../../../tags/${version}/
-  buildersDir=${baseDir}/builders/scs/${buildFolder}
+  trunk_dir=${SCRIPT_DIR}/../../../
+  buildersDir=${trunk_dir}/builders/scs/${buildFolder}
 
   # LOG
   echo "Deploying COMPSs Tag version ${version} to ${buildersDir}"

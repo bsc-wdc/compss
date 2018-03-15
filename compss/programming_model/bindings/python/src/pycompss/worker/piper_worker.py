@@ -416,7 +416,7 @@ def execute_task(process_name, storage_conf, params):
     try:
         # Try to import the module (for functions)
         if __debug__:
-            logger.debug("[PYTHON WORKER %s] Trying to import the user module." % process_name)
+            logger.debug("[PYTHON WORKER %s] Trying to import the user module: %s" % (process_name, path))
         if sys.version_info >= (2, 7):
             import importlib
             module = importlib.import_module(path)  # Python 2.7

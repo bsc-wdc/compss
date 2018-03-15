@@ -106,9 +106,9 @@
 	<!-- DISTRIBUTION MANAGEMENT -->
 	<distributionManagement>
 	    <repository>
-		<id>grid-repo</id>
-		<name>BSC Grid computing and Clusters group</name>
-		<url>http://compss.bsc.es/artifactory/grid-devel-repo</url>
+             <id>compss-repo</id>
+             <name>BSC Workflows and Distributed Computing group</name>
+             <url>http://compss.bsc.es/artifactory/libs-release</url>
    	    </repository>
 	</distributionManagement>
     

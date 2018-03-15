@@ -111,9 +111,16 @@ def serialize_to_handler(obj, handler):
         # general case
         else:
             try:
+                # If it is a numpy object then use its saving mechanism
                 if serializer.__name__ == 'numpy' and type(obj).__module__ == numpy.__name__:
                     serializer.save(handler, obj)
                     success = True
+                # elif obj it is a function (callable object) defined within the main application file
+                elif callable(obj) and obj.__module__ == '__main__' and serializer.__name__ != 'dill':
+                    # If this happens, it thinks that it is within launch.py __main__ with pickle.
+                    # Solution, use dill in this particular case. cPickle in the rest.
+                    success = False
+                # otherwise, general case
                 else:
                     serializer.dump(obj, handler, protocol=serializer.HIGHEST_PROTOCOL)
                     success = True

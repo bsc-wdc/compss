@@ -25,7 +25,6 @@ usage() {
   # Define script variables
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   trunk_dir=${SCRIPT_DIR}/../../../
-  tags_dir=${trunk_dir}/../tags/
 
   #---------------------------------------------------------------------
   # Clean trunk
@@ -38,27 +37,8 @@ usage() {
   echo "- Create tag"
   echo "   ScriptDir: ${SCRIPT_DIR}"
   echo "   TrunkDir:  ${trunk_dir}"
-  echo "   TagsDir:   ${tags_dir}"
-  svn cp "${trunk_dir}" "${tags_dir}/${version}"
-
-  #---------------------------------------------------------------------
-  # Add headers
-  echo "- Generate header files"
-  sh "${tags_dir}/${version}/utils/scripts/header_setup/replace_all.sh"
-
-  #---------------------------------------------------------------------
-  # Commit modifications
-  echo "- Commit modifications"
-  cd "${tags_dir}"
-  svn commit -m "Adding new tag ${version}"
-  cd "${SCRIPT_DIR}"
-
-  #---------------------------------------------------------------------
-  # Clean tag
-  cd "${tags_dir}"
-  rm -rf "${version}"
-  svn up
-
+  git tag ${version}
+  git push http://${GIT_USER}:${GIT_PASSWORD}@compss.bsc.es/gitlab/compss/framework.git trunk
   #---------------------------------------------------------------------
   # NOTIFY SUCCESS
   echo " "

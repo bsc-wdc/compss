@@ -96,8 +96,9 @@ usage() {
   if [ "$commitChanges" == "true" ]; then
     echo "- Commiting modifications to trunk"
     cd "${base_trunk_dir}"
-    git commit -am "Update to version ${newVersion}"
-    git push http://${GIT_USER}:${GIT_PASSWORD}@compss.bsc.es/gitlab/compss/framework.git trunk
+    if git commit -am "Update to version ${newVersion}"; then
+        git push http://${GIT_USER}:${GIT_PASSWORD}@compss.bsc.es/gitlab/compss/framework.git trunk
+    fi
   fi
 
 

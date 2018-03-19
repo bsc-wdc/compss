@@ -37,7 +37,7 @@ usage() {
   echo "- Create tag"
   echo "   ScriptDir: ${SCRIPT_DIR}"
   echo "   TrunkDir:  ${trunk_dir}"
-  git tag ${version}
+  git tag -f ${version}
   git push http://${GIT_USER}:${GIT_PASSWORD}@compss.bsc.es/gitlab/compss/framework.git ${version}
   #---------------------------------------------------------------------
   # NOTIFY SUCCESS

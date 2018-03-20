@@ -33,8 +33,8 @@ public class ExternalObjectParameter extends DependencyParameter {
     private String pscoId;
 
 
-    public ExternalObjectParameter(Direction direction, Stream stream, String prefix, String pscoId, int hashCode) {
-        super(DataType.EXTERNAL_OBJECT_T, direction, stream, prefix);
+    public ExternalObjectParameter(Direction direction, Stream stream, String prefix, int elements, String pscoId, int hashCode) {
+        super(DataType.EXTERNAL_OBJECT_T, direction, stream, prefix, elements);
         this.pscoId = pscoId;
         this.hashCode = hashCode;
     }

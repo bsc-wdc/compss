@@ -41,7 +41,7 @@ static void Block::generate(Block *b, int bSize, double initVal) {
 
 }
 
-static void Block::test1( float *out_array, int *in_array, double *inout_array, int size){
+static void Block::test1( int size, float *out_array, int *in_array, double *inout_array){
 	for (int i=0; i<size;i++){
 		if (i<MAX){
 			out_array[i]=in_array[i];
@@ -68,7 +68,7 @@ static Block Block::create(int bSize, double initVal){
 	return b;
 }
 
-void Block::test3(float *in_array, int size){
+void Block::test3(int size, float *in_array){
 	cout<< "Reading array: " << endl;
 	for (int i=0; i<size;i++){
                  cout << in_array[i] << ", ";

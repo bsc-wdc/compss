@@ -1,4 +1,4 @@
-/*         
+/*
  *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,29 +14,18 @@
  *  limitations under the License.
  *
  */
+#ifndef COMMONS_H
+#define COMMONS_H
 
-#include <param_metadata.h>
+// Uncomment the following define to get debug information.
+//#define DEBUG_BINDING
 
-typedef struct {
-  char* name;
-  char* elements;
-  enum datatype dt;
-} Type;
+#ifdef DEBUG_BINDING
+#define debug_printf(args...) printf(args); fflush(stdout);
+#else
+#define debug_printf(args...) {}
+#endif
 
-typedef struct {
-  int max;
-  Type *types;
-  int num;
-} Types;
+char* concat(const char*, const char*);
 
-
-
-void initTypes(Types *currTypes);
-
-int containsType (Type type, Types currTypes);
-
-int getTypeNumber(Type type, Types currTypes);
-
-void addType (Type type, Types *currTypes);
-
-void printAllTypes(Types currTypes);
+#endif // COMMONS_H

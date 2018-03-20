@@ -15,10 +15,10 @@
 #  limitations under the License.
 # 
 
-include_HEADERS = GS_templates.h gs_base64.h
+include_HEADERS = c_compss.h c_compss_commons.h CBindingCache.h c_compss_base64.h
 lib_LTLIBRARIES = libcbindings.la
 
-libcbindings_la_SOURCES = GS_compss.cc base64.c
+libcbindings_la_SOURCES = c_compss.cc c_compss_base64.c
 libcbindings_la_CPPFLAGS = -I../../../bindings-common/include ${BOOST_CPPFLAGS} $(DEFINE)
 libcbindings_la_LDFLAGS = -L../../../bindings-common/lib -lbindings_common
 

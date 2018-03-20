@@ -23,6 +23,7 @@
 
 #include <GS_compss.h>
 #include <param_metadata.h>
+#include "c_compss_commons.h"
 
 #ifndef COMPSS_WORKER
 
@@ -50,8 +51,9 @@ extern map<void *, Entry> objectMap;
 
 #endif /* COMPSS_WORKER */
 
-int GS_register(void *ref, datatype type, direction dir, char *classname, char * &filename);
 
+int compss_register(void *ref, datatype type, direction dir, char *classname, char * &filename);
+void compss_clean();
 void compss_on(void);
 void compss_off(void);
 void GS_clean();
@@ -65,7 +67,6 @@ void compss_barrier();
 void compss_barrier_new(int no_more_tasks);
 
 template <class T> void compss_wait_on(T &obj);
-template <class T> void persistent_compss_wait_on(T &obj);
 template <> inline void compss_wait_on<char *>(char * &obj);
 
 
@@ -103,62 +104,10 @@ void compss_wait_on(T &obj) {
   remove(runtime_filename);
   objectMap.erase(&obj);
 }
-/*
-template <class T>
-void persistent_compss_wait_on(T &obj) {
-  debug_printf("[C-BINDING]  -  @compss_wait_on  -  Ref: %p\n", &obj);
-  Entry entry = objectMap[&obj];
-  char *runtime_filename;
-
-  debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.type: %d\n", entry.type);
-  debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.classname: %s\n", entry.classname);
-  debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", entry.filename);
-
-  GS_Get_File(entry.filename, in_dir, &runtime_filename);
-  debug_printf("[C-BINDING]  -  @compss_wait_on  -  template class\n");
-  debug_printf("[C-BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
-
-  cout << "before checking if file exists in compss wait" << endl;
-
-//  while( !filesystem::exists(runtime_filename));
-
-//  cout << "file exists? " << filesystem::exists(runtime_filename) << endl;
-
-//  ifstream ifs(runtime_filename);
-
-  ifstream ifs(runtime_filename);
-
-  bool exists = false;
-
-  while (false){
-    exists = ifs.good();
-    cout << "file exists? " << exists << endl;
-  }
-
-  cout << "about to serialize file in compss wait" << endl;
-
-  archive::text_iarchive ia(ifs);
-
-  cout << "archive created" << endl;
-
-  ia >> obj;
-  ifs.close();
-
-  cout << "file serialised in compss wait" << endl;
-
-  // No longer needed, the current version of the object is in memory now
-  GS_Close_File(entry.filename, in_dir);
-  compss_delete_file(entry.filename);
-  remove(entry.filename);
-  remove(runtime_filename);
-  objectMap.erase(&obj);
-}
-*/
 
 #else
 
 template <class T> void compss_wait_on(T &obj) { }
-template <class T> void persistent_compss_wait_on(T &obj) { }
 template <> void compss_wait_on<char *>(char * &obj) { }
 
 #endif /* COMPSS_WORKER */

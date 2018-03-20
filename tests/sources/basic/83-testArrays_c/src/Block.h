@@ -43,9 +43,9 @@ public:
 
 	static void generate(Block *b, int bSize, double initVal);
 	
-	static void test1(float *oa, int* ia, double* ioa, int size);
+	static void test1(int size, float *oa, int* ia, double* ioa);
 	
-	void test3 (float* ia, int size);
+	void test3 (int size, float* ia );
 
 	void multiply(Block *block1, Block *block2);
 

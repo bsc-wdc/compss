@@ -30,12 +30,10 @@
 #include <customStream.h>
 #include <fcntl.h>
 #include <compss_worker_lock.h>
+#include <CBindingCache.h>
 
 using namespace std;
  
-int execute(int argc, char **argv,  std::map<std::string, void*> &objectStorage, std::map<std::string, int> &types, int serializeOuts);
+int execute(int argc, char **argv, CBindingCache &cache, int serializeOuts);
 
-void removeData(string id, std::map<std::string, void*> &objectStorage, std::map<std::string, int> &types);
-
-int serializeData(string id, const char* filename, std::map<std::string, void*> &objectStorage, std::map<std::string, int> &types); 
 

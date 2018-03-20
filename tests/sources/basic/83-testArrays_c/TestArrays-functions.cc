@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include "TestArrays.h"
 
-static float *test2(int bSize){
-	float *array = new Float[bSize];
+float *test2(int bSize){
+	float *array = new float[bSize];
 	for (int i= 0; i<bSize; i++){
 		array[i]=1.0;
 	}
@@ -13,9 +13,9 @@ static float *test2(int bSize){
 }
 
 
-float *test4(in float* in_array){
+float *test4(float* in_array){
 
-	float *array = new Float[20];
+	float *array = new float[20];
 	for (int i= 0; i<20; i++){
                 array[i]=in_array[i];
         }

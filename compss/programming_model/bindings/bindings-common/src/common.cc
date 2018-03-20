@@ -1,4 +1,4 @@
-/*         
+/*
  *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,29 +14,16 @@
  *  limitations under the License.
  *
  */
+#include <stdlib.h>
+#include <string.h>
 
-#include <param_metadata.h>
-
-typedef struct {
-  char* name;
-  char* elements;
-  enum datatype dt;
-} Type;
-
-typedef struct {
-  int max;
-  Type *types;
-  int num;
-} Types;
-
-
-
-void initTypes(Types *currTypes);
-
-int containsType (Type type, Types currTypes);
-
-int getTypeNumber(Type type, Types currTypes);
-
-void addType (Type type, Types *currTypes);
-
-void printAllTypes(Types currTypes);
+char* concat(const char *s1, const char *s2)
+{
+    const size_t len1 = strlen(s1);
+    const size_t len2 = strlen(s2);
+    char *result = (char*) malloc(len1+len2+1);//+1 for the null-terminator
+    //in real code you would check for errors in malloc here
+    memcpy(result, s1, len1);
+    memcpy(result+len1, s2, len2+1);//+1 to copy the null-terminator
+    return result;
+}

@@ -204,6 +204,8 @@ void add_return_type(enum datatype return_type, char *return_typename, char* ele
 			 default:
 				 ;
 		 }
+	}else{
+		current_function->return_elements ="0";
 	}
 }
 
@@ -248,11 +250,13 @@ void add_argument(enum direction dir, enum datatype dt, char *classname, char *n
 				 new_argument->type = array_char_dt;
 				 new_argument->classname = "char *";
 			 }else{
+				 new_argument->elements = "0";
 				 new_argument->type = dt;
 				 new_argument->classname = "char";
 			 }
 			 break;
 		 case boolean_dt:
+			 new_argument->elements = "0";
 			 new_argument->type = dt;
 			 new_argument->classname = "int";
 			 break;
@@ -262,6 +266,7 @@ void add_argument(enum direction dir, enum datatype dt, char *classname, char *n
 				 new_argument->type = array_short_dt;
 				 new_argument->classname = "short *";
 			 }else{
+				 new_argument->elements = "0";
 			 	 new_argument->type = dt;
 			 	 new_argument->classname = "short";
 			 }
@@ -272,11 +277,13 @@ void add_argument(enum direction dir, enum datatype dt, char *classname, char *n
 			 	 new_argument->type = array_long_dt;
 			 	 new_argument->classname = "long *";
 			 }else{
+				 new_argument->elements = "0";
 				 new_argument->type = dt;
 				 new_argument->classname = "long";
 			 }
 			 break;
 		 case longlong_dt:
+			 new_argument->elements = "0";
 			 new_argument->type = dt;
 			 new_argument->classname = "long long";
 			 break;
@@ -286,8 +293,9 @@ void add_argument(enum direction dir, enum datatype dt, char *classname, char *n
 			 	 new_argument->type = array_int_dt;
 			 	 new_argument->classname = "int *";
 			 }else{
-			 	new_argument->type = dt;
-			 	new_argument->classname = "int";
+				 new_argument->elements = "0";
+			 	 new_argument->type = dt;
+			 	 new_argument->classname = "int";
 			 }
 			 break;
 		 case float_dt:
@@ -296,6 +304,7 @@ void add_argument(enum direction dir, enum datatype dt, char *classname, char *n
 			 	 new_argument->type = array_float_dt;
 			 	 new_argument->classname = "float *";
 			 }else{
+				 new_argument->elements = "0";
 			   	 new_argument->type = dt;
 			   	 new_argument->classname = "float";
 			 }
@@ -306,20 +315,24 @@ void add_argument(enum direction dir, enum datatype dt, char *classname, char *n
 			 	 new_argument->type = array_double_dt;
 			 	 new_argument->classname = "double *";
 			 }else{
+				 new_argument->elements = "0";
 			   	 new_argument->type = dt;
 			   	 new_argument->classname = "double";
 			 }
 			 break;
 		 case object_dt:
+			 new_argument->elements = "0";
 			 new_argument->type = dt;
 			 new_argument->classname = strdup(classname);
 			 break;
 		 case string_dt:
 		 case wstring_dt:
+			 new_argument->elements = "0";
 			 new_argument->type = dt;
 			 new_argument->classname = "string";
 			 break;
 		 case file_dt:
+			 new_argument->elements = "0";
 			 new_argument->classname = "File";
 			 new_argument->type = dt;
 			 break;
@@ -327,6 +340,7 @@ void add_argument(enum direction dir, enum datatype dt, char *classname, char *n
 		 case any_dt:
 		 case null_dt:
 		 default:
+			 new_argument->elements = "0";
 			 new_argument->type = dt;
 	 }
 	new_argument->dir = dir;

@@ -85,6 +85,7 @@ jmethodID midFloatCon;    /* ID of the java.lang.Float class constructor method 
 jclass clsDouble;         /* java.lang.Double class */
 jmethodID midDoubleCon;   /* ID of the java.lang.Double class constructor method */
 
+AbstractCache *cache;
 
 // *******************************
 // Private functions
@@ -691,7 +692,17 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
 // API functions
 // ******************************
 
-void GS_On() {
+void GS_On(AbstractCache *absCache){
+	cache = absCache;
+	GS_On();
+}
+
+AbstractCache *getCache(){
+	return cache;
+}
+
+void GS_On()
+{
   debug_printf ("[   BINDING]  -  @GS_On\n");
 
   clsITimpl = NULL;

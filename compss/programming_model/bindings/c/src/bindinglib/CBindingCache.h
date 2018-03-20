@@ -1,4 +1,4 @@
-/*         
+/*
  *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,31 +12,34 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
  */
 
-#include <param_metadata.h>
+#include <AbstractCache.h>
 
-typedef struct {
-  char* name;
-  char* elements;
-  enum datatype dt;
-} Type;
+class CBindingCache: public AbstractCache {
 
-typedef struct {
-  int max;
-  Type *types;
-  int num;
-} Types;
+	public:
+
+		CBindingCache(){};
+
+		~CBindingCache(){};
+
+		int serializeToStream(compss_pointer cp, JavaNioConnStreamBuffer &jsb);
+
+		int deserializeFromStream(JavaNioConnStreamBuffer &jsb, compss_pointer &cp);
+
+		int serializeToFile(compss_pointer cp, const char* filename);
+
+		int deserializeFromFile(const char* filename, compss_pointer &cp);
+
+		int removeData(compss_pointer cp);
+
+		int copyData(compss_pointer from, compss_pointer &to);
+
+};
 
 
 
-void initTypes(Types *currTypes);
 
-int containsType (Type type, Types currTypes);
 
-int getTypeNumber(Type type, Types currTypes);
 
-void addType (Type type, Types *currTypes);
-
-void printAllTypes(Types currTypes);

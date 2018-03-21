@@ -13,7 +13,7 @@
   # Refresh and install
   yum --enablerepo=compss clean all
   yum update -y
-  yum install -y compss-framework
+  yum install --nogpgcheck -y compss-framework
 
   # Exit with status from last command
   exit

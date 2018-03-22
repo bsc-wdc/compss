@@ -739,7 +739,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         ap.barrier(appId);
 
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(Tracer.Event.WAIT_FOR_ALL_TASKS.getId(), Tracer.Event.WAIT_FOR_ALL_TASKS.getType());
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.WAIT_FOR_ALL_TASKS.getType());
         }
     }
 

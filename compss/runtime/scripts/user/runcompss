@@ -925,6 +925,7 @@ ${jvm_debugger_opts}
 -Dcompss.worker.gpu_affinity=${worker_gpu_affinity}
 -Dcompss.worker.fpga_affinity=${worker_fpga_affinity}
 -Dcompss.worker.fpga_reprogram=${fpga_prog}
+-Dcompss.worker.fpga_affinity=${worker_gpu_affinity}
 -Dcompss.profile.input=${input_profile}
 -Dcompss.profile.output=${output_profile}
 -Dcompss.scheduler.config=${scheduler_config}

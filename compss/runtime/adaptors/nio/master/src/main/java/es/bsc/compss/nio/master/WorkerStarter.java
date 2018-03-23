@@ -61,6 +61,11 @@ public class WorkerStarter {
     private static final String GPU_AFFINITY = IS_GPU_AFFINITY_DEFINED ? System.getProperty(COMPSsConstants.WORKER_GPU_AFFINITY)
             : NIOAdaptor.BINDER_DISABLED;
 
+    private static final boolean IS_FPGA_AFFINITY_DEFINED = System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY) != null
+            && !System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY).isEmpty();
+    private static final String FPGA_AFFINITY = IS_FPGA_AFFINITY_DEFINED ? System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY)
+            : NIOAdaptor.BINDER_DISABLED;
+
     // Deployment ID
     private static final String DEPLOYMENT_ID = System.getProperty(COMPSsConstants.DEPLOYMENT_ID);
 
@@ -386,8 +391,10 @@ public class WorkerStarter {
         // Worker parameters
         cmd[nextPosition++] = String.valueOf(this.nw.getTotalComputingUnits());
         cmd[nextPosition++] = String.valueOf(this.nw.getTotalGPUs());
+        cmd[nextPosition++] = String.valueOf(this.nw.getTotalFPGAs());
         cmd[nextPosition++] = String.valueOf(CPU_AFFINITY);
         cmd[nextPosition++] = String.valueOf(GPU_AFFINITY);
+        cmd[nextPosition++] = String.valueOf(FPGA_AFFINITY);
         cmd[nextPosition++] = String.valueOf(this.nw.getLimitOfTasks());
 
         // Application parameters

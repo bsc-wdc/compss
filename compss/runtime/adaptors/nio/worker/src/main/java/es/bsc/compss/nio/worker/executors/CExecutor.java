@@ -42,7 +42,7 @@ public class CExecutor extends ExternalExecutor {
 
     @Override
     public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits,
-            int[] assignedGPUs) {
+            int[] assignedGPUs, int[] assignedFPGAs) {
         ArrayList<String> lArgs = new ArrayList<>();
 
         // NX_ARGS string built from the Resource Description
@@ -81,7 +81,8 @@ public class CExecutor extends ExternalExecutor {
                     reqs.append(" --gpu-max-memory=").append(b_int);
                 }
             }
-
+        } else if (assignedFPGAs.length > 0) {
+            reqs.append(" --disable-cuda=yes");
         } else {
             reqs.append(" --disable-cuda=yes");
             reqs.append(" --disable-opencl=yes");

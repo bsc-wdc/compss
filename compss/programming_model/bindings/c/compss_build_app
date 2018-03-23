@@ -21,6 +21,8 @@ show_opts() {
                                             Default: Disabled
     --with_opencl=<ocl_installation_path>   Enables worker compilation with openCL installed in a certain location
                                             Default: Disabled
+    --opencl_libs="libs"		    Specifies extra opencl libraries locations
+					    Default: Empty
 EOT
 }
 
@@ -130,6 +132,9 @@ get_args() {
           with_opencl=*)
             opencl_enabled=1
             opencl_prefix=${OPTARG//with_opencl=/}
+            ;;
+          opencl_libs=*)
+            opencl_libraries=${OPTARG//opencl_libs=/}
             ;;
           *)
             # Flag didn't match any patern. Raise exception
@@ -249,6 +254,14 @@ if [ "${cuda_enabled}" != "" ]; then
 	export PATH=$PATH:${cuda_prefix}/bin
     	export LDFLAGS="$LDFLAGS -L${cuda_prefix}/lib64"
     fi
+  fi
+fi
+if [ "${opencl_enabled}" != "" ]; then
+  # Flag is defined, check value
+  if [ ${opencl_enabled} == 1 ]; then
+#    export LDADD="$LDADD -L/home/altera/16.0.2/hld/linux64/lib -L/opt/intel_deliverable_WW49_16/bdw_fpga_pilot_opencl_bsp_v1.0/host/linux64/lib    -lalterahalmmd -laltera_qpi_mmd  -laalrt  -L/opt/aalsdk/aalsdk-5.0.2/lib"    
+    export LDFLAGS="$LDFLAGS ${opencl_libraries}"
+#    echo $LDADD
   fi
 fi
 

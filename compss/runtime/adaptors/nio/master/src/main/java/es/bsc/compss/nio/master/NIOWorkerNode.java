@@ -159,6 +159,10 @@ public class NIOWorkerNode extends COMPSsWorker {
         return this.config.getTotalGPUComputingUnits();
     }
 
+    public int getTotalFPGAs() {
+        return this.config.getTotalFPGAComputingUnits();
+    }
+
     public NIOConfiguration getConfiguration() {
         return this.config;
     }

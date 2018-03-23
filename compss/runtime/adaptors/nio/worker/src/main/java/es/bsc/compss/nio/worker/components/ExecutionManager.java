@@ -51,11 +51,13 @@ public class ExecutionManager {
     // Bound Resources
     private final ThreadBinder binderCPUs;
     private final ThreadBinder binderGPUs;
+    private final ThreadBinder binderFPGAs;
 
 
     public static enum BinderType {
         CPU, // CPU
         GPU, // GPU
+        FPGA // FPGA
     }
 
 
@@ -65,13 +67,16 @@ public class ExecutionManager {
      * @param nw
      * @param computingUnitsCPU
      * @param computingUnitsGPU
+     * @param computingUnitsFPGA
      * @param cpuMap
      * @param gpuMap
+     * @param fpgaMap
      * @param limitOfTasks
      * @throws InvalidMapException
      * @throws IOException 
      */
-    public ExecutionManager(NIOWorker nw, int computingUnitsCPU, int computingUnitsGPU, String cpuMap, String gpuMap, int limitOfTasks)
+    public ExecutionManager(NIOWorker nw, int computingUnitsCPU, int computingUnitsGPU, int computingUnitsFPGA, String cpuMap,
+		String gpuMap, String fpgaMap, int limitOfTasks)
             throws InvalidMapException {
 
         LOGGER.info("Instantiate Execution Manager");
@@ -133,6 +138,21 @@ public class ExecutionManager {
                 this.binderGPUs = new BindToMap(computingUnitsGPU, gpuMap);
                 break;
         }
+
+        // Instantiate FPGA Binders
+        LOGGER.debug("Instantiate FPGA Binder with " + computingUnitsFPGA +" CUs");
+        switch (fpgaMap) {
+            case NIOAgent.BINDER_DISABLED:
+                this.binderFPGAs = new Unbinded();
+                break;
+            case NIOAgent.BINDER_AUTOMATIC:
+                this.binderFPGAs = new BindToResource(computingUnitsFPGA);
+                break;
+            default:
+                // Custom user map
+                this.binderFPGAs = new BindToMap(computingUnitsFPGA, fpgaMap);
+                break;
+        }
     }
 
     /**
@@ -178,6 +198,8 @@ public class ExecutionManager {
                 return this.binderCPUs.bindComputingUnits(jobId, numCUs);
             case GPU:
                 return this.binderGPUs.bindComputingUnits(jobId, numCUs);
+            case FPGA:
+                return this.binderFPGAs.bindComputingUnits(jobId, numCUs);
         }
         return null;
     }
@@ -193,6 +215,8 @@ public class ExecutionManager {
                 this.binderCPUs.releaseComputingUnits(jobId);
             case GPU:
                 this.binderGPUs.releaseComputingUnits(jobId);
+            case FPGA:
+                this.binderFPGAs.releaseComputingUnits(jobId);
         }
     }
 

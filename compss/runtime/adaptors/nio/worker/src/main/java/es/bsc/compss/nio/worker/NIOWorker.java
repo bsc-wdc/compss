@@ -124,9 +124,9 @@ public class NIOWorker extends NIOAgent {
     }
 
 
-    public NIOWorker(int snd, int rcv, String hostName, int masterPort, int computingUnitsCPU, int computingUnitsGPU, String cpuMap,
-            String gpuMap, int limitOfTasks, String appUuid, String lang, String workingDir, String installDir, String appDir,
-            String libPath, String classpath, String pythonpath) {
+    public NIOWorker(int snd, int rcv, String hostName, int masterPort, int computingUnitsCPU, int computingUnitsGPU, int computingUnitsFPGA,
+		String cpuMap, String gpuMap, String fpgaMap, int limitOfTasks, String appUuid, String lang, String workingDir, String installDir,
+		String appDir, String libPath, String classpath, String pythonpath) {
 
         super(snd, rcv, masterPort);
 
@@ -158,7 +158,7 @@ public class NIOWorker extends NIOAgent {
         // Start Execution Manager
         ExecutionManager em = null;
         try {
-            em = new ExecutionManager(this, computingUnitsCPU, computingUnitsGPU, cpuMap, gpuMap, limitOfTasks);
+            em = new ExecutionManager(this, computingUnitsCPU, computingUnitsGPU, computingUnitsFPGA, cpuMap, gpuMap, fpgaMap, limitOfTasks);
         } catch (InvalidMapException ime) {
             ErrorManager.fatal(ime);
             return;
@@ -752,7 +752,6 @@ public class NIOWorker extends NIOAgent {
                     if (!f.delete()) {
                         WORKER_LOGGER.error("Error removing file " + f.getAbsolutePath());
                     }
-                    WORKER_LOGGER.debug("Still executing tho 2");
                     // Now only manage at C (python could do the same when cache available)
                     if (Lang.valueOf(lang.toUpperCase()) == Lang.C && persistentC) {
                         executionManager.removeExternalData(name);
@@ -1031,27 +1030,29 @@ public class NIOWorker extends NIOAgent {
 
         int computingUnitsCPU = Integer.parseInt(args[6]);
         int computingUnitsGPU = Integer.parseInt(args[7]);
-        String cpuMap = args[8];
-        String gpuMap = args[9];
-        int limitOfTasks = Integer.parseInt(args[10]);
+        int computingUnitsFPGA = Integer.parseInt(args[8]);
+        String cpuMap = args[9];
+        String gpuMap = args[10];
+        String fpgaMap = args[11];
+        int limitOfTasks = Integer.parseInt(args[12]);
 
-        String appUuid = args[11];
-        String lang = args[12];
-        String workingDir = args[13];
-        String installDir = args[14];
-        String appDir = args[15];
-        String libPath = args[16];
-        String classpath = args[17];
-        String pythonpath = args[18];
+        String appUuid = args[13];
+        String lang = args[14];
+        String workingDir = args[15];
+        String installDir = args[16];
+        String appDir = args[17];
+        String libPath = args[18];
+        String classpath = args[19];
+        String pythonpath = args[20];
 
-        String trace = args[19];
-        String extraeFile = args[20];
-        String host = args[21];
+        String trace = args[21];
+        String extraeFile = args[22];
+        String host = args[23];
 
-        storageConf = args[22];
-        executionType = args[23];
+        storageConf = args[24];
+        executionType = args[25];
 
-        persistentC = Boolean.parseBoolean(args[24]);
+        persistentC = Boolean.parseBoolean(args[26]);
 
         // Print arguments
         if (isWorkerDebugEnabled) {
@@ -1064,8 +1065,10 @@ public class NIOWorker extends NIOAgent {
 
             WORKER_LOGGER.debug("Computing Units CPU: " + String.valueOf(computingUnitsCPU));
             WORKER_LOGGER.debug("Computing Units GPU: " + String.valueOf(computingUnitsGPU));
+            WORKER_LOGGER.debug("Computing Units FPGA: " + String.valueOf(computingUnitsFPGA));
             WORKER_LOGGER.debug("User defined CPU Map: " + cpuMap);
             WORKER_LOGGER.debug("User defined GPU Map: " + gpuMap);
+            WORKER_LOGGER.debug("User defined FPGA Map: " + fpgaMap);
             WORKER_LOGGER.debug("Limit Of Tasks: " + String.valueOf(limitOfTasks));
 
             WORKER_LOGGER.debug("App uuid: " + appUuid);
@@ -1119,8 +1122,8 @@ public class NIOWorker extends NIOAgent {
          * ***********************************************************************************************************
          * LAUNCH THE WORKER
          *************************************************************************************************************/
-        NIOWorker nw = new NIOWorker(maxSnd, maxRcv, workerIP, mPort, computingUnitsCPU, computingUnitsGPU, cpuMap, gpuMap, limitOfTasks,
-                appUuid, lang, workingDir, installDir, appDir, libPath, classpath, pythonpath);
+        NIOWorker nw = new NIOWorker(maxSnd, maxRcv, workerIP, mPort, computingUnitsCPU, computingUnitsGPU, computingUnitsFPGA,
+		cpuMap, gpuMap, fpgaMap, limitOfTasks, appUuid, lang, workingDir, installDir, appDir, libPath, classpath, pythonpath);
 
         NIOMessageHandler mh = new NIOMessageHandler(nw);
 

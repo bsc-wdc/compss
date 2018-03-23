@@ -155,5 +155,5 @@ dkms.conf
 *.mod
 *.smod
 
-# Ignore Python binding build
-build/
+# Ignore packages
+builders/packages/*

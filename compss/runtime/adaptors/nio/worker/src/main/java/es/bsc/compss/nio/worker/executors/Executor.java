@@ -179,10 +179,12 @@ public abstract class Executor implements Runnable {
                     BinderType.CPU);
             int[] assignedGPUs = nw.getExecutionManager().bind(nt.getJobId(), nt.getResourceDescription().getTotalGPUComputingUnits(),
                     BinderType.GPU);
+            int[] assignedFPGAs = nw.getExecutionManager().bind(nt.getJobId(), nt.getResourceDescription().getTotalFPGAComputingUnits(),
+                    BinderType.FPGA);
 
             // Execute task
             LOGGER.debug("Executing Task of Job " + nt.getJobId());
-            executeTask(nw, nt, outputsBasename, twd.getWorkingDir(), assignedCoreUnits, assignedGPUs);
+            executeTask(nw, nt, outputsBasename, twd.getWorkingDir(), assignedCoreUnits, assignedGPUs, assignedFPGAs);
 
             // Unbind files from task sandbox working dir
             LOGGER.debug("Removing renamed files to sandboxed original names for Job " + nt.getJobId());
@@ -480,7 +482,7 @@ public abstract class Executor implements Runnable {
     public abstract void setEnvironmentVariables(String hostnames, int numNodes, int cus, MethodResourceDescription reqs);
 
     public abstract void executeTask(NIOWorker nw, NIOTask nt, String outputsBasename, File taskSandboxWorkingDir, int[] assignedCoreUnits,
-            int[] assignedGPUs) throws Exception;
+            int[] assignedGPUs, int[] assignedFPGAs) throws Exception;
 
     public abstract void finish();
 

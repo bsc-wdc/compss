@@ -1,4 +1,4 @@
-/*         
+/*
  *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@
 #define GS_COMPSS_H
 
 // Uncomment the following define to get debug information.
-//#define DEBUG_BINDING
+#define DEBUG_BINDING
 
 #ifdef DEBUG_BINDING
 #define debug_printf(args...) printf(args); fflush(stdout);

@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-#
+# 
 
 # -*- coding: utf-8 -*-
 
@@ -250,7 +250,7 @@ def delete_file(file_name):
     '''
     if __debug__:
         logger.debug('Deleting file %s' % (file_name))
-    compss.delete_file(file_name) == 'true'
+    result = compss.delete_file(file_name) == 'true'
     if __debug__:
         if result:
             logger.debug('File %s successfully deleted.' % (file_name))

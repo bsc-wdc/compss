@@ -682,7 +682,8 @@ def build_return_objects(self_kwargs, spec_args):
                     try:
                         fue = i()
                     except TypeError:
-                        logger.warning('Type {0} does not have an empty constructor, building generic future object'.format(ret_type))
+                        if __debug__:
+                            logger.warning('Type {0} does not have an empty constructor, building generic future object'.format(ret_type))
                         fue = Future()
                 else:
                     fue = Future()  # modules, functions, methods

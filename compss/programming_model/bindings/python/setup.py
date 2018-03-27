@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 # -*- coding: utf-8 -*-
 
@@ -21,6 +21,26 @@ from distutils.core import setup, Extension
 # from setuptools import setup, Extension
 import re
 import os
+
+
+gcc_debug_flags = [
+'-Wall',
+'-Wextra',
+'-pedantic',
+'-O2',
+'-Wshadow',
+'-Wformat=2',
+'-Wfloat-equal',
+'-Wconversion',
+'-Wlogical-op',
+'-Wcast-qual',
+'-Wcast-align',
+'-D_GLIBCXX_DEBUG',
+'-D_GLIBCXX_DEBUG_PEDANTIC',
+'-D_FORTIFY_SOURCE=2',
+'-fsanitize=address',
+'-fstack-protector'
+]
 
 
 # Bindings common extension
@@ -34,15 +54,17 @@ compssmodule = Extension(
                 '../bindings-common/lib'
         ],
         libraries=['bindings_common'],
-        extra_compile_args=['-fPIC'],
-        sources=['src/ext/compssmodule.c']
+        extra_compile_args=['-fPIC', '-std=c++11'],
+        #extra_compile_args=['-fPIC'],
+        sources=['src/ext/compssmodule.cc']
 )
-
 
 # Thread affinity extension
 thread_affinity = Extension(
         'thread_affinity',
         include_dirs=['src/ext'],
+        extra_compile_args=['-std=c++11'],
+        #extra_compile_args=['-fPIC %s' % (' '.join(gcc_debug_flags.split('\n')))],
         sources=['src/ext/thread_affinity.cc']
 )
 

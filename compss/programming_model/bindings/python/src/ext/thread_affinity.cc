@@ -1,4 +1,4 @@
-/*         
+/*
  *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,7 +48,7 @@ static PyObject* pysched_setaffinity(PyObject* self, PyObject* args) {
   cpu_set_t to_assign;
   CPU_ZERO(&to_assign);
   int num_params = PyList_Size(cpu_list);
-  for(int i=0; i<num_params; ++i) {
+  for(int i = 0; i < num_params; ++i) {
     int cpu_id = PyInt_AsLong(PyList_GetItem(cpu_list, i));
     CPU_SET(cpu_id, &to_assign);
   }
@@ -68,18 +68,18 @@ static PyObject* pysched_getaffinity(PyObject* self, PyObject* args) {
   if(!PyArg_ParseTuple(args, "|l", &pid)) {
     return NULL;
   }
-  if( pid == 0LL ) pid = getpid();
+  if(pid == 0LL) pid = getpid();
   cpu_set_t set_cpus;
   if(sched_getaffinity(pid, sizeof(cpu_set_t), &set_cpus) < 0) {
     PyErr_SetString(PyExc_RuntimeError, "Error during sched_getaffinity call!");
     Py_RETURN_NONE;
   }
   std::vector<int> ret_val;
-  for(int i=0; i<__CPU_SETSIZE; ++i) {
+  for(int i = 0; i < __CPU_SETSIZE; ++i) {
     if(CPU_ISSET(i, &set_cpus)) ret_val.push_back(i);
   }
   PyObject* py_ret = PyList_New(int(ret_val.size()));
-  for(int i=0; i<int(ret_val.size()); ++i) {
+  for(int i = 0; i < int(ret_val.size()); ++i) {
     PyList_SetItem(py_ret, i, Py_BuildValue("i", ret_val[i]));
   }
   return py_ret;

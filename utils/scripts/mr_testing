@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 gitlabSourceBranch=$1
 
@@ -6,7 +6,7 @@ echo "*********** Compiling and testing branch ${gitlabSourceBranch} ***********
 
 # Testing that the user did a rebase (auto-rebase if no conflicts detected)
 if git rebase origin/trunk; then
-	echo "Rebase was already done or it proceed without conflicts"
+	echo "All correct: rebase was already done or it proceed without conflicts"
 else
 	echo "Branch ${gitlabSourceBranch} was not rebased before pushing"
     echo "Rebase your local branch with: git rebase trunk, and solve the conflicts before pushing again"
@@ -18,8 +18,11 @@ fi
 git add -u
 
 if git commit -m 'merged and added headers'; then
-	echo "Files with no headers detected, pushing commit with added headers"
-	git push http://${GIT_USER}:${GIT_PASSWORD}@compss.bsc.es/gitlab/compss/framework.git ${gitlabSourceBranch}
+	echo "Files with no headers detected, force pushing commit with added headers"
+	git push --force http://${GIT_USER}:${GIT_PASSWORD}@compss.bsc.es/gitlab/compss/framework.git ${gitlabSourceBranch}
+	if [ $? -ne 0 ]; then
+      echo "ERROR: push failed, be careful or could lose your work.";
+    fi
     exit 1; # exit with error to forbid auto-merging after adding headers
 
 else

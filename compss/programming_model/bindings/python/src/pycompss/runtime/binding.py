@@ -1097,7 +1097,8 @@ def turn_into_file(p):
             logger.debug('Mapping object %s to file %s' % (obj_id, file_name))
         serialize_to_file(p.value, file_name)
     elif obj_id in objs_written_by_mp:
-        pending_to_synchronize[obj_id] = p.value
+        if p.direction == DIRECTION.INOUT:
+            pending_to_synchronize[obj_id] = p.value
         # Main program generated the last version
         compss_file = objs_written_by_mp.pop(obj_id)
         if __debug__:

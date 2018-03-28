@@ -17,6 +17,7 @@ from test.modules.test_tasks import function_argfunc, function_lambda, function_
 from test.modules.test_tasks import function_lambda_return, function_generator_return
 from test.modules.test_tasks import multireturn, power, merge
 from test.modules.test_tasks import function_moduleObject, Foo
+from test.modules.test_tasks import create_block, update_block
 
 
 def test_function_primitives():
@@ -556,6 +557,28 @@ def test_moduleObject():
         print("- Test module object parameter: ERROR")
 
 
+def test_inouts():
+    print("CREATE BLOCKS")
+    a = create_block(4)
+    b = create_block(4)
+
+    print("WAIT FOR A BLOCK")
+    a = compss_wait_on(a)
+    initial = a.copy()
+    print(initial)
+
+    print("UPDATE INOUT")
+    update_block(a, b)
+
+    print("WAIT FOR A BLOCK")
+    a = compss_wait_on(a)
+    print(a)
+
+    if (initial == a).all():
+        print("- Test inouts: ERROR")
+    else:
+        print("- Test inouts: OK")
+
 def main_program():
 
     test_function_primitives()
@@ -598,6 +621,8 @@ def main_program():
     test_multireturn_multicall()
 
     test_moduleObject()
+
+    test_inouts()
 
 
 if __name__ == "__main__":

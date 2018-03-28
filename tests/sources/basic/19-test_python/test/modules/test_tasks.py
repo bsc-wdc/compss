@@ -314,7 +314,6 @@ class Foo(object):
     def get(self):
         return self.value
 
-
 @task(returns = object)
 def function_moduleObject(value):
     print("Test Module Object")
@@ -323,3 +322,23 @@ def function_moduleObject(value):
     print("Value set to: ", v*v)
     value.set(v*v)
     return value
+
+@task(returns=list)
+def create_block(b_size):
+    import numpy as np
+    block = np.array(np.random.random((b_size, b_size)), dtype=np.double, copy=False)
+    mb = np.matrix(block, dtype=np.double, copy=False)
+    return mb
+
+@task(x=INOUT)
+def update_block(x, y):
+    print("Before the sum:")
+    print("x:")
+    print(x)
+    print("y:")
+    print(y)
+    print("id: " + str(id(x)))
+    x += y
+    print("After the sum of x and y:")
+    print(x)
+    print("id: " + str(id(x)))

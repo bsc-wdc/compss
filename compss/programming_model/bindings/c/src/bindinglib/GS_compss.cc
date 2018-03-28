@@ -1,4 +1,4 @@
-/*         
+/*
  *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +32,7 @@ void compss_off(void) {
 
 void GS_clean() {
   std::map<void *, Entry>::iterator it;
-  
+
   for (std::map<void *,Entry>::iterator it=objectMap.begin(); it!=objectMap.end(); ++it) {
     remove (it->second.filename);
   }
@@ -71,7 +71,7 @@ FILE* compss_fopen(char * filename, char * mode) {
   enum direction dir;
 
   debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", filename);
-  
+
   if (strcmp(mode, "r") == 0){
 	dir = in_dir;
   }
@@ -89,15 +89,15 @@ FILE* compss_fopen(char * filename, char * mode) {
   }
   else if (strcmp(mode, "a+") == 0){
         dir = inout_dir;
-  }  
+  }
 
 
   GS_Get_File(filename, dir, &runtime_filename);
-  
+
   debug_printf("[C-BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
-  
+
   file = fopen(runtime_filename, mode);
-   
+
 
   return file;
 }
@@ -105,10 +105,7 @@ FILE* compss_fopen(char * filename, char * mode) {
 
 void compss_delete_file(char *filename)
 {
-    int *result;
-    
-    GS_Delete_File(filename, &result);
-
+    GS_Delete_File(filename);
     return;
 }
 
@@ -124,14 +121,14 @@ void compss_barrier()
 int GS_register(void *ref, datatype type, direction dir, char *classname, char * &filename) {
   Entry entry;
   int result = 0;
-  
+
   debug_printf("[C-BINDING]  -  @GS_register  -  Ref: %p\n", (char *)ref);
-  
+
   if (dir == null_dir) {
-    debug_printf("[C-BINDING]  -  @GS_register  -  Direction is null \n"); 
+    debug_printf("[C-BINDING]  -  @GS_register  -  Direction is null \n");
     dir = out_dir;
   }
-  
+
   if (dir != in_dir) {
     // OUT / INOUT. Create new version
     entry = objectMap[ref];
@@ -139,7 +136,7 @@ int GS_register(void *ref, datatype type, direction dir, char *classname, char *
       debug_printf("[C-BINDING]  -  @GS_register  -  ENTRY ADDED\n");
       entry.type = type;
       entry.classname = strdup(classname);
-      
+
       if ((datatype)entry.type != file_dt) {
     	  entry.filename =  strdup("compss-serialized-obj_XXXXXX");
     	  int fd = mkstemp(entry.filename);
@@ -150,26 +147,26 @@ int GS_register(void *ref, datatype type, direction dir, char *classname, char *
       } else {
     	  entry.filename = strdup(filename);
       }
-      
+
       objectMap[ref] = entry;
-   
+
     } else {
       debug_printf("[C-BINDING]  -  @GS_register  -  ENTRY FOUND\n");
       result = 1;
     }
-    
+
     debug_printf("[C-BINDING]  -  @GS_register  -  Entry.type: %d\n", entry.type);
     debug_printf("[C-BINDING]  -  @GS_register  -  Entry.classname: %s\n", entry.classname);
     debug_printf("[C-BINDING]  -  @GS_register  -  Entry.filename: %s\n", entry.filename);
-    
+
     filename = strdup(entry.filename);
     debug_printf("[C-BINDING]  -  @GS_register  -  setting filename: %s\n", filename);
-    
+
   } else {
     // IN
     if ((datatype)type == object_dt) {
       entry = objectMap[ref];
-      
+
       if (entry.filename == NULL) {
     	  debug_printf("[C-BINDING]  -  @GS_register  -  ENTRY ADDED\n");
     	  entry.type = type;
@@ -185,16 +182,16 @@ int GS_register(void *ref, datatype type, direction dir, char *classname, char *
     	  debug_printf("[C-BINDING]  -  @GS_register  -  ENTRY FOUND\n");
 	result = 1;
       }
-      
+
       debug_printf("[C-BINDING]  -  @GS_register  -  Entry.type: %d\n", entry.type);
       debug_printf("[C-BINDING]  -  @GS_register  -  Entry.classname: %s\n", entry.classname);
       debug_printf("[C-BINDING]  -  @GS_register  -  Entry.filename: %s\n", entry.filename);
-      
+
       filename = strdup(entry.filename);
       debug_printf("[C-BINDING]  -  @GS_register  -  setting filename: %s\n", filename);
     }
   }
-  
+
   debug_printf("[C-BINDING]  -  @GS_register  -  Filename: %s\n", filename);
   debug_printf("[C-BINDING]  -  @GS_register  - Result is %d\n", result);
   return result;

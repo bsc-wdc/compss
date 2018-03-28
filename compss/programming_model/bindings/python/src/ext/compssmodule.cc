@@ -1,4 +1,4 @@
-/*         
+/*
  *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,7 +42,7 @@ struct module_state {
 };
 
 /*
-  This is simply a wrapper
+  This is simply a data container
   See process_task
 */
 struct parameter {
@@ -111,6 +111,12 @@ stop_runtime(PyObject *self, PyObject *args) {
   (which is also a PyObject) to a char*
   As we can see, the functions body varies depending on the Python version,
   making it compatible for both Py2 and Py3
+
+  W A R N I N G
+
+  Do not EVER free a pointer obtained from here. It will eventually happen
+  when the PyObject container gets refcd to 0
+
 */
 static char *
 _pystring_to_char(PyObject *c) {
@@ -273,7 +279,10 @@ process_task(PyObject *self, PyObject *args) {
   }
   debug("####C#### Adapting C++ data to BC-JNI format...\n");
   /*
-    Adapt the parsed data to a bindings-common friendly format
+    Adapt the parsed data to a bindings-common friendly format.
+    These pointers do NOT need to be freed, as the pointed contents
+    are out of our control (will be scope-cleaned, or point to PyObject
+    contents)
   */
   std::vector< void* > unrolled_parameters(5 * num_pars, NULL);
   for(int i = 0; i < num_pars; ++i) {
@@ -317,6 +326,8 @@ get_file(PyObject *self, PyObject *args)
   GS_Get_File(file_name, mode, &compss_name);
   debug("####C#### COMPSs file name %s\n", compss_name);
   PyObject *ret = Py_BuildValue("s", compss_name);
+  // File_name must NOT be freed, as it points to a PyObject
+  // The same applies to compss_name
   return ret;
 }
 
@@ -332,9 +343,8 @@ static PyObject *
 delete_file(PyObject *self, PyObject *args) {
   debug("####C#### DELETE FILE\n");
   char *file_name = _pystring_to_char(PyTuple_GetItem(args, 0));
-  int *result;
   debug("####C#### Calling Delete File with file %s\n", file_name);
-  GS_Delete_File(file_name, &result);
+  GS_Delete_File(file_name);
   debug("####C#### COMPSs delete file name %s with result %d \n", file_name, 0);
   PyObject *ret = Py_BuildValue("i", 0);
   return ret;
@@ -351,7 +361,7 @@ delete_file(PyObject *self, PyObject *args) {
 static PyObject*
 close_file(PyObject* self, PyObject* args) {
   char *file_name = _pystring_to_char(PyTuple_GetItem(args, 0));
-  int mode = (int)PyInt_AsLong(PyTuple_GetItem(args, 1));
+  int mode = int(PyInt_AsLong(PyTuple_GetItem(args, 1)));
   GS_Close_File(file_name, mode);
   Py_RETURN_NONE;
 }
@@ -365,7 +375,7 @@ barrier(PyObject *self, PyObject *args) {
     debug("####C#### BARRIER\n");
     long app_id = PyInt_AsLong(PyTuple_GetItem(args, 0));
     GS_Barrier(app_id);
-    printf("####C#### COMPSs barrier for AppId: %ld \n", (app_id));
+    debug("####C#### COMPSs barrier for AppId: %ld \n", (app_id));
     Py_RETURN_NONE;
 }
 
@@ -378,6 +388,7 @@ get_logging_path(PyObject *self, PyObject *args) {
 	char *log_path;
 	GS_Get_AppDir(&log_path);
 	debug("####C#### COMPSs log path %s\n", log_path);
+  // This makes log_path unallocatable
   PyObject *ret = Py_BuildValue("s", log_path);
   return ret;
 }
@@ -415,6 +426,8 @@ register_core_element(PyObject *self, PyObject *args)
 	              num_params,
 	              ImplTypeArgs);
 	debug("####C#### COMPSs ALREADY REGISTERED THE CORE ELEMENT\n");
+  // Free all allocated memory
+  delete ImplTypeArgs;
   Py_RETURN_NONE;
 }
 

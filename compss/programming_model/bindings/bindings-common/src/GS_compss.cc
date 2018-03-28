@@ -1,4 +1,4 @@
-/*         
+/*
  *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -1006,7 +1006,7 @@ void GS_Close_File(char *file_name, int mode) {
 }
 
 
-void GS_Delete_File(char *file_name, int **buf) {
+void GS_Delete_File(char *file_name) {
   int isAttached = check_and_attach();
   env->CallVoidMethod(jobjIT, midDeleteFile, env->NewStringUTF(file_name));
   if (env->ExceptionOccurred()) {

@@ -27,7 +27,7 @@
 #include <cstddef>
 
 // Uncomment this line to get debug prints
-#define DEBUG
+// #define DEBUG
 
 // Basically, debug(args) is a macro that, depending on whether debug is
 // defined or not, will translate to printf(args) + flush or to none

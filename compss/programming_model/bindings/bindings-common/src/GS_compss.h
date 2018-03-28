@@ -18,7 +18,7 @@
 #define GS_COMPSS_H
 
 // Uncomment the following define to get debug information.
-#define DEBUG_BINDING
+// #define DEBUG_BINDING
 
 #ifdef DEBUG_BINDING
 #define debug_printf(args...) printf(args); fflush(stdout);
@@ -33,7 +33,7 @@ extern "C" void GS_ExecuteTask(long appId, char *class_name, char *method_name, 
 extern "C" void GS_ExecuteTaskNew(long appId, char *signature, int priority, int num_nodes, int replicated, int distributed, int has_target, int num_params, void **params);
 extern "C" void GS_Get_File(char *file_name, int mode, char **buf);
 extern "C" void GS_Close_File(char *file_name, int mode);
-extern "C" void GS_Delete_File(char *file_name, int **buf);
+extern "C" void GS_Delete_File(char *file_name);
 extern "C" void GS_Barrier(long appId);
 extern "C" void GS_Get_AppDir(char **buf);
 //extern "C" void GS_RegisterCE(long appId, char *class_name, char *method_name, int priority, int has_target, int num_params, void **params, char *constraints);

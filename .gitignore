@@ -154,3 +154,6 @@ dkms.conf
 # Fortran module files
 *.mod
 *.smod
+
+# Ignore Python binding build
+build/

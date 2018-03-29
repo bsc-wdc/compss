@@ -20,19 +20,19 @@ compss/runtime/config/xml/resources/src/main/java/es/bsc/compss/types/resources/
 # ========== Java ignores =================
 
 
- # Compiled class file
- *.class
+# Compiled class file
+*.class
 
- # Package Files #
- *.jar
- *.war
- *.ear
- *.zip
- *.tar.gz
- *.rar
+# Package Files 
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
 
- # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
- hs_err_pid*
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
 
 
 # ========== Python ignores =================

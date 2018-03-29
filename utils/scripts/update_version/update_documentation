@@ -81,7 +81,9 @@ usage() {
   echo "- Commit modifications"
   cd "${documentation_dir}" || exit 1
   git commit -am "Adding documentation new tag ${version}"
-  git push http://${GIT_USER}:${GIT_PASSWORD}@compss.bsc.es/gitlab/compss/framework.git master
+  git tag COMPSs_Manuals_${version}
+  git push http://${GIT_USER}:${GIT_PASSWORD}@compss.bsc.es/gitlab/documents/documentation.git master
+  git push http://${GIT_USER}:${GIT_PASSWORD}@compss.bsc.es/gitlab/documents/documentation.git --tags
   cd "${SCRIPT_DIR}" || exit 1
 
   #---------------------------------------------------------------------

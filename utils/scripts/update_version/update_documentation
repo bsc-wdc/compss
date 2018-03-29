@@ -25,19 +25,20 @@ usage() {
   # Define script variables
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   trunk_dir=${SCRIPT_DIR}/../../../
-  documentation_dir=${trunk_dir}/../documents/COMPSs_Manuals/
+  documentation_dir=${trunk_dir}/../documentation/COMPSs_Manuals/
 
-  #---------------------------------------------------------------------
-  # Copy latest files
-  echo "- Copy latest files"
-  svn cp "${documentation_dir}/latest" "${documentation_dir}/${version}"
+  # Clone documentation repo
+  cd ${trunk_dir}/..
+  git clone http://${GIT_USER}:${GIT_PASSWORD}@compss.bsc.es/gitlab/documents/documentation.git
+
+
 
   #---------------------------------------------------------------------
   # Update internal files version on new tag
   echo "- Update files version"
   sed -i '/Version: /cVersion: '"${version}"'' "${documentation_dir}/${version}/README"
 
-  for doc in ${documentation_dir}/${version}/*; do
+  for doc in ${documentation_dir}/*; do
     cd "${doc}" || exit 1
     latexFile=$(ls *.tex | grep -v configuration.tex)
     echo "$latexFile"
@@ -50,9 +51,9 @@ usage() {
   #---------------------------------------------------------------------
   # Update internal files version on latest
   echo "- Update files version"
-  sed -i '/Version: /cVersion: '"${version}"'' "${documentation_dir}/latest/README"
+  sed -i '/Version: /cVersion: '"${version}"'' "${documentation_dir}/README"
 
-  for doc in ${documentation_dir}/latest/*; do
+  for doc in ${documentation_dir}/*; do
     cd "${doc}" || exit 1
     latexFile=$(ls *.tex | grep -v configuration.tex)
     echo "$latexFile"
@@ -66,7 +67,7 @@ usage() {
   # Generate PDF files
   echo "- Generate PDF files"
 
-  for doc in ${documentation_dir}/${version}/*; do
+  for doc in ${documentation_dir}/*; do
     cd "${doc}" || exit 1
     latexFile=$(ls *.tex | grep -v configuration.tex) 
     pdflatex -interaction=nonstopmode "${latexFile}"
@@ -79,7 +80,8 @@ usage() {
   # Commit modifications
   echo "- Commit modifications"
   cd "${documentation_dir}" || exit 1
-  svn commit -m "Adding documentation new tag ${version}"
+  git commit -am "Adding documentation new tag ${version}"
+  git push http://${GIT_USER}:${GIT_PASSWORD}@compss.bsc.es/gitlab/compss/framework.git master
   cd "${SCRIPT_DIR}" || exit 1
 
   #---------------------------------------------------------------------
@@ -99,7 +101,8 @@ usage() {
   # Commit modifications
   echo "- Commit trunk modifications"
   cd "${trunk_dir}/doc/" || exit 1
-  svn commit -m "Adding documentation synchronized for new tag ${version}"
+  git commit -am "Adding documentation synchronized for new tag ${version}"
+  git push http://${GIT_USER}:${GIT_PASSWORD}@compss.bsc.es/gitlab/compss/framework.git trunk
   cd "${SCRIPT_DIR}" || exit 1
 
   #---------------------------------------------------------------------

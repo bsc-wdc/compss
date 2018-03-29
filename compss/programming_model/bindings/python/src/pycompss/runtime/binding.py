@@ -250,7 +250,7 @@ def delete_file(file_name):
     '''
     if __debug__:
         logger.debug('Deleting file %s' % (file_name))
-    compss.delete_file(file_name) == 'true'
+    result = compss.delete_file(file_name) == 'true'
     if __debug__:
         if result:
             logger.debug('File %s successfully deleted.' % (file_name))
@@ -682,7 +682,8 @@ def build_return_objects(self_kwargs, spec_args):
                     try:
                         fue = i()
                     except TypeError:
-                        logger.warning('Type %s does not have an empty constructor, building generic future object' % ret_type)
+                        if __debug__:
+                            logger.warning('Type {0} does not have an empty constructor, building generic future object'.format(ret_type))
                         fue = Future()
                 else:
                     fue = Future()  # modules, functions, methods
@@ -712,7 +713,7 @@ def build_return_objects(self_kwargs, spec_args):
                     fu = ret_type()
                 except TypeError:
                     if __debug__:
-                        logger.warning('Type %s does not have an empty constructor, building generic future object' % ret_type)
+                        logger.warning('Type {0} does not have an empty constructor, building generic future object'.format(ret_type))
                     fu = Future()
             else:
                 fu = Future()  # modules, functions, methods
@@ -1096,6 +1097,8 @@ def turn_into_file(p):
             logger.debug('Mapping object %s to file %s' % (obj_id, file_name))
         serialize_to_file(p.value, file_name)
     elif obj_id in objs_written_by_mp:
+        if p.direction == DIRECTION.INOUT:
+            pending_to_synchronize[obj_id] = p.value
         # Main program generated the last version
         compss_file = objs_written_by_mp.pop(obj_id)
         if __debug__:

@@ -36,6 +36,18 @@
     # Shift parameters for script and leave only the NIOWorker parameters
     paramsToShift=$((4 + numJvmFlags))
     shift ${paramsToShift}
+
+    FPGAargs=""
+    numFPGAargs=$1
+    for i in $(seq 1 "$numFPGAargs"); do
+      pos=$((1 + i))
+      FPGAargs="${FPGAargs} ${!pos}"
+    done
+
+    # Shift parameters for script and leave only the NIOWorker parameters
+    paramsToShift=$((1 + numFPGAargs))
+    shift ${paramsToShift}
+
     paramsToCOMPSsWorker=$@
  
     # Catch some NIOWorker parameters
@@ -163,6 +175,13 @@
       -Dlog4j.configurationFile=${installDir}/Runtime/configuration/log/${itlog4j_file} \
       -classpath $CLASSPATH:${worker_jar} \
       ${main_worker_class}"
+  }
+
+  reprogram_fpga() {
+    if [ -n "${FPGAargs}" ]; then
+        echo "Reprogramming FPGA"
+        eval "$FPGAargs"
+    fi
   }
   
   pre_launch() {

@@ -337,6 +337,13 @@ public class WorkerStarter {
             jvmFlags = workerJVMflags.split(",");
         }
 
+        // Get FPGA reprogram args
+        String workerFPGAargs = System.getProperty(COMPSsConstants.WORKER_FPGA_REPROGRAM);
+        String[] FPGAargs = new String[0];
+        if (workerFPGAargs != null && !workerFPGAargs.isEmpty()) {
+            FPGAargs = workerFPGAargs.split(" ");
+        }
+
         // Configure worker debug level
         String workerDebug = Boolean.toString(LogManager.getLogger(Loggers.WORKER).isDebugEnabled());
 
@@ -363,7 +370,7 @@ public class WorkerStarter {
          * BUILD COMMAND
          * ************************************************************************************************************
          */
-        String[] cmd = new String[NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + NIOAdaptor.NUM_PARAMS_NIO_WORKER + jvmFlags.length];
+        String[] cmd = new String[NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + NIOAdaptor.NUM_PARAMS_NIO_WORKER + jvmFlags.length + 1 + FPGAargs.length];
 
         /* SCRIPT ************************************************ */
         cmd[0] = installDir + (installDir.endsWith(File.separator) ? "" : File.separator) + STARTER_SCRIPT_PATH + STARTER_SCRIPT_NAME;
@@ -377,8 +384,14 @@ public class WorkerStarter {
             cmd[NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + i] = jvmFlags[i];
         }
 
+        int FPGAposition = NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + jvmFlags.length;
+        cmd[FPGAposition] = String.valueOf(FPGAargs.length);
+        for (int i = 0; i < FPGAargs.length; ++i) {
+            cmd[FPGAposition + i + 1] = FPGAargs[i];
+        }
+
         /* Values for NIOWorker ********************************** */
-        int nextPosition = NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + jvmFlags.length;
+        int nextPosition = NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + jvmFlags.length + 1 + FPGAargs.length;
         cmd[nextPosition++] = workerDebug;
 
         // Internal parameters

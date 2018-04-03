@@ -45,6 +45,8 @@
         FPGAargs="${FPGAargs} ${!pos}"
       done
     fi
+
+    # Shift parameters for script and leave only the NIOWorker parameters
     paramsToShift=$((1 + numFPGAargs))
     shift ${paramsToShift}
 

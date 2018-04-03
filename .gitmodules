@@ -1,6 +1,8 @@
 [submodule "dependencies/pluto"]
 	path = dependencies/pluto
 	url = https://github.com/cristianrcv/pluto.git
+        ignore = untracked
 [submodule "dependencies/autoparallel"]
 	path = dependencies/autoparallel
-	url = https://github.com/cristianrcv/pycompss-pluto.git
+	url = https://github.com/cristianrcv/pycompss-autoparallel.git
+        ignore = untracked

@@ -40,11 +40,11 @@ Usage: $0 [options] application_name application_arguments
     --opts                                  Show available options
 
     --version, -v                           Print COMPSs version
-    
+
     --sc_cfg=<name>                         SuperComputer configuration file to use. Must exist inside queues/cfgs/
                                             Mandatory
                                             Default: ${DEFAULT_SC_CFG}
-    
+
   Submission configuration:
 EOT
 
@@ -62,7 +62,7 @@ show_opts() {
   source ${defaultSC_cfg}
   local defaultQS_cfg=${scriptDir}/../${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg
   source ${defaultQS_cfg}
-  
+
   # Show usage
   cat <<EOT
     --exec_time=<minutes>                   Expected execution time of the application (in minutes)
@@ -71,18 +71,18 @@ show_opts() {
                                             Default: ${DEFAULT_NUM_NODES}
     --num_switches=<int>                    Maximum number of different switches. Select 0 for no restrictions.
                                             Maximum nodes per switch: ${MAX_NODES_SWITCH}
-                                            Only available for at least ${MIN_NODES_REQ_SWITCH} nodes. 
-                                            Default: ${DEFAULT_NUM_SWITCHES} 
+                                            Only available for at least ${MIN_NODES_REQ_SWITCH} nodes.
+                                            Default: ${DEFAULT_NUM_SWITCHES}
     --queue=<name>                          Queue name to submit the job. Depends on the queue system.
                                             For example (MN3): bsc_cs | bsc_debug | debug | interactive
                                             Default: ${DEFAULT_QUEUE}
-    --reservation=<name>                    Reservation to use when submitting the job. 
+    --reservation=<name>                    Reservation to use when submitting the job.
                                             Default: ${DEFAULT_RESERVATION}
 EOT
    if [ -z "${DISABLE_QARG_CONSTRAINTS}" ] || [ "${DISABLE_QARG_CONSTRAINTS}" == "false" ]; then
     cat <<EOT
     --constraints=<constraints>		    Constraints to pass to queue system.
-					    Default: ${DEFAULT_CONSTRAINTS}  
+					    Default: ${DEFAULT_CONSTRAINTS}
 EOT
   fi
   if [ -z "${DISABLE_QARG_QOS}" ] || [ "${DISABLE_QARG_QOS}" == "false" ]; then
@@ -91,7 +91,7 @@ EOT
 					    Default: ${DEFAULT_QOS}
 EOT
   fi
-    cat <<EOT 
+    cat <<EOT
     --job_dependency=<jobID>                Postpone job execution until the job dependency has ended.
                                             Default: ${DEFAULT_DEPENDENCY_JOB}
     --storage_home=<string>                 Root installation dir of the storage implementation
@@ -101,11 +101,11 @@ EOT
 
   Launch configuration:
 EOT
-  ${scriptDir}/../../user/launch_compss --opts 
+  ${scriptDir}/../../user/launch_compss --opts
 
   exit $exitValue
 }
-  
+
 ###############################################
 # Displays version
 ###############################################
@@ -122,10 +122,10 @@ display_version() {
 ###############################################
 display_error() {
   local error_msg=$1
-  
+
   echo $error_msg
   echo " "
-  
+
   usage 1
 }
 
@@ -168,7 +168,7 @@ log_args() {
 }
 
 ###############################################
-# Function that converts a cost in minutes 
+# Function that converts a cost in minutes
 # to an expression of wall clock limit
 ###############################################
 convert_to_wc() {
@@ -209,19 +209,19 @@ get_args() {
   fi
 
   #Parse COMPSs Options
-  while getopts hvgtmd-: flag; do 
+  while getopts hvgtmd-: flag; do
     # Treat the argument
     case "$flag" in
       h)
         # Display help
         usage 0
         ;;
-      v) 
+      v)
         # Display version
         display_version 0
         ;;
       -)
-        # Check more complex arguments 
+        # Check more complex arguments
         case "$OPTARG" in
           help)
             # Display help
@@ -297,7 +297,7 @@ get_args() {
             echo "WARNING: storage_conf is automatically generated. Omitting parameter"
             ;;
           *)
-            # Flag didn't match any patern. Add to COMPSs 
+            # Flag didn't match any patern. Add to COMPSs
             args_pass="$args_pass --$OPTARG"
             ;;
         esac
@@ -305,14 +305,14 @@ get_args() {
       *)
         # Flag didn't match any patern. End of COMPSs flags
         args_pass="$args_pass -$flag"
-        ;; 
+        ;;
     esac
   done
   # Shift COMPSs arguments
   shift $((OPTIND-1))
 
   # Pass application name and args
-  args_pass="$args_pass $@" 
+  args_pass="$args_pass $@"
 }
 
 ###############################################
@@ -327,7 +327,7 @@ set_time() {
     convert_to_wc $exec_time
   else
     wc_limit=$(($exec_time * ${WC_CONVERSION_FACTOR}))
-  fi  
+  fi
 }
 
 ###############################################
@@ -348,7 +348,7 @@ check_args() {
   if [ -z "${constraints}" ]; then
     constraints=${DEFAULT_CONSTRAINTS}
   fi
-  
+
   if [ -z "${qos}" ]; then
     qos=${DEFAULT_QOS}
   fi
@@ -356,7 +356,7 @@ check_args() {
   if [ -z "${dependencyJob}" ]; then
     dependencyJob=${DEFAULT_DEPENDENCY_JOB}
   fi
-  
+
   ###############################################################
   # Infrastructure checks
   ###############################################################
@@ -384,7 +384,7 @@ check_args() {
   fi
 
   maxnodes=$(expr ${num_switches} \* ${MAX_NODES_SWITCH})
-  
+
   if [ "${num_switches}" != "0" ] && [ ${maxnodes} -lt ${num_nodes} ]; then
     display_error "${ERROR_SWITCHES}"
   fi
@@ -401,7 +401,7 @@ check_args() {
   elif [ "${network}" != "ethernet" ] && [ "${network}" != "infiniband" ] && [ "${network}" != "data" ]; then
     display_error "${ERROR_NETWORK}"
   fi
-  
+
   ###############################################################
   # Node checks
   ###############################################################
@@ -454,7 +454,7 @@ create_tmp_submit() {
 #
 #${QUEUE_CMD} ${QARG_QUEUE_SELECTION}${QUEUE_SEPARATOR} ${queue}
 EOT
-  else 
+  else
     cat >> $TMP_SUBMIT_SCRIPT << EOT
 #!/bin/bash -e
 #
@@ -487,11 +487,11 @@ EOT
 EOT
     else
       cat >> $TMP_SUBMIT_SCRIPT << EOT
-#${QUEUE_CMD} ${QARG_JOB_NAME}${QUEUE_SEPARATOR}COMPSs 
+#${QUEUE_CMD} ${QARG_JOB_NAME}${QUEUE_SEPARATOR}COMPSs
 #${QUEUE_CMD} ${QARG_JOB_DEPENDENCY_OPEN}${dependencyJob}${QARG_JOB_DEPENDENCY_CLOSE}
 EOT
     fi
-  else 
+  else
     cat >> $TMP_SUBMIT_SCRIPT << EOT
 #${QUEUE_CMD} ${QARG_JOB_NAME}${QUEUE_SEPARATOR}COMPSs
 EOT
@@ -516,7 +516,7 @@ EOT
       fi
     fi
   fi
-  
+
   # Constraints
   if [ -n "${QARG_CONSTRAINTS}" ]; then
     if [ "${constraints}" != "disabled" ]; then
@@ -540,7 +540,7 @@ EOT
   fi
 
   # Add argument when exclusive mode is available
-  if [ -n "${QARG_EXCLUSIVE_NODES}" ]; then 
+  if [ -n "${QARG_EXCLUSIVE_NODES}" ]; then
     if [ "${EXCLUSIVE_MODE}" != "disabled" ]; then
       cat >> $TMP_SUBMIT_SCRIPT << EOT
 #${QUEUE_CMD} ${QARG_EXCLUSIVE_NODES}
@@ -584,7 +584,7 @@ EOT
     req_cpus_per_node=${DEFAULT_CPUS_PER_NODE}
   fi
 
-  if [ -n "${QARG_NUM_PROCESSES}" ]; then 
+  if [ -n "${QARG_NUM_PROCESSES}" ]; then
     if [ -n "${QNUM_PROCESSES_VALUE}" ]; then
       eval processes=${QNUM_PROCESSES_VALUE}
     else
@@ -605,7 +605,7 @@ EOT
 
   # Host list parsing before launch
   cat >> $TMP_SUBMIT_SCRIPT << EOT
-  
+
 host_list=\$(${HOSTLIST_CMD} \$${ENV_VAR_NODE_LIST} ${HOSTLIST_TREATMENT})
 master_node=\$(${MASTER_NAME_CMD})
 worker_nodes=\$(echo \${host_list} | sed -e "s/\${master_node}//g")
@@ -616,8 +616,9 @@ EOT
     # ADD STORAGE_INIT, STORAGE_FINISH AND NODES PARSING
     cat >> $TMP_SUBMIT_SCRIPT << EOT
 storage_conf=$HOME/.COMPSs/\$${ENV_VAR_JOB_ID}/storage/cfgfiles/storage.properties
-storage_master_node=\$(echo \${worker_nodes} | tr " " "\t" | awk {' print \$1 '})
-worker_nodes=\$(echo \${worker_nodes} | sed -e "s/\${storage_master_node}//g")
+#storage_master_node=\$(echo \${worker_nodes} | tr " " "\t" | awk {' print \$1 '})
+storage_master_node=${master_node}
+#worker_nodes=\$(echo \${worker_nodes} | sed -e "s/\${storage_master_node}//g")
 
 ${storage_home}/scripts/storage_init.sh \$${ENV_VAR_JOB_ID} "\${master_node}" "\${storage_master_node}" "\${worker_nodes}" ${network} ${storage_props}
 
@@ -667,7 +668,7 @@ submit() {
 
   # Get command args
   get_args "$@"
-  
+
   # Load specific queue system variables
   source ${scriptDir}/../cfgs/${sc_cfg}
 
@@ -685,7 +686,7 @@ submit() {
 
   # Create TMP submit script
   create_tmp_submit
-  
+
   # Trap cleanup
   trap cleanup EXIT
 

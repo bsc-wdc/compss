@@ -72,7 +72,6 @@ public class CreationThread extends Thread {
     private final ResourceCreationRequest rcr;
     private final VM reused;
 
-
     /**
      * New helper thread for VM creation with the given properties
      *
@@ -134,7 +133,7 @@ public class CreationThread extends Thread {
         }
         String grantedName = granted.getName();
         this.setName("Creation Thread " + grantedName);
-        CloudMethodWorker r = ResourceManager.getDynamicResource(granted.getName());
+        CloudMethodWorker r = (CloudMethodWorker) ResourceManager.getDynamicResource(granted.getName());
         if (r == null) { // Resources are provided in a new VM
             if (reused == null) { // And are new --> Initiate VM
                 try {

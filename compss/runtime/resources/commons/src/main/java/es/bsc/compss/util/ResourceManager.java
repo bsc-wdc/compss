@@ -27,6 +27,7 @@ import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.ResourceCreationRequest;
 import es.bsc.compss.types.project.exceptions.ProjectFileValidationException;
 import es.bsc.compss.types.resources.CloudMethodWorker;
+import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodWorker;
 import es.bsc.compss.types.resources.Resource.Type;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -106,8 +107,7 @@ public class ResourceManager {
      * username, working directory,... Only the images that have been described in both files are added to the
      * cloudManager
      *
-     * @param resUser
-     *            object to notify resource changes
+     * @param resUser object to notify resource changes
      *
      */
     public static void load(ResourceUser resUser) {
@@ -136,8 +136,7 @@ public class ResourceManager {
     /**
      * Reinitializes the ResourceManager
      *
-     * @param resUser
-     *            object to notify resource changes
+     * @param resUser object to notify resource changes
      */
     public static void clear(ResourceUser resUser) {
         resourceUser = resUser;
@@ -149,8 +148,7 @@ public class ResourceManager {
     /**
      * Reconfigures the master node adding its shared disks
      *
-     * @param sharedDisks
-     *            Shared Disk descriptions (diskName->mountpoint)
+     * @param sharedDisks Shared Disk descriptions (diskName->mountpoint)
      */
     public static void updateMasterConfiguration(Map<String, String> sharedDisks) {
         Comm.getAppHost().updateSharedDisk(sharedDisks);
@@ -284,27 +282,28 @@ public class ResourceManager {
      */
     public static void coreElementUpdates(List<Integer> updatedCores) {
         synchronized (pool) {
-        	
+
             pool.coreElementUpdates(updatedCores);
             cloudManager.newCoreElementsDetected(updatedCores);
             updateMaxConcurrentTasks(updatedCores);
-            
+
         }
     }
-    
-    private static void updateMaxConcurrentTasks(List<Integer> updatedCores){
-    	poolCoreMaxConcurrentTasks = Arrays.copyOf(poolCoreMaxConcurrentTasks, CoreManager.getCoreCount());
-    	List<Worker<? extends WorkerResourceDescription>> workers = pool.findAllResources();
-		for (Integer coreId : updatedCores) {
-			int total = 0;
-			for (Worker<? extends WorkerResourceDescription> w : workers) {
-				int[] maxTaskCount = w.getSimultaneousTasks();
-				total += maxTaskCount[coreId];
-			}
-			poolCoreMaxConcurrentTasks[coreId] = total;
 
-		}
+    private static void updateMaxConcurrentTasks(List<Integer> updatedCores) {
+        poolCoreMaxConcurrentTasks = Arrays.copyOf(poolCoreMaxConcurrentTasks, CoreManager.getCoreCount());
+        List<Worker<? extends WorkerResourceDescription>> workers = pool.findAllResources();
+        for (Integer coreId : updatedCores) {
+            int total = 0;
+            for (Worker<? extends WorkerResourceDescription> w : workers) {
+                int[] maxTaskCount = w.getSimultaneousTasks();
+                total += maxTaskCount[coreId];
+            }
+            poolCoreMaxConcurrentTasks[coreId] = total;
+
+        }
     }
+
     /*
      ********************************************************************
      ********************************************************************
@@ -315,12 +314,9 @@ public class ResourceManager {
     /**
      * Sets the boundaries on the cloud elasticity
      *
-     * @param minVMs
-     *            lower number of VMs allowed
-     * @param initialVMs
-     *            initial number of VMs
-     * @param maxVMs
-     *            higher number of VMs allowed
+     * @param minVMs lower number of VMs allowed
+     * @param initialVMs initial number of VMs
+     * @param maxVMs higher number of VMs allowed
      */
     public static void setCloudVMsBoundaries(Integer minVMs, Integer initialVMs, Integer maxVMs) {
         cloudManager.setInitialVMs(initialVMs);
@@ -345,6 +341,32 @@ public class ResourceManager {
 
         return cloudManager.registerCloudProvider(providerName, limitOfVMs, runtimeConnectorClass, connectorJarPath, connectorMainClass,
                 connectorProperties);
+    }
+
+    /**
+     * Adds a dynamic worker
+     *
+     * @param worker
+     * @param granted
+     */
+    public static void addDynamicWorker(DynamicMethodWorker worker, MethodResourceDescription granted) {
+        synchronized (pool) {
+            worker.updatedFeatures();
+            pool.addDynamicResource(worker);
+            pool.defineCriticalSet();
+
+            int[] maxTaskCount = worker.getSimultaneousTasks();
+            for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {
+                poolCoreMaxConcurrentTasks[coreId] += maxTaskCount[coreId];
+            }
+        }
+        ResourceUpdate<MethodResourceDescription> ru = new PerformedIncrease<>(worker.getDescription());
+        resourceUser.updatedResource(worker, ru);
+
+        // Log new resource
+        RESOURCES_LOGGER.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
+        RESOURCES_LOGGER.info("INFO_MSG = [New resource available in the pool. Name = " + worker.getName() + "]");
+        RUNTIME_LOGGER.info("New resource available in the pool. Name = " + worker.getName());
     }
 
     /**
@@ -420,9 +442,9 @@ public class ResourceManager {
         ResourceUpdate<MethodResourceDescription> modification = new PendingReduction<>(reduction);
         resourceUser.updatedResource(worker, modification);
     }
-    
-    public static void reduceWholeWorker(MethodWorker worker){
-    	ResourceUpdate<MethodResourceDescription> modification = new PendingReduction<>(worker.getDescription());
+
+    public static void reduceWholeWorker(MethodWorker worker) {
+        ResourceUpdate<MethodResourceDescription> modification = new PendingReduction<>(worker.getDescription());
         resourceUser.updatedResource(worker, modification);
     }
 
@@ -446,7 +468,7 @@ public class ResourceManager {
                 poolCoreMaxConcurrentTasks[coreId] += maxTaskCount[coreId];
             }
             pool.defineCriticalSet();
-         // Log modified resource
+            // Log modified resource
             RESOURCES_LOGGER.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
             RESOURCES_LOGGER.info("INFO_MSG = [Resource modified. Name = " + worker.getName() + "]");
             RUNTIME_LOGGER.info("Resource modified. Name = " + worker.getName());
@@ -464,7 +486,6 @@ public class ResourceManager {
         CloudProvider cp = worker.getProvider();
         cp.requestResourceReduction(worker, reduction);
     }
-
 
     /**
      * Returns whether the cloud is enabled or not
@@ -538,17 +559,17 @@ public class ResourceManager {
      */
     public static int[] getTotalSlots() {
         int[] counts = new int[CoreManager.getCoreCount()];
-        if (CoreManager.getCoreCount()>0){
-        	int[] cloudCount = cloudManager.getPendingCoreCounts();
-        	synchronized (pool) {
-        		for (int i = 0; i < counts.length; i++) {
-        			if ( i<cloudCount.length ){
-        				counts[i] = poolCoreMaxConcurrentTasks[i] + cloudCount[i];
-        			}else {
-        				counts[i] = poolCoreMaxConcurrentTasks[i];
-        			}
-        		}
-        	}
+        if (CoreManager.getCoreCount() > 0) {
+            int[] cloudCount = cloudManager.getPendingCoreCounts();
+            synchronized (pool) {
+                for (int i = 0; i < counts.length; i++) {
+                    if (i < cloudCount.length) {
+                        counts[i] = poolCoreMaxConcurrentTasks[i] + cloudCount[i];
+                    } else {
+                        counts[i] = poolCoreMaxConcurrentTasks[i];
+                    }
+                }
+            }
         }
         return counts;
     }
@@ -578,7 +599,7 @@ public class ResourceManager {
      *
      * @return
      */
-    public static List<CloudMethodWorker> getDynamicResources() {
+    public static List<DynamicMethodWorker> getDynamicResources() {
         synchronized (pool) {
             return pool.getDynamicResources();
         }
@@ -589,7 +610,7 @@ public class ResourceManager {
      *
      * @return
      */
-    public static Collection<CloudMethodWorker> getCriticalDynamicResources() {
+    public static Collection<DynamicMethodWorker> getCriticalDynamicResources() {
         synchronized (pool) {
             return pool.getCriticalResources();
         }
@@ -600,7 +621,7 @@ public class ResourceManager {
      *
      * @return
      */
-    public static Collection<CloudMethodWorker> getNonCriticalDynamicResources() {
+    public static Collection<DynamicMethodWorker> getNonCriticalDynamicResources() {
         synchronized (pool) {
             return pool.getNonCriticalResources();
         }
@@ -612,7 +633,7 @@ public class ResourceManager {
      * @param name
      * @return
      */
-    public static CloudMethodWorker getDynamicResource(String name) {
+    public static DynamicMethodWorker getDynamicResource(String name) {
         synchronized (pool) {
             return pool.getDynamicResource(name);
         }

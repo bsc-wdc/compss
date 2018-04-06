@@ -19,6 +19,7 @@ package es.bsc.compss.types.resources;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import es.bsc.compss.types.resources.updates.PendingReduction;
+import es.bsc.compss.util.ResourceManager;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -174,6 +175,10 @@ public class DynamicMethodWorker extends MethodWorker {
                 return ((available.getTotalCPUComputingUnits() == 0) && (toRemove.getTotalCPUComputingUnits() == 0));
             }
         }
+    }
+
+    public <T extends WorkerResourceDescription> void destroyResources(T modification) {
+        ResourceManager.terminateDynamicResource(this, (MethodResourceDescription) modification);
     }
 
     @Override

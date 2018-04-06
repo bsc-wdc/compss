@@ -476,13 +476,17 @@ public class ResourceManager {
 
     }
 
-    public static void terminateCloudResource(CloudMethodWorker worker, CloudMethodResourceDescription reduction) {
-        if (worker.getDescription().getTypeComposition().isEmpty()) {
+    public static void terminateDynamicResource(DynamicMethodWorker worker, MethodResourceDescription reduction) {
+        if (worker.shouldBeStopped()) {
             pool.delete(worker);
             RESOURCES_LOGGER.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
             RESOURCES_LOGGER.info("INFO_MSG = [Resource removed from the pool. Name = " + worker.getName() + "]");
             RUNTIME_LOGGER.info("Resource removed from the pool. Name = " + worker.getName());
         }
+    }
+
+    public static void terminateCloudResource(CloudMethodWorker worker, CloudMethodResourceDescription reduction) {
+        terminateDynamicResource(worker, reduction);
         CloudProvider cp = worker.getProvider();
         cp.requestResourceReduction(worker, reduction);
     }

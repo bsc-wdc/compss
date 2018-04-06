@@ -21,7 +21,7 @@ import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.resources.description.CloudImageDescription;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
-import es.bsc.compss.types.resources.updates.PendingReduction;
+import es.bsc.compss.util.ResourceManager;
 
 import java.util.Map;
 
@@ -90,4 +90,13 @@ public class CloudMethodWorker extends DynamicMethodWorker {
         return new CloudMethodWorker(this);
     }
 
+    @Override
+    public boolean shouldBeStopped() {
+        return getDescription().getTypeComposition().isEmpty();
+    }
+
+    @Override
+    public <T extends WorkerResourceDescription> void destroyResources(T modification) {
+        ResourceManager.terminateCloudResource(this, (CloudMethodResourceDescription) modification);
+    }
 }

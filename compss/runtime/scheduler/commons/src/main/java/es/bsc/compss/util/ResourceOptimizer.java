@@ -28,6 +28,7 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.resources.CloudMethodWorker;
+import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.components.Processor;
@@ -49,81 +50,81 @@ import org.json.JSONObject;
 
 
 public class ResourceOptimizer extends Thread {
-	
-	//Private Classes
-	
-	protected class CloudTypeProfile{
-		private Profile[][] implProfiles;
-		public CloudTypeProfile(JSONObject typeJSON, JSONObject implsJSON){
-			implProfiles = loadProfiles(typeJSON, implsJSON);
-		}
-		public Profile getImplProfiles(int coreId, int implId){
-			return implProfiles[coreId][implId];
-		}
-		
-		/**
-	     * Prepares the default profiles for each implementation cores
-	     *
-	     * @param resMap
-	     *            default profile values for the resource
-	     * @param implMap
-	     *            default profile values for the implementation
-	     *
-	     * @return default profile structure
-	     */
-	    private final Profile[][] loadProfiles(JSONObject resMap, JSONObject implMap) {
-	        Profile[][] profiles;
-	        int coreCount = CoreManager.getCoreCount();
-	        profiles = new Profile[coreCount][];
-	        for (int coreId = 0; coreId < coreCount; ++coreId) {
-	            List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
-	            int implCount = impls.size();
-	            profiles[coreId] = new Profile[implCount];
-	            for (Implementation impl : impls) {
-	                String signature = CoreManager.getSignature(coreId, impl.getImplementationId());
-	                JSONObject jsonImpl = null;
-	                if (resMap != null) {
-	                    try {
-	                        jsonImpl = resMap.getJSONObject(signature);
-	                        profiles[coreId][impl.getImplementationId()] = generateProfileForImplementation(impl, jsonImpl);
-	                    } catch (JSONException je) {
-	                        // Do nothing
-	                    }
-	                }
-	                if (profiles[coreId][impl.getImplementationId()] == null) {
-	                    if (implMap != null) {
-	                        try {
-	                            jsonImpl = implMap.getJSONObject(signature);
-	                        } catch (JSONException je) {
-	                            // Do nothing
-	                        }
-	                    }
-	                    profiles[coreId][impl.getImplementationId()] = generateProfileForImplementation(impl, jsonImpl);
-	                    profiles[coreId][impl.getImplementationId()].clearExecutionCount();
-	                }
-	            }
-	        }
-	        return profiles;
-	    }
-	    
-	    /**
-	     * Generates a Profile for an action.
-	     *
-	     * @param impl
-	     * @param jsonImpl
-	     * @return a profile object for an action.
-	     */
-	    protected Profile generateProfileForImplementation(Implementation impl, JSONObject jsonImpl) {
-	        return new Profile(jsonImpl);
-	    }
-		
-	}
-	
+
+    //Private Classes
+    protected class CloudTypeProfile {
+
+        private Profile[][] implProfiles;
+
+        public CloudTypeProfile(JSONObject typeJSON, JSONObject implsJSON) {
+            implProfiles = loadProfiles(typeJSON, implsJSON);
+        }
+
+        public Profile getImplProfiles(int coreId, int implId) {
+            return implProfiles[coreId][implId];
+        }
+
+        /**
+         * Prepares the default profiles for each implementation cores
+         *
+         * @param resMap default profile values for the resource
+         * @param implMap default profile values for the implementation
+         *
+         * @return default profile structure
+         */
+        private final Profile[][] loadProfiles(JSONObject resMap, JSONObject implMap) {
+            Profile[][] profiles;
+            int coreCount = CoreManager.getCoreCount();
+            profiles = new Profile[coreCount][];
+            for (int coreId = 0; coreId < coreCount; ++coreId) {
+                List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
+                int implCount = impls.size();
+                profiles[coreId] = new Profile[implCount];
+                for (Implementation impl : impls) {
+                    String signature = CoreManager.getSignature(coreId, impl.getImplementationId());
+                    JSONObject jsonImpl = null;
+                    if (resMap != null) {
+                        try {
+                            jsonImpl = resMap.getJSONObject(signature);
+                            profiles[coreId][impl.getImplementationId()] = generateProfileForImplementation(impl, jsonImpl);
+                        } catch (JSONException je) {
+                            // Do nothing
+                        }
+                    }
+                    if (profiles[coreId][impl.getImplementationId()] == null) {
+                        if (implMap != null) {
+                            try {
+                                jsonImpl = implMap.getJSONObject(signature);
+                            } catch (JSONException je) {
+                                // Do nothing
+                            }
+                        }
+                        profiles[coreId][impl.getImplementationId()] = generateProfileForImplementation(impl, jsonImpl);
+                        profiles[coreId][impl.getImplementationId()].clearExecutionCount();
+                    }
+                }
+            }
+            return profiles;
+        }
+
+        /**
+         * Generates a Profile for an action.
+         *
+         * @param impl
+         * @param jsonImpl
+         * @return a profile object for an action.
+         */
+        protected Profile generateProfileForImplementation(Implementation impl, JSONObject jsonImpl) {
+            return new Profile(jsonImpl);
+        }
+
+    }
+
+
     private static class ConstraintsCore {
 
         private CloudMethodResourceDescription desc;
         private List<ConstraintsCore>[] cores;
-
 
         @SuppressWarnings("unchecked")
         public ConstraintsCore(CloudMethodResourceDescription desc, int core, List<ConstraintsCore> coreList) {
@@ -169,12 +170,12 @@ public class ResourceOptimizer extends Thread {
         }
     }
 
+
     private static class ValueResourceDescription implements Comparable<ValueResourceDescription> {
 
         private final MethodResourceDescription constraints;
         private final float value;
         private final boolean prioritary;
-
 
         public ValueResourceDescription(MethodResourceDescription constraints, float value, boolean prioritary) {
             this.constraints = constraints;
@@ -207,7 +208,7 @@ public class ResourceOptimizer extends Thread {
             return value + (prioritary ? "!" : "") + constraints;
         }
     }
-	
+
     // WARNING MESSAGES
     private static final String WARN_NO_RESOURCE_MATCHES = "WARN: No resource matches the constraints";
     private static final String WARN_NO_COMPATIBLE_TYPE = "WARN: Cannot find any compatible instanceType";
@@ -224,7 +225,7 @@ public class ResourceOptimizer extends Thread {
 
     // Sleep times
     private static final int SLEEP_TIME = 2_000;
-    private static final int EVERYTHING_BLOCKED_INTERVAL_TIME=20_000;
+    private static final int EVERYTHING_BLOCKED_INTERVAL_TIME = 20_000;
     private static final int EVERYTHING_BLOCKED_MAX_RETRIES = 3;
 
     // Error messages
@@ -247,7 +248,6 @@ public class ResourceOptimizer extends Thread {
     private int everythingBlockedRetryCount = -1;
     private long lastPotentialBlockedCheck = System.currentTimeMillis();
     private Map<CloudInstanceTypeDescription, CloudTypeProfile> defaultProfiles;
-    
 
     public ResourceOptimizer(TaskScheduler ts) {
         if (DEBUG) {
@@ -263,25 +263,21 @@ public class ResourceOptimizer extends Thread {
                 JSONObject implsJSON = ts.getJSONForImplementations();
                 CloudTypeProfile prof = generateCloudTypeProfile(citdJSON, implsJSON);
                 defaultProfiles.put(citd, prof);
-                RUNTIME_LOGGER.debug("[ResourceOptimizer] JSONProfile for "+ citd.getName() + " --> " + citdJSON);
+                RUNTIME_LOGGER.debug("[ResourceOptimizer] JSONProfile for " + citd.getName() + " --> " + citdJSON);
             }
         }
         RUNTIME_LOGGER.info("[Resource Optimizer] Initialization finished");
     }
 
-    
+    protected CloudTypeProfile generateCloudTypeProfile(JSONObject citdJSON, JSONObject implsJSON) {
+        return new CloudTypeProfile(citdJSON, implsJSON);
+    }
 
-	protected CloudTypeProfile generateCloudTypeProfile(JSONObject citdJSON, JSONObject implsJSON) {
-		return new CloudTypeProfile(citdJSON, implsJSON);
-	}
-	
-	protected CloudTypeProfile getCloudTypeProfile(CloudInstanceTypeDescription citd){
-		return defaultProfiles.get(citd);
-	}
+    protected CloudTypeProfile getCloudTypeProfile(CloudInstanceTypeDescription citd) {
+        return defaultProfiles.get(citd);
+    }
 
-
-
-	public void coreElementsUpdated() {
+    public void coreElementsUpdated() {
 
     }
 
@@ -308,12 +304,12 @@ public class ResourceOptimizer extends Thread {
                         redo = false;
                         int blockedTasks = ts.getNumberOfBlockedActions();
                         boolean potentialBlock = (blockedTasks > 0);
-                        if (ResourceManager.useCloud() ) {
-                            if (!ts.isExternalAdaptationEnabled()){
-                            	//If external adaptation is enabled, 
-                            	//we do not have to apply the resource optimization policies
-                            	workload = ts.getWorkload();
-                            	applyPolicies(workload);
+                        if (ResourceManager.useCloud()) {
+                            if (!ts.isExternalAdaptationEnabled()) {
+                                //If external adaptation is enabled, 
+                                //we do not have to apply the resource optimization policies
+                                workload = ts.getWorkload();
+                                applyPolicies(workload);
                             }
                             // There is a potentialBlock in cloud only if all
                             // the possible VMs have been created
@@ -338,9 +334,8 @@ public class ResourceOptimizer extends Thread {
             }
         }
     }
-    
 
-	public final void optimizeNow() {
+    public final void optimizeNow() {
         synchronized (this) {
             this.notify();
             redo = true;
@@ -365,26 +360,26 @@ public class ResourceOptimizer extends Thread {
 
     public final void handlePotentialBlock(boolean potentialBlock) {
         if (potentialBlock) { // All tasks are blocked, and there are no
-                              // resources available...
-        	if ((System.currentTimeMillis()-lastPotentialBlockedCheck)> EVERYTHING_BLOCKED_INTERVAL_TIME){
-        		lastPotentialBlockedCheck = System.currentTimeMillis();
-        		++everythingBlockedRetryCount;
-        		if (everythingBlockedRetryCount > 0) { // First time not taken into
-        			// account
-        			if (everythingBlockedRetryCount < EVERYTHING_BLOCKED_MAX_RETRIES) {
-        				// Retries limit not reached. Warn the user...
-        				int retriesLeft = EVERYTHING_BLOCKED_MAX_RETRIES - everythingBlockedRetryCount;
-        				ErrorManager.warn("No task could be scheduled to any of the available resources.\n"
-        						+ "This could end up blocking COMPSs. Will check it again in " + (EVERYTHING_BLOCKED_INTERVAL_TIME / 1_000) + " seconds.\n"
-        						+ "Possible causes: \n" + "    -Network problems: non-reachable nodes, sshd service not started, etc.\n"
-        						+ "    -There isn't any computing resource that fits the defined tasks constraints.\n" + "If this happens "
-        						+ retriesLeft + " more time" + (retriesLeft > 1 ? "s" : "") + ", the runtime will shutdown.");
-        			} else {
-        				// Retry limit reached. Error and shutdown.
-        				ErrorManager.error(PERSISTENT_BLOCK_ERR);
-        			}
-        		}
-        	}
+            // resources available...
+            if ((System.currentTimeMillis() - lastPotentialBlockedCheck) > EVERYTHING_BLOCKED_INTERVAL_TIME) {
+                lastPotentialBlockedCheck = System.currentTimeMillis();
+                ++everythingBlockedRetryCount;
+                if (everythingBlockedRetryCount > 0) { // First time not taken into
+                    // account
+                    if (everythingBlockedRetryCount < EVERYTHING_BLOCKED_MAX_RETRIES) {
+                        // Retries limit not reached. Warn the user...
+                        int retriesLeft = EVERYTHING_BLOCKED_MAX_RETRIES - everythingBlockedRetryCount;
+                        ErrorManager.warn("No task could be scheduled to any of the available resources.\n"
+                                + "This could end up blocking COMPSs. Will check it again in " + (EVERYTHING_BLOCKED_INTERVAL_TIME / 1_000) + " seconds.\n"
+                                + "Possible causes: \n" + "    -Network problems: non-reachable nodes, sshd service not started, etc.\n"
+                                + "    -There isn't any computing resource that fits the defined tasks constraints.\n" + "If this happens "
+                                + retriesLeft + " more time" + (retriesLeft > 1 ? "s" : "") + ", the runtime will shutdown.");
+                    } else {
+                        // Retry limit reached. Error and shutdown.
+                        ErrorManager.error(PERSISTENT_BLOCK_ERR);
+                    }
+                }
+            }
         } else {
             everythingBlockedRetryCount = 0;
             lastPotentialBlockedCheck = System.currentTimeMillis();
@@ -471,7 +466,7 @@ public class ResourceOptimizer extends Thread {
                 cc.confirmed();
                 ResourceCreationRequest rcr = askForResources(cc.desc, false);
                 if (rcr != null) {
-                	rcr.print(RESOURCES_LOGGER, DEBUG);               
+                    rcr.print(RESOURCES_LOGGER, DEBUG);
                     createdCount++;
                 }
             }
@@ -653,8 +648,7 @@ public class ResourceOptimizer extends Thread {
      * The addExtraNodes creates this difference of VMs. First it tries to merge the method constraints that are
      * included into another methods. And performs a less aggressive and more equal distribution.
      *
-     * @param alreadyCreated
-     *            number of already requested VMs
+     * @param alreadyCreated number of already requested VMs
      * @return the number of extra VMs created to fulfill the Initial VM Count constraint
      */
     public static int addExtraNodes(int alreadyCreated) {
@@ -672,7 +666,7 @@ public class ResourceOptimizer extends Thread {
         /*
          * Tries to reduce the number of machines by entering methodConstraints in another method's machine
          */
-        /*
+ /*
          * LinkedList<CloudWorkerDescription> requirements = new LinkedList<CloudWorkerDescription>(); for (int coreId =
          * 0; coreId < CoreManager.coreCount; coreId++) { Implementation impl =
          * CoreManager.getCoreImplementations(coreId)[0]; if (impl.getType() == Type.METHOD) { WorkerDescription wd =
@@ -901,53 +895,50 @@ public class ResourceOptimizer extends Thread {
     }
 
     private boolean optionalReduction(float[] destroyRecommendations) {
-        List<CloudMethodWorker> nonCritical = trimReductionOptions(ResourceManager.getNonCriticalDynamicResources(),
+        List<DynamicMethodWorker> nonCritical = trimReductionOptions(ResourceManager.getNonCriticalDynamicResources(),
                 destroyRecommendations);
         if (DEBUG) {
             RUNTIME_LOGGER.debug("[Resource Optimizer] Searching for best destruction");
         }
-        Object[] nonCriticalSolution = getBestDestruction(nonCritical, destroyRecommendations);
+        ReductionOption nonCriticalSolution = getBestDestruction(nonCritical, destroyRecommendations);
         CloudMethodWorker res;
         float[] record;
         CloudInstanceTypeDescription rd;
         // int[][] slotsRemovingCount;
 
-        if (nonCriticalSolution == null || nonCriticalSolution[0] == null || nonCriticalSolution[1] == null
-                || nonCriticalSolution[2] == null) {
+        if (nonCriticalSolution == null) {
             if (DEBUG) {
                 RUNTIME_LOGGER.warn("[Resource Optimizer] No solution found");
             }
             return false;
         }
 
-        res = (CloudMethodWorker) nonCriticalSolution[0];
-        rd = (CloudInstanceTypeDescription) nonCriticalSolution[1];
-        record = (float[]) nonCriticalSolution[2];
+        res = (CloudMethodWorker) nonCriticalSolution.getResource();
 
         if (DEBUG) {
-            RUNTIME_LOGGER.debug("[Resource Optimizer] Best resource to remove is " + res.getName() + "and record is [" + record[0] + ","
-                    + record[1] + "," + record[2]);
+            RUNTIME_LOGGER.debug("[Resource Optimizer] Best resource to remove is " + nonCriticalSolution.getName()
+                    + "and record is [" + nonCriticalSolution.getUndesiredCEsAffected() + ","
+                    + nonCriticalSolution.getUndesiredSlotsAffected() + ","
+                    + nonCriticalSolution.getDesiredSlotsAffected() + "]");
         }
-        if (record[1] > 0 && res.getUsedCPUTaskCount() > 0) {
+        if (nonCriticalSolution.getUndesiredSlotsAffected() > 0 && res.getUsedCPUTaskCount() > 0) {
             RUNTIME_LOGGER.debug("[Resource Optimizer] Optional destroy recommendation not applied");
             return false;
         } else {
             RUNTIME_LOGGER.debug("[Resource Optimizer] Optional destroy recommendation applied");
-            CloudMethodResourceDescription finalDescription = new CloudMethodResourceDescription(rd, res.getDescription().getImage());
-            finalDescription.setName(res.getName());
-            ResourceManager.reduceCloudWorker(res, finalDescription);
+            nonCriticalSolution.apply();
             return true;
         }
     }
 
     private void mandatoryReduction(float[] destroyRecommendations) {
-        List<CloudMethodWorker> critical = trimReductionOptions(ResourceManager.getCriticalDynamicResources(), destroyRecommendations);
+        List<DynamicMethodWorker> critical = trimReductionOptions(ResourceManager.getCriticalDynamicResources(), destroyRecommendations);
         // LinkedList<CloudMethodWorker> critical = checkCriticalSafeness
         // (critical);
-        List<CloudMethodWorker> nonCritical = trimReductionOptions(ResourceManager.getNonCriticalDynamicResources(),
+        List<DynamicMethodWorker> nonCritical = trimReductionOptions(ResourceManager.getNonCriticalDynamicResources(),
                 destroyRecommendations);
-        Object[] criticalSolution = getBestDestruction(critical, destroyRecommendations);
-        Object[] nonCriticalSolution = getBestDestruction(nonCritical, destroyRecommendations);
+        ReductionOption criticalSolution = getBestDestruction(critical, destroyRecommendations);
+        ReductionOption nonCriticalSolution = getBestDestruction(nonCritical, destroyRecommendations);
 
         boolean criticalIsBetter;
         if (criticalSolution == null) {
@@ -960,18 +951,16 @@ public class ResourceOptimizer extends Thread {
             criticalIsBetter = true;
         } else {
             criticalIsBetter = false;
-            float[] noncriticalValues = (float[]) nonCriticalSolution[2];
-            float[] criticalValues = (float[]) criticalSolution[2];
 
-            if (noncriticalValues[0] == criticalValues[0]) {
-                if (noncriticalValues[1] == criticalValues[1]) {
-                    if (noncriticalValues[2] < criticalValues[2]) {
+            if (nonCriticalSolution.getUndesiredCEsAffected() == criticalSolution.getUndesiredCEsAffected()) {
+                if (nonCriticalSolution.getUndesiredSlotsAffected() == criticalSolution.getUndesiredSlotsAffected()) {
+                    if (nonCriticalSolution.getDesiredSlotsAffected() < criticalSolution.getDesiredSlotsAffected()) {
                         criticalIsBetter = true;
                     }
-                } else if (noncriticalValues[1] > criticalValues[1]) {
+                } else if (nonCriticalSolution.getUndesiredSlotsAffected() > criticalSolution.getUndesiredSlotsAffected()) {
                     criticalIsBetter = true;
                 }
-            } else if (noncriticalValues[0] > criticalValues[0]) {
+            } else if (nonCriticalSolution.getUndesiredCEsAffected() > criticalSolution.getUndesiredCEsAffected()) {
                 criticalIsBetter = true;
             }
         }
@@ -983,32 +972,25 @@ public class ResourceOptimizer extends Thread {
         CloudInstanceTypeDescription citd;
 
         if (criticalIsBetter) {
-            res = (CloudMethodWorker) criticalSolution[0];
-            citd = (CloudInstanceTypeDescription) criticalSolution[1];
+            criticalSolution.apply();
         } else {
             if (nonCriticalSolution == null) {
                 return;
             }
-            res = (CloudMethodWorker) nonCriticalSolution[0];
-            citd = (CloudInstanceTypeDescription) nonCriticalSolution[1];
+            nonCriticalSolution.apply();
         }
-        cmrd = (CloudMethodResourceDescription) res.getDescription();
-        CloudImageDescription cid = cmrd.getImage();
 
-        CloudMethodResourceDescription finalDescription = new CloudMethodResourceDescription(citd, cid);
-        finalDescription.setName(res.getName());
-        ResourceManager.reduceCloudWorker(res, finalDescription);
     }
 
-    private List<CloudMethodWorker> trimReductionOptions(Collection<CloudMethodWorker> options, float[] recommendations) {
+    private List<DynamicMethodWorker> trimReductionOptions(Collection<DynamicMethodWorker> options, float[] recommendations) {
         if (DEBUG) {
             RUNTIME_LOGGER.debug("[Resource Optimizer] * Trimming reduction options");
         }
-        List<CloudMethodWorker> resources = new LinkedList<>();
-        Iterator<CloudMethodWorker> it = options.iterator();
+        List<DynamicMethodWorker> resources = new LinkedList<>();
+        Iterator<DynamicMethodWorker> it = options.iterator();
         while (it.hasNext()) {
 
-            CloudMethodWorker resource = it.next();
+            DynamicMethodWorker resource = it.next();
             boolean aggressive = false;// (resource.getUsedTaskCount() == 0);
             boolean add = !aggressive;
             if (DEBUG) {
@@ -1049,7 +1031,7 @@ public class ResourceOptimizer extends Thread {
         while ((v = pq.poll()) != null) {
             ResourceCreationRequest rcr = askForResources(v.value < 1 ? 1 : (int) v.value, v.constraints, include);
             if (rcr != null) {
-            	rcr.print(RESOURCES_LOGGER, DEBUG);
+                rcr.print(RESOURCES_LOGGER, DEBUG);
                 return rcr;
             }
         }
@@ -1057,7 +1039,7 @@ public class ResourceOptimizer extends Thread {
         return null;
     }
 
-	/**
+    /**
      * *************************************************************************
      * **************************************** *********************************
      * ***************************************** *************************************** DYNAMIC RESOURCES
@@ -1163,10 +1145,6 @@ public class ResourceOptimizer extends Thread {
         return destructions;
     }
 
-
-
-
-
     public ResourceCreationRequest askForResources(CloudProvider cp, String instanceName, String imageName) {
         CloudMethodResourceDescription constraints = cp.getResourceDescription(instanceName, imageName);
         if (constraints == null) {
@@ -1183,13 +1161,11 @@ public class ResourceOptimizer extends Thread {
      * which cores can be executed on it. This ResourceRequest will be used to ask for that resource creation to the
      * Cloud Provider and returned if the application is accepted.
      *
-     * @param requirements
-     *            description of the resource expected to receive
-     * @param contained
-     *            {@literal true} if we want the request to ask for a resource contained in the description; else, the
-     *            result contains the passed in description.
+     * @param requirements description of the resource expected to receive
+     * @param contained {@literal true} if we want the request to ask for a resource contained in the description; else,
+     * the result contains the passed in description.
      * @return Description of the ResourceRequest sent to the CloudProvider. {@literal Null} if any of the Cloud
-     *         Providers can offer a resource like the requested one.
+     * Providers can offer a resource like the requested one.
      */
     public static ResourceCreationRequest askForResources(MethodResourceDescription requirements, boolean contained) {
         return askForResources(1, requirements, contained);
@@ -1201,13 +1177,10 @@ public class ResourceOptimizer extends Thread {
      * resourceRequest describing the resource and which cores can be executed on it. This ResourceRequest will be used
      * to ask for that resource creation to the Cloud Provider and returned if the application is accepted.
      *
-     * @param amount
-     *            amount of slots
-     * @param requirements
-     *            features of the resource
-     * @param contained
-     *            {@literal true} if we want the request to ask for a resource contained in the description; else, the
-     *            result contains the passed in description.
+     * @param amount amount of slots
+     * @param requirements features of the resource
+     * @param contained {@literal true} if we want the request to ask for a resource contained in the description; else,
+     * the result contains the passed in description.
      * @return
      */
     public static ResourceCreationRequest askForResources(Integer amount, MethodResourceDescription requirements, boolean contained) {
@@ -1364,73 +1337,53 @@ public class ResourceOptimizer extends Thread {
      * modified, minimize the number of slots that weren't requested to be destroyed and maximize the number of slots
      * that can be removed and they were requested for.
      *
-     * @param resourceSet
-     *            set of resources
-     * @param destroyRecommendations
-     *            number of slots to be removed for each CE
+     * @param resourceSet set of resources
+     * @param destroyRecommendations number of slots to be removed for each CE
      * @return an object array defining the best solution.
      *
-     *         0-> (Resource) selected Resource.
+     * 0-> (Resource) selected Resource.
      *
-     *         1->(CloudTypeInstanceDescription) Type to be destroyed to be destroyed.
+     * 1->(CloudTypeInstanceDescription) Type to be destroyed to be destroyed.
      *
-     *         2-> (int[]) record of the #CE with removed slots and that they shouldn't be modified, #slots that will be
-     *         destroyed and they weren't recommended, #slots that will be removed and they were asked to be.
+     * 2-> (int[]) record of the #CE with removed slots and that they shouldn't be modified, #slots that will be
+     * destroyed and they weren't recommended, #slots that will be removed and they were asked to be.
      *
      */
-    private Object[] getBestDestruction(Collection<CloudMethodWorker> resourceSet, float[] destroyRecommendations) {
+    private ReductionOption getBestDestruction(Collection<DynamicMethodWorker> resourceSet, float[] destroyRecommendations) {
 
-        CloudProvider cp;
-        float[] bestRecord = new float[3];
-        bestRecord[0] = Float.MAX_VALUE;
-        bestRecord[1] = Float.MAX_VALUE;
-        bestRecord[2] = Float.MIN_VALUE;
-        Resource bestResource = null;
-        CloudInstanceTypeDescription bestType = null;
+        float bestUndesiredCEs = Float.MAX_VALUE;
+        float bestUndesiredSlots = Float.MAX_VALUE;
+        float bestDesiredSlots = Float.MAX_VALUE;
 
-        for (CloudMethodWorker res : resourceSet) {
-            cp = res.getProvider();
-            if (cp == null) { // it's not a cloud machine
+        ReductionOption bestOption = null;
+
+        for (DynamicMethodWorker res : resourceSet) {
+
+            List<ReductionOption> reductions = getPossibleReductions(res, destroyRecommendations);
+
+            for (ReductionOption option : reductions) {
                 if (DEBUG) {
-                    RUNTIME_LOGGER.debug("Resource " + res.getName() + " is not cloud. Skipping...");
+                    RUNTIME_LOGGER.debug("Type: " + option.getName()
+                            + " value 0: " + option.getUndesiredCEsAffected() + " (" + bestUndesiredCEs + ") "
+                            + " value 1: " + option.getUndesiredSlotsAffected() + " (" + bestUndesiredSlots + ") "
+                            + " value 2: " + option.getDesiredSlotsAffected() + " (" + bestDesiredSlots + ")");
                 }
-                continue;
-            }
-
-            Map<CloudInstanceTypeDescription, float[]> typeToPoints = getPossibleReductions(res, destroyRecommendations);
-
-            for (Map.Entry<CloudInstanceTypeDescription, float[]> destruction : typeToPoints.entrySet()) {
-                CloudInstanceTypeDescription type = destruction.getKey();
-                float[] values = destruction.getValue();
-                if (DEBUG) {
-                    RUNTIME_LOGGER.debug("Type: " + type.getName() + " value 0: " + values[0] + " (" + bestRecord[0] + ") " + " value 1: "
-                            + values[1] + " (" + bestRecord[1] + ") " + " value 2: " + values[2] + " (" + bestRecord[2] + ")");
-                }
-                if (bestRecord[0] == values[0]) {
-                    if (bestRecord[1] == values[1]) {
-                        if (bestRecord[2] < values[2]) {
-                            bestRecord = values;
-                            bestResource = res;
-                            bestType = type;
+                if (bestUndesiredCEs == option.getUndesiredCEsAffected()) {
+                    if (bestUndesiredSlots == option.getUndesiredSlotsAffected()) {
+                        if (bestDesiredSlots < option.getDesiredSlotsAffected()) {
+                            bestOption = option;
                         }
-                    } else if (bestRecord[1] > values[1]) {
-                        bestRecord = values;
-                        bestResource = res;
-                        bestType = type;
+                    } else if (bestUndesiredSlots > option.getUndesiredSlotsAffected()) {
+                        bestOption = option;
                     }
-                } else if (bestRecord[0] > values[0]) {
-                    bestRecord = values;
-                    bestResource = res;
-                    bestType = type;
+                } else if (bestUndesiredCEs > option.getUndesiredCEsAffected()) {
+                    bestOption = option;
                 }
             }
         }
-        if (bestResource != null) {
-            Object[] ret = new Object[3];
-            ret[0] = bestResource;
-            ret[1] = bestType;
-            ret[2] = bestRecord;
-            return ret;
+
+        if (bestOption != null) {
+            return bestOption;
         } else {
             RUNTIME_LOGGER.warn("Best resource to remove not found");
             return null;
@@ -1440,34 +1393,134 @@ public class ResourceOptimizer extends Thread {
     // Type -> [# modified CE that weren't requested,
     // #slots removed that weren't requested,
     // #slots removed that were requested]
-    private Map<CloudInstanceTypeDescription, float[]> getPossibleReductions(CloudMethodWorker res, float[] recommendedSlots) {
-        Map<CloudInstanceTypeDescription, float[]> reductions = new HashMap<>();
-        List<CloudInstanceTypeDescription> types = res.getDescription().getPossibleReductions();
+    private List<ReductionOption> getPossibleReductions(DynamicMethodWorker res, float[] recommendedSlots) {
+        List<ReductionOption> reductions = new LinkedList<>();
 
-        for (CloudInstanceTypeDescription type : types) {
-            int[] reducedSlots = type.getSlotsCore();
-            float[] values = new float[3];
+        MethodResourceDescription description = res.getDescription();
+        List<CloudInstanceTypeDescription> types;
+        if (res instanceof CloudMethodWorker) {
+            types = ((CloudMethodResourceDescription) description).getPossibleReductions();
+            for (CloudInstanceTypeDescription type : types) {
+                ReductionOption option = new CloudReductionOption(type, res);
+                int[] reducedSlots = type.getSlotsCore();
+                for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
+                    if (res.canRun(coreId)) {
+                        if (recommendedSlots[coreId] < 1 && reducedSlots[coreId] > 0) {
+                            option.undesiredCEAffected(); // Adding a desired CE whose slots will be destroyed
+                            option.undesiredSlotsAffected(reducedSlots[coreId]);// all reduced slots weren't requested
+                        } else {
+                            float dif = (float) reducedSlots[coreId] - recommendedSlots[coreId];
+                            if (dif < 0) {
+                                option.desiredSlotsAffected(reducedSlots[coreId]);
+                            } else {
+                                option.desiredSlotsAffected(recommendedSlots[coreId]);
+                                option.undesiredSlotsAffected(dif);
+                            }
+                        }
+                    }
+                }
+                reductions.add(option);
+            }
+        } else {
+            ReductionOption option = new ReductionOption(res);
             for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
-                if (res.canRun(coreId)) {
+                int[] reducedSlots = res.getSimultaneousTasks();
+                if (reducedSlots[coreId] > 0) {
                     if (recommendedSlots[coreId] < 1 && reducedSlots[coreId] > 0) {
-                        values[0]++; // Adding a desired CE whose slots will be
-                        // destroyed
-                        values[1] += reducedSlots[coreId]; // all reduced slots
-                        // weren't requested
+                        option.undesiredCEAffected(); // Adding a desired CE whose slots will be destroyed
+                        option.undesiredSlotsAffected(reducedSlots[coreId]);// all reduced slots weren't requested
                     } else {
                         float dif = (float) reducedSlots[coreId] - recommendedSlots[coreId];
                         if (dif < 0) {
-                            values[2] += reducedSlots[coreId];
+                            option.desiredSlotsAffected(reducedSlots[coreId]);
                         } else {
-                            values[2] += recommendedSlots[coreId];
-                            values[1] += dif;
+                            option.desiredSlotsAffected(recommendedSlots[coreId]);
+                            option.undesiredSlotsAffected(dif);
                         }
                     }
                 }
             }
-            reductions.put(type, values);
+            reductions.add(option);
         }
+
         return reductions;
+    }
+
+
+    private class ReductionOption {
+
+        private final Resource res;
+
+        private float undesiredCEsAffected = 0;//values[0]
+        private float undesiredSlotsAffected = 0; //values[1]
+        private float desiredSlotsAffected = 0; //values[2]
+
+        ReductionOption(Resource res) {
+            this.res = res;
+        }
+
+        public void undesiredCEAffected() {
+            undesiredCEsAffected++;
+        }
+
+        public void undesiredSlotsAffected(float slots) {
+            undesiredSlotsAffected += slots;
+        }
+
+        public void desiredSlotsAffected(float slots) {
+            desiredSlotsAffected += slots;
+        }
+
+        public float getUndesiredCEsAffected() {
+            return undesiredCEsAffected;
+        }
+
+        public float getUndesiredSlotsAffected() {
+            return undesiredSlotsAffected;
+        }
+
+        public float getDesiredSlotsAffected() {
+            return desiredSlotsAffected;
+        }
+
+        private String getName() {
+            return res.getName();
+        }
+
+        public void apply() {
+            ResourceManager.reduceWholeWorker((DynamicMethodWorker) res);
+        }
+
+        public Resource getResource() {
+            return res;
+        }
+
+    }
+
+
+    private class CloudReductionOption extends ReductionOption {
+
+        final CloudInstanceTypeDescription type;
+
+        CloudReductionOption(CloudInstanceTypeDescription type, Resource res) {
+            super(res);
+            this.type = type;
+        }
+
+        private String getName() {
+            return type.getName() + "@" + super.getName();
+        }
+
+        @Override
+        public void apply() {
+            CloudMethodWorker res = ((CloudMethodWorker) getResource());
+            CloudMethodResourceDescription cmrd = (CloudMethodResourceDescription) res.getDescription();
+            CloudImageDescription cid = cmrd.getImage();
+
+            CloudMethodResourceDescription finalDescription = new CloudMethodResourceDescription(type, cid);
+            finalDescription.setName(res.getName());
+            ResourceManager.reduceCloudWorker(res, finalDescription);
+        }
     }
 
 }

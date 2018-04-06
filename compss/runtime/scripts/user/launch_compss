@@ -21,6 +21,8 @@ DEFAULT_MASTER_PORT_BASE=43000
 DEFAULT_MASTER_PORT_RAND_RANGE=1000
 DEFAULT_CPU_AFFINITY="automatic"
 DEFAULT_GPU_AFFINITY="automatic"
+DEFAULT_FPGA_AFFINITY="automatic"
+DEFAULT_FPGA_REPROGRAM=""
 DEFAULT_TASK_EXECUTION=compss
 DEFAULT_STORAGE_CONF=null
 DEFAULT_PERSISTENT_WORKER_C=false
@@ -100,6 +102,11 @@ show_opts() {
                                             Default: ${DEFAULT_CPUS_PER_NODE}
     --gpus_per_node=<int>                   Available GPU computing units on each node
                                             Default: ${DEFAULT_GPUS_PER_NODE}
+    --fpgas_per_node=<int>                  Available FPGA computing units on each node
+                                            Default: ${DEFAULT_FPGAS_PER_NODE}
+    --fpga_reprogram="<string>              Specify the full command that needs to be executed to reprogram the FPGA with 
+                                            the desired bitstream. The location must be an absolute path.
+                                            Default: ${DEFAULT_FPGA_REPROGRAM}
     --max_tasks_per_node=<int>              Maximum number of simultaneous tasks running on a node
                                             Default: ${DEFAULT_MAX_TASKS_PER_NODE}
     --node_memory=<MB>                      Maximum node memory: disabled | <int> (MB)
@@ -254,11 +261,15 @@ worker_cmd() {
   local nodeName=$2
   local jvm_opts_size=$3
   local jvm_opts_str=$4
-  local cusCPU=$5
-  local cusGPU=$6
-  local cpuMap=$7
-  local gpuMap=$8
-  local lot=$9
+  local fpga_reprog_size=$5
+  local fpga_reprog_str=$6
+  local cusCPU=$7
+  local cusGPU=$8
+  local cusFPGA=$9
+  local cpuMap=${10}
+  local gpuMap=${11}
+  local fpgaMap=${12}
+  local lot=${13}
 
   local sandbox_worker_working_dir=${worker_working_dir}/${uuid}/${nodeName}
   local maxSend=5
@@ -274,6 +285,8 @@ worker_cmd() {
             ${cp} \
             ${jvm_opts_size} \
             ${jvm_opts_str} \
+            ${fpga_reprog_size} \
+            ${fpga_reprog_str} \
             ${debug} \
             ${maxSend} \
             ${maxReceive} \
@@ -282,8 +295,10 @@ worker_cmd() {
             ${master_port} \
             ${cusCPU} \
             ${cusGPU} \
+            ${cusFPGA} \
             ${cpuMap} \
             ${gpuMap} \
+            ${fpgaMap} \
             ${lot} \
             ${uuid} \
             ${lang} \
@@ -389,6 +404,9 @@ get_args() {
         gpus_per_node=*)
           gpus_per_node=${OPTARG//gpus_per_node=/}
           ;;
+        fpgas_per_node=*)
+          fpgas_per_node=${OPTARG//fpgas_per_node=/}
+          ;;
         max_tasks_per_node=*)
           max_tasks_per_node=${OPTARG//max_tasks_per_node=}
           ;;
@@ -399,6 +417,13 @@ get_args() {
         gpu_affinity=*)
           gpu_affinity=${OPTARG//gpu_affinity=/}
           args_pass="$args_pass --$OPTARG"
+          ;;
+        fpga_affinity=*)
+          fpga_affinity=${OPTARG//fpga_affinity=/}
+          args_pass="$args_pass --$OPTARG"
+          ;;
+        fpga_reprogram=*)
+          fpga_prog=${OPTARG//fpga_reprogram=/}
           ;;
         master_working_dir=*)
           master_working_dir=${OPTARG//master_working_dir=/}
@@ -672,12 +697,24 @@ check_args() {
     gpus_per_node=${DEFAULT_GPUS_PER_NODE}
   fi
 
+  if [ -z "${fpgas_per_node}" ]; then
+    fpgas_per_node=${DEFAULT_FPGAS_PER_NODE}
+  fi
+
   if [ -z "${cpu_affinity}" ]; then
     cpu_affinity=${DEFAULT_CPU_AFFINITY}
   fi
 
   if [ -z "${gpu_affinity}" ]; then
     gpu_affinity=${DEFAULT_GPU_AFFINITY}
+  fi
+
+  if [ -z "${fpga_affinity}" ]; then
+    fpga_affinity=${DEFAULT_FPGA_AFFINITY}
+  fi
+
+  if [ -z "${fpga_prog}" ]; then
+    fpga_prog=${DEFAULT_FPGA_REPROGRAM}
   fi
 
   if [ -z "${node_memory}" ]; then
@@ -910,8 +947,11 @@ log_variables() {
   echo "Tasks per Node:            ${max_tasks_per_node}"
   echo "CPUs per Node:             ${cpus_per_node}"
   echo "GPUs per Node:             ${gpus_per_node}"
+  echo "FPGAs per Node:            ${fpgas_per_node}"
   echo "CPU Affinity:              ${cpu_affinity}"
   echo "GPU Affinity:              ${gpu_affinity}"
+  echo "FPGA Affinity:             ${fpga_affinity}"
+  echo "FPGA reprogram command:    ${fpga_prog}"
   echo "Network:                   ${network}"
   echo "Worker in Master CPUs:     ${worker_in_master_cpus}"
   echo "Worker in Master Memory:   ${worker_in_master_memory}"
@@ -958,16 +998,16 @@ create_xml_files() {
   # Add worker slots on master if needed
   if [ "${worker_in_master_cpus}" -ne 0 ]; then
     # add_compute_node name cpus gpus lot memory
-    add_compute_node "${master_node}" "${worker_in_master_cpus}" "${gpus_per_node}" "${max_tasks_per_node}" "${worker_in_master_memory}"
+    add_compute_node "${master_node}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${max_tasks_per_node}" "${worker_in_master_memory}"
   fi
 
   # Find the number of tasks to be executed on each node
   for node in ${worker_nodes}; do
     # add_compute_node name cpus gpus lot memory
-    add_compute_node "$node" "${cpus_per_node}" "${gpus_per_node}" "${max_tasks_per_node}" "${node_memory}"
+    add_compute_node "$node" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${max_tasks_per_node}" "${node_memory}"
   done
   if [ ! -z "${elasticity}" ]; then
-  	insert_xml_elasticity "${elasticity}" "${cpus_per_node}" "${gpus_per_node}" "${max_tasks_per_node}" "${node_memory}"
+    insert_xml_elasticity "${elasticity}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${max_tasks_per_node}" "${node_memory}"
   fi
   # Finish the resources file and the project file 
   insert_xml_footers
@@ -991,10 +1031,14 @@ launch() {
       # Worker in master node
       local jvm_worker_in_master_opts_str
       local jvm_worker_in_master_opts_size
+      local fpga_reprogram_str
+      local fpga_reprogram_size
       jvm_worker_in_master_opts_str=$(echo "${jvm_worker_in_master_opts}" | tr "," " ")
       jvm_worker_in_master_opts_size=$(echo "${jvm_worker_in_master_opts_str}" | wc -w)
+      fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
+      fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
       # worker_cmd id name jvmOptsSize jvmOpts cpus gpus cpuMap gpuMap lot
-      worker_cmd $hostid "${master_node}${network}" "${jvm_worker_in_master_opts_size}" "${jvm_worker_in_master_opts_str}" "${worker_in_master_cpus}" "${gpus_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${max_tasks_per_node}"
+      worker_cmd $hostid "${master_node}${network}" "${jvm_worker_in_master_opts_size}" "${jvm_worker_in_master_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${max_tasks_per_node}"
       WCMD="${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${WCMD}"
       echo "CMD Worker $hostid launcher: $WCMD"
       $WCMD&
@@ -1005,10 +1049,12 @@ launch() {
     local jvm_workers_opts_size
     jvm_workers_opts_str=$(echo "${jvm_workers_opts}" | tr "," " ")
     jvm_workers_opts_size=$(echo "${jvm_workers_opts_str}" | wc -w)
+    fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
+    fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
     if [ ! -z "${worker_nodes}" ]; then
       for node in ${worker_nodes}; do
         # worker_cmd id name jvmOptsSize jvmOpts cpus gpus cpuMap gpuMap lot
-        worker_cmd $hostid "$node${network}" "${jvm_workers_opts_size}" "${jvm_workers_opts_str}" "${cpus_per_node}" "${gpus_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${max_tasks_per_node}"
+        worker_cmd $hostid "$node${network}" "${jvm_workers_opts_size}" "${jvm_workers_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${max_tasks_per_node}"
         WCMD="${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${WCMD}"
         echo "CMD Worker $hostid launcher: $WCMD"
         $WCMD&
@@ -1164,8 +1210,9 @@ insert_xml_elasticity() {
   local max_vms=$1
   local cus=$2
   local gpus=$3
-  local lot=$4
-  local memory=$5
+  local fpgas=$4
+  local lot=$5
+  local memory=$6
   local jvm_workers_opts_str
   local jvm_workers_opts_size
   jvm_workers_opts_str=$(echo "${jvm_workers_opts}" | tr "," " ")
@@ -1247,6 +1294,16 @@ EOT
             		<Architecture>k80</Architecture>
             		<Speed>2.6</Speed>
         	</Processor>
+EOT
+  fi
+  if [ "${fpgas}" != "$DEFAULT_FPGAS_PER_NODE" ]; then
+    cat >> "${RESOURCES_FILE}" << EOT
+                <Processor Name="FPGA">
+                        <Type>FPGA</Type>
+                        <ComputingUnits>${fpgass}</ComputingUnits>
+                        <Architecture>altera</Architecture>
+                        <Speed>1.0</Speed>
+                </Processor>
 EOT
   fi
 cat >> "${RESOURCES_FILE}" << EOT
@@ -1400,8 +1457,9 @@ add_compute_node() {
   local nodeName=$1
   local cus=$2
   local gpus=$3
-  local lot=$4
-  local memory=$5
+  local fpgas=$4
+  local lot=$5
+  local memory=$6
 
   echo "Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${nodeName} ${CMD_SEPARATOR}mkdir -p ${worker_working_dir}${CMD_SEPARATOR}"
   ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${nodeName} ${CMD_SEPARATOR}mkdir -p ${worker_working_dir}${CMD_SEPARATOR}
@@ -1424,6 +1482,17 @@ EOT
             <ComputingUnits>${gpus}</ComputingUnits>
             <Architecture>k80</Architecture>
             <Speed>2.6</Speed>
+        </Processor>
+EOT
+  fi
+
+  if [ "${fpgas}" != "$DEFAULT_FPGAS_PER_NODE" ]; then
+    cat >> "${RESOURCES_FILE}" << EOT
+        <Processor Name="FPGA">
+            <Type>FPGA</Type>
+            <ComputingUnits>${fpgas}</ComputingUnits>
+            <Architecture>altera</Architecture>
+            <Speed>1.0</Speed>
         </Processor>
 EOT
   fi

@@ -36,6 +36,20 @@
     # Shift parameters for script and leave only the NIOWorker parameters
     paramsToShift=$((4 + numJvmFlags))
     shift ${paramsToShift}
+
+    FPGAargs=""
+    numFPGAargs=$1
+    if [ -z "$numFPGAargs" ]; then
+      for i in $(seq 1 "$numFPGAargs"); do
+        pos=$((1 + i))
+        FPGAargs="${FPGAargs} ${!pos}"
+      done
+    fi
+
+    # Shift parameters for script and leave only the NIOWorker parameters
+    paramsToShift=$((1 + numFPGAargs))
+    shift ${paramsToShift}
+
     paramsToCOMPSsWorker=$@
  
     # Catch some NIOWorker parameters
@@ -44,18 +58,19 @@
     worker_port=$5
     cusCPU=$7
     cusGPU=$8
-    lot=${11}
-    appUuid=${12}
-    lang=${13}
-    workingDir=${14}
-    installDir=${15}
-    appDirNW=${16}
-    libPathNW=${17}
-    cpNW=${18}
-    pythonpath=${19}
-    tracing=${20}
-    extraeFile=${21}
-    hostId=${22}
+    cusFPGA=$9
+    lot=${13}
+    appUuid=${14}
+    lang=${15}
+    workingDir=${16}
+    installDir=${17}
+    appDirNW=${18}
+    libPathNW=${19}
+    cpNW=${20}
+    pythonpath=${21}
+    tracing=${22}
+    extraeFile=${23}
+    hostId=${24}
 
     if [ "$debug" == "true" ]; then
       echo "PERSISTENT_WORKER.sh"
@@ -66,6 +81,7 @@
 
       echo "- Computing Units CPU: ${cusCPU}"
       echo "- Computing Units GPU: ${cusGPU}"
+      echo "- Computing Units GPU: ${cusFPGA}"
       echo "- Limit Of Tasks:      ${lot}"
       echo "- JVM Opts:            $jvmFlags"
 
@@ -161,6 +177,13 @@
       -Dlog4j.configurationFile=${installDir}/Runtime/configuration/log/${itlog4j_file} \
       -classpath $CLASSPATH:${worker_jar} \
       ${main_worker_class}"
+  }
+
+  reprogram_fpga() {
+    if [ -n "${FPGAargs}" ]; then
+        echo "Reprogramming FPGA"
+        eval "$FPGAargs"
+    fi
   }
   
   pre_launch() {

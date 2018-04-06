@@ -93,9 +93,11 @@ public class COMPSsConstants {
     public static final String WORKER_CP = "compss.worker.cp";
     public static final String WORKER_PP = "compss.worker.pythonpath";
     public static final String WORKER_JVM_OPTS = "compss.worker.jvm_opts";
+    public static final String WORKER_FPGA_REPROGRAM = "compss.worker.fpga_reprogram";
     public static final String WORKER_REMOVE_WD = "compss.worker.removeWD";
     public static final String WORKER_CPU_AFFINITY = "compss.worker.cpu_affinity";
     public static final String WORKER_GPU_AFFINITY = "compss.worker.gpu_affinity";
+    public static final String WORKER_FPGA_AFFINITY = "compss.worker.gpu_affinity";
 
     public static final String COMM_ADAPTOR = "compss.comm";
     public static final String CONN = "compss.conn";

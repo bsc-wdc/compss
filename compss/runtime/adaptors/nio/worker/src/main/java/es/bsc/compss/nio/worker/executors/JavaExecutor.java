@@ -56,7 +56,7 @@ public class JavaExecutor extends Executor {
 
     @Override
     public void executeTask(NIOWorker nw, NIOTask nt, String outputsBasename, File taskSandboxWorkingDir, int[] assignedCoreUnits,
-            int[] assignedGPUs) throws JobExecutionException {
+            int[] assignedGPUs, int[] assignedFPGAs) throws JobExecutionException {
         /* Register outputs **************************************** */
         NIOWorker.registerOutputs(outputsBasename);
 

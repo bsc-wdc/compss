@@ -61,6 +61,11 @@ public class WorkerStarter {
     private static final String GPU_AFFINITY = IS_GPU_AFFINITY_DEFINED ? System.getProperty(COMPSsConstants.WORKER_GPU_AFFINITY)
             : NIOAdaptor.BINDER_DISABLED;
 
+    private static final boolean IS_FPGA_AFFINITY_DEFINED = System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY) != null
+            && !System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY).isEmpty();
+    private static final String FPGA_AFFINITY = IS_FPGA_AFFINITY_DEFINED ? System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY)
+            : NIOAdaptor.BINDER_DISABLED;
+
     // Deployment ID
     private static final String DEPLOYMENT_ID = System.getProperty(COMPSsConstants.DEPLOYMENT_ID);
 
@@ -332,6 +337,13 @@ public class WorkerStarter {
             jvmFlags = workerJVMflags.split(",");
         }
 
+        // Get FPGA reprogram args
+        String workerFPGAargs = System.getProperty(COMPSsConstants.WORKER_FPGA_REPROGRAM);
+        String[] FPGAargs = new String[0];
+        if (workerFPGAargs != null && !workerFPGAargs.isEmpty()) {
+            FPGAargs = workerFPGAargs.split(" ");
+        }
+
         // Configure worker debug level
         String workerDebug = Boolean.toString(LogManager.getLogger(Loggers.WORKER).isDebugEnabled());
 
@@ -358,7 +370,7 @@ public class WorkerStarter {
          * BUILD COMMAND
          * ************************************************************************************************************
          */
-        String[] cmd = new String[NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + NIOAdaptor.NUM_PARAMS_NIO_WORKER + jvmFlags.length];
+        String[] cmd = new String[NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + NIOAdaptor.NUM_PARAMS_NIO_WORKER + jvmFlags.length + 1 + FPGAargs.length];
 
         /* SCRIPT ************************************************ */
         cmd[0] = installDir + (installDir.endsWith(File.separator) ? "" : File.separator) + STARTER_SCRIPT_PATH + STARTER_SCRIPT_NAME;
@@ -372,8 +384,14 @@ public class WorkerStarter {
             cmd[NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + i] = jvmFlags[i];
         }
 
+        int FPGAposition = NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + jvmFlags.length;
+        cmd[FPGAposition] = String.valueOf(FPGAargs.length);
+        for (int i = 0; i < FPGAargs.length; ++i) {
+            cmd[FPGAposition + i + 1] = FPGAargs[i];
+        }
+
         /* Values for NIOWorker ********************************** */
-        int nextPosition = NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + jvmFlags.length;
+        int nextPosition = NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + jvmFlags.length + 1 + FPGAargs.length;
         cmd[nextPosition++] = workerDebug;
 
         // Internal parameters
@@ -386,8 +404,10 @@ public class WorkerStarter {
         // Worker parameters
         cmd[nextPosition++] = String.valueOf(this.nw.getTotalComputingUnits());
         cmd[nextPosition++] = String.valueOf(this.nw.getTotalGPUs());
+        cmd[nextPosition++] = String.valueOf(this.nw.getTotalFPGAs());
         cmd[nextPosition++] = String.valueOf(CPU_AFFINITY);
         cmd[nextPosition++] = String.valueOf(GPU_AFFINITY);
+        cmd[nextPosition++] = String.valueOf(FPGA_AFFINITY);
         cmd[nextPosition++] = String.valueOf(this.nw.getLimitOfTasks());
 
         // Application parameters

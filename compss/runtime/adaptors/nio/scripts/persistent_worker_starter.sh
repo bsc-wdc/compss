@@ -23,6 +23,8 @@
   # Launch the Worker JVM
   pre_launch  
 
+  reprogram_fpga
+
   if [ "$debug" == "true" ]; then
       export NX_ARGS="--summary"
       echo "Calling NIOWorker"

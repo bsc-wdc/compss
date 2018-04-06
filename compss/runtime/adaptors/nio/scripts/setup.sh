@@ -39,12 +39,12 @@
 
     FPGAargs=""
     numFPGAargs=$1
-    for i in $(seq 1 "$numFPGAargs"); do
-      pos=$((1 + i))
-      FPGAargs="${FPGAargs} ${!pos}"
-    done
-
-    # Shift parameters for script and leave only the NIOWorker parameters
+    if [ -z "$numFPGAargs" ]; then
+      for i in $(seq 1 "$numFPGAargs"); do
+        pos=$((1 + i))
+        FPGAargs="${FPGAargs} ${!pos}"
+      done
+    fi
     paramsToShift=$((1 + numFPGAargs))
     shift ${paramsToShift}
 

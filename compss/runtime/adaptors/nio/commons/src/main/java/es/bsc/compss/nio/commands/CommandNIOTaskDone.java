@@ -27,16 +27,16 @@ import java.io.ObjectOutput;
 import es.bsc.comm.Connection;
 
 
-public class CommandTaskDone extends Command implements Externalizable {
+public class CommandNIOTaskDone extends Command implements Externalizable {
 
     private boolean successful;
     private NIOTaskResult tr;
 
 
-    public CommandTaskDone() {
+    public CommandNIOTaskDone() {
     }
 
-    public CommandTaskDone(NIOAgent ng, NIOTaskResult tr, boolean successful) {
+    public CommandNIOTaskDone(NIOAgent ng, NIOTaskResult tr, boolean successful) {
         super(ng);
         this.tr = tr;
         this.successful = successful;
@@ -50,7 +50,7 @@ public class CommandTaskDone extends Command implements Externalizable {
     @Override
     public void handle(Connection c) {
         NIOAgent nm = (NIOAgent) agent;
-        nm.receivedTaskDone(c, tr, successful);
+        nm.receivedNIOTaskDone(c, tr, successful);
     }
 
     public boolean isSuccessful() {
@@ -71,7 +71,7 @@ public class CommandTaskDone extends Command implements Externalizable {
 
     @Override
     public String toString() {
-        return "Job" + tr.getTaskId() + " finishes " + (successful ? "properly" : "with some errors");
+        return "Job" + tr.getJobId() + " finishes " + (successful ? "properly" : "with some errors");
     }
 
 }

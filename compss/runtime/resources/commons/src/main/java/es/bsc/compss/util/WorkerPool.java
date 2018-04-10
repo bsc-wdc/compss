@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.util;
 
-import es.bsc.compss.types.resources.CloudMethodWorker;
+import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 
@@ -35,13 +35,12 @@ public class WorkerPool {
     // Static Resources (read from xml)
     private final Map<String, Worker<? extends WorkerResourceDescription>> staticSet;
     // Critical Resources (can't be destroyed by periodical resource policy)
-    private final Map<String, CloudMethodWorker> criticalSet;
+    private final Map<String, DynamicMethodWorker> criticalSet;
     // Non Critical Resources (can be destroyed by periodical resource policy)
-    private final Map<String, CloudMethodWorker> nonCriticalSet;
+    private final Map<String, DynamicMethodWorker> nonCriticalSet;
 
     // TreeSet : Priority on criticalSet based on cost
-    private final Set<CloudMethodWorker> criticalOrder;
-
+    private final Set<DynamicMethodWorker> criticalOrder;
 
     public WorkerPool() {
         staticSet = new HashMap<>();
@@ -56,7 +55,7 @@ public class WorkerPool {
     }
 
     // Adds a new Resource on the Critical list
-    public void addDynamicResource(CloudMethodWorker newResource) {
+    public void addDynamicResource(DynamicMethodWorker newResource) {
         criticalSet.put(newResource.getName(), newResource);
         criticalOrder.add(newResource);
     }
@@ -65,10 +64,10 @@ public class WorkerPool {
         for (Worker<? extends WorkerResourceDescription> r : staticSet.values()) {
             r.updatedCoreElements(newCores);
         }
-        for (CloudMethodWorker r : criticalSet.values()) {
+        for (DynamicMethodWorker r : criticalSet.values()) {
             r.updatedCoreElements(newCores);
         }
-        for (CloudMethodWorker r : nonCriticalSet.values()) {
+        for (DynamicMethodWorker r : nonCriticalSet.values()) {
             r.updatedCoreElements(newCores);
         }
     }
@@ -81,8 +80,8 @@ public class WorkerPool {
         return staticSet.get(resourceName);
     }
 
-    public CloudMethodWorker getDynamicResource(String resourceName) {
-        CloudMethodWorker resource = null;
+    public DynamicMethodWorker getDynamicResource(String resourceName) {
+        DynamicMethodWorker resource = null;
         resource = criticalSet.get(resourceName);
         if (resource == null) {
             resource = nonCriticalSet.get(resourceName);
@@ -90,8 +89,8 @@ public class WorkerPool {
         return resource;
     }
 
-    public List<CloudMethodWorker> getDynamicResources() {
-        List<CloudMethodWorker> resources = new LinkedList<>();
+    public List<DynamicMethodWorker> getDynamicResources() {
+        List<DynamicMethodWorker> resources = new LinkedList<>();
         resources.addAll(criticalSet.values());
         resources.addAll(nonCriticalSet.values());
 
@@ -163,7 +162,7 @@ public class WorkerPool {
                     runnable[cores.get(i)] = true;
                 }
             }
-            for (CloudMethodWorker resource : criticalOrder) {
+            for (DynamicMethodWorker resource : criticalOrder) {
                 resourceName = resource.getName();
                 List<Integer> executableCores = resource.getExecutableCores();
                 boolean needed = false;
@@ -183,11 +182,11 @@ public class WorkerPool {
         }
     }
 
-    public Collection<CloudMethodWorker> getNonCriticalResources() {
+    public Collection<DynamicMethodWorker> getNonCriticalResources() {
         return nonCriticalSet.values();
     }
 
-    public Collection<CloudMethodWorker> getCriticalResources() {
+    public Collection<DynamicMethodWorker> getCriticalResources() {
         return criticalSet.values();
     }
 
@@ -236,7 +235,7 @@ public class WorkerPool {
         }
 
         int[] slots = new int[coreCount];
-        for (CloudMethodWorker r : criticalSet.values()) {
+        for (DynamicMethodWorker r : criticalSet.values()) {
             int[] resSlots = r.getSimultaneousTasks();
             for (int coreId = 0; coreId < coreCount; coreId++) {
                 slots[coreId] += resSlots[coreId];
@@ -261,13 +260,13 @@ public class WorkerPool {
             sb.append(prefix).append("\t").append("\t").append("SET = Static").append("\n");
             sb.append(prefix).append("\t").append("]").append("\n");
         }
-        for (CloudMethodWorker r : criticalSet.values()) {
+        for (DynamicMethodWorker r : criticalSet.values()) {
             sb.append(prefix).append("\t").append("RESOURCE = [").append("\n");
             sb.append(r.getResourceLinks(prefix + "\t\t")); // Adds resource information
             sb.append(prefix).append("\t").append("\t").append("SET = Critical").append("\n");
             sb.append(prefix).append("\t").append("]").append("\n");
         }
-        for (CloudMethodWorker r : nonCriticalSet.values()) {
+        for (DynamicMethodWorker r : nonCriticalSet.values()) {
             sb.append(prefix).append("\t").append("RESOURCE = [").append("\n");
             sb.append(r.getResourceLinks(prefix + "\t\t")); // Adds resource information
             sb.append(prefix).append("\t").append("\t").append("SET = Non-Critical").append("\n");

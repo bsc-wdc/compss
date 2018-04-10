@@ -749,13 +749,9 @@ check_args() {
     master_port=$((DEFAULT_MASTER_PORT_BASE + offset))
   fi
 
-  lsof -i :${master_port}
-  endCode=$?
-  while [ $endCode -eq 0 ]; do
+  while lsof -i :${master_port}; do
     echo "Port ${master_port} is already in use, incrementing port by 1"
     master_port=$((master_port+1))
-    lsof -i :${master_port}
-    endCode=$?
   done
 
   ###############################################################

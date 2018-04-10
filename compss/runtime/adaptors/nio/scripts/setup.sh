@@ -39,7 +39,7 @@
 
     FPGAargs=""
     numFPGAargs=$1
-    if [ -z "$numFPGAargs" ]; then
+    if [ "$numFPGAargs" -gt 0 ]; then
       for i in $(seq 1 "$numFPGAargs"); do
         pos=$((1 + i))
         FPGAargs="${FPGAargs} ${!pos}"
@@ -181,7 +181,7 @@
 
   reprogram_fpga() {
     if [ -n "${FPGAargs}" ]; then
-        echo "Reprogramming FPGA"
+        echo "Reprogramming FPGA with the command "${FPGAargs}""
         eval "$FPGAargs"
     fi
   }

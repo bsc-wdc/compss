@@ -2,7 +2,7 @@
 <ResourcesList>
     <ComputeNode Name="COMPSsWorker01">
         <Processor Name="MainProcessor">
-            <ComputingUnits>2</ComputingUnits>
+            <ComputingUnits>4</ComputingUnits>
         </Processor>
         <Adaptors>
             <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">

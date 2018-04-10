@@ -27,6 +27,7 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.resources.Resource;
 
+
 /**
  * Abstract representation of a job
  *
@@ -51,6 +52,7 @@ public abstract class Job<T extends COMPSsWorker> {
             && !System.getProperty(COMPSsConstants.WORKER_PP).equals("")) ? System.getProperty(COMPSsConstants.WORKER_PP) : "\"\"";
     private final String pythonpathFromFile;
     private final String workerPythonpath;
+
 
     // Job history
     public enum JobHistory {
@@ -133,6 +135,15 @@ public abstract class Job<T extends COMPSsWorker> {
      */
     public int getJobId() {
         return jobId;
+    }
+
+    /**
+     * Returns the id of the task executed by this job
+     *
+     * @return
+     */
+    public int getTaskId() {
+        return taskId;
     }
 
     /**

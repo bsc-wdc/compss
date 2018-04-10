@@ -28,7 +28,7 @@ import java.util.List;
 
 public class NIOTaskResult implements Externalizable {
 
-    private int taskId;
+    private int jobId;
 
     private List<DataType> paramTypes = new LinkedList<>();
     // ATTENTION: Parameter Values will be empty if it doesn't contain a PSCO Id
@@ -45,11 +45,11 @@ public class NIOTaskResult implements Externalizable {
     /**
      * New task result from a given set of {@code params}
      * 
-     * @param taskId
+     * @param jobId
      * @param params
      */
-    public NIOTaskResult(int taskId, LinkedList<NIOParam> params) {
-        this.taskId = taskId;
+    public NIOTaskResult(int jobId, LinkedList<NIOParam> params) {
+        this.jobId = jobId;
 
         for (NIOParam np : params) {
             this.paramTypes.add(np.getType());
@@ -72,8 +72,8 @@ public class NIOTaskResult implements Externalizable {
      * 
      * @return
      */
-    public int getTaskId() {
-        return this.taskId;
+    public int getJobId() {
+        return this.jobId;
     }
 
     /**
@@ -98,22 +98,22 @@ public class NIOTaskResult implements Externalizable {
     @SuppressWarnings("unchecked")
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        this.taskId = in.readInt();
+        this.jobId = in.readInt();
         this.paramTypes = (LinkedList<DataType>) in.readObject();
         this.paramValues = (LinkedList<Object>) in.readObject();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeInt(this.taskId);
+        out.writeInt(this.jobId);
         out.writeObject(this.paramTypes);
         out.writeObject(this.paramValues);
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("[TASK_RESULT ");
-        sb.append("[TASK ID= ").append(this.taskId).append("]");
+        StringBuilder sb = new StringBuilder("[JOB_RESULT ");
+        sb.append("[JOB ID= ").append(this.jobId).append("]");
         sb.append("[PARAM_TYPES");
         for (DataType param : this.paramTypes) {
             sb.append(" ").append(param);

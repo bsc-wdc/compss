@@ -119,10 +119,9 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     private Semaphore tracingGeneration = new Semaphore(0);
     private Semaphore workersDebugInfo = new Semaphore(0);
 
-
     /**
      * New NIOAdaptor instance
-     * 
+     *
      */
     public NIOAdaptor() {
         super(MAX_SEND, MAX_RECEIVE, MASTER_PORT);
@@ -246,7 +245,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     /**
      * Notice the removal of a worker
-     * 
+     *
      * @param worker
      */
     public void removedNode(NIOWorkerNode worker) {
@@ -325,14 +324,16 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    public void receivedTaskDone(Connection c, NIOTaskResult tr, boolean successful) {
-        int taskId = tr.getTaskId();
+    public void receivedNIOTaskDone(Connection c, NIOTaskResult tr, boolean successful) {
+        int jobId = tr.getJobId();
+
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Received Task done message for Task " + taskId);
+            LOGGER.debug("Received Task done message for Task " + jobId);
         }
 
         // Update running jobs
-        NIOJob nj = RUNNING_JOBS.remove(taskId);
+        NIOJob nj = RUNNING_JOBS.remove(jobId);
+        int taskId = nj.getTaskId();
 
         // Update information
         List<DataType> taskResultTypes = tr.getParamTypes();
@@ -359,9 +360,9 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             //JobHistory newJobHistory = nj.getHistory();
 
             // Retrieve files if required
-            if (WORKER_DEBUG || !successful ) {
-                String jobOut = JOBS_DIR + "job" + nj.getJobId() + "_" + prevJobHistory + ".out";
-                String jobErr = JOBS_DIR + "job" + nj.getJobId() + "_" + prevJobHistory + ".err";
+            if (WORKER_DEBUG || !successful) {
+                String jobOut = JOBS_DIR + "job" + jobId + "_" + prevJobHistory + ".out";
+                String jobErr = JOBS_DIR + "job" + jobId + "_" + prevJobHistory + ".err";
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Requesting JobOut " + jobOut + " for Task " + taskId);
                     LOGGER.debug("Requesting JobErr " + jobErr + " for Task " + taskId);
@@ -369,17 +370,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
                 c.receiveDataFile(jobOut);
                 c.receiveDataFile(jobErr);
             }
-            
-            /*if (!successful) {
-                String jobOut = JOBS_DIR + "job" + nj.getJobId() + "_" + newJobHistory + ".out";
-                String jobErr = JOBS_DIR + "job" + nj.getJobId() + "_" + newJobHistory + ".err";
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Requesting JobOut " + jobOut + " for Task " + taskId);
-                    LOGGER.debug("Requesting JobErr " + jobErr + " for Task " + taskId);
-                }
-                c.receiveDataFile(jobOut);
-                c.receiveDataFile(jobErr);
-            }*/
+
         }
 
         // Close connection
@@ -687,17 +678,16 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         private final NIOWorkerNode worker;
         private final ShutdownListener listener;
 
-
         public ClosingWorker(NIOWorkerNode w, ShutdownListener l) {
             worker = w;
             listener = l;
         }
     }
 
+
     private class ClosingExecutor {
 
         private final ExecutorShutdownListener listener;
-
 
         public ClosingExecutor(ExecutorShutdownListener l) {
             listener = l;

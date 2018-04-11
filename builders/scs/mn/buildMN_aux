@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
  
   #############################################################
   # Name: buildMN_aux
@@ -37,7 +37,3 @@
   impi_version=""
   #echo " salloc -p interactive /bin/bash -c \"${scriptDir}/buildSC_aux ${targetDir} '${modules}' '${additionalExports}' '${queues_cfg}' '${extrae_with_openmpi}' '${openmpi_version}' '${extrae_with_impi}' '${impi_version}'\""
   ${scriptDir}/buildSC_aux ${targetDir} "${modules}" "${additionalExports}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}"
-
-  # END
-  exit 0
-

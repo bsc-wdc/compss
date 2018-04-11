@@ -31,7 +31,7 @@
   PYCOMPSS_HOME=${targetDir}
   export PYTHONPATH=$PYCOMPSS_HOME:$PYTHONPATH
 
-  python "${SCRIPT_DIR}"/setup.py install --install-lib="${PYCOMPSS_HOME}" -O2
+  CC="g++" python "${SCRIPT_DIR}"/setup.py install --install-lib="${PYCOMPSS_HOME}" -O2
   exitCode=$?
   if [ $exitCode -ne 0 ]; then
     echo "ERROR: Cannot install PyCOMPSs"

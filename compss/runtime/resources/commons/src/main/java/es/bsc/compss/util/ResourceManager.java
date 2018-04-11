@@ -444,7 +444,7 @@ public class ResourceManager {
     }
 
     public static void reduceWholeWorker(MethodWorker worker) {
-        ResourceUpdate<MethodResourceDescription> modification = new PendingReduction<>(worker.getDescription());
+        ResourceUpdate<MethodResourceDescription> modification = new PendingReduction<>(worker.getDescription().copy());
         resourceUser.updatedResource(worker, modification);
     }
 

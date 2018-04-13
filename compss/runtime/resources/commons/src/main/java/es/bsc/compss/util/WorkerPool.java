@@ -162,6 +162,8 @@ public class WorkerPool {
                     runnable[cores.get(i)] = true;
                 }
             }
+            
+            LinkedList<DynamicMethodWorker> criticalOrderRemovals = new LinkedList();
             for (DynamicMethodWorker resource : criticalOrder) {
                 resourceName = resource.getName();
                 List<Integer> executableCores = resource.getExecutableCores();
@@ -175,9 +177,12 @@ public class WorkerPool {
                     }
                 } else {
                     criticalSet.remove(resourceName);
-                    criticalOrder.remove(resource);
+                    criticalOrderRemovals.add(resource);
                     nonCriticalSet.put(resourceName, resource);
                 }
+            }
+            for (DynamicMethodWorker resource : criticalOrderRemovals) {
+                criticalOrder.remove(resource);
             }
         }
     }

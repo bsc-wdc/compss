@@ -5,8 +5,8 @@
   ./install_compss.sh
 
   # Sync data
-  svnUser=cramonco
-  ./sync_with_git.sh $svnUser
+  gitUser=jenkins
+  ./sync_with_git.sh $gitUser
 
   # Test tutorial apps
   # TODO: Currently this step is done manually

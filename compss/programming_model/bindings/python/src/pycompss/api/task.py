@@ -765,6 +765,7 @@ class task(object):
         """
         from pycompss.runtime.binding import process_task
         from pycompss.runtime.binding import Function_Type
+        import pycompss.runtime.binding as binding
 
         # Check the type of the function called.
         # inspect.ismethod(f) does not work here,

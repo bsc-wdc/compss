@@ -470,7 +470,7 @@ extern "C" {
     static struct PyModuleDef cModPy =
     {
         PyModuleDef_HEAD_INIT,
-        "compss",                      /* name of module */
+        "compssPy3",                   /* name of module */
         NULL,                          /* module documentation, may be NULL */
         sizeof(struct module_state),   /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
         CompssMethods,
@@ -481,11 +481,11 @@ extern "C" {
     };
     #define INITERROR return NULL
     PyMODINIT_FUNC
-    PyInit_compss(void)
-    #else
-      #define INITERROR return
-      void initcompss(void)
-    #endif
+    PyInit_compssPy3(void)
+#else
+    #define INITERROR return
+    void initcompss(void)
+#endif
 {
     #if PY_MAJOR_VERSION >= 3
         PyObject *module = PyModule_Create(&cModPy);

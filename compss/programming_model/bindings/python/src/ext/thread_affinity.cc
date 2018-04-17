@@ -113,7 +113,7 @@ static PyMethodDef ThreadAffinityMethods[] = {
     static struct PyModuleDef cModThAPy =
     {
         PyModuleDef_HEAD_INIT,
-        "thread_affinity",             /* name of module */
+        "thread_affinityPy3",          /* name of module */
         NULL,                          /* module documentation, may be NULL */
         sizeof(struct module_state),   /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
         ThreadAffinityMethods,
@@ -124,7 +124,7 @@ static PyMethodDef ThreadAffinityMethods[] = {
     };
     #define INITERROR return NULL
     PyMODINIT_FUNC
-    PyInit_thread_affinity(void)
+    PyInit_thread_affinityPy3(void)
 #else
     #define INITERROR return
     void initthread_affinity(void)

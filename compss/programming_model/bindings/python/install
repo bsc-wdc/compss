@@ -8,6 +8,10 @@
     rm -rf "${SCRIPT_DIR}"/build
   }
 
+  command_exists () {
+    type "$1" &> /dev/null ;
+  }
+
 
   #
   # SCRIPT GLOBAL CONSTANTS
@@ -31,13 +35,33 @@
   PYCOMPSS_HOME=${targetDir}
   export PYTHONPATH=$PYCOMPSS_HOME:$PYTHONPATH
 
-  python "${SCRIPT_DIR}"/setup.py install --install-lib="${PYCOMPSS_HOME}" -O2
-  exitCode=$?
-  if [ $exitCode -ne 0 ]; then
-    echo "ERROR: Cannot install PyCOMPSs"
-    exit $exitCode
+  if command_exists python2 ; then
+      python2 "${SCRIPT_DIR}"/setup2.py install --install-lib="${PYCOMPSS_HOME}" -O2
+      exitCode=$?
+      if [ $exitCode -ne 0 ]; then
+        echo "ERROR: Cannot install PyCOMPSs for Python 2"
+        exit $exitCode
+      fi
+  else
+      echo "WARNING: PyCOMPSS FOR PYTHON 2 HAS NOT BEEN INSTALLED."
   fi
-    
+
+  # Installs Python3 version within the same folder (python code is compatible), but:
+  #   - The extensions have different names, so that the most appropriate can be selected dynamically.
+  #   - pyc and pyo files are in different folders (for python2 within the same as .py files, while
+  #     in python 3 they are within __pycache__ folder).
+
+  if command_exists python3 ; then
+      python3 "${SCRIPT_DIR}"/setup3.py install --install-lib="${PYCOMPSS_HOME}" -O2
+      exitCode=$?
+      if [ $exitCode -ne 0 ]; then
+        echo "ERROR: Cannot install PyCOMPSs for Python 3"
+        exit $exitCode
+      fi
+  else
+      echo "WARNING: PyCOMPSS FOR PYTHON 3 HAS NOT BEEN INSTALLED."
+  fi
+
   # Normal exit
   exit 0
 

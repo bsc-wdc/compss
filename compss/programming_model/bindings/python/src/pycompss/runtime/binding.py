@@ -45,12 +45,13 @@ import base64
 from collections import *
 from shutil import rmtree
 
-# Import main C module extension for the communication with the runtime
-# See ext/compssmodule.c
-import compss
+
 
 # Types conversion dictionary from python to COMPSs
 if sys.version_info >= (3, 0):
+    # Import main C module extension for the communication with the runtime (using Python 3)
+    # See ext/compssmodule.c
+    import compssPy3 as compss
     str_escape = 'unicode_escape'
     python_to_compss = {int: TYPE.INT,       # int
                         int: TYPE.LONG,      # long
@@ -75,6 +76,9 @@ if sys.version_info >= (3, 0):
                         object: TYPE.OBJECT
                         }
 else:
+    # Import main C module extension for the communication with the runtime (using Python 2)
+    # See ext/compssmodule.c
+    import compss
     str_escape = 'string_escape'
     python_to_compss = {types.IntType: TYPE.INT,          # int
                         types.LongType: TYPE.LONG,        # long

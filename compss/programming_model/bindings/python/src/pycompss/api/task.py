@@ -30,18 +30,6 @@ import sys
 import logging
 import ast
 import copy
-import pycompss.runtime.binding as binding
-from pycompss.api.parameter import Parameter
-from pycompss.api.parameter import IN
-from pycompss.api.parameter import TYPE
-from pycompss.api.parameter import DIRECTION
-from pycompss.runtime.core_element import CE
-from pycompss.util.serializer import serialize_objects
-from pycompss.util.serializer import deserialize_from_file
-from pycompss.util.interactive_helpers import updateTasksCodeFile
-from pycompss.util.location import i_am_at_master
-from pycompss.util.location import i_am_within_scope
-from pycompss.util.persistent_storage import has_ID, get_ID
 from functools import wraps
 
 
@@ -68,8 +56,13 @@ class task(object):
         If there are decorator arguments, the function to be decorated is
         not passed to the constructor!
         """
+        from pycompss.util.location import i_am_within_scope
+
         # Check if under the PyCOMPSs scope
         if i_am_within_scope():
+            from pycompss.util.location import i_am_at_master
+            from pycompss.api.parameter import IN
+
             self.scope = True
 
             if __debug__:
@@ -127,6 +120,13 @@ class task(object):
         # Check if under the PyCOMPSs scope
         if not self.scope:
             return self.__not_under_pycompss_scope(f)
+
+        # Imports
+        from pycompss.api.parameter import Parameter
+        from pycompss.api.parameter import TYPE
+        from pycompss.api.parameter import DIRECTION
+        from pycompss.util.interactive_helpers import updateTasksCodeFile
+        from pycompss.util.location import i_am_at_master
 
         if __debug__:
             logger.debug("Call in @task decorator...")
@@ -324,6 +324,9 @@ class task(object):
         """
         Updates the return types within self.kwargs['compss_retvalue']
         """
+        from pycompss.api.parameter import Parameter
+        from pycompss.api.parameter import DIRECTION
+
         # This condition is interesting, because a user can write returns=list
         # However, lists have the attribute __len__ but raise an exception.
         # Since the user does not indicate the length, it will be managed
@@ -348,6 +351,10 @@ class task(object):
         Checks the code looking for return statements if no returns is specified in @task decorator.
         :param f: Function to check
         """
+        from pycompss.api.parameter import Parameter
+        from pycompss.api.parameter import DIRECTION
+        from pycompss.api.parameter import TYPE
+
         source_code = inspect.getsource(f).strip()
         if self.is_instance or source_code.startswith('@classmethod'):   # TODO: WHAT IF IS CLASSMETHOD FROM BOOLEAN?
             # It is a task defined within a class (can not parse the code with ast since the class does not
@@ -427,6 +434,9 @@ class task(object):
         initialization.
         :param f: Function to be registered
         """
+        from pycompss.runtime.core_element import CE
+        import pycompss.runtime.binding as binding
+
         # Look for the decorator that has to do the registration
         # Since the __init__ of the decorators is independent, there is no way
         # to pass information through them.
@@ -515,6 +525,9 @@ class task(object):
         :param kwargs: <Dictionary> - Contains the named objects that the function has been called with.
         :return: Two lists: newTypes and newValues.
         """
+        from pycompss.util.serializer import serialize_objects
+        import pycompss.runtime.binding as binding
+
         # Retrieve internal parameters from worker.py.
         tracing = kwargs.get('compss_tracing')
 
@@ -661,6 +674,11 @@ class task(object):
         :param num_return: <Int> - Number of returns
         :return: a list with the real values
         """
+        from pycompss.api.parameter import Parameter
+        from pycompss.api.parameter import DIRECTION
+        from pycompss.api.parameter import TYPE
+        from pycompss.util.serializer import deserialize_from_file
+
         num_pars = len(spec_args)
         real_values = []
         to_serialize = []
@@ -747,6 +765,7 @@ class task(object):
         """
         from pycompss.runtime.binding import process_task
         from pycompss.runtime.binding import Function_Type
+        import pycompss.runtime.binding as binding
 
         # Check the type of the function called.
         # inspect.ismethod(f) does not work here,
@@ -942,7 +961,10 @@ def check_value_changes(types, values, to_serialize):
     :return: Three lists, the new types, new values and new to_serialize list.
     """
     assert len(types) == len(values), 'Inconsistent state: type-value length mismatch.'
+
     from pycompss.api.parameter import TYPE
+    from pycompss.util.persistent_storage import get_ID
+
     # Update the existing PSCOS with their id.
     for i in range(len(types)):
         if types[i] == TYPE.EXTERNAL_PSCO:
@@ -977,6 +999,8 @@ def get_COMPSs_type(value):
     :return: The Type of the value
     """
     from pycompss.api.parameter import TYPE
+    from pycompss.util.persistent_storage import has_ID, get_ID
+
     if type(value) is bool:
         return TYPE.BOOLEAN
     elif type(value) is str and len(value) == 1:
@@ -1012,7 +1036,7 @@ def get_COMPSs_type(value):
         except TypeError:
             # A PSCO class has been used to check its type (when checking
             # the return). Since we still don't know if it is going to be
-            # persistend inside, we assume that it is not. It will be checked
+            # persistent inside, we assume that it is not. It will be checked
             # later on the worker side when the task finishes.
             return TYPE.FILE
     else:

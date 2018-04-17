@@ -28,7 +28,6 @@ import inspect
 import logging
 import os
 from functools import wraps
-from pycompss.runtime.binding import register_ce
 from pycompss.util.location import i_am_at_master
 from pycompss.util.location import i_am_within_scope
 
@@ -72,6 +71,8 @@ class opencl(object):
 
         if i_am_at_master():
             # master code
+            from pycompss.runtime.binding import register_ce
+
             mod = inspect.getmodule(func)
             self.module = mod.__name__    # not func.__module__
 

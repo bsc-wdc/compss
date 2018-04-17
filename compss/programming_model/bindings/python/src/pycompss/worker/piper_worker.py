@@ -30,13 +30,15 @@ import sys
 import traceback
 from multiprocessing import Process
 from multiprocessing import Queue
-import thread_affinity
 import base64
 
+
 if sys.version_info >= (3, 0):
+    import thread_affinityPy3 as thread_affinity
     long = int
     str_escape = 'unicode_escape'
 else:
+    import thread_affinity
     # Exception moved to built-in
     from exceptions import ValueError
     str_escape = 'string_escape'

@@ -21,7 +21,7 @@ src
 
 DEPENDENCIES
 ------------
-- Python 2.x
+- Python 2.x (optionally Python 3.x)
 - COMPSs Java runtime
 - COMPSs C/C++ binding
 

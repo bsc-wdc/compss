@@ -68,12 +68,13 @@ else:
   fi
 
   PYCOMPSS_HOME="${targetDir}/3"
-  export PYTHONPATH=$PYCOMPSS_HOME:$OLD_PYTHONPATH
-
-  # Installs Python3 version within the same folder (python code is compatible), but:
+  # The previous line defines that the installation will be done in a different file from the previous
+  # installation, and relies on the creation of a symbolic link from the interpreter library folder.
+  # It is possible to install Python3 version within the same folder (python code is compatible), but:
   #   - The extensions have different names, so that the most appropriate can be selected dynamically.
   #   - pyc and pyo files are in different folders (for python2 within the same as .py files, while
   #     in python 3 they are within __pycache__ folder).
+  export PYTHONPATH=$PYCOMPSS_HOME:$OLD_PYTHONPATH
 
   if command_exists python3 ; then
       python3 ${SCRIPT_DIR}/setup3.py install --install-lib=${PYCOMPSS_HOME} -O2

@@ -12,6 +12,20 @@
     type "$1" &> /dev/null ;
   }
 
+  get_packages_folder(){
+     # Check the packages folder of a particular python interpreter
+     # $1 -> python version (2 or 3)
+     packages_folder=$( python$1 -c "import site
+if hasattr(site, 'getsitepackages'):
+    # normal execution
+    print(site.getsitepackages()[0])
+else:
+    # workaround for virtualenv
+    from distutils.sysconfig import get_python_lib
+    print([get_python_lib()][0])
+" )
+  }
+
 
   #
   # SCRIPT GLOBAL CONSTANTS
@@ -32,11 +46,18 @@
 
   # Install
   echo "Installing in ${targetDir}"
-  PYCOMPSS_HOME=${targetDir}
+  PYCOMPSS_HOME="${targetDir}/2"
+  OLD_PYTHONPATH=$PYTHONPATH
   export PYTHONPATH=$PYCOMPSS_HOME:$PYTHONPATH
 
   if command_exists python2 ; then
-      python2 "${SCRIPT_DIR}"/setup2.py install --install-lib="${PYCOMPSS_HOME}" -O2
+      python2 ${SCRIPT_DIR}/setup2.py install --install-lib=${PYCOMPSS_HOME} -O2
+      # Get packages folder
+      get_packages_folder 2
+      # Check if exists. If not, create.
+      #mkdir -p ${packages_folder}  # Not necessary in sudo
+      # Setup a symbolic link to pycompss
+      ln -sfn "${PYCOMPSS_HOME}/pycompss" "${packages_folder}/pycompss"
       exitCode=$?
       if [ $exitCode -ne 0 ]; then
         echo "ERROR: Cannot install PyCOMPSs for Python 2"
@@ -46,13 +67,22 @@
       echo "WARNING: PyCOMPSS FOR PYTHON 2 HAS NOT BEEN INSTALLED."
   fi
 
+  PYCOMPSS_HOME="${targetDir}/3"
+  export PYTHONPATH=$PYCOMPSS_HOME:$OLD_PYTHONPATH
+
   # Installs Python3 version within the same folder (python code is compatible), but:
   #   - The extensions have different names, so that the most appropriate can be selected dynamically.
   #   - pyc and pyo files are in different folders (for python2 within the same as .py files, while
   #     in python 3 they are within __pycache__ folder).
 
   if command_exists python3 ; then
-      python3 "${SCRIPT_DIR}"/setup3.py install --install-lib="${PYCOMPSS_HOME}" -O2
+      python3 ${SCRIPT_DIR}/setup3.py install --install-lib=${PYCOMPSS_HOME} -O2
+      # Get packages folder
+      get_packages_folder 3
+      # Check if exists. If not, create.
+      #mkdir -p ${packages_folder}  # Not necessary in sudo
+      # Setup a symbolic link to pycompss
+      ln -sfn "${PYCOMPSS_HOME}/pycompss" "${packages_folder}/pycompss"
       exitCode=$?
       if [ $exitCode -ne 0 ]; then
         echo "ERROR: Cannot install PyCOMPSs for Python 3"

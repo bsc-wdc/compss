@@ -25,7 +25,7 @@
     mkdir -p $workingDir
   fi
   export COMPSS_WORKING_DIR=$workingDir
-  
+
   cd $workingDir
 
   echo "[WORKER.SH] Starting GAT Worker"
@@ -42,7 +42,7 @@
     rm -f $1
     shift 1
   done
-  
+
   #-------------------------------------
   # Managing Symlinks for files
   #-------------------------------------
@@ -54,7 +54,7 @@
   if [ ! -d $sandbox ]; then
     mkdir -p $sandbox
   fi
-  
+
   symlinkfilesNum=$1
   shift 1
   renames=""
@@ -79,17 +79,17 @@
       else
         echo "[WORKER.SH] WARN: Cannot create link because $1 doesn't exists"
       fi
-      
+
       # Add to treat after task management
       if [ $i -eq 0 ]; then
         renames="$1 ${sandbox}/$2"
       else
         renames="$renames $1 ${sandbox}/$2"
       fi
-      shift 2 
+      shift 2
     done
   fi
-  
+
   #-------------------------------------
   # Get tracing status
   #-------------------------------------
@@ -157,7 +157,7 @@
       # Check pair if first
       if [ $removeOrMove -eq 0 ]; then
         if [ -f "$element" ]; then
-    	  removeOrMove=1	
+    	  removeOrMove=1
     	else
     	  removeOrMove=2
     	  renamedFile=$element
@@ -182,7 +182,7 @@
       fi
     done
   fi
-  
+
   #-------------------------------------
   # Clean sandbox
   #-------------------------------------
@@ -199,4 +199,3 @@
     echo 1>&2 "Task execution failed"
     exit 7
   fi
-

@@ -11,7 +11,7 @@
     dataCMDpipe=$1
     dataRESULTpipe=$2
     shift 2
-    
+
     # Get CMD pipes
     CMDpipes=()
     numPipesCMD=$1
@@ -75,7 +75,7 @@
     fi
     # remove data pipes
     rm -f "${dataCMDpipe}" "${dataRESULTpipe}"
-    
+
     # remove job pipes
     for i in "${CMDpipes[@]}"; do
       rm -f $i
@@ -101,12 +101,12 @@
 
   # Log
   echo "[BINDINGS PIPER] NumThreads: $numThreads"
-  
+
   # Clean and Create data pipes
   echo "[BINDINGS PIPER] Data CMD Pipe: $dataCMDpipe"
   rm -f "$dataCMDpipe"
   mkfifo "$dataCMDpipe"
-  
+
   echo "[BINDINGS PIPER] Data RESULT Pipe: $dataRESULTpipe"
   rm -f "$dataRESULTpipe"
   mkfifo "$dataRESULTpipe"
@@ -144,11 +144,10 @@
       fi
     done
   fi
-  
+
   # Clean environment
   # Cleaned on TRAP
 
   # Exit message
   echo "[BINDINGS PIPER] Finished with status $exitValue"
   exit $exitValue
-

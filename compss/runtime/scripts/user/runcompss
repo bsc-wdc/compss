@@ -40,6 +40,7 @@ fi
 
 DEFAULT_STORAGE_CONF="None"
 DEFAULT_PyOBJECT_SERIALIZE=false
+DEFAULT_PYTHON_INTERPRETER=python
 
 DEFAULT_COMMUNICATION_ADAPTOR=es.bsc.compss.nio.master.NIOAdaptor
 #DEFAULT_COMMUNICATION_ADAPTOR=es.bsc.compss.gat.master.GATAdaptor
@@ -167,13 +168,15 @@ show_opts() {
     --input_profile=<path>                  Path to the file which stores the input application profile
                                             Default: Empty
     --output_profile=<path>                 Path to the file to store the application profile at the end of the execution
-                                            Default: Empty 
+                                            Default: Empty
     --PyObject_serialize=<bool>             Only for Python Binding. Enable the object serialization to string when possible (true/false).
                                             Default: $DEFAULT_PyOBJECT_SERIALIZE
     --persistent_worker_c=<bool>            Only for C Binding. Enable the persistent worker in c (true/false).
                                             Default: $DEFAULT_PERSISTENT_WORKER_C
     --enable_external_adaptation=<bool>     Enable external adaptation. This option will disable the Resource Optimizer.
                                             Default: false
+    --python_interpreter=<string>           Python interpreter to use (python/python2/python3).
+                                            Default: $DEFAULT_PYTHON_INTERPRETER
 
 * Application name:
     For Java applications:   Fully qualified name of the application
@@ -211,7 +214,7 @@ show_version() {
 
 show_full_version() {
   cat << EOF
-        .-~~-.--.            ____        ____ 
+        .-~~-.--.            ____        ____
        :         )          |___ \      |___ \\
  .~ ~ -.\       /.- ~~ .      __) |       __) |
  >       \`.   .'       <     / __/   _   / __/
@@ -236,17 +239,17 @@ show_flower() {
 
 Camellia (Camellia japonica) - Flower
 
-Camellia japonica is a flowering tree or shrub, usually 1.5–6 metres tall. 
+Camellia japonica is a flowering tree or shrub, usually 1.5–6 metres tall.
 In the wild, flowering is between January and March. The flowers appear
 along the branches, particularly towards the ends, and have very short
-stems. They occur either alone or in pairs, and are 6–10 centimetres 
-across. There are about nine greenish bracteoles and sepals. 
+stems. They occur either alone or in pairs, and are 6–10 centimetres
+across. There are about nine greenish bracteoles and sepals.
 
 Flowers of the wild species have six or seven rose or white petals, each
-3–4.5 centimetres long by 1.5–2.5 centimetres wide. The numerous stamens 
+3–4.5 centimetres long by 1.5–2.5 centimetres wide. The numerous stamens
 are 2.5–3.5 centimetres long, the outer whorl being joined at the base.
-The fruit consists of a globe-shaped capsule with three compartments 
-(locules), each with one or two large brown seeds. Fruiting occurs in 
+The fruit consists of a globe-shaped capsule with three compartments
+(locules), each with one or two large brown seeds. Fruiting occurs in
 September to October in the wild.
 
 Check more information:
@@ -300,7 +303,7 @@ check_env() {
          echo "[  INFO] LD_LIBRARY_PATH not defined set to LIBRARY_PATH"
      fi
   fi
-  
+
   # Command to simulate realpath
   if [ -z "${COMPSS_HOME}" ]; then
     COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )"
@@ -566,10 +569,14 @@ get_args() {
             scheduler_config=${OPTARG//scheduler_config_file=/}
             ;;
           enable_external_adaptation=*)
-            # Enable the external adaptation (disables de Resource Optimizer) 
+            # Enable the external adaptation (disables de Resource Optimizer)
             external_adaptation=${OPTARG//enable_external_adaptation=/}
             ;;
-	  *)
+          python_interpreter=*)
+            # Specify the python interpreter to use
+            python_interpreter=${OPTARG//python_interpreter=/}
+            ;;
+  	  *)
 	    # Flag didn't match any patern. Raise exception
 	    display_error "Bad argument: $OPTARG"
 	    ;;
@@ -613,7 +620,7 @@ infer_language() {
   local isPythonCompiled
   local isC
 
-  fullApp=$1                                                                                                                                                                                                                                                                 
+  fullApp=$1
 
   fileName=$(basename "$fullApp")
   extension=${fileName##*.}
@@ -728,7 +735,7 @@ check_args() {
   # Storage configuration
   if [ -z "$storageConf" ]; then
     storageConf="null"
-  fi 
+  fi
 
   # Master log level
   if [ "${log_level}" == "${DEFAULT_LOG_LEVEL}" ]; then
@@ -741,7 +748,7 @@ check_args() {
   if [ -z "$comm" ]; then
     comm=${DEFAULT_COMMUNICATION_ADAPTOR}
   fi
-  
+
   # Connector
   if [ -z "$conn" ]; then
     conn=${DEFAULT_CONNECTOR}
@@ -864,6 +871,9 @@ check_args() {
   if [ -z "$external_adaptation" ]; then
 	external_adaptation=$DEFAULT_EXTERNAL_ADAPTATION
   fi
+  if [ -z "$python_interpreter" ]; then
+	python_interpreter=$DEFAULT_PYTHON_INTERPRETER
+  fi
 }
 
 execute_runtime() {
@@ -962,6 +972,7 @@ add_jvm_opts_python() {
   cat >> "${jvm_options_file}" << EOT
 -Djava.class.path=${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar
 -Dcompss.worker.pythonpath=${PYTHONPATH}
+-Dcompss.python.interpreter=${python_interpreter}
 EOT
 }
 
@@ -1034,9 +1045,11 @@ exec_python() {
   storageApi=${COMPSS_HOME}/Dependencies/
   cp=$cp:$storageApi
 
+  python_version=$( $python_interpreter -c "import sys; print(sys.version_info[:][0])" )
+
   # Export needed variables
-  if [ -d "${COMPSS_HOME}/Bindings/python" ]; then
-    PYCOMPSS_HOME=${COMPSS_HOME}/Bindings/python
+  if [ -d "${COMPSS_HOME}/Bindings/python/$python_version" ]; then
+    PYCOMPSS_HOME=${COMPSS_HOME}/Bindings/python/$python_version
     export PYTHONPATH=${PYCOMPSS_HOME}:$PYTHONPATH
   fi
 
@@ -1047,7 +1060,7 @@ exec_python() {
     if [ -z "$libjava" ]; then
       display_error "${JAVA_JRE_ERROR}"
     fi
-  fi     
+  fi
   libjavafolder=$(dirname "$libjava")
 
   export LD_LIBRARY_PATH=$libjavafolder:${COMPSS_HOME}/Bindings/bindings-common/lib:${LD_LIBRARY_PATH}
@@ -1065,7 +1078,7 @@ exec_python() {
   if [ $tracing -gt 0 ]; then
     export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
   fi
-  python ${py_flags} "$PYCOMPSS_HOME"/pycompss/runtime/launch.py $log_level $PyObject_serialize $storageConf "$fullAppPath" ${application_args}
+  $python_interpreter ${py_flags} "$PYCOMPSS_HOME"/pycompss/runtime/launch.py $log_level $PyObject_serialize $storageConf "$fullAppPath" ${application_args}
   endCode=$?
   if [ $tracing -gt 0 ]; then
       unset LD_PRELOAD  # no tracing check because if not set does nothing
@@ -1096,4 +1109,3 @@ clean_env() {
 
   # Real runtime execution
   execute_runtime
-

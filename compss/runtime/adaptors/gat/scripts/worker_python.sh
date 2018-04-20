@@ -22,4 +22,3 @@
     echo 1>&2 "Task execution failed"
     exit 7
   fi
-

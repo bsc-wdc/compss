@@ -1,4 +1,4 @@
-/*         
+/*
  *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,25 +42,30 @@ public class PythonThreadPool extends ExternalThreadPool {
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_POOL);
 
-    // Python worker relative path
-    private static final String WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator + "worker" + File.separator
-            + "piper_worker.py";
+    // Python interpreter (default: system python - usually python 2)
+    private static String pythonInterpreter = "python";
+    // Worker subfolder (default: python 2)
+    private static String workerSubFolder = "2";
 
+    // Python worker relative path (default: python 2)
+    private static final String WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator + "worker" + File.separator + "piper_worker.py";
 
     /**
      * Creates a new Python Thread Pool associated to the given worker and with fixed size
-     * 
+     *
      * @param nw
      * @param size
+     * @param pythonInterpreter
      * @throws IOException
      */
     public PythonThreadPool(NIOWorker nw, int size) {
         super(nw, size);
+        // FIXME: Any parameter that conditions getLaunchCommand can not be set here since super calls ExternalThreadPool init which calls this.getLaunchCommand.
     }
 
     /**
      * Starts the threads of the pool
-     * 
+     *
      */
     @Override
     public void startThreads() throws InitializationException {
@@ -83,14 +88,28 @@ public class PythonThreadPool extends ExternalThreadPool {
         // The bindingArgs are of the form python -u piper_worker.py debug tracing storageConf #threads cmdPipes
         // resultPipes
 
+        // FIXME: This should be in the constructor
+        PythonThreadPool.pythonInterpreter = NIOWorker.getPythonInterpreter();
+        // Define the propper worker relative path
+        if (pythonInterpreter.equalsIgnoreCase(COMPSsConstants.Pythons.python.name())){
+            // TODO: Find out the python version  // Currently, assume that python is python 2
+            PythonThreadPool.workerSubFolder = "2";
+        } else if (pythonInterpreter.equalsIgnoreCase(COMPSsConstants.Pythons.python2.name())) {
+            PythonThreadPool.workerSubFolder = "2";
+        } else if (pythonInterpreter.equalsIgnoreCase(COMPSsConstants.Pythons.python3.name())) {
+            PythonThreadPool.workerSubFolder = "3";
+        }
+
         StringBuilder cmd = new StringBuilder();
 
         cmd.append(COMPSsConstants.Lang.PYTHON).append(ExternalExecutor.TOKEN_SEP);
         cmd.append(NIOWorker.isTracingEnabled()).append(ExternalExecutor.TOKEN_SEP);
 
-        cmd.append("python").append(ExternalExecutor.TOKEN_SEP).append("-u").append(ExternalExecutor.TOKEN_SEP);
-        cmd.append(installDir).append(PythonExecutor.PYCOMPSS_RELATIVE_PATH).append(WORKER_PY_RELATIVE_PATH)
-                .append(ExternalExecutor.TOKEN_SEP);
+        cmd.append(PythonThreadPool.pythonInterpreter).append(ExternalExecutor.TOKEN_SEP).append("-u").append(ExternalExecutor.TOKEN_SEP);
+        cmd.append(installDir).append(PythonExecutor.PYCOMPSS_RELATIVE_PATH)
+                              .append(File.separator).append(PythonThreadPool.workerSubFolder)
+                              .append(WORKER_PY_RELATIVE_PATH)
+                              .append(ExternalExecutor.TOKEN_SEP);
 
         cmd.append(NIOWorker.isWorkerDebugEnabled()).append(ExternalExecutor.TOKEN_SEP);
         cmd.append(NIOWorker.isTracingEnabled()).append(ExternalExecutor.TOKEN_SEP);
@@ -111,6 +130,10 @@ public class PythonThreadPool extends ExternalThreadPool {
     @Override
     public Map<String, String> getEnvironment(NIOWorker nw) {
         return PythonExecutor.getEnvironment(nw);
+    }
+
+    public static String getWorkerSubFolder() {
+        return workerSubFolder;
     }
 
     @Override

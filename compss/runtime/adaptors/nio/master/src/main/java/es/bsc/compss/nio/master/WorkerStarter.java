@@ -1,4 +1,4 @@
-/*         
+/*
  *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -93,7 +93,7 @@ public class WorkerStarter {
 
     /**
      * Instantiates a new WorkerStarter for a given Worker
-     * 
+     *
      * @param nw
      */
     public WorkerStarter(NIOWorkerNode nw) {
@@ -102,7 +102,7 @@ public class WorkerStarter {
 
     /**
      * Returns the WorkerStarter registered to a given address
-     * 
+     *
      * @param address
      * @return
      */
@@ -112,7 +112,7 @@ public class WorkerStarter {
 
     /**
      * Marks the worker as ready
-     * 
+     *
      */
     public void setWorkerIsReady() {
         LOGGER.debug("[WorkerStarter] Worker " + nw.getName() + " set to ready.");
@@ -121,7 +121,7 @@ public class WorkerStarter {
 
     /**
      * Marks the worker to be stopped
-     * 
+     *
      */
     public void setToStop() {
         this.toStop = true;
@@ -129,7 +129,7 @@ public class WorkerStarter {
 
     /**
      * Starts the current worker
-     * 
+     *
      * @return
      * @throws InitNodeException
      */
@@ -365,6 +365,13 @@ public class WorkerStarter {
             worker_persistent_c = COMPSsConstants.DEFAULT_PERSISTENT_C;
             LOGGER.warn("No persistent c passed");
         }
+
+        // Configure python interpreter
+        String python_interpreter = System.getProperty(COMPSsConstants.PYTHON_INTERPRETER);
+        if (python_interpreter == null || python_interpreter.isEmpty() || python_interpreter.equals("null")) {
+            python_interpreter = COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
+            LOGGER.warn("No python interpreter passed");
+        }
         /*
          * ************************************************************************************************************
          * BUILD COMMAND
@@ -438,6 +445,10 @@ public class WorkerStarter {
 
         // persistent_c parameter
         cmd[nextPosition++] = worker_persistent_c;
+
+        // Python interpreter parameter
+        cmd[nextPosition++] = python_interpreter;
+
         return cmd;
     }
 
@@ -507,7 +518,7 @@ public class WorkerStarter {
 
     /**
      * Ender function called from the JVM Ender Hook
-     * 
+     *
      * @param node
      * @param pid
      */

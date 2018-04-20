@@ -1,4 +1,4 @@
-/*         
+/*
  *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +38,7 @@ import es.bsc.compss.nio.NIOTracer;
 /**
  * Handles the bash piper script and its Gobblers The processes opened by each Thread inside the pool are managed by
  * their finish() method
- * 
+ *
  */
 public abstract class ExternalThreadPool extends JobsThreadPool {
 
@@ -74,7 +74,7 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
 
     /**
      * Instantiates a generic external thread pool associated to the given worker and with fixed size
-     * 
+     *
      * @param nw
      * @param size
      * @throws IOException
@@ -223,7 +223,7 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
 
     /**
      * Stops specific language components. It is executed after all the threads in the pool have been stopped
-     * 
+     *
      */
     @Override
     protected void specificStop() {
@@ -267,7 +267,7 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
 
     /**
      * Ensures that the bash process and its pipes are killed
-     * 
+     *
      * @param etp
      */
     public static void ender(ExternalThreadPool etp) {
@@ -280,14 +280,14 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
 
     /**
      * Returns the launch command for every binding
-     * 
+     *
      * @return
      */
     public abstract String getLaunchCommand();
 
     /**
      * Returns the specific environment variables of each binding
-     * 
+     *
      * @param nw
      * @return
      */
@@ -295,7 +295,7 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
 
     /**
      * Request to delete a data in the external binding
-     * 
+     *
      * @param data
      *            identifier
      * @return True if success, false if not removed
@@ -304,7 +304,7 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
 
     /**
      * Requests to serialize an external data to the given path
-     * 
+     *
      * @param name
      * @param path
      * @return

@@ -1,4 +1,4 @@
-/*         
+/*
  *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,7 +63,7 @@ public class ExecutionManager {
 
     /**
      * Instantiates a new task Execution Manager
-     * 
+     *
      * @param nw
      * @param computingUnitsCPU
      * @param computingUnitsGPU
@@ -73,7 +73,7 @@ public class ExecutionManager {
      * @param fpgaMap
      * @param limitOfTasks
      * @throws InvalidMapException
-     * @throws IOException 
+     * @throws IOException
      */
     public ExecutionManager(NIOWorker nw, int computingUnitsCPU, int computingUnitsGPU, int computingUnitsFPGA, String cpuMap,
 		String gpuMap, String fpgaMap, int limitOfTasks)
@@ -157,7 +157,7 @@ public class ExecutionManager {
 
     /**
      * Initializes the pool of threads that execute tasks
-     * 
+     *
      * @throws InitializationException
      */
     public void init() throws InitializationException {
@@ -167,7 +167,7 @@ public class ExecutionManager {
 
     /**
      * Enqueues a new task
-     * 
+     *
      * @param nt
      */
     public void enqueue(NIOTask nt) {
@@ -176,7 +176,7 @@ public class ExecutionManager {
 
     /**
      * Stops the Execution Manager and its pool of threads
-     * 
+     *
      */
     public void stop() {
         LOGGER.info("Stop Execution Manager");
@@ -186,7 +186,7 @@ public class ExecutionManager {
 
     /**
      * Bind numCUs core units to the job
-     * 
+     *
      * @param jobId
      * @param numCUs
      * @return
@@ -206,7 +206,7 @@ public class ExecutionManager {
 
     /**
      * Release core units occupied by the job
-     * 
+     *
      * @param jobId
      */
     public void release(int jobId, BinderType type) {

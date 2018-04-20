@@ -32,18 +32,7 @@ from multiprocessing import Process
 from multiprocessing import Queue
 import base64
 
-
-if sys.version_info >= (3, 0):
-    import thread_affinityPy3 as thread_affinity
-    long = int
-    str_escape = 'unicode_escape'
-else:
-    import thread_affinity
-    # Exception moved to built-in
-    from exceptions import ValueError
-    str_escape = 'string_escape'
-
-
+import thread_affinity
 from pycompss.api.parameter import TYPE
 from pycompss.api.parameter import JAVA_MIN_INT, JAVA_MAX_INT
 from pycompss.util.serializer import serialize_to_file
@@ -52,6 +41,14 @@ from pycompss.util.serializer import deserialize_from_string
 from pycompss.util.serializer import SerializerException
 from pycompss.util.logs import init_logging_worker
 from pycompss.util.persistent_storage import is_PSCO, get_by_ID
+
+if sys.version_info >= (3, 0):
+    long = int
+    str_escape = 'unicode_escape'
+else:
+    # Exception moved to built-in
+    from exceptions import ValueError
+    str_escape = 'string_escape'
 
 SYNC_EVENTS = 8000666
 

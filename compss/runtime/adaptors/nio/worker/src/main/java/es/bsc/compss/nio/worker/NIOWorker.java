@@ -1,4 +1,4 @@
-/*         
+/*
  *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -101,6 +101,10 @@ public class NIOWorker extends NIOAgent {
     private static String executionType;
 
     private static boolean persistentC;
+
+    // Python interpreter
+    private static String pythonInterpreter;
+
     // Internal components
     private final ExecutionManager executionManager;
     private final DataManager dataManager;
@@ -219,6 +223,10 @@ public class NIOWorker extends NIOAgent {
 
     public static boolean isPersistentCEnabled() {
         return persistentC;
+    }
+
+    public static String getPythonInterpreter() {
+        return pythonInterpreter;
     }
 
     public ExecutionManager getExecutionManager() {
@@ -1026,6 +1034,8 @@ public class NIOWorker extends NIOAgent {
 
         persistentC = Boolean.parseBoolean(args[26]);
 
+        pythonInterpreter = args[27];
+
         // Print arguments
         if (isWorkerDebugEnabled) {
             WORKER_LOGGER.debug("maxSnd: " + String.valueOf(maxSnd));
@@ -1059,6 +1069,8 @@ public class NIOWorker extends NIOAgent {
             WORKER_LOGGER.debug("executionType: " + executionType);
 
             WORKER_LOGGER.debug("Persistent c: " + persistentC);
+
+            WORKER_LOGGER.debug("Python interpreter: " + pythonInterpreter);
 
             WORKER_LOGGER.debug("Remove Sanbox WD: " + removeWD);
         }

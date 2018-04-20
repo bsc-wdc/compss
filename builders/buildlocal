@@ -3,7 +3,7 @@
 #####################################################################
 # Name:         buildlocal
 # Description:  Script for COMPSs local build
-# Parameters:   
+# Parameters:
 #		[--monitor]     Enable Monitor installation
 #		[--no-monitor]  Disable Monitor installation
 #		[--bingings]    Enable bindings installation
@@ -63,7 +63,7 @@ show_opts() {
     --tracing           Enable tracing system installation
     --no-tracing        Disable tracing system installation
 			Default: ${DEFAULT_TRACING}
-    
+
     --nothing		Disable all previous options
 			Default: unused
 
@@ -77,13 +77,13 @@ show_opts() {
 * Parameters:
     targetDir		COMPSs installation directory
 			Default: ${DEFAULT_TARGET_DIR}
-                                            
+
 EOT
 }
 
-usage() { 
+usage() {
   exitValue=$1
-  
+
   cat <<EOT
 Usage: $0 [options] targetDir
 EOT
@@ -106,7 +106,7 @@ display_warning() {
 display_error() {
   local error_msg=$1
   echo "$error_msg"
-  
+
   echo " "
   usage 1
 }
@@ -114,7 +114,7 @@ display_error() {
 
 get_args() {
   #Parse COMPSs Options
-  while getopts hv-: flag; do 
+  while getopts hv-: flag; do
     # Treat the argument
     case "$flag" in
       h)
@@ -127,7 +127,7 @@ get_args() {
         exit
         ;;
       -)
-	# Check more complex arguments 
+	# Check more complex arguments
 	case "$OPTARG" in
 	  help)
 	    # Display help
@@ -192,14 +192,14 @@ get_args() {
 	# Flag didn't match any patern. End of COMPSs flags
 	display_error "${INCORRECT_PARAMETER}"
 	break
-	;; 
+	;;
     esac
   done
   # Shift option arguments
   shift $((OPTIND-1))
-  
+
   # Parse target directory location
-  if [ $# -ne 0 ]; then     
+  if [ $# -ne 0 ]; then
     targetDir=$1
   fi
 }
@@ -211,13 +211,13 @@ check_args() {
   fi
 
   if [ -z "$bindings" ]; then
-    display_warning "${NO_BINDINGS}" 
-    bindings=${DEFAULT_BINDINGS} 
+    display_warning "${NO_BINDINGS}"
+    bindings=${DEFAULT_BINDINGS}
   fi
 
   if [ -z "$tracing" ]; then
-    display_warning "${NO_TRACING}" 
-    tracing=${DEFAULT_TRACING} 
+    display_warning "${NO_TRACING}"
+    tracing=${DEFAULT_TRACING}
   fi
 
   if [ -z "${user_exec}" ]; then
@@ -234,8 +234,8 @@ check_args() {
   fi
 
   if [ -z "$targetDir" ]; then
-    display_warning "${NO_TARGET_DIR}" 
-    targetDir=${DEFAULT_TARGET_DIR} 
+    display_warning "${NO_TARGET_DIR}"
+    targetDir=${DEFAULT_TARGET_DIR}
   fi
 }
 
@@ -264,7 +264,7 @@ install_compss() {
   if [ "${user_exec}" == "${DEFAULT_USER}" ]; then
     echo "   (as root)"
     mvn -U clean package ${mvnTests}
-  else 
+  else
     echo "   (as user ${user_exec})"
     sudo -E -u "${user_exec}" mvn clean install ${mvnTests}
   fi
@@ -328,7 +328,7 @@ install_compss() {
   #Dependencies
   echo "--- Copy dependencies"
   cp -r "${TMP_DIR}/dependencies/JAVA_GAT" ${targetDir}/Dependencies/
-  cp -r "${TMP_DIR}/files/paraver" ${targetDir}/Dependencies/  
+  cp -r "${TMP_DIR}/files/paraver" ${targetDir}/Dependencies/
   if [ "$tracing" == "true" ]; then
     cd "${TMP_DIR}/dependencies/extrae"
     ./install ${targetDir}/Dependencies/extrae false
@@ -370,7 +370,7 @@ install_compss() {
       mkdir "${path_target}/$adaptor/worker"
       cp "${path_source}/$adaptor"/worker/*.jar "${path_target}/$adaptor/worker"
     fi
-    if [ -f "${path_source}/$adaptor/worker/properties" ]; then 
+    if [ -f "${path_source}/$adaptor/worker/properties" ]; then
       cp "${path_source}/$adaptor/worker/properties" "${path_target}/$adaptor/worker"
     fi
     if [ -d "${path_source}/$adaptor/scripts/" ]; then
@@ -399,7 +399,7 @@ install_compss() {
   # Engine
   echo "--- Copy engine"
   cp "${TMP_DIR}/compss/runtime/compss-engine.jar" "${targetDir}/Runtime/"
- 
+
   # TOOLS DEPLOYMENT
   if [ "$monitor" == "true" ]; then
     echo "- Deploying COMPSs Tools"
@@ -460,7 +460,7 @@ install_compss() {
     # Remove any previous version
     if [ -f "$envFile" ]; then
       rm $envFile
-    fi 
+    fi
   else
     # Script has been run as normal user
     # Insert to .bashrc
@@ -488,13 +488,14 @@ install_compss() {
     echo "- c-binaries added to user profile"
     echo " "
     echo "- Adding PyCOMPSs to user profile..."
-    echo "export PYTHONPATH=\$PYTHONPATH:${targetDir}/Bindings/python/" >> $envFile
+    # FIXME: This could be done with softlinks from site-packages in both python2 a python3 (if available)
+    echo "export PYTHONPATH=\$PYTHONPATH:${targetDir}/Bindings/python/$( python -c "import sys; print(sys.version_info[:][0])" )/" >> $envFile
     echo "- PyCOMPSs added to user profile"
     echo " "
   fi
 
   # ADD MONITOR SCRIPT TO ETC
-  if [ "$monitor" == "true" ]; then 
+  if [ "$monitor" == "true" ]; then
     echo "- Add monitor script to init.d"
     sudo cp "${TMP_DIR}/compss/tools/monitor/scripts/compss-monitor" /etc/init.d/compss-monitor
     sudo chmod 755 /etc/init.d/compss-monitor
@@ -503,12 +504,12 @@ install_compss() {
     if [ "$system" != "" ]; then
       # Suse based distrs
       sudo chkconfig --add compss-monitor
-    else 
+    else
       # Debian based distrs
       sudo update-rc.d compss-monitor defaults
     fi
   fi
- 
+
   # ERASE TMP FILES
   echo "- Erase tmp files"
   rm -rf "${TMP_DIR}"
@@ -533,4 +534,3 @@ install_compss() {
   echo "COMPSs Runtime Successfully installed!"
   echo " "
   exit 0
-

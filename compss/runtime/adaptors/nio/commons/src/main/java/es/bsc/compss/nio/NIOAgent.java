@@ -1,4 +1,4 @@
-/*         
+/*
  *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,7 +60,7 @@ public abstract class NIOAgent {
     public static final String ID = NIOAgent.class.getCanonicalName();
 
     public static final int NUM_PARAMS_PER_WORKER_SH = 5;
-    public static final int NUM_PARAMS_NIO_WORKER = 27;
+    public static final int NUM_PARAMS_NIO_WORKER = 28;
     public static final String BINDER_DISABLED = "disabled";
     public static final String BINDER_AUTOMATIC = "automatic";
 

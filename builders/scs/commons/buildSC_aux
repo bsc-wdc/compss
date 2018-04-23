@@ -237,7 +237,7 @@
   cp ./compss_build_app ${targetDir}/Runtime/scripts/user/
   echo "- Deploying python-binding files"
   cd ${tmpDir}/compss/programming_model/bindings/python
-  if [ -z "$py2_modules" ]; then
+  if [ -z "$py2_modules" ] || [ "$py2_modules" == "ignore" ]; then
     echo "    - For python 2"
     module load ${py2_modules}
     ./install ${targetDir}/Bindings/python python2
@@ -247,7 +247,7 @@
     fi
     module unload ${py2_modules}
   fi
-  if [ -z "$py3_modules" ]; then
+  if [ -z "$py3_modules" ] || [ "$py3_modules" == "ignore" ]; then
     echo "    - For python 3"
     module load ${py3_modules}
     ./install ${targetDir}/Bindings/python python3

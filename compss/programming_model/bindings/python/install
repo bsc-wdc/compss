@@ -26,6 +26,44 @@
 #" )
 #  }
 
+  install_for_py2 () {
+    echo "Installing in ${targetDir}"
+    PYCOMPSS_HOME="${targetDir}/2"
+    export PYTHONPATH=$PYCOMPSS_HOME:$PYTHONPATH
+
+    if command_exists python2 ; then
+      python2 ${SCRIPT_DIR}/setup.py install --install-lib=${PYCOMPSS_HOME} -O2
+      exitCode=$?
+      if [ $exitCode -ne 0 ]; then
+        echo "ERROR: Cannot install PyCOMPSs for Python 2"
+        exit $exitCode
+      fi
+    else
+      echo "WARNING: PyCOMPSS FOR PYTHON 2 HAS NOT BEEN INSTALLED."
+    fi
+  }
+
+  install_for_py3 () {
+    PYCOMPSS_HOME="${targetDir}/3"
+    # The previous line defines that the installation will be done in a different file from the previous
+    # installation, and relies on the creation of a symbolic link from the interpreter library folder.
+    # It is possible to install Python3 version within the same folder (python code is compatible), but:
+    #   - The extensions have different names, so that the most appropriate can be selected dynamically.
+    #   - pyc and pyo files are in different folders (for python2 within the same as .py files, while
+    #     in python 3 they are within __pycache__ folder).
+    export PYTHONPATH=$PYCOMPSS_HOME:$OLD_PYTHONPATH
+
+    if command_exists python3 ; then
+      python3 ${SCRIPT_DIR}/setup.py install --install-lib=${PYCOMPSS_HOME} -O2
+      exitCode=$?
+      if [ $exitCode -ne 0 ]; then
+        echo "ERROR: Cannot install PyCOMPSs for Python 3"
+        exit $exitCode
+      fi
+    else
+      echo "WARNING: PyCOMPSS FOR PYTHON 3 HAS NOT BEEN INSTALLED."
+    fi
+  }
 
   #
   # SCRIPT GLOBAL CONSTANTS
@@ -33,52 +71,30 @@
 
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-
   #
   # MAIN
   #
 
   # Retrieve script arguments
   targetDir=$1
+  only_python_version=$2
 
   # Add trap for clean
   trap clean EXIT
 
   # Install
-  echo "Installing in ${targetDir}"
-  PYCOMPSS_HOME="${targetDir}/2"
   OLD_PYTHONPATH=$PYTHONPATH
-  export PYTHONPATH=$PYCOMPSS_HOME:$PYTHONPATH
 
-  if command_exists python2 ; then
-      python2 ${SCRIPT_DIR}/setup.py install --install-lib=${PYCOMPSS_HOME} -O2
-      exitCode=$?
-      if [ $exitCode -ne 0 ]; then
-        echo "ERROR: Cannot install PyCOMPSs for Python 2"
-        exit $exitCode
-      fi
-  else
-      echo "WARNING: PyCOMPSS FOR PYTHON 2 HAS NOT BEEN INSTALLED."
-  fi
-
-  PYCOMPSS_HOME="${targetDir}/3"
-  # The previous line defines that the installation will be done in a different file from the previous
-  # installation, and relies on the creation of a symbolic link from the interpreter library folder.
-  # It is possible to install Python3 version within the same folder (python code is compatible), but:
-  #   - The extensions have different names, so that the most appropriate can be selected dynamically.
-  #   - pyc and pyo files are in different folders (for python2 within the same as .py files, while
-  #     in python 3 they are within __pycache__ folder).
-  export PYTHONPATH=$PYCOMPSS_HOME:$OLD_PYTHONPATH
-
-  if command_exists python3 ; then
-      python3 ${SCRIPT_DIR}/setup.py install --install-lib=${PYCOMPSS_HOME} -O2
-      exitCode=$?
-      if [ $exitCode -ne 0 ]; then
-        echo "ERROR: Cannot install PyCOMPSs for Python 3"
-        exit $exitCode
-      fi
-  else
-      echo "WARNING: PyCOMPSS FOR PYTHON 3 HAS NOT BEEN INSTALLED."
+  if [ -z "$only_python_version" ]; then
+    # Try to install all
+    install_for_py2
+    install_for_py3
+  elif [ "$only_python_version" == "python2" ]; then
+    # Install only python 2 version
+    install_for_py2
+  elif [ "$only_python_version" == "python3" ]; then
+    # Install only python 3 version
+    install_for_py3
   fi
 
   # Normal exit

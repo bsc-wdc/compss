@@ -12,11 +12,6 @@
     echo " - COMPSs Worker permissions set"
     echo " "
 
-    echo " - Adding runcompss to profile..."
-    echo "export PATH=\$PATH:/opt/COMPSs/Runtime/scripts/user" > /etc/profile.d/compss.sh
-    echo " - Runcompss added to user profile"
-    echo " "
-
     echo " "
     echo "Congratulations!"
     echo " * COMPSs Worker $newversion successfully installed!"

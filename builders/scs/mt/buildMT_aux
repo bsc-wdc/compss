@@ -28,7 +28,7 @@
   targetDir=$1
   scriptDir=$(dirname $0)
 
-  modules="python/2.7.2 java boost gcc/7.1.0"
+  modules="java gcc/7.1.0 mkl/2018.1 python/2.7.14 bullxmpi/bullxmpi-1.2.9.1 boost/1.67.0"
   additionalExports="export BOOST_CPPFLAGS=-I\${BOOST_INCLUDE} PATH=/apps/CEPBATOOLS/deps/libxml2/2.9.4/bin:$PATH"
   queues_cfg="mt.cfg"
   extrae_with_openmpi="false"

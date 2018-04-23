@@ -488,7 +488,7 @@ install_compss() {
     echo "- c-binaries added to user profile"
     echo " "
     echo "- Adding PyCOMPSs to user profile..."
-    # FIXME: This could be done with softlinks from site-packages in both python2 a python3 (if available)
+    # FIXME: This could be done with softlinks from site-packages in both python2 a python3 (if available) on the installation
     echo "export PYTHONPATH=\$PYTHONPATH:${targetDir}/Bindings/python/$( python -c "import sys; print(sys.version_info[:][0])" )/" >> $envFile
     echo "- PyCOMPSs added to user profile"
     echo " "

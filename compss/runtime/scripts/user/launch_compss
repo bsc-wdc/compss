@@ -26,6 +26,11 @@ DEFAULT_FPGA_REPROGRAM=""
 DEFAULT_TASK_EXECUTION=compss
 DEFAULT_STORAGE_CONF=null
 DEFAULT_PERSISTENT_WORKER_C=false
+if [ -x "$(command -v python)" ]; then
+  DEFAULT_PYTHON_INTERPRETER=python$( python -c "import sys; print(sys.version_info[:][0])")
+else
+  DEFAULT_PYTHON_INTERPRETER=python
+fi
 
 ###############################################
 # ERROR CONSTANTS DECLARATION
@@ -65,7 +70,7 @@ Usage: $0 [options] application_name application_arguments
     --opts                                  Show available options
 
     --version, -v                           Print COMPSs version
-    
+
     --sc_cfg=<name>                         SuperComputer configuration file to use. Must exist inside queues/cfgs/
                                             Mandatory
                                             Default: ${DEFAULT_SC_CFG}
@@ -75,7 +80,7 @@ Usage: $0 [options] application_name application_arguments
 
     --worker_nodes="<string string...>"     Space separated nodes where to run the COMPSs Workers (Notice the quotes)
                                             Mandatory
-    
+
   Launch configuration:
 EOT
 
@@ -95,7 +100,7 @@ show_opts() {
   local defaultQS_cfg=${SCRIPT_DIR}/../queues/${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg
   #shellcheck source=../queues/slurm/slurm.cfg
   source "${defaultQS_cfg}"
-  
+
   # Show usage
   cat <<EOT
     --cpus_per_node=<int>                   Available CPU computing units on each node
@@ -104,7 +109,7 @@ show_opts() {
                                             Default: ${DEFAULT_GPUS_PER_NODE}
     --fpgas_per_node=<int>                  Available FPGA computing units on each node
                                             Default: ${DEFAULT_FPGAS_PER_NODE}
-    --fpga_reprogram="<string>              Specify the full command that needs to be executed to reprogram the FPGA with 
+    --fpga_reprogram="<string>              Specify the full command that needs to be executed to reprogram the FPGA with
                                             the desired bitstream. The location must be an absolute path.
                                             Default: ${DEFAULT_FPGA_REPROGRAM}
     --max_tasks_per_node=<int>              Maximum number of simultaneous tasks running on a node
@@ -113,7 +118,7 @@ show_opts() {
                                             Default: ${DEFAULT_NODE_MEMORY}
     --network=<name>                        Communication network for transfers: default | ethernet | infiniband | data.
                                             Default: ${DEFAULT_NETWORK}
-                                              
+
     --prolog="<string>"                     Task to execute before launching COMPSs (Notice the quotes)
                                             If the task has arguments split them by "," rather than spaces.
                                             This argument can appear multiple times for more than one prolog action
@@ -127,13 +132,13 @@ show_opts() {
                                             Default: ${DEFAULT_MASTER_WORKING_DIR}
     --worker_working_dir=<name | path>      Worker directory. Use: scratch | gpfs | <path>
                                             Default: ${DEFAULT_WORKER_WORKING_DIR}
-                                              
+
     --worker_in_master_cpus=<int>           Maximum number of CPU computing units that the master node can run as worker. Cannot exceed cpus_per_node.
                                             Default: ${DEFAULT_WORKER_IN_MASTER_CPUS}
     --worker_in_master_memory=<int> MB      Maximum memory in master node assigned to the worker. Cannot exceed the node_memory.
                                             Mandatory if worker_in_master_cpus is specified.
                                             Default: ${DEFAULT_WORKER_IN_MASTER_MEMORY}
-    --jvm_worker_in_master_opts="<string>"  Extra options for the JVM of the COMPSs Worker in the Master Node. 
+    --jvm_worker_in_master_opts="<string>"  Extra options for the JVM of the COMPSs Worker in the Master Node.
                                             Each option separed by "," and without blank spaces (Notice the quotes)
                                             Default: ${DEFAULT_JVM_WORKER_IN_MASTER}
     --container_image=<path>                Runs the application by means of a container engine image
@@ -148,11 +153,11 @@ show_opts() {
   Runcompss configuration:
 
 EOT
-    "${SCRIPT_DIR}"/runcompss --opts 
+    "${SCRIPT_DIR}"/runcompss --opts
 
   exit "$exitValue"
 }
-  
+
 ###############################################
 # Displays version
 ###############################################
@@ -169,10 +174,10 @@ display_version() {
 ###############################################
 display_error() {
   local error_msg=$1
-  
+
   echo "$error_msg"
   echo " "
-  
+
   usage 1
 }
 
@@ -181,10 +186,10 @@ display_error() {
 ###############################################
 action_error() {
   local error_msg=$1
-  
+
   echo "$error_msg"
   echo " "
-  
+
   exit 1
 }
 
@@ -236,14 +241,14 @@ load_tracing_env() {
   # Look for openmpi / impi / none
   impi=$(cat "${module_tmp}" | grep -i "impi" "${module_tmp}")
   openmpi=$(cat "${module_tmp}" | grep -i "openmpi" "${module_tmp}")
-  
+
   if [ ! -z "$impi" ]; then
     # Load Extrae IMPI
     export EXTRAE_HOME=${COMPSS_HOME}/Dependencies/extrae-impi/
   elif [ ! -z "$openmpi" ]; then
     # Load Extrae OpenMPI
     export EXTRAE_HOME=${COMPSS_HOME}/Dependencies/extrae-openmpi/
-  else 
+  else
     # Load sequential extrae
     export EXTRAE_HOME=${COMPSS_HOME}/Dependencies/extrae/
   fi
@@ -277,7 +282,7 @@ worker_cmd() {
   local worker_port=43001
   if [ -z "${container_image}" ]; then
      WCMD="${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh"
-  else 
+  else
      WCMD="singularity exec $container_opts $container_image ${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh"
   fi
   WCMD="$WCMD ${library_path} \
@@ -313,7 +318,8 @@ worker_cmd() {
             ${nodeId} \
             ${storage_conf} \
             ${taskExecution} \
-	    ${persistent_worker_c}"
+	          ${persistent_worker_c} \
+            ${python_interpreter}"
 }
 
 ###############################################
@@ -337,7 +343,7 @@ master_cmd() {
             --master_port=${master_port} \
             --jvm_master_opts=\"${jvm_master_opts}\" \
             --jvm_workers_opts=\"${jvm_workers_opts}\""
-}  
+}
 
 
 #---------------------------------------------------
@@ -352,9 +358,9 @@ get_args() {
   if [ $# -eq 0 ]; then
     usage 1
   fi
-  
+
   # Parse COMPSs Options
-  while getopts hvgtmd-: flag; do 
+  while getopts hvgtmd-: flag; do
     # Treat the argument
     case "$flag" in
       h)
@@ -376,7 +382,7 @@ get_args() {
         args_pass="$args_pass -$flag"
         ;;
       -)
-      # Check more complex arguments 
+      # Check more complex arguments
       case "$OPTARG" in
         help)
           # Display help
@@ -431,7 +437,7 @@ get_args() {
           ;;
         worker_working_dir=*)
           worker_working_dir=${OPTARG//worker_working_dir=/}
-          ;; 
+          ;;
         worker_in_master_cpus=*)
           worker_in_master_cpus=${OPTARG//worker_in_master_cpus=/}
           ;;
@@ -523,6 +529,11 @@ get_args() {
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
+        python_interpreter=*)
+          python_interpreter=${OPTARG//python_interpreter=/}
+          # Keep it for runcompss (to add them to master)
+          args_pass="$args_pass --$OPTARG"
+          ;;
         prolog=*)
           action=${OPTARG//prolog=/}
           prologActions[numPrologActions]="$action"
@@ -532,7 +543,7 @@ get_args() {
           action=${OPTARG//epilog=/}
           epilogActions[numEpilogActions]="$action"
           numEpilogActions=$((numEpilogActions + 1))
-          ;; 
+          ;;
         uuid=*)
           # UUID will be generated by launch.sh remove it from COMPSs flags
           echo "WARNING: UUID is automatically generated. Omitting parameter"
@@ -584,7 +595,7 @@ get_args() {
           constraints=${OPTARG//constraints=/}
           ;;
 	*)
-          # Flag didn't match any patern. Add to COMPSs 
+          # Flag didn't match any patern. Add to COMPSs
           args_pass="$args_pass --$OPTARG"
           ;;
       esac
@@ -592,18 +603,18 @@ get_args() {
     *)
       # Flag didn't match any patern. End of COMPSs flags
       args_pass="$args_pass -$flag"
-      ;; 
+      ;;
     esac
   done
-  
+
   # Shift COMPSs arguments
   shift $((OPTIND-1))
 
-  # Wrap full app path for lang inference 
+  # Wrap full app path for lang inference
   fullAppPath=$1
 
   # Pass application name and args
-  args_pass="$args_pass $@" 
+  args_pass="$args_pass $@"
 }
 
 ###############################################
@@ -621,14 +632,14 @@ check_args() {
     # Add cfg suffix
     sc_cfg=${sc_cfg}.cfg
   fi
-   
+
   local scCfgFullPath=${SCRIPT_DIR}/../queues/cfgs/${sc_cfg}
 
   if [ ! -f "${scCfgFullPath}" ]; then
     # CFG file doesn't exist
-    display_error "${ERROR_CFG_SC}"   
+    display_error "${ERROR_CFG_SC}"
   fi
- 
+
   # Source SC CFG env
   # shellcheck source=../queues/cfgs/default.cfg
   source "${scCfgFullPath}"
@@ -637,20 +648,20 @@ check_args() {
   local queueCfgFullPath=${SCRIPT_DIR}/../queues/${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg
   if [ ! -f "${queueCfgFullPath}" ]; then
     # CFG file doesn't exist
-    display_error "${ERROR_CFG_Q}" 
+    display_error "${ERROR_CFG_Q}"
   fi
 
   # Source queue system CFG env
   # shellcheck source=../queues/slurm/slurm.cfg
   source "${queueCfgFullPath}"
-  
+
   ###############################################################
   # Infrastructure checks
   ###############################################################
   if [ -z "${master_node}" ]; then
     display_error "${ERROR_MASTER_NODE}"
   fi
-  
+
   if [ -z "${worker_nodes}" ] && [ "${DEFAULT_WORKER_IN_MASTER_CPUS}" -eq "0" ]; then
     if [ -z "${worker_in_master_cpus}" ]; then
       display_error "${ERROR_WORKER_NODES}"
@@ -666,7 +677,7 @@ check_args() {
   elif [ "${network}" != "ethernet" ] && [ "${network}" != "infiniband" ] && [ "${network}" != "data" ]; then
     display_error "${ERROR_NETWORK}"
   fi
-  
+
   if [ -z "${storage_conf}" ]; then
     storage_conf=${DEFAULT_STORAGE_CONF}
   fi
@@ -674,9 +685,13 @@ check_args() {
   if [ -z "${taskExecution}" ]; then
     taskExecution=${DEFAULT_TASK_EXECUTION}
   fi
-  
+
   if [ -z "${persistent_worker_c}" ]; then
     persistent_worker_c=${DEFAULT_PERSISTENT_WORKER_C}
+  fi
+
+  if [ -z "${python_interpreter}" ]; then
+    python_interpreter=${DEFAULT_PYTHON_INTERPRETER}
   fi
 
   ###############################################################
@@ -689,9 +704,9 @@ check_args() {
   if [ -z "${cpus_per_node}" ]; then
     cpus_per_node=${DEFAULT_CPUS_PER_NODE}
   fi
-  
+
   if [ "${cpus_per_node}" -lt "${MINIMUM_CPUS_PER_NODE}" ]; then
-    display_error "${ERROR_NUM_CPUS}"                                                                                                                                                                                                       
+    display_error "${ERROR_NUM_CPUS}"
   fi
 
   if [ -z "${gpus_per_node}" ]; then
@@ -720,8 +735,8 @@ check_args() {
 
   if [ -z "${node_memory}" ]; then
     node_memory=${DEFAULT_NODE_MEMORY}
-  fi 
- 
+  fi
+
   if [ -z "${worker_in_master_cpus}" ]; then
     worker_in_master_cpus=${DEFAULT_WORKER_IN_MASTER_CPUS}
   fi
@@ -737,7 +752,7 @@ check_args() {
   if [ "${worker_in_master_memory}" != "${DEFAULT_WORKER_IN_MASTER_MEMORY}" ] && [ "${node_memory}" != "${DEFAULT_NODE_MEMORY}" ]; then
     if [ "${worker_in_master_memory}" -gt "${node_memory}" ]; then
       display_error "${ERROR_WORKER_IN_MASTER_MEMORY_TOO_HIGH} (${worker_in_master_memory} < ${node_memory} "
-    fi 
+    fi
   fi
 
   if [ "${worker_in_master_cpus}" -gt 0 ] && [ "${worker_in_master_memory}" -le 0 ]; then
@@ -761,7 +776,7 @@ check_args() {
   if [ -z "${master_working_dir}" ]; then
     master_working_dir=${DEFAULT_MASTER_WORKING_DIR}
   fi
-  
+
   if [ -z "${worker_working_dir}" ]; then
     worker_working_dir=${DEFAULT_WORKER_WORKING_DIR}
   elif [ "${worker_working_dir}" != "scratch" ] && [ "${worker_working_dir}" != "gpfs" ] && [[ ${worker_working_dir} != /* ]]; then
@@ -819,7 +834,7 @@ check_args() {
   if [ -z "${library_path}" ]; then
     library_path=${DEFAULT_LIBRARY_PATH}
   fi
-  
+
   # Classpath
   if [ -z "$cp" ]; then
     cp=${DEFAULT_CLASSPATH}
@@ -855,7 +870,7 @@ check_args() {
 ###############################################
 # Sets job variables
 ###############################################
-set_variables() { 
+set_variables() {
   # Set script variables
   if [ -z "${container_image}" ]; then
     export COMPSS_HOME=${COMPSS_HOME}
@@ -879,13 +894,13 @@ set_variables() {
   fi
   specific_log_dir=${base_log_dir}/.COMPSs/${!ENV_VAR_JOB_ID}/
   mkdir -p "${specific_log_dir}"
-  
+
   # SharedDisk variables
   if [ "${worker_working_dir}" == "gpfs" ]; then
     worker_working_dir=$(mktemp -d -p "${GPFS_PREFIX}${HOME}")
   elif [ "${worker_working_dir}" == "scratch" ]; then
     worker_working_dir=$TMPDIR
-  else 
+  else
     # The working dir is a custom absolute path, create tmp
     worker_working_dir=$(mktemp -d -p "${worker_working_dir}")
   fi
@@ -938,7 +953,7 @@ set_variables() {
       debug="false"
     fi
   fi
-  
+
   # Generate a UUID for workers and runcompss
   uuid=$(cat /proc/sys/kernel/random/uuid)
 }
@@ -968,10 +983,11 @@ log_variables() {
   echo "Workers JVM Opts:          ${jvm_workers_opts}"
   echo "Worker in Master JVM Opts: ${jvm_worker_in_master_opts}"
   echo "Library Path:              ${library_path}"
-  echo "Classpath:                 ${cp}" 
+  echo "Classpath:                 ${cp}"
   echo "Pythonpath:                ${pythonpath}"
   echo "Appdir:			   ${appdir}"
   echo "Lang:                      ${lang}"
+  echo "Python Interpreter:        ${python_interpreter}"
   echo "COMM:                      ${comm}"
   echo "Prolog:                    ${prologActions[*]}"
   echo "Epilog:                    ${epilogActions[*]}"
@@ -1022,7 +1038,7 @@ create_xml_files() {
   if [ ! -z "${elasticity}" ]; then
     insert_xml_elasticity "${elasticity}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${max_tasks_per_node}" "${node_memory}"
   fi
-  # Finish the resources file and the project file 
+  # Finish the resources file and the project file
   insert_xml_footers
 
   echo "Generation of resources and project file finished"
@@ -1145,7 +1161,7 @@ cleanup() {
   if [[ "$jvm_workers_opts" == *"-Dcompss.worker.removeWD=false"* ]]; then
     echo "[WARN] Flag removeWD set to false. Not cleaning Workers WD"
     echo "[WARN] Flag removeWD set to false. Not cleaning XML files"
-  else 
+  else
     # Cleanup
     echo "Cleanup Worker TMP files"
     for node in ${worker_nodes}; do
@@ -1162,8 +1178,8 @@ cleanup() {
     rm -f "${RESOURCES_FILE}"
   fi
 }
-  
-  
+
+
 #---------------------------------------------------------------------------------------
 # XML SPECIFIC FUNCTIONS
 #---------------------------------------------------------------------------------------
@@ -1217,7 +1233,7 @@ cat >> "${PROJECT_FILE}" << EOT
   </MasterNode>
 
 EOT
- 
+
 else
     cat > "${PROJECT_FILE}" << EOT
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -1243,7 +1259,7 @@ EOT
 
 
 ###############################################
-# Insert XML Elasticity 
+# Insert XML Elasticity
 ###############################################
 insert_xml_elasticity() {
   local max_vms=$1
@@ -1356,7 +1372,7 @@ EOT
 cat >> "${RESOURCES_FILE}" << EOT
 		<Memory>
           		<Size>${memory}</Size>
-      		</Memory>		
+      		</Memory>
                 <Price>
                     <TimeUnit>1</TimeUnit>
                     <PricePerUnit>0.085</PricePerUnit>
@@ -1479,7 +1495,7 @@ EOT
   if [ "$lot" != "" ] && [ "$lot" -ge 0 ]; then
     cat >> "${PROJECT_FILE}" <<EOT
       				<LimitOfTasks>${lot}</LimitOfTasks>
-      
+
 EOT
   fi
 
@@ -1629,17 +1645,16 @@ EOT
 #---------------------------------------------------------------------------------------
 # MAIN EXECUTION
 #---------------------------------------------------------------------------------------
-  
+
   # Set script variables
   SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/user"
   COMPSS_HOME=${SCRIPT_DIR}/../../../
 
-  
   numPrologActions=0
   declare -a prologActions
   numEpilogActions=0
   declare -a epilogActions
-  
+
   # Get command args
   get_args "$@"
 
@@ -1648,7 +1663,7 @@ EOT
 
   # Set job variables
   set_variables
- 
+
   # Log variables
   log_variables
 
@@ -1657,16 +1672,15 @@ EOT
 
   # Create XML files
   create_xml_files
-  
+
   # Prolog
   prolog
 
   # Launch execution
   launch
 
-  # Wait 
+  # Wait
   wait_for_completion
-    
+
   # Epilog
   epilog
-

@@ -19,12 +19,13 @@
     app_dir=$2
     cp=$3
     pythonpath=$4
-    debug=$5
-    storageConf=$6
-    methodType=$7
+    pythonInterpreter=$5
+    debug=$6
+    storageConf=$7
+    methodType=$8
 
     # Shit all parameters except method ones
-    shiftSizeForApp=4
+    shiftSizeForApp=5
     shift $shiftSizeForApp
    
     # Get method parameters
@@ -35,6 +36,7 @@
       echo "[WORKER_COMMONS.SH] - app_dir     $app_dir"
       echo "[WORKER_COMMONS.SH] - classpath   $cp"
       echo "[WORKER_COMMONS.SH] - pythonpath  $pythonpath"
+      echo "[WORKER_COMMONS.SH] - pythonInterpreter  $pythonInterpreter"
     fi
   }
 
@@ -64,8 +66,7 @@
     add_to_classpath "$app_dir/lib"
     export CLASSPATH=$cp:$CLASSPATH:$app_dir:$gatworker_jar
 
-    # Set pythonpath related env
+    # Set python home related env
     export PYCOMPSS_HOME=${bindingsDir}/python
-    export PYTHONPATH=$pythonpath:$app_dir:$PYCOMPSS_HOME:$PYTHONPATH
   }
 

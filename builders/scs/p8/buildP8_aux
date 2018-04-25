@@ -28,7 +28,7 @@
   targetDir=$1
   scriptDir=$(dirname $0)
 
-  modules="boost jdk"
+  modules="boost jdk python/2.7.13"
   py2_modules="python/2.7.13"
   py3_modules=""
 # additionalExports="export BOOST_CPPFLAGS=-I\${BOOST_INCLUDE} PATH=/apps/CEPBATOOLS/deps/libxml2/2.9.4/bin:$PATH"

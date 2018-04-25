@@ -28,7 +28,7 @@
   targetDir=$1
   scriptDir=$(dirname $0)
 
-  modules="autoconf autotools java intel boost"
+  modules="autoconf autotools java intel python boost"
   py2_modules="python"
   py3_modules=""
   additionalExports="export BOOST_CPPFLAGS=-I/apps/BOOST/1.49.0/include PATH=/apps/COMPSs/deps/libxml2/2.9.4/bin:$PATH"

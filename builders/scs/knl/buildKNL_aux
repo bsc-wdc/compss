@@ -28,7 +28,7 @@
   targetDir=$1
   scriptDir=$(dirname $0)
 
-  modules="bsc/current java boost"
+  modules="bsc/current java python/2.7.12-INTEL boost"
   py2_modules="python/2.7.12-INTEL"
   py3_modules=""
   additionalExports="export BOOST_CPPFLAGS=-I\${BOOST_INCLUDE} PATH=/usr/include/libxml:$PATH"

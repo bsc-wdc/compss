@@ -29,7 +29,7 @@
   targetDir=$1
   scriptDir=$(dirname $0)
 
-  modules="GCCcore/.5.4.0 Intel/2017.0.098-GCC-5.4.0 Java IntelMPI Boost PAPI/5.5.0 Autotools/20150215"
+  modules="GCCcore/.5.4.0 Intel/2017.0.098-GCC-5.4.0 Java IntelMPI Python/2.7.12 Boost PAPI/5.5.0 Autotools/20150215"
   py2_modules="Python/2.7.12"
   py3_modules=""
   additionalExports=""

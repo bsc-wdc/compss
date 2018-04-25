@@ -346,8 +346,7 @@ delete_file(PyObject *self, PyObject *args) {
   debug("####C#### Calling Delete File with file %s\n", file_name);
   GS_Delete_File(file_name);
   debug("####C#### COMPSs delete file name %s with result %d \n", file_name, 0);
-  PyObject *ret = Py_BuildValue("i", 0);
-  return ret;
+  Py_RETURN_NONE;
 }
 
 /*

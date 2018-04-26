@@ -71,15 +71,12 @@ function execute () {
   timeout --signal=2 "$expectedTime" python -m pycompss \
      --project="${base_app_dir}"/project.xml \
      --resources="${base_app_dir}"/resources.xml \
-     \
      --comm="$comm" \
-     \
      --pythonpath="${base_app_dir}"/src \
      --lang=python \
-     \
+     --python_interpreter="$pythonInterpreter" \
      --debug \
      ${runcompss_opts} \
-     \
      "${base_app_dir}"/src/"${app}".py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
   # Check timeout
@@ -107,6 +104,7 @@ function execute () {
   COMPSs_log_folder=$5
   target_log_folder=$6
   retryNum=$7
+  pythonInterpreter=$8
 
   #----------------------------------------------------------------------------------
   # Check that the pycompss module is available in the environment

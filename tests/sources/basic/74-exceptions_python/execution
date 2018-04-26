@@ -5,7 +5,7 @@
   clean_orphans() {
     # Sleep before cleanning test environment
     sleep 1s
-  
+
     # Clean possible remaining test processes
     ps x -o  "%r %c" | grep "runcompss" | awk '{ print $1 }' | xargs -r -i kill -9 -{}
     ps -elfa | grep "java" | grep "es.bsc.compss.nio.worker.NIOWorker" | awk '{ print $4 }' | xargs -r kill -9
@@ -25,6 +25,7 @@
   COMPSs_log_folder=$5
   target_log_folder=$6
   retryNum=$7
+  pythonInterpreter=$8
 
   # Global exit variable
   exitValue=0
@@ -55,15 +56,12 @@
       timeout --signal=2 $expectedTime "${COMPSs_exec}" \
          --project="${base_app_dir}"/project.xml \
          --resources="${base_app_dir}"/resources.xml \
-         \
          --comm="$comm" \
-         \
          --lang=python \
+         --python_interpreter="$pythonInterpreter" \
          --pythonpath="${base_app_dir}"/src \
-         \
          --debug \
          ${runcompss_opts} \
-         \
          "${base_app_dir}"/src/excInMasterBeforeTasks.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
       # Check timeout
@@ -85,7 +83,7 @@
   # Kind of a try catch, but without else... allows to continue when the exeption are raised.
   if app1; then
     if [ $exitValue -eq 0 ]; then
-      echo "Exception captured. Traceback and Exception message found - OK" 
+      echo "Exception captured. Traceback and Exception message found - OK"
     else
       echo "The traceback or the exception message could not be found - ERROR"
       exit 1
@@ -114,15 +112,12 @@
       timeout --signal=2 $expectedTime "${COMPSs_exec}" \
          --project="${base_app_dir}"/project.xml \
          --resources="${base_app_dir}"/resources.xml \
-         \
          --comm="$comm" \
-         \
          --lang=python \
+         --python_interpreter="$pythonInterpreter" \
          --pythonpath="${base_app_dir}"/src \
-         \
          --debug \
          ${runcompss_opts} \
-         \
          "${base_app_dir}"/src/excInMasterAfterTasks1.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
       # Check timeout
@@ -173,15 +168,12 @@
       timeout --signal=2 $expectedTime "${COMPSs_exec}" \
          --project="${base_app_dir}"/project.xml \
          --resources="${base_app_dir}"/resources.xml \
-         \
          --comm="$comm" \
-         \
          --lang=python \
+         --python_interpreter="$pythonInterpreter" \
          --pythonpath="${base_app_dir}"/src \
-         \
          --debug \
          ${runcompss_opts} \
-         \
          "${base_app_dir}"/src/excInMasterAfterTasks2.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
       # Check timeout
@@ -237,15 +229,12 @@
       timeout --signal=2 $expectedTime "${COMPSs_exec}" \
          --project="${base_app_dir}"/project.xml \
          --resources="${base_app_dir}"/resources.xml \
-         \
          --comm="$comm" \
-         \
          --lang=python \
+         --python_interpreter="$pythonInterpreter" \
          --pythonpath="${base_app_dir}"/src \
-         \
          --debug \
          ${runcompss_opts} \
-         \
          "${base_app_dir}"/src/excInTask.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
       # Check timeout
@@ -294,4 +283,3 @@
   #----------------------------------------------------------------------------------
   # Return execution status
   exit $exitValue
-

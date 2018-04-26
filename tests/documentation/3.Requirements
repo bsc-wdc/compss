@@ -28,7 +28,8 @@
    - Apache maven for building the software
    - openssh-server configured passwordless (including root access for /etc/hosts)
    - gcc, gcc-c++, make, automake and autoconf packages (for C binding)
-   - python package (for Python binding)
+   - python 2 and 3 (for Python binding)
+   - python dependencies: guppy and rediscluster
    - jdk1.8 (for Java tests)
    - OpenMPI (for test 30)
 
@@ -37,6 +38,6 @@
    - Apache maven for building the software
    - openssh-server configured passwordless (including root access for /etc/hosts)
    - gcc, gcc-c++, make, automake and autoconf packages (for C binding)
-   - python package (for Python binding)
+   - python 2 and 3 (for Python binding)
+   - python dependencies: guppy and rediscluster
    - jdk1.8 (for Java tests)
-

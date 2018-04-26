@@ -8,6 +8,7 @@
   COMPSs_log_folder=$5
   target_log_folder=$6
   retryNum=$7
+  pythonInterpreter=$8
 
   # Global exit variable
   exitValue=0
@@ -72,19 +73,15 @@ EOF
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \
      --project="${base_app_dir}"/project.xml \
      --resources="${base_app_dir}"/resources.xml \
-     \
      --comm="$comm" \
-     \
      --lang=python \
+     --python_interpreter="$pythonInterpreter" \
      --pythonpath="${base_app_dir}"/src:"${bundle_path}"/python \
-     \
      --debug \
      -g \
      ${runcompss_opts} \
-     \
      --storage_conf=${storage_conf} \
      --classpath="${bundle_path}"/compss-redisPSCO.jar \
-     \
      ${base_app_dir}/src/testredis.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
   # Check timeout

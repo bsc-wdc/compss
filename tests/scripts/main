@@ -1,8 +1,8 @@
 #!/bin/bash
 
-  #----------------------------------------------------------------------------------------------- 
+  #-----------------------------------------------------------------------------------------------
   # SCRIPT CONSTANTS
-  #----------------------------------------------------------------------------------------------- 
+  #-----------------------------------------------------------------------------------------------
   ERROR_ENV_CONFIG="ERROR: Incorrect number of parameters. Environment or configuration not found"
   ERROR_ENV="ERROR: Empty environment parameter"
   ERROR_BAD_ENV="ERROR: BAD ENVIRONMENT PARAMETER."
@@ -24,9 +24,9 @@
 
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-  #----------------------------------------------------------------------------------------------- 
+  #-----------------------------------------------------------------------------------------------
   # Display functions
-  #----------------------------------------------------------------------------------------------- 
+  #-----------------------------------------------------------------------------------------------
   # Displays usage
   info() {
      cat << EOT
@@ -93,9 +93,9 @@ EOT
     exit 1
   }
 
-  #----------------------------------------------------------------------------------------------- 
+  #-----------------------------------------------------------------------------------------------
   # Parse arguments
-  #----------------------------------------------------------------------------------------------- 
+  #-----------------------------------------------------------------------------------------------
   get_args() {
     # Parse script Options
     while getopts hnsSrR-: flag; do
@@ -179,10 +179,10 @@ EOT
           ;;
       esac
     done
-  
+
     # Shift script options
     shift $((OPTIND-1))
-  
+
     # Parse environment and configuration
     if [ $# -ne 2 ]; then
       display_error "${ERROR_ENV_CONFIG}"
@@ -205,7 +205,7 @@ EOT
       onlyLang=${DEFAULT_ONLY_LANG}
     fi
     onlyLang=$(echo "${onlyLang}" | tr '[:lower:]' '[:upper:]')
- 
+
     if [ "${onlyLang}" != "${NONE_LANG}" ] && [ "${onlyLang}" != "${JAVA_LANG}" ] && [ "${onlyLang}" != "${PYTHON_LANG}" ] && [ "${onlyLang}" != "${C_LANG}" ]; then
       display_error "${ERROR_ONLY_LANG}"
     fi
@@ -231,9 +231,9 @@ EOT
     fi
   }
 
-  #----------------------------------------------------------------------------------------------- 
+  #-----------------------------------------------------------------------------------------------
   # Tests executors
-  #----------------------------------------------------------------------------------------------- 
+  #-----------------------------------------------------------------------------------------------
   execute_tests() {
     if [ "${environment:0:5}" == "local" ]; then
       execute_tests_local
@@ -263,7 +263,7 @@ EOT
     # Set environment variables from configuration file
     source_configuration
 
-    # Set the rest of environment variables 
+    # Set the rest of environment variables
     source_base_dir="${SCRIPT_DIR}/../sources"
     COMPSs_log_folder="$HOME/.COMPSs"
     COMPSs_exec="$COMPSS_HOME/Runtime/scripts/user/runcompss"
@@ -310,40 +310,51 @@ EOT
       exit 1
     fi
 
+    lang=${appName##*_}
+    # Explanation:
+    #   appName - from variable
+    #   ## - greedy front trim
+    #   * - token match anything
+    #   _ - until the last '_'
+    if [ $lang != "python" ] && [ $lang != "c" ]; then
+      # java tests do not end with _java
+      lang="java"
+    fi
+
     # Deploy tests
-    "${SCRIPT_DIR}"/deploy_sources_local_specific "${source_base_dir}" "$appName" "$test" "${target_base_dir}"
+    "${SCRIPT_DIR}"/deploy_sources_local_specific "${source_base_dir}" "$appName" "$test" "${target_base_dir}" "${lang}"
     if [ $? -ne 0 ]; then
       exit 1
     fi
-     
+
     # Erase IT folder
     echo "---- Erase current .COMPSs folder ${COMPSs_log_folder}"
     rm -rf "${COMPSs_log_folder}"
 
     # Execute tests
     echo "---- Executing specific test "
-    "${SCRIPT_DIR}"/execute_local_specific "${test}" "${COMPSs_exec}" "${comm}" "${runcompss_opts}" "${target_base_dir}" "${COMPSs_log_folder}" "${skip}" "${retry}"
+    "${SCRIPT_DIR}"/execute_local_specific "${test}" "${COMPSs_exec}" "${comm}" "${runcompss_opts}" "${target_base_dir}" "${COMPSs_log_folder}" "${skip}" "${retry}" "${appName}" "${lang}"
     if [ $? -ne 0 ]; then
       echo "ERROR: executing specific local test"
       exit 1
-    else 
+    else
       exit 0
     fi
   }
- 
+
   execute_tests_local_all() {
     # Compile tests
     "${SCRIPT_DIR}"/compile_sources_local "${source_base_dir}"
     if [ $? -ne 0 ]; then
       exit 1
     fi
- 
+
     # Deploy tests
     "${SCRIPT_DIR}"/deploy_sources_local "${source_base_dir}" "${target_base_dir}" "${onlyLang}"
     if [ $? -ne 0 ]; then
       exit 1
     fi
-     
+
     # Erase COMPSs log folder
     echo "---- Erase current .COMPSs folder"
     rm -rf "${COMPSs_log_folder}"
@@ -407,7 +418,7 @@ EOT
       num_test="all"
     else
       num_test=$(echo "${environment:9}" | sed 's/.*0 *\([1-9]*[0-9]\).*/\1/')
-    fi 
+    fi
     # Check it's not faultTolerance test (not allowed on VPN mode)
     if [ "${num_test}" = "1" ]; then
       echo "[ERROR] TEST NUMBER 1 IS NOT ALLOWED ON VPN MODE"
@@ -431,7 +442,7 @@ EOT
   execute_tests_devel() {
     echo "Executing tests in DEVEL mode"
     logArguments
- 
+
     #Set Default environment variables
     user=$(whoami)
     target_base_dir="/home/$user/tests_devel"
@@ -442,7 +453,7 @@ EOT
     # Set environment variables from configuration file
     source_configuration
 
-    # Set the rest of environment variables 
+    # Set the rest of environment variables
     source_base_dir="${SCRIPT_DIR}/../sources/$environment"
     logs_location="$HOME"
     COMPSs_log_folder="$HOME/.COMPSs"
@@ -511,12 +522,11 @@ EOT
 
   #-----------------------------------------------------------------------------------------------
   # MAIN
-  #----------------------------------------------------------------------------------------------- 
-  
+  #-----------------------------------------------------------------------------------------------
+
   # Get and check arguments
   get_args "$@"
   check_args
 
   # Execute tests
   execute_tests
-

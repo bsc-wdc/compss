@@ -6,7 +6,7 @@
   comm=$2
   runcompss_opts=$3
   baseDir=$4
-  COMPSsLogFolder=$5 
+  COMPSsLogFolder=$5
   skip=$6
   MAX_RETRIES=$7
 
@@ -33,7 +33,21 @@
     appBaseDir="${appsBaseDir}"/"${app}"
     appLogDir="${logsBaseDir}"/"${app}"
 
-    execute_application "${COMPSsExec}" "${comm}" "${runcompss_opts}" "${COMPSsLogFolder}" "${appBaseDir}" "${appLogDir}" "${skip}" "${MAX_RETRIES}"
+    lang=${app##*_}
+    # Explanation:
+    #   app - from variable
+    #   ## - greedy front trim
+    #   * - token match anything
+    #   _ - until the last '_'
+
+    if [ ${lang} == "python" ]; then
+        # If python test ==> then check with python 2 and python 3
+        execute_application "${COMPSsExec}" "${comm}" "${runcompss_opts}" "${COMPSsLogFolder}" "${appBaseDir}" "${appLogDir}" "${skip}" "${MAX_RETRIES}" "${app}2" python2
+        execute_application "${COMPSsExec}" "${comm}" "${runcompss_opts}" "${COMPSsLogFolder}" "${appBaseDir}" "${appLogDir}" "${skip}" "${MAX_RETRIES}" "${app}3" python3
+    else
+        # If Java or C, perform simple execution
+        execute_application "${COMPSsExec}" "${comm}" "${runcompss_opts}" "${COMPSsLogFolder}" "${appBaseDir}" "${appLogDir}" "${skip}" "${MAX_RETRIES}" "${app}"
+    fi
   done
 
   # Show Result table
@@ -42,4 +56,3 @@
   #--------------------------------------------------------------------------------
   # EXIT
   exit "$exitValue"
-

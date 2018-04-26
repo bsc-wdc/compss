@@ -5,8 +5,9 @@
   appName=$2
   appNumber=$3
   target_base_dir=$4
+  lang=$5
 
-  if [ "$appNumber" -lt 10 ]; then 
+  if [ "$appNumber" -lt 10 ]; then
      appNumber="0$appNumber"
   else
      appNumber="$appNumber"
@@ -15,10 +16,10 @@
   # Erase current deployment
   echo "---- Erasing current deployment"
   rm -rf "${target_base_dir}"
-   
+
   # Create new deployment structure
   echo "---- Creating new deployment structure"
-  mkdir -p "${target_base_dir}"/app"$appNumber"
+  mkdir -p "${target_base_dir}"/app"${appNumber}_${lang}"
   mkdir -p "${target_base_dir}"/logs
 
 
@@ -32,5 +33,4 @@
   fi
 
   # Normal deployment
-  "${source_base_dir}"/basic/"$appName"/deploy "${source_base_dir}/basic/$appName" "${target_base_dir}/app$appNumber"     
-
+  "${source_base_dir}"/basic/"$appName"/deploy "${source_base_dir}/basic/$appName" "${target_base_dir}/app${appNumber}_${lang}"

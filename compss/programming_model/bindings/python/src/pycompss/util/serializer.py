@@ -125,8 +125,8 @@ def serialize_to_handler(obj, handler):
                     serializer.dump(obj, handler, protocol=serializer.HIGHEST_PROTOCOL)
                     success = True
             except:
-                # traceback.print_exc()  # No need to print all serializer exceptions
-                pass
+                print('WARNING! Serialization with %s failed.' % str(serializer))
+                traceback.print_exc()  # No need to print all serializer exceptions
         i += 1
 
     # if ret_value is None then all the serializers have failed
@@ -185,8 +185,8 @@ def deserialize_from_handler(handler):
                 ret = convert_to_generator(ret[1])
             return ret
         except:
-            # traceback.print_exc()  # No need to print all deserialize exceptions
-            pass
+            print('WARNING! Deserialization with %s failed.' % str(serializer))
+            traceback.print_exc()  # No need to print all deserialize exceptions
     # we are not able to deserialize the contents from file_name with any of our
     # serializers
     try:

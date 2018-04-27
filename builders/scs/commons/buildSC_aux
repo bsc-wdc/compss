@@ -57,6 +57,9 @@
     exit 1
   fi
 
+  # Save original path to remove libxml imports that crashes python binding in mt installation
+  originalPath=$PATH
+  
   # Load additional exports
   ${additionalExports}
 
@@ -129,6 +132,9 @@
     module unload impi
   fi
   cd ${scriptDir}
+
+  # Restore original path
+  export PATH=${originalPath}
 
   # Config
   echo "--- Copy configuration"

@@ -39,6 +39,11 @@ from pycompss.util.optional_modules import show_optional_module_warnings
 
 app_path = None
 
+if sys.version_info >= (3, 0):
+    py_version = 3
+else:
+    py_version = 2
+
 
 def get_logging_cfg_file(log_level):
     logging_cfg_file = 'logging.json'
@@ -99,7 +104,7 @@ def main():
     app_path = args.app_path
 
     binding_log_path = get_log_path()
-    log_path = os.path.join(os.getenv('COMPSS_HOME'), 'Bindings', 'python', 'log')
+    log_path = os.path.join(os.getenv('COMPSS_HOME'), 'Bindings', 'python', str(py_version), 'log')
     binding.temp_dir = mkdtemp(prefix='pycompss', dir=os.path.join(binding_log_path, 'tmpFiles/'))
 
     logging_cfg_file = get_logging_cfg_file(log_level)

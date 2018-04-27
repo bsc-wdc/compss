@@ -39,7 +39,7 @@ from .serialization.extended_support import pickle_generator, convert_to_generat
 from .object_properties import object_belongs_to_module
 
 if sys.version_info >= (3, 0):
-    from io import StringIO
+    from io import BytesIO as StringIO
     import pickle as pickle  # Uses _pickle if available
 else:
     from cStringIO import StringIO
@@ -61,8 +61,10 @@ except:
     else:
         import cPickle as numpy
 
+
 class SerializerException(Exception):
     pass
+
 
 def get_serializer_priority(obj=[]):
     """
@@ -215,6 +217,8 @@ def deserialize_from_string(serialized_content):
     @param serialized_content: A string with serialized contents
     @return: A deserialized object
     """
+    if isinstance(serialized_content, str):
+        serialized_content = str.encode(serialized_content)
     handler = StringIO(serialized_content)
     ret = deserialize_from_handler(handler)
     handler.close()

@@ -27,11 +27,11 @@ def main():
     for i in range(5):
         partialResult = increment(value)
     result = compss_wait_on(partialResult)
-    print result
+    print(result)
     if result[0] == 2 and result[1] == 3 and result[2] == 4:
-        print "- Result value: OK"
+        print("- Result value: OK")
     else:
-        print "- Result value: ERROR"
+        print("- Result value: ERROR")
 
 
 if __name__ == '__main__':

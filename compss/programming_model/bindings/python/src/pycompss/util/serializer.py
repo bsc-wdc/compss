@@ -38,11 +38,11 @@ import traceback
 from .serialization.extended_support import pickle_generator, convert_to_generator, GeneratorIndicator
 from .object_properties import object_belongs_to_module
 
+from io import BytesIO
+
 if sys.version_info >= (3, 0):
-    from io import BytesIO as StringIO
     import pickle as pickle  # Uses _pickle if available
 else:
-    from cStringIO import StringIO
     import cPickle as pickle
 
 try:
@@ -159,7 +159,7 @@ def serialize_to_string(obj):
     @param obj: Object to be serialized.
     @return: String -> the serialized content
     """
-    handler = StringIO()
+    handler = BytesIO()
     serialize_to_handler(obj, handler)
     ret = handler.getvalue()
     handler.close()
@@ -217,9 +217,7 @@ def deserialize_from_string(serialized_content):
     @param serialized_content: A string with serialized contents
     @return: A deserialized object
     """
-    if isinstance(serialized_content, str):
-        serialized_content = str.encode(serialized_content)
-    handler = StringIO(serialized_content)
+    handler = BytesIO(serialized_content)
     ret = deserialize_from_handler(handler)
     handler.close()
     return ret

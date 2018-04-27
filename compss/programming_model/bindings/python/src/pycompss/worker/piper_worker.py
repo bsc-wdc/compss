@@ -44,11 +44,9 @@ from pycompss.util.persistent_storage import is_PSCO, get_by_ID
 
 if sys.version_info >= (3, 0):
     long = int
-    str_escape = 'unicode_escape'
 else:
     # Exception moved to built-in
     from exceptions import ValueError
-    str_escape = 'string_escape'
 
 SYNC_EVENTS = 8000666
 
@@ -600,7 +598,7 @@ def get_input_params(num_params, logger, args, process_name, persistent_storage)
             real_value = aux
             try:
                 # try to recover the real object
-                aux = deserialize_from_string(aux.decode(str_escape))
+                aux = deserialize_from_string(aux)
             except (SerializerException, ValueError, EOFError):
                 # was not an object
                 aux = str(real_value.decode())

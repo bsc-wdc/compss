@@ -115,6 +115,13 @@ public final class StorageItf {
         Host(String clusterInfoLine) {
             String[] tokens = clusterInfoLine.split(" ");
             this.host = tokens[1].split("@")[0].split(":")[0];
+            InetAddress addr = null;
+            try {
+                addr = InetAddress.getByName(this.host);
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+            this.host = addr.getHostName();
             String[] interval = tokens[tokens.length - 1].split("-");
             this.l = Integer.parseInt(interval[0]);
             this.r = Integer.parseInt(interval[1]);
@@ -171,7 +178,7 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static List<String> getLocations(String id) throws StorageException {
-        if(clusterMode) {
+        if(id != null && clusterMode) {
             int slot = JedisClusterCRC16.getSlot(id);
             return hostsBySlot.get(slot);
         }

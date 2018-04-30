@@ -24,6 +24,7 @@ Provides the current start and stop for the use of pycompss interactively.
 """
 
 import os
+import sys
 import logging
 from tempfile import mkdtemp
 import time
@@ -81,9 +82,9 @@ def start(log_level='off',
           verbose=False
           ):
     launchPath = os.path.dirname(os.path.abspath(__file__))
-    # compss_home = launchPath without the last 3 folders:
-    # Bindings/python/pycompss/runtime
-    compss_home = os.path.sep.join(launchPath.split(os.path.sep)[:-3])
+    # compss_home = launchPath without the last 4 folders:
+    # Bindings/python/version/pycompss
+    compss_home = os.path.sep.join(launchPath.split(os.path.sep)[:-4])
     os.environ['COMPSS_HOME'] = compss_home
 
     # Get environment variables
@@ -203,6 +204,10 @@ def start(log_level='off',
     else:
         config['external_adaptation'] = 'false'
 
+    major_version = sys.version_info[0]
+    python_interpreter = 'python' + str(major_version)
+    config['python_interpreter'] = python_interpreter
+
     initialize_compss(config)
 
     ##############################################################
@@ -232,17 +237,17 @@ def start(log_level='off',
 
     # Logging setup
     if log_level == "debug":
-        jsonPath = '/Bindings/python/log/logging.json.debug'
+        jsonPath = '/Bindings/python/' + str(major_version) + '/log/logging.json.debug'
         init_logging(os.getenv('COMPSS_HOME') + jsonPath, log_path)
     elif log_level == "info":
-        jsonPath = '/Bindings/python/log/logging.json.off'
+        jsonPath = '/Bindings/python/' + str(major_version) + '/log/logging.json.off'
         init_logging(os.getenv('COMPSS_HOME') + jsonPath, log_path)
     elif log_level == "off":
-        jsonPath = '/Bindings/python/log/logging.json.off'
+        jsonPath = '/Bindings/python/' + str(major_version) + '/log/logging.json.off'
         init_logging(os.getenv('COMPSS_HOME') + jsonPath, log_path)
     else:
         # Default
-        jsonPath = '/Bindings/python/log/logging.json'
+        jsonPath = '/Bindings/python/' + str(major_version) + '/log/logging.json'
         init_logging(os.getenv('COMPSS_HOME') + jsonPath, log_path)
     logger = logging.getLogger("pycompss.runtime.launch")
 
@@ -252,7 +257,7 @@ def start(log_level='off',
                taskCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
                comm, conn, masterName, masterPort, scheduler, jvmWorkers,
                cpuAffinity, gpuAffinity, profileInput, profileOutput,
-               scheduler_config, external_adaptation)
+               scheduler_config, external_adaptation, python_interpreter)
 
     logger.debug("--- START ---")
     logger.debug("PyCOMPSs Log path: %s" % log_path)
@@ -274,7 +279,7 @@ def printSetup(verbose, log_level, o_c, debug, graph, trace, monitor,
                taskCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
                comm, conn, masterName, masterPort, scheduler, jvmWorkers,
                cpuAffinity, gpuAffinity, profileInput, profileOutput,
-               scheduler_config, external_adaptation):
+               scheduler_config, external_adaptation, python_interpreter):
     logger = logging.getLogger("pycompss.runtime.launch")
     output = ""
     output += "******************************************************\n"
@@ -308,6 +313,7 @@ def printSetup(verbose, log_level, o_c, debug, graph, trace, monitor,
     output += "  - Profile output      : " + str(profileOutput) + "\n"
     output += "  - Scheduler config    : " + str(scheduler_config) + "\n"
     output += "  - External adaptation : " + str(external_adaptation) + "\n"
+    output += "  - Python interpreter  : " + str(python_interpreter) + "\n"
     output += "******************************************************"
     if verbose:
         print(output)

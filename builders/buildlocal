@@ -443,7 +443,7 @@ install_compss() {
     cp ./compss_build_app ${targetDir}/Runtime/scripts/user/
     echo "- Deploying python-binding files"
     cd "${TMP_DIR}/compss/programming_model/bindings/python"
-    ./install "${targetDir}/Bindings/python"
+    ./install "${targetDir}/Bindings/python" true
     ev=$?
     if [ $ev -ne 0 ]; then
       echo "ERROR: Failed to install Python-binding"
@@ -491,10 +491,10 @@ install_compss() {
     echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:${targetDir}/Bindings/bindings-common/lib:\$JAVA_HOME/jre/lib/amd64/server" >> $envFile
     echo "- binding-common library added to user profile"
     echo " "
-    echo "- Adding PyCOMPSs to user profile..."
-    # FIXME: This could be done with softlinks from site-packages in both python2 a python3 (if available) on the installation
-    echo "export PYTHONPATH=\$PYTHONPATH:${targetDir}/Bindings/python/$( python -c "import sys; print(sys.version_info[:][0])" )/" >> $envFile
-    echo "- PyCOMPSs added to user profile"
+    # Instead of importing it in the envFile, it is done with softlinks from site-packages in both python2 a python3 (if available) on the installation
+    # echo "- Adding PyCOMPSs to user profile..."
+    # echo "export PYTHONPATH=\$PYTHONPATH:${targetDir}/Bindings/python/$( python -c "import sys; print(sys.version_info[:][0])" )/" >> $envFile
+    # echo "- PyCOMPSs added to user profile"
     echo " "
   fi
 

@@ -487,6 +487,10 @@ install_compss() {
     echo "export PATH=\$PATH:${targetDir}/Bindings/c/bin" >> $envFile
     echo "- c-binaries added to user profile"
     echo " "
+    echo "- Adding binding-common to profile..."   # Needed for jupyter notebook
+    echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:${targetDir}/Bindings/bindings-common/lib:\$JAVA_HOME/jre/lib/amd64/server" >> $envFile
+    echo "- binding-common library added to user profile"
+    echo " "
     echo "- Adding PyCOMPSs to user profile..."
     # FIXME: This could be done with softlinks from site-packages in both python2 a python3 (if available) on the installation
     echo "export PYTHONPATH=\$PYTHONPATH:${targetDir}/Bindings/python/$( python -c "import sys; print(sys.version_info[:][0])" )/" >> $envFile

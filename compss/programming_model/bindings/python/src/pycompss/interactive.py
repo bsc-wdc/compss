@@ -81,7 +81,7 @@ def start(log_level='off',
           external_adaptation=False,
           verbose=False
           ):
-    launchPath = os.path.dirname(os.path.abspath(__file__))
+    launchPath = os.path.dirname(os.path.realpath(__file__))
     # compss_home = launchPath without the last 4 folders:
     # Bindings/python/version/pycompss
     compss_home = os.path.sep.join(launchPath.split(os.path.sep)[:-4])
@@ -214,7 +214,7 @@ def start(log_level='off',
     # RUNTIME START
     ##############################################################
 
-    print("* - Starting COMPSs runtime...                       *")
+    print("* - Starting COMPSs runtime...                         *")
     compss_start()
 
     if o_c is True:
@@ -270,8 +270,8 @@ def start(log_level='off',
 
     # MAIN EXECUTION
     # let the user write an interactive application
-    print("* - PyCOMPSs Runtime started... Have fun!            *")
-    print("******************************************************")
+    print("* - PyCOMPSs Runtime started... Have fun!              *")
+    print("********************************************************")
 
 
 def printSetup(verbose, log_level, o_c, debug, graph, trace, monitor,
@@ -282,7 +282,7 @@ def printSetup(verbose, log_level, o_c, debug, graph, trace, monitor,
                scheduler_config, external_adaptation, python_interpreter):
     logger = logging.getLogger("pycompss.runtime.launch")
     output = ""
-    output += "******************************************************\n"
+    output += "********************************************************\n"
     output += " CONFIGURATION: \n"
     output += "  - Log level           : " + str(log_level) + "\n"
     output += "  - Object conversion   : " + str(o_c) + "\n"
@@ -314,7 +314,7 @@ def printSetup(verbose, log_level, o_c, debug, graph, trace, monitor,
     output += "  - Scheduler config    : " + str(scheduler_config) + "\n"
     output += "  - External adaptation : " + str(external_adaptation) + "\n"
     output += "  - Python interpreter  : " + str(python_interpreter) + "\n"
-    output += "******************************************************"
+    output += "********************************************************"
     if verbose:
         print(output)
     logger.debug(output)

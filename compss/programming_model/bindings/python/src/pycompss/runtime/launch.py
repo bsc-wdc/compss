@@ -330,7 +330,8 @@ def initialize_compss(config):
         - 'profileInput'   = <String>       = profiling input
         - 'profileOutput'  = <String>       = profiling output
         - 'scheduler_config'    = <String>  = Path to the file which contains the scheduler configuration.
-        - 'external_adaptation' = <String>  = Enable external adaptation. This option will disable the Resource Optimizer.
+        - 'external_adaptation' = <String>  = Enable external adaptation. This option will disable the Resource Optimizer
+        - 'python_interpreter'  = <String>  = Python interpreter
     :param config: Configuration parameters dictionary
     '''
     from tempfile import mkstemp
@@ -444,6 +445,7 @@ def initialize_compss(config):
     # JVM OPTIONS - PYTHON
     jvm_options_file.write('-Djava.class.path=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config['classpath'] + '\n')
     jvm_options_file.write('-Dcompss.worker.pythonpath=' + config['cp'] + ':' + config['pythonPath'] + '\n')
+    jvm_options_file.write('-Dcompss.python.interpreter=' + config['python_interpreter'] + '\n')
     jvm_options_file.close()
     os.close(fd)
     os.environ['JVM_OPTIONS_FILE'] = temp_path

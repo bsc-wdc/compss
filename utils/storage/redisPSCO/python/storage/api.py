@@ -201,7 +201,6 @@ class TaskContext(object):
 
     def __exit__(self, type, value, traceback):
         # Update all modified objects
-        print('XYZ VALUES: %s' % self.values)
         for obj in self.values:
             try:
                 if obj.pycompss_is_modified():

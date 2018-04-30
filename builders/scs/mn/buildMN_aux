@@ -29,7 +29,7 @@
   scriptDir=$(dirname $0)
 
   modules="intel/2017.4 transfer/1.0 bsc/1.0 impi/2017.4 mkl/2017.4 java/8u131 papi/5.5.1 gcc/7.2.0 boost/1.64.0"
-  py2_modules="python/2.7.13 boost/1.64.0_py2"
+  py2_modules="python/2.7.13 boost/1.64.0"
   py3_modules="python/3.6.1 boost/1.64.0_py3"
   additionalExports=""
   queues_cfg="mn.cfg"

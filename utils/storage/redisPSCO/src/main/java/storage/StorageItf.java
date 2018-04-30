@@ -47,7 +47,7 @@ public final class StorageItf {
 
     // Given a hash slot, return a list with the hosts that contain at least one instance that includes
     // this slot in its slot interval
-    private static HashMap<Integer, ArrayList< String > > hostsBySlot = new HashMap<>();
+    private static ArrayList< String >[] hostsBySlot = new ArrayList[REDIS_MAX_HASH_SLOTS];
 
     static {
         String hostname = null;
@@ -107,7 +107,7 @@ public final class StorageItf {
 
     // Temporary representation of a host
     static private class Host {
-        // Host (ip)
+        // Host (name)
         String host;
         // Hash slot endpoints
         int l, r;
@@ -149,7 +149,7 @@ public final class StorageItf {
                     validHosts.add(h.host);
                 }
             }
-            hostsBySlot.put(i, new ArrayList<>(new TreeSet<>(validHosts)));
+            hostsBySlot[i] = new ArrayList<>(new TreeSet<>(validHosts));
         }
     }
 
@@ -180,7 +180,7 @@ public final class StorageItf {
     public static List<String> getLocations(String id) throws StorageException {
         if(id != null && clusterMode) {
             int slot = JedisClusterCRC16.getSlot(id);
-            return hostsBySlot.get(slot);
+            return hostsBySlot[slot];
         }
         else {
             return hosts;

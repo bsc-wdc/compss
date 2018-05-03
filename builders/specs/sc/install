@@ -39,7 +39,7 @@
       usage
       exit 0
     fi
-  else 
+  else
     echo "Incorrect number of parameters"
     usage
     exit 1
@@ -96,7 +96,7 @@
   # Install Python-binding
   echo "- Install Python binding"
   cd ${scriptDir}/Bindings/python
-  ./install ${targetDir}/Bindings/python
+  ./install ${targetDir}/Bindings/python false
   cd -
   echo "   Success"
 
@@ -126,4 +126,3 @@
   echo " "
 
   exit 0
-

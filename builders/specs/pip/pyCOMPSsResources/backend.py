@@ -48,7 +48,6 @@ def install(target_path):
         '##VERSION##': str(sys.version_info[0])+'.'+str(sys.version_info[1]),
         '##SITE_PACKAGES##': site.getsitepackages()[0],
         '##COMPSS_PATH##': pref,
-        '##PYTHON_VERSION##': str(sys.version_info[0])
     }
     s = open('pycompssenv', 'r').read()
     for (key, value) in list(substitution_map.items()):
@@ -63,9 +62,15 @@ def install(target_path):
         os.symlink(original_file, symbolic_place)
 
     # create symbolic links to the python package contents
-    original_compss_path = os.path.join(pref, 'Bindings', 'python', 'pycompss')
+    original_compss_path = os.path.join(pref, 'Bindings', 'python', str(sys.version_info[0]), 'pycompss')
     pycompss_sitepackages_path = os.path.join(site.getsitepackages()[0], 'pycompss')
-
     for target_file in glob.iglob(os.path.join(original_compss_path, "*")):
+        symbolic_place = os.path.join(pycompss_sitepackages_path, os.path.split(target_file)[-1])
+        create_symlink(target_file, symbolic_place)
+
+    # create symbolic links to the C extensions
+    original_extensions_path = os.path.join(pref, 'Bindings', 'python', str(sys.version_info[0]))
+    pycompss_sitepackages_path = site.getsitepackages()[0]
+    for target_file in glob.iglob(os.path.join(original_extensions_path, "*.so")):  # just .so files
         symbolic_place = os.path.join(pycompss_sitepackages_path, os.path.split(target_file)[-1])
         create_symlink(target_file, symbolic_place)

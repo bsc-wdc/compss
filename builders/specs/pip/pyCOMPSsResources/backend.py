@@ -37,7 +37,7 @@ def install(target_path):
 
     # call the SuperComputers install script
     if subprocess.call(['./COMPSs/install', target_path]) != 0:
-        raise Exception('COMPSs install script ended with some error. Plase check stdout & stderr for more info.')
+        raise Exception('COMPSs install script ended with some error. Please check stdout & stderr for more info.')
 
     pref = os.path.join(target_path, 'COMPSs')
 

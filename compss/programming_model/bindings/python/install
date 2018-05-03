@@ -102,7 +102,7 @@ else:
   # Retrieve script arguments
   targetDir=$1
   create_symlinks=$2
-  only_python_version=$3
+  only_python_version=$3  # Optional argument
 
   # Add trap for clean
   trap clean EXIT
@@ -112,14 +112,35 @@ else:
 
   if [ -z "$only_python_version" ]; then
     # Try to install all
-    install_for_py2
-    install_for_py3
+    # Check $targetDir = site-packages usual, dist-packages in deb based distributions.
+    if [[ "$targetDir" = *site-packages* ]] || [[ "$targetDir" = *dist-packages* ]]; then
+      # If it is within site-packages, install only the appropriate version.
+      if [[ "$targetDir" = *python2* ]]; then
+        echo "* Installing python 2 version."
+        # within 2.X site-packages
+        install_for_py2
+      elif [[ "$targetDir" = *python3* ]]; then
+        echo "* Installing python 3 version."
+        # within 3.X site-packages
+        install_for_py3
+      else
+        echo "ERROR! UNSUPPORTED TARGET DIRECTORY WITHIN site-packages OR dist-packages."
+      fi
+    else
+      # Install all
+      install_for_py2
+      install_for_py3
+    fi
   elif [ "$only_python_version" == "python2" ]; then
+    echo "* Installing JUST python 2 version."
     # Install only python 2 version
     install_for_py2
   elif [ "$only_python_version" == "python3" ]; then
+    echo "* Installing JUST python 3 version."
     # Install only python 3 version
     install_for_py3
+  else
+    echo "ERROR! UNSUPPORTED PYTHON VERSION."
   fi
 
   # Normal exit

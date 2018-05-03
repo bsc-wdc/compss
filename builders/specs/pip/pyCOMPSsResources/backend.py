@@ -44,7 +44,8 @@ def install(target_path):
 	substitution_map = {
 		'##VERSION##': str(sys.version_info[0])+'.'+str(sys.version_info[1]),
 		'##SITE_PACKAGES##': site.getsitepackages()[0],
-		'##COMPSS_PATH##': pref
+		'##COMPSS_PATH##': pref,
+                '##PYTHON_VERSION##': str(sys.version_info[0])
 	}
 	s = open('pycompssenv', 'r').read()
 	for (key, value) in substitution_map.items():

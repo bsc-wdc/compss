@@ -2,4 +2,4 @@ export COMPSS_HOME=##COMPSS_PATH##
 export PATH=$PATH:##COMPSS_PATH##/Runtime/scripts/user
 export CLASSPATH=$CLASSPATH:##COMPSS_PATH##/Runtime/compss-engine.jar
 export PATH=$PATH:##COMPSS_PATH##/Bindings/c/bin
-export PYTHONPATH=$PYTHONPATH:##COMPSS_PATH##/Bindings/python
+export PYTHONPATH=$PYTHONPATH:##COMPSS_PATH##/Bindings/python/##PYTHON_VERSION##

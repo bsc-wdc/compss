@@ -60,7 +60,7 @@ def install(target_path, venv):
     # if called as root and pip does not detect pycompss as an installed module
     # it will delete COMPSs
     try:
-        site_packages = site.getsitepackages()[0],
+        site_packages = site.getsitepackages()[0]
     except AttributeError:
         # within a virtual environment
         from distutils.sysconfig import get_python_lib

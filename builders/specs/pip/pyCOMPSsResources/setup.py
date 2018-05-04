@@ -2,10 +2,10 @@ import site
 import sys
 import os
 from backend import install as backend_install
-from distutils.core import setup
+from setuptools import setup
 
 '''
-Distutils installer. This script will be called by pip when:
+Setuptools installer. This script will be called by pip when:
 - We want to create a distributable (sdist) tar.gz
 - We want to build the C extension (build and build_ext)
 - We want to install pyCOMPSs (install)
@@ -15,7 +15,23 @@ python setup.py (install|sdist|build)
 '''
 
 bindings_location = os.path.join('COMPSs', 'Bindings')
-target_path = os.path.join(site.getsitepackages()[0], 'pycompss')
+venv = False
+
+try:
+    if os.getuid() == 0:
+        # Installing as root
+        target_path = os.path.join(site.getsitepackages()[0], 'pycompss')
+        print('Installing as root in: ' + str(target_path))
+    else:
+        # Installing as user
+        target_path = os.path.join(site.getusersitepackages(), 'pycompss')
+        print('Installing as user in: ' + str(target_path))
+except AttributeError:
+    # we are within a virtual environment
+    venv = True
+    from distutils.sysconfig import get_python_lib
+    target_path = os.path.join(get_python_lib(), 'pycompss')
+    print('Installing within virtuel environment in: ' + str(target_path))
 
 
 def check_system():
@@ -34,14 +50,15 @@ def check_system():
 '''
 Pre-install operation: download and install COMPSs
 This will try to stop the installation if some error is
-found during that part. However, some sub-scripts dont
+found during that part. However, some sub-scripts do not
 propagate the errors they find, so there is not absolute
 guarantee that this script will lead to a perfect, clean
 installation.
 '''
-if 'install' in sys.argv[1:]:
+messages = []
+if "install" in sys.argv or "bdist_wheel" in sys.argv:
     check_system()
-    backend_install(target_path)
+    messages = backend_install(target_path, venv)
 
 
 '''
@@ -74,8 +91,13 @@ setup(name='pycompss',
                    'Topic :: Scientific/Engineering',
                    'Topic :: System :: Distributed Computing',
                    'Topic :: Utilities'],
-      install_requires=['wget',
-                        'setuptools'],
+      install_requires=['setuptools'],
       license='Apache 2.0',
       platforms=['Linux']
       )
+
+'''
+Show final messages
+'''
+for message in messages:
+    print(message)

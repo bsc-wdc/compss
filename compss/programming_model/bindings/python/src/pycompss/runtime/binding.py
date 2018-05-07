@@ -290,15 +290,15 @@ def delete_object(obj):
     return True
 
 
-def barrier():
+def barrier(no_more_tasks=False):
     '''
     Calls the external python library (that calls the bindings-common)
     in order to request a barrier.
     Wait for all tasks.
     '''
     if __debug__:
-        logger.debug('Barrier')
-    compss.barrier(0)  # Always 0 (not needed for the signature)
+        logger.debug('Barrier. No more tasks? %s' % str(no_more_tasks))
+    compss.barrier(0, no_more_tasks)  # Always 0 (not needed for the signature)
 
 
 def get_log_path():

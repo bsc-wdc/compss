@@ -368,14 +368,22 @@ close_file(PyObject* self, PyObject* args) {
 
 /*
   Notify the runtime that our current application wants to "execute" a barrier.
-  Program will be blocked in GS_Barrier until all running tasks have ended.
+  Program will be blocked in GS_BarrierNew until all running tasks have ended.
+  Notifies the 'no more tasks' boolean value.
 */
 static PyObject *
 barrier(PyObject *self, PyObject *args) {
     debug("####C#### BARRIER\n");
-    long app_id = PyInt_AsLong(PyTuple_GetItem(args, 0));
-    GS_Barrier(app_id);
+    long app_id;
+    PyObject *py_no_more_tasks;
+    bool no_more_tasks;
+    if(!PyArg_ParseTuple(args, "lO", &app_id, &py_no_more_tasks)) {
+        return NULL;
+    }
+    no_more_tasks = PyObject_IsTrue(py_no_more_tasks);  // Verify that is a bool
     debug("####C#### COMPSs barrier for AppId: %ld \n", (app_id));
+    debug("####C#### COMPSs barrier no more tasks?: %s \n", (no_more_tasks?"true":"false"));
+    GS_BarrierNew(app_id, no_more_tasks);
     Py_RETURN_NONE;
 }
 

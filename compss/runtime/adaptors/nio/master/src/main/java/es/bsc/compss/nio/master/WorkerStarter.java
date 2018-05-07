@@ -370,7 +370,8 @@ public class WorkerStarter {
          * BUILD COMMAND
          * ************************************************************************************************************
          */
-        String[] cmd = new String[NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + NIOAdaptor.NUM_PARAMS_NIO_WORKER + jvmFlags.length + 1 + FPGAargs.length];
+        String[] cmd = new String[NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + NIOAdaptor.NUM_PARAMS_NIO_WORKER + jvmFlags.length + 1
+                + FPGAargs.length];
 
         /* SCRIPT ************************************************ */
         cmd[0] = installDir + (installDir.endsWith(File.separator) ? "" : File.separator) + STARTER_SCRIPT_PATH + STARTER_SCRIPT_NAME;
@@ -513,21 +514,28 @@ public class WorkerStarter {
     public void ender(NIOWorkerNode node, int pid) {
         if (pid > 0) {
             String user = node.getUser();
-
+            
             // Clean worker working directory
-            // String sandboxWorkingDir = node.getBaseWorkingDir() + DEPLOYMENT_ID + File.separator + host +
-            // File.separator;
-            String sandboxWorkingDir = node.getWorkingDir();
-            String[] command = getCleanWorkerWorkingDir(sandboxWorkingDir);
-            if (command != null) {
-                executeCommand(user, node.getName(), command);
+            String jvmWorkerOpts = System.getProperty(COMPSsConstants.WORKER_JVM_OPTS);
+            String removeWDFlagDisabled = COMPSsConstants.WORKER_REMOVE_WD + "=false";
+            if (jvmWorkerOpts != null && jvmWorkerOpts.contains(removeWDFlagDisabled)) {
+                // User requested not to clean workers WD
+                LOGGER.warn("RemoveWD set to false. Not Cleaning " + node.getName() + " working directory");
+            } else {
+                // Regular clean up
+                String sandboxWorkingDir = node.getWorkingDir();
+                String[] command = getCleanWorkerWorkingDir(sandboxWorkingDir);
+                if (command != null) {
+                    executeCommand(user, node.getName(), command);
+                }
             }
 
             // Execute stop command
-            command = getStopCommand(pid);
+            String[] command = getStopCommand(pid);
             if (command != null) {
                 executeCommand(user, node.getName(), command);
             }
+
         }
     }
 

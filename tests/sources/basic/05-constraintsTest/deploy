@@ -1,32 +1,32 @@
 #!/bin/bash -e
   
-  #Obtain parameter
+  # Obtain parameter
   source_base_dir=$1
   target_base_dir=$2
   
   # Copy JAR
-  cp -f ${source_base_dir}/target/05-constraintsTest.jar ${target_base_dir}/constraintsTest.jar   
+  cp "${source_base_dir}"/target/05-constraintsTest.jar "${target_base_dir}"/constraintsTest.jar 
                   
   # Copy XML
-  cp -f ${source_base_dir}/project_constraintManager.xml ${target_base_dir}/
-  cp -f ${source_base_dir}/project_resourceManager_Compatible.xml ${target_base_dir}/
-  cp -f ${source_base_dir}/project_resourceManager_Available.xml ${target_base_dir}/
-  cp -f ${source_base_dir}/project_cloudManager.xml ${target_base_dir}/
-  cp -f ${source_base_dir}/project_dynamicTest.xml ${target_base_dir}/
-   cp -f ${source_base_dir}/project_multiProcessor.xml ${target_base_dir}/
+  cp "${source_base_dir}"/project_constraintManager.xml "${target_base_dir}"/
+  cp "${source_base_dir}"/project_resourceManager_Compatible.xml "${target_base_dir}"/
+  cp "${source_base_dir}"/project_resourceManager_Available.xml "${target_base_dir}"/
+  cp "${source_base_dir}"/project_cloudManager.xml "${target_base_dir}"/
+  cp "${source_base_dir}"/project_dynamicTest.xml "${target_base_dir}"/
+  cp "${source_base_dir}"/project_multiProcessor.xml "${target_base_dir}"/
   
-  cp -f ${source_base_dir}/resources_constraintManager.xml ${target_base_dir}/
-  cp -f ${source_base_dir}/resources_resourceManager_Compatible.xml ${target_base_dir}/
-  cp -f ${source_base_dir}/resources_resourceManager_Available.xml ${target_base_dir}/
-  cp -f ${source_base_dir}/resources_cloudManager.xml ${target_base_dir}/
-  cp -f ${source_base_dir}/resources_dynamicTest.xml ${target_base_dir}/
-  cp -f ${source_base_dir}/resources_multiProcessor.xml ${target_base_dir}/
+  cp "${source_base_dir}"/resources_constraintManager.xml "${target_base_dir}"/
+  cp "${source_base_dir}"/resources_resourceManager_Compatible.xml "${target_base_dir}"/
+  cp "${source_base_dir}"/resources_resourceManager_Available.xml "${target_base_dir}"/
+  cp "${source_base_dir}"/resources_cloudManager.xml "${target_base_dir}"/
+  cp "${source_base_dir}"/resources_dynamicTest.xml "${target_base_dir}"/
+  cp "${source_base_dir}"/resources_multiProcessor.xml "${target_base_dir}"/
   
   # Copy result checkers
-  cp -f ${source_base_dir}/execution ${target_base_dir}/execution
-  cp -f ${source_base_dir}/result_constraintManager ${target_base_dir}/result_constraintManager
-  cp -f ${source_base_dir}/result_resourceManager_Compatible ${target_base_dir}/result_resourceManager_Compatible
-  cp -f ${source_base_dir}/result_resourceManager_Available ${target_base_dir}/result_resourceManager_Available
-  cp -f ${source_base_dir}/result_cloudManager ${target_base_dir}/result_cloudManager
-  cp -f ${source_base_dir}/result_dynamicTest ${target_base_dir}/result_dynamicTest
-  cp -f ${source_base_dir}/result_multiProcessor ${target_base_dir}/result_multiProcessor
+  cp "${source_base_dir}"/execution "${target_base_dir}"/execution
+  cp "${source_base_dir}"/result_constraintManager "${target_base_dir}"/result_constraintManager
+  cp "${source_base_dir}"/result_resourceManager_Compatible "${target_base_dir}"/result_resourceManager_Compatible
+  cp "${source_base_dir}"/result_resourceManager_Available "${target_base_dir}"/result_resourceManager_Available
+  cp "${source_base_dir}"/result_cloudManager "${target_base_dir}"/result_cloudManager
+  cp "${source_base_dir}"/result_dynamicTest "${target_base_dir}"/result_dynamicTest
+  cp "${source_base_dir}"/result_multiProcessor "${target_base_dir}"/result_multiProcessor

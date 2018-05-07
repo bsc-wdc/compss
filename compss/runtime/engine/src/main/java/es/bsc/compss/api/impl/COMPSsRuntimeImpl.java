@@ -708,7 +708,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Notifies the Runtime that there are no more tasks created by the current appId
      */
     @Override
-    public void noMoreTasks(Long appId, boolean terminate) {
+    public void noMoreTasks(Long appId) {
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.NO_MORE_TASKS.getId(), Tracer.Event.NO_MORE_TASKS.getType());
         }
@@ -730,13 +730,28 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      */
     @Override
     public void barrier(Long appId) {
+        barrier(appId, false);
+    }
+
+    /**
+     * Freezes the task generation until all previous tasks have been executed. The noMoreTasks parameter indicates
+     * whether to expect new tasks after the barrier or not
+     */
+    @Override
+    public void barrier(Long appId, boolean noMoreTasks) {
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.WAIT_FOR_ALL_TASKS.getId(), Tracer.Event.WAIT_FOR_ALL_TASKS.getType());
         }
 
         // Wait until all tasks have finished
-        LOGGER.info("Barrier for app " + appId);
-        ap.barrier(appId);
+        LOGGER.info("Barrier for app " + appId + " with noMoreTasks = " + noMoreTasks);
+        if (noMoreTasks) {
+            // No more tasks expected, we can unregister application
+            ap.noMoreTasks(appId);
+        } else {
+            // Regular barrier
+            ap.barrier(appId);
+        }
 
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.WAIT_FOR_ALL_TASKS.getType());

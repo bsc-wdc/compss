@@ -1,18 +1,16 @@
 import unittest
 from pycompss.api.task import task
 from pycompss.api.parameter import *
-from test.modules.MyClass import MyClassRetInt as MyClass
+from modules.MyClass import MyClass
 
 
 def par_func():
     return "function"
 
 
-class testClassRetInt(unittest.TestCase):
+class testClass(unittest.TestCase):
 
-    # WARNING!!! WHEN DOING THIS, THE FUTURE OBJECT BUILT WILL BE OF 'OBJECT'
-    # TYPE, ANT THE INTERNAL FUNCTIONS WILL NOT BE AVAILABLE.
-    @task(returns=1)
+    @task(returns=MyClass)
     def function_return_object(self, i):
         o = MyClass(i)
         return o
@@ -39,12 +37,11 @@ class testClassRetInt(unittest.TestCase):
         self.assertEqual(res, 2)
         self.assertEqual(o.field, val*4)
 
-    @unittest.skip("UNSUPPORTED FUNCTION - Can not use the return statement with an integer and expect the apporpiate future object type.")
     def test_function_return_object(self):
         """ Test function return object"""
         from pycompss.api.api import compss_wait_on
         val = 1
-        o = self.function_return_object(val) # When calling this function it will retrieve a "object" future element
-        o.instance_method()                  # An consequently, this function will not be available ==> throwing AttributeError.
+        o = self.function_return_object(val)
+        o.instance_method()
         o = compss_wait_on(o)
         self.assertEqual(o.field, val*2)

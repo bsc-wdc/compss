@@ -3,9 +3,11 @@
 import argparse
 from pycompss.api.task import task
 
+
 @task()
 def assign(letter):
     print("%s squad ready to distribute computation" % letter)
+
 
 def main():
     print(" - Parsing arguments")

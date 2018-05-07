@@ -1053,7 +1053,7 @@ exec_python() {
   if command_exists $python_interpreter ; then
     python_version=$( $python_interpreter -c "import sys; print(sys.version_info[:][0])" )
   else
-    error_msg "ERROR: $python_interpreter does not exist."
+    error_msg "ERROR: Python interpreter $python_interpreter does not exist."
   fi
 
   # Check if installed and export needed variables if needed

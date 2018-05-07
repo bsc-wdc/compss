@@ -1047,10 +1047,12 @@ exec_python() {
 
   python_version=$( $python_interpreter -c "import sys; print(sys.version_info[:][0])" )
 
-  # Export needed variables
+  # Check if installed and export needed variables if needed
   if [ -d "${COMPSS_HOME}/Bindings/python/$python_version" ]; then
     PYCOMPSS_HOME=${COMPSS_HOME}/Bindings/python/$python_version
     export PYTHONPATH=${PYCOMPSS_HOME}:$PYTHONPATH
+  else
+    error_msg "PyCOMPSs for Python $python_version not installed."
   fi
 
   # Look for the JVM Library

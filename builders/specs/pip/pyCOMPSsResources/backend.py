@@ -13,6 +13,14 @@ else:
 
 # Used for .bashrc export if necessary
 EXPORT_LABEL = '##PyCOMPSs_EXPORTS___DO_NOT_REMOVE_THIS_LINE##'
+SETUP_ENVIRONMENT_LABEL = '##PyCOMPSs_SETUP___DO_NOT_REMOVE_THIS_LINE##'
+# Other labels that can also be used in virtual environment activate
+PRE_ENVIRONMENT_LABEL = '##PyCOMPSs_PRE___DO_NOT_REMOVE_THIS_LINE##'
+POST_ENVIRONMENT_LABEL = '##PyCOMPSs_POST___DO_NOT_REMOVE_THIS_LINE##'
+# Set the names of the functions to call (they must be defined in pycompssenv file)
+PRE_ENVIRONMENT_CALL = 'pre_COMPSs_environment ' + PRE_ENVIRONMENT_LABEL + '\n'
+SETUP_ENVIRONMENT_CALL = 'setup_COMPSs_environment ' + SETUP_ENVIRONMENT_LABEL + '\n'
+POST_ENVIRONMENT_CALL = 'cleanup_COMPSs_environment ' + POST_ENVIRONMENT_LABEL + '\n'
 
 
 def install(target_path, venv):
@@ -75,41 +83,97 @@ def install(target_path, venv):
         '##COMPSS_PATH##': pref,
         '##JAVA_HOME##': os.environ['JAVA_HOME']
     }
-    s = open('pycompssenv', 'r').read()
+
+    # Read the pycompssenv file for key replacement
+    with open('pycompssenv', 'r') as pycompssenv:
+        s = pycompssenv.read()
+
+    # Perform the key replacement
     for (key, value) in list(substitution_map.items()):
         s = s.replace(key, value)
+
+    # Store the content in the appropriate destination
     try:
         # Try as sudo
-        open('/etc/profile.d/compss.sh', 'w').write(s)
+        with open('/etc/profile.d/compss.sh', 'w') as compss_sh:
+            compss_sh.write(s)
+        # Include call to setup function (defined in pycompssenv file)
+        with open('/etc/profile.d/compss.sh', 'a') as compss_sh:
+            compss_sh.write('\n' + SETUP_ENVIRONMENT_CALL + '\n')
     except IOError:
         # Could not include system wide, then try to do it locally
 
-        def update_export(sources_file, target_path):
+        def update_export(sources_file, target_path, pre_and_post_environment=False):
+            """
+            Helper function for export update
+            :param sources_file: Where to place the exports
+            :param target_path: where the compss.sh will be
+            :param pre_and_post_environment: Boolean to include pre and cleanup (only for virtual environments)
+            """
+            # Update compss.sh script
             local_compss_sh = os.path.join(target_path, 'compss.sh')
-            open(local_compss_sh, 'w').write(s)
-            exports = 'source ' + str(local_compss_sh) + ' ' + EXPORT_LABEL
+            with open(local_compss_sh, 'w') as local_compss:
+                local_compss.write(s)
+
+            # Set the source where the environment is defined
+            exports = 'source ' + str(local_compss_sh) + ' ' + EXPORT_LABEL + '\n'
             messages.append('NOTE! ENVIRONMENT VARIABLES STORED IN %s' % local_compss_sh)
             if EXPORT_LABEL in open(sources_file, 'r').read():
-                # Update the existing line
-                file_lines = open(sources_file, 'r').readlines()
+                # Contains the source label, so update all
+                with open(sources_file, 'r') as sources_f:
+                    file_lines = sources_f.readlines()
                 for i in range(len(file_lines)):
+                    # Update the existing source line
                     if EXPORT_LABEL in file_lines[i]:
-                        file_lines[i] = exports + '\n'
-                open(sources_file, 'w').write(''.join(file_lines))
+                        file_lines[i] = exports
+                    # Update also pre, setup and post if exist (maybe i the future their name is changed)
+                    if PRE_ENVIRONMENT_LABEL in file_lines[i]:
+                        file_lines[i] = PRE_ENVIRONMENT_CALL
+                    if SETUP_ENVIRONMENT_LABEL in file_lines[i]:
+                        file_lines[i] = SETUP_ENVIRONMENT_CALL
+                    if POST_ENVIRONMENT_LABEL in file_lines[i]:
+                        file_lines[i] = POST_ENVIRONMENT_CALL
+                # Write everything again
+                with open(sources_file, 'w') as sources_f:
+                    sources_f.write(''.join(file_lines))
                 messages.append('MESSAGE: Updated %s within %s' % (exports, sources_file))
             else:
-                # Append the line:
-                open(sources_file, 'a').write(exports)
+                # Get all contents
+                with open(sources_file, 'r') as sources_f:
+                    file_lines = sources_f.readlines()
+                # Append the source line:
+                file_lines.append(exports)
+                if pre_and_post_environment:
+                    # Add pre before setup
+                    file_lines.append(PRE_ENVIRONMENT_CALL)
+                    # Look for the place where to put the post (cleanup)
+                    # In virtual environments activate script there is a function called deactivate that is used
+                    # to clean the environment and exit from the virtual environment. So, place it there
+                    deactivate_line = None
+                    for i in range(len(file_lines)):
+                        if 'deactivate' in file_lines[i] and '(' in file_lines[i]:
+                            # Line i is the deactivate function definition
+                            deactivate_line = i
+                    if deactivate_line:
+                        # Found the line, then include post. Otherwise not.
+                        file_lines.insert(deactivate_line + 1, POST_ENVIRONMENT_CALL)
+                file_lines.append(SETUP_ENVIRONMENT_CALL)
+                with open(sources_file, 'w') as sources_f:
+                    sources_f.write(''.join(file_lines))
                 messages.append('MESSAGE: Added %s within %s' % (exports, sources_file))
-                # TODO: INCLUDE ENVIRONMENT MANAGEMENT IF VENV WITHIN ACTIVATE
             messages.append('MESSAGE: Do not forget to source %s' % sources_file)
 
         if venv:
             # Add export to virtual environment activate
-            update_export(os.path.join(os.environ['VIRTUAL_ENV'], 'bin', 'activate'), target_path)
+            update_export(os.path.join(os.environ['VIRTUAL_ENV'], 'bin', 'activate'),
+                          target_path,
+                          pre_and_post_environment=True)
         else:
+            # Local installation (.local)
             # Add export to .bashrc
-            update_export(os.path.join(os.path.expanduser('~'), '.bashrc'), target_path)
+            update_export(os.path.join(os.path.expanduser('~'), '.bashrc'),
+                          target_path,
+                          pre_and_post_environment=False)
 
     messages.append('*****************************************************')
 

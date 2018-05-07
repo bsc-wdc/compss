@@ -42,6 +42,7 @@ public class WorkerPool {
     // TreeSet : Priority on criticalSet based on cost
     private final Set<DynamicMethodWorker> criticalOrder;
 
+
     public WorkerPool() {
         staticSet = new HashMap<>();
         criticalSet = new HashMap<>();
@@ -162,8 +163,8 @@ public class WorkerPool {
                     runnable[cores.get(i)] = true;
                 }
             }
-            
-            LinkedList<DynamicMethodWorker> criticalOrderRemovals = new LinkedList();
+
+            LinkedList<DynamicMethodWorker> criticalOrderRemovals = new LinkedList<>();
             for (DynamicMethodWorker resource : criticalOrder) {
                 resourceName = resource.getName();
                 List<Integer> executableCores = resource.getExecutableCores();

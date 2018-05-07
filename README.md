@@ -64,7 +64,7 @@ at our webpage (http://compss.bsc.es) or at doc/Sample_applications.pdf
         $ ./buildlocal [options] ${INSTALL_DIR}
 
 
-
-Department of Computer Science
-Barcelona Supercomputing Center
+Workflows and Distributed Computing Group (WDC)
+Department of Computer Science (CS)
+Barcelona Supercomputing Center (BSC) 
 

@@ -122,8 +122,8 @@ copy_master_build_env() {
         gsprefix=$1      
         appname=$2       
 
-        @CP@ @prefix@/share/compsuperscalar/c_build/master/Makefile.am Makefile.am.source
-        @CAT@ @prefix@/share/compsuperscalar/c_build/master/configure.in | @SED@ -e s/PACKAGE/"$appname"/g > configure.in                                                                                             
+        @CP@ @prefix@/share/c_build/master/Makefile.am Makefile.am.source
+        @CAT@ @prefix@/share/c_build/master/configure.in | @SED@ -e s/PACKAGE/"$appname"/g > configure.in                                                                                             
         @CAT@ Makefile.am.source | @SED@ 's/PACKAGE/'$appname'/g' > Makefile.am
                                                                             
         generate_autogen_sh                                                                                                                                
@@ -216,10 +216,10 @@ copy_worker_build_env() {
         gsprefix=$1      
         appname=$2       
 
-        @CP@ @prefix@/share/compsuperscalar/c_build/worker/Makefile.am Makefile.am.source
-        @CAT@ @prefix@/share/compsuperscalar/c_build/worker/configure.in | @SED@ -e s/PACKAGE/"$appname"/g  > configure.in                                                                                                                                               
+        @CP@ @prefix@/share/c_build/worker/Makefile.am Makefile.am.source
+        @CAT@ @prefix@/share/c_build/worker/configure.in | @SED@ -e s/PACKAGE/"$appname"/g  > configure.in                                                                                                                                               
         @CAT@ Makefile.am.source | @SED@ 's/PACKAGE/'$appname'/g' > Makefile.am                             
-        @CP@ @prefix@/share/compsuperscalar/c_build/worker/files/* .
+        @CP@ @prefix@/share/c_build/worker/files/* .
         generate_autogen_sh                                                                                                                                
         @TOUCH@ NEWS README AUTHORS ChangeLog                                                                                                                
 

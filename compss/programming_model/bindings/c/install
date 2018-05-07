@@ -8,36 +8,36 @@
   # HELPER FUNCTIONS
   #######################################
   clean_env() {
-    cd ${working_dir}/bindinglib
+    cd "${working_dir}"/bindinglib
     ./clean.sh
-    #cd ${working_dir}/gsbuilder
-    #./clean.sh
-    #cd ${working_dir}/gsstubgen
-    #./clean.sh
-    cd ${working_dir}/compssbuilder
+    cd "${working_dir}"/compssbuilder
     ./clean.sh
-    cd ${working_dir}/compssgen
+    cd "${working_dir}"/compssgen
     ./clean.sh
   }
 
   install() {
     local installationDir=$1
     local componentName=$2
+    local ev
 
-    autoreconf -fvi # force verbose install
-    if [ $? -ne 0 ]; then
+    ./autogen.sh
+    ev=$?
+    if [ $ev -ne 0 ]; then
       echo "${ERROR_AUTORECONF} on ${componentName}"
-      exit 1
+      exit $ev
     fi
-    ./configure --prefix=${installationDir} --libdir=${installationDir}/lib
-    if [ $? -ne 0 ]; then
+    ./configure --prefix="${installationDir}" --libdir="${installationDir}"/lib
+    ev=$?
+    if [ $ev -ne 0 ]; then
       echo "${ERROR_CONFIGURE} on ${componentName}"
-      exit 1
+      exit $ev
     fi
     make clean install
-    if [ $? -ne 0 ]; then
+    ev=$?
+    if [ $ev -ne 0 ]; then
       echo "${ERROR_INSTALL} on ${componentName}"
-      exit 1
+      exit $ev
     fi
   }
 
@@ -111,9 +111,9 @@
     export ARCH=$arch
     export SUBFLDR=$subfolder
 
-    cd $working_dir/bindinglib
-    install ${build_root} "Binding Library"
-    cd $working_dir
+    cd "$working_dir"/bindinglib
+    install "${build_root}" "Binding Library"
+    cd "$working_dir"
   fi
   
   ######################################################
@@ -142,9 +142,9 @@
   echo " "
   echo "Installing new COMPSs Builder Library..."
   echo " "
-  cd ${working_dir}/compssbuilder
-  install ${build_root} "COMPSs Builder"
-  cd ${working_dir}
+  cd "${working_dir}"/compssbuilder
+  install "${build_root}" "COMPSs Builder"
+  cd "${working_dir}"
 
   ######################################################
   # COMPSsStubGen
@@ -152,18 +152,17 @@
   echo " "
   echo "Installing COMPSs Stub Genenerator ..."
   echo " "
-  cd ${working_dir}/compssgen
-  install ${build_root} "COMPSs Stub Generator"
-  cd ${working_dir}
+  cd "${working_dir}"/compssgen
+  install "${build_root}" "COMPSs Stub Generator"
+  cd "${working_dir}"
   
   ######################################################
   # Log end message
   ######################################################
   echo " "
-  echo "*--------------------------------------------------------------------*"
-  echo "*  COMP Superscalar Binding for C/C++ successfully installed!!!      *"
-  echo "*                                                                    *"
-  echo "*  More information at COMP Superscalar website: www.bsc.es/compss   *"           
-  echo "*--------------------------------------------------------------------*"
+  echo "*----------------------------------------------------------------------*"
+  echo "*  COMP Superscalar Binding for C/C++ successfully installed!!!        *"
+  echo "*                                                                      *"
+  echo "*  More information at COMP Superscalar website: http://compss.bsc.es  *"           
+  echo "*----------------------------------------------------------------------*"
   echo " "
-

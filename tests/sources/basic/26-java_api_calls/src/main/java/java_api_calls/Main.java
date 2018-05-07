@@ -8,77 +8,85 @@ import java.io.IOException;
 
 
 /**
- * Two tasks without dependencies that are scheduled one after the other because of the barrier call
+ * Three tasks without dependencies that are scheduled one after the other because of the barrier call
  * 
  */
 public class Main {
+
+    /*
+     * HELPER METHODS
+     */
+
+    private static void initCounter(String counterName, int value) {
+        // Write value
+        try (FileOutputStream fos = new FileOutputStream(counterName)) {
+            fos.write(value);
+            System.out.println("Initial " + counterName + " value is " + value);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+            System.exit(-1);
+        }
+    }
+
+    private static void printCounter(String counterName) {
+        System.out.println("After Sending task");
+        try (FileInputStream fis = new FileInputStream(counterName)) {
+            System.out.println("Final " + counterName + " value is " + fis.read());
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+            System.exit(-1);
+        }
+    }
+
+    /*
+     * API TESTS
+     */
+
+    public static void testBarrier(int initialValue) {
+        // Initialize independent counters
+        String counterName1 = "counter1";
+        String counterName2 = "counter2";
+        String counterName3 = "counter3";
+        initCounter(counterName1, initialValue);
+        initCounter(counterName2, initialValue);
+        initCounter(counterName3, initialValue);
+
+        // Execute task
+        MainImpl.increment(counterName1);
+        // Regular barrier
+        COMPSs.barrier();
+
+        // Execute task
+        MainImpl.increment(counterName2);
+        // Barrier with noMoreTasks false
+        COMPSs.barrier(false);
+
+        MainImpl.increment(counterName3);
+        // Barrier with noMoreTasks true
+        COMPSs.barrier(true);
+
+        // Retrieve counter results
+        printCounter(counterName1);
+        printCounter(counterName2);
+        printCounter(counterName3);
+    }
+
+    /*
+     * MAIN
+     */
 
     public static void main(String[] args) {
         // Check and get parameters
         if (args.length != 1) {
             System.out.println("[ERROR] Bad number of parameters");
-            System.out.println("    Usage: simple.Simple <counterValue>");
+            System.out.println("    Usage: java_api_calls.Main <counterValue>");
             System.exit(-1);
         }
-        String counterName1 = "counter1";
-        String counterName2 = "counter2";
         int initialValue = Integer.parseInt(args[0]);
 
         // ------------------------------------------------------------------------
-        // Write value
-        try {
-            FileOutputStream fos = new FileOutputStream(counterName1);
-            fos.write(initialValue);
-            System.out.println("Initial counter1 value is " + initialValue);
-            fos.close();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            System.exit(-1);
-        }
-        // Write value
-        try {
-            FileOutputStream fos = new FileOutputStream(counterName2);
-            fos.write(initialValue);
-            System.out.println("Initial counter2 value is " + initialValue);
-            fos.close();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            System.exit(-1);
-        }
-
-        // ------------------------------------------------------------------------
-        // Execute increment 1
-        MainImpl.increment(counterName1);
-
-        // ------------------------------------------------------------------------
-        // API Call to wait for all tasks
-        COMPSs.barrier();
-
-        // ------------------------------------------------------------------------
-        // Execute increment 2
-        MainImpl.increment(counterName2);
-
-        // ------------------------------------------------------------------------
-        // Read new value
-        System.out.println("After Sending task");
-        try {
-            FileInputStream fis = new FileInputStream(counterName1);
-            System.out.println("Final counter1 value is " + fis.read());
-            fis.close();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            System.exit(-1);
-        }
-        // Read new value
-        System.out.println("After Sending task");
-        try {
-            FileInputStream fis = new FileInputStream(counterName2);
-            System.out.println("Final counter2 value is " + fis.read());
-            fis.close();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            System.exit(-1);
-        }
+        // Barrier test
+        testBarrier(initialValue);
     }
 
 }

@@ -1,35 +1,34 @@
-#/bin/bash -e
+#!/bin/bash
 
-  rm -rf config.h.in~
-  rm -rf ltmain.sh
+  rm -f config.h.in~
+  rm -f ltmain.sh
   rm -rf m4
-  mkdir -p m4
-  rm -rf config.h
-  rm -rf config.h.in
-  rm -rf aclocal.m4
-  rm -rf configure
+  rm -f config.h
+  rm -f config.h.in
+  rm -f aclocal.m4
+  rm -f configure
   rm -rf autom4te.cache
-  rm -rf config.guess
-  rm -rf config.sub
-  rm -rf install-sh
-  rm -rf missing
-  rm -rf INSTALL
-  rm -rf depcomp
-  rm -rf ylwrap
-  rm -rf Makefile.in
-  rm -rf config.status
-  rm -rf Makefile
-  rm -rf stamp-h1
-  rm -rf libtool
-  rm -rf config.log
-  rm -rf backendlib.o
-  rm -rf c-backend.o
-  rm -rf c-constraints-backend.o
-  rm -rf corba-gram.o
-  rm -rf corba-lex.o
-  rm -rf main.o
-  rm -rf semantic.o
+  rm -f config.guess
+  rm -f config.sub
+  rm -f install-sh
+  rm -f missing
+  rm -f INSTALL
+  rm -f depcomp
+  rm -f ylwrap
+  rm -f Makefile.in
+  rm -f config.status
+  rm -f Makefile
+  rm -f stamp-h1
+  rm -f libtool
+  rm -f config.log
+  rm -f backendlib.o
+  rm -f c-backend.o
+  rm -f c-constraints-backend.o
+  rm -f corba-gram.o
+  rm -f corba-lex.o
+  rm -f main.o
+  rm -f semantic.o
   rm -rf .deps
   rm -rf .libs
-  rm -rf gsstubgen
-
+  rm -f gsstubgen
+  rm -f compile

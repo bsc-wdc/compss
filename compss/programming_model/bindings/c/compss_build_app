@@ -189,18 +189,19 @@ if [ $instrument -eq 1 ]; then
 fi
 
 # Setting Java folder
-libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.so | head -n 1)
+libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
+if [ -z "$libjava" ]; then
+  libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
   if [ -z "$libjava" ]; then
-    libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.dylib | head -n 1)
-    if [ -z "$libjava" ]; then
-      display_error "${JAVA_JRE_ERROR}"
-    fi
+    display_error "${JAVA_JRE_ERROR}"
   fi
-export LIBJAVAFOLDER=$(dirname $libjava)
+fi
+LIBJAVAFOLDER=$(dirname "$libjava")
+export LIBJAVAFOLDER
 
 # GS HOME
-if [ -z $CS_HOME ]; then
-  if [ -z $COMPSS_HOME ]; then
+if [ -z "$CS_HOME" ]; then
+  if [ -z "$COMPSS_HOME" ]; then
     export CS_HOME=/opt/COMPSs/Bindings/c
   else
     export CS_HOME=$COMPSS_HOME/Bindings/c
@@ -210,23 +211,27 @@ export COMPSSGEN=$CS_HOME/bin/compss_generator
 
 # Application src compilation
 if [ -d "./src" ]; then
-  cd ./src
+  (
+  cd ./src || exit 1
   make
-  if [ $? -ne 0 ]; then 
+  ev=$?
+  if [ $ev -ne 0 ]; then 
     echo " "
     echo "Building user application failed, please check errors above!"
-    exit 1
+    exit $ev
   fi
-  cd -
+  )
 fi
 # Building Master and Worker
 export CC="gcc"
 export CXX="g++"
-$CS_HOME/bin/compss_build build master ${other_args}
-if [ $? -ne 0 ]; then
+# shellcheck disable=SC2086
+"$CS_HOME"/bin/compss_build build master ${other_args}
+ev=$?
+if [ $ev -ne 0 ]; then
   echo " "
   echo "Building binding failed, please check errors above!"
-  exit 1
+  exit $ev
 fi
 if [ "${ompss_enabled}" != "" ]; then
   # Flag is defined, check value
@@ -242,8 +247,8 @@ if [ "${cuda_enabled}" != "" ]; then
   # Flag is defined, check value
   if [ ${cuda_enabled} == 1 ]; then
     export LIBS="$LIBS -lcudart"
-    if [ -z ${cuda_prefix} ]; then
-        if [-z $CUDA_HOME ]; then
+    if [ -z "${cuda_prefix}" ]; then
+        if [ -z "$CUDA_HOME" ]; then
            export PATH=$PATH:/usr/local/cuda/bin
            export LDFLAGS="$LDFLAGS -L/usr/local/cuda/lib64"
         else
@@ -259,17 +264,19 @@ fi
 if [ "${opencl_enabled}" != "" ]; then
   # Flag is defined, check value
   if [ ${opencl_enabled} == 1 ]; then
-#    export LDADD="$LDADD -L/home/altera/16.0.2/hld/linux64/lib -L/opt/intel_deliverable_WW49_16/bdw_fpga_pilot_opencl_bsp_v1.0/host/linux64/lib    -lalterahalmmd -laltera_qpi_mmd  -laalrt  -L/opt/aalsdk/aalsdk-5.0.2/lib"    
+    # export LDADD="$LDADD -L/home/altera/16.0.2/hld/linux64/lib -L/opt/intel_deliverable_WW49_16/bdw_fpga_pilot_opencl_bsp_v1.0/host/linux64/lib    -lalterahalmmd -laltera_qpi_mmd  -laalrt  -L/opt/aalsdk/aalsdk-5.0.2/lib"    
     export LDFLAGS="$LDFLAGS ${opencl_libraries}"
-#    echo $LDADD
+    # echo $LDADD
   fi
 fi
 
-$CS_HOME/bin/compss_build build worker ${other_args}
-if [ $? -ne 0 ]; then
+# shellcheck disable=SC2086
+"$CS_HOME"/bin/compss_build build worker ${other_args}
+ev=$?
+if [ $ev -ne 0 ]; then
     echo " "
     echo "Building binding failed, please check errors above!"
-    exit 1
+    exit $ev
 fi
 
 # End

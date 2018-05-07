@@ -1,15 +1,16 @@
-#/bin/bash -e
+#!/bin/bash -e
 
-  rm -rf ltmain.sh
+  rm -f ltmain.sh
   rm -rf m4
-  mkdir -p m4
-  rm -rf aclocal.m4
+  rm -f aclocal.m4
   rm -rf autom4te.cache
-  rm -rf configure
-  rm -rf config.status
-  rm -rf Makefile
-  rm -rf gsbuild
-  rm -rf libtool
-  rm -rf config.log
-  rm -rf etc/Makefile
-
+  rm -f configure
+  rm -f config.status
+  rm -f Makefile
+  rm -f Makefile.in
+  rm -f gsbuild
+  rm -f libtool
+  rm -f config.log
+  rm -f etc/Makefile
+  rm -f INSTALL
+  rm -f compile

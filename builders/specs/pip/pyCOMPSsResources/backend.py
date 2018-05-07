@@ -11,6 +11,10 @@ else:
     import urllib
 
 
+# Used for .bashrc export if necessary
+EXPORT_LABEL = '##PyCOMPSs_EXPORTS___DO_NOT_REMOVE_THIS_LINE##'
+
+
 def install(target_path, venv):
     """
     This function downloads the COMPSs installable from the specified repository and version
@@ -83,13 +87,13 @@ def install(target_path, venv):
         def update_export(sources_file, target_path):
             local_compss_sh = os.path.join(target_path, 'compss.sh')
             open(local_compss_sh, 'w').write(s)
-            exports = 'source ' + str(local_compss_sh) + ' ##PyCOMPSs_EXPORTS##'
+            exports = 'source ' + str(local_compss_sh) + ' ' + EXPORT_LABEL
             messages.append('NOTE! ENVIRONMENT VARIABLES STORED IN %s' % local_compss_sh)
-            if '##PyCOMPSs_EXPORTS##' in open(sources_file, 'r').read():
+            if EXPORT_LABEL in open(sources_file, 'r').read():
                 # Update the existing line
                 file_lines = open(sources_file, 'r').readlines()
                 for i in range(len(file_lines)):
-                    if '##PyCOMPSs_EXPORTS##' in file_lines[i]:
+                    if EXPORT_LABEL in file_lines[i]:
                         file_lines[i] = exports + '\n'
                 open(sources_file, 'w').write(''.join(file_lines))
                 messages.append('MESSAGE: Updated %s within %s' % (exports, sources_file))

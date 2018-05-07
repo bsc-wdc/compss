@@ -26,68 +26,42 @@ else:
 " )
   }
 
-  install_for_py2 () {
-    echo "Installing in ${targetDir}"
-    PYCOMPSS_HOME="${targetDir}/2"
-    export PYTHONPATH=$PYCOMPSS_HOME:$PYTHONPATH
 
-    if command_exists python2 ; then
-      python2 ${SCRIPT_DIR}/setup.py install --install-lib=${PYCOMPSS_HOME} -O2
-      exitCode=$?
-      if [ "$create_symlinks" = "true" ]; then
-        get_packages_folder python2
-        # Check if exists. If not, create.
-        # mkdir -p ${packages_folder}      # Not necessary in sudo
-        # Setup a symbolic link to pycompss
-        ln -sfn "${PYCOMPSS_HOME}/pycompss" "${packages_folder}/pycompss"
-        echo "Created symbolic link from ${PYCOMPSS_HOME}/pycompss to ${packages_folder}/pycompss"
-        ln -sfn "${PYCOMPSS_HOME}/compss.so" "${packages_folder}/compss.so"
-        echo "Created symbolic link from ${PYCOMPSS_HOME}/compss.so to ${packages_folder}/compss.so"
-        ln -sfn "${PYCOMPSS_HOME}/thread_affinity.so" "${packages_folder}/thread_affinity.so"
-        echo "Created symbolic link from ${PYCOMPSS_HOME}/thread_affinity.so to ${packages_folder}/thread_affinity.so"
-      fi
-      if [ $exitCode -ne 0 ]; then
-        echo "ERROR: Cannot install PyCOMPSs for Python 2"
-        exit $exitCode
-      fi
-    else
-      echo "WARNING: PyCOMPSS FOR PYTHON 2 HAS NOT BEEN INSTALLED."
-    fi
-  }
-
-  install_for_py3 () {
-    PYCOMPSS_HOME="${targetDir}/3"
-    # The previous line defines that the installation will be done in a different file from the previous
-    # installation, and relies on the creation of a symbolic link from the interpreter library folder.
-    # It is possible to install Python3 version within the same folder (python code is compatible), but:
-    #   - The extensions have different names, so that the most appropriate can be selected dynamically.
-    #   - pyc and pyo files are in different folders (for python2 within the same as .py files, while
-    #     in python 3 they are within __pycache__ folder).
+  # It is possible to install Python3 version within the same folder (python code is compatible), but:
+  #   - The extensions have different names, so that the most appropriate can be selected dynamically.
+  #   - pyc and pyo files are in different folders (for python2 within the same as .py files, while
+  #     in python 3 they are within __pycache__ folder).
+  # However, we keep them in different folders with the python major version as subfolder.
+  install (){
+    PYCOMPSS_HOME="${targetDir}/$1"
     export PYTHONPATH=$PYCOMPSS_HOME:$OLD_PYTHONPATH
 
-    if command_exists python3 ; then
-      python3 ${SCRIPT_DIR}/setup.py install --install-lib=${PYCOMPSS_HOME} -O2
+    if command_exists python$1 ; then
+      python$1 ${SCRIPT_DIR}/setup.py install --install-lib=${PYCOMPSS_HOME} -O2
       exitCode=$?
       if [ "$create_symlinks" = "true" ]; then
-        get_packages_folder python3
-        # Check if exists. If not, create.
-        # mkdir -p ${packages_folder}      # Not necessary in sudo
+        # Expected when installing with buildlocal. Not from buildsc.
+        # Pip package sets these symbolic links and updates the 'activate' script accordingly.
+        get_packages_folder python$1
         # Setup a symbolic link to pycompss
         ln -sfn "${PYCOMPSS_HOME}/pycompss" "${packages_folder}/pycompss"
         echo "Created symbolic link from ${PYCOMPSS_HOME}/pycompss to ${packages_folder}/pycompss"
+        # Setup a symbolic link to compss module
         ln -sfn "${PYCOMPSS_HOME}/compss.*" "${packages_folder}/"
         echo "Created symbolic link from ${PYCOMPSS_HOME}/compss.* to ${packages_folder}/compss.*"
+        # Setup a symbolic link to thread affinith module
         ln -sfn "${PYCOMPSS_HOME}/thread_affinity.*" "${packages_folder}/"
         echo "Created symbolic link from ${PYCOMPSS_HOME}/thread_affinity.* to ${packages_folder}/thread_affinity.*"
       fi
       if [ $exitCode -ne 0 ]; then
-        echo "ERROR: Cannot install PyCOMPSs for Python 3"
+        echo "ERROR: Cannot install PyCOMPSs for Python $1"
         exit $exitCode
       fi
     else
-      echo "WARNING: PyCOMPSS FOR PYTHON 3 HAS NOT BEEN INSTALLED."
+      echo "WARNING: PyCOMPSS FOR PYTHON $1 HAS NOT BEEN INSTALLED."
     fi
   }
+
 
   #
   # SCRIPT GLOBAL CONSTANTS
@@ -118,27 +92,27 @@ else:
       if [[ "$targetDir" = *python2* ]]; then
         echo "* Installing python 2 version."
         # within 2.X site-packages
-        install_for_py2
+        install 2
       elif [[ "$targetDir" = *python3* ]]; then
         echo "* Installing python 3 version."
         # within 3.X site-packages
-        install_for_py3
+        install 3
       else
         echo "ERROR! UNSUPPORTED TARGET DIRECTORY WITHIN site-packages OR dist-packages."
       fi
     else
       # Install all
-      install_for_py2
-      install_for_py3
+      install 2
+      install 3
     fi
   elif [ "$only_python_version" == "python2" ]; then
     echo "* Installing JUST python 2 version."
     # Install only python 2 version
-    install_for_py2
+    install 2
   elif [ "$only_python_version" == "python3" ]; then
     echo "* Installing JUST python 3 version."
     # Install only python 3 version
-    install_for_py3
+    install 3
   else
     echo "ERROR! UNSUPPORTED PYTHON VERSION."
   fi

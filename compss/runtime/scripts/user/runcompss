@@ -295,6 +295,11 @@ error_msg() {
   exit 1
 }
 
+# Checks if a command exists
+command_exists () {
+  type "$1" &> /dev/null ;
+}
+
 check_env() {
   # Added for SGE queue systems which do not allow to copy LD_LIBRARY_PATH
   if [ -z "$LD_LIBRARY_PATH" ]; then
@@ -1045,7 +1050,11 @@ exec_python() {
   storageApi=${COMPSS_HOME}/Dependencies/
   cp=$cp:$storageApi
 
-  python_version=$( $python_interpreter -c "import sys; print(sys.version_info[:][0])" )
+  if command_exists $python_interpreter ; then
+    python_version=$( $python_interpreter -c "import sys; print(sys.version_info[:][0])" )
+  else
+    error_msg "ERROR: $python_interpreter does not exist."
+  fi
 
   # Check if installed and export needed variables if needed
   if [ -d "${COMPSS_HOME}/Bindings/python/$python_version" ]; then

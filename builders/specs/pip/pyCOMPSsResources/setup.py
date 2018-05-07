@@ -8,7 +8,7 @@ from setuptools import setup
 Setuptools installer. This script will be called by pip when:
 - We want to create a distributable (sdist) tar.gz
 - We want to build the C extension (build and build_ext)
-- We want to install pyCOMPSs (install)
+- We want to install PyCOMPSs (install)
 
 It can be invoked to do these functionalities with
 python setup.py (install|sdist|build)
@@ -17,28 +17,61 @@ python setup.py (install|sdist|build)
 bindings_location = os.path.join('COMPSs', 'Bindings')
 venv = False
 
-try:
-    if os.getuid() == 0:
-        # Installing as root
-        target_path = os.path.join(site.getsitepackages()[0], 'pycompss')
-        print('Installing as root in: ' + str(target_path))
-    else:
-        # Installing as user
-        target_path = os.path.join(site.getusersitepackages(), 'pycompss')
-        print('Installing as user in: ' + str(target_path))
-except AttributeError:
-    # we are within a virtual environment
-    venv = True
+
+def get_virtual_env_target_path():
+    """
+    Get the target path within a virtual environment
+    :return: target path
+    """
     from distutils.sysconfig import get_python_lib
-    target_path = os.path.join(get_python_lib(), 'pycompss')
-    print('Installing within virtuel environment in: ' + str(target_path))
+    return os.path.join(get_python_lib(), 'pycompss')
+
+
+def get_root_target_path():
+    """
+    Get the target path for root installations
+    :return: target path
+    """
+    return os.path.join(site.getsitepackages()[0], 'pycompss')
+
+
+def get_user_target_path():
+    """
+    Get the target path for user installation
+    :return: target path
+    """
+    return os.path.join(site.getusersitepackages(), 'pycompss')
+
+
+if 'VIRTUAL_ENV' in os.environ:
+    # We are within a virtual environment
+    # This is more legit than within the exception
+    venv = True
+    target_path = get_virtual_env_target_path()
+    print('Installing within virtual environment in: ' + str(target_path))
+else:
+    try:
+        if os.getuid() == 0:
+            # Installing as root
+            target_path = get_root_target_path()
+            print('Installing as root in: ' + str(target_path))
+        else:
+            # Installing as user
+            target_path = get_user_target_path()
+            print('Installing as user in: ' + str(target_path))
+    except AttributeError:
+        # This exception can be raised within virtual environments due to a bug
+        # with the site module.
+        venv = True
+        target_path = get_virtual_env_target_path()
+        print('Installing within virtual environment in: ' + str(target_path))
 
 
 def check_system():
-    '''
+    """
     Check that we have a proper python version and a proper OS (i.e: not windows)
     Also, check that we have JAVA_HOME defined
-    '''
+    """
     # check Python version
     assert sys.version_info[:2] >= (2, 7), 'COMPSs does not support Python version %s, only Python >= 2.7.x is supported.'%sys.version
     # check os version

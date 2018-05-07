@@ -59,6 +59,8 @@ def main():
     Main method.
     """
     help = ['-h', '--help']
+
+    # Check params
     if len(sys.argv) > 1 and sys.argv[1] not in TAGS and sys.argv[1] not in help:
         # No action specified. Assume run.
         class Object(object):
@@ -74,11 +76,22 @@ def main():
     # Since it is being run as module
     activate_module()
 
+    # Check if the user has specified to use a specific python interpreter
+    if any('--python_interpreter=' in param for param in args.params):
+        # The user specified explicitly a python interpreter to use
+        # Do not include the python_interpreter variable in the cmd call
+        python_interpreter = []
+    else:
+        # Use the same as current
+        python_interpreter = ['--python_interpreter=python' + str(sys.version_info[0])]
+
+    # Take an action
     if args.action == RUN_TAG:
-        cmd = [RUN_EXECUTABLE] + args.params
+        cmd = [RUN_EXECUTABLE] + python_interpreter + args.params
+        print(cmd)
         run(cmd)
     elif args.action == ENQUEUE_TAG:
-        cmd = [ENQUEUE_EXECUTABLE] + args.params
+        cmd = [ENQUEUE_EXECUTABLE] + python_interpreter + args.params
         run(cmd)
     else:
         # Reachable only when python -m pycompss (and nothing else)

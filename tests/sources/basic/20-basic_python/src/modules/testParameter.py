@@ -1,20 +1,20 @@
 import unittest
 from pycompss.api.task import task
 from pycompss.api.parameter import *
-from test.modules.auxFunctions import formula2
+from modules.auxFunctions import formula2
 
 
-class testParameterRetInt(unittest.TestCase):
-    @task(returns=1)
+class testParameter(unittest.TestCase):
+    @task(returns=int)
     def function_function_parameter(self, f, v):
         out = f(v)
         return out
 
-    @task(returns=1)
+    @task(returns=int)
     def function_default_parameter_values(self, x=100):
         return x
 
-    @task(returns=1)
+    @task(returns=int)
     def function_order_parameters(self, x, y, z=100, w=1000):
         return x+y+(z*w)
 

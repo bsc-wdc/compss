@@ -6,18 +6,18 @@ PyCOMPSs Testbench
 """
 
 from pycompss.api.api import compss_open, compss_wait_on
-from test.modules.test_tasks import function_primitives, function_files, function_objects, function_return_primitive
-from test.modules.test_tasks import function_return_object, MyClass, par_func
-from test.modules.test_tasks import function_function_parameter, formula2, function_default_parameter_values, function_order_parameters
-from test.modules.test_tasks import function_fu_object, function_fu_in_task
-from test.modules.test_tasks import function_fu_list_object, function_fu_list_in_task
-from test.modules.test_tasks import function_iterable_object_wait, function_wait_on_string
-from test.modules.test_tasks import function_time_decorated_master, function_time_decorated_worker
-from test.modules.test_tasks import function_argfunc, function_lambda, function_generator
-from test.modules.test_tasks import function_lambda_return, function_generator_return
-from test.modules.test_tasks import multireturn, power, merge
-from test.modules.test_tasks import function_moduleObject, Foo
-from test.modules.test_tasks import create_block, update_block
+from modules.test_tasks import function_primitives, function_files, function_objects, function_return_primitive
+from modules.test_tasks import function_return_object, MyClass, par_func
+from modules.test_tasks import function_function_parameter, formula2, function_default_parameter_values, function_order_parameters
+from modules.test_tasks import function_fu_object, function_fu_in_task
+from modules.test_tasks import function_fu_list_object, function_fu_list_in_task
+from modules.test_tasks import function_iterable_object_wait, function_wait_on_string
+from modules.test_tasks import function_time_decorated_master, function_time_decorated_worker
+from modules.test_tasks import function_argfunc, function_lambda, function_generator
+from modules.test_tasks import function_lambda_return, function_generator_return
+from modules.test_tasks import multireturn, power, merge
+from modules.test_tasks import function_moduleObject, Foo
+from modules.test_tasks import create_block, update_block
 
 
 def test_function_primitives():

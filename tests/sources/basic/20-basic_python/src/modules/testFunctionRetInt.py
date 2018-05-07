@@ -1,12 +1,14 @@
 import unittest
 from pycompss.api.task import task
 from pycompss.api.parameter import *
-from test.modules.MyClass import MyClassRetInt as MyClass
-from test.modules.auxFunctions import formula1
+from modules.MyClass import MyClassRetInt as MyClass
+from modules.auxFunctions import formula1
+
 
 @task(returns=1)
 def function_without_params():
     return 1
+
 
 class testFunctionRetInt(unittest.TestCase):
 

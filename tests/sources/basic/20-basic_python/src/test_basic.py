@@ -1,19 +1,24 @@
+#!/usr/bin/python                                                                                                                                                                                                                                                              
+
+# -*- coding: utf-8 -*-
+
+# Imports
 import unittest
-from test.modules.testDecorator import testDecorator
-from test.modules.testFunction import testFunction
-# from test.modules.testFunction import testFunctions # TODO: Include this test when finished the functions
-from test.modules.testWaitOn import testWaitOn
-from test.modules.testParameter import testParameter
-from test.modules.testClass import testClass
+
+from modules.testDecorator import testDecorator
+from modules.testFunction import testFunction
+# from modules.testFunction import testFunctions # TODO: Include this test when finished the functions
+from modules.testWaitOn import testWaitOn
+from modules.testParameter import testParameter
+from modules.testClass import testClass
 
 # Duplicated modules with return statements set to numbers
-from test.modules.testDecoratorRetInt import testDecoratorRetInt
-from test.modules.testFunctionRetInt import testFunctionRetInt
-# from test.modules.testFunctionsRetInt import testFunctionsRetInt # TODO: Include this test when finished the functions
-from test.modules.testWaitOnRetInt import testWaitOnRetInt
-from test.modules.testParameterRetInt import testParameterRetInt
-from test.modules.testClassRetInt import testClassRetInt
-
+from modules.testDecoratorRetInt import testDecoratorRetInt
+from modules.testFunctionRetInt import testFunctionRetInt
+# from modules.testFunctionsRetInt import testFunctionsRetInt # TODO: Include this test when finished the functions
+from modules.testWaitOnRetInt import testWaitOnRetInt
+from modules.testParameterRetInt import testParameterRetInt
+from modules.testClassRetInt import testClassRetInt
 
 
 def main():

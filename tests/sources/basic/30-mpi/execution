@@ -14,7 +14,7 @@
   
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
-  sed -i '/<InstallDir>/c<InstallDir>'${COMPSS_HOME}'<\/InstallDir>' "${base_app_dir}"/project.xml
+  sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/project.xml
   
   #----------------------------------------------------------------------------------
   # Create all working dir folders
@@ -43,14 +43,18 @@
   error_log="${target_log_folder}/testMPI_0${retryNum}.errorlog"
   expectedTime=180s
   
+  # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \
      --project="${base_app_dir}"/project.xml \
      --resources="${base_app_dir}"/resources.xml \
-     --debug \
-     --lang=java \
+     \
      --comm="$comm" \
+     \
+     --debug \
      ${runcompss_opts} \
+     \
      --classpath="${base_app_dir}"/mpi.jar \
+     \
      testMPI.Main > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
   
   # Check timeout
@@ -69,7 +73,6 @@
      "${base_app_dir}"/result "${output_log}" "${target_log_folder}" 
      exitValue=$?
   fi
-  
   
   #----------------------------------------------------------------------------------
   # Return execution status

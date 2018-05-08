@@ -1617,8 +1617,7 @@ EOT
 #---------------------------------------------------------------------------------------
   
   # Set script variables
-  # TODO this should be redefined in archer
-  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/user"
   COMPSS_HOME=${SCRIPT_DIR}/../../../
   
   numPrologActions=0

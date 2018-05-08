@@ -669,7 +669,7 @@ submit() {
 #---------------------------------------------------
 # MAIN EXECUTION
 #---------------------------------------------------
-  scriptDir=$(dirname $0)
+  scriptDir="${COMPSS_HOME}/Runtime/scripts/queues/common"
 
   # Get command args
   get_args "$@"

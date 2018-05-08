@@ -3,7 +3,7 @@
   #-------------------------------------
   # Define script variables and exports
   #-------------------------------------
-  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/system"
 
   if [ -z "$EXTRAE_HOME" ]; then
     extraeDir="${SCRIPT_DIR}/../../../Dependencies/extrae/"

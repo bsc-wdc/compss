@@ -46,6 +46,8 @@ public class PythonThreadPool extends ExternalThreadPool {
     private static String pythonInterpreter = "python";
     // Worker subfolder (default: python 2)
     private static String workerSubFolder = "2";
+    // Python virtual environment (default: "null")
+    private static String pythonVirtualEnvironment = "null";
 
     // Python worker relative path (default: python 2)
     private static final String WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator + "worker" + File.separator + "piper_worker.py";
@@ -55,7 +57,6 @@ public class PythonThreadPool extends ExternalThreadPool {
      *
      * @param nw
      * @param size
-     * @param pythonInterpreter
      * @throws IOException
      */
     public PythonThreadPool(NIOWorker nw, int size) {
@@ -92,7 +93,8 @@ public class PythonThreadPool extends ExternalThreadPool {
         PythonThreadPool.pythonInterpreter = NIOWorker.getPythonInterpreter();
         // Define the propper worker relative path
         if (pythonInterpreter.equalsIgnoreCase(COMPSsConstants.Pythons.python.name())){
-            // TODO: Find out the python version  // Currently, assume that python is python 2
+            // TODO: Find out the python version. Currently, assume that python is python 2
+            // Use --python_interpreter=pythonX to force the one to use if error.
             PythonThreadPool.workerSubFolder = "2";
         } else if (pythonInterpreter.equalsIgnoreCase(COMPSsConstants.Pythons.python2.name())) {
             PythonThreadPool.workerSubFolder = "2";
@@ -103,6 +105,7 @@ public class PythonThreadPool extends ExternalThreadPool {
         StringBuilder cmd = new StringBuilder();
 
         cmd.append(COMPSsConstants.Lang.PYTHON).append(ExternalExecutor.TOKEN_SEP);
+        cmd.append(NIOWorker.getPythonVirtualEnvironment()).append(ExternalExecutor.TOKEN_SEP);
         cmd.append(NIOWorker.isTracingEnabled()).append(ExternalExecutor.TOKEN_SEP);
 
         cmd.append(PythonThreadPool.pythonInterpreter).append(ExternalExecutor.TOKEN_SEP).append("-u").append(ExternalExecutor.TOKEN_SEP);

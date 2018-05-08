@@ -40,21 +40,14 @@
     binding=$1
     shift 1
 
-    # Get tracing if python
+    # Get tracing and virtual environment if python
     if [ "$binding" == "PYTHON" ]; then
+        # Get virtual environment
+        virtualEnvironment=$1
+        shift 1
+        # Get tracing
         tracing=$1
         shift 1
-        if [ "$tracing" == "true" ]; then
-            configPath="${SCRIPT_DIR}/../../../../../configuration/xml/tracing"
-            escapedConfigPath=$(echo "$configPath" | sed 's_/_\\/_g')
-            baseConfigFile="${configPath}/extrae_python_worker.xml"
-            workerConfigFile="$(pwd)/extrae_python_worker.xml"
-
-            echo $(sed s/{{PATH}}/"${escapedConfigPath}"/g <<< $(cat "${baseConfigFile}")) > "${workerConfigFile}"
-
-            export PYTHONPATH=${SCRIPT_DIR}/../../../../../../Dependencies/extrae/libexec/:${SCRIPT_DIR}/../../../../../../Dependencies/extrae/lib/:${PYTHONPATH}
-            export EXTRAE_CONFIG_FILE=${workerConfigFile}
-        fi
     fi
 
     # Get binding additional executable and arguments
@@ -125,6 +118,25 @@
     mkfifo $i
   done
 
+  # Activating virtual environment if needed
+  if [ "$virtualEnvironment" != "null" ]; then
+    echo "[BINDINGS PIPER] Activating virtual environment $virtualEnvironment"
+    source ${virtualEnvironment}/bin/activate
+  fi
+
+  # Export tracing
+  if [ "$tracing" == "true" ]; then
+    configPath="${SCRIPT_DIR}/../../../../../configuration/xml/tracing"
+    escapedConfigPath=$(echo "$configPath" | sed 's_/_\\/_g')
+    baseConfigFile="${configPath}/extrae_python_worker.xml"
+    workerConfigFile="$(pwd)/extrae_python_worker.xml"
+
+    echo $(sed s/{{PATH}}/"${escapedConfigPath}"/g <<< $(cat "${baseConfigFile}")) > "${workerConfigFile}"
+
+    export PYTHONPATH=${SCRIPT_DIR}/../../../../../../Dependencies/extrae/libexec/:${SCRIPT_DIR}/../../../../../../Dependencies/extrae/lib/:${PYTHONPATH}
+    export EXTRAE_CONFIG_FILE=${workerConfigFile}
+  fi
+
   # Perform specific biding call (THE CALL IS BLOCKING)
   echo "[BINDINGS PIPER] Initializing specific binding for $binding"
   echo "[BINDINGS PIPER] Making call: $bindingExecutable $bindingArgs"
@@ -143,6 +155,11 @@
         echo "errorTask" >> $i
       fi
     done
+  fi
+
+  # Deactivate virtual environment if needed
+  if [ "$virtualEnvironment" != "null" ]; then
+    deactivate  # this function is contained in activate script sourced previously
   fi
 
   # Clean environment

@@ -127,6 +127,7 @@ public class COMPSsConstants {
 
     // Python properties
     public static final String PYTHON_INTERPRETER = "compss.python.interpreter";
+    public static final String PYTHON_VIRTUAL_ENVIRONMENT = "compss.python.virtualenvironment";
 
     // System properties for Instrumentation flags
     public static final String COMPSS_TO_FILE = "compss.to.file";

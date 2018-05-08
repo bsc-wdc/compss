@@ -322,20 +322,26 @@ worker_cmd() {
 master_cmd() {
   local master_name=$1
 
-  # WARNING: SETS GLOBAL SCRIPT VARIABLE MCMD
-  if [ -z "${container_image}" ]; then
-    MCMD="${COMPSS_HOME}/Runtime/scripts/user/runcompss"
+  if [ "${SC_NAME}" == "archer" ]; then
+    master_id=$(echo ${master_node##nid} | sed -e 's/[0]*//')
   else
-    MCMD="singularity exec $container_opts $container_image ${COMPSS_HOME}/Runtime/scripts/user/runcompss"
+    master_id=${master_name}
   fi
+  echo "Master ID: ${master_id} lcs"
+  echo "Master Name: ${master_name} lcs"
+  echo "Master Node: ${master_nod} lcs"
+
+  # WARNING: SETS GLOBAL SCRIPT VARIABLE MCMD
+  MCMD="${COMPSS_HOME}/Runtime/scripts/user/runcompss \
+            --project=${PROJECT_FILE} \
   MCMD="$MCMD --project=${PROJECT_FILE} \
             --resources=${RESOURCES_FILE} \
             --uuid=${uuid} \
             --specific_log_dir=${specific_log_dir} \
-            --master_name=${master_name} \
+            --master_name=${master_id} \
             --master_port=${master_port} \
             --jvm_master_opts=\"${jvm_master_opts}\" \
-            --jvm_workers_opts=\"${jvm_workers_opts}\""
+            --jvm_workers_opts=\"${jvm_workers_opts}\"
 }  
 
 
@@ -1001,15 +1007,26 @@ create_xml_files() {
   echo "List of workers: ${worker_nodes}"
 
   # Add worker slots on master if needed
+  if [ "${SC_NAME}" == "archer" ]; then
+    master_id="${master_node}${network}"
+  else
+    master_id="${master_node}"
+  fi
+
   if [ "${worker_in_master_cpus}" -ne 0 ]; then
     # add_compute_node name cpus gpus lot memory
-    add_compute_node "${master_node}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${max_tasks_per_node}" "${worker_in_master_memory}"
+    add_compute_node "${master_id}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${max_tasks_per_node}" "${worker_in_master_memory}"
   fi
 
   # Find the number of tasks to be executed on each node
   for node in ${worker_nodes}; do
+    if [ "${SC_NAME}" == "archer" ]; then
+      node_id="${node}${network}"
+    else
+      node_id="${node}"
+    fi
     # add_compute_node name cpus gpus lot memory
-    add_compute_node "$node" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${max_tasks_per_node}" "${node_memory}"
+    add_compute_node "${node_id}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${max_tasks_per_node}" "${node_memory}"
   done
   if [ ! -z "${elasticity}" ]; then
     insert_xml_elasticity "${elasticity}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${max_tasks_per_node}" "${node_memory}"
@@ -1044,7 +1061,12 @@ launch() {
       fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
       # worker_cmd id name jvmOptsSize jvmOpts cpus gpus cpuMap gpuMap lot
       worker_cmd $hostid "${master_node}${network}" "${jvm_worker_in_master_opts_size}" "${jvm_worker_in_master_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${max_tasks_per_node}"
-      WCMD="${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${WCMD}"
+      if [ "${SC_NAME}" == "archer" ]; then
+          master_id=$(echo ${master_node##nid} | sed -e 's/[0]*//')
+      else
+          master_id=${master_node}
+      fi
+      WCMD="${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_id} ${WCMD}"
       echo "CMD Worker $hostid launcher: $WCMD"
       $WCMD&
       hostid=$((hostid+1))
@@ -1060,7 +1082,12 @@ launch() {
       for node in ${worker_nodes}; do
         # worker_cmd id name jvmOptsSize jvmOpts cpus gpus cpuMap gpuMap lot
         worker_cmd $hostid "$node${network}" "${jvm_workers_opts_size}" "${jvm_workers_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${max_tasks_per_node}"
-        WCMD="${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${WCMD}"
+        if [ "${SC_NAME}" == "archer" ]; then
+            node_id=$(echo ${node##nid} | sed -e 's/[0]*//')
+        else
+            node_id=${node}
+        fi
+        WCMD="${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node_id} ${WCMD}"
         echo "CMD Worker $hostid launcher: $WCMD"
         $WCMD&
         hostid=$((hostid+1))
@@ -1134,8 +1161,13 @@ cleanup() {
     echo "Cleanup Worker TMP files"
     for node in ${worker_nodes}; do
       local sandboxWD=${worker_working_dir}/${uuid}
+      if [ "${SC_NAME}" == "archer" ]; then
+        node_id=$(echo ${node##nid} | sed -e 's/[0]*//')
+      else
+        node_id=${node}
+      fi
       echo "- Removing ${sandboxWD}"
-      ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}$node ${CMD_SEPARATOR}rm -rf ${sandboxWD}${CMD_SEPARATOR}
+      ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node_id} ${CMD_SEPARATOR}rm -rf ${sandboxWD}${CMD_SEPARATOR}
     done
 
     echo "Cleanup TMP files"
@@ -1455,6 +1487,7 @@ EOT
 
 
 
+
 ###############################################
 # Adds a compute node to Resources/Project
 ###############################################
@@ -1467,8 +1500,12 @@ add_compute_node() {
   local memory=$6
 
   echo "Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${nodeName} ${CMD_SEPARATOR}mkdir -p ${worker_working_dir}${CMD_SEPARATOR}"
-  ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${nodeName} ${CMD_SEPARATOR}mkdir -p ${worker_working_dir}${CMD_SEPARATOR}
-
+  if [ "${SC_NAME}" == "archer" ]; then
+    node_id=$(echo ${nodeName##nid} | sed -e 's/[0]*//')
+  else
+    node_id=${nodeName}
+  fi
+  ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node_id} ${CMD_SEPARATOR}mkdir -p ${worker_working_dir}${CMD_SEPARATOR}
   nodeName=${nodeName}${network}
 
   cat >> "${RESOURCES_FILE}" << EOT
@@ -1580,6 +1617,7 @@ EOT
 #---------------------------------------------------------------------------------------
   
   # Set script variables
+  # TODO this should be redefined in archer
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   COMPSS_HOME=${SCRIPT_DIR}/../../../
   

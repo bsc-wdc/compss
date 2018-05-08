@@ -1,9 +1,21 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench
+========================
+"""
+
+# Imports
 from pycompss.api.task import task
+
 
 @task(returns=int)
 def increment(v):
     raise Exception('GENERAL EXCEPTION RAISED - HAPPENED IN A TASK.')
-    return v+1
+    return v + 1
+
 
 def main():
     from pycompss.api.api import compss_wait_on
@@ -18,5 +30,5 @@ def main():
         print("- This error is a root error. Please fix error at test 19.")
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     main()

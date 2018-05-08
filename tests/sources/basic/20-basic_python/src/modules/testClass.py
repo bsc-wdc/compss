@@ -1,6 +1,17 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench Tasks
+========================
+"""
+
+# Imports
 import unittest
+
 from pycompss.api.task import task
-from pycompss.api.parameter import *
+
 from modules.MyClass import MyClass
 
 
@@ -35,7 +46,7 @@ class testClass(unittest.TestCase):
         res = compss_wait_on(res)
         o = compss_wait_on(o)
         self.assertEqual(res, 2)
-        self.assertEqual(o.field, val*4)
+        self.assertEqual(o.field, val * 4)
 
     def test_function_return_object(self):
         """ Test function return object"""
@@ -44,4 +55,4 @@ class testClass(unittest.TestCase):
         o = self.function_return_object(val)
         o.instance_method()
         o = compss_wait_on(o)
-        self.assertEqual(o.field, val*2)
+        self.assertEqual(o.field, val * 2)

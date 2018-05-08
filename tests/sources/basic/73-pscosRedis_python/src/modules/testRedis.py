@@ -1,33 +1,50 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench Tasks
+========================
+"""
+
+# Imports
 import unittest
+
 from .psco import PSCO
 from .psco_with_tasks import PSCOWithTasks
-from pycompss.api.task import task
-from pycompss.api.parameter import *
 
-@task(returns = int)
+from pycompss.api.task import task
+
+
+@task(returns=int)
 def compute_sum(psco):
     return sum(psco.get_content())
 
-@task(returns = PSCO)
+
+@task(returns=PSCO)
 def modifier_task(psco):
     psco.set_content('Goodbye world')
     return psco
 
-@task(returns = PSCO)
+
+@task(returns=PSCO)
 def creator_task(obj):
     myPSCO = PSCO(obj)
     return myPSCO
 
-@task(returns = list)
+
+@task(returns=list)
 def selfConcat(a, b):
     a.set_content(a.get_content() * 2)
     b.set_content(b.get_content() * 2)
     return [a, b]
 
-@task(returns = PSCO)
+
+@task(returns=PSCO)
 def inc(x):
-    x.content +=  1
+    x.content += 1
     return x
+
 
 class TestRedis(unittest.TestCase):
 

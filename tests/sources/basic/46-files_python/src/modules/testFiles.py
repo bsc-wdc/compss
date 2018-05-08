@@ -1,7 +1,18 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench Tasks
+========================
+"""
+
+# Imports
 import unittest
+
 from pycompss.api.task import task
 from pycompss.api.parameter import *
-import os.path
+
 
 class testFiles(unittest.TestCase):
 
@@ -96,8 +107,8 @@ class testFiles(unittest.TestCase):
         # The final file is only stored after the execution.
         # During the execution, you have to use the compss_open, which will
         # provide the real file where the output file is.
-        #fileInFolder = os.path.exists(fout)
-        #self.assertTrue(fileInFolder, "FILE_OUT is not in the final location")
+        # fileInFolder = os.path.exists(fout)
+        # self.assertTrue(fileInFolder, "FILE_OUT is not in the final location")
         self.assertEqual(res, content, "strings are not equal: {}, {}".format(res, content))
         self.assertEqual(content_r, content, "strings are not equal: {}, {}".format(content_r, content))
 

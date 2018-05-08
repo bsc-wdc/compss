@@ -1,8 +1,13 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
 """
 PyCOMPSs Testbench Tasks
 ========================
 """
 
+# Imports
 from pycompss.api.task import task
 from pycompss.api.parameter import *
 import types
@@ -13,6 +18,7 @@ import time
 
 # #### SERIALIZER #####
 import sys
+
 if sys.version_info >= (3, 0):
     import _pickle as cPickle
 else:
@@ -24,33 +30,32 @@ def timeit(func, *a, **k):
     ts = time.time()
     result = func(*a, **k)
     te = time.time()
-    return [result, 'Elapsed time: %2.6f sec' % (te-ts)]
+    return [result, 'Elapsed time: %2.6f sec' % (te - ts)]
 
 
 # #### FORMULAS #####
 # Need to be on a different file
 
 def formula1(n):
-    return n*n
+    return n * n
 
 
 def formula2(n):
     x = formula1(n)
-    return x*n
+    return x * n
 
 
 # #### CLASS #####
 # Need to be on a different file
 
 class MyClass(object):
-
     static_field = 'value of static field'
 
     # def __new__(self,v):  # Bug to be checked --- multiple parameters --- really needed? # raises when using bigfloat
     #     v=v+1
     #     return super(MyClass, self).__new__(self)
 
-    def __init__(self, field=None):   # def __init__(self, *args, **kwargs):
+    def __init__(self, field=None):  # def __init__(self, *args, **kwargs):
         self.field = field
         self.v = 0
 
@@ -82,7 +87,7 @@ class MyClass(object):
         print("- Input value:", v)
         self.v += v
         print("- Self.v value: ", self.v)
-        o = v*v
+        o = v * v
         print("- Output value:", o)
         return o
 
@@ -137,7 +142,7 @@ def function_objects(o, li, dic, tup, cplx, f):
 
     o.field = o.field * 2
     li.append(2)
-    dic[valuesDic[len(dic)-2][0]] = valuesDic[len(dic)-2][1]
+    dic[valuesDic[len(dic) - 2][0]] = valuesDic[len(dic) - 2][1]
 
     # This can not be done since it creates a new object with a new reference
     # and we keep the existing before the task execution
@@ -194,17 +199,17 @@ def function_order_parameters(x, y, z=100, w=1000):
     print("\t- Parameter y: %s" % y)
     print("\t- Parameter z: %s" % z)
     print("\t- Parameter w: %s" % w)
-    return x+y+(z*w)
+    return x + y + (z * w)
 
 
 @task(returns=int)
 def function_fu_object(x):
-    return x+x
+    return x + x
 
 
 @task(returns=int)
 def function_fu_in_task(x):
-    return x+x
+    return x + x
 
 
 @task(returns=list)
@@ -226,7 +231,7 @@ def function_iterable_object_wait(x):
     print("TEST")
     print("- Function iterable object wait.")
     print("\t- Parameter x: %s" % x)
-    return x*x
+    return x * x
 
 
 # @task(returns = basestring)  # just for python 2
@@ -244,7 +249,7 @@ def function_time_decorated_master(x):
     print("TEST")
     print("- Function master time (decorated).")
     print("\t- Parameter x: %s" % x)
-    return x*x*x
+    return x * x * x
 
 
 @task(returns=int)
@@ -253,7 +258,7 @@ def function_time_decorated_worker(x):
     print("TEST")
     print("- Function worker time (decorated).")
     print("\t- Parameter x: %s" % x)
-    return x*x*x
+    return x * x * x
 
 
 @task(returns=int)
@@ -290,7 +295,7 @@ def function_generator(g):
 
 @task(returns=types.LambdaType)
 def function_lambda_return():
-    return lambda x: x**2 + 2*x - 5
+    return lambda x: x ** 2 + 2 * x - 5
 
 
 @task(returns=types.GeneratorType)
@@ -309,14 +314,14 @@ def function_generator_return(g):
 def multireturn(value):
     print("Value: ", value)
     print("Type:  ", type(value))
-    return value, value*2
+    return value, value * 2
 
 
 @task(returns=float)
 def power(value):
     print("Pow value: ", value)
-    print("Result: ", value*value)
-    return value*value
+    print("Result: ", value * value)
+    return value * value
 
 
 @task(returns=float)
@@ -324,8 +329,8 @@ def merge(v1, v2):
     print("Merge")
     print("v1: ", v1)
     print("v2: ", v2)
-    print("Result: ", v1+v2)
-    return v1+v2
+    print("Result: ", v1 + v2)
+    return v1 + v2
 
 
 class Foo(object):
@@ -346,8 +351,8 @@ def function_moduleObject(value):
     print("Test Module Object")
     v = value.get()
     print("Value before: ", v)
-    print("Value set to: ", v*v)
-    value.set(v*v)
+    print("Value set to: ", v * v)
+    value.set(v * v)
     return value
 
 

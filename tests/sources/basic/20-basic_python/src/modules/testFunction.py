@@ -1,19 +1,33 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench Tasks
+========================
+"""
+
+# Imports
 import unittest
+
 from pycompss.api.task import task
 from pycompss.api.parameter import *
+
 from modules.MyClass import MyClass
 from modules.auxFunctions import formula1
+
 
 @task(returns=int)
 def function_without_params():
     return 1
+
 
 class testFunction(unittest.TestCase):
 
     @task(returns=list)
     def function_primitives(self, i, l, f, b, s):
         types_list = [type(i), type(l), type(f), type(b), type(s)]
-        #print "Primitive params: %d, %ld, %f, %d, %s % (i, l, f, b, s)"
+        # print "Primitive params: %d, %ld, %f, %d, %s % (i, l, f, b, s)"
         print("TYPES_LIST: " + str(types_list))
         return list(map(str, types_list))
 
@@ -39,7 +53,7 @@ class testFunction(unittest.TestCase):
 
     @task(returns=int)
     def function_future_object(self, x):
-        return x+x
+        return x + x
 
     @task(returns=list)
     def function_fu_list_object(self, l):
@@ -114,7 +128,7 @@ class testFunction(unittest.TestCase):
         i = self.function_return_primitive(val)
         self.function_return_primitive(i)  # why?
         i = compss_wait_on(i)
-        self.assertEqual(i, val*2)
+        self.assertEqual(i, val * 2)
 
     def test_function_return_object(self):
         """ test function return object """
@@ -123,7 +137,7 @@ class testFunction(unittest.TestCase):
         o = self.function_return_object(val)
         o.instance_method()
         o = compss_wait_on(o)
-        self.assertEqual(o.field, val*2)
+        self.assertEqual(o.field, val * 2)
 
     def test_function_future_parameter(self):
         """ Test function future parameter"""

@@ -1,4 +1,15 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench PSCO Models
+========================
+"""
+
+# Imports
 from storage.Object import SCO
+
 
 def updateFile(obj):
     if obj.getID() is not None:
@@ -12,6 +23,7 @@ def updateFile(obj):
 
 class mySO(SCO):
     value = 0
+
     def __init__(self, v):
         self.value = v
 
@@ -32,24 +44,23 @@ class Words(SCO):
     text = ''
 
     def __init__(self, t):
-    	self.text = t
+        self.text = t
 
     def get(self):
-    	return self.text
+        return self.text
 
 
 class Result(SCO):
-    #class Result():
     '''
     @ClassField instances dict <<word:str>,instances:atomicint>
     '''
     myd = {}
 
     def __init__(self):
-    	pass
+        pass
 
     def get(self):
-    	return self.myd
+        return self.myd
 
     def set(self, d):
         self.myd = d
@@ -68,8 +79,8 @@ class InputData(SCO):
         pass
 
     def get(self):
-    	return self.images
+        return self.images
 
     def set(self, i):
-    	self.images = i
+        self.images = i
         updateFile(self)

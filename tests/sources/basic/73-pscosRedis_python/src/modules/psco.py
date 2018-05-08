@@ -1,8 +1,18 @@
-import storage.api
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench
+========================
+"""
+
+# Imports
 from storage.storage_object import StorageObject
 
+
 class PSCO(StorageObject):
-    def __init__(self, content = "Content"):
+    def __init__(self, content="Content"):
         super(PSCO, self).__init__()
         self.content = content
 

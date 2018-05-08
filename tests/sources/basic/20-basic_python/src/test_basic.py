@@ -1,6 +1,11 @@
-#!/usr/bin/python                                                                                                                                                                                                                                                              
+#!/usr/bin/python
 
 # -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench
+========================
+"""
 
 # Imports
 import unittest
@@ -22,8 +27,8 @@ from modules.testClassRetInt import testClassRetInt
 
 
 def main():
-    #log_file = '../log_file.txt'
-    #f = open(log_file, "w")
+    # log_file = '../log_file.txt'
+    # f = open(log_file, "w")
 
     # Usual tests (returns with type)
     suite = unittest.TestLoader().loadTestsFromTestCase(testDecorator)
@@ -40,9 +45,9 @@ def main():
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testWaitOnRetInt))
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testParameterRetInt))
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testClassRetInt))
-    
+
     unittest.TextTestRunner(verbosity=2).run(suite)
-    #f.close()
+    # f.close()
 
 
 if __name__ == "__main__":

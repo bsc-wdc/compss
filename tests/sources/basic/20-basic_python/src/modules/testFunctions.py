@@ -1,13 +1,23 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench Tasks
+========================
+"""
+
+# Imports
 import unittest
+
 from pycompss.api.task import task
-from pycompss.api.parameter import *
 from pycompss.functions.reduce import mergeReduce, simpleReduce
 from pycompss.functions.map import map
 
 
 @task(returns=int)
 def sumTask(x, y):
-    return x+y
+    return x + y
 
 
 class testFunctions(unittest.TestCase):
@@ -16,7 +26,7 @@ class testFunctions(unittest.TestCase):
         self.data = [1, 2, 3, 4]
         self.tuples = [(1, [4, 5, 6]), (2, [6, 7, 8]), (1, [1, 2, 3]), (2, [1, 1, 1])]
         self.dicts = dict(self.tuples)
-        self.lambdaFunction = lambda x, y: x+y
+        self.lambdaFunction = lambda x, y: x + y
         self.methodFunction = sumTask
 
     def test_mergeReduce_seq(self):

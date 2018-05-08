@@ -1,3 +1,7 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
 """
 PyCOMPSs Testbench
 ==================
@@ -5,10 +9,12 @@ PyCOMPSs Testbench
     It implements all functionalities in order to evaluate the PyCOMPSs features.
 """
 
+# Imports
 from pycompss.api.api import compss_open, compss_wait_on
 from modules.test_tasks import function_primitives, function_files, function_objects, function_return_primitive
 from modules.test_tasks import function_return_object, MyClass, par_func
-from modules.test_tasks import function_function_parameter, formula2, function_default_parameter_values, function_order_parameters
+from modules.test_tasks import function_function_parameter, formula2
+from modules.test_tasks import function_default_parameter_values, function_order_parameters
 from modules.test_tasks import function_fu_object, function_fu_in_task
 from modules.test_tasks import function_fu_list_object, function_fu_list_in_task
 from modules.test_tasks import function_iterable_object_wait, function_wait_on_string
@@ -189,7 +195,7 @@ def test_function_as_parameter():
     v = 2
     o = function_function_parameter(f, v)
     o = compss_wait_on(o)
-    if o == v*v*v:
+    if o == v * v * v:
         print("- Function as a parameter: OK")
     else:
         print("- Function as a parameter: ERROR")
@@ -229,14 +235,47 @@ def test_order_parameters():
     o7 = compss_wait_on(o7)
     o8 = compss_wait_on(o8)
 
+    if o1 == 100003:
+        print("- Test parameter position (sorted): OK")
+    else:
+        print("- Test parameter position (sorted): ERROR")
+
     print("- Test parameter position (sorted): OK" if o1 == 100003 else "- Test parameter position (sorted): ERROR")
-    print("- Test parameter position + 1 default (sorted): OK" if o2 == 3004 else "- Test parameter position + 1 default (sorted): ERROR")
-    print("- Test parameter position + 2 default (sorted): OK" if o3 == 17 else "- Test parameter position + 2 default (sorted): ERROR")
-    print("- Test parameter position + 1 explicit value (sorted): OK" if o4 == 20006 else "- Test parameter position + 1 explicit value (sorted): ERROR")
-    print("- Test parameter position + 1 explicit value (unsorted): OK" if o5 == 4007 else "- Test parameter position + 1 explicit value(unsorted): ERROR")
-    print("- Test parameter position + 2 explicit value (unsorted): OK" if o6 == 808 else "- Test parameter position  + 2 explicit value (unsorted): ERROR")
-    print("- Test parameter position completely unsorted: OK" if o7 == 809 else "- Test parameter position completely unsorted: ERROR")
-    print("- Test parameter position completely unsorted (variables): OK" if o8 == 810 else "- Test parameter position completely unsorted (variables): ERROR")
+
+    if o2 == 3004:
+        print("- Test parameter position + 1 default (sorted): OK")
+    else:
+        print("- Test parameter position + 1 default (sorted): ERROR")
+
+    if o3 == 17:
+        print("- Test parameter position + 2 default (sorted): OK")
+    else:
+        print("- Test parameter position + 2 default (sorted): ERROR")
+
+    if o4 == 20006:
+        print("- Test parameter position + 1 explicit value (sorted): OK")
+    else:
+        print("- Test parameter position + 1 explicit value (sorted): ERROR")
+
+    if o5 == 4007:
+        print("- Test parameter position + 1 explicit value (unsorted): OK")
+    else:
+        print("- Test parameter position + 1 explicit value(unsorted): ERROR")
+
+    if o6 == 808:
+        print("- Test parameter position + 2 explicit value (unsorted): OK")
+    else:
+        print("- Test parameter position  + 2 explicit value (unsorted): ERROR")
+
+    if o7 == 809:
+        print("- Test parameter position completely unsorted: OK")
+    else:
+        print("- Test parameter position completely unsorted: ERROR")
+
+    if o8 == 810:
+        print("- Test parameter position completely unsorted (variables): OK")
+    else:
+        print("- Test parameter position completely unsorted (variables): ERROR")
 
     if o1 == 100003 and o2 == 3004 and o3 == 17 and o4 == 20006 and o5 == 4007 and o6 == 808 and o7 == 809 and o8 == 810:
         print("- All test_order_parameteres successful!!!: OK")
@@ -288,7 +327,7 @@ def test_iterable_object_wait():
 
     result = True
     for i in range(len(iobj)):
-        if iobj[i] != i*i:
+        if iobj[i] != i * i:
             result = False
 
     if result:
@@ -301,14 +340,14 @@ def test_iterable_object_wait():
         iobj.append(i)
 
     # partial modification
-    for i in range(len(iobj)-5):
+    for i in range(len(iobj) - 5):
         iobj[i] = function_iterable_object_wait(iobj[i])
 
     iobj = compss_wait_on(iobj)
 
     result = True
-    for i in range(len(iobj)-5):
-        if iobj[i] != i*i:
+    for i in range(len(iobj) - 5):
+        if iobj[i] != i * i:
             result = False
     for i in range(5, len(iobj)):
         if iobj[i] != i:
@@ -336,7 +375,7 @@ def test_time_decorator():
     x = 2
     o = function_time_decorated_master(x)
     out = compss_wait_on(o[0])
-    if out == x*x*x:
+    if out == x * x * x:
         print("- Test timeit decorator (master time): OK")
         print("\t * %s" % o[1])
     else:
@@ -344,7 +383,7 @@ def test_time_decorator():
 
     o = function_time_decorated_worker(x)
     o = compss_wait_on(o)
-    if o[0] == x*x*x:
+    if o[0] == x * x * x:
         print("- Test timeit decorator (worker time): OK")
         print("\t * %s" % o[1])
     else:
@@ -360,7 +399,7 @@ def test_time_decorator():
     o = compss_wait_on(values)
     r = True
     for i in range(5):
-        if o[i] != x*x*x:
+        if o[i] != x * x * x:
             r = False
     if r:
         print("- Test timeit decorator with list (master time) : OK")
@@ -379,7 +418,7 @@ def test_time_decorator():
     times = [row[1] for row in o]
     r = True
     for i in range(5):
-        if values[i] != x*x*x:
+        if values[i] != x * x * x:
             r = False
     if r:
         print("- Test timeit decorator with list (worker time): OK")
@@ -391,7 +430,7 @@ def test_time_decorator():
 
 # My function
 def fun(x):
-    return x*x
+    return x * x
 
 
 def test_argfunc():
@@ -399,7 +438,7 @@ def test_argfunc():
     f = fun
     v = function_argfunc(f, 2)
     v = compss_wait_on(v)
-    if v == 2*2:
+    if v == 2 * 2:
         print("- Test function as argument: OK")
     else:
         print("- Test funcition as argument: ERROR")
@@ -407,7 +446,7 @@ def test_argfunc():
 
 def test_lambda():
     print("test_lambda")
-    f = lambda x: x**2 + 2*x - 5
+    f = lambda x: x ** 2 + 2 * x - 5
     v = function_lambda(f, 10)
     v = compss_wait_on(v)
     if v == 115:
@@ -440,7 +479,7 @@ def test_generator():
     v = function_generator(g)
     post = compss_wait_on(v)
     print("Status within task (next generator value): ", post)
-    if post == (pre+1):
+    if post == (pre + 1):
         print("- Test generator as argument: OK")
     else:
         print("- Test generator as argument: ERROR")
@@ -471,7 +510,7 @@ def test_generator_return():
         out = next(gr)
     else:
         out = gr.next()
-    if out == (pre+2):
+    if out == (pre + 2):
         print("- Test return generator: OK")
     else:
         print("- Test return generator: ERROR")
@@ -481,9 +520,9 @@ def test_all_class_tasks():
     print("test_instance_method")
     val = 1
     o = MyClass(val)
-    o.instance_method(88)                # 1
-    o.instance_method_nonmodifier()      # 2
-    o.instance_method(88)                # 3
+    o.instance_method(88)  # 1
+    o.instance_method_nonmodifier()  # 2
+    o.instance_method(88)  # 3
     o = compss_wait_on(o)
     if o.field == val * 4:
         print("- Object access from MP: OK")
@@ -491,12 +530,12 @@ def test_all_class_tasks():
         print("- Object access from MP: ERROR")
 
     print("test_class_method")
-    MyClass.class_method()               # 4
+    MyClass.class_method()  # 4
 
     print("test_instance_method_with_parameter_and_return")
 
     o = MyClass('HolaMundo')
-    b = o.return_value_square(99)        # 5
+    b = o.return_value_square(99)  # 5
     b1 = compss_wait_on(b)
     o1 = compss_wait_on(o)
     # print('result1: ', b1
@@ -506,7 +545,7 @@ def test_all_class_tasks():
     else:
         print("- Object access from MP (Round 1): ERROR")
 
-    b = o.return_value_square(199)        # 5
+    b = o.return_value_square(199)  # 5
     b2 = compss_wait_on(b)
     # print('result2: ', b2)
     if b2 == 39601:
@@ -514,7 +553,7 @@ def test_all_class_tasks():
     else:
         print("- Object access from MP (Round 2): ERROR")
 
-    b = o.return_value_square(299)        # 5
+    b = o.return_value_square(299)  # 5
     b3 = compss_wait_on(b)
     o3 = compss_wait_on(o)
     # print('result3: ', b3)
@@ -562,7 +601,7 @@ def test_moduleObject():
     foo.set(10)
     result = function_moduleObject(foo)
     result = compss_wait_on(result)
-    if result.get() == 10*10:
+    if result.get() == 10 * 10:
         print("- Test module object parameter: OK")
     else:
         print("- Test module object parameter: ERROR")
@@ -592,7 +631,6 @@ def test_inouts():
 
 
 def main_program():
-
     test_function_primitives()
     test_function_files()
     test_function_objects()

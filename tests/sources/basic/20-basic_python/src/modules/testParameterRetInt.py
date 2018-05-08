@@ -1,6 +1,17 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench Tasks
+========================
+"""
+
+# Imports
 import unittest
+
 from pycompss.api.task import task
-from pycompss.api.parameter import *
+
 from modules.auxFunctions import formula2
 
 
@@ -16,7 +27,7 @@ class testParameterRetInt(unittest.TestCase):
 
     @task(returns=1)
     def function_order_parameters(self, x, y, z=100, w=1000):
-        return x+y+(z*w)
+        return x + y + (z * w)
 
     def test_function_as_parameter(self):
         """ Test function as parameter """
@@ -25,7 +36,7 @@ class testParameterRetInt(unittest.TestCase):
         f = formula2
         o = self.function_function_parameter(f, v)
         o = compss_wait_on(o)
-        self.assertEqual(o, v**3, "Function parameter is not send to the task")
+        self.assertEqual(o, v ** 3, "Function parameter is not send to the task")
 
     def test_default_parameters(self):
         """ Test default Parameters"""

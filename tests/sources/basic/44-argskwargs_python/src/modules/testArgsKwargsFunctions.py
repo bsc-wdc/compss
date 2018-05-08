@@ -1,12 +1,24 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench Tasks
+========================
+"""
+
+# Imports
 import unittest
+
 from pycompss.api.api import compss_wait_on
 from pycompss.api.task import task
-from pycompss.api.parameter import *
+
 
 @task(returns=int)
 def argTask(*args):
     print("ARG: ", args)
     return sum(args)
+
 
 @task(returns=int)
 def varargTask(v, w, *args):
@@ -15,17 +27,20 @@ def varargTask(v, w, *args):
     print("ARG: ", args)
     return (v * w) + sum(args)
 
+
 @task(returns=int)
 def kwargTask(**kwargs):
     print("KARG: ", kwargs)
     return len(kwargs)
 
+
 @task(returns=int)
-def varkwargTask(v, w , **kwargs):
+def varkwargTask(v, w, **kwargs):
     print("V: ", v)
     print("W: ", w)
     print("KARG: ", kwargs)
     return (v * w) + len(kwargs)
+
 
 @task(returns=int)
 def argkwargTask(*args, **kwargs):
@@ -33,16 +48,18 @@ def argkwargTask(*args, **kwargs):
     print("KARG: ", kwargs)
     return sum(args) + len(kwargs)
 
+
 @task(returns=int)
-def varargkwargTask(v, w , *args, **kwargs):
+def varargkwargTask(v, w, *args, **kwargs):
     print("V: ", v)
     print("W: ", w)
     print("ARG: ", args)
     print("KARG: ", kwargs)
     return (v * w) + sum(args) + len(kwargs)
 
+
 @task(returns=int)
-def varargdefaultkwargTask(v, w, s = 2, *args, **kwargs):
+def varargdefaultkwargTask(v, w, s=2, *args, **kwargs):
     print("V: ", v)
     print("W: ", w)
     print("S: ", s)
@@ -50,23 +67,24 @@ def varargdefaultkwargTask(v, w, s = 2, *args, **kwargs):
     print("KWARG: ", kwargs)
     return (v * w) + sum(args) + len(kwargs) + s
 
+
 @task(returns=int)
 def taskUnrollDict(a, b, **kwargs):
     print("a: ", a)
     print("b: ", b)
     print("kwargs: ", kwargs)
-    return a+b
+    return a + b
+
 
 @task(returns=int)
 def taskUnrollDictWithDefaults(a=1, b=2, **kwargs):
     print("a: ", a)
     print("b: ", b)
     print("kwargs: ", kwargs)
-    return a+b
+    return a + b
 
 
 class testArgsKwargsFunctions(unittest.TestCase):
-
     '''
     FUNCTION WITH *ARGS
     '''
@@ -90,7 +108,7 @@ class testArgsKwargsFunctions(unittest.TestCase):
 
     # args is not empty but args are an unpacked tuple
     def testArgTask4(self):
-        my_tup = (1,2,3,4)
+        my_tup = (1, 2, 3, 4)
         pending = argTask(*my_tup)
         result = compss_wait_on(pending)
         self.assertEqual(result, 10)
@@ -219,7 +237,7 @@ class testArgsKwargsFunctions(unittest.TestCase):
     '''
 
     def testKwargsDictUnrolling(self):
-        z = {'a':10, 'b':20, 'c':30}
+        z = {'a': 10, 'b': 20, 'c': 30}
         pending = taskUnrollDict(**z)
         result = compss_wait_on(pending)
         self.assertEqual(result, 30)
@@ -230,7 +248,7 @@ class testArgsKwargsFunctions(unittest.TestCase):
         self.assertEqual(result, 30)
 
     def testKwargsDictUnrollingDefaults(self):
-        z = {'a':10, 'b':20, 'c':30}
+        z = {'a': 10, 'b': 20, 'c': 30}
         pending = taskUnrollDictWithDefaults(**z)
         result = compss_wait_on(pending)
         self.assertEqual(result, 30)

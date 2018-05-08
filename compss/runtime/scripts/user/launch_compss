@@ -329,16 +329,14 @@ master_cmd() {
   fi
 
   # WARNING: SETS GLOBAL SCRIPT VARIABLE MCMD
-  MCMD="${COMPSS_HOME}/Runtime/scripts/user/runcompss \
-            --project=${PROJECT_FILE} \
   MCMD="$MCMD --project=${PROJECT_FILE} \
             --resources=${RESOURCES_FILE} \
             --uuid=${uuid} \
             --specific_log_dir=${specific_log_dir} \
-            --master_name=${master_id} \
+            --master_name=${master_name} \
             --master_port=${master_port} \
             --jvm_master_opts=\"${jvm_master_opts}\" \
-            --jvm_workers_opts=\"${jvm_workers_opts}\"
+            --jvm_workers_opts=\"${jvm_workers_opts}\""
 }  
 
 

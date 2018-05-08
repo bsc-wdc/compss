@@ -1,16 +1,32 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench Tasks
+========================
+"""
+
+# Imports
 import unittest
+
 from pycompss.api.api import compss_wait_on
 from pycompss.api.task import task
 from pycompss.api.parameter import *
 
-'''Basic test: args are file ins
-'''
-@task(varargsType = FILE_IN, returns = str)
+
+@task(varargsType=FILE_IN, returns=str)
 def file_in(a, b, *args):
-    return 'OK' \
-    if a == open(args[0], 'r').read().strip() and \
-    b == open(args[1], 'r').read().strip() \
-    else 'NO'
+    """
+    Basic test: args are file ins
+
+    :param a:
+    :param b:
+    :param args:
+    :return:
+    """
+
+    return 'OK' if a == open(args[0], 'r').read().strip() and b == open(args[1], 'r').read().strip() else 'NO'
 
 
 class testVarargsType(unittest.TestCase):

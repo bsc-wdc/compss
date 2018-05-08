@@ -92,7 +92,7 @@
   cp ${tmpDir}/changelog ${targetDir}
   cp ${tmpDir}/LICENSE ${targetDir}
   cp ${tmpDir}/NOTICE ${targetDir}
-  cp ${tmpDir}/README ${targetDir}
+  cp ${tmpDir}/README.md ${targetDir}
   cp ${tmpDir}/RELEASE_NOTES ${targetDir}
 
   #Dependencies

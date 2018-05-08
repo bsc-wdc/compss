@@ -20,7 +20,7 @@
   
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
-  sed -i '/<InstallDir>/c<InstallDir>'${COMPSS_HOME}'<\/InstallDir>' ${base_app_dir}/project.xml
+  sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/project.xml
   
   #----------------------------------------------------------------------------------
   # Create all working dir folders
@@ -36,31 +36,36 @@
   error_log="${target_log_folder}/schedulerFifoData_0${retryNum}.errorlog"
   expectedTime=240s
   
-  timeout --signal=2 $expectedTime ${COMPSs_exec} \
-     --project=${base_app_dir}/project.xml \
-     --resources=${base_app_dir}/resources.xml \
+  # shellcheck disable=SC2086
+  timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+     --project="${base_app_dir}"/project.xml \
+     --resources="${base_app_dir}"/resources.xml \
+     \
+     --comm="$comm" \
+     \
      --debug \
-     --comm=$comm \
-     ${runcompss_opts} \
      -tg \
+     ${runcompss_opts} \
+     \
      --scheduler=es.bsc.compss.scheduler.fifoDataScheduler.FIFODataScheduler \
-     --classpath=${base_app_dir}/schedulerFifoData.jar \
-     schedulerFifoData.Main ${TASK_WIDTH} ${TASK_DEPTH} ${TASK_CHILDS} ${INIT_VALUE} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+     --classpath="${base_app_dir}"/schedulerFifoData.jar \
+     \
+     schedulerFifoData.Main ${TASK_WIDTH} ${TASK_DEPTH} ${TASK_CHILDS} ${INIT_VALUE} > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
   
   # Check timeout
   if [[ "$?" = "124" ]]; then
      # Copy LOG files
-     cp -rf ${COMPSs_log_folder}/schedulerFifoData.Main_0${retryNum}/* ${target_log_folder}
+     cp -rf "${COMPSs_log_folder}"/schedulerFifoData.Main_0"${retryNum}"/* "${target_log_folder}"
      
      # Report time out
-     echo "[WARNING] Java Application timed out" >> ${output_log}
+     echo "[WARNING] Java Application timed out" >> "${output_log}"
      exitValue=124
   else
      # Copy LOG files
-     cp -rf ${COMPSs_log_folder}/schedulerFifoData.Main_0${retryNum}/* ${target_log_folder}
+     cp -rf "${COMPSs_log_folder}"/schedulerFifoData.Main_0"${retryNum}"/* "${target_log_folder}"
   
      # Check result
-     ${base_app_dir}/result_fifoDataScheduler ${output_log} ${target_log_folder} ${TASK_WIDTH} ${TASK_DEPTH} ${TASK_CHILDS} ${INIT_VALUE}
+     "${base_app_dir}"/result_fifoDataScheduler "${output_log}" "${target_log_folder}" ${TASK_WIDTH} ${TASK_DEPTH} ${TASK_CHILDS} ${INIT_VALUE}
      exitValue=$?
   fi
   

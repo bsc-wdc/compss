@@ -14,6 +14,7 @@
  *  limitations under the License.
  *
  */
+
 #ifndef GS_TEMPLATES_H
 #define GS_TEMPLATES_H
 
@@ -50,14 +51,19 @@ extern map<void *, Entry> objectMap;
 #endif /* COMPSS_WORKER */
 
 int GS_register(void *ref, datatype type, direction dir, char *classname, char * &filename);
-void GS_clean();
+
 void compss_on(void);
 void compss_off(void);
+void GS_clean();
+
 void compss_ifstream(char * filename, ifstream& ifs);
 void compss_ofstream(char * filename, ofstream& ofs);
 void compss_delete_file(char * filename);
-void compss_barrier();
 FILE* compss_fopen(char * filename, char * mode);
+
+void compss_barrier();
+void compss_barrier_new(int no_more_tasks);
+
 template <class T> void compss_wait_on(T &obj);
 template <class T> void persistent_compss_wait_on(T &obj);
 template <> inline void compss_wait_on<char *>(char * &obj);

@@ -1,9 +1,20 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench
+========================
+"""
+
+# Imports
 import unittest
+
 from pycompss.api.api import compss_wait_on
 from .myclass import myClass
 
-class testNoReturnClasses(unittest.TestCase):
 
+class testNoReturnClasses(unittest.TestCase):
     '''
     TASKS DEFINED WITHIN CLASSES
     '''
@@ -43,36 +54,36 @@ class testNoReturnClasses(unittest.TestCase):
 
     def testMultiObjectReturn(self):
         obj = myClass()
-        v = [2,3,4]
-        w = [4,5,6]
+        v = [2, 3, 4]
+        w = [4, 5, 6]
         o, p = obj.MultiObjectReturnNoReturns(v, w)
         o = compss_wait_on(o)
         p = compss_wait_on(p)
-        self.assertEqual(o, [3,3,4])
-        self.assertEqual(p, [4,5,6,3])
+        self.assertEqual(o, [3, 3, 4])
+        self.assertEqual(p, [4, 5, 6, 3])
 
     def testMultiObjectReturn2(self):
         obj = myClass()
-        v = [2,3,4]
-        w = [4,5,6]
+        v = [2, 3, 4]
+        w = [4, 5, 6]
         o = obj.MultiObjectReturnNoReturns(v, w)
         o = compss_wait_on(o)
-        self.assertEqual(o, [[3,3,4], [4,5,6,3]])
+        self.assertEqual(o, [[3, 3, 4], [4, 5, 6, 3]])
 
     def testObjectReturn(self):
         obj = myClass()
-        v = [2,3,5,7]
-        o,p = obj.MultiReturnNoReturns(v)
+        v = [2, 3, 5, 7]
+        o, p = obj.MultiReturnNoReturns(v)
         o = compss_wait_on(o)
         p = compss_wait_on(p)
-        self.assertEqual(o, [3,3,5,7])
+        self.assertEqual(o, [3, 3, 5, 7])
         self.assertEqual(p, 5)
 
     def testObjectReturnClassMethod(self):
         obj = myClass()
-        v = [2,3,5,7]
-        o,p = obj.MultiReturnNoReturnsClassMethod(v)
+        v = [2, 3, 5, 7]
+        o, p = obj.MultiReturnNoReturnsClassMethod(v)
         o = compss_wait_on(o)
         p = compss_wait_on(p)
-        self.assertEqual(o, [3,3,5,7])
+        self.assertEqual(o, [3, 3, 5, 7])
         self.assertEqual(p, 5)

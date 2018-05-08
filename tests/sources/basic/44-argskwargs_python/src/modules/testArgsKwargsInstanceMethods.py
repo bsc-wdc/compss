@@ -1,7 +1,18 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench Tasks
+========================
+"""
+
+# Imports
 import unittest
+
 from pycompss.api.api import compss_wait_on
 from pycompss.api.task import task
-from pycompss.api.parameter import *
+
 
 class testArgsKwargsInstanceMethods(unittest.TestCase):
 
@@ -9,7 +20,7 @@ class testArgsKwargsInstanceMethods(unittest.TestCase):
     def argTask(self, *args):
         print("ARG: ", args)
         return sum(args)
-      
+
     @task(returns=int)
     def varargTask(self, v, w, *args):
         print("V: ", v)
@@ -21,14 +32,14 @@ class testArgsKwargsInstanceMethods(unittest.TestCase):
     def kwargTask(self, **kwargs):
         print("KARG: ", kwargs)
         return len(kwargs)
-      
+
     @task(returns=int)
-    def varkwargTask(self, v, w , **kwargs):
+    def varkwargTask(self, v, w, **kwargs):
         print("V: ", v)
         print("W: ", w)
         print("KARG: ", kwargs)
         return (v * w) + len(kwargs)
-      
+
     @task(returns=int)
     def argkwargTask(self, *args, **kwargs):
         print("ARG: ", args)
@@ -36,7 +47,7 @@ class testArgsKwargsInstanceMethods(unittest.TestCase):
         return sum(args) + len(kwargs)
 
     @task(returns=int)
-    def varargkwargTask(self, v, w , *args, **kwargs):
+    def varargkwargTask(self, v, w, *args, **kwargs):
         print("V: ", v)
         print("W: ", w)
         print("ARG: ", args)
@@ -44,7 +55,7 @@ class testArgsKwargsInstanceMethods(unittest.TestCase):
         return (v * w) + sum(args) + len(kwargs)
 
     @task(returns=int)
-    def varargdefaultkwargTask(self, v, w, s = 2, *args, **kwargs):
+    def varargdefaultkwargTask(self, v, w, s=2, *args, **kwargs):
         print("V: ", v)
         print("W: ", w)
         print("S: ", s)

@@ -9,13 +9,25 @@ import java.io.FileNotFoundException;
 public class MainImpl {
 
     public static void increment(String counterFile) {
-        try {
-            FileInputStream fis = new FileInputStream(counterFile);
-            int count = fis.read();
-            fis.close();
-            FileOutputStream fos = new FileOutputStream(counterFile);
-            fos.write(++count);
-            fos.close();
+        int count = -1;
+
+        // Read
+        try (FileInputStream fis = new FileInputStream(counterFile)) {
+            count = fis.read();
+        } catch (FileNotFoundException fnfe) {
+            fnfe.printStackTrace();
+            System.exit(-1);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+            System.exit(-1);
+        }
+
+        // Increment
+        ++count;
+
+        // Write
+        try (FileOutputStream fos = new FileOutputStream(counterFile)) {
+            fos.write(count);
         } catch (FileNotFoundException fnfe) {
             fnfe.printStackTrace();
             System.exit(-1);

@@ -1,7 +1,17 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench Tasks
+========================
+"""
+
+# Imports
 import unittest
 import time
+
 from pycompss.api.task import task
-from pycompss.api.parameter import *
 
 from decorator import decorator
 

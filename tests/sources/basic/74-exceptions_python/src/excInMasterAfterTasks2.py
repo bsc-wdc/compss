@@ -1,8 +1,20 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench
+========================
+"""
+
+# Imports
 from pycompss.api.task import task
+
 
 @task(returns=int)
 def increment(v):
-    return v+1
+    return v + 1
+
 
 def main():
     from pycompss.api.api import compss_wait_on
@@ -23,5 +35,5 @@ def main():
     print("This message should not be printed - ERROR")
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     main()

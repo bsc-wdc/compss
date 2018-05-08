@@ -1,11 +1,18 @@
 #!/usr/bin/python
+
 # -*- coding: utf-8 -*-
-'''TEST APP'''
+
+"""
+PyCOMPSs Testbench Tasks
+========================
+"""
+
+# Imports
 import time
 from pycompss.api.task import task
-from pycompss.api.parameter import *
 
-@task(returns=int,priority=True)
+
+@task(returns=int, priority=True)
 def function_A(x, y, z):
     result = x + y + z
     return result
@@ -36,7 +43,7 @@ def main():
     print("Start")
     start = time.time()
 
-    result = function_A(a, b, c)    
+    result = function_A(a, b, c)
     result = compss_wait_on(result)
     l = []
     m = []
@@ -46,7 +53,7 @@ def main():
     l = compss_wait_on(l)
     m = compss_wait_on(m)
 
-    end = time.time()-start
+    end = time.time() - start
     print("Result:")
     print(result)
     for i in range(c):
@@ -56,11 +63,10 @@ def main():
         print(m[i])
     print("Ellapsed Time:")
     print(end)
-    
-    
+
     print("------------------------")
     print("------------------------")
-    
+
     return result
 
 

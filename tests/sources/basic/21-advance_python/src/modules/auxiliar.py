@@ -1,8 +1,14 @@
 #!/usr/bin/python
+
 # -*- coding: utf-8 -*-
-'''AUXILIAR APP'''
+
+"""
+PyCOMPSs Testbench Tasks
+========================
+"""
+
+# Imports
 from pycompss.api.task import task
-from pycompss.api.parameter import *
 
 
 @task(returns=list)

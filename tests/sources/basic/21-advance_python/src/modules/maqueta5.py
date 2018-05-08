@@ -1,5 +1,7 @@
 #!/usr/bin/python
+
 # -*- coding: utf-8 -*-
+
 """
 --------
 TEST APP
@@ -17,10 +19,10 @@ __main__ --> launch(app)
 Ejecucion: python maqueta5.py
 """
 
+# Imports
 import time
 import sys
 from pycompss.api.task import task
-from pycompss.api.parameter import *
 
 
 @task(returns=int, priority=True)

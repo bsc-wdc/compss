@@ -1,11 +1,22 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench Tasks
+========================
+"""
+
+# Imports
 import unittest
+import os
+import time
+
 import modules.maqueta
 import modules.maqueta3
 import modules.maqueta5
 import modules.maqueta7
 import modules.maqueta8
-import os
-import time
 
 
 class testLaunch(unittest.TestCase):

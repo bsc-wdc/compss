@@ -1,3 +1,7 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
 """
 PyCOMPSs Barrier test
 =========================
@@ -5,9 +9,12 @@ PyCOMPSs Barrier test
     Checks the barrier API call
 """
 
-from pycompss.api.api import compss_barrier
-from tasks import get_hero
+# Imports
 import time
+
+from pycompss.api.api import compss_barrier
+
+from tasks import get_hero
 
 
 def launch_tasks(num_tasks):

@@ -1,12 +1,19 @@
-'''
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
 PyCOMPSs Delete File test
 =========================
     This file represents PyCOMPSs Testbench.
     Checks the delete file functionality.
-'''
+"""
+
+# Imports
 import unittest
-from pycompss.api.api import compss_wait_on, compss_open, compss_delete_file
+from pycompss.api.api import compss_open, compss_delete_file
 from .tasks import increment, increment2
+
 
 class testDeleteFile(unittest.TestCase):
 
@@ -14,8 +21,8 @@ class testDeleteFile(unittest.TestCase):
         # Check and get parameters
         initial_value = '1'
         counter_name = 'counter_INOUT'
-        counter_name_IN = 'counter_IN'   # check that this file does not exist after the execution
-        counter_name_OUT = 'counter_OUT' # check that this file does not exist after the execution
+        counter_name_IN = 'counter_IN'  # check that this file does not exist after the execution
+        counter_name_OUT = 'counter_OUT'  # check that this file does not exist after the execution
 
         for i in range(3):
             # Write value
@@ -25,7 +32,7 @@ class testDeleteFile(unittest.TestCase):
             fos2.write(initial_value)
             fos.close()
             fos2.close()
-            print(('Initial counter value is %s'%initial_value))
+            print(('Initial counter value is %s' % initial_value))
             # Execute increment
             increment(counter_name)
             increment2(counter_name_IN, counter_name_OUT)
@@ -39,5 +46,5 @@ class testDeleteFile(unittest.TestCase):
         fis = compss_open(counter_name, 'r+')
         final_value = fis.read()
         fis.close()
-        print(('Final counter value is %s'%final_value))
+        print(('Final counter value is %s' % final_value))
         compss_delete_file(counter_name)

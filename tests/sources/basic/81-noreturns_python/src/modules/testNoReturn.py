@@ -1,16 +1,29 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench
+========================
+"""
+
+# Imports
 import unittest
+
 from pycompss.api.api import compss_wait_on
 from pycompss.api.task import task
-from pycompss.api.parameter import *
+
 
 @task()
 def noReturnNoReturns(v):
     print("V: ", v)
 
+
 @task()
 def PrimitiveReturnNoReturns(v):
     print("V: ", v)
     return v + 1
+
 
 @task()
 def ObjectReturnNoReturns(v):
@@ -18,10 +31,12 @@ def ObjectReturnNoReturns(v):
     v[0] += 1
     return v
 
+
 @task()
 def MultiPrimitiveReturnNoReturns(v):
     print("V: ", v)
     return v + 1, v + 2
+
 
 @task()
 def MultiObjectReturnNoReturns(v, w):
@@ -31,6 +46,7 @@ def MultiObjectReturnNoReturns(v, w):
     w.append(v[0])
     return v, w
 
+
 @task()
 def MultiReturnNoReturns(v):
     print("V: ", v)
@@ -39,7 +55,6 @@ def MultiReturnNoReturns(v):
 
 
 class testNoReturn(unittest.TestCase):
-
     '''
     TASKS
     '''
@@ -73,25 +88,25 @@ class testNoReturn(unittest.TestCase):
         self.assertEqual(o, [2, 3])
 
     def testMultiObjectReturn(self):
-        v = [2,3,4]
-        w = [4,5,6]
+        v = [2, 3, 4]
+        w = [4, 5, 6]
         o, p = MultiObjectReturnNoReturns(v, w)
         o = compss_wait_on(o)
         p = compss_wait_on(p)
-        self.assertEqual(o, [3,3,4])
-        self.assertEqual(p, [4,5,6,3])
+        self.assertEqual(o, [3, 3, 4])
+        self.assertEqual(p, [4, 5, 6, 3])
 
     def testMultiObjectReturn2(self):
-        v = [2,3,4]
-        w = [4,5,6]
+        v = [2, 3, 4]
+        w = [4, 5, 6]
         o = MultiObjectReturnNoReturns(v, w)
         o = compss_wait_on(o)
-        self.assertEqual(o, [[3,3,4], [4,5,6,3]])
+        self.assertEqual(o, [[3, 3, 4], [4, 5, 6, 3]])
 
     def testObjectReturn(self):
-        v = [2,3,5,7]
-        o,p = MultiReturnNoReturns(v)
+        v = [2, 3, 5, 7]
+        o, p = MultiReturnNoReturns(v)
         o = compss_wait_on(o)
         p = compss_wait_on(p)
-        self.assertEqual(o, [3,3,5,7])
+        self.assertEqual(o, [3, 3, 5, 7])
         self.assertEqual(p, 5)

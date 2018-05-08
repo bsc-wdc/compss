@@ -1,12 +1,18 @@
-'''
-PyCOMPSs Delete File Testbench Tasks
-====================================
-'''
+#!/usr/bin/python
 
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Delete File Testbench Tasks
+========================
+"""
+
+# Imports
 from pycompss.api.task import task
 from pycompss.api.parameter import *
 
-@task(counterFile = FILE_INOUT)
+
+@task(counterFile=FILE_INOUT)
 def increment(counterFile):
     # Read value
     fis = open(counterFile, 'r')
@@ -17,7 +23,8 @@ def increment(counterFile):
     fos.write(str(int(value) + 1))
     fos.close()
 
-@task(counterFileIn = FILE_IN, counterFileOut = FILE_OUT)
+
+@task(counterFileIn=FILE_IN, counterFileOut=FILE_OUT)
 def increment2(counterFileIn, counterFileOut):
     # Read value
     fis = open(counterFileIn, 'r')
@@ -28,6 +35,7 @@ def increment2(counterFileIn, counterFileOut):
     fos.write(str(int(value) + 1))
     fos.close()
 
-@task(returns = list)
+
+@task(returns=list)
 def increment_object(x):
-    return [x[0]+1]
+    return [x[0] + 1]

@@ -1,12 +1,14 @@
 #!/usr/bin/python
+
 # -*- coding: utf-8 -*-
+
 """
 --------
 TEST APP
 --------
 
-Aplicacion que utiliza la funcionalidad de launch_pycompss_applicacion llamando a aplicaciones con parametros y con anidamiento
-(todo dentro del mismo fichero!)
+Aplicacion que utiliza la funcionalidad de launch_pycompss_applicacion llamando a aplicaciones
+ con parametros y con anidamiento (todo dentro del mismo fichero!)
 EJECUCION LOCAL
 
 __main__ --> launch(app)
@@ -16,14 +18,14 @@ __main__ --> launch(app)
 Ejecucion: python maqueta7.py
 """
 
-import time
+# Imports
 import sys
 import os
+
 from pycompss.api.task import task
-from pycompss.api.parameter import *
 
 
-#app_path = os.path.abspath(module.maqueta7.__file__).replace('.pyc', '.py')  # "/home/user/test_maqueta/src/maqueta7.py"
+# app_path = os.path.abspath(module.maqueta7.__file__).replace('.pyc', '.py')  # "/home/user/test_maqueta/src/maqueta7.py"
 
 
 @task(returns=list)

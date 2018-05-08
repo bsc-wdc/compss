@@ -1,5 +1,16 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench Tasks
+========================
+"""
+
+# Imports
 import unittest
 import os
+
 from pycompss.api.task import task
 from pycompss.api.parameter import *
 from pycompss.api.api import compss_barrier, compss_open, compss_wait_on
@@ -12,11 +23,13 @@ from pycompss.api.constraint import constraint
 def myDate(dprefix, param):
     pass
 
+
 @constraint(computingUnits="2")
 @ompss(binary="date", workingDir="/tmp")
 @task()
 def myDateConstrained(dprefix, param):
     pass
+
 
 @constraint(computingUnits="$CUS")
 @ompss(binary="date", workingDir="/tmp")
@@ -24,42 +37,50 @@ def myDateConstrained(dprefix, param):
 def myDateConstrainedWithEnvVar(dprefix, param):
     pass
 
+
 @ompss(binary="sed", workingDir=".")
 @task(file=FILE_IN)
 def mySedIN(expression, file):
     pass
+
 
 @ompss(binary="sed", workingDir=".")
 @task(returns=int, file=FILE_IN)
 def mySedReturn(expression, file):
     pass
 
-@ompss(binary="./private.sh", workingDir=os.getcwd()+'/src/scripts/')
+
+@ompss(binary="./private.sh", workingDir=os.getcwd() + '/src/scripts/')
 @task(returns=int)
 def failedBinary(code):
     pass
+
 
 @ompss(binary="sed", workingDir=".")
 @task(file=FILE_INOUT)
 def mySedINOUT(flag, expression, file):
     pass
 
+
 @ompss(binary="grep", workingDir=".")
-#@task(infile=Parameter(TYPE.FILE, DIRECTION.IN, STREAM.STDIN), result=Parameter(TYPE.FILE, DIRECTION.OUT, STREAM.STDOUT))
-#@task(infile={Type:FILE_IN, Stream:STDIN}, result={Type:FILE_OUT, Stream:STDOUT})
-@task(infile={Type:FILE_IN_STDIN}, result={Type:FILE_OUT_STDOUT})
+# @task(infile=Parameter(TYPE.FILE, DIRECTION.IN, STREAM.STDIN), result=Parameter(TYPE.FILE, DIRECTION.OUT, STREAM.STDOUT))
+# @task(infile={Type:FILE_IN, Stream:STDIN}, result={Type:FILE_OUT, Stream:STDOUT})
+@task(infile={Type: FILE_IN_STDIN}, result={Type: FILE_OUT_STDOUT})
 def myGrepper(keyword, infile, result):
     pass
 
+
 @ompss(binary="ls")
-@task(hide={Type:FILE_IN, Prefix:"--hide="}, sort={Type:IN, Prefix:"--sort="})
+@task(hide={Type: FILE_IN, Prefix: "--hide="}, sort={Type: IN, Prefix: "--sort="})
 def myLs(flag, hide, sort):
     pass
 
+
 @ompss(binary="ls")
-@task(hide={Type:FILE_IN, Prefix:"--hide="}, sort={Prefix:"--sort="})
+@task(hide={Type: FILE_IN, Prefix: "--hide="}, sort={Prefix: "--sort="})
 def myLsWithoutType(flag, hide, sort):
     pass
+
 
 class testOmpssDecorator(unittest.TestCase):
 
@@ -111,12 +132,12 @@ class testOmpssDecorator(unittest.TestCase):
         flag = '-l'
         infile = "src/infile"
         sort = "size"
-        myLs(flag ,infile, sort)
+        myLs(flag, infile, sort)
         compss_barrier()
 
     def testFilesAndPrefixWithoutType(self):
         flag = '-l'
         infile = "src/inoutfile"
         sort = "time"
-        myLsWithoutType(flag ,infile, sort)
+        myLsWithoutType(flag, infile, sort)
         compss_barrier()

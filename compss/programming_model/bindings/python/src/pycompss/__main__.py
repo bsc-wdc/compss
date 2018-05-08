@@ -88,7 +88,6 @@ def main():
     # Take an action
     if args.action == RUN_TAG:
         cmd = [RUN_EXECUTABLE] + python_interpreter + args.params
-        print(cmd)
         run(cmd)
     elif args.action == ENQUEUE_TAG:
         cmd = [ENQUEUE_EXECUTABLE] + python_interpreter + args.params

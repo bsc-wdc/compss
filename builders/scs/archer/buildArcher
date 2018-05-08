@@ -1,0 +1,54 @@
+#!/bin/bash -e 
+ 
+  #############################################################
+  # Name: buildAcher
+  # Description: SCRIPT FOR Archer COMPSs BUILD
+  # Parameters: <Archer_user> Archer user account. Preferable with ssh keys inserted
+  #             <FullTmpPath> Tmp path on Archer for deployment
+  #             <FullTargetPath> Base Target Installation folder on Archer
+  #############################################################
+
+  ####################
+  # FUNCTIONS
+  ####################
+  usage() {
+    echo " Usage: buildArcher <Archer_user> <FullTmpPath> <FullTargetPath>"
+    echo " "
+  }
+
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -eq 1 ]; then
+    if [ "$1" == "usage" ]; then
+      usage
+      exit 0
+    fi
+  fi
+  if [ $# -ne 3 ]; then
+    echo "Incorrect number of parameters"
+    usage
+    exit 1
+  fi
+
+  # SET SCRIPT VARIABLES
+  scriptDir=$(pwd)/$(dirname $0)
+  
+  Archeruser=$1
+  ArchertmpDir=$2
+  ArchertargetDir=$3
+  ArcherloginNode=login.archer.ac.uk
+  ArcherauxScript=${scriptDir}/buildArcher_aux
+  PRELOAD_ENV=""
+
+  # Perform installation
+  cd ${scriptDir}/../commons/
+  ./buildSC ${Archeruser} ${ArcherloginNode} ${ArchertmpDir} ${ArchertargetDir} ${ArcherauxScript} "${PRELOAD_ENV}"
+  exitStatus=$?
+  cd ${scriptDir}
+
+  # END
+  exit $exitStatus
+

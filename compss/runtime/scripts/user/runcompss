@@ -41,6 +41,11 @@ fi
 DEFAULT_STORAGE_CONF="None"
 DEFAULT_PyOBJECT_SERIALIZE=false
 DEFAULT_PYTHON_INTERPRETER=python
+if [ -z "${VIRTUAL_ENV}" ]; then
+  DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT="null"
+else
+  DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT="${VIRTUAL_ENV}"
+fi
 
 DEFAULT_COMMUNICATION_ADAPTOR=es.bsc.compss.nio.master.NIOAdaptor
 #DEFAULT_COMMUNICATION_ADAPTOR=es.bsc.compss.gat.master.GATAdaptor
@@ -978,6 +983,7 @@ add_jvm_opts_python() {
 -Djava.class.path=${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar
 -Dcompss.worker.pythonpath=${PYTHONPATH}
 -Dcompss.python.interpreter=${python_interpreter}
+-Dcompss.python.virtualenvironment=${DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT}
 EOT
 }
 

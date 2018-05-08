@@ -5,7 +5,7 @@
   ######################
 
   # Load common setup functions --------------------------------------
-  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio"
   # shellcheck source=setup.sh
   source ${SCRIPT_DIR}/setup.sh
 

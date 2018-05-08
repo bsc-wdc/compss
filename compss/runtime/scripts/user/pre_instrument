@@ -8,7 +8,7 @@
   fi
   
   userDir=$HOME
-  scriptDir=$(pwd)
+  scriptDir="${COMPSS_HOME}/Runtime/scripts/user"
   
   appClassPath=$1
   runtimeInstDir=$2

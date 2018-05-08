@@ -372,6 +372,14 @@ public class WorkerStarter {
             python_interpreter = COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
             LOGGER.warn("No python interpreter passed");
         }
+
+        // Configure python virtual environment
+        String python_virtual_environment = System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT);
+        if (python_virtual_environment == null || python_virtual_environment.isEmpty() || python_virtual_environment.equals("null")) {
+            python_virtual_environment = COMPSsConstants.DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT;
+            LOGGER.warn("No python virtual environment passed");
+        }
+
         /*
          * ************************************************************************************************************
          * BUILD COMMAND
@@ -448,6 +456,9 @@ public class WorkerStarter {
 
         // Python interpreter parameter
         cmd[nextPosition++] = python_interpreter;
+
+        // Python virtual environment parameter
+        cmd[nextPosition++] = python_virtual_environment;
 
         return cmd;
     }

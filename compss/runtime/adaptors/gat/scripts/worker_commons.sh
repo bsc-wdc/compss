@@ -20,12 +20,13 @@
     cp=$3
     pythonpath=$4
     pythonInterpreter=$5
-    debug=$6
-    storageConf=$7
-    methodType=$8
+    pythonVirtualEnvironment=$6
+    debug=$7
+    storageConf=$8
+    methodType=$9
 
     # Shit all parameters except method ones
-    shiftSizeForApp=5
+    shiftSizeForApp=6
     shift $shiftSizeForApp
    
     # Get method parameters
@@ -37,6 +38,7 @@
       echo "[WORKER_COMMONS.SH] - classpath   $cp"
       echo "[WORKER_COMMONS.SH] - pythonpath  $pythonpath"
       echo "[WORKER_COMMONS.SH] - pythonInterpreter  $pythonInterpreter"
+      echo "[WORKER_COMMONS.SH] - pythonVirtualEnvironment  $pythonVirtualEnvironment"
     fi
   }
 
@@ -69,4 +71,3 @@
     # Set python home related env
     export PYCOMPSS_HOME=${bindingsDir}/python
   }
-

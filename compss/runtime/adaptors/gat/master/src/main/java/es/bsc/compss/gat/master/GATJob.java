@@ -88,6 +88,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
 
     // Python interpreter
     private static final String PYTHON_INTERPRETER = System.getProperty(COMPSsConstants.PYTHON_INTERPRETER);
+    private static final String PYTHON_VIRTUAL_ENVIRONMENT = System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT);
 
     private static final String JOBS_DIR = System.getProperty(COMPSsConstants.APP_LOG_DIR) + "jobs" + java.io.File.separator;
 
@@ -384,6 +385,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         lArgs.add(getClasspath());
         lArgs.add(getPythonpath());
         lArgs.add(PYTHON_INTERPRETER);
+        lArgs.add(PYTHON_VIRTUAL_ENVIRONMENT);
 
         lArgs.add(String.valueOf(debug));
         lArgs.add(STORAGE_CONF);

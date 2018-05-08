@@ -606,9 +606,14 @@ EOT
   # Host list parsing before launch
   cat >> $TMP_SUBMIT_SCRIPT << EOT
 
-host_list=\$(${HOSTLIST_CMD} \$${ENV_VAR_NODE_LIST} ${HOSTLIST_TREATMENT})
-master_node=\$(${MASTER_NAME_CMD})
-worker_nodes=\$(echo \${host_list} | sed -e "s/\${master_node}//g")
+  if [ "${HOSTLIST_CMD}" == "nodes.sh" ]; then
+    source "${scriptDir}/../../system/${HOSTLIST_CMD}"
+  else
+    host_list=\$(${HOSTLIST_CMD} \$${ENV_VAR_NODE_LIST} ${HOSTLIST_TREATMENT})
+    master_node=\$(${MASTER_NAME_CMD})
+    worker_nodes=\$(echo \${host_list} | sed -e "s/\${master_node}//g")
+  fi
+  
 EOT
 
   # Storage init

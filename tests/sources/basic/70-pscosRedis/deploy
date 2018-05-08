@@ -5,23 +5,22 @@
   target_base_dir=$2
 
   # Copy dummy Storage jar
-  mkdir -p ${target_base_dir}/jars/
-
-  cd ${source_base_dir}/../../../../utils/storage/redisPSCO/
+  (
+  cd "${source_base_dir}"/../../../../utils/storage/redisPSCO/
   mvn clean package
-  cd -
-  cp -f ${source_base_dir}/../../../../utils/storage/redisPSCO/target/compss-redisPSCO.jar ${target_base_dir}/jars/compss-redisPSCO.jar
+  )
+  mkdir -p "${target_base_dir}"/jars/
+  cp "${source_base_dir}"/../../../../utils/storage/redisPSCO/target/compss-redisPSCO.jar "${target_base_dir}"/jars/compss-redisPSCO.jar
 
   # Copy files
-  cp -f ${source_base_dir}/target/70-pscosRedis.jar ${target_base_dir}/pscosRedis.jar
-  cp -f ${source_base_dir}/target/lib/jedis*.jar ${target_base_dir}/jedis.jar
-  cp -f ${source_base_dir}/REDIS-VERSION ${target_base_dir}/REDIS-VERSION
-  # Now we download Redis source code from their official repo, compile it
-  # and use the redis-server executable
+  cp "${source_base_dir}"/target/70-pscosRedis.jar "${target_base_dir}"/pscosRedis.jar
 
-  cp -f ${source_base_dir}/project.xml ${target_base_dir}/project.xml
-  cp -f ${source_base_dir}/resources.xml ${target_base_dir}/resources.xml
-  cp -f ${source_base_dir}/execution ${target_base_dir}/execution
-  cp -f ${source_base_dir}/result_internal ${target_base_dir}/result_internal
+  # Now we download Redis source code from their official repo, compile it and use the redis-server executable
+  cp "${source_base_dir}"/target/lib/jedis*.jar "${target_base_dir}"/jedis.jar
+  cp "${source_base_dir}"/REDIS-VERSION "${target_base_dir}"/REDIS-VERSION
 
-  #cp -f ${source_base_dir}/skip ${target_base_dir}/skip
+  cp "${source_base_dir}"/project.xml "${target_base_dir}"/project.xml
+  cp "${source_base_dir}"/resources.xml "${target_base_dir}"/resources.xml
+
+  cp "${source_base_dir}"/execution "${target_base_dir}"/execution
+  cp "${source_base_dir}"/result_internal "${target_base_dir}"/result_internal

@@ -10,80 +10,79 @@
   output_file_testAllBlocked="${target_log_folder}/testAllBlocked/errorManagement_testAllBlocked_0${retryNum}.outputlog"
  
   # Default checker (application ends with : Error running application)
-  if [ -f ${output_file_testNonExistingInFile} ]; then
+  if [ -f "${output_file_testNonExistingInFile}" ]; then
      result_expected="Error running application"
-     test_result=$(cat ${output_file_testNonExistingInFile} | tail -n 2 | head -n 1)
+     test_result=$(cat "${output_file_testNonExistingInFile}" | tail -n 2 | head -n 1)
      if [ "${result_expected}" != "${test_result}" ]; then
-        echo "1 SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file_testNonExistingInFile}
+        echo "1 SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file_testNonExistingInFile}"
         exit 1
      fi
   else
-     echo "1b SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file_testNonExistingInFile}
+     echo "1b SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file_testNonExistingInFile}"
      exit 1
   fi
 
-  if [ -f ${output_file_testReschedulingFail} ]; then
+  if [ -f "${output_file_testReschedulingFail}" ]; then
      result_expected="Error running application"
-     test_result=$(cat ${output_file_testReschedulingFail} | tail -n 2 | head -n 1)
+     test_result=$(cat "${output_file_testReschedulingFail}" | tail -n 2 | head -n 1)
      if [ "${result_expected}" != "${test_result}" ]; then
-        echo "2 SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file_testReschedulingFail}
+        echo "2 SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file_testReschedulingFail}"
         exit 1
      fi
   else
-     echo "2b SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file_testReschedulingFail}
+     echo "2b SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file_testReschedulingFail}"
      exit 1
   fi
 
-  if [ -f ${output_file_testAllBlocked} ]; then
+  if [ -f "${output_file_testAllBlocked}" ]; then
      result_expected="Error running application"
-     test_result=$(cat ${output_file_testAllBlocked} | tail -n 2 | head -n 1)
+     test_result=$(cat "${output_file_testAllBlocked}" | tail -n 2 | head -n 1)
      if [ "${result_expected}" != "${test_result}" ]; then
-        echo "3 SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file_testAllBlocked}
+        echo "3 SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file_testAllBlocked}"
         exit 1
      fi
   else
-     echo "3b SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file_testAllBlocked}
+     echo "3b SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file_testAllBlocked}"
      exit 1
   fi
 
 
   # Specific ERRMGR checker
-  if [ -f ${output_file_testNonExistingInFile} ]; then
+  if [ -f "${output_file_testNonExistingInFile}" ]; then
      if $(cat "${output_file_testNonExistingInFile}" | tr '\n' ' ' | grep -E -q "[ERRMGR].*WARNING:.*(Can't send file|could not be copied).*Shutting"); then
      	echo "[RESULT_CHECKER] ErrorManagerTestNonExistingInFile OK" | tee -a ${output_file_testNonExistingInFile}
      else
-	echo "[ERROR] The current test output for ErrorManagerTestNonExistingInFile does not match the expected output." | tee -a ${output_file_testNonExistingInFile}
+	echo "[ERROR] The current test output for ErrorManagerTestNonExistingInFile does not match the expected output." | tee -a "${output_file_testNonExistingInFile}"
 	exit 1
      fi
   else
-     echo "ERROR: The log file '${output_file_testNonExistingInFile}' has not been created." | tee -a ${output_file_testNonExistingInFile}
+     echo "ERROR: The log file '${output_file_testNonExistingInFile}' has not been created." | tee -a "${output_file_testNonExistingInFile}"
      exit 1
   fi
   
-  if [ -f ${output_file_testReschedulingFail} ]; then
+  if [ -f "${output_file_testReschedulingFail}" ]; then
      if $(cat "${output_file_testReschedulingFail}" | tr '\n' ' ' | grep -E -q "[ERRMGR].*WARNING:.*resubmitting.*rescheduling.*Shutting"); then
-     	echo "[RESULT_CHECKER] ErrorManagerTestReschedulingFail OK" | tee -a ${output_file_testReschedulingFail}
+     	echo "[RESULT_CHECKER] ErrorManagerTestReschedulingFail OK" | tee -a "${output_file_testReschedulingFail}"
      else
-        echo "The current test output for ErrorManagerTestReschedulingFail does not match the expected output." | tee -a ${output_file_testReschedulingFail}
+        echo "The current test output for ErrorManagerTestReschedulingFail does not match the expected output." | tee -a "${output_file_testReschedulingFail}"
         exit 1
      fi
   else
-  	 echo "ERROR: The log file '${output_file_testReschedulingFail}' has not been created." | tee -a ${output_file_testReschedulingFail}
+  	 echo "ERROR: The log file '${output_file_testReschedulingFail}' has not been created." | tee -a "${output_file_testReschedulingFail}"
  	 exit 1
   fi
   
-  if [ -f ${output_file_testAllBlocked} ]; then
+  if [ -f "${output_file_testAllBlocked}" ]; then
      if $(cat "${output_file_testAllBlocked}" | tr '\n' ' ' | grep -E -q "[ERRMGR].*WARNING:.*If this happens.*ERROR:.*Shutting"); then
-     	echo "[RESULT_CHECKER] ErrorManagerTestAllBlocked OK" | tee -a ${output_file_testAllBlocked}
+     	echo "[RESULT_CHECKER] ErrorManagerTestAllBlocked OK" | tee -a "${output_file_testAllBlocked}"
      else
-	     echo "The current test output for ErrorManagerTestAllBlocked does not match the expected output." | tee -a ${output_file_testAllBlocked}
+	     echo "The current test output for ErrorManagerTestAllBlocked does not match the expected output." | tee -a "${output_file_testAllBlocked}"
 	     exit 1
      fi
   else
-  	 echo "ERROR: The log file '${output_file_testAllBlocked}' has not been created." | tee -a ${output_file_testAllBlocked}
+  	 echo "ERROR: The log file '${output_file_testAllBlocked}' has not been created." | tee -a "${output_file_testAllBlocked}"
  	 exit 1
   fi
   
-  #Compute result status
+  # Compute result status
   exit 0
-  

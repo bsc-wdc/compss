@@ -15,21 +15,25 @@
 
   install() {
     local installationDir=$1
+    local ev
 
-    autoreconf -fvi # force verbose install
-    if [ $? -ne 0 ]; then
-      echo ${ERROR_AUTORECONF}
-      exit 1
+    ./autogen.sh
+    ev=$?
+    if [ $ev -ne 0 ]; then
+      echo "${ERROR_AUTORECONF}"
+      exit $ev
     fi
-    ./configure --prefix=${installationDir} --libdir=${installationDir}/lib
-    if [ $? -ne 0 ]; then
-      echo ${ERROR_CONFIGURE}
-      exit 1
+    ./configure --prefix="${installationDir}" --libdir="${installationDir}"/lib
+    ev=$?
+    if [ $ev -ne 0 ]; then
+      echo "${ERROR_CONFIGURE}"
+      exit $ev
     fi
     make clean install
-    if [ $? -ne 0 ]; then
-      echo ${ERROR_INSTALL}
-      exit 1
+    ev=$?
+    if [ $ev -ne 0 ]; then
+      echo "${ERROR_INSTALL}"
+      exit $ev
     fi
   }
 
@@ -39,37 +43,38 @@
   #######################################
 
   # Define script variables
-  scriptDir=$(pwd)
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # Trap to ensure clean environment
   trap clean_env EXIT
 
   # Check JAVA_HOME
   if [ -z "${JAVA_HOME}" ]; then
-    echo ${JAVA_HOME_ERROR}
+    echo "${JAVA_HOME_ERROR}"
     exit 1
   fi
 
   # Look for the JVM Library
-  libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.so | head -n 1)
+  libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
   if [ -z "$libjava" ]; then
-    libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.dylib | head -n 1)
+    libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
     if [ -z "$libjava" ]; then
-      echo ${JAVA_JRE_ERROR}
+      echo "${JAVA_JRE_ERROR}"
       exit 1
     fi
   fi
-  export JAVA_LIB_DIR=$(dirname $libjava)
+  JAVA_LIB_DIR=$(dirname "$libjava")
+  export JAVA_LIB_DIR
 
   # Install and deploy on scriptDir (for C binding)
-  echo "Install on scriptDir = $scriptDir for Bindings compilation"
-  install ${scriptDir}
+  echo "Install on scriptDir = ${SCRIPT_DIR} for Bindings compilation"
+  install "${SCRIPT_DIR}"
 
   # Install and deploy on target
   if [ $# -eq 1 ]; then
     echo "Install on target folder"
     targetDir=$1
-    install ${targetDir}
+    install "${targetDir}"
   fi
 
   # All ok. Exit

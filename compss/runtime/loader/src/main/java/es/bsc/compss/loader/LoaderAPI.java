@@ -38,7 +38,7 @@ public interface LoaderAPI {
      * @param destDir
      * @return
      */
-    String getFile(String fileName, String destDir);
+    public String getFile(String fileName, String destDir);
 
     /**
      * Returns a copy of the last object version
@@ -48,7 +48,7 @@ public interface LoaderAPI {
      * @param destDir
      * @return
      */
-    Object getObject(Object o, int hashCode, String destDir);
+    public Object getObject(Object o, int hashCode, String destDir);
 
     /**
      * Serializes the given object
@@ -57,20 +57,20 @@ public interface LoaderAPI {
      * @param hashCode
      * @param destDir
      */
-    void serializeObject(Object o, int hashCode, String destDir);
+    public void serializeObject(Object o, int hashCode, String destDir);
 
     /**
      * Sets the object Registry instance
      *
      * @param oReg
      */
-    void setObjectRegistry(ObjectRegistry oReg);
+    public void setObjectRegistry(ObjectRegistry oReg);
 
     /**
      * Returns the directory where to store temporary files
      * 
      * @return
      */
-    String getTempDir();
+    public String getTempDir();
 
 }

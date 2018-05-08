@@ -1,8 +1,15 @@
-:q
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT()
 
-AM_INIT_AUTOMAKE(compsuperscalar, 0.0.0)
+m4_define([PACKAGE], [compssbuilder])
+m4_define([P_MAJOR_VERSION], [2])
+m4_define([P_MINOR_VERSION], [2])
+m4_define([P_MICRO_VERSION], [0])
+m4_define([P_VERSION], [P_MAJOR_VERSION.P_MINOR_VERSION.P_MICRO_VERSION])
+m4_define([SUPPORT_EMAIL], [support-compss@bsc.es])
+
+AC_INIT(PACKAGE, [P_VERSION], [SUPPORT_EMAIL])
+
+AM_INIT_AUTOMAKE([foreign])
 AC_PROG_LIBTOOL
 #AC_CONFIG_SUBDIRS([build/c/all build/c/master build/c/worker])
 AC_CONFIG_MACRO_DIR([m4])

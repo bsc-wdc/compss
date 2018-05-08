@@ -1,8 +1,16 @@
 #!/usr/bin/python
+
 # -*- coding: utf-8 -*-
-from pycompss.api.task import task
-from pycompss.api.parameter import *
+
+"""
+PyCOMPSs Testbench
+========================
+"""
+
+# Imports
 import random
+
+from pycompss.api.task import task
 
 
 def init_board_gauss(numV, dim, K):
@@ -83,7 +91,7 @@ def has_converged(mu, oldmu, epsilon, iter, maxIterations):
 def init_random(dim, k):
     from numpy import random
     random.seed(5)
-    #ind = random.randint(0, len(X) - 1)
+    # ind = random.randint(0, len(X) - 1)
     m = np.array([random.random(dim) for _ in range(k)])
     # return random.sample(X[ind], k)
     return m
@@ -122,6 +130,7 @@ def kmeans_frag(numV, k, dim, epsilon, maxIterations, numFrag):
         n += 1
     print("Kmeans Time {} (s)".format(time.time() - startTime))
     return (n, mu)
+
 
 if __name__ == "__main__":
     import time

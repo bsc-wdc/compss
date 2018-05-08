@@ -1,27 +1,43 @@
-import gc
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench Tasks
+========================
+"""
+
+# Imports
 import unittest
 import numpy as np
+
 from .C import C
+
 from pycompss.api.task import task
 from pycompss.api.parameter import *
 from pycompss.api.api import compss_wait_on
 from pycompss.api.local import local
 
+
 @task(v=IN, returns=list)
 def inc(v):
-    return [x+1 for x in v]
+    return [x + 1 for x in v]
+
 
 @task(v=INOUT)
 def append_three_ones(v):
     v += [1, 1, 1]
 
+
 @task(m=IN, returns=list)
 def square(m):
-    return m**2
+    return m ** 2
+
 
 @task(v=IN, returns=list)
 def normalize(m):
     return m / np.linalg.norm(m)
+
 
 @task(d=INOUT)
 def merge_dict(d):
@@ -29,21 +45,26 @@ def merge_dict(d):
     d.update(sub_dict)
     del d['dict']
 
+
 @local
 def remove_trump(d):
     del d['trump']
+
 
 @local
 def solve_equation_system(A, b):
     return np.linalg.solve(A, b)
 
+
 @local
 def scale_vector(v, k):
-    return [k*x for x in v]
+    return [k * x for x in v]
+
 
 @local
 def abuse_me(positional, positional_default=3, *args, **kwargs):
     return (positional, positional_default, len(args), len(kwargs))
+
 
 class testLocal(unittest.TestCase):
 
@@ -126,6 +147,7 @@ class testLocal(unittest.TestCase):
     '''
         These tests simply try to invoke complex use cases.
     '''
+
     def testComplexDataStructures1(self):
         original_object = {
             'dog': 'woof',
@@ -146,6 +168,7 @@ class testLocal(unittest.TestCase):
             'sheep': 'animal',
             'cactus': 'plant'},
             original_object);
+
     """
     @unittest.skip("Speed test -> ignoring")
     def testHugeObjects(self):

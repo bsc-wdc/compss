@@ -163,7 +163,7 @@ public class ITAppModifier {
 
                     if (IS_WS_CLASS) { //
                         LOGGER.debug("Inserting calls noMoreTasks at the end of main");
-                        toInsertAfter.insert(0, itApiVar + ".noMoreTasks(" + itAppIdVar + ", true);");
+                        toInsertAfter.insert(0, itApiVar + ".noMoreTasks(" + itAppIdVar + ");");
                         m.insertBefore(toInsertBefore.toString());
                         m.insertAfter(toInsertAfter.toString()); // executed only if Orchestration finishes properly
                     } else { // Main program
@@ -174,7 +174,7 @@ public class ITAppModifier {
                                 .append(" = new Long(Thread.currentThread().getId());");
                         // toInsertAfter.append("System.exit(0);");
                         toInsertAfter.insert(0, itApiVar + ".stopIT(true);");
-                        toInsertAfter.insert(0, itApiVar + ".noMoreTasks(" + appName + '.' + itAppIdVar + ", true);");
+                        toInsertAfter.insert(0, itApiVar + ".noMoreTasks(" + appName + '.' + itAppIdVar + ");");
                         m.insertBefore(toInsertBefore.toString());
                         m.insertAfter(toInsertAfter.toString(), true); // executed no matter what
                     }
@@ -192,7 +192,7 @@ public class ITAppModifier {
                 } else if (isOrchestration) {
                     if (IS_WS_CLASS) { //
                         LOGGER.debug("Inserting calls noMoreTasks and stopIT at the end of orchestration");
-                        toInsertAfter.insert(0, itApiVar + ".noMoreTasks(" + itAppIdVar + ", true);");
+                        toInsertAfter.insert(0, itApiVar + ".noMoreTasks(" + itAppIdVar + ");");
                         m.insertBefore(toInsertBefore.toString());
                         m.insertAfter(toInsertAfter.toString()); // executed only if Orchestration finishes properly
                     } else {

@@ -1,9 +1,19 @@
-import storage.api
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench
+========================
+"""
+
+# Imports
 from storage.storage_object import StorageObject
 from pycompss.api.task import task
 
+
 class PSCOWithTasks(StorageObject):
-    def __init__(self, content = "Content"):
+    def __init__(self, content="Content"):
         super(PSCOWithTasks, self).__init__()
         self.content = content
 

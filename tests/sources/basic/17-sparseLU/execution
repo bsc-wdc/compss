@@ -1,6 +1,6 @@
 #!/bin/bash
 
-  #Obtain parameters
+  # Obtain parameters
   COMPSs_exec=$1
   comm=$2
   runcompss_opts=$3
@@ -9,54 +9,59 @@
   target_log_folder=$6
   retryNum=$7
   
-  #Global exit variable
+  # Global exit variable
   exitValue=0
   
   #----------------------------------------------------------------------------------
-  #Generate Project.xml according to system
-  sed -i '/<InstallDir>/c<InstallDir>'${COMPSS_HOME}'<\/InstallDir>' ${base_app_dir}/project_sparseLU.xml
+  # Generate Project.xml according to system
+  sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/project.xml
   
   #----------------------------------------------------------------------------------
-  #Create all working dir folders
+  # Create all working dir folders
   mkdir -p /tmp/COMPSsWorker01/
   
   #----------------------------------------------------------------------------------
-  #Run application 1 - Arrays
+  # Run application 1 - Arrays
   echo
   echo "*** RUNNING JAVA APPLICATION SPARSELU - Arrays"
   log_folder="${target_log_folder}/arrays"
-  mkdir -p ${log_folder}
+  mkdir -p "${log_folder}"
   output_log="${log_folder}/sparselu_arrays_0${retryNum}.outputlog"
   error_log="${log_folder}/sparselu_arrays_0${retryNum}.errorlog"
   expectedTime=1200s
   path_ain="${base_app_dir}/java_sparseLU_A.in"
   path_aout="${base_app_dir}/java_sparseLU_A.out"
   
-  timeout --signal=2 $expectedTime ${COMPSs_exec} \
-     --lang=java \
-     --classpath=${base_app_dir}/sparseLU.jar \
+  # shellcheck disable=SC2086
+  timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+     --project="${base_app_dir}"/project.xml \
+     --resources="${base_app_dir}"/resources.xml \
+     \
+     --comm="$comm" \
+     \
      --debug \
-     --comm=$comm \
      ${runcompss_opts} \
-     --project=${base_app_dir}/project_sparseLU.xml \
-     --resources=${base_app_dir}/resources_sparseLU.xml \
-     sparseLU.arrays.SparseLU $path_ain $path_aout > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+     \
+     --classpath="${base_app_dir}"/sparseLU.jar \
+     \
+     sparseLU.arrays.SparseLU $path_ain $path_aout > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+  errCode=$?
   
-  #Check timeout
+  # Check timeout
   ev1=0
-  if [[ "$?" = "124" ]]; then
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/sparseLU.arrays.SparseLU_0${retryNum}/* ${log_folder}
+  if [[ "$errCode" = "124" ]]; then
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}"/sparseLU.arrays.SparseLU_0"${retryNum}"/* "${log_folder}"
      
-     #Report time out
-     echo "[WARNING] Java Application timed out" >> ${output_log}
+     # Report time out
+     echo "[WARNING] Java Application timed out" >> "${output_log}"
      ev1=124
   else
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/sparseLU.arrays.SparseLU_0${retryNum}/* ${log_folder}
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}"/sparseLU.arrays.SparseLU_0"${retryNum}"/* "${log_folder}"
   
-     #Check result
-     ${base_app_dir}/result_arrays ${output_log} ${log_folder}
+     # Check result
+     "${base_app_dir}"/result_arrays "${output_log}" "${log_folder}"
      ev1=$?
   fi
   
@@ -65,46 +70,51 @@
   sleep 1s
   
   #----------------------------------------------------------------------------------
-  #Create all working dir folders
+  # Create all working dir folders
   mkdir -p /tmp/COMPSsWorker01/
   
   #----------------------------------------------------------------------------------
-  #Run application 2 - Objects
+  # Run application 2 - Objects
   echo
   echo "*** RUNNING JAVA APPLICATION SPARSELU - Objects"
   log_folder="${target_log_folder}/objects"
-  mkdir -p ${log_folder}
+  mkdir -p "${log_folder}"
   output_log="${log_folder}/sparselu_objects_0${retryNum}.outputlog"
   error_log="${log_folder}/sparselu_objects_0${retryNum}.errorlog"
   expectedTime=1200s
   path_ain="${base_app_dir}/java_sparseLU_A.in"
   path_aout="${base_app_dir}/java_sparseLU_A.out"
   
-  timeout --signal=2 $expectedTime ${COMPSs_exec} \
-     --lang=java \
-     --classpath=${base_app_dir}/sparseLU.jar \
+  # shellcheck disable=SC2086
+  timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+     --project="${base_app_dir}"/project.xml \
+     --resources="${base_app_dir}"/resources.xml \
+     \
+     --comm="$comm" \
+     \
      --debug \
-     --comm=$comm \
-    ${runcompss_opts} \
-     --project=${base_app_dir}/project_sparseLU.xml \
-     --resources=${base_app_dir}/resources_sparseLU.xml \
-     sparseLU.objects.SparseLU $path_ain $path_aout > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+     ${runcompss_opts} \
+     \
+     --classpath="${base_app_dir}"/sparseLU.jar \
+     \
+     sparseLU.objects.SparseLU $path_ain $path_aout > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+  errCode=$?
   
-  #Check timeout
+  # Check timeout
   ev2=0
-  if [[ "$?" = "124" ]]; then
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/sparseLU.objects.SparseLU_0${retryNum}/* ${log_folder}
+  if [[ "$errCode" = "124" ]]; then
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}"/sparseLU.objects.SparseLU_0"${retryNum}"/* "${log_folder}"
      
-     #Report time out
-     echo "[WARNING] Java Application timed out" >> ${output_log}
+     # Report time out
+     echo "[WARNING] Java Application timed out" >> "${output_log}"
      ev2=124
   else
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/sparseLU.objects.SparseLU_0${retryNum}/* ${log_folder}
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}"/sparseLU.objects.SparseLU_0"${retryNum}"/* "${log_folder}"
     
-     #Check result
-     ${base_app_dir}/result_objects ${output_log} ${log_folder}
+     # Check result
+     "${base_app_dir}"/result_objects "${output_log}" "${log_folder}"
      ev2=$?
   fi
 
@@ -113,15 +123,15 @@
   sleep 1s
   
   #----------------------------------------------------------------------------------
-  #Create all working dir folders
+  # Create all working dir folders
   mkdir -p /tmp/COMPSsWorker01/
   
   #----------------------------------------------------------------------------------
-  #Run application 3 - Files
+  # Run application 3 - Files
   echo
   echo "*** RUNNING JAVA APPLICATION SPARSELU - Files"
   log_folder="${target_log_folder}/files"
-  mkdir -p ${log_folder}
+  mkdir -p "${log_folder}"
   output_log="${log_folder}/sparselu_files_0${retryNum}.outputlog"
   error_log="${log_folder}/sparselu_files_0${retryNum}.errorlog"
   expectedTime=1200s
@@ -129,37 +139,41 @@
   path_aout_expected="${base_app_dir}/java_sparseLU_A.out"
   path_aout_got="${log_folder}/sparselu_files_AGot.out"
   
-  timeout --signal=2 $expectedTime ${COMPSs_exec} \
-     --lang=java \
-     --classpath=${base_app_dir}/sparseLU.jar \
+  # shellcheck disable=SC2086
+  timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+     --project="${base_app_dir}"/project.xml \
+     --resources="${base_app_dir}"/resources.xml \
+     \
+     --comm="$comm" \
+     \
      --debug \
-     --comm=$comm \
      ${runcompss_opts} \
-     --project=${base_app_dir}/project_sparseLU.xml \
-     --resources=${base_app_dir}/resources_sparseLU.xml \
-     sparseLU.files.SparseLU $path_ain $path_aout_got > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+     \
+     --classpath="${base_app_dir}"/sparseLU.jar \
+     \
+     sparseLU.files.SparseLU $path_ain $path_aout_got > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+  errCode=$?
   
-  #Check timeout
+  # Check timeout
   ev3=0
-  if [[ "$?" = "124" ]]; then
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/sparseLU.files.SparseLU_0${retryNum}/* ${log_folder}
+  if [[ "$errCode" = "124" ]]; then
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}"/sparseLU.files.SparseLU_0"${retryNum}"/* "${log_folder}"
      
-     #Report time out
-     echo "[WARNING] Java Application timed out" >> ${output_log}
+     # Report time out
+     echo "[WARNING] Java Application timed out" >> "${output_log}"
      ev3=124
   else
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/sparseLU.files.SparseLU_0${retryNum}/* ${log_folder}
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}"/sparseLU.files.SparseLU_0"${retryNum}"/* "${log_folder}"
     
-     #Check result
-     ${base_app_dir}/result_files ${output_log} ${log_folder} ${path_aout_expected} ${path_aout_got}
+     # Check result
+     "${base_app_dir}"/result_files "${output_log}" "${log_folder}" "${path_aout_expected}" "${path_aout_got}"
      ev3=$?
   fi
   
-  
   #----------------------------------------------------------------------------------
-  #Return execution status
+  # Return execution status
   if [ $ev1 -gt $ev2 ]; then
      exitValue=$ev1
   else

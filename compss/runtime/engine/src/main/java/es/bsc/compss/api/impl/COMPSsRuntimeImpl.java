@@ -747,7 +747,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         LOGGER.info("Barrier for app " + appId + " with noMoreTasks = " + noMoreTasks);
         if (noMoreTasks) {
             // No more tasks expected, we can unregister application
-            ap.noMoreTasks(appId);
+            noMoreTasks(appId);
         } else {
             // Regular barrier
             ap.barrier(appId);

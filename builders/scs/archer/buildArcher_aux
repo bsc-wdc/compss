@@ -28,7 +28,7 @@
   targetDir=$1
   scriptDir=$(dirname $0)
 
-  modules="packages-archer PrgEnv-cray/5.2.56 java/jdk1.8.0_51 boost/1.55 python-compute/2.7.6"
+  modules="packages-archer PrgEnv-cray/5.2.56 java/jdk1.8.0_51 boost/1.55 python-compute/2.7.6 gcc/7.2.0"
   additionalExports=""
   queues_cfg="archer.cfg"
   extrae_with_openmpi="false"

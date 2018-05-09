@@ -5,8 +5,11 @@
   ######################
 
   # Load common setup functions --------------------------------------
-  SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio"
-  # shellcheck source=setup.sh
+  if [ -z "${COMPSS_HOME}" ]; then
+    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  else
+    SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio"
+  fi  # shellcheck source=setup.sh
   source ${SCRIPT_DIR}/setup.sh
 
   # Load parameters --------------------------------------------------

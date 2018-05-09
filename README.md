@@ -44,8 +44,8 @@ at our webpage (http://compss.bsc.es) or at doc/Sample_applications.pdf
 ## BUILDING COMPSs
 
 * COMPSs Dependencies:
-	openjdk-7-jre openjdk-7-jdk graphviz xdg-utils lib2xml lib2xml-dev python (>=2.7) libpython2.7 \
-        build-essential autoconf automake autotools-dev libtool libbost-serialization-dev \
+	openjdk-7-jre openjdk-7-jdk graphviz xdg-utils libxml2 libxml2-dev python (>=2.7) libpython2.7 \
+        build-essential autoconf automake autotools-dev libtool libboost-serialization-dev \
 	libboost-iostreams-dev gfortran 
 
 * Building dependencies

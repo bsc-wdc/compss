@@ -24,8 +24,8 @@ PyCOMPSs Utils - Location
     Useful to detect if we are in the master or in the worker.
 """
 
-import sys
 import inspect
+from pycompss.runtime import get_i_am_module
 
 
 def i_am_at_master():
@@ -46,6 +46,8 @@ def i_am_within_scope():
     Determine if the execution is being performed within the PyCOMPSs scope.
     :return:  <Boolean> - True if under scope. False on the contrary.
     """
-    return sys.path[0].endswith('Bindings/python/pycompss/runtime') or \
-           sys.path[0].endswith('Bindings/python/pycompss/worker') or \
-           sys.path[0] == ''
+    return not get_i_am_module()
+    # Old way:
+    # return sys.path[0].endswith('Bindings/python/pycompss/runtime') or \
+    #        sys.path[0].endswith('Bindings/python/pycompss/worker') or \
+    #        sys.path[0] == ''

@@ -18,6 +18,7 @@ ERROR_TMP_FILE="Cannot create TMP Submit file"
 ERROR_SUBMIT="Error submiting script to queue system"
 ERROR_STORAGE_PROPS="storage_props flag not defined"
 ERROR_STORAGE_PROPS_FILE="storage_props file doesn't exist"
+ERROR_PROJECT_NAME_NA="Project name not defined (use --project_name flag)"
 
 
 #---------------------------------------------------------------------------------------
@@ -83,6 +84,11 @@ EOT
     cat <<EOT
     --constraints=<constraints>		    Constraints to pass to queue system.
 					    Default: ${DEFAULT_CONSTRAINTS}
+EOT
+   if [ "${ENABLE_PROJECT_NAME}" == "true" ]; then
+    cat <<EOT
+    --project_name=<name>		    Project name to pass to queue system.
+					                Mandatory for systems that charge hours by project name.
 EOT
   fi
   if [ -z "${DISABLE_QARG_QOS}" ] || [ "${DISABLE_QARG_QOS}" == "false" ]; then
@@ -156,6 +162,9 @@ log_args() {
   echo "Exec-Time:                 ${wc_limit}"
   if [ -z "${DISABLE_QARG_QOS}" ] || [ "${DISABLE_QARG_QOS}" == "false" ]; then
     echo "QoS:                       ${qos}"
+  fi
+  if [ "${ENABLE_PROJECT_NAME}" == "true" ]; then
+    echo "Project name:              ${project_name}"
   fi
   if [ -z "${DISABLE_QARG_CONSTRAINTS}" ] || [ "${DISABLE_QARG_CONSTRAINTS}" == "false" ]; then
     echo "Constraints:               ${constraints}"
@@ -268,12 +277,16 @@ get_args() {
             reservation=$(echo $OPTARG | sed -e 's/reservation=//g')
             args_pass="$args_pass --$OPTARG"
             ;;
-	  qos=*)
+	      qos=*)
             qos=$(echo $OPTARG | sed -e 's/qos=//g')
             args_pass="$args_pass --$OPTARG"
             ;;
-	  constraints=*)
+	      constraints=*)
             constraints=$(echo $OPTARG | sed -e 's/constraints=//g')
+            args_pass="$args_pass --$OPTARG"
+            ;;
+          project_name=*)
+            constraints=$(echo $OPTARG | sed -e 's/project_name=//g')
             args_pass="$args_pass --$OPTARG"
             ;;
           job_dependency=*)
@@ -393,6 +406,7 @@ check_args() {
     display_error "${ERROR_NO_ASK_SWITCHES}"
   fi
 
+
   # Network variable and modification
   if [ -z "${network}" ]; then
     network=${DEFAULT_NETWORK}
@@ -434,6 +448,14 @@ check_args() {
       display_execution_error "${ERROR_STORAGE_PROPS_FILE}"
     fi
   fi
+
+  ###############################################################
+  # Project name check when required
+  ###############################################################
+  if [ "${ENABLE_PROJECT_NAME}" == "true" ] && [ -z "${project_name}" ]; then
+    display_error "${ERROR_PROJECT_NAME_NA}"
+  fi
+
 }
 
 ###############################################
@@ -600,6 +622,13 @@ EOT
   if [ -n "${QARG_SPAN}" ]; then
     cat >> $TMP_SUBMIT_SCRIPT << EOT
 #${QUEUE_CMD} $(eval "echo ${QARG_SPAN}")
+EOT
+  fi
+
+  # Add project name defined in queue system
+  if [ -n "${QARG_PROJECT_NAME}" ]; then
+    cat >> $TMP_SUBMIT_SCRIPT << EOT
+#${QUEUE_CMD} ${QARG_PROJECT_NAME}${QUEUE_SEPARATOR}${project_name}
 EOT
   fi
 

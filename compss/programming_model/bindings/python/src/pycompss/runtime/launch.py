@@ -190,7 +190,9 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
                                 profileInput='',
                                 profileOutput='',
                                 scheduler_config='',
-                                external_adaptation=False
+                                external_adaptation=False,
+                                python_interpreter='python',
+                                python_virtual_environment='null'
                                 ):
     global app_path
     launchPath = os.path.dirname(os.path.abspath(__file__))
@@ -256,6 +258,8 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
         config['external_adaptation'] = 'true'
     else:
         config['external_adaptation'] = 'false'
+    config['python_interpreter'] = python_interpreter
+    config['python_virtual_environment'] = python_virtual_environment
 
     initialize_compss(config)
 
@@ -332,6 +336,7 @@ def initialize_compss(config):
         - 'scheduler_config'    = <String>  = Path to the file which contains the scheduler configuration.
         - 'external_adaptation' = <String>  = Enable external adaptation. This option will disable the Resource Optimizer
         - 'python_interpreter'  = <String>  = Python interpreter
+        - 'python_virtual_environment'  = <String>  = Python virtual environment path
     :param config: Configuration parameters dictionary
     '''
     from tempfile import mkstemp
@@ -446,6 +451,7 @@ def initialize_compss(config):
     jvm_options_file.write('-Djava.class.path=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config['classpath'] + '\n')
     jvm_options_file.write('-Dcompss.worker.pythonpath=' + config['cp'] + ':' + config['pythonPath'] + '\n')
     jvm_options_file.write('-Dcompss.python.interpreter=' + config['python_interpreter'] + '\n')
+    jvm_options_file.write('-Dcompss.python.virtualenvironment=' + config['python_virtual_environment'] + '\n')
     jvm_options_file.close()
     os.close(fd)
     os.environ['JVM_OPTIONS_FILE'] = temp_path

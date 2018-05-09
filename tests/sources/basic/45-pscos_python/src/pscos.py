@@ -1,9 +1,20 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench Tasks
+========================
+"""
+
+# Imports
 from pycompss.api.task import task
 from pycompss.api.parameter import *
 
 from models import mySO
 from models import Words, Result
 from models import InputData
+
 
 # # BUG: Pickling error in the dummy deserialization.
 # from pycompss.storage.Object import SCO
@@ -33,14 +44,14 @@ def complexTask(p):
     v = p.get()
     print("P: ", p)
     print("P.get: ", v)
-    q = mySO(v*10)
+    q = mySO(v * 10)
     q.makePersistent()
     print("Q: ", q)
     print("Q.get = ", q.get())
     return q
 
 
-@task(returns = dict)
+@task(returns=dict)
 def wordcountTask(words):
     partialResult = {}
     data = words.get()
@@ -192,7 +203,7 @@ def WordCount2():
 def transform1(o1, o2):
     pow2 = {}
     images = o1.get()
-    for k,v in images.items():
+    for k, v in images.items():
         l = []
         for value in v:
             l.append(value * value)
@@ -201,11 +212,12 @@ def transform1(o1, o2):
     print("Function: Pow 2.")
     print("Transformation 1 result in o2: ", o2.get())
 
+
 @task(o2=INOUT)
 def transform2(o1, o2):
     add1 = {}
     images = o1.get()
-    for k,v in images.items():
+    for k, v in images.items():
         l = []
         for value in v:
             l.append(value + 1)
@@ -214,11 +226,12 @@ def transform2(o1, o2):
     print("Function: Add 1.")
     print("Transformation 2 result in o2: ", o2.get())
 
+
 @task(returns=InputData, o2=INOUT)
 def transform3(o1, o2):
     mult3 = {}
     images = o1.get()
-    for k,v in images.items():
+    for k, v in images.items():
         l = []
         for value in v:
             l.append(value * 3)
@@ -235,7 +248,7 @@ def TiramisuMockup():
     Tiramisu Mockup Test
     '''
     myobj = InputData()
-    myobj.set({'first':[1,1,1,1], 'second':[2,2,2,2], 'third':[3,3,3,3], 'fourth':[4,4,4,4]})
+    myobj.set({'first': [1, 1, 1, 1], 'second': [2, 2, 2, 2], 'third': [3, 3, 3, 3], 'fourth': [4, 4, 4, 4]})
     out1 = InputData()
     out2 = InputData()
     out3 = InputData()
@@ -261,7 +274,8 @@ def TiramisuMockup():
     print("RESULT: ", result.get())
 
     finalResults = result.get()
-    if all(x == 6 for x in finalResults['first']) and all(x == 15 for x in finalResults['second']) and all(x == 30 for x in finalResults['third']) and all(x == 51 for x in finalResults['fourth']):
+    if all(x == 6 for x in finalResults['first']) and all(x == 15 for x in finalResults['second']) and all(
+            x == 30 for x in finalResults['third']) and all(x == 51 for x in finalResults['fourth']):
         print("- Python Tiramisu Mockup with PSCOs: OK")
         return True
     else:
@@ -273,7 +287,7 @@ def TiramisuMockup():
 def transform1_2(o1, o2):
     pow2 = {}
     images = o1.get()
-    for k,v in images.items():
+    for k, v in images.items():
         l = []
         for value in v:
             l.append(value * value)
@@ -282,11 +296,12 @@ def transform1_2(o1, o2):
     print("Function: Pow 2.")
     print("Transformation 1 result in o2: ", o2.get())
 
+
 @task(o2=OUT)
 def transform2_2(o1, o2):
     add1 = {}
     images = o1.get()
-    for k,v in images.items():
+    for k, v in images.items():
         l = []
         for value in v:
             l.append(value + 1)
@@ -295,11 +310,12 @@ def transform2_2(o1, o2):
     print("Function: Add 1.")
     print("Transformation 2 result in o2: ", o2.get())
 
+
 @task(returns=InputData, o2=OUT)
 def transform3_2(o1, o2):
     mult3 = {}
     images = o1.get()
-    for k,v in images.items():
+    for k, v in images.items():
         l = []
         for value in v:
             l.append(value * 3)
@@ -310,14 +326,13 @@ def transform3_2(o1, o2):
     return o2
 
 
-
 def TiramisuMockup2():
     from pycompss.api.api import compss_wait_on
     '''
     Tiramisu Mockup Test 2
     '''
     myobj = InputData()
-    myobj.set({'first':[1,1,1,1], 'second':[2,2,2,2], 'third':[3,3,3,3], 'fourth':[4,4,4,4]})
+    myobj.set({'first': [1, 1, 1, 1], 'second': [2, 2, 2, 2], 'third': [3, 3, 3, 3], 'fourth': [4, 4, 4, 4]})
     out1 = InputData()
     out2 = InputData()
     out3 = InputData()
@@ -344,7 +359,8 @@ def TiramisuMockup2():
     print("RESULT: ", result.get())
 
     finalResults = result.get()
-    if all(x == 6 for x in finalResults['first']) and all(x == 15 for x in finalResults['second']) and all(x == 30 for x in finalResults['third']) and all(x == 51 for x in finalResults['fourth']):
+    if all(x == 6 for x in finalResults['first']) and all(x == 15 for x in finalResults['second']) and all(
+            x == 30 for x in finalResults['third']) and all(x == 51 for x in finalResults['fourth']):
         print("- Python Tiramisu Mockup 2 with PSCOs: OK")
         return True
     else:
@@ -394,6 +410,7 @@ def evaluateMakePersistentInTask():
         print("- Persitence of PSCOS in task as INOUT parameter: ERROR")
         return False
 
+
 def evaluateMakePersistentInTask2():
     '''
     This Test checks what happens when a not persisted persistent object
@@ -412,14 +429,15 @@ def evaluateMakePersistentInTask2():
         print("- Persitence of PSCOS in task as return: ERROR")
         return False
 
+
 def main():
     results = {}
-    results['basic'] =  basicTest()
-    results['basic2'] =  basic2Test()
+    results['basic'] = basicTest()
+    results['basic2'] = basic2Test()
     results['wordcount'] = WordCount()
     results['wordcount2'] = WordCount2()
     results['tiramisu'] = TiramisuMockup()
-    #results['tiramisu2'] = TiramisuMockup2() # Why do OUT PSCOS fail? A Trello card has already been created into the PyCOMPSs board to check it in August.
+    # results['tiramisu2'] = TiramisuMockup2() # Why do OUT PSCOS fail? A Trello card has already been created into the PyCOMPSs board to check it in August.
     results['persistInTask'] = evaluateMakePersistentInTask()
     results['persistInTask2'] = evaluateMakePersistentInTask2()
 
@@ -427,6 +445,7 @@ def main():
         print("- PSCOs TEST FINISHED SUCCESSFULLY.")
     else:
         print("- PSCOs TEST FINISHED WITH ERRORS.")
+
 
 if __name__ == '__main__':
     main()

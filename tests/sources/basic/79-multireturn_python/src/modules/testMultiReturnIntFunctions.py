@@ -1,7 +1,18 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench
+========================
+"""
+
+# Imports
 import unittest
+
 from pycompss.api.api import compss_wait_on
 from pycompss.api.task import task
-from pycompss.api.parameter import *
+
 
 @task(returns=2)
 def argTask(*args):
@@ -11,6 +22,7 @@ def argTask(*args):
         secondReturn = args[0]
     return sum(args), secondReturn
 
+
 @task(returns=2)
 def varargTask(v, w, *args):
     print("V: ", v)
@@ -18,17 +30,20 @@ def varargTask(v, w, *args):
     print("ARG: ", args)
     return (v * w) + sum(args), [v, w]
 
+
 @task(returns=2)
 def kwargTask(**kwargs):
     print("KARG: ", kwargs)
     return len(kwargs), list(kwargs.keys())
 
+
 @task(returns=2)
-def varkwargTask(v, w , **kwargs):
+def varkwargTask(v, w, **kwargs):
     print("V: ", v)
     print("W: ", w)
     print("KARG: ", kwargs)
     return (v * w) + len(kwargs), list(kwargs.values())
+
 
 @task(returns=3)
 def argkwargTask(*args, **kwargs):
@@ -36,16 +51,18 @@ def argkwargTask(*args, **kwargs):
     print("KARG: ", kwargs)
     return sum(args) + len(kwargs), args, kwargs
 
+
 @task(returns=3)
-def varargkwargTask(v, w , *args, **kwargs):
+def varargkwargTask(v, w, *args, **kwargs):
     print("V: ", v)
     print("W: ", w)
     print("ARG: ", args)
     print("KARG: ", kwargs)
     return (v * w) + sum(args) + len(kwargs), args, kwargs
 
+
 @task(returns=4)
-def varargdefaultkwargTask(v, w, s = 2, *args, **kwargs):
+def varargdefaultkwargTask(v, w, s=2, *args, **kwargs):
     print("V: ", v)
     print("W: ", w)
     print("S: ", s)
@@ -53,23 +70,24 @@ def varargdefaultkwargTask(v, w, s = 2, *args, **kwargs):
     print("KWARG: ", kwargs)
     return (v * w) + sum(args) + len(kwargs) + s, s, args, kwargs
 
+
 @task(returns=2)
 def taskUnrollDict(a, b, **kwargs):
     print("a: ", a)
     print("b: ", b)
     print("kwargs: ", kwargs)
-    return a+b, kwargs
+    return a + b, kwargs
+
 
 @task(returns=2)
 def taskUnrollDictWithDefaults(a=1, b=2, **kwargs):
     print("a: ", a)
     print("b: ", b)
     print("kwargs: ", kwargs)
-    return a+b, kwargs
+    return a + b, kwargs
 
 
 class testMultiReturnIntFunctions(unittest.TestCase):
-
     '''
     FUNCTION WITH *ARGS
     '''
@@ -96,7 +114,7 @@ class testMultiReturnIntFunctions(unittest.TestCase):
 
     # args is not empty but args are an unpacked tuple
     def testArgTask4(self):
-        my_tup = (1,2,3,4)
+        my_tup = (1, 2, 3, 4)
         pending1, pending2 = argTask(*my_tup)
         result1 = compss_wait_on(pending1)
         result2 = compss_wait_on(pending2)
@@ -177,14 +195,14 @@ class testMultiReturnIntFunctions(unittest.TestCase):
         result1 = compss_wait_on(pending1)
         result2 = compss_wait_on(pending2)
         result3 = compss_wait_on(pending3)
-        self.assertEqual((result1, result2, result3), (4, (1, 2), {'hello':'world'}))
+        self.assertEqual((result1, result2, result3), (4, (1, 2), {'hello': 'world'}))
 
     def testArgKwargTask2(self):
         pending1, pending2, pending3 = argkwargTask(1, 2, 3, 4, this='is', a='test')
         result1 = compss_wait_on(pending1)
         result2 = compss_wait_on(pending2)
         result3 = compss_wait_on(pending3)
-        self.assertEqual((result1, result2, result3), (12, (1, 2, 3, 4), {'this':'is', 'a':'test'}))
+        self.assertEqual((result1, result2, result3), (12, (1, 2, 3, 4), {'this': 'is', 'a': 'test'}))
 
     def testArgKwargTask3(self):
         pending1, pending2, pending3 = argkwargTask(1, 2, 3, 4)
@@ -209,14 +227,14 @@ class testMultiReturnIntFunctions(unittest.TestCase):
         result1 = compss_wait_on(pending1)
         result2 = compss_wait_on(pending2)
         result3 = compss_wait_on(pending3)
-        self.assertEqual((result1, result2, result3), (10, (3, 4), {'hello':'world'}))
+        self.assertEqual((result1, result2, result3), (10, (3, 4), {'hello': 'world'}))
 
     def testVarArgKwargTask2(self):
         pending1, pending2, pending3 = varargkwargTask(1, 2, 3, 4, 5, 6, this='is', a='test')
         result1 = compss_wait_on(pending1)
         result2 = compss_wait_on(pending2)
         result3 = compss_wait_on(pending3)
-        self.assertEqual((result1, result2, result3), (22, (3, 4, 5, 6), {'this':'is', 'a':'test'}))
+        self.assertEqual((result1, result2, result3), (22, (3, 4, 5, 6), {'this': 'is', 'a': 'test'}))
 
     '''
         FUNCTION WITH ARGS, DEFAULTED ARGS, *ARGS AND **KWARGS
@@ -252,31 +270,31 @@ class testMultiReturnIntFunctions(unittest.TestCase):
         result2 = compss_wait_on(pending2)
         result3 = compss_wait_on(pending3)
         result4 = compss_wait_on(pending4)
-        self.assertEqual((result1, result2, result3, result4), (10, 3, (4,), {'five':5}))
+        self.assertEqual((result1, result2, result3, result4), (10, 3, (4,), {'five': 5}))
 
     '''
         FUNCTION WITH **KWARGS AND DICT UNROLLING
     '''
 
     def testKwargsDictUnrolling(self):
-        z = {'a':10, 'b':20, 'c':30}
+        z = {'a': 10, 'b': 20, 'c': 30}
         pending1, pending2 = taskUnrollDict(**z)
         result1 = compss_wait_on(pending1)
         result2 = compss_wait_on(pending2)
-        self.assertEqual((result1, result2), (30, {'c':30}))
+        self.assertEqual((result1, result2), (30, {'c': 30}))
 
     def testKwargsDictUnrollingControl(self):
         pending1, pending2 = taskUnrollDict(10, 20, c=30)
         result1 = compss_wait_on(pending1)
         result2 = compss_wait_on(pending2)
-        self.assertEqual((result1, result2), (30, {'c':30}))
+        self.assertEqual((result1, result2), (30, {'c': 30}))
 
     def testKwargsDictUnrollingDefaults(self):
-        z = {'a':10, 'b':20, 'c':30}
+        z = {'a': 10, 'b': 20, 'c': 30}
         pending1, pending2 = taskUnrollDictWithDefaults(**z)
         result1 = compss_wait_on(pending1)
         result2 = compss_wait_on(pending2)
-        self.assertEqual((result1, result2), (30, {'c':30}))
+        self.assertEqual((result1, result2), (30, {'c': 30}))
 
     def testKwargsDictUnrollingDefaultsControl(self):
         pending1, pending2 = taskUnrollDictWithDefaults()

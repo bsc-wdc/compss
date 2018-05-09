@@ -56,7 +56,7 @@
     # Clean
     echo " - Cleaning installation files..."
     rm -f /opt/COMPSs/Bindings/c/bin/worker_c.sh
-    rm -f /opt/COMPSs/Bindings/c/README.txt /opt/COMPSs/Bindings/c/LICENSE.txt /opt/COMPSs/Bindings/c/install
+    #rm -f /opt/COMPSs/Bindings/c/AUTHORS /opt/COMPSs/Bindings/c/COPYING /opt/COMPSs/Bindings/c/LICENSE /opt/COMPSs/Bindings/c/install
     rm -rf /opt/COMPSs/Bindings/c/src
     echo " - Installation files cleaned"
 

@@ -138,9 +138,8 @@ public interface COMPSsRuntime {
      * Notifies the Runtime that there are no more tasks created by the current appId
      * 
      * @param appId
-     * @param terminate
      */
-    public void noMoreTasks(Long appId, boolean terminate);
+    public void noMoreTasks(Long appId);
 
     /**
      * Freezes the task generation until all previous tasks have been executed
@@ -148,6 +147,15 @@ public interface COMPSsRuntime {
      * @param appId
      */
     public void barrier(Long appId);
+
+    /**
+     * Freezes the task generation until all previous tasks have been executed.
+     * The noMoreTasks parameter indicates whether to expect new tasks after the barrier or not
+     * 
+     * @param appId
+     * @param noMoreTasks
+     */
+    public void barrier(Long appId, boolean noMoreTasks);
 
     /*
      * *****************************************************************************************************************
@@ -161,7 +169,7 @@ public interface COMPSsRuntime {
      * @return
      */
     public String openFile(String fileName, Direction mode);
-    
+
     /**
      * close the opened file version
      * 

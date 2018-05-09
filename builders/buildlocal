@@ -282,7 +282,7 @@ install_compss() {
   cp "${SOURCES_DIR}/LICENSE" "${TMP_DIR}"
   cp "${SOURCES_DIR}/NOTICE" "${TMP_DIR}"
   cp "${SOURCES_DIR}/pom.xml" "${TMP_DIR}"
-  cp "${SOURCES_DIR}/README" "${TMP_DIR}"
+  cp "${SOURCES_DIR}/README.md" "${TMP_DIR}"
   cp "${SOURCES_DIR}/RELEASE_NOTES" "${TMP_DIR}"
   find . -name ".git*" -type d -exec rm -r "{}" \; # Clean git files
 
@@ -317,12 +317,12 @@ install_compss() {
   echo "- Copy Runtime deployment files"
   #Doc
   echo "--- Copy docs"
-  find "${TMP_DIR}/doc/" -name *.html -delete
+  find "${TMP_DIR}/doc/" -name "*.html" -delete
   cp -r "${TMP_DIR}"/doc/* ${targetDir}/Doc
   cp "${TMP_DIR}/changelog" ${targetDir}
   cp "${TMP_DIR}/LICENSE" ${targetDir}
   cp "${TMP_DIR}/NOTICE" ${targetDir}
-  cp "${TMP_DIR}/README" ${targetDir}
+  cp "${TMP_DIR}/README.md" ${targetDir}
   cp "${TMP_DIR}/RELEASE_NOTES" ${targetDir}
 
   #Dependencies

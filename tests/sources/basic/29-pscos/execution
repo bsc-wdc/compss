@@ -14,7 +14,7 @@
   
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
-  sed -i '/<InstallDir>/c<InstallDir>'${COMPSS_HOME}'<\/InstallDir>' ${base_app_dir}/project.xml
+  sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/project.xml
   
   #----------------------------------------------------------------------------------
   # Create all working dir folders
@@ -23,7 +23,7 @@
   #----------------------------------------------------------------------------------
   # Create storage Conf
   storageConf=${target_log_folder}/storage.conf
-  cat > $storageConf << EOF
+  cat > "$storageConf" << EOF
 COMPSsWorker01
 EOF
   
@@ -42,38 +42,42 @@ EOF
   echo
   echo "*** RUNNING JAVA APPLICATION PSCOs internalExecution"
   log_folder="${target_log_folder}/internalExecution"
-  mkdir -p ${log_folder}
+  mkdir -p "${log_folder}"
   output_log="${log_folder}/testPSCO_internalExecution_0${retryNum}.outputlog"
   error_log="${log_folder}/testPSCO_internalExecution_0${retryNum}.errorlog"
   expectedTime=60s
   
-  timeout --signal=2 $expectedTime ${COMPSs_exec} \
-     --project=${base_app_dir}/project.xml \
-     --resources=${base_app_dir}/resources.xml \
+  # shellcheck disable=SC2086
+  timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+     --project="${base_app_dir}"/project.xml \
+     --resources="${base_app_dir}"/resources.xml \
+     \
+     --comm="$comm" \
+     \
      --debug \
-     --lang=java \
-     --comm=$comm \
+     ${runcompss_opts} \
+     \
      --storage_conf=${storageConf} \
      --jvm_workers_opts="-Dcompss.worker.removeWD=true" \
-     ${runcompss_opts} \
-     --classpath=${base_app_dir}/pscos.jar:${storageImplPath} \
-     testPSCOInternal.Internal > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+     \
+     --classpath="${base_app_dir}"/pscos.jar:${storageImplPath} \
+     \
+     testPSCOInternal.Internal > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
   
-  
-  #Check timeout
+  # Check timeout
   if [[ "$?" = "124" ]]; then
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/testPSCOInternal.Internal_0${retryNum}/* ${log_folder}
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}"/testPSCOInternal.Internal_0"${retryNum}"/* "${log_folder}"
      
-     #Report time out
-     echo "[WARNING] Java Application timed out" >> ${output_log}
+     # Report time out
+     echo "[WARNING] Java Application timed out" >> "${output_log}"
      ev1=124
   else
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/testPSCOInternal.Internal_0${retryNum}/* ${log_folder}
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}"/testPSCOInternal.Internal_0"${retryNum}"/* "${log_folder}"
   
-     #Check result
-     ${base_app_dir}/result_internal ${output_log} ${log_folder} 
+     # Check result
+     "${base_app_dir}"/result_internal "${output_log}" "${log_folder}"
      ev1=$?
   fi
   
@@ -90,43 +94,48 @@ EOF
   echo
   echo "*** RUNNING JAVA APPLICATION PSCOs externalExecution"
   log_folder="${target_log_folder}/externalExecution"
-  mkdir -p ${log_folder}
+  mkdir -p "${log_folder}"
   output_log="${log_folder}/testPSCO_externalExecution_0${retryNum}.outputlog"
   error_log="${log_folder}/testPSCO_externalExecution_0${retryNum}.errorlog"
   expectedTime=60s
   
-  timeout --signal=2 $expectedTime ${COMPSs_exec} \
-     --project=${base_app_dir}/project.xml \
-     --resources=${base_app_dir}/resources.xml \
+  # shellcheck disable=SC2086
+  timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+     --project="${base_app_dir}"/project.xml \
+     --resources="${base_app_dir}"/resources.xml \
+     \
+     --comm="$comm" \
+     \
      --debug \
-     --lang=java \
-     --comm=$comm \
+     ${runcompss_opts} \
+     \
      --storage_conf=${storageConf} \
      --jvm_workers_opts="-Dcompss.worker.removeWD=true" \
      --task_execution=external \
-     --classpath=${base_app_dir}/pscos.jar:${storageImplPath} \
-     testPSCOExternal.External > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+     \
+     --classpath="${base_app_dir}"/pscos.jar:${storageImplPath} \
+     \
+     testPSCOExternal.External > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
   
-  
-  #Check timeout
+  # Check timeout
   if [[ "$?" = "124" ]]; then
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/testPSCOExternal.External_0${retryNum}/* ${log_folder}
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}"/testPSCOExternal.External_0"${retryNum}"/* "${log_folder}"
      
-     #Report time out
-     echo "[WARNING] Java Application timed out" >> ${output_log}
+     # Report time out
+     echo "[WARNING] Java Application timed out" >> "${output_log}"
      ev2=124
   else
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/testPSCOExternal.External_0${retryNum}/* ${log_folder}
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}"/testPSCOExternal.External_0"${retryNum}"/* "${log_folder}"
   
-     #Check result
-     ${base_app_dir}/result_external ${output_log} ${log_folder} 
+     # Check result
+     "${base_app_dir}"/result_external "${output_log}" "${log_folder}"
      ev2=$?
   fi
   
   #----------------------------------------------------------------------------------
-  #Return execution status
+  # Return execution status
   if [ $ev1 -ne 0 ]; then
      exitValue=$ev1
   else

@@ -1,5 +1,15 @@
-from pycompss.api.task import task
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench
+========================
+"""
+
+# Imports
 from myclass import MyClass
+
 
 def main():
     from pycompss.api.api import compss_wait_on
@@ -13,5 +23,5 @@ def main():
         print "- Result value: ERROR"
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     main()

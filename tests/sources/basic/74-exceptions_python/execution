@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
   #--------------------------------------------------------------------------------
   # Clean orphans
@@ -7,9 +7,9 @@
     sleep 1s
   
     # Clean possible remaining test processes
-    ps x -o  "%r %c" | grep "runcompss" | awk {' print $1 '} | xargs -r -i kill -9 -{}                                                                                                                                                                                       
-    ps -elfa | grep "java" | grep "es.bsc.compss.nio.worker.NIOWorker" | awk {' print $4 '} | xargs -r kill -9
-    ps -elfa | grep piper | grep -v grep | awk {' print $4 '} | xargs -r kill -9
+    ps x -o  "%r %c" | grep "runcompss" | awk '{ print $1 }' | xargs -r -i kill -9 -{}
+    ps -elfa | grep "java" | grep "es.bsc.compss.nio.worker.NIOWorker" | awk '{ print $4 }' | xargs -r kill -9
+    ps -elfa | grep piper | grep -v grep | awk '{ print $4 }' | xargs -r kill -9
 
     # Sleep after cleanning test environment
     sleep 1s
@@ -49,17 +49,22 @@
       local app_log_folder="${target_log_folder}/execInMasterBeforeTasks/"
       mkdir -p "${app_log_folder}"
 
-      counterVal=1
       expectedTime=120s
 
-      timeout --signal=2 $expectedTime ${COMPSs_exec} \
-         --classpath="${base_app_dir}" \
+      # shellcheck disable=SC2086
+      timeout --signal=2 $expectedTime "${COMPSs_exec}" \
          --project="${base_app_dir}"/project.xml \
          --resources="${base_app_dir}"/resources.xml \
-         --debug \
+         \
          --comm="$comm" \
+         \
+         --lang=python \
+         --pythonpath="${base_app_dir}"/src \
+         \
+         --debug \
          ${runcompss_opts} \
-         "${base_app_dir}"/test/excInMasterBeforeTasks.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+         \
+         "${base_app_dir}"/src/excInMasterBeforeTasks.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
       # Check timeout
       if [[ "$?" = "124" ]]; then
@@ -103,17 +108,22 @@
       local app_log_folder="${target_log_folder}/execInMasterAfterTasks/"
       mkdir -p "${app_log_folder}"
 
-      counterVal=1
       expectedTime=180s
 
-      timeout --signal=2 $expectedTime ${COMPSs_exec} \
-         --classpath="${base_app_dir}" \
+      # shellcheck disable=SC2086
+      timeout --signal=2 $expectedTime "${COMPSs_exec}" \
          --project="${base_app_dir}"/project.xml \
          --resources="${base_app_dir}"/resources.xml \
-         --debug \
+         \
          --comm="$comm" \
+         \
+         --lang=python \
+         --pythonpath="${base_app_dir}"/src \
+         \
+         --debug \
          ${runcompss_opts} \
-         "${base_app_dir}"/test/excInMasterAfterTasks1.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+         \
+         "${base_app_dir}"/src/excInMasterAfterTasks1.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
       # Check timeout
       if [[ "$?" = "124" ]]; then
@@ -157,17 +167,22 @@
       local app_log_folder="${target_log_folder}/execInMasterAfterTasks/"
       mkdir -p "${app_log_folder}"
 
-      counterVal=1
       expectedTime=180s
 
-      timeout --signal=2 $expectedTime ${COMPSs_exec} \
-         --classpath="${base_app_dir}" \
+      # shellcheck disable=SC2086
+      timeout --signal=2 $expectedTime "${COMPSs_exec}" \
          --project="${base_app_dir}"/project.xml \
          --resources="${base_app_dir}"/resources.xml \
-         --debug \
+         \
          --comm="$comm" \
+         \
+         --lang=python \
+         --pythonpath="${base_app_dir}"/src \
+         \
+         --debug \
          ${runcompss_opts} \
-         "${base_app_dir}"/test/excInMasterAfterTasks2.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+         \
+         "${base_app_dir}"/src/excInMasterAfterTasks2.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
       # Check timeout
       if [[ "$?" = "124" ]]; then
@@ -218,14 +233,20 @@
 
       expectedTime=180s
 
-      timeout --signal=2 $expectedTime ${COMPSs_exec} \
-         --classpath="${base_app_dir}" \
+      # shellcheck disable=SC2086
+      timeout --signal=2 $expectedTime "${COMPSs_exec}" \
          --project="${base_app_dir}"/project.xml \
          --resources="${base_app_dir}"/resources.xml \
-         --debug \
+         \
          --comm="$comm" \
+         \
+         --lang=python \
+         --pythonpath="${base_app_dir}"/src \
+         \
+         --debug \
          ${runcompss_opts} \
-         "${base_app_dir}"/test/excInTask.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+         \
+         "${base_app_dir}"/src/excInTask.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
       # Check timeout
       if [[ "$?" = "124" ]]; then
@@ -260,9 +281,9 @@
 
   #----------------------------------------------------------------------------------
   # If this point is reached, everything has gone OK
-  echo "---------------------------------"
-  echo "--------   RESUME   -------------"
-  echo "---------------------------------"
+  echo "----------------------------------"
+  echo "--------   SUMMARY   -------------"
+  echo "----------------------------------"
   echo "Exceptions at master before submitting tasks: OK"
   echo "Exceptions at master after submitting tasks before sync: OK"
   echo "Exceptions at master after submitting tasks after sync: OK"

@@ -33,16 +33,19 @@
   mainClass=streams.Main
   numMsg=1000000
 
+  # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \
      --project="${base_app_dir}"/project.xml \
      --resources="${base_app_dir}"/resources.xml \
+     \
+     --comm="$comm" \
+     \
      --debug \
      --summary \
-     --comm="$comm" \
      ${runcompss_opts} \
+     \
      --classpath="${base_app_dir}/$jarName" \
      $mainClass $numMsg > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
-  
   
   # Check timeout
   if [[ "$?" = "124" ]]; then
@@ -60,7 +63,6 @@
      "${base_app_dir}"/result "${output_log}" "${target_log_folder}"
      exitValue=$?
   fi
-  
   
   #----------------------------------------------------------------------------------
   # Return execution status

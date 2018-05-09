@@ -1,15 +1,28 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench Tasks
+========================
+"""
+
+# Imports
 import unittest
 import os
+
 from pycompss.api.task import task
 from pycompss.api.parameter import *
 from pycompss.api.api import compss_barrier, compss_wait_on, compss_open
 from pycompss.api.mpi import mpi
 from pycompss.api.constraint import constraint
 
+
 @mpi(binary="date", workingDir="/tmp", runner="mpirun")
 @task()
 def myDate(dprefix, param):
     pass
+
 
 @constraint(computingUnits="2")
 @mpi(binary="date", workingDir="/tmp", runner="mpirun", computingNodes=2)
@@ -17,46 +30,54 @@ def myDate(dprefix, param):
 def myDateConstrained(dprefix, param):
     pass
 
+
 @constraint(computingUnits="$CUS")
 @mpi(binary="date", workingDir="/tmp", runner="mpirun", computingNodes="$CUS")
 @task()
 def myDateConstrainedWithEnvVar(dprefix, param):
     pass
 
+
 @mpi(binary="sed", workingDir=".", runner="mpirun", computingNodes=4)
 @task(file=FILE_IN)
 def mySedIN(expression, file):
     pass
+
 
 @mpi(binary="date", workingDir=".", runner="mpirun", computingNodes=1)
 @task(returns=int)
 def myReturn():
     pass
 
-@mpi(binary="./private.sh", workingDir=os.getcwd()+'/src/scripts/', runner="mpirun", computingNodes=1)
+
+@mpi(binary="./private.sh", workingDir=os.getcwd() + '/src/scripts/', runner="mpirun", computingNodes=1)
 @task(returns=int)
 def failedBinary(code):
     pass
+
 
 @mpi(binary="sed", workingDir=".", runner="mpirun")
 @task(file=FILE_INOUT)
 def mySedINOUT(flag, expression, file):
     pass
 
+
 @mpi(binary="grep", workingDir=".", runner="mpirun")
-#@task(infile=Parameter(TYPE.FILE, DIRECTION.IN, STREAM.STDIN), result=Parameter(TYPE.FILE, DIRECTION.OUT, STREAM.STDOUT))
-#@task(infile={Type:FILE_IN, Stream:STDIN}, result={Type:FILE_OUT, Stream:STDOUT})
-@task(infile={Type:FILE_IN_STDIN}, result={Type:FILE_OUT_STDOUT})
+# @task(infile=Parameter(TYPE.FILE, DIRECTION.IN, STREAM.STDIN), result=Parameter(TYPE.FILE, DIRECTION.OUT, STREAM.STDOUT))
+# @task(infile={Type:FILE_IN, Stream:STDIN}, result={Type:FILE_OUT, Stream:STDOUT})
+@task(infile={Type: FILE_IN_STDIN}, result={Type: FILE_OUT_STDOUT})
 def myGrepper(keyword, infile, result):
     pass
 
+
 @mpi(binary="ls", runner="mpirun", computingNodes=2)
-@task(hide={Type:FILE_IN, Prefix:"--hide="}, sort={Type:IN, Prefix:"--sort="})
+@task(hide={Type: FILE_IN, Prefix: "--hide="}, sort={Type: IN, Prefix: "--sort="})
 def myLs(flag, hide, sort):
     pass
 
+
 @mpi(binary="ls", runner="mpirun", computingNodes=2)
-@task(hide={Type:FILE_IN, Prefix:"--hide="}, sort={Prefix:"--sort="})
+@task(hide={Type: FILE_IN, Prefix: "--hide="}, sort={Prefix: "--sort="})
 def myLsWithoutType(flag, hide, sort):
     pass
 
@@ -110,12 +131,12 @@ class testMpiDecorator(unittest.TestCase):
         flag = '-l'
         infile = "src/infile"
         sort = "size"
-        myLs(flag ,infile, sort)
+        myLs(flag, infile, sort)
         compss_barrier()
 
     def testFilesAndPrefixWithoutType(self):
         flag = '-l'
         infile = "src/inoutfile"
         sort = "time"
-        myLsWithoutType(flag ,infile, sort)
+        myLsWithoutType(flag, infile, sort)
         compss_barrier()

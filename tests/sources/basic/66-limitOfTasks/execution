@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
   # Obtain parameters
   COMPSs_exec=$1
@@ -14,7 +14,7 @@
   
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
-  sed -i '/<InstallDir>/c<InstallDir>'${COMPSS_HOME}'<\/InstallDir>' ${base_app_dir}/project.xml
+  sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/project.xml
   
   #----------------------------------------------------------------------------------
   # Create all working dir folders
@@ -28,35 +28,38 @@
   error_log="${target_log_folder}/limitOfTasks_0${retryNum}.errorlog"
   expectedTime=60s
   
-  timeout --signal=2 $expectedTime ${COMPSs_exec} \
-     --project=${base_app_dir}/project.xml \
-     --resources=${base_app_dir}/resources.xml \
+  # shellcheck disable=SC2086
+  timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+     --project="${base_app_dir}"/project.xml \
+     --resources="${base_app_dir}"/resources.xml \
+     \
+     --comm="$comm" \
+     \
      --debug \
      --summary \
-     --comm=$comm \
      ${runcompss_opts} \
-     --classpath=${base_app_dir}/limitOfTasks.jar \
-     limitOfTasks.Main 1 > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
-  
+     \
+     --classpath="${base_app_dir}"/limitOfTasks.jar \
+     \
+     limitOfTasks.Main 1 > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
   
   # Check timeout
   if [[ "$?" = "124" ]]; then
      # Copy LOG files
-     cp -rf ${COMPSs_log_folder}/limitOfTasks.Main_0${retryNum}/* ${target_log_folder}
+     cp -rf "${COMPSs_log_folder}"/limitOfTasks.Main_0"${retryNum}"/* "${target_log_folder}"
      
      # Report time out
-     echo "[WARNING] Java Application timed out" >> ${output_log}
+     echo "[WARNING] Java Application timed out" >> "${output_log}"
      exitValue=124
   else
      # Copy LOG files
-     cp -rf ${COMPSs_log_folder}/limitOfTasks.Main_0${retryNum}/* ${target_log_folder}
+     cp -rf "${COMPSs_log_folder}"/limitOfTasks.Main_0"${retryNum}"/* "${target_log_folder}"
   
      # Check result
-     ${base_app_dir}/result ${output_log} ${target_log_folder} 
+     "${base_app_dir}"/result "${output_log}" "${target_log_folder}"
      exitValue=$?
   fi
   
   #----------------------------------------------------------------------------------
   # Return execution status
   exit $exitValue
-

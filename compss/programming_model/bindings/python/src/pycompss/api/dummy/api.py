@@ -57,6 +57,7 @@ def compss_delete_file(file_name):
     """
     return True
 
+
 def compss_delete_object(obj):
     """
     Dummy compss_delete_object
@@ -65,7 +66,8 @@ def compss_delete_object(obj):
     """
     return True
 
-def compss_barrier():
+
+def compss_barrier(no_more_tasks=False):
     """
     Dummy barrier
     """

@@ -99,12 +99,12 @@ if __within_scope__():
         """
         return delete_object(obj)
 
-    def compss_barrier():
+    def compss_barrier(no_more_tasks=False):
         """
         Perform a barrier when called.
         Stop until all the submitted tasks have finished.
         """
-        barrier()
+        barrier(no_more_tasks)
 
     def compss_wait_on(*args):
         """
@@ -189,8 +189,8 @@ else:
     def compss_delete_object(obj):
         return __dummy_compss_delete_object__(obj)
 
-    def compss_barrier():
-        __dummy_compss_barrier__()
+    def compss_barrier(no_more_tasks=False):
+        __dummy_compss_barrier__(no_more_tasks)
 
     def compss_wait_on(*args):
         return __dummy_compss_wait_on__(*args)

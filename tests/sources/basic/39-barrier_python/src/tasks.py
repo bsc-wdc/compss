@@ -1,13 +1,18 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
 """
 PyCOMPSs Testbench Tasks
 ========================
 """
 
+# Imports
 from pycompss.api.task import task
-from pycompss.api.parameter import *
 import time
 
-@task(returns = int)
+
+@task(returns=int)
 def get_hero():
     print("Hero working.")
     time.sleep(1)

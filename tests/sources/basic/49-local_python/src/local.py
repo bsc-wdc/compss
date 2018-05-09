@@ -1,3 +1,13 @@
+#!/usr/bin/python
+
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs Testbench
+========================
+"""
+
+# Imports
 import unittest
 from modules.testLocal import testLocal
 

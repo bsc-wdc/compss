@@ -27,6 +27,7 @@ e.g. python -m pycompss run -dgt myapp.py
 import sys
 import argparse
 from subprocess import Popen
+from pycompss.runtime import activate_module
 
 RUN_TAG = 'run'
 ENQUEUE_TAG = 'enqueue'
@@ -69,6 +70,9 @@ def main():
     else:
         parser = setup_parser()
         args = parser.parse_args()
+
+    # Since it is being run as module
+    activate_module()
 
     if args.action == RUN_TAG:
         cmd = [RUN_EXECUTABLE] + args.params

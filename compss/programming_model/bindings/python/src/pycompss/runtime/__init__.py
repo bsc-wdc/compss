@@ -16,3 +16,29 @@
 # 
 
 # -*- coding: utf-8 -*-
+
+i_am_module = False
+
+
+def get_i_am_module():
+    """
+    i_am_module variable getter
+    :return: Boolean
+    """
+    return i_am_module
+
+
+def activate_module():
+    """
+    i_am_module variable setter to True
+    """
+    global i_am_module
+    i_am_module = True
+
+
+def deactivate_module():
+    """
+    i_am_module variable setter to False
+    """
+    global i_am_module
+    i_am_module = False

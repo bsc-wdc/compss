@@ -355,7 +355,7 @@ class task(object):
         from pycompss.api.parameter import DIRECTION
         from pycompss.api.parameter import TYPE
 
-        source_code = inspect.getsource(f).strip()
+        source_code = get_wrapped_source(f).strip()
         if self.is_instance or source_code.startswith('@classmethod'):   # TODO: WHAT IF IS CLASSMETHOD FROM BOOLEAN?
             # It is a task defined within a class (can not parse the code with ast since the class does not
             # exist yet. Alternatively, the only way I see is to parse it manually line by line.
@@ -449,7 +449,7 @@ class task(object):
         func = f
         while not gotFuncCode:
             try:
-                funcCode = inspect.getsourcelines(func)
+                funcCode = get_wrapped_sourcelines(func)
                 gotFuncCode = True
             except IOError:
                 # There is one or more decorators below the @task --> undecorate
@@ -1054,7 +1054,29 @@ def get_default_args(f):
     return list(zip(a.args[num_params:], a.defaults))
 
 
+def get_wrapped_source(f):
+    """
+    Gets the text of the source code for the given function
+    :param f: Input function
+    :return: Source
+    """
+    if hasattr(f, "__wrapped__"):
+        # has __wrapped__, going deep
+        return get_wrapped_source(f.__wrapped__)
+    else:
+        # Returning getsource
+        return inspect.getsource(f)
 
 
-
-
+def get_wrapped_sourcelines(f):
+    """
+    Gets a list of source lines and starting line number for the given function
+    :param f: Input function
+    :return: Source lines
+    """
+    if hasattr(f, "__wrapped__"):
+        # has __wrapped__, going deep
+        return get_wrapped_sourcelines(f.__wrapped__)
+    else:
+        # Returning getsourcelines
+        return inspect.getsourcelines(f)

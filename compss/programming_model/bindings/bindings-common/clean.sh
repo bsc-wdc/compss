@@ -21,3 +21,5 @@
   rm -f config.log
   rm -f INSTALL
   rm -f libtool
+
+  mkdir -p m4

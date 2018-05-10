@@ -14,3 +14,5 @@
   rm -f etc/Makefile
   rm -f INSTALL
   rm -f compile
+
+  mkdir -p m4

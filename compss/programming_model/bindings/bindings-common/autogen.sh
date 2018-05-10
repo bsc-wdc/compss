@@ -1,3 +1,4 @@
 #!/bin/sh
 
-autoreconf -vi
+  mkdir -p m4
+  autoreconf -vi

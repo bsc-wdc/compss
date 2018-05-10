@@ -85,8 +85,10 @@ EOT
     --constraints=<constraints>		    Constraints to pass to queue system.
 					    Default: ${DEFAULT_CONSTRAINTS}
 EOT
+   fi
    if [ "${ENABLE_PROJECT_NAME}" == "true" ]; then
     cat <<EOT
+
     --project_name=<name>		    Project name to pass to queue system.
 					                Mandatory for systems that charge hours by project name.
 EOT
@@ -277,17 +279,16 @@ get_args() {
             reservation=$(echo $OPTARG | sed -e 's/reservation=//g')
             args_pass="$args_pass --$OPTARG"
             ;;
-	      qos=*)
+          qos=*)
             qos=$(echo $OPTARG | sed -e 's/qos=//g')
             args_pass="$args_pass --$OPTARG"
             ;;
-	      constraints=*)
+          constraints=*)
             constraints=$(echo $OPTARG | sed -e 's/constraints=//g')
             args_pass="$args_pass --$OPTARG"
             ;;
           project_name=*)
-            constraints=$(echo $OPTARG | sed -e 's/project_name=//g')
-            args_pass="$args_pass --$OPTARG"
+            project_name=$(echo $OPTARG | sed -e 's/project_name=//g')
             ;;
           job_dependency=*)
             dependencyJob=$(echo $OPTARG | sed -e 's/job_dependency=//g')

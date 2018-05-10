@@ -1605,7 +1605,6 @@ EOT
   SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/user"
   COMPSS_HOME=${SCRIPT_DIR}/../../../
 
-  echo "-${COMPSS_HOME}- [${SCRIPT_DIR}] lcs"
   
   numPrologActions=0
   declare -a prologActions
@@ -1624,8 +1623,6 @@ EOT
   # Log variables
   log_variables
 
-  echo "SC name: ${SC_NAME} lcs"
- 
   # Add clean up for execution end
   trap cleanup EXIT
 

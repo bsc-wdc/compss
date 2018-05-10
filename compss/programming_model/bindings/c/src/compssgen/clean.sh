@@ -32,3 +32,5 @@
   rm -rf .libs
   rm -f gsstubgen
   rm -f compile
+
+  mkdir -p m4

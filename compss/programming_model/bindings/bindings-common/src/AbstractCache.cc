@@ -24,8 +24,6 @@ void AbstractCache::init(long max_size, char* working_dir_path){
 	this->working_dir_path = working_dir_path;
 }
 
-pthread_mutex_t mtx;
-
 int AbstractCache::get_lock(){
   return pthread_mutex_lock(&mtx);
 }
@@ -52,10 +50,10 @@ int AbstractCache::pushToStream(const char* id, JavaNioConnStreamBuffer &jsb){
 	cout << "[AbstractCache] Getting Object "<< id << " from stream." << endl;
 		int res = deserializeFromStream(jsb, cp);
 		if (res==0){
-			storeInCache(id,cp);
-			return 0;
+			cout << "[AbstractCache] Storing deserialized object to cache as "<< id << endl;
+			return storeInCache(id,cp);
 		}else{
-			cout << "[AbstractCache] Error deserializing from stream." << endl;
+			cout << "[AbstractCache] Error deserializing "<< id << " from stream." << endl;
 	        printValues();
 	        return -1;
 		}
@@ -144,6 +142,21 @@ int AbstractCache::copyInCache(const char* id_from, const char* id_to, compss_po
 			cout << "[AbstractCache] Error copying data " << id_from << endl;
 			return res_cp;
 		}
+	}else{
+		cout << "[AbstractCache] Data " << id_from << " not found in cache." << endl;
+		printValues();
+		return res;
+	}
+}
+
+int AbstractCache::moveInCache(const char* id_from, const char* id_to){
+	compss_pointer from;
+	int res = getFromCache(id_from, from);
+	if (res==0){
+		get_lock();
+		cache.erase(id_from);
+		release_lock();
+		return storeInCache(id_to, from);
 	}else{
 		cout << "[AbstractCache] Data " << id_from << " not found in cache." << endl;
 		printValues();

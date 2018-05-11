@@ -19,16 +19,20 @@ package es.bsc.compss.nio.worker.util;
 import java.util.LinkedList;
 import java.util.List;
 
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Stores the task status information for bindings
  *
  */
 public class ExternalTaskStatus {
-
-    private final Integer exitValue;
+	
+	private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
+	private final Integer exitValue;
     private final List<DataType> updatedParameterTypes;
     private final List<String> updatedParameterValues;
 
@@ -43,7 +47,43 @@ public class ExternalTaskStatus {
         this.updatedParameterTypes = new LinkedList<>();
         this.updatedParameterValues = new LinkedList<>();
     }
+    
+    public ExternalTaskStatus(String[] line) {
+        this.updatedParameterTypes = new LinkedList<>();
+        this.updatedParameterValues = new LinkedList<>();
+        
+        // Line of the form: "endTask" ID STATUS D paramType1 paramValue1 ... paramTypeD paramValueD
+        this.exitValue = Integer.parseInt(line[2]);
 
+        // Process parameters if message contains them
+        if (line.length > 3) {
+            int numParams = Integer.parseInt(line[3]);
+
+            if (4 + 2 * numParams != line.length) {
+                LOGGER.warn("WARN: Skipping endTask parameters because of malformation.");
+            } else {
+                // Process parameters
+                for (int i = 0; i < numParams; ++i) {
+                    int paramTypeOrdinalIndex = 0;
+                    try {
+                        paramTypeOrdinalIndex = Integer.parseInt(line[4 + 2 * i]);
+                    } catch (NumberFormatException nfe) {
+                        LOGGER.warn("WARN: Number format exception on " + line[4 + 2 * i] + ". Setting type 0", nfe);
+                    }
+                    DataType paramType = DataType.values()[paramTypeOrdinalIndex];
+
+                    String paramValue = line[5 + 2 * i];
+                    if (paramValue.equalsIgnoreCase("null")) {
+                        paramValue = null;
+                    }
+                    addParameter(paramType, paramValue);
+                }
+            }
+        } else {
+            LOGGER.warn("WARN: endTask message does not have task result parameters");
+        }
+    }
+    
     /**
      * Returns the exitValue of the task (null if it has not ended yet)
      * 

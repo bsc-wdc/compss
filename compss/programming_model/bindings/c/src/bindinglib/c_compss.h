@@ -26,9 +26,10 @@
 #include "c_compss_commons.h"
 
 #ifndef COMPSS_WORKER
-
+#include <BindingDataManager.h>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <map>
 #include <string>
 #include <string.h>
@@ -46,13 +47,15 @@ struct Entry {
   datatype type;
   char *classname;
   char *filename;
+  int object_type;
+  int elements;
 };
 extern map<void *, Entry> objectMap;
 
 #endif /* COMPSS_WORKER */
 
 
-int compss_register(void *ref, datatype type, direction dir, char *classname, char * &filename);
+int compss_register(void *ref, datatype type, direction dir, char *classname, char * &filename, int object_type, int elements);
 void compss_clean();
 void compss_on(void);
 void compss_off(void);
@@ -62,53 +65,91 @@ void compss_ifstream(char * filename, ifstream& ifs);
 void compss_ofstream(char * filename, ofstream& ofs);
 void compss_delete_file(char * filename);
 FILE* compss_fopen(char * filename, char * mode);
-
 void compss_barrier();
 void compss_barrier_new(int no_more_tasks);
 
-template <class T> void compss_wait_on(T &obj);
-template <> inline void compss_wait_on<char *>(char * &obj);
+template <class T> void compss_wait_on(T* &obj);
+template <class T> T compss_wait_on(T &obj);
+template <class T> int compss_delete_object(T* &obj);
 
 
 #ifndef COMPSS_WORKER
 
+template <class T> int compss_delete_object(T* &obj) {
+	debug_printf("[C-BINDING]  -  @compss_wait_on  -  Ref: %p\n", obj);
+	Entry entry = objectMap[obj];
+
+	if (entry.classname == NULL) {
+		printf("[C-BINDING]  -  WARNING  -  @delete_object  -  deleting object which has not been accessed by a task.\n"
+				"\tEither delete object is not needed or object pointer is not correctly passed.\n");
+		return 0;
+	}else{
+		int res = delete_object_from_runtime(entry.filename, entry.object_type, entry.elements);
+		remove(entry.filename);
+		objectMap.erase(obj);
+		return res;
+	}
+}
+
+template <class T> T compss_wait_on(T& obj) {
+	debug_printf("[C-BINDING]  -  @compss_wait_on  -  Ref: %p\n", &obj);
+	Entry entry = objectMap[&obj];
+	debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.type: %d\n", entry.type);
+	debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.classname: %s\n", entry.classname);
+	debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", entry.filename);
+	debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.object_type: %d\n", entry.object_type);
+	debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.object_type: %d\n", entry.elements);
+
+	if (entry.classname == NULL) {
+		printf("[C-BINDING]  -  WARNING  -  @compss_wait_on  -  Waiting on an object which has not been accessed by a task.\n"
+				"\tEither compss_wait_on is not needed or object pointer is not correctly passed.\n");
+		return obj;
+	}else{
+		T* new_obj = (T*)sync_object_from_runtime(entry.filename, entry.object_type, entry.elements) ;
+		remove(entry.filename);
+		objectMap.erase(&obj);
+		return (*new_obj);
+	}
+}
+
 template <class T>
-void compss_wait_on(T &obj) {
-  debug_printf("[C-BINDING]  -  @compss_wait_on  -  Ref: %p\n", &obj);
-  Entry entry = objectMap[&obj];
-  char *runtime_filename;
-  
+void compss_wait_on(T* &obj) {
+  debug_printf("[C-BINDING]  -  @compss_wait_on  -  Ref: %p\n", obj);
+  Entry entry = objectMap[obj];
   debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.type: %d\n", entry.type);
   debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.classname: %s\n", entry.classname);
   debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", entry.filename);
-  
-  if (entry.classname == NULL) debug_printf("[C-BINDING]  -  ERROR  -  @compss_wait_on  -  Waiting on a null entry\n");
+  debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.object_type: %d\n", entry.object_type);
+  debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.object_type: %d\n", entry.elements);
 
-  GS_Get_File(entry.filename, in_dir, &runtime_filename);
-  debug_printf("[C-BINDING]  -  @compss_wait_on  -  template class\n");  
-  debug_printf("[C-BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
-
-
-  ifstream ifs(runtime_filename, ios::binary );  
-  archive::binary_iarchive ia(ifs);
-
-  ia >> obj;
-  ifs.close();
-
-  debug_printf("[C-BINDING]  -  @compss_wait_on  - File serialization finished\n");
-  
-  // No longer needed, the current version of the object is in memory now
-  GS_Close_File(entry.filename, in_dir);
-  compss_delete_file(entry.filename);
-  remove(entry.filename);
-  remove(runtime_filename);
-  objectMap.erase(&obj);
+  if (entry.classname == NULL) {
+	  printf("[C-BINDING]  -  WARNING  -  @compss_wait_on  -  Waiting on an object which has not been accessed by a task.\n"
+			  "\tEither compss_wait_on is not needed or object pointer is not correctly passed.\n");
+  }else{
+	  obj = (T*)sync_object_from_runtime(entry.filename, entry.object_type, entry.elements);
+	  //OLD
+	  /*GS_Get_File(entry.filename, in_dir, &runtime_filename);
+  	  debug_printf("[C-BINDING]  -  @compss_wait_on  -  template class\n");
+  	  debug_printf("[C-BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
+	  ifstream ifs(runtime_filename, ios::binary );
+      archive::binary_iarchive ia(ifs);
+      ia >> obj;
+      ifs.close();
+      debug_printf("[C-BINDING]  -  @compss_wait_on  - File serialization finished\n");
+      // No longer needed, the current version of the object is in memory now
+      GS_Close_File(entry.filename, in_dir);
+      compss_delete_file(entry.filename);
+      remove(runtime_filename);*/
+      remove(entry.filename);
+      objectMap.erase(obj);
+  }
 }
 
 #else
-
-template <class T> void compss_wait_on(T &obj) { }
-template <> void compss_wait_on<char *>(char * &obj) { }
+template <class T> int compss_delete_object(T* &obj) { }
+template <class T> void compss_wait_on(T* &obj) { }
+template <class T> T compss_wait_on(T &obj) { }
+//template <> void compss_wait_on<char *>(char * &obj) { }
 
 #endif /* COMPSS_WORKER */
 

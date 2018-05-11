@@ -32,8 +32,13 @@
 	<properties>
 		<!-- BSC Components versions -->
 		<cepbatools-extrae.version>1.4</cepbatools-extrae.version>
+<<<<<<< HEAD
 		<comm.version>1.5-11</comm.version>
 		<conn.version>1.5-18</conn.version>
+=======
+		<comm.version>1.5</comm.version>
+		<conn.version>1.5-16</conn.version>
+>>>>>>>  added management of binding_objects
 		<storage.version>1.0</storage.version>
 
 		<!-- ZK version -->

@@ -101,7 +101,6 @@ int main(int argc, char **argv)
         cout << "Lines " << nlines << " of " << TEST_VALUE_NLINES << endl;
 	assert_master(nlines == TEST_VALUE_NLINES);
 
-
 	//student (object_dt)
 	student st;
 	st.name = "Carlos";
@@ -114,7 +113,7 @@ int main(int argc, char **argv)
 	objects(&st);
 
 	printf("[   TEST] Testing {in-out} object parameter.................\n");
-	compss_wait_on(st);
+	st = compss_wait_on(st);
 	assert_master(st.name == "Ana");
 	assert_master(st.surname == "Suárez");
 	assert_master(st.age == 31);

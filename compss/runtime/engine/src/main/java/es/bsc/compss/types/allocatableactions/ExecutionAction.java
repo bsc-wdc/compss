@@ -343,9 +343,13 @@ public class ExecutionAction extends AllocatableAction {
                         case PSCO_T:
                             targetProtocol = DataLocation.Protocol.PERSISTENT_URI.getSchema();
                             break;
-                        case EXTERNAL_OBJECT_T:
+                        case EXTERNAL_PSCO_T:
                             // Its value is the PSCO Id
                             targetProtocol = DataLocation.Protocol.PERSISTENT_URI.getSchema();
+                            break;
+                        case BINDING_OBJECT_T:
+                         // Its value is the PSCO Id
+                            targetProtocol = DataLocation.Protocol.BINDING_URI.getSchema();
                             break;
                         default:
                             // Should never reach this point because only

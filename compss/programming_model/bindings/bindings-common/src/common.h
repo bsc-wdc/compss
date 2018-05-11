@@ -16,16 +16,24 @@
  */
 #ifndef COMMONS_H
 #define COMMONS_H
+#include <jni.h>
 
-// Uncomment the following define to get debug information.
-//#define DEBUG_BINDING
+#define debug_printf(args...) {if (is_debug()){printf(args); fflush(stdout);}}
 
-#ifdef DEBUG_BINDING
-#define debug_printf(args...) printf(args); fflush(stdout);
-#else
-#define debug_printf(args...) {}
-#endif
+void init_env_vars();
+
+int is_debug();
+
+int is_persistent();
 
 char* concat(const char*, const char*);
+
+JNIEnv* create_vm(JavaVM ** jvm);
+
+void destroy_vm(JavaVM * jvm);
+
+int check_and_attach(JavaVM * jvm, JNIEnv *&env);
+
+void check_and_treat_exception(JNIEnv *pEnv, const char*);
 
 #endif // COMMONS_H

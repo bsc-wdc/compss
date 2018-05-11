@@ -478,11 +478,11 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 sb.append("Parameter ").append(i).append("\n");
                 DataType type = param.getType();
                 sb.append("\t Type: ").append(param.getType()).append("\n");
-                if (type == DataType.FILE_T || type == DataType.OBJECT_T) {
+                if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.BINDING_OBJECT_T) {
                     DependencyParameter dPar = (DependencyParameter) param;
                     DataAccessId dAccId = dPar.getDataAccessId();
                     sb.append("\t Target: ").append(dPar.getDataTarget()).append("\n");
-                    if (type == DataType.OBJECT_T) {
+                    if (type == DataType.OBJECT_T || type == DataType.BINDING_OBJECT_T) {
                         if (dAccId instanceof RAccessId) {
                             sb.append("\t Direction: " + "R").append("\n");
                         } else {
@@ -625,7 +625,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                     }
                     break;
                 case PSCO_T:
-                case EXTERNAL_OBJECT_T:
+                case EXTERNAL_PSCO_T:
                     logger.error("GAT Adaptor does not support PSCO Types");
                     listener.jobFailed(this, JobEndStatus.SUBMISSION_FAILED);
                     break;
@@ -634,6 +634,16 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                     DataAccessId dAccId = dPar.getDataAccessId();
                     lArgs.add(dPar.getDataTarget());
                     if (dAccId instanceof RAccessId) {
+                        lArgs.add("R");
+                    } else {
+                        lArgs.add("W"); // for the worker to know it must write the object to disk
+                    }
+                    break;
+                case BINDING_OBJECT_T:
+                    DependencyParameter dExtObjPar = (DependencyParameter) param;
+                    DataAccessId dExtObjAccId = dExtObjPar.getDataAccessId();
+                    lArgs.add(dExtObjPar.getDataTarget());
+                    if (dExtObjAccId instanceof RAccessId) {
                         lArgs.add("R");
                     } else {
                         lArgs.add("W"); // for the worker to know it must write the object to disk

@@ -30,10 +30,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import storage.StubItf;
-
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.log.Loggers;
-
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.Task;
@@ -43,9 +41,10 @@ import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.AccessParams.*;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.*;
+import es.bsc.compss.types.parameter.BindingObjectParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
-import es.bsc.compss.types.parameter.ExternalObjectParameter;
+import es.bsc.compss.types.parameter.ExternalPSCOParameter;
 import es.bsc.compss.types.data.FileInfo;
 import es.bsc.compss.types.data.operation.ResultListener;
 import es.bsc.compss.types.implementations.Implementation.TaskType;
@@ -54,7 +53,6 @@ import es.bsc.compss.types.parameter.ObjectParameter;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.WaitForTaskRequest;
-
 import es.bsc.compss.util.ErrorManager;
 
 
@@ -216,11 +214,17 @@ public class TaskAnalyser {
                     pscop.setType(DataType.PSCO_T);
                     daId = DIP.registerObjectAccess(am, pscop.getValue(), pscop.getCode());
                     break;
-                case EXTERNAL_OBJECT_T:
-                    ExternalObjectParameter externalPSCOparam = (ExternalObjectParameter) p;
+                case EXTERNAL_PSCO_T:
+                    ExternalPSCOParameter externalPSCOparam = (ExternalPSCOParameter) p;
                     // Check if its PSCO class and persisted to infer its type
-                    externalPSCOparam.setType(DataType.EXTERNAL_OBJECT_T);
-                    daId = DIP.registerExternalObjectAccess(am, externalPSCOparam.getId(), externalPSCOparam.getCode());
+                    externalPSCOparam.setType(DataType.EXTERNAL_PSCO_T);
+                    daId = DIP.registerExternalPSCOAccess(am, externalPSCOparam.getId(), externalPSCOparam.getCode());
+                    break;
+                case BINDING_OBJECT_T:
+                    BindingObjectParameter bindingObjectparam = (BindingObjectParameter) p;
+                    // Check if its PSCO class and persisted to infer its type
+                    bindingObjectparam.setType(DataType.BINDING_OBJECT_T);
+                    daId = DIP.registerBindingObjectAccess(am, bindingObjectparam.getBindingObject(), bindingObjectparam.getCode());
                     break;
                 case OBJECT_T:
                     ObjectParameter op = (ObjectParameter) p;
@@ -327,7 +331,7 @@ public class TaskAnalyser {
 
         for (Parameter param : task.getTaskDescription().getParameters()) {
             DataType type = param.getType();
-            if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_OBJECT_T) {
+            if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T) {
                 DependencyParameter dPar = (DependencyParameter) param;
                 DataAccessId dAccId = dPar.getDataAccessId();
                 LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dPar.getDataTarget());

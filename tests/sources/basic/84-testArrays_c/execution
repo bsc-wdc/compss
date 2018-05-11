@@ -37,8 +37,8 @@
   output_log="${target_log_folder}/c_testarrays_0${retryNum}.outputlog"
   error_log="${target_log_folder}/c_testarrays_0${retryNum}.errorlog"
 
-  expectedTime=120s
-
+  expectedTime=200s
+  echo " ${COMPSs_exec} --project=${base_app_dir}/project.xml --resources=${base_app_dir}/resources.xml --debug --comm=$comm --lang=c ${runcompss_opts} ${base_app_dir}/master/TestArrays"
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
      --project=${base_app_dir}/project.xml \
      --resources=${base_app_dir}/resources.xml \

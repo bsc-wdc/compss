@@ -77,6 +77,7 @@ public class LogicalData {
 
     // Indicates if LogicalData has been ordered to save before
     private boolean isBeingSaved;
+    private boolean isBindingData;
     // Locks the host while LogicalData is being copied
     private final Semaphore lockHostRemoval = new Semaphore(1);
 
@@ -95,6 +96,7 @@ public class LogicalData {
         this.id = null;
 
         this.isBeingSaved = false;
+        this.isBindingData = false;
         this.size = 0;
     }
 
@@ -191,6 +193,16 @@ public class LogicalData {
     public synchronized boolean isInMemory() {
         return (this.value != null);
     }
+    
+    /**
+     * Returns if the data is binding data
+     * 
+     * @return
+     */
+    public synchronized boolean isBindingData() {
+        return isBindingData;
+    }
+
 
     /**
      * Returns the value stored in memory
@@ -216,6 +228,13 @@ public class LogicalData {
             case PRIVATE:
                 for (Resource r : loc.getHosts()) {
                     r.addLogicalData(this);
+                }
+                break;
+            case BINDING:
+                for (Resource r : loc.getHosts()) {
+                    this.isBindingData = true;
+                    r.addLogicalData(this);
+
                 }
                 break;
             case SHARED:
@@ -279,7 +298,9 @@ public class LogicalData {
             // It is a persistent object that is already persisted
             // Nothing to do
             // If the PSCO is not persisted we treat it as a normal object
+        	//TODO: Check if BINDING_DATA
         } else {
+        	//TODO: Check if BINDING_DATA
             // The object must be written to file
             String targetPath = Comm.getAppHost().getWorkingDirectory() + this.name;
             Serializer.serialize(value, targetPath);
@@ -292,12 +313,14 @@ public class LogicalData {
             this.locations.add(loc);
             for (Resource r : loc.getHosts()) {
                 switch (loc.getType()) {
-                    case PRIVATE:
+                	case BINDING:
+                	case PRIVATE:
                         r.addLogicalData(this);
                         break;
                     case SHARED:
                         SharedDiskManager.addLogicalData(loc.getSharedDisk(), this);
                         break;
+                    
                     case PERSISTENT:
                         // Nothing to do
                         break;
@@ -318,7 +341,8 @@ public class LogicalData {
      * @throws Exception
      */
     public synchronized void loadFromStorage() throws CannotLoadException {
-        if (value != null) {
+        //TODO: Check if we have to do something in binding data??
+    	if (value != null) {
             // Value is already loaded in memory
             return;
         }
@@ -420,7 +444,8 @@ public class LogicalData {
         while (it.hasNext()) {
             DataLocation loc = it.next();
             switch (loc.getType()) {
-                case PRIVATE:
+            	case BINDING:
+            	case PRIVATE:
                     if (loc.getURIInHost(host) != null) {
                         this.isBeingSaved = true;
                         uniqueHostLocation = loc;

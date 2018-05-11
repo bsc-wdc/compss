@@ -104,5 +104,11 @@ public class JavaExecutor extends Executor {
         // Nothing to do since everything is deleted in each task execution
         LOGGER.info("Executor finished");
     }
+    
+    @Override
+    public void start() {
+        // Nothing to do since everything is deleted in each task execution
+        LOGGER.info("Executor started");
+    }
 
 }

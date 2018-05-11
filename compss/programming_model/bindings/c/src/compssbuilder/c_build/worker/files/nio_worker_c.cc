@@ -14,6 +14,21 @@
  *  limitations under the License.
  *
  */
-int get_compss_worker_lock();
+#include <CBindingExecutor.h>
+#include <CBindingCache.h>
+#include <compss_worker.h>
 
-int release_compss_worker_lock();
+int main(int argc, char **argv) {
+	//Creating custom streams
+	char* arg_nio[argc-1];
+	int i;
+	for (i=1; i < argc; i++){
+		arg_nio[i-1]= argv[i];
+	}
+	CBindingCache *cache = new CBindingCache();
+	CBindingExecutor *executor = new CBindingExecutor(cache);
+	worker_start(cache, executor, argc-1, arg_nio);
+	delete(executor);
+	delete(cache);
+
+} 

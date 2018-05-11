@@ -22,7 +22,6 @@
 #include "common.h"
 
 void GS_On(AbstractCache *);
-AbstractCache *getCache();
 
 /*** ==============> API FUNCTIONS <================= ***/
 
@@ -48,5 +47,7 @@ extern "C" void GS_BarrierNew(long appId, int noMoreTasks);
 // Misc functions
 extern "C" void GS_Get_AppDir(char **buf);
 extern "C" void GS_EmitEvent(int type, long id);
+extern "C" void GS_Get_Object(char *objectId, char**buf);
+extern "C" void GS_Delete_Object(char *objectId, int **buf);
 
 #endif /* GS_COMPSS_H */

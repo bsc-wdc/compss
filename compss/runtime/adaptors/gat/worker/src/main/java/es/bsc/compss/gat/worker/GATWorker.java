@@ -268,12 +268,17 @@ public class GATWorker {
                     GATWorker.mustWrite[i] = ((String) args[argPosition++]).equals("W");
                     retrieveObject(renamings[i], i);
                     break;
+                case BINDING_OBJECT_T:
+                    GATWorker.renamings[i] = (String) args[argPosition++];
+                    GATWorker.mustWrite[i] = ((String) args[argPosition++]).equals("W");
+                    retrieveBindingObject(renamings[i], i);
+                    break;
                 case PSCO_T:
                     GATWorker.renamings[i] = (String) args[argPosition++];
                     GATWorker.mustWrite[i] = ((String) args[argPosition++]).equals("W");
                     retrievePSCO(renamings[i], i);
                     break;
-                case EXTERNAL_OBJECT_T:
+                case EXTERNAL_PSCO_T:
                     GATWorker.types[i] = String.class;
                     GATWorker.values[i] = args[argPosition++];
                     break;
@@ -336,7 +341,12 @@ public class GATWorker {
         }
     }
 
-    /**
+    private static void retrieveBindingObject(String string, int i) {
+		// TODO: Add retreive binding object at
+		
+	}
+
+	/**
      * Retrieves an object from its renaming
      * 
      * @param renaming

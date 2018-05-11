@@ -172,7 +172,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         if (node == null) {
             throw new UnstartedNodeException();
         }
-        NIOURI nio = new NIOURI(node, uri.getPath());
+        NIOURI nio = new NIOURI(node, uri.getPath(), uri.getProtocol());
         uri.setInternalURI(NIOAdaptor.ID, nio);
     }
 
@@ -474,9 +474,12 @@ public class NIOWorkerNode extends COMPSsWorker {
                 String id = Comm.getData(name).getId();
                 path = Protocol.PERSISTENT_URI.getSchema() + id;
                 break;
-            case EXTERNAL_OBJECT_T:
+            case EXTERNAL_PSCO_T:
                 // The value of the registered object in the runtime is the PSCO Id
                 path = Protocol.PERSISTENT_URI.getSchema() + name;
+                break;
+            case BINDING_OBJECT_T:
+            	path = Protocol.BINDING_URI.getSchema() + config.getSandboxWorkingDir() + name;
                 break;
             default:
                 return null;

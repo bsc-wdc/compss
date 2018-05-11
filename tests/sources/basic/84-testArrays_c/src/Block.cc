@@ -16,6 +16,8 @@
 
 #include "Block.h"
 #include <unistd.h>
+#include<fstream>
+
 
 Block::Block(int bSize) {
 	M = bSize;
@@ -25,7 +27,6 @@ Block::Block(int bSize) {
 	}
 }
 
-#ifdef COMPSS_WORKER
 static void Block::generate(Block *b, int bSize, double initVal) {
 	cout << "Running create..." << endl << flush;
 	b->M = bSize;
@@ -40,16 +41,19 @@ static void Block::generate(Block *b, int bSize, double initVal) {
         }
 
 }
-
-static void Block::test1( int size, float *out_array, int *in_array, double *inout_array){
+#ifdef COMPSS_WORKER
+static void Block::test1( int size, float *out_array, int *in_array, double *inout_array, char* filename){
 	for (int i=0; i<size;i++){
 		if (i<MAX){
 			out_array[i]=in_array[i];
 		 }
 	}
+	ofstream ofs(filename);
 	for (int i=0; i<30;i++){
 		inout_array[i]++;
+		ofs << inout_array << ":";
 	}
+	ofs.close();
 }
 
 

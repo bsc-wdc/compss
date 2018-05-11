@@ -237,7 +237,8 @@ finish_worker_build() {
         gsprefix=$1    
         appname=$2     
         @CP@ -f worker_c ..
-        @CP@ -f persistent_worker_c ..
+        #@CP@ -f persistent_worker_c ..
+        @CP@ -f nio_worker_c ..
         cd ..
 
         cd ..

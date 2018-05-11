@@ -21,12 +21,6 @@
 
 #include "JavaNioConnStreamBuffer.h"
 
-#ifdef DEBUG_BINDING
-#define debug_printf(args...) printf(args); fflush(stdout);
-#else
-#define debug_printf(args...) {}
-#endif
-
 using namespace std;
 
 struct compss_pointer{
@@ -44,12 +38,21 @@ private:
 protected:
 	long max_size;
 	long current_size;
-	char* working_dir_path;
+	const char* working_dir_path;
 	map<string, compss_pointer> cache;
 	int get_lock();
 	int release_lock();
 
 public:
+	AbstractCache(){
+		max_size=0; //TODO: Add size management
+		current_size=0;
+		working_dir_path = "";
+		pthread_mutex_init(&mtx,NULL);
+	}
+	virtual ~AbstractCache(){
+		pthread_mutex_destroy(&mtx);
+	}
 	int pushToStream(const char* id, JavaNioConnStreamBuffer &jsb);
 	int pullFromStream(const char* id, JavaNioConnStreamBuffer &jsb, compss_pointer &cp);
 	int pushToFile(const char* id, const char* filename);
@@ -60,6 +63,7 @@ public:
 	int storeInCache(const char* id, compss_pointer cp);
 	int deleteFromCache(const char* id, bool deleteObject);
 	int copyInCache(const char* id_from, const char* id_to, compss_pointer &to);
+	int moveInCache(const char* id_from, const char* id_to);
 	void printValues();
 
 	static int removeData(const char* id, AbstractCache &c);

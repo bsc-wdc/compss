@@ -322,12 +322,13 @@ worker_cmd() {
 master_cmd() {
   local master_name=$1
 
-  # WARNING: SETS GLOBAL SCRIPT VARIABLE MCMD
   if [ -z "${container_image}" ]; then
     MCMD="${COMPSS_HOME}/Runtime/scripts/user/runcompss"
   else
     MCMD="singularity exec $container_opts $container_image ${COMPSS_HOME}/Runtime/scripts/user/runcompss"
   fi
+
+  # WARNING: SETS GLOBAL SCRIPT VARIABLE MCMD
   MCMD="$MCMD --project=${PROJECT_FILE} \
             --resources=${RESOURCES_FILE} \
             --uuid=${uuid} \
@@ -1001,6 +1002,10 @@ create_xml_files() {
   echo "List of workers: ${worker_nodes}"
 
   # Add worker slots on master if needed
+  if [ ! -z "${NODE_NAME_XML}" ]; then
+    master_node=$(${NODE_NAME_XML} ${master_node} ${network})
+  fi
+
   if [ "${worker_in_master_cpus}" -ne 0 ]; then
     # add_compute_node name cpus gpus lot memory
     add_compute_node "${master_node}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${max_tasks_per_node}" "${worker_in_master_memory}"
@@ -1008,8 +1013,11 @@ create_xml_files() {
 
   # Find the number of tasks to be executed on each node
   for node in ${worker_nodes}; do
+      if [ ! -z "${NODE_NAME_XML}" ]; then
+        node=$(${NODE_NAME_XML} ${node} ${network})
+      fi
     # add_compute_node name cpus gpus lot memory
-    add_compute_node "$node" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${max_tasks_per_node}" "${node_memory}"
+    add_compute_node "${node}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${max_tasks_per_node}" "${node_memory}"
   done
   if [ ! -z "${elasticity}" ]; then
     insert_xml_elasticity "${elasticity}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${max_tasks_per_node}" "${node_memory}"
@@ -1044,6 +1052,11 @@ launch() {
       fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
       # worker_cmd id name jvmOptsSize jvmOpts cpus gpus cpuMap gpuMap lot
       worker_cmd $hostid "${master_node}${network}" "${jvm_worker_in_master_opts_size}" "${jvm_worker_in_master_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${max_tasks_per_node}"
+
+      if [ ! -z "${NODE_NAME_QUEUE}" ]; then
+        master_node=$(${NODE_NAME_QUEUE} ${master_node})
+      fi
+
       WCMD="${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${WCMD}"
       echo "CMD Worker $hostid launcher: $WCMD"
       $WCMD&
@@ -1060,6 +1073,9 @@ launch() {
       for node in ${worker_nodes}; do
         # worker_cmd id name jvmOptsSize jvmOpts cpus gpus cpuMap gpuMap lot
         worker_cmd $hostid "$node${network}" "${jvm_workers_opts_size}" "${jvm_workers_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${max_tasks_per_node}"
+        if [ ! -z "${NODE_NAME_QUEUE}" ]; then
+            node=$(${NODE_NAME_QUEUE} ${node})
+        fi
         WCMD="${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${WCMD}"
         echo "CMD Worker $hostid launcher: $WCMD"
         $WCMD&
@@ -1134,8 +1150,11 @@ cleanup() {
     echo "Cleanup Worker TMP files"
     for node in ${worker_nodes}; do
       local sandboxWD=${worker_working_dir}/${uuid}
+      if [ ! -z "${NODE_NAME_QUEUE}" ]; then
+        node=$(${NODE_NAME_QUEUE} ${node})
+      fi
       echo "- Removing ${sandboxWD}"
-      ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}$node ${CMD_SEPARATOR}rm -rf ${sandboxWD}${CMD_SEPARATOR}
+      ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}rm -rf ${sandboxWD}${CMD_SEPARATOR}
     done
 
     echo "Cleanup TMP files"
@@ -1455,6 +1474,7 @@ EOT
 
 
 
+
 ###############################################
 # Adds a compute node to Resources/Project
 ###############################################
@@ -1467,8 +1487,10 @@ add_compute_node() {
   local memory=$6
 
   echo "Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${nodeName} ${CMD_SEPARATOR}mkdir -p ${worker_working_dir}${CMD_SEPARATOR}"
-  ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${nodeName} ${CMD_SEPARATOR}mkdir -p ${worker_working_dir}${CMD_SEPARATOR}
-
+  if [ ! -z "${NODE_NAME_QUEUE}" ]; then
+        node=$(${NODE_NAME_QUEUE} ${node})
+  fi
+  ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}mkdir -p ${worker_working_dir}${CMD_SEPARATOR}
   nodeName=${nodeName}${network}
 
   cat >> "${RESOURCES_FILE}" << EOT
@@ -1580,8 +1602,9 @@ EOT
 #---------------------------------------------------------------------------------------
   
   # Set script variables
-  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/user"
   COMPSS_HOME=${SCRIPT_DIR}/../../../
+
   
   numPrologActions=0
   declare -a prologActions
@@ -1599,7 +1622,7 @@ EOT
  
   # Log variables
   log_variables
- 
+
   # Add clean up for execution end
   trap cleanup EXIT
 

@@ -19,7 +19,7 @@
   ######################
   load_parameters() {
     # Script Variables
-    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+    SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio"
   
     # Get parameters
     libPath=$1

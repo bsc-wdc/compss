@@ -25,10 +25,19 @@ DEFAULT_MONITORING_INTERVAL=0
 DEFAULT_MONITORING_INTERVAL_ARGUMENT=2000
 
 DEFAULT_TASK_COUNT=50
-DEFAULT_CLASSPATH=$(pwd)
-DEFAULT_PYTHONPATH=$(pwd)
-DEFAULT_LIBRARY_PATH=$(pwd)
-DEFAULT_APPDIR=$(pwd)
+
+if [ -z "${PBS_O_WORKDIR}" ]; then
+  DEFAULT_CLASSPATH=$(pwd)
+  DEFAULT_PYTHONPATH=$(pwd)
+  DEFAULT_LIBRARY_PATH=$(pwd)
+  DEFAULT_APPDIR=$(pwd)
+else
+  DEFAULT_CLASSPATH=${PBS_O_WORKDIR}
+  DEFAULT_PYTHONPATH=${PBS_O_WORKDIR}
+  DEFAULT_LIBRARY_PATH=${PBS_O_WORKDIR}
+  DEFAULT_APPDIR=${PBS_O_WORKDIR}
+fi
+
 DEFAULT_STORAGE_CONF="None"
 DEFAULT_PyOBJECT_SERIALIZE=false
 
@@ -293,7 +302,7 @@ check_env() {
   fi
   
   # Command to simulate realpath
-  COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )"
+  #WARN this should be already defined for archer compatibility COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )"
   export COMPSS_HOME=${COMPSS_HOME}
 
   if [ -z "$DEFAULT_PROJECT" ]; then

@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.gat.master.configuration;
 
+import java.util.Map.Entry;
+
 import org.gridlab.gat.GATContext;
 
 import es.bsc.compss.COMPSsConstants;
@@ -36,7 +38,7 @@ public class GATConfiguration extends MethodConfiguration {
 
         initContext(brokerAdaptorName, System.getProperty(COMPSsConstants.GAT_FILE_ADAPTOR));
 
-        for (java.util.Map.Entry<String, String> entry : super.getAdditionalProperties().entrySet()) {
+        for (Entry<String, String> entry : super.getAdditionalProperties().entrySet()) {
             String propName = entry.getKey();
             String propValue = entry.getValue();
             if (propName.startsWith("[context=job]")) {
@@ -50,19 +52,18 @@ public class GATConfiguration extends MethodConfiguration {
         }
     }
 
-    public GATConfiguration(GATConfiguration clone){
+    public GATConfiguration(GATConfiguration clone) {
         super(clone);
-        context = clone.context; // TODO: check if context should be cloned or this assignation is OK
-        usingGlobus = clone.usingGlobus;
-        userNeeded = clone.userNeeded;
-        queue = clone.queue;
+        this.context = clone.context; // TODO: check if context should be cloned or this assignation is OK
+        this.usingGlobus = clone.usingGlobus;
+        this.userNeeded = clone.userNeeded;
+        this.queue = clone.queue;
     }
 
     @Override
-    public MethodConfiguration copy(){
+    public MethodConfiguration copy() {
         return new GATConfiguration(this);
     }
-
 
     private void initContext(String brokerAdaptor, String fileAdaptor) {
         this.context = new GATContext();

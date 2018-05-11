@@ -76,7 +76,7 @@ public class TaskAnalyser {
     private HashMap<Long, Integer> appIdToTaskCount;
     // Map: app id -> semaphore to notify end of app
     private HashMap<Long, Semaphore> appIdToSemaphore;
-    // List of appIds stoped on a barrier synchornization point
+    // List of appIds stopped on a barrier synchronization point
     private HashSet<Long> appIdBarrierFlags;
     // Map: app id -> set of written data ids (for result files)
     private HashMap<Long, TreeSet<Integer>> appIdToWrittenFiles;
@@ -91,10 +91,9 @@ public class TaskAnalyser {
     private static final String TASK_FAILED = "Task failed: ";
 
     // Graph drawing
-    private static final boolean drawGraph = GraphGenerator.isEnabled();
-
-    private static int synchronizationId;
-    private static boolean taskDetectedAfterSync;
+    private static final boolean IS_DRAW_GRAPH = GraphGenerator.isEnabled();
+    private int synchronizationId;
+    private boolean taskDetectedAfterSync;
 
 
     /**
@@ -102,16 +101,19 @@ public class TaskAnalyser {
      * 
      */
     public TaskAnalyser() {
-        currentTaskCount = new HashMap<>();
-        writers = new TreeMap<>();
-        appIdToTaskCount = new HashMap<>();
-        appIdToTotalTaskCount = new HashMap<>();
-        appIdToSemaphore = new HashMap<>();
-        appIdBarrierFlags = new HashSet<>();
-        appIdToWrittenFiles = new HashMap<>();
-        appIdToSCOWrittenIds = new HashMap<>();
-        waitedTasks = new Hashtable<>();
+        this.currentTaskCount = new HashMap<>();
+        this.writers = new TreeMap<>();
+        this.appIdToTaskCount = new HashMap<>();
+        this.appIdToTotalTaskCount = new HashMap<>();
+        this.appIdToSemaphore = new HashMap<>();
+        this.appIdBarrierFlags = new HashSet<>();
+        this.appIdToWrittenFiles = new HashMap<>();
+        this.appIdToSCOWrittenIds = new HashMap<>();
+        this.waitedTasks = new Hashtable<>();
+
         synchronizationId = 0;
+        taskDetectedAfterSync = false;
+
         LOGGER.info("Initialization finished");
     }
 
@@ -143,32 +145,32 @@ public class TaskAnalyser {
         LOGGER.info("New " + (params.getType() == TaskType.METHOD ? "method" : "service") + " task(" + params.getName() + "), ID = "
                 + currentTask.getId());
 
-        if (drawGraph) {
+        if (IS_DRAW_GRAPH) {
             addNewTask(currentTask);
         }
 
         // Update task count
         Integer methodId = params.getId();
-        Integer actualCount = currentTaskCount.get(methodId);
+        Integer actualCount = this.currentTaskCount.get(methodId);
         if (actualCount == null) {
             actualCount = 0;
         }
-        currentTaskCount.put(methodId, actualCount + 1);
+        this.currentTaskCount.put(methodId, actualCount + 1);
 
         // Update app id task count
         Long appId = currentTask.getAppId();
-        Integer taskCount = appIdToTaskCount.get(appId);
+        Integer taskCount = this.appIdToTaskCount.get(appId);
         if (taskCount == null) {
             taskCount = 0;
         }
         taskCount++;
-        appIdToTaskCount.put(appId, taskCount);
-        Integer totalTaskCount = appIdToTotalTaskCount.get(appId);
+        this.appIdToTaskCount.put(appId, taskCount);
+        Integer totalTaskCount = this.appIdToTotalTaskCount.get(appId);
         if (totalTaskCount == null) {
             totalTaskCount = 0;
         }
         totalTaskCount++;
-        appIdToTotalTaskCount.put(appId, totalTaskCount);
+        this.appIdToTotalTaskCount.put(appId, totalTaskCount);
 
         // Check scheduling enforcing data
         int constrainingParam = -1;
@@ -206,13 +208,13 @@ public class TaskAnalyser {
             switch (p.getType()) {
                 case FILE_T:
                     FileParameter fp = (FileParameter) p;
-                    daId = DIP.registerFileAccess(am, fp.getLocation());
+                    daId = this.DIP.registerFileAccess(am, fp.getLocation());
                     break;
                 case PSCO_T:
                     ObjectParameter pscop = (ObjectParameter) p;
                     // Check if its PSCO class and persisted to infer its type
                     pscop.setType(DataType.PSCO_T);
-                    daId = DIP.registerObjectAccess(am, pscop.getValue(), pscop.getCode());
+                    daId = this.DIP.registerObjectAccess(am, pscop.getValue(), pscop.getCode());
                     break;
                 case EXTERNAL_PSCO_T:
                     ExternalPSCOParameter externalPSCOparam = (ExternalPSCOParameter) p;
@@ -222,7 +224,7 @@ public class TaskAnalyser {
                     break;
                 case BINDING_OBJECT_T:
                     BindingObjectParameter bindingObjectparam = (BindingObjectParameter) p;
-                    // Check if its PSCO class and persisted to infer its type
+                    // Check if its Binding OBJ and register its access
                     bindingObjectparam.setType(DataType.BINDING_OBJECT_T);
                     daId = DIP.registerBindingObjectAccess(am, bindingObjectparam.getBindingObject(), bindingObjectparam.getCode());
                     break;
@@ -232,7 +234,7 @@ public class TaskAnalyser {
                     if (op.getValue() instanceof StubItf && ((StubItf) op.getValue()).getID() != null) {
                         op.setType(DataType.PSCO_T);
                     }
-                    daId = DIP.registerObjectAccess(am, op.getValue(), op.getCode());
+                    daId = this.DIP.registerObjectAccess(am, op.getValue(), op.getCode());
                     break;
                 default:
                     /*
@@ -252,7 +254,7 @@ public class TaskAnalyser {
                         DataInstanceId dependingDataId = raId.getReadDataInstance();
                         if (dependingDataId != null) {
                             if (dependingDataId.getVersionId() > 1) {
-                                currentTask.setEnforcingTask(writers.get(dependingDataId.getDataId()));
+                                currentTask.setEnforcingTask(this.writers.get(dependingDataId.getDataId()));
                             }
                         }
                     }
@@ -264,7 +266,7 @@ public class TaskAnalyser {
                         DataInstanceId dependingDataId = raId.getReadDataInstance();
                         if (dependingDataId != null) {
                             if (dependingDataId.getVersionId() > 1) {
-                                currentTask.setEnforcingTask(writers.get(dependingDataId.getDataId()));
+                                currentTask.setEnforcingTask(this.writers.get(dependingDataId.getDataId()));
                             }
                         }
                     }
@@ -306,23 +308,23 @@ public class TaskAnalyser {
 
         // Free dependencies
         Long appId = task.getAppId();
-        Integer taskCount = appIdToTaskCount.get(appId) - 1;
-        appIdToTaskCount.put(appId, taskCount);
+        Integer taskCount = this.appIdToTaskCount.get(appId) - 1;
+        this.appIdToTaskCount.put(appId, taskCount);
         if (taskCount == 0) {
-            // Remove the appId from the barrier flags (if existant, otherwise do nothing)
-            appIdBarrierFlags.remove(appId);
+            // Remove the appId from the barrier flags (if existent, otherwise do nothing)
+            this.appIdBarrierFlags.remove(appId);
 
-            Semaphore sem = appIdToSemaphore.remove(appId);
+            Semaphore sem = this.appIdToSemaphore.remove(appId);
             if (sem != null) {
-                // App was synchornized on a barrier flag or a no more tasks
+                // Application was synchronized on a barrier flag or a no more tasks
                 // Release the application semaphore
-                appIdToTaskCount.remove(appId);
+                this.appIdToTaskCount.remove(appId);
                 sem.release();
             }
         }
 
         // Check if task is being waited
-        List<Semaphore> sems = waitedTasks.remove(task);
+        List<Semaphore> sems = this.waitedTasks.remove(task);
         if (sems != null) {
             for (Semaphore sem : sems) {
                 sem.release();
@@ -335,13 +337,13 @@ public class TaskAnalyser {
                 DependencyParameter dPar = (DependencyParameter) param;
                 DataAccessId dAccId = dPar.getDataAccessId();
                 LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dPar.getDataTarget());
-                DIP.dataHasBeenAccessed(dAccId);
+                this.DIP.dataHasBeenAccessed(dAccId);
             }
         }
 
         // Check if the finished task was the last writer of a file, but only if task generation has finished
         // Task generation is finished if we are on noMoreTasks but we are not on a barrier
-        if (appIdToSemaphore.get(appId) != null && !appIdBarrierFlags.contains(appId)) {
+        if (this.appIdToSemaphore.get(appId) != null && !this.appIdBarrierFlags.contains(appId)) {
             checkResultFileTransfer(task);
         }
 
@@ -366,13 +368,13 @@ public class TaskAnalyser {
                             break;
                         case INOUT:
                             DataInstanceId dId = ((RWAccessId) fp.getDataAccessId()).getWrittenDataInstance();
-                            if (writers.get(dId.getDataId()) == t) {
+                            if (this.writers.get(dId.getDataId()) == t) {
                                 fileIds.add(dId);
                             }
                             break;
                         case OUT:
                             dId = ((WAccessId) fp.getDataAccessId()).getWrittenDataInstance();
-                            if (writers.get(dId.getDataId()) == t) {
+                            if (this.writers.get(dId.getDataId()) == t) {
                                 fileIds.add(dId);
                             }
                             break;
@@ -389,8 +391,8 @@ public class TaskAnalyser {
             for (DataInstanceId fileId : fileIds) {
                 try {
                     int id = fileId.getDataId();
-                    DIP.blockDataAndGetResultFile(id, new ResultListener(new Semaphore(0)));
-                    DIP.unblockDataId(id);
+                    this.DIP.blockDataAndGetResultFile(id, new ResultListener(new Semaphore(0)));
+                    this.DIP.unblockDataId(id);
                 } catch (Exception e) {
                     LOGGER.error("Exception ordering transfer when task ends", e);
                 }
@@ -408,16 +410,16 @@ public class TaskAnalyser {
         int dataId = request.getDataId();
         AccessMode am = request.getAccessMode();
         Semaphore sem = request.getSemaphore();
-        Task lastWriter = writers.get(dataId);
+        Task lastWriter = this.writers.get(dataId);
 
         if (lastWriter != null) {
             // Add to writers if needed
             if (am == AccessMode.RW) {
-                writers.put(dataId, null);
+                this.writers.put(dataId, null);
             }
 
             // Add graph description
-            if (drawGraph) {
+            if (IS_DRAW_GRAPH) {
                 addEdgeFromTaskToMain(lastWriter, dataId);
             }
         }
@@ -426,10 +428,10 @@ public class TaskAnalyser {
         if (lastWriter == null || lastWriter.getStatus() == TaskState.FINISHED) {
             sem.release();
         } else {
-            List<Semaphore> list = waitedTasks.get(lastWriter);
+            List<Semaphore> list = this.waitedTasks.get(lastWriter);
             if (list == null) {
                 list = new LinkedList<>();
-                waitedTasks.put(lastWriter, list);
+                this.waitedTasks.put(lastWriter, list);
             }
             list.add(sem);
         }
@@ -442,20 +444,20 @@ public class TaskAnalyser {
      */
     public void barrier(BarrierRequest request) {
         Long appId = request.getAppId();
-        Integer count = appIdToTaskCount.get(appId);
-        if (drawGraph) {
+        Integer count = this.appIdToTaskCount.get(appId);
+        if (IS_DRAW_GRAPH) {
             addNewBarrier();
 
             // We can draw the graph on a barrier while we wait for tasks
             this.GM.commitGraph();
         }
 
-        // Release the sem only if all app tasks have finished
+        // Release the semaphore only if all application tasks have finished
         if (count == null || count == 0) {
             request.getSemaphore().release();
         } else {
-            appIdBarrierFlags.add(appId);
-            appIdToSemaphore.put(appId, request.getSemaphore());
+            this.appIdBarrierFlags.add(appId);
+            this.appIdToSemaphore.put(appId, request.getSemaphore());
         }
     }
 
@@ -466,17 +468,17 @@ public class TaskAnalyser {
      */
     public void noMoreTasks(EndOfAppRequest request) {
         Long appId = request.getAppId();
-        Integer count = appIdToTaskCount.get(appId);
+        Integer count = this.appIdToTaskCount.get(appId);
 
-        if (drawGraph) {
+        if (IS_DRAW_GRAPH) {
             this.GM.commitGraph();
         }
 
         if (count == null || count == 0) {
-            appIdToTaskCount.remove(appId);
+            this.appIdToTaskCount.remove(appId);
             request.getSemaphore().release();
         } else {
-            appIdToSemaphore.put(appId, request.getSemaphore());
+            this.appIdToSemaphore.put(appId, request.getSemaphore());
         }
     }
 
@@ -487,7 +489,7 @@ public class TaskAnalyser {
      * @return
      */
     public TreeSet<Integer> getAndRemoveWrittenFiles(Long appId) {
-        return appIdToWrittenFiles.remove(appId);
+        return this.appIdToWrittenFiles.remove(appId);
     }
 
     /**
@@ -495,7 +497,7 @@ public class TaskAnalyser {
      * 
      */
     public void shutdown() {
-        if (drawGraph) {
+        if (IS_DRAW_GRAPH) {
             GraphGenerator.removeTemporaryGraph();
         }
     }
@@ -507,10 +509,10 @@ public class TaskAnalyser {
      */
     public String getTaskStateRequest() {
         StringBuilder sb = new StringBuilder("\t").append("<TasksInfo>").append("\n");
-        for (Entry<Long, Integer> e : appIdToTotalTaskCount.entrySet()) {
+        for (Entry<Long, Integer> e : this.appIdToTotalTaskCount.entrySet()) {
             Long appId = e.getKey();
             Integer totalTaskCount = e.getValue();
-            Integer taskCount = appIdToTaskCount.get(appId);
+            Integer taskCount = this.appIdToTaskCount.get(appId);
             if (taskCount == null) {
                 taskCount = 0;
             }
@@ -558,7 +560,7 @@ public class TaskAnalyser {
      */
     private void checkDependencyForRead(Task currentTask, DependencyParameter dp) {
         int dataId = dp.getDataAccessId().getDataId();
-        Task lastWriter = writers.get(dataId);
+        Task lastWriter = this.writers.get(dataId);
 
         if (lastWriter != null && lastWriter != currentTask) {
             if (DEBUG) {
@@ -569,12 +571,12 @@ public class TaskAnalyser {
             currentTask.addDataDependency(lastWriter);
 
             // Draw dependency to graph
-            if (drawGraph) {
+            if (IS_DRAW_GRAPH) {
                 addEdgeFromTaskToTask(lastWriter, currentTask, dataId);
             }
         } else {
             // Last writer is the main
-            if (drawGraph) {
+            if (IS_DRAW_GRAPH) {
                 addEdgeFromMainToTask(currentTask, dataId);
             }
         }
@@ -590,23 +592,32 @@ public class TaskAnalyser {
         int currentTaskId = currentTask.getId();
         int dataId = dp.getDataAccessId().getDataId();
         Long appId = currentTask.getAppId();
-        writers.put(dataId, currentTask); // update global last writer
-        if (dp.getType() == DataType.FILE_T) { // Objects are not checked, their version will be only get if the main
-                                               // access them
-            TreeSet<Integer> idsWritten = appIdToWrittenFiles.get(appId);
-            if (idsWritten == null) {
-                idsWritten = new TreeSet<>();
-                appIdToWrittenFiles.put(appId, idsWritten);
-            }
-            idsWritten.add(dataId);
-        }
-        if (dp.getType() == DataType.PSCO_T) {
-            TreeSet<Integer> idsWritten = appIdToSCOWrittenIds.get(appId);
-            if (idsWritten == null) {
-                idsWritten = new TreeSet<>();
-                appIdToSCOWrittenIds.put(appId, idsWritten);
-            }
-            idsWritten.add(dataId);
+
+        // Update global last writer
+        this.writers.put(dataId, currentTask);
+        
+        // Update file and PSCO lists
+        switch(dp.getType()) {
+            case FILE_T:
+                TreeSet<Integer> fileIdsWritten = this.appIdToWrittenFiles.get(appId);
+                if (fileIdsWritten == null) {
+                    fileIdsWritten = new TreeSet<>();
+                    this.appIdToWrittenFiles.put(appId, fileIdsWritten);
+                }
+                fileIdsWritten.add(dataId);
+                break;
+            case PSCO_T:
+                TreeSet<Integer> pscoIdsWritten = this.appIdToSCOWrittenIds.get(appId);
+                if (pscoIdsWritten == null) {
+                    pscoIdsWritten = new TreeSet<>();
+                    this.appIdToSCOWrittenIds.put(appId, pscoIdsWritten);
+                }
+                pscoIdsWritten.add(dataId);
+                break;
+            default:
+                // Nothing to do with basic types
+                // Objects are not checked, their version will be only get if the main accesses them
+                break;
         }
 
         if (DEBUG) {
@@ -627,8 +638,7 @@ public class TaskAnalyser {
         // Add task to graph
         this.GM.addTaskToGraph(task);
         // Set the syncId of the task
-        task.setSynchronizationId(synchronizationId);
-
+        task.setSynchronizationId(this.synchronizationId);
         // Update current sync status
         taskDetectedAfterSync = true;
     }
@@ -678,21 +688,22 @@ public class TaskAnalyser {
      */
     private void addEdgeFromTaskToMain(Task task, int dataId) {
         // Add Sync if any task has been created
-        if (taskDetectedAfterSync) {
-            taskDetectedAfterSync = false;
+        if (this.taskDetectedAfterSync) {
+            this.taskDetectedAfterSync = false;
 
-            synchronizationId++;
-            this.GM.addSynchroToGraph(synchronizationId);
-            if (synchronizationId > 1) {
-                String oldSync = "Synchro" + (synchronizationId - 1);
-                String currentSync = "Synchro" + synchronizationId;
+            int oldSyncId = this.synchronizationId;
+            this.synchronizationId++;
+            this.GM.addSynchroToGraph(this.synchronizationId);
+            if (this.synchronizationId > 1) {
+                String oldSync = "Synchro" + oldSyncId;
+                String currentSync = "Synchro" + this.synchronizationId;
                 this.GM.addEdgeToGraph(oldSync, currentSync, "");
             }
         }
 
         // Add edge from task to sync
         String src = String.valueOf(task.getId());
-        String dest = "Synchro" + synchronizationId;
+        String dest = "Synchro" + this.synchronizationId;
         this.GM.addEdgeToGraph(src, dest, String.valueOf(dataId));
     }
 
@@ -702,20 +713,24 @@ public class TaskAnalyser {
      */
     private void addNewBarrier() {
         // Add barrier node
-        synchronizationId++;
-        taskDetectedAfterSync = false;
-        this.GM.addBarrierToGraph(synchronizationId);
+        int oldSync = this.synchronizationId;
+        this.synchronizationId++;
+        this.taskDetectedAfterSync = false;
+        this.GM.addBarrierToGraph(this.synchronizationId);
 
         // Add edge from last sync
-        if (synchronizationId > 1) {
-            this.GM.addEdgeToGraph("Synchro" + (synchronizationId - 1), "Synchro" + synchronizationId, "");
+        String newSync_str = "Synchro" + this.synchronizationId;
+        String oldSync_str = "Synchro" + oldSync;
+        if (this.synchronizationId > 1) {
+            this.GM.addEdgeToGraph(oldSync_str, newSync_str, "");
         }
 
         // Add edges from writers to barrier
-        HashSet<Task> uniqueWriters = new HashSet<>(writers.values());
+        HashSet<Task> uniqueWriters = new HashSet<>(this.writers.values());
         for (Task writer : uniqueWriters) {
-            if (writer.getSynchronizationId() == (synchronizationId - 1)) {
-                this.GM.addEdgeToGraph(String.valueOf(writer.getId()), "Synchro" + synchronizationId, "");
+            if (writer != null && writer.getSynchronizationId() == oldSync) {
+                String taskId = String.valueOf(writer.getId());
+                this.GM.addEdgeToGraph(taskId, newSync_str, "");
             }
         }
     }

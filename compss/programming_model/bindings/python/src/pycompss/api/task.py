@@ -33,7 +33,6 @@ import copy
 from functools import wraps
 from pycompss.runtime.commons import IS_PYTHON3
 
-
 # Tracing Events and Codes -> Should be equal to Tracer.java definitions
 SYNC_EVENTS = 8000666
 TASK_EVENTS = 8000010
@@ -57,6 +56,7 @@ class task(object):
         If there are decorator arguments, the function to be decorated is
         not passed to the constructor!
         """
+
         from pycompss.util.location import i_am_within_scope
 
         # Check if under the PyCOMPSs scope
@@ -70,8 +70,8 @@ class task(object):
                 logger.debug("Init @task decorator...")
 
             # Defaults
-            self.args = args          # Not used
-            self.kwargs = kwargs      # The only ones actually used: (decorators)
+            self.args = args  # Not used
+            self.kwargs = kwargs  # The only ones actually used: (decorators)
 
             # Pre-process decorator arguments
 
@@ -118,6 +118,7 @@ class task(object):
         once, as part of the decoration process! You can only give
         it a single argument, which is the function object.
         """
+
         # Check if under the PyCOMPSs scope
         if not self.scope:
             return self.__not_under_pycompss_scope(f)
@@ -194,7 +195,8 @@ class task(object):
         # Check if the keyword returns has been specified by the user.
         if self.kwargs['returns']:
             self.has_return = True
-            self.f_argspec.args.append('compss_retvalue')   # TODO: WHY THIS VARIABLE? THE INFORMATION IS IN SELF.KWARGS['COMPSS_RETVALUE']
+            # TODO: WHY THIS VARIABLE? THE INFORMATION IS IN SELF.KWARGS['COMPSS_RETVALUE']
+            self.f_argspec.args.append('compss_retvalue')
             self.__update_return_type()
         else:
             # If no returns statement found, double check to see if the user has specified a return statement.
@@ -242,7 +244,8 @@ class task(object):
 
         # Modified variables until now that will be used later:
         #   - self.f_argspec        : Function argspect (Named tuple)
-        #                             e.g. ArgSpec(args=['a', 'b', 'compss_retvalue'], varargs=None, keywords=None, defaults=None)
+        #                             e.g. ArgSpec(args=['a', 'b', 'compss_retvalue'], varargs=None,
+        #                             keywords=None, defaults=None)
         #   - self.is_instance      : Boolean - if the function is an instance (contains self in the f_argspec)
         #   - self.is_classmethod   : Boolean - if the function is a classmethod (contains cls in the f_argspec)
         #   - self.has_varargs      : Boolean - if the function has *args
@@ -272,11 +275,11 @@ class task(object):
             is_replicated = self.kwargs['isReplicated']
             is_distributed = self.kwargs['isDistributed']
             # By default, each task is set to use one core.
-            computingNodes = 1
+            computing_nodes = 1
             if 'computingNodes' in kwargs:
                 # There is a @mpi decorator over task that overrides the
                 # default value of computing nodes
-                computingNodes = kwargs['computingNodes']
+                computing_nodes = kwargs['computingNodes']
                 del kwargs['computingNodes']
 
             # Check if this call is nested using the launch_pycompss_module
@@ -291,13 +294,13 @@ class task(object):
 
             if not i_am_at_master() and (not is_nested):
                 # Task decorator worker body code.
-                newTypes, newValues = self.worker_code(f, args, kwargs)
-                return newTypes, newValues
+                new_types, new_values = self.worker_code(f, args, kwargs)
+                return new_types, new_values
             else:
                 # Task decorator master body code.
                 # Returns the future object that will be used instead of the
                 # actual function return.
-                fo = self.master_code(f, is_replicated, is_distributed, computingNodes, args, kwargs)
+                fo = self.master_code(f, is_replicated, is_distributed, computing_nodes, args, kwargs)
                 return fo
 
         return wrapped_f
@@ -312,11 +315,16 @@ class task(object):
         the dummy task decorator.
         :return: dummy task decorator
         """
+
         if show_message:
-            print("WARNING!!! You're trying to execute a python application with PyCOMPSs decorators without the COMPSs runtime running.")
-            print("Please, start the runtime before using task decorated functions in order to avoid this message and exploit the parallelization.")
-            print("Suggestion: Use the 'runcompss' command or the 'start' function from pycompss.interactive module depending on your needs.")
+            print("WARNING!!! You're trying to execute a python application with PyCOMPSs decorators without \
+                    the COMPSs Runtime running.")
+            print("Please, start the COMPSs Runtime before using task decorated functions in order to avoid this \
+                    message and exploit the parallelization.")
+            print("Suggestion: Use the 'runcompss' command or the 'start' function from pycompss.interactive module \
+                    depending on your needs.")
             print("            Alternatively, use python -m pycompss run/enqueue [flags] application [parameters]")
+
         from pycompss.api.dummy.task import task as dummy_task
         d_t = dummy_task(self.args, self.kwargs)
         return d_t.__call__(f)
@@ -325,6 +333,7 @@ class task(object):
         """
         Updates the return types within self.kwargs['compss_retvalue']
         """
+
         from pycompss.api.parameter import Parameter
         from pycompss.api.parameter import DIRECTION
 
@@ -336,15 +345,15 @@ class task(object):
         # elements independently.
         if not hasattr(self.kwargs['returns'], '__len__') or type(self.kwargs['returns']) is type:
             # Simple return
-            retType = get_COMPSs_type(self.kwargs['returns'])
-            self.kwargs['compss_retvalue'] = Parameter(p_type=retType, p_direction=DIRECTION.OUT)
+            ret_type = get_COMPSs_type(self.kwargs['returns'])
+            self.kwargs['compss_retvalue'] = Parameter(p_type=ret_type, p_direction=DIRECTION.OUT)
         else:
             # Multi return
             self.has_multireturn = True
             returns = []
             for r in self.kwargs['returns']:
-                retType = get_COMPSs_type(r)
-                returns.append(Parameter(p_type=retType, p_direction=DIRECTION.OUT))
+                ret_type = get_COMPSs_type(r)
+                returns.append(Parameter(p_type=ret_type, p_direction=DIRECTION.OUT))
             self.kwargs['compss_retvalue'] = tuple(returns)
 
     def __update_return_if_no_returns(self, f):
@@ -352,6 +361,7 @@ class task(object):
         Checks the code looking for return statements if no returns is specified in @task decorator.
         :param f: Function to check
         """
+
         from pycompss.api.parameter import Parameter
         from pycompss.api.parameter import DIRECTION
         from pycompss.api.parameter import TYPE
@@ -360,20 +370,20 @@ class task(object):
         if self.is_instance or source_code.startswith('@classmethod'):   # TODO: WHAT IF IS CLASSMETHOD FROM BOOLEAN?
             # It is a task defined within a class (can not parse the code with ast since the class does not
             # exist yet. Alternatively, the only way I see is to parse it manually line by line.
-            retMask = []
+            ret_mask = []
             code = source_code.split('\n')
             for line in code:
                 if 'return ' in line:
-                    retMask.append(True)
+                    ret_mask.append(True)
                 else:
-                    retMask.append(False)
+                    ret_mask.append(False)
         else:
             code = [node for node in ast.walk(ast.parse(source_code))]
-            retMask = [isinstance(node, ast.Return) for node in code]
-        if any(retMask):
+            ret_mask = [isinstance(node, ast.Return) for node in code]
+        if any(ret_mask):
             print("INFO! Return found in function " + f.__name__ + " without 'returns' statement at task definition.")
             self.has_return = True
-            lines = [i for i, li in enumerate(retMask) if li]
+            lines = [i for i, li in enumerate(ret_mask) if li]
             max_num_returns = 0
             if self.is_instance or source_code.startswith('@classmethod'):
                 # Parse code as string (it is a task defined within a class)
@@ -384,7 +394,7 @@ class task(object):
                             return True
                         else:
                             return False
-                    except:
+                    except Exception:
                         # KeyError: 'elts' means that it is a multiple return.
                         # "Ask forgiveness not permission"
                         return False
@@ -408,7 +418,7 @@ class task(object):
                             num_returns = len(code[i].value.__dict__['elts'])
                             if num_returns > max_num_returns:
                                 max_num_returns = num_returns
-                    except:
+                    except Exception:
                         # KeyError: 'elts' means that it is a multiple return.
                         # "Ask forgiveness not permission"
                         pass
@@ -435,6 +445,7 @@ class task(object):
         initialization.
         :param f: Function to be registered
         """
+
         from pycompss.runtime.core_element import CE
         import pycompss.runtime.binding as binding
 
@@ -446,12 +457,12 @@ class task(object):
         # call its __call__ method will always be @task. Consequently, the @task
         # decorator __call__ method can detect the top decorator and pass a hint
         # to order that decorator that has to do the registration (not the others).
-        gotFuncCode = False
+        got_func_code = False
         func = f
-        while not gotFuncCode:
+        while not got_func_code:
             try:
-                funcCode = get_wrapped_sourcelines(func)
-                gotFuncCode = True
+                func_code = get_wrapped_sourcelines(func)
+                got_func_code = True
             except IOError:
                 # There is one or more decorators below the @task --> undecorate
                 # until possible to get the func code.
@@ -459,24 +470,25 @@ class task(object):
                 # @task decorator.
                 func = func.__wrapped__
 
-        decoratorKeys = ("implement", "constraint", "decaf", "mpi", "ompss", "binary", "opencl", "task")
+        decorator_keys = ("implement", "constraint", "decaf", "mpi", "ompss", "binary", "opencl", "task")
 
-        topDecorator = get_top_decorator(funcCode, decoratorKeys)
+        top_decorator = get_top_decorator(func_code, decorator_keys)
         if __debug__:
             logger.debug(
-                "[@TASK] Top decorator of function %s in module %s: %s" % (f.__name__, self.module, str(topDecorator)))
-        f.__who_registers__ = topDecorator
+                "[@TASK] Top decorator of function %s in module %s: %s" % (f.__name__, self.module, str(top_decorator)))
+        f.__who_registers__ = top_decorator
 
         # not usual tasks - handled by the runtime without invoking the PyCOMPSs
         # worker. Needed to filter in order not to code the strings when using
         # them in these type of tasks
         decorator_filter = ("decaf", "mpi", "ompss", "binary", "opencl")
         default = 'task'
-        taskType = get_task_type(funcCode, decorator_filter, default)
+        task_type = get_task_type(func_code, decorator_filter, default)
         if __debug__:
-            logger.debug("[@TASK] Task type of function %s in module %s: %s" % (f.__name__, self.module, str(taskType)))
-        f.__task_type__ = taskType
-        if taskType == default:
+            logger.debug(
+                "[@TASK] Task type of function %s in module %s: %s" % (f.__name__, self.module, str(task_type)))
+        f.__task_type__ = task_type
+        if task_type == default:
             f.__code_strings__ = True
         else:
             f.__code_strings__ = False
@@ -485,30 +497,30 @@ class task(object):
         ins = inspect.getouterframes(inspect.currentframe())
         # I know that this is ugly, but I see no other way to get the class name
         class_name = ins[2][3]
-        # I know that this is ugly, but I see no other way to check if it is a
-        # classs method.
+        # I know that this is ugly, but I see no other way to check if it is a class method.
         is_classmethod = class_name != '<module>'
         if self.is_instance or is_classmethod:
             ce_signature = self.module + "." + class_name + '.' + f.__name__
-            implTypeArgs = [self.module + "." + class_name, f.__name__]
+            impl_type_args = [self.module + "." + class_name, f.__name__]
         else:
             ce_signature = self.module + "." + f.__name__
-            implTypeArgs = [self.module, f.__name__]
-        implSignature = ce_signature
-        implConstraints = {}
-        implType = "METHOD"
-        coreElement = CE(ce_signature,
-                         implSignature,
-                         implConstraints,
-                         implType,
-                         implTypeArgs)
-        f.__to_register__ = coreElement
+            impl_type_args = [self.module, f.__name__]
+        impl_signature = ce_signature
+        impl_constraints = {}
+        impl_type = "METHOD"
+        core_element = CE(ce_signature,
+                          impl_signature,
+                          impl_constraints,
+                          impl_type,
+                          impl_type_args)
+        f.__to_register__ = core_element
         # Do the task register if I am the top decorator
         if f.__who_registers__ == __name__:
             if __debug__:
-                logger.debug("[@TASK] I have to do the register of function %s in module %s" % (f.__name__, self.module))
+                logger.debug(
+                    "[@TASK] I have to do the register of function %s in module %s" % (f.__name__, self.module))
                 logger.debug("[@TASK] %s" % str(f.__to_register__))
-            binding.register_ce(coreElement)
+            binding.register_ce(core_element)
 
     # ############################################################################ #
     # #################### TASK DECORATOR WORKER CODE ############################ #
@@ -526,6 +538,7 @@ class task(object):
         :param kwargs: <Dictionary> - Contains the named objects that the function has been called with.
         :return: Two lists: newTypes and newValues.
         """
+
         from pycompss.util.serializer import serialize_objects
         import pycompss.runtime.binding as binding
 
@@ -591,14 +604,10 @@ class task(object):
             spec_args = spec_args + toadd
 
         # Discover hidden objects passed as files
-        real_values, to_serialize = self.__reveal_objects(args,
-                                                          spec_args,
-                                                          kwargs['compss_types'],
-                                                          num_return)
+        real_values, to_serialize = self.__reveal_objects(args, spec_args, kwargs['compss_types'], num_return)
 
         if binding.aargs_as_tuple:
-            # Check if there is *arg parameter in the task, so the last element
-            # (*arg tuple) has to be flattened
+            # Check if there is *arg parameter in the task, so the last element (*arg tuple) has to be flattened
             if self.has_varargs:
                 if self.has_keywords:
                     real_values = real_values[:-2] + list(real_values[-2]) + [real_values[-1]]
@@ -607,8 +616,7 @@ class task(object):
         else:
             pass
         kargs = {}
-        # Check if there is **kwarg parameter in the task, so the last element
-        # (kwarg dict) has to be flattened
+        # Check if there is **kwarg parameter in the task, so the last element (kwarg dict) has to be flattened
         if self.has_keywords:
             kargs = real_values[-1]  # kwargs dict
             real_values = real_values[:-1]  # remove kwargs from real_values
@@ -623,19 +631,19 @@ class task(object):
             pyextrae.eventandcounters(TASK_EVENTS, 0)
             pyextrae.eventandcounters(TASK_EVENTS, SERIALIZATION)
 
-        # this will contain the same as to_serialize but we will store the whole
+        # This will contain the same as to_serialize but we will store the whole
         # file identifier string instead of simply the file_name
         _output_objects = []
 
         if returns:
-            # If there is multireturn then serialize each one on a different file
-            # Multireturn example: a,b,c = fun() , where fun() has a return x,y,z
+            # If there is multi-return then serialize each one on a different file
+            # Multi-return example: a,b,c = fun() , where fun() has a return x,y,z
             if is_multi_return:
                 aux = []
                 try:
                     num_ret = len(ret)
                     aux = ret
-                except:
+                except Exception:
                     aux.append(ret)
                     while len(aux) < num_return:
                         # The user declared more than used.
@@ -657,13 +665,11 @@ class task(object):
         # Check if the values and types have changed after the task execution:
         # I.e.- an object that has been made persistent within the task may be
         # detected here, and the type change done within the outputTypes list.
-        newTypes, newValues, to_serialize = check_value_changes(kwargs['compss_types'],
-                                                              list(args),
-                                                              to_serialize)
+        new_types, new_values, to_serialize = check_value_changes(kwargs['compss_types'], list(args), to_serialize)
         if len(to_serialize) > 0:
             serialize_objects(to_serialize)
 
-        return newTypes, newValues
+        return new_types, new_values
 
     def __reveal_objects(self, values, spec_args, compss_types, num_return):
         """
@@ -675,6 +681,7 @@ class task(object):
         :param num_return: <Int> - Number of returns
         :return: a list with the real values
         """
+
         from pycompss.api.parameter import Parameter
         from pycompss.api.parameter import DIRECTION
         from pycompss.api.parameter import TYPE
@@ -697,8 +704,7 @@ class task(object):
                         d = DIRECTION.INOUT
                     else:
                         d = DIRECTION.IN
-                    self.kwargs[spec_arg] = Parameter(p_type=TYPE.OBJECT,
-                                                      p_direction=d)
+                    self.kwargs[spec_arg] = Parameter(p_type=TYPE.OBJECT, p_direction=d)
                 elif inspect.isclass(value):  # class (it's a class method)
                     real_values.append(value)
                     continue
@@ -794,24 +800,23 @@ class task(object):
             num_params -= 1
 
         # Check if the user has defined default values and include them
-        argsList = []
         if self.has_defaults:
             # There are default parameters
             # Get the variable names and values that have been defined by default (get_default_args(f)).
             # default_params will have a list of pairs of the form (argument, default_value)
             # Default values have to be always defined after undefined value parameters.
             default_params = get_default_args(f)
-            argsList = list(args)  # Given values
+            args_list = list(args)  # Given values
             # Default parameter addition
             for p in self.f_argspec.args[len(args):num_params]:
                 if p in kwargs:
-                    argsList.append(kwargs[p])
+                    args_list.append(kwargs[p])
                     kwargs.pop(p)
                 else:
                     for dp in default_params:
                         if p == dp[0]:
-                            argsList.append(dp[1])
-            args = tuple(argsList)
+                            args_list.append(dp[1])
+            args = tuple(args_list)
 
         # List of parameter names
         vals_names = list(self.f_argspec.args[:num_params])
@@ -877,6 +882,7 @@ def get_module_name(path, file_name):
     :param file_name: python file to be executed name (without the py extension)
     :return: the module name
     """
+
     dirs = path.split(os.path.sep)
     mod_name = file_name
     i = len(dirs) - 1
@@ -899,11 +905,12 @@ def get_top_decorator(code, decoratorKeys):
     :param decoratorKeys: Typle which contains the available decorator keys
     :return: the decorator name in the form "pycompss.api.__name__"
     """
+
     # Code has two fields:
     # code[0] = the entire function code.
     # code[1] = the number of lines of the function code.
-    funcCode = code[0]
-    decorators = [l.strip() for l in funcCode if l.strip().startswith('@')]
+    func_code = code[0]
+    decorators = [l.strip() for l in func_code if l.strip().startswith('@')]
     # Could be improved if it stops when the first line without @ is found,
     # but we have to be care if a decorator is commented (# before @)
     # The strip is due to the spaces that appear before functions definitions,
@@ -912,6 +919,9 @@ def get_top_decorator(code, decoratorKeys):
         for d in decorators:
             if d.startswith('@' + dk):
                 return "pycompss.api." + dk.lower()  # each decorator __name__
+
+    # If no decorator is found, then the current decorator is the one to register
+    return __name__
 
 
 def get_task_type(code, decorator_filter, default):
@@ -923,11 +933,12 @@ def get_task_type(code, decorator_filter, default):
     :param default: Default values
     :return: the type of the task
     """
+
     # Code has two fields:
     # code[0] = the entire function code.
     # code[1] = the number of lines of the function code.
-    funcCode = code[0]
-    fulldecorators = [l.strip() for l in funcCode if l.strip().startswith('@')]
+    func_code = code[0]
+    fulldecorators = [l.strip() for l in func_code if l.strip().startswith('@')]
     # Get only the decorators used. Remove @ and parameters.
     decorators = [l[1:].split('(')[0] for l in fulldecorators]
     # Look for the decorator used from the filter list and return it when found
@@ -961,6 +972,7 @@ def check_value_changes(types, values, to_serialize):
     :param to_serialize: List of objects to be serialized
     :return: Three lists, the new types, new values and new to_serialize list.
     """
+
     assert len(types) == len(values), 'Inconsistent state: type-value length mismatch.'
 
     from pycompss.api.parameter import TYPE
@@ -999,6 +1011,7 @@ def get_COMPSs_type(value):
     :param value: Value to analyse
     :return: The Type of the value
     """
+
     from pycompss.api.parameter import TYPE
     from pycompss.util.persistent_storage import has_ID, get_ID
 
@@ -1050,6 +1063,7 @@ def get_default_args(f):
     Returns a dictionary of arg_name:default_values for the input function
     @param f: Function to inspect for default parameters.
     """
+
     a = inspect.getargspec(f)
     num_params = len(a.args) - len(a.defaults)
     return list(zip(a.args[num_params:], a.defaults))

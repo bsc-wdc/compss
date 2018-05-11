@@ -373,6 +373,13 @@ public class WorkerStarter {
             LOGGER.warn("No python interpreter passed");
         }
 
+        // Configure python version
+        String python_version = System.getProperty(COMPSsConstants.PYTHON_VERSION);
+        if (python_version == null || python_version.isEmpty() || python_version.equals("null")) {
+            python_interpreter = COMPSsConstants.DEFAULT_PYTHON_VERSION;
+            LOGGER.warn("No python version passed");
+        }
+
         // Configure python virtual environment
         String python_virtual_environment = System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT);
         if (python_virtual_environment == null || python_virtual_environment.isEmpty() || python_virtual_environment.equals("null")) {
@@ -456,6 +463,9 @@ public class WorkerStarter {
 
         // Python interpreter parameter
         cmd[nextPosition++] = python_interpreter;
+
+        // Python interpreter version
+        cmd[nextPosition++] = python_version;
 
         // Python virtual environment parameter
         cmd[nextPosition++] = python_virtual_environment;

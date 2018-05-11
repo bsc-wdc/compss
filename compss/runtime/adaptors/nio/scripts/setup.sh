@@ -73,6 +73,8 @@
     extraeFile=${23}
     hostId=${24}
     pythonInterpreter=${28}
+    pythonVersion=${29}
+    pythonVirtualEnvironment=${30}
 
     if [ "$debug" == "true" ]; then
       echo "PERSISTENT_WORKER.sh"
@@ -94,6 +96,8 @@
       echo "- Classpath:           $cpNW"
       echo "- Pythonpath:          $pythonpath"
       echo "- Python Interpreter   $pythonInterpreter"
+      echo "- Python Version       $pythonVersion"
+      echo "- Python Virtual Env.  $pythonVirtualEnvironment"
 
       echo "- Tracing:             $tracing"
       echo "- ExtraeFile:          ${extraeFile}"
@@ -179,6 +183,8 @@
       -XX:ThreadPriorityPolicy=42 \
       -Dlog4j.configurationFile=${installDir}/Runtime/configuration/log/${itlog4j_file} \
       -Dcompss.python.interpreter=${pythonInterpreter} \
+      -Dcompss.python.version=${pythonVersion} \
+      -Dcompss.python.virtualenvironment=${pythonVirtualEnvironment} \
       -classpath $CLASSPATH:${worker_jar} \
       ${main_worker_class}"
   }

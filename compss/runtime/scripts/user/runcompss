@@ -41,6 +41,7 @@ fi
 DEFAULT_STORAGE_CONF="None"
 DEFAULT_PyOBJECT_SERIALIZE=false
 DEFAULT_PYTHON_INTERPRETER=python
+DEFAULT_PYTHON_VERSION=$( ${DEFAULT_PYTHON_INTERPRETER} -c "import sys; print(sys.version_info[:][0])" )
 if [ -z "${VIRTUAL_ENV}" ]; then
   DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT="null"
 else
@@ -181,7 +182,7 @@ show_opts() {
     --enable_external_adaptation=<bool>     Enable external adaptation. This option will disable the Resource Optimizer.
                                             Default: false
     --python_interpreter=<string>           Python interpreter to use (python/python2/python3).
-                                            Default: $DEFAULT_PYTHON_INTERPRETER
+                                            Default: $DEFAULT_PYTHON_INTERPRETER Version: ${DEFAULT_PYTHON_VERSION}
 
 * Application name:
     For Java applications:   Fully qualified name of the application
@@ -882,7 +883,10 @@ check_args() {
 	external_adaptation=$DEFAULT_EXTERNAL_ADAPTATION
   fi
   if [ -z "$python_interpreter" ]; then
-	python_interpreter=$DEFAULT_PYTHON_INTERPRETER
+	  python_interpreter=$DEFAULT_PYTHON_INTERPRETER
+    python_version=$DEFAULT_PYTHON_VERSION
+  else
+    python_version=$( ${python_interpreter} -c "import sys; print(sys.version_info[:][0])")
   fi
 }
 
@@ -983,6 +987,7 @@ add_jvm_opts_python() {
 -Djava.class.path=${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar
 -Dcompss.worker.pythonpath=${PYTHONPATH}
 -Dcompss.python.interpreter=${python_interpreter}
+-Dcompss.python.version=${python_version}
 -Dcompss.python.virtualenvironment=${DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT}
 EOT
 }
@@ -1056,9 +1061,7 @@ exec_python() {
   storageApi=${COMPSS_HOME}/Dependencies/
   cp=$cp:$storageApi
 
-  if command_exists $python_interpreter ; then
-    python_version=$( $python_interpreter -c "import sys; print(sys.version_info[:][0])" )
-  else
+  if ! command_exists $python_interpreter ; then
     error_msg "ERROR: Python interpreter $python_interpreter does not exist."
   fi
 

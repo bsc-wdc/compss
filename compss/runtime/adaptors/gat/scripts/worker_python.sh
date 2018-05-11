@@ -32,14 +32,12 @@
   taskTracing=false # Only available with NIO
   taskId=0 # Not used with GAT
 
-  # Python version folder
-  subfolder=$( $pythonInterpreter -c "import sys; print(sys.version_info[:][0])" )
+  # Include version subfolder in pycompss home and set pythonpath related env
+  export PYCOMPSS_HOME=${PYCOMPSS_HOME}/${pythonVersion}
+  export PYTHONPATH=${PYCOMPSS_HOME}:${pythonpath}:${app_dir}:${PYTHONPATH}
 
-  # Include subfolder in pycompss home and set pythonpath related env
-  export PYCOMPSS_HOME=${PYCOMPSS_HOME}/$subfolder
-  export PYTHONPATH=$app_dir:$PYCOMPSS_HOME:$pythonpath:$PYTHONPATH
-
-  echo "[WORKER_PYTHON.SH] EXEC CMD: $pythonInterpreter $PYCOMPSS_HOME/pycompss/worker/worker.py $taskTracing $taskId $params"
+  echo "[WORKER_PYTHON.SH] PYTHONPATH: ${PYTHONPATH}"
+  echo "[WORKER_PYTHON.SH] EXEC CMD: $pythonInterpreter ${PYCOMPSS_HOME}/pycompss/worker/worker.py $taskTracing $taskId $params"
   $pythonInterpreter ${PYCOMPSS_HOME}/pycompss/worker/worker.py $taskTracing $taskId $params
 
   exitCode=0

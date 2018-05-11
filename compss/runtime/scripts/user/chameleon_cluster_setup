@@ -39,8 +39,8 @@
   ##########################################################
   # Retrieve other information
   echo "* Retrieving configuration parameters from Chameleon..."
-  image=$(nova show $masterName | grep image | tr "|" "\t" | awk {'print $2'})
-  netId=$(neutron net-list | grep sharednet1 | tr "|" "\t" | awk {' print $1 '})
+  image=$(nova show "$masterName" | grep image | tr "|" "\t" | awk '{ print $2 }')
+  netId=$(neutron net-list | grep sharednet1 | tr "|" "\t" | awk '{ print $1 }')
 
 
   ##########################################################
@@ -50,7 +50,7 @@
   nova keypair-add --pub_key /home/cc/.ssh/id_rsa.pub COMPSsMaster${randomID}
 
   # Create workers
-  for (( i=1; i<=$numWorkers; i++ )); do
+  for (( i=1; i<=numWorkers; i++ )); do
     cmd="nova boot --flavor baremetal --image $image --key-name COMPSsMaster${randomID} --nic net-id=$netId --hint reservation=$reservationId COMPSsWorker$i"
     echo "$cmd"
     $cmd
@@ -60,18 +60,18 @@
   ##########################################################
   # Waiting Workers creation
   echo "* Waiting for COMPSs Workers creation (eta 5 min)"
-  for (( i=1; i<=$instanceCreationTime; i++ )); do
+  for (( i=1; i<=instanceCreationTime; i++ )); do
     printf "."
     sleep ${HALF_MIN}
   done
   printf "\n"
 
-  for (( i=1; i<=$numWorkers; i++ )); do
+  for (( i=1; i<=numWorkers; i++ )); do
     # Wait for each worker
-    status=$(nova list | grep "COMPSsWorker$i" | tr "|" "\t" | awk {' print $3 '})
-    while [ "$status" != "ACTIVE" ]; do
+    cmd_status=$(nova list | grep "COMPSsWorker$i" | tr "|" "\t" | awk '{ print $3 }')
+    while [ "$cmd_status" != "ACTIVE" ]; do
       sleep ${HALF_MIN}
-      status=$(nova list | grep "COMPSsWorker$i" | tr "|" "\t" | awk {' print $3 '})
+      cmd_status=$(nova list | grep "COMPSsWorker$i" | tr "|" "\t" | awk '{ print $3 }')
     done
     echo "   - COMPSsWorker$i is ACTIVE"
   done
@@ -83,8 +83,8 @@
 
   echo "# Automatically added hostnames by chameleon_cluster_setup" > $tmpFile
   workerIPs=""
-  for (( i=1; i<=$numWorkers; i++ )); do
-    workerIP=$(nova show COMPSsWorker$i | grep "network" | tr "|" "\t" | awk {' print $3 '} | tr "," "\t" | awk {'print $1 '})
+  for (( i=1; i<=numWorkers; i++ )); do
+    workerIP=$(nova show COMPSsWorker$i | grep "network" | tr "|" "\t" | awk '{ print $3 }' | tr "," "\t" | awk '{ print $1 }')
     # Update worker list
     workerIPs="$workerIPs $workerIP"
     # Update hosts tmp file"
@@ -95,21 +95,21 @@
 
   # Adding configuration to COMPSs Master /etc/hosts file
   sudo /bin/bash -c "cat $tmpFile >> /etc/hosts"
-  masterIP=$(nova show $masterName | grep "network" | tr "|" "\t" | awk {' print $3 '} | tr "," "\t" | awk {'print $1 '})
+  masterIP=$(nova show "$masterName" | grep "network" | tr "|" "\t" | awk '{ print $3 }' | tr "," "\t" | awk '{ print $1 }')
   echo "$masterIP     COMPSsMaster" >> $tmpFile
 
   # Configuring COMPSs Workers
   echo "* Configuring COMPSs Workers... (eta 4 min)"
-  for (( i=1; i<=$sshUpTime; i++ )); do
+  for (( i=1; i<=sshUpTime; i++ )); do
     printf "."
     sleep ${HALF_MIN}
   done
   printf "\n"
 
   for workerIP in $workerIPs; do
-    scp -o StrictHostKeyChecking=no $tmpFile $user@$workerIP:$tmpFile
-    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no $user@$workerIP "sudo /bin/bash -c 'cat $tmpFile >> /etc/hosts'"
-    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no $user@$workerIP "rm -f $tmpFile"
+    scp -o StrictHostKeyChecking=no $tmpFile $user@"$workerIP":$tmpFile
+    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no $user@"$workerIP" "sudo /bin/bash -c 'cat $tmpFile >> /etc/hosts'"
+    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no $user@"$workerIP" "rm -f $tmpFile"
   done 
 
   # Clean tmpfile
@@ -132,7 +132,7 @@
     <MasterNode/>
 
 EOT
-  for (( i=1; i<=$numWorkers; i++ )); do
+  for (( i=1; i<=numWorkers; i++ )); do
     cat >> $project << EOT
     <ComputeNode Name="COMPSsWorker$i">
         <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
@@ -153,7 +153,7 @@ EOT
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourcesList>
 EOT
-  for (( i=1; i<=$numWorkers; i++ )); do
+  for (( i=1; i<=numWorkers; i++ )); do
     cat >> $resources << EOT
     <ComputeNode Name="COMPSsWorker$i">
         <Processor Name="MainProcessor">

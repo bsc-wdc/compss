@@ -51,10 +51,11 @@ import org.json.JSONObject;
 
 public class ResourceOptimizer extends Thread {
 
-    //Private Classes
+    // Private Classes
     protected class CloudTypeProfile {
 
         private Profile[][] implProfiles;
+
 
         public CloudTypeProfile(JSONObject typeJSON, JSONObject implsJSON) {
             implProfiles = loadProfiles(typeJSON, implsJSON);
@@ -67,8 +68,10 @@ public class ResourceOptimizer extends Thread {
         /**
          * Prepares the default profiles for each implementation cores
          *
-         * @param resMap default profile values for the resource
-         * @param implMap default profile values for the implementation
+         * @param resMap
+         *            default profile values for the resource
+         * @param implMap
+         *            default profile values for the implementation
          *
          * @return default profile structure
          */
@@ -120,11 +123,11 @@ public class ResourceOptimizer extends Thread {
 
     }
 
-
     private static class ConstraintsCore {
 
         private CloudMethodResourceDescription desc;
         private List<ConstraintsCore>[] cores;
+
 
         @SuppressWarnings("unchecked")
         public ConstraintsCore(CloudMethodResourceDescription desc, int core, List<ConstraintsCore> coreList) {
@@ -170,12 +173,12 @@ public class ResourceOptimizer extends Thread {
         }
     }
 
-
     private static class ValueResourceDescription implements Comparable<ValueResourceDescription> {
 
         private final MethodResourceDescription constraints;
         private final float value;
         private final boolean prioritary;
+
 
         public ValueResourceDescription(MethodResourceDescription constraints, float value, boolean prioritary) {
             this.constraints = constraints;
@@ -208,6 +211,7 @@ public class ResourceOptimizer extends Thread {
             return value + (prioritary ? "!" : "") + constraints;
         }
     }
+
 
     // WARNING MESSAGES
     private static final String WARN_NO_RESOURCE_MATCHES = "WARN: No resource matches the constraints";
@@ -248,6 +252,7 @@ public class ResourceOptimizer extends Thread {
     private int everythingBlockedRetryCount = -1;
     private long lastPotentialBlockedCheck = System.currentTimeMillis();
     private Map<CloudInstanceTypeDescription, CloudTypeProfile> defaultProfiles;
+
 
     public ResourceOptimizer(TaskScheduler ts) {
         if (DEBUG) {
@@ -306,8 +311,8 @@ public class ResourceOptimizer extends Thread {
                         boolean potentialBlock = (blockedTasks > 0);
                         if (ResourceManager.useCloud()) {
                             if (!ts.isExternalAdaptationEnabled()) {
-                                //If external adaptation is enabled, 
-                                //we do not have to apply the resource optimization policies
+                                // If external adaptation is enabled,
+                                // we do not have to apply the resource optimization policies
                                 workload = ts.getWorkload();
                                 applyPolicies(workload);
                             }
@@ -370,8 +375,9 @@ public class ResourceOptimizer extends Thread {
                         // Retries limit not reached. Warn the user...
                         int retriesLeft = EVERYTHING_BLOCKED_MAX_RETRIES - everythingBlockedRetryCount;
                         ErrorManager.warn("No task could be scheduled to any of the available resources.\n"
-                                + "This could end up blocking COMPSs. Will check it again in " + (EVERYTHING_BLOCKED_INTERVAL_TIME / 1_000) + " seconds.\n"
-                                + "Possible causes: \n" + "    -Network problems: non-reachable nodes, sshd service not started, etc.\n"
+                                + "This could end up blocking COMPSs. Will check it again in " + (EVERYTHING_BLOCKED_INTERVAL_TIME / 1_000)
+                                + " seconds.\n" + "Possible causes: \n"
+                                + "    -Network problems: non-reachable nodes, sshd service not started, etc.\n"
                                 + "    -There isn't any computing resource that fits the defined tasks constraints.\n" + "If this happens "
                                 + retriesLeft + " more time" + (retriesLeft > 1 ? "s" : "") + ", the runtime will shutdown.");
                     } else {
@@ -648,7 +654,8 @@ public class ResourceOptimizer extends Thread {
      * The addExtraNodes creates this difference of VMs. First it tries to merge the method constraints that are
      * included into another methods. And performs a less aggressive and more equal distribution.
      *
-     * @param alreadyCreated number of already requested VMs
+     * @param alreadyCreated
+     *            number of already requested VMs
      * @return the number of extra VMs created to fulfill the Initial VM Count constraint
      */
     public static int addExtraNodes(int alreadyCreated) {
@@ -666,7 +673,7 @@ public class ResourceOptimizer extends Thread {
         /*
          * Tries to reduce the number of machines by entering methodConstraints in another method's machine
          */
- /*
+        /*
          * LinkedList<CloudWorkerDescription> requirements = new LinkedList<CloudWorkerDescription>(); for (int coreId =
          * 0; coreId < CoreManager.coreCount; coreId++) { Implementation impl =
          * CoreManager.getCoreImplementations(coreId)[0]; if (impl.getType() == Type.METHOD) { WorkerDescription wd =
@@ -902,10 +909,6 @@ public class ResourceOptimizer extends Thread {
         }
         ReductionOption nonCriticalSolution = getBestDestruction(nonCritical, destroyRecommendations);
         CloudMethodWorker res;
-        float[] record;
-        CloudInstanceTypeDescription rd;
-        // int[][] slotsRemovingCount;
-
         if (nonCriticalSolution == null) {
             if (DEBUG) {
                 RUNTIME_LOGGER.warn("[Resource Optimizer] No solution found");
@@ -916,9 +919,8 @@ public class ResourceOptimizer extends Thread {
         res = (CloudMethodWorker) nonCriticalSolution.getResource();
 
         if (DEBUG) {
-            RUNTIME_LOGGER.debug("[Resource Optimizer] Best resource to remove is " + nonCriticalSolution.getName()
-                    + "and record is [" + nonCriticalSolution.getUndesiredCEsAffected() + ","
-                    + nonCriticalSolution.getUndesiredSlotsAffected() + ","
+            RUNTIME_LOGGER.debug("[Resource Optimizer] Best resource to remove is " + nonCriticalSolution.getName() + "and record is ["
+                    + nonCriticalSolution.getUndesiredCEsAffected() + "," + nonCriticalSolution.getUndesiredSlotsAffected() + ","
                     + nonCriticalSolution.getDesiredSlotsAffected() + "]");
         }
         if (nonCriticalSolution.getUndesiredSlotsAffected() > 0 && res.getUsedCPUTaskCount() > 0) {
@@ -964,12 +966,6 @@ public class ResourceOptimizer extends Thread {
                 criticalIsBetter = true;
             }
         }
-
-        CloudMethodWorker res;
-        CloudMethodResourceDescription cmrd;
-        // float[] record;
-        // int[][] slotsRemovingCount;
-        CloudInstanceTypeDescription citd;
 
         if (criticalIsBetter) {
             criticalSolution.apply();
@@ -1161,11 +1157,13 @@ public class ResourceOptimizer extends Thread {
      * which cores can be executed on it. This ResourceRequest will be used to ask for that resource creation to the
      * Cloud Provider and returned if the application is accepted.
      *
-     * @param requirements description of the resource expected to receive
-     * @param contained {@literal true} if we want the request to ask for a resource contained in the description; else,
-     * the result contains the passed in description.
+     * @param requirements
+     *            description of the resource expected to receive
+     * @param contained
+     *            {@literal true} if we want the request to ask for a resource contained in the description; else, the
+     *            result contains the passed in description.
      * @return Description of the ResourceRequest sent to the CloudProvider. {@literal Null} if any of the Cloud
-     * Providers can offer a resource like the requested one.
+     *         Providers can offer a resource like the requested one.
      */
     public static ResourceCreationRequest askForResources(MethodResourceDescription requirements, boolean contained) {
         return askForResources(1, requirements, contained);
@@ -1177,10 +1175,13 @@ public class ResourceOptimizer extends Thread {
      * resourceRequest describing the resource and which cores can be executed on it. This ResourceRequest will be used
      * to ask for that resource creation to the Cloud Provider and returned if the application is accepted.
      *
-     * @param amount amount of slots
-     * @param requirements features of the resource
-     * @param contained {@literal true} if we want the request to ask for a resource contained in the description; else,
-     * the result contains the passed in description.
+     * @param amount
+     *            amount of slots
+     * @param requirements
+     *            features of the resource
+     * @param contained
+     *            {@literal true} if we want the request to ask for a resource contained in the description; else, the
+     *            result contains the passed in description.
      * @return
      */
     public static ResourceCreationRequest askForResources(Integer amount, MethodResourceDescription requirements, boolean contained) {
@@ -1337,16 +1338,18 @@ public class ResourceOptimizer extends Thread {
      * modified, minimize the number of slots that weren't requested to be destroyed and maximize the number of slots
      * that can be removed and they were requested for.
      *
-     * @param resourceSet set of resources
-     * @param destroyRecommendations number of slots to be removed for each CE
+     * @param resourceSet
+     *            set of resources
+     * @param destroyRecommendations
+     *            number of slots to be removed for each CE
      * @return an object array defining the best solution.
      *
-     * 0-> (Resource) selected Resource.
+     *         0-> (Resource) selected Resource.
      *
-     * 1->(CloudTypeInstanceDescription) Type to be destroyed to be destroyed.
+     *         1->(CloudTypeInstanceDescription) Type to be destroyed to be destroyed.
      *
-     * 2-> (int[]) record of the #CE with removed slots and that they shouldn't be modified, #slots that will be
-     * destroyed and they weren't recommended, #slots that will be removed and they were asked to be.
+     *         2-> (int[]) record of the #CE with removed slots and that they shouldn't be modified, #slots that will be
+     *         destroyed and they weren't recommended, #slots that will be removed and they were asked to be.
      *
      */
     private ReductionOption getBestDestruction(Collection<DynamicMethodWorker> resourceSet, float[] destroyRecommendations) {
@@ -1363,9 +1366,8 @@ public class ResourceOptimizer extends Thread {
 
             for (ReductionOption option : reductions) {
                 if (DEBUG) {
-                    RUNTIME_LOGGER.debug("Type: " + option.getName()
-                            + " value 0: " + option.getUndesiredCEsAffected() + " (" + bestUndesiredCEs + ") "
-                            + " value 1: " + option.getUndesiredSlotsAffected() + " (" + bestUndesiredSlots + ") "
+                    RUNTIME_LOGGER.debug("Type: " + option.getName() + " value 0: " + option.getUndesiredCEsAffected() + " ("
+                            + bestUndesiredCEs + ") " + " value 1: " + option.getUndesiredSlotsAffected() + " (" + bestUndesiredSlots + ") "
                             + " value 2: " + option.getDesiredSlotsAffected() + " (" + bestDesiredSlots + ")");
                 }
                 if (bestUndesiredCEs == option.getUndesiredCEsAffected()) {
@@ -1451,11 +1453,12 @@ public class ResourceOptimizer extends Thread {
 
         private final Resource res;
 
-        private float undesiredCEsAffected = 0;//values[0]
-        private float undesiredSlotsAffected = 0; //values[1]
-        private float desiredSlotsAffected = 0; //values[2]
+        private float undesiredCEsAffected = 0;// values[0]
+        private float undesiredSlotsAffected = 0; // values[1]
+        private float desiredSlotsAffected = 0; // values[2]
 
-        ReductionOption(Resource res) {
+
+        public ReductionOption(Resource res) {
             this.res = res;
         }
 
@@ -1483,7 +1486,7 @@ public class ResourceOptimizer extends Thread {
             return desiredSlotsAffected;
         }
 
-        private String getName() {
+        public String getName() {
             return res.getName();
         }
 
@@ -1497,17 +1500,18 @@ public class ResourceOptimizer extends Thread {
 
     }
 
-
     private class CloudReductionOption extends ReductionOption {
 
-        final CloudInstanceTypeDescription type;
+        private final CloudInstanceTypeDescription type;
 
-        CloudReductionOption(CloudInstanceTypeDescription type, Resource res) {
+
+        public CloudReductionOption(CloudInstanceTypeDescription type, Resource res) {
             super(res);
             this.type = type;
         }
 
-        private String getName() {
+        @Override
+        public String getName() {
             return type.getName() + "@" + super.getName();
         }
 

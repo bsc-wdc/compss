@@ -102,9 +102,9 @@ public class NIOWorker extends NIOAgent {
 
     private static boolean persistentC;
 
-    // Python interpreter
+    // Python related variables
     private static String pythonInterpreter;
-    // Python virtual environment
+    private static String pythonVersion;
     private static String pythonVirtualEnvironment;
 
     // Internal components
@@ -229,6 +229,10 @@ public class NIOWorker extends NIOAgent {
 
     public static String getPythonInterpreter() {
         return pythonInterpreter;
+    }
+
+    public static String getPythonVersion() {
+        return pythonVersion;
     }
 
     public static String getPythonVirtualEnvironment() {
@@ -1041,7 +1045,8 @@ public class NIOWorker extends NIOAgent {
         persistentC = Boolean.parseBoolean(args[26]);
 
         pythonInterpreter = args[27];
-        pythonVirtualEnvironment = args[28];
+        pythonVersion = args[28];
+        pythonVirtualEnvironment = args[29];
 
         // Print arguments
         if (isWorkerDebugEnabled) {
@@ -1078,6 +1083,7 @@ public class NIOWorker extends NIOAgent {
             WORKER_LOGGER.debug("Persistent c: " + persistentC);
 
             WORKER_LOGGER.debug("Python interpreter: " + pythonInterpreter);
+            WORKER_LOGGER.debug("Python version: " + pythonVersion);
             WORKER_LOGGER.debug("Python virtual environment: " + pythonVirtualEnvironment);
 
             WORKER_LOGGER.debug("Remove Sanbox WD: " + removeWD);

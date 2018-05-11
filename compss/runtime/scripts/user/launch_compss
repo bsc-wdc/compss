@@ -26,11 +26,8 @@ DEFAULT_FPGA_REPROGRAM=""
 DEFAULT_TASK_EXECUTION=compss
 DEFAULT_STORAGE_CONF=null
 DEFAULT_PERSISTENT_WORKER_C=false
-if [ -x "$(command -v python)" ]; then
-  DEFAULT_PYTHON_INTERPRETER=python$( python -c "import sys; print(sys.version_info[:][0])")
-else
-  DEFAULT_PYTHON_INTERPRETER=python
-fi
+DEFAULT_PYTHON_INTERPRETER=python
+DEFAULT_PYTHON_VERSION=$( ${DEFAULT_PYTHON_INTERPRETER} -c "import sys; print(sys.version_info[:][0])" )
 if [ -z "${VIRTUAL_ENV}" ]; then
   DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT="null"
 else
@@ -325,6 +322,7 @@ worker_cmd() {
             ${taskExecution} \
 	          ${persistent_worker_c} \
             ${python_interpreter}" \
+            ${python_version} \
             ${DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT}
 }
 
@@ -698,6 +696,7 @@ check_args() {
 
   if [ -z "${python_interpreter}" ]; then
     python_interpreter=${DEFAULT_PYTHON_INTERPRETER}
+    python_version=${DEFAULT_PYTHON_VERSION}
   fi
 
   ###############################################################
@@ -994,6 +993,7 @@ log_variables() {
   echo "Appdir:			   ${appdir}"
   echo "Lang:                      ${lang}"
   echo "Python Interpreter:        ${python_interpreter}"
+  echo "Python version:            ${python_version}"
   echo "Python virtual env:        ${DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT}"
   echo "COMM:                      ${comm}"
   echo "Prolog:                    ${prologActions[*]}"

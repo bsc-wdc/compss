@@ -42,14 +42,12 @@ public class PythonThreadPool extends ExternalThreadPool {
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_POOL);
 
-    // Python interpreter (default: system python - usually python 2)
+    // Python interpreter (default: system python - usually python)
     private static String pythonInterpreter = "python";
-    // Worker subfolder (default: python 2)
+    // Worker subfolder (default: 2)
     private static String workerSubFolder = "2";
-    // Python virtual environment (default: "null")
-    private static String pythonVirtualEnvironment = "null";
 
-    // Python worker relative path (default: python 2)
+    // Python worker relative path
     private static final String WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator + "worker" + File.separator + "piper_worker.py";
 
     /**
@@ -91,16 +89,8 @@ public class PythonThreadPool extends ExternalThreadPool {
 
         // FIXME: This should be in the constructor
         PythonThreadPool.pythonInterpreter = NIOWorker.getPythonInterpreter();
-        // Define the propper worker relative path
-        if (pythonInterpreter.equalsIgnoreCase(COMPSsConstants.Pythons.python.name())){
-            // TODO: Find out the python version. Currently, assume that python is python 2
-            // Use --python_interpreter=pythonX to force the one to use if error.
-            PythonThreadPool.workerSubFolder = "2";
-        } else if (pythonInterpreter.equalsIgnoreCase(COMPSsConstants.Pythons.python2.name())) {
-            PythonThreadPool.workerSubFolder = "2";
-        } else if (pythonInterpreter.equalsIgnoreCase(COMPSsConstants.Pythons.python3.name())) {
-            PythonThreadPool.workerSubFolder = "3";
-        }
+        // Define the appropriate worker subfolder
+        PythonThreadPool.workerSubFolder = NIOWorker.getPythonVersion();
 
         StringBuilder cmd = new StringBuilder();
 

@@ -14,19 +14,20 @@
   }
 
   get_parameters() {
-    # Get paramters
+    # Get parameters
     taskSandboxWorkingDir=$1
     app_dir=$2
     cp=$3
     pythonpath=$4
     pythonInterpreter=$5
-    pythonVirtualEnvironment=$6
-    debug=$7
-    storageConf=$8
-    methodType=$9
+    pythonVersion=$6
+    pythonVirtualEnvironment=$7
+    debug=$8
+    storageConf=$9
+    methodType=${10}
 
     # Shit all parameters except method ones
-    shiftSizeForApp=6
+    shiftSizeForApp=7
     shift $shiftSizeForApp
    
     # Get method parameters
@@ -34,10 +35,11 @@
 
     # Log status if needed
     if [ "$debug" == "true" ]; then
-      echo "[WORKER_COMMONS.SH] - app_dir     $app_dir"
-      echo "[WORKER_COMMONS.SH] - classpath   $cp"
-      echo "[WORKER_COMMONS.SH] - pythonpath  $pythonpath"
-      echo "[WORKER_COMMONS.SH] - pythonInterpreter  $pythonInterpreter"
+      echo "[WORKER_COMMONS.SH] - app_dir                   $app_dir"
+      echo "[WORKER_COMMONS.SH] - classpath                 $cp"
+      echo "[WORKER_COMMONS.SH] - pythonpath                $pythonpath"
+      echo "[WORKER_COMMONS.SH] - pythonInterpreter         $pythonInterpreter"
+      echo "[WORKER_COMMONS.SH] - pythonVersion             $pythonVersion"
       echo "[WORKER_COMMONS.SH] - pythonVirtualEnvironment  $pythonVirtualEnvironment"
     fi
   }

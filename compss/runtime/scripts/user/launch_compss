@@ -1180,15 +1180,21 @@ insert_xml_headers() {
   <SharedDisk Name="gpfs2" />
 
 EOT
-  else
+  elif [ "${GPFS_PREFIX}" != "" ]; then
     cat > "${RESOURCES_FILE}" << EOT
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourcesList>
   <SharedDisk Name="gpfs" />
 
 EOT
+  else
+    cat > "${RESOURCES_FILE}" << EOT
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourcesList>
+EOT
   fi
 
+if [ "${GPFS_PREFIX}" != "" ]; then
   cat > "${PROJECT_FILE}" << EOT
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Project>
@@ -1204,13 +1210,22 @@ EOT
               <MountPoint>${GPFS2_PREFIX}</MountPoint>
           </AttachedDisk>
 EOT
-  fi 
+  fi
 
-  cat >> "${PROJECT_FILE}" << EOT
+cat >> "${PROJECT_FILE}" << EOT
       </SharedDisks>
   </MasterNode>
 
 EOT
+ 
+else
+    cat > "${PROJECT_FILE}" << EOT
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project>
+  <MasterNode></MasterNode>
+EOT
+
+fi
 }
 
 ###############################################
@@ -1285,21 +1300,29 @@ EOT
               			</Ports>
           		</Adaptor>
       		</Adaptors>
+EOT
+
+  if [ "${GPFS_PREFIX}" != "" ]; then
+    cat >> "${RESOURCES_FILE}" << EOT
       		<SharedDisks>
           		<AttachedDisk Name="gpfs">
               			<MountPoint>${GPFS_PREFIX}</MountPoint>
           		</AttachedDisk>
 EOT
-  if [ "${GPFS2_PREFIX}" != "" ] && [ "${GPFS2_PREFIX}" != "${GPFS_PREFIX}" ]; then
-    cat >> "${RESOURCES_FILE}" << EOT
+    if [ "${GPFS2_PREFIX}" != "" ] && [ "${GPFS2_PREFIX}" != "${GPFS_PREFIX}" ]; then
+      cat >> "${RESOURCES_FILE}" << EOT
           		<AttachedDisk Name="gpfs2">
               			<MountPoint>${GPFS2_PREFIX}</MountPoint>
           		</AttachedDisk>
 EOT
+    fi
+
+    cat >> "${RESOURCES_FILE}" << EOT
+      		</SharedDisks>
+EOT
   fi
 
   cat >> "${RESOURCES_FILE}" << EOT
-      		</SharedDisks>
             </Image>
         </Images>
         <InstanceTypes>
@@ -1557,23 +1580,29 @@ EOT
               <BrokerAdaptor>sshtrilead</BrokerAdaptor>
           </Adaptor>
       </Adaptors>
+EOT
+
+  if [ "${GPFS2_PREFIX}" != "" ]; then
+    cat >> "${RESOURCES_FILE}" << EOT
       <SharedDisks>
           <AttachedDisk Name="gpfs">
               <MountPoint>${GPFS_PREFIX}</MountPoint>
           </AttachedDisk>
 EOT
-  if [ "${GPFS2_PREFIX}" != "" ] && [ "${GPFS2_PREFIX}" != "${GPFS_PREFIX}" ]; then
-    cat >> "${RESOURCES_FILE}" << EOT
+    if [ "${GPFS2_PREFIX}" != "" ] && [ "${GPFS2_PREFIX}" != "${GPFS_PREFIX}" ]; then
+      cat >> "${RESOURCES_FILE}" << EOT
           <AttachedDisk Name="gpfs2">
               <MountPoint>${GPFS2_PREFIX}</MountPoint>
           </AttachedDisk>
 EOT
-  fi
+    fi
 
-  cat >> "${RESOURCES_FILE}" << EOT
+    cat >> "${RESOURCES_FILE}" << EOT
       </SharedDisks>
-  </ComputeNode>
-
+EOT
+  fi
+  cat >> "${RESOURCES_FILE}" << EOT
+    </ComputeNode>
 EOT
 
   cat >> "${PROJECT_FILE}" << EOT

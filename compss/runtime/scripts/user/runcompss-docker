@@ -5,7 +5,7 @@ GENERATORS_DIR=$(dirname "$0")/../system/docker/generators
 GENERATE_APP_IMAGE=$GENERATORS_DIR/generate-app-image
 GENERATE_COMPOSE_YML=$GENERATORS_DIR/generate-compose-yml
 
-. $GENERATORS_DIR/aux-functions
+. "$GENERATORS_DIR"/aux-functions
 
 echo
 
@@ -19,7 +19,7 @@ and you need to have installed in this computer the docker engine.
 
 Usage: runcompss-docker --worker-containers=N
                         --swarm-manager='<ip>:<port>'
-                        --image-name="DOCKERHUB_USER/IMG-NAME"
+                        --image-name=\"DOCKERHUB_USER/IMG-NAME\"
 			[rest of classic runcompss args]
 
 
@@ -74,13 +74,13 @@ for ARG in "${ALL_ARGS[@]}"
 do
     # if [ ! -z $(echo $ARG | grep -E "[\-][\-]{0,1}.*(([=].*))?")  ] # Format recognition "--asda=xc2das34"
 
-    argName="$(echo $ARG | cut -c 3- | cut -d= -f1)"
-    argValue="$(echo $ARG | cut -d= -f2)"
+    argName="$(echo "$ARG" | cut -c 3- | cut -d= -f1)"
+    argValue="$(echo "$ARG" | cut -d= -f2)"
 
     RD_GOOD_ARG=0
     if [ "$argName" = "worker-containers" ] || [ "$argName" = "w" ];
     then
-        if [ ! -z $(echo $argValue | grep -E "^[1-9][0-9]{0,}$") ]; then
+        if [ ! -z "$(echo "$argValue" | grep -E "^[1-9][0-9]{0,}$")" ]; then
             NUM_WORKER_CONTAINERS=$argValue
             RD_GOOD_ARG=1
         else
@@ -152,7 +152,7 @@ function retrieveResults
     IMG_NAME_WITHOUT_USERNAME="$(echo "$IMAGE_NAME" | sed -e 's|[A-Za-z0-9_]*/||g')"
     RESULTS_DIR="./${IMG_NAME_WITHOUT_USERNAME}-results"
     DEBUG_DIR="$RESULTS_DIR/debug"
-    rm -rf $RESULTS_DIR &> /dev/null
+    rm -rf "$RESULTS_DIR" &> /dev/null
     mkdir -p "$DEBUG_DIR"
 
     # We obtain Master container hash id by grepping the *_master container from a docker ps on the swarm manager.
@@ -166,8 +166,8 @@ function retrieveResults
     #ASSERT "Results could not be retrieved...Master container unreachable"
 
     # No .COMPSs hidden directory
-    mv ${DEBUG_DIR}/.COMPSs/* "${DEBUG_DIR}"
-    rm -rf "${DEBUG_DIR}/.COMPSs"
+    mv "${DEBUG_DIR}"/.COMPSs/* "${DEBUG_DIR}"
+    rm -rf "${DEBUG_DIR}"/.COMPSs
 
     echo ; ECHO "Results successfully retrieved!" ; echo
     ECHO "Check the application results in '$RESULTS_DIR'"
@@ -176,29 +176,29 @@ function retrieveResults
 }
 
 
-if [ -z $1 ] || [ $1 == "--help" ] || [ $1 == "-h" ]
+if [ -z "$1" ] || [ "$1" == "--help" ] || [ "$1" == "-h" ]
 then
     showHelp
     exit 2
 fi
 
 ALL_GOOD=1
-if [ -z $NUM_WORKER_CONTAINERS ]; then
+if [ -z "$NUM_WORKER_CONTAINERS" ]; then
     ERROR "Indicate the number of workers before runcompss args ('--worker-containers=3' for example)"
     ALL_GOOD=0
 fi
 
-if [ -z $SWARM_MANAGER_IP ]; then
+if [ -z "$SWARM_MANAGER_IP" ]; then
     ERROR "Indicate the swarm manager <ip>:<port> before runcompss args ('--swarm-manager-name=129.116.120.45:4000' for example)"
     ALL_GOOD=0
 fi
 
-if [ -z $IMAGE_NAME ]; then
+if [ -z "$IMAGE_NAME" ]; then
     ERROR "Indicate the image name. ('--image-name=compss-user/my-app-image' for example)."
     ALL_GOOD=0
 fi
 
-if [ -z $ABS_CONTEXT ]; then
+if [ -z "$ABS_CONTEXT" ]; then
     ERROR "Indicate the absolute context directory. Remember that the provider of this image must give you this information. ('--context-dir='/home/john123/apps/compss-app' for example)"
     ALL_GOOD=0
 fi
@@ -212,18 +212,18 @@ then
 fi
 
 TMP_DIR="$PWD/.runcompss-docker"
-rm -rf $TMP_DIR &> /dev/null
+rm -rf "$TMP_DIR" &> /dev/null
 mkdir "$TMP_DIR" &> /dev/null
 
 ECHO "Generating docker-compose.yml file into '.runcompss-docker' hidden directory..." ; echo
-$GENERATE_COMPOSE_YML $NUM_WORKER_CONTAINERS $IMAGE_NAME $ABS_CONTEXT $COMPUTING_UNITS $MEMORY $SWARM_MANAGER_IP $CREATION_TIME $MIN_VMS $MAX_VMS $RUNCOMPSS_ARGS > ${TMP_DIR}/docker-compose.yml
+$GENERATE_COMPOSE_YML "$NUM_WORKER_CONTAINERS" "$IMAGE_NAME" "$ABS_CONTEXT" "$COMPUTING_UNITS" "$MEMORY" "$SWARM_MANAGER_IP" "$CREATION_TIME" "$MIN_VMS" "$MAX_VMS" "$RUNCOMPSS_ARGS" > "${TMP_DIR}"/docker-compose.yml
 ASSERT "There was an error creating the docker compose yml file."
 
 
 
-trap "retrieveResults ; exit 1" SIGINT ERR KILL
+trap "retrieveResults ; exit 1" SIGINT ERR
 
-cd ${TMP_DIR}
+cd "${TMP_DIR}"
 
 ECHO "Cleaning environment from previous executions..." ; echo
 docker-compose down --remove-orphans

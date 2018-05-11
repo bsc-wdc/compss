@@ -1,42 +1,42 @@
 #!/bin/bash
 
+  # Process arguments
   if [ $# -lt 4 ]; then
     echo
-    echo "Usage:"
-    echo "./pre_instrument.sh app_classpath runtime_inst_dir dest_dir full_class_name method_labels..."
+    echo "Usage: $0 app_classpath runtime_inst_dir dest_dir full_class_name method_labels..."
     exit 127
   fi
   
-  userDir=$HOME
-  scriptDir="${COMPSS_HOME}/Runtime/scripts/user"
-  
-  appClassPath=$1
-  runtimeInstDir=$2
-  destDir=$3
+  app_classpath=$1
+  compss_home=$2
+  dest_dir=$3
   fullAppName=$4
   shift 4
-  libDir=$runtimeInstDir/Runtime/
+
+  # Set script variables
+  runtime_dir=${compss_home}/Runtime/
+  compss_classpath=${runtime_dir}/compss-engine.jar
   
   echo -e "\n----------------- Instrumenting $fullAppName --------------------------\n"
-  cd $destDir
-  runtimeClassPath=$libDir/compss-engine.jar
-  
+  cd "${dest_dir}" || exit 
+ 
+  # shellcheck disable=SC2068 
   java \
     -XX:+PerfDisableSharedMem \
     -XX:-UsePerfData \
     -XX:+UseG1GC \
     -XX:+UseThreadPriorities \
     -XX:ThreadPriorityPolicy=42 \
-    -Dlog4j.configurationFile=$runtimeInstDir/Runtime/configuration/log/COMPSsMaster-log4j.instrument \
+    -Dlog4j.configurationFile="${compss_home}"/Runtime/configuration/log/COMPSsMaster-log4j.instrument \
     -Dcompss.to.file=true \
-    -classpath $appClassPath:$runtimeClassPath \
-    es.bsc.compss.loader.AddOrchestration $fullAppName $@ 
+    -classpath "${app_classpath}":"${compss_classpath}" \
+    es.bsc.compss.loader.AddOrchestration "$fullAppName" $@
 
-  if [ $? -ne 0 ]; then
-  	echo "Error pre-instrumenting class";
-  	exit 1;
+  ev=$?
+  if [ $ev -ne 0 ]; then
+    echo "Error pre-instrumenting class"
+    exit $ev
   fi
 
   echo
   echo ------------------------------------------------------------
-

@@ -341,13 +341,13 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             DataType newType = taskResultTypes.get(i);
             switch (newType) {
                 case PSCO_T:
-                case EXTERNAL_OBJECT_T:
+                case EXTERNAL_PSCO_T:
                     String pscoId = (String) tr.getParamValue(i);
                     DependencyParameter dp = (DependencyParameter) nj.getTaskParams().getParameters()[i];
                     updateParameter(newType, pscoId, dp);
                     break;
                 default:
-                    // We only update information about PSCOs or EXTERNAL_OBJECTS
+                    // We only update information about PSCOs or EXTERNAL_PSCO
                     break;
             }
         }
@@ -386,7 +386,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
         switch (previousType) {
             case PSCO_T:
-            case EXTERNAL_OBJECT_T:
+            case EXTERNAL_PSCO_T:
                 if (previousType.equals(newType)) {
                     // The parameter was already a PSCO, we only update the information just in case
                     dp.setDataTarget(pscoId);
@@ -411,7 +411,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             case PSCO_T:
                 Comm.registerPSCO(renaming, pscoId);
                 break;
-            case EXTERNAL_OBJECT_T:
+            case EXTERNAL_PSCO_T:
                 if (renaming.contains("/")) {
                     renaming = renaming.substring(renaming.lastIndexOf('/') + 1);
                 }
@@ -504,6 +504,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
                     case PERSISTENT:
                         LOGGER.debug("Persistent location no need to update location for " + tgtData.getName());
                         break;
+                    case BINDING:
                     case PRIVATE:
                         LOGGER.debug("Adding location:" + actualLocation.getPath() + " to " + tgtData.getName());
                         tgtData.addLocation(actualLocation);
@@ -591,7 +592,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void completeMasterURI(MultiURI u) {
-        u.setInternalURI(ID, new NIOURI(masterNode, u.getPath()));
+        u.setInternalURI(ID, new NIOURI(masterNode, u.getPath(), u.getProtocol()));
     }
 
     public void requestData(Copy c, DataType paramType, Data d, String path) {

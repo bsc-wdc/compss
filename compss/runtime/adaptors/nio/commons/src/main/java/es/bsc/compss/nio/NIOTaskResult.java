@@ -56,7 +56,7 @@ public class NIOTaskResult implements Externalizable {
 
             switch (np.getType()) {
                 case PSCO_T:
-                case EXTERNAL_OBJECT_T:
+                case EXTERNAL_PSCO_T:
                     this.paramValues.add(np.getValue());
                     break;
                 default:

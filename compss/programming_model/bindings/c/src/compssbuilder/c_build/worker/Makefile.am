@@ -15,11 +15,11 @@
 #  limitations under the License.
 # 
 
-bin_PROGRAMS = worker_c persistent_worker_c
+bin_PROGRAMS = nio_worker_c worker_c
 
 ACLOCAL_AMFLAGS=-I m4
 
-worker_c_CPPFLAGS =  -I../../src -I../../include -Wno-write-strings -I$(CS_HOME)/../bindings-common/include -I$(CS_HOME)/include -w
+worker_c_CPPFLAGS =  -I../../src -I../../include -Wno-write-strings -I$(CS_HOME)/../bindings-common/include -I$(CS_HOME)/include -Wall
 
 worker_c_SOURCES = worker_c.cc \
         PACKAGE-executor.cc \
@@ -29,7 +29,7 @@ worker_c_LDFLAGS =
 
 worker_c_LDADD = -L../../lib -lworker -ldl -L$(LIBJAVAFOLDER) -ljvm -L$(CS_HOME)/../bindings-common/lib -lbindings_common -L$(CS_HOME)/lib -lcbindings -lboost_iostreams -lboost_serialization -lboost_system  
 
-persistent_worker_c_CPPFLAGS = -I../../src -I../../include -Wno-write-strings -I$(CS_HOME)/../bindings-common/include -I$(CS_HOME)/include -w
+persistent_worker_c_CPPFLAGS = -I../../src -I../../include -Wno-write-strings -I$(CS_HOME)/../bindings-common/include -I$(CS_HOME)/include -Wall
 
 persistent_worker_c_SOURCES = persistent_worker_c.cc \
         PACKAGE-executor.cc \
@@ -38,6 +38,16 @@ persistent_worker_c_SOURCES = persistent_worker_c.cc \
 persistent_worker_c_LDFLAGS = 
 
 persistent_worker_c_LDADD = -L../../lib -lworker -ldl -L$(LIBJAVAFOLDER) -ljvm -L$(CS_HOME)/../bindings-common/lib -lbindings_common -L$(CS_HOME)/lib -lcbindings -lboost_iostreams -lboost_serialization -lboost_system -lpthread 
+
+nio_worker_c_CPPFLAGS = -I../../src -I../../include -Wno-write-strings -I$(CS_HOME)/../bindings-common/include -I$(CS_HOME)/include -Wall
+
+nio_worker_c_SOURCES = nio_worker_c.cc \
+        PACKAGE-executor.cc \
+        PACKAGE-functions.cc
+        
+nio_worker_c_LDFLAGS = 
+
+nio_worker_c_LDADD = -L../../lib -lworker -ldl -L$(LIBJAVAFOLDER) -ljvm -L$(CS_HOME)/../bindings-common/lib -lbindings_common -L$(CS_HOME)/lib -lcbindings -lboost_iostreams -lboost_serialization -lboost_system -lpthread 
 
 COMPSSGEN_FLAGS = 
 

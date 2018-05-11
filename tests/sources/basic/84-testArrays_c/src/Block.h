@@ -43,7 +43,7 @@ public:
 
 	static void generate(Block *b, int bSize, double initVal);
 	
-	static void test1(int size, float *oa, int* ia, double* ioa);
+	static void test1(int size, float *oa, int* ia, double* ioa, char* file);
 	
 	void test3 (int size, float* ia );
 

@@ -14,26 +14,13 @@
  *  limitations under the License.
  *
  */
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <limits.h>
-#include <string.h>
-#include <fstream>
-#include <map>
-#include <vector>
-#include <sstream>
-#include <pthread.h>
-#include <sys/types.h>
-#include <sys/syscall.h>
-#include <iostream>
-#include <customStream.h>
-#include <fcntl.h>
-#include <compss_worker_lock.h>
 #include <CBindingCache.h>
+#ifndef _EXECUTOR_H
+#define _EXECUTOR_H
 
 using namespace std;
  
-int execute(int argc, char **argv, CBindingCache &cache, int serializeOuts);
+int execute(int argc, char **argv, CBindingCache *cache, int serializeOuts);
 
+#endif
 

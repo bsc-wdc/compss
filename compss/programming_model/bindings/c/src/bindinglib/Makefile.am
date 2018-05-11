@@ -15,12 +15,12 @@
 #  limitations under the License.
 # 
 
-include_HEADERS = c_compss.h c_compss_commons.h CBindingCache.h c_compss_base64.h
+include_HEADERS = generated_executor.h customStream.h c_compss.h c_compss_commons.h CBindingCache.h CBindingExecutor.h c_compss_base64.h
 lib_LTLIBRARIES = libcbindings.la
 
-libcbindings_la_SOURCES = c_compss.cc c_compss_base64.c
-libcbindings_la_CPPFLAGS = -I../../../bindings-common/include ${BOOST_CPPFLAGS} $(DEFINE)
-libcbindings_la_LDFLAGS = -L../../../bindings-common/lib -lbindings_common
+libcbindings_la_SOURCES = CBindingExecutor.cc c_compss.cc c_compss_base64.c
+libcbindings_la_CPPFLAGS = -Wall -I../../../bindings-common/include ${BOOST_CPPFLAGS} $(DEFINE)
+libcbindings_la_LDFLAGS = -L../../../bindings-common/lib -lbindings_common -lpthread 
 
 ACLOCAL_AMFLAGS =-I m4
 

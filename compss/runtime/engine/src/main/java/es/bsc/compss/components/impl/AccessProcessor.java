@@ -30,6 +30,7 @@ import org.apache.logging.log4j.Logger;
 
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.data.AccessParams;
 import es.bsc.compss.types.data.AccessParams.AccessMode;
@@ -41,9 +42,12 @@ import es.bsc.compss.types.data.DataAccessId.WAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ResultFile;
+import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
+import es.bsc.compss.types.request.ap.DeleteBindingObjectRequest;
 import es.bsc.compss.types.request.ap.FinishFileAccessRequest;
+import es.bsc.compss.types.request.ap.TransferBindingObjectRequest;
 import es.bsc.compss.types.request.ap.TransferRawFileRequest;
 import es.bsc.compss.types.request.ap.AlreadyAccessedRequest;
 import es.bsc.compss.types.request.ap.GetResultFilesRequest;
@@ -388,14 +392,14 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Notifies a main access to an external object {@code id}
+     * Notifies a main access to an external PSCO {@code id}
      * 
      * @param fileName
      * @param id
      * @param hashCode
      * @return
      */
-    public String mainAcessToExternalObject(String id, int hashCode) {
+    public String mainAcessToExternalPSCO(String id, int hashCode) {
         if (DEBUG) {
             LOGGER.debug("Requesting main access to external object with hash code " + hashCode);
         }
@@ -416,8 +420,60 @@ public class AccessProcessor implements Runnable, TaskProducer {
         
         String lastRenaming = ((DataAccessId.RWAccessId) oaId).getReadDataInstance().getRenaming();
         String newId = Comm.getData(lastRenaming).getId();
-
+        
         return Protocol.PERSISTENT_URI.getSchema() + newId;
+    }
+    
+    private String obtainBindingObject(RAccessId oaId) {
+    	String lastRenaming = ( oaId).getReadDataInstance().getRenaming();
+		//TODO: Add transfer request similar than java object
+    	LOGGER.debug("[AccessProcessor] Obtaining binding object with id " + oaId);
+        // Ask for the object
+        Semaphore sem = new Semaphore(0);
+        TransferBindingObjectRequest tor = new TransferBindingObjectRequest(oaId, sem);
+        if (!requestQueue.offer(tor)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "obtain object");
+        }
+
+        // Wait for response
+        sem.acquireUninterruptibly();
+        BindingObject bo = BindingObject.generate(tor.getTargetName());
+    	return bo.getName();
+	}
+
+	/**
+     * Notifies a main access to an external PSCO {@code id}
+     * 
+     * @param fileName
+     * @param id
+     * @param hashCode
+     * @return
+     */
+    public String mainAcessToBindingObject(BindingObject bo, int hashCode) {
+        if (DEBUG) {
+            LOGGER.debug("Requesting main access to binding object with bo " + bo.toString() +" and hash code " + hashCode);
+        }
+
+        // Tell the DIP that the application wants to access an object
+        //AccessParams.BindingObjectAccessParams oap = new AccessParams.BindingObjectAccessParams(AccessMode.RW, bo, hashCode);
+        AccessParams.BindingObjectAccessParams oap = new AccessParams.BindingObjectAccessParams(AccessMode.R, bo, hashCode);
+        DataAccessId oaId = registerDataAccess(oap);
+        
+        //DataInstanceId wId = ((DataAccessId.RWAccessId) oaId).getWrittenDataInstance();
+        //String wRename = wId.getRenaming();
+
+        // Wait until the last writer task for the object has finished
+        if (DEBUG) {
+            LOGGER.debug("Waiting for last writer of " + oaId.getDataId() );
+        }
+        //waitForTask(oaId.getDataId(), AccessMode.RW);
+        waitForTask(oaId.getDataId(), AccessMode.R);
+        // TODO: Check if the object was already piggybacked in the task notification
+        
+        //String lastRenaming = ((DataAccessId.RWAccessId) oaId).getReadDataInstance().getRenaming();
+        
+        //return obtainBindingObject((DataAccessId.RWAccessId)oaId);
+        return obtainBindingObject((DataAccessId.RAccessId)oaId);
     }
 
     /**
@@ -606,6 +662,17 @@ public class AccessProcessor implements Runnable, TaskProducer {
      */
     public void markForDeletion(DataLocation loc) {
         if (!requestQueue.offer(new DeleteFileRequest(loc))) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");
+        }
+    }
+    
+    /**
+     * Marks a location for deletion
+     *
+     * @param loc
+     */
+    public void markForBindingObjectDeletion(BindingObjectLocation loc) {
+        if (!requestQueue.offer(new DeleteBindingObjectRequest(loc))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");
         }
     }

@@ -17,6 +17,8 @@
 package es.bsc.compss.components.impl;
 
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.types.BindingObject;
+import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.PersistentLocation;
 
@@ -32,10 +34,12 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.*;
 import es.bsc.compss.types.data.AccessParams.*;
 import es.bsc.compss.types.data.DataAccessId.*;
+import es.bsc.compss.types.data.operation.BindingObjectTransferable;
 import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.ObjectTransferable;
 import es.bsc.compss.types.data.operation.OneOpWithSemListener;
 import es.bsc.compss.types.data.operation.ResultListener;
+import es.bsc.compss.types.request.ap.TransferBindingObjectRequest;
 import es.bsc.compss.types.request.ap.TransferObjectRequest;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
@@ -94,7 +98,10 @@ public class DataInfoProvider {
         if (access instanceof FileAccessParams) {
             FileAccessParams fAccess = (FileAccessParams) access;
             return registerFileAccess(fAccess.getMode(), fAccess.getLocation());
-        } else {
+        } else if (access instanceof BindingObjectAccessParams){
+            BindingObjectAccessParams oAccess = (BindingObjectAccessParams) access;
+            return registerBindingObjectAccess(oAccess.getMode(), oAccess.getBindingObject(), oAccess.getCode());
+        }else{
             ObjectAccessParams oAccess = (ObjectAccessParams) access;
             return registerObjectAccess(oAccess.getMode(), oAccess.getValue(), oAccess.getCode());
         }
@@ -212,7 +219,53 @@ public class DataInfoProvider {
      * @param code
      * @return
      */
-    public DataAccessId registerExternalObjectAccess(AccessMode mode, String pscoId, int code) {
+    public DataAccessId registerBindingObjectAccess(AccessMode mode, BindingObject bo, int code) {
+        DataInfo oInfo;
+        
+        Integer aoId = codeToId.get(code);
+
+        // First access to this datum
+        if (aoId == null) {
+            if (DEBUG) {
+                LOGGER.debug("FIRST access to external object " + code);
+            }
+
+            // Update mappings
+            oInfo = new ObjectInfo(code);
+            aoId = oInfo.getDataId();
+            codeToId.put(code, aoId);
+            idToData.put(aoId, oInfo);
+
+            // Serialize this first version of the object to a file
+            DataInstanceId lastDID = oInfo.getCurrentDataVersion().getDataInstanceId();
+            String renaming = lastDID.getRenaming();
+
+            // Inform the File Transfer Manager about the new file containing the object
+            if (mode != AccessMode.W) {
+                Comm.registerBindingObject(renaming, bo);
+            }
+        } else {
+            // The datum has already been accessed
+            if (DEBUG) {
+                LOGGER.debug("Another access to external object " + code);
+            }
+
+            oInfo = idToData.get(aoId);
+        }
+
+        // Version management
+        return willAccess(mode, oInfo);
+    }
+    
+    /**
+     * DataAccess interface: registers a new object access
+     * 
+     * @param mode
+     * @param value
+     * @param code
+     * @return
+     */
+    public DataAccessId registerExternalPSCOAccess(AccessMode mode, String pscoId, int code) {
         DataInfo oInfo;
         Integer aoId = codeToId.get(code);
 
@@ -485,19 +538,19 @@ public class DataInfoProvider {
      * @param loc
      * @return
      */
-    public FileInfo deleteData(DataLocation loc) {
+    public DataInfo deleteData(DataLocation loc) {
         LOGGER.debug("Deleting Data location: " + loc.getPath());
         String locationKey = loc.getLocationKey();
-        Integer fileId = nameToId.get(locationKey);
-        if (fileId == null) {
+        Integer dataId = nameToId.get(locationKey);
+        if (dataId == null) {
             return null;
         }
-        FileInfo fileInfo = (FileInfo) idToData.get(fileId);
+        DataInfo dataInfo = idToData.get(dataId);
         // nameToId.remove(locationKey);
-        if (fileInfo.delete()) {
-            // idToData.remove(fileId);
+        if (dataInfo.delete()) {
+            // idToData.remove(dataId);
         }
-        return fileInfo;
+        return dataInfo;
     }
 
     /**
@@ -555,6 +608,61 @@ public class DataInfoProvider {
         }
 
         return ld;
+    }
+    
+    /**
+     * Transfers the value of an object
+     * 
+     * @param toRequest
+     * @return
+     */
+    public LogicalData transferBindingObject(TransferBindingObjectRequest toRequest) {
+        Semaphore sem = toRequest.getSemaphore();
+        DataAccessId daId = toRequest.getDaId();
+        
+        //RWAccessId rwaId = (RWAccessId) daId;
+        RAccessId rwaId = (RAccessId) daId;
+        
+        String sourceName = rwaId.getReadDataInstance().getRenaming();
+        //String targetName = rwaId.getWrittenDataInstance().getRenaming();
+        
+        if (DEBUG) {
+            LOGGER.debug("[DataInfoProvider] Requesting getting object " + sourceName);
+        }
+        LogicalData srcLd = Comm.getData(sourceName);
+        
+        //LogicalData tgtLd = Comm.getData(targetName);
+        LogicalData tgtLd = srcLd;
+        
+        if (DEBUG) {
+            LOGGER.debug("[DataInfoProvider] Logical data for binding object is:" + srcLd);
+        }
+        
+        if (srcLd == null) {
+            ErrorManager.error("Unregistered data " + sourceName);
+            return null;
+        }
+        if (DEBUG) {
+            LOGGER.debug("Requesting tranfers binding object " + sourceName + " to " + Comm.getAppHost().getName());
+        }
+        BindingObject srcBO = BindingObject.generate(srcLd.getURIs().get(0).getPath());
+        /*BindingObject tgtBO = new BindingObject(targetName,  srcBO.getType(),  srcBO.getElements());
+        if (tgtLd == null){
+            Comm.registerBindingObject(targetName, tgtBO );
+        }
+        
+        DataLocation targetLocation = new BindingObjectLocation(Comm.getAppHost(), tgtBO);*/
+        
+        DataLocation targetLocation = new BindingObjectLocation(Comm.getAppHost(), srcBO);
+        
+        Transferable transfer = new BindingObjectTransferable(toRequest);
+        
+        Comm.getAppHost().getData(srcLd, targetLocation, tgtLd, transfer, new OneOpWithSemListener(sem));
+        if (DEBUG) {
+            LOGGER.debug(" Setting tgtName " + transfer.getDataTarget() + " in " + Comm.getAppHost().getName());
+        }
+        //return tgtLd;
+        return srcLd;
     }
 
     /**

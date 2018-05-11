@@ -14,9 +14,10 @@
  *  limitations under the License.
  *
  */
-#include "executor.h"
+#include <generated_executor.h>
+#include <CBindingCache.h>
 
-CBindingCache cache;
+CBindingCache *cache;
 
 int get_compss_worker_lock(){
   return 0;

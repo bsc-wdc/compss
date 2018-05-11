@@ -15,12 +15,13 @@
  */
 
 #include <AbstractCache.h>
-
+#ifndef CBINDING_CACHE_H
+#define CBINDING_CACHE_H
 class CBindingCache: public AbstractCache {
 
 	public:
 
-		CBindingCache(){};
+		CBindingCache():AbstractCache(){};
 
 		~CBindingCache(){};
 
@@ -37,7 +38,7 @@ class CBindingCache: public AbstractCache {
 		int copyData(compss_pointer from, compss_pointer &to);
 
 };
-
+#endif
 
 
 

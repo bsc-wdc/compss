@@ -340,8 +340,11 @@ public class GATWorkerNode extends COMPSsWorker {
             case FILE_T:
             case OBJECT_T:
             case PSCO_T:
-            case EXTERNAL_OBJECT_T:
+            case EXTERNAL_PSCO_T:
                 path = Protocol.FILE_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
+                break;
+            case BINDING_OBJECT_T:
+            	path = Protocol.FILE_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
                 break;
             default:
                 return null;

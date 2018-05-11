@@ -24,15 +24,14 @@ import java.util.Properties;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.data.location.DataLocation;
-
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.components.monitor.impl.RuntimeMonitor;
 import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.loader.total.ObjectRegistry;
-
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -41,12 +40,14 @@ import es.bsc.compss.types.annotations.parameter.Stream;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.data.AccessParams.AccessMode;
 import es.bsc.compss.types.data.AccessParams.FileAccessParams;
+import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.data.location.PersistentLocation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
-import es.bsc.compss.types.parameter.ExternalObjectParameter;
+import es.bsc.compss.types.parameter.BindingObjectParameter;
+import es.bsc.compss.types.parameter.ExternalPSCOParameter;
 import es.bsc.compss.types.parameter.FileParameter;
 import es.bsc.compss.types.parameter.ObjectParameter;
 import es.bsc.compss.types.parameter.Parameter;
@@ -54,7 +55,6 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
-
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.RuntimeConfigManager;
 import es.bsc.compss.util.Tracer;
@@ -70,6 +70,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     private static final String WARN_FILE_EMPTY_DEFAULT = "WARNING: COMPSs Properties file is null. Setting default values";
     private static final String WARN_VERSION_PROPERTIES = "WARNING: COMPSs Runtime VERSION-BUILD properties file could not be read";
     private static final String ERROR_FILE_NAME = "ERROR: Cannot parse file name";
+    private static final String ERROR_BINDING_OBJECT_PARAMS = "ERROR: Incorrect number of parameters for external objects";
     private static final String WARN_WRONG_DIRECTION = "WARNING: Invalid parameter direction: ";
 
     // COMPSs Version and buildnumber attributes
@@ -663,7 +664,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             Parameter lastParam = parameters[parameters.length - 1];
             DataType type = lastParam.getType();
             hasReturn = (lastParam.getDirection() == Direction.OUT
-                    && (type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_OBJECT_T));
+                    && (type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T));
         }
 
         return hasReturn;
@@ -905,12 +906,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      */
     @Override
     public String openFile(String fileName, Direction mode) {
+        LOGGER.info("Opening " + fileName + " in mode " + mode);
+        
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.OPEN_FILE.getId(), Tracer.Event.OPEN_FILE.getType());
         }
-
-        LOGGER.info("Opening " + fileName + " in mode " + mode);
-
         // Parse arguments to internal structures
         DataLocation loc;
         try {
@@ -944,9 +944,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 }
                 break;
             case PERSISTENT:
-                finalPath = mainAccessToExternalObject(fileName, loc);
+                finalPath = mainAccessToExternalPSCO(fileName, loc);
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("External Object target Location: " + finalPath);
+                    LOGGER.debug("External PSCO target Location: " + finalPath);
                 }
                 break;
             default:
@@ -1004,6 +1004,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 // Nothing to do
                 ErrorManager.warn("WARN: Cannot close file " + fileName + " with PSCO protocol");
                 break;
+            case BINDING:
+                // Nothing to do
+                ErrorManager.warn("WARN: Cannot close binding object " + fileName + " with PSCO protocol");
+                break;
             default:
                 ErrorManager.error("ERROR: Unrecognised protocol requesting closeFile " + fileName);
         }
@@ -1011,6 +1015,57 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         // if (Tracer.isActivated()) {
         // Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         // }
+    }
+    
+    /**
+     * get Binding object
+     * 
+     * @param objectId
+     * @return id of the object in the cache
+     */
+    public String getBindingObject(String fileName){
+        // Parse the file name
+        LOGGER.debug(" Calling get binding object : " + fileName);
+        BindingObjectLocation sourceLocation = new BindingObjectLocation(Comm.getAppHost(), BindingObject.generate(fileName));
+        if (sourceLocation == null) {
+            ErrorManager.fatal(ERROR_FILE_NAME);
+            return null;
+        }
+     // Ask the AP to
+        String finalPath = mainAccessToBindingObject(fileName, sourceLocation);
+        LOGGER.debug(" Returning binding object as id: " + finalPath);
+        return finalPath;
+    }
+    
+    /**
+     * remove Binding object
+     * 
+     * @param fileName
+     * @param objectId
+     * @return
+     */
+    public boolean deleteBindingObject(String fileName){
+        // Check parameters
+        if (fileName == null || fileName.isEmpty()) {
+            return false;
+        }
+
+        LOGGER.info("Deleting BindingObject " + fileName);
+
+        // Emit event
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.Event.DELETE.getId(), Tracer.Event.DELETE.getType());
+        }
+
+        // Parse the binding object name and translate the access mode
+        BindingObjectLocation loc = new BindingObjectLocation(Comm.getAppHost(), BindingObject.generate(fileName));
+        ap.markForBindingObjectDeletion(loc);
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+        }
+
+        // Return deletion was successful
+        return true;
     }
 
     /*
@@ -1027,7 +1082,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             Direction direction = (Direction) parameters[i + 2];
             Stream stream = (Stream) parameters[i + 3];
             String prefix = (String) parameters[i + 4];
-
+            
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("  Parameter " + (npar + 1) + " has type " + type.name());
             }
@@ -1050,10 +1105,27 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 case OBJECT_T:
                     pars[npar] = new ObjectParameter(direction, stream, prefix, parameters[i], oReg.newObjectParameter(parameters[i]));
                     break;
-
-                case EXTERNAL_OBJECT_T:
+                case EXTERNAL_PSCO_T:
                     String id = (String) parameters[i];
-                    pars[npar] = new ExternalObjectParameter(direction, stream, prefix, id, externalObjectHashcode(id));
+                    pars[npar] = new ExternalPSCOParameter(direction, stream, prefix, id, externalObjectHashcode(id));
+                    break;
+                case BINDING_OBJECT_T:
+                    String value = (String) parameters[i];
+                    if (value.contains(":")){
+                    	String[] fields = value.split(":");
+                    	if (fields.length == 3){
+                    		String extObjectId = fields[0];
+                    		int extObjectType = Integer.parseInt(fields[1]);
+                    		int extObjectElements = Integer.parseInt(fields[2]);
+                    		pars[npar] = new BindingObjectParameter(direction, stream, prefix, new BindingObject(extObjectId, extObjectType, extObjectElements), externalObjectHashcode(extObjectId));
+                    	}else{
+                    		LOGGER.error(ERROR_BINDING_OBJECT_PARAMS+ " received value is "+ value);
+                            ErrorManager.fatal(ERROR_BINDING_OBJECT_PARAMS + " received value is "+ value);
+                    	}
+                    }else{
+                        LOGGER.error(ERROR_BINDING_OBJECT_PARAMS+ " received value is "+ value);
+                        ErrorManager.fatal(ERROR_BINDING_OBJECT_PARAMS + " received value is "+ value);
+                    }
                     break;
 
                 default:
@@ -1123,7 +1195,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         return ap.mainAcessToObject(obj, hashCode);
     }
 
-    private String mainAccessToExternalObject(String fileName, DataLocation loc) {
+    private String mainAccessToExternalPSCO(String fileName, DataLocation loc) {
         String id = ((PersistentLocation) loc).getId();
         int hashCode = externalObjectHashcode(id);
         boolean validValue = ap.isCurrentRegisterValueValid(hashCode);
@@ -1134,7 +1206,21 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
 
         // Otherwise we request it from a task
-        return ap.mainAcessToExternalObject(id, hashCode);
+        return ap.mainAcessToExternalPSCO(id, hashCode);
+    }
+    
+    private String mainAccessToBindingObject(String fileName, BindingObjectLocation loc) {
+        String id = loc.getId();
+        int hashCode = externalObjectHashcode(id);
+        boolean validValue = ap.isCurrentRegisterValueValid(hashCode);
+        if (validValue) {
+            // Main code is still performing the same modification.
+            // No need to register it as a new version.
+            return fileName;
+        }
+
+        // Otherwise we request it from a task
+        return ap.mainAcessToBindingObject(loc.getBindingObject(), hashCode);
     }
 
     private DataLocation createLocation(String fileName) throws IOException {

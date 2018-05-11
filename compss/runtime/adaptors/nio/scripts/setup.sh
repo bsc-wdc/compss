@@ -12,7 +12,18 @@
     done
     export CLASSPATH=$CLASSPATH
   }
+  # Displays runtime/application errors
+  error_msg() {
+    local error_msg=$1
 
+    # Display error
+    echo
+    echo "$error_msg"
+    echo
+
+    # Exit
+    exit 1
+  }
 
   ######################
   # COMMON HELPER FUNCTIONS
@@ -72,6 +83,9 @@
     tracing=${22}
     extraeFile=${23}
     hostId=${24}
+    storageConf=${25}
+    execType=${26}
+    persistentBinding=${27}
     pythonInterpreter=${28}
     pythonVersion=${29}
     pythonVirtualEnvironment=${30}
@@ -104,6 +118,9 @@
       echo "- Tracing:             $tracing"
       echo "- ExtraeFile:          ${extraeFile}"
       echo "- HostId:              ${hostId}"
+      echo "- StorageConf:         ${storageConf}"
+      echo "- ExecType:            ${execType}"
+      echo "- Persistent:          ${persistentBinding}"
     fi
 
     # Calculate Log4j file
@@ -174,22 +191,37 @@
   setup_jvm() {
     # Prepare the worker command
     local JAVA=java
-    local worker_jar=${SCRIPT_DIR}/../../../../adaptors/nio/worker/compss-adaptors-nio-worker.jar
+    worker_jar=${SCRIPT_DIR}/../../../../adaptors/nio/worker/compss-adaptors-nio-worker.jar
     local main_worker_class=es.bsc.compss.nio.worker.NIOWorker
-    cmd=$JAVA" \
-      ${jvmFlags} \
-      -XX:+PerfDisableSharedMem \
-      -XX:-UsePerfData \
-      -XX:+UseG1GC \
-      -XX:+UseThreadPriorities \
-      -XX:ThreadPriorityPolicy=42 \
-      -Dlog4j.configurationFile=${installDir}/Runtime/configuration/log/${itlog4j_file} \
-      -Dcompss.python.interpreter=${pythonInterpreter} \
-      -Dcompss.python.version=${pythonVersion} \
-      -Dcompss.python.virtualenvironment=${pythonVirtualEnvironment} \
-      -Dcompss.python.propagate_virtualenvironment=${pythonPropagateVirtualEnvironment} \
-      -classpath $CLASSPATH:${worker_jar} \
-      ${main_worker_class}"
+    worker_jvm_flags="${jvmFlags} \
+    -XX:+PerfDisableSharedMem \
+    -XX:-UsePerfData \
+    -XX:+UseG1GC \
+    -XX:+UseThreadPriorities \
+    -XX:ThreadPriorityPolicy=42 \
+    -Dlog4j.configurationFile=${installDir}/Runtime/configuration/log/${itlog4j_file} \
+    -Dcompss.python.interpreter=${pythonInterpreter} \
+    -Dcompss.python.version=${pythonVersion} \
+    -Dcompss.python.virtualenvironment=${pythonVirtualEnvironment} \
+    -Dcompss.python.propagate_virtualenvironment=${pythonPropagateVirtualEnvironment}"
+    
+    if [ "$lang" = "c" ] && [ "${persistentBinding}" = "true" ]; then
+    	generate_jvm_opts_file
+    	cmd="${appDir}/worker/nio_worker_c"
+    else
+        cmd="$JAVA ${worker_jvm_flags} -classpath $CLASSPATH:${worker_jar} ${main_worker_class}"
+    fi
+    	
+  }
+  
+  generate_jvm_opts_file() {
+    jvm_worker_opts=$(echo $worker_jvm_flags | tr " " "\n")
+  	jvm_options_file=$(mktemp) || error_msg "Error creating java_opts_tmp_file"
+  	cat >> "${jvm_options_file}" << EOT
+${jvm_worker_opts}
+-Djava.library.path=$LD_LIBRARY_PATH
+-Djava.class.path=$CLASSPATH:${worker_jar}
+EOT
   }
 
   reprogram_fpga() {
@@ -201,6 +233,12 @@
 
   pre_launch() {
     cd "$workingDir" || exit 1
+    
+    if [ "${persistentBinding}" = "true" ]; then
+    	export COMPSS_HOME=${SCRIPT_DIR}/../../../../../
+    	export LD_LIBRARY_PATH=${COMPSS_HOME}/Bindings/bindings-common/lib:${COMPSS_HOME}/Bindings/c/lib:${LD_LIBRARY_PATH}
+		export JVM_OPTIONS_FILE=${jvm_options_file}
+    fi
 
     # Trace initialization
     if [ "$tracing" -gt 0 ]; then

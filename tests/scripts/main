@@ -262,8 +262,9 @@ EOT
     runcompss_opts="-d"
     # Set environment variables from configuration file
     source_configuration
-
-    # Set the rest of environment variables
+    
+    echo " RUNCOMPSS_OPTS AFTER_LOADING_CFG: ${runcompss_opts}"
+    # Set the rest of environment variables 
     source_base_dir="${SCRIPT_DIR}/../sources"
     COMPSs_log_folder="$HOME/.COMPSs"
     COMPSs_exec="$COMPSS_HOME/Runtime/scripts/user/runcompss"

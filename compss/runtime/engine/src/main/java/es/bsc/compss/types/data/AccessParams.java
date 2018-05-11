@@ -18,6 +18,7 @@ package es.bsc.compss.types.data;
 
 import java.io.Serializable;
 
+import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.data.location.DataLocation;
 
 
@@ -90,6 +91,31 @@ public class AccessParams implements Serializable {
 
         public Object getValue() {
             return value;
+        }
+
+        public int getCode() {
+            return hashCode;
+        }
+    }
+    public static class BindingObjectAccessParams extends AccessParams {
+
+        /**
+         * Serializable objects Version UID are 1L in all Runtime
+         */
+        private static final long serialVersionUID = 1L;
+
+        private int hashCode;
+        private BindingObject bindingObject;
+
+
+        public BindingObjectAccessParams(AccessMode mode, BindingObject bo, int hashCode) {
+            super(mode);
+            this.bindingObject = bo;
+            this.hashCode = hashCode;
+        }
+
+        public BindingObject getBindingObject() {
+            return bindingObject;
         }
 
         public int getCode() {

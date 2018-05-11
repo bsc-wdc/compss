@@ -810,7 +810,7 @@ check_args() {
   if [ -z "$library_path" ]; then
     library_path=${DEFAULT_LIBRARY_PATH}
   fi
-  export LD_LIBRARY_PATH=$library_path:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=$COMPSS_HOME/Bindings/bindings-common/lib:$COMPSS_HOME/Bindings/c/lib:$library_path:$LD_LIBRARY_PATH
 
   if [ -z "$uuid" ]; then
     uuid=$(uuidgen)
@@ -975,6 +975,12 @@ ${jvm_debugger_opts}
 -Dcompss.scheduler.config=${scheduler_config}
 -Dcompss.external.adaptation=${external_adaptation}
 EOT
+##  if [ "${log_level}" == "debug" ]; then
+##        cat >> "${jvm_options_file}" << EOT
+##-Xcheck:jni
+##-verbose:jni
+##EOT
+##  fi
 }
 
 add_jvm_opts_java() {
@@ -987,6 +993,7 @@ EOT
 add_jvm_opts_c() {
   cat >> "${jvm_options_file}" << EOT
 -Djava.class.path=${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar
+-Djava.library.path=${LD_LIBRARY_PATH}
 -Dcompss.constraints.file=$fullAppPath.idl
 -Dcompss.worker.persistent.c=${persistent_worker_c}
 EOT
@@ -995,6 +1002,7 @@ EOT
 add_jvm_opts_python() {
   cat >> "${jvm_options_file}" << EOT
 -Djava.class.path=${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar
+-Djava.library.path=${LD_LIBRARY_PATH}
 -Dcompss.worker.pythonpath=${PYTHONPATH}
 -Dcompss.python.interpreter=${python_interpreter}
 -Dcompss.python.version=${python_version}

@@ -38,7 +38,7 @@ public:
 
 	void init(int bSize, double initVal);
 	
-	static Block create( int bSize, double initVal);
+	static Block* create( int bSize, double initVal);
 
 	static void generate(Block *b, int bSize, double initVal);
 

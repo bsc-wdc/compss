@@ -176,10 +176,10 @@ public class IDLParser {
     private static void parseCFunction(String line, MethodResourceDescription currConstraints, CImplementation implementation) {
         StringBuilder implementedTaskSignatureBuffer = new StringBuilder();
         StringBuilder implementationSignatureBuffer = new StringBuilder();
-        // boolean isStatic = false;
+        boolean isStatic = false;
         boolean hasReturn = false;
         if (line.startsWith("static ")) {
-            // isStatic = true;
+            isStatic = true;
             line = line.replace("static ", "");
         }
         if (!line.startsWith("void ")) {
@@ -196,28 +196,33 @@ public class IDLParser {
             implementedTaskSignatureBuffer.append(methodName).append("(");
         }
         implementationSignatureBuffer.append(methodName).append("(");
-        /*
-         * if (declaringClass!="NULL" && !isStatic){ implementedTaskSignatureBuffer.append("FILE_T").append(",");
-         * implementationSignatureBuffer.append("FILE_T").append(","); }
-         */
-        if (hasReturn) {
+        /*if (declaringClass != "NULL" && !isStatic){ 
+            implementedTaskSignatureBuffer.append("BINDING_OBJECT_T").append(",");
+            implementationSignatureBuffer.append("BINDING_OBJECT_T").append(","); 
+        }*/
+        /*if (hasReturn) {
+            implementedTaskSignatureBuffer.append("BINDING_OBJECT_T").append(",");
+            implementationSignatureBuffer.append("BINDING_OBJECT_T").append(",");
+        */
+            /* OLD Binding Objects as FILE 
             implementedTaskSignatureBuffer.append("FILE_T").append(",");
             implementationSignatureBuffer.append("FILE_T").append(",");
-        }
+            */
+        //}
         // Computes the method's signature
         for (int i = 2; i < splits.length; i++) {
             String paramDirection = splits[i++];
             String paramType = splits[i++];
-            String type = "FILE_T";
+            String type = "BINDING_OBJECT_T";
             /*
-             * OLD version C-binding String type = "OBJECT_T";
+             * OLD version C-binding String type = "FILE_T";
              */
-            if (paramDirection.toUpperCase().compareTo("INOUT") == 0) {
+            if (paramType.toUpperCase().compareTo("FILE") == 0) {
                 type = "FILE_T";
+            } else if (paramDirection.toUpperCase().compareTo("INOUT") == 0) {
+                type = "BINDING_OBJECT_T";
             } else if (paramDirection.toUpperCase().compareTo("OUT") == 0) {
-                type = "FILE_T";
-            } else if (paramType.toUpperCase().compareTo("FILE") == 0) {
-                type = "FILE_T";
+                type = "BINDING_OBJECT_T";
             } else if (paramType.compareTo("boolean") == 0) {
                 type = "BOOLEAN_T";
             } else if (paramType.compareTo("char") == 0) {

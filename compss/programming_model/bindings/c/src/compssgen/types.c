@@ -98,19 +98,19 @@ int test_types()
   //Check if types exists
   strcpy(b.name, "Type1");
   if (containsType(b, currTypes)){
-	printf("Type %s in currTypes!\n", b);
+	printf("Type %s in currTypes!\n", b.name);
   }
   strcpy(b.name, "Type2");
   if (containsType(b, currTypes)){
-        printf("Type %s in currTypes!\n", b);
+        printf("Type %s in currTypes!\n", b.name);
   }
   strcpy(b.name, "Type3");
   if (containsType(b, currTypes)){
-        printf("Type %s in currTypes!\n", b);
+        printf("Type %s in currTypes!\n", b.name);
   }
   strcpy(b.name, "Type4");
   if (!containsType(b, currTypes)){
-        printf("Type %s NOT in currTypes!\n",b);
+        printf("Type %s NOT in currTypes!\n",b.name);
   }
   addType(b, &currTypes);
   strcpy( a.name, "Type5");

@@ -15,5 +15,5 @@
   cp -f ${source_base_dir}/TestArrays.cc ${target_base_dir}/TestArrays.cc
   cp -f ${source_base_dir}/TestArrays-functions.cc ${target_base_dir}/TestArrays-functions.cc
   cp -f ${source_base_dir}/TestArrays.idl ${target_base_dir}/TestArrays.idl
-  cp -f ${source_base_dir}/skip ${target_base_dir}/skip
+  #cp -f ${source_base_dir}/skip ${target_base_dir}/skip
 

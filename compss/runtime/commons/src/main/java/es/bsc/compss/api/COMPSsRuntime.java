@@ -186,7 +186,23 @@ public interface COMPSsRuntime {
      * @return
      */
     public boolean deleteFile(String fileName);
-
+    
+    /**
+     * Returns the renaming of the binding object version opened
+     * 
+     * @param objectName
+     * @return id in the cache
+     */
+    public String getBindingObject(String bindingObjectName);
+    
+    /**
+     * removes the binding object from runtime
+     * 
+     * @param objectName
+     * @return id in the cache
+     */
+    public boolean deleteBindingObject(String bindingObjectName);
+    
     /*
      * *****************************************************************************************************************
      * TOOLS ACCESS FOR BINDINGS

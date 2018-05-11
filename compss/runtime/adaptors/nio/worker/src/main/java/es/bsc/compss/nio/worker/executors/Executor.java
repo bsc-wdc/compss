@@ -75,6 +75,8 @@ public abstract class Executor implements Runnable {
      * Thread main code which enables the request processing
      */
     public void run() {
+        start();
+        
         // Main loop to process requests
         processRequests();
 
@@ -485,6 +487,8 @@ public abstract class Executor implements Runnable {
             int[] assignedGPUs, int[] assignedFPGAs) throws Exception;
 
     public abstract void finish();
+    
+    public abstract void start();
 
 
     private class TaskWorkingDir {

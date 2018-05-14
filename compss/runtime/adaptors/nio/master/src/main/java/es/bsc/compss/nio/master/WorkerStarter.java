@@ -376,7 +376,7 @@ public class WorkerStarter {
         // Configure python version
         String python_version = System.getProperty(COMPSsConstants.PYTHON_VERSION);
         if (python_version == null || python_version.isEmpty() || python_version.equals("null")) {
-            python_interpreter = COMPSsConstants.DEFAULT_PYTHON_VERSION;
+            python_version = COMPSsConstants.DEFAULT_PYTHON_VERSION;
             LOGGER.warn("No python version passed");
         }
 
@@ -386,6 +386,12 @@ public class WorkerStarter {
             python_virtual_environment = COMPSsConstants.DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT;
             LOGGER.warn("No python virtual environment passed");
         }
+        String python_propagate_virtual_environment = System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT);
+        if (python_propagate_virtual_environment == null || python_propagate_virtual_environment.isEmpty() || python_propagate_virtual_environment.equals("null")) {
+            python_propagate_virtual_environment = COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
+            LOGGER.warn("No python propagate virtual environment passed");
+        }
+
 
         /*
          * ************************************************************************************************************
@@ -463,12 +469,12 @@ public class WorkerStarter {
 
         // Python interpreter parameter
         cmd[nextPosition++] = python_interpreter;
-
         // Python interpreter version
         cmd[nextPosition++] = python_version;
-
         // Python virtual environment parameter
         cmd[nextPosition++] = python_virtual_environment;
+        // Python propagate virtual environment parameter
+        cmd[nextPosition++] = python_propagate_virtual_environment;
 
         return cmd;
     }

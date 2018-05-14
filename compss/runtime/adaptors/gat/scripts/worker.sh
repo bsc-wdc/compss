@@ -123,7 +123,7 @@
   export COMPSS_APP_DIR=$appDir
 
   # Add support for non-native tasks
-  methodType=${10}
+  methodType=${11}
   if [ "$methodType" != "METHOD" ]; then
     echo "[WORKER.SH] Non-native task detected. Switching to JAVA invoker."
     lang=java

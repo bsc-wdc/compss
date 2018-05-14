@@ -22,12 +22,13 @@
     pythonInterpreter=$5
     pythonVersion=$6
     pythonVirtualEnvironment=$7
-    debug=$8
-    storageConf=$9
-    methodType=${10}
+    pythonPropagateVirtualEnvironment=$8
+    debug=$9
+    storageConf=${10}
+    methodType=${11}
 
     # Shit all parameters except method ones
-    shiftSizeForApp=7
+    shiftSizeForApp=8
     shift $shiftSizeForApp
    
     # Get method parameters
@@ -35,12 +36,13 @@
 
     # Log status if needed
     if [ "$debug" == "true" ]; then
-      echo "[WORKER_COMMONS.SH] - app_dir                   $app_dir"
-      echo "[WORKER_COMMONS.SH] - classpath                 $cp"
-      echo "[WORKER_COMMONS.SH] - pythonpath                $pythonpath"
-      echo "[WORKER_COMMONS.SH] - pythonInterpreter         $pythonInterpreter"
-      echo "[WORKER_COMMONS.SH] - pythonVersion             $pythonVersion"
-      echo "[WORKER_COMMONS.SH] - pythonVirtualEnvironment  $pythonVirtualEnvironment"
+      echo "[WORKER_COMMONS.SH] - app_dir                            $app_dir"
+      echo "[WORKER_COMMONS.SH] - classpath                          $cp"
+      echo "[WORKER_COMMONS.SH] - pythonpath                         $pythonpath"
+      echo "[WORKER_COMMONS.SH] - pythonInterpreter                  $pythonInterpreter"
+      echo "[WORKER_COMMONS.SH] - pythonVersion                      $pythonVersion"
+      echo "[WORKER_COMMONS.SH] - pythonVirtualEnvironment           $pythonVirtualEnvironment"
+      echo "[WORKER_COMMONS.SH] - pythonPropagateVirtualEnvironment  $pythonPropagateVirtualEnvironment"
     fi
   }
 

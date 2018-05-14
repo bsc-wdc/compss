@@ -75,6 +75,7 @@
     pythonInterpreter=${28}
     pythonVersion=${29}
     pythonVirtualEnvironment=${30}
+    pythonPropagateVirtualEnvironment=${31}
 
     if [ "$debug" == "true" ]; then
       echo "PERSISTENT_WORKER.sh"
@@ -98,6 +99,7 @@
       echo "- Python Interpreter   $pythonInterpreter"
       echo "- Python Version       $pythonVersion"
       echo "- Python Virtual Env.  $pythonVirtualEnvironment"
+      echo "- Python Propagate Virtual Env.  $pythonPropagateVirtualEnvironment"
 
       echo "- Tracing:             $tracing"
       echo "- ExtraeFile:          ${extraeFile}"
@@ -185,6 +187,7 @@
       -Dcompss.python.interpreter=${pythonInterpreter} \
       -Dcompss.python.version=${pythonVersion} \
       -Dcompss.python.virtualenvironment=${pythonVirtualEnvironment} \
+      -Dcompss.python.propagate_virtualenvironment=${pythonPropagateVirtualEnvironment} \
       -classpath $CLASSPATH:${worker_jar} \
       ${main_worker_class}"
   }

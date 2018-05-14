@@ -23,7 +23,7 @@
 
   # Pre-execution
   get_parameters $@
-  if [ "$pythonVirtualEnvironment" != "null" ]; then
+  if [ "$pythonVirtualEnvironment" != "null" ] && [ "$pythonPropagateVirtualEnvironment" == "true" ]; then
     activate_virtual_environment
   fi
   set_env
@@ -49,7 +49,7 @@
     exitCode=7
   fi
 
-  if [ "$pythonVirtualEnvironment" != "null" ]; then
+  if [ "$pythonVirtualEnvironment" != "null" ] && [ "$pythonPropagateVirtualEnvironment" == "true" ]; then
     deactivate_virtual_environment
   fi
 

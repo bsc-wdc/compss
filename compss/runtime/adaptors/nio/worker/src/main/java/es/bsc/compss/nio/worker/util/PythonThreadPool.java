@@ -96,6 +96,8 @@ public class PythonThreadPool extends ExternalThreadPool {
 
         cmd.append(COMPSsConstants.Lang.PYTHON).append(ExternalExecutor.TOKEN_SEP);
         cmd.append(NIOWorker.getPythonVirtualEnvironment()).append(ExternalExecutor.TOKEN_SEP);
+        cmd.append(NIOWorker.getPythonPropagateVirtualEnvironment()).append(ExternalExecutor.TOKEN_SEP);
+
         cmd.append(NIOWorker.isTracingEnabled()).append(ExternalExecutor.TOKEN_SEP);
 
         cmd.append(PythonThreadPool.pythonInterpreter).append(ExternalExecutor.TOKEN_SEP).append("-u").append(ExternalExecutor.TOKEN_SEP);

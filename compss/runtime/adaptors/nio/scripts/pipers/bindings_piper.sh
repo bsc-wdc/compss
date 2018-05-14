@@ -44,7 +44,8 @@
     if [ "$binding" == "PYTHON" ]; then
         # Get virtual environment
         virtualEnvironment=$1
-        shift 1
+        propagateVirtualEnvironment=$2
+        shift 2
         # Get tracing
         tracing=$1
         shift 1
@@ -119,7 +120,7 @@
   done
 
   # Activating virtual environment if needed
-  if [ "$virtualEnvironment" != "null" ]; then
+  if [ "$virtualEnvironment" != "null" ] && [ "$propagateVirtualEnvironment" == "true" ]; then
     echo "[BINDINGS PIPER] Activating virtual environment $virtualEnvironment"
     source ${virtualEnvironment}/bin/activate
   fi
@@ -158,7 +159,7 @@
   fi
 
   # Deactivate virtual environment if needed
-  if [ "$virtualEnvironment" != "null" ]; then
+  if [ "$virtualEnvironment" != "null" ] && [ "$propagateVirtualEnvironment" == "true" ]; then
     deactivate  # this function is contained in activate script sourced previously
   fi
 

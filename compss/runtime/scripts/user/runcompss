@@ -47,6 +47,7 @@ if [ -z "${VIRTUAL_ENV}" ]; then
 else
   DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT="${VIRTUAL_ENV}"
 fi
+DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT=true
 
 DEFAULT_COMMUNICATION_ADAPTOR=es.bsc.compss.nio.master.NIOAdaptor
 #DEFAULT_COMMUNICATION_ADAPTOR=es.bsc.compss.gat.master.GATAdaptor
@@ -183,6 +184,8 @@ show_opts() {
                                             Default: false
     --python_interpreter=<string>           Python interpreter to use (python/python2/python3).
                                             Default: $DEFAULT_PYTHON_INTERPRETER Version: ${DEFAULT_PYTHON_VERSION}
+    --python_propagate_virtual_environment=<true>  Propagate the master virtual environment to the workers (true/false).
+                                                   Default: $DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT
 
 * Application name:
     For Java applications:   Fully qualified name of the application
@@ -587,6 +590,10 @@ get_args() {
             # Specify the python interpreter to use
             python_interpreter=${OPTARG//python_interpreter=/}
             ;;
+          python_propagate_virtual_environment=*)
+            # Enable or disable the virtual environment propagation
+            python_propagate_virtual_environment=${OPTARG//python_propagate_virtual_environment=/}
+            ;;
   	  *)
 	    # Flag didn't match any patern. Raise exception
 	    display_error "Bad argument: $OPTARG"
@@ -869,6 +876,15 @@ check_args() {
       PyObject_serialize=$DEFAULT_PyOBJECT_SERIALIZE
     fi
   fi
+  if [ -z "$python_interpreter" ]; then
+	  python_interpreter=$DEFAULT_PYTHON_INTERPRETER
+    python_version=$DEFAULT_PYTHON_VERSION
+  else
+    python_version=$( ${python_interpreter} -c "import sys; print(sys.version_info[:][0])")
+  fi
+  if [ -z "$python_propagate_virtual_environment" ]; then
+	  python_propagate_virtual_environment=$DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT
+  fi
 
   # Options ONLY for C
   if [ "$lang" = "c" ]; then
@@ -881,12 +897,6 @@ check_args() {
   fi
   if [ -z "$external_adaptation" ]; then
 	external_adaptation=$DEFAULT_EXTERNAL_ADAPTATION
-  fi
-  if [ -z "$python_interpreter" ]; then
-	  python_interpreter=$DEFAULT_PYTHON_INTERPRETER
-    python_version=$DEFAULT_PYTHON_VERSION
-  else
-    python_version=$( ${python_interpreter} -c "import sys; print(sys.version_info[:][0])")
   fi
 }
 
@@ -989,6 +999,7 @@ add_jvm_opts_python() {
 -Dcompss.python.interpreter=${python_interpreter}
 -Dcompss.python.version=${python_version}
 -Dcompss.python.virtualenvironment=${DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT}
+-Dcompss.python.propagate_virtualenvironment=${python_propagate_virtual_environment}
 EOT
 }
 

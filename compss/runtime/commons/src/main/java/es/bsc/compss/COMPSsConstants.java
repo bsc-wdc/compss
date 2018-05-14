@@ -129,6 +129,7 @@ public class COMPSsConstants {
     public static final String PYTHON_INTERPRETER = "compss.python.interpreter";
     public static final String PYTHON_VERSION = "compss.python.version";
     public static final String PYTHON_VIRTUAL_ENVIRONMENT = "compss.python.virtualenvironment";
+    public static final String PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT = "compss.python.propagate_virtualenvironment";
 
     // System properties for Instrumentation flags
     public static final String COMPSS_TO_FILE = "compss.to.file";
@@ -174,6 +175,7 @@ public class COMPSsConstants {
     public static final String DEFAULT_PYTHON_INTERPRETER = "python";
     public static final String DEFAULT_PYTHON_VERSION = "2";
     public static final String DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT = "null";
+    public static final String DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT = "true";
 
 
     private COMPSsConstants() {

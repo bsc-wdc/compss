@@ -106,6 +106,7 @@ public class NIOWorker extends NIOAgent {
     private static String pythonInterpreter;
     private static String pythonVersion;
     private static String pythonVirtualEnvironment;
+    private static String pythonPropagateVirtualEnvironment;
 
     // Internal components
     private final ExecutionManager executionManager;
@@ -238,6 +239,8 @@ public class NIOWorker extends NIOAgent {
     public static String getPythonVirtualEnvironment() {
         return pythonVirtualEnvironment;
     }
+
+    public static String getPythonPropagateVirtualEnvironment() { return pythonPropagateVirtualEnvironment; }
 
     public ExecutionManager getExecutionManager() {
         return this.executionManager;
@@ -1047,6 +1050,8 @@ public class NIOWorker extends NIOAgent {
         pythonInterpreter = args[27];
         pythonVersion = args[28];
         pythonVirtualEnvironment = args[29];
+        pythonPropagateVirtualEnvironment = args[30];
+
 
         // Print arguments
         if (isWorkerDebugEnabled) {
@@ -1085,6 +1090,7 @@ public class NIOWorker extends NIOAgent {
             WORKER_LOGGER.debug("Python interpreter: " + pythonInterpreter);
             WORKER_LOGGER.debug("Python version: " + pythonVersion);
             WORKER_LOGGER.debug("Python virtual environment: " + pythonVirtualEnvironment);
+            WORKER_LOGGER.debug("Python propagate virtual environment: " + pythonPropagateVirtualEnvironment);
 
             WORKER_LOGGER.debug("Remove Sanbox WD: " + removeWD);
         }

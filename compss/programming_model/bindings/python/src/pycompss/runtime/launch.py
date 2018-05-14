@@ -191,8 +191,7 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
                                 profileOutput='',
                                 scheduler_config='',
                                 external_adaptation=False,
-                                python_interpreter='python',
-                                python_virtual_environment='null'
+                                python_propagate_virtual_environment=True
                                 ):
     global app_path
     launchPath = os.path.dirname(os.path.abspath(__file__))
@@ -258,8 +257,15 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
         config['external_adaptation'] = 'true'
     else:
         config['external_adaptation'] = 'false'
-    config['python_interpreter'] = python_interpreter
+    config['python_interpreter'] = 'python' + str(sys.version_info[0])
+    config['python_version'] = str(sys.version_info[0])
+    if 'VIRTUAL_ENV' in os.environ:
+        # Running within a virtual environment
+        python_virtual_environment = os.environ['VIRTUAL_ENV']
+    else:
+        python_virtual_environment = 'null'
     config['python_virtual_environment'] = python_virtual_environment
+    config['python_propagate_virtual_environment'] = python_propagate_virtual_environment
 
     initialize_compss(config)
 
@@ -336,7 +342,9 @@ def initialize_compss(config):
         - 'scheduler_config'    = <String>  = Path to the file which contains the scheduler configuration.
         - 'external_adaptation' = <String>  = Enable external adaptation. This option will disable the Resource Optimizer
         - 'python_interpreter'  = <String>  = Python interpreter
-        - 'python_virtual_environment'  = <String>  = Python virtual environment path
+        - 'python_version'      = <String>  = Python interpreter version
+        - 'python_virtual_environment'            = <String>  = Python virtual environment path
+        - 'python_propagate_virtual_environment'  = <Boolean> = Propagate python virtual environment to workers
     :param config: Configuration parameters dictionary
     '''
     from tempfile import mkstemp
@@ -451,7 +459,12 @@ def initialize_compss(config):
     jvm_options_file.write('-Djava.class.path=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config['classpath'] + '\n')
     jvm_options_file.write('-Dcompss.worker.pythonpath=' + config['cp'] + ':' + config['pythonPath'] + '\n')
     jvm_options_file.write('-Dcompss.python.interpreter=' + config['python_interpreter'] + '\n')
+    jvm_options_file.write('-Dcompss.python.version=' + config['python_version'] + '\n')
     jvm_options_file.write('-Dcompss.python.virtualenvironment=' + config['python_virtual_environment'] + '\n')
+    if config['python_propagate_virtual_environment']:
+        jvm_options_file.write('-Dcompss.python.propagate_virtualenvironment=true\n')
+    else:
+        jvm_options_file.write('-Dcompss.python.propagate_virtualenvironment=false\n')
     jvm_options_file.close()
     os.close(fd)
     os.environ['JVM_OPTIONS_FILE'] = temp_path

@@ -42,11 +42,6 @@ public class PythonThreadPool extends ExternalThreadPool {
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_POOL);
 
-    // Python interpreter (default: system python - usually python)
-    private static String pythonInterpreter = "python";
-    // Worker subfolder (default: 2)
-    private static String workerSubFolder = "2";
-
     // Python worker relative path
     private static final String WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator + "worker" + File.separator + "piper_worker.py";
 
@@ -86,12 +81,6 @@ public class PythonThreadPool extends ExternalThreadPool {
         // Specific launch command is of the form: binding bindingExecutor bindingArgs
         // The bindingArgs are of the form python -u piper_worker.py debug tracing storageConf #threads cmdPipes
         // resultPipes
-
-        // FIXME: This should be in the constructor
-        PythonThreadPool.pythonInterpreter = NIOWorker.getPythonInterpreter();
-        // Define the appropriate worker subfolder
-        PythonThreadPool.workerSubFolder = NIOWorker.getPythonVersion();
-
         StringBuilder cmd = new StringBuilder();
 
         cmd.append(COMPSsConstants.Lang.PYTHON).append(ExternalExecutor.TOKEN_SEP);
@@ -100,9 +89,9 @@ public class PythonThreadPool extends ExternalThreadPool {
 
         cmd.append(NIOWorker.isTracingEnabled()).append(ExternalExecutor.TOKEN_SEP);
 
-        cmd.append(PythonThreadPool.pythonInterpreter).append(ExternalExecutor.TOKEN_SEP).append("-u").append(ExternalExecutor.TOKEN_SEP);
+        cmd.append(NIOWorker.getPythonInterpreter()).append(ExternalExecutor.TOKEN_SEP).append("-u").append(ExternalExecutor.TOKEN_SEP);
         cmd.append(installDir).append(PythonExecutor.PYCOMPSS_RELATIVE_PATH)
-                              .append(File.separator).append(PythonThreadPool.workerSubFolder)
+                              .append(File.separator).append(NIOWorker.getPythonVersion())
                               .append(WORKER_PY_RELATIVE_PATH)
                               .append(ExternalExecutor.TOKEN_SEP);
 
@@ -125,10 +114,6 @@ public class PythonThreadPool extends ExternalThreadPool {
     @Override
     public Map<String, String> getEnvironment(NIOWorker nw) {
         return PythonExecutor.getEnvironment(nw);
-    }
-
-    public static String getWorkerSubFolder() {
-        return workerSubFolder;
     }
 
     @Override

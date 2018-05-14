@@ -19,7 +19,6 @@ package es.bsc.compss.nio.worker.executors;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.worker.NIOWorker;
 import es.bsc.compss.nio.worker.util.JobsThreadPool;
-import es.bsc.compss.nio.worker.util.PythonThreadPool;
 import es.bsc.compss.nio.worker.util.TaskResultReader;
 import es.bsc.compss.util.RequestQueue;
 
@@ -52,7 +51,7 @@ public class PythonExecutor extends ExternalExecutor {
     public static Map<String, String> getEnvironment(NIOWorker nw) {
         // PyCOMPSs HOME
         Map<String, String> env = new HashMap<>();
-        String pycompssHome = nw.getInstallDir() + PYCOMPSS_RELATIVE_PATH + File.separator + PythonThreadPool.getWorkerSubFolder();
+        String pycompssHome = nw.getInstallDir() + PYCOMPSS_RELATIVE_PATH + File.separator + NIOWorker.getPythonVersion();
         env.put("PYCOMPSS_HOME", pycompssHome);
 
         // PYTHONPATH

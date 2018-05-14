@@ -79,6 +79,7 @@ def start(log_level='off',
           profileOutput='',
           scheduler_config='',
           external_adaptation=False,
+          propagate_virtual_environment=False,
           verbose=False
           ):
     launchPath = os.path.dirname(os.path.realpath(__file__))
@@ -207,12 +208,15 @@ def start(log_level='off',
     major_version = sys.version_info[0]
     python_interpreter = 'python' + str(major_version)
     config['python_interpreter'] = python_interpreter
+    config['python_version'] = str(major_version)
 
     if 'VIRTUAL_ENV' in os.environ:
         # Running within a virtual environment
         python_virtual_environment = os.environ['VIRTUAL_ENV']
     else:
         python_virtual_environment = 'null'
+    config['python_virtual_environment'] = python_virtual_environment
+    config['python_propagate_virtual_environment'] = propagate_virtual_environment
 
     initialize_compss(config)
 
@@ -263,8 +267,8 @@ def start(log_level='off',
                taskCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
                comm, conn, masterName, masterPort, scheduler, jvmWorkers,
                cpuAffinity, gpuAffinity, profileInput, profileOutput,
-               scheduler_config, external_adaptation, python_interpreter,
-               python_virtual_environment)
+               scheduler_config, external_adaptation, python_interpreter, major_version,
+               python_virtual_environment, propagate_virtual_environment)
 
     logger.debug("--- START ---")
     logger.debug("PyCOMPSs Log path: %s" % log_path)
@@ -286,8 +290,8 @@ def printSetup(verbose, log_level, o_c, debug, graph, trace, monitor,
                taskCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
                comm, conn, masterName, masterPort, scheduler, jvmWorkers,
                cpuAffinity, gpuAffinity, profileInput, profileOutput,
-               scheduler_config, external_adaptation, python_interpreter,
-               python_virtual_environment):
+               scheduler_config, external_adaptation, python_interpreter, python_version,
+               python_virtual_environment, python_propagate_virtual_environment):
     logger = logging.getLogger("pycompss.runtime.launch")
     output = ""
     output += "********************************************************\n"
@@ -322,7 +326,9 @@ def printSetup(verbose, log_level, o_c, debug, graph, trace, monitor,
     output += "  - Scheduler config    : " + str(scheduler_config) + "\n"
     output += "  - External adaptation : " + str(external_adaptation) + "\n"
     output += "  - Python interpreter  : " + str(python_interpreter) + "\n"
+    output += "  - Python version      : " + str(python_version) + "\n"
     output += "  - Python virtualenv   : " + str(python_virtual_environment) + "\n"
+    output += "  - Python propagate virtualenv : " + str(python_propagate_virtual_environment) + "\n"
     output += "********************************************************"
     if verbose:
         print(output)

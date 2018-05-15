@@ -86,7 +86,7 @@ public class LogicalData {
      */
     /**
      * Constructs a LogicalData for a given data version
-     * 
+     *
      * @param name
      */
     public LogicalData(String name) {
@@ -103,7 +103,7 @@ public class LogicalData {
      */
     /**
      * Returns the data version name
-     * 
+     *
      * @return
      */
     public String getName() {
@@ -113,7 +113,7 @@ public class LogicalData {
 
     /**
      * Returns the PSCO id. Null if its not a PSCO
-     * 
+     *
      * @return
      */
     public String getId() {
@@ -122,30 +122,30 @@ public class LogicalData {
 
     /**
      * Returns all the hosts that contain a data location
-     * 
+     *
      * @return
      */
     public synchronized Set<Resource> getAllHosts() {
         Set<Resource> list = new HashSet<>();
         for (DataLocation loc : this.locations) {
             List<Resource> hosts = loc.getHosts();
-        	synchronized(hosts){
-        		list.addAll(hosts);
-        	}
+            synchronized (hosts) {
+                list.addAll(hosts);
+            }
         }
 
         return list;
     }
-    
+
     /**
      * Returns all the hosts where a task using the data has been scheduled
-     * 
+     *
      * @return
      */
     public synchronized Set<Resource> getAllLocalHosts() {
         return localLocations;
     }
-    
+
     /**
      * Add a new location where a task using the data has been scheduled
      */
@@ -155,7 +155,7 @@ public class LogicalData {
 
     /**
      * Obtain the all the URIs
-     * 
+     *
      * @return
      */
     public synchronized List<MultiURI> getURIs() {
@@ -174,18 +174,18 @@ public class LogicalData {
     public synchronized Set<DataLocation> getLocations() {
         return this.locations;
     }
-    
+
     public synchronized void setSize(float size) {
         this.size = size;
     }
-    
+
     public float getSize() {
         return this.size;
     }
 
     /**
      * Returns if the data value is stored in memory or not
-     * 
+     *
      * @return
      */
     public synchronized boolean isInMemory() {
@@ -194,7 +194,7 @@ public class LogicalData {
 
     /**
      * Returns the value stored in memory
-     * 
+     *
      * @return
      */
     public synchronized Object getValue() {
@@ -206,30 +206,30 @@ public class LogicalData {
      */
     /**
      * Adds a new location
-     * 
+     *
      * @param loc
      */
     public synchronized void addLocation(DataLocation loc) {
         this.isBeingSaved = false;
         this.locations.add(loc);
-        for (Resource r : loc.getHosts()) {
-            switch (loc.getType()) {
-                case PRIVATE:
+        switch (loc.getType()) {
+            case PRIVATE:
+                for (Resource r : loc.getHosts()) {
                     r.addLogicalData(this);
-                    break;
-                case SHARED:
-                    SharedDiskManager.addLogicalData(loc.getSharedDisk(), this);
-                    break;
-                case PERSISTENT:
-                    this.id = ((PersistentLocation) loc).getId();
-                    break;
-            }
+                }
+                break;
+            case SHARED:
+                SharedDiskManager.addLogicalData(loc.getSharedDisk(), this);
+                break;
+            case PERSISTENT:
+                this.id = ((PersistentLocation) loc).getId();
+                break;
         }
     }
 
     /**
      * Removes the object from master main memory and removes its location
-     * 
+     *
      * @return
      */
     public synchronized Object removeValue() {
@@ -253,7 +253,7 @@ public class LogicalData {
 
     /**
      * Sets the memory value
-     * 
+     *
      * @param o
      */
     public synchronized void setValue(Object o) {
@@ -262,7 +262,7 @@ public class LogicalData {
 
     /**
      * Sets the LD id
-     * 
+     *
      * @param id
      */
     public synchronized void setId(String id) {
@@ -271,7 +271,7 @@ public class LogicalData {
 
     /**
      * Writes memory value to file
-     * 
+     *
      * @throws Exception
      */
     public synchronized void writeToStorage() throws IOException {
@@ -308,13 +308,13 @@ public class LogicalData {
 
     /**
      * Loads the value of the LogicalData from a file
-     * 
+     *
      * @throws CannotLoadException
      * @throws IOException
      * @throws ClassNotFoundException
      * @throws StorageException
      * @throws UnstartedNodeException
-     * 
+     *
      * @throws Exception
      */
     public synchronized void loadFromStorage() throws CannotLoadException {
@@ -395,7 +395,7 @@ public class LogicalData {
 
     /**
      * Removes all the locations assigned to a given host and returns a valid location if the file is unique
-     * 
+     *
      * @param host
      * @param sharedMountPoints
      * @return a valid location if the file is unique
@@ -465,7 +465,7 @@ public class LogicalData {
 
     /**
      * Returns the copies in progress
-     * 
+     *
      * @return
      */
     public synchronized Collection<Copy> getCopiesInProgress() {
@@ -479,7 +479,7 @@ public class LogicalData {
 
     /**
      * Returns if the data is already available in a given targetHost
-     * 
+     *
      * @param targetHost
      * @return
      */
@@ -498,7 +498,7 @@ public class LogicalData {
 
     /**
      * Returns if a copy of the LogicalData is being performed to a target host
-     * 
+     *
      * @param target
      * @return the copy in progress or null if none
      */
@@ -514,7 +514,7 @@ public class LogicalData {
 
     /**
      * Begins a copy of the LogicalData to a target host
-     * 
+     *
      * @param c
      * @param target
      */
@@ -524,7 +524,7 @@ public class LogicalData {
 
     /**
      * Marks the end of a copy. Returns the location of the finished copy or null if not found
-     * 
+     *
      * @param c
      * @return
      */
@@ -546,7 +546,7 @@ public class LogicalData {
 
     /**
      * Adds a listener to the inProgress copies
-     * 
+     *
      * @param listener
      */
     public synchronized void notifyToInProgressCopiesEnd(SafeCopyListener listener) {
@@ -558,7 +558,7 @@ public class LogicalData {
 
     /**
      * Sets the LogicalData as obsolete
-     * 
+     *
      */
     public synchronized void isObsolete() {
         for (Resource res : this.getAllHosts()) {
@@ -612,7 +612,6 @@ public class LogicalData {
 
         private final Copy c;
         private final DataLocation loc;
-
 
         public CopyInProgress(Copy c, DataLocation loc) {
             this.c = c;

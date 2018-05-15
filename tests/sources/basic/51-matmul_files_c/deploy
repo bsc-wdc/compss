@@ -12,6 +12,6 @@
   cp "${source_base_dir}"/resources.xml "${target_base_dir}"/resources.xml
 
   cp -r "${source_base_dir}"/src "${target_base_dir}"/src
-  cp "${source_base_dir}"/Matmul.cc "${target_base_dir}"/Matmul.cc
-  cp "${source_base_dir}"/Matmul-functions.cc "${target_base_dir}"/Matmul-functions.cc
-  cp "${source_base_dir}"/Matmul.idl "${target_base_dir}"/Matmul.idl
+  cp "${source_base_dir}"/Matmul_files.cc "${target_base_dir}"/Matmul_files.cc
+  cp "${source_base_dir}"/Matmul_files-functions.cc "${target_base_dir}"/Matmul_files-functions.cc
+  cp "${source_base_dir}"/Matmul_files.idl "${target_base_dir}"/Matmul_files.idl

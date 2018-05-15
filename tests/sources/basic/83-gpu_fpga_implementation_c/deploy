@@ -12,6 +12,6 @@
   cp "${source_base_dir}"/resources.xml "${target_base_dir}"/resources.xml
 
   cp -r "${source_base_dir}"/src "${target_base_dir}"/src
-  cp "${source_base_dir}"/Matmul.cc "${target_base_dir}"/Matmul.cc
-  cp "${source_base_dir}"/Matmul-functions.cc "${target_base_dir}"/Matmul-functions.cc
-  cp "${source_base_dir}"/Matmul.idl "${target_base_dir}"/Matmul.idl
+  cp "${source_base_dir}"/heterogeneity_c.cc "${target_base_dir}"/heterogeneity_c.cc
+  cp "${source_base_dir}"/heterogeneity_c-functions.cc "${target_base_dir}"/heterogeneity_c-functions.cc
+  cp "${source_base_dir}"/heterogeneity_c.idl "${target_base_dir}"/heterogeneity_c.idl

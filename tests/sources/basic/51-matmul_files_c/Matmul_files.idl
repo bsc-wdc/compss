@@ -1,4 +1,4 @@
-interface Matmul 
+interface Matmul_files 
 {
 	void multiplyBlocks(inout File f1, in File f2, in File f3, in int M);
 	void init_block(out File file, in int bSize, in double val);

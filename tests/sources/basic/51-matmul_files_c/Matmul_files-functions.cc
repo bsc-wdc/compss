@@ -22,7 +22,7 @@
 #include <string.h>
 #include <vector>
 
-#include "Matmul.h"
+#include "Matmul_files.h"
 #include "Matrix.h"
 #include "Block.h"
 

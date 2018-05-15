@@ -1,4 +1,4 @@
-interface Matmul 
+interface heterogeneity_c 
 {
     @Constraints(processors={
         @Processor(ProcessorType=CPU, ComputingUnits=1),

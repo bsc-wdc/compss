@@ -20,7 +20,7 @@
 
 #define DEBUG_BINDING
 
-#include "Matmul.h"
+#include "Matmul_obj.h"
 #include "Matrix.h"
 #include "Block.h"
 #include <unistd.h>

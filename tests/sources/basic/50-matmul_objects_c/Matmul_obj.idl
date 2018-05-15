@@ -1,4 +1,4 @@
-interface Matmul 
+interface Matmul_obj 
 {
 	void multiplyBlocks(inout Block block1, in Block block2, in Block block3);
 

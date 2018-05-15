@@ -15,7 +15,7 @@
   #----------------------------------------------------------------------------------
   # Compiling C app
   cd "${base_app_dir}" || exit 1
-  "$(dirname "${COMPSs_exec}")"/compss_build_app Matmul
+  "$(dirname "${COMPSs_exec}")"/compss_build_app Matmul_obj
   errCode=$?
   if [ $errCode -ne 0 ]; then
      echo "[ERROR] Cannot compile C app. See errors above."
@@ -54,19 +54,19 @@
      \
      --lang=c \
      \
-     "${base_app_dir}"/master/Matmul $N $M $val > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+     "${base_app_dir}"/master/Matmul_obj $N $M $val > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
   
   # Check timeout
   if [[ "$?" = "124" ]]; then
      # Copy LOG files
-     cp -rf "${COMPSs_log_folder}"/Matmul_0"${retryNum}"/* "${target_log_folder}"
+     cp -rf "${COMPSs_log_folder}"/Matmul_obj_0"${retryNum}"/* "${target_log_folder}"
 
      # Report time out
      echo "[WARNING] C Application timed out" >> "${output_log}"
      exitValue=124
   else
      # Copy LOG files
-     cp -rf "${COMPSs_log_folder}"/Matmul_0"${retryNum}"/* "${target_log_folder}"
+     cp -rf "${COMPSs_log_folder}"/Matmul_obj_0"${retryNum}"/* "${target_log_folder}"
 
      # Check result
      "${base_app_dir}"/result "${output_log}" "${target_log_folder}" "${error_log}"

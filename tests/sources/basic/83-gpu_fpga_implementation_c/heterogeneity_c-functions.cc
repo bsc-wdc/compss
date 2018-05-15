@@ -22,7 +22,7 @@
 #include <string.h>
 #include <vector>
 
-#include "Matmul.h"
+#include "heterogeneity_c.h"
 #include "Matrix.h"
 #include "Block.h"
 

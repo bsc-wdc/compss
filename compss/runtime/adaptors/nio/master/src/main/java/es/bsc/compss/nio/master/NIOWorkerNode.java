@@ -78,7 +78,6 @@ public class NIOWorkerNode extends COMPSsWorker {
     private boolean started = false;
     private WorkerStarter workerStarter;
 
-
     @Override
     public String getName() {
         return this.config.getHost();
@@ -274,24 +273,23 @@ public class NIOWorkerNode extends COMPSsWorker {
     public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
             EventListener listener) {
 
-        if (ld == null)
+        if (ld == null) {
             return;
+        }
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Obtain Data " + ld.getName() + " as " + target);
         }
 
-        // If it has a PSCO location, it is a PSCO -> Order new StorageCopy
-        for (DataLocation loc : ld.getLocations()) {
-            if (loc.getProtocol().equals(Protocol.PERSISTENT_URI)) {
-                orderStorageCopy(new StorageCopy(ld, source, target, tgtData, reason, listener));
-                return;
+        // If it is a PSCO -> Order new StorageCopy
+        if (ld.getId() != null) {
+            orderStorageCopy(new StorageCopy(ld, source, target, tgtData, reason, listener));
+        } else {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Ordering deferred copy " + ld.getName());
             }
+            orderCopy(new DeferredCopy(ld, source, target, tgtData, reason, listener));
         }
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Ordering deferred copy " + ld.getName());
-        }
-        orderCopy(new DeferredCopy(ld, source, target, tgtData, reason, listener));
     }
 
     private void orderStorageCopy(StorageCopy sc) {
@@ -387,7 +385,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             NIOTracer.emitEvent(NIOTracer.Event.STORAGE_NEWVERSION.getId(), NIOTracer.Event.STORAGE_NEWVERSION.getType());
         }
         try {
-            String newId = StorageItf.newVersion(pscoId, preserveSource, Comm.getAppHost().getName());
+            String newId = StorageItf.newVersion(pscoId, preserveSource, targetHostname);
             LOGGER.debug("Register new new version of " + pscoId + " as " + newId);
             sc.setFinalTarget(newId);
             if (targetLD != null) {

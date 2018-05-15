@@ -34,7 +34,7 @@ def varargTask(v, w, *args):
 @task(returns=(int, list))
 def kwargTask(**kwargs):
     print("KARG: ", kwargs)
-    return len(kwargs), list(kwargs.keys())
+    return len(kwargs), sorted(list(kwargs.keys()))
 
 
 @task(returns=(int, list))
@@ -42,7 +42,7 @@ def varkwargTask(v, w, **kwargs):
     print("V: ", v)
     print("W: ", w)
     print("KARG: ", kwargs)
-    return (v * w) + len(kwargs), list(kwargs.values())
+    return (v * w) + len(kwargs), sorted(list(kwargs.values()))
 
 
 @task(returns=(int, tuple, dict))
@@ -156,7 +156,7 @@ class testMultiReturnFunctions(unittest.TestCase):
         pending1, pending2 = kwargTask(this='is', a='test')
         result1 = compss_wait_on(pending1)
         result2 = compss_wait_on(pending2)
-        self.assertEqual((result1, result2), (2, ['this', 'a']))
+        self.assertEqual((result1, result2), (2, sorted(['this', 'a'])))
 
     def testKwargTask3(self):
         pending1, pending2 = kwargTask()
@@ -178,7 +178,7 @@ class testMultiReturnFunctions(unittest.TestCase):
         pending1, pending2 = varkwargTask(2, 3, this='is', a='test')
         result1 = compss_wait_on(pending1)
         result2 = compss_wait_on(pending2)
-        self.assertEqual((result1, result2), (8, ['is', 'test']))
+        self.assertEqual((result1, result2), (8, sorted(['is', 'test'])))
 
     def testVarArgKwargTask3(self):
         pending1, pending2 = varkwargTask(2, 3)

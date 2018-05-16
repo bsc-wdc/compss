@@ -63,7 +63,7 @@
 
   # Save original path to remove libxml imports that crashes python binding in mt installation
   originalPath=$PATH
-  
+
   # Load additional exports
   ${additionalExports}
 
@@ -242,7 +242,7 @@
     if [ "$py2_modules" != "ignore" ]; then
       module load ${py2_modules}
     fi
-    ./install ${targetDir}/Bindings/python python2
+    ./install ${targetDir}/Bindings/python false python2
     if [ $? -ne 0 ]; then
       echo "ERROR: Failed to install Python-binding for Python 2"
       exit 1
@@ -256,7 +256,7 @@
     if [ "$py3_modules" != "ignore" ]; then
       module load ${py3_modules}
     fi
-    ./install ${targetDir}/Bindings/python python3
+    ./install ${targetDir}/Bindings/python false python3
     if [ $? -ne 0 ]; then
       echo "ERROR: Failed to install Python-binding for Python 3"
       exit 1

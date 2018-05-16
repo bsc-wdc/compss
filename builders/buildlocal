@@ -482,6 +482,10 @@ install_compss() {
   echo "export CLASSPATH=\$CLASSPATH:${targetDir}/Runtime/compss-engine.jar" >> $envFile
   echo "- compss-engine.jar added to user profile"
   echo " "
+  echo "- Adding COMPSS_HOME to profile..."
+  echo "export COMPSS_HOME=${targetDir}" >> $envFile
+  echo "- COMPSS_HOME added to user profile"
+  echo " "
   if [ "$bindings" == "true" ]; then
     echo "- Adding c-binaries to profile..."
     echo "export PATH=\$PATH:${targetDir}/Bindings/c/bin" >> $envFile

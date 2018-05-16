@@ -42,6 +42,7 @@ else:
       if [ "$create_symlinks" = "true" ]; then
         # Expected when installing with buildlocal. Not from buildsc.
         # Pip package sets these symbolic links and updates the 'activate' script accordingly.
+        echo "Looking for package where to place the symbolic links."
         get_packages_folder python$1
         # Setup a symbolic link to pycompss
         ln -sfn "${PYCOMPSS_HOME}/pycompss" "${packages_folder}/pycompss"

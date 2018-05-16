@@ -135,6 +135,11 @@ echo "export CLASSPATH=\$CLASSPATH:/opt/COMPSs/Runtime/compss-engine.jar" >> /et
 echo " - compss-engine.jar added to user profile"
 echo " "
 
+echo "- Adding COMPSS_HOME to profile..."
+echo "export COMPSS_HOME=/opt/COMPSs" >> /etc/profile.d/compss.sh
+echo "- COMPSS_HOME added to user profile"
+echo " "
+
 echo "Congratulations!"
 echo "COMPSs Runtime Engine Successfully installed!"
 echo " "

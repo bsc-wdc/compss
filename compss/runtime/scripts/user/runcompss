@@ -302,7 +302,9 @@ check_env() {
   fi
   
   # Command to simulate realpath
-  #WARN this should be already defined for archer compatibility COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )"
+  if [ -z "${COMPSS_HOME}" ]; then
+    COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )"
+  fi
   export COMPSS_HOME=${COMPSS_HOME}
 
   if [ -z "$DEFAULT_PROJECT" ]; then

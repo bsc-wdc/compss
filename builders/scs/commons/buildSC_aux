@@ -246,10 +246,6 @@
   echo "export PATH=\$PATH:${targetDir}/Runtime/scripts/user" > ${targetDir}/etc/profile.d/compss.sh
   echo " - Runcompss added to user profile"
   echo " "
-  echo "- Adding COMPSS_HOME to profile..."
-  echo "export COMPSS_HOME=${targetDir}" >> ${targetDir}/etc/profile.d/compss.sh
-  echo "- COMPSS_HOME added to user profile"
-  echo " "
   echo " - Adding compss-engine.jar to profile..."
   echo "export CLASSPATH=\$CLASSPATH:${targetDir}/Runtime/compss-engine.jar" >> ${targetDir}/etc/profile.d/compss.sh
   echo " - compss-engine.jar added to user profile"

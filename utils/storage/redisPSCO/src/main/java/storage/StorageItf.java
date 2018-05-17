@@ -9,6 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import redis.clients.jedis.*;
 import redis.clients.jedis.exceptions.JedisDataException;
+import redis.clients.util.JedisClusterCRC16;
 import storage.utils.Serializer;
 
 public final class StorageItf {
@@ -28,6 +29,8 @@ public final class StorageItf {
     // The storage API will assume that, given a hostname, there is a Redis Server listening there
     private static final int REDIS_PORT = 6379;
     private static final int REDIS_MAX_CLIENTS = 1<<19;
+    // Number of Redis hash slots. This is fixed, and official. See redis.io tutorials
+    private static final int REDIS_MAX_HASH_SLOTS = 16384;
     // Client connections
     // Given that the client classes that are needed to establish a connection with a Redis backend are
     // different for standalone and cluster cases, we are going to first try to establish a connection with
@@ -41,6 +44,10 @@ public final class StorageItf {
     private static List<String> hosts = new ArrayList<>();
 
     private static HashMap<String, String> previousVersion = new HashMap<>();
+
+    // Given a hash slot, return a list with the hosts that contain at least one instance that includes
+    // this slot in its slot interval
+    private static ArrayList< String >[] hostsBySlot = new ArrayList[REDIS_MAX_HASH_SLOTS];
 
     static {
         String hostname = null;
@@ -87,6 +94,8 @@ public final class StorageItf {
             LOGGER.info("More than one host detected, enabling Client Cluster Mode");
             // TODO: Ask Jedis guys why JedisCluster needs a HostAndPort and why Jedis needs a String and an Integer
             redisClusterConnection = new JedisCluster(new HostAndPort(hosts.get(0), REDIS_PORT));
+            // Precompute host hashmap
+            preComputeHostHashMap();
         }
         else {
             LOGGER.info("Only one host detect, using standalone client...");
@@ -96,9 +105,57 @@ public final class StorageItf {
         }
     }
 
+    // Temporary representation of a host
+    static private class Host {
+        // Host (name)
+        String host;
+        // Hash slot endpoints
+        int l, r;
+
+        Host(String clusterInfoLine) {
+            String[] tokens = clusterInfoLine.split(" ");
+            this.host = tokens[1].split("@")[0].split(":")[0];
+            InetAddress addr = null;
+            try {
+                addr = InetAddress.getByName(this.host);
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+            this.host = addr.getHostName();
+            String[] interval = tokens[tokens.length - 1].split("-");
+            this.l = Integer.parseInt(interval[0]);
+            this.r = Integer.parseInt(interval[1]);
+        }
+
+        void printHostInfo() {
+            System.out.printf("Host %s covers slots [%d, %d]\n", host, l, r);
+        }
+
+    }
+
+    private static void preComputeHostHashMap() {
+        String someHost = (String)redisClusterConnection.getClusterNodes().keySet().toArray()[0];
+        String clusterInfo = redisClusterConnection.getClusterNodes().get(someHost).getResource().clusterNodes();
+        String[] clusterLines = clusterInfo.split("\n");
+        ArrayList< Host > clusterHosts = new ArrayList<>();
+        for(String line : clusterLines) {
+            Host h = new Host(line);
+            clusterHosts.add(h);
+        }
+        for(int i = 0; i < REDIS_MAX_HASH_SLOTS; ++i) {
+            ArrayList< String > validHosts = new ArrayList<>();
+            for(Host h : clusterHosts) {
+                if(h.l <= i && i <= h.r) {
+                    validHosts.add(h.host);
+                }
+            }
+            hostsBySlot[i] = new ArrayList<>(new TreeSet<>(validHosts));
+        }
+    }
+
     /**
      * Stops the persistent storage
-     * 
+     * StorageItf
      * @throws StorageException
      */
     public static void finish() throws StorageException {
@@ -116,14 +173,18 @@ public final class StorageItf {
 
     /**
      * Returns all the valid locations of a given id
-     * WARNING: Given that Redis has no immediate mechanisms to retrieve this information, we will return
-     * all the nodes instead, because a connection to any of them will grant us that we can retrieve it
-     * @param id
-     * @return
+     * @param id Object identifier
+     * @return List of valid locations for given resource
      * @throws StorageException
      */
     public static List<String> getLocations(String id) throws StorageException {
-        return hosts;
+        if(id != null && clusterMode) {
+            int slot = JedisClusterCRC16.getSlot(id);
+            return hostsBySlot[slot];
+        }
+        else {
+            return hosts;
+        }
     }
 
     /**
@@ -297,13 +358,31 @@ public final class StorageItf {
      */
     public static void main(String[] args) throws ClassNotFoundException {
         try {
-            init("/home/srodrig1/svn/compss/framework/trunk/utils/storage/redisPSCO/scripts/sample_hosts");
-            MyStorageObject myObject = new MyStorageObject("This is an object");
-            StorageItf.makePersistent(myObject, "prueba");
-            Object retrieved = StorageItf.getByID("prueba");
-            System.out.println(((MyStorageObject)retrieved).getInnerString());
-            myObject.updatePersistent();
-            StorageItf.removeById("prueba");
+            init("/home/sergiorg/git/framework/utils/storage/redisPSCO/scripts/sample_hosts");
+            if(clusterMode) {
+                // let's do getByID stuff
+                MyStorageObject myObject = new MyStorageObject("This is an object");
+                myObject.makePersistent();
+                Map< String, JedisPool > m = redisClusterConnection.getClusterNodes();
+                for(String s : m.keySet()) {
+                    JedisPool jp = m.get(s);
+                    Jedis j = jp.getResource();
+                    //System.out.println(j.info());
+                    //System.out.println(j.clusterInfo());
+                    //System.out.println(j.clusterNodes());
+                    break;
+                }
+            }
+            else {
+                // let's do standalone stuff
+                MyStorageObject myObject = new MyStorageObject("This is an object");
+                StorageItf.makePersistent(myObject, "prueba");
+                Object retrieved = StorageItf.getByID("prueba");
+                System.out.println(((MyStorageObject)retrieved).getInnerString());
+                myObject.updatePersistent();
+                StorageItf.removeById("prueba");
+
+            }
         } catch(StorageException | IOException e) {
             e.printStackTrace();
         }

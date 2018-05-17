@@ -9,6 +9,10 @@ PyCOMPSs Testbench
 
 # Imports
 import random
+import sys
+if sys.version_info[0] > 2:
+    # reduce was moved to functools in python 3
+    from functools import reduce
 
 from pycompss.api.task import task
 
@@ -23,7 +27,6 @@ def init_board_gauss(numV, dim, K):
         for i in range(n):
             d = np.array([np.random.normal(c[j], s) for j in range(dim)])
             data.append(d)
-
     Data = np.array(data)[:numV]
     return Data
 

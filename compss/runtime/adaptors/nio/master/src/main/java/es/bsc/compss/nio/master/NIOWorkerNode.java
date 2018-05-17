@@ -142,9 +142,7 @@ public class NIOWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public String getPythonpath() {
-        return this.config.getPythonpath();
-    }
+    public String getPythonpath() { return this.config.getPythonpath(); }
 
     public int getLimitOfTasks() {
         return this.config.getLimitOfTasks();

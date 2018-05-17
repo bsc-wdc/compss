@@ -1,5 +1,41 @@
-export COMPSS_HOME=##COMPSS_PATH##
-export PATH=$PATH:##COMPSS_PATH##/Runtime/scripts/user
-export CLASSPATH=$CLASSPATH:##COMPSS_PATH##/Runtime/compss-engine.jar
-export PATH=$PATH:##COMPSS_PATH##/Bindings/c/bin
-export PYTHONPATH=$PYTHONPATH:##COMPSS_PATH##/Bindings/python
+# This file contains the functions used to setup the environment variables
+
+# Save the environment variables
+# Used within virtual environment activate
+pre_COMPSs_environment () {
+    _OLD_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
+    _OLD_CLASSPATH="$CLASSPATH"
+    _OLD_COMPSS_HOME="$COMPSS_HOME"
+}
+
+# Define the necessary environment variables
+# Used within .bashrc and within virtual environment activate
+setup_COMPSs_environment () {
+    export COMPSS_HOME=##COMPSS_PATH##
+    export PATH=$PATH:##COMPSS_PATH##/Runtime/scripts/user
+    export PATH=$PATH:##COMPSS_PATH##/Bindings/c/bin
+    export CLASSPATH=$CLASSPATH:##COMPSS_PATH##/Runtime/compss-engine.jar
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:##COMPSS_PATH##/Bindings/bindings-common/lib:##JAVA_HOME##/jre/lib/amd64/server
+}
+
+# Clean the environment variables and set the previous if pre_COMPSs_environment function has been called.
+# Used within virtual environment deactivate
+cleanup_COMPSs_environment () {
+    # reset old environment variables
+    if ! [ -z "${_OLD_LD_LIBRARY_PATH+_}" ] ; then
+        LD_LIBRARY_PATH="$_OLD_LD_LIBRARY_PATH"
+        export LD_LIBRARY_PATH
+        unset _OLD_LD_LIBRARY_PATH
+    fi
+    if ! [ -z "${_OLD_CLASSPATH+_}" ] ; then
+        CLASSPATH="$_OLD_CLASSPATH"
+        export CLASSPATH
+        unset _OLD_CLASSPATH
+    fi
+    if ! [ -z "${_OLD_COMPSS_HOME+_}" ] ; then
+        COMPSS_HOME="$_OLD_COMPSS_HOME"
+        export COMPSS_HOME
+        unset _OLD_COMPSS_HOME
+    fi
+}
+

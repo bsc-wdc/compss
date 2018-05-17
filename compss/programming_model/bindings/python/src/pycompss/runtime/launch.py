@@ -39,6 +39,11 @@ from pycompss.util.optional_modules import show_optional_module_warnings
 
 app_path = None
 
+if sys.version_info >= (3, 0):
+    py_version = 3
+else:
+    py_version = 2
+
 
 def get_logging_cfg_file(log_level):
     logging_cfg_file = 'logging.json'
@@ -99,7 +104,7 @@ def main():
     app_path = args.app_path
 
     binding_log_path = get_log_path()
-    log_path = os.path.join(os.getenv('COMPSS_HOME'), 'Bindings', 'python', 'log')
+    log_path = os.path.join(os.getenv('COMPSS_HOME'), 'Bindings', 'python', str(py_version), 'log')
     binding.temp_dir = mkdtemp(prefix='pycompss', dir=os.path.join(binding_log_path, 'tmpFiles/'))
 
     logging_cfg_file = get_logging_cfg_file(log_level)
@@ -185,7 +190,8 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
                                 profileInput='',
                                 profileOutput='',
                                 scheduler_config='',
-                                external_adaptation=False
+                                external_adaptation=False,
+                                python_propagate_virtual_environment=True
                                 ):
     global app_path
     launchPath = os.path.dirname(os.path.abspath(__file__))
@@ -251,6 +257,15 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
         config['external_adaptation'] = 'true'
     else:
         config['external_adaptation'] = 'false'
+    config['python_interpreter'] = 'python' + str(sys.version_info[0])
+    config['python_version'] = str(sys.version_info[0])
+    if 'VIRTUAL_ENV' in os.environ:
+        # Running within a virtual environment
+        python_virtual_environment = os.environ['VIRTUAL_ENV']
+    else:
+        python_virtual_environment = 'null'
+    config['python_virtual_environment'] = python_virtual_environment
+    config['python_propagate_virtual_environment'] = python_propagate_virtual_environment
 
     initialize_compss(config)
 
@@ -325,7 +340,11 @@ def initialize_compss(config):
         - 'profileInput'   = <String>       = profiling input
         - 'profileOutput'  = <String>       = profiling output
         - 'scheduler_config'    = <String>  = Path to the file which contains the scheduler configuration.
-        - 'external_adaptation' = <String>  = Enable external adaptation. This option will disable the Resource Optimizer.
+        - 'external_adaptation' = <String>  = Enable external adaptation. This option will disable the Resource Optimizer
+        - 'python_interpreter'  = <String>  = Python interpreter
+        - 'python_version'      = <String>  = Python interpreter version
+        - 'python_virtual_environment'            = <String>  = Python virtual environment path
+        - 'python_propagate_virtual_environment'  = <Boolean> = Propagate python virtual environment to workers
     :param config: Configuration parameters dictionary
     '''
     from tempfile import mkstemp
@@ -439,6 +458,13 @@ def initialize_compss(config):
     # JVM OPTIONS - PYTHON
     jvm_options_file.write('-Djava.class.path=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config['classpath'] + '\n')
     jvm_options_file.write('-Dcompss.worker.pythonpath=' + config['cp'] + ':' + config['pythonPath'] + '\n')
+    jvm_options_file.write('-Dcompss.python.interpreter=' + config['python_interpreter'] + '\n')
+    jvm_options_file.write('-Dcompss.python.version=' + config['python_version'] + '\n')
+    jvm_options_file.write('-Dcompss.python.virtualenvironment=' + config['python_virtual_environment'] + '\n')
+    if config['python_propagate_virtual_environment']:
+        jvm_options_file.write('-Dcompss.python.propagate_virtualenvironment=true\n')
+    else:
+        jvm_options_file.write('-Dcompss.python.propagate_virtualenvironment=false\n')
     jvm_options_file.close()
     os.close(fd)
     os.environ['JVM_OPTIONS_FILE'] = temp_path

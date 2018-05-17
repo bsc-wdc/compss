@@ -1,11 +1,11 @@
 #!/bin/bash -e
- 
+
   #############################################################
   # Name: buildMT_aux
   # Description: SCRIPT FOR LOCAL COMPSs BUILD in MinoTauro
   # Parameters: <targetDir> Base Target Installation folder
   #
-  # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY 
+  # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY
   #            EXECUTED FROM buildMT script
   #############################################################
 
@@ -28,7 +28,9 @@
   targetDir=$1
   scriptDir=$(dirname $0)
 
-  modules="java gcc/7.1.0 mkl/2018.1 python/2.7.14 bullxmpi/bullxmpi-1.2.9.1 boost/1.67.0"
+  modules="java gcc/7.1.0 mkl/2018.1 bullxmpi/bullxmpi-1.2.9.1 python/2.7.14 boost/1.67.0"
+  py2_modules="python/2.7.14"
+  py3_modules="python/3.5.2-INTEL"
   additionalExports="export BOOST_CPPFLAGS=-I\${BOOST_INCLUDE} PATH=/apps/CEPBATOOLS/deps/libxml2/2.9.4/bin:$PATH"
   queues_cfg="mt.cfg"
   extrae_with_openmpi="false"
@@ -36,4 +38,4 @@
   extrae_with_impi="false"
   impi_version=""
 
-  ${scriptDir}/buildSC_aux ${targetDir} "${modules}" "${additionalExports}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}"
+  ${scriptDir}/buildSC_aux ${targetDir} "${modules}" "${py2_modules}" "${py3_modules}" "${additionalExports}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}"

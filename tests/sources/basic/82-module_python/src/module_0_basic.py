@@ -23,14 +23,14 @@ def main():
     from pycompss.api.api import compss_wait_on
     value = [1, 2, 3]
     for i in range(5):
-        partial_result = increment(value)
-    result = compss_wait_on(partial_result)
-    print result
+        partialResult = increment(value)
+    result = compss_wait_on(partialResult)
+    print(result)
 
     if result[0] == 2 and result[1] == 3 and result[2] == 4:
-        print "- Result value: OK"
+        print("- Result value: OK")
     else:
-        print "- Result value: ERROR"
+        print("- Result value: ERROR")
 
 
 if __name__ == '__main__':

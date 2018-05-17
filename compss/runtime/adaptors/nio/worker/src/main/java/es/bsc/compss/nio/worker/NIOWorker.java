@@ -101,6 +101,13 @@ public class NIOWorker extends NIOAgent {
     private static String executionType;
 
     private static boolean persistentC;
+
+    // Python related variables
+    private static String pythonInterpreter;
+    private static String pythonVersion;
+    private static String pythonVirtualEnvironment;
+    private static String pythonPropagateVirtualEnvironment;
+
     // Internal components
     private final ExecutionManager executionManager;
     private final DataManager dataManager;
@@ -220,6 +227,20 @@ public class NIOWorker extends NIOAgent {
     public static boolean isPersistentCEnabled() {
         return persistentC;
     }
+
+    public static String getPythonInterpreter() {
+        return pythonInterpreter;
+    }
+
+    public static String getPythonVersion() {
+        return pythonVersion;
+    }
+
+    public static String getPythonVirtualEnvironment() {
+        return pythonVirtualEnvironment;
+    }
+
+    public static String getPythonPropagateVirtualEnvironment() { return pythonPropagateVirtualEnvironment; }
 
     public ExecutionManager getExecutionManager() {
         return this.executionManager;
@@ -1026,6 +1047,12 @@ public class NIOWorker extends NIOAgent {
 
         persistentC = Boolean.parseBoolean(args[26]);
 
+        pythonInterpreter = args[27];
+        pythonVersion = args[28];
+        pythonVirtualEnvironment = args[29];
+        pythonPropagateVirtualEnvironment = args[30];
+
+
         // Print arguments
         if (isWorkerDebugEnabled) {
             WORKER_LOGGER.debug("maxSnd: " + String.valueOf(maxSnd));
@@ -1059,6 +1086,11 @@ public class NIOWorker extends NIOAgent {
             WORKER_LOGGER.debug("executionType: " + executionType);
 
             WORKER_LOGGER.debug("Persistent c: " + persistentC);
+
+            WORKER_LOGGER.debug("Python interpreter: " + pythonInterpreter);
+            WORKER_LOGGER.debug("Python version: " + pythonVersion);
+            WORKER_LOGGER.debug("Python virtual environment: " + pythonVirtualEnvironment);
+            WORKER_LOGGER.debug("Python propagate virtual environment: " + pythonPropagateVirtualEnvironment);
 
             WORKER_LOGGER.debug("Remove Sanbox WD: " + removeWD);
         }

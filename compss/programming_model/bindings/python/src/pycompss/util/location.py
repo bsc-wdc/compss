@@ -48,6 +48,8 @@ def i_am_within_scope():
     """
     return not get_i_am_module()
     # Old way:
-    # return sys.path[0].endswith('Bindings/python/pycompss/runtime') or \
-    #        sys.path[0].endswith('Bindings/python/pycompss/worker') or \
+    # return sys.path[0].endswith('Bindings/python/2/pycompss/runtime') or \
+    #        sys.path[0].endswith('Bindings/python/2/pycompss/worker') or \
+    #        sys.path[0].endswith('Bindings/python/3/pycompss/runtime') or \
+    #        sys.path[0].endswith('Bindings/python/3/pycompss/worker') or \
     #        sys.path[0] == ''

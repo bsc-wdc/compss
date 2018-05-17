@@ -192,7 +192,7 @@ def getClasses():
             if line.startswith('class'):
                 # Class header: find name and include it in the functions dict
                 # split and remove empty spaces
-                header = filter(None, line.split(" "))
+                header = [name for name in line.split(" ") if name]
                 # the name may be followed by the parameters parenthesis
                 className = header[1].split("(")[0].strip()
                 # create an entry in the functions dict
@@ -204,7 +204,7 @@ def getClasses():
             else:
                 classFound = False
     # Plain classes content (from {key: [line, line,...]} to {key: line\nline}).
-    for k, v in classes.items():
+    for k, v in list(classes.items()):
         # Collapse all lines into a single one
         classes[k] = ''.join(v).strip()
     return classes
@@ -239,7 +239,7 @@ def getFunctions():
                 if line.startswith("def"):
                     # Function header: find name and include it in the functions dict
                     # split and remove empty spaces
-                    header = filter(None, line.split(" "))
+                    header = [name for name in line.split(" ") if name]
                     # the name may be followed by the parameters parenthesis
                     funcName = header[1].split("(")[0].strip()
                     # create an entry in the functions dict
@@ -251,7 +251,7 @@ def getFunctions():
                 else:
                     functionFound = False
     # Plain functions content (from {key: [line, line,...]} to {key: line\nline}).
-    for k, v in functions.items():
+    for k, v in list(functions.items()):
         functions[k] = ''.join(v).strip()      # Collapse all lines into a single one
     return functions
 
@@ -360,7 +360,7 @@ def getOldCode(filePath):
     collapsed = ''.join(fileClasses).strip()
     # Then split by "class" and filter the empty results, then iterate
     # concatenating "class" to all results.
-    cls = [('class ' + l) for l in filter(None, collapsed.split('class '))]
+    cls = [('class ' + l) for l in [name for name in collapsed.split('class ') if name]]
     # Add classes to dictionary by class name:
     for c in cls:
         classCode = c.strip()
@@ -373,7 +373,7 @@ def getOldCode(filePath):
     collapsed = ''.join(fileFunctions).strip()
     # Then split by "def" and filter the empty results, then iterate
     # concatenating "def" to all results.
-    funcs = [('def ' + l) for l in filter(None, collapsed.split('def '))]
+    funcs = [('def ' + l) for l in [name for name in collapsed.split('def ') if name]]
     # Add functions to dictionary by function name:
     for f in funcs:
         funcCode = f.strip()
@@ -386,7 +386,7 @@ def getOldCode(filePath):
     collapsed = ''.join(fileTasks).strip()
     # Then split by "@" and filter the empty results, then iterate
     # concatenating "@" to all results.
-    tsks = [('@' + l) for l in filter(None, collapsed.split('@'))]
+    tsks = [('@' + l) for l in [deco for deco in collapsed.split('@') if deco]]
     # Take into account that other decorators my be over @task, so it is
     # necessary to collapse the function stack
     prefixes = ("@implement", "@constraint", "@decaf", "@mpi", "@ompss", "@binary", "@opencl")
@@ -444,9 +444,9 @@ def updateGlobals(newGlobals, oldGlobals):
     if len(oldGlobals) == 0:
         return newGlobals
     else:
-        for gName in newGlobals.keys():
+        for gName in list(newGlobals.keys()):
             if gName in oldGlobals and (not newGlobals[gName] == oldGlobals[gName]):
-                print("WARNING! Global variable " + gName + " has been redefined with changes (the previous will be deprecated).")
+                print(("WARNING! Global variable " + gName + " has been redefined with changes (the previous will be deprecated)."))
             oldGlobals[gName] = newGlobals[gName]
         return oldGlobals
 
@@ -464,9 +464,9 @@ def updateClasses(newClasses, oldClasses):
     if len(oldClasses) == 0:
         return newClasses
     else:
-        for cName in newClasses.keys():
+        for cName in list(newClasses.keys()):
             if cName in oldClasses and (not newClasses[cName] == oldClasses[cName]):
-                print("WARNING! Class " + cName + " has been redefined with changes (the previous will be deprecated).")
+                print(("WARNING! Class " + cName + " has been redefined with changes (the previous will be deprecated)."))
             oldClasses[cName] = newClasses[cName]
         return oldClasses
 
@@ -484,9 +484,9 @@ def updateFunctions(newFunctions, oldFunctions):
     if len(oldFunctions) == 0:
         return newFunctions
     else:
-        for fName in newFunctions.keys():
+        for fName in list(newFunctions.keys()):
             if fName in oldFunctions and (not newFunctions[fName] == oldFunctions[fName]):
-                print("WARNING! Function " + fName + " has been redefined with changes (the previous will be deprecated).")
+                print(("WARNING! Function " + fName + " has been redefined with changes (the previous will be deprecated)."))
             oldFunctions[fName] = newFunctions[fName]
         return oldFunctions
 
@@ -505,9 +505,9 @@ def updateTasks(newTasks, oldTasks):
         # task. No need to update as a tasks since the class has already been updated
         pass
     else:
-        newTaskName = newTasks.keys()[0]
+        newTaskName = list(newTasks.keys())[0]
         if newTaskName in oldTasks and (not newTasks[newTaskName] == oldTasks[newTaskName]):
-            print("WARNING! Task " + newTaskName + " has been redefined (the previous will be deprecated).")
+            print(("WARNING! Task " + newTaskName + " has been redefined (the previous will be deprecated)."))
         oldTasks[newTaskName] = newTasks[newTaskName]
     return oldTasks
 
@@ -537,7 +537,7 @@ def updateCodeFile(newImports, newGlobals, newClasses, newFunctions, newTasks,
     if len(newGlobals) == 0:
         file.write('\n')
     else:
-        for k, v in newGlobals.items():
+        for k, v in list(newGlobals.items()):
             for line in v:
                 file.write(line)
             file.write('\n')
@@ -548,7 +548,7 @@ def updateCodeFile(newImports, newGlobals, newClasses, newFunctions, newTasks,
     if len(newClasses) == 0:
         file.write('\n')
     else:
-        for k, v in newClasses.items():
+        for k, v in list(newClasses.items()):
             for line in v:
                 file.write(line)
             file.write('\n')
@@ -559,7 +559,7 @@ def updateCodeFile(newImports, newGlobals, newClasses, newFunctions, newTasks,
     if len(newFunctions) == 0:
         file.write('\n')
     else:
-        for k, v in newFunctions.items():
+        for k, v in list(newFunctions.items()):
             for line in v:
                 file.write(line)
             file.write('\n')
@@ -570,7 +570,7 @@ def updateCodeFile(newImports, newGlobals, newClasses, newFunctions, newTasks,
     if len(newTasks) == 0:
         file.write('\n')
     else:
-        for k, v in newTasks.items():
+        for k, v in list(newTasks.items()):
             for line in v:
                 file.write(line)
             file.write('\n')

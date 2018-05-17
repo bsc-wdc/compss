@@ -40,6 +40,14 @@ fi
 
 DEFAULT_STORAGE_CONF="None"
 DEFAULT_PyOBJECT_SERIALIZE=false
+DEFAULT_PYTHON_INTERPRETER=python
+DEFAULT_PYTHON_VERSION=$( ${DEFAULT_PYTHON_INTERPRETER} -c "import sys; print(sys.version_info[:][0])" )
+if [ -z "${VIRTUAL_ENV}" ]; then
+  DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT="null"
+else
+  DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT="${VIRTUAL_ENV}"
+fi
+DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT=true
 
 DEFAULT_COMMUNICATION_ADAPTOR=es.bsc.compss.nio.master.NIOAdaptor
 #DEFAULT_COMMUNICATION_ADAPTOR=es.bsc.compss.gat.master.GATAdaptor
@@ -167,13 +175,17 @@ show_opts() {
     --input_profile=<path>                  Path to the file which stores the input application profile
                                             Default: Empty
     --output_profile=<path>                 Path to the file to store the application profile at the end of the execution
-                                            Default: Empty 
+                                            Default: Empty
     --PyObject_serialize=<bool>             Only for Python Binding. Enable the object serialization to string when possible (true/false).
                                             Default: $DEFAULT_PyOBJECT_SERIALIZE
     --persistent_worker_c=<bool>            Only for C Binding. Enable the persistent worker in c (true/false).
                                             Default: $DEFAULT_PERSISTENT_WORKER_C
     --enable_external_adaptation=<bool>     Enable external adaptation. This option will disable the Resource Optimizer.
                                             Default: false
+    --python_interpreter=<string>           Python interpreter to use (python/python2/python3).
+                                            Default: $DEFAULT_PYTHON_INTERPRETER Version: ${DEFAULT_PYTHON_VERSION}
+    --python_propagate_virtual_environment=<true>  Propagate the master virtual environment to the workers (true/false).
+                                                   Default: $DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT
 
 * Application name:
     For Java applications:   Fully qualified name of the application
@@ -211,7 +223,7 @@ show_version() {
 
 show_full_version() {
   cat << EOF
-        .-~~-.--.            ____        ____ 
+        .-~~-.--.            ____        ____
        :         )          |___ \      |___ \\
  .~ ~ -.\       /.- ~~ .      __) |       __) |
  >       \`.   .'       <     / __/   _   / __/
@@ -236,17 +248,17 @@ show_flower() {
 
 Camellia (Camellia japonica) - Flower
 
-Camellia japonica is a flowering tree or shrub, usually 1.5–6 metres tall. 
+Camellia japonica is a flowering tree or shrub, usually 1.5–6 metres tall.
 In the wild, flowering is between January and March. The flowers appear
 along the branches, particularly towards the ends, and have very short
-stems. They occur either alone or in pairs, and are 6–10 centimetres 
-across. There are about nine greenish bracteoles and sepals. 
+stems. They occur either alone or in pairs, and are 6–10 centimetres
+across. There are about nine greenish bracteoles and sepals.
 
 Flowers of the wild species have six or seven rose or white petals, each
-3–4.5 centimetres long by 1.5–2.5 centimetres wide. The numerous stamens 
+3–4.5 centimetres long by 1.5–2.5 centimetres wide. The numerous stamens
 are 2.5–3.5 centimetres long, the outer whorl being joined at the base.
-The fruit consists of a globe-shaped capsule with three compartments 
-(locules), each with one or two large brown seeds. Fruiting occurs in 
+The fruit consists of a globe-shaped capsule with three compartments
+(locules), each with one or two large brown seeds. Fruiting occurs in
 September to October in the wild.
 
 Check more information:
@@ -292,6 +304,11 @@ error_msg() {
   exit 1
 }
 
+# Checks if a command exists
+command_exists () {
+  type "$1" &> /dev/null ;
+}
+
 check_env() {
   # Added for SGE queue systems which do not allow to copy LD_LIBRARY_PATH
   if [ -z "$LD_LIBRARY_PATH" ]; then
@@ -300,7 +317,7 @@ check_env() {
          echo "[  INFO] LD_LIBRARY_PATH not defined set to LIBRARY_PATH"
      fi
   fi
-  
+
   # Command to simulate realpath
   if [ -z "${COMPSS_HOME}" ]; then
     COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )"
@@ -566,10 +583,18 @@ get_args() {
             scheduler_config=${OPTARG//scheduler_config_file=/}
             ;;
           enable_external_adaptation=*)
-            # Enable the external adaptation (disables de Resource Optimizer) 
+            # Enable the external adaptation (disables de Resource Optimizer)
             external_adaptation=${OPTARG//enable_external_adaptation=/}
             ;;
-	  *)
+          python_interpreter=*)
+            # Specify the python interpreter to use
+            python_interpreter=${OPTARG//python_interpreter=/}
+            ;;
+          python_propagate_virtual_environment=*)
+            # Enable or disable the virtual environment propagation
+            python_propagate_virtual_environment=${OPTARG//python_propagate_virtual_environment=/}
+            ;;
+  	  *)
 	    # Flag didn't match any patern. Raise exception
 	    display_error "Bad argument: $OPTARG"
 	    ;;
@@ -613,7 +638,7 @@ infer_language() {
   local isPythonCompiled
   local isC
 
-  fullApp=$1                                                                                                                                                                                                                                                                 
+  fullApp=$1
 
   fileName=$(basename "$fullApp")
   extension=${fileName##*.}
@@ -728,7 +753,7 @@ check_args() {
   # Storage configuration
   if [ -z "$storageConf" ]; then
     storageConf="null"
-  fi 
+  fi
 
   # Master log level
   if [ "${log_level}" == "${DEFAULT_LOG_LEVEL}" ]; then
@@ -741,7 +766,7 @@ check_args() {
   if [ -z "$comm" ]; then
     comm=${DEFAULT_COMMUNICATION_ADAPTOR}
   fi
-  
+
   # Connector
   if [ -z "$conn" ]; then
     conn=${DEFAULT_CONNECTOR}
@@ -850,6 +875,15 @@ check_args() {
     if [ -z "$PyObject_serialize" ]; then
       PyObject_serialize=$DEFAULT_PyOBJECT_SERIALIZE
     fi
+  fi
+  if [ -z "$python_interpreter" ]; then
+	  python_interpreter=$DEFAULT_PYTHON_INTERPRETER
+    python_version=$DEFAULT_PYTHON_VERSION
+  else
+    python_version=$( ${python_interpreter} -c "import sys; print(sys.version_info[:][0])")
+  fi
+  if [ -z "$python_propagate_virtual_environment" ]; then
+	  python_propagate_virtual_environment=$DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT
   fi
 
   # Options ONLY for C
@@ -962,6 +996,10 @@ add_jvm_opts_python() {
   cat >> "${jvm_options_file}" << EOT
 -Djava.class.path=${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar
 -Dcompss.worker.pythonpath=${PYTHONPATH}
+-Dcompss.python.interpreter=${python_interpreter}
+-Dcompss.python.version=${python_version}
+-Dcompss.python.virtualenvironment=${DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT}
+-Dcompss.python.propagate_virtualenvironment=${python_propagate_virtual_environment}
 EOT
 }
 
@@ -1034,10 +1072,16 @@ exec_python() {
   storageApi=${COMPSS_HOME}/Dependencies/
   cp=$cp:$storageApi
 
-  # Export needed variables
-  if [ -d "${COMPSS_HOME}/Bindings/python" ]; then
-    PYCOMPSS_HOME=${COMPSS_HOME}/Bindings/python
+  if ! command_exists $python_interpreter ; then
+    error_msg "ERROR: Python interpreter $python_interpreter does not exist."
+  fi
+
+  # Check if installed and export needed variables if needed
+  if [ -d "${COMPSS_HOME}/Bindings/python/$python_version" ]; then
+    PYCOMPSS_HOME=${COMPSS_HOME}/Bindings/python/$python_version
     export PYTHONPATH=${PYCOMPSS_HOME}:$PYTHONPATH
+  else
+    error_msg "PyCOMPSs for Python $python_version not installed."
   fi
 
   # Look for the JVM Library
@@ -1047,7 +1091,7 @@ exec_python() {
     if [ -z "$libjava" ]; then
       display_error "${JAVA_JRE_ERROR}"
     fi
-  fi     
+  fi
   libjavafolder=$(dirname "$libjava")
 
   export LD_LIBRARY_PATH=$libjavafolder:${COMPSS_HOME}/Bindings/bindings-common/lib:${LD_LIBRARY_PATH}
@@ -1065,7 +1109,7 @@ exec_python() {
   if [ $tracing -gt 0 ]; then
     export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
   fi
-  python ${py_flags} "$PYCOMPSS_HOME"/pycompss/runtime/launch.py $log_level $PyObject_serialize $storageConf "$fullAppPath" ${application_args}
+  $python_interpreter ${py_flags} "$PYCOMPSS_HOME"/pycompss/runtime/launch.py $log_level $PyObject_serialize $storageConf "$fullAppPath" ${application_args}
   endCode=$?
   if [ $tracing -gt 0 ]; then
       unset LD_PRELOAD  # no tracing check because if not set does nothing
@@ -1096,4 +1140,3 @@ clean_env() {
 
   # Real runtime execution
   execute_runtime
-

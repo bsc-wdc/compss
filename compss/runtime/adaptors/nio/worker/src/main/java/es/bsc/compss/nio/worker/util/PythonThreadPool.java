@@ -43,24 +43,23 @@ public class PythonThreadPool extends ExternalThreadPool {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_POOL);
 
     // Python worker relative path
-    private static final String WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator + "worker" + File.separator
-            + "piper_worker.py";
-
+    private static final String WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator + "worker" + File.separator + "piper_worker.py";
 
     /**
      * Creates a new Python Thread Pool associated to the given worker and with fixed size
-     * 
+     *
      * @param nw
      * @param size
      * @throws IOException
      */
     public PythonThreadPool(NIOWorker nw, int size) {
         super(nw, size);
+        // FIXME: Any parameter that conditions getLaunchCommand can not be set here since super calls ExternalThreadPool init which calls this.getLaunchCommand.
     }
 
     /**
      * Starts the threads of the pool
-     * 
+     *
      */
     @Override
     public void startThreads() throws InitializationException {
@@ -82,15 +81,19 @@ public class PythonThreadPool extends ExternalThreadPool {
         // Specific launch command is of the form: binding bindingExecutor bindingArgs
         // The bindingArgs are of the form python -u piper_worker.py debug tracing storageConf #threads cmdPipes
         // resultPipes
-
         StringBuilder cmd = new StringBuilder();
 
         cmd.append(COMPSsConstants.Lang.PYTHON).append(ExternalExecutor.TOKEN_SEP);
+        cmd.append(NIOWorker.getPythonVirtualEnvironment()).append(ExternalExecutor.TOKEN_SEP);
+        cmd.append(NIOWorker.getPythonPropagateVirtualEnvironment()).append(ExternalExecutor.TOKEN_SEP);
+
         cmd.append(NIOWorker.isTracingEnabled()).append(ExternalExecutor.TOKEN_SEP);
 
-        cmd.append("python").append(ExternalExecutor.TOKEN_SEP).append("-u").append(ExternalExecutor.TOKEN_SEP);
-        cmd.append(installDir).append(PythonExecutor.PYCOMPSS_RELATIVE_PATH).append(WORKER_PY_RELATIVE_PATH)
-                .append(ExternalExecutor.TOKEN_SEP);
+        cmd.append(NIOWorker.getPythonInterpreter()).append(ExternalExecutor.TOKEN_SEP).append("-u").append(ExternalExecutor.TOKEN_SEP);
+        cmd.append(installDir).append(PythonExecutor.PYCOMPSS_RELATIVE_PATH)
+                              .append(File.separator).append(NIOWorker.getPythonVersion())
+                              .append(WORKER_PY_RELATIVE_PATH)
+                              .append(ExternalExecutor.TOKEN_SEP);
 
         cmd.append(NIOWorker.isWorkerDebugEnabled()).append(ExternalExecutor.TOKEN_SEP);
         cmd.append(NIOWorker.isTracingEnabled()).append(ExternalExecutor.TOKEN_SEP);

@@ -38,11 +38,11 @@ import traceback
 from .serialization.extended_support import pickle_generator, convert_to_generator, GeneratorIndicator
 from .object_properties import object_belongs_to_module
 
+from io import BytesIO
+
 if sys.version_info >= (3, 0):
-    from io import StringIO
     import pickle as pickle  # Uses _pickle if available
 else:
-    from cStringIO import StringIO
     import cPickle as pickle
 
 try:
@@ -61,8 +61,10 @@ except:
     else:
         import cPickle as numpy
 
+
 class SerializerException(Exception):
     pass
+
 
 def get_serializer_priority(obj=[]):
     """
@@ -125,8 +127,8 @@ def serialize_to_handler(obj, handler):
                     serializer.dump(obj, handler, protocol=serializer.HIGHEST_PROTOCOL)
                     success = True
             except:
-                # traceback.print_exc()  # No need to print all serializer exceptions
-                pass
+                print('WARNING! Serialization with %s failed.' % str(serializer))
+                traceback.print_exc()  # No need to print all serializer exceptions
         i += 1
 
     # if ret_value is None then all the serializers have failed
@@ -157,7 +159,7 @@ def serialize_to_string(obj):
     @param obj: Object to be serialized.
     @return: String -> the serialized content
     """
-    handler = StringIO()
+    handler = BytesIO()
     serialize_to_handler(obj, handler)
     ret = handler.getvalue()
     handler.close()
@@ -185,8 +187,8 @@ def deserialize_from_handler(handler):
                 ret = convert_to_generator(ret[1])
             return ret
         except:
-            # traceback.print_exc()  # No need to print all deserialize exceptions
-            pass
+            print('WARNING! Deserialization with %s failed.' % str(serializer))
+            traceback.print_exc()  # No need to print all deserialize exceptions
     # we are not able to deserialize the contents from file_name with any of our
     # serializers
     try:
@@ -215,7 +217,7 @@ def deserialize_from_string(serialized_content):
     @param serialized_content: A string with serialized contents
     @return: A deserialized object
     """
-    handler = StringIO(serialized_content)
+    handler = BytesIO(serialized_content)
     ret = deserialize_from_handler(handler)
     handler.close()
     return ret

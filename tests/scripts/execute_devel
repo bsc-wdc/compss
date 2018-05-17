@@ -33,7 +33,7 @@
       appBaseDir="${baseDir}"/"${app}"
       appLogDir="${logsBaseDir}"/"${app}"
 
-      execute_application "${COMPSsExec}" "${comm}" "${runcompss_opts}" "${COMPSsLogFolder}" "${appBaseDir}" "${appLogDir}" "${skip}" "${MAX_RETRIES}"
+      execute_application "${COMPSsExec}" "${comm}" "${runcompss_opts}" "${COMPSsLogFolder}" "${appBaseDir}" "${appLogDir}" "${skip}" "${MAX_RETRIES}" "${app}"
     fi
   done
 
@@ -43,4 +43,3 @@
   #--------------------------------------------------------------------------------
   # EXIT
   exit "$exitValue"
-

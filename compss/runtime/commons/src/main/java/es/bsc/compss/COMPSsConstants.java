@@ -37,6 +37,15 @@ public class COMPSsConstants {
         PYTHON // For Python applications
     }
 
+    /**
+     * Python Interpreters
+     */
+    public static enum Pythons {
+        python,   // For systemwide python interpreter
+        python2,  // For Python 2 interpreter
+        python3   // For python 3 interpreter
+    }
+
 
     /*
      * Environment Properties
@@ -89,7 +98,7 @@ public class COMPSsConstants {
     public static final String INPUT_PROFILE = "compss.profile.input";
     public static final String OUTPUT_PROFILE = "compss.profile.output";
     public static final String EXTERNAL_ADAPTATION= "compss.external.adaptation";
-    
+
     public static final String WORKER_CP = "compss.worker.cp";
     public static final String WORKER_PP = "compss.worker.pythonpath";
     public static final String WORKER_JVM_OPTS = "compss.worker.jvm_opts";
@@ -116,6 +125,12 @@ public class COMPSsConstants {
     // Persistent worker c property
     public static final String WORKER_PERSISTENT_C = "compss.worker.persistent.c";
 
+    // Python properties
+    public static final String PYTHON_INTERPRETER = "compss.python.interpreter";
+    public static final String PYTHON_VERSION = "compss.python.version";
+    public static final String PYTHON_VIRTUAL_ENVIRONMENT = "compss.python.virtualenvironment";
+    public static final String PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT = "compss.python.propagate_virtualenvironment";
+
     // System properties for Instrumentation flags
     public static final String COMPSS_TO_FILE = "compss.to.file";
     public static final String COMPSS_IS_WS = "compss.is.ws";
@@ -125,7 +140,7 @@ public class COMPSsConstants {
     public static final String COMPSS_CONFIG = "compss.properties";
     public static final String COMPSS_CONFIG_LOCATION = "compss.properties.location";
     public static final String COMPSS_CONTEXT = "compss.context";
-    
+
 
     // LOG 4J
     public static final String LOG4J = "log4j.configurationFile";
@@ -156,6 +171,11 @@ public class COMPSsConstants {
 
     public static final String DEFAULT_GAT_ADAPTOR_LOCATION = System.getenv(GAT_LOC) + File.separator + "lib" + File.separator + "adaptors";
     public static final String DEFAULT_PERSISTENT_C = "false";
+
+    public static final String DEFAULT_PYTHON_INTERPRETER = "python";
+    public static final String DEFAULT_PYTHON_VERSION = "2";
+    public static final String DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT = "null";
+    public static final String DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT = "true";
 
 
     private COMPSsConstants() {

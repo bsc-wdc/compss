@@ -51,7 +51,7 @@ public class PythonExecutor extends ExternalExecutor {
     public static Map<String, String> getEnvironment(NIOWorker nw) {
         // PyCOMPSs HOME
         Map<String, String> env = new HashMap<>();
-        String pycompssHome = nw.getInstallDir() + PYCOMPSS_RELATIVE_PATH;
+        String pycompssHome = nw.getInstallDir() + PYCOMPSS_RELATIVE_PATH + File.separator + NIOWorker.getPythonVersion();
         env.put("PYCOMPSS_HOME", pycompssHome);
 
         // PYTHONPATH

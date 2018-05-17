@@ -93,7 +93,7 @@ public class WorkerStarter {
 
     /**
      * Instantiates a new WorkerStarter for a given Worker
-     * 
+     *
      * @param nw
      */
     public WorkerStarter(NIOWorkerNode nw) {
@@ -102,7 +102,7 @@ public class WorkerStarter {
 
     /**
      * Returns the WorkerStarter registered to a given address
-     * 
+     *
      * @param address
      * @return
      */
@@ -112,7 +112,7 @@ public class WorkerStarter {
 
     /**
      * Marks the worker as ready
-     * 
+     *
      */
     public void setWorkerIsReady() {
         LOGGER.debug("[WorkerStarter] Worker " + nw.getName() + " set to ready.");
@@ -121,7 +121,7 @@ public class WorkerStarter {
 
     /**
      * Marks the worker to be stopped
-     * 
+     *
      */
     public void setToStop() {
         this.toStop = true;
@@ -129,7 +129,7 @@ public class WorkerStarter {
 
     /**
      * Starts the current worker
-     * 
+     *
      * @return
      * @throws InitNodeException
      */
@@ -365,6 +365,34 @@ public class WorkerStarter {
             worker_persistent_c = COMPSsConstants.DEFAULT_PERSISTENT_C;
             LOGGER.warn("No persistent c passed");
         }
+
+        // Configure python interpreter
+        String python_interpreter = System.getProperty(COMPSsConstants.PYTHON_INTERPRETER);
+        if (python_interpreter == null || python_interpreter.isEmpty() || python_interpreter.equals("null")) {
+            python_interpreter = COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
+            LOGGER.warn("No python interpreter passed");
+        }
+
+        // Configure python version
+        String python_version = System.getProperty(COMPSsConstants.PYTHON_VERSION);
+        if (python_version == null || python_version.isEmpty() || python_version.equals("null")) {
+            python_version = COMPSsConstants.DEFAULT_PYTHON_VERSION;
+            LOGGER.warn("No python version passed");
+        }
+
+        // Configure python virtual environment
+        String python_virtual_environment = System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT);
+        if (python_virtual_environment == null || python_virtual_environment.isEmpty() || python_virtual_environment.equals("null")) {
+            python_virtual_environment = COMPSsConstants.DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT;
+            LOGGER.warn("No python virtual environment passed");
+        }
+        String python_propagate_virtual_environment = System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT);
+        if (python_propagate_virtual_environment == null || python_propagate_virtual_environment.isEmpty() || python_propagate_virtual_environment.equals("null")) {
+            python_propagate_virtual_environment = COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
+            LOGGER.warn("No python propagate virtual environment passed");
+        }
+
+
         /*
          * ************************************************************************************************************
          * BUILD COMMAND
@@ -438,6 +466,16 @@ public class WorkerStarter {
 
         // persistent_c parameter
         cmd[nextPosition++] = worker_persistent_c;
+
+        // Python interpreter parameter
+        cmd[nextPosition++] = python_interpreter;
+        // Python interpreter version
+        cmd[nextPosition++] = python_version;
+        // Python virtual environment parameter
+        cmd[nextPosition++] = python_virtual_environment;
+        // Python propagate virtual environment parameter
+        cmd[nextPosition++] = python_propagate_virtual_environment;
+
         return cmd;
     }
 
@@ -507,7 +545,7 @@ public class WorkerStarter {
 
     /**
      * Ender function called from the JVM Ender Hook
-     * 
+     *
      * @param node
      * @param pid
      */

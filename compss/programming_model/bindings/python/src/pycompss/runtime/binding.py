@@ -249,14 +249,8 @@ def delete_file(file_name):
     :return: True if success. False on the contrary
     '''
     if __debug__:
-        logger.debug('Deleting file %s' % (file_name))
-    result = compss.delete_file(file_name) == 'true'
-    if __debug__:
-        if result:
-            logger.debug('File %s successfully deleted.' % (file_name))
-        else:
-            logger.error('Failed to remove file %s.' % (file_name))
-    return result
+        logger.debug('Deleting file %s' % file_name)
+    compss.delete_file(file_name)
 
 
 def delete_object(obj):

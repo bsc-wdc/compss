@@ -24,6 +24,7 @@ Provides the current start and stop for the use of pycompss interactively.
 """
 
 import os
+import sys
 import logging
 from tempfile import mkdtemp
 import time
@@ -78,12 +79,13 @@ def start(log_level='off',
           profileOutput='',
           scheduler_config='',
           external_adaptation=False,
+          propagate_virtual_environment=False,
           verbose=False
           ):
-    launchPath = os.path.dirname(os.path.abspath(__file__))
-    # compss_home = launchPath without the last 3 folders:
-    # Bindings/python/pycompss/runtime
-    compss_home = os.path.sep.join(launchPath.split(os.path.sep)[:-3])
+    launchPath = os.path.dirname(os.path.realpath(__file__))
+    # compss_home = launchPath without the last 4 folders:
+    # Bindings/python/version/pycompss
+    compss_home = os.path.sep.join(launchPath.split(os.path.sep)[:-4])
     os.environ['COMPSS_HOME'] = compss_home
 
     # Get environment variables
@@ -125,7 +127,7 @@ def start(log_level='off',
     __export_globals__()
 
     print("********************************************************")
-    print( "*************** PyCOMPSs Interactive *******************")
+    print("*************** PyCOMPSs Interactive *******************")
     print("********************************************************")
     print("*          .-~~-.--.                ____        ____   *")
     print("*         :         )              |___ \      |___ \  *")
@@ -203,13 +205,26 @@ def start(log_level='off',
     else:
         config['external_adaptation'] = 'false'
 
+    major_version = sys.version_info[0]
+    python_interpreter = 'python' + str(major_version)
+    config['python_interpreter'] = python_interpreter
+    config['python_version'] = str(major_version)
+
+    if 'VIRTUAL_ENV' in os.environ:
+        # Running within a virtual environment
+        python_virtual_environment = os.environ['VIRTUAL_ENV']
+    else:
+        python_virtual_environment = 'null'
+    config['python_virtual_environment'] = python_virtual_environment
+    config['python_propagate_virtual_environment'] = propagate_virtual_environment
+
     initialize_compss(config)
 
     ##############################################################
     # RUNTIME START
     ##############################################################
 
-    print("* - Starting COMPSs runtime...                       *")
+    print("* - Starting COMPSs runtime...                         *")
     compss_start()
 
     if o_c is True:
@@ -232,17 +247,17 @@ def start(log_level='off',
 
     # Logging setup
     if log_level == "debug":
-        jsonPath = '/Bindings/python/log/logging.json.debug'
+        jsonPath = '/Bindings/python/' + str(major_version) + '/log/logging.json.debug'
         init_logging(os.getenv('COMPSS_HOME') + jsonPath, log_path)
     elif log_level == "info":
-        jsonPath = '/Bindings/python/log/logging.json.off'
+        jsonPath = '/Bindings/python/' + str(major_version) + '/log/logging.json.off'
         init_logging(os.getenv('COMPSS_HOME') + jsonPath, log_path)
     elif log_level == "off":
-        jsonPath = '/Bindings/python/log/logging.json.off'
+        jsonPath = '/Bindings/python/' + str(major_version) + '/log/logging.json.off'
         init_logging(os.getenv('COMPSS_HOME') + jsonPath, log_path)
     else:
         # Default
-        jsonPath = '/Bindings/python/log/logging.json'
+        jsonPath = '/Bindings/python/' + str(major_version) + '/log/logging.json'
         init_logging(os.getenv('COMPSS_HOME') + jsonPath, log_path)
     logger = logging.getLogger("pycompss.runtime.launch")
 
@@ -252,7 +267,8 @@ def start(log_level='off',
                taskCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
                comm, conn, masterName, masterPort, scheduler, jvmWorkers,
                cpuAffinity, gpuAffinity, profileInput, profileOutput,
-               scheduler_config, external_adaptation)
+               scheduler_config, external_adaptation, python_interpreter, major_version,
+               python_virtual_environment, propagate_virtual_environment)
 
     logger.debug("--- START ---")
     logger.debug("PyCOMPSs Log path: %s" % log_path)
@@ -265,8 +281,8 @@ def start(log_level='off',
 
     # MAIN EXECUTION
     # let the user write an interactive application
-    print("* - PyCOMPSs Runtime started... Have fun!            *")
-    print("******************************************************")
+    print("* - PyCOMPSs Runtime started... Have fun!              *")
+    print("********************************************************")
 
 
 def printSetup(verbose, log_level, o_c, debug, graph, trace, monitor,
@@ -274,10 +290,11 @@ def printSetup(verbose, log_level, o_c, debug, graph, trace, monitor,
                taskCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
                comm, conn, masterName, masterPort, scheduler, jvmWorkers,
                cpuAffinity, gpuAffinity, profileInput, profileOutput,
-               scheduler_config, external_adaptation):
+               scheduler_config, external_adaptation, python_interpreter, python_version,
+               python_virtual_environment, python_propagate_virtual_environment):
     logger = logging.getLogger("pycompss.runtime.launch")
     output = ""
-    output += "******************************************************\n"
+    output += "********************************************************\n"
     output += " CONFIGURATION: \n"
     output += "  - Log level           : " + str(log_level) + "\n"
     output += "  - Object conversion   : " + str(o_c) + "\n"
@@ -308,7 +325,11 @@ def printSetup(verbose, log_level, o_c, debug, graph, trace, monitor,
     output += "  - Profile output      : " + str(profileOutput) + "\n"
     output += "  - Scheduler config    : " + str(scheduler_config) + "\n"
     output += "  - External adaptation : " + str(external_adaptation) + "\n"
-    output += "******************************************************"
+    output += "  - Python interpreter  : " + str(python_interpreter) + "\n"
+    output += "  - Python version      : " + str(python_version) + "\n"
+    output += "  - Python virtualenv   : " + str(python_virtual_environment) + "\n"
+    output += "  - Python propagate virtualenv : " + str(python_propagate_virtual_environment) + "\n"
+    output += "********************************************************"
     if verbose:
         print(output)
     logger.debug(output)

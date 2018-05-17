@@ -1,11 +1,11 @@
 #!/bin/bash -e
- 
+
   #############################################################
   # Name: buildMN_aux
   # Description: SCRIPT FOR LOCAL COMPSs BUILD in Nord 3
   # Parameters: <targetDir>           Base Target Installation folder
   #
-  # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY 
+  # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY
   #            EXECUTED FROM buildMN script
   #############################################################
 
@@ -29,6 +29,8 @@
   scriptDir=$(dirname $0)
 
   modules="intel/13.0.1 transfer/1.0 bsc/current PYTHON/2.7.3 BOOST/1.52.0 java/1.8.0u66 PAPI/5.4.1 gcc/7.2.0"
+  py2_modules="PYTHON/2.7.3"
+  py3_modules="PYTHON/3.5.1-INTEL"
   additionalExports=""
   queues_cfg="nord.cfg"
   extrae_with_openmpi="true"
@@ -36,4 +38,4 @@
   extrae_with_impi="true"
   impi_version=""
 
-  ${scriptDir}/buildSC_aux ${targetDir} "${modules}" "${additionalExports}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}"
+  ${scriptDir}/buildSC_aux ${targetDir} "${modules}" "${py2_modules}" "${py3_modules}" "${additionalExports}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}"

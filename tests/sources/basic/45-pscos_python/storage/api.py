@@ -108,11 +108,11 @@ def getByID(id):
             return obj
         except ValueError:
             # The id does not complain uuid4 --> raise an exception
-            print "Error: the ID for getByID does not complain the uuid4 format."
+            print("Error: the ID for getByID does not complain the uuid4 format.")
             raise ValueError('Using the dummy storage API getByID with wrong id.')
     else:
         # Using a None id --> raise an exception
-        print "Error: the ID for getByID is None."
+        print("Error: the ID for getByID is None.")
         raise ValueError('Using the dummy storage API getByID with None id.')
 
 
@@ -150,7 +150,7 @@ def removeById(obj):
         try:
             os.remove(file_path)
         except:
-            print "PSCO: " + file_path + " Does not exist!"
+            print("PSCO: " + file_path + " Does not exist!")
 
         # Remove PSCO file from /tmp/PSCO
         file_name = str(obj.id) + '.PSCO'
@@ -159,7 +159,7 @@ def removeById(obj):
             os.remove(file_path)
             obj.id = None
         except:
-            print "PSCO: " + file_path + " Does not exist!"
+            print("PSCO: " + file_path + " Does not exist!")
     else:
         # The obj is not persistent yet
         pass

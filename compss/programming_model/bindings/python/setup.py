@@ -82,7 +82,6 @@ def find_packages(path='./src'):
                         pkg_name = re.sub('^[^A-z0-9_]+', '', pkg_name)
                         # Add package to list
                         ret.append(pkg_name)
-
         return ret
 
 

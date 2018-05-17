@@ -86,6 +86,20 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
             && !System.getProperty(COMPSsConstants.STORAGE_CONF).equals("null");
     private static final String STORAGE_CONF = IS_STORAGE_ENABLED ? System.getProperty(COMPSsConstants.STORAGE_CONF) : "null";
 
+    // Python interpreter
+    private static final String PYTHON_INTERPRETER = System.getProperty(COMPSsConstants.PYTHON_INTERPRETER) != null ?
+                                                     System.getProperty(COMPSsConstants.PYTHON_INTERPRETER) :
+                                                     COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
+    private static final String PYTHON_VERSION = System.getProperty(COMPSsConstants.PYTHON_VERSION) != null ?
+                                                 System.getProperty(COMPSsConstants.PYTHON_VERSION) :
+                                                 COMPSsConstants.DEFAULT_PYTHON_VERSION;
+    private static final String PYTHON_VIRTUAL_ENVIRONMENT = System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT) != null ?
+                                                             System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT) :
+                                                             COMPSsConstants.DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT;
+    private static final String PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT = System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT) != null ?
+                                                                       System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT) :
+                                                                       COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
+
     private static final String JOBS_DIR = System.getProperty(COMPSsConstants.APP_LOG_DIR) + "jobs" + java.io.File.separator;
 
     private static final String JOB_STATUS = "job.status";
@@ -372,7 +386,8 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
             sd.addAttribute("slot", slot);
         }
 
-        // Language-dependent arguments: taskSandbox_dir app_dir classpath pythonpath debug storage_conf
+        // Language-dependent arguments: taskSandbox_dir app_dir classpath
+        // pythonpath pythonInterpreter pythonVersion PythonVirtualEnvironment debug storage_conf
         // method_impl_type method_impl_params
         // numSlaves [slave1,..,slaveN] numCus
         // has_target num_params par_type_1 par_1 ... par_type_n par_n
@@ -380,6 +395,10 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         lArgs.add(getResourceNode().getAppDir());
         lArgs.add(getClasspath());
         lArgs.add(getPythonpath());
+        lArgs.add(PYTHON_INTERPRETER);
+        lArgs.add(PYTHON_VERSION);
+        lArgs.add(PYTHON_VIRTUAL_ENVIRONMENT);
+        lArgs.add(PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT);
 
         lArgs.add(String.valueOf(debug));
         lArgs.add(STORAGE_CONF);

@@ -8,6 +8,61 @@
     rm -rf "${SCRIPT_DIR}"/build
   }
 
+  command_exists () {
+    type "$1" &> /dev/null ;
+  }
+
+  get_packages_folder(){
+     # Check the packages folder of a particular python interpreter
+     # $1 -> python version (2 or 3)
+     packages_folder=$( $1 -c "import site
+if hasattr(site, 'getsitepackages'):
+    # normal execution
+    print(site.getsitepackages()[0])
+else:
+    # workaround for virtualenv
+    from distutils.sysconfig import get_python_lib
+    print([get_python_lib()][0])
+" )
+  }
+
+
+  # It is possible to install Python3 version within the same folder (python code is compatible), but:
+  #   - The extensions have different names, so that the most appropriate can be selected dynamically.
+  #   - pyc and pyo files are in different folders (for python2 within the same as .py files, while
+  #     in python 3 they are within __pycache__ folder).
+  # However, we keep them in different folders with the python major version as subfolder.
+  install (){
+    PYCOMPSS_HOME="${targetDir}/$1"
+    export PYTHONPATH=$PYCOMPSS_HOME:$OLD_PYTHONPATH
+
+    if command_exists python$1 ; then
+      python$1 ${SCRIPT_DIR}/setup.py install --install-lib=${PYCOMPSS_HOME} -O2
+      exitCode=$?
+      if [ "$create_symlinks" = "true" ]; then
+        # Expected when installing with buildlocal. Not from buildsc.
+        # Pip package sets these symbolic links and updates the 'activate' script accordingly.
+        echo "Looking for package where to place the symbolic links."
+        get_packages_folder python$1
+        # Setup a symbolic link to pycompss
+        ln -sfn "${PYCOMPSS_HOME}/pycompss" "${packages_folder}/pycompss"
+        echo "Created symbolic link from ${PYCOMPSS_HOME}/pycompss to ${packages_folder}/pycompss"
+        # Setup a symbolic link to compss module
+        ln -sfn "${PYCOMPSS_HOME}/compss.*" "${packages_folder}/"
+        echo "Created symbolic link from ${PYCOMPSS_HOME}/compss.* to ${packages_folder}/compss.*"
+        # Setup a symbolic link to thread affinith module
+        ln -sfn "${PYCOMPSS_HOME}/thread_affinity.*" "${packages_folder}/"
+        echo "Created symbolic link from ${PYCOMPSS_HOME}/thread_affinity.* to ${packages_folder}/thread_affinity.*"
+      fi
+      if [ $exitCode -ne 0 ]; then
+        echo "ERROR: Cannot install PyCOMPSs for Python $1"
+        exit $exitCode
+      fi
+    else
+      echo "WARNING: PyCOMPSS FOR PYTHON $1 HAS NOT BEEN INSTALLED."
+    fi
+  }
+
 
   #
   # SCRIPT GLOBAL CONSTANTS
@@ -15,29 +70,53 @@
 
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-
   #
   # MAIN
   #
 
   # Retrieve script arguments
   targetDir=$1
+  create_symlinks=$2
+  only_python_version=$3  # Optional argument
 
   # Add trap for clean
   trap clean EXIT
 
   # Install
-  echo "Installing in ${targetDir}"
-  PYCOMPSS_HOME=${targetDir}
-  export PYTHONPATH=$PYCOMPSS_HOME:$PYTHONPATH
+  OLD_PYTHONPATH=$PYTHONPATH
 
-  python "${SCRIPT_DIR}"/setup.py install --install-lib="${PYCOMPSS_HOME}" -O2
-  exitCode=$?
-  if [ $exitCode -ne 0 ]; then
-    echo "ERROR: Cannot install PyCOMPSs"
-    exit $exitCode
+  if [ -z "$only_python_version" ]; then
+    # Try to install all
+    # Check $targetDir = site-packages usual, dist-packages in deb based distributions.
+    if [[ "$targetDir" = *site-packages* ]] || [[ "$targetDir" = *dist-packages* ]]; then
+      # If it is within site-packages, install only the appropriate version.
+      if [[ "$targetDir" = *python2* ]]; then
+        echo "* Installing python 2 version."
+        # within 2.X site-packages
+        install 2
+      elif [[ "$targetDir" = *python3* ]]; then
+        echo "* Installing python 3 version."
+        # within 3.X site-packages
+        install 3
+      else
+        echo "ERROR! UNSUPPORTED TARGET DIRECTORY WITHIN site-packages OR dist-packages."
+      fi
+    else
+      # Install all
+      install 2
+      install 3
+    fi
+  elif [ "$only_python_version" == "python2" ]; then
+    echo "* Installing JUST python 2 version."
+    # Install only python 2 version
+    install 2
+  elif [ "$only_python_version" == "python3" ]; then
+    echo "* Installing JUST python 3 version."
+    # Install only python 3 version
+    install 3
+  else
+    echo "ERROR! UNSUPPORTED PYTHON VERSION."
   fi
-    
+
   # Normal exit
   exit 0
-

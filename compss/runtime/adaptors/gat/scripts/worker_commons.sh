@@ -14,17 +14,21 @@
   }
 
   get_parameters() {
-    # Get paramters
+    # Get parameters
     taskSandboxWorkingDir=$1
     app_dir=$2
     cp=$3
     pythonpath=$4
-    debug=$5
-    storageConf=$6
-    methodType=$7
+    pythonInterpreter=$5
+    pythonVersion=$6
+    pythonVirtualEnvironment=$7
+    pythonPropagateVirtualEnvironment=$8
+    debug=$9
+    storageConf=${10}
+    methodType=${11}
 
     # Shit all parameters except method ones
-    shiftSizeForApp=4
+    shiftSizeForApp=8
     shift $shiftSizeForApp
    
     # Get method parameters
@@ -32,9 +36,13 @@
 
     # Log status if needed
     if [ "$debug" == "true" ]; then
-      echo "[WORKER_COMMONS.SH] - app_dir     $app_dir"
-      echo "[WORKER_COMMONS.SH] - classpath   $cp"
-      echo "[WORKER_COMMONS.SH] - pythonpath  $pythonpath"
+      echo "[WORKER_COMMONS.SH] - app_dir                            $app_dir"
+      echo "[WORKER_COMMONS.SH] - classpath                          $cp"
+      echo "[WORKER_COMMONS.SH] - pythonpath                         $pythonpath"
+      echo "[WORKER_COMMONS.SH] - pythonInterpreter                  $pythonInterpreter"
+      echo "[WORKER_COMMONS.SH] - pythonVersion                      $pythonVersion"
+      echo "[WORKER_COMMONS.SH] - pythonVirtualEnvironment           $pythonVirtualEnvironment"
+      echo "[WORKER_COMMONS.SH] - pythonPropagateVirtualEnvironment  $pythonPropagateVirtualEnvironment"
     fi
   }
 
@@ -64,8 +72,6 @@
     add_to_classpath "$app_dir/lib"
     export CLASSPATH=$cp:$CLASSPATH:$app_dir:$gatworker_jar
 
-    # Set pythonpath related env
+    # Set python home related env
     export PYCOMPSS_HOME=${bindingsDir}/python
-    export PYTHONPATH=$pythonpath:$app_dir:$PYCOMPSS_HOME:$PYTHONPATH
   }
-

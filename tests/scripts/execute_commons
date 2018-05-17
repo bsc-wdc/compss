@@ -10,7 +10,7 @@
   clean_orphans() {
     # Sleep before cleanning test environment
     sleep 1s
-  
+
     # Clean possible remaining test processes
     ps x -o  "%r %c" | grep "runcompss" | awk {' print $1 '} | xargs -r -i kill -9 -{}
     ps -elfa | grep "java" | grep "es.bsc.compss.nio.worker.NIOWorker" | awk {' print $4 '} | xargs -r kill -9
@@ -20,17 +20,31 @@
     sleep 1s
   }
 
-  
+  #--------------------------------------------------------------------------------
+  # Check if a command exists
+  command_exists () {
+    type "$1" &> /dev/null ;
+  }
+
   #--------------------------------------------------------------------------------
   # Compute test result status
-  # WARN: Uses global variables --> OUT: results, exitValue
+  # WARN: Uses global variables --> OUT: results, testNames, exitValue
   get_test_result() {
-    local testExitValue=$1
-    local retries=$2
+    local appName=$1
+    local testExitValue=$2
+    local retries=$3
+
+    testNames+=( ${appName} )
 
     if [ "$testExitValue" -ne 0 ]; then
-      exitValue=1
-      results="${results}3"
+      if [ "$testExitValue" -eq 99 ]; then
+        # Unsupported feature reported by test
+        results="${results}4"
+      else
+        # Test failed
+        exitValue=1
+        results="${results}3"
+      fi
     else
       if [ "$retries" -eq 2 ]; then
         # Test OK on first try (but counter was increased)
@@ -54,21 +68,28 @@
     local appLogDir=$6
     local skip=$7
     local MAX_RETRIES=$8
+    local appName=$9
+    local pythonInterpreter=${10}
 
     if [ "${skip}" == "true" ] && [ -f "${appBaseDir}"/skip ]; then
       # Mark test as skip
       results="${results}2"
+      testNames+=( ${appName} )
     else
       # Execute test with retries
       cd "${appBaseDir}"
       local retries=1
       local testExitValue=3
       while [ $retries -le $MAX_RETRIES ] && [ $testExitValue -ne 0 ]; do
-        local appLogDirWithRetries="${appLogDir}_${retries}"
+        if [ -z "${pythonInterpreter}" ]; then
+            local appLogDirWithRetries="${appLogDir}_${retries}"
+        else
+            local appLogDirWithRetries="${appLogDir}_${pythonInterpreter}_${retries}"
+        fi
         mkdir -p "${appLogDirWithRetries}"
 
         # Specific test Execute
-        ./execution ${COMPSsExec} ${comm} ${runcompss_opts} ${appBaseDir} ${COMPSsLogFolder} ${appLogDirWithRetries} ${retries}
+        ./execution ${COMPSsExec} ${comm} ${runcompss_opts} ${appBaseDir} ${COMPSsLogFolder} ${appLogDirWithRetries} ${retries} ${pythonInterpreter}
         testExitValue=$?
 
         # Clean environment if needed
@@ -79,7 +100,7 @@
       done
 
       # Annotate test result
-      get_test_result $testExitValue $retries
+      get_test_result $appName $testExitValue $retries
     fi
   }
 
@@ -97,9 +118,16 @@
 
     # Header
     echo " "
-    echo -e "\e[34m------------------------------------------------------------------------"
-    echo -e "\e[34m------------------------------------------------------------------------"
-    echo "   Application Name                                      TEST STATUS"
+    echo -e "\e[34m--------------------------------------------------------------------------------------------"
+    echo -e "\e[34m--------------------------------------------------------------------------------------------"
+    echo "   Application Name                                                               TEST STATUS"
+
+    green=$"\033[32m"
+    yellow=$"\033[33m"
+    cyan=$"\033[36m"
+    red=$"\033[31m"
+    gray=$"\033[30m"
+    normal=$"\033[0m"
 
     # Test results
     while [ $pos -lt "${numTests}" ]; do
@@ -110,23 +138,24 @@
       fi
 
       if [ "${results:$pos:1}" == "0" ]; then
-         echo -e "\e[34m [TEST RESULT] Application ${execType} BLOCK $printCounter ..................... \e[32mOK"
+         printf "${normal}%-60s %-20s ${green}%s\n" "[TEST RESULT] Application ${execType} BLOCK $printCounter NAME ${testNames[$pos]}" "....................." "OK"
       elif [ "${results:$pos:1}" == "1" ]; then
-         echo -e "\e[34m [TEST RESULT] Application ${execType} BLOCK $printCounter ..................... \e[33mOK"
+         printf "${normal}%-60s %-20s ${yellow}%s\n" "[TEST RESULT] Application ${execType} BLOCK $printCounter NAME ${testNames[$pos]}" "....................." "OK"
       elif [ "${results:$pos:1}" == "2" ]; then
-         echo -e "\e[34m [TEST RESULT] Application ${execType} BLOCK $printCounter ..................... \e[36mSKIP"
+         printf "${normal}%-60s %-20s ${cyan}%s\n" "[TEST RESULT] Application ${execType} BLOCK $printCounter NAME ${testNames[$pos]}" "....................." "SKIP"
+      elif [ "${results:$pos:1}" == "4" ]; then
+         printf "${normal}%-60s %-20s ${gray}%s\n" "[TEST RESULT] Application ${execType} BLOCK $printCounter NAME ${testNames[$pos]}" "....................." "UNSUPPORTED"
       else
-         echo -e "\e[34m [TEST RESULT] Application ${execType} BLOCK $printCounter ..................... \e[31mERROR"
+         printf "${normal}%-60s %-20s ${red}%s\n" "[TEST RESULT] Application ${execType} BLOCK $printCounter NAME ${testNames[$pos]}" "....................." "ERROR"
       fi
       pos=$((pos+1))
       appCounter=$((appCounter+1))
     done
- 
+
     # Footer
     echo " "
     echo -e "\e[34m-----------------------------------------------------------------------"
-    echo -e "\e[34m------------------------------------------------------------------------" 
+    echo -e "\e[34m------------------------------------------------------------------------"
     echo -e "\e[34mIf there are errors, please check the WORKSPACE/logs/ files"
     echo -e "\e[0m"
   }
-

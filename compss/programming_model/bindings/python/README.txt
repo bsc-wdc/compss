@@ -9,19 +9,19 @@ CONTENT
 -------
 
 src
-    ├── ext           -> external C module to interact with the COMPSs C/C++ binding
-    └── pycompss      -> Python modules
-        ├── api       -> API modules to be imported by the programmer in the application
-        ├── functions -> Helper functions
-        ├── matlib    -> Math library
-        ├── runtime   -> master runtime
-        ├── util      -> utilities
-        └── worker    -> worker runtime
+  L ext             -> external C module to interact with the COMPSs C/C++ binding
+    L pycompss      -> Python modules
+        L api       -> API modules to be imported by the programmer in the application
+        L functions -> Helper functions
+        L matlib    -> Math library
+        L runtime   -> master runtime
+        L util      -> utilities
+        L worker    -> worker runtime
 
 
 DEPENDENCIES
 ------------
-- Python 2.x
+- Python 2.x (optionally Python 3.x)
 - COMPSs Java runtime
 - COMPSs C/C++ binding
 
@@ -35,4 +35,7 @@ INSTALLATION
 This will install PyCOMPSs in /usr/local/lib/pythonX.Y/site-packages.
 
 - Alternatively, specify an installation directory:
-    ./install <install_dir>
+    ./install <install_dir> <create_symlinks> <only_python_version>
+
+    create_symlinks: Create symbolic links within site-packages (options: true | false)
+    only_python_version: Install a specific version (options: python2 | python 3)

@@ -53,7 +53,10 @@ def init(config_file_path=None, **kwargs):
     # If config_file_path is None we will assume that we only have localhost
     # as storage node
     if config_file_path is None:
-        import StringIO as sio
+        try:
+            import StringIO as sio
+        except ImportError:
+            from io import StringIO as sio
         config_file_handler = sio.StringIO('localhost\n')
     else:
         config_file_handler = open(config_file_path)
@@ -79,7 +82,8 @@ def init(config_file_path=None, **kwargs):
     # the backend
     # If we had no success this first line should crash
     redis_connection.set('PYCOMPSS_TEST', 'OK')
-    assert redis_connection.get('PYCOMPSS_TEST') == 'OK'
+    # Beware py2 vs py3 - b'string' works for both.
+    assert redis_connection.get('PYCOMPSS_TEST') == b'OK'
     redis_connection.delete('PYCOMPSS_TEST')
 
 def initWorker(config_file_path=None):

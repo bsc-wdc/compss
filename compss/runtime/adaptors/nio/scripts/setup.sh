@@ -19,8 +19,9 @@
   ######################
   load_parameters() {
     # Script Variables
-    SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio"
-  
+    # SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio"
+    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
     # Get parameters
     libPath=$1
     appDir=$2
@@ -32,7 +33,7 @@
       pos=$((4 + i))
       jvmFlags="${jvmFlags} ${!pos}"
     done
-  
+
     # Shift parameters for script and leave only the NIOWorker parameters
     paramsToShift=$((4 + numJvmFlags))
     shift ${paramsToShift}
@@ -51,7 +52,7 @@
     shift ${paramsToShift}
 
     paramsToCOMPSsWorker=$@
- 
+
     # Catch some NIOWorker parameters
     debug=$1
     hostName=$4
@@ -71,6 +72,10 @@
     tracing=${22}
     extraeFile=${23}
     hostId=${24}
+    pythonInterpreter=${28}
+    pythonVersion=${29}
+    pythonVirtualEnvironment=${30}
+    pythonPropagateVirtualEnvironment=${31}
 
     if [ "$debug" == "true" ]; then
       echo "PERSISTENT_WORKER.sh"
@@ -91,6 +96,10 @@
       echo "- libPath:             $libPathNW"
       echo "- Classpath:           $cpNW"
       echo "- Pythonpath:          $pythonpath"
+      echo "- Python Interpreter   $pythonInterpreter"
+      echo "- Python Version       $pythonVersion"
+      echo "- Python Virtual Env.  $pythonVirtualEnvironment"
+      echo "- Python Propagate Virtual Env.  $pythonPropagateVirtualEnvironment"
 
       echo "- Tracing:             $tracing"
       echo "- ExtraeFile:          ${extraeFile}"
@@ -111,7 +120,7 @@
       eraseWD="true"
     fi
   }
-  
+
   setup_environment(){
     # Added for SGE queue systems which do not allow to copy LD_LIBRARY_PATH
     if [ -z "$LD_LIBRARY_PATH" ]; then
@@ -143,14 +152,14 @@
     if [ "$libPath" != "null" ]; then
         export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$libPath
     fi
-  
+
     # Set appDir
     export COMPSS_APP_DIR=$appDir
     if [ "$appDir" != "null" ]; then
     	add_to_classpath "$appDir"
     	add_to_classpath "$appDir/lib"
     fi
-  
+
     # Set the classpath
     if [ "$cp" == "null" ]; then
   	cp=""
@@ -161,7 +170,7 @@
     export PYTHONPATH=$pythonpath:$PYTHONPATH
     export LD_LIBRARY_PATH=$libPathNW:$LD_LIBRARY_PATH
   }
-  
+
   setup_jvm() {
     # Prepare the worker command
     local JAVA=java
@@ -175,6 +184,10 @@
       -XX:+UseThreadPriorities \
       -XX:ThreadPriorityPolicy=42 \
       -Dlog4j.configurationFile=${installDir}/Runtime/configuration/log/${itlog4j_file} \
+      -Dcompss.python.interpreter=${pythonInterpreter} \
+      -Dcompss.python.version=${pythonVersion} \
+      -Dcompss.python.virtualenvironment=${pythonVirtualEnvironment} \
+      -Dcompss.python.propagate_virtualenvironment=${pythonPropagateVirtualEnvironment} \
       -classpath $CLASSPATH:${worker_jar} \
       ${main_worker_class}"
   }
@@ -185,10 +198,10 @@
         eval "$FPGAargs"
     fi
   }
-  
+
   pre_launch() {
     cd "$workingDir" || exit 1
-  
+
     # Trace initialization
     if [ "$tracing" -gt 0 ]; then
       if [ -z "${extraeFile}" ] || [ "${extraeFile}" == "null" ]; then
@@ -198,18 +211,18 @@
           extraeFile=${SCRIPT_DIR}/../../../../configuration/xml/tracing/extrae_advanced.xml
         fi
       fi
-      
+
       if [ -z "$EXTRAE_HOME" ]; then
         export EXTRAE_HOME=${SCRIPT_DIR}/../../../../../Dependencies/extrae/
       fi
-      
+
       export EXTRAE_LIB=${EXTRAE_HOME}/lib
       export LD_LIBRARY_PATH=${EXTRAE_LIB}:${LD_LIBRARY_PATH}
       export EXTRAE_CONFIG_FILE=${extraeFile}
       export LD_PRELOAD=${EXTRAE_HOME}/lib/libpttrace.so
     fi
   }
-  
+
   post_launch() {
     if [ "$tracing" -gt 0 ]; then
       unset LD_PRELOAD
@@ -224,4 +237,3 @@
       echo "[persistent_worker.sh] Not cleaning WD ${workingDir}"
     fi
   }
-

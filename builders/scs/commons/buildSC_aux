@@ -1,24 +1,26 @@
 #!/bin/bash
- 
+
   #############################################################
   # Name: buildSC_aux
   # Description: SCRIPT FOR LOCAL COMPSs BUILD in SuperComputers
   # Parameters: <targetDir>           Base Target Installation folder
   #             <modules>             Modules needed to perform installation
+  #             <py2_module>          Modules needed to perform python2 binding installation
+  #             <py3_modules>         Modules needed to perform python3 binding installation
   #             <additionalExports>   Additional exports to perform installation
-  #		<queues_cfg>	      CFG to set as default	
+  #		          <queues_cfg>	        CFG to set as default
   #             <extrae_with_openmpi> Extrae with openmpi enabled
   #             <openmpi_version>     OpenMPI module version
   #             <extrae_with_impi>    Extrae with impi enabled
   #             <impì_version>        IMPI module version
   #
-  # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY 
+  # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY
   #            EXECUTED FROM buildSC script
   #############################################################
 
   usage() {
     echo "Incorrect number of parameters"
-    echo " Usage: buildSC_aux <FullTargetPath> <modules> <additionalExports> <queues_cfg> <extrae_with_openmpi> <openmpi_version> <extrae_with_impi> <impi_version>"
+    echo " Usage: buildSC_aux <FullTargetPath> <modules> <py2_modules> <py3_modules> <additionalExports> <queues_cfg> <extrae_with_openmpi> <openmpi_version> <extrae_with_impi> <impi_version>"
     echo " "
     exit 1
   }
@@ -27,23 +29,25 @@
   # MAIN
   ####################
   # Get parameters
-  if [ $# -ne 8 ]; then
+  if [ $# -ne 10 ]; then
     usage
   fi
 
   # SET SCRIPT VARIABLES
   targetDir=$1
   modules=$2
-  additionalExports=$3
-  queues_cfg=$4
-  extrae_with_openmpi=$5
-  openmpi_version=$6
-  extrae_with_impi=$7
-  impi_version=$8
+  py2_modules=$3
+  py3_modules=$4
+  additionalExports=$5
+  queues_cfg=$6
+  extrae_with_openmpi=$7
+  openmpi_version=$8
+  extrae_with_impi=$9
+  impi_version=${10}
 
   scriptDir=$(dirname $0)
   tmpDir=${scriptDir}/tmp
-  
+
   echo "- SC script Dir = ${scriptDir}"
   echo "- SC tmp Dir    = ${tmpDir}"
   echo "- SC target Dir = ${targetDir}"
@@ -59,7 +63,7 @@
 
   # Save original path to remove libxml imports that crashes python binding in mt installation
   originalPath=$PATH
-  
+
   # Load additional exports
   ${additionalExports}
 
@@ -121,7 +125,7 @@
   fi
 
   # IMPI
-  if [ "${extrae_with_impi}" == "true" ]; then  
+  if [ "${extrae_with_impi}" == "true" ]; then
     module load intel
     module load impi${impi_version}
     ./install ${targetDir}/Dependencies/extrae-impi true
@@ -167,7 +171,7 @@
       mkdir ${path_target}/$adaptor/worker
       cp ${path_source}/$adaptor/worker/*.jar ${path_target}/$adaptor/worker
     fi
-    if [ -f ${path_source}/$adaptor/worker/properties ]; then 
+    if [ -f ${path_source}/$adaptor/worker/properties ]; then
       cp ${path_source}/$adaptor/worker/properties ${path_target}/$adaptor/worker
     fi
     if [ -d "${path_source}/$adaptor/scripts/" ]; then
@@ -199,7 +203,7 @@
   # Engine
   echo "--- Copy engine"
   cp ${tmpDir}/compss/runtime/compss-engine.jar ${targetDir}/Runtime/
- 
+
   # TOOLS DEPLOYMENT
   echo "- Deploying COMPSs Tools"
   cd ${tmpDir}
@@ -233,10 +237,30 @@
   cp ./compss_build_app ${targetDir}/Runtime/scripts/user/
   echo "- Deploying python-binding files"
   cd ${tmpDir}/compss/programming_model/bindings/python
-  ./install ${targetDir}/Bindings/python
-  if [ $? -ne 0 ]; then
-    echo "ERROR: Failed to install Python-binding"
-    exit 1
+  if [ -n "$py2_modules" ]; then
+    echo "    - For python 2"
+    if [ "$py2_modules" != "ignore" ]; then
+      module load ${py2_modules}
+    fi
+    ./install ${targetDir}/Bindings/python false python2
+    if [ $? -ne 0 ]; then
+      echo "ERROR: Failed to install Python-binding for Python 2"
+      exit 1
+    fi
+    if [ "$py2_modules" != "ignore" ]; then
+      module unload ${py2_modules}
+    fi
+  fi
+  if [ -n "$py3_modules" ]; then
+    echo "    - For python 3"
+    if [ "$py3_modules" != "ignore" ]; then
+      module load ${py3_modules}
+    fi
+    ./install ${targetDir}/Bindings/python false python3
+    if [ $? -ne 0 ]; then
+      echo "ERROR: Failed to install Python-binding for Python 3"
+      exit 1
+    fi
   fi
   cd ${scriptDir}
 
@@ -254,11 +278,11 @@
   echo "export PATH=\$PATH:${targetDir}/Bindings/c/bin" >> ${targetDir}/etc/profile.d/compss.sh
   echo " - c-binaries added to user profile"
   echo " "
-  echo " - Adding PyCOMPSs to user profile..."
-  echo "export PYTHONPATH=\$PYTHONPATH:${targetDir}/Bindings/python/" >> ${targetDir}/etc/profile.d/compss.sh
-  echo " - PyCOMPSs added to user profile"
-  echo " "
- 
+  # echo " - Adding PyCOMPSs to user profile..."
+  # echo "export PYTHONPATH=\$PYTHONPATH:${targetDir}/Bindings/python/" >> ${targetDir}/etc/profile.d/compss.sh
+  # echo " - PyCOMPSs added to user profile"
+  # echo " "
+
   # ADD MONITOR SCRIPT TO ETC
   echo "- Add monitor script to init.d"
   mkdir -p ${targetDir}/etc/init.d/

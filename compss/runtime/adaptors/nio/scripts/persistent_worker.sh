@@ -7,9 +7,11 @@
   # Load common setup functions --------------------------------------
   if [ -z "${COMPSS_HOME}" ]; then
     SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+    export COMPSS_HOME=${SCRIPT_DIR}/../../../../../
   else
     SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio"
-  fi  # shellcheck source=setup.sh
+  fi
+  # shellcheck source=setup.sh
   source ${SCRIPT_DIR}/setup.sh
 
   # Load parameters --------------------------------------------------

@@ -9,14 +9,14 @@ CONTENT
 -------
 
 src
-    ├── ext           -> external C module to interact with the COMPSs C/C++ binding
-    └── pycompss      -> Python modules
-        ├── api       -> API modules to be imported by the programmer in the application
-        ├── functions -> Helper functions
-        ├── matlib    -> Math library
-        ├── runtime   -> master runtime
-        ├── util      -> utilities
-        └── worker    -> worker runtime
+  L ext             -> external C module to interact with the COMPSs C/C++ binding
+    L pycompss      -> Python modules
+        L api       -> API modules to be imported by the programmer in the application
+        L functions -> Helper functions
+        L matlib    -> Math library
+        L runtime   -> master runtime
+        L util      -> utilities
+        L worker    -> worker runtime
 
 
 DEPENDENCIES

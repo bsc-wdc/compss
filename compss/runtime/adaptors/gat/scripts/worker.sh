@@ -3,8 +3,12 @@
   #-------------------------------------
   # Define script variables and exports
   #-------------------------------------
-  scriptDir=$(dirname $0)
-
+  if [ -z "${COMPSS_HOME}" ]; then
+    scriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+    export COMPSS_HOME=${scriptDir}/../../../../../
+  else
+    scriptDir="${COMPSS_HOME}/Runtime/scripts/system/adaptors/gat"
+  fi
   #-------------------------------------
   # Get script parameters
   #-------------------------------------
@@ -109,7 +113,7 @@
     taskId=$2
     slot=$3
     shift 3
-    $scriptDir/../../trace.sh start $workingDir $eventType $taskId $slot
+    ${scriptDir}/../../trace.sh start $workingDir $eventType $taskId $slot
   fi
 
   #-------------------------------------
@@ -129,7 +133,7 @@
   # Run the task with the language-dependent script
   echo " "
   echo "[WORKER.SH] Starting language $lang dependant script"
-  $scriptDir/worker_$lang.sh $@
+  ${scriptDir}/worker_$lang.sh $@
   endCode=$?
   echo " "
   echo "[WORKER.SH] EndStatus = $endCode"
@@ -139,7 +143,7 @@
   # Trace end event if needed
   #-------------------------------------
   if [ $tracing == "true" ]; then
-    $scriptDir/../../trace.sh end $workingDir $eventType $slot
+    ${scriptDir}/../../trace.sh end $workingDir $eventType $slot
   fi
 
   #-------------------------------------

@@ -93,14 +93,17 @@ public class NIOWorkerNode extends COMPSsWorker {
     public void start() throws InitNodeException {
         NIONode n = null;
         try {
-            this.workerStarter = new WorkerStarter(this);
-            n = this.workerStarter.startWorker();
+        	this.workerStarter = new WorkerStarter(this);
+        	synchronized (this.workerStarter) {
+        		n = this.workerStarter.startWorker();
+        		this.node = n;
+        		this.started = true;
+        	}
         } catch (InitNodeException e) {
             ErrorManager.warn("There was an exception when initiating worker " + getName() + ".", e);
             throw e;
         }
-        this.node = n;
-        this.started = true;
+        
         if (NIOTracer.isActivated()) {
             LOGGER.debug("Initializing NIO tracer " + this.getName());
             NIOTracer.startTracing(this.getName(), this.getUser(), this.getHost(), this.getLimitOfTasks());
@@ -182,23 +185,35 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     @Override
     public void stop(ShutdownListener sl) {
-        if (started) {
-            LOGGER.debug("Shutting down " + this.getName());
-            if (node == null) {
-                sl.notifyFailure(new UnstartedNodeException());
-                LOGGER.error("Shutdown has failed");
-            }
-            Connection c = NIOAgent.getTransferManager().startConnection(node);
-            commManager.shuttingDown(this, c, sl);
-            CommandShutdown cmd = new CommandShutdown(null, null);
-            c.sendCommand(cmd);
-            c.receive();
-            c.finishConnection();
-        } else {
-            LOGGER.debug("Worker " + this.getName() + " has not started. Setting this to be stopped");
-            workerStarter.setToStop();
-            sl.notifyEnd();
-        }
+    	//synchronized (this.workerStarter) {
+
+    		if (workerStarter != null) {
+    			workerStarter.setToStop();
+    			LOGGER.debug("Worker " + this.getName() + " set to be stopped.");
+    			synchronized (this.workerStarter) {
+    				if (started) {
+    					LOGGER.debug("Shutting down " + this.getName());
+    					if (node == null) {
+    						sl.notifyFailure(new UnstartedNodeException());
+    						LOGGER.error("Shutdown has failed");
+    					}
+    					Connection c = NIOAgent.getTransferManager().startConnection(node);
+    					commManager.shuttingDown(this, c, sl);
+    					CommandShutdown cmd = new CommandShutdown(null, null);
+    					c.sendCommand(cmd);
+    					c.receive();
+    					c.finishConnection();
+    				} else {
+    					LOGGER.debug("Worker " + this.getName() + " has not started.");
+    					sl.notifyEnd();
+    				}
+    			}
+    		} else {
+    			LOGGER.debug("Worker " + this.getName() + " has not been created.");
+    			sl.notifyEnd();
+    		}
+
+    	//}
     }
 
     @Override

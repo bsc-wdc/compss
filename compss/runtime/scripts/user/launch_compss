@@ -322,7 +322,7 @@ worker_cmd() {
             ${storage_conf} \
             ${taskExecution} \
 	          ${persistent_worker_c} \
-            ${python_interpreter}" \
+            ${python_interpreter} \
             ${python_version} \
             ${DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT} \
             ${python_propagate_virtual_environment}

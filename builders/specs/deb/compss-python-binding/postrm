@@ -4,12 +4,18 @@
 
   if [ "$action" == "remove" ]; then
     # Remove software
+    # Remove symbolic links
+    /opt/COMPSs/Bindings/python/./clean
+    # Remove completely the python binding
     rm -rf /opt/COMPSs/Bindings/python
     echo " "
     echo " * COMPSs Python Binding successfully removed"
     echo " "
   elif [ "$action" == "purge" ]; then
     # Purge config files
+    # Remove symbolic links
+    /opt/COMPSs/Bindings/python/./clean
+    # Remove completely the python binding
     rm -rf /opt/COMPSs/Bindings/python
     echo " "
     echo " * COMPSs Python Binding successfully purged"
@@ -17,6 +23,9 @@
   elif [ "$action" == "upgrade" ]; then
     # Upgrade software
     newversion=$2
+    # Remove symbolic links
+    /opt/COMPSs/Bindings/python/./clean
+    # Remove completely the python binding
     rm -rf /opt/COMPSs/Bindings/python
     echo " "
     echo " * COMPSs Python Binding upgraded to $newversion"
@@ -25,6 +34,9 @@
     # Disappear
     overwriter=$2
     overwriterversion=$3
+    # Remove symbolic links
+    /opt/COMPSs/Bindings/python/./clean
+    # Remove completely the python binding
     rm -rf /opt/COMPSs/Bindings/python
     echo " "
     echo " * COMPSs Python Binding diappeared due to $overwriter - $overwriterversion"

@@ -1,5 +1,5 @@
 #!/bin/bash -e
-  
+
   action=$1
 
   if [ "$action" == "configure" ]; then
@@ -17,7 +17,7 @@
       fi
       JAVA_LIB_DIR=$(dirname $libjvm)
       JAVA_HOME=${JAVA_LIB_DIR}/../../../
-    else 
+    else
       echo " - Using defined JAVA_HOME installation: ${JAVA_HOME}"
       libjvm=$(find -L ${JAVA_HOME} -name libjvm.so | head -n 1)
       if [ -z $libjvm ]; then
@@ -27,26 +27,26 @@
       JAVA_LIB_DIR=$(dirname $libjvm)
     fi
     echo "Using JAVA_HOME=${JAVA_HOME}"
-    echo "Using JAVA_LIB_DIR=${JAVA_LIB_DIR}"                                                                                                                                           
+    echo "Using JAVA_LIB_DIR=${JAVA_LIB_DIR}"
     export JAVA_HOME=${JAVA_HOME}
     export JAVA_LIB_DIR=${JAVA_LIB_DIR}
 
     # Configure
     echo "   - Configure, compile and install"
     cd /opt/COMPSs/Bindings/python
-    ./install /opt/COMPSs/Bindings/python
+    ./install /opt/COMPSs/Bindings/python true
     echo " - COMPSs Python Binding structure created"
     echo " "
 
     echo " - Setting COMPSs Python Binding permissions..."
     chmod 755 -R /opt/COMPSs/Bindings/python
     echo " - COMPSs Python Binding permissions set"
-   
-    echo " - Adding PyCOMPSs to user profile..."
-    echo "export PYTHONPATH=\$PYTHONPATH:/opt/COMPSs/Bindings/python/" >> /etc/profile.d/compss.sh
-    echo " - PyCOMPSs added to user profile"
-    echo " "
- 
+
+    # echo " - Adding PyCOMPSs to user profile..."  # No need. Symlinks created on install.
+    # echo "export PYTHONPATH=\$PYTHONPATH:/opt/COMPSs/Bindings/python/" >> /etc/profile.d/compss.sh
+    # echo " - PyCOMPSs added to user profile"
+    # echo " "
+
     echo " "
     echo "Congratulations!"
     echo " * COMPSs Python Binding $newversion successfully installed!"
@@ -57,7 +57,7 @@
       echo " "
       echo " * Remove aborted."
       echo " "
-    else 
+    else
       # Abort remove in favour to a given package ($2=in-favour)
       package=$3
       newversion=$4
@@ -82,4 +82,3 @@
       removedversion=$7
     fi
   fi
-

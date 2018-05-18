@@ -9,6 +9,9 @@
       echo " "
       echo " * Installing COMPSs Python Binding from previous version ${oldversion}..."
       echo " "
+      # Remove symbolic links
+      /opt/COMPSs/Bindings/python/./clean
+      # Remove completely the python binding
       rm -rf /opt/COMPSs/Bindings/python
     else
       # Clean installation
@@ -35,4 +38,3 @@
       mv /tmp/COMPSs_python_binding.bkp /opt/COMPSs/Bindings/python
     fi
   fi
-

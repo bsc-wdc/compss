@@ -61,7 +61,7 @@
   ./install ${targetDir}/Bindings/c true
   echo "   - Python-binding"
   cd ${tmpDir}/python
-  ./install ${targetDir}/Bindings/python
+  ./install ${targetDir}/Bindings/python false
   cd ${scriptDir}
 
   # Clean tmp files

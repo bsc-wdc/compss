@@ -1,0 +1,23 @@
+#!/bin/bash
+
+  #
+  # COMMON HELPER FUNCTIONS
+  #
+
+  command_exists () {
+    type "$1" &> /dev/null ;
+  }
+
+  get_packages_folder(){
+     # Check the packages folder of a particular python interpreter
+     # $1 -> python version (2 or 3)
+     packages_folder=$( $1 -c "import site
+if hasattr(site, 'getsitepackages'):
+    # normal execution
+    print(site.getsitepackages()[0])
+else:
+    # workaround for virtualenv
+    from distutils.sysconfig import get_python_lib
+    print([get_python_lib()][0])
+" )
+  }

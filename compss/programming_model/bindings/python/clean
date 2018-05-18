@@ -1,0 +1,24 @@
+#!/bin/bash
+
+  #
+  # SCRIPT GLOBAL HELPERS
+  #
+
+  source commons
+
+  remove_symbolic_links (){
+      get_packages_folder $1
+      echo "Cleaning PyCOMPSs symbolic links from ${packages_folder}"
+      rm "${packages_folder}/pycompss"
+      rm "${packages_folder}/compss.*.so"
+      rm "${packages_folder}/thread_affinity.*.so"
+  }
+
+  # Ensure that only cleans for python 2 and 3.
+  if [ $1 == "python2" ]; then
+      remove_symbolic_links $1
+  elif [ $1 == "python3" ]; then
+      remove_symbolic_links $1
+  else
+      echo "ERROR! Undefined version to clean."
+  fi

@@ -1,31 +1,17 @@
 #!/bin/bash
 
+
   #
   # HELPER FUNCTIONS
   #
-
-  clean() {
-    rm -rf "${SCRIPT_DIR}"/build
-  }
 
   command_exists () {
     type "$1" &> /dev/null ;
   }
 
-  get_packages_folder(){
-     # Check the packages folder of a particular python interpreter
-     # $1 -> python version (2 or 3)
-     packages_folder=$( $1 -c "import site
-if hasattr(site, 'getsitepackages'):
-    # normal execution
-    print(site.getsitepackages()[0])
-else:
-    # workaround for virtualenv
-    from distutils.sysconfig import get_python_lib
-    print([get_python_lib()][0])
-" )
+  clean() {
+    rm -rf "${SCRIPT_DIR}"/build
   }
-
 
   # It is possible to install Python3 version within the same folder (python code is compatible), but:
   #   - The extensions have different names, so that the most appropriate can be selected dynamically.
@@ -49,13 +35,13 @@ else:
         echo "Looking for package where to place the symbolic links."
         get_packages_folder python$1
         # Setup a symbolic link to pycompss
-        ln -sfn "${PYCOMPSS_HOME}/pycompss" "${packages_folder}/pycompss"
+        ln -sfn ${PYCOMPSS_HOME}/pycompss ${packages_folder}/pycompss
         echo "Created symbolic link from ${PYCOMPSS_HOME}/pycompss to ${packages_folder}/pycompss"
         # Setup a symbolic link to compss module
-        ln -sfn "${PYCOMPSS_HOME}/compss.*" "${packages_folder}/"
+        ln -sfn ${PYCOMPSS_HOME}/compss.* ${packages_folder}/
         echo "Created symbolic link from ${PYCOMPSS_HOME}/compss.* to ${packages_folder}/compss.*"
-        # Setup a symbolic link to thread affinith module
-        ln -sfn "${PYCOMPSS_HOME}/thread_affinity.*" "${packages_folder}/"
+        # Setup a symbolic link to thread affinity module
+        ln -sfn ${PYCOMPSS_HOME}/thread_affinity.* ${packages_folder}/
         echo "Created symbolic link from ${PYCOMPSS_HOME}/thread_affinity.* to ${packages_folder}/thread_affinity.*"
       fi
       if [ $exitCode -ne 0 ]; then
@@ -66,6 +52,13 @@ else:
       echo "WARNING: PyCOMPSS FOR PYTHON $1 HAS NOT BEEN INSTALLED."
     fi
   }
+
+
+  #
+  # SCRIPT GLOBAL HELPERS
+  #
+
+  source commons
 
 
   #
@@ -121,6 +114,10 @@ else:
   else
     echo "ERROR! UNSUPPORTED PYTHON VERSION."
   fi
+
+  # Copy cleaning scripts for uninstalling
+  cp "${SCRIPT_DIR}/commons" "$targetDir"
+  cp "${SCRIPT_DIR}/clean" "$targetDir"
 
   # Normal exit
   exit 0

@@ -1,4 +1,4 @@
-%define name	 	compss-python-binding 
+%define name	 	compss-python-binding
 %define version		2.2.rc1803
 %define release		1
 
@@ -71,7 +71,7 @@ echo "   - Configure, compile and install"
 cd bindings-common/
 ./install_common
 cd ../python
-./install ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/python
+./install ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/python true
 cd ..
 
 echo " - COMPSs Runtime Python-Binding structure created"
@@ -87,14 +87,14 @@ echo "COMPSs Python-Binding Successfully installed!"
 echo " "
 
 #------------------------------------------------------------------------------------
-%post 
+%post
 echo "* Installing COMPSs Python-Binding..."
 echo " "
 
-echo " - Adding PyCOMPSs to user profile..."
-echo "export PYTHONPATH=\$PYTHONPATH:/opt/COMPSs/Bindings/python/" >> /etc/profile.d/compss.sh
-echo " - PyCOMPSs added to user profile"
-echo " "
+# echo " - Adding PyCOMPSs to user profile..."  # Not needed. Symlinks created on install.
+# echo "export PYTHONPATH=\$PYTHONPATH:/opt/COMPSs/Bindings/python/" >> /etc/profile.d/compss.sh
+# echo " - PyCOMPSs added to user profile"
+# echo " "
 
 echo "Congratulations!"
 echo "COMPSs Python-Binding Successfully installed!"
@@ -105,8 +105,12 @@ echo " "
 %preun
 
 #------------------------------------------------------------------------------------
-%postun 
+%postun
+# Remove symbolic links
+/opt/COMPSs/Bindings/python/./clean
+# Remove completely the python binding
 rm -rf /opt/COMPSs/Bindings/python
+
 echo "COMPSs Python-Binding Successfully uninstalled!"
 echo " "
 
@@ -115,7 +119,6 @@ echo " "
 rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/python
 
 #------------------------------------------------------------------------------------
-%files 
+%files
 %defattr(-,root,root)
 /opt/COMPSs/Bindings/python
-

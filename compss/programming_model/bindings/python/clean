@@ -19,9 +19,9 @@
   remove_symbolic_links (){
       get_packages_folder $1
       echo "Cleaning PyCOMPSs symbolic links from ${packages_folder}"
-      rm "${packages_folder}/pycompss"
-      rm "${packages_folder}/compss.*.so"
-      rm "${packages_folder}/thread_affinity.*.so"
+      rm ${packages_folder}/pycompss
+      rm ${packages_folder}/compss.*.so
+      rm ${packages_folder}/thread_affinity.*.so
   }
 
   #

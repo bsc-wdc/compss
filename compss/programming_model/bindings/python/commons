@@ -4,10 +4,6 @@
   # COMMON HELPER FUNCTIONS
   #
 
-  command_exists () {
-    type "$1" &> /dev/null ;
-  }
-
   get_packages_folder(){
      # Check the packages folder of a particular python interpreter
      # $1 -> python version (2 or 3)

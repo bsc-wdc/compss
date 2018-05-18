@@ -5,6 +5,10 @@
   # HELPER FUNCTIONS
   #
 
+  command_exists () {
+    type "$1" &> /dev/null ;
+  }
+
   clean() {
     rm -rf "${SCRIPT_DIR}"/build
   }
@@ -110,6 +114,10 @@
   else
     echo "ERROR! UNSUPPORTED PYTHON VERSION."
   fi
+
+  # Copy cleaning scripts for uninstalling
+  cp "${SCRIPT_DIR}/commons" "$targetDir"
+  cp "${SCRIPT_DIR}/clean" "$targetDir"
 
   # Normal exit
   exit 0

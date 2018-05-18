@@ -107,13 +107,7 @@ echo " "
 #------------------------------------------------------------------------------------
 %postun
 # Remove symbolic links
-if [ -d /opt/COMPSs/Bindings/python/2 ]; then
-    /opt/COMPSs/Bindings/python/2/./clean python2
-fi
-if [ -d /opt/COMPSs/Bindings/python/3 ]; then
-    /opt/COMPSs/Bindings/python/3/./clean python3
-fi
-
+/opt/COMPSs/Bindings/python/./clean
 # Remove completely the python binding
 rm -rf /opt/COMPSs/Bindings/python
 

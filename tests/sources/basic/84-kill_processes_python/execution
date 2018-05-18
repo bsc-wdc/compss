@@ -24,8 +24,8 @@
   # Run application 1 - Test
   echo
   echo "*** RUNNING PYTHON APPLICATION TEST"
-  output_log="${target_log_folder}/simple_python_0${retryNum}.outputlog"
-  error_log="${target_log_folder}/simple_python_0${retryNum}.errorlog"  
+  output_log="${target_log_folder}/simple_kill_python_0${retryNum}.outputlog"
+  error_log="${target_log_folder}/simple_kill_python_0${retryNum}.errorlog"  
   counterVal=1
   expectedTime=60s
 
@@ -43,19 +43,19 @@
      --debug \
      ${runcompss_opts} \
      \
-     "${base_app_dir}"/src/simple.py $counterVal > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+     "${base_app_dir}"/src/simple_kill.py $counterVal > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
   
   # Check timeout
   if [[ "$?" = "124" ]]; then
      # Copy LOG files
-     cp -rf "${COMPSs_log_folder}"/simple.py_0"${retryNum}"/* "${target_log_folder}"
+     cp -rf "${COMPSs_log_folder}"/simple_kill.py_0"${retryNum}"/* "${target_log_folder}"
 
      # Report timeout
      echo "[WARNING] Python Application timed out" >> "${output_log}"
      exitValue=124
   else
      # Copy LOG files
-     cp -rf "${COMPSs_log_folder}"/simple.py_0"${retryNum}"/* "${target_log_folder}"
+     cp -rf "${COMPSs_log_folder}"/simple_kill.py_0"${retryNum}"/* "${target_log_folder}"
   
      # Check result
      "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}"

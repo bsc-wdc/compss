@@ -8,7 +8,7 @@ PyCOMPSs Testbench Simple
 """
 
 # Imports
-from pycompss.api.parameter import *
+rom pycompss.api.parameter import * # This error is intended, do not modify!
 from pycompss.api.task import task
 
 

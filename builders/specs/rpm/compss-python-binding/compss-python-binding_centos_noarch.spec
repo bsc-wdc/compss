@@ -71,7 +71,7 @@ echo "   - Configure, compile and install"
 cd bindings-common/
 ./install_common
 cd ../python
-./install ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/python true
+./install ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/python false
 cd ..
 
 echo " - COMPSs Runtime Python-Binding structure created"
@@ -91,10 +91,20 @@ echo " "
 echo "* Installing COMPSs Python-Binding..."
 echo " "
 
-# echo " - Adding PyCOMPSs to user profile..."  # Not needed. Symlinks created on install.
+# echo " - Adding PyCOMPSs to user profile..."  # Not needed. Symlinks instead.
 # echo "export PYTHONPATH=\$PYTHONPATH:/opt/COMPSs/Bindings/python/" >> /etc/profile.d/compss.sh
 # echo " - PyCOMPSs added to user profile"
 # echo " "
+
+echo " - Adding PyCOMPSs symlinks to site-packages or dist-packages folder..."
+source /opt/COMPSs/Bindings/python/commons
+if [ -d /opt/COMPSs/Bindings/python/2 ]; then
+  create_symbolic_links 2 /opt/COMPSs/Bindings/python/2
+fi
+if [ -d /opt/COMPSs/Bindings/python/3 ]; then
+  create_symbolic_links 3 /opt/COMPSs/Bindings/python/3
+fi
+echo " - PyCOMPSs symlinks added to site-packages or dist-packages folder."
 
 echo "Congratulations!"
 echo "COMPSs Python-Binding Successfully installed!"

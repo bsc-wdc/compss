@@ -160,7 +160,7 @@
     #     2) The target machine has no zombie-killer mechanism
     if [ "$REDIS_REMOTE_COMMAND" == "ssh" ];
     then
-      echo "ssh $1 \"cd $2; redis-server redis.conf --daemonize yes\""
+      echo "ssh $1 \"cd $2; redis-server redis.conf\""
     elif [ "$REDIS_REMOTE_COMMAND" == "blaunch" ];
     then
       echo "BLAUNCH Pending to implement!"
@@ -190,7 +190,7 @@
   #---------------------------------------------------------
   # MAIN FUNCTIONS
   #---------------------------------------------------------
-  REDIS_TEMPLATE="bind 0.0.0.0\nport REDIS_PORT\ncluster-enabled yes\ncluster-config-file nodes.conf\ncluster-node-timeout REDIS_NODE_TIMEOUT\nappendonly no"
+  REDIS_TEMPLATE="bind 0.0.0.0\ndaemonize yes\nprotected-mode no\nport REDIS_PORT\ncluster-enabled yes\ncluster-config-file nodes.conf\ncluster-node-timeout REDIS_NODE_TIMEOUT\nappendonly no"
   REDIS_SANDBOX=$REDIS_HOME/${jobId}
 
   STORAGE_HOME=$(dirname $0)/../

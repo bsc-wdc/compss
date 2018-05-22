@@ -36,9 +36,9 @@ def chunks(l, n, balanced=False):
         rest = len(l) % n
         start = 0
         while rest:
-            yield l[start: start+n+1]
+            yield l[start: start + n + 1]
             rest -= 1
-            start += n+1
+            start += n + 1
         for i in range(start, len(l), n):
             yield l[i:i + n]
 
@@ -92,25 +92,25 @@ def has_converged(mu, oldmu, epsilon, iter, maxIterations):
 
 
 def distance(p, X):
-    return min([np.linalg.norm(np.array(p)-x) for x in X])
+    return min([np.linalg.norm(np.array(p) - x) for x in X])
 
 
 def cost(Y, C):
-    return sum([distance(x, C)**2 for x in Y])
+    return sum([distance(x, C) ** 2 for x in Y])
 
 
 def bestMuKey(X, C):
     w = [0 for i in range(len(C))]
     for x in X:
-        bestmukey = min([(i[0], np.linalg.norm(x-np.array(C[i[0]])))
-                        for i in enumerate(C)], key=lambda t: t[1])[0]
+        bestmukey = min([(i[0], np.linalg.norm(x - np.array(C[i[0]])))
+                         for i in enumerate(C)], key=lambda t: t[1])[0]
         w[bestmukey] += 1
     return w
 
 
 def probabilities(X, C, l, phi, n):
     np.random.seed(5)
-    p = [(l*distance(x, C)**2)/phi for x in X]
+    p = [(l * distance(x, C) ** 2) / phi for x in X]
     p /= sum(p)
     idx = np.random.choice(n, l, p=p)
     newC = [X[i][0] for i in idx]
@@ -120,8 +120,8 @@ def probabilities(X, C, l, phi, n):
 def init_parallel(X, k, l, initSteps=2):
     import random
     random.seed(5)
-    numFrag = len(X)
-    ind = random.randint(0, numFrag-1)
+    num_frag = len(X)
+    ind = random.randint(0, num_frag - 1)
     XP = X[ind]
     C = random.sample(XP, 1)
     phi = sum([cost(x, C) for x in X])
@@ -135,11 +135,11 @@ def init_parallel(X, k, l, initSteps=2):
 
     '''pick k centers'''
     w = [bestMuKey(x, C) for x in X]
-    bestC = [sum(x) for x in zip(*w)]
-    bestC = np.argsort(bestC)
-    bestC = bestC[::-1]
-    bestC = bestC[:k]
-    return [C[b] for b in bestC]
+    best_c = [sum(x) for x in zip(*w)]
+    best_c = np.argsort(best_c)
+    best_c = best_c[::-1]
+    best_c = best_c[:k]
+    return [C[b] for b in best_c]
 
 
 def init_random(dim, k):
@@ -178,7 +178,7 @@ def kmeans(data, k, numFrag=-1, maxIterations=10, epsilon=1e-4,
         numFrag = len(data)
     else:
         # fragment data
-        data = [d for d in chunks(data, len(data)/numFrag)]
+        data = [d for d in chunks(data, len(data) / numFrag)]
 
     mu = init(data, k, initMode)
     oldmu = []

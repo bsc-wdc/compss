@@ -436,10 +436,10 @@ def register_ce(core_element):
 
     # Retrieve Core element fields
     ce_signature = core_element.get_ce_signature()
-    impl_signature = core_element.get_implSignature()
-    impl_constraints = core_element.get_implConstraints()
-    impl_type = core_element.get_implType()
-    impl_type_args = core_element.get_implTypeArgs()
+    impl_signature = core_element.get_impl_signature()
+    impl_constraints = core_element.get_impl_constraints()
+    impl_type = core_element.get_impl_type()
+    impl_type_args = core_element.get_impl_type_args()
 
     if __debug__:
         logger.debug('Registering CE with signature: %s' % ce_signature)

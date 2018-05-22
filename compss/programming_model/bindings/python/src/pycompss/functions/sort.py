@@ -36,7 +36,8 @@ def sort(iterable, comp=None, key=None, reverse=False):
                     each comparison were reversed.
     :return: a new sorted list from the items in iterable.
     """
+
     try:
-        return sorted(iterable, comp, key, reverse)
+        return sorted(iterable, comp, key=key, reverse=reverse)
     except Exception as e:
         raise e

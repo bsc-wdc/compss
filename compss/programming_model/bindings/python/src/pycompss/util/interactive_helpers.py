@@ -25,17 +25,18 @@ Provides auxiliar methods for the interactive mode.
 
 import os
 
-separators = {'globals_separator': "### GLOBALS ###",      # for user defined lines in the entire/global scope
-              'classes_separator': '### CLASSES ###',      # for user defined classes
+separators = {'globals_separator': "### GLOBALS ###",  # for user defined lines in the entire/global scope
+              'classes_separator': '### CLASSES ###',  # for user defined classes
               'functions_separator': "### FUNCTIONS ###",  # for user defined functions (that are not decorated)
-              'tasks_separator': "### TASKS ###"}          # for user defined tasks
+              'tasks_separator': "### TASKS ###"}  # for user defined tasks
+
 
 # ###################################################################
 # ################# MAIN FUNCTION ###################################
 # ###################################################################
 
 
-def updateTasksCodeFile(f, filePath):
+def updateTasksCodeFile(f, file_path):
     """
     Main interactive helper function.
     Analyses the user code that has been executed and parses it looking for:
@@ -45,30 +46,31 @@ def updateTasksCodeFile(f, filePath):
     Builds a file where the necessary contents for the worker are.
     Also updates the old code with the new if functions or tasks are redefined.
     :param f: new task function
-    :param filePath: file where the code is stored
+    :param file_path: file where the code is stored
     """
-    if not os.path.exists(filePath):
-        createTasksCodeFile(filePath)
+    if not os.path.exists(file_path):
+        createTasksCodeFile(file_path)
 
     print("Task definition detected.")
 
     # Intercept the code
-    imports = getIPythonImports()     # [import\n, import\n, ...]
-    globalCode = getIPythonGlobals()  # [var\n, var\n, ...]
-    classesCode = getClasses()        # {'name': str(line\nline\n...)}
-    functionsCode = getFunctions()    # {'name': str(line\nline\n...)}
-    taskCode = getTaskCode(f)         # {'name': str(line\nline\n...)}
-    oldCode = getOldCode(filePath)    # {'imports':[import\n, import\n, ...], 'tasks':{'name':str(line\nline\n...), 'name':str(line\nline\n...), ...}}
+    imports = getIPythonImports()  # [import\n, import\n, ...]
+    global_code = getIPythonGlobals()  # [var\n, var\n, ...]
+    classes_code = getClasses()  # {'name': str(line\nline\n...)}
+    functions_code = getFunctions()  # {'name': str(line\nline\n...)}
+    task_code = getTaskCode(f)  # {'name': str(line\nline\n...)}
+    old_code = getOldCode(
+        file_path)  # {'imports':[import\n, import\n, ...], 'tasks':{'name':str(line\nline\n...), 'name':str(line\nline\n...), ...}}
 
     # Look for new/modified pieces of code. Compares the existing code with the new additions.
-    newImports = updateImports(imports, oldCode['imports'])
-    newGlobals = updateGlobals(globalCode, oldCode['globals'])
-    newClasses = updateClasses(classesCode, oldCode['classes'])
-    newFunctions = updateFunctions(functionsCode, oldCode['functions'])
-    newTasks = updateTasks(taskCode, oldCode['tasks'])
+    new_imports = updateImports(imports, old_code['imports'])
+    new_globals = updateGlobals(global_code, old_code['globals'])
+    new_classes = updateClasses(classes_code, old_code['classes'])
+    new_functions = updateFunctions(functions_code, old_code['functions'])
+    new_tasks = updateTasks(task_code, old_code['tasks'])
 
     # Update the file where the code is stored.
-    updateCodeFile(newImports, newGlobals, newClasses, newFunctions, newTasks, filePath)
+    updateCodeFile(new_imports, new_globals, new_classes, new_functions, new_tasks, file_path)
 
 
 # ###################################################################
@@ -77,22 +79,23 @@ def updateTasksCodeFile(f, filePath):
 
 # CODE INTERCEPTION FUNCTIONS
 
-def createTasksCodeFile(filePath):
+def createTasksCodeFile(file_path):
     """
     Creates a file where to store the user code.
-    :param filePath: File location and name
+    :param file_path: File location and name
     """
-    file = open(filePath, 'a')
-    file.write('\n')
-    file.write(separators['globals_separator'] + "\n")
-    file.write('\n')
-    file.write(separators['classes_separator'] + "\n")
-    file.write('\n')
-    file.write(separators['functions_separator'] + "\n")
-    file.write('\n')
-    file.write(separators['tasks_separator'] + "\n")
-    file.write('\n')
-    file.close()
+
+    user_code_file = open(file_path, 'a')
+    user_code_file.write('\n')
+    user_code_file.write(separators['globals_separator'] + "\n")
+    user_code_file.write('\n')
+    user_code_file.write(separators['classes_separator'] + "\n")
+    user_code_file.write('\n')
+    user_code_file.write(separators['functions_separator'] + "\n")
+    user_code_file.write('\n')
+    user_code_file.write(separators['tasks_separator'] + "\n")
+    user_code_file.write('\n')
+    user_code_file.close()
 
 
 def getRawCode():
@@ -117,6 +120,7 @@ def getIPythonImports():
     Finds the user imports
     :return: A list of imports: [import\n, import\n, ...]
     """
+
     raw_code = getRawCode()
     imports = []
     for i in raw_code:
@@ -126,7 +130,7 @@ def getIPythonImports():
         lines = i.split('\n')
         for l in lines:
             if l.startswith("from") or l.startswith("import"):
-                imports.append(l+'\n')
+                imports.append(l + '\n')
     return imports
 
 
@@ -135,8 +139,9 @@ def getIPythonGlobals():
     Finds the user global variables
     :return: A list of lines: [var\n, var\n, ...]
     """
+
     raw_code = getRawCode()
-    globLines = {}
+    glob_lines = {}
     for i in raw_code:
         # Each i can have more than one line (jupyter-notebook block)
         # We only get the lines that start with from or import and do not
@@ -145,19 +150,21 @@ def getIPythonGlobals():
         for l in lines:
             # if the line starts without spaces and is a variable assignation
             if not (l.startswith(' ') or l.startswith('\t')) and isVariableAssignation(l):
-                globName = l.split()[0]
-                globLines[globName] = l.strip()
-    return globLines
+                glob_name = l.split()[0]
+                glob_lines[glob_name] = l.strip()
+    return glob_lines
 
 
 def isVariableAssignation(line):
-    '''
+    """
     This function is used to check if a line of code represents a variable assignation:
     * if contains a '=' (assignation) and does not start with import, nor @, nor def, nor class
     * then it is ==> is a global variable assignation
+
     :param line: Line to parse
     :return: Boolean
-    '''
+    """
+
     if '=' in line:
         parts = line.split()
         if not (line.startswith("from") or
@@ -182,27 +189,29 @@ def getClasses():
     :return: A dictionary with the user classes code:
              {'name': str(line\nline\n...)}
     """
+
     raw_code = getRawCode()
     classes = {}
     for block in raw_code:
         lines = block.split('\n')
         # Look for classes in the block
-        classFound = False
+        class_found = False
         for line in lines:
             if line.startswith('class'):
                 # Class header: find name and include it in the functions dict
                 # split and remove empty spaces
                 header = [name for name in line.split(" ") if name]
                 # the name may be followed by the parameters parenthesis
-                className = header[1].split("(")[0].strip()
+                class_name = header[1].split("(")[0].strip()
                 # create an entry in the functions dict
-                classes[className] = [line + '\n']
-                classFound = True
-            elif (line.startswith("  ") or (line.startswith("\t")) or (line.startswith('\n')) or (line == '')) and classFound:
+                classes[class_name] = [line + '\n']
+                class_found = True
+            elif (line.startswith("  ") or (line.startswith("\t")) or (line.startswith('\n')) or (
+                    line == '')) and class_found:
                 # class body: append
-                classes[className].append(line + '\n')
+                classes[class_name].append(line + '\n')
             else:
-                classFound = False
+                class_found = False
     # Plain classes content (from {key: [line, line,...]} to {key: line\nline}).
     for k, v in list(classes.items()):
         # Collapse all lines into a single one
@@ -216,43 +225,45 @@ def getFunctions():
     :return: A dictionary with the user functions code:
              {'name': str(line\nline\n...)}
     """
+
     raw_code = getRawCode()
     functions = {}
     for block in raw_code:
         lines = block.split('\n')
         # Look for functions in the block
-        isTask = False
-        isFunction = False
-        functionFound = False
+        is_task = False
+        is_function = False
+        function_found = False
         for line in lines:
             if line.startswith('@task'):
                 # The followihg function detected will be a task --> ignore
-                isTask = True
-            if line.startswith("def") and not isTask:
+                is_task = True
+            if line.startswith("def") and not is_task:
                 # A function which is not a task has been defined --> capture
                 # with isFunction boolean
                 # Restore the isTask boolean to control if another task is
                 # defined in the same block.
-                isFunction = True
-                isTask = False
-            if isFunction:
+                is_function = True
+                is_task = False
+            if is_function:
                 if line.startswith("def"):
                     # Function header: find name and include it in the functions dict
                     # split and remove empty spaces
                     header = [name for name in line.split(" ") if name]
                     # the name may be followed by the parameters parenthesis
-                    funcName = header[1].split("(")[0].strip()
+                    func_name = header[1].split("(")[0].strip()
                     # create an entry in the functions dict
-                    functions[funcName] = [line + '\n']
-                    functionFound = True
-                elif (line.startswith("  ") or (line.startswith("\t")) or (line.startswith('\n')) or (line == '')) and functionFound:
+                    functions[func_name] = [line + '\n']
+                    function_found = True
+                elif (line.startswith("  ") or (line.startswith("\t")) or (line.startswith('\n')) or (
+                        line == '')) and function_found:
                     # Function body: append
-                    functions[funcName].append(line + '\n')
+                    functions[func_name].append(line + '\n')
                 else:
-                    functionFound = False
+                    function_found = False
     # Plain functions content (from {key: [line, line,...]} to {key: line\nline}).
     for k, v in list(functions.items()):
-        functions[k] = ''.join(v).strip()      # Collapse all lines into a single one
+        functions[k] = ''.join(v).strip()  # Collapse all lines into a single one
     return functions
 
 
@@ -262,17 +273,18 @@ def getTaskCode(f):
     :param f: Task function
     :return: A dictionary with the task code: {'name': str(line\nline\n...)}
     """
+
     import inspect
-    taskCode = inspect.getsource(f)   # .strip()
-    if taskCode.startswith((' ', '\t')):
+    task_code = inspect.getsource(f)  # .strip()
+    if task_code.startswith((' ', '\t')):
         return {}
     else:
         name = ''
-        lines = taskCode.split('\n')
+        lines = task_code.split('\n')
         for line in lines:
             if line.strip().startswith('def'):
                 name = line.replace('(', ' (').split(' ')[1].strip()
-        return {name: taskCode}
+        return {name: task_code}
 
 
 def clean(linesList):
@@ -282,6 +294,7 @@ def clean(linesList):
     :param linesList: List of strings
     :return: The list without '\n' strings.
     """
+
     result = []
     if len(linesList) == 1 and linesList[0].strip() == '':
         # If the linesList only contains a single line jump remove it
@@ -294,65 +307,67 @@ def clean(linesList):
         return result
 
 
-def getOldCode(filePath):
+def getOldCode(file_path):
     """
     Retrieve the old code from a file.
-    :param filePath: The file where the code is located.
+    :param file_path: The file where the code is located.
     :return: A dictionary with the imports and existing tasks.
     """
+
     # Read the entire file
-    file = open(filePath, 'r')
-    contents = file.readlines()
-    file.close()
+    code_file = open(file_path, 'r')
+    contents = code_file.readlines()
+    code_file.close()
+
     # Separate imports from tasks
-    fileImports = []
-    fileGlobals = []
+    file_imports = []
+    file_globals = []
     fileClasses = []
-    fileFunctions = []
-    fileTasks = []
-    foundGlobSeparator = False
-    foundClasSeparator = False
-    foundFuncSeparator = False
-    foundTaskSeparator = False
+    file_functions = []
+    file_tasks = []
+    found_glob_separator = False
+    found_class_separator = False
+    found_func_separator = False
+    found_task_separator = False
     for line in contents:
         if line == separators['globals_separator'] + '\n':
-            foundGlobSeparator = True
+            found_glob_separator = True
         elif line == separators['classes_separator'] + '\n':
-            foundClasSeparator = True
+            found_class_separator = True
         elif line == separators['functions_separator'] + '\n':
-            foundFuncSeparator = True
+            found_func_separator = True
         elif line == separators['tasks_separator'] + '\n':
-            foundTaskSeparator = True
+            found_task_separator = True
         else:
-            if not foundGlobSeparator and not foundClasSeparator and not foundFuncSeparator and not foundTaskSeparator:
-                fileImports.append(line)
-            elif foundGlobSeparator and not foundClasSeparator and not foundFuncSeparator and not foundTaskSeparator:
-                fileGlobals.append(line)
-            elif foundGlobSeparator and foundClasSeparator and not foundFuncSeparator and not foundTaskSeparator:
+            if not found_glob_separator and not found_class_separator and not found_func_separator and not found_task_separator:
+                file_imports.append(line)
+            elif found_glob_separator and not found_class_separator and not found_func_separator and not found_task_separator:
+                file_globals.append(line)
+            elif found_glob_separator and found_class_separator and not found_func_separator and not found_task_separator:
                 fileClasses.append(line)
-            elif foundGlobSeparator and foundClasSeparator and foundFuncSeparator and not foundTaskSeparator:
-                fileFunctions.append(line)
+            elif found_glob_separator and found_class_separator and found_func_separator and not found_task_separator:
+                file_functions.append(line)
             else:
-                fileTasks.append(line)
+                file_tasks.append(line)
 
-    fileImports = clean(fileImports)
-    fileGlobals = clean(fileGlobals)
+    file_imports = clean(file_imports)
+    file_globals = clean(file_globals)
     # fileClasses = clean(fileClasses)
     # fileFunctions = clean(fileFunctions)
     # fileTasks = clean(fileTasks)
 
     # Process globals
     globs = {}
-    if len(fileGlobals) != 0:
+    if len(file_globals) != 0:
         # Collapse all lines into a single one
-        collapsed = ''.join(fileGlobals).strip()
+        collapsed = ''.join(file_globals).strip()
         scattered = collapsed.split('\n')
         # Add classes to dictionary by class name:
         for g in scattered:
-            globCode = g.strip()
-            globName = g.split()[0].strip()
-            globs[globName] = globCode
-    fileGlobals = globs
+            glob_code = g.strip()
+            glob_name = g.split()[0].strip()
+            globs[glob_name] = glob_code
+    file_globals = globs
 
     # Process classes
     classes = {}
@@ -363,135 +378,144 @@ def getOldCode(filePath):
     cls = [('class ' + l) for l in [name for name in collapsed.split('class ') if name]]
     # Add classes to dictionary by class name:
     for c in cls:
-        classCode = c.strip()
-        className = c.replace('(', ' (').split(' ')[1].strip()
-        classes[className] = classCode
+        class_code = c.strip()
+        class_name = c.replace('(', ' (').split(' ')[1].strip()
+        classes[class_name] = class_code
 
     # Process functions
     functions = {}
     # Collapse all lines into a single one
-    collapsed = ''.join(fileFunctions).strip()
+    collapsed = ''.join(file_functions).strip()
     # Then split by "def" and filter the empty results, then iterate
     # concatenating "def" to all results.
     funcs = [('def ' + l) for l in [name for name in collapsed.split('def ') if name]]
     # Add functions to dictionary by function name:
     for f in funcs:
-        funcCode = f.strip()
-        funcName = f.replace('(', ' (').split(' ')[1].strip()
-        functions[funcName] = funcCode
+        func_code = f.strip()
+        func_name = f.replace('(', ' (').split(' ')[1].strip()
+        functions[func_name] = func_code
 
     # Process tasks
     tasks = {}
     # Collapse all lines into a single one
-    collapsed = ''.join(fileTasks).strip()
+    collapsed = ''.join(file_tasks).strip()
     # Then split by "@" and filter the empty results, then iterate
     # concatenating "@" to all results.
     tsks = [('@' + l) for l in [deco for deco in collapsed.split('@') if deco]]
     # Take into account that other decorators my be over @task, so it is
     # necessary to collapse the function stack
     prefixes = ("@implement", "@constraint", "@decaf", "@mpi", "@ompss", "@binary", "@opencl")
-    tsksStacked = []
+    tsks_stacked = []
     tsk = ""
     for t in tsks:
         if any(map(t.startswith, prefixes)):
             tsk += t
         if t.startswith("@task"):
             tsk += t
-            tsksStacked.append(tsk)
+            tsks_stacked.append(tsk)
             tsk = ""
     # Add functions to dictionary by function name:
-    for t in tsksStacked:
+    for t in tsks_stacked:
         # Example: '@task(returns=int)\ndef mytask(v):\n    return v+1'
-        taskCode = t.strip()
-        taskHeader = t.split('\ndef')[1]
-        taskName = taskHeader.replace('(', ' (').split(' ')[1].strip()
-        tasks[taskName] = taskCode
+        task_code = t.strip()
+        task_header = t.split('\ndef')[1]
+        task_name = task_header.replace('(', ' (').split(' ')[1].strip()
+        tasks[task_name] = task_code
 
-    return {'imports': fileImports, 'globals': fileGlobals, 'classes': classes, 'functions': functions, 'tasks': tasks}
+    return {'imports': file_imports, 'globals': file_globals, 'classes': classes, 'functions': functions,
+            'tasks': tasks}
 
 
 # CODE UPDATE FUNCTIONS
 
-def updateImports(newImports, oldImports):
+def updateImports(new_imports, old_imports):
     """
     Compare the old imports against the new ones and returns the old imports
     with the new imports that did not existed previously
-    :param newImports: All new imports
-    :param oldImports: All old imports
+    :param new_imports: All new imports
+    :param old_imports: All old imports
     :return: A list of imports as strings.
     """
-    notInImports = []
-    for i in newImports:
+
+    not_in_imports = []
+    for i in new_imports:
         already = False
-        for j in oldImports:
+        for j in old_imports:
             if i == j:
                 already = True
         if not already:
-            notInImports.append(i)
+            not_in_imports.append(i)
     # Merge the minimum imports
-    imports = oldImports + notInImports
+    imports = old_imports + not_in_imports
     return imports
 
 
-def updateGlobals(newGlobals, oldGlobals):
+def updateGlobals(new_globals, old_globals):
     """
     Compare the old globals against the new ones and returns the old globals
     with the new globals that did not existed previously
-    :param newGlobals: All new globals
-    :param oldGlobals: All old globals
+    :param new_globals: All new globals
+    :param old_globals: All old globals
     :return: A list of globals as strings.
     """
-    if len(oldGlobals) == 0:
-        return newGlobals
+
+    if len(old_globals) == 0:
+        return new_globals
     else:
-        for gName in list(newGlobals.keys()):
-            if gName in oldGlobals and (not newGlobals[gName] == oldGlobals[gName]):
-                print(("WARNING! Global variable " + gName + " has been redefined with changes (the previous will be deprecated)."))
-            oldGlobals[gName] = newGlobals[gName]
-        return oldGlobals
+        for gName in list(new_globals.keys()):
+            if gName in old_globals and (not new_globals[gName] == old_globals[gName]):
+                print((
+                        "WARNING! Global variable " + gName + " has been redefined with changes (the previous will be deprecated)."))
+            old_globals[gName] = new_globals[gName]
+        return old_globals
 
 
-def updateClasses(newClasses, oldClasses):
+def updateClasses(new_classes, old_classes):
     """
     Compare the old classes against the new ones. This function is essential
     due to the fact that a jupyter-notebook user may rewrite a function and
     the latest version is the one that needs to be kept.
-    :param newClasses: dictionary containing all classes (last version)
-    :param oldClasses: dictionary containing the existing classes.
+    :param new_classes: dictionary containing all classes (last version)
+    :param old_classes: dictionary containing the existing classes.
     return: dictionary with the merging result (keeping all classes and
             updating the old ones).
     """
-    if len(oldClasses) == 0:
-        return newClasses
+
+    if len(old_classes) == 0:
+        return new_classes
     else:
-        for cName in list(newClasses.keys()):
-            if cName in oldClasses and (not newClasses[cName] == oldClasses[cName]):
-                print(("WARNING! Class " + cName + " has been redefined with changes (the previous will be deprecated)."))
-            oldClasses[cName] = newClasses[cName]
-        return oldClasses
+        for cName in list(new_classes.keys()):
+            if cName in old_classes and (not new_classes[cName] == old_classes[cName]):
+                print(
+                    ("WARNING! Class " + cName + " has been redefined with changes (the previous will be deprecated)."))
+            old_classes[cName] = new_classes[cName]
+        return old_classes
 
 
-def updateFunctions(newFunctions, oldFunctions):
+def updateFunctions(new_functions, old_functions):
     """
     Compare the old functions against the new ones. This function is essential
     due to the fact that a jupyter-notebook user may rewrite a function and
     the latest version is the one that needs to be kept.
-    :param newFunctions: dictionary containing all functions (last version)
-    :param oldFunctions: dictionary containing the existing functions.
+    :param new_functions: dictionary containing all functions (last version)
+    :param old_functions: dictionary containing the existing functions.
     return: dictionary with the merging result (keeping all functions and
             updating the old ones).
     """
-    if len(oldFunctions) == 0:
-        return newFunctions
+
+    if len(old_functions) == 0:
+        return new_functions
     else:
-        for fName in list(newFunctions.keys()):
-            if fName in oldFunctions and (not newFunctions[fName] == oldFunctions[fName]):
-                print(("WARNING! Function " + fName + " has been redefined with changes (the previous will be deprecated)."))
-            oldFunctions[fName] = newFunctions[fName]
-        return oldFunctions
+        for fName in list(new_functions.keys()):
+            if fName in old_functions and (not new_functions[fName] == old_functions[fName]):
+                print(
+                    (
+                            "WARNING! Function " + fName + " has been redefined with changes (the previous will be deprecated)."))
+            old_functions[fName] = new_functions[fName]
+        return old_functions
 
 
-def updateTasks(newTasks, oldTasks):
+def updateTasks(new_tasks, old_tasks):
     """
     Compare the old tasks against the new ones. This function is essential due
     to the fact that a jupyter-notebook user may rewrite a task and the latest
@@ -500,79 +524,80 @@ def updateTasks(newTasks, oldTasks):
     :param tasks: existing tasks
     return: dictionary with the merging result.
     """
-    if not newTasks:
+
+    if not new_tasks:
         # when newTasks is empty, means that the update was triggered by a class
         # task. No need to update as a tasks since the class has already been updated
         pass
     else:
-        newTaskName = list(newTasks.keys())[0]
-        if newTaskName in oldTasks and (not newTasks[newTaskName] == oldTasks[newTaskName]):
-            print(("WARNING! Task " + newTaskName + " has been redefined (the previous will be deprecated)."))
-        oldTasks[newTaskName] = newTasks[newTaskName]
-    return oldTasks
+        new_task_name = list(new_tasks.keys())[0]
+        if new_task_name in old_tasks and (not new_tasks[new_task_name] == old_tasks[new_task_name]):
+            print(("WARNING! Task " + new_task_name + " has been redefined (the previous will be deprecated)."))
+        old_tasks[new_task_name] = new_tasks[new_task_name]
+    return old_tasks
 
 
 # FILE UPDATE FUNCTIONS
 
-def updateCodeFile(newImports, newGlobals, newClasses, newFunctions, newTasks,
-                   filePath):
+def updateCodeFile(new_imports, new_globals, new_classes, new_functions, new_tasks, file_path):
     """
     Writes the results to the code file used by the workers.
-    :param newImports: new imports
-    :param newGlobals: new global variables
-    :param newClasses: new classes
-    :param newFunctions: new functions
-    :param newTasks: new tasks
-    :param filePath: File to update.
+    :param new_imports: new imports
+    :param new_globals: new global variables
+    :param new_classes: new classes
+    :param new_functions: new functions
+    :param new_tasks: new tasks
+    :param file_path: File to update.
     :return:
     """
-    file = open(filePath, 'w')
+
+    code_file = open(file_path, 'w')
     # Write imports
-    for i in newImports:
-        file.write(i)
-    file.write('\n')
+    for i in new_imports:
+        code_file.write(i)
+    code_file.write('\n')
     # Write globals separator
-    file.write(separators['globals_separator'] + '\n')
+    code_file.write(separators['globals_separator'] + '\n')
     # Write globals
-    if len(newGlobals) == 0:
-        file.write('\n')
+    if len(new_globals) == 0:
+        code_file.write('\n')
     else:
-        for k, v in list(newGlobals.items()):
+        for k, v in list(new_globals.items()):
             for line in v:
-                file.write(line)
-            file.write('\n')
-            file.write('\n')
+                code_file.write(line)
+            code_file.write('\n')
+            code_file.write('\n')
     # Write classes separator
-    file.write(separators['classes_separator'] + '\n')
+    code_file.write(separators['classes_separator'] + '\n')
     # Write classes
-    if len(newClasses) == 0:
-        file.write('\n')
+    if len(new_classes) == 0:
+        code_file.write('\n')
     else:
-        for k, v in list(newClasses.items()):
+        for k, v in list(new_classes.items()):
             for line in v:
-                file.write(line)
-            file.write('\n')
-            file.write('\n')
+                code_file.write(line)
+            code_file.write('\n')
+            code_file.write('\n')
     # Write functions separator
-    file.write(separators['functions_separator'] + '\n')
+    code_file.write(separators['functions_separator'] + '\n')
     # Write functions
-    if len(newFunctions) == 0:
-        file.write('\n')
+    if len(new_functions) == 0:
+        code_file.write('\n')
     else:
-        for k, v in list(newFunctions.items()):
+        for k, v in list(new_functions.items()):
             for line in v:
-                file.write(line)
-            file.write('\n')
-            file.write('\n')
+                code_file.write(line)
+            code_file.write('\n')
+            code_file.write('\n')
     # Write tasks separator
-    file.write(separators['tasks_separator'] + '\n')
+    code_file.write(separators['tasks_separator'] + '\n')
     # Write tasks
-    if len(newTasks) == 0:
-        file.write('\n')
+    if len(new_tasks) == 0:
+        code_file.write('\n')
     else:
-        for k, v in list(newTasks.items()):
+        for k, v in list(new_tasks.items()):
             for line in v:
-                file.write(line)
-            file.write('\n')
-            file.write('\n')
-    file.close()
+                code_file.write(line)
+            code_file.write('\n')
+            code_file.write('\n')
+    code_file.close()

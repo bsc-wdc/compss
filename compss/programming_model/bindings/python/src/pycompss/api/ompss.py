@@ -31,7 +31,6 @@ from functools import wraps
 from pycompss.util.location import i_am_at_master
 from pycompss.util.location import i_am_within_scope
 
-
 if __debug__:
     logger = logging.getLogger(__name__)
 
@@ -41,6 +40,7 @@ class ompss(object):
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpi task creation.
     """
+
     def __init__(self, *args, **kwargs):
         """
         Store arguments passed to the decorator
@@ -50,6 +50,7 @@ class ompss(object):
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
+
         self.args = args
         self.kwargs = kwargs
         self.scope = i_am_within_scope()
@@ -62,14 +63,14 @@ class ompss(object):
             if 'computingNodes' not in self.kwargs:
                 self.kwargs['computingNodes'] = 1
             else:
-                cNs = kwargs['computingNodes']
-                if isinstance(cNs, int):
+                computing_nodes = kwargs['computingNodes']
+                if isinstance(computing_nodes, int):
                     self.kwargs['computingNodes'] = kwargs['computingNodes']
-                elif isinstance(cNs, str) and cNs.strip().startswith('$'):
-                    envVar = cNs.strip()[1:]  # Remove $
-                    if envVar.startswith('{'):
-                        envVar = envVar[1:-1]  # remove brackets
-                    self.kwargs['computingNodes'] = int(os.environ[envVar])
+                elif isinstance(computing_nodes, str) and computing_nodes.strip().startswith('$'):
+                    env_var = computing_nodes.strip()[1:]  # Remove $
+                    if env_var.startswith('{'):
+                        env_var = env_var[1:-1]  # remove brackets
+                    self.kwargs['computingNodes'] = int(os.environ[env_var])
                 else:
                     raise Exception("Wrong Computing Nodes value at MPI decorator.")
             if __debug__:
@@ -83,6 +84,7 @@ class ompss(object):
         :param func: Function to decorate
         :return: Decorated function.
         """
+
         if not self.scope:
             # from pycompss.api.dummy.ompss import ompss as dummy_ompss
             # d_o = dummy_ompss(self.args, self.kwargs)
@@ -94,10 +96,10 @@ class ompss(object):
             from pycompss.runtime.binding import register_ce
 
             mod = inspect.getmodule(func)
-            self.module = mod.__name__    # not func.__module__
+            self.module = mod.__name__  # not func.__module__
 
-            if(self.module == '__main__' or
-               self.module == 'pycompss.runtime.launch'):
+            if (self.module == '__main__' or
+                    self.module == 'pycompss.runtime.launch'):
                 # The module where the function is defined was run as __main__,
                 # we need to find out the real module name.
 
@@ -129,21 +131,22 @@ class ompss(object):
             # Retrieve the base coreElement established at @task decorator
             coreElement = func.__to_register__
             # Update the core element information with the mpi information
-            coreElement.set_implType("OMPSS")
+            coreElement.set_impl_type("OMPSS")
             binary = self.kwargs['binary']
             if 'workingDir' in self.kwargs:
                 workingDir = self.kwargs['workingDir']
             else:
-                workingDir = '[unassigned]'   # Empty or '[unassigned]'
+                workingDir = '[unassigned]'  # Empty or '[unassigned]'
             implSignature = 'OMPSS.' + binary
-            coreElement.set_implSignature(implSignature)
+            coreElement.set_impl_signature(implSignature)
             implArgs = [binary, workingDir]
-            coreElement.set_implTypeArgs(implArgs)
+            coreElement.set_impl_type_args(implArgs)
             func.__to_register__ = coreElement
             # Do the task register if I am the top decorator
             if func.__who_registers__ == __name__:
                 if __debug__:
-                    logger.debug("[@OMPSS] I have to do the register of function %s in module %s" % (func.__name__, self.module))
+                    logger.debug(
+                        "[@OMPSS] I have to do the register of function %s in module %s" % (func.__name__, self.module))
                 register_ce(coreElement)
         else:
             # worker code
@@ -179,5 +182,6 @@ class ompss(object):
                     setattr(slf, k, v)
 
             return ret
+
         ompss_f.__doc__ = func.__doc__
         return ompss_f

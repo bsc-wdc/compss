@@ -1,16 +1,18 @@
 #!/bin/bash
 
   #
-  # SCRIPT GLOBAL HELPERS
-  #
-
-  source commons
-
-  #
   # SCRIPT GLOBAL CONSTANTS
   #
 
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+
+  #
+  # SCRIPT GLOBAL HELPERS
+  #
+
+  source ${SCRIPT_DIR}/commons
+
 
   #
   # SCRIPT HELPERS

@@ -71,7 +71,7 @@ echo "   - Configure, compile and install"
 cd bindings-common/
 ./install_common
 cd ../python
-./install ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/python false
+./install ${RPM_BUILD_ROOT}/opt/COMPSs/Bindings/python false false
 cd ..
 
 echo " - COMPSs Runtime Python-Binding structure created"
@@ -96,8 +96,17 @@ echo " "
 # echo " - PyCOMPSs added to user profile"
 # echo " "
 
-echo " - Adding PyCOMPSs symlinks to site-packages or dist-packages folder..."
+# Load common functions for setting the symlinks
 source /opt/COMPSs/Bindings/python/commons
+
+echo " - Unifying PyCOMPSs sources..."
+if [ -d /opt/COMPSs/Bindings/python/2 ] && [ -d /opt/COMPSs/Bindings/python/3 ]; then
+  echo " - Both versions installed: unifying... "
+  unify_installed_versions /opt/COMPSs/Bindings/python
+fi
+echo " - PyCOMPSs sources unified."
+
+echo " - Adding PyCOMPSs symlinks to site-packages or dist-packages folder..."
 if [ -d /opt/COMPSs/Bindings/python/2 ]; then
   create_symbolic_links 2 /opt/COMPSs/Bindings/python/2
 fi

@@ -58,7 +58,7 @@ if IS_PYTHON3:
                         int: TYPE.LONG,      # long
                         float: TYPE.DOUBLE,  # float
                         bool: TYPE.BOOLEAN,  # bool
-                        str: TYPE.STRING,    # str
+                        str: TYPE.STRING,  # str
                         # The type of instances of user-defined classes
                         # types.InstanceType: TYPE.OBJECT,
                         # The type of methods of user-defined class instances
@@ -81,7 +81,7 @@ else:
                         types.LongType: TYPE.LONG,        # long
                         types.FloatType: TYPE.DOUBLE,     # float
                         types.BooleanType: TYPE.BOOLEAN,  # bool
-                        types.StringType: TYPE.STRING,    # str
+                        types.StringType: TYPE.STRING,  # str
                         # The type of instances of user-defined classes
                         # types.InstanceType: TYPE.OBJECT,
                         # The type of methods of user-defined class instances
@@ -130,11 +130,18 @@ id2obj = {}
 
 
 def get_object_id(obj, assign_new_key=False, force_insertion=False):
-    '''Gets the identifier of an object. If not found or we are forced to,
+    """
+    Gets the identifier of an object. If not found or we are forced to,
     we create a new identifier for this object, deleting the old one if
     necessary. We can also query for some object without adding it in case of
     failure.
-    '''
+
+    :param obj:
+    :param assign_new_key:
+    :param force_insertion:
+    :return:
+    """
+
     global current_id
     global runtime_id
     # force_insertion implies assign_new_key
@@ -165,9 +172,10 @@ def get_object_id(obj, assign_new_key=False, force_insertion=False):
 # independently and the tuple is built on the worker.
 aargs_as_tuple = False
 
-
 # Setup logger
 logger = logging.getLogger(__name__)
+
+
 # logger = logging.getLogger()    # for jupyter logging
 # logger.setLevel(logging.DEBUG)  # for jupyter logging
 
@@ -175,20 +183,30 @@ logger = logging.getLogger(__name__)
 # ##############################################################################
 # ############################ CLASSES #########################################
 # ##############################################################################
-class Function_Type:
+class FunctionType:
+    """
+    Used as enum to identify the function type
+    """
+
     FUNCTION = 1
     INSTANCE_METHOD = 2
     CLASS_METHOD = 3
 
 
 class Future(object):
-    ''' Future object class definition.
-    '''
+    """
+    Future object class definition.
+    """
+
     def __init__(self):
         self.__hidden_id = str(uuid.uuid1)
 
 
 class EmptyReturn(object):
+    """
+    For functions with empty return
+    """
+
     pass
 
 
@@ -197,10 +215,11 @@ class EmptyReturn(object):
 # ##############################################################################
 
 def start_runtime():
-    '''
+    """
     Starts the runtime by calling the external python library that calls
     the bindings-common.
-    '''
+    """
+
     if __debug__:
         logger.info('Starting COMPSs...')
     compss.start_runtime()
@@ -209,31 +228,38 @@ def start_runtime():
 
 
 def stop_runtime():
-    '''
+    """
     Stops the runtime by calling the external python library that calls
     the bindings-common.
     Also cleans objects and temporary files created during runtime.
-    '''
+    """
+
     if __debug__:
         logger.info('Cleaning objects...')
-    clean_objects()
+    _clean_objects()
+
     if __debug__:
         logger.info('Stopping COMPSs...')
     compss.stop_runtime()
+
     if __debug__:
         logger.info('Cleaning temps...')
-    clean_temps()
+    _clean_temps()
+
     if __debug__:
         logger.info('COMPSs stopped')
 
 
 def get_file(file_name, mode):
-    '''
+    """
     Calls the external python library (that calls the bindings-common)
     in order to request a file.
-    :return: The current name of the file requested (that may have been
-             renamed during runtime).
-    '''
+
+    :param file_name:
+    :param mode:
+    :return: The current name of the file requested (that may have been renamed during runtime)
+    """
+
     if __debug__:
         logger.debug('Getting file %s with mode %s' % (file_name, mode))
     compss_name = compss.get_file(file_name, mode)
@@ -243,65 +269,88 @@ def get_file(file_name, mode):
 
 
 def delete_file(file_name):
-    '''
+    """
     Calls the external python library (that calls the bindings-common)
     in order to request a file removal.
+
     :param file_name: File name to remove
-    :return: True if success. False on the contrary
-    '''
+    :return: True if success. False otherwise
+    """
+
     if __debug__:
         logger.debug('Deleting file %s' % file_name)
-    compss.delete_file(file_name)
+    result = compss.delete_file(file_name) == 'true'
+    if __debug__:
+        if result:
+            logger.debug('File %s successfully deleted.' % file_name)
+        else:
+            logger.error('Failed to remove file %s.' % file_name)
+    return result
 
 
 def delete_object(obj):
-    '''
+    """
     Removes a used object from the internal structures and calls the
     external python library (that calls the bindings-common)
     in order to request a its corresponding file removal.
+
     :param obj: Object to remove
-    :return: True if success. False on the contrary
-    '''
+    :return: True if success. False otherwise
+    """
+
     obj_id = get_object_id(obj, False, False)
     if obj_id is None:
         return False
+
     try:
         id2obj.pop(obj_id)
-    except:
+    except Exception:
         pass
     try:
         file_name = objid_to_filename[obj_id]
         compss.delete_file(file_name)
-    except:
+    except Exception:
         pass
     try:
         objid_to_filename.pop(obj_id)
-    except:
+    except Exception:
         pass
     try:
         pending_to_synchronize.pop(obj_id)
-    except:
+    except Exception:
         pass
     return True
 
 
 def barrier(no_more_tasks=False):
-    '''
+    """
     Calls the external python library (that calls the bindings-common)
     in order to request a barrier.
     Wait for all tasks.
-    '''
+
+    :param no_more_tasks:
+    :return:
+    """
+
     if __debug__:
         logger.debug('Barrier. No more tasks? %s' % str(no_more_tasks))
-    compss.barrier(0, no_more_tasks)  # Always 0 (not needed for the signature)
+
+    # If noMoreFlags is set, clean up the objects
+    if no_more_tasks:
+        _clean_objects()
+
+    # Call the Runtime barrier (appId 0, not needed for the signature)
+    compss.barrier(0, no_more_tasks)
 
 
 def get_log_path():
-    '''
+    """
     Requests the logging path to the external python library (that calls
     the bindings-common).
+
     :return: The path where to store the logs.
-    '''
+    """
+
     if __debug__:
         logger.debug('Requesting log path')
     log_path = compss.get_logging_path()
@@ -310,8 +359,8 @@ def get_log_path():
     return log_path
 
 
-def register_ce(coreElement):
-    '''
+def register_ce(core_element):
+    """
     Calls the external python library (that calls the bindings-common)
     in order to notify the runtime about a core element that needs to be
     registered.
@@ -381,72 +430,76 @@ def register_ce(coreElement):
     implType: <String> Implementation type ('METHOD' | 'MPI' | 'BINARY' | 'OMPSS' | 'OPENCL')
     implTypeArgs: <List(Strings)> Implementation arguments (e.g.- ['methodClass', 'methodName'])
 
-    :param coreElement: <CE> Core Element to register
-    '''
+    :param core_element: <CE> Core Element to register
+    :return:
+    """
+
     # Retrieve Core element fields
-    ce_signature = coreElement.get_ce_signature()
-    implSignature = coreElement.get_implSignature()
-    implConstraints = coreElement.get_implConstraints()
-    implType = coreElement.get_implType()
-    implTypeArgs = coreElement.get_implTypeArgs()
+    ce_signature = core_element.get_ce_signature()
+    impl_signature = core_element.get_implSignature()
+    impl_constraints = core_element.get_implConstraints()
+    impl_type = core_element.get_implType()
+    impl_type_args = core_element.get_implTypeArgs()
 
     if __debug__:
-        logger.debug('Registering CE with signature: %s' % (ce_signature))
-        logger.debug('\t - Implementation signature: %s' % (implSignature))
+        logger.debug('Registering CE with signature: %s' % ce_signature)
+        logger.debug('\t - Implementation signature: %s' % impl_signature)
 
     # Build constraints string from constraints dictionary
-    implConstraints_string = ''
-    for key, value in implConstraints.items():
+    impl_constraints_string = ''
+    for key, value in impl_constraints.items():
         if isinstance(value, list):
             val = str(value).replace('\'', '')
-            implConstraints_string += key + ':' + str(val) + ';'
+            impl_constraints_string += key + ':' + str(val) + ';'
         else:
-            implConstraints_string += key + ':' + str(value) + ';'
+            impl_constraints_string += key + ':' + str(value) + ';'
 
     if __debug__:
-        logger.debug('\t - Implementation constraints: %s' % (implConstraints_string))
-        logger.debug('\t - Implementation type: %s' % (implType))
-    implTypeArgs_string = ' '.join(implTypeArgs)
+        logger.debug('\t - Implementation constraints: %s' % impl_constraints_string)
+        logger.debug('\t - Implementation type: %s' % impl_type)
+    impl_type_args_string = ' '.join(impl_type_args)
     if __debug__:
-        logger.debug('\t - Implementation type arguments: %s' % (implTypeArgs_string))
+        logger.debug('\t - Implementation type arguments: %s' % impl_type_args_string)
 
-    # Call runtime with the appropiate parameters
+    # Call runtime with the appropriate parameters
     compss.register_core_element(ce_signature,
-                                 implSignature,
-                                 implConstraints_string,
-                                 implType,
-                                 implTypeArgs)
+                                 impl_signature,
+                                 impl_constraints_string,
+                                 impl_type,
+                                 impl_type_args)
     if __debug__:
-        logger.debug('CE with signature %s registered.' % (ce_signature))
+        logger.debug('CE with signature %s registered.' % ce_signature)
 
 
 # QUESTION: What is the purpose of this getter? pending_to_synchronize is
 # global and from this precise module
 def get_pending_to_synchronize():
-    '''
+    """
     This method retrieves the dictionary that contains the objects used as
     parameters for the tasks.
     Used within the API in order to check if waiting for an INOUT object.
-    :return: Dictionary containing the ids of the objects used as task
-             parameter.
-    '''
+
+    :return: Dictionary containing the ids of the objects used as task parameter.
+    """
+
     return pending_to_synchronize
 
 
 def synchronize(obj, mode):
-    '''
+    """
     Synchronization function.
     This method retrieves the value of a future object.
-    Calls the runtime in order to wait for the value and returns it
-    when received.
+    Calls the runtime in order to wait for the value and returns it when received.
+
     :param obj: Object to synchronize.
     :param mode: Direction of the object to synchronize.
     :return: The value of the object requested.
-    '''
-    # TODO - CUANDO SE LLAME A compss.get_file, anadir un booleano diferenciando si es fichero u objeto
-    # Objetivo: mejorar el detalle de las trazas. Esto se tiene que implementar
-    # primero en el runtime, despues adaptar el api de C, y finalmente anadir
-    # el booleano aqui.
+    """
+
+    # TODO: Add a boolean to differentiate between files and object on the compss.get_file call. This change pretends
+    # to obtain better traces. Must be implemented first in the Runtime, then in the bindings common C API and
+    # finally add the boolean here
+
     global current_id
 
     if is_PSCO(obj):
@@ -454,7 +507,7 @@ def synchronize(obj, mode):
         if obj_id not in pending_to_synchronize:
             return obj
         else:
-            # file_path is of the form storage://pscoID or file://sys_path_to_file
+            # file_path is of the form storage://pscoId or file://sys_path_to_file
             file_path = compss.get_file('storage://' + str(obj_id), mode)
             # TODO: Add switch on protocol
             protocol, file_name = file_path.split('://')
@@ -495,38 +548,42 @@ def synchronize(obj, mode):
     return new_obj
 
 
-def process_task(f, module_name, class_name, ftype, has_return, spec_args,
-                 args, kwargs, self_kwargs, num_nodes, replicated,
-                 distributed):
-    '''
+def process_task(f, module_name, class_name, ftype, has_return, spec_args, args, kwargs, self_kwargs, num_nodes,
+                 replicated, distributed):
+    """
     Function that submits a task to the runtime.
+
     :param f: Function or method
-    :param module_name: Name of the module containing the function/method
-                        (including packages, if any)
+    :param module_name: Name of the module containing the function/method (including packages, if any)
     :param class_name: Name of the class (if method)
     :param ftype: Function type
+    :param has_return: Boolean indicating if the functions has a return value or not
     :param spec_args: Names of the task arguments
     :param args: Unnamed arguments
     :param kwargs: Named arguments
     :param self_kwargs: Decorator arguments
+    :param num_nodes: Number of nodes that the task must use
+    :param replicated: Boolean indicating if the task must be replicated or not
+    :param distributed: Boolean indicating if the task must be distributed or not
     :return: The future object related to the task return
-    '''
+    """
+
     if __debug__:
         logger.debug('TASK: %s of type %s, in module %s, in class %s' % (f.__name__, ftype, module_name, class_name))
 
     # Check if the function is an instance method or a class method.
     first_par = 0
-    if ftype == Function_Type.INSTANCE_METHOD:
+    if ftype == FunctionType.INSTANCE_METHOD:
         has_target = True
     else:
         has_target = False
-        if ftype == Function_Type.CLASS_METHOD:
+        if ftype == FunctionType.CLASS_METHOD:
             first_par = 1  # skip class parameter
 
     fu = None
-    fileNames = {}
+    file_names = {}
     if has_return:
-        fu, fileNames, self_kwargs, spec_args = build_return_objects(self_kwargs, spec_args)
+        fu, file_names, self_kwargs, spec_args = _build_return_objects(self_kwargs, spec_args)
 
     app_id = 0
 
@@ -539,10 +596,18 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args,
     num_pars = len(spec_args)
 
     # Infer COMPSs types from real types, except for files
-    new_self_kwargs, is_future = infer_types_and_serialize_objects(spec_args, first_par, num_pars, fileNames, self_kwargs, args)
+    new_self_kwargs, is_future = _infer_types_and_serialize_objects(spec_args, first_par, num_pars, file_names,
+                                                                    self_kwargs, args)
 
     # Build values and COMPSs types and directions
-    values, compss_types, compss_directions, compss_streams, compss_prefixes = build_values_types_directions(ftype, first_par, num_pars, spec_args, new_self_kwargs, is_future, f.__code_strings__)
+    values, compss_types, compss_directions, \
+    compss_streams, compss_prefixes = _build_values_types_directions(ftype,
+                                                                     first_par,
+                                                                     num_pars,
+                                                                     spec_args,
+                                                                     new_self_kwargs,
+                                                                     is_future,
+                                                                     f.__code_strings__)
 
     # Get priority
     has_priority = self_kwargs['priority']
@@ -587,9 +652,9 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args,
             logger.debug('\t- COMPSs streams: ' + streams_str)
             logger.debug('\t- COMPSs prefixes: ' + prefixes_str)
 
-    # Check that there is the same amount of values as their types, as well
-    # as their directions, streams and prefixes.
-    assert(len(values) == len(compss_types) and len(values) == len(compss_directions) == len(compss_streams) == len(compss_prefixes))
+    # Check that there is the same amount of values as their types, as well as their directions, streams and prefixes.
+    assert (len(values) == len(compss_types) and len(values) == len(compss_directions) == len(compss_streams) == len(
+        compss_prefixes))
 
     '''
     Submit task to the runtime (call to the C extension):
@@ -620,23 +685,41 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args,
                         compss_prefixes)
 
     # Return the future object/s corresponding to the task
-    # This object will substitute the user expected return from the task and
-    # will be used later for synchronization or as a task parameter (then
-    # the runtime will take care of the dependency.
+    # This object will substitute the user expected return from the task and will be used later for synchronization
+    # or as a task parameter (then the runtime will take care of the dependency.
     return fu
+
+
+def get_compss_mode(pymode):
+    """
+    Get the direction of pymode string.
+
+    :param pymode: String to parse and return the direction
+    :return: Direction object (IN/INOUT/OUT)
+    """
+
+    if pymode.startswith('w'):
+        return DIRECTION.OUT
+    elif pymode.startswith('r+') or pymode.startswith('a'):
+        return DIRECTION.INOUT
+    else:
+        return DIRECTION.IN
 
 
 # ##############################################################################
 # ####################### AUXILIARY FUNCTIONS ##################################
 # ##############################################################################
-def build_return_objects(self_kwargs, spec_args):
-    '''
+
+def _build_return_objects(self_kwargs, spec_args):
+    """
     Build the return object and updates the self_kwargs and spec_args
     structures (as tuple in the multireturn case).
+
     :param self_kwargs:
     :param spec_args:
     :return:
-    '''
+    """
+
     # Check if the returns statement contains an integer value.
     # In such case, build a list of objects of value length and set it in ret_type.
     if isinstance(self_kwargs['returns'], int):
@@ -652,7 +735,7 @@ def build_return_objects(self_kwargs, spec_args):
             ret_type = object
     else:
         ret_type = self_kwargs['returns']
-    fileNames = {}  # return files locations
+    file_names = {}  # return files locations
     if ret_type:
         fu = []
         # Create future for return value
@@ -665,7 +748,8 @@ def build_return_objects(self_kwargs, spec_args):
                 if 'compss_retvalue' in self_kwargs:
                     self_kwargs.pop('compss_retvalue')
                 else:
-                    assert 'compss_retvalue0' in self_kwargs, 'Inconsistent state: multireturn detected, but there is no compss_retvalue0'
+                    assert 'compss_retvalue0' in self_kwargs, \
+                        "Inconsistent state: multireturn detected, but there is no compss_retvalue0"
             pos = 0
             for i in ret_type:
                 # Build the appropriate future object
@@ -678,22 +762,25 @@ def build_return_objects(self_kwargs, spec_args):
                         fue = i()
                     except TypeError:
                         if __debug__:
-                            logger.warning('Type {0} does not have an empty constructor, building generic future object'.format(ret_type))
+                            logger.warning(
+                                "Type {0} does not have an empty constructor, building generic future object".format(
+                                    ret_type))
                         fue = Future()
                 else:
                     fue = Future()  # modules, functions, methods
                 fu.append(fue)
                 obj_id = get_object_id(fue, True)
                 if __debug__:
-                    logger.debug('Setting object %s of %s as a future' % (obj_id, type(fue)))
+                    logger.debug("Setting object %s of %s as a future" % (obj_id, type(fue)))
                 ret_filename = temp_dir + temp_obj_prefix + str(obj_id)
                 objid_to_filename[obj_id] = ret_filename
                 pending_to_synchronize[obj_id] = fue
-                fileNames['compss_retvalue' + str(pos)] = ret_filename
+                file_names['compss_retvalue' + str(pos)] = ret_filename
                 # Once determined the filename where the returns are going to
                 # be stored, create a new Parameter object for each return
                 # object
-                self_kwargs['compss_retvalue' + str(pos)] = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT, p_prefix="#")
+                self_kwargs['compss_retvalue' + str(pos)] = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT,
+                                                                      p_prefix="#")
                 spec_args.append('compss_retvalue' + str(pos))
                 pos += 1
             self_kwargs['num_returns'] = pos  # Update the amount of objects to be returned
@@ -708,84 +795,66 @@ def build_return_objects(self_kwargs, spec_args):
                     fu = ret_type()
                 except TypeError:
                     if __debug__:
-                        logger.warning('Type {0} does not have an empty constructor, building generic future object'.format(ret_type))
+                        logger.warning(
+                            "Type {0} does not have an empty constructor, building generic future object".format(
+                                ret_type))
                     fu = Future()
             else:
                 fu = Future()  # modules, functions, methods
             obj_id = get_object_id(fu, True)
             if __debug__:
-                logger.debug('Setting object %s of %s as a future' % (obj_id, type(fu)))
+                logger.debug("Setting object %s of %s as a future" % (obj_id, type(fu)))
             ret_filename = temp_dir + temp_obj_prefix + str(obj_id)
             objid_to_filename[obj_id] = ret_filename
             pending_to_synchronize[obj_id] = fu
-            fileNames['compss_retvalue'] = ret_filename
+            file_names['compss_retvalue'] = ret_filename
             self_kwargs['compss_retvalue'] = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT, p_prefix="#")
     else:
         fu = None
 
-    return fu, fileNames, self_kwargs, spec_args
+    return fu, file_names, self_kwargs, spec_args
 
 
-def fromDictToParameter(d):
-    '''
-    Convert a Dict defined by a user for a parameter into a real Parameter
-    object.
-    :param d: Dictionary (mandatory to have 'Type' key).
-    :return: Parameter object.
-    '''
-    from pycompss.api.parameter import Parameter
-    from pycompss.api.parameter import Type
-    from pycompss.api.parameter import Direction
-    from pycompss.api.parameter import Stream
-    from pycompss.api.parameter import Prefix
-    if Type not in d:  # If no Type specified => IN
-        d[Type] = Parameter()
-    p = d[Type]
-    if Direction in d:
-        p.setDirection(d[Direction])
-    if Stream in d:
-        p.setStream(d[Stream])
-    if Prefix in d:
-        p.setPrefix(d[Prefix])
-    return p
-
-
-def infer_types_and_serialize_objects(spec_args, first_par, num_pars,
-                                      fileNames, self_kwargs, args):
-    '''
+def _infer_types_and_serialize_objects(spec_args, first_par, num_pars, file_names, self_kwargs, args):
+    """
     Infer COMPSs types for the task parameters and serialize them.
+
     :param spec_args: <List of strings> - Names of the task arguments
     :param first_par: <Integer> - First parameter
     :param num_pars: <Integer> - Number of parameters
-    :param fileNames: <Dictionary> - Return objects filenames
+    :param file_names: <Dictionary> - Return objects filenames
     :param self_kwargs: <Dictionary> - Decorator arguments
     :param args: <List> - Unnamed arguments
-    :return: Tuple of self_kwargs updated and a dictionary containing
-             if the objects are future elements.
-    '''
+    :return: Tuple of self_kwargs updated and a dictionary containing if the objects are future elements.
+    """
+
     is_future = {}
     max_obj_arg_size = 320000
     for i in range(first_par, num_pars):
+        # Retrieve current argument name to process
         spec_arg = spec_args[i]
+
+        # Check user annotations concerning this argument
         p = self_kwargs.get(spec_arg)
         if p is None:
+            # The user has not provided any information
             if __debug__:
-                logger.debug('Adding default decoration for param %s' % spec_arg)
+                logger.debug("Adding default decoration for param %s" % spec_arg)
             p = Parameter()
             self_kwargs[spec_arg] = p
         elif type(p) is dict:
-            # The user has provided some information about a parameter within
-            # the @task parameter
+            # The user has provided some information about the parameter within the @task parameter
             if __debug__:
-                logger.debug('Checking decoration for param %s' % spec_arg)
-            p = fromDictToParameter(p)
+                logger.debug("Checking decoration for param %s" % spec_arg)
+            p = _from_dict_to_parameter(p)
 
+        # Infer argument value
         if spec_args[0] != 'self':
             # It is a function
             if i < len(args):
                 p.value = args[i]
             else:
-                p.value = fileNames[spec_arg]
+                p.value = file_names[spec_arg]
         else:
             # It is a class function
             if spec_arg == 'self':
@@ -794,7 +863,7 @@ def infer_types_and_serialize_objects(spec_args, first_par, num_pars,
                 if is_PSCO(p.value):
                     p.type = TYPE.EXTERNAL_PSCO
             elif spec_arg.startswith('compss_retvalue'):
-                p.value = fileNames[spec_arg]
+                p.value = file_names[spec_arg]
             else:
                 p.value = args[i]
 
@@ -805,8 +874,11 @@ def infer_types_and_serialize_objects(spec_args, first_par, num_pars,
         if p.type is not None and p.type != TYPE.FILE and p.type != new_type:
             p.type = new_type
 
+        # Update future object list
         val_type = type(p.value)
         is_future[i] = (val_type == Future)
+
+        # Log parameter information
         if __debug__:
             logger.debug('Parameter ' + spec_arg)
             logger.debug('\t- Value type: ' + str(val_type))
@@ -828,11 +900,11 @@ def infer_types_and_serialize_objects(spec_args, first_par, num_pars,
         # Convert small objects to string if object_conversion enabled
         # Check if the object is small in order not to serialize it.
         if object_conversion:
-            p, bytes = convert_object_to_string(p, is_future.get(i), max_obj_arg_size, policy='objectSize')
-            max_obj_arg_size -= bytes
+            p, written_bytes = _convert_object_to_string(p, is_future.get(i), max_obj_arg_size, policy='objectSize')
+            max_obj_arg_size -= written_bytes
 
         # Serialize objects into files
-        p = serialize_object_into_file(p, is_future, i, val_type)
+        p = _serialize_object_into_file(p, is_future[i])
 
         if __debug__:
             logger.debug('Final type for parameter %s: %d' % (spec_arg, p.type))
@@ -840,70 +912,97 @@ def infer_types_and_serialize_objects(spec_args, first_par, num_pars,
     return self_kwargs, is_future
 
 
-def serialize_object_into_file(p, is_future, i, val_type):
-    '''
-    Serialize an object into a file if necessary.
-    :param p: object wrapper
-    :param is_future: if is a future object <boolean>
-    :param i: parameter position
-    :param val_type: value type
-    :return: p (whose type can have been modified)
-    '''
-    if p.type == TYPE.OBJECT or is_future.get(i):
-        # 2nd condition: real type can be primitive,
-        # but now it's acting as a future (object)
-        try:
-            # Check if the Object is a list composed by future objects
-            # This could be delegated to the runtime.
-            # Will have to be discussed.
-            if (isinstance(val_type, list)):
-                # Is there a future object within the list?
-                if any(isinstance(v, (Future)) for v in p.value):
-                    if __debug__:
-                        logger.debug('Found a list that contains future objects - synchronizing...')
-                    mode = get_compss_mode('in')
-                    p.value = list(map(synchronize, p.value, [mode] * len(p.value)))
-            turn_into_file(p)
-        except SerializerException:
-            import sys
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-            logger.exception('Pickling error exception: non-serializable object found as a parameter.')
-            logger.exception(''.join(line for line in lines))
-            print('[ ERROR ]: Non serializable objects can not be used as parameters (e.g. methods).')
-            print('[ ERROR ]: Value: %s' % p.value)
-            # Raise the exception up tu launch.py in order to point where the
-            # error is in the user code.
-            raise
-    elif p.type == TYPE.EXTERNAL_PSCO:
-        manage_persistent_object(p)
-    elif p.type == TYPE.INT:
-        if p.value > JAVA_MAX_INT or p.value < JAVA_MIN_INT:
-            # This must go through Java as a long to prevent overflow
-            # with Java int
-            p.type = TYPE.LONG
-    elif p.type == TYPE.LONG:
-        if p.value > JAVA_MAX_LONG or p.value < JAVA_MIN_LONG:
-            # This must be serialized to prevent overflow with Java long
-            p.type = TYPE.OBJECT
-            turn_into_file(p)
+def _build_values_types_directions(ftype, first_par, num_pars, spec_args, deco_kwargs, is_future, code_strings):
+    """
+    Build the values list, the values types list and the values directions list.
+
+    :param ftype: task function type. If it is an instance method, the first parameter will be put at the end.
+    :param first_par: <Integer> First parameter
+    :param num_pars: <Integer> Number of parameters
+    :param spec_args: Function spec_args
+    :param deco_kwargs: Function deco_kwargs
+    :param is_future: <Boolean> Is future dictionary or not
+    :param code_strings: <Boolean> Code strings or not
+    :return: <List,List,List> List of values, their types and their directions
+    """
+
+    values = []
+    compss_types = []
+    compss_directions = []
+    compss_streams = []
+    compss_prefixes = []
+
+    # Build the range of elements
+    if ftype == FunctionType.INSTANCE_METHOD:
+        ra = list(range(1, num_pars))
+        ra.append(0)  # callee is the last
+    else:
+        ra = range(first_par, num_pars)
+
+    # Fill the values, compss_types and compss_directions lists
+    for i in ra:
+        spec_arg = spec_args[i]
+        p = deco_kwargs[spec_arg]
+        if type(p) is dict:
+            # The user has provided some information about a parameter within the @task parameter
+            p = _from_dict_to_parameter(p)
+        if p.type == TYPE.STRING and not is_future[i] and code_strings:
+            # Encode the string in order to preserve the source
+            # Checks that it is not a future (which is indicated with a path)
+            # Considers multiple spaces between words
+            p.value = base64.b64encode(p.value.encode()).decode()
+        values.append(p.value)
+
+        if p.type == TYPE.OBJECT or is_future.get(i):
+            compss_types.append(TYPE.FILE)
+        else:
+            compss_types.append(p.type)
+
+        compss_directions.append(p.direction)
+        compss_streams.append(p.stream)
+        compss_prefixes.append(p.prefix)
+
+    return values, compss_types, compss_directions, compss_streams, compss_prefixes
+
+
+def _from_dict_to_parameter(d):
+    """
+    Convert a Dict defined by a user for a parameter into a real Parameter object.
+
+    :param d: Dictionary (mandatory to have 'Type' key).
+    :return:  Parameter object.
+    """
+
+    from pycompss.api.parameter import Parameter
+    from pycompss.api.parameter import Type
+    from pycompss.api.parameter import Direction
+    from pycompss.api.parameter import Stream
+    from pycompss.api.parameter import Prefix
+    if Type not in d:  # If no Type specified => IN
+        d[Type] = Parameter()
+    p = d[Type]
+    if Direction in d:
+        p.set_direction(d[Direction])
+    if Stream in d:
+        p.set_stream(d[Stream])
+    if Prefix in d:
+        p.set_prefix(d[Prefix])
     return p
 
 
-def convert_object_to_string(p, is_future, max_obj_arg_size,
-                             policy='objectSize'):
-    '''
-    Convert small objects into string that can fit into the task
-    parameters call
-    :param p: object wrapper
-    :param is_future: if is a future object <boolean>
+def _convert_object_to_string(p, is_future, max_obj_arg_size, policy='objectSize'):
+    """
+    Convert small objects into string that can fit into the task parameters call
+
+    :param p: Object wrapper
+    :param is_future: Boolean indicating if it is a future object or not
     :param max_obj_arg_size: max size of the object to be converted
-    :param policy: policy to use: 'objectSize' for considering the size of
-                   the object or 'serializedSize' for considering the size
-                   of the object serialized.
+    :param policy: policy to use: 'objectSize' for considering the size of the object or 'serializedSize' for
+                   considering the size of the object serialized.
     :return: the object possibly converted to string
-    '''
-    bytes = 0
+    """
+
+    num_bytes = 0
     if policy == 'objectSize':
         # Check if the object is small in order to serialize it.
         # This alternative evaluates the size of the object before
@@ -914,12 +1013,12 @@ def convert_object_to_string(p, is_future, max_obj_arg_size,
             if not isinstance(p.value, basestring) and isinstance(p.value, (list, dict, tuple, deque, set, frozenset)):
                 # check object size
                 # bytes = sys.getsizeof(p.value)  # does not work properly with recursive object
-                bytes = total_sizeof(p.value)
-                megabytes = bytes / 1000000  # truncate
+                num_bytes = total_sizeof(p.value)
+                megabytes = num_bytes / 1000000  # truncate
                 if __debug__:
-                    logger.debug('Object size %d bytes (%d Mb).' % (bytes, megabytes))
+                    logger.debug('Object size %d bytes (%d Mb).' % (num_bytes, megabytes))
 
-                if bytes < max_obj_arg_size:  # be careful... more than this value produces:
+                if num_bytes < max_obj_arg_size:  # be careful... more than this value produces:
                     # Cannot run program '/bin/bash'...: error=7, La lista de argumentos es demasiado larga
                     if __debug__:
                         logger.debug('The object size is less than 320 kb.')
@@ -955,11 +1054,11 @@ def convert_object_to_string(p, is_future, max_obj_arg_size,
                     v = serialize_to_string(p.value)
                     v = v.encode(STR_ESCAPE)
                     # check object size
-                    bytes = sys.getsizeof(v)
-                    megabytes = bytes / 1000000  # truncate
+                    num_bytes = sys.getsizeof(v)
+                    megabytes = num_bytes / 1000000  # truncate
                     if __debug__:
-                        logger.debug('Object size %d bytes (%d Mb).' % (bytes, megabytes))
-                    if bytes < max_obj_arg_size:
+                        logger.debug('Object size %d bytes (%d Mb).' % (num_bytes, megabytes))
+                    if num_bytes < max_obj_arg_size:
                         # be careful... more than this value produces:
                         # Cannot run program '/bin/bash'...: error=7,
                         # arguments list too long error.
@@ -989,28 +1088,18 @@ def convert_object_to_string(p, is_future, max_obj_arg_size,
         if __debug__:
             logger.debug('[ERROR] Wrong convert_objects_to_strings policy.')
         raise Exception('Wrong convert_objects_to_strings policy.')
-    return p, bytes
+    return p, num_bytes
 
 
-def build_values_types_directions(ftype, first_par, num_pars, spec_args,
-                                  deco_kwargs, is_future, code_strings):
-    '''
-    Build the values list, the values types list and the values directions list.
-    :param ftype: task function type. If it is an instance method, the
-                  first parameter will be put at the end.
-    :param first_par: first parameter <Integer>
-    :param num_pars:  number of parameters <Integer>
-    :param spec_args: function spec_args
-    :param deco_kwargs: function deco_kwargs
-    :param is_future: is future dictionary
-    :param code_strings: code strings or not <Boolean>
-    :return: three lists: values, their types and their directions
-    '''
-    values = []
-    compss_types = []
-    compss_directions = []
-    compss_streams = []
-    compss_prefixes = []
+# TODO: Support for collections
+def _serialize_objects(p, is_future):
+    """
+    Serializes recursively the given object into files if necessary.
+
+    :param p: Object wrapper
+    :param is_future: Boolean indicatin whether it is a future object or not
+    :return: p (whose type and value might be modified)
+    """
 
     # Build the range of elements
     if ftype == Function_Type.INSTANCE_METHOD:
@@ -1035,43 +1124,100 @@ def build_values_types_directions(ftype, first_par, num_pars, spec_args,
                 # Empty string - use escape string to avoid padding
                 # Checked and substituted by empty string in the worker.py and piper_worker.py
                 p.value = base64.b64encode(EMPTY_STRING_KEY.encode()).decode()
+
         values.append(p.value)
         if p.type == TYPE.OBJECT or is_future.get(i):
             compss_types.append(TYPE.FILE)
         else:
-            compss_types.append(p.type)
-        compss_directions.append(p.direction)
-        compss_streams.append(p.stream)
-        compss_prefixes.append(p.prefix)
-    return values, compss_types, compss_directions, compss_streams, compss_prefixes
+            child_p_type = python_to_compss.get(val_type)
+
+        child_parameter = Parameter(p_type=child_p_type, p_direction=p.direction, p_stream=p.stream, p_prefix=p.prefix)
+        child_parameter.value = child_value
+
+        # Recursively check
+        child_parameter = _serialize_objects(child_parameter, is_future)
+        # Update list entry
+        p.value[index] = child_parameter
+    return p
 
 
-def manage_persistent_object(p):
-    '''
+def _serialize_object_into_file(p, is_future):
+    """
+    Serialize an object into a file if necessary.
+
+    :param p: Object wrapper
+    :param is_future: Boolean indicating if it is a future object or not
+    :return: p (whose type and value might be modified)
+    """
+
+    if p.type == TYPE.OBJECT or is_future:
+        # 2nd condition: real type can be primitive, but now it's acting as a future (object)
+        try:
+            val_type = type(p.value)
+            if isinstance(val_type, list):
+                # Is there a future object within the list?
+                if any(isinstance(v, Future) for v in p.value):
+                    if __debug__:
+                        logger.debug('Found a list that contains future objects - synchronizing...')
+                    mode = get_compss_mode('in')
+                    p.value = list(map(synchronize, p.value, [mode] * len(p.value)))
+
+            _turn_into_file(p)
+        except SerializerException:
+            import sys
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+            logger.exception('Pickling error exception: non-serializable object found as a parameter.')
+            logger.exception(''.join(line for line in lines))
+            print('[ ERROR ]: Non serializable objects can not be used as parameters (e.g. methods).')
+            print('[ ERROR ]: Value: %s' % p.value)
+            # Raise the exception up tu launch.py in order to point where the error is in the user code.
+            raise
+    elif p.type == TYPE.EXTERNAL_PSCO:
+        _manage_persistent_object(p)
+    elif p.type == TYPE.INT:
+        if p.value > JAVA_MAX_INT or p.value < JAVA_MIN_INT:
+            # This must go through Java as a long to prevent overflow with Java int
+            p.type = TYPE.LONG
+    elif p.type == TYPE.LONG:
+        if p.value > JAVA_MAX_LONG or p.value < JAVA_MIN_LONG:
+            # This must be serialized to prevent overflow with Java long
+            p.type = TYPE.OBJECT
+            _turn_into_file(p)
+    return p
+
+
+def _manage_persistent_object(p):
+    """
     Does the necessary actions over a persistent object used as task parameter.
     Check if the object has already been used (indexed in the objid_to_filename
     dictionary).
     In particular, saves the object id provided by the persistent storage
     (getID()) into the pending_to_synchronize dictionary.
+
     :param p: wrapper of the object to manage
-    '''
+    """
+
     p.type = TYPE.EXTERNAL_PSCO
     obj_id = get_ID(p.value)
     pending_to_synchronize[obj_id] = p.value  # obj_id
     p.value = obj_id
     if __debug__:
-        logger.debug('Managed persistent object: %s' % (obj_id))
+        logger.debug('Managed persistent object: %s' % obj_id)
 
 
-def turn_into_file(p):
-    '''
+def _turn_into_file(p):
+    """
     Write a object into a file if the object has not been already written (p.value).
     Consults the objid_to_filename to check if it has already been written
     (reuses it if exists). If not, the object is serialized to file and
     registered in the objid_to_filename dictionary.
     This functions stores the object into pending_to_synchronize
-    :param p: wrapper of the object to turn into file
-    '''
+
+    :param p: Wrapper of the object to turn into file
+    :return:
+    """
+
     '''
     print('XXXXXXXXXXXXXXXXX')
     print('p           : ', p)
@@ -1106,28 +1252,16 @@ def turn_into_file(p):
     p.value = file_name
 
 
-def get_compss_mode(pymode):
-    '''
-    Get the direction of pymode string.
-    :param pymode: String to parse and return the direction
-    :return: Direction object (IN/INOUT/OUT)
-    '''
-    if pymode.startswith('w'):
-        return DIRECTION.OUT
-    elif pymode.startswith('r+') or pymode.startswith('a'):
-        return DIRECTION.INOUT
-    else:
-        return DIRECTION.IN
-
-
-def clean_objects():
-    '''
+def _clean_objects():
+    """
     Clean the objects stored in the global dictionaries:
         * pending_to_synchronize dict
         * id2obj dict
         * objid_to_filename dict
         * objs_written_by_mp dict
-    '''
+
+    """
+
     for filename in objid_to_filename.values():
         compss.delete_file(filename)
     pending_to_synchronize.clear()
@@ -1136,11 +1270,12 @@ def clean_objects():
     objs_written_by_mp.clear()
 
 
-def clean_temps():
-    '''
+def _clean_temps():
+    """
     Clean temporary files.
     The temporary files end with the IT extension
-    '''
+    """
+
     rmtree(temp_dir, True)
     cwd = os.getcwd()
     for f in os.listdir(cwd):

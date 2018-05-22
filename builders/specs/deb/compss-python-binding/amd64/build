@@ -10,5 +10,5 @@
 
   mkdir -p ${COMPSs_target}/Bindings/python
   cd ${trunk_rel_path}/compss/programming_model/bindings/python
-  ./install ${COMPSs_target}/Bindings/python false
+  ./install ${COMPSs_target}/Bindings/python false false
   cd -

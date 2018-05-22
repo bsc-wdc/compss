@@ -18,6 +18,23 @@ else:
 " )
   }
 
+  unify_installed_versions (){
+    # Remove version 3 sources and setup a symbolic link to version 2
+    # (the sources are the same for both versions)
+
+    target_dir=$1
+
+    # Copy compiled sources - find recursively and copy __pycache__ folders.
+    find "${target_dir}/3" -name '__pycache__' -type d | while read line; do
+      relative=${line#"${target_dir}/3"}
+      cp -r $line "${target_dir}/2${relative}"
+    done
+
+    # Remove and link
+    rm -rf "${target_dir}/3/pycompss"
+    ln -sfn "${target_dir}/2/pycompss" "${target_dir}/3/pycompss"
+  }
+
   create_symbolic_links (){
     # Setup the appropriate symbolic links to site-packages/dist-packages
     # $1 -> python version (2 or 3)

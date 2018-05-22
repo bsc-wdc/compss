@@ -443,7 +443,7 @@ install_compss() {
     cp ./compss_build_app ${targetDir}/Runtime/scripts/user/
     echo "- Deploying python-binding files"
     cd "${TMP_DIR}/compss/programming_model/bindings/python"
-    ./install "${targetDir}/Bindings/python" true
+    ./install "${targetDir}/Bindings/python" true true
     ev=$?
     if [ $ev -ne 0 ]; then
       echo "ERROR: Failed to install Python-binding"

@@ -37,7 +37,8 @@ def timeit(func, *a, **k):
     :param k: kwargs
     :return: a list with [the function result, The elapsed time]
     """
+
     ts = time.time()
     result = func(*a, **k)
     te = time.time()
-    return [result, (te-ts)]
+    return [result, (te - ts)]

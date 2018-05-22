@@ -367,7 +367,7 @@ class task(object):
         from pycompss.api.parameter import TYPE
 
         source_code = get_wrapped_source(f).strip()
-        if self.is_instance or source_code.startswith('@classmethod'):   # TODO: WHAT IF IS CLASSMETHOD FROM BOOLEAN?
+        if self.is_instance or source_code.startswith('@classmethod'):  # TODO: WHAT IF IS CLASSMETHOD FROM BOOLEAN?
             # It is a task defined within a class (can not parse the code with ast since the class does not
             # exist yet. Alternatively, the only way I see is to parse it manually line by line.
             ret_mask = []
@@ -770,8 +770,9 @@ class task(object):
         :param kwargs: <Dictionary> - Contains the named objects that the function has been called with.
         :return: Future object that fakes the real return of the task (for its delegated execution)
         """
+
         from pycompss.runtime.binding import process_task
-        from pycompss.runtime.binding import Function_Type
+        from pycompss.runtime.binding import FunctionType
         import pycompss.runtime.binding as binding
 
         # Check the type of the function called.
@@ -779,15 +780,15 @@ class task(object):
         # for methods python hasn't wrapped the function as a method yet
         # Everything is still a function here, can't distinguish yet
         # with inspect.ismethod or isfunction
-        ftype = Function_Type.FUNCTION
+        ftype = FunctionType.FUNCTION
         class_name = ''
         if self.is_instance:
-            ftype = Function_Type.INSTANCE_METHOD
+            ftype = FunctionType.INSTANCE_METHOD
             class_name = type(args[0]).__name__
         if args and inspect.isclass(args[0]):
             for n, _ in inspect.getmembers(args[0], inspect.ismethod):
                 if n == f.__name__:
-                    ftype = Function_Type.CLASS_METHOD
+                    ftype = FunctionType.CLASS_METHOD
                     class_name = args[0].__name__
 
         # Build the arguments list

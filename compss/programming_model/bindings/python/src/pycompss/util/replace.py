@@ -31,7 +31,7 @@ from types import (BuiltinFunctionType, GetSetDescriptorType, FrameType,
 try:
     import guppy
     from guppy.heapy import Path
-except:
+except Exception:
     raise ImportError('Cannot use local decorator without guppy!')
 
 hp = guppy.hpy()
@@ -40,22 +40,22 @@ hp = guppy.hpy()
 def _w(x):
     def f():
         x
+
     return f
 
 
 CellType = type(_w(0).func_closure[0])
-
 
 del _w
 
 
 # -----------------------------------------------------------------------------
 def _write_struct_attr(addr, value, add_offset):
-        ptr_size = ctypes.sizeof(ctypes.py_object)
-        ptrs_in_struct = (3 if hasattr(sys, "getobjects") else 1) + add_offset
-        offset = ptrs_in_struct * ptr_size + ctypes.sizeof(ctypes.c_ssize_t)
-        ref = ctypes.byref(ctypes.py_object(value))
-        ctypes.memmove(addr + offset, ref, ptr_size)
+    ptr_size = ctypes.sizeof(ctypes.py_object)
+    ptrs_in_struct = (3 if hasattr(sys, "getobjects") else 1) + add_offset
+    offset = ptrs_in_struct * ptr_size + ctypes.sizeof(ctypes.c_ssize_t)
+    ref = ctypes.byref(ctypes.py_object(value))
+    ctypes.memmove(addr + offset, ref, ptr_size)
 
 
 def _replace_attribute(source, rel, new):
@@ -152,6 +152,7 @@ class X(object):
 def sure(obj):
     def inner():
         return obj
+
     return inner
 
 

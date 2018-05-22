@@ -31,7 +31,6 @@ from functools import wraps
 from pycompss.util.location import i_am_at_master
 from pycompss.util.location import i_am_within_scope
 
-
 if __debug__:
     logger = logging.getLogger(__name__)
 
@@ -41,6 +40,7 @@ class binary(object):
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpi task creation.
     """
+
     def __init__(self, *args, **kwargs):
         """
         Store arguments passed to the decorator
@@ -50,6 +50,7 @@ class binary(object):
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
+
         self.args = args
         self.kwargs = kwargs
         self.scope = i_am_within_scope()
@@ -62,6 +63,7 @@ class binary(object):
         :param func: Function to decorate
         :return: Decorated function.
         """
+
         if not self.scope:
             # from pycompss.api.dummy.binary import binary as dummy_binary
             # d_b = dummy_binary(self.args, self.kwargs)
@@ -73,10 +75,10 @@ class binary(object):
             from pycompss.runtime.binding import register_ce
 
             mod = inspect.getmodule(func)
-            self.module = mod.__name__    # not func.__module__
+            self.module = mod.__name__  # not func.__module__
 
-            if(self.module == '__main__' or
-               self.module == 'pycompss.runtime.launch'):
+            if (self.module == '__main__' or
+                    self.module == 'pycompss.runtime.launch'):
                 # The module where the function is defined was run as __main__,
                 # we need to find out the real module name.
 
@@ -106,24 +108,25 @@ class binary(object):
             # Include the registering info related to @Binary
 
             # Retrieve the base coreElement established at @task decorator
-            coreElement = func.__to_register__
+            core_element = func.__to_register__
             # Update the core element information with the mpi information
-            coreElement.set_implType("BINARY")
+            core_element.set_impl_type("BINARY")
             binary = self.kwargs['binary']
             if 'workingDir' in self.kwargs:
-                workingDir = self.kwargs['workingDir']
+                working_dir = self.kwargs['workingDir']
             else:
-                workingDir = '[unassigned]'   # Empty or '[unassigned]'
-            implSignature = 'BINARY.' + binary
-            coreElement.set_implSignature(implSignature)
-            implArgs = [binary, workingDir]
-            coreElement.set_implTypeArgs(implArgs)
-            func.__to_register__ = coreElement
+                working_dir = '[unassigned]'  # Empty or '[unassigned]'
+            impl_signature = 'BINARY.' + binary
+            core_element.set_impl_signature(impl_signature)
+            impl_args = [binary, working_dir]
+            core_element.set_impl_type_args(impl_args)
+            func.__to_register__ = core_element
             # Do the task register if I am the top decorator
             if func.__who_registers__ == __name__:
                 if __debug__:
-                    logger.debug("[@BINARY] I have to do the register of function %s in module %s" % (func.__name__, self.module))
-                register_ce(coreElement)
+                    logger.debug("[@BINARY] I have to do the register of function %s in module %s" % (
+                        func.__name__, self.module))
+                register_ce(core_element)
         else:
             # worker code
             pass
@@ -154,5 +157,6 @@ class binary(object):
                     setattr(slf, k, v)
 
             return ret
+
         binary_f.__doc__ = func.__doc__
         return binary_f

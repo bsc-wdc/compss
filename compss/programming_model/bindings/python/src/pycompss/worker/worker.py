@@ -42,13 +42,13 @@ from pycompss.util.serializer import SerializerException
 from pycompss.util.logs import init_logging_worker
 from pycompss.util.persistent_storage import get_by_ID
 
-
 if IS_PYTHON3:
     long = int
 else:
     # Exception moved to built-in
     from exceptions import ValueError
 
+    str_escape = 'string_escape'
 
 SYNC_EVENTS = 8000666
 
@@ -63,7 +63,6 @@ LOGGING = 104
 MODULES_IMPORT = 105
 WORKER_END = 106
 PROCESS_DESTRUCTION = 107
-
 
 if sys.version_info >= (2, 7):
     import importlib
@@ -85,13 +84,13 @@ def compss_worker(persistent_storage):
     path = args[0]
     method_name = args[1]
 
-    numSlaves = int(args[2])
+    num_slaves = int(args[2])
     slaves = []
-    for i in range(2, 2 + numSlaves):
+    for i in range(2, 2 + num_slaves):
         slaves.append(args[i])
-    argPosition = 3 + numSlaves
+    arg_position = 3 + num_slaves
 
-    args = args[argPosition:]
+    args = args[arg_position:]
     cus = args[0]
 
     args = args[1:]
@@ -117,29 +116,29 @@ def compss_worker(persistent_storage):
     # Get all parameter values
     logger.debug("Processing parameters:")
     for i in range(0, num_params):
-        pType = int(args[pos])
-        pStream = int(args[pos + 1])
-        pPrefix = args[pos + 2]
-        pValue = args[pos + 3]
+        p_type = int(args[pos])
+        p_stream = int(args[pos + 1])
+        p_prefix = args[pos + 2]
+        p_value = args[pos + 3]
 
         logger.debug("Parameter : " + str(i))
-        logger.debug("\t * Type : " + str(pType))
-        logger.debug("\t * Stream : " + str(pStream))
-        logger.debug("\t * Prefix : " + str(pPrefix))
-        logger.debug("\t * Value: " + str(pValue))
+        logger.debug("\t * Type : " + str(p_type))
+        logger.debug("\t * Stream : " + str(p_stream))
+        logger.debug("\t * Prefix : " + str(p_prefix))
+        logger.debug("\t * Value: " + str(p_value))
 
-        types.append(pType)
-        streams.append(pStream)
-        prefixes.append(pPrefix)
+        types.append(p_type)
+        streams.append(p_stream)
+        prefixes.append(p_prefix)
 
-        if pType == TYPE.FILE:
-            values.append(pValue)
-        elif pType == TYPE.EXTERNAL_PSCO:
-            po = get_by_ID(pValue)
+        if p_type == TYPE.FILE:
+            values.append(p_value)
+        elif p_type == TYPE.EXTERNAL_PSCO:
+            po = get_by_ID(p_value)
             values.append(po)
             pos += 1  # Skip info about direction (R, W)
-        elif pType == TYPE.STRING:
-            num_substrings = int(pValue)
+        elif p_type == TYPE.STRING:
+            num_substrings = int(p_value)
             aux = ''
             first_substring = True
             for j in range(4, num_substrings + 4):
@@ -173,27 +172,27 @@ def compss_worker(persistent_storage):
             values.append(aux)
             logger.debug("\t * Final Value: " + str(aux))
             pos += num_substrings
-        elif pType == TYPE.INT:
-            values.append(int(pValue))
-        elif pType == TYPE.LONG:
-            my_l = long(pValue)
+        elif p_type == TYPE.INT:
+            values.append(int(p_value))
+        elif p_type == TYPE.LONG:
+            my_l = long(p_value)
             if my_l > JAVA_MAX_INT or my_l < JAVA_MIN_INT:
                 # A Python int was converted to a Java long to prevent overflow
                 # We are sure we will not overflow Python int, otherwise this
                 # would have been passed as a serialized object.
                 my_l = int(my_l)
             values.append(my_l)
-        elif pType == TYPE.DOUBLE:
-            values.append(float(pValue))
-        elif pType == TYPE.BOOLEAN:
-            if pValue == 'true':
+        elif p_type == TYPE.DOUBLE:
+            values.append(float(p_value))
+        elif p_type == TYPE.BOOLEAN:
+            if p_value == 'true':
                 values.append(True)
             else:
                 values.append(False)
         # elif (pType == TYPE.OBJECT):
         #    pass
         else:
-            logger.fatal("Invalid type (%d) for parameter %d" % (pType, i))
+            logger.fatal("Invalid type (%d) for parameter %d" % (p_type, i))
             exit(1)
         pos += 4
 
@@ -294,7 +293,7 @@ def compss_worker(persistent_storage):
             serialize_to_file(obj, file_name)
         else:
             # Class method - class is not included in values (e.g. values = [7])
-            types.insert(0, None)    # class must be first type
+            types.insert(0, None)  # class must be first type
 
             if persistent_storage:
                 with storage_task_context(logger, values, config_file_path=storage_conf):
@@ -341,6 +340,7 @@ if __name__ == "__main__":
 
     if tracing:
         import pyextrae.multiprocessing as pyextrae
+
         pyextrae.eventandcounters(SYNC_EVENTS, taskId)
         # pyextrae.eventandcounters(TASK_EVENTS, 0)
         pyextrae.eventandcounters(TASK_EVENTS, WORKER_INITIALIZATION)

@@ -34,10 +34,11 @@ def is_module_available(module_name):
     @param module_name: Name of the module
     @return: Boolean -> True if the module is available, False otherwise
     """
+
     try:
         imp.find_module(module_name)
         return True
-    except:
+    except Exception:
         return False
 
 
@@ -49,6 +50,7 @@ def is_basic_iterable(obj):
     @param obj: Object to be analysed
     @return: Boolean -> True if obj is a basic iterable (see list below), False otherwise
     """
+
     return isinstance(obj, (list, tuple, bytearray, buffer, range, set, frozenset, dict))
 
 
@@ -60,6 +62,7 @@ def object_belongs_to_module(obj, module_name):
     @param module_name: Name of the module we want to check
     @return: Boolean -> True if obj belongs to the given module, False otherwise
     """
+
     return any(module_name == x for x in type(obj).__module__.split('.'))
 
 
@@ -71,13 +74,14 @@ def get_object_hierarchy(obj):
     W A R N I N G: This function can give incomplete object hierarchies if there is
     some object which is iterable and it is not included in our list. Since in python
     __iter__ can modify objects and there is no way to know when this will happen without
-    explictly copying or iterating the object, then only a few safe types will be iterated.
+    explicitly copying or iterating the object, then only a few safe types will be iterated.
     Anyway, this will cover almost all the common Python codes one can find, even in
     scientific environments.
 
     @param obj: Object to be analysed
     @yield: An integer with the id of an object from the object hierarchy of obj
     """
+
     object_stack = [obj]
     vis = set()
     while object_stack:
@@ -104,6 +108,7 @@ def has_subobjects_of_module(obj, module_name):
     @param module_name: Name of the module we want to check
     @return: Boolean -> True if obj or some subobject belongs to the given module, False otherwise
     """
+
     if not is_module_available(module_name):
         return False
     for sub_object in get_object_hierarchy(obj):
@@ -120,4 +125,5 @@ def has_numpy_objects(obj):
     @return: Boolean -> True if obj is a numpy objects (or some of
     its subobjects). False otherwise
     """
+
     return has_subobjects_of_module(obj, 'numpy')

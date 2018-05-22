@@ -31,7 +31,6 @@ from functools import wraps
 from pycompss.util.location import i_am_at_master
 from pycompss.util.location import i_am_within_scope
 
-
 if __debug__:
     logger = logging.getLogger(__name__)
 
@@ -41,6 +40,7 @@ class constraint(object):
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on task constraint creation.
     """
+
     def __init__(self, *args, **kwargs):
         """
         Store arguments passed to the decorator
@@ -50,6 +50,7 @@ class constraint(object):
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
+
         self.args = args
         self.kwargs = kwargs
         self.scope = i_am_within_scope()
@@ -62,6 +63,7 @@ class constraint(object):
         :param func: Function to decorate
         :return: Decorated function.
         """
+
         if not self.scope:
             from pycompss.api.dummy.constraint import constraint as dummy_constraint
             d_c = dummy_constraint(self.args, self.kwargs)
@@ -72,10 +74,10 @@ class constraint(object):
             from pycompss.runtime.binding import register_ce
 
             mod = inspect.getmodule(func)
-            self.module = mod.__name__    # not func.__module__
+            self.module = mod.__name__  # not func.__module__
 
-            if(self.module == '__main__' or
-               self.module == 'pycompss.runtime.launch'):
+            if (self.module == '__main__' or
+                    self.module == 'pycompss.runtime.launch'):
                 # The module where the function is defined was run as __main__,
                 # we need to find out the real module name.
 
@@ -105,15 +107,16 @@ class constraint(object):
             # Include the registering info related to @constraint
 
             # Retrieve the base coreElement established at @task decorator
-            coreElement = func.__to_register__
+            core_element = func.__to_register__
             # Update the core element information with the constraints
-            coreElement.set_implConstraints(self.kwargs)
-            func.__to_register__ = coreElement
+            core_element.set_impl_constraints(self.kwargs)
+            func.__to_register__ = core_element
             # Do the task register if I am the top decorator
             if func.__who_registers__ == __name__:
                 if __debug__:
-                    logger.debug("[@CONSTRAINT] I have to do the register of function %s in module %s" % (func.__name__, self.module))
-                register_ce(coreElement)
+                    logger.debug("[@CONSTRAINT] I have to do the register of function %s in module %s" % (
+                        func.__name__, self.module))
+                register_ce(core_element)
         else:
             # worker code
             pass
@@ -144,5 +147,6 @@ class constraint(object):
                     setattr(slf, k, v)
 
             return ret
+
         constrained_f.__doc__ = func.__doc__
         return constrained_f

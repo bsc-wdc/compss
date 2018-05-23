@@ -131,6 +131,7 @@ public class ResourceManager {
         } catch (NoResourceAvailableException e) {
             ErrorManager.fatal(ERROR_NO_RES, e);
         }
+      
     }
 
     /**

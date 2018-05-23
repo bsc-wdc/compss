@@ -73,7 +73,9 @@ public class WorkerStarter {
     private static final String STARTER_SCRIPT_PATH = "Runtime" + File.separator + "scripts" + File.separator + "system" + File.separator
             + "adaptors" + File.separator + "nio" + File.separator;
     private static final String STARTER_SCRIPT_NAME = "persistent_worker.sh";
-
+    
+    private static final String CLEAN_SCRIPT_PATH = "Runtime" + File.separator + "scripts" + File.separator + "system" + File.separator;
+    private static final String CLEAN_SCRIPT_NAME = "persistent_worker_clean.sh";
     // Connection related parameters
     private static final long START_WORKER_INITIAL_WAIT = 100;
     private static final long WAIT_TIME_UNIT = 500;
@@ -183,14 +185,17 @@ public class WorkerStarter {
         if (this.toStop) {
             String msg = "[STOP]: Worker " + name + " stopped during creation because application is stopped";
             LOGGER.warn(msg);
+            killPreviousWorker(user, name, pid);
             throw new InitNodeException(msg);
         } else if (!this.workerIsReady) {
             String msg = "[TIMEOUT]: Could not start the NIO worker on resource " + name + " through user " + user + ".";
             LOGGER.warn(msg);
+            killPreviousWorker(user, name, pid);
             throw new InitNodeException(msg);
         } else {
             String msg = "[UNKNOWN]: Could not start the NIO worker on resource " + name + " through user " + user + ".";
             LOGGER.warn(msg);
+            killPreviousWorker(user, name, pid);
             throw new InitNodeException(msg);
         }
     }
@@ -489,11 +494,20 @@ public class WorkerStarter {
     }
 
     private String[] getStopCommand(int pid) {
-        String[] cmd = new String[3];
-        // Send SIGTERM to allow ShutdownHooks on Worker
-        cmd[0] = "kill";
-        cmd[1] = "-15";
-        cmd[2] = String.valueOf(pid);
+        String[] cmd = new String[2];
+        String installDir = this.nw.getInstallDir();
+
+        // Send SIGTERM to allow ShutdownHooks on Worker...
+        
+        // Send SIGKILL to all child processes of 'pid'
+        // and send a SIGTERM to the parent process
+        //ps --ppid 2796 -o pid= | awk '{ print $1 }' | xargs kill -15 <--- kills all childs of ppid
+        //kill -15 2796 kills the parentpid
+
+        //necessary to check whether it has file separator or not? /COMPSs////Runtime == /COMPSs/Runtime in bash 
+        cmd[0] = installDir + (installDir.endsWith(File.separator) ? "" : File.separator) + CLEAN_SCRIPT_PATH + CLEAN_SCRIPT_NAME;
+        cmd[1] = String.valueOf(pid);
+        
         return cmd;
     }
 
@@ -570,6 +584,7 @@ public class WorkerStarter {
 
             // Execute stop command
             String[] command = getStopCommand(pid);
+            LOGGER.info("getStopCommand generated this: " + command);
             if (command != null) {
                 executeCommand(user, node.getName(), command);
             }

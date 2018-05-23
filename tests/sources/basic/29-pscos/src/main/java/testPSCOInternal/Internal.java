@@ -40,10 +40,14 @@ public class Internal {
         // ------------------------------------------------------------------------
         System.out.println("[LOG] Test PSCO MERGE-REDUCE");
         testMergeReduce();
-        
+
         // ------------------------------------------------------------------------
         System.out.println("[LOG] Test PSCO MERGE-REDUCE WITH TARGET");
         testMergeReduceTarget();
+
+        // ------------------------------------------------------------------------
+        System.out.println("[LOG] Test PSCO MULTI-TASK MULTI-NODE");
+        testMultiTaskMultiNode();
     }
 
     private static void testPSCOIn() {
@@ -171,7 +175,7 @@ public class Internal {
         System.out.println("[LOG][PSCO_MR] Person " + name + " with age " + age + " has " + numC + " computers");
         System.out.println("[LOG][PSCO_MR] EndId = " + p1.getID());
     }
-    
+
     public static void testMergeReduceTarget() {
         // Init
         Person[] people = new Person[4];
@@ -210,6 +214,20 @@ public class Internal {
         int numC = p1.getNumComputers();
         System.out.println("[LOG][PSCO_MR_TARGET] Person " + name + " with age " + age + " has " + numC + " computers");
         System.out.println("[LOG][PSCO_MR_TARGET] EndId = " + p1.getID());
+    }
+
+    private static void testMultiTaskMultiNode() {
+        String id = "person_" + UUID.randomUUID().toString();
+        // Create PSCO in worker
+        Person p = InternalImpl.taskPSCOReturn("PName4", 4, 4, id);
+        // Modify PSCO in another worker
+        InternalImpl.taskPSCOInOut(p);
+
+        String name = p.getName();
+        int age = p.getAge();
+        int numC = p.getNumComputers();
+        System.out.println("[LOG][PSCO_MULTI-TASK_MULTI-NODE] Person " + name + " with age " + age + " has " + numC + " computers");
+        System.out.println("[LOG][PSCO_MULTI-TASK_MULTI-NODE] BeginId = " + id + " EndId = " + p.getID());
     }
 
 }

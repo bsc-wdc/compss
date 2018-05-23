@@ -31,7 +31,6 @@ import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.RAccessId;
 import es.bsc.compss.types.data.DataAccessId.RWAccessId;
-import es.bsc.compss.types.data.DataAccessId.WAccessId;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.Implementation;
@@ -128,27 +127,32 @@ public class NIOJob extends Job<NIOWorkerNode> {
                         preserveSourceData = false;
                     }
 
-                    // Workaround for Python PSCOs in return
                     // Check if the parameter has a valid PSCO and change its type
-                    String renaming;
+                    // OUT objects are restricted by the API
+                    String renaming = null;
                     DataAccessId faId = dPar.getDataAccessId();
-                    if (faId instanceof WAccessId) {
-                        // Write mode
-                        WAccessId waId = (WAccessId) faId;
-                        renaming = waId.getWrittenDataInstance().getRenaming();
-                    } else if (faId instanceof RWAccessId) {
+                    if (faId instanceof RWAccessId) {
                         // Read write mode
                         RWAccessId rwaId = (RWAccessId) faId;
-                        renaming = rwaId.getWrittenDataInstance().getRenaming();
-                    } else {
+                        renaming = rwaId.getReadDataInstance().getRenaming();
+                    } else if (faId instanceof RAccessId){
                         // Read only mode
                         RAccessId raId = (RAccessId) faId;
                         renaming = raId.getReadDataInstance().getRenaming();
                     }
-                    String pscoId = Comm.getData(renaming).getId();
-                    if (pscoId != null && type.equals(DataType.FILE_T)) {
-                        param.setType(DataType.EXTERNAL_OBJECT_T);
-                        type = param.getType();
+
+                    if (renaming != null) {
+                        String pscoId = Comm.getData(renaming).getId();
+                        if (pscoId != null) {
+                            if (type.equals(DataType.OBJECT_T)) {
+                                // Change Object type if it is a PSCO
+                                param.setType(DataType.PSCO_T);
+                            } else if (type.equals(DataType.FILE_T)) {
+                                // Change external object type (Workaround for Python PSCO return objects)
+                                param.setType(DataType.EXTERNAL_OBJECT_T);
+                            }
+                            type = param.getType();
+                        }
                     }
 
                     // Create the NIO Param

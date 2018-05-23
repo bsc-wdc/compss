@@ -1,6 +1,7 @@
 package testPSCOInternal;
 
 import model.Person;
+import es.bsc.compss.types.annotations.Constraints;
 import es.bsc.compss.types.annotations.Parameter;
 import es.bsc.compss.types.annotations.parameter.Type;
 import es.bsc.compss.types.annotations.parameter.Direction;
@@ -15,6 +16,7 @@ public interface InternalItf {
 	);
 
 	@Method(declaringClass = "testPSCOInternal.InternalImpl")
+    @Constraints(processorName="MainProcessor2")
 	public void taskPSCOInOut(
 		@Parameter (type = Type.OBJECT, direction = Direction.INOUT) Person p
 	);
@@ -25,6 +27,7 @@ public interface InternalItf {
 	);
 
 	@Method(declaringClass = "testPSCOInternal.InternalImpl")
+	@Constraints(processorName="MainProcessor1")
 	public Person taskPSCOReturn(
 		@Parameter (type = Type.STRING, direction = Direction.IN) String name, 
 		@Parameter () int age, 
@@ -55,6 +58,7 @@ public interface InternalItf {
 	);
 	
 	@Method(declaringClass = "testPSCOInternal.InternalImpl")
+        @Constraints(processorName="MainProcessor1")
 	public Person taskReduce(
 		@Parameter (type = Type.OBJECT, direction = Direction.IN) Person p1, 
 		@Parameter (type = Type.OBJECT, direction = Direction.IN) Person p2

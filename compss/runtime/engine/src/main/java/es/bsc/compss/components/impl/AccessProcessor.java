@@ -775,5 +775,18 @@ public class AccessProcessor implements Runnable, TaskProducer {
             ErrorManager.error(ERROR_QUEUE_OFFER + "unlock result files");
         }
     }
+    
+    /**
+     * deregisters the given object
+     *
+     * @param o
+     */
+    public void deregister_object(Object o) {
+    	
+        if (!requestQueue.offer(new DeregisterObject(o))) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "deregister object");
+        }
+    
+    }
 
 }

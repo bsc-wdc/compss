@@ -552,6 +552,27 @@ public class DataInfoProvider {
         }
         return dataInfo;
     }
+    
+    /**
+     * Deletes the data associated with the code
+     * 
+     * @param code
+     * @return ObjectInfo
+     */
+    public ObjectInfo deleteData(int code) {
+    	LOGGER.debug("Deleting Data associated with code: " + String.valueOf(code));
+    	
+        Integer id = codeToId.get(code);
+        if (id == null)
+        	return null;
+        
+        ObjectInfo oi = (ObjectInfo) idToData.get(id);
+        
+        //We delete the data associated with all the versions of the same object
+        oi.delete(); 
+        
+        return oi;
+    }
 
     /**
      * Transfers the value of an object

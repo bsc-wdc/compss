@@ -684,7 +684,7 @@ void GS_Off()
   check_and_attach(m_jvm, m_env);
 
 
-  midNoMoreTasksIT = m_env->GetMethodID(clsITimpl, "noMoreTasks", "(Ljava/lang/Long;Z)V");
+  midNoMoreTasksIT = m_env->GetMethodID(clsITimpl, "noMoreTasks", "(Ljava/lang/Long;)V");
   if (m_env->ExceptionOccurred()) {
 	  debug_printf("[BINDING-COMMONS]  -  @Off  -  Error: Exception loading noMoreTasks method.\n");
 	  m_env->ExceptionDescribe();
@@ -942,7 +942,7 @@ void GS_Close_File(char *file_name, int mode) {
   debug_printf("[BINDING-COMMONS]  -  @GS_Close_File  -  COMPSs filename: %s\n", file_name);
 }
 
-void GS_Delete_File(char *file_name, int **buf)
+void GS_Delete_File(char *file_name)
 {
   int isAttached = check_and_attach(m_jvm, m_env);
 
@@ -953,7 +953,7 @@ void GS_Delete_File(char *file_name, int **buf)
 	  GS_Off();
       exit(1);
   }
-  *buf = (int*)&res;
+  //*buf = (int*)&res;
   if (isAttached==1){
   	m_jvm->DetachCurrentThread();
   }

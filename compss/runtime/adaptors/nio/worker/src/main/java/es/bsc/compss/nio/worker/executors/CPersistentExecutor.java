@@ -37,9 +37,9 @@ public class CPersistentExecutor extends PersistentExternalExecutor {
 
     @Override
     public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits,
-            int[] assignedGPUs) {
+            int[] assignedGPUs, int[] assignedFPGAs) {
         
-        return CExecutionCommandGenerator.getTaskExecutionCommand(nw, nt, sandBox, assignedCoreUnits, assignedGPUs);
+        return CExecutionCommandGenerator.getTaskExecutionCommand(nw, nt, sandBox, assignedCoreUnits, assignedGPUs, assignedFPGAs);
 
     }
 

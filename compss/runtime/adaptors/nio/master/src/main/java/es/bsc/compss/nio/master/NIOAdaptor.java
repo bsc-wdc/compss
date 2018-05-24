@@ -19,19 +19,17 @@ package es.bsc.compss.nio.master;
 import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.Connection;
 import es.bsc.comm.nio.NIONode;
+import es.bsc.comm.stage.Transfer;
 import es.bsc.comm.stage.Transfer.Destination;
-
 import es.bsc.compss.COMPSsConstants;
-
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
-
 import es.bsc.compss.log.Loggers;
-
+import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.resources.ExecutorShutdownListener;
+import es.bsc.compss.util.BindingDataManager;
 import es.bsc.compss.util.ErrorManager;
-
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOMessageHandler;
 import es.bsc.compss.nio.NIOTask;
@@ -44,7 +42,6 @@ import es.bsc.compss.nio.dataRequest.DataRequest;
 import es.bsc.compss.nio.dataRequest.MasterDataRequest;
 import es.bsc.compss.nio.exceptions.SerializedObjectException;
 import es.bsc.compss.nio.master.configuration.NIOConfiguration;
-
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.listener.EventListener;
@@ -125,6 +122,12 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
      */
     public NIOAdaptor() {
         super(MAX_SEND, MAX_RECEIVE, MASTER_PORT);
+        //Setting persistentC flag in the NIOAgent
+        String persistentCStr = System.getProperty(COMPSsConstants.WORKER_PERSISTENT_C);
+        if (persistentCStr == null || persistentCStr.isEmpty() || persistentCStr.equals("null")) {
+            persistentCStr = COMPSsConstants.DEFAULT_PERSISTENT_C;
+        }
+        setPersistent(Boolean.parseBoolean(persistentCStr));
         File file = new File(JOBS_DIR);
         if (!file.exists()) {
             file.mkdir();
@@ -693,6 +696,24 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         public ClosingExecutor(ExecutorShutdownListener l) {
             listener = l;
         }
+    }
+
+
+    @Override
+    public void receivedBindingObjectAsFile(String filename, String target) {
+        // Load from file
+        if (filename.contains("#")){
+            //Filename contains binding object 
+            filename = BindingObject.generate(filename).getId();
+        }
+        if (target.contains("#")){
+            BindingObject bo = BindingObject.generate(target);
+            BindingDataManager.loadFromFile(bo.getName(), filename, bo.getType(), bo.getElements());
+        }else{
+            ErrorManager.error("Incorrect target format for binding object.("+ target +")");
+        }
+        
+        
     }
 
 }

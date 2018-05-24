@@ -105,9 +105,11 @@ template <class T> T compss_wait_on(T& obj) {
 				"\tEither compss_wait_on is not needed or object pointer is not correctly passed.\n");
 		return obj;
 	}else{
-		T* new_obj = (T*)sync_object_from_runtime(entry.filename, entry.object_type, entry.elements) ;
+		debug_printf("[C-BINDING]  -  @compss_wait_on  -  sync object %s to runtime\n", entry.filename);
+		T* new_obj = (T*)sync_object_from_runtime(entry.filename, entry.object_type, entry.elements);
 		remove(entry.filename);
 		objectMap.erase(&obj);
+		debug_printf("[C-BINDING]  -  @compss_wait_on  -  object synchronized\n");
 		return (*new_obj);
 	}
 }
@@ -120,12 +122,13 @@ void compss_wait_on(T* &obj) {
   debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.classname: %s\n", entry.classname);
   debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", entry.filename);
   debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.object_type: %d\n", entry.object_type);
-  debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.object_type: %d\n", entry.elements);
+  debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.elements: %d\n", entry.elements);
 
   if (entry.classname == NULL) {
 	  printf("[C-BINDING]  -  WARNING  -  @compss_wait_on  -  Waiting on an object which has not been accessed by a task.\n"
 			  "\tEither compss_wait_on is not needed or object pointer is not correctly passed.\n");
   }else{
+	  debug_printf("[C-BINDING]  -  @compss_wait_on  -  sync object %s to runtime\n", entry.filename);
 	  obj = (T*)sync_object_from_runtime(entry.filename, entry.object_type, entry.elements);
 	  //OLD
 	  /*GS_Get_File(entry.filename, in_dir, &runtime_filename);
@@ -142,6 +145,7 @@ void compss_wait_on(T* &obj) {
       remove(runtime_filename);*/
       remove(entry.filename);
       objectMap.erase(obj);
+      debug_printf("[C-BINDING]  -  @compss_wait_on  -  object synchronized\n");
   }
 }
 

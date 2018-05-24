@@ -110,12 +110,12 @@ public abstract class PersistentExternalExecutor extends Executor {
 
     @Override
     public void executeTask(NIOWorker nw, NIOTask nt, String outputsBasename, File taskSandboxWorkingDir, int[] assignedCoreUnits,
-            int[] assignedGPUs) throws Exception {
+            int[] assignedGPUs, int[] assignedFPGAs) throws Exception {
 
         // Check if it is a native method or not
         switch (nt.getMethodType()) {
             case METHOD:
-                executeNativeMethod(nw, nt, outputsBasename, taskSandboxWorkingDir, assignedCoreUnits, assignedGPUs);
+                executeNativeMethod(nw, nt, outputsBasename, taskSandboxWorkingDir, assignedCoreUnits, assignedGPUs, assignedFPGAs);
                 break;
             case BINARY:
                 BinaryInvoker binaryInvoker = new BinaryInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
@@ -141,9 +141,9 @@ public abstract class PersistentExternalExecutor extends Executor {
     }
 
     private void executeNativeMethod(NIOWorker nw, NIOTask nt, String outputsBasename, File taskSandboxWorkingDir, int[] assignedCoreUnits,
-            int[] assignedGPUs) throws JobExecutionException, SerializedObjectException {
+            int[] assignedGPUs, int[] assignedFPGAs) throws JobExecutionException, SerializedObjectException {
 
-        ArrayList<String> args = getTaskExecutionCommand(nw, nt, taskSandboxWorkingDir.getAbsolutePath(), assignedCoreUnits, assignedGPUs);
+        ArrayList<String> args = getTaskExecutionCommand(nw, nt, taskSandboxWorkingDir.getAbsolutePath(), assignedCoreUnits, assignedGPUs, assignedFPGAs);
         
         String externalCommand = ExternalExecutor.getExternalCommand(args, nt, nw, assignedCoreUnits, assignedGPUs);
 
@@ -169,7 +169,7 @@ public abstract class PersistentExternalExecutor extends Executor {
     }
 
     public abstract ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits,
-            int[] assignedGPUs);
+            int[] assignedGPUs, int[] assignedFPGAs);
 
 
     

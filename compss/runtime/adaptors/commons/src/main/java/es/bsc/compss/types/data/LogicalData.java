@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.concurrent.Semaphore;
 
 import es.bsc.compss.types.data.listener.SafeCopyListener;
+import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.data.location.PersistentLocation;
@@ -35,6 +36,7 @@ import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
+import es.bsc.compss.util.BindingDataManager;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
 import es.bsc.compss.util.SharedDiskManager;
@@ -58,7 +60,8 @@ public class LogicalData {
 
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
-
+    private static final boolean DEBUG = LOGGER.isDebugEnabled(); 
+    private static final String DBG_PREFIX = "[LogicalData] ";
     // Logical data name
     private final String name;
     // Value in memory, null if value in disk
@@ -294,37 +297,55 @@ public class LogicalData {
      * @throws Exception
      */
     public synchronized void writeToStorage() throws IOException {
-        if (this.id != null) {
-            // It is a persistent object that is already persisted
-            // Nothing to do
-            // If the PSCO is not persisted we treat it as a normal object
-        	//TODO: Check if BINDING_DATA
-        } else {
-        	//TODO: Check if BINDING_DATA
-            // The object must be written to file
+        if (DEBUG){
+            LOGGER.debug(DBG_PREFIX + "Writting object " + this.name + " to storage");
+        }
+        if (isBindingData){
             String targetPath = Comm.getAppHost().getWorkingDirectory() + this.name;
-            Serializer.serialize(value, targetPath);
+            if (DEBUG){
+                LOGGER.debug(DBG_PREFIX + "Writting binding object " + this.id + " to file " + targetPath);
+            }
+            BindingDataManager.storeInFile(getId(), targetPath);
+            addWrittenObjectLocation(targetPath);
+        }else{
+            if (this.id != null) {
+                // It is a persistent object that is already persisted
+                // Nothing to do
+                // If the PSCO is not persisted we treat it as a normal object
+            } else {
 
-            String targetPathWithSchema = Protocol.FILE_URI.getSchema() + targetPath;
-            SimpleURI targetURI = new SimpleURI(targetPathWithSchema);
-            DataLocation loc = DataLocation.createLocation(Comm.getAppHost(), targetURI);
-
-            this.isBeingSaved = false;
-            this.locations.add(loc);
-            for (Resource r : loc.getHosts()) {
-                switch (loc.getType()) {
-                	case BINDING:
-                	case PRIVATE:
-                        r.addLogicalData(this);
-                        break;
-                    case SHARED:
-                        SharedDiskManager.addLogicalData(loc.getSharedDisk(), this);
-                        break;
-                    
-                    case PERSISTENT:
-                        // Nothing to do
-                        break;
+                // The object must be written to file
+                String targetPath = Comm.getAppHost().getWorkingDirectory() + this.name;
+                if (DEBUG){
+                    LOGGER.debug(DBG_PREFIX + "Writting object " + this.name + " to file " + targetPath);
                 }
+                Serializer.serialize(value, targetPath);
+                addWrittenObjectLocation(targetPath);
+            }
+        }
+        if (DEBUG){
+            LOGGER.debug(DBG_PREFIX + "Object " + this.name + " written to storage");
+        }
+    }
+        
+    private void addWrittenObjectLocation(String targetPath) throws IOException{
+        String targetPathWithSchema = Protocol.FILE_URI.getSchema() + targetPath;
+        SimpleURI targetURI = new SimpleURI(targetPathWithSchema);
+        DataLocation loc = DataLocation.createLocation(Comm.getAppHost(), targetURI);
+        this.isBeingSaved = false;
+        this.locations.add(loc);
+        for (Resource r : loc.getHosts()) {
+            switch (loc.getType()) {
+                case BINDING:
+                case PRIVATE:
+                    r.addLogicalData(this);
+                    break;
+                case SHARED:
+                    SharedDiskManager.addLogicalData(loc.getSharedDisk(), this);
+                    break;
+                case PERSISTENT:
+                    // Nothing to do
+                    break;
             }
         }
     }

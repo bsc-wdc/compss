@@ -426,7 +426,13 @@ public abstract class Resource implements Comparable<Resource> {
                 listener.addOperation();
 
                 DataLocation safeLoc = null;
-                String safePath = Protocol.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + ld.getName();
+                String safePath = null; 
+                if (lastLoc.getType().equals(DataLocation.Type.BINDING)){
+                    BindingObject bo = BindingObject.generate(lastLoc.getPath());
+                    safePath = Protocol.BINDING_URI.getSchema() + Comm.getAppHost().getTempDirPath() + ld.getName() + "#" + bo.getType() + "#" + bo.getElements();
+                }else{
+                    safePath = Protocol.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + ld.getName();
+                }
                 try {
                     SimpleURI uri = new SimpleURI(safePath);
                     safeLoc = DataLocation.createLocation(Comm.getAppHost(), uri);

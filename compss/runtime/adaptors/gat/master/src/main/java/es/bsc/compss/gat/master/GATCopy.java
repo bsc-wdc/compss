@@ -16,13 +16,15 @@
  */
 package es.bsc.compss.gat.master;
 
+import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CopyException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
-
 import es.bsc.compss.gat.master.exceptions.GATCopyException;
-
+import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.data.listener.EventListener;
+import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.location.DataLocation.Type;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.operation.copy.ImmediateCopy;
@@ -30,7 +32,7 @@ import es.bsc.compss.types.data.transferable.WorkersDebugInfoCopyTransferable;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.annotations.parameter.DataType;
-
+import es.bsc.compss.util.BindingDataManager;
 import es.bsc.compss.util.ErrorManager;
 
 import java.io.File;
@@ -49,14 +51,16 @@ public class GATCopy extends ImmediateCopy {
     private static final String ERR_NO_SRC_URI = "No valid source URIs";
     private static final String DBG_PREFIX = "[GAT_COPY] ";
     private final Transferable reason;
-
+    boolean isBindingObject = false;
 
     public GATCopy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData, Transferable reason,
             EventListener listener) {
 
         super(srcData, prefSrc, prefTgt, tgtData, reason, listener);
         this.reason = reason;
-
+        if (srcData.isBindingData() || (reason != null && reason.getType().equals(DataType.BINDING_OBJECT_T))||(prefSrc!=null && prefSrc.getType().equals(Type.BINDING))|| (prefTgt!=null && prefTgt.getType().equals(Type.BINDING))){
+            isBindingObject = true;
+        }
         for (MultiURI uri : prefTgt.getURIs()) {
             String path = uri.getPath();
             if (path.startsWith(File.separator)) {
@@ -64,7 +68,11 @@ public class GATCopy extends ImmediateCopy {
             } else {
                 Resource host = uri.getHost();
                 try {
-                    this.tgtLoc = DataLocation.createLocation(host, host.getCompleteRemotePath(DataType.FILE_T, path));
+                    if (isBindingObject){
+                        this.tgtLoc = DataLocation.createLocation(host, host.getCompleteRemotePath(DataType.BINDING_OBJECT_T, path));
+                    } else {
+                        this.tgtLoc = DataLocation.createLocation(host, host.getCompleteRemotePath(DataType.FILE_T, path));
+                    }
                 } catch (Exception e) {
                     ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
                 }
@@ -130,7 +138,7 @@ public class GATCopy extends ImmediateCopy {
 
             if (selectedSourceURIs.isEmpty()) {
                 if (srcData.isInMemory()) {
-                    LOGGER.debug("Data for " + getName() + " is in memory");
+                    LOGGER.debug(DBG_PREFIX + "Data for " + getName() + " is in memory");
                     try {
                         srcData.writeToStorage();
                         sourceURIs = srcData.getURIs();
@@ -141,7 +149,7 @@ public class GATCopy extends ImmediateCopy {
                             }
                         }
                     } catch (Exception e) {
-                        LOGGER.fatal("Exception writing object to file.", e);
+                        LOGGER.fatal(DBG_PREFIX +"Exception writing object to file.", e);
                         throw new GATCopyException(ERR_NO_SRC_URI);
                     }
                 } else {
@@ -156,21 +164,58 @@ public class GATCopy extends ImmediateCopy {
             for (URI tgt : selectedTargetURIs) {
                 try {
                     if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("GATCopy From: " + src + " to " + tgt);
+                        LOGGER.debug(DBG_PREFIX +"Converting URIs From: " + src + " to " + tgt+ " to GAT format");
                     }
                     // Source and target URIs contain Runtime information (schema)
-                    // Convert it to GAT format
-                    URI gatSrc = new URI(DataLocation.Protocol.ANY_URI.getSchema() + src.getHost() + "/" + src.getPath());
-                    URI gatTgt = new URI(DataLocation.Protocol.ANY_URI.getSchema() + tgt.getHost() + "/" + tgt.getPath());
+                    // Convert it to GAT format and get Binding object type and elements if required
+                    String srcPath = src.getPath();
+                    int boType = 0;
+                    int boElements = 0;
+                    if (isBindingObject){
+                        if (srcPath.contains("#")){
+                            BindingObject bo = BindingObject.generate(srcPath);
+                            srcPath = bo.getId();
+                            boType = bo.getType();
+                            boElements = bo.getElements();
+                        }
+                    }
+                    URI gatSrc = new URI(DataLocation.Protocol.ANY_URI.getSchema() + src.getHost() + "/" + srcPath);
+                    String tgtPath = tgt.getPath();
+                    if (isBindingObject){
+                        if (tgtPath.contains("#")){
+                            BindingObject bo = BindingObject.generate(tgtPath);
+                            tgtPath = bo.getId();
+                            boType = bo.getType();
+                            boElements = bo.getElements();
+                        }
+                    }
+                    URI gatTgt = new URI(DataLocation.Protocol.ANY_URI.getSchema() + tgt.getHost() + "/" + tgtPath);
 
                     if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("GATCopy From: " + gatSrc + " to " + gatTgt);
+                        LOGGER.debug(DBG_PREFIX + "Copying file From: " + gatSrc + " to " + gatTgt);
                     }
                     doCopy(gatSrc, gatTgt);
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug(DBG_PREFIX + "File " + gatTgt +" copied.");
+                    }
+                    if (isBindingObject){
+                        if (tgt.getHost().equals(Comm.getAppHost().getName())){
+                            if (LOGGER.isDebugEnabled()) {
+                                LOGGER.debug(DBG_PREFIX + "Loading Binding object from " + tgtPath +" with id: " + getName()+" type: "+ boType + " elements: " + boElements);
+                            }
+                            
+                            int result = BindingDataManager.loadFromFile(getName() ,tgtPath, boType, boElements);
+                            if (result!=0){
+                                LOGGER.error("Error loading object to cache from file " + tgtPath);
+                                throw new Exception("Error loading object to cache from file " + tgtPath);
+                            }
+                        }   
+                    }
+                        
                     // Try to copy from each location until successful
                 } catch (Exception e) {
                     exception.add("default logical file", e);
-                    LOGGER.warn("Error copying file", e);
+                    LOGGER.warn(DBG_PREFIX + "Error copying file", e);
                     continue;
                 }
                 return;

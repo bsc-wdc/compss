@@ -3,12 +3,21 @@
 #include <errno.h>
 #include <string.h>
 #include <assert.h>
-
+#include <unistd.h>
 // #define DEBUG_BINDING
 
 
 #include "TestArrays.h"
 
+//For testing purposes
+/*float *test2(int bSize){
+        float *array = new float[bSize];
+        for (int i= 0; i<bSize; i++){
+                array[i]=1.0;
+                std::cout << i << ":" << array[i] << std::endl;
+        }
+        return array;
+}*/
 
 int main(int argc, char **argv)
 {
@@ -42,7 +51,7 @@ int main(int argc, char **argv)
 	printf("Array 3: %p\n",array3);
 	char *file = "hola.txt";
 	Block::test1(size, array1, array2, array3, file);
-	printf("Array 1(after): %p\n",array1);	
+	printf("Array 1(after): %p\n",array1);
 	float *array4 = test2(size);
 	printf("Array 4(returned): %p\n",array4);
 	Block *a = new Block();
@@ -52,13 +61,14 @@ int main(int argc, char **argv)
 	test4(array1);
 	compss_wait_on(a);
 	compss_wait_on(array4);
+	printf("Array 4(after wait_on): %p\n",array4);
 	if (array4[0]!=1.0f){
 	      printf("ERROR: Generated array4 not valid. Value is %f\n", array4[0]);
+	      sleep(60);
               compss_off();
 	      return -1;
         }
-
- 	compss_wait_on(array1);
+	compss_wait_on(array1);
 	if (array1[MAX-1]!= 9.0f){
               printf("Generated array1 not valid. Value is %f\n", array1[MAX-1]);
               compss_off();

@@ -102,7 +102,6 @@ public class NIOWorker extends NIOAgent {
     private static String storageConf;
     private static String executionType;
 
-    private static boolean persistentC;
 
     // Python related variables
     private static String pythonInterpreter;
@@ -226,9 +225,6 @@ public class NIOWorker extends NIOAgent {
         }
     }
 
-    public static boolean isPersistentCEnabled() {
-        return persistentC;
-    }
 
     public static String getPythonInterpreter() {
         return pythonInterpreter;
@@ -1141,7 +1137,7 @@ public class NIOWorker extends NIOAgent {
         storageConf = args[24];
         executionType = args[25];
 
-        persistentC = Boolean.parseBoolean(args[26]);
+        setPersistent(Boolean.parseBoolean(args[26]));
 
         pythonInterpreter = args[27];
         pythonVersion = args[28];
@@ -1264,6 +1260,12 @@ public class NIOWorker extends NIOAgent {
             WORKER_LOGGER.warn("TransferManager interrupted", ie);
             Thread.currentThread().interrupt();
         }
+    }
+
+    @Override
+    public void receivedBindingObjectAsFile(String filename, String target) {
+        // Nothing to do at worker
+        
     }
 
 }

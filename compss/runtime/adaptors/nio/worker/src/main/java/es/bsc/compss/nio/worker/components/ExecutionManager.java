@@ -100,7 +100,7 @@ public class ExecutionManager {
                 this.pool = new PythonThreadPool(nw, numThreads);
                 break;
             case C:
-                if (NIOWorker.isPersistentCEnabled()) {
+                if (NIOWorker.isPersistentEnabled()) {
                     this.pool = new PersistentCThreadPool(nw, numThreads);
                 }else{
                     this.pool = new CThreadPool(nw, numThreads);

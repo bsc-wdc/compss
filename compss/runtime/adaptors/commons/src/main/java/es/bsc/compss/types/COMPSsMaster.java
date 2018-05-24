@@ -483,20 +483,22 @@ public class COMPSsMaster extends COMPSsNode {
             EventListener listener) {
 
         LOGGER.info("Obtain Data " + ld.getName());
-        if (ld !=null){
-            LOGGER.debug("srcData: "+ ld.toString());
-        }
-        if (reason !=null){
-            LOGGER.debug("Reason: " +reason.getType());
-        }
-        if (source!=null){
-            LOGGER.debug("Source Data location" + source.getType().toString() +" " +source.getProtocol().toString()+ " " +source.getURIs().get(0));
-        }
-        if (target!=null){
-            LOGGER.debug("Target Data location" + target.getType().toString() +" " +target.getProtocol().toString()+ " " +target.getURIs().get(0));
-        }
-        if (ld !=null){
-            LOGGER.debug("tgtData: "+ tgtData.toString());
+        if (DEBUG){
+            if (ld !=null){
+                LOGGER.debug("srcData: "+ ld.toString());
+            }
+            if (reason !=null){
+                LOGGER.debug("Reason: " +reason.getType());
+            }
+            if (source!=null){
+                LOGGER.debug("Source Data location" + source.getType().toString() +" " +source.getProtocol().toString()+ " " +source.getURIs().get(0));
+            }
+            if (target!=null){
+                LOGGER.debug("Target Data location" + target.getType().toString() +" " +target.getProtocol().toString()+ " " +target.getURIs().get(0));
+            }
+            if (tgtData !=null){
+                LOGGER.debug("tgtData: "+ tgtData.toString());
+            }
         }
         /* 
          * Check if data is binding data

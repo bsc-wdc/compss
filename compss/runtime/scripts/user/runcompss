@@ -49,8 +49,10 @@ else
 fi
 DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT=true
 
-DEFAULT_COMMUNICATION_ADAPTOR=es.bsc.compss.nio.master.NIOAdaptor
-#DEFAULT_COMMUNICATION_ADAPTOR=es.bsc.compss.gat.master.GATAdaptor
+NIO_ADAPTOR=es.bsc.compss.nio.master.NIOAdaptor
+GAT_ADAPTOR=es.bsc.compss.gat.master.GATAdaptor
+DEFAULT_COMMUNICATION_ADAPTOR=${NIO_ADAPTOR}
+#DEFAULT_COMMUNICATION_ADAPTOR=${GAT_ADAPTOR}
 DEFAULT_CONNECTOR=es.bsc.compss.connectors.DefaultSSHConnector
 DEFAULT_MASTER_PORT="[43000,44000]"
 DEFAULT_MASTER_NAME=""
@@ -516,10 +518,10 @@ get_args() {
             # Worker FPGA affinity
             worker_fpga_affinity=${OPTARG//fpga_affinity=/}
             ;;
-		  fpga_reprogram=*)
-			# Command to reprogram the FPGA with the specified bitstream
-			fpga_prog=${OPTARG//fpga_reprogram=/}
-			;;
+          fpga_reprogram=*)
+            # Command to reprogram the FPGA with the specified bitstream
+            fpga_prog=${OPTARG//fpga_reprogram=/}
+            ;;
           external_debugger=*)
             # Enable external debugger on specific port
             external_debugger=${DEFAULT_DEBUGGER_ARGUMENT}
@@ -743,7 +745,7 @@ check_args() {
   if [ -z "$monitoring" ]; then
     monitoring=${DEFAULT_MONITORING_INTERVAL}
   else
-    # If monitor as been activated trigger final graph generation and log_level = at least info
+    # If monitor has been activated trigger final graph generation and log_level = at least info
     graph=${DEFAULT_GRAPH_ARGUMENT}
     if [ "${log_level}" == "${DEFAULT_LOG_LEVEL}" ] || [ "${log_level}" == "${LOG_LEVEL_OFF}" ]; then
        log_level=${LOG_LEVEL_INFO}
@@ -760,6 +762,9 @@ check_args() {
     itlog4j_file="COMPSsMaster-log4j"
   else
     itlog4j_file="COMPSsMaster-log4j.${log_level}"
+  fi
+  if [ "${log_level}" == "${LOG_LEVEL_DEBUG}" ]; then 
+    export COMPSS_BINDINGS_DEBUG=1
   fi
 
   # Adaptor
@@ -895,6 +900,13 @@ check_args() {
   if [ -z "$persistent_worker_c" ]; then
 	persistent_worker_c=$DEFAULT_PERSISTENT_WORKER_C
   fi
+
+  if [ "$comm" == "${NIO_ADAPTOR}" ]; then
+    if [ "${persistent_worker_c}" == "true" ]; then
+	export COMPSS_PERSISTENT_BINDING=0
+    fi
+  fi
+
   if [ -z "$external_adaptation" ]; then
 	external_adaptation=$DEFAULT_EXTERNAL_ADAPTATION
   fi

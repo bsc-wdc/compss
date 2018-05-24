@@ -477,9 +477,9 @@ public class GATWorker {
         System.out.println("");
         System.out.println("[GAT WORKER] ------------------------------------");
         System.out.println("[GAT WORKER] Parameters of execution:");
-        for (int j = 0; j < GATWorker.methodDefinition.length; ++j) {
-            System.out.println("  * Method Description " + j + ": " + GATWorker.methodDefinition[j]);
-        }
+        System.out.println("  * Method type: "+ GATWorker.methodType.toString());
+        System.out.println("  * Method definition: " + printMethodDefinition());
+       
 
         System.out.print("  * Parameter types:");
         for (Class<?> c : GATWorker.types) {
@@ -504,6 +504,40 @@ public class GATWorker {
         } else {
             System.out.println("  * Has NO return");
         }
+    }
+
+    private static String printMethodDefinition() {
+        String methodDefStr = null;
+        switch (GATWorker.methodType) {
+            case METHOD:
+                // classname, methodname
+                methodDefStr = new String("[DECLARING CLASS=" + GATWorker.methodDefinition[0] +", METHOD NAME="+GATWorker.methodDefinition[1]+"]");
+                break;
+            case MPI:
+                // mpiRunner, mpiBinary
+                methodDefStr = new String("[MPI RUNNER=" + GATWorker.methodDefinition[0] +", BINARY="+GATWorker.methodDefinition[1]+"]");
+                break;
+            case DECAF:
+                // dfScript, mpiRunner, mpiBinary
+                methodDefStr = new String("[DF SCRIPT= " + GATWorker.methodDefinition[0] +", MPI RUNNER=" + GATWorker.methodDefinition[1] +", BINARY="+GATWorker.methodDefinition[2]+"]");
+                //GATWorker.methodDefinition = new String[] { args[argPosition], args[argPosition + 1], args[argPosition + 2], args[argPosition + 3], args[argPosition + 4] };
+                break;
+            case OMPSS:
+                // binary
+                methodDefStr = new String("[BINARY="+GATWorker.methodDefinition[0]+"]");
+                break;
+            case OPENCL:
+                // kernel
+                methodDefStr = new String("[KERNEL="+GATWorker.methodDefinition[0]+"]");
+                break;
+            case BINARY:
+                // binary
+                methodDefStr = new String("[BINARY="+GATWorker.methodDefinition[0]+"]");
+            break;
+            default:
+                methodDefStr = new String();
+        }
+        return methodDefStr;
     }
 
     /**

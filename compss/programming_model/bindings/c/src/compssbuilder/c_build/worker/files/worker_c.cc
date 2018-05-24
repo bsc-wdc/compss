@@ -17,8 +17,6 @@
 #include <generated_executor.h>
 #include <CBindingCache.h>
 
-CBindingCache *cache;
-
 int get_compss_worker_lock(){
   return 0;
 }
@@ -28,6 +26,7 @@ int release_compss_worker_lock(){
 }
 
 int main(int argc, char **argv) {
+    CBindingCache *cache = new CBindingCache();
     int out = execute(argc, argv, cache, 1);
     if (out == 0){
         printf("Task executed successfully");

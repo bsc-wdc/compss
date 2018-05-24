@@ -28,7 +28,7 @@
   output_log="${target_log_folder}/replicatedTask_0${retryNum}.outputlog"
   error_log="${target_log_folder}/replicatedTask_0${retryNum}.errorlog"
   final_graph_expected="${base_app_dir}/final_graph.dot"
-  expectedTime=180s
+  expectedTime=240s
   
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \

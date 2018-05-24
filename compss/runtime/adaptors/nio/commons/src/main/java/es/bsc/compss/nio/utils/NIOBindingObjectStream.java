@@ -21,6 +21,7 @@ import es.bsc.compss.log.Loggers;
 public class NIOBindingObjectStream{
     // Logging
     private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
+    private static final String DBG_PREFIX = "[NIOBindingObjectStream] ";
 	NIOConnection c;
 	NIOBindingObjectTransferListener ncl;
 	
@@ -34,12 +35,12 @@ public class NIOBindingObjectStream{
     		if (b!=null){
     			if (b.hasArray()){
     				byte[] bArray = b.array();
-    				LOGGER.debug("[NIOConnStream] Sending buffer array "+ bArray.length );
+    				LOGGER.debug( DBG_PREFIX + "Sending buffer array "+ bArray.length );
     				c.sendDataArray(b.array());
     			}else{
     				byte[] bArray = new byte[b.limit()];
     				b.get(bArray);
-    				LOGGER.debug("[NIOConnStream] Sending array " + bArray.length);
+    				LOGGER.debug(DBG_PREFIX + "Sending array " + bArray.length);
     				c.sendDataArray(bArray);
     			}
     		}
@@ -47,19 +48,19 @@ public class NIOBindingObjectStream{
 	}
 	    
 	public byte[] pull() throws Exception{
-	    LOGGER.debug("[NIOConnStream] Pulling byte array");
+	    LOGGER.debug(DBG_PREFIX +"Pulling byte array");
 		ncl.addOperation();
 		c.receiveDataArray();
 		ncl.enable();
-		LOGGER.debug("[NIOConnStream] Waiting to receive the data array");
+		LOGGER.debug(DBG_PREFIX +"Waiting to receive the data array");
 		ncl.aquire();
 		Transfer t = ncl.getTransfer();
 		if (t.isArray()){
 			byte[] bArray = ncl.getTransfer().getArray();
-			LOGGER.debug("[NIOConnStream] Returning array of " + bArray.length + "\n" + Arrays.toString(bArray));
+			LOGGER.debug(DBG_PREFIX + "Returning array of " + bArray.length);
 			return bArray;
 		}else{ 
-			LOGGER.debug("[NIOConnStream] Error is not an Array");
+			LOGGER.debug(DBG_PREFIX + "Error is not an Array");
 			throw new Exception("Transfer is not an array");
 		}
 	}

@@ -44,6 +44,7 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
+import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.RAccessId;
@@ -642,12 +643,15 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 case BINDING_OBJECT_T:
                     DependencyParameter dExtObjPar = (DependencyParameter) param;
                     DataAccessId dExtObjAccId = dExtObjPar.getDataAccessId();
-                    lArgs.add(dExtObjPar.getDataTarget());
-                    if (dExtObjAccId instanceof RAccessId) {
+                    BindingObject bo = BindingObject.generate(dExtObjPar.getDataTarget());
+                    lArgs.add(bo.getId());
+                    lArgs.add(Integer.toString(bo.getType()));
+                    lArgs.add(Integer.toString(bo.getElements()));
+                    /*if (dExtObjAccId instanceof RAccessId) {
                         lArgs.add("R");
                     } else {
                         lArgs.add("W"); // for the worker to know it must write the object to disk
-                    }
+                    }*/
                     break;
                 case STRING_T:
                     BasicTypeParameter btParS = (BasicTypeParameter) param;

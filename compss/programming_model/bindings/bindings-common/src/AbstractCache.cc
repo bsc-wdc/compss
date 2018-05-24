@@ -32,7 +32,6 @@ int AbstractCache::release_lock(){
   return pthread_mutex_unlock(&mtx);
 }
 
-
 int AbstractCache::pushToStream(const char* id, JavaNioConnStreamBuffer &jsb){
 	cout << "[AbstractCache] Pushing Object "<< id << " from cache to stream." << endl;
 	compss_pointer cp;
@@ -60,7 +59,7 @@ int AbstractCache::pushToStream(const char* id, JavaNioConnStreamBuffer &jsb){
 }
 
 int AbstractCache::pushToFile(const char* id, const char* filename){
-	cout << "[AbstractCache] Pushing Object "<< id << " from cache to stream." << endl;
+	cout << "[AbstractCache] Pushing Object "<< id << " from cache to file " << filename <<"." << endl;
 	compss_pointer cp;
 	int res = getFromCache(id, cp);
 	if (res == 0){
@@ -73,7 +72,7 @@ int AbstractCache::pushToFile(const char* id, const char* filename){
 }
 
 int AbstractCache::pullFromFile(const char* id, const char* filename, compss_pointer &cp){
-	cout << "[AbstractCache] Getting Object "<< id << " from stream." << endl;
+	cout << "[AbstractCache] Getting Object "<< id << " from file "<< filename << "." << endl;
 	int res = deserializeFromFile(filename, cp);
 	if (res == 0){
 		storeInCache(id,cp);

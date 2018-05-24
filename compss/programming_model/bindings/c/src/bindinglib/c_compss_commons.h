@@ -69,9 +69,12 @@ int compss_object_deserialize(T* obj, const char* filename) {
 #endif
 		ia >> *obj;
 		ifs.close();
+		debug_printf("[C-BINDING]  -  @compss_object_deserialize  - Object deserialized\n");
+		return 0;
 	} catch(archive::archive_exception e){
-		debug_printf("[C-BINDING]  -  Error deserializing obj %p\n", &obj);
-		e.what();
+		debug_printf("[C-BINDING]  -  Error deserializing obj %p\n", obj);
+		const char *message = e.what();
+		debug_printf("Exception: %s ", message);
 		ifs.close();
 		return 1;
 	}
@@ -80,7 +83,7 @@ int compss_object_deserialize(T* obj, const char* filename) {
 
 template <class T>
 int compss_object_serialize(T* obj, const char* filename) {
-	debug_printf("[C-BINDING]  -  @compss_object_serialize  -  Ref: %p to file %s\n", &obj, filename);
+	debug_printf("[C-BINDING]  -  @compss_object_serialize  -  Ref: %p to file %s\n", obj, filename);
 
 #ifdef TEXT_SERIALIZATION
 	//Text serialization
@@ -99,7 +102,8 @@ int compss_object_serialize(T* obj, const char* filename) {
 		return 0;
 	} catch(archive::archive_exception e){
 		debug_printf("[C-BINDING]  -  Error serializing obj %p\n", obj);
-		e.what();
+		const char* message = e.what();
+		debug_printf("[C-BINDING]  -  Exception: %s\n", message);
 		ofs.close();
 		return 1;
 	}
@@ -222,39 +226,43 @@ void compss_string_deserialize(string &obj, char* filename) {
 	obj = strdup(in_string.c_str());
 }*/
 
-template <class T> int compss_array_deserialize(T &obj, const char* filename, int elements){
-	debug_printf("[C-BINDING]  -  @compss_array_deserialize  -  Ref: %p to file %s\n", &obj, filename);
+template <class T> int compss_array_deserialize(T* &to, const char* filename, int elements){
+	debug_printf("[C-BINDING]  -  @compss_array_deserialize  -  Ref: %p to file %s\n", to, filename);
+	to = (T*)malloc(sizeof(T)*elements);
 	ifstream ifs(filename, ios::binary);
-	ifs.read((char*)obj, sizeof(T)*elements);
+	ifs.read((char*)to, sizeof(T)*elements);
 	ifs.close();
+	debug_printf("[C-BINDING]  -  @compss_array_deserialize  -  Array deserialized in ref: %p.\n", to);
 	return 0;
 }
 
-template <class T> int compss_array_serialize(T &obj, const char* filename, int elements){
-	debug_printf("[C-BINDING]  -  @compss_array_serialize  -  Ref: %p to file %s\n", &obj, filename);
+template <class T> int compss_array_serialize(T* obj, const char* filename, int elements){
+	debug_printf("[C-BINDING]  -  @compss_array_serialize  -  Ref: %p to file %s\n", obj, filename);
 	ofstream ofs(filename, std::ofstream::trunc | std::ios::binary);
 	ofs.write((char*)obj, sizeof(T)*elements);
 	ofs.close();
+	debug_printf("[C-BINDING]  -  @compss_array_serialize  -  Array serialized.\n");
 	return 0;
 }
 
-template <class T> int compss_array_deserialize(T &obj, JavaNioConnStreamBuffer &jsb, int elements){
-	debug_printf("[C-BINDING]  -  @compss_array_deserialize  -  Ref: %p to JavaNioBuffer\n", &obj);
+template <class T> int compss_array_deserialize(T* &to, JavaNioConnStreamBuffer &jsb, int elements){
+	debug_printf("[C-BINDING]  -  @compss_array_deserialize  -  Ref: %p to JavaNioBuffer\n", to);
+	to = (T*)malloc(sizeof(T)*elements);
 	istream ijs(&jsb);
-	ijs.read((char*)obj, sizeof(T)*elements);
+	ijs.read((char*)to, sizeof(T)*elements);
 	return 0;
 }
 
-template <class T> int compss_array_serialize(T &obj, JavaNioConnStreamBuffer &jsb, int elements){
-	debug_printf("[C-BINDING]  -  @compss_array_serialize  -  Ref: %p to JavaNioBuffer\n", &obj );
+template <class T> int compss_array_serialize(T* obj, JavaNioConnStreamBuffer &jsb, int elements){
+	debug_printf("[C-BINDING]  -  @compss_array_serialize  -  Ref: %p to JavaNioBuffer\n", obj );
 	ostream ojs(&jsb);
 	ojs.write((char*)obj, sizeof(T)*elements);
 	ojs.flush();
 	return 0;
 }
 
-template <class T> int compss_array_copy(T &from, T &to, int elements){
-	to = (T)malloc(sizeof(T)*elements);
+template <class T> int compss_array_copy(T* from, T* &to, int elements){
+	to = (T*)malloc(sizeof(T)*elements);
 	debug_printf("[C-BINDING]  -  @compss_array_copy  -  Ref: %p to %p\n", &from, &to);
 	memcpy((void*)to, (void*)from, sizeof(T)*elements);
 	return 0;

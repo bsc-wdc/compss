@@ -646,14 +646,12 @@ public class DataInfoProvider {
             LOGGER.debug("Requesting tranfers binding object " + sourceName + " to " + Comm.getAppHost().getName());
         }
         BindingObject srcBO = BindingObject.generate(srcLd.getURIs().get(0).getPath());
-        /*BindingObject tgtBO = new BindingObject(targetName,  srcBO.getType(),  srcBO.getElements());
-        if (tgtLd == null){
+        BindingObject tgtBO = new BindingObject(Comm.getAppHost().getTempDirPath() + sourceName,  srcBO.getType(),  srcBO.getElements());
+        /*if (tgtLd == null){
             Comm.registerBindingObject(targetName, tgtBO );
-        }
+        }*/
         
-        DataLocation targetLocation = new BindingObjectLocation(Comm.getAppHost(), tgtBO);*/
-        
-        DataLocation targetLocation = new BindingObjectLocation(Comm.getAppHost(), srcBO);
+        DataLocation targetLocation = new BindingObjectLocation(Comm.getAppHost(), tgtBO);
         
         Transferable transfer = new BindingObjectTransferable(toRequest);
         

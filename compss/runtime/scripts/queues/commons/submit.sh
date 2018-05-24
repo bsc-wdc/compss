@@ -643,7 +643,7 @@ EOT
     master_node=\$(${MASTER_NAME_CMD})
     worker_nodes=\$(echo \${host_list} | sed -e "s/\${master_node}//g")
   fi
-  
+
 EOT
 
   # Storage init
@@ -652,7 +652,7 @@ EOT
     cat >> $TMP_SUBMIT_SCRIPT << EOT
 storage_conf=$HOME/.COMPSs/\$${ENV_VAR_JOB_ID}/storage/cfgfiles/storage.properties
 #storage_master_node=\$(echo \${worker_nodes} | tr " " "\t" | awk {' print \$1 '})
-storage_master_node=${master_node}
+storage_master_node="\${master_node}"
 #worker_nodes=\$(echo \${worker_nodes} | sed -e "s/\${storage_master_node}//g")
 
 ${storage_home}/scripts/storage_init.sh \$${ENV_VAR_JOB_ID} "\${master_node}" "\${storage_master_node}" "\${worker_nodes}" ${network} ${storage_props}

@@ -156,6 +156,13 @@ public interface COMPSsRuntime {
      * @param noMoreTasks
      */
     public void barrier(Long appId, boolean noMoreTasks);
+    
+    /**
+     * Deregisters an object to eventually free its memory
+     * 
+     * @param o
+     */
+    public void deregisterObject(Object o);
 
     /*
      * *****************************************************************************************************************

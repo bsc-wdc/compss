@@ -4,20 +4,16 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
-import es.bsc.compss.types.data.DataInstanceId;
+//import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.ObjectInfo;
-import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 
 public class DeregisterObject extends APRequest {
 
 	int hash_code;
-	
-	ObjectRegistry oReg;
-	
-	public DeregisterObject(ObjectRegistry oReg, Object o) {
 		
-		this.oReg = oReg;
+	public DeregisterObject(Object o) {
+		
 		hash_code = o.hashCode();
 		
 	}
@@ -35,26 +31,19 @@ public class DeregisterObject extends APRequest {
 		
 		ObjectInfo objectInfo = dip.deleteData(hash_code);
 
-		if (objectInfo == null) 
+		if (objectInfo == null) {
 			LOGGER.info("The object with code: " + String.valueOf(hash_code) + " is not used by any task");
+			
+			return;
 			//I think it's not possible to enter here, the problem we had was that
 			//they were not deleted, but I think it's mandatory to log out what happens
-		
+		}
 		else 
 			LOGGER.info("Data of : " + String.valueOf(hash_code) + " deleted");
 			
 		//At this point all the ObjectInfo versions (renamings) are 
 		//out of the DataInfoProvider data structures
 		
-		
-		
-			
-			
-			
-		
-		
-		
-
 	}
 
 }

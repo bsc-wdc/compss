@@ -32,11 +32,13 @@ public class ObjectRegistry {
     private LoaderAPI itApi;
     // Temporary directory where the files containing objects will be stored (same as the stream registry dir)
     private String serialDir;
+    
+    private static final String EMPTY = "EMPTY";
     // Map: hash code -> object
     // Objects
     private Map<Integer, Object> appTaskObjects;
     private Map<Integer, Object> internalObjects;
-
+    
     private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER);
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
@@ -68,7 +70,7 @@ public class ObjectRegistry {
     private int checkHashCode(Object obj, int objHashCode) {
         Object objStored = this.appTaskObjects.get(objHashCode);
         while (objStored != obj) {
-            if (objStored == null) {
+            if (objStored == null || objStored == EMPTY) {
                 this.appTaskObjects.put(objHashCode, obj);
                 // Store it as an internal one too. Read-only objects will always use this same instance
                 this.internalObjects.put(objHashCode, obj);
@@ -168,6 +170,54 @@ public class ObjectRegistry {
             LOGGER.debug("Returning internal object " + internal + " with hash code " + hashCode);
         }
         return internal;
+    }
+    
+    public boolean delete(Object o) {
+    	if (o == null) 
+            return false;
+        
+        int hashCode = o.hashCode();
+        Object oStored = this.appTaskObjects.get(hashCode);
+        
+        while (oStored != o) {
+            if (oStored == null) 
+                return false;
+            else 
+                oStored = this.appTaskObjects.get(++hashCode);
+        }
+
+        if (DEBUG) 
+            LOGGER.debug("About to serialize locally object with hash code " + hashCode);
+
+        this.itApi.removeObject(o, hashCode);
+        
+    	return deleteFromInternal(hashCode) && deleteFromApps(hashCode);
+    }
+    
+    public boolean deleteFromInternal(int hashcode) {
+    	
+    	Object to_delete = this.internalObjects.get(hashcode);
+    	
+    	if (to_delete != null) {
+    		this.internalObjects.remove(hashcode);
+    	
+    		return true;
+    	}
+    	
+    	return false;
+    }
+    
+    public boolean deleteFromApps(int hashcode) {
+
+    	Object to_delete = this.appTaskObjects.get(hashcode);
+    	
+    	if (to_delete != null) {
+    		this.appTaskObjects.put(hashcode, EMPTY);
+    	
+    		return true;
+    	}	
+    	
+    	return false;
     }
 
 }

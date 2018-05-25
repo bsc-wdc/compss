@@ -148,7 +148,6 @@ public abstract class DataInfo {
     }
 
     public boolean delete() {
-        //this.toDelete = true;
         if (deletionBlocks > 0) {
             pendingDeletions.addAll(versions.values());
         } else {

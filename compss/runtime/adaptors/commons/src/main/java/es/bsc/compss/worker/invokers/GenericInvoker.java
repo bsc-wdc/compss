@@ -33,7 +33,7 @@ public class GenericInvoker {
     private static final int NUM_BASE_MPI_ARGS = 6;
     private static final int NUM_BASE_OMPSS_ARGS = 1;
     private static final int NUM_BASE_BINARY_ARGS = 1;
-    private static final int NUM_BASE_DECAF_ARGS = 10;
+    private static final int NUM_BASE_DECAF_ARGS = 11;
     private static final String OMP_NUM_THREADS = "OMP_NUM_THREADS";
 
 
@@ -154,7 +154,7 @@ public class GenericInvoker {
         }
         String[] cmd;
         if (args.isEmpty()){
-        	cmd = new String[NUM_BASE_DECAF_ARGS-1];
+        	cmd = new String[NUM_BASE_DECAF_ARGS-2];
         }else{
         	cmd = new String[NUM_BASE_DECAF_ARGS];
         }
@@ -168,7 +168,8 @@ public class GenericInvoker {
         cmd[7] = "--hostfile";
         cmd[8] = hostfile;
         if (!args.isEmpty()){
-        	cmd[9] = "--args=\"" + args + "\"";
+        	cmd[9] = "--args=\"";
+        	cmd[10]= args ;
         }
         
         // Prepare environment

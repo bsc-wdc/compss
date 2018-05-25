@@ -221,15 +221,16 @@ public class NIOWorkerNode extends COMPSsWorker {
         if (started) {
             LOGGER.debug("Shutting down execution manager " + this.getName());
             if (node == null) {
-                esl.notifyFailure(new UnstartedNodeException());
                 LOGGER.error("Shutdown execution manager has failed");
+                esl.notifyFailure(new UnstartedNodeException());
+                
             }
             Connection c = NIOAgent.getTransferManager().startConnection(node);
             commManager.shuttingDownEM(this, c, esl);
-
+            
+            LOGGER.debug("Sending shutdown command " + this.getName());
             CommandExecutorShutdown cmd = new CommandExecutorShutdown(null);
             c.sendCommand(cmd);
-
             c.receive();
             c.finishConnection();
         } else {

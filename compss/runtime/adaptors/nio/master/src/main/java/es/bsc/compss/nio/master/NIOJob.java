@@ -149,7 +149,7 @@ public class NIOJob extends Job<NIOWorkerNode> {
                                 param.setType(DataType.PSCO_T);
                             } else if (type.equals(DataType.FILE_T)) {
                                 // Change external object type (Workaround for Python PSCO return objects)
-                                param.setType(DataType.EXTERNAL_OBJECT_T);
+                                param.setType(DataType.EXTERNAL_PSCO_T);
                             }
                             type = param.getType();
                         }

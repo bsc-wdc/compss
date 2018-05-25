@@ -858,6 +858,7 @@ public class NIOWorker extends NIOAgent {
     @Override
     public void shutdownExecutionManager(Connection closingConnection) {
         // Stop the Execution Manager
+        WORKER_LOGGER.debug("Stopping Execution Manager...");
         executionManager.stop();
 
         if (closingConnection != null) {

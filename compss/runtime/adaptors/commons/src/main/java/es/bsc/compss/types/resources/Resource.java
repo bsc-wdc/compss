@@ -512,8 +512,10 @@ public abstract class Resource implements Comparable<Resource> {
 
         executorShutdownListener.addOperation();
         node.shutdownExecutionManager(executorShutdownListener);
-
         executorShutdownListener.enable();
+        if (DEBUG) {
+            LOGGER.debug("Waiting for shutting down the execution manager of " + this.getName());
+        }
         try {
             sem.acquire();
         } catch (InterruptedException ex) {

@@ -184,7 +184,7 @@ public class ExecutionManager {
      *
      */
     public void stop() {
-        LOGGER.info("Stop Execution Manager");
+        LOGGER.info("Stopping Threads...");
         // Stop the job threads
         this.pool.stopThreads();
     }

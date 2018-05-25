@@ -74,7 +74,8 @@ public class WorkerStarter {
             + "adaptors" + File.separator + "nio" + File.separator;
     private static final String STARTER_SCRIPT_NAME = "persistent_worker.sh";
     
-    private static final String CLEAN_SCRIPT_PATH = "Runtime" + File.separator + "scripts" + File.separator + "system" + File.separator;
+    private static final String CLEAN_SCRIPT_PATH = "Runtime" + File.separator + "scripts" + File.separator + "system" + File.separator
+            + "adaptors" + File.separator + "nio" + File.separator;
     private static final String CLEAN_SCRIPT_NAME = "persistent_worker_clean.sh";
     // Connection related parameters
     private static final long START_WORKER_INITIAL_WAIT = 100;

@@ -30,7 +30,10 @@ import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.Stream;
 import es.bsc.compss.util.Tracer;
-
+import es.bsc.compss.util.StreamGobbler;
+import es.bsc.compss.log.Loggers;
+ 
+import org.apache.logging.log4j.LogManager;
 
 public class BinaryRunner {
 
@@ -140,15 +143,15 @@ public class BinaryRunner {
 
             // Disable inputs to process
             process.getOutputStream().close();
-
+            
+            // Log binary execution
+            logBinaryExecution(process, exitValue, fileOutPath, fileErrPath);
+            
             // Wait and retrieve exit value
             exitValue = process.waitFor();
         } catch (Exception e) {
             throw new InvokeExecutionException(ERROR_PROC_EXEC, e);
-        } finally {
-            // Log binary execution
-            logBinaryExecution(process, exitValue, fileOutPath, fileErrPath);
-        }
+        } 
 
         // Return exit value if requested, null if none
         return exitValue;
@@ -164,32 +167,16 @@ public class BinaryRunner {
         System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
         System.out.println("[BINARY EXECUTION WRAPPER] CMD OUTPUT:");
         if (process != null) {
-            try (BufferedReader outputReader = (fileOutPath != null) ? new BufferedReader(new FileReader(fileOutPath))
-                    : new BufferedReader(new InputStreamReader(process.getInputStream()));) {
-
-                String line = null;
-                while ((line = outputReader.readLine()) != null) {
-                    System.out.println(line);
-                }
-            } catch (IOException ioe) {
-                throw new InvokeExecutionException(ERROR_OUTPUTREADER, ioe);
-            }
+            StreamGobbler outputGobbler = new StreamGobbler(process.getInputStream(), System.out, LogManager.getLogger(Loggers.WORKER));
+            outputGobbler.start();
         }
         System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
 
         System.err.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
         System.err.println("[BINARY EXECUTION WRAPPER] CMD ERROR:");
         if (process != null) {
-            try (BufferedReader errorReader = (fileErrPath != null) ? new BufferedReader(new FileReader(fileErrPath))
-                    : new BufferedReader(new InputStreamReader(process.getErrorStream()));) {
-
-                String line = null;
-                while ((line = errorReader.readLine()) != null) {
-                    System.err.println(line);
-                }
-            } catch (IOException ioe) {
-                throw new InvokeExecutionException(ERROR_ERRORREADER, ioe);
-            }
+            StreamGobbler errorGobbler = new StreamGobbler(process.getErrorStream(), System.err, LogManager.getLogger(Loggers.WORKER));
+            errorGobbler.start();
         }
         System.err.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
     }

@@ -68,10 +68,12 @@ import es.bsc.compss.types.request.ap.TransferOpenFileRequest;
 import es.bsc.compss.types.request.ap.UnblockResultFilesRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.WaitForTaskRequest;
+import es.bsc.compss.types.request.ap.DeregisterObject;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
+
 
 /**
  * Component to handle the tasks accesses to files and object
@@ -777,13 +779,14 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
     
     /**
-     * deregisters the given object
+     * Deregister the given object
      *
      * @param o
      */
-    public void deregister_object(Object o) {
+    public void deregisterObject(Object o) {
     	
         if (!requestQueue.offer(new DeregisterObject(o))) {
+
             ErrorManager.error(ERROR_QUEUE_OFFER + "deregister object");
         }
     

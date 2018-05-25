@@ -51,7 +51,6 @@ import org.apache.logging.log4j.Logger;
 import storage.StorageException;
 import storage.StorageItf;
 
-
 /**
  * Component to handle the specific data structures such as file names, versions, renamings and values
  *

@@ -1246,13 +1246,17 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         return DataLocation.createLocation(host, uri);
     }
     
-    public void free_object(Object o) {
+   public void deregisterObject(Object o) {
+	   oReg.delete(o);
+   }
+   
+    
+    public void removeObject(Object o, int hashcode) {
     	
     	//This will remove the object from the Object Registry and the Data Info Provider
     	//eventually allowing the garbage collector to free it (better use of memory)
     	
-    	if (o != null) //No object to deregister
-    		ap.deregister_object(o);
+    	ap.deregisterObject(o);
     	
     	
     }

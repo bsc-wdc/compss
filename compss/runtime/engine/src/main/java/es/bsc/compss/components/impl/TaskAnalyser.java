@@ -392,7 +392,7 @@ public class TaskAnalyser {
                     DIP.blockDataAndGetResultFile(id, new ResultListener(new Semaphore(0)));
                     DIP.unblockDataId(id);
                 } catch (Exception e) {
-                    LOGGER.error("Exception ordering trasnfer when task ends", e);
+                    LOGGER.error("Exception ordering transfer when task ends", e);
                 }
             }
 

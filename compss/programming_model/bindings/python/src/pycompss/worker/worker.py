@@ -39,7 +39,6 @@ from pycompss.util.serializer import SerializerException
 from pycompss.util.logs import init_logging_worker
 from pycompss.util.persistent_storage import get_by_ID
 
-
 if sys.version_info >= (3, 0):
     long = int
 else:

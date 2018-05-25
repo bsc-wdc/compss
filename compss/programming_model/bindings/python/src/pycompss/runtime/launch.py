@@ -67,7 +67,7 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def main():
+def compss_main():
     '''
     General call:
     python $PYCOMPSS_HOME/pycompss/runtime/launch.py $log_level $PyObject_serialize $storageConf $fullAppPath $application_args
@@ -477,4 +477,4 @@ def initialize_compss(config):
 This is the PyCOMPSs entry point
 '''
 if __name__ == '__main__':
-    main()
+    compss_main()

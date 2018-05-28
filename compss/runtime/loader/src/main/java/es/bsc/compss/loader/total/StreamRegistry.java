@@ -77,7 +77,6 @@ public class StreamRegistry {
     private static final boolean debug = logger.isDebugEnabled();
     private static final String lineSep = System.getProperty("line.separator");
 
-
     public StreamRegistry(LoaderAPI api) {
         this.itApi = api;
         this.fileToStreams = new TreeMap<>();
@@ -115,7 +114,9 @@ public class StreamRegistry {
         StreamList list = obtainList(fd);
         FileInputStream fis = new FileInputStream(fd);
         if (list != null) // Should always be not null
+        {
             list.addStream(fis);
+        }
 
         return fis;
     }
@@ -627,9 +628,13 @@ public class StreamRegistry {
     }
 
     public boolean isTaskFile(String fileName) {
-        File f = new File(fileName);
-        if (taskFiles.contains(f.getAbsolutePath())) {
-            return true;
+        if (fileName == null) {
+            File f = new File(fileName);
+            if (taskFiles.contains(f.getAbsolutePath())) {
+                return true;
+            } else {
+                return false;
+            }
         } else {
             return false;
         }
@@ -648,7 +653,6 @@ public class StreamRegistry {
         private boolean written;
         private List<Object> list;
         private List<FileDescriptor> fds;
-
 
         public StreamList(String renaming, Direction direction) {
             this.fileRenaming = renaming;

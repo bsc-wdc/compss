@@ -162,7 +162,7 @@ public interface COMPSsRuntime {
      * 
      * @param o
      */
-    public void deregisterObject(Object o);
+    public void deregisterObject(Long appId, Object o);
 
     /*
      * *****************************************************************************************************************

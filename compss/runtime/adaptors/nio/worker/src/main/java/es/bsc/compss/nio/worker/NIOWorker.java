@@ -19,6 +19,7 @@ package es.bsc.compss.nio.worker;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -1268,5 +1269,19 @@ public class NIOWorker extends NIOAgent {
         // Nothing to do at worker
         
     }
-
+    /**
+     * Get the stderr stream assigned to this computing thread
+     * @return
+     */
+    public PrintStream getThreadErrStream(){
+        return err.getStream();
+    }
+    
+    /**
+     * Get the stdout stream assigned to this computing thread
+     * @return
+     */
+    public PrintStream getThreadOutStream(){
+        return out.getStream();
+    }
 }

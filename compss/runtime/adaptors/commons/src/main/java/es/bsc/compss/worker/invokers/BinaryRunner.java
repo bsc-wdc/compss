@@ -16,11 +16,11 @@
  */
 package es.bsc.compss.worker.invokers;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,7 +32,7 @@ import es.bsc.compss.types.annotations.parameter.Stream;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.util.StreamGobbler;
 import es.bsc.compss.log.Loggers;
- 
+
 import org.apache.logging.log4j.LogManager;
 
 public class BinaryRunner {
@@ -113,7 +113,7 @@ public class BinaryRunner {
      * @return
      * @throws InvokeExecutionException
      */
-    public static Object executeCMD(String[] cmd, StreamSTD streamValues, File taskSandboxWorkingDir) throws InvokeExecutionException {
+    public static Object executeCMD(String[] cmd, StreamSTD streamValues, File taskSandboxWorkingDir, PrintStream defaultOutStream, PrintStream defaultErrStream) throws InvokeExecutionException {
 
         // Prepare command execution with redirections
         ProcessBuilder builder = new ProcessBuilder(cmd);
@@ -145,11 +145,18 @@ public class BinaryRunner {
             process.getOutputStream().close();
             
             // Log binary execution
-            logBinaryExecution(process, exitValue, fileOutPath, fileErrPath);
+            logBinaryExecution(process, fileOutPath, fileErrPath, defaultOutStream, defaultErrStream);
             
             // Wait and retrieve exit value
             exitValue = process.waitFor();
+            
+            // Print all process execution information
+            System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
+            System.out.println("[BINARY EXECUTION WRAPPER] CMD EXIT VALUE: " + exitValue);
+            System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
         } catch (Exception e) {
+            System.err.println(ERROR_PROC_EXEC);
+            e.printStackTrace();
             throw new InvokeExecutionException(ERROR_PROC_EXEC, e);
         } 
 
@@ -157,26 +164,61 @@ public class BinaryRunner {
         return exitValue;
     }
 
-    private static void logBinaryExecution(Process process, int exitValue, String fileOutPath, String fileErrPath)
+    private static void logBinaryExecution(Process process, String fileOutPath, String fileErrPath, PrintStream defaultOutStream, PrintStream defaultErrStream)
             throws InvokeExecutionException {
-
-        // Print all process execution information
-        System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
-        System.out.println("[BINARY EXECUTION WRAPPER] CMD EXIT VALUE: " + exitValue);
-
+        StreamGobbler errorGobbler = null;
+        StreamGobbler outputGobbler = null;
         System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
         System.out.println("[BINARY EXECUTION WRAPPER] CMD OUTPUT:");
         if (process != null) {
-            StreamGobbler outputGobbler = new StreamGobbler(process.getInputStream(), System.out, LogManager.getLogger(Loggers.WORKER));
-            outputGobbler.start();
+            if (fileOutPath == null){
+                outputGobbler = new StreamGobbler(process.getInputStream(), defaultOutStream, LogManager.getLogger(Loggers.WORKER));
+                outputGobbler.start();
+            }else{
+                try (FileInputStream outputStream = new FileInputStream(fileOutPath)) {
+                    outputGobbler = new StreamGobbler(outputStream, defaultOutStream, LogManager.getLogger(Loggers.WORKER));
+                    outputGobbler.start();
+                } catch (IOException ioe) {
+                    System.err.println(ERROR_OUTPUTREADER);
+                    ioe.printStackTrace();
+                    throw new InvokeExecutionException(ERROR_OUTPUTREADER, ioe);
+                }
+            }
+            
         }
-        System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
 
         System.err.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
         System.err.println("[BINARY EXECUTION WRAPPER] CMD ERROR:");
         if (process != null) {
-            StreamGobbler errorGobbler = new StreamGobbler(process.getErrorStream(), System.err, LogManager.getLogger(Loggers.WORKER));
-            errorGobbler.start();
+            if (fileErrPath == null){
+                errorGobbler = new StreamGobbler(process.getErrorStream(), defaultErrStream, LogManager.getLogger(Loggers.WORKER));
+                errorGobbler.start();
+            } else {
+                try (FileInputStream errStream = new FileInputStream(fileErrPath)) {
+                    errorGobbler = new StreamGobbler(errStream, defaultErrStream, LogManager.getLogger(Loggers.WORKER));
+                    errorGobbler.start();
+                } catch (IOException ioe) {
+                    throw new InvokeExecutionException(ERROR_OUTPUTREADER, ioe);
+                }
+            }
+        }
+        
+        if (outputGobbler!=null){
+            try {
+                outputGobbler.join();
+            } catch (InterruptedException e) {
+                System.err.println("Error waiting for output gobbler to end");
+                e.printStackTrace();
+            }
+        }
+        System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
+        if (errorGobbler!=null){
+            try {
+                errorGobbler.join();
+            } catch (InterruptedException e) {
+                System.err.println("Error waiting for error gobbler to end");
+                e.printStackTrace();
+            }
         }
         System.err.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
     }

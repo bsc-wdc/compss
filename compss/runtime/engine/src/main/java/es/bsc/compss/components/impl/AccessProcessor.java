@@ -102,6 +102,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
     // Tasks to be processed
     protected LinkedBlockingQueue<APRequest> requestQueue;
 
+
     /**
      * Creates a new Access Processor instance
      *
@@ -185,9 +186,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @return
      */
     public int newTask(Long appId, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-            boolean hasTarget, boolean hasReturn, Parameter[] parameters) {
+            boolean hasTarget, boolean hasReturn, int numReturns, Parameter[] parameters) {
 
-        Task currentTask = new Task(appId, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, hasReturn,
+        Task currentTask = new Task(appId, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, hasReturn, numReturns,
                 parameters);
 
         if (!requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
@@ -210,9 +211,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @return
      */
     public int newTask(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
-            boolean hasReturn, Parameter[] parameters) {
+            boolean hasReturn, int numReturns, Parameter[] parameters) {
 
-        Task currentTask = new Task(appId, namespace, service, port, operation, priority, hasTarget, hasReturn, parameters);
+        Task currentTask = new Task(appId, namespace, service, port, operation, priority, hasTarget, hasReturn, numReturns, parameters);
 
         if (!requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "new service task");
@@ -238,16 +239,16 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
         // Tell the DM that the application wants to access a file.
         finishFileAccess(fap);
-       
+
     }
-    
+
     private void finishFileAccess(FileAccessParams fap) {
-    	if (!requestQueue.offer(new FinishFileAccessRequest(fap))) {
+        if (!requestQueue.offer(new FinishFileAccessRequest(fap))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "finishing file access");
         }
-	}
+    }
 
-	/**
+    /**
      * Notifies a main access to a given file @sourceLocation in mode @fap
      *
      * @param sourceLocation
@@ -419,7 +420,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         waitForTask(oaId.getDataId(), AccessMode.RW);
 
         // TODO: Check if the object was already piggybacked in the task notification
-        
+
         String lastRenaming = ((DataAccessId.RWAccessId) oaId).getReadDataInstance().getRenaming();
         String newId = Comm.getData(lastRenaming).getId();
         
@@ -763,8 +764,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Adds a request to retrieve the result files from the workers to the
-     * master
+     * Adds a request to retrieve the result files from the workers to the master
      *
      * @param appId
      */

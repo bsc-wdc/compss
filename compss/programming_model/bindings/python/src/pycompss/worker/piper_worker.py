@@ -364,13 +364,6 @@ def execute_task(process_name, storage_conf, params):
         persistent_storage = True
         from pycompss.util.persistent_storage import storage_task_context
 
-    # COMPSs keywords for tasks (ie: tracing, process name...)
-    compss_kwargs = {
-        'compss_tracing': tracing,
-        'compss_process_name': process_name,
-        'compss_storage_conf': storage_conf
-    }
-
     # Retrieve the parameters from the params argument
     path = params[0]
     method_name = params[1]
@@ -386,9 +379,18 @@ def execute_task(process_name, storage_conf, params):
     args = args[1:]
     has_target = args[0]
     return_type = args[1]
-    num_params = int(args[2])
+    return_length = int(args[2])
+    num_params = int(args[3])
 
-    args = args[3:]
+    args = args[4:]
+
+    # COMPSs keywords for tasks (ie: tracing, process name...)
+    compss_kwargs = {
+        'compss_tracing': tracing,
+        'compss_process_name': process_name,
+        'compss_storage_conf': storage_conf,
+        'compss_return_length': return_length
+    }
 
     if __debug__:
         logger.debug("[PYTHON WORKER %s] Storage conf: %s" % (str(process_name), str(storage_conf)))
@@ -400,6 +402,7 @@ def execute_task(process_name, storage_conf, params):
         logger.debug("[PYTHON WORKER %s] Cus: %s" % (str(process_name), str(cus)))
         logger.debug("[PYTHON WORKER %s] Has target: %s" % (str(process_name), str(has_target)))
         logger.debug("[PYTHON WORKER %s] Num Params: %s" % (str(process_name), str(num_params)))
+        logger.debug("[PYTHON WORKER %s] Return Length: %s" % (str(process_name), str(return_length)))
         logger.debug("[PYTHON WORKER %s] Args: %r" % (str(process_name), args))
 
     # if tracing:
@@ -409,7 +412,11 @@ def execute_task(process_name, storage_conf, params):
     # Get all parameter values
     if __debug__:
         logger.debug("[PYTHON WORKER %s] Processing parameters:" % process_name)
-    values, types, streams, prefixes = get_input_params(num_params, logger, args, process_name, persistent_storage)
+    values, types, streams, prefixes = get_input_params(num_params,
+                                                        logger,
+                                                        args,
+                                                        process_name,
+                                                        persistent_storage)
 
     # if tracing:
     #     pyextrae.event(TASK_EVENTS, 0)

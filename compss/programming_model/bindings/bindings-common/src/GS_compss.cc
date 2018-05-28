@@ -192,9 +192,9 @@ void init_master_jni_types() {
   }
 
   // executeTask New method
-  midExecuteNew = m_env->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;ZIZZZI[Ljava/lang/Object;)I");
-  if (m_env->ExceptionOccurred()) {
-    m_env->ExceptionDescribe();
+  midExecuteNew = env->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;ZIZZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
+  if (env->ExceptionOccurred()) {
+    env->ExceptionDescribe();
     exit(1);
   }
 
@@ -775,7 +775,9 @@ void GS_ExecuteTask(long _appId, char *class_name, char *method_name, int priori
   }
 }
 
-void GS_ExecuteTaskNew(long _appId, char *signature, int priority, int num_nodes, int replicated, int distributed, int has_target, int num_params, void **params) {
+void GS_ExecuteTaskNew(long _appId, char *signature, int priority, int num_nodes, int replicated, int distributed,
+        int has_target, int num_returns, int num_params, void **params) {
+
   jobjectArray jobjOBJArr; /* array of Objects to be passed to executeTask */
 
   int isAttached = check_and_attach(m_jvm, m_env);
@@ -794,6 +796,14 @@ void GS_ExecuteTaskNew(long _appId, char *signature, int priority, int num_nodes
   bool _has_target = false;
   if (has_target != 0) _has_target = true;
 
+  // Convert num_returns from int to integer
+  jobject num_returns_integer = env->NewObject(clsInteger, midIntCon, num_returns);
+  if (env->ExceptionOccurred()) {
+    env->ExceptionDescribe();
+    exit(1);
+  }
+
+  // Create array of parameters
   jobjOBJArr = (jobjectArray)m_env->NewObjectArray(num_params*5, clsObject, m_env->NewObject(clsObject,midObjCon));
 
   for (int i = 0; i < num_params; i++) {
@@ -801,15 +811,19 @@ void GS_ExecuteTaskNew(long _appId, char *signature, int priority, int num_nodes
     process_param(params, i, jobjOBJArr);
   }
 
-  m_env->CallVoidMethod(jobjIT, midExecuteNew, appId,
-                                             m_env->NewStringUTF(signature),
-                                             _priority,
-                                             num_nodes,
-                                             _replicated,
-                                             _distributed,
-                                             _has_target,
-                                             num_params,
-                                             jobjOBJArr);
+  // Call to JNI execute task method
+  m_env->CallVoidMethod(jobjIT, 
+                        midExecuteNew, 
+                        appId,
+                        m_env->NewStringUTF(signature),
+                        _priority,
+                        num_nodes,
+                        _replicated,
+                        _distributed,
+                        _has_target,
+                        num_returns_integer,
+                        num_params,
+                        jobjOBJArr);
   if (m_env->ExceptionOccurred()) {
 	  debug_printf("[BINDING-COMMONS]  -  @GS_ExecuteTaskNew  -  Error: Exception received when calling executeTaskNew.\n");
 	  m_env->ExceptionDescribe();

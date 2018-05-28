@@ -159,6 +159,7 @@ void generate_worker_prolog()
  */
 void generate_executor_prototype(FILE *outFile)
 {
+<<<<<<< HEAD
 	fprintf(outFile, "int execute(int argc, char **argv, CBindingCache* cache, int serializeOuts) {\n");
 	fprintf(outFile, "\n");
 }
@@ -206,6 +207,7 @@ void generate_worker_executor(){
 	//fprintf(workerFile, "\t if(is_debug()){\n"); //Open if debug clause
 	fprintf(workerFile, "\t\t cout << \"[C-BINDING] NumComputingUnits: \" << argv[NUM_INTERNAL_ARGS++] << endl;\n");
 	fprintf(workerFile, "\t\t cout << \"[C-BINDING] HasTarget: \" << argv[NUM_INTERNAL_ARGS++] << endl;\n");
+        fprintf(workerFile, "\t\t cout << \"[C-BINDING] NumReturns: \" << argv[NUM_INTERNAL_ARGS++] << endl;\n");
 	fprintf(workerFile, "\t\t cout << \"[C-BINDING] ReturnType: \" << argv[NUM_INTERNAL_ARGS++] << endl;\n");
 	fprintf(workerFile, "\t\t cout << \"[C-BINDING] Num App Params: \" << argv[NUM_INTERNAL_ARGS++] << endl;\n");
 	fprintf(workerFile, "\t\t cout << \"[C-BINDING] Application Arguments:\" << endl;\n");
@@ -395,7 +397,7 @@ static void generate_enum(FILE *outFile, function *first_function)
 	// Add constants (according to COMPSs Runtime)
 	fprintf(outFile, "static const int N_OPS=%d;\n", n);
 	fprintf(outFile, "static const int NUM_BASE_ARGS = 9;\n");
-	fprintf(outFile, "static const int MIN_NUM_INTERNAL_ARGS = 13;\n");
+	fprintf(outFile, "static const int MIN_NUM_INTERNAL_ARGS = 14;\n");
 	fprintf(outFile, "static const int METHOD_NAME_POS = 7;\n");
 	fprintf(outFile ,"\n");
 }

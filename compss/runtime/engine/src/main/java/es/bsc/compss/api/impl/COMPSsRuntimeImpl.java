@@ -566,11 +566,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
         return executeTask(appId, false, methodClass, methodName, null, isPrioritary, Constants.SINGLE_NODE,
                 Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK), Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK), hasTarget,
-                parameterCount, parameters);
+                null, parameterCount, parameters);
     }
 
     /**
-     * Execute task: methods with method class and method name
+     * Execute task: methods with method class and method name (for loader)
      *
      */
     @Override
@@ -578,17 +578,17 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters) {
 
         return executeTask(appId, false, methodClass, methodName, null, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget,
-                parameterCount, parameters);
+                null, parameterCount, parameters);
     }
 
     /**
-     * Execute task: methods with signature
+     * Execute task: methods with signature (for bindings)
      */
     @Override
     public int executeTask(Long appId, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-            boolean hasTarget, int parameterCount, Object... parameters) {
+            boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters) {
 
-        return executeTask(appId, true, null, null, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget,
+        return executeTask(appId, true, null, null, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns,
                 parameterCount, parameters);
     }
 
@@ -612,7 +612,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * @return
      */
     private int executeTask(Long appId, boolean hasSignature, String methodClass, String methodName, String signature, boolean isPrioritary,
-            int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters) {
+            int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount,
+            Object... parameters) {
 
         // Tracing flag for task creation
         if (Tracer.isActivated()) {
@@ -634,6 +635,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         // Process the parameters
         Parameter[] pars = processParameters(parameterCount, parameters);
         boolean hasReturn = hasReturn(pars);
+        if (numReturns == null) {
+            numReturns = hasReturn ? 1 : 0;
+        }
 
         // Create the signature if it is not created
         if (!hasSignature) {
@@ -641,7 +645,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
 
         // Register the task
-        int task = ap.newTask(appId, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, hasReturn, pars);
+        int task = ap.newTask(appId, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, hasReturn, numReturns,
+                pars);
 
         // End tracing event
         if (Tracer.isActivated()) {
@@ -694,9 +699,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         // Process the parameters
         Parameter[] pars = processParameters(parameterCount, parameters);
         boolean hasReturn = hasReturn(pars);
+        int numReturns = hasReturn ? 1 : 0;
 
         // Register the task
-        int task = ap.newTask(appId, namespace, service, port, operation, isPrioritary, hasTarget, hasReturn, pars);
+        int task = ap.newTask(appId, namespace, service, port, operation, isPrioritary, hasTarget, hasReturn, numReturns, pars);
 
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());

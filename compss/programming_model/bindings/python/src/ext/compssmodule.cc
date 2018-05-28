@@ -233,15 +233,15 @@ process_task(PyObject *self, PyObject *args) {
   debug("####C#### PROCESS TASK\n");
   long app_id;
   char *signature;
-  int priority, num_nodes, replicated, distributed, has_target;
+  int priority, num_nodes, replicated, distributed, has_target, num_returns;
   PyObject *values;
   PyObject *compss_types;
   PyObject *compss_directions;
   PyObject *compss_streams;
   PyObject *compss_prefixes;
   //             See comment from above for the meaning of this "magic" string
-  if(!PyArg_ParseTuple(args, "lsiiiiiOOOOO", &app_id, &signature, &priority,
-     &num_nodes, &replicated, &distributed, &has_target, &values, &compss_types,
+  if(!PyArg_ParseTuple(args, "lsiiiiiiOOOOO", &app_id, &signature, &priority,
+     &num_nodes, &replicated, &distributed, &has_target, &num_returns, &values, &compss_types,
      &compss_directions, &compss_streams, &compss_prefixes)) {
     // Return NULL after ParseTuple automatically translates to "wrong
     // arguments were passed, we expected an integer instead"-like errors
@@ -306,6 +306,7 @@ process_task(PyObject *self, PyObject *args) {
     replicated,
     distributed,
     has_target,
+    num_returns,
     num_pars,
     &unrolled_parameters[0] // hide the fact that params is a std::vector
   );

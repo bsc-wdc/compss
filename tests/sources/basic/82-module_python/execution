@@ -27,6 +27,12 @@ function seq_app () {
   timeout --signal=2 "$expectedTime" \
     python "${base_app_dir}"/src/"${app}".py > >(tee "${output_log_seq}") 2> >(tee "${error_log_seq}" >&2)
 
+  # Check segmentation fault
+  if [[ "$?" = 139 ]]; then
+    echo "[ERROR] Something really wrong happened during the $app sequential execution: segmentation fault" >> "${output_log}"
+    exit 139
+  fi
+
   # Check timeout
   if [[ "$?" = "124" ]]; then
      # Report timeout

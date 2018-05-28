@@ -76,6 +76,7 @@ function check_unit_test () {
      #----------------------------------------------------------------------------------
      # Check that sequential logs have the Exception message
      if grep -q "Exception" "$error_file_seq" | grep -q "Traceback" "$error_file_seq"; then
+       echo "The exception is intended."
        echo "Test $subtest in sequential mode shows the exception - OK"
      else
        echo "Test $subtest in sequential mode DOES NOT show the exception - FAILED"

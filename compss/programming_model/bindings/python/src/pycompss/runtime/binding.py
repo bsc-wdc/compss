@@ -583,7 +583,8 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args, args,
     fu = None
     file_names = {}
     if has_return:
-        fu, file_names, self_kwargs, spec_args = _build_return_objects(self_kwargs, spec_args)
+        fu, file_names, self_kwargs, spec_args = _build_return_objects(f, self_kwargs, spec_args)
+    num_returns = len(file_names)
 
     app_id = 0
 
@@ -678,6 +679,7 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args, args,
                         replicated,
                         distributed,
                         has_target,
+                        num_returns,
                         values,
                         compss_types,
                         compss_directions,
@@ -710,7 +712,7 @@ def get_compss_mode(pymode):
 # ####################### AUXILIARY FUNCTIONS ##################################
 # ##############################################################################
 
-def _build_return_objects(self_kwargs, spec_args):
+def _build_return_objects(f, self_kwargs, spec_args):
     """
     Build the return object and updates the self_kwargs and spec_args
     structures (as tuple in the multireturn case).
@@ -720,9 +722,13 @@ def _build_return_objects(self_kwargs, spec_args):
     :return:
     """
 
-    # Check if the returns statement contains an integer value.
-    # In such case, build a list of objects of value length and set it in ret_type.
-    if isinstance(self_kwargs['returns'], int):
+    if isinstance(self_kwargs['returns'], str):
+        num_rets = f.__globals__.get(self_kwargs['returns'])
+        if num_rets > 1:
+            ret_type = [object for _ in range(num_rets)]
+        else:
+            ret_type = object
+    elif isinstance(self_kwargs['returns'], int):
         num_rets = self_kwargs['returns']
         # Assume all as objects (generic type).
         # It will not work properly when using user defined classes, since
@@ -735,11 +741,13 @@ def _build_return_objects(self_kwargs, spec_args):
             ret_type = object
     else:
         ret_type = self_kwargs['returns']
+
     file_names = {}  # return files locations
     if ret_type:
         fu = []
         # Create future for return value
-        if isinstance(ret_type, list) or isinstance(ret_type, tuple):  # MULTIRETURN
+        if isinstance(ret_type, list) or isinstance(ret_type, tuple):
+            # MULTIRETURN
             if __debug__:
                 logger.debug('Multiple objects return found.')
             # This condition fixes the multiple calls to a function with multireturn bug.
@@ -784,7 +792,8 @@ def _build_return_objects(self_kwargs, spec_args):
                 spec_args.append('compss_retvalue' + str(pos))
                 pos += 1
             self_kwargs['num_returns'] = pos  # Update the amount of objects to be returned
-        else:  # SIMPLE RETURN
+        else:
+            # SIMPLE RETURN
             # Build the appropriate future object
             if ret_type in python_to_compss:  # primitives, string, dic, list, tuple
                 fu = Future()
@@ -951,6 +960,10 @@ def _build_values_types_directions(ftype, first_par, num_pars, spec_args, deco_k
             # Checks that it is not a future (which is indicated with a path)
             # Considers multiple spaces between words
             p.value = base64.b64encode(p.value.encode()).decode()
+            if len(p.value) == 0:
+                # Empty string - use escape string to avoid padding
+                # Checked and substituted by empty string in the worker.py and piper_worker.py
+                p.value = base64.b64encode(EMPTY_STRING_KEY.encode()).decode()
         values.append(p.value)
 
         if p.type == TYPE.OBJECT or is_future.get(i):
@@ -1102,7 +1115,7 @@ def _serialize_objects(p, is_future):
     """
 
     # Build the range of elements
-    if ftype == Function_Type.INSTANCE_METHOD:
+    if ftype == FunctionType.INSTANCE_METHOD:
         ra = list(range(1, num_pars))
         ra.append(0)  # callee is the last
     else:

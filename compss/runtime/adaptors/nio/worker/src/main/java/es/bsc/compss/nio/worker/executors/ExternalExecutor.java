@@ -157,13 +157,12 @@ public abstract class ExternalExecutor extends Executor {
     }
     
     public static String getExternalCommand(ArrayList<String> args, NIOTask nt, NIOWorker nw, int[] assignedCoreUnits, int[] assignedGPUs) throws JobExecutionException, SerializedObjectException {
-
         addArguments(args, nt, nw);
 
         addThreadAffinity(args, assignedCoreUnits);
-        
+
         addGPUAffinity(args, assignedGPUs);
-        
+
         addHostlist(args);
 
         return getArgumentsAsString(args);
@@ -171,15 +170,15 @@ public abstract class ExternalExecutor extends Executor {
     }
 
     private static void addHostlist(ArrayList<String> args) {
-		String hostlist = System.getProperty(Constants.COMPSS_HOSTNAMES);
-    	if (hostlist!=null && !hostlist.isEmpty()){
-    		args.add(hostlist);
-    	}else{
-    		args.add("-");
-    	}
-	}
+        String hostlist = System.getProperty(Constants.COMPSS_HOSTNAMES);
+        if (hostlist != null && !hostlist.isEmpty()) {
+            args.add(hostlist);
+        } else {
+            args.add("-");
+        }
+    }
 
-	private static void addThreadAffinity(ArrayList<String> args, int[] assignedCoreUnits) {
+    private static void addThreadAffinity(ArrayList<String> args, int[] assignedCoreUnits) {
         String computingUnits;
         if (assignedCoreUnits.length == 0) {
             computingUnits = "-";
@@ -191,7 +190,7 @@ public abstract class ExternalExecutor extends Executor {
         }
         args.add(computingUnits);
     }
-    
+
     private static void addGPUAffinity(ArrayList<String> args, int[] assignedGPUs) {
         String computingUnits;
         if (assignedGPUs.length == 0) {
@@ -328,6 +327,7 @@ public abstract class ExternalExecutor extends Executor {
         } else {
             lArgs.add("null");
         }
+        lArgs.add(Integer.toString(nt.getNumReturns()));
 
         // Add parameters
         lArgs.add(Integer.toString(nt.getNumParams()));

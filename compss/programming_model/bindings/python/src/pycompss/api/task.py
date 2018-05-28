@@ -195,7 +195,7 @@ class task(object):
         # Check if the keyword returns has been specified by the user.
         if self.kwargs['returns']:
             self.has_return = True
-            # TODO: WHY THIS VARIABLE? THE INFORMATION IS IN SELF.KWARGS['COMPSS_RETVALUE']
+            # TODO: WHY THIS VARIABLE? THE INFORMATION IS IN SELF.KWARGS['RETURNS']
             self.f_argspec.args.append('compss_retvalue')
             self.__update_return_type()
         else:
@@ -337,12 +337,11 @@ class task(object):
         from pycompss.api.parameter import Parameter
         from pycompss.api.parameter import DIRECTION
 
-        # This condition is interesting, because a user can write returns=list
-        # However, lists have the attribute __len__ but raise an exception.
-        # Since the user does not indicate the length, it will be managed
-        # as a single return.
-        # When the user specifies the length, it is possible to manage the
-        # elements independently.
+        # Manage Simple returns specified by the user
+        # This condition is interesting, because a user can write returns=list, lists have attribute
+        # __len__ but an exception is raised. Consequently, if users do not specify the length
+        # it will be managed as a single return
+        # When the user specifies the length, it is possible to manage the elements independently.
         if not hasattr(self.kwargs['returns'], '__len__') or type(self.kwargs['returns']) is type:
             # Simple return
             ret_type = get_COMPSs_type(self.kwargs['returns'])
@@ -442,7 +441,8 @@ class task(object):
         """
         This function is used to register the task in the runtime.
         This registration must be done only once on the task decorator
-        initialization.
+        initialization
+
         :param f: Function to be registered
         """
 
@@ -527,12 +527,14 @@ class task(object):
     # ############################################################################ #
 
     def worker_code(self, f, args, kwargs):
-        """ Task decorator body executed in the workers.
+        """
+        Task decorator body executed in the workers.
         Its main function is to execute to execute the function decorated as task.
         Prior to the execution, the worker needs to retrieve the necessary parameters.
         These parameters will be used for the invocation of the function.
         When the function has been executed, stores in a file the result and finishes the worker execution.
         Then, the runtime grabs this files and does all management among tasks that involve them.
+
         :param f: <Function> - Function to execute
         :param args: <Tuple> - Contains the objects that the function has been called with (positional).
         :param kwargs: <Dictionary> - Contains the named objects that the function has been called with.
@@ -558,19 +560,23 @@ class task(object):
 
         if self.has_return:
             # Check if there is multireturn
-            if isinstance(returns, list) or isinstance(returns, tuple) or isinstance(returns, int):
-                if isinstance(returns, int):
+            if isinstance(returns, list) or isinstance(returns, tuple) or isinstance(returns, int) or isinstance(
+                    returns, str):
+                if isinstance(returns, str):
+                    num_return = kwargs['compss_return_length']
+                elif isinstance(returns, int):
                     num_return = returns
                 else:
                     num_return = len(returns)
+
                 if num_return > 1:
                     is_multi_return = True
                 else:
                     is_multi_return = False
+
                 # If there is a multireturn, we need to append as many arguments as returns
                 # are to the spec_args.
-                spec_args = spec_args[:-1] + [spec_args[-1] + str(i) for i in
-                                              range(num_return)]
+                spec_args = spec_args[:-1] + [spec_args[-1] + str(i) for i in range(num_return)]
             else:
                 # The spec_args already has the compss_retvalue
                 num_return = 1
@@ -675,6 +681,7 @@ class task(object):
         """
         Function that goes through all parameters in order to
         find and open the files.
+
         :param values: <List> - The value of each parameter.
         :param spec_args: <List> - Specific arguments.
         :param compss_types: <List> - The types of the values.
@@ -861,8 +868,7 @@ class task(object):
         values = tuple(vals + args_vals)
 
         fo = process_task(f, self.module, class_name, ftype, self.has_return, spec_args, values, kwargs, self.kwargs,
-                          num_nodes,
-                          is_replicated, is_distributed)
+                          num_nodes, is_replicated, is_distributed)
         # Starts the asynchronous creation of the task.
         # First calling the PyCOMPSs library and then C library (bindings-commons).
         return fo

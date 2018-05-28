@@ -94,7 +94,7 @@ public interface COMPSsRuntime {
      * @return
      */
     public int executeTask(Long appId, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-            boolean hasTarget, int parameterCount, Object... parameters);
+            boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters);
 
     /**
      * New Method Task for Loader
@@ -111,7 +111,7 @@ public interface COMPSsRuntime {
      * @param parameters
      * @return
      */
-    public int executeTask(Long appId, String methdoClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated,
+    public int executeTask(Long appId, String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated,
             boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters);
 
     /**

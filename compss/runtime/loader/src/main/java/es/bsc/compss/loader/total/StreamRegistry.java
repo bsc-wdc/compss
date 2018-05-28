@@ -628,7 +628,7 @@ public class StreamRegistry {
     }
 
     public boolean isTaskFile(String fileName) {
-        if (fileName == null) {
+        if (fileName != null) {
             File f = new File(fileName);
             if (taskFiles.contains(f.getAbsolutePath())) {
                 return true;

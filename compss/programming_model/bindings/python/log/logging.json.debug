@@ -97,6 +97,11 @@
             "handlers": ["console"], 
             "propagate": "no"
         },
+        "pycompss.util.translators.arg_utils.arg_utils": {                                                                                                                                                                                                                     
+            "level": "DEBUG",
+            "handlers": ["console"], 
+            "propagate": "no"
+        },
         "pycompss.util.translators.code_loader.code_loader": {
             "level": "DEBUG",
             "handlers": ["console"], 

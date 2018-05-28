@@ -20,10 +20,6 @@ import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.types.annotations.parameter.Direction;
 
 
-/**
- * @author mdomingu
- *
- */
 public interface LoaderAPI {
 
     /**

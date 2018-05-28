@@ -979,6 +979,7 @@ public class NIOWorker extends NIOAgent {
 
     public void removeFromCache(String name) {
         dataManager.remove(name);
+        WORKER_LOGGER.debug(name + " removed from cache.");
     }
 
     public static void registerOutputs(String path) {

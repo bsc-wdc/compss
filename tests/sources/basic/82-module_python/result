@@ -52,7 +52,7 @@ function check_unit_test () {
      [ $subtest == "module_2_constraint" ] || [ $subtest == "module_9_app_kmeans" ]; then
     #----------------------------------------------------------------------------------
     # Check no exceptions in sequential execution
-    if grep -q "Exception" "$output_file_seq"; then
+    if grep -q "Exception" "$output_file_seq" | grep -q "segmentation" "$output_file_seq"; then
        echo "Test $subtest in sequential mode - FAILED"
        exit 1
     else
@@ -75,7 +75,7 @@ function check_unit_test () {
 
      #----------------------------------------------------------------------------------
      # Check that sequential logs have the Exception message
-     if grep -q "Exception" "$error_file_seq"; then
+     if grep -q "Exception" "$error_file_seq" | grep -q "Traceback" "$error_file_seq"; then
        echo "Test $subtest in sequential mode shows the exception - OK"
      else
        echo "Test $subtest in sequential mode DOES NOT show the exception - FAILED"

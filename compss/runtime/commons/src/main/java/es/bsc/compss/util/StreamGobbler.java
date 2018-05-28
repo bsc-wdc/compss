@@ -53,13 +53,16 @@ public class StreamGobbler extends Thread {
 
     @Override
     public void run() {
+        logger.debug("Starting stream goobler");
         try {
             final byte[] buffer = new byte[BUFFER_SIZE];
             int nRead;
             while ((nRead = in.read(buffer, 0, buffer.length)) != -1) {
                 byte[] readData = new byte[nRead];
                 System.arraycopy(buffer, 0, readData, 0, nRead);
+                
                 out.print(new String(readData));
+                out.flush();
             }
         } catch (IOException ioe) {
             logger.error("Exception during reading/writing in output Stream", ioe);
@@ -74,7 +77,7 @@ public class StreamGobbler extends Thread {
 
             if (out != null) {
                 out.flush();
-                out.close();
+                //out.close();
             }
         }
     }

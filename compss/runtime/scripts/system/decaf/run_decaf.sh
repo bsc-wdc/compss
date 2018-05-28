@@ -5,8 +5,8 @@ df_lib=$3
 mpirunner=$4
 num_nodes=$6
 hostfile=$8
-args=$10
-echo "Executing decaf data-flow generator: $df_script $@" 
+args=${10}
+echo "Executing decaf data-flow generator: $df_script -n ${num_nodes} --hostfile ${hostfile} --args \"${args}\"" 
 python $df_script -n ${num_nodes} --hostfile ${hostfile} --args "${args}"
 
 if [ $? -ne 0 ]; then

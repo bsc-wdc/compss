@@ -5,7 +5,7 @@
   ##########################
 
   add_to_classpath () {
-    local DIRLIBS=${1}/*.jar
+    local DIRLIBS="${1}/*.jar"
     for i in ${DIRLIBS}; do
       if [ "$i" != "${DIRLIBS}" ] ; then
         CLASSPATH=$CLASSPATH:"$i"
@@ -32,7 +32,7 @@
     shift $shiftSizeForApp
    
     # Get method parameters
-    params=$@
+    params=$*
 
     # Log status if needed
     if [ "$debug" == "true" ]; then
@@ -47,32 +47,34 @@
   }
 
   set_env() {
-    local bindingsDir=$(dirname $0)/../../../../../Bindings
-	# Set LD_LIBRARY_PATH related env
+    local bindingsDir
+    bindingsDir=$(dirname "$0")/../../../../../Bindings
+    # Set LD_LIBRARY_PATH related env
     export LD_LIBRARY_PATH=${bindingsDir}/c/lib:${bindingsDir}/bindings-common/lib:$LD_LIBRARY_PATH
 	
-	#Activate bindings debug if debug activated
-	if [ "$debug" == "true" ]; then
-		export COMPSS_BINDINGS_DEBUG=1
-	fi
-	
-	# Look for the JVM Library
-  	if [ -n "${JAVA_HOME}" ]; then
-  		libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.so | head -n 1)
-  		if [ -z "$libjava" ]; then
-    		libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.dylib | head -n 1)
-    		if [ -z "$libjava" ]; then
-      			echo "WARNNING: Java lib dir not found."
-    		fi
-  		fi
-  		if [ -n "$libjava" ]; then 
-  			libjavafolder=$(dirname $libjava)
-  			export LD_LIBRARY_PATH=${libjavafolder}:$LD_LIBRARY_PATH
-		fi
-	fi
+    # Activate bindings debug if debug activated
+    if [ "$debug" == "true" ]; then
+      export COMPSS_BINDINGS_DEBUG=1
+    fi
+
+    # Look for the JVM Library
+    if [ -n "${JAVA_HOME}" ]; then
+      libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
+      if [ -z "$libjava" ]; then
+        libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
+        if [ -z "$libjava" ]; then
+      	  echo "WARNNING: Java lib dir not found."
+    	fi
+      fi
+      if [ -n "$libjava" ]; then 
+        libjavafolder=$(dirname "$libjava")
+        export LD_LIBRARY_PATH=${libjavafolder}:$LD_LIBRARY_PATH
+      fi
+    fi
 
     # Set classpath related env
-    local gatworker_jar=$(dirname $0)/../../../../adaptors/gat/worker/compss-adaptors-gat-worker.jar
+    local gatworker_jar
+    gatworker_jar=$(dirname "$0")/../../../../adaptors/gat/worker/compss-adaptors-gat-worker.jar
     add_to_classpath "$app_dir"
     add_to_classpath "$app_dir/lib"
     export CLASSPATH=$cp:$CLASSPATH:$app_dir:$gatworker_jar

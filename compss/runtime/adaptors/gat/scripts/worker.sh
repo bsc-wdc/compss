@@ -21,12 +21,12 @@
   #-------------------------------------
   # Create sandbox
   #-------------------------------------
-  if [ ! -d $workingDir ]; then
-    mkdir -p $workingDir
+  if [ ! -d "$workingDir" ]; then
+    mkdir -p "$workingDir"
   fi
   export COMPSS_WORKING_DIR=$workingDir
 
-  cd $workingDir
+  cd "$workingDir" || exit 1
 
   echo "[WORKER.SH] Starting GAT Worker"
   echo "[WORKER.SH]    - Lang       = $lang"
@@ -37,9 +37,9 @@
   # Remove obsolete files
   #-------------------------------------
   echo "[WORKER.SH] Removing $rmfilesNum obsolete files"
-  for ((i=0;i<$rmfilesNum;i++)); do
-    echo $1
-    rm -f $1
+  for ((i=0;i<rmfilesNum;i++)); do
+    echo "$1"
+    rm -f "$1"
     shift 1
   done
 
@@ -51,26 +51,26 @@
   shift 2
   echo "[WORKER.SH]    - Sandbox    = $sandbox"
   echo "[WORKER.SH]    - isSpecific = $isSpecific"
-  if [ ! -d $sandbox ]; then
-    mkdir -p $sandbox
+  if [ ! -d "$sandbox" ]; then
+    mkdir -p "$sandbox"
   fi
 
   symlinkfilesNum=$1
   shift 1
   renames=""
-  if [ $symlinkfilesNum -ne 0 ]; then
+  if [ "$symlinkfilesNum" -ne 0 ]; then
     echo "[WORKER.SH] Creating $symlinkfilesNum symlink files"
-    for ((i=0;i<$symlinkfilesNum;i=i+2)); do
+    for ((i=0;i<symlinkfilesNum;i=i+2)); do
       # Create symlink for in inout files
       if [ -f "$1" ]; then
         if [ ! -f "${sandbox}/$2" ]; then
           echo "[WORKER.SH] Link $1 -> ${sandbox}/${2}"
-      	  ln -s $1 ${sandbox}/${2}
+      	  ln -s "$1" "${sandbox}/$2"
         else
-          newVer=$(basename $1 | tr "_" "\t" | awk '{ print $1 }' | tr "v" "\t" | awk '{ print $2 }')
-          oldVer=$(basename $(echo $(readlink -f ${sandbox}/${2})) | tr "_" "\t" | awk '{ print $1 }' | tr "v" "\t" | awk '{ print $2 }')
+          newVer=$(basename "$1" | tr "_" "\t" | awk '{ print $1 }' | tr "v" "\t" | awk '{ print $2 }')
+          oldVer=$(basename "$(readlink -f "${sandbox}/$2")" | tr "_" "\t" | awk '{ print $1 }' | tr "v" "\t" | awk '{ print $2 }')
           if (( newVer > oldVer )); then
-            ln -sf $1 ${sandbox}/${2}
+            ln -sf "$1" "${sandbox}/$2"
             echo "[WORKER.SH] WARN: Updating link ${sandbox}/$2 that already exists"
           else
             echo "[WORKER.SH] WARN: Cannot create link because ${sandbox}/$2 already exists"
@@ -108,12 +108,12 @@
   # Trace start event if needed
   #-------------------------------------
   export EXTRAE_BUFFER_SIZE=100
-  if [ $tracing == "true" ]; then
+  if [ "$tracing" == "true" ]; then
     eventType=$1
     taskId=$2
     slot=$3
     shift 3
-    ${scriptDir}/../../trace.sh start $workingDir $eventType $taskId $slot
+    "${scriptDir}"/../../trace.sh start "$workingDir" "$eventType" "$taskId" "$slot"
   fi
 
   #-------------------------------------
@@ -129,27 +129,27 @@
     lang=java
   fi
 
-  cd $sandbox
+  cd "$sandbox" || exit 1
   # Run the task with the language-dependent script
   echo " "
   echo "[WORKER.SH] Starting language $lang dependant script"
-  ${scriptDir}/worker_$lang.sh $@
+  "${scriptDir}"/worker_$lang.sh "$@"
   endCode=$?
   echo " "
   echo "[WORKER.SH] EndStatus = $endCode"
-  cd $workingDir
+  cd "$workingDir" || exit 1
 
   #-------------------------------------
   # Trace end event if needed
   #-------------------------------------
-  if [ $tracing == "true" ]; then
-    ${scriptDir}/../../trace.sh end $workingDir $eventType $slot
+  if [ "$tracing" == "true" ]; then
+    "${scriptDir}"/../../trace.sh end "$workingDir" "$eventType" "$slot"
   fi
 
   #-------------------------------------
   # Undo symlinks and rename files
   #-------------------------------------
-  if [ $symlinkfilesNum -ne 0 ]; then
+  if [ "$symlinkfilesNum" -ne 0 ]; then
     removeOrMove=0
     renamedFile=""
     echo "[WORKER.SH] Undo $symlinkfilesNum symlink files"
@@ -166,12 +166,12 @@
         if [ $removeOrMove -eq 1 ]; then
           echo "[WORKER.SH] Removing link $element"
           if [ -f "$element" ]; then
-            rm $element
+            rm "$element"
           fi
     	elif [ $removeOrMove -eq 2 ]; then
           echo "[WORKER.SH] Moving $element to $renamedFile"
           if [ -f "$element" ]; then
-            mv $element $renamedFile
+            mv "$element" "$renamedFile"
           fi
     	else
     	  echo 1>&2 "Incorrect operation when managing rename symlinks "
@@ -187,7 +187,7 @@
   # Clean sandbox
   #-------------------------------------
   if [ "${isSpecific}" != "true" ]; then
-    rm -rf $sandbox
+    rm -rf "$sandbox"
   fi
 
   #-------------------------------------

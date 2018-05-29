@@ -88,18 +88,16 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
     private static final String STORAGE_CONF = IS_STORAGE_ENABLED ? System.getProperty(COMPSsConstants.STORAGE_CONF) : "null";
 
     // Python interpreter
-    private static final String PYTHON_INTERPRETER = System.getProperty(COMPSsConstants.PYTHON_INTERPRETER) != null ?
-                                                     System.getProperty(COMPSsConstants.PYTHON_INTERPRETER) :
-                                                     COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
-    private static final String PYTHON_VERSION = System.getProperty(COMPSsConstants.PYTHON_VERSION) != null ?
-                                                 System.getProperty(COMPSsConstants.PYTHON_VERSION) :
-                                                 COMPSsConstants.DEFAULT_PYTHON_VERSION;
-    private static final String PYTHON_VIRTUAL_ENVIRONMENT = System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT) != null ?
-                                                             System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT) :
-                                                             COMPSsConstants.DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT;
-    private static final String PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT = System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT) != null ?
-                                                                       System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT) :
-                                                                       COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
+    private static final String PYTHON_INTERPRETER = System.getProperty(COMPSsConstants.PYTHON_INTERPRETER) != null
+            ? System.getProperty(COMPSsConstants.PYTHON_INTERPRETER) : COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
+    private static final String PYTHON_VERSION = System.getProperty(COMPSsConstants.PYTHON_VERSION) != null
+            ? System.getProperty(COMPSsConstants.PYTHON_VERSION) : COMPSsConstants.DEFAULT_PYTHON_VERSION;
+    private static final String PYTHON_VIRTUAL_ENVIRONMENT = System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT) != null
+            ? System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT) : COMPSsConstants.DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT;
+    private static final String PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT = System
+            .getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT) != null
+                    ? System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT)
+                    : COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
 
     private static final String JOBS_DIR = System.getProperty(COMPSsConstants.APP_LOG_DIR) + "jobs" + java.io.File.separator;
 
@@ -592,6 +590,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         } else {
             lArgs.add("null");
         }
+        lArgs.add(Integer.toString(taskParams.getNumReturns()));
 
         // Add parameters
         int numParams = taskParams.getParameters().length;

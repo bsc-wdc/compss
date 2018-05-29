@@ -96,9 +96,10 @@ def compss_worker(persistent_storage):
     args = args[1:]
     has_target = args[0]
     return_type = args[1]
-    num_params = int(args[2])
+    num_returns = int(args[2])
+    num_params = int(args[3])
 
-    args = args[3:]
+    args = args[4:]
     pos = 0
 
     values = []

@@ -5,7 +5,7 @@
   ####################################
 
   activate_virtual_environment () {
-    source ${pythonVirtualEnvironment}/bin/activate
+    source "${pythonVirtualEnvironment}"/bin/activate
   }
 
   deactivate_virtual_environment () {
@@ -18,11 +18,12 @@
   ####################################
 
   # Get worker common functions
-  scriptDir=$(dirname $0)
-  source ${scriptDir}/worker_commons.sh
+  SCRIPT_DIR=$(dirname "$0")
+  # shellcheck source=./worker_commons.sh
+  source "${SCRIPT_DIR}"/worker_commons.sh
 
   # Pre-execution
-  get_parameters $@
+  get_parameters "$@"
   if [ "$pythonVirtualEnvironment" != "null" ] && [ "$pythonPropagateVirtualEnvironment" == "true" ]; then
     activate_virtual_environment
   fi
@@ -38,11 +39,11 @@
 
   echo "[WORKER_PYTHON.SH] PYTHONPATH: ${PYTHONPATH}"
   echo "[WORKER_PYTHON.SH] EXEC CMD: $pythonInterpreter ${PYCOMPSS_HOME}/pycompss/worker/worker.py $taskTracing $taskId $params"
-  $pythonInterpreter ${PYCOMPSS_HOME}/pycompss/worker/worker.py $taskTracing $taskId $params
+  $pythonInterpreter "${PYCOMPSS_HOME}"/pycompss/worker/worker.py $taskTracing $taskId $params
+  ev=$?
 
-  exitCode=0
   # Exit
-  if [ $? -eq 0 ]; then
+  if [ $ev -eq 0 ]; then
     exitCode=0
   else
     echo 1>&2 "Task execution failed"

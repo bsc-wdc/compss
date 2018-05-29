@@ -38,11 +38,13 @@ public class DeregisterObject extends APRequest {
 			//I think it's not possible to enter here, the problem we had was that
 			//they were not deleted, but I think it's mandatory to log out what happens
 		}
-		else 
+		else {
 			LOGGER.info("Data of : " + String.valueOf(hash_code) + " deleted");
-			
+		}	
 		//At this point all the ObjectInfo versions (renamings) are 
 		//out of the DataInfoProvider data structures
+		
+		ta.deleteData(objectInfo);
 		
 	}
 

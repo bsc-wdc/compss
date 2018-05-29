@@ -58,7 +58,7 @@ public class DeleteFileRequest extends APRequest {
         } else { // file is involved in some task execution
             // File Won't be read by any future task or from the main code.
             // Remove it from the dependency analysis and the files to be transferred back
-            ta.deleteFile(fileInfo);
+            ta.deleteData(fileInfo);
         }
     }
 

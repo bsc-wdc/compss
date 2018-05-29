@@ -37,6 +37,7 @@ import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.Task.TaskState;
 import es.bsc.compss.types.data.DataAccessId.RWAccessId;
+import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.AccessParams.*;
 import es.bsc.compss.types.data.DataAccessId;
@@ -45,7 +46,6 @@ import es.bsc.compss.types.parameter.BindingObjectParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.ExternalPSCOParameter;
-import es.bsc.compss.types.data.FileInfo;
 import es.bsc.compss.types.data.operation.ResultListener;
 import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.parameter.FileParameter;
@@ -526,22 +526,23 @@ public class TaskAnalyser {
     }
 
     /**
-     * Deletes the specified file and its renamings
+     * Deletes the specified data and its renamings
      * 
-     * @param fileInfo
+     * @param dataInfo
      */
-    public void deleteFile(FileInfo fileInfo) {
-        int dataId = fileInfo.getDataId();
+    public void deleteData(DataInfo dataInfo) {
+        int dataId = dataInfo.getDataId();
 
-        LOGGER.debug("Deleting file with id " + dataId + " and location " + fileInfo.getOriginalLocation());
+        LOGGER.debug("Deleting data with id " + dataId);
 
-        Task task = writers.get(dataId);
+        Task task = writers.remove(dataId);
         if (task != null) {
             return;
         }
-        LOGGER.debug("Removing " + fileInfo.getDataId() + " from written files");
+        
+        LOGGER.debug("Removing " + dataInfo.getDataId() + " from written files");
         for (TreeSet<Integer> files : appIdToWrittenFiles.values()) {
-            files.remove(fileInfo.getDataId());
+            files.remove(dataInfo.getDataId());
         }
     }
 

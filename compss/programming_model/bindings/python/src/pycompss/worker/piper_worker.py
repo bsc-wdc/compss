@@ -283,6 +283,14 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                 alive = process_task(line, in_pipe)
                 break
 
+    if storage_conf != 'null':
+        try:
+            from storage.api import finishWorkerPostFork as finishStorageAtWorkerPostFork
+            finishStorageAtWorkerPostFork()
+        except:
+            if __debug__:
+                logger.info("[PYTHON WORKER] Could not find finishWorkerPostFork storage call. Ignoring it.")
+
     # TRACING
     # if tracing:
     #     pyextrae.eventandcounters(TASK_EVENTS, PROCESS_DESTRUCTION)

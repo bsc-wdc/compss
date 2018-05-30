@@ -1030,6 +1030,10 @@ def build_values_types_directions(ftype, first_par, num_pars, spec_args,
             # Checks that it is not a future (which is indicated with a path)
             # Considers multiple spaces between words
             p.value = base64.b64encode(p.value.encode()).decode()
+            if len(p.value) == 0:
+                # Empty string - use escape string to avoid padding
+                # Checked and substituted by empty string in the worker.py and piper_worker.py
+                p.value = base64.b64encode("3mPtY57rNg".encode()).decode()
         values.append(p.value)
         if p.type == TYPE.OBJECT or is_future.get(i):
             compss_types.append(TYPE.FILE)

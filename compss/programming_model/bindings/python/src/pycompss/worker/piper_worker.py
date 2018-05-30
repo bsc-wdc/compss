@@ -599,18 +599,22 @@ def get_input_params(num_params, logger, args, process_name, persistent_storage)
                 aux += args[pos + j]
             # Decode the string received
             aux = base64.b64decode(aux.encode())
-            #######
-            # Check if the string is really an object
-            # Required in order to recover objects passed as parameters.
-            # - Option object_conversion
-            real_value = aux
-            try:
-                # try to recover the real object
-                aux = deserialize_from_string(aux)
-            except (SerializerException, ValueError, EOFError):
-                # was not an object
-                aux = str(real_value.decode())
-            #######
+            if aux.decode() == '3mPtY57rNg':
+                # Then it is an empty string
+                aux = ""
+            else:
+                #######
+                # Check if the string is really an object
+                # Required in order to recover objects passed as parameters.
+                # - Option object_conversion
+                real_value = aux
+                try:
+                    # try to recover the real object
+                    aux = deserialize_from_string(aux)
+                except (SerializerException, ValueError, EOFError):
+                    # was not an object
+                    aux = str(real_value.decode())
+                #######
             values.append(aux)
             if __debug__:
                 logger.debug("[PYTHON WORKER %s] \t * Final Value: %s" % (process_name, str(aux)))

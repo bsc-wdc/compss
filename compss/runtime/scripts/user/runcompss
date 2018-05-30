@@ -898,7 +898,7 @@ check_args() {
     fi
   fi
   if [ -z "$persistent_worker_c" ]; then
-	persistent_worker_c=$DEFAULT_PERSISTENT_WORKER_C
+	persistent_worker_c=${DEFAULT_PERSISTENT_WORKER_C}
   fi
 
   if [ "$comm" == "${NIO_ADAPTOR}" ]; then
@@ -1073,10 +1073,11 @@ exec_c() {
   echo "COMPSS_HOME: $COMPSS_HOME"
   echo "Args: $application_args"
   echo " "
-
+   
   if [ $tracing -gt 0 ]; then
     export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
   fi
+  
   $fullAppPath ${application_args}
   endCode=$?
   if [ $tracing -gt 0 ]; then
@@ -1129,6 +1130,7 @@ exec_python() {
   if [ $tracing -gt 0 ]; then
     export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
   fi
+  
   $python_interpreter ${py_flags} "$PYCOMPSS_HOME"/pycompss/runtime/launch.py $log_level $PyObject_serialize $storageConf "$fullAppPath" ${application_args}
   endCode=$?
   if [ $tracing -gt 0 ]; then

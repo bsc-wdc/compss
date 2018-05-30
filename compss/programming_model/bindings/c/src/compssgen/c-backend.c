@@ -166,20 +166,21 @@ void generate_worker_executor(){
 	generate_executor_prototype(workerFile);
 	// Args consistent with Runtime [0, NUM_INTERNAL_ARGS]: executable, tracing, taskId, workerDebug, storageConf, method_type, className, methodName,
 	//                                                      numSlaves, [slaves], numCus, hasTarget, returnType, numAppParams
-	fprintf(workerFile, "\t if(is_debug()){\n");
+	fprintf(workerFile, "\t if(is_debug()){\n"); //Open if debug
 	fprintf(workerFile, "\t\t cout << endl;\n");
 	fprintf(workerFile, "\t\t cout << \"[C-BINDING] ----------------- C WORKER -----------------\" << endl;\n");
 	fprintf(workerFile, "\t\t cout << \"[C-BINDING] Total number of parameters: \" << argc << endl;\n");
-	fprintf(workerFile, "\t }\n");
-	fprintf(workerFile, "\t if (argc < MIN_NUM_INTERNAL_ARGS) {\n");
+	fprintf(workerFile, "\t }\n"); //Close if debug
+
+	fprintf(workerFile, "\t if (argc < MIN_NUM_INTERNAL_ARGS) {\n"); //Open args check if
 	fprintf(workerFile, "\t\t cout << \"[C-BINDING] ERROR: Incorrect number of COMPSs internal parameters\"<< endl;\n");
 	fprintf(workerFile, "\t\t cout << \"[C-BINDING] Aborting...\" << endl;\n");
 	fprintf(workerFile, "\t\t return -1; \n");
-	fprintf(workerFile, "\t }\n");
+	fprintf(workerFile, "\t }\n"); //Close args check if
 	fprintf(workerFile, "\n");
 
 	// Log args
-	fprintf(workerFile, "\t if(is_debug()){\n");
+	fprintf(workerFile, "\t if(is_debug()){\n"); //Open if debug clause
 	fprintf(workerFile, "\t\t cout << \"[C-BINDING] Executable: \" << argv[0] << endl;\n");
 	fprintf(workerFile, "\t\t cout << \"[C-BINDING] Tracing: \" <<  argv[1] << endl;\n");
 	fprintf(workerFile, "\t\t cout << \"[C-BINDING] Task Id: \" << argv[2] << endl;\n");
@@ -189,56 +190,53 @@ void generate_worker_executor(){
 	fprintf(workerFile, "\t\t cout << \"[C-BINDING] ClassName: \" << argv[6] << endl;\n");
 	fprintf(workerFile, "\t\t cout << \"[C-BINDING] MethodName: \" << argv[7] << endl;\n");
 	fprintf(workerFile, "\t\t cout << \"[C-BINDING] NumSlaves: \" << argv[8] << endl;\n");
-	fprintf(workerFile, "\t }\n");
+	fprintf(workerFile, "\t }\n"); //Close if debug
 
 	fprintf(workerFile, "\t int numSlaves=atoi(argv[8]);\n");
 
-	fprintf(workerFile, "\t if(is_debug()){\n");
-	fprintf(workerFile, "\t\t for (int i = 0; i < numSlaves; ++i) {\n");
+	fprintf(workerFile, "\t if(is_debug()){\n"); //Open if debug clause
+	fprintf(workerFile, "\t\t for (int i = 0; i < numSlaves; ++i) {\n"); //Open for
 	fprintf(workerFile, "\t\t\t cout <<\"[C-BINDING] Slave \" << i << \" has name \" << argv[NUM_BASE_ARGS + i] << endl;\n");
-	fprintf(workerFile, "\t\t }\n");
-	fprintf(workerFile, "\t }\n");
+	fprintf(workerFile, "\t\t }\n"); //Close for
+	fprintf(workerFile, "\t }\n"); //Close if debug
 
 	fprintf(workerFile, "\t int NUM_INTERNAL_ARGS=NUM_BASE_ARGS + numSlaves;\n");
 
-	fprintf(workerFile, "\t if(is_debug()){\n");
+
+	//fprintf(workerFile, "\t if(is_debug()){\n"); //Open if debug clause
 	fprintf(workerFile, "\t\t cout << \"[C-BINDING] NumComputingUnits: \" << argv[NUM_INTERNAL_ARGS++] << endl;\n");
 	fprintf(workerFile, "\t\t cout << \"[C-BINDING] HasTarget: \" << argv[NUM_INTERNAL_ARGS++] << endl;\n");
 	fprintf(workerFile, "\t\t cout << \"[C-BINDING] ReturnType: \" << argv[NUM_INTERNAL_ARGS++] << endl;\n");
 	fprintf(workerFile, "\t\t cout << \"[C-BINDING] Num App Params: \" << argv[NUM_INTERNAL_ARGS++] << endl;\n");
 	fprintf(workerFile, "\t\t cout << \"[C-BINDING] Application Arguments:\" << endl;\n");
-	fprintf(workerFile, "\t\t for(int i = NUM_INTERNAL_ARGS; i < argc; i++) { \n");
+	fprintf(workerFile, "\t\t for(int i = NUM_INTERNAL_ARGS; i < argc; i++) { \n"); //Open for
 	fprintf(workerFile, "\t\t\t cout << \"\t\" << argv[i] << endl;\n");
-	fprintf(workerFile, "\t\t }\n");
+	fprintf(workerFile, "\t\t }\n"); //Close for clause
 	fprintf(workerFile, "\t\t cout << flush;\n");
 	fprintf(workerFile, "\n");
-	fprintf(workerFile, "\t }\n");
+	//fprintf(workerFile, "\t }\n"); //Close if debug clause
 
 	// Get OpName and OpCode
 	fprintf(workerFile, "\t enum operationCode opCod;\n");
-	fprintf(workerFile, "\t char *opName;\n");
-	fprintf(workerFile, "\t opName = strdup(argv[METHOD_NAME_POS]);\n");
-	fprintf(workerFile, "\t cout << \"OpName: \" << opName << endl;\n");
-	fprintf(workerFile, "\n");
-	fprintf(workerFile, "\tfor(int i=0; i < N_OPS; i++) {\n");
-	fprintf(workerFile, "\t\tif(strcmp(operationName[i], opName) == 0) {\n");
-	fprintf(workerFile, "\t\t\topCod=(enum operationCode)i;\n");
-	fprintf(workerFile, "\t\t\tbreak;\n");
-	fprintf(workerFile, "\t\t}\n");
-	fprintf(workerFile, "\t}\n");
+	fprintf(workerFile, "\t char *opName = strdup(argv[METHOD_NAME_POS]);\n");
+	fprintf(workerFile, "\t for(int i=0; i < N_OPS; i++) {\n");
+	fprintf(workerFile, "\t\t if(strcmp(operationName[i], opName) == 0) {\n");
+	fprintf(workerFile, "\t\t\t opCod=(enum operationCode)i;\n");
+	fprintf(workerFile, "\t\t\t break;\n");
+	fprintf(workerFile, "\t\t }\n");
+	fprintf(workerFile, "\t }\n");
 
-	fprintf(workerFile, "\t if(is_debug()){\n");
-	fprintf(workerFile, "\t\t cout << \"[C-BINDING] OpCode: \" << (int)opCod << endl;\n");
-	fprintf(workerFile, "\n");
+	fprintf(workerFile, "\t if(is_debug()){\n"); // Open if debug clause
+	fprintf(workerFile, "\t\t cout << \"[C-BINDING] OpName: \" << opName << \"OpCode: \" << (int)opCod << endl;\n");
 	fprintf(workerFile, "\t\t cout << \"[C-BINDING] --------------------------------------------\"<< endl << endl << flush;\n");
 	fprintf(workerFile, "\t\t cout << \"[C-BINDING] Data in cache before executing:\" << endl;\n");
 	fprintf(workerFile, "\t\t cache->printValues();\n");
-	fprintf(workerFile, "\t }\n");
+	fprintf(workerFile, "\t }\n");//Close if debug clause
 
 	// OpCode switch
 	fprintf(workerFile, "\t int arg_offset = NUM_INTERNAL_ARGS;\n");
 	fprintf(workerFile, "\t switch(opCod)\n");
-	fprintf(workerFile, "\t {\n");
+	fprintf(workerFile, "\t {\n"); //Open switch clause
 }
 
 /*
@@ -654,9 +652,13 @@ static void generate_remove_func(FILE *outFile, Types current_types)
 		fprintf(outFile, "\t\t case %d:\n", i);
 		fprintf(outFile, "\t\t\t %s *data_%d;\n", dataType, i);
 		fprintf(outFile, "\t\t\t data_%d = (%s*)cp.pointer;\n", i , dataType);
+		fprintf(outFile, "\t\t\t if(is_debug()){\n"); //Open if debug
 		fprintf(outFile, "\t\t\t cout << \"[C Binding] Deleting object from memory...\" << endl;\n");
+		fprintf(outFile, "\t\t\t }");// end if debug;
 		fprintf(outFile, "\t\t\t delete(data_%d);\n",i);
-		fprintf(outFile, "\t\t\t cout << \"[C Binding] Object has been removed.\" << endl;\n");
+		fprintf(outFile, "\t\t\t if(is_debug()){\n"); //Open if debug
+		fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Object has been removed.\" << endl;\n");
+		fprintf(outFile, "\t\t\t }");// end if debug;
 		fprintf(outFile, "\t\t\t break;\n");
 	}
 	fprintf(outFile, "\t\t default:;\n");
@@ -710,11 +712,15 @@ static void generate_serializeToStream_func(FILE *outFile, Types current_types)
 		char * dataType = type.name;
 		fprintf(outFile, "\t\t case %d:\n", i);
 		fprintf(outFile, "\t\t {");
-		fprintf(outFile, "\t\t\t cout << \"[C Binding] Object is about to be serialized.\" << endl << flush;\n");
+		fprintf(outFile, "\t\t\t if(is_debug()){\n"); //Open if debug
+		fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Object %s is about to be serialized.\" << endl << flush;\n", object_name);
+		fprintf(outFile, "\t\t\t }");// end if debug;
 		fprintf(outFile, "\t\t\t %s *%s;\n",dataType, object_name);
 		fprintf(outFile, "\t\t\t %s = (%s*)cp.pointer;\n", object_name, dataType);
 		add_serialization(outFile, type.dt, object_name, "jsb","cp.elements", "\t\t\t\t");
-		fprintf(outFile, "\t\t\t cout << \"[C Binding] Object has been serialized.\" << endl << flush;\n");
+		fprintf(outFile, "\t\t\t if(is_debug()){\n"); //Open if debug
+		fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Object %s has been serialized.\" << endl << flush;\n", object_name);
+		fprintf(outFile, "\t\t\t }");// end if debug;
 		fprintf(outFile, "\t\t\t break;\n");
 		fprintf(outFile, "\t\t }");
 		free(object_name);
@@ -740,11 +746,15 @@ static void generate_serializeToFile_func(FILE *outFile, Types current_types)
 		char * dataType = type.name;
 		fprintf(outFile, "\t\t case %d:\n", i);
 		fprintf(outFile, "\t\t {");
-		fprintf(outFile, "\t\t\t cout << \"[C Binding] Object is about to be serialized.\" << endl << flush;\n");
+		fprintf(outFile, "\t\t\t if(is_debug()){\n"); //Open if debug
+		fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Object %s is about to be serialized.\" << endl << flush;\n", object_name);
+		fprintf(outFile, "\t\t\t }");// end if debug;
 		fprintf(outFile, "\t\t\t %s *%s;\n",dataType, object_name);
 		fprintf(outFile, "\t\t\t %s = (%s*)cp.pointer;\n", object_name, dataType);
 		add_serialization(outFile, type.dt, object_name, "filename", "cp.elements", "\t\t\t\t");
-		fprintf(outFile, "\t\t\t cout << \"[C Binding] Object has been serialized.\" << endl << flush;\n");
+		fprintf(outFile, "\t\t\t if(is_debug()){\n"); //Open if debug
+		fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Object %s has been serialized.\" << endl << flush;\n", object_name);
+		fprintf(outFile, "\t\t\t }");// end if debug;
 		fprintf(outFile, "\t\t\t break;\n");
 		fprintf(outFile, "\t\t }");
 		free(object_name);
@@ -770,7 +780,9 @@ static void generate_deserializeFromStream_func(FILE *outFile, Types current_typ
 		char * dataType = type.name;
 		fprintf(outFile, "\t\t case %d:\n", i);
 		fprintf(outFile, "\t\t {");
-		fprintf(outFile, "\t\t\t cout << \"[C Binding] Object is about to be deserialized.\" << endl << flush;\n");
+		fprintf(outFile, "\t\t\t if(is_debug()){\n"); //Open if debug
+		fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Object %s is about to be deserialized.\" << endl << flush;\n", object_name);
+		fprintf(outFile, "\t\t\t }");// end if debug;
 		if (type.dt == object_dt){
 			fprintf(outFile, "\t\t\t %s *%s = new %s();\n",dataType, object_name, dataType);
 		}else{
@@ -778,7 +790,9 @@ static void generate_deserializeFromStream_func(FILE *outFile, Types current_typ
 		}
 		fprintf(outFile, "\t\t\t cp.pointer = %s;\n", object_name);
 		add_deserialization(outFile,type.dt, object_name, "jsb", "cp.elements", "\t\t\t\t");
-		fprintf(outFile, "\t\t\t cout << \"[C Binding] Object has been deserialized.\" << endl << flush;\n");
+		fprintf(outFile, "\t\t\t if(is_debug()){\n"); //Open if debug
+		fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Object %s has been deserialized.\" << endl << flush;\n", object_name);
+		fprintf(outFile, "\t\t\t }");// end if debug;
 		fprintf(outFile, "\t\t\t break;\n");
 		fprintf(outFile, "\t\t }");
 		free(object_name);
@@ -804,7 +818,9 @@ static void generate_deserializeFromFile_func(FILE *outFile, Types current_types
 		char * dataType = type.name;
 		fprintf(outFile, "\t\t case %d:\n", i);
 		fprintf(outFile, "\t\t {");
-		fprintf(outFile, "\t\t\t cout << \"[C Binding] Object is about to be deserialized.\" << endl << flush;\n");
+		fprintf(outFile, "\t\t\t if(is_debug()){\n"); //Open if debug
+		fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Object %s is about to be deserialized.\" << endl << flush;\n", object_name);
+		fprintf(outFile, "\t\t\t }");// end if debug;
 		if (type.dt == object_dt){
 			fprintf(outFile, "\t\t\t %s *%s = new %s();\n",dataType, object_name, dataType);
 		}else{
@@ -813,7 +829,9 @@ static void generate_deserializeFromFile_func(FILE *outFile, Types current_types
 		//fprintf(outFile, "\t\t\t cp.pointer = %s;\n", object_name);
 		add_deserialization(outFile,type.dt, object_name, "filename","cp.elements", "\t\t\t\t");
 		fprintf(outFile, "\t\t\t cp.pointer = %s;\n", object_name);
-		fprintf(outFile, "\t\t\t cout << \"[C Binding] Object has been deserialized.\" << endl << flush;\n");
+		fprintf(outFile, "\t\t\t if(is_debug()){\n"); //Open if debug
+		fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Object %s has been deserialized.\" << endl << flush;\n", object_name);
+		fprintf(outFile, "\t\t\t }");// end if debug;
 		fprintf(outFile, "\t\t\t break;\n");
 		fprintf(outFile, "\t\t }");
 		free(object_name);
@@ -1132,20 +1150,15 @@ static void generate_execute_task_call(FILE *outFile, function *func)
 
 static void add_checkinCache_and_management(FILE *outFile, const char* name, const char* dataType, const char * elements, int position, bool preserveData){
 	//Check if dest is in cache
-	fprintf(outFile, "\t\t\t\t debug_printf(\"[C Binding] Checking if object %%s\\n\", %s_dest_id);\n",name);
 	fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Checking if object %s with id \"<< %s_dest_id_str << \" is in cache.\" << endl << flush;\n", name, name);
-	fprintf(outFile, "\t\t\t\t bool found;\n");
-
-	fprintf(outFile, "\t\t\t\t found = cache->isInCache(%s_dest_id);\n", name);
-	//If not found -> try if origin is in cache
+	fprintf(outFile, "\t\t\t\t bool found = cache->isInCache(%s_dest_id);\n", name);
+	//If dest id not found -> try if origin is in cache
 	fprintf(outFile, "\t\t\t\t if (!found){\n");
-	fprintf(outFile, "\t\t\t\t\t debug_printf(\"[C Binding] Destination id not found. Checking if object %%s\\n\", %s_orig_id);\n",name);
 	fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Destination id not found in cache. Checking if object %s with id \"<< %s_orig_id_str << \" is in cache.\" << endl << flush;\n", name, name);
 	fprintf(outFile, "\t\t\t\t\t found = cache->isInCache(%s_orig_id);\n", name);
 
-	//If not found -> deserialize
+	//If origin id not found -> deserialize form file
 	fprintf(outFile, "\t\t\t\t\t if (!found){\n");
-
 	fprintf(outFile, "\t\t\t\t\t\t cout << \"[C Binding] Deserializing object %s from \" << %s_dest_id_str << \" as \" << %s_dest_id_str << endl << flush;\n", name, name, name);
 	//New cache
 	fprintf(outFile, "\t\t\t\t\t\t compss_pointer cp;\n");
@@ -1153,67 +1166,65 @@ static void add_checkinCache_and_management(FILE *outFile, const char* name, con
 	fprintf(outFile, "\t\t\t\t\t\t cp.elements= %s;\n", elements);
 	fprintf(outFile, "\t\t\t\t\t\t cp.size = cp.elements * sizeof(%s);\n", dataType);
 	fprintf(outFile, "\t\t\t\t\t\t int res = cache->pullFromFile(%s_dest_id, %s_dest_id, cp);\n", name, name);
-	fprintf(outFile, "\t\t\t\t\t\t if (res != 0){\n");
+
+	fprintf(outFile, "\t\t\t\t\t\t if (res != 0){\n"); // If error pulling from dest_id -> try with origin id
 	fprintf(outFile, "\t\t\t\t\t\t\t cout << \"[C Binding] Error Deserializing object %s as \"<< %s_dest_id_str <<\". Deserializing object %s from \" << %s_orig_id_str << \" as \" << %s_dest_id_str << endl << flush;\n", name, name, name, name, name);
 	fprintf(outFile, "\t\t\t\t\t\t\t res = cache->pullFromFile(%s_dest_id, %s_orig_id, cp);\n", name, name);
-	fprintf(outFile, "\t\t\t\t\t\t\t if (res != 0){\n");
+
+	fprintf(outFile, "\t\t\t\t\t\t\t if (res != 0){\n"); // If error pulling from origin_id -> return error
 	fprintf(outFile, "\t\t\t\t\t\t\t\t cerr << \"[C Binding] Error Deserializing object %s as \"<< %s_orig_id_str << endl << flush;\n", name, name);
 	fprintf(outFile, "\t\t\t\t\t\t\t\t return res;\n");
 	fprintf(outFile, "\t\t\t\t\t\t\t }\n");
 	fprintf(outFile, "\t\t\t\t\t\t }\n");
 	fprintf(outFile, "\t\t\t\t\t\t %s = (%s*)cp.pointer;\n", name, dataType);
-	/*OLD
-			add_arg_deserialization(outFile, arg, "", "_filename", "\t\t\t\t\t");
-			fprintf(outFile, "\t\t\t\t\t get_compss_worker_lock();\n");
-			fprintf(outFile, "\t\t\t\t\t cache[%s_dest_id_str] = (void*)%s;\n", arg->name, arg->name);
-			fprintf(outFile, "\t\t\t\t\t types[%s_dest_id_str] = %d;\n", arg->name, position);
-			fprintf(outFile, "\t\t\t\t\t release_compss_worker_lock();\n");
-	*/
 	fprintf(outFile, "\t\t\t\t\t\t cout << \"[C Binding] Object %s has been added to the cache as \" << %s_dest_id_str << \" with type %d.\"  << endl << flush;\n", name, name,position);
 
-	//if found -> move or copy from cache evaluating preserve data.
-	fprintf(outFile, "\t\t\t\t\t } else {\n");
+	//if found with origin id -> move or copy in cache to dest id evaluating preserve data.
+	fprintf(outFile, "\t\t\t\t\t } else {  // found as origin id -> move or copy \n");
 	if (preserveData){
 		// if preserve data -> make a memory copy
 		fprintf(outFile, "\t\t\t\t\t\t if (string(%s_pres_data) == \"true\"){\n", name);
 		fprintf(outFile, "\t\t\t\t\t\t\t cout << \"[C Binding] Copying object %s in cache. From \" << %s_orig_id << \" to \"<< %s_dest_id << endl << flush;\n", name, name , name);
 		fprintf(outFile, "\t\t\t\t\t\t\t compss_pointer %s_to;\n", name);
 		fprintf(outFile, "\t\t\t\t\t\t\t int res = cache->copyInCache(%s_orig_id, %s_dest_id, %s_to);\n", name, name, name);
-		fprintf(outFile, "\t\t\t\t\t\t\t if (res != 0){\n");
+
+		fprintf(outFile, "\t\t\t\t\t\t\t if (res != 0){\n"); //If error copying -> return error
 		fprintf(outFile, "\t\t\t\t\t\t\t\t cerr << \"[C Binding] Error copying object %s in \"<< %s_orig_id << endl << flush;\n", name, name);
 		fprintf(outFile, "\t\t\t\t\t\t\t\t return res;\n");
-		fprintf(outFile, "\t\t\t\t\t\t\t }\n");
+		fprintf(outFile, "\t\t\t\t\t\t\t }\n"); //end error
 		fprintf(outFile, "\t\t\t\t\t\t\t %s = (%s*)%s_to.pointer;\n", name, dataType, name);
-		// else make a cache move
-		fprintf(outFile, "\t\t\t\t\t\t }else { \n");
+
+		// else -> make a cache move
+		fprintf(outFile, "\t\t\t\t\t\t } else { \n");
 		fprintf(outFile, "\t\t\t\t\t\t\t cout << \"[C Binding] Moving object %s in cache. From \" << %s_orig_id << \" to \"<< %s_dest_id << endl << flush;\n", name, name, name);
 		fprintf(outFile, "\t\t\t\t\t\t\t int res = cache->moveInCache(%s_orig_id, %s_dest_id);\n", name, name);
-		fprintf(outFile, "\t\t\t\t\t\t\t if (res != 0){\n");
+		fprintf(outFile, "\t\t\t\t\t\t\t if (res != 0){\n"); //If error moving -> return error
 		fprintf(outFile, "\t\t\t\t\t\t\t\t cerr << \"[C Binding] Error copying object %s in \"<< %s_orig_id << endl << flush;\n", name, name);
 		fprintf(outFile, "\t\t\t\t\t\t\t\t return res;\n");
-		fprintf(outFile, "\t\t\t\t\t\t\t }\n");
+		fprintf(outFile, "\t\t\t\t\t\t\t }\n"); //End error
+		// and get the object pointer from cache
 		fprintf(outFile, "\t\t\t\t\t\t\t cout << \"[C Binding] Object %s has been added to the cache as\" << %s_dest_id_str << \" with type %d. Previous version is kept as \" << %s_orig_id_str << endl << flush;\n", name, name, position, name);
 		fprintf(outFile, "\t\t\t\t\t\t\t compss_pointer cp;\n");
 		fprintf(outFile, "\t\t\t\t\t\t\t res = cache->getFromCache(%s_dest_id, cp);\n", name);
-		fprintf(outFile, "\t\t\t\t\t\t\t if (res != 0){\n");
+		fprintf(outFile, "\t\t\t\t\t\t\t if (res != 0){\n"); //If error getting -> return error
 		fprintf(outFile, "\t\t\t\t\t\t\t\t cerr << \"[C Binding] Error getting from cache object %s as \"<< %s_dest_id_str << endl << flush;\n", name, name);
 		fprintf(outFile, "\t\t\t\t\t\t\t\t return res;\n");
-		fprintf(outFile, "\t\t\t\t\t\t\t }\n");
+		fprintf(outFile, "\t\t\t\t\t\t\t }\n"); //end error
 		fprintf(outFile, "\t\t\t\t\t\t\t %s = (%s*)cp.pointer;\n", name, dataType);
-		fprintf(outFile, "\t\t\t\t\t\t }\n");
+		fprintf(outFile, "\t\t\t\t\t\t }\n"); //end else
 	}
-	fprintf(outFile, "\t\t\t\t\t }\n");
-	fprintf(outFile, "\t\t\t\t }else{\n");
-	//get from cache
+	fprintf(outFile, "\t\t\t\t\t } //end not found as origin \n"); // end else if not found as origin
+	// if found as dest_id -> get from cache
+	fprintf(outFile, "\t\t\t\t } else { // found as dest id -> get from cache\n");
 	fprintf(outFile, "\t\t\t\t\t compss_pointer cp;\n");
 	fprintf(outFile, "\t\t\t\t\t int res = cache->getFromCache(%s_dest_id, cp);\n", name);
-	fprintf(outFile, "\t\t\t\t\t if (res != 0){\n");
+	fprintf(outFile, "\t\t\t\t\t if (res != 0){\n"); // If error getting from cache -> return error
 	fprintf(outFile, "\t\t\t\t\t\t cerr << \"[C Binding] Error getting from cache object %s as \"<< %s_dest_id_str << endl << flush;\n", name, name);
 	fprintf(outFile, "\t\t\t\t\t\t return res;\n");
-	fprintf(outFile, "\t\t\t\t\t }\n");
+	fprintf(outFile, "\t\t\t\t\t }\n"); //end error
 	fprintf(outFile, "\t\t\t\t\t %s = (%s*)cp.pointer;\n", name, dataType);
 	fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Object %s has been read from the cache as\" << %s_dest_id_str << endl << flush;\n", name, name);
-	fprintf(outFile, "\t\t\t\t }\n");
+	fprintf(outFile, "\t\t\t\t } //end found as dest id \n"); //end else
 
 	//TODO Check if it is needed
 	if (preserveData){
@@ -1232,8 +1243,7 @@ static void add_object_or_array_arg_worker_treatment(FILE *outFile, argument *ar
 
 	fprintf(outFile, "\t\t\t char* %s_filename_og = strdup(argv[arg_offset]);\n", arg->name);
 	fprintf(outFile, "\t\t\t arg_offset ++;\n");
-	fprintf(outFile, "\t\t\t debug_printf(\"[C Binding] Received value %%s \\n\", %s_filename_og);\n",arg->name);
-	//If (persistent)
+	fprintf(outFile, "\t\t\t cout <<\"[C Binding] Received value : \"<< %s_filename_og << endl;\n",arg->name);
 	fprintf(outFile, "\t\t\t int %s_type = atoi(argv[arg_offset]);\n", arg->name);
 	fprintf(outFile, "\t\t\t arg_offset ++;\n");
 	fprintf(outFile, "\t\t\t int %s_elements = atoi(argv[arg_offset]);\n", arg->name);
@@ -1250,11 +1260,8 @@ static void add_object_or_array_arg_worker_treatment(FILE *outFile, argument *ar
 	fprintf(outFile, "\t\t\t %s_filename = %s_filename_og ;\n", arg->name, arg->name);
 	fprintf(outFile, "\t\t\t %s_orig_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
 
-	//fprintf(outFile, "\t\t\t debug_printf(\"[C Binding] Received value %%s (%%s)\\n\", %s_filename, %s_orig_id);\n",arg->name, arg->name);
-	//fprintf(outFile, "\t\t\t cout << \"[C Binding] Checking object data id for %s. Received value: \"<<%s_filename <<\", Original ID: \"<< %s_orig_id << endl << flush;\n", arg->name, arg->name, arg->name);
-
 	//Check if there is data id information in the value
-	fprintf(outFile, "\t\t\t if (%s_orig_id != NULL && %s_filename != NULL){ \n", arg->name, arg->name);
+	fprintf(outFile, "\t\t\t if (%s_orig_id != NULL && %s_filename != NULL){ // Obtain object from cache\n", arg->name, arg->name);
 	fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Managing object data id for %s ...\" << endl << flush;\n", arg->name);
 	fprintf(outFile, "\t\t\t\t %s_dest_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
 	fprintf(outFile, "\t\t\t\t %s_pres_data = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
@@ -1296,8 +1303,12 @@ static void add_object_or_array_arg_worker_treatment(FILE *outFile, argument *ar
 			fprintf(outFile, "\t\t\t\t %s_cp.elements= %s_elements;\n", arg->name, arg->name);
 			fprintf(outFile, "\t\t\t\t %s_cp.pointer = (void*)%s;\n", arg->name, arg->name);
 			fprintf(outFile, "\t\t\t\t %s_cp.size = %s_cp.elements*sizeof(%s);\n", arg->name, arg->name, arg->classname);
-			fprintf(outFile, "\t\t\t\t cache->storeInCache(%s_dest_id, %s_cp);\n", arg->name, arg->name);
-			fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Object \" << %s_dest_id_str << \" has been added to the cache with type %d.\" << endl << flush;\n", arg->name, position);
+			fprintf(outFile, "\t\t\t\t int res = cache->storeInCache(%s_dest_id, %s_cp);\n", arg->name, arg->name);
+			fprintf(outFile, "\t\t\t\t if (res != 0){\n");
+		    fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Error storing object %s as \"<< %s_dest_id_str <<\" in cache \" << endl << flush;\n", arg->name, arg->name);
+		    fprintf(outFile, "\t\t\t\t\t return res;\n");
+		    fprintf(outFile, "\t\t\t\t }\n");
+		    fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Object \" << %s_dest_id_str << \" has been added to the cache with type %d.\" << endl << flush;\n", arg->name, position);
 			//File not created is out
 			/*fprintf(outFile, "\t\t\t\t if (serializeOuts < 1){\n");
 			fprintf(outFile, "\t\t\t\t\t remove(%s_dest_id);\n", arg->name);
@@ -1310,8 +1321,8 @@ static void add_object_or_array_arg_worker_treatment(FILE *outFile, argument *ar
 	}
 
 	//No data information case (required for GAT Adaptor)
-	fprintf(outFile, "\t\t\t } else {\n");
-	fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Data ID for parameter %s not found in argument value. Reseting filename \" << endl << flush;\n", arg->name);
+	fprintf(outFile, "\t\t\t } else { //Obtain object as file \n");
+	fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Data ID for parameter %s not found in argument value. Reseting filename to \" << %s_filename_og << endl << flush;\n", arg->name, arg->name);
 	fprintf(outFile, "\t\t\t\t %s_filename = %s_filename_og ;\n", arg->name, arg->name);
 	fprintf(outFile, "\t\t\t\t %s_dest_id = %s_filename_og ;\n", arg->name, arg->name);
 	fprintf(outFile, "\t\t\t\t compss_pointer %s_cp;\n", arg->name);
@@ -1319,10 +1330,14 @@ static void add_object_or_array_arg_worker_treatment(FILE *outFile, argument *ar
 	fprintf(outFile, "\t\t\t\t %s_cp.elements= %s_elements;\n", arg->name, arg->name);
 	fprintf(outFile, "\t\t\t\t %s_cp.pointer = (void*)%s;\n", arg->name, arg->name);
 	fprintf(outFile, "\t\t\t\t %s_cp.size = %s_cp.elements*sizeof(%s);\n", arg->name, arg->name, arg->classname);
-	fprintf(outFile, "\t\t\t\t cache->deserializeFromFile(%s_filename, %s_cp);\n", arg->name, arg->name);
+	fprintf(outFile, "\t\t\t\t int res = cache->deserializeFromFile(%s_filename, %s_cp);\n", arg->name, arg->name);
+	fprintf(outFile, "\t\t\t\t if (res != 0){\n");
+	fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Error deserializing object %s from file \"<< %s_filename << endl << flush;\n", arg->name, arg->name);
+	fprintf(outFile, "\t\t\t\t\t return res;\n");
+	fprintf(outFile, "\t\t\t\t }\n");
 	fprintf(outFile, "\t\t\t\t %s = (%s*)%s_cp.pointer;\n", arg->name, arg->classname, arg->name);
 
-	switch (arg->dir){
+	/*switch (arg->dir){
 	case in_dir:
 	case inout_dir:
 	{	//char *elems_suff = "_elements";
@@ -1336,8 +1351,8 @@ static void add_object_or_array_arg_worker_treatment(FILE *outFile, argument *ar
 		break;
 	}
 	default:;
-	}
-	fprintf(outFile, "\t\t\t }\n");
+	}*/
+	fprintf(outFile, "\t\t\t } //end obtain object as file \n");
 	fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 }
 
@@ -1656,7 +1671,8 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
 	char *func_name = strdup(func->name);
 	replace_char(func_name, ':', '_');
 	fprintf(outFile, "\t case %sOp:\n", func_name);
-	fprintf(outFile, "\t\t {\n");
+	fprintf(outFile, "\t\t {\n"); //Open enum case
+
 	printf("\t\t Adding parameter unmarshalling...\n");
 	fflush(NULL);
 	arg = func->first_argument;
@@ -1679,6 +1695,7 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
 		add_object_or_array_arg_worker_treatment(outFile, th, ARGS_OFFSET, current_types, false);
 	}
 	fprintf(outFile, "\t\t\t \n");
+
 	//Managing return type
 	if ( func->return_type != void_dt ){
 		ret = (argument *)malloc(sizeof(argument));
@@ -1690,12 +1707,12 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
 		printf("\t\t Adding return object unmarshalling...\n");
 		treat_worker_argument(outFile, ret, current_types, true);
 	}
+
 	fprintf(outFile, "\t\t\t \n");
 
+	//Add function call
 	printf("\t\t Adding function call unmarshalling...\n");
 	fflush(NULL);
-
-	//Add function call
 	fprintf(outFile, "\t\t\t cout << \"[C Binding] Calling function %s.%s\" << endl << flush;\n", func->classname, func->methodname);
 
 	if (( func->classname != NULL ) && (func->access_static == 0) && (func->return_type == void_dt)){
@@ -1707,15 +1724,10 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
 			fprintf(outFile, "\t\t\t %s = %s->%s(", ret->name, th->name, func->methodname);
 		}
 	} else if ( func->return_type != void_dt ){
-		/*if (func->return_type == object_dt){
-			fprintf(outFile, "\t\t\t *%s = %s(", ret->name, func->name);
-		}else{*/
 			fprintf(outFile, "\t\t\t %s = %s(", ret->name, func->name);
-		//}
 	} else {
 		fprintf(outFile, "\t\t\t %s(", func->name);
 	}
-
 	is_first_arg = 1;
 	arg = func->first_argument;
 	while (arg != NULL) {
@@ -1727,9 +1739,7 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
 		add_argument_worker_taskcall(outFile, arg);
 		arg = arg->next_argument;
 	}
-
 	fprintf(outFile, ");\n");
-
 	fprintf(outFile, "\t\t\t cout << \"[C Binding] Execution of function %s.%s finished.\" << endl << flush;\n", func->classname, func->methodname);
 	fprintf(outFile, "\n");
 
@@ -1740,10 +1750,10 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
 	printf("\t\t Adding out parameter marshalling...\n");
 	fflush(NULL);
 
+	//Add output serialization if required
 	fprintf(outFile, "\t\t\t if (serializeOuts){\n");
 
 	fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Object will be serialized as output.\" << endl << flush;\n");
-
 	if (( func->classname != NULL ) && (func->access_static == 0)){
 		fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Treating target object\" << endl << flush;\n");
 		add_argument_serialization_worker(outFile, th, "_dest_id", "_elements", "\t\t\t\t");
@@ -1766,7 +1776,8 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
 	}
 
 	fprintf(outFile, "\t\t\t cout << \"[C Binding] Object has been serialized as output.\" << endl << flush;\n");
-	fprintf(outFile, "\t\t\t }\n");
+
+	fprintf(outFile, "\t\t\t }\n"); //end of if serialization clause
 
 	printf("\t\t Adding memory free...\n");
 	fflush(NULL);
@@ -1785,9 +1796,9 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
 		arg = arg->next_argument;
 	}
 
-	fprintf(workerFile, "\t if (is_debug()){\n");
-	fprintf(workerFile, "\t\t cout << \"[C-BINDING] Data in cache after execution\" << endl;\n");
-	fprintf(workerFile, "\t\t cache->printValues();\n");
+	fprintf(workerFile, "\t\t if (is_debug()){\n");
+	fprintf(workerFile, "\t\t\t cout << \"[C-BINDING] Data in cache after execution\" << endl;\n");
+	fprintf(workerFile, "\t\t\t cache->printValues();\n");
 	fprintf(workerFile, "\t }\n");
 
 	// Operation correctly executed

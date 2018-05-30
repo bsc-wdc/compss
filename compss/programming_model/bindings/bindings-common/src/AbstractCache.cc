@@ -16,7 +16,9 @@
  */
 
 #include <iostream>
+#include "common.h"
 #include "AbstractCache.h"
+
 
 void AbstractCache::init(long max_size, char* working_dir_path){
 	this->max_size = max_size;
@@ -33,7 +35,9 @@ int AbstractCache::release_lock(){
 }
 
 int AbstractCache::pushToStream(const char* id, JavaNioConnStreamBuffer &jsb){
-	cout << "[AbstractCache] Pushing Object "<< id << " from cache to stream." << endl;
+	if (is_debug()){
+		cout << "[AbstractCache] Pushing Object "<< id << " from cache to stream." << endl;
+	}
 	compss_pointer cp;
 	int res = getFromCache(id, cp);
 	if (res == 0){
@@ -45,21 +49,27 @@ int AbstractCache::pushToStream(const char* id, JavaNioConnStreamBuffer &jsb){
 	}
 }
 
- int AbstractCache::pullFromStream(const char* id, JavaNioConnStreamBuffer &jsb, compss_pointer &cp){
-	cout << "[AbstractCache] Getting Object "<< id << " from stream." << endl;
-		int res = deserializeFromStream(jsb, cp);
-		if (res==0){
+int AbstractCache::pullFromStream(const char* id, JavaNioConnStreamBuffer &jsb, compss_pointer &cp){
+	if (is_debug()){
+		cout << "[AbstractCache] Getting Object "<< id << " from stream." << endl;
+	}
+	int res = deserializeFromStream(jsb, cp);
+	if (res==0){
+		if (is_debug()){
 			cout << "[AbstractCache] Storing deserialized object to cache as "<< id << endl;
-			return storeInCache(id,cp);
-		}else{
-			cout << "[AbstractCache] Error deserializing "<< id << " from stream." << endl;
-	        printValues();
-	        return -1;
 		}
+		return storeInCache(id,cp);
+	}else{
+		cout << "[AbstractCache] Error deserializing "<< id << " from stream." << endl;
+		printValues();
+		return -1;
+	}
 }
 
 int AbstractCache::pushToFile(const char* id, const char* filename){
-	cout << "[AbstractCache] Pushing Object "<< id << " from cache to file " << filename <<"." << endl;
+	if (is_debug()){
+		cout << "[AbstractCache] Pushing Object "<< id << " from cache to file " << filename <<"." << endl;
+	}
 	compss_pointer cp;
 	int res = getFromCache(id, cp);
 	if (res == 0){
@@ -72,7 +82,9 @@ int AbstractCache::pushToFile(const char* id, const char* filename){
 }
 
 int AbstractCache::pullFromFile(const char* id, const char* filename, compss_pointer &cp){
-	cout << "[AbstractCache] Getting Object "<< id << " from file "<< filename << "." << endl;
+	if (is_debug()){
+		cout << "[AbstractCache] Getting Object "<< id << " from file "<< filename << "." << endl;
+	}
 	int res = deserializeFromFile(filename, cp);
 	if (res == 0){
 		storeInCache(id,cp);
@@ -171,7 +183,9 @@ void AbstractCache::printValues(){
 }
 
 int AbstractCache::removeData(const char* id, AbstractCache &c){
-	cout << "[AbstractCache] Deleting from cache data " << id  << endl;
+	if (is_debug()){
+		cout << "[AbstractCache] Deleting from cache data " << id  << endl;
+	}
 	bool found = c.isInCache(id);
 	if (found){
 		int res = c.deleteFromCache(id, true);
@@ -187,7 +201,9 @@ int AbstractCache::removeData(const char* id, AbstractCache &c){
 }
 
 int AbstractCache::serializeData(const char* id, const char* filename, AbstractCache &c){
-	cout << "[AbstractCache] Serializing from cache data " << id  << endl;
+	if (is_debug()){
+		cout << "[AbstractCache] Serializing from cache data " << id  << endl;
+	}
 	bool found = c.isInCache(id);
 	if (found){
 		int res = c.pushToFile(id, filename);

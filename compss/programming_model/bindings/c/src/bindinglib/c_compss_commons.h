@@ -101,9 +101,9 @@ int compss_object_serialize(T* obj, const char* filename) {
 		ofs.close();
 		return 0;
 	} catch(archive::archive_exception e){
-		debug_printf("[C-BINDING]  -  Error serializing obj %p\n", obj);
+		printf("[C-BINDING]  -  Error serializing obj %p\n", obj);
 		const char* message = e.what();
-		debug_printf("[C-BINDING]  -  Exception: %s\n", message);
+		printf("[C-BINDING]  -  Exception: %s\n", message);
 		ofs.close();
 		return 1;
 	}
@@ -126,7 +126,7 @@ int compss_object_deserialize(T* obj, JavaNioConnStreamBuffer &jsb) {
 		ia >> *obj;
 		return 0;
 	} catch(archive::archive_exception e){
-	    	debug_printf("[C-BINDING]  -  Error deserializing object %p to JavaNioBuffer\n", obj);
+	    	printf("[C-BINDING]  -  Error deserializing object %p to JavaNioBuffer\n", obj);
 	    	e.what();
 	    	return 1;
 	}
@@ -150,7 +150,7 @@ int compss_object_serialize(T* obj, JavaNioConnStreamBuffer &jsb) {
 		//ojs.flush();
 		return 0;
     } catch(archive::archive_exception e){
-    	debug_printf("[C-BINDING] Error serializing object %p to JavaNioBuffer\n", obj);
+    	printf("[C-BINDING] Error serializing object %p to JavaNioBuffer\n", obj);
     	e.what();
     	return 1;
     }
@@ -185,46 +185,12 @@ int compss_object_copy(T* from, T* to){
 		ia >> *to;
 		return 0;
 	} catch(archive::archive_exception e){
-		debug_printf("[C-BINDING]  -  Error copying %p to %p\n", &from, &to);
+		printf("[C-BINDING]  -  Error copying %p to %p\n", &from, &to);
 		e.what();
 		return 1;
 	}
 }
 
-/*void compss_string_serialize(string &obj, char* filename) {
-	debug_printf("[C-BINDING]  -  @compss_string_serialize  -  Ref: %p to file %s\n", &obj, filename);
-#ifdef TEXT_SERIALIZATION
-	//Text serialization
-	ofstream ofs(filename, std::ofstream::trunc);
-	archive::text_oarchive oa(ofs);
-#else
-	//Binary serialization
-	ofstream ofs(filename, std::ofstream::trunc | std::ios::binary);
-	archive::binary_oarchive oa(ofs);
-#endif
-	string out_string (obj);
-	oa << out_string;
-	//ofs.flush();
-	ofs.close();
-}
-
-void compss_string_deserialize(string &obj, char* filename) {
-	debug_printf("[C-BINDING]  -  @compss_string_deserialize  -  Ref: %p to file %s\n", &obj, filename);
-#ifdef TEXT_SERIALIZATION
-	//Text serialization
-	ifstream ifs(filename);
-	archive::text_iarchive ia(ifs);
-#else
-	//Binary serialization
-	ifstream ifs(filename, ios::binary );
-	archive::binary_iarchive ia(ifs);
-#endif
-
-	string in_string;
-	ia >> in_string;
-	ifs.close();
-	obj = strdup(in_string.c_str());
-}*/
 
 template <class T> int compss_array_deserialize(T* &to, const char* filename, int elements){
 	debug_printf("[C-BINDING]  -  @compss_array_deserialize  -  Ref: %p to file %s\n", to, filename);

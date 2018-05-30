@@ -402,8 +402,8 @@ public abstract class AllocatableAction {
                 && // scheduler does not block the execution
                 schedulingInfo.isExecutable()) {
 
-            // Invalid scheduling -> Should run in a specific resource and the assigned resource is not the required
-            if (selectedResource.isRemoved() || (isSchedulingConstrained() && unrequiredResource()
+            // Invalid scheduling -> Allocatable action should run in a specific resource but: resource is removed and task is not to stop; or the assigned resource is not the required
+            if ((selectedResource.isRemoved() && !isToStopResource())|| (isSchedulingConstrained() && unrequiredResource()
                     || isTargetResourceEnforced() && selectedResource != schedulingInfo.getEnforcedTargetResource())) {
                 // Allow other threads to access the action
                 lock.unlock();
@@ -471,6 +471,13 @@ public abstract class AllocatableAction {
         doAction();
     }
 
+    /**
+     * Returns if the AllocatableAction is to stop a resource
+     *
+     * @return
+     */
+    public abstract boolean isToStopResource();
+    
     /**
      * Returns if the AllocatableAction needs to reserve some resources for its
      * execution

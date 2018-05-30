@@ -82,6 +82,11 @@ public class StopWorkerAction extends AllocatableAction {
     public boolean isToReleaseResources() {
         return false;
     }
+    
+    @Override
+    public boolean isToStopResource() {
+        return true;
+    }
 
     @Override
     protected void doAction() {

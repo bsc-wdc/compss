@@ -140,6 +140,11 @@ public class ExecutionAction extends AllocatableAction {
     public boolean isToReleaseResources() {
         return true;
     }
+    
+    @Override
+    public boolean isToStopResource() {
+        return false;
+    }
 
     @Override
     protected void doAction() {

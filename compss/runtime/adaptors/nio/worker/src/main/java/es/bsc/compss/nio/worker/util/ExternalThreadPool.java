@@ -219,6 +219,9 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
     private void addEnvironment(Map<String, String> env, NIOWorker nw) {
         env.put(COMPSsConstants.COMPSS_WORKING_DIR, nw.getWorkingDir());
         env.put(COMPSsConstants.COMPSS_APP_DIR, nw.getAppDir());
+        if (LOGGER.isDebugEnabled()){
+            env.put("COMPSS_BINDINGS_DEBUG", "1");
+        }
     }
 
     /**

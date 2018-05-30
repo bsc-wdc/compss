@@ -29,6 +29,7 @@
 #include <iostream>
 #include "customStream.h"
 #include <fcntl.h>
+#include <common.h>
 #include "CBindingExecutor.h"
 
 #include "generated_executor.h"
@@ -40,7 +41,9 @@ using namespace std;
 string CBindingExecutor::END_TASK_TAG = "endTask";
 
 void setAffinity(vector<string> commandArgs){
-	cout << "[Persistent C (Th " << gettid() <<")] Setting affinity to the assigned to the cores assigned by the runtime..." << endl << flush;
+	if (is_debug()){
+		cout << "[Persistent C (Th " << gettid() <<")] Setting affinity to the assigned to the cores assigned by the runtime..." << endl << flush;
+	}
 	for (unsigned int i = 0; i < commandArgs.size(); i++) {
 		if (commandArgs[i] == "taskset"){
 			cpu_set_t to_assign;
@@ -62,9 +65,13 @@ void setAffinity(vector<string> commandArgs){
 }
 
 void CBindingExecutor::initThread(){
-	cout << "[Persistent C] Starting compute thread with id " << gettid() << endl << flush;
+	if (is_debug()){
+		cout << "[Persistent C] Starting compute thread with id " << gettid() << endl << flush;
+	}
 	#ifdef OMPSS_ENABLED
-		cout << "[Persistent C (Th " << gettid() <<")] Admitting thread to OmpSs runtime..." << endl << flush;
+		if (is_debug()){
+			cout << "[Persistent C (Th " << gettid() <<")] Admitting thread to OmpSs runtime..." << endl << flush;
+		}
 		get_compss_worker_lock();
 		nanos_admit_current_thread();
 		release_compss_worker_lock();
@@ -72,7 +79,9 @@ void CBindingExecutor::initThread(){
 }
 
 int CBindingExecutor::executeTask(const char * command, char *&result){
-	cout << "[Persistent C (Th " << gettid() <<")] Command received. Reading arguments..." << endl << flush;
+	if (is_debug()){
+		cout << "[Persistent C (Th " << gettid() <<")] Command received. Reading arguments..." << endl << flush;
+	}
 	string aux;
 	stringstream ss(command);
 	vector<string> commandArgs;
@@ -91,14 +100,18 @@ int CBindingExecutor::executeTask(const char * command, char *&result){
 	cout << "[Persistent C] Executing task "<< task_num_str << "in thread " << gettid() << endl << flush;
 
 	//Registering streams
-	cout << "[Persistent C (Th " << gettid() <<")] Registering task output streams redirection..." << endl << flush;
+	if (is_debug()){
+		cout << "[Persistent C (Th " << gettid() <<")] Registering task output streams redirection..." << endl << flush;
+	}
 	ofstream * jobOut = new ofstream(commandArgs[2].c_str());
 	ofstream * jobErr = new ofstream(commandArgs[3].c_str());
 	csOut->registerThread(jobOut->rdbuf());
 	csErr->registerThread(jobErr->rdbuf());
 	setAffinity(commandArgs);
 
-	cout << "[Persistent C (Th " << gettid() <<")] Starting task execution..." << endl << flush;
+	if (is_debug()){
+		cout << "[Persistent C (Th " << gettid() <<")] Starting task execution..." << endl << flush;
+	}
 	char**executeArgsC = new char*[executeArgs.size()];
 	for (unsigned int i = 0; i < executeArgs.size(); i++){
 		executeArgsC[i] = new char[executeArgs[i].size() + 1];
@@ -113,15 +126,21 @@ int CBindingExecutor::executeTask(const char * command, char *&result){
 	//last integer indicates if output data is going to be serialized at the end of the task execution 0=no 1=yes
 	int ret = execute(executeArgs.size(), executeArgsC, (CBindingCache*)this->cache, 0);
 
-	cout << "[Persistent C (Th " << gettid() <<")] Task execution finished. Unregistering task output streams redirection..." << endl << flush;
+	if (is_debug()){
+		cout << "[Persistent C (Th " << gettid() <<")] Task execution finished. Unregistering task output streams redirection..." << endl << flush;
+	}
 	csOut->unregisterThread();
 	csErr->unregisterThread();
 
-	cout << "[Persistent C (Th " << gettid() <<")] Closing task output files..." << endl << flush;
+	if (is_debug()){
+		cout << "[Persistent C (Th " << gettid() <<")] Closing task output files..." << endl << flush;
+	}
 	jobOut->close();
 	jobErr->close();
 
-	cout << "[Persistent C (Th " << gettid() <<")] Writting result ..." << endl << flush;
+	if (is_debug()){
+		cout << "[Persistent C (Th " << gettid() <<")] Writting result ..." << endl << flush;
+	}
 	ostringstream out_ss;
 	out_ss << END_TASK_TAG << " " << task_num_str << " " << ret << flush;
 	result = strdup(out_ss.str().c_str());
@@ -132,13 +151,17 @@ int CBindingExecutor::executeTask(const char * command, char *&result){
 
 void CBindingExecutor::finishThread(){
 	#ifdef OMPSS_ENABLED
-	cout << "[Persistent C (Th " << gettid() << ")] Leaving OmpSs runtime..."  << endl << flush;
+	f (is_debug()){
+		cout << "[Persistent C (Th " << gettid() << ")] Leaving OmpSs runtime..."  << endl << flush;
+	}
 	get_compss_worker_lock();
 	nanos_leave_team();
 	nanos_expel_current_thread();
 	release_compss_worker_lock();
 	#endif
-	cout << "[Persistent C] Thread " << gettid() << " Finished." << endl << flush;
+	if (is_debug()){
+		cout << "[Persistent C] Thread " << gettid() << " Finished." << endl << flush;
+	}
 }
 
 

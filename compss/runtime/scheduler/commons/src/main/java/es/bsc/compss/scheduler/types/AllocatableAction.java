@@ -403,8 +403,8 @@ public abstract class AllocatableAction {
                 schedulingInfo.isExecutable()) {
 
             // Invalid scheduling -> Should run in a specific resource and the assigned resource is not the required
-            if (isSchedulingConstrained() && unrequiredResource()
-                    || isTargetResourceEnforced() && selectedResource != schedulingInfo.getEnforcedTargetResource()) {
+            if (selectedResource.isRemoved() || (isSchedulingConstrained() && unrequiredResource()
+                    || isTargetResourceEnforced() && selectedResource != schedulingInfo.getEnforcedTargetResource())) {
                 // Allow other threads to access the action
                 lock.unlock();
                 // Notify invalid scheduling
@@ -433,6 +433,7 @@ public abstract class AllocatableAction {
             // Run action
             run();
         } else {
+            
             LOGGER.info(this + " execution paused due to lack of resources on worker " + selectedResource.getName());
             // Task waits on the resource queue
             // It can only be resumed because of a task completion or error.

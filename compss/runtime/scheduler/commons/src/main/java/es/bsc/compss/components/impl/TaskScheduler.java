@@ -822,6 +822,8 @@ public class TaskScheduler {
                 addToBlocked(action);
             }
         }
+        resource.setRemoved(true);
+        
 
     }
 

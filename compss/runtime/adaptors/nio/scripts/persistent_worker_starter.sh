@@ -31,6 +31,7 @@
   reprogram_fpga
 
   if [ "$debug" == "true" ]; then
+      export COMPSS_BINDINGS_DEBUG=1
       export NX_ARGS="--summary"
       echo "Calling NIOWorker"
       echo "Cmd: $cmd ${paramsToCOMPSsWorker}"

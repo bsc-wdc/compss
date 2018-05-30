@@ -51,6 +51,11 @@
 	# Set LD_LIBRARY_PATH related env
     export LD_LIBRARY_PATH=${bindingsDir}/c/lib:${bindingsDir}/bindings-common/lib:$LD_LIBRARY_PATH
 	
+	#Activate bindings debug if debug activated
+	if [ "$debug" == "true" ]; then
+		export COMPSS_BINDINGS_DEBUG=1
+	fi
+	
 	# Look for the JVM Library
   	if [ -n "${JAVA_HOME}" ]; then
   		libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.so | head -n 1)

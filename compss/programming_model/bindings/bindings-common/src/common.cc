@@ -24,17 +24,19 @@
 
 using namespace std;
 
-int DEBUG = 1;
-int PERSISTENT = 1;
+int DEBUG = 0;
+int PERSISTENT = 0;
 
 void init_env_vars(){
 	char* dbg_str = getenv("COMPSS_BINDINGS_DEBUG");
-	if (dbg_str != NULL && !strcmp(dbg_str,"")){
-		DEBUG = 0;
+	if (dbg_str != NULL && strcmp(dbg_str,"1")==0 ){
+		printf("Binding debug is activated activated");
+		DEBUG = 1;
 	}
 	char* pers_str = getenv("COMPSS_PERSISTENT_BINDING");
-	if (pers_str != NULL && !strcmp(dbg_str,"")){
-		PERSISTENT = 0;
+	if (pers_str != NULL && strcmp(pers_str,"1")==0){
+		printf("Binding persistent is activated activated");
+		PERSISTENT = 1;
 	}
 }
 

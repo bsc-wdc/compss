@@ -32,6 +32,7 @@ import traceback
 import base64
 
 from pycompss.api.parameter import TYPE, JAVA_MAX_INT, JAVA_MIN_INT
+from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.util.serializer import serialize_to_file
 from pycompss.util.serializer import deserialize_from_file
 from pycompss.util.serializer import deserialize_from_string
@@ -146,7 +147,7 @@ def compss_worker(persistent_storage):
                 aux += args[pos + j]
             # Decode the string received
             aux = base64.b64decode(aux.encode())
-            if aux.decode() == "3mPtY57rNg":
+            if aux.decode() == EMPTY_STRING_KEY:
                 # Then it is an empty string
                 aux = ""
             else:

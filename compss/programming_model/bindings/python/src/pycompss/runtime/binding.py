@@ -28,6 +28,7 @@ from pycompss.api.parameter import TYPE
 from pycompss.api.parameter import DIRECTION
 from pycompss.api.parameter import JAVA_MIN_INT, JAVA_MAX_INT
 from pycompss.api.parameter import JAVA_MIN_LONG, JAVA_MAX_LONG
+from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.util.serializer import *
 from pycompss.util.sizer import total_sizeof
 from pycompss.util.persistent_storage import is_PSCO, get_ID, get_by_ID
@@ -1033,7 +1034,7 @@ def build_values_types_directions(ftype, first_par, num_pars, spec_args,
             if len(p.value) == 0:
                 # Empty string - use escape string to avoid padding
                 # Checked and substituted by empty string in the worker.py and piper_worker.py
-                p.value = base64.b64encode("3mPtY57rNg".encode()).decode()
+                p.value = base64.b64encode(EMPTY_STRING_KEY.encode()).decode()
         values.append(p.value)
         if p.type == TYPE.OBJECT or is_future.get(i):
             compss_types.append(TYPE.FILE)

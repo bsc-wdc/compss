@@ -19,19 +19,25 @@
   #----------------------------------------------------------------------------------
   # Create all working dir folders
   mkdir -p /tmp/COMPSsWorker01/
-  
+ 
+  gcc -shared -fPIC -o libagent.so -I$JAVA_HOME/include -I$JAVA_HOME/include/linux c/agent.cpp
+
   #----------------------------------------------------------------------------------
   # Run application 1 - ObjectDeregister
   echo
   echo "*** RUNNING JAVA APPLICATION SIMPLE"
   output_log="${target_log_folder}/objectDeregister_0${retryNum}.outputlog"
   error_log="${target_log_folder}/objectDeregister_0${retryNum}.errorlog"
-  expectedTime=60s
+  expectedTime=3600s
   
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \
      --project="${base_app_dir}"/project.xml \
      --resources="${base_app_dir}"/resources.xml \
+     \
+     --jvm_master_opts="-agentpath:${base_app_dir}/libagent.so,-Djava.library.path=${base_app_dir}" \
+     \
+     --jvm_workers_opts="-agentpath:${base_app_dir}/libagent.so,-Djava.library.path=${base_app_dir}" \
      \
      --comm="$comm" \
      \
@@ -42,7 +48,7 @@
      --classpath="${base_app_dir}"/objectDeregister.jar \
      \
      objectDeregister.ObjectDeregister 1 > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
-  
+
   # Check timeout
   if [[ "$?" = "124" ]]; then
      # Copy LOG files

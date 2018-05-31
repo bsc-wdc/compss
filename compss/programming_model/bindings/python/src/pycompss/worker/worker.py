@@ -32,6 +32,7 @@ import traceback
 import base64
 
 from pycompss.api.parameter import TYPE, JAVA_MAX_INT, JAVA_MIN_INT
+from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.util.serializer import serialize_to_file
 from pycompss.util.serializer import deserialize_from_file
 from pycompss.util.serializer import deserialize_from_string
@@ -146,18 +147,22 @@ def compss_worker(persistent_storage):
                 aux += args[pos + j]
             # Decode the string received
             aux = base64.b64decode(aux.encode())
-            #######
-            # Check if the string is really an object
-            # Required in order to recover objects passed as parameters.
-            # - Option object_conversion
-            real_value = aux
-            try:
-                # try to recover the real object
-                aux = deserialize_from_string(aux)
-            except (SerializerException, ValueError, EOFError):
-                # was not an object
-                aux = str(real_value.decode())
-            #######
+            if aux.decode() == EMPTY_STRING_KEY:
+                # Then it is an empty string
+                aux = ""
+            else:
+                #######
+                # Check if the string is really an object
+                # Required in order to recover objects passed as parameters.
+                # - Option object_conversion
+                real_value = aux
+                try:
+                    # try to recover the real object
+                    aux = deserialize_from_string(aux)
+                except (SerializerException, ValueError, EOFError):
+                    # was not an object
+                    aux = str(real_value.decode())
+                #######
             values.append(aux)
             logger.debug("\t * Final Value: " + str(aux))
             pos += num_substrings

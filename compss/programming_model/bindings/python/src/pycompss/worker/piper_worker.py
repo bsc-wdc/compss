@@ -35,6 +35,7 @@ import base64
 import thread_affinity
 from pycompss.api.parameter import TYPE
 from pycompss.api.parameter import JAVA_MIN_INT, JAVA_MAX_INT
+from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.util.serializer import serialize_to_file
 from pycompss.util.serializer import deserialize_from_file
 from pycompss.util.serializer import deserialize_from_string
@@ -599,18 +600,22 @@ def get_input_params(num_params, logger, args, process_name, persistent_storage)
                 aux += args[pos + j]
             # Decode the string received
             aux = base64.b64decode(aux.encode())
-            #######
-            # Check if the string is really an object
-            # Required in order to recover objects passed as parameters.
-            # - Option object_conversion
-            real_value = aux
-            try:
-                # try to recover the real object
-                aux = deserialize_from_string(aux)
-            except (SerializerException, ValueError, EOFError):
-                # was not an object
-                aux = str(real_value.decode())
-            #######
+            if aux.decode() == EMPTY_STRING_KEY:
+                # Then it is an empty string
+                aux = ""
+            else:
+                #######
+                # Check if the string is really an object
+                # Required in order to recover objects passed as parameters.
+                # - Option object_conversion
+                real_value = aux
+                try:
+                    # try to recover the real object
+                    aux = deserialize_from_string(aux)
+                except (SerializerException, ValueError, EOFError):
+                    # was not an object
+                    aux = str(real_value.decode())
+                #######
             values.append(aux)
             if __debug__:
                 logger.debug("[PYTHON WORKER %s] \t * Final Value: %s" % (process_name, str(aux)))

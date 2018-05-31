@@ -275,7 +275,7 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
             actionDSI.unlock();
             throw new ActionNotFoundException();
         }
-
+        LOGGER.debug(LOG_PREFIX + "Looking for dependency free successors");
         ResourceDescription unassignedResources = action.getAssignedImplementation().getRequirements().copy();
         // For each predecessor consuming resources ->
         // Register resources depending on a predecessor
@@ -305,6 +305,7 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
 
         // For each successor look for the resources
         for (AllocatableAction successor : actionDSI.getSuccessors()) {
+            LOGGER.debug(LOG_PREFIX + "Treating successor: " + successor);
             MOSchedulingInformation succDSI = (MOSchedulingInformation) successor.getSchedulingInfo();
             // Gets the resources that was supposed to get from the task and remove the dependency
             Gap toCover = succDSI.removePredecessor(action);
@@ -386,6 +387,7 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         for (MOSchedulingInformation successorsDSI : successorsDSIs) {
             successorsDSI.unlock();
         }
+        LOGGER.debug(LOG_PREFIX + "Returning " + freeActions.size() + " free actions.");
         return freeActions;
     }
 

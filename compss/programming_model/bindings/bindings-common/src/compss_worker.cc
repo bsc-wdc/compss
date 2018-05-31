@@ -110,14 +110,4 @@ void worker_start(AbstractCache *absCache, AbstractExecutor *absExecutor, int ar
 		}
 		debug_printf ("[BINDING_COMMONS]  -  @Worker ended\n");
 	}
-
 }
-
-
-
-
-
-
-
-
-

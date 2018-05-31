@@ -24,5 +24,8 @@ public interface ObjectDeregisterItf {
     void task3(
         @Parameter(type = Type.OBJECT, direction = Direction.IN) Dummy d3
     );
+    
+    @Method(declaringClass = "objectDeregister.ObjectDeregisterImpl")
+    void task4();
 
 }

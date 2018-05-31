@@ -15,4 +15,13 @@ public class ObjectDeregisterImpl {
     	d3.getDummyNumber();
     }
     
+    public static void task4 () throws Exception { //Null
+    	System.gc();
+    	Thread.sleep(100);
+    	int k = ClassInstanceTest.countInstances(Dummy.class);
+    	if (k > 0) {
+    		throw new Exception("[ERROR] At the end in the WORKER" + String.valueOf(k) + " instances were found of the Dummy object");
+    	}
+    }
+    
 }

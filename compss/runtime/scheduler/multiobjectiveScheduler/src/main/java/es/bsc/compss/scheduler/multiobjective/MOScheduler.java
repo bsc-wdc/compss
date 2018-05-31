@@ -111,7 +111,7 @@ public class MOScheduler extends TaskScheduler {
     @Override
     public <T extends WorkerResourceDescription> void handleDependencyFreeActions(List<AllocatableAction> dataFreeActions,
             List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
-
+        LOGGER.debug("[MOScheduler] Treating dependency free actions on resource " + resource.getName());
         Set<AllocatableAction> freeTasks = new HashSet<>();
         freeTasks.addAll(dataFreeActions);
         freeTasks.addAll(resourceFreeActions);

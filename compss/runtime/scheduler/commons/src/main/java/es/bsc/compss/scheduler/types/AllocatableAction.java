@@ -59,7 +59,7 @@ public abstract class AllocatableAction {
     // Logger
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
     protected static final boolean DEBUG = LOGGER.isDebugEnabled();
-
+    protected static final String DBG_PREFIX = "[AllocatableAction] ";
     // AllocatableAction Id counter
     private static final AtomicInteger NEXT_ID = new AtomicInteger();
 
@@ -408,11 +408,20 @@ public abstract class AllocatableAction {
                 // Allow other threads to access the action
                 lock.unlock();
                 // Notify invalid scheduling
+                LOGGER.debug("Action " + this + " incorrectly scheduled. Throwing exception.");
                 throw new InvalidSchedulingException();
             }
             // Correct resource and task ready to run
             execute();
         } else {
+            if (hasDataPredecessors()){
+                if (DEBUG){
+                    LOGGER.debug(DBG_PREFIX + "Action " + this + " not executed because data predecessors");
+                    for (AllocatableAction aa : getDataPredecessors()){
+                        LOGGER.debug( "\n Predecessor: " + aa); 
+                    }
+                }
+            }
             lock.unlock();
         }
     }

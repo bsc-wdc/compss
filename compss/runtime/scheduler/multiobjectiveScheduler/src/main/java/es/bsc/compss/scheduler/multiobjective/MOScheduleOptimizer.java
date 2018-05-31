@@ -262,7 +262,7 @@ public class MOScheduleOptimizer extends SchedulingOptimizer<MOScheduler> {
         LOGGER.debug(LOG_PREFIX + "Calculating score for current execution");
         MOScore currentScore = ((MOResourceScheduler<?>) (action.getAssignedResource())).generateCurrentImplementationScore(action,
                 currentImpl, actionScore);
-        LOGGER.debug(LOG_PREFIX + "Comparing scores: \n" + bestScore + "\n " + currentScore);
+        LOGGER.debug(LOG_PREFIX + "Comparing scores: \n\t (New best)" + bestScore + "\n\t (Current" + currentScore);
         if (bestImpl != null && Score.isBetter(bestScore, currentScore)) {
             try {
                 LOGGER.debug(LOG_PREFIX + "Moving " + action + " from " + donor.getName() + " to " + receiver.getName());

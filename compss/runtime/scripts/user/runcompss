@@ -987,6 +987,7 @@ ${jvm_debugger_opts}
 -Dcompss.scheduler.config=${scheduler_config}
 -Dcompss.external.adaptation=${external_adaptation}
 EOT
+# Uncomment block in case that you want to debug errors in JNI
 ##  if [ "${log_level}" == "debug" ]; then
 ##        cat >> "${jvm_options_file}" << EOT
 ##-Xcheck:jni

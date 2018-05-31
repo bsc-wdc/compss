@@ -216,8 +216,8 @@
   
   generate_jvm_opts_file() {
     jvm_worker_opts=$(echo $worker_jvm_flags | tr " " "\n")
-  	jvm_options_file=$(mktemp) || error_msg "Error creating java_opts_tmp_file"
-  	cat >> "${jvm_options_file}" << EOT
+    jvm_options_file=$(mktemp) || error_msg "Error creating java_opts_tmp_file"
+    cat >> "${jvm_options_file}" << EOT
 ${jvm_worker_opts}
 -Djava.library.path=$LD_LIBRARY_PATH
 -Djava.class.path=$CLASSPATH:${worker_jar}

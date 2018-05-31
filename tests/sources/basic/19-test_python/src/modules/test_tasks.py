@@ -376,3 +376,8 @@ def update_block(x, y):
     print("After the sum of x and y:")
     print(x)
     print("id: " + str(id(x)))
+
+
+@task(returns=str)
+def empty_string(s):
+    return "XX" + s + "XX"

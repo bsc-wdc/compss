@@ -24,6 +24,7 @@ from modules.test_tasks import function_lambda_return, function_generator_return
 from modules.test_tasks import multireturn, power, merge
 from modules.test_tasks import function_moduleObject, Foo
 from modules.test_tasks import create_block, update_block
+from modules.test_tasks import empty_string
 
 
 def test_function_primitives():
@@ -630,6 +631,17 @@ def test_inouts():
         print("- Test inouts: OK")
 
 
+def test_empty_string():
+    s = ''
+    result = empty_string(s)
+    result = compss_wait_on(result)
+    if result == 'XXXX':
+        print("- Test empty string: OK")
+    else:
+        print(result)
+        print("- Test empty string: ERROR")
+
+
 def main_program():
     test_function_primitives()
     test_function_files()
@@ -672,6 +684,8 @@ def main_program():
     test_moduleObject()
 
     test_inouts()
+
+    test_empty_string()
 
 
 if __name__ == "__main__":

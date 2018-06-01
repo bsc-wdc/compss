@@ -15,6 +15,8 @@ RUN chmod 700 /home/jenkins/.ssh
 # Add maven repository credentials
 RUN mkdir /home/jenkins/.m2
 COPY /files/settings.xml /home/jenkins/.m2/settings.xml
+RUN chown -R jenkins /home/jenkins/.m2
+RUN chgrp -R jenkins /home/jenkins/.m2
 
 # Overwrite the ssh key for test infrastructure
 COPY /files/id_rsa /home/jenkins/.ssh/id_rsa

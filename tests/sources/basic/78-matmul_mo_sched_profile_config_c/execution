@@ -40,7 +40,7 @@
   N=4
   M=64
   val=1
-  expectedTime=250s
+  expectedTime=360s
 
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \

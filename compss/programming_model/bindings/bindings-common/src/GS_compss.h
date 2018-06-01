@@ -17,14 +17,11 @@
 #ifndef GS_COMPSS_H
 #define GS_COMPSS_H
 
-// Uncomment the following define to get debug information.
-// #define DEBUG_BINDING
 
-#ifdef DEBUG_BINDING
-#define debug_printf(args...) printf(args); fflush(stdout);
-#else
-#define debug_printf(args...) {}
-#endif
+#include "AbstractCache.h"
+#include "common.h"
+
+void GS_On(AbstractCache *);
 
 /*** ==============> API FUNCTIONS <================= ***/
 
@@ -50,5 +47,7 @@ extern "C" void GS_BarrierNew(long appId, int noMoreTasks);
 // Misc functions
 extern "C" void GS_Get_AppDir(char **buf);
 extern "C" void GS_EmitEvent(int type, long id);
+extern "C" void GS_Get_Object(char *objectId, char**buf);
+extern "C" void GS_Delete_Object(char *objectId, int **buf);
 
 #endif /* GS_COMPSS_H */

@@ -99,15 +99,11 @@ void boolean_size(int b, file filename) {
 
 
 void objects(student *st) {
-
-	printf("Name: %s\n", st->name.c_str());
-	printf("Surname: %s\n", st->surname.c_str());
-	printf("Age: %d\n", st->age);
-
-	printf("Domicile name: %s\n", st->domicile.name.c_str());
-
-	st->name = "Ana";
-	st->surname = "Suárez";
+	st->print();
+	string name("Ana");
+	string surname("Suárez");
+	st->name = name;
+	st->surname = surname;
 	st->age = 31;
 
 }

@@ -22,8 +22,10 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.listener.SafeCopyListener;
+import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
+import es.bsc.compss.types.data.location.DataLocation.Type;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.operation.copy.Copy;
@@ -35,6 +37,7 @@ import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.ExecutorShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
+import es.bsc.compss.util.BindingDataManager;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
 
@@ -131,50 +134,184 @@ public class COMPSsMaster extends COMPSsNode {
         }
     }
 
-    @Override
-    public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
+    public void obtainBindingData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
             EventListener listener) {
+    	BindingObject tgtBO = ((BindingObjectLocation)target).getBindingObject();
+        ld.lockHostRemoval();
+        Collection<Copy> copiesInProgress = ld.getCopiesInProgress();
+        if (copiesInProgress != null && !copiesInProgress.isEmpty()) {
+            for (Copy copy : copiesInProgress) {
+                if (copy != null) {
+                    if (copy.getTargetLoc() != null && copy.getTargetLoc().getHosts().contains(Comm.getAppHost())) {
+                        if (DEBUG) {
+                            LOGGER.debug("Copy in progress tranfering " + ld.getName() + "to master. Waiting for finishing");
+                        }
+                        waitForCopyTofinish(copy);
+                        //try {
+                            if (DEBUG) {
+                                LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget() + " to " + tgtBO.getName());
+                            }
+                            BindingObject bo = BindingObject.generate(copy.getFinalTarget());
+                            if (ld.getName().equals(tgtBO.getName())){
+                                LOGGER.debug("Current transfer is the same as expected. Nothing to do setting data target to " + copy.getFinalTarget());
+                                reason.setDataTarget(copy.getFinalTarget());
+                            }else{
+                                LOGGER.debug("Making cache copy from " + bo.getName()+ " to " + tgtBO.getName() );
+                                BindingDataManager.copyCachedData(bo.getName(), tgtBO.getName());
+                                if (tgtData != null) {
+                                    tgtData.addLocation(target);
+                                }
+                                LOGGER.debug("File copied set dataTarget " + copy.getFinalTarget());
+                                reason.setDataTarget(copy.getFinalTarget());
+                            }
+                            listener.notifyEnd(null);
+                            ld.releaseHostRemoval();
+                            return;
 
-        LOGGER.info("Obtain Data " + ld.getName());
+                    } else if (copy.getTargetData() != null && copy.getTargetData().getAllHosts().contains(Comm.getAppHost())) {
+                        waitForCopyTofinish(copy);
+                        //try {
+                            if (DEBUG) {
+                                LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget() + " to " + tgtBO.getName());
+                            }
+                            BindingObject bo = BindingObject.generate(copy.getFinalTarget());
+                            if (ld.getName().equals(tgtBO.getName())){
+         
+                                LOGGER.debug("Current transfer is the same as expected. Nothing to do setting data target to " + bo.getName());
+                                reason.setDataTarget(copy.getFinalTarget());
+                            }else{
+                                LOGGER.debug("Making cache copy from " + bo.getName()+ " to " + tgtBO.getName() );
+                                BindingDataManager.copyCachedData(bo.getName(), tgtBO.getName());
+                                if (tgtData != null) {
+                                    tgtData.addLocation(target);
+                                }
+                                LOGGER.debug("File copied set dataTarget " + copy.getFinalTarget());
+                                reason.setDataTarget(copy.getFinalTarget());
+                            }
+                            
 
-        /*
-         * PSCO transfers are always available, if any SourceLocation is PSCO, don't transfer
-         */
-        for (DataLocation loc : ld.getLocations()) {
-            if (loc.getProtocol().equals(Protocol.PERSISTENT_URI)) {
-                LOGGER.debug("Object in Persistent Storage. Set dataTarget to " + loc.getPath());
-                reason.setDataTarget(loc.getPath());
-                listener.notifyEnd(null);
+                            listener.notifyEnd(null);
+                            ld.releaseHostRemoval();
+                            return;
+                        
+                    } else {
+                        if (DEBUG) {
+                            LOGGER.debug("Current copies are not transfering " + ld.getName() + " to master. Ignoring at this moment");
+                        }
+                    }
+                }
+            }
+        }
+
+        // Checking if file is already in master
+        if (DEBUG) {
+            LOGGER.debug("Checking if " + ld.getName() + " is at master (" + Comm.getAppHost().getName() + ").");
+        }
+
+        for (MultiURI u : ld.getURIs()) {
+            if (DEBUG) {
+                String hostname = (u.getHost() != null) ? u.getHost().getName() : "null";
+                LOGGER.debug(ld.getName() + " is at " + u.toString() + "(" + hostname + ")");
+            }
+            if (u.getHost() == Comm.getAppHost()) {                 
+                    if (DEBUG) {
+                        LOGGER.debug("Master local copy " + ld.getName() + " from " + u.getHost().getName() + " to " + tgtBO.getName());
+                    }
+                    BindingObject bo = BindingObject.generate(u.getPath());
+                    if (ld.getName().equals(tgtBO.getName())){
+                        LOGGER.debug("Current transfer is the same as expected. Nothing to do setting data target to " + u.getPath());
+                        reason.setDataTarget(u.getPath());
+                    }else{
+                        LOGGER.debug("Making cache copy from " + u.getPath() + " to " + tgtBO.getName() );
+                        BindingDataManager.copyCachedData(bo.getName(), tgtBO.getName());
+                        if (tgtData != null) {
+                            tgtData.addLocation(target);
+                        }
+                        LOGGER.debug("File copied set dataTarget " + u.getPath());
+                        reason.setDataTarget(u.getPath());
+                    }
+
+                    listener.notifyEnd(null);
+                    ld.releaseHostRemoval();
+                    return;
+            } else {
+                if (DEBUG) {
+                    String hostname = (u.getHost() != null) ? u.getHost().getName() : "null";
+                    LOGGER.debug("Data " + ld.getName() + " copy in " + hostname + " not evaluated now");
+                }
+            }
+
+        }
+
+        // Ask the transfer from an specific source
+        if (source != null) {
+            for (Resource sourceRes : source.getHosts()) {
+                COMPSsNode node = sourceRes.getNode();
+                String sourcePath = source.getURIInHost(sourceRes).getPath();
+                if (node != this) {
+                    try {
+                        if (DEBUG) {
+                            LOGGER.debug("Sending data " + ld.getName() + " from " + sourcePath + " to " + tgtBO.getName());
+                        }
+                        node.sendData(ld, source, target, tgtData, reason, listener);
+                    } catch (Exception e) {
+                        ErrorManager.warn("Not possible to sending data master to " + tgtBO.getName(), e);
+                        continue;
+                    }
+                    LOGGER.debug("Data " + ld.getName() + " sent.");
+                    ld.releaseHostRemoval();
+                    return;
+                } else {
+                    BindingObject bo = BindingObject.generate(sourcePath);
+                    if (ld.getName().equals(tgtBO.getName())){
+                        LOGGER.debug("Current transfer is the same as expected. Nothing to do setting data target to " + bo.getName());
+                        reason.setDataTarget(sourcePath);
+                    }else{
+                        LOGGER.debug("Making cache copy from " + bo.getName()+ " to " + tgtBO.getName() );
+                        BindingDataManager.copyCachedData(bo.getName(), tgtBO.getName());
+                        if (tgtData != null) {
+                            tgtData.addLocation(target);
+                        }
+                        LOGGER.debug("File copied set dataTarget " + tgtBO.getName());
+                        reason.setDataTarget(sourcePath);
+                    }
+                    listener.notifyEnd(null);
+                    ld.releaseHostRemoval();
+                    return;
+                }
+            }
+        } else {
+            LOGGER.debug("Source data location is null. Trying other alternatives");
+        }
+
+        // Preferred source is null or copy has failed. Trying to retrieve data from any host
+        for (Resource sourceRes : ld.getAllHosts()) {
+            COMPSsNode node = sourceRes.getNode();
+            if (node != this) {
+                try {
+                    LOGGER.debug("Sending data " + ld.getName() + " from " + sourceRes.getName() + " to " + tgtBO.getName());
+                    node.sendData(ld, source, target, tgtData, reason, listener);
+                } catch (Exception e) {
+                    LOGGER.error("Error: exception sending data", e);
+                    continue;
+                }
+                LOGGER.debug("Data " + ld.getName() + " sent.");
+                ld.releaseHostRemoval();
                 return;
+            } else {
+                if (DEBUG) {
+                    LOGGER.debug("Data " + ld.getName() + " copy in " + sourceRes.getName()
+                            + " not evaluated now. Should have been evaluated before");
+                }
             }
         }
-
-        /*
-         * Otherwise the data is a file or an object that can be already in the master memory, in the master disk or
-         * being transfered
-         */
-
-        String targetPath = target.getURIInHost(Comm.getAppHost()).getPath();
-
-        // Check if data is in memory (no need to check if it is PSCO since previous case avoids it)
-        if (ld.isInMemory()) {
-            // Serialize value to file
-            try {
-                Serializer.serialize(ld.getValue(), targetPath);
-            } catch (IOException ex) {
-                ErrorManager.warn("Error copying file from memory to " + targetPath, ex);
-            }
-
-            if (tgtData != null) {
-                tgtData.addLocation(target);
-            }
-            LOGGER.debug("Object in memory. Set dataTarget to " + targetPath);
-            reason.setDataTarget(targetPath);
-            listener.notifyEnd(null);
-            return;
-        }
-
-        // Check if there are current copies in progress
+    }
+    
+    public void obtainFileData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
+            EventListener listener) {
+    	
+    	String targetPath = target.getURIInHost(Comm.getAppHost()).getPath();
+    	// Check if there are current copies in progress
         if (DEBUG) {
             LOGGER.debug("Data " + ld.getName() + " not in memory. Checking if there is a copy to the master in progress");
         }
@@ -340,6 +477,76 @@ public class COMPSsMaster extends COMPSsNode {
         ErrorManager.warn("Error file " + ld.getName() + " not transferred to " + targetPath);
         ld.releaseHostRemoval();
     }
+    
+    @Override
+    public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
+            EventListener listener) {
+
+        LOGGER.info("Obtain Data " + ld.getName());
+        if (DEBUG){
+            if (ld !=null){
+                LOGGER.debug("srcData: "+ ld.toString());
+            }
+            if (reason !=null){
+                LOGGER.debug("Reason: " +reason.getType());
+            }
+            if (source!=null){
+                LOGGER.debug("Source Data location" + source.getType().toString() +" " +source.getProtocol().toString()+ " " +source.getURIs().get(0));
+            }
+            if (target!=null){
+                LOGGER.debug("Target Data location" + target.getType().toString() +" " +target.getProtocol().toString()+ " " +target.getURIs().get(0));
+            }
+            if (tgtData !=null){
+                LOGGER.debug("tgtData: "+ tgtData.toString());
+            }
+        }
+        /* 
+         * Check if data is binding data
+         */
+        if (ld.isBindingData() || (reason != null && reason.getType().equals(DataType.BINDING_OBJECT_T))||(source!=null && source.getType().equals(Type.BINDING))|| (target!=null && target.getType().equals(Type.BINDING))){
+        	obtainBindingData(ld, source, target, tgtData, reason, listener);
+        	return;
+        }
+        /*
+         * PSCO transfers are always available, if any SourceLocation is PSCO, don't transfer
+         */
+        
+        for (DataLocation loc : ld.getLocations()) {
+            if (loc.getProtocol().equals(Protocol.PERSISTENT_URI)) {
+                LOGGER.debug("Object in Persistent Storage. Set dataTarget to " + loc.getPath());
+                reason.setDataTarget(loc.getPath());
+                listener.notifyEnd(null);
+                return;
+            }
+        }
+        
+        /*
+         * Otherwise the data is a file or an object that can be already in the master memory, in the master disk or
+         * being transfered
+         */
+
+        // Check if data is in memory (no need to check if it is PSCO since previous case avoids it)
+        if (ld.isInMemory()) {
+        	String targetPath = target.getURIInHost(Comm.getAppHost()).getPath();
+        	// Serialize value to file
+            try {
+                Serializer.serialize(ld.getValue(), targetPath);
+            } catch (IOException ex) {
+                ErrorManager.warn("Error copying file from memory to " + targetPath, ex);
+            }
+
+            if (tgtData != null) {
+                tgtData.addLocation(target);
+            }
+            LOGGER.debug("Object in memory. Set dataTarget to " + targetPath);
+            reason.setDataTarget(targetPath);
+            listener.notifyEnd(null);
+            return;
+        }
+        
+        obtainFileData(ld, source, target, tgtData, reason, listener);
+
+    }
 
     private void waitForCopyTofinish(Copy copy) {
         Semaphore sem = new Semaphore(0);
@@ -380,8 +587,11 @@ public class COMPSsMaster extends COMPSsNode {
             case PSCO_T:
                 path = Protocol.PERSISTENT_URI.getSchema() + name;
                 break;
-            case EXTERNAL_OBJECT_T:
+            case EXTERNAL_PSCO_T:
                 path = Protocol.PERSISTENT_URI.getSchema() + name;
+                break;
+            case BINDING_OBJECT_T:
+                path = Protocol.BINDING_URI.getSchema() + name;
                 break;
             default:
                 return null;

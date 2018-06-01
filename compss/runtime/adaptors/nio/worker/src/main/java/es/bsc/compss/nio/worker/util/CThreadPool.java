@@ -85,7 +85,7 @@ public class CThreadPool extends ExternalThreadPool {
         StringBuilder cmd = new StringBuilder();
 
         cmd.append(COMPSsConstants.Lang.C).append(ExternalExecutor.TOKEN_SEP);
-        if (!NIOWorker.isPersistentCEnabled()) {
+        if (!NIOWorker.isPersistentEnabled()) {
             // No persistent version
             cmd.append(installDir).append(ExternalThreadPool.PIPER_SCRIPT_RELATIVE_PATH).append(C_PIPER).append(ExternalExecutor.TOKEN_SEP);
         } else {
@@ -159,7 +159,7 @@ public class CThreadPool extends ExternalThreadPool {
 
     @Override
     protected void specificStop() {
-        if (NIOWorker.isPersistentCEnabled()) {
+        if (NIOWorker.isPersistentEnabled()) {
             LOGGER.debug(LOG_PREFIX + " Sending Quit to data pipe");
             try (FileOutputStream output = new FileOutputStream(writeDataPipeFile, true);) {
                 String quitCMD = ExternalExecutor.QUIT_TAG + ExternalExecutor.TOKEN_NEW_LINE;

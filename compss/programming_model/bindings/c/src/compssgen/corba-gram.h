@@ -65,32 +65,35 @@ extern int yydebug;
      TOK_LEFT_CUR_BRAKET = 259,
      TOK_RIGHT_CUR_BRAKET = 260,
      TOK_LEFT_PARENTHESIS = 261,
-     TOK_RIGHT_PARENTHESIS = 262,
-     TOK_COMMA = 263,
-     TOK_SEMICOLON = 264,
-     TOK_IN = 265,
-     TOK_OUT = 266,
-     TOK_INOUT = 267,
-     TOK_FILE = 268,
-     TOK_STATIC = 269,
-     TOK_UNSIGNED = 270,
-     TOK_VOID = 271,
-     TOK_SHORT = 272,
-     TOK_LONG = 273,
-     TOK_LONGLONG = 274,
-     TOK_INT = 275,
-     TOK_FLOAT = 276,
-     TOK_DOUBLE = 277,
-     TOK_CHAR = 278,
-     TOK_WCHAR = 279,
-     TOK_BOOLEAN = 280,
-     TOK_STRING = 281,
-     TOK_WSTRING = 282,
-     TOK_ANY = 283,
-     TOK_ERROR = 284,
-     TOK_EQUAL = 285,
-     TOK_DBLQUOTE = 286,
-     TOK_IDENTIFIER = 287
+     TOK_LEFT_BRAKET = 262,
+     TOK_RIGHT_BRAKET = 263,
+     TOK_RIGHT_PARENTHESIS = 264,
+     TOK_COMMA = 265,
+     TOK_SEMICOLON = 266,
+     TOK_IN = 267,
+     TOK_OUT = 268,
+     TOK_INOUT = 269,
+     TOK_FILE = 270,
+     TOK_STATIC = 271,
+     TOK_UNSIGNED = 272,
+     TOK_VOID = 273,
+     TOK_SHORT = 274,
+     TOK_LONG = 275,
+     TOK_LONGLONG = 276,
+     TOK_INT = 277,
+     TOK_FLOAT = 278,
+     TOK_DOUBLE = 279,
+     TOK_CHAR = 280,
+     TOK_WCHAR = 281,
+     TOK_BOOLEAN = 282,
+     TOK_STRING = 283,
+     TOK_WSTRING = 284,
+     TOK_ANY = 285,
+     TOK_ERROR = 286,
+     TOK_EQUAL = 287,
+     TOK_DBLQUOTE = 288,
+     TOK_IDENTIFIER = 289,
+     NUMBER = 290
    };
 #endif
 /* Tokens.  */
@@ -98,32 +101,35 @@ extern int yydebug;
 #define TOK_LEFT_CUR_BRAKET 259
 #define TOK_RIGHT_CUR_BRAKET 260
 #define TOK_LEFT_PARENTHESIS 261
-#define TOK_RIGHT_PARENTHESIS 262
-#define TOK_COMMA 263
-#define TOK_SEMICOLON 264
-#define TOK_IN 265
-#define TOK_OUT 266
-#define TOK_INOUT 267
-#define TOK_FILE 268
-#define TOK_STATIC 269
-#define TOK_UNSIGNED 270
-#define TOK_VOID 271
-#define TOK_SHORT 272
-#define TOK_LONG 273
-#define TOK_LONGLONG 274
-#define TOK_INT 275
-#define TOK_FLOAT 276
-#define TOK_DOUBLE 277
-#define TOK_CHAR 278
-#define TOK_WCHAR 279
-#define TOK_BOOLEAN 280
-#define TOK_STRING 281
-#define TOK_WSTRING 282
-#define TOK_ANY 283
-#define TOK_ERROR 284
-#define TOK_EQUAL 285
-#define TOK_DBLQUOTE 286
-#define TOK_IDENTIFIER 287
+#define TOK_LEFT_BRAKET 262
+#define TOK_RIGHT_BRAKET 263
+#define TOK_RIGHT_PARENTHESIS 264
+#define TOK_COMMA 265
+#define TOK_SEMICOLON 266
+#define TOK_IN 267
+#define TOK_OUT 268
+#define TOK_INOUT 269
+#define TOK_FILE 270
+#define TOK_STATIC 271
+#define TOK_UNSIGNED 272
+#define TOK_VOID 273
+#define TOK_SHORT 274
+#define TOK_LONG 275
+#define TOK_LONGLONG 276
+#define TOK_INT 277
+#define TOK_FLOAT 278
+#define TOK_DOUBLE 279
+#define TOK_CHAR 280
+#define TOK_WCHAR 281
+#define TOK_BOOLEAN 282
+#define TOK_STRING 283
+#define TOK_WSTRING 284
+#define TOK_ANY 285
+#define TOK_ERROR 286
+#define TOK_EQUAL 287
+#define TOK_DBLQUOTE 288
+#define TOK_IDENTIFIER 289
+#define NUMBER 290
 
 
 
@@ -133,6 +139,7 @@ typedef union YYSTYPE
 /* Line 2058 of yacc.c  */
 #line 16 "corba-gram.y"
 
+    char		*elements;
 	char		*name;
 	char		*classname;
 	enum datatype	dtype;
@@ -140,7 +147,7 @@ typedef union YYSTYPE
 
 
 /* Line 2058 of yacc.c  */
-#line 129 "corba-gram.h"
+#line 136 "corba-gram.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

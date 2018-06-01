@@ -37,8 +37,7 @@ public abstract class Parameter implements Serializable {
     private final Stream stream;
     private final String prefix;
 
-
-    public Parameter(DataType type, Direction direction, Stream stream, String prefix) {
+	public Parameter(DataType type, Direction direction, Stream stream, String prefix) {
         this.type = type;
         this.direction = direction;
         this.stream = stream;
@@ -47,7 +46,7 @@ public abstract class Parameter implements Serializable {
         } else { 
             this.prefix = prefix;
         }
-    }
+    } 
 
     public DataType getType() {
         return this.type;

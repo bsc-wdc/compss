@@ -50,8 +50,11 @@ public class BinaryInvoker extends Invoker {
     public Object invokeMethod() throws JobExecutionException {
         LOGGER.info("Invoked " + this.binary + " in " + this.nw.getHostName());
         try {
-            return GenericInvoker.invokeBinaryMethod(this.binary, this.values, this.streams, this.prefixes, this.taskSandboxWorkingDir);
+            
+            return GenericInvoker.invokeBinaryMethod(this.binary, this.values, this.streams, this.prefixes, 
+                    this.taskSandboxWorkingDir, nw.getThreadOutStream(), nw.getThreadErrStream());
         } catch (InvokeExecutionException iee) {
+            LOGGER.error("Exception running binary", iee);
             throw new JobExecutionException(iee);
         }
     }

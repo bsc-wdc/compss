@@ -32,13 +32,15 @@ void usage() {
 
 
 void *thread_function1(void* unused){
-
+	cout << "start func 1" << endl;
 	string initialValue = "1";
 	file fileName1 = strdup(FILE_NAME1);
-
+	cout << "file 1 created" << endl;
     // Write file
     ofstream fos;
+    cout << "before ofstream 1" << endl;
     compss_ofstream(fileName1, fos);
+    cout << "after ofstream" << endl;
     if (fos.is_open()) {
         fos << initialValue << endl;
         fos.close();
@@ -46,18 +48,18 @@ void *thread_function1(void* unused){
         cerr << "[ERROR] Unable to open file" << endl;
         return 0;
     }
-    cout << "Initial counter value is " << initialValue << endl;
+    cout << "Initial counter1 value is " << initialValue << endl;
 
     // Execute increment
     increment(fileName1);
-
+	cout << "function 1 called" << endl;
     // Read new value
     string finalValue;
     ifstream fis;
     compss_ifstream(fileName1, fis);
     if (fis.is_open()) {
         if (getline(fis, finalValue)) {
-            cout << "Final counter value is " << finalValue << endl;
+            cout << "Final counter1 value is " << finalValue << endl;
             fis.close();
         } else {
             cerr << "[ERROR] Unable to read final value" << endl;
@@ -75,16 +77,16 @@ void *thread_function1(void* unused){
 
 void *thread_function2(void* unused){
 
-	cout << "start func" << endl;
+	cout << "start func 2" << endl;
 
 	string initialValue = "2";
 	file fileName2 = strdup(FILE_NAME2);
 
-	cout << "file created" << endl;
+	cout << "file 2 created" << endl;
 
     // Write file
     ofstream fos;
-	cout << "before ofstream" << endl;
+	cout << "before ofstream 2" << endl;
     compss_ofstream(fileName2, fos);
 	cout << "after ofstream" << endl;
     if (fos.is_open()) {
@@ -94,12 +96,12 @@ void *thread_function2(void* unused){
         cerr << "[ERROR] Unable to open file" << endl;
         return 0;
     }
-    cout << "Initial counter value is " << initialValue << endl;	
+    cout << "Initial counter2 value is " << initialValue << endl;	
 
     // Execute increment
     increment(fileName2);
 
-	cout << "function called" << endl;
+	cout << "function 2 called" << endl;
 
     // Read new value
     string finalValue;
@@ -107,7 +109,7 @@ void *thread_function2(void* unused){
     compss_ifstream(fileName2, fis);
     if (fis.is_open()) {
         if (getline(fis, finalValue)) {
-            cout << "Final counter value is " << finalValue << endl;
+            cout << "Final counter2 value is " << finalValue << endl;
             fis.close();
         } else {
             cerr << "[ERROR] Unable to read final value" << endl;

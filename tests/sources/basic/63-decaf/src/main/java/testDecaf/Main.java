@@ -18,7 +18,7 @@ public class Main {
 
     private static final String[] lines = {"Executing decaf data-flow generator: "+System.getenv("PWD")+"/decaf/test.py ",
         "Executing python script.", "Executing decaf data-flow: ./test.sh", "Executing binary"};
-    private static final String endLine0 = ".decafHostfile --args=";
+    private static final String endLine0 = ".decafHostfile --args ";
 
 
     public static void main(String[] args) {

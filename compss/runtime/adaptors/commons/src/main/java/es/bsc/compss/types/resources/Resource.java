@@ -17,12 +17,10 @@
 package es.bsc.compss.types.resources;
 
 import es.bsc.compss.comm.Comm;
-
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
-
 import es.bsc.compss.log.Loggers;
-
+import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.data.LogicalData;
@@ -31,6 +29,7 @@ import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.listener.SafeCopyListener;
 import es.bsc.compss.types.data.listener.TracingCopyListener;
 import es.bsc.compss.types.data.listener.WorkersDebugInformationListener;
+import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.data.transferable.SafeCopyTransferable;
@@ -43,7 +42,6 @@ import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.types.annotations.parameter.DataType;
-
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.SharedDiskManager;
 
@@ -57,6 +55,7 @@ import java.util.Set;
 import java.util.concurrent.Semaphore;
 
 import es.bsc.compss.util.Tracer;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -328,6 +327,16 @@ public abstract class Resource implements Comparable<Resource> {
      * @param listener
      */
     public void getData(LogicalData ld, String newName, LogicalData tgtData, Transferable reason, EventListener listener) {
+        if (reason.getType()==DataType.BINDING_OBJECT_T){
+            if (ld.getValue() == null){
+                LOGGER.warn("[Resource] Getting data: "+ newName +", source logical data value is null. Triying with data target from reason ");
+                BindingObject bo = BindingObject.generate((String)reason.getDataTarget());
+                newName = newName+"#"+bo.getType()+"#"+bo.getElements();
+            }else{
+                BindingObject bo = BindingObject.generate((String)ld.getValue());
+                newName = newName+"#"+bo.getType()+"#"+bo.getElements();
+            }
+        }
         SimpleURI workingPath = node.getCompletePath(reason.getType(), newName);
         DataLocation target = null;
         try {
@@ -417,7 +426,13 @@ public abstract class Resource implements Comparable<Resource> {
                 listener.addOperation();
 
                 DataLocation safeLoc = null;
-                String safePath = Protocol.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + ld.getName();
+                String safePath = null; 
+                if (lastLoc.getType().equals(DataLocation.Type.BINDING)){
+                    BindingObject bo = BindingObject.generate(lastLoc.getPath());
+                    safePath = Protocol.BINDING_URI.getSchema() + Comm.getAppHost().getTempDirPath() + ld.getName() + "#" + bo.getType() + "#" + bo.getElements();
+                }else{
+                    safePath = Protocol.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + ld.getName();
+                }
                 try {
                     SimpleURI uri = new SimpleURI(safePath);
                     safeLoc = DataLocation.createLocation(Comm.getAppHost(), uri);
@@ -497,8 +512,10 @@ public abstract class Resource implements Comparable<Resource> {
 
         executorShutdownListener.addOperation();
         node.shutdownExecutionManager(executorShutdownListener);
-
         executorShutdownListener.enable();
+        if (DEBUG) {
+            LOGGER.debug("Waiting for shutting down the execution manager of " + this.getName());
+        }
         try {
             sem.acquire();
         } catch (InterruptedException ex) {

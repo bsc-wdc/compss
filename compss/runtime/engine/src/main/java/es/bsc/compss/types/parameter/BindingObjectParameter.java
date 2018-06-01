@@ -16,13 +16,14 @@
  */
 package es.bsc.compss.types.parameter;
 
+import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.Stream;
 import es.bsc.compss.types.parameter.DependencyParameter;
 
 
-public class ExternalObjectParameter extends DependencyParameter {
+public class BindingObjectParameter extends DependencyParameter {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime
@@ -30,30 +31,49 @@ public class ExternalObjectParameter extends DependencyParameter {
     private static final long serialVersionUID = 1L;
 
     private final int hashCode;
-    private String pscoId;
-
-
-    public ExternalObjectParameter(Direction direction, Stream stream, String prefix, String pscoId, int hashCode) {
-        super(DataType.EXTERNAL_OBJECT_T, direction, stream, prefix);
-        this.pscoId = pscoId;
+    private final BindingObject bo;
+ 	
+    public BindingObjectParameter(Direction direction, Stream stream, String prefix, BindingObject bo, int hashCode) {
+        super(DataType.BINDING_OBJECT_T, direction, stream, prefix);
+        this.bo = bo;
         this.hashCode = hashCode;
     }
 
     public String getId() {
-        return this.pscoId;
-    }
-
-    public void setId(String pscoId) {
-        this.pscoId = pscoId;
+        return this.bo.toString();
     }
 
     public int getCode() {
         return this.hashCode;
     }
-
+    
     @Override
     public String toString() {
-        return "ExternalObjectParameter with Id " + this.pscoId + " and HashCode " + this.hashCode;
+        return "BindingObjectParameter with Id " + this.bo.getId() + ", type " + this.bo.getType() + 
+        		", elements "+this.bo.getElements()+" and HashCode " + this.hashCode;
     }
+    @Override
+    public String getOriginalName(){
+    	return this.bo.getId();
+    }
+	
+	@Override
+	public String getDataTarget(){
+	    String dataTarget = super.getDataTarget();
+	    if (dataTarget!=null){
+	        if (dataTarget.contains("#")){
+	            return dataTarget;
+	        }else{
+	            return dataTarget+"#"+bo.getType()+"#"+bo.getElements();
+	        }
+	    }else{
+	        return "null#"+bo.getType()+"#"+bo.getElements();
+	    }
+	}
+
+    public BindingObject getBindingObject() {
+        return bo;
+    }
+		
 
 }

@@ -43,8 +43,9 @@ public class CExecutor extends ExternalExecutor {
     @Override
     public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits,
             int[] assignedGPUs, int[] assignedFPGAs) {
-        ArrayList<String> lArgs = new ArrayList<>();
-
+        
+        return CExecutionCommandGenerator.getTaskExecutionCommand(nw, nt, sandBox, assignedCoreUnits, assignedGPUs, assignedFPGAs);
+/*
         // NX_ARGS string built from the Resource Description
         StringBuilder reqs = new StringBuilder();
         int numCUs = nt.getResourceDescription().getTotalCPUComputingUnits();
@@ -104,10 +105,12 @@ public class CExecutor extends ExternalExecutor {
                 + WORKER_C_RELATIVE_PATH);
 
         return lArgs;
+    */
     }
 
     public static Map<String, String> getEnvironment(NIOWorker nw) {
-        Map<String, String> env = new HashMap<>();
+        return CExecutionCommandGenerator.getEnvironment(nw);
+        /*Map<String, String> env = new HashMap<>();
         String ldLibraryPath = System.getenv(LIBRARY_PATH_ENV);
         if (ldLibraryPath == null) {
             ldLibraryPath = nw.getLibPath();
@@ -121,6 +124,7 @@ public class CExecutor extends ExternalExecutor {
 
         env.put(LIBRARY_PATH_ENV, ldLibraryPath);
         return env;
+        */
     }
 
 }

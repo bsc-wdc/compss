@@ -39,6 +39,11 @@ public class Action extends AllocatableAction {
     public boolean isToReleaseResources() {
         return true;
     }
+    
+    @Override
+    public boolean isToStopResource() {
+        return true;
+    }
 
     @Override
     public List<ResourceScheduler<? extends WorkerResourceDescription>> getCompatibleWorkers() {

@@ -265,7 +265,9 @@ public abstract class SchedulingEvent implements Comparable<SchedulingEvent> {
             if (state.getAction() != currentTop) {
                 state.replaceAction(currentTop);
             }
-            state.releaseResources(expectedTimeStamp, action);
+            if (action.isToReleaseResources()){
+                state.releaseResources(expectedTimeStamp, action);
+            }
             state.updateConsumptions(action);
 
             while (state.canActionRun()) {

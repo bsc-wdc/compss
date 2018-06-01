@@ -69,7 +69,7 @@ import org.json.JSONObject;
 public class TaskScheduler {
 
     // Logger
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
+    protected static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
     // Reference to action orchestrator (Task Dispatcher)
     private ActionOrchestrator orchestrator;
 
@@ -490,7 +490,7 @@ public class TaskScheduler {
 
     protected final void tryToLaunch(AllocatableAction action) {
         try {
-            // LOGGER.debug("[TaskScheduler] Trying to launch" + action);
+            LOGGER.debug("[TaskScheduler] Trying to launch" + action);
             action.tryToLaunch();
             // LOGGER.debug("[TaskScheduler] Exited from tryToLaunch without exception");
         } catch (InvalidSchedulingException ise) {
@@ -546,7 +546,7 @@ public class TaskScheduler {
      */
     public <T extends WorkerResourceDescription> void handleDependencyFreeActions(List<AllocatableAction> dataFreeActions,
             List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
-        LOGGER.debug("[TaskScheduler] Treating dependency free actions");
+        LOGGER.debug("[TaskScheduler] Treating dependency free actions on resource " + resource.getName());
         // All actions should have already been assigned to a resource, no need
         // to change the assignation once they become free of dependencies
 
@@ -822,6 +822,8 @@ public class TaskScheduler {
                 addToBlocked(action);
             }
         }
+        resource.setRemoved(true);
+        
 
     }
 

@@ -59,7 +59,7 @@ public abstract class AllocatableAction {
     // Logger
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
     protected static final boolean DEBUG = LOGGER.isDebugEnabled();
-
+    protected static final String DBG_PREFIX = "[AllocatableAction] ";
     // AllocatableAction Id counter
     private static final AtomicInteger NEXT_ID = new AtomicInteger();
 
@@ -402,17 +402,26 @@ public abstract class AllocatableAction {
                 && // scheduler does not block the execution
                 schedulingInfo.isExecutable()) {
 
-            // Invalid scheduling -> Should run in a specific resource and the assigned resource is not the required
-            if (isSchedulingConstrained() && unrequiredResource()
-                    || isTargetResourceEnforced() && selectedResource != schedulingInfo.getEnforcedTargetResource()) {
+            // Invalid scheduling -> Allocatable action should run in a specific resource but: resource is removed and task is not to stop; or the assigned resource is not the required
+            if ((selectedResource.isRemoved() && !isToStopResource())|| (isSchedulingConstrained() && unrequiredResource()
+                    || isTargetResourceEnforced() && selectedResource != schedulingInfo.getEnforcedTargetResource())) {
                 // Allow other threads to access the action
                 lock.unlock();
                 // Notify invalid scheduling
+                LOGGER.debug("Action " + this + " incorrectly scheduled. Throwing exception.");
                 throw new InvalidSchedulingException();
             }
             // Correct resource and task ready to run
             execute();
         } else {
+            if (hasDataPredecessors()){
+                if (DEBUG){
+                    LOGGER.debug(DBG_PREFIX + "Action " + this + " not executed because data predecessors");
+                    for (AllocatableAction aa : getDataPredecessors()){
+                        LOGGER.debug( "\n Predecessor: " + aa); 
+                    }
+                }
+            }
             lock.unlock();
         }
     }
@@ -433,6 +442,7 @@ public abstract class AllocatableAction {
             // Run action
             run();
         } else {
+            
             LOGGER.info(this + " execution paused due to lack of resources on worker " + selectedResource.getName());
             // Task waits on the resource queue
             // It can only be resumed because of a task completion or error.
@@ -470,6 +480,13 @@ public abstract class AllocatableAction {
         doAction();
     }
 
+    /**
+     * Returns if the AllocatableAction is to stop a resource
+     *
+     * @return
+     */
+    public abstract boolean isToStopResource();
+    
     /**
      * Returns if the AllocatableAction needs to reserve some resources for its
      * execution

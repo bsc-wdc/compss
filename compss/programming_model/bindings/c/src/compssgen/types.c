@@ -22,46 +22,47 @@
 void initTypes(Types *currTypes){
   currTypes->num=0;
   currTypes->max=10;
-  currTypes->types=malloc(currTypes->max*sizeof(char*));
+  currTypes->types=malloc(currTypes->max*sizeof(Type));
 }  
 
 void increaseTypesCapacity(Types *currTypes){
   int oldMax = currTypes->max;
   currTypes->max = currTypes->max + 10;
-  char** tmp1 = malloc(currTypes->max*sizeof(char*));
-  memcpy(tmp1,currTypes->types, oldMax*sizeof(char*));
-  char** tmp2 = currTypes->types;
+  Type* tmp1 = malloc(currTypes->max*sizeof(Type));
+  memcpy(tmp1, currTypes->types, oldMax*sizeof(Type));
+  Type* tmp2 = currTypes->types;
   free(tmp2);
   currTypes->types = tmp1;
 }
 
-int containsType (char* type, Types currTypes){
+int containsType (Type type, Types currTypes){
   int i;
   for (i=0; i<currTypes.num; i++){
-	if (strcmp(currTypes.types[i],type)==0){
+	if (currTypes.types[i].dt == type.dt && strcmp(currTypes.types[i].name,type.name)== 0 && strcmp(currTypes.types[i].elements, type.elements)==0){
 		return 1;
 	}
   }
   return 0;
 }
 
-int getTypeNumber (char* type, Types currTypes){
+int getTypeNumber (Type type, Types currTypes){
   int i;
   for (i=0; i<currTypes.num; i++){
-        if (strcmp(currTypes.types[i],type)==0){
+        if (currTypes.types[i].dt == type.dt && strcmp(currTypes.types[i].name,type.name)== 0 && strcmp(currTypes.types[i].elements, type.elements)==0){
                 return i;
         }
   }
   return -1;
 }
 
-void addType (char* type, Types *currTypes){
+void addType (Type type, Types *currTypes){
   currTypes->num++; 
   if (currTypes->num > currTypes->max){
      increaseTypesCapacity(currTypes);  
   }	
-  currTypes->types[currTypes->num - 1]= malloc( sizeof(char*));
-  strcpy(currTypes->types[currTypes->num - 1], type); 
+  //currTypes->types[currTypes->num - 1]= (Type*)malloc(sizeof(Type));
+  //memcpy(currTypes->types[currTypes->num - 1], type);
+  currTypes->types[currTypes->num - 1]= type;
   
 }
 
@@ -69,62 +70,66 @@ void printAllTypes(Types currTypes){
   int i;
   printf("Printing all types(%d): \n", currTypes.num);
   for (i=0; i < currTypes.num ; i++){
-        printf("\tType %d: %s\n", i, currTypes.types[i]);
+        printf("\tType %d: %s (type: %d, elements: %s)\n", i, currTypes.types[i].name, currTypes.types[i].dt, currTypes.types[i].elements);
   }
   
 }
 //int main() 
 int test_types()
 {    
-  char *a = malloc (sizeof(char*));
-  char *b = malloc (sizeof(char*));
+  Type a;
+  a.dt=object_dt;
+  a.elements="MAX";
+  Type b;
+  b.dt=object_dt;
+  b.elements="MAX";
   Types currTypes;
   initTypes(&currTypes);
   printAllTypes(currTypes);
-  strcpy( a, "Type1");
+  strcpy( a.name, "Type1");
   addType(a, &currTypes);
-  strcpy( a, "Type2");
+  strcpy( a.name, "Type2");
   addType(a, &currTypes);
-  strcpy( a, "Type3");
+  strcpy( a.name, "Type3");
   addType(a, &currTypes);
   //Check print
   printAllTypes(currTypes);
 
   //Check if types exists
-  strcpy(b, "Type1");
+  strcpy(b.name, "Type1");
   if (containsType(b, currTypes)){
-	printf("Type %s in currTypes!\n", b);
+	printf("Type %s in currTypes!\n", b.name);
   }
-  strcpy(b, "Type2");
+  strcpy(b.name, "Type2");
   if (containsType(b, currTypes)){
-        printf("Type %s in currTypes!\n", b);
+        printf("Type %s in currTypes!\n", b.name);
   }
-  strcpy(b, "Type3");
+  strcpy(b.name, "Type3");
   if (containsType(b, currTypes)){
-        printf("Type %s in currTypes!\n", b);
+        printf("Type %s in currTypes!\n", b.name);
   }
-  strcpy(b, "Type4");
+  strcpy(b.name, "Type4");
   if (!containsType(b, currTypes)){
-        printf("Type %s NOT in currTypes!\n",b);
+        printf("Type %s NOT in currTypes!\n",b.name);
   }
   addType(b, &currTypes);
-  strcpy( a, "Type5");
+  strcpy( a.name, "Type5");
   addType(a, &currTypes);
-  strcpy( a, "Type6");
+  strcpy( a.name, "Type6");
   addType(a, &currTypes);
-  strcpy( a, "Type7");
+  strcpy( a.name, "Type7");
   addType(a, &currTypes);
-  strcpy( a, "Type8");
+  strcpy( a.name, "Type8");
   addType(a, &currTypes);
   addType(b, &currTypes);
-  strcpy( a, "Type9");
+  strcpy( a.name, "Type9");
   addType(a, &currTypes);
   //Check increase
-  strcpy( a, "Type10");
+  strcpy( a.name, "Type10");
   addType(a, &currTypes);
-  strcpy( a, "Type11");
+  strcpy( a.name, "Type11");
   addType(a, &currTypes);
-  strcpy( a, "Type12");
+  strcpy( a.name, "Type12");
   addType(a, &currTypes); 
   printAllTypes(currTypes);
   return 0;

@@ -22,7 +22,7 @@ sbin_PROGRAMS =
 noinst_PROGRAMS =
 check_PROGRAMS =
 
-AM_CPPFLAGS = -I../../../c/include -I../../../bindings-common/include
+AM_CPPFLAGS = -I../../../c/include -I../../../bindings-common/include -Wall
 
 include_HEADERS =
 	

@@ -447,7 +447,7 @@ public class ITAppEditor extends ExprEditor {
             toAppend.append(infoParam.getDirection()).append(",");
             toAppend.append(infoParam.getStream()).append(",");
             toAppend.append(infoParam.getPrefix());
-
+            
             if (i < paramAnnot.length - 1) {
                 toAppend.append(",");
             }

@@ -47,6 +47,7 @@ public class ThreadPrintStream extends PrintStream {
 
     public void unregisterThread() {
         try {
+            flush();
             close();
             threadToStream.remove(Thread.currentThread().getId());
         } catch (Exception e) {

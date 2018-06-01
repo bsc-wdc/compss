@@ -31,8 +31,7 @@
     output_log="${appLogFolder}/${app}_0${retryNum}.outputlog"
     error_log="${appLogFolder}/${app}_0${retryNum}.errorlog"
     
-    expectedTime=60s
-
+    expectedTime=240s
     # shellcheck disable=SC2086
     timeout --signal=2 $expectedTime "${COMPSs_exec}" \
       --project="${base_app_dir}"/project.xml \

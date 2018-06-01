@@ -39,6 +39,7 @@ import es.bsc.compss.nio.worker.util.CThreadPool;
 import es.bsc.compss.nio.worker.util.ExternalThreadPool;
 import es.bsc.compss.nio.worker.util.JavaThreadPool;
 import es.bsc.compss.nio.worker.util.JobsThreadPool;
+import es.bsc.compss.nio.worker.util.PersistentCThreadPool;
 import es.bsc.compss.nio.worker.util.PythonThreadPool;
 
 
@@ -99,7 +100,11 @@ public class ExecutionManager {
                 this.pool = new PythonThreadPool(nw, numThreads);
                 break;
             case C:
-                this.pool = new CThreadPool(nw, numThreads);
+                if (NIOWorker.isPersistentEnabled()) {
+                    this.pool = new PersistentCThreadPool(nw, numThreads);
+                }else{
+                    this.pool = new CThreadPool(nw, numThreads);
+                }
                 break;
             default:
                 this.pool = null;
@@ -179,7 +184,7 @@ public class ExecutionManager {
      *
      */
     public void stop() {
-        LOGGER.info("Stop Execution Manager");
+        LOGGER.info("Stopping Threads...");
         // Stop the job threads
         this.pool.stopThreads();
     }
@@ -221,6 +226,8 @@ public class ExecutionManager {
     }
 
     public void removeExternalData(String absFileName) {
+        //TODO: Check if needed with the new persistent worker
+        LOGGER.debug("Trying to remove external data");
         if (this.pool instanceof ExternalThreadPool) {
             // Get dataId from file name
             String filename = new File(absFileName).getName();
@@ -239,6 +246,7 @@ public class ExecutionManager {
     }
 
     public boolean serializeExternalData(String name, String path) {
+        //TODO: Check if needed with the new persistent worker
         if (this.pool instanceof ExternalThreadPool) {
             return ((ExternalThreadPool) this.pool).serializeExternalData(name, path);
         }

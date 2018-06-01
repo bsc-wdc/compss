@@ -14,6 +14,13 @@
  *  limitations under the License.
  *
  */
-int get_compss_worker_lock();
+#include <CBindingCache.h>
+#ifndef _EXECUTOR_H
+#define _EXECUTOR_H
 
-int release_compss_worker_lock();
+using namespace std;
+ 
+int execute(int argc, char **argv, CBindingCache *cache, int serializeOuts);
+
+#endif
+

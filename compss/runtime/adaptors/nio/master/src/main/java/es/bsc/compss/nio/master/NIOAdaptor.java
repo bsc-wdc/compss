@@ -19,19 +19,17 @@ package es.bsc.compss.nio.master;
 import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.Connection;
 import es.bsc.comm.nio.NIONode;
+import es.bsc.comm.stage.Transfer;
 import es.bsc.comm.stage.Transfer.Destination;
-
 import es.bsc.compss.COMPSsConstants;
-
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
-
 import es.bsc.compss.log.Loggers;
-
+import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.resources.ExecutorShutdownListener;
+import es.bsc.compss.util.BindingDataManager;
 import es.bsc.compss.util.ErrorManager;
-
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOMessageHandler;
 import es.bsc.compss.nio.NIOTask;
@@ -44,7 +42,6 @@ import es.bsc.compss.nio.dataRequest.DataRequest;
 import es.bsc.compss.nio.dataRequest.MasterDataRequest;
 import es.bsc.compss.nio.exceptions.SerializedObjectException;
 import es.bsc.compss.nio.master.configuration.NIOConfiguration;
-
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.listener.EventListener;
@@ -125,6 +122,12 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
      */
     public NIOAdaptor() {
         super(MAX_SEND, MAX_RECEIVE, MASTER_PORT);
+        //Setting persistentC flag in the NIOAgent
+        String persistentCStr = System.getProperty(COMPSsConstants.WORKER_PERSISTENT_C);
+        if (persistentCStr == null || persistentCStr.isEmpty() || persistentCStr.equals("null")) {
+            persistentCStr = COMPSsConstants.DEFAULT_PERSISTENT_C;
+        }
+        setPersistent(Boolean.parseBoolean(persistentCStr));
         File file = new File(JOBS_DIR);
         if (!file.exists()) {
             file.mkdir();
@@ -341,13 +344,13 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             DataType newType = taskResultTypes.get(i);
             switch (newType) {
                 case PSCO_T:
-                case EXTERNAL_OBJECT_T:
+                case EXTERNAL_PSCO_T:
                     String pscoId = (String) tr.getParamValue(i);
                     DependencyParameter dp = (DependencyParameter) nj.getTaskParams().getParameters()[i];
                     updateParameter(newType, pscoId, dp);
                     break;
                 default:
-                    // We only update information about PSCOs or EXTERNAL_OBJECTS
+                    // We only update information about PSCOs or EXTERNAL_PSCO
                     break;
             }
         }
@@ -386,7 +389,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
         switch (previousType) {
             case PSCO_T:
-            case EXTERNAL_OBJECT_T:
+            case EXTERNAL_PSCO_T:
                 if (previousType.equals(newType)) {
                     // The parameter was already a PSCO, we only update the information just in case
                     dp.setDataTarget(pscoId);
@@ -411,7 +414,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             case PSCO_T:
                 Comm.registerPSCO(renaming, pscoId);
                 break;
-            case EXTERNAL_OBJECT_T:
+            case EXTERNAL_PSCO_T:
                 if (renaming.contains("/")) {
                     renaming = renaming.substring(renaming.lastIndexOf('/') + 1);
                 }
@@ -504,6 +507,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
                     case PERSISTENT:
                         LOGGER.debug("Persistent location no need to update location for " + tgtData.getName());
                         break;
+                    case BINDING:
                     case PRIVATE:
                         LOGGER.debug("Adding location:" + actualLocation.getPath() + " to " + tgtData.getName());
                         tgtData.addLocation(actualLocation);
@@ -591,7 +595,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void completeMasterURI(MultiURI u) {
-        u.setInternalURI(ID, new NIOURI(masterNode, u.getPath()));
+        u.setInternalURI(ID, new NIOURI(masterNode, u.getPath(), u.getProtocol()));
     }
 
     public void requestData(Copy c, DataType paramType, Data d, String path) {
@@ -692,6 +696,24 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         public ClosingExecutor(ExecutorShutdownListener l) {
             listener = l;
         }
+    }
+
+
+    @Override
+    public void receivedBindingObjectAsFile(String filename, String target) {
+        // Load from file
+        if (filename.contains("#")){
+            //Filename contains binding object 
+            filename = BindingObject.generate(filename).getId();
+        }
+        if (target.contains("#")){
+            BindingObject bo = BindingObject.generate(target);
+            BindingDataManager.loadFromFile(bo.getName(), filename, bo.getType(), bo.getElements());
+        }else{
+            ErrorManager.error("Incorrect target format for binding object.("+ target +")");
+        }
+        
+        
     }
 
 }

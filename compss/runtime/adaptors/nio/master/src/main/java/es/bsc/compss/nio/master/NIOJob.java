@@ -111,7 +111,8 @@ public class NIOJob extends Job<NIOWorkerNode> {
                 case FILE_T:
                 case OBJECT_T:
                 case PSCO_T:
-                case EXTERNAL_OBJECT_T:
+                case EXTERNAL_PSCO_T:
+                case BINDING_OBJECT_T:
                     DependencyParameter dPar = (DependencyParameter) param;
                     DataAccessId dAccId = dPar.getDataAccessId();
                     Object value = dPar.getDataTarget();
@@ -140,7 +141,6 @@ public class NIOJob extends Job<NIOWorkerNode> {
                         RAccessId raId = (RAccessId) faId;
                         renaming = raId.getReadDataInstance().getRenaming();
                     }
-
                     if (renaming != null) {
                         String pscoId = Comm.getData(renaming).getId();
                         if (pscoId != null) {
@@ -149,7 +149,7 @@ public class NIOJob extends Job<NIOWorkerNode> {
                                 param.setType(DataType.PSCO_T);
                             } else if (type.equals(DataType.FILE_T)) {
                                 // Change external object type (Workaround for Python PSCO return objects)
-                                param.setType(DataType.EXTERNAL_OBJECT_T);
+                                param.setType(DataType.EXTERNAL_PSCO_T);
                             }
                             type = param.getType();
                         }

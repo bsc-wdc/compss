@@ -9,10 +9,10 @@ public class ObjectDeregister {
     	/* This test provides a Dummy object used to provoke a situation where
     	 * useless objects remain in memory until the end of execution, this is
     	 * creating a loop using the same object all over. */
+    	
     	int k;
     	final int ITERATIONS = 10;
     	
-    	System.out.println("[LOG] Starting to execute the tasks");
     	for (int i = 0; i < ITERATIONS; ++i) {
         	Dummy d = new Dummy(i);
 
@@ -22,16 +22,16 @@ public class ObjectDeregister {
     		//Allows garbage collector to delete the object from memory
     		COMPSs.deregisterObject((Object) d);
     	}
-    	System.out.println("[LOG] Finished executing tasks");
+    	
     	COMPSs.barrier();
     	ObjectDeregisterImpl.task4();
     	COMPSs.barrier();
     	System.gc();
     	Thread.sleep(10000);
-    	System.out.println("[LOG] Garbage collector called");
+    	
     	k = ClassInstanceTest.countInstances(Dummy.class);
     	if (k > 0) {
-    		System.out.println("[ERROR] At the end in the MASTER " + String.valueOf(k) + " instances were found of the Dummy object");
+    		System.out.println("[ERROR] At the end in the MASTER " + String.valueOf(k) + " instances of the Dummy object were found");
     		System.exit(-1);
     	}
     	

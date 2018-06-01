@@ -27,18 +27,18 @@
   fi
 
   #---------------------------------------------------------------------------------- 
-  # Compute result status
-  init_counter=$(cat ${output_file} | grep "Initial counter value" | cut -c 26-)
-  final_counter_got=$(cat ${output_file} | grep "Final counter value" | cut -c 24-)
-  final_counter_expected=$((init_counter+1))
-
-  # Report result status
-  if [ "$final_counter_got" != "$final_counter_expected" ]; then
-     echo "ERROR ON TASKS SCHEDULE" | tee -a ${output_file}
-     echo "EXPECTED FIRST INCREMENT: $final_counter_expected" | tee -a ${output_file}
-     echo "GOT:      $final_counter_got" | tee -a ${output_file}
-     exit 1
-  fi
+  # Check whether we did our best removing references of the Dummy object
   
+  toGrep="deleteData"
+  coincidences= cat $runtime_log 2>/dev/null | grep -c $toGrep 
+
+  if [ -n  "$coincidences" ]; then
+
+	echo "ERROR: THE OBJECTS WERE NOT DEREGISTERED PROPERLY."
+	exit 1
+
+  fi
+ 
+
   exit 0
   

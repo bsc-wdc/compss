@@ -19,6 +19,8 @@ package es.bsc.compss.nio.utils;
 import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.exceptions.CommException.ErrorType;
 import es.bsc.comm.nio.NIOConnection;
+import es.bsc.comm.nio.exceptions.NIOException;
+import es.bsc.comm.nio.exceptions.NIOException.SpecificErrorType;
 import es.bsc.compss.log.Loggers;
 
 import org.apache.logging.log4j.LogManager;
@@ -45,7 +47,7 @@ public class NIOBindingObjectReceiver implements Runnable {
       int res = NIOBindingDataManager.receiveNativeObject(id, type, nbos);
       if (res != 0){
           LOGGER.error("Error ("+res+") receiving native object "+id);
-          c.error(new CommException(ErrorType.NIO, "Error ("+res+") receiving native object."));
+          c.error(new NIOException(SpecificErrorType.READ, "Error ("+res+") receiving native object."));
       }else{
           NIOBindingDataManager.objectReceived(c);
       }

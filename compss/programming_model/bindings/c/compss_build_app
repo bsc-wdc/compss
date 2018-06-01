@@ -213,14 +213,13 @@ export COMPSSGEN=$CS_HOME/bin/compss_generator
 if [ -d "./src" ]; then
   (
   cd ./src || exit 1
-  make
+  make)
   ev=$?
   if [ $ev -ne 0 ]; then 
     echo " "
     echo "Building user application failed, please check errors above!"
     exit $ev
   fi
-  )
 fi
 # Building Master and Worker
 export CC="gcc"

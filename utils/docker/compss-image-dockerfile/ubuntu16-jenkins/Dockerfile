@@ -1,4 +1,4 @@
-FROM compss/compss-ubuntu16-testing:stable
+FROM compss-ubuntu16-testing:stable
 
 # =============================================================================
 # Non public credentials

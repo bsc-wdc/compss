@@ -1,4 +1,4 @@
-FROM compss/compss-ubuntu16:stable
+FROM compss-ubuntu16:stable
 
 # =============================================================================
 # Non public credentials

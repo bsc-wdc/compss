@@ -80,7 +80,7 @@ using std::size_t;
       debug_printf(" [JSB-UF] Calling pull method to get data\n");
       fflush(NULL);
       if (j_value != NULL){
-    	  printf(" [JSB-UF] Releasing previous bytearray \n");
+    	  debug_printf(" [JSB-UF] Releasing previous bytearray \n");
     	  jni_env->ReleaseByteArrayElements(j_value, (jbyte*)buff, 0);
       }
 	  jmethodID id = jni_env->GetMethodID(jni_env->GetObjectClass(handle),"pull","()[B");
@@ -104,7 +104,6 @@ using std::size_t;
 		          char *base = buff;
 		          char *start = base;
 		          char *end = base + size;
-		          printf(" [JSB-UF] Setg finished with values %p %p %p \n", base, start, end);
 		          fflush(NULL);
 		          setg(base, start, end);
 		          std::streambuf::int_type out = std::ios::traits_type::to_int_type(buff[0]);

@@ -127,7 +127,8 @@ int compss_object_deserialize(T* obj, JavaNioConnStreamBuffer &jsb) {
 		return 0;
 	} catch(archive::archive_exception e){
 	    	printf("[C-BINDING]  -  Error deserializing object %p to JavaNioBuffer\n", obj);
-	    	e.what();
+	    	const char* message = e.what();
+	    	printf("[C-BINDING]  -  Exception: %s\n", message);
 	    	return 1;
 	}
 }
@@ -151,7 +152,8 @@ int compss_object_serialize(T* obj, JavaNioConnStreamBuffer &jsb) {
 		return 0;
     } catch(archive::archive_exception e){
     	printf("[C-BINDING] Error serializing object %p to JavaNioBuffer\n", obj);
-    	e.what();
+    	const char* message = e.what();
+    	printf("[C-BINDING]  -  Exception: %s\n", message);
     	return 1;
     }
 }
@@ -186,7 +188,8 @@ int compss_object_copy(T* from, T* to){
 		return 0;
 	} catch(archive::archive_exception e){
 		printf("[C-BINDING]  -  Error copying %p to %p\n", &from, &to);
-		e.what();
+		const char* message = e.what();
+		printf("[C-BINDING]  -  Exception: %s\n", message);
 		return 1;
 	}
 }

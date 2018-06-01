@@ -20,6 +20,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 
 import es.bsc.compss.exceptions.InvokeExecutionException;
@@ -33,7 +34,7 @@ public class GenericInvoker {
     private static final int NUM_BASE_MPI_ARGS = 6;
     private static final int NUM_BASE_OMPSS_ARGS = 1;
     private static final int NUM_BASE_BINARY_ARGS = 1;
-    private static final int NUM_BASE_DECAF_ARGS = 10;
+    private static final int NUM_BASE_DECAF_ARGS = 11;
     private static final String OMP_NUM_THREADS = "OMP_NUM_THREADS";
 
 
@@ -50,7 +51,7 @@ public class GenericInvoker {
      * @throws InvokeExecutionException
      */
     public static Object invokeMPIMethod(String mpiRunner, String mpiBinary, Object[] values, Stream[] streams, String[] prefixes,
-            File taskSandboxWorkingDir) throws InvokeExecutionException {
+            File taskSandboxWorkingDir, PrintStream defaultOutStream, PrintStream defaultErrStream) throws InvokeExecutionException {
 
         System.out.println("");
         System.out.println("[MPI INVOKER] Begin MPI call to " + mpiBinary);
@@ -101,7 +102,7 @@ public class GenericInvoker {
         System.out.println("[MPI INVOKER] MPI STDERR: " + streamValues.getStdErr());
 
         // Launch command
-        return BinaryRunner.executeCMD(cmd, streamValues, taskSandboxWorkingDir);
+        return BinaryRunner.executeCMD(cmd, streamValues, taskSandboxWorkingDir, defaultOutStream, defaultErrStream);
     }
 
     /**
@@ -120,7 +121,7 @@ public class GenericInvoker {
      * @throws InvokeExecutionException
      */
     public static Object invokeDecafMethod(String dfRunner, String dfScript, String dfExecutor, String dfLib, String mpiRunner,
-            Object[] values, Stream[] streams, String[] prefixes, File taskSandboxWorkingDir) throws InvokeExecutionException {
+            Object[] values, Stream[] streams, String[] prefixes, File taskSandboxWorkingDir, PrintStream defaultOutStream, PrintStream defaultErrStream) throws InvokeExecutionException {
 
         System.out.println("");
         System.out.println("[DECAF INVOKER] Begin DECAF call to " + dfScript);
@@ -154,7 +155,7 @@ public class GenericInvoker {
         }
         String[] cmd;
         if (args.isEmpty()){
-        	cmd = new String[NUM_BASE_DECAF_ARGS-1];
+        	cmd = new String[NUM_BASE_DECAF_ARGS-2];
         }else{
         	cmd = new String[NUM_BASE_DECAF_ARGS];
         }
@@ -168,7 +169,8 @@ public class GenericInvoker {
         cmd[7] = "--hostfile";
         cmd[8] = hostfile;
         if (!args.isEmpty()){
-        	cmd[9] = "--args=\"" + args + "\"";
+        	cmd[9] = "--args=\"";
+        	cmd[10]= args ;
         }
         
         // Prepare environment
@@ -185,7 +187,7 @@ public class GenericInvoker {
         System.out.println("[DECAF INVOKER] Decaf STDERR: " + streamValues.getStdErr());
 
         // Launch command
-        return BinaryRunner.executeCMD(cmd, streamValues, taskSandboxWorkingDir);
+        return BinaryRunner.executeCMD(cmd, streamValues, taskSandboxWorkingDir, defaultOutStream, defaultErrStream);
     }
 
     private static String writeHostfile(File taskSandboxWorkingDir, String workers) throws InvokeExecutionException {
@@ -220,7 +222,7 @@ public class GenericInvoker {
      * @throws InvokeExecutionException
      */
     public static Object invokeOmpSsMethod(String ompssBinary, Object[] values, Stream[] streams, String[] prefixes,
-            File taskSandboxWorkingDir) throws InvokeExecutionException {
+            File taskSandboxWorkingDir, PrintStream defaultOutStream, PrintStream defaultErrStream) throws InvokeExecutionException {
 
         System.out.println("");
         System.out.println("[OMPSS INVOKER] Begin ompss call to " + ompssBinary);
@@ -258,7 +260,7 @@ public class GenericInvoker {
         System.out.println("[OMPSS INVOKER] OmpSs STDERR: " + streamValues.getStdErr());
 
         // Launch command
-        return BinaryRunner.executeCMD(cmd, streamValues, taskSandboxWorkingDir);
+        return BinaryRunner.executeCMD(cmd, streamValues, taskSandboxWorkingDir, defaultOutStream, defaultErrStream);
     }
 
     /**
@@ -272,7 +274,7 @@ public class GenericInvoker {
      * @return
      * @throws InvokeExecutionException
      */
-    public static Object invokeBinaryMethod(String binary, Object[] values, Stream[] streams, String[] prefixes, File taskSandboxWorkingDir)
+    public static Object invokeBinaryMethod(String binary, Object[] values, Stream[] streams, String[] prefixes, File taskSandboxWorkingDir, PrintStream defaultOutStream, PrintStream defaultErrStream)
             throws InvokeExecutionException {
 
         System.out.println("");
@@ -304,7 +306,7 @@ public class GenericInvoker {
         System.out.println("[BINARY INVOKER] Binary STDERR: " + streamValues.getStdErr());
 
         // Launch command
-        return BinaryRunner.executeCMD(cmd, streamValues, taskSandboxWorkingDir);
+        return BinaryRunner.executeCMD(cmd, streamValues, taskSandboxWorkingDir, defaultOutStream, defaultErrStream);
     }
 
 }

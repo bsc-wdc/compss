@@ -191,7 +191,16 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
     public void terminateAll() {
         terminate = true;
         dead.terminate();
-
+        synchronized (vmsToDelete) {
+            for (VM vm : vmsToDelete) {
+                try {
+                    poweroff(vm);
+                } catch (Exception e) {
+                    LOGGER.error("ERROR: Exception while trying to destroy the virtual machine " + vm.getName(), e);
+                }
+                vmsToDelete.clear();
+            }
+        }
         synchronized (IPToVM) {
             for (VM vm : IPToVM.values()) {
                 LOGGER.info("[Abstract Connector] Retrieving data from VM " + vm.getName());
@@ -212,15 +221,9 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
                     LOGGER.error("ERROR: Exception while trying to destroy the virtual machine " + vm.getName(), e);
                 }
             }
-        }
-
-        // Clear all
-        synchronized (IPToVM) {
             IPToVM.clear();
         }
-        synchronized (vmsToDelete) {
-            vmsToDelete.clear();
-        }
+
         synchronized (vmsAlive) {
             vmsAlive.clear();
         }

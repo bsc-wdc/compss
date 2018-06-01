@@ -19,6 +19,7 @@ package es.bsc.compss.nio.worker;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -59,6 +60,8 @@ import es.bsc.compss.nio.worker.exceptions.InvalidMapException;
 import es.bsc.compss.nio.worker.exceptions.InitializationException;
 import es.bsc.compss.nio.worker.util.ThreadPrintStream;
 import es.bsc.compss.nio.NIOTracer;
+import es.bsc.compss.types.BindingObject;
+import es.bsc.compss.util.BindingDataManager;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
 import es.bsc.compss.util.Tracer;
@@ -100,7 +103,6 @@ public class NIOWorker extends NIOAgent {
     private static String storageConf;
     private static String executionType;
 
-    private static boolean persistentC;
 
     // Python related variables
     private static String pythonInterpreter;
@@ -224,9 +226,6 @@ public class NIOWorker extends NIOAgent {
         }
     }
 
-    public static boolean isPersistentCEnabled() {
-        return persistentC;
-    }
 
     public static String getPythonInterpreter() {
         return pythonInterpreter;
@@ -305,9 +304,12 @@ public class NIOWorker extends NIOAgent {
                     case PSCO_T:
                         askForPSCO(param);
                         break;
-                    case EXTERNAL_OBJECT_T:
+                    case EXTERNAL_PSCO_T:
                         // Nothing to do since external parameters send their ID directly
                         break;
+                    case BINDING_OBJECT_T:
+                    	askForBindingObject(param, i ,tt);
+                    	break;
                     case FILE_T:
                         askForFile(param, i, tt);
                         break;
@@ -369,6 +371,97 @@ public class NIOWorker extends NIOAgent {
         WORKER_LOGGER.debug("   - PSCO with id " + pscoId + " stored");
     }
 
+    private void askForBindingObject(NIOParam param, int index, TransferringTask tt) {
+        WORKER_LOGGER.debug("   - " + (String) param.getValue() + " registered as binding object."); 
+        String[] extObjVals = ((String) param.getValue()).split("#");
+        String value = extObjVals[0];
+        int type = Integer.parseInt(extObjVals[1]);
+        int elements = Integer.parseInt(extObjVals[2]);
+        boolean askTransfer = false;
+
+        // Try if parameter is in cache
+        WORKER_LOGGER.debug("   - Checking if " + value + " is in binding cache.");
+        boolean cached = BindingDataManager.isInBinding(value);
+        if (!cached) {
+            // Try if any of the object locations is in cache
+            boolean locationsInCache = false;
+            WORKER_LOGGER.debug("   - Checking if " + value + " locations are catched");
+            for (NIOURI loc : param.getData().getSources()) {
+                BindingObject bo = BindingObject.generate(loc.getPath());
+                if (BindingDataManager.isInBinding(bo.getId())) {
+                    // Object found
+                    WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") location found in cache.");
+                    if (param.isPreserveSourceData()) {
+                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") preserves sources. CACHE-COPYING");
+                        int res = BindingDataManager.copyCachedData(bo.getId(), value);
+                        if (res != 0) {
+                            WORKER_LOGGER.error("CACHE-COPY from " + bo.getId() + " to " + value + " has failed. ");
+                            break;
+                        }
+                    } else {
+                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") erases sources. CACHE-MOVING");
+                        int res = BindingDataManager.moveCachedData(bo.getId(), value);
+                        if (res != 0) {
+                            WORKER_LOGGER.error("CACHE-MOVE from " + loc.getPath() + " to " + value + " has failed. ");
+                            break;
+                        }
+                    }
+                    locationsInCache = true;
+                    break;
+                }
+            }
+            //TODO is it better to transfer again or to load from file??
+            if (!locationsInCache) {
+                // Try if any of the object locations is in the host
+                boolean existInHost = false;
+                WORKER_LOGGER.debug("   - Checking if " + (String) param.getValue() + " locations are in host");
+                NIOURI loc = param.getData().getURIinHost(host);
+                if (loc != null) {
+                    BindingObject bo = BindingObject.generate(loc.getPath());
+                    WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") found at host with location " +loc.getPath() + " Checking if in cache...");
+                    if (BindingDataManager.isInBinding(bo.getId())) {
+                        // Object found
+                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") location found in cache.");
+                        if (param.isPreserveSourceData()) {
+                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") preserves sources. CACHE-COPYING");
+                            int res = BindingDataManager.copyCachedData(bo.getId(), value);
+                            if (res != 0) {
+                                WORKER_LOGGER.error("CACHE-COPY from " + bo.getId() + " to " + value + " has failed. ");
+                            }
+                        } else {
+                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") erases sources. CACHE-MOVING");
+                            int res = BindingDataManager.moveCachedData(bo.getId(), value);
+                            if (res != 0) {
+                                WORKER_LOGGER.error("CACHE-MOVE from " + bo.getId() + " to " + value + " has failed. ");
+                            }
+                        }
+                        existInHost = true;
+                    } else {
+                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") not in cache.");
+
+                        if (new File(workingDir + File.separator + loc.getPath()).exists()) {
+                            int res = BindingDataManager.loadFromFile(value, loc.getPath(), type, elements);
+                            if (res == 0) {
+                                existInHost = true;
+                            } else {
+                                WORKER_LOGGER.error("Error loading " + param.getValue() + " from file " + loc.getPath());
+                            }
+                        }
+                    }
+   }
+
+                if (!existInHost) {
+                    // We must transfer the file
+                    askTransfer = true;
+                }
+            }
+        }
+
+        // Request the transfer if needed
+        askForTransfer(askTransfer, param, index, tt);
+       
+    }
+    
     private void askForObject(NIOParam param, int index, TransferringTask tt) {
         WORKER_LOGGER.debug("   - " + (String) param.getValue() + " registered as object.");
 
@@ -766,6 +859,7 @@ public class NIOWorker extends NIOAgent {
     @Override
     public void shutdownExecutionManager(Connection closingConnection) {
         // Stop the Execution Manager
+        WORKER_LOGGER.debug("Stopping Execution Manager...");
         executionManager.stop();
 
         if (closingConnection != null) {
@@ -1045,7 +1139,7 @@ public class NIOWorker extends NIOAgent {
         storageConf = args[24];
         executionType = args[25];
 
-        persistentC = Boolean.parseBoolean(args[26]);
+        setPersistent(Boolean.parseBoolean(args[26]));
 
         pythonInterpreter = args[27];
         pythonVersion = args[28];
@@ -1170,4 +1264,24 @@ public class NIOWorker extends NIOAgent {
         }
     }
 
+    @Override
+    public void receivedBindingObjectAsFile(String filename, String target) {
+        // Nothing to do at worker
+        
+    }
+    /**
+     * Get the stderr stream assigned to this computing thread
+     * @return
+     */
+    public PrintStream getThreadErrStream(){
+        return err.getStream();
+    }
+    
+    /**
+     * Get the stdout stream assigned to this computing thread
+     * @return
+     */
+    public PrintStream getThreadOutStream(){
+        return out.getStream();
+    }
 }

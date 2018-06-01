@@ -214,36 +214,7 @@ public class TaskResultReader extends Thread {
 
         // Line of the form: "endTask" ID STATUS D paramType1 paramValue1 ... paramTypeD paramValueD
         Integer jobId = Integer.parseInt(line[1]);
-        Integer exitValue = Integer.parseInt(line[2]);
-        ExternalTaskStatus taskStatus = new ExternalTaskStatus(exitValue);
-
-        // Process parameters if message contains them
-        if (line.length > 3) {
-            int numParams = Integer.parseInt(line[3]);
-
-            if (4 + 2 * numParams != line.length) {
-                LOGGER.warn("WARN: Skipping endTask parameters because of malformation.");
-            } else {
-                // Process parameters
-                for (int i = 0; i < numParams; ++i) {
-                    int paramTypeOrdinalIndex = 0;
-                    try {
-                        paramTypeOrdinalIndex = Integer.parseInt(line[4 + 2 * i]);
-                    } catch (NumberFormatException nfe) {
-                        LOGGER.warn("WARN: Number format exception on " + line[4 + 2 * i] + ". Setting type 0", nfe);
-                    }
-                    DataType paramType = DataType.values()[paramTypeOrdinalIndex];
-
-                    String paramValue = line[5 + 2 * i];
-                    if (paramValue.equalsIgnoreCase("null")) {
-                        paramValue = null;
-                    }
-                    taskStatus.addParameter(paramType, paramValue);
-                }
-            }
-        } else {
-            LOGGER.warn("WARN: endTask message does not have task result parameters");
-        }
+        ExternalTaskStatus taskStatus = new ExternalTaskStatus(line);
 
         // Add the task status to the set
         synchronized (jobIdsToStatus) {
@@ -275,7 +246,7 @@ public class TaskResultReader extends Thread {
                 synchronized (jobIdsToStatus) {
                     jobIdsToStatus.put(jobId, taskStatus);
                 }
-                // Relase the waiter
+                // Release the waiter
                 waiter.release();
             }
 

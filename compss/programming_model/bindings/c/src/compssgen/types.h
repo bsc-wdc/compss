@@ -15,18 +15,28 @@
  *
  */
 
+#include <param_metadata.h>
+
+typedef struct {
+  char* name;
+  char* elements;
+  enum datatype dt;
+} Type;
+
 typedef struct {
   int max;
-  char **types;
+  Type *types;
   int num;
 } Types;
 
+
+
 void initTypes(Types *currTypes);
 
-int containsType (char* type, Types currTypes);
+int containsType (Type type, Types currTypes);
 
-int getTypeNumber(char* type, Types currTypes);
+int getTypeNumber(Type type, Types currTypes);
 
-void addType (char* type, Types *currTypes);
+void addType (Type type, Types *currTypes);
 
 void printAllTypes(Types currTypes);

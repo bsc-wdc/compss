@@ -18,10 +18,13 @@
 #include <fstream>
 #include <pthread.h>
 #include <sys/types.h>
+#include <unistd.h>
 #include <sys/syscall.h>
-//#include <mutex>
+
 #define gettid() syscall(SYS_gettid)
 
+#ifndef CUSTOMSTREAM_H
+#define CUSTOMSTREAM_H
 
 using namespace std;
 
@@ -58,7 +61,7 @@ class customStream : public streambuf {
       } else {
          ret = defaultBuf->pubsync();
       }
-      return 0;
+      return ret;
    };
 
  public :
@@ -82,3 +85,4 @@ class customStream : public streambuf {
        pthread_mutex_unlock(&mtx);
     };
 };
+#endif

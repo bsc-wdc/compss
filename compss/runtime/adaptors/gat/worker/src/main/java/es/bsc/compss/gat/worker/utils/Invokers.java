@@ -65,7 +65,7 @@ public class Invokers {
 
         Object retValue = null;
         try {
-            retValue = GenericInvoker.invokeMPIMethod(mpiRunner, mpiBinary, values, streams, prefixes, taskSandboxWorkingDir);
+            retValue = GenericInvoker.invokeMPIMethod(mpiRunner, mpiBinary, values, streams, prefixes, taskSandboxWorkingDir, System.out, System.err);
         } catch (InvokeExecutionException iee) {
             ErrorManager.error(ERROR_INVOKE, iee);
         }
@@ -79,7 +79,7 @@ public class Invokers {
         Object retValue = null;
         try {
             retValue = GenericInvoker.invokeDecafMethod(dfRunner, dfScript, dfExecutor, dfLib, mpiRunner, values, streams, prefixes,
-                    taskSandboxWorkingDir);
+                    taskSandboxWorkingDir, System.out, System.err);
         } catch (InvokeExecutionException iee) {
             ErrorManager.error(ERROR_INVOKE, iee);
         }
@@ -91,7 +91,7 @@ public class Invokers {
             File taskSandboxWorkingDir) {
         Object retValue = null;
         try {
-            retValue = GenericInvoker.invokeOmpSsMethod(ompssBinary, values, streams, prefixes, taskSandboxWorkingDir);
+            retValue = GenericInvoker.invokeOmpSsMethod(ompssBinary, values, streams, prefixes, taskSandboxWorkingDir, System.out, System.err);
         } catch (InvokeExecutionException iee) {
             ErrorManager.error(ERROR_INVOKE, iee);
         }
@@ -110,7 +110,7 @@ public class Invokers {
             File taskSandboxWorkingDir) {
         Object retValue = null;
         try {
-            retValue = GenericInvoker.invokeBinaryMethod(binary, values, streams, prefixes, taskSandboxWorkingDir);
+            retValue = GenericInvoker.invokeBinaryMethod(binary, values, streams, prefixes, taskSandboxWorkingDir, System.out, System.err);
         } catch (InvokeExecutionException iee) {
             ErrorManager.error(ERROR_INVOKE, iee);
         }

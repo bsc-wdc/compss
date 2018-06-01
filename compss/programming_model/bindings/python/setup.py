@@ -48,7 +48,9 @@ compssmodule = Extension(
         'compss',
         include_dirs=[
                 '../bindings-common/src',
-                '../bindings-common/include'
+                '../bindings-common/include',
+                os.environ['JAVA_HOME']+'/include', 
+                os.environ['JAVA_HOME']+'/include/linux/'
         ],
         library_dirs=[
                 '../bindings-common/lib'

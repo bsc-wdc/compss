@@ -17,6 +17,7 @@
 package es.bsc.compss.types.data.location;
 
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
@@ -41,7 +42,8 @@ public abstract class DataLocation implements Comparable<DataLocation> {
     public enum Type {
         PRIVATE, // For private objects and files
         SHARED, // For shared locations
-        PERSISTENT // For persistent storages
+        PERSISTENT, // For persistent storages
+        BINDING // For binding objects
     }
 
     /**
@@ -53,6 +55,7 @@ public abstract class DataLocation implements Comparable<DataLocation> {
         SHARED_URI("shared://"), // Shared protocol
         OBJECT_URI("object://"), // Object protocol
         PERSISTENT_URI("storage://"), // Persistent protocol
+        BINDING_URI("binding://"), //Binding protocol
         ANY_URI("any://"); // Other
 
         private final String schema;
@@ -137,6 +140,12 @@ public abstract class DataLocation implements Comparable<DataLocation> {
                 String id = uri.getPath(); // The PSCO Id is stored as path in the URI
                 LOGGER.debug("Creating new PersistentLocation: " + id);
                 loc = new PersistentLocation(id);
+                break;
+            case BINDING_URI:
+                // Object
+                BindingObject bo = BindingObject.generate(uri.getPath()); // The Object name is stored as path in the URI
+                LOGGER.debug("Creating new BindingObjectLocation: " + protocol.getSchema() + host.getName() + "@" + bo);
+                loc = new BindingObjectLocation( host, bo);
                 break;
             case ANY_URI:
                 LOGGER.debug("Creating new AnyLocation: " + Protocol.ANY_URI.getSchema() + host.getName() + "@" + uri.getPath());

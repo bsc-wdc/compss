@@ -41,7 +41,7 @@ public class DeleteFileRequest extends APRequest {
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        FileInfo fileInfo = dip.deleteData(loc);
+        FileInfo fileInfo = (FileInfo) dip.deleteData(loc);
 
         if (fileInfo == null) {
             // File is not used by any task, we can erase it

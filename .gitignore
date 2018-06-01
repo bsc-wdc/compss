@@ -1,3 +1,8 @@
+# Ignore java compiled folders
+target/
+*.jar
+builders/tmp/
+
 # Ignore maven files
 dependency-reduced-pom.xml
 
@@ -12,6 +17,7 @@ compss/runtime/config/xml/resources/src/main/java/es/bsc/compss/types/resources/
 .classpath
 .settings/
 .project
+.cproject
 
 # Ignore IntelliJ files
 .idea/

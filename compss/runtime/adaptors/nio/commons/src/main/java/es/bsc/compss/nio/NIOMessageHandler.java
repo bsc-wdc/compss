@@ -77,8 +77,12 @@ public class NIOMessageHandler implements MessageHandler {
 
     @Override
     public void dataReceived(Connection c, Transfer t) {
-        LOGGER.debug("Received data " + (t.isFile() ? t.getFileName() : t.getObject()) + " through connection " + c.hashCode());
-        agent.receivedData(c, t);
+        LOGGER.debug("Received data " + (t.isFile() ? t.getFileName() : t.getObject()) + " through connection " + c.hashCode());   
+        if (t.isArray()){
+            agent.receivedPartialBindingObjects(c, t);
+        }else{
+            agent.receivedData(c, t);
+        }
     }
 
     @Override

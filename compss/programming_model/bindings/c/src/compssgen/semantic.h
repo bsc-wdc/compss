@@ -31,9 +31,10 @@ struct argument
 	char *classname;
 	enum datatype	type;
 	enum direction	dir;
-        enum stream     stream;
+    enum stream     stream;
 	int passing_in_order;
 	int passing_out_order;
+	char *elements;
 	argument *next_argument;
 };
 
@@ -51,6 +52,7 @@ struct function
 	char *classname;
 	char *return_typename;
 	enum datatype return_type;
+	char *return_elements;
 	argument *first_argument;
 	int argument_count;
 	int exec_arg_count;
@@ -68,7 +70,7 @@ void add_static(int val);
 void begin_interface(char *interface_name);
 void end_interface();
 void begin_function(char *function_name);
-void add_return_type(enum datatype return_type, char *return_typename);
+void add_return_type(enum datatype return_type, char *return_typename, char* return_elements);
 void end_function();
 char const* get_current_function_name();
 void begin_arguments();
@@ -78,7 +80,7 @@ void add_constraint(char *constraint);
 void end_arguments();
 int began_arguments();
 int get_next_argnum();
-void add_argument(enum direction dir, enum datatype dt, char *classname, char *name);
+void add_argument(enum direction dir, enum datatype dt, char *classname, char *name, char *elements);
 int can_generate();
 function *get_first_function();
 interface *get_main_interface();

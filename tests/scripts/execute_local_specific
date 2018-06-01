@@ -13,6 +13,7 @@
   appName=$9
   lang=${10}
 
+  echo "RUNCOMPSS_OPTS = ${runcompss_opts}"
   # Set script variables
   logsBaseDir="${baseDir}"/logs
 

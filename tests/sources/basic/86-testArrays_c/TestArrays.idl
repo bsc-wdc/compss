@@ -1,0 +1,8 @@
+interface TEST 
+{
+
+	static void Block::test1(in int size, out float[MAX] out_array , in int[size] in_array, inout double[30] inout_array, out File name);
+	static float[bSize] test2(in int bSize);
+	void Block::test3(in int size, in float[size] in_array);
+        float[20] test4(in float[20] in_array); 
+};

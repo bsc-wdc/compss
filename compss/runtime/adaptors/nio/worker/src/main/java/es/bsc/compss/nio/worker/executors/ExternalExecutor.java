@@ -32,6 +32,7 @@ import es.bsc.compss.nio.worker.executors.util.OpenCLInvoker;
 import es.bsc.compss.nio.worker.util.ExternalTaskStatus;
 import es.bsc.compss.nio.worker.util.JobsThreadPool;
 import es.bsc.compss.nio.worker.util.TaskResultReader;
+import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -48,7 +49,7 @@ import java.util.concurrent.Semaphore;
 
 public abstract class ExternalExecutor extends Executor {
 
-    protected static final String BINDINGS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "bindings-common" + File.separator
+    public static final String BINDINGS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "bindings-common" + File.separator
             + "lib";
 
     private static final String ERROR_PIPE_CLOSE = "Error on closing pipe ";
@@ -146,6 +147,17 @@ public abstract class ExternalExecutor extends Executor {
             int[] assignedGPUs, int[] assignedFPGAs) throws JobExecutionException, SerializedObjectException {
 
         ArrayList<String> args = getTaskExecutionCommand(nw, nt, taskSandboxWorkingDir.getAbsolutePath(), assignedCoreUnits, assignedGPUs, assignedFPGAs);
+
+        String externalCommand = getExternalCommand(args, nt, nw, assignedCoreUnits, assignedGPUs);
+
+        String command = outputsBasename + NIOWorker.SUFFIX_OUT + TOKEN_SEP + outputsBasename + NIOWorker.SUFFIX_ERR + TOKEN_SEP
+                + externalCommand;
+
+        executeExternal(nt.getJobId(), command, nt, nw);
+    }
+    
+    public static String getExternalCommand(ArrayList<String> args, NIOTask nt, NIOWorker nw, int[] assignedCoreUnits, int[] assignedGPUs) throws JobExecutionException, SerializedObjectException {
+
         addArguments(args, nt, nw);
 
         addThreadAffinity(args, assignedCoreUnits);
@@ -154,15 +166,11 @@ public abstract class ExternalExecutor extends Executor {
         
         addHostlist(args);
 
-        String externalCommand = getArgumentsAsString(args);
-
-        String command = outputsBasename + NIOWorker.SUFFIX_OUT + TOKEN_SEP + outputsBasename + NIOWorker.SUFFIX_ERR + TOKEN_SEP
-                + externalCommand;
-
-        executeExternal(nt.getJobId(), command, nt, nw);
+        return getArgumentsAsString(args);
+        
     }
 
-    private void addHostlist(ArrayList<String> args) {
+    private static void addHostlist(ArrayList<String> args) {
 		String hostlist = System.getProperty(Constants.COMPSS_HOSTNAMES);
     	if (hostlist!=null && !hostlist.isEmpty()){
     		args.add(hostlist);
@@ -171,7 +179,7 @@ public abstract class ExternalExecutor extends Executor {
     	}
 	}
 
-	private void addThreadAffinity(ArrayList<String> args, int[] assignedCoreUnits) {
+	private static void addThreadAffinity(ArrayList<String> args, int[] assignedCoreUnits) {
         String computingUnits;
         if (assignedCoreUnits.length == 0) {
             computingUnits = "-";
@@ -184,7 +192,7 @@ public abstract class ExternalExecutor extends Executor {
         args.add(computingUnits);
     }
     
-    private void addGPUAffinity(ArrayList<String> args, int[] assignedGPUs) {
+    private static void addGPUAffinity(ArrayList<String> args, int[] assignedGPUs) {
         String computingUnits;
         if (assignedGPUs.length == 0) {
             computingUnits = "-";
@@ -197,7 +205,7 @@ public abstract class ExternalExecutor extends Executor {
         args.add(computingUnits);
     }
 
-    private void executeNonNativeMethod(String outputsBasename, Invoker invoker) throws JobExecutionException {
+    public static void executeNonNativeMethod(String outputsBasename, Invoker invoker) throws JobExecutionException {
         /* Register outputs **************************************** */
         NIOWorker.registerOutputs(outputsBasename);
 
@@ -216,7 +224,12 @@ public abstract class ExternalExecutor extends Executor {
             NIOWorker.unregisterOutputs();
         }
     }
-
+    @Override
+    public void start(){
+        //Nothing to do
+        LOGGER.info("ExternalExecutor started");
+    }
+    
     @Override
     public void finish() {
         LOGGER.info("Finishing ExternalExecutor");
@@ -267,7 +280,7 @@ public abstract class ExternalExecutor extends Executor {
     public abstract ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits,
             int[] assignedGPUs, int[] assignedFPGAs);
 
-    private String getArgumentsAsString(ArrayList<String> args) {
+    private static String getArgumentsAsString(ArrayList<String> args) {
         StringBuilder sb = new StringBuilder();
         boolean first = true;
         for (String c : args) {
@@ -343,10 +356,32 @@ public abstract class ExternalExecutor extends Executor {
                     break;
                 case OBJECT_T:
                 case PSCO_T:
-                case EXTERNAL_OBJECT_T:
+                case EXTERNAL_PSCO_T:
                     lArgs.add(np.getValue().toString());
                     lArgs.add(np.isWriteFinalValue() ? "W" : "R");
                     break;
+                case BINDING_OBJECT_T:
+                    String extObjValue = np.getValue().toString();
+                    LOGGER.debug("Generating command args for Binding_object " + extObjValue);
+                	BindingObject bo = BindingObject.generate(extObjValue);
+                	String originalData = "";
+                    if (np.getData() != null) {
+                        originalData = np.getData().getName();
+                    }else{
+                        LOGGER.debug("Data is null");
+                    }
+                    String destData = bo.getName();
+                    if (!isRuntimeRenamed(destData)) {
+                        // TODO: check if it happens also with binding_objects
+                        //Corner case: destData is original name. Parameter is IN with shared disk, so
+                        // destfile should be the same as the input.
+                        destData = originalData;
+                    }
+                    lArgs.add(originalData + ":" + destData + ":" + np.isPreserveSourceData() + ":" + np.isWriteFinalValue() + ":"
+                            + np.getOriginalName());
+                	lArgs.add(Integer.toString(bo.getType()));
+                	lArgs.add(Integer.toString(bo.getElements()));
+                	break;
                 case STRING_T:
                     String value = np.getValue().toString();
                     String[] vals = value.split(" ");
@@ -430,9 +465,9 @@ public abstract class ExternalExecutor extends Executor {
         LOGGER.debug("Updating parameters for job " + jobId);
         for (int i = 0; i < taskStatus.getNumParameters(); ++i) {
             DataType paramType = taskStatus.getParameterType(i);
-            if (paramType.equals(DataType.EXTERNAL_OBJECT_T)) {
+            if (paramType.equals(DataType.EXTERNAL_PSCO_T)) {
                 String paramValue = taskStatus.getParameterValue(i);
-                nt.getParams().get(i).setType(DataType.EXTERNAL_OBJECT_T);
+                nt.getParams().get(i).setType(DataType.EXTERNAL_PSCO_T);
                 nt.getParams().get(i).setValue(paramValue);
             }
         }
@@ -444,12 +479,12 @@ public abstract class ExternalExecutor extends Executor {
         LOGGER.debug("Job " + jobId + " has finished with exit value 0");
     }
 
-    private void emitStartTask(int taskId, int taskType) {
+    public static void emitStartTask(int taskId, int taskType) {
         NIOTracer.emitEventAndCounters(taskType, NIOTracer.getTaskEventsType());
         NIOTracer.emitEvent(taskId, NIOTracer.getTaskSchedulingType());
     }
 
-    private void emitEndTask() {
+    public static void emitEndTask() {
         NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskSchedulingType());
         NIOTracer.emitEventAndCounters(NIOTracer.EVENT_END, NIOTracer.getTaskEventsType());
     }

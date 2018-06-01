@@ -127,6 +127,11 @@ public class OptimizationAction extends AllocatableAction {
     public boolean isToReleaseResources() {
         return true;
     }
+    
+    @Override
+    public boolean isToStopResource() {
+        return true;
+    }
 
     @Override
     public String toString() {

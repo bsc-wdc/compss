@@ -31,6 +31,7 @@ import storage.StorageException;
 import storage.StorageItf;
 import storage.StubItf;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.resources.MasterResource;
 import es.bsc.compss.types.resources.Resource;
@@ -280,7 +281,31 @@ public class Comm {
 
         return ld;
     }
+    /**
+     * Registers a new Binding Object id @id for the data with id @dataId dataId must exist
+     * 
+     * @param dataId
+     * @param extObjectId
+     * @return
+     */
+	public static synchronized LogicalData registerBindingObject(String dataId, BindingObject bo) {
+	    String targetPath = Protocol.BINDING_URI.getSchema() + bo.toString();
+        DataLocation location = null;
+        try {
+            
+            SimpleURI uri = new SimpleURI(targetPath);
+            location = DataLocation.createLocation(appHost, uri);
+        } catch (IOException ioe) {
+            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, ioe);
+        }
 
+        LogicalData logicalData = data.get(dataId);
+        logicalData.addLocation(location);
+        logicalData.setValue(dataId+"#"+bo.getType()+"#"+bo.getElements());
+		return logicalData;
+	}
+
+	
     /**
      * Registers a new PSCO id @id for the data with id @dataId dataId must exist
      * 
@@ -440,5 +465,7 @@ public class Comm {
             LOGGER.warn("WARN_MSG = [Adaptors folder not defined, no adaptors loaded.]");
         }
     }
+
+
 
 }

@@ -80,6 +80,11 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     public boolean isToReleaseResources() {
         return false;
     }
+    
+    @Override
+    public boolean isToStopResource() {
+        return false;
+    }
 
     @Override
     protected void doAction() {

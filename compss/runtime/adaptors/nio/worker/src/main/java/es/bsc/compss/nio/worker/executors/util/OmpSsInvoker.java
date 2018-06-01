@@ -48,7 +48,8 @@ public class OmpSsInvoker extends Invoker {
     public Object invokeMethod() throws JobExecutionException {
         LOGGER.info("Invoked " + ompssBinary + " in " + nw.getHostName());
         try {
-            return GenericInvoker.invokeOmpSsMethod(this.ompssBinary, this.values, this.streams, this.prefixes, this.taskSandboxWorkingDir);
+            return GenericInvoker.invokeOmpSsMethod(this.ompssBinary, this.values, this.streams, this.prefixes, this.taskSandboxWorkingDir,
+                    nw.getThreadOutStream(), nw.getThreadErrStream());
         } catch (InvokeExecutionException iee) {
             throw new JobExecutionException(iee);
         }

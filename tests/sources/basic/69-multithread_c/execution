@@ -39,7 +39,7 @@
   output_log="${target_log_folder}/c_testmultithread_0${retryNum}.outputlog"
   error_log="${target_log_folder}/c_testmultithread_0${retryNum}.errorlog"
 
-  expectedTime=120s
+  expectedTime=200s
 
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \

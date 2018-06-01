@@ -127,6 +127,11 @@ public class FakeAllocatableAction extends AllocatableAction {
     public boolean isToReleaseResources() {
         return false;
     }
+    
+    @Override
+    public boolean isToStopResource() {
+        return false;
+    }
 
     @Override
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {

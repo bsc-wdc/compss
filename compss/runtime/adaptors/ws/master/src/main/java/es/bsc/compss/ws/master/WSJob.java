@@ -166,15 +166,19 @@ public class WSJob extends Job<ServiceInstance> {
                             switch (parameters[i].getType()) {
                                 case OBJECT_T:
                                 case PSCO_T:
-                                case EXTERNAL_OBJECT_T:
+                                case EXTERNAL_PSCO_T:
                                     DependencyParameter dp = (DependencyParameter) parameters[i];
                                     Object o = getObjectValue(dp);
                                     input.add(o);
                                     break;
                                 case FILE_T:
+                                	logger.error("Error: WS CAN'T USE BINDING FILES AS A PARAMETER!");
                                     // CAN'T USE A FILE AS A PARAMETER
                                     // SKIP!
                                     break;
+                                case BINDING_OBJECT_T:
+                                	logger.error("Error: WS CAN'T USE BINDING OBJECTS AS A PARAMETER!");
+                                	break;
                                 default:
                                     // Basic or String
                                     BasicTypeParameter btParB = (BasicTypeParameter) parameters[i];

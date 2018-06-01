@@ -30,14 +30,15 @@ public class NIOURI implements Externalizable {
 
     private NIONode host;
     private String path;
-
+    private Protocol protocol;
 
     public NIOURI() {
     }
 
-    public NIOURI(NIONode host, String path) {
+    public NIOURI(NIONode host, String path, Protocol schema) {
         this.host = host;
         this.path = path;
+        this.protocol = schema;
     }
 
     public String getInternalURI() {
@@ -53,24 +54,30 @@ public class NIOURI implements Externalizable {
     }
 
     public String getScheme() {
-        return Protocol.ANY_URI.getSchema();
+        return protocol.getSchema();
     }
 
     @Override
     public String toString() {
-        return Protocol.ANY_URI.getSchema() + host + File.separator + path;
+        return protocol.getSchema() + host + File.separator + path;
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         out.writeObject(host);
         out.writeUTF(path);
+        out.writeUTF(protocol.getSchema());
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         host = (NIONode) in.readObject();
         path = in.readUTF();
+        protocol = Protocol.getBySchema(in.readUTF());
+    }
+
+    public Protocol getProtocol() {
+        return protocol;
     }
 
 }

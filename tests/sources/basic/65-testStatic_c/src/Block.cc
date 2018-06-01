@@ -41,16 +41,16 @@ static void Block::generate(Block *b, int bSize, double initVal) {
 
 }
 
-static Block Block::create(int bSize, double initVal){
+static Block* Block::create(int bSize, double initVal){
 	cout << "Running create..." << endl << flush;
-	Block b(bSize);
+	Block *b = new Block(bSize);
         cout << "Initializing block..." << endl << flush;
 	for (int i=0; i<bSize; i++) {
                 for (int j=0; j<bSize; j++) {
-                        b.data[i][j] = initVal;
+                        b->data[i][j] = initVal;
                 }
         }
-	b.print();
+	b->print();
 	cout << "Returning block" << endl << flush;
 
 	return b;

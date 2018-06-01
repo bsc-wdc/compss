@@ -73,7 +73,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "gs_base64.h"
+#include "c_compss_base64.h"
 
 #define Assert(Cond) if (!(Cond)) abort()
 

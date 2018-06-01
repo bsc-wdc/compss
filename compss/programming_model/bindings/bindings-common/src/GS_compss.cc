@@ -24,13 +24,15 @@
 
 #include "GS_compss.h"
 #include "param_metadata.h"
+#include "BindingDataManager.h"
 
+#define NUM_PARAMS 5
 using namespace std;
 
-JNIEnv *env;
+JNIEnv *m_env;
 jobject jobjIT;
 jclass clsITimpl;
-JavaVM * jvm;
+JavaVM * m_jvm;
 
 jobject appId;
 
@@ -46,6 +48,9 @@ jmethodID midDeleteFile;            /* ID of the deleteFile method in the es.bsc
 
 jmethodID midBarrier; 		    /* ID of the barrier method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midBarrierNew;            /* ID of the barrier method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+
+jmethodID midgetBindingObject;		/* ID of the getBindingObject method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
+jmethodID midDeleteBindingObject; 	/* ID of the deleteBindingObject method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
 
 jobject jobjParDirIN; 		    /* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
 jobject jobjParDirINOUT; 	    /* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
@@ -85,557 +90,451 @@ jmethodID midFloatCon;    /* ID of the java.lang.Float class constructor method 
 jclass clsDouble;         /* java.lang.Double class */
 jmethodID midDoubleCon;   /* ID of the java.lang.Double class constructor method */
 
+void init_basic_jni_types() {
 
-// *******************************
-// Private functions
-// *******************************
+  // Parameter classes
+  debug_printf ("[BINDING-COMMONS]  -  @Init JNI Types\n");
 
-JNIEnv* create_vm(JavaVM ** jvm) {
-  JNIEnv *env;
-  JavaVMInitArgs vm_args;
-  vector<JavaVMOption> options;
+  jclass clsLocal = m_env->FindClass("java/lang/Object");
+  check_and_treat_exception(m_env, "Looking for object class");
+  clsObject = (jclass)m_env->NewGlobalRef(clsLocal);
+  check_and_treat_exception(m_env, "Looking for object class");
 
-  string line; // buffer for line read
-  debug_printf("[   BINDING]  -  @create_vm  -  reading file in JVM_OPTIONS_FILE\n" );
-  const char *file = strdup(getenv("JVM_OPTIONS_FILE")); // path to the file with jvm options
-  ifstream fin; // input file stream
-
-  fin.open(file);
-  if (fin.good()) {
-    while (!fin.eof()) {
-      // read in one line at a time
-      getline(fin, line);
-      // read data from file
-      debug_printf("[   BINDING]  -  @create_vm  -  reading line: \n");
-      debug_printf("[   BINDING]  -  @create_vm  - %s\n", line.data());
-      string fileOption = strdup(line.data());
-      if (fileOption != "") {
-        JavaVMOption *option = new JavaVMOption();
-        int begin;
-        int end;
-        while ((begin = fileOption.find("$")) != fileOption.npos) {
-          // It refers to an environment variable
-          end = fileOption.find(":", begin);
-          if (end == fileOption.npos) {
-            end = fileOption.find("/", begin);
-          }
-          string prefix = fileOption.substr(0, begin);
-          string env_varName = fileOption.substr(begin + 1, end - begin - 1);
-
-          char *buffer = getenv(env_varName.data());
-          if (buffer == NULL) {
-            debug_printf("[   BINDING]  -  @create_vm  -  Cannot find environment variable: %s\n", env_varName.data());
-          }
-
-          string env_varValue(buffer);
-          string suffix = "";
-          if (end != fileOption.npos) {
-              suffix = fileOption.substr(end);
-          }
-          fileOption.clear();
-          fileOption.append(prefix);
-          fileOption.append(env_varValue);
-          fileOption.append(suffix);
-        }
-
-        if (fileOption.find("-") == 0) {
-          // It is a JVM option
-          option->optionString = strdup(fileOption.data());
-          options.push_back(*option);
-          debug_printf("[   BINDING]  -  @create_vm  -  option %s\n", option->optionString);
-        } else {
-          // It is an environment variable
-          debug_printf("[   BINDING]  -  @create_vm  -  Putting environment variable\n");
-          int ret = putenv(strdup(fileOption.data()));
-          if (ret < 0) {
-            debug_printf("[   BINDING]  -  @create_vm  -  Cannot put environment variable: %s", fileOption.data());
-          } else {
-            int begin = fileOption.find("=");
-            string env_varName = fileOption.substr(0, begin);
-            char *buffer = getenv(env_varName.data());
-            if (buffer == NULL)
-              debug_printf("[   BINDING]  -  @create_vm  -  Cannot find environment variable: %s\n", env_varName.data());
-          }
-        }
-      }
-      fflush(stdout);
-      fileOption.clear();
-    }
-  } else {
-    debug_printf("[   BINDING]  -  @create_vm  -  JVM option file not good!\n");
-  }
-  // close file
-  fin.close();
-
-  vm_args.version = JNI_VERSION_1_8; //JDK version. This indicates version 1.8
-  vm_args.nOptions = options.size();
-  vm_args.options = new JavaVMOption[vm_args.nOptions];
-  copy(options.begin(), options.end(), vm_args.options);
-  vm_args.ignoreUnrecognized = false;
-  debug_printf("[   BINDING]  -  @create_vm  -  Launching JVM\n");
-  int ret = JNI_CreateJavaVM(jvm, (void**) &env, &vm_args);
-  if (ret < 0){
-    debug_printf("[   BINDING]  -  @create_vm  -  Unable to Launch JVM - %i\n", ret);
+  midObjCon = m_env->GetMethodID(clsObject, "<init>", "()V");
+  check_and_treat_exception(m_env, "Looking for object constructor");
+  clsLocal = m_env->FindClass("java/lang/String");
+  check_and_treat_exception(m_env, "Looking for string class");
+  clsString = (jclass)m_env->NewGlobalRef(clsLocal);
+  check_and_treat_exception(m_env, "Looking for string class");
+  midStrCon = m_env->GetMethodID(clsString, "<init>", "(Ljava/lang/String;)V");
+  if (m_env->ExceptionOccurred()) {
+    m_env->ExceptionDescribe();
     exit(1);
-  } else {
-    debug_printf("[   BINDING]  -  @create_vm  -  JVM Ready\n");
   }
-  return env;
+  clsLocal = m_env->FindClass("java/lang/Character");
+  check_and_treat_exception(m_env, "Looking for string class");
+  clsCharacter = (jclass)m_env->NewGlobalRef(clsLocal);
+  check_and_treat_exception(m_env, "Looking for string class");
+
+  midCharCon = m_env->GetMethodID(clsCharacter, "<init>", "(C)V");
+  check_and_treat_exception(m_env, "Looking for string constructor");
+
+  clsLocal = m_env->FindClass("java/lang/Boolean");
+  check_and_treat_exception(m_env, "Looking for boolean class");
+  clsBoolean = (jclass)m_env->NewGlobalRef(clsLocal);
+  check_and_treat_exception(m_env, "Looking for boolean class");
+
+  midBoolCon = m_env->GetMethodID(clsBoolean, "<init>", "(Z)V");
+  check_and_treat_exception(m_env, "Looking for boolean class");
+
+  clsLocal = m_env->FindClass("java/lang/Short");
+  check_and_treat_exception(m_env, "Looking for boolean class");
+  clsShort = (jclass)m_env->NewGlobalRef(clsLocal);
+  check_and_treat_exception(m_env, "Looking for boolean class");
+
+  midShortCon = m_env->GetMethodID(clsShort, "<init>", "(S)V");
+  check_and_treat_exception(m_env, "Looking for boolean constructor");
+
+  clsLocal = m_env->FindClass("java/lang/Integer");
+  check_and_treat_exception(m_env, "Looking for Integer class");
+  clsInteger = (jclass)m_env->NewGlobalRef(clsLocal);
+  check_and_treat_exception(m_env, "Looking for Integer class");
+
+  midIntCon = m_env->GetMethodID(clsInteger, "<init>", "(I)V");
+  check_and_treat_exception(m_env, "Looking for Integer constructor");
+
+  clsLocal = m_env->FindClass("java/lang/Long");
+  check_and_treat_exception(m_env, "Looking for Long class");
+  clsLong = (jclass)m_env->NewGlobalRef(clsLocal);
+  check_and_treat_exception(m_env, "Looking for Long class");
+
+  midLongCon = m_env->GetMethodID(clsLong, "<init>", "(J)V");
+  check_and_treat_exception(m_env, "Looking for Long constructor");
+
+  clsLocal = m_env->FindClass("java/lang/Float");
+  check_and_treat_exception(m_env, "Looking for Float Class");
+  clsFloat = (jclass)m_env->NewGlobalRef(clsLocal);
+  check_and_treat_exception(m_env, "Looking for Float Class");
+
+  midFloatCon = m_env->GetMethodID(clsFloat, "<init>", "(F)V");
+  check_and_treat_exception(m_env, "Looking for Float Constructor");
+
+  clsLocal = m_env->FindClass("java/lang/Double");
+  check_and_treat_exception(m_env, "Looking for Double Class");
+  clsDouble = (jclass)m_env->NewGlobalRef(clsLocal);
+  check_and_treat_exception(m_env, "Looking for Double Class");
+
+  midDoubleCon = m_env->GetMethodID(clsDouble, "<init>", "(D)V");
+  check_and_treat_exception(m_env, "Looking for Double Constructor");
+
+  debug_printf ("[BINDING_COMMONS]  -  @Init DONE\n");
 }
 
-void destroy_vm(JavaVM * jvm) {
-  int ret = jvm->DestroyJavaVM();
-  if (ret < 0){
-    debug_printf("[   BINDING]  -  @destroy_vm  -  Unable to Destroy JVM - %i\n", ret);
-  }
-}
 
-int check_and_attach() {
-  jint res = jvm->GetEnv((void **)&env, JNI_VERSION_1_8);
-  if (res == JNI_EDETACHED) {
-    debug_printf("[   BINDING]  -  @check_an_attach - Attaching\n");
-      if (jvm->AttachCurrentThread((void **) &env, NULL) != 0) {
-        printf("Failed to attach to the JVM");
-      } else {
-        return 1;
-      }
-  } else {
-    // Attached
-    return 0;
-  }
-}
+void init_master_jni_types() {
 
-void init_jni_types() {
   jclass clsParDir; 		/* es.bsc.compss.types.annotations.parameter.Direction class */
   jmethodID midParDirCon; 	/* ID of the es.bsc.compss.types.annotations.parameter.Direction class constructor method */
   jclass clsParStream;          /* es.bsc.compss.types.annotations.parameter.Stream class */
   jmethodID midParStreamCon;    /* es.bsc.compss.types.annotations.parameter.Stream class constructor method */
 
-  debug_printf ("[   BINDING]  -  @Init JNI Methods\n");
+  debug_printf ("[BINDING-COMMONS]  -  @Init JNI Methods\n");
 
-  // PUBLIC JNI CALLS
-
-  // RegisterCE method
-  midRegisterCE = env->GetMethodID(clsITimpl, "registerCoreElement", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)V");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
+  // getApplicationDirectory method
+  midAppDir = m_env->GetMethodID(clsITimpl, "getApplicationDirectory", "()Ljava/lang/String;");
+  check_and_treat_exception(m_env, "Looking for getApplicationDirectory method");
 
   // executeTask method - Deprecated
-  midExecute = env->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;ZZI[Ljava/lang/Object;)I");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
+  midExecute = m_env->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;ZZI[Ljava/lang/Object;)I");
+  if (m_env->ExceptionOccurred()) {
+    m_env->ExceptionDescribe();
     exit(1);
   }
 
   // executeTask New method
-  midExecuteNew = env->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;ZIZZZI[Ljava/lang/Object;)I");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-
-  // openFile method
-  midOpenFile = env->GetMethodID(clsITimpl, "openFile", "(Ljava/lang/String;Les/bsc/compss/types/annotations/parameter/Direction;)Ljava/lang/String;");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-
-  // closeFile method
-  midCloseFile = env->GetMethodID(clsITimpl, "closeFile", "(Ljava/lang/String;Les/bsc/compss/types/annotations/parameter/Direction;)V");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-
-  // deleteFile method
-  midDeleteFile = env->GetMethodID(clsITimpl, "deleteFile", "(Ljava/lang/String;)Z");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
+  midExecuteNew = m_env->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;ZIZZZI[Ljava/lang/Object;)I");
+  if (m_env->ExceptionOccurred()) {
+    m_env->ExceptionDescribe();
     exit(1);
   }
 
   // barrier method
-  midBarrier = env->GetMethodID(clsITimpl, "barrier", "(Ljava/lang/Long;)V");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
+  midBarrier = m_env->GetMethodID(clsITimpl, "barrier", "(Ljava/lang/Long;)V");
+  if (m_env->ExceptionOccurred()) {
+    m_env->ExceptionDescribe();
     exit(1);
   }
 
   // barrier method (with no more tasks flag)
-  midBarrierNew = env->GetMethodID(clsITimpl, "barrier", "(Ljava/lang/Long;Z)V");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-
-  // getApplicationDirectory method
-  midAppDir = env->GetMethodID(clsITimpl, "getApplicationDirectory", "()Ljava/lang/String;");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
+  midBarrierNew = m_env->GetMethodID(clsITimpl, "barrier", "(Ljava/lang/Long;Z)V");
+  if (m_env->ExceptionOccurred()) {
+    m_env->ExceptionDescribe();
     exit(1);
   }
 
   // EmitEvent method
-  midEmitEvent = env->GetMethodID(clsITimpl, "emitEvent", "(IJ)V");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
+  midEmitEvent = m_env->GetMethodID(clsITimpl, "emitEvent", "(IJ)V");
+  if (m_env->ExceptionOccurred()) {
+    m_env->ExceptionDescribe();
     exit(1);
   }
+
+  // RegisterCE method
+  midRegisterCE = m_env->GetMethodID(clsITimpl, "registerCoreElement", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)V");
+  if (m_env->ExceptionOccurred()) {
+    m_env->ExceptionDescribe();
+    exit(1);
+  }
+
+  // openFile method
+  midOpenFile = m_env->GetMethodID(clsITimpl, "openFile", "(Ljava/lang/String;Les/bsc/compss/types/annotations/parameter/Direction;)Ljava/lang/String;");
+  if (m_env->ExceptionOccurred()) {
+    m_env->ExceptionDescribe();
+    exit(1);
+  }
+
+  // closeFile method
+  midCloseFile = m_env->GetMethodID(clsITimpl, "closeFile", "(Ljava/lang/String;Les/bsc/compss/types/annotations/parameter/Direction;)V");
+  if (m_env->ExceptionOccurred()) {
+    m_env->ExceptionDescribe();
+    exit(1);
+  }
+
+  // deleteFile method
+  midDeleteFile = m_env->GetMethodID(clsITimpl, "deleteFile", "(Ljava/lang/String;)Z");
+  if (m_env->ExceptionOccurred()) {
+    m_env->ExceptionDescribe();
+    exit(1);
+  }
+
+  // deleteFile method
+  midDeleteBindingObject = m_env->GetMethodID(clsITimpl, "deleteBindingObject", "(Ljava/lang/String;)Z");
+  if (m_env->ExceptionOccurred()) {
+    m_env->ExceptionDescribe();
+    exit(1);
+  }
+  // openFile method
+  midgetBindingObject = m_env->GetMethodID(clsITimpl, "getBindingObject", "(Ljava/lang/String;)Ljava/lang/String;");
+  if (m_env->ExceptionOccurred()) {
+	  m_env->ExceptionDescribe();
+	  exit(1);
+  }
+
 
   // PARAMETER DIRECTIONS
 
-  debug_printf ("[   BINDING]  -  @Init JNI Direction Types\n");
+  debug_printf ("[BINDING_COMMONS]  -  @Init JNI Direction Types\n");
 
-  clsParDir = env->FindClass("es/bsc/compss/types/annotations/parameter/Direction");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
+  clsParDir = m_env->FindClass("es/bsc/compss/types/annotations/parameter/Direction");
+  if (m_env->ExceptionOccurred()) {
+    m_env->ExceptionDescribe();
     exit(1);
   }
-  midParDirCon = env->GetStaticMethodID(clsParDir, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/Direction;");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-  jobjParDirIN =  env->CallStaticObjectMethod(clsParDir, midParDirCon, env->NewStringUTF("IN"));
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-  jobjParDirINOUT = env->CallStaticObjectMethod(clsParDir, midParDirCon, env->NewStringUTF("INOUT"));
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-  jobjParDirOUT =  env->CallStaticObjectMethod(clsParDir, midParDirCon, env->NewStringUTF("OUT"));
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
+  midParDirCon = m_env->GetStaticMethodID(clsParDir, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/Direction;");
+  if (m_env->ExceptionOccurred()) {
+    m_env->ExceptionDescribe();
     exit(1);
   }
 
-  // PARAMETER STREAMS
+  jobject objLocal = m_env->CallStaticObjectMethod(clsParDir, midParDirCon, m_env->NewStringUTF("IN"));
+  check_and_treat_exception(m_env, "Error getting Direction.IN object");
+  jobjParDirIN = (jobject)m_env->NewGlobalRef(objLocal);
+  check_and_treat_exception(m_env, "Error getting Direction.IN object");
 
-  debug_printf ("[   BINDING]  -  @Init JNI Stream Types\n");
+  objLocal = m_env->CallStaticObjectMethod(clsParDir, midParDirCon, m_env->NewStringUTF("INOUT"));
+  check_and_treat_exception(m_env, "Error getting Direction.INOUT object");
+  jobjParDirINOUT = (jobject)m_env->NewGlobalRef(objLocal);
+  check_and_treat_exception(m_env, "Error getting Direction.INOUT object");
 
-  clsParStream = env->FindClass("es/bsc/compss/types/annotations/parameter/Stream");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
+  objLocal =  m_env->CallStaticObjectMethod(clsParDir, midParDirCon, m_env->NewStringUTF("OUT"));
+  check_and_treat_exception(m_env, "Error getting Direction.OUT object");
+  jobjParDirOUT = (jobject)m_env->NewGlobalRef(objLocal);
+
+  // Parameter streams
+
+  debug_printf ("[BINDING_COMMONS]  -  @Init JNI Stream Types\n");
+
+  clsParStream = m_env->FindClass("es/bsc/compss/types/annotations/parameter/Stream");
+  if (m_env->ExceptionOccurred()) {
+    m_env->ExceptionDescribe();
     exit(1);
   }
-  midParStreamCon = env->GetStaticMethodID(clsParStream, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/Stream;");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
+  midParStreamCon = m_env->GetStaticMethodID(clsParStream, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/Stream;");
+  if (m_env->ExceptionOccurred()) {
+    m_env->ExceptionDescribe();
     exit(1);
   }
-  jobjParStreamSTDIN =  env->CallStaticObjectMethod(clsParStream, midParStreamCon, env->NewStringUTF("STDIN"));
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-  jobjParStreamSTDOUT =  env->CallStaticObjectMethod(clsParStream, midParStreamCon, env->NewStringUTF("STDOUT"));
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-  jobjParStreamSTDERR =  env->CallStaticObjectMethod(clsParStream, midParStreamCon, env->NewStringUTF("STDERR"));
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-  jobjParStreamUNSPECIFIED =  env->CallStaticObjectMethod(clsParStream, midParStreamCon, env->NewStringUTF("UNSPECIFIED"));
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
+  objLocal = m_env->CallStaticObjectMethod(clsParStream, midParStreamCon, m_env->NewStringUTF("STDIN"));
+  check_and_treat_exception(m_env, "Error getting Stream.STDIN object");
+  jobjParStreamSTDIN = (jobject)m_env->NewGlobalRef(objLocal);
+  check_and_treat_exception(m_env, "Error getting Stream.STDIN object");
+
+  objLocal = m_env->CallStaticObjectMethod(clsParStream, midParStreamCon, m_env->NewStringUTF("STDOUT"));
+  check_and_treat_exception(m_env, "Error getting Stream.STDOUT object");
+  jobjParStreamSTDOUT = (jobject)m_env->NewGlobalRef(objLocal);
+  check_and_treat_exception(m_env, "Error getting Stream.STDOUT object");
+
+  objLocal = m_env->CallStaticObjectMethod(clsParStream, midParStreamCon, m_env->NewStringUTF("STDERR"));
+  check_and_treat_exception(m_env, "Error getting Stream.STDERR object");
+  jobjParStreamSTDERR = (jobject)m_env->NewGlobalRef(objLocal);
+  check_and_treat_exception(m_env, "Error getting Stream.STDERR object");
+
+  objLocal = m_env->CallStaticObjectMethod(clsParStream, midParStreamCon, m_env->NewStringUTF("UNSPECIFIED"));
+  check_and_treat_exception(m_env, "Error getting Stream.UNSPECIFIED object");
+  jobjParStreamUNSPECIFIED = (jobject)m_env->NewGlobalRef(objLocal);
+  check_and_treat_exception(m_env, "Error getting Stream.UNSPECIFIED object");
+
 
   // Parameter prefix empty
-  jobjParPrefixEMPTY = env->NewStringUTF("null");
+  jstring objStr = m_env->NewStringUTF("null");
+  check_and_treat_exception(m_env, "Error getting null string object");
+  jobjParPrefixEMPTY = (jstring)m_env->NewGlobalRef(objStr);
+  check_and_treat_exception(m_env, "Error getting null string object");
 
-  // PARAMETER CLASSES
+  init_basic_jni_types();
 
-  debug_printf ("[   BINDING]  -  @Init JNI Types\n");
-
-  clsObject = env->FindClass("java/lang/Object");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-  midObjCon = env->GetMethodID(clsObject, "<init>", "()V");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-  clsString = env->FindClass("java/lang/String");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-  midStrCon = env->GetMethodID(clsString, "<init>", "(Ljava/lang/String;)V");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-  clsCharacter = env->FindClass("java/lang/Character");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-  midCharCon = env->GetMethodID(clsCharacter, "<init>", "(C)V");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-  clsBoolean = env->FindClass("java/lang/Boolean");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-  midBoolCon = env->GetMethodID(clsBoolean, "<init>", "(Z)V");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-  clsShort = env->FindClass("java/lang/Short");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-  midShortCon = env->GetMethodID(clsShort, "<init>", "(S)V");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-  clsInteger = env->FindClass("java/lang/Integer");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-  midIntCon = env->GetMethodID(clsInteger, "<init>", "(I)V");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-  clsLong = env->FindClass("java/lang/Long");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-  midLongCon = env->GetMethodID(clsLong, "<init>", "(J)V");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-  clsFloat = env->FindClass("java/lang/Float");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-  midFloatCon = env->GetMethodID(clsFloat, "<init>", "(F)V");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-  clsDouble = env->FindClass("java/lang/Double");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-  midDoubleCon = env->GetMethodID(clsDouble, "<init>", "(D)V");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-
-  debug_printf ("[   BINDING]  -  @Init DONE\n");
+  debug_printf ("[BINDING_COMMONS]  -  @Master JNI Init DONE\n");
 }
 
 void process_param(void **params, int i, jobjectArray jobjOBJArr) {
   // params     is of the form: value type direction stream prefix
   // jobjOBJArr is of the form: value type direction stream prefix
 
-  debug_printf("[   BINDING]  -  @process_param\n");
+  debug_printf("[BINDING_COMMONS]  -  @process_param\n");
 
-  void *parVal = params[5*i];
-  int parType = *(int*)params[5*i + 1];
-  int parDirect = *(int*)params[5*i + 2];
-  int parStream = *(int*)params[5*i + 3];
-  void *parPrefix = params[5*i + 4];
-
-  int pv = 5*i, pt = 5*i + 1, pd = 5*i + 2, ps = 5*i + 3, pp = 5*i + 4;
+  void *parVal = params[NUM_PARAMS*i];
+  int parType = *(int*)params[NUM_PARAMS*i + 1];
+  int parDirect = *(int*)params[NUM_PARAMS*i + 2];
+  int parStream = *(int*)params[NUM_PARAMS*i + 3];
+  void *parPrefix = params[NUM_PARAMS*i + 4];
+  int pv = NUM_PARAMS*i, pt = NUM_PARAMS*i + 1, pd = NUM_PARAMS*i + 2, ps = NUM_PARAMS*i + 3, pp = NUM_PARAMS*i + 4;
 
   jclass clsParType = NULL; /* es.bsc.compss.types.annotations.parameter.DataType class */
-  clsParType = env->FindClass("es/bsc/compss/types/annotations/parameter/DataType");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
+  clsParType = m_env->FindClass("es/bsc/compss/types/annotations/parameter/DataType");
+  if (m_env->ExceptionOccurred()) {
+    m_env->ExceptionDescribe();
     exit(1);
   }
 
   jmethodID midParTypeCon = NULL; /* ID of the es.bsc.compss.api.COMPSsRuntime$DataType class constructor method */
-  midParTypeCon = env->GetStaticMethodID(clsParType, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/DataType;");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
+  midParTypeCon = m_env->GetStaticMethodID(clsParType, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/DataType;");
+  if (m_env->ExceptionOccurred()) {
+    m_env->ExceptionDescribe();
     exit(1);
   }
 
   jobject jobjParType = NULL;
   jobject jobjParVal = NULL;
 
-  debug_printf ("[   BINDING]  -  @process_param  -  ENUM DATA_TYPE: %d\n", (enum datatype) parType);
+  debug_printf ("[BINDING-COMMONS]  -  @process_param  -  ENUM DATA_TYPE: %d\n", (enum datatype) parType);
 
   switch ( (enum datatype) parType) {
     case char_dt:
     case wchar_dt:
-      jobjParVal = env->NewObject(clsCharacter, midCharCon, (jchar)*(char*)parVal);
-      if (env->ExceptionOccurred()) {
-        env->ExceptionDescribe();
-        exit(1);
-      }
+    	jobjParVal = m_env->NewObject(clsCharacter, midCharCon, (jchar)*(char*)parVal);
+    	if (m_env->ExceptionOccurred()) {
+    		m_env->ExceptionDescribe();
+    		exit(1);
+    	}
 
-      debug_printf ("[   BINDING]  -  @process_param  -  Char: %c\n", *(char*)parVal);
+    	debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Char: %c\n", *(char*)parVal);
 
-      jobjParType = env->CallStaticObjectMethod(clsParType, midParTypeCon, env->NewStringUTF("CHAR_T"));
-      if (env->ExceptionOccurred()) {
-        env->ExceptionDescribe();
-        exit(1);
-      }
-      break;
+    	jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("CHAR_T"));
+    	if (m_env->ExceptionOccurred()) {
+    		m_env->ExceptionDescribe();
+    		exit(1);
+    	}
+    	break;
     case boolean_dt:
-      jobjParVal = env->NewObject(clsBoolean, midBoolCon, (jboolean)*(int*)parVal);
-      if (env->ExceptionOccurred()) {
-        env->ExceptionDescribe();
-        exit(1);
-      }
+    	jobjParVal = m_env->NewObject(clsBoolean, midBoolCon, (jboolean)*(int*)parVal);
+    	if (m_env->ExceptionOccurred()) {
+    		m_env->ExceptionDescribe();
+    		exit(1);
+    	}
 
-      debug_printf ("[   BINDING]  -  @process_param  -  Bool: %d\n", *(int*)parVal);
+    	debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Bool: %d\n", *(int*)parVal);
 
-      jobjParType = env->CallStaticObjectMethod(clsParType, midParTypeCon, env->NewStringUTF("BOOLEAN_T"));
-      if (env->ExceptionOccurred()) {
-        env->ExceptionDescribe();
-        exit(1);
-      }
-      break;
+    	jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("BOOLEAN_T"));
+    	if (m_env->ExceptionOccurred()) {
+    		m_env->ExceptionDescribe();
+    		exit(1);
+    	}
+    	break;
     case short_dt:
-      jobjParVal = env->NewObject(clsShort, midShortCon, (jshort)*(short*)parVal);
-      if (env->ExceptionOccurred()) {
-        env->ExceptionDescribe();
-        exit(1);
-      }
+    	jobjParVal = m_env->NewObject(clsShort, midShortCon, (jshort)*(short*)parVal);
+    	if (m_env->ExceptionOccurred()) {
+    		m_env->ExceptionDescribe();
+    		exit(1);
+    	}
 
-      debug_printf ("[   BINDING]  -  @process_param  -  Short: %hu\n", *(short*)parVal);
+    	debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Short: %hu\n", *(short*)parVal);
 
-      jobjParType = env->CallStaticObjectMethod(clsParType, midParTypeCon, env->NewStringUTF("SHORT_T"));
-      if (env->ExceptionOccurred()) {
-        env->ExceptionDescribe();
-        exit(1);
-      }
-      break;
+    	jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("SHORT_T"));
+    	if (m_env->ExceptionOccurred()) {
+    		m_env->ExceptionDescribe();
+    		exit(1);
+    	}
+    	break;
     case int_dt:
-      jobjParVal = env->NewObject(clsInteger, midIntCon, (jint)*(int*)parVal);
-      if (env->ExceptionOccurred()) {
-        env->ExceptionDescribe();
-        exit(1);
-      }
+    	jobjParVal = m_env->NewObject(clsInteger, midIntCon, (jint)*(int*)parVal);
+    	if (m_env->ExceptionOccurred()) {
+    		m_env->ExceptionDescribe();
+    		exit(1);
+    	}
 
-      debug_printf ("[   BINDING]  -  @process_param  -  Int: %d\n", *(int*)parVal);
+    	debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Int: %d\n", *(int*)parVal);
 
-      jobjParType = env->CallStaticObjectMethod(clsParType, midParTypeCon, env->NewStringUTF("INT_T"));
-      if (env->ExceptionOccurred()) {
-        env->ExceptionDescribe();
-        exit(1);
-      }
-      break;
+    	jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("INT_T"));
+    	if (m_env->ExceptionOccurred()) {
+    		m_env->ExceptionDescribe();
+    		exit(1);
+    	}
+    	break;
     case long_dt:
-      jobjParVal = env->NewObject(clsLong, midLongCon, (jlong)*(long*)parVal);
-      if (env->ExceptionOccurred()) {
-        env->ExceptionDescribe();
-        exit(1);
-      }
+    	jobjParVal = m_env->NewObject(clsLong, midLongCon, (jlong)*(long*)parVal);
+    	if (m_env->ExceptionOccurred()) {
+    		m_env->ExceptionDescribe();
+    		exit(1);
+    	}
 
-      debug_printf ("[   BINDING]  -  @process_param  -  Long: %ld\n", *(long*)parVal);
+    	debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Long: %ld\n", *(long*)parVal);
 
-      jobjParType = env->CallStaticObjectMethod(clsParType, midParTypeCon, env->NewStringUTF("LONG_T"));
-      if (env->ExceptionOccurred()) {
-        env->ExceptionDescribe();
-        exit(1);
-      }
-      break;
+    	jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("LONG_T"));
+    	if (m_env->ExceptionOccurred()) {
+    		m_env->ExceptionDescribe();
+    		exit(1);
+    	}
+    	break;
     case longlong_dt:
     case float_dt:
-      jobjParVal = env->NewObject(clsFloat, midFloatCon, (jfloat)*(float*)parVal);
-      if (env->ExceptionOccurred()) {
-        env->ExceptionDescribe();
-        exit(1);
-      }
+    	jobjParVal = m_env->NewObject(clsFloat, midFloatCon, (jfloat)*(float*)parVal);
+    	if (m_env->ExceptionOccurred()) {
+    		m_env->ExceptionDescribe();
+    		exit(1);
+    	}
 
-      debug_printf ("[   BINDING]  -  @process_param  -  Float: %f\n", *(float*)parVal);
+    	debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Float: %f\n", *(float*)parVal);
 
-      jobjParType = env->CallStaticObjectMethod(clsParType, midParTypeCon, env->NewStringUTF("FLOAT_T"));
-      if (env->ExceptionOccurred()) {
-        env->ExceptionDescribe();
-        exit(1);
-      }
-      break;
+    	jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("FLOAT_T"));
+    	if (m_env->ExceptionOccurred()) {
+    		m_env->ExceptionDescribe();
+    		exit(1);
+    	}
+    	break;
     case double_dt:
-      jobjParVal = env->NewObject(clsDouble, midDoubleCon, (jdouble)*(double*)parVal);
-      if (env->ExceptionOccurred()) {
-        env->ExceptionDescribe();
-        exit(1);
-      }
+    	jobjParVal = m_env->NewObject(clsDouble, midDoubleCon, (jdouble)*(double*)parVal);
+    	if (m_env->ExceptionOccurred()) {
+    		m_env->ExceptionDescribe();
+    		exit(1);
+    	}
 
-      debug_printf ("[   BINDING]  -  @process_param  -  Double: %f\n", *(double*)parVal);
+    	debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Double: %f\n", *(double*)parVal);
 
-      jobjParType = env->CallStaticObjectMethod(clsParType, midParTypeCon, env->NewStringUTF("DOUBLE_T"));
-      if (env->ExceptionOccurred()) {
-        env->ExceptionDescribe();
-        exit(1);
-      }
-      break;
+    	jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("DOUBLE_T"));
+    	if (m_env->ExceptionOccurred()) {
+    		m_env->ExceptionDescribe();
+    		exit(1);
+    	}
+    	break;
     case file_dt:
-      jobjParVal = env->NewStringUTF(*(char **)parVal);
-      if (env->ExceptionOccurred()) {
-        env->ExceptionDescribe();
-        exit(1);
-      }
+    	jobjParVal = m_env->NewStringUTF(*(char **)parVal);
+    	if (m_env->ExceptionOccurred()) {
+    		m_env->ExceptionDescribe();
+    		exit(1);
+    	}
 
-      debug_printf ("[   BINDING]  -  @process_param  -  File: %s\n", *(char **)parVal);
+    	debug_printf ("[BINDING-COMMONS]  -  @process_param  -  File: %s\n", *(char **)parVal);
 
-      jobjParType = env->CallStaticObjectMethod(clsParType, midParTypeCon, env->NewStringUTF("FILE_T"));
-      if (env->ExceptionOccurred()) {
-        env->ExceptionDescribe();
-        exit(1);
-      }
-      break;
+    	jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("FILE_T"));
+    	if (m_env->ExceptionOccurred()) {
+    		m_env->ExceptionDescribe();
+    		exit(1);
+    	}
+    	break;
     case external_psco_dt:
-      jobjParVal = env->NewStringUTF(*(char **)parVal);
-      if (env->ExceptionOccurred()) {
-        env->ExceptionDescribe();
-        exit(1);
-      }
-      debug_printf ("[   BINDING]  -  @process_param  -  Persistent: %s\n", *(char **)parVal);
+    	jobjParVal = m_env->NewStringUTF(*(char **)parVal);
+    	if (m_env->ExceptionOccurred()) {
+    		m_env->ExceptionDescribe();
+    		exit(1);
+    	}
+    	debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Persistent: %s\n", *(char **)parVal);
 
-      jobjParType = env->CallStaticObjectMethod(clsParType, midParTypeCon, env->NewStringUTF("EXTERNAL_OBJECT_T"));
-      if (env->ExceptionOccurred()) {
-        env->ExceptionDescribe();
-        exit(1);
-      }
-      break;
+    	jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("EXTERNAL_PSCO_T"));
+    	if (m_env->ExceptionOccurred()) {
+    		m_env->ExceptionDescribe();
+    		exit(1);
+    	}
+    	break;
     case string_dt:
-      jobjParVal = env->NewStringUTF(*(char **)parVal);
-      if (env->ExceptionOccurred()) {
-        env->ExceptionDescribe();
-        exit(1);
-      }
+    	jobjParVal = m_env->NewStringUTF(*(char **)parVal);
+    	if (m_env->ExceptionOccurred()) {
+    		m_env->ExceptionDescribe();
+    		exit(1);
+    	}
 
-      debug_printf ("[   BINDING]  -  @process_param  -  String: %s\n", *(char **)parVal);
+    	debug_printf ("[BINDING-COMMONS]  -  @process_param  -  String: %s\n", *(char **)parVal);
 
-      jobjParType = env->CallStaticObjectMethod(clsParType, midParTypeCon, env->NewStringUTF("STRING_T"));
-      if (env->ExceptionOccurred()) {
-        env->ExceptionDescribe();
-        exit(1);
-      }
-      break;
+    	jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("STRING_T"));
+    	if (m_env->ExceptionOccurred()) {
+    		m_env->ExceptionDescribe();
+    		exit(1);
+    	}
+    	break;
+    case binding_object_dt:
+          jobjParVal = m_env->NewStringUTF(*(char **)parVal);
+          if (m_env->ExceptionOccurred()) {
+        	  m_env->ExceptionDescribe();
+        	  exit(1);
+          }
+
+          debug_printf ("[BINDING-COMMONS]  -  @process_param  -  BindingObject: %s\n", *(char **)parVal);
+
+          jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("BINDING_OBJECT_T"));
+          if (m_env->ExceptionOccurred()) {
+        	  m_env->ExceptionDescribe();
+        	  exit(1);
+          }
+          break;
     case void_dt:
     case any_dt:
     case null_dt:
@@ -644,92 +543,94 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
   }
 
   // Sets the parameter value and type
-  env->SetObjectArrayElement(jobjOBJArr, pv, jobjParVal);
-  env->SetObjectArrayElement(jobjOBJArr, pt, jobjParType);
+  m_env->SetObjectArrayElement(jobjOBJArr, pv, jobjParVal);
+  m_env->SetObjectArrayElement(jobjOBJArr, pt, jobjParType);
 
   // Add param direction
-  debug_printf ("[   BINDING]  -  @process_param  -  ENUM DIRECTION: %d\n", (enum direction) parDirect);
+  debug_printf ("[BINDING-COMMONS]  -  @process_param  -  ENUM DIRECTION: %d\n", (enum direction) parDirect);
   switch ((enum direction) parDirect) {
     case in_dir:
-      env->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirIN);
+      m_env->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirIN);
       break;
     case out_dir:
-      env->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirOUT);
+      m_env->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirOUT);
       break;
     case inout_dir:
-      env->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirINOUT);
+      m_env->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirINOUT);
       break;
     default:
       break;
   }
 
   // Add param stream
-  debug_printf ("[   BINDING]  -  @process_param  -  ENUM STREAM: %d\n", (enum stream) parStream);
+  debug_printf ("[BINDING-COMMONS]  -  @process_param  -  ENUM STREAM: %d\n", (enum stream) parStream);
   switch ((enum stream) parStream) {
     case STD_IN:
-      env->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamSTDIN);
+      m_env->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamSTDIN);
       break;
     case STD_OUT:
-      env->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamSTDOUT);
+      m_env->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamSTDOUT);
       break;
     case STD_ERR:
-      env->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamSTDERR);
+      m_env->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamSTDERR);
       break;
     default:
-      env->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamUNSPECIFIED);
+      m_env->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamUNSPECIFIED);
       break;
   }
 
   // Add param prefix
-  debug_printf ("[   BINDING]  -  @process_param  -  PREFIX: %s\n", *(char **)parPrefix);
-  jstring jobjParPrefix = env->NewStringUTF(*(char **)parPrefix);
-  env->SetObjectArrayElement(jobjOBJArr, pp, jobjParPrefix);
+  debug_printf ("[BINDING-COMMONS]  -  @process_param  -  PREFIX: %s\n", *(char **)parPrefix);
+  jstring jobjParPrefix = m_env->NewStringUTF(*(char **)parPrefix);
+  m_env->SetObjectArrayElement(jobjOBJArr, pp, jobjParPrefix);
   //env->SetObjectArrayElement(jobjOBJArr, pp, jobjParPrefixEMPTY);
+
+
 }
 
 // ******************************
 // API functions
 // ******************************
 
-void GS_On() {
-  debug_printf ("[   BINDING]  -  @GS_On\n");
+void GS_On(AbstractCache *absCache){
+	init_data_manager(absCache);
+	GS_On();
+}
 
+void GS_On()
+{
+  debug_printf ("[BINDING-COMMONS]  -  @GS_On\n");
   clsITimpl = NULL;
   jmethodID midITImplConst = NULL;
   jmethodID midStartIT = NULL;
 
-  env = create_vm(&jvm);
-  if (env == NULL) {
-    printf ("[   BINDING]  -  @GS_On  -  Error creating the JVM\n");
+  init_env_vars();
+  debug_printf ("[BINDING-COMMONS]  -  @GS_On  -  Creating the JVM\n");
+  m_env = create_vm(&m_jvm);
+  if (m_env == NULL) {
+    printf ("[BINDING-COMMONS]  -  @GS_On  -  Error creating the JVM\n");
     exit(1);
   }
-
-  // Obtaining Classes
-  clsITimpl = env->FindClass("es/bsc/compss/api/impl/COMPSsRuntimeImpl");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    printf("[   BINDING]  -  @GS_On  -  Error looking for the COMPSsRuntimeImpl class\n");
-    exit(1);
-  }
+  //Obtaining Runtime Class
+  debug_printf ("[BINDING-COMMONS]  -  @GS_On  -  Getting Runtime class\n");
+  jclass clsLocal = m_env->FindClass("es/bsc/compss/api/impl/COMPSsRuntimeImpl");
+  check_and_treat_exception(m_env, "Error looking for the COMPSsRuntimeImpl class");
+  clsITimpl = (jclass)m_env->NewGlobalRef(clsLocal);
+  check_and_treat_exception(m_env, "Error looking for the COMPSsRuntimeImpl class");
 
   if (clsITimpl != NULL) {
-    // Get constructor ID for COMPSsRuntimeImpl
-    midITImplConst = env->GetMethodID(clsITimpl, "<init>", "()V");
-    if (env->ExceptionOccurred()) {
-      env->ExceptionDescribe();
-      printf("[   BINDING]  -  @GS_On  -  Error looking for the init method\n");
-      exit(1);
-    }
 
-    midStartIT = env->GetMethodID(clsITimpl, "startIT", "()V");
+    //Get constructor ID for COMPSsRuntimeImpl
+	debug_printf ("[BINDING-COMMONS]  -  @GS_On  -  Getting Constructor method\n");
+	midITImplConst = m_env->GetMethodID(clsITimpl, "<init>", "()V");
+    check_and_treat_exception(m_env, "Error looking for the init method");
 
-    if (env->ExceptionOccurred()) {
-      env->ExceptionDescribe();
-      printf("[   BINDING]  -  @GS_On  -  Error looking for the startIT method\n");
-      exit(1);
-    }
+    debug_printf ("[BINDING-COMMONS]  -  @GS_On  -  Getting start method\n");
+    midStartIT = m_env->GetMethodID(clsITimpl, "startIT", "()V");
+    check_and_treat_exception(m_env,"Error looking for the startIT method");
+
   } else {
-    printf("[   BINDING]  -  @GS_On  -  Unable to find the requested class\n");
+    printf("[BINDING-COMMONS]  -  @GS_On  -  Unable to find the runtime class\n");
     exit(1);
   }
 
@@ -739,116 +640,119 @@ void GS_On() {
 
   if (midITImplConst != NULL) {
     if (clsITimpl != NULL && midITImplConst != NULL) {
-      // Creating the Object of IT.
-      jobjIT = env->NewObject(clsITimpl, midITImplConst);
-      if (env->ExceptionOccurred()) {
-        env->ExceptionDescribe();
+      //Creating the Object of IT.
+      debug_printf ("[BINDING-COMMONS]  -  @GS_On  -  Creating runtime object\n");
+      jobject objLocal = m_env->NewObject(clsITimpl, midITImplConst);
+      check_and_treat_exception(m_env,"Error creating runtime object");
+      jobjIT = (jobject)m_env->NewGlobalRef(objLocal);
+      check_and_treat_exception(m_env,"Error creating runtime object");
+    }else {
+        printf("[BINDING-COMMONS]  -  @GS_On  -  Unable to find the runtime constructor or runtime class\n");
         exit(1);
       }
-    }
 
     if (jobjIT != NULL && midStartIT != NULL) {
-      env->CallVoidMethod(jobjIT, midStartIT); //Calling the method and passing IT Object as parameter
-      if (env->ExceptionOccurred()) {
-        env->ExceptionDescribe();
-        exit(1);
-      }
+
+      debug_printf ("[BINDING-COMMONS]  -  @GS_On  -  Calling runtime start\n");
+      m_env->CallVoidMethod(jobjIT, midStartIT); //Calling the method and passing IT Object as parameter
+      check_and_treat_exception(m_env,"Error calling start runtime");
     } else {
-      printf("[   BINDING]  -  @GS_On  -  Unable to find the startit method\n");
+      printf("[BINDING-COMMONS]  -  @GS_On  -  Unable to find the start method\n");
       exit(1);
     }
   } else {
-    printf("[   BINDING]  -  @GS_On  -  Unable to find the requested method\n");
+    printf("[BINDING-COMMONS]  -  @GS_On  -  Unable to find the runtime constructor\n");
     exit(1);
   }
 
-  init_jni_types();
+  init_master_jni_types();
 
-  appId = env->NewObject(clsLong, midLongCon, (jlong) 0);
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
+  jobject objLocal = m_env->NewObject(clsLong, midLongCon, (jlong) 0);
+  check_and_treat_exception(m_env,"Error creating appId object");
+  appId = (jobject)m_env->NewGlobalRef(objLocal);
+  check_and_treat_exception(m_env,"Error creating appId object");
 }
 
-void GS_Off() {
-  debug_printf("[   BINDING]  -  @GS_Off\n");
+
+void GS_Off()
+{
+  debug_printf("[BINDING-COMMONS]  -  @GS_Off\n");
 
   jmethodID midStopIT = NULL;
   jmethodID midNoMoreTasksIT = NULL;
 
-  int isAttached = check_and_attach();
+  check_and_attach(m_jvm, m_env);
 
-  midNoMoreTasksIT = env->GetMethodID(clsITimpl, "noMoreTasks", "(Ljava/lang/Long;)V");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
+
+  midNoMoreTasksIT = m_env->GetMethodID(clsITimpl, "noMoreTasks", "(Ljava/lang/Long;)V");
+  if (m_env->ExceptionOccurred()) {
+	  debug_printf("[BINDING-COMMONS]  -  @Off  -  Error: Exception loading noMoreTasks method.\n");
+	  m_env->ExceptionDescribe();
     exit(1);
   }
 
-  midStopIT = env->GetMethodID(clsITimpl, "stopIT", "(Z)V");
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
+  midStopIT = m_env->GetMethodID(clsITimpl, "stopIT", "(Z)V");
+  if (m_env->ExceptionOccurred()) {
+	  debug_printf("[BINDING-COMMONS]  -  @Off  -  Error: Exception loading stop.\n");
+	  m_env->ExceptionDescribe();
     exit(1);
   }
-  debug_printf("[   BINDING]  -  @Off - Waiting to end tasks\n");
-  env->CallVoidMethod(jobjIT, midNoMoreTasksIT, appId);
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
+  debug_printf("[BINDING-COMMONS]  -  @Off - Waiting to end tasks\n");
+  m_env->CallVoidMethod(jobjIT, midNoMoreTasksIT, appId, "TRUE");
+  if (m_env->ExceptionOccurred()) {
+	  debug_printf("[BINDING-COMMONS]  -  @GS_ExecuteTask  -  Error: Exception received when calling noMoreTasks.\n");
+	  m_env->ExceptionDescribe();
+	  exit(1);
   }
-  debug_printf("[   BINDING]  -  @Off - Stopping runtime\n");
-  env->CallVoidMethod(jobjIT, midStopIT, "TRUE"); //Calling the method and passing IT Object as parameter
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
+  debug_printf("[BINDING-COMMONS]  -  @Off - Stopping runtime\n");
+  m_env->CallVoidMethod(jobjIT, midStopIT, "TRUE"); //Calling the method and passing IT Object as parameter
+  if (m_env->ExceptionOccurred()) {
+	  debug_printf("[BINDING-COMMONS]  -  @Off  -  Error: Exception received when calling stop runtime.\n");
+	  m_env->ExceptionDescribe();
+	  exit(1);
   }
-  debug_printf("[   BINDING]  -  @Off - Removing JVM\n");
-  destroy_vm(jvm);  // Release jvm resources -- Does not work properly --> JNI bug: not releasing properly the resources, so it is not possible to recreate de JVM.
+  debug_printf("[BINDING-COMMONS]  -  @Off - Removing JVM\n");
+  destroy_vm(m_jvm);  // Release jvm resources -- Does not work properly --> JNI bug: not releasing properly the resources, so it is not possible to recreate de JVM.
   // delete jvm;    // free(): invalid pointer: 0x00007fbc11ba8020 ***
-  jvm = NULL;
+  m_jvm = NULL;
 }
 
-void GS_RegisterCE(char *CESignature, char *ImplSignature, char *ImplConstraints, char *ImplType, int num_params, char **ImplTypeArgs) {
-  int isAttached = check_and_attach();
 
-  debug_printf ("[   BINDING]  -  @GS_RegisterCE\n");
-  //debug_printf ("[   BINDING]  -  @GS_RegisterCE - CESignature:     %s\n", CESignature);
-  //debug_printf ("[   BINDING]  -  @GS_RegisterCE - ImplSignature:   %s\n", ImplSignature);
-  //debug_printf ("[   BINDING]  -  @GS_RegisterCE - ImplConstraints: %s\n", ImplConstraints);
-  //debug_printf ("[   BINDING]  -  @GS_RegisterCE - ImplType:        %s\n", ImplType);
-  //debug_printf ("[   BINDING]  -  @GS_RegisterCE - num_params:      %d\n", num_params);
+void GS_Get_AppDir(char **buf)
+{
+  debug_printf ("[BINDING-COMMONS]  -  @GS_Get_AppDir\n");
 
-  jobjectArray implArgs; //  array of Objects to be passed to register core element
-  implArgs = (jobjectArray)env->NewObjectArray(num_params, clsString, env->NewStringUTF(""));
-  for (int i = 0; i < num_params; i++) {
-    //debug_printf("[   BINDING]  -  @GS_RegisterCE  -    Processing pos %d\n", i);
-    jstring tmp = env->NewStringUTF(ImplTypeArgs[i]);
-    env->SetObjectArrayElement(implArgs, i, tmp);
-  }
-  env->CallVoidMethod(jobjIT,
-                        midRegisterCE,
-                        env->NewStringUTF(CESignature),
-                        env->NewStringUTF(ImplSignature),
-                        env->NewStringUTF(ImplConstraints),
-                        env->NewStringUTF(ImplType),
-                        implArgs);
-  if (env->ExceptionOccurred()) {
-      env->ExceptionDescribe();
-      exit(1);
-  }
-  if (isAttached==1){
- 	 jvm->DetachCurrentThread();
+  const char *cstr;
+  jstring jstr = NULL;
+  jboolean isCopy;
+  int isAttached = check_and_attach(m_jvm, m_env);
+
+  jstr = (jstring)m_env->CallObjectMethod(jobjIT, midAppDir);
+  if (m_env->ExceptionOccurred()) {
+	  debug_printf("[BINDING-COMMONS]  -  @GS_Get_AppDir  -  Error: Exception received when calling getAppDir.\n");
+	  m_env->ExceptionDescribe();
+	  exit(1);
   }
 
-  debug_printf("[   BINDING]  -  @GS_RegisterCE  -  Task registered: %s\n", CESignature);
+  debug_printf ("[BINDING-COMMONS]  -  @GS_GetS_AppDir - converting jstring to UTF Chars\n");
+
+  cstr = m_env->GetStringUTFChars(jstr, &isCopy);
+  *buf = strdup(cstr);
+  m_env->ReleaseStringUTFChars(jstr, cstr);
+  if (isAttached == 1){
+  	m_jvm->DetachCurrentThread();
+  }
+
+  debug_printf("[BINDING-COMMONS]  -  @GS_Get_AppDir  -  directory name: %s\n", *buf);
 }
 
-void GS_ExecuteTask(long _appId, char *class_name, char *method_name, int priority, int has_target, int num_params, void **params) {
-  int isAttached = check_and_attach();
+void GS_ExecuteTask(long _appId, char *class_name, char *method_name, int priority, int has_target, int num_params, void **params)
+{
+  int isAttached = check_and_attach(m_jvm, m_env);
 
   jobjectArray jobjOBJArr; /* array of Objects to be passed to executeTask */
 
-  debug_printf ("[   BINDING]  -  @GS_ExecuteTask\n");
+  debug_printf ("[BINDING-COMMONS]  -  @GS_ExecuteTask\n");
 
   bool _priority = false;
   if (priority != 0) _priority = true;
@@ -856,37 +760,31 @@ void GS_ExecuteTask(long _appId, char *class_name, char *method_name, int priori
   bool _has_target = false;
   if (has_target != 0) _has_target = true;
 
-  jobjOBJArr = (jobjectArray)env->NewObjectArray(num_params*5, clsObject, env->NewObject(clsObject,midObjCon));
+  jobjOBJArr = (jobjectArray)m_env->NewObjectArray(num_params*5, clsObject, m_env->NewObject(clsObject,midObjCon));
 
   for (int i = 0; i < num_params; i++) {
-    debug_printf("[   BINDING]  -  @GS_ExecuteTask  -  Processing pos %d\n", i);
+    debug_printf("[BINDING-COMMONS]  -  @GS_ExecuteTask  -  Processing pos %d\n", i);
     process_param(params, i, jobjOBJArr);
   }
 
-  env->CallVoidMethod(jobjIT,
-                        midExecute,
-                        appId,
-                        env->NewStringUTF(class_name),
-                        env->NewStringUTF(method_name),
-                        _priority,
-                        _has_target,
-                        num_params,
-                        jobjOBJArr);
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
+
+  m_env->CallVoidMethod(jobjIT, midExecute, appId, m_env->NewStringUTF(class_name), m_env->NewStringUTF(method_name), _priority, _has_target, num_params, jobjOBJArr);
+  if (m_env->ExceptionOccurred()) {
+	  debug_printf("[BINDING-COMMONS]  -  @GS_ExecuteTask  -  Error: Exception received when calling executeTask.\n");
+	  m_env->ExceptionDescribe();
+      exit(1);
   }
   if (isAttached==1){
-  	jvm->DetachCurrentThread();
+  	m_jvm->DetachCurrentThread();
   }
 }
 
 void GS_ExecuteTaskNew(long _appId, char *signature, int priority, int num_nodes, int replicated, int distributed, int has_target, int num_params, void **params) {
-  int isAttached = check_and_attach();
-
   jobjectArray jobjOBJArr; /* array of Objects to be passed to executeTask */
 
-  debug_printf ("[   BINDING]  -  @GS_ExecuteTaskNew\n");
+  int isAttached = check_and_attach(m_jvm, m_env);
+
+  debug_printf ("[BINDING-COMMONS]  -  @GS_ExecuteTaskNew\n");
 
   bool _priority = false;
   if (priority != 0) _priority = true;
@@ -900,185 +798,265 @@ void GS_ExecuteTaskNew(long _appId, char *signature, int priority, int num_nodes
   bool _has_target = false;
   if (has_target != 0) _has_target = true;
 
-  jobjOBJArr = (jobjectArray)env->NewObjectArray(num_params*5, clsObject, env->NewObject(clsObject,midObjCon));
+  jobjOBJArr = (jobjectArray)m_env->NewObjectArray(num_params*5, clsObject, m_env->NewObject(clsObject,midObjCon));
 
   for (int i = 0; i < num_params; i++) {
-    debug_printf("[   BINDING]  -  @GS_ExecuteTaskNew  -  Processing pos %d\n", i);
+    debug_printf("[BINDING-COMMONS]  -  @GS_ExecuteTaskNew  -  Processing pos %d\n", i);
     process_param(params, i, jobjOBJArr);
   }
 
-  env->CallVoidMethod(jobjIT,
-                        midExecuteNew,
-                        appId,
-                        env->NewStringUTF(signature),
-                        _priority,
-                        num_nodes,
-                        _replicated,
-                        _distributed,
-                        _has_target,
-                        num_params,
-                        jobjOBJArr);
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
+  m_env->CallVoidMethod(jobjIT, midExecuteNew, appId,
+                                             m_env->NewStringUTF(signature),
+                                             _priority,
+                                             num_nodes,
+                                             _replicated,
+                                             _distributed,
+                                             _has_target,
+                                             num_params,
+                                             jobjOBJArr);
+  if (m_env->ExceptionOccurred()) {
+	  debug_printf("[BINDING-COMMONS]  -  @GS_ExecuteTaskNew  -  Error: Exception received when calling executeTaskNew.\n");
+	  m_env->ExceptionDescribe();
     exit(1);
   }
   if (isAttached==1){
-  	jvm->DetachCurrentThread();
+  	m_jvm->DetachCurrentThread();
   }
 }
 
-void GS_Get_File(char *file_name, int mode, char **buf) {
-  int isAttached = check_and_attach();
+
+void GS_RegisterCE(char *CESignature, char *ImplSignature, char *ImplConstraints, char *ImplType, int num_params, char **ImplTypeArgs)
+{
+  int isAttached = check_and_attach(m_jvm, m_env);
+
+  debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE\n");
+  //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - CESignature:     %s\n", CESignature);
+  //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - ImplSignature:   %s\n", ImplSignature);
+  //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - ImplConstraints: %s\n", ImplConstraints);
+  //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - ImplType:        %s\n", ImplType);
+  //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - num_params:      %d\n", num_params);
+
+  jobjectArray implArgs; //  array of Objects to be passed to register core element
+  implArgs = (jobjectArray)m_env->NewObjectArray(num_params, clsString, m_env->NewStringUTF(""));
+  for (int i = 0; i < num_params; i++) {
+    //debug_printf("[BINDING-COMMONS]  -  @GS_RegisterCE  -    Processing pos %d\n", i);
+    jstring tmp = m_env->NewStringUTF(ImplTypeArgs[i]);
+    m_env->SetObjectArrayElement(implArgs, i, tmp);
+  }
+  m_env->CallVoidMethod(jobjIT, midRegisterCE, m_env->NewStringUTF(CESignature),
+                                             m_env->NewStringUTF(ImplSignature),
+                                             m_env->NewStringUTF(ImplConstraints),
+                                             m_env->NewStringUTF(ImplType),
+                                             implArgs);
+  if (m_env->ExceptionOccurred()) {
+	  debug_printf("[BINDING-COMMONS]  -  @GS_RegisterCE  -  Error: Exception received when calling registerCE.\n");
+	  m_env->ExceptionDescribe();
+      GS_Off();
+	  exit(1);
+  }
+  if (isAttached==1){
+ 	 m_jvm->DetachCurrentThread();
+  }
+
+  debug_printf("[BINDING-COMMONS]  -  @GS_RegisterCE  -  Task registered: %s\n", CESignature);
+}
+
+
+void GS_Get_File(char *file_name, int mode, char **buf)
+{
 
   const char *cstr;
   jstring jstr = NULL;
   jboolean isCopy;
 
+  int isAttached = check_and_attach(m_jvm, m_env);
+  debug_printf("[BINDING-COMMONS]  -  @GS_Get_File  -  Calling runtime OpenFile method  for %s and mode %d ...\n", file_name, mode);
+
+  jstring filename_str = m_env->NewStringUTF(file_name);
+  check_and_treat_exception(m_env, "Error getting String UTF");
   switch ((enum direction) mode) {
     case in_dir:
-      jstr = (jstring)env->CallObjectMethod(jobjIT, midOpenFile, env->NewStringUTF(file_name), jobjParDirIN);
+      jstr = (jstring)m_env->CallObjectMethod(jobjIT, midOpenFile, filename_str, jobjParDirIN);
       break;
     case out_dir:
-      jstr = (jstring)env->CallObjectMethod(jobjIT, midOpenFile, env->NewStringUTF(file_name), jobjParDirOUT);
+      jstr = (jstring)m_env->CallObjectMethod(jobjIT, midOpenFile, filename_str, jobjParDirOUT);
       break;
     case inout_dir:
-      jstr = (jstring)env->CallObjectMethod(jobjIT, midOpenFile, env->NewStringUTF(file_name), jobjParDirINOUT);
+      jstr = (jstring)m_env->CallObjectMethod(jobjIT, midOpenFile, filename_str, jobjParDirINOUT);
       break;
     default:
       break;
   }
-
-  if (env->ExceptionOccurred()) {
-      env->ExceptionDescribe();
+  check_and_treat_exception(m_env, "Error calling runtime openFile");
+  /*if (m_env->ExceptionCheck()) {
+	  check_and_treat_exception(m_env, "Error getting String UTF");
+	  jthrowable jex = m_env->ExceptionOccurred();
+	  debug_printf("[BINDING-COMMONS]  -  @GS_Get_File  -  Error: Exception received when calling openFile.\n");
+	  m_env->ExceptionDescribe();
+	  m_env->Throw(jex);
+	  treatException(m_env, jex);
+	  GS_Off();
       exit(1);
-  }
+  }*/
 
-  cstr = env->GetStringUTFChars(jstr, &isCopy);
+  cstr = m_env->GetStringUTFChars(jstr, &isCopy);
+  check_and_treat_exception(m_env, "Error getting String UTF");
   *buf = strdup(cstr);
-  env->ReleaseStringUTFChars(jstr, cstr);
+  m_env->ReleaseStringUTFChars(jstr, cstr);
   if (isAttached==1){
-  	jvm->DetachCurrentThread();
+  	m_jvm->DetachCurrentThread();
   }
-  debug_printf("[   BINDING]  -  @GS_Get_File  -  COMPSs filename: %s\n", *buf);
+  debug_printf("[BINDING-COMMONS]  -  @GS_Get_File  -  COMPSs filename: %s\n", *buf);
 }
 
 void GS_Close_File(char *file_name, int mode) {
-  int isAttached = check_and_attach();
 
+  int isAttached = check_and_attach(m_jvm, m_env);
+  debug_printf("[BINDING-COMMONS]  -  @GS_Close_File  -  Calling runtime closeFile method...\n");
   switch ((enum direction) mode) {
     case in_dir:
-      env->CallVoidMethod(jobjIT, midCloseFile, env->NewStringUTF(file_name), jobjParDirIN);
+      m_env->CallVoidMethod(jobjIT, midCloseFile, m_env->NewStringUTF(file_name), jobjParDirIN);
       break;
     case out_dir:
-      env->CallVoidMethod(jobjIT, midCloseFile, env->NewStringUTF(file_name), jobjParDirOUT);
+      m_env->CallVoidMethod(jobjIT, midCloseFile, m_env->NewStringUTF(file_name), jobjParDirOUT);
       break;
     case inout_dir:
-      env->CallVoidMethod(jobjIT, midCloseFile, env->NewStringUTF(file_name), jobjParDirINOUT);
+      m_env->CallVoidMethod(jobjIT, midCloseFile, m_env->NewStringUTF(file_name), jobjParDirINOUT);
       break;
     default:
       break;
   }
+  check_and_treat_exception(m_env, "Error calling runtime closeFile");
+  /*if (m_env->ExceptionCheck()) {
+	  jthrowable jex = m_env->ExceptionOccurred();
+	  debug_printf("[BINDING-COMMONS]  -  @GS_Close_File  -  Error: Exception received when calling closeFile.\n");
+	  m_env->ExceptionDescribe();
+	  m_env->Throw(jex);
+	  treatException(m_env, jex);
+	  GS_Off();
+      exit(1);
+  }*/
+  if (isAttached==1){
+  	m_jvm->DetachCurrentThread();
+  }
+  debug_printf("[BINDING-COMMONS]  -  @GS_Close_File  -  COMPSs filename: %s\n", file_name);
+}
 
-  if (env->ExceptionOccurred()) {
-      env->ExceptionDescribe();
+void GS_Delete_File(char *file_name)
+{
+  int isAttached = check_and_attach(m_jvm, m_env);
+
+  jboolean res = m_env->CallBooleanMethod(jobjIT, midDeleteFile, m_env->NewStringUTF(file_name));
+  if (m_env->ExceptionOccurred()) {
+	  debug_printf("[BINDING-COMMONS]  -  @GS_Delete_File  -  Error: Exception received when calling deleteFile.\n");
+	  m_env->ExceptionDescribe();
+	  GS_Off();
       exit(1);
   }
+  //*buf = (int*)&res;
   if (isAttached==1){
-  	jvm->DetachCurrentThread();
+  	m_jvm->DetachCurrentThread();
   }
-  debug_printf("[   BINDING]  -  @GS_Close_File  -  COMPSs filename: %s\n", file_name);
+
+  debug_printf("[BINDING-COMMONS]  -  @GS_Delete_File  -  COMPSs filename: %s\n", file_name);
 }
 
+void GS_Get_Object(char *file_name, char**buf)
+{
+  const char *cstr;
+    jstring jstr = NULL;
+    jboolean isCopy;
 
-void GS_Delete_File(char *file_name) {
-  int isAttached = check_and_attach();
-  env->CallVoidMethod(jobjIT, midDeleteFile, env->NewStringUTF(file_name));
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-  if (isAttached==1) {
-  	jvm->DetachCurrentThread();
-  }
-  debug_printf("[   BINDING]  -  @GS_Delete_File  -  COMPSs filename: %s\n", file_name);
+    int isAttached = check_and_attach(m_jvm, m_env);
+
+    jstr = (jstring)m_env->CallObjectMethod(jobjIT, midgetBindingObject, m_env->NewStringUTF(file_name));
+
+    if (m_env->ExceptionOccurred()) {
+    	debug_printf("[BINDING-COMMONS]  -  @GS_Get_Object  -  Error: Exception received when calling getObject.\n");
+    	m_env->ExceptionDescribe();
+        exit(1);
+    }
+
+    cstr = m_env->GetStringUTFChars(jstr, &isCopy);
+    *buf = strdup(cstr);
+    m_env->ReleaseStringUTFChars(jstr, cstr);
+    if (isAttached==1){
+    	m_jvm->DetachCurrentThread();
+    }
+    debug_printf("[BINDING-COMMONS]  -  @GS_Get_Object  -  COMPSs data id: %s\n", *buf);
+
 }
 
-void GS_Barrier(long _appId) {
-  int isAttached = check_and_attach();
+void GS_Delete_Object(char *file_name, int **buf)
+{
+  int isAttached = check_and_attach(m_jvm, m_env);
 
-  env->CallVoidMethod(jobjIT, midBarrier, appId);
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
+  jboolean res = m_env->CallBooleanMethod(jobjIT, midDeleteBindingObject, m_env->NewStringUTF(file_name));
+  if (m_env->ExceptionOccurred()) {
+	  debug_printf("[BINDING-COMMONS]  -  @GS_Delete_Binding_Object  -  Error: Exception received when calling deleteObject.\n");
+	  m_env->ExceptionDescribe();
+      exit(1);
+  }
+  *buf = (int*)&res;
+  if (isAttached==1){
+  	m_jvm->DetachCurrentThread();
+  }
+
+  debug_printf("[BINDING-COMMONS]  -  @GS_Delete_Binding_Object  -  COMPSs ob: %s\n", file_name);
+}
+
+void GS_Barrier(long appId)
+{
+  int isAttached = check_and_attach(m_jvm, m_env);
+
+  m_env->CallVoidMethod(jobjIT, midBarrier, appId);
+  if (m_env->ExceptionOccurred()) {
+      m_env->ExceptionDescribe();
+      exit(1);
   }
 
   if (isAttached==1){
-    jvm->DetachCurrentThread();
+    m_jvm->DetachCurrentThread();
   }
-  debug_printf("[   BINDING]  -  @GS_Barrier  -  APP id: %lu", appId);
+  debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  APP id: %lu", appId);
 }
 
 void GS_BarrierNew(long _appId, int noMoreTasks) {
-  int isAttached = check_and_attach();
+  int isAttached = check_and_attach(m_jvm, m_env);
 
   bool _noMoreTasks = false;
   if (noMoreTasks != 0) _noMoreTasks = true;
 
-  env->CallVoidMethod(jobjIT, midBarrierNew, appId, _noMoreTasks);
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
+  m_env->CallVoidMethod(jobjIT, midBarrierNew, appId, _noMoreTasks);
+  if (m_env->ExceptionOccurred()) {
+    m_env->ExceptionDescribe();
     exit(1);
   }
 
   if (isAttached==1){
-    jvm->DetachCurrentThread();
+    m_jvm->DetachCurrentThread();
   }
   debug_printf("[   BINDING]  -  @GS_Barrier  -  APP id: %lu", appId);
   debug_printf("[   BINDING]  -  @GS_Barrier  -  noMoreTasks: %s", _noMoreTasks ? "true":"false");
 }
 
-void GS_Get_AppDir(char **buf) {
-  int isAttached = check_and_attach();
-
-  debug_printf ("[   BINDING]  -  @GS_Get_AppDir\n");
-
-  const char *cstr;
-  jstring jstr = NULL;
-  jboolean isCopy;
-
-  jstr = (jstring)env->CallObjectMethod(jobjIT, midAppDir);
-  if (env->ExceptionOccurred()) {
-    env->ExceptionDescribe();
-    exit(1);
-  }
-
-  debug_printf ("[   BINDING]  -  @GS_GetStringUTFChars\n");
-
-  cstr = env->GetStringUTFChars(jstr, &isCopy);
-  *buf = strdup(cstr);
-  env->ReleaseStringUTFChars(jstr, cstr);
-  if (isAttached == 1){
-  	jvm->DetachCurrentThread();
-  }
-
-  debug_printf("[   BINDING]  -  @GS_Get_AppDir  -  directory name: %s\n", *buf);
-}
-
-void GS_EmitEvent(int type, long id) {
-  int isAttached = check_and_attach();
+void GS_EmitEvent(int type, long id)
+{
+  int isAttached = check_and_attach(m_jvm, m_env);
 
   if ( (type < 0 ) or (id < 0) ) {
-    debug_printf ("[   BINDING]  -  @GS_EmitEvent  -  Error: event type and ID must be positive integers, but found: type: %u, ID: %lu\n", type, id);
+    debug_printf ("[BINDING-COMMONS]  -  @GS_EmitEvent  -  Error: event type and ID must be positive integers, but found: type: %u, ID: %lu\n", type, id);
     exit(1);
   } else {
-    debug_printf ("[   BINDING]  -  @GS_EmitEvent  -  Type: %u, ID: %lu\n", type, id);
-    env->CallVoidMethod(jobjIT, midEmitEvent, type, id);
-    if (env->ExceptionOccurred()) {
-      env->ExceptionDescribe();
+    debug_printf ("[BINDING-COMMONS]  -  @GS_EmitEvent  -  Type: %u, ID: %lu\n", type, id);
+    m_env->CallVoidMethod(jobjIT, midEmitEvent, type, id);
+    if (m_env->ExceptionOccurred()) {
+      m_env->ExceptionDescribe();
       exit(1);
     }
   }
+
   if (isAttached==1){
-  	jvm->DetachCurrentThread();
+  	m_jvm->DetachCurrentThread();
   }
 }

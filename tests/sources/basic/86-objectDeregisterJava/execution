@@ -25,7 +25,7 @@
   #----------------------------------------------------------------------------------
   # Run application 1 - ObjectDeregister
   echo
-  echo "*** RUNNING JAVA APPLICATION SIMPLE"
+  echo "*** RUNNING JAVA APPLICATION OBJECTDEREGISTER"
   output_log="${target_log_folder}/objectDeregister_0${retryNum}.outputlog"
   error_log="${target_log_folder}/objectDeregister_0${retryNum}.errorlog"
   expectedTime=3600s

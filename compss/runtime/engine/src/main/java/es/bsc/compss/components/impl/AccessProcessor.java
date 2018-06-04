@@ -663,9 +663,15 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @param loc
      */
     public void markForDeletion(DataLocation loc) {
-        if (!requestQueue.offer(new DeleteFileRequest(loc))) {
+        LOGGER.debug("Marking data " + loc + " for deletion");
+        Semaphore sem = new Semaphore(0);
+        if (!requestQueue.offer(new DeleteFileRequest(loc, sem))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");
         }
+     // Wait for response
+        
+        sem.acquireUninterruptibly();
+        LOGGER.debug("Sata " + loc + " deleted");
     }
     
     /**

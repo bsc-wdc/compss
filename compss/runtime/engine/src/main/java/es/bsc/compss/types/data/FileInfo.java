@@ -16,14 +16,30 @@
  */
 package es.bsc.compss.types.data;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collection;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.comm.Comm;
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.operation.copy.Copy;
+import es.bsc.compss.types.uri.MultiURI;
+import es.bsc.compss.util.ErrorManager;
 
 
 public class FileInfo extends DataInfo {
 
     // Original name and location of the file
     private final DataLocation origLocation;
-
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
 
     public FileInfo(DataLocation loc) {
         super();
@@ -32,6 +48,59 @@ public class FileInfo extends DataInfo {
 
     public DataLocation getOriginalLocation() {
         return origLocation;
+    }
+    
+    @Override
+    public boolean delete() {
+        LOGGER.debug("[FileInfo] Deleting file of data " + this.getDataId());
+        DataVersion firstVersion = this.getFirstVersion();
+        if (firstVersion!=null){
+            LogicalData ld = Comm.getData(firstVersion.getDataInstanceId().getRenaming());
+            if (ld!=null){
+                
+                for (DataLocation loc: ld.getLocations()){
+                    
+                    MultiURI uri = loc.getURIInHost(Comm.getAppHost());
+                    LOGGER.debug("[FileInfo] Evaluating location for " + ld.getName());
+                    if (uri!=null){
+                        LOGGER.debug("[FileInfo] Location is "+ loc + " original is "+ origLocation);
+                        if (loc.equals(origLocation)){
+                        LOGGER.debug("[FileInfo] Waiting for ending copies for "+ ld.getName());
+                        waitForEndingCopies(ld, loc);
+                        String newPath = Comm.getAppHost().getTempDirPath()+File.separator+firstVersion.getDataInstanceId().getRenaming();     
+                        LOGGER.debug("[FileInfo] Moadifying path in location " + newPath);
+                        loc.modifyPath(newPath);
+                        try {
+                            LOGGER.debug("[FileInfo] Moving " + uri.getPath()+ " to " +newPath);
+                            Files.move(new File(uri.getPath()).toPath(), new File(newPath).toPath());
+                        } catch (IOException e) {
+                            ErrorManager.error("File " + uri.getPath() +" cannot be moved to " + newPath,e);
+                        }
+                        }
+                            
+                    }
+                }
+            }
+        }else{
+            LOGGER.debug("[FileInfo] First Version is null");
+        }
+        return super.delete();
+    }
+
+    private void waitForEndingCopies(LogicalData ld, DataLocation loc) {
+        ld.lockHostRemoval();
+        Collection<Copy> copiesInProgress = ld.getCopiesInProgress();
+        if (copiesInProgress != null && !copiesInProgress.isEmpty()) {
+            for (Copy copy : copiesInProgress) {
+                LOGGER.debug("[FileInfo] Copy in progress... for data " + ld.getName());
+                if (copy.getSourceData().equals(ld)){
+                    LOGGER.debug("[FileInfo] Waiting for end");
+                    Copy.waitForCopyTofinish(copy, Comm.getAppHost().getNode());
+                }
+            }
+        }
+        ld.releaseHostRemoval();
+        
     }
 
 }

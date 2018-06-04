@@ -1285,4 +1285,9 @@ public class NIOWorker extends NIOAgent {
     public PrintStream getThreadOutStream(){
         return out.getStream();
     }
+    
+    @Override
+    protected boolean isMaster() {
+        return false;
+    }
 }

@@ -30,9 +30,9 @@ import storage.StorageItf;
 
 public class BindingObjectLocation extends DataLocation {
 
-    private final String id;
+    private String id;
     BindingObject bindingObject;
-    private final MultiURI uri;
+    private MultiURI uri;
 
     public BindingObjectLocation(Resource host, BindingObject bo) {
         super(); 
@@ -122,6 +122,15 @@ public class BindingObjectLocation extends DataLocation {
     @Override
     public String toString() {
         return this.uri.toString();
+    }
+
+    @Override
+    public void modifyPath(String path) {
+        this.id = path;
+        this.bindingObject = new BindingObject(path, bindingObject.getType(), bindingObject.getElements());
+        MultiURI olduri = this.uri;
+        this.uri = new MultiURI(Protocol.BINDING_URI, olduri.getHost(), id+"#"+bindingObject.getType()+"#"+bindingObject.getElements());
+        
     }
     
 

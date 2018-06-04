@@ -30,6 +30,7 @@ import es.bsc.comm.nio.NIONode;
 import es.bsc.comm.stage.Transfer;
 import es.bsc.comm.stage.Transfer.Destination;
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -354,13 +355,37 @@ public abstract class NIOAgent {
                 }
                 c.sendDataFile(path);
             } else {
-                ErrorManager.warn("Can't send file '" + path + "' via connection " + c.hashCode() + " because file doesn't exist.");
-                handleDataToSendNotAvailable(c, d);
+                //Not found check if it has been moved to the target name (renames 
+                if (!f.getName().equals(d.getName())){
+                    File renamed ;
+                    if (isMaster()){ //renamed will be in the masters file path
+                        renamed = new File(Comm.getAppHost().getCompleteRemotePath(DataType.FILE_T, d.getName()).getPath());
+                    }else{ //worker renamed will be in the same path
+                        renamed = new File(f.getParentFile().getAbsolutePath()+File.separator+d.getName());
+                    }
+                    if (renamed.exists()){
+                        if (DEBUG){
+                            LOGGER.debug(DBG_PREFIX +"Connection " + c.hashCode() + " will transfer file " + renamed.getAbsolutePath() + " as data " + d.getName());
+                        }
+                        c.sendDataFile(renamed.getAbsolutePath());
+                    }else{
+                        ErrorManager.warn("Can't send niether file '" + path + "' nor file '" + renamed.getAbsolutePath() + "' via connection " + c.hashCode() + " because files don't exist.");
+                        handleDataToSendNotAvailable(c, d);
+                    }
+                }else{
+                    ErrorManager.warn("Can't send file '" + path + "' via connection " + c.hashCode() + " because file doesn't exist.");
+                    handleDataToSendNotAvailable(c, d);
+                }
             }
         }else{
+            if (DEBUG){
+                LOGGER.debug(DBG_PREFIX +"Connection " + c.hashCode() + " will transfer object of data " + d.getName());
+            }
             sendObject(c,path,d);
         }
     }
+
+    protected abstract boolean isMaster();
 
     private void sendBindingObject(Connection c, String path, Data d) {
         if (path.contains("#")){

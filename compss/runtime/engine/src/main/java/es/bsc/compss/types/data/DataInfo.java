@@ -172,5 +172,9 @@ public abstract class DataInfo {
     	return currentVersion.isToDelete();
     }
     
+    public DataVersion getFirstVersion(){
+        return versions.get(1);
+    }
+    
     
 }

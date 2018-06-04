@@ -71,23 +71,24 @@
   echo "NEW PATH=$PATH" 
   # CREATE TARGET FOLDER
   echo "- Create target folder"
-  rm -rf "${targetDir}"
-  mkdir -p "${targetDir}"
-  mkdir -p "${targetDir}"/Doc
-  mkdir -p "${targetDir}"/Dependencies
-  mkdir -p "${targetDir}"/Dependencies/extrae
-  mkdir -p "${targetDir}"/Dependencies/pluto
-  mkdir -p "${targetDir}"/Runtime
-  mkdir -p "${targetDir}"/Runtime/configuration
-  mkdir -p "${targetDir}"/Runtime/scripts
-  mkdir -p "${targetDir}"/Runtime/adaptors
-  mkdir -p "${targetDir}"/Runtime/connectors
-  mkdir -p "${targetDir}"/Runtime/cloud-conn
-  mkdir -p "${targetDir}"/Runtime/scheduler
-  mkdir -p "${targetDir}"/Tools
-  mkdir -p "${targetDir}"/Tools/monitor
-  mkdir -p "${targetDir}"/Bindings
-  mkdir -p "${targetDir}"/Bindings/bindings-common
+  rm -rf ${targetDir}
+  mkdir -p ${targetDir}
+  mkdir -p ${targetDir}/Doc
+  mkdir -p ${targetDir}/Dependencies
+  mkdir -p ${targetDir}/Dependencies/extrae
+  mkdir -p ${targetDir}/Runtime
+  mkdir -p ${targetDir}/Runtime/configuration
+  mkdir -p ${targetDir}/Runtime/scripts
+  mkdir -p ${targetDir}/Runtime/adaptors
+  mkdir -p ${targetDir}/Runtime/connectors
+  mkdir -p ${targetDir}/Runtime/cloud-conn
+  mkdir -p ${targetDir}/Runtime/scheduler
+  mkdir -p ${targetDir}/Tools
+  mkdir -p ${targetDir}/Tools/monitor
+  mkdir -p ${targetDir}/Tools/storage
+  mkdir -p ${targetDir}/Bindings
+  mkdir -p ${targetDir}/Bindings/bindings-common
+  
 
   # RUNTIME DEPLOYMENT
   echo "- Copy Runtime deployment files"
@@ -205,6 +206,16 @@
   for scheduler in $schedulers; do
     cp "$scheduler" "${targetDir}"/Runtime/scheduler/
   done
+
+  
+  # Storage
+  echo "--- Copy storage implementations"
+
+  echo "Dealing with Redis storage implementation..."
+  cd "${tmpDir}/utils/storage/redisPSCO"
+  ./make_bundle.sh
+  cp -r COMPSs-Redis-bundle "${targetDir}/Tools/storage/redis"
+  cd -
 
   #Connectors
   echo "--- Copy Runtime Connectors"

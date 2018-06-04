@@ -331,6 +331,7 @@ install_compss() {
   cp -r "${SOURCES_DIR}/dependencies" "${TMP_DIR}"
   cp -r "${SOURCES_DIR}/doc" "${TMP_DIR}"
   cp -r "${SOURCES_DIR}/files" "${TMP_DIR}"
+  cp -r "${SOURCES_DIR}/utils" "${TMP_DIR}"
   cp "${SOURCES_DIR}/LICENSE" "${TMP_DIR}"
   cp "${SOURCES_DIR}/NOTICE" "${TMP_DIR}"
   cp "${SOURCES_DIR}/pom.xml" "${TMP_DIR}"
@@ -360,6 +361,7 @@ install_compss() {
   mkdir -p ${targetDir}/Runtime/connectors
   mkdir -p ${targetDir}/Runtime/cloud-conn
   mkdir -p ${targetDir}/Runtime/scheduler
+  mkdir -p ${targetDir}/Runtime/storage
   mkdir -p ${targetDir}/Tools
   mkdir -p ${targetDir}/Tools/monitor
   mkdir -p ${targetDir}/Bindings
@@ -450,6 +452,15 @@ install_compss() {
   echo "--- Copy schedulers"
   rm -r "${TMP_DIR}/compss/runtime/scheduler/commons"
   find "${TMP_DIR}/compss/runtime/scheduler/" -name "*.jar" -exec cp {} ${targetDir}/Runtime/scheduler/ \;
+
+  # Storage
+  echo "--- Copy storage implementations"
+
+  echo "Dealing with Redis storage implementation..."
+  cd "${TMP_DIR}/utils/storage/redisPSCO"
+  ./make_bundle.sh
+  cp -r COMPSs-Redis-bundle "${targetDir}/Runtime/storage/redis"
+  cd -
 
   # Connectors
   echo "--- Copy Runtime Connectors"

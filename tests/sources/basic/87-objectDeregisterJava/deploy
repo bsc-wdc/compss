@@ -5,7 +5,7 @@
   target_base_dir=$2
   
   # Copy files
-  cp "${source_base_dir}"/target/86-objectDeregister.jar "${target_base_dir}"/objectDeregister.jar
+  cp "${source_base_dir}"/target/87-objectDeregister.jar "${target_base_dir}"/objectDeregister.jar
   cp -r "${source_base_dir}"/c/ "${target_base_dir}"
   cp "${source_base_dir}"/project.xml "${target_base_dir}"/project.xml
   cp "${source_base_dir}"/resources.xml "${target_base_dir}"/resources.xml

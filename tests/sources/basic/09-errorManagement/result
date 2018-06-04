@@ -49,7 +49,7 @@
 
   # Specific ERRMGR checker
   if [ -f "${output_file_testNonExistingInFile}" ]; then
-     if $(cat "${output_file_testNonExistingInFile}" | tr '\n' ' ' | grep -E -q "[ERRMGR].*WARNING:.*(Can't send file|could not be copied).*Shutting"); then
+     if $(cat "${output_file_testNonExistingInFile}" | tr '\n' ' ' | grep -E -q "[ERRMGR].*WARNING:.*(Can't send niether file|could not be copied).*Shutting"); then
      	echo "[RESULT_CHECKER] ErrorManagerTestNonExistingInFile OK" | tee -a ${output_file_testNonExistingInFile}
      else
 	echo "[ERROR] The current test output for ErrorManagerTestNonExistingInFile does not match the expected output." | tee -a "${output_file_testNonExistingInFile}"

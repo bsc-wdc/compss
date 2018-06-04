@@ -4,7 +4,7 @@ FROM compss-ubuntu16:stable
 # Non public credentials
 # =============================================================================
 
-RUN wget http://compss.bsc.es/releases/repofiles/repo_deb_ubuntu_x86-64.list -O /etc/apt/sources.list.d/compss-framework_x86-64.list
+RUN wget http://compss.bsc.es/releases/repofiles/repo_deb_ubuntu_x86-64((REPO)).list -O /etc/apt/sources.list.d/compss-framework_x86-64.list
 RUN wget -qO - http://compss.bsc.es/repo/debs/deb-gpg-bsc-grid.pub.key | apt-key add -
 RUN apt-get update
 RUN apt-get install -y compss-framework

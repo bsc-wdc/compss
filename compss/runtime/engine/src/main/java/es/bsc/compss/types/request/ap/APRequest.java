@@ -61,7 +61,8 @@ public abstract class APRequest extends Request {
         TASKSTATE,
         DELETE_FILE,
         FINISH_ACCESS_FILE,
-        DEBUG
+        DEBUG,
+        DEREGISTER_OBJECT
     }
 
     /**

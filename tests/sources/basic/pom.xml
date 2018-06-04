@@ -111,7 +111,12 @@
 		<!-- Module 78 is 78-matmul_mo_sched_profile_config_c -->
 		<module>80-externalAdaptationJava</module>
                 <!-- Module 81 is 81-noreturns_python -->
-
+				<!-- Module 82 is 82-module_python -->
+				<!-- Module 83 is 83-gpu_fpga_implementation_c -->
+				<!-- Module 84 is 84-interpreters_python -->
+				<!-- Module 85 is 85-kill_processes_python -->
+				<!-- Module 86 is 86-testArrays_c -->
+				<module>87-objectDeregisterJava</module>
 		<!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

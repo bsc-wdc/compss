@@ -186,7 +186,9 @@ public abstract class DataLocation implements Comparable<DataLocation> {
     public abstract List<Resource> getHosts();
 
     public abstract String getPath();
-
+    
+    public abstract void modifyPath(String path);
+    
     public abstract MultiURI getURIInHost(Resource targetHost);
 
     public abstract boolean isTarget(DataLocation target);

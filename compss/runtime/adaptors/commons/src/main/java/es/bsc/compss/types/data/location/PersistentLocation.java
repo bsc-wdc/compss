@@ -171,4 +171,10 @@ public class PersistentLocation extends DataLocation {
         }
     }
 
+    @Override
+    public void modifyPath(String path) {
+        // Nothing to do
+        
+    }
+
 }

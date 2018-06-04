@@ -51,7 +51,6 @@ import org.apache.logging.log4j.Logger;
 import storage.StorageException;
 import storage.StorageItf;
 
-
 /**
  * Component to handle the specific data structures such as file names, versions, renamings and values
  *
@@ -546,11 +545,32 @@ public class DataInfoProvider {
             return null;
         }
         DataInfo dataInfo = idToData.get(dataId);
-        // nameToId.remove(locationKey);
+        nameToId.remove(locationKey);
         if (dataInfo.delete()) {
             // idToData.remove(dataId);
         }
         return dataInfo;
+    }
+    
+    /**
+     * Deletes the data associated with the code
+     * 
+     * @param code
+     * @return ObjectInfo
+     */
+    public ObjectInfo deleteData(int code) {
+    	LOGGER.debug("Deleting Data associated with code: " + String.valueOf(code));
+    	
+        Integer id = codeToId.get(code);
+        if (id == null)
+        	return null;
+        
+        ObjectInfo oi = (ObjectInfo) idToData.get(id);
+        
+        //We delete the data associated with all the versions of the same object
+        oi.delete(); 
+        
+        return oi;
     }
 
     /**

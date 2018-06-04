@@ -716,4 +716,9 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         
     }
 
+    @Override
+    protected boolean isMaster() {
+        return true;
+    }
+
 }

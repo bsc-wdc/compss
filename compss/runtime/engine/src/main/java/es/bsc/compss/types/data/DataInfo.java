@@ -148,7 +148,6 @@ public abstract class DataInfo {
     }
 
     public boolean delete() {
-        //this.toDelete = true;
         if (deletionBlocks > 0) {
             pendingDeletions.addAll(versions.values());
         } else {
@@ -171,6 +170,10 @@ public abstract class DataInfo {
     
     public boolean isCurrentVersionToDelete(){
     	return currentVersion.isToDelete();
+    }
+    
+    public DataVersion getFirstVersion(){
+        return versions.get(1);
     }
     
     

@@ -28,7 +28,7 @@ import java.util.List;
 public class SharedLocation extends DataLocation {
 
     private final String diskName;
-    private final String path;
+    private String path;
     private final Protocol protocol;
 
 
@@ -137,6 +137,12 @@ public class SharedLocation extends DataLocation {
     @Override
     public String toString() {
         return "shared:" + this.diskName + File.separator + this.path;
+    }
+
+    @Override
+    public void modifyPath(String path) {
+        this.path = path;
+        
     }
 
 }

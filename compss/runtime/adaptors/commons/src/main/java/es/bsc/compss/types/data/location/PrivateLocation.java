@@ -25,7 +25,7 @@ import java.util.List;
 
 public class PrivateLocation extends DataLocation {
 
-    private final MultiURI uri;
+    private MultiURI uri;
 
 
     public PrivateLocation(Protocol protocol, Resource host, String path) {
@@ -106,6 +106,12 @@ public class PrivateLocation extends DataLocation {
     @Override
     public String toString() {
         return this.uri.toString();
+    }
+
+    @Override
+    public void modifyPath(String path) {
+        this.uri = new MultiURI(this.uri.getProtocol(), this.uri.getHost(), path);
+        
     }
 
 }

@@ -545,7 +545,7 @@ public class DataInfoProvider {
             return null;
         }
         DataInfo dataInfo = idToData.get(dataId);
-        // nameToId.remove(locationKey);
+        nameToId.remove(locationKey);
         if (dataInfo.delete()) {
             // idToData.remove(dataId);
         }

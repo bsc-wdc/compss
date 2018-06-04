@@ -9,7 +9,7 @@ public class Main {
 
     private static final String FILE_NAME = "counterFile_";
 
-    private static final int SLEEP_WAIT_FOR_RUNTIME = 30_000; // ms
+    private static final int SLEEP_WAIT_FOR_RUNTIME = 10_000; // ms
 
 
     private static void generateTree(int taskWidth, int taskChilds, String fileInout, String fileIn) {
@@ -28,6 +28,11 @@ public class Main {
         }
 
         MainImpl.increment(fileInout, fileIn);
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
         for (int i = 1; i < taskChilds; ++i) {
             file2 = fileInout + taskWidth + i;
             try {

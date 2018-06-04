@@ -178,8 +178,10 @@ public abstract class Resource implements Comparable<Resource> {
      * @param obsolete
      */
     public final void addObsolete(LogicalData obsolete) {
-        synchronized (obsoletes) {
-            obsoletes.add(obsolete);
+        if (getType() == Type.WORKER) {
+	    	synchronized (obsoletes) {
+	            obsoletes.add(obsolete);
+	        }
         }
 
         // Remove from private files
@@ -192,6 +194,7 @@ public abstract class Resource implements Comparable<Resource> {
         for (String diskName : sharedDisks) {
             SharedDiskManager.removeLogicalData(diskName, obsolete);
         }
+        
     }
 
     /**

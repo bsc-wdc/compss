@@ -68,10 +68,12 @@ import es.bsc.compss.types.request.ap.TransferOpenFileRequest;
 import es.bsc.compss.types.request.ap.UnblockResultFilesRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.WaitForTaskRequest;
+import es.bsc.compss.types.request.ap.DeregisterObject;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
+
 
 /**
  * Component to handle the tasks accesses to files and object
@@ -661,9 +663,15 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @param loc
      */
     public void markForDeletion(DataLocation loc) {
-        if (!requestQueue.offer(new DeleteFileRequest(loc))) {
+        LOGGER.debug("Marking data " + loc + " for deletion");
+        Semaphore sem = new Semaphore(0);
+        if (!requestQueue.offer(new DeleteFileRequest(loc, sem))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");
         }
+     // Wait for response
+        
+        sem.acquireUninterruptibly();
+        LOGGER.debug("Sata " + loc + " deleted");
     }
     
     /**
@@ -774,6 +782,20 @@ public class AccessProcessor implements Runnable, TaskProducer {
         if (!requestQueue.offer(urfr)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "unlock result files");
         }
+    }
+    
+    /**
+     * Deregister the given object
+     *
+     * @param o
+     */
+    public void deregisterObject(Object o) {
+    	
+        if (!requestQueue.offer(new DeregisterObject(o))) {
+
+            ErrorManager.error(ERROR_QUEUE_OFFER + "deregister object");
+        }
+    
     }
 
 }

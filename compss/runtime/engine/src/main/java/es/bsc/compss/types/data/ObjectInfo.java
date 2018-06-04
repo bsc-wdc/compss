@@ -16,12 +16,15 @@
  */
 package es.bsc.compss.types.data;
 
+import java.util.LinkedList;
+
+import es.bsc.compss.comm.Comm;
+
 public class ObjectInfo extends DataInfo {
 
     // Hash code of the object
 
     private int code;
-
 
     public ObjectInfo(int code) {
         super();
@@ -31,5 +34,32 @@ public class ObjectInfo extends DataInfo {
     public int getCode() {
         return code;
     }
-
+    
+    @Override
+    public boolean delete() {
+        if (deletionBlocks > 0) {
+            pendingDeletions.addAll(versions.values());
+        } else {
+            LinkedList<Integer> removedVersions = new LinkedList<>();
+            for (DataVersion version : versions.values()) {
+            	String sourceName = version.getDataInstanceId().getRenaming();
+                if (version.delete()) {
+                	LogicalData ld = Comm.getData(sourceName);
+                	if (ld != null)
+                		ld.removeValue();
+                	
+                	Comm.removeData(sourceName);
+                    removedVersions.add(version.getDataInstanceId().getVersionId());
+                }
+            }
+            for (int versionId : removedVersions) {
+                versions.remove(versionId);
+            }
+            if (versions.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
 }

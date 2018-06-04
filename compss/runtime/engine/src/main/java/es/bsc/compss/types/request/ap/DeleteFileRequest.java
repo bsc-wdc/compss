@@ -17,6 +17,7 @@
 package es.bsc.compss.types.request.ap;
 
 import java.io.File;
+import java.util.concurrent.Semaphore;
 
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
@@ -29,10 +30,11 @@ import es.bsc.compss.types.data.location.DataLocation;
 public class DeleteFileRequest extends APRequest {
 
     private final DataLocation loc;
+    private final Semaphore sem;
 
-
-    public DeleteFileRequest(DataLocation loc) {
+    public DeleteFileRequest(DataLocation loc, Semaphore sem) {
         this.loc = loc;
+        this.sem = sem;
     }
 
     public DataLocation getLocation() {
@@ -41,25 +43,28 @@ public class DeleteFileRequest extends APRequest {
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
+        LOGGER.info("[DeleteFileRequest] Notify data delete to DIP...");
         FileInfo fileInfo = (FileInfo) dip.deleteData(loc);
-
         if (fileInfo == null) {
             // File is not used by any task, we can erase it
-
             // Retrieve the first valid URI location (private locations have only 1, shared locations may have more)
             String filePath = loc.getURIs().get(0).getPath();
             File f = new File(filePath);
-            if (f.delete()) {
-                LOGGER.info("File " + filePath + "deleted");
-            } else {
-                LOGGER.error("Error on deleting file " + filePath);
+            if (f.exists()){
+                if (f.delete()) {
+                    LOGGER.info("[DeleteFileRequest] File " + filePath + "deleted");
+                } else {
+                    LOGGER.error("[DeleteFileRequest] Error on deleting file " + filePath);
+                }
             }
 
         } else { // file is involved in some task execution
             // File Won't be read by any future task or from the main code.
             // Remove it from the dependency analysis and the files to be transferred back
-            ta.deleteFile(fileInfo);
+            LOGGER.info("[DeleteFileRequest] Deleting Data in Task Analyser");
+            ta.deleteData(fileInfo);
         }
+        sem.release();
     }
 
     @Override

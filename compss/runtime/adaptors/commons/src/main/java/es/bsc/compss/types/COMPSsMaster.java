@@ -146,7 +146,7 @@ public class COMPSsMaster extends COMPSsNode {
                         if (DEBUG) {
                             LOGGER.debug("Copy in progress tranfering " + ld.getName() + "to master. Waiting for finishing");
                         }
-                        waitForCopyTofinish(copy);
+                        Copy.waitForCopyTofinish(copy, this);
                         //try {
                             if (DEBUG) {
                                 LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget() + " to " + tgtBO.getName());
@@ -169,7 +169,7 @@ public class COMPSsMaster extends COMPSsNode {
                             return;
 
                     } else if (copy.getTargetData() != null && copy.getTargetData().getAllHosts().contains(Comm.getAppHost())) {
-                        waitForCopyTofinish(copy);
+                        Copy.waitForCopyTofinish(copy, this);
                         //try {
                             if (DEBUG) {
                                 LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget() + " to " + tgtBO.getName());
@@ -324,7 +324,7 @@ public class COMPSsMaster extends COMPSsNode {
                         if (DEBUG) {
                             LOGGER.debug("Copy in progress tranfering " + ld.getName() + "to master. Waiting for finishing");
                         }
-                        waitForCopyTofinish(copy);
+                        Copy.waitForCopyTofinish(copy,this);
                         try {
                             if (DEBUG) {
                                 LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget() + " to " + targetPath);
@@ -346,7 +346,7 @@ public class COMPSsMaster extends COMPSsNode {
                         }
 
                     } else if (copy.getTargetData() != null && copy.getTargetData().getAllHosts().contains(Comm.getAppHost())) {
-                        waitForCopyTofinish(copy);
+                        Copy.waitForCopyTofinish(copy, this);
                         try {
                             if (DEBUG) {
                                 LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget() + " to " + targetPath);
@@ -548,24 +548,7 @@ public class COMPSsMaster extends COMPSsNode {
 
     }
 
-    private void waitForCopyTofinish(Copy copy) {
-        Semaphore sem = new Semaphore(0);
-        SafeCopyListener currentCopylistener = new SafeCopyListener(sem);
-        copy.addEventListener(currentCopylistener);
-        currentCopylistener.addOperation();
-        currentCopylistener.enable();
-        try {
-            sem.acquire();
-        } catch (InterruptedException ex) {
-            ErrorManager.warn("Error waiting for files in resource " + getName() + " to get saved");
-            Thread.currentThread().interrupt();
-        }
-        if (DEBUG) {
-            LOGGER.debug("Copy " + copy.getName() + "(id: " + copy.getId() + ") is finished");
-        }
-
-    }
-
+    
     @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res, List<String> slaveWorkersNodeNames,
             JobListener listener) {

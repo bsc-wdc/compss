@@ -72,5 +72,15 @@ public interface LoaderAPI {
      * @return
      */
     public String getTempDir();
+    
+    /**
+     * 
+     * Removes the 
+     * 
+     * @param o
+     * @param hashcode
+     */
+    public void removeObject(Object o, int hashcode);
+
 
 }

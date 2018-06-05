@@ -44,21 +44,25 @@ at our webpage (http://compss.bsc.es) or at doc/Sample_applications.pdf
 ## BUILDING COMPSs
 
 * COMPSs Dependencies:
-	openjdk-7-jre openjdk-7-jdk graphviz xdg-utils libxml2 libxml2-dev python (>=2.7) libpython2.7 \
+
+	openjdk-8-jre openjdk-8-jdk graphviz xdg-utils libxml2 libxml2-dev python (>=2.7) libpython2.7 python-devel \
         build-essential autoconf automake autotools-dev libtool libboost-serialization-dev \
 	libboost-iostreams-dev gfortran 
 
 * Building dependencies
+
 	wget
 	maven		(3.0.x version)
 
 
 * Building COMPSs for all users
+
 	$ cd builders/
 	$ INSTALL_DIR=/opt/COMPSs/
 	$ sudo -E ./buildlocal [options] ${INSTALL_DIR}
 
 * Building COMPSs for current user
+
 	$ cd builders/
         $ INSTALL_DIR=$HOME/opt/COMPSs/
         $ ./buildlocal [options] ${INSTALL_DIR}

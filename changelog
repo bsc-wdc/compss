@@ -223,3 +223,40 @@ Known Limitations:
 
 For further information, please refer to “COMPSs User Manual: Application development guide”.
 
+Release number: 2.3 Daisy
+Release date: June-2018
+-------------------------------
+New features:
+        * Runtime:
+                - Persistent storage interface implementation with Redis back-end
+                - Support for FPGA constraints and reprogram scripts 
+                - Support for PBS queue system and the Archer Supercomputer
+                - Support for binding objects (no file serialization)
+                - Support for deregister objects in order to reduce application memory usage 
+
+        * Python:
+                - Support for Python 3
+                - Support for python environments
+                - Support for running pyCOMPSs as python module
+                - Support for functions as parameters
+                - Tasks returning multiple elements (returns=#)
+
+        * C:
+                - Persistent worker with Memory-to-memory transfers
+                - Support for arrays (no serialization required)
+
+Improvements:
+        - Source Code and example applications distribution on Github
+        - Automatic inference of task return
+        - Improved obsolete object cleanup.
+        - Improved tracing support for persistent object applications
+        - Improved finalization process to reduce zombie processes
+        - Several bug fixes  
+
+Known Limitations:
+        - Tasks that invoke Numpy and MKL may experience issues if tasks use a different number of MKL threads. This is due to
+          the fact that MKL reuses threads in the different calls and it does not change the number of threads from one call to another.
+
+
+For further information, please refer to “COMPSs User Manual: Application development guide”.
+

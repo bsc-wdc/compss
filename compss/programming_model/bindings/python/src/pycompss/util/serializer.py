@@ -180,7 +180,6 @@ def serialize_to_string(obj):
     handler.close()
     return ret
 
-
 def deserialize_from_handler(handler):
     """
     Deserialize an object from a file.
@@ -188,9 +187,8 @@ def deserialize_from_handler(handler):
     :param handler: File name from where the object is going to be deserialized.
     :return: The object deserialized.
     """
-
-    # Get the most common order of the serializers
-    serializers = get_serializer_priority(numpy.zeros(1))
+    # get the most common order of the serializers
+    serializers = get_serializer_priority(numpy)
     original_position = handler.tell()
     # Let's try to deserialize
     for serializer in serializers:

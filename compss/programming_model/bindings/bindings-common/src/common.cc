@@ -79,8 +79,6 @@ JNIEnv* create_vm(JavaVM ** jvm) {
       // read in one line at a time
       getline(fin, line);
       // read data from file
-      debug_printf("[BINDING_COMMONS]  -  @create_vm  -  reading line: \n");
-      debug_printf("[BINDING_COMMONS]  -  @create_vm  - %s\n", line.data());
       string fileOption = strdup(line.data());
       if (fileOption != "" && fileOption.npos >= 0) {
         JavaVMOption *option = new JavaVMOption();
@@ -115,9 +113,11 @@ JNIEnv* create_vm(JavaVM ** jvm) {
           // It is a JVM option
           option->optionString = strdup(fileOption.data());
           options.push_back(*option);
-          debug_printf("[BINDING_COMMONS]  -  @create_vm  -  option %s\n", option->optionString);
+          //Uncomment to debug JVM options errors
+          //debug_printf("[BINDING_COMMONS]  -  @create_vm  -  option %s\n", option->optionString);
         } else {
           // It is an environment variable
+          //Uncomment to debug JVM options errors
           debug_printf("[BINDING_COMMONS]  -  @create_vm  -  Putting environment variable\n");
           int ret = putenv(strdup(fileOption.data()));
           if (ret < 0) {
@@ -167,17 +167,15 @@ int check_and_attach(JavaVM * jvm, JNIEnv *&env)
 {
   int res = jvm->GetEnv((void **)&env, (int)JNI_VERSION_1_8);
   if (res == JNI_EDETACHED) {
-        debug_printf("[BINDING_COMMONS]  -  @check_an_attach - Attaching\n");
         if (jvm->AttachCurrentThread((void **) &env, NULL) != 0) {
             printf("Failed to attach to the JVM");fflush(NULL);
             return 0;
         }else{
-        	debug_printf("[BINDING_COMMONS]  -  @check_an_attach - Attached\n");
+        	debug_printf("[BINDING_COMMONS]  -  @check_an_attach - Thread Attached to JVM.\n");
         	return 1;
         }
   } else {
     // attached
-	debug_printf("[BINDING_COMMONS]  -  @check_an_attach - Thread already attached\n");
 	return 0;
   }
 }

@@ -16,8 +16,8 @@
 
 #include "Block.h"
 #include <unistd.h>
-#include<fstream>
-
+#include <fstream>
+#include <iostream>
 
 Block::Block(int bSize) {
 	M = bSize;

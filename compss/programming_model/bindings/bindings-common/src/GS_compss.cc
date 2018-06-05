@@ -1001,7 +1001,7 @@ void GS_Delete_Object(char *file_name, int **buf)
   debug_printf("[BINDING-COMMONS]  -  @GS_Delete_Binding_Object  -  COMPSs obj: %s\n", file_name);
 }
 
-void GS_Barrier(long appId)
+void GS_Barrier(long _appId)
 {
   debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  Waiting tasks for APP id: %lu", appId);
   int isAttached = check_and_attach(m_jvm, m_env);

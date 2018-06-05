@@ -180,6 +180,15 @@ def serialize_to_string(obj):
     handler.close()
     return ret
 
+def get_numpy_dummy_obj():
+    """
+    Return a small, dummy, numpy object
+    """
+    try:
+      return numpy.zeros(1)
+    except:
+      return []
+
 def deserialize_from_handler(handler):
     """
     Deserialize an object from a file.
@@ -188,7 +197,7 @@ def deserialize_from_handler(handler):
     :return: The object deserialized.
     """
     # get the most common order of the serializers
-    serializers = get_serializer_priority(numpy)
+    serializers = get_serializer_priority(get_numpy_dummy_obj())
     original_position = handler.tell()
     # Let's try to deserialize
     for serializer in serializers:

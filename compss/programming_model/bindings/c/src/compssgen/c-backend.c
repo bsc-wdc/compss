@@ -1163,7 +1163,7 @@ static void add_checkinCache_and_management(FILE *outFile, const char* name, con
 	//New cache
 	fprintf(outFile, "\t\t\t\t\t\t compss_pointer cp;\n");
 	fprintf(outFile, "\t\t\t\t\t\t cp.type= %d;\n", position);
-	fprintf(outFile, "\t\t\t\t\t\t cp.elements= %s;\n", elements);
+	fprintf(outFile, "\t\t\t\t\t\t cp.elements= %s_elements;\n", name);
 	fprintf(outFile, "\t\t\t\t\t\t cp.size = cp.elements * sizeof(%s);\n", dataType);
 	fprintf(outFile, "\t\t\t\t\t\t int res = cache->pullFromFile(%s_dest_id, %s_dest_id, cp);\n", name, name);
 

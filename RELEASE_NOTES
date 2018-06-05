@@ -7,31 +7,34 @@ such as Clusters, Grids and Clouds. COMP superscalar also features a runtime sys
 applications at execution time.
 
 
-Release number: 2.2 Camellia
-Release date: November-2017
+Release number: 2.3 Daisy
+Release date: June-2018
 -------------------------------
 New features:
         * Runtime:
-                - Support Elasticity in SLURM-managed clusters
-                - Support for Elasticity with Singularity containers
-                - Integration of Decaf flows as COMPSs tasks
-                - Changed integratedtoolkit packages by es.bsc.compss (requires changes in Java application codes)
+                - Persistent storage interface implementation with Redis back-end
+                - Support for FPGA constraints and reprogram scripts
+                - Support for PBS queue system and the Archer Supercomputer
+                - Support for binding objects (no file serialization)
+                - Support for deregister objects in order to reduce application memory usage
 
         * Python:
-                - Support for Decaf applications as tasks
-                - External decorators (MPI, Binary, Decaf, etc.) extended with streams and prefixes support
-                - Added support for applications that use the argparse library
-                - Added support for dictionary unrolling on task call
+                - Support for Python 3
+                - Support for python environments
+                - Support for running pyCOMPSs as python module
+                - Support for functions as parameters
+                - Tasks returning multiple elements (returns=#)
 
         * C:
-                - Persistent worker in C-binding (enabled with persistent_worker_c=true)            
-                - Inter-task object cache 
-                - Support for object methods as tasks
-                - Added support applications with threads in master code
+                - Persistent worker with Memory-to-memory transfers
+                - Support for arrays (no serialization required)
 
 Improvements:
-        - Integration with Jupyter-notebook improved
-        - Improved cleanup - Unused files removal
+        - Source Code and example applications distribution on Github
+        - Automatic inference of task return
+        - Improved obsolete object cleanup.
+        - Improved tracing support for persistent object applications
+        - Improved finalization process to reduce zombie processes
         - Several bug fixes
 
 Known Limitations:
@@ -40,8 +43,6 @@ Known Limitations:
 
 
 For further information, please refer to “COMPSs User Manual: Application development guide”.
-
-------------------------------- 
 
 
 Please find more details about the COMP Superscalar framework at: 

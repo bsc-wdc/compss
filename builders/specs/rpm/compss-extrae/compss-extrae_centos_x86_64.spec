@@ -48,7 +48,7 @@ if [ -z ${JAVA_HOME} ]; then
     fi
   fi
   JAVA_LIB_DIR=$(dirname $libjvm)
-  JAVA_HOME=${JAVA_LIB_DIR}/../../../
+  JAVA_HOME=${JAVA_LIB_DIR}/../../../../
 else
   echo " - Using defined JAVA_HOME installation: ${JAVA_HOME}"
   libjvm=$(find -L ${JAVA_HOME} -name libjvm.so | head -n 1)

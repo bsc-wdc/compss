@@ -59,30 +59,26 @@ public class FileInfo extends DataInfo {
             if (ld!=null){
                 
                 for (DataLocation loc: ld.getLocations()){
-                    
                     MultiURI uri = loc.getURIInHost(Comm.getAppHost());
-                    LOGGER.debug("[FileInfo] Evaluating location for " + ld.getName());
                     if (uri!=null){
-                        LOGGER.debug("[FileInfo] Location is "+ loc + " original is "+ origLocation);
                         if (loc.equals(origLocation)){
-                        LOGGER.debug("[FileInfo] Waiting for ending copies for "+ ld.getName());
-                        waitForEndingCopies(ld, loc);
-                        String newPath = Comm.getAppHost().getTempDirPath()+File.separator+firstVersion.getDataInstanceId().getRenaming();     
-                        LOGGER.debug("[FileInfo] Moadifying path in location " + newPath);
-                        loc.modifyPath(newPath);
-                        try {
-                            LOGGER.debug("[FileInfo] Moving " + uri.getPath()+ " to " +newPath);
-                            Files.move(new File(uri.getPath()).toPath(), new File(newPath).toPath());
-                        } catch (IOException e) {
-                            ErrorManager.error("File " + uri.getPath() +" cannot be moved to " + newPath,e);
+                            waitForEndingCopies(ld, loc);
+                            String newPath = Comm.getAppHost().getTempDirPath()+File.separator+firstVersion.getDataInstanceId().getRenaming();     
+                            LOGGER.debug("[FileInfo] Modifying path in location " + loc + " with new path " + newPath);
+                            loc.modifyPath(newPath);
+                            try {
+                                LOGGER.debug("[FileInfo] Moving " + uri.getPath()+ " to " +newPath);
+                                Files.move(new File(uri.getPath()).toPath(), new File(newPath).toPath());
+                            } catch (IOException e) {
+                                ErrorManager.error("File " + uri.getPath() +" cannot be moved to " + newPath,e);
+                            }
                         }
-                        }
-                            
+
                     }
                 }
             }
         }else{
-            LOGGER.debug("[FileInfo] First Version is null");
+            LOGGER.debug("[FileInfo] First Version is null. Nothing to delete");
         }
         return super.delete();
     }
@@ -92,9 +88,8 @@ public class FileInfo extends DataInfo {
         Collection<Copy> copiesInProgress = ld.getCopiesInProgress();
         if (copiesInProgress != null && !copiesInProgress.isEmpty()) {
             for (Copy copy : copiesInProgress) {
-                LOGGER.debug("[FileInfo] Copy in progress... for data " + ld.getName());
                 if (copy.getSourceData().equals(ld)){
-                    LOGGER.debug("[FileInfo] Waiting for end");
+                    LOGGER.debug("[FileInfo] Waiting for copy of data " + ld.getName() + " to finish...");
                     Copy.waitForCopyTofinish(copy, Comm.getAppHost().getNode());
                 }
             }

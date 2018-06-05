@@ -612,7 +612,6 @@ void GS_On()
     exit(1);
   }
   //Obtaining Runtime Class
-  debug_printf ("[BINDING-COMMONS]  -  @GS_On  -  Getting Runtime class\n");
   jclass clsLocal = m_env->FindClass("es/bsc/compss/api/impl/COMPSsRuntimeImpl");
   check_and_treat_exception(m_env, "Error looking for the COMPSsRuntimeImpl class");
   clsITimpl = (jclass)m_env->NewGlobalRef(clsLocal);
@@ -621,11 +620,10 @@ void GS_On()
   if (clsITimpl != NULL) {
 
     //Get constructor ID for COMPSsRuntimeImpl
-	debug_printf ("[BINDING-COMMONS]  -  @GS_On  -  Getting Constructor method\n");
 	midITImplConst = m_env->GetMethodID(clsITimpl, "<init>", "()V");
     check_and_treat_exception(m_env, "Error looking for the init method");
 
-    debug_printf ("[BINDING-COMMONS]  -  @GS_On  -  Getting start method\n");
+    //Get startIT method ID
     midStartIT = m_env->GetMethodID(clsITimpl, "startIT", "()V");
     check_and_treat_exception(m_env,"Error looking for the startIT method");
 
@@ -720,7 +718,7 @@ void GS_Off()
 
 void GS_Get_AppDir(char **buf)
 {
-  debug_printf ("[BINDING-COMMONS]  -  @GS_Get_AppDir\n");
+  debug_printf ("[BINDING-COMMONS]  -  @GS_Get_AppDir - Getting application directory.\n");
 
   const char *cstr;
   jstring jstr = NULL;
@@ -733,8 +731,6 @@ void GS_Get_AppDir(char **buf)
 	  m_env->ExceptionDescribe();
 	  exit(1);
   }
-
-  debug_printf ("[BINDING-COMMONS]  -  @GS_GetS_AppDir - converting jstring to UTF Chars\n");
 
   cstr = m_env->GetStringUTFChars(jstr, &isCopy);
   *buf = strdup(cstr);
@@ -752,7 +748,7 @@ void GS_ExecuteTask(long _appId, char *class_name, char *method_name, int priori
 
   jobjectArray jobjOBJArr; /* array of Objects to be passed to executeTask */
 
-  debug_printf ("[BINDING-COMMONS]  -  @GS_ExecuteTask\n");
+  debug_printf ("[BINDING-COMMONS]  -  @GS_ExecuteTask - Processing task execution in bindings-common. \n");
 
   bool _priority = false;
   if (priority != 0) _priority = true;
@@ -763,7 +759,7 @@ void GS_ExecuteTask(long _appId, char *class_name, char *method_name, int priori
   jobjOBJArr = (jobjectArray)m_env->NewObjectArray(num_params*5, clsObject, m_env->NewObject(clsObject,midObjCon));
 
   for (int i = 0; i < num_params; i++) {
-    debug_printf("[BINDING-COMMONS]  -  @GS_ExecuteTask  -  Processing pos %d\n", i);
+    debug_printf("[BINDING-COMMONS]  -  @GS_ExecuteTask  -  Processing parameter %d\n", i);
     process_param(params, i, jobjOBJArr);
   }
 
@@ -784,7 +780,7 @@ void GS_ExecuteTaskNew(long _appId, char *signature, int priority, int num_nodes
 
   int isAttached = check_and_attach(m_jvm, m_env);
 
-  debug_printf ("[BINDING-COMMONS]  -  @GS_ExecuteTaskNew\n");
+  debug_printf ("[BINDING-COMMONS]  -  @GS_ExecuteTaskNew - Processing task execution in bindings-common. \n");
 
   bool _priority = false;
   if (priority != 0) _priority = true;
@@ -801,7 +797,7 @@ void GS_ExecuteTaskNew(long _appId, char *signature, int priority, int num_nodes
   jobjOBJArr = (jobjectArray)m_env->NewObjectArray(num_params*5, clsObject, m_env->NewObject(clsObject,midObjCon));
 
   for (int i = 0; i < num_params; i++) {
-    debug_printf("[BINDING-COMMONS]  -  @GS_ExecuteTaskNew  -  Processing pos %d\n", i);
+    debug_printf("[BINDING-COMMONS]  -  @GS_ExecuteTaskNew  -  Processing parameter %d\n", i);
     process_param(params, i, jobjOBJArr);
   }
 
@@ -829,7 +825,7 @@ void GS_RegisterCE(char *CESignature, char *ImplSignature, char *ImplConstraints
 {
   int isAttached = check_and_attach(m_jvm, m_env);
 
-  debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE\n");
+  debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - Registering Core element.\n");
   //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - CESignature:     %s\n", CESignature);
   //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - ImplSignature:   %s\n", ImplSignature);
   //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - ImplConstraints: %s\n", ImplConstraints);
@@ -1002,11 +998,12 @@ void GS_Delete_Object(char *file_name, int **buf)
   	m_jvm->DetachCurrentThread();
   }
 
-  debug_printf("[BINDING-COMMONS]  -  @GS_Delete_Binding_Object  -  COMPSs ob: %s\n", file_name);
+  debug_printf("[BINDING-COMMONS]  -  @GS_Delete_Binding_Object  -  COMPSs obj: %s\n", file_name);
 }
 
 void GS_Barrier(long appId)
 {
+  debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  Waiting tasks for APP id: %lu", appId);
   int isAttached = check_and_attach(m_jvm, m_env);
 
   m_env->CallVoidMethod(jobjIT, midBarrier, appId);
@@ -1018,7 +1015,7 @@ void GS_Barrier(long appId)
   if (isAttached==1){
     m_jvm->DetachCurrentThread();
   }
-  debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  APP id: %lu", appId);
+
 }
 
 void GS_BarrierNew(long _appId, int noMoreTasks) {
@@ -1026,6 +1023,9 @@ void GS_BarrierNew(long _appId, int noMoreTasks) {
 
   bool _noMoreTasks = false;
   if (noMoreTasks != 0) _noMoreTasks = true;
+
+  debug_printf("[   BINDING]  -  @GS_Barrier  -  Waiting tasks for APP id: %lu", appId);
+  debug_printf("[   BINDING]  -  @GS_Barrier  -  noMoreTasks: %s", _noMoreTasks ? "true":"false");
 
   m_env->CallVoidMethod(jobjIT, midBarrierNew, appId, _noMoreTasks);
   if (m_env->ExceptionOccurred()) {
@@ -1036,8 +1036,6 @@ void GS_BarrierNew(long _appId, int noMoreTasks) {
   if (isAttached==1){
     m_jvm->DetachCurrentThread();
   }
-  debug_printf("[   BINDING]  -  @GS_Barrier  -  APP id: %lu", appId);
-  debug_printf("[   BINDING]  -  @GS_Barrier  -  noMoreTasks: %s", _noMoreTasks ? "true":"false");
 }
 
 void GS_EmitEvent(int type, long id)

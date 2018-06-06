@@ -17,5 +17,13 @@
 
 # -*- coding: utf-8 -*-
 
+import sys
+
 # Empty string substitution key
 EMPTY_STRING_KEY = "3mPtY57r1Ng"
+
+# Coding/decoding escape
+if sys.version_info >= (3, 0):
+    STR_ESCAPE = 'unicode_escape'
+else:
+    STR_ESCAPE = 'string_escape'

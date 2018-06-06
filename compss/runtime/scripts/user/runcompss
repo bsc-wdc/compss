@@ -228,8 +228,8 @@ show_full_version() {
         .-~~-.--.            ____        ____
        :         )          |___ \      |___ \\
  .~ ~ -.\       /.- ~~ .      __) |       __) |
- >       \`.   .'       <     / __/   _   / __/
-(         .- -.         )   |_____| |_| |_____|
+ >       \`.   .'       <     / __/   _   ___) |
+(         .- -.         )   |_____| |_| |____/
  \`- -.-~  \`- -'  ~-.- -'
    (        :        )           _ _ .-:
     ~--.    :    .--~        .-~  .-~  }
@@ -248,23 +248,28 @@ EOF
 show_flower() {
   cat << EOF
 
-Camellia (Camellia japonica) - Flower
+Daisy (Bellis perennis) - Flower
 
-Camellia japonica is a flowering tree or shrub, usually 1.5–6 metres tall.
-In the wild, flowering is between January and March. The flowers appear
-along the branches, particularly towards the ends, and have very short
-stems. They occur either alone or in pairs, and are 6–10 centimetres
-across. There are about nine greenish bracteoles and sepals.
+Bellis perennis is a common European species of daisy, of the 
+Asteraceae family, often considered the archetypal species of
+that name. Many related plants also share the name "daisy", so
+to distinguish this species from other daisies it is sometimes
+qualified as common daisy, lawn daisy or English daisy. 
 
-Flowers of the wild species have six or seven rose or white petals, each
-3–4.5 centimetres long by 1.5–2.5 centimetres wide. The numerous stamens
-are 2.5–3.5 centimetres long, the outer whorl being joined at the base.
-The fruit consists of a globe-shaped capsule with three compartments
-(locules), each with one or two large brown seeds. Fruiting occurs in
-September to October in the wild.
+It is a herbaceous perennial plant with short creeping rhizomes
+and rosettes of small rounded or spoon-shaped leaves that are
+from 3/4 to 2 inches (approx. 2–5 cm) long and grow flat to the
+ground. The flowerheads are composite, in the form of a 
+pseudanthium, consisting of many sessile flowers about 3/4 to 
+1-1/4 in (approx. 2–3 cm) in diameter, with white ray florets
+(often tipped red) and yellow disc florets. Each inflorescence 
+is borne on single leafless stems 3/4 - 4 in (approx. 2–10 cm),
+rarely 6 in (approx. 15 cm) tall. The capitulum, or disc of
+florets, is surrounded by two rows of green bracts known
+as "phyllaries".
 
 Check more information:
-   https://en.wikipedia.org/wiki/Camellia_japonica
+   https://en.wikipedia.org/wiki/Bellis_perennis
 
 EOF
 }
@@ -272,13 +277,14 @@ EOF
 show_recipe() {
   cat << EOF
 
-Camellia - Cocktail
+Margarita - Cocktail
 
-  30 ml of Geen Tea
-  30 ml of White Rum
-  15 ml of Limoncello
-  1 barspoon of Elderflower
-  1 barspoon of Honey
+  35 ml Tequila
+  20 ml Triple Sec
+  15 ml Lime Juice
+
+  Pour all ingredients into shaker with ice. Shake well 
+  and strain into cocktail glass rimmed with salt.
 
 EOF
 }

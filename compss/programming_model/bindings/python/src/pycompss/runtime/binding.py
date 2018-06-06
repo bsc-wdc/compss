@@ -29,6 +29,7 @@ from pycompss.api.parameter import DIRECTION
 from pycompss.api.parameter import JAVA_MIN_INT, JAVA_MAX_INT
 from pycompss.api.parameter import JAVA_MIN_LONG, JAVA_MAX_LONG
 from pycompss.runtime.commons import EMPTY_STRING_KEY
+from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.util.serializer import *
 from pycompss.util.sizer import total_sizeof
 from pycompss.util.persistent_storage import is_PSCO, get_ID, get_by_ID
@@ -52,7 +53,6 @@ import compss
 
 # Types conversion dictionary from python to COMPSs
 if sys.version_info >= (3, 0):
-    str_escape = 'unicode_escape'
     python_to_compss = {int: TYPE.INT,       # int
                         int: TYPE.LONG,      # long
                         float: TYPE.DOUBLE,  # float
@@ -76,7 +76,6 @@ if sys.version_info >= (3, 0):
                         object: TYPE.OBJECT
                         }
 else:
-    str_escape = 'string_escape'
     python_to_compss = {types.IntType: TYPE.INT,          # int
                         types.LongType: TYPE.LONG,        # long
                         types.FloatType: TYPE.DOUBLE,     # float
@@ -926,7 +925,7 @@ def convert_object_to_string(p, is_future, max_obj_arg_size,
                     real_value = p.value
                     try:
                         v = serialize_to_string(p.value)
-                        p.value = v.encode(str_escape)
+                        p.value = v.encode(STR_ESCAPE)
                         p.type = TYPE.STRING
                         if __debug__:
                             logger.debug('Inferred type modified (Object converted to String).')
@@ -953,7 +952,7 @@ def convert_object_to_string(p, is_future, max_obj_arg_size,
                 real_value = p.value
                 try:
                     v = serialize_to_string(p.value)
-                    v = v.encode(str_escape)
+                    v = v.encode(STR_ESCAPE)
                     # check object size
                     bytes = sys.getsizeof(v)
                     megabytes = bytes / 1000000  # truncate

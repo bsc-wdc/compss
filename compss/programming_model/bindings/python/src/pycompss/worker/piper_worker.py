@@ -36,6 +36,7 @@ import thread_affinity
 from pycompss.api.parameter import TYPE
 from pycompss.api.parameter import JAVA_MIN_INT, JAVA_MAX_INT
 from pycompss.runtime.commons import EMPTY_STRING_KEY
+from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.util.serializer import serialize_to_file
 from pycompss.util.serializer import deserialize_from_file
 from pycompss.util.serializer import deserialize_from_string
@@ -611,7 +612,7 @@ def get_input_params(num_params, logger, args, process_name, persistent_storage)
                 real_value = aux
                 try:
                     # try to recover the real object
-                    aux = deserialize_from_string(aux)
+                    aux = deserialize_from_string(str(aux.decode(STR_ESCAPE)))
                 except (SerializerException, ValueError, EOFError):
                     # was not an object
                     aux = str(real_value.decode())

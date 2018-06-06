@@ -1,4 +1,4 @@
-%define name	 	compss-engine 
+%define name	 	compss-engine
 %define version		2.2.rc1803
 %define release		1
 
@@ -30,6 +30,10 @@ echo " "
 
 echo "   - Compile sources"
 mvn -U clean install
+# Redis impl
+cd utils/storage/redisPSCO
+./make_bundle.sh
+cd -
 
 echo "   - Create deployment folders"
 mkdir -p COMPSs
@@ -40,6 +44,7 @@ mkdir -p COMPSs/Runtime/configuration
 mkdir -p COMPSs/Runtime/scripts
 mkdir -p COMPSs/Runtime/adaptors
 mkdir -p COMPSs/Runtime/scheduler
+mkdir -p COMPSs/Runtime/storage
 
 echo "   - Copy deployment files"
 #Doc
@@ -92,6 +97,9 @@ for scheduler in $schedulers; do
   cp $scheduler COMPSs/Runtime/scheduler/
 done
 
+#Storage
+cp -r utils/storage/redisPSCO/COMPSs-Redis-bundle COMPSs/Runtime/storage/redis
+
 #Engine
 cp compss/runtime/compss-engine.jar COMPSs/Runtime/
 
@@ -122,7 +130,7 @@ echo "COMPSs Runtime Engine Successfully installed!"
 echo " "
 
 #------------------------------------------------------------------------------------
-%post 
+%post
 echo "* Installing COMPSs Runtime Engine..."
 echo " "
 
@@ -145,7 +153,7 @@ echo " "
 %preun
 
 #------------------------------------------------------------------------------------
-%postun 
+%postun
 rm -rf /opt/COMPSs/
 echo "COMPSs Runtime Engine Successfully uninstalled!"
 echo " "
@@ -157,7 +165,7 @@ rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs
 #------------------------------------------------------------------------------------
 %files
 %defattr(-,root,root)
-/opt/COMPSs/Runtime/ 
+/opt/COMPSs/Runtime/
 /opt/COMPSs/Dependencies/
 %doc /opt/COMPSs/README
 %doc /opt/COMPSs/changelog
@@ -166,5 +174,3 @@ rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs
 %doc /opt/COMPSs/RELEASE_NOTES
 %docdir /opt/COMPSs/Doc/
 /opt/COMPSs/Doc/
-
-

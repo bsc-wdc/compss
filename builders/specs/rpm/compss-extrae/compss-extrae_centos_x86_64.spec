@@ -39,9 +39,9 @@ echo "* Installing Extrae..."
 # Find JAVA_HOME
 if [ -z ${JAVA_HOME} ]; then
   echo " - Finding JAVA_HOME installation"
-  libjvm=$(rpm -ql java-1_8_0-openjdk-headless | grep libjvm.so | head -n 1)
+  libjvm=$(rpm -ql java-1_8_0-openjdk-headless | grep libjvm.so$ | head -n 1)
   if [ -z $libjvm ]; then
-    libjvm=$(rpm -ql java-1.8.0-openjdk-headless | grep libjvm.so | head -n 1)
+    libjvm=$(rpm -ql java-1.8.0-openjdk-headless | grep libjvm.so$ | head -n 1)
     if [ -z $libjvm ]; then
       echo "ERROR: Invalid JAVA_HOME installation. No libjvm.so found"
       exit 1

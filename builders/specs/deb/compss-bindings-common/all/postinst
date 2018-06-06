@@ -10,7 +10,7 @@
     if [ -z ${JAVA_HOME} ]; then
       echo " - Finding JAVA_HOME installation"
       openjdk=$(dpkg --get-selections | grep -v deinstall | grep openjdk | grep headless | tail -n 1 | cut -f1)
-      libjvm=$(dpkg-query -L $openjdk | grep libjvm.so | head -n 1)
+      libjvm=$(dpkg-query -L $openjdk | grep libjvm.so$ | head -n 1)
       if [ -z $libjvm ]; then
         echo "ERROR: Invalid JAVA_HOME installation. No libjvm.so found"
         exit 1

@@ -126,32 +126,26 @@ def start(log_level='off',
 
     __export_globals__()
 
-    print("********************************************************")
-    print("*************** PyCOMPSs Interactive *******************")
-    print("********************************************************")
-    print("*          .-~~-.--.                ____        ____   *")
-    print("*         :         )              |___ \      |___ \  *")
-    print("*   .~ ~ -.\       /.- ~~ .          __) |       __) | *")
-    print("*   >       `.   .'       <         / __/   _   / __/  *")
-    print("*  (         .- -.         )       |_____| |_| |_____| *")
-    print("*   `- -.-~  `- -'  ~-.- -'                            *")
-    print("*     (        :        )           _ _ .-:            *")
-    print("*      ~--.    :    .--~        .-~  .-~  }            *")
-    print("*          ~-.-^-.-~ \_      .~  .-~   .~              *")
-    print("*                   \ \ '     \ '_ _ -~                *")
-    print("*                    \`.\`.    //                      *")
-    print("*           . - ~ ~-.__\`.\`-.//                       *")
-    print("*       .-~   . - ~  }~ ~ ~-.~-.                       *")
-    print("*     .' .-~      .-~       :/~-.~-./:                 *")
-    print("*    /_~_ _ . - ~                 ~-.~-._              *")
-    print("*                                     ~-.<             *")
-    print("********************************************************")
-
-    # print("*          .-~~-.--.                ____       _____   *")
-    # print("*         :         )              |___ \     |___ /   *")
-    # print("*   .~ ~ -.\       /.- ~~ .          __) |      |_ \   *")
-    # print("*   >       `.   .'       <         / __/   _   __) |  *")
-    # print("*  (         .- -.         )       |_____| |_| |___/   *")
+    print("******************************************************")
+    print("*************** PyCOMPSs Interactive *****************")
+    print("******************************************************")
+    print("*          .-~~-.--.            ____        ____     *")
+    print("*         :         )          |___ \      |___ \    *")
+    print("*   .~ ~ -.\       /.- ~~ .      __) |       __) |   *")
+    print("*   >       `.   .'       <     / __/   _   ___) |   *")
+    print("*  (         .- -.         )   |_____| |_| |____/    *")
+    print("*   `- -.-~  `- -'  ~-.- -'                          *")
+    print("*     (        :        )           _ _ .-:          *")
+    print("*      ~--.    :    .--~        .-~  .-~  }          *")
+    print("*          ~-.-^-.-~ \_      .~  .-~   .~            *")
+    print("*                   \ \ '     \ '_ _ -~              *")
+    print("*                    \`.\`.    //                    *")
+    print("*           . - ~ ~-.__\`.\`-.//                     *")
+    print("*       .-~   . - ~  }~ ~ ~-.~-.                     *")
+    print("*     .' .-~      .-~       :/~-.~-./:               *")
+    print("*    /_~_ _ . - ~                 ~-.~-._            *")
+    print("*                                     ~-.<           *")
+    print("******************************************************")
 
     ##############################################################
     # INITIALIZATION
@@ -224,7 +218,7 @@ def start(log_level='off',
     # RUNTIME START
     ##############################################################
 
-    print("* - Starting COMPSs runtime...                         *")
+    print("* - Starting COMPSs runtime...                       *")
     compss_start()
 
     if o_c is True:
@@ -281,8 +275,8 @@ def start(log_level='off',
 
     # MAIN EXECUTION
     # let the user write an interactive application
-    print("* - PyCOMPSs Runtime started... Have fun!              *")
-    print("********************************************************")
+    print("* - PyCOMPSs Runtime started... Have fun!            *")
+    print("******************************************************")
 
 
 def printSetup(verbose, log_level, o_c, debug, graph, trace, monitor,
@@ -294,7 +288,7 @@ def printSetup(verbose, log_level, o_c, debug, graph, trace, monitor,
                python_virtual_environment, python_propagate_virtual_environment):
     logger = logging.getLogger("pycompss.runtime.launch")
     output = ""
-    output += "********************************************************\n"
+    output += "******************************************************\n"
     output += " CONFIGURATION: \n"
     output += "  - Log level           : " + str(log_level) + "\n"
     output += "  - Object conversion   : " + str(o_c) + "\n"
@@ -329,16 +323,16 @@ def printSetup(verbose, log_level, o_c, debug, graph, trace, monitor,
     output += "  - Python version      : " + str(python_version) + "\n"
     output += "  - Python virtualenv   : " + str(python_virtual_environment) + "\n"
     output += "  - Python propagate virtualenv : " + str(python_propagate_virtual_environment) + "\n"
-    output += "********************************************************"
+    output += "******************************************************"
     if verbose:
         print(output)
     logger.debug(output)
 
 
 def stop(sync=False):
-    print("******************************************************")
-    print("**************** STOPPING PyCOMPSs *******************")
-    print("******************************************************")
+    print("****************************************************")
+    print("*************** STOPPING PyCOMPSs ******************")
+    print("****************************************************")
 
     logger = logging.getLogger("pycompss.runtime.launch")
 
@@ -377,7 +371,7 @@ def stop(sync=False):
 
     __clean_temp_files__()
 
-    print("******************************************************")
+    print("****************************************************")
     logger.debug("--- END ---")
     # os._exit(00)  # Explicit kernel restart # breaks Jupyter-notebook
 

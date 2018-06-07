@@ -5,7 +5,7 @@
   COMPSS_VERSION=$3
 
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-  package_name=compss-pluto
+  package_name=compss-autoparallel
   trunk_rel_path=../../../../
 
   echo " "
@@ -21,6 +21,7 @@
   echo "* Packing COMPSs sources..."
   echo " "
   target=tmp/SOURCES/${package_name}-${COMPSS_VERSION}/
+  cp -rf ${trunk_rel_path}/dependencies/autoparallel "${target}"
   cp -rf ${trunk_rel_path}/dependencies/pluto "${target}"
   cp -rf ${trunk_rel_path}/changelog "${target}"
   cp -rf ${trunk_rel_path}/LICENSE "${target}"
@@ -33,8 +34,8 @@
   tar czf ${package_name}-"${COMPSS_VERSION}".tar.gz ${package_name}-"${COMPSS_VERSION}"
   ev=$?
   if [ $ev -ne 0 ]; then
-	echo "Error compressing package"
-	exit $ev
+    echo "Error compressing package"
+    exit $ev
   fi
   cd ../../
 
@@ -67,4 +68,3 @@
   echo " "
   echo "* Cleaning all tmp files..."
   rm -r tmp/
-

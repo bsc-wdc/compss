@@ -4,49 +4,53 @@
 
   if [ "$action" == "remove" ]; then
     # Remove software
+    rm -rf /opt/COMPSs/Dependencies/autoparallel
     rm -rf /opt/COMPSs/Dependencies/pluto
     echo " "
-    echo " * COMPSs PLUTO successfully removed"
+    echo " * PyCOMPSs AutoParallel successfully removed"
     echo " "
   elif [ "$action" == "purge" ]; then
     # Purge config files
+    rm -rf /opt/COMPSs/Dependencies/autoparallel
     rm -rf /opt/COMPSs/Dependencies/pluto
     echo " "
-    echo " * COMPSs PLUTO successfully purged"
+    echo " * PyCOMPSs AutoParallel successfully purged"
     echo " "
   elif [ "$action" == "upgrade" ]; then
     # Upgrade software
     newversion=$2
+    rm -rf /opt/COMPSs/Dependencies/autoparallel
     rm -rf /opt/COMPSs/Dependencies/pluto
     echo " "
-    echo " * COMPSs PLUTO upgraded to $newversion"
+    echo " * PyCOMPSs AutoParallel upgraded to $newversion"
     echo " "
   elif [ "$action" == "disappear" ]; then
     # Disappear
     overwriter=$2
     overwriterversion=$3
+    rm -rf /opt/COMPSs/Dependencies/autoparallel
     rm -rf /opt/COMPSs/Dependencies/pluto
     echo " "
-    echo " * COMPSs PLUTO diappeared due to $overwriter - $overwriterversion"
-    echo "   Please, reinstall COMPSs PLUTO if needed"
+    echo " * PyCOMPSs AutoParallel diappeared due to $overwriter - $overwriterversion"
+    echo "   Please, reinstall PyCOMPSs AutoParallel if needed"
     echo " "
   elif [ "$action" == "failed-upgrade" ]; then
     # Revert on failed upgrade
     oldversion=$2
     echo " "
-    echo " * COMPSs PLUTO upgrade failed. Reverting to $oldversion"
+    echo " * PyCOMPSs AutoParallel upgrade failed. Reverting to $oldversion"
     echo " "
   elif [ "$action" == "abort-install" ]; then
     if [ $# -eq 1 ]; then
       # Abort generic installation
       echo " "
-      echo " * COMPSs PLUTO installation aborted. Please check errors above."
+      echo " * PyCOMPSs AutoParallel installation aborted. Please check errors above."
       echo " "
     else
       # Abort reverting to previous version
       oldversion=$2
       echo " "
-      echo " * COMPSs PLUTO installation aborted. Please check errors above."
+      echo " * PyCOMPSs AutoParallel installation aborted. Please check errors above."
       echo "   Reverting to version $oldversion"
       echo " "
     fi
@@ -54,7 +58,7 @@
     # Abort upgrade reverting to previous version
     oldversion=$2
     echo " "
-    echo " * COMPSs PLUTO upgrade aborted. Please check errors above."
+    echo " * PyCOMPSs AutoParallel upgrade aborted. Please check errors above."
     echo "   Reverting to version $oldversion"
     echo " "
   fi

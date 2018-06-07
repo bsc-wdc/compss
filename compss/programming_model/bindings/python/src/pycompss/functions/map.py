@@ -22,7 +22,9 @@ PyCOMPSs Functions: Map
 =======================
     This file defines the common map functions.
 """
-import sys
+
+from pycompss.runtime.commons import IS_PYTHON3
+
 
 def map(*args):
     """
@@ -40,7 +42,7 @@ def map(*args):
     :return: list result
     """
     try:
-        if sys.version_info >= (3, 0):
+        if IS_PYTHON3:
             import builtins
             return list(builtins.map(*args))
         else:

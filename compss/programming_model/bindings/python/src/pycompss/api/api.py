@@ -52,9 +52,9 @@ if __within_scope__():
     from pycompss.runtime.binding import get_pending_to_synchronize
     from pycompss.runtime.binding import Future
     from pycompss.runtime.binding import EmptyReturn
+    from pycompss.runtime.commons import IS_PYTHON3
 
-    import sys
-    if sys.version_info >= (3, 0):
+    if IS_PYTHON3:
         listType = list
     else:
         import types

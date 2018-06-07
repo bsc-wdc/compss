@@ -17,5 +17,16 @@
 
 # -*- coding: utf-8 -*-
 
+import sys
+
 # Empty string substitution key
 EMPTY_STRING_KEY = "3mPtY57r1Ng"
+
+# Coding/decoding escape
+# Global python 3 variable
+if sys.version_info >= (3, 0):
+    STR_ESCAPE = 'unicode_escape'
+    IS_PYTHON3 = True
+else:
+    STR_ESCAPE = 'string_escape'
+    IS_PYTHON3 = False

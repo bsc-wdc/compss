@@ -33,6 +33,8 @@ import base64
 
 from pycompss.api.parameter import TYPE, JAVA_MAX_INT, JAVA_MIN_INT
 from pycompss.runtime.commons import EMPTY_STRING_KEY
+from pycompss.runtime.commons import STR_ESCAPE
+from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.serializer import serialize_to_file
 from pycompss.util.serializer import deserialize_from_file
 from pycompss.util.serializer import deserialize_from_string
@@ -41,7 +43,7 @@ from pycompss.util.logs import init_logging_worker
 from pycompss.util.persistent_storage import get_by_ID
 
 
-if sys.version_info >= (3, 0):
+if IS_PYTHON3:
     long = int
 else:
     # Exception moved to built-in
@@ -158,7 +160,12 @@ def compss_worker(persistent_storage):
                 real_value = aux
                 try:
                     # try to recover the real object
-                    aux = deserialize_from_string(aux)
+                    if IS_PYTHON3:
+                        # decode removes double backslash, and encode returns as binary
+                        aux = deserialize_from_string(aux.decode(STR_ESCAPE).encode())
+                    else:
+                        # decode removes double backslash, and str casts the output
+                        aux = deserialize_from_string(str(aux.decode(STR_ESCAPE)))
                 except (SerializerException, ValueError, EOFError):
                     # was not an object
                     aux = str(real_value.decode())

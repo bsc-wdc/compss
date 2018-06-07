@@ -32,6 +32,7 @@ import pycompss.runtime.binding as binding
 from tempfile import mkdtemp
 from pycompss.api.api import compss_start, compss_stop
 from pycompss.runtime.binding import get_log_path
+from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.logs import init_logging
 from pycompss.util.jvm_parser import convert_to_dict
 from pycompss.util.serializer import SerializerException
@@ -39,7 +40,7 @@ from pycompss.util.optional_modules import show_optional_module_warnings
 
 app_path = None
 
-if sys.version_info >= (3, 0):
+if IS_PYTHON3:
     py_version = 3
 else:
     py_version = 2
@@ -128,7 +129,7 @@ def compss_main():
             init_storage(config_file_path=storage_conf)
         show_optional_module_warnings()
         # MAIN EXECUTION
-        if sys.version_info >= (3, 0):
+        if IS_PYTHON3:
             exec(compile(open(app_path).read(), app_path, 'exec'), globals())
         else:
             execfile(app_path, globals())    # MAIN EXECUTION

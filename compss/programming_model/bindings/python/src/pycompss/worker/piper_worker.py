@@ -37,6 +37,7 @@ from pycompss.api.parameter import TYPE
 from pycompss.api.parameter import JAVA_MIN_INT, JAVA_MAX_INT
 from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.runtime.commons import STR_ESCAPE
+from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.serializer import serialize_to_file
 from pycompss.util.serializer import deserialize_from_file
 from pycompss.util.serializer import deserialize_from_string
@@ -44,7 +45,7 @@ from pycompss.util.serializer import SerializerException
 from pycompss.util.logs import init_logging_worker
 from pycompss.util.persistent_storage import is_PSCO, get_by_ID
 
-if sys.version_info >= (3, 0):
+if IS_PYTHON3:
     long = int
 else:
     # Exception moved to built-in
@@ -612,7 +613,7 @@ def get_input_params(num_params, logger, args, process_name, persistent_storage)
                 real_value = aux
                 try:
                     # try to recover the real object
-                    if sys.version_info >= (3, 0):
+                    if IS_PYTHON3:
                         # decode removes double backslash, and encode returns as binary
                         aux = deserialize_from_string(aux.decode(STR_ESCAPE).encode())
                     else:

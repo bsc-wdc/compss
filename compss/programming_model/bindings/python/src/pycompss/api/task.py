@@ -31,6 +31,7 @@ import logging
 import ast
 import copy
 from functools import wraps
+from pycompss.runtime.commons import IS_PYTHON3
 
 
 # Tracing Events and Codes -> Should be equal to Tracer.java definitions
@@ -39,7 +40,7 @@ TASK_EVENTS = 8000010
 TASK_EXECUTION = 120
 SERIALIZATION = 121
 
-if sys.version_info >= (3, 0):
+if IS_PYTHON3:
     # Shadow long with int
     long = int
 

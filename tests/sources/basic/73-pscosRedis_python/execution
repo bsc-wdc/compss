@@ -83,7 +83,7 @@ EOF
      \
      --lang=python \
      --python_interpreter="$pythonInterpreter" \
-     --pythonpath="${base_app_dir}"/src \
+     --pythonpath="${base_app_dir}"/src:"${bundle_path}"/python \
      \
      --storage_conf=${storage_conf} \
      --classpath="${bundle_path}"/compss-redisPSCO.jar \

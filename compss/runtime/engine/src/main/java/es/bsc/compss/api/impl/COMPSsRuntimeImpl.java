@@ -668,8 +668,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         if (parameters.length != 0) {
             Parameter lastParam = parameters[parameters.length - 1];
             DataType type = lastParam.getType();
-            hasReturn = (lastParam.getDirection() == Direction.OUT
-                    && (type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T));
+            hasReturn = (lastParam.getDirection() == Direction.OUT && (type == DataType.OBJECT_T || type == DataType.PSCO_T
+                    || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T));
         }
 
         return hasReturn;
@@ -913,7 +913,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     @Override
     public String openFile(String fileName, Direction mode) {
         LOGGER.info("Opening " + fileName + " in mode " + mode);
-        
+
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.OPEN_FILE.getId(), Tracer.Event.OPEN_FILE.getType());
         }
@@ -1022,27 +1022,23 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         // Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         // }
     }
-    
+
     /**
      * get Binding object
      * 
      * @param objectId
      * @return id of the object in the cache
      */
-    public String getBindingObject(String fileName){
+    public String getBindingObject(String fileName) {
         // Parse the file name
         LOGGER.debug(" Calling get binding object : " + fileName);
         BindingObjectLocation sourceLocation = new BindingObjectLocation(Comm.getAppHost(), BindingObject.generate(fileName));
-        if (sourceLocation == null) {
-            ErrorManager.fatal(ERROR_FILE_NAME);
-            return null;
-        }
-     // Ask the AP to
+        // Ask the AP to
         String finalPath = mainAccessToBindingObject(fileName, sourceLocation);
         LOGGER.debug(" Returning binding object as id: " + finalPath);
         return finalPath;
     }
-    
+
     /**
      * remove Binding object
      * 
@@ -1050,7 +1046,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * @param objectId
      * @return
      */
-    public boolean deleteBindingObject(String fileName){
+    public boolean deleteBindingObject(String fileName) {
         // Check parameters
         if (fileName == null || fileName.isEmpty()) {
             return false;
@@ -1088,7 +1084,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             Direction direction = (Direction) parameters[i + 2];
             Stream stream = (Stream) parameters[i + 3];
             String prefix = (String) parameters[i + 4];
-            
+
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("  Parameter " + (npar + 1) + " has type " + type.name());
             }
@@ -1117,20 +1113,21 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                     break;
                 case BINDING_OBJECT_T:
                     String value = (String) parameters[i];
-                    if (value.contains(":")){
-                    	String[] fields = value.split(":");
-                    	if (fields.length == 3){
-                    		String extObjectId = fields[0];
-                    		int extObjectType = Integer.parseInt(fields[1]);
-                    		int extObjectElements = Integer.parseInt(fields[2]);
-                    		pars[npar] = new BindingObjectParameter(direction, stream, prefix, new BindingObject(extObjectId, extObjectType, extObjectElements), externalObjectHashcode(extObjectId));
-                    	}else{
-                    		LOGGER.error(ERROR_BINDING_OBJECT_PARAMS+ " received value is "+ value);
-                            ErrorManager.fatal(ERROR_BINDING_OBJECT_PARAMS + " received value is "+ value);
-                    	}
-                    }else{
-                        LOGGER.error(ERROR_BINDING_OBJECT_PARAMS+ " received value is "+ value);
-                        ErrorManager.fatal(ERROR_BINDING_OBJECT_PARAMS + " received value is "+ value);
+                    if (value.contains(":")) {
+                        String[] fields = value.split(":");
+                        if (fields.length == 3) {
+                            String extObjectId = fields[0];
+                            int extObjectType = Integer.parseInt(fields[1]);
+                            int extObjectElements = Integer.parseInt(fields[2]);
+                            pars[npar] = new BindingObjectParameter(direction, stream, prefix,
+                                    new BindingObject(extObjectId, extObjectType, extObjectElements), externalObjectHashcode(extObjectId));
+                        } else {
+                            LOGGER.error(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
+                            ErrorManager.fatal(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
+                        }
+                    } else {
+                        LOGGER.error(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
+                        ErrorManager.fatal(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
                     }
                     break;
 
@@ -1214,7 +1211,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         // Otherwise we request it from a task
         return ap.mainAcessToExternalPSCO(id, hashCode);
     }
-    
+
     private String mainAccessToBindingObject(String fileName, BindingObjectLocation loc) {
         String id = loc.getId();
         int hashCode = externalObjectHashcode(id);

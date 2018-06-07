@@ -1,4 +1,4 @@
-/*         
+/*
  *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,15 +18,15 @@
 #include <param_metadata.h>
 
 typedef struct {
-  char* name;
-  char* elements;
-  enum datatype dt;
+    char* name;
+    char* elements;
+    enum datatype dt;
 } Type;
 
 typedef struct {
-  int max;
-  Type *types;
-  int num;
+    int max;
+    Type *types;
+    int num;
 } Types;
 
 

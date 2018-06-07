@@ -19,7 +19,6 @@ package es.bsc.compss.nio.master;
 import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.Connection;
 import es.bsc.comm.nio.NIONode;
-import es.bsc.comm.stage.Transfer;
 import es.bsc.comm.stage.Transfer.Destination;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.comm.Comm;
@@ -116,13 +115,14 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     private Semaphore tracingGeneration = new Semaphore(0);
     private Semaphore workersDebugInfo = new Semaphore(0);
 
+
     /**
      * New NIOAdaptor instance
      *
      */
     public NIOAdaptor() {
         super(MAX_SEND, MAX_RECEIVE, MASTER_PORT);
-        //Setting persistentC flag in the NIOAgent
+        // Setting persistentC flag in the NIOAgent
         String persistentCStr = System.getProperty(COMPSsConstants.WORKER_PERSISTENT_C);
         if (persistentCStr == null || persistentCStr.isEmpty() || persistentCStr.equals("null")) {
             persistentCStr = COMPSsConstants.DEFAULT_PERSISTENT_C;
@@ -360,7 +360,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             // Mark task as finished and release waiters
             JobHistory prevJobHistory = nj.getHistory();
             nj.taskFinished(successful);
-            //JobHistory newJobHistory = nj.getHistory();
+            // JobHistory newJobHistory = nj.getHistory();
 
             // Retrieve files if required
             if (WORKER_DEBUG || !successful) {
@@ -682,16 +682,17 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         private final NIOWorkerNode worker;
         private final ShutdownListener listener;
 
+
         public ClosingWorker(NIOWorkerNode w, ShutdownListener l) {
             worker = w;
             listener = l;
         }
     }
 
-
     private class ClosingExecutor {
 
         private final ExecutorShutdownListener listener;
+
 
         public ClosingExecutor(ExecutorShutdownListener l) {
             listener = l;
@@ -702,18 +703,17 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     @Override
     public void receivedBindingObjectAsFile(String filename, String target) {
         // Load from file
-        if (filename.contains("#")){
-            //Filename contains binding object 
+        if (filename.contains("#")) {
+            // Filename contains binding object
             filename = BindingObject.generate(filename).getId();
         }
-        if (target.contains("#")){
+        if (target.contains("#")) {
             BindingObject bo = BindingObject.generate(target);
             BindingDataManager.loadFromFile(bo.getName(), filename, bo.getType(), bo.getElements());
-        }else{
-            ErrorManager.error("Incorrect target format for binding object.("+ target +")");
+        } else {
+            ErrorManager.error("Incorrect target format for binding object.(" + target + ")");
         }
-        
-        
+
     }
 
     @Override

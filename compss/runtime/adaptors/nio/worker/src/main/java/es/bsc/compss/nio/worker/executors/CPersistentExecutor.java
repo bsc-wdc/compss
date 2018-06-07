@@ -19,13 +19,9 @@ package es.bsc.compss.nio.worker.executors;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.worker.NIOWorker;
 import es.bsc.compss.nio.worker.util.JobsThreadPool;
-import es.bsc.compss.nio.worker.util.TaskResultReader;
-import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.util.RequestQueue;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 
 
@@ -36,11 +32,10 @@ public class CPersistentExecutor extends PersistentExternalExecutor {
     }
 
     @Override
-    public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits,
-            int[] assignedGPUs, int[] assignedFPGAs) {
-        
-        return CExecutionCommandGenerator.getTaskExecutionCommand(nw, nt, sandBox, assignedCoreUnits, assignedGPUs, assignedFPGAs);
+    public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits, int[] assignedGPUs,
+            int[] assignedFPGAs) {
 
+        return CExecutionCommandGenerator.getTaskExecutionCommand(nw, nt, sandBox, assignedCoreUnits, assignedGPUs, assignedFPGAs);
     }
 
     public static Map<String, String> getEnvironment(NIOWorker nw) {

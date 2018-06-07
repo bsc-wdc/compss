@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.types.data.operation;
 
-import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.request.ap.TransferBindingObjectRequest;
@@ -27,6 +26,7 @@ public class BindingObjectTransferable implements Transferable {
     private Object source;
     private String target;
     private TransferBindingObjectRequest toRequest;
+
 
     public BindingObjectTransferable(TransferBindingObjectRequest toRequest) {
         this.toRequest = toRequest;

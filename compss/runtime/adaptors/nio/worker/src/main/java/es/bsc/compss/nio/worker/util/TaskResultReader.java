@@ -18,7 +18,6 @@ package es.bsc.compss.nio.worker.util;
 
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.worker.executors.ExternalExecutor;
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.util.ErrorManager;
 
 import java.io.BufferedReader;

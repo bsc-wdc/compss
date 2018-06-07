@@ -1,4 +1,4 @@
-/*         
+/*
  *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,58 +24,58 @@
 
 using namespace std;
 
-struct compss_pointer{
-	void* pointer;
-	int type;
-	int elements;
-	long size;
+struct compss_pointer {
+    void* pointer;
+    int type;
+    int elements;
+    long size;
 };
 
-class AbstractCache{
+class AbstractCache {
 
-private:
-	pthread_mutex_t mtx;
+  private:
+    pthread_mutex_t mtx;
 
-protected:
-	long max_size;
-	long current_size;
-	const char* working_dir_path;
-	map<string, compss_pointer> cache;
-	int get_lock();
-	int release_lock();
+  protected:
+    long max_size;
+    long current_size;
+    const char* working_dir_path;
+    map<string, compss_pointer> cache;
+    int get_lock();
+    int release_lock();
 
-public:
-	AbstractCache(){
-		max_size=0; //TODO: Add size management
-		current_size=0;
-		working_dir_path = "";
-		pthread_mutex_init(&mtx,NULL);
-	}
-	virtual ~AbstractCache(){
-		pthread_mutex_destroy(&mtx);
-	}
-	int pushToStream(const char* id, JavaNioConnStreamBuffer &jsb);
-	int pullFromStream(const char* id, JavaNioConnStreamBuffer &jsb, compss_pointer &cp);
-	int pushToFile(const char* id, const char* filename);
-	int pullFromFile(const char* id, const char* filename, compss_pointer &cp);
-	void init(long max_size, char* working_dir_path);
-	bool isInCache(const char* id);
-	int getFromCache(const char* id, compss_pointer &cp);
-	int storeInCache(const char* id, compss_pointer cp);
-	int deleteFromCache(const char* id, bool deleteObject);
-	int copyInCache(const char* id_from, const char* id_to, compss_pointer &to);
-	int moveInCache(const char* id_from, const char* id_to);
-	void printValues();
+  public:
+    AbstractCache() {
+        max_size=0; //TODO: Add size management
+        current_size=0;
+        working_dir_path = "";
+        pthread_mutex_init(&mtx,NULL);
+    }
+    virtual ~AbstractCache() {
+        pthread_mutex_destroy(&mtx);
+    }
+    int pushToStream(const char* id, JavaNioConnStreamBuffer &jsb);
+    int pullFromStream(const char* id, JavaNioConnStreamBuffer &jsb, compss_pointer &cp);
+    int pushToFile(const char* id, const char* filename);
+    int pullFromFile(const char* id, const char* filename, compss_pointer &cp);
+    void init(long max_size, char* working_dir_path);
+    bool isInCache(const char* id);
+    int getFromCache(const char* id, compss_pointer &cp);
+    int storeInCache(const char* id, compss_pointer cp);
+    int deleteFromCache(const char* id, bool deleteObject);
+    int copyInCache(const char* id_from, const char* id_to, compss_pointer &to);
+    int moveInCache(const char* id_from, const char* id_to);
+    void printValues();
 
-	static int removeData(const char* id, AbstractCache &c);
-	static int serializeData(const char* id, const char* filename, AbstractCache &c);
+    static int removeData(const char* id, AbstractCache &c);
+    static int serializeData(const char* id, const char* filename, AbstractCache &c);
 
-	virtual int serializeToStream(compss_pointer cp, JavaNioConnStreamBuffer &jsb) = 0;
-	virtual int deserializeFromStream(JavaNioConnStreamBuffer &jsb, compss_pointer &cp) = 0;
-	virtual int serializeToFile(compss_pointer cp, const char* filename) = 0;
-	virtual int deserializeFromFile(const char* filename, compss_pointer &cp) = 0;
-	virtual int removeData(compss_pointer cp) = 0;
-	virtual int copyData(compss_pointer form, compss_pointer &to) = 0;
+    virtual int serializeToStream(compss_pointer cp, JavaNioConnStreamBuffer &jsb) = 0;
+    virtual int deserializeFromStream(JavaNioConnStreamBuffer &jsb, compss_pointer &cp) = 0;
+    virtual int serializeToFile(compss_pointer cp, const char* filename) = 0;
+    virtual int deserializeFromFile(const char* filename, compss_pointer &cp) = 0;
+    virtual int removeData(compss_pointer cp) = 0;
+    virtual int copyData(compss_pointer form, compss_pointer &to) = 0;
 };
 #endif
 

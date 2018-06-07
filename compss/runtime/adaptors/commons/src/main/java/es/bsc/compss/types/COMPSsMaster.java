@@ -21,7 +21,6 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.types.data.listener.EventListener;
-import es.bsc.compss.types.data.listener.SafeCopyListener;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
@@ -49,7 +48,6 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.Semaphore;
 
 
 /**
@@ -136,7 +134,7 @@ public class COMPSsMaster extends COMPSsNode {
 
     public void obtainBindingData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
             EventListener listener) {
-    	BindingObject tgtBO = ((BindingObjectLocation)target).getBindingObject();
+        BindingObject tgtBO = ((BindingObjectLocation) target).getBindingObject();
         ld.lockHostRemoval();
         Collection<Copy> copiesInProgress = ld.getCopiesInProgress();
         if (copiesInProgress != null && !copiesInProgress.isEmpty()) {
@@ -147,53 +145,53 @@ public class COMPSsMaster extends COMPSsNode {
                             LOGGER.debug("Copy in progress tranfering " + ld.getName() + "to master. Waiting for finishing");
                         }
                         Copy.waitForCopyTofinish(copy, this);
-                        //try {
-                            if (DEBUG) {
-                                LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget() + " to " + tgtBO.getName());
+                        // try {
+                        if (DEBUG) {
+                            LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget() + " to " + tgtBO.getName());
+                        }
+                        BindingObject bo = BindingObject.generate(copy.getFinalTarget());
+                        if (ld.getName().equals(tgtBO.getName())) {
+                            LOGGER.debug("Current transfer is the same as expected. Nothing to do setting data target to "
+                                    + copy.getFinalTarget());
+                            reason.setDataTarget(copy.getFinalTarget());
+                        } else {
+                            LOGGER.debug("Making cache copy from " + bo.getName() + " to " + tgtBO.getName());
+                            BindingDataManager.copyCachedData(bo.getName(), tgtBO.getName());
+                            if (tgtData != null) {
+                                tgtData.addLocation(target);
                             }
-                            BindingObject bo = BindingObject.generate(copy.getFinalTarget());
-                            if (ld.getName().equals(tgtBO.getName())){
-                                LOGGER.debug("Current transfer is the same as expected. Nothing to do setting data target to " + copy.getFinalTarget());
-                                reason.setDataTarget(copy.getFinalTarget());
-                            }else{
-                                LOGGER.debug("Making cache copy from " + bo.getName()+ " to " + tgtBO.getName() );
-                                BindingDataManager.copyCachedData(bo.getName(), tgtBO.getName());
-                                if (tgtData != null) {
-                                    tgtData.addLocation(target);
-                                }
-                                LOGGER.debug("File copied set dataTarget " + copy.getFinalTarget());
-                                reason.setDataTarget(copy.getFinalTarget());
-                            }
-                            listener.notifyEnd(null);
-                            ld.releaseHostRemoval();
-                            return;
+                            LOGGER.debug("File copied set dataTarget " + copy.getFinalTarget());
+                            reason.setDataTarget(copy.getFinalTarget());
+                        }
+                        listener.notifyEnd(null);
+                        ld.releaseHostRemoval();
+                        return;
 
                     } else if (copy.getTargetData() != null && copy.getTargetData().getAllHosts().contains(Comm.getAppHost())) {
                         Copy.waitForCopyTofinish(copy, this);
-                        //try {
-                            if (DEBUG) {
-                                LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget() + " to " + tgtBO.getName());
-                            }
-                            BindingObject bo = BindingObject.generate(copy.getFinalTarget());
-                            if (ld.getName().equals(tgtBO.getName())){
-         
-                                LOGGER.debug("Current transfer is the same as expected. Nothing to do setting data target to " + bo.getName());
-                                reason.setDataTarget(copy.getFinalTarget());
-                            }else{
-                                LOGGER.debug("Making cache copy from " + bo.getName()+ " to " + tgtBO.getName() );
-                                BindingDataManager.copyCachedData(bo.getName(), tgtBO.getName());
-                                if (tgtData != null) {
-                                    tgtData.addLocation(target);
-                                }
-                                LOGGER.debug("File copied set dataTarget " + copy.getFinalTarget());
-                                reason.setDataTarget(copy.getFinalTarget());
-                            }
-                            
+                        // try {
+                        if (DEBUG) {
+                            LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget() + " to " + tgtBO.getName());
+                        }
+                        BindingObject bo = BindingObject.generate(copy.getFinalTarget());
+                        if (ld.getName().equals(tgtBO.getName())) {
 
-                            listener.notifyEnd(null);
-                            ld.releaseHostRemoval();
-                            return;
-                        
+                            LOGGER.debug("Current transfer is the same as expected. Nothing to do setting data target to " + bo.getName());
+                            reason.setDataTarget(copy.getFinalTarget());
+                        } else {
+                            LOGGER.debug("Making cache copy from " + bo.getName() + " to " + tgtBO.getName());
+                            BindingDataManager.copyCachedData(bo.getName(), tgtBO.getName());
+                            if (tgtData != null) {
+                                tgtData.addLocation(target);
+                            }
+                            LOGGER.debug("File copied set dataTarget " + copy.getFinalTarget());
+                            reason.setDataTarget(copy.getFinalTarget());
+                        }
+
+                        listener.notifyEnd(null);
+                        ld.releaseHostRemoval();
+                        return;
+
                     } else {
                         if (DEBUG) {
                             LOGGER.debug("Current copies are not transfering " + ld.getName() + " to master. Ignoring at this moment");
@@ -213,27 +211,27 @@ public class COMPSsMaster extends COMPSsNode {
                 String hostname = (u.getHost() != null) ? u.getHost().getName() : "null";
                 LOGGER.debug(ld.getName() + " is at " + u.toString() + "(" + hostname + ")");
             }
-            if (u.getHost() == Comm.getAppHost()) {                 
-                    if (DEBUG) {
-                        LOGGER.debug("Master local copy " + ld.getName() + " from " + u.getHost().getName() + " to " + tgtBO.getName());
+            if (u.getHost() == Comm.getAppHost()) {
+                if (DEBUG) {
+                    LOGGER.debug("Master local copy " + ld.getName() + " from " + u.getHost().getName() + " to " + tgtBO.getName());
+                }
+                BindingObject bo = BindingObject.generate(u.getPath());
+                if (ld.getName().equals(tgtBO.getName())) {
+                    LOGGER.debug("Current transfer is the same as expected. Nothing to do setting data target to " + u.getPath());
+                    reason.setDataTarget(u.getPath());
+                } else {
+                    LOGGER.debug("Making cache copy from " + u.getPath() + " to " + tgtBO.getName());
+                    BindingDataManager.copyCachedData(bo.getName(), tgtBO.getName());
+                    if (tgtData != null) {
+                        tgtData.addLocation(target);
                     }
-                    BindingObject bo = BindingObject.generate(u.getPath());
-                    if (ld.getName().equals(tgtBO.getName())){
-                        LOGGER.debug("Current transfer is the same as expected. Nothing to do setting data target to " + u.getPath());
-                        reason.setDataTarget(u.getPath());
-                    }else{
-                        LOGGER.debug("Making cache copy from " + u.getPath() + " to " + tgtBO.getName() );
-                        BindingDataManager.copyCachedData(bo.getName(), tgtBO.getName());
-                        if (tgtData != null) {
-                            tgtData.addLocation(target);
-                        }
-                        LOGGER.debug("File copied set dataTarget " + u.getPath());
-                        reason.setDataTarget(u.getPath());
-                    }
+                    LOGGER.debug("File copied set dataTarget " + u.getPath());
+                    reason.setDataTarget(u.getPath());
+                }
 
-                    listener.notifyEnd(null);
-                    ld.releaseHostRemoval();
-                    return;
+                listener.notifyEnd(null);
+                ld.releaseHostRemoval();
+                return;
             } else {
                 if (DEBUG) {
                     String hostname = (u.getHost() != null) ? u.getHost().getName() : "null";
@@ -263,11 +261,11 @@ public class COMPSsMaster extends COMPSsNode {
                     return;
                 } else {
                     BindingObject bo = BindingObject.generate(sourcePath);
-                    if (ld.getName().equals(tgtBO.getName())){
+                    if (ld.getName().equals(tgtBO.getName())) {
                         LOGGER.debug("Current transfer is the same as expected. Nothing to do setting data target to " + bo.getName());
                         reason.setDataTarget(sourcePath);
-                    }else{
-                        LOGGER.debug("Making cache copy from " + bo.getName()+ " to " + tgtBO.getName() );
+                    } else {
+                        LOGGER.debug("Making cache copy from " + bo.getName() + " to " + tgtBO.getName());
                         BindingDataManager.copyCachedData(bo.getName(), tgtBO.getName());
                         if (tgtData != null) {
                             tgtData.addLocation(target);
@@ -306,12 +304,12 @@ public class COMPSsMaster extends COMPSsNode {
             }
         }
     }
-    
+
     public void obtainFileData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
             EventListener listener) {
-    	
-    	String targetPath = target.getURIInHost(Comm.getAppHost()).getPath();
-    	// Check if there are current copies in progress
+
+        String targetPath = target.getURIInHost(Comm.getAppHost()).getPath();
+        // Check if there are current copies in progress
         if (DEBUG) {
             LOGGER.debug("Data " + ld.getName() + " not in memory. Checking if there is a copy to the master in progress");
         }
@@ -324,7 +322,7 @@ public class COMPSsMaster extends COMPSsNode {
                         if (DEBUG) {
                             LOGGER.debug("Copy in progress tranfering " + ld.getName() + "to master. Waiting for finishing");
                         }
-                        Copy.waitForCopyTofinish(copy,this);
+                        Copy.waitForCopyTofinish(copy, this);
                         try {
                             if (DEBUG) {
                                 LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget() + " to " + targetPath);
@@ -477,40 +475,43 @@ public class COMPSsMaster extends COMPSsNode {
         ErrorManager.warn("Error file " + ld.getName() + " not transferred to " + targetPath);
         ld.releaseHostRemoval();
     }
-    
+
     @Override
     public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
             EventListener listener) {
 
         LOGGER.info("Obtain Data " + ld.getName());
-        if (DEBUG){
-            if (ld !=null){
-                LOGGER.debug("srcData: "+ ld.toString());
+        if (DEBUG) {
+            if (ld != null) {
+                LOGGER.debug("srcData: " + ld.toString());
             }
-            if (reason !=null){
-                LOGGER.debug("Reason: " +reason.getType());
+            if (reason != null) {
+                LOGGER.debug("Reason: " + reason.getType());
             }
-            if (source!=null){
-                LOGGER.debug("Source Data location" + source.getType().toString() +" " +source.getProtocol().toString()+ " " +source.getURIs().get(0));
+            if (source != null) {
+                LOGGER.debug("Source Data location" + source.getType().toString() + " " + source.getProtocol().toString() + " "
+                        + source.getURIs().get(0));
             }
-            if (target!=null){
-                LOGGER.debug("Target Data location" + target.getType().toString() +" " +target.getProtocol().toString()+ " " +target.getURIs().get(0));
+            if (target != null) {
+                LOGGER.debug("Target Data location" + target.getType().toString() + " " + target.getProtocol().toString() + " "
+                        + target.getURIs().get(0));
             }
-            if (tgtData !=null){
-                LOGGER.debug("tgtData: "+ tgtData.toString());
+            if (tgtData != null) {
+                LOGGER.debug("tgtData: " + tgtData.toString());
             }
         }
-        /* 
+        /*
          * Check if data is binding data
          */
-        if (ld.isBindingData() || (reason != null && reason.getType().equals(DataType.BINDING_OBJECT_T))||(source!=null && source.getType().equals(Type.BINDING))|| (target!=null && target.getType().equals(Type.BINDING))){
-        	obtainBindingData(ld, source, target, tgtData, reason, listener);
-        	return;
+        if (ld.isBindingData() || (reason != null && reason.getType().equals(DataType.BINDING_OBJECT_T))
+                || (source != null && source.getType().equals(Type.BINDING)) || (target != null && target.getType().equals(Type.BINDING))) {
+            obtainBindingData(ld, source, target, tgtData, reason, listener);
+            return;
         }
         /*
          * PSCO transfers are always available, if any SourceLocation is PSCO, don't transfer
          */
-        
+
         for (DataLocation loc : ld.getLocations()) {
             if (loc.getProtocol().equals(Protocol.PERSISTENT_URI)) {
                 LOGGER.debug("Object in Persistent Storage. Set dataTarget to " + loc.getPath());
@@ -519,7 +520,7 @@ public class COMPSsMaster extends COMPSsNode {
                 return;
             }
         }
-        
+
         /*
          * Otherwise the data is a file or an object that can be already in the master memory, in the master disk or
          * being transfered
@@ -527,8 +528,8 @@ public class COMPSsMaster extends COMPSsNode {
 
         // Check if data is in memory (no need to check if it is PSCO since previous case avoids it)
         if (ld.isInMemory()) {
-        	String targetPath = target.getURIInHost(Comm.getAppHost()).getPath();
-        	// Serialize value to file
+            String targetPath = target.getURIInHost(Comm.getAppHost()).getPath();
+            // Serialize value to file
             try {
                 Serializer.serialize(ld.getValue(), targetPath);
             } catch (IOException ex) {
@@ -543,12 +544,11 @@ public class COMPSsMaster extends COMPSsNode {
             listener.notifyEnd(null);
             return;
         }
-        
+
         obtainFileData(ld, source, target, tgtData, reason, listener);
 
     }
 
-    
     @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res, List<String> slaveWorkersNodeNames,
             JobListener listener) {

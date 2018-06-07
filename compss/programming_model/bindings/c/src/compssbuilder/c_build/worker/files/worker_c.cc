@@ -1,4 +1,4 @@
-/*         
+/*
  *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,22 +18,22 @@
 #include <CBindingCache.h>
 #include <common.h>
 
-int get_compss_worker_lock(){
-  return 0;
+int get_compss_worker_lock() {
+    return 0;
 }
 
-int release_compss_worker_lock(){
-  return 0;
+int release_compss_worker_lock() {
+    return 0;
 }
 
 int main(int argc, char **argv) {
-	init_env_vars();
+    init_env_vars();
     CBindingCache *cache = new CBindingCache();
     int out = execute(argc, argv, cache, 1);
-    if (out == 0){
+    if (out == 0) {
         printf("Task executed successfully");
-    }else{
-        printf("Error task execution at worker returned %d" , out);
+    } else {
+        printf("Error task execution at worker returned %d", out);
     }
     return out;
 }

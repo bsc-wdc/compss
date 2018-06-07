@@ -33,13 +33,17 @@
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \
      --project="${base_app_dir}"/project.xml \
      --resources="${base_app_dir}"/resources.xml \
+     \
      --comm="$comm" \
-     --lang=python \
-     --python_interpreter="$pythonInterpreter" \
-     --pythonpath="${base_app_dir}"/src \
+     \
      --debug \
      --tracing \
      ${runcompss_opts} \
+     \
+     --lang=python \
+     --python_interpreter="$pythonInterpreter" \
+     --pythonpath="${base_app_dir}"/src \
+     \
      "${base_app_dir}"/src/task_tracing_kmeans.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
   # Check timeout

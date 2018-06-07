@@ -74,15 +74,19 @@ function execute () {
 
   # Execution with pycompss module through python -m
   # shellcheck disable=SC2086
-  timeout --signal=2 "$expectedTime" python -m pycompss \
+  timeout --signal=2 $expectedTime python -m pycompss \
      --project="${base_app_dir}"/project.xml \
      --resources="${base_app_dir}"/resources.xml \
+     \
      --comm="$comm" \
-     --pythonpath="${base_app_dir}"/src \
-     --lang=python \
-     --python_interpreter="$pythonInterpreter" \
+     \
      --debug \
      ${runcompss_opts} \
+     \
+     --lang=python \
+     --python_interpreter="$pythonInterpreter" \
+     --pythonpath="${base_app_dir}"/src \
+     \
      "${base_app_dir}"/src/"${app}".py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
   # Check timeout

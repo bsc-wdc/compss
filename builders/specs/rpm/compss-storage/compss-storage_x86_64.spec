@@ -1,8 +1,8 @@
-%define name	 	compss-tools
+%define name	 	compss-storage
 %define version		2.2.rc1803
 %define release		1
 
-Requires: compss-monitor, compss-extrae, compss-storage, compss-autoparallel
+Requires: compss-engine
 Summary: The BSC COMP Superscalar Runtime
 Name: %{name}
 Version: %{version}
@@ -15,7 +15,7 @@ Vendor: Barcelona Supercomputing Center - Centro Nacional de Supercomputación
 URL: http://compss.bsc.es
 Packager: COMPSs Support <support-compss@bsc.es>
 Prefix: /opt
-BuildArch: noarch
+ExclusiveArch: x86_64
 
 %description
 The BSC COMP Superscalar Tools for COMPSs Runtime.
@@ -24,6 +24,7 @@ The BSC COMP Superscalar Tools for COMPSs Runtime.
 
 #------------------------------------------------------------------------------------
 %build
+
 
 #------------------------------------------------------------------------------------
 %install

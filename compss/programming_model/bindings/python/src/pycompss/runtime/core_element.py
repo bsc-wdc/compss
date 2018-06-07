@@ -28,57 +28,56 @@ PyCOMPSs Core Element
 #   from collections import namedtuple
 #   CE = namedtuple('CE', 'ce_signature implSignature implConstraints implType implTypeArgs')
 # QUESTION: why there are getters and setters if all attributes are "public"?
-class CE:
+class CE(object):
 
     def __init__(self, ce_signature, impl_signature, impl_constraints, impl_type, impl_type_args):
         self.ce_signature = ce_signature
-        self.impl_signature = impl_signature
-        self.impl_constraints = impl_constraints
-        self.impl_type = impl_type
-        self.impl_type_args = impl_type_args
+        self.implSignature = impl_signature
+        self.implConstraints = impl_constraints
+        self.implType = impl_type
+        self.implTypeArgs = impl_type_args
 
     # GETTERS
     def get_ce_signature(self):
         return self.ce_signature
 
     def get_impl_signature(self):
-        return self.impl_signature
+        return self.implSignature
 
     def get_impl_constraints(self):
-        return self.impl_constraints
+        return self.implConstraints
 
     def get_impl_type(self):
-        return self.impl_type
+        return self.implType
 
     def get_impl_type_args(self):
-        return self.impl_type_args
+        return self.implTypeArgs
 
     # SETTERS
     def set_ce_signature(self, ce_signature):
         self.ce_signature = ce_signature
 
     def set_impl_signature(self, impl_signature):
-        self.impl_signature = impl_signature
+        self.implSignature = impl_signature
 
     def set_impl_constraints(self, impl_constraints):
-        self.impl_constraints = impl_constraints
+        self.implConstraints = impl_constraints
 
     def set_impl_type(self, impl_type):
-        self.impl_type = impl_type
+        self.implType = impl_type
 
-    def set_impl_type_args(self, impl_typeArgs):
-        self.impl_type_args = impl_typeArgs
+    def set_impl_type_args(self, impl_type_args):
+        self.implTypeArgs = impl_type_args
 
     # Representation
     def __repr__(self):
-        repr = 'CORE ELEMENT: \n'
-        repr += '\t - CE signature     : ' + self.ce_signature + '\n'
-        repr += '\t - Impl. signature  : ' + self.impl_signature + '\n'
+        _repr = 'CORE ELEMENT: \n'
+        _repr += '\t - CE signature    : ' + self.ce_signature + '\n'
+        _repr += '\t - Impl. signature : ' + self.implSignature + '\n'
         impl_constraints = ''
-        for key, value in self.impl_constraints.items():
-            impl_constraints += key + ":" + str(value) + ";"
-        repr += '\t - Impl. constraints: ' + impl_constraints + '\n'
-        repr += '\t - Impl. type       : ' + self.impl_type + '\n'
-        repr += '\t - Impl. type args  : ' + ' '.join(self.impl_type_args)
-
-        return repr
+        for key, value in self.implConstraints.items():
+            impl_constraints += key + ':' + str(value) + ';'
+        _repr += '\t - Impl. constrings: ' + impl_constraints + '\n'
+        _repr += '\t - Impl. type      : ' + self.implType + '\n'
+        _repr += '\t - Impl. type args : ' + ' '.join(self.implTypeArgs)
+        return _repr

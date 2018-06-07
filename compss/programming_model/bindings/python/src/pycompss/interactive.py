@@ -59,40 +59,40 @@ def start(log_level='off',
           project_xml=None,
           resources_xml=None,
           summary=False,
-          taskExecution='compss',
-          storageConf=None,
-          taskCount=50,
-          appName='Interactive',
+          task_execution='compss',
+          storage_conf=None,
+          task_count=50,
+          app_name='Interactive',
           uuid=None,
-          baseLogDir=None,
-          specificLogDir=None,
-          extraeCfg=None,
+          base_log_dir=None,
+          specific_log_dir=None,
+          extrae_cfg=None,
           comm='NIO',
           conn='es.bsc.compss.connectors.DefaultSSHConnector',
-          masterName='',
-          masterPort='',
+          master_name='',
+          master_port='',
           scheduler='es.bsc.compss.scheduler.loadBalancingScheduler.LoadBalancingScheduler',
-          jvmWorkers='-Xms1024m,-Xmx1024m,-Xmn400m',
-          cpuAffinity='automatic',
-          gpuAffinity='automatic',
-          profileInput='',
-          profileOutput='',
+          jvm_workers='-Xms1024m,-Xmx1024m,-Xmn400m',
+          cpu_affinity='automatic',
+          gpu_affinity='automatic',
+          profile_input='',
+          profile_output='',
           scheduler_config='',
           external_adaptation=False,
           propagate_virtual_environment=False,
           verbose=False
           ):
 
-    launchPath = os.path.dirname(os.path.realpath(__file__))
-    # compss_home = launchPath without the last 4 folders:
+    launch_path = os.path.dirname(os.path.realpath(__file__))
+    # compss_home = launch_path without the last 4 folders:
     # Bindings/python/version/pycompss
-    compss_home = os.path.sep.join(launchPath.split(os.path.sep)[:-4])
+    compss_home = os.path.sep.join(launch_path.split(os.path.sep)[:-4])
     os.environ['COMPSS_HOME'] = compss_home
 
     # Get environment variables
     cp = os.getcwd() + '/'
-    pythonPath = os.environ['PYTHONPATH']
-    classPath = os.environ['CLASSPATH']
+    pythonpath = os.environ['PYTHONPATH']
+    classpath = os.environ['CLASSPATH']
     ld_library_path = os.environ['LD_LIBRARY_PATH']
 
     # Set extrae dependencies
@@ -153,47 +153,47 @@ def start(log_level='off',
     ##############################################################
 
     # Build a dictionary with all variables needed for initializing the runtime
-    config = {}
+    config = dict()
     config['compss_home'] = compss_home
     config['debug'] = debug
     if project_xml is None:
-        proj_path = 'Runtime/configuration/xml/projects/default_project.xml'
-        config['project_xml'] = compss_home + os.path.sep + proj_path
+        project_path = 'Runtime/configuration/xml/projects/default_project.xml'
+        config['project_xml'] = compss_home + os.path.sep + project_path
     else:
         config['project_xml'] = project_xml
     if resources_xml is None:
-        res_path = 'Runtime/configuration/xml/resources/default_resources.xml'
-        config['resources_xml'] = compss_home + os.path.sep + res_path
+        resources_path = 'Runtime/configuration/xml/resources/default_resources.xml'
+        config['resources_xml'] = compss_home + os.path.sep + resources_path
     else:
         config['resources_xml'] = resources_xml
     config['summary'] = summary
-    config['taskExecution'] = taskExecution
-    config['storageConf'] = storageConf
-    config['taskCount'] = taskCount
-    if appName is None:
-        config['appName'] = 'Interactive'
+    config['task_execution'] = task_execution
+    config['storage_conf'] = storage_conf
+    config['task_count'] = task_count
+    if app_name is None:
+        config['app_name'] = 'Interactive'
     else:
-        config['appName'] = appName
+        config['app_name'] = app_name
     config['uuid'] = uuid
-    config['baseLogDir'] = baseLogDir
-    config['specificLogDir'] = specificLogDir
+    config['base_log_dir'] = base_log_dir
+    config['specific_log_dir'] = specific_log_dir
     config['graph'] = graph
     config['monitor'] = monitor
     config['trace'] = trace
-    config['extraeCfg'] = extraeCfg
+    config['extrae_cfg'] = extrae_cfg
     config['comm'] = comm
     config['conn'] = conn
-    config['masterName'] = masterName
-    config['masterPort'] = masterPort
+    config['master_name'] = master_name
+    config['master_port'] = master_port
     config['scheduler'] = scheduler
     config['cp'] = cp
-    config['classpath'] = classPath
-    config['jvmWorkers'] = jvmWorkers
-    config['pythonPath'] = pythonPath
-    config['cpuAffinity'] = cpuAffinity
-    config['gpuAffinity'] = gpuAffinity
-    config['profileInput'] = profileInput
-    config['profileOutput'] = profileOutput
+    config['classpath'] = classpath
+    config['jvm_workers'] = jvm_workers
+    config['pythonpath'] = pythonpath
+    config['cpu_affinity'] = cpu_affinity
+    config['gpu_affinity'] = gpu_affinity
+    config['profile_input'] = profile_input
+    config['profile_output'] = profile_output
     config['scheduler_config'] = scheduler_config
     if external_adaptation:
         config['external_adaptation'] = 'true'
@@ -258,19 +258,19 @@ def start(log_level='off',
 
     print_setup(verbose,
                 log_level, o_c, debug, graph, trace, monitor,
-                project_xml, resources_xml, summary, taskExecution, storageConf,
-                taskCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
-                comm, conn, masterName, masterPort, scheduler, jvmWorkers,
-                cpuAffinity, gpuAffinity, profileInput, profileOutput,
+                project_xml, resources_xml, summary, task_execution, storage_conf,
+                task_count, app_name, uuid, base_log_dir, specific_log_dir, extrae_cfg,
+                comm, conn, master_name, master_port, scheduler, jvm_workers,
+                cpu_affinity, gpu_affinity, profile_input, profile_output,
                 scheduler_config, external_adaptation, python_interpreter, major_version,
                 python_virtual_environment, propagate_virtual_environment)
 
     logger.debug("--- START ---")
     logger.debug("PyCOMPSs Log path: %s" % log_path)
-    if storageConf is not None:
-        logger.debug("Storage configuration file: %s" % storageConf)
-        from storage.api import init as initStorage
-        initStorage(config_file_path=storageConf)
+    if storage_conf is not None:
+        logger.debug("Storage configuration file: %s" % storage_conf)
+        from storage.api import init as init_storage
+        init_storage(config_file_path=storage_conf)
         global persistent_storage
         persistent_storage = True
 
@@ -281,10 +281,10 @@ def start(log_level='off',
 
 
 def print_setup(verbose, log_level, o_c, debug, graph, trace, monitor,
-                project_xml, resources_xml, summary, taskExecution, storageConf,
-                taskCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
-                comm, conn, masterName, masterPort, scheduler, jvmWorkers,
-                cpuAffinity, gpuAffinity, profileInput, profileOutput,
+                project_xml, resources_xml, summary, task_execution, storage_conf,
+                task_count, app_name, uuid, base_log_dir, specific_log_dir, extrae_cfg,
+                comm, conn, master_name, master_port, scheduler, jvm_workers,
+                cpu_affinity, gpu_affinity, profile_input, profile_output,
                 scheduler_config, external_adaptation, python_interpreter, python_version,
                 python_virtual_environment, python_propagate_virtual_environment):
     logger = logging.getLogger("pycompss.runtime.launch")
@@ -300,24 +300,24 @@ def print_setup(verbose, log_level, o_c, debug, graph, trace, monitor,
     output += "  - Project XML         : " + str(project_xml) + "\n"
     output += "  - Resources XML       : " + str(resources_xml) + "\n"
     output += "  - Summary             : " + str(summary) + "\n"
-    output += "  - Task execution      : " + str(taskExecution) + "\n"
-    output += "  - Storage conf.       : " + str(storageConf) + "\n"
-    output += "  - Task count          : " + str(taskCount) + "\n"
-    output += "  - Application name    : " + str(appName) + "\n"
+    output += "  - Task execution      : " + str(task_execution) + "\n"
+    output += "  - Storage conf.       : " + str(storage_conf) + "\n"
+    output += "  - Task count          : " + str(task_count) + "\n"
+    output += "  - Application name    : " + str(app_name) + "\n"
     output += "  - UUID                : " + str(uuid) + "\n"
-    output += "  - Base log dir.       : " + str(baseLogDir) + "\n"
-    output += "  - Specific log dir.   : " + str(specificLogDir) + "\n"
-    output += "  - Extrae CFG          : " + str(extraeCfg) + "\n"
+    output += "  - Base log dir.       : " + str(base_log_dir) + "\n"
+    output += "  - Specific log dir.   : " + str(specific_log_dir) + "\n"
+    output += "  - Extrae CFG          : " + str(extrae_cfg) + "\n"
     output += "  - COMM library        : " + str(comm) + "\n"
     output += "  - CONN library        : " + str(conn) + "\n"
-    output += "  - Master name         : " + str(masterName) + "\n"
-    output += "  - Master port         : " + str(masterPort) + "\n"
+    output += "  - Master name         : " + str(master_name) + "\n"
+    output += "  - Master port         : " + str(master_port) + "\n"
     output += "  - Scheduler           : " + str(scheduler) + "\n"
-    output += "  - JVM Workers         : " + str(jvmWorkers) + "\n"
-    output += "  - CPU affinity        : " + str(cpuAffinity) + "\n"
-    output += "  - GPU affinity        : " + str(gpuAffinity) + "\n"
-    output += "  - Profile input       : " + str(profileInput) + "\n"
-    output += "  - Profile output      : " + str(profileOutput) + "\n"
+    output += "  - JVM Workers         : " + str(jvm_workers) + "\n"
+    output += "  - CPU affinity        : " + str(cpu_affinity) + "\n"
+    output += "  - GPU affinity        : " + str(gpu_affinity) + "\n"
+    output += "  - Profile input       : " + str(profile_input) + "\n"
+    output += "  - Profile output      : " + str(profile_output) + "\n"
     output += "  - Scheduler config    : " + str(scheduler_config) + "\n"
     output += "  - External adaptation : " + str(external_adaptation) + "\n"
     output += "  - Python interpreter  : " + str(python_interpreter) + "\n"
@@ -349,7 +349,7 @@ def stop(sync=False):
         raw_code = ipython.__dict__['user_ns']
         for k in raw_code:
             obj_k = raw_code[k]
-            if not k.startswith('_'):  # not internal objects
+            if not k.startswith('_'):   # not internal objects
                 if type(obj_k) == binding.Future:
                     print("Found a future object: %s" % str(k))
                     logger.debug("Found a future object: %s" % (k,))
@@ -365,8 +365,8 @@ def stop(sync=False):
         print("         have not been brought to the master.")
 
     if persistent_storage is True:
-        from storage.api import finish as finishStorage
-        finishStorage()
+        from storage.api import finish as finish_storage
+        finish_storage()
 
     compss_stop()
 
@@ -403,6 +403,7 @@ def __show_graph__(name='complete_graph', fit=False):
         raise
     monitor_file = open(log_path + '/monitor/' + name + '.dot', 'r')
     text = monitor_file.read()
+    monitor.close()
     if fit:
         try:
             # Convert to png and show full picture
@@ -439,11 +440,11 @@ def __export_globals__():
     # import pprint
     # pprint.pprint(ipython.__dict__, width=1)
     # Extract user globals from ipython
-    userGlobals = ipython.__dict__['ns_table']['user_global']
+    user_globals = ipython.__dict__['ns_table']['user_global']
     # Inject app_path variable to user globals so that task and constraint
     # decorators can get it.
     temp_app_filename = os.getcwd() + '/' + "InteractiveMode_" + str(time.strftime('%d%m%y_%H%M%S')) + '.py'
-    userGlobals['app_path'] = temp_app_filename
+    user_globals['app_path'] = temp_app_filename
     global app_path
     app_path = temp_app_filename
 

@@ -285,8 +285,7 @@ class task(object):
             # Check if this call is nested using the launch_pycompss_module
             # function from launch.py.
             is_nested = False
-            istack = inspect.stack()
-            for i_s in istack:
+            for i_s in inspect.stack():
                 if i_s[3] == 'launch_pycompss_module':
                     is_nested = True
                 if i_s[3] == 'launch_pycompss_application':
@@ -344,14 +343,14 @@ class task(object):
         # When the user specifies the length, it is possible to manage the elements independently.
         if not hasattr(self.kwargs['returns'], '__len__') or type(self.kwargs['returns']) is type:
             # Simple return
-            ret_type = get_COMPSs_type(self.kwargs['returns'])
+            ret_type = get_compss_type(self.kwargs['returns'])
             self.kwargs['compss_retvalue'] = Parameter(p_type=ret_type, p_direction=DIRECTION.OUT)
         else:
             # Multi return
             self.has_multireturn = True
             returns = []
             for r in self.kwargs['returns']:
-                ret_type = get_COMPSs_type(r)
+                ret_type = get_compss_type(r)
                 returns.append(Parameter(p_type=ret_type, p_direction=DIRECTION.OUT))
             self.kwargs['compss_retvalue'] = tuple(returns)
 
@@ -393,7 +392,7 @@ class task(object):
                             return True
                         else:
                             return False
-                    except Exception:
+                    except (KeyError, AttributeError):
                         # KeyError: 'elts' means that it is a multiple return.
                         # "Ask forgiveness not permission"
                         return False
@@ -417,7 +416,7 @@ class task(object):
                             num_returns = len(code[i].value.__dict__['elts'])
                             if num_returns > max_num_returns:
                                 max_num_returns = num_returns
-                    except Exception:
+                    except (KeyError, AttributeError):
                         # KeyError: 'elts' means that it is a multiple return.
                         # "Ask forgiveness not permission"
                         pass
@@ -485,8 +484,7 @@ class task(object):
         default = 'task'
         task_type = get_task_type(func_code, decorator_filter, default)
         if __debug__:
-            logger.debug(
-                "[@TASK] Task type of function %s in module %s: %s" % (f.__name__, self.module, str(task_type)))
+            logger.debug("[@TASK] Task type of function %s in module %s: %s" % (f.__name__, self.module, str(task_type)))
         f.__task_type__ = task_type
         if task_type == default:
             f.__code_strings__ = True
@@ -538,7 +536,7 @@ class task(object):
         :param f: <Function> - Function to execute
         :param args: <Tuple> - Contains the objects that the function has been called with (positional).
         :param kwargs: <Dictionary> - Contains the named objects that the function has been called with.
-        :return: Two lists: newTypes and newValues.
+        :return: Two lists: new_types and new_values.
         """
 
         from pycompss.util.serializer import serialize_objects
@@ -581,33 +579,33 @@ class task(object):
                 # The spec_args already has the compss_retvalue
                 num_return = 1
 
-        toadd = []
+        to_add = []
 
         # Check if there is *arg parameter in the task
         if self.has_varargs:
             if binding.aargs_as_tuple:
                 # If the *args are expected to be managed as a tuple:
-                toadd.append(self.f_argspec.varargs)
+                to_add.append(self.f_argspec.varargs)
             else:
                 # If the *args are expected to be managed as individual elements:
                 num_aargs = len(args) - len(spec_args)
                 if self.has_keywords:
                     num_aargs -= 1
                 for i in range(num_aargs):
-                    toadd.append('*' + self.f_argspec.varargs + str(i))
+                    to_add.append('*' + self.f_argspec.varargs + str(i))
 
         # Check if there is **kwarg parameters in the task
         if self.has_keywords:
-            toadd.append(self.f_argspec.keywords)
+            to_add.append(self.f_argspec.keywords)
 
         if self.has_return:
             # Include to add between the arguments and the returns
             if is_multi_return:
-                spec_args = spec_args[:-num_return] + toadd + spec_args[-num_return:]
+                spec_args = spec_args[:-num_return] + to_add + spec_args[-num_return:]
             else:
-                spec_args = spec_args[:-1] + toadd + [spec_args[-1]]
+                spec_args = spec_args[:-1] + to_add + [spec_args[-1]]
         else:
-            spec_args = spec_args + toadd
+            spec_args = spec_args + to_add
 
         # Discover hidden objects passed as files
         real_values, to_serialize = self.__reveal_objects(args, spec_args, kwargs['compss_types'], num_return)
@@ -671,7 +669,10 @@ class task(object):
         # Check if the values and types have changed after the task execution:
         # I.e.- an object that has been made persistent within the task may be
         # detected here, and the type change done within the outputTypes list.
-        new_types, new_values, to_serialize = check_value_changes(kwargs['compss_types'], list(args), to_serialize)
+        new_types, new_values, to_serialize = check_value_changes(kwargs['compss_types'],
+                                                                  list(args),
+                                                                  to_serialize)
+
         if len(to_serialize) > 0:
             serialize_objects(to_serialize)
 
@@ -787,15 +788,15 @@ class task(object):
         # for methods python hasn't wrapped the function as a method yet
         # Everything is still a function here, can't distinguish yet
         # with inspect.ismethod or isfunction
-        ftype = FunctionType.FUNCTION
+        f_type = FunctionType.FUNCTION
         class_name = ''
         if self.is_instance:
-            ftype = FunctionType.INSTANCE_METHOD
+            f_type = FunctionType.INSTANCE_METHOD
             class_name = type(args[0]).__name__
         if args and inspect.isclass(args[0]):
             for n, _ in inspect.getmembers(args[0], inspect.ismethod):
                 if n == f.__name__:
-                    ftype = FunctionType.CLASS_METHOD
+                    f_type = FunctionType.CLASS_METHOD
                     class_name = args[0].__name__
 
         # Build the arguments list
@@ -808,6 +809,7 @@ class task(object):
             num_params -= 1
 
         # Check if the user has defined default values and include them
+        args_list = []
         if self.has_defaults:
             # There are default parameters
             # Get the variable names and values that have been defined by default (get_default_args(f)).
@@ -867,8 +869,10 @@ class task(object):
         # Build the final list of values for each parameter
         values = tuple(vals + args_vals)
 
-        fo = process_task(f, self.module, class_name, ftype, self.has_return, spec_args, values, kwargs, self.kwargs,
-                          num_nodes, is_replicated, is_distributed)
+        fo = process_task(f, self.module, class_name, f_type, self.has_return, spec_args, values, kwargs, self.kwargs,
+                          num_nodes,
+                          is_replicated, is_distributed)
+
         # Starts the asynchronous creation of the task.
         # First calling the PyCOMPSs library and then C library (bindings-commons).
         return fo
@@ -905,11 +909,11 @@ def get_module_name(path, file_name):
     return mod_name
 
 
-def get_top_decorator(code, decoratorKeys):
+def get_top_decorator(code, decorator_keys):
     """
     Retrieves the decorator which is on top of the current task decorators stack.
     :param code: Tuple which contains the task code to analyse and the number of lines of the code.
-    :param decoratorKeys: Typle which contains the available decorator keys
+    :param decorator_keys: Typle which contains the available decorator keys
     :return: the decorator name in the form "pycompss.api.__name__"
     """
 
@@ -922,7 +926,7 @@ def get_top_decorator(code, decoratorKeys):
     # but we have to be care if a decorator is commented (# before @)
     # The strip is due to the spaces that appear before functions definitions,
     # such as class methods.
-    for dk in decoratorKeys:
+    for dk in decorator_keys:
         for d in decorators:
             if d.startswith('@' + dk):
                 return "pycompss.api." + dk.lower()  # each decorator __name__
@@ -945,9 +949,9 @@ def get_task_type(code, decorator_filter, default):
     # code[0] = the entire function code.
     # code[1] = the number of lines of the function code.
     func_code = code[0]
-    fulldecorators = [l.strip() for l in func_code if l.strip().startswith('@')]
+    full_decorators = [l.strip() for l in func_code if l.strip().startswith('@')]
     # Get only the decorators used. Remove @ and parameters.
-    decorators = [l[1:].split('(')[0] for l in fulldecorators]
+    decorators = [l[1:].split('(')[0] for l in full_decorators]
     # Look for the decorator used from the filter list and return it when found
     for f in decorator_filter:
         if f in decorators:
@@ -964,7 +968,7 @@ def check_value_changes(types, values, to_serialize):
     NOTE: This function can also return the real_to_serialize list, which
     contains the objects that should be serialized after checking the changes.
     For example, if a return is a simple type (int), it can be considered
-    within the newTypes and newValues, poped from the to_serialize list, and
+    within the new_types and new_values, poped from the to_serialize list, and
     returned on the task return pipe.
     However, the runtime does not support getting values from the return pipe.
     For this reason, we continue using the to_serialize list to serialize the
@@ -997,7 +1001,7 @@ def check_value_changes(types, values, to_serialize):
         pos = 0
         changed = False
         for i in values:
-            if isinstance(i, str) and get_COMPSs_type(ts[0]) == TYPE.EXTERNAL_PSCO and ts[1] in i:
+            if isinstance(i, str) and get_compss_type(ts[0]) == TYPE.EXTERNAL_PSCO and ts[1] in i:
                 # Include the PSCO id in the values list
                 values[pos] = get_ID(ts[0])
                 types[pos] = TYPE.EXTERNAL_PSCO
@@ -1012,7 +1016,7 @@ def check_value_changes(types, values, to_serialize):
     return types, values, real_to_serialize
 
 
-def get_COMPSs_type(value):
+def get_compss_type(value):
     """
     Retrieve the value type mapped to COMPSs types.
     :param value: Value to analyse

@@ -40,13 +40,13 @@
     echo " - COMPSs PLUTO structure created"
     echo " "
 
-    echo " - Setting COMPSs PLUTO permissions..."
-    chmod 755 -R /opt/COMPSs/Dependencies/pluto
-    echo " - COMPSs PLUTO permissions set"
+    echo " - Setting PyCOMPSs AutoParallel permissions..."
+    chmod 755 -R /opt/COMPSs/Dependencies
+    echo " - PyCOMPSs AutoParallel permissions set"
     
     echo " "
     echo "Congratulations!"
-    echo " * COMPSs PLUTO $newversion successfully installed!"
+    echo " * PyCOMPSs AutoParallel $newversion successfully installed!"
     echo " "
   elif [ "$action" == "abort-remove" ]; then
     if [ $# -eq 1 ]; then

@@ -1,8 +1,8 @@
-Package: compss-pluto
+Package: compss-autoparallel
 Version: 
 Priority: optional
-Architecture: all
+Architecture: amd64
 Essential: no
 Depends: compss-engine, compss-python-binding, automake, libtool
 Maintainer: COMPSs Support <support-compss@bsc.es>
-Description: PLUTO tool for autoparallelization.
+Description: The PyCOMPSs AutoParallel Module

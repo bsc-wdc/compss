@@ -1,8 +1,0 @@
-#!/bin/bash -e
-
-  trunk_rel_path=../../../../
-  COMPSs_target=$(pwd)/tmp/opt/COMPSs
-
-  cp -r ${trunk_rel_path}/dependencies/pluto "${COMPSs_target}"/Dependencies/pluto_install
-  find "${COMPSs_target}"/Dependencies/pluto_install -name ".git*" -print0 -exec rm -rf {} \; # Clean git files
-

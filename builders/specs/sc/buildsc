@@ -50,6 +50,7 @@
   cp -r ${trunk_rel_path}/dependencies/JAVA_GAT ${COMPSs_target}/Dependencies/
   cp -r ${trunk_rel_path}/files/paraver ${COMPSs_target}/Dependencies/
   cp -r ${trunk_rel_path}/dependencies/extrae ${COMPSs_target}/Dependencies/
+  cp -r ${trunk_rel_path}/dependencies/autoparallel ${COMPSs_target}/Dependencies/
   cp -r ${trunk_rel_path}/dependencies/pluto ${COMPSs_target}/Dependencies/
 
   # Config

@@ -5,14 +5,14 @@
   if [ "$action" == "configure" ]; then
     # Configure new version successfully installed
     newversion=$1
-    echo " - Setting COMPSs PLUTO..."
-    chmod 755 -R /opt/COMPSs/Dependencies/pluto
-    echo " - COMPSs PLUTO permissions set"
+    echo " - Setting PyCOMPSs AutoParallel..."
+    chmod 755 -R /opt/COMPSs/Dependencies
+    echo " - PyCOMPSs AutoParallel permissions set"
     echo " "
 
     echo " "
     echo "Congratulations!"
-    echo " * COMPSs PLUTO $newversion successfully installed!"
+    echo " * PyCOMPSs AutoParallel $newversion successfully installed!"
     echo " "
   elif [ "$action" == "abort-remove" ]; then
     if [ $# -eq 1 ]; then

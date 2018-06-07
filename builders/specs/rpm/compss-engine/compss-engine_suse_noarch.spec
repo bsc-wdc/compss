@@ -30,10 +30,6 @@ echo " "
 
 echo "   - Compile sources"
 mvn -U clean install
-# Redis impl
-cd utils/storage/redisPSCO
-./make_bundle.sh
-cd -
 
 echo "   - Create deployment folders"
 mkdir -p COMPSs
@@ -44,7 +40,6 @@ mkdir -p COMPSs/Runtime/configuration
 mkdir -p COMPSs/Runtime/scripts
 mkdir -p COMPSs/Runtime/adaptors
 mkdir -p COMPSs/Runtime/scheduler
-mkdir -p COMPSs/Runtime/storage
 
 echo "   - Copy deployment files"
 #Doc
@@ -96,10 +91,6 @@ schedulers=$(find compss/runtime/scheduler/ -name "*.jar")
 for scheduler in $schedulers; do
   cp $scheduler COMPSs/Runtime/scheduler/
 done
-
-#Storage
-cp -r utils/storage/redisPSCO/COMPSs-Redis-bundle COMPSs/Runtime/storage/redis
-
 
 #Engine
 cp compss/runtime/compss-engine.jar COMPSs/Runtime/

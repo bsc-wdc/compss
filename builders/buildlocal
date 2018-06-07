@@ -361,9 +361,9 @@ install_compss() {
   mkdir -p ${targetDir}/Runtime/connectors
   mkdir -p ${targetDir}/Runtime/cloud-conn
   mkdir -p ${targetDir}/Runtime/scheduler
-  mkdir -p ${targetDir}/Runtime/storage
   mkdir -p ${targetDir}/Tools
   mkdir -p ${targetDir}/Tools/monitor
+  mkdir -p ${targetDit}/Tools/storage
   mkdir -p ${targetDir}/Bindings
   mkdir -p ${targetDir}/Bindings/bindings-common
 
@@ -459,7 +459,7 @@ install_compss() {
   echo "Dealing with Redis storage implementation..."
   cd "${TMP_DIR}/utils/storage/redisPSCO"
   ./make_bundle.sh
-  cp -r COMPSs-Redis-bundle "${targetDir}/Runtime/storage/redis"
+  cp -r COMPSs-Redis-bundle "${targetDir}/Tools/storage/redis"
   cd -
 
   # Connectors

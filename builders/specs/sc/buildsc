@@ -29,9 +29,9 @@
   mkdir -p ${COMPSs_target}/Runtime/connectors
   mkdir -p ${COMPSs_target}/Runtime/cloud-conn
   mkdir -p ${COMPSs_target}/Runtime/scheduler
-  mkdir -p ${COMPSs_target}/Runtime/storage
   mkdir -p ${COMPSs_target}/Tools
   mkdir -p ${COMPSs_target}/Tools/monitor
+  mkdir -p ${COMPSs_target}/Tools/storage
   mkdir -p ${COMPSs_target}/Bindings
   mkdir -p ${COMPSs_target}/Bindings/bindings-common
 
@@ -109,7 +109,7 @@
   cd "${trunk_rel_path}/utils/storage/redisPSCO"
   ./make_bundle.sh
   cd -
-  cp -r "${trunk_rel_path}/utils/storage/redisPSCO/COMPSs-Redis-bundle" "${COMPSs_target}/Runtime/storage/redis"
+  cp -r "${trunk_rel_path}/utils/storage/redisPSCO/COMPSs-Redis-bundle" "${COMPSs_target}/Tools/storage/redis"
 
   #TODO: add other storage implementations (?)
 

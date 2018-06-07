@@ -159,7 +159,12 @@ def compss_worker(persistent_storage):
                 real_value = aux
                 try:
                     # try to recover the real object
-                    aux = deserialize_from_string(str(aux.decode(STR_ESCAPE)))
+                    if sys.version_info >= (3, 0):
+                        # decode removes double backslash, and encode returns as binary
+                        aux = deserialize_from_string(aux.decode(STR_ESCAPE).encode())
+                    else:
+                        # decode removes double backslash, and str casts the output
+                        aux = deserialize_from_string(str(aux.decode(STR_ESCAPE)))
                 except (SerializerException, ValueError, EOFError):
                     # was not an object
                     aux = str(real_value.decode())

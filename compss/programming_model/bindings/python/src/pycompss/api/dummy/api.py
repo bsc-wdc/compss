@@ -17,12 +17,12 @@
 
 # -*- coding: utf-8 -*-
 
-'''
+"""
 PyCOMPSs Dummy API
 ==================
     This file defines the public PyCOMPSs API functions without functionality.
     It implements a dummy compss_open and compss_wait_on functions.
-'''
+"""
 
 
 def compss_start():

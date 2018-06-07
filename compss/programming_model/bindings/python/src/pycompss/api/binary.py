@@ -105,27 +105,26 @@ class binary(object):
                         break
                 self.module = mod_name
 
-            # Include the registering info related to @Binary
+            # Include the registering info related to @binary
 
-            # Retrieve the base coreElement established at @task decorator
+            # Retrieve the base core_element established at @task decorator
             core_element = func.__to_register__
             # Update the core element information with the mpi information
             core_element.set_impl_type("BINARY")
-            binary = self.kwargs['binary']
+            _binary = self.kwargs['binary']
             if 'workingDir' in self.kwargs:
                 working_dir = self.kwargs['workingDir']
             else:
-                working_dir = '[unassigned]'  # Empty or '[unassigned]'
-            impl_signature = 'BINARY.' + binary
+                working_dir = '[unassigned]'   # Empty or '[unassigned]'
+            impl_signature = 'BINARY.' + _binary
             core_element.set_impl_signature(impl_signature)
-            impl_args = [binary, working_dir]
+            impl_args = [_binary, working_dir]
             core_element.set_impl_type_args(impl_args)
             func.__to_register__ = core_element
             # Do the task register if I am the top decorator
             if func.__who_registers__ == __name__:
                 if __debug__:
-                    logger.debug("[@BINARY] I have to do the register of function %s in module %s" % (
-                        func.__name__, self.module))
+                    logger.debug("[@BINARY] I have to do the register of function %s in module %s" % (func.__name__, self.module))
                 register_ce(core_element)
         else:
             # worker code

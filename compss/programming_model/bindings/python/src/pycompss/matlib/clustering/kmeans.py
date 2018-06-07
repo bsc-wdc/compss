@@ -25,7 +25,7 @@ PyCOMPSs Mathematical Library: Clustering: KMeans
 
 import numpy as np
 from pycompss.api.task import task
-from pycompss.functions.reduce import mergeReduce
+from pycompss.functions.reduce import merge_reduce
 
 
 def chunks(l, n, balanced=False):
@@ -44,23 +44,23 @@ def chunks(l, n, balanced=False):
 
 
 @task(returns=dict)
-def cluster_points_partial(XP, mu, ind):
+def cluster_points_partial(points, mu, ind):
     dic = {}
-    XP = np.array(XP)
-    for x in enumerate(XP):
-        bestmukey = min([(i[0], np.linalg.norm(x[1] - mu[i[0]]))
-                         for i in enumerate(mu)], key=lambda t: t[1])[0]
-        if bestmukey not in dic:
-            dic[bestmukey] = [x[0] + ind]
+    points = np.array(points)
+    for x in enumerate(points):
+        best_mu_key = min([(i[0], np.linalg.norm(x[1] - mu[i[0]]))
+                          for i in enumerate(mu)], key=lambda t: t[1])[0]
+        if best_mu_key not in dic:
+            dic[best_mu_key] = [x[0] + ind]
         else:
-            dic[bestmukey].append(x[0] + ind)
+            dic[best_mu_key].append(x[0] + ind)
     return dic
 
 
 @task(returns=dict)
-def partial_sum(XP, clusters, ind):
-    XP = np.array(XP)
-    p = [(i, [(XP[j - ind]) for j in clusters[i]]) for i in clusters]
+def partial_sum(points, clusters, ind):
+    points = np.array(points)
+    p = [(i, [(points[j - ind]) for j in clusters[i]]) for i in clusters]
     dic = {}
     for i, l in p:
         dic[i] = (len(l), np.sum(l, axis=0))
@@ -68,7 +68,7 @@ def partial_sum(XP, clusters, ind):
 
 
 @task(returns=dict, priority=True)
-def reduceCentersTask(a, b):
+def reduce_centers_task(a, b):
     for key in b:
         if key not in a:
             a[key] = b[key]
@@ -77,12 +77,12 @@ def reduceCentersTask(a, b):
     return a
 
 
-def has_converged(mu, oldmu, epsilon, iter, maxIterations):
-    if oldmu != []:
-        if iter < maxIterations:
-            aux = [np.linalg.norm(oldmu[i] - mu[i]) for i in range(len(mu))]
-            distancia = sum(aux)
-            if distancia < epsilon * epsilon:
+def has_converged(mu, old_mu, epsilon, iteration, max_iterations):
+    if not old_mu:
+        if iteration < max_iterations:
+            aux = [np.linalg.norm(old_mu[i] - mu[i]) for i in range(len(mu))]
+            distance = sum(aux)
+            if distance < epsilon * epsilon:
                 return True
             else:
                 return False
@@ -99,12 +99,12 @@ def cost(Y, C):
     return sum([distance(x, C) ** 2 for x in Y])
 
 
-def bestMuKey(X, C):
+def best_mu_key(X, C):
     w = [0 for i in range(len(C))]
     for x in X:
-        bestmukey = min([(i[0], np.linalg.norm(x - np.array(C[i[0]])))
-                         for i in enumerate(C)], key=lambda t: t[1])[0]
-        w[bestmukey] += 1
+        best_mu_key = min([(i[0], np.linalg.norm(x-np.array(C[i[0]])))
+                        for i in enumerate(C)], key=lambda t: t[1])[0]
+        w[best_mu_key] += 1
     return w
 
 
@@ -113,20 +113,20 @@ def probabilities(X, C, l, phi, n):
     p = [(l * distance(x, C) ** 2) / phi for x in X]
     p /= sum(p)
     idx = np.random.choice(n, l, p=p)
-    newC = [X[i][0] for i in idx]
-    return newC
+    new_c = [X[i][0] for i in idx]
+    return new_c
 
 
-def init_parallel(X, k, l, initSteps=2):
+def init_parallel(X, k, l, init_steps=2):
     import random
     random.seed(5)
     num_frag = len(X)
     ind = random.randint(0, num_frag - 1)
-    XP = X[ind]
-    C = random.sample(XP, 1)
+    points = X[ind]
+    C = random.sample(points, 1)
     phi = sum([cost(x, C) for x in X])
 
-    for i in range(initSteps):
+    for i in range(init_steps):
         '''calculate p'''
         c = [probabilities(x, C, l, phi, len(x)) for x in X]
         C.extend([item for sublist in c for item in sublist])
@@ -134,12 +134,12 @@ def init_parallel(X, k, l, initSteps=2):
         phi = sum([cost(x, C) for x in X])
 
     '''pick k centers'''
-    w = [bestMuKey(x, C) for x in X]
-    best_c = [sum(x) for x in zip(*w)]
-    best_c = np.argsort(best_c)
-    best_c = best_c[::-1]
-    best_c = best_c[:k]
-    return [C[b] for b in best_c]
+    w = [best_mu_key(x, C) for x in X]
+    bestC = [sum(x) for x in zip(*w)]
+    bestC = np.argsort(bestC)
+    bestC = bestC[::-1]
+    bestC = bestC[:k]
+    return [C[b] for b in bestC]
 
 
 def init_random(dim, k):
@@ -156,42 +156,41 @@ def init(X, k, mode):
         return init_random(dim, k)
 
 
-def kmeans(data, k, numFrag=-1, maxIterations=10, epsilon=1e-4,
-           initMode='random'):
+def kmeans(data, k, num_frag=-1, max_iterations=10, epsilon=1e-4,
+           init_mode='random'):
     """
     kmeans: starting with a set of randomly chosen initial centers,
     one repeatedly assigns each imput point to its nearest center, and
     then recomputes the centers given the point assigment. This local
     search called Lloyd's iteration, continues until the solution does
-    not change between two consecutive rounds or iteration > maxIterations.
+    not change between two consecutive rounds or iteration > max_iterations.
     :param data: data
     :param k: num of centroids
-    :param numFrag: num fragments, if -1 data is considered chunked
-    :param maxIterations: max iterations
+    :param num_frag: num fragments, if -1 data is considered chunked
+    :param max_iterations: max iterations
     :param epsilon: error threshold
+    :param init_mode: initialization mode
     :return: list os centroids
     """
     from pycompss.api.api import compss_wait_on
 
     # Data is already fragmented
-    if numFrag == -1:
-        numFrag = len(data)
+    if num_frag == -1:
+        num_frag = len(data)
     else:
         # fragment data
-        data = [d for d in chunks(data, len(data) / numFrag)]
+        data = [d for d in chunks(data, len(data) / num_frag)]
 
-    mu = init(data, k, initMode)
-    oldmu = []
+    mu = init(data, k, init_mode)
+    old_mu = []
     n = 0
-    size = int(len(data) / numFrag)
-    while not has_converged(mu, oldmu, epsilon, n, maxIterations):
-        oldmu = list(mu)
-        clusters = [cluster_points_partial(
-            data[f], mu, f * size) for f in range(numFrag)]
-        partialResult = [partial_sum(
-            data[f], clusters[f], f * size) for f in range(numFrag)]
+    size = int(len(data) / num_frag)
+    while not has_converged(mu, old_mu, epsilon, n, max_iterations):
+        old_mu = list(mu)
+        clusters = [cluster_points_partial(data[f], mu, f * size) for f in range(num_frag)]
+        partial_result = [partial_sum(data[f], clusters[f], f * size) for f in range(num_frag)]
 
-        mu = mergeReduce(reduceCentersTask, partialResult)
+        mu = merge_reduce(reduce_centers_task, partial_result)
         mu = compss_wait_on(mu)
         mu = [mu[c][1] / mu[c][0] for c in mu]
         n += 1

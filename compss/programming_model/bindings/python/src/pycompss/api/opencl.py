@@ -105,9 +105,9 @@ class opencl(object):
                         break
                 self.module = mod_name
 
-            # Include the registering info related to @OpenCL
+            # Include the registering info related to @opencl
 
-            # Retrieve the base coreElement established at @task decorator
+            # Retrieve the base core_element established at @task decorator
             core_element = func.__to_register__
             # Update the core element information with the mpi information
             core_element.set_impl_type("OPENCL")
@@ -115,7 +115,7 @@ class opencl(object):
             if 'workingDir' in self.kwargs:
                 working_dir = self.kwargs['workingDir']
             else:
-                working_dir = '[unassigned]'  # Empty or '[unassigned]'
+                working_dir = '[unassigned]'   # Empty or '[unassigned]'
             impl_signature = 'OPENCL.' + kernel
             core_element.set_impl_signature(impl_signature)
             impl_args = [kernel, working_dir]
@@ -124,8 +124,7 @@ class opencl(object):
             # Do the task register if I am the top decorator
             if func.__who_registers__ == __name__:
                 if __debug__:
-                    logger.debug("[@OPENCL] I have to do the register of function %s in module %s" % (
-                        func.__name__, self.module))
+                    logger.debug("[@OPENCL] I have to do the register of function %s in module %s" % (func.__name__, self.module))
                 register_ce(core_element)
         else:
             # worker code

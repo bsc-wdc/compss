@@ -27,7 +27,7 @@ PyCOMPSs Mathematical Library: Classification: Linear Regression
 """
 
 from pycompss.api.task import task
-from pycompss.functions.reduce import mergeReduce
+from pycompss.functions.reduce import merge_reduce
 import math
 
 
@@ -42,12 +42,12 @@ def reduce_add(x, y):
 
 
 @task(returns=float)
-def _mean(X, n):
-    return sum(X) / float(n)
+def _mean(data, n):
+    return sum(data) / float(n)
 
 
-def mean(X, n, wait=False):
-    result = mergeReduce(reduce_add, [_mean(x, n) for x in X])
+def mean(data, n, wait=False):
+    result = merge_reduce(reduce_add, [_mean(x, n) for x in data])
     if wait:
         from pycompss.api.api import compss_wait_on
         result = compss_wait_on(result)
@@ -55,13 +55,13 @@ def mean(X, n, wait=False):
 
 
 @task(returns=list)
-def _norm(X, m):
-    return [x - m for x in X]
+def _norm(data, m):
+    return [x-m for x in data]
 
 
 @task(returns=list)
-def _pow(X, p=2):
-    return [pow(x, p) for x in X]
+def _pow(data, p=2):
+    return [pow(x, p) for x in data]
 
 
 @task(returns=float)
@@ -69,10 +69,10 @@ def _mul(x, y):
     return x * y
 
 
-def std(X, m, n, wait=False):
-    xs = [_norm(x, m) for x in X]
+def std(data, m, n, wait=False):
+    xs = [_norm(x, m) for x in data]
     xp = [_pow(x, 2) for x in xs]
-    suma = mergeReduce(reduce_add, [_mean(x, n) for x in xp])
+    suma = merge_reduce(reduce_add, [_mean(x, n) for x in xp])
     if wait:
         from pycompss.api.api import compss_wait_on
         suma = compss_wait_on(suma)
@@ -85,7 +85,7 @@ def op_task(sum_x, sum_y, suma):
 
 
 @task(returns=float)
-def multFrag(a, b):
+def mult_frag(a, b):
     p = zip(a, b)
     result = 0
     for (a, b) in p:
@@ -93,36 +93,36 @@ def multFrag(a, b):
     return result
 
 
-def pearson(X, Y, mx, my):
-    xs = [_norm(x, mx) for x in X]
-    ys = [_norm(y, my) for y in Y]
+def pearson(data_x, data_y, mx, my):
+    xs = [_norm(x, mx) for x in data_x]
+    ys = [_norm(y, my) for y in data_y]
     xxs = [_pow(x, 2) for x in xs]
     yys = [_pow(y, 2) for y in ys]
 
-    suma = mergeReduce(reduce_add, [multFrag(a, b) for (a, b) in zip(xs, ys)])
+    suma = merge_reduce(reduce_add, [mult_frag(a, b) for (a, b) in zip(xs, ys)])
 
-    sum_x = mergeReduce(reduce_add, map(_add, xxs))
-    sum_y = mergeReduce(reduce_add, map(_add, yys))
+    sum_x = merge_reduce(reduce_add, map(_add, xxs))
+    sum_y = merge_reduce(reduce_add, map(_add, yys))
     r = op_task(sum_x, sum_y, suma)
     return r
 
 
 @task(returns=(float, float))
-def computeLine(r, stdy, stdx, my, mx):
-    b = r * (math.sqrt(stdy) / math.sqrt(stdx))
-    A = my - b * mx
-    return b, A
+def compute_line(r, std_y, std_x, my, mx):
+    b = r * (math.sqrt(std_y) / math.sqrt(std_x))
+    a = my - b*mx
+    return b, a
 
 
-def fit(X, Y, n):
+def fit(data_x, data_y, n):
     from pycompss.api.api import compss_wait_on
-    mx = mean(X, n)
-    my = mean(Y, n)
-    r = pearson(X, Y, mx, my)
-    stdx = std(X, mx, n)
-    stdy = std(Y, mx, n)
+    mx = mean(data_x, n)
+    my = mean(data_y, n)
+    r = pearson(data_x, data_y, mx, my)
+    std_x = std(data_x, mx, n)
+    std_y = std(data_y, mx, n)
 
-    line = computeLine(r, stdy, stdx, my, mx)
+    line = compute_line(r, std_y, std_x, my, mx)
 
     line = compss_wait_on(line)
     print(line)

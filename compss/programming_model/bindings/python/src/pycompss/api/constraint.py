@@ -106,7 +106,7 @@ class constraint(object):
 
             # Include the registering info related to @constraint
 
-            # Retrieve the base coreElement established at @task decorator
+            # Retrieve the base core_element established at @task decorator
             core_element = func.__to_register__
             # Update the core element information with the constraints
             core_element.set_impl_constraints(self.kwargs)
@@ -114,8 +114,7 @@ class constraint(object):
             # Do the task register if I am the top decorator
             if func.__who_registers__ == __name__:
                 if __debug__:
-                    logger.debug("[@CONSTRAINT] I have to do the register of function %s in module %s" % (
-                        func.__name__, self.module))
+                    logger.debug("[@CONSTRAINT] I have to do the register of function %s in module %s" % (func.__name__, self.module))
                 register_ce(core_element)
         else:
             # worker code

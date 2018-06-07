@@ -63,14 +63,14 @@ class decaf(object):
             if 'computingNodes' not in self.kwargs:
                 self.kwargs['computingNodes'] = 1
             else:
-                cNs = kwargs['computingNodes']
-                if isinstance(cNs, int):
+                computing_nodes = kwargs['computingNodes']
+                if isinstance(computing_nodes, int):
                     self.kwargs['computingNodes'] = kwargs['computingNodes']
-                elif isinstance(cNs, str) and cNs.strip().startswith('$'):
-                    envVar = cNs.strip()[1:]  # Remove $
-                    if envVar.startswith('{'):
-                        envVar = envVar[1:-1]  # remove brackets
-                    self.kwargs['computingNodes'] = int(os.environ[envVar])
+                elif isinstance(computing_nodes, str) and computing_nodes.strip().startswith('$'):
+                    env_var = computing_nodes.strip()[1:]  # Remove $
+                    if env_var.startswith('{'):
+                        env_var = env_var[1:-1]  # remove brackets
+                    self.kwargs['computingNodes'] = int(os.environ[env_var])
                 else:
                     raise Exception("Wrong Computing Nodes value at DECAF decorator.")
             if __debug__:
@@ -126,9 +126,9 @@ class decaf(object):
                         break
                 self.module = mod_name
 
-            # Include the registering info related to @MPI
+            # Include the registering info related to @decaf
 
-            # Retrieve the base coreElement established at @task decorator
+            # Retrieve the base core_element established at @task decorator
             core_element = func.__to_register__
             # Update the core element information with the mpi information
             core_element.set_impl_type("DECAF")
@@ -140,7 +140,7 @@ class decaf(object):
                 runner = self.kwargs['mpiRunner']
             else:
                 runner = 'mpirun'
-            dfScript = self.kwargs['dfScript']
+            df_script = self.kwargs['dfScript']
             if 'dfExecutor' in self.kwargs:
                 df_executor = self.kwargs['dfExecutor']
             else:
@@ -148,17 +148,16 @@ class decaf(object):
             if 'dfLib' in self.kwargs:
                 df_lib = self.kwargs['dfLib']
             else:
-                df_lib = '[unassigned]'  # Empty or '[unassigned]'
-            impl_signature = 'DECAF.' + dfScript
+                df_lib = '[unassigned]'   # Empty or '[unassigned]'
+            impl_signature = 'DECAF.' + df_script
             core_element.set_impl_signature(impl_signature)
-            impl_args = [dfScript, df_executor, df_lib, working_dir, runner]
+            impl_args = [df_script, df_executor, df_lib, working_dir, runner]
             core_element.set_impl_type_args(impl_args)
             func.__to_register__ = core_element
             # Do the task register if I am the top decorator
             if func.__who_registers__ == __name__:
                 if __debug__:
-                    logger.debug(
-                        "[@DECAF] I have to do the register of function %s in module %s" % (func.__name__, self.module))
+                    logger.debug("[@DECAF] I have to do the register of function %s in module %s" % (func.__name__, self.module))
                 register_ce(core_element)
         else:
             # worker code

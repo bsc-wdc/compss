@@ -26,7 +26,6 @@ PyCOMPSs Functions: Map
 from pycompss.runtime.commons import IS_PYTHON3
 
 
-
 def map(*args):
     """
     Apply function to every item of iterable and return a list of the results.
@@ -38,9 +37,7 @@ def map(*args):
     containing the corresponding items from all iterables (a kind of transpose
     operation). The iterable arguments may be a sequence or any iterable
     object. The result is always a list.
-
-    :param function: function to apply to data
-    :param data: List of items to be reduced
+    :param args: items to apply function
     :return: list result
     """
 

@@ -1,4 +1,4 @@
-/*         
+/*
  *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,34 +27,34 @@
 using namespace std;
 
 
-class CBindingExecutor: public AbstractExecutor{
-private:
-	static string END_TASK_TAG;
-	pthread_mutex_t mtx;
-	customStream *csOut;
-	customStream *csErr;
-	int get_compss_worker_lock(){
-		return pthread_mutex_lock(&mtx);
-	};
-	int release_compss_worker_lock(){
-		return pthread_mutex_unlock(&mtx);
-	};
-public:
-	CBindingExecutor(AbstractCache *cache) : AbstractExecutor(cache){
-		pthread_mutex_init(&mtx,NULL);
-		csOut = new customStream(cout.rdbuf());
-		csErr = new customStream(cerr.rdbuf());
-		cout.rdbuf(csOut);
-		cerr.rdbuf(csErr);
-	};
-	void initThread();
-	int executeTask(const char* args, char*& result);
-	void finishThread();
-	~CBindingExecutor(){
-		pthread_mutex_destroy(&mtx);
-		delete(csOut);
-		delete(csErr);
-	};
+class CBindingExecutor: public AbstractExecutor {
+  private:
+    static string END_TASK_TAG;
+    pthread_mutex_t mtx;
+    customStream *csOut;
+    customStream *csErr;
+    int get_compss_worker_lock() {
+        return pthread_mutex_lock(&mtx);
+    };
+    int release_compss_worker_lock() {
+        return pthread_mutex_unlock(&mtx);
+    };
+  public:
+    CBindingExecutor(AbstractCache *cache) : AbstractExecutor(cache) {
+        pthread_mutex_init(&mtx,NULL);
+        csOut = new customStream(cout.rdbuf());
+        csErr = new customStream(cerr.rdbuf());
+        cout.rdbuf(csOut);
+        cerr.rdbuf(csErr);
+    };
+    void initThread();
+    int executeTask(const char* args, char*& result);
+    void finishThread();
+    ~CBindingExecutor() {
+        pthread_mutex_destroy(&mtx);
+        delete(csOut);
+        delete(csErr);
+    };
 };
 #endif
 

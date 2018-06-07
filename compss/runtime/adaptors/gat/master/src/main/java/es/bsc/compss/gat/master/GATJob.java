@@ -641,16 +641,15 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                     break;
                 case BINDING_OBJECT_T:
                     DependencyParameter dExtObjPar = (DependencyParameter) param;
-                    DataAccessId dExtObjAccId = dExtObjPar.getDataAccessId();
+                    // DataAccessId dExtObjAccId = dExtObjPar.getDataAccessId();
                     BindingObject bo = BindingObject.generate(dExtObjPar.getDataTarget());
                     lArgs.add(bo.getId());
                     lArgs.add(Integer.toString(bo.getType()));
                     lArgs.add(Integer.toString(bo.getElements()));
-                    /*if (dExtObjAccId instanceof RAccessId) {
-                        lArgs.add("R");
-                    } else {
-                        lArgs.add("W"); // for the worker to know it must write the object to disk
-                    }*/
+                    /*
+                     * if (dExtObjAccId instanceof RAccessId) { lArgs.add("R"); } else { lArgs.add("W"); // for the
+                     * worker to know it must write the object to disk }
+                     */
                     break;
                 case STRING_T:
                     BasicTypeParameter btParS = (BasicTypeParameter) param;

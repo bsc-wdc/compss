@@ -1,4 +1,4 @@
-/*         
+/*
  *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,7 +37,7 @@ extern "C" {
  * Signature: (Ljava/lang/String;)Z
  */
 JNIEXPORT jboolean JNICALL Java_es_bsc_compss_util_BindingDataManager_isInBinding
-  (JNIEnv *, jclass, jstring);
+(JNIEnv *, jclass, jstring);
 
 /*
  * Class:     es_bsc_compss_util_BindingDataManager
@@ -45,7 +45,7 @@ JNIEXPORT jboolean JNICALL Java_es_bsc_compss_util_BindingDataManager_isInBindin
  * Signature: (Ljava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_removeData
-  (JNIEnv *, jclass, jstring);
+(JNIEnv *, jclass, jstring);
 
 /*
  * Class:     es_bsc_compss_util_BindingDataManager
@@ -53,20 +53,20 @@ JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_removeData
  * Signature: (Ljava/lang/String;Ljava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_storeInFile
-  (JNIEnv *, jclass, jstring, jstring);
+(JNIEnv *, jclass, jstring, jstring);
 
 JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_copyCachedData
-  (JNIEnv *, jclass, jstring, jstring);
+(JNIEnv *, jclass, jstring, jstring);
 
 JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_moveCachedData
-  (JNIEnv *, jclass, jstring, jstring);
+(JNIEnv *, jclass, jstring, jstring);
 /*
  * Class:     es_bsc_compss_util_BindingDataManager
  * Method:    loadFromFile
  * Signature: (Ljava/lang/String;Ljava/lang/String;II)I
  */
 JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_loadFromFile
-  (JNIEnv *, jclass, jstring, jstring, jint, jint);
+(JNIEnv *, jclass, jstring, jstring, jint, jint);
 
 /*
  * Class:     es_bsc_compss_util_BindingDataManager
@@ -74,7 +74,7 @@ JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_loadFromFile
  * Signature: (Ljava/lang/String;)Ljava/nio/ByteBuffer;
  */
 JNIEXPORT jobject JNICALL Java_es_bsc_compss_util_BindingDataManager_getByteArray
-  (JNIEnv *, jclass, jstring);
+(JNIEnv *, jclass, jstring);
 
 /*
  * Class:     es_bsc_compss_util_BindingDataManager
@@ -82,7 +82,7 @@ JNIEXPORT jobject JNICALL Java_es_bsc_compss_util_BindingDataManager_getByteArra
  * Signature: (Ljava/lang/String;Ljava/nio/ByteBuffer;II)V
  */
 JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_setByteArray
-  (JNIEnv *, jclass, jstring, jobject, jint, jint);
+(JNIEnv *, jclass, jstring, jobject, jint, jint);
 
 /*
  * Class:     es_bsc_compss_nio_utils_NIOBindingDataManager
@@ -90,7 +90,7 @@ JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_setByteArray
  * Signature: (Ljava/lang/String;Les/bsc/compss/nio/utils/NIOBindingObjectStream;)V
  */
 JNIEXPORT jint JNICALL Java_es_bsc_compss_nio_utils_NIOBindingDataManager_sendNativeObject
-  (JNIEnv *, jclass, jstring, jobject);
+(JNIEnv *, jclass, jstring, jobject);
 
 /*
  * Class:     es_bsc_compss_nio_utils_NIOBindingDataManager
@@ -98,7 +98,7 @@ JNIEXPORT jint JNICALL Java_es_bsc_compss_nio_utils_NIOBindingDataManager_sendNa
  * Signature: (Ljava/lang/String;Les/bsc/compss/nio/utils/NIOBindingObjectStream;)V
  */
 JNIEXPORT jint JNICALL Java_es_bsc_compss_nio_utils_NIOBindingDataManager_receiveNativeObject
-  (JNIEnv *, jclass, jstring, jint type, jobject);
+(JNIEnv *, jclass, jstring, jint type, jobject);
 
 #ifdef __cplusplus
 }

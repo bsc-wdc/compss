@@ -1,4 +1,4 @@
-/*         
+/*
  *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,17 +23,21 @@
 using namespace std;
 
 
-class AbstractExecutor{
+class AbstractExecutor {
 
-protected :
-	AbstractCache *cache = NULL;
+  protected :
+    AbstractCache *cache = NULL;
 
-public:
-	AbstractExecutor(AbstractCache *cache){this->cache = cache;};
-	virtual void initThread() = 0;
-	virtual int executeTask(const char* args, char*& result) = 0;
-	virtual void finishThread() = 0;
-	virtual ~AbstractExecutor(){delete(cache);};
+  public:
+    AbstractExecutor(AbstractCache *cache) {
+        this->cache = cache;
+    };
+    virtual void initThread() = 0;
+    virtual int executeTask(const char* args, char*& result) = 0;
+    virtual void finishThread() = 0;
+    virtual ~AbstractExecutor() {
+        delete(cache);
+    };
 };
 #endif
 

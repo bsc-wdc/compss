@@ -19,10 +19,7 @@ package es.bsc.compss.nio.worker.executors;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.worker.NIOWorker;
-import es.bsc.compss.nio.worker.util.JobsThreadPool;
-import es.bsc.compss.nio.worker.util.TaskResultReader;
 import es.bsc.compss.types.resources.components.Processor;
-import es.bsc.compss.util.RequestQueue;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -33,16 +30,16 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public class CExecutionCommandGenerator{
+public class CExecutionCommandGenerator {
 
     private static final String C_LIB_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "c" + File.separator + "lib";
     private static final String WORKER_C_RELATIVE_PATH = File.separator + "worker" + File.separator + "worker_c";
     private static final String LIBRARY_PATH_ENV = "LD_LIBRARY_PATH";
-    
+
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
     protected static final boolean WORKER_DEBUG = LOGGER.isDebugEnabled();
 
-  
+
     public static ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits,
             int[] assignedGPUs, int[] assignedFPGAs) {
         ArrayList<String> lArgs = new ArrayList<>();
@@ -84,7 +81,7 @@ public class CExecutionCommandGenerator{
                 }
             }
         } else if (assignedFPGAs.length > 0) {
-            reqs.append(" --disable-cuda=yes"); 
+            reqs.append(" --disable-cuda=yes");
         } else {
             reqs.append(" --disable-cuda=yes");
             reqs.append(" --disable-opencl=yes");

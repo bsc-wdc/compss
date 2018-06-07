@@ -1,4 +1,4 @@
-/*         
+/*
  *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,46 +25,42 @@ typedef struct argument argument;
 typedef struct constraint constraint;
 
 
-struct argument
-{
-	char *name;
-	char *classname;
-	enum datatype	type;
-	enum direction	dir;
+struct argument {
+    char *name;
+    char *classname;
+    enum datatype	type;
+    enum direction	dir;
     enum stream     stream;
-	int passing_in_order;
-	int passing_out_order;
-	char *elements;
-	argument *next_argument;
+    int passing_in_order;
+    int passing_out_order;
+    char *elements;
+    argument *next_argument;
 };
 
-struct constraint
-{
-	char *name;
-	constraint *next_constraint;
+struct constraint {
+    char *name;
+    constraint *next_constraint;
 };
 
-struct function
-{
-	char *name;
-	int access_static;
-	char *methodname;
-	char *classname;
-	char *return_typename;
-	enum datatype return_type;
-	char *return_elements;
-	argument *first_argument;
-	int argument_count;
-	int exec_arg_count;
-	constraint *first_constraint;
-	function *next_function;
-}; 
-
-struct interface
-{
-	char *name;
-	function *first_function;
+struct function {
+    char *name;
+    int access_static;
+    char *methodname;
+    char *classname;
+    char *return_typename;
+    enum datatype return_type;
+    char *return_elements;
+    argument *first_argument;
+    int argument_count;
+    int exec_arg_count;
+    constraint *first_constraint;
+    function *next_function;
 };
+
+struct interface {
+        char *name;
+        function *first_function;
+    };
 
 void add_static(int val);
 void begin_interface(char *interface_name);

@@ -27,5 +27,5 @@ RUN chown -R jenkins /home/jenkins && \
     chmod 600 /home/jenkins/.ssh/authorized_keys && \
     echo "GIT_USER=jenkins" >> /etc/environment && \
     echo "GIT_PASSWORD=jenkins2017" >> /etc/environment && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
 

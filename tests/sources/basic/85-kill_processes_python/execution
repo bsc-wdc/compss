@@ -38,10 +38,12 @@
      \
      --comm="$comm" \
      \
-     --pythonpath="${base_app_dir}"/src \
-     \
      --debug \
      ${runcompss_opts} \
+     \
+     --lang=python \
+     --python_interpreter="$pythonInterpreter" \
+     --pythonpath="${base_app_dir}"/src \
      \
      "${base_app_dir}"/src/simple_kill.py $counterVal > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
   

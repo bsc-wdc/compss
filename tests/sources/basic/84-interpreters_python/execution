@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-  #Obtain parameters
+  # Obtain parameters
   COMPSs_exec=$1
   comm=$2
   runcompss_opts=$3
@@ -10,19 +10,19 @@
   retryNum=$7
   pythonInterpreter=$8
 
-  #Global exit variable
+  # Global exit variable
   exitValue=0
 
   #----------------------------------------------------------------------------------
-  #Generate Project.xml according to system
+  # Generate Project.xml according to system
   sed -i '/<InstallDir>/c<InstallDir>'${COMPSS_HOME}'<\/InstallDir>' ${base_app_dir}/project.xml
 
   #----------------------------------------------------------------------------------
-  #Create all working dir folders
+  # Create all working dir folders
   mkdir -p /tmp/COMPSsWorker01/
 
   #----------------------------------------------------------------------------------
-  #Run application 1 - Test
+  # Run application 1 - Test
   echo
   echo "*** RUNNING PYTHON INTERPRETER TEST"
   output_log="${target_log_folder}/python_interpreter_test_0${retryNum}.outputlog"
@@ -30,60 +30,69 @@
   expectedTime=120s
 
   if [ $pythonInterpreter == "python2" ]; then
-      timeout --signal=2 $expectedTime ${COMPSs_exec} \
-         --pythonpath=${base_app_dir}/src \
-         --project=${base_app_dir}/project.xml \
-         --resources=${base_app_dir}/resources.xml \
+      # shellcheck disable=SC2086
+      timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+         --project="${base_app_dir}"/project.xml \
+         --resources="${base_app_dir}"/resources.xml \
+         \
+         --comm="$comm" \
+         \
          --debug \
-         --comm=$comm \
          ${runcompss_opts} \
+         \
          --lang=python \
          --python_interpreter=python2 \
+         --pythonpath="${base_app_dir}"/src \
+         \
          ${base_app_dir}/src/py2.py > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
 
-      #Check timeout
+      # Check timeout
       if [[ "$?" = "124" ]]; then
-         #Copy LOG files
+         # Copy LOG files
          cp -rf ${COMPSs_log_folder}/py2.py_0${retryNum}/* ${target_log_folder}
 
-         #Report timeout
+         # Report timeout
          echo "[WARNING] Python Application timed out" >> ${output_log}
          exitValue=124
       else
-         #Copy LOG files
+         # Copy LOG files
          cp -rf ${COMPSs_log_folder}/py2.py_0${retryNum}/* ${target_log_folder}
       fi
   else
-      timeout --signal=2 $expectedTime ${COMPSs_exec} \
-         --pythonpath=${base_app_dir}/src \
-         --project=${base_app_dir}/project.xml \
-         --resources=${base_app_dir}/resources.xml \
+      # shellcheck disable=SC2086
+      timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+         --project="${base_app_dir}"/project.xml \
+         --resources="${base_app_dir}"/resources.xml \
+         \
+         --comm="$comm" \
+         \
          --debug \
-         --comm=$comm \
          ${runcompss_opts} \
+         \
          --lang=python \
          --python_interpreter=python3 \
+         --pythonpath="${base_app_dir}"/src \
+         \
          ${base_app_dir}/src/py3.py > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
 
-      #Check timeout
+      # Check timeout
       if [[ "$?" = "124" ]]; then
-         #Copy LOG files
+         # Copy LOG files
          cp -rf ${COMPSs_log_folder}/py3.py_0${retryNum}/* ${target_log_folder}
 
-         #Report timeout
+         # Report timeout
          echo "[WARNING] Python Application timed out" >> ${output_log}
          exitValue=124
       else
-         #Copy LOG files
+         # Copy LOG files
          cp -rf ${COMPSs_log_folder}/py3.py_0${retryNum}/* ${target_log_folder}
       fi
   fi
 
-  #Check result
+  # Check result
   ${base_app_dir}/result ${output_log} ${error_log} ${target_log_folder}
   exitValue=$?
 
-
   #----------------------------------------------------------------------------------
-  #Return execution status
+  # Return execution status
   exit $exitValue

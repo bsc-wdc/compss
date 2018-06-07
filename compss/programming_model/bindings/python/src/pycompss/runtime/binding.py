@@ -30,6 +30,7 @@ from pycompss.api.parameter import JAVA_MIN_INT, JAVA_MAX_INT
 from pycompss.api.parameter import JAVA_MIN_LONG, JAVA_MAX_LONG
 from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.runtime.commons import STR_ESCAPE
+from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.serializer import *
 from pycompss.util.sizer import total_sizeof
 from pycompss.util.persistent_storage import is_PSCO, get_ID, get_by_ID
@@ -52,7 +53,7 @@ from shutil import rmtree
 import compss
 
 # Types conversion dictionary from python to COMPSs
-if sys.version_info >= (3, 0):
+if IS_PYTHON3:
     python_to_compss = {int: TYPE.INT,       # int
                         int: TYPE.LONG,      # long
                         float: TYPE.DOUBLE,  # float

@@ -35,12 +35,13 @@ All serialization/deserialization calls should be made using one of the followin
 import sys
 import types
 import traceback
+from pycompss.runtime.commons import IS_PYTHON3
 from .serialization.extended_support import pickle_generator, convert_to_generator, GeneratorIndicator
 from .object_properties import object_belongs_to_module
 
 from io import BytesIO
 
-if sys.version_info >= (3, 0):
+if IS_PYTHON3:
     import pickle as pickle  # Uses _pickle if available
 else:
     import cPickle as pickle
@@ -48,7 +49,7 @@ else:
 try:
     import dill
 except:
-    if sys.version_info >= (3, 0):
+    if IS_PYTHON3:
         import pickle as dill
     else:
         import cPickle as dill
@@ -56,7 +57,7 @@ except:
 try:
     import numpy
 except:
-    if sys.version_info >= (3, 0):
+    if IS_PYTHON3:
         import pickle as numpy
     else:
         import cPickle as numpy

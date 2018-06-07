@@ -22,7 +22,9 @@ PyCOMPSs Functions: Reduce
 ===================================
     This file defines the common reduce functions.
 """
-import sys
+
+from pycompss.runtime.commons import IS_PYTHON3
+
 
 def mergeReduce(function, data):
     """
@@ -77,7 +79,7 @@ def simpleReduce(function, data):
     :return: result of reduce the data to a single value
     """
     try:
-        if sys.version_info >= (3, 0):
+        if IS_PYTHON3:
             import functools
             return functools.reduce(function, data)
         else:

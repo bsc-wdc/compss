@@ -52,7 +52,7 @@ from pycompss.util.serializer import deserialize_from_file
 from pycompss.util.serializer import deserialize_from_string
 from pycompss.util.serializer import SerializerException
 from pycompss.util.logs import init_logging_worker
-from pycompss.util.persistent_storage import is_PSCO, get_by_ID
+from pycompss.util.persistent_storage import is_psco, get_by_id
 
 if IS_PYTHON3:
     long = int
@@ -513,7 +513,7 @@ def execute_task(process_name, storage_conf, params):
         if has_target == 'true':
             # Instance method
             last_elem = values.pop()
-            if is_PSCO(last_elem):
+            if is_psco(last_elem):
                 obj = last_elem
             else:
                 file_name = last_elem.split(':')[-1]
@@ -525,7 +525,7 @@ def execute_task(process_name, storage_conf, params):
                         process_name, file_name, type(obj)))
             values.insert(0, obj)
             types.pop()
-            types.insert(0, TYPE.OBJECT if not is_PSCO(last_elem) else TYPE.EXTERNAL_PSCO)
+            types.insert(0, TYPE.OBJECT if not is_psco(last_elem) else TYPE.EXTERNAL_PSCO)
 
             def task_execution_2():
                 return task_execution(logger, process_name, klass, method_name, types, values, compss_kwargs)
@@ -536,7 +536,7 @@ def execute_task(process_name, storage_conf, params):
             else:
                 new_types, new_values = task_execution_2()
 
-            if is_PSCO(last_elem):
+            if is_psco(last_elem):
                 # There is no update PSCO on the storage API. Consequently, the changes on the PSCO must have been
                 # pushed into the storage automatically on each PSCO modification.
                 if __debug__:
@@ -614,7 +614,7 @@ def get_input_params(num_params, logger, args, process_name, persistent_storage)
                 po = p_value
                 pre_pipeline.append((po, len(values)))
             else:
-                po = get_by_ID(p_value)
+                po = get_by_id(pValue)
             values.append(po)
             pos += 1  # Skip info about direction (R, W)
         elif p_type == TYPE.STRING:

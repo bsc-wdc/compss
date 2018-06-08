@@ -33,7 +33,7 @@ from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.serializer import *
 from pycompss.util.sizer import total_sizeof
-from pycompss.util.persistent_storage import is_PSCO, get_ID, get_by_ID
+from pycompss.util.persistent_storage import is_psco, get_id, get_by_id
 
 import types
 import os
@@ -491,8 +491,8 @@ def synchronize(obj, mode):
     # finally add the boolean here
     global current_id
 
-    if is_PSCO(obj):
-        obj_id = get_ID(obj)
+    if is_psco(obj):
+        obj_id = get_id(obj)
         if obj_id not in pending_to_synchronize:
             return obj
         else:
@@ -500,7 +500,7 @@ def synchronize(obj, mode):
             file_path = compss.get_file('storage://' + str(obj_id), mode)
             # TODO: Add switch on protocol
             protocol, file_name = file_path.split('://')
-            new_obj = get_by_ID(file_name)
+            new_obj = get_by_id(file_name)
             return new_obj
 
     obj_id = get_object_id(obj)
@@ -518,7 +518,7 @@ def synchronize(obj, mode):
         new_obj = deserialize_from_file(compss_file)
         compss.close_file(file_name, mode)
     else:
-        new_obj = get_by_ID(compss_file)
+        new_obj = get_by_id(compss_file)
     new_obj_id = get_object_id(new_obj, True, True)
 
     # The main program won't work with the old object anymore, update mapping
@@ -852,7 +852,7 @@ def _infer_types_and_serialize_objects(spec_args, first_par, num_pars, file_name
             if spec_arg == 'self':
                 p.value = args[0]
                 # Check if self is a persistent object and set its type if it really is.
-                if is_PSCO(p.value):
+                if is_psco(p.value):
                     p.type = TYPE.EXTERNAL_PSCO
             elif spec_arg.startswith('compss_retvalue'):
                 p.value = file_names[spec_arg]
@@ -882,7 +882,7 @@ def _infer_types_and_serialize_objects(spec_args, first_par, num_pars, file_name
                 logger.debug('Inferring type due to None pType.')
             p.type = python_to_compss.get(val_type)
             if p.type is None:
-                if is_PSCO(p.value):
+                if is_psco(p.value):
                     p.type = TYPE.EXTERNAL_PSCO
                 else:
                     p.type = TYPE.OBJECT
@@ -1195,7 +1195,7 @@ def _manage_persistent_object(p):
     """
 
     p.type = TYPE.EXTERNAL_PSCO
-    obj_id = get_ID(p.value)
+    obj_id = get_id(p.value)
     pending_to_synchronize[obj_id] = p.value  # obj_id
     p.value = obj_id
     if __debug__:

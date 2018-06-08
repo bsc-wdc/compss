@@ -33,6 +33,7 @@ def i_am_at_master():
 
     # if 'pycompss/runtime/launch.py' in inspect.stack()[-1][1]: --> I am at master
     # if inspect.stack()[-2][3] == 'compss_main' --> I am at master
+    # if 'pycompss/interactive.py' in inspect.stack()[3][1] --> I am at master in interactive mode
     :return: <Boolean> - True if we are in the master node.
     """
     return 'pycompss/runtime/launch.py' in inspect.stack()[-1][1] or 'pycompss/interactive.py' in inspect.stack()[3][1]

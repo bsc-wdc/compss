@@ -35,7 +35,7 @@ def i_am_at_master():
     # if inspect.stack()[-2][3] == 'compss_main' --> I am at master
     :return: <Boolean> - True if we are in the master node.
     """
-    return 'pycompss/runtime/launch.py' in inspect.stack()[-1][1]
+    return 'pycompss/runtime/launch.py' in inspect.stack()[-1][1] or 'pycompss/interactive.py' in inspect.stack()[3][1]
 
 
 def i_am_at_worker():

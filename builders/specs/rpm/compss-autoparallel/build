@@ -1,0 +1,70 @@
+#!/bin/bash -e
+
+  distr=$1
+  mode=$2
+  COMPSS_VERSION=$3
+
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  package_name=compss-autoparallel
+  trunk_rel_path=../../../../
+
+  echo " "
+  echo "* Erasing previous tmp Files..."
+  rm -rf tmp/
+
+  echo " "
+  echo "* Creating package structure..."
+  mkdir -p tmp/BUILD tmp/RPMS tmp/SOURCES/ tmp/SPECS/ tmp/SRPMS tmp/BUILDROOT
+  mkdir -p tmp/SOURCES/${package_name}-"${COMPSS_VERSION}"
+
+  echo " "
+  echo "* Packing COMPSs sources..."
+  echo " "
+  target=tmp/SOURCES/${package_name}-${COMPSS_VERSION}/
+  cp -rf ${trunk_rel_path}/dependencies/autoparallel "${target}"
+  cp -rf ${trunk_rel_path}/dependencies/pluto "${target}"
+  cp -rf ${trunk_rel_path}/changelog "${target}"
+  cp -rf ${trunk_rel_path}/LICENSE "${target}"
+  cp -rf ${trunk_rel_path}/NOTICE "${target}"
+  cp -rf ../README "${target}"
+  cp -rf ${trunk_rel_path}/RELEASE_NOTES "${target}"
+
+  cd tmp/SOURCES/
+  find . -name ".git*" -print0 -exec rm -rf {} \; # Clean git files
+  tar czf ${package_name}-"${COMPSS_VERSION}".tar.gz ${package_name}-"${COMPSS_VERSION}"
+  ev=$?
+  if [ $ev -ne 0 ]; then
+    echo "Error compressing package"
+    exit $ev
+  fi
+  cd ../../
+
+  echo " "
+  echo "* Cleaning tmp sources..."
+  rm -rf tmp/SOURCES/${package_name}-"${COMPSS_VERSION}"/
+
+  echo " "
+  echo "* Copying SPEC file to RPM build path..."
+  echo " "
+  cp ./${package_name}_"${distr}"_"${mode}".spec tmp/SPECS/${package_name}_"${mode}".spec
+
+  echo " "
+  echo "* Generating RPM package..."
+  cd tmp/
+  export QA_SKIP_BUILD_ROOT=1
+  rpmbuild --define "_topdir $PWD" -bb --clean SPECS/${package_name}_"${mode}".spec
+  ev=$?
+  if [ $ev -ne 0 ]; then
+	echo "Error creating rpm"
+	exit $ev
+  fi
+  cd "${SCRIPT_DIR}"
+
+  echo " "
+  echo "* Moving built RPM package to final location..."
+  mkdir -p ${trunk_rel_path}/builders/packages/"${distr}"/${package_name}
+  mv tmp/RPMS/"${mode}"/${package_name}-* ${trunk_rel_path}/builders/packages/"$distr"/${package_name}
+
+  echo " "
+  echo "* Cleaning all tmp files..."
+  rm -r tmp/

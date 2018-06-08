@@ -31,6 +31,7 @@ def _list_lenght(l):
     """
     Recursive function to get the size of any list
     """
+
     if l:
         if not isinstance(l[0], list):
             return 1 + _list_lenght(l[1:])
@@ -41,7 +42,7 @@ def _list_lenght(l):
 
 @task(returns=float)
 def _mean(X, n):
-    return sum(X)/float(n)
+    return sum(X) / float(n)
 
 
 def mean(X, wait=False):
@@ -51,6 +52,7 @@ def mean(X, wait=False):
     :param wait: if we want to wait for result. Default False
     :return: mean of X.
     """
+
     n = _list_lenght(X)
     result = mergeReduce(reduce_add, [_mean(x, n) for x in X])
     if wait:

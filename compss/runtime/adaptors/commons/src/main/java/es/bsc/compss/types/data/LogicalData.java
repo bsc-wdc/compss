@@ -28,7 +28,6 @@ import java.util.Set;
 import java.util.concurrent.Semaphore;
 
 import es.bsc.compss.types.data.listener.SafeCopyListener;
-import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.data.location.PersistentLocation;
@@ -60,7 +59,7 @@ public class LogicalData {
 
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
-    private static final boolean DEBUG = LOGGER.isDebugEnabled(); 
+    private static final boolean DEBUG = LOGGER.isDebugEnabled();
     private static final String DBG_PREFIX = "[LogicalData] ";
     // Logical data name
     private final String name;
@@ -75,7 +74,7 @@ public class LogicalData {
     private final Set<Resource> localLocations = new TreeSet<>();
     // In progress
     private final List<CopyInProgress> inProgress = new LinkedList<>();
-    // File's size. 
+    // File's size.
     private float size;
 
     // Indicates if LogicalData has been ordered to save before
@@ -196,7 +195,7 @@ public class LogicalData {
     public synchronized boolean isInMemory() {
         return (this.value != null);
     }
-    
+
     /**
      * Returns if the data is binding data
      * 
@@ -205,7 +204,6 @@ public class LogicalData {
     public synchronized boolean isBindingData() {
         return isBindingData;
     }
-
 
     /**
      * Returns the value stored in memory
@@ -297,17 +295,17 @@ public class LogicalData {
      * @throws Exception
      */
     public synchronized void writeToStorage() throws IOException {
-        if (DEBUG){
+        if (DEBUG) {
             LOGGER.debug(DBG_PREFIX + "Writting object " + this.name + " to storage");
         }
-        if (isBindingData){
+        if (isBindingData) {
             String targetPath = Comm.getAppHost().getWorkingDirectory() + this.name;
-            if (DEBUG){
+            if (DEBUG) {
                 LOGGER.debug(DBG_PREFIX + "Writting binding object " + this.id + " to file " + targetPath);
             }
             BindingDataManager.storeInFile(getId(), targetPath);
             addWrittenObjectLocation(targetPath);
-        }else{
+        } else {
             if (this.id != null) {
                 // It is a persistent object that is already persisted
                 // Nothing to do
@@ -316,19 +314,19 @@ public class LogicalData {
 
                 // The object must be written to file
                 String targetPath = Comm.getAppHost().getWorkingDirectory() + this.name;
-                if (DEBUG){
+                if (DEBUG) {
                     LOGGER.debug(DBG_PREFIX + "Writting object " + this.name + " to file " + targetPath);
                 }
                 Serializer.serialize(value, targetPath);
                 addWrittenObjectLocation(targetPath);
             }
         }
-        if (DEBUG){
+        if (DEBUG) {
             LOGGER.debug(DBG_PREFIX + "Object " + this.name + " written to storage");
         }
     }
-        
-    private void addWrittenObjectLocation(String targetPath) throws IOException{
+
+    private void addWrittenObjectLocation(String targetPath) throws IOException {
         String targetPathWithSchema = Protocol.FILE_URI.getSchema() + targetPath;
         SimpleURI targetURI = new SimpleURI(targetPathWithSchema);
         DataLocation loc = DataLocation.createLocation(Comm.getAppHost(), targetURI);
@@ -362,8 +360,8 @@ public class LogicalData {
      * @throws Exception
      */
     public synchronized void loadFromStorage() throws CannotLoadException {
-        //TODO: Check if we have to do something in binding data??
-    	if (value != null) {
+        // TODO: Check if we have to do something in binding data??
+        if (value != null) {
             // Value is already loaded in memory
             return;
         }
@@ -431,6 +429,9 @@ public class LogicalData {
                     }
 
                     return;
+                case BINDING:
+                    // We should never reach this
+                    throw new CannotLoadException("ERROR: Trying to load from storage a BINDING location");
             }
         }
 
@@ -465,8 +466,8 @@ public class LogicalData {
         while (it.hasNext()) {
             DataLocation loc = it.next();
             switch (loc.getType()) {
-            	case BINDING:
-            	case PRIVATE:
+                case BINDING:
+                case PRIVATE:
                     if (loc.getURIInHost(host) != null) {
                         this.isBeingSaved = true;
                         uniqueHostLocation = loc;
@@ -658,6 +659,7 @@ public class LogicalData {
 
         private final Copy c;
         private final DataLocation loc;
+
 
         public CopyInProgress(Copy c, DataLocation loc) {
             this.c = c;

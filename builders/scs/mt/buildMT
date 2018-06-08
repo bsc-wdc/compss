@@ -34,20 +34,20 @@
   fi
 
   # SET SCRIPT VARIABLES
-  scriptDir=$(pwd)/$(dirname $0)
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   MTuser=$1
   MTtmpDir=$2
   MTtargetDir=$3
   MTloginNode=mt1.bsc.es
-  MTauxScript=${scriptDir}/buildMT_aux
+  MTauxScript=${SCRIPT_DIR}/buildMT_aux
   PRELOAD_ENV=""
 
   # Perform installation
-  cd ${scriptDir}/../commons
-  ./buildSC ${MTuser} ${MTloginNode} ${MTtmpDir} ${MTtargetDir} ${MTauxScript} "${PRELOAD_ENV}"
+  cd "${SCRIPT_DIR}"/../commons
+  ./buildSC "${MTuser}" "${MTloginNode}" "${MTtmpDir}" "${MTtargetDir}" "${MTauxScript}" "${PRELOAD_ENV}"
   exitStatus=$?
-  cd ${scriptDir}
+  cd "${SCRIPT_DIR}"
 
   # END
   exit $exitStatus

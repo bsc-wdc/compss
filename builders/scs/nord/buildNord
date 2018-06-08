@@ -34,20 +34,20 @@
   fi
 
   # SET SCRIPT VARIABLES
-  scriptDir=$(pwd)/$(dirname $0)
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   
   MNuser=$1
   MNtmpDir=$2
   MNtargetDir=$3
   MNloginNode=nord1.bsc.es
-  MNauxScript=${scriptDir}/buildNord_aux
+  MNauxScript=${SCRIPT_DIR}/buildNord_aux
   PRELOAD_ENV=""
 
   # Perform installation
-  cd ${scriptDir}/../commons/
-  ./buildSC ${MNuser} ${MNloginNode} ${MNtmpDir} ${MNtargetDir} ${MNauxScript} "${PRELOAD_ENV}"
+  cd "${SCRIPT_DIR}"/../commons/
+  ./buildSC "${MNuser}" "${MNloginNode}" "${MNtmpDir}" "${MNtargetDir}" "${MNauxScript}" "${PRELOAD_ENV}"
   exitStatus=$?
-  cd ${scriptDir}
+  cd "${SCRIPT_DIR}"
 
   # END
   exit $exitStatus

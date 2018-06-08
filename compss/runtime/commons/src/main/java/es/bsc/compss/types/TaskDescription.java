@@ -45,6 +45,7 @@ public class TaskDescription implements Serializable {
     private final Parameter[] parameters;
     private final boolean hasTarget;
     private final boolean hasReturn;
+    private final int numReturns;
 
 
     /**
@@ -60,7 +61,7 @@ public class TaskDescription implements Serializable {
      * @param parameters
      */
     public TaskDescription(String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-            boolean hasTarget, boolean hasReturn, Parameter[] parameters) {
+            boolean hasTarget, boolean hasReturn, int numReturns, Parameter[] parameters) {
 
         this.type = TaskType.METHOD;
         this.signature = signature;
@@ -74,6 +75,7 @@ public class TaskDescription implements Serializable {
         this.hasTarget = hasTarget;
         this.parameters = parameters;
         this.hasReturn = hasReturn;
+        this.numReturns = numReturns;
 
         if (this.numNodes < Constants.SINGLE_NODE) {
             ErrorManager.error("Invalid number of nodes " + this.numNodes + " on executeTask " + this.signature);
@@ -92,7 +94,7 @@ public class TaskDescription implements Serializable {
      * @param parameters
      */
     public TaskDescription(String namespace, String service, String port, String operation, boolean isPrioritary, boolean hasTarget,
-            boolean hasReturn, Parameter[] parameters) {
+            boolean hasReturn, int numReturns, Parameter[] parameters) {
 
         this.type = TaskType.SERVICE;
 
@@ -103,16 +105,27 @@ public class TaskDescription implements Serializable {
 
         this.hasTarget = hasTarget;
         this.hasReturn = hasReturn;
+        this.numReturns = numReturns;
         this.parameters = parameters;
 
         this.signature = ServiceImplementation.getSignature(namespace, service, port, operation, hasTarget, hasReturn, parameters);
         this.coreId = CoreManager.getCoreId(this.signature);
     }
 
+    /**
+     * Returns the id of the task
+     * 
+     * @return
+     */
     public Integer getId() {
         return this.coreId;
     }
 
+    /**
+     * Returns the method name
+     * 
+     * @return
+     */
     public String getName() {
         String methodName = this.signature;
 
@@ -124,38 +137,92 @@ public class TaskDescription implements Serializable {
         return methodName;
     }
 
+    /**
+     * Returns whether the task has the priority flag enabled or not
+     * 
+     * @return
+     */
     public boolean hasPriority() {
         return this.priority;
     }
 
+    /**
+     * Returns the number of required nodes to execute the task
+     * 
+     * @return
+     */
     public int getNumNodes() {
         return this.numNodes;
     }
 
+    /**
+     * Returns if the task can be executed in a single task or not
+     * 
+     * @return
+     */
     public boolean isSingleNode() {
         return this.numNodes == Constants.SINGLE_NODE;
     }
 
+    /**
+     * Returns whether the replication flag is enabled or not
+     * 
+     * @return
+     */
     public boolean isReplicated() {
         return this.mustReplicate;
     }
 
+    /**
+     * Returns whether the distributed flag is enabled or not
+     * 
+     * @return
+     */
     public boolean isDistributed() {
         return this.mustDistribute;
     }
 
+    /**
+     * Returns the task parameters
+     * 
+     * @return
+     */
     public Parameter[] getParameters() {
         return this.parameters;
     }
 
+    /**
+     * Returns whether the task has a target object or not
+     * 
+     * @return
+     */
     public boolean hasTargetObject() {
         return this.hasTarget;
     }
 
+    /**
+     * Returns whether the task has return value or not
+     * 
+     * @return
+     */
     public boolean hasReturnValue() {
         return this.hasReturn;
     }
 
+    /**
+     * Returns the number of return values of the task
+     * 
+     * @return
+     */
+    public int getNumReturns() {
+        return this.numReturns;
+    }
+
+    /**
+     * Returns the task type
+     * 
+     * @return
+     */
     public TaskType getType() {
         return this.type;
     }

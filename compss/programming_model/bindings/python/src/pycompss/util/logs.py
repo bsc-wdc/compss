@@ -27,8 +27,8 @@ import os
 import logging
 import json
 
-
 from logging import config
+
 config_func = config.dictConfig
 
 
@@ -38,6 +38,7 @@ def init_logging(log_config_file, storage_path):
     @param log_config_file: Log file name.
     @param storage_path: Json log files path.
     """
+
     if os.path.exists(log_config_file):
         f = open(log_config_file, 'rt')
         conf = json.loads(f.read())
@@ -55,6 +56,7 @@ def init_logging_worker(log_config_file):
     Worker logging initialization.
     @param log_config_file: Log file name.
     """
+
     if os.path.exists(log_config_file):
         f = open(log_config_file, 'rt')
         conf = json.loads(f.read())

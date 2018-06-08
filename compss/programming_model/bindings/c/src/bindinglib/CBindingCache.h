@@ -20,23 +20,23 @@
 #define CBINDING_CACHE_H
 class CBindingCache: public AbstractCache {
 
-	public:
+  public:
 
-		CBindingCache():AbstractCache(){};
+    CBindingCache():AbstractCache() {};
 
-		~CBindingCache(){};
+    ~CBindingCache() {};
 
-		int serializeToStream(compss_pointer cp, JavaNioConnStreamBuffer &jsb);
+    int serializeToStream(compss_pointer cp, JavaNioConnStreamBuffer &jsb);
 
-		int deserializeFromStream(JavaNioConnStreamBuffer &jsb, compss_pointer &cp);
+    int deserializeFromStream(JavaNioConnStreamBuffer &jsb, compss_pointer &cp);
 
-		int serializeToFile(compss_pointer cp, const char* filename);
+    int serializeToFile(compss_pointer cp, const char* filename);
 
-		int deserializeFromFile(const char* filename, compss_pointer &cp);
+    int deserializeFromFile(const char* filename, compss_pointer &cp);
 
-		int removeData(compss_pointer cp);
+    int removeData(compss_pointer cp);
 
-		int copyData(compss_pointer from, compss_pointer &to);
+    int copyData(compss_pointer from, compss_pointer &to);
 
 };
 #endif

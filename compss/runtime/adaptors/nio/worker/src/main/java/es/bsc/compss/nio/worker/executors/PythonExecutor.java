@@ -41,7 +41,7 @@ public class PythonExecutor extends ExternalExecutor {
     }
 
     @Override
-    public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits,
+    protected ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits,
             int[] assignedGPUs, int[] assignedFPGAs) {
 
         // The execution command in Python is empty (the handler adds the pre-command and the application args)

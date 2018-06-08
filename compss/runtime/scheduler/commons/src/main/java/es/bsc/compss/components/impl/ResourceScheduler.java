@@ -19,9 +19,6 @@ package es.bsc.compss.components.impl;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.exceptions.ActionNotFoundException;
 import es.bsc.compss.scheduler.exceptions.ActionNotWaitingException;
-import es.bsc.compss.scheduler.exceptions.BlockedActionException;
-import es.bsc.compss.scheduler.exceptions.FailedActionException;
-import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Profile;
 import es.bsc.compss.scheduler.types.Score;
@@ -70,8 +67,9 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
 
     // Profile information of the task executions
     private Profile[][] profiles;
-    
-    private boolean removed=false;
+
+    private boolean removed = false;
+
 
     /**
      * Constructs a new Resource Scheduler associated to the worker @w
@@ -427,16 +425,17 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      */
     public final void waitOnResource(AllocatableAction action) {
         LOGGER.debug("[ResourceScheduler] Block action " + action + " on resource " + getName());
-        if (!removed){
+        if (!removed) {
             this.blocked.add(action);
-        }else{
-            LOGGER.warn("[ResourceScheduler] Blocked action " + action + " on removed resource " + getName() + ". Trying to reschedule... ");
-            try{
+        } else {
+            LOGGER.warn(
+                    "[ResourceScheduler] Blocked action " + action + " on removed resource " + getName() + ". Trying to reschedule... ");
+            try {
                 unscheduleAction(action);
                 action.schedule(generateBlockedScore(action));
             } catch (Exception e) {
-                ErrorManager.error("Error rescheduling action to a removed resource",e);
-            } 
+                ErrorManager.error("Error rescheduling action to a removed resource", e);
+            }
         }
     }
 
@@ -668,13 +667,11 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
 
     public void setRemoved(boolean b) {
         removed = true;
-        
+
     }
-    
-    public boolean isRemoved(){
+
+    public boolean isRemoved() {
         return removed;
     }
-    
-    
 
 }

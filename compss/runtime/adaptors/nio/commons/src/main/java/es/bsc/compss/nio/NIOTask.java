@@ -49,6 +49,7 @@ public class NIOTask implements Externalizable {
     private JobHistory hist;
     private int transferGroupId;
     private int numParams;
+    private int numReturns;
 
 
     /**
@@ -76,14 +77,15 @@ public class NIOTask implements Externalizable {
      * @param transferGroupId
      */
     public NIOTask(String lang, boolean workerDebug, AbstractMethodImplementation impl, boolean hasTarget, boolean hasReturn,
-            LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs, List<String> slaveWorkersNodeNames, int taskId,
-            int taskType, int jobId, JobHistory hist, int transferGroupId) {
+            int numReturns, LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs, List<String> slaveWorkersNodeNames,
+            int taskId, int taskType, int jobId, JobHistory hist, int transferGroupId) {
 
         this.lang = lang;
         this.workerDebug = workerDebug;
         this.impl = impl;
         this.hasTarget = hasTarget;
         this.hasReturn = hasReturn;
+        this.numReturns = numReturns;
         this.params = params;
         this.reqs = reqs;
         this.slaveWorkersNodeNames = slaveWorkersNodeNames;
@@ -156,6 +158,15 @@ public class NIOTask implements Externalizable {
      */
     public boolean hasReturn() {
         return this.hasReturn;
+    }
+
+    /**
+     * Returns the number of return parameters of the task
+     * 
+     * @return
+     */
+    public int getNumReturns() {
+        return this.numReturns;
     }
 
     /**
@@ -247,6 +258,7 @@ public class NIOTask implements Externalizable {
         this.impl = (AbstractMethodImplementation) in.readObject();
         this.hasTarget = in.readBoolean();
         this.hasReturn = in.readBoolean();
+        this.numReturns = in.readInt();
         this.params = (LinkedList<NIOParam>) in.readObject();
         this.reqs = (MethodResourceDescription) in.readObject();
         this.slaveWorkersNodeNames = (ArrayList<String>) in.readObject();
@@ -265,6 +277,7 @@ public class NIOTask implements Externalizable {
         out.writeObject(this.impl);
         out.writeBoolean(this.hasTarget);
         out.writeBoolean(this.hasReturn);
+        out.writeInt(this.numReturns);
         out.writeObject(this.params);
         out.writeObject(this.reqs);
         out.writeObject(this.slaveWorkersNodeNames);

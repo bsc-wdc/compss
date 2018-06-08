@@ -1,11 +1,12 @@
 #!/bin/bash
 
   # Get worker common functions
-  scriptDir=$(dirname $0)
-  source ${scriptDir}/worker_commons.sh
+  SCRIPT_DIR=$(dirname "$0")
+  #shellcheck source=./worker_commons.sh
+  source "${SCRIPT_DIR}"/worker_commons.sh
 
   # Pre-execution
-  get_parameters $@
+  get_parameters "$@"
   set_env
 
   # Execution
@@ -13,10 +14,11 @@
   taskId=0 # Not used with GAT
 
   echo "[WORKER_C.SH] EXEC CMD: ${app_dir}/worker/worker_c $taskTracing $taskId $params"
-  exec ${app_dir}/worker/worker_c $taskTracing $taskId $params
+  "${app_dir}"/worker/worker_c $taskTracing $taskId $params
+  ev=$?
 
   # Exit
-  if [ $? -eq 0 ]; then
+  if [ $ev -eq 0 ]; then
     exit 0
   else
     echo 1>&2 "Task execution failed"

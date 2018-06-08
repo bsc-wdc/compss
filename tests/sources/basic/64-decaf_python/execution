@@ -29,16 +29,20 @@
   error_log="${target_log_folder}/python_test_0${retryNum}.errorlog"
   expectedTime=80s
 
-  # shellcheck disable=SC2086
+   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \
      --project="${base_app_dir}"/project.xml \
      --resources="${base_app_dir}"/resources.xml \
+     \
      --comm="$comm" \
+     \
+     --debug \
+     ${runcompss_opts} \
+     \
      --lang=python \
      --python_interpreter="$pythonInterpreter" \
      --pythonpath="${base_app_dir}"/src \
-     --debug \
-     ${runcompss_opts} \
+     \
      "${base_app_dir}"/src/decafDecorator.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
   # Check timeout

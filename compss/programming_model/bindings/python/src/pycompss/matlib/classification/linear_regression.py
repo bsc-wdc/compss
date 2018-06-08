@@ -38,12 +38,12 @@ def _add(x):
 
 @task(returns=int)
 def reduce_add(x, y):
-    return x+y
+    return x + y
 
 
 @task(returns=float)
 def _mean(X, n):
-    return sum(X)/float(n)
+    return sum(X) / float(n)
 
 
 def mean(X, n, wait=False):
@@ -56,17 +56,17 @@ def mean(X, n, wait=False):
 
 @task(returns=list)
 def _norm(X, m):
-    return [x-m for x in X]
+    return [x - m for x in X]
 
 
 @task(returns=list)
 def _pow(X, p=2):
-    return [pow(x, 2) for x in X]
+    return [pow(x, p) for x in X]
 
 
 @task(returns=float)
 def _mul(x, y):
-    return x*y
+    return x * y
 
 
 def std(X, m, n, wait=False):
@@ -81,7 +81,7 @@ def std(X, m, n, wait=False):
 
 @task(returns=float)
 def op_task(sum_x, sum_y, suma):
-    return suma/float(math.sqrt(sum_x*sum_y))
+    return suma / float(math.sqrt(sum_x * sum_y))
 
 
 @task(returns=float)
@@ -110,7 +110,7 @@ def pearson(X, Y, mx, my):
 @task(returns=(float, float))
 def computeLine(r, stdy, stdx, my, mx):
     b = r * (math.sqrt(stdy) / math.sqrt(stdx))
-    A = my - b*mx
+    A = my - b * mx
     return b, A
 
 

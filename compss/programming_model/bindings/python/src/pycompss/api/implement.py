@@ -31,7 +31,6 @@ from functools import wraps
 from pycompss.util.location import i_am_at_master
 from pycompss.util.location import i_am_within_scope
 
-
 if __debug__:
     logger = logging.getLogger(__name__)
 
@@ -41,6 +40,7 @@ class implement(object):
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpi task creation.
     """
+
     def __init__(self, *args, **kwargs):
         """
         Store arguments passed to the decorator
@@ -50,6 +50,7 @@ class implement(object):
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
+
         self.args = args
         self.kwargs = kwargs
         self.scope = i_am_within_scope()
@@ -62,6 +63,7 @@ class implement(object):
         :param func: Function to decorate
         :return: Decorated function.
         """
+
         if not self.scope:
             # from pycompss.api.dummy.implement import implement as dummy_implement
             # d_i = dummy_implement(self.args, self.kwargs)
@@ -73,10 +75,10 @@ class implement(object):
             from pycompss.runtime.binding import register_ce
 
             mod = inspect.getmodule(func)
-            self.module = mod.__name__    # not func.__module__
+            self.module = mod.__name__  # not func.__module__
 
-            if(self.module == '__main__' or
-               self.module == 'pycompss.runtime.launch'):
+            if (self.module == '__main__' or
+                    self.module == 'pycompss.runtime.launch'):
                 # The module where the function is defined was run as __main__,
                 # we need to find out the real module name.
 
@@ -106,29 +108,30 @@ class implement(object):
             # Include the registering info related to @MPI
 
             # Retrieve the base coreElement established at @task decorator
-            coreElement = func.__to_register__
+            core_element = func.__to_register__
             # Update the core element information with the mpi information
-            ce_signature = coreElement.get_ce_signature()
-            implSignature = ce_signature
-            coreElement.set_implSignature(implSignature)
+            ce_signature = core_element.get_ce_signature()
+            impl_signature = ce_signature
+            core_element.set_impl_signature(impl_signature)
 
-            anotherClass = self.kwargs['source_class']
-            anotherMethod = self.kwargs['method']
-            ce_signature = anotherClass + '.' + anotherMethod
-            coreElement.set_ce_signature(ce_signature)
+            another_class = self.kwargs['source_class']
+            another_method = self.kwargs['method']
+            ce_signature = another_class + '.' + another_method
+            core_element.set_ce_signature(ce_signature)
 
             # This is not needed since the arguments are already set by the
             # task decorator.
             # implArgs = [anotherClass, anotherMethod]
             # coreElement.set_implTypeArgs(implArgs)
 
-            coreElement.set_implType("METHOD")
-            func.__to_register__ = coreElement
+            core_element.set_impl_type("METHOD")
+            func.__to_register__ = core_element
             # Do the task register if I am the top decorator
             if func.__who_registers__ == __name__:
                 if __debug__:
-                    logger.debug("[@IMPLEMENT] I have to do the register of function %s in module %s" % (func.__name__, self.module))
-                register_ce(coreElement)
+                    logger.debug("[@IMPLEMENT] I have to do the register of function %s in module %s" % (
+                        func.__name__, self.module))
+                register_ce(core_element)
         else:
             # worker code
             pass
@@ -157,5 +160,6 @@ class implement(object):
                 setattr(slf, k, v)
 
             return ret
+
         implement_f.__doc__ = func.__doc__
         return implement_f

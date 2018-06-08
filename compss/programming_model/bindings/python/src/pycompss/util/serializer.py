@@ -48,7 +48,7 @@ else:
 
 try:
     import dill
-except:
+except Exception:
     if IS_PYTHON3:
         import pickle as dill
     else:
@@ -56,7 +56,7 @@ except:
 
 try:
     import numpy
-except:
+except Exception:
     if IS_PYTHON3:
         import pickle as numpy
     else:
@@ -64,15 +64,20 @@ except:
 
 
 class SerializerException(Exception):
+    """
+    Exception on serialization
+    """
+
     pass
 
 
 def get_serializer_priority(obj=[]):
     """
     Computes the priority of the serializers.
-    @param obj: Object to be analysed.
-    @return: List -> The serializers sorted by priority in descending order
+    :param obj: Object to be analysed.
+    :return: <List> The serializers sorted by priority in descending order
     """
+
     if object_belongs_to_module(obj, 'numpy'):
         return [numpy, pickle, dill]
     return [pickle, dill]
@@ -82,36 +87,37 @@ def get_serializers():
     """
     Returns a list with the available serializers in the most common order
     (i.e: the order that will work for almost the 90% of our objects)
-    @return: List -> the available serializer modules
+    :return: <List> the available serializer modules
     """
+
     return get_serializer_priority()
 
 
 def serialize_to_handler(obj, handler):
     """
     Serialize an object to a handler.
-    @param obj: Object to be serialized.
-    @param file_handler: A handler object. It must implement methods like
-                         write, writeline and similar stuff
+    :param obj: Object to be serialized.
+    :param handler: A handler object. It must implement methods like write, writeline and similar stuff
     """
-    # get the serializer priority
+
+    # Get the serializer priority
     serializer_priority = get_serializer_priority(obj)
     i = 0
     success = False
     original_position = handler.tell()
-    # lets try the serializers in the given priority
+    # Lets try the serializers in the given priority
     while i < len(serializer_priority) and not success:
-        # reset the handlers pointer to the first position
+        # Reset the handlers pointer to the first position
         handler.seek(original_position)
         serializer = serializer_priority[i]
-        # special case: obj is a generator
+        # Special case: obj is a generator
         if isinstance(obj, types.GeneratorType):
             try:
                 pickle_generator(obj, handler, serializer)
                 success = True
-            except:
+            except Exception:
                 traceback.print_exc()
-        # general case
+        # General case
         else:
             try:
                 # If it is a numpy object then use its saving mechanism
@@ -127,7 +133,7 @@ def serialize_to_handler(obj, handler):
                 else:
                     serializer.dump(obj, handler, protocol=serializer.HIGHEST_PROTOCOL)
                     success = True
-            except:
+            except Exception:
                 print('WARNING! Serialization with %s failed.' % str(serializer))
                 traceback.print_exc()  # No need to print all serializer exceptions
         i += 1
@@ -145,9 +151,11 @@ def serialize_to_handler(obj, handler):
 def serialize_to_file(obj, file_name):
     """
     Serialize an object to a file.
-    @param obj: Object to be serialized.
-    @param file_name: File name where the object is going to be serialized.
+    :param obj: Object to be serialized.
+    :param file_name: File name where the object is going to be serialized.
+    :return:
     """
+
     handler = open(file_name, 'wb')
     serialize_to_handler(obj, handler)
     handler.close()
@@ -157,8 +165,8 @@ def serialize_to_file(obj, file_name):
 def serialize_to_string(obj):
     """
     Serialize an object to a string.
-    @param obj: Object to be serialized.
-    @return: String -> the serialized content
+    :param obj: Object to be serialized.
+    :return: <String> the serialized content
     """
     handler = BytesIO()
     serialize_to_handler(obj, handler)
@@ -170,24 +178,24 @@ def serialize_to_string(obj):
 def deserialize_from_handler(handler):
     """
     Deserialize an object from a file.
-    @param file_name: File name from where the object is going to
-                      be deserialized.
-    @return: The object deserialized.
+    :param handler: File name from where the object is going to be deserialized.
+    :return: The object deserialized.
     """
-    # get the most common order of the serializers
+
+    # Get the most common order of the serializers
     serializers = get_serializer_priority(numpy.zeros(1))
     original_position = handler.tell()
-    # let's try to deserialize
+    # Let's try to deserialize
     for serializer in serializers:
-        # reset the handler in case the previous serializer has used it
+        # Reset the handler in case the previous serializer has used it
         handler.seek(original_position)
         try:
             ret = serializer.load(handler)
-            # special case: deserialized obj wraps a generator
+            # Special case: deserialized obj wraps a generator
             if isinstance(ret, tuple) and ret and isinstance(ret[0], GeneratorIndicator):
                 ret = convert_to_generator(ret[1])
             return ret
-        except:
+        except Exception:
             print('WARNING! Deserialization with %s failed.' % str(serializer))
             traceback.print_exc()  # No need to print all deserialize exceptions
     # we are not able to deserialize the contents from file_name with any of our
@@ -203,9 +211,10 @@ def deserialize_from_handler(handler):
 def deserialize_from_file(file_name):
     """
     Deserializes the contents in a given file
-    @param file_name: Name of the file with the contents to be deserialized
-    @return: A deserialized object
+    :param file_name: Name of the file with the contents to be deserialized
+    :return: A deserialized object
     """
+
     handler = open(file_name, 'rb')
     ret = deserialize_from_handler(handler)
     handler.close()
@@ -215,8 +224,8 @@ def deserialize_from_file(file_name):
 def deserialize_from_string(serialized_content):
     """
     Deserializes the contents in a given string
-    @param serialized_content: A string with serialized contents
-    @return: A deserialized object
+    :param serialized_content: A string with serialized contents
+    :return: A deserialized object
     """
     handler = BytesIO(serialized_content)
     ret = deserialize_from_handler(handler)
@@ -226,14 +235,13 @@ def deserialize_from_string(serialized_content):
 
 def serialize_objects(to_serialize):
     """
-    Serialize a list of objects to file.
-    If a single object fails to be serialized, then an Exception by
+    Serialize a list of objects to file. If a single object fails to be serialized, then an Exception by
     serialize_to_file will be thrown (and not caught)
-    The structure of the parameter is
-    [(object1, file_name1), ... , (objectN, file_nameN)].
-    @param to_serialize: List of lists to be serialized.
-                         Each sublist is a pair of the form
-                         ['object','file name'].
+    The structure of the parameter is [(object1, file_name1), ... , (objectN, file_nameN)].
+
+    :param to_serialize: List of lists to be serialized. Each sublist is a pair of the form ['object','file name']
+    :return:
     """
+
     for obj_and_file in to_serialize:
         serialize_to_file(*obj_and_file)

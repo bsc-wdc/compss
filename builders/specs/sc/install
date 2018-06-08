@@ -65,56 +65,63 @@
   echo " "
 
   # Define script variables
-  scriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # Deploy COMPSs
   echo "- Deploy COMPSs files"
-  rm -rf ${targetDir}
-  mkdir -p ${targetDir}
-  cp -r ${scriptDir}/* ${targetDir}
-  sed -i -e 's#/opt/COMPSs/#'${targetDir}'#g'  ${targetDir}/Runtime/configuration/xml/projects/default_project.xml
-  rm -rf ${targetDir}/Bindings/*
+  rm -rf "${targetDir}"
+  mkdir -p "${targetDir}"
+  cp -r "${SCRIPT_DIR}"/* "${targetDir}"
+  sed -i -e 's#/opt/COMPSs/#'"${targetDir}"'#g' "${targetDir}"/Runtime/configuration/xml/projects/default_project.xml
+  rm -rf "${targetDir}"/Bindings/*
   echo "   Success"
 
   # Install bindings-common
   echo "- Install bindings-common"
-  cd ${scriptDir}/Bindings/bindings-common/
-  ./install_common ${targetDir}/Bindings/bindings-common
-  cd -
+  cd "${SCRIPT_DIR}"/Bindings/bindings-common/
+  ./install_common "${targetDir}"/Bindings/bindings-common
+  cd "${SCRIPT_DIR}"
   echo "   Success"
 
   # Install C-binding
   echo "- Install C-binding"
-  cd ${scriptDir}/Bindings/c
-  ./install ${targetDir}/Bindings/c true
-  mkdir -p ${targetDir}/Runtime/scripts/system/c/
-  cp ${targetDir}/Bindings/c/bin/* ${targetDir}/Runtime/scripts/system/c
-  cp ./compss_build_app ${targetDir}/Runtime/scripts/user/
-  cd -
+  cd "${SCRIPT_DIR}"/Bindings/c
+  ./install "${targetDir}"/Bindings/c true
+  mkdir -p "${targetDir}"/Runtime/scripts/system/c/
+  cp "${targetDir}"/Bindings/c/bin/* "${targetDir}"/Runtime/scripts/system/c
+  cp ./compss_build_app "${targetDir}"/Runtime/scripts/user/
+  cd "${SCRIPT_DIR}"
   echo "   Success"
 
   # Install Python-binding
   echo "- Install Python binding"
-  cd ${scriptDir}/Bindings/python
-  ./install ${targetDir}/Bindings/python false
-  cd -
+  cd "${SCRIPT_DIR}"/Bindings/python
+  ./install "${targetDir}"/Bindings/python false
+  cd "${SCRIPT_DIR}"
   echo "   Success"
 
   # Install extrae
   echo "- Install extrae"
-  cd ${scriptDir}/Dependencies/extrae
-  ./install ${targetDir}/Dependencies/extrae true
-  cd -
+  cd "${SCRIPT_DIR}"/Dependencies/extrae
+  ./install "${targetDir}"/Dependencies/extrae true
+  cd "${SCRIPT_DIR}"
+  echo "   Success"
+
+  # Install PLUTO
+  echo "- Install Pluto"
+  cd "${SCRIPT_DIR}"/Dependencies/pluto
+  ./install_pluto "${targetDir}"/Dependencies/pluto
+  cd "${SCRIPT_DIR}"
   echo "   Success"
 
   # Set permissions
   echo "- Set COMPSs permissions"
-  chmod -R 755 ${targetDir}
-  chmod -R 777 ${targetDir}/Runtime/configuration/
+  chmod -R 755 "${targetDir}"
+  chmod -R 777 "${targetDir}"/Runtime/configuration/
 
   # Copy the queue.cfg as default.cfg if it is defined
   if [ -n "${queues_cfg}" ]; then
-    cp ${targetDir}/Runtime/scripts/queues/cfgs/${queues_cfg} ${targetDir}/Runtime/scripts/queues/cfgs/default.cfg
+    cp "${targetDir}"/Runtime/scripts/queues/cfgs/"${queues_cfg}" "${targetDir}"/Runtime/scripts/queues/cfgs/default.cfg
   fi
 
   # End

@@ -1,49 +1,57 @@
 #!/bin/bash -e
-# This script is intended to be called by the buildpackages script
-# However, it can be invoked alone and still function properly
-# An example usage would be ./buildpip 2.0
-# It needs as a command line argument with the version of the target distributable
-# The version should be valid and a COMPSS_${COMPSS_VERSION}.tar.gz file must
-# exist in the specified repository in pyCOMPSsResources/url file
 
-COMPSS_VERSION=$1
+  # This script is intended to be called by the buildpackages script
+  # However, it can be invoked alone and still function properly
+  # An example usage would be ./buildpip 2.0
+  # It needs as a command line argument with the version of the target distributable
+  # The version should be valid and a COMPSS_${COMPSS_VERSION}.tar.gz file must
+  # exist in the specified repository in pyCOMPSsResources/url file
+  
+  # Define script variables
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# add the version number as a resource
-echo $COMPSS_VERSION > pyCOMPSsResources/VERSION.txt
-
-# create distributable folder 
-mkdir -p pyCOMPSs
-
-# copy scripts and other files into the pyCOMPSs directory
-# please, resist the temptation to replace all these lines by
-# cp -rf pyCOMPSsResources/* pyCOMPSs/ or something equivalent
-# It may be possible that not all of the files in that folder are
-# necessary or even appropriate for the installation
-cp pyCOMPSsResources/setup.py pyCOMPSs/
-cp pyCOMPSsResources/pycompssenv pyCOMPSs/
-cp pyCOMPSsResources/MANIFEST.in pyCOMPSs/
-cp pyCOMPSsResources/VERSION.txt pyCOMPSs/
-cp pyCOMPSsResources/url pyCOMPSs/
-cp pyCOMPSsResources/backend.py pyCOMPSs/
-cp pyCOMPSsResources/README.txt pyCOMPSs/
-cp pyCOMPSsResources/LICENSE.txt pyCOMPSs/
-
-cd pyCOMPSs
-
-# Change permissions. This will avoid issues with, for example,
-# python's subprocess.call
-chmod -R 777 *
-# Create the tar.gz distributable
-# This should leave a .tar.gz in pyCOMPSs/dist
-python setup.py sdist
-cd ..
-
-# finally, move the pyCOMPSs distributable to packages/pip (tgz included)
-# first, delete previous versions (if any)
-rm -rf ../../packages/pip
-mkdir -p ../../packages/pip
-# change permissions
-chmod -R 777 pyCOMPSs
-# ...and move it to its final destination
-mv pyCOMPSs ../../packages/pip/
+  # Retrieve script parameters
+  if [ $# -ne 1 ]; then
+    echo "[ERROR] Invalid usage"
+    echo "  Usage: $0 <COMPSs_VERSION>"
+    exit 1
+  fi
+  COMPSS_VERSION=$1
+  
+  # Add the version number as a resource
+  echo "$COMPSS_VERSION" > pyCOMPSsResources/VERSION.txt
+  
+  # Create distributable folder 
+  mkdir -p pyCOMPSs
+  
+  # Copy scripts and other files into the pyCOMPSs directory
+  # Please, resist the temptation to replace all these lines by
+  # cp -rf pyCOMPSsResources/* pyCOMPSs/ or something equivalent
+  # It may be possible that not all of the files in that folder are
+  # necessary or even appropriate for the installation
+  cp pyCOMPSsResources/setup.py pyCOMPSs/
+  cp pyCOMPSsResources/pycompssenv pyCOMPSs/
+  cp pyCOMPSsResources/MANIFEST.in pyCOMPSs/
+  cp pyCOMPSsResources/VERSION.txt pyCOMPSs/
+  cp pyCOMPSsResources/url pyCOMPSs/
+  cp pyCOMPSsResources/backend.py pyCOMPSs/
+  cp pyCOMPSsResources/README.txt pyCOMPSs/
+  cp pyCOMPSsResources/LICENSE.txt pyCOMPSs/
+  
+  # Change permissions. This will avoid issues with, for example, python's subprocess.call
+  cd pyCOMPSs
+  chmod -R 777 *
+  # Create the tar.gz distributable
+  # This should leave a .tar.gz in pyCOMPSs/dist
+  python setup.py sdist
+  cd "${SCRIPT_DIR}"
+  
+  # Finally, move the pyCOMPSs distributable to packages/pip (tgz included)
+  # Delete previous versions (if any)
+  rm -rf ../../packages/pip
+  mkdir -p ../../packages/pip
+  # Change permissions
+  chmod -R 777 pyCOMPSs
+  # Move it to its final destination
+  mv pyCOMPSs ../../packages/pip/
 

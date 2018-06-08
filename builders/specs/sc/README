@@ -28,7 +28,7 @@ Installation
     $ tar -xvf COMPSs_2.2.rc1803.tar.gz
 
 2.- Execute the installation script
-    $ cd COMPSs_2.2.rc1803/; ./install <targetDir>
+    $ cd COMPSs_2.2.rc1803/; ./install <targetDir> [queues_cfg]
 
 
 Dependencies
@@ -57,8 +57,11 @@ You can find extended information about COMPSs Sample applications at the Sample
 at our webpage (http://compss.bsc.es) or at doc/Sample_applications.pdf
 
 
-*************************************
-** Department of Computer Science  **
-** Barcelona Supercomputing Center **
-*************************************
+*****************************************
+** Workflows and Distributed Computing **
+**   Department of Computer Science    **
+**                                     **
+**   Barcelona Supercomputing Center   **
+**                BSC                  **
+*****************************************
 

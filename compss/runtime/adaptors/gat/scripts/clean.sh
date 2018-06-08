@@ -1,6 +1,6 @@
-﻿#!/bin/bash
-  #Get parameters
+#!/bin/bash
+
+  # Get parameters
   workingDir=$1
 
-  rm -rf $workingDir
-
+  rm -rf "$workingDir"

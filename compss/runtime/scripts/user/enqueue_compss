@@ -136,7 +136,7 @@ get_args() {
   shift $((OPTIND-1))
 
   # Pass application name and args
-  args_pass="$args_pass $@" 
+  args_pass="$args_pass $*" 
 }
 
 ###############################################
@@ -191,6 +191,7 @@ check_args() {
   check_args
 
   # Submit command
+  # shellcheck disable=SC2086
   "${SCRIPT_DIR}"/../queues/commons/submit.sh \
        --sc_cfg=${sc_cfg} \
        ${args_pass}

@@ -5,6 +5,6 @@
   #-------------------------------------
   # Create sandbox
   #-------------------------------------
-  if [ ! -d $workingDir ]; then
-        /bin/mkdir -p $workingDir
+  if [ ! -d "$workingDir" ]; then
+    mkdir -p "$workingDir"
   fi

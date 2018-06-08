@@ -34,6 +34,7 @@ def chunks(l, n, balanced=False):
     :param balanced: True to generate balanced fragments
     :return: yield fragments of size n from l
     """
+
     if not balanced or not len(l) % n:
         for i in range(0, len(l), n):
             yield l[i:i + n]
@@ -49,51 +50,52 @@ def chunks(l, n, balanced=False):
 
 
 @task(returns=list)
-def _genRandom(size, sizeFrag, seed, jumps):
+def _gen_random(size, size_frag, seed, jumps):
     import random
     random.seed(seed)
     random.jumpahead(jumps)
-    return [[random.random() for _ in range(size)] for _ in range(sizeFrag)]
+    return [[random.random() for _ in range(size)] for _ in range(size_frag)]
 
 
 @task(returns=list)
-def _genNormal(size, sizeFrag, seed, jumps):
+def _gen_normal(size, size_frag, seed, jumps):
     import random
     random.seed(seed)
     random.jumpahead(jumps)
     return [[random.gauss(mu=0.0, sigma=1.0) for _ in range(size)]
-            for _ in range(sizeFrag)]
+            for _ in range(size_frag)]
 
 
 @task(returns=list)
-def _genUniform(size, sizeFrag, seed, jumps):
+def _gen_uniform(size, size_frag, seed, jumps):
     import random
     random.seed(seed)
     random.jumpahead(jumps)
     return [[random.uniform(-1.0, 1.0) for _ in range(size)]
-            for _ in range(sizeFrag)]
+            for _ in range(size_frag)]
 
 
-def generator(size, numFrag, seed=None, distribution='random', wait=False):
+def generator(size, num_frag, seed=None, distribution='random', wait=False):
     """
     Data generator
     :param size: (numElements,dim)
-    :param numFrag: dataset's number of fragments
+    :param num_frag: dataset's number of fragments
     :param seed: random seed. Default None, system time is used-
     :param distribution: random, normal, uniform
     :param wait: if we want to wait for result. Default False
     :return: random dataset
     """
-    sizeFrag = size[0]/numFrag
+
+    size_frag = size[0] / num_frag
     if distribution == 'random':
-        data = [_genRandom(size[1], sizeFrag, seed, sizeFrag*i)
-                for i in range(numFrag)]
+        data = [_gen_random(size[1], size_frag, seed, size_frag * i)
+                for i in range(num_frag)]
     elif distribution == 'normal':
-        data = [_genNormal(size[1], sizeFrag, seed, sizeFrag*i)
-                for i in range(numFrag)]
+        data = [_gen_normal(size[1], size_frag, seed, size_frag * i)
+                for i in range(num_frag)]
     elif distribution == 'uniform':
-        data = [_genUniform(size[1], sizeFrag, seed, sizeFrag*i)
-                for i in range(numFrag)]
+        data = [_gen_uniform(size[1], size_frag, seed, size_frag * i)
+                for i in range(num_frag)]
     if wait:
         from pycompss.api.api import compss_wait_on
         data = compss_wait_on(data)

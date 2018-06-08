@@ -5,13 +5,7 @@ builders/tmp/
 
 # Ignore maven files
 dependency-reduced-pom.xml
-
-# Ignore JAXB files
-compss/runtime/config/xml/monitor/src/main/
-compss/runtime/config/xml/projects/src/main/java/META-INF/
-compss/runtime/config/xml/projects/src/main/java/es/bsc/compss/types/project/jaxb/
-compss/runtime/config/xml/resources/src/main/java/META-INF/
-compss/runtime/config/xml/resources/src/main/java/es/bsc/compss/types/resources/jaxb/
+pom.xml.versionsBackup
 
 # Ignore eclipse files
 .classpath
@@ -23,8 +17,14 @@ compss/runtime/config/xml/resources/src/main/java/es/bsc/compss/types/resources/
 .idea/
 *.iml
 
-# ========== Java ignores =================
+# Ignore Python binding build
+build/
 
+# Ignore packages
+builders/packages/*                                                                                                                                                                                                                                                            
+
+
+# ========== Java ignores =================
 
 # Compiled class file
 *.class
@@ -36,6 +36,9 @@ compss/runtime/config/xml/resources/src/main/java/es/bsc/compss/types/resources/
 *.zip
 *.tar.gz
 *.rar
+
+# Ignore java compiled folders
+target/
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
@@ -102,8 +105,8 @@ target/
 .ipynb_checkpoints
 
 
-
 # ========== C & C++ ignores =================
+
 # Prerequisites
 *.d
 
@@ -161,5 +164,23 @@ dkms.conf
 *.mod
 *.smod
 
-# Ignore packages
-builders/packages/*
+# Ignore JAXB files
+compss/runtime/config/xml/monitor/src/main/
+compss/runtime/config/xml/projects/src/main/java/META-INF/
+compss/runtime/config/xml/projects/src/main/java/es/bsc/compss/types/project/jaxb/
+compss/runtime/config/xml/resources/src/main/java/META-INF/
+compss/runtime/config/xml/resources/src/main/java/es/bsc/compss/types/resources/jaxb/
+
+# Ignore configuration files
+tests/configurations/*.cfg
+!tests/configurations/cloud.cfg
+!tests/configurations/cloudvpn.cfg
+!tests/configurations/cloudvpn-vmm.cfg
+!tests/configurations/devel_example.cfg
+!tests/configurations/local.cfg
+
+# Ignore PyCOMPSs AutoParallel submodule patches
+compss/programming_model/bindings/python/src/pycompss/api/parallel.py
+compss/programming_model/bindings/python/src/pycompss/api/tests
+compss/programming_model/bindings/python/src/pycompss/util/translators
+

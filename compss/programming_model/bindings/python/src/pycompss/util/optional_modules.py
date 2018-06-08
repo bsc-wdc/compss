@@ -25,10 +25,10 @@ PyCOMPSs features.
 """
 
 optional_modules = {
-        "guppy": """Guppy is a module needed for the local decorator.
+    "guppy": """Guppy is a module needed for the local decorator.
 The local decorator allows you to define non-task functions which are able to
 handle synchronizations implictly.""",
-        "dill": """Dill is a pickle extension which is capable to serialize a wider variety of objects."""
+    "dill": """Dill is a pickle extension which is capable to serialize a wider variety of objects."""
 }
 
 

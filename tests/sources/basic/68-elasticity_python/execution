@@ -34,13 +34,18 @@
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \
      --project="${base_app_dir}"/project.xml \
      --resources="${base_app_dir}"/resources.xml \
+     \
      --comm="$comm" \
-     --conn=es.bsc.compss.connectors.DefaultNoSSHConnector \
+     \
+     --debug \
+     ${runcompss_opts} \
+     \
      --lang=python \
      --python_interpreter="$pythonInterpreter" \
      --pythonpath="${base_app_dir}"/src \
-     --debug \
-     ${runcompss_opts} \
+     \
+     --conn=es.bsc.compss.connectors.DefaultNoSSHConnector \
+     \
      "${base_app_dir}"/src/increment_elastic.py $counterVal $numTasks > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
   # Check timeout

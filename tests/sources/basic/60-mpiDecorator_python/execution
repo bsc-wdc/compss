@@ -35,12 +35,16 @@
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \
      --project="${base_app_dir}"/project.xml \
      --resources="${base_app_dir}"/resources.xml \
+     \
      --comm="$comm" \
+     \
+     --debug \
+     ${runcompss_opts} \
+     \
      --lang=python \
      --python_interpreter="$pythonInterpreter" \
      --pythonpath="${base_app_dir}"/src \
-     --debug \
-     ${runcompss_opts} \
+     \
      "${base_app_dir}"/src/mpiDecorator.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
   # Check timeout

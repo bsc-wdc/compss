@@ -19,12 +19,11 @@ COPY /files/id_rsa.pub /home/jenkins/.ssh/id_rsa.pub
 COPY /files/.gitconfig /home/jenkins/.gitconfig
 RUN chown -R jenkins /home/jenkins && \
     chgrp -R jenkins /home/jenkins && \
-    chmod 600 /home/jenkins/.ssh/authorized_keys && \
-    chmod 700 /home/jenkins/.ssh && \
     chown -R jenkins /home/jenkins/.m2 && \
     chgrp -R jenkins /home/jenkins/.m2 && \
     cat /home/jenkins/.ssh/id_rsa.pub >> /home/jenkins/.ssh/authorized_keys && \
     chmod 600 /home/jenkins/.ssh/authorized_keys && \
+    chmod 700 /home/jenkins/.ssh && \
     echo "GIT_USER=jenkins" >> /etc/environment && \
     echo "GIT_PASSWORD=jenkins2017" >> /etc/environment && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

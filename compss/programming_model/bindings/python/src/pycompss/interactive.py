@@ -82,6 +82,7 @@ def start(log_level='off',
           propagate_virtual_environment=False,
           verbose=False
           ):
+
     launchPath = os.path.dirname(os.path.realpath(__file__))
     # compss_home = launchPath without the last 4 folders:
     # Bindings/python/version/pycompss

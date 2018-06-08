@@ -10,9 +10,9 @@ RUN apt-get update && \
 # Install Packages
     apt-get install -y \
 	git  \
-        wget \
-        openssh-server \
-        sudo && \
+    wget \
+    openssh-server \
+    sudo && \
 # gen dummy keys, centos doesn't autogen them like ubuntu does
     /usr/bin/ssh-keygen -A && \
 # Set SSH Configuration to allow remote logins without /proc write access
@@ -65,6 +65,7 @@ RUN apt-get update && \
 # Ensure that the jenkins user owns all his files
     chown -R jenkins /home/jenkins/ && \
     chgrp -R jenkins /home/jenkins/ && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
+    apt-get clean && \
+    sudo rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 

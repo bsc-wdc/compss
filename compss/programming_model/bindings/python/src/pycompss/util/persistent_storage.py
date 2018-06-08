@@ -30,7 +30,7 @@ try:
     from storage.api import TaskContext
 
     print("INFO: Storage API successfully imported.")
-except Exception:
+except ImportError:
     # print("INFO: No storage API defined.")
     # Defined methods throwing exceptions.
 
@@ -57,47 +57,43 @@ except Exception:
 storage_task_context = TaskContext  # Renamed for importing it from the worker
 
 
-def is_PSCO(obj):
+def is_psco(obj):
     """
     Checks if obj is a persistent object (external storage).
     :param obj: Object to check
     :return: Boolean
     """
-
     # Check from storage object requires a dummy storage object class
     # from storage.storage_object import storage_object
-    # return issubclass(obj.__class__, storage_object) and get_ID(obj) not in [None, 'None']
-    return has_ID(obj) and get_ID(obj) not in [None, 'None']
+    # return issubclass(obj.__class__, storage_object) and get_id(obj) not in [None, 'None']
+    return has_id(obj) and get_id(obj) not in [None, 'None']
 
 
-def has_ID(obj):
+def has_id(obj):
     """
     Checks if the object has a getID method.
     :param obj: Object to check
     :return: Boolean
     """
-
     if 'getID' in dir(obj):
         return True
     else:
         return False
 
 
-def get_ID(psco):
+def get_id(psco):
     """
-    Retrieve the persistent object identificator.
+    Retrieve the persistent object identifier.
     :param psco: Persistent object
     :return: Id
     """
-
     return psco.getID()
 
 
-def get_by_ID(psco_id):
+def get_by_id(id):
     """
-    Retrieve the actual object from a persistent object identificator.
-    :param psco_id: Persistent object identificator
+    Retrieve the actual object from a persistent object identifier.
+    :param id: Persistent object identifier
     :return: The object that corresponds to the id
     """
-
-    return getByID(psco_id)
+    return getByID(id)

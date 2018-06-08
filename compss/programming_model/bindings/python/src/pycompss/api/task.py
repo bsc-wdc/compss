@@ -127,7 +127,7 @@ class task(object):
         from pycompss.api.parameter import Parameter
         from pycompss.api.parameter import TYPE
         from pycompss.api.parameter import DIRECTION
-        from pycompss.util.interactive_helpers import updateTasksCodeFile
+        from pycompss.util.interactive_helpers import update_tasks_code_file
         from pycompss.util.location import i_am_at_master
 
         if __debug__:
@@ -230,7 +230,7 @@ class task(object):
                 # that consists of putting all user code that may be executed
                 # in the worker on a file.
                 # This file has to be visible for all workers.
-                updateTasksCodeFile(f, path)
+                update_tasks_code_file(f, path)
             else:
                 # work as always
                 pass
@@ -987,12 +987,12 @@ def check_value_changes(types, values, to_serialize):
     assert len(types) == len(values), 'Inconsistent state: type-value length mismatch.'
 
     from pycompss.api.parameter import TYPE
-    from pycompss.util.persistent_storage import get_ID
+    from pycompss.util.persistent_storage import get_id
 
     # Update the existing PSCOS with their id.
     for i in range(len(types)):
         if types[i] == TYPE.EXTERNAL_PSCO:
-            values[i] = get_ID(values[i])
+            values[i] = get_id(values[i])
     real_to_serialize = []
     # Analise only PSCOS from to_serialize objects list
     for ts in to_serialize:
@@ -1003,7 +1003,7 @@ def check_value_changes(types, values, to_serialize):
         for i in values:
             if isinstance(i, str) and get_compss_type(ts[0]) == TYPE.EXTERNAL_PSCO and ts[1] in i:
                 # Include the PSCO id in the values list
-                values[pos] = get_ID(ts[0])
+                values[pos] = get_id(ts[0])
                 types[pos] = TYPE.EXTERNAL_PSCO
                 changed = True
             pos += 1
@@ -1024,7 +1024,7 @@ def get_compss_type(value):
     """
 
     from pycompss.api.parameter import TYPE
-    from pycompss.util.persistent_storage import has_ID, get_ID
+    from pycompss.util.persistent_storage import has_id, get_id
 
     if type(value) is bool:
         return TYPE.BOOLEAN
@@ -1053,10 +1053,10 @@ def get_compss_type(value):
     #     return TYPE.OBJECT
     # elif type(value) is :  # Unavailable - PSCOs not persisted will be handled as objects (as files)
     #     return TYPE.PSCO
-    elif has_ID(value):
+    elif has_id(value):
         # If has method getID maybe is a PSCO
         try:
-            if get_ID(value) not in [None, 'None']:  # the 'getID' + id == criteria for persistent object
+            if get_id(value) not in [None, 'None']:  # the 'getID' + id == criteria for persistent object
                 return TYPE.EXTERNAL_PSCO
         except TypeError:
             # A PSCO class has been used to check its type (when checking

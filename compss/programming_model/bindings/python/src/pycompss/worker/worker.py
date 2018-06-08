@@ -40,7 +40,7 @@ from pycompss.util.serializer import deserialize_from_file
 from pycompss.util.serializer import deserialize_from_string
 from pycompss.util.serializer import SerializerException
 from pycompss.util.logs import init_logging_worker
-from pycompss.util.persistent_storage import get_by_ID
+from pycompss.util.persistent_storage import get_by_id
 
 if IS_PYTHON3:
     long = int
@@ -190,7 +190,7 @@ def compss_worker(persistent_storage):
                 values.append(True)
             else:
                 values.append(False)
-        # elif (pType == TYPE.OBJECT):
+        # elif (p_type == TYPE.OBJECT):
         #    pass
         else:
             logger.fatal("Invalid type (%d) for parameter %d" % (p_type, i))

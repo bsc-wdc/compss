@@ -29,7 +29,7 @@ import json
 
 from logging import config
 
-config_func = config.dictConfig
+CONFIG_FUNC = config.dictConfig
 
 
 def init_logging(log_config_file, storage_path):
@@ -46,7 +46,7 @@ def init_logging(log_config_file, storage_path):
         debug_file = conf["handlers"]["debug_file_handler"].get("filename")
         conf["handlers"]["error_file_handler"]["filename"] = storage_path + errors_file
         conf["handlers"]["debug_file_handler"]["filename"] = storage_path + debug_file
-        config_func(conf)
+        CONFIG_FUNC(conf)
     else:
         logging.basicConfig(level=logging.INFO)
 
@@ -60,6 +60,6 @@ def init_logging_worker(log_config_file):
     if os.path.exists(log_config_file):
         f = open(log_config_file, 'rt')
         conf = json.loads(f.read())
-        config_func(conf)
+        CONFIG_FUNC(conf)
     else:
         logging.basicConfig(level=logging.INFO)

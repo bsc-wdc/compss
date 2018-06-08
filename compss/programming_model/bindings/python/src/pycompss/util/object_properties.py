@@ -38,7 +38,7 @@ def is_module_available(module_name):
     try:
         imp.find_module(module_name)
         return True
-    except Exception:
+    except ImportError:
         return False
 
 

@@ -302,7 +302,7 @@ def launch_pycompss_application(app, func,
     config['cp'] = cp
     config['classpath'] = classpath
     config['jvm_workers'] = jvm_workers
-    config['pythonPath'] = pythonpath
+    config['pythonpath'] = pythonpath
     config['cpu_affinity'] = cpu_affinity
     config['gpu_affinity'] = gpu_affinity
     config['profile_input'] = profile_input
@@ -390,7 +390,7 @@ def initialize_compss(config):
         - 'scheduler'      = <String>       = Scheduler (normally: es.bsc.compss.scheduler.resourceEmptyScheduler.ResourceEmptyScheduler)
         - 'cp'             = <String>       = Application path
         - 'classpath'      = <String>       = CLASSPATH environment variable contents
-        - 'pythonPath'     = <String>       = PYTHONPATH environment variable contents
+        - 'pythonpath'     = <String>       = PYTHONPATH environment variable contents
         - 'jvm_workers'     = <String>       = Worker's jvm configuration (example: "-Xms1024m,-Xmx1024m,-Xmn400m")
         - 'cpu_affinity'    = <String>       = (default: automatic)
         - 'gpu_affinity'    = <String>       = (default: automatic)
@@ -517,10 +517,8 @@ def initialize_compss(config):
     jvm_options_file.write('-Dcompss.external.adaptation=' + config['external_adaptation'] + '\n')
 
     # JVM OPTIONS - PYTHON
-    jvm_options_file.write(
-        '-Djava.class.path=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config[
-            'classpath'] + '\n')
-    jvm_options_file.write('-Dcompss.worker.pythonpath=' + config['cp'] + ':' + config['pythonPath'] + '\n')
+    jvm_options_file.write('-Djava.class.path=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config['classpath'] + '\n')
+    jvm_options_file.write('-Dcompss.worker.pythonpath=' + config['cp'] + ':' + config['pythonpath'] + '\n')
     jvm_options_file.write('-Dcompss.python.interpreter=' + config['python_interpreter'] + '\n')
     jvm_options_file.write('-Dcompss.python.version=' + config['python_version'] + '\n')
     jvm_options_file.write('-Dcompss.python.virtualenvironment=' + config['python_virtual_environment'] + '\n')

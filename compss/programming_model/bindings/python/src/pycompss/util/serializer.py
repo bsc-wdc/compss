@@ -48,7 +48,7 @@ else:
 
 try:
     import dill
-except Exception:
+except ImportError:
     if IS_PYTHON3:
         import pickle as dill
     else:
@@ -56,7 +56,7 @@ except Exception:
 
 try:
     import numpy
-except Exception:
+except ImportError:
     if IS_PYTHON3:
         import pickle as numpy
     else:
@@ -71,7 +71,7 @@ class SerializerException(Exception):
     pass
 
 
-def get_serializer_priority(obj=[]):
+def get_serializer_priority(obj=()):
     """
     Computes the priority of the serializers.
     :param obj: Object to be analysed.
@@ -210,9 +210,9 @@ def deserialize_from_handler(handler):
 
 def deserialize_from_file(file_name):
     """
-    Deserializes the contents in a given file
-    :param file_name: Name of the file with the contents to be deserialized
-    :return: A deserialized object
+    Deserialize the contents in a given file
+    @param file_name: Name of the file with the contents to be deserialized
+    @return: A deserialized object
     """
 
     handler = open(file_name, 'rb')
@@ -223,9 +223,9 @@ def deserialize_from_file(file_name):
 
 def deserialize_from_string(serialized_content):
     """
-    Deserializes the contents in a given string
-    :param serialized_content: A string with serialized contents
-    :return: A deserialized object
+    Deserialize the contents in a given string
+    @param serialized_content: A string with serialized contents
+    @return: A deserialized object
     """
     handler = BytesIO(serialized_content)
     ret = deserialize_from_handler(handler)

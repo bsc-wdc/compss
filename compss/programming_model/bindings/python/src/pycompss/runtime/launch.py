@@ -36,7 +36,7 @@ from pycompss.api.api import compss_start, compss_stop
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.logs import init_logging
-from pycompss.util.jvm_parser import convert_to_dict
+# from pycompss.util.jvm_parser import convert_to_dict
 from pycompss.util.serializer import SerializerException
 from pycompss.util.optional_modules import show_optional_module_warnings
 

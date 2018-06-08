@@ -135,7 +135,7 @@ def compss_worker(persistent_storage):
         if p_type == TYPE.FILE:
             values.append(p_value)
         elif p_type == TYPE.EXTERNAL_PSCO:
-            po = get_by_ID(p_value)
+            po = get_by_id(p_value)
             values.append(po)
             pos += 1  # Skip info about direction (R, W)
         elif p_type == TYPE.STRING:
@@ -325,8 +325,8 @@ if __name__ == "__main__":
     method_type = sys.argv[5]
     # class_name = sys.argv[6]
     # method_name = sys.argv[7]
-    # numSlaves = sys.argv[8]
-    # i = 8 + numSlaves
+    # num_slaves = sys.argv[8]
+    # i = 8 + num_slaves
     # slaves = sys.argv[9-i]
     # numCus = sys.argv[i+1]
     # has_target = sys.argv[i+2] == 'true'

@@ -90,12 +90,37 @@
             "handlers": ["console"], 
             "propagate": "no"
         },
+        "pycompss.util.translators.arg_utils.arg_utils": {
+            "level": "ERROR",
+            "handlers": ["console"], 
+            "propagate": "no"
+        },
+        "pycompss.util.translators.code_loader.code_loader": {
+            "level": "ERROR",
+            "handlers": ["console"], 
+            "propagate": "no"
+        },
         "pycompss.util.translators.code_replacer.code_replacer": {
             "level": "ERROR",
             "handlers": ["console"], 
             "propagate": "no"
         },
         "pycompss.util.translators.scop2pscop2py.translator_scop2pscop2py": {
+            "level": "ERROR",
+            "handlers": ["console"], 
+            "propagate": "no"
+        },
+        "pycompss.util.translators.py2scop.translator_py2scop": {
+            "level": "ERROR",
+            "handlers": ["console"], 
+            "propagate": "no"
+        },
+        "pycompss.util.translators.scop2pscop2py.translator_scop2pscop2py": {
+            "level": "ERROR",
+            "handlers": ["console"], 
+            "propagate": "no"
+        },
+        "pycompss.util.translators.py2pycompss.translator_py2pycompss": {
             "level": "ERROR",
             "handlers": ["console"], 
             "propagate": "no"

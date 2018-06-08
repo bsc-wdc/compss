@@ -26,7 +26,7 @@
 
   # SET SCRIPT VARIABLES
   targetDir=$1
-  scriptDir=$(dirname $0)
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   modules="java gcc/4.9.4 mkl/2018.1 bullxmpi/bullxmpi-1.2.9.1 python/2.7.2 boost/1.57"
   py2_modules="python/2.7.2"
@@ -38,4 +38,4 @@
   extrae_with_impi="false"
   impi_version=""
 
-  ${scriptDir}/buildSC_aux ${targetDir} "${modules}" "${py2_modules}" "${py3_modules}" "${additionalExports}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}"
+  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${py2_modules}" "${py3_modules}" "${additionalExports}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}"

@@ -19,26 +19,23 @@ package es.bsc.compss.types.data.location;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.MultiURI;
-import es.bsc.compss.util.ErrorManager;
 
 import java.util.LinkedList;
 import java.util.List;
-
-import storage.StorageException;
-import storage.StorageItf;
 
 
 public class BindingObjectLocation extends DataLocation {
 
     private String id;
-    BindingObject bindingObject;
+    private BindingObject bindingObject;
     private MultiURI uri;
 
+
     public BindingObjectLocation(Resource host, BindingObject bo) {
-        super(); 
+        super();
         this.id = bo.getId();
-        this.uri = new MultiURI(Protocol.BINDING_URI, host, id+"#"+bo.getType()+"#"+bo.getElements());
-        this.bindingObject=bo;
+        this.uri = new MultiURI(Protocol.BINDING_URI, host, id + "#" + bo.getType() + "#" + bo.getElements());
+        this.bindingObject = bo;
     }
 
     @Override
@@ -54,8 +51,8 @@ public class BindingObjectLocation extends DataLocation {
     public String getId() {
         return this.id;
     }
-    
-    public BindingObject getBindingObject(){
+
+    public BindingObject getBindingObject() {
         return this.bindingObject;
     }
 
@@ -82,7 +79,7 @@ public class BindingObjectLocation extends DataLocation {
             return null;
         }
     }
-    
+
     @Override
     public boolean isTarget(DataLocation target) {
         if (target.getType() != DataLocation.Type.BINDING) {
@@ -129,9 +126,9 @@ public class BindingObjectLocation extends DataLocation {
         this.id = path;
         this.bindingObject = new BindingObject(path, bindingObject.getType(), bindingObject.getElements());
         MultiURI olduri = this.uri;
-        this.uri = new MultiURI(Protocol.BINDING_URI, olduri.getHost(), id+"#"+bindingObject.getType()+"#"+bindingObject.getElements());
-        
+        this.uri = new MultiURI(Protocol.BINDING_URI, olduri.getHost(),
+                id + "#" + bindingObject.getType() + "#" + bindingObject.getElements());
+
     }
-    
 
 }

@@ -1,0 +1,45 @@
+#!/bin/bash -e
+
+  action=$1
+
+  if [ "$action" == "install" ]; then
+    if [ $# -eq 2 ]; then
+      # Installation knowing previous old version
+      oldversion=$2
+      echo " "
+      echo " * Installing PyCOMPSs AutoParallel from previous version ${oldversion}..."
+      echo " "
+      rm -rf /opt/COMPSs/Dependencies/autoparallel
+      rm -rf /opt/COMPSs/Dependencies/pluto
+    else
+      # Clean installation
+      echo " "
+      echo " * Installing PyCOMPSs AutoParallel..."
+      echo " "
+    fi
+  elif [ "$action" == "upgrade" ]; then
+    # Upgrade from previous version
+    oldversion=$2
+    echo " "
+    echo " * Upgrading PyCOMPSs AutoParallel from previous version ${oldversion}..."
+    echo " "
+    if [ -d "/opt/COMPSs/Dependencies/autoparallel" ]; then
+      mv /opt/COMPSs/Dependencies/autoparallel /tmp/COMPSs_autoparallel.bkp
+    fi
+    if [ -d "/opt/COMPSs/Dependencies/pluto" ]; then
+      mv /opt/COMPSs/Dependencies/pluto /tmp/COMPSs_pluto.bkp
+    fi
+  elif [ "$action" == "abort-upgrade" ]; then
+    # Update failed, recover previous version
+    newversion=$2
+    echo " "
+    echo " * PyCOMPSs AutoParallel $newversion upgrade aborted. Please check errors above."
+    echo " "
+    if [ -d "/tmp/COMPSs_autoparallel.bkp" ]; then
+      mv /tmp/COMPSs_autoparallel.bkp /opt/COMPSs/Dependencies/autoparallel
+    fi
+    if [ -d "/tmp/COMPSs_pluto.bkp" ]; then
+      mv /tmp/COMPSs_pluto.bkp /opt/COMPSs/Dependencies/pluto
+    fi
+  fi
+

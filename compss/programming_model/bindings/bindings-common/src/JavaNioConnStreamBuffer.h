@@ -23,25 +23,24 @@
 #include <cstdio>
 #include <jni.h>
 
-class JavaNioConnStreamBuffer : public std::streambuf
-{
-private:
-  char* buff;
-  unsigned int size;
-  jobject handle;
-  jbyteArray j_value;
-  JNIEnv* jni_env;
-  std::size_t put_back_;
-  unsigned int next_w_element;
-private:
-  int_type underflow();
-  int_type overflow(int_type in);
+class JavaNioConnStreamBuffer : public std::streambuf {
+  private:
+    char* buff;
+    unsigned int size;
+    jobject handle;
+    jbyteArray j_value;
+    JNIEnv* jni_env;
+    std::size_t put_back_;
+    unsigned int next_w_element;
+  private:
+    int_type underflow();
+    int_type overflow(int_type in);
 
-public:
-  //Ctor takes env pointer for the working thread and java.io.PrintStream
-  JavaNioConnStreamBuffer(JNIEnv* env, jobject niostream, unsigned int buffsize);
-  //JavaStreamBuffer(jobject niostream, unsigned int buffsize);
-  ~JavaNioConnStreamBuffer();
+  public:
+    //Ctor takes env pointer for the working thread and java.io.PrintStream
+    JavaNioConnStreamBuffer(JNIEnv* env, jobject niostream, unsigned int buffsize);
+    //JavaStreamBuffer(jobject niostream, unsigned int buffsize);
+    ~JavaNioConnStreamBuffer();
 };
 
 #endif

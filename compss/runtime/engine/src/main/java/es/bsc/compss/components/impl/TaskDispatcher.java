@@ -223,7 +223,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
      */
     public void getTaskSummary(Logger logger) {
         Semaphore sem = new Semaphore(0);
-        TaskSummaryRequest request = new TaskSummaryRequest(LOGGER, sem);
+        TaskSummaryRequest request = new TaskSummaryRequest(logger, sem);
         addRequest(request);
         try {
             sem.acquire();

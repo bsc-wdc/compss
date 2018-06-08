@@ -32,8 +32,8 @@ extern "C" {
  * Signature: (I[Ljava/lang/String;)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_es_bsc_compss_nio_worker_executors_PersistentExternalExecutor_executeInBinding
- // (JNIEnv *, jclass, jint, jobjectArray);
-	(JNIEnv *, jclass, jstring);
+// (JNIEnv *, jclass, jint, jobjectArray);
+(JNIEnv *, jclass, jstring);
 
 /*
  * Class:     es_bsc_compss_nio_worker_executors_PersistentExternalExecutor
@@ -41,7 +41,7 @@ JNIEXPORT jstring JNICALL Java_es_bsc_compss_nio_worker_executors_PersistentExte
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_es_bsc_compss_nio_worker_executors_PersistentExternalExecutor_finishThread
-  (JNIEnv *, jclass);
+(JNIEnv *, jclass);
 
 /*
  * Class:     es_bsc_compss_nio_worker_executors_PersistentExternalExecutor
@@ -49,7 +49,7 @@ JNIEXPORT void JNICALL Java_es_bsc_compss_nio_worker_executors_PersistentExterna
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_es_bsc_compss_nio_worker_executors_PersistentExternalExecutor_initThread
-  (JNIEnv *, jclass);
+(JNIEnv *, jclass);
 #ifdef __cplusplus
 }
 #endif

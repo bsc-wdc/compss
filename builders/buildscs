@@ -10,8 +10,8 @@
   SCtarget=/apps/COMPSs/Trunk
 
   # Install on each enabled supercomputer
-  ENABLED_SCS=("mn" "nord" "mt")
-  SCS_SCRIPT_NAMES=("buildMN" "buildNord" "buildMT")
+  ENABLED_SCS=("asgard" "jureca" "knl" "mn" "mt" "nord" "ssf" "uv")
+  SCS_SCRIPT_NAMES=("buildAsgard" "buildJureca" "buildKNL" "buildMN" "buildMT" "buildNord" "buildSSF" "buildUV")
 
   echo "Installing COMPSs at SCs"
 
@@ -20,9 +20,9 @@
     SCscript="${SCS_SCRIPT_NAMES[$i]}"
 
     echo "-- Installing COMPSs at $SCName SuperComputer"
-    cd ${SCS_BASE_DIR}/$SCName
+    cd "${SCS_BASE_DIR}"/"$SCName"
     ./"${SCscript}" "$SCuser" "$SCtmp" "$SCtarget"
-    cd ${SCRIPT_DIR}
+    cd "${SCRIPT_DIR}"
     echo "-- COMPSs at $SCName Installed!"
   done
 

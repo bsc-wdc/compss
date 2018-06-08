@@ -20,13 +20,13 @@
     if [ "$currentVersion" = "$baseVersion" ]; then
       isLower=0
     else
-      verLTE $currentVersion $baseVersion
+      verLTE "$currentVersion" $baseVersion
     fi
   }
 
   usage() {
     echo "ERROR: Incorrect number of parameters"
-    echo "Usage: $(dirname $0) <dotFile>"
+    echo "Usage: $(dirname "$0") <dotFile>"
     exit 1
   }
 
@@ -41,9 +41,9 @@
   dotGraph=$1
 
   # Check dot version
-  dotV=$(dot -V 3>&1 1>&2- 2>&3- | awk {' print $5 '})
+  dotV=$(dot -V 3>&1 1>&2- 2>&3- | awk '{ print $5 }')
   isLower=1
-  verLT $dotV
+  verLT "$dotV"
 
   # Format output fileName
   if [[ $dotGraph == *.dot ]]; then 
@@ -60,16 +60,16 @@
     echo "WARN: Generating Graph without legend due to GraphViz version"
 
     tmpDotGraph=${dotGraph}.noLegend
-    trunkLine=$(awk '/subgraph legend/{ print NR; exit}' $dotGraph)
+    trunkLine=$(awk '/subgraph legend/{ print NR; exit}' "$dotGraph")
     trunkLine=$((trunkLine - 1))
-    head -n $trunkLine $dotGraph > $tmpDotGraph
-    echo "}" >> $tmpDotGraph
-    dot -Tpdf $tmpDotGraph > $pdfGraph
+    head -n $trunkLine "$dotGraph" > "$tmpDotGraph"
+    echo "}" >> "$tmpDotGraph"
+    dot -Tpdf "$tmpDotGraph" > "$pdfGraph"
   else
     # If is greater or equal than base version, generate full graph
     echo "INFO: Generating Graph with legend"
 
-    dot -Tpdf $dotGraph > $pdfGraph
+    dot -Tpdf "$dotGraph" > "$pdfGraph"
   fi
   
   echo "DONE"

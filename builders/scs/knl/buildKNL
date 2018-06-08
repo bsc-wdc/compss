@@ -34,20 +34,20 @@
   fi
 
   # SET SCRIPT VARIABLES
-  scriptDir=$(pwd)/$(dirname $0)
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   KNLuser=$1
   KNLtmpDir=$2
   KNLtargetDir=$3
   KNLloginNode=klogin1.bsc.es
-  KNLauxScript=${scriptDir}/buildKNL_aux
+  KNLauxScript=${SCRIPT_DIR}/buildKNL_aux
   PRELOAD_ENV=""
 
   # Perform installation
-  cd ${scriptDir}/../commons
-  ./buildSC ${KNLuser} ${KNLloginNode} ${KNLtmpDir} ${KNLtargetDir} ${KNLauxScript} "${PRELOAD_ENV}"
+  cd "${SCRIPT_DIR}"/../commons
+  ./buildSC "${KNLuser}" "${KNLloginNode}" "${KNLtmpDir}" "${KNLtargetDir}" "${KNLauxScript}" "${PRELOAD_ENV}"
   exitStatus=$?
-  cd ${scriptDir}
+  cd "${SCRIPT_DIR}"
 
   # END
   exit $exitStatus

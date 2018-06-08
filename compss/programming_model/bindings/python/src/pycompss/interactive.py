@@ -28,14 +28,14 @@ import sys
 import logging
 from tempfile import mkdtemp
 import time
+
+import pycompss.runtime.binding as binding
 from pycompss.api.api import compss_start
 from pycompss.api.api import compss_stop
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.binding import get_pending_to_synchronize
 from pycompss.runtime.launch import initialize_compss
 from pycompss.util.logs import init_logging
-import pycompss.runtime.binding as binding
-
 
 # Warning! The name should start with 'InteractiveMode' due to @task checks
 # it explicitly. If changed, it is necessary to update the task decorator.
@@ -156,13 +156,13 @@ def start(log_level='off',
     config['compss_home'] = compss_home
     config['debug'] = debug
     if project_xml is None:
-        projPath = 'Runtime/configuration/xml/projects/default_project.xml'
-        config['project_xml'] = compss_home + os.path.sep + projPath
+        proj_path = 'Runtime/configuration/xml/projects/default_project.xml'
+        config['project_xml'] = compss_home + os.path.sep + proj_path
     else:
         config['project_xml'] = project_xml
     if resources_xml is None:
-        resPath = 'Runtime/configuration/xml/resources/default_resources.xml'
-        config['resources_xml'] = compss_home + os.path.sep + resPath
+        res_path = 'Runtime/configuration/xml/resources/default_resources.xml'
+        config['resources_xml'] = compss_home + os.path.sep + res_path
     else:
         config['resources_xml'] = resources_xml
     config['summary'] = summary
@@ -241,28 +241,28 @@ def start(log_level='off',
 
     # Logging setup
     if log_level == "debug":
-        jsonPath = '/Bindings/python/' + str(major_version) + '/log/logging.json.debug'
-        init_logging(os.getenv('COMPSS_HOME') + jsonPath, log_path)
+        json_path = '/Bindings/python/' + str(major_version) + '/log/logging.json.debug'
+        init_logging(os.getenv('COMPSS_HOME') + json_path, log_path)
     elif log_level == "info":
-        jsonPath = '/Bindings/python/' + str(major_version) + '/log/logging.json.off'
-        init_logging(os.getenv('COMPSS_HOME') + jsonPath, log_path)
+        json_path = '/Bindings/python/' + str(major_version) + '/log/logging.json.off'
+        init_logging(os.getenv('COMPSS_HOME') + json_path, log_path)
     elif log_level == "off":
-        jsonPath = '/Bindings/python/' + str(major_version) + '/log/logging.json.off'
-        init_logging(os.getenv('COMPSS_HOME') + jsonPath, log_path)
+        json_path = '/Bindings/python/' + str(major_version) + '/log/logging.json.off'
+        init_logging(os.getenv('COMPSS_HOME') + json_path, log_path)
     else:
         # Default
-        jsonPath = '/Bindings/python/' + str(major_version) + '/log/logging.json'
-        init_logging(os.getenv('COMPSS_HOME') + jsonPath, log_path)
+        json_path = '/Bindings/python/' + str(major_version) + '/log/logging.json'
+        init_logging(os.getenv('COMPSS_HOME') + json_path, log_path)
     logger = logging.getLogger("pycompss.runtime.launch")
 
-    printSetup(verbose,
-               log_level, o_c, debug, graph, trace, monitor,
-               project_xml, resources_xml, summary, taskExecution, storageConf,
-               taskCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
-               comm, conn, masterName, masterPort, scheduler, jvmWorkers,
-               cpuAffinity, gpuAffinity, profileInput, profileOutput,
-               scheduler_config, external_adaptation, python_interpreter, major_version,
-               python_virtual_environment, propagate_virtual_environment)
+    print_setup(verbose,
+                log_level, o_c, debug, graph, trace, monitor,
+                project_xml, resources_xml, summary, taskExecution, storageConf,
+                taskCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
+                comm, conn, masterName, masterPort, scheduler, jvmWorkers,
+                cpuAffinity, gpuAffinity, profileInput, profileOutput,
+                scheduler_config, external_adaptation, python_interpreter, major_version,
+                python_virtual_environment, propagate_virtual_environment)
 
     logger.debug("--- START ---")
     logger.debug("PyCOMPSs Log path: %s" % log_path)
@@ -279,13 +279,13 @@ def start(log_level='off',
     print("******************************************************")
 
 
-def printSetup(verbose, log_level, o_c, debug, graph, trace, monitor,
-               project_xml, resources_xml, summary, taskExecution, storageConf,
-               taskCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
-               comm, conn, masterName, masterPort, scheduler, jvmWorkers,
-               cpuAffinity, gpuAffinity, profileInput, profileOutput,
-               scheduler_config, external_adaptation, python_interpreter, python_version,
-               python_virtual_environment, python_propagate_virtual_environment):
+def print_setup(verbose, log_level, o_c, debug, graph, trace, monitor,
+                project_xml, resources_xml, summary, taskExecution, storageConf,
+                taskCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
+                comm, conn, masterName, masterPort, scheduler, jvmWorkers,
+                cpuAffinity, gpuAffinity, profileInput, profileOutput,
+                scheduler_config, external_adaptation, python_interpreter, python_version,
+                python_virtual_environment, python_propagate_virtual_environment):
     logger = logging.getLogger("pycompss.runtime.launch")
     output = ""
     output += "******************************************************\n"
@@ -347,16 +347,16 @@ def stop(sync=False):
         # pprint.pprint(ipython.__dict__, width=1)
         raw_code = ipython.__dict__['user_ns']
         for k in raw_code:
-            objK = raw_code[k]
-            if not k.startswith('_'):   # not internal objects
-                if type(objK) == binding.Future:
+            obj_k = raw_code[k]
+            if not k.startswith('_'):  # not internal objects
+                if type(obj_k) == binding.Future:
                     print("Found a future object: %s" % str(k))
                     logger.debug("Found a future object: %s" % (k,))
-                    ipython.__dict__['user_ns'][k] = compss_wait_on(objK)
-                elif objK in pending_to_synchronize.values():
+                    ipython.__dict__['user_ns'][k] = compss_wait_on(obj_k)
+                elif obj_k in pending_to_synchronize.values():
                     print("Found an object to synchronize: %s" % str(k))
                     logger.debug("Found an object to synchronize: %s" % (k,))
-                    ipython.__dict__['user_ns'][k] = compss_wait_on(objK)
+                    ipython.__dict__['user_ns'][k] = compss_wait_on(obj_k)
                 else:
                     pass
     else:
@@ -400,8 +400,8 @@ def __show_graph__(name='complete_graph', fit=False):
     except ImportError:
         print('Oops! graphviz is not available.')
         raise
-    file = open(log_path + '/monitor/' + name + '.dot', 'r')
-    text = file.read()
+    monitor_file = open(log_path + '/monitor/' + name + '.dot', 'r')
+    text = monitor_file.read()
     if fit:
         try:
             # Convert to png and show full picture
@@ -415,7 +415,7 @@ def __show_graph__(name='complete_graph', fit=False):
             from IPython.display import Image
             image = Image(filename=filename + '.' + extension)
             return image
-        except:
+        except Exception:
             print('Oops! Failed rendering the graph.')
             raise
     else:
@@ -448,11 +448,11 @@ def __export_globals__():
 
 
 def __clean_temp_files__():
-    '''
+    """
     Remove any temporary files that may exist.
-    Currently: app_path, which contains the file path where all interactive
-    code required by the worker is.
-    '''
+    Currently: app_path, which contains the file path where all interactive code required by the worker is.
+    """
+
     try:
         if os.path.exists(app_path):
             os.remove(app_path)

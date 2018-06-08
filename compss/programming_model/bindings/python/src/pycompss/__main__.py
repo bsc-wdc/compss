@@ -42,9 +42,12 @@ def setup_parser():
         * The rest of the arguments as a list
     :return: the parser
     """
+
     parser = argparse.ArgumentParser(prog='python -m pycompss')
-    parser.add_argument('action', choices=TAGS, nargs='?', help="Execution mode: \'run\' for launching an execution and \'enqueue\' for submitting a job to the queuing system. Default value: \'run\'")
-    parser.add_argument('params', nargs=argparse.REMAINDER, help="COMPSs and application arguments (check \'runcompss\' or \'enqueue_compss\' commands help).")
+    parser.add_argument('action', choices=TAGS, nargs='?',
+                        help="Execution mode: \'run\' for launching an execution and \'enqueue\' for submitting a job to the queuing system. Default value: \'run\'")
+    parser.add_argument('params', nargs=argparse.REMAINDER,
+                        help="COMPSs and application arguments (check \'runcompss\' or \'enqueue_compss\' commands help).")
     return parser
 
 
@@ -57,6 +60,7 @@ def main():
     """
     Main method.
     """
+
     help = ['-h', '--help']
 
     # Check params
@@ -65,6 +69,7 @@ def main():
         class Object(object):
             # Dummy class to mimic argparse return object
             pass
+
         args = Object()
         args.action = RUN_TAG
         args.params = sys.argv[1:]

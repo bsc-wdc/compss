@@ -27,4 +27,5 @@ PyCOMPSs Dummy API - local
 def local(input_function):
     def wrapped_function(*args, **kwargs):
         return input_function(*args, **kwargs)
+
     return wrapped_function

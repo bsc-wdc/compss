@@ -45,22 +45,21 @@ public abstract class Job<T extends COMPSsWorker> {
     // Environment variables for job execution
     private static final String classpathFromEnvironment = (System.getProperty(COMPSsConstants.WORKER_CP) != null
             && !System.getProperty(COMPSsConstants.WORKER_CP).equals("")) ? System.getProperty(COMPSsConstants.WORKER_CP) : "\"\"";
-    private final String classpathFromFile;
     private final String workerClasspath;
 
     private static final String pythonpathFromEnvironment = (System.getProperty(COMPSsConstants.WORKER_PP) != null
             && !System.getProperty(COMPSsConstants.WORKER_PP).equals("")) ? System.getProperty(COMPSsConstants.WORKER_PP) : "\"\"";
-    private final String pythonpathFromFile;
     private final String workerPythonpath;
 
 
     // Job history
     public enum JobHistory {
-        NEW,
-        RESUBMITTED_FILES,
-        RESUBMITTED,
-        FAILED
+        NEW, // New job
+        RESUBMITTED_FILES, // Resubmit transfers
+        RESUBMITTED, // Resubmit job
+        FAILED // Completely failed (can create new job for reschedule)
     }
+
 
     // Information of the job
     protected int jobId;
@@ -76,6 +75,7 @@ public abstract class Job<T extends COMPSsWorker> {
 
     protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
     protected static final boolean debug = logger.isDebugEnabled();
+
 
     /**
      * Creates a new job instance with the given parameters
@@ -98,33 +98,33 @@ public abstract class Job<T extends COMPSsWorker> {
         /*
          * Setup job environment variables ****************************************
          */
- /*
+        /*
          * This variables are only used by GAT since NIO loads them from the worker rather than specific variables per
          * job
          */
         // Merge command classpath and worker defined classpath
-        classpathFromFile = getResourceNode().getClasspath();
+        String classpathFromFile = getResourceNode().getClasspath();
 
         if (!classpathFromFile.equals("")) {
             if (!classpathFromEnvironment.equals("")) {
-                workerClasspath = classpathFromEnvironment + ":" + classpathFromFile;
+                this.workerClasspath = classpathFromEnvironment + ":" + classpathFromFile;
             } else {
-                workerClasspath = classpathFromFile;
+                this.workerClasspath = classpathFromFile;
             }
         } else {
-            workerClasspath = classpathFromEnvironment;
+            this.workerClasspath = classpathFromEnvironment;
         }
 
         // Merge command pythonpath and worker defined pythonpath
-        pythonpathFromFile = getResourceNode().getPythonpath();
+        String pythonpathFromFile = getResourceNode().getPythonpath();
         if (!pythonpathFromFile.equals("")) {
             if (!pythonpathFromEnvironment.equals("")) {
-                workerPythonpath = pythonpathFromEnvironment + ":" + pythonpathFromFile;
+                this.workerPythonpath = pythonpathFromEnvironment + ":" + pythonpathFromFile;
             } else {
-                workerPythonpath = pythonpathFromFile;
+                this.workerPythonpath = pythonpathFromFile;
             }
         } else {
-            workerPythonpath = pythonpathFromEnvironment;
+            this.workerPythonpath = pythonpathFromEnvironment;
         }
     }
 
@@ -134,7 +134,7 @@ public abstract class Job<T extends COMPSsWorker> {
      * @return
      */
     public int getJobId() {
-        return jobId;
+        return this.jobId;
     }
 
     /**
@@ -143,7 +143,7 @@ public abstract class Job<T extends COMPSsWorker> {
      * @return
      */
     public int getTaskId() {
-        return taskId;
+        return this.taskId;
     }
 
     /**
@@ -152,7 +152,7 @@ public abstract class Job<T extends COMPSsWorker> {
      * @return
      */
     public TaskDescription getTaskParams() {
-        return taskParams;
+        return this.taskParams;
     }
 
     /**
@@ -161,7 +161,7 @@ public abstract class Job<T extends COMPSsWorker> {
      * @return
      */
     public JobHistory getHistory() {
-        return history;
+        return this.history;
     }
 
     /**
@@ -216,7 +216,7 @@ public abstract class Job<T extends COMPSsWorker> {
      * @return
      */
     public JobListener getListener() {
-        return listener;
+        return this.listener;
     }
 
     /**

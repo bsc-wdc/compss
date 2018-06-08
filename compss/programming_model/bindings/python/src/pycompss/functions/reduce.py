@@ -26,63 +26,67 @@ PyCOMPSs Functions: Reduce
 from pycompss.runtime.commons import IS_PYTHON3
 
 
-def mergeReduce(function, data):
+
+def mergeReduce(func, data):
     """
     Apply function cumulatively to the items of data,
     from left to right in binary tree structure, so as to
     reduce the data to a single value.
-    :param function: function to apply to reduce data
+    :param func: function to apply to reduce data
     :param data: List of items to be reduced
     :return: result of reduce the data to a single value
     """
+
     from collections import deque
     q = deque(range(len(data)))
-    dataNew = data[:]
+    data_new = data[:]
     while len(q):
         x = q.popleft()
         if len(q):
             y = q.popleft()
-            dataNew[x] = function(dataNew[x], dataNew[y])
+            data_new[x] = func(data_new[x], data_new[y])
             q.append(x)
         else:
-            return dataNew[x]
+            return data_new[x]
 
 
-def mergeNReduce(function, data):
+def mergeNReduce(func, data):
     """
     Apply function cumulatively to the items of data,
     from left to right in n-tree structure, so as to
     reduce the data.
-    :param function: function to apply to reduce data
+    :param func: function to apply to reduce data
     :param data: List of items to be reduced
     :return: List of results
     """
+
     from collections import deque
     q = deque(range(len(data)))
-    numArgs = function.func_code.co_argcount
-    while len(q) >= numArgs:
-        args = [q.popleft() for _ in range(numArgs)]
-        data[args[0]] = function(*[data[i] for i in args])
+    num_args = func.func_code.co_argcount
+    while len(q) >= num_args:
+        args = [q.popleft() for _ in range(num_args)]
+        data[args[0]] = func(*[data[i] for i in args])
         q.append(args[0])
     else:
         args = [q.popleft() for _ in range(len(q))]
         return [data[i] for i in args]
 
 
-def simpleReduce(function, data):
+def simpleReduce(func, data):
     """
     Apply function of two arguments cumulatively to the items
     of data, from left to right, so as to reduce the iterable
     to a single value.
-    :param function: function to apply to reduce data
+    :param func: function to apply to reduce data
     :param data: List of items to be reduced
     :return: result of reduce the data to a single value
     """
+
     try:
         if IS_PYTHON3:
             import functools
-            return functools.reduce(function, data)
+            return functools.reduce(func, data)
         else:
-            return reduce(function, data)
+            return reduce(func, data)
     except Exception as e:
         raise e

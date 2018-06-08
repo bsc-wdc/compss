@@ -67,6 +67,7 @@ public class GATWorker {
     private static String[] methodDefinition;
     private static boolean hasTarget;
     private static boolean hasReturn;
+    private static int numReturns;
     private static int numParams;
     private static int initialAppParamsPosition;
 
@@ -182,6 +183,7 @@ public class GATWorker {
         } else {
             GATWorker.hasReturn = true;
         }
+        GATWorker.numReturns = Integer.parseInt(args[argPosition++]);
 
         // Get application number of parameters
         GATWorker.numParams = Integer.parseInt(args[argPosition++]);
@@ -220,7 +222,6 @@ public class GATWorker {
             GATWorker.types = new Class[GATWorker.numParams - 1];
             GATWorker.values = new Object[GATWorker.numParams - 1];
         } else {
-
             GATWorker.types = new Class[GATWorker.numParams];
             GATWorker.values = new Object[GATWorker.numParams];
         }
@@ -500,7 +501,7 @@ public class GATWorker {
         System.out.println("");
 
         if (GATWorker.hasReturn) {
-            System.out.println("  * Has return with renaming " + GATWorker.retRenaming);
+            System.out.println("  * Has " + String.valueOf(GATWorker.numReturns) + " return with renaming " + GATWorker.retRenaming);
         } else {
             System.out.println("  * Has NO return");
         }

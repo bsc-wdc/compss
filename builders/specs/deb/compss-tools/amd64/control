@@ -3,6 +3,6 @@ Version:
 Priority: optional
 Architecture: amd64
 Essential: no
-Depends: compss-extrae, compss-monitor
+Depends: compss-extrae, compss-monitor, compss-autoparallel
 Maintainer: COMPSs Support <support-compss@bsc.es>
 Description: The BSC COMP Superscalar Tools.

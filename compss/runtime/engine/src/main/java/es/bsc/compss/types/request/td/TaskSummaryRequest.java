@@ -75,8 +75,8 @@ public class TaskSummaryRequest extends TDRequest {
 
     @Override
     public void process(TaskScheduler ts) throws ShutdownException {
-        ts.getTaskSummary(logger);
-        sem.release();
+        ts.getTaskSummary(this.logger);
+        this.sem.release();
     }
 
     @Override

@@ -17,19 +17,21 @@
 
 # -*- coding: utf-8 -*-
 
-'''
+"""
 PyCOMPSs Binding - Launch
 =========================
 This file contains the __main__ method.
 It is called from pycompssext script with the user and environment parameters.
-'''
+"""
 
 import os
 import sys
 import logging
 import traceback
-import pycompss.runtime.binding as binding
+
 from tempfile import mkdtemp
+
+import pycompss.runtime.binding as binding
 from pycompss.api.api import compss_start, compss_stop
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.commons import IS_PYTHON3
@@ -47,6 +49,13 @@ else:
 
 
 def get_logging_cfg_file(log_level):
+    """
+    Retrieves the logging cfg file
+
+    :param log_level:
+    :return:
+    """
+
     logging_cfg_file = 'logging.json'
     cfg_files = {
         'debug': 'logging.json.debug',
@@ -59,6 +68,10 @@ def get_logging_cfg_file(log_level):
 
 
 def parse_arguments():
+    """
+    Parse PyCOMPSs arguments
+    """
+
     import argparse
     parser = argparse.ArgumentParser(description='PyCOMPSs application launcher')
     parser.add_argument('log_level', help='Logging level [debug|info|off]')
@@ -69,10 +82,11 @@ def parse_arguments():
 
 
 def compss_main():
-    '''
+    """
     General call:
     python $PYCOMPSS_HOME/pycompss/runtime/launch.py $log_level $PyObject_serialize $storageConf $fullAppPath $application_args
-    '''
+    """
+
     global app_path
 
     # Start the runtime, see bindings commons
@@ -116,7 +130,7 @@ def compss_main():
 
     # Get JVM options
     jvm_opts = os.environ['JVM_OPTIONS_FILE']
-    opts = convert_to_dict(jvm_opts)
+    # opts = convert_to_dict(jvm_opts)
     # storage_conf = opts.get('-Dcompss.storage.conf')
 
     try:
@@ -130,9 +144,9 @@ def compss_main():
         show_optional_module_warnings()
         # MAIN EXECUTION
         if IS_PYTHON3:
-            exec(compile(open(app_path).read(), app_path, 'exec'), globals())
+            exec (compile(open(app_path).read(), app_path, 'exec'), globals())
         else:
-            execfile(app_path, globals())    # MAIN EXECUTION
+            execfile(app_path, globals())  # MAIN EXECUTION
         if persistent_storage:
             finish_storage()
         if __debug__:
@@ -194,11 +208,51 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
                                 external_adaptation=False,
                                 python_propagate_virtual_environment=True
                                 ):
+    """
+    Launch pycompss application
+
+    :param app:
+    :param func:
+    :param args:
+    :param kwargs:
+    :param log_level:
+    :param o_c:
+    :param debug:
+    :param graph:
+    :param trace:
+    :param monitor:
+    :param project_xml:
+    :param resources_xml:
+    :param summary:
+    :param taskExecution:
+    :param storageConf:
+    :param taskCount:
+    :param appName:
+    :param uuid:
+    :param baseLogDir:
+    :param specificLogDir:
+    :param extraeCfg:
+    :param comm:
+    :param conn:
+    :param masterName:
+    :param masterPort:
+    :param scheduler:
+    :param jvmWorkers:
+    :param obj_conv:
+    :param cpuAffinity:
+    :param gpuAffinity:
+    :param profileInput:
+    :param profileOutput:
+    :param scheduler_config:
+    :param external_adaptation:
+    :return:
+    """
+
     global app_path
-    launchPath = os.path.dirname(os.path.abspath(__file__))
+    launch_path = os.path.dirname(os.path.abspath(__file__))
     # compss_home = launchPath without the last 4 folders:
     # (Bindings/python/pycompss/runtime)
-    compss_home = os.path.sep.join(launchPath.split(os.path.sep)[:-4])
+    compss_home = os.path.sep.join(launch_path.split(os.path.sep)[:-4])
 
     # Grab the existing PYTHONPATH and CLASSPATH values
     pythonpath = os.environ['PYTHONPATH']
@@ -216,13 +270,13 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
     config['compss_home'] = compss_home
     config['debug'] = debug
     if project_xml is None:
-        projXml = 'Runtime/configuration/xml/projects/default_project.xml'
-        config['project_xml'] = compss_home + os.path.sep + projXml
+        proj_xml = 'Runtime/configuration/xml/projects/default_project.xml'
+        config['project_xml'] = compss_home + os.path.sep + proj_xml
     else:
         config['project_xml'] = project_xml
     if resources_xml is None:
-        resXml = 'Runtime/configuration/xml/resources/default_resources.xml'
-        config['resources_xml'] = compss_home + os.path.sep + resXml
+        res_xml = 'Runtime/configuration/xml/resources/default_resources.xml'
+        config['resources_xml'] = compss_home + os.path.sep + res_xml
     else:
         config['resources_xml'] = resources_xml
     config['summary'] = summary
@@ -294,8 +348,8 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
     else:
         import imp
         imported_module = imp.load_source(file_name, app)
-        methodToCall = getattr(imported_module, func)
-        result = methodToCall(*args, **kwargs)
+        method_to_call = getattr(imported_module, func)
+        result = method_to_call(*args, **kwargs)
     # Recover the system arguments
     sys.argv = saved_argv
     logger.debug('--- END ---')
@@ -306,7 +360,8 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
 
 
 def initialize_compss(config):
-    '''Creates the initialization files for the runtime start (java options file).
+    """
+    Creates the initialization files for the runtime start (java options file).
     Receives a dictionary (config) with the configuration parameters.
     WARNING!!! if new parameters are included in the runcompss launcher,
     they have to be considered in this configuration. Otherwise, the runtime will not start.
@@ -347,7 +402,8 @@ def initialize_compss(config):
         - 'python_virtual_environment'            = <String>  = Python virtual environment path
         - 'python_propagate_virtual_environment'  = <Boolean> = Propagate python virtual environment to workers
     :param config: Configuration parameters dictionary
-    '''
+    """
+
     from tempfile import mkstemp
     fd, temp_path = mkstemp()
     jvm_options_file = open(temp_path, 'w')
@@ -359,16 +415,19 @@ def initialize_compss(config):
     jvm_options_file.write('-XX:+UseThreadPriorities\n')
     jvm_options_file.write('-XX:ThreadPriorityPolicy=42\n')
     if config['debug']:
-        jvm_options_file.write('-Dlog4j.configurationFile=' + config['compss_home'] + '/Runtime/configuration/log/COMPSsMaster-log4j.debug\n')  # DEBUG
+        jvm_options_file.write('-Dlog4j.configurationFile=' + config[
+            'compss_home'] + '/Runtime/configuration/log/COMPSsMaster-log4j.debug\n')  # DEBUG
     else:
-        jvm_options_file.write('-Dlog4j.configurationFile=' + config['compss_home'] + '/Runtime/configuration/log/COMPSsMaster-log4j\n')  # NO DEBUG
+        jvm_options_file.write('-Dlog4j.configurationFile=' + config[
+            'compss_home'] + '/Runtime/configuration/log/COMPSsMaster-log4j\n')  # NO DEBUG
     jvm_options_file.write('-Dcompss.to.file=false\n')
     jvm_options_file.write('-Dcompss.project.file=' + config['project_xml'] + '\n')
     jvm_options_file.write('-Dcompss.resources.file=' + config['resources_xml'] + '\n')
     jvm_options_file.write(
         '-Dcompss.project.schema=' + config['compss_home'] + '/Runtime/configuration/xml/projects/project_schema.xsd\n')
     jvm_options_file.write(
-        '-Dcompss.resources.schema=' + config['compss_home'] + '/Runtime/configuration/xml/resources/resources_schema.xsd\n')
+        '-Dcompss.resources.schema=' + config[
+            'compss_home'] + '/Runtime/configuration/xml/resources/resources_schema.xsd\n')
     jvm_options_file.write('-Dcompss.lang=python\n')
     if config['summary']:
         jvm_options_file.write('-Dcompss.summary=true\n')
@@ -386,11 +445,11 @@ def initialize_compss(config):
 
     if config['uuid'] is None:
         import uuid
-        myUuid = str(uuid.uuid4())
+        my_uuid = str(uuid.uuid4())
     else:
-        myUuid = config['uuid']
+        my_uuid = config['uuid']
 
-    jvm_options_file.write('-Dcompss.uuid=' + myUuid + '\n')
+    jvm_options_file.write('-Dcompss.uuid=' + my_uuid + '\n')
 
     if config['baseLogDir'] is None:
         # it will be within $HOME/.COMPSs
@@ -403,7 +462,7 @@ def initialize_compss(config):
     else:
         jvm_options_file.write('-Dcompss.specificLogDir=' + config['specificLogDir'] + '\n')
 
-    jvm_options_file.write('-Dcompss.appLogDir=/tmp/' + myUuid + '/\n')
+    jvm_options_file.write('-Dcompss.appLogDir=/tmp/' + my_uuid + '/\n')
 
     if config['graph']:
         jvm_options_file.write('-Dcompss.graph=true\n')
@@ -422,7 +481,8 @@ def initialize_compss(config):
         os.environ['EXTRAE_CONFIG_FILE'] = config['compss_home'] + '/Runtime/configuration/xml/tracing/extrae_basic.xml'
     elif config['trace'] == 2:
         jvm_options_file.write('-Dcompss.tracing=2\n')
-        os.environ['EXTRAE_CONFIG_FILE'] = config['compss_home'] + '/Runtime/configuration/xml/tracing/extrae_advanced.xml'
+        os.environ['EXTRAE_CONFIG_FILE'] = config[
+                                               'compss_home'] + '/Runtime/configuration/xml/tracing/extrae_advanced.xml'
     else:
         jvm_options_file.write('-Dcompss.tracing=0' + '\n')
 
@@ -447,7 +507,9 @@ def initialize_compss(config):
         jvm_options_file.write('-Dgat.debug=false\n')
     jvm_options_file.write('-Dgat.broker.adaptor=sshtrilead\n')
     jvm_options_file.write('-Dgat.file.adaptor=sshtrilead\n')
-    jvm_options_file.write('-Dcompss.worker.cp=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config['classpath'] + '\n')
+    jvm_options_file.write(
+        '-Dcompss.worker.cp=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config[
+            'classpath'] + '\n')
     jvm_options_file.write('-Dcompss.worker.jvm_opts=' + config['jvmWorkers'] + '\n')
     jvm_options_file.write('-Dcompss.worker.cpu_affinity=' + config['cpuAffinity'] + '\n')
     jvm_options_file.write('-Dcompss.worker.gpu_affinity=' + config['gpuAffinity'] + '\n')
@@ -457,7 +519,9 @@ def initialize_compss(config):
     jvm_options_file.write('-Dcompss.external.adaptation=' + config['external_adaptation'] + '\n')
 
     # JVM OPTIONS - PYTHON
-    jvm_options_file.write('-Djava.class.path=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config['classpath'] + '\n')
+    jvm_options_file.write(
+        '-Djava.class.path=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config[
+            'classpath'] + '\n')
     jvm_options_file.write('-Dcompss.worker.pythonpath=' + config['cp'] + ':' + config['pythonPath'] + '\n')
     jvm_options_file.write('-Dcompss.python.interpreter=' + config['python_interpreter'] + '\n')
     jvm_options_file.write('-Dcompss.python.version=' + config['python_version'] + '\n')
@@ -474,8 +538,8 @@ def initialize_compss(config):
     # print("JVM_OPTIONS_FILE: %s" % temp_path)
 
 
-'''
+"""
 This is the PyCOMPSs entry point
-'''
+"""
 if __name__ == '__main__':
     compss_main()

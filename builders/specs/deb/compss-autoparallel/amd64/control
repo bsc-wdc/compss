@@ -1,0 +1,8 @@
+Package: compss-autoparallel
+Version: 
+Priority: optional
+Architecture: amd64
+Essential: no
+Depends: compss-engine, compss-python-binding, automake, libtool, libgmp3-dev, flex, bison, libbison-dev, texinfo
+Maintainer: COMPSs Support <support-compss@bsc.es>
+Description: The PyCOMPSs AutoParallel Module

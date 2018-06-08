@@ -21,11 +21,11 @@ struct module_state {
 };
 
 #if PY_MAJOR_VERSION >= 3
-    #define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
-    #define PyInt_AsLong PyLong_AsLong
+#define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
+#define PyInt_AsLong PyLong_AsLong
 #else
-    #define GETSTATE(m) (&_state)
-    static struct module_state _state;
+#define GETSTATE(m) (&_state)
+static struct module_state _state;
 #endif
 
 static PyObject *
@@ -40,49 +40,48 @@ error_out(PyObject *m) {
 cpu_set_t default_affinity;
 
 static PyObject* pysched_setaffinity(PyObject* self, PyObject* args) {
-  long long pid = 0LL;
-  PyObject* cpu_list;
-  if(!PyArg_ParseTuple(args, "O|l", &cpu_list, &pid)) {
-    return NULL;
-  }
-  cpu_set_t to_assign;
-  CPU_ZERO(&to_assign);
-  int num_params = PyList_Size(cpu_list);
-  for(int i = 0; i < num_params; ++i) {
-    int cpu_id = PyInt_AsLong(PyList_GetItem(cpu_list, i));
-    CPU_SET(cpu_id, &to_assign);
-  }
-  if(sched_setaffinity(pid, sizeof(cpu_set_t), &to_assign) < 0) {
-    if(sched_setaffinity(pid, sizeof(cpu_set_t), &default_affinity) < 0) {
-      PyErr_SetString(PyExc_RuntimeError, "Cannot set default affinity (!)");
+    long long pid = 0LL;
+    PyObject* cpu_list;
+    if(!PyArg_ParseTuple(args, "O|l", &cpu_list, &pid)) {
+        return NULL;
     }
-    else {
-      PyErr_SetString(PyExc_RuntimeError, "setaffinity failed, setting default affinity");
+    cpu_set_t to_assign;
+    CPU_ZERO(&to_assign);
+    int num_params = PyList_Size(cpu_list);
+    for(int i = 0; i < num_params; ++i) {
+        int cpu_id = PyInt_AsLong(PyList_GetItem(cpu_list, i));
+        CPU_SET(cpu_id, &to_assign);
     }
-  }
-  Py_RETURN_NONE;
+    if(sched_setaffinity(pid, sizeof(cpu_set_t), &to_assign) < 0) {
+        if(sched_setaffinity(pid, sizeof(cpu_set_t), &default_affinity) < 0) {
+            PyErr_SetString(PyExc_RuntimeError, "Cannot set default affinity (!)");
+        } else {
+            PyErr_SetString(PyExc_RuntimeError, "setaffinity failed, setting default affinity");
+        }
+    }
+    Py_RETURN_NONE;
 }
 
 static PyObject* pysched_getaffinity(PyObject* self, PyObject* args) {
-  long long pid = 0LL;
-  if(!PyArg_ParseTuple(args, "|l", &pid)) {
-    return NULL;
-  }
-  if(pid == 0LL) pid = getpid();
-  cpu_set_t set_cpus;
-  if(sched_getaffinity(pid, sizeof(cpu_set_t), &set_cpus) < 0) {
-    PyErr_SetString(PyExc_RuntimeError, "Error during sched_getaffinity call!");
-    Py_RETURN_NONE;
-  }
-  std::vector<int> ret_val;
-  for(int i = 0; i < __CPU_SETSIZE; ++i) {
-    if(CPU_ISSET(i, &set_cpus)) ret_val.push_back(i);
-  }
-  PyObject* py_ret = PyList_New(int(ret_val.size()));
-  for(int i = 0; i < int(ret_val.size()); ++i) {
-    PyList_SetItem(py_ret, i, Py_BuildValue("i", ret_val[i]));
-  }
-  return py_ret;
+    long long pid = 0LL;
+    if(!PyArg_ParseTuple(args, "|l", &pid)) {
+        return NULL;
+    }
+    if(pid == 0LL) pid = getpid();
+    cpu_set_t set_cpus;
+    if(sched_getaffinity(pid, sizeof(cpu_set_t), &set_cpus) < 0) {
+        PyErr_SetString(PyExc_RuntimeError, "Error during sched_getaffinity call!");
+        Py_RETURN_NONE;
+    }
+    std::vector<int> ret_val;
+    for(int i = 0; i < __CPU_SETSIZE; ++i) {
+        if(CPU_ISSET(i, &set_cpus)) ret_val.push_back(i);
+    }
+    PyObject* py_ret = PyList_New(int(ret_val.size()));
+    for(int i = 0; i < int(ret_val.size()); ++i) {
+        PyList_SetItem(py_ret, i, Py_BuildValue("i", ret_val[i]));
+    }
+    return py_ret;
 }
 
 //////////////////////////////////////////////////////////////
@@ -102,39 +101,38 @@ static PyMethodDef ThreadAffinityMethods[] = {
 
 
 #if PY_MAJOR_VERSION >= 3
-    static int thread_affinity_traverse(PyObject *m, visitproc visit, void *arg) {
-        Py_VISIT(GETSTATE(m)->error);
-        return 0;
-    }
-    static int thread_affinity_clear(PyObject *m) {
-        Py_CLEAR(GETSTATE(m)->error);
-        return 0;
-    }
-    static struct PyModuleDef cModThAPy =
-    {
-        PyModuleDef_HEAD_INIT,
-        "thread_affinity",             /* name of module */
-        NULL,                          /* module documentation, may be NULL */
-        sizeof(struct module_state),   /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
-        ThreadAffinityMethods,
-        NULL,
-        thread_affinity_traverse,
-        thread_affinity_clear,
-        NULL
-    };
-    #define INITERROR return NULL
-    PyMODINIT_FUNC
-    PyInit_thread_affinity(void)
+static int thread_affinity_traverse(PyObject *m, visitproc visit, void *arg) {
+    Py_VISIT(GETSTATE(m)->error);
+    return 0;
+}
+static int thread_affinity_clear(PyObject *m) {
+    Py_CLEAR(GETSTATE(m)->error);
+    return 0;
+}
+static struct PyModuleDef cModThAPy = {
+    PyModuleDef_HEAD_INIT,
+    "thread_affinity",             /* name of module */
+    NULL,                          /* module documentation, may be NULL */
+    sizeof(struct module_state),   /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
+    ThreadAffinityMethods,
+    NULL,
+    thread_affinity_traverse,
+    thread_affinity_clear,
+    NULL
+};
+#define INITERROR return NULL
+PyMODINIT_FUNC
+PyInit_thread_affinity(void)
 #else
-    #define INITERROR return
-    void initthread_affinity(void)
+#define INITERROR return
+void initthread_affinity(void)
 #endif
 {
-    #if PY_MAJOR_VERSION >= 3
-        PyObject *module = PyModule_Create(&cModThAPy);
-    #else
-        PyObject *module = Py_InitModule("thread_affinity", ThreadAffinityMethods);
-    #endif
+#if PY_MAJOR_VERSION >= 3
+    PyObject *module = PyModule_Create(&cModThAPy);
+#else
+    PyObject *module = Py_InitModule("thread_affinity", ThreadAffinityMethods);
+#endif
 
     if (module == NULL)
         INITERROR;
@@ -148,7 +146,7 @@ static PyMethodDef ThreadAffinityMethods[] = {
 
     sched_getaffinity(0, sizeof(cpu_set_t), &default_affinity);
 
-    #if PY_MAJOR_VERSION >= 3
-        return module;
-    #endif
+#if PY_MAJOR_VERSION >= 3
+    return module;
+#endif
 }

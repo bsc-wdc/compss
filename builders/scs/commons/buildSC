@@ -39,83 +39,94 @@
   # SET SCRIPT VARIABLES
   SCuser=$1
   SCloginNode=$2
-  SCtmpDir=$3
+  SCTMP_DIR=$3
   SCtargetDir=$4
   SCauxScript=$5
   PRELOAD_ENV=$6
 
-  scriptDir=$(pwd)/$(dirname $0)
-  sourcesDir=$(pwd)/$(dirname $0)/../../..
-  tmpDir=${scriptDir}/tmp
-  SCauxScript_generic=${scriptDir}/buildSC_aux
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  SOURCES_DIR=${SCRIPT_DIR}/../../..
+  TMP_DIR=${SCRIPT_DIR}/tmp
+  SCauxScript_generic=${SCRIPT_DIR}/buildSC_aux
 
-
+  # Log script variables
   echo "- SC user           = ${SCuser}"
   echo "- SC login node     = ${SCloginNode}"
-  echo "- SC tmp Dir        = ${SCtmpDir}"
+  echo "- SC tmp Dir        = ${SCTMP_DIR}"
   echo "- SC target Dir     = ${SCtargetDir}"
-  echo "- Script Dir        = ${scriptDir}"
+  echo "- Script Dir        = ${SCRIPT_DIR}"
   echo "- Aux Script        = ${SCauxScript}"
   echo "- Generic AuxScript = ${SCauxScript_generic}"
-  echo "- Sources Dir       = ${sourcesDir}"
-  echo "- Local tmp Dir     = ${tmpDir}"
-  sleep 5
+  echo "- Sources Dir       = ${SOURCES_DIR}"
+  echo "- Local tmp Dir     = ${TMP_DIR}"
+  sleep 5s
 
+  # Display warning for dummies
+  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+  echo "!WARN: SCTMP_DIR WILL BE COMPLETELY ERASED"
+  echo "!WARN: SCTMP_DIR = ${SCTMP_DIR}"
+  echo "!WARN: YOU HAVE 5s TO ABORT..."
+  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+  sleep 5s
+
+  # Compile sources
   echo "- Compile sources"
-  cd ${sourcesDir}/compss/
+  cd "${SOURCES_DIR}"/compss/
   mvn -U clean package
-  cd ${scriptDir}
+  cd "${SCRIPT_DIR}"
 
   # COPY TRUNK
   echo "- Copy trunk to tmpdir"
-  rm -rf ${tmpDir}
-  mkdir -p ${tmpDir}
-  cp ${sourcesDir}/changelog ${tmpDir}
-  cp -r ${sourcesDir}/compss ${tmpDir}
-  cp -r ${sourcesDir}/dependencies ${tmpDir}
-  cp -r ${sourcesDir}/doc ${tmpDir}
-  cp -r ${sourcesDir}/files ${tmpDir}
-  cp ${sourcesDir}/LICENSE ${tmpDir}
-  cp ${sourcesDir}/NOTICE ${tmpDir}
-  cp ${sourcesDir}/pom.xml ${tmpDir}
-  cp ${sourcesDir}/README.md ${tmpDir}
-  cp ${sourcesDir}/RELEASE_NOTES ${tmpDir}
-  find . -name ".git*" | xargs rm -rf  #Cleans git files
+  rm -rf "${TMP_DIR}"
+  mkdir -p "${TMP_DIR}"
+  cp "${SOURCES_DIR}"/changelog "${TMP_DIR}"
+  cp -r "${SOURCES_DIR}"/compss "${TMP_DIR}"
+  cp -r "${SOURCES_DIR}"/dependencies "${TMP_DIR}"
+  cp -r "${SOURCES_DIR}"/doc "${TMP_DIR}"
+  cp -r "${SOURCES_DIR}"/files "${TMP_DIR}"
+  cp "${SOURCES_DIR}"/LICENSE "${TMP_DIR}"
+  cp "${SOURCES_DIR}"/NOTICE "${TMP_DIR}"
+  cp "${SOURCES_DIR}"/pom.xml "${TMP_DIR}"
+  cp "${SOURCES_DIR}"/README.md "${TMP_DIR}"
+  cp "${SOURCES_DIR}"/RELEASE_NOTES "${TMP_DIR}"
+  find "${TMP_DIR}" -name ".git*" -print0 -exec rm -rf {} \; # Clean git files
 
   # CLEAN TRUNK COMPILATION
   echo "- Clean sources"
-  cd ${sourcesDir}/compss/
+  cd "${SOURCES_DIR}"/compss/
   mvn -U clean
-  cd ${scriptDir}
+  cd "${SCRIPT_DIR}"
   # COMPSs Monitor APACHE
   echo "- Downloading Apache for COMSPs Monitor"
-  cd ${tmpDir}
+  cd "${TMP_DIR}"
   TOMCAT_VER="7.0.65"
   TOMCAT_URL="http://compss.bsc.es/repo/apache-tomcat/apache-tomcat-7.0.65.tar.gz"
   wget ${TOMCAT_URL}
   mv apache-tomcat-${TOMCAT_VER}.tar.gz apache-tomcat.tar.gz
-  cd ${scriptDir}
+  cd "${SCRIPT_DIR}"
 
   # DEPLOY ON TMP SC
-  echo "- Deploy files to tmpDir in SC"
-  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no ${SCuser}@${SCloginNode} "rm -rf ${SCtmpDir}; mkdir -p ${SCtmpDir}"
-  scp -r -q -o StrictHostKeyChecking=no ${tmpDir} ${SCuser}@${SCloginNode}:${SCtmpDir}
-  scp -r -q -o StrictHostKeyChecking=no ${SCauxScript} ${SCuser}@${SCloginNode}:${SCtmpDir}
-  scp -r -q -o StrictHostKeyChecking=no ${SCauxScript_generic} ${SCuser}@${SCloginNode}:${SCtmpDir}
+  echo "- Deploy files to TMP_DIR in SC"
+  # shellcheck disable=2029
+  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}"@"${SCloginNode}" "rm -rf ${SCTMP_DIR}; mkdir -p ${SCTMP_DIR}"
+  scp -r -q -o StrictHostKeyChecking=no "${TMP_DIR}" "${SCuser}"@"${SCloginNode}":"${SCTMP_DIR}"
+  scp -r -q -o StrictHostKeyChecking=no "${SCauxScript}" "${SCuser}"@"${SCloginNode}":"${SCTMP_DIR}"
+  scp -r -q -o StrictHostKeyChecking=no "${SCauxScript_generic}" "${SCuser}"@"${SCloginNode}":"${SCTMP_DIR}"
 
   # Execute deployment aux script
   echo "- Execute installation on SC"
-  SCauxScriptName=$(basename ${SCauxScript})
-  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no ${SCuser}@${SCloginNode} "${PRELOAD_ENV} ${SCtmpDir}/${SCauxScriptName} ${SCtargetDir}"
+  SCauxScriptName=$(basename "${SCauxScript}")
+  # shellcheck disable=2029
+  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}"@"${SCloginNode}" "${PRELOAD_ENV} ${SCTMP_DIR}/${SCauxScriptName} ${SCtargetDir}"
 
   # ERASE TMP FILES
   echo "- Erase tmp files"
-  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no ${SCuser}@${SCloginNode} "rm -rf ${SCtmpDir}"
-  rm -rf ${tmpDir}
+  # shellcheck disable=2029
+  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}"@"${SCloginNode}" "rm -rf ${SCTMP_DIR}"
+  rm -rf "${TMP_DIR}"
 
   # END
   echo "Congratulations!"
   echo "COMPSs Runtime Successfully installed!"
   echo " "
   exit 0
-

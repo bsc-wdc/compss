@@ -176,14 +176,15 @@ public class IDLParser {
     private static void parseCFunction(String line, MethodResourceDescription currConstraints, CImplementation implementation) {
         StringBuilder implementedTaskSignatureBuffer = new StringBuilder();
         StringBuilder implementationSignatureBuffer = new StringBuilder();
-        boolean isStatic = false;
-        boolean hasReturn = false;
+        // TODO: Check isStatic and hasReturn information
+        // boolean isStatic = false;
+        // boolean hasReturn = false;
         if (line.startsWith("static ")) {
-            isStatic = true;
+            // isStatic = true;
             line = line.replace("static ", "");
         }
         if (!line.startsWith("void ")) {
-            hasReturn = true;
+            // hasReturn = true;
         }
         line = line.replaceAll("[(|)|,|;|\n|\t]", " ");
         String[] splits = line.split("\\s+");
@@ -196,19 +197,20 @@ public class IDLParser {
             implementedTaskSignatureBuffer.append(methodName).append("(");
         }
         implementationSignatureBuffer.append(methodName).append("(");
-        /*if (declaringClass != "NULL" && !isStatic){ 
-            implementedTaskSignatureBuffer.append("BINDING_OBJECT_T").append(",");
-            implementationSignatureBuffer.append("BINDING_OBJECT_T").append(","); 
-        }*/
-        /*if (hasReturn) {
-            implementedTaskSignatureBuffer.append("BINDING_OBJECT_T").append(",");
-            implementationSignatureBuffer.append("BINDING_OBJECT_T").append(",");
-        */
-            /* OLD Binding Objects as FILE 
-            implementedTaskSignatureBuffer.append("FILE_T").append(",");
-            implementationSignatureBuffer.append("FILE_T").append(",");
-            */
-        //}
+        /*
+         * if (declaringClass != "NULL" && !isStatic){
+         * implementedTaskSignatureBuffer.append("BINDING_OBJECT_T").append(",");
+         * implementationSignatureBuffer.append("BINDING_OBJECT_T").append(","); }
+         */
+        /*
+         * if (hasReturn) { implementedTaskSignatureBuffer.append("BINDING_OBJECT_T").append(",");
+         * implementationSignatureBuffer.append("BINDING_OBJECT_T").append(",");
+         */
+        /*
+         * OLD Binding Objects as FILE implementedTaskSignatureBuffer.append("FILE_T").append(",");
+         * implementationSignatureBuffer.append("FILE_T").append(",");
+         */
+        // }
         // Computes the method's signature
         for (int i = 2; i < splits.length; i++) {
             String paramDirection = splits[i++];

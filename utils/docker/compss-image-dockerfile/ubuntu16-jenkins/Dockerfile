@@ -15,15 +15,15 @@ COPY /files/authorized_keys /home/jenkins/.ssh/authorized_keys
 COPY /files/id_rsa /home/jenkins/.ssh/id_rsa
 COPY /files/id_rsa.pub /home/jenkins/.ssh/id_rsa.pub
 
+RUN sudo chown -R jenkins /home/jenkins && \
+    sudo chgrp -R jenkins /home/jenkins
+
+
 # Git credentials
 COPY /files/.gitconfig /home/jenkins/.gitconfig
-RUN chown -R jenkins /home/jenkins && \
-    chgrp -R jenkins /home/jenkins && \
-    chown -R jenkins /home/jenkins/.m2 && \
-    chgrp -R jenkins /home/jenkins/.m2 && \
-    cat /home/jenkins/.ssh/id_rsa.pub >> /home/jenkins/.ssh/authorized_keys && \
-    chmod 600 /home/jenkins/.ssh/authorized_keys && \
-    chmod 700 /home/jenkins/.ssh && \
+RUN cat /home/jenkins/.ssh/id_rsa.pub >> /home/jenkins/.ssh/authorized_keys && \
+    sudo chmod 600 /home/jenkins/.ssh/authorized_keys && \
+    sudo chmod 700 /home/jenkins/.ssh && \
     echo "GIT_USER=jenkins" >> /etc/environment && \
     echo "GIT_PASSWORD=jenkins2017" >> /etc/environment && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

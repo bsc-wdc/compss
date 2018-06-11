@@ -32,7 +32,7 @@ usage() {
   #---------------------------------------------------------------------
   # Cloning apps repo
   cd "${base_trunk_dir}"
-  git clone http://${credentials}@compss.bsc.es/gitlab/bar/apps.git
+  GIT_LFS_SKIP_SMUDGE=1 git clone http://${credentials}@compss.bsc.es/gitlab/bar/apps.git
   cd apps
 
 

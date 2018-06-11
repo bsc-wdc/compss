@@ -29,6 +29,7 @@ usage() {
   ./update_trunk_version "${baseVersion}" "${version}" "${commitChanges}"
   ./update_documentation "${version}"
   ./generate_tag "${version}"
+  ./update_apps "${baseVersion}" "${version}" "${commitChanges}"
   ./mvn_deploy_tag "${version}"
 
   # Deploy to SCs

@@ -19,6 +19,13 @@ usage() {
   # Compute version
   version=$1
 
+   if [ -z "$version" ]; then
+     echo "ERROR: jenkins build parameter 'version' not set."
+     exit 1
+   fi
+
+
+
   # Get base version from trunk
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   trunk_dir=${SCRIPT_DIR}/../../../

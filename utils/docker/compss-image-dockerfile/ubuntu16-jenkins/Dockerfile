@@ -24,7 +24,5 @@ COPY /files/id_rsa.pub /home/jenkins/.ssh/id_rsa.pub
 RUN cat /home/jenkins/.ssh/id_rsa.pub >> /home/jenkins/.ssh/authorized_keys && \
     chmod 600 /home/jenkins/.ssh/authorized_keys
 
-# Git credentials
+# Git alias
 COPY /files/.gitconfig /home/jenkins/.gitconfig
-RUN echo "GIT_USER=jenkins" >> /etc/environment && \
-    echo "GIT_PASSWORD=jenkins2017" >> /etc/environment

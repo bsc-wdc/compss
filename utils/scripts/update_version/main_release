@@ -35,7 +35,7 @@ usage() {
   # Perform update process
   commitChanges="true"
   ./update_trunk_version "${baseVersion}" "${version}" "${commitChanges}"
-  ./update_documentation "${version}"
+  ./update_documentation "${version}" "${commitChanges}"
   ./generate_tag "${version}" "${commitChanges}"
   ./update_apps "${baseVersion}" "${version}" "${commitChanges}"
   ./mvn_deploy_tag "${version}"

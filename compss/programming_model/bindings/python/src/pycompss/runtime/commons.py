@@ -22,6 +22,7 @@ import sys
 # Empty string substitution key
 EMPTY_STRING_KEY = "3mPtY57r1Ng"
 
+
 # Coding/decoding escape
 # Global python 3 variable
 if sys.version_info >= (3, 0):
@@ -30,3 +31,20 @@ if sys.version_info >= (3, 0):
 else:
     STR_ESCAPE = 'string_escape'
     IS_PYTHON3 = False
+
+
+# Determine the environment
+ENVIRONMENT = 'terminal'
+IS_INTERACTIVE = False
+try:
+    from IPython import get_ipython
+    ipy_str = str(type(get_ipython()))
+    if 'zmqshell' in ipy_str:
+        ENVIRONMENT = 'jupyter'
+        IS_INTERACTIVE = True
+    if 'terminal' in ipy_str:
+        ENVIRONMENT = 'ipython'
+        IS_INTERACTIVE = True
+except ImportError:
+    ENVIRONMENT = 'terminal'
+    IS_INTERACTIVE = False

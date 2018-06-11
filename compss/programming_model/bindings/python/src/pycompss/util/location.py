@@ -25,6 +25,8 @@ PyCOMPSs Utils - Location
 """
 
 import inspect
+from pycompss.runtime.commons import IS_PYTHON3
+from pycompss.runtime.commons import IS_INTERACTIVE
 
 
 def i_am_at_master():
@@ -34,9 +36,21 @@ def i_am_at_master():
     # if 'pycompss/runtime/launch.py' in inspect.stack()[-1][1]: --> I am at master
     # if inspect.stack()[-2][3] == 'compss_main' --> I am at master
     # if 'pycompss/interactive.py' in inspect.stack()[3][1] --> I am at master in interactive mode
+    # if 'pycompss/api/task.py' in inspect.stack()[2][1]    --> I am at master in interactive task decorator
+    # if 'pycompss/api/task.py' in inspect.stack()[1][1]    --> I am at master in interactive task decorator
     :return: <Boolean> - True if we are in the master node.
     """
-    return 'pycompss/runtime/launch.py' in inspect.stack()[-1][1] or 'pycompss/interactive.py' in inspect.stack()[3][1]
+    if IS_INTERACTIVE:
+        if IS_PYTHON3:
+            return 'pycompss/interactive.py' in inspect.stack()[9][1] \
+                   or 'pycompss/api/task.py' in inspect.stack()[2][1] \
+                   or 'pycompss/api/task.py' in inspect.stack()[1][1]
+        else:
+            return 'pycompss/interactive.py' in inspect.stack()[3][1] \
+                   or 'pycompss/api/task.py' in inspect.stack()[2][1] \
+                   or 'pycompss/api/task.py' in inspect.stack()[1][1]
+    else:
+        return 'pycompss/runtime/launch.py' in inspect.stack()[-1][1]
 
 
 def i_am_at_worker():

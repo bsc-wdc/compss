@@ -35,8 +35,8 @@ usage() {
   pomFiles=$(find . -name pom.xml)
   for pom in $pomFiles; do
     echo "    $pom"
-    sed -i '/<version>'"${previousVersion}"'<\/version>/c<version>'"${newVersion}"'<\/version>' "$pom"
-    sed -i '/<compss.version>'"${previousVersion}"'<\/compss.version>/c<compss.version>'"${newVersion}"'<\/compss.version>' "$pom"
+    sed -i 's/<version>'"${previousVersion}"'<\/version>/<version>'"${newVersion}"'<\/version>/g' "$pom"
+    sed -i 's/<compss.version>'"${previousVersion}"'<\/compss.version>/<compss.version>'"${newVersion}"'<\/compss.version>/g' "$pom"
   done
   cd "${base_trunk_dir}"
 
@@ -64,7 +64,7 @@ usage() {
   cd "${base_trunk_dir}/utils/storage/dummyPSCO/"
   file="pom.xml"
   echo "    $file"
-  sed -i '/<version>'"${previousVersion}"'<\/version>/c<version>'"${newVersion}"'<\/version>' "$file"
+  sed -i 's/<version>'"${previousVersion}"'<\/version>/<version>'"${newVersion}"'<\/version>/g' "$file"
   cd "${base_trunk_dir}"
 
   #---------------------------------------------------------------------

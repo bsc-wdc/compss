@@ -274,6 +274,8 @@ def start(log_level='off',
         global persistent_storage
         persistent_storage = True
 
+    running = True
+
     # MAIN EXECUTION
     # let the user write an interactive application
     print("* - PyCOMPSs Runtime started... Have fun!            *")
@@ -369,6 +371,8 @@ def stop(sync=False):
         finish_storage()
 
     compss_stop()
+
+    running = False
 
     __clean_temp_files__()
 

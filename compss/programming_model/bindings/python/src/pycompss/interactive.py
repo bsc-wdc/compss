@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 # -*- coding: utf-8 -*-
 
@@ -81,6 +81,41 @@ def start(log_level='off',
           propagate_virtual_environment=False,
           verbose=False
           ):
+    """
+    Start the runtime in interactive mode.
+    :param log_level: Logging level [ 'on' | 'off'] (default: 'off')
+    :param o_c: Objects to string conversion [ True | False ] (default: False)
+    :param debug: Debug mode [ True | False ] (default: False)
+    :param graph: Generate graph [ True | False ] (default: False)
+    :param trace: Generate trace [ True | False ] (default: False)
+    :param monitor: Monitor refresh rate (default: None)
+    :param project_xml: Project xml file path
+    :param resources_xml: Resources xml file path
+    :param summary: Execution summary [ True | False ] (default: False)
+    :param task_execution: Task execution (default: 'compss')
+    :param storage_conf: Storage configuration file path
+    :param task_count: Task count (default: 50)
+    :param app_name: Application name (default: Interactive_date)
+    :param uuid: UUId
+    :param base_log_dir: Base logging directory
+    :param specific_log_dir: Specific logging directory
+    :param extrae_cfg: Extrae configuration file path
+    :param comm: Communication library (default: NIO)
+    :param conn: Connector (default: DefaultSSHConnector)
+    :param master_name: Master Name (default: '')
+    :param master_port: Master port (default: '')
+    :param scheduler: Scheduler (default: LoadBalancingScheduler)
+    :param jvm_workers: Java VM parameters (default: '-Xms1024m,-Xmx1024m,-Xmn400m')
+    :param cpu_affinity: CPU Core affinity (default: 'automatic')
+    :param gpu_affinity: GPU Core affinity (default: 'automatic')
+    :param profile_input: Input profile  (default: '')
+    :param profile_output: Output profile  (default: '')
+    :param scheduler_config: Scheduler configuration  (default: '')
+    :param external_adaptation: External adaptation [ True | False ] (default: False)
+    :param propagate_virtual_environment: Propagate virtual environment [ True | False ] (default: False)
+    :param verbose: Verbose mode [ True | False ] (default: False)
+    :return: None
+    """
 
     launch_path = os.path.dirname(os.path.realpath(__file__))
     # compss_home = launch_path without the last 4 folders:
@@ -255,14 +290,14 @@ def start(log_level='off',
         init_logging(os.getenv('COMPSS_HOME') + json_path, log_path)
     logger = logging.getLogger("pycompss.runtime.launch")
 
-    print_setup(verbose,
-                log_level, o_c, debug, graph, trace, monitor,
-                project_xml, resources_xml, summary, task_execution, storage_conf,
-                task_count, app_name, uuid, base_log_dir, specific_log_dir, extrae_cfg,
-                comm, conn, master_name, master_port, scheduler, jvm_workers,
-                cpu_affinity, gpu_affinity, profile_input, profile_output,
-                scheduler_config, external_adaptation, python_interpreter, major_version,
-                python_virtual_environment, propagate_virtual_environment)
+    __print_setup__(verbose,
+                    log_level, o_c, debug, graph, trace, monitor,
+                    project_xml, resources_xml, summary, task_execution, storage_conf,
+                    task_count, app_name, uuid, base_log_dir, specific_log_dir, extrae_cfg,
+                    comm, conn, master_name, master_port, scheduler, jvm_workers,
+                    cpu_affinity, gpu_affinity, profile_input, profile_output,
+                    scheduler_config, external_adaptation, python_interpreter, major_version,
+                    python_virtual_environment, propagate_virtual_environment)
 
     logger.debug("--- START ---")
     logger.debug("PyCOMPSs Log path: %s" % log_path)
@@ -279,13 +314,14 @@ def start(log_level='off',
     print("******************************************************")
 
 
-def print_setup(verbose, log_level, o_c, debug, graph, trace, monitor,
-                project_xml, resources_xml, summary, task_execution, storage_conf,
-                task_count, app_name, uuid, base_log_dir, specific_log_dir, extrae_cfg,
-                comm, conn, master_name, master_port, scheduler, jvm_workers,
-                cpu_affinity, gpu_affinity, profile_input, profile_output,
-                scheduler_config, external_adaptation, python_interpreter, python_version,
-                python_virtual_environment, python_propagate_virtual_environment):
+def __print_setup__(verbose, log_level, o_c, debug, graph, trace, monitor,
+                    project_xml, resources_xml, summary, task_execution, storage_conf,
+                    task_count, app_name, uuid, base_log_dir, specific_log_dir, extrae_cfg,
+                    comm, conn, master_name, master_port, scheduler, jvm_workers,
+                    cpu_affinity, gpu_affinity, profile_input, profile_output,
+                    scheduler_config, external_adaptation, python_interpreter, python_version,
+                    python_virtual_environment, python_propagate_virtual_environment):
+
     logger = logging.getLogger("pycompss.runtime.launch")
     output = ""
     output += "******************************************************\n"
@@ -330,6 +366,11 @@ def print_setup(verbose, log_level, o_c, debug, graph, trace, monitor,
 
 
 def stop(sync=False):
+    """
+    Runtime stop
+    :param sync: Scope variables synchronization [ True | False ] (default: False)
+    :return: None
+    """
     print("****************************************************")
     print("*************** STOPPING PyCOMPSs ******************")
     print("****************************************************")
@@ -379,6 +420,12 @@ def stop(sync=False):
 
 
 def __show_current_graph__(fit=False):
+    """
+    Show current graph
+    :param fit: Fit to width [ True | False ] (default: False)
+    :return: None
+    """
+
     if graphing:
         return __show_graph__(name='current_graph', fit=fit)
     else:
@@ -387,6 +434,12 @@ def __show_current_graph__(fit=False):
 
 
 def __show_complete_graph__(fit=False):
+    """
+    Show complete graph
+    :param fit: Fit to width [ True | False ] (default: False)
+    :return: None
+    """
+
     if graphing:
         return __show_graph__(name='complete_graph', fit=fit)
     else:
@@ -395,6 +448,12 @@ def __show_complete_graph__(fit=False):
 
 
 def __show_graph__(name='complete_graph', fit=False):
+    """
+    Show graph
+    :param name: Graph to show (default: 'complete_graph')
+    :param fit: Fit to width [ True | False ] (default: False)
+    :return: None
+    """
     try:
         from graphviz import Source
     except ImportError:
@@ -429,6 +488,11 @@ def __show_graph__(name='complete_graph', fit=False):
 
 
 def __export_globals__():
+    """
+    Export globals into interactive environment
+    :return: None
+    """
+
     # Super ugly, but I see no other way to define the app_path across the
     # interactive execution without making the user to define it explicitly.
     # It is necessary to define only one app_path because of the two decorators
@@ -452,6 +516,7 @@ def __clean_temp_files__():
     """
     Remove any temporary files that may exist.
     Currently: app_path, which contains the file path where all interactive code required by the worker is.
+    :return: None
     """
 
     try:

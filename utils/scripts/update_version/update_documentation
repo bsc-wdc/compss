@@ -29,7 +29,7 @@ usage() {
 
   # Clone documentation repo
   cd ${trunk_dir}/..
-  git clone http://${GIT_USER}:${GIT_PASSWORD}@compss.bsc.es/gitlab/documents/documentation.git
+  git clone http://${credentials}@compss.bsc.es/gitlab/documents/documentation.git
 
 
 
@@ -82,8 +82,8 @@ usage() {
   cd "${documentation_dir}" || exit 1
   git commit -am "Adding documentation new tag ${version}"
   git tag COMPSs_Manuals_${version}
-  git push http://${GIT_USER}:${GIT_PASSWORD}@compss.bsc.es/gitlab/documents/documentation.git master
-  git push http://${GIT_USER}:${GIT_PASSWORD}@compss.bsc.es/gitlab/documents/documentation.git --tags --force
+  git push http://${credentials}@compss.bsc.es/gitlab/documents/documentation.git master
+  git push http://${credentials}@compss.bsc.es/gitlab/documents/documentation.git --tags --force
   cd "${SCRIPT_DIR}" || exit 1
 
   #---------------------------------------------------------------------
@@ -104,7 +104,7 @@ usage() {
   echo "- Commit trunk modifications"
   cd "${trunk_dir}/doc/" || exit 1
   git commit -am "Adding documentation synchronized for new tag ${version}"
-  git push http://${GIT_USER}:${GIT_PASSWORD}@compss.bsc.es/gitlab/compss/framework.git trunk
+  git push http://${credentials}@compss.bsc.es/gitlab/compss/framework.git trunk
   cd "${SCRIPT_DIR}" || exit 1
 
   #---------------------------------------------------------------------

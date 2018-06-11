@@ -38,7 +38,7 @@ usage() {
   echo "   ScriptDir: ${SCRIPT_DIR}"
   echo "   TrunkDir:  ${trunk_dir}"
   git tag -f ${version}
-  git push -f http://${GIT_USER}:${GIT_PASSWORD}@compss.bsc.es/gitlab/compss/framework.git ${version}
+  git push -f http://${credentials}@compss.bsc.es/gitlab/compss/framework.git ${version}
   #---------------------------------------------------------------------
   # NOTIFY SUCCESS
   echo " "

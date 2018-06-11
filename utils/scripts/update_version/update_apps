@@ -1,0 +1,68 @@
+#!/bin/bash -e
+
+usage() {
+  exitValue=$1
+
+  echo " "
+  echo "Usage ./update_trunk_version <previousVersion> <newVersion> <commitChanges>"
+  echo " "
+
+  exit "$exitValue"
+}
+ 
+  #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  # Check parameters
+  if [ $# -ne 3 ]; then
+    echo "ERROR: Incorrect number of parameters"
+    usage 1
+  fi
+
+  # Get version parameters
+  previousVersion=$1
+  newVersion=$2
+  commitChanges=$3
+  echo "Updating BAR apps from ${previousVersion} to ${newVersion}..."
+
+  # Define script variables
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  base_trunk_dir=${SCRIPT_DIR}/../../../
+
+
+  #---------------------------------------------------------------------
+  # Cloning apps repo
+  cd "${base_trunk_dir}"
+  git clone http://${GIT_USER}:${GIT_PASSWORD}@compss.bsc.es/gitlab/bar/apps.git
+  cd apps
+
+
+  #---------------------------------------------------------------------
+  # Modify all pom files
+  echo "- Modifying pom files..."
+  pomFiles=$(find . -name pom.xml)
+  for pom in $pomFiles; do
+    echo "    $pom"
+    sed -i '/<version>'"${previousVersion}"'<\/version>/c<version>'"${newVersion}"'<\/version>' "$pom"
+    sed -i '/<compss.version>'"${previousVersion}"'<\/compss.version>/c<compss.version>'"${newVersion}"'<\/compss.version>' "$pom"
+  done
+
+
+  #---------------------------------------------------------------------
+  # COMMIT MODIFICATIONS IF NEEDED
+  if [ "$commitChanges" == "true" ]; then
+    echo "- Commiting modifications to master"
+    if git commit -am "Update to version ${newVersion}"; then
+        git push http://${GIT_USER}:${GIT_PASSWORD}@compss.bsc.es/gitlab/bar/apps.git master
+    fi
+  fi
+
+
+  #---------------------------------------------------------------------
+  # NOTIFY SUCCESS
+  echo " "
+  echo "FINISHED! All BAR apps version updated from ${previousVersion} to ${newVersion}"
+  echo " "
+
+
+  # END
+  exit 0

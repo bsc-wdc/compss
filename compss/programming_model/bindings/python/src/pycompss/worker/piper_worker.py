@@ -32,16 +32,6 @@ from multiprocessing import Process
 from multiprocessing import Queue
 import base64
 import thread_affinity
-
-if sys.version_info >= (3, 0):
-    long = int
-    str_escape = 'unicode_escape'
-else:
-    # Exception moved to built-in
-    from exceptions import ValueError
-
-    str_escape = 'string_escape'
-
 from pycompss.api.parameter import TYPE
 from pycompss.api.parameter import JAVA_MIN_INT, JAVA_MAX_INT
 from pycompss.runtime.commons import EMPTY_STRING_KEY
@@ -119,7 +109,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
         try:
             from storage.api import initWorkerPostFork as initStorageAtWorkerPostFork
             initStorageAtWorkerPostFork()
-        except Exception:
+        except ImportError:
             if __debug__:
                 logger.info("[PYTHON WORKER] Could not find initWorkerPostFork storage call. Ignoring it.")
 
@@ -302,7 +292,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
         try:
             from storage.api import finishWorkerPostFork as finishStorageAtWorkerPostFork
             finishStorageAtWorkerPostFork()
-        except:
+        except ImportError:
             if __debug__:
                 logger.info("[PYTHON WORKER] Could not find finishWorkerPostFork storage call. Ignoring it.")
 
@@ -737,6 +727,7 @@ def compss_persistent_worker():
     # Get args
     debug = (sys.argv[1] == 'true')
     TRACING = (sys.argv[2] == 'true')
+    global TRACING
     storage_conf = sys.argv[3]
     tasks_x_node = int(sys.argv[4])
     in_pipes = sys.argv[5:5 + tasks_x_node]

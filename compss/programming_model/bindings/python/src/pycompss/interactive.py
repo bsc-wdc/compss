@@ -42,7 +42,6 @@ from pycompss.util.logs import init_logging
 app_path = 'InteractiveMode'
 persistent_storage = False
 myUuid = 0
-running = False
 process = None
 log_path = '/tmp/'
 graphing = False
@@ -274,8 +273,6 @@ def start(log_level='off',
         global persistent_storage
         persistent_storage = True
 
-    running = True
-
     # MAIN EXECUTION
     # let the user write an interactive application
     print("* - PyCOMPSs Runtime started... Have fun!            *")
@@ -372,8 +369,6 @@ def stop(sync=False):
 
     compss_stop()
 
-    running = False
-
     __clean_temp_files__()
 
     print("****************************************************")
@@ -407,7 +402,7 @@ def __show_graph__(name='complete_graph', fit=False):
         raise
     monitor_file = open(log_path + '/monitor/' + name + '.dot', 'r')
     text = monitor_file.read()
-    monitor.close()
+    monitor_file.close()
     if fit:
         try:
             # Convert to png and show full picture

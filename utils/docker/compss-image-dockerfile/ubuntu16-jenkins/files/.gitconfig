@@ -1,0 +1,15 @@
+[alias]
+	co = checkout
+	ci = commit
+	st = status
+	br = branch
+	type = cat-file -t
+	dump = cat-file -p
+	stsh = stash --keep-index # stash only unstaged changes to tracked files
+	#stash = stash any changes to tracked files
+	staash = stash --include-untracked # stash untracked and tracked files
+	staaash = stash --all # stash ignored, untracked, and tracked files
+	shorty = status --short --branch
+	hist = log --graph --abbrev-commit --decorate --all --format=format:\"%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(dim white) - %an%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n %C(white)%s%C(reset)\"
+	merc = merge --no-ff
+    squash = "!f(){ CUR=`git rev-parse HEAD` && git reset --soft ${1} && git commit -m \"$(git log --format=%B ${1}..${CUR})\"; };f"

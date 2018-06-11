@@ -19,6 +19,7 @@ package es.bsc.compss.types.data;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 
 import org.apache.logging.log4j.LogManager;
@@ -67,7 +68,8 @@ public class FileInfo extends DataInfo {
                             loc.modifyPath(newPath);
                             try {
                                 LOGGER.debug("[FileInfo] Moving " + uri.getPath() + " to " + newPath);
-                                Files.move(new File(uri.getPath()).toPath(), new File(newPath).toPath());
+                                Files.move(new File(uri.getPath()).toPath(), new File(newPath).toPath(),
+                                        StandardCopyOption.REPLACE_EXISTING);
                             } catch (IOException e) {
                                 ErrorManager.error("File " + uri.getPath() + " cannot be moved to " + newPath, e);
                             }

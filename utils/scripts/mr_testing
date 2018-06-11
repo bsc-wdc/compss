@@ -19,7 +19,7 @@ git add -u
 
 if git commit -m 'merged and added headers'; then
 	echo "Files with no headers detected, force pushing commit with added headers"
-	git push --force http://${GIT_USER}:${GIT_PASSWORD}@compss.bsc.es/gitlab/compss/framework.git ${gitlabSourceBranch}
+	git push --force http://${credentials}@compss.bsc.es/gitlab/compss/framework.git ${gitlabSourceBranch}
 	if [ $? -ne 0 ]; then
       echo "ERROR: push failed, be careful or could lose your work.";
     fi

@@ -363,7 +363,7 @@ install_compss() {
   mkdir -p ${targetDir}/Runtime/scheduler
   mkdir -p ${targetDir}/Tools
   mkdir -p ${targetDir}/Tools/monitor
-  mkdir -p ${targetDit}/Tools/storage
+  mkdir -p ${targetDir}/Tools/storage
   mkdir -p ${targetDir}/Bindings
   mkdir -p ${targetDir}/Bindings/bindings-common
 

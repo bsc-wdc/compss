@@ -24,6 +24,11 @@ usage() {
   # Compute version
   version=$1
 
+   if [ -z "$version" ]; then
+     echo "ERROR: jenkins build parameter 'version' not set."
+     exit 1
+   fi
+
   # Perform update process
   commitChanges="true"
   ./update_trunk_version "${baseVersion}" "${version}" "${commitChanges}"

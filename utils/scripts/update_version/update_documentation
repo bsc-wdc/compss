@@ -4,7 +4,7 @@ usage() {
   local exitValue=$1
 
   echo " "
-  echo "Usage ./update_documentation <version>"
+  echo "Usage ./update_documentation <version> <commitChanges>"
   echo " "
 
   exit "$exitValue"
@@ -13,13 +13,14 @@ usage() {
   #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   # Check parameters
-  if [ $# -ne 1 ]; then
+  if [ $# -ne 2 ]; then
     echo "ERROR: Incorrect number of parameters"
     usage 1
   fi
 
   # Get version parameters
   version=$1
+  commitChanges=$2
   echo "Creating COMPSs ${version} documentation..."
 
   # Define script variables
@@ -80,10 +81,12 @@ usage() {
   # Commit modifications
   echo "- Commit modifications"
   cd "${documentation_dir}" || exit 1
-  git commit -am "Adding documentation new tag ${version}"
   git tag COMPSs_Manuals_${version}
-  git push http://${credentials}@compss.bsc.es/gitlab/documents/documentation.git master
-  git push http://${credentials}@compss.bsc.es/gitlab/documents/documentation.git --tags --force
+  if [ "$commitChanges" == "true" ]; then
+      git commit -am "Adding documentation new tag ${version}"
+      git push http://${credentials}@compss.bsc.es/gitlab/documents/documentation.git master
+      git push http://${credentials}@compss.bsc.es/gitlab/documents/documentation.git --tags --force
+  fi
   cd "${SCRIPT_DIR}" || exit 1
 
   #---------------------------------------------------------------------
@@ -103,8 +106,10 @@ usage() {
   # Commit modifications
   echo "- Commit trunk modifications"
   cd "${trunk_dir}/doc/" || exit 1
-  git commit -am "Adding documentation synchronized for new tag ${version}"
-  git push http://${credentials}@compss.bsc.es/gitlab/compss/framework.git trunk
+  if [ "$commitChanges" == "true" ]; then
+      git commit -am "Adding documentation synchronized for new tag ${version}"
+      git push http://${credentials}@compss.bsc.es/gitlab/compss/framework.git trunk
+  fi
   cd "${SCRIPT_DIR}" || exit 1
 
   #---------------------------------------------------------------------

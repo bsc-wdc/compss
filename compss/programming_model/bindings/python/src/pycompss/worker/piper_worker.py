@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 # -*- coding: utf-8 -*-
 
@@ -97,7 +97,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
     :param input_pipe: Input pipe for the thread. To receive messages from the runtime.
     :param output_pipe: Output pipe for the thread. To send messages to the runtime.
     :param storage_conf: Storage configuration file
-    :return: Nothing
+    :return: None
     """
 
     logger = logging.getLogger('pycompss.worker.worker')
@@ -233,8 +233,8 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                         # endTask jobId exitValue message
                         params = build_return_params_message(current_line[9:], new_types, new_values)
                         message = END_TASK_TAG + " " + str(job_id) \
-                                  + " " + str(exit_value) \
-                                  + " " + str(params) + "\n"
+                                               + " " + str(exit_value) \
+                                               + " " + str(params) + "\n"
                     else:
                         # An exception has been raised in task
                         message = END_TASK_TAG + " " + str(job_id) \
@@ -306,6 +306,14 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
 
 
 def build_return_params_message(params, types, values):
+    """
+    Build the return message with the parameters output
+    :param params: List of parameters
+    :param types: List of the parameter's types
+    :param values: List of the parameter's values
+    :return: Message as string
+    """
+
     assert len(types) == len(values), 'Inconsistent state: return type-value length mismatch for return message.'
 
     # Analyse the input parameters to get has_target and has_return
@@ -340,7 +348,12 @@ def build_return_params_message(params, types, values):
 def execute_task(process_name, storage_conf, params):
     """
     ExecuteTask main method
+    :param process_name: Process name
+    :param storage_conf: Storage configuration file path
+    :param params: List of parameters
+    :return: exit code, new types and new values
     """
+
     logger = logging.getLogger('pycompss.worker.worker')
 
     if __debug__:
@@ -555,6 +568,14 @@ def execute_task(process_name, storage_conf, params):
 
 
 def get_input_params(num_params, logger, args, process_name):
+    """
+    Get and prepare the input parameters from string to lists.
+    :param num_params: Number of parameters
+    :param logger: Logger
+    :param args: Arguments (complete list of parameters with type, stream, prefix and value)
+    :param process_name: Process name
+    :return: Four lists: values, types, streams, prefixes
+    """
     pos = 0
     values = []
     types = []
@@ -672,6 +693,17 @@ def get_input_params(num_params, logger, args, process_name):
 
 
 def task_execution(logger, process_name, module, method_name, types, values, compss_kwargs):
+    """
+    Task execution function
+    :param logger: Logger
+    :param process_name: Process name
+    :param module: Module which contains the function
+    :param method_name: Function to invoke
+    :param types: List of the parameter's types
+    :param values: List of the parameter's values
+    :param compss_kwargs: PyCOMPSs keywords
+    :return: new types and new_values
+    """
     # if TRACING:
     #    pyextrae.eventandcounters(TASK_EVENTS, 0)
     #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
@@ -713,6 +745,12 @@ def task_execution(logger, process_name, module, method_name, types, values, com
 
 
 def shutdown_handler(signal, frame):
+    """
+    Shutdown handler (do not remove the parameters)
+    :param signal: shutdown signal
+    :param frame: Frame
+    :return: None
+    """
     for proc in PROCESSES:
         if proc.is_alive():
             proc.terminate()
@@ -724,6 +762,11 @@ def shutdown_handler(signal, frame):
 
 
 def compss_persistent_worker():
+    """
+    Persistent worker main function.
+    Retrieves the initial configuration and spawns the worker processes.
+    :return: None
+    """
     # Get args
     debug = (sys.argv[1] == 'true')
     TRACING = (sys.argv[2] == 'true')

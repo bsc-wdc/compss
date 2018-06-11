@@ -55,12 +55,12 @@
 
   # Config
   cp -r ${trunk_rel_path}/compss/runtime/config/* ${COMPSs_target}/Runtime/configuration/
-  find ${COMPSs_target}/Runtime/configuration -name src -print0 | xargs rm -rf
-  find ${COMPSs_target}/Runtime/configuration -name target -print0 | xargs rm -rf
-  find ${COMPSs_target}/Runtime/configuration/ -name pom.xml -print0 | xargs rm -f
-  find ${COMPSs_target}/Runtime/configuration/ -name .settings -print0 | xargs rm -rf
-  find ${COMPSs_target}/Runtime/configuration/ -name .project -print0 | xargs rm -f
-  find ${COMPSs_target}/Runtime/configuration/ -name .classpath -print0 | xargs rm -f
+  find ${COMPSs_target}/Runtime/configuration -name src -print0 | xargs -r rm -rf
+  find ${COMPSs_target}/Runtime/configuration -name target -print0 | xargs -r rm -rf
+  find ${COMPSs_target}/Runtime/configuration -name pom.xml -delete
+  find ${COMPSs_target}/Runtime/configuration -name .settings -print0 | xargs -r rm -rf
+  find ${COMPSs_target}/Runtime/configuration -name .project -delete
+  find ${COMPSs_target}/Runtime/configuration -name .classpath -delete
 
   # Scripts
   cp -r ${trunk_rel_path}/compss/runtime/scripts/* ${COMPSs_target}/Runtime/scripts/
@@ -118,12 +118,12 @@
 
   # TOOLS DEPLOYMENT
   echo "--- Copy tools"
-  cd tmp/
   TOMCAT_VER="7.0.65"
   TOMCAT_URL="http://compss.bsc.es/repo/apache-tomcat/apache-tomcat-7.0.65.tar.gz"
+  cd tmp/
   wget $TOMCAT_URL
   tar xzf apache-tomcat-$TOMCAT_VER.tar.gz
-  cd "$SCRIPT_DIR"
+  cd -
   mv tmp/apache-tomcat-$TOMCAT_VER ${COMPSs_target}/Tools/monitor/apache-tomcat/
   rm -rf ${COMPSs_target}/Tools/monitor/apache-tomcat/webapps/*
   rm -f ${COMPSs_target}/Tools/monitor/apache-tomcat/conf/server.xml
@@ -153,7 +153,7 @@
   echo "* Packing files..."
   cd tmp/
   tar -czf COMPSs_"${COMPSs_version}".tar.gz COMPSs
-  cd "$SCRIPT_DIR"
+  cd -
 
   # Move to final location  
   echo " "

@@ -831,7 +831,7 @@ check_args() {
 
   if [ -n "$storageImpl" ]; then
     # Deal with storage implementation
-    for jarname in ${COMPSS_HOME}/Runtime/storage/$storageImpl/*.jar; do
+    for jarname in ${COMPSS_HOME}/Tools/storage/$storageImpl/*.jar; do
       cp=$cp:$jarname
     done
   fi
@@ -907,7 +907,7 @@ check_args() {
 
     # Deal with storage implementation
     if [ -n "$storageImpl" ]; then
-      pythonpath=$pythonpath:${COMPSS_HOME}/Runtime/storage/$storageImpl/python
+      pythonpath=$pythonpath:${COMPSS_HOME}/Tools/storage/$storageImpl/python
     fi
 
     # Adds all given Pythonpaths to the global variable

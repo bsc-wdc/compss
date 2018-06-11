@@ -5,8 +5,9 @@
   #---------------------------------------------------------------------------------------------------------------------
   usage() {
     echo "***********************************************************"
-    echo "  Usage: main_distribution <distribution>"
+    echo "  Usage: main_distribution <distribution> <maven_repo>"
     echo "    - distribution : ubuntu | suse | debian | centos | sc"
+    echo "    - maven_repo : testing | stable"
     echo "***********************************************************"
   }
 
@@ -79,12 +80,12 @@
     # Run tests
     run_tests
 
-    # Update to testing repo
-    update_repo "testing"
+    # Update to ${maven_repo} repo
+    update_repo ${maven_repo}
 
     # END
     echo " "
-    echo " CONGRATULATIONS! The ${distr} process succeeded"
+    echo " CONGRATULATIONS! The ${distr} process for repor ${maven_repo} succeeded"
     echo " "
   }
 
@@ -95,8 +96,8 @@
     # Update to unstable repo
     update_repo_from_master "unstable"
 
-    # Update to testing repo
-    update_repo_from_master "testing"
+    # Update to ${maven_repo} repo
+    update_repo_from_master ${maven_repo}
 
     # END
     echo " "
@@ -281,13 +282,14 @@ EOT
   OTHER_DISTRS="sc"
 
   # Check parameters
-  if [ $# -ne 1 ]; then
+  if [ $# -ne 2 ]; then
      display_error "Incorrect number of parameters"
      usage
      exit 1
   fi
 
   distr=$1
+  maven_repo=$2
   if [[ ${DEBIAN_DISTRS} != *"${distr}"* ]] && [[ ${RPM_DISTRS} != *"${distr}"* ]] && [[ ${OTHER_DISTRS} != *"${distr}"* ]]; then
      display_error "Unknown distribution parameter"
      usage
@@ -302,7 +304,7 @@ EOT
   echo -e "\e[0m"
  
   # Set environment
-  set_env || display_error_and_exit "Cannot set script envrionment"
+  set_env || display_error_and_exit "Cannot set script environment"
 
   # Execute distribution
   if [[ ${OTHER_DISTRS} == *"${distr}"* ]]; then

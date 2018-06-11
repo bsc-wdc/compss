@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 # -*- coding: utf-8 -*-
 
@@ -45,13 +45,21 @@ def setup_parser():
 
     parser = argparse.ArgumentParser(prog='python -m pycompss')
     parser.add_argument('action', choices=TAGS, nargs='?',
-                        help="Execution mode: \'run\' for launching an execution and \'enqueue\' for submitting a job to the queuing system. Default value: \'run\'")
+                        help="Execution mode: \'run\' for launching an execution and \'enqueue\' " +
+                             "for submitting a job to the queuing system. Default value: \'run\'")
     parser.add_argument('params', nargs=argparse.REMAINDER,
-                        help="COMPSs and application arguments (check \'runcompss\' or \'enqueue_compss\' commands help).")
+                        help="COMPSs and application arguments (check \'runcompss\' or " +
+                             "\'enqueue_compss\' commands help).")
     return parser
 
 
 def run(cmd):
+    """
+    Execute a command line in a subprocess
+    :param cmd: Command to execute <String>
+    :return: None
+    """
+
     p = Popen(cmd, stdout=sys.stdout, stderr=sys.stderr)
     p.communicate()
 
@@ -59,6 +67,7 @@ def run(cmd):
 def main():
     """
     Main method.
+    :return: None
     """
 
     help = ['-h', '--help']

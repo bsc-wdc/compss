@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 # -*- coding: utf-8 -*-
 
@@ -31,6 +31,7 @@ def merge_reduce(f, data):
     Apply f cumulatively to the items of data,
     from left to right in binary tree structure, so as to
     reduce the data to a single value.
+
     :param f: function to apply to reduce data
     :param data: List of items to be reduced
     :return: result of reduce the data to a single value
@@ -54,6 +55,7 @@ def merge_n_reduce(f, data):
     Apply f cumulatively to the items of data,
     from left to right in n-tree structure, so as to
     reduce the data.
+
     :param f: function to apply to reduce data
     :param data: List of items to be reduced
     :return: List of results
@@ -76,6 +78,7 @@ def simple_reduce(f, data):
     Apply f of two arguments cumulatively to the items
     of data, from left to right, so as to reduce the iterable
     to a single value.
+
     :param f: function to apply to reduce data
     :param data: List of items to be reduced
     :return: result of reduce the data to a single value

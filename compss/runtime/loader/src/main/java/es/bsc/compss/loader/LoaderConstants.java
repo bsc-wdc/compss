@@ -73,8 +73,6 @@ public class LoaderConstants {
             "PrintWriter", // 35,200
             "FileReader", // 16,800
             "OutputStreamWriter", // 15,700
-            "BufferedInputStream", // 15,100
-            "BufferedOutputStream", // 10,500
             "BufferedWriter", // 11,800
             "PrintStream", // 6,000
             "RandomAccessFile", // 5,000

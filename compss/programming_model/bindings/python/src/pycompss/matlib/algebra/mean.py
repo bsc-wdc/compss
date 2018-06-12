@@ -30,6 +30,8 @@ from pycompss.functions.reduce import merge_reduce
 def _list_lenght(l):
     """
     Recursive function to get the size of any list
+
+    :return: List length
     """
 
     if l:
@@ -42,16 +44,26 @@ def _list_lenght(l):
 
 @task(returns=float)
 def _mean(data, n):
+    """
+    Calculate the mean of a list,
+
+    :param data: List of elements
+    :param n: Number of elements
+    :return: Mean
+    """
+
     return sum(data) / float(n)
 
 
 def mean(data, wait=False):
     """
-    Arithmetic mean
+    Arithmetic mean.
+
     :param data: chunked data
     :param wait: if we want to wait for result. Default False
     :return: mean of data.
     """
+
     n = _list_lenght(data)
     result = merge_reduce(reduce_add, [_mean(x, n) for x in data])
     if wait:

@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 # -*- coding: utf-8 -*-
 
@@ -72,12 +72,12 @@ class CE(object):
     # Representation
     def __repr__(self):
         _repr = 'CORE ELEMENT: \n'
-        _repr += '\t - CE signature    : ' + self.ce_signature + '\n'
-        _repr += '\t - Impl. signature : ' + self.implSignature + '\n'
+        _repr += '\t - CE signature     : ' + self.ce_signature + '\n'
+        _repr += '\t - Impl. signature  : ' + self.implSignature + '\n'
         impl_constraints = ''
         for key, value in self.implConstraints.items():
             impl_constraints += key + ':' + str(value) + ';'
-        _repr += '\t - Impl. constrings: ' + impl_constraints + '\n'
-        _repr += '\t - Impl. type      : ' + self.implType + '\n'
-        _repr += '\t - Impl. type args : ' + ' '.join(self.implTypeArgs)
+        _repr += '\t - Impl. constraints: ' + impl_constraints + '\n'
+        _repr += '\t - Impl. type       : ' + self.implType + '\n'
+        _repr += '\t - Impl. type args  : ' + ' '.join(self.implTypeArgs)
         return _repr

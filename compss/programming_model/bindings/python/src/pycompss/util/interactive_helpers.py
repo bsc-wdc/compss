@@ -434,9 +434,9 @@ def _get_old_code(file_path):
     return {'imports': file_imports, 'globals': file_globals, 'classes': classes, 'functions': functions, 'tasks': tasks}
 
 
-#########################
+# #######################
 # CODE UPDATE FUNCTIONS #
-#########################
+# #######################
 
 def _update_imports(new_imports, old_imports):
     """
@@ -546,9 +546,9 @@ def _update_tasks(new_tasks, old_tasks):
     return old_tasks
 
 
-#########################
+# #######################
 # FILE UPDATE FUNCTIONS #
-#########################
+# #######################
 
 def _update_code_file(new_imports, new_globals, new_classes, new_functions, new_tasks,
                       file_path):

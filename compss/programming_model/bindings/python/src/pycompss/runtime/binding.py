@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 # -*- coding: utf-8 -*-
 
@@ -134,11 +134,13 @@ def get_object_id(obj, assign_new_key=False, force_insertion=False):
     we create a new identifier for this object, deleting the old one if
     necessary. We can also query for some object without adding it in case of
     failure.
+
     :param obj:
     :param assign_new_key:
     :param force_insertion:
     :return:
     """
+
     global current_id
     global runtime_id
     # force_insertion implies assign_new_key
@@ -180,10 +182,12 @@ logger = logging.getLogger(__name__)
 # ##############################################################################
 # ############################ CLASSES #########################################
 # ##############################################################################
+
 class FunctionType(object):
     """
     Used as enum to identify the function type
     """
+
     FUNCTION = 1
     INSTANCE_METHOD = 2
     CLASS_METHOD = 3
@@ -214,6 +218,8 @@ def start_runtime():
     """
     Starts the runtime by calling the external python library that calls
     the bindings-common.
+
+    :return: None
     """
 
     if __debug__:
@@ -228,6 +234,8 @@ def stop_runtime():
     Stops the runtime by calling the external python library that calls
     the bindings-common.
     Also cleans objects and temporary files created during runtime.
+
+    :return: None
     """
 
     if __debug__:
@@ -250,6 +258,7 @@ def get_file(file_name, mode):
     """
     Calls the external python library (that calls the bindings-common)
     in order to request a file.
+
     :param file_name:
     :param mode:
     :return: The current name of the file requested (that may have been renamed during runtime)
@@ -267,6 +276,7 @@ def delete_file(file_name):
     """
     Calls the external python library (that calls the bindings-common)
     in order to request a file removal.
+
     :param file_name: File name to remove
     :return: True if success. False otherwise
     """
@@ -287,6 +297,7 @@ def delete_object(obj):
     Removes a used object from the internal structures and calls the
     external python library (that calls the bindings-common)
     in order to request a its corresponding file removal.
+
     :param obj: Object to remove
     :return: True if success. False otherwise
     """
@@ -320,8 +331,9 @@ def barrier(no_more_tasks=False):
     Calls the external python library (that calls the bindings-common)
     in order to request a barrier.
     Wait for all tasks.
+
     :param no_more_tasks:
-    :return:
+    :return: None
     """
 
     if __debug__:
@@ -470,6 +482,7 @@ def get_pending_to_synchronize():
     This method retrieves the dictionary that contains the objects used as
     parameters for the tasks.
     Used within the API in order to check if waiting for an INOUT object.
+
     :return: Dictionary containing the ids of the objects used as task parameter.
     """
 
@@ -590,14 +603,13 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args,
     new_self_kwargs, is_future = _infer_types_and_serialize_objects(spec_args, first_par, num_pars, file_names, self_kwargs, args)
 
     # Build values and COMPSs types and directions
-    values, compss_types, compss_directions, \
-    compss_streams, compss_prefixes = _build_values_types_directions(ftype,
-                                                                     first_par,
-                                                                     num_pars,
-                                                                     spec_args,
-                                                                     new_self_kwargs,
-                                                                     is_future,
-                                                                     f.__code_strings__)
+    values, compss_types, compss_directions, compss_streams, compss_prefixes = _build_values_types_directions(ftype,
+                                                                                                              first_par,
+                                                                                                              num_pars,
+                                                                                                              spec_args,
+                                                                                                              new_self_kwargs,
+                                                                                                              is_future,
+                                                                                                              f.__code_strings__)
 
     # Get priority
     has_priority = self_kwargs['priority']
@@ -710,6 +722,7 @@ def _build_return_objects(f, self_kwargs, spec_args):
     :param spec_args:
     :return:
     """
+
     # Check if the returns statement contains an integer value.
     # In such case, build a list of objects of value length and set it in ret_type.
     if isinstance(self_kwargs['returns'], int):
@@ -806,6 +819,7 @@ def _build_return_objects(f, self_kwargs, spec_args):
         fu = None
 
     return fu, file_names, self_kwargs, spec_args
+
 
 def _infer_types_and_serialize_objects(spec_args, first_par, num_pars, file_names, self_kwargs, args):
     """
@@ -997,6 +1011,7 @@ def _convert_object_to_string(p, is_future, max_obj_arg_size, policy='objectSize
                    considering the size of the object serialized.
     :return: the object possibly converted to string
     """
+
     num_bytes = 0
     if policy == 'objectSize':
         # Check if the object is small in order to serialize it.
@@ -1253,7 +1268,10 @@ def _clean_objects():
         * id2obj dict
         * objid_to_filename dict
         * objs_written_by_mp dict
+
+    :return: None
     """
+
     for filename in objid_to_filename.values():
         compss.delete_file(filename)
     pending_to_synchronize.clear()
@@ -1266,6 +1284,8 @@ def _clean_temps():
     """
     Clean temporary files.
     The temporary files end with the IT extension
+
+    :return: None
     """
 
     rmtree(temp_dir, True)

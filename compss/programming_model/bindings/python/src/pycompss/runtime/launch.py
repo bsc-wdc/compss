@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 # -*- coding: utf-8 -*-
 
@@ -50,10 +50,10 @@ else:
 
 def get_logging_cfg_file(log_level):
     """
-    Retrieves the logging cfg file
+    Retrieves the logging configuration file.
 
-    :param log_level:
-    :return:
+    :param log_level: Log level [ 'debug' | 'info' | 'off' ]
+    :return: Logging configuration file
     """
 
     logging_cfg_file = 'logging.json'
@@ -69,7 +69,9 @@ def get_logging_cfg_file(log_level):
 
 def parse_arguments():
     """
-    Parse PyCOMPSs arguments
+    Parse PyCOMPSs arguments.
+
+    :return: Parser arguments.
     """
 
     import argparse
@@ -85,6 +87,8 @@ def compss_main():
     """
     General call:
     python $PYCOMPSS_HOME/pycompss/runtime/launch.py $log_level $PyObject_serialize $storage_conf $fullAppPath $application_args
+
+    :return: None
     """
     global app_path
 
@@ -209,43 +213,43 @@ def launch_pycompss_application(app, func,
                                 *args, **kwargs
                                 ):
     """
-    Launch pycompss application
+    Launch pycompss application.
 
-    :param app:
-    :param func:
-    :param args:
-    :param kwargs:
-    :param log_level:
-    :param o_c:
-    :param debug:
-    :param graph:
-    :param trace:
-    :param monitor:
-    :param project_xml:
-    :param resources_xml:
-    :param summary:
-    :param taskExecution:
-    :param storageConf:
-    :param taskCount:
-    :param appName:
-    :param uuid:
-    :param baseLogDir:
-    :param specificLogDir:
-    :param extraeCfg:
-    :param comm:
-    :param conn:
-    :param masterName:
-    :param masterPort:
-    :param scheduler:
-    :param jvmWorkers:
-    :param obj_conv:
-    :param cpuAffinity:
-    :param gpuAffinity:
-    :param profileInput:
-    :param profileOutput:
-    :param scheduler_config:
-    :param external_adaptation:
-    :return:
+    :param app: Application path
+    :param func: Function
+    :param args: Arguments
+    :param kwargs: Keyword arguments
+    :param log_level: Logging level [ 'on' | 'off'] (default: 'off')
+    :param o_c: Objects to string conversion [ True | False ] (default: False)
+    :param debug: Debug mode [ True | False ] (default: False)
+    :param graph: Generate graph [ True | False ] (default: False)
+    :param trace: Generate trace [ True | False ] (default: False)
+    :param monitor: Monitor refresh rate (default: None)
+    :param project_xml: Project xml file path
+    :param resources_xml: Resources xml file path
+    :param summary: Execution summary [ True | False ] (default: False)
+    :param task_execution: Task execution (default: 'compss')
+    :param storage_conf: Storage configuration file path
+    :param task_count: Task count (default: 50)
+    :param app_name: Application name (default: Interactive_date)
+    :param uuid: UUId
+    :param base_log_dir: Base logging directory
+    :param specific_log_dir: Specific logging directory
+    :param extrae_cfg: Extrae configuration file path
+    :param comm: Communication library (default: NIO)
+    :param conn: Connector (default: DefaultSSHConnector)
+    :param master_name: Master Name (default: '')
+    :param master_port: Master port (default: '')
+    :param scheduler: Scheduler (default: LoadBalancingScheduler)
+    :param jvm_workers: Java VM parameters (default: '-Xms1024m,-Xmx1024m,-Xmn400m')
+    :param cpu_affinity: CPU Core affinity (default: 'automatic')
+    :param gpu_affinity: GPU Core affinity (default: 'automatic')
+    :param profile_input: Input profile  (default: '')
+    :param profile_output: Output profile  (default: '')
+    :param scheduler_config: Scheduler configuration  (default: '')
+    :param external_adaptation: External adaptation [ True | False ] (default: False)
+    :param python_propagate_virtual_environment: Propagate virtual environment [ True | False ] (default: False)
+    :return: Execution result
     """
 
     global app_path
@@ -364,6 +368,7 @@ def initialize_compss(config):
     """
     Creates the initialization files for the runtime start (java options file).
     Receives a dictionary (config) with the configuration parameters.
+
     WARNING!!! if new parameters are included in the runcompss launcher,
     they have to be considered in this configuration. Otherwise, the runtime will not start.
     * Current required parameters:
@@ -402,7 +407,9 @@ def initialize_compss(config):
         - 'python_version'      = <String>  = Python interpreter version
         - 'python_virtual_environment'            = <String>  = Python virtual environment path
         - 'python_propagate_virtual_environment'  = <Boolean> = Propagate python virtual environment to workers
+
     :param config: Configuration parameters dictionary
+    :return: None
     """
     from tempfile import mkstemp
     fd, temp_path = mkstemp()

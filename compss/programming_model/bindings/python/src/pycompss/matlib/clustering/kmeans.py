@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 # -*- coding: utf-8 -*-
 
@@ -29,6 +29,15 @@ from pycompss.functions.reduce import merge_reduce
 
 
 def chunks(l, n, balanced=False):
+    """
+    Chunk generator.
+
+    :param l: List of elements
+    :param n: Number of elements per chunk
+    :param balanced: If balanced [ True | False] (default: False)
+    :return: Chunk generator
+    """
+
     if not balanced or not len(l) % n:
         for i in range(0, len(l), n):
             yield l[i:i + n]
@@ -78,6 +87,17 @@ def reduce_centers_task(a, b):
 
 
 def has_converged(mu, old_mu, epsilon, iteration, max_iterations):
+    """
+    Check convergence.
+
+    :param mu: New centers
+    :param old_mu: Old centers
+    :param epsilon: Max distance
+    :param iteration: Iteration number
+    :param max_iterations: Max iterations
+    :return: <Boolean>
+    """
+
     if not old_mu:
         if iteration < max_iterations:
             aux = [np.linalg.norm(old_mu[i] - mu[i]) for i in range(len(mu))]
@@ -103,7 +123,7 @@ def best_mu_key(X, C):
     w = [0 for i in range(len(C))]
     for x in X:
         best_mu_key = min([(i[0], np.linalg.norm(x-np.array(C[i[0]])))
-                        for i in enumerate(C)], key=lambda t: t[1])[0]
+                          for i in enumerate(C)], key=lambda t: t[1])[0]
         w[best_mu_key] += 1
     return w
 
@@ -118,6 +138,16 @@ def probabilities(X, C, l, phi, n):
 
 
 def init_parallel(X, k, l, init_steps=2):
+    """
+    kmeans++ initialization
+
+    :param X: Points
+    :param k: Number of centers
+    :param l: Length
+    :param init_steps: Initialization steps (default: 2)
+    :return: A chunk of elements
+    """
+
     import random
     random.seed(5)
     num_frag = len(X)
@@ -127,13 +157,13 @@ def init_parallel(X, k, l, init_steps=2):
     phi = sum([cost(x, C) for x in X])
 
     for i in range(init_steps):
-        '''calculate p'''
+        # calculate p
         c = [probabilities(x, C, l, phi, len(x)) for x in X]
         C.extend([item for sublist in c for item in sublist])
-        '''cost distributed'''
+        # cost distributed
         phi = sum([cost(x, C) for x in X])
 
-    '''pick k centers'''
+    # pick k centers
     w = [best_mu_key(x, C) for x in X]
     bestC = [sum(x) for x in zip(*w)]
     bestC = np.argsort(bestC)
@@ -143,12 +173,29 @@ def init_parallel(X, k, l, init_steps=2):
 
 
 def init_random(dim, k):
+    """
+    Random initialization.
+
+    :param dim: Dimensions
+    :param k: Number of centers
+    :return: A chunk of random elements
+    """
+
     np.random.seed(2)
     m = np.array([np.random.random(dim) for _ in range(k)])
     return m
 
 
 def init(X, k, mode):
+    """
+    Dataset initialization.
+
+    :param X: Points
+    :param k: Number of centers
+    :param mode: Mode [ 'kmeans++' | None ] (default: None == Random)
+    :return:
+    """
+
     if mode == "kmeans++":
         return init_parallel(X, k, k)
     else:
@@ -164,6 +211,7 @@ def kmeans(data, k, num_frag=-1, max_iterations=10, epsilon=1e-4,
     then recomputes the centers given the point assigment. This local
     search called Lloyd's iteration, continues until the solution does
     not change between two consecutive rounds or iteration > max_iterations.
+
     :param data: data
     :param k: num of centroids
     :param num_frag: num fragments, if -1 data is considered chunked
@@ -172,6 +220,7 @@ def kmeans(data, k, num_frag=-1, max_iterations=10, epsilon=1e-4,
     :param init_mode: initialization mode
     :return: list os centroids
     """
+
     from pycompss.api.api import compss_wait_on
 
     # Data is already fragmented

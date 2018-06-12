@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 # -*- coding: utf-8 -*-
 
@@ -47,6 +47,7 @@ class implement(object):
         # self = itself.
         # args = not used.
         # kwargs = dictionary with the given implement parameters.
+
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
@@ -60,6 +61,7 @@ class implement(object):
     def __call__(self, func):
         """
         Parse and set the implementation parameters within the task core element.
+
         :param func: Function to decorate
         :return: Decorated function.
         """

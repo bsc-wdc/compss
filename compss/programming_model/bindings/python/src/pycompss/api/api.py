@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 # -*- coding: utf-8 -*-
 
@@ -61,62 +61,71 @@ if __within_scope__():
 
         listType = types.ListType
 
-
     def compss_start():
         """
         Starts the runtime.
-        """
-        start_runtime()
 
+        :return: None
+        """
+
+        start_runtime()
 
     def compss_stop():
         """
         Stops the runtime.
+
+        :return: None
         """
         stop_runtime()
-
 
     def compss_open(file_name, mode='r'):
         """
         Open a file -> Calls runtime.
-        @param file_name: File name.
-        @param mode: Open mode. Options = [w, r+ or a , r or empty]. Default = r
-        @return: An object of 'file' type.
-        @raise IOError: If the file can not be opened.
+
+        :param file_name: File name.
+        :param mode: Open mode. Options = [w, r+ or a , r or empty]. Default = r
+        :return: An object of 'file' type.
+        :raise IOError: If the file can not be opened.
         """
+
         compss_mode = get_compss_mode(mode)
         compss_name = get_file(file_name, compss_mode)
         return open(compss_name, mode)
 
-
     def compss_delete_file(file_name):
         """
         Delete a file -> Calls runtime.
-        :param file_name: File name.
-        """
-        return delete_file(file_name)
 
+        :param file_name: File name.
+        :return: True if success. False otherwise.
+        """
+
+        return delete_file(file_name)
 
     def compss_delete_object(obj):
         """
         Delete object used within COMPSs,
-        :param obj: Object to delete.
-        :return: True if success. False on the contrary
-        """
-        return delete_object(obj)
 
+        :param obj: Object to delete.
+        :return: True if success. False otherwise.
+        """
+
+        return delete_object(obj)
 
     def compss_barrier(no_more_tasks=False):
         """
         Perform a barrier when called.
         Stop until all the submitted tasks have finished.
-        """
-        barrier(no_more_tasks)
 
+        :param no_more_tasks: No more tasks boolean
+        """
+
+        barrier(no_more_tasks)
 
     def compss_wait_on(*args):
         """
-        Wait for objects
+        Wait for objects.
+
         :param args: Objects to wait on
         :return: List with the final values.
         """
@@ -124,10 +133,12 @@ if __within_scope__():
         def _compss_wait_on(obj, to_write=False):
             """
             Waits on an object.
-            @param obj: Object to wait on.
-            @param to_write: Write enable?. Options = [True, False]. Default = True
-            @return: An object of 'file' type.
+
+            :param obj: Object to wait on.
+            :param to_write: Write enable?. Options = [True, False]. Default = True
+            :return: An object of 'file' type.
             """
+
             # print("Waiting on", obj)
             if to_write:
                 mode = 'r+'
@@ -184,30 +195,23 @@ else:
     from pycompss.api.dummy.api import compss_barrier as __dummy_compss_barrier__
     from pycompss.api.dummy.api import compss_wait_on as __dummy_compss_wait_on__
 
-
     def compss_start():
         __dummy_compss_start__()
-
 
     def compss_stop():
         __dummy_compss_stop__()
 
-
     def compss_open(file_name, mode='r'):
         return __dummy_compss_open__(file_name, mode)
-
 
     def compss_delete_file(file_name):
         return __dummy_compss_delete_file__(file_name)
 
-
     def compss_delete_object(obj):
         return __dummy_compss_delete_object__(obj)
 
-
     def compss_barrier(no_more_tasks=False):
         __dummy_compss_barrier__(no_more_tasks)
-
 
     def compss_wait_on(*args):
         return __dummy_compss_wait_on__(*args)

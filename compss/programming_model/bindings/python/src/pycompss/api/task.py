@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 # -*- coding: utf-8 -*-
 
@@ -312,6 +312,7 @@ class task(object):
         """
         Prints the warning message when running a PyCOMPSs application without the PyCOMPSs module and retrieves
         the dummy task decorator.
+
         :return: dummy task decorator
         """
 
@@ -331,6 +332,8 @@ class task(object):
     def __update_return_type(self):
         """
         Updates the return types within self.kwargs['compss_retvalue']
+
+        :return: None
         """
 
         from pycompss.api.parameter import Parameter
@@ -357,6 +360,7 @@ class task(object):
     def __update_return_if_no_returns(self, f):
         """
         Checks the code looking for return statements if no returns is specified in @task decorator.
+
         :param f: Function to check
         """
 
@@ -769,7 +773,8 @@ class task(object):
 
     def master_code(self, f, is_replicated, is_distributed, num_nodes, args, kwargs):
         """
-        Task decorator body executed in the master
+        Task decorator body executed in the master.
+
         :param f: <Function> - Function to execute
         :param is_replicated: <Boolean> - If the function is replicated
         :param is_distributed: <Boolean> - If the function is distributed
@@ -885,10 +890,12 @@ class task(object):
 def get_module_name(path, file_name):
     """
     Get the module name considering its path and filename.
+
     Example: runcompss -d src/kmeans.py
              path = "test/kmeans.py"
              file_name = "kmeans" (without py extension)
              return mod_name = "test.kmeans"
+
     :param path: relative path until the file.py from where the runcompss has been executed
     :param file_name: python file to be executed name (without the py extension)
     :return: the module name
@@ -912,6 +919,7 @@ def get_module_name(path, file_name):
 def get_top_decorator(code, decorator_keys):
     """
     Retrieves the decorator which is on top of the current task decorators stack.
+
     :param code: Tuple which contains the task code to analyse and the number of lines of the code.
     :param decorator_keys: Typle which contains the available decorator keys
     :return: the decorator name in the form "pycompss.api.__name__"
@@ -938,9 +946,10 @@ def get_top_decorator(code, decorator_keys):
 def get_task_type(code, decorator_filter, default):
     """
     Retrieves the type of the task based on the decorators stack.
+
     :param code: Tuple which contains the task code to analyse and the number of lines of the code.
     :param decorator_filter: Typle which contains the filtering decorators. The one
-    used determines the type of the task. If none, then it is a normal task.
+                             used determines the type of the task. If none, then it is a normal task.
     :param default: Default values
     :return: the type of the task
     """
@@ -965,6 +974,7 @@ def check_value_changes(types, values, to_serialize):
     """
     Check if the input values have changed and adapt its types accordingly.
     Considers also changes that may affect to the to_serialize list.
+
     NOTE: This function can also return the real_to_serialize list, which
     contains the objects that should be serialized after checking the changes.
     For example, if a return is a simple type (int), it can be considered
@@ -975,9 +985,11 @@ def check_value_changes(types, values, to_serialize):
     return object into the return file. Consequently, the real_to_serialize
     variable is not currently used, but should be considered when the runtime
     provides support for returning simple objects through the pipe.
+
     WARNING: Due to the runtime does not support gathering values from the
     output pipe at worker, all values will be set to null but the PSCOs that
     may have changed.
+
     :param types: List of types of the values list
     :param values: List of values used as task input
     :param to_serialize: List of objects to be serialized
@@ -1019,6 +1031,7 @@ def check_value_changes(types, values, to_serialize):
 def get_compss_type(value):
     """
     Retrieve the value type mapped to COMPSs types.
+
     :param value: Value to analyse
     :return: The Type of the value
     """
@@ -1071,8 +1084,9 @@ def get_compss_type(value):
 
 def get_default_args(f):
     """
-    Returns a dictionary of arg_name:default_values for the input function
-    @param f: Function to inspect for default parameters.
+    Returns a dictionary of arg_name:default_values for the input function.
+
+    :param f: Function to inspect for default parameters.
     """
 
     a = inspect.getargspec(f)
@@ -1082,10 +1096,12 @@ def get_default_args(f):
 
 def get_wrapped_source(f):
     """
-    Gets the text of the source code for the given function
+    Gets the text of the source code for the given function.
+
     :param f: Input function
     :return: Source
     """
+
     if hasattr(f, "__wrapped__"):
         # has __wrapped__, going deep
         return get_wrapped_source(f.__wrapped__)
@@ -1096,10 +1112,12 @@ def get_wrapped_source(f):
 
 def get_wrapped_sourcelines(f):
     """
-    Gets a list of source lines and starting line number for the given function
+    Gets a list of source lines and starting line number for the given function.
+
     :param f: Input function
     :return: Source lines
     """
+
     if hasattr(f, "__wrapped__"):
         # has __wrapped__, going deep
         return get_wrapped_sourcelines(f.__wrapped__)

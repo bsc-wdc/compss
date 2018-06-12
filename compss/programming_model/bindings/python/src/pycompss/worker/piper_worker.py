@@ -92,6 +92,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
     Notifies the runtime when each task  has finished with the
     corresponding output value.
     Finishes when the "quit" message is received.
+
     :param queue: Queue where to put exception messages
     :param process_name: Process name (Thread-X, where X is the thread id).
     :param input_pipe: Input pipe for the thread. To receive messages from the runtime.
@@ -307,7 +308,8 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
 
 def build_return_params_message(params, types, values):
     """
-    Build the return message with the parameters output
+    Build the return message with the parameters output.
+
     :param params: List of parameters
     :param types: List of the parameter's types
     :param values: List of the parameter's values
@@ -347,7 +349,8 @@ def build_return_params_message(params, types, values):
 #####################################
 def execute_task(process_name, storage_conf, params):
     """
-    ExecuteTask main method
+    ExecuteTask main method.
+
     :param process_name: Process name
     :param storage_conf: Storage configuration file path
     :param params: List of parameters
@@ -570,6 +573,7 @@ def execute_task(process_name, storage_conf, params):
 def get_input_params(num_params, logger, args, process_name):
     """
     Get and prepare the input parameters from string to lists.
+
     :param num_params: Number of parameters
     :param logger: Logger
     :param args: Arguments (complete list of parameters with type, stream, prefix and value)
@@ -694,7 +698,8 @@ def get_input_params(num_params, logger, args, process_name):
 
 def task_execution(logger, process_name, module, method_name, types, values, compss_kwargs):
     """
-    Task execution function
+    Task execution function.
+
     :param logger: Logger
     :param process_name: Process name
     :param module: Module which contains the function
@@ -704,6 +709,7 @@ def task_execution(logger, process_name, module, method_name, types, values, com
     :param compss_kwargs: PyCOMPSs keywords
     :return: new types and new_values
     """
+
     # if TRACING:
     #    pyextrae.eventandcounters(TASK_EVENTS, 0)
     #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
@@ -746,11 +752,13 @@ def task_execution(logger, process_name, module, method_name, types, values, com
 
 def shutdown_handler(signal, frame):
     """
-    Shutdown handler (do not remove the parameters)
+    Shutdown handler (do not remove the parameters).
+
     :param signal: shutdown signal
     :param frame: Frame
     :return: None
     """
+
     for proc in PROCESSES:
         if proc.is_alive():
             proc.terminate()
@@ -765,8 +773,10 @@ def compss_persistent_worker():
     """
     Persistent worker main function.
     Retrieves the initial configuration and spawns the worker processes.
+
     :return: None
     """
+
     # Get args
     debug = (sys.argv[1] == 'true')
     TRACING = (sys.argv[2] == 'true')

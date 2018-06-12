@@ -39,7 +39,8 @@ def setup_parser():
     """
     Argument parser.
         * Argument defining run for runcompss or enqueue for enqueue_compss.
-        * The rest of the arguments as a list
+        * The rest of the arguments as a list.
+
     :return: the parser
     """
 
@@ -55,7 +56,8 @@ def setup_parser():
 
 def run(cmd):
     """
-    Execute a command line in a subprocess
+    Execute a command line in a subprocess.
+
     :param cmd: Command to execute <String>
     :return: None
     """
@@ -67,6 +69,7 @@ def run(cmd):
 def main():
     """
     Main method.
+
     :return: None
     """
 

@@ -83,6 +83,7 @@ def start(log_level='off',
           ):
     """
     Start the runtime in interactive mode.
+
     :param log_level: Logging level [ 'on' | 'off'] (default: 'off')
     :param o_c: Objects to string conversion [ True | False ] (default: False)
     :param debug: Debug mode [ True | False ] (default: False)
@@ -367,7 +368,8 @@ def __print_setup__(verbose, log_level, o_c, debug, graph, trace, monitor,
 
 def stop(sync=False):
     """
-    Runtime stop
+    Runtime stop.
+
     :param sync: Scope variables synchronization [ True | False ] (default: False)
     :return: None
     """
@@ -421,7 +423,8 @@ def stop(sync=False):
 
 def __show_current_graph__(fit=False):
     """
-    Show current graph
+    Show current graph.
+
     :param fit: Fit to width [ True | False ] (default: False)
     :return: None
     """
@@ -435,7 +438,8 @@ def __show_current_graph__(fit=False):
 
 def __show_complete_graph__(fit=False):
     """
-    Show complete graph
+    Show complete graph.
+
     :param fit: Fit to width [ True | False ] (default: False)
     :return: None
     """
@@ -449,11 +453,13 @@ def __show_complete_graph__(fit=False):
 
 def __show_graph__(name='complete_graph', fit=False):
     """
-    Show graph
+    Show graph.
+
     :param name: Graph to show (default: 'complete_graph')
     :param fit: Fit to width [ True | False ] (default: False)
     :return: None
     """
+
     try:
         from graphviz import Source
     except ImportError:
@@ -489,7 +495,8 @@ def __show_graph__(name='complete_graph', fit=False):
 
 def __export_globals__():
     """
-    Export globals into interactive environment
+    Export globals into interactive environment.
+
     :return: None
     """
 
@@ -516,6 +523,7 @@ def __clean_temp_files__():
     """
     Remove any temporary files that may exist.
     Currently: app_path, which contains the file path where all interactive code required by the worker is.
+
     :return: None
     """
 

@@ -75,6 +75,7 @@ if sys.version_info >= (2, 7):
 def compss_worker(persistent_storage):
     """
     Worker main method (invocated from __main__).
+
     :param persistent_storage: Persistent storage boolean
     :return: None
     """

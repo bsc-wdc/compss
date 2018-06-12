@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 # -*- coding: utf-8 -*-
 
@@ -29,7 +29,9 @@ PyCOMPSs Utils - JVM Configuration Parser
 
 
 def convert_to_dict(jvm_opt_file):
-    """ JVM parameter file converter to dictionary.
+    """
+    JVM parameter file converter to dictionary.
+
     :param jvm_opt_file: JVM parameters file
     :return: Dictionary with the parameters specified on the file.
     """

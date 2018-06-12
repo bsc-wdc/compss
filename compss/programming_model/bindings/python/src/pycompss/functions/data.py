@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 # -*- coding: utf-8 -*-
 
@@ -28,7 +28,8 @@ from pycompss.api.task import task
 
 def chunks(l, n, balanced=False):
     """
-    Generator to chunk data
+    Generator to chunk data.
+
     :param l: List of data to be chunked
     :param n: length of the fragments
     :param balanced: True to generate balanced fragments
@@ -51,6 +52,16 @@ def chunks(l, n, balanced=False):
 
 @task(returns=list)
 def _gen_random(size, frag_size, seed, jumps):
+    """
+    Random generator.
+
+    :param size: Size
+    :param frag_size: Fragment size
+    :param seed: Random seed
+    :param jumps: Number of jumps
+    :return: a fragment of elements
+    """
+
     import random
     random.seed(seed)
     random.jumpahead(jumps)
@@ -59,6 +70,16 @@ def _gen_random(size, frag_size, seed, jumps):
 
 @task(returns=list)
 def _gen_normal(size, frag_size, seed, jumps):
+    """
+    Normal generator.
+
+    :param size: Size
+    :param frag_size: Fragment size
+    :param seed: Random seed
+    :param jumps: Number of jumps
+    :return: a fragment of elements
+    """
+
     import random
     random.seed(seed)
     random.jumpahead(jumps)
@@ -68,6 +89,16 @@ def _gen_normal(size, frag_size, seed, jumps):
 
 @task(returns=list)
 def _gen_uniform(size, frag_size, seed, jumps):
+    """
+    Uniform generator.
+
+    :param size: Size
+    :param frag_size: Fragment size
+    :param seed: Random seed
+    :param jumps: Number of jumps
+    :return: a fragment of elements
+    """
+
     import random
     random.seed(seed)
     random.jumpahead(jumps)
@@ -77,7 +108,8 @@ def _gen_uniform(size, frag_size, seed, jumps):
 
 def generator(size, num_frag, seed=None, distribution='random', wait=False):
     """
-    Data generator
+    Data generator.
+
     :param size: (numElements,dim)
     :param num_frag: dataset's number of fragments
     :param seed: random seed. Default None, system time is used-
@@ -85,6 +117,7 @@ def generator(size, num_frag, seed=None, distribution='random', wait=False):
     :param wait: if we want to wait for result. Default False
     :return: random dataset
     """
+
     frag_size = size[0] / num_frag
     if distribution == 'random':
         data = [_gen_random(size[1], frag_size, seed, frag_size * i)

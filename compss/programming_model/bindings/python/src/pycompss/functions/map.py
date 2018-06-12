@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 # -*- coding: utf-8 -*-
 
@@ -37,6 +37,7 @@ def map(*args):
     containing the corresponding items from all iterables (a kind of transpose
     operation). The iterable arguments may be a sequence or any iterable
     object. The result is always a list.
+
     :param args: items to apply function
     :return: list result
     """

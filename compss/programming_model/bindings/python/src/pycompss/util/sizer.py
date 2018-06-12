@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 # -*- coding: utf-8 -*-
 
@@ -35,21 +35,27 @@ except ImportError:
 
 
 def _dict_handler(d):
+    """
+    Dictionary to dictionary handler converter.
+
+    :param d: Dictionary
+    :return: Dictionary handler
+    """
     return chain.from_iterable(d.items())
 
 
 def total_sizeof(o, handlers=None, verbose=False):
     """
     Returns the approximate memory footprint an object and all of its contents.
-
     Automatically finds the contents of the following builtin containers and
     their subclasses:  tuple, list, deque, dict, set and frozenset.
     To search other containers, add handlers to iterate over their contents:
         handlers = {SomeContainerClass: iter, OtherContainerClass: OtherContainerClass.get_elements}
-    :param o:
-    :param handlers:
-    :param verbose:
-    :return:
+
+    :param o: Object to get its size
+    :param handlers: Handlers
+    :param verbose: Verbose mode [ True | False ] (default: False)
+    :return: <Integer> Total size of the object
     """
 
     # dict_handler = lambda d: chain.from_iterable(d.items())

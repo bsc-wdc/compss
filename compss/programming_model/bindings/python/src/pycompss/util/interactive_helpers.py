@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 # -*- coding: utf-8 -*-
 
@@ -46,9 +46,12 @@ def update_tasks_code_file(f, file_path):
         - functions
     Builds a file where the necessary contents for the worker are.
     Also updates the old code with the new if functions or tasks are redefined.
+
     :param f: new task function
     :param file_path: file where the code is stored
+    :return: None
     """
+
     if not os.path.exists(file_path):
         _create_tasks_code_file(file_path)
 
@@ -82,7 +85,9 @@ def update_tasks_code_file(f, file_path):
 def _create_tasks_code_file(file_path):
     """
     Creates a file where to store the user code.
+
     :param file_path: File location and name
+    :return: None
     """
 
     user_code_file = open(file_path, 'a')
@@ -100,10 +105,11 @@ def _create_tasks_code_file(file_path):
 
 def _get_raw_code():
     """
-    Retrieve the raw code from jupyter
-    :return: the list of the blocks defined by the user that are currently
-             loaded in globals
+    Retrieve the raw code from interactive session.
+
+    :return: the list of the blocks defined by the user that are currently loaded in globals
     """
+
     # globals()['In'] # is not in this scope
     # Retrieve the self of ipython where to look
     ipython = globals()['__builtins__']['get_ipython']()
@@ -117,9 +123,11 @@ def _get_raw_code():
 
 def _get_ipython_imports():
     """
-    Finds the user imports
+    Finds the user imports.
+
     :return: A list of imports: [import\n, import\n, ...]
     """
+
     raw_code = _get_raw_code()
     imports = []
     for i in raw_code:
@@ -135,9 +143,11 @@ def _get_ipython_imports():
 
 def _get_ipython_globals():
     """
-    Finds the user global variables
+    Finds the user global variables.
+
     :return: A list of lines: [var\n, var\n, ...]
     """
+
     raw_code = _get_raw_code()
     glob_lines = {}
     for i in raw_code:
@@ -156,12 +166,13 @@ def _get_ipython_globals():
 def _is_variable_assignation(line):
     """
     This function is used to check if a line of code represents a variable assignation:
-    * if contains a '=' (assignation) and does not start with import, nor @, nor def, nor class
-    * then it is ==> is a global variable assignation
+    * if contains a '=' (assignation) and does not start with import, nor @, nor def, nor class.
+    * then it is ==> is a global variable assignation.
 
     :param line: Line to parse
-    :return: Boolean
+    :return: <Boolean>
     """
+
     if '=' in line:
         parts = line.split()
         if not (line.startswith("from") or
@@ -182,10 +193,11 @@ def _is_variable_assignation(line):
 
 def _get_classes():
     """
-    Finds the user defined classes in the code
-    :return: A dictionary with the user classes code:
-             {'name': str(line\nline\n...)}
+    Finds the user defined classes in the code.
+
+    :return: A dictionary with the user classes code: {'name': str(line\nline\n...)}
     """
+
     raw_code = _get_raw_code()
     classes = {}
     for block in raw_code:
@@ -216,10 +228,11 @@ def _get_classes():
 
 def _get_functions():
     """
-    Finds the user defined functions in the code
-    :return: A dictionary with the user functions code:
-             {'name': str(line\nline\n...)}
+    Finds the user defined functions in the code.
+
+    :return: A dictionary with the user functions code: {'name': str(line\nline\n...)}
     """
+
     raw_code = _get_raw_code()
     functions = {}
     for block in raw_code:
@@ -262,7 +275,8 @@ def _get_functions():
 
 def _get_task_code(f):
     """
-    Finds the task code
+    Finds the task code.
+
     :param f: Task function
     :return: A dictionary with the task code: {'name': str(line\nline\n...)}
     """
@@ -284,6 +298,7 @@ def _clean(lines_list):
     """
     Removes the blank lines from a list of strings.
     * _get_old_code auxiliary method - Clean imports list.
+
     :param lines_list: List of strings
     :return: The list without '\n' strings.
     """
@@ -303,6 +318,7 @@ def _clean(lines_list):
 def _get_old_code(file_path):
     """
     Retrieve the old code from a file.
+
     :param file_path: The file where the code is located.
     :return: A dictionary with the imports and existing tasks.
     """
@@ -418,16 +434,20 @@ def _get_old_code(file_path):
     return {'imports': file_imports, 'globals': file_globals, 'classes': classes, 'functions': functions, 'tasks': tasks}
 
 
-# CODE UPDATE FUNCTIONS
+#########################
+# CODE UPDATE FUNCTIONS #
+#########################
 
 def _update_imports(new_imports, old_imports):
     """
     Compare the old imports against the new ones and returns the old imports
-    with the new imports that did not existed previously
-    :param new_imports: All new imports
-    :param old_imports: All old imports
+    with the new imports that did not existed previously.
+
+    :param new_imports: All new imports <Dictionary>
+    :param old_imports: All old imports  <Dictionary>
     :return: A list of imports as strings.
     """
+
     not_in_imports = []
     for i in new_imports:
         already = False
@@ -444,11 +464,13 @@ def _update_imports(new_imports, old_imports):
 def _update_globals(new_globals, old_globals):
     """
     Compare the old globals against the new ones and returns the old globals
-    with the new globals that did not existed previously
-    :param new_globals: All new globals
-    :param old_globals: All old globals
+    with the new globals that did not existed previously.
+
+    :param new_globals: All new globals <Dictionary>
+    :param old_globals: All old globals <Dictionary>
     :return: A list of globals as strings.
     """
+
     if len(old_globals) == 0:
         return new_globals
     else:
@@ -464,11 +486,12 @@ def _update_classes(new_classes, old_classes):
     Compare the old classes against the new ones. This function is essential
     due to the fact that a jupyter-notebook user may rewrite a function and
     the latest version is the one that needs to be kept.
+
     :param new_classes: dictionary containing all classes (last version)
     :param old_classes: dictionary containing the existing classes.
-    return: dictionary with the merging result (keeping all classes and
-            updating the old ones).
+    :return: dictionary with the merging result (keeping all classes and updating the old ones).
     """
+
     if len(old_classes) == 0:
         return new_classes
     else:
@@ -484,11 +507,12 @@ def _update_functions(new_functions, old_functions):
     Compare the old functions against the new ones. This function is essential
     due to the fact that a jupyter-notebook user may rewrite a function and
     the latest version is the one that needs to be kept.
+
     :param new_functions: dictionary containing all functions (last version)
     :param old_functions: dictionary containing the existing functions.
-    return: dictionary with the merging result (keeping all functions and
-            updating the old ones).
+    :return: dictionary with the merging result (keeping all functions and updating the old ones).
     """
+
     if len(old_functions) == 0:
         return new_functions
     else:
@@ -504,10 +528,12 @@ def _update_tasks(new_tasks, old_tasks):
     Compare the old tasks against the new ones. This function is essential due
     to the fact that a jupyter-notebook user may rewrite a task and the latest
     version is the one that needs to be kept.
+
     :param new_tasks: new tasks code
     :param old_tasks: existing tasks
-    return: dictionary with the merging result.
+    :return: dictionary with the merging result.
     """
+
     if not new_tasks:
         # when new_tasks is empty, means that the update was triggered by a class
         # task. No need to update as a tasks since the class has already been updated
@@ -520,20 +546,24 @@ def _update_tasks(new_tasks, old_tasks):
     return old_tasks
 
 
-# FILE UPDATE FUNCTIONS
+#########################
+# FILE UPDATE FUNCTIONS #
+#########################
 
 def _update_code_file(new_imports, new_globals, new_classes, new_functions, new_tasks,
                       file_path):
     """
     Writes the results to the code file used by the workers.
+
     :param new_imports: new imports
     :param new_globals: new global variables
     :param new_classes: new classes
     :param new_functions: new functions
     :param new_tasks: new tasks
     :param file_path: File to update.
-    :return:
+    :return: None
     """
+
     code_file = open(file_path, 'w')
     # Write imports
     for i in new_imports:

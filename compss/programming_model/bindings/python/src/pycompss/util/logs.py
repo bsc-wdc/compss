@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 # -*- coding: utf-8 -*-
 
@@ -35,8 +35,10 @@ CONFIG_FUNC = config.dictConfig
 def init_logging(log_config_file, storage_path):
     """
     Logging initialization.
-    @param log_config_file: Log file name.
-    @param storage_path: Json log files path.
+
+    :param log_config_file: Log file name.
+    :param storage_path: Json log files path.
+    :return: None
     """
 
     if os.path.exists(log_config_file):
@@ -54,7 +56,9 @@ def init_logging(log_config_file, storage_path):
 def init_logging_worker(log_config_file):
     """
     Worker logging initialization.
-    @param log_config_file: Log file name.
+
+    :param log_config_file: Log file name.
+    :return: None
     """
 
     if os.path.exists(log_config_file):

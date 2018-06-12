@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 # -*- coding: utf-8 -*-
 
@@ -37,7 +37,6 @@ except ImportError:
     def getByID(id):
         raise Exception('Unexpected call to getByID.')
 
-
     class TaskContext(object):
         def __init__(self, logger, values, config_file_path=None):
             self.logger = logger
@@ -60,9 +59,11 @@ storage_task_context = TaskContext  # Renamed for importing it from the worker
 def is_psco(obj):
     """
     Checks if obj is a persistent object (external storage).
+
     :param obj: Object to check
-    :return: Boolean
+    :return: <Boolean>
     """
+
     # Check from storage object requires a dummy storage object class
     # from storage.storage_object import storage_object
     # return issubclass(obj.__class__, storage_object) and get_id(obj) not in [None, 'None']
@@ -72,9 +73,11 @@ def is_psco(obj):
 def has_id(obj):
     """
     Checks if the object has a getID method.
+
     :param obj: Object to check
-    :return: Boolean
+    :return: <Boolean>
     """
+
     if 'getID' in dir(obj):
         return True
     else:
@@ -84,16 +87,20 @@ def has_id(obj):
 def get_id(psco):
     """
     Retrieve the persistent object identifier.
+
     :param psco: Persistent object
-    :return: Id
+    :return: <String> Id
     """
+
     return psco.getID()
 
 
 def get_by_id(id):
     """
     Retrieve the actual object from a persistent object identifier.
+
     :param id: Persistent object identifier
     :return: The object that corresponds to the id
     """
+
     return getByID(id)

@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 # -*- coding: utf-8 -*-
 
@@ -34,6 +34,13 @@ import gc
 
 
 def local(input_function):
+    """
+    Local decorator
+
+    :param input_function: Input function
+    :return: Wrapped function
+    """
+
     if not i_am_within_scope():
 
         # Return dummy local decorator

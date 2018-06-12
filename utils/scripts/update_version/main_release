@@ -4,7 +4,8 @@ usage() {
   exitValue=$1
 
   echo " "
-  echo "Usage ./main_release <NEW_VERSION>"
+  echo "Usage ./main_internal_release new_version"
+  echo "E.g. ./main_internal_release 2.2.rc1806"
   echo " "
 
   exit "$exitValue"
@@ -26,11 +27,14 @@ usage() {
   version=$1
 
 
+
+
   # Get base version from trunk
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   trunk_dir=${SCRIPT_DIR}/../../../
   baseVersion=$(cat "${trunk_dir}/pom.xml" | grep "compss.version" | tr ">" "\t" | awk '{ print $2 }' | tr "<" "\t" | awk '{ print $1 }')
 
+  echo "Updating COMPSs base version ${baseVersion} to ${version}"
 
   # Perform update process
   commitChanges="true"

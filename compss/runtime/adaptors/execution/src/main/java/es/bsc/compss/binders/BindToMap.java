@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.nio.worker.binders;
+package es.bsc.compss.binders;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,8 +29,8 @@ import java.util.List;
 
 import es.bsc.compss.log.Loggers;
 
-import es.bsc.compss.nio.worker.exceptions.InvalidMapException;
-import es.bsc.compss.nio.worker.exceptions.UnsufficientAvailableComputingUnitsException;
+import es.bsc.compss.exceptions.InvalidMapException;
+import es.bsc.compss.exceptions.UnsufficientAvailableComputingUnitsException;
 import es.bsc.compss.util.Tracer;
 
 

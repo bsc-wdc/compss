@@ -58,7 +58,7 @@ import es.bsc.compss.nio.dataRequest.WorkerDataRequest.TransferringTask;
 import es.bsc.compss.nio.exceptions.SerializedObjectException;
 import es.bsc.compss.nio.worker.components.DataManager;
 import es.bsc.compss.nio.worker.components.ExecutionManager;
-import es.bsc.compss.nio.worker.exceptions.InvalidMapException;
+import es.bsc.compss.exceptions.InvalidMapException;
 import es.bsc.compss.nio.worker.exceptions.InitializationException;
 import es.bsc.compss.nio.worker.util.ThreadPrintStream;
 import es.bsc.compss.nio.NIOTracer;

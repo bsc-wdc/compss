@@ -35,5 +35,6 @@
 		<module>gat</module>
 		<module>nio</module>
 		<module>ws</module>
+		<module>execution</module>
 	</modules>
 </project>

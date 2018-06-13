@@ -14,9 +14,9 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.nio.worker.binders;
+package es.bsc.compss.binders;
 
-import es.bsc.compss.nio.worker.exceptions.UnsufficientAvailableComputingUnitsException;
+import es.bsc.compss.exceptions.UnsufficientAvailableComputingUnitsException;
 
 
 /**
@@ -28,10 +28,9 @@ public class BindToResource implements ThreadBinder {
 
     private final int[] bindedComputingUnits;
 
-
     /**
      * Creates a new thread binder for unaware binds
-     * 
+     *
      * @param numThreads
      */
     public BindToResource(int numThreads) {
@@ -47,26 +46,26 @@ public class BindToResource implements ThreadBinder {
         int numAssignedCores = 0;
 
         // Assign free CUs to the job
-        if (numCUs>0){
-        	synchronized (this.bindedComputingUnits) {
-        		for (int coreId = 0; coreId < this.bindedComputingUnits.length; ++coreId) {
-        			if (this.bindedComputingUnits[coreId] == -1) {
-        				this.bindedComputingUnits[coreId] = jobId;
-        				assignedCoreUnits[numAssignedCores] = coreId;
-        				numAssignedCores++;
-        			}
-        			if (numAssignedCores == numCUs) {
-        				break;
-        			}
-        		}
+        if (numCUs > 0) {
+            synchronized (this.bindedComputingUnits) {
+                for (int coreId = 0; coreId < this.bindedComputingUnits.length; ++coreId) {
+                    if (this.bindedComputingUnits[coreId] == -1) {
+                        this.bindedComputingUnits[coreId] = jobId;
+                        assignedCoreUnits[numAssignedCores] = coreId;
+                        numAssignedCores++;
+                    }
+                    if (numAssignedCores == numCUs) {
+                        break;
+                    }
+                }
 
-        		// If the job doesn't have all the CUs it needs, it cannot run on occupied ones
-        		// Raise exception
-        		if (numAssignedCores != numCUs) {
-        			releaseComputingUnits(jobId);
-        			throw new UnsufficientAvailableComputingUnitsException("Not enough available computing units for task execution");
-        		}
-        	}
+                // If the job doesn't have all the CUs it needs, it cannot run on occupied ones
+                // Raise exception
+                if (numAssignedCores != numCUs) {
+                    releaseComputingUnits(jobId);
+                    throw new UnsufficientAvailableComputingUnitsException("Not enough available computing units for task execution");
+                }
+            }
         }
         return assignedCoreUnits;
     }

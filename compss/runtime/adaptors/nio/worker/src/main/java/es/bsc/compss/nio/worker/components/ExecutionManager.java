@@ -27,14 +27,13 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.worker.NIOWorker;
-import es.bsc.compss.nio.worker.binders.ThreadBinder;
-import es.bsc.compss.nio.worker.binders.Unbinded;
-import es.bsc.compss.nio.worker.binders.BindToMap;
-import es.bsc.compss.nio.worker.binders.BindToResource;
-import es.bsc.compss.nio.worker.exceptions.InvalidMapException;
+import es.bsc.compss.binders.ThreadBinder;
+import es.bsc.compss.binders.Unbinded;
+import es.bsc.compss.binders.BindToMap;
+import es.bsc.compss.binders.BindToResource;
+import es.bsc.compss.exceptions.InvalidMapException;
 import es.bsc.compss.nio.worker.exceptions.InitializationException;
-import es.bsc.compss.nio.worker.exceptions.UnsufficientAvailableComputingUnitsException;
-import es.bsc.compss.nio.worker.exceptions.UnsufficientAvailableCoresException;
+import es.bsc.compss.exceptions.UnsufficientAvailableComputingUnitsException;
 import es.bsc.compss.nio.worker.util.CThreadPool;
 import es.bsc.compss.nio.worker.util.ExternalThreadPool;
 import es.bsc.compss.nio.worker.util.JavaThreadPool;
@@ -61,7 +60,6 @@ public class ExecutionManager {
         FPGA // FPGA
     }
 
-
     /**
      * Instantiates a new task Execution Manager
      *
@@ -74,10 +72,9 @@ public class ExecutionManager {
      * @param fpgaMap
      * @param limitOfTasks
      * @throws InvalidMapException
-     * @throws IOException
      */
     public ExecutionManager(NIOWorker nw, int computingUnitsCPU, int computingUnitsGPU, int computingUnitsFPGA, String cpuMap,
-		String gpuMap, String fpgaMap, int limitOfTasks)
+            String gpuMap, String fpgaMap, int limitOfTasks)
             throws InvalidMapException {
 
         LOGGER.info("Instantiate Execution Manager");
@@ -102,7 +99,7 @@ public class ExecutionManager {
             case C:
                 if (NIOWorker.isPersistentEnabled()) {
                     this.pool = new PersistentCThreadPool(nw, numThreads);
-                }else{
+                } else {
                     this.pool = new CThreadPool(nw, numThreads);
                 }
                 break;
@@ -114,7 +111,7 @@ public class ExecutionManager {
         }
 
         // Instantiate CPU binders
-        LOGGER.debug("Instantiate CPU Binder with " + computingUnitsCPU +" CUs");
+        LOGGER.debug("Instantiate CPU Binder with " + computingUnitsCPU + " CUs");
         switch (cpuMap) {
             case NIOAgent.BINDER_DISABLED:
                 this.binderCPUs = new Unbinded();
@@ -130,7 +127,7 @@ public class ExecutionManager {
         }
 
         // Instantiate GPU Binders
-        LOGGER.debug("Instantiate GPU Binder with " + computingUnitsGPU +" CUs");
+        LOGGER.debug("Instantiate GPU Binder with " + computingUnitsGPU + " CUs");
         switch (gpuMap) {
             case NIOAgent.BINDER_DISABLED:
                 this.binderGPUs = new Unbinded();
@@ -145,7 +142,7 @@ public class ExecutionManager {
         }
 
         // Instantiate FPGA Binders
-        LOGGER.debug("Instantiate FPGA Binder with " + computingUnitsFPGA +" CUs");
+        LOGGER.debug("Instantiate FPGA Binder with " + computingUnitsFPGA + " CUs");
         switch (fpgaMap) {
             case NIOAgent.BINDER_DISABLED:
                 this.binderFPGAs = new Unbinded();
@@ -194,8 +191,9 @@ public class ExecutionManager {
      *
      * @param jobId
      * @param numCUs
+     * @param type
      * @return
-     * @throws UnsufficientAvailableCoresException
+     * @throws UnsufficientAvailableComputingUnitsException
      */
     public int[] bind(int jobId, int numCUs, BinderType type) throws UnsufficientAvailableComputingUnitsException {
         switch (type) {
@@ -213,6 +211,7 @@ public class ExecutionManager {
      * Release core units occupied by the job
      *
      * @param jobId
+     * @param type
      */
     public void release(int jobId, BinderType type) {
         switch (type) {
@@ -235,7 +234,7 @@ public class ExecutionManager {
             if (filename.startsWith("d") && filename.endsWith(".IT")) {
                 int index = filename.indexOf('_');
                 if (index > 0) {
-                	LOGGER.debug("calling remove");
+                    LOGGER.debug("calling remove");
                     ((ExternalThreadPool) this.pool).removeExternalData(filename);
                 }
 

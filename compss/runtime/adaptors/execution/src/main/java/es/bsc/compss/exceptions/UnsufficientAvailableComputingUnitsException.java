@@ -14,28 +14,26 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.nio.worker.binders;
+package es.bsc.compss.exceptions;
 
-import es.bsc.compss.nio.worker.exceptions.UnsufficientAvailableComputingUnitsException;
-
-
-public interface ThreadBinder {
+public class UnsufficientAvailableComputingUnitsException extends Exception {
 
     /**
-     * Binds @numCUs computing units of a @jobId
-     * 
-     * @param jobId
-     * @param numCUs
-     * @return
-     * @throws UnsufficientAvailableComputingUnitsException
+     * Exception Version UID are 2L in all Runtime
      */
-    public int[] bindComputingUnits(int jobId, int numCUs) throws UnsufficientAvailableComputingUnitsException;
+    private static final long serialVersionUID = 2L;
 
-    /**
-     * Releases the computing units previously requested by the job @jobId
-     * 
-     * @param jobId
-     */
-    public void releaseComputingUnits(int jobId);
+
+    public UnsufficientAvailableComputingUnitsException(String message) {
+        super(message);
+    }
+
+    public UnsufficientAvailableComputingUnitsException(Exception e) {
+        super(e);
+    }
+
+    public UnsufficientAvailableComputingUnitsException(String msg, Exception e) {
+        super(msg, e);
+    }
 
 }

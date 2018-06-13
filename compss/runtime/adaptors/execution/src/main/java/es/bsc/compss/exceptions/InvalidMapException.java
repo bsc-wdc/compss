@@ -14,30 +14,26 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.nio.worker.binders;
+package es.bsc.compss.exceptions;
 
-import es.bsc.compss.nio.worker.exceptions.UnsufficientAvailableComputingUnitsException;
-
-
-/**
- * Class for unbinded thread affinity
- *
- */
-public class Unbinded implements ThreadBinder {
+public class InvalidMapException extends Exception {
 
     /**
-     * Creates a new thread binder without any binding
+     * Exception Version UID are 2L in all Runtime
      */
-    public Unbinded() {
+    private static final long serialVersionUID = 2L;
+
+
+    public InvalidMapException(String message) {
+        super(message);
     }
 
-    @Override
-    public int[] bindComputingUnits(int jobId, int numCUs) throws UnsufficientAvailableComputingUnitsException {
-        return new int[] {};
+    public InvalidMapException(Exception e) {
+        super(e);
     }
 
-    @Override
-    public void releaseComputingUnits(int jobId) {
+    public InvalidMapException(String msg, Exception e) {
+        super(msg, e);
     }
 
 }

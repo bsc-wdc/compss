@@ -14,14 +14,14 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.nio.workers.binders.test;
+package es.bsc.compss.binders.test;
 
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import es.bsc.compss.nio.worker.binders.BindToMap;
-import es.bsc.compss.nio.worker.exceptions.InvalidMapException;
+import es.bsc.compss.binders.BindToMap;
+import es.bsc.compss.exceptions.InvalidMapException;
 
 
 public class MapTest {

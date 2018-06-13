@@ -1,3 +1,5 @@
+%undefine _missing_build_ids_terminate_build
+
 %define name	 	compss-autoparallel 
 %define version		2.2.rc1803
 %define release		1

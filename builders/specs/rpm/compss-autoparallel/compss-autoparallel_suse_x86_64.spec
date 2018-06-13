@@ -1,9 +1,9 @@
-%define name	 	compss-autoparallel
+%define name	 	compss-autoparallel 
 %define version		2.2.rc1803
 %define release		1
 
 Requires: compss-engine, compss-python-binding, automake, libtool, make, gcc-c++, gmp-devel, flex, bison, texinfo
-Summary: The PyCOMPSs AutoParallel module.
+Summary: The PyCOMPSs AutoParallel module
 Name: %{name}
 Version: %{version}
 Release: %{release}
@@ -28,11 +28,33 @@ The PyCOMPSs AutoParallel module
 echo "* Building PyCOMPSs AutoParallel..."
 echo " "
 
+echo "   - Copy deployment files"
+mkdir -p COMPSs/Dependencies/pluto_install
+cp -r pluto/* COMPSs/Dependencies/pluto_install/
+cp -r autoparallel COMPSs/Dependencies
+
+echo "   - Erase sources"
+ls . | grep -v COMPSs | xargs rm -r
+
 echo "PyCOMPSs AutoParallel built"
 echo " "
 
 #------------------------------------------------------------------------------------
 %install
+echo "* Installing PyCOMPSs AutoParallel..."
+  
+mkdir -p ${RPM_BUILD_ROOT}/opt/COMPSs/Dependencies/
+cp -r COMPSs/Dependencies/autoparallel ${RPM_BUILD_ROOT}/opt/COMPSs/Dependencies/
+cp -r COMPSs/Dependencies/pluto_install ${RPM_BUILD_ROOT}/opt/COMPSs/Dependencies/
+  
+echo "* Setting COMPSs C-Binding permissions..."
+chmod 755 -R ${RPM_BUILD_ROOT}/opt/COMPSs/Dependencies/
+  
+echo "DONE!"
+echo " "
+
+#------------------------------------------------------------------------------------
+%post 
 echo "* Installing PyCOMPSs AutoParallel..."
 
 # Find JAVA_HOME
@@ -65,35 +87,24 @@ export JAVA_LIB_DIR=${JAVA_LIB_DIR}
 
 # Install
 echo " - Creating structure..."
-mkdir -p ${RPM_BUILD_ROOT}/opt/COMPSs/Dependencies/
-mkdir -p ${RPM_BUILD_ROOT}/opt/COMPSs/Dependencies/pluto
+mkdir -p /opt/COMPSs/Dependencies/pluto
 
 echo "   - Configure AutoParallel..."
-cp -r autoparallel ${RPM_BUILD_ROOT}/opt/COMPSs/Dependencies/
+#cp -rf /opt/COMPSs/Dependencies/autoparallel /opt/COMPSs/Dependencies/
 
 echo "   - Configure, compile and install PLUTO"
-cd pluto
-./install_pluto ${RPM_BUILD_ROOT}/opt/COMPSs/Dependencies/pluto
-cd ..
+cd /opt/COMPSs/Dependencies/pluto_install
+./install_pluto /opt/COMPSs/Dependencies/pluto
+cd -
 
 echo " - Setting PyCOMPSs AutoParallel permissions..."
-chmod 755 -R ${RPM_BUILD_ROOT}/opt/COMPSs/Dependencies
+chmod 755 -R /opt/COMPSs/Dependencies/
 echo " - PyCOMPSs AutoParallel permissions set"
 echo " "
 
 echo "Congratulations!"
 echo "PyCOMPSs AutoParallel Successfully installed!"
 echo " "
-
-#------------------------------------------------------------------------------------
-%post 
-echo "* Installing PyCOMPSs AutoParallel..."
-echo " "
-
-echo "Congratulations!"
-echo "PyCOMPSs AutoParallel Successfully installed!"
-echo " "
-
 
 #------------------------------------------------------------------------------------
 %preun
@@ -114,4 +125,4 @@ rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/Dependencies/pluto
 %files 
 %defattr(-,root,root)
 /opt/COMPSs/Dependencies/autoparallel
-/opt/COMPSs/Dependencies/pluto
+/opt/COMPSs/Dependencies/pluto_install

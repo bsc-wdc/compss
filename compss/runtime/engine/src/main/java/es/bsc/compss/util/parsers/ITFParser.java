@@ -138,8 +138,16 @@ public class ITFParser {
         /*
          * Register all implementations
          */
-        CoreManager.registerNewImplementations(methodId, implementations, signatures);
-
+        
+        final String ERROR_ITF = "[ERROR] Impossible to parse the method " + "'" + methodName + "' check your Itf file.";
+        
+        try {
+        	CoreManager.registerNewImplementations(methodId, implementations, signatures);
+        }
+        catch (RuntimeException e) {
+        	ErrorManager.fatal(ERROR_ITF, e); 
+        }
+        
         /*
          * Returns the assigned methodId
          */

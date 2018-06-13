@@ -621,7 +621,7 @@ def get_input_params(num_params, logger, args, process_name):
                 po = p_value
                 pre_pipeline.append((po, len(values)))
             else:
-                po = get_by_id(pValue)
+                po = get_by_id(p_value)
             values.append(po)
             pos += 1  # Skip info about direction (R, W)
         elif p_type == TYPE.STRING:

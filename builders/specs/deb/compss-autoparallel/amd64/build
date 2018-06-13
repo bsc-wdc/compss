@@ -3,16 +3,8 @@
   trunk_rel_path=../../../../
   COMPSs_target=$(pwd)/tmp/opt/COMPSs
 
-  if [ -z "$JAVA_HOME" ]; then
-    echo "Please define \$JAVA_HOME"
-    exit 1
-  fi
-
-  cp -r ${trunk_rel_path}/dependencies/autoparallel "${COMPSs_target}"/Dependencies
-
-  cd ${trunk_rel_path}/dependencies/pluto
-  ./install_pluto "${COMPSs_target}"/Dependencies/pluto
-  cd "${SCRIPT_DIR}"
+  cp -r ${trunk_rel_path}/dependencies/autoparallel "${COMPSs_target}"/Dependencies/autoparallel
+  cp -r ${trunk_rel_path}/dependencies/pluto "${COMPSs_target}"/Dependencies/pluto_install
 
   find "${COMPSs_target}"/Dependencies -name ".git*" -print0 -exec rm -rf {} \; # Clean git files
 

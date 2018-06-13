@@ -9,10 +9,24 @@
      # $1 -> python version (2 or 3)
      packages_folder=$( $1 -c "import site
 if hasattr(site, 'getsitepackages'):
-    # normal execution
-    print(site.getsitepackages()[0])
+    # Normal execution
+    import os
+    if os.getuid() == 0:
+        # Sudo installation
+        packages = site.getsitepackages()[0]
+        if isinstance(packages, list):
+            print(packages[0])
+        else:
+            print(packages)
+    else:
+        # User installation
+        packages = site.getusersitepackages()
+        if isinstance(packages, list):
+            print(packages[0])
+        else:
+            print(packages)
 else:
-    # workaround for virtualenv
+    # Workaround for virtualenv
     from distutils.sysconfig import get_python_lib
     print([get_python_lib()][0])
 " )
@@ -45,6 +59,12 @@ else:
     
     echo "Looking for package where to place the symbolic links."
     get_packages_folder python${version}
+
+    echo "Checking if the folder exists."
+    if [ ! -d "${packages_folder}" ]; then
+        echo "Could not find folder: ${packages_folder} - Creating it."
+        mkdir -p ${packages_folder}
+    fi
 
     # Setup a symbolic link to pycompss
     ln -sfn ${origin}/pycompss ${packages_folder}/pycompss

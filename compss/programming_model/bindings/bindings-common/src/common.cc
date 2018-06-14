@@ -30,12 +30,12 @@ int PERSISTENT = 0;
 void init_env_vars() {
     char* dbg_str = getenv("COMPSS_BINDINGS_DEBUG");
     if (dbg_str != NULL && strcmp(dbg_str,"1")==0 ) {
-        printf("Binding debug is activated activated");
+        printf("Binding debug is activated\n");
         DEBUG = 1;
     }
     char* pers_str = getenv("COMPSS_PERSISTENT_BINDING");
     if (pers_str != NULL && strcmp(pers_str,"1")==0) {
-        printf("Binding persistent is activated activated");
+        printf("Binding persistent is activated\n");
         PERSISTENT = 1;
     }
 }

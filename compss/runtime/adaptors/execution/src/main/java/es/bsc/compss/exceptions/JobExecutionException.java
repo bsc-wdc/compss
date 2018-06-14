@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.nio.exceptions;
+package es.bsc.compss.exceptions;
 
 public class JobExecutionException extends Exception {
 

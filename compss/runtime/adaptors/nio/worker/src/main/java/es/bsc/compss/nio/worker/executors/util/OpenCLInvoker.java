@@ -18,9 +18,9 @@ package es.bsc.compss.nio.worker.executors.util;
 
 import java.io.File;
 
-import es.bsc.compss.nio.NIOTask;
-import es.bsc.compss.nio.exceptions.JobExecutionException;
+import es.bsc.compss.exceptions.JobExecutionException;
 import es.bsc.compss.nio.worker.NIOWorker;
+import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.implementations.OpenCLImplementation;
 
 
@@ -28,8 +28,7 @@ public class OpenCLInvoker extends Invoker {
 
     private final String kernel;
 
-
-    public OpenCLInvoker(NIOWorker nw, NIOTask nt, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
+    public OpenCLInvoker(NIOWorker nw, Invocation nt, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
         super(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
 
         // Get method definition properties

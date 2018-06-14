@@ -19,10 +19,10 @@ package es.bsc.compss.nio.worker.executors.util;
 import java.io.File;
 
 import es.bsc.compss.exceptions.InvokeExecutionException;
-import es.bsc.compss.nio.NIOTask;
-import es.bsc.compss.nio.exceptions.JobExecutionException;
+import es.bsc.compss.exceptions.JobExecutionException;
 import es.bsc.compss.nio.worker.NIOWorker;
 import es.bsc.compss.types.annotations.Constants;
+import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.implementations.DecafImplementation;
 import es.bsc.compss.worker.invokers.GenericInvoker;
 
@@ -39,7 +39,7 @@ public class DecafInvoker extends Invoker {
     private String dfLib;
 
 
-    public DecafInvoker(NIOWorker nw, NIOTask nt, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
+    public DecafInvoker(NIOWorker nw, Invocation nt, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
         super(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
 
         // Get method definition properties

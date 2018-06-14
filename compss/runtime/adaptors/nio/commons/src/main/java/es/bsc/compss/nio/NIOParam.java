@@ -19,6 +19,7 @@ package es.bsc.compss.nio;
 import es.bsc.compss.nio.commands.Data;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.execution.InvocationParam;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -26,7 +27,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 
-public class NIOParam implements Externalizable {
+public class NIOParam implements Externalizable, InvocationParam {
 
     private DataType type;
     private Stream stream;
@@ -38,14 +39,13 @@ public class NIOParam implements Externalizable {
     private Data data;
     private String originalName;
 
-
     public NIOParam() {
         // Only executed by externalizable
     }
 
     public NIOParam(DataType type, Stream stream, String prefix, boolean preserveSourceData, boolean writeFinalValue, Object value,
             Data data, String originalName) {
-        
+
         this.type = type;
         this.stream = stream;
         this.prefix = prefix;
@@ -56,22 +56,27 @@ public class NIOParam implements Externalizable {
         this.originalName = originalName;
     }
 
+    @Override
     public DataType getType() {
         return this.type;
     }
 
+    @Override
     public Stream getStream() {
         return this.stream;
     }
 
+    @Override
     public String getPrefix() {
         return this.prefix;
     }
 
+    @Override
     public boolean isPreserveSourceData() {
         return this.preserveSourceData;
     }
 
+    @Override
     public boolean isWriteFinalValue() {
         return this.writeFinalValue;
     }
@@ -80,18 +85,22 @@ public class NIOParam implements Externalizable {
         return this.data;
     }
 
+    @Override
     public Object getValue() {
         return this.value;
     }
 
+    @Override
     public void setType(DataType type) {
         this.type = type;
     }
 
+    @Override
     public void setValue(Object o) {
         this.value = o;
     }
 
+    @Override
     public String getOriginalName() {
         return this.originalName;
     }

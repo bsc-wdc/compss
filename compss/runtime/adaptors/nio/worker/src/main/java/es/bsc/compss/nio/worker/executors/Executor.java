@@ -34,7 +34,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.NIOTracer;
-import es.bsc.compss.nio.exceptions.JobExecutionException;
+import es.bsc.compss.exceptions.JobExecutionException;
 import es.bsc.compss.nio.worker.NIOWorker;
 import es.bsc.compss.nio.worker.components.ExecutionManager.BinderType;
 import es.bsc.compss.nio.worker.util.JobsThreadPool;

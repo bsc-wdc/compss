@@ -16,6 +16,17 @@
  */
 package es.bsc.compss.nio.worker.executors.util;
 
+import es.bsc.compss.exceptions.JobExecutionException;
+import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
+import es.bsc.compss.types.annotations.Constants;
+import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.execution.Invocation;
+import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.util.Tracer;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -25,20 +36,8 @@ import java.util.Iterator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import es.bsc.compss.log.Loggers;
-
-import es.bsc.compss.nio.NIOParam;
-import es.bsc.compss.nio.NIOTask;
-import es.bsc.compss.nio.NIOTracer;
-import es.bsc.compss.nio.exceptions.JobExecutionException;
 import es.bsc.compss.nio.exceptions.SerializedObjectException;
 import es.bsc.compss.nio.worker.NIOWorker;
-
-import es.bsc.compss.types.implementations.AbstractMethodImplementation;
-import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
-import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Stream;
 
 import storage.StorageException;
 import storage.StubItf;
@@ -58,7 +57,7 @@ public abstract class Invoker {
 
 
     protected final NIOWorker nw;
-    protected final NIOTask nt;
+    protected final Invocation nt;
     protected final File taskSandboxWorkingDir;
     protected final int[] assignedCoreUnits;
     private final boolean debug;
@@ -80,8 +79,7 @@ public abstract class Invoker {
     protected final TargetParam target;
     private Object retValue;
 
-
-    public Invoker(NIOWorker nw, NIOTask nt, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
+    public Invoker(NIOWorker nw, Invocation nt, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
         this.nw = nw;
         this.nt = nt;
         this.taskSandboxWorkingDir = taskSandboxWorkingDir;
@@ -89,7 +87,7 @@ public abstract class Invoker {
 
         this.debug = NIOWorker.isWorkerDebugEnabled();
 
-        /* Task information **************************************** */
+        /* Invocation information **************************************** */
         this.methodType = nt.getMethodType();
         this.impl = nt.getMethodImplementation();
         this.hasTarget = nt.hasTarget();
@@ -98,7 +96,7 @@ public abstract class Invoker {
 
         /* Parameters information ********************************** */
         this.totalNumberOfParams = this.hasTarget ? this.numParams - 1 : this.numParams; // Don't count target if needed
-                                                                                         // (i.e. obj.func())
+        // (i.e. obj.func())
         this.types = new Class[this.totalNumberOfParams];
         this.values = new Object[this.totalNumberOfParams];
         this.streams = new Stream[this.numParams];
@@ -111,9 +109,9 @@ public abstract class Invoker {
         this.target = new TargetParam();
 
         /* Parse the parameters ************************************ */
-        Iterator<NIOParam> params = nt.getParams().iterator();
+        Iterator<? extends InvocationParam> params = nt.getParams().iterator();
         for (int i = 0; i < this.numParams; i++) {
-            NIOParam np = params.next();
+            InvocationParam np = params.next();
             processParameter(np, i);
         }
 
@@ -168,14 +166,14 @@ public abstract class Invoker {
     public void serializeBinaryExitValue() throws JobExecutionException {
         LOGGER.debug("Checking binary exit value serialization");
 
-        NIOParam lastParam = nt.getParams().getLast();
+        InvocationParam lastParam = nt.getParams().getLast();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("- Param Type: " + lastParam.getType().name());
             LOGGER.debug("- Preserve source data: " + lastParam.isPreserveSourceData());
             LOGGER.debug("- Write final value: " + lastParam.isWriteFinalValue());
             LOGGER.debug("- Prefix: " + lastParam.getPrefix());
         }
-        
+
         // Last parameter is a FILE, direction OUT, with skip prefix => return in Python
         if (lastParam.getType().equals(DataType.FILE_T) && !lastParam.isPreserveSourceData() && lastParam.isWriteFinalValue()
                 && lastParam.getPrefix().equals(Constants.PREFIX_SKIP)) {
@@ -183,7 +181,7 @@ public abstract class Invoker {
             // Write exit value to the file
             String renaming = lastParam.getOriginalName();
             LOGGER.info("Writing Binary Exit Value (" + this.retValue.toString() + ") to " + renaming);
-            
+
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(renaming))) {
                 String value = "0000I" + this.retValue.toString() + "\n.\n";
                 writer.write(value);
@@ -194,7 +192,7 @@ public abstract class Invoker {
         }
     }
 
-    private void processParameter(NIOParam np, int i) throws JobExecutionException {
+    private void processParameter(InvocationParam np, int i) throws JobExecutionException {
         // We need to use wrapper classes for basic types, reflection will unwrap automatically
         this.streams[i] = np.getStream();
         this.prefixes[i] = np.getPrefix();
@@ -374,8 +372,10 @@ public abstract class Invoker {
                     } else {
                         this.values[i] = id;
                     }
-                    this.nt.getParams().get(i).setType(DataType.PSCO_T);
-                    this.nt.getParams().get(i).setValue(id);
+
+                    InvocationParam np = this.nt.getParams().get(i);
+                    np.setType(DataType.PSCO_T);
+                    np.setValue(id);
 
                     // We set it as non writable because we have already stored it
                     this.writeFinalValue[i] = false;
@@ -397,9 +397,10 @@ public abstract class Invoker {
 
             // Update to PSCO if needed
             if (id != null) {
+                InvocationParam np = this.nt.getParams().getLast();
                 // Object has been persisted
-                this.nt.getParams().getLast().setType(DataType.PSCO_T);
-                this.nt.getParams().getLast().setValue(id);
+                np.setType(DataType.PSCO_T);
+                np.setValue(id);
             }
         }
     }
@@ -408,14 +409,15 @@ public abstract class Invoker {
         // Write to disk the updated object parameters, if any (including the target)
         for (int i = 0; i < this.numParams; i++) {
             if (this.writeFinalValue[i]) {
-                switch (this.nt.getParams().get(i).getType()) {
+                InvocationParam np = this.nt.getParams().get(i);
+                switch (np.getType()) {
                     case FILE_T:
-                        this.nw.storeObject(renamings[i], this.nt.getParams().get(i).getValue());
+                        this.nw.storeObject(renamings[i], np.getValue());
                         break;
                     default:
                         // Update task parameters for TaskResult command
                         Object res = (this.hasTarget && i == this.numParams - 1) ? this.target.getValue() : this.values[i];
-                        this.nt.getParams().get(i).setValue(res);
+                        np.setValue(res);
                         this.nw.storeObject(renamings[i], res);
                 }
 
@@ -446,21 +448,21 @@ public abstract class Invoker {
     }
 
     private void emitStartTask() {
-        int taskType = this.nt.getTaskType() + 1; // +1 Because Task ID can't be 0 (0 signals end task)
+        int taskType = this.nt.getTaskType() + 1; // +1 Because Invocation ID can't be 0 (0 signals end task)
         int taskId = this.nt.getTaskId();
 
         // TRACING: Emit start task
-        if (NIOTracer.isActivated()) {
-            NIOTracer.emitEventAndCounters(taskType, NIOTracer.getTaskEventsType());
-            NIOTracer.emitEvent(taskId, NIOTracer.getTaskSchedulingType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEventAndCounters(taskType, Tracer.getTaskEventsType());
+            Tracer.emitEvent(taskId, Tracer.getTaskSchedulingType());
         }
     }
 
     private void emitEndTask() {
         // TRACING: Emit end task
-        if (NIOTracer.isActivated()) {
-            NIOTracer.emitEventAndCounters(NIOTracer.EVENT_END, NIOTracer.getTaskEventsType());
-            NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskSchedulingType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEventAndCounters(Tracer.EVENT_END, Tracer.getTaskEventsType());
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTaskSchedulingType());
         }
     }
 

@@ -20,7 +20,7 @@ import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.NIOTracer;
-import es.bsc.compss.nio.exceptions.JobExecutionException;
+import es.bsc.compss.exceptions.JobExecutionException;
 import es.bsc.compss.nio.exceptions.SerializedObjectException;
 import es.bsc.compss.nio.worker.NIOWorker;
 import es.bsc.compss.nio.worker.executors.util.BinaryInvoker;

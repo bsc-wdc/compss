@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.nio;
 
+import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.job.Job.JobHistory;
@@ -33,7 +34,7 @@ import java.util.List;
 /**
  * Representation of a Task *
  */
-public class NIOTask implements Externalizable {
+public class NIOTask implements Externalizable, Invocation {
 
     private String lang;
     private boolean workerDebug;
@@ -51,7 +52,6 @@ public class NIOTask implements Externalizable {
     private int numParams;
     private int numReturns;
 
-
     /**
      * New NIO Task
      */
@@ -61,7 +61,7 @@ public class NIOTask implements Externalizable {
 
     /**
      * Creates a new task instance with the given parameters
-     * 
+     *
      * @param lang
      * @param workerDebug
      * @param impl
@@ -99,7 +99,7 @@ public class NIOTask implements Externalizable {
 
     /**
      * Returns the task lang
-     * 
+     *
      * @return
      */
     public String getLang() {
@@ -108,7 +108,7 @@ public class NIOTask implements Externalizable {
 
     /**
      * Returns if the worker debug is enabled or not
-     * 
+     *
      * @return
      */
     public boolean isWorkerDebug() {
@@ -117,16 +117,17 @@ public class NIOTask implements Externalizable {
 
     /**
      * Returns the method type
-     * 
+     *
      * @return
      */
+    @Override
     public MethodType getMethodType() {
         return this.impl.getMethodType();
     }
 
     /**
      * Returns the method definition
-     * 
+     *
      * @return
      */
     public String getMethodDefinition() {
@@ -135,7 +136,7 @@ public class NIOTask implements Externalizable {
 
     /**
      * Returns the method implementation type
-     * 
+     *
      * @return
      */
     public AbstractMethodImplementation getMethodImplementation() {
@@ -144,7 +145,7 @@ public class NIOTask implements Externalizable {
 
     /**
      * Returns if the task has target or not
-     * 
+     *
      * @return
      */
     public boolean hasTarget() {
@@ -153,7 +154,7 @@ public class NIOTask implements Externalizable {
 
     /**
      * Returns if the task has return value or not
-     * 
+     *
      * @return
      */
     public boolean hasReturn() {
@@ -162,7 +163,7 @@ public class NIOTask implements Externalizable {
 
     /**
      * Returns the number of return parameters of the task
-     * 
+     *
      * @return
      */
     public int getNumReturns() {
@@ -171,7 +172,7 @@ public class NIOTask implements Externalizable {
 
     /**
      * Returns the number of parameters of the task
-     * 
+     *
      * @return
      */
     public int getNumParams() {
@@ -180,34 +181,37 @@ public class NIOTask implements Externalizable {
 
     /**
      * Returns the task parameters
-     * 
+     *
      * @return
      */
+    @Override
     public LinkedList<NIOParam> getParams() {
         return this.params;
     }
 
     /**
      * Returns the task id
-     * 
+     *
      * @return
      */
+    @Override
     public int getTaskId() {
         return this.taskId;
     }
 
     /**
      * Returns the task type
-     * 
+     *
      * @return
      */
+    @Override
     public int getTaskType() {
         return this.taskType;
     }
 
     /**
      * Returns the job id
-     * 
+     *
      * @return
      */
     public int getJobId() {
@@ -216,7 +220,7 @@ public class NIOTask implements Externalizable {
 
     /**
      * Returns the job history
-     * 
+     *
      * @return
      */
     public JobHistory getHist() {
@@ -225,7 +229,7 @@ public class NIOTask implements Externalizable {
 
     /**
      * Returns the transfer group id
-     * 
+     *
      * @return
      */
     public int getTransferGroupId() {
@@ -234,7 +238,7 @@ public class NIOTask implements Externalizable {
 
     /**
      * Returns the resource description needed for the task execution
-     * 
+     *
      * @return
      */
     public MethodResourceDescription getResourceDescription() {
@@ -243,7 +247,7 @@ public class NIOTask implements Externalizable {
 
     /**
      * Returns the slave workers node names
-     * 
+     *
      * @return
      */
     public List<String> getSlaveWorkersNodeNames() {

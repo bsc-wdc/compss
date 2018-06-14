@@ -18,7 +18,7 @@ package es.bsc.compss.nio.worker.executors;
 
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.NIOTracer;
-import es.bsc.compss.nio.exceptions.JobExecutionException;
+import es.bsc.compss.exceptions.JobExecutionException;
 import es.bsc.compss.nio.worker.NIOWorker;
 import es.bsc.compss.nio.worker.util.ExternalTaskStatus;
 import es.bsc.compss.nio.worker.util.JobsThreadPool;

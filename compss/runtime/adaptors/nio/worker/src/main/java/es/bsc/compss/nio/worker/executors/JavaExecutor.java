@@ -16,10 +16,11 @@
  */
 package es.bsc.compss.nio.worker.executors;
 
+import es.bsc.compss.COMPSsConstants;
 import java.io.File;
 
 import es.bsc.compss.nio.NIOTask;
-import es.bsc.compss.nio.exceptions.JobExecutionException;
+import es.bsc.compss.exceptions.JobExecutionException;
 import es.bsc.compss.nio.worker.NIOWorker;
 import es.bsc.compss.nio.worker.executors.util.BinaryInvoker;
 import es.bsc.compss.nio.worker.executors.util.DecafInvoker;
@@ -28,6 +29,7 @@ import es.bsc.compss.nio.worker.executors.util.JavaInvoker;
 import es.bsc.compss.nio.worker.executors.util.MPIInvoker;
 import es.bsc.compss.nio.worker.executors.util.OmpSsInvoker;
 import es.bsc.compss.nio.worker.executors.util.OpenCLInvoker;
+import es.bsc.compss.nio.worker.executors.util.StorageInvoker;
 import es.bsc.compss.nio.worker.util.JobsThreadPool;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
@@ -67,7 +69,11 @@ public class JavaExecutor extends Executor {
             Invoker invoker = null;
             switch (methodType) {
                 case METHOD:
-                    invoker = new JavaInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
+                    if (NIOWorker.getExecutionType().equals(COMPSsConstants.EXECUTION_INTERNAL)) {
+                        invoker = new JavaInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
+                    } else {
+                        invoker = new StorageInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
+                    }
                     break;
                 case MPI:
                     invoker = new MPIInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
@@ -104,7 +110,7 @@ public class JavaExecutor extends Executor {
         // Nothing to do since everything is deleted in each task execution
         LOGGER.info("Executor finished");
     }
-    
+
     @Override
     public void start() {
         // Nothing to do since everything is deleted in each task execution

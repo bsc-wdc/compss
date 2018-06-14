@@ -15,10 +15,10 @@ Vendor: Barcelona Supercomputing Center - Centro Nacional de Supercomputación
 URL: http://compss.bsc.es
 Packager: COMPSs Support <support-compss@bsc.es>
 Prefix: /opt
-BuildArch: noarch
+ExclusiveArch: x86_64
 
 %description
-The BSC COMP Superscalar Storage Implementations for COMPSs Runtime.
+The BSC COMP Superscalar Tools for COMPSs Runtime.
 
 %prep
 %setup -q
@@ -26,9 +26,7 @@ The BSC COMP Superscalar Storage Implementations for COMPSs Runtime.
 #------------------------------------------------------------------------------------
 %build
 
-
 mkdir -p COMPSs/Tools/storage
-
 echo "* Compiling storage implementations..."
 
 # Compile Redis, make API bundle
@@ -41,6 +39,8 @@ cd -
 echo " - Moving Redis to final location..."
 cp -r storage/redisPSCO/COMPSs-Redis-bundle COMPSs/Tools/storage/redis
 
+
+
 #------------------------------------------------------------------------------------
 %install
 %define _unpackaged_files_terminate_build 0
@@ -49,6 +49,8 @@ echo "* Installing COMPSs storage implementations..."
 mkdir -p $RPM_BUILD_ROOT/opt/COMPSs/Tools/storage
 cp -rf COMPSs/Tools/storage $RPM_BUILD_ROOT/opt/COMPSs/Tools/storage
 chmod 775 $RPM_BUILD_ROOT/opt/COMPSs/Tools/storage
+
+
 
 #------------------------------------------------------------------------------------
 %post

@@ -34,6 +34,13 @@ import gc
 
 
 def local(input_function):
+    """
+    Local decorator
+
+    :param input_function: Input function
+    :return: Wrapped function
+    """
+
     if not i_am_within_scope():
 
         # Return dummy local decorator

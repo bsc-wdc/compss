@@ -31,24 +31,25 @@ import imp
 def is_module_available(module_name):
     """
     Checks if a module is available in the current Python installation.
-    @param module_name: Name of the module
-    @return: Boolean -> True if the module is available, False otherwise
+
+    :param module_name: Name of the module
+    :return: Boolean -> True if the module is available, False otherwise
     """
 
     try:
         imp.find_module(module_name)
         return True
-    except Exception:
+    except ImportError:
         return False
 
 
 def is_basic_iterable(obj):
     """
     Checks if an object is a basic iterable.
-    By basic iterable we want to mean objects that are iterable and from
-    a basic type.
-    @param obj: Object to be analysed
-    @return: Boolean -> True if obj is a basic iterable (see list below), False otherwise
+    By basic iterable we want to mean objects that are iterable and from a basic type.
+
+    :param obj: Object to be analysed
+    :return: Boolean -> True if obj is a basic iterable (see list below), False otherwise
     """
 
     return isinstance(obj, (list, tuple, bytearray, buffer, range, set, frozenset, dict))
@@ -56,11 +57,11 @@ def is_basic_iterable(obj):
 
 def object_belongs_to_module(obj, module_name):
     """
-    Checks if a given object belongs to a given module
-    (or some sub-module).
-    @param obj: Object to be analysed
-    @param module_name: Name of the module we want to check
-    @return: Boolean -> True if obj belongs to the given module, False otherwise
+    Checks if a given object belongs to a given module (or some sub-module).
+
+    :param obj: Object to be analysed
+    :param module_name: Name of the module we want to check
+    :return: Boolean -> True if obj belongs to the given module, False otherwise
     """
 
     return any(module_name == x for x in type(obj).__module__.split('.'))
@@ -78,8 +79,8 @@ def get_object_hierarchy(obj):
     Anyway, this will cover almost all the common Python codes one can find, even in
     scientific environments.
 
-    @param obj: Object to be analysed
-    @yield: An integer with the id of an object from the object hierarchy of obj
+    :param obj: Object to be analysed
+    :return: Yields an integer with the id of an object from the object hierarchy of obj
     """
 
     object_stack = [obj]
@@ -104,9 +105,10 @@ def has_subobjects_of_module(obj, module_name):
     that, in Python, there are some objects that, when iterated,
     change in some way. For example, file objects move their
     pointer when iterated.
-    @param obj: Object to be analysed
-    @param module_name: Name of the module we want to check
-    @return: Boolean -> True if obj or some subobject belongs to the given module, False otherwise
+
+    :param obj: Object to be analysed
+    :param module_name: Name of the module we want to check
+    :return: Boolean -> True if obj or some subobject belongs to the given module, False otherwise
     """
 
     if not is_module_available(module_name):
@@ -119,10 +121,10 @@ def has_subobjects_of_module(obj, module_name):
 
 def has_numpy_objects(obj):
     """
-    Checks if the given object is a numpy object or
-    some of its subojects are.
-    @param obj: An object
-    @return: Boolean -> True if obj is a numpy objects (or some of
+    Checks if the given object is a numpy object or some of its subojects are.
+
+    :param obj: An object
+    :return: Boolean -> True if obj is a numpy objects (or some of
     its subobjects). False otherwise
     """
 

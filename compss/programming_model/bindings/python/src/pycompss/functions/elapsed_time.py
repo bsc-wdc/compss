@@ -31,8 +31,8 @@ import time
 def timeit(func, *a, **k):
     """
     Elapsed time decorator.
-    :param func: Function to be measured (can be a decorated function,
-     usually with @task decorator).
+
+    :param func: Function to be measured (can be a decorated function, usually with @task decorator).
     :param a: args
     :param k: kwargs
     :return: a list with [the function result, The elapsed time]

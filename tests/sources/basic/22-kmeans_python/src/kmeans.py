@@ -9,7 +9,7 @@ PyCOMPSs Testbench KMeans
 
 # Imports
 from pycompss.api.task import task
-from pycompss.functions.reduce import mergeReduce
+from pycompss.functions.reduce import merge_reduce
 
 import random
 
@@ -126,7 +126,7 @@ def kmeans_frag(numV, k, dim, epsilon, maxIterations, numFrag):
         partialResult = [partial_sum(
             X[f], clusters[f], f * size) for f in range(numFrag)]
 
-        mu = mergeReduce(reduceCentersTask, partialResult)
+        mu = merge_reduce(reduceCentersTask, partialResult)
         mu = compss_wait_on(mu)
         mu = [mu[c][1] / mu[c][0] for c in mu]
         print(mu)

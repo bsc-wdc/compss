@@ -33,7 +33,7 @@ from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.serializer import *
 from pycompss.util.sizer import total_sizeof
-from pycompss.util.persistent_storage import is_PSCO, get_ID, get_by_ID
+from pycompss.util.persistent_storage import is_psco, get_id, get_by_id
 
 import types
 import os
@@ -54,8 +54,7 @@ import compss
 
 # Types conversion dictionary from python to COMPSs
 if IS_PYTHON3:
-    python_to_compss = {int: TYPE.INT,       # int
-                        int: TYPE.LONG,      # long
+    python_to_compss = {int: TYPE.INT,       # int # long
                         float: TYPE.DOUBLE,  # float
                         bool: TYPE.BOOLEAN,  # bool
                         str: TYPE.STRING,  # str
@@ -183,7 +182,8 @@ logger = logging.getLogger(__name__)
 # ##############################################################################
 # ############################ CLASSES #########################################
 # ##############################################################################
-class FunctionType:
+
+class FunctionType(object):
     """
     Used as enum to identify the function type
     """
@@ -218,6 +218,8 @@ def start_runtime():
     """
     Starts the runtime by calling the external python library that calls
     the bindings-common.
+
+    :return: None
     """
 
     if __debug__:
@@ -232,6 +234,8 @@ def stop_runtime():
     Stops the runtime by calling the external python library that calls
     the bindings-common.
     Also cleans objects and temporary files created during runtime.
+
+    :return: None
     """
 
     if __debug__:
@@ -304,20 +308,20 @@ def delete_object(obj):
 
     try:
         id2obj.pop(obj_id)
-    except Exception:
+    except KeyError:
         pass
     try:
         file_name = objid_to_filename[obj_id]
         compss.delete_file(file_name)
-    except Exception:
+    except KeyError:
         pass
     try:
         objid_to_filename.pop(obj_id)
-    except Exception:
+    except KeyError:
         pass
     try:
         pending_to_synchronize.pop(obj_id)
-    except Exception:
+    except KeyError:
         pass
     return True
 
@@ -329,7 +333,7 @@ def barrier(no_more_tasks=False):
     Wait for all tasks.
 
     :param no_more_tasks:
-    :return:
+    :return: None
     """
 
     if __debug__:
@@ -368,67 +372,67 @@ def register_ce(core_element):
 
         // METHOD
         System.out.println('Registering METHOD implementation');
-        String coreElementSignature = 'methodClass.methodName';
-        String implSignature = 'methodClass.methodName';
-        String implConstraints = 'ComputingUnits:2';
-        String implType = 'METHOD';
-        String[] implTypeArgs = new String[] { 'methodClass', 'methodName' };
-        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
+        String core_elementSignature = 'methodClass.methodName';
+        String impl_signature = 'methodClass.methodName';
+        String impl_constraints = 'ComputingUnits:2';
+        String impl_type = 'METHOD';
+        String[] impl_type_args = new String[] { 'methodClass', 'methodName' };
+        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);
 
         // MPI
         System.out.println('Registering MPI implementation');
-        coreElementSignature = 'methodClass1.methodName1';
-        implSignature = 'mpi.MPI';
-        implConstraints = 'StorageType:SSD';
-        implType = 'MPI';
-        implTypeArgs = new String[] { 'mpiBinary', 'mpiWorkingDir', 'mpiRunner' };
-        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
+        core_elementSignature = 'methodClass1.methodName1';
+        impl_signature = 'mpi.MPI';
+        impl_constraints = 'StorageType:SSD';
+        impl_type = 'MPI';
+        impl_type_args = new String[] { 'mpiBinary', 'mpiWorkingDir', 'mpiRunner' };
+        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);
 
         // BINARY
         System.out.println('Registering BINARY implementation');
-        coreElementSignature = 'methodClass2.methodName2';
-        implSignature = 'binary.BINARY';
-        implConstraints = 'MemoryType:RAM';
-        implType = 'BINARY';
-        implTypeArgs = new String[] { 'binary', 'binaryWorkingDir' };
-        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
+        core_elementSignature = 'methodClass2.methodName2';
+        impl_signature = 'binary.BINARY';
+        impl_constraints = 'MemoryType:RAM';
+        impl_type = 'BINARY';
+        impl_type_args = new String[] { 'binary', 'binaryWorkingDir' };
+        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);
 
         // OMPSS
         System.out.println('Registering OMPSS implementation');
-        coreElementSignature = 'methodClass3.methodName3';
-        implSignature = 'ompss.OMPSS';
-        implConstraints = 'ComputingUnits:3';
-        implType = 'OMPSS';
-        implTypeArgs = new String[] { 'ompssBinary', 'ompssWorkingDir' };
-        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
+        core_elementSignature = 'methodClass3.methodName3';
+        impl_signature = 'ompss.OMPSS';
+        impl_constraints = 'ComputingUnits:3';
+        impl_type = 'OMPSS';
+        impl_type_args = new String[] { 'ompssBinary', 'ompssWorkingDir' };
+        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);
 
         // OPENCL
         System.out.println('Registering OPENCL implementation');
-        coreElementSignature = 'methodClass4.methodName4';
-        implSignature = 'opencl.OPENCL';
-        implConstraints = 'ComputingUnits:4';
-        implType = 'OPENCL';
-        implTypeArgs = new String[] { 'openclKernel', 'openclWorkingDir' };
-        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
+        core_elementSignature = 'methodClass4.methodName4';
+        impl_signature = 'opencl.OPENCL';
+        impl_constraints = 'ComputingUnits:4';
+        impl_type = 'OPENCL';
+        impl_type_args = new String[] { 'openclKernel', 'openclWorkingDir' };
+        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);
 
         // VERSIONING
         System.out.println('Registering METHOD implementation');
-        coreElementSignature = 'methodClass.methodName';
-        implSignature = 'anotherClass.anotherMethodName';
-        implConstraints = 'ComputingUnits:1';
-        implType = 'METHOD';
-        implTypeArgs = new String[] { 'anotherClass', 'anotherMethodName' };
-        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
+        core_elementSignature = 'methodClass.methodName';
+        impl_signature = 'anotherClass.anotherMethodName';
+        impl_constraints = 'ComputingUnits:1';
+        impl_type = 'METHOD';
+        impl_type_args = new String[] { 'anotherClass', 'anotherMethodName' };
+        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);
 
     ---------------------
 
     Core Element fields:
 
     ce_signature: <String> Core Element signature  (e.g.- 'methodClass.methodName')
-    implSignature: <String> Implementation signature (e.g.- 'methodClass.methodName')
-    implConstraints: <Dict> Implementation constraints (e.g.- '{ComputingUnits:2}')
-    implType: <String> Implementation type ('METHOD' | 'MPI' | 'BINARY' | 'OMPSS' | 'OPENCL')
-    implTypeArgs: <List(Strings)> Implementation arguments (e.g.- ['methodClass', 'methodName'])
+    impl_signature: <String> Implementation signature (e.g.- 'methodClass.methodName')
+    impl_constraints: <Dict> Implementation constraints (e.g.- '{ComputingUnits:2}')
+    impl_type: <String> Implementation type ('METHOD' | 'MPI' | 'BINARY' | 'OMPSS' | 'OPENCL')
+    impl_type_args: <List(Strings)> Implementation arguments (e.g.- ['methodClass', 'methodName'])
 
     :param core_element: <CE> Core Element to register
     :return:
@@ -495,15 +499,13 @@ def synchronize(obj, mode):
     :param mode: Direction of the object to synchronize.
     :return: The value of the object requested.
     """
-
     # TODO: Add a boolean to differentiate between files and object on the compss.get_file call. This change pretends
     # to obtain better traces. Must be implemented first in the Runtime, then in the bindings common C API and
     # finally add the boolean here
-
     global current_id
 
-    if is_PSCO(obj):
-        obj_id = get_ID(obj)
+    if is_psco(obj):
+        obj_id = get_id(obj)
         if obj_id not in pending_to_synchronize:
             return obj
         else:
@@ -511,7 +513,7 @@ def synchronize(obj, mode):
             file_path = compss.get_file('storage://' + str(obj_id), mode)
             # TODO: Add switch on protocol
             protocol, file_name = file_path.split('://')
-            new_obj = get_by_ID(file_name)
+            new_obj = get_by_id(file_name)
             return new_obj
 
     obj_id = get_object_id(obj)
@@ -529,7 +531,7 @@ def synchronize(obj, mode):
         new_obj = deserialize_from_file(compss_file)
         compss.close_file(file_name, mode)
     else:
-        new_obj = get_by_ID(compss_file)
+        new_obj = get_by_id(compss_file)
     new_obj_id = get_object_id(new_obj, True, True)
 
     # The main program won't work with the old object anymore, update mapping
@@ -548,8 +550,9 @@ def synchronize(obj, mode):
     return new_obj
 
 
-def process_task(f, module_name, class_name, ftype, has_return, spec_args, args, kwargs, self_kwargs, num_nodes,
-                 replicated, distributed):
+def process_task(f, module_name, class_name, ftype, has_return, spec_args,
+                 args, kwargs, self_kwargs, num_nodes, replicated,
+                 distributed):
     """
     Function that submits a task to the runtime.
 
@@ -597,18 +600,16 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args, args,
     num_pars = len(spec_args)
 
     # Infer COMPSs types from real types, except for files
-    new_self_kwargs, is_future = _infer_types_and_serialize_objects(spec_args, first_par, num_pars, file_names,
-                                                                    self_kwargs, args)
+    new_self_kwargs, is_future = _infer_types_and_serialize_objects(spec_args, first_par, num_pars, file_names, self_kwargs, args)
 
     # Build values and COMPSs types and directions
-    values, compss_types, compss_directions, \
-    compss_streams, compss_prefixes = _build_values_types_directions(ftype,
-                                                                     first_par,
-                                                                     num_pars,
-                                                                     spec_args,
-                                                                     new_self_kwargs,
-                                                                     is_future,
-                                                                     f.__code_strings__)
+    values, compss_types, compss_directions, compss_streams, compss_prefixes = _build_values_types_directions(ftype,
+                                                                                                              first_par,
+                                                                                                              num_pars,
+                                                                                                              spec_args,
+                                                                                                              new_self_kwargs,
+                                                                                                              is_future,
+                                                                                                              f.__code_strings__)
 
     # Get priority
     has_priority = self_kwargs['priority']
@@ -722,13 +723,9 @@ def _build_return_objects(f, self_kwargs, spec_args):
     :return:
     """
 
-    if isinstance(self_kwargs['returns'], str):
-        num_rets = f.__globals__.get(self_kwargs['returns'])
-        if num_rets > 1:
-            ret_type = [object for _ in range(num_rets)]
-        else:
-            ret_type = object
-    elif isinstance(self_kwargs['returns'], int):
+    # Check if the returns statement contains an integer value.
+    # In such case, build a list of objects of value length and set it in ret_type.
+    if isinstance(self_kwargs['returns'], int):
         num_rets = self_kwargs['returns']
         # Assume all as objects (generic type).
         # It will not work properly when using user defined classes, since
@@ -869,7 +866,7 @@ def _infer_types_and_serialize_objects(spec_args, first_par, num_pars, file_name
             if spec_arg == 'self':
                 p.value = args[0]
                 # Check if self is a persistent object and set its type if it really is.
-                if is_PSCO(p.value):
+                if is_psco(p.value):
                     p.type = TYPE.EXTERNAL_PSCO
             elif spec_arg.startswith('compss_retvalue'):
                 p.value = file_names[spec_arg]
@@ -899,7 +896,7 @@ def _infer_types_and_serialize_objects(spec_args, first_par, num_pars, file_name
                 logger.debug('Inferring type due to None pType.')
             p.type = python_to_compss.get(val_type)
             if p.type is None:
-                if is_PSCO(p.value):
+                if is_psco(p.value):
                     p.type = TYPE.EXTERNAL_PSCO
                 else:
                     p.type = TYPE.OBJECT
@@ -1053,7 +1050,7 @@ def _convert_object_to_string(p, is_future, max_obj_arg_size, policy='objectSize
                         logger.debug('Inferred type reestablished to Object.')
                     # if the parameter converts to an object, release the size to be used for converted objects?
                     # No more objects can be converted
-                    # max_obj_arg_size += bytes
+                    # max_obj_arg_size += _bytes
                     # if max_obj_arg_size > 320000:
                     #     max_obj_arg_size = 320000
     elif policy == 'serializedSize':
@@ -1089,7 +1086,7 @@ def _convert_object_to_string(p, is_future, max_obj_arg_size, policy='objectSize
                         # if the parameter converts to an object, release the
                         # size to be used for converted objects?
                         # No more objects can be converted
-                        # max_obj_arg_size += bytes
+                        # max_obj_arg_size += _bytes
                         # if max_obj_arg_size > 320000:
                         #     max_obj_arg_size = 320000
                 except PicklingError:
@@ -1101,6 +1098,7 @@ def _convert_object_to_string(p, is_future, max_obj_arg_size, policy='objectSize
         if __debug__:
             logger.debug('[ERROR] Wrong convert_objects_to_strings policy.')
         raise Exception('Wrong convert_objects_to_strings policy.')
+
     return p, num_bytes
 
 
@@ -1127,7 +1125,7 @@ def _serialize_objects(p, is_future):
         if type(p) is dict:
             # The user has provided some information about a parameter within
             # the @task parameter
-            p = fromDictToParameter(p)
+            p = from_dict_to_parameter(p)
         if p.type == TYPE.STRING and not is_future[i] and code_strings:
             # Encode the string in order to preserve the source
             # Checks that it is not a future (which is indicated with a path)
@@ -1212,7 +1210,7 @@ def _manage_persistent_object(p):
     """
 
     p.type = TYPE.EXTERNAL_PSCO
-    obj_id = get_ID(p.value)
+    obj_id = get_id(p.value)
     pending_to_synchronize[obj_id] = p.value  # obj_id
     p.value = obj_id
     if __debug__:
@@ -1226,11 +1224,9 @@ def _turn_into_file(p):
     (reuses it if exists). If not, the object is serialized to file and
     registered in the objid_to_filename dictionary.
     This functions stores the object into pending_to_synchronize
-
     :param p: Wrapper of the object to turn into file
     :return:
     """
-
     '''
     print('XXXXXXXXXXXXXXXXX')
     print('p           : ', p)
@@ -1273,6 +1269,7 @@ def _clean_objects():
         * objid_to_filename dict
         * objs_written_by_mp dict
 
+    :return: None
     """
 
     for filename in objid_to_filename.values():
@@ -1287,6 +1284,8 @@ def _clean_temps():
     """
     Clean temporary files.
     The temporary files end with the IT extension
+
+    :return: None
     """
 
     rmtree(temp_dir, True)

@@ -12,7 +12,7 @@ import unittest
 import sys
 
 from pycompss.api.task import task
-from pycompss.functions.reduce import mergeReduce, simpleReduce
+from pycompss.functions.reduce import merge_reduce, simple_reduce
 from pycompss.functions.map import map
 
 
@@ -30,35 +30,35 @@ class testFunctions(unittest.TestCase):
         self.lambdaFunction = lambda x, y: x + y
         self.methodFunction = sumTask
 
-    def test_mergeReduce_seq(self):
-        res = mergeReduce(self.lambdaFunction, self.data)
+    def test_merge_reduce_seq(self):
+        res = merge_reduce(self.lambdaFunction, self.data)
         self.assertEqual(res, sum(self.data))
 
-    def test_simpleReduce_seq(self):
-        res = simpleReduce(self.lambdaFunction, self.data)
+    def test_simple_reduce_seq(self):
+        res = simple_reduce(self.lambdaFunction, self.data)
         self.assertEqual(res, sum(self.data))
 
-    def test_simpleReduce(self):
+    def test_simple_reduce(self):
         from pycompss.api.api import compss_wait_on
-        res = simpleReduce(self.methodFunction, self.data)
+        res = simple_reduce(self.methodFunction, self.data)
         res = compss_wait_on(res)
         self.assertEqual(res, sum(self.data))
 
-    def test_mergeReduce(self):
+    def test_merge_reduce(self):
         from pycompss.api.api import compss_wait_on
-        res = mergeReduce(self.methodFunction, self.data)
+        res = merge_reduce(self.methodFunction, self.data)
         res = compss_wait_on(res)
         self.assertEqual(res, sum(self.data))
 
     @unittest.skip("not implemented yet")
-    def test_mergeReduceByClass_tuples(self):
-        res = mergereduceByClass(self.methodFunction, self.tuples)
+    def test_merge_reduceByClass_tuples(self):
+        res = merge_reduceByClass(self.methodFunction, self.tuples)
         val = [[4, 5, 6, 1, 2, 3], [6, 7, 8, 1, 1, 1]]
         self.assertEqual(res, val)
 
     @unittest.skip("not implemented yet")
-    def test_mergeReduceByClass_dicts(self):
-        res = mergereduceByClass(self.methodFunction, self.dicts)
+    def test_merge_reduceByClass_dicts(self):
+        res = merge_reduceByClass(self.methodFunction, self.dicts)
         val = [[4, 5, 6, 1, 2, 3], [6, 7, 8, 1, 1, 1]]
         self.assertEqual(res, val)
 

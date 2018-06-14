@@ -47,6 +47,7 @@ class implement(object):
         # self = itself.
         # args = not used.
         # kwargs = dictionary with the given implement parameters.
+
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
@@ -60,6 +61,7 @@ class implement(object):
     def __call__(self, func):
         """
         Parse and set the implementation parameters within the task core element.
+
         :param func: Function to decorate
         :return: Decorated function.
         """
@@ -105,9 +107,9 @@ class implement(object):
                         break
                 self.module = mod_name
 
-            # Include the registering info related to @MPI
+            # Include the registering info related to @implement
 
-            # Retrieve the base coreElement established at @task decorator
+            # Retrieve the base core_element established at @task decorator
             core_element = func.__to_register__
             # Update the core element information with the mpi information
             ce_signature = core_element.get_ce_signature()
@@ -121,16 +123,15 @@ class implement(object):
 
             # This is not needed since the arguments are already set by the
             # task decorator.
-            # implArgs = [anotherClass, anotherMethod]
-            # coreElement.set_implTypeArgs(implArgs)
+            # implArgs = [another_class, another_method]
+            # core_element.set_implTypeArgs(implArgs)
 
             core_element.set_impl_type("METHOD")
             func.__to_register__ = core_element
             # Do the task register if I am the top decorator
             if func.__who_registers__ == __name__:
                 if __debug__:
-                    logger.debug("[@IMPLEMENT] I have to do the register of function %s in module %s" % (
-                        func.__name__, self.module))
+                    logger.debug("[@IMPLEMENT] I have to do the register of function %s in module %s" % (func.__name__, self.module))
                 register_ce(core_element)
         else:
             # worker code

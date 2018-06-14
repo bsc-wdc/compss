@@ -29,7 +29,9 @@ PyCOMPSs Utils - JVM Configuration Parser
 
 
 def convert_to_dict(jvm_opt_file):
-    """ JVM parameter file converter to dictionary.
+    """
+    JVM parameter file converter to dictionary.
+
     :param jvm_opt_file: JVM parameters file
     :return: Dictionary with the parameters specified on the file.
     """

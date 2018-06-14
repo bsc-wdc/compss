@@ -40,7 +40,7 @@ from pycompss.util.serializer import deserialize_from_file
 from pycompss.util.serializer import deserialize_from_string
 from pycompss.util.serializer import SerializerException
 from pycompss.util.logs import init_logging_worker
-from pycompss.util.persistent_storage import get_by_ID
+from pycompss.util.persistent_storage import get_by_id
 
 if IS_PYTHON3:
     long = int
@@ -75,7 +75,11 @@ if sys.version_info >= (2, 7):
 def compss_worker(persistent_storage):
     """
     Worker main method (invocated from __main__).
+
+    :param persistent_storage: Persistent storage boolean
+    :return: None
     """
+
     logger = logging.getLogger('pycompss.worker.worker')
 
     logger.debug("Starting Worker")
@@ -135,7 +139,7 @@ def compss_worker(persistent_storage):
         if p_type == TYPE.FILE:
             values.append(p_value)
         elif p_type == TYPE.EXTERNAL_PSCO:
-            po = get_by_ID(p_value)
+            po = get_by_id(p_value)
             values.append(po)
             pos += 1  # Skip info about direction (R, W)
         elif p_type == TYPE.STRING:
@@ -190,7 +194,7 @@ def compss_worker(persistent_storage):
                 values.append(True)
             else:
                 values.append(False)
-        # elif (pType == TYPE.OBJECT):
+        # elif (p_type == TYPE.OBJECT):
         #    pass
         else:
             logger.fatal("Invalid type (%d) for parameter %d" % (p_type, i))
@@ -325,8 +329,8 @@ if __name__ == "__main__":
     method_type = sys.argv[5]
     # class_name = sys.argv[6]
     # method_name = sys.argv[7]
-    # numSlaves = sys.argv[8]
-    # i = 8 + numSlaves
+    # num_slaves = sys.argv[8]
+    # i = 8 + num_slaves
     # slaves = sys.argv[9-i]
     # numCus = sys.argv[i+1]
     # has_target = sys.argv[i+2] == 'true'

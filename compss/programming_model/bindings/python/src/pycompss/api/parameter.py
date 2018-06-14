@@ -47,22 +47,20 @@ PyCOMPSs API - Parameter
 
 
 # Numbers match both C and Java enums
-class DIRECTION:
+class DIRECTION(object):
     """
     Used as enum for direction types
     """
-
     IN = 0
     OUT = 1
     INOUT = 2
 
 
 # Numbers match both C and Java enums
-class TYPE:
+class TYPE(object):
     """
     Used as anum for parameter types
     """
-
     BOOLEAN = 0
     CHAR = 1
     # BYTE = 2          # Does not exist in python
@@ -79,11 +77,10 @@ class TYPE:
 
 
 # Numbers match both C and Java enums
-class STREAM:
+class STREAM(object):
     """
     Used as enum for stream types
     """
-
     STDIN = 0
     STDOUT = 1
     STDERR = 2
@@ -91,15 +88,14 @@ class STREAM:
 
 
 # String that identifies the prefix
-class PREFIX:
+class PREFIX(object):
     """
     Used as enum for prefix
     """
-
     PREFIX = "null"
 
 
-class Parameter:
+class Parameter(object):
     """
     Parameter class
     Used to group the type, direction and value of a parameter

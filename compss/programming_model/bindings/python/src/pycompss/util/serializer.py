@@ -48,7 +48,7 @@ else:
 
 try:
     import dill
-except Exception:
+except ImportError:
     if IS_PYTHON3:
         import pickle as dill
     else:
@@ -56,7 +56,7 @@ except Exception:
 
 try:
     import numpy
-except Exception:
+except ImportError:
     if IS_PYTHON3:
         import pickle as numpy
     else:
@@ -71,9 +71,10 @@ class SerializerException(Exception):
     pass
 
 
-def get_serializer_priority(obj=[]):
+def get_serializer_priority(obj=()):
     """
     Computes the priority of the serializers.
+
     :param obj: Object to be analysed.
     :return: <List> The serializers sorted by priority in descending order
     """
@@ -86,7 +87,8 @@ def get_serializer_priority(obj=[]):
 def get_serializers():
     """
     Returns a list with the available serializers in the most common order
-    (i.e: the order that will work for almost the 90% of our objects)
+    (i.e: the order that will work for almost the 90% of our objects).
+
     :return: <List> the available serializer modules
     """
 
@@ -96,6 +98,7 @@ def get_serializers():
 def serialize_to_handler(obj, handler):
     """
     Serialize an object to a handler.
+
     :param obj: Object to be serialized.
     :param handler: A handler object. It must implement methods like write, writeline and similar stuff
     """
@@ -151,6 +154,7 @@ def serialize_to_handler(obj, handler):
 def serialize_to_file(obj, file_name):
     """
     Serialize an object to a file.
+
     :param obj: Object to be serialized.
     :param file_name: File name where the object is going to be serialized.
     :return:
@@ -165,9 +169,11 @@ def serialize_to_file(obj, file_name):
 def serialize_to_string(obj):
     """
     Serialize an object to a string.
+
     :param obj: Object to be serialized.
     :return: <String> the serialized content
     """
+
     handler = BytesIO()
     serialize_to_handler(obj, handler)
     ret = handler.getvalue()
@@ -178,6 +184,7 @@ def serialize_to_string(obj):
 def deserialize_from_handler(handler):
     """
     Deserialize an object from a file.
+
     :param handler: File name from where the object is going to be deserialized.
     :return: The object deserialized.
     """
@@ -210,7 +217,8 @@ def deserialize_from_handler(handler):
 
 def deserialize_from_file(file_name):
     """
-    Deserializes the contents in a given file
+    Deserialize the contents in a given file.
+
     :param file_name: Name of the file with the contents to be deserialized
     :return: A deserialized object
     """
@@ -223,10 +231,12 @@ def deserialize_from_file(file_name):
 
 def deserialize_from_string(serialized_content):
     """
-    Deserializes the contents in a given string
+    Deserialize the contents in a given string.
+
     :param serialized_content: A string with serialized contents
     :return: A deserialized object
     """
+
     handler = BytesIO(serialized_content)
     ret = deserialize_from_handler(handler)
     handler.close()

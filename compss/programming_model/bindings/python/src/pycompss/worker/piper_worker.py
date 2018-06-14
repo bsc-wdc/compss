@@ -32,16 +32,6 @@ from multiprocessing import Process
 from multiprocessing import Queue
 import base64
 import thread_affinity
-
-if sys.version_info >= (3, 0):
-    long = int
-    str_escape = 'unicode_escape'
-else:
-    # Exception moved to built-in
-    from exceptions import ValueError
-
-    str_escape = 'string_escape'
-
 from pycompss.api.parameter import TYPE
 from pycompss.api.parameter import JAVA_MIN_INT, JAVA_MAX_INT
 from pycompss.runtime.commons import EMPTY_STRING_KEY
@@ -52,7 +42,7 @@ from pycompss.util.serializer import deserialize_from_file
 from pycompss.util.serializer import deserialize_from_string
 from pycompss.util.serializer import SerializerException
 from pycompss.util.logs import init_logging_worker
-from pycompss.util.persistent_storage import is_PSCO, get_by_ID
+from pycompss.util.persistent_storage import is_psco, get_by_id
 
 if IS_PYTHON3:
     long = int
@@ -75,8 +65,8 @@ PROCESS_DESTRUCTION = 107
 MODULES_IMPORT = 108
 
 # Persistent worker global variables
-tracing = False
-processes = []
+TRACING = False
+PROCESSES = []
 
 # if sys.version_info >= (2, 7):
 #     import importlib
@@ -102,12 +92,13 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
     Notifies the runtime when each task  has finished with the
     corresponding output value.
     Finishes when the "quit" message is received.
+
     :param queue: Queue where to put exception messages
     :param process_name: Process name (Thread-X, where X is the thread id).
     :param input_pipe: Input pipe for the thread. To receive messages from the runtime.
     :param output_pipe: Output pipe for the thread. To send messages to the runtime.
     :param storage_conf: Storage configuration file
-    :return: Nothing
+    :return: None
     """
 
     logger = logging.getLogger('pycompss.worker.worker')
@@ -119,12 +110,12 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
         try:
             from storage.api import initWorkerPostFork as initStorageAtWorkerPostFork
             initStorageAtWorkerPostFork()
-        except Exception:
+        except ImportError:
             if __debug__:
                 logger.info("[PYTHON WORKER] Could not find initWorkerPostFork storage call. Ignoring it.")
 
     # TRACING
-    # if tracing:
+    # if TRACING:
     #     pyextrae.eventandcounters(TASK_EVENTS, 0)
 
     alive = True
@@ -174,13 +165,12 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
 
                 bind_gpus(binded_gpus)
 
-                # Hostlist
-                hostlist = current_line[-1]
+                # Host list
+                host_list = line[-1]
 
-                def treat_hostlist(hostlist):
-                    os.environ['COMPSS_HOSTNAMES'] = hostlist
-
-                treat_hostlist(hostlist)
+                def treat_host_list(host_list):
+                    os.environ['COMPSS_HOSTNAMES'] = host_list
+                treat_host_list(host_list)
 
                 # Remove the last elements: cpu and gpu bindings
                 current_line = current_line[0:-3]
@@ -230,8 +220,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                     sys.stdout = out
                     sys.stderr = err
                     if not affinity_ok:
-                        err.write(
-                            'WARNING: This task is going to be executed with default thread affinity %s' % thread_affinity.getaffinity())
+                        err.write('WARNING: This task is going to be executed with default thread affinity %s' % thread_affinity.getaffinity())
                     exit_value, new_types, new_values = execute_task(process_name, storage_conf, current_line[9:])
                     sys.stdout = stdout
                     sys.stderr = stderr
@@ -245,8 +234,8 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                         # endTask jobId exitValue message
                         params = build_return_params_message(current_line[9:], new_types, new_values)
                         message = END_TASK_TAG + " " + str(job_id) \
-                                  + " " + str(exit_value) \
-                                  + " " + str(params) + "\n"
+                                               + " " + str(exit_value) \
+                                               + " " + str(params) + "\n"
                     else:
                         # An exception has been raised in task
                         message = END_TASK_TAG + " " + str(job_id) \
@@ -261,7 +250,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                     # TaskResult ==> jobId exitValue List<Object>
                     #
                     # Where List<Object> has D length:
-                    # D = #parameters + (hasTarget ? 1 : 0) + (hasReturn ? 1 : 0)
+                    # D = #parameters + (has_target ? 1 : 0) + (has_return ? 1 : 0)
                     # And contains:
                     # - Null if it NOT a PSCO
                     # - PSCOId (String) if is a PSCO
@@ -304,35 +293,43 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
         try:
             from storage.api import finishWorkerPostFork as finishStorageAtWorkerPostFork
             finishStorageAtWorkerPostFork()
-        except:
+        except ImportError:
             if __debug__:
                 logger.info("[PYTHON WORKER] Could not find finishWorkerPostFork storage call. Ignoring it.")
 
     # TRACING
-    # if tracing:
+    # if TRACING:
     #     pyextrae.eventandcounters(TASK_EVENTS, PROCESS_DESTRUCTION)
+
     sys.stdout.flush()
     sys.stderr.flush()
     print("[PYTHON WORKER] Exiting process ", process_name)
 
 
 def build_return_params_message(params, types, values):
+    """
+    Build the return message with the parameters output.
+
+    :param params: List of parameters
+    :param types: List of the parameter's types
+    :param values: List of the parameter's values
+    :return: Message as string
+    """
+
     assert len(types) == len(values), 'Inconsistent state: return type-value length mismatch for return message.'
 
     # Analyse the input parameters to get has_target and has_return
     # More information that requested can be gathered and returned in the return message if necessary.
     num_slaves = int(params[2])
-
     arg_position = 3 + num_slaves
     args = params[arg_position + 1:]
-    has_target_str = args[0]
-    if has_target_str == 'false':
+    has_target = args[0]
+    if has_target == 'false':
         has_target = False
     else:
         has_target = True
-
-    return_type_str = args[1]
-    if return_type_str == 'null':
+    return_type = args[1]
+    if return_type == 'null':
         has_return = False
     else:
         has_return = True
@@ -352,8 +349,14 @@ def build_return_params_message(params, types, values):
 #####################################
 def execute_task(process_name, storage_conf, params):
     """
-    ExecuteTask main method
+    ExecuteTask main method.
+
+    :param process_name: Process name
+    :param storage_conf: Storage configuration file path
+    :param params: List of parameters
+    :return: exit code, new types and new values
     """
+
     logger = logging.getLogger('pycompss.worker.worker')
 
     if __debug__:
@@ -386,7 +389,7 @@ def execute_task(process_name, storage_conf, params):
 
     # COMPSs keywords for tasks (ie: tracing, process name...)
     compss_kwargs = {
-        'compss_tracing': tracing,
+        'compss_tracing': TRACING,
         'compss_process_name': process_name,
         'compss_storage_conf': storage_conf,
         'compss_return_length': return_length
@@ -405,20 +408,16 @@ def execute_task(process_name, storage_conf, params):
         logger.debug("[PYTHON WORKER %s] Return Length: %s" % (str(process_name), str(return_length)))
         logger.debug("[PYTHON WORKER %s] Args: %r" % (str(process_name), args))
 
-    # if tracing:
+    # if TRACING:
     #     pyextrae.event(TASK_EVENTS, 0)
     #     pyextrae.event(TASK_EVENTS, PARAMETER_PROCESSING)
 
     # Get all parameter values
     if __debug__:
         logger.debug("[PYTHON WORKER %s] Processing parameters:" % process_name)
-    values, types, streams, prefixes = get_input_params(num_params,
-                                                        logger,
-                                                        args,
-                                                        process_name,
-                                                        persistent_storage)
+    values, types, streams, prefixes = get_input_params(num_params, logger, args, process_name)
 
-    # if tracing:
+    # if TRACING:
     #     pyextrae.event(TASK_EVENTS, 0)
     #     pyextrae.event(TASK_EVENTS, LOGGING)
 
@@ -435,7 +434,7 @@ def execute_task(process_name, storage_conf, params):
         for t in types:
             logger.debug("[PYTHON WORKER %s] \t\t %s" % (process_name, str(t)))
 
-    # if tracing:
+    # if TRACING:
     #     pyextrae.event(TASK_EVENTS, 0)
     #     pyextrae.event(TASK_EVENTS, MODULES_IMPORT)
 
@@ -474,10 +473,9 @@ def execute_task(process_name, storage_conf, params):
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
         logger.exception("[PYTHON WORKER %s] WORKER EXCEPTION - Attribute Error Exception" % process_name)
         logger.exception(''.join(line for line in lines))
-        logger.exception(
-            "[PYTHON WORKER %s] Check that all parameters have been defined with an absolute import path (even if in the same file)" % process_name)
-        # If exception is raised during the task execution, newTypes and
-        # newValues are empty
+        logger.exception("[PYTHON WORKER %s] Check that all parameters have been defined with an absolute import path (even if in the same file)" % process_name)
+        # If exception is raised during the task execution, new_types and
+        # new_values are empty
         return 1, new_types, new_values
     # ==========================================================================
     except ImportError:
@@ -488,8 +486,8 @@ def execute_task(process_name, storage_conf, params):
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
         logger.exception("[PYTHON WORKER %s] WORKER EXCEPTION" % process_name)
         logger.exception(''.join(line for line in lines))
-        # If exception is raised during the task execution, newTypes and
-        # newValues are empty
+        # If exception is raised during the task execution, new_types and
+        # new_values are empty
         return 1, new_types, new_values
 
     if import_error:
@@ -513,7 +511,7 @@ def execute_task(process_name, storage_conf, params):
         if has_target == 'true':
             # Instance method
             last_elem = values.pop()
-            if is_PSCO(last_elem):
+            if is_psco(last_elem):
                 obj = last_elem
             else:
                 file_name = last_elem.split(':')[-1]
@@ -525,7 +523,7 @@ def execute_task(process_name, storage_conf, params):
                         process_name, file_name, type(obj)))
             values.insert(0, obj)
             types.pop()
-            types.insert(0, TYPE.OBJECT if not is_PSCO(last_elem) else TYPE.EXTERNAL_PSCO)
+            types.insert(0, TYPE.OBJECT if not is_psco(last_elem) else TYPE.EXTERNAL_PSCO)
 
             def task_execution_2():
                 return task_execution(logger, process_name, klass, method_name, types, values, compss_kwargs)
@@ -536,7 +534,7 @@ def execute_task(process_name, storage_conf, params):
             else:
                 new_types, new_values = task_execution_2()
 
-            if is_PSCO(last_elem):
+            if is_psco(last_elem):
                 # There is no update PSCO on the storage API. Consequently, the changes on the PSCO must have been
                 # pushed into the storage automatically on each PSCO modification.
                 if __debug__:
@@ -566,13 +564,22 @@ def execute_task(process_name, storage_conf, params):
     if __debug__:
         logger.debug("[PYTHON WORKER %s] End task execution. Status: Ok" % process_name)
 
-    # if tracing:
+    # if TRACING:
     #     pyextrae.eventandcounters(TASK_EVENTS, 0)
 
     return 0, new_types, new_values  # Exit code, updated params
 
 
-def get_input_params(num_params, logger, args, process_name, persistent_storage):
+def get_input_params(num_params, logger, args, process_name):
+    """
+    Get and prepare the input parameters from string to lists.
+
+    :param num_params: Number of parameters
+    :param logger: Logger
+    :param args: Arguments (complete list of parameters with type, stream, prefix and value)
+    :param process_name: Process name
+    :return: Four lists: values, types, streams, prefixes
+    """
     pos = 0
     values = []
     types = []
@@ -614,7 +621,7 @@ def get_input_params(num_params, logger, args, process_name, persistent_storage)
                 po = p_value
                 pre_pipeline.append((po, len(values)))
             else:
-                po = get_by_ID(p_value)
+                po = get_by_id(p_value)
             values.append(po)
             pos += 1  # Skip info about direction (R, W)
         elif p_type == TYPE.STRING:
@@ -680,16 +687,30 @@ def get_input_params(num_params, logger, args, process_name, persistent_storage)
         ids = [ident for (ident, _) in pre_pipeline]
         from storage.api import getByID
         retrieved_objects = getByID(*ids)
-        if len(ids) == 1: retrieved_objects = [retrieved_objects]
-        objindex = zip(retrieved_objects, [index for (_, index) in pre_pipeline])
-        for (obj, index) in objindex:
+        if len(ids) == 1:
+            retrieved_objects = [retrieved_objects]
+        obj_index = zip(retrieved_objects, [index for (_, index) in pre_pipeline])
+        for (obj, index) in obj_index:
             values[index] = obj
 
     return values, types, streams, prefixes
 
 
 def task_execution(logger, process_name, module, method_name, types, values, compss_kwargs):
-    # if tracing:
+    """
+    Task execution function.
+
+    :param logger: Logger
+    :param process_name: Process name
+    :param module: Module which contains the function
+    :param method_name: Function to invoke
+    :param types: List of the parameter's types
+    :param values: List of the parameter's values
+    :param compss_kwargs: PyCOMPSs keywords
+    :return: new types and new_values
+    """
+
+    # if TRACING:
     #    pyextrae.eventandcounters(TASK_EVENTS, 0)
     #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
 
@@ -699,21 +720,21 @@ def task_execution(logger, process_name, module, method_name, types, values, com
         logger.debug("[PYTHON WORKER %s] Values: %s " % (process_name, str(values)))
 
     # WARNING: the following call will not work if a user decorator overrides the return of the task decorator.
-    # newTypes, newValues = getattr(module, method_name)(*values, compss_types=types, **compss_kwargs)
+    # new_types, new_values = getattr(module, method_name)(*values, compss_types=types, **compss_kwargs)
     # If the @task is decorated with a user decorator, may include more return values, and consequently,
-    # the newTypes and newValues will be within a tuple at position 0.
+    # the new_types and new_values will be within a tuple at position 0.
     # Force users that use decorators on top of @task to return the task results first.
     # This is tested with the timeit decorator in test 19.
     task_output = getattr(module, method_name)(*values, compss_types=types, **compss_kwargs)
 
     if isinstance(task_output[0], tuple):  # Weak but effective way to check it without doing inspect.
         # Another decorator has added another return thing.
-        # TODO: Should we consider here to create a list with all elements and serialize it to a file with the real task output plus the decorator results? == taskOutput[1:]
+        # TODO: Should we consider here to create a list with all elements and serialize it to a file with the real task output plus the decorator results? == task_output[1:]
         # TODO: Currently, the extra result is ignored.
         new_types = task_output[0][0]
         new_values = task_output[0][1]
     else:
-        # The taskOutput is composed by the newTypes and newValues returned by the task decorator.
+        # The task_output is composed by the new_types and new_values returned by the task decorator.
         new_types = task_output[0]
         new_values = task_output[1]
 
@@ -723,14 +744,22 @@ def task_execution(logger, process_name, module, method_name, types, values, com
             logger.debug("[PYTHON WORKER %s] Return Values: %s " % (process_name, str(new_values)))
             logger.debug("[PYTHON WORKER %s] Finished task execution" % process_name)
 
-    # if tracing:
+    # if TRACING:
     #    pyextrae.eventandcounters(TASK_EVENTS, 0)
     #    pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
     return new_types, new_values
 
 
 def shutdown_handler(signal, frame):
-    for proc in processes:
+    """
+    Shutdown handler (do not remove the parameters).
+
+    :param signal: shutdown signal
+    :param frame: Frame
+    :return: None
+    """
+
+    for proc in PROCESSES:
         if proc.is_alive():
             proc.terminate()
 
@@ -741,15 +770,23 @@ def shutdown_handler(signal, frame):
 
 
 def compss_persistent_worker():
+    """
+    Persistent worker main function.
+    Retrieves the initial configuration and spawns the worker processes.
+
+    :return: None
+    """
+
     # Get args
     debug = (sys.argv[1] == 'true')
-    tracing = (sys.argv[2] == 'true')
+    TRACING = (sys.argv[2] == 'true')
+    global TRACING
     storage_conf = sys.argv[3]
     tasks_x_node = int(sys.argv[4])
     in_pipes = sys.argv[5:5 + tasks_x_node]
     out_pipes = sys.argv[5 + tasks_x_node:]
 
-    if tracing:
+    if TRACING:
         import pyextrae.multiprocessing as pyextrae
         pyextrae.eventandcounters(SYNC_EVENTS, 1)
         pyextrae.eventandcounters(TASK_EVENTS, WORKER_RUNNING)
@@ -780,7 +817,7 @@ def compss_persistent_worker():
         logger.debug("[PYTHON WORKER] Persistent worker parameters:")
         logger.debug("[PYTHON WORKER] -----------------------------")
         logger.debug("[PYTHON WORKER] Debug          : " + str(debug))
-        logger.debug("[PYTHON WORKER] Tracing        : " + str(tracing))
+        logger.debug("[PYTHON WORKER] Tracing        : " + str(TRACING))
         logger.debug("[PYTHON WORKER] Tasks per node : " + str(tasks_x_node))
         logger.debug("[PYTHON WORKER] In Pipes       : " + str(in_pipes))
         logger.debug("[PYTHON WORKER] Out Pipes      : " + str(out_pipes))
@@ -800,21 +837,20 @@ def compss_persistent_worker():
         queues.append(Queue())
 
         def create_threads():
-            processes.append(Process(target=worker, args=(queues[i],
+            PROCESSES.append(Process(target=worker, args=(queues[i],
                                                           process_name,
                                                           in_pipes[i],
                                                           out_pipes[i],
                                                           storage_conf)))
-            processes[i].start()
-
+            PROCESSES[i].start()
         create_threads()
 
-    # Catch SIGTERM send by bindings_piper to exit all processes
+    # Catch SIGTERM send by bindings_piper to exit all PROCESSES
     signal.signal(signal.SIGTERM, shutdown_handler)
 
     # Wait for all threads
     for i in range(0, tasks_x_node):
-        processes[i].join()
+        PROCESSES[i].join()
 
     # Check if there is any exception message from the threads
     for i in range(0, tasks_x_node):
@@ -832,7 +868,7 @@ def compss_persistent_worker():
     if __debug__:
         logger.debug("[PYTHON WORKER] Finished")
 
-    if tracing:
+    if TRACING:
         pyextrae.eventandcounters(TASK_EVENTS, 0)
         pyextrae.eventandcounters(SYNC_EVENTS, 0)
 

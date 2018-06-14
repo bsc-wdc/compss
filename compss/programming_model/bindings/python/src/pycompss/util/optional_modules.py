@@ -24,7 +24,7 @@ optional modules that are required in order to be able to use some
 PyCOMPSs features.
 """
 
-optional_modules = {
+OPTIONAL_MODULES = {
     "guppy": """Guppy is a module needed for the local decorator.
 The local decorator allows you to define non-task functions which are able to
 handle synchronizations implictly.""",
@@ -33,6 +33,14 @@ handle synchronizations implictly.""",
 
 
 def get_optional_module_warning(module_name, module_description):
+    """
+    Get optional modules warning message.
+
+    :param module_name: Module name.
+    :param module_description: Module description.
+    :return: String with the optional warning message
+    """
+
     ret = [
         "\n[ WARNING ]:\t%s module is not installed." % module_name,
         "\t\t%s" % module_description.replace('\n', '\n\t\t'),
@@ -43,7 +51,13 @@ def get_optional_module_warning(module_name, module_description):
 
 
 def show_optional_module_warnings():
+    """
+    Display the optional modules warnings if not available.
+
+    :return: None
+    """
+
     from pycompss.util.object_properties import is_module_available
-    for (name, description) in optional_modules.items():
+    for (name, description) in OPTIONAL_MODULES.items():
         if not is_module_available(name):
             print(get_optional_module_warning(name, description))

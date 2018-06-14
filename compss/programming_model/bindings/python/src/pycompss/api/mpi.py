@@ -47,6 +47,7 @@ class mpi(object):
         # self = itself.
         # args = not used.
         # kwargs = dictionary with the given mpi parameters
+
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
@@ -81,6 +82,7 @@ class mpi(object):
     def __call__(self, func):
         """
         Parse and set the mpi parameters within the task core element.
+
         :param func: Function to decorate
         :return: Decorated function.
         """
@@ -126,9 +128,9 @@ class mpi(object):
                         break
                 self.module = mod_name
 
-            # Include the registering info related to @MPI
+            # Include the registering info related to @mpi
 
-            # Retrieve the base coreElement established at @task decorator
+            # Retrieve the base core_element established at @task decorator
             core_element = func.__to_register__
             # Update the core element information with the mpi information
             core_element.set_impl_type("MPI")
@@ -146,8 +148,7 @@ class mpi(object):
             # Do the task register if I am the top decorator
             if func.__who_registers__ == __name__:
                 if __debug__:
-                    logger.debug(
-                        "[@MPI] I have to do the register of function %s in module %s" % (func.__name__, self.module))
+                    logger.debug("[@MPI] I have to do the register of function %s in module %s" % (func.__name__, self.module))
                 register_ce(core_element)
         else:
             # worker code

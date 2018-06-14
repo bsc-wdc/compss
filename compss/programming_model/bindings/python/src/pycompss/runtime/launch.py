@@ -36,7 +36,7 @@ from pycompss.api.api import compss_start, compss_stop
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.logs import init_logging
-from pycompss.util.jvm_parser import convert_to_dict
+# from pycompss.util.jvm_parser import convert_to_dict
 from pycompss.util.serializer import SerializerException
 from pycompss.util.optional_modules import show_optional_module_warnings
 
@@ -50,10 +50,10 @@ else:
 
 def get_logging_cfg_file(log_level):
     """
-    Retrieves the logging cfg file
+    Retrieves the logging configuration file.
 
-    :param log_level:
-    :return:
+    :param log_level: Log level [ 'debug' | 'info' | 'off' ]
+    :return: Logging configuration file
     """
 
     logging_cfg_file = 'logging.json'
@@ -69,7 +69,9 @@ def get_logging_cfg_file(log_level):
 
 def parse_arguments():
     """
-    Parse PyCOMPSs arguments
+    Parse PyCOMPSs arguments.
+
+    :return: Parser arguments.
     """
 
     import argparse
@@ -84,9 +86,10 @@ def parse_arguments():
 def compss_main():
     """
     General call:
-    python $PYCOMPSS_HOME/pycompss/runtime/launch.py $log_level $PyObject_serialize $storageConf $fullAppPath $application_args
-    """
+    python $PYCOMPSS_HOME/pycompss/runtime/launch.py $log_level $PyObject_serialize $storage_conf $fullAppPath $application_args
 
+    :return: None
+    """
     global app_path
 
     # Start the runtime, see bindings commons
@@ -129,7 +132,7 @@ def compss_main():
         logger = logging.getLogger('pycompss.runtime.launch')
 
     # Get JVM options
-    jvm_opts = os.environ['JVM_OPTIONS_FILE']
+    # jvm_opts = os.environ['JVM_OPTIONS_FILE']
     # opts = convert_to_dict(jvm_opts)
     # storage_conf = opts.get('-Dcompss.storage.conf')
 
@@ -175,7 +178,7 @@ def compss_main():
 #################################################
 
 # Version 4.0
-def launch_pycompss_application(app, func, args=[], kwargs={},
+def launch_pycompss_application(app, func,
                                 log_level='off',
                                 o_c=False,
                                 debug=False,
@@ -185,72 +188,73 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
                                 project_xml=None,
                                 resources_xml=None,
                                 summary=False,
-                                taskExecution='compss',
-                                storageConf=None,
-                                taskCount=50,
-                                appName=None,
+                                task_execution='compss',
+                                storage_conf=None,
+                                task_count=50,
+                                app_name=None,
                                 uuid=None,
-                                baseLogDir=None,
-                                specificLogDir=None,
-                                extraeCfg=None,
+                                base_log_dir=None,
+                                specific_log_dir=None,
+                                extrae_cfg=None,
                                 comm='NIO',
                                 conn='es.bsc.compss.connectors.DefaultSSHConnector',
-                                masterName='',
-                                masterPort='',
+                                master_name='',
+                                master_port='',
                                 scheduler='es.bsc.compss.scheduler.loadBalancingScheduler.LoadBalancingScheduler',
-                                jvmWorkers='-Xms1024m,-Xmx1024m,-Xmn400m',
+                                jvm_workers='-Xms1024m,-Xmx1024m,-Xmn400m',
                                 obj_conv=False,
-                                cpuAffinity='automatic',
-                                gpuAffinity='automatic',
-                                profileInput='',
-                                profileOutput='',
+                                cpu_affinity='automatic',
+                                gpu_affinity='automatic',
+                                profile_input='',
+                                profile_output='',
                                 scheduler_config='',
                                 external_adaptation=False,
-                                python_propagate_virtual_environment=True
+                                python_propagate_virtual_environment=True,
+                                *args, **kwargs
                                 ):
     """
-    Launch pycompss application
+    Launch pycompss application.
 
-    :param app:
-    :param func:
-    :param args:
-    :param kwargs:
-    :param log_level:
-    :param o_c:
-    :param debug:
-    :param graph:
-    :param trace:
-    :param monitor:
-    :param project_xml:
-    :param resources_xml:
-    :param summary:
-    :param taskExecution:
-    :param storageConf:
-    :param taskCount:
-    :param appName:
-    :param uuid:
-    :param baseLogDir:
-    :param specificLogDir:
-    :param extraeCfg:
-    :param comm:
-    :param conn:
-    :param masterName:
-    :param masterPort:
-    :param scheduler:
-    :param jvmWorkers:
-    :param obj_conv:
-    :param cpuAffinity:
-    :param gpuAffinity:
-    :param profileInput:
-    :param profileOutput:
-    :param scheduler_config:
-    :param external_adaptation:
-    :return:
+    :param app: Application path
+    :param func: Function
+    :param args: Arguments
+    :param kwargs: Keyword arguments
+    :param log_level: Logging level [ 'on' | 'off'] (default: 'off')
+    :param o_c: Objects to string conversion [ True | False ] (default: False)
+    :param debug: Debug mode [ True | False ] (default: False)
+    :param graph: Generate graph [ True | False ] (default: False)
+    :param trace: Generate trace [ True | False ] (default: False)
+    :param monitor: Monitor refresh rate (default: None)
+    :param project_xml: Project xml file path
+    :param resources_xml: Resources xml file path
+    :param summary: Execution summary [ True | False ] (default: False)
+    :param task_execution: Task execution (default: 'compss')
+    :param storage_conf: Storage configuration file path
+    :param task_count: Task count (default: 50)
+    :param app_name: Application name (default: Interactive_date)
+    :param uuid: UUId
+    :param base_log_dir: Base logging directory
+    :param specific_log_dir: Specific logging directory
+    :param extrae_cfg: Extrae configuration file path
+    :param comm: Communication library (default: NIO)
+    :param conn: Connector (default: DefaultSSHConnector)
+    :param master_name: Master Name (default: '')
+    :param master_port: Master port (default: '')
+    :param scheduler: Scheduler (default: LoadBalancingScheduler)
+    :param jvm_workers: Java VM parameters (default: '-Xms1024m,-Xmx1024m,-Xmn400m')
+    :param cpu_affinity: CPU Core affinity (default: 'automatic')
+    :param gpu_affinity: GPU Core affinity (default: 'automatic')
+    :param profile_input: Input profile  (default: '')
+    :param profile_output: Output profile  (default: '')
+    :param scheduler_config: Scheduler configuration  (default: '')
+    :param external_adaptation: External adaptation [ True | False ] (default: False)
+    :param python_propagate_virtual_environment: Propagate virtual environment [ True | False ] (default: False)
+    :return: Execution result
     """
 
     global app_path
     launch_path = os.path.dirname(os.path.abspath(__file__))
-    # compss_home = launchPath without the last 4 folders:
+    # compss_home = launch_path without the last 4 folders:
     # (Bindings/python/pycompss/runtime)
     compss_home = os.path.sep.join(launch_path.split(os.path.sep)[:-4])
 
@@ -266,47 +270,47 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
     cp = os.path.dirname(app)
 
     # Build a dictionary with all variables needed for initializing the runtime.
-    config = {}
+    config = dict()
     config['compss_home'] = compss_home
     config['debug'] = debug
     if project_xml is None:
-        proj_xml = 'Runtime/configuration/xml/projects/default_project.xml'
-        config['project_xml'] = compss_home + os.path.sep + proj_xml
+        project_xml = 'Runtime/configuration/xml/projects/default_project.xml'
+        config['project_xml'] = compss_home + os.path.sep + project_xml
     else:
         config['project_xml'] = project_xml
     if resources_xml is None:
-        res_xml = 'Runtime/configuration/xml/resources/default_resources.xml'
-        config['resources_xml'] = compss_home + os.path.sep + res_xml
+        resources_xml = 'Runtime/configuration/xml/resources/default_resources.xml'
+        config['resources_xml'] = compss_home + os.path.sep + resources_xml
     else:
         config['resources_xml'] = resources_xml
     config['summary'] = summary
-    config['taskExecution'] = taskExecution
-    config['storageConf'] = storageConf
-    config['taskCount'] = taskCount
-    if appName is None:
-        config['appName'] = file_name
+    config['task_execution'] = task_execution
+    config['storage_conf'] = storage_conf
+    config['task_count'] = task_count
+    if app_name is None:
+        config['app_name'] = file_name
     else:
-        config['appName'] = appName
+        config['app_name'] = app_name
     config['uuid'] = uuid
-    config['baseLogDir'] = baseLogDir
-    config['specificLogDir'] = specificLogDir
+    config['base_log_dir'] = base_log_dir
+    config['specific_log_dir'] = specific_log_dir
     config['graph'] = graph
     config['monitor'] = monitor
     config['trace'] = trace
-    config['extraeCfg'] = extraeCfg
+    config['extrae_cfg'] = extrae_cfg
     config['comm'] = comm
     config['conn'] = conn
-    config['masterName'] = masterName
-    config['masterPort'] = masterPort
+    config['master_name'] = master_name
+    config['master_port'] = master_port
     config['scheduler'] = scheduler
     config['cp'] = cp
     config['classpath'] = classpath
-    config['jvmWorkers'] = jvmWorkers
-    config['pythonPath'] = pythonpath
-    config['cpuAffinity'] = cpuAffinity
-    config['gpuAffinity'] = gpuAffinity
-    config['profileInput'] = profileInput
-    config['profileOutput'] = profileOutput
+    config['jvm_workers'] = jvm_workers
+    config['pythonpath'] = pythonpath
+    config['cpu_affinity'] = cpu_affinity
+    config['gpu_affinity'] = gpu_affinity
+    config['profile_input'] = profile_input
+    config['profile_output'] = profile_output
     config['scheduler_config'] = scheduler_config
     if external_adaptation:
         config['external_adaptation'] = 'true'
@@ -344,7 +348,8 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
     sys.argv = args
     # Execution:
     if func is None or func == '__main__':
-        result = execfile(app)
+        execfile(app)
+        result = None
     else:
         import imp
         imported_module = imp.load_source(file_name, app)
@@ -363,6 +368,7 @@ def initialize_compss(config):
     """
     Creates the initialization files for the runtime start (java options file).
     Receives a dictionary (config) with the configuration parameters.
+
     WARNING!!! if new parameters are included in the runcompss launcher,
     they have to be considered in this configuration. Otherwise, the runtime will not start.
     * Current required parameters:
@@ -371,39 +377,40 @@ def initialize_compss(config):
         - 'project_xml'    = <String>       = Specific project.xml path
         - 'resources_xml'  = <String>       = Specific resources.xml path
         - 'summary'        = <Boolean>      = Enable/Disable summary (True|False)
-        - 'taskExecution'  = <String>       = Who performs the task execution (normally "compss")
-        - 'storageConf'    = None|<String>  = Storage configuration file path
-        - 'taskCount'      = <Integer>      = Number of tasks (for structure initialization purposes)
-        - 'appName'        = <String>       = Application name
+        - 'task_execution'  = <String>       = Who performs the task execution (normally "compss")
+        - 'storage_conf'    = None|<String>  = Storage configuration file path
+        - 'task_count'      = <Integer>      = Number of tasks (for structure initialization purposes)
+        - 'app_name'        = <String>       = Application name
         - 'uuid'           = None|<String>  = Application UUID
-        - 'baseLogDir'     = None|<String>  = Base log path
-        - 'specificLogDir' = None|<String>  = Specific log path
+        - 'base_log_dir'     = None|<String>  = Base log path
+        - 'specific_log_dir' = None|<String>  = Specific log path
         - 'graph'          = <Boolean>      = Enable/Disable graph generation
         - 'monitor'        = None|<Integer> = Disable/Frequency of the monitor
         - 'trace'          = <Boolean>      = Enable/Disable trace generation
-        - 'extraeCfg'      = None|<String>  = Default extrae configuration/User specific extrae configuration
+        - 'extrae_cfg'      = None|<String>  = Default extrae configuration/User specific extrae configuration
         - 'comm'           = <String>       = GAT/NIO
         - 'conn'           = <String>       = Connector (normally: es.bsc.compss.connectors.DefaultSSHConnector)
-        - 'masterName'     = <String>       = Master node name
-        - 'masterPort'     = <String>       = Master node port
+        - 'master_name'     = <String>       = Master node name
+        - 'master_port'     = <String>       = Master node port
         - 'scheduler'      = <String>       = Scheduler (normally: es.bsc.compss.scheduler.resourceEmptyScheduler.ResourceEmptyScheduler)
         - 'cp'             = <String>       = Application path
         - 'classpath'      = <String>       = CLASSPATH environment variable contents
-        - 'pythonPath'     = <String>       = PYTHONPATH environment variable contents
-        - 'jvmWorkers'     = <String>       = Worker's jvm configuration (example: "-Xms1024m,-Xmx1024m,-Xmn400m")
-        - 'cpuAffinity'    = <String>       = (default: automatic)
-        - 'gpuAffinity'    = <String>       = (default: automatic)
-        - 'profileInput'   = <String>       = profiling input
-        - 'profileOutput'  = <String>       = profiling output
+        - 'pythonpath'     = <String>       = PYTHONPATH environment variable contents
+        - 'jvm_workers'     = <String>       = Worker's jvm configuration (example: "-Xms1024m,-Xmx1024m,-Xmn400m")
+        - 'cpu_affinity'    = <String>       = (default: automatic)
+        - 'gpu_affinity'    = <String>       = (default: automatic)
+        - 'profile_input'   = <String>       = profiling input
+        - 'profile_output'  = <String>       = profiling output
         - 'scheduler_config'    = <String>  = Path to the file which contains the scheduler configuration.
         - 'external_adaptation' = <String>  = Enable external adaptation. This option will disable the Resource Optimizer
         - 'python_interpreter'  = <String>  = Python interpreter
         - 'python_version'      = <String>  = Python interpreter version
         - 'python_virtual_environment'            = <String>  = Python virtual environment path
         - 'python_propagate_virtual_environment'  = <Boolean> = Propagate python virtual environment to workers
-    :param config: Configuration parameters dictionary
-    """
 
+    :param config: Configuration parameters dictionary
+    :return: None
+    """
     from tempfile import mkstemp
     fd, temp_path = mkstemp()
     jvm_options_file = open(temp_path, 'w')
@@ -433,15 +440,15 @@ def initialize_compss(config):
         jvm_options_file.write('-Dcompss.summary=true\n')
     else:
         jvm_options_file.write('-Dcompss.summary=false\n')
-    jvm_options_file.write('-Dcompss.task.execution=' + config['taskExecution'] + '\n')
-    if config['storageConf'] is None:
+    jvm_options_file.write('-Dcompss.task.execution=' + config['task_execution'] + '\n')
+    if config['storage_conf'] is None:
         jvm_options_file.write('-Dcompss.storage.conf=null\n')
     else:
-        jvm_options_file.write('-Dcompss.storage.conf=' + config['storageConf'] + '\n')
+        jvm_options_file.write('-Dcompss.storage.conf=' + config['storage_conf'] + '\n')
 
-    jvm_options_file.write('-Dcompss.core.count=' + str(config['taskCount']) + '\n')
+    jvm_options_file.write('-Dcompss.core.count=' + str(config['task_count']) + '\n')
 
-    jvm_options_file.write('-Dcompss.appName=' + config['appName'] + '\n')
+    jvm_options_file.write('-Dcompss.app_name=' + config['app_name'] + '\n')
 
     if config['uuid'] is None:
         import uuid
@@ -451,16 +458,16 @@ def initialize_compss(config):
 
     jvm_options_file.write('-Dcompss.uuid=' + my_uuid + '\n')
 
-    if config['baseLogDir'] is None:
+    if config['base_log_dir'] is None:
         # it will be within $HOME/.COMPSs
-        jvm_options_file.write('-Dcompss.baseLogDir=\n')
+        jvm_options_file.write('-Dcompss.base_log_dir=\n')
     else:
-        jvm_options_file.write('-Dcompss.baseLogDir=' + config['baseLogDir'] + '\n')
+        jvm_options_file.write('-Dcompss.base_log_dir=' + config['base_log_dir'] + '\n')
 
-    if config['specificLogDir'] is None:
-        jvm_options_file.write('-Dcompss.specificLogDir=\n')
+    if config['specific_log_dir'] is None:
+        jvm_options_file.write('-Dcompss.specific_log_dir=\n')
     else:
-        jvm_options_file.write('-Dcompss.specificLogDir=' + config['specificLogDir'] + '\n')
+        jvm_options_file.write('-Dcompss.specific_log_dir=' + config['specific_log_dir'] + '\n')
 
     jvm_options_file.write('-Dcompss.appLogDir=/tmp/' + my_uuid + '/\n')
 
@@ -486,10 +493,10 @@ def initialize_compss(config):
     else:
         jvm_options_file.write('-Dcompss.tracing=0' + '\n')
 
-    if config['extraeCfg'] is None:
+    if config['extrae_cfg'] is None:
         jvm_options_file.write('-Dcompss.extrae.file=null\n')
     else:
-        jvm_options_file.write('-Dcompss.extrae.file=' + config['extraeCfg'] + '\n')
+        jvm_options_file.write('-Dcompss.extrae.file=' + config['extrae_cfg'] + '\n')
 
     if config['comm'] == 'GAT':
         jvm_options_file.write('-Dcompss.comm=es.bsc.compss.gat.master.GATAdaptor\n')
@@ -497,8 +504,8 @@ def initialize_compss(config):
         jvm_options_file.write('-Dcompss.comm=es.bsc.compss.nio.master.NIOAdaptor\n')
 
     jvm_options_file.write('-Dcompss.conn=' + config['conn'] + '\n')
-    jvm_options_file.write('-Dcompss.masterName=' + config['masterName'] + '\n')
-    jvm_options_file.write('-Dcompss.masterPort=' + config['masterPort'] + '\n')
+    jvm_options_file.write('-Dcompss.master_name=' + config['master_name'] + '\n')
+    jvm_options_file.write('-Dcompss.master_port=' + config['master_port'] + '\n')
     jvm_options_file.write('-Dcompss.scheduler=' + config['scheduler'] + '\n')
     jvm_options_file.write('-Dgat.adaptor.path=' + config['compss_home'] + '/Dependencies/JAVA_GAT/lib/adaptors\n')
     if config['debug']:
@@ -507,22 +514,18 @@ def initialize_compss(config):
         jvm_options_file.write('-Dgat.debug=false\n')
     jvm_options_file.write('-Dgat.broker.adaptor=sshtrilead\n')
     jvm_options_file.write('-Dgat.file.adaptor=sshtrilead\n')
-    jvm_options_file.write(
-        '-Dcompss.worker.cp=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config[
-            'classpath'] + '\n')
-    jvm_options_file.write('-Dcompss.worker.jvm_opts=' + config['jvmWorkers'] + '\n')
-    jvm_options_file.write('-Dcompss.worker.cpu_affinity=' + config['cpuAffinity'] + '\n')
-    jvm_options_file.write('-Dcompss.worker.gpu_affinity=' + config['gpuAffinity'] + '\n')
-    jvm_options_file.write('-Dcompss.profile.input=' + config['profileInput'] + '\n')
-    jvm_options_file.write('-Dcompss.profile.output=' + config['profileOutput'] + '\n')
+    jvm_options_file.write('-Dcompss.worker.cp=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config['classpath'] + '\n')
+    jvm_options_file.write('-Dcompss.worker.jvm_opts=' + config['jvm_workers'] + '\n')
+    jvm_options_file.write('-Dcompss.worker.cpu_affinity=' + config['cpu_affinity'] + '\n')
+    jvm_options_file.write('-Dcompss.worker.gpu_affinity=' + config['gpu_affinity'] + '\n')
+    jvm_options_file.write('-Dcompss.profile.input=' + config['profile_input'] + '\n')
+    jvm_options_file.write('-Dcompss.profile.output=' + config['profile_output'] + '\n')
     jvm_options_file.write('-Dcompss.scheduler.config=' + config['scheduler_config'] + '\n')
     jvm_options_file.write('-Dcompss.external.adaptation=' + config['external_adaptation'] + '\n')
 
     # JVM OPTIONS - PYTHON
-    jvm_options_file.write(
-        '-Djava.class.path=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config[
-            'classpath'] + '\n')
-    jvm_options_file.write('-Dcompss.worker.pythonpath=' + config['cp'] + ':' + config['pythonPath'] + '\n')
+    jvm_options_file.write('-Djava.class.path=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config['classpath'] + '\n')
+    jvm_options_file.write('-Dcompss.worker.pythonpath=' + config['cp'] + ':' + config['pythonpath'] + '\n')
     jvm_options_file.write('-Dcompss.python.interpreter=' + config['python_interpreter'] + '\n')
     jvm_options_file.write('-Dcompss.python.version=' + config['python_version'] + '\n')
     jvm_options_file.write('-Dcompss.python.virtualenvironment=' + config['python_virtual_environment'] + '\n')
@@ -538,8 +541,8 @@ def initialize_compss(config):
     # print("JVM_OPTIONS_FILE: %s" % temp_path)
 
 
-"""
-This is the PyCOMPSs entry point
-"""
 if __name__ == '__main__':
+    """
+    This is the PyCOMPSs entry point
+    """
     compss_main()

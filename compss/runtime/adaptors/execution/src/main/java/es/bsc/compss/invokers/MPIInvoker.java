@@ -20,13 +20,18 @@ import java.io.File;
 
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.exceptions.JobExecutionException;
+import es.bsc.compss.invokers.util.BinaryRunner;
+import es.bsc.compss.invokers.util.BinaryRunner.StreamSTD;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.implementations.MPIImplementation;
-import es.bsc.compss.invokers.util.GenericInvoker;
+import es.bsc.compss.types.annotations.Constants;
+import java.util.ArrayList;
 
 
 public class MPIInvoker extends Invoker {
+
+    private static final int NUM_BASE_MPI_ARGS = 6;
 
     private static final String ERROR_MPI_RUNNER = "ERROR: Invalid mpiRunner";
     private static final String ERROR_MPI_BINARY = "ERROR: Invalid mpiBinary";
@@ -48,12 +53,6 @@ public class MPIInvoker extends Invoker {
         this.mpiBinary = mpiImpl.getBinary();
     }
 
-    @Override
-    public Object invokeMethod() throws JobExecutionException {
-        checkArguments();
-        return invokeMPIMethod();
-    }
-
     private void checkArguments() throws JobExecutionException {
         if (this.mpiRunner == null || this.mpiRunner.isEmpty()) {
             throw new JobExecutionException(ERROR_MPI_RUNNER);
@@ -66,14 +65,66 @@ public class MPIInvoker extends Invoker {
         }
     }
 
-    private Object invokeMPIMethod() throws JobExecutionException {
-        LOGGER.info("Invoked " + this.mpiBinary + " in " + this.context.getHostName());
+    @Override
+    public Object invokeMethod() throws JobExecutionException {
+        checkArguments();
         try {
-            return GenericInvoker.invokeMPIMethod(this.mpiRunner, this.mpiBinary, this.values, this.streams, this.prefixes,
-                    this.taskSandboxWorkingDir, context.getThreadOutStream(), context.getThreadErrStream());
+            LOGGER.info("Invoked " + this.mpiBinary + " in " + this.context.getHostName());
+            return runInvocation();
         } catch (InvokeExecutionException iee) {
             throw new JobExecutionException(iee);
         }
     }
 
+    private Object runInvocation() throws InvokeExecutionException {
+        System.out.println("");
+        System.out.println("[MPI INVOKER] Begin MPI call to " + this.mpiBinary);
+        System.out.println("[MPI INVOKER] On WorkingDir : " + this.taskSandboxWorkingDir.getAbsolutePath());
+
+        // Command similar to
+        // export OMP_NUM_THREADS=1 ; mpirun -H COMPSsWorker01,COMPSsWorker02 -n
+        // 2 (--bind-to core) exec args
+        // Get COMPSS ENV VARS
+        String workers = System.getProperty(Constants.COMPSS_HOSTNAMES);
+        String numNodes = System.getProperty(Constants.COMPSS_NUM_NODES);
+        String computingUnits = System.getProperty(Constants.COMPSS_NUM_THREADS);
+        String numProcs = String.valueOf(Integer.valueOf(numNodes) * Integer.valueOf(computingUnits));
+        System.out.println("[MPI INVOKER] COMPSS HOSTNAMES: " + workers);
+        System.out.println("[MPI INVOKER] COMPSS_NUM_NODES: " + numNodes);
+        System.out.println("[MPI INVOKER] COMPSS_NUM_THREADS: " + computingUnits);
+
+        // Convert binary parameters and calculate binary-streams redirection
+        StreamSTD streamValues = new StreamSTD();
+        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.values, this.streams, this.prefixes, streamValues);
+
+        // Prepare command
+        String[] cmd = new String[NUM_BASE_MPI_ARGS + binaryParams.size()];
+        cmd[0] = this.mpiRunner;
+        cmd[1] = "-H";
+        cmd[2] = workers;
+        cmd[3] = "-n";
+        cmd[4] = numProcs;
+        // cmd[5] = "--bind-to";
+        // cmd[6] = "core";
+        cmd[5] = this.mpiBinary;
+        for (int i = 0; i < binaryParams.size(); ++i) {
+            cmd[NUM_BASE_MPI_ARGS + i] = binaryParams.get(i);
+        }
+
+        // Prepare environment
+        System.setProperty(OMP_NUM_THREADS, computingUnits);
+
+        // Debug command
+        System.out.print("[MPI INVOKER] MPI CMD: ");
+        for (int i = 0; i < cmd.length; ++i) {
+            System.out.print(cmd[i] + " ");
+        }
+        System.out.println("");
+        System.out.println("[MPI INVOKER] MPI STDIN: " + streamValues.getStdIn());
+        System.out.println("[MPI INVOKER] MPI STDOUT: " + streamValues.getStdOut());
+        System.out.println("[MPI INVOKER] MPI STDERR: " + streamValues.getStdErr());
+
+        // Launch command
+        return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, context.getThreadOutStream(), context.getThreadErrStream());
+    }
 }

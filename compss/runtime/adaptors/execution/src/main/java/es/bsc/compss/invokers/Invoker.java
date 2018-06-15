@@ -54,6 +54,8 @@ public abstract class Invoker {
 
 
 
+    protected static final String OMP_NUM_THREADS = "OMP_NUM_THREADS";
+
     protected final InvocationContext context;
     protected final Invocation nt;
     protected final File taskSandboxWorkingDir;

@@ -20,15 +20,18 @@ import java.io.File;
 
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.exceptions.JobExecutionException;
+import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 
 import es.bsc.compss.types.implementations.BinaryImplementation;
 
-import es.bsc.compss.invokers.util.GenericInvoker;
+import java.util.ArrayList;
 
 
 public class BinaryInvoker extends Invoker {
+
+    private static final int NUM_BASE_BINARY_ARGS = 1;
 
     private final String binary;
 
@@ -49,13 +52,45 @@ public class BinaryInvoker extends Invoker {
     public Object invokeMethod() throws JobExecutionException {
         LOGGER.info("Invoked " + this.binary + " in " + this.context.getHostName());
         try {
-
-            return GenericInvoker.invokeBinaryMethod(this.binary, this.values, this.streams, this.prefixes,
-                    this.taskSandboxWorkingDir, context.getThreadOutStream(), context.getThreadErrStream());
+            return runInvocation();
         } catch (InvokeExecutionException iee) {
             LOGGER.error("Exception running binary", iee);
             throw new JobExecutionException(iee);
         }
+    }
+
+    private Object runInvocation()
+            throws InvokeExecutionException {
+
+        System.out.println("");
+        System.out.println("[BINARY INVOKER] Begin binary call to " + this.binary);
+        System.out.println("[BINARY INVOKER] On WorkingDir : " + this.taskSandboxWorkingDir.getAbsolutePath());
+
+        // Command similar to
+        // ./exec args
+        // Convert binary parameters and calculate binary-streams redirection
+        BinaryRunner.StreamSTD streamValues = new BinaryRunner.StreamSTD();
+        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.values, this.streams, this.prefixes, streamValues);
+
+        // Prepare command
+        String[] cmd = new String[NUM_BASE_BINARY_ARGS + binaryParams.size()];
+        cmd[0] = this.binary;
+        for (int i = 0; i < binaryParams.size(); ++i) {
+            cmd[NUM_BASE_BINARY_ARGS + i] = binaryParams.get(i);
+        }
+
+        // Debug command
+        System.out.print("[BINARY INVOKER] BINARY CMD: ");
+        for (int i = 0; i < cmd.length; ++i) {
+            System.out.print(cmd[i] + " ");
+        }
+        System.out.println("");
+        System.out.println("[BINARY INVOKER] Binary STDIN: " + streamValues.getStdIn());
+        System.out.println("[BINARY INVOKER] Binary STDOUT: " + streamValues.getStdOut());
+        System.out.println("[BINARY INVOKER] Binary STDERR: " + streamValues.getStdErr());
+
+        // Launch command
+        return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, context.getThreadOutStream(), context.getThreadErrStream());
     }
 
 }

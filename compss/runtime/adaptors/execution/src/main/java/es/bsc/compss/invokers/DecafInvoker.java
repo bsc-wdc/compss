@@ -20,14 +20,20 @@ import java.io.File;
 
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.exceptions.JobExecutionException;
+import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.implementations.DecafImplementation;
-import es.bsc.compss.invokers.util.GenericInvoker;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
 
 
 public class DecafInvoker extends Invoker {
+
+    private static final int NUM_BASE_DECAF_ARGS = 11;
 
     private static final String ERROR_DECAF_RUNNER = "ERROR: Invalid mpiRunner";
     private static final String ERROR_DECAF_BINARY = "ERROR: Invalid wfScript";
@@ -57,7 +63,12 @@ public class DecafInvoker extends Invoker {
     @Override
     public Object invokeMethod() throws JobExecutionException {
         checkArguments();
-        return invokeDecafMethod();
+        try {
+            LOGGER.info("Invoked " + this.dfScript + " in " + this.context.getHostName());
+            return runInvocation();
+        } catch (InvokeExecutionException iee) {
+            throw new JobExecutionException(iee);
+        }
     }
 
     private void checkArguments() throws JobExecutionException {
@@ -84,15 +95,101 @@ public class DecafInvoker extends Invoker {
         }
     }
 
-    private Object invokeDecafMethod() throws JobExecutionException {
-        LOGGER.info("Invoked " + this.dfScript + " in " + this.context.getHostName());
+    private Object runInvocation() throws InvokeExecutionException {
+        String dfRunner = context.getInstallDir() + DecafImplementation.SCRIPT_PATH;
+        System.out.println("");
+        System.out.println("[DECAF INVOKER] Begin DECAF call to " + this.dfScript);
+        System.out.println("[DECAF INVOKER] On WorkingDir : " + this.taskSandboxWorkingDir.getAbsolutePath());
+
+        // Command similar to
+        // export OMP_NUM_THREADS=1 ; mpirun -H COMPSsWorker01,COMPSsWorker02 -n
+        // 2 (--bind-to core) exec args
+        // Get COMPSS ENV VARS
+        String workers = System.getProperty(Constants.COMPSS_HOSTNAMES);
+        String numNodes = System.getProperty(Constants.COMPSS_NUM_NODES);
+        String computingUnits = System.getProperty(Constants.COMPSS_NUM_THREADS);
+        String numProcs = String.valueOf(Integer.valueOf(numNodes) * Integer.valueOf(computingUnits));
+        System.out.println("[DECAF INVOKER] COMPSS HOSTNAMES: " + workers);
+        System.out.println("[DECAF INVOKER] COMPSS_NUM_NODES: " + numNodes);
+        System.out.println("[DECAF INVOKER] COMPSS_NUM_THREADS: " + computingUnits);
+
+        // Convert binary parameters and calculate binary-streams redirection
+        BinaryRunner.StreamSTD streamValues = new BinaryRunner.StreamSTD();
+        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.values, this.streams, this.prefixes, streamValues);
+        String hostfile = writeHostfile(this.taskSandboxWorkingDir, workers);
+        // Prepare command
+        String args = new String();
+        for (int i = 0; i < binaryParams.size(); ++i) {
+            if (i == 0) {
+                args = args.concat(binaryParams.get(i));
+            } else {
+                args = args.concat(" " + binaryParams.get(i));
+            }
+        }
+        String[] cmd;
+        if (args.isEmpty()) {
+            cmd = new String[NUM_BASE_DECAF_ARGS - 2];
+        } else {
+            cmd = new String[NUM_BASE_DECAF_ARGS];
+        }
+        cmd[0] = dfRunner;
+        cmd[1] = this.dfScript;
+        cmd[2] = this.dfExecutor;
+        cmd[3] = this.dfLib;
+        cmd[4] = this.mpiRunner;
+        cmd[5] = "-n";
+        cmd[6] = numProcs;
+        cmd[7] = "--hostfile";
+        cmd[8] = hostfile;
+        if (!args.isEmpty()) {
+            cmd[9] = "--args=\"";
+            cmd[10] = args;
+        }
+
+        // Prepare environment
+        System.setProperty(OMP_NUM_THREADS, computingUnits);
+
+        // Debug command
+        System.out.print("[DECAF INVOKER] Decaf CMD: ");
+        for (int i = 0; i < cmd.length; ++i) {
+            System.out.print(cmd[i] + " ");
+        }
+        System.out.println("");
+        System.out.println("[DECAF INVOKER] Decaf STDIN: " + streamValues.getStdIn());
+        System.out.println("[DECAF INVOKER] Decaf STDOUT: " + streamValues.getStdOut());
+        System.out.println("[DECAF INVOKER] Decaf STDERR: " + streamValues.getStdErr());
+
+        // Launch command
+        return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, context.getThreadOutStream(), context.getThreadErrStream());
+    }
+
+    private static String writeHostfile(File taskSandboxWorkingDir, String workers) throws InvokeExecutionException {
+        String filename = taskSandboxWorkingDir.getAbsolutePath() + File.separator + ".decafHostfile";
+        String workersInLines = workers.replace(',', '\n');
+        BufferedWriter writer = null;
         try {
+<<<<<<< eb4b41f13c640caf41497a8df44988b14bd6c064
             return GenericInvoker.invokeDecafMethod(context.getInstallDir() + DecafImplementation.SCRIPT_PATH, this.dfScript, this.dfExecutor,
                     this.dfLib, this.mpiRunner, this.values, this.streams, this.prefixes, this.taskSandboxWorkingDir,
                     context.getThreadOutStream(), context.getThreadErrStream());
         } catch (InvokeExecutionException iee) {
             throw new JobExecutionException(iee);
+=======
+            writer = new BufferedWriter(new FileWriter(filename));
+            writer.write(workersInLines);
+        } catch (IOException e) {
+            throw new InvokeExecutionException("Error writing decaf hostfile", e);
+        } finally {
+            try {
+                if (writer != null) {
+                    writer.close();
+                }
+            } catch (IOException e) {
+                // Nothing to do
+            }
+>>>>>>> Invokers don't use Generic invoker class
         }
+        return filename;
     }
 
 }

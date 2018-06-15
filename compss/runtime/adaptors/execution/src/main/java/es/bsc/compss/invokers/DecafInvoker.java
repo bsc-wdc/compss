@@ -14,17 +14,17 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.nio.worker.executors.util;
+package es.bsc.compss.invokers;
 
 import java.io.File;
 
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.exceptions.JobExecutionException;
-import es.bsc.compss.nio.worker.NIOWorker;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.execution.Invocation;
+import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.implementations.DecafImplementation;
-import es.bsc.compss.worker.invokers.GenericInvoker;
+import es.bsc.compss.invokers.util.GenericInvoker;
 
 
 public class DecafInvoker extends Invoker {
@@ -38,9 +38,8 @@ public class DecafInvoker extends Invoker {
     private String dfExecutor;
     private String dfLib;
 
-
-    public DecafInvoker(NIOWorker nw, Invocation nt, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
-        super(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
+    public DecafInvoker(InvocationContext context, Invocation invocation, boolean debug, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
+        super(context, invocation, debug, taskSandboxWorkingDir, assignedCoreUnits);
 
         // Get method definition properties
         DecafImplementation decafImpl = null;
@@ -69,7 +68,7 @@ public class DecafInvoker extends Invoker {
             throw new JobExecutionException(ERROR_DECAF_BINARY);
         }
         if (!this.dfScript.startsWith(File.separator)) {
-            this.dfScript = nw.getAppDir() + File.separator + this.dfScript;
+            this.dfScript = context.getAppDir() + File.separator + this.dfScript;
         }
         if (this.dfExecutor == null || this.dfExecutor.isEmpty() || this.dfExecutor.equals(Constants.UNASSIGNED)) {
             this.dfExecutor = "executor.sh";
@@ -86,11 +85,11 @@ public class DecafInvoker extends Invoker {
     }
 
     private Object invokeDecafMethod() throws JobExecutionException {
-        LOGGER.info("Invoked " + this.dfScript + " in " + this.nw.getHostName());
+        LOGGER.info("Invoked " + this.dfScript + " in " + this.context.getHostName());
         try {
-            return GenericInvoker.invokeDecafMethod(nw.getInstallDir() + DecafImplementation.SCRIPT_PATH, this.dfScript, this.dfExecutor,
+            return GenericInvoker.invokeDecafMethod(context.getInstallDir() + DecafImplementation.SCRIPT_PATH, this.dfScript, this.dfExecutor,
                     this.dfLib, this.mpiRunner, this.values, this.streams, this.prefixes, this.taskSandboxWorkingDir,
-                    nw.getThreadOutStream(), nw.getThreadErrStream());
+                    context.getThreadOutStream(), context.getThreadErrStream());
         } catch (InvokeExecutionException iee) {
             throw new JobExecutionException(iee);
         }

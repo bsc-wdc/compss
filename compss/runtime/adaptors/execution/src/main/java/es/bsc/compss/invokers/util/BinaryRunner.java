@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.worker.invokers;
+package es.bsc.compss.invokers.util;
 
 import java.io.File;
 import java.io.FileInputStream;

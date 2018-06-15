@@ -22,14 +22,14 @@ import java.io.File;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.exceptions.JobExecutionException;
 import es.bsc.compss.nio.worker.NIOWorker;
-import es.bsc.compss.nio.worker.executors.util.BinaryInvoker;
-import es.bsc.compss.nio.worker.executors.util.DecafInvoker;
-import es.bsc.compss.nio.worker.executors.util.Invoker;
-import es.bsc.compss.nio.worker.executors.util.JavaInvoker;
-import es.bsc.compss.nio.worker.executors.util.MPIInvoker;
-import es.bsc.compss.nio.worker.executors.util.OmpSsInvoker;
-import es.bsc.compss.nio.worker.executors.util.OpenCLInvoker;
-import es.bsc.compss.nio.worker.executors.util.StorageInvoker;
+import es.bsc.compss.invokers.BinaryInvoker;
+import es.bsc.compss.invokers.DecafInvoker;
+import es.bsc.compss.invokers.Invoker;
+import es.bsc.compss.invokers.JavaInvoker;
+import es.bsc.compss.invokers.MPIInvoker;
+import es.bsc.compss.invokers.OmpSsInvoker;
+import es.bsc.compss.invokers.OpenCLInvoker;
+import es.bsc.compss.invokers.StorageInvoker;
 import es.bsc.compss.nio.worker.util.JobsThreadPool;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
@@ -70,25 +70,25 @@ public class JavaExecutor extends Executor {
             switch (methodType) {
                 case METHOD:
                     if (NIOWorker.getExecutionType().equals(COMPSsConstants.EXECUTION_INTERNAL)) {
-                        invoker = new JavaInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
+                        invoker = new JavaInvoker(nw, nt, nw.isWorkerDebugEnabled(), taskSandboxWorkingDir, assignedCoreUnits);
                     } else {
-                        invoker = new StorageInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
+                        invoker = new StorageInvoker(nw, nt, nw.isWorkerDebugEnabled(), taskSandboxWorkingDir, assignedCoreUnits);
                     }
                     break;
                 case MPI:
-                    invoker = new MPIInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
+                    invoker = new MPIInvoker(nw, nt, nw.isWorkerDebugEnabled(), taskSandboxWorkingDir, assignedCoreUnits);
                     break;
                 case DECAF:
-                    invoker = new DecafInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
+                    invoker = new DecafInvoker(nw, nt, nw.isWorkerDebugEnabled(), taskSandboxWorkingDir, assignedCoreUnits);
                     break;
                 case OMPSS:
-                    invoker = new OmpSsInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
+                    invoker = new OmpSsInvoker(nw, nt, nw.isWorkerDebugEnabled(), taskSandboxWorkingDir, assignedCoreUnits);
                     break;
                 case OPENCL:
-                    invoker = new OpenCLInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
+                    invoker = new OpenCLInvoker(nw, nt, nw.isWorkerDebugEnabled(), taskSandboxWorkingDir, assignedCoreUnits);
                     break;
                 case BINARY:
-                    invoker = new BinaryInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
+                    invoker = new BinaryInvoker(nw, nt, nw.isWorkerDebugEnabled(), taskSandboxWorkingDir, assignedCoreUnits);
                     break;
                 default:
                     throw new JobExecutionException("Unrecognised method type");

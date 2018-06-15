@@ -63,13 +63,14 @@ import es.bsc.compss.nio.worker.exceptions.InitializationException;
 import es.bsc.compss.nio.worker.util.ThreadPrintStream;
 import es.bsc.compss.nio.NIOTracer;
 import es.bsc.compss.types.BindingObject;
+import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.util.BindingDataManager;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
 import es.bsc.compss.util.Tracer;
 
 
-public class NIOWorker extends NIOAgent {
+public class NIOWorker extends NIOAgent implements InvocationContext {
 
     // General configuration attributes
     private static final int MAX_RETRIES = 10;
@@ -104,7 +105,6 @@ public class NIOWorker extends NIOAgent {
     // Storage attributes
     private static String storageConf;
     private static String executionType;
-
 
     // Python related variables
     private static String pythonInterpreter;
@@ -234,7 +234,6 @@ public class NIOWorker extends NIOAgent {
         }
     }
 
-
     public static String getPythonInterpreter() {
         return pythonInterpreter;
     }
@@ -247,7 +246,9 @@ public class NIOWorker extends NIOAgent {
         return pythonVirtualEnvironment;
     }
 
-    public static String getPythonPropagateVirtualEnvironment() { return pythonPropagateVirtualEnvironment; }
+    public static String getPythonPropagateVirtualEnvironment() {
+        return pythonPropagateVirtualEnvironment;
+    }
 
     public ExecutionManager getExecutionManager() {
         return this.executionManager;
@@ -320,8 +321,8 @@ public class NIOWorker extends NIOAgent {
                         // Nothing to do since external parameters send their ID directly
                         break;
                     case BINDING_OBJECT_T:
-                    	askForBindingObject(param, i ,tt);
-                    	break;
+                        askForBindingObject(param, i, tt);
+                        break;
                     case FILE_T:
                         askForFile(param, i, tt);
                         break;
@@ -500,7 +501,7 @@ public class NIOWorker extends NIOAgent {
                             }
                         }
                     }
-   }
+                }
 
                 if (!existInHost) {
                     // We must transfer the file
@@ -511,9 +512,9 @@ public class NIOWorker extends NIOAgent {
 
         // Request the transfer if needed
         askForTransfer(askTransfer, param, index, tt);
-       
+
     }
-    
+
     private void askForObject(NIOParam param, int index, TransferringTask tt) {
         if (WORKER_LOGGER_DEBUG) {
             WORKER_LOGGER.debug("   - " + (String) param.getValue() + " registered as object.");
@@ -705,12 +706,10 @@ public class NIOWorker extends NIOAgent {
                 // We must transfer the file
                 askTransfer = true;
             }
-        } else {
-            // Check if it is not currently transferred
-            if (getDataRequests(param.getData().getName()) != null) {
+        } else // Check if it is not currently transferred
+         if (getDataRequests(param.getData().getName()) != null) {
                 askTransfer = true;
             }
-        }
         // Request the transfer if needed
         askForTransfer(askTransfer, param, index, tt);
     }
@@ -1023,7 +1022,7 @@ public class NIOWorker extends NIOAgent {
     }
 
     @Override
-    public Object getObject(String name) throws SerializedObjectException {
+    public Object getObject(String name) {
         String realName = name.substring(name.lastIndexOf('/') + 1);
         return dataManager.getObject(realName);
     }
@@ -1242,7 +1241,6 @@ public class NIOWorker extends NIOAgent {
         pythonVirtualEnvironment = args[30];
         pythonPropagateVirtualEnvironment = args[31];
 
-
         // Print arguments
         if (isWorkerDebugEnabled) {
             WORKER_LOGGER.debug("maxSnd: " + String.valueOf(maxSnd));
@@ -1364,24 +1362,27 @@ public class NIOWorker extends NIOAgent {
     @Override
     public void receivedBindingObjectAsFile(String filename, String target) {
         // Nothing to do at worker
-        
+
     }
+
     /**
      * Get the stderr stream assigned to this computing thread
+     *
      * @return
      */
-    public PrintStream getThreadErrStream(){
+    public PrintStream getThreadErrStream() {
         return err.getStream();
     }
-    
+
     /**
      * Get the stdout stream assigned to this computing thread
+     *
      * @return
      */
-    public PrintStream getThreadOutStream(){
+    public PrintStream getThreadOutStream() {
         return out.getStream();
     }
-    
+
     @Override
     protected boolean isMaster() {
         return false;

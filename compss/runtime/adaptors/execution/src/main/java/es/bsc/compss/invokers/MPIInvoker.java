@@ -14,16 +14,16 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.nio.worker.executors.util;
+package es.bsc.compss.invokers;
 
 import java.io.File;
 
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.exceptions.JobExecutionException;
-import es.bsc.compss.nio.worker.NIOWorker;
 import es.bsc.compss.types.execution.Invocation;
+import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.implementations.MPIImplementation;
-import es.bsc.compss.worker.invokers.GenericInvoker;
+import es.bsc.compss.invokers.util.GenericInvoker;
 
 
 public class MPIInvoker extends Invoker {
@@ -35,9 +35,8 @@ public class MPIInvoker extends Invoker {
     private final String mpiRunner;
     private final String mpiBinary;
 
-    public MPIInvoker(NIOWorker nw, Invocation nt, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
-        super(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
-
+    public MPIInvoker(InvocationContext context, Invocation invocation, boolean debug, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
+        super(context, invocation, debug, taskSandboxWorkingDir, assignedCoreUnits);
         // Get method definition properties
         MPIImplementation mpiImpl = null;
         try {
@@ -68,10 +67,10 @@ public class MPIInvoker extends Invoker {
     }
 
     private Object invokeMPIMethod() throws JobExecutionException {
-        LOGGER.info("Invoked " + this.mpiBinary + " in " + this.nw.getHostName());
+        LOGGER.info("Invoked " + this.mpiBinary + " in " + this.context.getHostName());
         try {
             return GenericInvoker.invokeMPIMethod(this.mpiRunner, this.mpiBinary, this.values, this.streams, this.prefixes,
-                    this.taskSandboxWorkingDir, nw.getThreadOutStream(), nw.getThreadErrStream());
+                    this.taskSandboxWorkingDir, context.getThreadOutStream(), context.getThreadErrStream());
         } catch (InvokeExecutionException iee) {
             throw new JobExecutionException(iee);
         }

@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.worker.invokers;
+package es.bsc.compss.invokers.util;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -27,7 +27,7 @@ import java.util.UUID;
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.Stream;
-import es.bsc.compss.worker.invokers.BinaryRunner.StreamSTD;
+import es.bsc.compss.invokers.util.BinaryRunner.StreamSTD;
 
 
 public class GenericInvoker {

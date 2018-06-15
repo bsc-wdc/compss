@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.nio.worker.executors.util;
+package es.bsc.compss.invokers;
 
 /**
  * Class to Wrap Target Parameter

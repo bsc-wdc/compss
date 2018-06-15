@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.nio.worker.executors.util;
+package es.bsc.compss.invokers;
 
 import es.bsc.compss.exceptions.JobExecutionException;
 import es.bsc.compss.log.Loggers;
@@ -24,6 +24,7 @@ import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Stream;
 import es.bsc.compss.types.execution.Invocation;
+import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.util.Tracer;
 
@@ -35,9 +36,6 @@ import java.util.Iterator;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import es.bsc.compss.nio.exceptions.SerializedObjectException;
-import es.bsc.compss.nio.worker.NIOWorker;
 
 import storage.StorageException;
 import storage.StubItf;
@@ -52,11 +50,11 @@ public abstract class Invoker {
 
     protected static final String ERROR_METHOD_DEFINITION = "Incorrect method definition for task of type ";
     protected static final String ERROR_TASK_EXECUTION = "ERROR: Exception executing task (user code)";
-
     protected static final String ERROR_UNKNOWN_TYPE = "ERROR: Unrecognised type";
 
 
-    protected final NIOWorker nw;
+
+    protected final InvocationContext context;
     protected final Invocation nt;
     protected final File taskSandboxWorkingDir;
     protected final int[] assignedCoreUnits;
@@ -79,20 +77,20 @@ public abstract class Invoker {
     protected final TargetParam target;
     private Object retValue;
 
-    public Invoker(NIOWorker nw, Invocation nt, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
-        this.nw = nw;
-        this.nt = nt;
+    public Invoker(InvocationContext context, Invocation invocation, boolean debug, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
+        this.context = context;
+        this.nt = invocation;
         this.taskSandboxWorkingDir = taskSandboxWorkingDir;
         this.assignedCoreUnits = assignedCoreUnits;
 
-        this.debug = NIOWorker.isWorkerDebugEnabled();
+        this.debug = debug;
 
         /* Invocation information **************************************** */
-        this.methodType = nt.getMethodType();
-        this.impl = nt.getMethodImplementation();
-        this.hasTarget = nt.hasTarget();
-        this.hasReturn = nt.hasReturn();
-        this.numParams = nt.getNumParams();
+        this.methodType = invocation.getMethodType();
+        this.impl = invocation.getMethodImplementation();
+        this.hasTarget = invocation.hasTarget();
+        this.hasReturn = invocation.hasReturn();
+        this.numParams = invocation.getNumParams();
 
         /* Parameters information ********************************** */
         this.totalNumberOfParams = this.hasTarget ? this.numParams - 1 : this.numParams; // Don't count target if needed
@@ -109,7 +107,7 @@ public abstract class Invoker {
         this.target = new TargetParam();
 
         /* Parse the parameters ************************************ */
-        Iterator<? extends InvocationParam> params = nt.getParams().iterator();
+        Iterator<? extends InvocationParam> params = invocation.getParams().iterator();
         for (int i = 0; i < this.numParams; i++) {
             InvocationParam np = params.next();
             processParameter(np, i);
@@ -244,19 +242,14 @@ public abstract class Invoker {
                 this.writeFinalValue[i] = np.isWriteFinalValue();
 
                 // Get object
-                Object obj;
-                try {
-                    obj = this.nw.getObject(this.renamings[i]);
-                } catch (SerializedObjectException soe) {
-                    throw new JobExecutionException(ERROR_SERIALIZED_OBJ, soe);
-                }
+                Object obj = this.context.getObject(this.renamings[i]);
 
                 // Check if object is null
                 if (obj == null) {
                     // Try if renaming refers to a PSCOId that is not catched
                     // This happens when 2 tasks have an INOUT PSCO that is persisted within the 1st task
                     try {
-                        obj = this.nw.getPersistentObject(renamings[i]);
+                        obj = this.context.getPersistentObject(renamings[i]);
                     } catch (StorageException se) {
                         throw new JobExecutionException(ERROR_SERIALIZED_OBJ, se);
                     }
@@ -296,7 +289,7 @@ public abstract class Invoker {
 
                 // Get Object
                 try {
-                    obj = this.nw.getPersistentObject(id);
+                    obj = this.context.getPersistentObject(id);
                 } catch (StorageException e) {
                     throw new JobExecutionException(ERROR_PERSISTENT_OBJ + " with id " + id, e);
                 }
@@ -365,7 +358,7 @@ public abstract class Invoker {
                 // Update to PSCO if needed
                 if (id != null) {
                     // Object has been persisted, we store the PSCO and change the value to its ID
-                    this.nw.storePersistentObject(id, obj);
+                    this.context.storePersistentObject(id, obj);
 
                     if (this.hasTarget && i == this.numParams - 1) {
                         this.target.setValue(id);
@@ -412,13 +405,13 @@ public abstract class Invoker {
                 InvocationParam np = this.nt.getParams().get(i);
                 switch (np.getType()) {
                     case FILE_T:
-                        this.nw.storeObject(renamings[i], np.getValue());
+                        this.context.storeObject(renamings[i], np.getValue());
                         break;
                     default:
                         // Update task parameters for TaskResult command
                         Object res = (this.hasTarget && i == this.numParams - 1) ? this.target.getValue() : this.values[i];
                         np.setValue(res);
-                        this.nw.storeObject(renamings[i], res);
+                        this.context.storeObject(renamings[i], res);
                 }
 
             }
@@ -432,7 +425,7 @@ public abstract class Invoker {
                 LOGGER.debug("Store return value " + this.retValue + " as " + renaming);
             }
             // Always stored because it can only be a OUT object
-            this.nw.storeObject(renaming.substring(renaming.lastIndexOf('/') + 1), this.retValue);
+            this.context.storeObject(renaming.substring(renaming.lastIndexOf('/') + 1), this.retValue);
         }
     }
 

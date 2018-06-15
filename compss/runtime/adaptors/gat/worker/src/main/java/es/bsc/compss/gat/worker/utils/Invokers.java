@@ -23,7 +23,7 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.types.annotations.parameter.Stream;
 
-import es.bsc.compss.worker.invokers.GenericInvoker;
+import es.bsc.compss.invokers.util.GenericInvoker;
 
 
 public class Invokers {

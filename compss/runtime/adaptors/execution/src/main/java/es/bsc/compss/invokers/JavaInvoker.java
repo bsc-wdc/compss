@@ -14,15 +14,15 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.nio.worker.executors.util;
+package es.bsc.compss.invokers;
 
 import java.io.File;
 import java.lang.reflect.Method;
 
-import es.bsc.compss.nio.NIOTracer;
+import es.bsc.compss.util.Tracer;
 import es.bsc.compss.exceptions.JobExecutionException;
-import es.bsc.compss.nio.worker.NIOWorker;
 import es.bsc.compss.types.execution.Invocation;
+import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import java.lang.reflect.InvocationTargetException;
 
@@ -36,8 +36,8 @@ public class JavaInvoker extends Invoker {
     private final String methodName;
     protected final Method method;
 
-    public JavaInvoker(NIOWorker nw, Invocation nt, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
-        super(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
+    public JavaInvoker(InvocationContext context, Invocation invocation, boolean debug, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
+        super(context, invocation, debug, taskSandboxWorkingDir, assignedCoreUnits);
 
         // Get method definition properties
         MethodImplementation methodImpl = null;
@@ -74,18 +74,18 @@ public class JavaInvoker extends Invoker {
     public Object invokeMethod() throws JobExecutionException {
         Object retValue = null;
 
-        if (NIOTracer.isActivated()) {
-            NIOTracer.emitEvent(NIOTracer.Event.STORAGE_INVOKE.getId(), NIOTracer.Event.STORAGE_INVOKE.getType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.Event.STORAGE_INVOKE.getId(), Tracer.Event.STORAGE_INVOKE.getType());
         }
 
         try {
-            LOGGER.info("Invoked " + method.getName() + " of " + target + " in " + nw.getHostName());
+            LOGGER.info("Invoked " + method.getName() + " of " + target + " in " + context.getHostName());
             retValue = method.invoke(target.getValue(), values);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
             throw new JobExecutionException(ERROR_TASK_EXECUTION, e);
         } finally {
-            if (NIOTracer.isActivated()) {
-                NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.STORAGE_INVOKE.getType());
+            if (Tracer.isActivated()) {
+                Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_INVOKE.getType());
             }
         }
 

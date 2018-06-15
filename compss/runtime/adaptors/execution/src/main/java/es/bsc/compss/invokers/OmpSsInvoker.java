@@ -14,47 +14,42 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.nio.worker.executors.util;
+package es.bsc.compss.invokers;
 
 import java.io.File;
 
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.exceptions.JobExecutionException;
-import es.bsc.compss.nio.worker.NIOWorker;
 import es.bsc.compss.types.execution.Invocation;
-
-import es.bsc.compss.types.implementations.BinaryImplementation;
-
-import es.bsc.compss.worker.invokers.GenericInvoker;
-
-
-public class BinaryInvoker extends Invoker {
-
-    private final String binary;
+import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.implementations.OmpSsImplementation;
+import es.bsc.compss.invokers.util.GenericInvoker;
 
 
-    public BinaryInvoker(NIOWorker nw, Invocation nt, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
-        super(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
+public class OmpSsInvoker extends Invoker {
+
+    private final String ompssBinary;
+
+    public OmpSsInvoker(InvocationContext context, Invocation invocation, boolean debug, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
+        super(context, invocation, debug, taskSandboxWorkingDir, assignedCoreUnits);
 
         // Get method definition properties
-        BinaryImplementation binaryImpl = null;
+        OmpSsImplementation ompssImpl = null;
         try {
-            binaryImpl = (BinaryImplementation) this.impl;
+            ompssImpl = (OmpSsImplementation) this.impl;
         } catch (Exception e) {
             throw new JobExecutionException(ERROR_METHOD_DEFINITION + this.methodType, e);
         }
-        this.binary = binaryImpl.getBinary();
+        this.ompssBinary = ompssImpl.getBinary();
     }
 
     @Override
     public Object invokeMethod() throws JobExecutionException {
-        LOGGER.info("Invoked " + this.binary + " in " + this.nw.getHostName());
+        LOGGER.info("Invoked " + ompssBinary + " in " + context.getHostName());
         try {
-            
-            return GenericInvoker.invokeBinaryMethod(this.binary, this.values, this.streams, this.prefixes, 
-                    this.taskSandboxWorkingDir, nw.getThreadOutStream(), nw.getThreadErrStream());
+            return GenericInvoker.invokeOmpSsMethod(this.ompssBinary, this.values, this.streams, this.prefixes, this.taskSandboxWorkingDir,
+                    context.getThreadOutStream(), context.getThreadErrStream());
         } catch (InvokeExecutionException iee) {
-            LOGGER.error("Exception running binary", iee);
             throw new JobExecutionException(iee);
         }
     }

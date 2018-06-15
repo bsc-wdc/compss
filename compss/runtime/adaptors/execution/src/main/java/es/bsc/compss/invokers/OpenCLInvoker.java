@@ -14,13 +14,13 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.nio.worker.executors.util;
+package es.bsc.compss.invokers;
 
 import java.io.File;
 
 import es.bsc.compss.exceptions.JobExecutionException;
-import es.bsc.compss.nio.worker.NIOWorker;
 import es.bsc.compss.types.execution.Invocation;
+import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.implementations.OpenCLImplementation;
 
 
@@ -28,8 +28,8 @@ public class OpenCLInvoker extends Invoker {
 
     private final String kernel;
 
-    public OpenCLInvoker(NIOWorker nw, Invocation nt, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
-        super(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
+    public OpenCLInvoker(InvocationContext context, Invocation invocation, boolean debug, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
+        super(context, invocation, debug, taskSandboxWorkingDir, assignedCoreUnits);
 
         // Get method definition properties
         OpenCLImplementation openclImpl = null;

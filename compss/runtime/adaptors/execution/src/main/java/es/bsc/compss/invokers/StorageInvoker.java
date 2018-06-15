@@ -14,15 +14,15 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.nio.worker.executors.util;
+package es.bsc.compss.invokers;
 
 import java.io.File;
 import java.util.concurrent.Semaphore;
 
-import es.bsc.compss.nio.NIOTracer;
+import es.bsc.compss.util.Tracer;
 import es.bsc.compss.exceptions.JobExecutionException;
-import es.bsc.compss.nio.worker.NIOWorker;
 import es.bsc.compss.types.execution.Invocation;
+import es.bsc.compss.types.execution.InvocationContext;
 
 import javassist.ClassPool;
 import javassist.CtClass;
@@ -45,8 +45,8 @@ public class StorageInvoker extends JavaInvoker {
     private static final String ERROR_EXTERNAL_EXECUTION = "ERROR: External Task Execution failed";
     private static final String WARN_RET_VALUE_EXCEPTION = "WARN: Exception on externalExecution return value";
 
-    public StorageInvoker(NIOWorker nw, Invocation nt, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
-        super(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
+    public StorageInvoker(InvocationContext context, Invocation invocation, boolean debug, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
+        super(context, invocation, debug, taskSandboxWorkingDir, assignedCoreUnits);
     }
 
     @Override
@@ -86,18 +86,18 @@ public class StorageInvoker extends JavaInvoker {
 
         // Call Storage executeTask
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.info("External ExecuteTask " + method.getName() + " with target PSCO Id " + id + " in " + nw.getHostName());
+            LOGGER.info("External ExecuteTask " + method.getName() + " with target PSCO Id " + id + " in " + context.getHostName());
         } else {
             LOGGER.info("External ExecuteTask " + method.getName());
         }
 
-        if (NIOTracer.isActivated()) {
-            NIOTracer.emitEvent(NIOTracer.Event.STORAGE_EXECUTETASK.getId(), NIOTracer.Event.STORAGE_EXECUTETASK.getType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.Event.STORAGE_EXECUTETASK.getId(), Tracer.Event.STORAGE_EXECUTETASK.getType());
         }
 
         PSCOCallbackHandler callback = new PSCOCallbackHandler();
         try {
-            String call_result = StorageItf.executeTask(id, descriptor, values, nw.getHostName(), callback);
+            String call_result = StorageItf.executeTask(id, descriptor, values, context.getHostName(), callback);
 
             LOGGER.debug(call_result);
 
@@ -109,8 +109,8 @@ public class StorageInvoker extends JavaInvoker {
             Thread.currentThread().interrupt();
             throw new JobExecutionException(ERROR_CALLBACK_INTERRUPTED, e);
         } finally {
-            if (NIOTracer.isActivated()) {
-                NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.STORAGE_EXECUTETASK.getType());
+            if (Tracer.isActivated()) {
+                Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_EXECUTETASK.getType());
             }
         }
 

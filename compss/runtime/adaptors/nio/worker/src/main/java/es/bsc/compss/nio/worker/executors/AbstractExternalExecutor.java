@@ -23,12 +23,12 @@ import es.bsc.compss.nio.NIOTracer;
 import es.bsc.compss.exceptions.JobExecutionException;
 import es.bsc.compss.nio.exceptions.SerializedObjectException;
 import es.bsc.compss.nio.worker.NIOWorker;
-import es.bsc.compss.nio.worker.executors.util.BinaryInvoker;
-import es.bsc.compss.nio.worker.executors.util.DecafInvoker;
-import es.bsc.compss.nio.worker.executors.util.Invoker;
-import es.bsc.compss.nio.worker.executors.util.MPIInvoker;
-import es.bsc.compss.nio.worker.executors.util.OmpSsInvoker;
-import es.bsc.compss.nio.worker.executors.util.OpenCLInvoker;
+import es.bsc.compss.invokers.BinaryInvoker;
+import es.bsc.compss.invokers.DecafInvoker;
+import es.bsc.compss.invokers.Invoker;
+import es.bsc.compss.invokers.MPIInvoker;
+import es.bsc.compss.invokers.OmpSsInvoker;
+import es.bsc.compss.invokers.OpenCLInvoker;
 import es.bsc.compss.nio.worker.util.JobsThreadPool;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
@@ -67,7 +67,6 @@ public abstract class AbstractExternalExecutor extends Executor {
     public static final String SERIALIZE_TAG = "serialize";
     public static final String EXECUTE_TASK_TAG = "task";
 
-
     public AbstractExternalExecutor(NIOWorker nw, JobsThreadPool pool, RequestQueue<NIOTask> queue) {
         super(nw, pool, queue);
     }
@@ -95,23 +94,23 @@ public abstract class AbstractExternalExecutor extends Executor {
                 executeNativeMethod(nw, nt, outputsBasename, taskSandboxWorkingDir, assignedCoreUnits, assignedGPUs, assignedFPGAs);
                 break;
             case BINARY:
-                BinaryInvoker binaryInvoker = new BinaryInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
+                BinaryInvoker binaryInvoker = new BinaryInvoker(nw, nt, nw.isWorkerDebugEnabled(), taskSandboxWorkingDir, assignedCoreUnits);
                 executeNonNativeMethod(outputsBasename, binaryInvoker);
                 break;
             case MPI:
-                MPIInvoker mpiInvoker = new MPIInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
+                MPIInvoker mpiInvoker = new MPIInvoker(nw, nt, nw.isWorkerDebugEnabled(), taskSandboxWorkingDir, assignedCoreUnits);
                 executeNonNativeMethod(outputsBasename, mpiInvoker);
                 break;
             case DECAF:
-                DecafInvoker decafInvoker = new DecafInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
+                DecafInvoker decafInvoker = new DecafInvoker(nw, nt, nw.isWorkerDebugEnabled(), taskSandboxWorkingDir, assignedCoreUnits);
                 executeNonNativeMethod(outputsBasename, decafInvoker);
                 break;
             case OMPSS:
-                OmpSsInvoker ompssInvoker = new OmpSsInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
+                OmpSsInvoker ompssInvoker = new OmpSsInvoker(nw, nt, nw.isWorkerDebugEnabled(), taskSandboxWorkingDir, assignedCoreUnits);
                 executeNonNativeMethod(outputsBasename, ompssInvoker);
                 break;
             case OPENCL:
-                OpenCLInvoker openclInvoker = new OpenCLInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
+                OpenCLInvoker openclInvoker = new OpenCLInvoker(nw, nt, nw.isWorkerDebugEnabled(), taskSandboxWorkingDir, assignedCoreUnits);
                 executeNonNativeMethod(outputsBasename, openclInvoker);
                 break;
         }

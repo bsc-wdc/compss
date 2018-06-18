@@ -66,3 +66,5 @@ chmod 775 $RPM_BUILD_ROOT/opt/COMPSs/Tools/storage
 
 #------------------------------------------------------------------------------------
 %files
+%defattr(-,root, root)
+/opt/COMPSs/Tools/storage/*

@@ -2,7 +2,7 @@
 %define version		2.2.rc1803
 %define release		1
 
-Requires: compss-engine
+Requires: 
 Summary: The BSC COMP Superscalar Runtime
 Name: %{name}
 Version: %{version}
@@ -64,3 +64,5 @@ chmod 775 $RPM_BUILD_ROOT/opt/COMPSs/Tools/storage
 
 #------------------------------------------------------------------------------------
 %files
+%defattr(-,root, root)
+/opt/COMPSs/Tools/storage/*

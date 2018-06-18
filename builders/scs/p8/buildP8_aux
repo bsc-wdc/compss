@@ -40,4 +40,4 @@
   extrae_with_impi="false"
   impi_version=""
 
-  ${scriptDir}/buildSC_aux ${targetDir} "${modules}" "${py2_modules}" "${py3_modules}" "${additionalExports}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}"
+  ${scriptDir}/buildSC_aux ${targetDir} "${modules}" "${py2_modules}" "${py3_modules}" "${additionalExports}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "false"

@@ -779,8 +779,8 @@ def compss_persistent_worker():
 
     # Get args
     debug = (sys.argv[1] == 'true')
-    TRACING = (sys.argv[2] == 'true')
     global TRACING
+    TRACING = (sys.argv[2] == 'true')
     storage_conf = sys.argv[3]
     tasks_x_node = int(sys.argv[4])
     in_pipes = sys.argv[5:5 + tasks_x_node]

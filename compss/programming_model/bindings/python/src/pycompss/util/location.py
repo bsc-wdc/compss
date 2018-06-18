@@ -29,9 +29,15 @@ from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import IS_INTERACTIVE
 
 
-DECORATORS_TO_CHECK = ['pycompss/api/task.py',
+DECORATORS_TO_CHECK = ['pycompss/api/binary.py',
                        'pycompss/api/constraint.py',
-                       'pycompss/api/implement.py']
+                       'pycompss/api/decaf.py',
+                       'pycompss/api/implement.py',
+                       'pycompss/api/mpi.py',
+                       'pycompss/api/ompss.py',
+                       'pycompss/api/opencl.py',
+                       'pycompss/api/parallel.py',
+                       'pycompss/api/task.py']
 
 
 def i_am_at_master():

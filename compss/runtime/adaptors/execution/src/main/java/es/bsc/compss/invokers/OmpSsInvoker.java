@@ -25,8 +25,6 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.implementations.OmpSsImplementation;
 import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.parameter.Stream;
-import java.io.PrintStream;
 import java.util.ArrayList;
 
 

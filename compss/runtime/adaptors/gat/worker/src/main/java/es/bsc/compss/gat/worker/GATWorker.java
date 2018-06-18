@@ -17,7 +17,12 @@
 package es.bsc.compss.gat.worker;
 
 import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.gat.worker.utils.Invokers;
+import es.bsc.compss.gat.worker.implementations.BinaryDefinition;
+import es.bsc.compss.gat.worker.implementations.DecafDefinition;
+import es.bsc.compss.gat.worker.implementations.MPIDefinition;
+import es.bsc.compss.gat.worker.implementations.MethodDefinition;
+import es.bsc.compss.gat.worker.implementations.OMPSsDefinition;
+import es.bsc.compss.gat.worker.implementations.OpenCLDefinition;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Stream;
@@ -42,7 +47,7 @@ import storage.StubItf;
 
 /**
  * The worker class is executed on the remote resources in order to execute the tasks.
- * 
+ *
  */
 public class GATWorker {
 
@@ -56,15 +61,14 @@ public class GATWorker {
     private static final int DEFAULT_FLAGS_SIZE = 3;
 
     private static File taskSandboxWorkingDir;
-    private static boolean debug;
+    public static boolean debug;
     private static String storageConf;
 
     private static int numNodes;
     private static List<String> hostnames;
     private static int cus;
 
-    private static MethodType methodType;
-    private static String[] methodDefinition;
+    private static ImplementationDefinition implDef;
     private static boolean hasTarget;
     private static boolean hasReturn;
     private static int numReturns;
@@ -72,9 +76,9 @@ public class GATWorker {
     private static int initialAppParamsPosition;
 
     private static Class<?> types[];
+    private static Object values[];
     private static Stream streams[];
     private static String prefixes[];
-    private static Object values[];
     private static boolean isFile[];
     private static boolean mustWrite[];
     private static String renamings[];
@@ -82,12 +86,11 @@ public class GATWorker {
     private static String retRenaming;
     private static Object retValue;
 
-
     /**
      * Executes a method taking into account the parameters. First it parses the parameters assigning values and
      * deserializing Read/creating empty ones for Write. Invokes the desired method by reflection. and serializes all
      * the objects that has been modified and the result.
-     * 
+     *
      */
     public static void main(String args[]) {
         // Retrieve arguments
@@ -115,12 +118,10 @@ public class GATWorker {
     /**
      * Parses the all the arguments except the application parameters
      *
-     * @param args
-     *            args for the execution: arg[0]: boolean enable debug arg[1]: String with Storage configuration arg[2]:
-     *            Number of nodes for multi-node tasks (N) arg[3,N]: N strings with multi-node hostnames arg[3+N+1]:
-     *            Number of computing units arg[3+N+2]: Method type (M=3+N+2) arg[M,M - M+1]: Method dependant
-     *            parameters Others
-     * 
+     * @param args args for the execution: arg[0]: boolean enable debug arg[1]: String with Storage configuration
+     * arg[2]: Number of nodes for multi-node tasks (N) arg[3,N]: N strings with multi-node hostnames arg[3+N+1]: Number
+     * of computing units arg[3+N+2]: Method type (M=3+N+2) arg[M,M - M+1]: Method dependant parameters Others
+     *
      */
     private static void parseArguments(String args[]) {
         // Default flags
@@ -129,38 +130,37 @@ public class GATWorker {
         GATWorker.storageConf = args[2];
 
         int argPosition = DEFAULT_FLAGS_SIZE;
-        GATWorker.methodType = MethodType.valueOf(args[argPosition++]);
-        GATWorker.methodDefinition = null;
-        switch (GATWorker.methodType) {
+        MethodType methodType = MethodType.valueOf(args[argPosition++]);
+        GATWorker.implDef = null;
+        switch (methodType) {
             case METHOD:
                 // classname, methodname
-                GATWorker.methodDefinition = new String[] { args[argPosition], args[argPosition + 1] };
+                GATWorker.implDef = new MethodDefinition(args[argPosition], args[argPosition + 1]);
                 argPosition += 2;
                 break;
             case MPI:
                 // mpiRunner, mpiBinary
-                GATWorker.methodDefinition = new String[] { args[argPosition], args[argPosition + 1] };
+                GATWorker.implDef = new MPIDefinition(args[argPosition], args[argPosition + 1]);
                 argPosition += 2;
                 break;
             case DECAF:
-                // mpiRunner, mpiBinary
-                GATWorker.methodDefinition = new String[] { args[argPosition], args[argPosition + 1], args[argPosition + 2],
-                        args[argPosition + 3], args[argPosition + 4] };
+                GATWorker.implDef = new DecafDefinition(args[argPosition], args[argPosition + 1], args[argPosition + 2],
+                        args[argPosition + 3], args[argPosition + 4]);
                 argPosition += 5;
                 break;
             case OMPSS:
                 // binary
-                GATWorker.methodDefinition = new String[] { args[argPosition] };
+                GATWorker.implDef = new OMPSsDefinition(args[argPosition]);
                 argPosition += 1;
                 break;
             case OPENCL:
                 // kernel
-                GATWorker.methodDefinition = new String[] { args[argPosition] };
+                GATWorker.implDef = new OpenCLDefinition(args[argPosition]);
                 argPosition += 1;
                 break;
             case BINARY:
                 // binary
-                GATWorker.methodDefinition = new String[] { args[argPosition] };
+                GATWorker.implDef = new BinaryDefinition(args[argPosition]);
                 argPosition += 1;
                 break;
         }
@@ -207,13 +207,12 @@ public class GATWorker {
 
     /**
      * Parses the application parameters
-     * 
-     * @param args
-     *            arg[L]: boolean is the method executed on a certain instance arg[L]: integer amount of parameters of
-     *            the method arg[L+]: parameters of the method For each parameter: type: 0-10 (file, boolean, char,
-     *            string, byte, short, int, long, float, double, object) [substrings: amount of substrings (only used
-     *            when the type is string)] value: value for the parameter or the file where it is contained (for
-     *            objects and files) [Direction: R/W (only used when the type is object)]
+     *
+     * @param args arg[L]: boolean is the method executed on a certain instance arg[L]: integer amount of parameters of
+     * the method arg[L+]: parameters of the method For each parameter: type: 0-10 (file, boolean, char, string, byte,
+     * short, int, long, float, double, object) [substrings: amount of substrings (only used when the type is string)]
+     * value: value for the parameter or the file where it is contained (for objects and files) [Direction: R/W (only
+     * used when the type is object)]
      */
     private static void parseApplicationParameters(String[] args) {
         // Variables
@@ -343,13 +342,13 @@ public class GATWorker {
     }
 
     private static void retrieveBindingObject(String string, int i) {
-		// TODO: Add retreive binding object at
-		
-	}
+        // TODO: Add retreive binding object at
 
-	/**
+    }
+
+    /**
      * Retrieves an object from its renaming
-     * 
+     *
      * @param renaming
      * @param position
      */
@@ -362,9 +361,7 @@ public class GATWorker {
             sb.append("Error deserializing object parameter ").append(position);
             sb.append(" with renaming ").append(renaming);
             sb.append(", at");
-            for (String info : GATWorker.methodDefinition) {
-                sb.append(info).append(" ");
-            }
+            sb.append(GATWorker.implDef.toCommandString());
             ErrorManager.error(sb.toString());
         }
 
@@ -373,9 +370,7 @@ public class GATWorker {
             StringBuilder sb = new StringBuilder();
             sb.append("Object with renaming ").append(renaming);
             sb.append(", at");
-            for (String info : GATWorker.methodDefinition) {
-                sb.append(info).append(" ");
-            }
+            sb.append(GATWorker.implDef.toCommandString());
             sb.append("is null!");
             ErrorManager.error(sb.toString());
             return;
@@ -392,7 +387,7 @@ public class GATWorker {
 
     /**
      * Retrieves a PSCO from its renaming
-     * 
+     *
      * @param renaming
      * @param position
      */
@@ -405,9 +400,7 @@ public class GATWorker {
             sb.append("Error deserializing PSCO id parameter ").append(position);
             sb.append(" with renaming ").append(renaming);
             sb.append(", at");
-            for (String info : GATWorker.methodDefinition) {
-                sb.append(info).append(" ");
-            }
+            sb.append(GATWorker.implDef.toCommandString());
             ErrorManager.error(sb.toString());
             return;
         }
@@ -417,9 +410,7 @@ public class GATWorker {
             StringBuilder sb = new StringBuilder();
             sb.append("PSCO Id with renaming ").append(renaming);
             sb.append(", at");
-            for (String info : GATWorker.methodDefinition) {
-                sb.append(info).append(" ");
-            }
+            sb.append(GATWorker.implDef.toCommandString());
             sb.append("is null!");
             ErrorManager.error(sb.toString());
             return;
@@ -436,9 +427,7 @@ public class GATWorker {
             sb.append("Cannot getByID parameter ").append(position);
             sb.append(" with PSCOId ").append(id);
             sb.append(", at");
-            for (String info : GATWorker.methodDefinition) {
-                sb.append(info).append(" ");
-            }
+            sb.append(GATWorker.implDef.toCommandString());
             ErrorManager.error(sb.toString());
             return;
         } finally {
@@ -452,9 +441,7 @@ public class GATWorker {
             StringBuilder sb = new StringBuilder();
             sb.append("PSCO with id ").append(id);
             sb.append(", at");
-            for (String info : GATWorker.methodDefinition) {
-                sb.append(info).append(" ");
-            }
+            sb.append(GATWorker.implDef.toCommandString());
             sb.append("is null!");
             ErrorManager.error(sb.toString());
             return;
@@ -471,16 +458,15 @@ public class GATWorker {
 
     /**
      * Logs the parsed arguments
-     * 
+     *
      */
     private static void logArguments() {
         // Print arguments information
         System.out.println("");
         System.out.println("[GAT WORKER] ------------------------------------");
         System.out.println("[GAT WORKER] Parameters of execution:");
-        System.out.println("  * Method type: "+ GATWorker.methodType.toString());
+        System.out.println("  * Method type: " + GATWorker.implDef.getType().toString());
         System.out.println("  * Method definition: " + printMethodDefinition());
-       
 
         System.out.print("  * Parameter types:");
         for (Class<?> c : GATWorker.types) {
@@ -509,41 +495,17 @@ public class GATWorker {
 
     private static String printMethodDefinition() {
         String methodDefStr = null;
-        switch (GATWorker.methodType) {
-            case METHOD:
-                // classname, methodname
-                methodDefStr = new String("[DECLARING CLASS=" + GATWorker.methodDefinition[0] +", METHOD NAME="+GATWorker.methodDefinition[1]+"]");
-                break;
-            case MPI:
-                // mpiRunner, mpiBinary
-                methodDefStr = new String("[MPI RUNNER=" + GATWorker.methodDefinition[0] +", BINARY="+GATWorker.methodDefinition[1]+"]");
-                break;
-            case DECAF:
-                // dfScript, mpiRunner, mpiBinary
-                methodDefStr = new String("[DF SCRIPT= " + GATWorker.methodDefinition[0] +", MPI RUNNER=" + GATWorker.methodDefinition[1] +", BINARY="+GATWorker.methodDefinition[2]+"]");
-                //GATWorker.methodDefinition = new String[] { args[argPosition], args[argPosition + 1], args[argPosition + 2], args[argPosition + 3], args[argPosition + 4] };
-                break;
-            case OMPSS:
-                // binary
-                methodDefStr = new String("[BINARY="+GATWorker.methodDefinition[0]+"]");
-                break;
-            case OPENCL:
-                // kernel
-                methodDefStr = new String("[KERNEL="+GATWorker.methodDefinition[0]+"]");
-                break;
-            case BINARY:
-                // binary
-                methodDefStr = new String("[BINARY="+GATWorker.methodDefinition[0]+"]");
-            break;
-            default:
-                methodDefStr = new String();
+        if (GATWorker.implDef != null) {
+            methodDefStr = GATWorker.implDef.toLogString();
+        } else {
+            methodDefStr = new String();
         }
         return methodDefStr;
     }
 
     /**
      * Sets MPI / OMPSs environment variables
-     * 
+     *
      */
     private static void setEnvironmentVariables() {
         String hostname = "localhost";
@@ -589,55 +551,20 @@ public class GATWorker {
 
     /**
      * Invokes the task method by reflection depending on the invoker type
-     * 
+     *
      */
     private static void invokeMethod() {
         System.out.println("");
         System.out.println("[GAT WORKER] ------------------------------------");
         System.out.println("[GAT WORKER] Invoking task method");
-
-        GATWorker.retValue = null;
-
-        switch (GATWorker.methodType) {
-            case METHOD:
-                GATWorker.retValue = Invokers.invokeJavaMethod(GATWorker.methodDefinition[0], GATWorker.methodDefinition[1],
-                        GATWorker.target, GATWorker.types, GATWorker.values);
-                break;
-            case MPI:
-                GATWorker.retValue = Invokers.invokeMPIMethod(GATWorker.methodDefinition[0], GATWorker.methodDefinition[1],
-                        GATWorker.target, GATWorker.values, GATWorker.streams, GATWorker.prefixes, GATWorker.taskSandboxWorkingDir);
-                serializeBinaryExitValue();
-                break;
-            case DECAF:
-                GATWorker.retValue = Invokers.invokeDecafMethod(GATWorker.methodDefinition[0], GATWorker.methodDefinition[1],
-                        GATWorker.methodDefinition[2], GATWorker.methodDefinition[3], GATWorker.methodDefinition[4], GATWorker.target,
-                        GATWorker.values, GATWorker.streams, GATWorker.prefixes, GATWorker.taskSandboxWorkingDir);
-                serializeBinaryExitValue();
-                break;
-            case OMPSS:
-                GATWorker.retValue = Invokers.invokeOmpSsMethod(GATWorker.methodDefinition[0], GATWorker.target, GATWorker.values,
-                        GATWorker.streams, GATWorker.prefixes, GATWorker.taskSandboxWorkingDir);
-                serializeBinaryExitValue();
-                break;
-            case OPENCL:
-                GATWorker.retValue = Invokers.invokeOpenCLMethod(GATWorker.methodDefinition[0], GATWorker.target, GATWorker.values,
-                        GATWorker.streams, GATWorker.prefixes, GATWorker.taskSandboxWorkingDir);
-                serializeBinaryExitValue();
-                break;
-            case BINARY:
-                GATWorker.retValue = Invokers.invokeBinaryMethod(GATWorker.methodDefinition[0], GATWorker.target, GATWorker.values,
-                        GATWorker.streams, GATWorker.prefixes, GATWorker.taskSandboxWorkingDir);
-                serializeBinaryExitValue();
-                break;
-        }
-
+        GATWorker.retValue = GATWorker.implDef.process(target, types, values, isFile, streams, prefixes, taskSandboxWorkingDir);
         System.out.println("");
         System.out.println("[GAT WORKER] ------------------------------------");
     }
 
     /**
      * Serializes the required results produced by the task
-     * 
+     *
      */
     private static void serializeResults() {
         // Write to disk the updated object parameters, if any (including the target)
@@ -667,9 +594,7 @@ public class GATWorker {
                     errMsg.append("Error serializing object parameter ").append(i);
                     errMsg.append(" with renaming ").append(GATWorker.renamings[i]);
                     errMsg.append(", at ");
-                    for (String info : GATWorker.methodDefinition) {
-                        errMsg.append(info).append(" ");
-                    }
+                    errMsg.append(GATWorker.implDef.toCommandString());
                     ErrorManager.warn(errMsg.toString());
                 }
             }
@@ -693,9 +618,7 @@ public class GATWorker {
                 StringBuilder errMsg = new StringBuilder();
                 errMsg.append(ERROR_SERIALIZE_RETURN).append(GATWorker.retRenaming);
                 errMsg.append(", at ");
-                for (String info : GATWorker.methodDefinition) {
-                    errMsg.append(info).append(" ");
-                }
+                errMsg.append(GATWorker.implDef.toCommandString());
                 ErrorManager.warn(errMsg.toString());
             }
         }
@@ -703,8 +626,7 @@ public class GATWorker {
 
     /**
      * Serializes the binary exit value when required
-     * 
-     * @throws JobExecutionException
+     *
      */
     public static void serializeBinaryExitValue() {
         System.out.println("Checking binary exit value serialization");
@@ -736,7 +658,7 @@ public class GATWorker {
 
     /**
      * Checks that all the output files have been generated
-     * 
+     *
      */
     private static void checkOutputFiles() {
         // Check if all the output files have been actually created (in case user has forgotten)
@@ -750,9 +672,7 @@ public class GATWorker {
                 if (!f.exists()) {
                     StringBuilder errMsg = new StringBuilder();
                     errMsg.append("ERROR: File with path '").append(GATWorker.values[i]).append("' has not been generated by task '");
-                    for (String info : GATWorker.methodDefinition) {
-                        errMsg.append(info).append(" ");
-                    }
+                    errMsg.append(GATWorker.implDef.toCommandString());
                     ErrorManager.warn(errMsg.toString());
                     allOutFilesCreated = false;
                 }
@@ -762,9 +682,7 @@ public class GATWorker {
         if (!allOutFilesCreated) {
             StringBuilder errMsg = new StringBuilder();
             errMsg.append(ERROR_OUTPUT_FILES);
-            for (String info : GATWorker.methodDefinition) {
-                errMsg.append(info).append(" ");
-            }
+            errMsg.append(GATWorker.implDef.toCommandString());
             errMsg.append("'");
             ErrorManager.error(errMsg.toString());
         }

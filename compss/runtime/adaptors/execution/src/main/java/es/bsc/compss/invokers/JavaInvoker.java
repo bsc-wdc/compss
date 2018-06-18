@@ -19,7 +19,6 @@ package es.bsc.compss.invokers;
 import java.io.File;
 import java.lang.reflect.Method;
 
-import es.bsc.compss.util.Tracer;
 import es.bsc.compss.exceptions.JobExecutionException;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -58,7 +57,7 @@ public class JavaInvoker extends Invoker {
         Method method = null;
         try {
             methodClass = Class.forName(this.className);
-        } catch (Exception e) {
+        } catch (ClassNotFoundException e) {
             throw new JobExecutionException(ERROR_CLASS_REFLECTION, e);
         }
         try {
@@ -74,20 +73,20 @@ public class JavaInvoker extends Invoker {
     public Object invokeMethod() throws JobExecutionException {
         Object retValue = null;
 
-        if (Tracer.isActivated()) {
+        /*if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.STORAGE_INVOKE.getId(), Tracer.Event.STORAGE_INVOKE.getType());
-        }
-
+        }*/
+        
         try {
             LOGGER.info("Invoked " + method.getName() + " of " + target + " in " + context.getHostName());
             retValue = method.invoke(target.getValue(), values);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
             throw new JobExecutionException(ERROR_TASK_EXECUTION, e);
-        } finally {
+        }/* finally {
             if (Tracer.isActivated()) {
                 Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_INVOKE.getType());
             }
-        }
+        }*/
 
         return retValue;
     }

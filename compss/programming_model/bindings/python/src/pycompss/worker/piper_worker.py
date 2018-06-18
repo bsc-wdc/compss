@@ -52,17 +52,10 @@ else:
 
 SYNC_EVENTS = 8000666
 
-# Should be equal to Tracer.java definitions
+# Should be equal to Tracer.java definitions (but only worker running all other are trace through
+# with function-list
 TASK_EVENTS = 60000100
-
-PROCESS_CREATION = 100
 WORKER_RUNNING = 102
-PARAMETER_PROCESSING = 103
-LOGGING = 104
-TASK_EXECUTION = 105
-WORKER_END = 106
-PROCESS_DESTRUCTION = 107
-MODULES_IMPORT = 108
 
 # Persistent worker global variables
 TRACING = False
@@ -114,9 +107,6 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
             if __debug__:
                 logger.info("[PYTHON WORKER] Could not find initWorkerPostFork storage call. Ignoring it.")
 
-    # TRACING
-    # if TRACING:
-    #     pyextrae.eventandcounters(TASK_EVENTS, 0)
 
     alive = True
     stdout = sys.stdout
@@ -297,9 +287,6 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
             if __debug__:
                 logger.info("[PYTHON WORKER] Could not find finishWorkerPostFork storage call. Ignoring it.")
 
-    # TRACING
-    # if TRACING:
-    #     pyextrae.eventandcounters(TASK_EVENTS, PROCESS_DESTRUCTION)
 
     sys.stdout.flush()
     sys.stderr.flush()
@@ -408,18 +395,13 @@ def execute_task(process_name, storage_conf, params):
         logger.debug("[PYTHON WORKER %s] Return Length: %s" % (str(process_name), str(return_length)))
         logger.debug("[PYTHON WORKER %s] Args: %r" % (str(process_name), args))
 
-    # if TRACING:
-    #     pyextrae.event(TASK_EVENTS, 0)
-    #     pyextrae.event(TASK_EVENTS, PARAMETER_PROCESSING)
+
 
     # Get all parameter values
     if __debug__:
         logger.debug("[PYTHON WORKER %s] Processing parameters:" % process_name)
     values, types, streams, prefixes = get_input_params(num_params, logger, args, process_name)
 
-    # if TRACING:
-    #     pyextrae.event(TASK_EVENTS, 0)
-    #     pyextrae.event(TASK_EVENTS, LOGGING)
 
     if __debug__:
         logger.debug("[PYTHON WORKER %s] RUN TASK with arguments: " % process_name)
@@ -433,10 +415,6 @@ def execute_task(process_name, storage_conf, params):
         logger.debug("[PYTHON WORKER %s] \t- COMPSs types:" % process_name)
         for t in types:
             logger.debug("[PYTHON WORKER %s] \t\t %s" % (process_name, str(t)))
-
-    # if TRACING:
-    #     pyextrae.event(TASK_EVENTS, 0)
-    #     pyextrae.event(TASK_EVENTS, MODULES_IMPORT)
 
     import_error = False
 
@@ -564,8 +542,6 @@ def execute_task(process_name, storage_conf, params):
     if __debug__:
         logger.debug("[PYTHON WORKER %s] End task execution. Status: Ok" % process_name)
 
-    # if TRACING:
-    #     pyextrae.eventandcounters(TASK_EVENTS, 0)
 
     return 0, new_types, new_values  # Exit code, updated params
 
@@ -710,9 +686,6 @@ def task_execution(logger, process_name, module, method_name, types, values, com
     :return: new types and new_values
     """
 
-    # if TRACING:
-    #    pyextrae.eventandcounters(TASK_EVENTS, 0)
-    #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
 
     if __debug__:
         logger.debug("[PYTHON WORKER %s] Starting task execution" % process_name)
@@ -744,9 +717,6 @@ def task_execution(logger, process_name, module, method_name, types, values, com
             logger.debug("[PYTHON WORKER %s] Return Values: %s " % (process_name, str(new_values)))
             logger.debug("[PYTHON WORKER %s] Finished task execution" % process_name)
 
-    # if TRACING:
-    #    pyextrae.eventandcounters(TASK_EVENTS, 0)
-    #    pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
     return new_types, new_values
 
 

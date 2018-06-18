@@ -33,11 +33,7 @@ import copy
 from functools import wraps
 from pycompss.runtime.commons import IS_PYTHON3
 
-# Tracing Events and Codes -> Should be equal to Tracer.java definitions
-SYNC_EVENTS = 8000666
-TASK_EVENTS = 8000010
-TASK_EXECUTION = 120
-SERIALIZATION = 121
+
 
 if IS_PYTHON3:
     # Shadow long with int
@@ -549,11 +545,6 @@ class task(object):
         # Retrieve internal parameters from worker.py.
         tracing = kwargs.get('compss_tracing')
 
-        if tracing:
-            import pyextrae
-            pyextrae.eventandcounters(TASK_EVENTS, 0)
-            pyextrae.eventandcounters(TASK_EVENTS, SERIALIZATION)
-
         spec_args = self.f_argspec.args
 
         returns = self.kwargs['returns']
@@ -629,15 +620,7 @@ class task(object):
             kargs = real_values[-1]  # kwargs dict
             real_values = real_values[:-1]  # remove kwargs from real_values
 
-        if tracing:
-            pyextrae.eventandcounters(TASK_EVENTS, 0)
-            pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
-
         ret = f(*real_values, **kargs)  # Real call to f function
-
-        if tracing:
-            pyextrae.eventandcounters(TASK_EVENTS, 0)
-            pyextrae.eventandcounters(TASK_EVENTS, SERIALIZATION)
 
         # This will contain the same as to_serialize but we will store the whole
         # file identifier string instead of simply the file_name

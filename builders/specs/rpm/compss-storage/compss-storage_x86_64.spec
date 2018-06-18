@@ -47,7 +47,7 @@ cp -r storage/redisPSCO/COMPSs-Redis-bundle COMPSs/Tools/storage/redis
 echo "* Installing COMPSs storage implementations..."
 
 mkdir -p $RPM_BUILD_ROOT/opt/COMPSs/Tools/storage
-cp -rf COMPSs/Tools/storage $RPM_BUILD_ROOT/opt/COMPSs/Tools/storage
+cp -r COMPSs/Tools/storage/* $RPM_BUILD_ROOT/opt/COMPSs/Tools/storage
 chmod 775 $RPM_BUILD_ROOT/opt/COMPSs/Tools/storage
 
 

@@ -29,6 +29,11 @@ from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import IS_INTERACTIVE
 
 
+DECORATORS_TO_CHECK = ['pycompss/api/task.py',
+                       'pycompss/api/constraint.py',
+                       'pycompss/api/implement.py']
+
+
 def i_am_at_master():
     """
     Determine if the execution is being performed in the master node
@@ -40,17 +45,19 @@ def i_am_at_master():
 
     :return: <Boolean> - True if we are in the master node.
     """
+
+    stack = inspect.stack()
     if IS_INTERACTIVE:
         if IS_PYTHON3:
-            return 'pycompss/interactive.py' in inspect.stack()[9][1] \
-                   or 'pycompss/api/task.py' in inspect.stack()[2][1] \
-                   or 'pycompss/api/task.py' in inspect.stack()[1][1]
+            return 'pycompss/interactive.py' in stack[9][1] \
+                   or any(decorator in stack[2][1] for decorator in DECORATORS_TO_CHECK) \
+                   or any(decorator in stack[1][1] for decorator in DECORATORS_TO_CHECK)
         else:
-            return 'pycompss/interactive.py' in inspect.stack()[3][1] \
-                   or 'pycompss/api/task.py' in inspect.stack()[2][1] \
-                   or 'pycompss/api/task.py' in inspect.stack()[1][1]
+            return 'pycompss/interactive.py' in stack[3][1] \
+                   or any(decorator in stack[2][1] for decorator in DECORATORS_TO_CHECK) \
+                   or any(decorator in stack[1][1] for decorator in DECORATORS_TO_CHECK)
     else:
-        return 'pycompss/runtime/launch.py' in inspect.stack()[-1][1]
+        return 'pycompss/runtime/launch.py' in stack[-1][1]
 
 
 def i_am_at_worker():
@@ -61,6 +68,7 @@ def i_am_at_worker():
 
     :return: <Boolean> - True if we are in a worker node.
     """
+
     return inspect.stack()[-2][3] in ['compss_worker', 'compss_persistent_worker']
 
 
@@ -70,6 +78,7 @@ def i_am_within_scope():
 
     :return:  <Boolean> - True if under scope. False on the contrary.
     """
+
     return i_am_at_master() or i_am_at_worker()
     # Old way: - Conflicts with dataClay
     # import sys

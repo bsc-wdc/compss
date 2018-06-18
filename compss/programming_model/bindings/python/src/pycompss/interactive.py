@@ -74,6 +74,8 @@ def start(log_level='off',
           jvm_workers='-Xms1024m,-Xmx1024m,-Xmn400m',
           cpu_affinity='automatic',
           gpu_affinity='automatic',
+          fpga_affinity='automatic',
+          fpga_reprogram='',
           profile_input='',
           profile_output='',
           scheduler_config='',
@@ -109,6 +111,8 @@ def start(log_level='off',
     :param jvm_workers: Java VM parameters (default: '-Xms1024m,-Xmx1024m,-Xmn400m')
     :param cpu_affinity: CPU Core affinity (default: 'automatic')
     :param gpu_affinity: GPU Core affinity (default: 'automatic')
+    :param fpga_affinity: FPA Core affinity (default: 'automatic')
+    :param fpga_reprogram: FPGA repogram command (default: '')
     :param profile_input: Input profile  (default: '')
     :param profile_output: Output profile  (default: '')
     :param scheduler_config: Scheduler configuration  (default: '')
@@ -227,6 +231,8 @@ def start(log_level='off',
     config['pythonpath'] = pythonpath
     config['cpu_affinity'] = cpu_affinity
     config['gpu_affinity'] = gpu_affinity
+    config['fpga_affinity'] = fpga_affinity
+    config['fpga_reprogram'] = fpga_reprogram
     config['profile_input'] = profile_input
     config['profile_output'] = profile_output
     config['scheduler_config'] = scheduler_config
@@ -296,7 +302,7 @@ def start(log_level='off',
                     project_xml, resources_xml, summary, task_execution, storage_conf,
                     task_count, app_name, uuid, base_log_dir, specific_log_dir, extrae_cfg,
                     comm, conn, master_name, master_port, scheduler, jvm_workers,
-                    cpu_affinity, gpu_affinity, profile_input, profile_output,
+                    cpu_affinity, gpu_affinity, fpga_affinity, fpga_reprogram, profile_input, profile_output,
                     scheduler_config, external_adaptation, python_interpreter, major_version,
                     python_virtual_environment, propagate_virtual_environment)
 
@@ -319,7 +325,7 @@ def __print_setup__(verbose, log_level, o_c, debug, graph, trace, monitor,
                     project_xml, resources_xml, summary, task_execution, storage_conf,
                     task_count, app_name, uuid, base_log_dir, specific_log_dir, extrae_cfg,
                     comm, conn, master_name, master_port, scheduler, jvm_workers,
-                    cpu_affinity, gpu_affinity, profile_input, profile_output,
+                    cpu_affinity, gpu_affinity, fpga_affinity, fpga_reprogram, profile_input, profile_output,
                     scheduler_config, external_adaptation, python_interpreter, python_version,
                     python_virtual_environment, python_propagate_virtual_environment):
 
@@ -352,6 +358,8 @@ def __print_setup__(verbose, log_level, o_c, debug, graph, trace, monitor,
     output += "  - JVM Workers         : " + str(jvm_workers) + "\n"
     output += "  - CPU affinity        : " + str(cpu_affinity) + "\n"
     output += "  - GPU affinity        : " + str(gpu_affinity) + "\n"
+    output += "  - FPGA affinity       : " + str(fpga_affinity) + "\n"
+    output += "  - FPGA reprogram      : " + str(fpga_reprogram) + "\n"
     output += "  - Profile input       : " + str(profile_input) + "\n"
     output += "  - Profile output      : " + str(profile_output) + "\n"
     output += "  - Scheduler config    : " + str(scheduler_config) + "\n"

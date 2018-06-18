@@ -8,11 +8,12 @@
   #             <py2_module>          Modules needed to perform python2 binding installation
   #             <py3_modules>         Modules needed to perform python3 binding installation
   #             <additionalExports>   Additional exports to perform installation
-  #		          <queues_cfg>	        CFG to set as default
+  #             <queues_cfg>	        CFG to set as default
   #             <extrae_with_openmpi> Extrae with openmpi enabled
   #             <openmpi_version>     OpenMPI module version
   #             <extrae_with_impi>    Extrae with impi enabled
-  #             <impì_version>        IMPI module version
+  #             <impi_version>        IMPI module version
+  #             <autoparallel>        Install the AutoParallel module
   #
   # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY
   #            EXECUTED FROM buildSC script
@@ -20,7 +21,7 @@
 
   usage() {
     echo "Incorrect number of parameters"
-    echo " Usage: buildSC_aux <FullTargetPath> <modules> <py2_modules> <py3_modules> <additionalExports> <queues_cfg> <extrae_with_openmpi> <openmpi_version> <extrae_with_impi> <impi_version>"
+    echo " Usage: buildSC_aux <FullTargetPath> <modules> <py2_modules> <py3_modules> <additionalExports> <queues_cfg> <extrae_with_openmpi> <openmpi_version> <extrae_with_impi> <impi_version> <autoparallel>"
     echo " "
     exit 1
   }
@@ -29,7 +30,7 @@
   # MAIN
   ####################
   # Get parameters
-  if [ $# -ne 10 ]; then
+  if [ $# -ne 11 ]; then
     usage
   fi
 
@@ -44,6 +45,7 @@
   openmpi_version=$8
   extrae_with_impi=$9
   impi_version=${10}
+  autoparallel=${11}
 
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   TMP_DIR=${SCRIPT_DIR}/tmp
@@ -144,15 +146,17 @@
   cd "${SCRIPT_DIR}" || exit 1
 
   # PLUTO (for autoparallel)
-  echo "---- Install PLUTO ----"
-  cd "${TMP_DIR}"/dependencies/pluto || exit 1
-  ./install_pluto "${targetDir}"/Dependencies/pluto
-  ev=$?
-  if [ $ev -ne 0 ]; then
-    echo "ERROR: Failed to install PLUTO dependency"
-    exit $ev
+  if [ "${autoparallel}" == "true" ]; then
+    echo "---- Install PLUTO ----"
+    cd "${TMP_DIR}"/dependencies/pluto || exit 1
+    ./install_pluto "${targetDir}"/Dependencies/pluto
+    ev=$?
+    if [ $ev -ne 0 ]; then
+      echo "ERROR: Failed to install PLUTO dependency"
+      exit $ev
+    fi
+    cd "${SCRIPT_DIR}" || exit 1
   fi
-  cd "${SCRIPT_DIR}" || exit 1
 
   # Restore original path
   export PATH=${originalPath}

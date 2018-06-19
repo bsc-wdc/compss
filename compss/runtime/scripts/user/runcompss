@@ -107,7 +107,8 @@ show_opts() {
   Runtime configuration options:
     --task_execution=<compss|storage>	    Task execution under COMPSs or Storage.
                                             Default: ${DEFAULT_TASK_EXECUTION}
-    --storage_conf=<path>		    Path to the storage configuration file
+    --storage_impl=<string>                 Path to an storage implementation. Shortcut to setting pypath and classpath. See Runtime/storage in your installation folder.
+    --storage_conf=<path>		                Path to the storage configuration file
 					    Default: ${DEFAULT_STORAGE_CONF}
     --project=<path>                        Path to the project XML file
                                             Default: ${DEFAULT_PROJECT}
@@ -451,6 +452,9 @@ get_args() {
             ;;
 	  storage_conf=*)
             storageConf=${OPTARG//storage_conf=/}
+            ;;
+    storage_impl=*)
+            storageImpl=${OPTARG//storage_impl=/}
             ;;
 	  task_execution=*)
 	    # Task execution under COMPSs or Storage
@@ -824,6 +828,14 @@ check_args() {
     cp="$fcp"
     echo "[  INFO] Relative Classpath resolved: $cp"
   fi
+
+  if [ -n "$storageImpl" ]; then
+    # Deal with storage implementation
+    for jarname in ${COMPSS_HOME}/Tools/storage/$storageImpl/*.jar; do
+      cp=$cp:$jarname
+    done
+  fi
+
   export CLASSPATH=$cp:$CLASSPATH
 
   if [ -z "$task_count" ]; then
@@ -892,6 +904,12 @@ check_args() {
       # Adds execution dir by default to pythonpath
       pythonpath=$pythonpath":${DEFAULT_PYTHONPATH}"
     fi
+
+    # Deal with storage implementation
+    if [ -n "$storageImpl" ]; then
+      pythonpath=$pythonpath:${COMPSS_HOME}/Tools/storage/$storageImpl/python
+    fi
+
     # Adds all given Pythonpaths to the global variable
     export PYTHONPATH=$pythonpath:$PYTHONPATH
 

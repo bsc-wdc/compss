@@ -1,8 +1,8 @@
-%define name	 	compss-tools 
+%define name	 	compss-tools
 %define version		2.2.rc1803
 %define release		1
 
-Requires: compss-monitor, compss-extrae, compss-autoparallel
+Requires: compss-monitor, compss-extrae, compss-storage, compss-autoparallel
 Summary: The BSC COMP Superscalar Runtime
 Name: %{name}
 Version: %{version}
@@ -29,16 +29,16 @@ The BSC COMP Superscalar Tools for COMPSs Runtime.
 %install
 
 #------------------------------------------------------------------------------------
-%post 
+%post
 
 #------------------------------------------------------------------------------------
 %preun
 
 #------------------------------------------------------------------------------------
-%postun 
+%postun
 
 #------------------------------------------------------------------------------------
 %clean
 
 #------------------------------------------------------------------------------------
-%files 
+%files

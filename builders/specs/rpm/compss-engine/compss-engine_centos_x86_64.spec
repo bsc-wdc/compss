@@ -1,4 +1,4 @@
-%define name	 	compss-engine 
+%define name	 	compss-engine
 %define version		2.2.rc1803
 %define release		1
 
@@ -121,7 +121,7 @@ echo "COMPSs Runtime Engine Successfully installed!"
 echo " "
 
 #------------------------------------------------------------------------------------
-%post 
+%post
 echo "* Installing COMPSs Runtime Engine..."
 echo " "
 
@@ -144,7 +144,7 @@ echo " "
 %preun
 
 #------------------------------------------------------------------------------------
-%postun 
+%postun
 rm -rf /opt/COMPSs/
 echo "COMPSs Runtime Engine Successfully uninstalled!"
 echo " "
@@ -156,7 +156,7 @@ rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/
 #------------------------------------------------------------------------------------
 %files
 %defattr(-,root,root)
-/opt/COMPSs/Runtime/ 
+/opt/COMPSs/Runtime/
 /opt/COMPSs/Dependencies/
 %doc /opt/COMPSs/README
 %doc /opt/COMPSs/changelog
@@ -165,4 +165,3 @@ rm -rf ${RPM_BUILD_ROOT}/opt/COMPSs/
 %doc /opt/COMPSs/RELEASE_NOTES
 %docdir /opt/COMPSs/Doc/
 /opt/COMPSs/Doc/
-

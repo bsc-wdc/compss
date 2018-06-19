@@ -74,20 +74,15 @@ EOF
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \
      --project="${base_app_dir}"/project.xml \
      --resources="${base_app_dir}"/resources.xml \
-     \
      --comm="$comm" \
-     \
+     --lang=python \
+     --storage_impl=redis \
+     --python_interpreter="$pythonInterpreter" \
+     --pythonpath="${base_app_dir}"/src: \
      --debug \
      -g \
      ${runcompss_opts} \
-     \
-     --lang=python \
-     --python_interpreter="$pythonInterpreter" \
-     --pythonpath="${base_app_dir}"/src:"${bundle_path}"/python \
-     \
      --storage_conf=${storage_conf} \
-     --classpath="${bundle_path}"/compss-redisPSCO.jar \
-     \
      ${base_app_dir}/src/testredis.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
   # Check timeout

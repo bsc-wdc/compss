@@ -53,7 +53,7 @@ else:
 SYNC_EVENTS = 8000666
 
 # Should be equal to Tracer.java definitions
-TASK_EVENTS = 8000010
+TASK_EVENTS = 60000100
 
 # Rank 110-119 reserved to events launched from task.py
 PROCESS_CREATION = 100

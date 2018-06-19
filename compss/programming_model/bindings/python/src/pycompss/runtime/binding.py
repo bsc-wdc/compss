@@ -54,7 +54,7 @@ import compss
 
 # Types conversion dictionary from python to COMPSs
 if IS_PYTHON3:
-    python_to_compss = {int: TYPE.INT,       # int # long
+    python_to_compss = {int: TYPE.INT,  # int # long
                         float: TYPE.DOUBLE,  # float
                         bool: TYPE.BOOLEAN,  # bool
                         str: TYPE.STRING,  # str
@@ -76,9 +76,9 @@ if IS_PYTHON3:
                         object: TYPE.OBJECT
                         }
 else:
-    python_to_compss = {types.IntType: TYPE.INT,          # int
-                        types.LongType: TYPE.LONG,        # long
-                        types.FloatType: TYPE.DOUBLE,     # float
+    python_to_compss = {types.IntType: TYPE.INT,  # int
+                        types.LongType: TYPE.LONG,  # long
+                        types.FloatType: TYPE.DOUBLE,  # float
                         types.BooleanType: TYPE.BOOLEAN,  # bool
                         types.StringType: TYPE.STRING,  # str
                         # The type of instances of user-defined classes
@@ -600,7 +600,8 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args,
     num_pars = len(spec_args)
 
     # Infer COMPSs types from real types, except for files
-    new_self_kwargs, is_future = _infer_types_and_serialize_objects(spec_args, first_par, num_pars, file_names, self_kwargs, args)
+    new_self_kwargs, is_future = _infer_types_and_serialize_objects(spec_args, first_par, num_pars, file_names,
+                                                                    self_kwargs, args)
 
     # Build values and COMPSs types and directions
     values, compss_types, compss_directions, compss_streams, compss_prefixes = _build_values_types_directions(ftype,
@@ -723,9 +724,16 @@ def _build_return_objects(f, self_kwargs, spec_args):
     :return:
     """
 
-    # Check if the returns statement contains an integer value.
-    # In such case, build a list of objects of value length and set it in ret_type.
-    if isinstance(self_kwargs['returns'], int):
+    if isinstance(self_kwargs['returns'], str):
+        num_rets = f.__globals__.get(self_kwargs['returns'])
+        if num_rets > 1:
+            ret_type = [object for _ in range(num_rets)]
+        else:
+            ret_type = object
+    elif isinstance(self_kwargs['returns'], int):
+        # Check if the returns statement contains an integer value.
+        # In such case, build a list of objects of value length and set it in ret_type.
+
         num_rets = self_kwargs['returns']
         # Assume all as objects (generic type).
         # It will not work properly when using user defined classes, since

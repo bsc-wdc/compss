@@ -1,0 +1,38 @@
+#!/bin/bash -e
+
+  action=$1
+
+  if [ "$action" == "install" ]; then
+    if [ $# -eq 2 ]; then
+      # Installation knowing previous old version
+      oldversion=$2
+      echo " "
+      echo " * Installing COMPSs storage implementations from previous version ${oldversion}..."
+      echo " "
+      rm -rf /opt/COMPSs/Tools/storage
+    else
+      # Clean installation
+      echo " "
+      echo " * Installing COMPSs storage implementations..."
+      echo " "
+    fi
+  elif [ "$action" == "upgrade" ]; then
+    # Upgrade from previous version
+    oldversion=$2
+    echo " "
+    echo " * Upgrading COMPSs storage implementations from previous version ${oldversion}..."
+    echo " "
+    if [ -d "/opt/COMPSs/Tools/storage" ]; then
+      mv /opt/COMPSs/Tools/storage /tmp/COMPSs_storage.bkp
+    fi
+  elif [ "$action" == "abort-upgrade" ]; then
+    # Update failed, recover previous version
+    newversion=$2
+    echo " "
+    echo " * COMPSs storage implementations $newversion upgrade aborted. Please check errors above."
+    echo " "
+    if [ -d "/tmp/COMPSs_storage.bkp" ]; then
+      mv /tmp/COMPSs_storage.bkp /opt/COMPSs/Tools/storage
+    fi
+  fi
+

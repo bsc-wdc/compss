@@ -1,0 +1,8 @@
+Package: compss-storage
+Version: 
+Priority: optional
+Architecture: all
+Essential: no
+Depends: 
+Maintainer: COMPSs Support <support-compss@bsc.es>
+Description: COMPSs Storage Implementations Module

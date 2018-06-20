@@ -1,0 +1,12 @@
+#!/bin/bash -e
+
+  trunk_rel_path=../../../../
+  COMPSs_target=$(pwd)/tmp/opt/COMPSs
+
+  cd ${trunk_rel_path}/utils/storage/redisPSCO
+  ./make_bundle.sh
+  cd -
+
+  cp -r ${trunk_rel_path}/utils/storage/redisPSCO/COMPSs-Redis-bundle "${COMPSs_target}"/Tools/storage/redis
+  chmod 775 -R "${COMPSs_target}"/Tools/storage
+

@@ -175,7 +175,7 @@ int compss_object_copy(T* from, T* to) {
         os.flush();
 
         iostreams::basic_array_source<char> source(&buffer[0],buffer.size());
-        iostreams::stream<iostreams::basic_array_source <char> > is(source);
+        iostreams::stream_buffer<iostreams::basic_array_source <char> > is(source);
 
 #ifdef TEXT_SERIALIZATION
         //Text serialization

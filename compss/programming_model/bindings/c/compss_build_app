@@ -45,7 +45,7 @@ EOT
 }
 
 show_version() {
-  echo "COMPSs version 2.2 Camellia"
+  echo "COMPSs version 2.3 Daisy"
   echo " "
 }
 
@@ -248,24 +248,24 @@ if [ "${cuda_enabled}" != "" ]; then
     export LIBS="$LIBS -lcudart"
     if [ -z "${cuda_prefix}" ]; then
         if [ -z "$CUDA_HOME" ]; then
-           export PATH=$PATH:/usr/local/cuda/bin
-           export LDFLAGS="$LDFLAGS -L/usr/local/cuda/lib64"
-        else
-           export PATH=$PATH:${CUDA_HOME}/bin
-           export LDFLAGS="$LDFLAGS -L${CUDA_HOME}/lib64"
+           export CUDA_HOME=/usr/local/cuda/
         fi
     else
-	export PATH=$PATH:${cuda_prefix}/bin
-    	export LDFLAGS="$LDFLAGS -L${cuda_prefix}/lib64"
+        export CUDA_HOME=${cuda_prefix}
     fi
+    export PATH=$PATH:${CUDA_HOME}/bin
+    export LDFLAGS="--cuda $LDFLAGS -L${CUDA_HOME}/lib64"
+    export CFLAGS="$CFLAGS --cuda"
+    export CXXFLAGS="$CXXFLAGS --cuda"
   fi
 fi
 if [ "${opencl_enabled}" != "" ]; then
   # Flag is defined, check value
   if [ ${opencl_enabled} == 1 ]; then
-    # export LDADD="$LDADD -L/home/altera/16.0.2/hld/linux64/lib -L/opt/intel_deliverable_WW49_16/bdw_fpga_pilot_opencl_bsp_v1.0/host/linux64/lib    -lalterahalmmd -laltera_qpi_mmd  -laalrt  -L/opt/aalsdk/aalsdk-5.0.2/lib"    
-    export LDFLAGS="$LDFLAGS ${opencl_libraries}"
-    # echo $LDADD
+    # Altera ocl flags export LDADD="$LDADD -L/home/altera/16.0.2/hld/linux64/lib -L/opt/intel_deliverable_WW49_16/bdw_fpga_pilot_opencl_bsp_v1.0/host/linux64/lib    -lalterahalmmd -laltera_qpi_mmd  -laalrt  -L/opt/aalsdk/aalsdk-5.0.2/lib"    
+    export LDFLAGS="--opencl $LDFLAGS ${opencl_libraries}"
+    export CFLAGS="$CFLAGS --opencl"
+    export CXXFLAGS="$CXXFLAGS --opencl"
   fi
 fi
 

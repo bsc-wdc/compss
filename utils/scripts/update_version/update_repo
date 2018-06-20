@@ -4,7 +4,10 @@ usage() {
   exitValue=$1
 
   echo " "
-  echo "Usage ./update_trunk_version <previousVersion> <newVersion> <commitChanges>"
+  echo "Usage ./update_repo <repoGroup> <repoName> <previousVersion> <newVersion> <commitChanges>"
+  echo " * repoGroup:  refers to the group containing the repo in gitlab"
+  echo " * repoName: name of the repository (must be equal in both in gitlab and github for mirroring"
+  echo " NOTE: assumes master is the principal branch"
   echo " "
 
   exit "$exitValue"
@@ -13,16 +16,18 @@ usage() {
   #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   # Check parameters
-  if [ $# -ne 3 ]; then
+  if [ $# -ne 5 ]; then
     echo "ERROR: Incorrect number of parameters"
     usage 1
   fi
 
   # Get version parameters
-  previousVersion=$1
-  newVersion=$2
-  commitChanges=$3
-  echo "Updating BAR apps from ${previousVersion} to ${newVersion}..."
+  repoGroup=$1
+  repoName=$2
+  previousVersion=$3
+  newVersion=$4
+  commitChanges=$5
+  echo "Updating ${repoGroup}/${repoName} from ${previousVersion} to ${newVersion}..."
 
   # Define script variables
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -32,8 +37,8 @@ usage() {
   #---------------------------------------------------------------------
   # Cloning apps repo
   cd "${base_trunk_dir}"
-  GIT_LFS_SKIP_SMUDGE=1 git clone http://${credentials}@compss.bsc.es/gitlab/bar/apps.git
-  cd apps
+  GIT_LFS_SKIP_SMUDGE=1 git clone http://${credentials}@compss.bsc.es/gitlab/${repoGroup}/${repoName}.git
+  cd ${repoName}
 
 
   #---------------------------------------------------------------------
@@ -50,11 +55,11 @@ usage() {
   #---------------------------------------------------------------------
   # COMMIT MODIFICATIONS IF NEEDED
   if [ "$commitChanges" == "true" ]; then
-    echo "- Commiting modifications to master"
+    echo "- Committing modifications to master"
     if git commit -am "Update to version ${newVersion}"; then
-        git push http://${credentials}@compss.bsc.es/gitlab/bar/apps.git master
+        git push http://${credentials}@compss.bsc.es/gitlab/${repoGroup}/${repoName}.git master
         git tag -f ${version}
-        git push -f http://${credentials}@compss.bsc.es/gitlab/bar/apps.git ${version}
+        git push -f http://${credentials}@compss.bsc.es/gitlab/${repoGroup}/${repoName}.git ${version}
     fi
   fi
 
@@ -62,7 +67,7 @@ usage() {
   #---------------------------------------------------------------------
   # NOTIFY SUCCESS
   echo " "
-  echo "FINISHED! All BAR apps version updated from ${previousVersion} to ${newVersion}"
+  echo "FINISHED! Repo ${repoGroup}/${repoName} version updated from ${previousVersion} to ${newVersion}"
   echo " "
 
 

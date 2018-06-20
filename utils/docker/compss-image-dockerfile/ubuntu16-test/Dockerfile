@@ -15,5 +15,7 @@ RUN echo "export PATH=$PATH:/opt/COMPSs/Runtime/scripts/user/" >> /root/.bashrc 
     echo "export VISIBLE=now" >> /etc/profile && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
     yes yes | ssh-keygen -f /root/.ssh/id_rsa -t rsa -N '' > /dev/null && \
-    cat /root/.ssh/id_rsa.pub > /root/.ssh/authorized_keys
+    cat /root/.ssh/id_rsa.pub > /root/.ssh/authorized_keys && \
+    git config --global user.email "jenkins@bsc.es" && \
+    git config --global user.name "Leroy Jenkins"
 ENV NOTVISIBLE "in users profile"

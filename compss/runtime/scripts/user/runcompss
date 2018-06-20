@@ -220,7 +220,7 @@ EOT
 }
 
 show_version() {
-  echo "COMPSs version 2.2 Camellia"
+  echo "COMPSs version 2.3 Daisy"
   echo " "
 }
 
@@ -278,7 +278,7 @@ EOF
 show_recipe() {
   cat << EOF
 
-Margarita - Cocktail
+Margarita (Daisy) - Cocktail
 
   35 ml Tequila
   20 ml Triple Sec

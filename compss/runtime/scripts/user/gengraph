@@ -69,7 +69,7 @@
     # If is greater or equal than base version, generate full graph
     echo "INFO: Generating Graph with legend"
 
-    dot -Tpdf "$dotGraph" > "$pdfGraph"
+    dot -Tpdf -Gnewrank=true "$dotGraph" > "$pdfGraph"
   fi
   
   echo "DONE"

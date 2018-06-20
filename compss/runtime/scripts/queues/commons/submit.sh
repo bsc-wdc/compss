@@ -699,7 +699,12 @@ submit() {
 #---------------------------------------------------
 # MAIN EXECUTION
 #---------------------------------------------------
-  scriptDir="${COMPSS_HOME}/Runtime/scripts/queues/commons"
+  if [ -z "${COMPSS_HOME}" ]; then
+     scriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+     COMPSS_HOME=${SCRIPT_DIR}/../../../../  
+  else 
+     scriptDir="${COMPSS_HOME}/Runtime/scripts/queues/commons"
+  fi
 
   # Get command args
   get_args "$@"

@@ -30,9 +30,13 @@
   ######################
   load_parameters() {
     # Script Variables
-    # SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio"
-    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
+    if [ -z "${SCRIPT_DIR}" ]; then
+        if [ -z "$COMPSS_HOME" ]; then
+           SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+        else
+           SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio"
+        fi
+    fi
     # Get parameters
     libPath=$1
     appDir=$2
@@ -185,7 +189,7 @@
     # Export environment
     export CLASSPATH=$cpNW:$CLASSPATH
     export PYTHONPATH=$pythonpath:$PYTHONPATH
-    export LD_LIBRARY_PATH=$libPathNW:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=$libPathNW:${SCRIPT_DIR}/../../../../../Bindings/bindings-common/lib:${SCRIPT_DIR}/../../../../../Bindings/c/lib:$LD_LIBRARY_PATH
   }
 
   setup_jvm() {
@@ -203,7 +207,8 @@
     -Dcompss.python.interpreter=${pythonInterpreter} \
     -Dcompss.python.version=${pythonVersion} \
     -Dcompss.python.virtualenvironment=${pythonVirtualEnvironment} \
-    -Dcompss.python.propagate_virtualenvironment=${pythonPropagateVirtualEnvironment}"
+    -Dcompss.python.propagate_virtualenvironment=${pythonPropagateVirtualEnvironment} \
+    -Djava.library.path=$LD_LIBRARY_PATH"
     
     if [ "$lang" = "c" ] && [ "${persistentBinding}" = "true" ]; then
     	generate_jvm_opts_file
@@ -219,7 +224,6 @@
     jvm_options_file=$(mktemp) || error_msg "Error creating java_opts_tmp_file"
     cat >> "${jvm_options_file}" << EOT
 ${jvm_worker_opts}
--Djava.library.path=$LD_LIBRARY_PATH
 -Djava.class.path=$CLASSPATH:${worker_jar}
 EOT
   }

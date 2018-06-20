@@ -1,8 +1,8 @@
 Package: compss-storage
 Version: 
 Priority: optional
-Architecture: all
+Architecture: amd64
 Essential: no
-Depends: 
+Depends: compss-engine
 Maintainer: COMPSs Support <support-compss@bsc.es>
 Description: COMPSs Storage Implementations Module

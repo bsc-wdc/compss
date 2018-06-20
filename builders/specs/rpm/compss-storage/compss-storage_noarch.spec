@@ -2,7 +2,7 @@
 %define version		2.2.rc1803
 %define release		1
 
-Requires: 
+Requires: compss-engine
 Summary: The BSC COMP Superscalar Runtime
 Name: %{name}
 Version: %{version}

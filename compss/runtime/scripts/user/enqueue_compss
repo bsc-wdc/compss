@@ -182,7 +182,12 @@ check_args() {
 #---------------------------------------------------
 # MAIN EXECUTION
 #---------------------------------------------------
-  SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/user"
+  if [ -z "$COMPSS_HOME" ]; then
+     SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+     COMPSS_HOME=${SCRIPT_DIR}/../../../
+  else
+     SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/user"
+  fi
 
   # Get command args
   get_args "$@"

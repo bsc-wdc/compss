@@ -37,7 +37,7 @@ usage() {
   #---------------------------------------------------------------------
   # Cloning apps repo
   cd "${base_trunk_dir}"
-  GIT_LFS_SKIP_SMUDGE=1 git clone http://${credentials}@compss.bsc.es/${repoGroup}/${repoName}.git
+  GIT_LFS_SKIP_SMUDGE=1 git clone http://${credentials}@compss.bsc.es/gitlab/${repoGroup}/${repoName}.git
   cd ${repoName}
 
 
@@ -57,7 +57,7 @@ usage() {
   if [ "$commitChanges" == "true" ]; then
     echo "- Committing modifications to master"
     if git commit -am "Update to version ${newVersion}"; then
-        git push http://${credentials}@compss.bsc.es/${repoGroup}/${repoName}.git master
+        git push http://${credentials}@compss.bsc.es/gitlab/${repoGroup}/${repoName}.git master
         git tag -f ${version}
         git push -f http://${credentials}@compss.bsc.es/gitlab/${repoGroup}/${repoName}.git ${version}
     fi

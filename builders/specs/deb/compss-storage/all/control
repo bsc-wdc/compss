@@ -3,6 +3,6 @@ Version:
 Priority: optional
 Architecture: all
 Essential: no
-Depends: 
+Depends: compss-engine
 Maintainer: COMPSs Support <support-compss@bsc.es>
 Description: COMPSs Storage Implementations Module

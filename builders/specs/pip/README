@@ -48,7 +48,7 @@ This will create the following files and directories:
 In order to install PyCOMPSs from a distributable you must:
 	- Have all COMPSs dependencies satisfied.
 	  These dependencies can be found on the COMPSs installation manual,
-	  section 2.2. The manual can be found at http://compss.bsc.es/releases/compss/2.0/docs/COMPSs_Installation_Manual.pdf?tracked=true
+	  section 2.2. The manual can be found at http://compss.bsc.es/releases/compss/2.3/docs/COMPSs_Installation_Manual.pdf?tracked=true
 	- Have JAVA_HOME properly defined. As a reminder, you must have a valid JDK installed (not JRE) and your
 	  JAVA_HOME must point to that path.
 

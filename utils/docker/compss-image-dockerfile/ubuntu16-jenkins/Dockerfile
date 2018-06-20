@@ -22,7 +22,11 @@ RUN chown -R jenkins /home/jenkins/.m2 && \
 COPY /files/id_rsa /home/jenkins/.ssh/id_rsa
 COPY /files/id_rsa.pub /home/jenkins/.ssh/id_rsa.pub
 RUN cat /home/jenkins/.ssh/id_rsa.pub >> /home/jenkins/.ssh/authorized_keys && \
-    chmod 600 /home/jenkins/.ssh/authorized_keys
+    chmod 600 /home/jenkins/.ssh/authorized_keys && \
+    sudo su jenkins && \
+    git config --global user.email "jenkins@bsc.es" && \
+    git config --global user.name "Leroy Jenkins"
+
 
 # Git alias
 COPY /files/.gitconfig /home/jenkins/.gitconfig

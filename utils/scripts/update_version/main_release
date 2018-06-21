@@ -13,8 +13,8 @@ usage() {
 
 
   #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  # baseVersion:	Refers to the main version: v		2.2.rc1803
-  # Version: 		Refers to the current version: v.rcYYMM 2.2.rc1803.rc1701
+  # baseVersion:	Refers to the main version: v		2.2.rc1806
+  # Version: 		Refers to the current version: v.rcYYMM 2.2.rc1806.rc1701
   #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
   if [ $# -ne 1 ]; then

@@ -16,22 +16,31 @@
  */
 package es.bsc.compss.gat.worker.implementations;
 
+import es.bsc.compss.exceptions.JobExecutionException;
 import es.bsc.compss.gat.worker.ImplementationDefinition;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.invokers.Invoker;
+import es.bsc.compss.invokers.JavaInvoker;
+import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
-import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.types.implementations.MethodImplementation;
 import java.io.File;
-import java.lang.reflect.Method;
 
 
-public class MethodDefinition implements ImplementationDefinition {
+public class MethodDefinition extends ImplementationDefinition {
 
     private final String className;
     private final String methodName;
 
-    public MethodDefinition(String className, String methodName) {
-        this.className = className;
-        this.methodName = methodName;
+    public MethodDefinition(String[] args, int execArgsIdx) {
+        super(args, execArgsIdx + 2);
+        this.className = args[execArgsIdx];
+        this.methodName = args[execArgsIdx + 1];
+    }
+
+    @Override
+    public AbstractMethodImplementation getMethodImplementation() {
+        return new MethodImplementation(className, methodName, null, null, null);
     }
 
     @Override
@@ -53,33 +62,17 @@ public class MethodDefinition implements ImplementationDefinition {
     }
 
     @Override
-    public Object process(Object target, Class<?> types[], Object values[], boolean[] areFiles, Stream[] streams, String[] prefixes, File sandBoxDir) {
+    public Invoker getInvoker(InvocationContext context, boolean debug, File sandBoxDir) throws JobExecutionException {
+        return new JavaInvoker(context, this, debug, sandBoxDir, null);
+    }
 
-        // Use reflection to get the requested method
-        Method method = null;
-        try {
-            Class<?> methodClass = Class.forName(className);
-            method = methodClass.getMethod(methodName, types);
-        } catch (ClassNotFoundException e) {
-            ErrorManager.error("Application class not found");
-        } catch (SecurityException e) {
-            ErrorManager.error("Security exception");
-        } catch (NoSuchMethodException e) {
-            ErrorManager.error("Requested method not found");
-        }
-
-        if (method == null) {
-            ErrorManager.error("Requested method is null");
-        }
-
-        // Invoke the requested method
-        Object retValue = null;
-        try {
-            retValue = method.invoke(target, values);
-        } catch (Exception e) {
-            ErrorManager.error(ERROR_INVOKE, e);
-        }
-
-        return retValue;
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Type: ").append(getType()).append("\n");
+        sb.append("ClassName: ").append(className).append("\n");
+        sb.append("MethodName: ").append(methodName).append("\n");
+        sb.append(super.toString());
+        return sb.toString();
     }
 }

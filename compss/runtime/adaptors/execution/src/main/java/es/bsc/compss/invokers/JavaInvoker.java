@@ -43,7 +43,7 @@ public class JavaInvoker extends Invoker {
         try {
             methodImpl = (MethodImplementation) this.impl;
         } catch (Exception e) {
-            throw new JobExecutionException(ERROR_METHOD_DEFINITION + this.methodType, e);
+            throw new JobExecutionException(ERROR_METHOD_DEFINITION + this.impl.getMethodType(), e);
         }
         this.className = methodImpl.getDeclaringClass();
         this.methodName = methodImpl.getAlternativeMethodName();
@@ -76,7 +76,6 @@ public class JavaInvoker extends Invoker {
         /*if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.STORAGE_INVOKE.getId(), Tracer.Event.STORAGE_INVOKE.getType());
         }*/
-        
         try {
             LOGGER.info("Invoked " + method.getName() + " of " + target + " in " + context.getHostName());
             retValue = method.invoke(target.getValue(), values);

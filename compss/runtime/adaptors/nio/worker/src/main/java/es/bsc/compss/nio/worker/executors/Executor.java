@@ -249,7 +249,7 @@ public abstract class Executor implements Runnable {
     private TaskWorkingDir createTaskSandbox(NIOTask nt) throws IOException {
         // Check if an specific working dir is provided
         String specificWD = null;
-        switch (nt.getMethodType()) {
+        switch (nt.getMethodImplementation().getMethodType()) {
             case BINARY:
                 BinaryImplementation binaryImpl = (BinaryImplementation) nt.getMethodImplementation();
                 specificWD = binaryImpl.getWorkingDir();

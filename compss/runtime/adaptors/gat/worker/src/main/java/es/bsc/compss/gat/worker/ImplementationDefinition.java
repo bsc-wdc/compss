@@ -16,22 +16,318 @@
  */
 package es.bsc.compss.gat.worker;
 
+import es.bsc.compss.exceptions.JobExecutionException;
+import es.bsc.compss.invokers.Invoker;
+import es.bsc.compss.types.annotations.Constants;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.execution.Invocation;
+import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
+import es.bsc.compss.types.implementations.Implementation.TaskType;
+import es.bsc.compss.util.ErrorManager;
 
 import java.io.File;
+import java.util.Iterator;
+import java.util.LinkedList;
 
 
-public interface ImplementationDefinition {
+public abstract class ImplementationDefinition implements Invocation {
 
     public static final String ERROR_INVOKE = "Error invoking requested method";
+    private static final String ERROR_APP_PARAMETERS = "ERROR: Incorrect number of parameters";
+    private static final String WARN_UNSUPPORTED_DATA_TYPE = "WARNING: Unsupported data type";
+    private static final String WARN_UNSUPPORTED_STREAM = "WARNING: Unsupported data stream";
 
-    public MethodType getType();
+    private final int taskId;
+    private final boolean hasTarget;
+    private final boolean hasReturn;
 
-    public String toCommandString();
+    private final int numParams;
+    private final LinkedList<Param> params;
 
-    public String toLogString();
+    public ImplementationDefinition(String args[], int appArgsIdx) {
+        taskId = 0;
 
-    public Object process(Object target, Class<?> types[], Object values[], boolean[] areFiles, Stream[] streams, String[] prefixes, File sandBoxDir);
+        int numNodesTmp = Integer.parseInt(args[appArgsIdx++]);
+        //skip hosts
+        appArgsIdx += numNodesTmp;
+        //skip cus
+        appArgsIdx++;
 
+        // Get if has target or not
+        hasTarget = Boolean.parseBoolean(args[appArgsIdx++]);
+
+        // Get return type if specified
+        String returnType = args[appArgsIdx++];
+        if (returnType == null || returnType.equals("null") || returnType.isEmpty()) {
+            hasReturn = false;
+        } else {
+            hasReturn = true;
+        }
+        int numReturns = Integer.parseInt(args[appArgsIdx++]);
+
+        numParams = Integer.parseInt(args[appArgsIdx++]);
+        LinkedList<Param> paramsTmp;
+        try {
+            paramsTmp = parseArguments(args, appArgsIdx);
+        } catch (Exception e) {
+            ErrorManager.error(e.getMessage());
+            paramsTmp = new LinkedList<>();
+        }
+        params = paramsTmp;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Has Target: ").append(hasTarget).append("\n");
+        sb.append("Has Return: ").append(hasReturn).append("\n");
+        sb.append("Parameters  (").append(numParams).append(")\n");
+
+        Iterator<Param> paramsIter = params.iterator();
+        int paramId = 0;
+        for (; paramId < (hasTarget ? numParams - 1 : numParams); paramId++) {
+            Param p = paramsIter.next();
+            sb.append(" * Parameter ").append(paramId).append("\n");
+            sb.append("     - Type ").append(p.type).append("\n");
+            sb.append("     - Prefix ").append(p.prefix).append("\n");
+            sb.append("     - Stream ").append(p.stream).append("\n");
+            sb.append("     - Original name ").append(p.originalName).append("\n");
+            sb.append("     - Value ").append(p.value).append("\n");
+            sb.append("     - Write final value ").append(p.writeFinalValue).append("\n");
+        }
+        if (hasTarget) {
+            Param p = paramsIter.next();
+            sb.append(" * Target Object\n");
+            sb.append("     - Type ").append(p.type).append("\n");
+            sb.append("     - Prefix ").append(p.prefix).append("\n");
+            sb.append("     - Stream ").append(p.stream).append("\n");
+            sb.append("     - Original name ").append(p.originalName).append("\n");
+            sb.append("     - Value ").append(p.value).append("\n");
+            sb.append("     - Write final value ").append(p.writeFinalValue).append("\n");
+        }
+
+        if (hasReturn) {
+            Param p = paramsIter.next();
+            sb.append(" * Return\n");
+            sb.append("     - Original name ").append(p.originalName).append("\n");
+            sb.append("     - Value ").append(p.value).append("\n");
+            sb.append("     - Write final value ").append(p.writeFinalValue).append("\n");
+        }
+        return sb.toString();
+    }
+
+    @Override
+    public final int getTaskId() {
+        return this.taskId;
+    }
+
+    @Override
+    public final int getTaskType() {
+        return TaskType.METHOD.ordinal();
+    }
+
+    @Override
+    public abstract AbstractMethodImplementation getMethodImplementation();
+
+    @Override
+    public boolean hasTarget() {
+        return this.hasTarget;
+    }
+
+    @Override
+    public boolean hasReturn() {
+        return this.hasReturn;
+    }
+
+    @Override
+    public int getNumParams() {
+        return numParams;
+    }
+
+    @Override
+    public LinkedList<? extends InvocationParam> getParams() {
+        return params;
+    }
+
+    public abstract MethodType getType();
+
+    public abstract String toCommandString();
+
+    public abstract String toLogString();
+
+    public abstract Invoker getInvoker(InvocationContext context, boolean debug, File sandBoxDir) throws JobExecutionException;
+
+    private LinkedList<Param> parseArguments(String[] args, int appArgsIdx) throws Exception {
+        // Check received arguments
+        if (args.length < 2 * numParams + appArgsIdx) {
+            ErrorManager.error(ERROR_APP_PARAMETERS);
+        }
+
+        LinkedList<Param> paramsList = new LinkedList<>();
+        DataType[] dataTypesEnum = DataType.values();
+        Stream[] dataStream = Stream.values();
+
+        for (int paramIdx = 0; paramIdx < numParams; paramIdx++) {
+            DataType argType;
+
+            Stream stream;
+            String prefix;
+
+            //Object and primitiveTypes
+            Object value = null;
+            //File
+            String originalName = "NO_NAME";
+            boolean writeFinal = false;
+
+            int argTypeIdx = Integer.parseInt(args[appArgsIdx++]);
+            if (argTypeIdx >= dataTypesEnum.length) {
+                ErrorManager.error(WARN_UNSUPPORTED_DATA_TYPE + argTypeIdx);
+            }
+            argType = dataTypesEnum[argTypeIdx];
+
+            int argStreamIdx = Integer.parseInt(args[appArgsIdx++]);
+            if (argStreamIdx >= dataStream.length) {
+                ErrorManager.error(WARN_UNSUPPORTED_STREAM + argStreamIdx);
+            }
+            stream = dataStream[argStreamIdx];
+
+            prefix = args[appArgsIdx++];
+            if (prefix == null || prefix.isEmpty()) {
+                prefix = Constants.PREFIX_EMTPY;
+            }
+            switch (argType) {
+                case FILE_T:
+                    originalName = args[appArgsIdx++];
+                    value = originalName;
+                    break;
+                case OBJECT_T:
+                case BINDING_OBJECT_T:
+                case PSCO_T:
+                    value = (String) args[appArgsIdx++];
+                    writeFinal = ((String) args[appArgsIdx++]).equals("W");
+                    break;
+                case EXTERNAL_PSCO_T:
+                    value = args[appArgsIdx++];
+                    break;
+                case BOOLEAN_T:
+                    value = new Boolean(args[appArgsIdx++]);
+                    break;
+                case CHAR_T:
+                    value = new Character(args[appArgsIdx++].charAt(0));
+                    break;
+                case STRING_T:
+                    int numSubStrings = Integer.parseInt(args[appArgsIdx++]);
+                    String aux = "";
+                    for (int j = 0; j < numSubStrings; j++) {
+                        if (j != 0) {
+                            aux += " ";
+                        }
+                        aux += args[appArgsIdx++];
+                    }
+                    value = aux;
+                    break;
+                case BYTE_T:
+                    value = new Byte(args[appArgsIdx++]);
+                    break;
+                case SHORT_T:
+                    value = new Short(args[appArgsIdx++]);
+                    break;
+                case INT_T:
+                    value = new Integer(args[appArgsIdx++]);
+                    break;
+                case LONG_T:
+                    value = new Long(args[appArgsIdx++]);
+                    break;
+                case FLOAT_T:
+                    value = new Float(args[appArgsIdx++]);
+                    break;
+                case DOUBLE_T:
+                    value = new Double(args[appArgsIdx++]);
+                    break;
+                default:
+                    throw new Exception(WARN_UNSUPPORTED_DATA_TYPE + argType);
+            }
+
+            Param p = new Param(argType, prefix, stream, originalName, writeFinal);
+            if (value != null) {
+                p.setValue(value);
+            }
+            paramsList.add(p);
+        }
+        if (hasReturn) {
+            Param returnParam = new Param(DataType.OBJECT_T, "", Stream.UNSPECIFIED, "NO_NAME", true);
+            returnParam.setValue(args[appArgsIdx + 3]);
+            paramsList.add(returnParam);
+        }
+        return paramsList;
+    }
+
+
+    private static class Param implements InvocationParam {
+
+        private DataType type;
+        private Object value;
+
+        private final String prefix;
+        private final Stream stream;
+        private final String originalName;
+        private final boolean writeFinalValue;
+
+        public Param(DataType type, String prefix, Stream stream, String originalName, boolean writeFinalValue) {
+            this.type = type;
+            this.prefix = prefix;
+            this.stream = stream;
+            this.originalName = originalName;
+            this.writeFinalValue = writeFinalValue;
+        }
+
+        @Override
+        public void setType(DataType type) {
+            this.type = type;
+        }
+
+        @Override
+        public DataType getType() {
+            return this.type;
+        }
+
+        @Override
+        public boolean isPreserveSourceData() {
+            return false;
+        }
+
+        @Override
+        public boolean isWriteFinalValue() {
+            return writeFinalValue;
+        }
+
+        @Override
+        public String getPrefix() {
+            return this.prefix;
+        }
+
+        @Override
+        public Stream getStream() {
+            return this.stream;
+        }
+
+        @Override
+        public String getOriginalName() {
+            return this.originalName;
+        }
+
+        @Override
+        public Object getValue() {
+            return this.value;
+        }
+
+        @Override
+        public void setValue(Object val) {
+            this.value = val;
+        }
+    }
 }

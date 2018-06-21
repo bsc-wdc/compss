@@ -19,7 +19,6 @@ package es.bsc.compss.invokers;
 import es.bsc.compss.exceptions.JobExecutionException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
-import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Stream;
@@ -62,7 +61,6 @@ public abstract class Invoker {
     protected final int[] assignedCoreUnits;
     private final boolean debug;
 
-    protected final MethodType methodType;
     protected final AbstractMethodImplementation impl;
     protected final int numParams;
     protected final int totalNumberOfParams;
@@ -88,7 +86,6 @@ public abstract class Invoker {
         this.debug = debug;
 
         /* Invocation information **************************************** */
-        this.methodType = invocation.getMethodType();
         this.impl = invocation.getMethodImplementation();
         this.hasTarget = invocation.hasTarget();
         this.hasReturn = invocation.hasReturn();
@@ -119,7 +116,7 @@ public abstract class Invoker {
         if (this.debug) {
             // Print request information
             System.out.println("WORKER - Parameters of execution:");
-            System.out.println("  * Method type: " + this.methodType);
+            System.out.println("  * Method type: " + this.impl.getMethodType());
             System.out.println("  * Method definition: " + this.impl.getMethodDefinition());
             System.out.print("  * Parameter types:");
             for (int i = 0; i < this.types.length; i++) {
@@ -427,7 +424,7 @@ public abstract class Invoker {
                 LOGGER.debug("Store return value " + this.retValue + " as " + renaming);
             }
             // Always stored because it can only be a OUT object
-            this.context.storeObject(renaming.substring(renaming.lastIndexOf('/') + 1), this.retValue);
+            this.context.storeObject(renaming, this.retValue);
         }
     }
 

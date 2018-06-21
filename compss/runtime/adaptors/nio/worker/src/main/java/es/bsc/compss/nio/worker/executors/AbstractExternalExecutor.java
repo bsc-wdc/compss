@@ -89,7 +89,7 @@ public abstract class AbstractExternalExecutor extends Executor {
             int[] assignedGPUs, int[] assignedFPGAs) throws Exception {
 
         // Check if it is a native method or not
-        switch (nt.getMethodType()) {
+        switch (nt.getMethodImplementation().getMethodType()) {
             case METHOD:
                 executeNativeMethod(nw, nt, outputsBasename, taskSandboxWorkingDir, assignedCoreUnits, assignedGPUs, assignedFPGAs);
                 break;
@@ -222,7 +222,7 @@ public abstract class AbstractExternalExecutor extends Executor {
         lArgs.add(STORAGE_CONF);
 
         // The implementation to execute externally can only be METHOD but we double check it
-        if (nt.getMethodType() != MethodType.METHOD) {
+        if (nt.getMethodImplementation().getMethodType() != MethodType.METHOD) {
             throw new JobExecutionException(ERROR_UNSUPPORTED_JOB_TYPE);
         }
 

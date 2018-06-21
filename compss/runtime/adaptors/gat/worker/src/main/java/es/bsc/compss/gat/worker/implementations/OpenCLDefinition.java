@@ -16,24 +16,29 @@
  */
 package es.bsc.compss.gat.worker.implementations;
 
-import es.bsc.compss.gat.worker.GATWorker;
+import es.bsc.compss.exceptions.JobExecutionException;
 import es.bsc.compss.gat.worker.ImplementationDefinition;
-import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.invokers.Invoker;
+import es.bsc.compss.invokers.OpenCLInvoker;
+import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
-import es.bsc.compss.util.ErrorManager;
-import java.io.BufferedWriter;
+import es.bsc.compss.types.implementations.OpenCLImplementation;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 
 
-public class OpenCLDefinition implements ImplementationDefinition {
+public class OpenCLDefinition extends ImplementationDefinition {
 
     private final String kernel;
 
-    public OpenCLDefinition(String kernel) {
-        this.kernel = kernel;
+    public OpenCLDefinition(String[] args, int execArgsIdx) {
+        super(args, execArgsIdx + 1);
+        this.kernel = args[execArgsIdx];
+    }
+
+    @Override
+    public AbstractMethodImplementation getMethodImplementation() {
+        return new OpenCLImplementation(kernel, "", null, null, null);
     }
 
     @Override
@@ -54,38 +59,7 @@ public class OpenCLDefinition implements ImplementationDefinition {
     }
 
     @Override
-    public Object process(Object target, Class<?>[] types, Object[] values, boolean[] areFiles, Stream[] streams, String[] prefixes, File sandBoxDir) {
-        Object retValue = null;
-        ErrorManager.error("ERROR: OpenCL is not supported");
-        boolean isFile = areFiles[areFiles.length - 1];
-        String lastParamPrefix = prefixes[prefixes.length - 1];
-        String lastParamName = (String) values[values.length - 1];
-        serializeBinaryExitValue(retValue, isFile, lastParamPrefix, lastParamName);
-        return retValue;
-    }
-
-    public static void serializeBinaryExitValue(Object retValue, boolean isFile, String lastParamPrefix, String lastParamName) {
-        System.out.println("Checking binary exit value serialization");
-
-        if (GATWorker.debug) {
-            System.out.println("- Param isFile: " + isFile);
-            System.out.println("- Prefix: " + lastParamPrefix);
-        }
-
-        // Last parameter is a FILE with skip prefix => return in Python
-        // We cannot check it is OUT direction in GAT
-        if (isFile && lastParamPrefix.equals(Constants.PREFIX_SKIP)) {
-            // Write exit value to the file
-            System.out.println("Writing Binary Exit Value (" + retValue.toString() + ") to " + lastParamName);
-
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(lastParamName))) {
-                String value = "I" + retValue.toString() + "\n.\n";
-                writer.write(value);
-                writer.flush();
-            } catch (IOException ioe) {
-                System.err.println("ERROR: Cannot serialize binary exit value for bindings");
-                ioe.printStackTrace();
-            }
-        }
+    public Invoker getInvoker(InvocationContext context, boolean debug, File sandBoxDir) throws JobExecutionException {
+        return new OpenCLInvoker(context, this, debug, sandBoxDir, null);
     }
 }

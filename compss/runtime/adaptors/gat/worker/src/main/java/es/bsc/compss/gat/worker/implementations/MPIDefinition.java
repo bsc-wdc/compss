@@ -16,32 +16,78 @@
  */
 package es.bsc.compss.gat.worker.implementations;
 
-import es.bsc.compss.exceptions.InvokeExecutionException;
-import es.bsc.compss.gat.worker.GATWorker;
+import es.bsc.compss.exceptions.JobExecutionException;
 import es.bsc.compss.gat.worker.ImplementationDefinition;
-import es.bsc.compss.invokers.util.BinaryRunner;
+import es.bsc.compss.invokers.Invoker;
+import es.bsc.compss.invokers.MPIInvoker;
 import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.execution.Invocation;
+import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
+import es.bsc.compss.types.implementations.MPIImplementation;
 import es.bsc.compss.util.ErrorManager;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 
-public class MPIDefinition implements ImplementationDefinition {
-
-    private static final int NUM_BASE_MPI_ARGS = 6;
-    private static final String OMP_NUM_THREADS = "OMP_NUM_THREADS";
+public class MPIDefinition extends ImplementationDefinition {
 
     private final String mpiRunner;
     private final String mpiBinary;
 
-    public MPIDefinition(String mpiRunner, String mpiBinary) {
-        this.mpiRunner = mpiRunner;
-        this.mpiBinary = mpiBinary;
+    private final int numNodes;
+    private final String hostnames;
+    private final int cus;
+
+    public MPIDefinition(String[] args, int execArgsIdx) {
+        super(args, execArgsIdx + 2);
+        this.mpiRunner = args[execArgsIdx++];
+        this.mpiBinary = args[execArgsIdx++];
+
+        int numNodesTmp = Integer.parseInt(args[execArgsIdx++]);
+        ArrayList<String> hostnamesList = new ArrayList<>();
+        for (int i = 0; i < numNodesTmp; ++i) {
+            String nodeName = args[execArgsIdx++];
+            if (nodeName.endsWith("-ib0")) {
+                nodeName = nodeName.substring(0, nodeName.lastIndexOf("-ib0"));
+            }
+            hostnamesList.add(args[execArgsIdx++]);
+        }
+        String hostname = "localhost";
+        try {
+            hostname = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e1) {
+            ErrorManager.warn("Cannot obtain hostname. Loading default value " + hostname);
+        }
+        hostnamesList.add(hostname);
+        numNodesTmp++;
+        this.numNodes = numNodesTmp;
+        cus = Integer.parseInt(args[execArgsIdx++]);
+        boolean firstElement = true;
+        StringBuilder hostnamesSTR = new StringBuilder();
+        for (String nodeName : hostnamesList) {
+            // Add one host name per process to launch
+            if (firstElement) {
+                firstElement = false;
+                hostnamesSTR.append(nodeName);
+                for (int i = 1; i < cus; ++i) {
+                    hostnamesSTR.append(",").append(nodeName);
+                }
+            } else {
+                for (int i = 0; i < cus; ++i) {
+                    hostnamesSTR.append(",").append(nodeName);
+                }
+            }
+        }
+        this.hostnames = hostnamesSTR.toString();
+    }
+
+    @Override
+    public AbstractMethodImplementation getMethodImplementation() {
+        return new MPIImplementation(mpiBinary, "", mpiRunner, null, null, null);
     }
 
     @Override
@@ -63,91 +109,36 @@ public class MPIDefinition implements ImplementationDefinition {
     }
 
     @Override
-    public Object process(Object target, Class<?>[] types, Object[] values, boolean[] areFiles, Stream[] streams, String[] prefixes, File sandBoxdir) {
-        Object retValue = null;
-        try {
-
-            System.out.println("");
-            System.out.println("[MPI INVOKER] Begin MPI call to " + mpiBinary);
-            System.out.println("[MPI INVOKER] On WorkingDir : " + sandBoxdir.getAbsolutePath());
-
-            // Command similar to
-            // export OMP_NUM_THREADS=1 ; mpirun -H COMPSsWorker01,COMPSsWorker02 -n
-            // 2 (--bind-to core) exec args
-            // Get COMPSS ENV VARS
-            String workers = System.getProperty(Constants.COMPSS_HOSTNAMES);
-            String numNodes = System.getProperty(Constants.COMPSS_NUM_NODES);
-            String computingUnits = System.getProperty(Constants.COMPSS_NUM_THREADS);
-            String numProcs = String.valueOf(Integer.valueOf(numNodes) * Integer.valueOf(computingUnits));
-            System.out.println("[MPI INVOKER] COMPSS HOSTNAMES: " + workers);
-            System.out.println("[MPI INVOKER] COMPSS_NUM_NODES: " + numNodes);
-            System.out.println("[MPI INVOKER] COMPSS_NUM_THREADS: " + computingUnits);
-
-            // Convert binary parameters and calculate binary-streams redirection
-            BinaryRunner.StreamSTD streamValues = new BinaryRunner.StreamSTD();
-            ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(values, streams, prefixes, streamValues);
-
-            // Prepare command
-            String[] cmd = new String[NUM_BASE_MPI_ARGS + binaryParams.size()];
-            cmd[0] = mpiRunner;
-            cmd[1] = "-H";
-            cmd[2] = workers;
-            cmd[3] = "-n";
-            cmd[4] = numProcs;
-            // cmd[5] = "--bind-to";
-            // cmd[6] = "core";
-            cmd[5] = mpiBinary;
-            for (int i = 0; i < binaryParams.size(); ++i) {
-                cmd[NUM_BASE_MPI_ARGS + i] = binaryParams.get(i);
-            }
-
-            // Prepare environment
-            System.setProperty(OMP_NUM_THREADS, computingUnits);
-
-            // Debug command
-            System.out.print("[MPI INVOKER] MPI CMD: ");
-            for (int i = 0; i < cmd.length; ++i) {
-                System.out.print(cmd[i] + " ");
-            }
-            System.out.println("");
-            System.out.println("[MPI INVOKER] MPI STDIN: " + streamValues.getStdIn());
-            System.out.println("[MPI INVOKER] MPI STDOUT: " + streamValues.getStdOut());
-            System.out.println("[MPI INVOKER] MPI STDERR: " + streamValues.getStdErr());
-
-            // Launch command
-            retValue = BinaryRunner.executeCMD(cmd, streamValues, sandBoxdir, System.out, System.err);
-        } catch (InvokeExecutionException iee) {
-            ErrorManager.error(ERROR_INVOKE, iee);
-        }
-        boolean isFile = areFiles[areFiles.length - 1];
-        String lastParamPrefix = prefixes[prefixes.length - 1];
-        String lastParamName = (String) values[values.length - 1];
-        serializeBinaryExitValue(retValue, isFile, lastParamPrefix, lastParamName);
-        return retValue;
+    public Invoker getInvoker(InvocationContext context, boolean debug, File sandBoxDir) throws JobExecutionException {
+        return new ExtendedInvoker(context, this, debug, sandBoxDir, null);
     }
 
-    public static void serializeBinaryExitValue(Object retValue, boolean isFile, String lastParamPrefix, String lastParamName) {
-        System.out.println("Checking binary exit value serialization");
 
-        if (GATWorker.debug) {
-            System.out.println("- Param isFile: " + isFile);
-            System.out.println("- Prefix: " + lastParamPrefix);
+    private class ExtendedInvoker extends MPIInvoker {
+
+        final boolean debug;
+
+        public ExtendedInvoker(InvocationContext context, Invocation invocation, boolean debug, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
+            super(context, invocation, debug, taskSandboxWorkingDir, assignedCoreUnits);
+            this.debug = debug;
         }
 
-        // Last parameter is a FILE with skip prefix => return in Python
-        // We cannot check it is OUT direction in GAT
-        if (isFile && lastParamPrefix.equals(Constants.PREFIX_SKIP)) {
-            // Write exit value to the file
-            System.out.println("Writing Binary Exit Value (" + retValue.toString() + ") to " + lastParamName);
+        @Override
+        public Object invokeMethod() throws JobExecutionException {
+            setEnvironmentVariables();
+            return super.invokeMethod();
+        }
 
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(lastParamName))) {
-                String value = "I" + retValue.toString() + "\n.\n";
-                writer.write(value);
-                writer.flush();
-            } catch (IOException ioe) {
-                System.err.println("ERROR: Cannot serialize binary exit value for bindings");
-                ioe.printStackTrace();
+        private void setEnvironmentVariables() {
+            if (debug) {
+                System.out.println("  * HOSTNAMES: " + MPIDefinition.this.hostnames);
+                System.out.println("  * NUM_NODES: " + MPIDefinition.this.numNodes);
+                System.out.println("  * CPU_COMPUTING_UNITS: " + MPIDefinition.this.cus);
             }
+            System.setProperty(Constants.COMPSS_HOSTNAMES, MPIDefinition.this.hostnames);
+            System.setProperty(Constants.COMPSS_NUM_NODES, String.valueOf(MPIDefinition.this.numNodes));
+            System.setProperty(Constants.COMPSS_NUM_THREADS, String.valueOf(MPIDefinition.this.cus));
         }
     }
+
 }

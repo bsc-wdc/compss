@@ -43,7 +43,7 @@ public class BinaryInvoker extends Invoker {
         try {
             binaryImpl = (BinaryImplementation) this.impl;
         } catch (Exception e) {
-            throw new JobExecutionException(ERROR_METHOD_DEFINITION + this.methodType, e);
+            throw new JobExecutionException(ERROR_METHOD_DEFINITION + this.impl.getMethodType(), e);
         }
         this.binary = binaryImpl.getBinary();
     }

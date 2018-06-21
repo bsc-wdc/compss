@@ -14,30 +14,24 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.execution;
+package es.bsc.compss.gat.worker.implementations;
 
-import es.bsc.compss.types.implementations.AbstractMethodImplementation;
-import java.util.LinkedList;
+import es.bsc.compss.exceptions.JobExecutionException;
+import es.bsc.compss.invokers.Invoker;
+import es.bsc.compss.invokers.StorageInvoker;
+import es.bsc.compss.types.execution.InvocationContext;
+import java.io.File;
 
 
-/**
- *
- * @author flordan
- */
-public interface Invocation {
+public class ExternalMethodDefinition extends MethodDefinition {
 
-    public int getTaskId();
+    public ExternalMethodDefinition(String[] args, int execArgsIdx) {
+        super(args, execArgsIdx);
+    }
 
-    public int getTaskType();
-
-    public AbstractMethodImplementation getMethodImplementation();
-
-    public boolean hasTarget();
-
-    public boolean hasReturn();
-
-    public int getNumParams();
-
-    public LinkedList<? extends InvocationParam> getParams();
+    @Override
+    public Invoker getInvoker(InvocationContext context, boolean debug, File sandBoxDir) throws JobExecutionException {
+        return new StorageInvoker(context, this, debug, sandBoxDir, null);
+    }
 
 }

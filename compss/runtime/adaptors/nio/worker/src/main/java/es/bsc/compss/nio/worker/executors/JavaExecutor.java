@@ -65,7 +65,7 @@ public class JavaExecutor extends Executor {
         /* TRY TO PROCESS THE TASK ******************************** */
         System.out.println("[JAVA EXECUTOR] executeTask - Begin task execution");
         try {
-            MethodType methodType = nt.getMethodType();
+            MethodType methodType = nt.getMethodImplementation().getMethodType();
             Invoker invoker = null;
             switch (methodType) {
                 case METHOD:

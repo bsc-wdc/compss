@@ -18,7 +18,6 @@ package es.bsc.compss.nio;
 
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
-import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.job.Job.JobHistory;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
@@ -116,16 +115,6 @@ public class NIOTask implements Externalizable, Invocation {
     }
 
     /**
-     * Returns the method type
-     *
-     * @return
-     */
-    @Override
-    public MethodType getMethodType() {
-        return this.impl.getMethodType();
-    }
-
-    /**
      * Returns the method definition
      *
      * @return
@@ -139,6 +128,7 @@ public class NIOTask implements Externalizable, Invocation {
      *
      * @return
      */
+    @Override
     public AbstractMethodImplementation getMethodImplementation() {
         return this.impl;
     }
@@ -148,6 +138,7 @@ public class NIOTask implements Externalizable, Invocation {
      *
      * @return
      */
+    @Override
     public boolean hasTarget() {
         return this.hasTarget;
     }
@@ -157,6 +148,7 @@ public class NIOTask implements Externalizable, Invocation {
      *
      * @return
      */
+    @Override
     public boolean hasReturn() {
         return this.hasReturn;
     }
@@ -175,6 +167,7 @@ public class NIOTask implements Externalizable, Invocation {
      *
      * @return
      */
+    @Override
     public int getNumParams() {
         return this.numParams;
     }

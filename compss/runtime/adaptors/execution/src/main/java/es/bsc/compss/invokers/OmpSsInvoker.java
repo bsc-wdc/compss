@@ -42,7 +42,7 @@ public class OmpSsInvoker extends Invoker {
         try {
             ompssImpl = (OmpSsImplementation) this.impl;
         } catch (Exception e) {
-            throw new JobExecutionException(ERROR_METHOD_DEFINITION + this.methodType, e);
+            throw new JobExecutionException(ERROR_METHOD_DEFINITION + this.impl.getMethodType(), e);
         }
         this.ompssBinary = ompssImpl.getBinary();
     }

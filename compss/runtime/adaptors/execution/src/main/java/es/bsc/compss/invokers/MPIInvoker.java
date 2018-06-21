@@ -47,7 +47,7 @@ public class MPIInvoker extends Invoker {
         try {
             mpiImpl = (MPIImplementation) this.impl;
         } catch (Exception e) {
-            throw new JobExecutionException(ERROR_METHOD_DEFINITION + this.methodType, e);
+            throw new JobExecutionException(ERROR_METHOD_DEFINITION + this.impl.getMethodType(), e);
         }
         this.mpiRunner = mpiImpl.getMpiRunner();
         this.mpiBinary = mpiImpl.getBinary();

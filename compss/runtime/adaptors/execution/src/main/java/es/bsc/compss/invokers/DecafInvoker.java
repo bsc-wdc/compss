@@ -52,7 +52,7 @@ public class DecafInvoker extends Invoker {
         try {
             decafImpl = (DecafImplementation) this.impl;
         } catch (Exception e) {
-            throw new JobExecutionException(ERROR_METHOD_DEFINITION + this.methodType, e);
+            throw new JobExecutionException(ERROR_METHOD_DEFINITION + this.impl.getMethodType(), e);
         }
         this.mpiRunner = decafImpl.getMpiRunner();
         this.dfScript = decafImpl.getDfScript();

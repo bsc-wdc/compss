@@ -119,7 +119,8 @@ def serialize_to_handler(obj, handler):
                 pickle_generator(obj, handler, serializer)
                 success = True
             except Exception:
-                traceback.print_exc()
+                if __debug__:
+                    traceback.print_exc()
         # General case
         else:
             try:
@@ -137,8 +138,9 @@ def serialize_to_handler(obj, handler):
                     serializer.dump(obj, handler, protocol=serializer.HIGHEST_PROTOCOL)
                     success = True
             except Exception:
-                print('WARNING! Serialization with %s failed.' % str(serializer))
-                traceback.print_exc()  # No need to print all serializer exceptions
+                if __debug__:
+                    traceback.print_exc()  # No need to print all serializer exceptions
+                    print('WARNING! Serialization with %s failed.' % str(serializer))
         i += 1
 
     # if ret_value is None then all the serializers have failed
@@ -210,8 +212,9 @@ def deserialize_from_handler(handler):
                 ret = convert_to_generator(ret[1])
             return ret
         except Exception:
-            print('WARNING! Deserialization with %s failed.' % str(serializer))
-            traceback.print_exc()  # No need to print all deserialize exceptions
+            if __debug__:
+              print('WARNING! Deserialization with %s failed.' % str(serializer))
+              traceback.print_exc()  # No need to print all deserialize exceptions
     # we are not able to deserialize the contents from file_name with any of our
     # serializers
     try:

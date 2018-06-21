@@ -35,7 +35,6 @@ import es.bsc.compss.util.Tracer;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Arrays;
 
 import storage.StorageException;
 import storage.StorageItf;
@@ -46,13 +45,9 @@ import storage.StorageItf;
  *
  */
 public class GATWorker implements InvocationContext {
-    
+
     private static final String WARN_UNSUPPORTED_METHOD_TYPE = "WARNING: Unsupported method type";
-    private static final String WARN_UNSUPPORTED_DATA_TYPE = "WARNING: Unsupported data type";
-    private static final String WARN_UNSUPPORTED_STREAM = "WARNING: Unsupported data stream";
-    private static final String ERROR_APP_PARAMETERS = "ERROR: Incorrect number of parameters";
     private static final String ERROR_STORAGE_CONF = "ERROR: Cannot load storage configuration file: ";
-    private static final String ERROR_SERIALIZE_RETURN = "Error serializing object return value with renaming ";
     private static final String ERROR_OUTPUT_FILES = "ERROR: One or more OUT files have not been created by task '";
 
     //FLAGS IDX
@@ -62,12 +57,12 @@ public class GATWorker implements InvocationContext {
     private static final int INSTALL_DIR_IDX = 2;
     private static final int APP_DIR_IDX = 3;
     private static final int STORAGE_CONF_IDX = 4;
-    
+
     private final boolean debug;
     private final String appDir;
     private final String installDir;
     private final File sandBoxDir;
-    
+
     private final ImplementationDefinition implDef;
 
     /**
@@ -90,21 +85,22 @@ public class GATWorker implements InvocationContext {
                 ErrorManager.fatal(ERROR_STORAGE_CONF + storageConf, e);
             }
         }
-        
+
         GATWorker worker = new GATWorker(args);
         worker.runTask();
     }
-    
+
     public GATWorker(String[] args) {
+
         sandBoxDir = new File(args[WORKING_DIR_IDX]);
         debug = Boolean.valueOf(args[DEBUG_IDX]);
         installDir = args[INSTALL_DIR_IDX];
         appDir = args[APP_DIR_IDX];
-
+        GATLog.init(debug);
         // Retrieve arguments
         implDef = parseArguments(args);
     }
-    
+
     public void runTask() throws JobExecutionException {
         System.out.println("[JAVA EXECUTOR] executeTask - Begin task execution");
         try {
@@ -153,7 +149,7 @@ public class GATWorker implements InvocationContext {
             default:
                 ErrorManager.error(WARN_UNSUPPORTED_METHOD_TYPE + methodType);
                 return null;
-            
+
         }
     }
 
@@ -179,7 +175,7 @@ public class GATWorker implements InvocationContext {
                 }
             }
         }
-        
+
         if (!allOutFilesCreated) {
             StringBuilder errMsg = new StringBuilder();
             errMsg.append(ERROR_OUTPUT_FILES);
@@ -188,32 +184,32 @@ public class GATWorker implements InvocationContext {
             ErrorManager.error(errMsg.toString());
         }
     }
-    
+
     @Override
     public String getHostName() {
         return "localhost";
     }
-    
+
     @Override
     public String getAppDir() {
         return appDir;
     }
-    
+
     @Override
     public String getInstallDir() {
         return installDir;
     }
-    
+
     @Override
     public PrintStream getThreadOutStream() {
         return System.out;
     }
-    
+
     @Override
     public PrintStream getThreadErrStream() {
         return System.err;
     }
-    
+
     @Override
     public Object getObject(String renaming) {
         Object o = null;
@@ -238,11 +234,11 @@ public class GATWorker implements InvocationContext {
         }
         return o;
     }
-    
+
     @Override
     public Object getPersistentObject(String renaming) throws StorageException {
         String id = null;
-        
+
         try {
             id = (String) Serializer.deserialize(renaming);
         } catch (IOException | ClassNotFoundException e) {
@@ -264,7 +260,7 @@ public class GATWorker implements InvocationContext {
             ErrorManager.error(sb.toString());
             return null;
         }
-        
+
         Object obj = null;
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.Event.STORAGE_GETBYID.getType());
@@ -294,10 +290,10 @@ public class GATWorker implements InvocationContext {
             ErrorManager.error(sb.toString());
             return obj;
         }
-        
+
         return obj;
     }
-    
+
     @Override
     public void storeObject(String renaming, Object value) {
         try {
@@ -312,10 +308,10 @@ public class GATWorker implements InvocationContext {
             ErrorManager.warn(errMsg.toString());
         }
     }
-    
+
     @Override
     public void storePersistentObject(String id, Object value) {
         System.out.println("Aqui s'ha de persistir l'objecte " + value + "amb el id" + id);
     }
-    
+
 }

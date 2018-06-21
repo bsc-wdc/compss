@@ -35,7 +35,6 @@ public class DecafImplementation extends AbstractMethodImplementation implements
     private String dfLib;
     private String workingDir;
 
-
     public DecafImplementation() {
         // For externalizable
         super();

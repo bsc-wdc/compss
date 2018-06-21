@@ -72,7 +72,7 @@ import java.util.List;
 
 /**
  * Representation of a Job execution for COMPSs with GAT Adaptor
- * 
+ *
  */
 public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implements MetricListener {
 
@@ -96,8 +96,8 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
             ? System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT) : COMPSsConstants.DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT;
     private static final String PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT = System
             .getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT) != null
-                    ? System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT)
-                    : COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
+            ? System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT)
+            : COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
 
     private static final String JOBS_DIR = System.getProperty(COMPSsConstants.APP_LOG_DIR) + "jobs" + java.io.File.separator;
 
@@ -120,10 +120,9 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
     // Multi node information
     private final List<String> slaveWorkersNodeNames;
 
-
     /**
      * New GAT Job instance
-     * 
+     *
      * @param taskId
      * @param taskParams
      * @param impl
@@ -248,15 +247,13 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                         RUNNING_JOBS.remove(this);
                         listener.jobCompleted(this);
                     }
+                } else if (job.getExitStatus() == 0) {
+                    RUNNING_JOBS.remove(this);
+                    listener.jobCompleted(this);
                 } else {
-                    if (job.getExitStatus() == 0) {
-                        RUNNING_JOBS.remove(this);
-                        listener.jobCompleted(this);
-                    } else {
-                        GATjob = null;
-                        RUNNING_JOBS.remove(this);
-                        listener.jobFailed(this, JobEndStatus.EXECUTION_FAILED);
-                    }
+                    GATjob = null;
+                    RUNNING_JOBS.remove(this);
+                    listener.jobFailed(this, JobEndStatus.EXECUTION_FAILED);
                 }
             } catch (Exception e) {
                 ErrorManager.fatal(CALLBACK_PROCESSING_ERR + ": " + this, e);
@@ -400,6 +397,8 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         lArgs.add(PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT);
 
         lArgs.add(String.valueOf(debug));
+        lArgs.add(getResourceNode().getInstallDir());
+        lArgs.add(getResourceNode().getAppDir());
         lArgs.add(STORAGE_CONF);
 
         lArgs.add(String.valueOf(absImpl.getMethodType()));
@@ -420,13 +419,14 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 break;
             case DECAF:
                 DecafImplementation decafImpl = (DecafImplementation) absImpl;
-                lArgs.add(targetPath + DecafImplementation.SCRIPT_PATH);
+                
                 String dfScript = decafImpl.getDfScript();
                 if (!dfScript.startsWith(File.separator)) {
                     String appPath = getResourceNode().getAppDir();
                     dfScript = appPath + File.separator + dfScript;
                 }
                 lArgs.add(dfScript);
+                
                 String dfExecutor = decafImpl.getDfExecutor();
                 if (dfExecutor == null || dfExecutor.isEmpty() || dfExecutor.equals(Constants.UNASSIGNED)) {
                     dfExecutor = "executor.sh";
@@ -435,11 +435,13 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                     dfExecutor = "./" + dfExecutor;
                 }
                 lArgs.add(dfExecutor);
+                
                 String dfLib = decafImpl.getDfLib();
                 if (dfLib == null || dfLib.isEmpty()) {
                     dfLib = Constants.UNASSIGNED;
                 }
                 lArgs.add(dfLib);
+                
                 lArgs.add(decafImpl.getMpiRunner());
                 break;
             case OMPSS:

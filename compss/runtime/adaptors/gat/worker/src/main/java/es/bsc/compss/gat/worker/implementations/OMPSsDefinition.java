@@ -43,7 +43,7 @@ public class OMPSsDefinition extends ImplementationDefinition {
 
     public OMPSsDefinition(String[] args, int execArgsIdx) {
         super(args, execArgsIdx + 1);
-        this.binary = args[execArgsIdx];
+        this.binary = args[execArgsIdx++];
 
         int numNodesTmp = Integer.parseInt(args[execArgsIdx++]);
         ArrayList<String> hostnamesList = new ArrayList<>();
@@ -52,7 +52,7 @@ public class OMPSsDefinition extends ImplementationDefinition {
             if (nodeName.endsWith("-ib0")) {
                 nodeName = nodeName.substring(0, nodeName.lastIndexOf("-ib0"));
             }
-            hostnamesList.add(args[execArgsIdx++]);
+            hostnamesList.add(nodeName);
         }
         String hostname = "localhost";
         try {

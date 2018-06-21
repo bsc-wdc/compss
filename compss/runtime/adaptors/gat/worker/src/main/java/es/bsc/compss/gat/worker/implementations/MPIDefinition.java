@@ -54,7 +54,7 @@ public class MPIDefinition extends ImplementationDefinition {
             if (nodeName.endsWith("-ib0")) {
                 nodeName = nodeName.substring(0, nodeName.lastIndexOf("-ib0"));
             }
-            hostnamesList.add(args[execArgsIdx++]);
+            hostnamesList.add(nodeName);
         }
         String hostname = "localhost";
         try {

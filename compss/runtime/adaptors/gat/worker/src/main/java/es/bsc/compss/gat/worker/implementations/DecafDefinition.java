@@ -20,28 +20,73 @@ import es.bsc.compss.exceptions.JobExecutionException;
 import es.bsc.compss.gat.worker.ImplementationDefinition;
 import es.bsc.compss.invokers.DecafInvoker;
 import es.bsc.compss.invokers.Invoker;
+import es.bsc.compss.types.annotations.Constants;
+import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.DecafImplementation;
+import es.bsc.compss.util.ErrorManager;
 import java.io.File;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
 
 
 public class DecafDefinition extends ImplementationDefinition {
 
-    private final String dfRunner;
     private final String dfScript;
     private final String dfExecutor;
     private final String dfLib;
     private final String mpiRunner;
 
+    private final int numNodes;
+    private final String hostnames;
+    private final int cus;
+
     public DecafDefinition(String[] args, int execArgsIdx) {
-        super(args, execArgsIdx + 5);
-        this.dfRunner = args[execArgsIdx];
-        this.dfScript = args[execArgsIdx + 1];
-        this.dfExecutor = args[execArgsIdx + 2];
-        this.dfLib = args[execArgsIdx + 3];
-        this.mpiRunner = args[execArgsIdx + 4];
+        super(args, execArgsIdx + 4);
+        this.dfScript = args[execArgsIdx++];
+        this.dfExecutor = args[execArgsIdx++];
+        this.dfLib = args[execArgsIdx++];
+        this.mpiRunner = args[execArgsIdx++];
+
+        int numNodesTmp = Integer.parseInt(args[execArgsIdx++]);
+        ArrayList<String> hostnamesList = new ArrayList<>();
+        for (int i = 0; i < numNodesTmp; ++i) {
+            String nodeName = args[execArgsIdx++];
+            if (nodeName.endsWith("-ib0")) {
+                nodeName = nodeName.substring(0, nodeName.lastIndexOf("-ib0"));
+            }
+            hostnamesList.add(nodeName);
+        }
+        String hostname = "localhost";
+        try {
+            hostname = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e1) {
+            ErrorManager.warn("Cannot obtain hostname. Loading default value " + hostname);
+        }
+        hostnamesList.add(hostname);
+        numNodesTmp++;
+        this.numNodes = numNodesTmp;
+        cus = Integer.parseInt(args[execArgsIdx++]);
+        boolean firstElement = true;
+        StringBuilder hostnamesSTR = new StringBuilder();
+        for (String nodeName : hostnamesList) {
+            // Add one host name per process to launch
+            if (firstElement) {
+                firstElement = false;
+                hostnamesSTR.append(nodeName);
+                for (int i = 1; i < cus; ++i) {
+                    hostnamesSTR.append(",").append(nodeName);
+                }
+            } else {
+                for (int i = 0; i < cus; ++i) {
+                    hostnamesSTR.append(",").append(nodeName);
+                }
+            }
+        }
+        this.hostnames = hostnamesSTR.toString();
     }
 
     @Override
@@ -56,13 +101,12 @@ public class DecafDefinition extends ImplementationDefinition {
 
     @Override
     public String toCommandString() {
-        return dfRunner + " " + dfScript + " " + dfExecutor + " " + dfLib + " " + mpiRunner;
+        return dfScript + " " + dfExecutor + " " + dfLib + " " + mpiRunner;
     }
 
     @Override
     public String toLogString() {
         return "["
-                + "DF RUNNER=" + dfRunner
                 + "DF SCRIPT=" + dfScript
                 + "DF EXECUTOR=" + dfExecutor
                 + "DF LIB=" + dfLib
@@ -72,6 +116,34 @@ public class DecafDefinition extends ImplementationDefinition {
 
     @Override
     public Invoker getInvoker(InvocationContext context, boolean debug, File sandBoxDir) throws JobExecutionException {
-        return new DecafInvoker(context, this, debug, sandBoxDir, null);
+        return new ExtendedInvoker(context, this, debug, sandBoxDir, null);
+    }
+
+
+    private class ExtendedInvoker extends DecafInvoker {
+
+        final boolean debug;
+
+        public ExtendedInvoker(InvocationContext context, Invocation invocation, boolean debug, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
+            super(context, invocation, debug, taskSandboxWorkingDir, assignedCoreUnits);
+            this.debug = debug;
+        }
+
+        @Override
+        public Object invokeMethod() throws JobExecutionException {
+            setEnvironmentVariables();
+            return super.invokeMethod();
+        }
+
+        private void setEnvironmentVariables() {
+            if (debug) {
+                System.out.println("  * HOSTNAMES: " + DecafDefinition.this.hostnames);
+                System.out.println("  * NUM_NODES: " + DecafDefinition.this.numNodes);
+                System.out.println("  * CPU_COMPUTING_UNITS: " + DecafDefinition.this.cus);
+            }
+            System.setProperty(Constants.COMPSS_HOSTNAMES, DecafDefinition.this.hostnames);
+            System.setProperty(Constants.COMPSS_NUM_NODES, String.valueOf(DecafDefinition.this.numNodes));
+            System.setProperty(Constants.COMPSS_NUM_THREADS, String.valueOf(DecafDefinition.this.cus));
+        }
     }
 }

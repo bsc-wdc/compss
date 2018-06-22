@@ -34,6 +34,8 @@ jobject jobjIT;
 jclass clsITimpl;
 JavaVM * m_jvm;
 
+pthread_mutex_t mtx;
+
 jobject appId;
 
 jmethodID midAppDir;                /* ID of the getApplicationDirectory method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
@@ -334,6 +336,14 @@ void init_master_jni_types() {
     debug_printf ("[BINDING_COMMONS]  -  @Master JNI Init DONE\n");
 }
 
+int release_lock() {
+    return pthread_mutex_unlock(&mtx);
+}
+
+int get_lock() {
+    return pthread_mutex_lock(&mtx);
+}
+
 void process_param(void **params, int i, jobjectArray jobjOBJArr) {
     // params     is of the form: value type direction stream prefix
     // jobjOBJArr is of the form: value type direction stream prefix
@@ -351,6 +361,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
     clsParType = m_env->FindClass("es/bsc/compss/types/annotations/parameter/DataType");
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
+        release_lock();
         exit(1);
     }
 
@@ -358,6 +369,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
     midParTypeCon = m_env->GetStaticMethodID(clsParType, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/DataType;");
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
+        release_lock();
         exit(1);
     }
 
@@ -372,6 +384,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
         jobjParVal = m_env->NewObject(clsCharacter, midCharCon, (jchar)*(char*)parVal);
         if (m_env->ExceptionOccurred()) {
             m_env->ExceptionDescribe();
+            release_lock();
             exit(1);
         }
 
@@ -380,6 +393,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
         jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("CHAR_T"));
         if (m_env->ExceptionOccurred()) {
             m_env->ExceptionDescribe();
+            release_lock();
             exit(1);
         }
         break;
@@ -387,6 +401,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
         jobjParVal = m_env->NewObject(clsBoolean, midBoolCon, (jboolean)*(int*)parVal);
         if (m_env->ExceptionOccurred()) {
             m_env->ExceptionDescribe();
+            release_lock();
             exit(1);
         }
 
@@ -395,6 +410,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
         jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("BOOLEAN_T"));
         if (m_env->ExceptionOccurred()) {
             m_env->ExceptionDescribe();
+            release_lock();
             exit(1);
         }
         break;
@@ -402,6 +418,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
         jobjParVal = m_env->NewObject(clsShort, midShortCon, (jshort)*(short*)parVal);
         if (m_env->ExceptionOccurred()) {
             m_env->ExceptionDescribe();
+            release_lock();
             exit(1);
         }
 
@@ -410,6 +427,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
         jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("SHORT_T"));
         if (m_env->ExceptionOccurred()) {
             m_env->ExceptionDescribe();
+            release_lock();
             exit(1);
         }
         break;
@@ -417,6 +435,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
         jobjParVal = m_env->NewObject(clsInteger, midIntCon, (jint)*(int*)parVal);
         if (m_env->ExceptionOccurred()) {
             m_env->ExceptionDescribe();
+            release_lock();
             exit(1);
         }
 
@@ -425,6 +444,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
         jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("INT_T"));
         if (m_env->ExceptionOccurred()) {
             m_env->ExceptionDescribe();
+            release_lock();
             exit(1);
         }
         break;
@@ -432,6 +452,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
         jobjParVal = m_env->NewObject(clsLong, midLongCon, (jlong)*(long*)parVal);
         if (m_env->ExceptionOccurred()) {
             m_env->ExceptionDescribe();
+            release_lock();
             exit(1);
         }
 
@@ -440,6 +461,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
         jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("LONG_T"));
         if (m_env->ExceptionOccurred()) {
             m_env->ExceptionDescribe();
+            release_lock();
             exit(1);
         }
         break;
@@ -448,6 +470,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
         jobjParVal = m_env->NewObject(clsFloat, midFloatCon, (jfloat)*(float*)parVal);
         if (m_env->ExceptionOccurred()) {
             m_env->ExceptionDescribe();
+            release_lock();
             exit(1);
         }
 
@@ -456,6 +479,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
         jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("FLOAT_T"));
         if (m_env->ExceptionOccurred()) {
             m_env->ExceptionDescribe();
+            release_lock();
             exit(1);
         }
         break;
@@ -463,6 +487,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
         jobjParVal = m_env->NewObject(clsDouble, midDoubleCon, (jdouble)*(double*)parVal);
         if (m_env->ExceptionOccurred()) {
             m_env->ExceptionDescribe();
+            release_lock();
             exit(1);
         }
 
@@ -471,6 +496,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
         jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("DOUBLE_T"));
         if (m_env->ExceptionOccurred()) {
             m_env->ExceptionDescribe();
+            release_lock();
             exit(1);
         }
         break;
@@ -478,6 +504,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
         jobjParVal = m_env->NewStringUTF(*(char **)parVal);
         if (m_env->ExceptionOccurred()) {
             m_env->ExceptionDescribe();
+            release_lock();
             exit(1);
         }
 
@@ -486,6 +513,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
         jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("FILE_T"));
         if (m_env->ExceptionOccurred()) {
             m_env->ExceptionDescribe();
+            release_lock();
             exit(1);
         }
         break;
@@ -493,6 +521,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
         jobjParVal = m_env->NewStringUTF(*(char **)parVal);
         if (m_env->ExceptionOccurred()) {
             m_env->ExceptionDescribe();
+            release_lock();
             exit(1);
         }
         debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Persistent: %s\n", *(char **)parVal);
@@ -500,6 +529,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
         jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("EXTERNAL_PSCO_T"));
         if (m_env->ExceptionOccurred()) {
             m_env->ExceptionDescribe();
+            release_lock();
             exit(1);
         }
         break;
@@ -507,6 +537,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
         jobjParVal = m_env->NewStringUTF(*(char **)parVal);
         if (m_env->ExceptionOccurred()) {
             m_env->ExceptionDescribe();
+            release_lock();
             exit(1);
         }
 
@@ -515,6 +546,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
         jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("STRING_T"));
         if (m_env->ExceptionOccurred()) {
             m_env->ExceptionDescribe();
+            release_lock();
             exit(1);
         }
         break;
@@ -522,6 +554,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
         jobjParVal = m_env->NewStringUTF(*(char **)parVal);
         if (m_env->ExceptionOccurred()) {
             m_env->ExceptionDescribe();
+            release_lock();
             exit(1);
         }
 
@@ -530,6 +563,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
         jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("BINDING_OBJECT_T"));
         if (m_env->ExceptionOccurred()) {
             m_env->ExceptionDescribe();
+            release_lock();
             exit(1);
         }
         break;
@@ -582,9 +616,9 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
     jstring jobjParPrefix = m_env->NewStringUTF(*(char **)parPrefix);
     m_env->SetObjectArrayElement(jobjOBJArr, pp, jobjParPrefix);
     //env->SetObjectArrayElement(jobjOBJArr, pp, jobjParPrefixEMPTY);
-
-
 }
+
+
 
 // ******************************
 // API functions
@@ -597,6 +631,7 @@ void GS_On(AbstractCache *absCache) {
 
 void GS_On() {
     debug_printf ("[BINDING-COMMONS]  -  @GS_On\n");
+    pthread_mutex_init(&mtx,NULL);
     clsITimpl = NULL;
     jmethodID midITImplConst = NULL;
     jmethodID midStartIT = NULL;
@@ -704,6 +739,8 @@ void GS_Off() {
     destroy_vm(m_jvm);  // Release jvm resources -- Does not work properly --> JNI bug: not releasing properly the resources, so it is not possible to recreate de JVM.
     // delete jvm;    // free(): invalid pointer: 0x00007fbc11ba8020 ***
     m_jvm = NULL;
+
+    pthread_mutex_destroy(&mtx);
 }
 
 void GS_Get_AppDir(char **buf) {
@@ -712,12 +749,16 @@ void GS_Get_AppDir(char **buf) {
     const char *cstr;
     jstring jstr = NULL;
     jboolean isCopy;
+
+    get_lock();
+
     int isAttached = check_and_attach(m_jvm, m_env);
 
     jstr = (jstring)m_env->CallObjectMethod(jobjIT, midAppDir);
     if (m_env->ExceptionOccurred()) {
         debug_printf("[BINDING-COMMONS]  -  @GS_Get_AppDir  -  Error: Exception received when calling getAppDir.\n");
         m_env->ExceptionDescribe();
+        release_lock();
         exit(1);
     }
 
@@ -727,12 +768,11 @@ void GS_Get_AppDir(char **buf) {
     if (isAttached == 1) {
         m_jvm->DetachCurrentThread();
     }
-
+    release_lock();
     debug_printf("[BINDING-COMMONS]  -  @GS_Get_AppDir  -  directory name: %s\n", *buf);
 }
 
 void GS_ExecuteTask(long _appId, char *class_name, char *method_name, int priority, int has_target, int num_params, void **params) {
-    int isAttached = check_and_attach(m_jvm, m_env);
 
     jobjectArray jobjOBJArr; /* array of Objects to be passed to executeTask */
 
@@ -743,6 +783,10 @@ void GS_ExecuteTask(long _appId, char *class_name, char *method_name, int priori
 
     bool _has_target = false;
     if (has_target != 0) _has_target = true;
+
+    get_lock();
+
+    int isAttached = check_and_attach(m_jvm, m_env);
 
     jobjOBJArr = (jobjectArray)m_env->NewObjectArray(num_params*5, clsObject, m_env->NewObject(clsObject,midObjCon));
 
@@ -755,11 +799,13 @@ void GS_ExecuteTask(long _appId, char *class_name, char *method_name, int priori
     if (m_env->ExceptionOccurred()) {
         debug_printf("[BINDING-COMMONS]  -  @GS_ExecuteTask  -  Error: Exception received when calling executeTask.\n");
         m_env->ExceptionDescribe();
+        release_lock();
         exit(1);
     }
     if (isAttached==1) {
         m_jvm->DetachCurrentThread();
     }
+    release_lock();
 }
 
 void GS_ExecuteTaskNew(long _appId, char *signature, int priority, int num_nodes, int replicated, int distributed,
@@ -767,7 +813,7 @@ void GS_ExecuteTaskNew(long _appId, char *signature, int priority, int num_nodes
 
     jobjectArray jobjOBJArr; /* array of Objects to be passed to executeTask */
 
-    int isAttached = check_and_attach(m_jvm, m_env);
+
 
     debug_printf ("[BINDING-COMMONS]  -  @GS_ExecuteTaskNew - Processing task execution in bindings-common. \n");
 
@@ -783,10 +829,15 @@ void GS_ExecuteTaskNew(long _appId, char *signature, int priority, int num_nodes
     bool _has_target = false;
     if (has_target != 0) _has_target = true;
 
+    get_lock();
+
+    int isAttached = check_and_attach(m_jvm, m_env);
+
     // Convert num_returns from int to integer
     jobject num_returns_integer = m_env->NewObject(clsInteger, midIntCon, num_returns);
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
+        release_lock();
         exit(1);
     }
 
@@ -814,15 +865,18 @@ void GS_ExecuteTaskNew(long _appId, char *signature, int priority, int num_nodes
     if (m_env->ExceptionOccurred()) {
         debug_printf("[BINDING-COMMONS]  -  @GS_ExecuteTaskNew  -  Error: Exception received when calling executeTaskNew.\n");
         m_env->ExceptionDescribe();
+        release_lock();
         exit(1);
     }
     if (isAttached==1) {
         m_jvm->DetachCurrentThread();
     }
+    release_lock();
 }
 
 void GS_RegisterCE(char *CESignature, char *ImplSignature, char *ImplConstraints, char *ImplType, int num_params, char **ImplTypeArgs) {
-    int isAttached = check_and_attach(m_jvm, m_env);
+    get_lock();
+	int isAttached = check_and_attach(m_jvm, m_env);
 
     debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - Registering Core element.\n");
     //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - CESignature:     %s\n", CESignature);
@@ -846,13 +900,14 @@ void GS_RegisterCE(char *CESignature, char *ImplSignature, char *ImplConstraints
     if (m_env->ExceptionOccurred()) {
         debug_printf("[BINDING-COMMONS]  -  @GS_RegisterCE  -  Error: Exception received when calling registerCE.\n");
         m_env->ExceptionDescribe();
+        release_lock();
         GS_Off();
         exit(1);
     }
     if (isAttached==1) {
         m_jvm->DetachCurrentThread();
     }
-
+    release_lock();
     debug_printf("[BINDING-COMMONS]  -  @GS_RegisterCE  -  Task registered: %s\n", CESignature);
 }
 
@@ -862,12 +917,12 @@ void GS_Get_File(char *file_name, int mode, char **buf) {
     const char *cstr;
     jstring jstr = NULL;
     jboolean isCopy;
-
+    get_lock();
     int isAttached = check_and_attach(m_jvm, m_env);
     debug_printf("[BINDING-COMMONS]  -  @GS_Get_File  -  Calling runtime OpenFile method  for %s and mode %d ...\n", file_name, mode);
-
     jstring filename_str = m_env->NewStringUTF(file_name);
     check_and_treat_exception(m_env, "Error getting String UTF");
+    release_lock();
     switch ((enum direction) mode) {
     case in_dir:
         jstr = (jstring)m_env->CallObjectMethod(jobjIT, midOpenFile, filename_str, jobjParDirIN);
@@ -881,18 +936,10 @@ void GS_Get_File(char *file_name, int mode, char **buf) {
     default:
         break;
     }
+    //During the waiting time thread could have modified the m_env
+    get_lock();
+    isAttached = check_and_attach(m_jvm, m_env);
     check_and_treat_exception(m_env, "Error calling runtime openFile");
-    /*if (m_env->ExceptionCheck()) {
-      check_and_treat_exception(m_env, "Error getting String UTF");
-      jthrowable jex = m_env->ExceptionOccurred();
-      debug_printf("[BINDING-COMMONS]  -  @GS_Get_File  -  Error: Exception received when calling openFile.\n");
-      m_env->ExceptionDescribe();
-      m_env->Throw(jex);
-      treatException(m_env, jex);
-      GS_Off();
-        exit(1);
-    }*/
-
     cstr = m_env->GetStringUTFChars(jstr, &isCopy);
     check_and_treat_exception(m_env, "Error getting String UTF");
     *buf = strdup(cstr);
@@ -900,11 +947,12 @@ void GS_Get_File(char *file_name, int mode, char **buf) {
     if (isAttached==1) {
         m_jvm->DetachCurrentThread();
     }
+    release_lock();
     debug_printf("[BINDING-COMMONS]  -  @GS_Get_File  -  COMPSs filename: %s\n", *buf);
 }
 
 void GS_Close_File(char *file_name, int mode) {
-
+	get_lock();
     int isAttached = check_and_attach(m_jvm, m_env);
     debug_printf("[BINDING-COMMONS]  -  @GS_Close_File  -  Calling runtime closeFile method...\n");
     switch ((enum direction) mode) {
@@ -921,28 +969,23 @@ void GS_Close_File(char *file_name, int mode) {
         break;
     }
     check_and_treat_exception(m_env, "Error calling runtime closeFile");
-    /*if (m_env->ExceptionCheck()) {
-      jthrowable jex = m_env->ExceptionOccurred();
-      debug_printf("[BINDING-COMMONS]  -  @GS_Close_File  -  Error: Exception received when calling closeFile.\n");
-      m_env->ExceptionDescribe();
-      m_env->Throw(jex);
-      treatException(m_env, jex);
-      GS_Off();
-        exit(1);
-    }*/
     if (isAttached==1) {
         m_jvm->DetachCurrentThread();
     }
+    release_lock();
     debug_printf("[BINDING-COMMONS]  -  @GS_Close_File  -  COMPSs filename: %s\n", file_name);
 }
 
 void GS_Delete_File(char *file_name) {
+
+	get_lock();
     int isAttached = check_and_attach(m_jvm, m_env);
 
     jboolean res = m_env->CallBooleanMethod(jobjIT, midDeleteFile, m_env->NewStringUTF(file_name));
     if (m_env->ExceptionOccurred()) {
         debug_printf("[BINDING-COMMONS]  -  @GS_Delete_File  -  Error: Exception received when calling deleteFile.\n");
         m_env->ExceptionDescribe();
+        release_lock();
         GS_Off();
         exit(1);
     }
@@ -950,22 +993,27 @@ void GS_Delete_File(char *file_name) {
     if (isAttached==1) {
         m_jvm->DetachCurrentThread();
     }
-
+    release_lock();
     debug_printf("[BINDING-COMMONS]  -  @GS_Delete_File  -  COMPSs filename: %s\n", file_name);
 }
 
 void GS_Get_Object(char *file_name, char**buf) {
-    const char *cstr;
+
+	const char *cstr;
     jstring jstr = NULL;
     jboolean isCopy;
-
+    get_lock();
     int isAttached = check_and_attach(m_jvm, m_env);
-
+    release_lock();
     jstr = (jstring)m_env->CallObjectMethod(jobjIT, midgetBindingObject, m_env->NewStringUTF(file_name));
 
+    //During the waiting time thread could have modified the m_env
+    get_lock();
+    isAttached = check_and_attach(m_jvm, m_env);
     if (m_env->ExceptionOccurred()) {
         debug_printf("[BINDING-COMMONS]  -  @GS_Get_Object  -  Error: Exception received when calling getObject.\n");
         m_env->ExceptionDescribe();
+        release_lock();
         exit(1);
     }
 
@@ -975,66 +1023,86 @@ void GS_Get_Object(char *file_name, char**buf) {
     if (isAttached==1) {
         m_jvm->DetachCurrentThread();
     }
+    release_lock();
     debug_printf("[BINDING-COMMONS]  -  @GS_Get_Object  -  COMPSs data id: %s\n", *buf);
 
 }
 
 void GS_Delete_Object(char *file_name, int **buf) {
-    int isAttached = check_and_attach(m_jvm, m_env);
+	get_lock();
+
+	int isAttached = check_and_attach(m_jvm, m_env);
 
     jboolean res = m_env->CallBooleanMethod(jobjIT, midDeleteBindingObject, m_env->NewStringUTF(file_name));
     if (m_env->ExceptionOccurred()) {
         debug_printf("[BINDING-COMMONS]  -  @GS_Delete_Binding_Object  -  Error: Exception received when calling deleteObject.\n");
         m_env->ExceptionDescribe();
+        release_lock();
         exit(1);
     }
     *buf = (int*)&res;
     if (isAttached==1) {
         m_jvm->DetachCurrentThread();
     }
-
+    release_lock();
     debug_printf("[BINDING-COMMONS]  -  @GS_Delete_Binding_Object  -  COMPSs obj: %s\n", file_name);
 }
 
 void GS_Barrier(long _appId) {
-    debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  Waiting tasks for APP id: %lu", appId);
-    int isAttached = check_and_attach(m_jvm, m_env);
+	debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  Waiting tasks for APP id: %lu", appId);
+    get_lock();
+	int isAttached = check_and_attach(m_jvm, m_env);
+	release_lock();
 
-    m_env->CallVoidMethod(jobjIT, midBarrier, appId);
+	m_env->CallVoidMethod(jobjIT, midBarrier, appId);
+
+	//During the waiting time thread could have modified the m_env
+    get_lock();
+    isAttached = check_and_attach(m_jvm, m_env);
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
+        release_lock();
         exit(1);
     }
 
     if (isAttached==1) {
         m_jvm->DetachCurrentThread();
     }
+    release_lock();
     debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  APP id: %lu", appId);
 }
 
 void GS_BarrierNew(long _appId, int noMoreTasks) {
-    int isAttached = check_and_attach(m_jvm, m_env);
+	get_lock();
+	int isAttached = check_and_attach(m_jvm, m_env);
 
     bool _noMoreTasks = false;
     if (noMoreTasks != 0) _noMoreTasks = true;
 
     debug_printf("[   BINDING]  -  @GS_Barrier  -  Waiting tasks for APP id: %lu", appId);
     debug_printf("[   BINDING]  -  @GS_Barrier  -  noMoreTasks: %s", _noMoreTasks ? "true":"false");
+    release_lock();
 
     m_env->CallVoidMethod(jobjIT, midBarrierNew, appId, _noMoreTasks);
+    //During the waiting time thread could have modified the m_env
+    get_lock();
+    isAttached = check_and_attach(m_jvm, m_env);
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
+        release_lock();
         exit(1);
     }
 
     if (isAttached==1) {
         m_jvm->DetachCurrentThread();
     }
+    release_lock();
     debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  APP id: %lu", appId);
 }
 
 void GS_EmitEvent(int type, long id) {
-    int isAttached = check_and_attach(m_jvm, m_env);
+	get_lock();
+	int isAttached = check_and_attach(m_jvm, m_env);
 
     if ( (type < 0 ) or (id < 0) ) {
         debug_printf ("[BINDING-COMMONS]  -  @GS_EmitEvent  -  Error: event type and ID must be positive integers, but found: type: %u, ID: %lu\n", type, id);
@@ -1044,6 +1112,7 @@ void GS_EmitEvent(int type, long id) {
         m_env->CallVoidMethod(jobjIT, midEmitEvent, type, id);
         if (m_env->ExceptionOccurred()) {
             m_env->ExceptionDescribe();
+            release_lock();
             exit(1);
         }
     }
@@ -1051,4 +1120,5 @@ void GS_EmitEvent(int type, long id) {
     if (isAttached==1) {
         m_jvm->DetachCurrentThread();
     }
+    release_lock();
 }

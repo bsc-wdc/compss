@@ -63,7 +63,7 @@
     exit $ev
   fi
 
-  make -j2 clean install
+  make clean install
   ev=$?
   if [ $ev -ne 0 ]; then
     exit $ev

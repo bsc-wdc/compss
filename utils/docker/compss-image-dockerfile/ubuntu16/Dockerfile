@@ -47,8 +47,8 @@ RUN apt-get update && \
     pip2 install redis redis-py-cluster && \
     pip3 install redis redis-py-cluster && \
 # pycompsslib dependencies
-    pip2 install numpy==1.12.1 scipy==1.0.0 scikit-learn==0.19.1 && \
-    pip3 install numpy==1.12.1 scipy==1.0.0 scikit-learn==0.19.1 && \
+    pip2 install numpy==1.12.1 scipy==1.0.0 scikit-learn==0.19.1 pandas==0.23.1 && \
+    pip3 install numpy==1.12.1 scipy==1.0.0 scikit-learn==0.19.1 pandas==0.23.1 && \
 # C-binding dependencies
     apt-get -y install libboost-all-dev libxml2-dev csh && \
 # Extrae dependencies

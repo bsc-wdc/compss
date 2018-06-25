@@ -55,7 +55,8 @@ def i_am_at_master():
     stack = inspect.stack()
     if IS_INTERACTIVE:
         if IS_PYTHON3:
-            return 'pycompss/interactive.py' in stack[9][1] \
+            # interactive.py in [9][1] in 3.4 and 3.5, and in [8][1] in 3.6
+            return 'pycompss/interactive.py' in stack[9][1] or 'pycompss/interactive.py' in stack[8][1] \
                    or any(decorator in stack[2][1] for decorator in DECORATORS_TO_CHECK) \
                    or any(decorator in stack[1][1] for decorator in DECORATORS_TO_CHECK)
         else:

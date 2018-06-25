@@ -1,8 +1,13 @@
 [submodule "dependencies/pluto"]
 	path = dependencies/pluto
 	url = https://github.com/cristianrcv/pluto.git
-        ignore = untracked
+	ignore = untracked
 [submodule "dependencies/autoparallel"]
 	path = dependencies/autoparallel
 	url = https://github.com/cristianrcv/pycompss-autoparallel.git
-        ignore = untracked
+	ignore = untracked
+[submodule "dependencies/extrae"]
+	path = dependencies/extrae
+	url = https://github.com/bsc-wdc/extrae.git
+	branch = compss_modifications
+

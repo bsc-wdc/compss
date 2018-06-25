@@ -143,15 +143,15 @@ int main(int argc, char *argv[]) {
     
 	cout << "runtime on" << endl;
 
-	//pthread_create(&thread1, NULL, thread_function1, NULL);
+	pthread_create(&thread1, NULL, thread_function1, NULL);
 	pthread_create(&thread2, NULL, thread_function2, NULL);
 
 	cout << "threads created" << endl;
 
-	//pthread_join(thread1, NULL);
+	pthread_join(thread1, NULL);
 	pthread_join(thread2, NULL);
 
-	cout << "joining" << endl;
+	cout << "joined" << endl;
 
     // Close COMPSs and end
     compss_off();

@@ -739,7 +739,7 @@ void GS_Off() {
     destroy_vm(m_jvm);  // Release jvm resources -- Does not work properly --> JNI bug: not releasing properly the resources, so it is not possible to recreate de JVM.
     // delete jvm;    // free(): invalid pointer: 0x00007fbc11ba8020 ***
     m_jvm = NULL;
-
+    debug_printf("[BINDING-COMMONS]  -  @Off - End\n");
     pthread_mutex_destroy(&mtx);
 }
 

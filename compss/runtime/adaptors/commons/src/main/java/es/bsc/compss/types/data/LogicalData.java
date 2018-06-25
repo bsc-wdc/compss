@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.concurrent.Semaphore;
 
 import es.bsc.compss.types.data.listener.SafeCopyListener;
+import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.data.location.PersistentLocation;
@@ -234,6 +235,7 @@ public class LogicalData {
             case BINDING:
                 for (Resource r : loc.getHosts()) {
                     this.isBindingData = true;
+                    this.id = ((BindingObjectLocation)loc).getId();
                     r.addLogicalData(this);
 
                 }

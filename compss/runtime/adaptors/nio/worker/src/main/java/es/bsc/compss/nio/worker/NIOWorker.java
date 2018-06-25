@@ -55,7 +55,6 @@ import es.bsc.compss.nio.commands.workerFiles.CommandWorkerDebugFilesDone;
 import es.bsc.compss.nio.dataRequest.DataRequest;
 import es.bsc.compss.nio.dataRequest.WorkerDataRequest;
 import es.bsc.compss.nio.dataRequest.WorkerDataRequest.TransferringTask;
-import es.bsc.compss.nio.exceptions.SerializedObjectException;
 import es.bsc.compss.nio.worker.components.DataManager;
 import es.bsc.compss.nio.worker.components.ExecutionManager;
 import es.bsc.compss.exceptions.InvalidMapException;
@@ -1027,6 +1026,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext {
         return dataManager.getObject(realName);
     }
 
+    @Override
     public Object getPersistentObject(String id) throws StorageException {
         // Get PSCO if cached
         if (dataManager.checkPresence(id)) {
@@ -1062,11 +1062,14 @@ public class NIOWorker extends NIOAgent implements InvocationContext {
         return null;
     }
 
+    @Override
     public void storeObject(String name, Object value) {
         dataManager.storeObject(name, value);
     }
 
+    @Override
     public void storePersistentObject(String id, Object value) {
+        System.out.println("Storing Persistent:" + id + " -> " + value);
         dataManager.storeObject(id, value);
     }
 

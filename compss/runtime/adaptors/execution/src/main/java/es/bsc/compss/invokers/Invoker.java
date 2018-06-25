@@ -21,7 +21,6 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Stream;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -31,7 +30,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Iterator;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -56,131 +54,197 @@ public abstract class Invoker {
     protected static final String OMP_NUM_THREADS = "OMP_NUM_THREADS";
 
     protected final InvocationContext context;
-    protected final Invocation nt;
+    protected final Invocation invocation;
     protected final File taskSandboxWorkingDir;
     protected final int[] assignedCoreUnits;
     private final boolean debug;
 
-    protected final AbstractMethodImplementation impl;
-    protected final int numParams;
-    protected final int totalNumberOfParams;
-    protected final boolean hasTarget;
-    protected final boolean hasReturn;
-    protected final Class<?>[] types;
-    protected final Stream[] streams;
-    protected final String[] prefixes;
-    protected final Object[] values;
-    private final String[] renamings;
-    private final boolean[] isFile;
-    private final boolean[] canBePSCO;
-    private final boolean[] writeFinalValue;
-    protected final TargetParam target;
-    private Object retValue;
+    public Invoker(
+            InvocationContext context,
+            Invocation invocation,
+            boolean debug,
+            File taskSandboxWorkingDir,
+            int[] assignedCoreUnits
+    ) throws JobExecutionException {
 
-    public Invoker(InvocationContext context, Invocation invocation, boolean debug, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
         this.context = context;
-        this.nt = invocation;
+        this.invocation = invocation;
         this.taskSandboxWorkingDir = taskSandboxWorkingDir;
         this.assignedCoreUnits = assignedCoreUnits;
 
         this.debug = debug;
 
         /* Invocation information **************************************** */
-        this.impl = invocation.getMethodImplementation();
-        this.hasTarget = invocation.hasTarget();
-        this.hasReturn = invocation.hasReturn();
-        this.numParams = invocation.getNumParams();
+        AbstractMethodImplementation impl = invocation.getMethodImplementation();
 
-        /* Parameters information ********************************** */
-        this.totalNumberOfParams = this.hasTarget ? this.numParams - 1 : this.numParams; // Don't count target if needed
-        // (i.e. obj.func())
-        this.types = new Class[this.totalNumberOfParams];
-        this.values = new Object[this.totalNumberOfParams];
-        this.streams = new Stream[this.numParams];
-        this.prefixes = new String[this.numParams];
-        this.renamings = new String[this.numParams];
-        this.isFile = new boolean[this.numParams];
-        this.canBePSCO = new boolean[this.numParams];
-        this.writeFinalValue = new boolean[this.numParams]; // By default the boolean initializer is in false
-        // False because basic types aren't nor written nor preserved
-        this.target = new TargetParam();
 
         /* Parse the parameters ************************************ */
-        Iterator<? extends InvocationParam> params = invocation.getParams().iterator();
-        for (int i = 0; i < this.numParams; i++) {
-            InvocationParam np = params.next();
-            processParameter(np, i);
+        int paramIdx = 0;
+        for (InvocationParam np : invocation.getParams()) {
+            processParameter(np);
+            // Check if object is still null
+            if (np.getValue() == null) {
+                StringBuilder sb = new StringBuilder();
+                sb.append("Object parameter ").append(paramIdx);
+                sb.append(" with renaming ").append(np.getDataMgmtId());
+                sb.append(" in MethodDefinition ").append(impl.getMethodDefinition());
+                sb.append(" is null!").append("\n");
+
+                throw new JobExecutionException(sb.toString());
+            }
+            paramIdx++;
         }
+        processParameter(invocation.getTarget());
 
         /* DEBUG information *************************************** */
         if (this.debug) {
             // Print request information
             System.out.println("WORKER - Parameters of execution:");
-            System.out.println("  * Method type: " + this.impl.getMethodType());
-            System.out.println("  * Method definition: " + this.impl.getMethodDefinition());
+            System.out.println("  * Method type: " + impl.getMethodType());
+            System.out.println("  * Method definition: " + impl.getMethodDefinition());
             System.out.print("  * Parameter types:");
-            for (int i = 0; i < this.types.length; i++) {
-                System.out.print(" " + this.types[i].getName());
+            for (InvocationParam p : invocation.getParams()) {
+                System.out.print(" " + p.getValueClass().getName());
             }
             System.out.println("");
 
             System.out.print("  * Parameter values:");
-            for (Object v : this.values) {
-                System.out.print(" " + v);
+            for (InvocationParam p : invocation.getParams()) {
+                System.out.print(" " + p.getValue());
             }
             System.out.println("");
 
             System.out.print("  * Parameter streams:");
-            for (Stream s : this.streams) {
-                System.out.print(" " + s.name());
+            for (InvocationParam p : invocation.getParams()) {
+                System.out.print(" " + p.getStream());
+            }
+            if (invocation.getTarget() != null) {
+                System.out.print(" " + invocation.getTarget().getStream());
             }
             System.out.println("");
 
             System.out.print("  * Parameter prefixes:");
-            for (String s : this.prefixes) {
-                System.out.print(" " + s);
+            for (InvocationParam p : invocation.getParams()) {
+                System.out.print(" " + p.getPrefix());
+            }
+            if (invocation.getTarget() != null) {
+                System.out.print(" " + invocation.getTarget().getPrefix());
             }
             System.out.println("");
 
-            System.out.println("  * Has Target: " + this.hasTarget);
-            System.out.println("  * Has Return: " + this.hasReturn);
+            System.out.println("  * Has Target: " + (invocation.getTarget() != null));
+            System.out.println("  * Has Return: " + invocation.getReturn() != null);
         }
+    }
 
-        this.retValue = null;
+    private void processParameter(InvocationParam np) throws JobExecutionException {
+        // We need to use wrapper classes for basic types, reflection will unwrap automatically
+
+        switch (np.getType()) {
+            case BOOLEAN_T:
+                np.setValueClass(boolean.class);
+                break;
+            case CHAR_T:
+                np.setValueClass(char.class);
+                break;
+            case BYTE_T:
+                np.setValueClass(byte.class);
+                break;
+            case SHORT_T:
+                np.setValueClass(short.class);
+                break;
+            case INT_T:
+                np.setValueClass(int.class);
+                break;
+            case LONG_T:
+                np.setValueClass(long.class);
+                break;
+            case FLOAT_T:
+                np.setValueClass(float.class);
+                break;
+            case DOUBLE_T:
+                np.setValueClass(double.class);
+                break;
+            case STRING_T:
+                np.setValueClass(String.class);
+                break;
+            case FILE_T:
+                np.setValueClass(String.class);
+                break;
+            case OBJECT_T:
+                // Get object
+                Object obj = this.context.getObject(np.getDataMgmtId());
+                // Check if object is null
+                if (obj == null) {
+                    // Try if renaming refers to a PSCOId that is not catched
+                    // This happens when 2 tasks have an INOUT PSCO that is persisted within the 1st task
+                    try {
+                        obj = this.context.getPersistentObject(np.getDataMgmtId());
+                    } catch (StorageException se) {
+                        throw new JobExecutionException(ERROR_SERIALIZED_OBJ, se);
+                    }
+                }
+
+                np.setValue(obj);
+                if (obj != null) {
+                    np.setValueClass(obj.getClass());
+                }
+                break;
+            case PSCO_T:
+                // Get Object
+                try {
+                    obj = this.context.getPersistentObject(np.getDataMgmtId());
+                } catch (StorageException e) {
+                    throw new JobExecutionException(ERROR_PERSISTENT_OBJ + " with id " + np.getDataMgmtId(), e);
+                }
+
+                np.setValue(obj);
+                if (obj != null) {
+                    np.setValueClass(obj.getClass());
+                }
+                break;
+            case BINDING_OBJECT_T:
+            case EXTERNAL_PSCO_T:
+                np.setValueClass(String.class);
+                break;
+            default:
+                throw new JobExecutionException(ERROR_UNKNOWN_TYPE + np.getType());
+        }
     }
 
     public void processTask() throws JobExecutionException {
         /* Invoke the requested method ****************************** */
-        this.retValue = invoke();
-
+        Object retValue = invoke();
+        if (retValue != null) {
+            InvocationParam returnParam = invocation.getReturn();
+            returnParam.setValue(retValue);
+            returnParam.setValueClass(retValue.getClass());
+        }
         /* Check SCO persistence for return and target ************** */
-        checkSCOPersistence();
-
-        /* Write to disk the updated values ************************* */
-        writeUpdatedParameters();
+        storeFinalValues();
     }
 
     public void serializeBinaryExitValue() throws JobExecutionException {
         LOGGER.debug("Checking binary exit value serialization");
 
-        InvocationParam lastParam = nt.getParams().getLast();
+        InvocationParam returnParam = invocation.getReturn();
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("- Param Type: " + lastParam.getType().name());
-            LOGGER.debug("- Preserve source data: " + lastParam.isPreserveSourceData());
-            LOGGER.debug("- Write final value: " + lastParam.isWriteFinalValue());
-            LOGGER.debug("- Prefix: " + lastParam.getPrefix());
+            LOGGER.debug("- Param Type: " + returnParam.getType().name());
+            LOGGER.debug("- Preserve source data: " + returnParam.isPreserveSourceData());
+            LOGGER.debug("- Write final value: " + returnParam.isWriteFinalValue());
+            LOGGER.debug("- Prefix: " + returnParam.getPrefix());
         }
 
         // Last parameter is a FILE, direction OUT, with skip prefix => return in Python
-        if (lastParam.getType().equals(DataType.FILE_T) && !lastParam.isPreserveSourceData() && lastParam.isWriteFinalValue()
-                && lastParam.getPrefix().equals(Constants.PREFIX_SKIP)) {
+        if (returnParam.getType().equals(DataType.FILE_T) && !returnParam.isPreserveSourceData() && returnParam.isWriteFinalValue()
+                && returnParam.getPrefix().equals(Constants.PREFIX_SKIP)) {
 
             // Write exit value to the file
-            String renaming = lastParam.getOriginalName();
-            LOGGER.info("Writing Binary Exit Value (" + this.retValue.toString() + ") to " + renaming);
+            String renaming = returnParam.getOriginalName();
+            LOGGER.info("Writing Binary Exit Value (" + this.invocation.getReturn().getValue().toString() + ") to " + renaming);
 
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(renaming))) {
-                String value = "0000I" + this.retValue.toString() + "\n.\n";
+                String value = "I" + this.invocation.getReturn().getValue().toString() + "\n.\n";
                 writer.write(value);
                 writer.flush();
             } catch (IOException ioe) {
@@ -189,198 +253,29 @@ public abstract class Invoker {
         }
     }
 
-    private void processParameter(InvocationParam np, int i) throws JobExecutionException {
-        // We need to use wrapper classes for basic types, reflection will unwrap automatically
-        this.streams[i] = np.getStream();
-        this.prefixes[i] = np.getPrefix();
-
-        switch (np.getType()) {
-            case BOOLEAN_T:
-                this.types[i] = boolean.class;
-                this.values[i] = np.getValue();
-                break;
-            case CHAR_T:
-                this.types[i] = char.class;
-                this.values[i] = np.getValue();
-                break;
-            case BYTE_T:
-                this.types[i] = byte.class;
-                this.values[i] = np.getValue();
-                break;
-            case SHORT_T:
-                this.types[i] = short.class;
-                this.values[i] = np.getValue();
-                break;
-            case INT_T:
-                this.types[i] = int.class;
-                this.values[i] = np.getValue();
-                break;
-            case LONG_T:
-                this.types[i] = long.class;
-                this.values[i] = np.getValue();
-                break;
-            case FLOAT_T:
-                this.types[i] = float.class;
-                this.values[i] = np.getValue();
-                break;
-            case DOUBLE_T:
-                this.types[i] = double.class;
-                this.values[i] = np.getValue();
-                break;
-            case STRING_T:
-                this.types[i] = String.class;
-                this.values[i] = np.getValue();
-                break;
-            case FILE_T:
-                this.types[i] = String.class;
-                this.values[i] = np.getOriginalName();
-                this.writeFinalValue[i] = np.isWriteFinalValue();
-                break;
-            case OBJECT_T:
-                this.renamings[i] = np.getValue().toString();
-                this.writeFinalValue[i] = np.isWriteFinalValue();
-
-                // Get object
-                Object obj = this.context.getObject(this.renamings[i]);
-
-                // Check if object is null
-                if (obj == null) {
-                    // Try if renaming refers to a PSCOId that is not catched
-                    // This happens when 2 tasks have an INOUT PSCO that is persisted within the 1st task
-                    try {
-                        obj = this.context.getPersistentObject(renamings[i]);
-                    } catch (StorageException se) {
-                        throw new JobExecutionException(ERROR_SERIALIZED_OBJ, se);
-                    }
-                }
-
-                // Check if object is still null
-                if (obj == null) {
-                    StringBuilder sb = new StringBuilder();
-                    if (this.hasTarget && i == this.numParams - 1) {
-                        sb.append("Target object");
-                    } else {
-                        sb.append("Object parameter ").append(i);
-                    }
-                    sb.append(" with renaming ").append(this.renamings[i]);
-                    sb.append(" in MethodDefinition ").append(this.impl.getMethodDefinition());
-                    sb.append(" is null!").append("\n");
-
-                    throw new JobExecutionException(sb.toString());
-                }
-
-                // Store information as target or as normal parameter
-                if (this.hasTarget && i == this.numParams - 1) {
-                    // Last parameter is the target object
-                    this.target.setValue(obj);
-                } else {
-                    // Any other parameter
-                    this.types[i] = obj.getClass();
-                    this.values[i] = obj;
-                }
-                break;
-            case PSCO_T:
-                this.renamings[i] = np.getValue().toString();
-                this.writeFinalValue[i] = np.isWriteFinalValue();
-
-                // Get ID
-                String id = this.renamings[i];
-
-                // Get Object
-                try {
-                    obj = this.context.getPersistentObject(id);
-                } catch (StorageException e) {
-                    throw new JobExecutionException(ERROR_PERSISTENT_OBJ + " with id " + id, e);
-                }
-
-                // Check if object is null
-                if (obj == null) {
-                    StringBuilder sb = new StringBuilder();
-                    if (this.hasTarget && i == this.numParams - 1) {
-                        sb.append("Target PSCO");
-                    } else {
-                        sb.append("PSCO parameter ").append(i);
-                    }
-                    sb.append(" with renaming ").append(this.renamings[i]);
-                    sb.append(" in MethodDefinition ").append(this.impl.getMethodDefinition());
-                    sb.append(" is null!").append("\n");
-
-                    throw new JobExecutionException(sb.toString());
-                }
-
-                // Store information as target or as normal parameter
-                if (this.hasTarget && i == this.numParams - 1) {
-                    // Last parameter is the target object
-                    this.target.setValue(obj);
-                } else {
-                    // Any other parameter
-                    this.types[i] = obj.getClass();
-                    this.values[i] = obj;
-                }
-                break;
-            case BINDING_OBJECT_T:
-            case EXTERNAL_PSCO_T:
-                this.types[i] = String.class;
-                this.values[i] = np.getValue();
-                this.writeFinalValue[i] = np.isWriteFinalValue();
-                break;
-            default:
-                throw new JobExecutionException(ERROR_UNKNOWN_TYPE + np.getType());
+    private void storeFinalValues() {
+        // Check all parameters and target
+        for (InvocationParam np : this.invocation.getParams()) {
+            checkSCOPersistence(np);
+            storeValue(np);
         }
-
-        this.isFile[i] = (np.getType().equals(DataType.FILE_T));
-        this.canBePSCO[i] = (np.getType().equals(DataType.OBJECT_T)) || (np.getType().equals(DataType.PSCO_T));
+        if (this.invocation.getTarget() != null) {
+            checkSCOPersistence(this.invocation.getTarget());
+        }
+        if (this.invocation.getReturn() != null) {
+            checkSCOPersistence(this.invocation.getReturn());
+        }
     }
 
-    private void checkSCOPersistence() {
-        // Check all parameters and target
-        for (int i = 0; i < this.numParams; i++) {
-            if (this.canBePSCO[i] && this.writeFinalValue[i]) {
-                // Get information as target or as normal parameter
-                Object obj = null;
-                if (this.hasTarget && i == this.numParams - 1) {
-                    obj = this.target.getValue();
-                } else {
-                    obj = this.values[i];
-                }
+    private void checkSCOPersistence(InvocationParam np) {
+        boolean potentialPSCO = (np.getType().equals(DataType.OBJECT_T)) || (np.getType().equals(DataType.PSCO_T));
+        if (np.isWriteFinalValue() && potentialPSCO) {
+            Object obj = np.getValue();
 
-                // Check if it is a PSCO and has been persisted in task
-                String id = null;
-                try {
-                    StubItf psco = (StubItf) obj;
-                    id = psco.getID();
-                } catch (Exception e) {
-                    // No need to raise an exception because normal objects are not PSCOs
-                    id = null;
-                }
-
-                // Update to PSCO if needed
-                if (id != null) {
-                    // Object has been persisted, we store the PSCO and change the value to its ID
-                    this.context.storePersistentObject(id, obj);
-
-                    if (this.hasTarget && i == this.numParams - 1) {
-                        this.target.setValue(id);
-                    } else {
-                        this.values[i] = id;
-                    }
-
-                    InvocationParam np = this.nt.getParams().get(i);
-                    np.setType(DataType.PSCO_T);
-                    np.setValue(id);
-
-                    // We set it as non writable because we have already stored it
-                    this.writeFinalValue[i] = false;
-                }
-            }
-        }
-
-        // Check return
-        if (this.hasReturn && this.retValue != null) {
             // Check if it is a PSCO and has been persisted in task
             String id = null;
             try {
-                StubItf psco = (StubItf) this.retValue;
+                StubItf psco = (StubItf) obj;
                 id = psco.getID();
             } catch (Exception e) {
                 // No need to raise an exception because normal objects are not PSCOs
@@ -389,42 +284,20 @@ public abstract class Invoker {
 
             // Update to PSCO if needed
             if (id != null) {
-                InvocationParam np = this.nt.getParams().getLast();
-                // Object has been persisted
-                np.setType(DataType.PSCO_T);
+                // Object has been persisted, we store the PSCO and change the value to its ID
+                this.context.storePersistentObject(id, obj);
                 np.setValue(id);
+                np.setType(DataType.PSCO_T);
             }
         }
     }
 
-    private void writeUpdatedParameters() {
-        // Write to disk the updated object parameters, if any (including the target)
-        for (int i = 0; i < this.numParams; i++) {
-            if (this.writeFinalValue[i]) {
-                InvocationParam np = this.nt.getParams().get(i);
-                switch (np.getType()) {
-                    case FILE_T:
-                        this.context.storeObject(renamings[i], np.getValue());
-                        break;
-                    default:
-                        // Update task parameters for TaskResult command
-                        Object res = (this.hasTarget && i == this.numParams - 1) ? this.target.getValue() : this.values[i];
-                        np.setValue(res);
-                        this.context.storeObject(renamings[i], res);
-                }
-
+    private void storeValue(InvocationParam np) {
+        if (np.isWriteFinalValue()) {
+            if (np.getType() != DataType.PSCO_T) {
+                //Has already been stored
+                this.context.storeObject(np.getDataMgmtId(), np.getValue());
             }
-        }
-
-        // Serialize the return value if existing
-        // PSCOs are already stored, skip them
-        if (this.hasReturn && this.retValue != null) {
-            String renaming = (String) this.nt.getParams().getLast().getValue();
-            if (debug) {
-                LOGGER.debug("Store return value " + this.retValue + " as " + renaming);
-            }
-            // Always stored because it can only be a OUT object
-            this.context.storeObject(renaming, this.retValue);
         }
     }
 
@@ -440,8 +313,8 @@ public abstract class Invoker {
     }
 
     private void emitStartTask() {
-        int taskType = this.nt.getTaskType() + 1; // +1 Because Invocation ID can't be 0 (0 signals end task)
-        int taskId = this.nt.getTaskId();
+        int taskType = this.invocation.getTaskType() + 1; // +1 Because Invocation ID can't be 0 (0 signals end task)
+        int taskId = this.invocation.getTaskId();
 
         // TRACING: Emit start task
         if (Tracer.isActivated()) {

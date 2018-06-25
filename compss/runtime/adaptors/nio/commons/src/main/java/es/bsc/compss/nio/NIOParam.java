@@ -155,4 +155,19 @@ public class NIOParam implements Externalizable, InvocationParam {
         return sb.toString();
     }
 
+    @Override
+    public void setValueClass(Class<?> aClass) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Class<?> getValueClass() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String getDataMgmtId() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
 }

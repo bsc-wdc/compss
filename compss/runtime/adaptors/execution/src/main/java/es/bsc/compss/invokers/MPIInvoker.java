@@ -45,9 +45,9 @@ public class MPIInvoker extends Invoker {
         // Get method definition properties
         MPIImplementation mpiImpl = null;
         try {
-            mpiImpl = (MPIImplementation) this.impl;
+            mpiImpl = (MPIImplementation) this.invocation.getMethodImplementation();
         } catch (Exception e) {
-            throw new JobExecutionException(ERROR_METHOD_DEFINITION + this.impl.getMethodType(), e);
+            throw new JobExecutionException(ERROR_METHOD_DEFINITION + this.invocation.getMethodImplementation().getMethodType(), e);
         }
         this.mpiRunner = mpiImpl.getMpiRunner();
         this.mpiBinary = mpiImpl.getBinary();
@@ -60,7 +60,7 @@ public class MPIInvoker extends Invoker {
         if (this.mpiBinary == null || this.mpiBinary.isEmpty()) {
             throw new JobExecutionException(ERROR_MPI_BINARY);
         }
-        if (this.target.getValue() != null) {
+        if (this.invocation.getTarget().getValue() != null) {
             throw new JobExecutionException(ERROR_TARGET_PARAM);
         }
     }
@@ -95,7 +95,7 @@ public class MPIInvoker extends Invoker {
 
         // Convert binary parameters and calculate binary-streams redirection
         StreamSTD streamValues = new StreamSTD();
-        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.values, this.streams, this.prefixes, streamValues);
+        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(invocation.getParams(), invocation.getTarget(), streamValues);
 
         // Prepare command
         String[] cmd = new String[NUM_BASE_MPI_ARGS + binaryParams.size()];

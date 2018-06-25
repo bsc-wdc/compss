@@ -27,10 +27,11 @@ import java.util.Iterator;
 
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.parameter.Stream;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.util.StreamGobbler;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.execution.InvocationParam;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 
@@ -42,17 +43,83 @@ public class BinaryRunner {
     private static final String ERROR_ERRORREADER = "ERROR: Cannot retrieve command error";
     private static final String ERROR_PROC_EXEC = "ERROR: Exception executing Binary command";
 
+    /**
+     * Converts the values to the CMD standard and calculates with are the streamValues
+     *
+     * @param parameters
+     * @param target
+     * @param streamValues
+     * @return
+     * @throws InvokeExecutionException
+     */
+    public static ArrayList<String> createCMDParametersFromValues(List<InvocationParam> parameters, InvocationParam target, StreamSTD streamValues)
+            throws InvokeExecutionException {
+        ArrayList<String> binaryParams = new ArrayList<>();
+        for (InvocationParam param : parameters) {
+            binaryParams.addAll(processParam(param, streamValues));
+        }
+        if (target != null) {
+            binaryParams.addAll(processParam(target, streamValues));
+        }
+        return binaryParams;
+    }
+
+    private static ArrayList<String> processParam(InvocationParam param, StreamSTD streamValues) throws InvokeExecutionException {
+        ArrayList<String> binaryParam = new ArrayList<>();
+        switch (param.getStream()) {
+            case STDIN:
+                streamValues.setStdIn((String) param.getValue());
+                break;
+            case STDOUT:
+                streamValues.setStdOut((String) param.getValue());
+                break;
+            case STDERR:
+                streamValues.setStdErr((String) param.getValue());
+                break;
+            case UNSPECIFIED:
+                if (!param.getPrefix().equals(Constants.PREFIX_SKIP)) {
+                    if (param.getValue() != null && param.getValue().getClass().isArray()) {
+                        try {
+                            if (param.getPrefix() != null && !param.getPrefix().isEmpty() && !param.getPrefix().equals(Constants.PREFIX_EMTPY)) {
+                                binaryParam.add(param.getPrefix());
+                            }
+                            binaryParam.addAll(serializeArrayParam(param.getValue()));
+                        } catch (Exception e) {
+                            // Exception serializing to string the object
+                            throw new InvokeExecutionException(ERROR_PARAM_NOT_STRING, e);
+                        }
+                    } else if (param.getValue() != null && param.getValue() instanceof Collection<?>) {
+                        try {
+                            if (param.getPrefix() != null && !param.getPrefix().isEmpty() && !param.getPrefix().equals(Constants.PREFIX_EMTPY)) {
+                                binaryParam.add(param.getPrefix());
+                            }
+                            binaryParam.addAll(serializeCollectionParam((Collection<?>) param.getValue()));
+                        } catch (Exception e) {
+                            // Exception serializing to string the object
+                            throw new InvokeExecutionException(ERROR_PARAM_NOT_STRING, e);
+                        }
+                    } else // The value can be serialized to string directly
+                     if (param.getPrefix() != null && !param.getPrefix().isEmpty() && !param.getPrefix().equals(Constants.PREFIX_EMTPY)) {
+                            binaryParam.add(param.getPrefix() + String.valueOf(param.getValue()));
+                        } else {
+                            binaryParam.add(String.valueOf(param.getValue()));
+                        }
+                }
+                break;
+        }
+        return binaryParam;
+    }
 
     /**
      * Converts the values to the CMD standard and calculates with are the streamValues
-     * 
+     *
      * @param values
      * @param paramStreams
      * @param streamValues
      * @return
      * @throws InvokeExecutionException
      */
-    public static ArrayList<String> createCMDParametersFromValues(Object[] values, Stream[] paramStreams, String[] prefixes,
+    /*public static ArrayList<String> createCMDParametersFromValues(Object[] values, Stream[] paramStreams, String[] prefixes,
             StreamSTD streamValues) throws InvokeExecutionException {
 
         ArrayList<String> binaryParams = new ArrayList<>();
@@ -89,8 +156,8 @@ public class BinaryRunner {
                                 // Exception serializing to string the object
                                 throw new InvokeExecutionException(ERROR_PARAM_NOT_STRING, e);
                             }
-                        } else {
-                            // The value can be serialized to string directly
+                        } else // The value can be serialized to string directly
+                        {
                             if (prefixes[i] != null && !prefixes[i].isEmpty() && !prefixes[i].equals(Constants.PREFIX_EMTPY)) {
                                 binaryParams.add(prefixes[i] + String.valueOf(values[i]));
                             } else {
@@ -103,13 +170,15 @@ public class BinaryRunner {
         }
 
         return binaryParams;
-    }
-
+    }*/
     /**
      * Executes a given command @cmd with the stream redirections @streamValues
-     * 
+     *
      * @param cmd
      * @param streamValues
+     * @param taskSandboxWorkingDir
+     * @param defaultOutStream
+     * @param defaultErrStream
      * @return
      * @throws InvokeExecutionException
      */
@@ -155,7 +224,7 @@ public class BinaryRunner {
             System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
             System.out.println("[BINARY EXECUTION WRAPPER] CMD EXIT VALUE: " + exitValue);
             System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
-        } catch (Exception e) {
+        } catch (IOException | InvokeExecutionException | InterruptedException e) {
             System.err.println(ERROR_PROC_EXEC);
             e.printStackTrace();
             throw new InvokeExecutionException(ERROR_PROC_EXEC, e);
@@ -325,7 +394,7 @@ public class BinaryRunner {
     }
 
     private static ArrayList<String> serializeCollectionParam(Collection<?> value) throws Exception {
-        ArrayList<String> serializedValue = new ArrayList<String>();
+        ArrayList<String> serializedValue = new ArrayList<>();
 
         for (Iterator<?> iterator = value.iterator(); iterator.hasNext();) {
             serializedValue.add(String.valueOf(iterator.next()));
@@ -340,7 +409,6 @@ public class BinaryRunner {
         private String stdIn = null;
         private String stdOut = null;
         private String stdErr = null;
-
 
         public StreamSTD() {
             // Nothing to do since all attributes have been initialized

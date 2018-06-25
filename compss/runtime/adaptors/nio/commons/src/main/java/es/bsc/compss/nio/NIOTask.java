@@ -17,6 +17,7 @@
 package es.bsc.compss.nio;
 
 import es.bsc.compss.types.execution.Invocation;
+import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.job.Job.JobHistory;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -134,52 +135,12 @@ public class NIOTask implements Externalizable, Invocation {
     }
 
     /**
-     * Returns if the task has target or not
-     *
-     * @return
-     */
-    @Override
-    public boolean hasTarget() {
-        return this.hasTarget;
-    }
-
-    /**
-     * Returns if the task has return value or not
-     *
-     * @return
-     */
-    @Override
-    public boolean hasReturn() {
-        return this.hasReturn;
-    }
-
-    /**
      * Returns the number of return parameters of the task
      *
      * @return
      */
     public int getNumReturns() {
         return this.numReturns;
-    }
-
-    /**
-     * Returns the number of parameters of the task
-     *
-     * @return
-     */
-    @Override
-    public int getNumParams() {
-        return this.numParams;
-    }
-
-    /**
-     * Returns the task parameters
-     *
-     * @return
-     */
-    @Override
-    public LinkedList<NIOParam> getParams() {
-        return this.params;
     }
 
     /**
@@ -311,6 +272,21 @@ public class NIOTask implements Externalizable, Invocation {
 
         sb.append("]");
         return sb.toString();
+    }
+
+    @Override
+    public List<InvocationParam> getParams() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public <T extends InvocationParam> T getTarget() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public <T extends InvocationParam> T getReturn() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }

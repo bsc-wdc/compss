@@ -50,9 +50,9 @@ public class DecafInvoker extends Invoker {
         // Get method definition properties
         DecafImplementation decafImpl = null;
         try {
-            decafImpl = (DecafImplementation) this.impl;
+            decafImpl = (DecafImplementation) invocation.getMethodImplementation();
         } catch (Exception e) {
-            throw new JobExecutionException(ERROR_METHOD_DEFINITION + this.impl.getMethodType(), e);
+            throw new JobExecutionException(ERROR_METHOD_DEFINITION + invocation.getMethodImplementation().getMethodType(), e);
         }
         this.mpiRunner = decafImpl.getMpiRunner();
         this.dfScript = decafImpl.getDfScript();
@@ -90,7 +90,7 @@ public class DecafInvoker extends Invoker {
         if (this.dfLib == null || this.dfLib.isEmpty()) {
             this.dfLib = "null";
         }
-        if (this.target.getValue() != null) {
+        if (invocation.getTarget().getValue() != null) {
             throw new JobExecutionException(ERROR_TARGET_PARAM);
         }
     }
@@ -115,7 +115,7 @@ public class DecafInvoker extends Invoker {
 
         // Convert binary parameters and calculate binary-streams redirection
         BinaryRunner.StreamSTD streamValues = new BinaryRunner.StreamSTD();
-        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.values, this.streams, this.prefixes, streamValues);
+        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(invocation.getParams(), invocation.getTarget(), streamValues);
         String hostfile = writeHostfile(this.taskSandboxWorkingDir, workers);
         // Prepare command
         String args = new String();

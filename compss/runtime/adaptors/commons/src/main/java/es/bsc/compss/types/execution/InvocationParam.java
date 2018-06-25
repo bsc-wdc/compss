@@ -44,4 +44,10 @@ public interface InvocationParam {
 
     public void setValue(Object val);
 
+    public void setValueClass(Class<?> aClass);
+
+    public Class<?> getValueClass();
+
+    public String getDataMgmtId();
+
 }

@@ -17,7 +17,7 @@
 package es.bsc.compss.types.execution;
 
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
-import java.util.LinkedList;
+import java.util.List;
 
 
 /**
@@ -32,12 +32,10 @@ public interface Invocation {
 
     public AbstractMethodImplementation getMethodImplementation();
 
-    public boolean hasTarget();
+    public List<InvocationParam> getParams();
 
-    public boolean hasReturn();
+    public <T extends InvocationParam> T getTarget();
 
-    public int getNumParams();
-
-    public LinkedList<? extends InvocationParam> getParams();
+    public <T extends InvocationParam> T getReturn();
 
 }

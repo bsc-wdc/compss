@@ -22,8 +22,10 @@ import java.lang.reflect.Method;
 import es.bsc.compss.exceptions.JobExecutionException;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 
 public class JavaInvoker extends Invoker {
@@ -41,9 +43,9 @@ public class JavaInvoker extends Invoker {
         // Get method definition properties
         MethodImplementation methodImpl = null;
         try {
-            methodImpl = (MethodImplementation) this.impl;
+            methodImpl = (MethodImplementation) invocation.getMethodImplementation();
         } catch (Exception e) {
-            throw new JobExecutionException(ERROR_METHOD_DEFINITION + this.impl.getMethodType(), e);
+            throw new JobExecutionException(ERROR_METHOD_DEFINITION + invocation.getMethodImplementation().getMethodType(), e);
         }
         this.className = methodImpl.getDeclaringClass();
         this.methodName = methodImpl.getAlternativeMethodName();
@@ -61,7 +63,13 @@ public class JavaInvoker extends Invoker {
             throw new JobExecutionException(ERROR_CLASS_REFLECTION, e);
         }
         try {
-            method = methodClass.getMethod(this.methodName, this.types);
+            List<InvocationParam> params = invocation.getParams();
+            Class<?>[] types = new Class<?>[params.size()];
+            int paramIdx = 0;
+            for (InvocationParam param : params) {
+                types[paramIdx++] = param.getValueClass();
+            }
+            method = methodClass.getMethod(this.methodName, types);
         } catch (NoSuchMethodException | SecurityException e) {
             throw new JobExecutionException(ERROR_METHOD_REFLECTION, e);
         }
@@ -71,14 +79,27 @@ public class JavaInvoker extends Invoker {
 
     @Override
     public Object invokeMethod() throws JobExecutionException {
-        Object retValue = null;
 
+        List<InvocationParam> params = invocation.getParams();
+        Object[] values = new Object[params.size()];
+        int paramIdx = 0;
+        for (InvocationParam param : params) {
+            values[paramIdx++] = param.getValue();
+        }
+
+        InvocationParam targetParam = invocation.getTarget();
+        Object target = null;
+        if (targetParam != null) {
+            target = targetParam.getValue();
+        }
+
+        Object retValue = null;
         /*if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.STORAGE_INVOKE.getId(), Tracer.Event.STORAGE_INVOKE.getType());
         }*/
         try {
             LOGGER.info("Invoked " + method.getName() + " of " + target + " in " + context.getHostName());
-            retValue = method.invoke(target.getValue(), values);
+            retValue = method.invoke(target, values);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
             throw new JobExecutionException(ERROR_TASK_EXECUTION, e);
         }/* finally {

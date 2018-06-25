@@ -23,6 +23,8 @@ import es.bsc.compss.util.Tracer;
 import es.bsc.compss.exceptions.JobExecutionException;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.execution.InvocationParam;
+import java.util.List;
 
 import javassist.ClassPool;
 import javassist.CtClass;
@@ -76,7 +78,7 @@ public class StorageInvoker extends JavaInvoker {
         // Check and retrieve target PSCO Id
         String id = null;
         try {
-            id = ((StubItf) target.getValue()).getID();
+            id = ((StubItf) this.invocation.getTarget().getValue()).getID();
         } catch (Exception e) {
             throw new JobExecutionException(ERROR_EXTERNAL_NO_PSCO, e);
         }
@@ -93,6 +95,13 @@ public class StorageInvoker extends JavaInvoker {
 
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.STORAGE_EXECUTETASK.getId(), Tracer.Event.STORAGE_EXECUTETASK.getType());
+        }
+
+        List<InvocationParam> params = invocation.getParams();
+        Object[] values = new Object[params.size()];
+        int paramIdx = 0;
+        for (InvocationParam param : params) {
+            values[paramIdx++] = param.getValue();
         }
 
         PSCOCallbackHandler callback = new PSCOCallbackHandler();

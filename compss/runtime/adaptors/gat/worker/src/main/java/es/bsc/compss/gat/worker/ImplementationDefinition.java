@@ -133,26 +133,6 @@ public abstract class ImplementationDefinition implements Invocation {
     @Override
     public abstract AbstractMethodImplementation getMethodImplementation();
 
-    @Override
-    public boolean hasTarget() {
-        return this.hasTarget;
-    }
-
-    @Override
-    public boolean hasReturn() {
-        return this.hasReturn;
-    }
-
-    @Override
-    public int getNumParams() {
-        return numParams;
-    }
-
-    @Override
-    public LinkedList<? extends InvocationParam> getParams() {
-        return params;
-    }
-
     public abstract MethodType getType();
 
     public abstract String toCommandString();

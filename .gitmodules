@@ -6,3 +6,6 @@
 	path = dependencies/autoparallel
 	url = https://github.com/cristianrcv/pycompss-autoparallel.git
 	ignore = untracked
+[submodule "dependencies/extrae"]
+	path = dependencies/extrae
+	url = https://github.com/bsc-wdc/extrae.git

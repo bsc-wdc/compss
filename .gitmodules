@@ -9,3 +9,5 @@
 [submodule "dependencies/extrae"]
 	path = dependencies/extrae
 	url = https://github.com/bsc-wdc/extrae.git
+	branch = compss_modifications
+

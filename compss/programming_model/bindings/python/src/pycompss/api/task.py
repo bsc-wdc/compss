@@ -26,7 +26,6 @@ PyCOMPSs API - Task
 
 import inspect
 import os
-import sys
 import logging
 import ast
 import copy

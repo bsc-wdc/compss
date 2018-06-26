@@ -35,7 +35,7 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 
-class opencl(object):
+class Opencl(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpi task creation.
@@ -161,3 +161,10 @@ class opencl(object):
 
         opencl_f.__doc__ = func.__doc__
         return opencl_f
+
+
+# ############################################################################# #
+# #################### OPENCL DECORATOR ALTERNATIVE NAME ###################### #
+# ############################################################################# #
+
+opencl = Opencl

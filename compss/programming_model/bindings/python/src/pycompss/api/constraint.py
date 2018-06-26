@@ -35,7 +35,7 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 
-class constraint(object):
+class Constraint(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on task constraint creation.
@@ -151,3 +151,10 @@ class constraint(object):
 
         constrained_f.__doc__ = func.__doc__
         return constrained_f
+
+
+# ############################################################################# #
+# ################### CONSTRAINT DECORATOR ALTERNATIVE NAME ################### #
+# ############################################################################# #
+
+constraint = Constraint

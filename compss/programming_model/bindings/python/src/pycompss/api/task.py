@@ -34,7 +34,6 @@ from functools import wraps
 from pycompss.runtime.commons import IS_PYTHON3
 
 
-
 if IS_PYTHON3:
     # Shadow long with int
     long = int
@@ -45,7 +44,7 @@ if __debug__:
     # logger.setLevel(logging.DEBUG)
 
 
-class task(object):
+class Task(object):
 
     def __init__(self, *args, **kwargs):
         """
@@ -864,6 +863,13 @@ class task(object):
         # Starts the asynchronous creation of the task.
         # First calling the PyCOMPSs library and then C library (bindings-commons).
         return fo
+
+
+# ############################################################################# #
+# ################### TASK DECORATOR ALTERNATIVE NAME ######################### #
+# ############################################################################# #
+
+task = Task
 
 
 # ############################################################################# #

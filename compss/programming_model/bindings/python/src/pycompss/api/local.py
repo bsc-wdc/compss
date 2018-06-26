@@ -75,3 +75,10 @@ def local(input_function):
             return input_function(*_args, **_kwargs)
 
         return wrapped_function
+
+
+# ############################################################################# #
+# ##################### LOCAL DECORATOR ALTERNATIVE NAME ###################### #
+# ############################################################################# #
+
+Local = local

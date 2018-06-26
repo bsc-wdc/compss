@@ -1,5 +1,5 @@
 %define name	 	compss-cloud 
-%define version		2.3
+%define version		2.3.rc1806
 %define release		1
 
 Requires: compss-engine

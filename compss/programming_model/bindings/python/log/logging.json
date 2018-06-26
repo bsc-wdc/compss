@@ -125,6 +125,11 @@
             "handlers": ["console"], 
             "propagate": "no"
         },
+        "pycompss.util.translators.py2pycompss.components.loop_taskificator": {                                                                                                   
+            "level": "ERROR",
+            "handlers": ["console"],
+            "propagate": "no"
+        },
         "pycompss.runtime.launch": {
             "level": "ERROR",
             "handlers": ["debug_file_handler","error_file_handler"], 

@@ -134,7 +134,7 @@ class Task(object):
         # Fragile, but then, there's no really solid way."
         self.f_argspec = inspect.getargspec(f)
 
-        # Set default booleans
+        # Set default variables
         self.is_instance = False
         self.is_classmethod = False
         self.has_varargs = False
@@ -188,9 +188,6 @@ class Task(object):
         # Step 6.- Check if the keyword returns has been specified by the user.
         # Check if the keyword returns has been specified by the user.
         if self.kwargs['returns']:
-            self.has_return = True
-            # TODO: WHY THIS VARIABLE? THE INFORMATION IS IN SELF.KWARGS['RETURNS']
-            self.f_argspec.args.append('compss_retvalue')
             self.__update_return_type()
         else:
             # If no returns statement found, double check to see if the user has specified a return statement.
@@ -332,6 +329,10 @@ class Task(object):
 
         from pycompss.api.parameter import Parameter
         from pycompss.api.parameter import DIRECTION
+
+        self.has_return = True
+        # TODO: WHY THIS VARIABLE? THE INFORMATION IS IN SELF.KWARGS['RETURNS']
+        self.f_argspec.args.append('compss_retvalue')
 
         # Manage Simple returns specified by the user
         # This condition is interesting, because a user can write returns=list, lists have attribute

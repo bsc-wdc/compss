@@ -158,17 +158,17 @@ class Task(object):
                 direction = DIRECTION.INOUT
             else:
                 direction = DIRECTION.IN
-            # Add callee object parameter
-            self.kwargs['self'] = Parameter(p_type=TYPE.OBJECT,
-                                            p_direction=direction)
 
         # Step 2.- Check if it is a class method.
         # The check of 'cls' may be weak but it is PEP8 style agreements.
         if self.f_argspec.args and self.f_argspec.args[0] == 'cls':
             self.is_classmethod = True
-            # Add class object parameter
+            direction = DIRECTION.IN
+
+        # Step 1 or 2 b - Add class object parameter
+        if self.is_instance or self.is_classmethod:
             self.kwargs['self'] = Parameter(p_type=TYPE.OBJECT,
-                                            p_direction=DIRECTION.IN)
+                                            p_direction=direction)
 
         # Step 3.- Check if it has varargs (contains *args?)
         # Check if contains *args

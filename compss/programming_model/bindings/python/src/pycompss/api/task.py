@@ -64,7 +64,7 @@ class Task(object):
                 logger.debug("Init @task decorator...")
 
             # Defaults
-            self.args = args  # Not used
+            self.args = args      # Not used
             self.kwargs = kwargs  # The only ones actually used: (decorators)
 
             # Pre-process decorator arguments
@@ -142,6 +142,8 @@ class Task(object):
         self.has_defaults = False
         self.has_return = False
         self.has_multireturn = False
+        self.is_replicated = False
+        self.is_distributed = False
 
         # Step 1.- Check if it is an instance method.
         # Question: Will the first condition evaluate to false? spec_args will
@@ -192,6 +194,14 @@ class Task(object):
         else:
             # If no returns statement found, double check to see if the user has specified a return statement.
             self.__update_return_if_no_returns(f)
+
+        # Step 7.- Check if the keyword isReplicated has been specified by the user.
+        if self.kwargs['isReplicated']:
+            self.is_replicated = True
+
+        # Step 8.- Check if the keyword isDistributed has been specified by the user.
+        if self.kwargs['isDistributed']:
+            self.is_distributed = True
 
         # Get module (for invocation purposes in the worker)
         mod = inspect.getmodule(f)
@@ -245,8 +255,8 @@ class Task(object):
         #   - self.has_return       : Boolean - if the function has return
         #   - self.has_multireturn  : Boolean - if the function has multireturn
         #   - self.module_name      : String  - Module name (e.g. test.kmeans)
-        #   - is_replicated         : Boolean - if the task is replicated
-        #   - is_distributed    : Boolean - if the task is distributed
+        #   - self.is_replicated    : Boolean - if the task is replicated
+        #   - self.is_distributed   : Boolean - if the task is distributed
         # Other variables that will be used:
         #   - f                 : Decorated function
         #   - self.args         : Decorator args tuple (usually empty)
@@ -263,8 +273,6 @@ class Task(object):
             # args   - <Tuple>      - Contains the objects that the function has been called with (positional).
             # kwargs - <Dictionary> - Contains the named objects that the function has been called with.
 
-            is_replicated = self.kwargs['isReplicated']
-            is_distributed = self.kwargs['isDistributed']
             # By default, each task is set to use one core.
             computing_nodes = 1
             if 'computingNodes' in kwargs:
@@ -290,7 +298,7 @@ class Task(object):
                 # Task decorator master body code.
                 # Returns the future object that will be used instead of the
                 # actual function return.
-                fo = self.master_code(f, is_replicated, is_distributed, computing_nodes, args, kwargs)
+                fo = self.master_code(f, computing_nodes, args, kwargs)
                 return fo
 
         return wrapped_f
@@ -753,13 +761,11 @@ class Task(object):
     # #################### TASK DECORATOR MASTER CODE ############################ #
     # ############################################################################ #
 
-    def master_code(self, f, is_replicated, is_distributed, num_nodes, args, kwargs):
+    def master_code(self, f, num_nodes, args, kwargs):
         """
         Task decorator body executed in the master.
 
         :param f: <Function> - Function to execute
-        :param is_replicated: <Boolean> - If the function is replicated
-        :param is_distributed: <Boolean> - If the function is distributed
         :param num_nodes: <Integer> - Number of computing nodes
         :param args: <Tuple> - Contains the objects that the function has been called with (positional).
         :param kwargs: <Dictionary> - Contains the named objects that the function has been called with.
@@ -858,7 +864,7 @@ class Task(object):
 
         fo = process_task(f, self.module, class_name, f_type, self.has_return, spec_args, values, kwargs, self.kwargs,
                           num_nodes,
-                          is_replicated, is_distributed)
+                          self.is_replicated, self.is_distributed)
 
         # Starts the asynchronous creation of the task.
         # First calling the PyCOMPSs library and then C library (bindings-commons).

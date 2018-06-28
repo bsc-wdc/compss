@@ -862,9 +862,17 @@ class Task(object):
         # Build the final list of values for each parameter
         values = tuple(vals + args_vals)
 
-        fo = process_task(f, self.module_name, class_name, f_type, self.has_return, spec_args, values, kwargs, self.kwargs,
+        fo = process_task(f,
+                          self.module_name,
+                          class_name,
+                          f_type,
+                          self.has_return,
+                          spec_args,
+                          values,
+                          self.kwargs,
                           num_nodes,
-                          self.is_replicated, self.is_distributed)
+                          self.is_replicated,
+                          self.is_distributed)
 
         # Starts the asynchronous creation of the task.
         # First calling the PyCOMPSs library and then C library (bindings-commons).

@@ -551,7 +551,7 @@ def synchronize(obj, mode):
 
 
 def process_task(f, module_name, class_name, ftype, has_return, spec_args,
-                 args, kwargs, self_kwargs, num_nodes, replicated,
+                 args, self_kwargs, num_nodes, replicated,
                  distributed):
     """
     Function that submits a task to the runtime.
@@ -563,7 +563,6 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args,
     :param has_return: Boolean indicating if the functions has a return value or not
     :param spec_args: Names of the task arguments
     :param args: Unnamed arguments
-    :param kwargs: Named arguments
     :param self_kwargs: Decorator arguments
     :param num_nodes: Number of nodes that the task must use
     :param replicated: Boolean indicating if the task must be replicated or not

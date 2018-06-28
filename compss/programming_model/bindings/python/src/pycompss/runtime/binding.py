@@ -655,8 +655,7 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args,
             logger.debug('\t- COMPSs prefixes: ' + prefixes_str)
 
     # Check that there is the same amount of values as their types, as well as their directions, streams and prefixes.
-    assert (len(values) == len(compss_types) and len(values) == len(compss_directions) == len(compss_streams) == len(
-        compss_prefixes))
+    assert (len(values) == len(compss_types) == len(compss_directions) == len(compss_streams) == len(compss_prefixes))
 
     '''
     Submit task to the runtime (call to the C extension):

@@ -28,12 +28,14 @@ public class ResourceCreationRequest {
     private final CloudMethodResourceDescription requested;
     private int[][] requestedSimultaneousTaskCount;
     private final long requestedTime;
+    private String requestID; //It will be the same as the VM name
 
-    public ResourceCreationRequest(CloudMethodResourceDescription requestedResource, int[][] simultaneousTasks, CloudProvider cp) {
+    public ResourceCreationRequest(CloudMethodResourceDescription requestedResource, int[][] simultaneousTasks, CloudProvider cp, String requestID) {
         requested = requestedResource;
         this.provider = cp;
         requestedSimultaneousTaskCount = simultaneousTasks;
         requestedTime = System.currentTimeMillis();
+        this.requestID = requestID;
     }
 
     public long getRequestedTime() {
@@ -80,6 +82,10 @@ public class ResourceCreationRequest {
             sb.append("]");
             resourcesLogger.debug(sb.toString());
         }
+    }
+
+    public String getRequestID() {
+        return requestID;   
     }
 
 }

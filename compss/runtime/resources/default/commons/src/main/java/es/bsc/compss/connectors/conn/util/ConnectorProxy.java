@@ -22,6 +22,7 @@ import es.bsc.conn.types.HardwareDescription;
 import es.bsc.conn.types.SoftwareDescription;
 import es.bsc.conn.types.VirtualResource;
 import es.bsc.compss.connectors.ConnectorException;
+
 import java.util.Map;
 
 
@@ -40,7 +41,7 @@ public class ConnectorProxy {
         this.connector = conn;
     }
 
-    public Object create(HardwareDescription hardwareDescription, SoftwareDescription softwareDescription, Map<String, String> properties)
+    public Object create(String name, HardwareDescription hardwareDescription, SoftwareDescription softwareDescription, Map<String, String> properties)
             throws ConnectorException {
 
         if (connector == null) {
@@ -48,7 +49,7 @@ public class ConnectorProxy {
         }
         Object created;
         try {
-            created = connector.create(hardwareDescription, softwareDescription, properties);
+            created = connector.create(name, hardwareDescription, softwareDescription, properties);
         } catch (ConnException ce) {
             throw new ConnectorException(ce);
         }

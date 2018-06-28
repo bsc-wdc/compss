@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
 
+import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.data.listener.SafeCopyListener;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
@@ -235,7 +236,7 @@ public class LogicalData {
             case BINDING:
                 for (Resource r : loc.getHosts()) {
                     this.isBindingData = true;
-                    this.id = ((BindingObjectLocation)loc).getId();
+                    //this.id = ((BindingObjectLocation)loc).getId();
                     r.addLogicalData(this);
 
                 }
@@ -296,17 +297,29 @@ public class LogicalData {
      *
      * @throws Exception
      */
-    public synchronized void writeToStorage() throws IOException {
+    public synchronized void writeToStorage() throws Exception {
         if (DEBUG) {
             LOGGER.debug(DBG_PREFIX + "Writting object " + this.name + " to storage");
         }
         if (isBindingData) {
             String targetPath = Comm.getAppHost().getWorkingDirectory() + this.name;
-            if (DEBUG) {
-                LOGGER.debug(DBG_PREFIX + "Writting binding object " + this.id + " to file " + targetPath);
+            String id;
+            if (this.value != null){
+                id = (String)this.value;
+            }else{
+                id = this.name;
             }
-            BindingDataManager.storeInFile(getId(), targetPath);
-            addWrittenObjectLocation(targetPath);
+            id = BindingObject.generate(id).getName();
+            if (BindingDataManager.isInBinding(id)){
+                if (DEBUG) {
+                    LOGGER.debug(DBG_PREFIX + "Writting binding object " + id + " to file " + targetPath);
+                }
+                BindingDataManager.storeInFile(getId(), targetPath);
+                addWrittenObjectLocation(targetPath);
+            }else{
+                LOGGER.error(DBG_PREFIX + " Error " + id + " not found in binding");
+                throw (new Exception(" Error " + id + " not found in binding"));
+            }
         } else {
             if (this.id != null) {
                 // It is a persistent object that is already persisted

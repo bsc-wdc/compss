@@ -30,7 +30,7 @@ read_result() {
   echo "[Adaptation] Read $result"
   cmd=($result)
   tag=${cmd[0]}	
-  if [ "$tag" == "ACK" ]; then
+  if [ "$tag" = "ACK" ]; then
      echo "[Adaptation] Action successfully done."
      exit 0
   else

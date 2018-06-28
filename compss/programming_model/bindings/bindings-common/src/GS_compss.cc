@@ -1003,27 +1003,28 @@ void GS_Get_Object(char *file_name, char**buf) {
     jstring jstr = NULL;
     jboolean isCopy;
     get_lock();
-    int isAttached = check_and_attach(m_jvm, m_env);
+    JNIEnv* local_env = m_env;
+    int isAttached = check_and_attach(m_jvm, local_env);
     release_lock();
-    jstr = (jstring)m_env->CallObjectMethod(jobjIT, midgetBindingObject, m_env->NewStringUTF(file_name));
+    jstr = (jstring)local_env->CallObjectMethod(jobjIT, midgetBindingObject, local_env->NewStringUTF(file_name));
 
     //During the waiting time thread could have modified the m_env
-    get_lock();
-    isAttached = check_and_attach(m_jvm, m_env);
-    if (m_env->ExceptionOccurred()) {
+    //get_lock();
+    //isAttached = check_and_attach(m_jvm, m_env);
+    if (local_env->ExceptionOccurred()) {
         debug_printf("[BINDING-COMMONS]  -  @GS_Get_Object  -  Error: Exception received when calling getObject.\n");
-        m_env->ExceptionDescribe();
+        local_env->ExceptionDescribe();
         release_lock();
         exit(1);
     }
 
-    cstr = m_env->GetStringUTFChars(jstr, &isCopy);
+    cstr = local_env->GetStringUTFChars(jstr, &isCopy);
     *buf = strdup(cstr);
-    m_env->ReleaseStringUTFChars(jstr, cstr);
+    local_env->ReleaseStringUTFChars(jstr, cstr);
     if (isAttached==1) {
         m_jvm->DetachCurrentThread();
     }
-    release_lock();
+    //release_lock();
     debug_printf("[BINDING-COMMONS]  -  @GS_Get_Object  -  COMPSs data id: %s\n", *buf);
 
 }

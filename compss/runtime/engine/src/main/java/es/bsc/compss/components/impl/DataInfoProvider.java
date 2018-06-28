@@ -600,7 +600,7 @@ public class DataInfoProvider {
             // Write to storage (if needed)
             try {
                 ld.writeToStorage();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 ErrorManager.error("Exception writing object to file.", e);
             }
 

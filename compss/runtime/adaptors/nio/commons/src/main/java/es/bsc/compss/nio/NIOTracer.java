@@ -170,6 +170,12 @@ public class NIOTracer extends Tracer {
         }
         emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
 
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
+        }
+
         // Stopping Extrae
         synchronized (Tracer.class) {
             LOGGER.debug("[NIOTracer] Disabling pthreads");

@@ -1557,7 +1557,7 @@ add_compute_node() {
   
   echo "Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}mkdir -p ${worker_working_dir}${CMD_SEPARATOR}; chmod -R +rx ${worker_working_dir}${CMD_SEPARATOR} "
   # shellcheck disable=SC2086
-  ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}mkdir -p ${worker_working_dir}${CMD_SEPARATOR} chmod -R +rx ${worker_working_dir}${CMD_SEPARATOR} 
+  ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}mkdir -p ${worker_working_dir}${CMD_SEPARATOR}; chmod -R +rx ${worker_working_dir}${CMD_SEPARATOR} 
 
   nodeName=${nodeName}${network}
 

@@ -205,9 +205,9 @@ class Task(object):
 
         # Get module (for invocation purposes in the worker)
         mod = inspect.getmodule(f)
-        self.module = mod.__name__
+        self.module_name = mod.__name__
 
-        if self.module == '__main__' or self.module == 'pycompss.runtime.launch':
+        if self.module_name == '__main__' or self.module_name == 'pycompss.runtime.launch':
             # the module where the function is defined was run as __main__,
             # we need to find out the real module name
 
@@ -237,7 +237,7 @@ class Task(object):
                 pass
 
             # Get the module
-            self.module = get_module_name(path, file_name)
+            self.module_name = get_module_name(path, file_name)
 
         # The registration needs to be done only in the master node
         if i_am_at_master():
@@ -481,7 +481,7 @@ class Task(object):
         top_decorator = get_top_decorator(func_code, decorator_keys)
         if __debug__:
             logger.debug(
-                "[@TASK] Top decorator of function %s in module %s: %s" % (f.__name__, self.module, str(top_decorator)))
+                "[@TASK] Top decorator of function %s in module %s: %s" % (f.__name__, self.module_name, str(top_decorator)))
         f.__who_registers__ = top_decorator
 
         # not usual tasks - handled by the runtime without invoking the PyCOMPSs
@@ -491,7 +491,7 @@ class Task(object):
         default = 'task'
         task_type = get_task_type(func_code, decorator_filter, default)
         if __debug__:
-            logger.debug("[@TASK] Task type of function %s in module %s: %s" % (f.__name__, self.module, str(task_type)))
+            logger.debug("[@TASK] Task type of function %s in module %s: %s" % (f.__name__, self.module_name, str(task_type)))
         f.__task_type__ = task_type
         if task_type == default:
             f.__code_strings__ = True
@@ -505,11 +505,11 @@ class Task(object):
         # I know that this is ugly, but I see no other way to check if it is a class method.
         is_classmethod = class_name != '<module>'
         if self.is_instance or is_classmethod:
-            ce_signature = self.module + "." + class_name + '.' + f.__name__
-            impl_type_args = [self.module + "." + class_name, f.__name__]
+            ce_signature = self.module_name + "." + class_name + '.' + f.__name__
+            impl_type_args = [self.module_name + "." + class_name, f.__name__]
         else:
-            ce_signature = self.module + "." + f.__name__
-            impl_type_args = [self.module, f.__name__]
+            ce_signature = self.module_name + "." + f.__name__
+            impl_type_args = [self.module_name, f.__name__]
         impl_signature = ce_signature
         impl_constraints = {}
         impl_type = "METHOD"
@@ -523,7 +523,7 @@ class Task(object):
         if f.__who_registers__ == __name__:
             if __debug__:
                 logger.debug(
-                    "[@TASK] I have to do the register of function %s in module %s" % (f.__name__, self.module))
+                    "[@TASK] I have to do the register of function %s in module %s" % (f.__name__, self.module_name))
                 logger.debug("[@TASK] %s" % str(f.__to_register__))
             binding.register_ce(core_element)
 
@@ -862,7 +862,7 @@ class Task(object):
         # Build the final list of values for each parameter
         values = tuple(vals + args_vals)
 
-        fo = process_task(f, self.module, class_name, f_type, self.has_return, spec_args, values, kwargs, self.kwargs,
+        fo = process_task(f, self.module_name, class_name, f_type, self.has_return, spec_args, values, kwargs, self.kwargs,
                           num_nodes,
                           self.is_replicated, self.is_distributed)
 

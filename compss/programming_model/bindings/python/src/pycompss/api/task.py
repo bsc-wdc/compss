@@ -237,7 +237,7 @@ class Task(object):
                 pass
 
             # Get the module
-            self.module_name = get_module_name(path, file_name)
+            self.module_name = _get_module_name(path, file_name)
 
         # The registration needs to be done only in the master node
         if i_am_at_master():
@@ -349,14 +349,14 @@ class Task(object):
         # When the user specifies the length, it is possible to manage the elements independently.
         if not hasattr(self.kwargs['returns'], '__len__') or type(self.kwargs['returns']) is type:
             # Simple return
-            ret_type = get_compss_type(self.kwargs['returns'])
+            ret_type = _get_compss_type(self.kwargs['returns'])
             self.kwargs['compss_retvalue'] = Parameter(p_type=ret_type, p_direction=DIRECTION.OUT)
         else:
             # Multi return
             self.has_multireturn = True
             returns = []
             for r in self.kwargs['returns']:
-                ret_type = get_compss_type(r)
+                ret_type = _get_compss_type(r)
                 returns.append(Parameter(p_type=ret_type, p_direction=DIRECTION.OUT))
             self.kwargs['compss_retvalue'] = tuple(returns)
 
@@ -371,7 +371,7 @@ class Task(object):
         from pycompss.api.parameter import DIRECTION
         from pycompss.api.parameter import TYPE
 
-        source_code = get_wrapped_source(f).strip()
+        source_code = _get_wrapped_source(f).strip()
         if self.is_instance or source_code.startswith('@classmethod'):  # TODO: WHAT IF IS CLASSMETHOD FROM BOOLEAN?
             # It is a task defined within a class (can not parse the code with ast since the class does not
             # exist yet. Alternatively, the only way I see is to parse it manually line by line.
@@ -467,7 +467,7 @@ class Task(object):
         func = f
         while not got_func_code:
             try:
-                func_code = get_wrapped_sourcelines(func)
+                func_code = _get_wrapped_sourcelines(func)
                 got_func_code = True
             except IOError:
                 # There is one or more decorators below the @task --> undecorate
@@ -478,7 +478,7 @@ class Task(object):
 
         decorator_keys = ("implement", "constraint", "decaf", "mpi", "ompss", "binary", "opencl", "task")
 
-        top_decorator = get_top_decorator(func_code, decorator_keys)
+        top_decorator = _get_top_decorator(func_code, decorator_keys)
         if __debug__:
             logger.debug(
                 "[@TASK] Top decorator of function %s in module %s: %s" % (f.__name__, self.module_name, str(top_decorator)))
@@ -489,7 +489,7 @@ class Task(object):
         # them in these type of tasks
         decorator_filter = ("decaf", "mpi", "ompss", "binary", "opencl")
         default = 'task'
-        task_type = get_task_type(func_code, decorator_filter, default)
+        task_type = _get_task_type(func_code, decorator_filter, default)
         if __debug__:
             logger.debug("[@TASK] Task type of function %s in module %s: %s" % (f.__name__, self.module_name, str(task_type)))
         f.__task_type__ = task_type
@@ -663,7 +663,7 @@ class Task(object):
         # Check if the values and types have changed after the task execution:
         # I.e.- an object that has been made persistent within the task may be
         # detected here, and the type change done within the outputTypes list.
-        new_types, new_values, to_serialize = check_value_changes(kwargs['compss_types'],
+        new_types, new_values, to_serialize = _check_value_changes(kwargs['compss_types'],
                                                                   list(args),
                                                                   to_serialize)
 
@@ -805,10 +805,10 @@ class Task(object):
         args_list = []
         if self.has_defaults:
             # There are default parameters
-            # Get the variable names and values that have been defined by default (get_default_args(f)).
+            # Get the variable names and values that have been defined by default (_get_default_args(f)).
             # default_params will have a list of pairs of the form (argument, default_value)
             # Default values have to be always defined after undefined value parameters.
-            default_params = get_default_args(f)
+            default_params = _get_default_args(f)
             args_list = list(args)  # Given values
             # Default parameter addition
             for p in self.f_argspec.args[len(args):num_params]:
@@ -882,7 +882,7 @@ task = Task
 # ####################### AUXILIARY FUNCTIONS ################################# #
 # ############################################################################# #
 
-def get_module_name(path, file_name):
+def _get_module_name(path, file_name):
     """
     Get the module name considering its path and filename.
 
@@ -911,7 +911,7 @@ def get_module_name(path, file_name):
     return mod_name
 
 
-def get_top_decorator(code, decorator_keys):
+def _get_top_decorator(code, decorator_keys):
     """
     Retrieves the decorator which is on top of the current task decorators stack.
 
@@ -938,7 +938,7 @@ def get_top_decorator(code, decorator_keys):
     return __name__
 
 
-def get_task_type(code, decorator_filter, default):
+def _get_task_type(code, decorator_filter, default):
     """
     Retrieves the type of the task based on the decorators stack.
 
@@ -965,7 +965,7 @@ def get_task_type(code, decorator_filter, default):
     return default
 
 
-def check_value_changes(types, values, to_serialize):
+def _check_value_changes(types, values, to_serialize):
     """
     Check if the input values have changed and adapt its types accordingly.
     Considers also changes that may affect to the to_serialize list.
@@ -1008,7 +1008,7 @@ def check_value_changes(types, values, to_serialize):
         pos = 0
         changed = False
         for i in values:
-            if isinstance(i, str) and get_compss_type(ts[0]) == TYPE.EXTERNAL_PSCO and ts[1] in i:
+            if isinstance(i, str) and _get_compss_type(ts[0]) == TYPE.EXTERNAL_PSCO and ts[1] in i:
                 # Include the PSCO id in the values list
                 values[pos] = get_id(ts[0])
                 types[pos] = TYPE.EXTERNAL_PSCO
@@ -1023,7 +1023,7 @@ def check_value_changes(types, values, to_serialize):
     return types, values, real_to_serialize
 
 
-def get_compss_type(value):
+def _get_compss_type(value):
     """
     Retrieve the value type mapped to COMPSs types.
 
@@ -1077,7 +1077,7 @@ def get_compss_type(value):
         return TYPE.FILE
 
 
-def get_default_args(f):
+def _get_default_args(f):
     """
     Returns a dictionary of arg_name:default_values for the input function.
 
@@ -1089,7 +1089,7 @@ def get_default_args(f):
     return list(zip(a.args[num_params:], a.defaults))
 
 
-def get_wrapped_source(f):
+def _get_wrapped_source(f):
     """
     Gets the text of the source code for the given function.
 
@@ -1099,13 +1099,13 @@ def get_wrapped_source(f):
 
     if hasattr(f, "__wrapped__"):
         # has __wrapped__, going deep
-        return get_wrapped_source(f.__wrapped__)
+        return _get_wrapped_source(f.__wrapped__)
     else:
         # Returning getsource
         return inspect.getsource(f)
 
 
-def get_wrapped_sourcelines(f):
+def _get_wrapped_sourcelines(f):
     """
     Gets a list of source lines and starting line number for the given function.
 
@@ -1115,7 +1115,7 @@ def get_wrapped_sourcelines(f):
 
     if hasattr(f, "__wrapped__"):
         # has __wrapped__, going deep
-        return get_wrapped_sourcelines(f.__wrapped__)
+        return _get_wrapped_sourcelines(f.__wrapped__)
     else:
         # Returning getsourcelines
         return inspect.getsourcelines(f)

@@ -917,37 +917,41 @@ void GS_Get_File(char *file_name, int mode, char **buf) {
     const char *cstr;
     jstring jstr = NULL;
     jboolean isCopy;
+
     get_lock();
-    int isAttached = check_and_attach(m_jvm, m_env);
+    JNIEnv* local_env = m_env;
+    int isAttached = check_and_attach(m_jvm, local_env);
     debug_printf("[BINDING-COMMONS]  -  @GS_Get_File  -  Calling runtime OpenFile method  for %s and mode %d ...\n", file_name, mode);
-    jstring filename_str = m_env->NewStringUTF(file_name);
-    check_and_treat_exception(m_env, "Error getting String UTF");
+    jstring filename_str = local_env->NewStringUTF(file_name);
+    check_and_treat_exception(local_env, "Error getting String UTF");
     release_lock();
+
     switch ((enum direction) mode) {
     case in_dir:
-        jstr = (jstring)m_env->CallObjectMethod(jobjIT, midOpenFile, filename_str, jobjParDirIN);
+        jstr = (jstring)local_env->CallObjectMethod(jobjIT, midOpenFile, filename_str, jobjParDirIN);
         break;
     case out_dir:
-        jstr = (jstring)m_env->CallObjectMethod(jobjIT, midOpenFile, filename_str, jobjParDirOUT);
+        jstr = (jstring)local_env->CallObjectMethod(jobjIT, midOpenFile, filename_str, jobjParDirOUT);
         break;
     case inout_dir:
-        jstr = (jstring)m_env->CallObjectMethod(jobjIT, midOpenFile, filename_str, jobjParDirINOUT);
+        jstr = (jstring)local_env->CallObjectMethod(jobjIT, midOpenFile, filename_str, jobjParDirINOUT);
         break;
     default:
         break;
     }
-    //During the waiting time thread could have modified the m_env
-    get_lock();
-    isAttached = check_and_attach(m_jvm, m_env);
-    check_and_treat_exception(m_env, "Error calling runtime openFile");
-    cstr = m_env->GetStringUTFChars(jstr, &isCopy);
-    check_and_treat_exception(m_env, "Error getting String UTF");
+    check_and_treat_exception(local_env, "Error calling runtime openFile");
+    local_env->DeleteLocalRef(filename_str);
+
+    cstr = local_env->GetStringUTFChars(jstr, &isCopy);
+    check_and_treat_exception(local_env, "Error getting String UTF");
+
     *buf = strdup(cstr);
-    m_env->ReleaseStringUTFChars(jstr, cstr);
+    local_env->ReleaseStringUTFChars(jstr, cstr);
+    local_env->DeleteLocalRef(jstr);
+
     if (isAttached==1) {
         m_jvm->DetachCurrentThread();
     }
-    release_lock();
     debug_printf("[BINDING-COMMONS]  -  @GS_Get_File  -  COMPSs filename: %s\n", *buf);
 }
 
@@ -1008,9 +1012,6 @@ void GS_Get_Object(char *file_name, char**buf) {
     release_lock();
     jstr = (jstring)local_env->CallObjectMethod(jobjIT, midgetBindingObject, local_env->NewStringUTF(file_name));
 
-    //During the waiting time thread could have modified the m_env
-    //get_lock();
-    //isAttached = check_and_attach(m_jvm, m_env);
     if (local_env->ExceptionOccurred()) {
         debug_printf("[BINDING-COMMONS]  -  @GS_Get_Object  -  Error: Exception received when calling getObject.\n");
         local_env->ExceptionDescribe();
@@ -1024,7 +1025,6 @@ void GS_Get_Object(char *file_name, char**buf) {
     if (isAttached==1) {
         m_jvm->DetachCurrentThread();
     }
-    //release_lock();
     debug_printf("[BINDING-COMMONS]  -  @GS_Get_Object  -  COMPSs data id: %s\n", *buf);
 
 }
@@ -1052,30 +1052,27 @@ void GS_Delete_Object(char *file_name, int **buf) {
 void GS_Barrier(long _appId) {
 	debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  Waiting tasks for APP id: %lu", appId);
     get_lock();
-	int isAttached = check_and_attach(m_jvm, m_env);
+    JNIEnv* local_env = m_env;
+    int isAttached = check_and_attach(m_jvm, local_env);
 	release_lock();
 
-	m_env->CallVoidMethod(jobjIT, midBarrier, appId);
+	local_env->CallVoidMethod(jobjIT, midBarrier, appId);
 
-	//During the waiting time thread could have modified the m_env
-    get_lock();
-    isAttached = check_and_attach(m_jvm, m_env);
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        release_lock();
+    if (local_env->ExceptionOccurred()) {
+        local_env->ExceptionDescribe();
         exit(1);
     }
 
     if (isAttached==1) {
         m_jvm->DetachCurrentThread();
     }
-    release_lock();
     debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  APP id: %lu", appId);
 }
 
 void GS_BarrierNew(long _appId, int noMoreTasks) {
 	get_lock();
-	int isAttached = check_and_attach(m_jvm, m_env);
+	JNIEnv* local_env = m_env;
+	int isAttached = check_and_attach(m_jvm, local_env);
 
     bool _noMoreTasks = false;
     if (noMoreTasks != 0) _noMoreTasks = true;
@@ -1084,20 +1081,17 @@ void GS_BarrierNew(long _appId, int noMoreTasks) {
     debug_printf("[   BINDING]  -  @GS_Barrier  -  noMoreTasks: %s", _noMoreTasks ? "true":"false");
     release_lock();
 
-    m_env->CallVoidMethod(jobjIT, midBarrierNew, appId, _noMoreTasks);
-    //During the waiting time thread could have modified the m_env
-    get_lock();
-    isAttached = check_and_attach(m_jvm, m_env);
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        release_lock();
+    local_env->CallVoidMethod(jobjIT, midBarrierNew, appId, _noMoreTasks);
+
+    if (local_env->ExceptionOccurred()) {
+        local_env->ExceptionDescribe();
+
         exit(1);
     }
 
     if (isAttached==1) {
         m_jvm->DetachCurrentThread();
     }
-    release_lock();
     debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  APP id: %lu", appId);
 }
 

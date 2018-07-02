@@ -111,6 +111,7 @@ public class GATCopy extends ImmediateCopy {
         List<URI> selectedSourceURIs = new LinkedList<>();
         synchronized (srcData) {
             if (srcLoc != null) {
+                LOGGER.debug(DBG_PREFIX + "SrcLoc: " + srcLoc);
                 sourceURIs = srcLoc.getURIs();
                 for (MultiURI uri : sourceURIs) {
                     try {
@@ -124,7 +125,7 @@ public class GATCopy extends ImmediateCopy {
                     }
                 }
             }
-
+            LOGGER.debug(DBG_PREFIX + "SrcData: " + srcData);
             sourceURIs = srcData.getURIs();
             for (MultiURI uri : sourceURIs) {
                 try {

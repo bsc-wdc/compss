@@ -68,8 +68,10 @@ public class LogicalData {
     // Value in memory, null if value in disk
     private Object value;
     // Id if PSCO, null otherwise
-    private String id;
-
+    private String pscoId;
+    // Id if Binding object, null otherwise
+    private String bindingId;
+    
     // List of existing copies
     private final Set<DataLocation> locations = new TreeSet<>();
     // List of hosts where the data has been used
@@ -97,8 +99,8 @@ public class LogicalData {
     public LogicalData(String name) {
         this.name = name;
         this.value = null;
-        this.id = null;
-
+        this.pscoId = null;
+        this.bindingId = null;
         this.isBeingSaved = false;
         this.isBindingData = false;
         this.size = 0;
@@ -122,8 +124,8 @@ public class LogicalData {
      *
      * @return
      */
-    public String getId() {
-        return this.id;
+    public String getPscoId() {
+        return this.pscoId;
     }
 
     /**
@@ -236,7 +238,9 @@ public class LogicalData {
             case BINDING:
                 for (Resource r : loc.getHosts()) {
                     this.isBindingData = true;
-                    //this.id = ((BindingObjectLocation)loc).getId();
+                    if (this.bindingId == null){
+                        this.bindingId = ((BindingObjectLocation)loc).getId();
+                    }
                     r.addLogicalData(this);
 
                 }
@@ -245,7 +249,7 @@ public class LogicalData {
                 SharedDiskManager.addLogicalData(loc.getSharedDisk(), this);
                 break;
             case PERSISTENT:
-                this.id = ((PersistentLocation) loc).getId();
+                this.pscoId = ((PersistentLocation) loc).getId();
                 break;
         }
     }
@@ -288,8 +292,8 @@ public class LogicalData {
      *
      * @param id
      */
-    public synchronized void setId(String id) {
-        this.id = id;
+    public synchronized void setPscoId(String id) {
+        this.pscoId = id;
     }
 
     /**
@@ -304,24 +308,29 @@ public class LogicalData {
         if (isBindingData) {
             String targetPath = Comm.getAppHost().getWorkingDirectory() + this.name;
             String id;
-            if (this.value != null){
+            //decide the id where the object is stored in the binding
+            if (this.bindingId != null){
+                id = this.bindingId;
+            } else if (this.value != null){
                 id = (String)this.value;
-            }else{
+            } else{
                 id = this.name;
             }
-            id = BindingObject.generate(id).getName();
+            if (id.contains("#")){
+                id = BindingObject.generate(id).getName();
+            }
             if (BindingDataManager.isInBinding(id)){
                 if (DEBUG) {
                     LOGGER.debug(DBG_PREFIX + "Writting binding object " + id + " to file " + targetPath);
                 }
-                BindingDataManager.storeInFile(getId(), targetPath);
+                BindingDataManager.storeInFile(id, targetPath);
                 addWrittenObjectLocation(targetPath);
             }else{
                 LOGGER.error(DBG_PREFIX + " Error " + id + " not found in binding");
                 throw (new Exception(" Error " + id + " not found in binding"));
             }
         } else {
-            if (this.id != null) {
+            if (this.pscoId != null) {
                 // It is a persistent object that is already persisted
                 // Nothing to do
                 // If the PSCO is not persisted we treat it as a normal object
@@ -422,7 +431,7 @@ public class LogicalData {
                     }
                     try {
                         this.value = StorageItf.getByID(pLoc.getId());
-                        this.id = pLoc.getId();
+                        this.pscoId = pLoc.getId();
                     } catch (StorageException se) {
                         // Check next location since cannot retrieve the object from the storage Back-end
                         continue;
@@ -641,7 +650,7 @@ public class LogicalData {
         StringBuilder sb = new StringBuilder();
         sb.append("Logical Data name: ").append(this.name).append("\n");
         sb.append("\t Value: ").append(value).append("\n");
-        sb.append("\t Id: ").append(id).append("\n");
+        sb.append("\t Id: ").append(pscoId).append("\n");
         sb.append("\t Locations:\n");
         synchronized (locations) {
             for (DataLocation dl : locations) {

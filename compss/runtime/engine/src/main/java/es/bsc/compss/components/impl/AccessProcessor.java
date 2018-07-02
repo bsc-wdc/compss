@@ -422,7 +422,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         // TODO: Check if the object was already piggybacked in the task notification
 
         String lastRenaming = ((DataAccessId.RWAccessId) oaId).getReadDataInstance().getRenaming();
-        String newId = Comm.getData(lastRenaming).getId();
+        String newId = Comm.getData(lastRenaming).getPscoId();
 
         return Protocol.PERSISTENT_URI.getSchema() + newId;
     }

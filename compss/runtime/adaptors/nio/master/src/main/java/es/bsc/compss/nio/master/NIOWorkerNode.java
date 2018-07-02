@@ -296,7 +296,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         }
 
         // If it is a PSCO -> Order new StorageCopy
-        if (ld.getId() != null) {
+        if (ld.getPscoId() != null) {
             orderStorageCopy(new StorageCopy(ld, source, target, tgtData, reason, listener));
         } else {
             if (LOGGER.isDebugEnabled()) {
@@ -339,7 +339,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         LOGGER.debug("Ask for new Replica of " + srcLD.getName() + " to " + targetHostname);
 
         // Get the PSCO to replicate
-        String pscoId = srcLD.getId();
+        String pscoId = srcLD.getPscoId();
 
         // Get the current locations
         List<String> currentLocations = new LinkedList<>();
@@ -372,7 +372,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         // Update information
         sc.setFinalTarget(pscoId);
         if (targetLD != null) {
-            targetLD.setId(pscoId);
+            targetLD.setPscoId(pscoId);
         }
 
         // Notify successful end
@@ -386,12 +386,12 @@ public class NIOWorkerNode extends COMPSsWorker {
         boolean preserveSource = sc.mustPreserveSourceData();
 
         if (DEBUG) {
-            LOGGER.debug("Ask for new Version of " + srcLD.getName() + " with id " + srcLD.getId() + " to " + targetHostname
+            LOGGER.debug("Ask for new Version of " + srcLD.getName() + " with id " + srcLD.getPscoId() + " to " + targetHostname
                     + " with must preserve " + preserveSource);
         }
 
         // Get the PSCOId to replicate
-        String pscoId = srcLD.getId();
+        String pscoId = srcLD.getPscoId();
 
         // Perform version
         LOGGER.debug("Performing new version for PSCO " + pscoId);
@@ -403,7 +403,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             LOGGER.debug("Register new new version of " + pscoId + " as " + newId);
             sc.setFinalTarget(newId);
             if (targetLD != null) {
-                targetLD.setId(newId);
+                targetLD.setPscoId(newId);
             }
         } catch (Exception e) {
             sc.end(OpEndState.OP_FAILED, e);
@@ -472,7 +472,7 @@ public class NIOWorkerNode extends COMPSsWorker {
                 break;
             case PSCO_T:
                 // Search for the PSCO id
-                String id = Comm.getData(name).getId();
+                String id = Comm.getData(name).getPscoId();
                 path = Protocol.PERSISTENT_URI.getSchema() + id;
                 break;
             case EXTERNAL_PSCO_T:

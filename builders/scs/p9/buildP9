@@ -1,18 +1,18 @@
 #!/bin/bash -e 
  
   #############################################################
-  # Name: buildP8
-  # Description: SCRIPT FOR CTE-Power8 COMPSs BUILD
-  # Parameters: <P8_user> CTE-Power8 user account. Preferable with ssh keys inserted
-  #             <FullTmpPath> Tmp path on CTE-Power8 for deployment
-  #             <FullTargetPath> Base Target Installation folder on CTE-Power8
+  # Name: buildP9
+  # Description: SCRIPT FOR CTE-Power9 COMPSs BUILD
+  # Parameters: <P9_user> CTE-Power9 user account. Preferable with ssh keys inserted
+  #             <FullTmpPath> Tmp path on CTE-Power9 for deployment
+  #             <FullTargetPath> Base Target Installation folder on CTE-Power9
   #############################################################
 
   ####################
   # FUNCTIONS
   ####################
   usage() {
-    echo " Usage: buildP8 <P8_user> <FullTmpPath> <FullTargetPath>"
+    echo " Usage: buildP9 <P9_user> <FullTmpPath> <FullTargetPath>"
     echo " "
   }
 
@@ -36,16 +36,16 @@
   # SET SCRIPT VARIABLES
   scriptDir=$(pwd)/$(dirname $0)
 
-  P8user=$1
-  P8tmpDir=$2
-  P8targetDir=$3
-  P8loginNode=p8login1.bsc.es
-  P8auxScript=${scriptDir}/buildP8_aux
+  P9user=$1
+  P9tmpDir=$2
+  P9targetDir=$3
+  P9loginNode=p9login1.bsc.es
+  P9auxScript=${scriptDir}/buildP9_aux
   PRELOAD_ENV=""
 
   # Perform installation
   cd ${scriptDir}/../commons
-  ./buildSC ${P8user} ${P8loginNode} ${P8tmpDir} ${P8targetDir} ${P8auxScript} "${PRELOAD_ENV}"
+  ./buildSC ${P9user} ${P9loginNode} ${P9tmpDir} ${P9targetDir} ${P9auxScript} "${PRELOAD_ENV}"
   exitStatus=$?
   cd ${scriptDir}
 

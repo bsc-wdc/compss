@@ -157,7 +157,7 @@ public class TransferOpenFileRequest extends APRequest {
         // Create location
         DataLocation targetLocation = null;
 
-        String pscoId = Comm.getData(targetName).getId();
+        String pscoId = Comm.getData(targetName).getPscoId();
         if (pscoId == null) {
             try {
                 SimpleURI targetURI = new SimpleURI(DataLocation.Protocol.FILE_URI.getSchema() + targetPath);

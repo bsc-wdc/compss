@@ -143,7 +143,7 @@ public class NIOJob extends Job<NIOWorkerNode> {
                         renaming = raId.getReadDataInstance().getRenaming();
                     }
                     if (renaming != null) {
-                        String pscoId = Comm.getData(renaming).getId();
+                        String pscoId = Comm.getData(renaming).getPscoId();
                         if (pscoId != null) {
                             if (type.equals(DataType.OBJECT_T)) {
                                 // Change Object type if it is a PSCO

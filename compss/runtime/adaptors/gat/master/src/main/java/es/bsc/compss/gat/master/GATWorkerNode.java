@@ -344,7 +344,7 @@ public class GATWorkerNode extends COMPSsWorker {
                 path = Protocol.FILE_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
                 break;
             case BINDING_OBJECT_T:
-            	path = Protocol.FILE_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
+            	path = Protocol.BINDING_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
                 break;
             default:
                 return null;

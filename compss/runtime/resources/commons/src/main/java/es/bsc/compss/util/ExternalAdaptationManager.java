@@ -248,7 +248,7 @@ public class ExternalAdaptationManager extends Thread {
                     RUNTIME_LOGGER.info(
                             LOG_PREFIX + "Submited external request for creating (" + typeName + ", " + imageName + ") in " + providerName);
                     rcr.print(RESOURCES_LOGGER, DEBUG);
-                    writePipe(resultPipe, ACK);
+                    writePipe(resultPipe, ACK +" " + rcr.getRequestID());
                 } else {
                     RUNTIME_LOGGER.error(LOG_PREFIX + "ERROR: Creating resource (" + typeName + ", " + imageName + ") in " + providerName);
                     writePipe(resultPipe, "ERROR: Error creating resource(" + typeName + ", " + imageName + ") in " + providerName);

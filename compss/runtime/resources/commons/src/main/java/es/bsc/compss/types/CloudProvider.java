@@ -208,10 +208,12 @@ public class CloudProvider {
 
     public ResourceCreationRequest requestResourceCreation(CloudMethodResourceDescription instanceDescription) {
         int[][] simultaneousCounts = computeSimultaneousCounts(instanceDescription);
-        ResourceCreationRequest rcr = new ResourceCreationRequest(instanceDescription, simultaneousCounts, this);
+        String requestID = "compss" + UUID.randomUUID().toString();
+        ResourceCreationRequest rcr = new ResourceCreationRequest(instanceDescription, simultaneousCounts, this, requestID);
         LOGGER.debug("[Cloud Manager] Asking for resource creation " + instanceDescription.getName() + " with image "
                 + instanceDescription.getImage().getImageName());
-        boolean isRequestAccepted = connector.turnON("compss" + UUID.randomUUID().toString(), rcr);
+        
+        boolean isRequestAccepted = connector.turnON(requestID, rcr);
         if (isRequestAccepted) {
             CloudMethodResourceDescription cmrd = rcr.getRequested();
             for (int[] typeCount : cmrd.getTypeComposition().values()) {

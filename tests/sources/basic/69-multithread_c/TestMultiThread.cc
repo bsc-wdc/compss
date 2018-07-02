@@ -38,6 +38,7 @@ void *thread_function1(void* unused){
 	cout << "file 1 created" << endl;
     // Write file
     ofstream fos;
+    //ofstream fos (fileName1,std::ofstream::out);
     cout << "before ofstream 1" << endl;
     compss_ofstream(fileName1, fos);
     cout << "after ofstream" << endl;
@@ -70,6 +71,8 @@ void *thread_function1(void* unused){
         cerr << "[ERROR] Unable to open file" << endl;
         return 0;
     }
+    
+    return 0;
 
 }
 
@@ -87,6 +90,7 @@ void *thread_function2(void* unused){
     // Write file
     ofstream fos;
 	cout << "before ofstream 2" << endl;
+    //ofstream fos (fileName2,std::ofstream::out);
     compss_ofstream(fileName2, fos);
 	cout << "after ofstream" << endl;
     if (fos.is_open()) {
@@ -120,7 +124,7 @@ void *thread_function2(void* unused){
         cerr << "[ERROR] Unable to open file" << endl;
         return 0;
     }
-
+    return 0;
 
 }
 
@@ -142,16 +146,16 @@ int main(int argc, char *argv[]) {
     compss_on();
     
 	cout << "runtime on" << endl;
-
-	//pthread_create(&thread1, NULL, thread_function1, NULL);
+        //void * a = thread_function2(NULL);
+	pthread_create(&thread1, NULL, thread_function1, NULL);
 	pthread_create(&thread2, NULL, thread_function2, NULL);
 
 	cout << "threads created" << endl;
 
-	//pthread_join(thread1, NULL);
+	pthread_join(thread1, NULL);
 	pthread_join(thread2, NULL);
 
-	cout << "joining" << endl;
+	cout << "joined" << endl;
 
     // Close COMPSs and end
     compss_off();

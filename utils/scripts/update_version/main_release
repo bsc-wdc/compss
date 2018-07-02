@@ -23,7 +23,6 @@ usage() {
     usage 1
   fi
 
-  # Compute version
   version=$1
 
 

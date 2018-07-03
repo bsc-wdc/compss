@@ -142,6 +142,28 @@
     fi
   }
 
+  setup_extrae() {
+    # Trace initialization
+    if [ "$tracing" -gt 0 ]; then
+      if [ -z "${extraeFile}" ] || [ "${extraeFile}" == "null" ]; then
+        # Only define extraeFile if it is not a custom location
+        extraeFile=${SCRIPT_DIR}/../../../../configuration/xml/tracing/extrae_basic.xml
+        if [ "$tracing" -gt 1 ]; then
+          extraeFile=${SCRIPT_DIR}/../../../../configuration/xml/tracing/extrae_advanced.xml
+        fi
+      fi  
+
+      if [ -z "$EXTRAE_HOME" ]; then
+        export EXTRAE_HOME=${SCRIPT_DIR}/../../../../../Dependencies/extrae/
+      fi  
+
+      export EXTRAE_LIB=${EXTRAE_HOME}/lib
+      export LD_LIBRARY_PATH=${EXTRAE_LIB}:${LD_LIBRARY_PATH}
+      export EXTRAE_CONFIG_FILE=${extraeFile}
+      export LD_PRELOAD=${EXTRAE_HOME}/lib/libpttrace.so
+    fi  
+  }
+
   setup_environment(){
     # Added for SGE queue systems which do not allow to copy LD_LIBRARY_PATH
     if [ -z "$LD_LIBRARY_PATH" ]; then
@@ -242,26 +264,6 @@ EOT
     	export COMPSS_HOME=${SCRIPT_DIR}/../../../../../
     	export LD_LIBRARY_PATH=${COMPSS_HOME}/Bindings/bindings-common/lib:${COMPSS_HOME}/Bindings/c/lib:${LD_LIBRARY_PATH}
 		export JVM_OPTIONS_FILE=${jvm_options_file}
-    fi
-
-    # Trace initialization
-    if [ "$tracing" -gt 0 ]; then
-      if [ -z "${extraeFile}" ] || [ "${extraeFile}" == "null" ]; then
-        # Only define extraeFile if it is not a custom location
-        extraeFile=${SCRIPT_DIR}/../../../../configuration/xml/tracing/extrae_basic.xml
-        if [ "$tracing" -gt 1 ]; then
-          extraeFile=${SCRIPT_DIR}/../../../../configuration/xml/tracing/extrae_advanced.xml
-        fi
-      fi
-
-      if [ -z "$EXTRAE_HOME" ]; then
-        export EXTRAE_HOME=${SCRIPT_DIR}/../../../../../Dependencies/extrae/
-      fi
-
-      export EXTRAE_LIB=${EXTRAE_HOME}/lib
-      export LD_LIBRARY_PATH=${EXTRAE_LIB}:${LD_LIBRARY_PATH}
-      export EXTRAE_CONFIG_FILE=${extraeFile}
-      export LD_PRELOAD=${EXTRAE_HOME}/lib/libpttrace.so
     fi
   }
 

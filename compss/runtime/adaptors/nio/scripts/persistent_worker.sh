@@ -32,6 +32,7 @@
   # Normal start -----------------------------------------------------
   # Setup
   setup_environment
+  setup_extrae
   setup_jvm
 
   # Launch the Worker JVM

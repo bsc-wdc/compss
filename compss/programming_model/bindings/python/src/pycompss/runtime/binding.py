@@ -589,94 +589,10 @@ def process_task(f, module_name, class_name, ftype, f_self, f_parameters, f_retu
         if ftype == FunctionType.CLASS_METHOD:
             first_par = 1  # skip class parameter
 
-    # ADAPTATION TO NEW PARAMETER FORMAT                          # XXXX
-    # print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXX")                        # XXXX
-    # print("spec_args")                                            # XXXX
-    # print(spec_args)                                              # XXXX
-    # print("args")                                                 # XXXX
-    # print(args)                                                   # XXXX
-    # print("self_kwargs")                                          # XXXX
-    # print(self_kwargs)                                            # XXXX
-    # print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXX")                        # XXXX
-    # print("f_self")                                             # XXXX
-    # print(f_self)                                               # XXXX
-    if spec_args[-1] == 'compss_retvalue':                        # XXXX
-        if 'compss_retvalue' in self_kwargs:                      # XXXX
-            f_returns = OrderedDict()                             # XXXX
-            # Simple return                                       # XXXX
-            f_returns['compss_retvalue'] = {}                     # XXXX
-            f_returns['compss_retvalue']['Value'] = self_kwargs['returns']  # XXXX
-            f_returns['compss_retvalue']['Parameter'] = self_kwargs['compss_retvalue']  # XXXX
-        elif 'compss_retvalue0' in self_kwargs:                   # XXXX
-            # multiple returns inferred                           # XXXX
-            f_returns = OrderedDict()                             # XXXX
-            # multi return                                        # XXXX
-            ks = list(self_kwargs.keys())                         # XXXX
-            rets = []                                             # XXXX
-            for k in ks:                                          # XXXX
-                if k.startswith('compss_retvalue'):               # XXXX
-                    rets.append(k)                                # XXXX
-            rets.sort()                                           # XXXX
-            if isinstance(self_kwargs['returns'], int):           # XXXX
-                i = 0                                             # XXXX
-                for r in rets:                                    # XXXX
-                    f_returns[r] = {}                             # XXXX
-                    f_returns[r]['Value'] = None                  # XXXX
-                    f_returns[r]['Parameter'] = self_kwargs[r]    # XXXX
-                    i += 1                                        # XXXX
-            else:                                                 # XXXX
-                i = 0                                             # XXXX
-                for r in rets:                                         # XXXX
-                    f_returns[r] = {}                                  # XXXX
-                    f_returns[r]['Value'] = self_kwargs['returns'][i]  # XXXX
-                    f_returns[r]['Parameter'] = self_kwargs[r]         # XXXX
-                    i += 1                                        # XXXX
-        i = 0                                                     # XXXX
-        for p in spec_args[:-1]:                                  # XXXX
-            f_parameters[p] = {}                                  # XXXX
-            try:                                                  # XXXX
-                f_parameters[p]['Parameter'] = self_kwargs[p]     # XXXX
-                f_parameters[p]['Value'] = args[i]                # XXXX
-            except:                                               # XXXX
-                f_parameters[p]['Parameter'] = Parameter()        # XXXX
-                f_parameters[p]['Value'] = args[i]                # XXXX
-            i += 1                                                # XXXX
-        # Clean elements that are not defined in spec_args        # XXXX
-        for p in f_parameters:                                    # XXXX
-            if p not in spec_args[:-1]:                           # XXXX
-                f_parameters.pop(p)                               # XXXX
-    else:                                                         # XXXX
-        # No returns                                              # XXXX
-        f_returns = OrderedDict()                                 # XXXX
-        i = 0                                                     # XXXX
-        for p in spec_args:                                       # XXXX
-            f_parameters[p] = {}                                  # XXXX
-            try:                                                  # XXXX
-                f_parameters[p]['Parameter'] = self_kwargs[p]     # XXXX
-                f_parameters[p]['Value'] = args[i]                # XXXX
-            except:                                               # XXXX
-                f_parameters[p]['Parameter'] = Parameter()        # XXXX
-                f_parameters[p]['Value'] = args[i]                # XXXX
-            i += 1                                                # XXXX
-        # Clean elements that are not defined in spec_args        # XXXX
-        for p in f_parameters:                                    # XXXX
-            if p not in spec_args:                                # XXXX
-                f_parameters.pop(p)                               # XXXX
-    kwargs = OrderedDict()                                        # XXXX
-    if '**kwargs' in f_parameters:                                # XXXX
-        kwargs['**kwargs'] = f_parameters.pop('**kwargs')         # XXXX
-    aargs = OrderedDict()                                         # XXXX
-    if '*args0' in f_parameters:                                  # XXXX
-        for i in f_parameters:                                    # XXXX
-            if i.startswith('*args'):                             # XXXX
-                aargs[i] = f_parameters.pop(i)                    # XXXX
-    f_parameters.update(aargs)                                    # XXXX
-    f_parameters.update(kwargs)                                   # XXXX
-    # print("f_parameters")                                         # XXXX
-    # print(f_parameters)                                           # XXXX
-    # print("f_returns")                                            # XXXX
-    # print(f_returns)                                              # XXXX
-    # print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXX")                        # XXXX
+    # PARAMETER ADAPTATION
+    f_self, f_parameters, f_returns = _parameter_adaptation_to_be_deleted(spec_args, args, self_kwargs, f_self, f_parameters, f_returns)
+    # TODO: REMOVE THIS IN PHASE 2
+    # TODO: REMOVE _old METHODS WHEN DOING CLEANUP IN PHASE 3
 
     fo = None
     if f_returns:
@@ -836,6 +752,98 @@ def process_task(f, module_name, class_name, ftype, f_self, f_parameters, f_retu
     # or as a task parameter (then the runtime will take care of the dependency.
     return fo
 
+
+def _parameter_adaptation_to_be_deleted(spec_args, args, self_kwargs, f_self, f_parameters, f_returns):
+    # ADAPTATION TO NEW PARAMETER FORMAT                            # XXXX
+    # print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXX")                        # XXXX
+    # print("spec_args")                                            # XXXX
+    # print(spec_args)                                              # XXXX
+    # print("args")                                                 # XXXX
+    # print(args)                                                   # XXXX
+    # print("self_kwargs")                                          # XXXX
+    # print(self_kwargs)                                            # XXXX
+    # print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXX")                        # XXXX
+    # print("f_self")                                               # XXXX
+    # print(f_self)                                                 # XXXX
+    if spec_args[-1] == 'compss_retvalue':                          # XXXX
+        if 'compss_retvalue' in self_kwargs:                        # XXXX
+            f_returns = OrderedDict()                               # XXXX
+            # Simple return                                         # XXXX
+            f_returns['compss_retvalue'] = {}                       # XXXX
+            f_returns['compss_retvalue']['Value'] = self_kwargs['returns']  # XXXX
+            f_returns['compss_retvalue']['Parameter'] = self_kwargs['compss_retvalue']  # XXXX
+        elif 'compss_retvalue0' in self_kwargs:                     # XXXX
+            # multiple returns inferred                             # XXXX
+            f_returns = OrderedDict()                               # XXXX
+            # multi return                                          # XXXX
+            ks = list(self_kwargs.keys())                           # XXXX
+            rets = []                                               # XXXX
+            for k in ks:                                            # XXXX
+                if k.startswith('compss_retvalue'):                 # XXXX
+                    rets.append(k)                                  # XXXX
+            rets.sort()                                             # XXXX
+            if isinstance(self_kwargs['returns'], int):             # XXXX
+                i = 0                                               # XXXX
+                for r in rets:                                      # XXXX
+                    f_returns[r] = {}                               # XXXX
+                    f_returns[r]['Value'] = None                    # XXXX
+                    f_returns[r]['Parameter'] = self_kwargs[r]      # XXXX
+                    i += 1                                          # XXXX
+            else:                                                   # XXXX
+                i = 0                                               # XXXX
+                for r in rets:                                      # XXXX
+                    f_returns[r] = {}                               # XXXX
+                    f_returns[r]['Value'] = self_kwargs['returns'][i]  # XXXX
+                    f_returns[r]['Parameter'] = self_kwargs[r]      # XXXX
+                    i += 1                                          # XXXX
+        i = 0                                                       # XXXX
+        for p in spec_args[:-1]:                                    # XXXX
+            f_parameters[p] = {}                                    # XXXX
+            try:                                                    # XXXX
+                f_parameters[p]['Parameter'] = self_kwargs[p]       # XXXX
+                f_parameters[p]['Value'] = args[i]                  # XXXX
+            except:                                                 # XXXX
+                f_parameters[p]['Parameter'] = Parameter()          # XXXX
+                f_parameters[p]['Value'] = args[i]                  # XXXX
+            i += 1                                                  # XXXX
+        # Clean elements that are not defined in spec_args          # XXXX
+        for p in f_parameters:                                      # XXXX
+            if p not in spec_args[:-1]:                             # XXXX
+                f_parameters.pop(p)                                 # XXXX
+    else:                                                           # XXXX
+        # No returns                                                # XXXX
+        f_returns = OrderedDict()                                   # XXXX
+        i = 0                                                       # XXXX
+        for p in spec_args:                                         # XXXX
+            f_parameters[p] = {}                                    # XXXX
+            try:                                                    # XXXX
+                f_parameters[p]['Parameter'] = self_kwargs[p]       # XXXX
+                f_parameters[p]['Value'] = args[i]                  # XXXX
+            except:                                                 # XXXX
+                f_parameters[p]['Parameter'] = Parameter()          # XXXX
+                f_parameters[p]['Value'] = args[i]                  # XXXX
+            i += 1                                                  # XXXX
+        # Clean elements that are not defined in spec_args          # XXXX
+        for p in f_parameters:                                      # XXXX
+            if p not in spec_args:                                  # XXXX
+                f_parameters.pop(p)                                 # XXXX
+    kwargs = OrderedDict()                                          # XXXX
+    if '**kwargs' in f_parameters:                                  # XXXX
+        kwargs['**kwargs'] = f_parameters.pop('**kwargs')           # XXXX
+    aargs = OrderedDict()                                           # XXXX
+    if '*args0' in f_parameters:                                    # XXXX
+        for i in f_parameters:                                      # XXXX
+            if i.startswith('*args'):                               # XXXX
+                aargs[i] = f_parameters.pop(i)                      # XXXX
+    f_parameters.update(aargs)                                      # XXXX
+    f_parameters.update(kwargs)                                     # XXXX
+    # print("f_parameters")                                         # XXXX
+    # print(f_parameters)                                           # XXXX
+    # print("f_returns")                                            # XXXX
+    # print(f_returns)                                              # XXXX
+    # print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXX")                        # XXXX
+
+    return f_self, f_parameters, f_returns
 
 def get_compss_mode(pymode):
     """

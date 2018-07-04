@@ -42,7 +42,8 @@ extern "C" void GS_ExecuteTask(long appId,
                                char *method_name,
                                int priority,
                                int has_target,
-                               int num_params,
+                               int num_returns,
+			       int num_params,
                                void **params
                               );
 extern "C" void GS_ExecuteTaskNew(long appId,

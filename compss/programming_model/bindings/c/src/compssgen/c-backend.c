@@ -1075,6 +1075,7 @@ static void generate_execute_task_call(FILE *outFile, function *func) {
     char *hasTarget = strdup("false");
 
     int arg_count = func->argument_count;
+    int num_returns = 0;
 
     if ( func->classname != NULL ) {
         class_name = func->classname;
@@ -1086,10 +1087,11 @@ static void generate_execute_task_call(FILE *outFile, function *func) {
 
     if ( func->return_type != void_dt ) {
         arg_count++;
+	num_returns = 1;
     }
 
     fprintf(outFile, "\t char *method_name = strdup(\"%s\");\n", func->name);
-    fprintf(outFile, "\t GS_ExecuteTask(0L, \"%s\", method_name, 0, %s, %d, (void**)arrayObjs);\n", class_name, hasTarget, arg_count);
+    fprintf(outFile, "\t GS_ExecuteTask(0L, \"%s\", method_name, 0, %s, %d, %d, (void**)arrayObjs);\n", class_name, hasTarget, num_returns, arg_count);
     fprintf(outFile, "\t debug_printf(\"[   BINDING]  -  @%%s  -  Task submited in the runtime\\n\", method_name);\n");
     fprintf(outFile, "\n");
 

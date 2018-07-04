@@ -634,10 +634,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
         // Process the parameters
         Parameter[] pars = processParameters(parameterCount, parameters);
-        boolean hasReturn = hasReturn(pars);
+        
+        boolean hasReturn = false;
         if (numReturns == null) {
+        	hasReturn  = hasReturn(pars);
             numReturns = hasReturn ? 1 : 0;
+        }else if (numReturns>0) {
+        	hasReturn=true;
         }
+        	
 
         // Create the signature if it is not created
         if (!hasSignature) {

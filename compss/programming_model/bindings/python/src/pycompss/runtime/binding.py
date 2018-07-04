@@ -550,9 +550,9 @@ def synchronize(obj, mode):
     return new_obj
 
 
-def process_task(f, module_name, class_name, ftype, has_return, spec_args,
-                 args, self_kwargs, num_nodes, replicated,
-                 distributed):
+def process_task(f, module_name, class_name, ftype, f_self, f_parameters, f_returns,
+                 has_return, spec_args, args, self_kwargs,
+                 num_nodes, replicated, distributed):
     """
     Function that submits a task to the runtime.
 
@@ -560,10 +560,15 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args,
     :param module_name: Name of the module containing the function/method (including packages, if any)
     :param class_name: Name of the class (if method)
     :param ftype: Function type
-    :param has_return: Boolean indicating if the functions has a return value or not
-    :param spec_args: Names of the task arguments
-    :param args: Unnamed arguments
-    :param self_kwargs: Decorator arguments
+    :param f_self: Function self Parameter (if exists)
+    :param f_parameters: Function parameters (dictionary {'param1':Parameter()}
+    :param f_returns: Function returns (dictionary {'compss_retvalueX':Parameter()}
+
+    :param has_return: Boolean indicating if the functions has a return value or not # TODO: REMOVE
+    :param spec_args: Names of the task arguments                                    # TODO: REMOVE
+    :param args: Unnamed arguments                                                   # TODO: REMOVE
+    :param self_kwargs: Decorator arguments                                          # TODO: REMOVE
+
     :param num_nodes: Number of nodes that the task must use
     :param replicated: Boolean indicating if the task must be replicated or not
     :param distributed: Boolean indicating if the task must be distributed or not
@@ -572,6 +577,8 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args,
 
     if __debug__:
         logger.debug('TASK: %s of type %s, in module %s, in class %s' % (f.__name__, ftype, module_name, class_name))
+
+    app_id = 0
 
     # Check if the function is an instance method or a class method.
     first_par = 0
@@ -582,13 +589,112 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args,
         if ftype == FunctionType.CLASS_METHOD:
             first_par = 1  # skip class parameter
 
-    fu = None
-    file_names = {}
-    if has_return:
-        fu, file_names, self_kwargs, spec_args = _build_return_objects(f, self_kwargs, spec_args)
-    num_returns = len(file_names)
+    # ADAPTATION TO NEW PARAMETER FORMAT                          # XXXX
+    # print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXX")                        # XXXX
+    # print("spec_args")                                            # XXXX
+    # print(spec_args)                                              # XXXX
+    # print("args")                                                 # XXXX
+    # print(args)                                                   # XXXX
+    # print("self_kwargs")                                          # XXXX
+    # print(self_kwargs)                                            # XXXX
+    # print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXX")                        # XXXX
+    # print("f_self")                                             # XXXX
+    # print(f_self)                                               # XXXX
+    if spec_args[-1] == 'compss_retvalue':                        # XXXX
+        if 'compss_retvalue' in self_kwargs:                      # XXXX
+            f_returns = OrderedDict()                             # XXXX
+            # Simple return                                       # XXXX
+            f_returns['compss_retvalue'] = {}                     # XXXX
+            f_returns['compss_retvalue']['Value'] = self_kwargs['returns']  # XXXX
+            f_returns['compss_retvalue']['Parameter'] = self_kwargs['compss_retvalue']  # XXXX
+        elif 'compss_retvalue0' in self_kwargs:                   # XXXX
+            # multiple returns inferred                           # XXXX
+            f_returns = OrderedDict()                             # XXXX
+            # multi return                                        # XXXX
+            ks = list(self_kwargs.keys())                         # XXXX
+            rets = []                                             # XXXX
+            for k in ks:                                          # XXXX
+                if k.startswith('compss_retvalue'):               # XXXX
+                    rets.append(k)                                # XXXX
+            rets.sort()                                           # XXXX
+            if isinstance(self_kwargs['returns'], int):           # XXXX
+                i = 0                                             # XXXX
+                for r in rets:                                    # XXXX
+                    f_returns[r] = {}                             # XXXX
+                    f_returns[r]['Value'] = None                  # XXXX
+                    f_returns[r]['Parameter'] = self_kwargs[r]    # XXXX
+                    i += 1                                        # XXXX
+            else:                                                 # XXXX
+                i = 0                                             # XXXX
+                for r in rets:                                         # XXXX
+                    f_returns[r] = {}                                  # XXXX
+                    f_returns[r]['Value'] = self_kwargs['returns'][i]  # XXXX
+                    f_returns[r]['Parameter'] = self_kwargs[r]         # XXXX
+                    i += 1                                        # XXXX
+        i = 0                                                     # XXXX
+        for p in spec_args[:-1]:                                  # XXXX
+            f_parameters[p] = {}                                  # XXXX
+            try:                                                  # XXXX
+                f_parameters[p]['Parameter'] = self_kwargs[p]     # XXXX
+                f_parameters[p]['Value'] = args[i]                # XXXX
+            except:                                               # XXXX
+                f_parameters[p]['Parameter'] = Parameter()        # XXXX
+                f_parameters[p]['Value'] = args[i]                # XXXX
+            i += 1                                                # XXXX
+        # Clean elements that are not defined in spec_args        # XXXX
+        for p in f_parameters:                                    # XXXX
+            if p not in spec_args[:-1]:                           # XXXX
+                f_parameters.pop(p)                               # XXXX
+    else:                                                         # XXXX
+        # No returns                                              # XXXX
+        f_returns = OrderedDict()                                 # XXXX
+        i = 0                                                     # XXXX
+        for p in spec_args:                                       # XXXX
+            f_parameters[p] = {}                                  # XXXX
+            try:                                                  # XXXX
+                f_parameters[p]['Parameter'] = self_kwargs[p]     # XXXX
+                f_parameters[p]['Value'] = args[i]                # XXXX
+            except:                                               # XXXX
+                f_parameters[p]['Parameter'] = Parameter()        # XXXX
+                f_parameters[p]['Value'] = args[i]                # XXXX
+            i += 1                                                # XXXX
+        # Clean elements that are not defined in spec_args        # XXXX
+        for p in f_parameters:                                    # XXXX
+            if p not in spec_args:                                # XXXX
+                f_parameters.pop(p)                               # XXXX
+    kwargs = OrderedDict()                                        # XXXX
+    if '**kwargs' in f_parameters:                                # XXXX
+        kwargs['**kwargs'] = f_parameters.pop('**kwargs')         # XXXX
+    aargs = OrderedDict()                                         # XXXX
+    if '*args0' in f_parameters:                                  # XXXX
+        for i in f_parameters:                                    # XXXX
+            if i.startswith('*args'):                             # XXXX
+                aargs[i] = f_parameters.pop(i)                    # XXXX
+    f_parameters.update(aargs)                                    # XXXX
+    f_parameters.update(kwargs)                                   # XXXX
+    # print("f_parameters")                                         # XXXX
+    # print(f_parameters)                                           # XXXX
+    # print("f_returns")                                            # XXXX
+    # print(f_returns)                                              # XXXX
+    # print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXX")                        # XXXX
 
-    app_id = 0
+    fo = None
+    if f_returns:
+        # Discover hidden returns
+        # Check if the f_returns has str/int/... in order to build a complete f_returns dictionary
+        _discover_hidden_returns(f_returns)
+        # print("f_returns")                                        # XXXX
+        # print(f_returns)                                          # XXXX
+        # print("YYYYYYYYYYYYYYYYYYYYYYYYYYYYY")                    # XXXX
+
+        fo = _build_return_objects(f_returns)
+        # print("f_returns")                                        # XXXX
+        # print(f_returns)                                          # XXXX
+        # print("fo")                                               # XXXX
+        # print(fo)                                                 # XXXX
+        # print("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ")                    # XXXX
+
+    num_returns = len(f_returns)
 
     # Get path
     if class_name == '':
@@ -596,20 +702,59 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args,
     else:
         path = module_name + '.' + class_name
 
-    num_pars = len(spec_args)
-
     # Infer COMPSs types from real types, except for files
-    new_self_kwargs, is_future = _infer_types_and_serialize_objects(spec_args, first_par, num_pars, file_names,
-                                                                    self_kwargs, args)
+    _infer_types_and_serialize_objects(f_parameters, self_kwargs)
+
+    # print("f_parameters")                                         # XXXX
+    # print(f_parameters)                                           # XXXX
+    # for p in f_parameters:                                        # XXXX
+    #     print(f_parameters[p]['Parameter'].value)                 # XXXX
+    #     print(f_parameters[p]['Value'])                           # XXXX
+    #     print(f_parameters[p]['Parameter'].type)                  # XXXX
+    #     print(f_parameters[p]['Type'])                            # XXXX
+    # print("WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW")           # XXXX
 
     # Build values and COMPSs types and directions
     values, compss_types, compss_directions, compss_streams, compss_prefixes = _build_values_types_directions(ftype,
-                                                                                                              first_par,
-                                                                                                              num_pars,
-                                                                                                              spec_args,
-                                                                                                              new_self_kwargs,
-                                                                                                              is_future,
+                                                                                                              f_parameters,
+                                                                                                              f_returns,
                                                                                                               f.__code_strings__)
+
+
+    # fu = None
+    # file_names = {}
+    # if has_return:
+    #     fu, file_names, self_kwargs, spec_args = _build_return_objects_old(f, self_kwargs, spec_args)
+    # num_returns = len(file_names)
+    #
+    # app_id = 0
+    #
+    # # Get path
+    # if class_name == '':
+    #     path = module_name
+    # else:
+    #     path = module_name + '.' + class_name
+    #
+    # num_pars = len(spec_args)
+    #
+    # # Infer COMPSs types from real types, except for files
+    # new_self_kwargs, is_future = _infer_types_and_serialize_objects_old(spec_args,
+    #                                                                 first_par,
+    #                                                                 num_pars,
+    #                                                                 file_names,
+    #                                                                 self_kwargs,
+    #                                                                 args)
+    #
+    #
+    #
+    # # Build values and COMPSs types and directions
+    # _values, _compss_types, _compss_directions, _compss_streams, _compss_prefixes = _build_values_types_directions_old(ftype,
+    #                                                                                                           first_par,
+    #                                                                                                           num_pars,
+    #                                                                                                           spec_args,
+    #                                                                                                           new_self_kwargs,
+    #                                                                                                           is_future,
+    #                                                                                                           f.__code_strings__)
 
     # Get priority
     has_priority = self_kwargs['priority']
@@ -689,7 +834,7 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args,
     # Return the future object/s corresponding to the task
     # This object will substitute the user expected return from the task and will be used later for synchronization
     # or as a task parameter (then the runtime will take care of the dependency.
-    return fu
+    return fo
 
 
 def get_compss_mode(pymode):
@@ -712,7 +857,150 @@ def get_compss_mode(pymode):
 # ####################### AUXILIARY FUNCTIONS ##################################
 # ##############################################################################
 
-def _build_return_objects(f, self_kwargs, spec_args):
+def _discover_hidden_returns(f_returns):
+    """
+    Discover hidden returns.
+    For example, if the user defines returns=2 or returns="2"
+
+    WARNING: Updates f_returns dictionary
+
+    :param f_returns: Returns dictionary
+    """
+
+    # Only one return defined.
+    # May hide a "int", int or type.
+    if len(f_returns) == 1:
+        hidden_multireturn = False
+        ret_value = f_returns['compss_retvalue']['Value']
+        if isinstance(ret_value, str):
+            # Check if the returns statement contains an string with an integer.
+            # In such case, build a list of objects of value length and set it in ret_type.
+            num_rets = int(ret_value)
+            # Hidden multireturn with returns="int"
+            hidden_multireturn = True
+            if num_rets > 1:
+                ret_v = [object for _ in range(num_rets)]
+            else:
+                ret_v = object
+        elif isinstance(ret_value, int):
+            # Check if the returns statement contains an integer value.
+            # In such case, build a list of objects of value length and set it in ret_type.
+            num_rets = ret_value
+            # Assume all as objects (generic type).
+            # It will not work properly when using user defined classes, since
+            # the future object built will not be of the same type as expected
+            # and may cause "AttributeError" since the 'object' does not have
+            # the attributes of the class
+            # Hidden multireturn with returns=int
+            hidden_multireturn = True
+            if num_rets > 1:
+                ret_v = [object for _ in range(num_rets)]
+            else:
+                ret_v = object
+        elif isinstance(ret_value, list) or isinstance(ret_value, tuple):
+            # Check if returns=[] or returns=()
+            hidden_multireturn = True
+            num_rets = len(ret_value)
+            ret_v = f_returns['compss_retvalue']['Value']
+        else:
+            ret_v = ret_value
+
+        # Update f_returns
+        if hidden_multireturn:
+            if num_rets > 1:
+                parameter = f_returns['compss_retvalue']['Parameter']
+                f_returns.pop('compss_retvalue')
+                num_ret = 0
+                for i in ret_v:
+                    f_returns['compss_retvalue' + str(num_ret)] = {}
+                    f_returns['compss_retvalue' + str(num_ret)]['Value'] = i
+                    if isinstance(parameter, list):
+                        # when returns=[..., ..., etc.] use the specific parameter
+                        f_returns['compss_retvalue' + str(num_ret)]['Parameter'] = parameter[num_ret]
+                    else:
+                        # otherwise all are the kept the same
+                        f_returns['compss_retvalue' + str(num_ret)]['Parameter'] = parameter
+                    num_ret += 1
+            else:
+                f_returns['compss_retvalue']['Value'] = ret_v
+
+
+def _build_return_objects(f_returns):
+    """
+    Build the return object from the f_returns dictionary and include their filename in f_returns.
+
+    WARNING: Updates f_returns dictionary
+
+    :param f_returns: Dictionary which contains the return objects and Parameters.
+    :return: future object/s
+    """
+
+    fo = None
+    if len(f_returns) == 0:
+        # No return
+        return fo
+    elif len(f_returns) == 1:
+        # Simple return
+        if __debug__:
+            logger.debug('Simple object return found.')
+        # Build the appropriate future object
+        ret_value = f_returns['compss_retvalue']['Value']
+        if ret_value in python_to_compss:  # primitives, string, dic, list, tuple
+            fo = Future()
+        elif inspect.isclass(ret_value):
+            # For objects:
+            # type of future has to be specified to allow o = func; o.func
+            try:
+                fo = ret_value()
+            except TypeError:
+                if __debug__:
+                    logger.warning("Type {0} does not have an empty constructor, building generic future object".format(ret_value))
+                fo = Future()
+        else:
+            fo = Future()  # modules, functions, methods
+        obj_id = get_object_id(fo, True)
+        if __debug__:
+            logger.debug("Setting object %s of %s as a future" % (obj_id, type(fo)))
+        ret_filename = temp_dir + temp_obj_prefix + str(obj_id)
+        objid_to_filename[obj_id] = ret_filename
+        pending_to_synchronize[obj_id] = fo
+        f_returns['compss_retvalue']['FileName'] = ret_filename
+        f_returns['compss_retvalue']['Parameter'] = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT, p_prefix="#")
+    else:
+        # Multireturn
+        fo = []
+        if __debug__:
+            logger.debug('Multiple objects return found.')
+        for k, v in f_returns.items():
+            # Build the appropriate future object
+            if v['Value'] in python_to_compss:  # primitives, string, dic, list, tuple
+                foe = Future()
+            elif inspect.isclass(v['Value']):
+                # For objects:
+                # type of future has to be specified to allow o = func; o.func
+                try:
+                    foe = v['Value']()
+                except TypeError:
+                    if __debug__:
+                        logger.warning("Type {0} does not have an empty constructor, building generic future object".format(v['Value']))
+                    foe = Future()
+            else:
+                foe = Future()  # modules, functions, methods
+            fo.append(foe)
+            obj_id = get_object_id(foe, True)
+            if __debug__:
+                logger.debug("Setting object %s of %s as a future" % (obj_id, type(foe)))
+            ret_filename = temp_dir + temp_obj_prefix + str(obj_id)
+            objid_to_filename[obj_id] = ret_filename
+            pending_to_synchronize[obj_id] = foe
+            f_returns[k]['FileName'] = ret_filename
+            # Once determined the filename where the returns are going to
+            # be stored, create a new Parameter object for each return object
+            f_returns[k]['Parameter'] = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT, p_prefix="#")
+    return fo
+
+
+def _build_return_objects_old(f, self_kwargs, spec_args):
     """
     Build the return object and updates the self_kwargs and spec_args
     structures (as tuple in the multireturn case).
@@ -827,7 +1115,93 @@ def _build_return_objects(f, self_kwargs, spec_args):
     return fu, file_names, self_kwargs, spec_args
 
 
-def _infer_types_and_serialize_objects(spec_args, first_par, num_pars, file_names, self_kwargs, args):
+def _infer_types_and_serialize_objects(f_parameters, self_kwargs):
+    """
+    Infer COMPSs types for the task parameters and serialize them.
+
+    WARNING: Updates f_parameters dictionary
+
+    :param f_parameters: <Dictionary> - Function parameters
+    :param self_kwargs: <Dictionary> - Decorator arguments
+    :return: Tuple of self_kwargs updated and a dictionary containing if the objects are future elements.
+    """
+
+    max_obj_arg_size = 320000
+
+    for k in f_parameters:
+        # Check user annotations concerning this argument
+        p = self_kwargs.get(k)
+        if p is None:
+            # The user has not provided any information
+            if __debug__:
+                logger.debug("Adding default decoration for param %s" % k)
+            p = Parameter()
+        elif type(p) is dict:
+            # The user has provided some information about the parameter within the @task parameter
+            if __debug__:
+                logger.debug("Checking decoration for param %s" % k)
+            p = _from_dict_to_parameter(p)
+
+        # Add value to p
+        p.value = f_parameters[k]['Value']
+
+        # Infer argument value
+        if 'self' in f_parameters:
+            # It is a class function
+            if k == 'self':
+                # Check if self is a persistent object and set its type if it really is.
+                if is_psco(p.value):
+                    p.type = TYPE.EXTERNAL_PSCO
+
+        # Update the parameter type if changed between task calls
+        # Respect p.type if none to be inferred later.
+        # Respect p.type == TYPE.FILE since may be updated wrongly to str.
+        val_type = type(p.value)
+        new_type = python_to_compss.get(val_type)
+        if p.type is not None and p.type != TYPE.FILE and p.type != new_type:
+            p.type = new_type
+
+        # Update future object list
+        is_future = (val_type == Future)
+        f_parameters[k]['isFuture'] = is_future
+
+        # Log parameter information
+        if __debug__:
+            logger.debug('Parameter ' + k)
+            logger.debug('\t- Value type: ' + str(val_type))
+            logger.debug('\t- User-defined type: ' + str(p.type))
+
+        # Infer type if necessary
+        if p.type is None:
+            if __debug__:
+                logger.debug('Inferring type due to None pType.')
+            p.type = python_to_compss.get(val_type)
+            if p.type is None:
+                if is_psco(p.value):
+                    p.type = TYPE.EXTERNAL_PSCO
+                else:
+                    p.type = TYPE.OBJECT
+            if __debug__:
+                logger.debug('\t- Inferred type: %d' % p.type)
+
+        # Convert small objects to string if object_conversion enabled
+        # Check if the object is small in order not to serialize it.
+        if object_conversion:
+            p, written_bytes = _convert_object_to_string(p, is_future, max_obj_arg_size, policy='objectSize')
+            max_obj_arg_size -= written_bytes
+
+        # Serialize objects into files
+        p = _serialize_object_into_file(p, is_future)
+
+        # Update k parameter's Parameter object
+        f_parameters[k]['Parameter'] = p
+        f_parameters[k]['Type'] = p.type
+
+        if __debug__:
+            logger.debug('Final type for parameter %s: %d' % (k, p.type))
+
+
+def _infer_types_and_serialize_objects_old(spec_args, first_par, num_pars, file_names, self_kwargs, args):
     """
     Infer COMPSs types for the task parameters and serialize them.
 
@@ -924,7 +1298,126 @@ def _infer_types_and_serialize_objects(spec_args, first_par, num_pars, file_name
     return self_kwargs, is_future
 
 
-def _build_values_types_directions(ftype, first_par, num_pars, spec_args, deco_kwargs, is_future, code_strings):
+def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings):
+    """
+    Build the values list, the values types list and the values directions list.
+
+    :param ftype: task function type. If it is an instance method, the first parameter will be put at the end.
+    :param f_parameters: <Dictionary> Function parameters
+    :param f_returns: <Dictionary> - Function returns
+    :param code_strings: <Boolean> Code strings or not
+    :return: <List,List,List,List,List> List of values, their types, their directions, their streams and their prefixes
+    """
+
+    # print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")  # XXXX
+    # print("ftype")                                  # XXXX
+    # print(ftype)                                    # XXXX
+    # print("f_parameters")                           # XXXX
+    # print(f_parameters)                             # XXXX
+    # print("f_returns")                              # XXXX
+    # print(f_returns)                                # XXXX
+    # print("code_strings")                           # XXXX
+    # print(code_strings)                             # XXXX
+    # print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")  # XXXX
+
+    values = []
+    compss_types = []
+    compss_directions = []
+    compss_streams = []
+    compss_prefixes = []
+
+    # Build the range of elements
+    if ftype == FunctionType.INSTANCE_METHOD or ftype == FunctionType.CLASS_METHOD:
+        ra = list(f_parameters.keys())
+        slf = ra.pop(0)
+    else:
+        ra = list(f_parameters.keys())
+
+    # Fill the values, compss_types, compss_directions, compss_streams and compss_prefixes from function parameters
+    for i in ra:
+        val, typ, direc, st, pre = _process_parameter(f_parameters[i]['Parameter'],
+                                                      f_parameters[i]['Parameter'].value,
+                                                      f_parameters[i]['isFuture'],
+                                                      code_strings)
+        values.append(val)
+        compss_types.append(typ)
+        compss_directions.append(direc)
+        compss_streams.append(st)
+        compss_prefixes.append(pre)
+
+    # Fill the values, compss_types, compss_directions, compss_streams and compss_prefixes from function returns
+    for r in f_returns:
+        p = f_returns[r]['Parameter']
+        p.value = f_returns[r]['FileName']
+        values.append(p.value)
+        compss_types.append(p.type)
+        compss_directions.append(p.direction)
+        compss_streams.append(p.stream)
+        compss_prefixes.append(p.prefix)
+
+    if ftype == FunctionType.INSTANCE_METHOD:
+        # Fill the values, compss_types, compss_directions, compss_streams and compss_prefixes from self
+        # self is always an object
+        val, typ, direc, st, pre = _process_parameter(f_parameters[slf]['Parameter'],
+                                                      f_parameters[slf]['Parameter'].value,
+                                                      f_parameters[slf]['isFuture'],
+                                                      code_strings)
+        values.append(val)
+        compss_types.append(typ)
+        compss_directions.append(direc)
+        compss_streams.append(st)
+        compss_prefixes.append(pre)
+
+    # print("-P-P-P-P-P-P-P-P-P-P-P-P-P-P-P-P-P-P")  # XXXX
+    # print("values")                                # XXXX
+    # print(values)                                  # XXXX
+    # print("compss_types")                          # XXXX
+    # print(compss_types)                            # XXXX
+    # print("compss_directions")                     # XXXX
+    # print(compss_directions)                       # XXXX
+    # print("compss_streams")                        # XXXX
+    # print(compss_streams)                          # XXXX
+    # print("compss_prefixes")                       # XXXX
+    # print(compss_prefixes)                         # XXXX
+    # print("-P-P-P-P-P-P-P-P-P-P-P-P-P-P-P-P-P-P")  # XXXX
+
+    return values, compss_types, compss_directions, compss_streams, compss_prefixes
+
+
+def _process_parameter(parameter, value, is_future, code_strings):
+    """
+    Extract the information of a single parameter
+    
+    :param parameter: Parameter object
+    :param value: Object value (the real object if primitive, the filename if object)=
+    :param is_future: <Boolean> Is future
+    :param code_strings: <Boolean> Encode strings
+    :return: value, type, direction stream and prefix of the given parameter
+    """
+
+    p = parameter
+    p.value = value
+    if p.type == TYPE.STRING and not is_future and code_strings:
+        # Encode the string in order to preserve the source
+        # Checks that it is not a future (which is indicated with a path)
+        # Considers multiple spaces between words
+        p.value = base64.b64encode(p.value.encode()).decode()
+        if len(p.value) == 0:
+            # Empty string - use escape string to avoid padding
+            # Checked and substituted by empty string in the worker.py and piper_worker.py
+            p.value = base64.b64encode(EMPTY_STRING_KEY.encode()).decode()
+    value = p.value
+    if p.type == TYPE.OBJECT or is_future:
+        typ = TYPE.FILE
+    else:
+        typ = p.type
+    direction = p.direction
+    stream = p.stream
+    prefix = p.prefix
+    return value, typ, direction, stream, prefix
+
+
+def _build_values_types_directions_old(ftype, first_par, num_pars, spec_args, deco_kwargs, is_future, code_strings):
     """
     Build the values list, the values types list and the values directions list.
 
@@ -937,6 +1430,23 @@ def _build_values_types_directions(ftype, first_par, num_pars, spec_args, deco_k
     :param code_strings: <Boolean> Code strings or not
     :return: <List,List,List> List of values, their types and their directions
     """
+
+    # print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")        # XXXX
+    # print("ftype")                                     # XXXX
+    # print(ftype)                                       # XXXX
+    # print("first_par")                                 # XXXX
+    # print(first_par)                                   # XXXX
+    # print("num_pars")                                  # XXXX
+    # print(num_pars)                                    # XXXX
+    # print("spec_args")                                 # XXXX
+    # print(spec_args)                                   # XXXX
+    # print("deco_kwargs")                               # XXXX
+    # print(deco_kwargs)                                 # XXXX
+    # print("is_future")                                 # XXXX
+    # print(is_future)                                   # XXXX
+    # print("code_strings")                              # XXXX
+    # print(code_strings)                                # XXXX
+    # print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")        # XXXX
 
     values = []
     compss_types = []
@@ -977,6 +1487,19 @@ def _build_values_types_directions(ftype, first_par, num_pars, spec_args, deco_k
         compss_directions.append(p.direction)
         compss_streams.append(p.stream)
         compss_prefixes.append(p.prefix)
+
+    # print("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP")  # XXXX
+    # print("values")                             # XXXX
+    # print(values)                               # XXXX
+    # print("compss_types")                       # XXXX
+    # print(compss_types)                         # XXXX
+    # print("compss_directions")                  # XXXX
+    # print(compss_directions)                    # XXXX
+    # print("compss_streams")                     # XXXX
+    # print(compss_streams)                       # XXXX
+    # print("compss_prefixes")                    # XXXX
+    # print(compss_prefixes)                      # XXXX
+    # print("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP")  # XXXX
 
     return values, compss_types, compss_directions, compss_streams, compss_prefixes
 
@@ -1233,19 +1756,19 @@ def _turn_into_file(p):
     :param p: Wrapper of the object to turn into file
     :return:
     """
-    '''
-    print('XXXXXXXXXXXXXXXXX')
-    print('p           : ', p)
-    print('p.value     : ', p.value)
-    print('p.type      : ', p.type)
-    print('p.direction : ', p.direction)
-    print('XXXXXXXXXXXXXXXXX')
-    if p.direction == DIRECTION.OUT:
-        # If the parameter is out, infer the type and create an empty instance
-        # of the same type as the original parameter:
-        t = type(p.value)
-        p.value = t()
-    '''
+
+    # print('XXXXXXXXXXXXXXXXX')
+    # print('p           : ', p)
+    # print('p.value     : ', p.value)
+    # print('p.type      : ', p.type)
+    # print('p.direction : ', p.direction)
+    # print('XXXXXXXXXXXXXXXXX')
+    # if p.direction == DIRECTION.OUT:
+    #     # If the parameter is out, infer the type and create an empty instance
+    #     # of the same type as the original parameter:
+    #     t = type(p.value)
+    #     p.value = t()
+
     obj_id = get_object_id(p.value, True)
     file_name = objid_to_filename.get(obj_id)
     if file_name is None:

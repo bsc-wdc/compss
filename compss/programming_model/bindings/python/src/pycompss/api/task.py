@@ -29,6 +29,7 @@ import os
 import logging
 import ast
 import copy
+from collections import OrderedDict
 from functools import wraps
 from pycompss.runtime.commons import IS_PYTHON3
 
@@ -137,11 +138,14 @@ class Task(object):
         # Set default variables
         self.is_instance = False
         self.is_classmethod = False
+        self.self = None
         self.has_varargs = False
         self.has_keywords = False
         self.has_defaults = False
+        self.parameters = OrderedDict()
         self.has_return = False
         self.has_multireturn = False
+        self.returns = OrderedDict()
         self.is_replicated = False
         self.is_distributed = False
 
@@ -171,6 +175,7 @@ class Task(object):
         if self.is_instance or self.is_classmethod:
             self.kwargs['self'] = Parameter(p_type=TYPE.OBJECT,
                                             p_direction=direction)
+            self.self = Parameter(p_type=TYPE.OBJECT, p_direction=direction)
 
         # Step 3.- Check if it has varargs (contains *args?)
         # Check if contains *args
@@ -649,6 +654,8 @@ class Task(object):
                 total_rets = len(args) - num_return
                 rets = args[total_rets:]
                 i = 0
+                import sys
+                sys.stdout.flush()
                 for ret_filename in rets:
                     _output_objects.append((aux[i], ret_filename))
                     ret_filename = ret_filename.split(':')[-1]
@@ -866,6 +873,9 @@ class Task(object):
                           self.module_name,
                           class_name,
                           f_type,
+                          self.self,
+                          self.parameters,
+                          self.returns,
                           self.has_return,
                           spec_args,
                           values,

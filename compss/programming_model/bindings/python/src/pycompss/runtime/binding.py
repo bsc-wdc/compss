@@ -538,7 +538,7 @@ def synchronize(obj, mode):
 
 def process_task(f, module_name, class_name, ftype,
                  f_parameters, f_returns,
-                 self_kwargs,
+                 task_kwargs,
                  num_nodes, replicated, distributed):
     """
     Function that submits a task to the runtime.
@@ -549,7 +549,7 @@ def process_task(f, module_name, class_name, ftype,
     :param ftype: Function type
     :param f_parameters: Function parameters (dictionary {'param1':Parameter()}
     :param f_returns: Function returns (dictionary {'compss_retvalueX':Parameter()}
-    :param self_kwargs: Decorator arguments                                          # TODO: REMOVE ?
+    :param task_kwargs: Decorator arguments
     :param num_nodes: Number of nodes that the task must use
     :param replicated: Boolean indicating if the task must be replicated or not
     :param distributed: Boolean indicating if the task must be distributed or not
@@ -586,7 +586,7 @@ def process_task(f, module_name, class_name, ftype,
         path = module_name + '.' + class_name
 
     # Infer COMPSs types from real types, except for files
-    _infer_types_and_serialize_objects(f_parameters, self_kwargs)
+    _infer_types_and_serialize_objects(f_parameters, task_kwargs)
 
     # Build values and COMPSs types and directions
     values, compss_types, compss_directions, compss_streams, compss_prefixes = _build_values_types_directions(ftype,
@@ -595,7 +595,7 @@ def process_task(f, module_name, class_name, ftype,
                                                                                                               f.__code_strings__)
 
     # Get priority
-    has_priority = self_kwargs['priority']
+    has_priority = task_kwargs['priority']
 
     # Signature and other parameters:
     signature = '.'.join([path, f.__name__])
@@ -838,22 +838,22 @@ def _build_return_objects(f_returns):
     return fo
 
 
-def _infer_types_and_serialize_objects(f_parameters, self_kwargs):
+def _infer_types_and_serialize_objects(f_parameters, task_kwargs):
     """
     Infer COMPSs types for the task parameters and serialize them.
 
     WARNING: Updates f_parameters dictionary
 
     :param f_parameters: <Dictionary> - Function parameters
-    :param self_kwargs: <Dictionary> - Decorator arguments
-    :return: Tuple of self_kwargs updated and a dictionary containing if the objects are future elements.
+    :param task_kwargs: <Dictionary> - Decorator arguments
+    :return: Tuple of task_kwargs updated and a dictionary containing if the objects are future elements.
     """
 
     max_obj_arg_size = 320000
 
     for k in f_parameters:
         # Check user annotations concerning this argument
-        p = self_kwargs.get(k)
+        p = task_kwargs.get(k)
         if p is None:
             # The user has not provided any information
             if __debug__:

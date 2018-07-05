@@ -475,20 +475,6 @@ def register_ce(core_element):
         logger.debug('CE with signature %s registered.' % ce_signature)
 
 
-# QUESTION: What is the purpose of this getter? pending_to_synchronize is
-# global and from this precise module
-def get_pending_to_synchronize():
-    """
-    This method retrieves the dictionary that contains the objects used as
-    parameters for the tasks.
-    Used within the API in order to check if waiting for an INOUT object.
-
-    :return: Dictionary containing the ids of the objects used as task parameter.
-    """
-
-    return pending_to_synchronize
-
-
 def synchronize(obj, mode):
     """
     Synchronization function.

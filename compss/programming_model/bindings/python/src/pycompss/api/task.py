@@ -295,7 +295,7 @@ class Task(object):
                     is_nested = True
 
             # Prepare parameters and returns:
-            f_parameters, f_returns = self.__build_parameters_and_return_dicts__(f, args, kwargs)
+            f_parameters, f_returns = self.__build_parameters_and_return_dicts(f, args, kwargs)
 
             if not i_am_at_master() and (not is_nested):
                 # Task decorator worker body code.
@@ -534,7 +534,7 @@ class Task(object):
                 logger.debug("[@TASK] %s" % str(f.__to_register__))
             binding.register_ce(core_element)
 
-    def __build_parameters_and_return_dicts__(self, f, args, kwargs):
+    def __build_parameters_and_return_dicts(self, f, args, kwargs):
         """
         Build parameters and return dictionaries
 
@@ -941,7 +941,7 @@ class Task(object):
 
         from pycompss.runtime.binding import process_task
 
-        f_type, class_name = self.__check_function_type_and_class_name__(f, args)
+        f_type, class_name = self.__check_function_type_and_class_name(f, args)
 
         fo = process_task(f,
                           self.module_name,
@@ -958,7 +958,7 @@ class Task(object):
         # First calling the PyCOMPSs library and then C library (bindings-commons).
         return fo
 
-    def __check_function_type_and_class_name__(self, f, args):
+    def __check_function_type_and_class_name(self, f, args):
         """
         Check function type and class name in the same loop
 

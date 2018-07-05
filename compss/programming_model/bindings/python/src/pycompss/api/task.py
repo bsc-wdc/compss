@@ -139,7 +139,6 @@ class Task(object):
         # Set default variables
         self.is_instance = False
         self.is_classmethod = False
-        self.self = None
         self.has_varargs = False
         self.has_keywords = False
         self.has_defaults = False
@@ -176,7 +175,6 @@ class Task(object):
         if self.is_instance or self.is_classmethod:
             self.kwargs['self'] = Parameter(p_type=TYPE.OBJECT,
                                             p_direction=direction)
-            self.self = Parameter(p_type=TYPE.OBJECT, p_direction=direction)
 
         # Step 3.- Check if it has varargs (contains *args?)
         # Check if contains *args
@@ -820,7 +818,6 @@ class Task(object):
                     f_type = FunctionType.CLASS_METHOD
                     class_name = args[0].__name__
 
-        f_self = None
         f_parameters = self.parameters
         f_returns = self.returns
 
@@ -838,9 +835,9 @@ class Task(object):
             f_self = dict()
             self_name = param_keys[0]
             f_self[self_name] = dict()
-            f_self[self_name]['Parameter'] = self.self
+            f_self[self_name]['Parameter'] = self.kwargs['self']
             f_self[self_name]['Value'] = param_values[0]
-            # Include in the first position # TODO: use f_self instead the first element
+            # Include in the first position
             f_parameters.update(f_self)
 
         # Step 2.- Check if returns
@@ -998,7 +995,6 @@ class Task(object):
                           self.module_name,
                           class_name,
                           f_type,
-                          f_self,
                           f_parameters,
                           f_returns,
                           self.kwargs,

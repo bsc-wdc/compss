@@ -551,7 +551,7 @@ def synchronize(obj, mode):
 
 
 def process_task(f, module_name, class_name, ftype,
-                 f_self, f_parameters, f_returns,
+                 f_parameters, f_returns,
                  self_kwargs,
                  num_nodes, replicated, distributed):
     """
@@ -561,7 +561,6 @@ def process_task(f, module_name, class_name, ftype,
     :param module_name: Name of the module containing the function/method (including packages, if any)
     :param class_name: Name of the class (if method)
     :param ftype: Function type
-    :param f_self: Function self Parameter (if exists)
     :param f_parameters: Function parameters (dictionary {'param1':Parameter()}
     :param f_returns: Function returns (dictionary {'compss_retvalueX':Parameter()}
     :param self_kwargs: Decorator arguments                                          # TODO: REMOVE ?
@@ -605,7 +604,6 @@ def process_task(f, module_name, class_name, ftype,
 
     # Build values and COMPSs types and directions
     values, compss_types, compss_directions, compss_streams, compss_prefixes = _build_values_types_directions(ftype,
-                                                                                                              f_self,
                                                                                                               f_parameters,
                                                                                                               f_returns,
                                                                                                               f.__code_strings__)
@@ -940,12 +938,11 @@ def _infer_types_and_serialize_objects(f_parameters, self_kwargs):
             logger.debug('Final type for parameter %s: %d' % (k, p.type))
 
 
-def _build_values_types_directions(ftype, f_self, f_parameters, f_returns, code_strings):
+def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings):
     """
     Build the values list, the values types list and the values directions list.
 
     :param ftype: task function type. If it is an instance method, the first parameter will be put at the end.
-    :param f_self: <Dictionary> Self parameter
     :param f_parameters: <Dictionary> Function parameters
     :param f_returns: <Dictionary> - Function returns
     :param code_strings: <Boolean> Code strings or not

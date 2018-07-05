@@ -1147,53 +1147,53 @@ def _convert_object_to_string(p, is_future, max_obj_arg_size, policy='objectSize
 
 
 # TODO: Support for collections
-def _serialize_objects(p, is_future):
-    """
-    Serializes recursively the given object into files if necessary.
-
-    :param p: Object wrapper
-    :param is_future: Boolean indicatin whether it is a future object or not
-    :return: p (whose type and value might be modified)
-    """
-
-    # Build the range of elements
-    if ftype == FunctionType.INSTANCE_METHOD:
-        ra = list(range(1, num_pars))
-        ra.append(0)  # callee is the last
-    else:
-        ra = range(first_par, num_pars)
-    # Fill the values, compss_types and compss_directions lists
-    for i in ra:
-        spec_arg = spec_args[i]
-        p = deco_kwargs[spec_arg]
-        if type(p) is dict:
-            # The user has provided some information about a parameter within
-            # the @task parameter
-            p = from_dict_to_parameter(p)
-        if p.type == TYPE.STRING and not is_future[i] and code_strings:
-            # Encode the string in order to preserve the source
-            # Checks that it is not a future (which is indicated with a path)
-            # Considers multiple spaces between words
-            p.value = base64.b64encode(p.value.encode()).decode()
-            if len(p.value) == 0:
-                # Empty string - use escape string to avoid padding
-                # Checked and substituted by empty string in the worker.py and piper_worker.py
-                p.value = base64.b64encode(EMPTY_STRING_KEY.encode()).decode()
-
-        values.append(p.value)
-        if p.type == TYPE.OBJECT or is_future.get(i):
-            compss_types.append(TYPE.FILE)
-        else:
-            child_p_type = python_to_compss.get(val_type)
-
-        child_parameter = Parameter(p_type=child_p_type, p_direction=p.direction, p_stream=p.stream, p_prefix=p.prefix)
-        child_parameter.value = child_value
-
-        # Recursively check
-        child_parameter = _serialize_objects(child_parameter, is_future)
-        # Update list entry
-        p.value[index] = child_parameter
-    return p
+# def _serialize_objects(p, is_future):
+#     """
+#     Serializes recursively the given object into files if necessary.
+#
+#     :param p: Object wrapper
+#     :param is_future: Boolean indicatin whether it is a future object or not
+#     :return: p (whose type and value might be modified)
+#     """
+#
+#     # Build the range of elements
+#     if ftype == FunctionType.INSTANCE_METHOD:
+#         ra = list(range(1, num_pars))
+#         ra.append(0)  # callee is the last
+#     else:
+#         ra = range(first_par, num_pars)
+#     # Fill the values, compss_types and compss_directions lists
+#     for i in ra:
+#         spec_arg = spec_args[i]
+#         p = deco_kwargs[spec_arg]
+#         if type(p) is dict:
+#             # The user has provided some information about a parameter within
+#             # the @task parameter
+#             p = from_dict_to_parameter(p)
+#         if p.type == TYPE.STRING and not is_future[i] and code_strings:
+#             # Encode the string in order to preserve the source
+#             # Checks that it is not a future (which is indicated with a path)
+#             # Considers multiple spaces between words
+#             p.value = base64.b64encode(p.value.encode()).decode()
+#             if len(p.value) == 0:
+#                 # Empty string - use escape string to avoid padding
+#                 # Checked and substituted by empty string in the worker.py and piper_worker.py
+#                 p.value = base64.b64encode(EMPTY_STRING_KEY.encode()).decode()
+#
+#         values.append(p.value)
+#         if p.type == TYPE.OBJECT or is_future.get(i):
+#             compss_types.append(TYPE.FILE)
+#         else:
+#             child_p_type = python_to_compss.get(val_type)
+#
+#         child_parameter = Parameter(p_type=child_p_type, p_direction=p.direction, p_stream=p.stream, p_prefix=p.prefix)
+#         child_parameter.value = child_value
+#
+#         # Recursively check
+#         child_parameter = _serialize_objects(child_parameter, is_future)
+#         # Update list entry
+#         p.value[index] = child_parameter
+#     return p
 
 
 def _serialize_object_into_file(p, is_future):

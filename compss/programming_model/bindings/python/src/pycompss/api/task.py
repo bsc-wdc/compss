@@ -294,6 +294,9 @@ class Task(object):
                 if i_s[3] == 'launch_pycompss_application':
                     is_nested = True
 
+            # Prepare parameters and returns:
+            f_parameters, f_returns = self.__build_parameters_and_return_dicts__(f, args, kwargs)
+
             if not i_am_at_master() and (not is_nested):
                 # Task decorator worker body code.
                 new_types, new_values = self.worker_code(f, args, kwargs)
@@ -302,7 +305,7 @@ class Task(object):
                 # Task decorator master body code.
                 # Returns the future object that will be used instead of the
                 # actual function return.
-                fo = self.master_code(f, computing_nodes, args, kwargs)
+                fo = self.master_code(f, computing_nodes, args, f_parameters, f_returns)
                 return fo
 
         return wrapped_f
@@ -530,6 +533,163 @@ class Task(object):
                     "[@TASK] I have to do the register of function %s in module %s" % (f.__name__, self.module_name))
                 logger.debug("[@TASK] %s" % str(f.__to_register__))
             binding.register_ce(core_element)
+
+    def __build_parameters_and_return_dicts__(self, f, args, kwargs):
+        """
+        Build parameters and return dictionaries
+
+        :param f: Function
+        :param args: Function args
+        :param kwargs: Function kwargs
+        :return: <OrderedDict> Function parameters, <OrderedDict> Function returns.
+        """
+        import pycompss.runtime.binding as binding
+
+        f_parameters = self.parameters
+        f_returns = self.returns
+
+        param_keys = self.f_argspec.args
+        param_values = args
+
+        # Step 1.- Check self
+        if self.is_instance or self.is_classmethod:
+            f_self = dict()
+            self_name = param_keys[0]
+            f_self[self_name] = dict()
+            f_self[self_name]['Parameter'] = self.kwargs['self']
+            f_self[self_name]['Value'] = param_values[0]
+            # Include in the first position
+            f_parameters.update(f_self)
+
+        # Step 2.- Build the arguments list
+        # Be very careful with parameter position.
+        # The included are sorted by position. The rest may not.
+
+        # Check how many parameters are defined in the function
+        num_parameters = len(self.f_argspec.args)
+        if self.has_return:
+            num_parameters -= 1
+
+        # Check if the user has defined default values and include them
+        args_list = []
+        if self.has_defaults:
+            # There are default parameters
+            # Get the variable names and values that have been defined by default (_get_default_args(f)).
+            # default_params will have a list of pairs of the form (argument, default_value)
+            # Default values have to be always defined after undefined value parameters.
+            default_params = _get_default_args(f)
+            args_list = list(param_values)  # Given values
+            # Default parameter addition
+            for p in self.f_argspec.args[len(args):num_parameters]:
+                if p in kwargs:
+                    args_list.append(kwargs[p])
+                    kwargs.pop(p)
+                else:
+                    for dp in default_params:
+                        if p == dp[0]:
+                            args_list.append(dp[1])
+            args = tuple(args_list)
+
+        # List of parameter names
+        vals_names = list(self.f_argspec.args[:num_parameters])
+        # List of values of each parameter
+        vals_values = list(args[:num_parameters])  # first values of args are the parameters
+
+        # Check if there are *args or **kwargs
+        args_names = []
+        args_vals = []
+        if self.has_varargs:  # *args
+            aargs = '*' + self.f_argspec.varargs
+            if binding.aargs_as_tuple:
+                # If the *args are expected to be managed as a tuple:
+                args_names.append(aargs)  # Name used for the *args
+                # last values will compose the *args parameter
+                args_vals.append(args[num_parameters:])
+            else:
+                # If the *args are expected to be managed as individual elements:
+                pos = 0
+                for i in range(len(args[num_parameters:])):
+                    args_names.append(aargs + str(pos))  # Name used for the *args
+                    self.kwargs[aargs + str(pos)] = copy.copy(self.kwargs['varargsType'])
+                    pos += 1
+                args_vals = args_vals + list(args[num_parameters:])
+        if self.has_keywords:  # **kwargs
+            aakwargs = '**' + self.f_argspec.keywords  # Name used for the **kwargs
+            args_names.append(aakwargs)
+            # Check if some of the **kwargs are used as vals_values
+            if len(vals_names) > len(vals_values):
+                for i in range(len(vals_values), len(vals_names)):
+                    vals_values.append(kwargs[vals_names[i]])
+                    kwargs.pop(vals_names[i])
+            # The **kwargs dictionary is considered as a single dictionary object.
+            args_vals.append(kwargs)
+
+        # Build the final list of parameter names
+        parameter_names = vals_names + args_names
+        # Build the final list of parameter_values for each parameter
+        parameter_values = vals_values + args_vals
+
+        # Step 3.- Join all information into f_parameters and f_returns structures
+        if self.has_return:
+            if 'compss_retvalue' in self.kwargs:
+                f_returns = OrderedDict()
+                # Simple return
+                f_returns['compss_retvalue'] = {}
+                f_returns['compss_retvalue']['Value'] = self.kwargs['returns']
+                f_returns['compss_retvalue']['Parameter'] = self.kwargs['compss_retvalue']
+            elif 'compss_retvalue0' in self.kwargs:
+                # multiple returns inferred
+                f_returns = OrderedDict()
+                # multi return
+                ks = list(self.kwargs.keys())
+                rets = []
+                for k in ks:
+                    if k.startswith('compss_retvalue'):
+                        rets.append(k)
+                rets.sort()
+                if isinstance(self.kwargs['returns'], int):
+                    i = 0
+                    for r in rets:
+                        f_returns[r] = {}
+                        f_returns[r]['Value'] = None
+                        f_returns[r]['Parameter'] = self.kwargs[r]
+                        i += 1
+                else:
+                    i = 0
+                    for r in rets:
+                        f_returns[r] = {}
+                        f_returns[r]['Value'] = self.kwargs['returns'][i]
+                        f_returns[r]['Parameter'] = self.kwargs[r]
+                        i += 1
+        i = 0
+        for p in parameter_names:
+            f_parameters[p] = {}
+            try:
+                f_parameters[p]['Parameter'] = self.kwargs[p]
+                f_parameters[p]['Value'] = parameter_values[i]
+            except KeyError:
+                f_parameters[p]['Parameter'] = Parameter()
+                f_parameters[p]['Value'] = parameter_values[i]
+            i += 1
+        # Clean elements that are not defined in parameter_names
+        for p in f_parameters:
+            if p not in parameter_names:
+                f_parameters.pop(p)
+        # Extract the *args
+        aargs = OrderedDict()
+        if '*args0' in f_parameters:
+            for i in f_parameters:
+                if i.startswith('*args'):
+                    aargs[i] = f_parameters.pop(i)
+        # Extract the **kwargs
+        akwargs = OrderedDict()
+        if '**kwargs' in f_parameters:
+            akwargs['**kwargs'] = f_parameters.pop('**kwargs')
+        # Place the args and kwargs at the end of the parameters.
+        f_parameters.update(aargs)
+        f_parameters.update(akwargs)
+
+        return f_parameters, f_returns
 
     # ############################################################################ #
     # #################### TASK DECORATOR WORKER CODE ############################ #
@@ -767,180 +927,21 @@ class Task(object):
     # #################### TASK DECORATOR MASTER CODE ############################ #
     # ############################################################################ #
 
-    def master_code(self, f, num_nodes, args, kwargs):
+    def master_code(self, f, num_nodes, args, f_parameters, f_returns):
         """
         Task decorator body executed in the master.
 
         :param f: <Function> - Function to execute
         :param num_nodes: <Integer> - Number of computing nodes
         :param args: <Tuple> - Contains the objects that the function has been called with (positional).
-        :param kwargs: <Dictionary> - Contains the named objects that the function has been called with.
+        :param f_parameters: <Dictionary> - Contains the parameters that the function has been called with.
+        :param f_returns: <Dictionary> - Contains the return parameters of the function.
         :return: Future object that fakes the real return of the task (for its delegated execution)
         """
 
         from pycompss.runtime.binding import process_task
-        from pycompss.runtime.binding import FunctionType
-        import pycompss.runtime.binding as binding
 
-        # Check the type of the function called.
-        # inspect.ismethod(f) does not work here,
-        # for methods python hasn't wrapped the function as a method yet
-        # Everything is still a function here, can't distinguish yet
-        # with inspect.ismethod or isfunction
-        f_type = FunctionType.FUNCTION
-        class_name = ''
-        if self.is_instance:
-            f_type = FunctionType.INSTANCE_METHOD
-            class_name = type(args[0]).__name__
-        if args and inspect.isclass(args[0]):
-            for n, _ in inspect.getmembers(args[0], inspect.ismethod):
-                if n == f.__name__:
-                    f_type = FunctionType.CLASS_METHOD
-                    class_name = args[0].__name__
-
-        f_parameters = self.parameters
-        f_returns = self.returns
-
-        param_keys = self.f_argspec.args
-        param_values = args
-
-        # Step 1.- Check self
-        if self.is_instance or self.is_classmethod:
-            f_self = dict()
-            self_name = param_keys[0]
-            f_self[self_name] = dict()
-            f_self[self_name]['Parameter'] = self.kwargs['self']
-            f_self[self_name]['Value'] = param_values[0]
-            # Include in the first position
-            f_parameters.update(f_self)
-
-        # Step 2.- Build the arguments list
-        # Be very careful with parameter position.
-        # The included are sorted by position. The rest may not.
-
-        # Check how many parameters are defined in the function
-        num_parameters = len(self.f_argspec.args)
-        if self.has_return:
-            num_parameters -= 1
-
-        # Check if the user has defined default values and include them
-        args_list = []
-        if self.has_defaults:
-            # There are default parameters
-            # Get the variable names and values that have been defined by default (_get_default_args(f)).
-            # default_params will have a list of pairs of the form (argument, default_value)
-            # Default values have to be always defined after undefined value parameters.
-            default_params = _get_default_args(f)
-            args_list = list(param_values)  # Given values
-            # Default parameter addition
-            for p in self.f_argspec.args[len(args):num_parameters]:
-                if p in kwargs:
-                    args_list.append(kwargs[p])
-                    kwargs.pop(p)
-                else:
-                    for dp in default_params:
-                        if p == dp[0]:
-                            args_list.append(dp[1])
-            args = tuple(args_list)
-
-        # List of parameter names
-        vals_names = list(self.f_argspec.args[:num_parameters])
-        # List of values of each parameter
-        vals_values = list(args[:num_parameters])  # first values of args are the parameters
-
-        # Check if there are *args or **kwargs
-        args_names = []
-        args_vals = []
-        if self.has_varargs:  # *args
-            aargs = '*' + self.f_argspec.varargs
-            if binding.aargs_as_tuple:
-                # If the *args are expected to be managed as a tuple:
-                args_names.append(aargs)  # Name used for the *args
-                # last values will compose the *args parameter
-                args_vals.append(args[num_parameters:])
-            else:
-                # If the *args are expected to be managed as individual elements:
-                pos = 0
-                for i in range(len(args[num_parameters:])):
-                    args_names.append(aargs + str(pos))  # Name used for the *args
-                    self.kwargs[aargs + str(pos)] = copy.copy(self.kwargs['varargsType'])
-                    pos += 1
-                args_vals = args_vals + list(args[num_parameters:])
-        if self.has_keywords:  # **kwargs
-            aakwargs = '**' + self.f_argspec.keywords  # Name used for the **kwargs
-            args_names.append(aakwargs)
-            # Check if some of the **kwargs are used as vals_values
-            if len(vals_names) > len(vals_values):
-                for i in range(len(vals_values), len(vals_names)):
-                    vals_values.append(kwargs[vals_names[i]])
-                    kwargs.pop(vals_names[i])
-            # The **kwargs dictionary is considered as a single dictionary object.
-            args_vals.append(kwargs)
-
-        # Build the final list of parameter names
-        parameter_names = vals_names + args_names
-        # Build the final list of parameter_values for each parameter
-        parameter_values = vals_values + args_vals
-
-        # Step 3.- Join all information into f_parameters and f_returns structures
-        if self.has_return:
-            if 'compss_retvalue' in self.kwargs:
-                f_returns = OrderedDict()
-                # Simple return
-                f_returns['compss_retvalue'] = {}
-                f_returns['compss_retvalue']['Value'] = self.kwargs['returns']
-                f_returns['compss_retvalue']['Parameter'] = self.kwargs['compss_retvalue']
-            elif 'compss_retvalue0' in self.kwargs:
-                # multiple returns inferred
-                f_returns = OrderedDict()
-                # multi return
-                ks = list(self.kwargs.keys())
-                rets = []
-                for k in ks:
-                    if k.startswith('compss_retvalue'):
-                        rets.append(k)
-                rets.sort()
-                if isinstance(self.kwargs['returns'], int):
-                    i = 0
-                    for r in rets:
-                        f_returns[r] = {}
-                        f_returns[r]['Value'] = None
-                        f_returns[r]['Parameter'] = self.kwargs[r]
-                        i += 1
-                else:
-                    i = 0
-                    for r in rets:
-                        f_returns[r] = {}
-                        f_returns[r]['Value'] = self.kwargs['returns'][i]
-                        f_returns[r]['Parameter'] = self.kwargs[r]
-                        i += 1
-        i = 0
-        for p in parameter_names:
-            f_parameters[p] = {}
-            try:
-                f_parameters[p]['Parameter'] = self.kwargs[p]
-                f_parameters[p]['Value'] = parameter_values[i]
-            except:
-                f_parameters[p]['Parameter'] = Parameter()
-                f_parameters[p]['Value'] = parameter_values[i]
-            i += 1
-        # Clean elements that are not defined in parameter_names
-        for p in f_parameters:
-            if p not in parameter_names:
-                f_parameters.pop(p)
-        # Extract the *args
-        aargs = OrderedDict()
-        if '*args0' in f_parameters:
-            for i in f_parameters:
-                if i.startswith('*args'):
-                    aargs[i] = f_parameters.pop(i)
-        # Extract the **kwargs
-        akwargs = OrderedDict()
-        if '**kwargs' in f_parameters:
-            akwargs['**kwargs'] = f_parameters.pop('**kwargs')
-        # Place the args and kwargs at the end of the parameters.
-        f_parameters.update(aargs)
-        f_parameters.update(akwargs)
+        f_type, class_name = self.__check_function_type_and_class_name__(f, args)
 
         fo = process_task(f,
                           self.module_name,
@@ -956,6 +957,32 @@ class Task(object):
         # Starts the asynchronous creation of the task.
         # First calling the PyCOMPSs library and then C library (bindings-commons).
         return fo
+
+    def __check_function_type_and_class_name__(self, f, args):
+        """
+        Check function type and class name in the same loop
+
+        :param f: Function
+        :param args: Function args
+        :return: <FunctionType> Function type, <String> Class name
+        """
+        from pycompss.runtime.binding import FunctionType
+        # Check the type of the function called.
+        # inspect.ismethod(f) does not work here,
+        # for methods python hasn't wrapped the function as a method yet
+        # Everything is still a function here, can't distinguish yet
+        # with inspect.ismethod or isfunction
+        f_type = FunctionType.FUNCTION
+        class_name = ''
+        if self.is_instance:
+            f_type = FunctionType.INSTANCE_METHOD
+            class_name = type(args[0]).__name__
+        if args and inspect.isclass(args[0]):
+            for n, _ in inspect.getmembers(args[0], inspect.ismethod):
+                if n == f.__name__:
+                    f_type = FunctionType.CLASS_METHOD
+                    class_name = args[0].__name__
+        return f_type, class_name
 
 
 # ############################################################################# #

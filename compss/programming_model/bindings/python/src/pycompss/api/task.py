@@ -144,7 +144,6 @@ class Task(object):
         self.has_defaults = False
         self.parameters = OrderedDict()
         self.has_return = False
-        self.has_multireturn = False
         self.returns = OrderedDict()
         self.is_replicated = False
         self.is_distributed = False
@@ -257,7 +256,6 @@ class Task(object):
         #   - self.has_keywords     : Boolean - if the function has **kwargs
         #   - self.has_defaults     : Boolean - if the function has default values
         #   - self.has_return       : Boolean - if the function has return
-        #   - self.has_multireturn  : Boolean - if the function has multireturn
         #   - self.module_name      : String  - Module name (e.g. test.kmeans)
         #   - self.is_replicated    : Boolean - if the task is replicated
         #   - self.is_distributed   : Boolean - if the task is distributed
@@ -360,7 +358,6 @@ class Task(object):
             self.kwargs['compss_retvalue'] = Parameter(p_type=ret_type, p_direction=DIRECTION.OUT)
         else:
             # Multi return
-            self.has_multireturn = True
             returns = []
             for r in self.kwargs['returns']:
                 ret_type = _get_compss_type(r)
@@ -395,6 +392,7 @@ class Task(object):
         if any(ret_mask):
             print("INFO! Return found in function " + f.__name__ + " without 'returns' statement at task definition.")
             self.has_return = True
+            has_multireturn = False
             lines = [i for i, li in enumerate(ret_mask) if li]
             max_num_returns = 0
             if self.is_instance or source_code.startswith('@classmethod'):
@@ -417,7 +415,7 @@ class Task(object):
 
                 for i in lines:
                     if _has_multireturn(code[i]):
-                        self.has_multireturn = True
+                        has_multireturn = True
                         num_returns = _get_return_elements(code[i])
                         if num_returns > max_num_returns:
                             max_num_returns = num_returns
@@ -426,7 +424,7 @@ class Task(object):
                 for i in lines:
                     try:
                         if 'elts' in code[i].value.__dict__:
-                            self.has_multireturn = True
+                            has_multireturn = True
                             num_returns = len(code[i].value.__dict__['elts'])
                             if num_returns > max_num_returns:
                                 max_num_returns = num_returns
@@ -434,7 +432,7 @@ class Task(object):
                         # KeyError: 'elts' means that it is a multiple return.
                         # "Ask forgiveness not permission"
                         pass
-            if self.has_multireturn:
+            if has_multireturn:
                 if __debug__:
                     logger.debug("Multireturn found: %s" % str(max_num_returns))
                 self.kwargs['returns'] = []

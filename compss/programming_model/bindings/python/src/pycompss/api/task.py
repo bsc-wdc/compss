@@ -293,7 +293,7 @@ class Task(object):
                     is_nested = True
 
             # Prepare parameters and returns:
-            self.parameters, self.returns = self.__build_parameters_and_return_dicts(f, args, kwargs)
+            self.__build_parameters_and_return_dicts(f, args, kwargs)
 
             if not i_am_at_master() and (not is_nested):
                 # Task decorator worker body code.
@@ -536,15 +536,14 @@ class Task(object):
         """
         Build parameters and return dictionaries
 
+        WARNING: Updates self.parameters dictionary
+        WARNING: Updates self.returns dictionary
+
         :param f: Function
         :param args: Function args
         :param kwargs: Function kwargs
-        :return: <OrderedDict> Function parameters, <OrderedDict> Function returns.
         """
         import pycompss.runtime.binding as binding
-
-        f_parameters = self.parameters
-        f_returns = self.returns
 
         param_keys = self.f_argspec.args
         param_values = args
@@ -574,7 +573,7 @@ class Task(object):
             f_self[self_name]['Parameter'] = self.kwargs['self']
             f_self[self_name]['Value'] = param_values[0]
             # Include in the first position
-            f_parameters.update(f_self)
+            self.parameters.update(f_self)
 
         # Step 2.- Build the arguments list
         # Be very careful with parameter position.
@@ -648,69 +647,66 @@ class Task(object):
         # Build the final list of parameter_values for each parameter
         parameter_values = vals_values + args_vals
 
-        # Step 3.- Fill f_returns structure
+        # Step 3.- Fill self.returns structure
         if self.has_return:
-            f_returns = OrderedDict()
+            self.returns = OrderedDict()
             # Default: Simple return
-            f_returns['compss_retvalue'] = {}
+            self.returns['compss_retvalue'] = {}
             if at_worker:
                 if len(worker_rets) == 1:
-                    f_returns['compss_retvalue']['Value'] = worker_rets[0]
+                    self.returns['compss_retvalue']['Value'] = worker_rets[0]
                 else:
-                    f_returns['compss_retvalue']['Value'] = worker_rets
+                    self.returns['compss_retvalue']['Value'] = worker_rets
             else:
-                f_returns['compss_retvalue']['Value'] = self.kwargs['returns']
-            f_returns['compss_retvalue']['Parameter'] = self.kwargs['compss_retvalue']
+                self.returns['compss_retvalue']['Value'] = self.kwargs['returns']
+            self.returns['compss_retvalue']['Parameter'] = self.kwargs['compss_retvalue']
             # Discover hidden returns
-            # Check if the f_returns has str/int/... in order to build a complete f_returns dictionary
-            self.__discover_hidden_returns(f_returns, at_worker)
+            # Check if the self.returns has str/int/... in order to build a complete self.returns dictionary
+            self.__discover_hidden_returns(at_worker)
 
-        # Step 4.- Fill f_parameters structure
+        # Step 4.- Fill self.parameters structure
         i = 0
         for p in parameter_names:
-            f_parameters[p] = {}
+            self.parameters[p] = {}
             try:
-                f_parameters[p]['Parameter'] = self.kwargs[p]
+                self.parameters[p]['Parameter'] = self.kwargs[p]
             except KeyError:
-                f_parameters[p]['Parameter'] = Parameter()
-            f_parameters[p]['Value'] = parameter_values[i]
+                self.parameters[p]['Parameter'] = Parameter()
+            self.parameters[p]['Value'] = parameter_values[i]
             i += 1
         # Clean elements that are not defined in parameter_names
-        for p in f_parameters:
+        for p in self.parameters:
             if p not in parameter_names:
-                f_parameters.pop(p)
+                self.parameters.pop(p)
         # Extract the *args
         aargs = OrderedDict()
-        if '*args0' in f_parameters:
-            for i in f_parameters:
+        if '*args0' in self.parameters:
+            for i in self.parameters:
                 if i.startswith('*args'):
-                    aargs[i] = f_parameters.pop(i)
+                    aargs[i] = self.parameters.pop(i)
         # Extract the **kwargs
         akwargs = OrderedDict()
-        if '**kwargs' in f_parameters:
-            akwargs['**kwargs'] = f_parameters.pop('**kwargs')
+        if '**kwargs' in self.parameters:
+            akwargs['**kwargs'] = self.parameters.pop('**kwargs')
         # Place the args and kwargs at the end of the parameters.
-        f_parameters.update(aargs)
-        f_parameters.update(akwargs)
+        self.parameters.update(aargs)
+        self.parameters.update(akwargs)
 
-        return f_parameters, f_returns
-
-    def __discover_hidden_returns(self, f_returns, at_worker):
+    def __discover_hidden_returns(self, at_worker):
         """
         Discover hidden returns.
         For example, if the user defines returns=2 or returns="2"
 
-        WARNING: Updates f_returns dictionary
+        WARNING: Updates self.returns dictionary
 
-        :param f_returns: Returns dictionary
-        :param at_worker: <Boolean> At worker. The return, if single, will be a str instead of an int.
+        :param at_worker: <Boolean> At worker. The return, if single, is an string instead of an int.
         """
 
         # Only one return defined.
         # May hide a "int", int or type.
-        if len(f_returns) == 1:
+        if len(self.returns) == 1:
             hidden_multireturn = False
-            ret_value = f_returns['compss_retvalue']['Value']
+            ret_value = self.returns['compss_retvalue']['Value']
             if isinstance(ret_value, str) and not at_worker:
                 # Check if the returns statement contains an string with an integer.
                 # In such case, build a list of objects of value length and set it in ret_type.
@@ -741,28 +737,28 @@ class Task(object):
                 # Check if returns=[] or returns=()
                 hidden_multireturn = True
                 num_rets = len(ret_value)
-                ret_v = f_returns['compss_retvalue']['Value']
+                ret_v = self.returns['compss_retvalue']['Value']
             else:
                 ret_v = ret_value
 
-            # Update f_returns
+            # Update self.returns
             if hidden_multireturn:
                 if num_rets > 1:
-                    parameter = f_returns['compss_retvalue']['Parameter']
-                    f_returns.pop('compss_retvalue')
+                    parameter = self.returns['compss_retvalue']['Parameter']
+                    self.returns.pop('compss_retvalue')
                     num_ret = 0
                     for i in ret_v:
-                        f_returns['compss_retvalue' + str(num_ret)] = {}
-                        f_returns['compss_retvalue' + str(num_ret)]['Value'] = i
+                        self.returns['compss_retvalue' + str(num_ret)] = {}
+                        self.returns['compss_retvalue' + str(num_ret)]['Value'] = i
                         if isinstance(parameter, list):
                             # when returns=[..., ..., etc.] use the specific parameter
-                            f_returns['compss_retvalue' + str(num_ret)]['Parameter'] = parameter[num_ret]
+                            self.returns['compss_retvalue' + str(num_ret)]['Parameter'] = parameter[num_ret]
                         else:
                             # otherwise all are the kept the same
-                            f_returns['compss_retvalue' + str(num_ret)]['Parameter'] = parameter
+                            self.returns['compss_retvalue' + str(num_ret)]['Parameter'] = parameter
                         num_ret += 1
                 else:
-                    f_returns['compss_retvalue']['Value'] = ret_v
+                    self.returns['compss_retvalue']['Value'] = ret_v
 
     # ############################################################################ #
     # #################### TASK DECORATOR WORKER CODE ############################ #

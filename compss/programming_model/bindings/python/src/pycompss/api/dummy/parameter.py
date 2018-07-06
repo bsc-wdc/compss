@@ -108,15 +108,6 @@ class Parameter(object):
         self.prefix = p_prefix
         self.value = None  # placeholder for parameter value
 
-    def set_direction(self, direction):
-        self.direction = direction
-
-    def set_stream(self, stream):
-        self.stream = stream
-
-    def set_prefix(self, prefix):
-        self.prefix = prefix
-
 
 # Aliases for objects (just direction)
 IN = Parameter()

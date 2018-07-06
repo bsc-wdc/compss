@@ -963,11 +963,11 @@ def _from_dict_to_parameter(d):
         d[Type] = Parameter()
     p = d[Type]
     if Direction in d:
-        p.set_direction(d[Direction])
+        p.direction = d[Direction]
     if Stream in d:
-        p.set_stream(d[Stream])
+        p.stream = d[Stream]
     if Prefix in d:
-        p.set_prefix(d[Prefix])
+        p.prefix = d[Prefix]
     return p
 
 

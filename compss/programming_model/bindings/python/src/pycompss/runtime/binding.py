@@ -562,19 +562,13 @@ def process_task(f, module_name, class_name, ftype,
     app_id = 0
 
     # Check if the function is an instance method or a class method.
-    first_par = 0
     if ftype == FunctionType.INSTANCE_METHOD:
         has_target = True
     else:
         has_target = False
-        if ftype == FunctionType.CLASS_METHOD:
-            first_par = 1  # skip class parameter
 
     fo = None
     if f_returns:
-        # Discover hidden returns
-        # Check if the f_returns has str/int/... in order to build a complete f_returns dictionary
-        _discover_hidden_returns(f_returns)
         fo = _build_return_objects(f_returns)
 
     num_returns = len(f_returns)
@@ -694,73 +688,6 @@ def get_compss_mode(pymode):
 # ##############################################################################
 # ####################### AUXILIARY FUNCTIONS ##################################
 # ##############################################################################
-
-def _discover_hidden_returns(f_returns):
-    """
-    Discover hidden returns.
-    For example, if the user defines returns=2 or returns="2"
-
-    WARNING: Updates f_returns dictionary
-
-    :param f_returns: Returns dictionary
-    """
-
-    # Only one return defined.
-    # May hide a "int", int or type.
-    if len(f_returns) == 1:
-        hidden_multireturn = False
-        ret_value = f_returns['compss_retvalue']['Value']
-        if isinstance(ret_value, str):
-            # Check if the returns statement contains an string with an integer.
-            # In such case, build a list of objects of value length and set it in ret_type.
-            num_rets = int(ret_value)
-            # Hidden multireturn with returns="int"
-            hidden_multireturn = True
-            if num_rets > 1:
-                ret_v = [object for _ in range(num_rets)]
-            else:
-                ret_v = object
-        elif isinstance(ret_value, int):
-            # Check if the returns statement contains an integer value.
-            # In such case, build a list of objects of value length and set it in ret_type.
-            num_rets = ret_value
-            # Assume all as objects (generic type).
-            # It will not work properly when using user defined classes, since
-            # the future object built will not be of the same type as expected
-            # and may cause "AttributeError" since the 'object' does not have
-            # the attributes of the class
-            # Hidden multireturn with returns=int
-            hidden_multireturn = True
-            if num_rets > 1:
-                ret_v = [object for _ in range(num_rets)]
-            else:
-                ret_v = object
-        elif isinstance(ret_value, list) or isinstance(ret_value, tuple):
-            # Check if returns=[] or returns=()
-            hidden_multireturn = True
-            num_rets = len(ret_value)
-            ret_v = f_returns['compss_retvalue']['Value']
-        else:
-            ret_v = ret_value
-
-        # Update f_returns
-        if hidden_multireturn:
-            if num_rets > 1:
-                parameter = f_returns['compss_retvalue']['Parameter']
-                f_returns.pop('compss_retvalue')
-                num_ret = 0
-                for i in ret_v:
-                    f_returns['compss_retvalue' + str(num_ret)] = {}
-                    f_returns['compss_retvalue' + str(num_ret)]['Value'] = i
-                    if isinstance(parameter, list):
-                        # when returns=[..., ..., etc.] use the specific parameter
-                        f_returns['compss_retvalue' + str(num_ret)]['Parameter'] = parameter[num_ret]
-                    else:
-                        # otherwise all are the kept the same
-                        f_returns['compss_retvalue' + str(num_ret)]['Parameter'] = parameter
-                    num_ret += 1
-            else:
-                f_returns['compss_retvalue']['Value'] = ret_v
 
 
 def _build_return_objects(f_returns):

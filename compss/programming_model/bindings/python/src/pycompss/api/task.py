@@ -299,7 +299,7 @@ class Task(object):
 
             if not i_am_at_master() and (not is_nested):
                 # Task decorator worker body code.
-                new_types, new_values = self.worker_code(f, args, kwargs)
+                new_types, new_values = self.worker_code(f, args, kwargs, f_parameters, f_returns)
                 return new_types, new_values
             else:
                 # Task decorator master body code.
@@ -551,6 +551,23 @@ class Task(object):
         param_keys = self.f_argspec.args
         param_values = args
 
+        at_worker = False
+        worker_rets = None
+        worker_kwargs = None
+        if 'compss_types' in kwargs:
+            # Then we are being called within the worker, and the args and kwargs differ.
+            at_worker = True
+            # For instance, args contains all parameters and instead of objects, their path
+            # Also, kwargs contains worker defined keywords instead of the real dict
+            # (e.g. compss_types, compss_tracing, compss_return_length, compss_storage_conf and compss_process_name
+            param_values = list(param_values)  # Copy to list in order to use pop since it does not contain objects
+            num_rets = kwargs['compss_return_length']
+            if num_rets > 0:
+                worker_rets = param_values[-num_rets:]
+                param_values = param_values[:-num_rets]
+            if self.has_keywords:
+                worker_kwargs = param_values.pop()
+
         # Step 1.- Check self
         if self.is_instance or self.is_classmethod:
             f_self = dict()
@@ -580,7 +597,7 @@ class Task(object):
             default_params = _get_default_args(f)
             args_list = list(param_values)  # Given values
             # Default parameter addition
-            for p in self.f_argspec.args[len(args):num_parameters]:
+            for p in self.f_argspec.args[len(param_values):num_parameters]:
                 if p in kwargs:
                     args_list.append(kwargs[p])
                     kwargs.pop(p)
@@ -588,12 +605,12 @@ class Task(object):
                     for dp in default_params:
                         if p == dp[0]:
                             args_list.append(dp[1])
-            args = tuple(args_list)
+            param_values = tuple(args_list)
 
         # List of parameter names
         vals_names = list(self.f_argspec.args[:num_parameters])
         # List of values of each parameter
-        vals_values = list(args[:num_parameters])  # first values of args are the parameters
+        vals_values = list(param_values[:num_parameters])  # first values of args are the parameters
 
         # Check if there are *args or **kwargs
         args_names = []
@@ -604,15 +621,15 @@ class Task(object):
                 # If the *args are expected to be managed as a tuple:
                 args_names.append(aargs)  # Name used for the *args
                 # last values will compose the *args parameter
-                args_vals.append(args[num_parameters:])
+                args_vals.append(param_values[num_parameters:])
             else:
                 # If the *args are expected to be managed as individual elements:
                 pos = 0
-                for i in range(len(args[num_parameters:])):
+                for i in range(len(param_values[num_parameters:])):
                     args_names.append(aargs + str(pos))  # Name used for the *args
                     self.kwargs[aargs + str(pos)] = copy.copy(self.kwargs['varargsType'])
                     pos += 1
-                args_vals = args_vals + list(args[num_parameters:])
+                args_vals = args_vals + list(param_values[num_parameters:])
         if self.has_keywords:  # **kwargs
             aakwargs = '**' + self.f_argspec.keywords  # Name used for the **kwargs
             args_names.append(aakwargs)
@@ -621,55 +638,44 @@ class Task(object):
                 for i in range(len(vals_values), len(vals_names)):
                     vals_values.append(kwargs[vals_names[i]])
                     kwargs.pop(vals_names[i])
-            # The **kwargs dictionary is considered as a single dictionary object.
-            args_vals.append(kwargs)
+            if at_worker:
+                # The **kwargs dictionary is a path to the object that contains it
+                args_vals.append(worker_kwargs)
+            else:
+                # The **kwargs dictionary is considered as a single dictionary object.
+                args_vals.append(kwargs)
 
         # Build the final list of parameter names
         parameter_names = vals_names + args_names
         # Build the final list of parameter_values for each parameter
         parameter_values = vals_values + args_vals
 
-        # Step 3.- Join all information into f_parameters and f_returns structures
+        # Step 3.- Fill f_returns structure
         if self.has_return:
-            if 'compss_retvalue' in self.kwargs:
-                f_returns = OrderedDict()
-                # Simple return
-                f_returns['compss_retvalue'] = {}
-                f_returns['compss_retvalue']['Value'] = self.kwargs['returns']
-                f_returns['compss_retvalue']['Parameter'] = self.kwargs['compss_retvalue']
-            elif 'compss_retvalue0' in self.kwargs:
-                # multiple returns inferred
-                f_returns = OrderedDict()
-                # multi return
-                ks = list(self.kwargs.keys())
-                rets = []
-                for k in ks:
-                    if k.startswith('compss_retvalue'):
-                        rets.append(k)
-                rets.sort()
-                if isinstance(self.kwargs['returns'], int):
-                    i = 0
-                    for r in rets:
-                        f_returns[r] = {}
-                        f_returns[r]['Value'] = None
-                        f_returns[r]['Parameter'] = self.kwargs[r]
-                        i += 1
+            f_returns = OrderedDict()
+            # Default: Simple return
+            f_returns['compss_retvalue'] = {}
+            if at_worker:
+                if len(worker_rets) == 1:
+                    f_returns['compss_retvalue']['Value'] = worker_rets[0]
                 else:
-                    i = 0
-                    for r in rets:
-                        f_returns[r] = {}
-                        f_returns[r]['Value'] = self.kwargs['returns'][i]
-                        f_returns[r]['Parameter'] = self.kwargs[r]
-                        i += 1
+                    f_returns['compss_retvalue']['Value'] = worker_rets
+            else:
+                f_returns['compss_retvalue']['Value'] = self.kwargs['returns']
+            f_returns['compss_retvalue']['Parameter'] = self.kwargs['compss_retvalue']
+            # Discover hidden returns
+            # Check if the f_returns has str/int/... in order to build a complete f_returns dictionary
+            self.__discover_hidden_returns(f_returns, at_worker)
+
+        # Step 4.- Fill f_parameters structure
         i = 0
         for p in parameter_names:
             f_parameters[p] = {}
             try:
                 f_parameters[p]['Parameter'] = self.kwargs[p]
-                f_parameters[p]['Value'] = parameter_values[i]
             except KeyError:
                 f_parameters[p]['Parameter'] = Parameter()
-                f_parameters[p]['Value'] = parameter_values[i]
+            f_parameters[p]['Value'] = parameter_values[i]
             i += 1
         # Clean elements that are not defined in parameter_names
         for p in f_parameters:
@@ -691,11 +697,80 @@ class Task(object):
 
         return f_parameters, f_returns
 
+    def __discover_hidden_returns(self, f_returns, at_worker):
+        """
+        Discover hidden returns.
+        For example, if the user defines returns=2 or returns="2"
+
+        WARNING: Updates f_returns dictionary
+
+        :param f_returns: Returns dictionary
+        :param at_worker: <Boolean> At worker. The return, if single, will be a str instead of an int.
+        """
+
+        # Only one return defined.
+        # May hide a "int", int or type.
+        if len(f_returns) == 1:
+            hidden_multireturn = False
+            ret_value = f_returns['compss_retvalue']['Value']
+            if isinstance(ret_value, str) and not at_worker:
+                # Check if the returns statement contains an string with an integer.
+                # In such case, build a list of objects of value length and set it in ret_type.
+                # If at worker, do not do this list, since the return is the path to the object.
+                num_rets = int(ret_value)
+                # Hidden multireturn with returns="int"
+                hidden_multireturn = True
+                if num_rets > 1:
+                    ret_v = [object for _ in range(num_rets)]
+                else:
+                    ret_v = object
+            elif isinstance(ret_value, int):
+                # Check if the returns statement contains an integer value.
+                # In such case, build a list of objects of value length and set it in ret_type.
+                num_rets = ret_value
+                # Assume all as objects (generic type).
+                # It will not work properly when using user defined classes, since
+                # the future object built will not be of the same type as expected
+                # and may cause "AttributeError" since the 'object' does not have
+                # the attributes of the class
+                # Hidden multireturn with returns=int
+                hidden_multireturn = True
+                if num_rets > 1:
+                    ret_v = [object for _ in range(num_rets)]
+                else:
+                    ret_v = object
+            elif isinstance(ret_value, list) or isinstance(ret_value, tuple):
+                # Check if returns=[] or returns=()
+                hidden_multireturn = True
+                num_rets = len(ret_value)
+                ret_v = f_returns['compss_retvalue']['Value']
+            else:
+                ret_v = ret_value
+
+            # Update f_returns
+            if hidden_multireturn:
+                if num_rets > 1:
+                    parameter = f_returns['compss_retvalue']['Parameter']
+                    f_returns.pop('compss_retvalue')
+                    num_ret = 0
+                    for i in ret_v:
+                        f_returns['compss_retvalue' + str(num_ret)] = {}
+                        f_returns['compss_retvalue' + str(num_ret)]['Value'] = i
+                        if isinstance(parameter, list):
+                            # when returns=[..., ..., etc.] use the specific parameter
+                            f_returns['compss_retvalue' + str(num_ret)]['Parameter'] = parameter[num_ret]
+                        else:
+                            # otherwise all are the kept the same
+                            f_returns['compss_retvalue' + str(num_ret)]['Parameter'] = parameter
+                        num_ret += 1
+                else:
+                    f_returns['compss_retvalue']['Value'] = ret_v
+
     # ############################################################################ #
     # #################### TASK DECORATOR WORKER CODE ############################ #
     # ############################################################################ #
 
-    def worker_code(self, f, args, kwargs):
+    def worker_code(self, f, args, kwargs, f_parameters, f_returns):
         """
         Task decorator body executed in the workers.
         Its main function is to execute to execute the function decorated as task.
@@ -707,6 +782,8 @@ class Task(object):
         :param f: <Function> - Function to execute
         :param args: <Tuple> - Contains the objects that the function has been called with (positional).
         :param kwargs: <Dictionary> - Contains the named objects that the function has been called with.
+        :param f_parameters: <Dictionary> - Contains the parameters that the function has been called with.
+        :param f_returns: <Dictionary> - Contains the return parameters of the function.
         :return: Two lists: new_types and new_values.
         """
 
@@ -716,65 +793,10 @@ class Task(object):
         # Retrieve internal parameters from worker.py.
         # tracing = kwargs.get('compss_tracing')  # Not used here, but kept informatively
 
-        spec_args = self.f_argspec.args
-
-        returns = self.kwargs['returns']
-        is_multi_return = False
-        num_return = 0
-
-        if self.has_return:
-            # Check if there is multireturn
-            if isinstance(returns, list) or isinstance(returns, tuple) or isinstance(returns, int) or isinstance(
-                    returns, str):
-                if isinstance(returns, str):
-                    num_return = kwargs['compss_return_length']
-                elif isinstance(returns, int):
-                    num_return = returns
-                else:
-                    num_return = len(returns)
-
-                if num_return > 1:
-                    is_multi_return = True
-                else:
-                    is_multi_return = False
-
-                # If there is a multireturn, we need to append as many arguments as returns
-                # are to the spec_args.
-                spec_args = spec_args[:-1] + [spec_args[-1] + str(i) for i in range(num_return)]
-            else:
-                # The spec_args already has the compss_retvalue
-                num_return = 1
-
-        to_add = []
-
-        # Check if there is *arg parameter in the task
-        if self.has_varargs:
-            if binding.aargs_as_tuple:
-                # If the *args are expected to be managed as a tuple:
-                to_add.append(self.f_argspec.varargs)
-            else:
-                # If the *args are expected to be managed as individual elements:
-                num_aargs = len(args) - len(spec_args)
-                if self.has_keywords:
-                    num_aargs -= 1
-                for i in range(num_aargs):
-                    to_add.append('*' + self.f_argspec.varargs + str(i))
-
-        # Check if there is **kwarg parameters in the task
-        if self.has_keywords:
-            to_add.append(self.f_argspec.keywords)
-
-        if self.has_return:
-            # Include to add between the arguments and the returns
-            if is_multi_return:
-                spec_args = spec_args[:-num_return] + to_add + spec_args[-num_return:]
-            else:
-                spec_args = spec_args[:-1] + to_add + [spec_args[-1]]
-        else:
-            spec_args = spec_args + to_add
+        param_names = list(f_parameters.keys()) + list(f_returns.keys())
 
         # Discover hidden objects passed as files
-        real_values, to_serialize = self.__reveal_objects(args, spec_args, kwargs['compss_types'], num_return)
+        real_values, to_serialize = self.__reveal_objects(args, param_names, kwargs['compss_types'], len(f_returns))
 
         if binding.aargs_as_tuple:
             # Check if there is *arg parameter in the task, so the last element (*arg tuple) has to be flattened
@@ -797,20 +819,20 @@ class Task(object):
         # file identifier string instead of simply the file_name
         _output_objects = []
 
-        if returns:
+        if f_returns:
             # If there is multi-return then serialize each one on a different file
             # Multi-return example: a,b,c = fun() , where fun() has a return x,y,z
-            if is_multi_return:
+            if len(f_returns) > 1:
                 aux = []
                 try:
                     num_ret = len(ret)
                     aux = ret
                 except Exception:
                     aux.append(ret)
-                    while len(aux) < num_return:
+                    while len(aux) < len(f_returns):
                         # The user declared more than used.
                         aux.append(binding.EmptyReturn())
-                total_rets = len(args) - num_return
+                total_rets = len(args) - len(f_returns)
                 rets = args[total_rets:]
                 i = 0
                 import sys
@@ -921,6 +943,7 @@ class Task(object):
                         fname = complete_fname[0]
                     value = fname
                 real_values.append(value)
+
         return real_values, to_serialize
 
     # ############################################################################ #
@@ -933,9 +956,9 @@ class Task(object):
 
         :param f: <Function> - Function to execute
         :param num_nodes: <Integer> - Number of computing nodes
-        :param args: <Tuple> - Contains the objects that the function has been called with (positional).
-        :param f_parameters: <Dictionary> - Contains the parameters that the function has been called with.
-        :param f_returns: <Dictionary> - Contains the return parameters of the function.
+        :param args: <Tuple> - Contains the objects that the function has been called with (positional)
+        :param f_parameters: <Dictionary> - Contains the parameters that the function has been called with
+        :param f_returns: <Dictionary> - Contains the return parameters of the function
         :return: Future object that fakes the real return of the task (for its delegated execution)
         """
 

@@ -295,17 +295,17 @@ class Task(object):
                     is_nested = True
 
             # Prepare parameters and returns:
-            f_parameters, f_returns = self.__build_parameters_and_return_dicts(f, args, kwargs)
+            self.parameters, self.returns = self.__build_parameters_and_return_dicts(f, args, kwargs)
 
             if not i_am_at_master() and (not is_nested):
                 # Task decorator worker body code.
-                new_types, new_values = self.worker_code(f, args, kwargs, f_parameters, f_returns)
+                new_types, new_values = self.worker_code(f, args, kwargs)
                 return new_types, new_values
             else:
                 # Task decorator master body code.
                 # Returns the future object that will be used instead of the
                 # actual function return.
-                fo = self.master_code(f, computing_nodes, args, f_parameters, f_returns)
+                fo = self.master_code(f, computing_nodes, args)
                 return fo
 
         return wrapped_f
@@ -770,7 +770,7 @@ class Task(object):
     # #################### TASK DECORATOR WORKER CODE ############################ #
     # ############################################################################ #
 
-    def worker_code(self, f, args, kwargs, f_parameters, f_returns):
+    def worker_code(self, f, args, kwargs):
         """
         Task decorator body executed in the workers.
         Its main function is to execute to execute the function decorated as task.
@@ -782,8 +782,6 @@ class Task(object):
         :param f: <Function> - Function to execute
         :param args: <Tuple> - Contains the objects that the function has been called with (positional).
         :param kwargs: <Dictionary> - Contains the named objects that the function has been called with.
-        :param f_parameters: <Dictionary> - Contains the parameters that the function has been called with.
-        :param f_returns: <Dictionary> - Contains the return parameters of the function.
         :return: Two lists: new_types and new_values.
         """
 
@@ -793,10 +791,10 @@ class Task(object):
         # Retrieve internal parameters from worker.py.
         # tracing = kwargs.get('compss_tracing')  # Not used here, but kept informatively
 
-        param_names = list(f_parameters.keys()) + list(f_returns.keys())
+        param_names = list(self.parameters.keys()) + list(self.returns.keys())
 
         # Discover hidden objects passed as files
-        real_values, to_serialize = self.__reveal_objects(args, param_names, kwargs['compss_types'], len(f_returns))
+        real_values, to_serialize = self.__reveal_objects(args, param_names, kwargs['compss_types'], len(self.returns))
 
         if binding.aargs_as_tuple:
             # Check if there is *arg parameter in the task, so the last element (*arg tuple) has to be flattened
@@ -819,20 +817,20 @@ class Task(object):
         # file identifier string instead of simply the file_name
         _output_objects = []
 
-        if f_returns:
+        if self.returns:
             # If there is multi-return then serialize each one on a different file
             # Multi-return example: a,b,c = fun() , where fun() has a return x,y,z
-            if len(f_returns) > 1:
+            if len(self.returns) > 1:
                 aux = []
                 try:
                     num_ret = len(ret)
                     aux = ret
                 except Exception:
                     aux.append(ret)
-                    while len(aux) < len(f_returns):
+                    while len(aux) < len(self.returns):
                         # The user declared more than used.
                         aux.append(binding.EmptyReturn())
-                total_rets = len(args) - len(f_returns)
+                total_rets = len(args) - len(self.returns)
                 rets = args[total_rets:]
                 i = 0
                 import sys
@@ -906,21 +904,21 @@ class Task(object):
             if compss_type == TYPE.FILE and p.type != TYPE.FILE:
                 # Getting ids and file names from passed files and objects pattern
                 # is: "originalDataID:destinationDataID;flagToPreserveOriginalData:flagToWrite:PathToFile"
-                complete_fname = value.split(':')
-                if len(complete_fname) > 1:
+                complete_f_name = value.split(':')
+                if len(complete_f_name) > 1:
                     # In NIO we get more information
-                    # forig = complete_fname[0]        # Not used yet
-                    # fdest = complete_fname[1]        # Not used yet
-                    # preserve = complete_fname[2]     # Not used yet
-                    # write_final = complete_fname[3]  # Not used yet
-                    fname = complete_fname[4]
+                    # forig = complete_f_name[0]        # Not used yet
+                    # fdest = complete_f_name[1]        # Not used yet
+                    # preserve = complete_f_name[2]     # Not used yet
+                    # write_final = complete_f_name[3]  # Not used yet
+                    f_name = complete_f_name[4]
                     # preserve, write_final = list(map(lambda x: x == "true", [preserve, write_final]))  # Not used yet
                     # suffix_name = forig              # Not used yet
                 else:
                     # In GAT we only get the name
-                    fname = complete_fname[0]
+                    f_name = complete_f_name[0]
 
-                value = fname
+                value = f_name
                 # For COMPSs it is a file, but it is actually a Python object
                 if __debug__:
                     logger.debug("Processing a hidden object in parameter %d", i)
@@ -930,18 +928,18 @@ class Task(object):
                     to_serialize.append((obj, value))
             else:
                 if compss_type == TYPE.FILE:
-                    complete_fname = value.split(':')
-                    if len(complete_fname) > 1:
+                    complete_f_name = value.split(':')
+                    if len(complete_f_name) > 1:
                         # In NIO we get more information
-                        # forig = complete_fname[0]        # Not used yet
-                        # fdest = complete_fname[1]        # Not used yet
-                        # preserve = complete_fname[2]     # Not used yet
-                        # write_final = complete_fname[3]  # Not used yet
-                        fname = complete_fname[4]
+                        # forig = complete_f_name[0]        # Not used yet
+                        # fdest = complete_f_name[1]        # Not used yet
+                        # preserve = complete_f_name[2]     # Not used yet
+                        # write_final = complete_f_name[3]  # Not used yet
+                        f_name = complete_f_name[4]
                     else:
                         # In GAT we only get the name
-                        fname = complete_fname[0]
-                    value = fname
+                        f_name = complete_f_name[0]
+                    value = f_name
                 real_values.append(value)
 
         return real_values, to_serialize
@@ -950,15 +948,13 @@ class Task(object):
     # #################### TASK DECORATOR MASTER CODE ############################ #
     # ############################################################################ #
 
-    def master_code(self, f, num_nodes, args, f_parameters, f_returns):
+    def master_code(self, f, num_nodes, args):
         """
         Task decorator body executed in the master.
 
         :param f: <Function> - Function to execute
         :param num_nodes: <Integer> - Number of computing nodes
         :param args: <Tuple> - Contains the objects that the function has been called with (positional)
-        :param f_parameters: <Dictionary> - Contains the parameters that the function has been called with
-        :param f_returns: <Dictionary> - Contains the return parameters of the function
         :return: Future object that fakes the real return of the task (for its delegated execution)
         """
 
@@ -970,8 +966,8 @@ class Task(object):
                           self.module_name,
                           class_name,
                           f_type,
-                          f_parameters,
-                          f_returns,
+                          self.parameters,
+                          self.returns,
                           self.kwargs,
                           num_nodes,
                           self.is_replicated,

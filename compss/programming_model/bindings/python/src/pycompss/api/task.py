@@ -569,9 +569,8 @@ class Task(object):
         if self.is_instance or self.is_classmethod:
             f_self = dict()
             self_name = param_keys[0]
-            f_self[self_name] = dict()
-            f_self[self_name]['Parameter'] = self.kwargs['self']
-            f_self[self_name]['Value'] = param_values[0]
+            f_self[self_name] = self.kwargs['self']
+            f_self[self_name].value = param_values[0]
             # Include in the first position
             self.parameters.update(f_self)
 
@@ -650,16 +649,24 @@ class Task(object):
         # Step 3.- Fill self.returns structure
         if self.has_return:
             self.returns = OrderedDict()
-            # Default: Simple return
-            self.returns['compss_retvalue'] = {}
-            if at_worker:
-                if len(worker_rets) == 1:
-                    self.returns['compss_retvalue']['Value'] = worker_rets[0]
+            if isinstance(self.kwargs['compss_retvalue'], Parameter):
+                # Default: Simple return
+                self.returns['compss_retvalue'] = self.kwargs['compss_retvalue']
+                if at_worker:
+                    if len(worker_rets) == 1:
+                        self.returns['compss_retvalue'].value = worker_rets[0]
+                    else:
+                        self.returns['compss_retvalue'].value = worker_rets
                 else:
-                    self.returns['compss_retvalue']['Value'] = worker_rets
+                    self.returns['compss_retvalue'].value = self.kwargs['returns']
             else:
-                self.returns['compss_retvalue']['Value'] = self.kwargs['returns']
-            self.returns['compss_retvalue']['Parameter'] = self.kwargs['compss_retvalue']
+                # Multireturn
+                i = 0
+                for r in zip(self.kwargs['compss_retvalue'], self.kwargs['returns']):
+                    self.returns['compss_retvalue' + str(i)] = r[0]
+                    self.returns['compss_retvalue' + str(i)].value = r[1]
+                    i += 1
+
             # Discover hidden returns
             # Check if the self.returns has str/int/... in order to build a complete self.returns dictionary
             self.__discover_hidden_returns(at_worker)
@@ -667,12 +674,16 @@ class Task(object):
         # Step 4.- Fill self.parameters structure
         i = 0
         for p in parameter_names:
-            self.parameters[p] = {}
-            try:
-                self.parameters[p]['Parameter'] = self.kwargs[p]
-            except KeyError:
-                self.parameters[p]['Parameter'] = Parameter()
-            self.parameters[p]['Value'] = parameter_values[i]
+            if p in self.kwargs:
+                parameter = self.kwargs[p]
+                if isinstance(parameter, dict):
+                    # The user has given some information about the parameter as dict
+                    self.parameters[p] = from_dict_to_parameter(parameter)
+                else:
+                    self.parameters[p] = parameter
+            else:
+                self.parameters[p] = Parameter()
+            self.parameters[p].value = parameter_values[i]
             i += 1
         # Clean elements that are not defined in parameter_names
         for p in self.parameters:
@@ -699,14 +710,14 @@ class Task(object):
 
         WARNING: Updates self.returns dictionary
 
-        :param at_worker: <Boolean> At worker. The return, if single, is an string instead of an int.
+        :param at_worker: <Boolean> At worker. The return, if single, will be a str instead of an int.
         """
 
         # Only one return defined.
         # May hide a "int", int or type.
         if len(self.returns) == 1:
             hidden_multireturn = False
-            ret_value = self.returns['compss_retvalue']['Value']
+            ret_value = self.returns['compss_retvalue'].value
             if isinstance(ret_value, str) and not at_worker:
                 # Check if the returns statement contains an string with an integer.
                 # In such case, build a list of objects of value length and set it in ret_type.
@@ -737,28 +748,27 @@ class Task(object):
                 # Check if returns=[] or returns=()
                 hidden_multireturn = True
                 num_rets = len(ret_value)
-                ret_v = self.returns['compss_retvalue']['Value']
+                ret_v = self.returns['compss_retvalue'].value
             else:
                 ret_v = ret_value
 
             # Update self.returns
             if hidden_multireturn:
                 if num_rets > 1:
-                    parameter = self.returns['compss_retvalue']['Parameter']
+                    parameter = self.returns['compss_retvalue']
                     self.returns.pop('compss_retvalue')
                     num_ret = 0
                     for i in ret_v:
-                        self.returns['compss_retvalue' + str(num_ret)] = {}
-                        self.returns['compss_retvalue' + str(num_ret)]['Value'] = i
                         if isinstance(parameter, list):
                             # when returns=[..., ..., etc.] use the specific parameter
-                            self.returns['compss_retvalue' + str(num_ret)]['Parameter'] = parameter[num_ret]
+                            self.returns['compss_retvalue' + str(num_ret)] = parameter[num_ret]
                         else:
                             # otherwise all are the kept the same
-                            self.returns['compss_retvalue' + str(num_ret)]['Parameter'] = parameter
+                            self.returns['compss_retvalue' + str(num_ret)] = parameter
+                        self.returns['compss_retvalue' + str(num_ret)].value = i
                         num_ret += 1
                 else:
-                    self.returns['compss_retvalue']['Value'] = ret_v
+                    self.returns['compss_retvalue'].value = ret_v
 
     # ############################################################################ #
     # #################### TASK DECORATOR WORKER CODE ############################ #
@@ -1246,3 +1256,28 @@ def _get_wrapped_sourcelines(f):
     else:
         # Returning getsourcelines
         return inspect.getsourcelines(f)
+
+
+def from_dict_to_parameter(d):
+    """
+    Convert a Dict defined by a user for a parameter into a real Parameter object.
+
+    :param d: Dictionary (mandatory to have 'Type' key).
+    :return:  Parameter object.
+    """
+
+    from pycompss.api.parameter import Parameter
+    from pycompss.api.parameter import Type
+    from pycompss.api.parameter import Direction
+    from pycompss.api.parameter import Stream
+    from pycompss.api.parameter import Prefix
+    if Type not in d:  # If no Type specified => IN
+        d[Type] = Parameter()
+    p = d[Type]
+    if Direction in d:
+        p.direction = d[Direction]
+    if Stream in d:
+        p.stream = d[Stream]
+    if Prefix in d:
+        p.prefix = d[Prefix]
+    return p

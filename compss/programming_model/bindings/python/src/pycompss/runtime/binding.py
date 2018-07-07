@@ -709,7 +709,7 @@ def _build_return_objects(f_returns):
         if __debug__:
             logger.debug('Simple object return found.')
         # Build the appropriate future object
-        ret_value = f_returns['compss_retvalue']['Value']
+        ret_value = f_returns['compss_retvalue'].value
         if ret_value in python_to_compss:  # primitives, string, dic, list, tuple
             fo = Future()
         elif inspect.isclass(ret_value):
@@ -729,8 +729,8 @@ def _build_return_objects(f_returns):
         ret_filename = temp_dir + temp_obj_prefix + str(obj_id)
         objid_to_filename[obj_id] = ret_filename
         pending_to_synchronize[obj_id] = fo
-        f_returns['compss_retvalue']['FileName'] = ret_filename
-        f_returns['compss_retvalue']['Parameter'] = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT, p_prefix="#")
+        f_returns['compss_retvalue'] = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT, p_prefix="#")
+        f_returns['compss_retvalue'].file_name = ret_filename
     else:
         # Multireturn
         fo = []
@@ -738,13 +738,13 @@ def _build_return_objects(f_returns):
             logger.debug('Multiple objects return found.')
         for k, v in f_returns.items():
             # Build the appropriate future object
-            if v['Value'] in python_to_compss:  # primitives, string, dic, list, tuple
+            if v.value in python_to_compss:  # primitives, string, dic, list, tuple
                 foe = Future()
-            elif inspect.isclass(v['Value']):
+            elif inspect.isclass(v.value):
                 # For objects:
                 # type of future has to be specified to allow o = func; o.func
                 try:
-                    foe = v['Value']()
+                    foe = v.value()
                 except TypeError:
                     if __debug__:
                         logger.warning("Type {0} does not have an empty constructor, building generic future object".format(v['Value']))
@@ -758,10 +758,10 @@ def _build_return_objects(f_returns):
             ret_filename = temp_dir + temp_obj_prefix + str(obj_id)
             objid_to_filename[obj_id] = ret_filename
             pending_to_synchronize[obj_id] = foe
-            f_returns[k]['FileName'] = ret_filename
             # Once determined the filename where the returns are going to
             # be stored, create a new Parameter object for each return object
-            f_returns[k]['Parameter'] = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT, p_prefix="#")
+            f_returns[k] = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT, p_prefix="#")
+            f_returns[k].file_name = ret_filename
     return fo
 
 
@@ -788,12 +788,13 @@ def _infer_types_and_serialize_objects(f_parameters, task_kwargs):
             p = Parameter()
         elif type(p) is dict:
             # The user has provided some information about the parameter within the @task parameter
+            from pycompss.api.task import from_dict_to_parameter
             if __debug__:
                 logger.debug("Checking decoration for param %s" % k)
-            p = _from_dict_to_parameter(p)
+            p = from_dict_to_parameter(p)
 
         # Add value to p
-        p.value = f_parameters[k]['Value']
+        p.value = f_parameters[k].value
 
         # Infer argument value
         if 'self' in f_parameters:
@@ -813,7 +814,7 @@ def _infer_types_and_serialize_objects(f_parameters, task_kwargs):
 
         # Update future object list
         is_future = (val_type == Future)
-        f_parameters[k]['isFuture'] = is_future
+        f_parameters[k].is_future = is_future
 
         # Log parameter information
         if __debug__:
@@ -844,8 +845,8 @@ def _infer_types_and_serialize_objects(f_parameters, task_kwargs):
         p = _serialize_object_into_file(p, is_future)
 
         # Update k parameter's Parameter object
-        f_parameters[k]['Parameter'] = p
-        f_parameters[k]['Type'] = p.type
+        f_parameters[k] = p
+        f_parameters[k].type = p.type
 
         if __debug__:
             logger.debug('Final type for parameter %s: %d' % (k, p.type))
@@ -877,10 +878,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings)
 
     # Fill the values, compss_types, compss_directions, compss_streams and compss_prefixes from function parameters
     for i in ra:
-        val, typ, direc, st, pre = _process_parameter(f_parameters[i]['Parameter'],
-                                                      f_parameters[i]['Parameter'].value,
-                                                      f_parameters[i]['isFuture'],
-                                                      code_strings)
+        val, typ, direc, st, pre = _extract_parameter(f_parameters[i], code_strings)
         values.append(val)
         compss_types.append(typ)
         compss_directions.append(direc)
@@ -889,8 +887,8 @@ def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings)
 
     # Fill the values, compss_types, compss_directions, compss_streams and compss_prefixes from function returns
     for r in f_returns:
-        p = f_returns[r]['Parameter']
-        p.value = f_returns[r]['FileName']
+        p = f_returns[r]
+        p.value = f_returns[r].file_name
         values.append(p.value)
         compss_types.append(p.type)
         compss_directions.append(p.direction)
@@ -900,10 +898,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings)
     if ftype == FunctionType.INSTANCE_METHOD:
         # Fill the values, compss_types, compss_directions, compss_streams and compss_prefixes from self
         # self is always an object
-        val, typ, direc, st, pre = _process_parameter(f_parameters[slf]['Parameter'],
-                                                      f_parameters[slf]['Parameter'].value,
-                                                      f_parameters[slf]['isFuture'],
-                                                      code_strings)
+        val, typ, direc, st, pre = _extract_parameter(f_parameters[slf], code_strings)
         values.append(val)
         compss_types.append(typ)
         compss_directions.append(direc)
@@ -913,62 +908,33 @@ def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings)
     return values, compss_types, compss_directions, compss_streams, compss_prefixes
 
 
-def _process_parameter(parameter, value, is_future, code_strings):
+def _extract_parameter(parameter, code_strings):
     """
     Extract the information of a single parameter
     
     :param parameter: Parameter object
-    :param value: Object value (the real object if primitive, the filename if object)=
-    :param is_future: <Boolean> Is future
     :param code_strings: <Boolean> Encode strings
     :return: value, type, direction stream and prefix of the given parameter
     """
 
-    p = parameter
-    p.value = value
-    if p.type == TYPE.STRING and not is_future and code_strings:
+    if parameter.type == TYPE.STRING and not parameter.is_future and code_strings:
         # Encode the string in order to preserve the source
         # Checks that it is not a future (which is indicated with a path)
         # Considers multiple spaces between words
-        p.value = base64.b64encode(p.value.encode()).decode()
-        if len(p.value) == 0:
+        parameter.value = base64.b64encode(parameter.value.encode()).decode()
+        if len(parameter.value) == 0:
             # Empty string - use escape string to avoid padding
             # Checked and substituted by empty string in the worker.py and piper_worker.py
-            p.value = base64.b64encode(EMPTY_STRING_KEY.encode()).decode()
-    value = p.value
-    if p.type == TYPE.OBJECT or is_future:
+            parameter.value = base64.b64encode(EMPTY_STRING_KEY.encode()).decode()
+    value = parameter.value
+    if parameter.type == TYPE.OBJECT or parameter.is_future:
         typ = TYPE.FILE
     else:
-        typ = p.type
-    direction = p.direction
-    stream = p.stream
-    prefix = p.prefix
+        typ = parameter.type
+    direction = parameter.direction
+    stream = parameter.stream
+    prefix = parameter.prefix
     return value, typ, direction, stream, prefix
-
-
-def _from_dict_to_parameter(d):
-    """
-    Convert a Dict defined by a user for a parameter into a real Parameter object.
-
-    :param d: Dictionary (mandatory to have 'Type' key).
-    :return:  Parameter object.
-    """
-
-    from pycompss.api.parameter import Parameter
-    from pycompss.api.parameter import Type
-    from pycompss.api.parameter import Direction
-    from pycompss.api.parameter import Stream
-    from pycompss.api.parameter import Prefix
-    if Type not in d:  # If no Type specified => IN
-        d[Type] = Parameter()
-    p = d[Type]
-    if Direction in d:
-        p.direction = d[Direction]
-    if Stream in d:
-        p.stream = d[Stream]
-    if Prefix in d:
-        p.prefix = d[Prefix]
-    return p
 
 
 def _convert_object_to_string(p, is_future, max_obj_arg_size, policy='objectSize'):

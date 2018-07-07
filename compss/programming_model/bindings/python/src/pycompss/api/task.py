@@ -93,7 +93,7 @@ class Task(object):
             if i_am_at_master():
                 for arg_name in self.kwargs.keys():
                     if arg_name not in reserved_keywords.keys():
-                        # Prevent p.value from being overwritten later by ensuring
+                        # Prevent p.object from being overwritten later by ensuring
                         # each Parameter is a separate object
                         p = self.kwargs[arg_name]
                         pcopy = copy.copy(p)  # shallow copy
@@ -570,7 +570,7 @@ class Task(object):
             f_self = dict()
             self_name = param_keys[0]
             f_self[self_name] = self.kwargs['self']
-            f_self[self_name].value = param_values[0]
+            f_self[self_name].object = param_values[0]
             # Include in the first position
             self.parameters.update(f_self)
 
@@ -654,22 +654,21 @@ class Task(object):
                 self.returns['compss_retvalue'] = self.kwargs['compss_retvalue']
                 if at_worker:
                     if len(worker_rets) == 1:
-                        self.returns['compss_retvalue'].value = worker_rets[0]
+                        self.returns['compss_retvalue'].object = worker_rets[0]
                     else:
-                        self.returns['compss_retvalue'].value = worker_rets
+                        self.returns['compss_retvalue'].object = worker_rets
                 else:
-                    self.returns['compss_retvalue'].value = self.kwargs['returns']
+                    self.returns['compss_retvalue'].object = self.kwargs['returns']
+                # Discover hidden returns
+                # Check if the self.returns has str/int/... in order to build a complete self.returns dictionary
+                self.__discover_hidden_returns(at_worker)
             else:
                 # Multireturn
                 i = 0
                 for r in zip(self.kwargs['compss_retvalue'], self.kwargs['returns']):
                     self.returns['compss_retvalue' + str(i)] = r[0]
-                    self.returns['compss_retvalue' + str(i)].value = r[1]
+                    self.returns['compss_retvalue' + str(i)].object = r[1]
                     i += 1
-
-            # Discover hidden returns
-            # Check if the self.returns has str/int/... in order to build a complete self.returns dictionary
-            self.__discover_hidden_returns(at_worker)
 
         # Step 4.- Fill self.parameters structure
         i = 0
@@ -683,7 +682,7 @@ class Task(object):
                     self.parameters[p] = parameter
             else:
                 self.parameters[p] = Parameter()
-            self.parameters[p].value = parameter_values[i]
+            self.parameters[p].object = parameter_values[i]
             i += 1
         # Clean elements that are not defined in parameter_names
         for p in self.parameters:
@@ -717,7 +716,7 @@ class Task(object):
         # May hide a "int", int or type.
         if len(self.returns) == 1:
             hidden_multireturn = False
-            ret_value = self.returns['compss_retvalue'].value
+            ret_value = self.returns['compss_retvalue'].object
             if isinstance(ret_value, str) and not at_worker:
                 # Check if the returns statement contains an string with an integer.
                 # In such case, build a list of objects of value length and set it in ret_type.
@@ -748,7 +747,7 @@ class Task(object):
                 # Check if returns=[] or returns=()
                 hidden_multireturn = True
                 num_rets = len(ret_value)
-                ret_v = self.returns['compss_retvalue'].value
+                ret_v = self.returns['compss_retvalue'].object
             else:
                 ret_v = ret_value
 
@@ -765,10 +764,10 @@ class Task(object):
                         else:
                             # otherwise all are the kept the same
                             self.returns['compss_retvalue' + str(num_ret)] = parameter
-                        self.returns['compss_retvalue' + str(num_ret)].value = i
+                        self.returns['compss_retvalue' + str(num_ret)].object = i
                         num_ret += 1
                 else:
-                    self.returns['compss_retvalue'].value = ret_v
+                    self.returns['compss_retvalue'].object = ret_v
 
     # ############################################################################ #
     # #################### TASK DECORATOR WORKER CODE ############################ #

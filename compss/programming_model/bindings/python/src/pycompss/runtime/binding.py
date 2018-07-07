@@ -709,7 +709,7 @@ def _build_return_objects(f_returns):
         if __debug__:
             logger.debug('Simple object return found.')
         # Build the appropriate future object
-        ret_value = f_returns['compss_retvalue'].value
+        ret_value = f_returns['compss_retvalue'].object
         if ret_value in python_to_compss:  # primitives, string, dic, list, tuple
             fo = Future()
         elif inspect.isclass(ret_value):
@@ -738,13 +738,13 @@ def _build_return_objects(f_returns):
             logger.debug('Multiple objects return found.')
         for k, v in f_returns.items():
             # Build the appropriate future object
-            if v.value in python_to_compss:  # primitives, string, dic, list, tuple
+            if v.object in python_to_compss:  # primitives, string, dic, list, tuple
                 foe = Future()
-            elif inspect.isclass(v.value):
+            elif inspect.isclass(v.object):
                 # For objects:
                 # type of future has to be specified to allow o = func; o.func
                 try:
-                    foe = v.value()
+                    foe = v.object()
                 except TypeError:
                     if __debug__:
                         logger.warning("Type {0} does not have an empty constructor, building generic future object".format(v['Value']))
@@ -794,20 +794,20 @@ def _infer_types_and_serialize_objects(f_parameters, task_kwargs):
             p = from_dict_to_parameter(p)
 
         # Add value to p
-        p.value = f_parameters[k].value
+        p.object = f_parameters[k].object
 
         # Infer argument value
         if 'self' in f_parameters:
             # It is a class function
             if k == 'self':
                 # Check if self is a persistent object and set its type if it really is.
-                if is_psco(p.value):
+                if is_psco(p.object):
                     p.type = TYPE.EXTERNAL_PSCO
 
         # Update the parameter type if changed between task calls
         # Respect p.type if none to be inferred later.
         # Respect p.type == TYPE.FILE since may be updated wrongly to str.
-        val_type = type(p.value)
+        val_type = type(p.object)
         new_type = python_to_compss.get(val_type)
         if p.type is not None and p.type != TYPE.FILE and p.type != new_type:
             p.type = new_type
@@ -828,7 +828,7 @@ def _infer_types_and_serialize_objects(f_parameters, task_kwargs):
                 logger.debug('Inferring type due to None pType.')
             p.type = python_to_compss.get(val_type)
             if p.type is None:
-                if is_psco(p.value):
+                if is_psco(p.object):
                     p.type = TYPE.EXTERNAL_PSCO
                 else:
                     p.type = TYPE.OBJECT
@@ -888,8 +888,8 @@ def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings)
     # Fill the values, compss_types, compss_directions, compss_streams and compss_prefixes from function returns
     for r in f_returns:
         p = f_returns[r]
-        p.value = f_returns[r].file_name
-        values.append(p.value)
+        p.object = f_returns[r].file_name
+        values.append(p.object)
         compss_types.append(p.type)
         compss_directions.append(p.direction)
         compss_streams.append(p.stream)
@@ -921,12 +921,12 @@ def _extract_parameter(parameter, code_strings):
         # Encode the string in order to preserve the source
         # Checks that it is not a future (which is indicated with a path)
         # Considers multiple spaces between words
-        parameter.value = base64.b64encode(parameter.value.encode()).decode()
-        if len(parameter.value) == 0:
+        parameter.object = base64.b64encode(parameter.object.encode()).decode()
+        if len(parameter.object) == 0:
             # Empty string - use escape string to avoid padding
             # Checked and substituted by empty string in the worker.py and piper_worker.py
-            parameter.value = base64.b64encode(EMPTY_STRING_KEY.encode()).decode()
-    value = parameter.value
+            parameter.object = base64.b64encode(EMPTY_STRING_KEY.encode()).decode()
+    value = parameter.object
     if parameter.type == TYPE.OBJECT or parameter.is_future:
         typ = TYPE.FILE
     else:
@@ -957,10 +957,10 @@ def _convert_object_to_string(p, is_future, max_obj_arg_size, policy='objectSize
         # Warning: calculate the size of a python object can be difficult
         # in terms of time and precision
         if (p.type == TYPE.OBJECT or p.type == TYPE.STRING) and not is_future and p.direction == DIRECTION.IN:
-            if not isinstance(p.value, basestring) and isinstance(p.value, (list, dict, tuple, deque, set, frozenset)):
+            if not isinstance(p.object, basestring) and isinstance(p.object, (list, dict, tuple, deque, set, frozenset)):
                 # check object size
-                # bytes = sys.getsizeof(p.value)  # does not work properly with recursive object
-                num_bytes = total_sizeof(p.value)
+                # bytes = sys.getsizeof(p.object)  # does not work properly with recursive object
+                num_bytes = total_sizeof(p.object)
                 megabytes = num_bytes / 1000000  # truncate
                 if __debug__:
                     logger.debug('Object size %d bytes (%d Mb).' % (num_bytes, megabytes))
@@ -969,15 +969,15 @@ def _convert_object_to_string(p, is_future, max_obj_arg_size, policy='objectSize
                     # Cannot run program '/bin/bash'...: error=7, La lista de argumentos es demasiado larga
                     if __debug__:
                         logger.debug('The object size is less than 320 kb.')
-                    real_value = p.value
+                    real_value = p.object
                     try:
-                        v = serialize_to_string(p.value)
-                        p.value = v.encode(STR_ESCAPE)
+                        v = serialize_to_string(p.object)
+                        p.object = v.encode(STR_ESCAPE)
                         p.type = TYPE.STRING
                         if __debug__:
                             logger.debug('Inferred type modified (Object converted to String).')
                     except SerializerException:
-                        p.value = real_value
+                        p.object = real_value
                         p.type = TYPE.OBJECT
                         if __debug__:
                             logger.debug('The object cannot be converted due to: not serializable.')
@@ -995,10 +995,10 @@ def _convert_object_to_string(p, is_future, max_obj_arg_size, policy='objectSize
         # Check if the object is small in order to serialize it.
         # This alternative evaluates the size after serializing the parameter
         if (p.type == TYPE.OBJECT or p.type == TYPE.STRING) and not is_future and p.direction == DIRECTION.IN:
-            if not isinstance(p.value, basestring):
-                real_value = p.value
+            if not isinstance(p.object, basestring):
+                real_value = p.object
                 try:
-                    v = serialize_to_string(p.value)
+                    v = serialize_to_string(p.object)
                     v = v.encode(STR_ESCAPE)
                     # check object size
                     num_bytes = sys.getsizeof(v)
@@ -1011,12 +1011,12 @@ def _convert_object_to_string(p, is_future, max_obj_arg_size, policy='objectSize
                         # arguments list too long error.
                         if __debug__:
                             logger.debug('The object size is less than 320 kb.')
-                        p.value = v
+                        p.object = v
                         p.type = TYPE.STRING
                         if __debug__:
                             logger.debug('Inferred type modified (Object converted to String).')
                     else:
-                        p.value = real_value
+                        p.object = real_value
                         p.type = TYPE.OBJECT
                         if __debug__:
                             logger.debug('Inferred type reestablished to Object.')
@@ -1027,7 +1027,7 @@ def _convert_object_to_string(p, is_future, max_obj_arg_size, policy='objectSize
                         # if max_obj_arg_size > 320000:
                         #     max_obj_arg_size = 320000
                 except PicklingError:
-                    p.value = real_value
+                    p.object = real_value
                     p.type = TYPE.OBJECT
                     if __debug__:
                         logger.debug('The object cannot be converted due to: not serializable.')
@@ -1067,25 +1067,25 @@ def _convert_object_to_string(p, is_future, max_obj_arg_size, policy='objectSize
 #             # Encode the string in order to preserve the source
 #             # Checks that it is not a future (which is indicated with a path)
 #             # Considers multiple spaces between words
-#             p.value = base64.b64encode(p.value.encode()).decode()
-#             if len(p.value) == 0:
+#             p.object = base64.b64encode(p.object.encode()).decode()
+#             if len(p.object) == 0:
 #                 # Empty string - use escape string to avoid padding
 #                 # Checked and substituted by empty string in the worker.py and piper_worker.py
-#                 p.value = base64.b64encode(EMPTY_STRING_KEY.encode()).decode()
+#                 p.object = base64.b64encode(EMPTY_STRING_KEY.encode()).decode()
 #
-#         values.append(p.value)
+#         values.append(p.object)
 #         if p.type == TYPE.OBJECT or is_future.get(i):
 #             compss_types.append(TYPE.FILE)
 #         else:
 #             child_p_type = python_to_compss.get(val_type)
 #
 #         child_parameter = Parameter(p_type=child_p_type, p_direction=p.direction, p_stream=p.stream, p_prefix=p.prefix)
-#         child_parameter.value = child_value
+#         child_parameter.object = child_value
 #
 #         # Recursively check
 #         child_parameter = _serialize_objects(child_parameter, is_future)
 #         # Update list entry
-#         p.value[index] = child_parameter
+#         p.object[index] = child_parameter
 #     return p
 
 
@@ -1101,14 +1101,14 @@ def _serialize_object_into_file(p, is_future):
     if p.type == TYPE.OBJECT or is_future:
         # 2nd condition: real type can be primitive, but now it's acting as a future (object)
         try:
-            val_type = type(p.value)
+            val_type = type(p.object)
             if isinstance(val_type, list):
                 # Is there a future object within the list?
-                if any(isinstance(v, Future) for v in p.value):
+                if any(isinstance(v, Future) for v in p.object):
                     if __debug__:
                         logger.debug('Found a list that contains future objects - synchronizing...')
                     mode = get_compss_mode('in')
-                    p.value = list(map(synchronize, p.value, [mode] * len(p.value)))
+                    p.object = list(map(synchronize, p.object, [mode] * len(p.object)))
 
             _turn_into_file(p)
         except SerializerException:
@@ -1118,17 +1118,17 @@ def _serialize_object_into_file(p, is_future):
             logger.exception('Pickling error exception: non-serializable object found as a parameter.')
             logger.exception(''.join(line for line in lines))
             print('[ ERROR ]: Non serializable objects can not be used as parameters (e.g. methods).')
-            print('[ ERROR ]: Value: %s' % p.value)
+            print('[ ERROR ]: Object: %s' % p.object)
             # Raise the exception up tu launch.py in order to point where the error is in the user code.
             raise
     elif p.type == TYPE.EXTERNAL_PSCO:
         _manage_persistent_object(p)
     elif p.type == TYPE.INT:
-        if p.value > JAVA_MAX_INT or p.value < JAVA_MIN_INT:
+        if p.object > JAVA_MAX_INT or p.object < JAVA_MIN_INT:
             # This must go through Java as a long to prevent overflow with Java int
             p.type = TYPE.LONG
     elif p.type == TYPE.LONG:
-        if p.value > JAVA_MAX_LONG or p.value < JAVA_MIN_LONG:
+        if p.object > JAVA_MAX_LONG or p.object < JAVA_MIN_LONG:
             # This must be serialized to prevent overflow with Java long
             p.type = TYPE.OBJECT
             _turn_into_file(p)
@@ -1147,16 +1147,16 @@ def _manage_persistent_object(p):
     """
 
     p.type = TYPE.EXTERNAL_PSCO
-    obj_id = get_id(p.value)
-    pending_to_synchronize[obj_id] = p.value  # obj_id
-    p.value = obj_id
+    obj_id = get_id(p.object)
+    pending_to_synchronize[obj_id] = p.object  # obj_id
+    p.object = obj_id
     if __debug__:
         logger.debug('Managed persistent object: %s' % obj_id)
 
 
 def _turn_into_file(p):
     """
-    Write a object into a file if the object has not been already written (p.value).
+    Write a object into a file if the object has not been already written (p.object).
     Consults the objid_to_filename to check if it has already been written
     (reuses it if exists). If not, the object is serialized to file and
     registered in the objid_to_filename dictionary.
@@ -1167,35 +1167,35 @@ def _turn_into_file(p):
 
     # print('XXXXXXXXXXXXXXXXX')
     # print('p           : ', p)
-    # print('p.value     : ', p.value)
+    # print('p.object    : ', p.object)
     # print('p.type      : ', p.type)
     # print('p.direction : ', p.direction)
     # print('XXXXXXXXXXXXXXXXX')
     # if p.direction == DIRECTION.OUT:
     #     # If the parameter is out, infer the type and create an empty instance
     #     # of the same type as the original parameter:
-    #     t = type(p.value)
-    #     p.value = t()
+    #     t = type(p.object)
+    #     p.object = t()
 
-    obj_id = get_object_id(p.value, True)
+    obj_id = get_object_id(p.object, True)
     file_name = objid_to_filename.get(obj_id)
     if file_name is None:
         # This is the first time a task accesses this object
-        pending_to_synchronize[obj_id] = p.value
+        pending_to_synchronize[obj_id] = p.object
         file_name = temp_dir + temp_obj_prefix + str(obj_id)
         objid_to_filename[obj_id] = file_name
         if __debug__:
             logger.debug('Mapping object %s to file %s' % (obj_id, file_name))
-        serialize_to_file(p.value, file_name)
+        serialize_to_file(p.object, file_name)
     elif obj_id in objs_written_by_mp:
         if p.direction == DIRECTION.INOUT:
-            pending_to_synchronize[obj_id] = p.value
+            pending_to_synchronize[obj_id] = p.object
         # Main program generated the last version
         compss_file = objs_written_by_mp.pop(obj_id)
         if __debug__:
             logger.debug('Serializing object %s to file %s' % (obj_id, compss_file))
-        serialize_to_file(p.value, compss_file)
-    p.value = file_name
+        serialize_to_file(p.object, compss_file)
+    p.object = file_name
 
 
 def _clean_objects():

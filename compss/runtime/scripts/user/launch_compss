@@ -951,7 +951,7 @@ set_variables() {
 
   if [ "${worker_in_master_memory}" == "${DEFAULT_WORKER_IN_MASTER_MEMORY}" ]; then
     # Default value
-    worker_in_master_memory=${DEFAULT_NODE_MEMORY_SIZE}
+    worker_in_master_memory=$(( DEFAULT_WORKER_IN_MASTER_MEMORY / 1024 - 4))
   else
     # Change from MB to GB
     worker_in_master_memory=$(( worker_in_master_memory / 1024 - 4))

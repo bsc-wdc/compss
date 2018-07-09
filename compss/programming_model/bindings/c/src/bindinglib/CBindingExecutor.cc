@@ -68,6 +68,12 @@ void CBindingExecutor::initThread() {
     if (is_debug()) {
         cout << "[Persistent C] Starting compute thread with id " << gettid() << endl << flush;
     }
+
+    get_compss_worker_lock();
+    GE_initThread();
+    release_compss_worker_lock();
+
+/*
 #ifdef OMPSS_ENABLED
     if (is_debug()) {
         cout << "[Persistent C (Th " << gettid() <<")] Admitting thread to OmpSs runtime..." << endl << flush;
@@ -76,6 +82,7 @@ void CBindingExecutor::initThread() {
     nanos_admit_current_thread();
     release_compss_worker_lock();
 #endif
+*/
 }
 
 int CBindingExecutor::executeTask(const char * command, char *&result) {
@@ -150,18 +157,24 @@ int CBindingExecutor::executeTask(const char * command, char *&result) {
 }
 
 void CBindingExecutor::finishThread() {
-#ifdef OMPSS_ENABLED
-    f (is_debug()) {
+/*#ifdef OMPSS_ENABLED
+    if (is_debug()) {
         cout << "[Persistent C (Th " << gettid() << ")] Leaving OmpSs runtime..."  << endl << flush;
     }
     get_compss_worker_lock();
     nanos_leave_team();
     nanos_expel_current_thread();
     release_compss_worker_lock();
-#endif
+#endif*/
     if (is_debug()) {
         cout << "[Persistent C] Thread " << gettid() << " Finished." << endl << flush;
     }
+
+    get_compss_worker_lock();
+    GE_finishThread();
+    release_compss_worker_lock();
+
 }
+
 
 

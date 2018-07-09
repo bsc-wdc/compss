@@ -147,6 +147,53 @@ void generate_worker_prolog() {
     fprintf(workerFile, "using namespace std;\n");
     fprintf(workerFile, "\n");
 }
+
+/*
+ * Generate prototype for the initThread method at worker
+ */
+void generate_initThread_prototype(FILE *outFile) {
+	fprintf(outFile, "void GE_initThread() {\n");
+    fprintf(outFile, "\n");
+}
+
+void generate_worker_initThread() {
+	generate_initThread_prototype(workerFile);
+
+    fprintf(workerFile, "#ifdef OMPSS_ENABLED\n");
+    fprintf(workerFile, "\t\t nanos_admit_current_thread();\n");
+    fprintf(workerFile, "#endif\n");
+    fprintf(workerFile, "}\n");
+
+}
+
+void generate_finishThread_prototype(FILE *outFile) {
+	fprintf(outFile, "void GE_finishThread() {\n");
+    fprintf(outFile, "\n");
+}
+
+void generate_worker_finishThread() {
+	generate_finishThread_prototype(workerFile);
+
+    fprintf(workerFile, "#ifdef OMPSS_ENABLED\n");
+    fprintf(workerFile, "\t\t nanos_leave_team();\n");
+    fprintf(workerFile, "\t\t nanos_expel_current_thread();\n");
+    fprintf(workerFile, "#endif\n");
+    fprintf(workerFile, "}\n");
+
+}
+
+void generate_initThread_empty(FILE *outFile) {
+	generate_initThread_prototype(outFile);
+	fprintf(outFile, "return;\n");
+	fprintf(outFile, "}\n");
+}
+
+void generate_finishThread_empty(FILE *outFile) {
+	generate_finishThread_prototype(outFile);
+	fprintf(outFile, "return;\n");
+	fprintf(outFile, "}\n");
+}
+
 /*
  * Generate prototype for the execute method at worker
  */
@@ -1840,6 +1887,8 @@ void generate_body(void) {
     generate_executor_end();
     printf("\t Generating remove and serialize functions... \n");
     fflush(NULL);
+    generate_initThread_empty(stubsFile);
+    generate_finishThread_empty(stubsFile);
     generate_execute_empty(stubsFile);
     generate_remove_func(workerFile, current_types);
     generate_remove_func(stubsFile, current_types);
@@ -1853,4 +1902,6 @@ void generate_body(void) {
     generate_deserializeFromStream_func(stubsFile, current_types);
     generate_deserializeFromFile_func(workerFile, current_types);
     generate_deserializeFromFile_func(stubsFile, current_types);
+    generate_worker_initThread();
+    generate_worker_finishThread();
 }

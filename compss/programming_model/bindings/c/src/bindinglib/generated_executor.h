@@ -20,7 +20,9 @@
 
 using namespace std;
 
+void GE_initThread();
 int execute(int argc, char **argv, CBindingCache *cache, int serializeOuts);
+void GE_finishThread();
 
 #endif
 

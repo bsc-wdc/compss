@@ -43,13 +43,7 @@
   fi
 
   if [ ${lang} == "python" ]; then
-      # If python test ==> then check with python 2 and python 3
-      if command_exists python2 ; then
-          execute_application "${COMPSsExec}" "${comm}" "${runcompss_opts}" "${COMPSsLogFolder}" "${appBaseDir}" "${appLogDir}" "${skip}" "${MAX_RETRIES}" "${appName}2" python2
-      fi
-      if command_exists python3 ; then
-          execute_application "${COMPSsExec}" "${comm}" "${runcompss_opts}" "${COMPSsLogFolder}" "${appBaseDir}" "${appLogDir}" "${skip}" "${MAX_RETRIES}" "${appName}3" python3
-      fi
+      execute_application "${COMPSsExec}" "${comm}" "${runcompss_opts}" "${COMPSsLogFolder}" "${appBaseDir}" "${appLogDir}" "${skip}" "${MAX_RETRIES}" "${appName}3" python3
   else
       # If Java or C, perform simple execution
       execute_application "${COMPSsExec}" "${comm}" "${runcompss_opts}" "${COMPSsLogFolder}" "${appBaseDir}" "${appLogDir}" "${skip}" "${MAX_RETRIES}" "${appName}"

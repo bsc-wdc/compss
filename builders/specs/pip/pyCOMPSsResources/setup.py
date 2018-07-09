@@ -4,8 +4,7 @@ import os
 from backend import install as backend_install
 from setuptools import setup
 
-'''
-Setuptools installer. This script will be called by pip when:
+'''Setuptools installer. This script will be called by pip when:
 - We want to create a distributable (sdist) tar.gz
 - We want to build the C extension (build and build_ext)
 - We want to install PyCOMPSs (install)
@@ -19,27 +18,24 @@ venv = False
 
 
 def get_virtual_env_target_path():
-    """
-    Get the target path within a virtual environment
+    '''Get the target path within a virtual environment
     :return: target path
-    """
+    '''
     from distutils.sysconfig import get_python_lib
     return os.path.join(get_python_lib(), 'pycompss')
 
 
 def get_root_target_path():
-    """
-    Get the target path for root installations
+    '''Get the target path for root installations
     :return: target path
-    """
+    '''
     return os.path.join(site.getsitepackages()[0], 'pycompss')
 
 
 def get_user_target_path():
-    """
-    Get the target path for user installation
+    '''Get the target path for user installation
     :return: target path
-    """
+    '''
     return os.path.join(site.getusersitepackages(), 'pycompss')
 
 
@@ -68,10 +64,11 @@ else:
 
 
 def check_system():
-    """
-    Check that we have a proper python version and a proper OS (i.e: not windows)
-    Also, check that we have JAVA_HOME defined
-    """
+    '''Check that we have a proper python version and a proper OS (i.e: not windows)
+    Also, check that we have JAVA_HOME defined.
+    This does NOT intend to perform an exhaustive system check, and it is neither
+    the role nor in the scope of a distutils installer
+    '''
     # check Python version
     assert sys.version_info[:2] >= (2, 7), 'COMPSs does not support Python version %s, only Python >= 2.7.x is supported.'%sys.version
     # check os version
@@ -80,57 +77,54 @@ def check_system():
     assert 'JAVA_HOME' in os.environ, 'JAVA_HOME is not defined'
 
 
-'''
-Pre-install operation: download and install COMPSs
+'''Pre-install operation: download and install COMPSs
 This will try to stop the installation if some error is
-found during that part. However, some sub-scripts do not
+found during this part. However, some sub-scripts do not
 propagate the errors they find, so there is not absolute
 guarantee that this script will lead to a perfect, clean
 installation.
 '''
 messages = []
-if "install" in sys.argv or "bdist_wheel" in sys.argv:
+if 'install' in sys.argv or 'bdist_wheel' in sys.argv:
     check_system()
     messages = backend_install(target_path, venv)
 
 
-'''
-Setup function.
+'''Setup function.
 '''
 setup(name='pycompss',
-      version=open('VERSION.txt').read().rstrip(),
-      description='Python Binding for COMP Superscalar Runtime',
-      long_description=open('README.txt').read(),
-      author='The COMPSs team',
-      author_email='support-compss@bsc.es',
-      maintainer='The COMPSs team',
-      maintainer_email='support-compss@bsc.es',
-      url='http://compss.bsc.es',
-      classifiers=['Development Status :: 5 - Production/Stable',
-                   'Environment :: Console',
-                   'Intended Audience :: Developers',
-                   'Intended Audience :: Science/Research',
-                   'License :: OSI Approved :: Apache Software License',
-                   'Operating System :: POSIX :: Linux',
-                   'Operating System :: Unix',
-                   'Programming Language :: C',
-                   'Programming Language :: C++',
-                   'Programming Language :: Java',
-                   'Programming Language :: Python :: 2.7',
-                   'Programming Language :: Python :: 3.4',
-                   'Programming Language :: Python :: 3.5',
-                   'Programming Language :: Python :: 3.6',
-                   'Topic :: Software Development',
-                   'Topic :: Scientific/Engineering',
-                   'Topic :: System :: Distributed Computing',
-                   'Topic :: Utilities'],
-      install_requires=['setuptools'],
-      license='Apache 2.0',
-      platforms=['Linux']
-      )
+    version=open('VERSION.txt').read().rstrip(),
+    description='Python Binding for COMP Superscalar Runtime',
+    long_description=open('README.txt').read(),
+    author='The COMPSs team',
+    author_email='support-compss@bsc.es',
+    maintainer='The COMPSs team',
+    maintainer_email='support-compss@bsc.es',
+    url='http://compss.bsc.es',
+    classifiers=['Development Status :: 5 - Production/Stable',
+                'Environment :: Console',
+                'Intended Audience :: Developers',
+                'Intended Audience :: Science/Research',
+                'License :: OSI Approved :: Apache Software License',
+                'Operating System :: POSIX :: Linux',
+                'Operating System :: Unix',
+                'Programming Language :: C',
+                'Programming Language :: C++',
+                'Programming Language :: Java',
+                'Programming Language :: Python :: 2.7',
+                'Programming Language :: Python :: 3.4',
+                'Programming Language :: Python :: 3.5',
+                'Programming Language :: Python :: 3.6',
+                'Topic :: Software Development',
+                'Topic :: Scientific/Engineering',
+                'Topic :: System :: Distributed Computing',
+                'Topic :: Utilities'],
+    install_requires=['setuptools'],
+    license='Apache 2.0',
+    platforms=['Linux']
+)
 
-'''
-Show final messages
+'''Show final messages
 '''
 for message in messages:
     print(message)

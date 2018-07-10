@@ -37,7 +37,7 @@ This will create the following files and directories:
 	  This .tar.gz contains the whole PyCOMPSs directory (except for the dist folder).
 	  This file is useful for testing. For example, if you type
 	  sudo -E python -m pip install pycompss-rc1337.tar.gz -v
-	  pip will try to install PyCOMPSs from this .tar.gz 
+	  pip will try to install PyCOMPSs from this .tar.gz
 
 
 
@@ -54,7 +54,7 @@ In order to install PyCOMPSs from a distributable you must:
 
 A PyCOMPSs distributable can be installed in any of the following ways:
 	- From a .tar.gz distributable. Let's assume you have a pycompss-$VERSION.tar.gz
-	  created from the buildpip script. Then the following command: 
+	  created from the buildpip script. Then the following command:
 		sudo -E python -m pip install pycompss-$VERSION.tar.gz
 	  Will install PyCOMPSs in your site-packages.
 
@@ -97,7 +97,7 @@ command:
 *** PLEASE, READ THIS SECTION CAREFULLY ***
 
 It is recommended to read this guide about PIP packages and it is encouraged to
-have some experience with it (for example, create small, dummy packages and upload 
+have some experience with it (for example, create small, dummy packages and upload
 them to the test repository):
 	http://peterdowns.com/posts/first-time-with-pypi.html
 
@@ -115,10 +115,10 @@ You must have proper login credentials defined on your ~/.pypirc
 file. Please, see the aforementioned tutorial for a proper pypirc
 example
 
-The login credentials are available at the wiki 
+The login credentials are available at the wiki
 
 WARNING: Be very careful when uploading PyCOMPSs distributables on pyPI.
-pyPI does not allow to re-upload a .tar.gz distributable for the same release. 
+pyPI does not allow to re-upload a .tar.gz distributable for the same release.
 Upload only well-tested installables!
 
 
@@ -147,7 +147,7 @@ README:
 
 buildpip:
 	- Main script. sudo -E ./buildpip VERSION will create a PIP distributable named
-	  PyCOMPSs-${PyCOMPSs_VERSION}.tar.gz in trunk/builders/packages/pip/PyCOMPSs/dist/ 
+	  PyCOMPSs-${PyCOMPSs_VERSION}.tar.gz in trunk/builders/packages/pip/PyCOMPSs/dist/
 	  Example: sudo -E ./buildpip 2.0 will create a PyCOMPSs-2.0.tar.gz
 
 PyCOMPSsResources/backend.py:
@@ -187,14 +187,13 @@ since it will be automatically replaced by a new one.
 
 
 ======================================
-	   GENERATED	
+	   GENERATED
 	 PyCOMPSs FOLDER
 ======================================
 
 A succesfull buildpip execution will leave in /trunk/builders/packages/pip
 the folder hierarchy and files listed below.
 Do not modify, add or delete any file on this folder.
-
 
 PyCOMPSs
 ├── backend.py
@@ -215,4 +214,3 @@ PyCOMPSs
 ** Department of Computer Science  **
 ** Barcelona Supercomputing Center **
 *************************************
-

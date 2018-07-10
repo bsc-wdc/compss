@@ -10,7 +10,6 @@ if sys.version_info >= (3, 0):
 else:
     import urllib
 
-
 # Used for .bashrc export if necessary
 EXPORT_LABEL = '##PyCOMPSs_EXPORTS___DO_NOT_REMOVE_THIS_LINE##'
 SETUP_ENVIRONMENT_LABEL = '##PyCOMPSs_SETUP___DO_NOT_REMOVE_THIS_LINE##'
@@ -24,8 +23,7 @@ POST_ENVIRONMENT_CALL = 'cleanup_COMPSs_environment ' + POST_ENVIRONMENT_LABEL +
 
 
 def install(target_path, venv):
-    """
-    This function downloads the COMPSs installable from the specified repository and version
+    '''This function downloads the COMPSs installable from the specified repository and version
     and installs it. It is intended to be called from the setup.py script when we are installing.
     It also leaves a script on /etc/profile.d/compss.sh equivalent to the "compssenv" one on
     the supercomputers packages.
@@ -35,7 +33,7 @@ def install(target_path, venv):
     :param target_path: <string> Destination folder
     :param venv: <boolean> True if installed within virtual environment. False on the contrary.
     :return: a list of strings (messages)
-    """
+    '''
     messages = []
 
     # download and decompress the COMPSs_version.tar.gz file
@@ -104,12 +102,11 @@ def install(target_path, venv):
         # Could not include system wide, then try to do it locally
 
         def update_export(sources_file, target_path, pre_and_post_environment=False):
-            """
-            Helper function for export update
+            '''Helper function for export update
             :param sources_file: Where to place the exports
             :param target_path: where the compss.sh will be
             :param pre_and_post_environment: Boolean to include pre and cleanup (only for virtual environments)
-            """
+            '''
             # Update compss.sh script
             local_compss_sh = os.path.join(target_path, 'compss.sh')
             with open(local_compss_sh, 'w') as local_compss:
@@ -194,7 +191,7 @@ def install(target_path, venv):
     for target_file in glob.iglob(os.path.join(original_compss_path, "*")):
         symbolic_place = os.path.join(target_path, os.path.split(target_file)[-1])
         create_symlink(target_file, symbolic_place)
-        messages.append("SIMBOLIK LINK: From %s to %s" % (symbolic_place, target_file))
+        messages.append('SIMBOLIC LINK: From %s to %s' % (symbolic_place, target_file))
 
     # create symbolic links to the C extensions
     original_extensions_path = os.path.join(pref, 'Bindings', 'python', str(sys.version_info[0]))
@@ -202,7 +199,7 @@ def install(target_path, venv):
     for target_file in glob.iglob(os.path.join(original_extensions_path, "*.so")):  # just .so files
         symbolic_place = os.path.join(site_packages_path, os.path.split(target_file)[-1])
         create_symlink(target_file, symbolic_place)
-        messages.append("SIMBOLIK LINK: From %s to %s" % (symbolic_place, target_file))
+        messages.append('SIMBOLIC LINK: From %s to %s' % (symbolic_place, target_file))
 
     messages.append('*****************************************************')
 

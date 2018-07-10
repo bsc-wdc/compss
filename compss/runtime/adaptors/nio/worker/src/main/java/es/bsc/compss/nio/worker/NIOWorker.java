@@ -373,10 +373,10 @@ public class NIOWorker extends NIOAgent {
 
     private void askForBindingObject(NIOParam param, int index, TransferringTask tt) {
         WORKER_LOGGER.debug("   - " + (String) param.getValue() + " registered as binding object."); 
-        String[] extObjVals = ((String) param.getValue()).split("#");
-        String value = extObjVals[0];
-        int type = Integer.parseInt(extObjVals[1]);
-        int elements = Integer.parseInt(extObjVals[2]);
+        BindingObject dest_bo = BindingObject.generate((String) param.getValue());
+        String value = dest_bo.getName();
+        int type = dest_bo.getType();
+        int elements = dest_bo.getElements();
         boolean askTransfer = false;
 
         // Try if parameter is in cache
@@ -388,21 +388,21 @@ public class NIOWorker extends NIOAgent {
             WORKER_LOGGER.debug("   - Checking if " + value + " locations are catched");
             for (NIOURI loc : param.getData().getSources()) {
                 BindingObject bo = BindingObject.generate(loc.getPath());
-                if (BindingDataManager.isInBinding(bo.getId())) {
+                if (BindingDataManager.isInBinding(bo.getName())) {
                     // Object found
                     WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") location found in cache.");
                     if (param.isPreserveSourceData()) {
                         WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") preserves sources. CACHE-COPYING");
-                        int res = BindingDataManager.copyCachedData(bo.getId(), value);
+                        int res = BindingDataManager.copyCachedData(bo.getName(), value);
                         if (res != 0) {
-                            WORKER_LOGGER.error("CACHE-COPY from " + bo.getId() + " to " + value + " has failed. ");
+                            WORKER_LOGGER.error("CACHE-COPY from " + bo.getName() + " to " + value + " has failed. ");
                             break;
                         }
                     } else {
                         WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") erases sources. CACHE-MOVING");
-                        int res = BindingDataManager.moveCachedData(bo.getId(), value);
+                        int res = BindingDataManager.moveCachedData(bo.getName(), value);
                         if (res != 0) {
-                            WORKER_LOGGER.error("CACHE-MOVE from " + loc.getPath() + " to " + value + " has failed. ");
+                            WORKER_LOGGER.error("CACHE-MOVE from " + bo.getName() + " to " + value + " has failed. ");
                             break;
                         }
                     }
@@ -418,34 +418,45 @@ public class NIOWorker extends NIOAgent {
                 NIOURI loc = param.getData().getURIinHost(host);
                 if (loc != null) {
                     BindingObject bo = BindingObject.generate(loc.getPath());
-                    WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") found at host with location " +loc.getPath() + " Checking if in cache...");
-                    if (BindingDataManager.isInBinding(bo.getId())) {
-                        // Object found
+                    WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") found at host with location " +loc.getPath() + " Checking if id "+bo.getName()+" is in cache...");
+                    if (BindingDataManager.isInBinding(bo.getName())) {
+                        // Object found and it is in 
                         WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") location found in cache.");
                         if (param.isPreserveSourceData()) {
                             WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") preserves sources. CACHE-COPYING");
-                            int res = BindingDataManager.copyCachedData(bo.getId(), value);
+                            
+                            int res = BindingDataManager.copyCachedData(bo.getName(), value);
                             if (res != 0) {
-                                WORKER_LOGGER.error("CACHE-COPY from " + bo.getId() + " to " + value + " has failed. ");
+                                WORKER_LOGGER.error("CACHE-COPY from " + bo.getName() + " to " + value + " has failed. ");
                             }
                         } else {
                             WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") erases sources. CACHE-MOVING");
-                            int res = BindingDataManager.moveCachedData(bo.getId(), value);
+                            
+                            int res = BindingDataManager.moveCachedData(bo.getName(), value);
                             if (res != 0) {
-                                WORKER_LOGGER.error("CACHE-MOVE from " + bo.getId() + " to " + value + " has failed. ");
+                                WORKER_LOGGER.error("CACHE-MOVE from " + bo.getName() + " to " + value + " has failed. ");
                             }
                         }
                         existInHost = true;
                     } else {
-                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") not in cache.");
-
-                        if (new File(workingDir + File.separator + loc.getPath()).exists()) {
-                            int res = BindingDataManager.loadFromFile(value, loc.getPath(), type, elements);
-                            if (res == 0) {
-                                existInHost = true;
-                            } else {
+                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") not in cache with id "+bo.getName());
+                        
+                        File inFile = new File(bo.getId());
+                        if (!inFile.isAbsolute()){
+                            inFile = new File(workingDir + File.separator + loc.getPath());
+                        }
+                        String path = inFile.getAbsolutePath();
+                        WORKER_LOGGER.debug("   - Checking if file " + path + " exists ");
+                        
+                        if (inFile.exists()) {
+                            existInHost = true;
+                            
+                            int res = BindingDataManager.loadFromFile(value, path, type, elements);
+                            if (res != 0) {
                                 WORKER_LOGGER.error("Error loading " + param.getValue() + " from file " + loc.getPath());
                             }
+                        }else{
+                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") not in cache.");
                         }
                     }
    }

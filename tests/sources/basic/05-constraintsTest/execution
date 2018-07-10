@@ -47,7 +47,7 @@
     mkdir -p "${log_folder}"
     output_log="${log_folder}/constraintsTest_${test_name}_0${retryNum}.outputlog"
     error_log="${log_folder}/constraintsTest_${test_name}_0${retryNum}.errorlog"
-    expectedTime=60s
+    expectedTime=80s
 
     # shellcheck disable=SC2086
     timeout --signal=2 $expectedTime "${COMPSs_exec}" \

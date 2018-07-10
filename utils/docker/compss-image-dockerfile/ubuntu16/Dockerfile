@@ -22,7 +22,9 @@ RUN apt-get update && \
 # Add the jenkins user to sudoers
     echo "jenkins  ALL=(ALL)  NOPASSWD:ALL" >> /etc/sudoers && \
 # Create ssh required dir
-    mkdir /run/sshd
+    mkdir /run/sshd && \
+# Enable repo compression
+    git config --global core.compression 9
 
 # Expose SSH port and run SSHD
 EXPOSE 22

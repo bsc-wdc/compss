@@ -29,9 +29,9 @@
   targetDir=$1
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-  modules="GCCcore/.5.4.0 Intel/2017.0.098-GCC-5.4.0 Java IntelMPI Python/2.7.12 Boost PAPI/5.5.0 Autotools/20150215"
-  py2_modules="Python/2.7.12"
-  py3_modules=""
+  modules="GCCcore/.5.5.0 Intel/2018.2.199-GCC-5.5.0 Java/1.8.0_162 ParaStationMPI/5.2.1-1 Python/2.7.14 Boost PAPI/5.6.0 Autotools/20170619"
+  py2_modules="Python/2.7.14"
+  py3_modules="Python/3.6.5"
   additionalExports=""
   queues_cfg="jureca.cfg"
   extrae_with_openmpi="false"

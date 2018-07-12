@@ -32,9 +32,10 @@ All serialization/deserialization calls should be made using one of the followin
 - deserialize_from_handler(handler) -> deserializes an object using the given handler, it also leaves the
                                        handler's pointer pointing to the end of the serialized object
 """
-import sys
+
 import types
 import traceback
+
 from pycompss.runtime.commons import IS_PYTHON3
 from .serialization.extended_support import pickle_generator, convert_to_generator, GeneratorIndicator
 from .object_properties import object_belongs_to_module
@@ -201,6 +202,7 @@ def deserialize_from_handler(handler):
     :param handler: File name from where the object is going to be deserialized.
     :return: The object deserialized.
     """
+
     # Retrieve the used library
     serializer = idx2lib[int(handler.read(4))]
     try:
@@ -213,7 +215,7 @@ def deserialize_from_handler(handler):
         if __debug__:
             print('WARNING! Deserialization with %s failed.' % str(serializer))
             traceback.print_exc()  # No need to print all deserialize exceptions
-    # we are not able to deserialize the contents from file_name with any of our
+    # We are not able to deserialize the contents from file_name with any of our
     # serializers
     try:
         traceback.print_exc()

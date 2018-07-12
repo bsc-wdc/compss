@@ -90,7 +90,7 @@
             "handlers": ["console"], 
             "propagate": "no"
         },
-        "pycompss.util.translators.arg_utils.arg_utils": {                                                                                                                                                                                                                     
+        "pycompss.util.translators.arg_utils.arg_utils": {
             "level": "ERROR",
             "handlers": ["console"], 
             "propagate": "no"
@@ -129,6 +129,11 @@
             "level": "ERROR",
             "handlers": ["console"],
             "propagate": "no"                                                                                                                                                     
+        },
+        "pycompss.util.translators.py2pycompss.components.calculator": {                                                                                                                                                                    
+            "level": "ERROR",
+            "handlers": ["console"],
+            "propagate": "no"
         },
         "pycompss.runtime.launch": {
             "level": "ERROR",

@@ -97,7 +97,7 @@
             "handlers": ["console"], 
             "propagate": "no"
         },
-        "pycompss.util.translators.arg_utils.arg_utils": {                                                                                                                                                                                                                     
+        "pycompss.util.translators.arg_utils.arg_utils": {
             "level": "DEBUG",
             "handlers": ["console"], 
             "propagate": "no"
@@ -117,7 +117,7 @@
             "handlers": ["console"], 
             "propagate": "no"
         },
-        "pycompss.util.translators.py2scop.translator_py2scop": {                                                                                                                                                                                                              
+        "pycompss.util.translators.py2scop.translator_py2scop": {
             "level": "DEBUG",
             "handlers": ["console"], 
             "propagate": "no"
@@ -133,6 +133,11 @@
             "propagate": "no"
         },
         "pycompss.util.translators.py2pycompss.components.loop_taskificator": {                                                                                                   
+            "level": "DEBUG",
+            "handlers": ["console"],
+            "propagate": "no"
+        },
+        "pycompss.util.translators.py2pycompss.components.calculator": {                                                                                                                                                                    
             "level": "DEBUG",
             "handlers": ["console"],
             "propagate": "no"

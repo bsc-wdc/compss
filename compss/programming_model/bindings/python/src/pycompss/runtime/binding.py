@@ -580,7 +580,7 @@ def process_task(f, module_name, class_name, ftype,
         path = module_name + '.' + class_name
 
     # Infer COMPSs types from real types, except for files
-    _infer_types_and_serialize_objects(f_parameters, task_kwargs)
+    _serialize_objects(f_parameters, task_kwargs)
 
     # Build values and COMPSs types and directions
     values, compss_types, compss_directions, compss_streams, compss_prefixes = _build_values_types_directions(ftype,
@@ -765,7 +765,7 @@ def _build_return_objects(f_returns):
     return fo
 
 
-def _infer_types_and_serialize_objects(f_parameters, task_kwargs):
+def _serialize_objects(f_parameters, task_kwargs):  # TODO: REMOVE TASK_KWARGS
     """
     Infer COMPSs types for the task parameters and serialize them.
 
@@ -780,73 +780,18 @@ def _infer_types_and_serialize_objects(f_parameters, task_kwargs):
 
     for k in f_parameters:
         # Check user annotations concerning this argument
-        p = task_kwargs.get(k)
-        if p is None:
-            # The user has not provided any information
-            if __debug__:
-                logger.debug("Adding default decoration for param %s" % k)
-            p = Parameter()
-        elif type(p) is dict:
-            # The user has provided some information about the parameter within the @task parameter
-            from pycompss.api.task import from_dict_to_parameter
-            if __debug__:
-                logger.debug("Checking decoration for param %s" % k)
-            p = from_dict_to_parameter(p)
-
-        # Add value to p
-        p.object = f_parameters[k].object
-
-        # Infer argument value
-        if 'self' in f_parameters:
-            # It is a class function
-            if k == 'self':
-                # Check if self is a persistent object and set its type if it really is.
-                if is_psco(p.object):
-                    p.type = TYPE.EXTERNAL_PSCO
-
-        # Update the parameter type if changed between task calls
-        # Respect p.type if none to be inferred later.
-        # Respect p.type == TYPE.FILE since may be updated wrongly to str.
-        val_type = type(p.object)
-        new_type = python_to_compss.get(val_type)
-        if p.type is not None and p.type != TYPE.FILE and p.type != new_type:
-            p.type = new_type
-
-        # Update future object list
-        is_future = (val_type == Future)
-        f_parameters[k].is_future = is_future
-
-        # Log parameter information
-        if __debug__:
-            logger.debug('Parameter ' + k)
-            logger.debug('\t- Value type: ' + str(val_type))
-            logger.debug('\t- User-defined type: ' + str(p.type))
-
-        # Infer type if necessary
-        if p.type is None:
-            if __debug__:
-                logger.debug('Inferring type due to None pType.')
-            p.type = python_to_compss.get(val_type)
-            if p.type is None:
-                if is_psco(p.object):
-                    p.type = TYPE.EXTERNAL_PSCO
-                else:
-                    p.type = TYPE.OBJECT
-            if __debug__:
-                logger.debug('\t- Inferred type: %d' % p.type)
+        p = f_parameters[k]
 
         # Convert small objects to string if object_conversion enabled
         # Check if the object is small in order not to serialize it.
         if object_conversion:
-            p, written_bytes = _convert_object_to_string(p, is_future, max_obj_arg_size, policy='objectSize')
+            p, written_bytes = _convert_object_to_string(p, max_obj_arg_size, policy='objectSize')
             max_obj_arg_size -= written_bytes
 
         # Serialize objects into files
-        p = _serialize_object_into_file(p, is_future)
-
+        p = _serialize_object_into_file(p)
         # Update k parameter's Parameter object
         f_parameters[k] = p
-        f_parameters[k].type = p.type
 
         if __debug__:
             logger.debug('Final type for parameter %s: %d' % (k, p.type))
@@ -888,8 +833,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings)
     # Fill the values, compss_types, compss_directions, compss_streams and compss_prefixes from function returns
     for r in f_returns:
         p = f_returns[r]
-        p.object = f_returns[r].file_name
-        values.append(p.object)
+        values.append(f_returns[r].file_name)
         compss_types.append(p.type)
         compss_directions.append(p.direction)
         compss_streams.append(p.stream)
@@ -926,28 +870,36 @@ def _extract_parameter(parameter, code_strings):
             # Empty string - use escape string to avoid padding
             # Checked and substituted by empty string in the worker.py and piper_worker.py
             parameter.object = base64.b64encode(EMPTY_STRING_KEY.encode()).decode()
-    value = parameter.object
-    if parameter.type == TYPE.OBJECT or parameter.is_future:
+
+    # If the Parameter type is file, then the object must have been serialized
+    # and the Parameter must have the file_name where the object is.
+    if parameter.type == TYPE.FILE or parameter.type == TYPE.OBJECT or parameter.is_future:
+        value = parameter.file_name
         typ = TYPE.FILE
     else:
+        value = parameter.object
         typ = parameter.type
+
+    # Get direction, stream and prefix
     direction = parameter.direction
     stream = parameter.stream
     prefix = parameter.prefix
+
     return value, typ, direction, stream, prefix
 
 
-def _convert_object_to_string(p, is_future, max_obj_arg_size, policy='objectSize'):
+def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
     """
     Convert small objects into string that can fit into the task parameters call
 
     :param p: Object wrapper
-    :param is_future: Boolean indicating if it is a future object or not
     :param max_obj_arg_size: max size of the object to be converted
     :param policy: policy to use: 'objectSize' for considering the size of the object or 'serializedSize' for
                    considering the size of the object serialized.
     :return: the object possibly converted to string
     """
+
+    is_future = p.is_future
 
     num_bytes = 0
     if policy == 'objectSize':
@@ -1089,16 +1041,15 @@ def _convert_object_to_string(p, is_future, max_obj_arg_size, policy='objectSize
 #     return p
 
 
-def _serialize_object_into_file(p, is_future):
+def _serialize_object_into_file(p):
     """
     Serialize an object into a file if necessary.
 
     :param p: Object wrapper
-    :param is_future: Boolean indicating if it is a future object or not
     :return: p (whose type and value might be modified)
     """
 
-    if p.type == TYPE.OBJECT or is_future:
+    if p.type == TYPE.OBJECT or p.is_future:
         # 2nd condition: real type can be primitive, but now it's acting as a future (object)
         try:
             val_type = type(p.object)
@@ -1109,7 +1060,6 @@ def _serialize_object_into_file(p, is_future):
                         logger.debug('Found a list that contains future objects - synchronizing...')
                     mode = get_compss_mode('in')
                     p.object = list(map(synchronize, p.object, [mode] * len(p.object)))
-
             _turn_into_file(p)
         except SerializerException:
             import sys
@@ -1161,8 +1111,9 @@ def _turn_into_file(p):
     (reuses it if exists). If not, the object is serialized to file and
     registered in the objid_to_filename dictionary.
     This functions stores the object into pending_to_synchronize
+
     :param p: Wrapper of the object to turn into file
-    :return:
+    :return: None
     """
 
     # print('XXXXXXXXXXXXXXXXX')
@@ -1195,7 +1146,10 @@ def _turn_into_file(p):
         if __debug__:
             logger.debug('Serializing object %s to file %s' % (obj_id, compss_file))
         serialize_to_file(p.object, compss_file)
-    p.object = file_name
+    else:
+        pass
+    # Set file name in Parameter object
+    p.file_name = file_name
 
 
 def _clean_objects():

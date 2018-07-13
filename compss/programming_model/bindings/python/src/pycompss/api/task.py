@@ -32,7 +32,7 @@ import copy
 from collections import OrderedDict
 from functools import wraps
 from pycompss.runtime.commons import IS_PYTHON3
-from pycompss.api.parameter import Parameter
+from pycompss.api.parameter import *
 
 
 if IS_PYTHON3:
@@ -58,7 +58,8 @@ class Task(object):
         # Check if under the PyCOMPSs scope
         if i_am_within_scope():
             from pycompss.util.location import i_am_at_master
-            from pycompss.api.parameter import IN
+            from pycompss.api.parameter import _param_
+            from pycompss.api.parameter import _param_conversion_dict_
 
             self.scope = True
 
@@ -86,18 +87,15 @@ class Task(object):
                 if reserved_keyword not in self.kwargs:
                     self.kwargs[reserved_keyword] = default_value
 
-            # Remove old args
-            for old_vararg in [x for x in self.kwargs.keys() if x.startswith('*args')]:
-                self.kwargs.pop(old_vararg)
-
-            if i_am_at_master():
-                for arg_name in self.kwargs.keys():
-                    if arg_name not in reserved_keywords.keys():
-                        # Prevent p.object from being overwritten later by ensuring
-                        # each Parameter is a separate object
-                        p = self.kwargs[arg_name]
-                        pcopy = copy.copy(p)  # shallow copy
-                        self.kwargs[arg_name] = pcopy
+            for arg_name, arg_value in self.kwargs.items():
+                if isinstance(arg_value, _param_):
+                    key = arg_value.key
+                    self.kwargs[arg_name] = eval(_param_conversion_dict_[key])
+                if isinstance(arg_value, dict) and 'type' in arg_value:
+                    key = arg_value['type'].key
+                    arg_value['type'] = eval(_param_conversion_dict_[key])
+                    self.kwargs[arg_name] = from_dict_to_parameter(arg_value)
+                    # TODO: here the dict is converted to parameter, so it may be removed from later
 
             if __debug__:
                 logger.debug("Init @task decorator finished.")
@@ -335,17 +333,13 @@ class Task(object):
 
     def __update_return_type(self):
         """
-        Updates the return types within self.kwargs['compss_retvalue']
+        Updates the return types within self.returns ordered dict.
 
         :return: None
         """
 
         from pycompss.api.parameter import Parameter
         from pycompss.api.parameter import DIRECTION
-
-        self.has_return = True
-        # TODO: WHY THIS VARIABLE? THE INFORMATION IS IN SELF.KWARGS['RETURNS']
-        self.f_argspec.args.append('compss_retvalue')
 
         # Manage Simple returns specified by the user
         # This condition is interesting, because a user can write returns=list, lists have attribute
@@ -354,19 +348,25 @@ class Task(object):
         # When the user specifies the length, it is possible to manage the elements independently.
         if not hasattr(self.kwargs['returns'], '__len__') or type(self.kwargs['returns']) is type:
             # Simple return
-            ret_type = _get_compss_type(self.kwargs['returns'])
-            self.kwargs['compss_retvalue'] = Parameter(p_type=ret_type, p_direction=DIRECTION.OUT)
+            ret = self.kwargs['returns']
+            ret_type = _get_compss_type(ret)
+            param = Parameter(p_type=ret_type, p_direction=DIRECTION.OUT)
+            param.object = ret
+            self.returns['compss_retvalue'] = param
         else:
             # Multi return
-            returns = []
-            for r in self.kwargs['returns']:
-                ret_type = _get_compss_type(r)
-                returns.append(Parameter(p_type=ret_type, p_direction=DIRECTION.OUT))
-            self.kwargs['compss_retvalue'] = tuple(returns)
+            i = 0
+            for ret in self.kwargs['returns']:
+                ret_type = _get_compss_type(ret)
+                param = Parameter(p_type=ret_type, p_direction=DIRECTION.OUT)
+                param.object = ret
+                self.returns['compss_retvalue' + str(i)] = param
+                i += 1
 
     def __update_return_if_no_returns(self, f):
         """
         Checks the code looking for return statements if no returns is specified in @task decorator.
+        Updates self.return if returns are found.
 
         :param f: Function to check
         """
@@ -376,6 +376,7 @@ class Task(object):
         from pycompss.api.parameter import TYPE
 
         source_code = _get_wrapped_source(f).strip()
+
         if self.is_instance or source_code.startswith('@classmethod'):  # TODO: WHAT IF IS CLASSMETHOD FROM BOOLEAN?
             # It is a task defined within a class (can not parse the code with ast since the class does not
             # exist yet. Alternatively, the only way I see is to parse it manually line by line.
@@ -389,6 +390,7 @@ class Task(object):
         else:
             code = [node for node in ast.walk(ast.parse(source_code))]
             ret_mask = [isinstance(node, ast.Return) for node in code]
+
         if any(ret_mask):
             print("INFO! Return found in function " + f.__name__ + " without 'returns' statement at task definition.")
             self.has_return = True
@@ -435,18 +437,21 @@ class Task(object):
             if has_multireturn:
                 if __debug__:
                     logger.debug("Multireturn found: %s" % str(max_num_returns))
-                self.kwargs['returns'] = []
-                returns = []
+                i = 0
                 for _ in range(max_num_returns):
-                    self.kwargs['returns'].append(object())
-                    returns.append(Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT))
-                self.kwargs['compss_retvalue'] = tuple(returns)
+                    param = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT)
+                    param.object = object()
+                    self.returns['compss_retvalue' + str(i)] = param
+                    i += 1
             else:
                 if __debug__:
                     logger.debug("Return found")
-                self.kwargs['returns'] = object()
-                self.kwargs['compss_retvalue'] = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT)
-            self.f_argspec.args.append('compss_retvalue')
+                param = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT)
+                param.object = object()
+                self.returns['compss_retvalue'] = param
+        else:
+            # Return not found
+            pass
 
     def __register_task(self, f):
         """
@@ -551,6 +556,7 @@ class Task(object):
         at_worker = False
         worker_rets = None
         worker_kwargs = None
+
         if 'compss_types' in kwargs:
             # Then we are being called within the worker, and the args and kwargs differ.
             at_worker = True
@@ -579,9 +585,7 @@ class Task(object):
         # The included are sorted by position. The rest may not.
 
         # Check how many parameters are defined in the function
-        num_parameters = len(self.f_argspec.args)
-        if self.has_return:
-            num_parameters -= 1
+        num_parameters = len(self.f_argspec.args)  # TODO: really needed? Remove if not used
 
         # Check if the user has defined default values and include them
         args_list = []
@@ -647,34 +651,27 @@ class Task(object):
         parameter_values = vals_values + args_vals
 
         # Step 3.- Fill self.returns structure
-        if self.has_return:
-            self.returns = OrderedDict()
-            if isinstance(self.kwargs['compss_retvalue'], Parameter):
-                # Default: Simple return
-                self.returns['compss_retvalue'] = self.kwargs['compss_retvalue']
+        if self.returns:
+            if len(self.returns) == 1:
                 if at_worker:
                     if len(worker_rets) == 1:
-                        self.returns['compss_retvalue'].object = worker_rets[0]
+                        self.returns['compss_retvalue'].file_name = worker_rets[0]
                     else:
-                        self.returns['compss_retvalue'].object = worker_rets
-                else:
-                    self.returns['compss_retvalue'].object = self.kwargs['returns']
+                        self.returns['compss_retvalue'].file_name = worker_rets
                 # Discover hidden returns
                 # Check if the self.returns has str/int/... in order to build a complete self.returns dictionary
                 self.__discover_hidden_returns(at_worker)
             else:
-                # Multireturn
-                i = 0
-                for r in zip(self.kwargs['compss_retvalue'], self.kwargs['returns']):
-                    self.returns['compss_retvalue' + str(i)] = r[0]
-                    self.returns['compss_retvalue' + str(i)].object = r[1]
-                    i += 1
+                # Multiple returns
+                pass
 
         # Step 4.- Fill self.parameters structure
         i = 0
         for p in parameter_names:
             if p in self.kwargs:
-                parameter = self.kwargs[p]
+                parameter = copy.copy(self.kwargs[p])   # copy Parameter reference to self.parameters
+                #                                       # Keep the original parameter in self.kwargs
+                #                                       # It does not contain any object nor file_name.
                 if isinstance(parameter, dict):
                     # The user has given some information about the parameter as dict
                     self.parameters[p] = from_dict_to_parameter(parameter)
@@ -682,12 +679,21 @@ class Task(object):
                     self.parameters[p] = parameter
             else:
                 self.parameters[p] = Parameter()
-            self.parameters[p].object = parameter_values[i]
+
+            obj = parameter_values[i]
+            if self.parameters[p].type != TYPE.FILE:
+                self.parameters[p].object = obj
+                # Then it is a primitive, get its real type
+                self.parameters[p].type = _get_compss_type(obj)
+            else:
+                self.parameters[p].file_name = obj
             i += 1
+
         # Clean elements that are not defined in parameter_names
         for p in self.parameters:
             if p not in parameter_names:
                 self.parameters.pop(p)
+
         # Extract the *args
         aargs = OrderedDict()
         if '*args0' in self.parameters:
@@ -698,6 +704,7 @@ class Task(object):
         akwargs = OrderedDict()
         if '**kwargs' in self.parameters:
             akwargs['**kwargs'] = self.parameters.pop('**kwargs')
+
         # Place the args and kwargs at the end of the parameters.
         self.parameters.update(aargs)
         self.parameters.update(akwargs)
@@ -878,74 +885,84 @@ class Task(object):
         from pycompss.api.parameter import TYPE
         from pycompss.util.serializer import deserialize_from_file
 
-        num_pars = len(spec_args)
+        # Update types from compss_types (worker)  # TODO: CAN NOT BE DONE AUTOMATICALLY SOMEWHERE ELSE?
+        for i in range(len(spec_args) - num_return):
+            p = spec_args[i]
+            t = compss_types[i]
+            v = values[i]
+            self.parameters[p].object = v
+            self.parameters[p].type = t
+
         real_values = []
         to_serialize = []
 
-        if self.has_return:
-            num_pars -= num_return  # return value must not be passed to the function call
+        for param in self.parameters:
+            parameter = self.parameters[param]
 
-        for i in range(num_pars):
-            spec_arg = spec_args[i]
-            compss_type = compss_types[i]
-            value = values[i]
-            if i == 0:
-                if spec_arg == 'self':  # callee object
-                    if self.kwargs['isModifier']:
-                        d = DIRECTION.INOUT
-                    else:
-                        d = DIRECTION.IN
-                    self.kwargs[spec_arg] = Parameter(p_type=TYPE.OBJECT, p_direction=d)
-                elif inspect.isclass(value):  # class (it's a class method)
-                    real_values.append(value)
-                    continue
-
-            p = self.kwargs.get(spec_arg)
-            if p is None:  # decoration not present, using default
-                p = self.kwargs['varargsType'] if spec_arg.startswith('*args') else Parameter()
-
-            if compss_type == TYPE.FILE and p.type != TYPE.FILE:
-                # Getting ids and file names from passed files and objects pattern
-                # is: "originalDataID:destinationDataID;flagToPreserveOriginalData:flagToWrite:PathToFile"
-                complete_f_name = value.split(':')
-                if len(complete_f_name) > 1:
-                    # In NIO we get more information
-                    # forig = complete_f_name[0]        # Not used yet
-                    # fdest = complete_f_name[1]        # Not used yet
-                    # preserve = complete_f_name[2]     # Not used yet
-                    # write_final = complete_f_name[3]  # Not used yet
-                    f_name = complete_f_name[4]
-                    # preserve, write_final = list(map(lambda x: x == "true", [preserve, write_final]))  # Not used yet
-                    # suffix_name = forig              # Not used yet
+            if param == 'self':  # callee object
+                if self.kwargs['isModifier']:
+                    d = DIRECTION.INOUT
                 else:
-                    # In GAT we only get the name
-                    f_name = complete_f_name[0]
-
-                value = f_name
-                # For COMPSs it is a file, but it is actually a Python object
-                if __debug__:
-                    logger.debug("Processing a hidden object in parameter %d", i)
-                obj = deserialize_from_file(value)
-                real_values.append(obj)
-                if p.direction != DIRECTION.IN:
-                    to_serialize.append((obj, value))
+                    d = DIRECTION.IN
+                parameter.direction = d  # TODO: THIS MUST BE OUTSIDE, NOT HERE
+            elif inspect.isclass(parameter.object):  # class (it's a class method)
+                real_values.append(parameter.object)
+                continue
             else:
-                if compss_type == TYPE.FILE:
-                    complete_f_name = value.split(':')
-                    if len(complete_f_name) > 1:
-                        # In NIO we get more information
-                        # forig = complete_f_name[0]        # Not used yet
-                        # fdest = complete_f_name[1]        # Not used yet
-                        # preserve = complete_f_name[2]     # Not used yet
-                        # write_final = complete_f_name[3]  # Not used yet
-                        f_name = complete_f_name[4]
-                    else:
-                        # In GAT we only get the name
-                        f_name = complete_f_name[0]
-                    value = f_name
-                real_values.append(value)
+                pass
+
+            if parameter.type == TYPE.FILE:
+                if parameter.file_name:
+                    # The parameter is a File (defined as FILE in the decorator)
+                    file_name = self.__extract_file_name(parameter.file_name)
+                    real_values.append(file_name)
+                else:
+                    # The parameter is a hidden object
+                    file_name = self.__extract_file_name(parameter.object)
+                    obj = deserialize_from_file(file_name)
+                    real_values.append(obj)
+                    if parameter.direction != DIRECTION.IN:
+                        to_serialize.append((obj, file_name))
+            elif parameter.type == TYPE.OBJECT and parameter.file_name:
+                # The parameter is actually an object serialized into a file
+                file_name = self.__extract_file_name(parameter.file_name)
+                obj = deserialize_from_file(file_name)
+                real_values.append(obj)
+                if parameter.direction != DIRECTION.IN:
+                    to_serialize.append((obj, file_name))
+            else:
+                # Otherwise, the parameter is a primitive
+                real_values.append(parameter.object)
 
         return real_values, to_serialize
+
+    @staticmethod
+    def __extract_file_name(pattern):
+        """
+        Process the pattern string sent through NIO or GAT which points to a file.
+        Getting ids and file names from passed files and objects pattern is:
+            - NIO:
+                "originalDataID:destinationDataID;flagToPreserveOriginalData:flagToWrite:PathToFile"
+            - GAT:
+                "PathToFile"
+
+        :param pattern: String to process following the NIO and GAT formats
+        :return: <String> The file name hidden in the pattern
+        """
+        complete_file_name = pattern.split(':')
+        if len(complete_file_name) > 1:
+            # In NIO we get more information
+            # forig = complete_f_name[0]        # Not used yet
+            # fdest = complete_f_name[1]        # Not used yet
+            # preserve = complete_f_name[2]     # Not used yet
+            # write_final = complete_f_name[3]  # Not used yet
+            file_name = complete_file_name[4]
+            # preserve, write_final = list(map(lambda x: x == "true", [preserve, write_final]))  # Not used yet
+            # suffix_name = forig               # Not used yet
+        else:
+            # In GAT we only get the name
+            file_name = complete_file_name[0]
+        return file_name
 
     # ############################################################################ #
     # #################### TASK DECORATOR MASTER CODE ############################ #
@@ -1176,12 +1193,14 @@ def _get_compss_type(value):
         # Char does not exist as char. Only for strings of length 1.
         return TYPE.CHAR
     elif type(value) is str and len(value) > 1:
+        # Any file will be detected as string, since it is a path.
+        # The difference among them is defined by the parameter decoration as FILE.
         return TYPE.STRING
     # elif type(value) is byte:
-    # byte does not exist in python (instead bytes is an str alias)
+    #    # byte does not exist in python (instead bytes is an str alias)
     #    return TYPE.BYTE
     # elif type(value) is short:
-    # short does not exist in python... they are integers.
+    #    # short does not exist in python... they are integers.
     #    return TYPE.SHORT
     elif type(value) is int:
         return TYPE.INT
@@ -1202,15 +1221,17 @@ def _get_compss_type(value):
         try:
             if get_id(value) not in [None, 'None']:  # the 'getID' + id == criteria for persistent object
                 return TYPE.EXTERNAL_PSCO
+            else:
+                return TYPE.OBJECT
         except TypeError:
             # A PSCO class has been used to check its type (when checking
             # the return). Since we still don't know if it is going to be
             # persistent inside, we assume that it is not. It will be checked
             # later on the worker side when the task finishes.
-            return TYPE.FILE
+            return TYPE.OBJECT
     else:
         # Default type
-        return TYPE.FILE
+        return TYPE.OBJECT
 
 
 def _get_default_args(f):

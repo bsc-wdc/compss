@@ -79,6 +79,15 @@
 									<destFileName>dummy-conn.jar</destFileName>
 								</artifactItem>
 								<artifactItem>
+                                                                        <groupId>es.bsc.conn</groupId>
+                                                                        <artifactId>direct-conn</artifactId>
+                                                                        <version>${conn.version}</version>
+                                                                        <type>jar</type>
+                                                                        <overWrite>false</overWrite>
+                                                                        <outputDirectory>${project.build.directory}/cloud-conn/</outputDirectory>
+                                                                        <destFileName>direct-conn.jar</destFileName>
+                                                                </artifactItem>
+								<artifactItem>
 									<groupId>es.bsc.conn</groupId>
 									<artifactId>jclouds-conn</artifactId>
 									<version>${conn.version}</version>

@@ -292,7 +292,7 @@ public class WorkerStarter {
     }
 
     // Arguments needed for persistent_worker.sh
-    private String[] getStartCommand(int workerPort) {
+    private String[] getStartCommand(int workerPort) throws InitNodeException {
         String workingDir = this.nw.getWorkingDir();
         String installDir = this.nw.getInstallDir();
         String appDir = this.nw.getAppDir();
@@ -481,6 +481,11 @@ public class WorkerStarter {
         cmd[nextPosition++] = python_virtual_environment;
         // Python propagate virtual environment parameter
         cmd[nextPosition++] = python_propagate_virtual_environment;
+
+        if (cmd.length != nextPosition) {
+            throw new InitNodeException("ERROR: Incorrect number of parameters. Expected: " + cmd.length +
+            ". Got: " + nextPosition);
+        }
 
         return cmd;
     }

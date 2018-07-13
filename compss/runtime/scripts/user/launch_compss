@@ -705,6 +705,8 @@ check_args() {
   if [ -z "${python_interpreter}" ]; then
     python_interpreter=${DEFAULT_PYTHON_INTERPRETER}
     python_version=${DEFAULT_PYTHON_VERSION}
+  else
+    python_version=$( ${python_interpreter} -c "import sys; print(sys.version_info[:][0])" )
   fi
 
   if [ -z "${python_propagate_virtual_environment}" ]; then

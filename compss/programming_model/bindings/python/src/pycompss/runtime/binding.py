@@ -135,10 +135,10 @@ def get_object_id(obj, assign_new_key=False, force_insertion=False):
     necessary. We can also query for some object without adding it in case of
     failure.
 
-    :param obj:
-    :param assign_new_key:
-    :param force_insertion:
-    :return:
+    :param obj: Object to analyse.
+    :param assign_new_key: <Boolean> Assign new key.
+    :param force_insertion: <Boolean> Force insertion.
+    :return: Object id
     """
 
     global current_id
@@ -259,8 +259,8 @@ def get_file(file_name, mode):
     Calls the external python library (that calls the bindings-common)
     in order to request a file.
 
-    :param file_name:
-    :param mode:
+    :param file_name: <String> File name.
+    :param mode: Compss mode.
     :return: The current name of the file requested (that may have been renamed during runtime)
     """
 

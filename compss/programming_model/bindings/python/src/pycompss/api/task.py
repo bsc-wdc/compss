@@ -41,7 +41,7 @@ if IS_PYTHON3:
 
 if __debug__:
     logger = logging.getLogger('pycompss.api.task')
-    # logger = logging.getLogger()   # for jupyter logging
+    # logger = logging.getLogger()   # for jupyter logging  # TODO: detect if jupyter and set logger
     # logger.setLevel(logging.DEBUG)
 
 
@@ -290,7 +290,8 @@ class Task(object):
                 if i_s[3] == 'launch_pycompss_application':
                     is_nested = True
 
-            # Prepare parameters and returns:
+            # Prepare parameters and returns.
+            # Update self.parameters and self.returns with the appropriate Parameter objects.
             self.__build_parameters_and_return_dicts(f, args, kwargs)
 
             if not i_am_at_master() and (not is_nested):
@@ -366,7 +367,8 @@ class Task(object):
     def __update_return_if_no_returns(self, f):
         """
         Checks the code looking for return statements if no returns is specified in @task decorator.
-        Updates self.return if returns are found.
+
+        WARNING: Updates self.return if returns are found.
 
         :param f: Function to check
         """
@@ -860,8 +862,8 @@ class Task(object):
         # I.e.- an object that has been made persistent within the task may be
         # detected here, and the type change done within the outputTypes list.
         new_types, new_values, to_serialize = _check_value_changes(kwargs['compss_types'],
-                                                                  list(args),
-                                                                  to_serialize)
+                                                                   list(args),
+                                                                   to_serialize)
 
         if len(to_serialize) > 0:
             serialize_objects(to_serialize)
@@ -1096,7 +1098,7 @@ def _get_task_type(code, decorator_filter, default):
     Retrieves the type of the task based on the decorators stack.
 
     :param code: Tuple which contains the task code to analyse and the number of lines of the code.
-    :param decorator_filter: Typle which contains the filtering decorators. The one
+    :param decorator_filter: Tuple which contains the filtering decorators. The one
                              used determines the type of the task. If none, then it is a normal task.
     :param default: Default values
     :return: the type of the task
@@ -1126,7 +1128,7 @@ def _check_value_changes(types, values, to_serialize):
     NOTE: This function can also return the real_to_serialize list, which
     contains the objects that should be serialized after checking the changes.
     For example, if a return is a simple type (int), it can be considered
-    within the new_types and new_values, poped from the to_serialize list, and
+    within the new_types and new_values, popped from the to_serialize list, and
     returned on the task return pipe.
     However, the runtime does not support getting values from the return pipe.
     For this reason, we continue using the to_serialize list to serialize the

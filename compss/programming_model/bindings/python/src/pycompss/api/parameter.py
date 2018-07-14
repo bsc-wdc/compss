@@ -124,6 +124,12 @@ class Parameter(object):
 
 
 # Parameter conversion dictionary.
+# This dictionary maps the _param_ key into the corresponding code to create the real
+# Parameter. This enables users to use IN, etc. as simple object in the task decorator,
+# and when the task decorator is initialized, it is detected and instantiated (using
+# eval) as defined in this dictionary values.
+# This enables to have isolated parameter initialization, which solves the problem with
+# modifications of objects with the same reference, and avoids Parameter copy.
 _param_conversion_dict_ = dict()
 _param_conversion_dict_['IN'] = 'Parameter()'
 _param_conversion_dict_['OUT'] = 'Parameter(p_direction=DIRECTION.OUT)'

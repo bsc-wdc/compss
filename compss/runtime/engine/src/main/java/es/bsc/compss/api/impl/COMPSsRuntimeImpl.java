@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.BindingObject;
@@ -634,9 +635,33 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
         // Process the parameters
         Parameter[] pars = processParameters(parameterCount, parameters);
-        boolean hasReturn = hasReturn(pars);
-        if (numReturns == null) {
-            numReturns = hasReturn ? 1 : 0;
+        
+        Lang l = Lang.JAVA;
+
+        String langProperty = System.getProperty(COMPSsConstants.LANG);
+        if (langProperty != null) {
+            if (langProperty.equalsIgnoreCase(COMPSsConstants.Lang.PYTHON.name())) {
+                l = Lang.PYTHON;
+            } else if (langProperty.equalsIgnoreCase(COMPSsConstants.Lang.C.name())) {
+                l = Lang.C;
+            }
+        }
+        
+        Lang LANG = l;
+        boolean hasReturn = false;
+        switch (LANG) {
+        	case PYTHON: 
+        	case JAVA:
+        		hasReturn = hasReturn(pars);
+        		if (numReturns == null) {
+                    numReturns = hasReturn ? 1 : 0;
+        		}
+        		break;
+        	case C:
+        		if (numReturns>0) {
+                	hasReturn=true;
+                }
+        		break;
         }
 
         // Create the signature if it is not created

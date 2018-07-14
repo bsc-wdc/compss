@@ -1,17 +1,17 @@
 #!/bin/bash -e
 
   #############################################################
-  # Name: buildP8_aux
-  # Description: SCRIPT FOR LOCAL COMPSs BUILD in CTE-Power8
+  # Name: buildP9_aux
+  # Description: SCRIPT FOR LOCAL COMPSs BUILD in CTE-Power9
   # Parameters: <targetDir> Base Target Installation folder
   #
   # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY
-  #            EXECUTED FROM buildP8 script
+  #            EXECUTED FROM buildP9 script
   #############################################################
 
   usage() {
     echo "Incorrect number of parameters"
-    echo " Usage: buildP8_aux <FullTargetPath>"
+    echo " Usage: buildP9_aux <FullTargetPath>"
     echo " "
     exit 1
   }
@@ -28,13 +28,13 @@
   targetDir=$1
   scriptDir=$(dirname $0)
 
-  modules="boost jdk python/2.7.13"
-  py2_modules="python/2.7.13"
-  py3_modules=""
+  modules="gcc openmpi boost java python/2.7.14"
+  py2_modules="python/2.7.14"
+  py3_modules="python/3.6.5"
 # additionalExports="export BOOST_CPPFLAGS=-I\${BOOST_INCLUDE} PATH=/apps/CEPBATOOLS/deps/libxml2/2.9.4/bin:$PATH"
-#  additionalExports="export PATH=$PATH:/apps/JDK/SRC/jdk1.8.0_131 JAVA_HOME=/apps/JDK/SRC/jdk1.8.0_131"
-  additionalExports="export BOOST_CPPFLAGS=-I/apps/BOOST/1.64/include"
-  queues_cfg="p8.cfg"
+#  additionalExports="export PATH=$PATH:/apps/JDK/SRC/jdk1.9.0_131 JAVA_HOME=/apps/JDK/SRC/jdk1.9.0_131"
+  additionalExports="export BOOST_CPPFLAGS=-I/apps/BOOST/1.66.0/include"
+  queues_cfg="p9.cfg"
   extrae_with_openmpi="false"
   openmpi_version=""
   extrae_with_impi="false"

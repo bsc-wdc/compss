@@ -169,6 +169,7 @@ public abstract class NIOAgent {
      * @return
      */
     public boolean hasPendingTransfers() {
+    	LOGGER.debug("pending: " + !pendingRequests.isEmpty() + " sendTransfers: " + (sendTransfers != 0) + " receiveTrasnfers: " + (receiveTransfers != 0) + "\n");
         return !pendingRequests.isEmpty() || sendTransfers != 0 || receiveTransfers != 0;
     }
 
@@ -617,6 +618,12 @@ public abstract class NIOAgent {
         // Order copies of filesToSend?
         if (!hasPendingTransfers()) {
             shutdown(closingConnection);
+        }
+        else {
+        	LOGGER.error("[ERROR] Pending transfers...");
+        	for (DataRequest dr : pendingRequests) {
+        		LOGGER.debug("[DEBUG] Pending: " + dr.getTarget() + " " + dr.getSource().getName());
+        	}
         }
     }
 

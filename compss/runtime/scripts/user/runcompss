@@ -973,7 +973,7 @@ execute_runtime() {
 }
 
 generate_jvm_opts_file() {
-  jvm_options_file=$(mktemp) || display_error "${TMP_FILE_JVM_ERROR}"
+  jvm_options_file=$(mktemp -p /tmp) || display_error "${TMP_FILE_JVM_ERROR}"
 
   cat >> "${jvm_options_file}" << EOT
 ${jvm_master_opts}

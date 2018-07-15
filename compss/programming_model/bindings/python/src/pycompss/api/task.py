@@ -95,7 +95,6 @@ class Task(object):
                     key = arg_value['type'].key
                     arg_value['type'] = eval(_param_conversion_dict_[key])
                     self.kwargs[arg_name] = from_dict_to_parameter(arg_value)
-                    # TODO: here the dict is converted to parameter, so it may be removed from later
 
             if __debug__:
                 logger.debug("Init @task decorator finished.")

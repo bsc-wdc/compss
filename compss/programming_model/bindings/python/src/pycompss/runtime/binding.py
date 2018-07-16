@@ -143,7 +143,7 @@ def get_object_id(obj, assign_new_key=False, force_insertion=False):
 
     global current_id
     global runtime_id
-    # force_insertion implies assign_new_key
+    # Force_insertion implies assign_new_key
     assert not force_insertion or assign_new_key
     for identifier in id2obj:
         if id2obj[identifier] is obj:
@@ -175,7 +175,7 @@ aargs_as_tuple = False
 logger = logging.getLogger(__name__)
 
 
-# logger = logging.getLogger()    # for jupyter logging
+# logger = logging.getLogger()    # for jupyter logging  # TODO: detect if jupyter and set logger
 # logger.setLevel(logging.DEBUG)  # for jupyter logging
 
 
@@ -580,7 +580,7 @@ def process_task(f, module_name, class_name, ftype,
         path = module_name + '.' + class_name
 
     # Infer COMPSs types from real types, except for files
-    _serialize_objects(f_parameters, task_kwargs)
+    _serialize_objects(f_parameters)
 
     # Build values and COMPSs types and directions
     values, compss_types, compss_directions, compss_streams, compss_prefixes = _build_values_types_directions(ftype,
@@ -765,14 +765,13 @@ def _build_return_objects(f_returns):
     return fo
 
 
-def _serialize_objects(f_parameters, task_kwargs):  # TODO: REMOVE TASK_KWARGS
+def _serialize_objects(f_parameters):
     """
     Infer COMPSs types for the task parameters and serialize them.
 
     WARNING: Updates f_parameters dictionary
 
     :param f_parameters: <Dictionary> - Function parameters
-    :param task_kwargs: <Dictionary> - Decorator arguments
     :return: Tuple of task_kwargs updated and a dictionary containing if the objects are future elements.
     """
 

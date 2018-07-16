@@ -140,7 +140,6 @@ class Task(object):
         self.has_keywords = False
         self.has_defaults = False
         self.parameters = OrderedDict()
-        self.has_return = False
         self.returns = OrderedDict()
         self.is_replicated = False
         self.is_distributed = False
@@ -252,7 +251,6 @@ class Task(object):
         #   - self.has_varargs      : Boolean - if the function has *args
         #   - self.has_keywords     : Boolean - if the function has **kwargs
         #   - self.has_defaults     : Boolean - if the function has default values
-        #   - self.has_return       : Boolean - if the function has return
         #   - self.module_name      : String  - Module name (e.g. test.kmeans)
         #   - self.is_replicated    : Boolean - if the task is replicated
         #   - self.is_distributed   : Boolean - if the task is distributed
@@ -394,7 +392,6 @@ class Task(object):
 
         if any(ret_mask):
             print("INFO! Return found in function " + f.__name__ + " without 'returns' statement at task definition.")
-            self.has_return = True
             has_multireturn = False
             lines = [i for i, li in enumerate(ret_mask) if li]
             max_num_returns = 0

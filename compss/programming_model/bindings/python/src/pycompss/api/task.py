@@ -87,10 +87,15 @@ class Task(object):
                 if reserved_keyword not in self.kwargs:
                     self.kwargs[reserved_keyword] = default_value
 
+            # Instantiate the parameters as new Parameter objects into self.kwargs
+            # taking into consideration the key of the arg_value.
+            # See parameter.py conversion dict.
             for arg_name, arg_value in self.kwargs.items():
+                # Common parameter definition
                 if isinstance(arg_value, _param_):
                     key = arg_value.key
                     self.kwargs[arg_name] = eval(_param_conversion_dict_[key])
+                # Parameter defined as dictionary with fields
                 if isinstance(arg_value, dict) and 'type' in arg_value:
                     key = arg_value['type'].key
                     arg_value['type'] = eval(_param_conversion_dict_[key])
@@ -117,9 +122,6 @@ class Task(object):
             return self.__not_under_pycompss_scope(f)
 
         # Imports
-        from pycompss.api.parameter import Parameter
-        from pycompss.api.parameter import TYPE
-        from pycompss.api.parameter import DIRECTION
         from pycompss.util.interactive_helpers import update_tasks_code_file
         from pycompss.util.location import i_am_at_master
 
@@ -207,8 +209,8 @@ class Task(object):
         self.module_name = mod.__name__
 
         if self.module_name == '__main__' or self.module_name == 'pycompss.runtime.launch':
-            # the module where the function is defined was run as __main__,
-            # we need to find out the real module name
+            # The module where the function is defined was run as __main__,
+            # We need to find out the real module name:
 
             # Get the real module name from our launch.py app_path global variable
             try:
@@ -221,7 +223,7 @@ class Task(object):
             # Get the file name
             file_name = os.path.splitext(os.path.basename(path))[0]
 
-            # Do any necessary preprocessing action before executing any code
+            # Do any necessary pre processing action before executing any code
             if file_name.startswith('InteractiveMode'):
                 # If the file_name starts with 'InteractiveMode' means that
                 # the user is using PyCOMPSs from jupyter-notebook.
@@ -583,7 +585,7 @@ class Task(object):
         # The included are sorted by position. The rest may not.
 
         # Check how many parameters are defined in the function
-        num_parameters = len(self.f_argspec.args)  # TODO: really needed? Remove if not used
+        num_parameters = len(self.f_argspec.args)
 
         # Check if the user has defined default values and include them
         args_list = []

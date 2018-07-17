@@ -577,6 +577,11 @@ class Task(object):
             self_name = param_keys[0]
             f_self[self_name] = self.kwargs['self']
             f_self[self_name].object = param_values[0]
+            if self.kwargs['isModifier']:
+                d = DIRECTION.INOUT
+            else:
+                d = DIRECTION.IN
+            f_self[self_name].direction = d
             # Include in the first position
             self.parameters.update(f_self)
 
@@ -897,13 +902,7 @@ class Task(object):
         for param in self.parameters:
             parameter = self.parameters[param]
 
-            if param == 'self':  # callee object
-                if self.kwargs['isModifier']:
-                    d = DIRECTION.INOUT
-                else:
-                    d = DIRECTION.IN
-                parameter.direction = d  # TODO: THIS MUST BE OUTSIDE, NOT HERE
-            elif inspect.isclass(parameter.object):  # class (it's a class method)
+            if inspect.isclass(parameter.object):  # class (it's a class method)
                 real_values.append(parameter.object)
                 continue
             else:

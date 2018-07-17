@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 # -*- coding: utf-8 -*-
 
@@ -155,6 +155,7 @@ class Task(object):
         # in that list is 'self'. In case that the args list exists and its
         # first element is self, then the function is considered as an instance
         # function (task defined within a class).
+        direction = DIRECTION.INOUT  # default 'self' direction
         if self.f_argspec.args and self.f_argspec.args[0] == 'self':
             self.is_instance = True
             if self.kwargs['isModifier']:
@@ -473,6 +474,7 @@ class Task(object):
         # call its __call__ method will always be @task. Consequently, the @task
         # decorator __call__ method can detect the top decorator and pass a hint
         # to order that decorator that has to do the registration (not the others).
+        func_code = ''
         got_func_code = False
         func = f
         while not got_func_code:
@@ -491,7 +493,9 @@ class Task(object):
         top_decorator = _get_top_decorator(func_code, decorator_keys)
         if __debug__:
             logger.debug(
-                "[@TASK] Top decorator of function %s in module %s: %s" % (f.__name__, self.module_name, str(top_decorator)))
+                "[@TASK] Top decorator of function %s in module %s: %s" % (f.__name__,
+                                                                           self.module_name,
+                                                                           str(top_decorator)))
         f.__who_registers__ = top_decorator
 
         # not usual tasks - handled by the runtime without invoking the PyCOMPSs
@@ -501,7 +505,9 @@ class Task(object):
         default = 'task'
         task_type = _get_task_type(func_code, decorator_filter, default)
         if __debug__:
-            logger.debug("[@TASK] Task type of function %s in module %s: %s" % (f.__name__, self.module_name, str(task_type)))
+            logger.debug("[@TASK] Task type of function %s in module %s: %s" % (f.__name__,
+                                                                                self.module_name,
+                                                                                str(task_type)))
         f.__task_type__ = task_type
         if task_type == default:
             f.__code_strings__ = True
@@ -529,6 +535,7 @@ class Task(object):
                           impl_type,
                           impl_type_args)
         f.__to_register__ = core_element
+
         # Do the task register if I am the top decorator
         if f.__who_registers__ == __name__:
             if __debug__:
@@ -553,10 +560,11 @@ class Task(object):
         param_keys = self.f_argspec.args
         param_values = args
 
+        # Step 0.- Grab the 'compss_types' information if available.
+        #          This only happens during the call function of the task decorator in the worker.
         at_worker = False
         worker_rets = None
         worker_kwargs = None
-
         if 'compss_types' in kwargs:
             # Then we are being called within the worker, and the args and kwargs differ.
             at_worker = True
@@ -585,7 +593,7 @@ class Task(object):
             # Include in the first position
             self.parameters.update(f_self)
 
-        # Step 2.- Build the arguments list
+        # Step 2.- Build the parameters names and values lists.
         # Be very careful with parameter position.
         # The included are sorted by position. The rest may not.
 
@@ -593,7 +601,6 @@ class Task(object):
         num_parameters = len(self.f_argspec.args)
 
         # Check if the user has defined default values and include them
-        args_list = []
         if self.has_defaults:
             # There are default parameters
             # Get the variable names and values that have been defined by default (_get_default_args(f)).
@@ -702,23 +709,24 @@ class Task(object):
                 self.parameters[param].type = t[i]
                 i += 1
 
-        # Clean elements that are not defined in parameter_names
+        # Step 6.- Clean elements that are not defined in parameter_names
         for p in self.parameters:
             if p not in parameter_names:
                 self.parameters.pop(p)
 
-        # Extract the *args
+        # Step 7.- Extract *args and **kwargs
         aargs = OrderedDict()
         if '*args0' in self.parameters:
+            # Extract the *args
             for i in self.parameters:
                 if i.startswith('*args'):
                     aargs[i] = self.parameters.pop(i)
-        # Extract the **kwargs
         akwargs = OrderedDict()
         if '**kwargs' in self.parameters:
+            # Extract the **kwargs
             akwargs['**kwargs'] = self.parameters.pop('**kwargs')
 
-        # Place the args and kwargs at the end of the parameters.
+        # Last step: Place the args and kwargs at the end of the parameters.
         self.parameters.update(aargs)
         self.parameters.update(akwargs)
 
@@ -735,6 +743,7 @@ class Task(object):
         # Only one return defined.
         # May hide a "int", int or type.
         if len(self.returns) == 1:
+            num_rets = 1
             hidden_multireturn = False
             ret_value = self.returns['compss_retvalue'].object
             if isinstance(ret_value, str) and not at_worker:
@@ -815,7 +824,7 @@ class Task(object):
         # tracing = kwargs.get('compss_tracing')  # Not used here, but kept informatively
 
         # Discover hidden objects passed as files
-        real_values, to_serialize = self.__reveal_objects(args, kwargs['compss_types'])
+        real_values, to_serialize = self.__reveal_objects()
 
         if binding.aargs_as_tuple:
             # Check if there is *arg parameter in the task, so the last element (*arg tuple) has to be flattened
@@ -849,7 +858,7 @@ class Task(object):
                 try:
                     num_ret = len(ret)
                     aux = ret
-                except Exception:
+                except TypeError:  # if the output has no len function
                     aux.append(ret)
                     while len(aux) < len(self.returns):
                         # The user declared more than used.
@@ -857,8 +866,6 @@ class Task(object):
                 total_rets = len(args) - len(self.returns)
                 rets = args[total_rets:]
                 i = 0
-                import sys
-                sys.stdout.flush()
                 for ret_filename in rets:
                     _output_objects.append((aux[i], ret_filename))
                     ret_filename = ret_filename.split(':')[-1]
@@ -882,14 +889,13 @@ class Task(object):
 
         return new_types, new_values
 
-    def __reveal_objects(self, args, compss_types):
+    def __reveal_objects(self):
         """
-        Function that goes through all parameters in order to
+        Function that goes through all parameters (self.parameters) in order to
         find and open the files.
 
-        :param args: <List> - Specific arguments.
-        :param compss_types: <List> - The types of the values.
-        :return: a list with the real values
+        :return: a list with the real values and
+                 another list of objects to serialize after the task execution (INOUT/OUT)
         """
 
         from pycompss.api.parameter import DIRECTION

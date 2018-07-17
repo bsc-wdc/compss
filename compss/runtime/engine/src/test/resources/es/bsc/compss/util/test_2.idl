@@ -1,0 +1,20 @@
+﻿interface Test2 {
+		void RemoteTrackOnce(in int TrackerBitmapSize_i,
+        in int TrackerDataSize_i,
+        in int ReferenceSize_i,
+        in int SearchReportSize_i,
+        in int [TrackerBitmapSize_i] pTrackerBitmap_X,
+        inout int[TrackerDataSize_i] pTrackingData_X,
+        inout int[ReferenceSize_i] pLongTermReference_X,
+        in int[ReferenceSize_i] pCloseReference_X,
+        inout int [SearchReportSize_i] pSearchReport_X,
+        in int LongTermReferenceAvailable_B,
+        in int UseMemory_B,
+        in int FastOperation_B,
+        in int AllowImprovements_B,
+        in int ReferenceChanged_B,
+        in int ResetMemory_B,
+        out int[1] pStatus_i);
+
+};
+

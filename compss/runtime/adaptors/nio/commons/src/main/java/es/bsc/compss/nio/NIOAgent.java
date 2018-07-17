@@ -476,8 +476,10 @@ public abstract class NIOAgent {
         releaseReceiveSlot();
         // Get all data requests for this source data_id/filename, and group by the target(final) data_id/filename
         List<DataRequest> requests = dataToRequests.remove(dataId);
+        boolean isBindingType = requests.get(0).getType().equals(DataType.BINDING_OBJECT_T);
         Map<String, List<DataRequest>> byTarget = new HashMap<>();
         for (DataRequest req : requests) {
+            LOGGER.debug(DBG_PREFIX + "Group by target:" +req.getTarget()+ "("+dataId+")");
             List<DataRequest> sameTarget = byTarget.get(req.getTarget());
             if (sameTarget == null) {
                 sameTarget = new LinkedList<DataRequest>();
@@ -501,7 +503,7 @@ public abstract class NIOAgent {
                 LOGGER.debug(DBG_PREFIX + "Data " + dataId + " will be saved as name " + targetName);
             }
             if (t.isFile() || t.isObject()) {
-                if (!isPersistentEnabled() && requests.get(0).getType().equals(DataType.BINDING_OBJECT_T)) {
+                if (!isPersistentEnabled() && isBindingType) {
                     // When worker binding is not persistent binding objects can be transferred as files
                     receivedBindingObjectAsFile(t.getFileName(), targetName);
                 }
@@ -517,7 +519,7 @@ public abstract class NIOAgent {
                 receivedValue(t.getDestination(), targetName, bo.toString(), requests);
             }
         } else {
-            // If more then one. First notify reception with original name (IN case)
+            // If more than one. First notify reception with original name (IN case)
             if (DEBUG) {
                 LOGGER.debug(DBG_PREFIX + "Data " + dataId + " will be saved as name " + dataId);
             }
@@ -525,10 +527,14 @@ public abstract class NIOAgent {
                 if (DEBUG) {
                     LOGGER.debug(DBG_PREFIX + "Data " + dataId + " will be saved as name " + t.getFileName());
                 }
-                List<DataRequest> reqs = byTarget.remove(t.getFileName());
-                if (!isPersistentEnabled() && reqs.get(0).getType().equals(DataType.BINDING_OBJECT_T)) {
+                List<DataRequest> reqs; 
+                if (!isPersistentEnabled() && isBindingType) {
                     // When worker binding is not persistent binding objects can be transferred as files
+                    BindingObject bo = getTargetBindingObject(t.getFileName(), requests.get(0).getTarget());
+                    reqs = byTarget.remove(bo.toString());
                     receivedBindingObjectAsFile(t.getFileName(), reqs.get(0).getTarget());
+                }else{
+                    reqs = byTarget.remove(t.getFileName());
                 }
                 receivedValue(t.getDestination(), t.getFileName(), t.getObject(), reqs);
             } else if (t.isObject()) {

@@ -1013,7 +1013,7 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
 #         if type(p) is dict:
 #             # The user has provided some information about a parameter within
 #             # the @task parameter
-#             p = from_dict_to_parameter(p)
+#             p = _from_dict_to_parameter(p)
 #         if p.type == TYPE.STRING and not is_future[i] and code_strings:
 #             # Encode the string in order to preserve the source
 #             # Checks that it is not a future (which is indicated with a path)

@@ -99,7 +99,7 @@ class Task(object):
                 if isinstance(arg_value, dict) and 'type' in arg_value:
                     key = arg_value['type'].key
                     arg_value['type'] = eval(_param_conversion_dict_[key])
-                    self.kwargs[arg_name] = from_dict_to_parameter(arg_value)
+                    self.kwargs[arg_name] = _from_dict_to_parameter(arg_value)
 
             if __debug__:
                 logger.debug("Init @task decorator finished.")
@@ -674,7 +674,7 @@ class Task(object):
                 #                                       # It does not contain any object nor file_name.
                 if isinstance(parameter, dict):
                     # The user has given some information about the parameter as dict
-                    self.parameters[p] = from_dict_to_parameter(parameter)
+                    self.parameters[p] = _from_dict_to_parameter(parameter)
                 else:
                     self.parameters[p] = parameter
             else:
@@ -688,6 +688,14 @@ class Task(object):
             else:
                 self.parameters[p].file_name = obj
             i += 1
+
+        # Step 5.- Update the Parameter type with the worker information
+        if at_worker:
+            i = 0
+            for param in self.parameters:
+                t = kwargs['compss_types']
+                self.parameters[param].type = t[i]
+                i += 1
 
         # Clean elements that are not defined in parameter_names
         for p in self.parameters:
@@ -801,10 +809,8 @@ class Task(object):
         # Retrieve internal parameters from worker.py.
         # tracing = kwargs.get('compss_tracing')  # Not used here, but kept informatively
 
-        param_names = list(self.parameters.keys()) + list(self.returns.keys())
-
         # Discover hidden objects passed as files
-        real_values, to_serialize = self.__reveal_objects(args, param_names, kwargs['compss_types'], len(self.returns))
+        real_values, to_serialize = self.__reveal_objects(args, kwargs['compss_types'])
 
         if binding.aargs_as_tuple:
             # Check if there is *arg parameter in the task, so the last element (*arg tuple) has to be flattened
@@ -815,11 +821,14 @@ class Task(object):
                     real_values = real_values[:-1] + list(real_values[-1])
         else:
             pass
+
         kargs = {}
         # Check if there is **kwarg parameter in the task, so the last element (kwarg dict) has to be flattened
         if self.has_keywords:
             kargs = real_values[-1]  # kwargs dict
             real_values = real_values[:-1]  # remove kwargs from real_values
+        else:
+            pass
 
         ret = f(*real_values, **kargs)  # Real call to f function
 
@@ -868,30 +877,19 @@ class Task(object):
 
         return new_types, new_values
 
-    def __reveal_objects(self, values, spec_args, compss_types, num_return):
+    def __reveal_objects(self, args, compss_types):
         """
         Function that goes through all parameters in order to
         find and open the files.
 
-        :param values: <List> - The value of each parameter.
-        :param spec_args: <List> - Specific arguments.
+        :param args: <List> - Specific arguments.
         :param compss_types: <List> - The types of the values.
-        :param num_return: <Int> - Number of returns
         :return: a list with the real values
         """
 
-        from pycompss.api.parameter import Parameter
         from pycompss.api.parameter import DIRECTION
         from pycompss.api.parameter import TYPE
         from pycompss.util.serializer import deserialize_from_file
-
-        # Update types from compss_types (worker)  # TODO: CAN NOT BE DONE AUTOMATICALLY SOMEWHERE ELSE?
-        for i in range(len(spec_args) - num_return):
-            p = spec_args[i]
-            t = compss_types[i]
-            v = values[i]
-            self.parameters[p].object = v
-            self.parameters[p].type = t
 
         real_values = []
         to_serialize = []
@@ -1278,7 +1276,7 @@ def _get_wrapped_sourcelines(f):
         return inspect.getsourcelines(f)
 
 
-def from_dict_to_parameter(d):
+def _from_dict_to_parameter(d):
     """
     Convert a Dict defined by a user for a parameter into a real Parameter object.
 

@@ -136,8 +136,8 @@ class Task(object):
         self.f_argspec = inspect.getargspec(f)
 
         # Set default variables
-        self.is_instance = False
-        self.is_classmethod = False
+        self.has_self_parameter = False
+        self.has_cls_parameter = False
         self.has_varargs = False
         self.has_keywords = False
         self.has_defaults = False
@@ -145,6 +145,7 @@ class Task(object):
         self.returns = OrderedDict()
         self.is_replicated = False
         self.is_distributed = False
+        self.module_name = ''
 
         # Step 1.- Check if it is an instance method.
         # Question: Will the first condition evaluate to false? spec_args will
@@ -157,7 +158,7 @@ class Task(object):
         # function (task defined within a class).
         direction = DIRECTION.INOUT  # default 'self' direction
         if self.f_argspec.args and self.f_argspec.args[0] == 'self':
-            self.is_instance = True
+            self.has_self_parameter = True
             if self.kwargs['isModifier']:
                 direction = DIRECTION.INOUT
             else:
@@ -166,11 +167,11 @@ class Task(object):
         # Step 2.- Check if it is a class method.
         # The check of 'cls' may be weak but it is PEP8 style agreements.
         if self.f_argspec.args and self.f_argspec.args[0] == 'cls':
-            self.is_classmethod = True
+            self.has_cls_parameter = True
             direction = DIRECTION.IN
 
         # Step 1 or 2 b - Add class object parameter
-        if self.is_instance or self.is_classmethod:
+        if self.has_self_parameter or self.has_cls_parameter:
             self.kwargs['self'] = Parameter(p_type=TYPE.OBJECT,
                                             p_direction=direction)
 
@@ -205,7 +206,7 @@ class Task(object):
         if self.kwargs['isDistributed']:
             self.is_distributed = True
 
-        # Get module (for invocation purposes in the worker)
+        # Step 9.- Get module (for invocation purposes in the worker)
         mod = inspect.getmodule(f)
         self.module_name = mod.__name__
 
@@ -246,17 +247,19 @@ class Task(object):
             self.__register_task(f)
 
         # Modified variables until now that will be used later:
-        #   - self.f_argspec        : Function argspect (Named tuple)
-        #                             e.g. ArgSpec(args=['a', 'b', 'compss_retvalue'], varargs=None,
-        #                             keywords=None, defaults=None)
-        #   - self.is_instance      : Boolean - if the function is an instance (contains self in the f_argspec)
-        #   - self.is_classmethod   : Boolean - if the function is a classmethod (contains cls in the f_argspec)
-        #   - self.has_varargs      : Boolean - if the function has *args
-        #   - self.has_keywords     : Boolean - if the function has **kwargs
-        #   - self.has_defaults     : Boolean - if the function has default values
-        #   - self.module_name      : String  - Module name (e.g. test.kmeans)
-        #   - self.is_replicated    : Boolean - if the task is replicated
-        #   - self.is_distributed   : Boolean - if the task is distributed
+        #   - self.f_argspec          : Function argspect (Named tuple)
+        #                               e.g. ArgSpec(args=['a', 'b', 'compss_retvalue'], varargs=None,
+        #                               keywords=None, defaults=None)
+        #   - self.has_self_parameter : Boolean - if the function is an instance (contains self in the f_argspec)
+        #   - self.has_cls_parameter  : Boolean - if the function is a class method (contains cls in the f_argspec)
+        #   - self.has_varargs        : Boolean - if the function has *args
+        #   - self.has_keywords       : Boolean - if the function has **kwargs
+        #   - self.has_defaults       : Boolean - if the function has default values
+        #   - self.parameters         : OrderedDict of function's Parameters
+        #   - self.returns            : OrderedDict of return's Parameters
+        #   - self.is_replicated      : Boolean - if the task is replicated
+        #   - self.is_distributed     : Boolean - if the task is distributed
+        #   - self.module_name        : String  - Module name (e.g. test.kmeans)
         # Other variables that will be used:
         #   - f                 : Decorated function
         #   - self.args         : Decorator args tuple (usually empty)
@@ -379,7 +382,7 @@ class Task(object):
 
         source_code = _get_wrapped_source(f).strip()
 
-        if self.is_instance or source_code.startswith('@classmethod'):  # TODO: WHAT IF IS CLASSMETHOD FROM BOOLEAN?
+        if self.has_self_parameter or source_code.startswith('@classmethod'):  # TODO: WHAT IF IS CLASSMETHOD FROM BOOLEAN?
             # It is a task defined within a class (can not parse the code with ast since the class does not
             # exist yet. Alternatively, the only way I see is to parse it manually line by line.
             ret_mask = []
@@ -398,7 +401,7 @@ class Task(object):
             has_multireturn = False
             lines = [i for i, li in enumerate(ret_mask) if li]
             max_num_returns = 0
-            if self.is_instance or source_code.startswith('@classmethod'):
+            if self.has_self_parameter or source_code.startswith('@classmethod'):
                 # Parse code as string (it is a task defined within a class)
                 def _has_multireturn(statement):
                     v = ast.parse(statement.strip())
@@ -520,7 +523,7 @@ class Task(object):
         class_name = ins[2][3]
         # I know that this is ugly, but I see no other way to check if it is a class method.
         is_classmethod = class_name != '<module>'
-        if self.is_instance or is_classmethod:
+        if self.has_self_parameter or is_classmethod:
             ce_signature = self.module_name + "." + class_name + '.' + f.__name__
             impl_type_args = [self.module_name + "." + class_name, f.__name__]
         else:
@@ -580,7 +583,7 @@ class Task(object):
                 worker_kwargs = param_values.pop()
 
         # Step 1.- Check self
-        if self.is_instance or self.is_classmethod:
+        if self.has_self_parameter or self.has_cls_parameter:
             f_self = dict()
             self_name = param_keys[0]
             f_self[self_name] = self.kwargs['self']
@@ -1016,7 +1019,7 @@ class Task(object):
         # with inspect.ismethod or isfunction
         f_type = FunctionType.FUNCTION
         class_name = ''
-        if self.is_instance:
+        if self.has_self_parameter:
             f_type = FunctionType.INSTANCE_METHOD
             class_name = type(args[0]).__name__
         if args and inspect.isclass(args[0]):

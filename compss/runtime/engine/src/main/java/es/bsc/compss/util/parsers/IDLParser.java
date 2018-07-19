@@ -27,6 +27,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -186,6 +187,9 @@ public class IDLParser {
         if (!line.startsWith("void ")) {
             // hasReturn = true;
         }
+        //remove spaces before square-brackets
+        line = line.replaceAll(Pattern.quote(" ["), "[");
+        
         line = line.replaceAll("[(|)|,|;|\n|\t]", " ");
         String[] splits = line.split("\\s+");
         CImplementation task = loadCImplementation(splits[1]);
@@ -215,7 +219,9 @@ public class IDLParser {
         for (int i = 2; i < splits.length; i++) {
             String paramDirection = splits[i++];
             String paramType = splits[i++];
+            //String paramName = splits[i];
             String type = "BINDING_OBJECT_T";
+            
             /*
              * OLD version C-binding String type = "FILE_T";
              */
@@ -246,7 +252,6 @@ public class IDLParser {
             }
             implementedTaskSignatureBuffer.append(type).append(",");
             implementationSignatureBuffer.append(type).append(",");
-            // String paramName = splits[i];
         }
         implementedTaskSignatureBuffer.deleteCharAt(implementedTaskSignatureBuffer.lastIndexOf(","));
         implementationSignatureBuffer.deleteCharAt(implementationSignatureBuffer.lastIndexOf(","));

@@ -5,7 +5,11 @@
 #---------------------------------------------------
 show_opts() {
   cat <<EOT
-
+  General Options:
+    --only-master                           Builds only the master part
+                                            Default: Disabled
+    --only-worker                           Builds only the worker part
+                                            Default: Disabled
   Tools enablers:
     --ompss                                 Enables worker compilation with OmpSs Mercurium compiler
                                             Default: Disabled
@@ -13,9 +17,30 @@ show_opts() {
                                             Default: Disabled
     --opencl                                Enables worker compilation with openCL compilation flags
                                             Default: Disabled
+  Specific compiler and linker flags:
+    --CXX=<C++ compiler>                    Defines an specific C++ compiler (cross_compiling)
+                                            Default: $CXX
+    --CC=<C compiler>                       Defines and specific C compiler (cross_compiling)
+                                            Default: $CC
+    --CFLAGS="-cFlag_1 ... -cFlag_N"        Defines C compiler flags
+					    Default: $CFLAGS
+    --CXXFLAGS="-cxxflag_1 ... -cxxflag_N"  Defines C++ compiler flags
+                                            Default: $CXXFLAGS
+    --CPPFLAGS="-cppflag_1 ... -cppflag_N"  Defines C pre-processor flags
+                                            Default: $CPPFLAGS
+    --LDFLAGS="-ldflag_1 ... -ldflag_N"     Defines Linker flags
+                                            Default: $LDFLAGS
+    --LIBS="-L<libPath> -l<lib> <stLib.a>"  Define libraries in the compilation
+                                            Default: $LIBS
+
+ Specific tools flags:
+    --MCC="Mercurium C compiler"            Specifies the mercurium C compiler profile (cross-compiling OmpSs)
+                                            Default: mcc
+    --MCXX="Mercurium C++ compiler"         Specifies the mercurium compiler profile (cross-compiling OmpSs)
+                                            Default: mcxx
     --with_ompss=<ompss_installation_path>  Enables worker compilation with OmpSs Mercurium compiler installed in a certain location
                                             Default: Disabled
-    --mercurium_flgas="flags"               Specifies extra flags to pass to the mercurium compiler
+    --mercurium_flags="flags"               Specifies extra flags to pass to the mercurium compiler
                                             Default: Empty
     --with_cuda=<cuda_installation_path>    Enables worker compilation with CUDA installed in a certain location
                                             Default: Disabled
@@ -117,6 +142,33 @@ get_args() {
             ;;
           opencl)
             opencl_enabled=1
+            ;;
+          CC=*)
+	    defined_cc=${OPTARG//CC=/}
+            ;;
+          CXX=*)
+            defined_cxx=${OPTARG//CXX=/}
+            ;;
+          CFLAGS=*)
+            defined_cflags=${OPTARG//CFLAGS=/}
+            ;;
+          CXXFLAGS=*)
+            defined_cxxflags=${OPTARG//CXXFLAGS=/}
+            ;;
+          CPPFLAGS=*)
+            defined_cppflags=${OPTARG//CPPFLAGS=/}
+            ;;
+          LDFLAGS=*)
+            defined_ldflags=${OPTARG//LDFLAGS=/}
+            ;;
+          LIBS=*)
+            defined_libs=${OPTARG//LIBS=/}
+            ;;
+          MCC=*)
+            defined_mcc=${OPTARG//MCC=/}
+            ;;
+          MCXX=*)
+            defined_mcxx=${OPTARG//MCXX=/}
             ;;
           with_ompss=*)
             ompss_enabled=1
@@ -222,8 +274,44 @@ if [ -d "./src" ]; then
   fi
 fi
 # Building Master and Worker
-export CC="gcc"
-export CXX="g++"
+if [ -z "${defined_cc}" ]; then
+   if [ -z "$CC" ]; then
+	defined_cc="gcc"
+   else
+	defined_cc=$CC
+   fi
+fi
+export CC=${defined_cc}
+
+if [ -z "${defined_cxx}" ]; then
+   if [ -z "$CXX" ]; then
+        defined_cxx="g++"
+   else
+        defined_cxx=$CXX
+   fi
+fi
+export CXX=${defined_cxx}
+
+if [ ! -z "${defined_cflags}" ]; then
+   export CFLAGS="${defined_cflags}"
+fi
+
+if [ ! -z "${defined_cxxflags}" ]; then
+   export CXXFLAGS="${defined_cxxflags}"
+fi
+
+if [ ! -z "${defined_cppflags}" ]; then
+   export CPPFLAGS="${defined_cppflags}"
+fi
+
+if [ ! -z "${defined_ldflags}" ]; then
+   export LDFLAGS="${defined_ldflags}"
+fi
+
+if [ ! -z "${defined_libs}" ]; then
+   export LIBS="${defined_libs}"
+fi
+
 # shellcheck disable=SC2086
 "$CS_HOME"/bin/compss_build build master ${other_args}
 ev=$?
@@ -235,9 +323,24 @@ fi
 if [ "${ompss_enabled}" != "" ]; then
   # Flag is defined, check value
   if [ ${ompss_enabled} == 1 ]; then
-    export CC="mcc"
+    if [ -z "${defined_mcc}" ]; then
+	if [ -z "${MCC}" ]; then
+	   defined_mcc="mcc"
+        else
+	   defined_mcc=${MCC}
+        fi
+    fi
+    export CC=${defined_mcc}
+    
+    if [ -z "${defined_mcxx}" ]; then
+        if [ -z "${MCXX}" ]; then
+           defined_mcxx="mcxx"
+        else
+           defined_mcxx=${MCXX}
+        fi
+    fi
+    export CXX=${defined_mcxx}
     export CFLAGS="$CFLAGS --ompss ${ompss_flags} $COMPSS_MCXX_FLAGS"
-    export CXX="mcxx"
     export CXXFLAGS="$CXXFLAGS --ompss ${ompss_flags} $COMPSS_MCXX_FLAGS"
     export CPPFLAGS="$CPPFLAGS -DOMPSS_ENABLED"
   fi
@@ -245,7 +348,6 @@ fi
 if [ "${cuda_enabled}" != "" ]; then
   # Flag is defined, check value
   if [ ${cuda_enabled} == 1 ]; then
-    export LIBS="$LIBS -lcudart"
     if [ -z "${cuda_prefix}" ]; then
         if [ -z "$CUDA_HOME" ]; then
            export CUDA_HOME=/usr/local/cuda/
@@ -254,7 +356,8 @@ if [ "${cuda_enabled}" != "" ]; then
         export CUDA_HOME=${cuda_prefix}
     fi
     export PATH=$PATH:${CUDA_HOME}/bin
-    export LDFLAGS="--cuda $LDFLAGS -L${CUDA_HOME}/lib64"
+    export LDFLAGS="--cuda $LDFLAGS"
+    export LIBS="-L${CUDA_HOME}/lib64 -lcudart $LIBS"
     export CFLAGS="$CFLAGS --cuda"
     export CXXFLAGS="$CXXFLAGS --cuda"
   fi
@@ -264,6 +367,7 @@ if [ "${opencl_enabled}" != "" ]; then
   if [ ${opencl_enabled} == 1 ]; then
     # Altera ocl flags export LDADD="$LDADD -L/home/altera/16.0.2/hld/linux64/lib -L/opt/intel_deliverable_WW49_16/bdw_fpga_pilot_opencl_bsp_v1.0/host/linux64/lib    -lalterahalmmd -laltera_qpi_mmd  -laalrt  -L/opt/aalsdk/aalsdk-5.0.2/lib"    
     export LDFLAGS="--opencl $LDFLAGS ${opencl_libraries}"
+    export LIBS="$LIBS ${opencl_libraries}"
     export CFLAGS="$CFLAGS --opencl"
     export CXXFLAGS="$CXXFLAGS --opencl"
   fi

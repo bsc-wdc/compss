@@ -42,7 +42,7 @@ public class IDLParserTest {
     private static final int CORE1_6_IMPLS_RESULT = 3;
     private static final int COMPUTING_UNITS_RESULT = 2;
     private static final int PROCESSOR_COUNT = 2;
-
+    private static final String TEST_2_SIGNATURE= "RemoteTrackOnce(INT_T,INT_T,INT_T,INT_T,BINDING_OBJECT_T,BINDING_OBJECT_T,BINDING_OBJECT_T,BINDING_OBJECT_T,BINDING_OBJECT_T,INT_T,INT_T,INT_T,INT_T,INT_T,INT_T,BINDING_OBJECT_T)NULL";
 
     @Before
     public void setUp() throws Exception {
@@ -184,7 +184,28 @@ public class IDLParserTest {
         LOGGER.debug(impl.getDeclaringClass());
         assertEquals(impl.getDeclaringClass(), "Block");
 
-        LOGGER.debug("[IDL-Loader]: *** Checking Core Element 1");
     }
+    
+    @Test
+    public void test2IDL() {
+        CoreManager.clear();
+
+        String constraintsFile = this.getClass().getResource("test_2.idl").getPath();
+        IDLParser.parseIDLMethods(constraintsFile);
+        assertEquals(CoreManager.getCoreCount(), 1);
+
+        LOGGER.debug("[IDL-Loader]: *** Checking Core Element 0");
+        List<Implementation> implList = CoreManager.getCoreImplementations(0);
+        assertNotNull(implList);
+        assertEquals(implList.size(), 1);
+
+        MethodImplementation impl = (MethodImplementation) implList.get(0);
+        String signature = CoreManager.getSignature(0, 0);
+        assertEquals(signature, TEST_2_SIGNATURE);
+
+        
+    }
+    
+    
 
 }

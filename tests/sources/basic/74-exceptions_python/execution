@@ -68,6 +68,10 @@
          \
          "${base_app_dir}"/src/excInMasterBeforeTasks.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
+      # Take the latest log folder as retry number
+      # Fixes the possiblity to test with both python 2 and 3 one after the other
+      retryNum=`ls -l "${COMPSs_log_folder}" | grep "excInMasterBeforeTasks.py" | wc -l`
+
       # Check timeout
       if [[ "$?" = "124" ]]; then
          # Copy LOG files
@@ -128,6 +132,10 @@
          \
          "${base_app_dir}"/src/excInMasterAfterTasks1.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
+      # Take the latest log folder as retry number
+      # Fixes the possiblity to test with both python 2 and 3 one after the other
+      retryNum=`ls -l "${COMPSs_log_folder}" | grep "excInMasterAfterTasks1.py" | wc -l`
+
       # Check timeout
       if [[ "$?" = "124" ]]; then
          # Copy LOG files
@@ -187,6 +195,10 @@
          --pythonpath="${base_app_dir}"/src \
          \
          "${base_app_dir}"/src/excInMasterAfterTasks2.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+
+      # Take the latest log folder as retry number
+      # Fixes the possiblity to test with both python 2 and 3 one after the other
+      retryNum=`ls -l "${COMPSs_log_folder}" | grep "excInMasterAfterTasks2.py" | wc -l`
 
       # Check timeout
       if [[ "$?" = "124" ]]; then
@@ -252,6 +264,10 @@
          --pythonpath="${base_app_dir}"/src \
          \
          "${base_app_dir}"/src/excInTask.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+
+      # Take the latest log folder as retry number
+      # Fixes the possiblity to test with both python 2 and 3 one after the other
+      retryNum=`ls -l "${COMPSs_log_folder}" | grep "excInTask.py" | wc -l`
 
       # Check timeout
       if [[ "$?" = "124" ]]; then

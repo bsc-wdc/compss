@@ -22,6 +22,10 @@
   mkdir -p /tmp/COMPSsWorker01/
 
   #----------------------------------------------------------------------------------
+  # Set environment variables
+  export ComputingUnits="2"
+
+  #----------------------------------------------------------------------------------
   # Run application 1 - Test
   echo
   echo "*** RUNNING MATMUL AUTOPARALLEL TYPE TEST"
@@ -47,6 +51,10 @@
        --pythonpath="${base_app_dir}"/src \
        \
        "${base_app_dir}"/src/matmul_autoparallel.py $msize $bsize > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+
+    # Take the latest log folder as retry number
+    # Fixes the possiblity to test with both python 2 and 3 one after the other
+    retryNum=`ls -l "${COMPSs_log_folder}" | grep "matmul_autoparallel.py" | wc -l`
 
     # Check timeout
     if [[ "$?" = "124" ]]; then
@@ -74,4 +82,3 @@
     # Return execution status
     exit 99
   fi
-

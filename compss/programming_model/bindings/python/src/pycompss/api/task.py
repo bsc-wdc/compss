@@ -517,18 +517,49 @@ class Task(object):
         else:
             f.__code_strings__ = False
 
-        # Include the registering info related to @task
-        ins = inspect.getouterframes(inspect.currentframe())
-        # I know that this is ugly, but I see no other way to get the class name
-        class_name = ins[2][3]
-        # I know that this is ugly, but I see no other way to check if it is a class method.
-        is_classmethod = class_name != '<module>'
-        if self.has_self_parameter or is_classmethod:
-            ce_signature = self.module_name + "." + class_name + '.' + f.__name__
-            impl_type_args = [self.module_name + "." + class_name, f.__name__]
-        else:
+        # Get the task signature
+        # To do this, we will check the frames
+        frames = inspect.getouterframes(inspect.currentframe())
+        # Pop the __register_task and __call__ functions from the frame
+        frames = frames[2:]
+        # Get the application frames
+        app_frames = []
+        for frame in frames:
+            if frame[3] == 'compss_main':
+                break
+            else:
+                app_frames.append(frame)
+        # Analise the frames
+        if len(app_frames) == 1:
+            # The task is defined within the main app file.
+            # This case is never reached with Python 3 since it includes frames that are not present with Python 2.
             ce_signature = self.module_name + "." + f.__name__
             impl_type_args = [self.module_name, f.__name__]
+        else:
+            # There is more than one frame
+            # Discover if the task is defined within a class or subclass
+            # Construct the qualified class name
+            class_name = []
+            # Weak way, but I see no other way compatible with both 2 and 3.
+            for app_frame in app_frames:
+                if (app_frame[3] != '<module>' and app_frame[4] is not None
+                   and (app_frame[4][0].strip().startswith('@') or app_frame[4][0].strip().startswith('def'))):
+                    # app_frame[3] != <module> ==> functions and classes
+                    # app_frame[4] is not None ==> functions injected by the interpreter
+                    # (app_frame[4][0].strip().startswith('@') or app_frame[4][0].strip().startswith('def')) ==> Ignores functions injected by wrappers (e.g. autoparallel), but keep the classes.
+                    class_name.append(app_frame[3])
+            class_name = '.'.join(class_name)
+            if class_name:
+                # Within class or subclass
+                ce_signature = self.module_name + '.' + class_name + '.' + f.__name__
+                impl_type_args = [self.module_name + '.' + class_name, f.__name__]
+            else:
+                # Not in a class or subclass
+                # This case can be reached in Python 3, where particular frames are included, but not class names found.
+                ce_signature = self.module_name + "." + f.__name__
+                impl_type_args = [self.module_name, f.__name__]
+
+        # Include the registering info related to @task
         impl_signature = ce_signature
         impl_constraints = {}
         impl_type = "METHOD"

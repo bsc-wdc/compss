@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 # -*- coding: utf-8 -*-
 
@@ -497,8 +497,7 @@ def initialize_compss(config):
         os.environ['EXTRAE_CONFIG_FILE'] = config['compss_home'] + '/Runtime/configuration/xml/tracing/extrae_basic.xml'
     elif config['trace'] == 2:
         jvm_options_file.write('-Dcompss.tracing=2\n')
-        os.environ['EXTRAE_CONFIG_FILE'] = config[
-                                               'compss_home'] + '/Runtime/configuration/xml/tracing/extrae_advanced.xml'
+        os.environ['EXTRAE_CONFIG_FILE'] = config['compss_home'] + '/Runtime/configuration/xml/tracing/extrae_advanced.xml'
     else:
         jvm_options_file.write('-Dcompss.tracing=0' + '\n')
 

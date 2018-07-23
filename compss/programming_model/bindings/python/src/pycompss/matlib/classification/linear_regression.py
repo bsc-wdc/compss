@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 # -*- coding: utf-8 -*-
 
@@ -96,7 +96,7 @@ def _norm(data, m):
     :return: the list normalized
     """
 
-    return [x-m for x in data]
+    return [x - m for x in data]
 
 
 @task(returns=list)
@@ -214,7 +214,7 @@ def compute_line(r, std_y, std_x, my, mx):
     """
 
     b = r * (math.sqrt(std_y) / math.sqrt(std_x))
-    a = my - b*mx
+    a = my - b * mx
     return b, a
 
 

@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 # -*- coding: utf-8 -*-
 
@@ -854,7 +854,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings)
 def _extract_parameter(parameter, code_strings):
     """
     Extract the information of a single parameter
-    
+
     :param parameter: Parameter object
     :param code_strings: <Boolean> Encode strings
     :return: value, type, direction stream and prefix of the given parameter

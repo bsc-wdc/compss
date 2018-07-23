@@ -542,8 +542,8 @@ class Task(object):
             class_name = []
             # Weak way, but I see no other way compatible with both 2 and 3.
             for app_frame in app_frames:
-                if (app_frame[3] != '<module>' and app_frame[4] is not None
-                   and (app_frame[4][0].strip().startswith('@') or app_frame[4][0].strip().startswith('def'))):
+                if (app_frame[3] != '<module>' and app_frame[4] is not None and
+                   (app_frame[4][0].strip().startswith('@') or app_frame[4][0].strip().startswith('def'))):
                     # app_frame[3] != <module> ==> functions and classes
                     # app_frame[4] is not None ==> functions injected by the interpreter
                     # (app_frame[4][0].strip().startswith('@') or app_frame[4][0].strip().startswith('def')) ==> Ignores functions injected by wrappers (e.g. autoparallel), but keep the classes.

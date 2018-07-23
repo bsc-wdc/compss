@@ -1,3 +1,4 @@
-!#/bin/sh
+#!/bin/sh
 
-ps -elfa | egrep "COMPSsWorker|pipers|worker.py|nio_worker_c|worker_c" | awk '{print $4}' | xargs kill -9
+  ps -elfa | grep -E "COMPSsWorker|pipers|worker.py|nio_worker_c|worker_c" | awk '{print $4}' | xargs kill -9
+

@@ -37,9 +37,12 @@
     testNames+=( ${appName} )
 
     if [ "$testExitValue" -ne 0 ]; then
-      if [ "$testExitValue" -eq 99 ]; then
-        # Unsupported feature reported by test
+      if [ "$testExitValue" -eq 88 ]; then
+        # Partially supported feature reported by test
         results="${results}4"
+      elif [ "$testExitValue" -eq 99 ]; then
+        # Unsupported feature reported by test
+        results="${results}5"
       else
         # Test failed
         exitValue=1
@@ -144,6 +147,8 @@
       elif [ "${results:$pos:1}" == "2" ]; then
          printf "${normal}%-60s %-20s ${cyan}%s\n" "[TEST RESULT] Application ${execType} BLOCK $printCounter NAME ${testNames[$pos]}" "....................." "SKIP"
       elif [ "${results:$pos:1}" == "4" ]; then
+         printf "${normal}%-60s %-20s ${cyan}%s\n" "[TEST RESULT] Application ${execType} BLOCK $printCounter NAME ${testNames[$pos]}" "....................." "PARTIALLY SUPPORTED"
+      elif [ "${results:$pos:1}" == "5" ]; then
          printf "${normal}%-60s %-20s ${gray}%s\n" "[TEST RESULT] Application ${execType} BLOCK $printCounter NAME ${testNames[$pos]}" "....................." "UNSUPPORTED"
       else
          printf "${normal}%-60s %-20s ${red}%s\n" "[TEST RESULT] Application ${execType} BLOCK $printCounter NAME ${testNames[$pos]}" "....................." "ERROR"

@@ -54,54 +54,54 @@ import compss
 
 # Types conversion dictionary from python to COMPSs
 if IS_PYTHON3:
-    python_to_compss = {int: TYPE.INT,  # int # long
-                        float: TYPE.DOUBLE,  # float
-                        bool: TYPE.BOOLEAN,  # bool
-                        str: TYPE.STRING,  # str
-                        # The type of instances of user-defined classes
-                        # types.InstanceType: TYPE.OBJECT,
-                        # The type of methods of user-defined class instances
-                        # types.MethodType: TYPE.OBJECT,
-                        # The type of user-defined old-style classes
-                        # types.ClassType: TYPE.OBJECT,
-                        # The type of modules
-                        # types.ModuleType: TYPE.OBJECT,
-                        # The type of tuples (e.g. (1, 2, 3, 'Spam'))
-                        tuple: TYPE.OBJECT,
-                        # The type of lists (e.g. [0, 1, 2, 3])
-                        list: TYPE.OBJECT,
-                        # The type of dictionaries (e.g. {'Bacon': 1, 'Ham': 0})
-                        dict: TYPE.OBJECT,
-                        # The type of generic objects
-                        object: TYPE.OBJECT
-                        }
+    _python_to_compss = {int: TYPE.INT,  # int # long
+                         float: TYPE.DOUBLE,  # float
+                         bool: TYPE.BOOLEAN,  # bool
+                         str: TYPE.STRING,  # str
+                         # The type of instances of user-defined classes
+                         # types.InstanceType: TYPE.OBJECT,
+                         # The type of methods of user-defined class instances
+                         # types.MethodType: TYPE.OBJECT,
+                         # The type of user-defined old-style classes
+                         # types.ClassType: TYPE.OBJECT,
+                         # The type of modules
+                         # types.ModuleType: TYPE.OBJECT,
+                         # The type of tuples (e.g. (1, 2, 3, 'Spam'))
+                         tuple: TYPE.OBJECT,
+                         # The type of lists (e.g. [0, 1, 2, 3])
+                         list: TYPE.OBJECT,
+                         # The type of dictionaries (e.g. {'Bacon': 1, 'Ham': 0})
+                         dict: TYPE.OBJECT,
+                         # The type of generic objects
+                         object: TYPE.OBJECT
+                         }
 else:
-    python_to_compss = {types.IntType: TYPE.INT,  # int
-                        types.LongType: TYPE.LONG,  # long
-                        types.FloatType: TYPE.DOUBLE,  # float
-                        types.BooleanType: TYPE.BOOLEAN,  # bool
-                        types.StringType: TYPE.STRING,  # str
-                        # The type of instances of user-defined classes
-                        # types.InstanceType: TYPE.OBJECT,
-                        # The type of methods of user-defined class instances
-                        # types.MethodType: TYPE.OBJECT,
-                        # The type of user-defined old-style classes
-                        # types.ClassType: TYPE.OBJECT,
-                        # The type of modules
-                        # types.ModuleType: TYPE.OBJECT,
-                        # The type of tuples (e.g. (1, 2, 3, 'Spam'))
-                        types.TupleType: TYPE.OBJECT,
-                        # The type of lists (e.g. [0, 1, 2, 3])
-                        types.ListType: TYPE.OBJECT,
-                        # The type of dictionaries (e.g. {'Bacon': 1, 'Ham': 0})
-                        types.DictType: TYPE.OBJECT,
-                        # The type of generic objects
-                        types.ObjectType: TYPE.OBJECT
-                        }
+    _python_to_compss = {types.IntType: TYPE.INT,  # int
+                         types.LongType: TYPE.LONG,  # long
+                         types.FloatType: TYPE.DOUBLE,  # float
+                         types.BooleanType: TYPE.BOOLEAN,  # bool
+                         types.StringType: TYPE.STRING,  # str
+                         # The type of instances of user-defined classes
+                         # types.InstanceType: TYPE.OBJECT,
+                         # The type of methods of user-defined class instances
+                         # types.MethodType: TYPE.OBJECT,
+                         # The type of user-defined old-style classes
+                         # types.ClassType: TYPE.OBJECT,
+                         # The type of modules
+                         # types.ModuleType: TYPE.OBJECT,
+                         # The type of tuples (e.g. (1, 2, 3, 'Spam'))
+                         types.TupleType: TYPE.OBJECT,
+                         # The type of lists (e.g. [0, 1, 2, 3])
+                         types.ListType: TYPE.OBJECT,
+                         # The type of dictionaries (e.g. {'Bacon': 1, 'Ham': 0})
+                         types.DictType: TYPE.OBJECT,
+                         # The type of generic objects
+                         types.ObjectType: TYPE.OBJECT
+                         }
 
 # Set temporary dir
 temp_dir = '.'
-temp_obj_prefix = '/compss-serialized-obj_'
+_temp_obj_prefix = '/compss-serialized-obj_'
 
 # Dictionary to contain the conversion from object id to the
 # filename where it is stored (mapping).
@@ -113,19 +113,19 @@ objid_to_filename = {}
 pending_to_synchronize = {}
 
 # Objects that have been accessed by the main program
-objs_written_by_mp = {}  # obj_id -> compss_file_name
+_objs_written_by_mp = {}  # obj_id -> compss_file_name
 
 # Enable or disable small objects conversion to strings
 # cross-module variable (set/modified from launch.py)
 object_conversion = False
 
 # Identifier handling
-current_id = 1
-# Object identifiers will be of the form runtime_id-current_id
+_current_id = 1
+# Object identifiers will be of the form _runtime_id-_current_id
 # This way we avoid to have two objects from different applications having
 # the same identifier
-runtime_id = str(uuid.uuid1())
-id2obj = {}
+_runtime_id = str(uuid.uuid1())
+_id2obj = {}
 
 
 def get_object_id(obj, assign_new_key=False, force_insertion=False):
@@ -141,26 +141,26 @@ def get_object_id(obj, assign_new_key=False, force_insertion=False):
     :return: Object id
     """
 
-    global current_id
-    global runtime_id
+    global _current_id
+    global _runtime_id
     # Force_insertion implies assign_new_key
     assert not force_insertion or assign_new_key
-    for identifier in id2obj:
-        if id2obj[identifier] is obj:
+    for identifier in _id2obj:
+        if _id2obj[identifier] is obj:
             if force_insertion:
-                id2obj.pop(identifier)
+                _id2obj.pop(identifier)
                 break
             else:
                 return identifier
     if assign_new_key:
         # This object was not in our object database or we were forced to
         # remove it, lets assign it an identifier and store it.
-        # As mentioned before, identifiers are of the form runtime_id-current_id
+        # As mentioned before, identifiers are of the form _runtime_id-_current_id
         # in order to avoid having two objects from different applications with
         # the same identifier (and thus file name)
-        new_id = '%s-%d' % (runtime_id, current_id)
-        id2obj[new_id] = obj
-        current_id += 1
+        new_id = '%s-%d' % (_runtime_id, _current_id)
+        _id2obj[new_id] = obj
+        _current_id += 1
         return new_id
     return None
 
@@ -307,7 +307,7 @@ def delete_object(obj):
         return False
 
     try:
-        id2obj.pop(obj_id)
+        _id2obj.pop(obj_id)
     except KeyError:
         pass
     try:
@@ -488,7 +488,7 @@ def synchronize(obj, mode):
     # TODO: Add a boolean to differentiate between files and object on the compss.get_file call. This change pretends
     # to obtain better traces. Must be implemented first in the Runtime, then in the bindings common C API and
     # finally add the boolean here
-    global current_id
+    global _current_id
 
     if is_psco(obj):
         obj_id = get_id(obj)
@@ -522,7 +522,7 @@ def synchronize(obj, mode):
 
     # The main program won't work with the old object anymore, update mapping
     objid_to_filename[new_obj_id] = objid_to_filename[obj_id].replace(obj_id, new_obj_id)
-    objs_written_by_mp[new_obj_id] = objid_to_filename[new_obj_id]
+    _objs_written_by_mp[new_obj_id] = objid_to_filename[new_obj_id]
 
     if __debug__:
         logger.debug('Deleting obj %s (new one is %s)' % (str(obj_id), str(new_obj_id)))
@@ -710,7 +710,7 @@ def _build_return_objects(f_returns):
             logger.debug('Simple object return found.')
         # Build the appropriate future object
         ret_value = f_returns['compss_retvalue'].object
-        if ret_value in python_to_compss:  # primitives, string, dic, list, tuple
+        if ret_value in _python_to_compss:  # primitives, string, dic, list, tuple
             fo = Future()
         elif inspect.isclass(ret_value):
             # For objects:
@@ -726,7 +726,7 @@ def _build_return_objects(f_returns):
         obj_id = get_object_id(fo, True)
         if __debug__:
             logger.debug("Setting object %s of %s as a future" % (obj_id, type(fo)))
-        ret_filename = temp_dir + temp_obj_prefix + str(obj_id)
+        ret_filename = temp_dir + _temp_obj_prefix + str(obj_id)
         objid_to_filename[obj_id] = ret_filename
         pending_to_synchronize[obj_id] = fo
         f_returns['compss_retvalue'] = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT, p_prefix="#")
@@ -738,7 +738,7 @@ def _build_return_objects(f_returns):
             logger.debug('Multiple objects return found.')
         for k, v in f_returns.items():
             # Build the appropriate future object
-            if v.object in python_to_compss:  # primitives, string, dic, list, tuple
+            if v.object in _python_to_compss:  # primitives, string, dic, list, tuple
                 foe = Future()
             elif inspect.isclass(v.object):
                 # For objects:
@@ -755,7 +755,7 @@ def _build_return_objects(f_returns):
             obj_id = get_object_id(foe, True)
             if __debug__:
                 logger.debug("Setting object %s of %s as a future" % (obj_id, type(foe)))
-            ret_filename = temp_dir + temp_obj_prefix + str(obj_id)
+            ret_filename = temp_dir + _temp_obj_prefix + str(obj_id)
             objid_to_filename[obj_id] = ret_filename
             pending_to_synchronize[obj_id] = foe
             # Once determined the filename where the returns are going to
@@ -1028,7 +1028,7 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
 #         if p.type == TYPE.OBJECT or is_future.get(i):
 #             compss_types.append(TYPE.FILE)
 #         else:
-#             child_p_type = python_to_compss.get(val_type)
+#             child_p_type = _python_to_compss.get(val_type)
 #
 #         child_parameter = Parameter(p_type=child_p_type, p_direction=p.direction, p_stream=p.stream, p_prefix=p.prefix)
 #         child_parameter.object = child_value
@@ -1132,16 +1132,16 @@ def _turn_into_file(p):
     if file_name is None:
         # This is the first time a task accesses this object
         pending_to_synchronize[obj_id] = p.object
-        file_name = temp_dir + temp_obj_prefix + str(obj_id)
+        file_name = temp_dir + _temp_obj_prefix + str(obj_id)
         objid_to_filename[obj_id] = file_name
         if __debug__:
             logger.debug('Mapping object %s to file %s' % (obj_id, file_name))
         serialize_to_file(p.object, file_name)
-    elif obj_id in objs_written_by_mp:
+    elif obj_id in _objs_written_by_mp:
         if p.direction == DIRECTION.INOUT:
             pending_to_synchronize[obj_id] = p.object
         # Main program generated the last version
-        compss_file = objs_written_by_mp.pop(obj_id)
+        compss_file = _objs_written_by_mp.pop(obj_id)
         if __debug__:
             logger.debug('Serializing object %s to file %s' % (obj_id, compss_file))
         serialize_to_file(p.object, compss_file)
@@ -1155,9 +1155,9 @@ def _clean_objects():
     """
     Clean the objects stored in the global dictionaries:
         * pending_to_synchronize dict
-        * id2obj dict
+        * _id2obj dict
         * objid_to_filename dict
-        * objs_written_by_mp dict
+        * _objs_written_by_mp dict
 
     :return: None
     """
@@ -1165,9 +1165,9 @@ def _clean_objects():
     for filename in objid_to_filename.values():
         compss.delete_file(filename)
     pending_to_synchronize.clear()
-    id2obj.clear()
+    _id2obj.clear()
     objid_to_filename.clear()
-    objs_written_by_mp.clear()
+    _objs_written_by_mp.clear()
 
 
 def _clean_temps():

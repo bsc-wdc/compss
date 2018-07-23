@@ -40,12 +40,13 @@ from pycompss.util.logs import init_logging
 from pycompss.util.serializer import SerializerException
 from pycompss.util.optional_modules import show_optional_module_warnings
 
+# Global variable also used within decorators
 app_path = None
 
 if IS_PYTHON3:
-    py_version = 3
+    _py_version = 3
 else:
-    py_version = 2
+    _py_version = 2
 
 
 def get_logging_cfg_file(log_level):
@@ -122,7 +123,7 @@ def compss_main():
     app_path = args.app_path
 
     binding_log_path = get_log_path()
-    log_path = os.path.join(os.getenv('COMPSS_HOME'), 'Bindings', 'python', str(py_version), 'log')
+    log_path = os.path.join(os.getenv('COMPSS_HOME'), 'Bindings', 'python', str(_py_version), 'log')
     binding.temp_dir = mkdtemp(prefix='pycompss', dir=os.path.join(binding_log_path, 'tmpFiles/'))
 
     logging_cfg_file = get_logging_cfg_file(log_level)

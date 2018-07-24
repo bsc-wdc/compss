@@ -29,6 +29,8 @@
     exit 1
   fi
 
+  export CXX=arm-linux-gnueabihf-g++
+
   # Define script variables
   scriptDir=$(pwd)
   tmpDir=${scriptDir}/tmp

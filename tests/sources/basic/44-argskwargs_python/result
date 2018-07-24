@@ -8,12 +8,6 @@
   # Log files
   runtime_log="${target_log_folder}/runtime.log"
 
-  echo "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-  ls -l ${target_log_folder}/jobs
-  echo "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-  cat ${target_log_folder}/jobs/*
-  echo "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-
   #----------------------------------------------------------------------------------
   # Check output standard out status
   if [ -f ${output_file} ]; then

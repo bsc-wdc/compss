@@ -758,7 +758,8 @@ class Task(object):
                 i += 1
 
         # Step 6.- Clean elements that are not defined in parameter_names
-        for p in self.parameters:
+        for p in list(self.parameters.keys()):
+            # This way of iteration avoids OrderedDict mutation during iteration
             if p not in parameter_names:
                 self.parameters.pop(p)
 
@@ -766,7 +767,8 @@ class Task(object):
         aargs = OrderedDict()
         if '*args0' in self.parameters:
             # Extract the *args
-            for i in self.parameters:
+            for i in list(self.parameters.keys()):
+                # This way of iteration avoids OrderedDict mutation during iteration
                 if i.startswith('*args'):
                     aargs[i] = self.parameters.pop(i)
         akwargs = OrderedDict()

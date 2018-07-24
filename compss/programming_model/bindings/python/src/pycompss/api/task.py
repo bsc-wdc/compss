@@ -517,6 +517,8 @@ class Task(object):
         else:
             f.__code_strings__ = False
 
+        '''
+        # Old registration information gathering
         # Include the registering info related to @task
         ins = inspect.getouterframes(inspect.currentframe())
         # I know that this is ugly, but I see no other way to get the class name
@@ -530,7 +532,6 @@ class Task(object):
             ce_signature = self.module_name + "." + f.__name__
             impl_type_args = [self.module_name, f.__name__]
         '''
-        TODO: This way of registering should work better than the previous, but it seems that is python minor version dependant. Look for another way of getting the qualified name of the objects.
         # Get the task signature
         # To do this, we will check the frames
         frames = inspect.getouterframes(inspect.currentframe())
@@ -572,7 +573,6 @@ class Task(object):
                 # This case can be reached in Python 3, where particular frames are included, but not class names found.
                 ce_signature = self.module_name + "." + f.__name__
                 impl_type_args = [self.module_name, f.__name__]
-        '''
         # Include the registering info related to @task
         impl_signature = ce_signature
         impl_constraints = {}

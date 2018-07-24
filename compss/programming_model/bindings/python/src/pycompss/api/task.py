@@ -517,21 +517,6 @@ class Task(object):
         else:
             f.__code_strings__ = False
 
-        '''
-        # Old registration information gathering
-        # Include the registering info related to @task
-        ins = inspect.getouterframes(inspect.currentframe())
-        # I know that this is ugly, but I see no other way to get the class name
-        class_name = ins[2][3]
-        # I know that this is ugly, but I see no other way to check if it is a class method.
-        is_classmethod = class_name != '<module>'
-        if self.has_self_parameter or is_classmethod:
-            ce_signature = self.module_name + "." + class_name + '.' + f.__name__
-            impl_type_args = [self.module_name + "." + class_name, f.__name__]
-        else:
-            ce_signature = self.module_name + "." + f.__name__
-            impl_type_args = [self.module_name, f.__name__]
-        '''
         # Get the task signature
         # To do this, we will check the frames
         frames = inspect.getouterframes(inspect.currentframe())

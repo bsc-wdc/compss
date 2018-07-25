@@ -41,6 +41,10 @@
       --execute "${base_app_dir}"/src/simple.ipynb > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
   fi
 
+  # Take the latest log folder as retry number
+  # Fixes the possiblity to test with both python 2 and 3 one after the other
+  retryNum=`ls -l "${COMPSs_log_folder}" | grep "Interactive_" | wc -l`
+
   # Check timeout
   if [[ "$?" = "124" ]]; then
      # Copy LOG files

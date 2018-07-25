@@ -15,17 +15,17 @@
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
   sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/project.xml
- 
+
   #----------------------------------------------------------------------------------
   # Create all working dir folders
   mkdir -p /tmp/COMPSsWorker01/
-  
+
   #----------------------------------------------------------------------------------
   # Run application 1 - Test
   echo
   echo "*** RUNNING PYTHON APPLICATION TEST"
   output_log="${target_log_folder}/simple_kill_python_0${retryNum}.outputlog"
-  error_log="${target_log_folder}/simple_kill_python_0${retryNum}.errorlog"  
+  error_log="${target_log_folder}/simple_kill_python_0${retryNum}.errorlog"
   counterVal=1
   expectedTime=60s
 
@@ -46,7 +46,11 @@
      --pythonpath="${base_app_dir}"/src \
      \
      "${base_app_dir}"/src/simple_kill.py $counterVal > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
-  
+
+  # Take the latest log folder as retry number
+  # Fixes the possiblity to test with both python 2 and 3 one after the other
+  retryNum=`ls -l "${COMPSs_log_folder}" | grep "simple_kill.py" | wc -l`
+
   # Check timeout
   if [[ "$?" = "124" ]]; then
      # Copy LOG files
@@ -58,12 +62,12 @@
   else
      # Copy LOG files
      cp -rf "${COMPSs_log_folder}"/simple_kill.py_0"${retryNum}"/* "${target_log_folder}"
-  
+
      # Check result
      "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}"
      exitValue=$?
   fi
-  
+
   #----------------------------------------------------------------------------------
   # Return execution status
   exit $exitValue

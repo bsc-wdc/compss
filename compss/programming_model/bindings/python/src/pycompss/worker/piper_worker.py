@@ -107,7 +107,6 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
             if __debug__:
                 logger.info("[PYTHON WORKER] Could not find initWorkerPostFork storage call. Ignoring it.")
 
-
     alive = True
     stdout = sys.stdout
     stderr = sys.stderr
@@ -228,8 +227,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                                                + " " + str(params) + "\n"
                     else:
                         # An exception has been raised in task
-                        message = END_TASK_TAG + " " + str(job_id) \
-                                  + " " + str(exit_value) + "\n"
+                        message = END_TASK_TAG + " " + str(job_id) + " " + str(exit_value) + "\n"
 
                     if __debug__:
                         logger.debug("[PYTHON WORKER %s] - Pipe %s END TASK MESSAGE: %s" % (str(process_name),
@@ -286,7 +284,6 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
         except ImportError:
             if __debug__:
                 logger.info("[PYTHON WORKER] Could not find finishWorkerPostFork storage call. Ignoring it.")
-
 
     sys.stdout.flush()
     sys.stderr.flush()
@@ -395,13 +392,10 @@ def execute_task(process_name, storage_conf, params):
         logger.debug("[PYTHON WORKER %s] Return Length: %s" % (str(process_name), str(return_length)))
         logger.debug("[PYTHON WORKER %s] Args: %r" % (str(process_name), args))
 
-
-
     # Get all parameter values
     if __debug__:
         logger.debug("[PYTHON WORKER %s] Processing parameters:" % process_name)
     values, types, streams, prefixes = get_input_params(num_params, logger, args, process_name)
-
 
     if __debug__:
         logger.debug("[PYTHON WORKER %s] RUN TASK with arguments: " % process_name)
@@ -541,7 +535,6 @@ def execute_task(process_name, storage_conf, params):
     # EVERYTHING OK
     if __debug__:
         logger.debug("[PYTHON WORKER %s] End task execution. Status: Ok" % process_name)
-
 
     return 0, new_types, new_values  # Exit code, updated params
 
@@ -685,7 +678,6 @@ def task_execution(logger, process_name, module, method_name, types, values, com
     :param compss_kwargs: PyCOMPSs keywords
     :return: new types and new_values
     """
-
 
     if __debug__:
         logger.debug("[PYTHON WORKER %s] Starting task execution" % process_name)

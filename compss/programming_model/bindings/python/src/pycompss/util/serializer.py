@@ -190,14 +190,16 @@ def serialize_to_string(obj):
     handler.close()
     return ret
 
+
 def get_numpy_dummy_obj():
     """
     Return a small, dummy, numpy object
     """
     try:
-      return numpy.zeros(1)
+        return numpy.zeros(1)
     except:
-      return []
+        return []
+
 
 def deserialize_from_handler(handler):
     """

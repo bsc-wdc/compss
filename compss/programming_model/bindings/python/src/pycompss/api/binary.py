@@ -35,7 +35,7 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 
-class binary(object):
+class Binary(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpi task creation.
@@ -161,3 +161,10 @@ class binary(object):
 
         binary_f.__doc__ = func.__doc__
         return binary_f
+
+
+# ############################################################################# #
+# #################### BINARY DECORATOR ALTERNATIVE NAME ###################### #
+# ############################################################################# #
+
+binary = Binary

@@ -102,6 +102,11 @@
             "handlers": ["console"], 
             "propagate": "no"
         },
+        "pycompss.util.translators.code_reuser.code_reuser": {                                                                                                                                                                              
+            "level": "DEBUG",
+            "handlers": ["console"],
+            "propagate": "no"
+        },
         "pycompss.util.translators.code_loader.code_loader": {
             "level": "DEBUG",
             "handlers": ["console"], 

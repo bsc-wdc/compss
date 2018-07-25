@@ -95,6 +95,11 @@
             "handlers": ["console"], 
             "propagate": "no"
         },
+        "pycompss.util.translators.code_reuser.code_reuser": {                                                                                                                                                                              
+            "level": "ERROR",
+            "handlers": ["console"],
+            "propagate": "no"
+        },
         "pycompss.util.translators.code_loader.code_loader": {
             "level": "ERROR",
             "handlers": ["console"], 

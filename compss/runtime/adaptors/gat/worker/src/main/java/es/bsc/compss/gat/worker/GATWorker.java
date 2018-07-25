@@ -724,7 +724,7 @@ public class GATWorker {
             System.out.println("Writing Binary Exit Value (" + GATWorker.retValue.toString() + ") to " + lastParamName);
 
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(lastParamName))) {
-                String value = "I" + GATWorker.retValue.toString() + "\n.\n";
+                String value = "0000I" + GATWorker.retValue.toString() + "\n.\n";
                 writer.write(value);
                 writer.flush();
             } catch (IOException ioe) {

@@ -182,7 +182,7 @@ public abstract class Invoker {
             LOGGER.info("Writing Binary Exit Value (" + this.retValue.toString() + ") to " + renaming);
             
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(renaming))) {
-                String value = "I" + this.retValue.toString() + "\n.\n";
+                String value = "0000I" + this.retValue.toString() + "\n.\n";
                 writer.write(value);
                 writer.flush();
             } catch (IOException ioe) {

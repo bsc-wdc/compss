@@ -62,6 +62,13 @@ except ImportError:
     else:
         import cPickle as numpy
 
+lib2idx = {
+    pickle: 0,
+    numpy: 1,
+    dill: 2
+}
+
+idx2lib = dict([(v, k) for (k, v) in lib2idx.items()])
 
 class SerializerException(Exception):
     """
@@ -113,6 +120,7 @@ def serialize_to_handler(obj, handler):
         # Reset the handlers pointer to the first position
         handler.seek(original_position)
         serializer = serializer_priority[i]
+        handler.write(bytearray('%04d' % lib2idx[serializer], 'utf8'))
         # Special case: obj is a generator
         if isinstance(obj, types.GeneratorType):
             try:
@@ -198,23 +206,18 @@ def deserialize_from_handler(handler):
     :param handler: File name from where the object is going to be deserialized.
     :return: The object deserialized.
     """
-    # get the most common order of the serializers
-    serializers = get_serializer_priority(get_numpy_dummy_obj())
-    original_position = handler.tell()
-    # Let's try to deserialize
-    for serializer in serializers:
-        # Reset the handler in case the previous serializer has used it
-        handler.seek(original_position)
-        try:
-            ret = serializer.load(handler)
-            # Special case: deserialized obj wraps a generator
-            if isinstance(ret, tuple) and ret and isinstance(ret[0], GeneratorIndicator):
-                ret = convert_to_generator(ret[1])
-            return ret
-        except Exception:
-            if __debug__:
-              print('WARNING! Deserialization with %s failed.' % str(serializer))
-              traceback.print_exc()  # No need to print all deserialize exceptions
+    # Retrieve the used library
+    serializer = idx2lib[int(handler.read(4))]
+    try:
+        ret = serializer.load(handler)
+        # Special case: deserialized obj wraps a generator
+        if isinstance(ret, tuple) and ret and isinstance(ret[0], GeneratorIndicator):
+            ret = convert_to_generator(ret[1])
+        return ret
+    except Exception:
+        if __debug__:
+          print('WARNING! Deserialization with %s failed.' % str(serializer))
+          traceback.print_exc()  # No need to print all deserialize exceptions
     # we are not able to deserialize the contents from file_name with any of our
     # serializers
     try:

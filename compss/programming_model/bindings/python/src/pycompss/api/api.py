@@ -49,7 +49,7 @@ if __within_scope__():
     from pycompss.runtime.binding import barrier
     from pycompss.runtime.binding import synchronize
     from pycompss.runtime.binding import get_compss_mode
-    from pycompss.runtime.binding import get_pending_to_synchronize
+    from pycompss.runtime.binding import pending_to_synchronize
     from pycompss.runtime.binding import Future
     from pycompss.runtime.binding import EmptyReturn
     from pycompss.runtime.commons import IS_PYTHON3
@@ -145,8 +145,6 @@ if __within_scope__():
             else:
                 mode = 'r'
             compss_mode = get_compss_mode(mode)
-
-            pending_to_synchronize = get_pending_to_synchronize()
 
             # Private function used below (recursively)
             def wait_on_list(l):

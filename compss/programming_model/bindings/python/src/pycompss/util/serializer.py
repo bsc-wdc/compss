@@ -182,14 +182,16 @@ def serialize_to_string(obj):
     handler.close()
     return ret
 
+
 def get_numpy_dummy_obj():
     """
     Return a small, dummy, numpy object
     """
     try:
-      return numpy.zeros(1)
+        return numpy.zeros(1)
     except:
-      return []
+        return []
+
 
 def deserialize_from_handler(handler):
     """
@@ -213,8 +215,8 @@ def deserialize_from_handler(handler):
             return ret
         except Exception:
             if __debug__:
-              print('WARNING! Deserialization with %s failed.' % str(serializer))
-              traceback.print_exc()  # No need to print all deserialize exceptions
+                print('WARNING! Deserialization with %s failed.' % str(serializer))
+                traceback.print_exc()  # No need to print all deserialize exceptions
     # we are not able to deserialize the contents from file_name with any of our
     # serializers
     try:

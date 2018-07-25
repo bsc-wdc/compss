@@ -35,7 +35,7 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 
-class mpi(object):
+class Mpi(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpi task creation.
@@ -187,3 +187,10 @@ class mpi(object):
 
         mpi_f.__doc__ = func.__doc__
         return mpi_f
+
+
+# ############################################################################# #
+# ###################### MPI DECORATOR ALTERNATIVE NAME ####################### #
+# ############################################################################# #
+
+mpi = Mpi

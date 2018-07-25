@@ -122,7 +122,7 @@ def cost(Y, C):
 def best_mu_key(X, C):
     w = [0 for i in range(len(C))]
     for x in X:
-        best_mu_key = min([(i[0], np.linalg.norm(x-np.array(C[i[0]])))
+        best_mu_key = min([(i[0], np.linalg.norm(x - np.array(C[i[0]])))
                           for i in enumerate(C)], key=lambda t: t[1])[0]
         w[best_mu_key] += 1
     return w

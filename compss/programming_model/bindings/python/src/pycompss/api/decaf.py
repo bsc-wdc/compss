@@ -35,7 +35,7 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 
-class decaf(object):
+class Decaf(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpi task creation.
@@ -197,3 +197,10 @@ class decaf(object):
 
         decaf_f.__doc__ = func.__doc__
         return decaf_f
+
+
+# ############################################################################# #
+# ##################### DECAF DECORATOR ALTERNATIVE NAME ###################### #
+# ############################################################################# #
+
+decaf = Decaf

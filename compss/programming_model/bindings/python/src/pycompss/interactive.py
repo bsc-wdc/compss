@@ -33,7 +33,7 @@ import pycompss.runtime.binding as binding
 from pycompss.api.api import compss_start
 from pycompss.api.api import compss_stop
 from pycompss.runtime.binding import get_log_path
-from pycompss.runtime.binding import get_pending_to_synchronize
+from pycompss.runtime.binding import pending_to_synchronize
 from pycompss.runtime.launch import initialize_compss
 from pycompss.util.logs import init_logging
 
@@ -391,7 +391,6 @@ def stop(sync=False):
         print("Synchronizing all future objects left on the user scope.")
         logger.debug("Synchronizing all future objects left on the user scope.")
         from pycompss.api.api import compss_wait_on
-        pending_to_synchronize = get_pending_to_synchronize()
 
         ipython = globals()['__builtins__']['get_ipython']()
         # import pprint

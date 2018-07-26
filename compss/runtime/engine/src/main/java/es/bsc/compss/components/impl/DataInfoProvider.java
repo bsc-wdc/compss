@@ -233,7 +233,7 @@ public class DataInfoProvider {
      * DataAccess interface: registers a new object access
      *
      * @param mode
-     * @param value
+     * @param bo
      * @param code
      * @return
      */
@@ -279,7 +279,7 @@ public class DataInfoProvider {
      * DataAccess interface: registers a new object access
      *
      * @param mode
-     * @param value
+     * @param pscoId
      * @param code
      * @return
      */
@@ -584,10 +584,6 @@ public class DataInfoProvider {
     	LOGGER.debug("Deleting Data associated with code: " + String.valueOf(code));
     	
         Integer id = codeToId.get(code);
-
-        if (id == null) {
-       	    return null;
-        }
         DataInfo dataInfo = idToData.get(id);
         
         // We delete the data associated with all the versions of the same object
@@ -600,6 +596,7 @@ public class DataInfoProvider {
      * Transfers the value of an object
      *
      * @param toRequest transfer object request
+     * @return
      */
     public void transferObjectValue(TransferObjectRequest toRequest) {
         Semaphore sem = toRequest.getSemaphore();
@@ -632,7 +629,7 @@ public class DataInfoProvider {
             // Set response
             toRequest.setResponse(ld.getValue());
             toRequest.setTargetData(ld);
-            toRequest.getSemaphore().release();
+            sem.release();
         } else {
             if (DEBUG) {
                 LOGGER.debug("Object " + sourceName + " not in memory. Requesting tranfers to " + Comm.getAppHost().getName());
@@ -661,11 +658,11 @@ public class DataInfoProvider {
         Semaphore sem = toRequest.getSemaphore();
         DataAccessId daId = toRequest.getDaId();
 
-        // RWAccessId rwaId = (RWAccessId) daId;
+        //RWAccessId rwaId = (RWAccessId) daId;
         RAccessId rwaId = (RAccessId) daId;
 
         String sourceName = rwaId.getReadDataInstance().getRenaming();
-        // String targetName = rwaId.getWrittenDataInstance().getRenaming();
+        //String targetName = rwaId.getWrittenDataInstance().getRenaming();
 
         if (DEBUG) {
             LOGGER.debug("[DataInfoProvider] Requesting getting object " + sourceName);

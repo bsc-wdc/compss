@@ -16,7 +16,11 @@
  */
 package es.bsc.compss.types.execution;
 
+import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
+import es.bsc.compss.types.implementations.Implementation.TaskType;
+import es.bsc.compss.types.job.Job.JobHistory;
+import es.bsc.compss.types.resources.ResourceDescription;
 import java.util.List;
 
 
@@ -26,16 +30,28 @@ import java.util.List;
  */
 public interface Invocation {
 
+    public int getJobId();
+
+    public JobHistory getHistory();
+
     public int getTaskId();
 
-    public int getTaskType();
+    public TaskType getTaskType();
+
+    public Lang getLang();
 
     public AbstractMethodImplementation getMethodImplementation();
 
-    public List<InvocationParam> getParams();
+    public boolean isDebugEnabled();
 
-    public <T extends InvocationParam> T getTarget();
+    public List<? extends InvocationParam> getParams();
 
-    public <T extends InvocationParam> T getReturn();
+    public InvocationParam getTarget();
+
+    public List<? extends InvocationParam> getResults();
+
+    public ResourceDescription getRequirements();
+
+    public List<String> getSlaveNodesNames();
 
 }

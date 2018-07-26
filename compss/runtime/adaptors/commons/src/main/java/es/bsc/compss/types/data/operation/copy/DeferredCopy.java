@@ -30,4 +30,9 @@ public class DeferredCopy extends Copy {
         super(srcData, prefSrc, prefTgt, tgtData, reason, listener);
     }
 
+    @Override
+    public void perform() {
+        //No need to do anything. Will be performed later on.
+    }
+
 }

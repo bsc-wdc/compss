@@ -35,7 +35,7 @@ import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.nio.NIOTracer;
 import es.bsc.compss.nio.NIOURI;
-import es.bsc.compss.nio.commands.Data;
+import es.bsc.compss.nio.commands.NIOData;
 import es.bsc.compss.nio.commands.workerFiles.CommandWorkerDebugFilesDone;
 import es.bsc.compss.nio.dataRequest.DataRequest;
 import es.bsc.compss.nio.dataRequest.MasterDataRequest;
@@ -443,7 +443,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    protected void handleDataToSendNotAvailable(Connection c, Data d) {
+    protected void handleDataToSendNotAvailable(Connection c, NIOData d) {
         // Finish the connection asap. The comm library will notify this error
         // upwards as a ClosedChannelError.
         c.finishConnection();
@@ -530,7 +530,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         return new LinkedList<DataOperation>();
     }
 
-    public boolean checkData(Data d) {
+    public boolean checkData(NIOData d) {
         boolean data = false;
         /*
          * for (Entry<String, LogicalData> e : Comm.DC.nameToLogicalData.entrySet()) { if
@@ -598,7 +598,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         u.setInternalURI(ID, new NIOURI(masterNode, u.getPath(), u.getProtocol()));
     }
 
-    public void requestData(Copy c, DataType paramType, Data d, String path) {
+    public void requestData(Copy c, DataType paramType, NIOData d, String path) {
         DataRequest dr = new MasterDataRequest(c, paramType, d, path);
         addTransferRequest(dr);
         requestTransfers();

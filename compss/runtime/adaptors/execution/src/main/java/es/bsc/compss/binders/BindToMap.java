@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.binders;
 
+import es.bsc.compss.types.execution.ThreadBinder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -29,8 +30,8 @@ import java.util.List;
 
 import es.bsc.compss.log.Loggers;
 
-import es.bsc.compss.exceptions.InvalidMapException;
-import es.bsc.compss.exceptions.UnsufficientAvailableComputingUnitsException;
+import es.bsc.compss.types.execution.exceptions.InvalidMapException;
+import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
 import es.bsc.compss.util.Tracer;
 
 

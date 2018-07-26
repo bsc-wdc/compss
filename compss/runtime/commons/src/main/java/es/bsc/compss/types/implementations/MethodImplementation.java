@@ -35,9 +35,9 @@ public class MethodImplementation extends AbstractMethodImplementation implement
     }
 
     public MethodImplementation(String methodClass, String altMethodName, Integer coreId, Integer implementationId,
-            MethodResourceDescription annot) {
+            MethodResourceDescription requirements) {
 
-        super(coreId, implementationId, annot);
+        super(coreId, implementationId, requirements);
 
         this.declaringClass = methodClass;
         this.alternativeMethod = altMethodName;

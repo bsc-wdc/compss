@@ -16,29 +16,34 @@
  */
 package es.bsc.compss.invokers;
 
-import java.io.File;
-import java.lang.reflect.Method;
-
-import es.bsc.compss.exceptions.JobExecutionException;
+import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
+import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.implementations.MethodImplementation;
+
+import java.io.File;
+import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
+import java.util.LinkedList;
 import java.util.List;
+import storage.StubItf;
 
 
 public class JavaInvoker extends Invoker {
 
-    private static final String ERROR_CLASS_REFLECTION = "Cannot get class by reflection";
-    private static final String ERROR_METHOD_REFLECTION = "Cannot get method by reflection";
+    public static final String ERROR_CLASS_REFLECTION = "Cannot get class by reflection";
+    public static final String ERROR_METHOD_REFLECTION = "Cannot get method by reflection";
 
     private final String className;
     private final String methodName;
     protected final Method method;
 
-    public JavaInvoker(InvocationContext context, Invocation invocation, boolean debug, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
-        super(context, invocation, debug, taskSandboxWorkingDir, assignedCoreUnits);
+    public JavaInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources)
+            throws JobExecutionException {
+        super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
         // Get method definition properties
         MethodImplementation methodImpl = null;
@@ -56,31 +61,43 @@ public class JavaInvoker extends Invoker {
 
     private Method getMethod() throws JobExecutionException {
         Class<?> methodClass = null;
-        Method method = null;
         try {
             methodClass = Class.forName(this.className);
         } catch (ClassNotFoundException e) {
             throw new JobExecutionException(ERROR_CLASS_REFLECTION, e);
         }
         try {
-            List<InvocationParam> params = invocation.getParams();
+            List<? extends InvocationParam> params = invocation.getParams();
             Class<?>[] types = new Class<?>[params.size()];
             int paramIdx = 0;
             for (InvocationParam param : params) {
                 types[paramIdx++] = param.getValueClass();
             }
-            method = methodClass.getMethod(this.methodName, types);
+            return methodClass.getMethod(this.methodName, types);
         } catch (NoSuchMethodException | SecurityException e) {
             throw new JobExecutionException(ERROR_METHOD_REFLECTION, e);
         }
-
-        return method;
     }
 
     @Override
-    public Object invokeMethod() throws JobExecutionException {
+    public void invokeMethod() throws JobExecutionException {
+        Object retValue = runMethod();
 
-        List<InvocationParam> params = invocation.getParams();
+        for (InvocationParam np : this.invocation.getParams()) {
+            checkSCOPersistence(np);
+        }
+        if (this.invocation.getTarget() != null) {
+            checkSCOPersistence(this.invocation.getTarget());
+        }
+        for (InvocationParam np : this.invocation.getResults()) {
+            np.setValue(retValue);
+            np.setValueClass(retValue.getClass());
+            checkSCOPersistence(np);
+        }
+    }
+
+    protected Object runMethod() throws JobExecutionException {
+        List<? extends InvocationParam> params = invocation.getParams();
         Object[] values = new Object[params.size()];
         int paramIdx = 0;
         for (InvocationParam param : params) {
@@ -94,21 +111,35 @@ public class JavaInvoker extends Invoker {
         }
 
         Object retValue = null;
-        /*if (Tracer.isActivated()) {
-            Tracer.emitEvent(Tracer.Event.STORAGE_INVOKE.getId(), Tracer.Event.STORAGE_INVOKE.getType());
-        }*/
         try {
-            LOGGER.info("Invoked " + method.getName() + " of " + target + " in " + context.getHostName());
+            LOGGER.info("Invoked " + method.getName() + (target == null ? "" : " on object " + target) + " in " + context.getHostName());
             retValue = method.invoke(target, values);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
             throw new JobExecutionException(ERROR_TASK_EXECUTION, e);
-        }/* finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_INVOKE.getType());
-            }
-        }*/
-
+        }
         return retValue;
     }
 
+    private void checkSCOPersistence(InvocationParam np) {
+        boolean potentialPSCO = (np.getType().equals(DataType.OBJECT_T)) || (np.getType().equals(DataType.PSCO_T));
+        if (np.isWriteFinalValue() && potentialPSCO) {
+            Object obj = np.getValue();
+
+            // Check if it is a PSCO and has been persisted in task
+            String id = null;
+            try {
+                StubItf psco = (StubItf) obj;
+                id = psco.getID();
+            } catch (Exception e) {
+                // No need to raise an exception because normal objects are not PSCOs
+                id = null;
+            }
+
+            // Update to PSCO if needed
+            if (id != null) {
+                // Object has been persisted, we store the PSCO and change the value to its ID
+                np.setType(DataType.PSCO_T);
+            }
+        }
+    }
 }

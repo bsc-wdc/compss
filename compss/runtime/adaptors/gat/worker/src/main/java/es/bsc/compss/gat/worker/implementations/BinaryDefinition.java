@@ -16,9 +16,10 @@
  */
 package es.bsc.compss.gat.worker.implementations;
 
-import es.bsc.compss.exceptions.JobExecutionException;
+import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.gat.worker.ImplementationDefinition;
-import es.bsc.compss.invokers.BinaryInvoker;
+import es.bsc.compss.invokers.binary.BinaryInvoker;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
@@ -31,8 +32,8 @@ public class BinaryDefinition extends ImplementationDefinition {
 
     private final String binary;
 
-    public BinaryDefinition(String[] args, int execArgsIdx) {
-        super(args, execArgsIdx + 1);
+    public BinaryDefinition(boolean enableDebug, String[] args, int execArgsIdx) {
+        super(enableDebug, args, execArgsIdx + 1);
         this.binary = args[execArgsIdx];
     }
 
@@ -44,6 +45,11 @@ public class BinaryDefinition extends ImplementationDefinition {
     @Override
     public MethodType getType() {
         return MethodType.BINARY;
+    }
+
+    @Override
+    public COMPSsConstants.Lang getLang() {
+        return null;
     }
 
     @Override
@@ -59,7 +65,7 @@ public class BinaryDefinition extends ImplementationDefinition {
     }
 
     @Override
-    public Invoker getInvoker(InvocationContext context, boolean debug, File sandBoxDir) throws JobExecutionException {
-        return new BinaryInvoker(context, this, debug, sandBoxDir, null);
+    public Invoker getInvoker(InvocationContext context, File sandBoxDir) throws JobExecutionException {
+        return new BinaryInvoker(context, this, sandBoxDir, null);
     }
 }

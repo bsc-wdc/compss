@@ -74,7 +74,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     private static final String ERROR_BINDING_OBJECT_PARAMS = "ERROR: Incorrect number of parameters for external objects";
     private static final String WARN_WRONG_DIRECTION = "WARNING: Invalid parameter direction: ";
 
-    // COMPSs Version and buildnumber attributes
+    // COMPSS Version and buildnumber attributes
     private static String COMPSs_VERSION = null;
     private static String COMPSs_BUILDNUMBER = null;
 
@@ -124,7 +124,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
          */
         Comm.init();
     }
-
 
     // Code Added to support configuration files
     private static void setPropertiesFromRuntime(RuntimeConfigManager manager) {
@@ -232,7 +231,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 }
                 if (System.getProperty(COMPSsConstants.TASK_EXECUTION) == null
                         || System.getProperty(COMPSsConstants.TASK_EXECUTION).equals("")) {
-                    System.setProperty(COMPSsConstants.TASK_EXECUTION, COMPSsConstants.EXECUTION_INTERNAL);
+                    System.setProperty(COMPSsConstants.TASK_EXECUTION, COMPSsConstants.TaskExecution.COMPSS.toString());
                 }
 
                 if (manager.getContext() != null) {
@@ -280,7 +279,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             System.setProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, COMPSsConstants.DEFAULT_CUSTOM_EXTRAE_FILE);
         }
         if (System.getProperty(COMPSsConstants.TASK_EXECUTION) == null || System.getProperty(COMPSsConstants.TASK_EXECUTION).isEmpty()) {
-            System.setProperty(COMPSsConstants.TASK_EXECUTION, COMPSsConstants.EXECUTION_INTERNAL);
+            System.setProperty(COMPSsConstants.TASK_EXECUTION, COMPSsConstants.TaskExecution.COMPSS.toString());
         }
     }
 
@@ -341,7 +340,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * ********************************************************************************************************
      */
     public COMPSsRuntimeImpl() {
-        // Load COMPSs version and buildNumber
+        // Load COMPSS version and buildNumber
         try {
             Properties props = new Properties();
             props.load(this.getClass().getResourceAsStream("/version.properties"));
@@ -371,7 +370,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * ********************************************************************************************************
      */
     /**
-     * Starts the COMPSs Runtime
+     * Starts the COMPSS Runtime
      *
      */
     @Override
@@ -405,7 +404,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 // if (lang != COMPSsConstants.Lang.JAVA.name() && oReg == null) {
                 // oReg = new ObjectRegistry(this);
                 // }
-
                 // Initialize main runtime components
                 td = new TaskDispatcher();
                 ap = new AccessProcessor(td);
@@ -511,7 +509,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /**
-     * Registers a new CoreElement in the COMPSs Runtime
+     * Registers a new CoreElement in the COMPSS Runtime
      *
      */
     @Override
@@ -595,11 +593,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     /**
      * Internal execute task to make API options only as a wrapper
-     * 
+     *
      * @param appId
-     * @param hasSignature
-     *            indicates whether the signature parameter is valid or must be constructed from the methodName and
-     *            methodClass parameters
+     * @param hasSignature indicates whether the signature parameter is valid or must be constructed from the methodName
+     * and methodClass parameters
      * @param methodClass
      * @param methodName
      * @param signature
@@ -684,7 +681,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     /**
      * Returns whether the method parameters define a return or not
-     * 
+     *
      * @param parameters
      * @return
      */
@@ -1050,7 +1047,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     /**
      * get Binding object
-     * 
+     *
      * @param objectId
      * @return id of the object in the cache
      */
@@ -1066,7 +1063,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     /**
      * remove Binding object
-     * 
+     *
      * @param fileName
      * @param objectId
      * @return
@@ -1274,20 +1271,18 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         // Create location
         return DataLocation.createLocation(host, uri);
     }
-    
-   @Override
-   public void deregisterObject(Long appId, Object o) {
-	   oReg.delete(o);
-   }
-   
+
+    @Override
+    public void deregisterObject(Long appId, Object o) {
+        oReg.delete(o);
+    }
+
     public void removeObject(Object o, int hashcode) { //private?
-    	
-    	//This will remove the object from the Object Registry and the Data Info Provider
-    	//eventually allowing the garbage collector to free it (better use of memory)
-    	
-    	ap.deregisterObject(o);
-    	
-    	
+
+        //This will remove the object from the Object Registry and the Data Info Provider
+        //eventually allowing the garbage collector to free it (better use of memory)
+        ap.deregisterObject(o);
+
     }
 
 }

@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.gat.worker;
 
-import es.bsc.compss.exceptions.JobExecutionException;
+import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -24,14 +24,22 @@ import es.bsc.compss.types.annotations.parameter.Stream;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.types.execution.InvocationParamURI;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.Implementation.TaskType;
+import es.bsc.compss.types.job.Job.JobHistory;
+import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.util.ErrorManager;
 
 import java.io.File;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 
 public abstract class ImplementationDefinition implements Invocation {
@@ -41,21 +49,44 @@ public abstract class ImplementationDefinition implements Invocation {
     private static final String WARN_UNSUPPORTED_DATA_TYPE = "WARNING: Unsupported data type";
     private static final String WARN_UNSUPPORTED_STREAM = "WARNING: Unsupported data stream";
 
+    private final boolean debug;
+    private final int jobId;
     private final int taskId;
+    private final JobHistory history;
+
+    private final List<String> hostnames;
+    private final int cus;
+
     private final boolean hasTarget;
     private final boolean hasReturn;
 
     private final int numParams;
     private final LinkedList<Param> params;
 
-    public ImplementationDefinition(String args[], int appArgsIdx) {
+    public ImplementationDefinition(boolean enableDebug, String args[], int appArgsIdx) {
+        jobId = 0;
         taskId = 0;
+        history = JobHistory.NEW;
 
-        int numNodesTmp = Integer.parseInt(args[appArgsIdx++]);
-        //skip hosts
-        appArgsIdx += numNodesTmp;
-        //skip cus
-        appArgsIdx++;
+        this.debug = enableDebug;
+
+        int numNodes = Integer.parseInt(args[appArgsIdx++]);
+        hostnames = new ArrayList<>();
+        for (int i = 0; i < numNodes; ++i) {
+            String nodeName = args[appArgsIdx++];
+            if (nodeName.endsWith("-ib0")) {
+                nodeName = nodeName.substring(0, nodeName.lastIndexOf("-ib0"));
+            }
+            hostnames.add(nodeName);
+        }
+        String hostname = "localhost";
+        try {
+            hostname = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e1) {
+            ErrorManager.warn("Cannot obtain hostname. Loading default value " + hostname);
+        }
+        hostnames.add(hostname);
+        cus = Integer.parseInt(args[appArgsIdx++]);
 
         // Get if has target or not
         hasTarget = Boolean.parseBoolean(args[appArgsIdx++]);
@@ -78,6 +109,17 @@ public abstract class ImplementationDefinition implements Invocation {
             paramsTmp = new LinkedList<>();
         }
         params = paramsTmp;
+
+    }
+
+    @Override
+    public int getJobId() {
+        return this.jobId;
+    }
+
+    @Override
+    public boolean isDebugEnabled() {
+        return this.debug;
     }
 
     @Override
@@ -126,12 +168,21 @@ public abstract class ImplementationDefinition implements Invocation {
     }
 
     @Override
-    public final int getTaskType() {
-        return TaskType.METHOD.ordinal();
+    public final TaskType getTaskType() {
+        return TaskType.METHOD;
     }
 
     @Override
     public abstract AbstractMethodImplementation getMethodImplementation();
+
+    @Override
+    public MethodResourceDescription getRequirements() {
+        MethodResourceDescription mrd = new MethodResourceDescription();
+        Processor p = new Processor();
+        p.setComputingUnits(cus);
+        mrd.addProcessor(p);
+        return mrd;
+    }
 
     public abstract MethodType getType();
 
@@ -139,7 +190,7 @@ public abstract class ImplementationDefinition implements Invocation {
 
     public abstract String toLogString();
 
-    public abstract Invoker getInvoker(InvocationContext context, boolean debug, File sandBoxDir) throws JobExecutionException;
+    public abstract Invoker getInvoker(InvocationContext context, File sandBoxDir) throws JobExecutionException;
 
     private LinkedList<Param> parseArguments(String[] args, int appArgsIdx) throws Exception {
         // Check received arguments
@@ -194,10 +245,10 @@ public abstract class ImplementationDefinition implements Invocation {
                     value = args[appArgsIdx++];
                     break;
                 case BOOLEAN_T:
-                    value = new Boolean(args[appArgsIdx++]);
+                    value = Boolean.valueOf(args[appArgsIdx++]);
                     break;
                 case CHAR_T:
-                    value = new Character(args[appArgsIdx++].charAt(0));
+                    value = args[appArgsIdx++].charAt(0);
                     break;
                 case STRING_T:
                     int numSubStrings = Integer.parseInt(args[appArgsIdx++]);
@@ -244,6 +295,31 @@ public abstract class ImplementationDefinition implements Invocation {
             paramsList.add(returnParam);
         }
         return paramsList;
+    }
+
+    @Override
+    public List<InvocationParam> getParams() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public InvocationParam getTarget() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public List<InvocationParam> getResults() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public List<String> getSlaveNodesNames() {
+        return this.hostnames;
+    }
+
+    @Override
+    public JobHistory getHistory() {
+        return history;
     }
 
 
@@ -308,6 +384,31 @@ public abstract class ImplementationDefinition implements Invocation {
         @Override
         public void setValue(Object val) {
             this.value = val;
+        }
+
+        @Override
+        public void setValueClass(Class<?> aClass) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public Class<?> getValueClass() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public String getDataMgmtId() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public void setOriginalName(String originalName) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public List<InvocationParamURI> getSources() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
     }
 }

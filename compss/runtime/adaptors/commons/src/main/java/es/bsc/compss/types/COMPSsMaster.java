@@ -63,7 +63,6 @@ public class COMPSsMaster extends COMPSsNode {
 
     private final String name;
 
-
     /**
      * New COMPSs Master
      */
@@ -192,10 +191,8 @@ public class COMPSsMaster extends COMPSsNode {
                         ld.releaseHostRemoval();
                         return;
 
-                    } else {
-                        if (DEBUG) {
-                            LOGGER.debug("Current copies are not transfering " + ld.getName() + " to master. Ignoring at this moment");
-                        }
+                    } else if (DEBUG) {
+                        LOGGER.debug("Current copies are not transfering " + ld.getName() + " to master. Ignoring at this moment");
                     }
                 }
             }
@@ -232,11 +229,9 @@ public class COMPSsMaster extends COMPSsNode {
                 listener.notifyEnd(null);
                 ld.releaseHostRemoval();
                 return;
-            } else {
-                if (DEBUG) {
-                    String hostname = (u.getHost() != null) ? u.getHost().getName() : "null";
-                    LOGGER.debug("Data " + ld.getName() + " copy in " + hostname + " not evaluated now");
-                }
+            } else if (DEBUG) {
+                String hostname = (u.getHost() != null) ? u.getHost().getName() : "null";
+                LOGGER.debug("Data " + ld.getName() + " copy in " + hostname + " not evaluated now");
             }
 
         }
@@ -296,11 +291,9 @@ public class COMPSsMaster extends COMPSsNode {
                 LOGGER.debug("Data " + ld.getName() + " sent.");
                 ld.releaseHostRemoval();
                 return;
-            } else {
-                if (DEBUG) {
-                    LOGGER.debug("Data " + ld.getName() + " copy in " + sourceRes.getName()
-                            + " not evaluated now. Should have been evaluated before");
-                }
+            } else if (DEBUG) {
+                LOGGER.debug("Data " + ld.getName() + " copy in " + sourceRes.getName()
+                        + " not evaluated now. Should have been evaluated before");
             }
         }
     }
@@ -364,10 +357,8 @@ public class COMPSsMaster extends COMPSsNode {
                             ErrorManager.warn(
                                     "Error master local copy from " + copy.getFinalTarget() + " to " + targetPath + " with replacing", ex);
                         }
-                    } else {
-                        if (DEBUG) {
-                            LOGGER.debug("Current copies are not transfering " + ld.getName() + " to master. Ignoring at this moment");
-                        }
+                    } else if (DEBUG) {
+                        LOGGER.debug("Current copies are not transfering " + ld.getName() + " to master. Ignoring at this moment");
                     }
                 }
             }
@@ -401,11 +392,9 @@ public class COMPSsMaster extends COMPSsNode {
                 } catch (IOException ex) {
                     ErrorManager.warn("Error master local copy file from " + u.getPath() + " to " + targetPath + " with replacing", ex);
                 }
-            } else {
-                if (DEBUG) {
-                    String hostname = (u.getHost() != null) ? u.getHost().getName() : "null";
-                    LOGGER.debug("Data " + ld.getName() + " copy in " + hostname + " not evaluated now");
-                }
+            } else if (DEBUG) {
+                String hostname = (u.getHost() != null) ? u.getHost().getName() : "null";
+                LOGGER.debug("Data " + ld.getName() + " copy in " + hostname + " not evaluated now");
             }
 
         }
@@ -463,11 +452,9 @@ public class COMPSsMaster extends COMPSsNode {
                 LOGGER.debug("Data " + ld.getName() + " sent.");
                 ld.releaseHostRemoval();
                 return;
-            } else {
-                if (DEBUG) {
-                    LOGGER.debug("Data " + ld.getName() + " copy in " + sourceRes.getName()
-                            + " not evaluated now. Should have been evaluated before");
-                }
+            } else if (DEBUG) {
+                LOGGER.debug("Data " + ld.getName() + " copy in " + sourceRes.getName()
+                        + " not evaluated now. Should have been evaluated before");
             }
         }
 
@@ -525,7 +512,6 @@ public class COMPSsMaster extends COMPSsNode {
          * Otherwise the data is a file or an object that can be already in the master memory, in the master disk or
          * being transfered
          */
-
         // Check if data is in memory (no need to check if it is PSCO since previous case avoids it)
         if (ld.isInMemory()) {
             String targetPath = target.getURIInHost(Comm.getAppHost()).getPath();

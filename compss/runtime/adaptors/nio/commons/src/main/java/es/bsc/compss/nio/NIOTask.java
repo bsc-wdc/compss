@@ -16,9 +16,10 @@
  */
 package es.bsc.compss.nio;
 
+import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.types.execution.Invocation;
-import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
+import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.job.Job.JobHistory;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
@@ -36,20 +37,20 @@ import java.util.List;
  */
 public class NIOTask implements Externalizable, Invocation {
 
-    private String lang;
+    private Lang lang;
     private boolean workerDebug;
     private AbstractMethodImplementation impl;
-    private boolean hasTarget;
-    private boolean hasReturn;
-    private LinkedList<NIOParam> params;
+
+    private LinkedList<NIOParam> arguments;
+    private NIOParam target;
+    private LinkedList<NIOParam> results;
     private MethodResourceDescription reqs;
     private List<String> slaveWorkersNodeNames;
     private int taskId;
-    private int taskType;
+    private TaskType taskType;
     private int jobId;
-    private JobHistory hist;
+    private JobHistory history;
     private int transferGroupId;
-    private int numParams;
     private int numReturns;
 
     /**
@@ -66,7 +67,9 @@ public class NIOTask implements Externalizable, Invocation {
      * @param workerDebug
      * @param impl
      * @param hasTarget
+     * @param hasReturn
      * @param params
+     * @param numReturns
      * @param numParams
      * @param reqs
      * @param slaveWorkersNodeNames
@@ -78,23 +81,32 @@ public class NIOTask implements Externalizable, Invocation {
      */
     public NIOTask(String lang, boolean workerDebug, AbstractMethodImplementation impl, boolean hasTarget, boolean hasReturn,
             int numReturns, LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs, List<String> slaveWorkersNodeNames,
-            int taskId, int taskType, int jobId, JobHistory hist, int transferGroupId) {
-
-        this.lang = lang;
+            int taskId, TaskType taskType, int jobId, JobHistory hist, int transferGroupId) {
+        this.lang = Lang.valueOf(lang.toUpperCase());
         this.workerDebug = workerDebug;
         this.impl = impl;
-        this.hasTarget = hasTarget;
-        this.hasReturn = hasReturn;
-        this.numReturns = numReturns;
-        this.params = params;
+        this.arguments = new LinkedList<>();
+        this.results = new LinkedList<>();
+        int parIdx = params.size() - 1;
+        if (hasReturn) {
+            for (int rIdx = numReturns; rIdx > 0; rIdx--) {
+                results.addFirst(params.get(parIdx--));
+            }
+        }
+        if (hasTarget) {
+            target = params.get(parIdx--);
+        }
+        for (; parIdx >= 0; parIdx--) {
+            this.arguments.addFirst(params.get(parIdx));
+        }
         this.reqs = reqs;
         this.slaveWorkersNodeNames = slaveWorkersNodeNames;
         this.taskType = taskType;
         this.taskId = taskId;
         this.jobId = jobId;
-        this.hist = hist;
-        this.numParams = numParams;
+        this.history = hist;
         this.transferGroupId = transferGroupId;
+        this.numReturns = numReturns;
     }
 
     /**
@@ -102,7 +114,8 @@ public class NIOTask implements Externalizable, Invocation {
      *
      * @return
      */
-    public String getLang() {
+    @Override
+    public Lang getLang() {
         return this.lang;
     }
 
@@ -111,7 +124,8 @@ public class NIOTask implements Externalizable, Invocation {
      *
      * @return
      */
-    public boolean isWorkerDebug() {
+    @Override
+    public boolean isDebugEnabled() {
         return this.workerDebug;
     }
 
@@ -132,6 +146,21 @@ public class NIOTask implements Externalizable, Invocation {
     @Override
     public AbstractMethodImplementation getMethodImplementation() {
         return this.impl;
+    }
+
+    @Override
+    public List<NIOParam> getParams() {
+        return this.arguments;
+    }
+
+    @Override
+    public NIOParam getTarget() {
+        return this.target;
+    }
+
+    @Override
+    public List<NIOParam> getResults() {
+        return this.results;
     }
 
     /**
@@ -159,7 +188,7 @@ public class NIOTask implements Externalizable, Invocation {
      * @return
      */
     @Override
-    public int getTaskType() {
+    public TaskType getTaskType() {
         return this.taskType;
     }
 
@@ -168,6 +197,7 @@ public class NIOTask implements Externalizable, Invocation {
      *
      * @return
      */
+    @Override
     public int getJobId() {
         return this.jobId;
     }
@@ -177,8 +207,9 @@ public class NIOTask implements Externalizable, Invocation {
      *
      * @return
      */
-    public JobHistory getHist() {
-        return this.hist;
+    @Override
+    public JobHistory getHistory() {
+        return this.history;
     }
 
     /**
@@ -195,7 +226,8 @@ public class NIOTask implements Externalizable, Invocation {
      *
      * @return
      */
-    public MethodResourceDescription getResourceDescription() {
+    @Override
+    public MethodResourceDescription getRequirements() {
         return this.reqs;
     }
 
@@ -204,46 +236,46 @@ public class NIOTask implements Externalizable, Invocation {
      *
      * @return
      */
-    public List<String> getSlaveWorkersNodeNames() {
+    @Override
+    public List<String> getSlaveNodesNames() {
         return this.slaveWorkersNodeNames;
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        this.lang = (String) in.readObject();
+        this.lang = Lang.valueOf((String) in.readObject());
         this.workerDebug = in.readBoolean();
         this.impl = (AbstractMethodImplementation) in.readObject();
-        this.hasTarget = in.readBoolean();
-        this.hasReturn = in.readBoolean();
         this.numReturns = in.readInt();
-        this.params = (LinkedList<NIOParam>) in.readObject();
+        this.arguments = (LinkedList<NIOParam>) in.readObject();
+        this.target = (NIOParam) in.readObject();
+        this.results = (LinkedList<NIOParam>) in.readObject();
         this.reqs = (MethodResourceDescription) in.readObject();
         this.slaveWorkersNodeNames = (ArrayList<String>) in.readObject();
-        this.taskType = in.readInt();
+        this.taskType = TaskType.values()[in.readInt()];
         this.taskId = in.readInt();
         this.jobId = in.readInt();
-        this.hist = (JobHistory) in.readObject();
-        this.numParams = in.readInt();
+        this.history = (JobHistory) in.readObject();
+
         this.transferGroupId = in.readInt();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeObject(this.lang);
+        out.writeObject(this.lang.toString());
         out.writeBoolean(this.workerDebug);
         out.writeObject(this.impl);
-        out.writeBoolean(this.hasTarget);
-        out.writeBoolean(this.hasReturn);
         out.writeInt(this.numReturns);
-        out.writeObject(this.params);
+        out.writeObject(this.arguments);
+        out.writeObject(this.target);
+        out.writeObject(this.results);
         out.writeObject(this.reqs);
         out.writeObject(this.slaveWorkersNodeNames);
-        out.writeInt(this.taskType);
+        out.writeInt(this.taskType.ordinal());
         out.writeInt(this.taskId);
         out.writeInt(this.jobId);
-        out.writeObject(this.hist);
-        out.writeInt(this.numParams);
+        out.writeObject(this.history);
         out.writeInt(this.transferGroupId);
     }
 
@@ -254,10 +286,16 @@ public class NIOTask implements Externalizable, Invocation {
         sb.append("[TASK TYPE= ").append(this.taskType).append("]");
         sb.append("[TASK ID= ").append(this.taskId).append("]");
         sb.append("[JOB ID= ").append(this.jobId).append("]");
-        sb.append("[HISTORY= ").append(this.hist).append("]");
+        sb.append("[HISTORY= ").append(this.history).append("]");
         sb.append("[IMPLEMENTATION= ").append(this.impl.getMethodDefinition()).append("]");
         sb.append(" [PARAMS ");
-        for (NIOParam param : this.params) {
+        for (NIOParam param : this.arguments) {
+            sb.append(param);
+        }
+        if (target != null) {
+            sb.append(target);
+        }
+        for (NIOParam param : this.results) {
             sb.append(param);
         }
         sb.append("]");
@@ -272,21 +310,6 @@ public class NIOTask implements Externalizable, Invocation {
 
         sb.append("]");
         return sb.toString();
-    }
-
-    @Override
-    public List<InvocationParam> getParams() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public <T extends InvocationParam> T getTarget() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public <T extends InvocationParam> T getReturn() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }

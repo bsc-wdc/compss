@@ -16,28 +16,49 @@
  */
 package es.bsc.compss.types.execution;
 
+import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.COMPSsConstants.TaskExecution;
 import java.io.PrintStream;
-import storage.StorageException;
 
 
 public interface InvocationContext {
 
+    //WORKER CONFIGURATION
     public String getHostName();
+
+    public long getTracingHostID();
 
     public String getAppDir();
 
     public String getInstallDir();
 
+    public String getLibPath();
+
+    public String getWorkingDir();
+
+    //EXECUTION CONFIGURATION
+    public TaskExecution getExecutionType();
+
+    public boolean isPersistentEnabled();
+
+    public LanguageParams getLanguageParams(Lang language);
+
+    //EXECUTION MANAGEMENT
+    public void registerOutputs(String outputsBasename);
+
+    public void unregisterOutputs();
+
+    public String getStandardStreamsPath(Invocation invocation);
+
     public PrintStream getThreadOutStream();
 
     public PrintStream getThreadErrStream();
 
-    public Object getObject(String rename);
+    //DATA MANAGEMENT
+    public String getStorageConf();
 
-    public Object getPersistentObject(String id) throws StorageException;
+    public void loadParam(InvocationParam np) throws Exception;
 
-    public void storeObject(String renaming, Object value);
-
-    public void storePersistentObject(String id, Object obj);
+    public void storeParam(InvocationParam np);
 
 }

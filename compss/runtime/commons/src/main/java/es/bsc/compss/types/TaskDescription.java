@@ -47,10 +47,9 @@ public class TaskDescription implements Serializable {
     private final boolean hasReturn;
     private final int numReturns;
 
-
     /**
      * Task description creation for METHODS
-     * 
+     *
      * @param signature
      * @param isPrioritary
      * @param numNodes
@@ -58,6 +57,7 @@ public class TaskDescription implements Serializable {
      * @param isDistributed
      * @param hasTarget
      * @param hasReturn
+     * @param numReturns
      * @param parameters
      */
     public TaskDescription(String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
@@ -84,13 +84,15 @@ public class TaskDescription implements Serializable {
 
     /**
      * Task description creation for SERVICES
-     * 
+     *
      * @param namespace
      * @param service
      * @param port
      * @param operation
      * @param isPrioritary
      * @param hasTarget
+     * @param hasReturn
+     * @param numReturns
      * @param parameters
      */
     public TaskDescription(String namespace, String service, String port, String operation, boolean isPrioritary, boolean hasTarget,
@@ -114,7 +116,7 @@ public class TaskDescription implements Serializable {
 
     /**
      * Returns the id of the task
-     * 
+     *
      * @return
      */
     public Integer getId() {
@@ -123,7 +125,7 @@ public class TaskDescription implements Serializable {
 
     /**
      * Returns the method name
-     * 
+     *
      * @return
      */
     public String getName() {
@@ -139,7 +141,7 @@ public class TaskDescription implements Serializable {
 
     /**
      * Returns whether the task has the priority flag enabled or not
-     * 
+     *
      * @return
      */
     public boolean hasPriority() {
@@ -148,7 +150,7 @@ public class TaskDescription implements Serializable {
 
     /**
      * Returns the number of required nodes to execute the task
-     * 
+     *
      * @return
      */
     public int getNumNodes() {
@@ -157,7 +159,7 @@ public class TaskDescription implements Serializable {
 
     /**
      * Returns if the task can be executed in a single task or not
-     * 
+     *
      * @return
      */
     public boolean isSingleNode() {
@@ -166,7 +168,7 @@ public class TaskDescription implements Serializable {
 
     /**
      * Returns whether the replication flag is enabled or not
-     * 
+     *
      * @return
      */
     public boolean isReplicated() {
@@ -175,7 +177,7 @@ public class TaskDescription implements Serializable {
 
     /**
      * Returns whether the distributed flag is enabled or not
-     * 
+     *
      * @return
      */
     public boolean isDistributed() {
@@ -184,7 +186,7 @@ public class TaskDescription implements Serializable {
 
     /**
      * Returns the task parameters
-     * 
+     *
      * @return
      */
     public Parameter[] getParameters() {
@@ -193,7 +195,7 @@ public class TaskDescription implements Serializable {
 
     /**
      * Returns whether the task has a target object or not
-     * 
+     *
      * @return
      */
     public boolean hasTargetObject() {
@@ -202,7 +204,7 @@ public class TaskDescription implements Serializable {
 
     /**
      * Returns whether the task has return value or not
-     * 
+     *
      * @return
      */
     public boolean hasReturnValue() {
@@ -211,7 +213,7 @@ public class TaskDescription implements Serializable {
 
     /**
      * Returns the number of return values of the task
-     * 
+     *
      * @return
      */
     public int getNumReturns() {
@@ -220,7 +222,7 @@ public class TaskDescription implements Serializable {
 
     /**
      * Returns the task type
-     * 
+     *
      * @return
      */
     public TaskType getType() {

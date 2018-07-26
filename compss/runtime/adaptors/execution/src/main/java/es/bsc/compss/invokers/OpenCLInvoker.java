@@ -16,20 +16,21 @@
  */
 package es.bsc.compss.invokers;
 
-import java.io.File;
-
-import es.bsc.compss.exceptions.JobExecutionException;
+import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
+import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.implementations.OpenCLImplementation;
+
+import java.io.File;
 
 
 public class OpenCLInvoker extends Invoker {
 
     private final String kernel;
 
-    public OpenCLInvoker(InvocationContext context, Invocation invocation, boolean debug, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
-        super(context, invocation, debug, taskSandboxWorkingDir, assignedCoreUnits);
+    public OpenCLInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources) throws JobExecutionException {
+        super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
         // Get method definition properties
         OpenCLImplementation openclImpl = null;
@@ -42,7 +43,7 @@ public class OpenCLInvoker extends Invoker {
     }
 
     @Override
-    public Object invokeMethod() throws JobExecutionException {
+    public void invokeMethod() throws JobExecutionException {
         // TODO: Handle OpenCL invoke
         throw new JobExecutionException("Unsupported Method Type OPENCL with kernel" + this.kernel);
     }

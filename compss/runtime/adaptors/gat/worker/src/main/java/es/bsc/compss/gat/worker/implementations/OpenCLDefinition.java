@@ -16,7 +16,8 @@
  */
 package es.bsc.compss.gat.worker.implementations;
 
-import es.bsc.compss.exceptions.JobExecutionException;
+import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.gat.worker.ImplementationDefinition;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.OpenCLInvoker;
@@ -31,8 +32,8 @@ public class OpenCLDefinition extends ImplementationDefinition {
 
     private final String kernel;
 
-    public OpenCLDefinition(String[] args, int execArgsIdx) {
-        super(args, execArgsIdx + 1);
+    public OpenCLDefinition(boolean debug, String[] args, int execArgsIdx) {
+        super(debug, args, execArgsIdx + 1);
         this.kernel = args[execArgsIdx];
     }
 
@@ -44,6 +45,11 @@ public class OpenCLDefinition extends ImplementationDefinition {
     @Override
     public MethodType getType() {
         return MethodType.OPENCL;
+    }
+
+    @Override
+    public Lang getLang() {
+        return null;
     }
 
     @Override
@@ -59,7 +65,7 @@ public class OpenCLDefinition extends ImplementationDefinition {
     }
 
     @Override
-    public Invoker getInvoker(InvocationContext context, boolean debug, File sandBoxDir) throws JobExecutionException {
-        return new OpenCLInvoker(context, this, debug, sandBoxDir, null);
+    public Invoker getInvoker(InvocationContext context, File sandBoxDir) throws JobExecutionException {
+        return new OpenCLInvoker(context, this, sandBoxDir, null);
     }
 }

@@ -27,7 +27,7 @@ import es.bsc.comm.Connection;
 
 public class CommandDataDemand extends Command implements Externalizable {
 
-    private Data d;
+    private NIOData d;
     private int id;
 
 
@@ -35,7 +35,7 @@ public class CommandDataDemand extends Command implements Externalizable {
         super();
     }
 
-    public CommandDataDemand(NIOAgent ng, Data d, int receiverID) {
+    public CommandDataDemand(NIOAgent ng, NIOData d, int receiverID) {
         super(ng);
         this.d = d;
         this.id = receiverID;
@@ -60,7 +60,7 @@ public class CommandDataDemand extends Command implements Externalizable {
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        d = (Data) in.readObject();
+        d = (NIOData) in.readObject();
         id = in.readInt();
     }
 

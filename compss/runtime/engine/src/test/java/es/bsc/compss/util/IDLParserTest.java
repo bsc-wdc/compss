@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.resources.components.Processor;
+import es.bsc.compss.types.resources.components.Processor.ProcessorType;
 import es.bsc.compss.util.parsers.IDLParser;
 
 import java.util.List;
@@ -106,13 +107,13 @@ public class IDLParserTest {
         Processor p1 = impl.getRequirements().getProcessors().get(0);
         Processor p2 = impl.getRequirements().getProcessors().get(1);
         LOGGER.debug("[IDL-Loader]: Checking Processor 1 parameters (4)");
-        assertEquals(p1.getType(), "CPU");
+        assertEquals(p1.getType(), ProcessorType.CPU);
         assertEquals(p1.getComputingUnits(), 2);
         assertEquals(p1.getArchitecture(), "x86_64");
         assertEquals(p1.getInternalMemory(), 0.6f, 0);
 
         LOGGER.debug("[IDL-Loader]: Checking Processor 2 parameters (4)");
-        assertEquals(p2.getType(), "GPU");
+        assertEquals(p2.getType(), ProcessorType.GPU);
         assertEquals(p2.getComputingUnits(), 256);
         assertEquals(p2.getArchitecture(), "k40");
         assertEquals(p2.getInternalMemory(), 0.024f, 0);
@@ -127,7 +128,7 @@ public class IDLParserTest {
         assertEquals(impl.getRequirements().getProcessors().size(), 1);
         p = impl.getRequirements().getProcessors().get(0);
         LOGGER.debug("[IDL-Loader]: Checking Processor parameters (2)");
-        assertEquals(p.getType(), "CPU");
+        assertEquals(p.getType(), ProcessorType.CPU);
         assertEquals(p.getComputingUnits(), 2);
 
         LOGGER.debug("[IDL-Loader]: *** Checking Core Element 6");
@@ -140,7 +141,7 @@ public class IDLParserTest {
         LOGGER.debug("[IDL-Loader]: Checking Number of first implementation processors (1)");
         assertEquals(impl.getRequirements().getProcessors().size(), 1);
         p = impl.getRequirements().getProcessors().get(0);
-        assertEquals(p.getType(), "CPU");
+        assertEquals(p.getType(), ProcessorType.CPU);
         assertEquals(p.getComputingUnits(), 4);
 
         impl = (MethodImplementation) implList.get(1);
@@ -149,10 +150,10 @@ public class IDLParserTest {
         p1 = impl.getRequirements().getProcessors().get(0);
         p2 = impl.getRequirements().getProcessors().get(1);
         LOGGER.debug("[IDL-Loader]: Checking Processor 1 parameters (4)");
-        assertEquals(p1.getType(), "CPU");
+        assertEquals(p1.getType(), ProcessorType.CPU);
         assertEquals(p1.getComputingUnits(), 2);
         LOGGER.debug("[IDL-Loader]: Checking Processor 2 parameters (4)");
-        assertEquals(p2.getType(), "CPU");
+        assertEquals(p2.getType(), ProcessorType.CPU);
         assertEquals(p2.getComputingUnits(), 2);
 
         impl = (MethodImplementation) implList.get(2);
@@ -161,10 +162,10 @@ public class IDLParserTest {
         p1 = impl.getRequirements().getProcessors().get(0);
         p2 = impl.getRequirements().getProcessors().get(1);
         LOGGER.debug("[IDL-Loader]: Checking Processor 1 parameters (4)");
-        assertEquals(p1.getType(), "CPU");
+        assertEquals(p1.getType(), ProcessorType.CPU);
         assertEquals(p1.getComputingUnits(), 1);
         LOGGER.debug("[IDL-Loader]: Checking Processor 2 parameters (4)");
-        assertEquals(p2.getType(), "GPU");
+        assertEquals(p2.getType(), ProcessorType.GPU);
         assertEquals(p2.getComputingUnits(), 1);
     }
 

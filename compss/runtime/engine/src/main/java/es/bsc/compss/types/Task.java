@@ -49,7 +49,6 @@ public class Task implements Comparable<Task> {
         FAILED // Task has failed
     }
 
-
     // Task fields
     private final long appId;
     private final int taskId;
@@ -70,17 +69,17 @@ public class Task implements Comparable<Task> {
     // Execution count information
     private int executionCount;
 
-
     /**
      * Creates a new METHOD task with the given parameters
      *
      * @param appId
-     * @param methodClass
-     * @param methodName
+     * @param signature
      * @param isPrioritary
      * @param numNodes
      * @param isReplicated
      * @param isDistributed
+     * @param numReturns
+     * @param hasReturn
      * @param hasTarget
      * @param parameters
      */
@@ -107,6 +106,8 @@ public class Task implements Comparable<Task> {
      * @param operation
      * @param isPrioritary
      * @param hasTarget
+     * @param hasReturn
+     * @param numReturns
      * @param parameters
      */
     public Task(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary, boolean hasTarget,

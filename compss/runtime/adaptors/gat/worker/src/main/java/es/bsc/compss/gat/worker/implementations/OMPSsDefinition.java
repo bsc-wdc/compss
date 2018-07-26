@@ -16,12 +16,11 @@
  */
 package es.bsc.compss.gat.worker.implementations;
 
-import es.bsc.compss.exceptions.JobExecutionException;
+import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.gat.worker.ImplementationDefinition;
 import es.bsc.compss.invokers.Invoker;
-import es.bsc.compss.invokers.OmpSsInvoker;
-import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.execution.Invocation;
+import es.bsc.compss.invokers.binary.OmpSsInvoker;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
@@ -41,8 +40,8 @@ public class OMPSsDefinition extends ImplementationDefinition {
     private final String hostnames;
     private final int cus;
 
-    public OMPSsDefinition(String[] args, int execArgsIdx) {
-        super(args, execArgsIdx + 1);
+    public OMPSsDefinition(boolean debug, String[] args, int execArgsIdx) {
+        super(debug, args, execArgsIdx + 1);
         this.binary = args[execArgsIdx++];
 
         int numNodesTmp = Integer.parseInt(args[execArgsIdx++]);
@@ -94,6 +93,11 @@ public class OMPSsDefinition extends ImplementationDefinition {
     }
 
     @Override
+    public Lang getLang() {
+        return null;
+    }
+
+    @Override
     public String toCommandString() {
         return binary;
     }
@@ -106,35 +110,7 @@ public class OMPSsDefinition extends ImplementationDefinition {
     }
 
     @Override
-    public Invoker getInvoker(InvocationContext context, boolean debug, File sandBoxDir) throws JobExecutionException {
-        return new ExtendedInvoker(context, this, debug, sandBoxDir, null);
-    }
-
-
-    private class ExtendedInvoker extends OmpSsInvoker {
-
-        final boolean debug;
-
-        public ExtendedInvoker(InvocationContext context, Invocation invocation, boolean debug, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
-            super(context, invocation, debug, taskSandboxWorkingDir, assignedCoreUnits);
-            this.debug = debug;
-        }
-
-        @Override
-        public Object invokeMethod() throws JobExecutionException {
-            setEnvironmentVariables();
-            return super.invokeMethod();
-        }
-
-        private void setEnvironmentVariables() {
-            if (debug) {
-                System.out.println("  * HOSTNAMES: " + OMPSsDefinition.this.hostnames);
-                System.out.println("  * NUM_NODES: " + OMPSsDefinition.this.numNodes);
-                System.out.println("  * CPU_COMPUTING_UNITS: " + OMPSsDefinition.this.cus);
-            }
-            System.setProperty(Constants.COMPSS_HOSTNAMES, OMPSsDefinition.this.hostnames);
-            System.setProperty(Constants.COMPSS_NUM_NODES, String.valueOf(OMPSsDefinition.this.numNodes));
-            System.setProperty(Constants.COMPSS_NUM_THREADS, String.valueOf(OMPSsDefinition.this.cus));
-        }
+    public Invoker getInvoker(InvocationContext context, File sandBoxDir) throws JobExecutionException {
+        return new OmpSsInvoker(context, this, sandBoxDir, null);
     }
 }

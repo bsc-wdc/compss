@@ -16,7 +16,8 @@
  */
 package es.bsc.compss.invokers;
 
-import es.bsc.compss.exceptions.JobExecutionException;
+import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
+import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.annotations.Constants;
@@ -30,20 +31,19 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.util.Iterator;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import storage.StorageException;
 import storage.StubItf;
 
 
 public abstract class Invoker {
 
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_INVOKER);
-
-    private static final String ERROR_SERIALIZED_OBJ = "ERROR: Cannot obtain object";
-    private static final String ERROR_PERSISTENT_OBJ = "ERROR: Cannot getById persistent object";
 
     protected static final String ERROR_METHOD_DEFINITION = "Incorrect method definition for task of type ";
     protected static final String ERROR_TASK_EXECUTION = "ERROR: Exception executing task (user code)";
@@ -56,23 +56,19 @@ public abstract class Invoker {
     protected final InvocationContext context;
     protected final Invocation invocation;
     protected final File taskSandboxWorkingDir;
-    protected final int[] assignedCoreUnits;
-    private final boolean debug;
+    protected final InvocationResources assignedResources;
 
     public Invoker(
             InvocationContext context,
             Invocation invocation,
-            boolean debug,
             File taskSandboxWorkingDir,
-            int[] assignedCoreUnits
+            InvocationResources assignedResources
     ) throws JobExecutionException {
 
         this.context = context;
         this.invocation = invocation;
         this.taskSandboxWorkingDir = taskSandboxWorkingDir;
-        this.assignedCoreUnits = assignedCoreUnits;
-
-        this.debug = debug;
+        this.assignedResources = assignedResources;
 
         /* Invocation information **************************************** */
         AbstractMethodImplementation impl = invocation.getMethodImplementation();
@@ -94,132 +90,107 @@ public abstract class Invoker {
             }
             paramIdx++;
         }
-        processParameter(invocation.getTarget());
+        if (invocation.getTarget() != null) {
+            processParameter(invocation.getTarget());
+        }
 
         /* DEBUG information *************************************** */
-        if (this.debug) {
+        if (invocation.isDebugEnabled()) {
             // Print request information
-            System.out.println("WORKER - Parameters of execution:");
-            System.out.println("  * Method type: " + impl.getMethodType());
-            System.out.println("  * Method definition: " + impl.getMethodDefinition());
-            System.out.print("  * Parameter types:");
+            PrintStream out = context.getThreadOutStream();
+            out.println("WORKER - Parameters of execution:");
+            out.println("  * Method type: " + impl.getMethodType());
+            out.println("  * Method definition: " + impl.getMethodDefinition());
+            out.print("  * Parameter types:");
             for (InvocationParam p : invocation.getParams()) {
-                System.out.print(" " + p.getValueClass().getName());
+                out.print(" " + p.getValueClass().getName());
             }
-            System.out.println("");
+            out.println("");
 
-            System.out.print("  * Parameter values:");
+            out.print("  * Parameter values:");
             for (InvocationParam p : invocation.getParams()) {
-                System.out.print(" " + p.getValue());
+                out.print(" " + p.getValue());
             }
-            System.out.println("");
+            out.println("");
 
-            System.out.print("  * Parameter streams:");
+            out.print("  * Parameter streams:");
             for (InvocationParam p : invocation.getParams()) {
-                System.out.print(" " + p.getStream());
+                out.print(" " + p.getStream());
             }
             if (invocation.getTarget() != null) {
-                System.out.print(" " + invocation.getTarget().getStream());
+                out.print(" " + invocation.getTarget().getStream());
             }
-            System.out.println("");
+            out.println("");
 
-            System.out.print("  * Parameter prefixes:");
+            out.print("  * Parameter prefixes:");
             for (InvocationParam p : invocation.getParams()) {
-                System.out.print(" " + p.getPrefix());
+                out.print(" " + p.getPrefix());
             }
             if (invocation.getTarget() != null) {
-                System.out.print(" " + invocation.getTarget().getPrefix());
+                out.print(" " + invocation.getTarget().getPrefix());
             }
-            System.out.println("");
+            out.println("");
 
-            System.out.println("  * Has Target: " + (invocation.getTarget() != null));
-            System.out.println("  * Has Return: " + invocation.getReturn() != null);
+            out.println("  * Has Target: " + (invocation.getTarget() != null));
+            out.println("  * Has Return: " + invocation.getResults() != null);
         }
     }
 
     private void processParameter(InvocationParam np) throws JobExecutionException {
         // We need to use wrapper classes for basic types, reflection will unwrap automatically
-
-        switch (np.getType()) {
-            case BOOLEAN_T:
-                np.setValueClass(boolean.class);
-                break;
-            case CHAR_T:
-                np.setValueClass(char.class);
-                break;
-            case BYTE_T:
-                np.setValueClass(byte.class);
-                break;
-            case SHORT_T:
-                np.setValueClass(short.class);
-                break;
-            case INT_T:
-                np.setValueClass(int.class);
-                break;
-            case LONG_T:
-                np.setValueClass(long.class);
-                break;
-            case FLOAT_T:
-                np.setValueClass(float.class);
-                break;
-            case DOUBLE_T:
-                np.setValueClass(double.class);
-                break;
-            case STRING_T:
-                np.setValueClass(String.class);
-                break;
-            case FILE_T:
-                np.setValueClass(String.class);
-                break;
-            case OBJECT_T:
-                // Get object
-                Object obj = this.context.getObject(np.getDataMgmtId());
-                // Check if object is null
-                if (obj == null) {
-                    // Try if renaming refers to a PSCOId that is not catched
-                    // This happens when 2 tasks have an INOUT PSCO that is persisted within the 1st task
-                    try {
-                        obj = this.context.getPersistentObject(np.getDataMgmtId());
-                    } catch (StorageException se) {
-                        throw new JobExecutionException(ERROR_SERIALIZED_OBJ, se);
+        try {
+            context.loadParam(np);
+            Object obj = np.getValue();
+            switch (np.getType()) {
+                case BOOLEAN_T:
+                    np.setValueClass(boolean.class);
+                    break;
+                case CHAR_T:
+                    np.setValueClass(char.class);
+                    break;
+                case BYTE_T:
+                    np.setValueClass(byte.class);
+                    break;
+                case SHORT_T:
+                    np.setValueClass(short.class);
+                    break;
+                case INT_T:
+                    np.setValueClass(int.class);
+                    break;
+                case LONG_T:
+                    np.setValueClass(long.class);
+                    break;
+                case FLOAT_T:
+                    np.setValueClass(float.class);
+                    break;
+                case DOUBLE_T:
+                    np.setValueClass(double.class);
+                    break;
+                case STRING_T:
+                case FILE_T:
+                case BINDING_OBJECT_T:
+                case EXTERNAL_PSCO_T:
+                    np.setValueClass(String.class);
+                    break;
+                case OBJECT_T:
+                case PSCO_T:
+                    // Get object
+                    if (obj != null) {
+                        np.setValueClass(obj.getClass());
                     }
-                }
-
-                np.setValue(obj);
-                if (obj != null) {
-                    np.setValueClass(obj.getClass());
-                }
-                break;
-            case PSCO_T:
-                // Get Object
-                try {
-                    obj = this.context.getPersistentObject(np.getDataMgmtId());
-                } catch (StorageException e) {
-                    throw new JobExecutionException(ERROR_PERSISTENT_OBJ + " with id " + np.getDataMgmtId(), e);
-                }
-
-                np.setValue(obj);
-                if (obj != null) {
-                    np.setValueClass(obj.getClass());
-                }
-                break;
-            case BINDING_OBJECT_T:
-            case EXTERNAL_PSCO_T:
-                np.setValueClass(String.class);
                 break;
             default:
                 throw new JobExecutionException(ERROR_UNKNOWN_TYPE + np.getType());
+            }
+        } catch (Exception e) {
+            throw new JobExecutionException(e.getMessage(), e);
         }
     }
 
     public void processTask() throws JobExecutionException {
         /* Invoke the requested method ****************************** */
-        Object retValue = invoke();
-        if (retValue != null) {
-            InvocationParam returnParam = invocation.getReturn();
-            returnParam.setValue(retValue);
-            returnParam.setValueClass(retValue.getClass());
-        }
+        invoke();
+
         /* Check SCO persistence for return and target ************** */
         storeFinalValues();
     }
@@ -227,7 +198,7 @@ public abstract class Invoker {
     public void serializeBinaryExitValue() throws JobExecutionException {
         LOGGER.debug("Checking binary exit value serialization");
 
-        InvocationParam returnParam = invocation.getReturn();
+        InvocationParam returnParam = invocation.getResults().get(0);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("- Param Type: " + returnParam.getType().name());
             LOGGER.debug("- Preserve source data: " + returnParam.isPreserveSourceData());
@@ -241,10 +212,10 @@ public abstract class Invoker {
 
             // Write exit value to the file
             String renaming = returnParam.getOriginalName();
-            LOGGER.info("Writing Binary Exit Value (" + this.invocation.getReturn().getValue().toString() + ") to " + renaming);
+            LOGGER.info("Writing Binary Exit Value (" + returnParam.getValue().toString() + ") to " + renaming);
 
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(renaming))) {
-                String value = "I" + this.invocation.getReturn().getValue().toString() + "\n.\n";
+                String value = "0000I" + returnParam.getValue().toString() + "\n.\n";
                 writer.write(value);
                 writer.flush();
             } catch (IOException ioe) {
@@ -261,9 +232,11 @@ public abstract class Invoker {
         }
         if (this.invocation.getTarget() != null) {
             checkSCOPersistence(this.invocation.getTarget());
+            storeValue(this.invocation.getTarget());
         }
-        if (this.invocation.getReturn() != null) {
-            checkSCOPersistence(this.invocation.getReturn());
+        for (InvocationParam np : this.invocation.getResults()) {
+            checkSCOPersistence(np);
+            storeValue(np);
         }
     }
 
@@ -285,8 +258,6 @@ public abstract class Invoker {
             // Update to PSCO if needed
             if (id != null) {
                 // Object has been persisted, we store the PSCO and change the value to its ID
-                this.context.storePersistentObject(id, obj);
-                np.setValue(id);
                 np.setType(DataType.PSCO_T);
             }
         }
@@ -294,17 +265,15 @@ public abstract class Invoker {
 
     private void storeValue(InvocationParam np) {
         if (np.isWriteFinalValue()) {
-            if (np.getType() != DataType.PSCO_T) {
-                //Has already been stored
-                this.context.storeObject(np.getDataMgmtId(), np.getValue());
-            }
+            //Has already been stored
+            this.context.storeParam(np);
         }
     }
 
-    private Object invoke() throws JobExecutionException {
+    private void invoke() throws JobExecutionException {
         emitStartTask();
         try {
-            return invokeMethod();
+            invokeMethod();
         } catch (JobExecutionException jee) {
             throw jee;
         } finally {
@@ -313,12 +282,12 @@ public abstract class Invoker {
     }
 
     private void emitStartTask() {
-        int taskType = this.invocation.getTaskType() + 1; // +1 Because Invocation ID can't be 0 (0 signals end task)
+        int coreId = this.invocation.getMethodImplementation().getCoreId() + 1; // +1 Because Invocation ID can't be 0 (0 signals end task)
         int taskId = this.invocation.getTaskId();
 
         // TRACING: Emit start task
         if (Tracer.isActivated()) {
-            Tracer.emitEventAndCounters(taskType, Tracer.getTaskEventsType());
+            Tracer.emitEventAndCounters(coreId, Tracer.getTaskEventsType());
             Tracer.emitEvent(taskId, Tracer.getTaskSchedulingType());
         }
     }
@@ -331,6 +300,6 @@ public abstract class Invoker {
         }
     }
 
-    public abstract Object invokeMethod() throws JobExecutionException;
+    protected abstract void invokeMethod() throws JobExecutionException;
 
 }

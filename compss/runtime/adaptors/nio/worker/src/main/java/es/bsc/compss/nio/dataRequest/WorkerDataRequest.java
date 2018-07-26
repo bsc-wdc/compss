@@ -16,18 +16,18 @@
  */
 package es.bsc.compss.nio.dataRequest;
 
+import es.bsc.compss.data.DataManager;
 import es.bsc.compss.types.annotations.parameter.DataType;
 
 import es.bsc.compss.nio.NIOTask;
-import es.bsc.compss.nio.commands.Data;
+import es.bsc.compss.nio.commands.NIOData;
 
 
 public class WorkerDataRequest extends DataRequest {
 
     private final TransferringTask task;
 
-
-    public WorkerDataRequest(TransferringTask task, DataType type, Data source, String target) {
+    public WorkerDataRequest(TransferringTask task, DataType type, NIOData source, String target) {
         super(type, source, target);
         this.task = task;
     }
@@ -37,16 +37,18 @@ public class WorkerDataRequest extends DataRequest {
     }
 
 
-    public static class TransferringTask {
+    public static class TransferringTask implements DataManager.LoadDataListener {
 
         private final NIOTask task;
         private int params;
         private boolean error;
 
-
         public TransferringTask(NIOTask task) {
             this.task = task;
             params = task.getParams().size();
+            if (task.getTarget() != null) {
+                params++;
+            }
         }
 
         public NIOTask getTask() {
@@ -61,7 +63,8 @@ public class WorkerDataRequest extends DataRequest {
             return this.error;
         }
 
-        public void decreaseParams() {
+        @Override
+        public void loadedValue() {
             --this.params;
         }
 

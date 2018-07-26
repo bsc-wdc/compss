@@ -18,31 +18,36 @@ package es.bsc.compss.types.resources.components;
 
 import java.io.Serializable;
 
-import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
 
 public class Processor implements Serializable {
 
+    public static enum ProcessorType {
+        CPU,
+        GPU,
+        FPGA,
+        OTHER
+    }
     /**
      * Runtime Objects have serialization ID 1L
      */
     private static final long serialVersionUID = 1L;
-    
+
     private String name = MethodResourceDescription.UNASSIGNED_STR;
     private int computingUnits = MethodResourceDescription.ZERO_INT;
     private float speed = MethodResourceDescription.UNASSIGNED_FLOAT;
     private String architecture = MethodResourceDescription.UNASSIGNED_STR;
-    private String type = Constants.CPU_TYPE;
+    private ProcessorType type = ProcessorType.CPU;
     private float internalMemory = MethodResourceDescription.UNASSIGNED_FLOAT;
-	private String propName = MethodResourceDescription.UNASSIGNED_STR;
+    private String propName = MethodResourceDescription.UNASSIGNED_STR;
     private String propValue = MethodResourceDescription.UNASSIGNED_STR;
-    
+
     //This flag is to know if a processor has been created by default and not updated
     private boolean modified = false;
 
     public Processor() {
-    	
+
     }
 
     public Processor(String name) {
@@ -65,6 +70,16 @@ public class Processor implements Serializable {
         this.setComputingUnits(cu);
         this.setSpeed(speed);
         this.setArchitecture(arch);
+    }
+    public Processor(String name, int cu, float speed, String arch, ProcessorType type, float internalMem, String propName, String propValue) {
+        this.setName(name);
+        this.setComputingUnits(cu);
+        this.setSpeed(speed);
+        this.setArchitecture(arch);
+        this.setType(type);
+        this.setInternalMemory(internalMem);
+        this.setPropName(propName);
+        this.setPropValue(propValue);
     }
 
     public Processor(String name, int cu, float speed, String arch, String type, float internalMem, String propName, String propValue) {
@@ -104,7 +119,7 @@ public class Processor implements Serializable {
 
     public void setName(String name) {
         modified = true;
-    	this.name = name;
+        this.name = name;
     }
 
     public int getComputingUnits() {
@@ -112,8 +127,8 @@ public class Processor implements Serializable {
     }
 
     public void setComputingUnits(int computingUnits) {
-    	modified = true;
-    	this.computingUnits = computingUnits;
+        modified = true;
+        this.computingUnits = computingUnits;
     }
 
     public void addComputingUnits(int cu) {
@@ -121,8 +136,8 @@ public class Processor implements Serializable {
     }
 
     public void removeComputingUnits(int cu) {
-    	modified = true;
-    	this.computingUnits = this.computingUnits - cu;
+        modified = true;
+        this.computingUnits = this.computingUnits - cu;
     }
 
     public void multiply(int amount) {
@@ -134,8 +149,8 @@ public class Processor implements Serializable {
     }
 
     public void setSpeed(float speed) {
-    	modified = true;
-    	this.speed = speed;
+        modified = true;
+        this.speed = speed;
     }
 
     public String getArchitecture() {
@@ -143,47 +158,55 @@ public class Processor implements Serializable {
     }
 
     public void setArchitecture(String architecture) {
-    	modified = true;
-    	this.architecture = architecture;
+        modified = true;
+        this.architecture = architecture;
     }
-    
+
     /**
-	 * @return the type
-	 */
-	public String getType() {
-		return type;
-	}
+     * @return the type
+     */
+    public ProcessorType getType() {
+        return type;
+    }
 
-	/**
-	 * @param type the type to set
-	 */
-	public void setType(String type) {
-		modified = true;
-		this.type = type;
-	}
+    /**
+     * @param type the type to set
+     */
+    public void setType(String type) {
+        modified = true;
+        this.type = ProcessorType.valueOf(type.toUpperCase());
+    }
 
-	/**
-	 * @return the internalMemory
-	 */
-	public float getInternalMemory() {
-		return internalMemory;
-	}
+    /**
+     * @param type the type to set
+     */
+    public void setType(ProcessorType type) {
+        modified = true;
+        this.type = type;
+    }
 
-	/**
-	 * @param internalMemory the internalMemory to set
-	 */
-	public void setInternalMemory(float internalMemory) {
-		modified = true;
-		this.internalMemory = internalMemory;
-	}
+    /**
+     * @return the internalMemory
+     */
+    public float getInternalMemory() {
+        return internalMemory;
+    }
+
+    /**
+     * @param internalMemory the internalMemory to set
+     */
+    public void setInternalMemory(float internalMemory) {
+        modified = true;
+        this.internalMemory = internalMemory;
+    }
 
     public String getPropName() {
         return propName;
     }
 
     public void setPropName(String propName) {
-    	modified = true;
-    	this.propName = propName;
+        modified = true;
+        this.propName = propName;
     }
 
     public String getPropValue() {
@@ -194,11 +217,11 @@ public class Processor implements Serializable {
         this.propValue = propValue;
     }
 
-	public boolean isCPU() {
-		return type.equals(Constants.CPU_TYPE);
-	}
-	
-	public boolean isModified() {
-		return modified;
-	}
+    public boolean isCPU() {
+        return type.equals(ProcessorType.CPU);
+    }
+
+    public boolean isModified() {
+        return modified;
+    }
 }

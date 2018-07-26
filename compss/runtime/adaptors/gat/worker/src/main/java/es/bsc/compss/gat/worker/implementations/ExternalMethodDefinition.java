@@ -16,22 +16,22 @@
  */
 package es.bsc.compss.gat.worker.implementations;
 
-import es.bsc.compss.exceptions.JobExecutionException;
+import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.StorageInvoker;
 import es.bsc.compss.types.execution.InvocationContext;
 import java.io.File;
 
 
-public class ExternalMethodDefinition extends MethodDefinition {
+public class ExternalMethodDefinition extends JavaMethodDefinition {
 
-    public ExternalMethodDefinition(String[] args, int execArgsIdx) {
-        super(args, execArgsIdx);
+    public ExternalMethodDefinition(boolean debug, String[] args, int execArgsIdx) {
+        super(debug, args, execArgsIdx);
     }
 
     @Override
-    public Invoker getInvoker(InvocationContext context, boolean debug, File sandBoxDir) throws JobExecutionException {
-        return new StorageInvoker(context, this, debug, sandBoxDir, null);
+    public Invoker getInvoker(InvocationContext context, File sandBoxDir) throws JobExecutionException {
+        return new StorageInvoker(context, this, sandBoxDir, null);
     }
 
 }

@@ -18,6 +18,7 @@ package es.bsc.compss.types.execution;
 
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Stream;
+import java.util.List;
 
 
 /**
@@ -40,6 +41,8 @@ public interface InvocationParam {
 
     public String getOriginalName();
 
+    public void setOriginalName(String originalName);
+
     public Object getValue();
 
     public void setValue(Object val);
@@ -49,5 +52,7 @@ public interface InvocationParam {
     public Class<?> getValueClass();
 
     public String getDataMgmtId();
+
+    public List<? extends InvocationParamURI> getSources();
 
 }

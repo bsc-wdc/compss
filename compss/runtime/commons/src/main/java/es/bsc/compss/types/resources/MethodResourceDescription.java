@@ -21,6 +21,7 @@ import es.bsc.compss.types.annotations.Constraints;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.resources.components.Processor;
+import es.bsc.compss.types.resources.components.Processor.ProcessorType;
 import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
 
@@ -501,7 +502,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Adds a constraint from bindings (ignores letter case)
-     * 
+     *
      * @param key
      * @param val
      * @param proc
@@ -666,40 +667,42 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
 
     private void updateCounters(Processor p) {
-        String type = p.getType();
         int cu = p.getComputingUnits();
-        if (type.equals(Constants.CPU_TYPE)) {
-            if (cu > 0) {
-                totalCPUComputingUnits += cu;
+        switch (p.getType()) {
+            case CPU:
+                if (cu > 0) {
+                    totalCPUComputingUnits += cu;
 
-            } else {
-                totalCPUComputingUnits++;
-            }
-            totalCPUs++;
-        } else if (type.equals(Constants.GPU_TYPE)) {
-            if (cu > 0) {
-                totalGPUComputingUnits += cu;
+                } else {
+                    totalCPUComputingUnits++;
+                }
+                totalCPUs++;
+                break;
+            case GPU:
+                if (cu > 0) {
+                    totalGPUComputingUnits += cu;
 
-            } else {
-                totalGPUComputingUnits++;
-            }
-            totalGPUs++;
-        } else if (type.equals(Constants.FPGA_TYPE)) {
-            if (cu > 0) {
-                totalFPGAComputingUnits += cu;
-            } else {
-                totalFPGAComputingUnits++;
-            }
-            totalFPGAs++;
-        } else {
-            if (cu > 0) {
-                totalOTHERComputingUnits += cu;
-            } else {
-                totalOTHERComputingUnits++;
-            }
-            totalOTHERs++;
+                } else {
+                    totalGPUComputingUnits++;
+                }
+                totalGPUs++;
+                break;
+            case FPGA:
+                if (cu > 0) {
+                    totalFPGAComputingUnits += cu;
+                } else {
+                    totalFPGAComputingUnits++;
+                }
+                totalFPGAs++;
+                break;
+            default:
+                if (cu > 0) {
+                    totalOTHERComputingUnits += cu;
+                } else {
+                    totalOTHERComputingUnits++;
+                }
+                totalOTHERs++;
         }
-
     }
 
     public void addProcessor(String procName, int computingUnits, String architecture, float speed, String type, float internalMemory,
@@ -940,21 +943,25 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     public void mergeMultiConstraints(MethodResourceDescription mr2) {
         // Processor constraints
         for (Processor pmr2 : mr2.processors) {
-            String type = pmr2.getType();
+            ProcessorType type = pmr2.getType();
             Processor pthis = lookForProcessorType(type);
             if (pthis != null) {
                 if (pthis.getComputingUnits() <= ONE_INT) {
                     int newCus = pmr2.getComputingUnits();
                     int currentCUs = pthis.getComputingUnits();
                     pthis.setComputingUnits(newCus);
-                    if (type.equals(Constants.CPU_TYPE)) {
-                        this.totalCPUComputingUnits += (newCus - currentCUs);
-                    } else if (type.equals(Constants.GPU_TYPE)) {
-                        this.totalGPUComputingUnits += (newCus - currentCUs);
-                    } else if (type.equals(Constants.FPGA_TYPE)) {
-                        this.totalFPGAComputingUnits += (newCus - currentCUs);
-                    } else {
-                        this.totalOTHERComputingUnits += (newCus - currentCUs);
+                    switch (type) {
+                        case CPU:
+                            this.totalCPUComputingUnits += (newCus - currentCUs);
+                            break;
+                        case GPU:
+                            this.totalGPUComputingUnits += (newCus - currentCUs);
+                            break;
+                        case FPGA:
+                            this.totalFPGAComputingUnits += (newCus - currentCUs);
+                            break;
+                        default:
+                            this.totalOTHERComputingUnits += (newCus - currentCUs);
                     }
                 }
                 if (pthis.getSpeed() == UNASSIGNED_FLOAT) {
@@ -1042,9 +1049,9 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         this.value = mr2.value;
     }
 
-    private Processor lookForProcessorType(String type) {
+    private Processor lookForProcessorType(ProcessorType type) {
         for (Processor p : this.processors) {
-            if (p.getType().equals(type)) {
+            if (p.getType() == type) {
                 return p;
             }
         }
@@ -1125,6 +1132,10 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     private boolean checkStorage(MethodResourceDescription rc2) {
         return checkInclusion(this.storageSize, rc2.storageSize) && checkCompatibility(this.storageType, rc2.storageType);
+    }
+
+    private boolean checkCompatibility(ProcessorType type1, ProcessorType type2) {
+        return type1 == type2;
     }
 
     private boolean checkCompatibility(String value1, String value2) {
@@ -1416,28 +1427,35 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         return reduced;
     }
 
-    private void increaseComputingUnits(String type, int cus) {
-
-        if (type.equals(Constants.CPU_TYPE)) {
-            this.totalCPUComputingUnits += cus;
-        } else if (type.equals(Constants.GPU_TYPE)) {
-            this.totalGPUComputingUnits += cus;
-        } else if (type.equals(Constants.FPGA_TYPE)) {
-            this.totalFPGAComputingUnits += cus;
-        } else {
-            this.totalOTHERComputingUnits += cus;
+    private void increaseComputingUnits(ProcessorType type, int cus) {
+        switch (type) {
+            case CPU:
+                this.totalCPUComputingUnits += cus;
+                break;
+            case GPU:
+                this.totalGPUComputingUnits += cus;
+                break;
+            case FPGA:
+                this.totalFPGAComputingUnits += cus;
+                break;
+            default:
+                this.totalOTHERComputingUnits += cus;
         }
     }
 
-    private void decreaseComputingUnits(String type, int cus) {
-        if (type.equals(Constants.CPU_TYPE)) {
-            this.totalCPUComputingUnits -= cus;
-        } else if (type.equals(Constants.GPU_TYPE)) {
-            this.totalGPUComputingUnits -= cus;
-        } else if (type.equals(Constants.FPGA_TYPE)) {
-            this.totalFPGAComputingUnits -= cus;
-        } else {
-            this.totalOTHERComputingUnits -= cus;
+    private void decreaseComputingUnits(ProcessorType type, int cus) {
+        switch (type) {
+            case CPU:
+                this.totalCPUComputingUnits -= cus;
+                break;
+            case GPU:
+                this.totalGPUComputingUnits -= cus;
+                break;
+            case FPGA:
+                this.totalFPGAComputingUnits -= cus;
+                break;
+            default:
+                this.totalOTHERComputingUnits -= cus;
         }
     }
 
@@ -1582,7 +1600,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
         for (Processor p : this.processors) {
             sb.append(" [PROCESSOR ").append(p.getName());
-            sb.append(" TYPE=").append(p.getType());
+            sb.append(" TYPE=").append(p.getType().toString());
             sb.append(" COMPUTING_UNITS=").append(p.getComputingUnits());
             sb.append(" SPEED=").append(p.getSpeed());
             sb.append(" INTERNAL_MEMORY=").append(p.getInternalMemory());

@@ -52,7 +52,7 @@ public class BinaryRunner {
      * @return
      * @throws InvokeExecutionException
      */
-    public static ArrayList<String> createCMDParametersFromValues(List<InvocationParam> parameters, InvocationParam target, StreamSTD streamValues)
+    public static ArrayList<String> createCMDParametersFromValues(List<? extends InvocationParam> parameters, InvocationParam target, StreamSTD streamValues)
             throws InvokeExecutionException {
         ArrayList<String> binaryParams = new ArrayList<>();
         for (InvocationParam param : parameters) {
@@ -111,79 +111,18 @@ public class BinaryRunner {
     }
 
     /**
-     * Converts the values to the CMD standard and calculates with are the streamValues
-     *
-     * @param values
-     * @param paramStreams
-     * @param streamValues
-     * @return
-     * @throws InvokeExecutionException
-     */
-    /*public static ArrayList<String> createCMDParametersFromValues(Object[] values, Stream[] paramStreams, String[] prefixes,
-            StreamSTD streamValues) throws InvokeExecutionException {
-
-        ArrayList<String> binaryParams = new ArrayList<>();
-        for (int i = 0; i < values.length; ++i) {
-            switch (paramStreams[i]) {
-                case STDIN:
-                    streamValues.setStdIn((String) values[i]);
-                    break;
-                case STDOUT:
-                    streamValues.setStdOut((String) values[i]);
-                    break;
-                case STDERR:
-                    streamValues.setStdErr((String) values[i]);
-                    break;
-                case UNSPECIFIED:
-                    if (!prefixes[i].equals(Constants.PREFIX_SKIP)) {
-                        if (values[i] != null && values[i].getClass().isArray()) {
-                            try {
-                                if (prefixes[i] != null && !prefixes[i].isEmpty() && !prefixes[i].equals(Constants.PREFIX_EMTPY)) {
-                                    binaryParams.add(prefixes[i]);
-                                }
-                                binaryParams.addAll(serializeArrayParam(values[i]));
-                            } catch (Exception e) {
-                                // Exception serializing to string the object
-                                throw new InvokeExecutionException(ERROR_PARAM_NOT_STRING, e);
-                            }
-                        } else if (values[i] != null && values[i] instanceof Collection<?>) {
-                            try {
-                                if (prefixes[i] != null && !prefixes[i].isEmpty() && !prefixes[i].equals(Constants.PREFIX_EMTPY)) {
-                                    binaryParams.add(prefixes[i]);
-                                }
-                                binaryParams.addAll(serializeCollectionParam((Collection<?>) values[i]));
-                            } catch (Exception e) {
-                                // Exception serializing to string the object
-                                throw new InvokeExecutionException(ERROR_PARAM_NOT_STRING, e);
-                            }
-                        } else // The value can be serialized to string directly
-                        {
-                            if (prefixes[i] != null && !prefixes[i].isEmpty() && !prefixes[i].equals(Constants.PREFIX_EMTPY)) {
-                                binaryParams.add(prefixes[i] + String.valueOf(values[i]));
-                            } else {
-                                binaryParams.add(String.valueOf(values[i]));
-                            }
-                        }
-                    }
-                    break;
-            }
-        }
-
-        return binaryParams;
-    }*/
-    /**
      * Executes a given command @cmd with the stream redirections @streamValues
      *
      * @param cmd
      * @param streamValues
      * @param taskSandboxWorkingDir
-     * @param defaultOutStream
-     * @param defaultErrStream
+     * @param outLog
+     * @param errLog
      * @return
      * @throws InvokeExecutionException
      */
-    public static Object executeCMD(String[] cmd, StreamSTD streamValues, File taskSandboxWorkingDir, PrintStream defaultOutStream,
-            PrintStream defaultErrStream) throws InvokeExecutionException {
+    public static Object executeCMD(String[] cmd, StreamSTD streamValues, File taskSandboxWorkingDir, PrintStream outLog,
+            PrintStream errLog) throws InvokeExecutionException {
 
         // Prepare command execution with redirections
         ProcessBuilder builder = new ProcessBuilder(cmd);
@@ -207,26 +146,25 @@ public class BinaryRunner {
         Process process = null;
         int exitValue = -1;
         try {
-            System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
-            System.out.println("[BINARY EXECUTION WRAPPER] Executing binary command");
+            outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
+            outLog.println("[BINARY EXECUTION WRAPPER] Executing binary command");
             process = builder.start();
 
             // Disable inputs to process
             process.getOutputStream().close();
 
             // Log binary execution
-            logBinaryExecution(process, fileOutPath, fileErrPath, defaultOutStream, defaultErrStream);
+            logBinaryExecution(process, fileOutPath, fileErrPath, outLog, errLog);
 
             // Wait and retrieve exit value
             exitValue = process.waitFor();
 
             // Print all process execution information
-            System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
-            System.out.println("[BINARY EXECUTION WRAPPER] CMD EXIT VALUE: " + exitValue);
-            System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
+            outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
+            outLog.println("[BINARY EXECUTION WRAPPER] CMD EXIT VALUE: " + exitValue);
+            outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
         } catch (IOException | InvokeExecutionException | InterruptedException e) {
-            System.err.println(ERROR_PROC_EXEC);
-            e.printStackTrace();
+            errLog.println(ERROR_PROC_EXEC);
             throw new InvokeExecutionException(ERROR_PROC_EXEC, e);
         }
 
@@ -234,38 +172,38 @@ public class BinaryRunner {
         return exitValue;
     }
 
-    private static void logBinaryExecution(Process process, String fileOutPath, String fileErrPath, PrintStream defaultOutStream,
-            PrintStream defaultErrStream) throws InvokeExecutionException {
+    private static void logBinaryExecution(Process process, String fileOutPath, String fileErrPath, PrintStream outLog,
+            PrintStream errLog) throws InvokeExecutionException {
         StreamGobbler errorGobbler = null;
         StreamGobbler outputGobbler = null;
-        System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
-        System.out.println("[BINARY EXECUTION WRAPPER] CMD OUTPUT:");
+        outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
+        outLog.println("[BINARY EXECUTION WRAPPER] CMD OUTPUT:");
         if (process != null) {
             if (fileOutPath == null) {
-                outputGobbler = new StreamGobbler(process.getInputStream(), defaultOutStream, LogManager.getLogger(Loggers.WORKER));
+                outputGobbler = new StreamGobbler(process.getInputStream(), outLog, LogManager.getLogger(Loggers.WORKER));
                 outputGobbler.start();
             } else {
                 try (FileInputStream outputStream = new FileInputStream(fileOutPath)) {
-                    outputGobbler = new StreamGobbler(outputStream, defaultOutStream, LogManager.getLogger(Loggers.WORKER));
+                    outputGobbler = new StreamGobbler(outputStream, outLog, LogManager.getLogger(Loggers.WORKER));
                     outputGobbler.start();
                 } catch (IOException ioe) {
-                    System.err.println(ERROR_OUTPUTREADER);
-                    ioe.printStackTrace();
+                    errLog.println(ERROR_OUTPUTREADER);
+                    ioe.printStackTrace(errLog);
                     throw new InvokeExecutionException(ERROR_OUTPUTREADER, ioe);
                 }
             }
 
         }
 
-        System.err.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
-        System.err.println("[BINARY EXECUTION WRAPPER] CMD ERROR:");
+        errLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
+        errLog.println("[BINARY EXECUTION WRAPPER] CMD ERROR:");
         if (process != null) {
             if (fileErrPath == null) {
-                errorGobbler = new StreamGobbler(process.getErrorStream(), defaultErrStream, LogManager.getLogger(Loggers.WORKER));
+                errorGobbler = new StreamGobbler(process.getErrorStream(), errLog, LogManager.getLogger(Loggers.WORKER));
                 errorGobbler.start();
             } else {
                 try (FileInputStream errStream = new FileInputStream(fileErrPath)) {
-                    errorGobbler = new StreamGobbler(errStream, defaultErrStream, LogManager.getLogger(Loggers.WORKER));
+                    errorGobbler = new StreamGobbler(errStream, errLog, LogManager.getLogger(Loggers.WORKER));
                     errorGobbler.start();
                 } catch (IOException ioe) {
                     throw new InvokeExecutionException(ERROR_ERRORREADER, ioe);
@@ -277,20 +215,20 @@ public class BinaryRunner {
             try {
                 outputGobbler.join();
             } catch (InterruptedException e) {
-                System.err.println("Error waiting for output gobbler to end");
+                errLog.println("Error waiting for output gobbler to end");
                 e.printStackTrace();
             }
         }
-        System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
+        outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
         if (errorGobbler != null) {
             try {
                 errorGobbler.join();
             } catch (InterruptedException e) {
-                System.err.println("Error waiting for error gobbler to end");
+                errLog.println("Error waiting for error gobbler to end");
                 e.printStackTrace();
             }
         }
-        System.err.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
+        errLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
     }
 
     private static ArrayList<String> serializeArrayParam(Object value) throws Exception {

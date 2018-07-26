@@ -19,7 +19,6 @@ package es.bsc.compss.components.impl;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.exceptions.CannotLoadException;
-import es.bsc.compss.components.impl.TaskProducer;
 
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -102,7 +101,6 @@ public class AccessProcessor implements Runnable, TaskProducer {
     // Tasks to be processed
     protected LinkedBlockingQueue<APRequest> requestQueue;
 
-
     /**
      * Creates a new Access Processor instance
      *
@@ -175,12 +173,13 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * App : new Method Task
      *
      * @param appId
-     * @param methodClass
-     * @param methodName
+     * @param signature
      * @param isPrioritary
      * @param numNodes
      * @param isReplicated
      * @param isDistributed
+     * @param hasReturn
+     * @param numReturns
      * @param hasTarget
      * @param parameters
      * @return
@@ -207,6 +206,8 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @param operation
      * @param priority
      * @param hasTarget
+     * @param hasReturn
+     * @param numReturns
      * @param parameters
      * @return
      */
@@ -396,7 +397,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Notifies a main access to an external PSCO {@code id}
-     * 
+     *
      * @param fileName
      * @param id
      * @param hashCode
@@ -420,7 +421,6 @@ public class AccessProcessor implements Runnable, TaskProducer {
         waitForTask(oaId.getDataId(), AccessMode.RW);
 
         // TODO: Check if the object was already piggybacked in the task notification
-
         String lastRenaming = ((DataAccessId.RWAccessId) oaId).getReadDataInstance().getRenaming();
         String newId = Comm.getData(lastRenaming).getPscoId();
 
@@ -446,7 +446,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Notifies a main access to an external PSCO {@code id}
-     * 
+     *
      * @param fileName
      * @param id
      * @param hashCode
@@ -465,7 +465,6 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
         // DataInstanceId wId = ((DataAccessId.RWAccessId) oaId).getWrittenDataInstance();
         // String wRename = wId.getRenaming();
-
         // Wait until the last writer task for the object has finished
         if (DEBUG) {
             LOGGER.debug("Waiting for last writer of " + oaId.getDataId());
@@ -475,7 +474,6 @@ public class AccessProcessor implements Runnable, TaskProducer {
         // TODO: Check if the object was already piggybacked in the task notification
 
         // String lastRenaming = ((DataAccessId.RWAccessId) oaId).getReadDataInstance().getRenaming();
-
         // return obtainBindingObject((DataAccessId.RWAccessId)oaId);
         String bindingObjectID = obtainBindingObject((DataAccessId.RAccessId) oaId);
         
@@ -743,7 +741,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @return
      */
     private Object obtainObject(DataAccessId oaId) {
-        LOGGER.debug("Obtain object with id " + oaId);
+        System.out.println("Es fa un accés al valor " + oaId.getDataId());
         // Ask for the object
         Semaphore sem = new Semaphore(0);
         TransferObjectRequest tor = new TransferObjectRequest(oaId, sem);
@@ -768,6 +766,11 @@ public class AccessProcessor implements Runnable, TaskProducer {
             } catch (CannotLoadException e) {
                 LOGGER.fatal(ERROR_OBJECT_LOAD_FROM_STORAGE + ": " + ((ld == null) ? "null" : ld.getName()), e);
                 ErrorManager.fatal(ERROR_OBJECT_LOAD_FROM_STORAGE + ": " + ((ld == null) ? "null" : ld.getName()), e);
+            } catch (RuntimeException e) {
+                System.out.println("AQUI S'HA LIAT PARDA");
+                System.out.println("Havíem demanat l'objecte per fer l'accés " + oaId);
+                System.out.println("Transfer Object Request retorna LD " + ld);
+                throw e;
             }
         }
 

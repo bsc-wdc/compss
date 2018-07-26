@@ -39,13 +39,13 @@ public class Converter {
 
     /**
      *********************************************************************************************************************
-     *************************************** COMPSs TO CONN **************************************************************
+     *************************************** COMPSs TO CONN
+     * **************************************************************
      * *******************************************************************************************************************
      */
-
     /**
      * Returns the hardware description
-     * 
+     *
      * @param cmrd
      * @return
      */
@@ -76,7 +76,7 @@ public class Converter {
 
     /**
      * Returns the software description
-     * 
+     *
      * @param cmrd
      * @return
      */
@@ -93,7 +93,7 @@ public class Converter {
 
     /**
      * Returns the virtual resource
-     * 
+     *
      * @param id
      * @param cmrd
      * @return
@@ -105,18 +105,18 @@ public class Converter {
 
     /**
      * Returns the connector processor
-     * 
+     *
      * @param p
      * @return
      */
     private static Processor getConnectorProcessor(es.bsc.compss.types.resources.components.Processor p) {
-        return new Processor(p.getName(), p.getComputingUnits(), p.getType(), p.getInternalMemory(), p.getSpeed(), p.getArchitecture(),
+        return new Processor(p.getName(), p.getComputingUnits(), p.getType().toString(), p.getInternalMemory(), p.getSpeed(), p.getArchitecture(),
                 p.getPropName(), p.getPropValue());
     }
 
     /**
      * Returns the connector processor
-     * 
+     *
      * @param processorList
      * @return
      */
@@ -130,7 +130,7 @@ public class Converter {
 
     /**
      * Returns the installation description
-     * 
+     *
      * @param config
      * @return
      */
@@ -163,7 +163,7 @@ public class Converter {
 
     /**
      * Returns the COMPSs processor
-     * 
+     *
      * @param p
      * @return
      */
@@ -175,7 +175,7 @@ public class Converter {
 
     /**
      * Returns the COMPSs processors
-     * 
+     *
      * @param processorList
      * @return
      */
@@ -190,7 +190,7 @@ public class Converter {
 
     /**
      * Returns the cloud image description
-     * 
+     *
      * @param hd
      * @param sd
      * @param requested
@@ -216,7 +216,7 @@ public class Converter {
 
     /**
      * Sets the hardware inside the resource description
-     * 
+     *
      * @param cmrd
      * @param hd
      * @param requested
@@ -238,7 +238,7 @@ public class Converter {
 
     /**
      * Sets the software inside the resource description
-     * 
+     *
      * @param cmrd
      * @param sd
      * @param requested

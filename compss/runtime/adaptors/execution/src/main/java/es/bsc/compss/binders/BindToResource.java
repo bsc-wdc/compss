@@ -16,7 +16,8 @@
  */
 package es.bsc.compss.binders;
 
-import es.bsc.compss.exceptions.UnsufficientAvailableComputingUnitsException;
+import es.bsc.compss.types.execution.ThreadBinder;
+import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
 
 
 /**

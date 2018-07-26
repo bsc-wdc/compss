@@ -16,14 +16,16 @@
  */
 package es.bsc.compss.invokers;
 
-import java.io.File;
-import java.util.concurrent.Semaphore;
-
+import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.util.Tracer;
-import es.bsc.compss.exceptions.JobExecutionException;
+import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
+
+import java.io.File;
+import java.util.concurrent.Semaphore;
+import java.util.LinkedList;
 import java.util.List;
 
 import javassist.ClassPool;
@@ -47,12 +49,12 @@ public class StorageInvoker extends JavaInvoker {
     private static final String ERROR_EXTERNAL_EXECUTION = "ERROR: External Task Execution failed";
     private static final String WARN_RET_VALUE_EXCEPTION = "WARN: Exception on externalExecution return value";
 
-    public StorageInvoker(InvocationContext context, Invocation invocation, boolean debug, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
-        super(context, invocation, debug, taskSandboxWorkingDir, assignedCoreUnits);
+    public StorageInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources) throws JobExecutionException {
+        super(context, invocation, taskSandboxWorkingDir, assignedResources);
     }
 
     @Override
-    public Object invokeMethod() throws JobExecutionException {
+    public Object runMethod() throws JobExecutionException {
         // Invoke the requested method from the external platform
 
         // WARN: ExternalExecution is only supported for methods with PSCO as target object
@@ -97,7 +99,7 @@ public class StorageInvoker extends JavaInvoker {
             Tracer.emitEvent(Tracer.Event.STORAGE_EXECUTETASK.getId(), Tracer.Event.STORAGE_EXECUTETASK.getType());
         }
 
-        List<InvocationParam> params = invocation.getParams();
+        List<? extends InvocationParam> params = invocation.getParams();
         Object[] values = new Object[params.size()];
         int paramIdx = 0;
         for (InvocationParam param : params) {

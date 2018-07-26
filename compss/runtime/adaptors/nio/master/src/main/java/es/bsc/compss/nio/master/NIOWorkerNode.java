@@ -29,7 +29,7 @@ import es.bsc.compss.nio.NIOURI;
 import es.bsc.compss.nio.commands.CommandExecutorShutdown;
 import es.bsc.compss.nio.commands.CommandNewTask;
 import es.bsc.compss.nio.commands.CommandShutdown;
-import es.bsc.compss.nio.commands.Data;
+import es.bsc.compss.nio.commands.NIOData;
 import es.bsc.compss.nio.commands.tracing.CommandGeneratePackage;
 import es.bsc.compss.nio.commands.workerFiles.CommandGenerateWorkerDebugFiles;
 import es.bsc.compss.nio.dataRequest.DataRequest;
@@ -57,6 +57,7 @@ import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.Tracer;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -93,17 +94,17 @@ public class NIOWorkerNode extends COMPSsWorker {
     public void start() throws InitNodeException {
         NIONode n = null;
         try {
-        	this.workerStarter = new WorkerStarter(this);
-        	synchronized (this.workerStarter) {
-        		n = this.workerStarter.startWorker();
-        		this.node = n;
-        		this.started = true;
-        	}
+            this.workerStarter = new WorkerStarter(this);
+            synchronized (this.workerStarter) {
+                n = this.workerStarter.startWorker();
+                this.node = n;
+                this.started = true;
+            }
         } catch (InitNodeException e) {
             ErrorManager.warn("There was an exception when initiating worker " + getName() + ".", e);
             throw e;
         }
-        
+
         if (NIOTracer.isActivated()) {
             LOGGER.debug("Initializing NIO tracer " + this.getName());
             NIOTracer.startTracing(this.getName(), this.getUser(), this.getHost(), this.getLimitOfTasks());
@@ -145,7 +146,9 @@ public class NIOWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public String getPythonpath() { return this.config.getPythonpath(); }
+    public String getPythonpath() {
+        return this.config.getPythonpath();
+    }
 
     public int getLimitOfTasks() {
         return this.config.getLimitOfTasks();
@@ -185,35 +188,35 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     @Override
     public void stop(ShutdownListener sl) {
-    	//synchronized (this.workerStarter) {
+        //synchronized (this.workerStarter) {
 
-    		if (workerStarter != null) {
-    			workerStarter.setToStop();
-    			LOGGER.debug("Worker " + this.getName() + " set to be stopped.");
-    			synchronized (this.workerStarter) {
-    				if (started) {
-    					LOGGER.debug("Shutting down " + this.getName());
-    					if (node == null) {
-    						sl.notifyFailure(new UnstartedNodeException());
-    						LOGGER.error("Shutdown has failed");
-    					}
-    					Connection c = NIOAgent.getTransferManager().startConnection(node);
-    					commManager.shuttingDown(this, c, sl);
-    					CommandShutdown cmd = new CommandShutdown(null, null);
-    					c.sendCommand(cmd);
-    					c.receive();
-    					c.finishConnection();
-    				} else {
-    					LOGGER.debug("Worker " + this.getName() + " has not started.");
-    					sl.notifyEnd();
-    				}
-    			}
-    		} else {
-    			LOGGER.debug("Worker " + this.getName() + " has not been created.");
-    			sl.notifyEnd();
-    		}
+        if (workerStarter != null) {
+            workerStarter.setToStop();
+            LOGGER.debug("Worker " + this.getName() + " set to be stopped.");
+            synchronized (this.workerStarter) {
+                if (started) {
+                    LOGGER.debug("Shutting down " + this.getName());
+                    if (node == null) {
+                        sl.notifyFailure(new UnstartedNodeException());
+                        LOGGER.error("Shutdown has failed");
+                    }
+                    Connection c = NIOAgent.getTransferManager().startConnection(node);
+                    commManager.shuttingDown(this, c, sl);
+                    CommandShutdown cmd = new CommandShutdown(null, null);
+                    c.sendCommand(cmd);
+                    c.receive();
+                    c.finishConnection();
+                } else {
+                    LOGGER.debug("Worker " + this.getName() + " has not started.");
+                    sl.notifyEnd();
+                }
+            }
+        } else {
+            LOGGER.debug("Worker " + this.getName() + " has not been created.");
+            sl.notifyEnd();
+        }
 
-    	//}
+        //}
     }
 
     @Override
@@ -223,11 +226,11 @@ public class NIOWorkerNode extends COMPSsWorker {
             if (node == null) {
                 LOGGER.error("Shutdown execution manager has failed");
                 esl.notifyFailure(new UnstartedNodeException());
-                
+
             }
             Connection c = NIOAgent.getTransferManager().startConnection(node);
             commManager.shuttingDownEM(this, c, esl);
-            
+
             LOGGER.debug("Sending shutdown command " + this.getName());
             CommandExecutorShutdown cmd = new CommandExecutorShutdown(null);
             c.sendCommand(cmd);
@@ -257,7 +260,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             }
 
             Copy c = new DeferredCopy(ld, null, target, tgtData, reason, listener);
-            Data d = new Data(ld);
+            NIOData d = new NIOData(ld);
             if (source != null) {
                 for (MultiURI uri : source.getURIs()) {
                     try {
@@ -342,7 +345,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         String pscoId = srcLD.getPscoId();
 
         // Get the current locations
-        List<String> currentLocations = new LinkedList<>();
+        List<String> currentLocations;
         try {
             currentLocations = StorageItf.getLocations(pscoId);
         } catch (StorageException se) {
@@ -354,20 +357,24 @@ public class NIOWorkerNode extends COMPSsWorker {
         if (!currentLocations.contains(targetHostname)) {
             // Perform replica
             LOGGER.debug("Performing new replica for PSCO " + pscoId);
-            if (NIOTracer.isActivated()) {
-                NIOTracer.emitEvent(NIOTracer.Event.STORAGE_NEWREPLICA.getId(), NIOTracer.Event.STORAGE_NEWREPLICA.getType());
+            if (Tracer.isActivated()) {
+                Tracer.emitEvent(Tracer.Event.STORAGE_NEWREPLICA.getId(), Tracer.Event.STORAGE_NEWREPLICA.getType());
             }
             try {
                 // TODO: WARN New replica is NOT necessary because we can't prefetch data
                 // StorageItf.newReplica(pscoId, targetHostname);
             } finally {
-                if (NIOTracer.isActivated()) {
-                    NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.STORAGE_NEWREPLICA.getType());
+                if (Tracer.isActivated()) {
+                    Tracer.emitEvent(NIOTracer.EVENT_END, Tracer.Event.STORAGE_NEWREPLICA.getType());
                 }
             }
         } else {
             LOGGER.debug("PSCO " + pscoId + " already present. Skip replica.");
         }
+
+        NIOURI uri = new NIOURI(null, pscoId, Protocol.PERSISTENT_URI);
+        NIOData nd = new NIOData(srcLD);
+        sc.setProposedSource(nd);
 
         // Update information
         sc.setFinalTarget(pscoId);
@@ -395,8 +402,8 @@ public class NIOWorkerNode extends COMPSsWorker {
 
         // Perform version
         LOGGER.debug("Performing new version for PSCO " + pscoId);
-        if (NIOTracer.isActivated()) {
-            NIOTracer.emitEvent(NIOTracer.Event.STORAGE_NEWVERSION.getId(), NIOTracer.Event.STORAGE_NEWVERSION.getType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(NIOTracer.Event.STORAGE_NEWVERSION.getId(), Tracer.Event.STORAGE_NEWVERSION.getType());
         }
         try {
             String newId = StorageItf.newVersion(pscoId, preserveSource, targetHostname);
@@ -405,12 +412,15 @@ public class NIOWorkerNode extends COMPSsWorker {
             if (targetLD != null) {
                 targetLD.setPscoId(newId);
             }
+            NIOURI uri = new NIOURI(null, pscoId, Protocol.PERSISTENT_URI);
+            NIOData nd = new NIOData(srcLD.getName(), uri);
+            sc.setProposedSource(nd);
         } catch (Exception e) {
             sc.end(OpEndState.OP_FAILED, e);
             return;
         } finally {
-            if (NIOTracer.isActivated()) {
-                NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.STORAGE_NEWVERSION.getType());
+            if (Tracer.isActivated()) {
+                Tracer.emitEvent(NIOTracer.EVENT_END, Tracer.Event.STORAGE_NEWVERSION.getType());
             }
         }
 
@@ -435,7 +445,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             } else {
                 path = c.getTargetLoc().getURIInHost(tgtRes).getPath();
             }
-            c.setProposedSource(new Data(ld));
+            c.setProposedSource(new NIOData(ld));
             LOGGER.debug("Setting final target in deferred copy " + path);
             c.setFinalTarget(path);
             // TODO: MISSING CHECK IF FILE IS ALREADY BEEN COPIED IN A SHARED LOCATION
@@ -480,7 +490,7 @@ public class NIOWorkerNode extends COMPSsWorker {
                 path = Protocol.PERSISTENT_URI.getSchema() + name;
                 break;
             case BINDING_OBJECT_T:
-            	path = Protocol.BINDING_URI.getSchema() + config.getSandboxWorkingDir() + name;
+                path = Protocol.BINDING_URI.getSchema() + config.getSandboxWorkingDir() + name;
                 break;
             default:
                 return null;

@@ -1,0 +1,257 @@
+#!/bin/bash
+
+#---------------------------------------------------
+# SCRIPT CONSTANTS DECLARATION
+#---------------------------------------------------
+DEFAULT_WALLTIME="1"        # 1 minute
+DEFAULT_JOB_NAME="Jupyter"
+DEFAULT_AMOUNT_NODES=2
+DEFAULT_USER_NAME=""
+DEFAULT_SUPERCOMPUTER="mn1.bsc.es"
+DEFAULT_BROWSER="firefox"
+
+
+#---------------------------------------------------
+# ERROR CONSTANTS DECLARATION
+#---------------------------------------------------
+ERROR_USERNAME_NOT_PROVIDED="Username not provided."
+
+#---------------------------------------------------------------------------------------
+# HELPER FUNCTIONS
+#---------------------------------------------------------------------------------------
+
+# Trap CTRL+C and call CTRL_C()
+trap CTRL_C INT
+
+function CTRL_C() {
+  echo "* CTRL + C pressed - Quit!"
+  if [ -z ${RUNNING_PORT_FORWARDING_PID} ]; then
+    echo "    - Killing port forwarding..."
+    kill ${RUNNING_PORT_FORWARDING_PID}
+  fi
+  if [ -z ${job_id} ]; then
+    echo "    - Cancelling job..."
+    ssh ${user_name}@${supercomputer} "scancel $job_id" > /dev/null 2>&1
+  fi
+  echo "* Finished"
+}
+
+###############################################
+# Displays usage
+###############################################
+usage() {
+  exitValue=$1
+
+  # Show usage
+  cat <<EOT
+Usage: $0 [Options]
+
+* Options:
+  General:
+    --help, -h                              Print this help message
+    --opts                                  Show available options
+    --version, -v                           Print COMPSs version
+
+  Submission configuration:
+    --walltime=<int>                        Session duration (minutes)
+                                            Default: ${DEFAULT_WALLTIME}
+    --job_name=<string>                     Job name
+                                            Default: ${DEFAULT_JOB_NAME}
+    --nodes=<int>                           Amount of nodes to use
+                                            Default: ${DEFAULT_AMOUNT_NODES}
+    --user_name=<string>                    User name to login into the supercomputer (mandatory)
+                                            Default: ${DEFAULT_USER_NAME}
+    --supercomputer=<string>                Supercomputer to connect
+                                            Default: ${DEFAULT_SUPERCOMPUTER}
+    --browser=<string>                      Web browser
+                                            Default: ${DEFAULT_BROWSER}
+EOT
+
+  exit "$exitValue"
+}
+
+###############################################
+# Displays version
+###############################################
+display_version() {
+  local exitValue=$1
+
+  runcompss --version
+
+  exit "$exitValue"
+}
+
+###############################################
+# Displays errors treating arguments
+###############################################
+display_error() {
+  local error_msg=$*
+
+  echo "ERROR: $error_msg"
+  echo " "
+
+  usage 1
+}
+
+#---------------------------------------------------------------------------------------
+# MAIN FUNCTIONS
+#---------------------------------------------------------------------------------------
+
+###############################################
+# Get arguments
+###############################################
+get_args() {
+  # Avoid enqueue if there is no application
+  if [ $# -eq 0 ]; then
+    usage 1
+  fi
+
+  # Parse COMPSs Options
+  while getopts hvgtmd-: flag; do
+    # Treat the argument
+    case "$flag" in
+      h)
+	    # Display help
+	    usage 0
+	    ;;
+      v)
+        # Display version
+        display_version 0
+        ;;
+      -)
+        # Check more complex arguments
+	    case "$OPTARG" in
+	      help)
+	        # Display help
+            usage 0
+	        ;;
+          version)
+            # Display COMPSs version
+            display_version 0
+            ;;
+          walltime=*)
+	        walltime=${OPTARG//walltime=/}
+	        ;;
+          job_name=*)
+            job_name=${OPTARG//job_name=/}
+            ;;
+          nodes=*)
+            nodes=${OPTARG//nodes=/}
+            ;;
+          user_name=*)
+            user_name=${OPTARG//user_name=/}
+            ;;
+          supercomputer=*)
+            supercomputer=${OPTARG//supercomputer=/}
+            ;;
+          browser=*)
+            browser=${OPTARG//browser=/}
+            ;;
+          *)
+	        # Flag didn't match any pattern.
+	        ;;
+	    esac
+	    ;;
+      *)
+	    # Flag didn't match any pattern. End of COMPSs flags
+	    ;;
+    esac
+  done
+}
+
+###############################################
+# Checks arguments
+###############################################
+check_args() {
+
+  # Check walltime argument
+  if [ -z "${walltime}" ]; then
+    walltime=${DEFAULT_WALLTIME}
+  fi
+  # Convert walltime in minutes to hh:mm:ss format
+  ((hour=$walltime/60))
+  ((min=$walltime-$hour*60))
+  walltime=$(printf "%02d:%02d:00" $hour $min)
+
+  # Check job name argument
+  if [ -z "${job_name}" ]; then
+    job_name=${DEFAULT_JOB_NAME}
+  fi
+
+  # Check nodes argument
+  if [ -z "${nodes}" ]; then
+    nodes=${DEFAULT_AMOUNT_NODES}
+  fi
+
+  # Check user name argument
+  if [ -z "${user_name}" ]; then
+    display_error ${ERROR_USERNAME_NOT_PROVIDED}
+    # user_name=${DEFAULT_USER_NAME}
+  fi
+
+  # Check supercomputer argument
+  if [ -z "${supercomputer}" ]; then
+    supercomputer=${DEFAULT_SUPERCOMPUTER}
+  fi
+
+  # Check browser argument
+  if [ -z "${browser}" ]; then
+    browser=${DEFAULT_BROWSER}
+  fi
+
+}
+
+
+#---------------------------------------------------
+# MAIN EXECUTION
+#---------------------------------------------------
+
+  # Get command args
+  get_args "$@"
+
+  # Check other command args
+  check_args
+
+  which_runcompss=$(ssh ${user_name}@${supercomputer} "which runcompss" 2>&1)
+  RUNCOMPSS_PATH=$(echo "$which_runcompss" | grep "runcompss")
+  SCRIPTS_DIR=$(dirname ${RUNCOMPSS_PATH})
+  REMOTE_SCRIPT_DIR=${SCRIPTS_DIR}/../system/jupyter
+
+  # Submit command and get connection info
+  connection_info=$(ssh ${user_name}@${supercomputer} "${REMOTE_SCRIPT_DIR}/submit_jupyter_job.sh ${walltime} ${job_name} ${nodes}" 2>&1)
+
+  # Parse connection info
+  job_id_line=$(echo "$connection_info" | grep "JobId:")     # beware with this grep - must be the same as in submit_jupyter_job.sh
+  node_line=$(echo "$connection_info" | grep "MainNode:")    # beware with this grep - must be the same as in submit_jupyter_job.sh
+  token_line=$(echo "$connection_info" | grep "Token:")      # beware with this grep - must be the same as in submit_jupyter_job.sh
+  # Convert to list splitting by :
+  job_id=(${job_id_line//:/ })
+  node=(${node_line//:/ })
+  token=(${token_line//:/ })
+  # Get the node name and token
+  job_id=${job_id[1]}
+  node=${node[1]}
+  token=${token[1]}
+
+  # Establish the port forwarding
+  #ssh -t -t ${user_name}@${supercomputer} -L 8888:localhost:8888 ssh ${node} -4 -L 8888:localhost:8888 > /dev/null 2>&1 &
+  ssh -t -t ${user_name}@${supercomputer} -L 8888:localhost:8888 ssh ${node} -L 8888:localhost:8888 > /dev/null 2>&1 &
+  RUNNING_PORT_FORWARDING_PID=$!
+
+  # Wait 5 seconds to establish the port forwarding
+  sleep 5
+
+  # Open the web browser
+  ${browser} localhost:8888
+  echo "Waiting for ${browser} to be closed..."
+  echo "To force quit: CTRL + C"
+
+  sleep 3
+  wait
+
+  echo "* Quit!"
+  echo "    - Killing port forwarding..."
+  kill ${RUNNING_PORT_FORWARDING_PID}
+  echo "    - Cancelling job..."
+  ssh ${user_name}@${supercomputer} "scancel $job_id" > /dev/null 2>&1
+  echo "* Finished"

@@ -178,16 +178,15 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @param numNodes
      * @param isReplicated
      * @param isDistributed
-     * @param hasReturn
      * @param numReturns
      * @param hasTarget
      * @param parameters
      * @return
      */
     public int newTask(Long appId, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-            boolean hasTarget, boolean hasReturn, int numReturns, Parameter[] parameters) {
+            boolean hasTarget, int numReturns, Parameter[] parameters) {
 
-        Task currentTask = new Task(appId, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, hasReturn, numReturns,
+        Task currentTask = new Task(appId, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns,
                 parameters);
 
         if (!requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
@@ -206,15 +205,14 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @param operation
      * @param priority
      * @param hasTarget
-     * @param hasReturn
      * @param numReturns
      * @param parameters
      * @return
      */
     public int newTask(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
-            boolean hasReturn, int numReturns, Parameter[] parameters) {
+            int numReturns, Parameter[] parameters) {
 
-        Task currentTask = new Task(appId, namespace, service, port, operation, priority, hasTarget, hasReturn, numReturns, parameters);
+        Task currentTask = new Task(appId, namespace, service, port, operation, priority, hasTarget, numReturns, parameters);
 
         if (!requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "new service task");

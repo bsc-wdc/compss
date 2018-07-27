@@ -330,6 +330,9 @@ public class Executor implements Runnable {
         if (invocation.getTarget() != null) {
             bindOriginalFilenameToRenames(invocation.getTarget(), sandbox);
         }
+        for (InvocationParam param : invocation.getResults()) {
+            bindOriginalFilenameToRenames(param, sandbox);
+        }
     }
 
     private void bindOriginalFilenameToRenames(InvocationParam param, File sandbox) throws IOException {
@@ -378,6 +381,9 @@ public class Executor implements Runnable {
         if (invocation.getTarget() != null) {
             removeOriginalFilename(invocation.getTarget(), invocation.getLang());
         }
+        for (InvocationParam param : invocation.getResults()) {
+            removeOriginalFilename(param, invocation.getLang());
+        }
     }
 
     private void removeOriginalFilename(InvocationParam param, Lang lang) throws IOException, JobExecutionException {
@@ -405,8 +411,8 @@ public class Executor implements Runnable {
                         // Both files exist and are updated
                         LOGGER.debug("Repeated data for " + renamedFilePath + ". Nothing to do");
                     }
-                } else // OUT
-                 if (newOrigFile.exists()) {
+                } else { // OUT
+                    if (newOrigFile.exists()) {
                         if (Files.isSymbolicLink(newOrigFile.toPath())) {
                             // Unexpected case
                             String msg = "ERROR: Unexpected case. A Problem occurred with File " + renamedFilePath
@@ -428,6 +434,7 @@ public class Executor implements Runnable {
                             throw new JobExecutionException(msg);
                         }
                     }
+                }
             }
         }
     }
@@ -535,6 +542,7 @@ public class Executor implements Runnable {
                                 }
                                 invoker = new CInvoker(context, invocation, taskSandboxWorkingDir, assignedResources, cPipes);
                             }
+                            break;
                         default:
                             throw new JobExecutionException("Unrecognised lang for a method type invocation");
                     }

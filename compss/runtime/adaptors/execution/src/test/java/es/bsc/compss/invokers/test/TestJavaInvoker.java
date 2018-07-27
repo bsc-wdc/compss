@@ -100,6 +100,22 @@ public class TestJavaInvoker extends TestObject {
         return (temp);
     }
 
+    private static boolean deleteSandbox(File directory) {
+        if (directory.exists()) {
+            File[] files = directory.listFiles();
+            if (null != files) {
+                for (int i = 0; i < files.length; i++) {
+                    if (files[i].isDirectory()) {
+                        deleteSandbox(files[i]);
+                    } else {
+                        files[i].delete();
+                    }
+                }
+            }
+        }
+        return (directory.delete());
+    }
+
     @Test
     public void nonExistentClassTest() throws InvalidMapException, IOException, JobExecutionException {
 
@@ -119,6 +135,7 @@ public class TestJavaInvoker extends TestObject {
                 fail("Test should fail because class could not be found. Obtained error is " + jee.getMessage());
             }
         }
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -140,6 +157,7 @@ public class TestJavaInvoker extends TestObject {
                 fail("Test should fail because method could not be found. Obtained error is " + jee.getMessage());
             }
         }
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -173,6 +191,7 @@ public class TestJavaInvoker extends TestObject {
                 fail("Test should fail because method could not be found. Obtained error is " + jee.getMessage());
             }
         }
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -196,6 +215,7 @@ public class TestJavaInvoker extends TestObject {
 
         ExecutionReport report = executions.remove(executorId);
         report.checkReport(TEST_EMPTY_METHODNAME, true, new Object[]{}, null, null);
+        deleteSandbox(sandBoxDir);
 
     }
 
@@ -242,6 +262,7 @@ public class TestJavaInvoker extends TestObject {
 
         ExecutionReport report = executions.remove(executorId);
         report.checkReport(TEST_READS_METHODNAME, true, new Object[]{value1, value2}, null, null);
+        deleteSandbox(sandBoxDir);
     }
 
     public static void testReads(TestObject a, TestObject b) {
@@ -291,6 +312,7 @@ public class TestJavaInvoker extends TestObject {
 
         ExecutionReport report = executions.remove(executorId);
         report.checkReport(TEST_INOUT_METHODNAME, true, new Object[]{out1, out2}, null, null);
+        deleteSandbox(sandBoxDir);
     }
 
     public static void testInouts(TestObject a, TestObject b) {
@@ -322,6 +344,7 @@ public class TestJavaInvoker extends TestObject {
         } catch (NullPointerException npe) {
             //Executing a instance method on null -> Raise Exception
         }
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -354,6 +377,7 @@ public class TestJavaInvoker extends TestObject {
 
         ExecutionReport report = executions.remove(executorId);
         report.checkReport(TEST_TARGET_IN_METHODNAME, true, new Object[]{}, target, null);
+        deleteSandbox(sandBoxDir);
 
     }
 
@@ -398,6 +422,7 @@ public class TestJavaInvoker extends TestObject {
         invoker.processTask();
         ExecutionReport report = executions.remove(executorId);
         report.checkReport(TEST_TARGET_INOUT_METHODNAME, true, new Object[]{}, target, null);
+        deleteSandbox(sandBoxDir);
     }
 
     public void testTargetInout() {
@@ -440,6 +465,7 @@ public class TestJavaInvoker extends TestObject {
 
         ExecutionReport report = executions.remove(executorId);
         report.checkReport(TEST_RESULT_METHODNAME, true, new Object[]{}, null, null);
+        deleteSandbox(sandBoxDir);
     }
 
     public static TestObject testResult() {

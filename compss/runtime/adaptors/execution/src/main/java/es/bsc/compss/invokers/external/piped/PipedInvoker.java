@@ -29,7 +29,6 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import java.io.File;
-import java.util.LinkedList;
 
 
 /**
@@ -92,7 +91,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
     private void updateParam(InvocationParam param, ExternalTaskStatus taskStatus, int parIdx) {
         DataType paramType = taskStatus.getParameterType(parIdx);
         Object value;
-        if (paramType.equals(DataType.EXTERNAL_PSCO_T)) {
+        if (paramType != null && paramType.equals(DataType.EXTERNAL_PSCO_T)) {
             param.setType(paramType);
             value = taskStatus.getParameterValue(parIdx);
             param.setValue(value);
@@ -100,6 +99,5 @@ public abstract class PipedInvoker extends ExternalInvoker {
                 param.setValueClass(value.getClass());
             }
         }
-
     }
 }

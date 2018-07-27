@@ -79,18 +79,16 @@ public class Task implements Comparable<Task> {
      * @param isReplicated
      * @param isDistributed
      * @param numReturns
-     * @param hasReturn
      * @param hasTarget
      * @param parameters
      */
     public Task(Long appId, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-            boolean hasTarget, boolean hasReturn, int numReturns, Parameter[] parameters) {
+            boolean hasTarget, int numReturns, Parameter[] parameters) {
 
         this.appId = appId;
         this.taskId = nextTaskId.getAndIncrement();
         this.status = TaskState.TO_ANALYSE;
-        this.taskDescription = new TaskDescription(signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, hasReturn,
-                numReturns, parameters);
+        this.taskDescription = new TaskDescription(signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns, parameters);
         this.predecessors = new LinkedList<>();
         this.successors = new LinkedList<>();
         this.executions = new LinkedList<>();
@@ -106,18 +104,16 @@ public class Task implements Comparable<Task> {
      * @param operation
      * @param isPrioritary
      * @param hasTarget
-     * @param hasReturn
      * @param numReturns
      * @param parameters
      */
     public Task(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary, boolean hasTarget,
-            boolean hasReturn, int numReturns, Parameter[] parameters) {
+            int numReturns, Parameter[] parameters) {
 
         this.appId = appId;
         this.taskId = nextTaskId.getAndIncrement();
         this.status = TaskState.TO_ANALYSE;
-        this.taskDescription = new TaskDescription(namespace, service, port, operation, isPrioritary, hasTarget, hasReturn, numReturns,
-                parameters);
+        this.taskDescription = new TaskDescription(namespace, service, port, operation, isPrioritary, hasTarget, numReturns, parameters);
         this.predecessors = new LinkedList<>();
         this.successors = new LinkedList<>();
         this.executions = new LinkedList<>();
@@ -174,6 +170,7 @@ public class Task implements Comparable<Task> {
     /**
      * Sets the synchronization id of the task to @syncId
      *
+     * @param syncId
      */
     public void setSynchronizationId(int syncId) {
         this.synchronizationId = syncId;

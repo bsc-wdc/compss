@@ -23,6 +23,7 @@ import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.util.BinaryRunner;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -30,8 +31,6 @@ import es.bsc.compss.types.implementations.BinaryImplementation;
 import java.io.PrintStream;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 
 
 public class BinaryInvoker extends Invoker {
@@ -64,8 +63,12 @@ public class BinaryInvoker extends Invoker {
             throw new JobExecutionException(iee);
         }
         for (InvocationParam np : this.invocation.getResults()) {
-            np.setValue(retValue);
-            np.setValueClass(retValue.getClass());
+            if (np.getType() == DataType.FILE_T) {
+                serializeBinaryExitValue(np, retValue);
+            } else {
+                np.setValue(retValue);
+                np.setValueClass(retValue.getClass());
+            }
         }
     }
 

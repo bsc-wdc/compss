@@ -67,7 +67,6 @@ public class NIOTask implements Externalizable, Invocation {
      * @param workerDebug
      * @param impl
      * @param hasTarget
-     * @param hasReturn
      * @param params
      * @param numReturns
      * @param numParams
@@ -79,8 +78,7 @@ public class NIOTask implements Externalizable, Invocation {
      * @param hist
      * @param transferGroupId
      */
-    public NIOTask(String lang, boolean workerDebug, AbstractMethodImplementation impl, boolean hasTarget, boolean hasReturn,
-            int numReturns, LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs, List<String> slaveWorkersNodeNames,
+    public NIOTask(String lang, boolean workerDebug, AbstractMethodImplementation impl, boolean hasTarget, int numReturns, LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs, List<String> slaveWorkersNodeNames,
             int taskId, TaskType taskType, int jobId, JobHistory hist, int transferGroupId) {
         this.lang = Lang.valueOf(lang.toUpperCase());
         this.workerDebug = workerDebug;
@@ -88,10 +86,8 @@ public class NIOTask implements Externalizable, Invocation {
         this.arguments = new LinkedList<>();
         this.results = new LinkedList<>();
         int parIdx = params.size() - 1;
-        if (hasReturn) {
-            for (int rIdx = numReturns; rIdx > 0; rIdx--) {
-                results.addFirst(params.get(parIdx--));
-            }
+        for (int rIdx = numReturns; rIdx > 0; rIdx--) {
+            results.addFirst(params.get(parIdx--));
         }
         if (hasTarget) {
             target = params.get(parIdx--);

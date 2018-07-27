@@ -32,8 +32,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Iterator;
-import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -191,14 +189,11 @@ public abstract class Invoker {
         /* Invoke the requested method ****************************** */
         invoke();
 
-        /* Check SCO persistence for return and target ************** */
         storeFinalValues();
     }
 
-    public void serializeBinaryExitValue() throws JobExecutionException {
+    public void serializeBinaryExitValue(InvocationParam returnParam, Object exitValue) throws JobExecutionException {
         LOGGER.debug("Checking binary exit value serialization");
-
-        InvocationParam returnParam = invocation.getResults().get(0);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("- Param Type: " + returnParam.getType().name());
             LOGGER.debug("- Preserve source data: " + returnParam.isPreserveSourceData());
@@ -206,16 +201,13 @@ public abstract class Invoker {
             LOGGER.debug("- Prefix: " + returnParam.getPrefix());
         }
 
-        // Last parameter is a FILE, direction OUT, with skip prefix => return in Python
-        if (returnParam.getType().equals(DataType.FILE_T) && !returnParam.isPreserveSourceData() && returnParam.isWriteFinalValue()
-                && returnParam.getPrefix().equals(Constants.PREFIX_SKIP)) {
-
+        if (returnParam.getType().equals(DataType.FILE_T)) {
             // Write exit value to the file
             String renaming = returnParam.getOriginalName();
-            LOGGER.info("Writing Binary Exit Value (" + returnParam.getValue().toString() + ") to " + renaming);
+            LOGGER.info("Writing Binary Exit Value (" + exitValue.toString() + ") to " + renaming);
 
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(renaming))) {
-                String value = "0000I" + returnParam.getValue().toString() + "\n.\n";
+                String value = "I" + exitValue + "\n.\n";
                 writer.write(value);
                 writer.flush();
             } catch (IOException ioe) {
@@ -227,39 +219,13 @@ public abstract class Invoker {
     private void storeFinalValues() {
         // Check all parameters and target
         for (InvocationParam np : this.invocation.getParams()) {
-            checkSCOPersistence(np);
             storeValue(np);
         }
         if (this.invocation.getTarget() != null) {
-            checkSCOPersistence(this.invocation.getTarget());
             storeValue(this.invocation.getTarget());
         }
         for (InvocationParam np : this.invocation.getResults()) {
-            checkSCOPersistence(np);
             storeValue(np);
-        }
-    }
-
-    private void checkSCOPersistence(InvocationParam np) {
-        boolean potentialPSCO = (np.getType().equals(DataType.OBJECT_T)) || (np.getType().equals(DataType.PSCO_T));
-        if (np.isWriteFinalValue() && potentialPSCO) {
-            Object obj = np.getValue();
-
-            // Check if it is a PSCO and has been persisted in task
-            String id = null;
-            try {
-                StubItf psco = (StubItf) obj;
-                id = psco.getID();
-            } catch (Exception e) {
-                // No need to raise an exception because normal objects are not PSCOs
-                id = null;
-            }
-
-            // Update to PSCO if needed
-            if (id != null) {
-                // Object has been persisted, we store the PSCO and change the value to its ID
-                np.setType(DataType.PSCO_T);
-            }
         }
     }
 

@@ -32,7 +32,7 @@ public interface COMPSsRuntime {
 
     /**
      * Stops the COMPSs Runtime
-     * 
+     *
      * @param terminate
      */
     public void stopIT(boolean terminate);
@@ -43,7 +43,7 @@ public interface COMPSsRuntime {
      ******************************************************************************************************************/
     /**
      * Returns the COMPSs Application Directory
-     * 
+     *
      * @return
      */
     public String getApplicationDirectory();
@@ -54,7 +54,7 @@ public interface COMPSsRuntime {
      ******************************************************************************************************************/
     /**
      * Registers a new CoreElement in the Runtime
-     * 
+     *
      * @param coreElementSignature
      * @param implSignature
      * @param implConstraints
@@ -66,7 +66,7 @@ public interface COMPSsRuntime {
 
     /**
      * New Method task for C Binding
-     * 
+     *
      * @param appId
      * @param methodClass
      * @param methodName
@@ -81,7 +81,7 @@ public interface COMPSsRuntime {
 
     /**
      * New Method task for Python Binding
-     * 
+     *
      * @param appId
      * @param signature
      * @param isPrioritary
@@ -89,6 +89,7 @@ public interface COMPSsRuntime {
      * @param isReplicated
      * @param isDistributed
      * @param hasTarget
+     * @param numReturns
      * @param parameterCount
      * @param parameters
      * @return
@@ -98,9 +99,9 @@ public interface COMPSsRuntime {
 
     /**
      * New Method Task for Loader
-     * 
+     *
      * @param appId
-     * @param methdoClass
+     * @param methodClass
      * @param methodName
      * @param isPrioritary
      * @param numNodes
@@ -116,7 +117,7 @@ public interface COMPSsRuntime {
 
     /**
      * New service task
-     * 
+     *
      * @param appId
      * @param namespace
      * @param service
@@ -136,30 +137,30 @@ public interface COMPSsRuntime {
 
     /**
      * Notifies the Runtime that there are no more tasks created by the current appId
-     * 
+     *
      * @param appId
      */
     public void noMoreTasks(Long appId);
 
     /**
      * Freezes the task generation until all previous tasks have been executed
-     * 
+     *
      * @param appId
      */
     public void barrier(Long appId);
 
     /**
-     * Freezes the task generation until all previous tasks have been executed.
-     * The noMoreTasks parameter indicates whether to expect new tasks after the barrier or not
-     * 
+     * Freezes the task generation until all previous tasks have been executed. The noMoreTasks parameter indicates
+     * whether to expect new tasks after the barrier or not
+     *
      * @param appId
      * @param noMoreTasks
      */
     public void barrier(Long appId, boolean noMoreTasks);
-    
+
     /**
      * Deregisters an object to eventually free its memory
-     * 
+     *
      * @param o
      */
     public void deregisterObject(Long appId, Object o);
@@ -170,7 +171,7 @@ public interface COMPSsRuntime {
      ******************************************************************************************************************/
     /**
      * Returns the renaming of the file version opened
-     * 
+     *
      * @param fileName
      * @param mode
      * @return
@@ -179,7 +180,7 @@ public interface COMPSsRuntime {
 
     /**
      * close the opened file version
-     * 
+     *
      * @param fileName
      * @param mode
      * @return
@@ -188,35 +189,35 @@ public interface COMPSsRuntime {
 
     /**
      * Deletes the specified version of a file
-     * 
+     *
      * @param fileName
      * @return
      */
     public boolean deleteFile(String fileName);
-    
+
     /**
      * Returns the renaming of the binding object version opened
-     * 
+     *
      * @param objectName
      * @return id in the cache
      */
     public String getBindingObject(String bindingObjectName);
-    
+
     /**
      * removes the binding object from runtime
-     * 
+     *
      * @param objectName
      * @return id in the cache
      */
     public boolean deleteBindingObject(String bindingObjectName);
-    
+
     /*
      * *****************************************************************************************************************
      * TOOLS ACCESS FOR BINDINGS
      ******************************************************************************************************************/
     /**
      * Emits a tracing event
-     * 
+     *
      * @param type
      * @param id
      */

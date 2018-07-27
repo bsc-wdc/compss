@@ -64,6 +64,22 @@ public class TestInvoker {
         return (temp);
     }
 
+    private static boolean deleteSandbox(File directory) {
+        if (directory.exists()) {
+            File[] files = directory.listFiles();
+            if (null != files) {
+                for (int i = 0; i < files.length; i++) {
+                    if (files[i].isDirectory()) {
+                        deleteSandbox(files[i]);
+                    } else {
+                        files[i].delete();
+                    }
+                }
+            }
+        }
+        return (directory.delete());
+    }
+
     @Test
     public void EmptyInvoker() throws InvalidMapException, IOException, JobExecutionException {
 
@@ -90,6 +106,7 @@ public class TestInvoker {
 
         expectedEvents.testCompleted();
         checkInvocation(invocation, new InvocationParam[]{}, null, null);
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -126,6 +143,7 @@ public class TestInvoker {
         InvocationParam endParam0 = new FakeInvocationParam(DataType.BOOLEAN_T, "", Stream.UNSPECIFIED, "", "", false);
         endParam0.setValue(true);
         checkInvocation(invocation, new InvocationParam[]{endParam0}, null, null);
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -162,7 +180,7 @@ public class TestInvoker {
         InvocationParam endParam0 = new FakeInvocationParam(DataType.CHAR_T, "", Stream.UNSPECIFIED, "", "", false);
         endParam0.setValue('a');
         checkInvocation(invocation, new InvocationParam[]{endParam0}, null, null);
-
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -199,6 +217,7 @@ public class TestInvoker {
         InvocationParam endParam0 = new FakeInvocationParam(DataType.BYTE_T, "", Stream.UNSPECIFIED, "", "", false);
         endParam0.setValue(240);
         checkInvocation(invocation, new InvocationParam[]{endParam0}, null, null);
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -235,6 +254,7 @@ public class TestInvoker {
         InvocationParam endParam0 = new FakeInvocationParam(DataType.SHORT_T, "", Stream.UNSPECIFIED, "", "", false);
         endParam0.setValue(25);
         checkInvocation(invocation, new InvocationParam[]{endParam0}, null, null);
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -271,6 +291,7 @@ public class TestInvoker {
         InvocationParam endParam0 = new FakeInvocationParam(DataType.INT_T, "", Stream.UNSPECIFIED, "", "", false);
         endParam0.setValue(878544);
         checkInvocation(invocation, new InvocationParam[]{endParam0}, null, null);
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -307,6 +328,7 @@ public class TestInvoker {
         InvocationParam endParam0 = new FakeInvocationParam(DataType.LONG_T, "", Stream.UNSPECIFIED, "", "", false);
         endParam0.setValue(832478544);
         checkInvocation(invocation, new InvocationParam[]{endParam0}, null, null);
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -343,6 +365,7 @@ public class TestInvoker {
         InvocationParam endParam0 = new FakeInvocationParam(DataType.FLOAT_T, "", Stream.UNSPECIFIED, "", "", false);
         endParam0.setValue(832.23f);
         checkInvocation(invocation, new InvocationParam[]{endParam0}, null, null);
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -379,6 +402,7 @@ public class TestInvoker {
         InvocationParam endParam0 = new FakeInvocationParam(DataType.DOUBLE_T, "", Stream.UNSPECIFIED, "", "", false);
         endParam0.setValue(83.31415644d);
         checkInvocation(invocation, new InvocationParam[]{endParam0}, null, null);
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -415,6 +439,7 @@ public class TestInvoker {
         InvocationParam endParam0 = new FakeInvocationParam(DataType.STRING_T, "", Stream.UNSPECIFIED, "", "", false);
         endParam0.setValue("Test String");
         checkInvocation(invocation, new InvocationParam[]{endParam0}, null, null);
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -459,6 +484,7 @@ public class TestInvoker {
         InvocationParam endParam1 = new FakeInvocationParam(DataType.STRING_T, "", Stream.UNSPECIFIED, "", "", false);
         endParam1.setValue("Test String");
         checkInvocation(invocation, new InvocationParam[]{endParam0, endParam1}, null, null);
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -496,6 +522,7 @@ public class TestInvoker {
         InvocationParam endParam0 = new FakeInvocationParam(DataType.OBJECT_T, "", Stream.UNSPECIFIED, "", renaming, false);
         endParam0.setValue(new TestObject(3));
         checkInvocation(invocation, new InvocationParam[]{endParam0}, null, null);
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -535,6 +562,7 @@ public class TestInvoker {
         InvocationParam endParam0 = new FakeInvocationParam(DataType.OBJECT_T, "", Stream.UNSPECIFIED, "", renaming, false);
         endParam0.setValue(new TestObject(5));
         checkInvocation(invocation, new InvocationParam[]{endParam0}, null, null);
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -570,6 +598,7 @@ public class TestInvoker {
         InvocationParam target = new FakeInvocationParam(DataType.OBJECT_T, "", Stream.UNSPECIFIED, "", renaming, false);
         target.setValue(new TestObject(3));
         checkInvocation(invocation, new InvocationParam[]{}, target, null);
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -608,6 +637,7 @@ public class TestInvoker {
         InvocationParam target = new FakeInvocationParam(DataType.OBJECT_T, "", Stream.UNSPECIFIED, "", renaming, true);
         target.setValue(new TestObject(5));
         checkInvocation(invocation, new InvocationParam[]{}, target, null);
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -647,6 +677,7 @@ public class TestInvoker {
         InvocationParam result = new FakeInvocationParam(DataType.OBJECT_T, "", Stream.UNSPECIFIED, "", renaming, true);
         result.setValue(new TestObject(5));
         checkInvocation(invocation, new InvocationParam[]{}, null, new InvocationParam[]{result});
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -684,6 +715,7 @@ public class TestInvoker {
         InvocationParam endParam0 = new FakeInvocationParam(DataType.PSCO_T, "", Stream.UNSPECIFIED, "", id, false);
         endParam0.setValue(new StorageTestObject(id, 3));
         checkInvocation(invocation, new InvocationParam[]{endParam0}, null, null);
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -722,6 +754,7 @@ public class TestInvoker {
         InvocationParam endParam0 = new FakeInvocationParam(DataType.PSCO_T, "", Stream.UNSPECIFIED, "", id, false);
         endParam0.setValue(new StorageTestObject(id, 3));
         checkInvocation(invocation, new InvocationParam[]{endParam0}, null, null);
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -761,6 +794,7 @@ public class TestInvoker {
         InvocationParam endParam0 = new FakeInvocationParam(DataType.PSCO_T, "", Stream.UNSPECIFIED, "", id, true);
         endParam0.setValue(new StorageTestObject(id, 5));
         checkInvocation(invocation, new InvocationParam[]{endParam0}, null, null);
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -801,6 +835,7 @@ public class TestInvoker {
         InvocationParam endParam0 = new FakeInvocationParam(DataType.PSCO_T, "", Stream.UNSPECIFIED, "", id, true);
         endParam0.setValue(new StorageTestObject(id, 5));
         checkInvocation(invocation, new InvocationParam[]{endParam0}, null, null);
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -842,6 +877,7 @@ public class TestInvoker {
         InvocationParam endParam0 = new FakeInvocationParam(DataType.PSCO_T, "", Stream.UNSPECIFIED, "", id, true);
         endParam0.setValue(new StorageTestObject(id, 3));
         checkInvocation(invocation, new InvocationParam[]{endParam0}, null, null);
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -879,6 +915,7 @@ public class TestInvoker {
         InvocationParam target = new FakeInvocationParam(DataType.PSCO_T, "", Stream.UNSPECIFIED, "", id, false);
         target.setValue(new StorageTestObject(id, 3));
         checkInvocation(invocation, new InvocationParam[]{}, target, null);
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -917,6 +954,7 @@ public class TestInvoker {
         InvocationParam target = new FakeInvocationParam(DataType.PSCO_T, "", Stream.UNSPECIFIED, "", id, false);
         target.setValue(new StorageTestObject(id, 3));
         checkInvocation(invocation, new InvocationParam[]{}, target, null);
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -956,6 +994,7 @@ public class TestInvoker {
         InvocationParam target = new FakeInvocationParam(DataType.PSCO_T, "", Stream.UNSPECIFIED, "", id, true);
         target.setValue(new StorageTestObject(id, 5));
         checkInvocation(invocation, new InvocationParam[]{}, target, null);
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -996,6 +1035,7 @@ public class TestInvoker {
         InvocationParam target = new FakeInvocationParam(DataType.PSCO_T, "", Stream.UNSPECIFIED, "", id, true);
         target.setValue(new StorageTestObject(id, 5));
         checkInvocation(invocation, new InvocationParam[]{}, target, null);
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -1037,6 +1077,7 @@ public class TestInvoker {
         InvocationParam target = new FakeInvocationParam(DataType.PSCO_T, "", Stream.UNSPECIFIED, "", id, true);
         target.setValue(new StorageTestObject(id, 5));
         checkInvocation(invocation, new InvocationParam[]{}, target, null);
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -1075,6 +1116,7 @@ public class TestInvoker {
         InvocationParam result = new FakeInvocationParam(DataType.PSCO_T, "", Stream.UNSPECIFIED, "", id, true);
         result.setValue(new StorageTestObject(id, 5));
         checkInvocation(invocation, new InvocationParam[]{}, null, new InvocationParam[]{result});
+        deleteSandbox(sandBoxDir);
     }
 
     @Test
@@ -1114,6 +1156,7 @@ public class TestInvoker {
         InvocationParam result = new FakeInvocationParam(DataType.PSCO_T, "", Stream.UNSPECIFIED, "", id, true);
         result.setValue(new StorageTestObject(id, 5));
         checkInvocation(invocation, new InvocationParam[]{}, null, new InvocationParam[]{result});
+        deleteSandbox(sandBoxDir);
     }
 
     private static void checkInvocation(Invocation invocation, InvocationParam[] params, InvocationParam target, InvocationParam[] results) {

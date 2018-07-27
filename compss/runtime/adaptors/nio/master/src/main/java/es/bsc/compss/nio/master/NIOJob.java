@@ -87,17 +87,15 @@ public class NIOJob extends Job<NIOWorkerNode> {
         }
 
         boolean hasTarget = taskParams.hasTargetObject();
-        boolean hasReturn = taskParams.hasReturnValue();
+
         int numReturns = taskParams.getNumReturns();
         LinkedList<NIOParam> params = addParams();
         MethodResourceDescription reqs = absMethodImpl.getRequirements();
         int numParams = params.size();
-        if (taskParams.hasReturnValue()) {
-            numParams--;
-        }
+        numParams -= taskParams.getNumReturns();
 
         // Create NIOTask
-        NIOTask nt = new NIOTask(LANG, debug, absMethodImpl, hasTarget, hasReturn, numReturns, params, numParams, reqs,
+        NIOTask nt = new NIOTask(LANG, debug, absMethodImpl, hasTarget, numReturns, params, numParams, reqs,
                 this.slaveWorkersNodeNames, this.taskId, this.taskParams.getType(), this.jobId, this.history, this.transferId);
 
         return nt;

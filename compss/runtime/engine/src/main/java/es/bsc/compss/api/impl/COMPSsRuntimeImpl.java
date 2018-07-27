@@ -612,7 +612,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     private int executeTask(Long appId, boolean hasSignature, String methodClass, String methodName, String signature, boolean isPrioritary,
             int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount,
             Object... parameters) {
-
         // Tracing flag for task creation
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
@@ -634,7 +633,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         Parameter[] pars = processParameters(parameterCount, parameters);
         
         Lang l = Lang.JAVA;
-
         String langProperty = System.getProperty(COMPSsConstants.LANG);
         if (langProperty != null) {
             if (langProperty.equalsIgnoreCase(COMPSsConstants.Lang.PYTHON.name())) {
@@ -643,32 +641,25 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 l = Lang.C;
             }
         }
-        
-        Lang LANG = l;
-        boolean hasReturn = false;
-        switch (LANG) {
-        	case PYTHON: 
-        	case JAVA:
-        		hasReturn = hasReturn(pars);
-        		if (numReturns == null) {
-                    numReturns = hasReturn ? 1 : 0;
-        		}
-        		break;
-        	case C:
-        		if (numReturns>0) {
-                	hasReturn=true;
-                }
-        		break;
+
+        if (numReturns == null) {
+            hasReturn = hasReturn(pars);
+            numReturns = hasReturn ? 1 : 0;
+        } else {
+            hasReturn = numReturns > 0;
+        }
+        if (l == Lang.PYTHON) {
+            numReturns = 0;
+
         }
 
         // Create the signature if it is not created
         if (!hasSignature) {
-            signature = MethodImplementation.getSignature(methodClass, methodName, hasTarget, hasReturn, pars);
+            signature = MethodImplementation.getSignature(methodClass, methodName, hasTarget, numReturns, pars);
         }
 
         // Register the task
-        int task = ap.newTask(appId, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, hasReturn, numReturns,
-                pars);
+        int task = ap.newTask(appId, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns, pars);
 
         // End tracing event
         if (Tracer.isActivated()) {
@@ -724,7 +715,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         int numReturns = hasReturn ? 1 : 0;
 
         // Register the task
-        int task = ap.newTask(appId, namespace, service, port, operation, isPrioritary, hasTarget, hasReturn, numReturns, pars);
+        int task = ap.newTask(appId, namespace, service, port, operation, isPrioritary, hasTarget, numReturns, pars);
 
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());

@@ -34,7 +34,6 @@ import es.bsc.compss.types.resources.ResourceDescription;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 

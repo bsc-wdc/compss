@@ -32,8 +32,6 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 
 
 public class OmpSsInvoker extends Invoker {

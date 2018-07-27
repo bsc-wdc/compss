@@ -44,7 +44,6 @@ public class TaskDescription implements Serializable {
 
     private final Parameter[] parameters;
     private final boolean hasTarget;
-    private final boolean hasReturn;
     private final int numReturns;
 
     /**
@@ -56,12 +55,11 @@ public class TaskDescription implements Serializable {
      * @param isReplicated
      * @param isDistributed
      * @param hasTarget
-     * @param hasReturn
      * @param numReturns
      * @param parameters
      */
     public TaskDescription(String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-            boolean hasTarget, boolean hasReturn, int numReturns, Parameter[] parameters) {
+            boolean hasTarget, int numReturns, Parameter[] parameters) {
 
         this.type = TaskType.METHOD;
         this.signature = signature;
@@ -74,7 +72,6 @@ public class TaskDescription implements Serializable {
 
         this.hasTarget = hasTarget;
         this.parameters = parameters;
-        this.hasReturn = hasReturn;
         this.numReturns = numReturns;
 
         if (this.numNodes < Constants.SINGLE_NODE) {
@@ -91,12 +88,10 @@ public class TaskDescription implements Serializable {
      * @param operation
      * @param isPrioritary
      * @param hasTarget
-     * @param hasReturn
      * @param numReturns
      * @param parameters
      */
-    public TaskDescription(String namespace, String service, String port, String operation, boolean isPrioritary, boolean hasTarget,
-            boolean hasReturn, int numReturns, Parameter[] parameters) {
+    public TaskDescription(String namespace, String service, String port, String operation, boolean isPrioritary, boolean hasTarget, int numReturns, Parameter[] parameters) {
 
         this.type = TaskType.SERVICE;
 
@@ -106,11 +101,10 @@ public class TaskDescription implements Serializable {
         this.mustDistribute = Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK);
 
         this.hasTarget = hasTarget;
-        this.hasReturn = hasReturn;
         this.numReturns = numReturns;
         this.parameters = parameters;
 
-        this.signature = ServiceImplementation.getSignature(namespace, service, port, operation, hasTarget, hasReturn, parameters);
+        this.signature = ServiceImplementation.getSignature(namespace, service, port, operation, hasTarget, numReturns, parameters);
         this.coreId = CoreManager.getCoreId(this.signature);
     }
 
@@ -203,15 +197,8 @@ public class TaskDescription implements Serializable {
     }
 
     /**
-     * Returns whether the task has return value or not
      *
-     * @return
-     */
-    public boolean hasReturnValue() {
-        return this.hasReturn;
-    }
-
-    /**
+     * /**
      * Returns the number of return values of the task
      *
      * @return
@@ -245,9 +232,7 @@ public class TaskDescription implements Serializable {
         if (this.hasTarget) {
             numParams--;
         }
-        if (this.hasReturn) {
-            numParams--;
-        }
+        numParams -= numReturns;
         if (numParams > 0) {
             buffer.append(this.parameters[0].getType());
             for (int i = 1; i < numParams; i++) {

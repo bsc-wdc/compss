@@ -419,14 +419,14 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 break;
             case DECAF:
                 DecafImplementation decafImpl = (DecafImplementation) absImpl;
-                
+
                 String dfScript = decafImpl.getDfScript();
                 if (!dfScript.startsWith(File.separator)) {
                     String appPath = getResourceNode().getAppDir();
                     dfScript = appPath + File.separator + dfScript;
                 }
                 lArgs.add(dfScript);
-                
+
                 String dfExecutor = decafImpl.getDfExecutor();
                 if (dfExecutor == null || dfExecutor.isEmpty() || dfExecutor.equals(Constants.UNASSIGNED)) {
                     dfExecutor = "executor.sh";
@@ -435,13 +435,13 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                     dfExecutor = "./" + dfExecutor;
                 }
                 lArgs.add(dfExecutor);
-                
+
                 String dfLib = decafImpl.getDfLib();
                 if (dfLib == null || dfLib.isEmpty()) {
                     dfLib = Constants.UNASSIGNED;
                 }
                 lArgs.add(dfLib);
-                
+
                 lArgs.add(decafImpl.getMpiRunner());
                 break;
             case OMPSS:
@@ -585,20 +585,22 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         logger.debug("Processing parameters for GAT job " + this.jobId);
         lArgs.add(Boolean.toString(taskParams.hasTargetObject()));
 
-        // Add return type
-        if (taskParams.hasReturnValue()) {
-            Parameter returnParam = taskParams.getParameters()[taskParams.getParameters().length - 1];
+        // Add return types
+        int numReturns = taskParams.getNumReturns();
+        int totalParams = taskParams.getParameters().length;
+        for (int paramIdx = totalParams - numReturns; paramIdx < totalParams; paramIdx++) {
+            Parameter returnParam = taskParams.getParameters()[paramIdx];
             lArgs.add(Integer.toString(returnParam.getType().ordinal()));
-        } else {
+        }
+        if (numReturns == 0) {
             lArgs.add("null");
         }
+
         lArgs.add(Integer.toString(taskParams.getNumReturns()));
 
         // Add parameters
         int numParams = taskParams.getParameters().length;
-        if (taskParams.hasReturnValue()) {
-            numParams--;
-        }
+        numParams -= numReturns;
         lArgs.add(Integer.toString(numParams));
         for (Parameter param : taskParams.getParameters()) {
             DataType type = param.getType();

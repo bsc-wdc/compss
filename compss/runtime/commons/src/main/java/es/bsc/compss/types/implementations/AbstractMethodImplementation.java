@@ -28,9 +28,11 @@ import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
 
+
 public abstract class AbstractMethodImplementation extends Implementation implements Externalizable {
 
     private static final Lang LANG;
+
 
     public enum MethodType {
         METHOD, // For native methods
@@ -66,7 +68,7 @@ public abstract class AbstractMethodImplementation extends Implementation implem
         super(coreId, implementationId, annot);
     }
 
-    public static String getSignature(String declaringClass, String methodName, boolean hasTarget, boolean hasReturn,
+    public static String getSignature(String declaringClass, String methodName, boolean hasTarget, int numReturns,
             Parameter[] parameters) {
 
         StringBuilder buffer = new StringBuilder();
@@ -79,9 +81,7 @@ public abstract class AbstractMethodImplementation extends Implementation implem
                 if (hasTarget) {
                     numPars--;
                 }
-                if (hasReturn) {
-                    numPars--;
-                }
+                numPars -= numReturns;
                 if (numPars > 0) {
                     DataType type = parameters[0].getType();
                     type = (type == DataType.PSCO_T) ? DataType.OBJECT_T : type;

@@ -95,7 +95,6 @@ public class TaskAnalyser {
     private int synchronizationId;
     private boolean taskDetectedAfterSync;
 
-
     /**
      * Creates a new Task Analyser instance
      *
@@ -175,11 +174,7 @@ public class TaskAnalyser {
         // Check scheduling enforcing data
         int constrainingParam = -1;
         if (params.getType() == TaskType.SERVICE && params.hasTargetObject()) {
-            if (params.hasReturnValue()) {
-                constrainingParam = params.getParameters().length - 2;
-            } else {
-                constrainingParam = params.getParameters().length - 1;
-            }
+            constrainingParam = params.getParameters().length - 1 - params.getNumReturns();
         }
 
         Parameter[] parameters = params.getParameters();

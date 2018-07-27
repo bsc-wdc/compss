@@ -17,12 +17,10 @@
 package es.bsc.compss.executors;
 
 import es.bsc.compss.COMPSsConstants.Lang;
-import static es.bsc.compss.types.execution.ThreadBinder.BINDER_DISABLED;
 import es.bsc.compss.executor.Executor;
 import es.bsc.compss.executor.Executor.ExecutorsContext;
 import es.bsc.compss.executor.types.Execution;
 import es.bsc.compss.executor.utils.ExecutionPlatformMirror;
-import es.bsc.compss.executor.utils.ResourceManager;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.invokers.test.utils.ExecutionFlowVerifier;
 import es.bsc.compss.invokers.test.utils.FakeInvocation;

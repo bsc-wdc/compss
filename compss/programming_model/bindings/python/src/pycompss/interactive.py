@@ -35,6 +35,9 @@ from pycompss.api.api import compss_stop
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.binding import pending_to_synchronize
 from pycompss.runtime.launch import initialize_compss
+from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
+from pycompss.util.scs import get_reservation_nodes
+from pycompss.util.scs import generate_xmls
 from pycompss.util.logs import init_logging
 
 # Warning! The name should start with 'InteractiveMode' due to @task checks
@@ -122,6 +125,7 @@ def start(log_level='off',
     :return: None
     """
 
+    # Prepare the environment
     launch_path = os.path.dirname(os.path.realpath(__file__))
     # compss_home = launch_path without the last 4 folders:
     # Bindings/python/version/pycompss
@@ -157,6 +161,7 @@ def start(log_level='off',
         # Enable the graph if the monitoring is enabled
         graph = True
 
+    # Export global variables
     global graphing
     graphing = graph
     global tracing
@@ -190,6 +195,12 @@ def start(log_level='off',
     ##############################################################
     # INITIALIZATION
     ##############################################################
+
+    if RUNNING_IN_SUPERCOMPUTER:
+        # Check the nodes names from the environment variables provided by the queuing system
+        nodes = get_reservation_nodes()
+        # Build project and resources xml if within a Supercomputer
+        project_xml, resources_xml = generate_xmls(compss_home, nodes)
 
     # Build a dictionary with all variables needed for initializing the runtime
     config = dict()

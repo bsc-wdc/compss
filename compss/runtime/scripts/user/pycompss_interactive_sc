@@ -234,8 +234,8 @@ check_args() {
   job_id=${job_id[1]}
   node=${node[1]}
   token=${token[1]}
-  echo "\t - Job id: ${job_id}"
-  # echo "\t - Token: ${token}"
+  echo "    - Job id: ${job_id}"
+  # echo "    - Token: ${token}"
 
   # Establish the port forwarding
   echo "Establishing port forwarding..."

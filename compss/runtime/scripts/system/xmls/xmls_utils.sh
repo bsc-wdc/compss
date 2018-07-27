@@ -13,15 +13,9 @@ create_xml_files() {
   local sec
   sec=$(date +%s)
 
-  if [ "$CREATE_WORKING_DIRS" = true ]; then
-      # Define the destination xml folder
-      RESOURCES_FILE=${worker_working_dir}/resources_$sec.xml
-      PROJECT_FILE=${worker_working_dir}/project_$sec.xml
-  else
-      # Destination folder will be the caller folder
-      RESOURCES_FILE=./resources_$sec.xml
-      PROJECT_FILE=./project_$sec.xml
-  fi
+  # Define the destination xml folder
+  RESOURCES_FILE=${worker_working_dir}/resources_$sec.xml
+  PROJECT_FILE=${worker_working_dir}/project_$sec.xml
 
   # Begin creating the resources file and the project file
   insert_xml_headers

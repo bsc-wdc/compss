@@ -130,8 +130,8 @@ get_args() {
             display_version 0
             ;;
           walltime=*)
-	        walltime=${OPTARG//walltime=/}
-	        ;;
+            walltime=${OPTARG//walltime=/}
+            ;;
           job_name=*)
             job_name=${OPTARG//job_name=/}
             ;;
@@ -218,9 +218,11 @@ check_args() {
   REMOTE_SCRIPT_DIR=${SCRIPTS_DIR}/../system/jupyter
 
   # Submit command and get connection info
+  echo "Submitting jupyter job..."
   connection_info=$(ssh ${user_name}@${supercomputer} "${REMOTE_SCRIPT_DIR}/submit_jupyter_job.sh ${walltime} ${job_name} ${nodes}" 2>&1)
 
   # Parse connection info
+  echo "Getting connection information..."
   job_id_line=$(echo "$connection_info" | grep "JobId:")     # beware with this grep - must be the same as in submit_jupyter_job.sh
   node_line=$(echo "$connection_info" | grep "MainNode:")    # beware with this grep - must be the same as in submit_jupyter_job.sh
   token_line=$(echo "$connection_info" | grep "Token:")      # beware with this grep - must be the same as in submit_jupyter_job.sh
@@ -232,17 +234,24 @@ check_args() {
   job_id=${job_id[1]}
   node=${node[1]}
   token=${token[1]}
+  echo "\t - Job id: ${job_id}"
+  # echo "\t - Token: ${token}"
 
   # Establish the port forwarding
+  echo "Establishing port forwarding..."
   #ssh -t -t ${user_name}@${supercomputer} -L 8888:localhost:8888 ssh ${node} -4 -L 8888:localhost:8888 > /dev/null 2>&1 &
   ssh -t -t ${user_name}@${supercomputer} -L 8888:localhost:8888 ssh ${node} -L 8888:localhost:8888 > /dev/null 2>&1 &
   RUNNING_PORT_FORWARDING_PID=$!
 
   # Wait 5 seconds to establish the port forwarding
+  echo "Wait... it is almost ready"
   sleep 5
 
   # Open the web browser
+  echo "Opening the web browser..."
   ${browser} localhost:8888
+  echo "Ready to work!"
+  echo ""
   echo "Waiting for ${browser} to be closed..."
   echo "To force quit: CTRL + C"
 

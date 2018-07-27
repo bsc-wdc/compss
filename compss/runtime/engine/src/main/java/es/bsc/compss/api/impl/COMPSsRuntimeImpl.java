@@ -631,26 +631,13 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
         // Process the parameters
         Parameter[] pars = processParameters(parameterCount, parameters);
-        
-        Lang l = Lang.JAVA;
-        String langProperty = System.getProperty(COMPSsConstants.LANG);
-        if (langProperty != null) {
-            if (langProperty.equalsIgnoreCase(COMPSsConstants.Lang.PYTHON.name())) {
-                l = Lang.PYTHON;
-            } else if (langProperty.equalsIgnoreCase(COMPSsConstants.Lang.C.name())) {
-                l = Lang.C;
-            }
-        }
 
+        boolean hasReturn;
         if (numReturns == null) {
             hasReturn = hasReturn(pars);
             numReturns = hasReturn ? 1 : 0;
         } else {
             hasReturn = numReturns > 0;
-        }
-        if (l == Lang.PYTHON) {
-            numReturns = 0;
-
         }
 
         // Create the signature if it is not created

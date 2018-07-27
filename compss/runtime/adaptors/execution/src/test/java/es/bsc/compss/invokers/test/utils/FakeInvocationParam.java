@@ -115,6 +115,11 @@ public class FakeInvocationParam implements InvocationParam {
     }
 
     @Override
+    public String getSourceDataId() {
+        return null;
+    }
+
+    @Override
     public List<InvocationParamURI> getSources() {
         //No resource where to get the data. Value is automatically provided
         return new LinkedList<>();

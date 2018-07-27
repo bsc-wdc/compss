@@ -83,7 +83,6 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
     }
     
     protected void init(InvocationContext context) {
-        LOGGER.info("STarting Mirror");
         String installDir = context.getInstallDir();
         String piperScript = installDir + PIPER_SCRIPT_RELATIVE_PATH + PIPE_SCRIPT_NAME;
         LOGGER.debug("PIPE Script: " + piperScript);

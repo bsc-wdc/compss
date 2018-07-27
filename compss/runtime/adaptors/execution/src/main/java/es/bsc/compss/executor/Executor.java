@@ -64,6 +64,8 @@ import java.io.PrintStream;
 
 public class Executor implements Runnable {
 
+    private static final boolean DEBUG_ON_TASK = false;
+
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
     private static final boolean WORKER_DEBUG = LOGGER.isDebugEnabled();
 
@@ -163,9 +165,14 @@ public class Executor implements Runnable {
         TaskWorkingDir twd = null;
 
         try {
+            if (DEBUG_ON_TASK) {
+                String streamsPath = context.getStandardStreamsPath(invocation);
+                context.registerOutputs(streamsPath);
+            }
+
             // Set the Task working directory
             twd = createTaskSandbox(invocation);
-
+            
             // Bind files to task sandbox working dir
             LOGGER.debug("Binding renamed files to sandboxed original names for Job " + invocation.getJobId());
             bindOriginalFilenamesToRenames(invocation, twd.getWorkingDir());
@@ -179,12 +186,14 @@ public class Executor implements Runnable {
 
             // Unbind files from task sandbox working dir
             LOGGER.debug("Removing renamed files to sandboxed original names for Job " + invocation.getJobId());
-            removeOriginalFilenames(invocation);
+            unbindOriginalFileNamesToRenames(invocation);
 
             // Check job output files
             LOGGER.debug("Checking generated files for Job " + invocation.getJobId());
             checkJobFiles(invocation);
-
+            if (DEBUG_ON_TASK) {
+                context.unregisterOutputs();
+            }
             // Return
             return true;
         } catch (Exception e) {
@@ -339,26 +348,26 @@ public class Executor implements Runnable {
         if (param.getType().equals(DataType.FILE_T)) {
             String renamedFilePath = (String) param.getValue();
             File renamedFile = new File(renamedFilePath);
-
             if (renamedFile.getName().equals(param.getOriginalName())) {
                 param.setOriginalName(renamedFilePath);
             } else {
-                String newOrigFilePath = sandbox.getAbsolutePath() + File.separator + param.getOriginalName();
-                LOGGER.debug("Setting Original Name to " + newOrigFilePath);
-                param.setOriginalName(newOrigFilePath);
-                File newOrigFile = new File(newOrigFilePath);
+                String inSandboxPath = sandbox.getAbsolutePath() + File.separator + param.getOriginalName();
+                LOGGER.debug("Setting Original Name to " + inSandboxPath);
+                param.setValue(inSandboxPath);
+                param.setOriginalName(renamedFilePath);
+                File inSandboxFile = new File(inSandboxPath);
                 if (renamedFile.exists()) {
                     // IN or INOUT File creating a symbolic link
-                    if (!newOrigFile.exists()) {
-                        LOGGER.debug("Creating symlink " + newOrigFile.toPath() + " pointing to " + renamedFile.toPath());
-                        Files.createSymbolicLink(newOrigFile.toPath(), renamedFile.toPath());
-                    } else if (Files.isSymbolicLink(newOrigFile.toPath())) {
-                        Path oldRenamed = Files.readSymbolicLink(newOrigFile.toPath());
+                    if (!inSandboxFile.exists()) {
+                        LOGGER.debug("Creating symlink " + inSandboxFile.toPath() + " pointing to " + renamedFile.toPath());
+                        Files.createSymbolicLink(inSandboxFile.toPath(), renamedFile.toPath());
+                    } else if (Files.isSymbolicLink(inSandboxFile.toPath())) {
+                        Path oldRenamed = Files.readSymbolicLink(inSandboxFile.toPath());
                         LOGGER.debug(
                                 "Checking if " + renamedFile.getName() + " is equal to " + oldRenamed.getFileName().toString());
                         if (isMajorVersion(renamedFile.getName(), oldRenamed.getFileName().toString())) {
-                            Files.delete(newOrigFile.toPath());
-                            Files.createSymbolicLink(newOrigFile.toPath(), renamedFile.toPath());
+                            Files.delete(inSandboxFile.toPath());
+                            Files.createSymbolicLink(inSandboxFile.toPath(), renamedFile.toPath());
                         }
                     }
                 }
@@ -374,59 +383,60 @@ public class Executor implements Runnable {
      * @throws JobExecutionException
      * @throws Exception returns exception is an unexpected case is found.
      */
-    private void removeOriginalFilenames(Invocation invocation) throws IOException, JobExecutionException {
+    private void unbindOriginalFileNamesToRenames(Invocation invocation) throws IOException, JobExecutionException {
         for (InvocationParam param : invocation.getParams()) {
-            removeOriginalFilename(param, invocation.getLang());
+            unbindOriginalFilenameToRename(param, invocation.getLang());
         }
         if (invocation.getTarget() != null) {
-            removeOriginalFilename(invocation.getTarget(), invocation.getLang());
+            unbindOriginalFilenameToRename(invocation.getTarget(), invocation.getLang());
         }
         for (InvocationParam param : invocation.getResults()) {
-            removeOriginalFilename(param, invocation.getLang());
+            unbindOriginalFilenameToRename(param, invocation.getLang());
         }
     }
 
-    private void removeOriginalFilename(InvocationParam param, Lang lang) throws IOException, JobExecutionException {
+    private void unbindOriginalFilenameToRename(InvocationParam param, Lang lang) throws IOException, JobExecutionException {
         if (param.getType().equals(DataType.FILE_T)) {
-            String renamedFilePath = (String) param.getValue();
-            String newOriginalFilePath = param.getOriginalName();
-            LOGGER.debug("Treating file " + renamedFilePath);
+            String inSandboxPath = (String) param.getValue();
+            String renamedFilePath = param.getOriginalName();
 
-            if (!renamedFilePath.equals(newOriginalFilePath)) {
-                File newOrigFile = new File(newOriginalFilePath);
+            LOGGER.debug("Treating file " + inSandboxPath);
+            File inSandboxFile = new File(inSandboxPath);
+            String originalFileName = inSandboxFile.getName();
+            if (!inSandboxPath.equals(renamedFilePath)) {
                 File renamedFile = new File(renamedFilePath);
 
                 if (renamedFile.exists()) {
                     // IN, INOUT
-                    if (newOrigFile.exists()) {
-                        if (Files.isSymbolicLink(newOrigFile.toPath())) {
+                    if (inSandboxFile.exists()) {
+                        if (Files.isSymbolicLink(inSandboxFile.toPath())) {
                             // If a symbolic link is created remove it
-                            LOGGER.debug("Deleting symlink " + newOrigFile.toPath());
-                            Files.delete(newOrigFile.toPath());
+                            LOGGER.debug("Deleting symlink " + inSandboxFile.toPath());
+                            Files.delete(inSandboxFile.toPath());
                         } else {
                             // Rewrite inout param by moving the new file to the renaming
-                            move(newOrigFile.toPath(), renamedFile.toPath());
+                            move(inSandboxFile.toPath(), renamedFile.toPath());
                         }
                     } else {
                         // Both files exist and are updated
-                        LOGGER.debug("Repeated data for " + renamedFilePath + ". Nothing to do");
+                        LOGGER.debug("Repeated data for " + inSandboxPath + ". Nothing to do");
                     }
                 } else { // OUT
-                    if (newOrigFile.exists()) {
-                        if (Files.isSymbolicLink(newOrigFile.toPath())) {
+                    if (inSandboxFile.exists()) {
+                        if (Files.isSymbolicLink(inSandboxFile.toPath())) {
                             // Unexpected case
-                            String msg = "ERROR: Unexpected case. A Problem occurred with File " + renamedFilePath
-                                    + ". Either this file or the original name " + newOriginalFilePath + " do not exist.";
+                            String msg = "ERROR: Unexpected case. A Problem occurred with File " + inSandboxPath
+                                    + ". Either this file or the original name " + renamedFilePath + " do not exist.";
                             LOGGER.error(msg);
                             System.err.println(msg);
                             throw new JobExecutionException(msg);
                         } else {
                             // If an output file is created move to the renamed path (OUT Case)
-                            move(newOrigFile.toPath(), renamedFile.toPath());
+                            move(inSandboxFile.toPath(), renamedFile.toPath());
                         }
                     } else {
                         // Error output file does not exist
-                        String msg = "ERROR: Output file " + newOriginalFilePath + " does not exist";
+                        String msg = "ERROR: Output file " + renamedFilePath + " does not exist";
                         // Unexpected case (except for C binding when not serializing outputs)
                         if (lang != Lang.C) {
                             LOGGER.error(msg);
@@ -436,6 +446,8 @@ public class Executor implements Runnable {
                     }
                 }
             }
+            param.setValue(renamedFilePath);
+            param.setOriginalName(originalFileName);
         }
     }
 
@@ -483,8 +495,10 @@ public class Executor implements Runnable {
             File taskSandboxWorkingDir
     ) throws JobExecutionException {
         /* Register outputs **************************************** */
-        String streamsPath = context.getStandardStreamsPath(invocation);
-        context.registerOutputs(streamsPath);
+        if (!DEBUG_ON_TASK) {
+            String streamsPath = context.getStandardStreamsPath(invocation);
+            context.registerOutputs(streamsPath);
+        }
         PrintStream out = context.getThreadOutStream();
 
         /* TRY TO PROCESS THE TASK ******************************** */
@@ -577,7 +591,9 @@ public class Executor implements Runnable {
             if (invocation.isDebugEnabled()) {
                 out.println("[EXECUTOR] executeTask - End task execution");
             }
-            context.unregisterOutputs();
+            if (!DEBUG_ON_TASK) {
+                context.unregisterOutputs();
+            }
         }
     }
 

@@ -347,9 +347,10 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     public void receivedValue(Destination type, String dataId, Object object, List<DataRequest> achievedRequests) {
         if (type == Transfer.Destination.OBJECT) {
             WORKER_LOGGER.info("Received data " + dataId + " with associated object " + object);
-            storeObject(dataId, object);
+            dataManager.storeValue(dataId, object);
         } else {
             WORKER_LOGGER.info("Received data " + dataId);
+            dataManager.storeFile(dataId, (String) object);
         }
         for (DataRequest dr : achievedRequests) {
             WorkerDataRequest wdr = (WorkerDataRequest) dr;
@@ -893,10 +894,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     public Object getObject(String name) {
         String realName = name.substring(name.lastIndexOf('/') + 1);
         return dataManager.getObject(realName);
-    }
-
-    public void storeObject(String name, Object value) {
-        dataManager.storeValue(name, value);
     }
 
 }

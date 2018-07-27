@@ -21,13 +21,12 @@ import es.bsc.compss.data.DataManager;
 import es.bsc.compss.data.DataProvider;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.BindingObject;
+import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamURI;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.util.BindingDataManager;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.Serializer;
-import es.bsc.compss.util.Tracer;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.AtomicMoveNotSupportedException;
@@ -41,13 +40,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import storage.StorageException;
 import storage.StorageItf;
-import storage.StubItf;
 
 
 public class DataManagerImpl implements DataManager {
 
     private static final String ERROR_SERIALIZED_OBJ = "ERROR: Cannot obtain object";
     private static final String ERROR_PERSISTENT_OBJ = "ERROR: Cannot getById persistent object";
+
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER);
 
@@ -60,8 +59,7 @@ public class DataManagerImpl implements DataManager {
     //Storage configuration file
     private final String storageConf;
 
-    // Cache
-    private final HashMap<String, Object> objectCache;
+    private final HashMap<String, DataRegister> registry;
 
     /**
      * Instantiates a new Data Manager
@@ -71,7 +69,7 @@ public class DataManagerImpl implements DataManager {
      * @param provider
      */
     public DataManagerImpl(String hostName, String baseFolder, DataProvider provider) {
-        this.objectCache = new HashMap<>();
+        this.registry = new HashMap<>();
         this.provider = provider;
         this.hostName = hostName;
         this.baseFolder = baseFolder;
@@ -149,9 +147,15 @@ public class DataManagerImpl implements DataManager {
 
                 }
                 String dataName = new File(name).getName();
-                synchronized (objectCache) {
-                    objectCache.remove(dataName);
+                DataRegister register = null;
+                synchronized (registry) {
+                    register = registry.remove(dataName);
                     LOGGER.debug(dataName + " removed from cache.");
+                }
+                if (register != null) {
+                    synchronized (register) {
+                        register.clear();
+                    }
                 }
                 LOGGER.debug(name + " removed from cache.");
             }
@@ -181,114 +185,91 @@ public class DataManagerImpl implements DataManager {
                 break;
             default:
             //Nothing to do since basic type parameters require no action
+            }
+    }
+
+    private DataRegister getOriginalDataRegister(InvocationParam param) {
+        String originalRename = param.getSourceDataId();
+        DataRegister originalRegister;
+        boolean newRegister = false;
+        synchronized (registry) {
+            originalRegister = registry.get(originalRename);
+            if (originalRegister == null) {
+                originalRegister = new DataRegister();
+                registry.put(originalRename, originalRegister);
+                newRegister = true;
+            }
         }
+
+        if (newRegister) {
+            synchronized (originalRegister) {
+                for (InvocationParamURI loc : param.getSources()) {
+                    switch (loc.getProtocol()) {
+                        case FILE_URI:
+                            if (loc.isHost(hostName)) {
+                                originalRegister.addFileLocation(loc.getPath());
+                            }
+                            break;
+                        case PERSISTENT_URI:
+                            String pscoId = loc.getPath();
+                            originalRegister.setStorageId(pscoId);
+                            break;
+                        case OBJECT_URI:
+                        case BINDING_URI:
+                            if (loc.isHost(hostName)) {
+                                LOGGER.error("WORKER IS NOT AWARE OF THE PRESENCE OF A"
+                                        + (loc.getProtocol() == Protocol.OBJECT_URI ? "N OBJECT " : " BINDING OBJECT ")
+                                );
+                            }
+                            break;
+                        case SHARED_URI:
+                            break;
+
+                        default:
+                    }
+                }
+            }
+        }
+
+        return originalRegister;
     }
 
     private void fetchObject(InvocationParam param, int index, LoadDataListener tt) {
-        String rename = (String) param.getValue();
-        LOGGER.debug("   - " + rename + " registered as object.");
-        boolean askTransfer = false;
-
+        final String finalRename = param.getDataMgmtId();
+        final String originalRename = param.getSourceDataId();
+        LOGGER.debug("   - " + finalRename + " registered as object.");
+        DataRegister originalRegister = getOriginalDataRegister(param);
         // Try if parameter is in cache
-        LOGGER.debug("   - Checking if " + rename + " is in cache.");
-        boolean catched;
-        synchronized (objectCache) {
-            catched = objectCache.containsKey(rename);
-        }
-        if (!catched) {
-            // Try if any of the object locations is in cache
-            boolean locationsInCache = false;
-            LOGGER.debug("   - Checking if " + rename + " locations are catched");
-            for (InvocationParamURI loc : param.getSources()) {
-                String locName = loc.getPath();
-                synchronized (objectCache) {
-                    catched = objectCache.containsKey(locName);
-                }
-                if (catched) {
-                    // Object found
-                    LOGGER.debug("   - Parameter " + index + "(" + rename + ") location found in cache.");
+        LOGGER.debug("   - Checking if " + finalRename + " is in cache.");
+        synchronized (originalRegister) {
+            if (originalRegister.isLocal()) {
+                if (finalRename.equals(originalRename)) {
                     try {
+                        originalRegister.loadValue();
+                    } catch (Exception e) {
+                        LOGGER.error(e);
+                    }
+                } else {
+                    try {
+                        Object o;
                         if (param.isPreserveSourceData()) {
-                            LOGGER.debug("   - Parameter " + index + "(" + rename + ") preserves sources. CACHE-COPYING");
-                            Object old;
-                            synchronized (objectCache) {
-                                old = objectCache.get(locName);
-                            }
-                            Object o = Serializer.deserialize(Serializer.serialize(old));
-                            storeObject(rename, o);
+                            o = originalRegister.cloneValue();
                         } else {
-                            LOGGER.debug("   - Parameter " + index + "(" + rename + ") erases sources. CACHE-MOVING");
-                            Object o;
-                            synchronized (objectCache) {
-                                o = objectCache.get(locName);
-                                objectCache.remove(locName);
-                            }
-                            storeObject(rename, o);
+                            o = originalRegister.loadValue();
+                            originalRegister.removeValue();
                         }
-                        locationsInCache = true;
-                    } catch (IOException ioe) {
-                        // If exception is raised, locationsInCache remains false. We log the exception
-                        // and try host files
-                        LOGGER.error("IOException", ioe);
-                    } catch (ClassNotFoundException e) {
-                        // If exception is raised, locationsInCache remains false. We log the exception
-                        // and try host files
-                        LOGGER.error("ClassNotFoundException", e);
-                    }
-                    // Stop looking for locations
-                    break;
-                }
-            }
-
-            if (!locationsInCache) {
-                // Try if any of the object locations is in the host
-                boolean existInHost = false;
-                LOGGER.debug("   - Checking if " + rename + " locations are in host");
-                for (InvocationParamURI loc : param.getSources()) {
-                    if (loc.isHost(hostName)) {
-                        LOGGER.debug("   - Parameter " + index + "(" + rename + ") found at host.");
-                        try {
-                            File source = new File(baseFolder + File.separator + loc.getPath());
-                            File target = new File(baseFolder + File.separator + param.getValue().toString());
-                            if (param.isPreserveSourceData()) {
-                                LOGGER
-                                        .debug("   - Parameter " + index + "(" + rename + ") preserves sources. COPYING");
-                                LOGGER.debug("         Source: " + source);
-                                LOGGER.debug("         Target: " + target);
-                                Files.copy(source.toPath(), target.toPath());
-                            } else {
-                                LOGGER.debug("   - Parameter " + index + "(" + rename + ") erases sources. MOVING");
-                                LOGGER.debug("         Source: " + source);
-                                LOGGER.debug("         Target: " + target);
-                                if (!source.renameTo(target)) {
-                                    LOGGER
-                                            .error("Error renaming file from " + source.getAbsolutePath() + " to " + target.getAbsolutePath());
-                                }
-                            }
-                            // Move object to cache
-                            Object o = Serializer.deserialize(rename);
-                            storeObject(rename, o);
-                            existInHost = true;
-                        } catch (IOException ioe) {
-                            // If exception is raised, locationsInCache remains false. We log the exception
-                            // and try host files
-                            LOGGER.error("IOException", ioe);
-                        } catch (ClassNotFoundException e) {
-                            // If exception is raised, locationsInCache remains false. We log the exception
-                            // and try host files
-                            LOGGER.error("ClassNotFoundException", e);
-                        }
+                        DataRegister dr = new DataRegister();
+                        dr.setValue(o);
+                        registry.put(finalRename, dr);
+                    } catch (Exception e) {
+                        LOGGER.error(e);
                     }
                 }
-                if (!existInHost) {
-                    // We must transfer the file
-                    askTransfer = true;
-                }
+                fetchedLocalParameter(param, index, tt);
+            } else {
+                transferParameter(param, index, tt);
             }
         }
-
-        // Request the transfer if needed
-        askForTransfer(askTransfer, param, index, tt);
     }
 
     private void fetchBindingObject(InvocationParam param, int index, LoadDataListener tt) {
@@ -385,122 +366,82 @@ public class DataManagerImpl implements DataManager {
     }
 
     private void fetchPSCO(InvocationParam param, int paramIdx, LoadDataListener tt) {
-        String rename = param.getDataMgmtId();
+        String finalRename = param.getDataMgmtId();
         String pscoId = (String) param.getValue();
         LOGGER.debug("   - " + pscoId + " registered as PSCO.");
         // The replica must have been ordered by the master so the real object must be
         // catched or can be retrieved by the ID
 
-        // Try if parameter is in cache
-        LOGGER.debug("   - Checking if " + pscoId + " is in cache.");
-        LOGGER.debug("   - Retrieving psco " + pscoId + " from Storage");
-        // Get Object from its ID
-        Object obj = null;
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.Event.STORAGE_GETBYID.getType());
-        }
-        try {
-            obj = StorageItf.getByID(pscoId);
-            param.setValue(obj);
-            tt.loadedValue();
-        } catch (StorageException e) {
-            LOGGER.error("Cannot getByID PSCO " + pscoId, e);
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETBYID.getType());
-            }
-        }
-
-        LOGGER.debug("   - PSCO with id " + pscoId + " stored");
+        DataRegister dr = new DataRegister();
+        dr.setStorageId(pscoId);
+        registry.put(finalRename, dr);
+        tt.loadedValue();
     }
 
     private void fetchFile(InvocationParam param, int index, LoadDataListener tt) {
         LOGGER.debug("   - " + (String) param.getValue() + " registered as file.");
-
-        boolean locationsInHost = false;
-        boolean askTransfer = false;
-
-        // Try if parameter is in the host
+        final String originalName = param.getSourceDataId();
+        final String expectedFileLocation = param.getValue().toString();
         LOGGER.debug("   - Checking if file " + (String) param.getValue() + " exists.");
-        File f = new File(param.getValue().toString());
-        if (!f.exists()) {
-            // Try if any of the locations is in the same host
-            LOGGER.debug("   - Checking if " + (String) param.getValue() + " exists in worker");
-            for (InvocationParamURI loc : param.getSources()) {
-                if (loc.isHost(hostName)) {
-                    // Data is already present at host
-                    LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") found at host.");
+        File f = new File(expectedFileLocation);
+        if (f.exists()) {
+            LOGGER.info("- Parameter " + index + "(" + expectedFileLocation + ") already exists.");
+            fetchedLocalParameter(param, index, tt);
+            return;
+        }
+        LOGGER.debug("   - Checking if " + expectedFileLocation + " exists in worker");
+        DataRegister originalRegister = getOriginalDataRegister(param);
+        synchronized (originalRegister) {
+            if (originalRegister.isLocal()) {
+                LOGGER.debug("   - Parameter " + index + "(" + expectedFileLocation + ") found at host.");
+
+                File target = new File(expectedFileLocation);
+                List<String> files = originalRegister.getFileLocations();
+                for (String path : files) {
+                    File source = new File(path);
                     try {
-                        File source = new File(loc.getPath());
-                        File target = new File(param.getValue().toString());
+                        LOGGER.debug("   - Parameter " + index + "(" + expectedFileLocation + ") "
+                                + (param.isPreserveSourceData()
+                                        ? "preserves sources. COPYING"
+                                        : "erases sources. MOVING")
+                        );
+                        LOGGER.debug("         Source: " + source);
+                        LOGGER.debug("         Target: " + target);
                         if (param.isPreserveSourceData()) {
-                            LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") preserves sources. COPYING");
-                            LOGGER.debug("         Source: " + source);
-                            LOGGER.debug("         Target: " + target);
-                            // if (!source.exists() && (Lang.valueOf(getLang().toUpperCase()) != Lang.C)) {
-                            if (!source.exists()) {
-                                LOGGER.debug("source does not exist, preserve data");
-                                /*
-                                LOGGER.debug("lang is " + getLang());
-                                if (getLang().toUpperCase() != "C") {
-                                    LOGGER.debug(
-                                            "[ERROR] File " + loc.getPath() + " does not exist but it could be an object in cache. Ignoring.");
-                                }
-                                 */
-                                // TODO The file to be copied needs to be serialized to a file from cache (or serialize from
-                                // memory to memory
-                                // if possible with a specific function
-                            } else {
-                                LOGGER.debug("before copy");
-                                Files.copy(source.toPath(), target.toPath());
-                                LOGGER.debug("after copy");
-                            }
+                            Files.copy(source.toPath(), target.toPath());
                         } else {
-                            LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") erases sources. MOVING");
-                            LOGGER.debug("         Source: " + source);
-                            LOGGER.debug("         Target: " + target);
-                            if (!source.exists()) {
-                                LOGGER.debug("source does not exist, no preserve data");
-                                /*
-                                LOGGER.debug("lang is " + getLang() + ", in uppercase is " + getLang().toUpperCase());
-                                if (getLang().toUpperCase() != "C") {
-                                    LOGGER
-                                            .debug("File " + loc.getPath() + " does not exist but it could be an object in cache. Ignoring.");
-                                }
-                                 */
-                            } else {
-                                try {
-                                    Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
-                                } catch (AtomicMoveNotSupportedException amnse) {
-                                    LOGGER.warn(
-                                            "WARN: AtomicMoveNotSupportedException. File cannot be atomically moved. Trying to move without atomic");
-                                    Files.move(source.toPath(), target.toPath());
-                                }
+                            try {
+                                Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
+                            } catch (AtomicMoveNotSupportedException amnse) {
+                                LOGGER.warn(
+                                        "WARN: AtomicMoveNotSupportedException. File cannot be atomically moved. Trying to move without atomic");
+                                Files.move(source.toPath(), target.toPath());
                             }
+                            originalRegister.removeFileLocation(path);
                         }
-                        locationsInHost = true;
+                        DataRegister dr = new DataRegister();
+                        dr.addFileLocation(path);
+                        registry.put(originalName, dr);
+                        fetchedLocalParameter(param, index, tt);
+                        return;
                     } catch (IOException ioe) {
                         LOGGER.error("IOException", ioe);
                     }
                 }
-            }
-
-            if (!locationsInHost) {
-                // We must transfer the file
-                askTransfer = true;
+            } else {
+                LOGGER.info("- Parameter " + index + "(" + expectedFileLocation + ") does not exist, requesting data transfer");
+                transferParameter(param, index, tt);
             }
         }
-        // Request the transfer if needed
-        askForTransfer(askTransfer, param, index, tt);
     }
 
     @Override
     public void loadParam(InvocationParam param) throws Exception {
         switch (param.getType()) {
             case OBJECT_T:
+            case PSCO_T: // fetch stage already set the value on the param, but we make sure to collect the last version
                 loadObject(param);
                 break;
-            case PSCO_T: // fetch stage already set the value on the param
             case FILE_T: // value already contains the path
             case BINDING_OBJECT_T: // value corresponds to the ID of the object on the binding (already set)
             case EXTERNAL_PSCO_T: // value corresponds to the ID of the 
@@ -513,39 +454,12 @@ public class DataManagerImpl implements DataManager {
     private void loadObject(InvocationParam param) throws Exception {
         String rename = param.getDataMgmtId();
         Object o = null;
-        boolean contained = false;
-        synchronized (objectCache) {
-            contained = objectCache.containsKey(rename);
-            if (contained) {
-                o = objectCache.get(rename);
-            }
+        DataRegister register;
+        synchronized (registry) {
+            register = registry.get(rename);
         }
-
-        if (!contained) {
-            //Might be stored as a file
-            String file = baseFolder + File.separator + param.getValue().toString();
-            File f = new File(file);
-            if (!f.exists()) {
-                try {
-                    o = Serializer.deserialize(file);
-                    storeObject(rename, o);
-                    contained = true;
-                } catch (IOException | ClassNotFoundException ex) {
-                    LOGGER.warn(ERROR_SERIALIZED_OBJ, ex);
-                }
-            }
-        }
-        if (!contained) {
-            throw new Exception("Value was not loaded on memory nor serialized on a file");
-        }
-        param.setValue(o);
-    }
-
-    private void loadPSCO(InvocationParam param) {
-        String pscoId = (String) param.getValue();
-        Object o = null;
-        synchronized (objectCache) {
-            o = objectCache.get(pscoId);
+        synchronized (register) {
+            o = register.loadValue();
         }
         param.setValue(o);
     }
@@ -570,36 +484,83 @@ public class DataManagerImpl implements DataManager {
         }
     }
 
+    private void storeObject(String rename, Object value) {
+        DataRegister register;
+        synchronized (registry) {
+            register = registry.get(rename);
+            if (register == null) {
+                register = new DataRegister();
+                registry.put(rename, register);
+            }
+        }
+        synchronized (register) {
+            register.setValue(value);
+        }
+    }
+
     @Override
     public void storeValue(String name, Object value) {
         storeObject(name, value);
     }
 
     @Override
-    public synchronized Object getObject(String dataMgmtId) {
-        return objectCache.get(dataMgmtId);
+    public void storeFile(String rename, String path) {
+        DataRegister register;
+        synchronized (registry) {
+            register = registry.get(rename);
+            if (register == null) {
+                register = new DataRegister();
+                registry.put(rename, register);
+            }
+        }
+        synchronized (register) {
+            register.addFileLocation(path);
+        }
+    }
+
+    @Override
+    public Object getObject(String dataMgmtId) {
+        Object o = null;
+        DataRegister register;
+        synchronized (registry) {
+            register = registry.get(dataMgmtId);
+        }
+        synchronized (register) {
+            try {
+                o = register.loadValue();
+            } catch (IOException ex) {
+
+            } catch (ClassNotFoundException ex) {
+
+            } catch (DataRegister.NoSourcesException ex) {
+
+            } catch (StorageException ex) {
+
+            }
+        }
+        return o;
     }
 
     /*
      * ****************************************************************************************************************
      * STORE METHODS
      *****************************************************************************************************************/
-    public synchronized void storeObject(String name, Object value) {
-        try {
-            objectCache.put(name, value);
-        } catch (NullPointerException e) {
-            LOGGER.error("Object Cache " + objectCache + " dataId " + name + " object " + value);
+    private void askForTransfer(boolean askTransfer, InvocationParam param, int index, LoadDataListener tt) {
+        if (askTransfer) {
+            transferParameter(param, index, tt);
+        } else {
+            fetchedLocalParameter(param, index, tt);
         }
     }
 
-    private void askForTransfer(boolean askTransfer, InvocationParam param, int index, LoadDataListener tt) {
-        if (askTransfer) {
-            LOGGER.info("- Parameter " + index + "(" + (String) param.getValue() + ") does not exist, requesting data transfer");
-            provider.askForTransfer(param, index, tt);
-        } else {
-            LOGGER.info("- Parameter " + index + "(" + (String) param.getValue() + ") already exists.");
-            tt.loadedValue();
-        }
+    private void fetchedLocalParameter(InvocationParam param, int index, LoadDataListener tt) {
+        LOGGER.info("- Parameter " + index + "(" + (String) param.getValue() + ") already exists.");
+        tt.loadedValue();
+    }
+
+    private void transferParameter(InvocationParam param, int index, LoadDataListener tt) {
+        LOGGER.info("- Parameter " + index + "(" + (String) param.getValue() + ") does not exist, requesting data transfer");
+        provider.askForTransfer(param, index, tt);
     }
 
 }

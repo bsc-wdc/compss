@@ -24,6 +24,7 @@ import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.invokers.util.BinaryRunner.StreamSTD;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -115,15 +116,20 @@ public class MPIInvoker extends Invoker {
     @Override
     public void invokeMethod() throws JobExecutionException {
         checkArguments();
+        LOGGER.info("Invoked " + this.mpiBinary + " in " + this.context.getHostName());
+        Object retValue;
         try {
-            LOGGER.info("Invoked " + this.mpiBinary + " in " + this.context.getHostName());
-            Object retValue = runInvocation();
-            for (InvocationParam np : this.invocation.getResults()) {
+            retValue = runInvocation();
+        } catch (InvokeExecutionException iee) {
+            throw new JobExecutionException(iee);
+        }
+        for (InvocationParam np : this.invocation.getResults()) {
+            if (np.getType() == DataType.FILE_T) {
+                serializeBinaryExitValue(np, retValue);
+            } else {
                 np.setValue(retValue);
                 np.setValueClass(retValue.getClass());
             }
-        } catch (InvokeExecutionException iee) {
-            throw new JobExecutionException(iee);
         }
     }
 

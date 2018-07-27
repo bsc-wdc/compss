@@ -45,6 +45,8 @@ public interface DataManager {
 
     public void storeValue(String name, Object value);
 
+    public void storeFile(String dataId, String string);
+
 
     public static interface LoadDataListener {
 

@@ -21,7 +21,6 @@ import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.Stream;
 
 import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.parameter.DependencyParameter;
 
 
 public class FileParameter extends DependencyParameter {

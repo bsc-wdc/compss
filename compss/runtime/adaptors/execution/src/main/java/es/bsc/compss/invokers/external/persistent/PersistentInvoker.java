@@ -25,9 +25,6 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import java.io.File;
-import java.util.LinkedList;
-import java.util.List;
-
 
 /**
  *
@@ -46,7 +43,7 @@ public abstract class PersistentInvoker extends ExternalInvoker {
     @Override
     protected void invokeMethod() throws JobExecutionException {
         int jobId = invocation.getJobId();
-        String taskCMD = /*EXECUTE_TASK + TOKEN_SEP + jobId + TOKEN_SEP + command + TOKEN_NEW_LINE;*/ "";
+        String taskCMD =  command.getAsString(); 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Executing in binding: " + taskCMD);
         }

@@ -95,6 +95,11 @@ public class NIOParam implements Externalizable, InvocationParam {
     }
 
     @Override
+    public String getSourceDataId() {
+        return source.getDataMgmtId();
+    }
+
+    @Override
     public List<NIOURI> getSources() {
         return source.getSources();
     }

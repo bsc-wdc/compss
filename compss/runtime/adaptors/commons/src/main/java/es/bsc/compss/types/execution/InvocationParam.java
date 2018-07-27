@@ -53,6 +53,8 @@ public interface InvocationParam {
 
     public String getDataMgmtId();
 
+    public String getSourceDataId();
+
     public List<? extends InvocationParamURI> getSources();
 
 }

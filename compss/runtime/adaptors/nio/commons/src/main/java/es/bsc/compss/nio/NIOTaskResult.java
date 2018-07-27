@@ -58,8 +58,10 @@ public class NIOTaskResult implements Externalizable {
 
             switch (np.getType()) {
                 case PSCO_T:
-                case EXTERNAL_PSCO_T:
                     this.paramValues.add(((StubItf) np.getValue()).getID());
+                    break;
+                case EXTERNAL_PSCO_T:
+                    this.paramValues.add(np.getValue());
                     break;
                 default:
                     // We add a NULL for any other type
@@ -72,8 +74,10 @@ public class NIOTaskResult implements Externalizable {
 
             switch (target.getType()) {
                 case PSCO_T:
-                case EXTERNAL_PSCO_T:
                     this.paramValues.add(((StubItf) target.getValue()).getID());
+                    break;
+                case EXTERNAL_PSCO_T:
+                    this.paramValues.add(target.getValue());
                     break;
                 default:
                     // We add a NULL for any other type
@@ -87,8 +91,10 @@ public class NIOTaskResult implements Externalizable {
 
             switch (np.getType()) {
                 case PSCO_T:
-                case EXTERNAL_PSCO_T:
                     this.paramValues.add(((StubItf) np.getValue()).getID());
+                    break;
+                case EXTERNAL_PSCO_T:
+                    this.paramValues.add(np.getValue());
                     break;
                 default:
                     // We add a NULL for any other type

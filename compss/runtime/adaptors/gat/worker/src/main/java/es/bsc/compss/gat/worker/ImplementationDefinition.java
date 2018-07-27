@@ -407,6 +407,11 @@ public abstract class ImplementationDefinition implements Invocation {
         }
 
         @Override
+        public String getSourceDataId() {
+            return null;
+        }
+
+        @Override
         public List<InvocationParamURI> getSources() {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }

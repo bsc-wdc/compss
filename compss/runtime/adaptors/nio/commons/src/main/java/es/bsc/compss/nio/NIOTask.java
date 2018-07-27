@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -85,16 +86,34 @@ public class NIOTask implements Externalizable, Invocation {
         this.impl = impl;
         this.arguments = new LinkedList<>();
         this.results = new LinkedList<>();
-        int parIdx = params.size() - 1;
-        for (int rIdx = numReturns; rIdx > 0; rIdx--) {
-            results.addFirst(params.get(parIdx--));
+
+        Iterator<NIOParam> paramItr = params.descendingIterator();
+
+        if (this.lang == Lang.PYTHON) {
+            if (hasTarget) {
+                NIOParam p = paramItr.next();
+                target = p;
+            }
+            for (int rIdx = 0; rIdx < numReturns; rIdx++) {
+                NIOParam p = paramItr.next();
+                results.addFirst(p);
+            }
+        } else {
+            for (int rIdx = 0; rIdx < numReturns; rIdx++) {
+                NIOParam p = paramItr.next();
+                results.addFirst(p);
+            }
+            if (hasTarget) {
+                NIOParam p = paramItr.next();
+                target = p;
+            }
         }
-        if (hasTarget) {
-            target = params.get(parIdx--);
+
+        while (paramItr.hasNext()) {
+            NIOParam p = paramItr.next();
+            this.arguments.addFirst(p);
         }
-        for (; parIdx >= 0; parIdx--) {
-            this.arguments.addFirst(params.get(parIdx));
-        }
+
         this.reqs = reqs;
         this.slaveWorkersNodeNames = slaveWorkersNodeNames;
         this.taskType = taskType;

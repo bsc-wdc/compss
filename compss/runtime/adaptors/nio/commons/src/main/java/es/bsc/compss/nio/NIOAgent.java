@@ -639,7 +639,7 @@ public abstract class NIOAgent {
         else {
         	LOGGER.error("[ERROR] Pending transfers...");
         	for (DataRequest dr : pendingRequests) {
-        		LOGGER.debug("[DEBUG] Pending: " + dr.getTarget() + " " + dr.getSource().getName());
+        		LOGGER.debug("[DEBUG] Pending: " + dr.getTarget() + " " + dr.getSource().getDataMgmtId());
         	}
         }
     }

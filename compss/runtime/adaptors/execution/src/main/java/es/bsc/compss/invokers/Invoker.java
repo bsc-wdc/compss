@@ -20,7 +20,6 @@ import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
-import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -36,7 +35,6 @@ import java.io.PrintStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import storage.StubItf;
 
 
 public abstract class Invoker {
@@ -207,7 +205,7 @@ public abstract class Invoker {
             LOGGER.info("Writing Binary Exit Value (" + exitValue.toString() + ") to " + renaming);
 
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(renaming))) {
-                String value = "I" + exitValue + "\n.\n";
+                String value = "0000I" + exitValue + "\n.\n";
                 writer.write(value);
                 writer.flush();
             } catch (IOException ioe) {

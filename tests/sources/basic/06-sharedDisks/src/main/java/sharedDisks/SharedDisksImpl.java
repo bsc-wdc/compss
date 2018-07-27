@@ -11,23 +11,23 @@ public class SharedDisksImpl {
 
     public static int inputTask(String fileName, String name) {
         System.out.println("Reading file");
-        try {
-            FileInputStream fis = new FileInputStream(fileName);
+        try (FileInputStream fis = new FileInputStream(fileName)) {
             System.out.println("--Value: " + String.valueOf(fis.read()));
-            fis.close();
+
+            File f1 = new File(fileName);
+            File f2 = new File(name);
+            System.out.println("Checking filename");
+            System.out.println("--Used file name: " + f1.getAbsolutePath());
+            System.out.println("--Original file name: " + f2.getAbsolutePath());
+            String f1Path = f1.getCanonicalPath();
+            String f2Path = f2.getCanonicalPath();
+            if (f1Path.equals(f2Path)) {
+                return 0;
+            } else {
+                return -1;
+            }
         } catch (IOException ioe) {
             ioe.printStackTrace();
-        }
-
-        File f1 = new File(fileName);
-        File f2 = new File(name);
-        System.out.println("Checking filename");
-        System.out.println("--Used file name: " + f1.getAbsolutePath());
-        System.out.println("--Original file name: " + f2.getAbsolutePath());
-
-        if (f1.getAbsolutePath().equals(f2.getAbsolutePath())) {
-            return 0;
-        } else {
             return -1;
         }
     }

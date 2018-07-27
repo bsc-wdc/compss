@@ -764,11 +764,6 @@ public class AccessProcessor implements Runnable, TaskProducer {
             } catch (CannotLoadException e) {
                 LOGGER.fatal(ERROR_OBJECT_LOAD_FROM_STORAGE + ": " + ((ld == null) ? "null" : ld.getName()), e);
                 ErrorManager.fatal(ERROR_OBJECT_LOAD_FROM_STORAGE + ": " + ((ld == null) ? "null" : ld.getName()), e);
-            } catch (RuntimeException e) {
-                System.out.println("AQUI S'HA LIAT PARDA");
-                System.out.println("Havíem demanat l'objecte per fer l'accés " + oaId);
-                System.out.println("Transfer Object Request retorna LD " + ld);
-                throw e;
             }
         }
 

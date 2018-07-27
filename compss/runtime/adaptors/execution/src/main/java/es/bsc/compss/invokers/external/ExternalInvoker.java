@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.invokers.external;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.external.ExternalCommand.ExecuteTaskExternalCommand;
@@ -118,10 +119,24 @@ public abstract class ExternalInvoker extends Invoker {
         for (InvocationParam np : invocation.getParams()) {
             invArgs.addAll(convertParameter(np));
         }
-        // Add target
-        if (invocation.getTarget() != null) {
+
+        if (invocation.getLang() != es.bsc.compss.COMPSsConstants.Lang.PYTHON) {
+            // Add target
+            if (invocation.getTarget() != null) {
+                numParams++;
+                invArgs.addAll(convertParameter(invocation.getTarget()));
+            }
+        }
+        for (InvocationParam np : invocation.getResults()) {
             numParams++;
-            invArgs.addAll(convertParameter(invocation.getTarget()));
+            invArgs.addAll(convertParameter(np));
+        }
+        if (invocation.getLang() == es.bsc.compss.COMPSsConstants.Lang.PYTHON) {
+            // Add target
+            if (invocation.getTarget() != null) {
+                numParams++;
+                invArgs.addAll(convertParameter(invocation.getTarget()));
+            }
         }
         lArgs.add(Integer.toString(numParams));
         lArgs.addAll(invArgs);

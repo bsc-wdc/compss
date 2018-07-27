@@ -1200,7 +1200,7 @@ cleanup() {
   trap cleanup EXIT
 
   # Create XML files
-  source ${SCRIPT_DIR}/xmls_utils
+  source ${SCRIPT_DIR}/../system/xmls/xmls_utils.sh
   CREATE_WORKING_DIRS=true
   create_xml_files
 

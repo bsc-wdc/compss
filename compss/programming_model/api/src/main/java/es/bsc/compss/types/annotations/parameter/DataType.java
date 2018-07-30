@@ -21,20 +21,31 @@ package es.bsc.compss.types.annotations.parameter;
  *
  */
 public enum DataType {
-    BOOLEAN_T, 
-    CHAR_T, 
-    BYTE_T, 
-    SHORT_T, 
-    INT_T, 
-    LONG_T, 
-    FLOAT_T, 
-    DOUBLE_T, 
-    STRING_T,           // Java: String , Bindings: String / small serialized object
-    FILE_T,             // Java: File , Bindings: File / Object serialized
-    OBJECT_T,           // Java: OBJ / SCO , Bindings: does not exist
-    PSCO_T,             // Java: PSCOs
-    EXTERNAL_PSCO_T,   // Bindings: PSCOs
-    BINDING_OBJECT_T   // Bindings: Objects and Contigous-in-Memory arrays 
+    BOOLEAN_T,
+    CHAR_T,
+    BYTE_T,
+    SHORT_T,
+    INT_T,
+    LONG_T,
+    FLOAT_T,
+    DOUBLE_T,
+    STRING_T,
+    FILE_T,
+    OBJECT_T,
+    PSCO_T,
+    EXTERNAL_PSCO_T,
+    BINDING_OBJECT_T,
+    WCHAR_T,
+    WSTRING_T,
+    LONGLONG_T,
+    VOID_T,
+    ANY_T,
+    ARRAY_CHAR_T,
+    ARRAY_BYTE_T,
+    ARRAY_SHORT_T,
+    ARRAY_INT_T,
+    ARRAY_LONG_T,
+    ARRAY_FLOAT_T,
+    ARRAY_DOUBLE_T,
+    NULL_T
 }
-
-

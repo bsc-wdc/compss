@@ -1,0 +1,176 @@
+#!/bin/bash
+
+#This script builds an application for several applications
+#Is used for the C/C++ binding.
+
+#---------------------------------------------------
+# SCRIPT CONSTANTS DECLARATION
+#---------------------------------------------------
+DEFAULT_ARCHITECTURE=$(lscpu | awk 'NR==1{print $NF}')
+DEFAULT_CFG=${COMPSS_HOME}/Bindings/c/cfgs/default.cfg #This file contains the x86-64 and armhf environment
+
+APPLICATION_ERROR="Error: Application name not provided"
+
+#---------------------------------------------------
+# FUNCTIONS DECLARATION
+#---------------------------------------------------
+show_supported_archs() {
+    cat <<EOT
+
+        * Supported architectures:
+            
+            x86_64 : Intel 64 bits 
+            armhf  : Arm hard float
+
+EOT
+# Maybe we support another one, add it on the road
+}
+
+show_opts() {
+    cat <<EOT
+
+        --supported_arch            Show supported architectures			
+
+        --master=<arch1,arch2,...>  Specifies the target architectures for which the master is
+                                    going to be build. Each architecture separated by ",".
+                                    Default: ${DEFAULT_ARCHITECTURE}
+
+        --worker=<arch1,arch2,...>  Specifies the target architectures for which the worker is
+                                    going to be build. Each architecture separated by ",".
+                                    Default: ${DEFAULT_ARCHITECTURE}
+        
+        --cfg=<path>                Specifies the location of the configuration file that contains
+                                    the environment to execute when cross-compiling the application.
+                                    In this BASH script functions named as the target architecture are
+                                    needed to set up the environment.
+                                    Default: ${DEFAULT_CFG}
+
+EOT
+
+}
+
+usage() {
+        exitValue=$1
+
+        cat <<EOT
+Usage: $0 [options] application_name
+
+* Options:
+    General:
+
+        --help, -h      Prints this help message
+
+        --opts          Show available options
+
+EOT
+
+	show_opts
+
+    exit "$exitValue"
+}
+
+display_error() {
+	local error_msg=$1
+
+	echo "$error_msg"
+        echo " "
+
+	usage 1
+}
+
+get_args() {
+        while getopts h-: flag; do
+            case "$flag" in
+                   h)
+                        #Display help message
+                        usage 0
+                        ;;
+                   -)
+                        #The rest of possible arguments that did not match
+                        case "$OPTARG" in
+                            help)
+                                #Display help
+                                usage 0
+                                ;;
+                            opts)
+                                #Display opts
+                                show_opts
+                                exit 0
+                                ;;
+                            supported_arch)
+                                #Display supported architectures
+                                show_supported_archs
+                                exit 0
+                                ;;
+                            master=*)
+                                #Get architectures to build master
+                                MASTER_BUILD_ARCHS=${OPTARG//master=/}
+                                ;;
+                            worker=*)
+                                #Get architectures to build worker
+                                WORKER_BUILD_ARCHS=${OPTARG//worker=/}
+                                ;;
+                            cfg=*)
+                                #Get configuration file
+                                CFG_PATH=${OPTARG//cfg=/}
+                                ;;
+                            *)
+                                # Flag didn't match any patern. Raise exception
+                                display_error "Bad argument: $OPTARG"
+                                ;;
+                            esac
+                            ;;
+                      *)
+                        break
+                        ;;
+            esac
+        done
+
+        # Shift COMPSs arguments
+        shift $((OPTIND-1))
+
+        # Parse application name
+        if [[ $# -eq 0 ]]; then
+            display_error "${APPLICATION_ERROR}"
+        else
+            fullAppPath=$1
+            if [ -z "$fullAppPath" ]; then
+                display_error "${APPLICATION_ERROR}"
+            else
+                shift 1
+            fi
+        fi   
+
+        # Parse application arguments
+        application_args=$*
+}
+
+check_args() {
+
+    if [ -z "$MASTER_BUILD_ARCHS" ]; then
+        echo "[ INFO ] Using default architecture to build master: ${DEFAULT_ARCHITECTURE}."
+        MASTER_BUILD_ARCHS=${DEFAULT_ARCHITECTURE}
+    fi
+
+    if [ -z "$WORKER_BUILD_ARCHS" ]; then
+        echo "[ INFO ] Using default architecture to build worker: ${DEFAULT_ARCHITECTURE}."
+        WORKER_BUILD_ARCHS=${DEFAULT_ARCHITECTURE}
+    fi
+
+    if [ -z "$CFG_PATH" ]; then
+        echo "[ INFO ] Using default configuration file: ${DEFAULT_CFG}."
+        CFG_PATH=${DEFAULT_CFG}
+    fi
+        
+}
+
+#---------------------------------------------------
+# MAIN EXECUTION
+#---------------------------------------------------
+
+    # Arguments
+
+    get_args "$@"
+    check_args
+
+    exit 0

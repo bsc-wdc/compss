@@ -41,9 +41,9 @@ show_opts() {
                                     going to be build. Each architecture separated by ",".
                                     Default: ${DEFAULT_ARCHITECTURE}
 
-        --only_master               Compiles only the master for the specified architectures.
+        --only-master               Compiles only the master for the specified architectures.
 
-        --only_worker               Compiles only the worker for the specified architectures.
+        --only-worker               Compiles only the worker for the specified architectures.
 
         --cfg=<path>                Specifies the location of the configuration file that contains
                                     the environment to execute when cross-compiling the application.
@@ -56,6 +56,7 @@ EOT
 }
 
 usage() {
+
         exitValue=$1
 
         cat <<EOT
@@ -147,29 +148,12 @@ get_args() {
         if [[ $# -eq 0 ]]; then
             display_error "${APPLICATION_ERROR}"
         else
-            fullAppPath=$1
-            if [ -z "$fullAppPath" ]; then
-                display_error "${APPLICATION_ERROR}"
-            else
-                shift 1
-            fi
-        fi   
+            other_args=$*
+        fi
 
-        # Parse application arguments
-        application_args=$*
 }
 
 check_args() {
-
-    if [ -z "$MASTER_BUILD_ARCHS" ]; then
-        echo "[ INFO ] Using default architecture to build master: ${DEFAULT_ARCHITECTURE}."
-        MASTER_BUILD_ARCHS=${DEFAULT_ARCHITECTURE}
-    fi
-
-    if [ -z "$WORKER_BUILD_ARCHS" ]; then
-        echo "[ INFO ] Using default architecture to build worker: ${DEFAULT_ARCHITECTURE}."
-        WORKER_BUILD_ARCHS=${DEFAULT_ARCHITECTURE}
-    fi
 
     if [ -z "$CFG_PATH" ]; then
         echo "[ INFO ] Using default configuration file: ${DEFAULT_CFG}."
@@ -180,23 +164,33 @@ check_args() {
         echo ""
 		display_error "${ONLY_MASTER_AND_WORKER_ERROR}" #Is not possible to compile only both...
 	elif [ -n "$ONLY_MASTER" ]; then
-		echo "[ INFO ] Compiling only the master."
+		echo "[ INFO ] Buildiling only the master."
 		ONLY_WORKER=$DEFAULT_ONLY_WORKER
 	else
-		echo "[ INFO ] Compiling only the worker."
+		echo "[ INFO ] Buildiling only the worker."
 		ONLY_MASTER=$DEFAULT_ONLY_MASTER
 	fi
+    
+    if [ -z "$MASTER_BUILD_ARCHS" ] && [ "$ONLY_WORKER" = false ]; then
+        echo "[ INFO ] Using default architecture to build master: ${DEFAULT_ARCHITECTURE}."
+        MASTER_BUILD_ARCHS=${DEFAULT_ARCHITECTURE}
+    fi
+
+    if [ -z "$WORKER_BUILD_ARCHS" ] && [ "$ONLY_MASTER" = false ]; then
+        echo "[ INFO ] Using default architecture to build worker: ${DEFAULT_ARCHITECTURE}."
+        WORKER_BUILD_ARCHS=${DEFAULT_ARCHITECTURE}
+    fi
         
 }
 
-extract_first() {
+extract_archs() {
 	
 	local toProcess
 
 	# This function uses awk to get the first element of a string until the first comma separator
 	toProcess=$1
 
-	processed=$(echo $toProcess | awk -F, '{split($0, array,","} END{ for (i in array) { print array [i] }}')
+	processed=$(echo $toProcess | awk -F, '{split($0, array,",")} END{ for (i in array) { print array [i] }}')
 
 }
 
@@ -209,8 +203,40 @@ extract_first() {
     get_args "$@"
     check_args
 
-	# Trap needed?
+    # Build master
+    if [ "$ONLY_WORKER" = false ]; then
 
-			
+        #source $CFG_PATH #This file contains the build configuration
+
+        extract_archs $MASTER_BUILD_ARCHS
+
+        for i in $processed; do
+            mkdir ./$i 
+            compss_build_app --only-master $other_args 
+            mv ./master/* $i
+        done
+
+        for i in $processed; do
+            mv $i ./master
+        done        
+
+    fi    		
+
+    # Build worker
+    if [ "$ONLY_MASTER" = false ]; then
+        
+        extract_archs $WORKER_BUILD_ARCHS
+        
+        for i in $processed; do
+            mkdir ./$i
+            compss_build_app --only-worker $other_args
+            mv ./worker/* $i
+        done
+        
+        for i in $processed; do
+            mv $i ./worker
+        done 
+
+    fi
 
     exit 0

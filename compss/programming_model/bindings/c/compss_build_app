@@ -396,7 +396,6 @@ if [ "$ONLY_WORKER" = false ]; then
 fi
 
 if [ "$ONLY_MASTER" = false ]; then
-    echo "BUILD MEEEEEEEEE"
 	# shellcheck disable=SC2086
 	"$CS_HOME"/bin/compss_build build worker ${other_args}
 	ev=$?

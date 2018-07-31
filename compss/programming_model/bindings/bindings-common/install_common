@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-  export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-armhf #We need ARM libjvm.so 
+#  export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-arf #We need ARM libjvm.so 
 
   JAVA_HOME_ERROR="Error: Cannot find Java JRE installation. Please set JAVA_HOME."
   JAVA_JRE_ERROR="Error: Can't find JVM libraries in JAVA_HOME. Please check your Java JRE Installation."

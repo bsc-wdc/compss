@@ -5,41 +5,41 @@ digraph {
     ranksep=0.20;
     node[height=0.75];
 
-1[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-2[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-3[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-4[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-1 -> 4[ label="d1" ];
-5[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-2 -> 5[ label="d2" ];
-6[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-3 -> 6[ label="d3" ];
-7[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-4 -> 7[ label="d1" ];
-8[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-5 -> 8[ label="d2" ];
-9[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-6 -> 9[ label="d3" ];
-10[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-7 -> 10[ label="d1" ];
-11[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-8 -> 11[ label="d2" ];
-12[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-9 -> 12[ label="d3" ];  }
+1[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+2[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+3[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+4[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+1 -> 4[ label="d1v2" ];
+5[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+2 -> 5[ label="d2v2" ];
+6[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+3 -> 6[ label="d3v2" ];
+7[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+4 -> 7[ label="d1v3" ];
+8[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+5 -> 8[ label="d2v3" ];
+9[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+6 -> 9[ label="d3v3" ];
+10[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+7 -> 10[ label="d1v4" ];
+11[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+8 -> 11[ label="d2v4" ];
+12[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+9 -> 12[ label="d3v4" ];  }
   subgraph legend {
     rank=sink;
     node [shape=plaintext, height=0.75];
     ranksep=0.20;
     label = "Legend";
     key [label=<
-      <table border="0" cellpadding="2" cellspacing="0" cellborder="0">
+      <table border="0" cellpadding="2" cellspacing="0" cellborder="1">
 <tr>
 <td align="right">initialize</td>
-<td bgcolor="#0000ff">&nbsp;</td>
+<td bgcolor="#ffffff">&nbsp;</td>
 </tr>
 <tr>
 <td align="right">increment</td>
-<td bgcolor="#ffffff">&nbsp;</td>
+<td bgcolor="#0000ff">&nbsp;</td>
 </tr>
       </table>
     >]

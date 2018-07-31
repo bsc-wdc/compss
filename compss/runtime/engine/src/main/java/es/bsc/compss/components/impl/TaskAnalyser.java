@@ -55,10 +55,12 @@ import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.WaitForTaskRequest;
 import es.bsc.compss.util.ErrorManager;
 
+import javax.xml.crypto.Data;
+
 
 /**
  * Class to analyze the data dependencies between tasks
- * 
+ *
  */
 public class TaskAnalyser {
 
@@ -98,7 +100,7 @@ public class TaskAnalyser {
 
     /**
      * Creates a new Task Analyser instance
-     * 
+     *
      */
     public TaskAnalyser() {
         this.currentTaskCount = new HashMap<>();
@@ -119,7 +121,7 @@ public class TaskAnalyser {
 
     /**
      * Sets the TaskAnalyser co-workers
-     * 
+     *
      * @param DIP
      */
     public void setCoWorkers(DataInfoProvider DIP) {
@@ -128,7 +130,7 @@ public class TaskAnalyser {
 
     /**
      * Sets the graph generator co-worker
-     * 
+     *
      * @param GM
      */
     public void setGM(GraphGenerator GM) {
@@ -137,7 +139,7 @@ public class TaskAnalyser {
 
     /**
      * Process the dependencies of a new task @currentTask
-     * 
+     *
      * @param currentTask
      */
     public void processTask(Task currentTask) {
@@ -281,7 +283,7 @@ public class TaskAnalyser {
 
     /**
      * Registers the end of execution of task @task
-     * 
+     *
      * @param task
      */
     public void endTask(Task task) {
@@ -354,7 +356,7 @@ public class TaskAnalyser {
     /**
      * Checks if a finished task is the last writer of its file parameters and, eventually, order the necessary
      * transfers
-     * 
+     *
      * @param t
      */
     private void checkResultFileTransfer(Task t) {
@@ -403,7 +405,7 @@ public class TaskAnalyser {
 
     /**
      * Returns the tasks dependent to the requested task
-     * 
+     *
      * @param request
      */
     public void findWaitedTask(WaitForTaskRequest request) {
@@ -420,7 +422,11 @@ public class TaskAnalyser {
 
             // Add graph description
             if (IS_DRAW_GRAPH) {
-                addEdgeFromTaskToMain(lastWriter, dataId);
+                TreeSet<Integer> toPass = new TreeSet();
+                toPass.add(dataId);
+                DataInstanceId dii = DIP.getLastVersions(toPass).get(0);
+                int dataVersion = dii.getVersionId();
+                addEdgeFromTaskToMain(lastWriter, dataId, dataVersion);
             }
         }
 
@@ -439,7 +445,7 @@ public class TaskAnalyser {
 
     /**
      * Barrier
-     * 
+     *
      * @param request
      */
     public void barrier(BarrierRequest request) {
@@ -463,7 +469,7 @@ public class TaskAnalyser {
 
     /**
      * End of execution barrier
-     * 
+     *
      * @param request
      */
     public void noMoreTasks(EndOfAppRequest request) {
@@ -484,7 +490,7 @@ public class TaskAnalyser {
 
     /**
      * Returns the written files and deletes them
-     * 
+     *
      * @param appId
      * @return
      */
@@ -494,7 +500,7 @@ public class TaskAnalyser {
 
     /**
      * Shutdown
-     * 
+     *
      */
     public void shutdown() {
         if (IS_DRAW_GRAPH) {
@@ -504,7 +510,7 @@ public class TaskAnalyser {
 
     /**
      * Returns the task state
-     * 
+     *
      * @return
      */
     public String getTaskStateRequest() {
@@ -529,7 +535,7 @@ public class TaskAnalyser {
 
     /**
      * Deletes the specified data and its renamings
-     * 
+     *
      * @param dataInfo
      */
     public void deleteData(DataInfo dataInfo) {
@@ -541,7 +547,7 @@ public class TaskAnalyser {
         if (task != null) {
             return;
         }
-        
+
         LOGGER.debug("Removing " + dataInfo.getDataId() + " from written files");
         for (TreeSet<Integer> files : appIdToWrittenFiles.values()) {
             files.remove(dataInfo.getDataId());
@@ -554,7 +560,7 @@ public class TaskAnalyser {
      **************************************************************************************************************/
     /**
      * Checks the dependencies of a task @currentTask considering the parameter @dp
-     * 
+     *
      * @param currentTask
      * @param dp
      */
@@ -569,22 +575,32 @@ public class TaskAnalyser {
             }
             // Add dependency
             currentTask.addDataDependency(lastWriter);
-
-            // Draw dependency to graph
-            if (IS_DRAW_GRAPH) {
-                addEdgeFromTaskToTask(lastWriter, currentTask, dataId);
+        }
+        // Handle when -g enabled
+        if (IS_DRAW_GRAPH) {
+            int dataVersion = -1;
+            Direction d = dp.getDataAccessId().getDirection();
+            if (d.equals(Direction.R)) {
+                dataVersion = ((DataAccessId.RAccessId)dp.getDataAccessId()).getRVersionId();
             }
-        } else {
-            // Last writer is the main
-            if (IS_DRAW_GRAPH) {
-                addEdgeFromMainToTask(currentTask, dataId);
+            else if (d.equals(Direction.W)) {
+                dataVersion = ((DataAccessId.WAccessId) dp.getDataAccessId()).getWVersionId();
+            }
+            else {
+                dataVersion = ((DataAccessId.RWAccessId) dp.getDataAccessId()).getRVersionId();
+            }
+            if(lastWriter != null && lastWriter != currentTask) {
+                addEdgeFromTaskToTask(lastWriter, currentTask, dataId, dataVersion);
+            }
+            else {
+                addEdgeFromMainToTask(currentTask, dataId, dataVersion);
             }
         }
     }
 
     /**
      * Registers the output values of the task @currentTask
-     * 
+     *
      * @param currentTask
      * @param dp
      */
@@ -595,7 +611,7 @@ public class TaskAnalyser {
 
         // Update global last writer
         this.writers.put(dataId, currentTask);
-        
+
         // Update file and PSCO lists
         switch(dp.getType()) {
             case FILE_T:
@@ -631,7 +647,7 @@ public class TaskAnalyser {
      **************************************************************************************************************/
     /**
      * We have detected a new task, register it into the graph STEPS: Only adds the node
-     * 
+     *
      * @param task
      */
     private void addNewTask(Task task) {
@@ -646,21 +662,21 @@ public class TaskAnalyser {
     /**
      * We will execute a task whose data is produced by another task. STEPS: Add an edge from the previous task or the
      * last synchronization point to the new task
-     * 
+     *
      * @param source
      * @param dest
      * @param dataId
      */
-    private void addEdgeFromTaskToTask(Task source, Task dest, int dataId) {
+    private void addEdgeFromTaskToTask(Task source, Task dest, int dataId, int dataVersion) {
         if (source.getSynchronizationId() == dest.getSynchronizationId()) {
             String src = String.valueOf(source.getId());
             String dst = String.valueOf(dest.getId());
-            String dep = String.valueOf(dataId);
+            String dep = String.valueOf(dataId) + "v" + String.valueOf(dataVersion);
             this.GM.addEdgeToGraph(src, dst, dep);
         } else {
             String src = "Synchro" + dest.getSynchronizationId();
             String dst = String.valueOf(dest.getId());
-            String dep = String.valueOf(dataId);
+            String dep = String.valueOf(dataId) + "v" + String.valueOf(dataVersion);
             this.GM.addEdgeToGraph(src, dst, dep);
         }
     }
@@ -668,25 +684,25 @@ public class TaskAnalyser {
     /**
      * We will execute a task with no predecessors, data must be retrieved from the last synchronization point. STEPS:
      * Add edge from sync to task
-     * 
+     *
      * @param dest
      * @param dataId
      */
-    private void addEdgeFromMainToTask(Task dest, int dataId) {
+    private void addEdgeFromMainToTask(Task dest, int dataId, int dataVersion) {
         String src = "Synchro" + dest.getSynchronizationId();
         String dst = String.valueOf(dest.getId());
-        String dep = String.valueOf(dataId);
+        String dep = String.valueOf(dataId) + "v" + String.valueOf(dataVersion);
         this.GM.addEdgeToGraph(src, dst, dep);
     }
 
     /**
      * We have accessed to data produced by a task from the main code STEPS: Adds a new synchronization point if any
      * task has been created Adds a dependency from task to synchronization
-     * 
+     *
      * @param task
      * @param dataId
      */
-    private void addEdgeFromTaskToMain(Task task, int dataId) {
+    private void addEdgeFromTaskToMain(Task task, int dataId, int dataVersion) {
         // Add Sync if any task has been created
         if (this.taskDetectedAfterSync) {
             this.taskDetectedAfterSync = false;
@@ -704,7 +720,7 @@ public class TaskAnalyser {
         // Add edge from task to sync
         String src = String.valueOf(task.getId());
         String dest = "Synchro" + this.synchronizationId;
-        this.GM.addEdgeToGraph(src, dest, String.valueOf(dataId));
+        this.GM.addEdgeToGraph(src, dest, String.valueOf(dataId) + "v" + String.valueOf(dataVersion));
     }
 
     /**

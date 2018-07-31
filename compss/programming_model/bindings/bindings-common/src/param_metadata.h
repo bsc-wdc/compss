@@ -19,37 +19,7 @@
 
 // MATCHES JAVA COMPSsRuntime API Enum
 // Adds internal data representations
-enum datatype {
-    boolean_dt = 0,
-    char_dt,
-    byte_dt,
-    short_dt,
-    int_dt,
-    long_dt,
-    float_dt,
-    double_dt,
-    string_dt,
-    file_dt,
-    object_dt,
-    psco_dt,
-    external_psco_dt,
-    binding_object_dt,
-    wchar_dt,
-    wstring_dt,
-    longlong_dt,
-    void_dt,
-    any_dt,
-    //array types
-    array_char_dt,
-    array_byte_dt,
-    array_short_dt,
-    array_int_dt,
-    array_long_dt,
-    array_float_dt,
-    array_double_dt,
-    //end of arrays
-    null_dt
-};
+#include "data_type.h"
 
 // MATCHES JAVA COMPSsRuntime PARAMETER API Enum
 // Adds internal data representations

@@ -11,8 +11,8 @@
 <version>2.3.rc1807</version>
 		<relativePath>..</relativePath>
 	</parent>
-	
-	<!-- PROJECT INFORMATION -->	
+
+	<!-- PROJECT INFORMATION -->
 	<name>COMPSs Programming Model</name>
 	<description>COMPSs Programming Model</description>
 	<url>http://www.bsc.es</url>
@@ -27,6 +27,46 @@
 	    <name>BSC</name>
 	    <url>http://www.bsc.es</url>
 	</organization>
+
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>exec-maven-plugin</artifactId>
+				<groupId>org.codehaus.mojo</groupId>
+				<executions>
+					<execution>
+						<id>Datatype Generation</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>python</executable>
+              <arguments>
+                <argument>${basedir}/generate_datatype_enums.py</argument>
+              </arguments>
+						</configuration>
+					</execution>
+					<execution>
+						<id>Datatype Deletion</id>
+						<phase>clean</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>rm</executable>
+							<arguments>
+								<argument>-f</argument>
+								<argument>${basedir}/bindings/bindings-common/src/data_type.h</argument>
+								<argument>${basedir}/bindings/python/src/pycompss/api/data_type.py</argument>
+							</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 
 	<!-- SUB-MODULES -->
 	<modules>

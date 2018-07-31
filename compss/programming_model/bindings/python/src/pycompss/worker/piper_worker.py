@@ -204,8 +204,8 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                     logger.debug("[PYTHON WORKER %s] - TASK CMD: %s" % (str(process_name), str(current_line)))
 
                 try:
-                    out = open(job_out, 'w')
-                    err = open(job_err, 'w')
+                    out = open(job_out, 'a')
+                    err = open(job_err, 'a')
                     sys.stdout = out
                     sys.stderr = err
                     if not affinity_ok:
@@ -247,7 +247,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                     # If the task had an object or file as parameter and the worker returns the id,
                     # the runtime can change the type (and locations) to a EXTERNAL_OBJ_T.
 
-                    with open(output_pipe, 'w') as out_pipe:  # removed w+ TODO: should be a?
+                    with open(output_pipe, 'w') as out_pipe:
                         out_pipe.write(message)
                 except Exception as e:
                     logger.exception("[PYTHON WORKER %s] Exception %s" % (str(process_name), str(e)))

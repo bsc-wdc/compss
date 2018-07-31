@@ -8,9 +8,11 @@
 #---------------------------------------------------
 DEFAULT_ARCHITECTURE=$(lscpu | awk 'NR==1{print $NF}')
 DEFAULT_CFG=${COMPSS_HOME}/Bindings/c/cfgs/default.cfg #This file contains the x86-64 and armhf environment
+DEFAULT_ONLY_MASTER=false
+DEFAULT_ONLY_WORKER=false
 
 APPLICATION_ERROR="Error: Application name not provided"
-
+ONLY_MASTER_AND_WORKER_ERROR="Error: Is not possible to specify both options --only-master and --only-worker, to compile both remove these arguments."
 #---------------------------------------------------
 # FUNCTIONS DECLARATION
 #---------------------------------------------------
@@ -38,7 +40,11 @@ show_opts() {
         --worker=<arch1,arch2,...>  Specifies the target architectures for which the worker is
                                     going to be build. Each architecture separated by ",".
                                     Default: ${DEFAULT_ARCHITECTURE}
-        
+
+        --only_master               Compiles only the master for the specified architectures.
+
+        --only_worker               Compiles only the worker for the specified architectures.
+
         --cfg=<path>                Specifies the location of the configuration file that contains
                                     the environment to execute when cross-compiling the application.
                                     In this BASH script functions named as the target architecture are
@@ -110,12 +116,20 @@ get_args() {
                                 #Get architectures to build worker
                                 WORKER_BUILD_ARCHS=${OPTARG//worker=/}
                                 ;;
-                            cfg=*)
+                            only-master*)
+							    #Compile only the master
+							    ONLY_MASTER=true
+							    ;;
+                            only-worker*)
+                                #Compile only the worker
+                                ONLY_WORKER=true
+                                ;;
+							cfg=*)
                                 #Get configuration file
                                 CFG_PATH=${OPTARG//cfg=/}
                                 ;;
                             *)
-                                # Flag didn't match any patern. Raise exception
+                                # Flag didn't match any pattern. Raise exception
                                 display_error "Bad argument: $OPTARG"
                                 ;;
                             esac
@@ -161,7 +175,29 @@ check_args() {
         echo "[ INFO ] Using default configuration file: ${DEFAULT_CFG}."
         CFG_PATH=${DEFAULT_CFG}
     fi
+
+	if [ -n "$ONLY_MASTER" ] && [ -n "$ONLY_WORKER" ]; then
+        echo ""
+		display_error "${ONLY_MASTER_AND_WORKER_ERROR}" #Is not possible to compile only both...
+	elif [ -n "$ONLY_MASTER" ]; then
+		echo "[ INFO ] Compiling only the master."
+		ONLY_WORKER=$DEFAULT_ONLY_WORKER
+	else
+		echo "[ INFO ] Compiling only the worker."
+		ONLY_MASTER=$DEFAULT_ONLY_MASTER
+	fi
         
+}
+
+extract_first() {
+	
+	local toProcess
+
+	# This function uses awk to get the first element of a string until the first comma separator
+	toProcess=$1
+
+	processed=$(echo $toProcess | awk -F, '{split($0, array,","} END{ for (i in array) { print array [i] }}')
+
 }
 
 #---------------------------------------------------
@@ -172,5 +208,9 @@ check_args() {
 
     get_args "$@"
     check_args
+
+	# Trap needed?
+
+			
 
     exit 0

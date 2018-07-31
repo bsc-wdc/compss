@@ -116,11 +116,11 @@ get_args() {
                                 #Get architectures to build worker
                                 WORKER_BUILD_ARCHS=${OPTARG//worker=/}
                                 ;;
-                            only-master*)
+                            only-master)
 							    #Compile only the master
 							    ONLY_MASTER=true
 							    ;;
-                            only-worker*)
+                            only-worker)
                                 #Compile only the worker
                                 ONLY_WORKER=true
                                 ;;

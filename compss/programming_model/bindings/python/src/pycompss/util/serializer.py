@@ -133,18 +133,11 @@ def serialize_to_handler(obj, handler):
         else:
             try:
                 # If it is a numpy object then use its saving mechanism
-                if serializer.__name__ == 'numpy' and type(obj).__module__ == numpy.__name__:
+                if serializer is numpy:
                     serializer.save(handler, obj)
-                    success = True
-                # elif obj it is a function (callable object) defined within the main application file
-                elif callable(obj) and obj.__module__ == '__main__' and serializer.__name__ != 'dill':
-                    # If this happens, it thinks that it is within launch.py __main__ with pickle.
-                    # Solution, use dill in this particular case. cPickle in the rest.
-                    success = False
-                # otherwise, general case
                 else:
                     serializer.dump(obj, handler, protocol=serializer.HIGHEST_PROTOCOL)
-                    success = True
+                success = True
             except Exception:
                 if __debug__:
                     traceback.print_exc()  # No need to print all serializer exceptions
@@ -218,8 +211,8 @@ def deserialize_from_handler(handler):
         return ret
     except Exception:
         if __debug__:
-          print('WARNING! Deserialization with %s failed.' % str(serializer))
-          traceback.print_exc()  # No need to print all deserialize exceptions
+            print('WARNING! Deserialization with %s failed.' % str(serializer))
+            traceback.print_exc()  # No need to print all deserialize exceptions
     # we are not able to deserialize the contents from file_name with any of our
     # serializers
     try:

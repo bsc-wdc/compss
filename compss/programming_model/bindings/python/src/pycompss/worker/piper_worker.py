@@ -247,7 +247,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                     # If the task had an object or file as parameter and the worker returns the id,
                     # the runtime can change the type (and locations) to a EXTERNAL_OBJ_T.
 
-                    with open(output_pipe, 'a') as out_pipe:
+                    with open(output_pipe, 'w') as out_pipe:
                         out_pipe.write(message)
                 except Exception as e:
                     logger.exception("[PYTHON WORKER %s] Exception %s" % (str(process_name), str(e)))

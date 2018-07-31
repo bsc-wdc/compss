@@ -1,0 +1,28 @@
+#!/bin/bash
+
+############################
+#       DEFAULT.CFG        #
+############################
+# This file specifies the environment in which an
+# application is going to be built. 
+# Is useful to specify compilers and environment
+# variables, thus cross compiling can be performed 
+# without changing the inner scripts of COMPSs. 
+
+# For COMPSs we need the following :
+
+# Environment variables for compilers:  CC, CXX
+# Environment variables for JAVA:       JAVA_HOME
+
+
+x86_64() {
+    export CC=gcc
+    export CXX=g++
+    export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
+}
+
+armhf() {
+    export CC=arm-linux-gnueabihf-gcc
+    export CXX=arm-linux-gnueabihf-g++ 
+    export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-armhf
+}

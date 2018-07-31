@@ -7,12 +7,13 @@
 # SCRIPT CONSTANTS DECLARATION
 #---------------------------------------------------
 DEFAULT_ARCHITECTURE=$(lscpu | awk 'NR==1{print $NF}')
-DEFAULT_CFG=${COMPSS_HOME}/Bindings/c/cfgs/default.cfg #This file contains the x86-64 and armhf environment
+DEFAULT_CFG=${COMPSS_HOME}/Bindings/c/cfgs/compssrc #This file contains the x86-64 and armhf environment
 DEFAULT_ONLY_MASTER=false
 DEFAULT_ONLY_WORKER=false
 
 APPLICATION_ERROR="Error: Application name not provided"
 ONLY_MASTER_AND_WORKER_ERROR="Error: Is not possible to specify both options --only-master and --only-worker, to compile both remove these arguments."
+ARCH_CONFIGURATION_FUNCTION_NOT_FOUND="Error: The function to configurate one of the desired architectures has not been found, ensure that is define in the configuration file."
 #---------------------------------------------------
 # FUNCTIONS DECLARATION
 #---------------------------------------------------
@@ -80,7 +81,7 @@ display_error() {
 	local error_msg=$1
 
 	echo "$error_msg"
-        echo " "
+    echo " "
 
 	usage 1
 }
@@ -203,40 +204,89 @@ extract_archs() {
     get_args "$@"
     check_args
 
+    appdir=$(pwd)
+    tmpdir=$(mktemp -d)
+    
+    cp -rf $appdir/* $tmpdir
+
     # Build master
     if [ "$ONLY_WORKER" = false ]; then
 
-        #source $CFG_PATH #This file contains the build configuration
+        if [ -d ./master ] ; then
+            echo "The master directory already exists from a previous build. Removing."
+            rm -rf master
+        fi
+
+        mkdir master
 
         extract_archs $MASTER_BUILD_ARCHS
+        
+        source $CFG_PATH #This file contains the build configuration
+
+        cd $tmpdir
 
         for i in $processed; do
-            mkdir ./$i 
+            
+            if [ ! $(type -t $i) = "function" ]; then
+                display_error "${ARCH_CONFIGURATION_FUNCTION_NOT_FOUND}"
+            fi
+
+            $i #Function to export al the needed env. variables
+            
             compss_build_app --only-master $other_args 
-            mv ./master/* $i
-        done
 
-        for i in $processed; do
-            mv $i ./master
-        done        
+            ev=$?
+
+            if [ $ev -ne 0 ]; then
+                exit 1
+            fi
+
+            mkdir $appdir/master/$i
+            mv ./master/* $appdir/master/$i
+
+        done
 
     fi    		
 
     # Build worker
     if [ "$ONLY_MASTER" = false ]; then
         
+        if [ -d ./worker ] ; then
+            echo "The worker directory already exists from a previous build. Removing."
+            rm -rf worker
+        fi
+
+        mkdir worker
+
         extract_archs $WORKER_BUILD_ARCHS
+
+        source $CFG_PATH
+
+        cd $tmpdir
         
         for i in $processed; do
-            mkdir ./$i
+
+            if [ ! $(type -t $i) = "function" ]; then
+                display_error "${ARCH_CONFIGURATION_FUNCTION_NOT_FOUND}"
+            fi
+
+            $i #Function to export al the needed env. variables
+
             compss_build_app --only-worker $other_args
-            mv ./worker/* $i
+
+            ev=$?
+
+            if [ $ev -ne 0 ]; then
+                exit 1
+            fi
+
+            mkdir $appdir/worker/$i
+            mv ./worker/* $appdir/worker/$i
+
         done
-        
-        for i in $processed; do
-            mv $i ./worker
-        done 
 
     fi
+
+    rm -rf $tmpdir
 
     exit 0

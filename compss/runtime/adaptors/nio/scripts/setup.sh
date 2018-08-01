@@ -68,6 +68,12 @@
 
     paramsToCOMPSsWorker=$@
 
+    # Check number of parameters
+    if [ $# -ne 31 ]; then
+        echo "ERROR: Incorrect number of parameters. Expected: 31. Got: $#"
+        exit 1
+    fi
+
     # Catch some NIOWorker parameters
     debug=$1
     hostName=$4

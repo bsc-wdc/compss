@@ -80,7 +80,7 @@ def matmul(a, b, c, m_size):
         for j in range(m_size):
             for k in range(m_size):
                 # multiply(a[i][k], b[k][j], c[i][j])
-                c[i][j] += a[i][k] * b[k][j]
+                c[i][j] += np.dot(a[i][k], b[k][j])
 
     # Debug result
     if __debug__:

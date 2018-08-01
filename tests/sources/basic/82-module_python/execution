@@ -91,7 +91,7 @@ function execute () {
 
   # Take the latest log folder as retry number
   # Fixes the possiblity to test with both python 2 and 3 one after the other
-  retryNum=`ls -l "${COMPSs_log_folder}" | grep "${app}.py" | wc -l`
+  retryNum=$(find "${COMPSs_log_folder}" -name ${app}.py* -type d | wc -l)
 
   # Check timeout
   if [[ "$?" = "124" ]]; then

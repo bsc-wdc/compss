@@ -1,5 +1,5 @@
 %define name	 	compss-framework 
-%define version		2.3.rc1807
+%define version		2.3.rc1808
 %define release		1
 
 Requires: compss-runtime, compss-bindings, compss-tools, compss-cloud

@@ -55,8 +55,6 @@ import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.WaitForTaskRequest;
 import es.bsc.compss.util.ErrorManager;
 
-import javax.xml.crypto.Data;
-
 
 /**
  * Class to analyze the data dependencies between tasks
@@ -335,7 +333,8 @@ public class TaskAnalyser {
 
         for (Parameter param : task.getTaskDescription().getParameters()) {
             DataType type = param.getType();
-            if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T) {
+            if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T
+                    || type == DataType.BINDING_OBJECT_T) {
                 DependencyParameter dPar = (DependencyParameter) param;
                 DataAccessId dAccId = dPar.getDataAccessId();
                 LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dPar.getDataTarget());
@@ -422,7 +421,7 @@ public class TaskAnalyser {
 
             // Add graph description
             if (IS_DRAW_GRAPH) {
-                TreeSet<Integer> toPass = new TreeSet();
+                TreeSet<Integer> toPass = new TreeSet<>();
                 toPass.add(dataId);
                 DataInstanceId dii = DIP.getLastVersions(toPass).get(0);
                 int dataVersion = dii.getVersionId();
@@ -581,18 +580,15 @@ public class TaskAnalyser {
             int dataVersion = -1;
             Direction d = dp.getDataAccessId().getDirection();
             if (d.equals(Direction.R)) {
-                dataVersion = ((DataAccessId.RAccessId)dp.getDataAccessId()).getRVersionId();
-            }
-            else if (d.equals(Direction.W)) {
+                dataVersion = ((DataAccessId.RAccessId) dp.getDataAccessId()).getRVersionId();
+            } else if (d.equals(Direction.W)) {
                 dataVersion = ((DataAccessId.WAccessId) dp.getDataAccessId()).getWVersionId();
-            }
-            else {
+            } else {
                 dataVersion = ((DataAccessId.RWAccessId) dp.getDataAccessId()).getRVersionId();
             }
-            if(lastWriter != null && lastWriter != currentTask) {
+            if (lastWriter != null && lastWriter != currentTask) {
                 addEdgeFromTaskToTask(lastWriter, currentTask, dataId, dataVersion);
-            }
-            else {
+            } else {
                 addEdgeFromMainToTask(currentTask, dataId, dataVersion);
             }
         }
@@ -613,7 +609,7 @@ public class TaskAnalyser {
         this.writers.put(dataId, currentTask);
 
         // Update file and PSCO lists
-        switch(dp.getType()) {
+        switch (dp.getType()) {
             case FILE_T:
                 TreeSet<Integer> fileIdsWritten = this.appIdToWrittenFiles.get(appId);
                 if (fileIdsWritten == null) {

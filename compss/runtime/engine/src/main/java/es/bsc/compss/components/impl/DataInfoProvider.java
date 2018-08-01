@@ -28,7 +28,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.Semaphore;
 import java.io.File;
-import java.io.IOException;
 
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.*;
@@ -50,6 +49,7 @@ import org.apache.logging.log4j.Logger;
 
 import storage.StorageException;
 import storage.StorageItf;
+
 
 /**
  * Component to handle the specific data structures such as file names, versions, renamings and values
@@ -97,10 +97,10 @@ public class DataInfoProvider {
         if (access instanceof FileAccessParams) {
             FileAccessParams fAccess = (FileAccessParams) access;
             return registerFileAccess(fAccess.getMode(), fAccess.getLocation());
-        } else if (access instanceof BindingObjectAccessParams){
+        } else if (access instanceof BindingObjectAccessParams) {
             BindingObjectAccessParams oAccess = (BindingObjectAccessParams) access;
             return registerBindingObjectAccess(oAccess.getMode(), oAccess.getBindingObject(), oAccess.getCode());
-        }else{
+        } else {
             ObjectAccessParams oAccess = (ObjectAccessParams) access;
             return registerObjectAccess(oAccess.getMode(), oAccess.getValue(), oAccess.getCode());
         }
@@ -144,27 +144,27 @@ public class DataInfoProvider {
         // Version management
         return willAccess(mode, fileInfo);
     }
-    
+
     public void finishFileAccess(AccessMode mode, DataLocation location) {
-    	DataInfo fileInfo;
+        DataInfo fileInfo;
         String locationKey = location.getLocationKey();
         Integer fileId = nameToId.get(locationKey);
 
         // First access to this file
         if (fileId == null) {
-               LOGGER.warn("File " + location.getLocationKey() + " has not been accessed before");
-               return;
+            LOGGER.warn("File " + location.getLocationKey() + " has not been accessed before");
+            return;
         }
         fileInfo = idToData.get(fileId);
         DataAccessId daid = getAccess(mode, fileInfo);
-        if (daid == null){
-        	LOGGER.warn("File " + location.getLocationKey() + " has not been accessed before");
+        if (daid == null) {
+            LOGGER.warn("File " + location.getLocationKey() + " has not been accessed before");
             return;
         }
         dataHasBeenAccessed(daid);
-               
+
     }
-    	
+
     /**
      * DataAccess interface: registers a new object access
      * 
@@ -220,7 +220,7 @@ public class DataInfoProvider {
      */
     public DataAccessId registerBindingObjectAccess(AccessMode mode, BindingObject bo, int code) {
         DataInfo oInfo;
-        
+
         Integer aoId = codeToId.get(code);
 
         // First access to this datum
@@ -255,7 +255,7 @@ public class DataInfoProvider {
         // Version management
         return willAccess(mode, oInfo);
     }
-    
+
     /**
      * DataAccess interface: registers a new object access
      * 
@@ -351,31 +351,31 @@ public class DataInfoProvider {
         }
         return daId;
     }
-    
+
     private DataAccessId getAccess(AccessMode mode, DataInfo di) {
         // Version management
         DataAccessId daId = null;
         DataVersion currentInstance = di.getCurrentDataVersion();
-        if (currentInstance!=null){
-        	switch (mode) {
-            	case R:
-            		daId = new RAccessId(currentInstance);
-            		break;
+        if (currentInstance != null) {
+            switch (mode) {
+                case R:
+                    daId = new RAccessId(currentInstance);
+                    break;
 
-            	case W:
-            		daId = new WAccessId(di.getCurrentDataVersion());
-            		break;
-            	case RW:
-            		DataVersion readInstance = di.getPreviousDataVersion();
-            		if (readInstance !=null){
-            			daId = new RWAccessId(readInstance, currentInstance);
-            		}else{
-            			LOGGER.warn("Previous instance for data" + di.getDataId() + " is null." );
-            		}
-            		break;
-        	}
-        }else{
-        	LOGGER.warn("Current instance for data" + di.getDataId() + " is null." );
+                case W:
+                    daId = new WAccessId(di.getCurrentDataVersion());
+                    break;
+                case RW:
+                    DataVersion readInstance = di.getPreviousDataVersion();
+                    if (readInstance != null) {
+                        daId = new RWAccessId(readInstance, currentInstance);
+                    } else {
+                        LOGGER.warn("Previous instance for data" + di.getDataId() + " is null.");
+                    }
+                    break;
+            }
+        } else {
+            LOGGER.warn("Current instance for data" + di.getDataId() + " is null.");
         }
         return daId;
     }
@@ -551,7 +551,7 @@ public class DataInfoProvider {
         }
         return dataInfo;
     }
-    
+
     /**
      * Deletes the data associated with the code
      * 
@@ -559,17 +559,17 @@ public class DataInfoProvider {
      * @return ObjectInfo
      */
     public ObjectInfo deleteData(int code) {
-    	LOGGER.debug("Deleting Data associated with code: " + String.valueOf(code));
-    	
+        LOGGER.debug("Deleting Data associated with code: " + String.valueOf(code));
+
         Integer id = codeToId.get(code);
         if (id == null)
-        	return null;
-        
+            return null;
+
         ObjectInfo oi = (ObjectInfo) idToData.get(id);
-        
-        //We delete the data associated with all the versions of the same object
-        oi.delete(); 
-        
+
+        // We delete the data associated with all the versions of the same object
+        oi.delete();
+
         return oi;
     }
 
@@ -629,7 +629,7 @@ public class DataInfoProvider {
 
         return ld;
     }
-    
+
     /**
      * Transfers the value of an object
      * 
@@ -639,25 +639,25 @@ public class DataInfoProvider {
     public LogicalData transferBindingObject(TransferBindingObjectRequest toRequest) {
         Semaphore sem = toRequest.getSemaphore();
         DataAccessId daId = toRequest.getDaId();
-        
-        //RWAccessId rwaId = (RWAccessId) daId;
+
+        // RWAccessId rwaId = (RWAccessId) daId;
         RAccessId rwaId = (RAccessId) daId;
-        
+
         String sourceName = rwaId.getReadDataInstance().getRenaming();
-        //String targetName = rwaId.getWrittenDataInstance().getRenaming();
-        
+        // String targetName = rwaId.getWrittenDataInstance().getRenaming();
+
         if (DEBUG) {
             LOGGER.debug("[DataInfoProvider] Requesting getting object " + sourceName);
         }
         LogicalData srcLd = Comm.getData(sourceName);
-        
-        //LogicalData tgtLd = Comm.getData(targetName);
+
+        // LogicalData tgtLd = Comm.getData(targetName);
         LogicalData tgtLd = srcLd;
-        
+
         if (DEBUG) {
             LOGGER.debug("[DataInfoProvider] Logical data for binding object is:" + srcLd);
         }
-        
+
         if (srcLd == null) {
             ErrorManager.error("Unregistered data " + sourceName);
             return null;
@@ -666,20 +666,20 @@ public class DataInfoProvider {
             LOGGER.debug("Requesting tranfers binding object " + sourceName + " to " + Comm.getAppHost().getName());
         }
         BindingObject srcBO = BindingObject.generate(srcLd.getURIs().get(0).getPath());
-        BindingObject tgtBO = new BindingObject(Comm.getAppHost().getTempDirPath() + sourceName,  srcBO.getType(),  srcBO.getElements());
-        /*if (tgtLd == null){
-            Comm.registerBindingObject(targetName, tgtBO );
-        }*/
-        
+        BindingObject tgtBO = new BindingObject(Comm.getAppHost().getTempDirPath() + sourceName, srcBO.getType(), srcBO.getElements());
+        /*
+         * if (tgtLd == null){ Comm.registerBindingObject(targetName, tgtBO ); }
+         */
+
         DataLocation targetLocation = new BindingObjectLocation(Comm.getAppHost(), tgtBO);
-        
+
         Transferable transfer = new BindingObjectTransferable(toRequest);
-        
+
         Comm.getAppHost().getData(srcLd, targetLocation, tgtLd, transfer, new OneOpWithSemListener(sem));
         if (DEBUG) {
             LOGGER.debug(" Setting tgtName " + transfer.getDataTarget() + " in " + Comm.getAppHost().getName());
         }
-        //return tgtLd;
+        // return tgtLd;
         return srcLd;
     }
 

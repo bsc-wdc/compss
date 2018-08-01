@@ -54,6 +54,9 @@ public abstract class Invoker {
     protected static final String ERROR_METHOD_DEFINITION = "Incorrect method definition for task of type ";
     protected static final String ERROR_TASK_EXECUTION = "ERROR: Exception executing task (user code)";
 
+    protected static final String ERROR_UNKNOWN_TYPE = "ERROR: Unrecognised type";
+
+
     protected final NIOWorker nw;
     protected final NIOTask nt;
     protected final File taskSandboxWorkingDir;
@@ -331,6 +334,8 @@ public abstract class Invoker {
                 this.values[i] = np.getValue();
                 this.writeFinalValue[i] = np.isWriteFinalValue();
                 break;
+            default:
+                throw new JobExecutionException(ERROR_UNKNOWN_TYPE + np.getType());
         }
 
         this.isFile[i] = (np.getType().equals(DataType.FILE_T));

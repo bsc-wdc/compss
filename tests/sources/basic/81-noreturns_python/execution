@@ -24,7 +24,7 @@
   #----------------------------------------------------------------------------------
   # Run application 1 - Test
   echo
-  echo "*** RUNNING PYTHON MULTIRETURN TEST"
+  echo "*** RUNNING PYTHON NO RETURN TEST"
   output_log="${target_log_folder}/python_test_0${retryNum}.outputlog"
   error_log="${target_log_folder}/python_test_0${retryNum}.errorlog"
   expectedTime=720s
@@ -47,7 +47,7 @@
 
   # Take the latest log folder as retry number
   # Fixes the possiblity to test with both python 2 and 3 one after the other
-  retryNum=`ls -l "${COMPSs_log_folder}" | grep "noreturn.py" | wc -l`
+  retryNum=$(find "${COMPSs_log_folder}" -name noreturn.py* -type d | wc -l)
 
   # Check timeout
   if [[ "$?" = "124" ]]; then

@@ -1062,7 +1062,7 @@ void GS_Delete_Object(char *file_name, int **buf) {
 }
 
 void GS_Barrier(long _appId) {
-	debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  Waiting tasks for APP id: %lu", appId);
+	debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  Waiting tasks for APP id: %lu\n", appId);
     get_lock();
     JNIEnv* local_env = m_env;
     int isAttached = check_and_attach(m_jvm, local_env);
@@ -1078,7 +1078,7 @@ void GS_Barrier(long _appId) {
     if (isAttached==1) {
         m_jvm->DetachCurrentThread();
     }
-    debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  APP id: %lu", appId);
+    debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  APP id: %lu\n", appId);
 }
 
 void GS_BarrierNew(long _appId, int noMoreTasks) {
@@ -1089,8 +1089,8 @@ void GS_BarrierNew(long _appId, int noMoreTasks) {
     bool _noMoreTasks = false;
     if (noMoreTasks != 0) _noMoreTasks = true;
 
-    debug_printf("[   BINDING]  -  @GS_Barrier  -  Waiting tasks for APP id: %lu", appId);
-    debug_printf("[   BINDING]  -  @GS_Barrier  -  noMoreTasks: %s", _noMoreTasks ? "true":"false");
+    debug_printf("[   BINDING]  -  @GS_Barrier  -  Waiting tasks for APP id: %lu\n", appId);
+    debug_printf("[   BINDING]  -  @GS_Barrier  -  noMoreTasks: %s\n", _noMoreTasks ? "true":"false");
     release_lock();
 
     local_env->CallVoidMethod(jobjIT, midBarrierNew, appId, _noMoreTasks);
@@ -1104,7 +1104,7 @@ void GS_BarrierNew(long _appId, int noMoreTasks) {
     if (isAttached==1) {
         m_jvm->DetachCurrentThread();
     }
-    debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  APP id: %lu", appId);
+    debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  APP id: %lu\n", appId);
 }
 
 void GS_EmitEvent(int type, long id) {

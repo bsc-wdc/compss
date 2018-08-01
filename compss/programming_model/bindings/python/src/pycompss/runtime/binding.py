@@ -223,10 +223,10 @@ def start_runtime():
     """
 
     if __debug__:
-        logger.info('Starting COMPSs...')
+        logger.info("Starting COMPSs...")
     compss.start_runtime()
     if __debug__:
-        logger.info('COMPSs started')
+        logger.info("COMPSs started")
 
 
 def stop_runtime():
@@ -239,19 +239,19 @@ def stop_runtime():
     """
 
     if __debug__:
-        logger.info('Cleaning objects...')
+        logger.info("Cleaning objects...")
     _clean_objects()
 
     if __debug__:
-        logger.info('Stopping COMPSs...')
+        logger.info("Stopping COMPSs...")
     compss.stop_runtime()
 
     if __debug__:
-        logger.info('Cleaning temps...')
+        logger.info("Cleaning temps...")
     _clean_temps()
 
     if __debug__:
-        logger.info('COMPSs stopped')
+        logger.info("COMPSs stopped")
 
 
 def get_file(file_name, mode):
@@ -265,10 +265,10 @@ def get_file(file_name, mode):
     """
 
     if __debug__:
-        logger.debug('Getting file %s with mode %s' % (file_name, mode))
+        logger.debug("Getting file %s with mode %s" % (file_name, mode))
     compss_name = compss.get_file(file_name, mode)
     if __debug__:
-        logger.debug('COMPSs file name is %s' % compss_name)
+        logger.debug("COMPSs file name is %s" % compss_name)
     return compss_name
 
 
@@ -282,13 +282,13 @@ def delete_file(file_name):
     """
 
     if __debug__:
-        logger.debug('Deleting file %s' % file_name)
+        logger.debug("Deleting file %s" % file_name)
     result = compss.delete_file(file_name) == 'true'
     if __debug__:
         if result:
-            logger.debug('File %s successfully deleted.' % file_name)
+            logger.debug("File %s successfully deleted." % file_name)
         else:
-            logger.error('Failed to remove file %s.' % file_name)
+            logger.error("Failed to remove file %s." % file_name)
     return result
 
 
@@ -337,7 +337,7 @@ def barrier(no_more_tasks=False):
     """
 
     if __debug__:
-        logger.debug('Barrier. No more tasks? %s' % str(no_more_tasks))
+        logger.debug("Barrier. No more tasks? %s" % str(no_more_tasks))
 
     # If noMoreFlags is set, clean up the objects
     if no_more_tasks:
@@ -356,10 +356,10 @@ def get_log_path():
     """
 
     if __debug__:
-        logger.debug('Requesting log path')
+        logger.debug("Requesting log path")
     log_path = compss.get_logging_path()
     if __debug__:
-        logger.debug('Log path received: %s' % log_path)
+        logger.debug("Log path received: %s" % log_path)
     return log_path
 
 
@@ -446,8 +446,8 @@ def register_ce(core_element):
     impl_type_args = core_element.get_impl_type_args()
 
     if __debug__:
-        logger.debug('Registering CE with signature: %s' % ce_signature)
-        logger.debug('\t - Implementation signature: %s' % impl_signature)
+        logger.debug("Registering CE with signature: %s" % ce_signature)
+        logger.debug("\t - Implementation signature: %s" % impl_signature)
 
     # Build constraints string from constraints dictionary
     impl_constraints_string = ''
@@ -459,11 +459,11 @@ def register_ce(core_element):
             impl_constraints_string += key + ':' + str(value) + ';'
 
     if __debug__:
-        logger.debug('\t - Implementation constraints: %s' % impl_constraints_string)
-        logger.debug('\t - Implementation type: %s' % impl_type)
+        logger.debug("\t - Implementation constraints: %s" % impl_constraints_string)
+        logger.debug("\t - Implementation type: %s" % impl_type)
     impl_type_args_string = ' '.join(impl_type_args)
     if __debug__:
-        logger.debug('\t - Implementation type arguments: %s' % impl_type_args_string)
+        logger.debug("\t - Implementation type arguments: %s" % impl_type_args_string)
 
     # Call runtime with the appropriate parameters
     compss.register_core_element(ce_signature,
@@ -472,7 +472,7 @@ def register_ce(core_element):
                                  impl_type,
                                  impl_type_args)
     if __debug__:
-        logger.debug('CE with signature %s registered.' % ce_signature)
+        logger.debug("CE with signature %s registered." % ce_signature)
 
 
 def synchronize(obj, mode):
@@ -485,6 +485,7 @@ def synchronize(obj, mode):
     :param mode: Direction of the object to synchronize.
     :return: The value of the object requested.
     """
+
     # TODO: Add a boolean to differentiate between files and object on the compss.get_file call. This change pretends
     # to obtain better traces. Must be implemented first in the Runtime, then in the bindings common C API and
     # finally add the boolean here
@@ -496,7 +497,7 @@ def synchronize(obj, mode):
             return obj
         else:
             # file_path is of the form storage://pscoId or file://sys_path_to_file
-            file_path = compss.get_file('storage://' + str(obj_id), mode)
+            file_path = compss.get_file("storage://" + str(obj_id), mode)
             # TODO: Add switch on protocol
             protocol, file_name = file_path.split('://')
             new_obj = get_by_id(file_name)
@@ -507,7 +508,7 @@ def synchronize(obj, mode):
         return obj
 
     if __debug__:
-        logger.debug('Synchronizing object %s with mode %s' % (obj_id, mode))
+        logger.debug("Synchronizing object %s with mode %s" % (obj_id, mode))
 
     file_name = objid_to_filename[obj_id]
     compss_file = compss.get_file(file_name, mode)
@@ -525,21 +526,19 @@ def synchronize(obj, mode):
     _objs_written_by_mp[new_obj_id] = objid_to_filename[new_obj_id]
 
     if __debug__:
-        logger.debug('Deleting obj %s (new one is %s)' % (str(obj_id), str(new_obj_id)))
+        logger.debug("Deleting obj %s (new one is %s)" % (str(obj_id), str(new_obj_id)))
     compss.delete_file(objid_to_filename[obj_id])
     objid_to_filename.pop(obj_id)
     pending_to_synchronize.pop(obj_id)
 
     if __debug__:
-        logger.debug('Now object with id %s and %s has mapping %s' % (new_obj_id, type(new_obj), file_name))
+        logger.debug("Now object with id %s and %s has mapping %s" % (new_obj_id, type(new_obj), file_name))
 
     return new_obj
 
 
-def process_task(f, module_name, class_name, ftype,
-                 f_parameters, f_returns,
-                 task_kwargs,
-                 num_nodes, replicated, distributed):
+def process_task(f, module_name, class_name, ftype, f_parameters, f_returns, task_kwargs, num_nodes, replicated,
+                 distributed):
     """
     Function that submits a task to the runtime.
 
@@ -557,7 +556,7 @@ def process_task(f, module_name, class_name, ftype,
     """
 
     if __debug__:
-        logger.debug('TASK: %s of type %s, in module %s, in class %s' % (f.__name__, ftype, module_name, class_name))
+        logger.debug("TASK: %s of type %s, in module %s, in class %s" % (f.__name__, ftype, module_name, class_name))
 
     app_id = 0
 
@@ -615,21 +614,21 @@ def process_task(f, module_name, class_name, ftype,
                 streams_str += str(s) + ' '
             for p in compss_prefixes:
                 prefixes_str += str(p) + ' '
-            logger.debug('Processing task:')
-            logger.debug('\t- App id: ' + str(app_id))
-            logger.debug('\t- Path: ' + path)
-            logger.debug('\t- Function name: ' + f.__name__)
-            logger.debug('\t- Signature: ' + signature)
-            logger.debug('\t- Priority: ' + str(has_priority))
-            logger.debug('\t- Has target: ' + str(has_target))
-            logger.debug('\t- Num nodes: ' + str(num_nodes))
-            logger.debug('\t- Replicated: ' + str(replicated))
-            logger.debug('\t- Distributed: ' + str(distributed))
-            logger.debug('\t- Values: ' + values_str)
-            logger.debug('\t- COMPSs types: ' + types_str)
-            logger.debug('\t- COMPSs directions: ' + direct_str)
-            logger.debug('\t- COMPSs streams: ' + streams_str)
-            logger.debug('\t- COMPSs prefixes: ' + prefixes_str)
+            logger.debug("Processing task:")
+            logger.debug("\t- App id: " + str(app_id))
+            logger.debug("\t- Path: " + path)
+            logger.debug("\t- Function name: " + f.__name__)
+            logger.debug("\t- Signature: " + signature)
+            logger.debug("\t- Priority: " + str(has_priority))
+            logger.debug("\t- Has target: " + str(has_target))
+            logger.debug("\t- Num nodes: " + str(num_nodes))
+            logger.debug("\t- Replicated: " + str(replicated))
+            logger.debug("\t- Distributed: " + str(distributed))
+            logger.debug("\t- Values: " + values_str)
+            logger.debug("\t- COMPSs types: " + types_str)
+            logger.debug("\t- COMPSs directions: " + direct_str)
+            logger.debug("\t- COMPSs streams: " + streams_str)
+            logger.debug("\t- COMPSs prefixes: " + prefixes_str)
 
     # Check that there is the same amount of values as their types, as well as their directions, streams and prefixes.
     assert (len(values) == len(compss_types) == len(compss_directions) == len(compss_streams) == len(compss_prefixes))
@@ -707,7 +706,7 @@ def _build_return_objects(f_returns):
     elif len(f_returns) == 1:
         # Simple return
         if __debug__:
-            logger.debug('Simple object return found.')
+            logger.debug("Simple object return found.")
         # Build the appropriate future object
         ret_value = f_returns['compss_retvalue'].object
         if ret_value in _python_to_compss:  # primitives, string, dic, list, tuple
@@ -719,7 +718,8 @@ def _build_return_objects(f_returns):
                 fo = ret_value()
             except TypeError:
                 if __debug__:
-                    logger.warning("Type {0} does not have an empty constructor, building generic future object".format(ret_value))
+                    logger.warning(
+                        "Type {0} does not have an empty constructor, building generic future object".format(ret_value))
                 fo = Future()
         else:
             fo = Future()  # modules, functions, methods
@@ -735,7 +735,7 @@ def _build_return_objects(f_returns):
         # Multireturn
         fo = []
         if __debug__:
-            logger.debug('Multiple objects return found.')
+            logger.debug("Multiple objects return found.")
         for k, v in f_returns.items():
             # Build the appropriate future object
             if v.object in _python_to_compss:  # primitives, string, dic, list, tuple
@@ -747,7 +747,9 @@ def _build_return_objects(f_returns):
                     foe = v.object()
                 except TypeError:
                     if __debug__:
-                        logger.warning("Type {0} does not have an empty constructor, building generic future object".format(v['Value']))
+                        logger.warning(
+                            "Type {0} does not have an empty constructor, building generic future object".format(
+                                v['Value']))
                     foe = Future()
             else:
                 foe = Future()  # modules, functions, methods
@@ -793,7 +795,7 @@ def _serialize_objects(f_parameters):
         f_parameters[k] = p
 
         if __debug__:
-            logger.debug('Final type for parameter %s: %d' % (k, p.type))
+            logger.debug("Final type for parameter %s: %d" % (k, p.type))
 
 
 def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings):
@@ -908,34 +910,35 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
         # Warning: calculate the size of a python object can be difficult
         # in terms of time and precision
         if (p.type == TYPE.OBJECT or p.type == TYPE.STRING) and not is_future and p.direction == DIRECTION.IN:
-            if not isinstance(p.object, basestring) and isinstance(p.object, (list, dict, tuple, deque, set, frozenset)):
+            if not isinstance(p.object, basestring) and isinstance(p.object,
+                                                                   (list, dict, tuple, deque, set, frozenset)):
                 # check object size
                 # bytes = sys.getsizeof(p.object)  # does not work properly with recursive object
                 num_bytes = total_sizeof(p.object)
                 megabytes = num_bytes / 1000000  # truncate
                 if __debug__:
-                    logger.debug('Object size %d bytes (%d Mb).' % (num_bytes, megabytes))
+                    logger.debug("Object size %d bytes (%d Mb)." % (num_bytes, megabytes))
 
                 if num_bytes < max_obj_arg_size:  # be careful... more than this value produces:
                     # Cannot run program '/bin/bash'...: error=7, La lista de argumentos es demasiado larga
                     if __debug__:
-                        logger.debug('The object size is less than 320 kb.')
+                        logger.debug("The object size is less than 320 kb.")
                     real_value = p.object
                     try:
                         v = serialize_to_string(p.object)
                         p.object = v.encode(STR_ESCAPE)
                         p.type = TYPE.STRING
                         if __debug__:
-                            logger.debug('Inferred type modified (Object converted to String).')
+                            logger.debug("Inferred type modified (Object converted to String).")
                     except SerializerException:
                         p.object = real_value
                         p.type = TYPE.OBJECT
                         if __debug__:
-                            logger.debug('The object cannot be converted due to: not serializable.')
+                            logger.debug("The object cannot be converted due to: not serializable.")
                 else:
                     p.type = TYPE.OBJECT
                     if __debug__:
-                        logger.debug('Inferred type reestablished to Object.')
+                        logger.debug("Inferred type reestablished to Object.")
                     # if the parameter converts to an object, release the size to be used for converted objects?
                     # No more objects can be converted
                     # max_obj_arg_size += _bytes
@@ -955,22 +958,22 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
                     num_bytes = sys.getsizeof(v)
                     megabytes = num_bytes / 1000000  # truncate
                     if __debug__:
-                        logger.debug('Object size %d bytes (%d Mb).' % (num_bytes, megabytes))
+                        logger.debug("Object size %d bytes (%d Mb)." % (num_bytes, megabytes))
                     if num_bytes < max_obj_arg_size:
                         # be careful... more than this value produces:
                         # Cannot run program '/bin/bash'...: error=7,
                         # arguments list too long error.
                         if __debug__:
-                            logger.debug('The object size is less than 320 kb.')
+                            logger.debug("The object size is less than 320 kb.")
                         p.object = v
                         p.type = TYPE.STRING
                         if __debug__:
-                            logger.debug('Inferred type modified (Object converted to String).')
+                            logger.debug("Inferred type modified (Object converted to String).")
                     else:
                         p.object = real_value
                         p.type = TYPE.OBJECT
                         if __debug__:
-                            logger.debug('Inferred type reestablished to Object.')
+                            logger.debug("Inferred type reestablished to Object.")
                         # if the parameter converts to an object, release the
                         # size to be used for converted objects?
                         # No more objects can be converted
@@ -981,11 +984,11 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
                     p.object = real_value
                     p.type = TYPE.OBJECT
                     if __debug__:
-                        logger.debug('The object cannot be converted due to: not serializable.')
+                        logger.debug("The object cannot be converted due to: not serializable.")
     else:
         if __debug__:
-            logger.debug('[ERROR] Wrong convert_objects_to_strings policy.')
-        raise Exception('Wrong convert_objects_to_strings policy.')
+            logger.debug("[ERROR] Wrong convert_objects_to_strings policy.")
+        raise Exception("Wrong convert_objects_to_strings policy.")
 
     return p, num_bytes
 
@@ -1056,7 +1059,7 @@ def _serialize_object_into_file(p):
                 # Is there a future object within the list?
                 if any(isinstance(v, Future) for v in p.object):
                     if __debug__:
-                        logger.debug('Found a list that contains future objects - synchronizing...')
+                        logger.debug("Found a list that contains future objects - synchronizing...")
                     mode = get_compss_mode('in')
                     p.object = list(map(synchronize, p.object, [mode] * len(p.object)))
             _turn_into_file(p)
@@ -1064,10 +1067,10 @@ def _serialize_object_into_file(p):
             import sys
             exc_type, exc_value, exc_traceback = sys.exc_info()
             lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-            logger.exception('Pickling error exception: non-serializable object found as a parameter.')
+            logger.exception("Pickling error exception: non-serializable object found as a parameter.")
             logger.exception(''.join(line for line in lines))
-            print('[ ERROR ]: Non serializable objects can not be used as parameters (e.g. methods).')
-            print('[ ERROR ]: Object: %s' % p.object)
+            print("[ ERROR ]: Non serializable objects can not be used as parameters (e.g. methods).")
+            print("[ ERROR ]: Object: %s" % p.object)
             # Raise the exception up tu launch.py in order to point where the error is in the user code.
             raise
     elif p.type == TYPE.EXTERNAL_PSCO:
@@ -1100,7 +1103,7 @@ def _manage_persistent_object(p):
     pending_to_synchronize[obj_id] = p.object  # obj_id
     p.object = obj_id
     if __debug__:
-        logger.debug('Managed persistent object: %s' % obj_id)
+        logger.debug("Managed persistent object: %s" % obj_id)
 
 
 def _turn_into_file(p):
@@ -1135,7 +1138,7 @@ def _turn_into_file(p):
         file_name = temp_dir + _temp_obj_prefix + str(obj_id)
         objid_to_filename[obj_id] = file_name
         if __debug__:
-            logger.debug('Mapping object %s to file %s' % (obj_id, file_name))
+            logger.debug("Mapping object %s to file %s" % (obj_id, file_name))
         serialize_to_file(p.object, file_name)
     elif obj_id in _objs_written_by_mp:
         if p.direction == DIRECTION.INOUT:
@@ -1143,7 +1146,7 @@ def _turn_into_file(p):
         # Main program generated the last version
         compss_file = _objs_written_by_mp.pop(obj_id)
         if __debug__:
-            logger.debug('Serializing object %s to file %s' % (obj_id, compss_file))
+            logger.debug("Serializing object %s to file %s" % (obj_id, compss_file))
         serialize_to_file(p.object, compss_file)
     else:
         pass

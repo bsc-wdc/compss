@@ -95,6 +95,11 @@
             "handlers": ["console"], 
             "propagate": "no"
         },
+        "pycompss.util.translators.code_reuser.code_reuser": {
+            "level": "ERROR",
+            "handlers": ["console"],
+            "propagate": "no"
+        },
         "pycompss.util.translators.code_loader.code_loader": {
             "level": "ERROR",
             "handlers": ["console"], 
@@ -123,6 +128,16 @@
         "pycompss.util.translators.py2pycompss.translator_py2pycompss": {
             "level": "ERROR",
             "handlers": ["console"], 
+            "propagate": "no"
+        },
+        "pycompss.util.translators.py2pycompss.components.loop_taskificator": {                                                                                                   
+            "level": "ERROR",
+            "handlers": ["console"],
+            "propagate": "no"
+        },
+        "pycompss.util.translators.py2pycompss.components.calculator": {
+            "level": "ERROR",
+            "handlers": ["console"],
             "propagate": "no"
         },
         "pycompss.runtime.launch": {

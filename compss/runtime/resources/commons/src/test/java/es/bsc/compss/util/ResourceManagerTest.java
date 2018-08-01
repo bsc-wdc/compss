@@ -381,7 +381,7 @@ public class ResourceManagerTest {
                 fail("ResourceManager is not properly keeping track of the amount of instances of each type");
             }
         }
-        
+
         ResourceManager.increasedCloudWorker(rcr4, cmw3, cmrd4);
         if (!ResourceManager.getPendingCreationRequests().isEmpty()) {
             fail("ResourceManager is not properly registering the pending resouce creations");

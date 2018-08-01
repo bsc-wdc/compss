@@ -21,7 +21,7 @@ pom.xml.versionsBackup
 build/
 
 # Ignore packages
-builders/packages/*                                                                                                                                                                                                                                                            
+builders/packages/*
 
 
 # ========== Java ignores =================
@@ -173,6 +173,7 @@ compss/runtime/config/xml/resources/src/main/java/es/bsc/compss/types/resources/
 
 # Ignore configuration files
 tests/configurations/*.cfg
+tests/scripts/hosts.backup
 !tests/configurations/cloud.cfg
 !tests/configurations/cloudvpn.cfg
 !tests/configurations/cloudvpn-vmm.cfg

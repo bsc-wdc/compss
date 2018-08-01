@@ -31,46 +31,46 @@
 
   # shellcheck disable=SC2086
   if [ ${pythonInterpreter} == 'python2' ]; then
-      # shellcheck disable=SC2086
-      timeout --signal=2 $expectedTime "${COMPSs_exec}" \
-         --project="${base_app_dir}"/project.xml \
-         --resources="${base_app_dir}"/resources.xml \
-         \
-         --comm="$comm" \
-         \
-         --debug \
-         ${runcompss_opts} \
-         \
-         --lang=python \
-         --python_interpreter="$pythonInterpreter" \
-         --pythonpath="${base_app_dir}"/src \
-         \
-         "${base_app_dir}"/src/local.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+        # shellcheck disable=SC2086
+        timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+             --project="${base_app_dir}"/project.xml \
+             --resources="${base_app_dir}"/resources.xml \
+             \
+             --comm="$comm" \
+             \
+             --debug \
+             ${runcompss_opts} \
+             \
+             --lang=python \
+             --python_interpreter="$pythonInterpreter" \
+             --pythonpath="${base_app_dir}"/src \
+             \
+             "${base_app_dir}"/src/local.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
-    # Take the latest log folder as retry number
-    # Fixes the possiblity to test with both python 2 and 3 one after the other
-    retryNum=`ls -l "${COMPSs_log_folder}" | grep "local.py" | wc -l`
+        # Take the latest log folder as retry number
+        # Fixes the possiblity to test with both python 2 and 3 one after the other
+        retryNum=$(find "${COMPSs_log_folder}" -name local.py* -type d | wc -l)
 
-    # Check timeout
-    if [[ "$?" = "124" ]]; then
-       # Copy LOG files
-       cp -rf "${COMPSs_log_folder}"/local.py_0"${retryNum}"/* "${target_log_folder}"
+        # Check timeout
+        if [[ "$?" = "124" ]]; then
+           # Copy LOG files
+           cp -rf "${COMPSs_log_folder}"/local.py_0"${retryNum}"/* "${target_log_folder}"
 
-       # Report timeout
-       echo "[WARNING] Python Application timed out" >> "${output_log}"
-       exitValue=124
-    else
-       # Copy LOG files
-       cp -rf "${COMPSs_log_folder}"/local.py_0"${retryNum}"/* "${target_log_folder}"
+           # Report timeout
+           echo "[WARNING] Python Application timed out" >> "${output_log}"
+           exitValue=124
+        else
+           # Copy LOG files
+           cp -rf "${COMPSs_log_folder}"/local.py_0"${retryNum}"/* "${target_log_folder}"
 
-       # Check result
-       "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}"
-       exitValue=$?
-     fi
-   else
-       # guppy is not supported in python 3
-       echo "UNSUPPORTED FOR " ${pythonInterpreter}
-       exitValue=99
+           # Check result
+           "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}"
+           exitValue=$?
+         fi
+  else
+        # guppy is not supported in python 3
+        echo "UNSUPPORTED FOR " ${pythonInterpreter}
+        exitValue=99
   fi
 
   #----------------------------------------------------------------------------------

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 ###############################################
 # SCRIPT CONSTANTS DECLARATION
 ###############################################
@@ -35,6 +36,7 @@ else
 fi
 DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT=true
 
+
 ###############################################
 # ERROR CONSTANTS DECLARATION
 ###############################################
@@ -52,6 +54,7 @@ ERROR_WORKER_IN_MASTER_MEMORY_NOT_SPECIFIED="Parameter worker_in_master_memory i
 ERROR_PROLOG_ACTION="Exception executing prolog action"
 ERROR_EPILOG_ACTION="Exception executing epilog action"
 ERROR_LANGUAGE="Value of option --lang must be: java, c or python"
+
 
 #---------------------------------------------------------------------------------------
 # HELPER FUNCTIONS
@@ -89,6 +92,7 @@ EOT
 
   show_opts "$exitValue"
 }
+
 
 ###############################################
 # Show Options
@@ -162,6 +166,7 @@ EOT
   exit "$exitValue"
 }
 
+
 ###############################################
 # Displays version
 ###############################################
@@ -172,6 +177,7 @@ display_version() {
 
   exit "$exitValue"
 }
+
 
 ###############################################
 # Displays errors when treating arguments
@@ -185,6 +191,7 @@ display_error() {
   usage 1
 }
 
+
 ###############################################
 # Displays errors when executing actions
 ###############################################
@@ -196,6 +203,7 @@ action_error() {
 
   exit 1
 }
+
 
 ###############################################
 # Infers the language from the Application Path
@@ -234,6 +242,7 @@ infer_language() {
   fi
 }
 
+
 ###############################################
 # Loads the tracing environment
 ###############################################
@@ -260,6 +269,7 @@ load_tracing_env() {
   # Clean tmp file
   rm -f "${module_tmp}"
 }
+
 
 ###############################################
 # Creates Worker CMD
@@ -328,6 +338,7 @@ worker_cmd() {
             ${DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT} \
             ${python_propagate_virtual_environment}"
 }
+
 
 ###############################################
 # Create Master CMD
@@ -628,6 +639,7 @@ get_args() {
   # Pass application name and args
   args_pass="$args_pass $*" 
 }
+
 
 ###############################################
 # Function to check the arguments
@@ -951,7 +963,7 @@ set_variables() {
 
   if [ "${worker_in_master_memory}" == "${DEFAULT_WORKER_IN_MASTER_MEMORY}" ]; then
     # Default value
-    worker_in_master_memory=${DEFAULT_NODE_MEMORY_SIZE}
+    worker_in_master_memory=$(( DEFAULT_WORKER_IN_MASTER_MEMORY / 1024 - 4))
   else
     # Change from MB to GB
     worker_in_master_memory=$(( worker_in_master_memory / 1024 - 4))
@@ -984,8 +996,9 @@ set_variables() {
   uuid=$(cat /proc/sys/kernel/random/uuid)
 }
 
+
 ###############################################
-# Creates XML Files
+# Log execution variables
 ###############################################
 log_variables() {
   echo "-------- Launch arguments --------"
@@ -1027,8 +1040,28 @@ log_variables() {
   echo " "
 }
 
+
 ###############################################
-# Creates XML Files
+# Write usage to log file
+###############################################
+write_log_usage() {
+  # Create file with header if required
+  local log_usage_file="${COMPSS_HOME}/usage.log"
+  if [ ! -f "${log_usage_file}" ]; then
+    echo -e "USAGE DATE\\t\\t\\tUSER" > "${log_usage_file}"
+  fi
+
+  # Write usage message
+  msg="$(date)\\t$(whoami)"
+  echo "$msg" >> "${log_usage_file}"
+
+  # Ensure file is public
+  chmod 777 "${log_usage_file}"
+}
+
+
+###############################################
+# Create XML Files
 ###############################################
 create_xml_files() {
   # Resources.xml and project.xml filenames
@@ -1074,6 +1107,7 @@ create_xml_files() {
   echo "Project.xml:   ${PROJECT_FILE}"
   echo "Resources.xml: ${RESOURCES_FILE}"
 }
+
 
 ###############################################
 # Launches the application
@@ -1139,6 +1173,7 @@ launch() {
   $MCMD
 }
 
+
 ###############################################
 # Prolog actions
 ###############################################
@@ -1155,6 +1190,7 @@ prolog() {
     fi
   done
 }
+
 
 ###############################################
 # Epilog actions
@@ -1173,6 +1209,7 @@ epilog() {
   done
 }
 
+
 ###############################################
 # Wait for execution end
 ###############################################
@@ -1181,6 +1218,7 @@ wait_for_completion() {
   echo "Waiting for application completion"
   wait
 }
+
 
 ###############################################
 # Clean function for trap
@@ -1273,6 +1311,7 @@ EOT
 
 fi
 }
+
 
 ###############################################
 # Insert XML Footers
@@ -1567,8 +1606,6 @@ EOT
 }
 
 
-
-
 ###############################################
 # Adds a compute node to Resources/Project
 ###############################################
@@ -1584,9 +1621,9 @@ add_compute_node() {
         node=$(${NODE_NAME_QUEUE} "${node}")
   fi
   
-  echo "Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}mkdir -p ${worker_working_dir}; chmod +rx ${worker_working_dir}${CMD_SEPARATOR}"
-  # shellcheck disable=SC2086
-  ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}mkdir -p ${worker_working_dir}; chmod +rx ${worker_working_dir}${CMD_SEPARATOR}
+  echo "Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}bash -c \"mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}\"${CMD_SEPARATOR}"
+  #shellcheck disable=SC2086
+  ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}bash -c "mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}"${CMD_SEPARATOR}
 
   nodeName=${nodeName}${network}
 
@@ -1728,6 +1765,9 @@ EOT
 
   # Log variables
   log_variables
+
+  # Write log usage
+  write_log_usage
 
   # Add clean up for execution end
   trap cleanup EXIT

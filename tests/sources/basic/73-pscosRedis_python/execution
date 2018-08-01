@@ -70,7 +70,6 @@ EOF
   echo "Storage conf path is ${storage_conf}"
 
   # shellcheck disable=SC2086
-  # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \
      --project="${base_app_dir}"/project.xml \
      --resources="${base_app_dir}"/resources.xml \
@@ -87,7 +86,7 @@ EOF
 
   # Take the latest log folder as retry number
   # Fixes the possiblity to test with both python 2 and 3 one after the other
-  retryNum=`ls -l "${COMPSs_log_folder}" | grep "testredis.py" | wc -l`
+  retryNum=$(find "${COMPSs_log_folder}" -name testredis.py* -type d | wc -l)
 
   # Check timeout
   if [[ "$?" = "124" ]]; then

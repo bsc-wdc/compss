@@ -97,9 +97,14 @@
             "handlers": ["console"], 
             "propagate": "no"
         },
-        "pycompss.util.translators.arg_utils.arg_utils": {                                                                                                                                                                                                                     
+        "pycompss.util.translators.arg_utils.arg_utils": {
             "level": "DEBUG",
             "handlers": ["console"], 
+            "propagate": "no"
+        },
+        "pycompss.util.translators.code_reuser.code_reuser": {                                                                                                                                                                              
+            "level": "DEBUG",
+            "handlers": ["console"],
             "propagate": "no"
         },
         "pycompss.util.translators.code_loader.code_loader": {
@@ -117,7 +122,7 @@
             "handlers": ["console"], 
             "propagate": "no"
         },
-        "pycompss.util.translators.py2scop.translator_py2scop": {                                                                                                                                                                                                              
+        "pycompss.util.translators.py2scop.translator_py2scop": {
             "level": "DEBUG",
             "handlers": ["console"], 
             "propagate": "no"
@@ -130,6 +135,16 @@
         "pycompss.util.translators.py2pycompss.translator_py2pycompss": {
             "level": "DEBUG",
             "handlers": ["console"], 
+            "propagate": "no"
+        },
+        "pycompss.util.translators.py2pycompss.components.loop_taskificator": {                                                                                                   
+            "level": "DEBUG",
+            "handlers": ["console"],
+            "propagate": "no"
+        },
+        "pycompss.util.translators.py2pycompss.components.calculator": {                                                                                                                                                                    
+            "level": "DEBUG",
+            "handlers": ["console"],
             "propagate": "no"
         },
         "pycompss.runtime.launch": {

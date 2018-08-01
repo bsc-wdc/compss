@@ -47,7 +47,7 @@
 
   # Take the latest log folder as retry number
   # Fixes the possiblity to test with both python 2 and 3 one after the other
-  retryNum=`ls -l "${COMPSs_log_folder}" | grep "openclDecorator.py" | wc -l`
+  retryNum=$(find "${COMPSs_log_folder}" -name openclDecorator.py* -type d | wc -l)
 
   # Check timeout
   if [[ "$?" = "124" ]]; then

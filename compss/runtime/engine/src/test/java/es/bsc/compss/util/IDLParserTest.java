@@ -42,7 +42,8 @@ public class IDLParserTest {
     private static final int CORE1_6_IMPLS_RESULT = 3;
     private static final int COMPUTING_UNITS_RESULT = 2;
     private static final int PROCESSOR_COUNT = 2;
-    private static final String TEST_2_SIGNATURE= "RemoteTrackOnce(INT_T,INT_T,INT_T,INT_T,BINDING_OBJECT_T,BINDING_OBJECT_T,BINDING_OBJECT_T,BINDING_OBJECT_T,BINDING_OBJECT_T,INT_T,INT_T,INT_T,INT_T,INT_T,INT_T,BINDING_OBJECT_T)NULL";
+    private static final String TEST_2_SIGNATURE = "RemoteTrackOnce(INT_T,INT_T,INT_T,INT_T,BINDING_OBJECT_T,BINDING_OBJECT_T,BINDING_OBJECT_T,BINDING_OBJECT_T,BINDING_OBJECT_T,INT_T,INT_T,INT_T,INT_T,INT_T,INT_T,BINDING_OBJECT_T)NULL";
+
 
     @Before
     public void setUp() throws Exception {
@@ -185,7 +186,7 @@ public class IDLParserTest {
         assertEquals(impl.getDeclaringClass(), "Block");
 
     }
-    
+
     @Test
     public void test2IDL() {
         CoreManager.clear();
@@ -200,12 +201,9 @@ public class IDLParserTest {
         assertEquals(implList.size(), 1);
 
         MethodImplementation impl = (MethodImplementation) implList.get(0);
+        LOGGER.debug(impl.getDeclaringClass());
         String signature = CoreManager.getSignature(0, 0);
         assertEquals(signature, TEST_2_SIGNATURE);
-
-        
     }
-    
-    
 
 }

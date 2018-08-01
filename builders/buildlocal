@@ -337,7 +337,7 @@ install_compss() {
   cp "${SOURCES_DIR}/pom.xml" "${TMP_DIR}"
   cp "${SOURCES_DIR}/README.md" "${TMP_DIR}"
   cp "${SOURCES_DIR}/RELEASE_NOTES" "${TMP_DIR}"
-  find "${TMP_DIR}" -name ".git*" -print0 -exec rm -rf {} \; # Clean git files
+  find "${TMP_DIR}" -name ".git*" -print0 -exec rm -rf {} \; | cat # Clean git files
 
   # CLEAN TRUNK COMPILATION
   if [ "${user_exec}" == "${DEFAULT_USER}" ]; then

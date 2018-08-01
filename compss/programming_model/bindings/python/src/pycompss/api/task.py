@@ -29,11 +29,12 @@ import os
 import logging
 import ast
 import copy
+
 from collections import OrderedDict
 from functools import wraps
+
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.api.parameter import *
-
 
 if IS_PYTHON3:
     # Shadow long with int
@@ -58,6 +59,7 @@ class Task(object):
         # Check if under the PyCOMPSs scope
         if i_am_within_scope():
             from pycompss.util.location import i_am_at_master
+            # TODO: Make parameter structures and functions public if they must be used from here
             from pycompss.api.parameter import _param_
             from pycompss.api.parameter import _param_conversion_dict_
 
@@ -67,7 +69,7 @@ class Task(object):
                 logger.debug("Init @task decorator...")
 
             # Defaults
-            self.args = args      # Not used
+            self.args = args  # Not used
             self.kwargs = kwargs  # The only ones actually used: (decorators)
 
             # Pre-process decorator arguments
@@ -288,16 +290,14 @@ class Task(object):
             # function from launch.py.
             is_nested = False
             for i_s in inspect.stack():
-                if i_s[3] == 'launch_pycompss_module':
-                    is_nested = True
-                if i_s[3] == 'launch_pycompss_application':
+                if i_s[3] in ['launch_pycompss_module', 'launch_pycompss_application']:
                     is_nested = True
 
             # Prepare parameters and returns.
             # Update self.parameters and self.returns with the appropriate Parameter objects.
             self.__build_parameters_and_return_dicts(f, args, kwargs)
 
-            if not i_am_at_master() and (not is_nested):
+            if not i_am_at_master() and not is_nested:
                 # Task decorator worker body code.
                 new_types, new_values = self.worker_code(f, args, kwargs)
                 return new_types, new_values
@@ -350,22 +350,28 @@ class Task(object):
         # __len__ but an exception is raised. Consequently, if users do not specify the length
         # it will be managed as a single return
         # When the user specifies the length, it is possible to manage the elements independently.
-        if not hasattr(self.kwargs['returns'], '__len__') or type(self.kwargs['returns']) is type:
+        # Also, users can use a global variable to refer the arguments size (string)
+
+        ret_kwarg = self.kwargs['returns']
+        if not hasattr(ret_kwarg, '__len__') or type(ret_kwarg) is type:
             # Simple return
-            ret = self.kwargs['returns']
-            ret_type = _get_compss_type(ret)
+            ret_type = _get_compss_type(ret_kwarg)
             param = Parameter(p_type=ret_type, p_direction=DIRECTION.OUT)
-            param.object = ret
+            param.object = ret_kwarg
+            self.returns['compss_retvalue'] = param
+        elif isinstance(ret_kwarg, str):
+            # Multi-return in a global variable or a string wrapping an int
+            ret_type = _get_compss_type(ret_kwarg)
+            param = Parameter(p_type=ret_type, p_direction=DIRECTION.OUT)
+            param.object = ret_kwarg
             self.returns['compss_retvalue'] = param
         else:
-            # Multi return
-            i = 0
-            for ret in self.kwargs['returns']:
+            # Multi-return (list)
+            for index, ret in enumerate(ret_kwarg):
                 ret_type = _get_compss_type(ret)
                 param = Parameter(p_type=ret_type, p_direction=DIRECTION.OUT)
                 param.object = ret
-                self.returns['compss_retvalue' + str(i)] = param
-                i += 1
+                self.returns['compss_retvalue' + str(index)] = param
 
     def __update_return_if_no_returns(self, f):
         """
@@ -382,7 +388,8 @@ class Task(object):
 
         source_code = _get_wrapped_source(f).strip()
 
-        if self.has_self_parameter or source_code.startswith('@classmethod'):  # TODO: WHAT IF IS CLASSMETHOD FROM BOOLEAN?
+        if self.has_self_parameter or source_code.startswith(
+                '@classmethod'):  # TODO: WHAT IF IS CLASSMETHOD FROM BOOLEAN?
             # It is a task defined within a class (can not parse the code with ast since the class does not
             # exist yet. Alternatively, the only way I see is to parse it manually line by line.
             ret_mask = []
@@ -543,7 +550,7 @@ class Task(object):
             # Weak way, but I see no other way compatible with both 2 and 3.
             for app_frame in app_frames:
                 if (app_frame[3] != '<module>' and app_frame[4] is not None and
-                   (app_frame[4][0].strip().startswith('@') or app_frame[4][0].strip().startswith('def'))):
+                        (app_frame[4][0].strip().startswith('@') or app_frame[4][0].strip().startswith('def'))):
                     # app_frame[3] != <module> ==> functions and classes
                     # app_frame[4] is not None ==> functions injected by the interpreter
                     # (app_frame[4][0].strip().startswith('@') or app_frame[4][0].strip().startswith('def')) ==> Ignores functions injected by wrappers (e.g. autoparallel), but keep the classes.
@@ -696,27 +703,27 @@ class Task(object):
         parameter_values = vals_values + args_vals
 
         # Step 3.- Fill self.returns structure
-        if self.returns:
-            if len(self.returns) == 1:
-                if at_worker:
-                    if len(worker_rets) == 1:
-                        self.returns['compss_retvalue'].file_name = worker_rets[0]
-                    else:
-                        self.returns['compss_retvalue'].file_name = worker_rets
-                # Discover hidden returns
-                # Check if the self.returns has str/int/... in order to build a complete self.returns dictionary
-                self.__discover_hidden_returns(at_worker)
-            else:
-                # Multiple returns
-                pass
+        if at_worker:
+            # WORKER SIDE: Retrieve returns from worker_rets
+            if worker_rets:
+                if len(worker_rets) == 1:
+                    self.returns['compss_retvalue'].file_name = worker_rets[0]
+                else:
+                    self.returns = OrderedDict()  # Empty any previous content
+                    for i, ret in enumerate(worker_rets):
+                        self.returns['compss_retvalue' + str(i)] = ret
+        else:
+            # MASTER SIDE: Backup original expression and discover hidden returns
+            if self.returns:
+                self.returns_bkp = copy.deepcopy(self.returns)
+                self.__discover_hidden_returns(f)
 
         # Step 4.- Fill self.parameters structure
-        i = 0
-        for p in parameter_names:
+        for i, p in enumerate(parameter_names):
             if p in self.kwargs:
-                parameter = copy.copy(self.kwargs[p])   # copy Parameter reference to self.parameters
-                #                                       # Keep the original parameter in self.kwargs
-                #                                       # It does not contain any object nor file_name.
+                parameter = copy.copy(self.kwargs[p])  # copy Parameter reference to self.parameters
+                #                                      # Keep the original parameter in self.kwargs
+                #                                      # It does not contain any object nor file_name.
                 if isinstance(parameter, dict):
                     # The user has given some information about the parameter as dict
                     self.parameters[p] = _from_dict_to_parameter(parameter)
@@ -732,15 +739,12 @@ class Task(object):
                 self.parameters[p].type = _get_compss_type(obj)
             else:
                 self.parameters[p].file_name = obj
-            i += 1
 
         # Step 5.- Update the Parameter type with the worker information
         if at_worker:
-            i = 0
-            for param in self.parameters:
+            for i, param in enumerate(self.parameters):
                 t = kwargs['compss_types']
                 self.parameters[param].type = t[i]
-                i += 1
 
         # Step 6.- Clean elements that are not defined in parameter_names
         for p in list(self.parameters.keys()):
@@ -765,13 +769,14 @@ class Task(object):
         self.parameters.update(aargs)
         self.parameters.update(akwargs)
 
-    def __discover_hidden_returns(self, at_worker):
+    def __discover_hidden_returns(self, f):
         """
         Discover hidden returns.
         For example, if the user defines returns=2 or returns="2"
 
         WARNING: Updates self.returns dictionary
 
+        :param f: Original function
         :param at_worker: <Boolean> At worker. The return, if single, will be a str instead of an int.
         """
 
@@ -781,12 +786,18 @@ class Task(object):
             num_rets = 1
             hidden_multireturn = False
             ret_value = self.returns['compss_retvalue'].object
-            if isinstance(ret_value, str) and not at_worker:
-                # Check if the returns statement contains an string with an integer.
+            if isinstance(ret_value, str):
+                # Check if the returns statement contains an string with an integer or a global variable
                 # In such case, build a list of objects of value length and set it in ret_type.
-                # If at worker, do not do this list, since the return is the path to the object.
-                num_rets = int(ret_value)
-                # Hidden multireturn with returns="int"
+
+                # Global variable or string wrapping integer value
+                try:
+                    # Return is hidden by an int as a string. i.e., returns="var_int"
+                    num_rets = int(ret_value)
+                except ValueError:
+                    # Return is hidden by a global variable. i.e., LT_ARGS
+                    num_rets = f.__globals__.get(ret_value)
+                # Construct hidden multireturn
                 hidden_multireturn = True
                 if num_rets > 1:
                     ret_v = [object for _ in range(num_rets)]
@@ -889,24 +900,28 @@ class Task(object):
             # If there is multi-return then serialize each one on a different file
             # Multi-return example: a,b,c = fun() , where fun() has a return x,y,z
             if len(self.returns) > 1:
-                aux = []
                 try:
-                    num_ret = len(ret)
+                    # Check that output has len function
+                    _ = len(ret)
+                    # Assign it to an iterable return
                     aux = ret
-                except TypeError:  # if the output has no len function
-                    aux.append(ret)
-                    while len(aux) < len(self.returns):
-                        # The user declared more than used.
-                        aux.append(binding.EmptyReturn())
-                total_rets = len(args) - len(self.returns)
-                rets = args[total_rets:]
-                i = 0
-                for ret_filename in rets:
-                    _output_objects.append((aux[i], ret_filename))
+                except TypeError:
+                    # The output has not len function
+                    aux = [ret]
+
+                # Fill the extra positions (if the user has declared more than used)
+                while len(aux) < len(self.returns):
+                    print("WARN: Filling extra return positions with Empty Objects")
+                    aux.append(binding.EmptyReturn())
+
+                # Build the return file names
+                rets = args[-len(self.returns):]
+                for index, ret_filename in enumerate(rets):
+                    _output_objects.append((aux[index], ret_filename))
                     ret_filename = ret_filename.split(':')[-1]
-                    to_serialize.append((aux[i], ret_filename))
-                    i += 1
-            else:  # simple return
+                    to_serialize.append((aux[index], ret_filename))
+            else:
+                # Simple return
                 ret_filename = args[-1]
                 _output_objects.append((ret, ret_filename))
                 ret_filename = ret_filename.split(':')[-1]
@@ -1030,6 +1045,10 @@ class Task(object):
                           num_nodes,
                           self.is_replicated,
                           self.is_distributed)
+
+        # Restore returns object
+        if self.returns:
+            self.returns = self.returns_bkp
 
         # Starts the asynchronous creation of the task.
         # First calling the PyCOMPSs library and then C library (bindings-commons).
@@ -1182,7 +1201,7 @@ def _check_value_changes(types, values, to_serialize):
     :return: Three lists, the new types, new values and new to_serialize list.
     """
 
-    assert len(types) == len(values), 'Inconsistent state: type-value length mismatch.'
+    assert len(types) == len(values), "Inconsistent state: type-value length mismatch."
 
     from pycompss.api.parameter import TYPE
     from pycompss.util.persistent_storage import get_id

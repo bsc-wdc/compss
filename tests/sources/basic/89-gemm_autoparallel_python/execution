@@ -23,19 +23,18 @@
 
   #----------------------------------------------------------------------------------
   # Set environment variables
-  export ComputingUnits="2"
+  export ComputingUnits="1"
 
   #----------------------------------------------------------------------------------
   # Run application 1 - Test
   echo
-  echo "*** RUNNING MATMUL AUTOPARALLEL TYPE TEST"
-  output_log="${target_log_folder}/matmul_autoparallel_0${retryNum}.outputlog"
-  error_log="${target_log_folder}/matmul_autoparallel_0${retryNum}.errorlog"
+  echo "*** RUNNING GEMM AUTOPARALLEL TEST"
+  output_log="${target_log_folder}/gemm_autoparallel_0${retryNum}.outputlog"
+  error_log="${target_log_folder}/gemml_autoparallel_0${retryNum}.errorlog"
   expectedTime=360s
 
   if [ "$pythonInterpreter" == "python2" ]; then
     msize=4
-    bsize=4
     # shellcheck disable=SC2086
     timeout --signal=2 $expectedTime "${COMPSs_exec}" \
        --project="${base_app_dir}"/project.xml \
@@ -50,23 +49,23 @@
        --python_interpreter="$pythonInterpreter" \
        --pythonpath="${base_app_dir}"/src \
        \
-       "${base_app_dir}"/src/matmul_autoparallel.py $msize $bsize > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+       "${base_app_dir}"/src/gemm_autoparallel.py $msize > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
     # Take the latest log folder as retry number
     # Fixes the possiblity to test with both python 2 and 3 one after the other
-    retryNum=$(find "${COMPSs_log_folder}" -name matmul_autoparallel.py* -type d | wc -l)
+    retryNum=$(find "${COMPSs_log_folder}" -name gemm_autoparallel.py* -type d | wc -l)
 
     # Check timeout
     if [[ "$?" = "124" ]]; then
        # Copy LOG files
-       cp -rf "${COMPSs_log_folder}"/matmul_autoparallel.py_0"${retryNum}"/* "${target_log_folder}"
+       cp -rf "${COMPSs_log_folder}"/gemm_autoparallel.py_0"${retryNum}"/* "${target_log_folder}"
 
        # Report timeout
        echo "[WARNING] Python Application timed out" >> "${output_log}"
        exitValue=124
     else
        # Copy LOG files
-       cp -rf "${COMPSs_log_folder}"/matmul_autoparallel.py_0"${retryNum}"/* "${target_log_folder}"
+       cp -rf "${COMPSs_log_folder}"/gemm_autoparallel.py_0"${retryNum}"/* "${target_log_folder}"
 
        # Check result
        "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}"

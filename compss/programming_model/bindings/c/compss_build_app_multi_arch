@@ -164,11 +164,18 @@ check_args() {
 	if [ -n "$ONLY_MASTER" ] && [ -n "$ONLY_WORKER" ]; then
         echo ""
 		display_error "${ONLY_MASTER_AND_WORKER_ERROR}" #Is not possible to compile only both...
-	elif [ -n "$ONLY_MASTER" ]; then
-		echo "[ INFO ] Buildiling only the master."
-		ONLY_WORKER=$DEFAULT_ONLY_WORKER
-	else
-		echo "[ INFO ] Buildiling only the worker."
+    elif [ -z "$ONLY_MASTER" ] && [ -z "$ONLY_MASTER" ]; then
+        ONLY_WORKER=$DEFAULT_ONLY_WORKER
+        ONLY_MASTER=$DEFAULT_ONLY_MASTER
+    fi
+
+    if [ -n "$ONLY_MASTER" ] && [ "$ONLY_MASTER" = true ]; then
+		echo "[ INFO ] Building only the master."
+        ONLY_WORKER=$DEFAULT_ONLY_WORKER
+    fi
+
+    if [ -n "$ONLY_WORKER" ] && [ "$ONLY_WORKER" = true ]; then
+		echo "[ INFO ] Building only the worker."
 		ONLY_MASTER=$DEFAULT_ONLY_MASTER
 	fi
     
@@ -226,7 +233,12 @@ extract_archs() {
         cd $tmpdir
 
         for i in $processed; do
-            
+
+            if [ -d $i ]; then
+                echo "The architecture $i of the master exists from a previous build. Removing."
+                rm -rf $i
+            fi
+ 
             if [ ! $(type -t $i) = "function" ]; then
                 display_error "${ARCH_CONFIGURATION_FUNCTION_NOT_FOUND}"
             fi
@@ -238,6 +250,8 @@ extract_archs() {
             ev=$?
 
             if [ $ev -ne 0 ]; then
+                echo ""
+                echo "Master for $i architecture failed in the build step."
                 exit 1
             fi
 
@@ -266,6 +280,11 @@ extract_archs() {
         
         for i in $processed; do
 
+            if [ -d $i ]; then
+                echo "The architecture $i of the worker exists from a previous build. Removing."
+                rm -rf $i
+            fi
+
             if [ ! $(type -t $i) = "function" ]; then
                 display_error "${ARCH_CONFIGURATION_FUNCTION_NOT_FOUND}"
             fi
@@ -277,6 +296,8 @@ extract_archs() {
             ev=$?
 
             if [ $ev -ne 0 ]; then
+                echo ""
+                echo "Worker for $i architecture failed in the build step."
                 exit 1
             fi
 

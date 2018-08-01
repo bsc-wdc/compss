@@ -10,10 +10,12 @@
 # without changing the inner scripts of COMPSs. 
 
 # For COMPSs we need the following :
-
-# Environment variables for compilers:  CC, CXX
-# Environment variables for JAVA:       JAVA_HOME
-
+#   * Environment variables:
+#
+#       For compilers:      CC, CXX
+#       For JAVA:           JAVA_HOME
+#       For LIBS:           BOOST_LIB
+#       For GNU Configure:  TARGET_HOST 
 
 x86_64() {
     export CC=gcc
@@ -25,4 +27,6 @@ armhf() {
     export CC=arm-linux-gnueabihf-gcc
     export CXX=arm-linux-gnueabihf-g++ 
     export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-armhf
+    export BOOST_LIB=/opt/install-arm/libboost
+    export TARGET_HOST=--host=arm-linux-gnueabihf
 }

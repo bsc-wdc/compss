@@ -26,7 +26,7 @@ PACKAGE_SOURCES = PACKAGE-stubs.cc \
 
 PACKAGE_LDFLAGS =
 
-PACKAGE_LDADD = -L../../lib -lmaster -L$(LIBJAVAFOLDER) -ljvm -ldl -L$(CS_HOME)/../bindings-common/lib -lbindings_common -L$(CS_HOME)/lib -lcbindings -lboost_iostreams -lboost_serialization -lpthread -lboost_system
+PACKAGE_LDADD = -L../../lib -lmaster -L$(LIBJAVAFOLDER) -ljvm -ldl -L$(CS_HOME)/../bindings-common/lib -lbindings_common -L$(CS_HOME)/lib -lcbindings -L$(BOOST_LIB) -lboost_iostreams -lboost_serialization -lpthread -lboost_system
 
 COMPSSGEN_FLAGS =
 

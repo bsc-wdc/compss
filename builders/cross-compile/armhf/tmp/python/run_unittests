@@ -1,0 +1,9 @@
+#!/bin/bash -e
+
+  # WARN: nosetests only recognises *.py files in mode 6xx
+
+  # Run unit tests
+  python nose_tests.py -s
+
+  # Only with setuptools 
+  # python setup.py nosetests -

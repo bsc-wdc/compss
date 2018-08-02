@@ -1053,7 +1053,7 @@ write_log_usage() {
 
   # Write usage message
   msg="$(date)\\t$(whoami)"
-  echo "$msg" >> "${log_usage_file}"
+  echo -e "$msg" >> "${log_usage_file}"
 
   # Ensure file is public
   chmod 777 "${log_usage_file}"

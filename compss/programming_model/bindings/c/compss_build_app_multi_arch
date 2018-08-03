@@ -11,7 +11,7 @@ if [ -z "$COMPSS_HOME" ]; then
     COMPSS_HOME=/opt/COMPSs
 fi
 
-DEFAULT_ARCHITECTURE=$(lscpu | awk 'NR==1{print $NF}')
+DEFAULT_ARCHITECTURE=x86_64-linux-gnu #$(lscpu | awk 'NR==1{print $NF}')
 DEFAULT_CFG=${COMPSS_HOME}/Bindings/c/cfgs/compssrc #This file contains the x86-64 and armhf environment
 DEFAULT_ONLY_MASTER=false
 DEFAULT_ONLY_WORKER=false
@@ -30,8 +30,13 @@ show_supported_archs() {
             x86_64 : Intel 64 bits 
             armhf  : Arm hard float
 
+            Note that this is the pure architecture, to introduce the parameters worker and master
+            use the GNU Linux like names, i.e x86_64-linux-gnu , arm-linux-gnueabihf...
+            You can check yours as follows, COMPILER -dumpmachine , this will print the
+            architecture for which this compiler is going to compile the sources.
+
 EOT
-# Maybe we support another one, add it on the road
+
 }
 
 show_opts() {
@@ -169,12 +174,12 @@ check_args() {
 	if [ -n "$ONLY_MASTER" ] && [ -n "$ONLY_WORKER" ]; then
         echo ""
 		display_error "${ONLY_MASTER_AND_WORKER_ERROR}" #Is not possible to compile only both...
-    elif [ -z "$ONLY_MASTER" ] && [ -z "$ONLY_MASTER" ]; then
+    elif [ -z "$ONLY_MASTER" ] && [ -z "$ONLY_WORKER" ]; then
         ONLY_WORKER=$DEFAULT_ONLY_WORKER
         ONLY_MASTER=$DEFAULT_ONLY_MASTER
     fi
 
-    if [ -n "$ONLY_MASTER" ] && [ "$ONLY_WORKER" = true ]; then
+    if [ -n "$ONLY_MASTER" ] && [ "$ONLY_MASTER" = true ]; then
 		echo "[ INFO ] Building only the master."
         ONLY_WORKER=$DEFAULT_ONLY_WORKER
     fi

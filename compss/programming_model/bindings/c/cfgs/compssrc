@@ -17,14 +17,14 @@
 #       For LIBS:           BOOST_LIB
 #       For GNU Configure:  TARGET_HOST 
 
-x86_64() {
+x86_64-linux-gnu () {
     export CC=gcc
     export CXX=g++
     export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
     export TARGET_HOST=x86_64-linux-gnu
 }
 
-armhf() {
+arm-linux-gnueabihf () {
     export CC=arm-linux-gnueabihf-gcc
     export CXX=arm-linux-gnueabihf-g++ 
     export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-armhf

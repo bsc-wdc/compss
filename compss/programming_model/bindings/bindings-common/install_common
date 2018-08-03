@@ -25,7 +25,7 @@
       echo "${ERROR_AUTORECONF}"
       exit $ev
     fi
-    ./configure --host=arm-linux-gnueabihf --prefix="${installationDir}" --libdir="${installationDir}"/lib
+    ./configure --host=${TARGET_HOST} --prefix="${installationDir}" --libdir="${installationDir}"/lib
     ev=$?
     if [ $ev -ne 0 ]; then
       echo "${ERROR_CONFIGURE}"

@@ -29,11 +29,10 @@
     exit 1
   fi
 
-  #export CXX=arm-linux-gnueabihf-g++
-
   # Define script variables
-  scriptDir=$(pwd)
-  tmpDir=${scriptDir}/tmp
+  scriptDir=$(cd "$(dirname $0)"; pwd -P; cd -)
+  currentDir=$(pwd)
+  tmpDir=${currentDir}/tmp
 
   # Cleaning previous versions
   echo " "
@@ -47,6 +46,7 @@
   # Copy bindings
   echo " "
   echo " * Deploying files to tmp folder..."
+  cd $scriptDir
   mkdir -p $tmpDir
   cp -r bindings-common $tmpDir
   cp -r c $tmpDir
@@ -64,12 +64,12 @@
   echo "   - Python-binding"
   cd ${tmpDir}/python
   ./install ${targetDir}/Bindings/python false
-  cd ${scriptDir}
+  cd ${currentDir}
 
   # Clean tmp files
   echo " "
   echo " * Cleaning tmp files"
-  rm -rf ${tmpDir}
+#  rm -rf ${tmpDir}
 
   # All ok. Exit
   echo " "

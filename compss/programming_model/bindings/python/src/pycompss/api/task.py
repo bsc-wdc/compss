@@ -59,9 +59,7 @@ class Task(object):
         # Check if under the PyCOMPSs scope
         if i_am_within_scope():
             from pycompss.util.location import i_am_at_master
-            # TODO: Make parameter structures and functions public if they must be used from here
-            from pycompss.api.parameter import _param_
-            from pycompss.api.parameter import _param_conversion_dict_
+            from pycompss.api.parameter import is_parameter, get_new_parameter
 
             self.scope = True
 
@@ -94,13 +92,13 @@ class Task(object):
             # See parameter.py conversion dict.
             for arg_name, arg_value in self.kwargs.items():
                 # Common parameter definition
-                if isinstance(arg_value, _param_):
+                if is_parameter(arg_value):
                     key = arg_value.key
-                    self.kwargs[arg_name] = eval(_param_conversion_dict_[key])
+                    self.kwargs[arg_name] = get_new_parameter(key)
                 # Parameter defined as dictionary with fields
                 if isinstance(arg_value, dict) and 'type' in arg_value:
                     key = arg_value['type'].key
-                    arg_value['type'] = eval(_param_conversion_dict_[key])
+                    arg_value['type'] = get_new_parameter(key)
                     self.kwargs[arg_name] = _from_dict_to_parameter(arg_value)
 
             if __debug__:

@@ -108,36 +108,97 @@ class Parameter(object):
 
 
 # Parameter conversion dictionary.
-# This dictionary maps the _param_ key into the corresponding code to create the real
-# Parameter. This enables users to use IN, etc. as simple object in the task decorator,
-# and when the task decorator is initialized, it is detected and instantiated (using
-# eval) as defined in this dictionary values.
-# This enables to have isolated parameter initialization, which solves the problem with
-# modifications of objects with the same reference, and avoids Parameter copy.
-_param_conversion_dict_ = dict()
-_param_conversion_dict_['IN'] = 'Parameter()'
-_param_conversion_dict_['OUT'] = 'Parameter(p_direction=DIRECTION.OUT)'
-_param_conversion_dict_['INOUT'] = 'Parameter(p_direction=DIRECTION.INOUT)'
+_param_conversion_dict_ = {
+    'IN': {},
+    'OUT': {
+        'p_direction': DIRECTION.OUT
+    },
+    'INOUT': {
+        'p_direction': DIRECTION.INOUT
+    },
+    'FILE': {
+        'p_type': TYPE.FILE
+    },
+    'FILE_IN': {
+        'p_type': TYPE.FILE
+    },
+    'FILE_OUT': {
+        'p_type': TYPE.FILE,
+        'p_direction': DIRECTION.OUT
+    },
+    'FILE_INOUT': {
+        'p_type': TYPE.FILE,
+        'p_direction': DIRECTION.INOUT
+    },
+    'FILE_STDIN': {
+        'p_type': TYPE.FILE,
+        'p_stream': STREAM.STDIN
+    },
+    'FILE_STDERR': {
+        'p_type': TYPE.FILE,
+        'p_stream': STREAM.STDERR
+    },
+    'FILE_STDOUT': {
+        'p_type': TYPE.FILE,
+        'p_stream': STREAM.OUT
+    },
+    'FILE_IN_STDIN': {
+        'p_type': TYPE.FILE,
+        'p_direction': DIRECTION.IN,
+        'p_stream': STREAM.STDIN
+    },
+    'FILE_IN_STDERR': {
+        'p_type': TYPE.FILE,
+        'p_direction': DIRECTION.IN,
+        'p_stream': STREAM.STDERR
+    },
+    'FILE_IN_STDOUT': {
+        'p_type': TYPE.FILE,
+        'p_direction': DIRECTION.IN,
+        'p_stream': STREAM.STDOUT
+    },
+    'FILE_OUT_STDIN': {
+        'p_type': TYPE.FILE,
+        'p_direction': DIRECTION.OUT,
+        'p_stream': STREAM.STDIN
+    },
+    'FILE_OUT_STDERR': {
+        'p_type': TYPE.FILE,
+        'p_direction': DIRECTION.OUT,
+        'p_stream': STREAM.STDERR
+    },
+    'FILE_OUT_STDOUT': {
+        'p_type': TYPE.FILE,
+        'p_direction': DIRECTION.OUT,
+        'p_stream': STREAM.STDOUT
+    },
+    'FILE_INOUT_STDIN': {
+        'p_type': TYPE.FILE,
+        'p_direction': DIRECTION.INOUT,
+        'p_stream': STREAM.STDIN
+    },
+    'FILE_INOUT_STDERR': {
+        'p_type': TYPE.FILE,
+        'p_direction': DIRECTION.INOUT,
+        'p_stream': STREAM.STDERR
+    },
+    'FILE_INOUT_STDOUT': {
+        'p_type': TYPE.FILE,
+        'p_direction': DIRECTION.INOUT,
+        'p_stream': STREAM.STDOUT
+    }
+}
 
-_param_conversion_dict_['FILE'] = 'Parameter(p_type=TYPE.FILE)'
-_param_conversion_dict_['FILE_IN'] = 'Parameter(p_type=TYPE.FILE)'
-_param_conversion_dict_['FILE_OUT'] = 'Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT)'
-_param_conversion_dict_['FILE_INOUT'] = 'Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.INOUT)'
+def is_parameter(x):
+    '''Check if given object is a parameter.
+    Avoids internal _param_ import
+    '''
+    return isinstance(x, _param_)
 
-_param_conversion_dict_['FILE_STDIN'] = 'Parameter(p_type=TYPE.FILE, p_stream=STREAM.STDIN)'
-_param_conversion_dict_['FILE_STDERR'] = 'Parameter(p_type=TYPE.FILE, p_stream=STREAM.STDERR)'
-_param_conversion_dict_['FILE_STDOUT'] = 'Parameter(p_type=TYPE.FILE, p_stream=STREAM.STDOUT)'
-
-_param_conversion_dict_['FILE_IN_STDIN'] = 'Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.IN, p_stream=STREAM.STDIN)'
-_param_conversion_dict_['FILE_IN_STDERR'] = 'Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.IN, p_stream=STREAM.STDERR)'
-_param_conversion_dict_['FILE_IN_STDOUT'] = 'Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.IN, p_stream=STREAM.STDOUT)'
-_param_conversion_dict_['FILE_OUT_STDIN'] = 'Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT, p_stream=STREAM.STDIN)'
-_param_conversion_dict_['FILE_OUT_STDERR'] = 'Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT, p_stream=STREAM.STDERR)'
-_param_conversion_dict_['FILE_OUT_STDOUT'] = 'Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT, p_stream=STREAM.STDOUT)'
-_param_conversion_dict_['FILE_INOUT_STDIN'] = 'Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.INOUT, p_stream=STREAM.STDIN)'
-_param_conversion_dict_['FILE_INOUT_STDERR'] = 'Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.INOUT, p_stream=STREAM.STDERR)'
-_param_conversion_dict_['FILE_INOUT_STDOUT'] = 'Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.INOUT, p_stream=STREAM.STDOUT)'
-
+def get_new_parameter(key):
+    '''Returns a brand new parameter (no copies!)
+    '''
+    return Parameter(**_param_conversion_dict_[key])
 
 class _param_(object):
     """

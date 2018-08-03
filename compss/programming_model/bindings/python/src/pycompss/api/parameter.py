@@ -140,7 +140,7 @@ _param_conversion_dict_ = {
     },
     'FILE_STDOUT': {
         'p_type': TYPE.FILE,
-        'p_stream': STREAM.OUT
+        'p_stream': STREAM.STDOUT
     },
     'FILE_IN_STDIN': {
         'p_type': TYPE.FILE,

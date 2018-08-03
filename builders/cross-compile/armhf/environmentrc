@@ -4,7 +4,7 @@ native_environment() {
     export CC=gcc
     export CXX=g++
     export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
-    export TARGET_HOST=x86_64-linux-gnu
+    export TARGET_HOST=--host=x86_64-linux-gnu
 }
 
 target_environment() {

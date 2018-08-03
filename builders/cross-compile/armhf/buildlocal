@@ -14,7 +14,7 @@ show_opts() {
         --prefix=<path>         If used, it defines the installation path of the cross compilation.
                                 Default: ${DEFAULT_INSTALLATION_PATH}
 
-	    --native-enable-cross   This option installs the COMPSs for the native architecture and also installs 
+        --native-enable-cross   This option installs the COMPSs for the native architecture and also installs 
 			                    the required libraries in the target architecture format to enable cross-compilation 
 			                    of C/C++ applications.
 
@@ -137,8 +137,27 @@ if [ "$ENABLE_CROSS" = true ]; then
         echo "[ ERROR ] The native COMPSs build failed."
         exit 1
     fi
+    
+    targetArch=$($CC -dumpmachine)
+    
+    cd $INSTALLATION_PATH/Bindings/bindings-common/lib
+
+    mkdir $targetArch
+    cd $targetArch
+
+    ln -s ../libbindings_common.so.0.0.0 libbindings_common.so
+    ln -s ../libbindings_common.so.0.0.0 libbindings_common.so.0 # These libs will be as the main libs but also will be in its architecture folder
+
+    cd $INSTALLATION_PATH/Bindings/c/lib
+
+    mkdir $targetArch
+    cd $targetArch
+
+    ln -s ../libcbindings.so.0.0.0 libcbindings.so
+    ln -s ../libcbindings.so.0.0.0 libcbindings.so.0
 
     echo "[ INFO ] Building target COMPSs bindings."
+
     tmpDir=$(mktemp -d) 
     cd $tmpDir
 
@@ -148,7 +167,9 @@ if [ "$ENABLE_CROSS" = true ]; then
 
     mkdir $targetArch
 
-    $scriptDir/../../../compss/programming_model/bindings/install_bindings $tmpDir/$targetArch #This installs only the bindings
+    targetBindings=$tmpDir/$targetArch
+
+    $scriptDir/../../../compss/programming_model/bindings/install_bindings $targetBindings #This installs only the bindings    
 
     ev=$?
 
@@ -156,6 +177,22 @@ if [ "$ENABLE_CROSS" = true ]; then
         echo "[ ERROR ] The target bindings build failed."
         exit 1
     fi
+
+    cd $INSTALLATION_PATH/Bindings/bindings-common/lib
+
+    mkdir $targetArch
+    cd $targetArch
+
+    cp $targetBindings/Bindings/bindings-common/lib/* .
+
+    cd $INSTALLATION_PATH/Bindings/c/lib
+
+    mkdir $targetArch
+    cd $targetArch
+
+    cp $targetBindings/Bindings/c/lib/* .
+
+    rm -rf $tmpDir #Remove temporal files
 
 elif [ "$ONLY_BINDINGS" = true ]; then
     target_environment

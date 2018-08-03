@@ -6,6 +6,11 @@
 #---------------------------------------------------
 # SCRIPT CONSTANTS DECLARATION
 #---------------------------------------------------
+
+if [ -z "$COMPSS_HOME" ]; then
+    COMPSS_HOME=/opt/COMPSs
+fi
+
 DEFAULT_ARCHITECTURE=$(lscpu | awk 'NR==1{print $NF}')
 DEFAULT_CFG=${COMPSS_HOME}/Bindings/c/cfgs/compssrc #This file contains the x86-64 and armhf environment
 DEFAULT_ONLY_MASTER=false
@@ -13,7 +18,7 @@ DEFAULT_ONLY_WORKER=false
 
 APPLICATION_ERROR="Error: Application name not provided"
 ONLY_MASTER_AND_WORKER_ERROR="Error: Is not possible to specify both options --only-master and --only-worker, to compile both remove these arguments."
-ARCH_CONFIGURATION_FUNCTION_NOT_FOUND="Error: The function to configurate one of the desired architectures has not been found, ensure that is define in the configuration file."
+ARCH_CONFIGURATION_FUNCTION_NOT_FOUND="Error: The function to configurate one of the desired architectures has not been found, ensure that is defined in the configuration file."
 #---------------------------------------------------
 # FUNCTIONS DECLARATION
 #---------------------------------------------------
@@ -111,7 +116,7 @@ get_args() {
                                 exit 0
                                 ;;
                             master=*)
-                                #Get architectures to build master
+                           x86_64     #Get architectures to build master
                                 MASTER_BUILD_ARCHS=${OPTARG//master=/}
                                 ;;
                             worker=*)
@@ -169,7 +174,7 @@ check_args() {
         ONLY_MASTER=$DEFAULT_ONLY_MASTER
     fi
 
-    if [ -n "$ONLY_MASTER" ] && [ "$ONLY_MASTER" = true ]; then
+    if [ -n "$ONLY_MASTER" ] && [ "$ONLY_WORKER" = true ]; then
 		echo "[ INFO ] Building only the master."
         ONLY_WORKER=$DEFAULT_ONLY_WORKER
     fi

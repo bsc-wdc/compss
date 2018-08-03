@@ -21,6 +21,7 @@ x86_64() {
     export CC=gcc
     export CXX=g++
     export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
+    export TARGET_HOST=x86_64-linux-gnu
 }
 
 armhf() {
@@ -28,5 +29,5 @@ armhf() {
     export CXX=arm-linux-gnueabihf-g++ 
     export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-armhf
     export BOOST_LIB=/opt/install-arm/libboost
-    export TARGET_HOST=--host=arm-linux-gnueabihf
+    export TARGET_HOST=arm-linux-gnueabihf
 }

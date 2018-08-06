@@ -27,13 +27,13 @@
 #include <string>
 #include <string.h>
 #include <JavaNioConnStreamBuffer.h>
-#ifdef TEXT_SERIALIZATION
+//#ifdef TEXT_SERIALIZATION
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
-#else
+//#else
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
-#endif
+//#endif
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>

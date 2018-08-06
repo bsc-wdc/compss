@@ -7,6 +7,21 @@ DEFAULT_INSTALLATION_PATH=/opt/COMPSs
 DEFAULT_ENABLE_CROSS=false
 DEFAULT_ONLY_BINDINGS=false
 
+#if [ -z "$JAVA_HOME" ]; then
+#    DEFAULT_JAVA_HOME=/usr/lib/java-1.8.0-openjdk-amd64
+#else
+#    DEFAULT_JAVA_HOME=$JAVA_HOME
+#fi
+
+clean_env() {
+    export CC=
+    export CXX=
+    export JAVA_HOME=
+    export TARGET_HOST=
+
+    source ~/.bashrc    
+}
+
 show_opts() {
 
     cat <<EOT
@@ -67,7 +82,7 @@ get_args() {
                         show_opts
                         exit 0
                         ;; 
-                    prefix)
+                    prefix=*)
                         INSTALLATION_PATH=${OPTARG//prefix=/}
                         ;;
 		    		native-enable-cross)
@@ -76,10 +91,16 @@ get_args() {
                     only-bindings)
                         ONLY_BINDINGS=true
                         ;;
+                    *)
+                        echo "ERROR: Bad argument ${OPTARG}."
+                        exit 1
+                        break
+                        ;;
                 esac
                 ;;
             *)
-                echo "ERROR: Bad arugment $OPTARG"
+                echo "ERROR: Bad flag ${flag}."
+                exit 1
                 break
                 ;;
         esac
@@ -113,6 +134,8 @@ check_args() {
 
 }
 
+trap clean_env EXIT
+
 scriptDir=$(cd "$(dirname $0)" | pwd -P)
 
 get_args "$@"
@@ -129,7 +152,7 @@ if [ "$ENABLE_CROSS" = true ]; then
     echo "[ INFO ] Building native COMPSs."
     echo "PATH: $INSTALLATION_PATH"
     native_environment 
-    $scriptDir/../../buildlocal --no-tracing --no-autoparallel #targetDir=$INSTALLATION_PATH #Install native COMPSs
+    $scriptDir/../../buildlocal --no-tracing --no-autoparallel $INSTALLATION_PATH #Install native COMPSs
 
     ev=$?
 
@@ -195,11 +218,21 @@ if [ "$ENABLE_CROSS" = true ]; then
     rm -rf $tmpDir #Remove temporal files
 
 elif [ "$ONLY_BINDINGS" = true ]; then
-    target_environment
+
+   target_environment
+
     $scriptDir/../../../compss/programming_model/bindings/install_bindings $INSTALLATION_PATH #This installs only the bindings
+
 else    
+    
+    $scriptDir/../../buildlocal --no-tracing --no-autoparallel --no-bindings $INSTALLATION_PATH #enable tracing and so on? Add them as options?.
+
     target_environment
-    $scriptDir/../../buildlocal --no-tracing --no-autoparallel targetDir=$INSTALLATION_PATH #enable tracing and so on? Add them as options?.
+
+    $scriptDir/../../../compss/programming_model/bindings/install_bindings $INSTALLATION_PATH
+
+    cp $scriptDir/../../../compss/programming_model/bindings/c/compss_build_app* $INSTALLATION_PATH/Runtime/scripts/user/
+
 fi
 
 # Check if any error occured

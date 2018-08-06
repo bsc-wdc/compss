@@ -121,7 +121,7 @@ get_args() {
                                 exit 0
                                 ;;
                             master=*)
-                           x86_64     #Get architectures to build master
+                                #Get architectures to build master
                                 MASTER_BUILD_ARCHS=${OPTARG//master=/}
                                 ;;
                             worker=*)

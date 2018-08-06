@@ -1,5 +1,3 @@
-#!/bin/bash
-
 #This script builds an application for several applications
 #Is used for the C/C++ binding.
 
@@ -11,7 +9,7 @@ if [ -z "$COMPSS_HOME" ]; then
     COMPSS_HOME=/opt/COMPSs
 fi
 
-DEFAULT_ARCHITECTURE=x86_64-linux-gnu #$(lscpu | awk 'NR==1{print $NF}')
+DEFAULT_ARCHITECTURE=$(gcc -dumpmachine) #x86_64-linux-gnu #$(lscpu | awk 'NR==1{print $NF}')
 DEFAULT_CFG=${COMPSS_HOME}/Bindings/c/cfgs/compssrc #This file contains the x86-64 and armhf environment
 DEFAULT_ONLY_MASTER=false
 DEFAULT_ONLY_WORKER=false
@@ -22,6 +20,7 @@ ARCH_CONFIGURATION_FUNCTION_NOT_FOUND="Error: The function to configurate one of
 #---------------------------------------------------
 # FUNCTIONS DECLARATION
 #---------------------------------------------------
+
 show_supported_archs() {
     cat <<EOT
 
@@ -42,7 +41,7 @@ EOT
 show_opts() {
     cat <<EOT
 
-        --supported_arch            Show supported architectures			
+        --supported_arch            Show supported architectures            
 
         --master=<arch1,arch2,...>  Specifies the target architectures for which the master is
                                     going to be build. Each architecture separated by ",".
@@ -82,18 +81,18 @@ Usage: $0 [options] application_name
 
 EOT
 
-	show_opts
+    show_opts
 
     exit "$exitValue"
 }
 
 display_error() {
-	local error_msg=$1
+    local error_msg=$1
 
-	echo "$error_msg"
+    echo "$error_msg"
     echo " "
 
-	usage 1
+    usage 1
 }
 
 get_args() {
@@ -129,14 +128,14 @@ get_args() {
                                 WORKER_BUILD_ARCHS=${OPTARG//worker=/}
                                 ;;
                             only-master)
-							    #Compile only the master
-							    ONLY_MASTER=true
-							    ;;
+                                #Compile only the master
+                                ONLY_MASTER=true
+                                ;;
                             only-worker)
                                 #Compile only the worker
                                 ONLY_WORKER=true
                                 ;;
-							cfg=*)
+                            cfg=*)
                                 #Get configuration file
                                 CFG_PATH=${OPTARG//cfg=/}
                                 ;;
@@ -171,24 +170,24 @@ check_args() {
         CFG_PATH=${DEFAULT_CFG}
     fi
 
-	if [ -n "$ONLY_MASTER" ] && [ -n "$ONLY_WORKER" ]; then
+    if [ -n "$ONLY_MASTER" ] && [ -n "$ONLY_WORKER" ]; then
         echo ""
-		display_error "${ONLY_MASTER_AND_WORKER_ERROR}" #Is not possible to compile only both...
+        display_error "${ONLY_MASTER_AND_WORKER_ERROR}" #Is not possible to compile only both...
     elif [ -z "$ONLY_MASTER" ] && [ -z "$ONLY_WORKER" ]; then
         ONLY_WORKER=$DEFAULT_ONLY_WORKER
         ONLY_MASTER=$DEFAULT_ONLY_MASTER
     fi
 
     if [ -n "$ONLY_MASTER" ] && [ "$ONLY_MASTER" = true ]; then
-		echo "[ INFO ] Building only the master."
+        echo "[ INFO ] Building only the master."
         ONLY_WORKER=$DEFAULT_ONLY_WORKER
     fi
 
     if [ -n "$ONLY_WORKER" ] && [ "$ONLY_WORKER" = true ]; then
-		echo "[ INFO ] Building only the worker."
-		ONLY_MASTER=$DEFAULT_ONLY_MASTER
-	fi
-    
+        echo "[ INFO ] Building only the worker."
+        ONLY_MASTER=$DEFAULT_ONLY_MASTER
+    fi
+
     if [ -z "$MASTER_BUILD_ARCHS" ] && [ "$ONLY_WORKER" = false ]; then
         echo "[ INFO ] Using default architecture to build master: ${DEFAULT_ARCHITECTURE}."
         MASTER_BUILD_ARCHS=${DEFAULT_ARCHITECTURE}
@@ -198,18 +197,33 @@ check_args() {
         echo "[ INFO ] Using default architecture to build worker: ${DEFAULT_ARCHITECTURE}."
         WORKER_BUILD_ARCHS=${DEFAULT_ARCHITECTURE}
     fi
-        
+
 }
 
 extract_archs() {
-	
-	local toProcess
 
-	# This function uses awk to get the first element of a string until the first comma separator
-	toProcess=$1
+    local toProcess
 
-	processed=$(echo $toProcess | awk -F, '{split($0, array,",")} END{ for (i in array) { print array [i] }}')
+    # This function uses awk to get the first element of a string until the first comma separator
+    toProcess=$1
 
+    processed=$(echo $toProcess | awk -F, '{split($0, array,",")} END{ for (i in array) { print array [i] }}')
+
+}
+
+save_cpp_c_flags() {
+    export DEFAULT_CPPFLAGS=$CPPFLAGS
+    export DEFAULT_CFLAGS=$CFLAGS
+}
+
+set_text_serialization() {
+    export CPPFLAGS="$CPPFLAGS -DTEXT_SERIALIZATION"
+    export CFLAGS="$CFLAGS -DTEXT_SERIALIZATION"
+}
+
+restore_cpp_c_flags() {
+    export CPPFLAGS=$DEFAULT_CPPFLAGS
+    export CFLAGS=$DEFAULT_CFLAGS
 }
 
 #---------------------------------------------------
@@ -221,23 +235,19 @@ extract_archs() {
     get_args "$@"
     check_args
 
+    save_cpp_c_flags
+    set_text_serialization
+
     appdir=$(pwd)
     tmpdir=$(mktemp -d)
-    
+
     cp -rf $appdir/* $tmpdir
 
     # Build master
     if [ "$ONLY_WORKER" = false ]; then
 
-        if [ -d ./master ] ; then
-            echo "The master directory already exists from a previous build. Removing."
-            rm -rf master
-        fi
-
-        mkdir master
-
         extract_archs $MASTER_BUILD_ARCHS
-        
+
         source $CFG_PATH #This file contains the build configuration
 
         cd $tmpdir
@@ -245,17 +255,21 @@ extract_archs() {
         for i in $processed; do
 
             if [ -d $i ]; then
-                echo "The architecture $i of the master exists from a previous build. Removing."
-                rm -rf $i
+                if [ -d $i/master]; then
+                    echo "The master directory of the $i architecture already exists from a previous build. Removing."
+                    rm -rf $i/master
+                fi
             fi
- 
+
+            mkdir -p $i
+
             if [ ! $(type -t $i) = "function" ]; then
                 display_error "${ARCH_CONFIGURATION_FUNCTION_NOT_FOUND}"
             fi
 
             $i #Function to export al the needed env. variables
-            
-            compss_build_app --only-master $other_args 
+
+            compss_build_app --only-master $other_args
 
             ev=$?
 
@@ -265,35 +279,32 @@ extract_archs() {
                 exit 1
             fi
 
-            mkdir $appdir/master/$i
-            mv ./master/* $appdir/master/$i
+            mkdir -p $appdir/$i/master
+            mv ./master $appdir/$i
 
         done
 
-    fi    		
+    fi
 
     # Build worker
     if [ "$ONLY_MASTER" = false ]; then
-        
-        if [ -d ./worker ] ; then
-            echo "The worker directory already exists from a previous build. Removing."
-            rm -rf worker
-        fi
-
-        mkdir worker
 
         extract_archs $WORKER_BUILD_ARCHS
 
         source $CFG_PATH
 
         cd $tmpdir
-        
+
         for i in $processed; do
 
             if [ -d $i ]; then
-                echo "The architecture $i of the worker exists from a previous build. Removing."
-                rm -rf $i
+                if [ -d $i/worker]; then
+                    echo "The worker directory of the $i archtiecture already exists from a previous build. Removing."
+                    rm -rf $i/worker
+                fi
             fi
+
+            mkdir -p $i
 
             if [ ! $(type -t $i) = "function" ]; then
                 display_error "${ARCH_CONFIGURATION_FUNCTION_NOT_FOUND}"
@@ -311,8 +322,8 @@ extract_archs() {
                 exit 1
             fi
 
-            mkdir $appdir/worker/$i
-            mv ./worker/* $appdir/worker/$i
+            mkdir -p $appdir/$i/worker
+            mv ./worker $appdir/$i
 
         done
 
@@ -321,3 +332,4 @@ extract_archs() {
     rm -rf $tmpdir
 
     exit 0
+                             

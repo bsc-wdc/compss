@@ -67,7 +67,6 @@ if __within_scope__():
 
         :return: None
         """
-
         start_runtime()
 
     def compss_stop():

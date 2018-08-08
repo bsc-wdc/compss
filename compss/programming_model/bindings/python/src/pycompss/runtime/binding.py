@@ -199,7 +199,8 @@ class Future(object):
     """
 
     def __init__(self):
-        self.__hidden_id = str(uuid.uuid1)
+        # This UUID1 is for debugging purposes
+        self.__hidden_id = str(uuid.uuid1())
 
 
 class EmptyReturn(object):

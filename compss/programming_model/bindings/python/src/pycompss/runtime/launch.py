@@ -31,6 +31,11 @@ import traceback
 
 from tempfile import mkdtemp
 
+
+# Let the Python binding know we are at master
+from pycompss.util.location import set_pycompss_context
+set_pycompss_context('MASTER')
+
 import pycompss.runtime.binding as binding
 from pycompss.api.api import compss_start, compss_stop
 from pycompss.runtime.binding import get_log_path
@@ -92,10 +97,8 @@ def compss_main():
     :return: None
     """
     global app_path
-
     # Start the runtime, see bindings commons
     compss_start()
-
     # See parse_arguments, defined above
     # In order to avoid parsing user arguments, we are going to remove user
     # args from sys.argv

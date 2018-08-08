@@ -739,6 +739,9 @@ def compss_persistent_worker():
     :return: None
     """
 
+    # Set the binding in worker mode
+    from pycompss.util.location import set_pycompss_context
+    set_pycompss_context('WORKER')
     # Get args
     debug = (sys.argv[1] == 'true')
     global TRACING

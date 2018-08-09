@@ -73,10 +73,9 @@ public class DataInfoProvider {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.DIP_COMP);
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
-
     /**
      * New Data Info Provider instance
-     * 
+     *
      */
     public DataInfoProvider() {
         nameToId = new TreeMap<>();
@@ -89,7 +88,7 @@ public class DataInfoProvider {
 
     /**
      * DataAccess interface: registers a new data access
-     * 
+     *
      * @param access
      * @return
      */
@@ -108,7 +107,7 @@ public class DataInfoProvider {
 
     /**
      * DataAccess interface: registers a new file access
-     * 
+     *
      * @param mode
      * @param location
      * @return
@@ -167,7 +166,7 @@ public class DataInfoProvider {
 
     /**
      * DataAccess interface: registers a new object access
-     * 
+     *
      * @param mode
      * @param value
      * @param code
@@ -212,7 +211,7 @@ public class DataInfoProvider {
 
     /**
      * DataAccess interface: registers a new object access
-     * 
+     *
      * @param mode
      * @param value
      * @param code
@@ -258,7 +257,7 @@ public class DataInfoProvider {
 
     /**
      * DataAccess interface: registers a new object access
-     * 
+     *
      * @param mode
      * @param value
      * @param code
@@ -382,7 +381,7 @@ public class DataInfoProvider {
 
     /**
      * Returns if a given data has been accessed or not
-     * 
+     *
      * @param dAccId
      */
     public void dataHasBeenAccessed(DataAccessId dAccId) {
@@ -415,7 +414,7 @@ public class DataInfoProvider {
 
     /**
      * Returns if a given location has been accessed or not
-     * 
+     *
      * @param loc
      * @return
      */
@@ -428,7 +427,7 @@ public class DataInfoProvider {
 
     /**
      * DataInformation interface: returns the last renaming of a given data
-     * 
+     *
      * @param code
      * @return
      */
@@ -440,7 +439,7 @@ public class DataInfoProvider {
 
     /**
      * Returns the original location of a data id
-     * 
+     *
      * @param fileId
      * @return
      */
@@ -451,7 +450,7 @@ public class DataInfoProvider {
 
     /**
      * Sets the value @value to the renaming @renaming
-     * 
+     *
      * @param renaming
      * @param value
      */
@@ -462,7 +461,7 @@ public class DataInfoProvider {
 
     /**
      * Returns if the dataInstanceId is registered in the master or not
-     * 
+     *
      * @param dId
      * @return
      */
@@ -472,7 +471,7 @@ public class DataInfoProvider {
 
     /**
      * Returns the object associated to the renaming @renaming
-     * 
+     *
      * @param renaming
      * @return
      */
@@ -482,7 +481,7 @@ public class DataInfoProvider {
 
     /**
      * Creates a new version with the same value
-     * 
+     *
      * @param rRenaming
      * @param wRenaming
      */
@@ -492,7 +491,7 @@ public class DataInfoProvider {
 
     /**
      * Returns the last data access to a given renaming
-     * 
+     *
      * @param code
      * @return
      */
@@ -504,7 +503,7 @@ public class DataInfoProvider {
 
     /**
      * Returns the last versions of all the specified data Ids
-     * 
+     *
      * @param dataIds
      * @return
      */
@@ -523,7 +522,7 @@ public class DataInfoProvider {
 
     /**
      * Unblocks a dataId
-     * 
+     *
      * @param dataId
      */
     public void unblockDataId(Integer dataId) {
@@ -533,7 +532,7 @@ public class DataInfoProvider {
 
     /**
      * Marks a data Id for deletion
-     * 
+     *
      * @param loc
      * @return
      */
@@ -557,7 +556,7 @@ public class DataInfoProvider {
 
     /**
      * Deletes the data associated with the code
-     * 
+     *
      * @param code
      * @return ObjectInfo
      */
@@ -565,12 +564,13 @@ public class DataInfoProvider {
     	LOGGER.debug("Deleting Data associated with code: " + String.valueOf(code));
     	
         Integer id = codeToId.get(code);
-        if (id == null)
+
+        if (id == null) {
        	    return null;
-        
+        }
         DataInfo dataInfo = idToData.get(id);
         
-        //We delete the data associated with all the versions of the same object
+        // We delete the data associated with all the versions of the same object
         dataInfo.delete(); 
         
         return dataInfo;
@@ -578,11 +578,10 @@ public class DataInfoProvider {
 
     /**
      * Transfers the value of an object
-     * 
-     * @param toRequest
-     * @return
+     *
+     * @param toRequest transfer object request
      */
-    public LogicalData transferObjectValue(TransferObjectRequest toRequest) {
+    public void transferObjectValue(TransferObjectRequest toRequest) {
         Semaphore sem = toRequest.getSemaphore();
         DataAccessId daId = toRequest.getDaId();
         RWAccessId rwaId = (RWAccessId) daId;
@@ -596,7 +595,7 @@ public class DataInfoProvider {
 
         if (ld == null) {
             ErrorManager.error("Unregistered data " + sourceName);
-            return null;
+            return;
         }
 
         if (ld.isInMemory()) {
@@ -626,16 +625,15 @@ public class DataInfoProvider {
             } catch (Exception e) {
                 ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
             }
-
+            toRequest.setTargetData(ld);
             Comm.getAppHost().getData(sourceName, targetLocation, new ObjectTransferable(), new OneOpWithSemListener(sem));
         }
 
-        return ld;
     }
 
     /**
      * Transfers the value of an object
-     * 
+     *
      * @param toRequest
      * @return
      */
@@ -688,7 +686,7 @@ public class DataInfoProvider {
 
     /**
      * Blocks dataId and retrieves its result file
-     * 
+     *
      * @param dataId
      * @param listener
      * @return
@@ -697,7 +695,7 @@ public class DataInfoProvider {
         DataInstanceId lastVersion;
         FileInfo fileInfo = (FileInfo) idToData.get(dataId);
         if (fileInfo != null && !fileInfo.isCurrentVersionToDelete()) { // If current version is to delete do not
-                                                                        // transfer
+            // transfer
             String[] splitPath = fileInfo.getOriginalLocation().getPath().split(File.separator);
             String origName = splitPath[splitPath.length - 1];
             if (origName.startsWith("compss-serialized-obj_")) { // Do not transfer objects serialized by the bindings
@@ -766,7 +764,7 @@ public class DataInfoProvider {
 
     /**
      * Shuts down the component
-     * 
+     *
      */
     public void shutdown() {
         // Nothing to do

@@ -197,6 +197,7 @@ int compss_object_copy(T* from, T* to) {
 
 template <class T> int compss_array_deserialize(T* &to, const char* filename, int elements) {
     debug_printf("[C-BINDING]  -  @compss_array_deserialize  -  Ref: %p to file %s\n", to, filename);
+    to = new T[elements];
     to = (T*)malloc(sizeof(T)*elements);
     ifstream ifs(filename, ios::binary);
     ifs.read((char*)to, sizeof(T)*elements);
@@ -216,7 +217,8 @@ template <class T> int compss_array_serialize(T* obj, const char* filename, int 
 
 template <class T> int compss_array_deserialize(T* &to, JavaNioConnStreamBuffer &jsb, int elements) {
     debug_printf("[C-BINDING]  -  @compss_array_deserialize  -  Ref: %p to JavaNioBuffer\n", to);
-    to = (T*)malloc(sizeof(T)*elements);
+    to = new T[elements];
+    //to = (T*)malloc(sizeof(T)*elements);
     istream ijs(&jsb);
     ijs.read((char*)to, sizeof(T)*elements);
     return 0;
@@ -231,7 +233,8 @@ template <class T> int compss_array_serialize(T* obj, JavaNioConnStreamBuffer &j
 }
 
 template <class T> int compss_array_copy(T* from, T* &to, int elements) {
-    to = (T*)malloc(sizeof(T)*elements);
+    to = new T[elements];
+	//to = (T*)malloc(sizeof(T)*elements);
     debug_printf("[C-BINDING]  -  @compss_array_copy  -  Ref: %p to %p\n", &from, &to);
     memcpy((void*)to, (void*)from, sizeof(T)*elements);
     return 0;

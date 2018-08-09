@@ -850,7 +850,12 @@ public class NIOWorker extends NIOAgent {
                     }
                     // Now only manage at C (python could do the same when cache available)
                     if (Lang.valueOf(lang.toUpperCase()) == Lang.C && persistentC) {
-                        executionManager.removeExternalData(name);
+                        if (BindingDataManager.removeData(f.getName())!=0){
+                            WORKER_LOGGER.error("Error removing data " + f.getName() + " from Binding");
+                        }else{
+                            WORKER_LOGGER.debug("Data removed from cache " + f.getName());
+                        }
+                        //executionManager.removeExternalData(name);
                     }
                 }
                 String dataName = new File(name).getName();

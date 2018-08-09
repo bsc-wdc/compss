@@ -79,7 +79,7 @@ std::streambuf::int_type JavaNioConnStreamBuffer::underflow() {
     debug_printf(" [JSB-UF] Calling pull method to get data\n");
     fflush(NULL);
     if (j_value != NULL) {
-        debug_printf(" [JSB-UF] Releasing previous bytearray \n");
+        debug_printf(" [JSB-UF] Releasing previous bytearray (%p,%p)\n", &j_value, buff);
         jni_env->ReleaseByteArrayElements(j_value, (jbyte*)buff, 0);
     }
     jmethodID id = jni_env->GetMethodID(jni_env->GetObjectClass(handle),"pull","()[B");
@@ -123,10 +123,11 @@ std::streambuf::int_type JavaNioConnStreamBuffer::underflow() {
 
 JavaNioConnStreamBuffer::~JavaNioConnStreamBuffer() {
     if (j_value != NULL) {
-        //printf(" [JSB-UF] Releasing previous bytearray \n");
+        printf(" [JSB-UF] Releasing previous bytearray (%p,%p) \n", &j_value, buff);
         jni_env->ReleaseByteArrayElements(j_value, (jbyte*)buff, 0);
     } else {
         overflow();
     }
+    printf(" [JSB-UF] Releasing handle (%p) \n", &handle);
     jni_env->DeleteGlobalRef(handle);
 }

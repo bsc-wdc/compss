@@ -681,8 +681,8 @@ public class AccessProcessor implements Runnable, TaskProducer {
      *
      * @param loc
      */
-    public void markForBindingObjectDeletion(BindingObjectLocation loc) {
-        if (!requestQueue.offer(new DeleteBindingObjectRequest(loc))) {
+    public void markForBindingObjectDeletion(int code) {
+        if (!requestQueue.offer(new DeleteBindingObjectRequest(code))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");
         }
     }

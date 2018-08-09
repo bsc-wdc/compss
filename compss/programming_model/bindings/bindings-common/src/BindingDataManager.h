@@ -25,6 +25,14 @@ void init_data_manager(AbstractCache *newcache);
 
 AbstractCache *get_cache();
 
+void addGlobalRef(void* pointer, jobject jobj);
+
+void removeGlobalRef(JNIEnv *env, void* pointer);
+
+int hasGlobalRef(void* pointer);
+
+void cleanGlobalRefs(JNIEnv *env);
+
 void *sync_object_from_runtime(char* name, int type, int elements);
 
 int delete_object_from_runtime(char* name, int type, int elements);

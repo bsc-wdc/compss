@@ -16,6 +16,7 @@
  */
 
 #include <iostream>
+#include <string>
 #include "common.h"
 #include "AbstractCache.h"
 
@@ -97,7 +98,10 @@ int AbstractCache::pullFromFile(const char* id, const char* filename, compss_poi
 }
 
 bool AbstractCache::isInCache(const char* id) {
-    get_lock();
+	if (is_debug()) {
+	    cout << "[AbstractCache] Checking if object "<< id << " is in cache." << endl;
+	}
+	get_lock();
     bool b = cache.count(id) > 0;
     release_lock();
     return b;
@@ -105,7 +109,10 @@ bool AbstractCache::isInCache(const char* id) {
 }
 
 int AbstractCache::getFromCache(const char* id, compss_pointer &cp) {
-    if (isInCache(id)) {
+	if (is_debug()) {
+		    cout << "[AbstractCache] Getting object "<< id << " from cache." << endl;
+		}
+	if (isInCache(id)) {
         get_lock();
         cp = cache[id];
         release_lock();
@@ -115,8 +122,12 @@ int AbstractCache::getFromCache(const char* id, compss_pointer &cp) {
     }
 }
 
-int AbstractCache::storeInCache(const char* id, compss_pointer cp) {
-    get_lock();
+int AbstractCache::storeInCache(const char* _id, compss_pointer cp) {
+	string id(_id);
+	if (is_debug()) {
+		cout << "[AbstractCache] Storing object "<< id << " from cache. " << hex << cp.pointer << endl;
+	}
+	get_lock();
     cache[id]=cp;
     release_lock();
     return 0;
@@ -124,7 +135,10 @@ int AbstractCache::storeInCache(const char* id, compss_pointer cp) {
 //Only removes from the cache, binding or user have to remove the object from memory
 
 int AbstractCache::deleteFromCache(const char* id, bool deleteObject) {
-    compss_pointer cp;
+	if (is_debug()) {
+			cout << "[AbstractCache] Deleting object " << id << " from cache." << endl;
+		}
+	compss_pointer cp;
     int res = getFromCache(id, cp);
     if (res==0) {
         get_lock();
@@ -143,7 +157,10 @@ int AbstractCache::deleteFromCache(const char* id, bool deleteObject) {
 }
 
 int AbstractCache::copyInCache(const char* id_from, const char* id_to, compss_pointer &to) {
-    compss_pointer from;
+	if (is_debug()) {
+		cout << "[AbstractCache] Copying object " << id_from << " to " << id_to << endl;
+	}
+	compss_pointer from;
     int res = getFromCache(id_from, from);
     if (res==0) {
         int res_cp = copyData(from, to);
@@ -161,7 +178,10 @@ int AbstractCache::copyInCache(const char* id_from, const char* id_to, compss_po
 }
 
 int AbstractCache::moveInCache(const char* id_from, const char* id_to) {
-    compss_pointer from;
+	if (is_debug()) {
+		cout << "[AbstractCache] Moving object " << id_from << " to " << id_to << endl;
+	}
+	compss_pointer from;
     int res = getFromCache(id_from, from);
     if (res==0) {
         get_lock();
@@ -176,10 +196,12 @@ int AbstractCache::moveInCache(const char* id_from, const char* id_to) {
 }
 
 void AbstractCache::printValues() {
+	get_lock();
     cout << "[AbstractCache] Cache contains:" <<endl;
     for(std::map<std::string, compss_pointer>::iterator it = cache.begin(); it != cache.end(); it++) {
-        cout << it->first << endl;
+        cout << it->first << hex << it->second.pointer << endl;
     }
+    release_lock();
 }
 
 int AbstractCache::removeData(const char* id, AbstractCache &c) {

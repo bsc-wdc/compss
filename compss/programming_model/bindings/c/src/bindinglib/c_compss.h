@@ -128,22 +128,10 @@ void compss_wait_on(T* &obj) {
                "\tEither compss_wait_on is not needed or object pointer is not correctly passed.\n");
     } else {
         debug_printf("[C-BINDING]  -  @compss_wait_on  -  sync object %s to runtime\n", entry.filename);
+        void* old_obj = obj;
         obj = (T*)sync_object_from_runtime(entry.filename, entry.object_type, entry.elements);
-        //OLD
-        /*GS_Get_File(entry.filename, in_dir, &runtime_filename);
-        debug_printf("[C-BINDING]  -  @compss_wait_on  -  template class\n");
-        debug_printf("[C-BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
-        ifstream ifs(runtime_filename, ios::binary );
-        archive::binary_iarchive ia(ifs);
-        ia >> obj;
-        ifs.close();
-        debug_printf("[C-BINDING]  -  @compss_wait_on  - File serialization finished\n");
-        // No longer needed, the current version of the object is in memory now
-        GS_Close_File(entry.filename, in_dir);
-        compss_delete_file(entry.filename);
-        remove(runtime_filename);*/
         remove(entry.filename);
-        objectMap.erase(obj);
+        objectMap.erase(old_obj);
         debug_printf("[C-BINDING]  -  @compss_wait_on  -  object synchronized\n");
     }
 }

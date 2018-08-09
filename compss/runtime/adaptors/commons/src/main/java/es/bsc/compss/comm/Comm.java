@@ -412,7 +412,7 @@ public class Comm {
      * @param renaming
      */
     public static synchronized void removeData(String renaming) {
-        LOGGER.debug("Remove data " + renaming);
+        LOGGER.debug("Removing data " + renaming);
 
         LogicalData ld = data.remove(renaming);
         ld.isObsolete();

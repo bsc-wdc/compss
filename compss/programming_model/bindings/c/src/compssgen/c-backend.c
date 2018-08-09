@@ -681,15 +681,25 @@ static void generate_remove_func(FILE *outFile, Types current_types) {
         // Remove treatment
         char * dataType = current_types.types[i].name;
         fprintf(outFile, "\t\t case %d:\n", i);
-        fprintf(outFile, "\t\t\t %s *data_%d;\n", dataType, i);
-        fprintf(outFile, "\t\t\t data_%d = (%s*)cp.pointer;\n", i, dataType);
-        fprintf(outFile, "\t\t\t if(is_debug()){\n"); //Open if debug
-        fprintf(outFile, "\t\t\t cout << \"[C Binding] Deleting object from memory...\" << endl;\n");
-        fprintf(outFile, "\t\t\t }");// end if debug;
-        fprintf(outFile, "\t\t\t delete(data_%d);\n",i);
-        fprintf(outFile, "\t\t\t if(is_debug()){\n"); //Open if debug
-        fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Object has been removed.\" << endl;\n");
-        fprintf(outFile, "\t\t\t }");// end if debug;
+        fprintf(outFile, "\t\t\t if (cp.pointer != NULL) {\n ");
+        //fprintf(outFile, "\t\t\t\t %s *data_%d = (%s*)cp.pointer;\n", dataType, i, dataType);
+        fprintf(outFile, "\t\t\t\t if(is_debug()){\n"); //Open if debug
+        fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Deleting object from memory \" << hex << cp.pointer << endl;\n");
+        fprintf(outFile, "\t\t\t\t }\n");// end if debug;
+        /*fprintf(outFile, "\t\t\t\t if (data_%d != NULL){\n",i);
+        fprintf(outFile, "\t\t\t\t\t delete(data_%d);\n",i);
+        fprintf(outFile, "\t\t\t\t }\n");*/
+        fprintf(outFile, "\t\t\t\t if (cp.elements > 0 ){\n");
+        fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Deleting array\" << endl;\n");
+        fprintf(outFile, "\t\t\t\t\t free(cp.pointer);\n");
+        fprintf(outFile, "\t\t\t\t } else {\n");
+        fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Deleting object\" << endl;\n");
+        fprintf(outFile, "\t\t\t\t\t delete(cp.pointer);\n");
+        fprintf(outFile, "\t\t\t\t }\n");// end if cp.elements
+        fprintf(outFile, "\t\t\t\t if(is_debug()){\n"); //Open if debug
+        fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Object has been removed.\" << endl;\n");
+        fprintf(outFile, "\t\t\t\t }\n");// end if debug;
+        fprintf(outFile, "\t\t\t }\n");
         fprintf(outFile, "\t\t\t break;\n");
     }
     fprintf(outFile, "\t\t default:;\n");
@@ -932,7 +942,8 @@ static void generate_class_includes_and_check_types(FILE *outFile, Types *curren
  * Generate buffer to add task parameters before calling the task execution
  */
 static void generate_parameter_buffers(FILE *outFile, function *func) {
-    int k = 0;
+	fprintf(outFile, "\t debug_printf(\"Detected task %s\\n\");\n", func->name);
+	int k = 0;
     //There is a target object
     if (( func->classname != NULL ) && (func->access_static == 0)) k = k + 5;
     //There is a return type

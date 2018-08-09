@@ -149,6 +149,7 @@ public abstract class DataInfo {
 
     public boolean delete() {
         if (deletionBlocks > 0) {
+            System.err.println("deletionBlocks for data " + this.dataId);
             pendingDeletions.addAll(versions.values());
         } else {
             LinkedList<Integer> removedVersions = new LinkedList<>();
@@ -156,6 +157,8 @@ public abstract class DataInfo {
                 if (version.delete()) {
                 	Comm.removeData(version.getDataInstanceId().getRenaming());
                     removedVersions.add(version.getDataInstanceId().getVersionId());
+                }else{
+                    System.err.println("version: " + version.getDataInstanceId().getRenaming() + " pending to delete. ");
                 }
             }
             for (int versionId : removedVersions) {

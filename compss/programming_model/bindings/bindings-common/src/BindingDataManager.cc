@@ -23,6 +23,8 @@
 # define BUFFER 65536
 
 AbstractCache *cache = NULL;
+//map to store globalRefs
+map<void*, jobject> globalRefs;
 
 void init_data_manager(AbstractCache *newcache) {
     debug_printf("Initializing data manager with cache %p", newcache);
@@ -31,6 +33,31 @@ void init_data_manager(AbstractCache *newcache) {
 
 AbstractCache *get_cache() {
     return cache;
+}
+
+void addGlobalRef(void* pointer, jobject jobj){
+	globalRefs[pointer] = jobj;
+}
+
+void removeGlobalRef(JNIEnv *env, void* pointer){
+	if (pointer!=NULL){
+		if (hasGlobalRef(pointer)){
+			jobject jobj = globalRefs[pointer];
+			env->DeleteGlobalRef(jobj);
+		}else{
+
+		}
+	}
+}
+
+int hasGlobalRef(void* pointer){
+	return (globalRefs.count(pointer) > 0);
+}
+
+void cleanGlobalRefs(JNIEnv *env){
+	for(std::map<void*, jobject>::iterator it = globalRefs.begin(); it != globalRefs.end(); it++) {
+	     env->DeleteGlobalRef(it->second);
+	}
 }
 
 int delete_object_from_runtime(char* name, int type, int elements) {
@@ -108,9 +135,15 @@ JNIEXPORT jboolean JNICALL Java_es_bsc_compss_util_BindingDataManager_isInBindin
 JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_removeData(JNIEnv *env, jclass jClass, jstring id) {
     if (cache != NULL) {
         const char *id_str = env->GetStringUTFChars(id, 0);
-        jint res = (jint)AbstractCache::removeData(id_str, *cache);
-        env->ReleaseStringUTFChars( id, id_str);
-        return res;
+        compss_pointer cp;
+        if (cache->getFromCache(id_str, cp)){
+        	jint res = (jint)AbstractCache::removeData(id_str, *cache);
+        	env->ReleaseStringUTFChars( id, id_str);
+        	removeGlobalRef(env,cp.pointer);
+        	return res;
+        }else{
+        	debug_printf("[BindingDataManager]  - Object not in cache ignoring remove.\n");
+        }
     } else {
         debug_printf("[BindingDataManager]  - Error: cache is null.\n");
         return (jint)-1;
@@ -230,14 +263,17 @@ JNIEXPORT jobject JNICALL Java_es_bsc_compss_util_BindingDataManager_getByteArra
  * Signature: (Ljava/lang/String;Ljava/nio/ByteBuffer;)V
  */
 JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_setByteArray(JNIEnv *env, jclass jClass, jstring id, jobject jobj, jint type, jint elements) {
-    if (cache != NULL) {
+	debug_printf("[BindingDataManager]  - Error: cache is null.");
+	if (cache != NULL) {
         const char *id_str = env->GetStringUTFChars(id, 0);
         compss_pointer cp;
-        cp.pointer = env->GetDirectBufferAddress(jobj);
+        jobject jobjGlobal = env->NewGlobalRef(jobj);
+        cp.pointer = env->GetDirectBufferAddress(jobjGlobal);
+        addGlobalRef(cp.pointer, jobjGlobal);
         cp.size = (long)env->GetDirectBufferCapacity(jobj);
         cp.type = (int)type;
         cp.elements = (int)elements;
-        //printf("Storing in cache Buff: %d size: %d\n", cp.pointer, cp.size);
+        debug_printf("[BindingDataManager] Storing in cache Buff: %p size: %d\n", cp.pointer, cp.size);
         jint res = (jint)cache->storeInCache(id_str, cp);
         env->ReleaseStringUTFChars( id, id_str);
         return res;
@@ -278,6 +314,7 @@ JNIEXPORT jint JNICALL Java_es_bsc_compss_nio_utils_NIOBindingDataManager_receiv
         cp.type = (int)type;
         cp.elements = 0;
         jint res = (jint)cache->pullFromStream(id_str, jsb, cp);
+
         env->ReleaseStringUTFChars( id, id_str);
         return res;
     } else {

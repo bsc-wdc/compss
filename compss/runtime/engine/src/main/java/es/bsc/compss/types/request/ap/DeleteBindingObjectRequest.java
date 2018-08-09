@@ -25,20 +25,18 @@ import es.bsc.compss.types.data.location.DataLocation;
 
 public class DeleteBindingObjectRequest extends APRequest {
 
-    private final DataLocation loc;
+    private final int code;
 
 
-    public DeleteBindingObjectRequest(DataLocation loc) {
-        this.loc = loc;
+    public DeleteBindingObjectRequest(int code) {
+        this.code = code;
+        
     }
 
-    public DataLocation getLocation() {
-        return loc;
-    }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        dip.deleteData(loc);
+        dip.deleteData(code);
     }
 
     @Override

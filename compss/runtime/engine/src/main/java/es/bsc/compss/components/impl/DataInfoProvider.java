@@ -541,9 +541,12 @@ public class DataInfoProvider {
         LOGGER.debug("Deleting Data location: " + loc.getPath());
         String locationKey = loc.getLocationKey();
         Integer dataId = nameToId.get(locationKey);
+        
         if (dataId == null) {
+            LOGGER.debug("No data id found for this data location" +loc.getPath());
             return null;
         }
+        
         DataInfo dataInfo = idToData.get(dataId);
         nameToId.remove(locationKey);
         if (dataInfo.delete()) {
@@ -558,19 +561,19 @@ public class DataInfoProvider {
      * @param code
      * @return ObjectInfo
      */
-    public ObjectInfo deleteData(int code) {
-        LOGGER.debug("Deleting Data associated with code: " + String.valueOf(code));
-
+    public DataInfo deleteData(int code) {
+    	LOGGER.debug("Deleting Data associated with code: " + String.valueOf(code));
+    	
         Integer id = codeToId.get(code);
         if (id == null)
-            return null;
-
-        ObjectInfo oi = (ObjectInfo) idToData.get(id);
-
-        // We delete the data associated with all the versions of the same object
-        oi.delete();
-
-        return oi;
+       	    return null;
+        
+        DataInfo dataInfo = idToData.get(id);
+        
+        //We delete the data associated with all the versions of the same object
+        dataInfo.delete(); 
+        
+        return dataInfo;
     }
 
     /**

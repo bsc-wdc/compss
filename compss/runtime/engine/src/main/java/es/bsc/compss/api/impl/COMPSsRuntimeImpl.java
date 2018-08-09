@@ -1085,8 +1085,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
 
         // Parse the binding object name and translate the access mode
-        BindingObjectLocation loc = new BindingObjectLocation(Comm.getAppHost(), BindingObject.generate(fileName));
-        ap.markForBindingObjectDeletion(loc);
+        BindingObject bo = BindingObject.generate(fileName);
+        int hashCode = externalObjectHashcode(bo.getId());
+        ap.markForBindingObjectDeletion(hashCode);
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }

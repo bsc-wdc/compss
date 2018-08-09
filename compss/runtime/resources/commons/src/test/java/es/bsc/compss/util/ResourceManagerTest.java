@@ -60,7 +60,6 @@ public class ResourceManagerTest {
         }
     };
 
-
     @BeforeClass
     public static void setUpClass() {
     }
@@ -177,7 +176,11 @@ public class ResourceManagerTest {
         if (ResourceManager.getTotalNumberOfWorkers() != 1) {
             fail("ResourceManager is not properly adding Method Workers");
         }
-        if (ResourceManager.getStaticResources().contains(worker1Name)) {
+        boolean contains = false;
+        for (Worker<?> r : ResourceManager.getStaticResources()) {
+            contains = contains || worker1Name.equals(r.getName());
+        }
+        if (contains) {
             fail("ResourceManager is not properly adding Method Workers");
         }
         if (ResourceManager.getWorker(worker1Name) != null) {
@@ -187,7 +190,11 @@ public class ResourceManagerTest {
         if (ResourceManager.getTotalNumberOfWorkers() != 0) {
             fail("ResourceManager is not properly adding Method Workers");
         }
-        if (ResourceManager.getStaticResources().contains(worker2Name)) {
+        contains = false;
+        for (Worker<?> r : ResourceManager.getStaticResources()) {
+            contains = contains || worker2Name.equals(r.getName());
+        }
+        if (contains) {
             fail("ResourceManager is not properly adding Method Workers");
         }
         if (ResourceManager.getWorker(worker2Name) != null) {

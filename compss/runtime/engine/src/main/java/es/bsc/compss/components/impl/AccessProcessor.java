@@ -751,7 +751,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
              * The Object didn't come from a WS but was transferred from a worker, we load it from its storage (file or
              * persistent)
              */
-            LogicalData ld = tor.getLogicalDataTarget();
+            LogicalData ld = tor.getTargetData();
             try {
                 ld.loadFromStorage();
                 oUpdated = ld.getValue();

@@ -26,9 +26,9 @@ import java.util.concurrent.Semaphore;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.LogicalData;
 
+
 /**
- * The TransferObjectRequest is a request for an object contained in a remote
- * worker
+ * The TransferObjectRequest is a request for an object contained in a remote worker
  */
 public class TransferObjectRequest extends APRequest {
 
@@ -89,11 +89,9 @@ public class TransferObjectRequest extends APRequest {
     }
 
     /**
-     * Sets the semaphore where to synchronize until the requested object can be
-     * read
+     * Sets the semaphore where to synchronize until the requested object can be read
      *
-     * @param sem the semaphore where to synchronize until the requested object
-     * can be read
+     * @param sem the semaphore where to synchronize until the requested object can be read
      */
     public void setSemaphore(Semaphore sem) {
         this.sem = sem;
@@ -113,8 +111,18 @@ public class TransferObjectRequest extends APRequest {
      *
      * @return the requested LogicalData instance
      */
-    public LogicalData getLogicalDataTarget() {
+    public LogicalData getTargetData() {
         return target;
+    }
+
+    /**
+     * Sets the requested LogicalData instance
+     *
+     * @param ld the requested LogicalData instance
+     */
+    public void setTargetData(LogicalData ld) {
+        this.target = ld;
+
     }
 
     /**
@@ -128,17 +136,12 @@ public class TransferObjectRequest extends APRequest {
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        this.target = dip.transferObjectValue(this);
+        dip.transferObjectValue(this);
     }
 
     @Override
     public APRequestType getRequestType() {
         return APRequestType.TRANSFER_OBJECT;
-    }
-
-    public void setTargetData(LogicalData ld) {
-        this.target = ld;
-
     }
 
 }

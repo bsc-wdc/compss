@@ -34,6 +34,7 @@
   install (){
     PYCOMPSS_HOME="${targetDir}/$1"
     export PYTHONPATH=$PYCOMPSS_HOME:$OLD_PYTHONPATH
+    #export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-armhf
 
     if command_exists python$1 ; then
       python$1 ${SCRIPT_DIR}/setup.py install --install-lib=${PYCOMPSS_HOME} -O2

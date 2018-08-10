@@ -27,13 +27,13 @@
 #include <string>
 #include <string.h>
 #include <JavaNioConnStreamBuffer.h>
-#ifdef TEXT_SERIALIZATION
+//#ifdef TEXT_SERIALIZATION
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
-#else
+//#else
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
-#endif
+//#endif
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
@@ -164,26 +164,26 @@ int compss_object_copy(T* from, T* to) {
     buffer_type buffer;
     boost::iostreams::stream<boost::iostreams::back_insert_device<buffer_type> > os(buffer);
     try {
-#ifdef TEXT_SERIALIZATION
+/*#ifdef TEXT_SERIALIZATION
         //Text serialization
         archive::text_oarchive oa(os);
-#else
+#else*/
         //Binary serialization
         archive::binary_oarchive oa(os);
-#endif
+//#endif
         oa << *from;
         os.flush();
 
         iostreams::basic_array_source<char> source(&buffer[0],buffer.size());
         iostreams::stream_buffer<iostreams::basic_array_source <char> > is(source);
 
-#ifdef TEXT_SERIALIZATION
+/*#ifdef TEXT_SERIALIZATION
         //Text serialization
         archive::text_iarchive ia(is);
-#else
+#else*/
         //Binary serialization
         archive::binary_iarchive ia(is);
-#endif
+//#endif
         ia >> *to;
         return 0;
     } catch(archive::archive_exception e) {

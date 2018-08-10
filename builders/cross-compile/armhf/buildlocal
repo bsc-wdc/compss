@@ -1,0 +1,246 @@
+#!/bin/bash
+
+#---------------------------------------------------
+# SET SCRIPT VARIABLES
+#---------------------------------------------------
+DEFAULT_INSTALLATION_PATH=/opt/COMPSs
+DEFAULT_ENABLE_CROSS=false
+DEFAULT_ONLY_BINDINGS=false
+
+#if [ -z "$JAVA_HOME" ]; then
+#    DEFAULT_JAVA_HOME=/usr/lib/java-1.8.0-openjdk-amd64
+#else
+#    DEFAULT_JAVA_HOME=$JAVA_HOME
+#fi
+
+clean_env() {
+    export CC=
+    export CXX=
+    export JAVA_HOME=
+    export TARGET_HOST=
+
+    source ~/.bashrc    
+}
+
+show_opts() {
+
+    cat <<EOT
+
+        --prefix=<path>         If used, it defines the installation path of the cross compilation.
+                                Default: ${DEFAULT_INSTALLATION_PATH}
+
+        --native-enable-cross   This option installs the COMPSs for the native architecture and also installs 
+			                    the required libraries in the target architecture format to enable cross-compilation 
+			                    of C/C++ applications.
+
+        --only-bindings         This option installs only the bindings.
+                                Default: ${DEFAULT_ONLY_BINDINGS}
+
+EOT
+
+}
+
+usage() {
+    
+    exitValue=$1
+
+    cat <<EOT
+Usage: $0 [options]
+
+* Options:
+    General:
+
+        --help, -h              Prints this help message
+
+        --opts                  Show available options      
+EOT
+
+    show_opts
+
+    exit "$exitValue"
+
+}
+
+get_args() {
+    while getopts ho-: flag; do
+        case "$flag" in
+            h)
+                usage 0
+                ;;
+            o)
+                echo ""
+                show_opts
+                exit 0
+                ;;
+            -)
+                case "$OPTARG" in
+                    help)
+                        usage 0
+                        ;;
+                    opts)
+                        echo ""
+                        show_opts
+                        exit 0
+                        ;; 
+                    prefix=*)
+                        INSTALLATION_PATH=${OPTARG//prefix=/}
+                        ;;
+		    		native-enable-cross)
+						ENABLE_CROSS=true
+						;;
+                    only-bindings)
+                        ONLY_BINDINGS=true
+                        ;;
+                    *)
+                        echo "ERROR: Bad argument ${OPTARG}."
+                        exit 1
+                        break
+                        ;;
+                esac
+                ;;
+            *)
+                echo "ERROR: Bad flag ${flag}."
+                exit 1
+                break
+                ;;
+        esac
+    done
+
+}
+
+check_args() {
+    
+    if [ -n "$ENABLE_CROSS" ] && [ -n "$ONLY_BINDINGS" ]; then
+        echo "[ ERROR ] Is not possible to enable application cross-compilation while only installing the bindings."
+        exit 1
+    fi
+
+    if [ -z "$INSTALLATION_PATH" ]; then
+        echo "[ INFO ] Using default installation path: ${DEFAULT_INSTALLATION_PATH}."
+        INSTALLATION_PATH=${DEFAULT_INSTALLATION_PATH}
+    fi
+
+    if [ -n "$ENABLE_CROSS" ]; then
+        echo "[ INFO ] A native COMPSs build enabling application cross-compilation will be installed."
+    else
+        ENABLE_CROSS=${DEFAULT_ENABLE_CROSS}
+    fi
+
+    if [ -n "$ONLY_BINDINGS" ]; then
+        echo "[ INFO ] Only the bindings will be installed."
+    else
+        ONLY_BINDINGS=${DEFAULT_ONLY_BINDINGS}
+    fi
+
+}
+
+trap clean_env EXIT
+
+scriptDir=$(cd "$(dirname $0)" | pwd -P)
+
+get_args "$@"
+check_args
+
+# Source all the environment variables needed to cross-compile
+
+source ./environmentrc
+
+# Build COMPSs 
+
+if [ "$ENABLE_CROSS" = true ]; then
+    #First we are going to build a native COMPSs, and then the cross-compiled bindings (+ the native)
+    echo "[ INFO ] Building native COMPSs."
+    echo "PATH: $INSTALLATION_PATH"
+    native_environment 
+    $scriptDir/../../buildlocal --no-tracing --no-autoparallel $INSTALLATION_PATH #Install native COMPSs
+
+    ev=$?
+
+    if [ "$ev" -ne "0" ]; then
+        echo "[ ERROR ] The native COMPSs build failed."
+        exit 1
+    fi
+    
+    targetArch=$($CC -dumpmachine)
+    
+    cd $INSTALLATION_PATH/Bindings/bindings-common/lib
+
+    mkdir $targetArch
+    cd $targetArch
+
+    ln -s ../libbindings_common.so.0.0.0 libbindings_common.so
+    ln -s ../libbindings_common.so.0.0.0 libbindings_common.so.0 # These libs will be as the main libs but also will be in its architecture folder
+
+    cd $INSTALLATION_PATH/Bindings/c/lib
+
+    mkdir $targetArch
+    cd $targetArch
+
+    ln -s ../libcbindings.so.0.0.0 libcbindings.so
+    ln -s ../libcbindings.so.0.0.0 libcbindings.so.0
+
+    echo "[ INFO ] Building target COMPSs bindings."
+
+    tmpDir=$(mktemp -d) 
+    cd $tmpDir
+
+    target_environment
+
+    targetArch=$($CC -dumpmachine)
+
+    mkdir $targetArch
+
+    targetBindings=$tmpDir/$targetArch
+
+    $scriptDir/../../../compss/programming_model/bindings/install_bindings $targetBindings #This installs only the bindings    
+
+    ev=$?
+
+    if [ "$ev" -ne "0" ]; then
+        echo "[ ERROR ] The target bindings build failed."
+        exit 1
+    fi
+
+    cd $INSTALLATION_PATH/Bindings/bindings-common/lib
+
+    mkdir $targetArch
+    cd $targetArch
+
+    cp $targetBindings/Bindings/bindings-common/lib/* .
+
+    cd $INSTALLATION_PATH/Bindings/c/lib
+
+    mkdir $targetArch
+    cd $targetArch
+
+    cp $targetBindings/Bindings/c/lib/* .
+
+    rm -rf $tmpDir #Remove temporal files
+
+elif [ "$ONLY_BINDINGS" = true ]; then
+
+   target_environment
+
+    $scriptDir/../../../compss/programming_model/bindings/install_bindings $INSTALLATION_PATH #This installs only the bindings
+
+else    
+    
+    $scriptDir/../../buildlocal --no-tracing --no-autoparallel --no-bindings $INSTALLATION_PATH #enable tracing and so on? Add them as options?.
+
+    target_environment
+
+    $scriptDir/../../../compss/programming_model/bindings/install_bindings $INSTALLATION_PATH
+
+    cp $scriptDir/../../../compss/programming_model/bindings/c/compss_build_app* $INSTALLATION_PATH/Runtime/scripts/user/
+
+fi
+
+# Check if any error occured
+
+ev=$?
+if [ $ev -ne 0 ]; then
+    echo "ERROR: Could not cross compile COMPSs"
+    exit 1
+fi
+
+exit 0

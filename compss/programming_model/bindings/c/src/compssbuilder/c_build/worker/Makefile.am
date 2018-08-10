@@ -27,7 +27,7 @@ worker_c_SOURCES = worker_c.cc \
      
 worker_c_LDFLAGS =
 
-worker_c_LDADD = -L../../lib -lworker -ldl -L$(LIBJAVAFOLDER) -ljvm -L$(CS_HOME)/../bindings-common/lib -lbindings_common -L$(CS_HOME)/lib -lcbindings -lboost_iostreams -lboost_serialization -lboost_system  
+worker_c_LDADD = -L../../lib -lworker -ldl -L$(LIBJAVAFOLDER) -ljvm -L$(CS_HOME)/../bindings-common/lib/$(TARGET_HOST) -lbindings_common -L$(CS_HOME)/lib/$(TARGET_HOST) -lcbindings -L$(BOOST_LIB) -lboost_iostreams -lboost_serialization -lboost_system  
 
 persistent_worker_c_CPPFLAGS = -I../../src -I../../include -Wno-write-strings -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux/ -I$(CS_HOME)/../bindings-common/include -I$(CS_HOME)/include -Wall
 
@@ -37,7 +37,7 @@ persistent_worker_c_SOURCES = persistent_worker_c.cc \
         
 persistent_worker_c_LDFLAGS = 
 
-persistent_worker_c_LDADD = -L../../lib -lworker -ldl -L$(LIBJAVAFOLDER) -ljvm -L$(CS_HOME)/../bindings-common/lib -lbindings_common -L$(CS_HOME)/lib -lcbindings -lboost_iostreams -lboost_serialization -lboost_system -lpthread 
+persistent_worker_c_LDADD = -L../../lib -lworker -ldl -L$(LIBJAVAFOLDER) -ljvm -L$(CS_HOME)/../bindings-common/lib/$(TARGET_HOST) -lbindings_common -L$(CS_HOME)/lib/$(TARGET_HOST) -lcbindings -L$(BOOST_LIB) -lboost_iostreams -lboost_serialization -lboost_system -lpthread 
 
 nio_worker_c_CPPFLAGS = -I../../src -I../../include -Wno-write-strings -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux/ -I$(CS_HOME)/../bindings-common/include -I$(CS_HOME)/include -Wall
 
@@ -47,7 +47,7 @@ nio_worker_c_SOURCES = nio_worker_c.cc \
         
 nio_worker_c_LDFLAGS = 
 
-nio_worker_c_LDADD = -L../../lib -lworker -ldl -L$(LIBJAVAFOLDER) -ljvm -L$(CS_HOME)/../bindings-common/lib -lbindings_common -L$(CS_HOME)/lib -lcbindings -lboost_iostreams -lboost_serialization -lboost_system -lpthread 
+nio_worker_c_LDADD = -L../../lib -lworker -ldl -L$(LIBJAVAFOLDER) -ljvm -L$(CS_HOME)/../bindings-common/lib/$(TARGET_HOST) -lbindings_common -L$(CS_HOME)/lib/$(TARGET_HOST) -lcbindings -L$(BOOST_LIB) -lboost_iostreams -lboost_serialization -lboost_system -lpthread 
 
 COMPSSGEN_FLAGS = 
 

@@ -58,7 +58,7 @@ set -e
 @ACLOCAL@
 @AUTOMAKE@ -a -c
 @AUTOCONF@
-./configure --with-cs-prefix=$CS_HOME
+./configure --host=$TARGET_HOST --with-cs-prefix=$CS_HOME
 
 EOF
 @CHMOD@ +x autogen.sh

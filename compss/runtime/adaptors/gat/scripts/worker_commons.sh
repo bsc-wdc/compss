@@ -4,6 +4,65 @@
   # HELPER FUNCTIONS
   ##########################
 
+  get_host_parameters () {
+    nodeName=$1
+    installDir=$2
+    appDir=$3
+    libPath=$4
+    if [ "$libPath" != "null" ]; then
+      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$libPath
+    fi
+    workingDir=$5
+    if [ ! -d "$workingDir" ]; then
+      mkdir -p "$workingDir"
+    fi
+    export COMPSS_WORKING_DIR=$workingDir
+    storageConf=$6
+    debug=$7
+    rmfilesNum=$8
+    shift $((8 + rmfilesNum))
+
+    tracing=$1
+    shift 1
+    export EXTRAE_BUFFER_SIZE=100
+    if [ "${tracing}" == "true" ]; then
+      runtimeEventType=$1
+      sandBoxCreationId=$2
+      sandBoxRemovalId=$3
+      taskEventType=$4
+      taskId=$5
+      slot=$6
+      shift 6      
+    fi
+    hostFlags=( "${nodeName}" "${workingDir}" "${debug}" "${installDir}" "${appDir}" "${storageConf}" )
+    invocation=($@)
+  }
+
+  get_invocation_params () {
+    jobId=$1
+    echo "jobId $jobId"
+    taskId=$2
+    echo "taskId $taskId"
+
+    numSlaves=$3
+    echo "numSlaves ${numSlaves}"
+    slaves=(${@:4:${numSlaves}})
+    shift $((3 + numSlaves))
+    cus=$1
+    echo "cus $cus"
+    numParams=$2
+        echo "numParams $numParams"
+    hasTarget=$3
+        echo "hasTarget $hasTarget"
+    numResults=$4
+        echo "numResults $numResults"
+
+    shift 4
+    params=($@)
+    invocationParams=( "${jobId}" "${taskId}" "$numSlaves" ${slaves[@]} "${cus}" "${numParams}" "${hasTarget}" "${numResults}" ${params[@]})
+  }
+
+
   add_to_classpath () {
     local DIRLIBS="${1}/*.jar"
     for i in ${DIRLIBS}; do
@@ -11,6 +70,10 @@
         CLASSPATH=$CLASSPATH:"$i"
       fi
     done
+  }
+
+  compute_generic_sandbox () {
+    sandbox="${workingDir}/sandBox/job_${jobId}/"
   }
 
   get_parameters() {

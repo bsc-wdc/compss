@@ -19,26 +19,26 @@ package es.bsc.compss.gat.worker;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.COMPSsConstants.TaskExecution;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
+import es.bsc.compss.executor.ExecutionManager;
+import es.bsc.compss.executor.types.Execution;
+import es.bsc.compss.executor.types.ExecutionListener;
 import es.bsc.compss.gat.worker.implementations.BinaryDefinition;
 import es.bsc.compss.gat.worker.implementations.DecafDefinition;
 import es.bsc.compss.gat.worker.implementations.MPIDefinition;
 import es.bsc.compss.gat.worker.implementations.JavaMethodDefinition;
 import es.bsc.compss.gat.worker.implementations.OMPSsDefinition;
 import es.bsc.compss.gat.worker.implementations.OpenCLDefinition;
-import es.bsc.compss.invokers.Invoker;
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
+import es.bsc.compss.types.execution.ThreadBinder;
+import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
-import es.bsc.compss.util.Tracer;
-import java.io.File;
-import java.io.IOException;
 import java.io.PrintStream;
+import java.util.concurrent.Semaphore;
 
 import storage.StorageException;
 import storage.StorageItf;
@@ -50,41 +50,141 @@ import storage.StorageItf;
  */
 public class GATWorker implements InvocationContext {
 
+    private static final String EXECUTION_MANAGER_ERR = "Error starting ExecutionManager";
     private static final String WARN_UNSUPPORTED_METHOD_TYPE = "WARNING: Unsupported method type";
     private static final String ERROR_STORAGE_CONF = "ERROR: Cannot load storage configuration file: ";
-    private static final String ERROR_OUTPUT_FILES = "ERROR: One or more OUT files have not been created by task '";
 
     //FLAGS IDX
-    private static final int DEFAULT_FLAGS_SIZE = 5;
-    private static final int WORKING_DIR_IDX = 0;
-    private static final int DEBUG_IDX = 1;
-    private static final int INSTALL_DIR_IDX = 2;
-    private static final int APP_DIR_IDX = 3;
-    private static final int STORAGE_CONF_IDX = 4;
+    private static final int DEFAULT_FLAGS_SIZE = 6;
+    private static final int WORKER_NAME_IDX = 0;
+    private static final int WORKING_DIR_IDX = 1;
+    private static final int DEBUG_IDX = 2;
+    private static final int INSTALL_DIR_IDX = 3;
+    private static final int APP_DIR_IDX = 4;
+    private static final int STORAGE_CONF_IDX = 5;
 
+    private final String hostName;
     private final boolean debug;
     private final String appDir;
     private final String installDir;
     private final String libPath;
     private final String workingDir;
+    private final String storageConf;
 
-    private final ImplementationDefinition implDef;
+    // Internal components
+    private final ExecutionManager executionManager;
 
-    public GATWorker(String[] args) {
+    /**
+     * Executes a method taking into account the parameters. First it parses the parameters assigning values and
+     * deserializing Read/creating empty ones for Write. Invokes the desired method by reflection. and serializes all
+     * the objects that has been modified and the result.
+     *
+     * @param args
+     * @throws java.lang.Exception
+     */
+    public static void main(String args[]) throws Exception {
+        for (int i = 0; i < args.length; i++) {
+            System.out.println("JAVA ARGMENT [" + i + "]=" + args[i]);
+        }
+        System.out.println("workerName = args[" + WORKER_NAME_IDX + "] = " + args[WORKER_NAME_IDX]);
+        System.out.println("workingDir = args[" + WORKING_DIR_IDX + "] = " + args[WORKING_DIR_IDX]);
+        System.out.println("Debug = args[" + DEBUG_IDX + "] = " + args[DEBUG_IDX]);
+        System.out.println("Installation Dir = args[" + INSTALL_DIR_IDX + "] = " + args[INSTALL_DIR_IDX]);
+        System.out.println("Application Dir = args[" + APP_DIR_IDX + "] = " + args[APP_DIR_IDX]);
+        System.out.println("Storage Conf = args[" + STORAGE_CONF_IDX + "] = " + args[STORAGE_CONF_IDX]);
 
-        workingDir = args[WORKING_DIR_IDX];
-        debug = Boolean.valueOf(args[DEBUG_IDX]);
-        installDir = args[INSTALL_DIR_IDX];
-        appDir = args[APP_DIR_IDX];
-        libPath = "";
+        String workerName = args[WORKER_NAME_IDX];
+        String workingDir = args[WORKING_DIR_IDX];
+        boolean debug = Boolean.valueOf(args[DEBUG_IDX]);
+        //Prepares the Loggers according to the worker debug parameter
         GATLog.init(debug);
+
+        String installDir = args[INSTALL_DIR_IDX];
+        String appDir = args[APP_DIR_IDX];
+        String libPath = "";
+
+        //Configures storage API, if necessary
+        String storageConf = args[STORAGE_CONF_IDX];
+        // Check if we must enable the storage
+        System.setProperty(COMPSsConstants.STORAGE_CONF, storageConf);
+        if (storageConf != null && !storageConf.equals("") && !storageConf.equals("null")) {
+            try {
+                StorageItf.init(storageConf);
+            } catch (StorageException e) {
+                ErrorManager.fatal(ERROR_STORAGE_CONF + storageConf, e);
+            }
+        }
+
         // Retrieve arguments
-        implDef = parseArguments(args);
+        ImplementationDefinition implDef = parseArguments(args);
+
+        GATWorker worker = new GATWorker(workerName, workingDir, debug, installDir, appDir, storageConf, libPath, implDef.getComputingUnits());
+        if (!worker.runTask(implDef)) {
+            System.exit(7);
+        }
+    }
+
+    public GATWorker(String workerName, String workingDir, boolean debug, String installDir, String appDir, String storageConf, String libPath, int computingUnitsCPU) {
+        this.hostName = workerName;
+        this.debug = debug;
+        this.appDir = appDir;
+        this.installDir = installDir;
+        this.libPath = libPath;
+        this.workingDir = workingDir;
+        this.storageConf = storageConf;
+
+        // Prepare execution Manager
+        this.executionManager = new ExecutionManager(this,
+                computingUnitsCPU, ThreadBinder.BINDER_DISABLED,
+                0, ThreadBinder.BINDER_DISABLED,
+                0, ThreadBinder.BINDER_DISABLED,
+                1
+        );
+
+        try {
+            this.executionManager.init();
+        } catch (InitializationException ie) {
+            ErrorManager.error(EXECUTION_MANAGER_ERR, ie);
+        }
+    }
+
+    /**
+     * Parses the all the arguments except the application parameters
+     *
+     * @param args args for the execution: arg[0]: boolean enable debug arg[1]: String with Storage configuration
+     * arg[2]: Number of nodes for multi-node tasks (N) arg[3,N]: N strings with multi-node hostnames arg[3+N+1]: Number
+     * of computing units arg[3+N+2]: Method type (M=3+N+2) arg[M,M - M+1]: Method dependant parameters Others
+     *
+     */
+    private static ImplementationDefinition parseArguments(String args[]) {
+        // Default flags
+        int argPosition = DEFAULT_FLAGS_SIZE;
+        boolean debug = Boolean.valueOf(args[DEBUG_IDX]);
+        System.out.println("Method Type = args[" + argPosition + "]=" + args[argPosition]);
+        MethodType methodType = MethodType.valueOf(args[argPosition++]);
+        switch (methodType) {
+            case METHOD:
+                return new JavaMethodDefinition(debug, args, argPosition);
+            case MPI:
+                return new MPIDefinition(debug, args, argPosition);
+            case DECAF:
+                return new DecafDefinition(debug, args, argPosition);
+            case OMPSS:
+                return new OMPSsDefinition(debug, args, argPosition);
+            case OPENCL:
+                return new OpenCLDefinition(debug, args, argPosition);
+            case BINARY:
+                return new BinaryDefinition(debug, args, argPosition);
+            default:
+                ErrorManager.error(WARN_UNSUPPORTED_METHOD_TYPE + methodType);
+                return null;
+
+        }
     }
 
     @Override
     public String getHostName() {
-        return "localhost";
+        return hostName;
     }
 
     @Override
@@ -123,228 +223,7 @@ public class GATWorker implements InvocationContext {
     }
 
     @Override
-    public void loadParam(InvocationParam param) {
-    }
-
-    public Object getObject(String renaming) {
-        Object o = null;
-        try {
-            o = Serializer.deserialize(renaming);
-        } catch (IOException | ClassNotFoundException e) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Error deserializing object parameter with renaming ").append(renaming);
-            sb.append(", at");
-            sb.append(implDef.toCommandString());
-            ErrorManager.error(sb.toString());
-        }
-
-        // Check retrieved object
-        if (o == null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Object with renaming ").append(renaming);
-            sb.append(", at");
-            sb.append(implDef.toCommandString());
-            sb.append("is null!");
-            ErrorManager.error(sb.toString());
-        }
-        return o;
-    }
-
-    public Object getPersistentObject(String renaming) throws StorageException {
-        String id = null;
-
-        try {
-            id = (String) Serializer.deserialize(renaming);
-        } catch (IOException | ClassNotFoundException e) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Error deserializing PSCO id for parameter with renaming ").append(renaming);
-            sb.append(", at");
-            sb.append(implDef.toCommandString());
-            ErrorManager.error(sb.toString());
-            return null;
-        }
-
-        // Check retrieved id
-        if (id == null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("PSCO Id with renaming ").append(renaming);
-            sb.append(", at");
-            sb.append(implDef.toCommandString());
-            sb.append("is null!");
-            ErrorManager.error(sb.toString());
-            return null;
-        }
-
-        Object obj = null;
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.Event.STORAGE_GETBYID.getType());
-        }
-        try {
-            obj = StorageItf.getByID(id);
-        } catch (StorageException e) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Cannot getByID with PSCOId ").append(id);
-            sb.append(", at");
-            sb.append(implDef.toCommandString());
-            ErrorManager.error(sb.toString());
-            return null;
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETBYID.getType());
-            }
-        }
-
-        // Check retrieved object
-        if (obj == null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("PSCO with id ").append(id);
-            sb.append(", at");
-            sb.append(implDef.toCommandString());
-            sb.append("is null!");
-            ErrorManager.error(sb.toString());
-            return obj;
-        }
-
-        return obj;
-    }
-
-    @Override
-    public void storeParam(InvocationParam param) {
-        switch (param.getType()) {
-            case OBJECT_T:
-                storeObject(param.getDataMgmtId(), param.getValue());
-                break;
-            case PSCO_T:
-                //Already stored on persistent storage
-                break;
-        }
-    }
-
-    public void storeObject(String renaming, Object value) {
-        try {
-            Serializer.serialize(value, renaming);
-            File f = new File(renaming);
-            System.out.println(f.getCanonicalPath());
-        } catch (Exception e) {
-            StringBuilder errMsg = new StringBuilder();
-            errMsg.append("Error serializing object with renaming ").append(renaming);
-            errMsg.append(", at ");
-            errMsg.append(implDef.toCommandString());
-            ErrorManager.warn(errMsg.toString());
-        }
-    }
-
-    public void runTask() throws JobExecutionException {
-        System.out.println("[JAVA EXECUTOR] executeTask - Begin task execution");
-        try {
-            Invoker invoker = implDef.getInvoker(this, new File(workingDir));
-            invoker.processTask();
-        } catch (JobExecutionException jee) {
-            System.out.println("[JAVA EXECUTOR] executeTask - Error in task execution");
-            System.err.println("[JAVA EXECUTOR] executeTask - Error in task execution");
-            jee.printStackTrace();
-            throw jee;
-        } finally {
-            System.out.println("[JAVA EXECUTOR] executeTask - End task execution");
-        }
-
-        // Post task execution
-        checkOutputFiles();
-
-        // We don't stop the storage because the master does it
-    }
-
-    /**
-     * Parses the all the arguments except the application parameters
-     *
-     * @param args args for the execution: arg[0]: boolean enable debug arg[1]: String with Storage configuration
-     * arg[2]: Number of nodes for multi-node tasks (N) arg[3,N]: N strings with multi-node hostnames arg[3+N+1]: Number
-     * of computing units arg[3+N+2]: Method type (M=3+N+2) arg[M,M - M+1]: Method dependant parameters Others
-     *
-     */
-    private ImplementationDefinition parseArguments(String args[]) {
-        // Default flags
-        int argPosition = DEFAULT_FLAGS_SIZE;
-        MethodType methodType = MethodType.valueOf(args[argPosition++]);
-        switch (methodType) {
-            case METHOD:
-                return new JavaMethodDefinition(debug, args, argPosition);
-            case MPI:
-                return new MPIDefinition(debug, args, argPosition);
-            case DECAF:
-                return new DecafDefinition(debug, args, argPosition);
-            case OMPSS:
-                return new OMPSsDefinition(debug, args, argPosition);
-            case OPENCL:
-                return new OpenCLDefinition(debug, args, argPosition);
-            case BINARY:
-                return new BinaryDefinition(debug, args, argPosition);
-            default:
-                ErrorManager.error(WARN_UNSUPPORTED_METHOD_TYPE + methodType);
-                return null;
-
-        }
-    }
-
-    /**
-     * Checks that all the output files have been generated
-     *
-     */
-    private void checkOutputFiles() {
-        // Check if all the output files have been actually created (in case user has forgotten)
-        // No need to distinguish between IN or OUT files, because IN files will
-        // exist, and if there's one or more missing, they will be necessarily out.
-        boolean allOutFilesCreated = true;
-        for (InvocationParam param : implDef.getParams()) {
-            if (param.getType() == DataType.FILE_T) {
-                String filepath = (String) param.getValue();
-                File f = new File(filepath);
-                if (!f.exists()) {
-                    StringBuilder errMsg = new StringBuilder();
-                    errMsg.append("ERROR: File with path '").append(param.getValue()).append("' has not been generated by task '");
-                    errMsg.append(implDef.toCommandString());
-                    ErrorManager.warn(errMsg.toString());
-                    allOutFilesCreated = false;
-                }
-            }
-        }
-
-        if (!allOutFilesCreated) {
-            StringBuilder errMsg = new StringBuilder();
-            errMsg.append(ERROR_OUTPUT_FILES);
-            errMsg.append(implDef.toCommandString());
-            errMsg.append("'");
-            ErrorManager.error(errMsg.toString());
-        }
-    }
-
-    /**
-     * Executes a method taking into account the parameters. First it parses the parameters assigning values and
-     * deserializing Read/creating empty ones for Write. Invokes the desired method by reflection. and serializes all
-     * the objects that has been modified and the result.
-     *
-     * @param args
-     * @throws java.lang.Exception
-     */
-    public static void main(String args[]) throws Exception {
-        String storageConf = args[STORAGE_CONF_IDX];
-
-        // Check if we must enable the storage
-        System.setProperty(COMPSsConstants.STORAGE_CONF, storageConf);
-        if (storageConf != null && !storageConf.equals("") && !storageConf.equals("null")) {
-            try {
-                StorageItf.init(storageConf);
-            } catch (StorageException e) {
-                ErrorManager.fatal(ERROR_STORAGE_CONF + storageConf, e);
-            }
-        }
-
-        GATWorker worker = new GATWorker(args);
-        worker.runTask();
-    }
-
-    @Override
-    public COMPSsConstants.TaskExecution getExecutionType() {
+    public TaskExecution getExecutionType() {
         return TaskExecution.COMPSS;
     }
 
@@ -354,28 +233,108 @@ public class GATWorker implements InvocationContext {
     }
 
     @Override
+    public LanguageParams getLanguageParams(Lang language) {
+        //Only Java methods are executed on this worker. No additional parameters required
+        return null;
+    }
+
+    @Override
     public void registerOutputs(String outputsBasename) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        //Do nothing. It uses the stdout and stderr
     }
 
     @Override
     public void unregisterOutputs() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public LanguageParams getLanguageParams(Lang lang) {
-        return new LanguageParams() {
-        };
+        //Do nothing.
     }
 
     @Override
     public String getStandardStreamsPath(Invocation invocation) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return null;
     }
 
     @Override
     public String getStorageConf() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return this.storageConf;
     }
+
+    @Override
+    public void loadParam(InvocationParam np) throws Exception {
+        System.out.println("->>>>>>>>>>>>>>>>>>>>>>>> LOADING PARAMETER : " + np.getType() + " -> ");
+        switch (np.getType()) {
+            case OBJECT_T:
+                String fileLocation = (String) np.getValue();
+                np.setOriginalName(fileLocation);
+                np.setValue(Serializer.deserialize(fileLocation));
+                break;
+            case PSCO_T: // fetch stage already set the value on the param, but we make sure to collect the last version
+                String pscoId = (String) np.getValue();
+                StorageItf.getByID(pscoId);
+                break;
+            case FILE_T: // value already contains the path
+            case BINDING_OBJECT_T: // value corresponds to the ID of the object on the binding (already set)
+            case EXTERNAL_PSCO_T: // value corresponds to the ID of the 
+                break;
+            default:
+            //Nothing to do since basic type parameters require no action
+        }
+    }
+
+    @Override
+    public void storeParam(InvocationParam np) throws Exception {
+        System.out.println("->>>>>>>>>>>>>>>>>>>>>>>> STORING PARAMETER : " + np.getType() + " -> ");
+        switch (np.getType()) {
+            case OBJECT_T:
+                System.out.println("storing OBJECT ");
+                String fileLocation = np.getOriginalName();
+                System.out.println("Serializing "+np.getValue()+" onto "+fileLocation);
+                Serializer.serialize(np.getValue(), fileLocation);
+                break;
+            case PSCO_T: // fetch stage already set the value on the param, but we make sure to collect the last version
+                throw new UnsupportedOperationException("Output PSCOs are not suported with the GAT adaptor");
+            case FILE_T: // value already contains the path
+            case BINDING_OBJECT_T: // value corresponds to the ID of the object on the binding (already set)
+            case EXTERNAL_PSCO_T: // value corresponds to the ID of the 
+                break;
+            default:
+            //Nothing to do since basic type parameters require no action
+        }
+    }
+
+    private boolean runTask(ImplementationDefinition task) {
+        final Semaphore sem = new Semaphore(0);
+        class ExecutionEnd {
+
+            boolean success;
+
+            public ExecutionEnd() {
+            }
+
+            public void setSuccess(boolean success) {
+                this.success = success;
+            }
+
+            public boolean getSuccess() {
+                return this.success;
+            }
+        }
+        final ExecutionEnd status = new ExecutionEnd();
+        // Execute the job
+        Execution e = new Execution(task, new ExecutionListener() {
+            @Override
+            public void notifyEnd(Invocation invocation, boolean success) {
+                status.setSuccess(success);
+                sem.release();
+            }
+        });
+        executionManager.enqueue(e);
+        try {
+            sem.acquire();
+        } catch (InterruptedException ex) {
+
+        }
+        executionManager.stop();
+        return status.getSuccess();
+    }
+
 }

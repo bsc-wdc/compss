@@ -17,27 +17,25 @@
 package es.bsc.compss.gat.worker.implementations;
 
 import es.bsc.compss.COMPSsConstants.Lang;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.gat.worker.ImplementationDefinition;
-import es.bsc.compss.invokers.Invoker;
-import es.bsc.compss.invokers.binary.MPIInvoker;
-import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.MPIImplementation;
-import java.io.File;
 
 
 public class MPIDefinition extends ImplementationDefinition {
 
     private final String mpiRunner;
     private final String mpiBinary;
+    private final String workingDir;
 
     public MPIDefinition(boolean debug, String[] args, int execArgsIdx) {
-        super(debug, args, execArgsIdx + 2);
+        super(debug, args, execArgsIdx + 3);
         this.mpiRunner = args[execArgsIdx++];
         this.mpiBinary = args[execArgsIdx++];
-
+        this.workingDir = args[execArgsIdx++];
+        boolean isSpecific = !(workingDir == null || workingDir.isEmpty() || workingDir.equals(Constants.UNASSIGNED));
     }
 
     @Override
@@ -68,8 +66,4 @@ public class MPIDefinition extends ImplementationDefinition {
                 + "]";
     }
 
-    @Override
-    public Invoker getInvoker(InvocationContext context, File sandBoxDir) throws JobExecutionException {
-        return new MPIInvoker(context, this, sandBoxDir, null);
-    }
 }

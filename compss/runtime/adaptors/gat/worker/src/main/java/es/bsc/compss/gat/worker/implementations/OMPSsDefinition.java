@@ -17,16 +17,11 @@
 package es.bsc.compss.gat.worker.implementations;
 
 import es.bsc.compss.COMPSsConstants.Lang;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.gat.worker.ImplementationDefinition;
-import es.bsc.compss.invokers.Invoker;
-import es.bsc.compss.invokers.binary.OmpSsInvoker;
-import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.OmpSsImplementation;
 import es.bsc.compss.util.ErrorManager;
-import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -107,10 +102,5 @@ public class OMPSsDefinition extends ImplementationDefinition {
         return "["
                 + "BINARY=" + binary
                 + "]";
-    }
-
-    @Override
-    public Invoker getInvoker(InvocationContext context, File sandBoxDir) throws JobExecutionException {
-        return new OmpSsInvoker(context, this, sandBoxDir, null);
     }
 }

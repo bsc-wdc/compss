@@ -59,6 +59,6 @@ public interface InvocationContext {
 
     public void loadParam(InvocationParam np) throws Exception;
 
-    public void storeParam(InvocationParam np);
+    public void storeParam(InvocationParam np) throws Exception;
 
 }

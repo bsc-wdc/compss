@@ -17,15 +17,10 @@
 package es.bsc.compss.gat.worker.implementations;
 
 import es.bsc.compss.COMPSsConstants.Lang;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.gat.worker.ImplementationDefinition;
-import es.bsc.compss.invokers.binary.DecafInvoker;
-import es.bsc.compss.invokers.Invoker;
-import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.DecafImplementation;
-import java.io.File;
 
 
 public class DecafDefinition extends ImplementationDefinition {
@@ -71,11 +66,6 @@ public class DecafDefinition extends ImplementationDefinition {
                 + "DF LIB=" + dfLib
                 + "MPI RUNNER=" + mpiRunner
                 + "]";
-    }
-
-    @Override
-    public Invoker getInvoker(InvocationContext context, File sandBoxDir) throws JobExecutionException {
-        return new DecafInvoker(context, this, sandBoxDir, null);
     }
 
 }

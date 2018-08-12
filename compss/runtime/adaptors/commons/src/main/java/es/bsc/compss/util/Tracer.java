@@ -138,8 +138,10 @@ public abstract class Tracer {
         TD_SHUTDOWN(51, RUNTIME_EVENTS, "Task Dispatcher: Shutdown"), 
         UPDATE_CEI_LOCAL(52, RUNTIME_EVENTS, "Task Dispatcher: Update CEI local"), 
         WORKER_UPDATE_REQUEST(53, RUNTIME_EVENTS, "Task Dispatcher: Worker update request"),
-        
+                
         // Task Events
+        CREATING_TASK_SANDBOX(54, RUNTIME_EVENTS, "Worker: Creating task sandbox"),
+        REMOVING_TASK_SANDBOX(55, RUNTIME_EVENTS, "Worker: Removing task sandbox"),
         TASK_EXECUTION_PYTHON(1, INSIDE_TASKS_TYPE, "Task execution"),
         USER_CODE_PYTHON1(2, INSIDE_TASKS_TYPE, "User code execution 1"),
         USER_CODE_PYTHON2(3, INSIDE_TASKS_TYPE, "User code execution 2"),

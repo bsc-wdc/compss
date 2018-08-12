@@ -16,13 +16,10 @@
  */
 package es.bsc.compss.gat.worker;
 
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
-import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Stream;
 import es.bsc.compss.types.execution.Invocation;
-import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamURI;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
@@ -33,7 +30,6 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.util.ErrorManager;
 
-import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -58,21 +54,25 @@ public abstract class ImplementationDefinition implements Invocation {
     private final int cus;
 
     private final boolean hasTarget;
-    private final boolean hasReturn;
 
-    private final int numParams;
-    private final LinkedList<Param> params;
+    private final LinkedList<Param> arguments = new LinkedList<>();
+    private final Param target;
+    private final LinkedList<Param> results = new LinkedList<>();
 
     public ImplementationDefinition(boolean enableDebug, String args[], int appArgsIdx) {
-        jobId = 0;
-        taskId = 0;
+        System.out.println("jobId = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
+        jobId = Integer.parseInt(args[appArgsIdx++]);
+        System.out.println("task = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
+        taskId = Integer.parseInt(args[appArgsIdx++]);
         history = JobHistory.NEW;
 
         this.debug = enableDebug;
 
+        System.out.println("numNodes = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
         int numNodes = Integer.parseInt(args[appArgsIdx++]);
         hostnames = new ArrayList<>();
         for (int i = 0; i < numNodes; ++i) {
+            System.out.println("node " + i + " = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
             String nodeName = args[appArgsIdx++];
             if (nodeName.endsWith("-ib0")) {
                 nodeName = nodeName.substring(0, nodeName.lastIndexOf("-ib0"));
@@ -86,30 +86,156 @@ public abstract class ImplementationDefinition implements Invocation {
             ErrorManager.warn("Cannot obtain hostname. Loading default value " + hostname);
         }
         hostnames.add(hostname);
+        System.out.println("Computing Units = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
         cus = Integer.parseInt(args[appArgsIdx++]);
 
+        System.out.println("Number Arguments = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
+        int numParams = Integer.parseInt(args[appArgsIdx++]);
         // Get if has target or not
+        System.out.println("Has Target = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
         hasTarget = Boolean.parseBoolean(args[appArgsIdx++]);
 
-        // Get return type if specified
-        String returnType = args[appArgsIdx++];
-        if (returnType == null || returnType.equals("null") || returnType.isEmpty()) {
-            hasReturn = false;
-        } else {
-            hasReturn = true;
-        }
+        System.out.println("Number Returns = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
         int numReturns = Integer.parseInt(args[appArgsIdx++]);
 
-        numParams = Integer.parseInt(args[appArgsIdx++]);
         LinkedList<Param> paramsTmp;
         try {
-            paramsTmp = parseArguments(args, appArgsIdx);
+            paramsTmp = parseArguments(args, appArgsIdx, numParams, numReturns);
         } catch (Exception e) {
             ErrorManager.error(e.getMessage());
             paramsTmp = new LinkedList<>();
         }
-        params = paramsTmp;
 
+        Iterator<Param> paramsItr = paramsTmp.descendingIterator();
+        for (int i = 0; i < numReturns; i++) {
+            results.addFirst(paramsItr.next());
+        }
+        if (hasTarget) {
+            target = paramsItr.next();
+        } else {
+            target = null;
+        }
+        while (paramsItr.hasNext()) {
+            arguments.addFirst(paramsItr.next());
+        }
+    }
+
+    private LinkedList<Param> parseArguments(String[] args, int appArgsIdx, int numParams, int numReturns) throws Exception {
+        System.out.println("Parameters: ");
+        LinkedList<Param> paramsList = new LinkedList<>();
+        DataType[] dataTypesEnum = DataType.values();
+        Stream[] dataStream = Stream.values();
+
+        int totalParams = numParams + numReturns + (hasTarget ? 1 : 0);
+        for (int paramIdx = 0; paramIdx < totalParams; paramIdx++) {
+            System.out.println("\t - Parameter " + paramIdx);
+            DataType argType;
+
+            Stream stream;
+            String prefix;
+
+            //Object and primitiveTypes
+            Object value = null;
+            //File
+            String originalName = "NO_NAME";
+            boolean writeFinal = false;
+            System.out.println("\t\tType = args[" + appArgsIdx + "]=" + args[appArgsIdx] + " = " + dataTypesEnum[Integer.parseInt(args[appArgsIdx])]);
+            int argTypeIdx = Integer.parseInt(args[appArgsIdx++]);
+            if (argTypeIdx >= dataTypesEnum.length) {
+                ErrorManager.error(WARN_UNSUPPORTED_DATA_TYPE + argTypeIdx);
+            }
+            argType = dataTypesEnum[argTypeIdx];
+
+            System.out.println("\t\tStream = args[" + appArgsIdx + "]=" + args[appArgsIdx] + " = " + dataStream[Integer.parseInt(args[appArgsIdx])]);
+            int argStreamIdx = Integer.parseInt(args[appArgsIdx++]);
+            if (argStreamIdx >= dataStream.length) {
+                ErrorManager.error(WARN_UNSUPPORTED_STREAM + argStreamIdx);
+            }
+            stream = dataStream[argStreamIdx];
+
+            System.out.println("\t\tPrefix = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
+            prefix = args[appArgsIdx++];
+            if (prefix == null || prefix.isEmpty()) {
+                prefix = Constants.PREFIX_EMTPY;
+            }
+            switch (argType) {
+                case FILE_T:
+                    System.out.println("\t\tOriginal Name = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
+                    originalName = args[appArgsIdx++];
+                    System.out.println("\t\tLocation = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
+                    value = args[appArgsIdx++];
+                    break;
+                case OBJECT_T:
+                case BINDING_OBJECT_T:
+                case PSCO_T:
+                    System.out.println("\t\tValue = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
+                    String fileLocation = (String) args[appArgsIdx++];
+                    value = fileLocation;
+                    originalName = fileLocation;
+                    System.out.println("\t\tWrite Final = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
+                    writeFinal = ((String) args[appArgsIdx++]).equals("W");
+                    break;
+                case EXTERNAL_PSCO_T:
+                    System.out.println("\t\tValue = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
+                    value = args[appArgsIdx++];
+                    break;
+                case BOOLEAN_T:
+                    System.out.println("\t\tValue = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
+                    value = Boolean.valueOf(args[appArgsIdx++]);
+                    break;
+                case CHAR_T:
+                    System.out.println("\t\tValue = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
+                    value = args[appArgsIdx++].charAt(0);
+                    break;
+                case STRING_T:
+                    System.out.println("\t\tNum substrings = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
+                    int numSubStrings = Integer.parseInt(args[appArgsIdx++]);
+                    String aux = "";
+                    for (int j = 0; j < numSubStrings; j++) {
+                        if (j != 0) {
+                            aux += " ";
+                        }
+                        System.out.println("\t\t\t args[" + appArgsIdx + "]=" + args[appArgsIdx]);
+                        aux += args[appArgsIdx++];
+                    }
+                    value = aux;
+                    break;
+                case BYTE_T:
+                    System.out.println("\t\tValue = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
+                    value = new Byte(args[appArgsIdx++]);
+                    break;
+                case SHORT_T:
+                    System.out.println("\t\tValue = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
+                    value = new Short(args[appArgsIdx++]);
+                    break;
+                case INT_T:
+                    System.out.println("\t\tValue = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
+                    value = new Integer(args[appArgsIdx++]);
+                    break;
+                case LONG_T:
+                    System.out.println("\t\tValue = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
+                    value = new Long(args[appArgsIdx++]);
+                    break;
+                case FLOAT_T:
+                    System.out.println("\t\tValue = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
+                    value = new Float(args[appArgsIdx++]);
+                    break;
+                case DOUBLE_T:
+                    System.out.println("\t\tValue = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
+                    value = new Double(args[appArgsIdx++]);
+                    break;
+                default:
+                    throw new Exception(WARN_UNSUPPORTED_DATA_TYPE + argType);
+            }
+
+            Param p = new Param(argType, prefix, stream, originalName, writeFinal);
+            if (value != null) {
+                p.setValue(value);
+            }
+            paramsList.add(p);
+        }
+
+        return paramsList;
     }
 
     @Override
@@ -125,39 +251,36 @@ public abstract class ImplementationDefinition implements Invocation {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Has Target: ").append(hasTarget).append("\n");
-        sb.append("Has Return: ").append(hasReturn).append("\n");
-        sb.append("Parameters  (").append(numParams).append(")\n");
+        sb.append("Parameters  (").append(arguments.size()).append(")\n");
 
-        Iterator<Param> paramsIter = params.iterator();
-        int paramId = 0;
-        for (; paramId < (hasTarget ? numParams - 1 : numParams); paramId++) {
-            Param p = paramsIter.next();
-            sb.append(" * Parameter ").append(paramId).append("\n");
+        int idx = 0;
+        for (Param p : arguments) {
+            sb.append(" * Arguments ").append(idx).append("\n");
             sb.append("     - Type ").append(p.type).append("\n");
             sb.append("     - Prefix ").append(p.prefix).append("\n");
             sb.append("     - Stream ").append(p.stream).append("\n");
             sb.append("     - Original name ").append(p.originalName).append("\n");
             sb.append("     - Value ").append(p.value).append("\n");
             sb.append("     - Write final value ").append(p.writeFinalValue).append("\n");
+            idx++;
         }
         if (hasTarget) {
-            Param p = paramsIter.next();
             sb.append(" * Target Object\n");
-            sb.append("     - Type ").append(p.type).append("\n");
-            sb.append("     - Prefix ").append(p.prefix).append("\n");
-            sb.append("     - Stream ").append(p.stream).append("\n");
-            sb.append("     - Original name ").append(p.originalName).append("\n");
-            sb.append("     - Value ").append(p.value).append("\n");
-            sb.append("     - Write final value ").append(p.writeFinalValue).append("\n");
+            sb.append("     - Type ").append(target.type).append("\n");
+            sb.append("     - Prefix ").append(target.prefix).append("\n");
+            sb.append("     - Stream ").append(target.stream).append("\n");
+            sb.append("     - Original name ").append(target.originalName).append("\n");
+            sb.append("     - Value ").append(target.value).append("\n");
+            sb.append("     - Write final value ").append(target.writeFinalValue).append("\n");
         }
-
-        if (hasReturn) {
-            Param p = paramsIter.next();
-            sb.append(" * Return\n");
+        idx = 0;
+        sb.append("Returns  (").append(arguments.size()).append(")\n");
+        for (Param p : results) {
+            sb.append(" * Return ").append(idx).append("\n");
             sb.append("     - Original name ").append(p.originalName).append("\n");
             sb.append("     - Value ").append(p.value).append("\n");
             sb.append("     - Write final value ").append(p.writeFinalValue).append("\n");
+            idx++;
         }
         return sb.toString();
     }
@@ -190,131 +313,28 @@ public abstract class ImplementationDefinition implements Invocation {
 
     public abstract String toLogString();
 
-    public abstract Invoker getInvoker(InvocationContext context, File sandBoxDir) throws JobExecutionException;
-
-    private LinkedList<Param> parseArguments(String[] args, int appArgsIdx) throws Exception {
-        // Check received arguments
-        if (args.length < 2 * numParams + appArgsIdx) {
-            ErrorManager.error(ERROR_APP_PARAMETERS);
-        }
-
-        LinkedList<Param> paramsList = new LinkedList<>();
-        DataType[] dataTypesEnum = DataType.values();
-        Stream[] dataStream = Stream.values();
-
-        for (int paramIdx = 0; paramIdx < numParams; paramIdx++) {
-            DataType argType;
-
-            Stream stream;
-            String prefix;
-
-            //Object and primitiveTypes
-            Object value = null;
-            //File
-            String originalName = "NO_NAME";
-            boolean writeFinal = false;
-
-            int argTypeIdx = Integer.parseInt(args[appArgsIdx++]);
-            if (argTypeIdx >= dataTypesEnum.length) {
-                ErrorManager.error(WARN_UNSUPPORTED_DATA_TYPE + argTypeIdx);
-            }
-            argType = dataTypesEnum[argTypeIdx];
-
-            int argStreamIdx = Integer.parseInt(args[appArgsIdx++]);
-            if (argStreamIdx >= dataStream.length) {
-                ErrorManager.error(WARN_UNSUPPORTED_STREAM + argStreamIdx);
-            }
-            stream = dataStream[argStreamIdx];
-
-            prefix = args[appArgsIdx++];
-            if (prefix == null || prefix.isEmpty()) {
-                prefix = Constants.PREFIX_EMTPY;
-            }
-            switch (argType) {
-                case FILE_T:
-                    originalName = args[appArgsIdx++];
-                    value = originalName;
-                    break;
-                case OBJECT_T:
-                case BINDING_OBJECT_T:
-                case PSCO_T:
-                    value = (String) args[appArgsIdx++];
-                    writeFinal = ((String) args[appArgsIdx++]).equals("W");
-                    break;
-                case EXTERNAL_PSCO_T:
-                    value = args[appArgsIdx++];
-                    break;
-                case BOOLEAN_T:
-                    value = Boolean.valueOf(args[appArgsIdx++]);
-                    break;
-                case CHAR_T:
-                    value = args[appArgsIdx++].charAt(0);
-                    break;
-                case STRING_T:
-                    int numSubStrings = Integer.parseInt(args[appArgsIdx++]);
-                    String aux = "";
-                    for (int j = 0; j < numSubStrings; j++) {
-                        if (j != 0) {
-                            aux += " ";
-                        }
-                        aux += args[appArgsIdx++];
-                    }
-                    value = aux;
-                    break;
-                case BYTE_T:
-                    value = new Byte(args[appArgsIdx++]);
-                    break;
-                case SHORT_T:
-                    value = new Short(args[appArgsIdx++]);
-                    break;
-                case INT_T:
-                    value = new Integer(args[appArgsIdx++]);
-                    break;
-                case LONG_T:
-                    value = new Long(args[appArgsIdx++]);
-                    break;
-                case FLOAT_T:
-                    value = new Float(args[appArgsIdx++]);
-                    break;
-                case DOUBLE_T:
-                    value = new Double(args[appArgsIdx++]);
-                    break;
-                default:
-                    throw new Exception(WARN_UNSUPPORTED_DATA_TYPE + argType);
-            }
-
-            Param p = new Param(argType, prefix, stream, originalName, writeFinal);
-            if (value != null) {
-                p.setValue(value);
-            }
-            paramsList.add(p);
-        }
-        if (hasReturn) {
-            Param returnParam = new Param(DataType.OBJECT_T, "", Stream.UNSPECIFIED, "NO_NAME", true);
-            returnParam.setValue(args[appArgsIdx + 3]);
-            paramsList.add(returnParam);
-        }
-        return paramsList;
-    }
-
     @Override
-    public List<InvocationParam> getParams() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public List<? extends InvocationParam> getParams() {
+        return arguments;
     }
 
     @Override
     public InvocationParam getTarget() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return target;
     }
 
     @Override
-    public List<InvocationParam> getResults() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public List<? extends InvocationParam> getResults() {
+        return results;
     }
 
     @Override
     public List<String> getSlaveNodesNames() {
         return this.hostnames;
+    }
+
+    public int getComputingUnits() {
+        return cus;
     }
 
     @Override
@@ -327,10 +347,11 @@ public abstract class ImplementationDefinition implements Invocation {
 
         private DataType type;
         private Object value;
+        private Class<?> valueClass;
 
         private final String prefix;
         private final Stream stream;
-        private final String originalName;
+        private String originalName;
         private final boolean writeFinalValue;
 
         public Param(DataType type, String prefix, Stream stream, String originalName, boolean writeFinalValue) {
@@ -372,6 +393,11 @@ public abstract class ImplementationDefinition implements Invocation {
         }
 
         @Override
+        public void setOriginalName(String originalName) {
+            this.originalName = originalName;
+        }
+
+        @Override
         public String getOriginalName() {
             return this.originalName;
         }
@@ -387,33 +413,31 @@ public abstract class ImplementationDefinition implements Invocation {
         }
 
         @Override
-        public void setValueClass(Class<?> aClass) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        public void setValueClass(Class<?> valClass) {
+            this.valueClass = valClass;
         }
 
         @Override
         public Class<?> getValueClass() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            return this.valueClass;
         }
 
         @Override
         public String getDataMgmtId() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public void setOriginalName(String originalName) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            //Unrelevant information
+            return null;
         }
 
         @Override
         public String getSourceDataId() {
+            //Unrelevant information
             return null;
         }
 
         @Override
         public List<InvocationParamURI> getSources() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            //File is not available to be fetch from anywhere
+            return null;
         }
     }
 }

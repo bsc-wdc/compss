@@ -23,6 +23,21 @@
   source "${SCRIPT_DIR}"/worker_commons.sh
 
   # Pre-execution
+  pythonpath=$3
+  pythonInterpreter=$4
+  pythonVersion=$5
+  pythonVirtualEnvironment=$6
+  pythonPropagateVirtualEnvironment=$7
+  if [ "${debug}" == "true" ]; then
+    echo "[WORKER_COMMONS.SH] - classpath                          = $cp"
+    echo "[WORKER_COMMONS.SH] - pythonpath                         = $pythonpath"
+    echo "[WORKER_COMMONS.SH] - pythonInterpreter                  = $pythonInterpreter"
+    echo "[WORKER_COMMONS.SH] - pythonVersion                      = $pythonVersion"
+    echo "[WORKER_COMMONS.SH] - pythonVirtualEnvironment           = $pythonVirtualEnvironment"
+    echo "[WORKER_COMMONS.SH] - pythonPropagateVirtualEnvironment  = $pythonPropagateVirtualEnvironment"
+  fi
+  shift 7
+
   get_parameters "$@"
   if [ "$pythonVirtualEnvironment" != "null" ] && [ "$pythonPropagateVirtualEnvironment" == "true" ]; then
     activate_virtual_environment

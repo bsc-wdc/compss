@@ -36,7 +36,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-
 public abstract class Invoker {
 
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_INVOKER);
@@ -44,8 +43,6 @@ public abstract class Invoker {
     protected static final String ERROR_METHOD_DEFINITION = "Incorrect method definition for task of type ";
     protected static final String ERROR_TASK_EXECUTION = "ERROR: Exception executing task (user code)";
     protected static final String ERROR_UNKNOWN_TYPE = "ERROR: Unrecognised type";
-
-
 
     protected static final String OMP_NUM_THREADS = "OMP_NUM_THREADS";
 
@@ -174,9 +171,9 @@ public abstract class Invoker {
                     if (obj != null) {
                         np.setValueClass(obj.getClass());
                     }
-                break;
-            default:
-                throw new JobExecutionException(ERROR_UNKNOWN_TYPE + np.getType());
+                    break;
+                default:
+                    throw new JobExecutionException(ERROR_UNKNOWN_TYPE + np.getType());
             }
         } catch (Exception e) {
             throw new JobExecutionException(e.getMessage(), e);
@@ -186,8 +183,11 @@ public abstract class Invoker {
     public void processTask() throws JobExecutionException {
         /* Invoke the requested method ****************************** */
         invoke();
-
-        storeFinalValues();
+        try {
+            storeFinalValues();
+        } catch (Exception e) {
+            throw new JobExecutionException("Error storing a task result", e);
+        }
     }
 
     public void serializeBinaryExitValue(InvocationParam returnParam, Object exitValue) throws JobExecutionException {
@@ -214,7 +214,7 @@ public abstract class Invoker {
         }
     }
 
-    private void storeFinalValues() {
+    private void storeFinalValues() throws Exception {
         // Check all parameters and target
         for (InvocationParam np : this.invocation.getParams()) {
             storeValue(np);
@@ -227,7 +227,7 @@ public abstract class Invoker {
         }
     }
 
-    private void storeValue(InvocationParam np) {
+    private void storeValue(InvocationParam np) throws Exception {
         if (np.isWriteFinalValue()) {
             //Has already been stored
             this.context.storeParam(np);
@@ -246,11 +246,10 @@ public abstract class Invoker {
     }
 
     private void emitStartTask() {
-        int coreId = this.invocation.getMethodImplementation().getCoreId() + 1; // +1 Because Invocation ID can't be 0 (0 signals end task)
-        int taskId = this.invocation.getTaskId();
-
         // TRACING: Emit start task
         if (Tracer.isActivated()) {
+            int coreId = this.invocation.getMethodImplementation().getCoreId() + 1; // +1 Because Invocation ID can't be 0 (0 signals end task)
+            int taskId = this.invocation.getTaskId();
             Tracer.emitEventAndCounters(coreId, Tracer.getTaskEventsType());
             Tracer.emitEvent(taskId, Tracer.getTaskSchedulingType());
         }

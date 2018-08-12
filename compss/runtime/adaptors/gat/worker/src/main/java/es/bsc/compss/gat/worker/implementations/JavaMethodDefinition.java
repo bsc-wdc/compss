@@ -17,15 +17,10 @@
 package es.bsc.compss.gat.worker.implementations;
 
 import es.bsc.compss.COMPSsConstants.Lang;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.gat.worker.ImplementationDefinition;
-import es.bsc.compss.invokers.Invoker;
-import es.bsc.compss.invokers.JavaInvoker;
-import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.MethodImplementation;
-import java.io.File;
 
 
 public class JavaMethodDefinition extends ImplementationDefinition {
@@ -34,9 +29,11 @@ public class JavaMethodDefinition extends ImplementationDefinition {
     private final String methodName;
 
     public JavaMethodDefinition(boolean debug, String[] args, int execArgsIdx) {
-        super(debug,args, execArgsIdx + 2);
-        this.className = args[execArgsIdx];
-        this.methodName = args[execArgsIdx + 1];
+        super(debug, args, execArgsIdx + 2);
+        System.out.println("Class Name = args[" + execArgsIdx + "]=" + args[execArgsIdx]);
+        this.className = args[execArgsIdx++];
+        System.out.println("Method Name = args[" + execArgsIdx + "]=" + args[execArgsIdx]);
+        this.methodName = args[execArgsIdx];
     }
 
     @Override
@@ -65,11 +62,6 @@ public class JavaMethodDefinition extends ImplementationDefinition {
                 + "DECLARING CLASS=" + className
                 + ", METHOD NAME=" + methodName
                 + "]";
-    }
-
-    @Override
-    public Invoker getInvoker(InvocationContext context, File sandBoxDir) throws JobExecutionException {
-        return new JavaInvoker(context, this, sandBoxDir, null);
     }
 
     @Override

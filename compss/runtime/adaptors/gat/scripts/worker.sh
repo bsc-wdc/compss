@@ -1,5 +1,5 @@
 #!/bin/bash
-
+echo $0 $*
   #-------------------------------------
   # Define script variables and exports
   #-------------------------------------
@@ -9,6 +9,137 @@
   else
     scriptDir="${COMPSS_HOME}/Runtime/scripts/system/adaptors/gat"
   fi
+
+  # shellcheck source=./worker_commons.sh
+  source "${scriptDir}"/worker_commons.sh
+ 
+  #-------------------------------------
+  # Remove obsolete files
+  #-------------------------------------
+  rmfilesNum=$8
+  obsoletes=${@:9:${rmfilesNum}}
+
+  if [ ${rmfilesNum} -gt 0 ]; then
+    echo "[WORKER.SH] Removing $rmfilesNum obsolete files"
+    rm ${obsoletes}
+  fi
+
+  #-------------------------------------
+  # Determine Language-dependent script
+  #-------------------------------------
+  get_host_parameters "$@"
+  echo "HOSTFLAGS NODENAME = ${hostFlags[0]}"
+
+
+  echo "[WORKER.SH] Starting GAT Worker"
+  if [ "${debug}" == "true" ]; then
+    echo "[WORKER.SH]         - Node name                          = ${nodeName}"
+    echo "[WORKER.SH]         - Installation Directory             = ${installDir}"
+    echo "[WORKER.SH]         - Application path                   = ${appDir}"
+    echo "[WORKER.SH]         - LibPath                            = ${libPath}"
+    echo "[WORKER.SH]         - Working Directory                  = ${workingDir}"
+    echo "[WORKER.SH]         - Storage Configuration              = ${storageConf}"
+    if [ "${tracing}" == "true" ]; then
+      echo "[WORKER.SH]         - Tracing                            = enabled" 
+    else
+      echo "[WORKER.SH]         - Tracing                            = disabled" 
+    fi
+  fi
+
+  implType=${invocation[0]}
+  if [ "${implType}" == "METHOD" ]; then
+    lang=${invocation[1]}
+  else
+    echo "[WORKER.SH] Non-native task detected. Switching to JAVA invoker."
+    lang="java"
+  fi
+
+  #-------------------------------------
+  # Determine Language-dependent script
+  #-------------------------------------
+  cd "$workingDir" || exit 1
+  echo "[WORKER.SH] Starting language $lang script"
+  "${scriptDir}"/worker_$lang.sh "$@"
+  endCode=$?
+  echo " "
+  echo "[WORKER.SH] EndStatus = $endCode"
+  cd "$workingDir" || exit 1
+
+exit
+
+
+
+
+  #-------------------------------------
+  # Task Information
+  #-------------------------------------
+  jobId=$1
+  taskId=$2
+  isSpecific=$3
+  shift 3
+  if [ "${isSpecific}" == "true" ]; then
+    sandboxDir=$1
+    shift 1
+  fi
+
+  
+
+  implType=$1
+  if [ "${implType}" == "METHOD" ]; then
+    lang=$2
+  else
+    echo "[WORKER.SH] Non-native task detected. Switching to JAVA invoker."
+    lang="java"
+  fi
+
+  export COMPSS_APP_DIR=$appDir
+  cd "$workingDir" || exit 1
+  # Run the task with the language-dependent script
+  echo " "
+  echo "[WORKER.SH] Starting language $lang dependant script"
+  "${scriptDir}"/worker_$lang.sh "$@"
+  endCode=$?
+  echo " "
+  echo "[WORKER.SH] EndStatus = $endCode"
+  cd "$workingDir" || exit 1
+
+
+ls -la $workingDir
+
+  #-------------------------------------
+  # Exit
+  #-------------------------------------
+  if [ $endCode -eq 0 ]; then
+    exit 0
+  else
+    echo 1>&2 "Task execution failed"
+    exit 7
+  fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   #-------------------------------------
   # Get script parameters
   #-------------------------------------
@@ -29,9 +160,9 @@
   cd "$workingDir" || exit 1
 
   echo "[WORKER.SH] Starting GAT Worker"
-  echo "[WORKER.SH]    - Lang       = $lang"
-  echo "[WORKER.SH]    - WorkingDir = $workingDir"
-  echo "[WORKER.SH]    - LibPath    = $libPath"
+  echo "[WORKER.SH]    - Lang              = $lang"
+  echo "[WORKER.SH]    - WorkingDir        = $workingDir"
+  echo "[WORKER.SH]    - LibPath           = $libPath"
 
   #-------------------------------------
   # Remove obsolete files
@@ -43,9 +174,43 @@
     shift 1
   done
 
+
+  #-------------------------------------
+  # Get tracing Setup
+  #-------------------------------------
+  tracing=$1
+  nodeName=$2
+  shift 2
+  export EXTRAE_BUFFER_SIZE=100
+  echo "[WORKER.SH]    - Tracing           = $tracing"
+  echo "[WORKER.SH]    - Tracing node name = $nodeName"
+  if [ "$tracing" == "true" ]; then
+    runtimeEventType=$1
+    sandBoxCreationId=$2
+    sandBoxRemovalId=$3
+    taskEventType=$4
+    taskId=$5
+    slot=$6
+    shift 6
+  fi
+
+  #-------------------------------------
+  # Set lib path
+  #-------------------------------------
+  if [ "$libPath" != "null" ]; then
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$libPath
+  fi
+
+
   #-------------------------------------
   # Managing Symlinks for files
   #-------------------------------------
+
+  # Trace sandbox creation start event if needed
+  if [ "$tracing" == "true" ]; then
+    "${scriptDir}"/../../trace.sh start "$workingDir" "$runtimeEventType" "$sandBoxCreationId" "$slot"
+  fi
+
   isSpecific=$1
   sandbox=$2
   shift 2
@@ -90,31 +255,14 @@
     done
   fi
 
-  #-------------------------------------
-  # Get tracing status
-  #-------------------------------------
-  tracing=$1
-  nodeName=$2
-  shift 2
-
-  #-------------------------------------
-  # Set lib path
-  #-------------------------------------
-  if [ "$libPath" != "null" ]; then
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$libPath
-  fi
-
-  #-------------------------------------
-  # Trace start event if needed
-  #-------------------------------------
-  export EXTRAE_BUFFER_SIZE=100
+  # Trace sandbox creation end event if needed
   if [ "$tracing" == "true" ]; then
-    eventType=$1
-    taskId=$2
-    slot=$3
-    shift 3
-    "${scriptDir}"/../../trace.sh start "$workingDir" "$eventType" "$taskId" "$slot"
+    "${scriptDir}"/../../trace.sh end "$workingDir" "$runtimeEventType" "$slot"
   fi
+
+
+
+
 
   #-------------------------------------
   # Move to app dir and execute
@@ -123,32 +271,33 @@
   export COMPSS_APP_DIR=$appDir
 
   # Add support for non-native tasks
-  methodType=${13}
-  if [ "$methodType" != "METHOD" ]; then
+  implType=${13}
+  if [ "$implType" != "METHOD" ]; then
     echo "[WORKER.SH] Non-native task detected. Switching to JAVA invoker."
     lang=java
   fi
 
-  cd "$sandbox" || exit 1
-  # Run the task with the language-dependent script
-  echo " "
-  echo "[WORKER.SH] Starting language $lang dependant script"
-  "${scriptDir}"/worker_$lang.sh "$@"
-  endCode=$?
-  echo " "
-  echo "[WORKER.SH] EndStatus = $endCode"
-  cd "$workingDir" || exit 1
-
-  #-------------------------------------
-  # Trace end event if needed
-  #-------------------------------------
+  # Trace task start event if needed
   if [ "$tracing" == "true" ]; then
-    "${scriptDir}"/../../trace.sh end "$workingDir" "$eventType" "$slot"
+    "${scriptDir}"/../../trace.sh start "$workingDir" "$taskEventType" "$taskId" "$slot"
+  fi
+
+
+
+
+  # Trace task end event if needed
+  if [ "$tracing" == "true" ]; then
+    "${scriptDir}"/../../trace.sh end "$workingDir" "$taskEventType" "$slot"
   fi
 
   #-------------------------------------
   # Undo symlinks and rename files
   #-------------------------------------
+  # Trace sanbox removal start event if needed
+  if [ "$tracing" == "true" ]; then
+    "${scriptDir}"/../../trace.sh start "$workingDir" "$taskEventType" "$taskId" "$slot"
+  fi
+
   if [ "$symlinkfilesNum" -ne 0 ]; then
     removeOrMove=0
     renamedFile=""
@@ -190,12 +339,8 @@
     rm -rf "$sandbox"
   fi
 
-  #-------------------------------------
-  # Exit
-  #-------------------------------------
-  if [ $endCode -eq 0 ]; then
-    exit 0
-  else
-    echo 1>&2 "Task execution failed"
-    exit 7
+  # Trace sandbox removal end event if needed
+  if [ "$tracing" == "true" ]; then
+    "${scriptDir}"/../../trace.sh end "$workingDir" "$runtimeEventType" "$slot"
   fi
+

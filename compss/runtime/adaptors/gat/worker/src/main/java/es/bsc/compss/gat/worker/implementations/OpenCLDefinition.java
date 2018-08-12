@@ -17,15 +17,10 @@
 package es.bsc.compss.gat.worker.implementations;
 
 import es.bsc.compss.COMPSsConstants.Lang;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.gat.worker.ImplementationDefinition;
-import es.bsc.compss.invokers.Invoker;
-import es.bsc.compss.invokers.OpenCLInvoker;
-import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.OpenCLImplementation;
-import java.io.File;
 
 
 public class OpenCLDefinition extends ImplementationDefinition {
@@ -64,8 +59,4 @@ public class OpenCLDefinition extends ImplementationDefinition {
                 + "]";
     }
 
-    @Override
-    public Invoker getInvoker(InvocationContext context, File sandBoxDir) throws JobExecutionException {
-        return new OpenCLInvoker(context, this, sandBoxDir, null);
-    }
 }

@@ -694,7 +694,7 @@ static void generate_remove_func(FILE *outFile, Types current_types) {
         fprintf(outFile, "\t\t\t\t\t free(cp.pointer);\n");
         fprintf(outFile, "\t\t\t\t } else {\n");
         fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Deleting object\" << endl;\n");
-        fprintf(outFile, "\t\t\t\t\t delete(cp.pointer);\n");
+        fprintf(outFile, "\t\t\t\t\t delete((%s*) cp.pointer);\n", dataType);
         fprintf(outFile, "\t\t\t\t }\n");// end if cp.elements
         fprintf(outFile, "\t\t\t\t if(is_debug()){\n"); //Open if debug
         fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Object has been removed.\" << endl;\n");

@@ -17,6 +17,11 @@ show_opts() {
                                             Default: Disabled
     --opencl                                Enables worker compilation with openCL compilation flags
                                             Default: Disabled
+  Autotools and Makefile options:
+
+    --goals=goal_1,goal_2,...,goal_N        Instead of using the goal all it uses the goals provided in the given order.
+                                            Default: all
+
   Specific compiler and linker flags:
     --CXX=<C++ compiler>                    Defines an specific C++ compiler (cross_compiling)
                                             Default: $CXX
@@ -151,6 +156,9 @@ get_args() {
           opencl)
             opencl_enabled=1
             ;;
+          goals=*)
+            goals=${OPTARG//goals=/}
+            ;;
           CC=*)
 	    defined_cc=${OPTARG//CC=/}
             ;;
@@ -219,6 +227,17 @@ get_args() {
   fi
 }
 
+get_goals() {
+    
+    local toProcess
+
+    # This function uses awk to get the first element of a string until the first comma separator
+    toProcess=$1
+
+    processed=$(echo $toProcess | awk -F, '{split($0, array,",")} END{ for (i in array) { print array [i] }}')
+
+}
+
 check_args() {
     #Check whether you are going to compile both master and worker or one of them
 
@@ -231,13 +250,18 @@ check_args() {
 
     fi                                                                                                                                    
 
-    if [ -z "$ompss_enabled" ] && [ "$cuda_enabled" -eq "1" ]; then
+    if [ -z "$ompss_enabled" ] && [ -n "$cuda_enabled" ] && [ $cuda_enabled -eq 1 ]; then
 
         echo " "
         echo "Warning: Is not possible to use the --cuda option while not using the --ompss one, removing --cuda..."
         cuda_enabled="" 
     
     fi 
+
+    if [ -n "$goals" ]; then
+        get_goals $goals
+        goals=$processed
+    fi
 
 }
 
@@ -298,7 +322,7 @@ export COMPSSGEN=$CS_HOME/bin/compss_generator
 if [ -d "./src" ]; then
   (
   cd ./src || exit 1
-  make)
+  make $goals)
   ev=$?
   if [ $ev -ne 0 ]; then 
     echo " "

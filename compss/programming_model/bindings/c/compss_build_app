@@ -219,11 +219,34 @@ get_args() {
   fi
 }
 
+check_args() {
+    #Check whether you are going to compile both master and worker or one of them
+
+    if [ "$ONLY_MASTER" = true ] && [ "$ONLY_WORKER" = true ]; then
+
+        echo " "
+        echo "Error: Is not possible to specify both options --only-master and --only-worker, to compile both remove these arguments."
+        
+        exit 1
+
+    fi                                                                                                                                    
+
+    if [ -z "$ompss_enabled" ] && [ "$cuda_enabled" -eq "1" ]; then
+
+        echo " "
+        echo "Warning: Is not possible to use the --cuda option while not using the --ompss one, removing --cuda..."
+        cuda_enabled="" 
+    
+    fi 
+
+}
+
 ONLY_MASTER=false
 ONLY_WORKER=false
 debug=0
 instrument=0
 get_args "$@"
+check_args
 
 echo "*---------------------------------------------------------------------*"
 echo "*                                                                     *"
@@ -320,15 +343,6 @@ fi
 
 if [ ! -z "${defined_libs}" ]; then
    export LIBS="${defined_libs}"
-fi
-
-if [ "$ONLY_MASTER" = true ] && [ "$ONLY_WORKER" = true ]; then
-
-	echo " "
-	echo "Error: Is not possible to specify both options --only-master and --only-worker, to compile both remove these arguments."
-	
-	exit 1
-
 fi
 
 if [ "$ONLY_WORKER" = false ]; then

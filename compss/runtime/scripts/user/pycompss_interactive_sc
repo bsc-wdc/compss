@@ -3,12 +3,13 @@
 #---------------------------------------------------
 # SCRIPT CONSTANTS DECLARATION
 #---------------------------------------------------
-DEFAULT_WALLTIME="1"        # 1 minute
+DEFAULT_EXEC_TIME="1"        # 1 minute
 DEFAULT_JOB_NAME="Jupyter"
-DEFAULT_AMOUNT_NODES=2
+DEFAULT_NUM_NODES=2
 DEFAULT_USER_NAME=""
 DEFAULT_SUPERCOMPUTER="mn1.bsc.es"
 DEFAULT_BROWSER="firefox"
+DEFAULT_QOS=""
 
 
 #---------------------------------------------------
@@ -53,18 +54,20 @@ Usage: $0 [Options]
     --version, -v                           Print COMPSs version
 
   Submission configuration:
-    --walltime=<int>                        Session duration (minutes)
-                                            Default: ${DEFAULT_WALLTIME}
+    --exec_time=<int>                        Session duration (minutes)
+                                            Default: ${DEFAULT_EXEC_TIME}
     --job_name=<string>                     Job name
                                             Default: ${DEFAULT_JOB_NAME}
-    --nodes=<int>                           Amount of nodes to use
-                                            Default: ${DEFAULT_AMOUNT_NODES}
+    --num_nodes=<int>                           Amount of num_nodes to use
+                                            Default: ${DEFAULT_NUM_NODES}
     --user_name=<string>                    User name to login into the supercomputer (mandatory)
                                             Default: ${DEFAULT_USER_NAME}
     --supercomputer=<string>                Supercomputer to connect
                                             Default: ${DEFAULT_SUPERCOMPUTER}
     --browser=<string>                      Web browser
                                             Default: ${DEFAULT_BROWSER}
+    --qos=<string>                          Quality of Service.
+                                            Default: ""
 EOT
 
   exit "$exitValue"
@@ -129,14 +132,14 @@ get_args() {
             # Display COMPSs version
             display_version 0
             ;;
-          walltime=*)
-            walltime=${OPTARG//walltime=/}
+          exec_time=*)
+            exec_time=${OPTARG//exec_time=/}
             ;;
           job_name=*)
             job_name=${OPTARG//job_name=/}
             ;;
-          nodes=*)
-            nodes=${OPTARG//nodes=/}
+          num_nodes=*)
+            num_nodes=${OPTARG//num_nodes=/}
             ;;
           user_name=*)
             user_name=${OPTARG//user_name=/}
@@ -146,6 +149,9 @@ get_args() {
             ;;
           browser=*)
             browser=${OPTARG//browser=/}
+            ;;
+          qos=*)
+            qos=${OPTARG//qos=/}
             ;;
           *)
 	        # Flag didn't match any pattern.
@@ -164,23 +170,23 @@ get_args() {
 ###############################################
 check_args() {
 
-  # Check walltime argument
-  if [ -z "${walltime}" ]; then
-    walltime=${DEFAULT_WALLTIME}
+  # Check exec_time argument
+  if [ -z "${exec_time}" ]; then
+    exec_time=${DEFAULT_EXEC_TIME}
   fi
-  # Convert walltime in minutes to hh:mm:ss format
-  ((hour=$walltime/60))
-  ((min=$walltime-$hour*60))
-  walltime=$(printf "%02d:%02d:00" $hour $min)
+  # Convert exec_time in minutes to hh:mm:ss format
+  # ((hour=$exec_time/60))
+  # ((min=$exec_time-$hour*60))
+  # exec_time=$(printf "%02d:%02d:00" $hour $min)
 
   # Check job name argument
   if [ -z "${job_name}" ]; then
     job_name=${DEFAULT_JOB_NAME}
   fi
 
-  # Check nodes argument
-  if [ -z "${nodes}" ]; then
-    nodes=${DEFAULT_AMOUNT_NODES}
+  # Check num_nodes argument
+  if [ -z "${num_nodes}" ]; then
+    num_nodes=${DEFAULT_NUM_NODES}
   fi
 
   # Check user name argument
@@ -199,6 +205,10 @@ check_args() {
     browser=${DEFAULT_BROWSER}
   fi
 
+  # Check browser argument
+  if [ -z "${qos}" ]; then
+    qos=${DEFAULT_QOS}
+  fi
 }
 
 
@@ -218,8 +228,8 @@ check_args() {
   REMOTE_SCRIPT_DIR=${SCRIPTS_DIR}/../system/jupyter
 
   # Submit command and get connection info
-  echo "Submitting jupyter job..."
-  connection_info=$(ssh ${user_name}@${supercomputer} "${REMOTE_SCRIPT_DIR}/submit_jupyter_job.sh ${walltime} ${job_name} ${nodes}" 2>&1)
+  echo "Submitting jupyter job and waiting for it to start..."
+  connection_info=$(ssh ${user_name}@${supercomputer} "${REMOTE_SCRIPT_DIR}/submit_jupyter_job.sh ${job_name} ${exec_time} ${num_nodes} ${qos}" 2>&1)
 
   # Parse connection info
   echo "Getting connection information..."

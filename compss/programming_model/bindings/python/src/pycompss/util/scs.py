@@ -34,12 +34,78 @@ def get_reservation_nodes():
     return nodes
 
 
-def generate_xmls(compss_home, nodes):
+def get_master_node():
+    """
+    Get the master node.
+    TIP: The environment variable COMPSS_MASTER_NODE is defined in launch_compss script.
+    :return: Master node
+    """
+    return os.environ['COMPSS_MASTER_NODE']
+
+
+def get_master_port():
+    """
+    Get the master port.
+    TIP: The environment variable COMPSS_MASTER_PORT is defined in launch_compss script.
+    :return: Master port
+    """
+    return os.environ['COMPSS_MASTER_PORT']
+
+
+def get_worker_nodes():
+    """
+    Get the worker nodes.
+    TIP: The environment variable COMPSS_WORKER_NODES is defined in launch_compss script.
+    :return: List of worker nodes
+    """
+    return os.environ['COMPSS_WORKER_NODES']
+
+
+def get_xmls():
+    """
+    Get the project and resources from the environment variable exported from the submit_jupyter_job.sh
+    :return: the project and resources paths
+    """
+    project = os.environ['COMPSS_PROJECT_XML']
+    resources = os.environ['COMPSS_RESOURCES_XML']
+    return project, resources
+
+
+def get_uuid():
+    """
+    Get UUID.
+    TIP: The environment variable COMPSS_UUID is defined in launch_compss script.
+    :return: UUID
+    """
+    return os.environ['COMPSS_UUID']
+
+
+def get_base_log_dir():
+    """
+    Get base log dir.
+    TIP: The environment variable COMPSS_BASE_LOG_DIR is defined in launch_compss script.
+    :return: Base log dir
+    """
+    return os.environ['COMPSS_BASE_LOG_DIR']
+
+
+def get_specific_log_dir():
+    """
+    Get specific log dir.
+    TIP: The environment variable COMPSS_SPECIFIC_LOG_DIR is defined in launch_compss script.
+    :return: Specific log dir
+    """
+    return os.environ['COMPSS_SPECIFIC_LOG_DIR']
+
+
+def generate_xmls(compss_home, nodes, master_port):
     """
     Generate project and resources xmls.
     This function should be used only within supercomputers
+    WARNING: The configuration assumes that the first node is the master and the rest are workers.
     :param compss_home: COMPSs home path
     :param nodes: List of nodes
+    :param master_port: Master port
     :return: Project.xml and resources.xml paths
     """
     # Create command for calling compss_xmls_generator
@@ -48,12 +114,14 @@ def generate_xmls(compss_home, nodes):
     command = [xml_generator]
     command += ['--sc_cfg=mn']  # Currently only supported in MN4
     command += ['--master_node=' + nodes[0]]
+    command += ['--master_port=' + master_port]
     if len(nodes) > 1:
         command += ['--worker_nodes=' + ' '.join(nodes[1:])]
     command += ['--lang=python']
+    # command += ['--worker_working_dir=gpfs']
     # Using default configuration for the rest of the parameters
     xml_generator_raw_output = subprocess.check_output(command).splitlines()
-    # Find project and resouces files
+    # Find project and resource files
     project_xml = None
     resources_xml = None
     for l in xml_generator_raw_output:

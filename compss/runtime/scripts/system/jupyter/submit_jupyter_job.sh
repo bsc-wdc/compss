@@ -1,33 +1,26 @@
 #!/bin/bash
 
-walltime=$1
-job_name=$2
-nodes=$3
-
-###############################################
-#         Build the submission script         #
-###############################################
-
-submission_script=$(cat <<EOT
---time=${walltime}
---job-name=${job_name}
---output=JupyterNotebook_%j.out
---error=JupyterNotebook_%j.err
---nodes=${nodes}
---exclusive
---qos=debug
-
-jupyter notebook --no-browser --ip=127.0.0.1 --port=8888
-EOT
-)
-
+job_name=$1   # not supported yet
+exec_time=$2  # walltime in minutes
+num_nodes=$3  # number of nodes
+qos=$4        # quality of service
 
 ###############################################
 #       Submit the jupyter notebook job       #
 ###############################################
 
-job_id=$(sbatch --parsable ${submission_script})
+result=$(enqueue_compss --exec_time=${exec_time} --num_nodes=${num_nodes} --qos=${qos} --lang=python --jupyter_notebook)
+submit_line=$(echo "$result" | grep "Submitted")
+job_id=(${submit_line//Submitted batch job/ })
 echo "JobId: $job_id"
+
+# Get the project and resources xmls path and export them as environment variables to be used from PyCOMPSs binding
+#project_line=$(echo "$result" | grep "Project.xml")
+#resource_line=$(echo "$result" | grep "Resources.xml")
+#project=(${project_line//Project.xml:/ })
+#resources=(${project_line//Resources.xml:/ })
+#export COMPSS_PROJECT_XML="${project}"
+#export COMPSS_RESOURCES_XML="${resources}"
 
 
 ###############################################

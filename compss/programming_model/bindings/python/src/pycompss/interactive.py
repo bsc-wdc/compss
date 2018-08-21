@@ -36,8 +36,12 @@ from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.binding import pending_to_synchronize
 from pycompss.runtime.launch import initialize_compss
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
-from pycompss.util.scs import get_reservation_nodes
-from pycompss.util.scs import generate_xmls
+from pycompss.util.scs import get_master_node
+from pycompss.util.scs import get_master_port
+from pycompss.util.scs import get_xmls
+from pycompss.util.scs import get_uuid
+from pycompss.util.scs import get_base_log_dir
+from pycompss.util.scs import get_specific_log_dir
 from pycompss.util.logs import init_logging
 
 # Warning! The name should start with 'InteractiveMode' due to @task checks
@@ -197,10 +201,23 @@ def start(log_level='off',
     ##############################################################
 
     if RUNNING_IN_SUPERCOMPUTER:
-        # Check the nodes names from the environment variables provided by the queuing system
-        nodes = get_reservation_nodes()
-        # Build project and resources xml if within a Supercomputer
-        project_xml, resources_xml = generate_xmls(compss_home, nodes)
+        # Since the deployment in supercomputers is done through the use of enqueue_compss
+        # and consequently launch_compss - the project and resources xmls are already created
+        project_xml, resources_xml = get_xmls()
+        # It also exported some environment variables that we need here
+        master_name = get_master_node()
+        master_port = get_master_port()
+        uuid = get_uuid()
+        base_log_dir = get_base_log_dir()
+        specific_log_dir = get_specific_log_dir()
+        if verbose:
+            print("- Overridden project xml with: " + project_xml)
+            print("- Overridden resources xml with: " + resources_xml)
+            print("- Overridden master name with: " + master_name)
+            print("- Overridden master port with: " + master_port)
+            print("- Overridden uuid with: " + uuid)
+            print("- Overridden base log dir with: " + base_log_dir)
+            print("- Overridden specific log dir with: " + specific_log_dir)
 
     # Build a dictionary with all variables needed for initializing the runtime
     config = dict()

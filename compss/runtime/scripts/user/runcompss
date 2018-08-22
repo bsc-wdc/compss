@@ -251,19 +251,19 @@ show_flower() {
 
 Daisy (Bellis perennis) - Flower
 
-Bellis perennis is a common European species of daisy, of the 
+Bellis perennis is a common European species of daisy, of the
 Asteraceae family, often considered the archetypal species of
 that name. Many related plants also share the name "daisy", so
 to distinguish this species from other daisies it is sometimes
-qualified as common daisy, lawn daisy or English daisy. 
+qualified as common daisy, lawn daisy or English daisy.
 
 It is a herbaceous perennial plant with short creeping rhizomes
 and rosettes of small rounded or spoon-shaped leaves that are
 from 3/4 to 2 inches (approx. 2–5 cm) long and grow flat to the
-ground. The flowerheads are composite, in the form of a 
-pseudanthium, consisting of many sessile flowers about 3/4 to 
+ground. The flowerheads are composite, in the form of a
+pseudanthium, consisting of many sessile flowers about 3/4 to
 1-1/4 in (approx. 2–3 cm) in diameter, with white ray florets
-(often tipped red) and yellow disc florets. Each inflorescence 
+(often tipped red) and yellow disc florets. Each inflorescence
 is borne on single leafless stems 3/4 - 4 in (approx. 2–10 cm),
 rarely 6 in (approx. 15 cm) tall. The capitulum, or disc of
 florets, is surrounded by two rows of green bracts known
@@ -284,7 +284,7 @@ Margarita (Daisy) - Cocktail
   20 ml Triple Sec
   15 ml Lime Juice
 
-  Pour all ingredients into shaker with ice. Shake well 
+  Pour all ingredients into shaker with ice. Shake well
   and strain into cocktail glass rimmed with salt.
 
 EOF
@@ -785,7 +785,7 @@ check_args() {
   else
     itlog4j_file="COMPSsMaster-log4j.${log_level}"
   fi
-  if [ "${log_level}" == "${LOG_LEVEL_DEBUG}" ]; then 
+  if [ "${log_level}" == "${LOG_LEVEL_DEBUG}" ]; then
     export COMPSS_BINDINGS_DEBUG=1
   fi
 
@@ -975,6 +975,8 @@ execute_runtime() {
 generate_jvm_opts_file() {
   jvm_options_file=$(mktemp -p /tmp) || display_error "${TMP_FILE_JVM_ERROR}"
 
+  # PLEASE: Any new parameter added here may be also added into interactive.py config dict.
+
   cat >> "${jvm_options_file}" << EOT
 ${jvm_master_opts}
 ${jvm_debugger_opts}
@@ -1049,6 +1051,8 @@ EOT
 }
 
 add_jvm_opts_python() {
+  # PLEASE: Any new parameter added here may be also added into interactive.py config dict.
+
   cat >> "${jvm_options_file}" << EOT
 -Djava.class.path=${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar
 -Djava.library.path=${LD_LIBRARY_PATH}
@@ -1110,11 +1114,11 @@ exec_c() {
   echo "COMPSS_HOME: $COMPSS_HOME"
   echo "Args: $application_args"
   echo " "
-   
+
   if [ $tracing -gt 0 ]; then
     export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
   fi
-  
+
   $fullAppPath ${application_args}
   endCode=$?
   if [ $tracing -gt 0 ]; then
@@ -1167,7 +1171,7 @@ exec_python() {
   if [ $tracing -gt 0 ]; then
     export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
   fi
-  
+
   $python_interpreter ${py_flags} "$PYCOMPSS_HOME"/pycompss/runtime/launch.py $log_level $PyObject_serialize $storageConf "$fullAppPath" ${application_args}
   endCode=$?
   if [ $tracing -gt 0 ]; then

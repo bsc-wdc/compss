@@ -54,11 +54,11 @@ class Task(object):
         not passed to the constructor!
         """
 
-        from pycompss.util.location import i_am_within_scope
+        from pycompss.util.location import launched_with_pycompss
 
         # Check if under the PyCOMPSs scope
-        if i_am_within_scope():
-            from pycompss.util.location import i_am_at_master
+        if launched_with_pycompss():
+            from pycompss.util.location import at_master
             from pycompss.api.parameter import is_parameter, get_new_parameter
 
             self.scope = True
@@ -123,7 +123,7 @@ class Task(object):
 
         # Imports
         from pycompss.util.interactive_helpers import update_tasks_code_file
-        from pycompss.util.location import i_am_at_master
+        from pycompss.util.location import at_master
 
         if __debug__:
             logger.debug("Call in @task decorator...")
@@ -243,7 +243,7 @@ class Task(object):
             self.module_name = _get_module_name(path, file_name)
 
         # The registration needs to be done only in the master node
-        if i_am_at_master():
+        if at_master():
             self.__register_task(f)
 
         # Modified variables until now that will be used later:
@@ -295,7 +295,7 @@ class Task(object):
             # Update self.parameters and self.returns with the appropriate Parameter objects.
             self.__build_parameters_and_return_dicts(f, args, kwargs)
 
-            if not i_am_at_master() and not is_nested:
+            if not at_master() and not is_nested:
                 # Task decorator worker body code.
                 new_types, new_values, is_modifier = self.worker_code(f, args, kwargs)
                 return new_types, new_values, is_modifier

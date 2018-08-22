@@ -272,6 +272,7 @@ def launch_pycompss_application(app, func,
     # Grab the existing PYTHONPATH and CLASSPATH values
     pythonpath = os.environ['PYTHONPATH']
     classpath = os.environ['CLASSPATH']
+    ld_library_path = os.environ['LD_LIBRARY_PATH']
 
     # Enable/Disable object to string conversion
     binding.object_conversion = obj_conv
@@ -322,6 +323,7 @@ def launch_pycompss_application(app, func,
     config['scheduler'] = scheduler
     config['cp'] = cp
     config['classpath'] = classpath
+    config['ld_library_path'] = ld_library_path
     config['jvm_workers'] = jvm_workers
     config['pythonpath'] = pythonpath
     config['cpu_affinity'] = cpu_affinity
@@ -415,6 +417,7 @@ def initialize_compss(config):
         - 'scheduler'        = <String>       = Scheduler (normally: es.bsc.compss.scheduler.resourceEmptyScheduler.ResourceEmptyScheduler)
         - 'cp'               = <String>       = Application path
         - 'classpath'        = <String>       = CLASSPATH environment variable contents
+        - 'ld_library_path'  = <String>       = LD_LIBRARY_PATH environment variable contents
         - 'pythonpath'       = <String>       = PYTHONPATH environment variable contents
         - 'jvm_workers'      = <String>       = Worker's jvm configuration (example: "-Xms1024m,-Xmx1024m,-Xmn400m")
         - 'cpu_affinity'     = <String>       = CPU affinity (default: automatic)
@@ -548,6 +551,7 @@ def initialize_compss(config):
 
     # JVM OPTIONS - PYTHON
     jvm_options_file.write('-Djava.class.path=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config['classpath'] + '\n')
+    jvm_options_file.write('-Djava.library.path=' + config['ld_library_path'] + '\n')
     jvm_options_file.write('-Dcompss.worker.pythonpath=' + config['cp'] + ':' + config['pythonpath'] + '\n')
     jvm_options_file.write('-Dcompss.python.interpreter=' + config['python_interpreter'] + '\n')
     jvm_options_file.write('-Dcompss.python.version=' + config['python_version'] + '\n')
@@ -556,6 +560,12 @@ def initialize_compss(config):
         jvm_options_file.write('-Dcompss.python.propagate_virtualenvironment=true\n')
     else:
         jvm_options_file.write('-Dcompss.python.propagate_virtualenvironment=false\n')
+
+    # Uncomment for debugging purposes
+    # jvm_options_file.write('-Xcheck:jni\n')
+    # jvm_options_file.write('-verbose:jni\n')
+
+    # Close the file
     jvm_options_file.close()
     os.close(fd)
     os.environ['JVM_OPTIONS_FILE'] = temp_path

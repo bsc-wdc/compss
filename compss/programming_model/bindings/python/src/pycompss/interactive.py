@@ -140,13 +140,16 @@ def start(log_level='off',
     cp = os.getcwd() + '/'
     pythonpath = os.environ['PYTHONPATH']
     classpath = os.environ['CLASSPATH']
-    ld_library_path = os.environ['LD_LIBRARY_PATH']
 
     # Set extrae dependencies
     extrae_home = compss_home + '/Dependencies/extrae'
     extrae_lib = extrae_home + '/lib'
     os.environ['EXTRAE_HOME'] = extrae_home
-    os.environ['LD_LIBRARY_PATH'] = extrae_lib + ':' + ld_library_path
+    ld_library_path = extrae_lib + ':' + os.environ['LD_LIBRARY_PATH']
+    os.environ['LD_LIBRARY_PATH'] = ld_library_path
+
+    if debug:
+        os.environ['COMPSS_BINDINGS_DEBUG'] = '1'
 
     if trace is False:
         trace = 0
@@ -254,9 +257,10 @@ def start(log_level='off',
     config['master_port'] = master_port
     config['scheduler'] = scheduler
     config['cp'] = cp
-    config['classpath'] = classpath
-    config['jvm_workers'] = jvm_workers
     config['pythonpath'] = pythonpath
+    config['classpath'] = classpath
+    config['ld_library_path'] = ld_library_path
+    config['jvm_workers'] = jvm_workers
     config['cpu_affinity'] = cpu_affinity
     config['gpu_affinity'] = gpu_affinity
     config['fpga_affinity'] = fpga_affinity
@@ -289,6 +293,7 @@ def start(log_level='off',
     ##############################################################
 
     print("* - Starting COMPSs runtime...                       *")
+    sys.stdout.flush()  # Force flush
     compss_start()
 
     if o_c is True:
@@ -328,6 +333,7 @@ def start(log_level='off',
     __print_setup__(verbose,
                     log_level, o_c, debug, graph, trace, monitor,
                     project_xml, resources_xml, summary, task_execution, storage_conf,
+                    pythonpath, classpath, ld_library_path,
                     task_count, app_name, uuid, base_log_dir, specific_log_dir, extrae_cfg,
                     comm, conn, master_name, master_port, scheduler, jvm_workers,
                     cpu_affinity, gpu_affinity, fpga_affinity, fpga_reprogram, profile_input, profile_output,
@@ -351,6 +357,7 @@ def start(log_level='off',
 
 def __print_setup__(verbose, log_level, o_c, debug, graph, trace, monitor,
                     project_xml, resources_xml, summary, task_execution, storage_conf,
+                    pythonpath, classpath, ld_library_path,
                     task_count, app_name, uuid, base_log_dir, specific_log_dir, extrae_cfg,
                     comm, conn, master_name, master_port, scheduler, jvm_workers,
                     cpu_affinity, gpu_affinity, fpga_affinity, fpga_reprogram, profile_input, profile_output,
@@ -372,6 +379,9 @@ def __print_setup__(verbose, log_level, o_c, debug, graph, trace, monitor,
     output += "  - Summary             : " + str(summary) + "\n"
     output += "  - Task execution      : " + str(task_execution) + "\n"
     output += "  - Storage conf.       : " + str(storage_conf) + "\n"
+    output += "  - Pythonpath          : " + str(pythonpath) + "\n"
+    output += "  - Classpath           : " + str(classpath) + "\n"
+    output += "  - Ld_library_path     : " + str(ld_library_path) + "\n"
     output += "  - Task count          : " + str(task_count) + "\n"
     output += "  - Application name    : " + str(app_name) + "\n"
     output += "  - UUID                : " + str(uuid) + "\n"

@@ -28,8 +28,8 @@ import inspect
 import logging
 import os
 from functools import wraps
-from pycompss.util.location import i_am_at_master
-from pycompss.util.location import i_am_within_scope
+from pycompss.util.location import at_master
+from pycompss.util.location import launched_with_pycompss
 
 if __debug__:
     logger = logging.getLogger(__name__)
@@ -54,7 +54,7 @@ class Binary(object):
 
         self.args = args
         self.kwargs = kwargs
-        self.scope = i_am_within_scope()
+        self.scope = launched_with_pycompss()
         if self.scope and __debug__:
             logger.debug("Init @binary decorator...")
 
@@ -72,7 +72,7 @@ class Binary(object):
             # return d_b.__call__(func)
             raise Exception("The binary decorator only works within PyCOMPSs framework.")
 
-        if i_am_at_master():
+        if at_master():
             # master code
             from pycompss.runtime.binding import register_ce
 

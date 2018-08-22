@@ -39,6 +39,9 @@ DECORATORS_TO_CHECK = ['pycompss/api/binary.py',
                        'pycompss/api/parallel.py',
                        'pycompss/api/task.py']
 
+
+# TODO: CHECK THE NEXT CODE - Causes that the task registration is also performed in the worker.
+
 _WHERE = 'OUTOFSCOPE'
 
 
@@ -77,8 +80,8 @@ def i_am_within_scope():
     return _WHERE != 'OUTOFSCOPE'
 
 
-# TODO: CHECK THE PREVIOUS CODE - Causes that the task registration is also performed in the worker.
-
+# The next code evaluates if we are at master or at worker depending on the stack.
+# It is necessary to know it when Python is loading the decorators.
 
 def at_master():
     """

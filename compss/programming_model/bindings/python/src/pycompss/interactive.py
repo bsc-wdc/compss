@@ -149,6 +149,7 @@ def start(log_level='off',
     os.environ['LD_LIBRARY_PATH'] = ld_library_path
 
     if debug:
+        # Add environment variable to get binding-commons debug information
         os.environ['COMPSS_BINDINGS_DEBUG'] = '1'
 
     if trace is False:
@@ -160,8 +161,7 @@ def start(log_level='off',
         trace = 2
         os.environ['LD_PRELOAD'] = extrae_lib + '/libpttrace.so'
     else:
-        print('ERROR: Wrong tracing parameter ( [ True | basic ] | \
-               advanced | False)')
+        print("ERROR: Wrong tracing parameter ( [ True | basic ] | advanced | False)")
         return -1
 
     if monitor is not None:

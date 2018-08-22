@@ -386,8 +386,8 @@ class Task(object):
 
         source_code = _get_wrapped_source(f).strip()
 
-        if self.has_self_parameter or source_code.startswith(
-                '@classmethod'):  # TODO: WHAT IF IS CLASSMETHOD FROM BOOLEAN?
+        if self.has_self_parameter or source_code.startswith('@classmethod'):
+            # TODO: WHAT IF IS CLASSMETHOD FROM BOOLEAN?
             # It is a task defined within a class (can not parse the code with ast since the class does not
             # exist yet. Alternatively, the only way I see is to parse it manually line by line.
             ret_mask = []

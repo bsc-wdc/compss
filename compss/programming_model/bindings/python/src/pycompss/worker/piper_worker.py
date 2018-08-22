@@ -188,7 +188,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                     logger.debug("[PYTHON WORKER %s] Received task." % str(process_name))
                     logger.debug("[PYTHON WORKER %s] - TASK CMD: %s" % (str(process_name), str(current_line)))
 
-                # Swap logger from stream handler to file handler.   #### TODO: FIX LOGGER!
+                # Swap logger from stream handler to file handler.   #### TODO: FIX LOGGER! it may not be the first if the user defines its own.
                 logger.removeHandler(logger.handlers[0])
                 out_file_handler = logging.FileHandler(job_out)
                 out_file_handler.setLevel(level)

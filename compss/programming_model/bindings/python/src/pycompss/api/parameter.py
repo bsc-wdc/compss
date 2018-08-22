@@ -47,6 +47,11 @@ PyCOMPSs API - Parameter
 
 
 # Numbers match both C and Java enums
+from pycompss.api.data_type import data_type
+TYPE = data_type
+
+
+# Numbers match both C and Java enums
 class DIRECTION(object):
     """
     Used as enum for direction types
@@ -55,10 +60,6 @@ class DIRECTION(object):
     OUT = 1
     INOUT = 2
 
-
-# Numbers match both C and Java enums
-from pycompss.api.data_type import data_type
-TYPE = data_type
 
 # Numbers match both C and Java enums
 class STREAM(object):
@@ -189,16 +190,25 @@ _param_conversion_dict_ = {
     }
 }
 
+
 def is_parameter(x):
-    '''Check if given object is a parameter.
-    Avoids internal _param_ import
-    '''
+    """
+    Check if given object is a parameter.
+    Avoids internal _param_ import.
+    :param x: Object to check
+    :return: Boolean
+    """
     return isinstance(x, _param_)
 
+
 def get_new_parameter(key):
-    '''Returns a brand new parameter (no copies!)
-    '''
+    """
+    Returns a brand new parameter (no copies!)
+    :param key: Parameter key
+    :return: Parameter object
+    """
     return Parameter(**_param_conversion_dict_[key])
+
 
 class _param_(object):
     """

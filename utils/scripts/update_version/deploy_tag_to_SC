@@ -46,6 +46,11 @@
     cp /apps/modules/modulefiles/tools/COMPSs/Trunk /apps/modules/modulefiles/tools/COMPSs/$version
     sed -i '/set PROG_VERSION /cset PROG_VERSION  '$version'' /apps/modules/modulefiles/tools/COMPSs/$version
     chmod 775 /apps/modules/modulefiles/tools/COMPSs/$version
+    cd /apps/modules/modulefiles/tools/COMPSs/
+    ln -f -s $version  latest
+    if [[ $version != *"rc"* ]]; then
+        ln -f -s $version  release
+    fi
 EOT
 
     trap clean EXIT

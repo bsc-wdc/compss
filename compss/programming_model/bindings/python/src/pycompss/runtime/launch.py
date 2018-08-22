@@ -337,8 +337,9 @@ def launch_pycompss_application(app, func,
         config['external_adaptation'] = 'true'
     else:
         config['external_adaptation'] = 'false'
-    config['python_interpreter'] = 'python' + str(sys.version_info[0])
-    config['python_version'] = str(sys.version_info[0])
+    major_version = str(sys.version_info[0])
+    config['python_interpreter'] = 'python' + major_version
+    config['python_version'] = major_version
     if 'VIRTUAL_ENV' in os.environ:
         # Running within a virtual environment
         python_virtual_environment = os.environ['VIRTUAL_ENV']
@@ -355,12 +356,20 @@ def launch_pycompss_application(app, func,
     # Configure logging
     app_path = app
     log_path = get_log_path()
-    if debug:
-        # DEBUG
-        init_logging(compss_home + '/Bindings/python/log/logging.json.debug', log_path)
+    # Logging setup
+    if debug or log_level == "debug":
+        json_path = '/Bindings/python/' + major_version + '/log/logging.json.debug'
+        init_logging(compss_home + json_path, log_path)
+    elif log_level == "info":
+        json_path = '/Bindings/python/' + major_version + '/log/logging.json.off'
+        init_logging(compss_home + json_path, log_path)
+    elif log_level == "off":
+        json_path = '/Bindings/python/' + major_version + '/log/logging.json.off'
+        init_logging(compss_home + json_path, log_path)
     else:
-        # NO DEBUG
-        init_logging(compss_home + '/Bindings/python/log/logging.json', log_path)
+        # Default
+        json_path = '/Bindings/python/' + str(major_version) + '/log/logging.json'
+        init_logging(compss_home + json_path, log_path)
     logger = logging.getLogger("pycompss.runtime.launch")
 
     logger.debug('--- START ---')

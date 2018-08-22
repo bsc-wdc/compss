@@ -315,7 +315,7 @@ def start(log_level='off',
     print("* - Log path : " + log_path)
 
     # Logging setup
-    if log_level == "debug":
+    if debug or log_level == "debug":
         json_path = '/Bindings/python/' + str(major_version) + '/log/logging.json.debug'
         init_logging(os.getenv('COMPSS_HOME') + json_path, log_path)
     elif log_level == "info":

@@ -6,16 +6,27 @@
 DEFAULT_EXEC_TIME="1"        # 1 minute
 DEFAULT_JOB_NAME="Jupyter"
 DEFAULT_NUM_NODES=2
-DEFAULT_USER_NAME=""
-DEFAULT_SUPERCOMPUTER="mn1.bsc.es"
+DEFAULT_USER_NAME="undefined"
+DEFAULT_GET_PASSWORD=false   # default is using passwordless
+DEFAULT_SUPERCOMPUTER="mn3.bsc.es"
 DEFAULT_BROWSER="firefox"
 DEFAULT_QOS=""
 
+#---------------------------------------------------
+# SCRIPT TOOLS
+#---------------------------------------------------
+DEFAULT_SSH="ssh"  # When password provided, use sshpass -e before ssh
+
+#---------------------------------------------------
+# WARNING CONSTANTS DECLARATION
+#---------------------------------------------------
+WARNING_USER_NAME_NOT_PROVIDED="Username not provided. Using default: ${DEFAULT_USER_NAME}"
 
 #---------------------------------------------------
 # ERROR CONSTANTS DECLARATION
 #---------------------------------------------------
-ERROR_USERNAME_NOT_PROVIDED="Username not provided."
+ERROR_CONNECTING="Could not connect to the supercomputer. Please check the connectivity, user name and password."
+ERROR_COMPSS_NOT_DEFINED="COMPSs is not available in the supercomputer. Please check that you have propperly configured the module load in your .bashrc."
 
 #---------------------------------------------------------------------------------------
 # HELPER FUNCTIONS
@@ -32,7 +43,7 @@ function CTRL_C() {
   fi
   if [ -z ${job_id} ]; then
     echo "    - Cancelling job..."
-    ssh ${user_name}@${supercomputer} "scancel $job_id" > /dev/null 2>&1
+    ${DEFAULT_SSH} ${username}@${supercomputer} "scancel $job_id" > /dev/null 2>&1
   fi
   echo "* Finished"
 }
@@ -54,14 +65,15 @@ Usage: $0 [Options]
     --version, -v                           Print COMPSs version
 
   Submission configuration:
-    --exec_time=<int>                        Session duration (minutes)
+    --exec_time=<int>                       Session duration (minutes)
                                             Default: ${DEFAULT_EXEC_TIME}
     --job_name=<string>                     Job name
                                             Default: ${DEFAULT_JOB_NAME}
-    --num_nodes=<int>                           Amount of num_nodes to use
+    --num_nodes=<int>                       Amount of num_nodes to use
                                             Default: ${DEFAULT_NUM_NODES}
-    --user_name=<string>                    User name to login into the supercomputer (mandatory)
+    --username=<string>                     User name to login into the supercomputer (mandatory)
                                             Default: ${DEFAULT_USER_NAME}
+    --password                              Request user password to login into the supercomputer
     --supercomputer=<string>                Supercomputer to connect
                                             Default: ${DEFAULT_SUPERCOMPUTER}
     --browser=<string>                      Web browser
@@ -85,11 +97,23 @@ display_version() {
 }
 
 ###############################################
+# Displays warnings treating arguments
+###############################################
+display_warning() {
+  local warning_msg=$*
+
+  echo " "
+  echo "WARNING: $warning_msg"
+  echo " "
+}
+
+###############################################
 # Displays errors treating arguments
 ###############################################
 display_error() {
   local error_msg=$*
 
+  echo " "
   echo "ERROR: $error_msg"
   echo " "
 
@@ -141,8 +165,11 @@ get_args() {
           num_nodes=*)
             num_nodes=${OPTARG//num_nodes=/}
             ;;
-          user_name=*)
-            user_name=${OPTARG//user_name=/}
+          username=*)
+            username=${OPTARG//username=/}
+            ;;
+          password)
+            DEFAULT_GET_PASSWORD=true
             ;;
           supercomputer=*)
             supercomputer=${OPTARG//supercomputer=/}
@@ -190,14 +217,30 @@ check_args() {
   fi
 
   # Check user name argument
-  if [ -z "${user_name}" ]; then
-    display_error ${ERROR_USERNAME_NOT_PROVIDED}
-    # user_name=${DEFAULT_USER_NAME}
+  if [ -z "${username}" ]; then
+    display_warning ${WARNING_USER_NAME_NOT_PROVIDED}
+    username=${DEFAULT_USER_NAME}
   fi
 
   # Check supercomputer argument
   if [ -z "${supercomputer}" ]; then
     supercomputer=${DEFAULT_SUPERCOMPUTER}
+  fi
+
+  # Check user password argument
+  if [ "${DEFAULT_GET_PASSWORD}" = true ]; then
+    # The user requested to provide the password
+    read -s -p "Password: " password
+    export SSHPASS=${password}
+    DEFAULT_SSH="sshpass -e ${DEFAULT_SSH}"
+  else
+    # check if really there is passwordless... otherwise exit and let the user know that the username or the password defined is wrong.
+    ${DEFAULT_SSH} ${username}@${supercomputer} -o PasswordAuthentication=no  -o BatchMode=yes exit &>/dev/null
+    test_exit_code=$?
+    if [ "${test_exit_code}" = 255 ]; then
+      display_error ${ERROR_CONNECTING}
+      exit ${test_exit_code}
+    fi
   fi
 
   # Check browser argument
@@ -222,14 +265,18 @@ check_args() {
   # Check other command args
   check_args
 
-  which_runcompss=$(ssh ${user_name}@${supercomputer} "which runcompss" 2>&1)
+  which_runcompss=$(${DEFAULT_SSH} ${username}@${supercomputer} "which runcompss" 2>&1)
   RUNCOMPSS_PATH=$(echo "$which_runcompss" | grep "runcompss")
+  if [ -z ${RUNCOMPSS_PATH} ]; then
+    display_error ${ERROR_COMPSS_NOT_DEFINED}
+    exit 1
+  fi
   SCRIPTS_DIR=$(dirname ${RUNCOMPSS_PATH})
   REMOTE_SCRIPT_DIR=${SCRIPTS_DIR}/../system/jupyter
 
   # Submit command and get connection info
   echo "Submitting jupyter job and waiting for it to start..."
-  connection_info=$(ssh ${user_name}@${supercomputer} "${REMOTE_SCRIPT_DIR}/submit_jupyter_job.sh ${job_name} ${exec_time} ${num_nodes} ${qos}" 2>&1)
+  connection_info=$(${DEFAULT_SSH} ${username}@${supercomputer} "${REMOTE_SCRIPT_DIR}/submit_jupyter_job.sh ${job_name} ${exec_time} ${num_nodes} ${qos}" 2>&1)
 
   # Parse connection info
   echo "Getting connection information..."
@@ -240,8 +287,8 @@ check_args() {
   job_id=(${job_id_line//:/ })
   node=(${node_line//:/ })
   token=(${token_line//:/ })
-  # Get the node name and token
   job_id=${job_id[1]}
+  # Get the node name and token
   node=${node[1]}
   token=${token[1]}
   echo "    - Job id: ${job_id}"
@@ -249,8 +296,8 @@ check_args() {
 
   # Establish the port forwarding
   echo "Establishing port forwarding..."
-  #ssh -t -t ${user_name}@${supercomputer} -L 8888:localhost:8888 ssh ${node} -4 -L 8888:localhost:8888 > /dev/null 2>&1 &
-  ssh -t -t ${user_name}@${supercomputer} -L 8888:localhost:8888 ssh ${node} -L 8888:localhost:8888 > /dev/null 2>&1 &
+  #${DEFAULT_SSH} -t -t ${username}@${supercomputer} -L 8888:localhost:8888 ssh ${node} -4 -L 8888:localhost:8888 > /dev/null 2>&1 &
+  ${DEFAULT_SSH} -t -t ${username}@${supercomputer} -L 8888:localhost:8888 ssh ${node} -L 8888:localhost:8888 > /dev/null 2>&1 &
   RUNNING_PORT_FORWARDING_PID=$!
 
   # Wait 5 seconds to establish the port forwarding
@@ -259,7 +306,8 @@ check_args() {
 
   # Open the web browser
   echo "Opening the web browser..."
-  ${browser} localhost:8888
+  # ${browser} localhost:8888  # without token
+  ${browser} http://localhost:8888/?token=${token}
   echo "Ready to work!"
   echo ""
   echo "Waiting for ${browser} to be closed..."
@@ -272,5 +320,11 @@ check_args() {
   echo "    - Killing port forwarding..."
   kill ${RUNNING_PORT_FORWARDING_PID}
   echo "    - Cancelling job..."
-  ssh ${user_name}@${supercomputer} "scancel $job_id" > /dev/null 2>&1
+  ${DEFAULT_SSH} ${username}@${supercomputer} "scancel $job_id" > /dev/null 2>&1
+
+  if [ -z "${SSHPASS}" ]; then
+    echo "    - Cleaning environment variables..."
+    unset SSHPASS
+  fi
+
   echo "* Finished"

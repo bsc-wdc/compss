@@ -314,7 +314,7 @@ def start(log_level='off',
     binding.temp_dir = mkdtemp(prefix='pycompss', dir=log_path + '/tmpFiles/')
     print("* - Log path : " + log_path)
 
-    # Logging setup
+    # Logging setup - messages before this step are ignored (need log_path to configure the logger).
     if debug or log_level == "debug":
         json_path = '/Bindings/python/' + str(major_version) + '/log/logging.json.debug'
         init_logging(os.getenv('COMPSS_HOME') + json_path, log_path)

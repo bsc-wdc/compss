@@ -42,8 +42,6 @@ if IS_PYTHON3:
 
 if __debug__:
     logger = logging.getLogger('pycompss.api.task')
-    # logger = logging.getLogger()   # for jupyter logging  # TODO: detect if jupyter and set logger
-    # logger.setLevel(logging.DEBUG)
 
 
 class Task(object):

@@ -48,6 +48,16 @@ function CTRL_C() {
   echo "* Finished"
 }
 
+check_connectivity() {
+  echo "Checking connectivity..."
+  ${DEFAULT_SSH} ${username}@${supercomputer} -o PasswordAuthentication=no  -o BatchMode=yes exit &>/dev/null
+  test_exit_code=$?
+  if [ "${test_exit_code}" = 255 ]; then
+    display_error ${ERROR_CONNECTING}
+    exit ${test_exit_code}
+  fi
+}
+
 ###############################################
 # Displays usage
 ###############################################
@@ -233,14 +243,10 @@ check_args() {
     read -s -p "Password: " password
     export SSHPASS=${password}
     DEFAULT_SSH="sshpass -e ${DEFAULT_SSH}"
+    check_connectivity
   else
     # check if really there is passwordless... otherwise exit and let the user know that the username or the password defined is wrong.
-    ${DEFAULT_SSH} ${username}@${supercomputer} -o PasswordAuthentication=no  -o BatchMode=yes exit &>/dev/null
-    test_exit_code=$?
-    if [ "${test_exit_code}" = 255 ]; then
-      display_error ${ERROR_CONNECTING}
-      exit ${test_exit_code}
-    fi
+    check_connectivity
   fi
 
   # Check browser argument

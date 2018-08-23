@@ -28,13 +28,11 @@ import os
 import sys
 import logging
 import traceback
-
 from tempfile import mkdtemp
 
-
-# Let the Python binding know we are at master
+# Let the Python binding know we are during libraries initialization
 from pycompss.util.location import set_pycompss_context
-set_pycompss_context('MASTER')
+set_pycompss_context('INITIALIZATION')
 
 import pycompss.runtime.binding as binding
 from pycompss.api.api import compss_start, compss_stop
@@ -100,6 +98,10 @@ def compss_main():
     :return: None
     """
     global app_path
+
+    # Let the Python binding know we are at master
+    set_pycompss_context('MASTER')
+
     # Start the runtime, see bindings commons
     compss_start()
     # See parse_arguments, defined above
@@ -264,6 +266,10 @@ def launch_pycompss_application(app, func,
     """
 
     global app_path
+
+    # Let the Python binding know we are at master
+    set_pycompss_context('MASTER')
+
     launch_path = os.path.dirname(os.path.abspath(__file__))
     # compss_home = launch_path without the last 4 folders:
     # (Bindings/python/pycompss/runtime)

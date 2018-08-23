@@ -37,6 +37,7 @@ from pycompss.api.parameter import JAVA_MIN_INT, JAVA_MAX_INT
 from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.runtime.commons import IS_PYTHON3
+from pycompss.util.location import set_pycompss_context
 from pycompss.util.serializer import serialize_to_file
 from pycompss.util.serializer import deserialize_from_file
 from pycompss.util.serializer import deserialize_from_string
@@ -750,8 +751,8 @@ def compss_persistent_worker():
     """
 
     # Set the binding in worker mode
-    from pycompss.util.location import set_pycompss_context
     set_pycompss_context('WORKER')
+
     # Get args
     debug = (sys.argv[1] == 'true')
     global TRACING

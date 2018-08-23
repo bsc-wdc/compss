@@ -29,6 +29,10 @@ import logging
 from tempfile import mkdtemp
 import time
 
+# Let the Python binding know we are during libraries initialization
+from pycompss.util.location import set_pycompss_context
+set_pycompss_context('INITIALIZATION')
+
 import pycompss.runtime.binding as binding
 from pycompss.api.api import compss_start
 from pycompss.api.api import compss_stop
@@ -128,6 +132,9 @@ def start(log_level='off',
     :param verbose: Verbose mode [ True | False ] (default: False)
     :return: None
     """
+
+    # Let the Python binding know we are at master
+    set_pycompss_context('MASTER')
 
     # Prepare the environment
     launch_path = os.path.dirname(os.path.realpath(__file__))

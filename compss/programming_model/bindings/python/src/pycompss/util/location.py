@@ -24,28 +24,10 @@ PyCOMPSs Utils - Location
     Useful to detect if we are in the master or in the worker.
 """
 
-import inspect
-from pycompss.runtime.commons import IS_PYTHON3
-from pycompss.runtime.commons import IS_INTERACTIVE
-
-
-DECORATORS_TO_CHECK = ['pycompss/api/binary.py',
-                       'pycompss/api/constraint.py',
-                       'pycompss/api/decaf.py',
-                       'pycompss/api/implement.py',
-                       'pycompss/api/mpi.py',
-                       'pycompss/api/ompss.py',
-                       'pycompss/api/opencl.py',
-                       'pycompss/api/parallel.py',
-                       'pycompss/api/task.py']
-
-
-# TODO: CHECK THE NEXT CODE - Causes that the task registration is also performed in the worker.
-
 _WHERE = 'OUTOFSCOPE'
 
 
-def i_am_at_master():
+def at_master():
     """
     Determine if the execution is being performed in the master node
     :return: Boolean
@@ -53,7 +35,7 @@ def i_am_at_master():
     return _WHERE == 'MASTER'
 
 
-def i_am_at_worker():
+def at_worker():
     """
     Determine if the execution is being performed in a worker node.
     :return: Boolean
@@ -61,13 +43,21 @@ def i_am_at_worker():
     return _WHERE == 'WORKER'
 
 
+def during_initialization():
+    """
+    Determine if the execution is in the initialization stage.
+    :return: Boolean
+    """
+    return _WHERE == 'INITIALIZATION'
+
+
 def set_pycompss_context(where):
     """
-    Set the Python Binding context (MASTER OR WORKER)
-    :param where: New context (MASTER or WORKER)
+    Set the Python Binding context (MASTER or WORKER or INITIALIZATION)
+    :param where: New context (MASTER or WORKER or INITIALIZATION)
     :return: None
     """
-    assert where in ['MASTER', 'WORKER'], 'PyCOMPSs context should be MASTER or WORKER'
+    assert where in ['MASTER', 'WORKER', 'INITIALIZATION'], 'PyCOMPSs context should be MASTER|WORKER|INITIALIZATION'
     global _WHERE
     _WHERE = where
 
@@ -78,57 +68,3 @@ def i_am_within_scope():
     :return:  <Boolean> - True if under scope. False on the contrary.
     """
     return _WHERE != 'OUTOFSCOPE'
-
-
-# The next code evaluates if we are at master or at worker depending on the stack.
-# It is necessary to know it when Python is loading the decorators.
-
-def at_master():
-    """
-    Determine if the execution is being performed in the master node
-    # if 'pycompss/runtime/launch.py' in inspect.stack()[-1][1]: --> I am at master
-    # if inspect.stack()[-2][3] == 'compss_main' --> I am at master
-    # if 'pycompss/interactive.py' in inspect.stack()[3][1] --> I am at master in interactive mode
-    # if 'pycompss/api/task.py' in inspect.stack()[2][1]    --> I am at master in interactive task decorator
-    # if 'pycompss/api/task.py' in inspect.stack()[1][1]    --> I am at master in interactive task decorator
-    :return: <Boolean> - True if we are running with PyCOMPSs in the master node.
-    """
-    stack = inspect.stack()
-    if IS_INTERACTIVE:
-        if IS_PYTHON3:
-            # interactive.py in [9][1] in 3.4 and 3.5, and in [8][1] in 3.6
-            return 'pycompss/interactive.py' in stack[9][1] or 'pycompss/interactive.py' in stack[8][1] \
-                   or any(decorator in stack[2][1] for decorator in DECORATORS_TO_CHECK) \
-                   or any(decorator in stack[1][1] for decorator in DECORATORS_TO_CHECK)
-        else:
-            return 'pycompss/interactive.py' in stack[3][1] \
-                   or any(decorator in stack[2][1] for decorator in DECORATORS_TO_CHECK) \
-                   or any(decorator in stack[1][1] for decorator in DECORATORS_TO_CHECK)
-    else:
-        return 'pycompss/runtime/launch.py' in stack[-1][1]
-
-
-def at_worker():
-    """
-    Determine if the execution is being performed in a worker node.
-    # if (inspect.stack()[-2][3] == 'compss_worker' or
-    #     inspect.stack()[-2][3] == 'compss_persistent_worker'): --> I am at worker
-    :return: <Boolean> - True if we are running with PyCOMPSs in a worker node.
-    """
-    return inspect.stack()[-2][3] in ['compss_worker', 'compss_persistent_worker']
-
-
-def launched_with_pycompss():
-    """
-    Determine if the execution is being performed with the PyCOMPSs (through interactive.py or launch.py).
-    :return:  <Boolean> - True if under scope. False on the contrary.
-    """
-
-    return at_master() or at_worker()
-    # Old way: - Conflicts with dataClay
-    # import sys
-    # return sys.path[0].endswith('Bindings/python/2/pycompss/runtime') or \
-    #        sys.path[0].endswith('Bindings/python/2/pycompss/worker') or \
-    #        sys.path[0].endswith('Bindings/python/3/pycompss/runtime') or \
-    #        sys.path[0].endswith('Bindings/python/3/pycompss/worker') or \
-    #        sys.path[0] == ''

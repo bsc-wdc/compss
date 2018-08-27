@@ -13,7 +13,7 @@ from pycompss.api.constraint import constraint
 from pycompss.api.implement import implement
 
 
-@implement(source_class="7_implements", method="addtwovectors")
+@implement(source_class="module_7_implements", method="addtwovectors")
 @constraint(computingUnits="4")
 @task(returns=list)
 def myfunctionWithNumpy(list1, list2):

@@ -1154,7 +1154,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         // Per processor CUs restriction
         for (Processor p : rc2.processors) {
             for (Processor pThis : this.processors) {
-                if (checkProcessorCompatibility(pThis, p)) {
+                if (checkProcessorCompatibility(pThis, p) && p.getComputingUnits() >= 1) {
                     float ratio = pThis.getComputingUnits() / p.getComputingUnits();
                     min = Math.min(min, (int) ratio);
                 }

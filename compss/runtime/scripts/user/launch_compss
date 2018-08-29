@@ -1130,7 +1130,11 @@ launch() {
       echo "CMD Master: $MCMD"
       $MCMD
   else
-      # Prepare needed environment variables for starting the runtime from the PyCOMPSs API.
+      # Prepare needed environment variables for starting the runtime from the PyCOMPSs API (in normal executions it is done by runcompss).
+      export PYTHONPATH=${COMPSS_HOME}/Bindings/python/${python_version}/:${COMPSS_HOME}/Bindings/bindings-common/lib/:$PYTHONPATH
+      # JAVA_HOME variable must exist
+      export LD_LIBRARY_PATH=${COMPSS_HOME}/Bindings/bindings-common/lib/:${COMPSS_HOME}/Runtime/compss-engine.jar:${JAVA_HOME}/jre/lib/amd64/server/:$LD_LIBRARY_PATH
+      unset XDG_RUNTIME_DIR  # Required for Jupyter in MN4. Supposed to be necessary also in other supercomputers. Otherwise, move this line to the supercomputer "module"
       # Export project and resources xmls as environment variables to be used from PyCOMPSs binding
       # Also export the master name, master port, and worker nodes to be used from PyCOMPSs binding
       export COMPSS_PROJECT_XML="${PROJECT_FILE}"
@@ -1142,7 +1146,7 @@ launch() {
       export COMPSS_BASE_LOG_DIR="${base_log_dir}"
       export COMPSS_SPECIFIC_LOG_DIR="${specific_log_dir}"
       # Run jupyter notebook instead of the master
-      # The master will be started when the user wants later from the notebook
+      # The master will be started when the user wants later from the notebook (the workers have already been launched)
       jupyter notebook --no-browser --ip=127.0.0.1 --port=8888
   fi
 }

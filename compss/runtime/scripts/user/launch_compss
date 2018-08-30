@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 ###############################################
 # SCRIPT CONSTANTS DECLARATION
 ###############################################
@@ -36,7 +35,6 @@ else
 fi
 DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT=true
 
-
 ###############################################
 # ERROR CONSTANTS DECLARATION
 ###############################################
@@ -54,7 +52,6 @@ ERROR_WORKER_IN_MASTER_MEMORY_NOT_SPECIFIED="Parameter worker_in_master_memory i
 ERROR_PROLOG_ACTION="Exception executing prolog action"
 ERROR_EPILOG_ACTION="Exception executing epilog action"
 ERROR_LANGUAGE="Value of option --lang must be: java, c or python"
-
 
 #---------------------------------------------------------------------------------------
 # HELPER FUNCTIONS
@@ -93,7 +90,6 @@ EOT
   show_opts "$exitValue"
 }
 
-
 ###############################################
 # Show Options
 ###############################################
@@ -116,7 +112,7 @@ show_opts() {
                                             Default: ${DEFAULT_GPUS_PER_NODE}
     --fpgas_per_node=<int>                  Available FPGA computing units on each node
                                             Default: ${DEFAULT_FPGAS_PER_NODE}
-    --fpga_reprogram="<string>"             Specify the full command that needs to be executed to reprogram the FPGA with
+    --fpga_reprogram="<string>              Specify the full command that needs to be executed to reprogram the FPGA with
                                             the desired bitstream. The location must be an absolute path.
                                             Default: ${DEFAULT_FPGA_REPROGRAM}
     --max_tasks_per_node=<int>              Maximum number of simultaneous tasks running on a node
@@ -146,8 +142,7 @@ show_opts() {
                                             Mandatory if worker_in_master_cpus is specified.
                                             Default: ${DEFAULT_WORKER_IN_MASTER_MEMORY}
     --jvm_worker_in_master_opts="<string>"  Extra options for the JVM of the COMPSs Worker in the Master Node.
-            
-                                Each option separed by "," and without blank spaces (Notice the quotes)
+                                            Each option separed by "," and without blank spaces (Notice the quotes)
                                             Default: ${DEFAULT_JVM_WORKER_IN_MASTER}
     --container_image=<path>                Runs the application by means of a container engine image
                                             Default: Empty
@@ -166,7 +161,6 @@ EOT
   exit "$exitValue"
 }
 
-
 ###############################################
 # Displays version
 ###############################################
@@ -177,7 +171,6 @@ display_version() {
 
   exit "$exitValue"
 }
-
 
 ###############################################
 # Displays errors when treating arguments
@@ -191,7 +184,6 @@ display_error() {
   usage 1
 }
 
-
 ###############################################
 # Displays errors when executing actions
 ###############################################
@@ -203,7 +195,6 @@ action_error() {
 
   exit 1
 }
-
 
 ###############################################
 # Infers the language from the Application Path
@@ -242,7 +233,6 @@ infer_language() {
   fi
 }
 
-
 ###############################################
 # Loads the tracing environment
 ###############################################
@@ -269,7 +259,6 @@ load_tracing_env() {
   # Clean tmp file
   rm -f "${module_tmp}"
 }
-
 
 ###############################################
 # Creates Worker CMD
@@ -332,13 +321,12 @@ worker_cmd() {
             ${nodeId} \
             ${storage_conf} \
             ${taskExecution} \
-	    ${persistent_worker_c} \
+	          ${persistent_worker_c} \
             ${python_interpreter} \
             ${python_version} \
             ${DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT} \
             ${python_propagate_virtual_environment}"
 }
-
 
 ###############################################
 # Create Master CMD
@@ -419,6 +407,9 @@ get_args() {
           ;;
         worker_nodes=*)
           worker_nodes=${OPTARG//worker_nodes=/}
+          ;;
+        resources=*)
+          resources=${OPTARG//resources=/}
           ;;
         sc_cfg=*)
           sc_cfg=${OPTARG//sc_cfg=/}
@@ -640,7 +631,6 @@ get_args() {
   args_pass="$args_pass $*" 
 }
 
-
 ###############################################
 # Function to check the arguments
 ###############################################
@@ -717,8 +707,6 @@ check_args() {
   if [ -z "${python_interpreter}" ]; then
     python_interpreter=${DEFAULT_PYTHON_INTERPRETER}
     python_version=${DEFAULT_PYTHON_VERSION}
-  else
-    python_version=$( ${python_interpreter} -c "import sys; print(sys.version_info[:][0])" )
   fi
 
   if [ -z "${python_propagate_virtual_environment}" ]; then
@@ -937,7 +925,7 @@ set_variables() {
   if [ "${worker_working_dir}" == "gpfs" ]; then
     worker_working_dir=$(mktemp -d -p "${GPFS_PREFIX}${HOME}")
   elif [ "${worker_working_dir}" == "scratch" ]; then
-    worker_working_dir=$TMPDIR/${!ENV_VAR_JOB_ID}
+    worker_working_dir=$TMPDIR
   else
     # The working dir is a custom absolute path, create tmp
     worker_working_dir=$(mktemp -d -p "${worker_working_dir}")
@@ -963,7 +951,7 @@ set_variables() {
 
   if [ "${worker_in_master_memory}" == "${DEFAULT_WORKER_IN_MASTER_MEMORY}" ]; then
     # Default value
-    worker_in_master_memory=$(( DEFAULT_WORKER_IN_MASTER_MEMORY / 1024 - 4))
+    worker_in_master_memory=${DEFAULT_NODE_MEMORY_SIZE}
   else
     # Change from MB to GB
     worker_in_master_memory=$(( worker_in_master_memory / 1024 - 4))
@@ -996,9 +984,8 @@ set_variables() {
   uuid=$(cat /proc/sys/kernel/random/uuid)
 }
 
-
 ###############################################
-# Log execution variables
+# Creates XML Files
 ###############################################
 log_variables() {
   echo "-------- Launch arguments --------"
@@ -1040,33 +1027,14 @@ log_variables() {
   echo " "
 }
 
-
 ###############################################
-# Write usage to log file
-###############################################
-write_log_usage() {
-  # Create file with header if required
-  local log_usage_file="${COMPSS_HOME}/usage.log"
-  if [ ! -f "${log_usage_file}" ]; then
-    echo -e "USAGE DATE\\t\\t\\tUSER" > "${log_usage_file}"
-  fi
-
-  # Write usage message
-  msg="$(date)\\t$(whoami)"
-  echo -e "$msg" >> "${log_usage_file}"
-
-  # Ensure file is public
-  chmod 777 "${log_usage_file}"
-}
-
-
-###############################################
-# Create XML Files
+# Creates XML Files
 ###############################################
 create_xml_files() {
   # Resources.xml and project.xml filenames
   local sec
   sec=$(date +%s)
+
   RESOURCES_FILE=${worker_working_dir}/resources_$sec.xml
   PROJECT_FILE=${worker_working_dir}/project_mn_$sec.xml
 
@@ -1103,11 +1071,14 @@ create_xml_files() {
   # Finish the resources file and the project file
   insert_xml_footers
 
+  if [ ! -z ${resources+x} ]; then 
+    RESOURCES_FILE=${resources}
+  fi
+
   echo "Generation of resources and project file finished"
   echo "Project.xml:   ${PROJECT_FILE}"
   echo "Resources.xml: ${RESOURCES_FILE}"
 }
-
 
 ###############################################
 # Launches the application
@@ -1173,7 +1144,6 @@ launch() {
   $MCMD
 }
 
-
 ###############################################
 # Prolog actions
 ###############################################
@@ -1190,7 +1160,6 @@ prolog() {
     fi
   done
 }
-
 
 ###############################################
 # Epilog actions
@@ -1209,7 +1178,6 @@ epilog() {
   done
 }
 
-
 ###############################################
 # Wait for execution end
 ###############################################
@@ -1218,7 +1186,6 @@ wait_for_completion() {
   echo "Waiting for application completion"
   wait
 }
-
 
 ###############################################
 # Clean function for trap
@@ -1312,7 +1279,6 @@ EOT
 fi
 }
 
-
 ###############################################
 # Insert XML Footers
 ###############################################
@@ -1341,8 +1307,6 @@ insert_xml_elasticity() {
   local jvm_workers_opts_size
   jvm_workers_opts_str=$(echo "${jvm_workers_opts}" | tr "," " ")
   jvm_workers_opts_size=$(echo "${jvm_workers_opts_str}" | wc -w)
-  fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
-  fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
 
   cat >> "${RESOURCES_FILE}" << EOT
    <CloudProvider Name="SLURM-Cluster">
@@ -1397,7 +1361,7 @@ EOT
           		</AttachedDisk>
 EOT
     if [ "${GPFS2_PREFIX}" != "" ] && [ "${GPFS2_PREFIX}" != "${GPFS_PREFIX}" ]; then
-    cat >> "${RESOURCES_FILE}" << EOT
+      cat >> "${RESOURCES_FILE}" << EOT
           		<AttachedDisk Name="gpfs2">
               			<MountPoint>${GPFS2_PREFIX}</MountPoint>
           		</AttachedDisk>
@@ -1475,7 +1439,7 @@ EOT
                 		</Property>
 EOT
   else
-          cat >> "${PROJECT_FILE}" << EOT
+  	     cat >> "${PROJECT_FILE}" << EOT
                                 <Property>
                     			<Name>slurm_over_ssh</Name>
                     			<Value>true</Value>
@@ -1514,22 +1478,6 @@ EOT
                                 </Property>
 EOT
   fi
-  if [ -n "${container_opts}" ]; then
-          cat >> "${PROJECT_FILE}" << EOT
-                                <Property>
-                                        <Name>container_opts</Name>
-                                        <Value>${container_opts}</Value>
-                                </Property>
-EOT
-  fi
-  if [ -n "${cpu_affinity}" ]; then
-          cat >> "${PROJECT_FILE}" << EOT
-                                <Property>
-                                        <Name>cpu_affinity</Name>
-                                        <Value>${cpu_affinity}</Value>
-                                </Property>
-EOT
-  fi
 
   cat >> "${PROJECT_FILE}" << EOT
 				<Property>
@@ -1547,14 +1495,6 @@ EOT
 				<Property>
                                         <Name>jvm_opts_str</Name>
                                         <Value>${jvm_workers_opts_str}</Value>
-                                </Property>
-				<Property>
-                                        <Name>fpga_reprogram_size</Name>
-                                        <Value>${fpga_reprogram_size}</Value>
-                                </Property>
-                                <Property>
-                                        <Name>fpga_reprogram_str</Name>
-                                        <Value>${fpga_reprogram_str}</Value>
                                 </Property>
 			 	<Property>
                                         <Name>network</Name>
@@ -1580,7 +1520,7 @@ EOT
 				<InstallDir>${worker_install_dir}</InstallDir>
       				<WorkingDir>${worker_working_dir}</WorkingDir>
       				<Application>
-                                        <AppDir>${appdir}</AppDir>
+					    <AppDir>${appdir}</AppDir>
           				<LibraryPath>${library_path}</LibraryPath>
 					<Classpath>${cp}</Classpath>
 					<Pythonpath>${pythonpath}</Pythonpath>
@@ -1606,6 +1546,8 @@ EOT
 }
 
 
+
+
 ###############################################
 # Adds a compute node to Resources/Project
 ###############################################
@@ -1621,9 +1563,9 @@ add_compute_node() {
         node=$(${NODE_NAME_QUEUE} "${node}")
   fi
   
-  echo "Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}bash -c \"mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}\"${CMD_SEPARATOR}"
-  #shellcheck disable=SC2086
-  ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}bash -c "mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}"${CMD_SEPARATOR}
+  echo "Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}mkdir -p ${worker_working_dir}${CMD_SEPARATOR}; chmod +rx ${worker_working_dir}${CMD_SEPARATOR} "
+  # shellcheck disable=SC2086
+  ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}mkdir -p ${worker_working_dir}${CMD_SEPARATOR}; chmod +rx ${worker_working_dir}${CMD_SEPARATOR} 
 
   nodeName=${nodeName}${network}
 
@@ -1765,9 +1707,6 @@ EOT
 
   # Log variables
   log_variables
-
-  # Write log usage
-  write_log_usage
 
   # Add clean up for execution end
   trap cleanup EXIT

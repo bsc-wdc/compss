@@ -250,6 +250,10 @@ get_args() {
             sc_cfg=$(echo $OPTARG | sed -e 's/sc_cfg=//g')
             args_pass="$args_pass --$OPTARG"
             ;;
+          resources=*)
+            resources=$(echo $OPTARG | sed -e 's/sc_cfg=//g')
+            args_pass="$args_pass --$OPTARG"
+            ;;
           master_working_dir=*)
             master_working_dir=$(echo $OPTARG | sed -e 's/master_working_dir=//g')
             args_pass="$args_pass --$OPTARG"

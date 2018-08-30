@@ -39,10 +39,17 @@
   # SET SCRIPT VARIABLES
   SCuser=$1
   SCloginNode=$2
-  SCTMP_DIR=$3
+  SC_DIR=$3
   SCtargetDir=$4
   SCauxScript=$5
   PRELOAD_ENV=$6
+
+  # CREATE SC TMP DIR 
+  echo "Creating remote tmp directory..." 
+
+  uuid=$(uuidgen)
+  SCTMP_DIR=${SC_DIR}/tmp_${uuid}
+  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}"@"${SCloginNode}" mkdir ${SCTMP_DIR}
 
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   SOURCES_DIR=${SCRIPT_DIR}/../../..
@@ -59,14 +66,6 @@
   echo "- Generic AuxScript = ${SCauxScript_generic}"
   echo "- Sources Dir       = ${SOURCES_DIR}"
   echo "- Local tmp Dir     = ${TMP_DIR}"
-  sleep 5s
-
-  # Display warning for dummies
-  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-  echo "!WARN: SCTMP_DIR WILL BE COMPLETELY ERASED"
-  echo "!WARN: SCTMP_DIR = ${SCTMP_DIR}"
-  echo "!WARN: YOU HAVE 5s TO ABORT..."
-  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
   sleep 5s
 
   # Compile sources

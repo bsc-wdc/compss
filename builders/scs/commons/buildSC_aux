@@ -29,6 +29,7 @@
   ####################
   # MAIN
   ####################
+
   # Get parameters
   if [ $# -ne 11 ]; then
     usage
@@ -71,26 +72,26 @@
   # Load additional exports
   ${additionalExports}
   echo "NEW PATH=$PATH" 
+ 
   # CREATE TARGET FOLDER
   echo "- Create target folder"
-  rm -rf ${targetDir}
-  mkdir -p ${targetDir}
-  mkdir -p ${targetDir}/Doc
-  mkdir -p ${targetDir}/Dependencies
-  mkdir -p ${targetDir}/Dependencies/extrae
-  mkdir -p ${targetDir}/Runtime
-  mkdir -p ${targetDir}/Runtime/configuration
-  mkdir -p ${targetDir}/Runtime/scripts
-  mkdir -p ${targetDir}/Runtime/adaptors
-  mkdir -p ${targetDir}/Runtime/connectors
-  mkdir -p ${targetDir}/Runtime/cloud-conn
-  mkdir -p ${targetDir}/Runtime/scheduler
-  mkdir -p ${targetDir}/Tools
-  mkdir -p ${targetDir}/Tools/monitor
-  mkdir -p ${targetDit}/Tools/storage
-  mkdir -p ${targetDir}/Bindings
-  mkdir -p ${targetDir}/Bindings/bindings-common
-  
+  rm -rf "${targetDir}"
+  mkdir -p "${targetDir}"
+  mkdir -p "${targetDir}/Doc"
+  mkdir -p "${targetDir}/Dependencies"
+  mkdir -p "${targetDir}/Dependencies/extrae"
+  mkdir -p "${targetDir}/Runtime"
+  mkdir -p "${targetDir}/Runtime/configuration"
+  mkdir -p "${targetDir}/Runtime/scripts"
+  mkdir -p "${targetDir}/Runtime/adaptors"
+  mkdir -p "${targetDir}/Runtime/connectors"
+  mkdir -p "${targetDir}/Runtime/cloud-conn"
+  mkdir -p "${targetDir}/Runtime/scheduler"
+  mkdir -p "${targetDir}/Tools"
+  mkdir -p "${targetDir}/Tools/monitor"
+  mkdir -p "${targetDir}/Tools/storage"
+  mkdir -p "${targetDir}/Bindings"
+  mkdir -p "${targetDir}/Bindings/bindings-common"
 
   # RUNTIME DEPLOYMENT
   echo "- Copy Runtime deployment files"
@@ -211,17 +212,14 @@
     cp "$scheduler" "${targetDir}"/Runtime/scheduler/
   done
 
-  
   # Storage
   echo "--- Copy storage implementations"
-
-  echo "Dealing with Redis storage implementation..."
-  cd "${tmpDir}/utils/storage/redisPSCO"
+  cd "${TMP_DIR}/utils/storage/redisPSCO" || exit 1
   ./make_bundle.sh
   cp -r COMPSs-Redis-bundle "${targetDir}/Tools/storage/redis"
-  cd -
+  cd "${SCRIPT_DIR}" || exit 1
 
-  #Connectors
+  # Connectors
   echo "--- Copy Runtime Connectors"
   connectors=$(find "${TMP_DIR}"/compss/runtime/resources/ -name "*.jar" | grep -v "cloud-conn")
   for conn in $connectors; do
@@ -338,6 +336,12 @@
   echo "- Set COMPSs permissions"
   chmod -R 775 "${targetDir}"
   chmod -R 777 "${targetDir}"/Runtime/configuration/
+
+  # Create public usage log file
+  log_usage_file="${targetDir}/usage.log"
+  echo -e "USAGE DATE\\t\\t\\tUSER" > "${log_usage_file}"
+  echo -e "$(date)\\tINSTALLATION" >> "${log_usage_file}"
+  chmod 777 "${log_usage_file}"
 
   # END
   exit 0

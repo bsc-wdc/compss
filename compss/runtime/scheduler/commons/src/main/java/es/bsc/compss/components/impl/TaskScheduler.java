@@ -694,6 +694,7 @@ public class TaskScheduler {
             action.tryToLaunch();
         } catch (BlockedActionException | UnassignedActionException | InvalidSchedulingException e) {
             // Can not be blocked nor unassigned
+        	ErrorManager.fatal("[TaskScheduler] An action to reduce the resources of a worker should be always schedulable " + e);
         }
     }
 
@@ -784,6 +785,7 @@ public class TaskScheduler {
                 action.tryToLaunch();
             } catch (BlockedActionException | UnassignedActionException | InvalidSchedulingException e) {
                 // Can not be blocked nor unassigned
+            	ErrorManager.fatal("[TaskScheduler] An action to reduce the resources of a worker should be always schedulable " + e);	
             }
         } else {
             dynamicWorker.destroyResources(modification.getModification());

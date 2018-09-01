@@ -1,6 +1,6 @@
 %undefine _missing_build_ids_terminate_build
 %define name	 	compss-extrae
-%define version		2.3.rc1808
+%define version		2.3.rc1809
 %define release		1
 
 Requires: compss-engine, libxml2 >= 2.5.0, libxml2-devel >= 2.5.0, libtool, automake, make, gcc-c++, gcc-gfortran

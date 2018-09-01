@@ -1,5 +1,5 @@
 %define name	 	compss-worker
-%define version		2.3.rc1808
+%define version		2.3.rc1809
 %define release		1
 
 Requires: java-1.8.0-openjdk

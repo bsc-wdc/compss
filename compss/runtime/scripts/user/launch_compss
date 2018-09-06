@@ -321,7 +321,7 @@ worker_cmd() {
             ${nodeId} \
             ${storage_conf} \
             ${taskExecution} \
-	          ${persistent_worker_c} \
+	        ${persistent_worker_c} \
             ${python_interpreter} \
             ${python_version} \
             ${DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT} \
@@ -707,6 +707,8 @@ check_args() {
   if [ -z "${python_interpreter}" ]; then
     python_interpreter=${DEFAULT_PYTHON_INTERPRETER}
     python_version=${DEFAULT_PYTHON_VERSION}
+  else
+    python_version=$( ${python_interpreter} -c "import sys; print(sys.version_info[:][0])" )
   fi
 
   if [ -z "${python_propagate_virtual_environment}" ]; then
@@ -925,7 +927,7 @@ set_variables() {
   if [ "${worker_working_dir}" == "gpfs" ]; then
     worker_working_dir=$(mktemp -d -p "${GPFS_PREFIX}${HOME}")
   elif [ "${worker_working_dir}" == "scratch" ]; then
-    worker_working_dir=$TMPDIR
+    worker_working_dir=$TMPDIR/${!ENV_VAR_JOB_ID}
   else
     # The working dir is a custom absolute path, create tmp
     worker_working_dir=$(mktemp -d -p "${worker_working_dir}")
@@ -954,7 +956,7 @@ set_variables() {
     worker_in_master_memory=${DEFAULT_NODE_MEMORY_SIZE}
   else
     # Change from MB to GB
-    worker_in_master_memory=$(( worker_in_master_memory / 1024 - 4))
+    worker_in_master_memory=${DEFAULT_NODE_MEMORY_SIZE}
   fi
 
   # Load tracing and debug only for NIO
@@ -985,7 +987,7 @@ set_variables() {
 }
 
 ###############################################
-# Creates XML Files
+# Log execution variables
 ###############################################
 log_variables() {
   echo "-------- Launch arguments --------"
@@ -1025,6 +1027,24 @@ log_variables() {
   echo "To COMPSs:                 ${args_pass}"
   echo "-----------------------------------"
   echo " "
+}
+
+###############################################
+# Write usage to log file
+###############################################
+write_log_usage() {
+  # Create file with header if required
+  local log_usage_file="${COMPSS_HOME}/usage.log"
+  if [ ! -f "${log_usage_file}" ]; then
+    echo -e "USAGE DATE\\t\\t\\tUSER" > "${log_usage_file}"
+  fi
+
+  # Write usage message
+  msg="$(date)\\t$(whoami)"
+  echo -e "$msg" >> "${log_usage_file}"
+
+  # Ensure file is public
+  chmod 777 "${log_usage_file}"
 }
 
 ###############################################
@@ -1307,6 +1327,8 @@ insert_xml_elasticity() {
   local jvm_workers_opts_size
   jvm_workers_opts_str=$(echo "${jvm_workers_opts}" | tr "," " ")
   jvm_workers_opts_size=$(echo "${jvm_workers_opts_str}" | wc -w)
+  fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
+  fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
 
   cat >> "${RESOURCES_FILE}" << EOT
    <CloudProvider Name="SLURM-Cluster">
@@ -1322,7 +1344,7 @@ EOT
             <Image Name="None">
 EOT
   else
-       cat >> "${RESOURCES_FILE}" << EOT
+   cat >> "${RESOURCES_FILE}" << EOT
             <Image Name="${container_image}">
 EOT
   fi
@@ -1478,6 +1500,22 @@ EOT
                                 </Property>
 EOT
   fi
+  if [ -n "${container_opts}" ]; then
+          cat >> "${PROJECT_FILE}" << EOT
+                                <Property>
+                                        <Name>container_opts</Name>
+                                        <Value>${container_opts}</Value>
+                                </Property>
+EOT
+  fi
+  if [ -n "${cpu_affinity}" ]; then
+          cat >> "${PROJECT_FILE}" << EOT
+                                <Property>
+                                        <Name>cpu_affinity</Name>
+                                        <Value>${cpu_affinity}</Value>
+                                </Property>
+EOT
+  fi
 
   cat >> "${PROJECT_FILE}" << EOT
 				<Property>
@@ -1496,6 +1534,15 @@ EOT
                                         <Name>jvm_opts_str</Name>
                                         <Value>${jvm_workers_opts_str}</Value>
                                 </Property>
+                <Property>
+                                        <Name>fpga_reprogram_size</Name>
+                                        <Value>${fpga_reprogram_size}</Value>
+                                </Property>
+                                <Property>
+                                        <Name>fpga_reprogram_str</Name>
+                                        <Value>${fpga_reprogram_str}</Value>
+                                </Property>
+
 			 	<Property>
                                         <Name>network</Name>
                                         <Value>${network}</Value>
@@ -1563,9 +1610,9 @@ add_compute_node() {
         node=$(${NODE_NAME_QUEUE} "${node}")
   fi
   
-  echo "Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}mkdir -p ${worker_working_dir}${CMD_SEPARATOR}; chmod +rx ${worker_working_dir}${CMD_SEPARATOR} "
-  # shellcheck disable=SC2086
-  ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}mkdir -p ${worker_working_dir}${CMD_SEPARATOR}; chmod +rx ${worker_working_dir}${CMD_SEPARATOR} 
+  echo "Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}bash -c \"mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}\"${CMD_SEPARATOR}"
+  #shellcheck disable=SC2086
+  ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}bash -c "mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}"${CMD_SEPARATOR}
 
   nodeName=${nodeName}${network}
 
@@ -1707,6 +1754,9 @@ EOT
 
   # Log variables
   log_variables
+
+  # Write log usage
+  write_log_usage
 
   # Add clean up for execution end
   trap cleanup EXIT

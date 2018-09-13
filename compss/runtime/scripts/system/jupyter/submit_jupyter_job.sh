@@ -4,12 +4,13 @@ job_name=$1   # not supported yet
 exec_time=$2  # walltime in minutes
 num_nodes=$3  # number of nodes
 qos=$4        # quality of service
+tracing=$5    # tracing
 
 ###############################################
 #       Submit the jupyter notebook job       #
 ###############################################
 
-result=$(enqueue_compss --exec_time=${exec_time} --num_nodes=${num_nodes} --qos=${qos} --lang=python --jupyter_notebook)
+result=$(enqueue_compss --exec_time=${exec_time} --num_nodes=${num_nodes} --qos=${qos} --tracing=${tracing} --lang=python --jupyter_notebook)
 submit_line=$(echo "$result" | grep "Submitted")
 job_id=(${submit_line//Submitted batch job/ })
 echo "JobId: $job_id"

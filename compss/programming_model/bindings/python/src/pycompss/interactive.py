@@ -147,12 +147,19 @@ def start(log_level='off',
     cp = os.getcwd() + '/'
     pythonpath = os.environ['PYTHONPATH']
     classpath = os.environ['CLASSPATH']
+    ld_library_path = os.environ['LD_LIBRARY_PATH']
 
     # Set extrae dependencies
-    extrae_home = compss_home + '/Dependencies/extrae'
+    if not "EXTRAE_HOME" in os.environ:
+        # It can be defined by the user or by launch_compss when running in Supercomputer
+        extrae_home = compss_home + '/Dependencies/extrae'
+        os.environ['EXTRAE_HOME'] = extrae_home
+    else:
+        extrae_home = os.environ['EXTRAE_HOME']
     extrae_lib = extrae_home + '/lib'
-    os.environ['EXTRAE_HOME'] = extrae_home
-    ld_library_path = extrae_lib + ':' + os.environ['LD_LIBRARY_PATH']
+
+    # Include extrae into ld_library_path
+    ld_library_path = extrae_lib + ':' + ld_library_path
     os.environ['LD_LIBRARY_PATH'] = ld_library_path
 
     if debug:

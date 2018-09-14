@@ -31,3 +31,11 @@ arm-linux-gnueabihf () {
     export BOOST_LIB=/opt/install-arm/libboost
     export TARGET_HOST=arm-linux-gnueabihf
 }
+
+arm-linux-gnueabihf-fpgacc () {
+    export CC=arm-linux-gnueabihf-gcc
+    export CXX=arm-linux-gnueabihf-g++ 
+    export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-armhf
+    export BOOST_LIB=/opt/install-arm/libboost
+    export TARGET_HOST=arm-linux-gnueabihf
+}

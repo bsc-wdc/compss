@@ -82,11 +82,12 @@ show_version() {
 # Displays parsing arguments errors
 display_error() {
   local error_msg=$1
+  local exitCode=$2
 
   echo "$error_msg"
   echo " "
 
-  usage 1
+  usage $exitCode 
 }
 
 # Displays runtime/application errors
@@ -206,7 +207,7 @@ get_args() {
             ;;
           *)
             # Flag didn't match any patern. Raise exception
-            display_error "Bad argument: $OPTARG"
+            display_error "Bad argument: $OPTARG" 3 #The 3 exit code corresponds with Bad argument
             ;;
         esac
         ;;
@@ -221,7 +222,7 @@ get_args() {
 
   # Parse application name
   if [[ $# -eq 0 ]]; then
-    display_error "Error application name not specified"
+    display_error "Error application name not specified" 3
   else
     other_args=$*
   fi
@@ -302,7 +303,7 @@ libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
 if [ -z "$libjava" ]; then
   libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
   if [ -z "$libjava" ]; then
-    display_error "${JAVA_JRE_ERROR}"
+    display_error "${JAVA_JRE_ERROR}" 1
   fi
 fi
 LIBJAVAFOLDER=$(dirname "$libjava")

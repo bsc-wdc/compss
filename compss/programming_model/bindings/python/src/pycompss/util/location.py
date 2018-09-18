@@ -62,7 +62,7 @@ def set_pycompss_context(where):
     _WHERE = where
 
 
-def i_am_within_scope():
+def within_scope():
     """
     Determine if the execution is being performed within the PyCOMPSs scope.
     :return:  <Boolean> - True if under scope. False on the contrary.

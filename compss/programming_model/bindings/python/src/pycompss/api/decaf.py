@@ -29,7 +29,7 @@ import logging
 import os
 from functools import wraps
 from pycompss.util.location import at_master
-from pycompss.util.location import i_am_within_scope
+from pycompss.util.location import within_scope
 
 if __debug__:
     logger = logging.getLogger(__name__)
@@ -54,7 +54,7 @@ class Decaf(object):
 
         self.args = args
         self.kwargs = kwargs
-        self.scope = i_am_within_scope()
+        self.scope = within_scope()
         if self.scope:
             if __debug__:
                 logger.debug("Init @decaf decorator...")

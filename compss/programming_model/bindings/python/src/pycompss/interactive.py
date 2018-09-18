@@ -57,8 +57,6 @@ myUuid = 0
 process = None
 log_path = '/tmp/'
 graphing = False
-tracing = False
-monitoring = False
 
 
 def start(log_level='off',
@@ -186,10 +184,6 @@ def start(log_level='off',
     # Export global variables
     global graphing
     graphing = graph
-    global tracing
-    tracing = trace
-    global monitoring
-    monitoring = monitor
 
     __export_globals__()
 
@@ -230,10 +224,8 @@ def start(log_level='off',
         specific_log_dir = get_specific_log_dir()
         # Override tracing considering the parameter defined in pycompss_interactive_sc script
         if get_tracing():
-            tracing = 1  # TODO: Is this really needed
             trace = 1
         else:
-            tracing = 0  # TODO: Is this really needed
             trace = 0
         if verbose:
             print("- Overridden project xml with: " + project_xml)

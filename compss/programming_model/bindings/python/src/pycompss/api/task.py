@@ -52,10 +52,10 @@ class Task(object):
         not passed to the constructor!
         """
 
-        from pycompss.util.location import i_am_within_scope
+        from pycompss.util.location import within_scope
 
         # Check if under the PyCOMPSs scope
-        if i_am_within_scope():
+        if within_scope():
             from pycompss.api.parameter import is_parameter, get_new_parameter
 
             self.scope = True

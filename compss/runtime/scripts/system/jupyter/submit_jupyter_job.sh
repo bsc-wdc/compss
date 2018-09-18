@@ -80,13 +80,13 @@ done
 echo "Token: ${token[1]}"
 
 
-###############################################
-# USAGE EXAMPLE:                              #
-###############################################
-#                                             #
-# ./submit_jupyter_job.sh 00:01:00 test_job 2 #
-#                                             #
-###############################################
-# Returns the job id, the main node where     #
-# Jupyter is running, and the session token.  #
-###############################################
+#########################################################
+# USAGE EXAMPLE:                                        #
+#########################################################
+#                                                       #
+# ./submit_jupyter_job.sh 00:01:00 test_job 2 qos False #
+#                                                       #
+#########################################################
+# Returns the job id, the main node where               #
+# Jupyter is running, and the session token.            #
+#########################################################

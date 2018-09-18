@@ -98,6 +98,15 @@ def get_specific_log_dir():
     return os.environ['COMPSS_SPECIFIC_LOG_DIR']
 
 
+def get_tracing():
+    """
+    Get tracing boolean.
+    TIP: The environment variable COMPSS_TRACING is defined in launch_compss script.
+    :return: Tracing boolean
+    """
+    return 'true' == os.environ['COMPSS_TRACING']
+
+
 def generate_xmls(compss_home, nodes, master_port):
     """
     Generate project and resources xmls.

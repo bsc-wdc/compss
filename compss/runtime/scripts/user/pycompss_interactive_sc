@@ -195,7 +195,7 @@ get_args() {
             ;;
           tracing=*)
             tracing=${OPTARG//tracing=/}
-          ;
+            ;;
           *)
 	        # Flag didn't match any pattern.
 	        ;;

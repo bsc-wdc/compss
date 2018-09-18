@@ -40,22 +40,16 @@
 
   get_invocation_params () {
     jobId=$1
-    echo "jobId $jobId"
     taskId=$2
-    echo "taskId $taskId"
 
     numSlaves=$3
-    echo "numSlaves ${numSlaves}"
     slaves=(${@:4:${numSlaves}})
     shift $((3 + numSlaves))
+
     cus=$1
-    echo "cus $cus"
     numParams=$2
-        echo "numParams $numParams"
     hasTarget=$3
-        echo "hasTarget $hasTarget"
     numResults=$4
-        echo "numResults $numResults"
 
     shift 4
     params=($@)
@@ -70,10 +64,6 @@
         CLASSPATH=$CLASSPATH:"$i"
       fi
     done
-  }
-
-  compute_generic_sandbox () {
-    sandbox="${workingDir}/sandBox/job_${jobId}/"
   }
 
   get_parameters() {
@@ -144,4 +134,71 @@
 
     # Set python home related env
     export PYCOMPSS_HOME=${bindingsDir}/python
+  }
+
+  compute_generic_sandbox () {
+    sandbox="${workingDir}/sandBox/job_${jobId}/"
+  }
+  
+  numRenames=0
+  moveFileToSandbox () {
+    if [ -f "$1" ]; then
+        if [ ! -f "${sandbox}/${2}" ]; then
+          echo "[WORKER_COMMONS.SH] Link ${1} -> ${sandbox}/${2}"
+      	  ln -s "${1}" "${sandbox}/${2}"
+        else
+          newVer=$(basename "$1" | tr "_" "\t" | awk '{ print $1 }' | tr "v" "\t" | awk '{ print $2 }')
+          oldVer=$(basename $(echo $(readlink -f "${sandbox}/${2}")) | tr "_" "\t" | awk '{ print $1 }' | tr "v" "\t" | awk '{ print $2 }')
+          if (( newVer > oldVer )); then
+            ln -sf "$1" "${sandbox}/${2}"
+            echo "[WORKER_COMMONS.SH] WARN: Updating link ${sandbox}/$2 that already exists"
+          else
+            echo "[WORKER_COMMONS.SH] WARN: Cannot create link because ${sandbox}/$2 already exists"
+          fi
+        fi
+      else
+        echo "[WORKER_COMMONS.SH] WARN: Cannot create link because $1 doesn't exists"
+      fi
+
+      # Add to treat after task management
+      if [ ${numRenames} -eq 0 ]; then
+        renames="$1 ${sandbox}/$2"
+        numRenames=1
+      else
+        renames="$renames $1 ${sandbox}/$2"
+      fi
+  }
+
+
+  moveFilesOutFromSandbox () {
+    removeOrMove=0
+    renamedFile=""
+    for element in $renames; do
+      # Check pair if first
+      if [ $removeOrMove -eq 0 ]; then
+        if [ -f "$element" ]; then
+    	    removeOrMove=1
+    	  else
+    	    removeOrMove=2
+    	    renamedFile=$element
+    	  fi
+      else
+        if [ $removeOrMove -eq 1 ]; then
+          echo "[WORKER.SH] Removing link $element"
+          if [ -f "$element" ]; then
+            rm "${element}"
+          fi
+    	elif [ $removeOrMove -eq 2 ]; then
+          echo "[WORKER.SH] Moving $element to $renamedFile"
+          if [ -f "$element" ]; then
+            mv "${element}" "${renamedFile}"
+          fi
+    	else
+    	  echo 1>&2 "Incorrect operation when managing rename symlinks "
+          exit 7
+        fi
+        removeOrMove=0
+        renamedFile=""
+      fi
+    done
   }

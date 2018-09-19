@@ -87,7 +87,7 @@ display_error() {
   echo "$error_msg"
   echo " "
 
-  usage $exitCode 
+  #usage $exitCode 
 }
 
 # Displays runtime/application errors

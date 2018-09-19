@@ -144,8 +144,6 @@ get_args() {
                                 ;;
                             *)
                                 COMPSS_BUILD_APP_ARGS="${COMPSS_BUILD_APP_ARGS} --${OPTARG}" #Appends the unrecognised args...
-                                echo "Unrecognised Parameters: "
-                                echo ${COMPSS_BUILD_APP_ARGS}
                                 ;;
                             esac
                             ;;
@@ -231,17 +229,11 @@ restore_cpp_c_flags() {
 }
 
 execute_compss_build_app() {
-    local ARGUMENTS=$1
-
-    echo "****Arguments given to compss_build_app****"
-    echo ""
-    echo "$ARGUMENTS"
+    local ARGUMENTS="${@:1}"
     
     compss_build_app $ARGUMENTS
 
     local ev=$?
-
-    echo "Evaluation: $ev"
     
     if [ $ev -eq 3 ]; then #This means that some argument was not valid or name of the app. missing
         
@@ -261,7 +253,7 @@ execute_compss_build_app() {
     check_args
 
     save_cpp_c_flags
-    set_text_serialization
+    set_text_serialization #For arm-linux... (to enable portability between architectures)
 
     appdir=$(pwd)
     tmpdir=$(mktemp -d)
@@ -279,11 +271,9 @@ execute_compss_build_app() {
 
         for i in $processed; do
 
-            if [ -d $i ]; then
-                if [ -d $i/master ]; then
-                    echo "The master directory of the $i architecture already exists from a previous build. Removing."
-                    rm -rf $i/master
-                fi
+            if [ -d ${appdir}/${i}/master ]; then
+                echo "The master directory of the $i architecture already exists from a previous build. Removing."
+                rm -rf ${appdir}/${i}/master
             fi
 
             mkdir -p $i
@@ -293,9 +283,10 @@ execute_compss_build_app() {
             fi
 
             (
+            set -e
             $i #Function to export al the needed env. variables
 
-            execute_compss_build_app "--only-master $COMPSS_BUILD_APP_ARGS $other_args"
+            execute_compss_build_app --only-master $COMPSS_BUILD_APP_ARGS $other_args
             )
 
             ev=$?
@@ -304,8 +295,8 @@ execute_compss_build_app() {
                 exit 1
             fi
 
-            mkdir -p $appdir/$i/master
-            mv ./master $appdir/$i
+            mkdir -p ${appdir}/${i}
+            mv ./master ${appdir}/${i}
 
         done
 
@@ -322,11 +313,9 @@ execute_compss_build_app() {
 
         for i in $processed; do
 
-            if [ -d $i ]; then
-                if [ -d $i/worker ]; then
-                    echo "The worker directory of the $i architecture already exists from a previous build. Removing."
-                    rm -rf $i/worker
-                fi
+            if [ -d ${appdir}/${i}/worker ]; then
+                echo "The worker directory of the $i architecture already exists from a previous build. Removing."
+                rm -rf ${appdir}/${i}/worker
             fi
 
             mkdir -p $i
@@ -336,9 +325,10 @@ execute_compss_build_app() {
             fi
 
             (
+            set -e
             $i #Function to export al the needed env. variables
 
-            execute_compss_build_app "--only-worker $COMPSS_BUILD_APP_ARGS $other_args"
+            execute_compss_build_app --only-worker $COMPSS_BUILD_APP_ARGS $other_args
             )
 
             ev=$?
@@ -347,8 +337,8 @@ execute_compss_build_app() {
                 exit 1
             fi
             
-            mkdir -p $appdir/$i/worker
-            mv ./worker $appdir/$i
+            mkdir -p ${appdir}/${i}
+            mv ./worker ${appdir}/${i}
 
         done
 

@@ -89,7 +89,7 @@ Usage: $0 [Options]
                                             Default: ${DEFAULT_SUPERCOMPUTER}
     --browser=<string>                      Web browser
                                             Default: ${DEFAULT_BROWSER}
-    --queue=<string>                          Quality of Service.
+    --queue=<string>                        Queue where to include the job.
                                             Default: ""
     --tracing=<string>                      Enable/Disable tracing environment [true | false]
                                             Default. ${DEFAULT_TRACING}

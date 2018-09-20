@@ -30,7 +30,7 @@
   fi
 
   # Define script variables
-  scriptDir=$(cd "$(dirname $0)"; pwd -P; cd -)
+  scriptDir=$(cd "$(dirname $0)"; pwd -P)
   currentDir=$(pwd)
   tmpDir=${currentDir}/tmp
 

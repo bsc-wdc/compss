@@ -160,7 +160,7 @@ if [ "$ENABLE_CROSS" = true ]; then
         echo "[ ERROR ] The native COMPSs build failed."
         exit 1
     fi
-    
+     
     targetArch=$($CC -dumpmachine)
     
     cd $INSTALLATION_PATH/Bindings/bindings-common/lib
@@ -214,6 +214,10 @@ if [ "$ENABLE_CROSS" = true ]; then
     cd $targetArch
 
     cp $targetBindings/Bindings/c/lib/* .
+
+    cd $INSTALLATION_PATH
+
+    cp $scriptDir/../../../compss/programming_model/bindings/c/cfgs/compssrc ./Bindings/c/cfgs/
 
     rm -rf $tmpDir #Remove temporal files
 

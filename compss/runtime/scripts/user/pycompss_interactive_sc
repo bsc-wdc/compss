@@ -39,12 +39,12 @@ trap CTRL_C INT
 function CTRL_C() {
   echo "* CTRL + C pressed - Quit!"
   if [ -z ${RUNNING_PORT_FORWARDING_PID} ]; then
-    echo "    - Killing port forwarding..."
+    echo -e "\t - Killing port forwarding..."
     kill ${RUNNING_PORT_FORWARDING_PID}
   fi
   if [ -z ${job_id} ]; then
-    echo "    - Cancelling job..."
-    ${DEFAULT_SSH} ${username}@${supercomputer} "scancel $job_id" > /dev/null 2>&1
+    echo -e "\t - Cancelling job..."
+    ${DEFAULT_SSH} ${username}@${supercomputer} "${REMOTE_SCRIPT_DIR}/cancel_jupyter_job.sh $job_id" > /dev/null 2>&1
   fi
   echo "* Finished"
 }
@@ -282,13 +282,13 @@ check_args() {
   # Check other command args
   check_args
 
-  which_runcompss=$(${DEFAULT_SSH} ${username}@${supercomputer} "which runcompss" 2>&1)
-  RUNCOMPSS_PATH=$(echo "$which_runcompss" | grep "runcompss")
-  if [ -z ${RUNCOMPSS_PATH} ]; then
+  which_enqueue_compss=$(${DEFAULT_SSH} ${username}@${supercomputer} "which enqueue_compss" 2>&1)
+  ENQUEUE_COMPSS_PATH=$(echo "$which_enqueue_compss" | grep "enqueue_compss")
+  if [ -z ${ENQUEUE_COMPSS_PATH} ]; then
     display_error ${ERROR_COMPSS_NOT_DEFINED}
     exit 1
   fi
-  SCRIPTS_DIR=$(dirname ${RUNCOMPSS_PATH})
+  SCRIPTS_DIR=$(dirname ${ENQUEUE_COMPSS_PATH})
   REMOTE_SCRIPT_DIR=${SCRIPTS_DIR}/../system/jupyter
 
   # Submit command and get connection info
@@ -308,8 +308,8 @@ check_args() {
   # Get the node name and token
   node=${node[1]}
   token=${token[1]}
-  echo "    - Job id: ${job_id}"
-  echo "    - Token: ${token}"
+  echo -e "\t - Job id: ${job_id}"
+  echo -e "\t - Token: ${token}"
 
   # Establish the port forwarding
   echo "Establishing port forwarding..."
@@ -334,13 +334,13 @@ check_args() {
   wait
 
   echo "* Quit!"
-  echo "    - Killing port forwarding..."
+  echo -e "\t - Killing port forwarding..."
   kill ${RUNNING_PORT_FORWARDING_PID}
-  echo "    - Cancelling job..."
-  ${DEFAULT_SSH} ${username}@${supercomputer} "scancel $job_id" > /dev/null 2>&1
+  echo -e "\t - Cancelling job..."
+  ${DEFAULT_SSH} ${username}@${supercomputer} "${REMOTE_SCRIPT_DIR}/cancel_jupyter_job.sh $job_id" > /dev/null 2>&1
 
   if [ -z "${SSHPASS}" ]; then
-    echo "    - Cleaning environment variables..."
+    echo -e "\t - Cleaning environment variables..."
     unset SSHPASS
   fi
 

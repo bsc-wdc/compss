@@ -151,20 +151,20 @@ get_args() {
     # Treat the argument
     case "$flag" in
       h)
-	    # Display help
-	    usage 0
-	    ;;
+        # Display help
+        usage 0
+        ;;
       v)
         # Display version
         display_version 0
         ;;
       -)
         # Check more complex arguments
-	    case "$OPTARG" in
-	      help)
-	        # Display help
+        case "$OPTARG" in
+          help)
+            # Display help
             usage 0
-	        ;;
+            ;;
           version)
             # Display COMPSs version
             display_version 0
@@ -197,13 +197,13 @@ get_args() {
             tracing=${OPTARG//tracing=/}
             ;;
           *)
-	        # Flag didn't match any pattern.
-	        ;;
-	    esac
-	    ;;
+            # Flag didn't match any pattern.
+            ;;
+        esac
+        ;;
       *)
-	    # Flag didn't match any pattern. End of COMPSs flags
-	    ;;
+        # Flag didn't match any pattern. End of COMPSs flags
+        ;;
     esac
   done
 }

@@ -198,6 +198,7 @@ prepare_worker_build() {
 
         @MKDIR@ worker
         @CP@ *.* worker
+        @CP@ ./src/* worker
         cd worker
 		@RM@ $2.cc
                                                                               

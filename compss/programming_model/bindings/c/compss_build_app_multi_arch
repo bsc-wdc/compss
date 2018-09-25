@@ -1,3 +1,5 @@
+#!/bin/bash
+
 #This script builds an application for several applications
 #Is used for the C/C++ binding.
 
@@ -17,6 +19,9 @@ DEFAULT_ONLY_WORKER=false
 APPLICATION_ERROR="Error: Application name not provided"
 ONLY_MASTER_AND_WORKER_ERROR="Error: Is not possible to specify both options --only-master and --only-worker, to compile both remove these arguments."
 ARCH_CONFIGURATION_FUNCTION_NOT_FOUND="Error: The function to configurate one of the desired architectures has not been found, ensure that is defined in the configuration file."
+
+COMPSS_BUILD_APP_ARGS="" #We are going to assume that every mismatching options is of compss_build_app
+
 #---------------------------------------------------
 # FUNCTIONS DECLARATION
 #---------------------------------------------------
@@ -51,10 +56,6 @@ show_opts() {
                                     going to be build. Each architecture separated by ",".
                                     Default: ${DEFAULT_ARCHITECTURE}
 
-        --only-master               Compiles only the master for the specified architectures.
-
-        --only-worker               Compiles only the worker for the specified architectures.
-
         --cfg=<path>                Specifies the location of the configuration file that contains
                                     the environment to execute when cross-compiling the application.
                                     In this BASH script functions named as the target architecture are
@@ -73,7 +74,7 @@ usage() {
 Usage: $0 [options] application_name
 
 * Options:
-    General:
+    compss_build_app_multi_arch specific:
 
         --help, -h      Prints this help message
 
@@ -82,6 +83,8 @@ Usage: $0 [options] application_name
 EOT
 
     show_opts
+
+    compss_build_app -h #Show ALL the options
 
     exit "$exitValue"
 }
@@ -103,7 +106,7 @@ get_args() {
                         usage 0
                         ;;
                    -)
-                        #The rest of possible arguments that did not match
+                        #The rest of possible arguments that did not match (starting by -)
                         case "$OPTARG" in
                             help)
                                 #Display help
@@ -140,8 +143,7 @@ get_args() {
                                 CFG_PATH=${OPTARG//cfg=/}
                                 ;;
                             *)
-                                # Flag didn't match any pattern. Raise exception
-                                display_error "Bad argument: $OPTARG"
+                                COMPSS_BUILD_APP_ARGS="${COMPSS_BUILD_APP_ARGS} --${OPTARG}" #Appends the unrecognised args...
                                 ;;
                             esac
                             ;;
@@ -226,6 +228,21 @@ restore_cpp_c_flags() {
     export CFLAGS=$DEFAULT_CFLAGS
 }
 
+execute_compss_build_app() {
+    local ARGUMENTS="${@:1}"
+    
+    compss_build_app $ARGUMENTS
+
+    local ev=$?
+    
+    if [ $ev -eq 3 ]; then #This means that some argument was not valid or name of the app. missing
+        
+        echo ""
+        show_opts
+        exit 1
+    fi
+}
+
 #---------------------------------------------------
 # MAIN EXECUTION
 #---------------------------------------------------
@@ -236,7 +253,7 @@ restore_cpp_c_flags() {
     check_args
 
     save_cpp_c_flags
-    set_text_serialization
+    set_text_serialization #For arm-linux... (to enable portability between architectures)
 
     appdir=$(pwd)
     tmpdir=$(mktemp -d)
@@ -254,11 +271,9 @@ restore_cpp_c_flags() {
 
         for i in $processed; do
 
-            if [ -d $i ]; then
-                if [ -d $i/master]; then
-                    echo "The master directory of the $i architecture already exists from a previous build. Removing."
-                    rm -rf $i/master
-                fi
+            if [ -d ${appdir}/${i}/master ]; then
+                echo "The master directory of the $i architecture already exists from a previous build. Removing."
+                rm -rf ${appdir}/${i}/master
             fi
 
             mkdir -p $i
@@ -267,20 +282,21 @@ restore_cpp_c_flags() {
                 display_error "${ARCH_CONFIGURATION_FUNCTION_NOT_FOUND}"
             fi
 
+            (
+            set -e
             $i #Function to export al the needed env. variables
 
-            compss_build_app --only-master $other_args
+            execute_compss_build_app --only-master $COMPSS_BUILD_APP_ARGS $other_args
+            )
 
             ev=$?
 
             if [ $ev -ne 0 ]; then
-                echo ""
-                echo "Master for $i architecture failed in the build step."
                 exit 1
             fi
 
-            mkdir -p $appdir/$i/master
-            mv ./master $appdir/$i
+            mkdir -p ${appdir}/${i}
+            mv ./master ${appdir}/${i}
 
         done
 
@@ -297,11 +313,9 @@ restore_cpp_c_flags() {
 
         for i in $processed; do
 
-            if [ -d $i ]; then
-                if [ -d $i/worker]; then
-                    echo "The worker directory of the $i archtiecture already exists from a previous build. Removing."
-                    rm -rf $i/worker
-                fi
+            if [ -d ${appdir}/${i}/worker ]; then
+                echo "The worker directory of the $i architecture already exists from a previous build. Removing."
+                rm -rf ${appdir}/${i}/worker
             fi
 
             mkdir -p $i
@@ -310,20 +324,21 @@ restore_cpp_c_flags() {
                 display_error "${ARCH_CONFIGURATION_FUNCTION_NOT_FOUND}"
             fi
 
+            (
+            set -e
             $i #Function to export al the needed env. variables
 
-            compss_build_app --only-worker $other_args
+            execute_compss_build_app --only-worker $COMPSS_BUILD_APP_ARGS $other_args
+            )
 
             ev=$?
 
             if [ $ev -ne 0 ]; then
-                echo ""
-                echo "Worker for $i architecture failed in the build step."
                 exit 1
             fi
-
-            mkdir -p $appdir/$i/worker
-            mv ./worker $appdir/$i
+            
+            mkdir -p ${appdir}/${i}
+            mv ./worker ${appdir}/${i}
 
         done
 

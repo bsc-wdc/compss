@@ -297,8 +297,8 @@ class Task(object):
 
             if not i_am_at_master() and not is_nested:
                 # Task decorator worker body code.
-                new_types, new_values = self.worker_code(f, args, kwargs)
-                return new_types, new_values
+                new_types, new_values, is_modifier = self.worker_code(f, args, kwargs)
+                return new_types, new_values, is_modifier
             else:
                 # Task decorator master body code.
                 # Returns the future object that will be used instead of the
@@ -935,7 +935,7 @@ class Task(object):
         if len(to_serialize) > 0:
             serialize_objects(to_serialize)
 
-        return new_types, new_values
+        return new_types, new_values, self.kwargs['isModifier']
 
     def __reveal_objects(self):
         """

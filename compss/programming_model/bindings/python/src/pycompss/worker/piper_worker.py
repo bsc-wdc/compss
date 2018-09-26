@@ -434,9 +434,9 @@ def execute_task(process_name, storage_conf, params):
 
         if persistent_storage:
             with storage_task_context(logger, values, config_file_path=storage_conf):
-                new_types, new_values = task_execution_1()
+                new_types, new_values, is_modifier = task_execution_1()
         else:
-            new_types, new_values = task_execution_1()
+            new_types, new_values, is_modifier = task_execution_1()
 
     # ==========================================================================
     except AttributeError:
@@ -482,6 +482,8 @@ def execute_task(process_name, storage_conf, params):
 
         if has_target == 'true':
             # Instance method
+            # The self object needs to be an object in order to call the function.
+            # Consequently, it can not be done in the @task decorator.
             last_elem = values.pop()
             if is_psco(last_elem):
                 obj = last_elem
@@ -502,23 +504,28 @@ def execute_task(process_name, storage_conf, params):
 
             if persistent_storage:
                 with storage_task_context(logger, values, config_file_path=storage_conf):
-                    new_types, new_values = task_execution_2()
+                    new_types, new_values, is_modifier = task_execution_2()
             else:
-                new_types, new_values = task_execution_2()
+                new_types, new_values, is_modifier = task_execution_2()
 
-            if is_psco(last_elem):
-                # There is no update PSCO on the storage API. Consequently, the changes on the PSCO must have been
-                # pushed into the storage automatically on each PSCO modification.
+            # Depending on the isModifier option, it is necessary to serialize again self or not.
+            # Since this option is only visible within the task decorator, the task_execution returns
+            # the value of isModifier in order to know here if self has to be serialized.
+            # This solution avoids to use inspect.
+            if is_modifier:
+                if is_psco(last_elem):
+                    # There is no update PSCO on the storage API. Consequently, the changes on the PSCO must have been
+                    # pushed into the storage automatically on each PSCO modification.
+                    if __debug__:
+                        # TODO: this may not be correct if the user specifies isModifier=False.
+                        logger.debug("[PYTHON WORKER %s] The changes on the PSCO must have been automatically updated by the storage." % process_name)
+                    pass
+                else:
+                    if __debug__:
+                        logger.debug("[PYTHON WORKER %s] Serializing self to file: %s" % (process_name, file_name))
+                    serialize_to_file(obj, file_name)
                 if __debug__:
-                    logger.debug(
-                        "[PYTHON WORKER %s] The changes on the PSCO must have been automatically updated by the storage." % process_name)
-                pass
-            else:
-                if __debug__:
-                    logger.debug("[PYTHON WORKER %s] Serializing self to file." % process_name)
-                serialize_to_file(obj, file_name)
-            if __debug__:
-                logger.debug("[PYTHON WORKER %s] Obj: %r" % (process_name, obj))
+                    logger.debug("[PYTHON WORKER %s] Obj: %r" % (process_name, obj))
         else:
             # Class method - class is not included in values (e.g. values = [7])
             types.insert(0, None)  # class must be first type
@@ -528,9 +535,9 @@ def execute_task(process_name, storage_conf, params):
 
             if persistent_storage:
                 with storage_task_context(logger, values, config_file_path=storage_conf):
-                    new_types, new_values = task_execution_3()
+                    new_types, new_values, is_modifier = task_execution_3()
             else:
-                new_types, new_values = task_execution_3()
+                new_types, new_values, is_modifier = task_execution_3()
 
     # EVERYTHING OK
     if __debug__:
@@ -676,7 +683,7 @@ def task_execution(logger, process_name, module, method_name, types, values, com
     :param types: List of the parameter's types
     :param values: List of the parameter's values
     :param compss_kwargs: PyCOMPSs keywords
-    :return: new types and new_values
+    :return: new types, new_values, and isModifier
     """
 
     if __debug__:
@@ -698,18 +705,21 @@ def task_execution(logger, process_name, module, method_name, types, values, com
         # TODO: Currently, the extra result is ignored.
         new_types = task_output[0][0]
         new_values = task_output[0][1]
+        is_modifier = task_output[0][2]
     else:
         # The task_output is composed by the new_types and new_values returned by the task decorator.
         new_types = task_output[0]
         new_values = task_output[1]
+        is_modifier = task_output[2]
 
-        if __debug__:
-            # The types may change (e.g. if the user does a makePersistent within the task)
-            logger.debug("[PYTHON WORKER %s] Return Types : %s " % (process_name, str(new_types)))
-            logger.debug("[PYTHON WORKER %s] Return Values: %s " % (process_name, str(new_values)))
-            logger.debug("[PYTHON WORKER %s] Finished task execution" % process_name)
+    if __debug__:
+        # The types may change (e.g. if the user does a makePersistent within the task)
+        logger.debug("[PYTHON WORKER %s] Return Types : %s " % (process_name, str(new_types)))
+        logger.debug("[PYTHON WORKER %s] Return Values: %s " % (process_name, str(new_values)))
+        logger.debug("[PYTHON WORKER %s] Return isModifier: %s " % (process_name, str(is_modifier)))
+        logger.debug("[PYTHON WORKER %s] Finished task execution" % process_name)
 
-    return new_types, new_values
+    return new_types, new_values, is_modifier
 
 
 def shutdown_handler(signal, frame):

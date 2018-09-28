@@ -1,0 +1,53 @@
+#!/bin/bash -e
+
+  #############################################################
+  # Name: buildJuron
+  # Description: SCRIPT FOR Juron COMPSs BUILD
+  # Parameters: <Juron_user> Juron user account. Preferable with ssh keys inserted
+  #             <FullTmpPath> Tmp path on Juron for deployment
+  #             <FullTargetPath> Base Target Installation folder on Juron
+  #############################################################
+
+  ####################
+  # FUNCTIONS
+  ####################
+  usage() {
+    echo " Usage: buildJuron <Juron_user> <FullTmpPath> <FullTargetPath>"
+    echo " "
+  }
+
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -eq 1 ]; then
+    if [ "$1" == "usage" ]; then
+      usage
+      exit 0
+    fi
+  fi
+  if [ $# -ne 3 ]; then
+    echo "Incorrect number of parameters"
+    usage
+    exit 1
+  fi
+
+  # SET SCRIPT VARIABLES
+  scriptDir=$(pwd)/$(dirname $0)
+
+  Juronuser=$1
+  JurontmpDir=$2
+  JurontargetDir=$3
+  JuronloginNode=juron.fz-juelich.de
+  JuronauxScript=${scriptDir}/buildJuron_aux
+  PRELOAD_ENV=""
+
+  # Perform installation
+  cd ${scriptDir}/../commons/
+  ./buildSC ${Juronuser} ${JuronloginNode} ${JurontmpDir} ${JurontargetDir} ${JuronauxScript} "${PRELOAD_ENV}"
+  exitStatus=$?
+  cd ${scriptDir}
+
+  # END
+  exit $exitStatus

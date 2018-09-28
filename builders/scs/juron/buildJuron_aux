@@ -1,0 +1,44 @@
+#!/bin/bash
+
+  #############################################################
+  # Name: buildJuron_aux
+  # Description: SCRIPT FOR LOCAL COMPSs BUILD in Juron
+  # Parameters: <targetDir>           Base Target Installation folder
+  #
+  # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY
+  #            EXECUTED FROM buildJuron script
+  #############################################################
+
+  usage() {
+    echo "Incorrect number of parameters"
+    echo " Usage: buildJuron_aux <FullTargetPath>"
+    echo " "
+    exit 1
+  }
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -ne 1 ]; then
+    usage
+  fi
+
+  # SET SCRIPT VARIABLES
+  targetDir=$1
+  scriptDir=$(dirname $0)
+
+  modules="lsf/10.1 openjdk/1.8.0_131 gcc/5.4.0 python/2.7.13 PAPI/5.5.0-cuda cmake/3.7.2 m4/1.4.17 boost/1.62.0"
+  py2_modules="python/2.7.13"
+  py3_modules="python/3.6.1"
+  additionalExports="export PATH=${PATH}:${HOME}/.local/bin; export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${HOME}/.local/lib; export ACLOCAL_PATH=${LD_LIBRARY_PATH}:${HOME}/.local/share/aclocal:${ACLOCAL_PATH}"
+  queues_cfg="juron.cfg"
+  extrae_with_openmpi="false"
+  openmpi_version=""
+  extrae_with_impi="false"
+  impi_version=""
+
+  ${scriptDir}/buildSC_aux "${targetDir}" "${modules}" "${py2_modules}" "${py3_modules}" "${additionalExports}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "false"
+
+  # END
+  exit 0

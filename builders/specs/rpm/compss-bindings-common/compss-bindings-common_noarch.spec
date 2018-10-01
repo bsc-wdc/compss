@@ -1,5 +1,5 @@
 %define name	 	compss-bindings-common 
-%define version		2.3.rc1809
+%define version		2.3.rc1810
 %define release		1
 
 Requires: compss-engine, libtool, automake, make, gcc-c++

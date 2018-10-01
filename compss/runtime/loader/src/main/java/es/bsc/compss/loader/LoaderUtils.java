@@ -19,6 +19,7 @@ package es.bsc.compss.loader;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.task.Binary;
+import es.bsc.compss.types.annotations.task.COMPSs;
 import es.bsc.compss.types.annotations.task.Decaf;
 import es.bsc.compss.types.annotations.task.MPI;
 import es.bsc.compss.types.annotations.task.Method;
@@ -29,6 +30,7 @@ import es.bsc.compss.types.annotations.task.repeatables.Binaries;
 import es.bsc.compss.types.annotations.task.repeatables.Decafs;
 import es.bsc.compss.types.annotations.task.repeatables.MPIs;
 import es.bsc.compss.types.annotations.task.repeatables.Methods;
+import es.bsc.compss.types.annotations.task.repeatables.MultiCOMPSs;
 import es.bsc.compss.types.annotations.task.repeatables.MultiOmpSs;
 import es.bsc.compss.types.annotations.task.repeatables.OpenCLs;
 import es.bsc.compss.types.annotations.task.repeatables.Services;
@@ -52,11 +54,12 @@ import storage.StubItf;
 
 public class LoaderUtils {
 
+    public static final String BINARY_SIGNATURE = "binary.BINARY";
     public static final String MPI_SIGNATURE = "mpi.MPI";
+    public static final String DECAF_SIGNATURE = "decaf.DECAF";
+    public static final String COMPSs_SIGNATURE = "compss.COMPSs";
     public static final String OMPSS_SIGNATURE = "ompss.OMPSS";
     public static final String OPENCL_SIGNATURE = "opencl.OPPENCL";
-    public static final String BINARY_SIGNATURE = "binary.BINARY";
-    public static final String DECAF_SIGNATURE = "decaf.DECAF";
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER_UTILS);
 
@@ -96,9 +99,27 @@ public class LoaderUtils {
                     return remoteMethod_javaLang;
                 }
             }
+            if (remoteMethod_javaLang.isAnnotationPresent(Binary.class)) {
+                // BINARY
+                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, BINARY_SIGNATURE)) {
+                    return remoteMethod_javaLang;
+                }
+            }
             if (remoteMethod_javaLang.isAnnotationPresent(MPI.class)) {
                 // MPI
                 if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, MPI_SIGNATURE)) {
+                    return remoteMethod_javaLang;
+                }
+            }
+            if (remoteMethod_javaLang.isAnnotationPresent(COMPSs.class)) {
+                // COMPSs
+                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, COMPSs_SIGNATURE)) {
+                    return remoteMethod_javaLang;
+                }
+            }
+            if (remoteMethod_javaLang.isAnnotationPresent(Decaf.class)) {
+                // DECAF
+                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, DECAF_SIGNATURE)) {
                     return remoteMethod_javaLang;
                 }
             }
@@ -111,18 +132,6 @@ public class LoaderUtils {
             if (remoteMethod_javaLang.isAnnotationPresent(OpenCL.class)) {
                 // OPENCL
                 if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, OPENCL_SIGNATURE)) {
-                    return remoteMethod_javaLang;
-                }
-            }
-            if (remoteMethod_javaLang.isAnnotationPresent(Binary.class)) {
-                // BINARY
-                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, BINARY_SIGNATURE)) {
-                    return remoteMethod_javaLang;
-                }
-            }
-            if (remoteMethod_javaLang.isAnnotationPresent(Decaf.class)) {
-                // BINARY
-                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, DECAF_SIGNATURE)) {
                     return remoteMethod_javaLang;
                 }
             }
@@ -146,9 +155,27 @@ public class LoaderUtils {
                     }
                 }
             }
+            if (remoteMethod_javaLang.isAnnotationPresent(Binaries.class)) {
+                // BINARIES
+                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, BINARY_SIGNATURE)) {
+                    return remoteMethod_javaLang;
+                }
+            }
             if (remoteMethod_javaLang.isAnnotationPresent(MPIs.class)) {
                 // MPIS
                 if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, MPI_SIGNATURE)) {
+                    return remoteMethod_javaLang;
+                }
+            }
+            if (remoteMethod_javaLang.isAnnotationPresent(MultiCOMPSs.class)) {
+                // MULTI-COMPSs
+                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, COMPSs_SIGNATURE)) {
+                    return remoteMethod_javaLang;
+                }
+            }
+            if (remoteMethod_javaLang.isAnnotationPresent(Decafs.class)) {
+                // DECAFS
+                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, DECAF_SIGNATURE)) {
                     return remoteMethod_javaLang;
                 }
             }
@@ -161,18 +188,6 @@ public class LoaderUtils {
             if (remoteMethod_javaLang.isAnnotationPresent(OpenCLs.class)) {
                 // OPENCLS
                 if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, OPENCL_SIGNATURE)) {
-                    return remoteMethod_javaLang;
-                }
-            }
-            if (remoteMethod_javaLang.isAnnotationPresent(Binaries.class)) {
-                // BINARIES
-                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, BINARY_SIGNATURE)) {
-                    return remoteMethod_javaLang;
-                }
-            }
-            if (remoteMethod_javaLang.isAnnotationPresent(Decafs.class)) {
-                // BINARIES
-                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, DECAF_SIGNATURE)) {
                     return remoteMethod_javaLang;
                 }
             }

@@ -459,8 +459,7 @@ def execute_task(process_name, storage_conf, params):
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
         logger.exception("[PYTHON WORKER %s] WORKER EXCEPTION" % process_name)
         logger.exception(''.join(line for line in lines))
-        # If exception is raised during the task execution, new_types and
-        # new_values are empty
+        # If exception is raised during the task execution, new_types and new_values are empty
         return 1, new_types, new_values
 
     if import_error:
@@ -503,11 +502,19 @@ def execute_task(process_name, storage_conf, params):
             def task_execution_2():
                 return task_execution(logger, process_name, klass, method_name, types, values, compss_kwargs)
 
-            if persistent_storage:
-                with storage_task_context(logger, values, config_file_path=storage_conf):
+            try:
+                if persistent_storage:
+                    with storage_task_context(logger, values, config_file_path=storage_conf):
+                        new_types, new_values, is_modifier = task_execution_2()
+                else:
                     new_types, new_values, is_modifier = task_execution_2()
-            else:
-                new_types, new_values, is_modifier = task_execution_2()
+            except Exception:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                logger.exception("[PYTHON WORKER %s] WORKER EXCEPTION" % process_name)
+                logger.exception(''.join(line for line in lines))
+                # If exception is raised during the task execution, new_types and new_values are empty
+                return 1, new_types, new_values
 
             # Depending on the isModifier option, it is necessary to serialize again self or not.
             # Since this option is only visible within the task decorator, the task_execution returns
@@ -534,11 +541,19 @@ def execute_task(process_name, storage_conf, params):
             def task_execution_3():
                 return task_execution(logger, process_name, klass, method_name, types, values, compss_kwargs)
 
-            if persistent_storage:
-                with storage_task_context(logger, values, config_file_path=storage_conf):
+            try:
+                if persistent_storage:
+                    with storage_task_context(logger, values, config_file_path=storage_conf):
+                        new_types, new_values, is_modifier = task_execution_3()
+                else:
                     new_types, new_values, is_modifier = task_execution_3()
-            else:
-                new_types, new_values, is_modifier = task_execution_3()
+            except Exception:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                logger.exception("[PYTHON WORKER %s] WORKER EXCEPTION" % process_name)
+                logger.exception(''.join(line for line in lines))
+                # If exception is raised during the task execution, new_types and new_values are empty
+                return 1, new_types, new_values
 
     # EVERYTHING OK
     if __debug__:

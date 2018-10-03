@@ -46,15 +46,9 @@
          errors=true
       fi
 
-      if [ "${python_interpreter}" != "python3" ]; then
-        if [ "${evts_tasks_running}" != "${number_of_tasks}" ]; then
-           echo "[ERROR] Running task events count does not match total tasks. [${evts_tasks_running}/${number_of_tasks}]"
-           errors=true
-        fi
-      else
-        # There are no events inside tasks with Python 3
-        # So, the test returns that the tracing is partially supported
-        partially_supported=true
+      if [ "${evts_tasks_running}" != "${number_of_tasks}" ]; then
+         echo "[ERROR] Running task events count does not match total tasks. [${evts_tasks_running}/${number_of_tasks}]"
+         errors=true
       fi
 
 

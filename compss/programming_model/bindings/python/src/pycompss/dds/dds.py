@@ -195,8 +195,8 @@ class DDS(object):
         ret = []
         for i in range(nop, 0, -1):
             ret.append(task_next_bucket(future_partitions, i))
-
-        return DDS(ret, -1)
+        self.partitions = ret
+        return self
 
     def num_of_partitions(self):
         """
@@ -237,8 +237,8 @@ class DDS(object):
         future_objects = []
         for p in self.partitions:
             future_objects.append(task_map_partition(f, p))
-
-        return DDS(future_objects, -1)
+        self.partitions = future_objects
+        return self
 
     def map_and_flatten(self, f):
         """
@@ -332,7 +332,8 @@ class DDS(object):
         # Create only one partition as a future object, and return new DDS
         future_partition = list()
         future_partition.append(task_reduce(f, as_list=True, *branch))
-        return DDS(future_partition, -1)
+        self.partitions = future_partition
+        return self
 
     def union(self, *args):
         """
@@ -349,7 +350,7 @@ class DDS(object):
         for dds in args:
             self.partitions.extend(dds.partitions)
 
-        return DDS(self.partitions, -1)
+        return self
 
     def key_by(self, f):
         """
@@ -567,7 +568,9 @@ class DDS(object):
                 ret = []
                 for i in range(partitions):
                     ret.append(task_dict_to_list(first, partitions, i))
-        return DDS(ret, -1)
+
+        self.partitions = ret
+        return self
 
     def another_combine_by_key(self, creator_func, combiner_func,
                                as_dict=False):
@@ -598,7 +601,8 @@ class DDS(object):
         ret = []
         for d in local_dicts:
             ret.append(another_task_dict_to_list(d))
-        return DDS(ret, -1)
+        self.partitions = ret
+        return self
 
     def reduce_by_key(self, f, as_dict=False):
         """

@@ -47,8 +47,8 @@ def word_count():
     size_block = int(sys.argv[3])
 
     start = time.time()
-    result = DDS().load_text_file(path_file, size_block)\
-        .map_and_flatten(lambda x: x.split(" ")).count_by_value(as_dict=True)
+    result = DDS().load_file(path_file, chunk_size=size_block, worker_read=True)\
+        .map_and_flatten(lambda x: x.split()).count_by_value(as_dict=True)
 
     print("Elapsed Time: ", time.time()-start)
     print result
@@ -174,8 +174,8 @@ def main_program():
     # example_5()
     # pi_estimation()
     # See 'launch.sh' for WordCount example.
-    # word_count()
-    reduce_example()
+    word_count()
+    # reduce_example()
 
 
 if __name__ == '__main__':

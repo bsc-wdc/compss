@@ -48,11 +48,12 @@ class DDS(object):
         self.create_partitions(iterator, num_of_parts)
         return self
 
-    def load_file(self, file_name, chunk_size=1024):
+    def load_file(self, file_path, chunk_size=1024, worker_read=False):
         """
         Read file in chunks and save it onto partitions.
-        :param file_name: a path to a file to be loaded
+        :param file_path: a path to a file to be loaded
         :param chunk_size: size of chunks in bytes
+        :param worker_read:
         :return:
 
         >>> with open("test.file", "w") as testFile:
@@ -60,11 +61,21 @@ class DDS(object):
         >>> DDS().load_file("test.file", 6).collect()
         ['Hello ', 'world!']
         """
-        f = compss_open(file_name, 'r')
-        chunk = f.read(chunk_size)
-        while chunk:
-            self.partitions.append(task_load(chunk))
+        if worker_read:
+            fp = open(file_path)
+            fp.seek(0, 2)
+            total = fp.tell()
+            parsed = 0
+            while parsed < total:
+                self.partitions.append(load_partition_from_file(
+                    file_path, parsed, chunk_size))
+                parsed += chunk_size
+        else:
+            f = compss_open(file_path, 'r')
             chunk = f.read(chunk_size)
+            while chunk:
+                self.partitions.append(task_load(chunk))
+                chunk = f.read(chunk_size)
 
         return self
 
@@ -83,7 +94,7 @@ class DDS(object):
         """
 
         self.partitions.extend(map(task_load, read_in_chunks(file_name,
-                                                                  chunk_size)))
+                                                             chunk_size)))
         return self
 
     def create_partitions(self, iterator, num_of_parts):
@@ -544,12 +555,12 @@ class DDS(object):
             first = future_objects.popleft()
             if future_objects:
                 second = future_objects.popleft()
-                ret = task_merge(first, second, merger_function)
-                future_objects.append(ret)
+                temp = task_merge(first, second, merger_function)
+                future_objects.append(temp)
             else:
                 # If it's the last item in the queue, retrieve it:
                 if as_dict:
-                    # As a list if necessary
+                    # As a dict if necessary
                     ret = compss_wait_on(first)
                     return ret
                 # As a list of future objects

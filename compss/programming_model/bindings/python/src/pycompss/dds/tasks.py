@@ -148,7 +148,7 @@ def task_combine(iterator, creator_func, combiner_func):
     return r
 
 
-@task(returns=1)
+@task(a=INOUT, returns=1)
 def task_merge(a, b, merger_function):
     """
     Merge two combined values and update the value in the first incoming dict.
@@ -161,7 +161,6 @@ def task_merge(a, b, merger_function):
     for k, v in b.items():
         temp = merger_function(a[k], v) if k in a else v
         a[k] = temp
-    return a
 
 
 @task(returns=list, iterator=IN)
@@ -275,4 +274,19 @@ def get_next_partition(iterable, start, end):
             elif index > start:
                 yield item
 
+
+@task(returns=list)
+def load_partition_from_file(file_path, start, chunk_size):
+    """
+
+    :param file_path:
+    :param start:
+    :param chunk_size:
+    :return:
+    """
+    fp = open(file_path)
+    fp.seek(start)
+    temp = fp.read(chunk_size)
+    fp.close()
+    return [temp]
 

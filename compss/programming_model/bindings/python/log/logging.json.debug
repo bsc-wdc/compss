@@ -168,13 +168,13 @@
             "propagate": "no"
         },
         "dataclay": {
-            "level": "ERROR",
-            "handlers": ["console"],
+            "level": "DEBUG",
+            "handlers": ["console", "error_console"],
             "propagate": "yes"
         },
         "hecuba": {
-            "level": "ERROR",
-            "handlers": ["console"],
+            "level": "DEBUG",
+            "handlers": ["console", "error_console"],
             "propagate": "yes"
         }
     },

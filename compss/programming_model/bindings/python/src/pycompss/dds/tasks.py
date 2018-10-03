@@ -146,7 +146,7 @@ def task_combine(iterator, creator_func, combiner_func):
     return r
 
 
-@task(a=INOUT, returns=1)
+@task(returns=1)
 def task_merge(a, b, merger_function):
     """
     Merge two combined values and update the value in the first incoming dict.
@@ -159,6 +159,8 @@ def task_merge(a, b, merger_function):
     for k, v in b.items():
         temp = merger_function(a[k], v) if k in a else v
         a[k] = temp
+
+    return a
 
 
 

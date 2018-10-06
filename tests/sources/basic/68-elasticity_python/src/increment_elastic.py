@@ -73,7 +73,7 @@ def printCounterValue(filePath, pos):
         exit(-1)
 
 
-@constraint(computingUnits="2")
+@constraint(ComputingUnits="2")
 @task(filePath=FILE_INOUT)
 def increment(filePath):
     # Read value

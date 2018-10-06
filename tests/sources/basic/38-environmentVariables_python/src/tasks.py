@@ -12,7 +12,7 @@ from pycompss.api.task import task
 from pycompss.api.constraint import constraint
 
 
-@constraint(ComputingUnits="${computingUnits}",
+@constraint(ComputingUnits="${ComputingUnits}",
             ProcessorName="${processorName}",
             ProcessorSpeed="${processorSpeed}",
             ProcessorArchitecture="${processorArchitecture}",

@@ -22,7 +22,7 @@ def myDate(dprefix, param):
     pass
 
 
-@constraint(computingUnits="2")
+@constraint(ComputingUnits="2")
 @opencl(kernel="date", workingDir="/tmp")
 @task()
 def myDateConstrained(dprefix, param):

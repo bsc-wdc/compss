@@ -23,7 +23,7 @@
 
   #----------------------------------------------------------------------------------
   # Set environment variables
-  export ComputingUnits="2"
+  export computingUnits="2"
   export processorName="MainProcessor"
   export processorSpeed="2.4"
   export processorArchitecture="amd64"

@@ -370,6 +370,59 @@ if [ ! -z "${defined_libs}" ]; then
    export LIBS="${defined_libs}"
 fi
 
+if [ "${ompss_enabled}" != "" ]; then
+  # Flag is defined, check value
+  if [ ${ompss_enabled} == 1 ]; then
+	if [ -z "${defined_mcc}" ]; then
+	if [ -z "${MCC}" ]; then
+	   defined_mcc="mcc"
+		else
+	   defined_mcc=${MCC}
+		fi
+	fi
+	export CC=${defined_mcc}
+	
+	if [ -z "${defined_mcxx}" ]; then
+		if [ -z "${MCXX}" ]; then
+		   defined_mcxx="mcxx"
+		else
+		   defined_mcxx=${MCXX}
+		fi
+	fi
+	export CXX=${defined_mcxx}
+	export CFLAGS="$CFLAGS --ompss ${ompss_flags} $COMPSS_MCXX_FLAGS"
+	export CXXFLAGS="$CXXFLAGS --ompss ${ompss_flags} $COMPSS_MCXX_FLAGS"
+	export CPPFLAGS="$CPPFLAGS -DOMPSS_ENABLED"
+  fi
+fi
+if [ "${cuda_enabled}" != "" ]; then
+  # Flag is defined, check value
+  if [ ${cuda_enabled} == 1 ]; then
+	if [ -z "${cuda_prefix}" ]; then
+		if [ -z "$CUDA_HOME" ]; then
+		   export CUDA_HOME=/usr/local/cuda/
+		fi
+	else
+		export CUDA_HOME=${cuda_prefix}
+	fi
+	export PATH=$PATH:${CUDA_HOME}/bin
+	export LDFLAGS="--cuda $LDFLAGS"
+	export LIBS="-L${CUDA_HOME}/lib64 -lcudart $LIBS"
+	export CFLAGS="$CFLAGS --cuda"
+	export CXXFLAGS="$CXXFLAGS --cuda"
+  fi
+fi
+if [ "${opencl_enabled}" != "" ]; then
+  # Flag is defined, check value
+  if [ ${opencl_enabled} == 1 ]; then
+	# Altera ocl flags export LDADD="$LDADD -L/home/altera/16.0.2/hld/linux64/lib -L/opt/intel_deliverable_WW49_16/bdw_fpga_pilot_opencl_bsp_v1.0/host/linux64/lib    -lalterahalmmd -laltera_qpi_mmd  -laalrt  -L/opt/aalsdk/aalsdk-5.0.2/lib"    
+	export LDFLAGS="--opencl $LDFLAGS ${opencl_libraries}"
+	export LIBS="$LIBS ${opencl_libraries}"
+	export CFLAGS="$CFLAGS --opencl"
+	export CXXFLAGS="$CXXFLAGS --opencl"
+  fi
+fi
+
 if [ "$ONLY_WORKER" = false ]; then
 
 	# shellcheck disable=SC2086
@@ -379,58 +432,6 @@ if [ "$ONLY_WORKER" = false ]; then
 	  echo " "
 	  echo "Building binding failed, please check errors above!"
 	  exit $ev
-	fi
-	if [ "${ompss_enabled}" != "" ]; then
-	  # Flag is defined, check value
-	  if [ ${ompss_enabled} == 1 ]; then
-		if [ -z "${defined_mcc}" ]; then
-		if [ -z "${MCC}" ]; then
-		   defined_mcc="mcc"
-			else
-		   defined_mcc=${MCC}
-			fi
-		fi
-		export CC=${defined_mcc}
-		
-		if [ -z "${defined_mcxx}" ]; then
-			if [ -z "${MCXX}" ]; then
-			   defined_mcxx="mcxx"
-			else
-			   defined_mcxx=${MCXX}
-			fi
-		fi
-		export CXX=${defined_mcxx}
-		export CFLAGS="$CFLAGS --ompss ${ompss_flags} $COMPSS_MCXX_FLAGS"
-		export CXXFLAGS="$CXXFLAGS --ompss ${ompss_flags} $COMPSS_MCXX_FLAGS"
-		export CPPFLAGS="$CPPFLAGS -DOMPSS_ENABLED"
-	  fi
-	fi
-	if [ "${cuda_enabled}" != "" ]; then
-	  # Flag is defined, check value
-	  if [ ${cuda_enabled} == 1 ]; then
-		if [ -z "${cuda_prefix}" ]; then
-			if [ -z "$CUDA_HOME" ]; then
-			   export CUDA_HOME=/usr/local/cuda/
-			fi
-		else
-			export CUDA_HOME=${cuda_prefix}
-		fi
-		export PATH=$PATH:${CUDA_HOME}/bin
-		export LDFLAGS="--cuda $LDFLAGS"
-		export LIBS="-L${CUDA_HOME}/lib64 -lcudart $LIBS"
-		export CFLAGS="$CFLAGS --cuda"
-		export CXXFLAGS="$CXXFLAGS --cuda"
-	  fi
-	fi
-	if [ "${opencl_enabled}" != "" ]; then
-	  # Flag is defined, check value
-	  if [ ${opencl_enabled} == 1 ]; then
-		# Altera ocl flags export LDADD="$LDADD -L/home/altera/16.0.2/hld/linux64/lib -L/opt/intel_deliverable_WW49_16/bdw_fpga_pilot_opencl_bsp_v1.0/host/linux64/lib    -lalterahalmmd -laltera_qpi_mmd  -laalrt  -L/opt/aalsdk/aalsdk-5.0.2/lib"    
-		export LDFLAGS="--opencl $LDFLAGS ${opencl_libraries}"
-		export LIBS="$LIBS ${opencl_libraries}"
-		export CFLAGS="$CFLAGS --opencl"
-		export CXXFLAGS="$CXXFLAGS --opencl"
-	  fi
 	fi
 fi
 

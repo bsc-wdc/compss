@@ -13,7 +13,7 @@ from pycompss.api.binary import binary
 from pycompss.api.constraint import constraint
 
 
-@constraint(computingUnits="1")
+@constraint(ComputingUnits="1")
 @binary(binary="date")
 @task()
 def myDateConstrained(dprefix, param):

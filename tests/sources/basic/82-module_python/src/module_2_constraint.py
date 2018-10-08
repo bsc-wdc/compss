@@ -12,7 +12,7 @@ from pycompss.api.task import task
 from pycompss.api.constraint import constraint
 
 
-@constraint(computingUnits="1")
+@constraint(ComputingUnits="1")
 @task(returns=1)
 def increment(v):
     res = []

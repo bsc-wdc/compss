@@ -24,14 +24,14 @@ def myDate(dprefix, param):
     pass
 
 
-@constraint(computingUnits="2")
+@constraint(ComputingUnits="2")
 @ompss(binary="date", workingDir="/tmp")
 @task()
 def myDateConstrained(dprefix, param):
     pass
 
 
-@constraint(computingUnits="$CUS")
+@constraint(ComputingUnits="$CUS")
 @ompss(binary="date", workingDir="/tmp")
 @task()
 def myDateConstrainedWithEnvVar(dprefix, param):

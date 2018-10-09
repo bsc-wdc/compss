@@ -83,6 +83,8 @@
   cp -r "${SOURCES_DIR}"/dependencies "${TMP_DIR}"
   cp -r "${SOURCES_DIR}"/doc "${TMP_DIR}"
   cp -r "${SOURCES_DIR}"/files "${TMP_DIR}"
+  mkdir -p "${TMP_DIR}"/utils
+  cp -r "${SOURCES_DIR}"/utils/storage "${TMP_DIR}"/utils
   cp "${SOURCES_DIR}"/LICENSE "${TMP_DIR}"
   cp "${SOURCES_DIR}"/NOTICE "${TMP_DIR}"
   cp "${SOURCES_DIR}"/pom.xml "${TMP_DIR}"

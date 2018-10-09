@@ -316,6 +316,7 @@ def test_fu_list_in_task():
 
 def test_iterable_object_wait():
     print("test_iterable_object_wait")
+    # List
     iobj = []
     for i in range(0, 10):
         iobj.append(i)
@@ -332,9 +333,9 @@ def test_iterable_object_wait():
             result = False
 
     if result:
-        print("- Wait on an iterable object (completely modified): OK")
+        print("- Wait on an iterable object list (completely modified): OK")
     else:
-        print("- Wait on an iterable object (completely modified): ERROR")
+        print("- Wait on an iterable object list (completely modified): ERROR")
 
     iobj = []
     for i in range(0, 10):
@@ -355,9 +356,52 @@ def test_iterable_object_wait():
             result = False
 
     if result:
-        print("- Wait on an iterable object (partially modified): OK")
+        print("- Wait on an iterable object list (partially modified): OK")
     else:
-        print("- Wait on an iterable object (partially modified): ERROR")
+        print("- Wait on an iterable object list (partially modified): ERROR")
+
+    # Dict
+    iobj = {}
+    for i in range(0, 10):
+        iobj[i] = i
+
+    # full dict modification
+    for i in range(len(iobj)):
+        iobj[i] = function_iterable_object_wait(iobj[i])
+
+    iobj = compss_wait_on(iobj)
+
+    result = True
+    for i in range(len(iobj)):
+        if iobj[i] != i * i:
+            result = False
+
+    if result:
+        print("- Wait on an iterable object dict (completely modified): OK")
+    else:
+        print("- Wait on an iterable object dict (completely modified): ERROR")
+
+    iobj = {}
+    for i in range(0, 10):
+        iobj[i] = i
+    # partial dict modification
+    for i in range(len(iobj) - 5):
+        iobj[i] = function_iterable_object_wait(iobj[i])
+
+    iobj = compss_wait_on(iobj)
+
+    result = True
+    for i in range(len(iobj) - 5):
+        if iobj[i] != i * i:
+            result = False
+    for i in range(5, len(iobj)):
+        if iobj[i] != i:
+            result = False
+
+    if result:
+        print("- Wait on an iterable object dict (partially modified): OK")
+    else:
+        print("- Wait on an iterable object dict (partially modified): ERROR")
 
 
 def test_wait_on_string():

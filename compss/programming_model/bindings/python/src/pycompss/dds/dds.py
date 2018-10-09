@@ -13,7 +13,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-import sys
+import sys, os
 from collections import defaultdict, deque
 
 from pycompss.api.api import compss_wait_on, compss_barrier, compss_open
@@ -95,6 +95,33 @@ class DDS(object):
 
         self.partitions.extend(map(task_load, read_in_chunks(file_name,
                                                              chunk_size)))
+        return self
+
+    def load_files_from_dir(self, dir_path, num_of_parts=3):
+        """
+
+        :param dir_path:
+        :param num_of_parts:
+        :return:
+        """
+        files = os.listdir(dir_path)
+        total = len(files)
+        partition_sizes = [(total // num_of_parts)] * num_of_parts
+        extras = total % num_of_parts
+        for i in range(extras):
+            partition_sizes[i] += 1
+
+        start = 0
+        for size in partition_sizes:
+            end = start + size
+            partition_files = list()
+            for file_name in files[start:end]:
+                file_path = os.path.join(dir_path, file_name)
+                partition_files.append(file_path)
+
+            self.partitions.append(task_read_files(partition_files))
+            start = end
+
         return self
 
     def create_partitions(self, iterator, num_of_parts):

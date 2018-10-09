@@ -14,7 +14,7 @@
 #  limitations under the License.
 #
 
-from pycompss.api.parameter import INOUT, IN
+from pycompss.api.parameter import INOUT, IN, FILE_IN
 from pycompss.api.task import task
 
 marker = "COMPSS_DEFAULT_VALUE_TO_BE_USED_AS_A_MARKER"
@@ -226,6 +226,21 @@ def task_next_bucket(iterator, partition_num):
         del iterator[key]
         if index == chunk_size-1:
             break
+
+    return ret
+
+
+@task(files=list, returns=list)
+def task_read_files(file_paths):
+    """
+
+    :param file_paths:
+    :return:
+    """
+    ret = list()
+    for file_path in file_paths:
+        content = open(file_path).read()
+        ret.append((file_path, content))
 
     return ret
 

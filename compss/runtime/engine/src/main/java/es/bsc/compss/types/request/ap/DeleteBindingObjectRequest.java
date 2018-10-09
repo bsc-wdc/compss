@@ -20,7 +20,6 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
-import es.bsc.compss.types.data.location.DataLocation;
 
 
 public class DeleteBindingObjectRequest extends APRequest {
@@ -30,9 +29,8 @@ public class DeleteBindingObjectRequest extends APRequest {
 
     public DeleteBindingObjectRequest(int code) {
         this.code = code;
-        
-    }
 
+    }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {

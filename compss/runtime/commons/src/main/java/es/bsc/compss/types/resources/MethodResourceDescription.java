@@ -32,7 +32,6 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 
-
 public class MethodResourceDescription extends WorkerResourceDescription {
 
     // Constant for weight difference (dynamic increase/decrease)
@@ -99,8 +98,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /* Internal fields ************************************************** */
     protected Float value = 0.0f;
-
-
+    
     /*
      * ******************************************* CONSTRUCTORS
      *******************************************/
@@ -159,13 +157,10 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
             String cuSTR = constraints.computingUnits();
             cuSTR = EnvironmentLoader.loadFromEnvironment(cuSTR);
+            
+            // When loading from constraints, always use at least one computing unit
             int cu = (cuSTR != null && !cuSTR.isEmpty() && !cuSTR.equals(UNASSIGNED_STR)) ? Integer.valueOf(cuSTR) : ONE_INT;
-            if (cu > ONE_INT) {
-                p.setComputingUnits(cu);
-            } else {
-                // When loading from constraints, always use at least one computing unit
-                p.setComputingUnits(ONE_INT);
-            }
+            p.setComputingUnits(cu);
 
             String speedSTR = constraints.processorSpeed();
             speedSTR = EnvironmentLoader.loadFromEnvironment(speedSTR);
@@ -312,14 +307,11 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
         String cuSTR = processorConstraints.computingUnits();
         cuSTR = EnvironmentLoader.loadFromEnvironment(cuSTR);
+        
+        // When loading from constraints, always use at least one computing unit
         int cu = (cuSTR != null && !cuSTR.isEmpty() && !cuSTR.equals(UNASSIGNED_STR)) ? Integer.valueOf(cuSTR) : ONE_INT;
-        if (cu > ONE_INT) {
-            p.setComputingUnits(cu);
-        } else {
-            // When loading from constraints, always use at least one computing unit
-            p.setComputingUnits(ONE_INT);
-        }
-
+        p.setComputingUnits(cu);
+           
         String speedSTR = processorConstraints.speed();
         speedSTR = EnvironmentLoader.loadFromEnvironment(speedSTR);
         float speed = (speedSTR != null && !speedSTR.isEmpty() && !speedSTR.equals(UNASSIGNED_STR)) ? Float.valueOf(speedSTR)
@@ -516,6 +508,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
      */
     private void addConstraints(String key, String val, Processor proc) {
         val = EnvironmentLoader.loadFromEnvironment(val);
+        
         if (val != null && !val.isEmpty()) {
             switch (key.toLowerCase()) {
                 case PROC_NAME:
@@ -584,9 +577,14 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                     ErrorManager.error("ERROR: Unrecognised constraint " + key);
                     return;
             }
-        } else {
-            ErrorManager.error("ERROR: Unrecognised value on constraint " + key);
-            return;
+        } 
+        else {
+        	//Set the default values
+        	switch (key.toLowerCase()) {
+	        	case COMPUTING_UNITS:
+	                proc.setComputingUnits(ONE_INT);
+	                break;
+        	}
         }
     }
 
@@ -1162,14 +1160,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         // Per processor CUs restriction
         for (Processor p : rc2.processors) {
             for (Processor pThis : this.processors) {
-
-                int cu = 1;
-                if (p.getComputingUnits() > 1) {
-                    cu = p.getComputingUnits();
-                }
-
                 if (checkProcessorCompatibility(pThis, p)) {
-                    float ratio = pThis.getComputingUnits() / cu;
+                    float ratio = pThis.getComputingUnits() / p.getComputingUnits();
                     min = Math.min(min, (int) ratio);
                 }
             }

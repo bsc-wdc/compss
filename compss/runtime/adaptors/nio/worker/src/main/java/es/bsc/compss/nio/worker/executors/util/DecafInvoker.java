@@ -89,7 +89,8 @@ public class DecafInvoker extends Invoker {
         LOGGER.info("Invoked " + this.dfScript + " in " + this.nw.getHostName());
         try {
             return GenericInvoker.invokeDecafMethod(nw.getInstallDir() + DecafImplementation.SCRIPT_PATH, this.dfScript, this.dfExecutor,
-                    this.dfLib, this.mpiRunner, this.values, this.streams, this.prefixes, this.taskSandboxWorkingDir, nw.getThreadOutStream(), nw.getThreadErrStream());
+                    this.dfLib, this.mpiRunner, this.values, this.streams, this.prefixes, this.taskSandboxWorkingDir,
+                    nw.getThreadOutStream(), nw.getThreadErrStream());
         } catch (InvokeExecutionException iee) {
             throw new JobExecutionException(iee);
         }

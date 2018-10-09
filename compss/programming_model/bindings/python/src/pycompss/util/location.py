@@ -24,45 +24,47 @@ PyCOMPSs Utils - Location
     Useful to detect if we are in the master or in the worker.
 """
 
-import inspect
-from pycompss.runtime.commons import IS_PYTHON3
-from pycompss.runtime.commons import IS_INTERACTIVE
-
-# wtf is this
-DECORATORS_TO_CHECK = ['pycompss/api/binary.py',
-                       'pycompss/api/constraint.py',
-                       'pycompss/api/decaf.py',
-                       'pycompss/api/implement.py',
-                       'pycompss/api/mpi.py',
-                       'pycompss/api/ompss.py',
-                       'pycompss/api/opencl.py',
-                       'pycompss/api/parallel.py',
-                       'pycompss/api/task.py']
-
 _WHERE = 'OUTOFSCOPE'
 
-def i_am_at_master():
-    '''Determine if the execution is being performed in the master node
-    '''
+
+def at_master():
+    """
+    Determine if the execution is being performed in the master node
+    :return: Boolean
+    """
     return _WHERE == 'MASTER'
 
 
-def i_am_at_worker():
-    '''Determine if the execution is being performed in a worker node.
-    '''
+def at_worker():
+    """
+    Determine if the execution is being performed in a worker node.
+    :return: Boolean
+    """
     return _WHERE == 'WORKER'
 
+
+def during_initialization():
+    """
+    Determine if the execution is in the initialization stage.
+    :return: Boolean
+    """
+    return _WHERE == 'INITIALIZATION'
+
+
 def set_pycompss_context(where):
-    '''Set the Python Binding context (MASTER OR WORKER)
-    :param where: New context (MASTER or WORKER)
+    """
+    Set the Python Binding context (MASTER or WORKER or INITIALIZATION)
+    :param where: New context (MASTER or WORKER or INITIALIZATION)
     :return: None
-    '''
-    assert where in ['MASTER', 'WORKER'], 'PyCOMPSs context should be MASTER or WORKER'
+    """
+    assert where in ['MASTER', 'WORKER', 'INITIALIZATION'], 'PyCOMPSs context should be MASTER|WORKER|INITIALIZATION'
     global _WHERE
     _WHERE = where
 
-def i_am_within_scope():
-    '''Determine if the execution is being performed within the PyCOMPSs scope.
+
+def within_scope():
+    """
+    Determine if the execution is being performed within the PyCOMPSs scope.
     :return:  <Boolean> - True if under scope. False on the contrary.
-    '''
+    """
     return _WHERE != 'OUTOFSCOPE'

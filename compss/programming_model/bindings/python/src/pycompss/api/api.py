@@ -33,7 +33,7 @@ PyCOMPSs API
     Also includes the redirection to the dummy API.
 """
 
-from pycompss.util.location import i_am_within_scope as __within_scope__
+from pycompss.util.location import within_scope as __within_scope__
 
 if __within_scope__():
     # ################################################################# #

@@ -1,5 +1,5 @@
-#!/bin/bash -e 
- 
+#!/bin/bash -e
+
   #############################################################
   # Name: buildSC
   # Description: SCRIPT FOR Supercomputers COMPSs BUILD
@@ -44,8 +44,8 @@
   SCauxScript=$5
   PRELOAD_ENV=$6
 
-  # CREATE SC TMP DIR 
-  echo "Creating remote tmp directory..." 
+  # CREATE SC TMP DIR
+  echo "Creating remote tmp directory..."
 
   uuid=$(uuidgen)
   SCTMP_DIR=${SC_DIR}/tmp_${uuid}

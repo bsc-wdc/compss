@@ -11,8 +11,8 @@ DEFAULT_SC_CFG="default"
 #---------------------------------------------------
 ERROR_CFG_SC="SuperComputer CFG file doesn't exist"
 ERROR_CFG_Q="Queue system CFG file doesn't exist"
- 
- 
+
+
 #---------------------------------------------------------------------------------------
 # HELPER FUNCTIONS
 #---------------------------------------------------------------------------------------
@@ -20,7 +20,7 @@ ERROR_CFG_Q="Queue system CFG file doesn't exist"
 ###############################################
 # Displays usage
 ###############################################
-usage() { 
+usage() {
   exitValue=$1
 
   # Load default CFG for default values
@@ -30,7 +30,7 @@ usage() {
   local defaultQS_cfg=${SCRIPT_DIR}/../queues/${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg
   #shellcheck source=../queues/slurm/slurm.cfg
   source "${defaultQS_cfg}"
-  
+
   # Show usage
   cat <<EOT
 Usage: $0 [queue_system_options] [COMPSs_options] application_name application_arguments
@@ -38,14 +38,14 @@ Usage: $0 [queue_system_options] [COMPSs_options] application_name application_a
 * Options:
   General:
     --help, -h                              Print this help message
-  
+
   Queue system configuration:
     --sc_cfg=<name>                         SuperComputer configuration file to use. Must exist inside queues/cfgs/
                                             Default: ${DEFAULT_SC_CFG}
 
-  Submission configuration: 
+  Submission configuration:
 EOT
-  "${SCRIPT_DIR}"/../queues/commons/submit.sh --opts 
+  "${SCRIPT_DIR}"/../queues/commons/submit.sh --opts
 
   exit "$exitValue"
 }
@@ -66,10 +66,10 @@ display_version() {
 ###############################################
 display_error() {
   local error_msg=$1
-  
+
   echo "$error_msg"
   echo " "
-  
+
   usage 1
 }
 
@@ -87,31 +87,31 @@ get_args() {
   fi
 
   # Parse COMPSs Options
-  while getopts hvgtmd-: flag; do 
+  while getopts hvgtmd-: flag; do
     # Treat the argument
     case "$flag" in
       h)
-	# Display help
-	usage 0
-	;;
+        # Display help
+        usage 0
+        ;;
       v)
         # Display version
         display_version 0
         ;;
       -)
-	# Check more complex arguments 
-	case "$OPTARG" in
-	  help)
-	    # Display help
-	    usage 0
-	    ;;
+        # Check more complex arguments
+        case "$OPTARG" in
+          help)
+            # Display help
+            usage 0
+            ;;
           version)
             # Display compss version
             display_version 0
             ;;
-	  sc_cfg=*)
-	    sc_cfg=${OPTARG//sc_cfg=/}
-	    ;;
+          sc_cfg=*)
+            sc_cfg=${OPTARG//sc_cfg=/}
+            ;;
           master_node=*)
             # Master node is automatically selected. Remove it from COMPSs flags
             echo "WARNING: master_node is automatically selected. Omitting parameter"
@@ -121,7 +121,7 @@ get_args() {
             echo "WARNING: worker_nodes are automatically selected. Omitting parameter"
             ;;
           *)
-	    # Flag didn't match any patern. Add to COMPSs 
+	    # Flag didn't match any patern. Add to COMPSs
 	    args_pass="$args_pass --$OPTARG"
 	    ;;
 	esac
@@ -129,14 +129,14 @@ get_args() {
       *)
 	# Flag didn't match any patern. End of COMPSs flags
 	args_pass="$args_pass -$flag"
-	;; 
+	;;
     esac
   done
   # Shift COMPSs arguments
   shift $((OPTIND-1))
 
   # Pass application name and args
-  args_pass="$args_pass $*" 
+  args_pass="$args_pass $*"
 }
 
 ###############################################
@@ -154,14 +154,14 @@ check_args() {
     # Add cfg suffix
     sc_cfg=${sc_cfg}.cfg
   fi
-   
+
   local scCfgFullPath=${SCRIPT_DIR}/../queues/cfgs/${sc_cfg}
 
   if [ ! -f "${scCfgFullPath}" ]; then
     # CFG file doesn't exist
-    display_error "${ERROR_CFG_SC}"   
+    display_error "${ERROR_CFG_SC}"
   fi
- 
+
   # Source SC CFG env
   # shellcheck source=../queues/slurm/slurm.cfg
   source "${scCfgFullPath}"
@@ -170,7 +170,7 @@ check_args() {
   local queueCfgFullPath=${SCRIPT_DIR}/../queues/${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg
   if [ ! -f "${queueCfgFullPath}" ]; then
     # CFG file doesn't exist
-    display_error "${ERROR_CFG_Q}" 
+    display_error "${ERROR_CFG_Q}"
   fi
 
   # Source queue system CFG env
@@ -200,4 +200,3 @@ check_args() {
   "${SCRIPT_DIR}"/../queues/commons/submit.sh \
        --sc_cfg=${sc_cfg} \
        ${args_pass}
-

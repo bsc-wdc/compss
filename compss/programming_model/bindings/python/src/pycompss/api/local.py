@@ -28,7 +28,7 @@ PyCOMPSs API - LocalTask
 
 from pycompss.api.api import compss_wait_on
 from pycompss.util.replace import replace
-from pycompss.util.location import i_am_within_scope
+from pycompss.util.location import within_scope
 
 import gc
 
@@ -41,7 +41,7 @@ def local(input_function):
     :return: Wrapped function
     """
 
-    if not i_am_within_scope():
+    if not within_scope():
 
         # Return dummy local decorator
         def wrapped_function(*args, **kwargs):

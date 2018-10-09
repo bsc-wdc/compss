@@ -175,10 +175,6 @@ aargs_as_tuple = False
 logger = logging.getLogger(__name__)
 
 
-# logger = logging.getLogger()    # for jupyter logging  # TODO: detect if jupyter and set logger
-# logger.setLevel(logging.DEBUG)  # for jupyter logging
-
-
 # ##############################################################################
 # ############################ CLASSES #########################################
 # ##############################################################################

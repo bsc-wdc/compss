@@ -42,8 +42,6 @@ if IS_PYTHON3:
 
 if __debug__:
     logger = logging.getLogger('pycompss.api.task')
-    # logger = logging.getLogger()   # for jupyter logging  # TODO: detect if jupyter and set logger
-    # logger.setLevel(logging.DEBUG)
 
 
 class Task(object):
@@ -54,11 +52,10 @@ class Task(object):
         not passed to the constructor!
         """
 
-        from pycompss.util.location import i_am_within_scope
+        from pycompss.util.location import within_scope
 
         # Check if under the PyCOMPSs scope
-        if i_am_within_scope():
-            from pycompss.util.location import i_am_at_master
+        if within_scope():
             from pycompss.api.parameter import is_parameter, get_new_parameter
 
             self.scope = True
@@ -123,7 +120,7 @@ class Task(object):
 
         # Imports
         from pycompss.util.interactive_helpers import update_tasks_code_file
-        from pycompss.util.location import i_am_at_master
+        from pycompss.util.location import at_master
 
         if __debug__:
             logger.debug("Call in @task decorator...")
@@ -243,7 +240,7 @@ class Task(object):
             self.module_name = _get_module_name(path, file_name)
 
         # The registration needs to be done only in the master node
-        if i_am_at_master():
+        if at_master():
             self.__register_task(f)
 
         # Modified variables until now that will be used later:
@@ -295,7 +292,7 @@ class Task(object):
             # Update self.parameters and self.returns with the appropriate Parameter objects.
             self.__build_parameters_and_return_dicts(f, args, kwargs)
 
-            if not i_am_at_master() and not is_nested:
+            if not at_master() and not is_nested:
                 # Task decorator worker body code.
                 new_types, new_values, is_modifier = self.worker_code(f, args, kwargs)
                 return new_types, new_values, is_modifier
@@ -386,8 +383,8 @@ class Task(object):
 
         source_code = _get_wrapped_source(f).strip()
 
-        if self.has_self_parameter or source_code.startswith(
-                '@classmethod'):  # TODO: WHAT IF IS CLASSMETHOD FROM BOOLEAN?
+        if self.has_self_parameter or source_code.startswith('@classmethod'):
+            # TODO: WHAT IF IS CLASSMETHOD FROM BOOLEAN?
             # It is a task defined within a class (can not parse the code with ast since the class does not
             # exist yet. Alternatively, the only way I see is to parse it manually line by line.
             ret_mask = []

@@ -166,6 +166,16 @@
             "level": "DEBUG",
             "handlers": ["console", "error_console"],
             "propagate": "no"
+        },
+        "dataclay": {
+            "level": "DEBUG",
+            "handlers": ["console", "error_console"],
+            "propagate": "yes"
+        },
+        "hecuba": {
+            "level": "DEBUG",
+            "handlers": ["console", "error_console"],
+            "propagate": "yes"
         }
     },
 

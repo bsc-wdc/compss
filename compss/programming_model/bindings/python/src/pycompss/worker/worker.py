@@ -35,6 +35,7 @@ from pycompss.api.parameter import TYPE, JAVA_MAX_INT, JAVA_MIN_INT
 from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.runtime.commons import IS_PYTHON3
+from pycompss.util.location import set_pycompss_context
 from pycompss.util.serializer import serialize_to_file
 from pycompss.util.serializer import deserialize_from_file
 from pycompss.util.serializer import deserialize_from_string
@@ -84,6 +85,9 @@ def compss_worker(persistent_storage):
 
     logger.debug("Starting Worker")
 
+    # Set the binding in worker mode
+    set_pycompss_context('WORKER')
+
     args = sys.argv[6:]
     path = args[0]
     method_name = args[1]
@@ -104,7 +108,14 @@ def compss_worker(persistent_storage):
     num_params = int(args[3])
 
     args = args[4:]
-    pos = 0
+
+    # COMPSs keywords for tasks (ie: tracing, process name...)
+    compss_kwargs = {
+        'compss_tracing': tracing,
+        'compss_process_name': "GAT",
+        'compss_storage_conf': storage_conf,
+        'compss_return_length': num_returns
+    }
 
     values = []
     types = []
@@ -120,6 +131,7 @@ def compss_worker(persistent_storage):
 
     # Get all parameter values
     logger.debug("Processing parameters:")
+    pos = 0
     for i in range(0, num_params):
         p_type = int(args[pos])
         p_stream = int(args[pos + 1])
@@ -236,12 +248,12 @@ def compss_worker(persistent_storage):
 
         if persistent_storage:
             with storage_task_context(logger, values, config_file_path=storage_conf):
-                getattr(module, method_name)(*values, compss_types=types, compss_tracing=tracing)
+                getattr(module, method_name)(*values, compss_types=types, **compss_kwargs)
                 if tracing:
                     pyextrae.eventandcounters(TASK_EVENTS, 0)
                     pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
         else:
-            getattr(module, method_name)(*values, compss_types=types, compss_tracing=tracing)
+            getattr(module, method_name)(*values, compss_types=types, **compss_kwargs)
             if tracing:
                 pyextrae.eventandcounters(TASK_EVENTS, 0)
                 pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
@@ -283,12 +295,12 @@ def compss_worker(persistent_storage):
 
             if persistent_storage:
                 with storage_task_context(logger, values, config_file_path=storage_conf):
-                    getattr(klass, method_name)(*values, compss_types=types, compss_tracing=tracing)
+                    getattr(klass, method_name)(*values, compss_types=types, **compss_kwargs)
                     if tracing:
                         pyextrae.eventandcounters(TASK_EVENTS, 0)
                         pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
             else:
-                getattr(klass, method_name)(*values, compss_types=types, compss_tracing=tracing)
+                getattr(klass, method_name)(*values, compss_types=types, **compss_kwargs)
                 if tracing:
                     pyextrae.eventandcounters(TASK_EVENTS, 0)
                     pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
@@ -302,12 +314,12 @@ def compss_worker(persistent_storage):
 
             if persistent_storage:
                 with storage_task_context(logger, values, config_file_path=storage_conf):
-                    getattr(klass, method_name)(*values, compss_types=types, compss_tracing=tracing)
+                    getattr(klass, method_name)(*values, compss_types=types, **compss_kwargs)
                     if tracing:
                         pyextrae.eventandcounters(TASK_EVENTS, 0)
                         pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
             else:
-                getattr(klass, method_name)(*values, compss_types=types, compss_tracing=tracing)
+                getattr(klass, method_name)(*values, compss_types=types, **compss_kwargs)
                 if tracing:
                     pyextrae.eventandcounters(TASK_EVENTS, 0)
                     pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)

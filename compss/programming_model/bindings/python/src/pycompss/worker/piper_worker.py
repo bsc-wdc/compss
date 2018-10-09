@@ -37,6 +37,7 @@ from pycompss.api.parameter import JAVA_MIN_INT, JAVA_MAX_INT
 from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.runtime.commons import IS_PYTHON3
+from pycompss.util.location import set_pycompss_context
 from pycompss.util.serializer import serialize_to_file
 from pycompss.util.serializer import deserialize_from_file
 from pycompss.util.serializer import deserialize_from_string
@@ -188,7 +189,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                     logger.debug("[PYTHON WORKER %s] Received task." % str(process_name))
                     logger.debug("[PYTHON WORKER %s] - TASK CMD: %s" % (str(process_name), str(current_line)))
 
-                # Swap logger from stream handler to file handler.   #### TODO: FIX LOGGER!
+                # Swap logger from stream handler to file handler.   #### TODO: FIX LOGGER! it may not be the first if the user defines its own.
                 logger.removeHandler(logger.handlers[0])
                 out_file_handler = logging.FileHandler(job_out)
                 out_file_handler.setLevel(level)
@@ -458,8 +459,7 @@ def execute_task(process_name, storage_conf, params):
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
         logger.exception("[PYTHON WORKER %s] WORKER EXCEPTION" % process_name)
         logger.exception(''.join(line for line in lines))
-        # If exception is raised during the task execution, new_types and
-        # new_values are empty
+        # If exception is raised during the task execution, new_types and new_values are empty
         return 1, new_types, new_values
 
     if import_error:
@@ -502,11 +502,19 @@ def execute_task(process_name, storage_conf, params):
             def task_execution_2():
                 return task_execution(logger, process_name, klass, method_name, types, values, compss_kwargs)
 
-            if persistent_storage:
-                with storage_task_context(logger, values, config_file_path=storage_conf):
+            try:
+                if persistent_storage:
+                    with storage_task_context(logger, values, config_file_path=storage_conf):
+                        new_types, new_values, is_modifier = task_execution_2()
+                else:
                     new_types, new_values, is_modifier = task_execution_2()
-            else:
-                new_types, new_values, is_modifier = task_execution_2()
+            except Exception:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                logger.exception("[PYTHON WORKER %s] WORKER EXCEPTION" % process_name)
+                logger.exception(''.join(line for line in lines))
+                # If exception is raised during the task execution, new_types and new_values are empty
+                return 1, new_types, new_values
 
             # Depending on the isModifier option, it is necessary to serialize again self or not.
             # Since this option is only visible within the task decorator, the task_execution returns
@@ -533,11 +541,19 @@ def execute_task(process_name, storage_conf, params):
             def task_execution_3():
                 return task_execution(logger, process_name, klass, method_name, types, values, compss_kwargs)
 
-            if persistent_storage:
-                with storage_task_context(logger, values, config_file_path=storage_conf):
+            try:
+                if persistent_storage:
+                    with storage_task_context(logger, values, config_file_path=storage_conf):
+                        new_types, new_values, is_modifier = task_execution_3()
+                else:
                     new_types, new_values, is_modifier = task_execution_3()
-            else:
-                new_types, new_values, is_modifier = task_execution_3()
+            except Exception:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                logger.exception("[PYTHON WORKER %s] WORKER EXCEPTION" % process_name)
+                logger.exception(''.join(line for line in lines))
+                # If exception is raised during the task execution, new_types and new_values are empty
+                return 1, new_types, new_values
 
     # EVERYTHING OK
     if __debug__:
@@ -750,8 +766,8 @@ def compss_persistent_worker():
     """
 
     # Set the binding in worker mode
-    from pycompss.util.location import set_pycompss_context
     set_pycompss_context('WORKER')
+
     # Get args
     debug = (sys.argv[1] == 'true')
     global TRACING

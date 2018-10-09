@@ -190,7 +190,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             String internalMemorySTR = constraints.processorInternalMemorySize();
             internalMemorySTR = EnvironmentLoader.loadFromEnvironment(internalMemorySTR);
             float internalMemory = (internalMemorySTR != null && !internalMemorySTR.isEmpty() && !internalMemorySTR.equals(UNASSIGNED_STR))
-                    ? Float.valueOf(internalMemorySTR) : UNASSIGNED_FLOAT;
+                    ? Float.valueOf(internalMemorySTR)
+                    : UNASSIGNED_FLOAT;
             if (internalMemory != UNASSIGNED_FLOAT) {
                 p.setInternalMemory(internalMemory);
             }
@@ -237,7 +238,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         String memorySizeSTR = constraints.memorySize();
         memorySizeSTR = EnvironmentLoader.loadFromEnvironment(memorySizeSTR);
         float memorySize = (memorySizeSTR != null && !memorySizeSTR.isEmpty() && !memorySizeSTR.equals(UNASSIGNED_STR))
-                ? Float.valueOf(memorySizeSTR) : UNASSIGNED_FLOAT;
+                ? Float.valueOf(memorySizeSTR)
+                : UNASSIGNED_FLOAT;
         if (memorySize != UNASSIGNED_FLOAT) {
             this.memorySize = memorySize;
         }
@@ -250,7 +252,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         String storageSizeSTR = constraints.storageSize();
         storageSizeSTR = EnvironmentLoader.loadFromEnvironment(storageSizeSTR);
         float storageSize = (storageSizeSTR != null && !storageSizeSTR.isEmpty() && !storageSizeSTR.equals(UNASSIGNED_STR))
-                ? Float.valueOf(storageSizeSTR) : UNASSIGNED_FLOAT;
+                ? Float.valueOf(storageSizeSTR)
+                : UNASSIGNED_FLOAT;
         if (storageSize != UNASSIGNED_FLOAT) {
             this.storageSize = storageSize;
         }
@@ -279,7 +282,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         String wallClockLimitSTR = constraints.wallClockLimit();
         wallClockLimitSTR = EnvironmentLoader.loadFromEnvironment(wallClockLimitSTR);
         int wallClockLimit = (wallClockLimitSTR != null && !wallClockLimitSTR.isEmpty() && !wallClockLimitSTR.equals(UNASSIGNED_STR))
-                ? Integer.valueOf(wallClockLimitSTR) : UNASSIGNED_INT;
+                ? Integer.valueOf(wallClockLimitSTR)
+                : UNASSIGNED_INT;
         if (wallClockLimit != UNASSIGNED_INT) {
             this.wallClockLimit = wallClockLimit;
         }
@@ -339,7 +343,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         String internalMemorySTR = processorConstraints.internalMemorySize();
         internalMemorySTR = EnvironmentLoader.loadFromEnvironment(internalMemorySTR);
         float internalMemory = (internalMemorySTR != null && !internalMemorySTR.isEmpty() && !internalMemorySTR.equals(UNASSIGNED_STR))
-                ? Float.valueOf(internalMemorySTR) : UNASSIGNED_FLOAT;
+                ? Float.valueOf(internalMemorySTR)
+                : UNASSIGNED_FLOAT;
         if (internalMemory != UNASSIGNED_FLOAT) {
             p.setInternalMemory(internalMemory);
         }
@@ -366,99 +371,100 @@ public class MethodResourceDescription extends WorkerResourceDescription {
      */
     public MethodResourceDescription(String description) {
         super();
-        
-        // TODO: 
+
         // Warning: When coming from constrains, only 1 PROCESSOR is available with at least 1 CU
         Processor proc = new Processor();
         if (description != null && !description.isEmpty()) {
             String[] constraints = description.split(";");
             for (String c : constraints) {
                 int sepIndex = c.indexOf(":");
-                if (sepIndex<0){
-                	ErrorManager.warn("WARN: Unrecognised constraint " + c + ". Skipping constraint");
-                	continue;
+                if (sepIndex < 0) {
+                    ErrorManager.error("ERROR: Unrecognised constraint " + c);
+                    return;
                 }
-            	String key = c.substring(0,sepIndex).trim();
-                String val = c.substring(sepIndex+1,c.length()).trim();
-                if (key.equals(PROCESSORS)){
-                	treatProcessorsList(val);
-                }else{
-                	addConstraints(key, val, proc);
+                String key = c.substring(0, sepIndex).trim();
+                String val = c.substring(sepIndex + 1, c.length()).trim();
+                if (key.equals(PROCESSORS)) {
+                    treatProcessorsList(val);
+                } else {
+                    addConstraints(key, val, proc);
                 }
             }
         }
-        
-        if (proc.isCPU()){
-        	if (proc.isModified()){
-        		if (proc.getComputingUnits()==0){
-        			proc.setComputingUnits(ONE_INT);
-        		}
-        		this.addProcessor(proc);
-        	}else if (this.totalCPUs == 0) {
-        		//if processor has not been modified it must be added only if there are no CPU constraints already defined
-        		proc.setComputingUnits(ONE_INT);
-        		this.addProcessor(proc);
-        	}
-        }else{
-        	//If it is not CPU it must be added
-        	if (proc.getComputingUnits()==0){
-    			proc.setComputingUnits(ONE_INT);
-        	}
-        	this.addProcessor(proc);
-        	if (this.totalCPUs == 0) {
-        		//Task require to use at least a CPU 
-        		Processor p = new Processor();
-        		p.setComputingUnits(ONE_INT);
-        		this.addProcessor(p);
-        	}//else nothing to do
+
+        if (proc.isCPU()) {
+            if (proc.isModified()) {
+                if (proc.getComputingUnits() == 0) {
+                    proc.setComputingUnits(ONE_INT);
+                }
+                this.addProcessor(proc);
+            } else if (this.totalCPUs == 0) {
+                // if processor has not been modified it must be added only if there are no CPU constraints already
+                // defined
+                proc.setComputingUnits(ONE_INT);
+                this.addProcessor(proc);
+            }
+        } else {
+            // If it is not CPU it must be added
+            if (proc.getComputingUnits() == 0) {
+                proc.setComputingUnits(ONE_INT);
+            }
+            this.addProcessor(proc);
+            if (this.totalCPUs == 0) {
+                // Task require to use at least a CPU
+                Processor p = new Processor();
+                p.setComputingUnits(ONE_INT);
+                this.addProcessor(p);
+            } // else nothing to do
         }
-   
+
     }
 
     private void treatProcessorsList(String processors) {
-		// Format [{processor constraints}, {processor constraints}]
-    	if (processors.startsWith("[") && processors.endsWith("]")){
-    		int procStartIndex = processors.indexOf("{");
-    		int procEndIndex = processors.indexOf("}");
-    		while (procStartIndex>0){
-    			if (procEndIndex>0 && procEndIndex>procStartIndex){
-    				treatProcessorInList(processors.substring(procStartIndex+1,procEndIndex));
-    				procStartIndex = processors.indexOf("{", procEndIndex);
-    				procEndIndex = processors.indexOf("}", procStartIndex);
-    			}else{
-    				ErrorManager.warn("WARN: Unrecognised processor definition (processors). Skipping processors");
-    				return;
-    			}
-    		}
-    	}else{
-    		ErrorManager.warn("WARN: Unrecognised processors list definition ("+processors+"). Skipping processors");
-    		
-    	}
+        // Format [{processor constraints}, {processor constraints}]
+        if (processors.startsWith("[") && processors.endsWith("]")) {
+            int procStartIndex = processors.indexOf("{");
+            int procEndIndex = processors.indexOf("}");
+            while (procStartIndex > 0) {
+                if (procEndIndex > 0 && procEndIndex > procStartIndex) {
+                    treatProcessorInList(processors.substring(procStartIndex + 1, procEndIndex));
+                    procStartIndex = processors.indexOf("{", procEndIndex);
+                    procEndIndex = processors.indexOf("}", procStartIndex);
+                } else {
+                    ErrorManager.error("ERROR: Unrecognised processor definition (processors)");
+                    return;
+                }
+            }
+        } else {
+            ErrorManager.error("ERROR: Unrecognised processors list definition (" + processors + ")");
+            return;
+        }
     }
-    private void treatProcessorInList(String processor){
-    	String[] processorConstraints = processor.split(",");
-    	Processor proc = new Processor();
+
+    private void treatProcessorInList(String processor) {
+        String[] processorConstraints = processor.split(",");
+        Processor proc = new Processor();
         for (int j = 0; j < processorConstraints.length; ++j) {
             String key = processorConstraints[j].split(":")[0].trim();
             String val = processorConstraints[j].split(":")[1].trim();
             addConstraints(key, val, proc);
         }
-        //CU must be 1 if not defined 
-        if (proc.getComputingUnits()==0){
-			proc.setComputingUnits(ONE_INT);
+        // CU must be 1 if not defined
+        if (proc.getComputingUnits() == 0) {
+            proc.setComputingUnits(ONE_INT);
         }
         this.addProcessor(proc);
-	}
+    }
 
-	/**
+    /**
      * For C constraints
      *
      * @param constraints
      */
     public MethodResourceDescription(String[] constraints, String processorString) {
         super();
+        
         Processor proc = new Processor();
-
         if (processorString != null && !processorString.isEmpty()) {
             String[] processors = StringUtils.split(processorString, "@");
             for (int i = 0; i < processors.length; i++) {
@@ -575,11 +581,13 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                     this.wallClockLimit = Integer.valueOf(val);
                     break;
                 default:
-                    ErrorManager.warn("WARN: Unrecognised constraint " + key + ". Skipping constraint");
-                    break;
+                    ErrorManager.error("ERROR: Unrecognised constraint " + key);
+                    return;
             }
+        } else {
+            ErrorManager.error("ERROR: Unrecognised value on constraint " + key);
+            return;
         }
-
     }
 
     public MethodResourceDescription(MethodResourceDescription clone) {
@@ -1076,8 +1084,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     private boolean checkProcessors(MethodResourceDescription rc2) {
         for (Processor p : rc2.processors) {
-        	if (!checkProcessor(p)) {
-        		return false;
+            if (!checkProcessor(p)) {
+                return false;
             }
         }
 
@@ -1154,12 +1162,12 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         // Per processor CUs restriction
         for (Processor p : rc2.processors) {
             for (Processor pThis : this.processors) {
-            	
-            	int cu = 1;
-            	if (p.getComputingUnits() > 1) {
-            		cu = p.getComputingUnits();
-            	}
-            	
+
+                int cu = 1;
+                if (p.getComputingUnits() > 1) {
+                    cu = p.getComputingUnits();
+                }
+
                 if (checkProcessorCompatibility(pThis, p)) {
                     float ratio = pThis.getComputingUnits() / cu;
                     min = Math.min(min, (int) ratio);

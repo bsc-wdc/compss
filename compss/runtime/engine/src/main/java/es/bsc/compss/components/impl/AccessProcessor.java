@@ -42,7 +42,6 @@ import es.bsc.compss.types.data.DataAccessId.WAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ResultFile;
-import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.request.ap.DeleteBindingObjectRequest;
@@ -670,8 +669,8 @@ public class AccessProcessor implements Runnable, TaskProducer {
         if (!requestQueue.offer(new DeleteFileRequest(loc, sem))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");
         }
-     // Wait for response
-        
+        // Wait for response
+
         sem.acquireUninterruptibly();
         LOGGER.debug("Sata " + loc + " deleted");
     }
@@ -784,19 +783,19 @@ public class AccessProcessor implements Runnable, TaskProducer {
             ErrorManager.error(ERROR_QUEUE_OFFER + "unlock result files");
         }
     }
-    
+
     /**
      * Deregister the given object
      *
      * @param o
      */
     public void deregisterObject(Object o) {
-    	
+
         if (!requestQueue.offer(new DeregisterObject(o))) {
 
             ErrorManager.error(ERROR_QUEUE_OFFER + "deregister object");
         }
-    
+
     }
 
 }

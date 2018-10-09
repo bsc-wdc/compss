@@ -14,9 +14,8 @@
 #  limitations under the License.
 #
 
-from pycompss.api.parameter import INOUT, FILE_IN, IN
+from pycompss.api.parameter import INOUT, IN
 from pycompss.api.task import task
-from functools import reduce
 
 marker = "COMPSS_DEFAULT_VALUE_TO_BE_USED_AS_A_MARKER"
 
@@ -48,8 +47,7 @@ def task_map_partition(f, partition):
     :return: future object of the list containing results
     """
     res = f(partition)
-    if not isinstance(res, list):
-        res = [res]
+    del partition
     return res
 
 
@@ -163,6 +161,12 @@ def task_merge(a, b, merger_function):
         a[k] = temp
 
     return a
+
+
+@task(dic1=INOUT)
+def reduce_dicts(dic1, dic2):
+    for k in dic2:
+        dic1[k] += dic2[k]
 
 
 @task(returns=list, iterator=IN)

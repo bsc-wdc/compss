@@ -231,7 +231,7 @@ class DDS(object):
         :param f: A function that takes an iterable as a parameter
         :return:
 
-        >>> DDS(range(10), 5).map_partitions(lambda x: sum(x)).collect(True)
+        >>> DDS(range(10), 5).map_partitions(lambda x: [sum(x)]).collect(True)
         [[1], [5], [9], [13], [17]]
         """
         future_objects = []
@@ -399,10 +399,35 @@ class DDS(object):
             counts = defaultdict(int)
             for obj in iterator:
                 counts[obj] += 1
-            return counts.items()
+            return counts
 
-        return self.map_partitions(count_partition).reduce_by_key(
-                                    (lambda a, b: a+b), as_dict=as_dict)
+        # Count locally and create dictionary partitions
+        self.map_partitions(count_partition)
+
+        # Create a deque from partitions and start reduce
+        future_objects = deque(self.partitions)
+        ret = []
+        while future_objects:
+            first = future_objects.popleft()
+            if future_objects:
+                second = future_objects.popleft()
+                reduce_dicts(first, second)
+                future_objects.append(first)
+            else:
+                # If it's the last item in the queue, retrieve it:
+                if as_dict:
+                    # As a dict if necessary
+                    first = compss_wait_on(first)
+                    return dict(first)
+
+                # As a list of future objects
+                # TODO: Optimizations required!
+                length = len(self.partitions)
+                for i in range(length):
+                    ret.append(task_dict_to_list(first, length, i))
+
+        self.partitions = ret
+        return self
 
     def max(self, key=None):
         """

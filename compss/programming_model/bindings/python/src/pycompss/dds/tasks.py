@@ -163,7 +163,6 @@ def task_merge(a, b, merger_function):
     return a
 
 
-
 @task(dic1=INOUT)
 def reduce_dicts(dic1, dic2):
     for k in dic2:

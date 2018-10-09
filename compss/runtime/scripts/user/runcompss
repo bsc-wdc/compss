@@ -101,15 +101,15 @@ show_opts() {
                                             When no value is provided it is set to ${DEFAULT_MONITORING_INTERVAL_ARGUMENT}
                                             Default: ${DEFAULT_MONITORING_INTERVAL}
     --external_debugger=<int>,
-    --external_debugger		            Enables external debugger connection on the specified port (or ${DEFAULT_DEBUGGER_PORT} if empty)
+    --external_debugger                     Enables external debugger connection on the specified port (or ${DEFAULT_DEBUGGER_PORT} if empty)
                                             Default: ${DEFAULT_DEBUGGER}
 
   Runtime configuration options:
     --task_execution=<compss|storage>	    Task execution under COMPSs or Storage.
                                             Default: ${DEFAULT_TASK_EXECUTION}
     --storage_impl=<string>                 Path to an storage implementation. Shortcut to setting pypath and classpath. See Runtime/storage in your installation folder.
-    --storage_conf=<path>		                Path to the storage configuration file
-					    Default: ${DEFAULT_STORAGE_CONF}
+    --storage_conf=<path>                   Path to the storage configuration file
+                                            Default: ${DEFAULT_STORAGE_CONF}
     --project=<path>                        Path to the project XML file
                                             Default: ${DEFAULT_PROJECT}
     --resources=<path>                      Path to the resources XML file
@@ -129,9 +129,9 @@ show_opts() {
                                             Default: ${DEFAULT_COMMUNICATION_ADAPTOR}
     --conn=<className>                      Class that implements the runtime connector for the cloud
                                             Supported connectors: es.bsc.compss.connectors.DefaultSSHConnector
-								  | es.bsc.compss.connectors.DefaultNoSSHConnector
+                                               | es.bsc.compss.connectors.DefaultNoSSHConnector
                                             Default: ${DEFAULT_CONNECTOR}
-    --scheduler=<className>	            Class that implements the Scheduler for COMPSs
+    --scheduler=<className>                 Class that implements the Scheduler for COMPSs
                                             Supported schedulers: es.bsc.compss.scheduler.fullGraphScheduler.FullGraphScheduler
                                                                   | es.bsc.compss.scheduler.fifoScheduler.FIFOScheduler
                                                                   | es.bsc.compss.scheduler.resourceEmptyScheduler.ResourceEmptyScheduler
@@ -142,14 +142,14 @@ show_opts() {
                                             Default: Working Directory
     --classpath=<path>                      Path for the application classes / modules
                                             Default: Working Directory
-    --appdir=<path>			    Path for the application class folder.
-					    Default: ${DEFAULT_APPDIR}
+    --appdir=<path>                         Path for the application class folder.
+                                            Default: ${DEFAULT_APPDIR}
     --pythonpath=<path>                     Additional folders or paths to add to the PYTHONPATH
                                             Default: ${DEFAULT_PYTHONPATH}
     --base_log_dir=<path>                   Base directory to store COMPSs log files (a .COMPSs/ folder will be created inside this location)
                                             Default: User home
     --specific_log_dir=<path>               Use a specific directory to store COMPSs log files (the folder MUST exist and no sandbox is created)
-					    Warning: Overwrites --base_log_dir option
+                                            Warning: Overwrites --base_log_dir option
                                             Default: Disabled
     --uuid=<int>                            Preset an application UUID
                                             Default: Automatic random generation
@@ -160,7 +160,7 @@ show_opts() {
                                             Default: ${DEFAULT_MASTER_PORT}
     --jvm_master_opts="<string>"            Extra options for the COMPSs Master JVM. Each option separed by "," and without blank spaces (Notice the quotes)
                                             Default: ${DEFAULT_JVM_MASTER}
-    --jvm_workers_opts="<string>"	    Extra options for the COMPSs Workers JVMs. Each option separed by "," and without blank spaces (Notice the quotes)
+    --jvm_workers_opts="<string>"           Extra options for the COMPSs Workers JVMs. Each option separed by "," and without blank spaces (Notice the quotes)
                                             Default: ${DEFAULT_JVM_WORKERS}
     --cpu_affinity="<string>"               Sets the CPU affinity for the workers
                                             Supported options: disabled, automatic, user defined map of the form "0-8/9,10,11/12-14,15,16"
@@ -171,8 +171,8 @@ show_opts() {
     --fpga_affinity="<string>"              Sets the FPGA affinity for the workers
                                             Supported options: disabled, automatic, user defined map of the form "0-8/9,10,11/12-14,15,16"
                                             Default: ${DEFAULT_FPGA_AFFINITY}
-    --fpga_reprogram="<string>				Specify the full command that needs to be executed to reprogram the FPGA with the desired bitstream. The location must be an absolute path.
-											Default: ${DEFAULT_FPGA_REPROGRAM}
+    --fpga_reprogram="<string>"             Specify the full command that needs to be executed to reprogram the FPGA with the desired bitstream. The location must be an absolute path.
+                                            Default: ${DEFAULT_FPGA_REPROGRAM}
     --task_count=<int>                      Only for C/Python Bindings. Maximum number of different functions/methods, invoked from the application, that have been selected as tasks
                                             Default: ${DEFAULT_TASK_COUNT}
     --input_profile=<path>                  Path to the file which stores the input application profile

@@ -86,7 +86,8 @@ display_error() {
 
   echo "$error_msg"
   echo " "
-
+ 
+  exit $exitCode
   #usage $exitCode 
 }
 

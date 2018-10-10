@@ -62,7 +62,7 @@
             </snapshots>
             <id>central</id>
             <name>Central Repository</name>
-            <url>http://repo1.maven.apache.org/maven2</url>
+            <url>http://central.maven.org/maven2/</url>
         </repository>
         <repository>
             <id>compss-repo</id>
@@ -81,7 +81,7 @@
             </snapshots>
             <id>central</id>
             <name>Central Repository</name>
-            <url>http://repo1.maven.apache.org/maven2</url>
+            <url>http://central.maven.org/maven2/</url>
         </pluginRepository>
     </pluginRepositories>
 

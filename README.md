@@ -66,18 +66,33 @@ Sample_Applications manual available at the [COMPSs Webpage][1] or at the
 	* wget
 	* maven (3.0.x version)
 
-* Building COMPSs for all users
+* Getting submodule dependencies:
+
+    Before installing COMPSs you need to download the git submodules that contain its dependencies. To do that execute the following two commands which are located at the root of the repo.
+
 ```
-$ cd builders/
-$ INSTALL_DIR=/opt/COMPSs/
-$ sudo -E ./buildlocal [options] ${INSTALL_DIR}
+./submodules_get.sh
+./submodules_patch.sh
+```
+
+* Building COMPSs for all users
+
+**Note**: you need to get COMPSs dependencies before installing. See previous section 'Getting submodule dependencies'
+
+```
+cd builders/
+INSTALL_DIR=/opt/COMPSs/
+sudo -E ./buildlocal [options] ${INSTALL_DIR}
 ```
 
 * Building COMPSs for current user
+
+**Note**: you need to get COMPSs dependencies before installing. See previous section 'Getting submodule dependencies'
+
 ```
-$ cd builders/
-$ INSTALL_DIR=$HOME/opt/COMPSs/
-$ ./buildlocal [options] ${INSTALL_DIR}
+cd builders/
+INSTALL_DIR=$HOME/opt/COMPSs/
+./buildlocal [options] ${INSTALL_DIR}
 ```
 
 # Contact

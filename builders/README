@@ -20,6 +20,6 @@ Next you will find information about the specific scripts for each building type
     * Builds the current runtime trunk locally, builds the bindings at the SCs accounts and installs both at a target location (at each SC).
 
 - cross-compile/armhf/buildlocal
-    * Builds the current trunk for the native architecture, if set, it enables the cross-compilation, the file that sets the target architecture
-      is environmentrc.
+    * Builds the current trunk for the target architecture, if set, it builds the native architecture 
+      and enables the cross-compilation for the target one, the file that sets the target architecture is environmentrc.
     * To enable cross-compilation with a not supported architecture, you should modify environmentrc and set your toolchain properly.

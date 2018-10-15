@@ -35,7 +35,7 @@ echo "JobId: $job_id"
 ###############################################
 
 function job_is_pending {
-    status=$(${QUEUE_JOB_STATUS_CMD})
+    status=$(${QUEUE_JOB_STATUS_CMD} ${job_id})
     if [ ${status} = ${QUEUE_JOB_RUNNING_TAG} ]; then
         false;
     else
@@ -55,7 +55,7 @@ done
 #            Get the master node              #
 ###############################################
 
-nodes=$(${QUEUE_JOB_NODES_CMD})
+nodes=$(${QUEUE_JOB_NODES_CMD} ${job_id})
 # expanded_nodes=$(scontrol show hostname ${nodes} | paste -d, -s)
 expanded_nodes=$(${HOSTLIST_CMD} ${nodes} | paste -d, -s)
 nodes_array=(${expanded_nodes//,/ })

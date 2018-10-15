@@ -4,7 +4,7 @@
 %define version		2.3.rc1810
 %define release		1
 
-Requires: compss-engine, compss-python-binding, automake, libtool, make, gcc-c++, gmp-devel, flex, bison, texinfo
+Requires: compss-engine, compss-python-binding, automake, libtool, make, gcc-c++, gmp-devel, flex, bison, texinfo, gnuplot
 Summary: The PyCOMPSs AutoParallel module
 Name: %{name}
 Version: %{version}

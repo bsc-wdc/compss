@@ -12,6 +12,7 @@ DEFAULT_SUPERCOMPUTER="mn1.bsc.es"
 DEFAULT_BROWSER="firefox"
 DEFAULT_QOS=""
 DEFAULT_TRACING="false"
+DEFAULT_PORT_FORWARDING="3333"
 
 #---------------------------------------------------
 # SCRIPT TOOLS
@@ -51,7 +52,7 @@ function CTRL_C() {
 
 check_connectivity() {
   echo "Checking connectivity..."
-  ${DEFAULT_SSH} ${username}@${supercomputer} -o PasswordAuthentication=no  -o BatchMode=yes exit &>/dev/null
+  ${DEFAULT_SSH} ${username}@${supercomputer} -o PasswordAuthentication=no -o BatchMode=yes exit &>/dev/null
   test_exit_code=$?
   if [ "${test_exit_code}" = 255 ]; then
     display_error ${ERROR_CONNECTING}
@@ -92,7 +93,9 @@ Usage: $0 [Options]
     --qos=<string>                          Quality of Service.
                                             Default: ""
     --tracing=<string>                      Enable/Disable tracing environment [true | false]
-                                            Default. ${DEFAULT_TRACING}
+                                            Default: ${DEFAULT_TRACING}
+    --port_forwarding=<int>                 Set a specific port for port forwarding.
+                                            Default: ${DEFAULT_PORT_FORWARDING}
 EOT
 
   exit "$exitValue"
@@ -196,6 +199,9 @@ get_args() {
           tracing=*)
             tracing=${OPTARG//tracing=/}
             ;;
+          port_forwarding=*)
+            port_forwarding=${OPTARG//port_forwarding=/}
+            ;;
           *)
             # Flag didn't match any pattern.
             ;;
@@ -269,6 +275,11 @@ check_args() {
   if [ -z "${tracing}" ]; then
     tracing=${DEFAULT_TRACING}
   fi
+
+  # Check port_forwarding argument
+  if [ -z "${port_forwarding}" ]; then
+    port_forwarding=${DEFAULT_PORT_FORWARDING}
+  fi
 }
 
 
@@ -293,7 +304,7 @@ check_args() {
 
   # Submit command and get connection info
   echo "Submitting jupyter job and waiting for it to start..."
-  connection_info=$(${DEFAULT_SSH} ${username}@${supercomputer} "${REMOTE_SCRIPT_DIR}/submit_jupyter_job.sh ${job_name} ${exec_time} ${num_nodes} ${qos} ${tracing}" 2>&1)
+  connection_info=$(${DEFAULT_SSH} ${username}@${supercomputer} "${REMOTE_SCRIPT_DIR}/submit_jupyter_job.sh ${job_name} ${exec_time} ${num_nodes} ${qos} ${tracing} ${port_forwarding}" 2>&1)
 
   # Parse connection info
   echo "Getting connection information..."
@@ -313,8 +324,8 @@ check_args() {
 
   # Establish the port forwarding
   echo "Establishing port forwarding..."
-  #${DEFAULT_SSH} -t -t ${username}@${supercomputer} -L 8888:localhost:8888 ssh ${node} -4 -L 8888:localhost:8888 > /dev/null 2>&1 &
-  ${DEFAULT_SSH} -t -t ${username}@${supercomputer} -L 8888:localhost:8888 ssh ${node} -L 8888:localhost:8888 > /dev/null 2>&1 &
+  #${DEFAULT_SSH} -t -t ${username}@${supercomputer} -L 8888:localhost:${port_forwarding} ssh ${node} -4 -L ${port_forwarding}:localhost:8888 > /dev/null 2>&1 &
+  ${DEFAULT_SSH} -t -t ${username}@${supercomputer} -L 8888:localhost:${port_forwarding} ssh ${node} -L ${port_forwarding}:localhost:8888 > /dev/null 2>&1 &
   RUNNING_PORT_FORWARDING_PID=$!
 
   # Wait 5 seconds to establish the port forwarding

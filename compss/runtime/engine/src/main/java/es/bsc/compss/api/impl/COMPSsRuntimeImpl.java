@@ -52,8 +52,10 @@ import es.bsc.compss.types.parameter.ExternalPSCOParameter;
 import es.bsc.compss.types.parameter.FileParameter;
 import es.bsc.compss.types.parameter.ObjectParameter;
 import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.resources.MasterResourceImpl;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.types.resources.ResourcesPool;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
@@ -125,7 +127,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         /*
          * Initializes the COMM library and the MasterResource (Master reconfigures the logger)
          */
-        Comm.init();
+        Comm.init(new MasterResourceImpl());
     }
 
     // Code Added to support configuration files
@@ -1239,7 +1241,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         Resource host = Comm.getAppHost();
         String hostName = uri.getHost();
         if (hostName != null && !hostName.isEmpty()) {
-            host = Resource.getResource(hostName);
+            host = ResourcesPool.getResource(hostName);
             if (host == null) {
                 ErrorManager.error("Host " + hostName + " not found when creating data location.");
             }

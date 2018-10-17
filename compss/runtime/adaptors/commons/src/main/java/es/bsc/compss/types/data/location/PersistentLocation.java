@@ -17,6 +17,7 @@
 package es.bsc.compss.types.data.location;
 
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.types.resources.ResourcesPool;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.ErrorManager;
 
@@ -30,7 +31,6 @@ import storage.StorageItf;
 public class PersistentLocation extends DataLocation {
 
     private final String id;
-
 
     public PersistentLocation(String id) {
         super();
@@ -67,7 +67,7 @@ public class PersistentLocation extends DataLocation {
         // Retrieve URIs from hosts
         LinkedList<MultiURI> uris = new LinkedList<>();
         for (String hostName : locations) {
-            Resource host = Resource.getResource(hostName);
+            Resource host = ResourcesPool.getResource(hostName);
             if (host != null) {
                 uris.add(new MultiURI(Protocol.PERSISTENT_URI, host, this.id));
             } else {
@@ -96,7 +96,7 @@ public class PersistentLocation extends DataLocation {
         // Get hosts
         List<Resource> hosts = new LinkedList<>();
         for (String hostName : locations) {
-            Resource host = Resource.getResource(hostName);
+            Resource host = ResourcesPool.getResource(hostName);
             if (host != null) {
                 hosts.add(host);
             } else {
@@ -174,7 +174,7 @@ public class PersistentLocation extends DataLocation {
     @Override
     public void modifyPath(String path) {
         // Nothing to do
-        
+
     }
 
 }

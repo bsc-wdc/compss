@@ -131,7 +131,7 @@ public class ResourceManager {
         } catch (NoResourceAvailableException e) {
             ErrorManager.fatal(ERROR_NO_RES, e);
         }
-      
+
     }
 
     /**
@@ -152,7 +152,7 @@ public class ResourceManager {
      * @param sharedDisks Shared Disk descriptions (diskName->mountpoint)
      */
     public static void updateMasterConfiguration(Map<String, String> sharedDisks) {
-        Comm.getAppHost().updateSharedDisk(sharedDisks);
+        Comm.getAppHost().updateResource(null, sharedDisks);
         try {
             Comm.getAppHost().start();
         } catch (InitNodeException e) {

@@ -20,6 +20,7 @@ import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.CommAdaptor;
+import es.bsc.compss.exceptions.AnnounceException;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
@@ -54,38 +55,19 @@ import java.util.List;
  * Representation of the COMPSs Master Node Only 1 instance per execution
  *
  */
-public class COMPSsMaster extends COMPSsNode {
+public final class COMPSsMaster extends COMPSsWorker {
 
     protected static final String ERROR_UNKNOWN_HOST = "ERROR: Cannot determine the IP address of the local host";
-
-    private static final String MASTER_NAME_PROPERTY = System.getProperty(COMPSsConstants.MASTER_NAME);
-    private static final String UNDEFINED_MASTER_NAME = "master";
 
     private final String name;
 
     /**
      * New COMPSs Master
+     *
+     * @param hostName
      */
-    public COMPSsMaster() {
-        super();
-
-        // Initializing host attributes
-        String hostName = "";
-        if ((MASTER_NAME_PROPERTY != null) && (!MASTER_NAME_PROPERTY.equals("")) && (!MASTER_NAME_PROPERTY.equals("null"))) {
-            // Set the hostname from the defined property
-            hostName = MASTER_NAME_PROPERTY;
-        } else {
-            // The MASTER_NAME_PROPERTY has not been defined, try load from machine
-            try {
-                InetAddress localHost = InetAddress.getLocalHost();
-                hostName = localHost.getCanonicalHostName();
-            } catch (UnknownHostException e) {
-                // Sets a default hsotName value
-                ErrorManager.warn("ERROR_UNKNOWN_HOST: " + e.getLocalizedMessage());
-                hostName = UNDEFINED_MASTER_NAME;
-            }
-        }
-
+    public COMPSsMaster(String hostName) {
+        super(hostName, null);
         name = hostName;
     }
 
@@ -604,6 +586,36 @@ public class COMPSsMaster extends COMPSsNode {
     @Override
     public void shutdownExecutionManager(ExecutorShutdownListener sl) {
         // Should not be executed on a COMPSsMaster
+    }
+
+    @Override
+    public String getUser() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String getClasspath() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String getPythonpath() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void updateTaskCount(int processorCoreCount) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void announceDestruction() throws AnnounceException {
+        //No need to do it. The master no it's always up
+    }
+
+    @Override
+    public void announceCreation() throws AnnounceException {
+        //No need to do it. The master no it's always up
     }
 
 }

@@ -27,7 +27,7 @@
   echo "*** RUNNING PYTHON MULTIRETURN TEST"
   output_log="${target_log_folder}/python_test_0${retryNum}.outputlog"
   error_log="${target_log_folder}/python_test_0${retryNum}.errorlog"
-  expectedTime=720s
+  expectedTime=180s
 
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \

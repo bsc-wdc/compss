@@ -58,6 +58,8 @@ public abstract class Executor implements Runnable {
 
     // Attached component NIOWorker
     private final NIOWorker nw;
+    
+    private File sandBoxDir;
     // Attached component Jobs thread Pool
     protected final JobsThreadPool pool;
     // Attached component Request queue
@@ -75,6 +77,16 @@ public abstract class Executor implements Runnable {
      * Thread main code which enables the request processing
      */
     public void run() {
+        this.sandBoxDir = new File(this.nw.getWorkingDir()+ "sandbox_"+ Thread.currentThread().getId());
+        if (!sandBoxDir.exists()) {
+            try {
+                Files.createDirectories(sandBoxDir.toPath());
+            } catch (IOException e) {
+                LOGGER.error(e.getMessage(), e);
+                throw(new RuntimeException("Error creating computing thread sandbox",e.getCause()));
+            }
+        }
+        
         start();
         
         // Main loop to process requests
@@ -102,9 +114,7 @@ public abstract class Executor implements Runnable {
             if (WORKER_DEBUG) {
                 LOGGER.debug("Dequeuing job " + nt.getJobId());
             }
-
             boolean success = executeTask(nt);
-
             if (WORKER_DEBUG) {
                 LOGGER.debug("Job " + nt.getJobId() + " finished (success: " + success + ")");
             }
@@ -170,11 +180,16 @@ public abstract class Executor implements Runnable {
 
         try {
             // Set the Task working directory
+            long startCreate = System.currentTimeMillis();
             twd = createTaskSandbox(nt);
-
+            long createDuration = System.currentTimeMillis()- startCreate;
+            
             // Bind files to task sandbox working dir
             LOGGER.debug("Binding renamed files to sandboxed original names for Job " + nt.getJobId());
+            long startSL = System.currentTimeMillis();
             bindOriginalFilenamesToRenames(nt, twd.getWorkingDir());
+            long slDuration = System.currentTimeMillis()- startSL;
+           
 
             // Bind Computing units
             int[] assignedCoreUnits = nw.getExecutionManager().bind(nt.getJobId(), nt.getResourceDescription().getTotalCPUComputingUnits(),
@@ -186,12 +201,15 @@ public abstract class Executor implements Runnable {
 
             // Execute task
             LOGGER.debug("Executing Task of Job " + nt.getJobId());
+            long startExec = System.currentTimeMillis();
             executeTask(nw, nt, outputsBasename, twd.getWorkingDir(), assignedCoreUnits, assignedGPUs, assignedFPGAs);
-
+            long execDuration = System.currentTimeMillis()- startExec;
             // Unbind files from task sandbox working dir
             LOGGER.debug("Removing renamed files to sandboxed original names for Job " + nt.getJobId());
+            long startOrig = System.currentTimeMillis();
             removeOriginalFilenames(nt);
-
+            long origFileDuration = System.currentTimeMillis()- startOrig;
+            LOGGER.info("[Profile] createSandBox: " + createDuration + " createSimLinks: " + slDuration + " execution" + execDuration + " restoreSimLinks: " + origFileDuration);
             // Check job output files
             LOGGER.debug("Checking generated files for Job " + nt.getJobId());
             checkJobFiles(nt);
@@ -207,7 +225,7 @@ public abstract class Executor implements Runnable {
         } finally {
             // Always clean the task sandbox working dir
             cleanTaskSandbox(twd);
-
+            
             // Always release the binded computing units
             nw.getExecutionManager().release(nt.getJobId(), BinderType.CPU);
             nw.getExecutionManager().release(nt.getJobId(), BinderType.GPU);
@@ -267,10 +285,11 @@ public abstract class Executor implements Runnable {
             Files.createDirectories(workingDir.toPath());
         } else {
             // No specific working dir provided, set default sandbox
+            /* Change to create a sandbox per thread not per task
             String completePath = this.nw.getWorkingDir() + "sandBox" + File.separator + "job_" + nt.getJobId();
             File workingDir = new File(completePath);
             taskWD = new TaskWorkingDir(workingDir, false);
-
+            
             // Clean-up previous versions if any
             if (workingDir.exists()) {
                 LOGGER.debug("Deleting folder " + workingDir.toString());
@@ -280,7 +299,11 @@ public abstract class Executor implements Runnable {
             }
 
             // Create structures
-            Files.createDirectories(workingDir.toPath());
+            if (!workingDir.exists()) {
+                Files.createDirectories(workingDir.toPath());
+            }
+            */
+            taskWD = new TaskWorkingDir(sandBoxDir, true);
         }
         return taskWD;
     }
@@ -445,7 +468,9 @@ public abstract class Executor implements Runnable {
     }
 
     private void move(Path origFilePath, Path renamedFilePath) throws IOException {
-        LOGGER.debug("Moving " + origFilePath.toString() + " to " + renamedFilePath.toString());
+        if (WORKER_DEBUG){
+                LOGGER.debug("Moving " + origFilePath.toString() + " to " + renamedFilePath.toString());
+        }
         try {
             Files.move(origFilePath, renamedFilePath, StandardCopyOption.ATOMIC_MOVE);
         } catch (AtomicMoveNotSupportedException amnse) {

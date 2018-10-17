@@ -173,7 +173,6 @@ public abstract class ExternalExecutor extends AbstractExternalExecutor {
             }
             throw new JobExecutionException("Job " + jobId + " has failed. Exit values is " + exitValue);
         }
-
         // Update parameters
         LOGGER.debug("Updating parameters for job " + jobId);
         for (int i = 0; i < taskStatus.getNumParameters(); ++i) {

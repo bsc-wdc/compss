@@ -45,6 +45,7 @@ import es.bsc.compss.types.data.ResultFile;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.request.ap.DeleteBindingObjectRequest;
+import es.bsc.compss.types.request.ap.FinishBindingObjectAccessRequest;
 import es.bsc.compss.types.request.ap.FinishFileAccessRequest;
 import es.bsc.compss.types.request.ap.TransferBindingObjectRequest;
 import es.bsc.compss.types.request.ap.TransferRawFileRequest;
@@ -476,7 +477,17 @@ public class AccessProcessor implements Runnable, TaskProducer {
         // String lastRenaming = ((DataAccessId.RWAccessId) oaId).getReadDataInstance().getRenaming();
 
         // return obtainBindingObject((DataAccessId.RWAccessId)oaId);
-        return obtainBindingObject((DataAccessId.RAccessId) oaId);
+        String bindingObjectID = obtainBindingObject((DataAccessId.RAccessId) oaId);
+        
+        finishBindingObjectAccess(oap);
+        
+        return bindingObjectID;
+    }
+    
+    private void finishBindingObjectAccess(AccessParams.BindingObjectAccessParams boAP) {
+        if (!requestQueue.offer(new FinishBindingObjectAccessRequest(boAP))) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "finishing binding object access");
+        }
     }
 
     /**

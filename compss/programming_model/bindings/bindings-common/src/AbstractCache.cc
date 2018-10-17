@@ -196,12 +196,14 @@ int AbstractCache::moveInCache(const char* id_from, const char* id_to) {
 }
 
 void AbstractCache::printValues() {
-	get_lock();
-    cout << "[AbstractCache] Cache contains:" <<endl;
-    for(std::map<std::string, compss_pointer>::iterator it = cache.begin(); it != cache.end(); it++) {
-        cout << it->first << hex << it->second.pointer << endl;
-    }
-    release_lock();
+	if (is_debug()) {
+		get_lock();
+		cout << "[AbstractCache] Cache contains:" <<endl;
+		for(std::map<std::string, compss_pointer>::iterator it = cache.begin(); it != cache.end(); it++) {
+			cout << it->first << " " << hex << it->second.pointer << endl;
+		}
+		release_lock();
+	}
 }
 
 int AbstractCache::removeData(const char* id, AbstractCache &c) {
@@ -210,7 +212,7 @@ int AbstractCache::removeData(const char* id, AbstractCache &c) {
     }
     bool found = c.isInCache(id);
     if (found) {
-        int res = c.deleteFromCache(id, true);
+        int res = c.deleteFromCache(id, false);
         if (res != 0) {
             cout << "[C Binding] Error deleting data " << id << endl;
             return res;

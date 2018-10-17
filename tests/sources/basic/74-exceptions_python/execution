@@ -91,9 +91,9 @@
   # Kind of a try catch, but without else... allows to continue when the exeption are raised.
   if app1; then
     if [ $exitValue -eq 0 ]; then
-      echo "Exception captured. Traceback and Exception message found - OK"
+      echo "Exception IN MASTER BEFORE SUBMITTING TASKS captured. Traceback and Exception message found - OK"
     else
-      echo "The traceback or the exception message could not be found - ERROR"
+      echo "PROBLEM: The traceback or the exception IN MASTER BEFORE SUBMITTING TASKS message could not be found - ERROR"
       exit 1
     fi
   fi
@@ -155,9 +155,9 @@
   # Kind of a try catch, but without else... allows to continue when the exeption are raised.
   if app2; then
     if [ $exitValue -eq "0" ]; then
-      echo "Exception captured. Traceback and Exception message found - OK"
+      echo "Exception IN MASTER AFTER SUBMITTING TASKS BEFORE SYNC captured. Traceback and Exception message found - OK"
     else
-      echo "The traceback or the exception message could not be found - ERROR"
+      echo "PROBLEM: The traceback or the exception IN MASTER AFTER SUBMITTING TASKS BEFORE SYNC message could not be found - ERROR"
       exit 1
     fi
   fi
@@ -219,13 +219,13 @@
   # Kind of a try catch, but without else... allows to continue when the exeption are raised.
   if app3; then
     if [ $exitValue -eq "0" ]; then
-      echo "Exception captured. Traceback and Exception message found - OK"
+      echo "Exception IN MASTER AFTER SUBMITTING TASKS AFTER SYNC captured. Traceback and Exception message found - OK"
     else
       if [ $exitValue -eq "1" ]; then
-          echo "The traceback or the exception message could not be found - ERROR"
+          echo "PROBLEM: The traceback or the exception IN MASTER AFTER SUBMITTING TASKS AFTER SYNC message could not be found - ERROR"
           exit 1
       else
-          echo "Invalid application result - ERROR"
+          echo "PROBLEM: Invalid application result IN MASTER AFTER SUBMITTING TASKS AFTER SYNC EXCEPTION TEST - ERROR"
           exit 1
       fi
     fi
@@ -288,13 +288,13 @@
   # Kind of a try catch, but without else... allows to continue when the exeption are raised.
   if app4; then
     if [ $exitValue -eq "0" ]; then
-      echo "Exception captured. Traceback and Exception message found - OK"
+      echo "Exception IN WORKER WITHIN TASK captured. Traceback and Exception message found - OK"
     else
       if [ $exitValue -eq "1" ]; then
-          echo "The traceback or the exception message could not be found - ERROR"
+          echo "PROBLEM: The traceback or the exception IN WORKER WITHIN TASK message could not be found - ERROR"
           exit 1
       else
-          echo "Invalid application result - ERROR"
+          echo "PROBLEM: Invalid application result IN WORKER WITHIN TASK EXCEPTION TEST - ERROR"
           exit 1
       fi
     fi

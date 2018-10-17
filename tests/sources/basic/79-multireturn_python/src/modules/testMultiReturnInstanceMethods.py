@@ -112,7 +112,7 @@ class testMultiReturnInstanceMethods(unittest.TestCase):
         self.assertEqual((result1, result2), (10, 1))
 
     '''
-        FUNCTION WITH ARGS + *ARGS
+    FUNCTION WITH ARGS + *ARGS
     '''
 
     def testVarArgTask1(self):
@@ -134,7 +134,7 @@ class testMultiReturnInstanceMethods(unittest.TestCase):
         self.assertEqual((result1, result2), (200, [4, 50]))
 
     '''
-        FUNCTION WITH **KWARGS
+    FUNCTION WITH **KWARGS
     '''
 
     def testKwargTask1(self):
@@ -156,7 +156,7 @@ class testMultiReturnInstanceMethods(unittest.TestCase):
         self.assertEqual((result1, result2), (0, []))
 
     '''
-        FUNCTION WITH ARGS + **KWARGS
+    FUNCTION WITH ARGS + **KWARGS
     '''
 
     def testVarKwargTask1(self):
@@ -178,7 +178,7 @@ class testMultiReturnInstanceMethods(unittest.TestCase):
         self.assertEqual((result1, result2), (6, []))
 
     '''
-        FUNCTION WITH *ARGS + **KWARGS
+    FUNCTION WITH *ARGS + **KWARGS
     '''
 
     def testArgKwargTask1(self):
@@ -210,7 +210,7 @@ class testMultiReturnInstanceMethods(unittest.TestCase):
         self.assertEqual((result1, result2, result3), (0, (), {}))
 
     '''
-        FUNCTION WITH ARGS, *ARGS AND **KWARGS
+    FUNCTION WITH ARGS, *ARGS AND **KWARGS
     '''
 
     def testVarArgKwargTask1(self):
@@ -228,7 +228,7 @@ class testMultiReturnInstanceMethods(unittest.TestCase):
         self.assertEqual((result1, result2, result3), (22, (3, 4, 5, 6), {'this': 'is', 'a': 'test'}))
 
     '''
-        FUNCTION WITH ARGS, DEFAULTED ARGS, *ARGS AND **KWARGS
+    FUNCTION WITH ARGS, DEFAULTED ARGS, *ARGS AND **KWARGS
     '''
 
     def testVarArgDefaultKwargTask1(self):
@@ -264,7 +264,7 @@ class testMultiReturnInstanceMethods(unittest.TestCase):
         self.assertEqual((result1, result2, result3, result4), (10, 3, (4,), {'five': 5}))
 
     '''
-        FUNCTION WITH **KWARGS AND DICT UNROLLING
+    FUNCTION WITH **KWARGS AND DICT UNROLLING
     '''
 
     def testKwargsDictUnrolling(self):

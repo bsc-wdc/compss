@@ -609,8 +609,8 @@ def initialize_compss(config):
     os.close(fd)
     os.environ['JVM_OPTIONS_FILE'] = temp_path
 
-    print("Uncomment if you want to check the configuration file path.")
-    print("JVM_OPTIONS_FILE: %s" % temp_path)
+    # print("Uncomment if you want to check the configuration file path.")
+    # print("JVM_OPTIONS_FILE: %s" % temp_path)
 
 
 if __name__ == '__main__':

@@ -210,10 +210,10 @@
 		                    		
 		                    		<columns>
                             			<column width="7%" align="center" />
-                            			<column width="12%" align="start" />
-                            			<column width="70%" align="center" />
+                            			<column width="25%" align="start" />
+                            			<column width="58%" align="center" />
                             			<column width="10%" align="center" />
-                            		</columns>
+                            		</columns>                            		
 		                            
 		                            <template name="task">
 		                                <row>

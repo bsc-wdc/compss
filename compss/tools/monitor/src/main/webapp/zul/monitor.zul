@@ -93,8 +93,8 @@
 			         
 			         <tabpanel fulfill="currentTasksGraphTab.onSelect" style="overflow:auto">		         	
 		         		<div vflex="1" hflex="1" align="center" style="overflow:auto">
-		         			<hbox height="99%" width="99%" align="center" pack="center" widths="60%,40%">
-		         				<image style="width: 99%; height: 99%" src="@load(vm.currentGraphViewModel.graph)" />
+		         			<hbox height="99%" width="99%" align="center" pack="center" widths="70%,30%">
+		         				<image style="height: 700px" src="@load(vm.currentGraphViewModel.graph)" />
                         		<!-- <iframe height="99%" width="99%" src="@load(vm.currentGraphViewModel.graph)" /> -->
                         		<vbox align="center" pack="center" heights="10%,90%">
                         			<button label="Download" onClick="@command('downloadCurrentGraph')" />

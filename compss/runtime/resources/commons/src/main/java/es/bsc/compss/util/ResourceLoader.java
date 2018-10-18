@@ -36,11 +36,13 @@ import es.bsc.compss.types.project.ProjectFile;
 import es.bsc.compss.types.project.exceptions.ProjectFileValidationException;
 import es.bsc.compss.types.project.jaxb.*;
 import es.bsc.compss.types.resources.DataResourceDescription;
+import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.MethodWorker;
 import es.bsc.compss.types.resources.ResourcesFile;
 import es.bsc.compss.types.resources.ServiceResourceDescription;
 import es.bsc.compss.types.resources.ServiceWorker;
+import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import es.bsc.compss.types.resources.configuration.ServiceConfiguration;
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
@@ -70,7 +72,6 @@ public class ResourceLoader {
 
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.RM_COMP);
-
 
     public static void load(String resources_XML, String resources_XSD, String project_XML, String project_XSD)
             throws ResourcesFileValidationException, ProjectFileValidationException, NoResourceAvailableException {
@@ -125,7 +126,8 @@ public class ResourceLoader {
 
         // Load master node information
         MasterNodeType master = ResourceLoader.project.getMasterNode();
-        loadMaster(master);
+        boolean exist = loadMaster(master);
+        computeNodeExist = (computeNodeExist || exist);
 
         // Load ComputeNodes
         List<ComputeNodeType> computeNodes = ResourceLoader.project.getComputeNodes_list();
@@ -134,21 +136,20 @@ public class ResourceLoader {
                 es.bsc.compss.types.resources.jaxb.ComputeNodeType cn_resources = ResourceLoader.resources
                         .getComputeNode(cn_project.getName());
                 if (cn_resources != null) {
-                    boolean exist = loadComputeNode(cn_project, cn_resources);
+                    exist = loadComputeNode(cn_project, cn_resources);
                     computeNodeExist = (computeNodeExist || exist);
                 } else {
                     ErrorManager.warn("ComputeNode " + cn_project.getName() + " not defined in the resources file");
                 }
             }
         }
-
         // Load Services
         List<ServiceType> services = ResourceLoader.project.getServices_list();
         if (services != null) {
             for (ServiceType s_project : services) {
                 es.bsc.compss.types.resources.jaxb.ServiceType s_resources = ResourceLoader.resources.getService(s_project.getWsdl());
                 if (s_resources != null) {
-                    boolean exist = loadService(s_project, s_resources);
+                    exist = loadService(s_project, s_resources);
                     serviceExist = (serviceExist || exist);
                 } else {
                     ErrorManager.warn("Service " + s_project.getWsdl() + " not defined in the resources file");
@@ -181,7 +182,7 @@ public class ResourceLoader {
         }
     }
 
-    private static void loadMaster(MasterNodeType master) {
+    private static boolean loadMaster(MasterNodeType master) {
         Map<String, String> sharedDisks = new HashMap<>();
         List<Object> masterInformation = master.getSharedDisksOrPrice();
         if (masterInformation != null) {
@@ -214,7 +215,16 @@ public class ResourceLoader {
                 }
             }
         }
-        ResourceManager.updateMasterConfiguration(sharedDisks);
+        MethodResourceDescription mrd = new MethodResourceDescription();
+        Processor p = new Processor();
+        p.setComputingUnits(4);
+        mrd.addProcessor(p);
+        ResourceManager.updateMasterConfiguration(mrd, sharedDisks);
+        if (mrd.getTotalCPUComputingUnits() > 0) {
+            ResourceManager.addStaticResource((MethodWorker) Comm.getAppHost());
+            return true;
+        }
+        return false;
     }
 
     private static boolean loadComputeNode(ComputeNodeType cn_project, es.bsc.compss.types.resources.jaxb.ComputeNodeType cn_resources) {

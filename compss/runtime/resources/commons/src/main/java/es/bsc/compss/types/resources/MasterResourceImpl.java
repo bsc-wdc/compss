@@ -275,6 +275,7 @@ public class MasterResourceImpl extends DynamicMethodWorker implements MasterRes
         return tempDirPath;
     }
 
+    @Override
     public String getJobsDirPath() {
         return jobsDirPath;
     }
@@ -306,7 +307,13 @@ public class MasterResourceImpl extends DynamicMethodWorker implements MasterRes
     }
 
     @Override
-    public void updateResource(MethodResourceDescription rd, Map<String, String> sharedDisks) {
+    public void updateResource(MethodResourceDescription mrd, Map<String, String> sharedDisks) {
+        this.description.increase(mrd);
+        this.available.increase(mrd);
+        this.setMaxCPUTaskCount(mrd.getTotalCPUComputingUnits());
+        this.setMaxGPUTaskCount(mrd.getTotalGPUComputingUnits());
+        this.setMaxFPGATaskCount(mrd.getTotalFPGAComputingUnits());
+        this.setMaxOthersTaskCount(mrd.getTotalOTHERComputingUnits());
         super.sharedDisks = sharedDisks;
     }
 

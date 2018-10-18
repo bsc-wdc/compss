@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.types;
 
-import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.CommAdaptor;
@@ -43,8 +42,6 @@ import es.bsc.compss.util.Serializer;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;

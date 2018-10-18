@@ -69,6 +69,7 @@ def start(log_level='off',
           resources_xml=None,
           summary=False,
           task_execution='compss',
+          storage_impl=None,
           storage_conf=None,
           task_count=50,
           app_name='Interactive',
@@ -106,6 +107,7 @@ def start(log_level='off',
     :param resources_xml: Resources xml file path
     :param summary: Execution summary [ True | False ] (default: False)
     :param task_execution: Task execution (default: 'compss')
+    :param storage_impl: Storage implementation path
     :param storage_conf: Storage configuration file path
     :param task_count: Task count (default: 50)
     :param app_name: Application name (default: Interactive_date)
@@ -147,6 +149,13 @@ def start(log_level='off',
     pythonpath = os.environ['PYTHONPATH']
     classpath = os.environ['CLASSPATH']
     ld_library_path = os.environ['LD_LIBRARY_PATH']
+
+    # Set storage classpath
+    if storage_impl:
+        if storage_impl == 'redis':
+            cp = cp + ':' + compss_home + '/Tools/storage/redis/compss-redisPSCO.jar'
+        else:
+            cp = cp + ':' + storage_impl
 
     # Set extrae dependencies
     if not "EXTRAE_HOME" in os.environ:

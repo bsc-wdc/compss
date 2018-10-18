@@ -39,8 +39,13 @@ from pycompss.api.api import compss_start, compss_stop
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
-from pycompss.util.scs import get_reservation_nodes
-from pycompss.util.scs import generate_xmls
+from pycompss.util.scs import get_master_node
+from pycompss.util.scs import get_master_port
+from pycompss.util.scs import get_xmls
+from pycompss.util.scs import get_uuid
+from pycompss.util.scs import get_base_log_dir
+from pycompss.util.scs import get_specific_log_dir
+from pycompss.util.scs import get_tracing
 from pycompss.util.logs import init_logging
 from pycompss.util.serializer import SerializerException
 from pycompss.util.optional_modules import show_optional_module_warnings
@@ -198,6 +203,7 @@ def launch_pycompss_application(app, func,
                                 resources_xml=None,
                                 summary=False,
                                 task_execution='compss',
+                                storage_impl=None,
                                 storage_conf=None,
                                 task_count=50,
                                 app_name=None,
@@ -240,6 +246,7 @@ def launch_pycompss_application(app, func,
     :param resources_xml: Resources xml file path
     :param summary: Execution summary [ True | False ] (default: False)
     :param task_execution: Task execution (default: 'compss')
+    :param storage_impl: Storage implementation path
     :param storage_conf: Storage configuration file path
     :param task_count: Task count (default: 50)
     :param app_name: Application name (default: Interactive_date)
@@ -287,11 +294,28 @@ def launch_pycompss_application(app, func,
     file_name = os.path.splitext(os.path.basename(app))[0]
     cp = os.path.dirname(app)
 
+    # Set storage classpath
+    if storage_impl:
+        if storage_impl == 'redis':
+            cp = cp + ':' + compss_home + '/Tools/storage/redis/compss-redisPSCO.jar'
+        else:
+            cp = cp + ':' + storage_impl
+
     if RUNNING_IN_SUPERCOMPUTER:
-        # Check the nodes names from the environment variables provided by the queuing system
-        nodes = get_reservation_nodes()
-        # Build project and resources xml if within a Supercomputer
-        project_xml, resources_xml = generate_xmls(compss_home, nodes)
+        # Since the deployment in supercomputers is done through the use of enqueue_compss
+        # and consequently launch_compss - the project and resources xmls are already created
+        project_xml, resources_xml = get_xmls()
+        # It also exported some environment variables that we need here
+        master_name = get_master_node()
+        master_port = get_master_port()
+        uuid = get_uuid()
+        base_log_dir = get_base_log_dir()
+        specific_log_dir = get_specific_log_dir()
+        # Override tracing considering the parameter defined in pycompss_interactive_sc script
+        if get_tracing():
+            trace = 1
+        else:
+            trace = 0
 
     # Build a dictionary with all variables needed for initializing the runtime.
     config = dict()
@@ -585,8 +609,8 @@ def initialize_compss(config):
     os.close(fd)
     os.environ['JVM_OPTIONS_FILE'] = temp_path
 
-    # print("Uncomment if you want to check the configuration file path.")
-    # print("JVM_OPTIONS_FILE: %s" % temp_path)
+    print("Uncomment if you want to check the configuration file path.")
+    print("JVM_OPTIONS_FILE: %s" % temp_path)
 
 
 if __name__ == '__main__':

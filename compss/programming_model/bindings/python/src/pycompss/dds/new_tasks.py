@@ -26,11 +26,10 @@ def merge_dicts(first, second, merger_function):
         first[key] = merger_function(first[key], val) if key in first else val
 
 
-# @task(returns=1)
+@task(returns=1)
 def map_partition(f, loader):
     """
     """
-    loader = compss_wait_on(loader)
     res = f(loader)
     return res
 
@@ -38,6 +37,7 @@ def map_partition(f, loader):
 @task(returns=1)
 def reduce_partition(f, partition):
     """
+    TODO: Should it be a Tree Reducer as well?
     """
     iterator = iter(partition)
     try:

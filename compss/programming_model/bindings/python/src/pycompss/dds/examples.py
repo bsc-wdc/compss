@@ -52,21 +52,31 @@ def inside(_):
 
 def reduce_example():
     test = DDS(range(100), 50).reduce((lambda b, a: b + a), initial=100,
-                                      arity=3, collect=False)\
-                              .map(lambda a: a+1).collect()
+                                      arity=3, collect=False) \
+        .map(lambda a: a + 1).collect()
     print(test)
 
 
-def word_count():
+from new_dds import DDS as n_dds
 
+
+def test():
+    data = range(0, 5)
+    result = n_dds().load(data, 2).map_and_flatten(lambda x: [x, x]) \
+        .filter(lambda x: x > 0) \
+        .count_by_value()
+    print(result)
+
+
+def word_count():
     path_file = sys.argv[1]
     size_block = int(sys.argv[3])
 
     start = time.time()
-    result = DDS().load_file(path_file, chunk_size=size_block, worker_read=True)\
+    result = DDS().load_file(path_file, chunk_size=size_block, worker_read=True) \
         .map_and_flatten(lambda x: x.split()).count_by_value(as_dict=True)
 
-    print("Elapsed Time: ", time.time()-start)
+    print("Elapsed Time: ", time.time() - start)
     return
 
 
@@ -141,11 +151,11 @@ def example_4():
     print(letters)
 
     # Extract single letter words from 'words' and count them
-    dds_words = DDS().load(words, 10).map_and_flatten(lambda x: x.split(" "))\
+    dds_words = DDS().load(words, 10).map_and_flatten(lambda x: x.split(" ")) \
         .filter(lambda x: len(x) == 1).count_by_value()
 
     # Extract letters from 'letters' and count them
-    dds_letters = DDS().load(letters, 5).map_and_flatten(lambda x: list(x))\
+    dds_letters = DDS().load(letters, 5).map_and_flatten(lambda x: list(x)) \
         .count_by_value()
     print()
     print("Amongst single letter words and letters, the highest occurrence is:")
@@ -164,11 +174,11 @@ def example_5():
         f.write("This one doesn't have a sharp {}\n")
     f.close()
 
-    results = DDS().load_text_file(file_name, chunk_size=100)\
-        .filter(lambda line: '#' in line)\
+    results = DDS().load_text_file(file_name, chunk_size=100) \
+        .filter(lambda line: '#' in line) \
         .map_and_flatten(lambda line: line.split(" ")) \
-        .count_by_value()\
-        .filter(lambda x: len(x[0]) > 2)\
+        .count_by_value() \
+        .filter(lambda x: len(x[0]) > 2) \
         .collect_as_dict()
 
     print("Words of lines containing '#':")

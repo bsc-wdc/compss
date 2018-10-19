@@ -32,8 +32,7 @@ from multiprocessing import Process
 from multiprocessing import Queue
 import base64
 import thread_affinity
-from pycompss.api.parameter import TYPE
-from pycompss.api.parameter import JAVA_MIN_INT, JAVA_MAX_INT
+import pycompss.api.parameter as parameter
 from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.runtime.commons import IS_PYTHON3
@@ -44,12 +43,6 @@ from pycompss.util.serializer import deserialize_from_string
 from pycompss.util.serializer import SerializerException
 from pycompss.util.logs import init_logging_worker
 from pycompss.util.persistent_storage import is_psco, get_by_id
-
-if IS_PYTHON3:
-    long = int
-else:
-    # Exception moved to built-in
-    from exceptions import ValueError
 
 SYNC_EVENTS = 8000666
 
@@ -224,8 +217,8 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                         # endTask jobId exitValue message
                         params = build_return_params_message(current_line[9:], new_types, new_values)
                         message = END_TASK_TAG + " " + str(job_id) \
-                                               + " " + str(exit_value) \
-                                               + " " + str(params) + "\n"
+                                  + " " + str(exit_value) \
+                                  + " " + str(params) + "\n"
                     else:
                         # An exception has been raised in task
                         message = END_TASK_TAG + " " + str(job_id) + " " + str(exit_value) + "\n"
@@ -352,6 +345,10 @@ def execute_task(process_name, storage_conf, params):
         persistent_storage = True
         from pycompss.util.persistent_storage import storage_task_context
 
+    print('---- TASK PARAMS ----')
+    print(params)
+    print('---- END TASK PARAMS ----')
+
     # Retrieve the parameters from the params argument
     path = params[0]
     method_name = params[1]
@@ -396,7 +393,8 @@ def execute_task(process_name, storage_conf, params):
     # Get all parameter values
     if __debug__:
         logger.debug("[PYTHON WORKER %s] Processing parameters:" % process_name)
-    values, types, streams, prefixes = get_input_params(num_params, logger, args, process_name)
+    values  = get_input_params(num_params, logger, args, process_name)
+    types = [x.type for x in values]
 
     if __debug__:
         logger.debug("[PYTHON WORKER %s] RUN TASK with arguments: " % process_name)
@@ -497,7 +495,7 @@ def execute_task(process_name, storage_conf, params):
                         process_name, file_name, type(obj)))
             values.insert(0, obj)
             types.pop()
-            types.insert(0, TYPE.OBJECT if not is_psco(last_elem) else TYPE.EXTERNAL_PSCO)
+            types.insert(0, parameter.TYPE.OBJECT if not is_psco(last_elem) else parameter.TYPE.EXTERNAL_PSCO)
 
             def task_execution_2():
                 return task_execution(logger, process_name, klass, method_name, types, values, compss_kwargs)
@@ -533,7 +531,10 @@ def execute_task(process_name, storage_conf, params):
                         logger.debug("[PYTHON WORKER %s] Serializing self to file: %s" % (process_name, file_name))
                     serialize_to_file(obj, file_name)
                 if __debug__:
-                    logger.debug("[PYTHON WORKER %s] Obj: %r" % (process_name, obj))
+                    logger.debug("[PYTHON WORKER %s] Serializing self to file." % process_name)
+                serialize_to_file('self', obj, file_name)
+            if __debug__:
+                logger.debug("[PYTHON WORKER %s] Obj: %r" % (process_name, obj))
         else:
             # Class method - class is not included in values (e.g. values = [7])
             types.insert(0, None)  # class must be first type
@@ -562,6 +563,7 @@ def execute_task(process_name, storage_conf, params):
     return 0, new_types, new_values  # Exit code, updated params
 
 
+
 def get_input_params(num_params, logger, args, process_name):
     """
     Get and prepare the input parameters from string to lists.
@@ -570,67 +572,93 @@ def get_input_params(num_params, logger, args, process_name):
     :param logger: Logger
     :param args: Arguments (complete list of parameters with type, stream, prefix and value)
     :param process_name: Process name
-    :return: Four lists: values, types, streams, prefixes
+    :return: A list of TaskParameter objects
     """
     pos = 0
-    values = []
-    types = []
-    streams = []
-    prefixes = []
 
-    def is_redis():
-        try:
-            import storage.api
-            return storage.api.__name__ == "redispycompss"
-        except Exception:
-            # Could not import storage api
-            return False
+    class TaskParameter(object):
+        '''An internal wrapper for parameters. It makes it easier for the task decorator to know
+        any aspect of the parameters (should they be updated or can changes be discarded, should they
+        be deserialized or read from some storage, etc etc)
+        '''
 
-    if is_redis():
-        pre_pipeline = []
+        def __init__(self, name = None, type = None, file_name = None,
+                     key = None, content = None, stream = None, prefix = None):
+            self.name = name
+            self.type = type
+            self.file_name = file_name
+            self.key = key
+            self.content = content
+            self.stream = stream
+            self.prefix = prefix
+
+        def __repr__(self):
+            return'\nParameter %s' % self.name + '\n' + \
+                  '\tType %s' % str(self.type) + '\n' + \
+                  '\tFile Name %s' % self.file_name + '\n' + \
+                  '\tKey %s' % str(self.key) + '\n' + \
+                  '\tContent %s' % str(self.content) + '\n' + \
+                  '\tStream %s' % str(self.stream) + '\n' + \
+                  '\tPrefix %s' % str(self.prefix) + '\n' + \
+                  '-' * 20 + '\n'
+
+
+    ret = []
 
     for i in range(0, num_params):
         p_type = int(args[pos])
         p_stream = int(args[pos + 1])
         p_prefix = args[pos + 2]
-        p_value = args[pos + 3]
+        p_name = args[pos + 3]
+        p_value = args[pos + 4]
 
         if __debug__:
             logger.debug("[PYTHON WORKER %s] Parameter : %s" % (process_name, str(i)))
             logger.debug("[PYTHON WORKER %s] \t * Type : %s" % (process_name, str(p_type)))
             logger.debug("[PYTHON WORKER %s] \t * Stream : %s" % (process_name, str(p_stream)))
             logger.debug("[PYTHON WORKER %s] \t * Prefix : %s" % (process_name, str(p_prefix)))
+            logger.debug("[PYTHON WORKER %s] \t * Name : %s" % (process_name, str(p_name)))
             logger.debug("[PYTHON WORKER %s] \t * Value: %r" % (process_name, p_value))
 
-        types.append(p_type)
-        streams.append(p_stream)
-        prefixes.append(p_prefix)
-
-        if p_type == TYPE.FILE:
-            values.append(p_value)
-        elif p_type == TYPE.EXTERNAL_PSCO:
-            if is_redis():
-                po = p_value
-                pre_pipeline.append((po, len(values)))
-            else:
-                po = get_by_id(p_value)
-            values.append(po)
+        if p_type == parameter.TYPE.FILE:
+            # Maybe the file is a object, we dont care about this here
+            # We will decide whether to deserialize or to forward the value
+            # when processing parameters in the task decorator
+            ret.append(
+                TaskParameter(
+                    type = p_type,
+                    stream = p_stream,
+                    prefix = p_prefix,
+                    name = p_name,
+                    file_name = p_value
+                )
+            )
+        elif p_type == parameter.TYPE.EXTERNAL_PSCO:
+            ret.append(
+                TaskParameter(
+                    type = p_type,
+                    stream = p_stream,
+                    prefix = p_prefix,
+                    name = p_name,
+                    key = p_value
+                )
+            )
             pos += 1  # Skip info about direction (R, W)
-        elif p_type == TYPE.STRING:
+        elif p_type == parameter.TYPE.STRING:
             num_substrings = int(p_value)
             aux = ''
             first_substring = True
-            for j in range(4, num_substrings + 4):
+            for j in range(5, num_substrings + 5):
                 if not first_substring:
                     aux += ' '
                 first_substring = False
                 aux += args[pos + j]
-            # Decode the string received
-            aux = base64.b64decode(aux.encode())
-            if aux.decode() == EMPTY_STRING_KEY:
-                # Then it is an empty string
-                aux = ""
-            else:
+            # Decode the received string
+            # Note that we prepend a sharp to all strings in order to avoid
+            # getting empty encodings in the case of empty strings, so we need
+            # to remove it when decoding
+            aux = base64.b64decode(aux.encode())[1:]
+            if aux:
                 #######
                 # Check if the string is really an object
                 # Required in order to recover objects passed as parameters.
@@ -647,45 +675,47 @@ def get_input_params(num_params, logger, args, process_name):
                 except (SerializerException, ValueError, EOFError):
                     # was not an object
                     aux = str(real_value.decode())
-                #######
-            values.append(aux)
+                    #######
             if __debug__:
                 logger.debug("[PYTHON WORKER %s] \t * Final Value: %s" % (process_name, str(aux)))
             pos += num_substrings
-        elif p_type == TYPE.INT:
-            values.append(int(p_value))
-        elif p_type == TYPE.LONG:
-            my_l = long(p_value)
-            if my_l > JAVA_MAX_INT or my_l < JAVA_MIN_INT:
-                # A Python int was converted to a Java long to prevent overflow
-                # We are sure we will not overflow Python int, otherwise this
-                # would have been passed as a serialized object.
-                my_l = int(my_l)
-            values.append(my_l)
-        elif p_type == TYPE.DOUBLE:
-            values.append(float(p_value))
-        elif p_type == TYPE.BOOLEAN:
-            if p_value == 'true':
-                values.append(True)
-            else:
-                values.append(False)
-        # elif (pType == TYPE.OBJECT):
-        #    pass
+            ret.append(
+                TaskParameter(
+                    type = p_type,
+                    stream = p_stream,
+                    prefix = p_prefix,
+                    name = p_name,
+                    content = aux
+                )
+            )
         else:
-            logger.fatal("[PYTHON WORKER %s] Invalid type (%d) for parameter %d" % (process_name, p_type, i))
-            exit(1)
-        pos += 4
-    if is_redis() and pre_pipeline:
-        ids = [ident for (ident, _) in pre_pipeline]
-        from storage.api import getByID
-        retrieved_objects = getByID(*ids)
-        if len(ids) == 1:
-            retrieved_objects = [retrieved_objects]
-        obj_index = zip(retrieved_objects, [index for (_, index) in pre_pipeline])
-        for (obj, index) in obj_index:
-            values[index] = obj
+            # Basic numeric types. These are passed as command line arguments and only
+            # a cast is needed
+            if p_type == parameter.TYPE.INT:
+                val = int(p_value)
+            elif p_type == parameter.TYPE.LONG:
+                val = parameter.PYCOMPSS_LONG(p_value)
+                if val > parameter.JAVA_MAX_INT or val < parameter.JAVA_MIN_INT:
+                    # A Python inparameter.t was converted to a Java long to prevent overflow
+                    # We are sure we will not overflow Python int, otherwise this
+                    # would have been passed as a serialized object.
+                    val = int(val)
+            elif p_type == parameter.TYPE.DOUBLE:
+                val = float(p_value)
+            elif p_type == parameter.TYPE.BOOLEAN:
+                val = (p_value == 'true')
+            ret.append(
+                TaskParameter(
+                    type = p_type,
+                    stream = p_stream,
+                    prefix = p_prefix,
+                    name = p_name,
+                    content = val
+                )
+            )
+        pos += 5
 
-    return values, types, streams, prefixes
+    return ret
 
 
 def task_execution(logger, process_name, module, method_name, types, values, compss_kwargs):
@@ -713,7 +743,7 @@ def task_execution(logger, process_name, module, method_name, types, values, com
     # the new_types and new_values will be within a tuple at position 0.
     # Force users that use decorators on top of @task to return the task results first.
     # This is tested with the timeit decorator in test 19.
-    task_output = getattr(module, method_name)(*values, compss_types=types, **compss_kwargs)
+    task_output = getattr(module, method_name)(*values, compss_types = types, **compss_kwargs)
 
     if isinstance(task_output[0], tuple):  # Weak but effective way to check it without doing inspect.
         # Another decorator has added another return thing.
@@ -766,7 +796,8 @@ def compss_persistent_worker():
     """
 
     # Set the binding in worker mode
-    set_pycompss_context('WORKER')
+    import pycompss.util.context as context
+    context.set_pycompss_context(context.WORKER)
 
     # Get args
     debug = (sys.argv[1] == 'true')

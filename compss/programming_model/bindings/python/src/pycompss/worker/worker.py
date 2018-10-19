@@ -88,7 +88,7 @@ def compss_worker(persistent_storage):
     # Set the binding in worker mode
     set_pycompss_context('WORKER')
 
-    args = sys.argv[8:]
+    args = sys.argv[6:]
 
     path = args[0]
     method_name = args[1]
@@ -179,14 +179,14 @@ def compss_worker(persistent_storage):
                     # try to recover the real object
                     if IS_PYTHON3:
                         # decode removes double backslash, and encode returns as binary
-                        aux = deserialize_from_string(aux.decode(STR_ESCAPE).encode())
+                        name, aux = deserialize_from_string(aux.decode(STR_ESCAPE).encode())
                     else:
                         # decode removes double backslash, and str casts the output
-                        aux = deserialize_from_string(str(aux.decode(STR_ESCAPE)))
+                        name, aux = deserialize_from_string(str(aux.decode(STR_ESCAPE)))
                 except (SerializerException, ValueError, EOFError):
                     # was not an object
                     aux = str(real_value.decode())
-                #######
+                    #######
             values.append(aux)
             logger.debug("\t * Final Value: " + str(aux))
             pos += num_substrings
@@ -338,15 +338,13 @@ if __name__ == "__main__":
     tracing = sys.argv[1] == 'true'
     taskId = int(sys.argv[2])
     log_level = sys.argv[3]
-    install_dir = sys.argv[4]
-    app_dir = sys.argv[5]
-    storage_conf = sys.argv[6]
-    method_type = sys.argv[7]
-    # class_name = sys.argv[8]
-    # method_name = sys.argv[9]
-    # num_slaves = sys.argv[10]
-    # i = 10 + num_slaves
-    # slaves = sys.argv[11-i]
+    storage_conf = sys.argv[4]
+    method_type = sys.argv[5]
+    # class_name = sys.argv[6]
+    # method_name = sys.argv[7]
+    # num_slaves = sys.argv[8]
+    # i = 8 + num_slaves
+    # slaves = sys.argv[9-i]
     # numCus = sys.argv[i+1]
     # has_target = sys.argv[i+2] == 'true'
     # num_params = int(sys.argv[i+3])

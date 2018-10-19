@@ -703,7 +703,6 @@ def main_program():
     test_function_as_parameter()
     test_default_parameters()
     test_order_parameters()
-
     test_fu_parameter_in_task()
     test_fu_list_in_task()
 
@@ -730,7 +729,6 @@ def main_program():
     test_inouts()
 
     test_empty_string()
-
 
 if __name__ == "__main__":
     main_program()

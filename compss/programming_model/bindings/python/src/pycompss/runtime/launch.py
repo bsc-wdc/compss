@@ -30,9 +30,9 @@ import logging
 import traceback
 from tempfile import mkdtemp
 
-# Let the Python binding know we are during libraries initialization
-from pycompss.util.location import set_pycompss_context
-set_pycompss_context('INITIALIZATION')
+# Let the Python binding know we are at master
+import pycompss.util.context as context
+context.set_pycompss_context(context.MASTER)
 
 import pycompss.runtime.binding as binding
 from pycompss.api.api import compss_start, compss_stop
@@ -186,7 +186,7 @@ def compss_main():
         sys.stdout.flush()
         sys.stderr.flush()
 
-    # --- Execution finished ---
+        # --- Execution finished ---
 
 
 #################################################

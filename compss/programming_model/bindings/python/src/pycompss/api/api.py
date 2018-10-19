@@ -33,9 +33,9 @@ PyCOMPSs API
     Also includes the redirection to the dummy API.
 """
 
-from pycompss.util.location import within_scope as __within_scope__
+import pycompss.util.context as context
 
-if __within_scope__():
+if context.in_pycompss():
     # ################################################################# #
     #                PyCOMPSs API definitions                           #
     # Any change on this API must be considered within the dummy API.   #

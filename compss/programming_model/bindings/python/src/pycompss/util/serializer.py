@@ -164,7 +164,7 @@ def serialize_to_file(obj, file_name):
 
     :param obj: Object to be serialized.
     :param file_name: File name where the object is going to be serialized.
-    :return:
+    :return: Nothing, it just serializes the object
     """
 
     handler = open(file_name, 'wb')
@@ -187,11 +187,26 @@ def serialize_to_string(obj):
     handler.close()
     return ret
 
+def serialize_named_to_file(name, obj, file_name):
+    '''Serialize a named object to a file
+    :param name: Name of the object
+    :param obj: Name of the object
+    :param file_name: Name of the file name
+    :return: Nothing, it just serializes the named object
+    '''
+    serialize_to_file((name, obj), file_name)
+
+def serialize_named_to_string(name, obj):
+    '''Serialize a named object to a string
+    :param name: Name of the object
+    :param obj: Object to serialize
+    :return: <String> the serialized content
+    '''
+    return serialize_to_string((name, obj))
 
 def get_numpy_dummy_obj():
-    """
-    Return a small, dummy, numpy object
-    """
+    '''Return a numpy object or an empty list if numpy is not available
+    '''
     try:
         return numpy.zeros(1)
     except:
@@ -199,13 +214,10 @@ def get_numpy_dummy_obj():
 
 
 def deserialize_from_handler(handler):
-    """
-    Deserialize an object from a file.
-
+    '''Deserialize an object from a file.
     :param handler: File name from where the object is going to be deserialized.
     :return: The object deserialized.
-    """
-
+    '''
     # Retrieve the used library
     serializer = idx2lib[int(handler.read(4))]
     try:
@@ -229,12 +241,10 @@ def deserialize_from_handler(handler):
 
 
 def deserialize_from_file(file_name):
-    """
-    Deserialize the contents in a given file.
-
+    '''Deserialize the contents in a given file.
     :param file_name: Name of the file with the contents to be deserialized
     :return: A deserialized object
-    """
+    '''
 
     handler = open(file_name, 'rb')
     ret = deserialize_from_handler(handler)
@@ -243,28 +253,23 @@ def deserialize_from_file(file_name):
 
 
 def deserialize_from_string(serialized_content):
-    """
+    '''
     Deserialize the contents in a given string.
-
     :param serialized_content: A string with serialized contents
     :return: A deserialized object
-    """
-
+    '''
     handler = BytesIO(serialized_content)
     ret = deserialize_from_handler(handler)
     handler.close()
     return ret
 
-
 def serialize_objects(to_serialize):
-    """
+    '''
     Serialize a list of objects to file. If a single object fails to be serialized, then an Exception by
     serialize_to_file will be thrown (and not caught)
     The structure of the parameter is [(object1, file_name1), ... , (objectN, file_nameN)].
-
     :param to_serialize: List of lists to be serialized. Each sublist is a pair of the form ['object','file name']
     :return:
-    """
-
+    '''
     for obj_and_file in to_serialize:
         serialize_to_file(*obj_and_file)

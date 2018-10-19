@@ -199,7 +199,7 @@ def function_order_parameters(x, y, z=100, w=1000):
     print("\t- Parameter y: %s" % y)
     print("\t- Parameter z: %s" % z)
     print("\t- Parameter w: %s" % w)
-    return x + y + (z * w)
+    return x + y + z * w
 
 
 @task(returns=int)

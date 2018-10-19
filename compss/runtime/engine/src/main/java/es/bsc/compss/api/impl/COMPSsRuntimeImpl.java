@@ -81,6 +81,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     // Boolean for initialization
     private static boolean initialized = false;
 
+    // Number of fields per parameter
+    private static int NUM_FIELDS_PER_PARAM = 6;
+
     // Object registry
     private static ObjectRegistry oReg;
 
@@ -1026,7 +1029,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     /**
      * get Binding object
      *
-     * @param objectId
      * @return id of the object in the cache
      */
     public String getBindingObject(String fileName) {
@@ -1043,7 +1045,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * remove Binding object
      *
      * @param fileName
-     * @param objectId
      * @return
      */
     public boolean deleteBindingObject(String fileName) {
@@ -1079,12 +1080,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     private Parameter[] processParameters(int parameterCount, Object[] parameters) {
         Parameter[] pars = new Parameter[parameterCount];
         // Parameter parsing needed, object is not serializable
-        int i = 0;
-        for (int npar = 0; npar < parameterCount; ++npar) {
+        for (int npar = 0, i = 0; npar < parameterCount; ++npar, i += NUM_FIELDS_PER_PARAM) {
             DataType type = (DataType) parameters[i + 1];
             Direction direction = (Direction) parameters[i + 2];
             Stream stream = (Stream) parameters[i + 3];
             String prefix = (String) parameters[i + 4];
+            String name   = (String) parameters[i + 5];
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("  Parameter " + (npar + 1) + " has type " + type.name());
@@ -1096,7 +1097,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                         String fileName = (String) parameters[i];
                         String originalName = new File(fileName).getName();
                         DataLocation location = createLocation((String) parameters[i]);
-                        pars[npar] = new FileParameter(direction, stream, prefix, location, originalName);
+                        pars[npar] = new FileParameter(direction, stream, prefix, name, location, originalName);
                     } catch (Exception e) {
                         LOGGER.error(ERROR_FILE_NAME, e);
                         ErrorManager.fatal(ERROR_FILE_NAME, e);
@@ -1106,11 +1107,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
                 case PSCO_T:
                 case OBJECT_T:
-                    pars[npar] = new ObjectParameter(direction, stream, prefix, parameters[i], oReg.newObjectParameter(parameters[i]));
+                    pars[npar] = new ObjectParameter(direction, stream, prefix, name, parameters[i], oReg.newObjectParameter(parameters[i]));
                     break;
                 case EXTERNAL_PSCO_T:
                     String id = (String) parameters[i];
-                    pars[npar] = new ExternalPSCOParameter(direction, stream, prefix, id, externalObjectHashcode(id));
+                    pars[npar] = new ExternalPSCOParameter(direction, stream, prefix, name, id, externalObjectHashcode(id));
                     break;
                 case BINDING_OBJECT_T:
                     String value = (String) parameters[i];
@@ -1120,7 +1121,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                             String extObjectId = fields[0];
                             int extObjectType = Integer.parseInt(fields[1]);
                             int extObjectElements = Integer.parseInt(fields[2]);
-                            pars[npar] = new BindingObjectParameter(direction, stream, prefix,
+                            pars[npar] = new BindingObjectParameter(direction, stream, prefix, name,
                                     new BindingObject(extObjectId, extObjectType, extObjectElements), externalObjectHashcode(extObjectId));
                         } else {
                             LOGGER.error(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
@@ -1139,12 +1140,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                     if (direction != Direction.IN) {
                         LOGGER.warn(WARN_WRONG_DIRECTION + "Parameter " + npar + " is a basic type, therefore it must have IN direction");
                     }
-                    pars[npar] = new BasicTypeParameter(type, Direction.IN, stream, prefix, parameters[i]);
+                    pars[npar] = new BasicTypeParameter(type, Direction.IN, stream, prefix, name, parameters[i]);
                     break;
             }
-            i += 5;
         }
-
         return pars;
     }
 

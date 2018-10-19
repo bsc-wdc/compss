@@ -1,0 +1,171 @@
+#!/bin/bash -e
+
+   #export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-armhf #We need ARM libjvm.so
+#  export CC=arm-linux-gnueabihf-gcc
+
+  ERROR_AUTORECONF="Error: Some error occurred while executing autoreconf"
+  ERROR_CONFIGURE="Error: Some error occurred while executing configure"
+  ERROR_INSTALL="Error: Some error occurred while executing install"
+
+  #######################################
+  # HELPER FUNCTIONS
+  #######################################
+  clean_env() {
+    cd "${working_dir}"/bindinglib
+    ./clean.sh
+    cd "${working_dir}"/compssbuilder
+    ./clean.sh
+    cd "${working_dir}"/compssgen
+    ./clean.sh
+  }
+
+  install() {
+    local installationDir=$1
+    local componentName=$2
+    local ev
+
+    ./autogen.sh
+    ev=$?
+    if [ $ev -ne 0 ]; then
+      echo "${ERROR_AUTORECONF} on ${componentName}"
+      exit $ev
+    fi
+    ./configure --host=${TARGET_HOST} --prefix="${installationDir}" --libdir="${installationDir}"/lib
+    ev=$?
+    if [ $ev -ne 0 ]; then
+      echo "${ERROR_CONFIGURE} on ${componentName}"
+      exit $ev
+    fi
+    make -j2 clean install
+    ev=$?
+    if [ $ev -ne 0 ]; then
+      echo "${ERROR_INSTALL} on ${componentName}"
+      exit $ev
+    fi
+  }
+
+
+  #######################################
+  # MAIN
+  #######################################
+
+  # Script parameters and variables
+  build_root=$1
+  require_build_libs=$2
+
+  working_dir=$(pwd)/src
+
+  # Trap to ensure clean environment
+  trap clean_env EXIT
+
+  # Log init mesage
+  echo "*--------------------------------------------------------------------*"
+  echo "*                                                                    *"
+  echo "*     Installing COMP Superscalar Binding for C/C++...               *"
+  echo "*                                                                    *"
+  echo "*     For support send an e-mail to:                                 *"
+  echo "*     support-compss@bsc.es                                          *"
+  echo "*                                                                    *"
+  echo "*     IMPORTANT: The dependencies need to be installed               *"
+  echo "*                before running this script.                         *"
+  echo "*                                                                    *"
+  echo "*     Dependencies: xml2 (sudo apt-get install libxml2-dev)          *"
+  echo "*                   bzip2 (sudo apt-get install libbz2-dev)          *"
+  echo "*                   libtool (sudo apt-get install libtool)           *"
+  echo "*                   automake (sudo apt-get install automake)         *"
+  echo "*                                                                    *"         
+  echo "*--------------------------------------------------------------------*"
+  
+  # Set and check environment variables
+  export GS_HOME=$build_root
+
+  if [ -z "$JAVA_HOME" ]; then
+      echo " "
+      echo "** INSTALLATION FAILED **";
+      echo "JAVA_HOME is not defined in the environment."
+      echo "Please do: export JAVA_HOME=path_to_the_java_jdk_directory"
+      echo " "
+      exit 1
+  fi
+  
+  echo " "
+  echo "- Installation directory: $build_root"
+  echo " "
+  
+  ######################################################
+  # BINDINGLIB
+  ######################################################
+  if [ "${require_build_libs}" == true ]; then
+    echo " "
+    echo "Installing C/C++ Binding Library..."
+    echo " "
+    
+    machine_arch=$(uname -p | /usr/bin/cut -c 1);
+    if [[ $machine_arch == i ]]; then
+       arch="i386"
+       subfolder="client"
+    fi
+    if [[ $machine_arch == x ]]; then
+         arch="amd64"
+         subfolder="server"
+    fi    
+    echo "- ARCHITECTURE: $arch"
+    echo "- SUB_FOLDER: $subfolder"
+    export ARCH=$arch
+    export SUBFLDR=$subfolder
+
+    cd "$working_dir"/bindinglib
+    install "${build_root}" "Binding Library"
+    cd "$working_dir"
+  fi
+  
+  ######################################################
+  # GSBuilder
+  ######################################################
+  #echo " "
+  #echo "Installing GS Builder Library..."
+  #echo " "
+  #cd ${working_dir}/gsbuilder
+  #install ${build_root} "GS Builder"
+  #cd ${working_dir}
+
+  ######################################################
+  # GSStubGen
+  ######################################################
+  #echo " "
+  #echo "Installing GSStubGen..."
+  #echo " "
+  #cd ${working_dir}/gsstubgen
+  #install ${build_root} "GS Stub Gen"
+  #cd ${working_dir}
+  
+  ######################################################
+  # COMPSsBuilder
+  ######################################################
+  echo " "
+  echo "Installing new COMPSs Builder Library..."
+  echo " "
+  cd "${working_dir}"/compssbuilder
+  install "${build_root}" "COMPSs Builder"
+  cd "${working_dir}"
+
+  ######################################################
+  # COMPSsStubGen
+  ######################################################
+  echo " "
+  echo "Installing COMPSs Stub Genenerator ..."
+  echo " "
+  cd "${working_dir}"/compssgen
+  install "${build_root}" "COMPSs Stub Generator"
+  cd "${working_dir}"
+  
+  ######################################################
+  # Log end message
+  ######################################################
+  echo " "
+  echo "*----------------------------------------------------------------------*"
+  echo "*  COMP Superscalar Binding for C/C++ successfully installed!!!        *"
+  echo "*                                                                      *"
+  echo "*  More information at COMP Superscalar website: http://compss.bsc.es  *"           
+  echo "*----------------------------------------------------------------------*"
+  echo " "

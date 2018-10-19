@@ -150,6 +150,7 @@ public abstract class ExternalInvoker extends Invoker {
         paramArgs.add(Integer.toString(type.ordinal()));
         paramArgs.add(Integer.toString(np.getStream().ordinal()));
         paramArgs.add(np.getPrefix());
+        paramArgs.add(np.getName());
         switch (type) {
             case FILE_T:
                 // Passing originalName link instead of renamed file

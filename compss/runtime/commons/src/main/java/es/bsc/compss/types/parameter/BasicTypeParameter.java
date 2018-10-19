@@ -44,8 +44,8 @@ public class BasicTypeParameter extends Parameter {
     private Object value;
 
 
-    public BasicTypeParameter(DataType type, Direction direction, Stream stream, String prefix, Object value) {
-        super(type, direction, stream, prefix);
+    public BasicTypeParameter(DataType type, Direction direction, Stream stream, String prefix, String name, Object value) {
+        super(type, direction, stream, prefix, name);
         this.value = value;
     }
 

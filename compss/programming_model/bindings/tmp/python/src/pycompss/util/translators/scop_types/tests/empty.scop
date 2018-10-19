@@ -1,0 +1,25 @@
+<OpenScop>
+
+# =============================================== Global
+# Language
+None
+
+# Context
+CONTEXT
+0 0 0 0 0 0
+
+# Parameters are provided
+0
+
+# Number of statements
+0
+
+# =============================================== Extensions
+<arrays>
+# Number of arrays
+0
+# Mapping array-identifiers/array-names
+</arrays>
+
+</OpenScop>
+

@@ -162,7 +162,7 @@ public class NIOJob extends Job<NIOWorkerNode> {
 
                     // Create the NIO Param
                     boolean writeFinalValue = !(dAccId instanceof RAccessId); // Only store W and RW
-                    np = new NIOParam(dataMgmtId, type, param.getStream(), param.getPrefix(), preserveSourceData, writeFinalValue, value,
+                    np = new NIOParam(dataMgmtId, type, param.getStream(), param.getPrefix(), param.getName(), preserveSourceData, writeFinalValue, value,
                             (NIOData) dPar.getDataSource(), dPar.getOriginalName());
                     break;
 
@@ -171,7 +171,7 @@ public class NIOJob extends Job<NIOWorkerNode> {
                     value = btParB.getValue();
                     preserveSourceData = false; // Basic parameters are not preserved on Worker
                     writeFinalValue = false; // Basic parameters are not stored on Worker
-                    np = new NIOParam(null, type, param.getStream(), param.getPrefix(), preserveSourceData, writeFinalValue, value, null,
+                    np = new NIOParam(null, type, param.getStream(), param.getPrefix(), param.getName(), preserveSourceData, writeFinalValue, value, null,
                             DependencyParameter.NO_NAME);
                     break;
             }

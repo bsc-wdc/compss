@@ -33,7 +33,6 @@ else:
     STR_ESCAPE = 'string_escape'
     IS_PYTHON3 = False
 
-
 # Determine the environment
 ENVIRONMENT = 'terminal'
 IS_INTERACTIVE = False

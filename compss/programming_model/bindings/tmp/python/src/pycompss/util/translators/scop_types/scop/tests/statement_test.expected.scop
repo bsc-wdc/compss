@@ -1,0 +1,44 @@
+# =============================================== Statement 1
+# Number of relations describing the statement:
+5
+
+# ----------------------------------------------  1.1 Domain
+DOMAIN
+2 8 3 0 0 3
+1	1	
+1	-1	
+
+# ----------------------------------------------  1.2 Scattering
+SCATTERING
+2 15 7 3 0 3
+0	-1	
+0	0	
+
+# ----------------------------------------------  1.3 Access
+READ
+2 11 3 3 0 3
+0	-1	
+0	0	
+
+WRITE
+2 11 3 3 0 3
+0	-1	
+0	0	
+
+MAY_WRITE
+2 11 3 3 0 3
+0	-1	
+0	0	
+
+# ----------------------------------------------  1.4 Statement Extensions
+# Number of Statement Extensions
+1
+<body>
+# Number of original iterators
+3
+# List of original iterators
+i j k 
+# Statement body expression
+c[i][j] += a[i][k]*b[k][j];
+</body>
+

@@ -37,6 +37,8 @@ public interface InvocationParam {
 
     public String getPrefix();
 
+    public String getName();
+
     public Stream getStream();
 
     public String getOriginalName();

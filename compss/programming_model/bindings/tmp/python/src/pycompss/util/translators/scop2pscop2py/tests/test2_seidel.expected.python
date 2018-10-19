@@ -1,0 +1,18 @@
+import math
+def S1(t,i,j):
+	a[i][j] = (a[i-1][j-1] + a[i-1][j] + a[i-1][j+1] + a[i][j-1] + a[i][j] + a[i][j+1] + a[i+1][j-1] + a[i+1][j] + a[i+1][j+1])/9.0;
+
+# Start of CLooG code
+if ((N >= 3) and (T >= 1)):
+    lbp=1
+    ubp=2*T+N-4
+    for t1 in range(1, 2*T+N-4 + 1):
+        lbp=max(int(math.ceil(float(t1+1)/float(2))),t1-T+1)
+        ubp=min(int(math.floor(float(t1+N-2)/float(2))),t1)
+        # parallel for PRIVATE(lbv,ubv,t3) REDUCTION()
+        for t2 in range(lbp, ubp + 1):
+            lbp=t1+1
+            ubp=t1+N-2
+            for t3 in range(t1+1, t1+N-2 + 1):
+                S1((t1-t2),(-t1+2*t2),(-t1+t3))
+# End of CLooG code

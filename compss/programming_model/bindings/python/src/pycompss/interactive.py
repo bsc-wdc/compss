@@ -47,6 +47,7 @@ from pycompss.util.scs import get_uuid
 from pycompss.util.scs import get_base_log_dir
 from pycompss.util.scs import get_specific_log_dir
 from pycompss.util.scs import get_tracing
+from pycompss.util.scs import get_storage_conf
 from pycompss.util.logs import init_logging
 
 # Warning! The name should start with 'InteractiveMode' due to @task checks
@@ -231,6 +232,7 @@ def start(log_level='off',
         uuid = get_uuid()
         base_log_dir = get_base_log_dir()
         specific_log_dir = get_specific_log_dir()
+        storage_conf = get_storage_conf()
         # Override tracing considering the parameter defined in pycompss_interactive_sc script
         if get_tracing():
             trace = 1
@@ -244,6 +246,7 @@ def start(log_level='off',
             print("- Overridden uuid with: " + uuid)
             print("- Overridden base log dir with: " + base_log_dir)
             print("- Overridden specific log dir with: " + specific_log_dir)
+            print("- Overridden storage conf with: " + storage_conf)
             print("- Overridden trace with: " + str(trace))
 
     # Build a dictionary with all variables needed for initializing the runtime

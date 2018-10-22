@@ -118,7 +118,7 @@ Usage: $0 [Options]
                                             Overrides storage_home and needed classpath/pythonpath flags,
                                             uses storage_props.cfg from home if exists.
                                             Otherwise creates and uses an empty one.
-                                            Available options: None | Redis
+                                            Available options: None | redis
                                             Defauult: ${DEFAULT_STORAGE}
 EOT
 
@@ -351,7 +351,7 @@ check_args() {
     storage=${DEFAULT_STORAGE}
     storage_home=${DEFAULT_STORAGE_HOME}
     storage_props=${DEFAULT_STORAGE_PROPS}
-  elif [ "${storage}" != "None" ] && [ "${storage}" != "Redis" ]; then
+  elif [ "${storage}" != "None" ] && [ "${storage}" != "redis" ]; then
     display_error ${ERROR_UNSUPPORTED_STORAGE_SHORTCUT}
     exit 1
   else

@@ -107,6 +107,15 @@ def get_tracing():
     return 'true' == os.environ['COMPSS_TRACING']
 
 
+def get_storage_conf():
+    """
+    Get storage configuration file.
+    TIP: The environment variable COMPSS_STORAGE_CONF is defined in launch_compss script.
+    :return: Storage configuration file path
+    """
+    return os.environ['COMPSS_STORAGE_CONF']
+
+
 def generate_xmls(compss_home, nodes, master_port):
     """
     Generate project and resources xmls.

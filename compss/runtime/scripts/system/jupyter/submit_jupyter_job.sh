@@ -31,7 +31,7 @@ source "${defaultQS_cfg}"
 if [ "${storage}" = "None" ] || [ "${storage}" = "" ]; then
     # Continue as normal
     true
-elif [ "${storage}" = "Redis" ]; then
+elif [ "${storage}" = "redis" ]; then
     # Override variables to use Redis
     classpath="${SCRIPT_DIR}/../../../../Tools/storage/redis/compss-redisPSCO.jar:${classpath}"
     pythonpath="${SCRIPT_DIR}/../../../../Tools/storage/redis/python:${pythonpath}"

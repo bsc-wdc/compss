@@ -496,11 +496,10 @@ create_tmp_submit() {
   fi
   echo "Temp submit script is: $TMP_SUBMIT_SCRIPT"
 
-  cat > TMP_SUBMIT_SCRIPT << EOT
+  cat > $TMP_SUBMIT_SCRIPT << EOT
 #!/bin/bash -e
 #
 EOT
-  add_content
 }
 
 create_normal_tmp_submit(){

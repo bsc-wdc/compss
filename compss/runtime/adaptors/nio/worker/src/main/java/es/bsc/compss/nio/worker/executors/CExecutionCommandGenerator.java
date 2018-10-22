@@ -55,7 +55,7 @@ public class CExecutionCommandGenerator {
         }
         // Debug mode on
         if (WORKER_DEBUG) {
-            reqs.append("#--summary --verbose");
+            reqs.append("#--summary#--verbose");
         }
 
         StringBuilder cuda_visible = new StringBuilder();

@@ -9,6 +9,7 @@ classpath=$6     # Classpath
 pythonpath=$7    # Pythonpath
 storage_home=$8  # Storage home path
 storage_props=$9 # Storage properties file
+storage=${10}    # Storage shortcut to use
 
 
 ###############################################
@@ -18,11 +19,34 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # Load default CFG for default values
 DEFAULT_SC_CFG="default"
 defaultSC_cfg=${SCRIPT_DIR}/../../queues/cfgs/${DEFAULT_SC_CFG}.cfg
-#shellcheck source=../../queues/cfgs/default.cfg
+#shellcheck source=${SCRIPT_DIR}/../../queues/cfgs/default.cfg
 source "${defaultSC_cfg}"
 defaultQS_cfg=${SCRIPT_DIR}/../../queues/${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg
-#shellcheck source=../../queues/slurm/slurm.cfg
+#shellcheck source=${SCRIPT_DIR}/../../queues/slurm/slurm.cfg
 source "${defaultQS_cfg}"
+
+###############################################
+#               Shortcut checks               #
+###############################################
+if [ "${storage}" = "None" ] || [ "${storage}" = "" ]; then
+    # Continue as normal
+    true
+elif [ "${storage}" = "Redis" ]; then
+    # Override variables to use Redis
+    classpath="${SCRIPT_DIR}/../../../../Tools/storage/redis/compss-redisPSCO.jar:${classpath}"
+    pythonpath="${SCRIPT_DIR}/../../../../Tools/storage/redis/python:${pythonpath}"
+    storage_home="${SCRIPT_DIR}/../../../../Tools/storage/redis"
+    if [ ! -f ${HOME}/storage_props.txt ]; then
+        # If not exist, then create an empty one.
+        # Otherwise, use the storage_props.cfg file
+        touch ${HOME}/storage_props.cfg
+    fi
+    storage_props="${HOME}/storage_props.cfg"
+else
+    # Unsupported storage
+    echo "ERROR: Non supported storage shortcut."
+    exit 1
+fi
 
 
 ###############################################

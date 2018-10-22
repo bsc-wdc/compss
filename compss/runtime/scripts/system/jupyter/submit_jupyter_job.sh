@@ -55,6 +55,8 @@ fi
 if [ ${storage_home} = "undefined" ]; then
     result=$(enqueue_compss --exec_time=${exec_time} --num_nodes=${num_nodes} --qos=${qos} --tracing=${tracing} --classpath=${classpath} --pythonpath=${pythonpath}:${HOME} --lang=python --jupyter_notebook)
 else
+    export CLASSPATH=${classpath}:${CLASSPATH}
+    export PYTHONPATH=${pythonpath}:${PYTHONPATH}
     result=$(enqueue_compss --exec_time=${exec_time} --num_nodes=${num_nodes} --qos=${qos} --tracing=${tracing} --classpath=${classpath} --pythonpath=${pythonpath}:${HOME} --storage_home=${storage_home} --storage_props=${storage_props} --lang=python --jupyter_notebook)
 fi
 submit_line=$(echo "$result" | grep "Submitted")

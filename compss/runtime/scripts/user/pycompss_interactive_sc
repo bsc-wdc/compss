@@ -16,8 +16,8 @@ DEFAULT_PORT_FORWARDING="3333"
 DEFAULT_CLASSPATH="."
 DEFAULT_PYTHONPATH="."
 DEFAULT_STORAGE_HOME="undefined"
-DEFAULT_STORAGE_PROPS="undefined"
 DISABLED_STORAGE_HOME="undefined"
+DEFAULT_STORAGE_PROPS="undefined"
 DEFAULT_STORAGE="None"
 
 #---------------------------------------------------

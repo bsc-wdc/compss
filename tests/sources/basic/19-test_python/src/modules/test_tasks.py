@@ -126,7 +126,6 @@ def function_files(fin, finout, fout):
 def par_func():
     print("- Function")
 
-
 # @task(o = Parameter(p_direction = Direction.INOUT))
 @task(o=INOUT, li=INOUT, dic=INOUT, tup=INOUT, cplx=INOUT)
 def function_objects(o, li, dic, tup, cplx, f):

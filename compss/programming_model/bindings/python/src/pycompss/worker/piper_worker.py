@@ -478,24 +478,27 @@ def execute_task(process_name, storage_conf, params):
         if __debug__:
             logger.debug("[PYTHON WORKER %s] Method in class %s of module %s" % (process_name, class_name, module_name))
 
+        logger.debug('HAS TARGET IS %s' % str(has_target))
+
         if has_target == 'true':
             # Instance method
             # The self object needs to be an object in order to call the function.
             # Consequently, it can not be done in the @task decorator.
             last_elem = values.pop()
-            if is_psco(last_elem):
-                obj = last_elem
-            else:
-                file_name = last_elem.split(':')[-1]
+            logger.debug('LAST ELEM ###')
+            logger.debug(last_elem.name)
+            if last_elem.key is None:
+                file_name = last_elem.file_name.split(':')[-1]
                 if __debug__:
                     logger.debug("[PYTHON WORKER %s] Deserialize self from file." % process_name)
                 obj = deserialize_from_file(file_name)
+                logger.debug('DESERIALIZED OBJECT IS %s' % last_elem.content)
                 if __debug__:
                     logger.debug("[PYTHON WORKER %s] Processing callee, a hidden object of %s in file %s" % (
-                        process_name, file_name, type(obj)))
+                        process_name, file_name, type(last_elem.content)))
             values.insert(0, obj)
             types.pop()
-            types.insert(0, parameter.TYPE.OBJECT if not is_psco(last_elem) else parameter.TYPE.EXTERNAL_PSCO)
+            types.insert(0, parameter.TYPE.OBJECT if not is_psco(last_elem.content) else parameter.TYPE.EXTERNAL_PSCO)
 
             def task_execution_2():
                 return task_execution(logger, process_name, klass, method_name, types, values, compss_kwargs)
@@ -532,7 +535,7 @@ def execute_task(process_name, storage_conf, params):
                     serialize_to_file(obj, file_name)
                 if __debug__:
                     logger.debug("[PYTHON WORKER %s] Serializing self to file." % process_name)
-                serialize_to_file('self', obj, file_name)
+                serialize_to_file(obj, file_name)
             if __debug__:
                 logger.debug("[PYTHON WORKER %s] Obj: %r" % (process_name, obj))
         else:
@@ -563,7 +566,6 @@ def execute_task(process_name, storage_conf, params):
     return 0, new_types, new_values  # Exit code, updated params
 
 
-
 def get_input_params(num_params, logger, args, process_name):
     """
     Get and prepare the input parameters from string to lists.
@@ -574,34 +576,8 @@ def get_input_params(num_params, logger, args, process_name):
     :param process_name: Process name
     :return: A list of TaskParameter objects
     """
+    from pycompss.api.parameter import TaskParameter
     pos = 0
-
-    class TaskParameter(object):
-        '''An internal wrapper for parameters. It makes it easier for the task decorator to know
-        any aspect of the parameters (should they be updated or can changes be discarded, should they
-        be deserialized or read from some storage, etc etc)
-        '''
-
-        def __init__(self, name = None, type = None, file_name = None,
-                     key = None, content = None, stream = None, prefix = None):
-            self.name = name
-            self.type = type
-            self.file_name = file_name
-            self.key = key
-            self.content = content
-            self.stream = stream
-            self.prefix = prefix
-
-        def __repr__(self):
-            return'\nParameter %s' % self.name + '\n' + \
-                  '\tType %s' % str(self.type) + '\n' + \
-                  '\tFile Name %s' % self.file_name + '\n' + \
-                  '\tKey %s' % str(self.key) + '\n' + \
-                  '\tContent %s' % str(self.content) + '\n' + \
-                  '\tStream %s' % str(self.stream) + '\n' + \
-                  '\tPrefix %s' % str(self.prefix) + '\n' + \
-                  '-' * 20 + '\n'
-
 
     ret = []
 
@@ -679,6 +655,10 @@ def get_input_params(num_params, logger, args, process_name):
             if __debug__:
                 logger.debug("[PYTHON WORKER %s] \t * Final Value: %s" % (process_name, str(aux)))
             pos += num_substrings
+
+            if IS_PYTHON3 and isinstance(aux, bytes):
+                aux = aux.decode('utf-8')
+
             ret.append(
                 TaskParameter(
                     type = p_type,

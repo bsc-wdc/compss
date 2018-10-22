@@ -111,6 +111,34 @@ class Parameter(object):
                                             str(self.file_name),
                                             str(self.is_future))
 
+class TaskParameter(object):
+    '''An internal wrapper for parameters. It makes it easier for the task decorator to know
+    any aspect of the parameters (should they be updated or can changes be discarded, should they
+    be deserialized or read from some storage, etc etc)
+    '''
+
+    def __init__(self, name = None, type = None, file_name = None,
+                 key = None, content = None, stream = None, prefix = None):
+        self.name = name
+        self.type = type
+        self.file_name = file_name
+        self.key = key
+        self.content = content
+        self.stream = stream
+        self.prefix = prefix
+
+    def __repr__(self):
+        return'\nParameter %s' % self.name + '\n' + \
+              '\tType %s' % str(self.type) + '\n' + \
+              '\tFile Name %s' % self.file_name + '\n' + \
+              '\tKey %s' % str(self.key) + '\n' + \
+              '\tContent %s' % str(self.content) + '\n' + \
+              '\tStream %s' % str(self.stream) + '\n' + \
+              '\tPrefix %s' % str(self.prefix) + '\n' + \
+              '-' * 20 + '\n'
+
+
+
 # Parameter conversion dictionary.
 _param_conversion_dict_ = {
     'IN': {},

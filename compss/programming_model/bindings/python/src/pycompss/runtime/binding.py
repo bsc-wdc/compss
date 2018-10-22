@@ -559,11 +559,7 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns, tas
     app_id = 0
 
     # Check if the function is an instance method or a class method.
-    if ftype == FunctionType.INSTANCE_METHOD:
-        has_target = True
-    else:
-        has_target = False
-
+    has_target = ftype == FunctionType.INSTANCE_METHOD
     fo = None
     if f_returns:
         fo = _build_return_objects(f_returns)

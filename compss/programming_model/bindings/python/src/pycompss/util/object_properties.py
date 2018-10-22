@@ -83,6 +83,19 @@ def get_wrapped_sourcelines(f):
     :param f: Input function
     :return: Source lines
     '''
+    def _get_wrapped_sourcelines(f):
+        """
+        Gets a list of source lines and starting line number for the given function.
+
+        :param f: Input function
+        :return: Source lines
+        """
+        if hasattr(f, "__wrapped__"):
+            # has __wrapped__, going deep
+            return _get_wrapped_sourcelines(f.__wrapped__)
+        else:
+            # Returning getsourcelines
+            return inspect.getsourcelines(f)
     import inspect
     if hasattr(f, '__wrapped__'):
         # has __wrapped__, apply the same function to the wrapped content

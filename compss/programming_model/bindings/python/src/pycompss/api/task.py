@@ -245,12 +245,17 @@ class task(object):
         task_type = get_task_type(func_code, decorator_filter, default)
         self.user_function.__task_type__ = task_type
         self.user_function.__code_strings__ = task_type == default
-        self.class_name = ''
+        self.frame_path = ''
         # Get the task signature
         # To do this, we will check the frames
         frames = inspect.getouterframes(inspect.currentframe())
-        # Pop the __register_task and __call__ functions from the frame
-        frames = frames[2:]
+        for frame in frames:
+            print('---- NEW FRAME ----')
+            for thing in frame:
+                print('    %s' % thing)
+            print('\n')
+        # Pop the self.register_task, self.master_call, self.__call__ calls from the stack
+        frames = frames[3:]
         # Get the application frames
         app_frames = []
         for frame in frames:
@@ -268,7 +273,7 @@ class task(object):
             # There is more than one frame
             # Discover if the task is defined within a class or subclass
             # Construct the qualified class name
-            self.class_name = []
+            self.frame_path = []
             # Weak way, but I see no other way compatible with both 2 and 3.
             for app_frame in app_frames:
                 if (app_frame[3] != '<module>' and app_frame[4] is not None and
@@ -276,9 +281,10 @@ class task(object):
                     # app_frame[3] != <module> ==> functions and classes
                     # app_frame[4] is not None ==> functions injected by the interpreter
                     # (app_frame[4][0].strip().startswith('@') or app_frame[4][0].strip().startswith('def')) ==> Ignores functions injected by wrappers (e.g. autoparallel), but keep the classes.
-                    self.class_name.append(app_frame[3])
-            self.class_name = '.'.join(self.class_name)
+                    self.frame_path.append(app_frame[3])
+            self.frame_path = '.'.join(self.frame_path)
             if self.class_name:
+                self.frame_path = '%s.%s' % (self.frame_path, self.class_name)
                 # Within class or subclass
                 ce_signature = self.module_name + '.' + self.class_name + '.' + self.function_name
                 impl_type_args = [self.module_name + '.' + self.class_name, self.function_name]
@@ -358,8 +364,30 @@ class task(object):
             from pycompss.util.object_properties import get_module_name
             self.module_name = get_module_name(path, file_name)
 
+    def compute_function_type(self):
+        '''Compute some properties of the user function, as its name,
+        its import path, and its type (module function, instance method, class method),
+        etc...
+        '''
+        import inspect
+        from pycompss.runtime.binding import FunctionType
+        # Check the type of the function called.
+        # inspect.ismethod(f) does not work here,
+        # for methods python hasn't wrapped the function as a method yet
+        # Everything is still a function here, can't distinguish yet
+        # with inspect.ismethod or isfunction
+        self.function_type = FunctionType.FUNCTION
+        self.class_name = ''
+        if self.first_arg_name == 'self':
+            print('THIS IS A INSTANCE FUNCTION')
+            self.function_type = FunctionType.INSTANCE_METHOD
+            self.class_name = type(self.parameters['self'].object).__name__
+            print('CLASS NAME IS %s' % type(self.parameters['self'].object).__name__)
 
-    def compute_user_function_path(self):
+
+
+
+    def compute_user_function_information(self):
         '''Compute the function path p and the name n
         such that
         "from p import n" imports self.user_function
@@ -367,6 +395,7 @@ class task(object):
         '''
         # Get the module name (the x part "from x import y"), except for the class name
         self.compute_module_name()
+        self.compute_function_type()
         self.function_name = self.user_function.__name__
 
     def master_call(self):
@@ -390,7 +419,7 @@ class task(object):
             # Process the parameters, give them a proper direction
             self.process_master_parameters(*args, **kwargs)
             # Compute the function path, class (if any), and name
-            self.compute_user_function_path()
+            self.compute_user_function_information()
             # If we are in the master and this is the first time we call this task
             # we need to register it into the COMPSs runtime
             if not self.registered:
@@ -400,12 +429,11 @@ class task(object):
             # TODO: Deal with the redundant parameter passing
             from pycompss.runtime.binding import process_task
             from pycompss.runtime.binding import FunctionType
-            self.function_type = FunctionType.FUNCTION
             ret = process_task(
                 self.user_function, # Ok
                 self.module_name, # Ok
                 self.class_name, # Ok
-                self.function_type, # No TODO: TEMPORARY FIX
+                self.function_type, # Ok (at least theoretically)
                 self.parameters, # Ok
                 self.returns, # Ok
                 self.decorator_arguments, # Ok
@@ -447,11 +475,16 @@ class task(object):
         '''
         from collections import OrderedDict
         parameter_values = OrderedDict()
+        # It is important to know the name of the first argument to determine if we
+        # are dealing with a class or instance method (i.e: first argument is named self)
+        self.first_arg_name = None
         # Process the positional arguments
         # Some of these positional arguments may have been not
         # explicitly defined
         num_positionals = min(len(self.param_args), len(args))
         for (var_name, var_value) in zip(self.param_args[:num_positionals], args[:num_positionals]):
+            if self.first_arg_name is None:
+                self.first_arg_name = var_name
             parameter_values[var_name] = var_value
         num_defaults = len(self.param_defaults)
         # Give default values to all the parameters that have a
@@ -521,6 +554,21 @@ class task(object):
         for arg in args:
             arg.direction = self.get_parameter_direction(arg.name)
 
+    def is_parameter_object(self, name):
+        '''Given the name of a parameter, determine if it is an object or not
+        :param name: Name of the parameter
+        :return: True iff the parameter is a (serializable) object
+        '''
+        original_name = parameter.get_original_name(name)
+        # Get the args parameter object
+        if parameter.is_vararg(original_name):
+            return self.get_varargs_direction().type is None
+        # Is this parameter annotated in the decorator?
+        if original_name in self.decorator_arguments:
+            return self.decorator_arguments[original_name].type is None
+        # The parameter is not annotated in the decorator, so (by default) return True
+        return True
+
     def reveal_objects(self, args):
         '''(The name seemed funny to me so I kept it intact from the original version)
         This function takes the arguments passed from the persistent worker and treats them
@@ -550,15 +598,12 @@ class task(object):
                 obj.content = value
 
         # Deal with all the parameters that are NOT returns
-        for arg in [x for x in args if not parameter.is_return(x.name)]:
+        for arg in [x for x in args if isinstance(x, parameter.TaskParameter) and not parameter.is_return(x.name)]:
             # This case is special, as a FILE can actually mean a FILE or an
             # object that is serialized in a file
             orig_name = parameter.get_original_name(arg.name)
             if arg.type == parameter.TYPE.FILE:
-                if not orig_name in self.decorator_arguments \
-                        or parameter.is_object(
-                            self.decorator_arguments[orig_name]
-                        ):
+                if self.is_parameter_object(arg.name):
                     # The object is stored in some file, load and deserialize it
                     from pycompss.util.serializer import deserialize_from_file
                     arg.content = deserialize_from_file(arg.file_name.split(':')[-1])
@@ -595,9 +640,14 @@ class task(object):
             user_kwargs = {}
             # Return parameters, save them apart to match the user returns with the internal parameters
             ret_params = []
+
             for arg in args:
                 # Just fill the three data structures declared above
-                if parameter.is_return(arg.name):
+                # Deal with the self parameter (if any)
+                if not isinstance(arg, parameter.TaskParameter):
+                    user_args.append(arg)
+                # All these other cases are all about regular parameters
+                elif parameter.is_return(arg.name):
                     ret_params.append(arg)
                 elif parameter.is_kwarg(arg.name):
                     user_kwargs[parameter.get_name_from_kwarg(arg.name)] = arg.content
@@ -634,11 +684,11 @@ class task(object):
 
             # Deal with INOUTs
             # All inouts are FILEs
-            for arg in [x for x in args if x.type == parameter.TYPE.FILE]:
+            for arg in [x for x in args if isinstance(arg, parameter.TaskParameter) and self.is_parameter_object(arg.name)]:
                 original_name = parameter.get_original_name(arg.name)
-                direction = self.decorator_arguments.get(original_name, self.get_default_direction(original_name))
+                param = self.decorator_arguments.get(original_name, self.get_default_direction(original_name))
                 # ... but we do not have to deal with FILE_INOUTS
-                if parameter.is_object(arg) and direction == parameter.DIRECTION.INOUT:
+                if param.direction == parameter.DIRECTION.INOUT:
                     from pycompss.util.serializer import serialize_to_file
                     serialize_to_file(arg.content, get_file_name(arg.file_name))
 

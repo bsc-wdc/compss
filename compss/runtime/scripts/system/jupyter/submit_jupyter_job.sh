@@ -1,10 +1,12 @@
 #!/bin/bash
 
-job_name=$1   # not supported yet
-exec_time=$2  # walltime in minutes
-num_nodes=$3  # number of nodes
-qos=$4        # quality of service
-tracing=$5    # tracing
+job_name=$1      # Not supported yet
+exec_time=$2     # Walltime in minutes
+num_nodes=$3     # Number of nodes
+qos=$4           # Quality of service
+tracing=$5       # Tracing
+storage_home=$6  # Storage home path
+storage_props=$7 # Storage properties file
 
 
 ###############################################
@@ -24,11 +26,19 @@ source "${defaultQS_cfg}"
 ###############################################
 #       Submit the jupyter notebook job       #
 ###############################################
-result=$(enqueue_compss --exec_time=${exec_time} --num_nodes=${num_nodes} --qos=${qos} --tracing=${tracing} --lang=python --jupyter_notebook)
+if [ ${storage_home} = "undefined" ]; then
+    result=$(enqueue_compss --exec_time=${exec_time} --num_nodes=${num_nodes} --qos=${qos} --tracing=${tracing} --lang=python --jupyter_notebook)
+else
+    result=$(enqueue_compss --exec_time=${exec_time} --num_nodes=${num_nodes} --qos=${qos} --tracing=${tracing} --storage_home=${storage_home} --storage_props=${storage_props} --lang=python --jupyter_notebook)
+fi
 submit_line=$(echo "$result" | grep "Submitted")
 job_id=(${submit_line//Submitted batch job/ })
+if [ -z "$job_id" ]; then
+    echo "JobId: FAILED"
+    echo $result
+    exit 1
+fi
 echo "JobId: $job_id"
-
 
 ###############################################
 #         Wait for the job to start           #
@@ -72,7 +82,7 @@ echo "MainNode: $master_node"   # Beware, this print is used by pycompss_interac
 ###############################################
 
 retry_wait=3 # seconds to wait for notebook to start on each retry
-retries=3    # number of retries
+retries=9    # number of retries (default: 10 -- 30 seconds)
 retry=0
 token=""
 while [[ $retry -le $retries && $token = "" ]]

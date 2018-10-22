@@ -13,6 +13,9 @@ DEFAULT_BROWSER="firefox"
 DEFAULT_QOS=""
 DEFAULT_TRACING="false"
 DEFAULT_PORT_FORWARDING="3333"
+DISABLED_STORAGE_HOME="undefined"
+DEFAULT_STORAGE_HOME="undefined"
+DEFAULT_STORAGE_PROPS="undefined"
 
 #---------------------------------------------------
 # SCRIPT TOOLS
@@ -29,6 +32,8 @@ WARNING_USER_NAME_NOT_PROVIDED="Username not provided. Using default: ${DEFAULT_
 #---------------------------------------------------
 ERROR_CONNECTING="Could not connect to the supercomputer. Please check the connectivity, user name and password."
 ERROR_COMPSS_NOT_DEFINED="COMPSs is not available in the supercomputer. Please check that you have propperly configured the module load in your .bashrc."
+ERROR_SUBMITTING_JOB="Could not submit the job to the supercomputer. Please check that you are able to submit jobs to the supercomputer."
+ERROR_STORAGE_PROPS="--storage_props flag not defined."
 
 #---------------------------------------------------------------------------------------
 # HELPER FUNCTIONS
@@ -96,6 +101,10 @@ Usage: $0 [Options]
                                             Default: ${DEFAULT_TRACING}
     --port_forwarding=<int>                 Set a specific port for port forwarding.
                                             Default: ${DEFAULT_PORT_FORWARDING}
+    --storage_home=<string>                 Absolute path at supercomputer of the storage implementation.
+                                            Default: ${DEFAULT_STORAGE_HOME}
+    --storage_props=<string>                Absolute path at supercomputer of the storage properties file.
+                                            Mandatory if storage_home is defined
 EOT
 
   exit "$exitValue"
@@ -202,6 +211,12 @@ get_args() {
           port_forwarding=*)
             port_forwarding=${OPTARG//port_forwarding=/}
             ;;
+          storage_home=*)
+            storage_home=${OPTARG//storage_home=/}
+            ;;
+          storage_props=*)
+            storage_props=${OPTARG//storage_props=/}
+            ;;
           *)
             # Flag didn't match any pattern.
             ;;
@@ -280,6 +295,22 @@ check_args() {
   if [ -z "${port_forwarding}" ]; then
     port_forwarding=${DEFAULT_PORT_FORWARDING}
   fi
+
+  ###############################################################
+  # Storage checks
+  ###############################################################
+  if [ -z "${storage_home}" ]; then
+    storage_home=${DEFAULT_STORAGE_HOME}
+  fi
+
+  if [ "${storage_home}" != "${DISABLED_STORAGE_HOME}" ]; then
+    # Check storage props is defined
+    if [ -z "${storage_props}" ]; then
+      display_error "${ERROR_STORAGE_PROPS}"
+      exit 1
+    fi
+  fi
+
 }
 
 
@@ -304,7 +335,7 @@ check_args() {
 
   # Submit command and get connection info
   echo "Submitting jupyter job and waiting for it to start..."
-  connection_info=$(${DEFAULT_SSH} ${username}@${supercomputer} "${REMOTE_SCRIPT_DIR}/submit_jupyter_job.sh ${job_name} ${exec_time} ${num_nodes} ${qos} ${tracing} ${port_forwarding}" 2>&1)
+  connection_info=$(${DEFAULT_SSH} ${username}@${supercomputer} "${REMOTE_SCRIPT_DIR}/submit_jupyter_job.sh ${job_name} ${exec_time} ${num_nodes} ${qos} ${tracing} ${storage_home} ${storage_props}" 2>&1)
 
   # Parse connection info
   echo "Getting connection information..."
@@ -316,6 +347,12 @@ check_args() {
   node=(${node_line//:/ })
   token=(${token_line//:/ })
   job_id=${job_id[1]}
+  # Check if job was well Submitted
+  if [ ${job_id} = "FAILED" ]; then
+      echo $connection_info
+      display_error ${ERROR_SUBMITTING_JOB}
+      exit 1
+  fi
   # Get the node name and token
   node=${node[1]}
   token=${token[1]}

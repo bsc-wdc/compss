@@ -181,10 +181,10 @@ get_args() {
             show_opts
             exit 0
             ;;
-	  monitor)
-	    # Custom monitor value
-	    monitor=true
-	    ;;
+          monitor)
+            # Custom monitor value
+            monitor=true
+            ;;
           no-monitor)
             # Custom monitor value
             monitor=false
@@ -218,6 +218,7 @@ get_args() {
             tracing=false
             monitor=false
             bindings=false
+            autoparallel=false
             ;;
           user-exec=*)
             # Enables specific user mvn execution

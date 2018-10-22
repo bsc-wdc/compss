@@ -49,7 +49,7 @@
 
   uuid=$(uuidgen)
   SCTMP_DIR=${SC_DIR}/tmp_${uuid}
-  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}"@"${SCloginNode}" mkdir ${SCTMP_DIR}
+  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}"@"${SCloginNode}" mkdir -p ${SCTMP_DIR}
 
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   SOURCES_DIR=${SCRIPT_DIR}/../../..

@@ -119,7 +119,7 @@ public class CompleteGraphViewModel {
         // Create SVG
         String targetFullPath = System.getProperty("catalina.base") + File.separator + "webapps" + File.separator 
                 + "compss-monitor" + File.separator + target;
-        String[] createSVG = { "/bin/bash", "-c", "dot -T svg " + location + " > " + targetFullPath };
+        String[] createSVG = { "/bin/bash", "-c", "dot -T svg -Gnewrank=true " + location + " > " + targetFullPath };
         Process p1 = Runtime.getRuntime().exec(createSVG);
         p1.waitFor();
         

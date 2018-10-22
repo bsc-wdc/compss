@@ -13,9 +13,11 @@ DEFAULT_BROWSER="firefox"
 DEFAULT_QOS=""
 DEFAULT_TRACING="false"
 DEFAULT_PORT_FORWARDING="3333"
-DISABLED_STORAGE_HOME="undefined"
+DEFAULT_CLASSPATH="."
+DEFAULT_PYTHONPATH="."
 DEFAULT_STORAGE_HOME="undefined"
 DEFAULT_STORAGE_PROPS="undefined"
+DISABLED_STORAGE_HOME="undefined"
 
 #---------------------------------------------------
 # SCRIPT TOOLS
@@ -93,7 +95,7 @@ Usage: $0 [Options]
     --password                              Request user password to login into the supercomputer
     --supercomputer=<string>                Supercomputer to connect
                                             Default: ${DEFAULT_SUPERCOMPUTER}
-    --browser=<string>                      Web browser
+    --browser=<path>                        Web browser
                                             Default: ${DEFAULT_BROWSER}
     --qos=<string>                          Quality of Service.
                                             Default: ""
@@ -101,9 +103,13 @@ Usage: $0 [Options]
                                             Default: ${DEFAULT_TRACING}
     --port_forwarding=<int>                 Set a specific port for port forwarding.
                                             Default: ${DEFAULT_PORT_FORWARDING}
-    --storage_home=<string>                 Absolute path at supercomputer of the storage implementation.
+    --classpath=<path>                      Path for the application classes / modules
+                                            Default: Working Directory
+    --pythonpath=<path>                     Additional folders or paths to add to the PYTHONPATH
+                                            Default: Working Directory
+    --storage_home=<path>                   Absolute path at supercomputer of the storage implementation.
                                             Default: ${DEFAULT_STORAGE_HOME}
-    --storage_props=<string>                Absolute path at supercomputer of the storage properties file.
+    --storage_props=<path>                  Absolute path at supercomputer of the storage properties file.
                                             Mandatory if storage_home is defined
 EOT
 
@@ -211,6 +217,12 @@ get_args() {
           port_forwarding=*)
             port_forwarding=${OPTARG//port_forwarding=/}
             ;;
+          classpath=*)
+            classpath=${OPTARG//classpath=/}
+            ;;
+          pythonpath=*)
+            pythonpath=${OPTARG//pythonpath=/}
+            ;;
           storage_home=*)
             storage_home=${OPTARG//storage_home=/}
             ;;
@@ -297,6 +309,17 @@ check_args() {
   fi
 
   ###############################################################
+  # Environment checks
+  ###############################################################
+  if [ -z "${classpath}" ]; then
+    classpath=${DEFAULT_CLASSPATH}
+  fi
+
+  if [ -z "${pythonpath}" ]; then
+    pythonpath=${DEFAULT_PYTHONPATH}
+  fi
+
+  ###############################################################
   # Storage checks
   ###############################################################
   if [ -z "${storage_home}" ]; then
@@ -335,7 +358,7 @@ check_args() {
 
   # Submit command and get connection info
   echo "Submitting jupyter job and waiting for it to start..."
-  connection_info=$(${DEFAULT_SSH} ${username}@${supercomputer} "${REMOTE_SCRIPT_DIR}/submit_jupyter_job.sh ${job_name} ${exec_time} ${num_nodes} ${qos} ${tracing} ${storage_home} ${storage_props}" 2>&1)
+  connection_info=$(${DEFAULT_SSH} ${username}@${supercomputer} "${REMOTE_SCRIPT_DIR}/submit_jupyter_job.sh ${job_name} ${exec_time} ${num_nodes} ${qos} ${tracing} ${classpath} ${pythonpath} ${storage_home} ${storage_props}" 2>&1)
 
   # Parse connection info
   echo "Getting connection information..."

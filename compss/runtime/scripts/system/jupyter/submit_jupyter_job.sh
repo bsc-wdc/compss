@@ -5,8 +5,10 @@ exec_time=$2     # Walltime in minutes
 num_nodes=$3     # Number of nodes
 qos=$4           # Quality of service
 tracing=$5       # Tracing
-storage_home=$6  # Storage home path
-storage_props=$7 # Storage properties file
+classpath=$6     # Classpath
+pythonpath=$7    # Pythonpath
+storage_home=$8  # Storage home path
+storage_props=$9 # Storage properties file
 
 
 ###############################################
@@ -27,9 +29,9 @@ source "${defaultQS_cfg}"
 #       Submit the jupyter notebook job       #
 ###############################################
 if [ ${storage_home} = "undefined" ]; then
-    result=$(enqueue_compss --exec_time=${exec_time} --num_nodes=${num_nodes} --qos=${qos} --tracing=${tracing} --lang=python --jupyter_notebook)
+    result=$(enqueue_compss --exec_time=${exec_time} --num_nodes=${num_nodes} --qos=${qos} --tracing=${tracing} --classpath=${classpath} --pythonpath=${pythonpath}:${HOME} --lang=python --jupyter_notebook)
 else
-    result=$(enqueue_compss --exec_time=${exec_time} --num_nodes=${num_nodes} --qos=${qos} --tracing=${tracing} --storage_home=${storage_home} --storage_props=${storage_props} --lang=python --jupyter_notebook)
+    result=$(enqueue_compss --exec_time=${exec_time} --num_nodes=${num_nodes} --qos=${qos} --tracing=${tracing} --classpath=${classpath} --pythonpath=${pythonpath}:${HOME} --storage_home=${storage_home} --storage_props=${storage_props} --lang=python --jupyter_notebook)
 fi
 submit_line=$(echo "$result" | grep "Submitted")
 job_id=(${submit_line//Submitted batch job/ })
@@ -97,13 +99,13 @@ done
 echo "Token: ${token[1]}"
 
 
-#########################################################
-# USAGE EXAMPLE:                                        #
-#########################################################
-#                                                       #
-# ./submit_jupyter_job.sh 00:01:00 test_job 2 qos False #
-#                                                       #
-#########################################################
-# Returns the job id, the main node where               #
-# Jupyter is running, and the session token.            #
-#########################################################
+######################################################################
+# USAGE EXAMPLE:                                                     #
+######################################################################
+#                                                                    #
+# ./submit_jupyter_job.sh 00:01:00 test_job 2 qos False $(pwd) $(pwd)#
+#                                                                    #
+######################################################################
+# Returns the job id, the main node where Jupyter is running, and    #
+# the session token.                                                 #
+######################################################################

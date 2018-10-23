@@ -22,7 +22,6 @@ import java.io.InputStream;
 import java.util.Properties;
 
 import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.BindingObject;
@@ -61,6 +60,7 @@ import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.RuntimeConfigManager;
 import es.bsc.compss.util.Tracer;
+import java.util.logging.Level;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

@@ -2,21 +2,22 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- GENERAL INFORMATION -->
-    <artifactId>compss-resources-commons</artifactId>
-    <packaging>jar</packaging>
-    <parent>
-        <groupId>es.bsc.compss</groupId>
-        <artifactId>compss-resources</artifactId>
-<version>2.4.rc1811</version>
-        <relativePath>..</relativePath>
-    </parent>
+	<!-- GENERAL INFORMATION -->
+	<artifactId>compss-adaptors-local</artifactId>
+	<packaging>jar</packaging>
+	<parent>
+		<groupId>es.bsc.compss</groupId>
+		<artifactId>compss-adaptors</artifactId>
+<version>2.3.rc1810</version>
+		<relativePath>..</relativePath>
+	</parent>
 
 
     <!-- PROJECT INFORMATION -->
-    <name>COMPSs Resource Management Commons</name>
-    <description>Commons types and utilities for the Resource Management in the COMPSs Framework</description>
+    <name>COMPSs Back-end Local</name>
+    <description>Required classes to handle the master node and run task on it.</description>
     <url>http://www.bsc.es</url>
+    <inceptionYear>2015</inceptionYear>
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
@@ -30,21 +31,23 @@
 
     <!-- DEPENDENCIES -->
     <dependencies>
+
+        
+        <!-- Common Runtime Dependencies -->
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-adaptors-commons</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-adaptors-local</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-resources-schema</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-project-schema</artifactId>
+            <artifactId>compss-adaptors-execution</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <!-- Log4j -->
@@ -53,12 +56,7 @@
             <artifactId>log4j-core</artifactId>
         </dependency>
 
-        <!-- SSH -->
-        <dependency>
-            <groupId>com.jcraft</groupId>
-            <artifactId>jsch</artifactId>
-        </dependency>
-        
+        <!-- jUnit -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -77,22 +75,6 @@
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>${maven-shade-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <finalName>${project.artifactId}</finalName>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>

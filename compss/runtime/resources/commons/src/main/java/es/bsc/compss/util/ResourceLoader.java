@@ -36,7 +36,6 @@ import es.bsc.compss.types.project.ProjectFile;
 import es.bsc.compss.types.project.exceptions.ProjectFileValidationException;
 import es.bsc.compss.types.project.jaxb.*;
 import es.bsc.compss.types.resources.DataResourceDescription;
-import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.MethodWorker;
 import es.bsc.compss.types.resources.ResourcesFile;

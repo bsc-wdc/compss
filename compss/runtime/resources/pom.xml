@@ -36,6 +36,11 @@
 				<artifactId>compss-adaptors-commons</artifactId>
 				<version>${compss.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>es.bsc.compss</groupId>
+				<artifactId>compss-adaptors-local</artifactId>
+				<version>${compss.version}</version>
+			</dependency>
                         <dependency>
                                 <groupId>es.bsc.compss</groupId>
                                 <artifactId>compss-resources-commons</artifactId>

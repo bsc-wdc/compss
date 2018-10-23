@@ -20,6 +20,12 @@ DISABLED_STORAGE_HOME="undefined"
 DEFAULT_STORAGE_PROPS="undefined"
 DEFAULT_STORAGE="None"
 
+DEFAULT_LOG_LEVEL=off
+DEFAULT_LOG_LEVEL_ARGUMENT=debug
+LOG_LEVEL_DEBUG=debug
+LOG_LEVEL_INFO=info
+LOG_LEVEL_OFF=off
+
 #---------------------------------------------------
 # SCRIPT TOOLS
 #---------------------------------------------------
@@ -38,6 +44,7 @@ ERROR_COMPSS_NOT_DEFINED="COMPSs is not available in the supercomputer. Please c
 ERROR_SUBMITTING_JOB="Could not submit the job to the supercomputer. Please check that you are able to submit jobs to the supercomputer."
 ERROR_STORAGE_PROPS="--storage_props flag not defined."
 ERROR_UNSUPPORTED_STORAGE_SHORTCUT="Non supported external storage shortcut."
+ERROR_WRONG_DEBUG_FLAG="Non supported debug flag. Please use: ${LOG_LEVEL_OFF} | ${LOG_LEVEL_INFO} | ${LOG_LEVEL_DEBUG}"
 
 
 #---------------------------------------------------------------------------------------
@@ -102,6 +109,8 @@ Usage: $0 [Options]
                                             Default: ${DEFAULT_BROWSER}
     --qos=<string>                          Quality of Service.
                                             Default: ""
+    --log_level=<level>, --debug, -d        Set the debug level: ${LOG_LEVEL_OFF} | ${LOG_LEVEL_INFO} | ${LOG_LEVEL_DEBUG}
+                                            Default: ${DEFAULT_LOG_LEVEL}
     --tracing=<string>                      Enable/Disable tracing environment [true | false]
                                             Default: ${DEFAULT_TRACING}
     --port_forwarding=<int>                 Set a specific port for port forwarding.
@@ -185,6 +194,10 @@ get_args() {
         # Display version
         display_version 0
         ;;
+      d)
+        # Enable debug in log level
+        log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
+        ;;
       -)
         # Check more complex arguments
         case "$OPTARG" in
@@ -219,6 +232,14 @@ get_args() {
             ;;
           qos=*)
             qos=${OPTARG//qos=/}
+            ;;
+          log_level=*)
+            # Enable different log_levels by user selection
+            log_level=${OPTARG//log_level=/}
+            ;;
+          debug*)
+            # Enable debug in log level
+            log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
             ;;
           tracing=*)
             tracing=${OPTARG//tracing=/}
@@ -311,6 +332,13 @@ check_args() {
   fi
 
   # Check tracing argument
+  if [ -z "${log_level}" ]; then
+    log_level=${DEFAULT_LOG_LEVEL}
+  elif [ "${log_level}" != "${LOG_LEVEL_OFF}" ] && [ "${log_level}" != "${LOG_LEVEL_INFO}" ] && [ "${log_level}" != "${LOG_LEVEL_DEBUG}" ]; then
+    display_error ${ERROR_WRONG_DEBUG_FLAG}
+  fi
+
+  # Check tracing argument
   if [ -z "${tracing}" ]; then
     tracing=${DEFAULT_TRACING}
   fi
@@ -383,7 +411,14 @@ check_args() {
 
   # Submit command and get connection info
   echo "Submitting jupyter job and waiting for it to start..."
-  connection_info=$(${DEFAULT_SSH} ${username}@${supercomputer} "${REMOTE_SCRIPT_DIR}/submit_jupyter_job.sh ${job_name} ${exec_time} ${num_nodes} ${qos} ${tracing} ${classpath} ${pythonpath} ${storage_home} ${storage_props} ${storage}" 2>&1)
+  submit_command="${DEFAULT_SSH} ${username}@${supercomputer} ${REMOTE_SCRIPT_DIR}/submit_jupyter_job.sh ${job_name} ${exec_time} ${num_nodes} ${qos} ${log_level} ${tracing} ${classpath} ${pythonpath} ${storage_home} ${storage_props} ${storage}"
+  if [ "${log_level}" == "${LOG_LEVEL_DEBUG}" ]; then
+    echo "[DEBUG] Command: ${submit_command}"
+    connection_info=$(${submit_command})
+    echo "[DEBUG] Connection info: ${connection_info}"
+  else
+    connection_info=$(${submit_command} 2>&1)
+  fi
 
   # Parse connection info
   echo "Getting connection information..."
@@ -397,7 +432,7 @@ check_args() {
   job_id=${job_id[1]}
   # Check if job was well Submitted
   if [ ${job_id} = "FAILED" ]; then
-      echo $connection_info
+      echo ${connection_info}
       display_error ${ERROR_SUBMITTING_JOB}
       exit 1
   fi
@@ -409,7 +444,7 @@ check_args() {
 
   # Establish the port forwarding
   echo "Establishing port forwarding..."
-  #${DEFAULT_SSH} -t -t ${username}@${supercomputer} -L 8888:localhost:${port_forwarding} ssh ${node} -4 -L ${port_forwarding}:localhost:8888 > /dev/null 2>&1 &
+  #${DEFAULT_SSH} -t -t ${username}@${supercomputer} -L 8888:localhost:${port_forwarding} ssh ${node} -L ${port_forwarding}:localhost:8888 > /dev/null 2>&1 &
   ${DEFAULT_SSH} -t -t ${username}@${supercomputer} -L 8888:localhost:${port_forwarding} ssh ${node} -L ${port_forwarding}:localhost:8888 > /dev/null 2>&1 &
   RUNNING_PORT_FORWARDING_PID=$!
 

@@ -46,6 +46,7 @@ from pycompss.util.scs import get_xmls
 from pycompss.util.scs import get_uuid
 from pycompss.util.scs import get_base_log_dir
 from pycompss.util.scs import get_specific_log_dir
+from pycompss.util.scs import get_log_level
 from pycompss.util.scs import get_tracing
 from pycompss.util.scs import get_storage_conf
 from pycompss.util.logs import init_logging
@@ -171,22 +172,6 @@ def start(log_level='off',
     ld_library_path = extrae_lib + ':' + ld_library_path
     os.environ['LD_LIBRARY_PATH'] = ld_library_path
 
-    if debug:
-        # Add environment variable to get binding-commons debug information
-        os.environ['COMPSS_BINDINGS_DEBUG'] = '1'
-
-    if trace is False:
-        trace = 0
-    elif trace == 'basic' or trace is True:
-        trace = 1
-        os.environ['LD_PRELOAD'] = extrae_lib + '/libpttrace.so'
-    elif trace == 'advanced':
-        trace = 2
-        os.environ['LD_PRELOAD'] = extrae_lib + '/libpttrace.so'
-    else:
-        print("ERROR: Wrong tracing parameter ( [ True | basic ] | advanced | False)")
-        return -1
-
     if monitor is not None:
         # Enable the graph if the monitoring is enabled
         graph = True
@@ -233,11 +218,16 @@ def start(log_level='off',
         base_log_dir = get_base_log_dir()
         specific_log_dir = get_specific_log_dir()
         storage_conf = get_storage_conf()
-        # Override tracing considering the parameter defined in pycompss_interactive_sc script
-        if get_tracing():
-            trace = 1
+        # Override debug considering the parameter defined in pycompss_interactive_sc script
+        # and exported by launch_compss
+        log_level = get_log_level()
+        if log_level == 'off':
+            debug = False
         else:
-            trace = 0
+            debug = True
+        # Override tracing considering the parameter defined in pycompss_interactive_sc script
+        # and exported by launch_compss
+        trace = get_tracing()
         if verbose:
             print("- Overridden project xml with: " + project_xml)
             print("- Overridden resources xml with: " + resources_xml)
@@ -247,7 +237,25 @@ def start(log_level='off',
             print("- Overridden base log dir with: " + base_log_dir)
             print("- Overridden specific log dir with: " + specific_log_dir)
             print("- Overridden storage conf with: " + storage_conf)
+            print("- Overridden log level with: " + str(log_level))
+            print("- Overridden debug with: " + str(debug))
             print("- Overridden trace with: " + str(trace))
+
+    if debug:
+        # Add environment variable to get binding-commons debug information
+        os.environ['COMPSS_BINDINGS_DEBUG'] = '1'
+
+    if trace is False:
+        trace = 0
+    elif trace == 'basic' or trace is True:
+        trace = 1
+        os.environ['LD_PRELOAD'] = extrae_lib + '/libpttrace.so'
+    elif trace == 'advanced':
+        trace = 2
+        os.environ['LD_PRELOAD'] = extrae_lib + '/libpttrace.so'
+    else:
+        print("ERROR: Wrong tracing parameter ( [ True | basic ] | advanced | False)")
+        return -1
 
     # Build a dictionary with all variables needed for initializing the runtime
     config = dict()

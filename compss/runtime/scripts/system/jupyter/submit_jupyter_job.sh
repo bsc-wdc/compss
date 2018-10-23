@@ -1,16 +1,31 @@
 #!/bin/bash
 
-job_name=$1      # Not supported yet
-exec_time=$2     # Walltime in minutes
-num_nodes=$3     # Number of nodes
-qos=$4           # Quality of service
-tracing=$5       # Tracing
-classpath=$6     # Classpath
-pythonpath=$7    # Pythonpath
-storage_home=$8  # Storage home path
-storage_props=$9 # Storage properties file
-storage=${10}    # Storage shortcut to use
+job_name=$1         # Not supported yet
+exec_time=$2        # Walltime in minutes
+num_nodes=$3        # Number of nodes
+qos=$4              # Quality of service
+log_level=$5        # Log level
+tracing=$6          # Tracing
+classpath=$7        # Classpath
+pythonpath=$8       # Pythonpath
+storage_home=$9     # Storage home path
+storage_props=${10} # Storage properties file
+storage=${11}       # Storage shortcut to use
 
+###############################################
+#       Script Constants Declaration          #
+###############################################
+LOG_LEVEL_DEBUG=debug
+
+###############################################
+# Displays debug messages arguments
+###############################################
+display_debug() {
+    local debug_msg=$*
+    if [ "${log_level}" == "${LOG_LEVEL_DEBUG}" ]; then
+        echo "[DEBUG]: ${debug_msg}"
+    fi
+}
 
 ###############################################
 #     Get the Supercomputer configuration     #
@@ -53,12 +68,15 @@ fi
 #       Submit the jupyter notebook job       #
 ###############################################
 if [ ${storage_home} = "undefined" ]; then
-    result=$(enqueue_compss --exec_time=${exec_time} --num_nodes=${num_nodes} --qos=${qos} --tracing=${tracing} --classpath=${classpath} --pythonpath=${pythonpath}:${HOME} --lang=python --jupyter_notebook)
+    result=$(enqueue_compss --exec_time=${exec_time} --num_nodes=${num_nodes} --log_level=${log_level} --qos=${qos} --tracing=${tracing} --classpath=${classpath} --pythonpath=${pythonpath}:${HOME} --lang=python --jupyter_notebook)
 else
     export CLASSPATH=${classpath}:${CLASSPATH}
     export PYTHONPATH=${pythonpath}:${PYTHONPATH}
-    result=$(enqueue_compss --exec_time=${exec_time} --num_nodes=${num_nodes} --qos=${qos} --tracing=${tracing} --classpath=${classpath} --pythonpath=${pythonpath}:${HOME} --storage_home=${storage_home} --storage_props=${storage_props} --lang=python --jupyter_notebook)
+    result=$(enqueue_compss --exec_time=${exec_time} --num_nodes=${num_nodes} --log_level=${log_level} --qos=${qos} --tracing=${tracing} --classpath=${classpath} --pythonpath=${pythonpath}:${HOME} --storage_home=${storage_home} --storage_props=${storage_props} --lang=python --jupyter_notebook)
 fi
+
+display_debug "Runcompss result: ${result}"
+
 submit_line=$(echo "$result" | grep "Submitted")
 job_id=(${submit_line//Submitted batch job/ })
 if [ -z "$job_id" ]; then
@@ -83,10 +101,10 @@ function job_is_pending {
 }
 
 while job_is_pending ; do
-    # echo "The job ${job_id} is pending..."
+    display_debug "The job ${job_id} is pending..."
     sleep 5
 done
-# echo "The job ${job_id} is now running"
+display_debug "The job ${job_id} is now running"
 
 
 ###############################################

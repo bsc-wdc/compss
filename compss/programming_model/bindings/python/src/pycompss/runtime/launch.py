@@ -45,6 +45,7 @@ from pycompss.util.scs import get_xmls
 from pycompss.util.scs import get_uuid
 from pycompss.util.scs import get_base_log_dir
 from pycompss.util.scs import get_specific_log_dir
+from pycompss.util.scs import get_log_level
 from pycompss.util.scs import get_tracing
 from pycompss.util.scs import get_storage_conf
 from pycompss.util.logs import init_logging
@@ -313,7 +314,15 @@ def launch_pycompss_application(app, func,
         base_log_dir = get_base_log_dir()
         specific_log_dir = get_specific_log_dir()
         storage_conf = get_storage_conf()
+        # Override debug considering the parameter defined in pycompss_interactive_sc script
+        # and exported by launch_compss
+        log_level = get_log_level()
+        if log_level == 'off':
+            debug = False
+        else:
+            debug = True
         # Override tracing considering the parameter defined in pycompss_interactive_sc script
+        # and exported by launch_compss
         if get_tracing():
             trace = 1
         else:

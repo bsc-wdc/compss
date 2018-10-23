@@ -13,9 +13,9 @@
   #----------------------------------------------------------------------------------
   # Check output standard out status of simple.ipynb or simpleGAT.ipynb
   if [[ $comm == *"GAT"* ]]; then
-    html="${base_app_dir}/test/simpleGAT.html"
+    html="${base_app_dir}/src/simpleGAT.html"
   else
-    html="${base_app_dir}/test/simple.html"
+    html="${base_app_dir}/src/simple.html"
   fi
 
   if [ -f ${html} ]; then
@@ -26,7 +26,7 @@
         exit 1
      fi
   else
-     echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
+     echo "SOME ERROR WAS FOUND. HTML FILE NOT EXISTS." | tee -a ${output_file}
      exit 1
   fi
 

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash 
 
 #---------------------------------------------------
 # ERROR CONSTANTS DECLARATION
@@ -19,13 +19,16 @@ check_heterogeneous_args(){
   fi
 }
 
-update_args_tp_pass(){
+update_args_to_pass(){
   args_pass="${orig_args_pass}"
   if [ ! -z "${cpus_per_node}" ]; then
   	args_pass="${args_pass} ${cpus_per_node}"
   fi
   if [ ! -z "${gpus_per_node}" ]; then
         args_pass="${args_pass} ${gpus_per_node}"
+  fi
+  if [ ! -z "${constraint}" ]; then
+        args_pass="${args_pass} ${contraint}"
   fi
   # TODO: Add other parameters to pass
      
@@ -36,19 +39,20 @@ unset_type_vars(){
   # TODO: Unset other changed parameters
 }
 
-create_master_submit(){
-  create_tmp_submit
+write_master_submit(){
   add_submission_headers
   add_only_master_node
   add_launch
 }
 
-create_worker_submit(){
-  create_tmp_submit
+write_worker_submit(){
   add_submission_headers
-  add_only_worker_nodes
-  add_launch
+  if [ "${HETEROGENEOUS_MULTIJOB}" == "true" ]; then
+     add_only_worker_nodes
+     add_launch
+  fi
 }
+
 ###############################################
 # Function to clean TMP files
 ###############################################
@@ -62,8 +66,9 @@ cleanup() {
 submit() {
   # Submit the job to the queue
   #eval ${SUBMISSION_CMD} ${SUBMISSION_PIPE}${TMP_SUBMIT_SCRIPT} 1>${TMP_SUBMIT_SCRIPT}.out 2>${TMP_SUBMIT_SCRIPT}.err
-  SUBMIT=$(echo $submit_files | tr " " "${SUBMISSION_HET_SEPARATOR}")
-  eval ${SUBMISSION_CMD}${SUBMISSION_HET_PIPE}${SUBMIT}
+  
+  echo "Submit command: ${SUBMISSION_CMD}${SUBMISSION_HET_PIPE}${submit_files}"
+  eval ${SUBMISSION_CMD}${SUBMISSION_HET_PIPE}${submit_files}
   result=$?
 
   # Check if submission failed
@@ -99,30 +104,17 @@ submit() {
   
   source ${types_cfg_file}
  
-  eval $master_type
-  
-  num_nodes=1
-  # Check parameters
-  check_args
-
-  # Set wall clock time
-  set_time
-  
-  update_args_to_pass
-
-  # Log received arguments
-  log_args
-
   # Create TMP submit script
-  create_master_submit
-  
-  submit_files="${TMP_SUBMIT_FILE}"
+  create_tmp_submit
+  echo "submit files is set in ${TMP_SUBMIT_SCRIPT}"
+  submit_files="${TMP_SUBMIT_SCRIPT}"
 
-  uset_type_vars  
-
-  workers=$(echo "${workers_types}" | tr "," " ")  
+  unset_type_vars  
+  echo " Parsing workers ${worker_types}"
+  workers=$(echo "${worker_types}" | tr ',' ' ')  
   for worker in ${workers}; do
-    worker_desc=$(echo "${worker}" | tr ":" " ")
+    echo " submitting worker ${worker}"
+    worker_desc=$(echo "${worker}" | tr ':' ' ')
     
     eval ${worker_desc[0]}
     
@@ -130,15 +122,41 @@ submit() {
     
     check_args
 
+    set_time
+
     log_args
 
-    create_worker_submit
+    write_worker_submit
     
-    submit_files="$submit_files ${TMP_SUBMIT_FILE}" 
+    unset_type_vars
+    
+    if [ "${HETEROGENEOUS_MULTIJOB}" == "true" ]; then
+    	create_tmp_submit
+    	echo "submit files is set in ${TMP_SUBMIT_SCRIPT}"
+    	submit_files="${submit_files}${SUBMISSION_HET_SEPARATOR}${TMP_SUBMIT_SCRIPT}"
+    else
+	add_packjob_separator 
+    fi
   done
+  # Write master
+  eval $master_type
+
+  num_nodes=1
+  # Check parameters
+  check_args
+
+  # Set wall clock time
+  set_time
+
+  update_args_to_pass
+
+  # Log received arguments
+  log_args
   
+  write_master_submit
+ 
   # Trap cleanup
-  trap cleanup EXIT
+  #trap cleanup EXIT
 
   # Submit
   submit

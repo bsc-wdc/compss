@@ -667,6 +667,12 @@ EOT
   fi
 }
 
+add_packjob_separator(){
+      cat >> $TMP_SUBMIT_SCRIPT << EOT
+#${QUEUE_CMD} ${QARG_PACKJOB}
+EOT
+}
+
 add_master_and_worker_nodes(){
   # Host list parsing
   cat >> $TMP_SUBMIT_SCRIPT << EOT

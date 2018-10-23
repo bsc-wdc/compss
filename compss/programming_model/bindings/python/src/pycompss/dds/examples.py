@@ -17,6 +17,9 @@
 
 import sys
 import time
+from collections import defaultdict, deque
+
+from pycompss.api.api import compss_wait_on
 
 from pycompss.dds import DDS
 from pycompss.dds.tasks import gen_fragment
@@ -57,27 +60,42 @@ def reduce_example():
     print(test)
 
 
-from new_dds import DDS as n_dds
-
-
-def test():
-    data = range(0, 5)
-    result = n_dds().load(data, 2).map_and_flatten(lambda x: [x, x]) \
-        .filter(lambda x: x > 0) \
-        .count_by_value()
-    print(result)
-
-
 def word_count():
     path_file = sys.argv[1]
     size_block = int(sys.argv[3])
 
     start = time.time()
-    result = DDS().load_file(path_file, chunk_size=size_block, worker_read=True) \
-        .map_and_flatten(lambda x: x.split()).count_by_value(as_dict=True)
+    local_results = DDS().load_file(path_file, chunk_size=size_block, worker_read=True) \
+        .map_partitions(split_and_dict).collect(future_objects=True)
 
+    local_results = deque(local_results)
+    arity = 2
+    branch = list()
+    while local_results:
+        while local_results and len(branch) < arity:
+            temp = local_results.popleft()
+            branch.append(temp)
+
+        if len(branch) == 1:
+            break
+
+        # branch = compss_wait_on(branch)
+        reduce_dicts(branch[0], branch[1])
+        local_results.append(branch[0])
+        branch = []
+
+    results = compss_wait_on(branch[0])
     print("Elapsed Time: ", time.time() - start)
     return
+
+
+def split_and_dict(partition):
+    from collections import defaultdict
+    ret = defaultdict(int)
+    for item in partition[0].split():
+        ret[item] += 1
+
+    return ret
 
 
 def pi_estimation():
@@ -259,7 +277,7 @@ def main_program():
     # example_5()
     # pi_estimation()
     # See 'launch.sh' for WordCount example.
-    # word_count()
+    word_count()
     # reduce_example()
     # load_n_map_example()
     run_terasort()

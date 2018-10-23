@@ -33,6 +33,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.*;
 import es.bsc.compss.types.data.AccessParams.*;
 import es.bsc.compss.types.data.DataAccessId.*;
+import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.data.operation.BindingObjectTransferable;
 import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.ObjectTransferable;
@@ -40,9 +41,12 @@ import es.bsc.compss.types.data.operation.OneOpWithSemListener;
 import es.bsc.compss.types.data.operation.ResultListener;
 import es.bsc.compss.types.request.ap.TransferBindingObjectRequest;
 import es.bsc.compss.types.request.ap.TransferObjectRequest;
+import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.Serializer;
 import es.bsc.compss.util.Tracer;
+import java.io.IOException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -560,12 +564,12 @@ public class DataInfoProvider {
         LOGGER.debug("Deleting Data location: " + loc.getPath());
         String locationKey = loc.getLocationKey();
         Integer dataId = nameToId.get(locationKey);
-        
+
         if (dataId == null) {
-            LOGGER.debug("No data id found for this data location" +loc.getPath());
+            LOGGER.debug("No data id found for this data location" + loc.getPath());
             return null;
         }
-        
+
         DataInfo dataInfo = idToData.get(dataId);
         nameToId.remove(locationKey);
         if (dataInfo.delete()) {
@@ -581,14 +585,14 @@ public class DataInfoProvider {
      * @return ObjectInfo
      */
     public DataInfo deleteData(int code) {
-    	LOGGER.debug("Deleting Data associated with code: " + String.valueOf(code));
-    	
+        LOGGER.debug("Deleting Data associated with code: " + String.valueOf(code));
+
         Integer id = codeToId.get(code);
         DataInfo dataInfo = idToData.get(id);
-        
+
         // We delete the data associated with all the versions of the same object
-        dataInfo.delete(); 
-        
+        dataInfo.delete();
+
         return dataInfo;
     }
 
@@ -602,7 +606,6 @@ public class DataInfoProvider {
         Semaphore sem = toRequest.getSemaphore();
         DataAccessId daId = toRequest.getDaId();
         RWAccessId rwaId = (RWAccessId) daId;
-
         String sourceName = rwaId.getReadDataInstance().getRenaming();
         // String targetName = rwaId.getWrittenDataInstance().getRenaming();
         if (DEBUG) {
@@ -616,18 +619,32 @@ public class DataInfoProvider {
         }
 
         if (ld.isInMemory()) {
-            // Write to storage (if needed)
-            try {
-                ld.writeToStorage();
-            } catch (Exception e) {
-                ErrorManager.error("Exception writing object to file.", e);
+            Object value = null;
+            if (!rwaId.isPreserveSourceData()) {
+                value = ld.getValue();
+                // Clear value
+                ld.removeValue();
+            } else {
+                try {
+                    ld.writeToStorage();
+                } catch (Exception e) {
+                    ErrorManager.error("Exception writing object to file.", e);
+                }
+                for (DataLocation loc : ld.getLocations()) {
+                    if (loc.getProtocol() != Protocol.OBJECT_URI) {
+                        MultiURI mu = loc.getURIInHost(Comm.getAppHost());
+                        String path = mu.getPath();
+                        try {
+                            value = Serializer.deserialize(path);
+                            break;
+                        } catch (IOException | ClassNotFoundException e) {
+                            ErrorManager.error("Exception writing object to file.", e);
+                        }
+                    }
+                }
             }
-
-            // Clear value
-            ld.removeValue();
-
             // Set response
-            toRequest.setResponse(ld.getValue());
+            toRequest.setResponse(value);
             toRequest.setTargetData(ld);
             sem.release();
         } else {

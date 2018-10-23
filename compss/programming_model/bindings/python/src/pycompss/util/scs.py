@@ -98,6 +98,15 @@ def get_specific_log_dir():
     return os.environ['COMPSS_SPECIFIC_LOG_DIR']
 
 
+def get_log_level():
+    """
+    Get log level.
+    TIP: The environment variable COMPSS_LOG_LEVEL is defined in launch_compss script.
+    :return: Log level
+    """
+    return os.environ['COMPSS_LOG_LEVEL']
+
+
 def get_tracing():
     """
     Get tracing boolean.
@@ -105,6 +114,15 @@ def get_tracing():
     :return: Tracing boolean
     """
     return 'true' == os.environ['COMPSS_TRACING']
+
+
+def get_storage_conf():
+    """
+    Get storage configuration file.
+    TIP: The environment variable COMPSS_STORAGE_CONF is defined in launch_compss script.
+    :return: Storage configuration file path
+    """
+    return os.environ['COMPSS_STORAGE_CONF']
 
 
 def generate_xmls(compss_home, nodes, master_port):

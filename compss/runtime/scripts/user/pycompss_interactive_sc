@@ -8,11 +8,23 @@ DEFAULT_JOB_NAME="Jupyter"
 DEFAULT_NUM_NODES=2
 DEFAULT_USER_NAME="undefined"
 DEFAULT_GET_PASSWORD=false   # default is using passwordless
-DEFAULT_SUPERCOMPUTER="mn3.bsc.es"
+DEFAULT_SUPERCOMPUTER="mn2.bsc.es"
 DEFAULT_BROWSER="firefox"
 DEFAULT_QOS=""
 DEFAULT_TRACING="false"
 DEFAULT_PORT_FORWARDING="3333"
+DEFAULT_CLASSPATH="."
+DEFAULT_PYTHONPATH="."
+DEFAULT_STORAGE_HOME="undefined"
+DISABLED_STORAGE_HOME="undefined"
+DEFAULT_STORAGE_PROPS="undefined"
+DEFAULT_STORAGE="None"
+
+DEFAULT_LOG_LEVEL=off
+DEFAULT_LOG_LEVEL_ARGUMENT=debug
+LOG_LEVEL_DEBUG=debug
+LOG_LEVEL_INFO=info
+LOG_LEVEL_OFF=off
 
 #---------------------------------------------------
 # SCRIPT TOOLS
@@ -29,6 +41,11 @@ WARNING_USER_NAME_NOT_PROVIDED="Username not provided. Using default: ${DEFAULT_
 #---------------------------------------------------
 ERROR_CONNECTING="Could not connect to the supercomputer. Please check the connectivity, user name and password."
 ERROR_COMPSS_NOT_DEFINED="COMPSs is not available in the supercomputer. Please check that you have propperly configured the module load in your .bashrc."
+ERROR_SUBMITTING_JOB="Could not submit the job to the supercomputer. Please check that you are able to submit jobs to the supercomputer."
+ERROR_STORAGE_PROPS="--storage_props flag not defined."
+ERROR_UNSUPPORTED_STORAGE_SHORTCUT="Non supported external storage shortcut."
+ERROR_WRONG_DEBUG_FLAG="Non supported debug flag. Please use: ${LOG_LEVEL_OFF} | ${LOG_LEVEL_INFO} | ${LOG_LEVEL_DEBUG}"
+
 
 #---------------------------------------------------------------------------------------
 # HELPER FUNCTIONS
@@ -88,14 +105,30 @@ Usage: $0 [Options]
     --password                              Request user password to login into the supercomputer
     --supercomputer=<string>                Supercomputer to connect
                                             Default: ${DEFAULT_SUPERCOMPUTER}
-    --browser=<string>                      Web browser
+    --browser=<path>                        Web browser
                                             Default: ${DEFAULT_BROWSER}
     --qos=<string>                          Quality of Service.
                                             Default: ""
+    --log_level=<level>, --debug, -d        Set the debug level: ${LOG_LEVEL_OFF} | ${LOG_LEVEL_INFO} | ${LOG_LEVEL_DEBUG}
+                                            Default: ${DEFAULT_LOG_LEVEL}
     --tracing=<string>                      Enable/Disable tracing environment [true | false]
                                             Default: ${DEFAULT_TRACING}
     --port_forwarding=<int>                 Set a specific port for port forwarding.
                                             Default: ${DEFAULT_PORT_FORWARDING}
+    --classpath=<path>                      Path for the application classes / modules
+                                            Default: Working Directory
+    --pythonpath=<path>                     Additional folders or paths to add to the PYTHONPATH
+                                            Default: Working Directory
+    --storage_home=<path>                   Absolute path at supercomputer of the storage implementation.
+                                            Default: ${DEFAULT_STORAGE_HOME}
+    --storage_props=<path>                  Absolute path at supercomputer of the storage properties file.
+                                            Mandatory if storage_home is defined
+    --storage=<string>                      External storage selection shortcut.
+                                            Overrides storage_home and needed classpath/pythonpath flags,
+                                            uses storage_props.cfg from home if exists.
+                                            Otherwise creates and uses an empty one.
+                                            Available options: None | redis
+                                            Defauult: ${DEFAULT_STORAGE}
 EOT
 
   exit "$exitValue"
@@ -161,6 +194,10 @@ get_args() {
         # Display version
         display_version 0
         ;;
+      d)
+        # Enable debug in log level
+        log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
+        ;;
       -)
         # Check more complex arguments
         case "$OPTARG" in
@@ -196,11 +233,34 @@ get_args() {
           qos=*)
             qos=${OPTARG//qos=/}
             ;;
+          log_level=*)
+            # Enable different log_levels by user selection
+            log_level=${OPTARG//log_level=/}
+            ;;
+          debug*)
+            # Enable debug in log level
+            log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
+            ;;
           tracing=*)
             tracing=${OPTARG//tracing=/}
             ;;
           port_forwarding=*)
             port_forwarding=${OPTARG//port_forwarding=/}
+            ;;
+          classpath=*)
+            classpath=${OPTARG//classpath=/}
+            ;;
+          pythonpath=*)
+            pythonpath=${OPTARG//pythonpath=/}
+            ;;
+          storage_home=*)
+            storage_home=${OPTARG//storage_home=/}
+            ;;
+          storage_props=*)
+            storage_props=${OPTARG//storage_props=/}
+            ;;
+          storage=*)
+            storage=${OPTARG//storage=/}
             ;;
           *)
             # Flag didn't match any pattern.
@@ -272,6 +332,13 @@ check_args() {
   fi
 
   # Check tracing argument
+  if [ -z "${log_level}" ]; then
+    log_level=${DEFAULT_LOG_LEVEL}
+  elif [ "${log_level}" != "${LOG_LEVEL_OFF}" ] && [ "${log_level}" != "${LOG_LEVEL_INFO}" ] && [ "${log_level}" != "${LOG_LEVEL_DEBUG}" ]; then
+    display_error ${ERROR_WRONG_DEBUG_FLAG}
+  fi
+
+  # Check tracing argument
   if [ -z "${tracing}" ]; then
     tracing=${DEFAULT_TRACING}
   fi
@@ -280,6 +347,46 @@ check_args() {
   if [ -z "${port_forwarding}" ]; then
     port_forwarding=${DEFAULT_PORT_FORWARDING}
   fi
+
+  ###############################################################
+  # Environment checks
+  ###############################################################
+  if [ -z "${classpath}" ]; then
+    classpath=${DEFAULT_CLASSPATH}
+  fi
+
+  if [ -z "${pythonpath}" ]; then
+    pythonpath=${DEFAULT_PYTHONPATH}
+  fi
+
+  ###############################################################
+  # Storage checks
+  ###############################################################
+  if [ -z "${storage_home}" ]; then
+    storage_home=${DEFAULT_STORAGE_HOME}
+  fi
+
+  if [ "${storage_home}" != "${DISABLED_STORAGE_HOME}" ]; then
+    # Check storage props is defined
+    if [ -z "${storage_props}" ]; then
+      display_error "${ERROR_STORAGE_PROPS}"
+      exit 1
+    fi
+  fi
+
+  if [ -z "${storage}" ]; then
+    # Shortcut to select external storage implementation
+    storage=${DEFAULT_STORAGE}
+    storage_home=${DEFAULT_STORAGE_HOME}
+    storage_props=${DEFAULT_STORAGE_PROPS}
+  elif [ "${storage}" != "None" ] && [ "${storage}" != "redis" ]; then
+    display_error ${ERROR_UNSUPPORTED_STORAGE_SHORTCUT}
+    exit 1
+  else
+    storage_home=${DEFAULT_STORAGE_HOME}
+    storage_props=${DEFAULT_STORAGE_PROPS}
+  fi
+
 }
 
 
@@ -304,7 +411,14 @@ check_args() {
 
   # Submit command and get connection info
   echo "Submitting jupyter job and waiting for it to start..."
-  connection_info=$(${DEFAULT_SSH} ${username}@${supercomputer} "${REMOTE_SCRIPT_DIR}/submit_jupyter_job.sh ${job_name} ${exec_time} ${num_nodes} ${qos} ${tracing} ${port_forwarding}" 2>&1)
+  submit_command="${DEFAULT_SSH} ${username}@${supercomputer} ${REMOTE_SCRIPT_DIR}/submit_jupyter_job.sh ${job_name} ${exec_time} ${num_nodes} ${qos} ${log_level} ${tracing} ${classpath} ${pythonpath} ${storage_home} ${storage_props} ${storage}"
+  if [ "${log_level}" == "${LOG_LEVEL_DEBUG}" ]; then
+    echo "[DEBUG] Command: ${submit_command}"
+    connection_info=$(${submit_command})
+    echo "[DEBUG] Connection info: ${connection_info}"
+  else
+    connection_info=$(${submit_command} 2>&1)
+  fi
 
   # Parse connection info
   echo "Getting connection information..."
@@ -316,6 +430,12 @@ check_args() {
   node=(${node_line//:/ })
   token=(${token_line//:/ })
   job_id=${job_id[1]}
+  # Check if job was well Submitted
+  if [ ${job_id} = "FAILED" ]; then
+      echo ${connection_info}
+      display_error ${ERROR_SUBMITTING_JOB}
+      exit 1
+  fi
   # Get the node name and token
   node=${node[1]}
   token=${token[1]}
@@ -324,7 +444,7 @@ check_args() {
 
   # Establish the port forwarding
   echo "Establishing port forwarding..."
-  #${DEFAULT_SSH} -t -t ${username}@${supercomputer} -L 8888:localhost:${port_forwarding} ssh ${node} -4 -L ${port_forwarding}:localhost:8888 > /dev/null 2>&1 &
+  #${DEFAULT_SSH} -t -t ${username}@${supercomputer} -L 8888:localhost:${port_forwarding} ssh ${node} -L ${port_forwarding}:localhost:8888 > /dev/null 2>&1 &
   ${DEFAULT_SSH} -t -t ${username}@${supercomputer} -L 8888:localhost:${port_forwarding} ssh ${node} -L ${port_forwarding}:localhost:8888 > /dev/null 2>&1 &
   RUNNING_PORT_FORWARDING_PID=$!
 

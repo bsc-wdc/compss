@@ -1135,6 +1135,7 @@ launch() {
       # JAVA_HOME variable must exist
       export LD_LIBRARY_PATH=${COMPSS_HOME}/Bindings/bindings-common/lib/:${COMPSS_HOME}/Runtime/compss-engine.jar:${JAVA_HOME}/jre/lib/amd64/server/:$LD_LIBRARY_PATH
       unset XDG_RUNTIME_DIR  # Required for Jupyter in MN4. Supposed to be necessary also in other supercomputers. Otherwise, move this line to the supercomputer "module"
+      export COMPSS_LOG_LEVEL=${log_level}
       export COMPSS_TRACING=${tracing}
       if [ -v "$tracing" ] && [ $tracing != "false" ]; then
           load_tracing_env
@@ -1149,6 +1150,7 @@ launch() {
       export COMPSS_UUID="${uuid}"
       export COMPSS_BASE_LOG_DIR="${base_log_dir}"
       export COMPSS_SPECIFIC_LOG_DIR="${specific_log_dir}"
+      export COMPSS_STORAGE_CONF="${storage_conf}"
       # Run jupyter notebook instead of the master
       # The master will be started when the user wants later from the notebook (the workers have already been launched)
       jupyter notebook --no-browser --ip=127.0.0.1 --port=8888

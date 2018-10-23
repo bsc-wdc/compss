@@ -1,11 +1,31 @@
 #!/bin/bash
 
-job_name=$1   # not supported yet
-exec_time=$2  # walltime in minutes
-num_nodes=$3  # number of nodes
-qos=$4        # quality of service
-tracing=$5    # tracing
+job_name=$1         # Not supported yet
+exec_time=$2        # Walltime in minutes
+num_nodes=$3        # Number of nodes
+qos=$4              # Quality of service
+log_level=$5        # Log level
+tracing=$6          # Tracing
+classpath=$7        # Classpath
+pythonpath=$8       # Pythonpath
+storage_home=$9     # Storage home path
+storage_props=${10} # Storage properties file
+storage=${11}       # Storage shortcut to use
 
+###############################################
+#       Script Constants Declaration          #
+###############################################
+LOG_LEVEL_DEBUG=debug
+
+###############################################
+# Displays debug messages arguments
+###############################################
+display_debug() {
+    local debug_msg=$*
+    if [ "${log_level}" == "${LOG_LEVEL_DEBUG}" ]; then
+        echo "[DEBUG]: ${debug_msg}"
+    fi
+}
 
 ###############################################
 #     Get the Supercomputer configuration     #
@@ -14,21 +34,57 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # Load default CFG for default values
 DEFAULT_SC_CFG="default"
 defaultSC_cfg=${SCRIPT_DIR}/../../queues/cfgs/${DEFAULT_SC_CFG}.cfg
-#shellcheck source=../../queues/cfgs/default.cfg
+#shellcheck source=${SCRIPT_DIR}/../../queues/cfgs/default.cfg
 source "${defaultSC_cfg}"
 defaultQS_cfg=${SCRIPT_DIR}/../../queues/${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg
-#shellcheck source=../../queues/slurm/slurm.cfg
+#shellcheck source=${SCRIPT_DIR}/../../queues/slurm/slurm.cfg
 source "${defaultQS_cfg}"
+
+###############################################
+#               Shortcut checks               #
+###############################################
+if [ "${storage}" = "None" ] || [ "${storage}" = "" ]; then
+    # Continue as normal
+    true
+elif [ "${storage}" = "redis" ]; then
+    # Override variables to use Redis
+    classpath="${SCRIPT_DIR}/../../../../Tools/storage/redis/compss-redisPSCO.jar:${classpath}"
+    pythonpath="${SCRIPT_DIR}/../../../../Tools/storage/redis/python:${pythonpath}"
+    storage_home="${SCRIPT_DIR}/../../../../Tools/storage/redis"
+    if [ ! -f ${HOME}/storage_props.txt ]; then
+        # If not exist, then create an empty one.
+        # Otherwise, use the storage_props.cfg file
+        touch ${HOME}/storage_props.cfg
+    fi
+    storage_props="${HOME}/storage_props.cfg"
+else
+    # Unsupported storage
+    echo "ERROR: Non supported storage shortcut."
+    exit 1
+fi
 
 
 ###############################################
 #       Submit the jupyter notebook job       #
 ###############################################
-result=$(enqueue_compss --exec_time=${exec_time} --num_nodes=${num_nodes} --qos=${qos} --tracing=${tracing} --lang=python --jupyter_notebook)
+if [ ${storage_home} = "undefined" ]; then
+    result=$(enqueue_compss --exec_time=${exec_time} --num_nodes=${num_nodes} --log_level=${log_level} --qos=${qos} --tracing=${tracing} --classpath=${classpath} --pythonpath=${pythonpath}:${HOME} --lang=python --jupyter_notebook)
+else
+    export CLASSPATH=${classpath}:${CLASSPATH}
+    export PYTHONPATH=${pythonpath}:${PYTHONPATH}
+    result=$(enqueue_compss --exec_time=${exec_time} --num_nodes=${num_nodes} --log_level=${log_level} --qos=${qos} --tracing=${tracing} --classpath=${classpath} --pythonpath=${pythonpath}:${HOME} --storage_home=${storage_home} --storage_props=${storage_props} --lang=python --jupyter_notebook)
+fi
+
+display_debug "Runcompss result: ${result}"
+
 submit_line=$(echo "$result" | grep "Submitted")
 job_id=(${submit_line//Submitted batch job/ })
+if [ -z "$job_id" ]; then
+    echo "JobId: FAILED"
+    echo $result
+    exit 1
+fi
 echo "JobId: $job_id"
-
 
 ###############################################
 #         Wait for the job to start           #
@@ -45,10 +101,10 @@ function job_is_pending {
 }
 
 while job_is_pending ; do
-    # echo "The job ${job_id} is pending..."
+    display_debug "The job ${job_id} is pending..."
     sleep 5
 done
-# echo "The job ${job_id} is now running"
+display_debug "The job ${job_id} is now running"
 
 
 ###############################################
@@ -72,7 +128,7 @@ echo "MainNode: $master_node"   # Beware, this print is used by pycompss_interac
 ###############################################
 
 retry_wait=3 # seconds to wait for notebook to start on each retry
-retries=3    # number of retries
+retries=9    # number of retries (default: 10 -- 30 seconds)
 retry=0
 token=""
 while [[ $retry -le $retries && $token = "" ]]
@@ -87,13 +143,12 @@ done
 echo "Token: ${token[1]}"
 
 
-#########################################################
-# USAGE EXAMPLE:                                        #
-#########################################################
-#                                                       #
-# ./submit_jupyter_job.sh 00:01:00 test_job 2 qos False #
-#                                                       #
-#########################################################
-# Returns the job id, the main node where               #
-# Jupyter is running, and the session token.            #
-#########################################################
+################################################################################################
+# USAGE EXAMPLE:                                                                               #
+################################################################################################
+#                                                                                              #
+# ./submit_jupyter_job.sh 00:01:00 test_job 2 qos False $(pwd) $(pwd) undefined undefined None #
+#                                                                                              #
+################################################################################################
+# Returns the job id, the main node where Jupyter is running, and the session token.           #
+################################################################################################

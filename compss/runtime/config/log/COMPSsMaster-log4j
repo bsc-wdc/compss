@@ -16,7 +16,7 @@
 
   <!-- Configure runtime loggers -->
   <Loggers>
-    <Root level="debug">
+    <Root level="error">
       <AppenderRef ref="Console"/>
     </Root>
 

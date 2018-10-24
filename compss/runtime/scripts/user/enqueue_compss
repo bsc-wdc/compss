@@ -38,7 +38,8 @@ Usage: $0 [queue_system_options] [COMPSs_options] application_name application_a
 * Options:
   General:
     --help, -h                              Print this help message
-
+    --heterogeneous                         Indicates submission is going to be heterogeneous
+                                            Default: Disabled
   Queue system configuration:
     --sc_cfg=<name>                         SuperComputer configuration file to use. Must exist inside queues/cfgs/
                                             Default: ${DEFAULT_SC_CFG}
@@ -109,9 +110,12 @@ get_args() {
             # Display compss version
             display_version 0
             ;;
-          sc_cfg=*)
-            sc_cfg=${OPTARG//sc_cfg=/}
-            ;;
+          heterogeneous)
+	    heter=1
+	    ;;
+	  sc_cfg=*)
+	    sc_cfg=${OPTARG//sc_cfg=/}
+	    ;;
           master_node=*)
             # Master node is automatically selected. Remove it from COMPSs flags
             echo "WARNING: master_node is automatically selected. Omitting parameter"
@@ -197,6 +201,12 @@ check_args() {
 
   # Submit command
   # shellcheck disable=SC2086
-  "${SCRIPT_DIR}"/../queues/commons/submit.sh \
+  if [ -z "$heter" ]; then
+    "${SCRIPT_DIR}"/../queues/commons/submit.sh \
        --sc_cfg=${sc_cfg} \
        ${args_pass}
+  else
+    "${SCRIPT_DIR}"/../queues/commons/heterogeneous_submit.sh \
+       --sc_cfg=${sc_cfg} \
+       ${args_pass}
+  fi

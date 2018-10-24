@@ -23,7 +23,9 @@ import java.io.PrintStream;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -119,6 +121,8 @@ public class NIOWorker extends NIOAgent {
     private static ThreadPrintStream err;
     public static final String SUFFIX_OUT = ".out";
     public static final String SUFFIX_ERR = ".err";
+    private Map<Integer, Long> times; 
+    
 
     static {
         try {
@@ -136,7 +140,7 @@ public class NIOWorker extends NIOAgent {
             String appDir, String libPath, String classpath, String pythonpath) {
 
         super(snd, rcv, masterPort);
-
+        times = new HashMap<Integer, Long>();
         // Log worker creation
         WORKER_LOGGER.info("NIO Worker init");
 
@@ -277,15 +281,17 @@ public class NIOWorker extends NIOAgent {
     @Override
     public void receivedNewTask(NIONode master, NIOTask task, List<String> obsoleteFiles) {
         WORKER_LOGGER.info("Received Job " + task);
-
+        
         if (NIOTracer.isActivated()) {
             NIOTracer.emitEvent(NIOTracer.Event.WORKER_RECEIVED_NEW_TASK.getId(), NIOTracer.Event.WORKER_RECEIVED_NEW_TASK.getType());
         }
-
+        long obsolSt = System.currentTimeMillis();
         // Remove obsolete
         if (obsoleteFiles != null) {
             removeObsolete(obsoleteFiles);
         }
+        long obsolEnd = System.currentTimeMillis();
+        long obsolDuration = obsolEnd - obsolSt;
 
         // Demand files
         WORKER_LOGGER.info("Checking parameters");
@@ -295,7 +301,9 @@ public class NIOWorker extends NIOAgent {
             i++;
             if (param.getData() != null) {
                 // Parameter has associated data
-                WORKER_LOGGER.debug("- Checking transfers for data of parameter " + (String) param.getValue());
+                if (WORKER_LOGGER_DEBUG){
+                    WORKER_LOGGER.debug("- Checking transfers for data of parameter " + (String) param.getValue());
+                }
 
                 switch (param.getType()) {
                     case OBJECT_T:
@@ -332,10 +340,15 @@ public class NIOWorker extends NIOAgent {
         if (NIOTracer.isActivated()) {
             NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskTransfersType());
         }
-
+        long paramsEnd = System.currentTimeMillis();
+        long paramsDuration = paramsEnd - obsolEnd;
+        WORKER_LOGGER.info("[Profile] Obsolete Processing: " +obsolDuration+ "Processing " + paramsDuration);
+        times.put(task.getJobId(), paramsEnd);
         if (tt.getParams() == 0) {
             executeTask(tt.getTask());
         }
+       
+        
         if (NIOTracer.isActivated()) {
             NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.WORKER_RECEIVED_NEW_TASK.getType());
         }
@@ -372,7 +385,9 @@ public class NIOWorker extends NIOAgent {
     }
 
     private void askForBindingObject(NIOParam param, int index, TransferringTask tt) {
-        WORKER_LOGGER.debug("   - " + (String) param.getValue() + " registered as binding object."); 
+        if (WORKER_LOGGER_DEBUG) {
+            WORKER_LOGGER.debug("   - " + (String) param.getValue() + " registered as binding object."); 
+        }
         BindingObject dest_bo = BindingObject.generate((String) param.getValue());
         String value = dest_bo.getName();
         int type = dest_bo.getType();
@@ -380,26 +395,36 @@ public class NIOWorker extends NIOAgent {
         boolean askTransfer = false;
 
         // Try if parameter is in cache
-        WORKER_LOGGER.debug("   - Checking if " + value + " is in binding cache.");
+        if (WORKER_LOGGER_DEBUG) {
+            WORKER_LOGGER.debug("   - Checking if " + value + " is in binding cache.");
+        }
         boolean cached = BindingDataManager.isInBinding(value);
         if (!cached) {
             // Try if any of the object locations is in cache
             boolean locationsInCache = false;
-            WORKER_LOGGER.debug("   - Checking if " + value + " locations are catched");
+            if (WORKER_LOGGER_DEBUG) {
+                WORKER_LOGGER.debug("   - Checking if " + value + " locations are catched");
+            }
             for (NIOURI loc : param.getData().getSources()) {
                 BindingObject bo = BindingObject.generate(loc.getPath());
                 if (BindingDataManager.isInBinding(bo.getName())) {
                     // Object found
-                    WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") location found in cache.");
+                    if (WORKER_LOGGER_DEBUG) {
+                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") location found in cache.");
+                    }
                     if (param.isPreserveSourceData()) {
-                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") preserves sources. CACHE-COPYING");
+                        if (WORKER_LOGGER_DEBUG) {
+                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") preserves sources. CACHE-COPYING");
+                        }
                         int res = BindingDataManager.copyCachedData(bo.getName(), value);
                         if (res != 0) {
                             WORKER_LOGGER.error("CACHE-COPY from " + bo.getName() + " to " + value + " has failed. ");
                             break;
                         }
                     } else {
-                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") erases sources. CACHE-MOVING");
+                        if (WORKER_LOGGER_DEBUG) {
+                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") erases sources. CACHE-MOVING");
+                        }
                         int res = BindingDataManager.moveCachedData(bo.getName(), value);
                         if (res != 0) {
                             WORKER_LOGGER.error("CACHE-MOVE from " + bo.getName() + " to " + value + " has failed. ");
@@ -414,24 +439,32 @@ public class NIOWorker extends NIOAgent {
             if (!locationsInCache) {
                 // Try if any of the object locations is in the host
                 boolean existInHost = false;
-                WORKER_LOGGER.debug("   - Checking if " + (String) param.getValue() + " locations are in host");
+                if (WORKER_LOGGER_DEBUG) {
+                    WORKER_LOGGER.debug("   - Checking if " + (String) param.getValue() + " locations are in host");
+                }
                 NIOURI loc = param.getData().getURIinHost(host);
                 if (loc != null) {
                     BindingObject bo = BindingObject.generate(loc.getPath());
-                    WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") found at host with location " +loc.getPath() + " Checking if id "+bo.getName()+" is in cache...");
+                    if (WORKER_LOGGER_DEBUG) {
+                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") found at host with location " +loc.getPath() + " Checking if id "+bo.getName()+" is in cache...");
+                    }
                     if (BindingDataManager.isInBinding(bo.getName())) {
                         // Object found and it is in 
-                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") location found in cache.");
+                        if (WORKER_LOGGER_DEBUG) {
+                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") location found in cache.");
+                        }
                         if (param.isPreserveSourceData()) {
-                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") preserves sources. CACHE-COPYING");
-                            
+                            if (WORKER_LOGGER_DEBUG) {
+                                WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") preserves sources. CACHE-COPYING");
+                            }   
                             int res = BindingDataManager.copyCachedData(bo.getName(), value);
                             if (res != 0) {
                                 WORKER_LOGGER.error("CACHE-COPY from " + bo.getName() + " to " + value + " has failed. ");
                             }
                         } else {
-                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") erases sources. CACHE-MOVING");
-                            
+                            if (WORKER_LOGGER_DEBUG) {
+                                WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") erases sources. CACHE-MOVING");
+                            }
                             int res = BindingDataManager.moveCachedData(bo.getName(), value);
                             if (res != 0) {
                                 WORKER_LOGGER.error("CACHE-MOVE from " + bo.getName() + " to " + value + " has failed. ");
@@ -439,24 +472,28 @@ public class NIOWorker extends NIOAgent {
                         }
                         existInHost = true;
                     } else {
-                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") not in cache with id "+bo.getName());
-                        
+                        if (WORKER_LOGGER_DEBUG) {
+                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") not in cache with id "+bo.getName());
+                        }
                         File inFile = new File(bo.getId());
                         if (!inFile.isAbsolute()){
                             inFile = new File(workingDir + File.separator + loc.getPath());
                         }
                         String path = inFile.getAbsolutePath();
-                        WORKER_LOGGER.debug("   - Checking if file " + path + " exists ");
-                        
+                                          
                         if (inFile.exists()) {
                             existInHost = true;
-                            
+                            if (WORKER_LOGGER_DEBUG) {
+                                WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") loaded from file "+path+".");
+                            }
                             int res = BindingDataManager.loadFromFile(value, path, type, elements);
                             if (res != 0) {
                                 WORKER_LOGGER.error("Error loading " + param.getValue() + " from file " + loc.getPath());
                             }
                         }else{
-                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") not in cache.");
+                            if (WORKER_LOGGER_DEBUG) {
+                                WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") File "+path+" not found.");
+                            }
                         }
                     }
    }
@@ -474,8 +511,9 @@ public class NIOWorker extends NIOAgent {
     }
     
     private void askForObject(NIOParam param, int index, TransferringTask tt) {
-        WORKER_LOGGER.debug("   - " + (String) param.getValue() + " registered as object.");
-
+        if (WORKER_LOGGER_DEBUG) {
+            WORKER_LOGGER.debug("   - " + (String) param.getValue() + " registered as object.");
+        }    
         boolean askTransfer = false;
 
         // Try if parameter is in cache
@@ -520,23 +558,31 @@ public class NIOWorker extends NIOAgent {
             if (!locationsInCache) {
                 // Try if any of the object locations is in the host
                 boolean existInHost = false;
-                WORKER_LOGGER.debug("   - Checking if " + (String) param.getValue() + " locations are in host");
+                if (WORKER_LOGGER_DEBUG) {
+                    WORKER_LOGGER.debug("   - Checking if " + (String) param.getValue() + " locations are in host");
+                }
                 NIOURI loc = param.getData().getURIinHost(host);
                 if (loc != null) {
-                    WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") found at host.");
+                    if (WORKER_LOGGER_DEBUG) {
+                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") found at host.");
+                    }
                     try {
                         File source = new File(workingDir + File.separator + loc.getPath());
                         File target = new File(workingDir + File.separator + param.getValue().toString());
                         if (param.isPreserveSourceData()) {
-                            WORKER_LOGGER
+                            if (WORKER_LOGGER_DEBUG) {
+                                WORKER_LOGGER
                                     .debug("   - Parameter " + index + "(" + (String) param.getValue() + ") preserves sources. COPYING");
-                            WORKER_LOGGER.debug("         Source: " + source);
-                            WORKER_LOGGER.debug("         Target: " + target);
+                                WORKER_LOGGER.debug("         Source: " + source);
+                                WORKER_LOGGER.debug("         Target: " + target);
+                            }
                             Files.copy(source.toPath(), target.toPath());
                         } else {
-                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") erases sources. MOVING");
-                            WORKER_LOGGER.debug("         Source: " + source);
-                            WORKER_LOGGER.debug("         Target: " + target);
+                            if (WORKER_LOGGER_DEBUG) {
+                                WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") erases sources. MOVING");
+                                WORKER_LOGGER.debug("         Source: " + source);
+                                WORKER_LOGGER.debug("         Target: " + target);
+                            }
                             if (!source.renameTo(target)) {
                                 WORKER_LOGGER
                                         .error("Error renaming file from " + source.getAbsolutePath() + " to " + target.getAbsolutePath());
@@ -569,56 +615,72 @@ public class NIOWorker extends NIOAgent {
     }
 
     private void askForFile(NIOParam param, int index, TransferringTask tt) {
-        WORKER_LOGGER.debug("   - " + (String) param.getValue() + " registered as file.");
-
+        if (WORKER_LOGGER_DEBUG) {
+            WORKER_LOGGER.debug("   - " + (String) param.getValue() + " registered as file.");
+        }
         boolean locationsInHost = false;
         boolean askTransfer = false;
 
         // Try if parameter is in the host
-        WORKER_LOGGER.debug("   - Checking if file " + (String) param.getValue() + " exists.");
+        if (WORKER_LOGGER_DEBUG) {
+            WORKER_LOGGER.debug("   - Checking if file " + (String) param.getValue() + " exists.");
+        }
         File f = new File(param.getValue().toString());
         if (!f.exists()) {
             // Try if any of the locations is in the same host
-            WORKER_LOGGER.debug("   - Checking if " + (String) param.getValue() + " exists in worker");
+            if (WORKER_LOGGER_DEBUG) {
+                WORKER_LOGGER.debug("   - Checking if " + (String) param.getValue() + " exists in worker");
+            }
             NIOURI loc = param.getData().getURIinHost(host);
             if (loc != null) {
                 // Data is already present at host
-                WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") found at host.");
+                if (WORKER_LOGGER_DEBUG) {
+                    WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") found at host.");
+                }
                 try {
                     File source = new File(loc.getPath());
                     File target = new File(param.getValue().toString());
                     if (param.isPreserveSourceData()) {
-                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") preserves sources. COPYING");
-                        WORKER_LOGGER.debug("         Source: " + source);
-                        WORKER_LOGGER.debug("         Target: " + target);
+                        if (WORKER_LOGGER_DEBUG) {
+                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") preserves sources. COPYING");
+                            WORKER_LOGGER.debug("         Source: " + source);
+                            WORKER_LOGGER.debug("         Target: " + target);
+                        }
                         // if (!source.exists() && (Lang.valueOf(getLang().toUpperCase()) != Lang.C)) {
                         if (!source.exists()) {
-                            WORKER_LOGGER.debug("source does not exist, preserve data");
-                            WORKER_LOGGER.debug("lang is " + getLang());
+                            if (WORKER_LOGGER_DEBUG) {
+                                WORKER_LOGGER.debug("source does not exist, preserve data");
+                                WORKER_LOGGER.debug("lang is " + getLang());
+                            }
                             if (getLang().toUpperCase() != "C") {
-                                WORKER_LOGGER.debug(
+                                if (WORKER_LOGGER_DEBUG) {
+                                    WORKER_LOGGER.debug(
                                         "[ERROR] File " + loc.getPath() + " does not exist but it could be an object in cache. Ignoring.");
+                                }
                             }
                             // TODO The file to be copied needs to be serialized to a file from cache (or serialize from
                             // memory to memory
                             // if possible with a specific function
                         } else {
-                            WORKER_LOGGER.debug("before copy");
                             Files.copy(source.toPath(), target.toPath());
-                            WORKER_LOGGER.debug("after copy");
                         }
                     } else {
-                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") erases sources. MOVING");
-                        WORKER_LOGGER.debug("         Source: " + source);
-                        WORKER_LOGGER.debug("         Target: " + target);
+                        if (WORKER_LOGGER_DEBUG) {
+                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") erases sources. MOVING");
+                            WORKER_LOGGER.debug("         Source: " + source);
+                            WORKER_LOGGER.debug("         Target: " + target);
+                        }
                         if (!source.exists()) {
-                            WORKER_LOGGER.debug("source does not exist, no preserve data");
-                            WORKER_LOGGER.debug("lang is " + getLang() + ", in uppercase is " + getLang().toUpperCase());
-                            if (getLang().toUpperCase() != "C") {
-                                WORKER_LOGGER
-                                        .debug("File " + loc.getPath() + " does not exist but it could be an object in cache. Ignoring.");
+                            if (WORKER_LOGGER_DEBUG) {
+                                WORKER_LOGGER.debug("source does not exist, no preserve data");
+                                WORKER_LOGGER.debug("lang is " + getLang() + ", in uppercase is " + getLang().toUpperCase());
                             }
-
+                            if (getLang().toUpperCase() != "C") {
+                                if (WORKER_LOGGER_DEBUG) {
+                                    WORKER_LOGGER
+                                        .debug("File " + loc.getPath() + " does not exist but it could be an object in cache. Ignoring.");
+                                }
+                            }
                         } else {
                             try {
                                 Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
@@ -666,10 +728,9 @@ public class NIOWorker extends NIOAgent {
     @Override
     protected void handleDataToSendNotAvailable(Connection c, Data d) {
         // Now only manage at C (python could do the same when cache available)
-        WORKER_LOGGER.debug("handling data not available");
+        //TODO: Check if it is still needed
         if (Lang.valueOf(lang.toUpperCase()) == Lang.C) {
             String path = d.getFirstURI().getPath();
-            WORKER_LOGGER.debug("about to serialize");
             if (executionManager.serializeExternalData(d.getName(), path)) {
                 c.sendDataFile(path);
                 return;
@@ -740,6 +801,12 @@ public class NIOWorker extends NIOAgent {
             }
             if (wdr.getTransferringTask().getParams() == 0) {
                 if (!wdr.getTransferringTask().getError()) {
+                    NIOTask task = wdr.getTransferringTask().getTask();
+                    Long stTime = times.get(task.getJobId());
+                    if (stTime!=null){
+                        long duration = System.currentTimeMillis() - stTime.longValue();
+                        WORKER_LOGGER.info(" [Profile] Transfer: " + duration);
+                    }
                     executeTask(wdr.getTransferringTask().getTask());
                 } else {
                     sendTaskDone(wdr.getTransferringTask().getTask(), false);
@@ -755,7 +822,7 @@ public class NIOWorker extends NIOAgent {
         Connection c = TM.startConnection(masterNode);
 
         NIOTaskResult tr = new NIOTaskResult(jobId, nt.getParams());
-        if (WORKER_LOGGER.isDebugEnabled()) {
+        if (WORKER_LOGGER_DEBUG) {
             WORKER_LOGGER.debug("RESULT FOR JOB " + jobId + " (TASK ID: " + taskId + ")");
             WORKER_LOGGER.debug(tr);
         }
@@ -789,13 +856,14 @@ public class NIOWorker extends NIOAgent {
         }
 
         if (isWorkerDebugEnabled || !successful) {
-            WORKER_LOGGER.debug("Sending file " + taskFileOutName);
+            WORKER_LOGGER.debug("Sending Stdout and StdErr files " + taskFileOutName );
             c.sendDataFile(taskFileOutName);
             WORKER_LOGGER.debug("Sending file " + taskFileErrName);
             c.sendDataFile(taskFileErrName);
         }
 
         c.finishConnection();
+        
         WORKER_LOGGER.debug("Job " + jobId + "(Task " + taskId + ") send job done");
     }
 
@@ -843,17 +911,21 @@ public class NIOWorker extends NIOAgent {
         try {
             for (String name : obsolete) {
                 if (name.startsWith(File.separator)) {
-                    WORKER_LOGGER.debug("Removing file " + name);
+                    if (WORKER_LOGGER_DEBUG) {
+                        WORKER_LOGGER.debug("Removing file " + name);
+                    }
                     File f = new File(name);
                     if (!f.delete()) {
                         WORKER_LOGGER.error("Error removing file " + f.getAbsolutePath());
                     }
                     // Now only manage at C (python could do the same when cache available)
                     if (Lang.valueOf(lang.toUpperCase()) == Lang.C && persistentC) {
-                        if (BindingDataManager.removeData(f.getName())!=0){
-                            WORKER_LOGGER.error("Error removing data " + f.getName() + " from Binding");
+                        String id = f.getName();
+                        WORKER_LOGGER.info("Trying to remove " + id + " from binding cache.");
+                        if (BindingDataManager.removeData(id)!=0){
+                            WORKER_LOGGER.error("Error removing data " + id + " from Binding");
                         }else{
-                            WORKER_LOGGER.debug("Data removed from cache " + f.getName());
+                            WORKER_LOGGER.info("Data removed from cache " + id);
                         }
                         //executionManager.removeExternalData(name);
                     }
@@ -917,7 +989,9 @@ public class NIOWorker extends NIOAgent {
 
         // Remove workingDir
         if (removeWD) {
-            WORKER_LOGGER.debug("Erasing Worker Sandbox WorkingDir: " + this.workingDir);
+            if (WORKER_LOGGER_DEBUG) {
+                WORKER_LOGGER.debug("Erasing Worker Sandbox WorkingDir: " + this.workingDir);
+            }
             try {
                 removeFolder(this.workingDir);
             } catch (IOException ioe) {

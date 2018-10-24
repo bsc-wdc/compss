@@ -54,6 +54,14 @@
     echo "[C PIPER] Pipe processor on $cmdPipe finished"
   }
 
+  export_vars(){
+    envars=$(echo $1 | tr "#" " " | tr ";" "\n")
+    for var in $envars
+    do 
+       export $var
+    done
+  }
+   
   execute_task() {
     local tid=$1
     local jobOut=$2
@@ -66,9 +74,13 @@
 
     echo "[C PIPER] Execute task $tid" >> $jobOut
     echo "[C PIPER]   - CMD: $@ 1>> $jobOut 2>> $jobErr" >> $jobOut
-
+    
+    export_vars $1
+    shift 1
+    
     # Real task execution
-    eval $@ 1>> $jobOut 2>> $jobErr
+    
+    $@ 1>> $jobOut 2>> $jobErr
     local exitValue=$?
 
     # Log the task end
@@ -77,7 +89,7 @@
 
     # Return the result to the Runtime
     echo "${END_TASK_TAG} ${tid} ${exitValue}" >> $resultPipe
-  }
+  } 
 
   clean_procs() {
     # Send forced kill to subprocesses

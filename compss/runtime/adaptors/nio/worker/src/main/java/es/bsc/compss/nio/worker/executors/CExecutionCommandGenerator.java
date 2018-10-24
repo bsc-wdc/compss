@@ -35,7 +35,8 @@ public class CExecutionCommandGenerator {
     private static final String C_LIB_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "c" + File.separator + "lib";
     private static final String WORKER_C_RELATIVE_PATH = File.separator + "worker" + File.separator + "worker_c";
     private static final String LIBRARY_PATH_ENV = "LD_LIBRARY_PATH";
-
+    private static final String QUOTES="\"";
+    
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
     protected static final boolean WORKER_DEBUG = LOGGER.isDebugEnabled();
 
@@ -54,40 +55,39 @@ public class CExecutionCommandGenerator {
         }
         // Debug mode on
         if (WORKER_DEBUG) {
-            reqs.append(" --summary --verbose");
+            reqs.append("#--summary#--verbose");
         }
 
         StringBuilder cuda_visible = new StringBuilder();
-        StringBuilder opencl_visible = new StringBuilder();
-
+        StringBuilder opencl_visible = new StringBuilder();    
+        cuda_visible.append("CUDA_VISIBLE_DEVICES=").append(QUOTES);
+            opencl_visible.append("GPU_DEVICE_ORDINAL=").append(QUOTES);
         if (assignedGPUs.length > 0) {
-            String quotes = "\"";
-            cuda_visible.append("CUDA_VISIBLE_DEVICES=").append(quotes);
-            opencl_visible.append("GPU_DEVICE_ORDINAL=").append(quotes);
-            reqs.append(" --gpu-warmup=no");
+            reqs.append("#--gpu-warmup=no");
             for (int i = 0; i < (assignedGPUs.length - 1); i++) {
                 cuda_visible.append(assignedGPUs[i]).append(",");
                 opencl_visible.append(assignedGPUs[i]).append(",");
             }
-            cuda_visible.append(assignedGPUs[assignedGPUs.length - 1]).append(quotes).append(" ");
-            opencl_visible.append(assignedGPUs[assignedGPUs.length - 1]).append(quotes).append(" ");
+            cuda_visible.append(assignedGPUs[assignedGPUs.length - 1]);
+            opencl_visible.append(assignedGPUs[assignedGPUs.length - 1]);
 
             for (int j = 0; j < nt.getResourceDescription().getProcessors().size(); j++) {
                 Processor p = nt.getResourceDescription().getProcessors().get(j);
                 if (p.getType().equals("GPU") && p.getInternalMemory() > 0.00001) {
                     float bytes = p.getInternalMemory() * 1048576; // MB to byte conversion
                     int b_int = Math.round(bytes);
-                    reqs.append(" --gpu-max-memory=").append(b_int);
+                    reqs.append("#--gpu-max-memory=").append(b_int);
                 }
             }
         } else if (assignedFPGAs.length > 0) {
-            reqs.append(" --disable-cuda=yes");
+            reqs.append("#--disable-cuda=yes");
         } else {
-            reqs.append(" --disable-cuda=yes");
-            reqs.append(" --disable-opencl=yes");
+            reqs.append("#--disable-cuda=yes");
+            reqs.append("#--disable-opencl=yes");
         }
-
-        reqs.append("' ");
+        cuda_visible.append(QUOTES);
+        opencl_visible.append(QUOTES);
+        reqs.append("'");
 
         // Taskset string to bind the job
         StringBuilder taskset = new StringBuilder();
@@ -99,9 +99,8 @@ public class CExecutionCommandGenerator {
             taskset.append(assignedCoreUnits[numCUs - 1]).append(" ");
         }
 
-        lArgs.add(cuda_visible.toString() + opencl_visible.toString() + reqs.toString() + taskset.toString() + nw.getAppDir()
+        lArgs.add(cuda_visible.toString() +";"+opencl_visible.toString() +";"+ reqs.toString() + " "+ taskset.toString() + nw.getAppDir()
                 + WORKER_C_RELATIVE_PATH);
-
         return lArgs;
     }
 

@@ -163,6 +163,26 @@ public class DataInfoProvider {
         dataHasBeenAccessed(daid);
 
     }
+    
+    public void finishBindingObjectAccess(AccessMode mode, int code) {
+        DataInfo boInfo;
+        
+        Integer aoId = codeToId.get(code);
+
+        // First access to this file
+        if (aoId == null) {
+            LOGGER.warn("Binding Object " + code + " has not been accessed before");
+            return;
+        }
+        boInfo = idToData.get(aoId);
+        DataAccessId daid = getAccess(mode, boInfo);
+        if (daid == null) {
+            LOGGER.warn("Binding Object " + code + " has not been accessed before");
+            return;
+        }
+        dataHasBeenAccessed(daid);
+
+    }
 
     /**
      * DataAccess interface: registers a new object access

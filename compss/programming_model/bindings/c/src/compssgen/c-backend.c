@@ -1358,33 +1358,19 @@ static void add_object_or_array_arg_worker_treatment(FILE *outFile, argument *ar
     fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Data ID for parameter %s not found in argument value. Reseting filename to \" << %s_filename_og << endl << flush;\n", arg->name, arg->name);
     fprintf(outFile, "\t\t\t\t %s_filename = %s_filename_og ;\n", arg->name, arg->name);
     fprintf(outFile, "\t\t\t\t %s_dest_id = %s_filename_og ;\n", arg->name, arg->name);
-    fprintf(outFile, "\t\t\t\t compss_pointer %s_cp;\n", arg->name);
-    fprintf(outFile, "\t\t\t\t %s_cp.type= %d;\n", arg->name, position);
-    fprintf(outFile, "\t\t\t\t %s_cp.elements= %s_elements;\n", arg->name, arg->name);
-    fprintf(outFile, "\t\t\t\t %s_cp.pointer = (void*)%s;\n", arg->name, arg->name);
-    fprintf(outFile, "\t\t\t\t %s_cp.size = %s_cp.elements*sizeof(%s);\n", arg->name, arg->name, arg->classname);
-    fprintf(outFile, "\t\t\t\t int res = cache->deserializeFromFile(%s_filename, %s_cp);\n", arg->name, arg->name);
-    fprintf(outFile, "\t\t\t\t if (res != 0){\n");
-    fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Error deserializing object %s from file \"<< %s_filename << endl << flush;\n", arg->name, arg->name);
-    fprintf(outFile, "\t\t\t\t\t return res;\n");
-    fprintf(outFile, "\t\t\t\t }\n");
-    fprintf(outFile, "\t\t\t\t %s = (%s*)%s_cp.pointer;\n", arg->name, arg->classname, arg->name);
-
-    /*switch (arg->dir){
-    case in_dir:
-    case inout_dir:
-    {	//char *elems_suff = "_elements";
-        //char *file_suff = "_filename";
-        char *elements = concat(arg->name, "_elements");
-        char *filename = concat(arg->name, "_filename");
-
-        //add_deserialization(outFile, arg->type, arg->name, filename, elements, "\t\t\t\t");
-        free(filename);
-        free(elements);
-        break;
+    if (arg->dir != out_dir){
+    	fprintf(outFile, "\t\t\t\t compss_pointer %s_cp;\n", arg->name);
+    	fprintf(outFile, "\t\t\t\t %s_cp.type= %d;\n", arg->name, position);
+    	fprintf(outFile, "\t\t\t\t %s_cp.elements= %s_elements;\n", arg->name, arg->name);
+    	fprintf(outFile, "\t\t\t\t %s_cp.pointer = (void*)%s;\n", arg->name, arg->name);
+    	fprintf(outFile, "\t\t\t\t %s_cp.size = %s_cp.elements*sizeof(%s);\n", arg->name, arg->name, arg->classname);
+    	fprintf(outFile, "\t\t\t\t int res = cache->deserializeFromFile(%s_filename, %s_cp);\n", arg->name, arg->name);
+    	fprintf(outFile, "\t\t\t\t if (res != 0){\n");
+    	fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Error deserializing object %s from file \"<< %s_filename << endl << flush;\n", arg->name, arg->name);
+    	fprintf(outFile, "\t\t\t\t\t return res;\n");
+    	fprintf(outFile, "\t\t\t\t }\n");
+    	fprintf(outFile, "\t\t\t\t %s = (%s*)%s_cp.pointer;\n", arg->name, arg->classname, arg->name);
     }
-    default:;
-    }*/
     fprintf(outFile, "\t\t\t } //end obtain object as file \n");
     fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 }

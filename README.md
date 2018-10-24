@@ -34,7 +34,6 @@ can be found on the `builders/packages/` directory.
   * **doc** : COMPSs documentation
   * **files** : Dependency files (i.e. paraver configurations)
 
-
 ## Sample Applications
 
 You can find extended information about COMPSs Sample applications at the 

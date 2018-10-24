@@ -99,7 +99,7 @@ class DDS(object):
         return self
 
     def load_and_map_partitions(self, file_name, map_func, chunk_size=1024,
-                                *args):
+                                *args, **kwargs):
         """
 
         :param file_name:
@@ -112,7 +112,7 @@ class DDS(object):
         """
 
         for chunk in read_in_chunks(file_name, chunk_size):
-            self.partitions.append(task_load_and_map(chunk, map_func, *args))
+            self.partitions.append(task_load_and_map(chunk, map_func, *args, **kwargs))
 
         return self
 

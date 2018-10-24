@@ -187,16 +187,16 @@ def load_n_map_example():
         test.write("This is line # {} \n".format(number))
     test.close()
 
-    def sum_line_numbers(partition):
+    def sum_line_numbers(partition, initial=0):
         """
         Doesn't return a list, but a single value...
         """
-        sum = 0
+        sum = initial
         for line in partition:
             sum += int(line.split()[-1])
         return sum
 
-    result = DDS().load_and_map_partitions(fayl, sum_line_numbers).collect()
+    result = DDS().load_and_map_partitions(fayl, sum_line_numbers, initial=9).collect()
     import os
     os.remove(fayl)
     print result

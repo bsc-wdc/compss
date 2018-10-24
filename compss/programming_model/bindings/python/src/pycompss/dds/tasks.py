@@ -262,14 +262,14 @@ def task_load(data):
 
 
 @task(returns=list)
-def task_load_and_map(data, func, *args):
+def task_load_and_map(data, func, *args, **kwargs):
     """
 
     :param func:
     :param data:
     :return:
     """
-    return [func(data, *args)]
+    return [func(data, *args, **kwargs)]
 
 
 @task(iterator=IN, returns=list)

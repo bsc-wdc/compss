@@ -199,7 +199,7 @@ def load_n_map_example():
     result = DDS().load_and_map_partitions(fayl, sum_line_numbers, initial=9).collect()
     import os
     os.remove(fayl)
-    print result
+    print(result)
 
 
 def main_program():

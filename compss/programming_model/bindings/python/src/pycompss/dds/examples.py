@@ -179,6 +179,29 @@ def example_5():
     print("______________END OF THE EXAMPLE________________\n")
 
 
+def load_n_map_example():
+
+    fayl = 'test.txt'
+    test = open(fayl, 'w')
+    for number in range(100):
+        test.write("This is line # {} \n".format(number))
+    test.close()
+
+    def sum_line_numbers(partition):
+        """
+        Doesn't return a list, but a single value...
+        """
+        sum = 0
+        for line in partition:
+            sum += int(line.split()[-1])
+        return sum
+
+    result = DDS().load_and_map_partitions(fayl, sum_line_numbers).collect()
+    import os
+    os.remove(fayl)
+    print result
+
+
 def main_program():
     print("________HOLALA_________")
     # example_1()
@@ -188,9 +211,9 @@ def main_program():
     # example_5()
     # pi_estimation()
     # See 'launch.sh' for WordCount example.
-    word_count()
+    # word_count()
     # reduce_example()
-
+    load_n_map_example()
 
 if __name__ == '__main__':
     main_program()

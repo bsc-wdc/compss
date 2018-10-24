@@ -261,6 +261,17 @@ def task_load(data):
     return ret
 
 
+@task(returns=list)
+def task_load_and_map(data, func, *args):
+    """
+
+    :param func:
+    :param data:
+    :return:
+    """
+    return [func(data, *args)]
+
+
 @task(iterator=IN, returns=list)
 def get_next_partition(iterable, start, end):
     """

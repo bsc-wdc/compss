@@ -98,6 +98,24 @@ class DDS(object):
                                                              chunk_size)))
         return self
 
+    def load_and_map_partitions(self, file_name, map_func, chunk_size=1024,
+                                *args, **kwargs):
+        """
+
+        :param file_name:
+        :param map_func: a function that takes a partition as an argument
+        :param chunk_size: chunk size in BYTES... After collecting each line,
+                           size of the partition will be compared with this.
+        :param args: If your function takes more arguments than just the
+                     partition, feel free to send them here.
+        :return:
+        """
+
+        for chunk in read_in_chunks(file_name, chunk_size):
+            self.partitions.append(task_load_and_map(chunk, map_func, *args, **kwargs))
+
+        return self
+
     def load_files_from_dir(self, dir_path, num_of_parts=3):
         """
 

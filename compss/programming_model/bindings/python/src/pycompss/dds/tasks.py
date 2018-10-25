@@ -14,8 +14,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+from pycompss.api.api import compss_wait_on
 import sys
-
 from pycompss.api.api import compss_wait_on
 from pycompss.api.parameter import INOUT, IN
 from pycompss.api.task import task

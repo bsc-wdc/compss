@@ -17,8 +17,12 @@ show_opts() {
                                             Default: Disabled
     --opencl                                Enables worker compilation with openCL compilation flags
                                             Default: Disabled
+    --cross-compile                         Enables cross compilation, the environment variable CROSS_COMPILE
+                                            is used to define the prefix if not set specifically.
+                                            Default: Disabled
+    --cross-compile-prefix                  Prefix to be used when cross compiling.
+                                            Default: $CROSS_COMPILE
   Autotools and Makefile options:
-
     --goals=goal_1,goal_2,...,goal_N        Instead of using the goal all it uses the goals provided in the given order.
                                             Default: all
 
@@ -28,7 +32,7 @@ show_opts() {
     --CC=<C compiler>                       Defines and specific C compiler (cross_compiling)
                                             Default: $CC
     --CFLAGS="-cFlag_1 ... -cFlag_N"        Defines C compiler flags
-					    Default: $CFLAGS
+					                        Default: $CFLAGS
     --CXXFLAGS="-cxxflag_1 ... -cxxflag_N"  Defines C++ compiler flags
                                             Default: $CXXFLAGS
     --CPPFLAGS="-cppflag_1 ... -cppflag_N"  Defines C pre-processor flags
@@ -52,7 +56,7 @@ show_opts() {
     --with_opencl=<ocl_installation_path>   Enables worker compilation with openCL installed in a certain location
                                             Default: Disabled
     --opencl_libs="libs"		    Specifies extra opencl libraries locations
-					    Default: Empty
+	                    				    Default: Empty
 EOT
 }
 
@@ -161,8 +165,14 @@ get_args() {
           goals=*)
             goals=${OPTARG//goals=/}
             ;;
+          cross-compile)
+            enable_cross=true
+            ;;
+          cross-compile-prefix=*)
+            CROSS_COMPILE_PREFIX=${OPTARG//cross-compile-prefix=/}
+            ;;
           CC=*)
-	    defined_cc=${OPTARG//CC=/}
+	        defined_cc=${OPTARG//CC=/}
             ;;
           CXX=*)
             defined_cxx=${OPTARG//CXX=/}
@@ -246,7 +256,7 @@ check_args() {
     if [ "$ONLY_MASTER" = true ] && [ "$ONLY_WORKER" = true ]; then
 
         echo " "
-        echo "Error: Is not possible to specify both options --only-master and --only-worker, to compile both remove these arguments."
+        echo "[Error] Is not possible to specify both options --only-master and --only-worker, to compile both remove these arguments."
         
         exit 1
 
@@ -255,7 +265,7 @@ check_args() {
     if [ -z "$ompss_enabled" ] && [ -n "$cuda_enabled" ] && [ $cuda_enabled -eq 1 ]; then
 
         echo " "
-        echo "Warning: Is not possible to use the --cuda option while not using the --ompss one, removing --cuda..."
+        echo "[Warning] Is not possible to use the --cuda option while not using the --ompss one, removing --cuda..."
         cuda_enabled="" 
     
     fi 
@@ -265,6 +275,16 @@ check_args() {
         goals=$processed
     fi
 
+    if [ "$enable_cross" == "true" ]; then
+        if [ -z "${CROSS_COMPILE}" ]; then
+            CROSS_COMPILE=${CROSS_COMPILE_PREFIX}
+        fi
+        #At this point, if you defined a prefix, it will be set, if you enabled cross-compile 
+        #but you did not exported CROSS_COMPILE, no effect is expected from the option.
+        echo "[Warning] You enabled cross-compile and the prefix to be used is: ${CROSS_COMPILE}"
+    else
+        CROSS_COMPILE=""
+    fi
 }
 
 ONLY_MASTER=false
@@ -320,18 +340,6 @@ if [ -z "$CS_HOME" ]; then
 fi
 export COMPSSGEN=$CS_HOME/bin/compss_generator
 
-# Application src compilation
-if [ -d "./src" ]; then
-  (
-  cd ./src || exit 1
-  make $goals)
-  ev=$?
-  if [ $ev -ne 0 ]; then 
-    echo " "
-    echo "Building user application failed, please check errors above!"
-    exit $ev
-  fi
-fi
 # Building Master and Worker
 if [ -z "${defined_cc}" ]; then
    if [ -z "$CC" ]; then
@@ -340,7 +348,7 @@ if [ -z "${defined_cc}" ]; then
 	defined_cc=$CC
    fi
 fi
-export CC=${defined_cc}
+export CC=${CROSS_COMPILE}${defined_cc}
 
 if [ -z "${defined_cxx}" ]; then
    if [ -z "$CXX" ]; then
@@ -349,7 +357,7 @@ if [ -z "${defined_cxx}" ]; then
         defined_cxx=$CXX
    fi
 fi
-export CXX=${defined_cxx}
+export CXX=${CROSS_COMPILE}${defined_cxx}
 
 if [ ! -z "${defined_cflags}" ]; then
    export CFLAGS="${defined_cflags}"
@@ -375,13 +383,13 @@ if [ "${ompss_enabled}" != "" ]; then
   # Flag is defined, check value
   if [ ${ompss_enabled} == 1 ]; then
 	if [ -z "${defined_mcc}" ]; then
-	if [ -z "${MCC}" ]; then
-	   defined_mcc="mcc"
+	    if [ -z "${MCC}" ]; then
+	       defined_mcc="mcc"
 		else
-	   defined_mcc=${MCC}
+	       defined_mcc=${MCC}
 		fi
 	fi
-	export CC=${defined_mcc}
+	export CC=${CROSS_COMPILE}${defined_mcc}
 	
 	if [ -z "${defined_mcxx}" ]; then
 		if [ -z "${MCXX}" ]; then
@@ -390,12 +398,15 @@ if [ "${ompss_enabled}" != "" ]; then
 		   defined_mcxx=${MCXX}
 		fi
 	fi
-	export CXX=${defined_mcxx}
+	export CXX=${CROSS_COMPILE}${defined_mcxx}
+
 	export CFLAGS="$CFLAGS --ompss ${ompss_flags} $COMPSS_MCXX_FLAGS"
 	export CXXFLAGS="$CXXFLAGS --ompss ${ompss_flags} $COMPSS_MCXX_FLAGS"
 	export CPPFLAGS="$CPPFLAGS -DOMPSS_ENABLED"
+
   fi
 fi
+
 if [ "${cuda_enabled}" != "" ]; then
   # Flag is defined, check value
   if [ ${cuda_enabled} == 1 ]; then
@@ -413,6 +424,7 @@ if [ "${cuda_enabled}" != "" ]; then
 	export CXXFLAGS="$CXXFLAGS --cuda"
   fi
 fi
+
 if [ "${opencl_enabled}" != "" ]; then
   # Flag is defined, check value
   if [ ${opencl_enabled} == 1 ]; then
@@ -424,8 +436,20 @@ if [ "${opencl_enabled}" != "" ]; then
   fi
 fi
 
-if [ "$ONLY_WORKER" = false ]; then
+# Application src compilation
+if [ -d "./src" ]; then
+  (
+  cd ./src || exit 1
+  make $goals)
+  ev=$?
+  if [ $ev -ne 0 ]; then 
+    echo " "
+    echo "Building user application failed, please check errors above!"
+    exit $ev
+  fi
+fi
 
+if [ "$ONLY_WORKER" = false ]; then
 	# shellcheck disable=SC2086
 	"$CS_HOME"/bin/compss_build build master ${other_args}
 	ev=$?

@@ -66,7 +66,6 @@ def word_count():
         .map_and_flatten(lambda x: x.split()).count_by_value(as_dict=True)
 
     print("Elapsed Time: ", time.time()-start)
-    print result
     return
 
 

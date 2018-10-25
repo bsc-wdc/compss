@@ -3,8 +3,10 @@
 #---------------------------------------------------
 # SCRIPT CONSTANTS DECLARATION
 #---------------------------------------------------
-DEFAULT_SC_CFG="default"
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+DEFAULT_SC_CFG="default"
+DEFAULT_JOB_NAME="COMPSs"
 
 #---------------------------------------------------
 # ERROR CONSTANTS DECLARATION
@@ -15,7 +17,6 @@ ERROR_SWITCHES="Too little switches for the specified number of nodes"
 ERROR_NO_ASK_SWITCHES="Cannot ask switches for less than ${MIN_NODES_REQ_SWITCH} nodes"
 ERROR_NODE_MEMORY="Incorrect node_memory parameter. Only disabled or <int> allowed. I.e. 33000, 66000"
 ERROR_TMP_FILE="Cannot create TMP Submit file"
-ERROR_SUBMIT="Error submiting script to queue system"
 ERROR_STORAGE_PROPS="storage_props flag not defined"
 ERROR_STORAGE_PROPS_FILE="storage_props file doesn't exist"
 ERROR_PROJECT_NAME_NA="Project name not defined (use --project_name flag)"
@@ -49,7 +50,7 @@ Usage: $0 [options] application_name application_arguments
   Submission configuration:
 EOT
 
-  show_opts $exitValue
+  show_opts "$exitValue"
 }
 
 ###############################################
@@ -59,16 +60,20 @@ show_opts() {
   local exitValue=$1
 
   # Load default CFG for default values
-  local defaultSC_cfg=${scriptDir}/../cfgs/${DEFAULT_SC_CFG}.cfg
-  source ${defaultSC_cfg}
-  local defaultQS_cfg=${scriptDir}/../${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg
-  source ${defaultQS_cfg}
+  local defaultSC_cfg="${SCRIPT_DIR}/../cfgs/${DEFAULT_SC_CFG}.cfg"
+  # shellcheck source=../cfgs/default.cfg
+  source "${defaultSC_cfg}"
+  local defaultQS_cfg="${SCRIPT_DIR}/../${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg"
+  # shellcheck source=../slurm/slurm.cfg
+  source "${defaultQS_cfg}"
 
   # Show usage
   cat <<EOT
   General submision arguments:
     --exec_time=<minutes>                   Expected execution time of the application (in minutes)
                                             Default: ${DEFAULT_EXEC_TIME}
+    --job_name=<name>                       Job name
+                                            Default: ${DEFAULT_JOB_NAME}
     --queue=<name>                          Queue name to submit the job. Depends on the queue system.
                                             For example (MN3): bsc_cs | bsc_debug | debug | interactive
                                             Default: ${DEFAULT_QUEUE}
@@ -84,14 +89,14 @@ EOT
    if [ "${ENABLE_PROJECT_NAME}" == "true" ]; then
     cat <<EOT
 
-    --project_name=<name>		    Project name to pass to queue system.
+    --project_name=<name>                   Project name to pass to queue system.
                                             Mandatory for systems that charge hours by project name.
 EOT
   fi
   if [ -z "${DISABLE_QARG_QOS}" ] || [ "${DISABLE_QARG_QOS}" == "false" ]; then
     cat <<EOT
-    --qos=<qos>				    Quality of Service to pass to the queue system.
-					    Default: ${DEFAULT_QOS}
+    --qos=<qos>                             Quality of Service to pass to the queue system.
+                                            Default: ${DEFAULT_QOS}
 EOT
   fi
     cat <<EOT
@@ -109,25 +114,25 @@ EOT
                                             Only available for at least ${MIN_NODES_REQ_SWITCH} nodes.
                                             Default: ${DEFAULT_NUM_SWITCHES}
   Heterogeneous submission arguments:
-    --type_cfg=<file_location>		    Location of the file with the descriptions of node type requests
+    --type_cfg=<file_location>              Location of the file with the descriptions of node type requests
                                             File should follow the following format:
-					         type_X(){
-                                                    cpus_per_node=24
-                                                    node_memory=96
-                                                    ...
-                                                 }
-                                                 type_Y(){
-                                                    ...
-                                                 }
+                                            type_X(){
+                                              cpus_per_node=24
+                                              node_memory=96
+                                              ...
+                                            }
+                                            type_Y(){
+                                              ...
+                                            }
     --master=<master_node_type>             Node type for the master 
                                             (Node type descriptions are provided in the --type_cfg flag)
     --workers=type_X:nodes,type_Y:nodes     Node type and number of nodes per type for the workers
                                             (Node type descriptions are provided in the --type_cfg flag)
   Launch configuration:
 EOT
-  ${scriptDir}/../../user/launch_compss --opts
+  "${SCRIPT_DIR}"/../../user/launch_compss --opts
 
-  exit $exitValue
+  exit "$exitValue"
 }
 
 ###############################################
@@ -136,9 +141,9 @@ EOT
 display_version() {
   local exitValue=$1
 
-  ${scriptDir}/../../user/runcompss --version
+  "${SCRIPT_DIR}"/../../user/runcompss --version
 
-  exit $exitValue
+  exit "$exitValue"
 }
 
 ###############################################
@@ -147,7 +152,7 @@ display_version() {
 display_error() {
   local error_msg=$1
 
-  echo $error_msg
+  echo "$error_msg"
   echo " "
 
   usage 1
@@ -159,7 +164,7 @@ display_error() {
 display_execution_error() {
   local error_msg=$1
 
-  echo $error_msg
+  echo "$error_msg"
   echo " "
 
   exit 1
@@ -171,6 +176,7 @@ display_execution_error() {
 log_args() {
   # Display arguments
   echo "SC Configuration:          ${sc_cfg}"
+  echo "JobName:                   ${job_name}"
   echo "Queue:                     ${queue}"
   echo "Reservation:               ${reservation}"
   echo "Num Nodes:                 ${num_nodes}"
@@ -202,14 +208,14 @@ convert_to_wc() {
   local cost=$1
   wc_limit=${EMPTY_WC_LIMIT}
 
-  local min=$(expr $cost % 60)
+  local min=$((cost % 60))
   if [ $min -lt 10 ]; then
     wc_limit=":0${min}${wc_limit}"
   else
     wc_limit=":${min}${wc_limit}"
   fi
 
-  local hrs=$(expr $cost / 60)
+  local hrs=$((cost / 60))
   if [ $hrs -gt 0 ]; then
     if [ $hrs -lt 10 ]; then
       wc_limit="0${hrs}${wc_limit}"
@@ -263,64 +269,67 @@ get_args() {
             show_opts 0
             ;;
           sc_cfg=*)
-            sc_cfg=$(echo $OPTARG | sed -e 's/sc_cfg=//g')
+            sc_cfg=${OPTARG//sc_cfg=/}
             args_pass="$args_pass --$OPTARG"
             ;;
+          job_name=*)
+            job_name=${OPTARG//job_name=/}
+            ;;
           master_working_dir=*)
-            master_working_dir=$(echo $OPTARG | sed -e 's/master_working_dir=//g')
+            master_working_dir=${OPTARG//master_working_dir=/}
             args_pass="$args_pass --$OPTARG"
             ;;
           exec_time=*)
-            exec_time=$(echo $OPTARG | sed -e 's/exec_time=//g')
+            exec_time=${OPTARG//exec_time=/}
             ;;
           num_nodes=*)
-            num_nodes=$(echo $OPTARG | sed -e 's/num_nodes=//g')
+            num_nodes=${OPTARG//num_nodes=/}
             ;;
           num_switches=*)
-            num_switches=$(echo $OPTARG | sed -e 's/num_switches=//g')
+            num_switches=${OPTARG//num_switches=/}
             ;;
           cpus_per_node=*)
-            cpus_per_node=$(echo $OPTARG | sed -e 's/cpus_per_node=//g')
+            cpus_per_node=${OPTARG//cpus_per_node=/}
             args_pass="$args_pass --$OPTARG"
             ;;
           gpus_per_node=*)
-            gpus_per_node=$(echo $OPTARG | sed -e 's/gpus_per_node=//g')
+            gpus_per_node=${OPTARG//gpus_per_node=/}
             args_pass="$args_pass --$OPTARG"
             ;;
           queue=*)
-            queue=$(echo $OPTARG | sed -e 's/queue=//g')
+            queue=${OPTARG//queue=/}
             args_pass="$args_pass --$OPTARG"
             ;;
           reservation=*)
-            reservation=$(echo $OPTARG | sed -e 's/reservation=//g')
+            reservation=${OPTARG//reservation=/}
             args_pass="$args_pass --$OPTARG"
             ;;
           qos=*)
-            qos=$(echo $OPTARG | sed -e 's/qos=//g')
+            qos=${OPTARG//qos=/}
             args_pass="$args_pass --$OPTARG"
             ;;
           constraints=*)
-            constraints=$(echo $OPTARG | sed -e 's/constraints=//g')
+            constraints=${OPTARG//constraints=/}
             args_pass="$args_pass --$OPTARG"
             ;;
           project_name=*)
-            project_name=$(echo $OPTARG | sed -e 's/project_name=//g')
+            project_name=${OPTARG//project_name=/}
             ;;
           job_dependency=*)
-            dependencyJob=$(echo $OPTARG | sed -e 's/job_dependency=//g')
+            dependencyJob=${OPTARG//job_dependency=/}
             ;;
           node_memory=*)
-            node_memory=$(echo $OPTARG | sed -e 's/node_memory=//g')
+            node_memory=${OPTARG//node_memory=/}
             ;;
           network=*)
-            network=$(echo $OPTARG | sed -e 's/network=//g')
+            network=${OPTARG//network=/}
             args_pass="$args_pass --$OPTARG"
             ;;
           storage_home=*)
-            storage_home=$(echo $OPTARG | sed -e 's/storage_home=//g')
+            storage_home=${OPTARG//storage_home=/}
             ;;
           storage_props=*)
-            storage_props=$(echo $OPTARG | sed -e 's/storage_props=//g')
+            storage_props=${OPTARG//storage_props=/}
             ;;
           storage_conf=*)
             # Storage conf is automatically generated. Remove it from COMPSs flags
@@ -328,13 +337,13 @@ get_args() {
             ;;
           #Heterogeneous submission arguments
           types_cfg=*)
-            types_cfg_file=$(echo $OPTARG | sed -e 's/types_cfg=//g')
+            types_cfg_file=${OPTARG//types_cfg=/}
             ;;
           master=*)
-            master_type=$(echo $OPTARG | sed -e 's/master=//g')
+            master_type=${OPTARG//master=/}
             ;;
           workers=*)
-            worker_types=$(echo $OPTARG | sed -e 's/workers=//g')
+            worker_types=${OPTARG//workers=/}
             ;;
           *)
             # Flag didn't match any patern. Add to COMPSs
@@ -364,9 +373,9 @@ set_time() {
   fi
 
   if [ -z "${WC_CONVERSION_FACTOR}" ]; then
-    convert_to_wc $exec_time
+    convert_to_wc "$exec_time"
   else
-    wc_limit=$(($exec_time * ${WC_CONVERSION_FACTOR}))
+    wc_limit=$((exec_time * WC_CONVERSION_FACTOR))
   fi
 }
 
@@ -377,6 +386,10 @@ check_args() {
   ###############################################################
   # Queue system checks
   ###############################################################
+  if [ -z "${job_name}" ]; then
+    job_name=${DEFAULT_JOB_NAME}
+  fi
+
   if [ -z "${queue}" ]; then
     queue=${DEFAULT_QUEUE}
   fi
@@ -403,7 +416,7 @@ check_args() {
   if [ -z "${num_nodes}" ]; then
     num_nodes=${DEFAULT_NUM_NODES}
   fi
-  if [ ${num_nodes} -lt ${MINIMUM_NUM_NODES} ]; then
+  if [ "${num_nodes}" -lt "${MINIMUM_NUM_NODES}" ]; then
       display_error "${ERROR_NUM_NODES}" 1
   fi
 
@@ -415,7 +428,7 @@ check_args() {
     cpus_per_node=${DEFAULT_CPUS_PER_NODE}
   fi
 
-  if [ ${cpus_per_node} -lt ${MINIMUM_CPUS_PER_NODE} ]; then
+  if [ "${cpus_per_node}" -lt "${MINIMUM_CPUS_PER_NODE}" ]; then
     display_error "${ERROR_NUM_CPUS}"
   fi
 
@@ -423,13 +436,13 @@ check_args() {
     gpus_per_node=${DEFAULT_GPUS_PER_NODE}
   fi
 
-  maxnodes=$(expr ${num_switches} \* ${MAX_NODES_SWITCH})
+  maxnodes=$((num_switches * MAX_NODES_SWITCH))
 
-  if [ "${num_switches}" != "0" ] && [ ${maxnodes} -lt ${num_nodes} ]; then
+  if [ "${num_switches}" != "0" ] && [ "${maxnodes}" -lt "${num_nodes}" ]; then
     display_error "${ERROR_SWITCHES}"
   fi
 
-  if [ ${num_nodes} -lt ${MIN_NODES_REQ_SWITCH} ] && [ "${num_switches}" != "0" ]; then
+  if [ "${num_nodes}" -lt "${MIN_NODES_REQ_SWITCH}" ] && [ "${num_switches}" != "0" ]; then
     display_error "${ERROR_NO_ASK_SWITCHES}"
   fi
 
@@ -470,7 +483,7 @@ check_args() {
     fi
 
     # Check storage props file exists
-    if [ ! -f ${storage_props} ]; then
+    if [ ! -f "${storage_props}" ]; then
       # PropsFile doesn't exist
       display_execution_error "${ERROR_STORAGE_PROPS_FILE}"
     fi
@@ -491,12 +504,13 @@ check_args() {
 create_tmp_submit() {
   # Create TMP DIR for submit script
   TMP_SUBMIT_SCRIPT=$(mktemp)
-  if [ $? -ne 0 ]; then
-    display_error "${ERROR_TMP_FILE}" 1
+  ev=$?
+  if [ $ev -ne 0 ]; then
+    display_error "${ERROR_TMP_FILE}" $ev
   fi
-  echo "Temp submit script is: $TMP_SUBMIT_SCRIPT"
+  echo "Temp submit script is: ${TMP_SUBMIT_SCRIPT}"
 
-  cat > $TMP_SUBMIT_SCRIPT << EOT
+  cat > "${TMP_SUBMIT_SCRIPT}" << EOT
 #!/bin/bash -e
 #
 EOT
@@ -512,7 +526,7 @@ create_normal_tmp_submit(){
 add_submission_headers(){
   # Add queue selection
   if [ "${queue}" != "default" ]; then
-    cat >> $TMP_SUBMIT_SCRIPT << EOT
+    cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 #${QUEUE_CMD} ${QARG_QUEUE_SELECTION}${QUEUE_SEPARATOR} ${queue}
 EOT
   fi
@@ -520,7 +534,7 @@ EOT
   # Switches selection
   if [ -n "${QARG_NUM_SWITCHES}" ]; then
     if [ "${num_switches}" != "0" ]; then
-      cat >> $TMP_SUBMIT_SCRIPT << EOT
+      cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 #${QUEUE_CMD} ${QARG_NUM_SWITCHES}${QUEUE_SEPARATOR}"cu[maxcus=${num_switches}]"
 EOT
     fi
@@ -529,7 +543,7 @@ EOT
   # GPU selection
   if [ -n "${QARG_GPUS_PER_NODE}" ]; then
     if [ "${gpus_per_node}" != "0" ]; then
-      cat >> $TMP_SUBMIT_SCRIPT << EOT
+      cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 #${QUEUE_CMD} ${QARG_GPUS_PER_NODE}${QUEUE_SEPARATOR}${gpus_per_node}
 EOT
     fi
@@ -538,25 +552,25 @@ EOT
   # Add Job name and job dependency
   if [ "${dependencyJob}" != "None" ]; then
     if [ "${QARG_JOB_DEP_INLINE}" == "true" ]; then
-      cat >> $TMP_SUBMIT_SCRIPT << EOT
-#${QUEUE_CMD} ${QARG_JOB_NAME}${QUEUE_SEPARATOR}COMPSs ${QARG_JOB_DEPENDENCY_OPEN}${dependencyJob}${QARG_JOB_DEPENDENCY_CLOSE}
+      cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
+#${QUEUE_CMD} ${QARG_JOB_NAME}${QUEUE_SEPARATOR}${job_name} ${QARG_JOB_DEPENDENCY_OPEN}${dependencyJob}${QARG_JOB_DEPENDENCY_CLOSE}
 EOT
     else
-      cat >> $TMP_SUBMIT_SCRIPT << EOT
-#${QUEUE_CMD} ${QARG_JOB_NAME}${QUEUE_SEPARATOR}COMPSs
+      cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
+#${QUEUE_CMD} ${QARG_JOB_NAME}${QUEUE_SEPARATOR}${job_name}
 #${QUEUE_CMD} ${QARG_JOB_DEPENDENCY_OPEN}${dependencyJob}${QARG_JOB_DEPENDENCY_CLOSE}
 EOT
     fi
   else
-    cat >> $TMP_SUBMIT_SCRIPT << EOT
-#${QUEUE_CMD} ${QARG_JOB_NAME}${QUEUE_SEPARATOR}COMPSs
+    cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
+#${QUEUE_CMD} ${QARG_JOB_NAME}${QUEUE_SEPARATOR}${job_name}
 EOT
   fi
 
   # Reservation
   if [ -n "${QARG_RESERVATION}" ]; then
     if [ "${reservation}" != "disabled" ]; then
-      cat >> $TMP_SUBMIT_SCRIPT << EOT
+      cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 #${QUEUE_CMD} ${QARG_RESERVATION}${QUEUE_SEPARATOR}${reservation}
 EOT
     fi
@@ -566,7 +580,7 @@ EOT
   if [ -n "${QARG_QOS}" ]; then
     if [ "${qos}" != "default" ]; then
       if [ -z "${DISABLE_QARG_QOS}" ] || [ "${DISABLE_QARG_QOS}" == "false" ]; then
-      	cat >> $TMP_SUBMIT_SCRIPT << EOT
+      	cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 #${QUEUE_CMD} ${QARG_QOS}${QUEUE_SEPARATOR}${qos}
 EOT
       fi
@@ -577,7 +591,7 @@ EOT
   if [ -n "${QARG_CONSTRAINTS}" ]; then
     if [ "${constraints}" != "disabled" ]; then
       if [ -z "${DISABLE_QARG_CONSTRAINTS}" ] || [ "${DISABLE_QARG_CONSTRAINTS}" == "false" ]; then
-        cat >> $TMP_SUBMIT_SCRIPT << EOT
+        cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 #${QUEUE_CMD} ${QARG_CONSTRAINTS}${QUEUE_SEPARATOR}${constraints}
 EOT
       fi
@@ -588,7 +602,7 @@ EOT
   if [ -n "${QARG_MEMORY}" ]; then
     if [ "${node_memory}" != "disabled" ]; then
       if [ -z "${DISABLE_QARG_MEMORY}" ] || [ "${DISABLE_QARG_MEMORY}" == "false" ]; then
-          cat >> $TMP_SUBMIT_SCRIPT << EOT
+          cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 #${QUEUE_CMD} ${QARG_MEMORY}${QUEUE_SEPARATOR}${node_memory}
 EOT
       fi
@@ -598,7 +612,7 @@ EOT
   # Add argument when exclusive mode is available
   if [ -n "${QARG_EXCLUSIVE_NODES}" ]; then
     if [ "${EXCLUSIVE_MODE}" != "disabled" ]; then
-      cat >> $TMP_SUBMIT_SCRIPT << EOT
+      cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 #${QUEUE_CMD} ${QARG_EXCLUSIVE_NODES}
 EOT
     fi
@@ -606,79 +620,79 @@ EOT
 
   # Add argument when copy_env is defined
   if [ -n "${QARG_COPY_ENV}" ]; then
-    cat >> $TMP_SUBMIT_SCRIPT << EOT
+    cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 #${QUEUE_CMD} ${QARG_COPY_ENV}
 EOT
   fi
 
   # Generic arguments
-  cat >> $TMP_SUBMIT_SCRIPT << EOT
+  cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 #${QUEUE_CMD} ${QARG_WALLCLOCK}${QUEUE_SEPARATOR}$wc_limit
 #${QUEUE_CMD} ${QARG_WD}${QUEUE_SEPARATOR}${master_working_dir}
 EOT
   # Add JOBID customizable stderr and stdout redirection when defined in queue system
   if [ -n "${QARG_JOB_OUT}" ]; then
-    cat >> $TMP_SUBMIT_SCRIPT << EOT
+    cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 #${QUEUE_CMD} ${QARG_JOB_OUT}${QUEUE_SEPARATOR} compss-${QJOB_ID}.out
 EOT
   fi
   if [ -n "${QARG_JOB_ERROR}" ]; then
-    cat >> $TMP_SUBMIT_SCRIPT << EOT
+    cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 #${QUEUE_CMD} ${QARG_JOB_ERROR}${QUEUE_SEPARATOR} compss-${QJOB_ID}.err
 EOT
   fi
   # Add num nodes when defined in queue system
   if [ -n "${QARG_NUM_NODES}" ]; then
-    cat >> $TMP_SUBMIT_SCRIPT << EOT
+    cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 #${QUEUE_CMD} ${QARG_NUM_NODES}${QUEUE_SEPARATOR}${num_nodes}
 EOT
   fi
 
   # Add num processes when defined in queue system
   req_cpus_per_node=${cpus_per_node}
-  if [ ${req_cpus_per_node} -gt ${DEFAULT_CPUS_PER_NODE} ]; then
+  if [ "${req_cpus_per_node}" -gt "${DEFAULT_CPUS_PER_NODE}" ]; then
     req_cpus_per_node=${DEFAULT_CPUS_PER_NODE}
   fi
 
   if [ -n "${QARG_NUM_PROCESSES}" ]; then
     if [ -n "${QNUM_PROCESSES_VALUE}" ]; then
-      eval processes=${QNUM_PROCESSES_VALUE}
+      eval processes="${QNUM_PROCESSES_VALUE}"
     else
       processes=${req_cpus_per_node}
     fi
     echo "Requesting $processes processes"
-    cat >> $TMP_SUBMIT_SCRIPT << EOT
+    cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 #${QUEUE_CMD} ${QARG_NUM_PROCESSES}${QUEUE_SEPARATOR}${processes}
 EOT
   fi
 
   # Span argument if defined on queue system
   if [ -n "${QARG_SPAN}" ]; then
-    cat >> $TMP_SUBMIT_SCRIPT << EOT
+    cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 #${QUEUE_CMD} $(eval "echo ${QARG_SPAN}")
 EOT
   fi
 
   # Add project name defined in queue system
   if [ -n "${QARG_PROJECT_NAME}" ]; then
-    cat >> $TMP_SUBMIT_SCRIPT << EOT
+    cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 #${QUEUE_CMD} ${QARG_PROJECT_NAME}${QUEUE_SEPARATOR}${project_name}
 EOT
   fi
 }
 
 add_packjob_separator(){
-      cat >> $TMP_SUBMIT_SCRIPT << EOT
+      cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 #${QUEUE_CMD} ${QARG_PACKJOB}
 EOT
 }
 
 add_master_and_worker_nodes(){
   # Host list parsing
-  cat >> $TMP_SUBMIT_SCRIPT << EOT
+  cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 
   if [ "${HOSTLIST_CMD}" == "nodes.sh" ]; then
-    source "${scriptDir}/../../system/${HOSTLIST_CMD}"
+    source "${SCRIPT_DIR}/../../system/${HOSTLIST_CMD}"
   else
     host_list=\$(${HOSTLIST_CMD} \$${ENV_VAR_NODE_LIST} ${HOSTLIST_TREATMENT})
     master_node=\$(${MASTER_NAME_CMD})
@@ -690,10 +704,10 @@ EOT
 
 add_only_master_node(){
   # Host list parsing
-  cat >> $TMP_SUBMIT_SCRIPT << EOT
+  cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 
   if [ "${HOSTLIST_CMD}" == "nodes.sh" ]; then
-    source "${scriptDir}/../../system/${HOSTLIST_CMD}"
+    source "${SCRIPT_DIR}/../../system/${HOSTLIST_CMD}"
   else
     host_list=\$(${HOSTLIST_CMD} \$${ENV_VAR_NODE_LIST} ${HOSTLIST_TREATMENT})
     master_node=\$(${MASTER_NAME_CMD})
@@ -705,9 +719,9 @@ EOT
 
 add_only_worker_nodes(){
  # Host list parsing
-  cat >> $TMP_SUBMIT_SCRIPT << EOT
+  cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
   if [ "${HOSTLIST_CMD}" == "nodes.sh" ]; then
-    source "${scriptDir}/../../system/${HOSTLIST_CMD}"
+    source "${SCRIPT_DIR}/../../system/${HOSTLIST_CMD}"
   else
     host_list=\$(${HOSTLIST_CMD} \$${ENV_VAR_NODE_LIST} ${HOSTLIST_TREATMENT})
     worker_nodes=\$(echo \${host_list})
@@ -720,24 +734,22 @@ add_launch(){
   # Storage init
   if [ "${storage_home}" != "${DISABLED_STORAGE_HOME}" ]; then
     # ADD STORAGE_INIT, STORAGE_FINISH AND NODES PARSING
-    cat >> $TMP_SUBMIT_SCRIPT << EOT
+    cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 storage_conf=$HOME/.COMPSs/\$${ENV_VAR_JOB_ID}/storage/cfgfiles/storage.properties
-#storage_master_node=\$(echo \${worker_nodes} | tr " " "\t" | awk {' print \$1 '})
 storage_master_node="\${master_node}"
-#worker_nodes=\$(echo \${worker_nodes} | sed -e "s/\${storage_master_node}//g")
 
 ${storage_home}/scripts/storage_init.sh \$${ENV_VAR_JOB_ID} "\${master_node}" "\${storage_master_node}" "\${worker_nodes}" ${network} ${storage_props}
 
-${scriptDir}/../../user/launch_compss --master_node="\${master_node}" --worker_nodes="\${worker_nodes}" --node_memory=${node_memory} --storage_conf=\${storage_conf} ${args_pass}
+${SCRIPT_DIR}/../../user/launch_compss --master_node="\${master_node}" --worker_nodes="\${worker_nodes}" --node_memory=${node_memory} --storage_conf=\${storage_conf} ${args_pass}
 
 ${storage_home}/scripts/storage_stop.sh \$${ENV_VAR_JOB_ID} "\${master_node}" "\${storage_master_node}" "\${worker_nodes}" ${network}
 
 EOT
   else
     # ONLY ADD EXECUTE COMMAND
-    cat >> $TMP_SUBMIT_SCRIPT << EOT
+    cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 
-${scriptDir}/../../user/launch_compss --master_node="\${master_node}" --worker_nodes="\${worker_nodes}" --node_memory=${node_memory} ${args_pass}
+${SCRIPT_DIR}/../../user/launch_compss --master_node="\${master_node}" --worker_nodes="\${worker_nodes}" --node_memory=${node_memory} ${args_pass}
 EOT
   fi
 }

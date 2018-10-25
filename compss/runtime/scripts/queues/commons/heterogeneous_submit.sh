@@ -31,7 +31,6 @@ update_args_to_pass(){
         args_pass="${args_pass} ${contraint}"
   fi
   # TODO: Add other parameters to pass
-     
 }
 
 unset_type_vars(){
@@ -83,26 +82,28 @@ submit() {
 # MAIN EXECUTION
 #---------------------------------------------------
   if [ -z "${COMPSS_HOME}" ]; then
-     scriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+     SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
      COMPSS_HOME=${SCRIPT_DIR}/../../../../  
   else 
-     scriptDir="${COMPSS_HOME}/Runtime/scripts/queues/commons"
+     SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/queues/commons"
   fi
-  source  ${scriptDir}/common.sh
+  # shellcheck source=common.sh
+  source "${SCRIPT_DIR}/common.sh"
 
   # Get command args
   get_args "$@"
   
   original_args_pass="${args_pass}"
   # Load specific queue system variables
-  source ${scriptDir}/../cfgs/${sc_cfg}
+  # shellcheck source=../cfgs/default.cfg
+  source "${SCRIPT_DIR}/../cfgs/${sc_cfg}"
 
   # Load specific queue system flags
-  source ${scriptDir}/../${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg
+  # shellcheck source=../slurm/slurm.cfg
+  source "${SCRIPT_DIR}/../${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg"
   
   check_heterogeneous_args
-  
-  source ${types_cfg_file}
+  source "${types_cfg_file}"
  
   # Create TMP submit script
   create_tmp_submit

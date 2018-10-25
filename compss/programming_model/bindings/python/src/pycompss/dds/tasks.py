@@ -13,8 +13,8 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
-
+#
+from pycompss.api.api import compss_wait_on
 from pycompss.api.parameter import INOUT, IN
 from pycompss.api.task import task
 
@@ -117,18 +117,24 @@ def task_reduce(f, *args, **kwargs):
     return res
 
 
-@task(buckets=INOUT)
-def distribute(iterator, partition_func, buckets, num_of_partitions):
+@task(returns=list)
+def filter_partition(partition, group_by_func, nop, bucket_number):
     """
-    Distribute data on buckets based on a partition function.
-    :param partition_func: a function to generate an integer for values.
-    :param buckets: future partitions
-    :param iterator: current partition or another iterable
-    :param num_of_partitions: total amount of partitions to be created in the end
-    :return:
     """
-    for k, v in iterator:
-        buckets[partition_func(k) % num_of_partitions].append((k, v))
+    filtered_list = list()
+    for k, v in partition:
+        if (group_by_func(k) % nop) == bucket_number:
+            filtered_list.append((k, v))
+
+    return filtered_list
+
+
+@task(returns=list)
+def merge_bucket(*bucket):
+    ret = list()
+    for item in bucket:
+        ret.extend(item)
+    return ret
 
 
 @task(returns=dict)

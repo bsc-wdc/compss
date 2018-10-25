@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 import os
 import sys
 from collections import defaultdict, deque
@@ -238,15 +238,17 @@ class DDS(object):
         nop = len(self.partitions) if num_of_partitions == -1 \
             else num_of_partitions
 
-        future_partitions = defaultdict(list)
+        buckets = defaultdict(list)
+        for bucket in range(nop):
+            for partition in self.partitions:
+                buckets[bucket].append(
+                    filter_partition(partition, partition_func, nop, bucket))
 
-        for p in self.partitions:
-            distribute(p, partition_func, future_partitions, nop)
+        future_partitions = list()
+        for bucket in buckets.values():
+            future_partitions.append(merge_bucket(*bucket))
 
-        ret = []
-        for i in range(nop, 0, -1):
-            ret.append(task_next_bucket(future_partitions, i))
-        self.partitions = ret
+        self.partitions = future_partitions
         return self
 
     def num_of_partitions(self):

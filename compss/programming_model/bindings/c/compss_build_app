@@ -1,15 +1,21 @@
 #!/bin/bash
 
-
 # FUNCTIONS DECLARATION
 #---------------------------------------------------
 show_opts() {
   cat <<EOT
-  General Options:
+  General options:
     --only-master                           Builds only the master part
                                             Default: Disabled
     --only-worker                           Builds only the worker part
                                             Default: Disabled
+  Environment options:
+    --java_home                             Specifies the home of the java version
+                                            to be used, environment variable JAVA_HOME used.
+                                            Default: $JAVA_HOME
+    --boostlib                              Specifies the path of the boost libraries 
+                                            to be used, environment variable BOOST_LIB used.
+                                            Default: $BOOST_LIB
   Tools enablers:
     --ompss                                 Enables worker compilation with OmpSs Mercurium compiler
                                             Default: Disabled
@@ -17,10 +23,11 @@ show_opts() {
                                             Default: Disabled
     --opencl                                Enables worker compilation with openCL compilation flags
                                             Default: Disabled
-    --cross-compile                         Enables cross compilation, the environment variable CROSS_COMPILE
-                                            is used to define the prefix if not set specifically.
+  Specific cross compile flags:
+    --cross-compile                         Enables cross compilation.
                                             Default: Disabled
-    --cross-compile-prefix                  Prefix to be used when cross compiling.
+    --cross-compile-prefix                  Prefix to be used when cross compiling, the environment variable CROSS_COMPILE
+                                            is used to define the prefix if not set specifically.
                                             Default: $CROSS_COMPILE
   Autotools and Makefile options:
     --goals=goal_1,goal_2,...,goal_N        Instead of using the goal all it uses the goals provided in the given order.
@@ -55,7 +62,7 @@ show_opts() {
                                             Default: Disabled
     --with_opencl=<ocl_installation_path>   Enables worker compilation with openCL installed in a certain location
                                             Default: Disabled
-    --opencl_libs="libs"		    Specifies extra opencl libraries locations
+    --opencl_libs="libs"		            Specifies extra opencl libraries locations
 	                    				    Default: Empty
 EOT
 }
@@ -149,7 +156,13 @@ get_args() {
           only-worker)
             #Compile only the worker
            	ONLY_WORKER=true
+            ;;
+          java_home=*)
+            java_home=${OPTARG//java_home=/} 
             ;; 
+          boostlib=*)
+            boostlib=${OPTARG//boostlib=/}
+            ;;
 	     instrument)
             instrument=1
             ;;
@@ -251,8 +264,43 @@ get_goals() {
 }
 
 check_args() {
-    #Check whether you are going to compile both master and worker or one of them
 
+    local javapath=""
+    if [ -z "$java_home" ]; then
+        # Setting Java folder
+        libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
+        javapath=$JAVA_HOME
+    else
+        libjava=$(find "${java_home}"/jre/lib/ -name libjvm.so | head -n 1)
+        javapath=$java_home
+    fi
+   
+    if [ -z "$libjava" ]; then
+        display_error "[Error] Could not find the libjvm.so in $javapath" 1
+    fi
+    export LIBJAVAFOLDER=$(dirname "$libjava")
+
+    echo "[Info] Java libraries are searched in the directory: $LIBJAVAFOLDER"
+
+    local boostpath
+    if [ -z "$boostlib" ]; then
+        if [ -z "$BOOST_LIB" ]; then
+            if [ -z "$LD_LIBRARY_PATH"  ]; then
+                boostpath="/usr/lib/"
+            else
+                boostpath=$LD_LIBRARY_PATH
+            fi
+        else
+            boostpath=$BOOST_LIB
+        fi
+    else
+        export BOOST_LIB="$boostlib"
+        boostpath="$boostlib" 
+    fi
+
+    echo "[Info] Boost libraries are searched in the directory: $boostpath"
+
+    #Check whether you are going to compile both master and worker or one of them
     if [ "$ONLY_MASTER" = true ] && [ "$ONLY_WORKER" = true ]; then
 
         echo " "
@@ -281,10 +329,27 @@ check_args() {
         fi
         #At this point, if you defined a prefix, it will be set, if you enabled cross-compile 
         #but you did not exported CROSS_COMPILE, no effect is expected from the option.
-        echo "[Warning] You enabled cross-compile and the prefix to be used is: ${CROSS_COMPILE}"
+        echo "[Info] You enabled cross-compile and the prefix to be used is: ${CROSS_COMPILE}"
+
     else
         CROSS_COMPILE=""
     fi
+}
+
+set_target_host() {
+        #To use GNU tools, such as configure, we have to specify a target; environment variable TARGET_HOST will do the trick.
+        if [ -z "${TARGET_HOST}" ]; then
+            #If not defined, we assume that your currently CC or CXX configured (the want you are going to use to build)
+            #has the details of what architecture is the one we are targeting.
+            export TARGET_HOST=$(${CC} -dumpmachine)
+            local retVal=$?
+
+            if [ $retVal -ne 0 ]; then
+                display_error "[Error] Not possible to get the target host with the ${CC} -dumpmachine command. Alternatively, define the target host with the environment variable TARGET_HOST ." 1
+            fi
+
+            echo "[Info] The target host is: ${TARGET_HOST}"
+        fi
 }
 
 ONLY_MASTER=false
@@ -319,16 +384,6 @@ if [ $instrument -eq 1 ]; then
   ompss_flags="${ompss_flags} --instrument"
 fi
 
-# Setting Java folder
-libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
-if [ -z "$libjava" ]; then
-  libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
-  if [ -z "$libjava" ]; then
-    display_error "${JAVA_JRE_ERROR}" 1
-  fi
-fi
-LIBJAVAFOLDER=$(dirname "$libjava")
-export LIBJAVAFOLDER
 
 # GS HOME
 if [ -z "$CS_HOME" ]; then
@@ -435,6 +490,8 @@ if [ "${opencl_enabled}" != "" ]; then
 	export CXXFLAGS="$CXXFLAGS --opencl"
   fi
 fi
+
+set_target_host #Tell GNU tools the target host of the build
 
 # Application src compilation
 if [ -d "./src" ]; then

@@ -55,11 +55,7 @@ public class CExecutionCommandGenerator {
         }
         // Debug mode on
         if (WORKER_DEBUG) {
-<<<<<<< HEAD
-            reqs.append("#--summary#--verbose");
-=======
-            reqs.append(" --summary --verbose-copies --verbose");
->>>>>>> Disable fpga added when is no used, cross-compile flags to make them compatible with ompss flags added, and the LDFLAGS to link added too
+            reqs.append("#--summary#--verbose-copies#--verbose");
         }
 
         StringBuilder cuda_visible = new StringBuilder();

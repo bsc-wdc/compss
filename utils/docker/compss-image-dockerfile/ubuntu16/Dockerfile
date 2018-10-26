@@ -60,8 +60,8 @@ RUN apt-get update && \
     apt-get -y install openmpi-bin openmpi-doc libopenmpi-dev uuid-runtime curl bc && \
     yes jenkins2017 | passwd && \
 # AutoParallel dependencies
-    apt-get -y install libgmp3-dev flex bison libbison-dev texinfo && \
-    pip2 install astor sympy enum34 && \
+    apt-get -y install libgmp3-dev flex bison libbison-dev texinfo libffi-dev && \
+    pip2 install astor sympy enum34 islpy && \
 # Configure user environment
 # =============================================================================
 # System configuration

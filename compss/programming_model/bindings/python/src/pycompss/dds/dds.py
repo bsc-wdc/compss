@@ -16,6 +16,8 @@
 #
 import os
 import sys
+import heapq3
+import itertools
 from collections import defaultdict, deque
 
 from pycompss.api.api import compss_wait_on, compss_barrier, compss_open
@@ -718,6 +720,54 @@ class DDS(object):
             return ((key_value[0], x) for x in f(key_value[1]))
 
         return self.map_and_flatten(dummy)
+
+    def sort_by_key(self, ascending=True, num_of_parts=None):
+        """
+
+        :param ascending:
+        :return:
+        """
+        if num_of_parts is None:
+            num_of_parts = len(self.partitions)
+
+        def sort_partition(iterator):
+            """
+            Sort a partition locally.
+            :param iterator:
+            :return:
+            """
+            chunk_size = 500
+            iterator = iter(iterator)
+            chunks = list()
+            while True:
+                chunk = list(itertools.islice(iterator, chunk_size))
+                chunk.sort(reverse=not ascending)
+                chunks.append(chunk)
+                if len(chunk) < chunk_size:
+                    break
+            else:
+                chunks.append(chunk.sort(reverse=not ascending))
+
+            return heapq3.merge(chunks, reverse=not ascending)
+
+        samples = list()
+        for each in self.partitions:
+            samples.append(task_collect_samples(each))
+
+        samples = sorted(list(
+            itertools.chain.from_iterable(compss_wait_on(samples))))
+
+        bounds = [samples[int(len(samples) * (i + 1) / num_of_parts)]
+                  for i in range(0, num_of_parts - 1)]
+
+        def range_partitioner(key):
+            p = bisect.bisect_left(bounds, key)
+            if ascending:
+                return p
+            else:
+                return num_of_parts - 1 - p
+        partitioned = self.partition_by(range_partitioner)
+        return partitioned.map_partitions(sort_partition)
 
 
 def read_in_chunks(file_name, chunk_size=1024):

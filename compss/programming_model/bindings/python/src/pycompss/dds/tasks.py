@@ -130,6 +130,21 @@ def filter_partition(partition, group_by_func, nop, bucket_number):
 
 
 @task(returns=list)
+def task_collect_samples(partition):
+    """
+
+    :param partition:
+    :return:
+    """
+    ret = list()
+    for index in range(len(partition)):
+        if not index % 20:
+            ret.append(partition[index][0])
+
+    return ret
+
+
+@task(returns=list)
 def merge_bucket(*bucket):
     ret = list()
     for item in bucket:

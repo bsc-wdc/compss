@@ -83,9 +83,9 @@ class DDS(object):
     def load_text_file(self, file_name, chunk_size=1024, in_bytes=True):
         """
         Load a text file into partitions with 'chunk_size' lines on each.
-        :param in_bytes:
         :param file_name: a path to a file to be loaded
         :param chunk_size: size of chunks in bytes
+        :param in_bytes: if chunk size is in bytes or in number of lines.
         :return:
 
         >>> with open("test.txt", "w") as testFile:

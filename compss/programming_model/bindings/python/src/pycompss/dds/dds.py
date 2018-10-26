@@ -721,9 +721,12 @@ class DDS(object):
 
         return self.map_and_flatten(dummy)
 
-    def sort_by_key(self, ascending=True, num_of_parts=None):
+    def sort_by_key(self, ascending=True, num_of_parts=None,
+                    key_func=lambda x: x):
         """
 
+        :type key_func:
+        :param num_of_parts:
         :param ascending:
         :return:
         """
@@ -741,18 +744,20 @@ class DDS(object):
             chunks = list()
             while True:
                 chunk = list(itertools.islice(iterator, chunk_size))
-                chunk.sort(reverse=not ascending)
+                chunk.sort(key=lambda kv: key_func(kv[0]), reverse=not ascending)
                 chunks.append(chunk)
                 if len(chunk) < chunk_size:
                     break
             else:
-                chunks.append(chunk.sort(reverse=not ascending))
+                chunks.append(chunk.sort(key=lambda kv: key_func(kv[0]),
+                                         reverse=not ascending))
 
-            return heapq3.merge(chunks, reverse=not ascending)
+            return heapq3.merge(chunks, key=lambda kv: key_func(kv[0]),
+                                reverse=not ascending)
 
         samples = list()
         for each in self.partitions:
-            samples.append(task_collect_samples(each))
+            samples.append(task_collect_samples(each, key_func))
 
         samples = sorted(list(
             itertools.chain.from_iterable(compss_wait_on(samples))))
@@ -761,11 +766,12 @@ class DDS(object):
                   for i in range(0, num_of_parts - 1)]
 
         def range_partitioner(key):
-            p = bisect.bisect_left(bounds, key)
+            p = bisect.bisect_left(bounds, key_func(key))
             if ascending:
                 return p
             else:
                 return num_of_parts - 1 - p
+
         partitioned = self.partition_by(range_partitioner)
         return partitioned.map_partitions(sort_partition)
 

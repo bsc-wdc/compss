@@ -130,7 +130,7 @@ def filter_partition(partition, group_by_func, nop, bucket_number):
 
 
 @task(returns=list)
-def task_collect_samples(partition):
+def task_collect_samples(partition, key_func):
     """
 
     :param partition:
@@ -139,7 +139,7 @@ def task_collect_samples(partition):
     ret = list()
     for index in range(len(partition)):
         if not index % 20:
-            ret.append(partition[index][0])
+            ret.append(key_func(partition[index][0]))
 
     return ret
 

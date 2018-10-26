@@ -80,11 +80,12 @@ class DDS(object):
 
         return self
 
-    def load_text_file(self, file_name, chunk_size=1024):
+    def load_text_file(self, file_name, chunk_size=1024, in_bytes=True):
         """
         Load a text file into partitions with 'chunk_size' lines on each.
         :param file_name: a path to a file to be loaded
         :param chunk_size: size of chunks in bytes
+        :param in_bytes: if chunk size is in bytes or in number of lines.
         :return:
 
         >>> with open("test.txt", "w") as testFile:
@@ -93,8 +94,11 @@ class DDS(object):
         >>> DDS().load_text_file("test.txt").collect()
         ['First Line! ', 'Second Line! ']
         """
-
-        self.partitions.extend(map(task_load, read_in_chunks(file_name,
+        if in_bytes:
+            self.partitions.extend(map(task_load, read_in_chunks(file_name,
+                                                                 chunk_size)))
+        else:
+            self.partitions.extend(map(task_load, read_lines(file_name,
                                                              chunk_size)))
         return self
 
@@ -723,6 +727,27 @@ def read_in_chunks(file_name, chunk_size=1024):
         partition.append(line.rstrip("\n"))
         collected += sys.getsizeof(line)
         if collected > chunk_size:
+            yield partition
+            partition = []
+            collected = 0
+
+    if partition:
+        yield partition
+
+
+def read_lines(file_name, num_of_lines=1024):
+    """
+    Lazy function (generator) to read a file line by line.
+    :param file_name:
+    :param num_of_lines: total number of lines in each partition
+    """
+    partition = list()
+    f = compss_open(file_name)
+    collected = 0
+    for line in f:
+        partition.append(line.rstrip("\n"))
+        collected += 1
+        if collected > num_of_lines:
             yield partition
             partition = []
             collected = 0

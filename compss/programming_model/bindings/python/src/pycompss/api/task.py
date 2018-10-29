@@ -176,86 +176,85 @@ class task(object):
         :return: The function to be executed
         '''
         self.user_function = user_function
-        # Determine the context and decide what to do
-        import pycompss.util.context as context
-        if context.in_master():
-            return self.master_call()
-        elif context.in_worker():
-            return self.worker_call()
-        # We are neither in master nor in the worker
-        # Therefore, the user code is being executed with no
-        # launch_compss/enqueue_compss/runcompss, etc etc
-        return self.sequential_call()
+        @wraps(user_function)
+        def task_decorator(*args, **kwargs):
+            # Determine the context and decide what to do
+            import pycompss.util.context as context
+            if context.in_master():
+                return self.master_call(*args, **kwargs)
+            elif context.in_worker():
+                return self.worker_call(*args, **kwargs)
+            # We are neither in master nor in the worker
+            # Therefore, the user code is being executed with no
+            # launch_compss/enqueue_compss/runcompss, etc etc
+            return self.sequential_call(*args, **kwargs)
+        return task_decorator
 
-    def register_task(self):
-        '''Registers the task into the COMPSs runtime.
-        This is done only once, when called from the master for the first time
-        :return: Nothing, it just registers the task. It also adds the hidden property
-        __to_register__ to the user's function, which is used by many decorators as binary, or ompss
-        and the __who_registers__ attribute, which contains which decorator must register the task
-        (i.e: topmost one)
-        Source code was taken almost literally from the original implementation, except for some minor tweaks
-        '''
-        import inspect
+    def __register_task(self, f):
+        """
+        This function is used to register the task in the runtime.
+        This registration must be done only once on the task decorator
+        initialization
+
+        :param f: Function to be registered
+        """
+
+        from pycompss.runtime.core_element import CE
         import pycompss.runtime.binding as binding
+
         # Look for the decorator that has to do the registration
-        # Since the __init__ of the decorators are independent, there is no way
+        # Since the __init__ of the decorators is independent, there is no way
         # to pass information through them.
         # However, the __call__ method of the decorators can be used.
         # The way that they are called is from bottom to top. So, the first one to
         # call its __call__ method will always be @task. Consequently, the @task
         # decorator __call__ method can detect the top decorator and pass a hint
         # to order that decorator that has to do the registration (not the others).
-        from pycompss.util.object_properties import get_wrapped_sourcelines, get_top_decorator
-        from pycompss.api.information import available_decorators as decorator_keys
-        func_code = get_wrapped_sourcelines(self.user_function)
-        top_decorator = get_top_decorator(func_code, decorator_keys)
-        self.user_function.__who_registers__ = top_decorator
+        func_code = ''
+        got_func_code = False
+        func = f
+        while not got_func_code:
+            try:
+                func_code = _get_wrapped_sourcelines(func)
+                got_func_code = True
+            except IOError:
+                # There is one or more decorators below the @task --> undecorate
+                # until possible to get the func code.
+                # Example of this case: test 19: @timeit decorator below the
+                # @task decorator.
+                func = func.__wrapped__
+
+        decorator_keys = ("implement", "constraint", "decaf", "mpi", "ompss", "binary", "opencl", "task")
+
+        top_decorator = _get_top_decorator(func_code, decorator_keys)
+        if __debug__:
+            logger.debug(
+                "[@TASK] Top decorator of function %s in module %s: %s" % (f.__name__,
+                                                                           self.module_name,
+                                                                           str(top_decorator)))
+        f.__who_registers__ = top_decorator
 
         # not usual tasks - handled by the runtime without invoking the PyCOMPSs
         # worker. Needed to filter in order not to code the strings when using
         # them in these type of tasks
-        from pycompss.api.information import non_worker_decorators as decorator_filter
+        decorator_filter = ("decaf", "mpi", "ompss", "binary", "opencl")
         default = 'task'
+        task_type = _get_task_type(func_code, decorator_filter, default)
+        if __debug__:
+            logger.debug("[@TASK] Task type of function %s in module %s: %s" % (f.__name__,
+                                                                                self.module_name,
+                                                                                str(task_type)))
+        f.__task_type__ = task_type
+        if task_type == default:
+            f.__code_strings__ = True
+        else:
+            f.__code_strings__ = False
 
-        def get_task_type(code, decorator_filter, default):
-            '''Retrieves the type of the task based on the decorators stack.
-
-            :param code: Tuple which contains the task code to analyse and the number of lines of the code.
-            :param decorator_filter: Tuple which contains the filtering decorators. The one
-                                     used determines the type of the task. If none, then it is a normal task.
-            :param default: Default values
-            :return: the type of the task
-            '''
-            # Code has two fields:
-            # code[0] = the entire function code.
-            # code[1] = the number of lines of the function code.
-            func_code = code[0]
-            full_decorators = [l.strip() for l in func_code if l.strip().startswith('@')]
-            # Get only the decorators used. Remove @ and parameters.
-            decorators = [l[1:].split('(')[0] for l in full_decorators]
-            # Look for the decorator used from the filter list and return it when found
-            for f in decorator_filter:
-                if f in decorators:
-                    return f
-            # The decorator stack did not contain any of the filtering keys, then
-            # return the default key.
-            return default
-
-        task_type = get_task_type(func_code, decorator_filter, default)
-        self.user_function.__task_type__ = task_type
-        self.user_function.__code_strings__ = task_type == default
-        self.frame_path = ''
         # Get the task signature
         # To do this, we will check the frames
         frames = inspect.getouterframes(inspect.currentframe())
-        for frame in frames:
-            print('---- NEW FRAME ----')
-            for thing in frame:
-                print('    %s' % thing)
-            print('\n')
-        # Pop the self.register_task, self.master_call, self.__call__ calls from the stack
-        frames = frames[3:]
+        # Pop the __register_task and __call__ functions from the frame
+        frames = frames[2:]
         # Get the application frames
         app_frames = []
         for frame in frames:
@@ -267,13 +266,13 @@ class task(object):
         if len(app_frames) == 1:
             # The task is defined within the main app file.
             # This case is never reached with Python 3 since it includes frames that are not present with Python 2.
-            ce_signature = self.module_name + "." + self.function_name
-            impl_type_args = [self.module_name, self.function_name]
+            ce_signature = self.module_name + "." + f.__name__
+            impl_type_args = [self.module_name, f.__name__]
         else:
             # There is more than one frame
             # Discover if the task is defined within a class or subclass
             # Construct the qualified class name
-            self.frame_path = []
+            class_name = []
             # Weak way, but I see no other way compatible with both 2 and 3.
             for app_frame in app_frames:
                 if (app_frame[3] != '<module>' and app_frame[4] is not None and
@@ -281,24 +280,34 @@ class task(object):
                     # app_frame[3] != <module> ==> functions and classes
                     # app_frame[4] is not None ==> functions injected by the interpreter
                     # (app_frame[4][0].strip().startswith('@') or app_frame[4][0].strip().startswith('def')) ==> Ignores functions injected by wrappers (e.g. autoparallel), but keep the classes.
-                    self.frame_path.append(app_frame[3])
-            self.frame_path = '.'.join(self.frame_path)
-            if self.class_name:
-                self.frame_path = '%s.%s' % (self.frame_path, self.class_name)
+                    class_name.append(app_frame[3])
+            class_name = '.'.join(class_name)
+            if class_name:
                 # Within class or subclass
-                ce_signature = self.module_name + '.' + self.class_name + '.' + self.function_name
-                impl_type_args = [self.module_name + '.' + self.class_name, self.function_name]
+                ce_signature = self.module_name + '.' + class_name + '.' + f.__name__
+                impl_type_args = [self.module_name + '.' + class_name, f.__name__]
             else:
                 # Not in a class or subclass
                 # This case can be reached in Python 3, where particular frames are included, but not class names found.
-                ce_signature = self.module_name + "." + self.function_name
-                impl_type_args = [self.module_name, self.function_name]
-        from pycompss.runtime.core_element import CE
-        print(ce_signature, ce_signature, impl_type_args)
-        core_element = CE(ce_signature, ce_signature, {}, 'METHOD', impl_type_args)
-        self.user_function.__to_register__ = core_element
+                ce_signature = self.module_name + "." + f.__name__
+                impl_type_args = [self.module_name, f.__name__]
+        # Include the registering info related to @task
+        impl_signature = ce_signature
+        impl_constraints = {}
+        impl_type = "METHOD"
+        core_element = CE(ce_signature,
+                          impl_signature,
+                          impl_constraints,
+                          impl_type,
+                          impl_type_args)
+        f.__to_register__ = core_element
+
         # Do the task register if I am the top decorator
-        if self.user_function.__who_registers__ == __name__:
+        if f.__who_registers__ == __name__:
+            if __debug__:
+                logger.debug(
+                    "[@TASK] I have to do the register of function %s in module %s" % (f.__name__, self.module_name))
+                logger.debug("[@TASK] %s" % str(f.__to_register__))
             binding.register_ce(core_element)
 
     def inspect_user_function_arguments(self):
@@ -398,7 +407,7 @@ class task(object):
         self.compute_function_type()
         self.function_name = self.user_function.__name__
 
-    def master_call(self):
+    def master_call(self, *args, **kwargs):
         '''This part deals with task calls in the master's side
 
         Also, this function must return an appropriate number of
@@ -406,45 +415,40 @@ class task(object):
         :return: A function that does "nothing" and returns futures
         if needed
         '''
-        # Just focus on this function. We prefer to have it nested inside
-        # the proper function because it is easier to understand
-        def master_task(*args, **kwargs):
-            # This lock makes this decorator able to handle various threads
-            # calling the same task concurrently
-            master_lock.acquire()
-            # Inspect the user function, get information about the arguments and their names
-            # This defines self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults
-            # And gives non-None default values to them if necessary
-            self.inspect_user_function_arguments()
-            # Process the parameters, give them a proper direction
-            self.process_master_parameters(*args, **kwargs)
-            # Compute the function path, class (if any), and name
-            self.compute_user_function_information()
-            # If we are in the master and this is the first time we call this task
-            # we need to register it into the COMPSs runtime
-            if not self.registered:
-                self.register_task()
-                self.registered = True
-            # TODO: See runtime.binding.process_task, it builds the necessary future objects
-            # TODO: Deal with the redundant parameter passing
-            from pycompss.runtime.binding import process_task
-            from pycompss.runtime.binding import FunctionType
-            ret = process_task(
-                self.user_function, # Ok
-                self.module_name, # Ok
-                self.class_name, # Ok
-                self.function_type, # Ok (at least theoretically)
-                self.parameters, # Ok
-                self.returns, # Ok
-                self.decorator_arguments, # Ok
-                self.decorator_arguments['computingNodes'], # # TODO : TEMPORARY FIX
-                self.decorator_arguments['isReplicated'], # Ok
-                self.decorator_arguments['isDistributed'] # OK
-            )
-            master_lock.release()
-            return ret
-
-        return master_task
+        # This lock makes this decorator able to handle various threads
+        # calling the same task concurrently
+        master_lock.acquire()
+        # Inspect the user function, get information about the arguments and their names
+        # This defines self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults
+        # And gives non-None default values to them if necessary
+        self.inspect_user_function_arguments()
+        # Process the parameters, give them a proper direction
+        self.process_master_parameters(*args, **kwargs)
+        # Compute the function path, class (if any), and name
+        self.compute_user_function_information()
+        # If we are in the master and this is the first time we call this task
+        # we need to register it into the COMPSs runtime
+        if not self.registered:
+            self.register_task()
+            self.registered = True
+        # TODO: See runtime.binding.process_task, it builds the necessary future objects
+        # TODO: Deal with the redundant parameter passing
+        from pycompss.runtime.binding import process_task
+        from pycompss.runtime.binding import FunctionType
+        ret = process_task(
+            self.user_function, # Ok
+            self.module_name, # Ok
+            self.class_name, # Ok
+            self.function_type, # Ok (at least theoretically)
+            self.parameters, # Ok
+            self.returns, # Ok
+            self.decorator_arguments, # Ok
+            self.decorator_arguments['computingNodes'], # # TODO : TEMPORARY FIX
+            self.decorator_arguments['isReplicated'], # Ok
+            self.decorator_arguments['isDistributed'] # OK
+        )
+        master_lock.release()
+        return ret
 
     def get_varargs_direction(self):
         '''Returns the direction of the varargs arguments.
@@ -618,7 +622,7 @@ class task(object):
                 # If we have not entered in any of these cases we will assume that the object was a basic type
                 # and the content is already available and properly casted by the python worker
 
-    def worker_call(self):
+    def worker_call(self, *args, **kwargs):
         '''This part deals with task calls in the worker's side
         Note that the call to the user function is made by the worker,
         not by the user code.
@@ -626,86 +630,80 @@ class task(object):
         parameters and does the proper serializations and updates
         the affected objects.
         '''
-        # Just focus on this function. We prefer to have it nested inside
-        # the proper function because it is easier to understand
-        def worker_task(*args, **kwargs):
-            # All parameters are in the same args list. At the moment we only know the type, the name and the
-            # "value" of the parameter. This value may be treated to get the actual object (e.g: deserialize it,
-            # query the database in case of persistent objects, etc...)
-            self.reveal_objects(args)
-            # After this line all the objects in arg have a "content" field, now we will segregate them in
-            # User positional and variadic args
-            user_args = []
-            # User named args (kwargs)
-            user_kwargs = {}
-            # Return parameters, save them apart to match the user returns with the internal parameters
-            ret_params = []
+        # All parameters are in the same args list. At the moment we only know the type, the name and the
+        # "value" of the parameter. This value may be treated to get the actual object (e.g: deserialize it,
+        # query the database in case of persistent objects, etc...)
+        self.reveal_objects(args)
+        # After this line all the objects in arg have a "content" field, now we will segregate them in
+        # User positional and variadic args
+        user_args = []
+        # User named args (kwargs)
+        user_kwargs = {}
+        # Return parameters, save them apart to match the user returns with the internal parameters
+        ret_params = []
 
-            for arg in args:
-                # Just fill the three data structures declared above
-                # Deal with the self parameter (if any)
-                if not isinstance(arg, parameter.TaskParameter):
-                    user_args.append(arg)
-                # All these other cases are all about regular parameters
-                elif parameter.is_return(arg.name):
-                    ret_params.append(arg)
-                elif parameter.is_kwarg(arg.name):
-                    user_kwargs[parameter.get_name_from_kwarg(arg.name)] = arg.content
-                else:
-                    # Apart from the names we preserve the original order, so it is guaranteed that named positional
-                    # arguments will never be swapped with variadic ones or anything similar
-                    user_args.append(arg.content)
+        for arg in args:
+            # Just fill the three data structures declared above
+            # Deal with the self parameter (if any)
+            if not isinstance(arg, parameter.TaskParameter):
+                user_args.append(arg)
+            # All these other cases are all about regular parameters
+            elif parameter.is_return(arg.name):
+                ret_params.append(arg)
+            elif parameter.is_kwarg(arg.name):
+                user_kwargs[parameter.get_name_from_kwarg(arg.name)] = arg.content
+            else:
+                # Apart from the names we preserve the original order, so it is guaranteed that named positional
+                # arguments will never be swapped with variadic ones or anything similar
+                user_args.append(arg.content)
 
-            # Call the user function with all the reconstructed parameters, get the return values
-            user_returns = self.user_function(*user_args, **user_kwargs)
+        # Call the user function with all the reconstructed parameters, get the return values
+        user_returns = self.user_function(*user_args, **user_kwargs)
 
-            def get_file_name(x):
-                return x.split(':')[-1]
+        def get_file_name(x):
+            return x.split(':')[-1]
 
-            # Deal with returns (if any)
-            if self.returns:
-                if not self.multi_return:
-                    # Generalize the return case to multi-return to simplify the code
-                    user_returns = [user_returns]
-                # Note that we are implicitly assuming that the length of the user returns matches the number
-                # of return parameters
-                for (obj, param) in zip(user_returns, ret_params):
-                    # The object is a PSCO. Set its content (which is supposedly already persisted)
-                    # as its key
-                    if param.type == parameter.TYPE.EXTERNAL_PSCO:
-                        from pycompss.util.persistent_storage import get_id
-                        param.content = get_id(obj)
-                    # Serialize the object
-                    # Note that there is no "command line optimization" in the returns, as we always pass them as files
-                    # This is due to the asymmetry in worker-master communications and because it also makes it easier
-                    # for us to deal with returns in that format
-                    from pycompss.util.serializer import serialize_to_file
-                    serialize_to_file(obj, get_file_name(param.file_name))
+        # Deal with returns (if any)
+        if self.returns:
+            if not self.multi_return:
+                # Generalize the return case to multi-return to simplify the code
+                user_returns = [user_returns]
+            # Note that we are implicitly assuming that the length of the user returns matches the number
+            # of return parameters
+            for (obj, param) in zip(user_returns, ret_params):
+                # The object is a PSCO. Set its content (which is supposedly already persisted)
+                # as its key
+                if param.type == parameter.TYPE.EXTERNAL_PSCO:
+                    from pycompss.util.persistent_storage import get_id
+                    param.content = get_id(obj)
+                # Serialize the object
+                # Note that there is no "command line optimization" in the returns, as we always pass them as files
+                # This is due to the asymmetry in worker-master communications and because it also makes it easier
+                # for us to deal with returns in that format
+                from pycompss.util.serializer import serialize_to_file
+                serialize_to_file(obj, get_file_name(param.file_name))
 
-            # Deal with INOUTs
-            # All inouts are FILEs
-            for arg in [x for x in args if isinstance(arg, parameter.TaskParameter) and self.is_parameter_object(arg.name)]:
-                original_name = parameter.get_original_name(arg.name)
-                param = self.decorator_arguments.get(original_name, self.get_default_direction(original_name))
-                # ... but we do not have to deal with FILE_INOUTS
-                if param.direction == parameter.DIRECTION.INOUT:
-                    from pycompss.util.serializer import serialize_to_file
-                    serialize_to_file(arg.content, get_file_name(arg.file_name))
+        # Deal with INOUTs
+        # All inouts are FILEs
+        for arg in [x for x in args if isinstance(arg, parameter.TaskParameter) and self.is_parameter_object(arg.name)]:
+            original_name = parameter.get_original_name(arg.name)
+            param = self.decorator_arguments.get(original_name, self.get_default_direction(original_name))
+            # ... but we do not have to deal with FILE_INOUTS
+            if param.direction == parameter.DIRECTION.INOUT:
+                from pycompss.util.serializer import serialize_to_file
+                serialize_to_file(arg.content, get_file_name(arg.file_name))
 
-            return 'test_output'
-        return worker_task
+        return 'test_output'
 
-    def sequential_call(self):
+    def sequential_call(self, *args, **kwargs):
         '''The easiest case: just call the user function and return whatever it
         returns.
         :return: The user function
         '''
-        def sequential_task(*args, **kwargs):
-            # Inspect the user function, get information about the arguments and their names
-            # This defines self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults
-            # And gives non-None default values to them if necessary
-            return self.user_function(*args, **kwargs)
-        return sequential_task
+        # Inspect the user function, get information about the arguments and their names
+        # This defines self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults
+        # And gives non-None default values to them if necessary
+        return self.user_function(*args, **kwargs)
 
 # task can be also typed as Task
 Task = task

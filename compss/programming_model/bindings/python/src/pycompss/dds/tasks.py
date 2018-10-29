@@ -14,6 +14,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+import sys
+
 from pycompss.api.api import compss_wait_on
 from pycompss.api.parameter import INOUT, IN
 from pycompss.api.task import task
@@ -344,3 +346,29 @@ def load_partition_from_file(file_path, start, chunk_size):
     fp.close()
     return [temp]
 
+
+# Data Set generator from:
+# http://compss.bsc.es/gitlab/bar/apps/blob/master/python/pycompss_lib/pycompss_lib/algorithms/terasort/base/src/terasort.py
+@task(returns=list)
+def gen_fragment(num_entries, seed):
+    """
+    Generate a fragment with random numbers.
+    A fragment is a list of tuples, where the first element of each tuple
+    is the key, and the second the value.
+    Each key is generated randomly between min and max global values.
+    Each value is generated randomly between -1 and 1
+
+    fragment structure = [(k1, v1), (k2, v2), ..., (kn, vn)]
+
+    :param num_entries: Number of k,v pairs within a fragment
+    :param seed: The seed for the random generator
+    :return: Fragment
+    """
+    import random
+    range_min = 0
+    range_max = sys.maxsize
+    random.seed(seed)
+    fragment = []
+    for n in range(num_entries):
+        fragment.append((random.randrange(range_min, range_max), random.random()))
+    return fragment

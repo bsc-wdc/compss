@@ -178,6 +178,44 @@ def example_5():
     print("______________END OF THE EXAMPLE________________\n")
 
 
+def terasort(num_fragments, num_entries, num_buckets, seed):
+    """
+    ----------------------
+    Terasort main program
+    ----------------------
+    This application generates a set of fragments that contain randomly
+    generated key, value tuples and sorts them all considering the key of
+    each tuple.
+
+    :param num_fragments: Number of fragments to generate
+    :param num_entries: Number of entries (k,v tuples) within each fragment
+    :param num_buckets: Number of buckets to consider.
+    :param seed: Initial seed for the random number generator.
+    """
+
+    dataset = [gen_fragment(num_entries, seed + i) for i in range(num_fragments)]
+    dds = DDS(dataset, -1).sort_by_key().collect(True)
+    for i in range(len(dds)):
+        if dds[i][0] < dds[i-1][0] and i > 0:
+            print("Failed:", i)
+            break
+
+
+def run_terasort():
+    arg1 = sys.argv[1] if len(sys.argv) > 1 else 16
+    arg2 = sys.argv[2] if len(sys.argv) > 2 else 50
+
+    num_fragments = int(arg1)  # Default: 16
+    num_entries = int(arg2)  # Default: 50
+    # be very careful with the following argument (since it is in a decorator)
+    num_buckets = 10  # int(sys.argv[3])
+    seed = 5
+
+    start_time = time.time()
+    terasort(num_fragments, num_entries, num_buckets, seed)
+    print("Elapsed Time {} (s)".format(time.time() - start_time))
+
+
 def load_n_map_example():
 
     fayl = 'test.txt'
@@ -212,7 +250,8 @@ def main_program():
     # See 'launch.sh' for WordCount example.
     # word_count()
     # reduce_example()
-    load_n_map_example()
+    # load_n_map_example()
+    run_terasort()
 
 
 if __name__ == '__main__':

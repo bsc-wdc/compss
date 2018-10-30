@@ -13,12 +13,12 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
-import pickle
+#
+
 import sys
 import time
 
-from dds import DDS
+from pycompss.dds import DDS
 
 
 def to_list(a): return [a]

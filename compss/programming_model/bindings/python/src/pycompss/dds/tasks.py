@@ -15,7 +15,7 @@
 #  limitations under the License.
 # 
 
-from pycompss.api.parameter import INOUT, IN, FILE_IN
+from pycompss.api.parameter import INOUT, IN
 from pycompss.api.task import task
 
 marker = "COMPSS_DEFAULT_VALUE_TO_BE_USED_AS_A_MARKER"

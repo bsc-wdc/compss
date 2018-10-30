@@ -14,12 +14,15 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 # 
+import bisect
+import itertools
 import os
-import sys
 from collections import defaultdict, deque
 
-from pycompss.api.api import compss_wait_on, compss_barrier, compss_open
+from pycompss.api.api import compss_barrier, compss_open
 from pycompss.dds.tasks import *
+
+import heapq3
 
 
 class DDS(object):
@@ -238,15 +241,17 @@ class DDS(object):
         nop = len(self.partitions) if num_of_partitions == -1 \
             else num_of_partitions
 
-        future_partitions = defaultdict(list)
+        buckets = defaultdict(list)
+        for bucket in range(nop):
+            for partition in self.partitions:
+                buckets[bucket].append(
+                    filter_partition(partition, partition_func, nop, bucket))
 
-        for p in self.partitions:
-            distribute(p, partition_func, future_partitions, nop)
+        future_partitions = list()
+        for bucket in buckets.values():
+            future_partitions.append(merge_bucket(*bucket))
 
-        ret = []
-        for i in range(nop, 0, -1):
-            ret.append(task_next_bucket(future_partitions, i))
-        self.partitions = ret
+        self.partitions = future_partitions
         return self
 
     def num_of_partitions(self):
@@ -716,6 +721,60 @@ class DDS(object):
             return ((key_value[0], x) for x in f(key_value[1]))
 
         return self.map_and_flatten(dummy)
+
+    def sort_by_key(self, ascending=True, num_of_parts=None,
+                    key_func=lambda x: x):
+        """
+
+        :type key_func:
+        :param num_of_parts:
+        :param ascending:
+        :return:
+        """
+        if num_of_parts is None:
+            num_of_parts = len(self.partitions)
+
+        def sort_partition(iterator):
+            """
+            Sort a partition locally.
+            :param iterator:
+            :return:
+            """
+            chunk_size = 500
+            iterator = iter(iterator)
+            chunks = list()
+            while True:
+                chunk = list(itertools.islice(iterator, chunk_size))
+                chunk.sort(key=lambda kv: key_func(kv[0]), reverse=not ascending)
+                chunks.append(chunk)
+                if len(chunk) < chunk_size:
+                    break
+            else:
+                chunks.append(chunk.sort(key=lambda kv: key_func(kv[0]),
+                                         reverse=not ascending))
+
+            return heapq3.merge(chunks, key=lambda kv: key_func(kv[0]),
+                                reverse=not ascending)
+
+        samples = list()
+        for each in self.partitions:
+            samples.append(task_collect_samples(each, key_func))
+
+        samples = sorted(list(
+            itertools.chain.from_iterable(compss_wait_on(samples))))
+
+        bounds = [samples[int(len(samples) * (i + 1) / num_of_parts)]
+                  for i in range(0, num_of_parts - 1)]
+
+        def range_partitioner(key):
+            p = bisect.bisect_left(bounds, key_func(key))
+            if ascending:
+                return p
+            else:
+                return num_of_parts - 1 - p
+
+        partitioned = self.partition_by(range_partitioner)
+        return partitioned.map_partitions(sort_partition)
 
 
 def read_in_chunks(file_name, chunk_size=1024):

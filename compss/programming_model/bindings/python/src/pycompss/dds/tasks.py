@@ -14,7 +14,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 # 
+import sys
 
+from pycompss.api.api import compss_wait_on
 from pycompss.api.parameter import INOUT, IN
 from pycompss.api.task import task
 
@@ -117,18 +119,39 @@ def task_reduce(f, *args, **kwargs):
     return res
 
 
-@task(buckets=INOUT)
-def distribute(iterator, partition_func, buckets, num_of_partitions):
+@task(returns=list)
+def filter_partition(partition, group_by_func, nop, bucket_number):
     """
-    Distribute data on buckets based on a partition function.
-    :param partition_func: a function to generate an integer for values.
-    :param buckets: future partitions
-    :param iterator: current partition or another iterable
-    :param num_of_partitions: total amount of partitions to be created in the end
+    """
+    filtered_list = list()
+    for k, v in partition:
+        if (group_by_func(k) % nop) == bucket_number:
+            filtered_list.append((k, v))
+
+    return filtered_list
+
+
+@task(returns=list)
+def task_collect_samples(partition, key_func):
+    """
+
+    :param partition:
     :return:
     """
-    for k, v in iterator:
-        buckets[partition_func(k) % num_of_partitions].append((k, v))
+    ret = list()
+    for index in range(len(partition)):
+        if not index % 20:
+            ret.append(key_func(partition[index][0]))
+
+    return ret
+
+
+@task(returns=list)
+def merge_bucket(*bucket):
+    ret = list()
+    for item in bucket:
+        ret.extend(item)
+    return ret
 
 
 @task(returns=dict)
@@ -323,3 +346,29 @@ def load_partition_from_file(file_path, start, chunk_size):
     fp.close()
     return [temp]
 
+
+# Data Set generator from:
+# http://compss.bsc.es/gitlab/bar/apps/blob/master/python/pycompss_lib/pycompss_lib/algorithms/terasort/base/src/terasort.py
+@task(returns=list)
+def gen_fragment(num_entries, seed):
+    """
+    Generate a fragment with random numbers.
+    A fragment is a list of tuples, where the first element of each tuple
+    is the key, and the second the value.
+    Each key is generated randomly between min and max global values.
+    Each value is generated randomly between -1 and 1
+
+    fragment structure = [(k1, v1), (k2, v2), ..., (kn, vn)]
+
+    :param num_entries: Number of k,v pairs within a fragment
+    :param seed: The seed for the random generator
+    :return: Fragment
+    """
+    import random
+    range_min = 0
+    range_max = sys.maxsize
+    random.seed(seed)
+    fragment = []
+    for n in range(num_entries):
+        fragment.append((random.randrange(range_min, range_max), random.random()))
+    return fragment

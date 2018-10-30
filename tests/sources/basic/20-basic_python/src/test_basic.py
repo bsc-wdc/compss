@@ -31,6 +31,7 @@ def main():
     # f = open(log_file, "w")
 
     # Usual tests (returns with type)
+    suite = unittest.TestLoader().loadTestsFromTestCase(testClass)
     suite = unittest.TestLoader().loadTestsFromTestCase(testDecorator)
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testFunction))
     # suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testFunctions)) # TODO: Include this test when finished the functions
@@ -45,7 +46,6 @@ def main():
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testWaitOnRetInt))
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testParameterRetInt))
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testClassRetInt))
-
     unittest.TextTestRunner(verbosity=2).run(suite)
     # f.close()
 

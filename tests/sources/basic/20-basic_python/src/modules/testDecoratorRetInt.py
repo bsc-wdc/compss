@@ -44,6 +44,7 @@ class testDecoratorRetInt(unittest.TestCase):
         o = self.function_time_decorated_master(self.x)
         o = compss_wait_on(o)
         res = o[0]
+        print('RES IS EQUAL TO %s' % str(res))
         time = o[1]
         #print '(master time) {}'.format(time)
         self.assertEqual(res, self.x**3)

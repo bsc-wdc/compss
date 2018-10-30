@@ -28,6 +28,8 @@ if __debug__:
     import logging
     logger = logging.getLogger('pycompss.api.task')
 
+
+from functools import wraps
 import pycompss.api.parameter as parameter
 import threading
 
@@ -156,6 +158,7 @@ class task(object):
                     parameter.Parameter(p_type = ret_type, object = elem, p_direction = parameter.OUT)
                 # Hopefully, an exception have been thrown if some invalid stuff has been put
                 # in the returns field
+        print('SELF RETURNS IS %s' % str(self.returns))
 
     def __call__(self, user_function):
         '''This part is called in all explicit function calls.
@@ -190,7 +193,7 @@ class task(object):
             return self.sequential_call(*args, **kwargs)
         return task_decorator
 
-    def __register_task(self, f):
+    def register_task(self, f):
         """
         This function is used to register the task in the runtime.
         This registration must be done only once on the task decorator
@@ -201,6 +204,59 @@ class task(object):
 
         from pycompss.runtime.core_element import CE
         import pycompss.runtime.binding as binding
+
+        def _get_top_decorator(code, decorator_keys):
+            """
+            Retrieves the decorator which is on top of the current task decorators stack.
+
+            :param code: Tuple which contains the task code to analyse and the number of lines of the code.
+            :param decorator_keys: Typle which contains the available decorator keys
+            :return: the decorator name in the form "pycompss.api.__name__"
+            """
+
+            # Code has two fields:
+            # code[0] = the entire function code.
+            # code[1] = the number of lines of the function code.
+            func_code = code[0]
+            decorators = [l.strip() for l in func_code if l.strip().startswith('@')]
+            # Could be improved if it stops when the first line without @ is found,
+            # but we have to be care if a decorator is commented (# before @)
+            # The strip is due to the spaces that appear before functions definitions,
+            # such as class methods.
+            for dk in decorator_keys:
+                for d in decorators:
+                    if d.startswith('@' + dk):
+                        return "pycompss.api." + dk.lower()  # each decorator __name__
+            # If no decorator is found, then the current decorator is the one to register
+            return __name__
+
+        def _get_task_type(code, decorator_filter, default):
+            """
+            Retrieves the type of the task based on the decorators stack.
+
+            :param code: Tuple which contains the task code to analyse and the number of lines of the code.
+            :param decorator_filter: Tuple which contains the filtering decorators. The one
+                                     used determines the type of the task. If none, then it is a normal task.
+            :param default: Default values
+            :return: the type of the task
+            """
+
+            # Code has two fields:
+            # code[0] = the entire function code.
+            # code[1] = the number of lines of the function code.
+            func_code = code[0]
+            full_decorators = [l.strip() for l in func_code if l.strip().startswith('@')]
+            # Get only the decorators used. Remove @ and parameters.
+            decorators = [l[1:].split('(')[0] for l in full_decorators]
+            # Look for the decorator used from the filter list and return it when found
+            for f in decorator_filter:
+                if f in decorators:
+                    return f
+            # The decorator stack did not contain any of the filtering keys, then
+            # return the default key.
+            return default
+
+
 
         # Look for the decorator that has to do the registration
         # Since the __init__ of the decorators is independent, there is no way
@@ -215,7 +271,8 @@ class task(object):
         func = f
         while not got_func_code:
             try:
-                func_code = _get_wrapped_sourcelines(func)
+                from pycompss.util.object_properties import get_wrapped_sourcelines
+                func_code = get_wrapped_sourcelines(func)
                 got_func_code = True
             except IOError:
                 # There is one or more decorators below the @task --> undecorate
@@ -252,6 +309,7 @@ class task(object):
 
         # Get the task signature
         # To do this, we will check the frames
+        import inspect
         frames = inspect.getouterframes(inspect.currentframe())
         # Pop the __register_task and __call__ functions from the frame
         frames = frames[2:]
@@ -269,23 +327,10 @@ class task(object):
             ce_signature = self.module_name + "." + f.__name__
             impl_type_args = [self.module_name, f.__name__]
         else:
-            # There is more than one frame
-            # Discover if the task is defined within a class or subclass
-            # Construct the qualified class name
-            class_name = []
-            # Weak way, but I see no other way compatible with both 2 and 3.
-            for app_frame in app_frames:
-                if (app_frame[3] != '<module>' and app_frame[4] is not None and
-                        (app_frame[4][0].strip().startswith('@') or app_frame[4][0].strip().startswith('def'))):
-                    # app_frame[3] != <module> ==> functions and classes
-                    # app_frame[4] is not None ==> functions injected by the interpreter
-                    # (app_frame[4][0].strip().startswith('@') or app_frame[4][0].strip().startswith('def')) ==> Ignores functions injected by wrappers (e.g. autoparallel), but keep the classes.
-                    class_name.append(app_frame[3])
-            class_name = '.'.join(class_name)
-            if class_name:
+            if self.class_name:
                 # Within class or subclass
-                ce_signature = self.module_name + '.' + class_name + '.' + f.__name__
-                impl_type_args = [self.module_name + '.' + class_name, f.__name__]
+                ce_signature = self.module_name + '.' + self.class_name + '.' + f.__name__
+                impl_type_args = [self.module_name + '.' + self.class_name, f.__name__]
             else:
                 # Not in a class or subclass
                 # This case can be reached in Python 3, where particular frames are included, but not class names found.
@@ -391,9 +436,9 @@ class task(object):
             print('THIS IS A INSTANCE FUNCTION')
             self.function_type = FunctionType.INSTANCE_METHOD
             self.class_name = type(self.parameters['self'].object).__name__
-            print('CLASS NAME IS %s' % type(self.parameters['self'].object).__name__)
-
-
+        elif self.first_arg_name == 'cls':
+            self.function_type = FunctionType.CLASS_METHOD
+            self.class_name = self.parameters['cls'].object.__name__
 
 
     def compute_user_function_information(self):
@@ -429,7 +474,7 @@ class task(object):
         # If we are in the master and this is the first time we call this task
         # we need to register it into the COMPSs runtime
         if not self.registered:
-            self.register_task()
+            self.register_task(self.user_function)
             self.registered = True
         # TODO: See runtime.binding.process_task, it builds the necessary future objects
         # TODO: Deal with the redundant parameter passing
@@ -477,6 +522,14 @@ class task(object):
         This function also assigns default directions to parameters.
         :return: None, it only modifies self.parameters
         '''
+
+
+        print('RECEIVED ARGS')
+        print(args)
+
+        print('RECEIVED KWARGS')
+        print(kwargs)
+
         from collections import OrderedDict
         parameter_values = OrderedDict()
         # It is important to know the name of the first argument to determine if we
@@ -518,6 +571,7 @@ class task(object):
         for var_name in parameter_values.keys():
             # Is the argument a vararg? Then check the direction for
             # varargs
+            print(var_name)
             if parameter.is_vararg(var_name):
                 self.parameters[var_name] = parameter.get_parameter_copy(self.get_varargs_direction())
             else:
@@ -608,6 +662,7 @@ class task(object):
             orig_name = parameter.get_original_name(arg.name)
             if arg.type == parameter.TYPE.FILE:
                 if self.is_parameter_object(arg.name):
+                    open('~log.txt', 'w').write('Deserializing %s' % arg.name)
                     # The object is stored in some file, load and deserialize it
                     from pycompss.util.serializer import deserialize_from_file
                     arg.content = deserialize_from_file(arg.file_name.split(':')[-1])
@@ -685,7 +740,7 @@ class task(object):
 
         # Deal with INOUTs
         # All inouts are FILEs
-        for arg in [x for x in args if isinstance(arg, parameter.TaskParameter) and self.is_parameter_object(arg.name)]:
+        for arg in [x for x in args if isinstance(x, parameter.TaskParameter) and self.is_parameter_object(x.name)]:
             original_name = parameter.get_original_name(arg.name)
             param = self.decorator_arguments.get(original_name, self.get_default_direction(original_name))
             # ... but we do not have to deal with FILE_INOUTS
@@ -693,7 +748,7 @@ class task(object):
                 from pycompss.util.serializer import serialize_to_file
                 serialize_to_file(arg.content, get_file_name(arg.file_name))
 
-        return 'test_output'
+        return [], [], self.decorator_arguments['isModifier']
 
     def sequential_call(self, *args, **kwargs):
         '''The easiest case: just call the user function and return whatever it

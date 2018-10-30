@@ -687,13 +687,11 @@ def test_empty_string():
 
 
 def main_program():
-    '''
     test_function_primitives()
     test_function_files()
     test_function_objects()
     test_mp_file_access()
     test_mp_object_access()
-    '''
     test_instance_method()
 
     test_class_method()

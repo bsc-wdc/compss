@@ -100,13 +100,13 @@ class Parameter(object):
         self.is_future = is_future
 
     def __repr__(self):
-        return 'Parameter(type=%s, direction=%d, stream=%d, prefix=%s\n' \
+        return 'Parameter(type=%s, direction=%s, stream=%s, prefix=%s\n' \
                '          object=%s\n' \
                '          file_name=%s\n' \
                '          is_future=%s)' % (str(self.type),
-                                            self.direction,
-                                            self.stream,
-                                            self.prefix,
+                                            str(self.direction),
+                                            str(self.stream),
+                                            str(self.prefix),
                                             str(self.object),
                                             str(self.file_name),
                                             str(self.is_future))

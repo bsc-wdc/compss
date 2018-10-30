@@ -525,22 +525,22 @@ def execute_task(process_name, storage_conf, params):
                 if is_psco(last_elem):
                     # There is no update PSCO on the storage API. Consequently, the changes on the PSCO must have been
                     # pushed into the storage automatically on each PSCO modification.
-                    if __debug__:
+                    if True or __debug__:
                         # TODO: this may not be correct if the user specifies isModifier=False.
                         logger.debug("[PYTHON WORKER %s] The changes on the PSCO must have been automatically updated by the storage." % process_name)
                     pass
                 else:
-                    if __debug__:
+                    if True or __debug__:
                         logger.debug("[PYTHON WORKER %s] Serializing self to file: %s" % (process_name, file_name))
                     serialize_to_file(obj, file_name)
-                if __debug__:
+                if True or __debug__:
                     logger.debug("[PYTHON WORKER %s] Serializing self to file." % process_name)
                 serialize_to_file(obj, file_name)
-            if __debug__:
+            if True or __debug__:
                 logger.debug("[PYTHON WORKER %s] Obj: %r" % (process_name, obj))
         else:
             # Class method - class is not included in values (e.g. values = [7])
-            types.insert(0, None)  # class must be first type
+            types.append(None)  # class must be first type
 
             def task_execution_3():
                 return task_execution(logger, process_name, klass, method_name, types, values, compss_kwargs)

@@ -558,6 +558,8 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns, tas
 
     app_id = 0
 
+    print('F RETURNS IS %s' % str(f_returns))
+
     # Check if the function is an instance method or a class method.
     has_target = ftype == FunctionType.INSTANCE_METHOD
     fo = None
@@ -804,6 +806,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings)
     if ftype == FunctionType.INSTANCE_METHOD or ftype == FunctionType.CLASS_METHOD:
         ra = list(f_parameters.keys())
         slf = ra.pop(0)
+        slf_name = names.pop(0)
     else:
         ra = list(f_parameters.keys())
     # Fill the values, compss_types, compss_directions, compss_streams and compss_prefixes from function parameters
@@ -831,6 +834,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings)
         compss_directions.append(direc)
         compss_streams.append(st)
         compss_prefixes.append(pre)
+        names.insert(len(list(f_parameters.keys())), slf_name)
     return values, names, compss_types, compss_directions, compss_streams, compss_prefixes
 
 

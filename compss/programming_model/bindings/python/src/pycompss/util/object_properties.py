@@ -27,6 +27,21 @@ For example, check if an object belongs to a module and so on.
 
 import imp
 
+def get_defining_class(meth):
+    '''Given a method'''
+    import inspect
+    if inspect.ismethod(meth):
+        print('this is a method')
+        for cls in inspect.getmro(meth.__self__.__class__):
+            if cls.__dict__.get(meth.__name__) is meth:
+                return cls
+    if inspect.isfunction(meth):
+        print('this is a function')
+        return getattr(inspect.getmodule(meth),
+                       meth.__qualname__.split('.<locals>', 1)[0].rsplit('.', 1)[0])
+    print('this is neither a function nor a method')
+    return None  # not required since None would have been implicitly returned anyway
+
 def get_module_name(path, file_name):
     '''Get the module name considering its path and filename.
 
@@ -125,7 +140,7 @@ def is_basic_iterable(obj):
     :param obj: Object to be analysed
     :return: Boolean -> True if obj is a basic iterable (see list below), False otherwise
     '''
-    return isinstance(obj, (list, tuple, bytearray, set, frozenset, dict))
+    return isinstance(obj, (tuple, bytearray, set, frozenset, dict))
 
 def object_belongs_to_module(obj, module_name):
     '''Checks if a given object belongs to a given module (or some sub-module).

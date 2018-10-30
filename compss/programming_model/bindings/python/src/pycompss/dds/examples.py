@@ -14,11 +14,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 # 
-import pickle
+
 import sys
 import time
 
-from dds import DDS
+from pycompss.dds import DDS
 
 
 def to_list(a): return [a]
@@ -131,8 +131,8 @@ def example_4():
     :return:
     """
     print("Some words:")
-    words = ["This is a test", "Hola ? Is this a good test ?", "H o l a l a",
-             "Lorem ipsum foo bar", "This test is a good one"]
+    words = ["This is a test", "This is an example.", "H o l a", "Lorem ipsum.",
+             "Foo, bar", "Examples of some DDS methods..."]
     print(words)
 
     print("Some letters:")
@@ -154,13 +154,12 @@ def example_4():
 
 
 def example_5():
-    print("WordCount for lines containing '#' (sharp, 'hashtag' for SM "
-          "addicts) in a file.")
+    print("WordCount for lines containing '#' (sharp) in a file.")
 
     file_name = 'test.txt'
     f = open(file_name, 'w')
     for i in range(1000):
-        f.write("This is a line with #\n")
+        f.write("This is a line with # \n")
         f.write("This one doesn't have a sharp {}\n")
     f.close()
 
@@ -203,7 +202,7 @@ def load_n_map_example():
 
 
 def main_program():
-    print("________HOLALA_________")
+    print("________RUNNING EXAMPLES_________")
     # example_1()
     # example_2()
     # example_3()
@@ -214,6 +213,7 @@ def main_program():
     # word_count()
     # reduce_example()
     load_n_map_example()
+
 
 if __name__ == '__main__':
     main_program()

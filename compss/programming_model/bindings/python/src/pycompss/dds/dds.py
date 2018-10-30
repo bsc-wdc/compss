@@ -14,11 +14,12 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 # 
-import sys, os
+import os
+import sys
 from collections import defaultdict, deque
 
 from pycompss.api.api import compss_wait_on, compss_barrier, compss_open
-from tasks import *
+from pycompss.dds.tasks import *
 
 
 class DDS(object):

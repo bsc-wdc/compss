@@ -19,6 +19,7 @@ import sys
 import time
 
 from pycompss.dds import DDS
+from pycompss.dds.tasks import gen_fragment
 
 
 def to_list(a): return [a]

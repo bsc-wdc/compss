@@ -14,14 +14,15 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-import os
-import sys
-import heapq3
+import bisect
 import itertools
+import os
 from collections import defaultdict, deque
 
-from pycompss.api.api import compss_wait_on, compss_barrier, compss_open
+from pycompss.api.api import compss_barrier, compss_open
 from pycompss.dds.tasks import *
+
+import heapq3
 
 
 class DDS(object):

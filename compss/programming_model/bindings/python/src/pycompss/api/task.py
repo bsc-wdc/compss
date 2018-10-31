@@ -720,9 +720,13 @@ class task(object):
 
         # Deal with returns (if any)
         if self.returns:
-            if not self.multi_return:
+            if len(self.returns) == 1 or not self.multi_return:
                 # Generalize the return case to multi-return to simplify the code
                 user_returns = [user_returns]
+            import sys
+            sys.stderr.write('USER RETURNS IS %s and MULTI RETURN IS %s\n and SELF RETURNS is %s' % 
+                (str(user_returns), str(self.multi_return), str(self.returns)))
+            sys.stderr.flush()
             # Note that we are implicitly assuming that the length of the user returns matches the number
             # of return parameters
             for (obj, param) in zip(user_returns, ret_params):

@@ -707,7 +707,8 @@ def _build_return_objects(f_returns):
             logger.debug("Simple object return found.")
         # Build the appropriate future object
         ret_value = f_returns[parameter.get_return_name(0)].object
-        if ret_value in _python_to_compss:  # primitives, string, dic, list, tuple
+        print('RET VALUE IS %s' % ret_value)
+        if type(ret_value) in _python_to_compss or ret_value in _python_to_compss:  # primitives, string, dic, list, tuple
             fo = Future()
         elif inspect.isclass(ret_value):
             # For objects:

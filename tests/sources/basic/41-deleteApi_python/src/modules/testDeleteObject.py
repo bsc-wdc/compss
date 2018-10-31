@@ -34,7 +34,8 @@ class testDeleteObject(unittest.TestCase):
             obj_1[0] = i - 1
             obj_2 = increment_object(obj_1)
             obj_2 = compss_wait_on(obj_2)
-            compss_delete_object(obj_1)
+            deletion_result = compss_delete_object(obj_1)
+            self.assertTrue(deletion_result)
             self.assertEqual(i, obj_2[0])
 
     def testDeleteObject3(self):
@@ -44,6 +45,7 @@ class testDeleteObject(unittest.TestCase):
             obj_1[0] = i - 1
             obj_2 = increment_object(obj_1)
             obj_list.append(obj_2)
-            compss_delete_object(obj_1)
+            deletion_result = compss_delete_object(obj_1)
+            self.assertTrue(deletion_result)
         obj_list = compss_wait_on(obj_list)
         self.assertEqual([[i] for i in range(10)], obj_list)

@@ -27,7 +27,6 @@
   echo "*** RUNNING PYTHON APPLICATION TEST"
   output_log="${target_log_folder}/simple_python_0${retryNum}.outputlog"
   error_log="${target_log_folder}/simple_python_0${retryNum}.errorlog"
-  counterVal=1
   expectedTime=60s
 
   # No lang flag to check if it is inferred
@@ -47,7 +46,7 @@
      --python_interpreter="$pythonInterpreter" \
      --pythonpath="${base_app_dir}"/src \
      \
-     "${base_app_dir}"/src/simple.py $counterVal > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+     "${base_app_dir}"/src/simple.py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
   # Take the latest log folder as retry number
   # Fixes the possiblity to test with both python 2 and 3 one after the other

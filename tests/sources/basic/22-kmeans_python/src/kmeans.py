@@ -1,68 +1,160 @@
 #!/usr/bin/python
-
 # -*- coding: utf-8 -*-
+#
+#  Copyright 2002-2015 Barcelona Supercomputing Center (www.bsc.es)
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+__copyright__ = '2018 Barcelona Supercomputing Center (BSC-CNS)'
 
-"""
-PyCOMPSs Testbench KMeans
-========================
-"""
-
-# Imports
+import numpy as np
+import time
+import unittest
+from pycompss.api.api import compss_wait_on
 from pycompss.api.task import task
-from pycompss.functions.reduce import merge_reduce
-
-import random
 
 
-def init_board_gauss(numV, dim, K):
-    n = int(float(numV) / K)
-    data = []
-    random.seed(5)
-    for k in range(K):
-        c = [random.uniform(-1, 1) for i in range(dim)]
-        s = random.uniform(0.05, 0.5)
-        for i in range(n):
-            d = np.array([np.random.normal(c[j], s) for j in range(dim)])
-            data.append(d)
+def parse_arguments():
+    """
+    Parse command line arguments. Make the program generate
+    a help message in case of wrong usage.
+    """
+    import argparse
+    parser = argparse.ArgumentParser(
+        description='An MPI Kmeans implementation.')
+    parser.add_argument('-s', '--seed', type=int, default=0,
+                        help='Pseudo-random seed. Default = 0'
+                        )
+    parser.add_argument('-n', '--num_points', type=int, default=100,
+                        help='Number of points. Default = 100'
+                        )
+    parser.add_argument('-d', '--dimensions', type=int, default=2,
+                        help='Number of dimensions. Default = 2'
+                        )
+    parser.add_argument('-c', '--num_centers', type=int, default=2,
+                        help='Number of centers'
+                        )
+    parser.add_argument('-i', '--max_iterations', type=int, default=6,
+                        help='Maximum number of iterations'
+                        )
+    parser.add_argument('-e', '--epsilon', type=float, default=1e-9,
+                        help='Epsilon. Kmeans will stop when |old - new| < epsilon.'
+                        )
+    parser.add_argument('--num_fragments', type=int, default=4,
+                        help='Total number of fragments')
+    parser.add_argument('--distributed_read', action='store_true',
+                        help='Boolean indicating if data should be read distributed.'
+                        )
 
-    Data = np.array(data)[:numV]
-    return Data
+    return parser.parse_args()
 
 
-def init_board_random(numV, dim):
-    from numpy import random
-    random.seed(5)
-    return [random.random(dim) for _ in range(numV)]
+# Data generation functions
 
+def init_board_random(num_points, dim, seed):
+    np.random.seed(seed)
+    return np.random.random((num_points, dim))
+
+
+def init_centers_random(dim, k, seed):
+    np.random.seed(seed)
+    m = np.random.random((k, dim))
+    return m
+
+
+@task(returns=list)
+def generate_fragment(numv, dim, seed):
+    return init_board_random(numv, dim, seed)
+
+
+def generate_data(num_points, num_fragments, dimensions, seed,
+                  distributed_read):
+    startTime = time.time()
+
+    size = int(num_points / num_fragments)
+
+    if distributed_read:
+        X = [generate_fragment(size, dimensions, seed + i) for i in
+             range(num_fragments)]
+    else:
+        X = [init_board_random(size, dimensions, seed + i) for i in
+             range(num_fragments)]
+    print("Points generation Time {} (s)".format(time.time() - startTime))
+
+    return X
+
+
+# PyCOMPSs auxiliar functions
+@task(returns=dict)
+def merge_reduce_task(*data):
+    reduce_value = data[0]
+    for i in range(1, len(data)):
+        reduce_value = reduce_centers(reduce_value, data[i])
+    return reduce_value
+
+
+def merge_reduce(data, chunk=50):
+    while len(data) > 1:
+        dataToReduce = data[:chunk]
+        data = data[chunk:]
+        data.append(merge_reduce_task(*dataToReduce))
+    return data[0]
+
+
+# Main implementation functions
 
 @task(returns=dict)
-def cluster_points_partial(XP, mu, ind):
-    import numpy as np
+def cluster_points_sum(fragment_points, centers, ind):
+    """
+    For each point computes the nearest center.
+    :param fragment_points: list of points of a fragment
+    :param centers: current centers
+    :param ind: original index of the first point in the fragment
+    :return: {centers_ind: [pointInd_i, ..., pointInd_n]}
+    """
+    center2points = {c: [] for c in range(0, len(centers))}
+    for x in enumerate(fragment_points):
+        closest_center = min([(i[0], np.linalg.norm(x[1] - centers[i[0]]))
+                              for i in enumerate(centers)], key=lambda t: t[1])[
+            0]
+        center2points[closest_center].append(x[0] + ind)
+    return partial_sum(fragment_points, center2points, ind)
+
+
+def partial_sum(fragment_points, clusters, ind):
+    """
+    For each cluster returns the number of points and the sum of all the
+    points that belong to the cluster.
+    :param fragment_points: points
+    :param clusters: partial cluster {mu_ind: [pointInd_i, ..., pointInd_n]}
+    :param ind: point first ind
+    :return: {cluster_ind: (#points, sum(points))}
+    """
     dic = {}
-    XP = np.array(XP)
-    for x in enumerate(XP):
-        bestmukey = min([(i[0], np.linalg.norm(x[1] - mu[i[0]]))
-                         for i in enumerate(mu)], key=lambda t: t[1])[0]
-        if bestmukey not in dic:
-            dic[bestmukey] = [x[0] + ind]
-        else:
-            dic[bestmukey].append(x[0] + ind)
+    for i in clusters:
+        p_idx = np.array(clusters[i]) - ind
+        dic[i] = (len(p_idx), np.sum(fragment_points[p_idx], axis=0))
     return dic
 
 
-@task(returns=dict)
-def partial_sum(XP, clusters, ind):
-    import numpy as np
-    XP = np.array(XP)
-    p = [(i, [(XP[j - ind]) for j in clusters[i]]) for i in clusters]
-    dic = {}
-    for i, l in p:
-        dic[i] = (len(l), np.sum(l, axis=0))
-    return dic
+def reduce_centers(a, b):
+    """
+    Reduce method to sum the result of two partial_sum methods
+    :param a: partial_sum {cluster_ind: (#points_a, sum(points_a))}
+    :param b: partial_sum {cluster_ind: (#points_b, sum(points_b))}
+    :return: {cluster_ind: (#points_a+#points_b, sum(points_a+points_b))}
+    """
 
-
-@task(returns=dict, priority=True)
-def reduceCentersTask(a, b):
     for key in b:
         if key not in a:
             a[key] = b[key]
@@ -71,79 +163,81 @@ def reduceCentersTask(a, b):
     return a
 
 
-def has_converged(mu, oldmu, epsilon, iter, maxIterations):
-    print("iter: " + str(iter))
-    print("maxIterations: " + str(maxIterations))
+def has_converged(mu, oldmu, epsilon, iter, max_iterations):
     if oldmu != []:
-        if iter < maxIterations:
+        if iter < max_iterations:
             aux = [np.linalg.norm(oldmu[i] - mu[i]) for i in range(len(mu))]
             distancia = sum(aux)
             if distancia < epsilon * epsilon:
-                print("Distancia_T: " + str(distancia))
                 return True
             else:
-                print("Distancia_F: " + str(distancia))
                 return False
         else:
-            # detencion pq se ha alcanzado el maximo de iteraciones
             return True
 
 
-def init_random(dim, k):
-    from numpy import random
-    random.seed(5)
-    # ind = random.randint(0, len(X) - 1)
-    m = np.array([random.random(dim) for _ in range(k)])
-    # return random.sample(X[ind], k)
-    return m
-
-
-@task(returns=list)
-def genFragment(numv, dim):
-    # if mode == "gauss":
-    #    return init_board_gauss(numv, dim, k)
-    # else:
-    return init_board_random(numv, dim)
-
-
-def kmeans_frag(numV, k, dim, epsilon, maxIterations, numFrag):
-    from pycompss.api.api import compss_wait_on
-    import time
-    size = int(numV / numFrag)
-
-    startTime = time.time()
-    X = [genFragment(size, dim) for _ in range(numFrag)]
-    print("Points generation Time {} (s)".format(time.time() - startTime))
-
-    mu = init_random(dim, k)
+def kmeans_frag(X, num_points, num_centers, dimensions, epsilon, max_iterations,
+                num_fragments, seed):
+    size = int(num_points / num_fragments)
+    mu = init_centers_random(dimensions, num_centers, seed)
     oldmu = []
-    n = 0
+    it = 0
     startTime = time.time()
-    while not has_converged(mu, oldmu, epsilon, n, maxIterations):
-        oldmu = mu
-        clusters = [cluster_points_partial(
-            X[f], mu, f * size) for f in range(numFrag)]
-        partialResult = [partial_sum(
-            X[f], clusters[f], f * size) for f in range(numFrag)]
 
-        mu = merge_reduce(reduceCentersTask, partialResult)
+    while not has_converged(mu, oldmu, epsilon, it, max_iterations):
+        oldmu = mu
+        partialResult = []
+        # clusters = []
+        for f in range(num_fragments):
+            partialResult.append(cluster_points_sum(X[f], mu, f * size))
+
+        mu = merge_reduce(partialResult, chunk=50)
         mu = compss_wait_on(mu)
         mu = [mu[c][1] / mu[c][0] for c in mu]
-        print(mu)
-        n += 1
+
+        it += 1
+        print("Iteration Time {} (s)".format(time.time() - startTime))
     print("Kmeans Time {} (s)".format(time.time() - startTime))
-    return (n, mu)
+
+    return mu
 
 
-if __name__ == "__main__":
-    import time
-    import numpy as np
+class KmeansTest(unittest.TestCase):
+    def test_kmeans(self):
+        args = parse_arguments()
 
-    numV = 100
-    dim = 2
-    k = 2
-    numFrag = 2
+        print("Execution arguments:\n%s" % args)
+        t0 = time.time()
 
-    startTime = time.time()
-    result = kmeans_frag(numV, k, dim, 1e-4, 10, numFrag)
-    print("Ellapsed Time {} (s)".format(time.time() - startTime))
+        X = generate_data(num_points=args.num_points,
+                          num_fragments=args.num_fragments,
+                          dimensions=args.dimensions,
+                          seed=args.seed,
+                          distributed_read=args.distributed_read)
+
+        centers = kmeans_frag(X=X,
+                              num_points=args.num_points,
+                              num_centers=args.num_centers,
+                              dimensions=args.dimensions,
+                              epsilon=args.epsilon,
+                              max_iterations=args.max_iterations,
+                              num_fragments=args.num_fragments,
+                              seed=args.seed)
+
+        t1 = time.time()
+        print("Total elapsed time: %s" % (t1 - t0))
+
+        expected_centers = [np.array([0.56849316, 0.70270945]),
+                            np.array([0.3036273, 0.31187001])]
+
+
+        if not np.allclose(centers, expected_centers):
+            print("Kmeans centers results are incorrect.")
+            print("Expected: \n %s" % expected_centers)
+            print("Got: \n %s" % centers)
+        self.assertTrue(np.allclose(centers, expected_centers))
+        # self.assertEquals(centers, expected_centers)
+        # self.assertTrue(False)
+
+if __name__ == '__main__':
+    unittest.main()

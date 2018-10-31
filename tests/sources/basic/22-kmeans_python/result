@@ -1,8 +1,10 @@
 #!/bin/bash
 
   #Obtain parameters
-  output_file=$1 
-  target_log_folder=$2
+  output_file=$1
+  error_file=$2
+  target_log_folder=$3
+  basedir=$4
 
   # Log files
   runtime_log="${target_log_folder}/runtime.log"
@@ -26,6 +28,18 @@
     exit 1
   fi
 
-  #----------------------------------------------------------------------------------
-  exit 0
 
+  #----------------------------------------------------------------------------------
+  # Grep for unit test errors (ERROR or FAIL)
+  errors=$(cat "${output_file}" "${error_file}" | grep "ERROR" | cat)
+  fails=$(cat "${output_file}" "${error_file}" | grep "FAIL" | cat)
+  if [ "${errors}" != "" ] || [ "${fails}" != "" ]; then
+      echo "ERROR: KMEANS TEST RAISED AN ERROR." | tee -a ${output_file}
+      exit 1
+  fi
+
+
+
+  #----------------------------------------------------------------------------------
+  # Report result status
+  exit ${exitValue}

@@ -10,32 +10,8 @@ PyCOMPSs Testbench Simple
 # Imports
 from pycompss.api.parameter import *
 from pycompss.api.task import task
-
-
-def main_program():
-    from pycompss.api.api import compss_open
-
-    # Check and get parameters
-    if len(sys.argv) != 2:
-        usage()
-        exit(-1)
-    initialValue = sys.argv[1]
-    fileName = "counter"
-
-    # Write value
-    fos = open(fileName, 'w')
-    fos.write(initialValue)
-    fos.close()
-    print("Initial counter value is " + initialValue)
-
-    # Execute increment
-    increment(fileName)
-
-    # Write new value
-    fis = compss_open(fileName, 'r+')
-    finalValue = fis.read()
-    fis.close()
-    print("Final counter value is " + finalValue)
+import unittest
+import sys
 
 
 @task(filePath=FILE_INOUT)
@@ -60,5 +36,35 @@ def usage():
     print("    Usage: simple <counterValue>")
 
 
-if __name__ == "__main__":
-    main_program()
+class KmeansTest(unittest.TestCase):
+    def test_simple(self):
+        from pycompss.api.api import compss_open
+
+
+        initial_value = '1'
+        fileName = "counter"
+
+        # Write value
+        fos = open(fileName, 'w')
+        fos.write(initial_value)
+        fos.close()
+        print("Initial counter value is " + initial_value)
+
+        # Execute increment
+        increment(fileName)
+
+        # Write new value
+        fis = compss_open(fileName, 'r+')
+        final_value = fis.read()
+        fis.close()
+        print("Final counter value is " + final_value)
+
+        expected_final_value = '2'
+        if final_value != expected_final_value:
+            print("Simple increment test result is incorrect. "
+                  "Expected: %s, got: %s" % (expected_final_value, final_value))
+        self.assertEqual(final_value, expected_final_value)
+
+
+if __name__ == '__main__':
+    unittest.main()

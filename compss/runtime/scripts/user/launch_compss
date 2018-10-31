@@ -621,6 +621,14 @@ get_args() {
         jupyter_notebook=*)
           jupyter_notebook=${OPTARG//jupyter_notebook=/}
           ;;
+        xmls_phase=*)
+          #Added for elasticity
+          xmls_phase=${OPTARG//xmls_phase=/}
+          ;;
+        xmls_suffix=*)
+          #Added for elasticity
+          xmls_suffix=${OPTARG//xmls_suffix=/}
+          ;;
         *)
           # Flag didn't match any patern. Add to COMPSs
           args_pass="$args_pass --$OPTARG"
@@ -685,8 +693,9 @@ check_args() {
   ###############################################################
   # Infrastructure checks
   ###############################################################
+  # Changed error by warning because in heterogeneous there can be a launch of just workers 
   if [ -z "${master_node}" ]; then
-    display_error "${ERROR_MASTER_NODE}"
+    echo "${ERROR_MASTER_NODE}"
   fi
 
   if [ -z "${worker_nodes}" ] && [ "${DEFAULT_WORKER_IN_MASTER_CPUS}" -eq "0" ]; then
@@ -1266,8 +1275,15 @@ cleanup() {
   # Create XML files
   source ${SCRIPT_DIR}/../system/xmls/xmls_utils.sh
   CREATE_WORKING_DIRS=true
-  create_xml_files
-
+  if [ -z ${xmls_phase} ] || [ "${xml_phase}"=="all" ]; then
+      create_xml_files
+  elif [ "${xml_phase}"=="init" ]; then
+      init_het_xml_files ${xmls_suffix}
+  elif [ "${xml_phase}"=="add" ]; then
+      add_het_xml_files ${xmls_suffix}
+  elif [ "${xml_phase}"=="finish" ]; then
+      fini_het_xml_files ${xmls_suffix}
+  fi
   # Prolog
   prolog
 

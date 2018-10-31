@@ -55,6 +55,90 @@ create_xml_files() {
   echo "Resources.xml: ${RESOURCES_FILE}"
 }
 
+init_het_xml_files() {
+  # Resources.xml and project.xml filenames
+  
+  suffix=$1
+
+  # Define the destination xml folder
+  RESOURCES_FILE=${worker_working_dir}/resources_$suffix.xml
+  PROJECT_FILE=${worker_working_dir}/project_$suffix.xml
+
+  echo "Generating resources and project files"
+  echo "Project.xml:   ${PROJECT_FILE}"
+  echo "Resources.xml: ${RESOURCES_FILE}"
+  
+  # Begin creating the resources file and the project file
+  insert_xml_headers
+
+  echo "List of workers: ${worker_nodes}"
+
+  # Find the number of tasks to be executed on each node
+  for node in ${worker_nodes}; do
+      if [ ! -z "${NODE_NAME_XML}" ]; then
+        node=$(${NODE_NAME_XML} "${node}" "${network}")
+      fi
+    # add_compute_node name cpus gpus lot memory
+    add_compute_node "${node}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${max_tasks_per_node}" "${node_memory}"
+  done
+  if [ ! -z "${elasticity}" ]; then
+    echo " WARNING: Heterogeneity with elasticity not yet supported !"
+  fi
+}
+
+add_het_xml_files() {
+  # Resources.xml and project.xml filenames
+
+  suffix=$1
+
+  # Define the destination xml folder
+  RESOURCES_FILE=${worker_working_dir}/resources_$suffix.xml
+  PROJECT_FILE=${worker_working_dir}/project_$suffix.xml
+
+  echo "Continue generating resources and project files"
+  echo "Project.xml:   ${PROJECT_FILE}"
+  echo "Resources.xml: ${RESOURCES_FILE}"
+  echo "List of workers: ${worker_nodes}"
+
+  # Find the number of tasks to be executed on each node
+  for node in ${worker_nodes}; do
+      if [ ! -z "${NODE_NAME_XML}" ]; then
+        node=$(${NODE_NAME_XML} "${node}" "${network}")
+      fi
+    # add_compute_node name cpus gpus lot memory
+    add_compute_node "${node}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${max_tasks_per_node}" "${node_memory}"
+  done
+}
+
+fini_het_xml_files() {
+  # Resources.xml and project.xml filenames
+  suffix=$1
+
+  # Define the destination xml folder
+  RESOURCES_FILE=${worker_working_dir}/resources_$suffix.xml
+  PROJECT_FILE=${worker_working_dir}/project_$suffix.xml
+
+  echo "Finishing generation of resources and project files"
+  echo "Project.xml:   ${PROJECT_FILE}"
+  echo "Resources.xml: ${RESOURCES_FILE}"
+  
+    # Log Master Node
+  echo "Master will run in ${master_node}"
+
+  # Add worker slots on master if needed
+  if [ ! -z "${NODE_NAME_XML}" ]; then
+    master_node=$(${NODE_NAME_XML} "${master_node}" "${network}")
+  fi
+
+  if [ "${worker_in_master_cpus}" -ne 0 ]; then
+    # add_compute_node name cpus gpus lot memory
+    add_compute_node "${master_node}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${max_tasks_per_node}" "${worker_in_master_memory}"
+  fi
+  # Finish the resources file and the project file
+  insert_xml_footers
+
+  echo "Generation of resources and project file finished"
+}
 
 #---------------------------------------------------------------------------------------
 # XML SPECIFIC FUNCTIONS
@@ -429,9 +513,9 @@ add_compute_node() {
   fi
 
   if [ "$CREATE_WORKING_DIRS" = true ]; then
-      echo "Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}mkdir -p ${worker_working_dir}; chmod +rx ${worker_working_dir}${CMD_SEPARATOR}"
-      # shellcheck disable=SC2086
-      ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}mkdir -p ${worker_working_dir}; chmod +rx ${worker_working_dir}${CMD_SEPARATOR}
+      echo "Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}bash -c \"mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}\"${CMD_SEPARATOR}"
+      #shellcheck disable=SC2086
+      ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}bash -c "mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}"${CMD_SEPARATOR}
   fi
 
   nodeName=${nodeName}${network}

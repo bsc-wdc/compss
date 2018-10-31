@@ -719,11 +719,12 @@ EOT
 
 add_only_worker_nodes(){
  # Host list parsing
-  cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
+  local env_var_suffix=$1
+  cat >> "$TMP_SUBMIT_SCRIPT" << EOT
   if [ "${HOSTLIST_CMD}" == "nodes.sh" ]; then
     source "${SCRIPT_DIR}/../../system/${HOSTLIST_CMD}"
   else
-    host_list=\$(${HOSTLIST_CMD} \$${ENV_VAR_NODE_LIST} ${HOSTLIST_TREATMENT})
+    host_list=\$(${HOSTLIST_CMD} \$${ENV_VAR_NODE_LIST}${env_var_suffix} ${HOSTLIST_TREATMENT})
     worker_nodes=\$(echo \${host_list})
   fi
 

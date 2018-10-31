@@ -2,8 +2,9 @@
 
   # Obtain parameters
   output_file=$1
-  error_file=$2 
+  error_file=$2
   target_log_folder=$3
+  base_app_dir=$4
 
   # Log files
   runtime_log="${target_log_folder}/runtime.log"
@@ -28,7 +29,49 @@
   fi
 
   #----------------------------------------------------------------------------------
-  # TODO: Check inout and output files consolidation
+  # Check files consolidation
+
+  if [ -f "${base_app_dir}"/infile ]; then
+    content=$(cat "${base_app_dir}"/infile)
+    if [ "${content}" != "IN FILE CONTENT" ]; then
+      echo "ERROR: infile FILE CONTENTS ARE NOT AS EXPECTED AFTER EXECUTION." | tee -a ${output_file}
+      exit 1
+    fi
+  fi
+
+  if [ -f "${base_app_dir}"/inoutfile ]; then
+    content=$(cat "${base_app_dir}"/inoutfile)
+    content="$(echo "$content" | tr -d '\n')"
+    if [ "${content}" != "INOUT FILE CONTENT===> INOUT FILE ADDED CONTENT" ]; then
+      echo "ERROR: inoutfile FILE CONTENTS ARE NOT AS EXPECTED AFTER EXECUTION." | tee -a ${output_file}
+      exit 1
+    fi
+  fi
+
+  if [ -f "${base_app_dir}"/outfile ]; then
+    content=$(cat "${base_app_dir}"/outfile)
+    if [ "${content}" != "OUT FILE CONTENT" ]; then
+      echo "ERROR: outfile FILE CONTENTS ARE NOT AS EXPECTED AFTER EXECUTION." | tee -a ${output_file}
+      exit 1
+    fi
+  fi
+
+  if [ -f "${base_app_dir}"/inwork ]; then
+    content=$(cat "${base_app_dir}"/inwork)
+    if [ "${content}" != "Before the task " ]; then
+      echo "ERROR: inwork FILE CONTENTS ARE NOT AS EXPECTED AFTER EXECUTION." | tee -a ${output_file}
+      exit 1
+    fi
+  fi
+
+  if [ -f "${base_app_dir}"/outwork ]; then
+    content=$(cat "${base_app_dir}"/outwork)
+    content="$(echo "$content" | tr -d '\n')"
+    if [ "${content}" != "Before the task ===> INOUT FILE ADDED CONTENT" ]; then
+      echo "ERROR: outwork FILE CONTENTS ARE NOT AS EXPECTED AFTER EXECUTION." | tee -a ${output_file}
+      exit 1
+    fi
+  fi
 
 
   #----------------------------------------------------------------------------------
@@ -41,4 +84,3 @@
   fi
 
   exit 0
-

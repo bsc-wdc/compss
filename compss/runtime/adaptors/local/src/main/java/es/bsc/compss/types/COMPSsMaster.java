@@ -44,7 +44,6 @@ import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
-import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
@@ -544,13 +543,13 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     public void obtainFileData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
             EventListener listener) {
-
+        
         String targetPath = target.getURIInHost(Comm.getAppHost()).getPath();
         // Check if there are current copies in progress
         if (DEBUG) {
             LOGGER.debug("Data " + ld.getName() + " not in memory. Checking if there is a copy to the master in progress");
         }
-        ld.lockHostRemoval();
+        ld.lockHostRemoval();        
         Collection<Copy> copiesInProgress = ld.getCopiesInProgress();
         if (copiesInProgress != null && !copiesInProgress.isEmpty()) {
             for (Copy copy : copiesInProgress) {

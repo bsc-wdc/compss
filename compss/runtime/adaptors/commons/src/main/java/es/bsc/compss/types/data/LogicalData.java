@@ -71,7 +71,7 @@ public class LogicalData {
     private String pscoId;
     // Id if Binding object, null otherwise
     private String bindingId;
-    
+
     // List of existing copies
     private final Set<DataLocation> locations = new TreeSet<>();
     // List of hosts where the data has been used
@@ -240,8 +240,8 @@ public class LogicalData {
             case BINDING:
                 for (Resource r : loc.getHosts()) {
                     this.isBindingData = true;
-                    if (this.bindingId == null){
-                        this.bindingId = ((BindingObjectLocation)loc).getId();
+                    if (this.bindingId == null) {
+                        this.bindingId = ((BindingObjectLocation) loc).getId();
                     }
                     r.addLogicalData(this);
 
@@ -311,41 +311,39 @@ public class LogicalData {
             String targetPath = Comm.getAppHost().getWorkingDirectory() + this.name;
             String id;
             //decide the id where the object is stored in the binding
-            if (this.bindingId != null){
+            if (this.bindingId != null) {
                 id = this.bindingId;
-            } else if (this.value != null){
-                id = (String)this.value;
-            } else{
+            } else if (this.value != null) {
+                id = (String) this.value;
+            } else {
                 id = this.name;
             }
-            if (id.contains("#")){
+            if (id.contains("#")) {
                 id = BindingObject.generate(id).getName();
             }
-            if (BindingDataManager.isInBinding(id)){
+            if (BindingDataManager.isInBinding(id)) {
                 if (DEBUG) {
                     LOGGER.debug(DBG_PREFIX + "Writting binding object " + id + " to file " + targetPath);
                 }
                 BindingDataManager.storeInFile(id, targetPath);
                 addWrittenObjectLocation(targetPath);
-            }else{
+            } else {
                 LOGGER.error(DBG_PREFIX + " Error " + id + " not found in binding");
                 throw (new Exception(" Error " + id + " not found in binding"));
             }
+        } else if (this.pscoId != null) {
+            // It is a persistent object that is already persisted
+            // Nothing to do
+            // If the PSCO is not persisted we treat it as a normal object
         } else {
-            if (this.pscoId != null) {
-                // It is a persistent object that is already persisted
-                // Nothing to do
-                // If the PSCO is not persisted we treat it as a normal object
-            } else {
 
-                // The object must be written to file
-                String targetPath = Comm.getAppHost().getWorkingDirectory() + this.name;
-                if (DEBUG) {
-                    LOGGER.debug(DBG_PREFIX + "Writting object " + this.name + " to file " + targetPath);
-                }
-                Serializer.serialize(value, targetPath);
-                addWrittenObjectLocation(targetPath);
+            // The object must be written to file
+            String targetPath = Comm.getAppHost().getWorkingDirectory() + this.name;
+            if (DEBUG) {
+                LOGGER.debug(DBG_PREFIX + "Writting object " + this.name + " to file " + targetPath);
             }
+            Serializer.serialize(value, targetPath);
+            addWrittenObjectLocation(targetPath);
         }
         if (DEBUG) {
             LOGGER.debug(DBG_PREFIX + "Object " + this.name + " written to storage");
@@ -639,11 +637,11 @@ public class LogicalData {
         }
     }
 
-    public synchronized void lockHostRemoval() {
+    public void lockHostRemoval() {
         lockHostRemoval_private();
     }
 
-    public synchronized void releaseHostRemoval() {
+    public void releaseHostRemoval() {
         releaseHostRemoval_private();
     }
 

@@ -260,3 +260,32 @@ Known Limitations:
 
 For further information, please refer to “COMPSs User Manual: Application development guide”.
 
+Release number: 2.4 Elderflower
+Release date: November-2018
+-------------------------------
+New features:
+         * Runtime:
+                 - New supercomputers supported Power9 (OpenPower) and ThunderX (ARM 64)
+
+         * Python:
+                 - Autoparallel Module to automatically taskify affine loop nests
+                 - Support for Python notebook execution in Supercomputers
+                 - Distributed Data Set library that eases development of PyCOMPSs applications by distributing data, and/or providing most common data operations such as map, filter, reduce, etc.  
+		 - Embedded PyMPI tasks
+
+         * C:
+                 - Multi-architecture and Cross-compiling build support 
+
+Improvements:
+         - New example applications distributed on Github
+         - Reduced overhead of c-binding 
+         - Task sandbox reuse to reduce execution overheads
+         - Script to clean COMPSs zombie processes
+         - Several bug fixes
+
+Known Limitations:
+         - Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses  threads in the different calls and it does not change the number of threads from one call to another.
+         - C++ Objects declared as arguments in a coarse-grain tasks must be passed in the task methods as object pointers in order to have a proper dependency management.
+
+For further information, please refer to “COMPSs User Manual: Application development guide”.
+

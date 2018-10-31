@@ -20,21 +20,33 @@ check_heterogeneous_args(){
 }
 
 update_args_to_pass(){
+  local xml_phase=$1
+  local xml_suffix=$2
   args_pass="${orig_args_pass}"
   if [ ! -z "${cpus_per_node}" ]; then
-  	args_pass="${args_pass} ${cpus_per_node}"
+  	args_pass="${args_pass} --cpus_per_node=${cpus_per_node}"
   fi
   if [ ! -z "${gpus_per_node}" ]; then
-        args_pass="${args_pass} ${gpus_per_node}"
+        args_pass="${args_pass} --gpus_per_node=${gpus_per_node}"
   fi
-  if [ ! -z "${constraint}" ]; then
-        args_pass="${args_pass} ${contraint}"
+  if [ ! -z "${constraints}" ]; then
+        args_pass="${args_pass} --constraints=${constraints}"
   fi
+  if [ ! -z "${node_memory}" ]; then
+        args_pass="${args_pass} --node_memory=${node_memory}"
+  fi
+  if [ ! -z "${xml_phase}" ]; then
+        args_pass="${args_pass} --xml_phase=${xml_phase}"
+  fi
+  if [ ! -z "${xml_suffix}" ]; then
+        args_pass="${args_pass} --xml_suffix=${xml_suffix}"
+  fi
+
   # TODO: Add other parameters to pass
 }
 
 unset_type_vars(){
-  unset cpus_per_node gpus_per_node num_nodes node_memory
+  unset cpus_per_node gpus_per_node constraints num_nodes node_memory
   # TODO: Unset other changed parameters
 }
 
@@ -48,8 +60,10 @@ write_worker_submit(){
   add_submission_headers
   if [ "${HETEROGENEOUS_MULTIJOB}" == "true" ]; then
      add_only_worker_nodes
-     add_launch
+  else
+     add_only_worker_nodes "_PACKJOB_$1"
   fi
+  add_launch
 }
 
 ###############################################
@@ -93,7 +107,9 @@ submit() {
   # Get command args
   get_args "$@"
   
+  # Storing original arguments to pass
   original_args_pass="${args_pass}"
+
   # Load specific queue system variables
   # shellcheck source=../cfgs/default.cfg
   source "${SCRIPT_DIR}/../cfgs/${sc_cfg}"
@@ -109,9 +125,27 @@ submit() {
   create_tmp_submit
   echo "submit files is set in ${TMP_SUBMIT_SCRIPT}"
   submit_files="${TMP_SUBMIT_SCRIPT}"
+  
+  suffix=$(date +%s)
+  if [ -z "${HETEROGENEOUS_MULTIJOB}" ] || [ "${HETEROGENEOUS_MULTIJOB}" = "false" ]; then
+        echo "adding master node request headers ${TMP_SUBMIT_SCRIPT}"
+        
+        eval $master_type
+        
+        num_nodes=1
+        
+        check_args
 
-  unset_type_vars  
+        set_time
+
+        add_submission_headers
+        
+        add_packjob_separator
+
+        unset_type_vars 
+  fi     
   echo " Parsing workers ${worker_types}"
+  worker_num=1
   workers=$(echo "${worker_types}" | tr ',' ' ')  
   for worker in ${workers}; do
     echo " submitting worker ${worker}"
@@ -125,9 +159,15 @@ submit() {
 
     set_time
 
-    log_args
+    if [ ${worker_num} -eq 1 ]; then
+       update_args_to_pass "init" ${suffix}  
+    else 
+       update_args_to_pass "add" ${suffix}
+    fi
 
-    write_worker_submit
+    log_args
+    
+    write_worker_submit ${worker_num}
     
     unset_type_vars
     
@@ -138,6 +178,7 @@ submit() {
     else
 	add_packjob_separator 
     fi
+    worker_num=$((worker_num + 1))
   done
   # Write master
   eval $master_type
@@ -149,13 +190,17 @@ submit() {
   # Set wall clock time
   set_time
 
-  update_args_to_pass
+  update_args_to_pass "fini" ${suffix}
 
   # Log received arguments
   log_args
   
-  write_master_submit
- 
+  if [ "${HETEROGENEOUS_MULTIJOB}" == "true" ]; then
+     write_master_submit
+  else
+     add_only_master_node
+     add_launch
+  fi 
   # Trap cleanup
   #trap cleanup EXIT
 

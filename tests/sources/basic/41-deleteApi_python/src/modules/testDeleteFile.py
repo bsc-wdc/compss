@@ -26,11 +26,12 @@ class testDeleteFile(unittest.TestCase):
 
         for i in range(3):
             # Write value
-            fos = open(counter_name, 'w')
+            if i <= 1:
+                fos = open(counter_name, 'w')
+                fos.write(initial_value)
+                fos.close()
             fos2 = open(counter_name_IN, 'w')
-            fos.write(initial_value)
             fos2.write(initial_value)
-            fos.close()
             fos2.close()
             print(('Initial counter value is %s' % initial_value))
             # Execute increment

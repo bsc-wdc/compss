@@ -63,6 +63,20 @@ class testArgsKwargsInstanceMethods(unittest.TestCase):
         print("KWARG: ", kwargs)
         return (v * w) + sum(args) + len(kwargs) + s
 
+    @task(returns=int)
+    def taskUnrollDict(self, a, b, **kwargs):
+        print("a: ", a)
+        print("b: ", b)
+        print("kwargs: ", kwargs)
+        return a + b + len(kwargs)
+
+    @task(returns=int)
+    def taskUnrollDictWithDefaults(self, a=1, b=2, **kwargs):
+        print("a: ", a)
+        print("b: ", b)
+        print("kwargs: ", kwargs)
+        return a + b + len(kwargs)
+
     '''
     FUNCTION WITH *ARGS
     '''
@@ -85,7 +99,7 @@ class testArgsKwargsInstanceMethods(unittest.TestCase):
         self.assertEqual(result, 0)
 
     '''
-        FUNCTION WITH ARGS + *ARGS
+    FUNCTION WITH ARGS + *ARGS
     '''
 
     def testVarArgTask1(self):
@@ -104,7 +118,7 @@ class testArgsKwargsInstanceMethods(unittest.TestCase):
         self.assertEqual(result, 200)
 
     '''
-        FUNCTION WITH **KWARGS
+    FUNCTION WITH **KWARGS
     '''
 
     def testKwargTask1(self):
@@ -123,7 +137,7 @@ class testArgsKwargsInstanceMethods(unittest.TestCase):
         self.assertEqual(result, 0)
 
     '''
-        FUNCTION WITH ARGS + **KWARGS
+    FUNCTION WITH ARGS + **KWARGS
     '''
 
     def testVarKwargTask1(self):
@@ -142,7 +156,7 @@ class testArgsKwargsInstanceMethods(unittest.TestCase):
         self.assertEqual(result, 6)
 
     '''
-        FUNCTION WITH *ARGS + **KWARGS
+    FUNCTION WITH *ARGS + **KWARGS
     '''
 
     def testArgKwargTask1(self):
@@ -166,7 +180,7 @@ class testArgsKwargsInstanceMethods(unittest.TestCase):
         self.assertEqual(result, 0)
 
     '''
-        FUNCTION WITH ARGS, *ARGS AND **KWARGS
+    FUNCTION WITH ARGS, *ARGS AND **KWARGS
     '''
 
     def testVarArgKwargTask1(self):
@@ -180,7 +194,7 @@ class testArgsKwargsInstanceMethods(unittest.TestCase):
         self.assertEqual(result, 22)
 
     '''
-        FUNCTION WITH ARGS, DEFAULTED ARGS, *ARGS AND **KWARGS
+    FUNCTION WITH ARGS, DEFAULTED ARGS, *ARGS AND **KWARGS
     '''
 
     def testVarArgDefaultKwargTask1(self):
@@ -202,3 +216,35 @@ class testArgsKwargsInstanceMethods(unittest.TestCase):
         pending = self.varargdefaultkwargTask(1, 2, 3, 4, five=5)
         result = compss_wait_on(pending)
         self.assertEqual(result, 10)
+
+    # TODO: Supported if not executed with the previous - but check that works with the previous with the new parameter naming implementation.
+    # def testVarArgDefaultKwargTask5(self):
+    #     pending = self.varargdefaultkwargTask(1, 2, 3, 4, 5, six=6, seven=7)
+    #     result = compss_wait_on(pending)
+    #     self.assertEqual(result, 16)
+
+    '''
+    FUNCTION WITH **KWARGS AND DICT UNROLLING
+    '''
+
+    def testKwargsDictUnrolling(self):
+        z = {'a': 10, 'b': 20, 'c': 30}
+        pending = self.taskUnrollDict(**z)
+        result = compss_wait_on(pending)
+        self.assertEqual(result, 31)
+
+    def testKwargsDictUnrollingControl(self):
+        pending = self.taskUnrollDict(10, 20, c=30)
+        result = compss_wait_on(pending)
+        self.assertEqual(result, 31)
+
+    def testKwargsDictUnrollingDefaults(self):
+        z = {'a': 10, 'b': 20, 'c': 30}
+        pending = self.taskUnrollDictWithDefaults(**z)
+        result = compss_wait_on(pending)
+        self.assertEqual(result, 31)
+
+    def testKwargsDictUnrollingDefaultsControl(self):
+        pending = self.taskUnrollDictWithDefaults()
+        result = compss_wait_on(pending)
+        self.assertEqual(result, 3)

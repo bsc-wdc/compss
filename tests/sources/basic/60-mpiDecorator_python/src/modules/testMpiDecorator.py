@@ -13,7 +13,7 @@ import os
 
 from pycompss.api.task import task
 from pycompss.api.parameter import *
-from pycompss.api.api import compss_barrier, compss_wait_on, compss_open
+from pycompss.api.api import compss_barrier, compss_open, compss_wait_on
 from pycompss.api.mpi import mpi
 from pycompss.api.constraint import constraint
 
@@ -119,7 +119,7 @@ class testMpiDecorator(unittest.TestCase):
             content_r = finout_r.read()
         # Check if there are no Hi words, and instead there is HELLO
         if 'Hi' in content_r:
-            self.assertFalse()
+            self.fail("INOUT File failed.")
 
     def testFileManagement(self):
         infile = "src/infile"

@@ -89,7 +89,6 @@ class testFiles(unittest.TestCase):
         content = "IN FILE CONTENT"
         with open(fin, 'w') as f:
             f.write(content)
-
         res = self.fileIn(fin)
         res = compss_wait_on(res)
         self.assertEqual(res, content, "strings are not equal: {}, {}".format(res, content))
@@ -120,12 +119,10 @@ class testFiles(unittest.TestCase):
         content = "INOUT FILE CONTENT"
         with open(finout, 'w') as f:
             f.write(content)
-
         res = self.fileInOut(finout)
         res = compss_wait_on(res)
         with compss_open(finout, 'r') as finout_r:
             content_r = finout_r.read()
-
         content += "\n===> INOUT FILE ADDED CONTENT"
         self.assertEqual(res, content, "strings are not equal: {}, {}".format(res, content))
         self.assertEqual(content_r, content, "strings are not equal: {}, {}".format(content_r, content))
@@ -165,16 +162,13 @@ class testFiles(unittest.TestCase):
         from pycompss.api.api import compss_open
         fin = "inwork"
         fout = "outwork"
-
         content = "Before the task "
         with open(fin, 'w') as f:
             f.write(content)
         res = self.fileIn(fin)
         f2 = self.fileOut(fout, res)
         f3 = self.fileInOut(fout)
-
         with compss_open(fout, 'r') as f:
             content_r = f.read()
         content += "\n===> INOUT FILE ADDED CONTENT"
         self.assertEqual(content, content_r, "strings are not equal: {}, {}".format(content_r, content))
-        pass

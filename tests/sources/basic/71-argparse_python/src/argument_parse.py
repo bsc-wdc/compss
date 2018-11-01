@@ -10,6 +10,7 @@ PyCOMPSs Testbench
 # Imports
 import argparse
 from pycompss.api.task import task
+from pycompss.api.api import compss_barrier
 
 
 @task()
@@ -47,11 +48,14 @@ def main():
         if type(v) == int:
             assign(v)
 
+    compss_barrier()
+
     if values == expected_values:
         print("Argparse received the expected arguments and values:\n%s" % values)
     else:
-        print("Argparse did not received the expected arguments and values\n",
-              "Expected: %s\nGot: %s" % (expected_values, values))
+        print("Argparse did not received the expected arguments and values.")
+        print("Expected: %s" % (expected_values))
+        print("Got: %s" % (values))
 
 
 if __name__ == "__main__":

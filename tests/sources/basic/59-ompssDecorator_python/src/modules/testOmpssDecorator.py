@@ -44,9 +44,9 @@ def mySedIN(expression, file):
     pass
 
 
-@ompss(binary="sed", workingDir=".")
-@task(returns=int, file=FILE_IN)
-def mySedReturn(expression, file):
+@ompss(binary="date", workingDir=".")
+@task(returns=int)
+def myReturn():
     pass
 
 
@@ -102,15 +102,14 @@ class testOmpssDecorator(unittest.TestCase):
         compss_barrier()
 
     def testReturn(self):
-        infile = "src/infile"
-        ev = mySedReturn('s/Hi/HELLO/g', infile)
+        ev = myReturn()
         ev = compss_wait_on(ev)
         self.assertEqual(ev, 0)
 
     def testFailedBinaryExitValue(self):
         ev = failedBinary(123)
         ev = compss_wait_on(ev)
-        self.assertEqual(ev, 123)
+        self.assertEqual(ev, 123)  # own exit code for failed execution
 
     @unittest.skip("UNSUPPORTED WITH GAT")
     def testFileManagementINOUT(self):
@@ -120,7 +119,7 @@ class testOmpssDecorator(unittest.TestCase):
             content_r = finout_r.read()
         # Check if there are no Hi words, and instead there is HELLO
         if 'Hi' in content_r:
-            self.assertFalse()
+            self.fail("INOUT File failed.")
 
     def testFileManagement(self):
         infile = "src/infile"

@@ -20,17 +20,18 @@ class testDeleteFile(unittest.TestCase):
     def testDeleteFile(self):
         # Check and get parameters
         initial_value = '1'
-        counter_name = 'counter_INOUT'
+        counter_name = 'counter_INOUT'  # check that this file does not exist after the execution
         counter_name_IN = 'counter_IN'  # check that this file does not exist after the execution
         counter_name_OUT = 'counter_OUT'  # check that this file does not exist after the execution
 
         for i in range(3):
             # Write value
-            fos = open(counter_name, 'w')
+            if i <= 1:
+                fos = open(counter_name, 'w')
+                fos.write(initial_value)
+                fos.close()
             fos2 = open(counter_name_IN, 'w')
-            fos.write(initial_value)
             fos2.write(initial_value)
-            fos.close()
             fos2.close()
             print(('Initial counter value is %s' % initial_value))
             # Execute increment
@@ -47,4 +48,5 @@ class testDeleteFile(unittest.TestCase):
         final_value = fis.read()
         fis.close()
         print(('Final counter value is %s' % final_value))
+        self.assertEqual(final_value, '3')
         compss_delete_file(counter_name)

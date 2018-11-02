@@ -256,8 +256,6 @@ class task(object):
             # return the default key.
             return default
 
-
-
         # Look for the decorator that has to do the registration
         # Since the __init__ of the decorators is independent, there is no way
         # to pass information through them.

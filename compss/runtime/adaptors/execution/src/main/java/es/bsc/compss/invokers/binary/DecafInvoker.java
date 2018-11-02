@@ -224,13 +224,6 @@ public class DecafInvoker extends Invoker {
         String workersInLines = workers.replace(',', '\n');
         BufferedWriter writer = null;
         try {
-<<<<<<< eb4b41f13c640caf41497a8df44988b14bd6c064
-            return GenericInvoker.invokeDecafMethod(context.getInstallDir() + DecafImplementation.SCRIPT_PATH, this.dfScript, this.dfExecutor,
-                    this.dfLib, this.mpiRunner, this.values, this.streams, this.prefixes, this.taskSandboxWorkingDir,
-                    context.getThreadOutStream(), context.getThreadErrStream());
-        } catch (InvokeExecutionException iee) {
-            throw new JobExecutionException(iee);
-=======
             writer = new BufferedWriter(new FileWriter(filename));
             writer.write(workersInLines);
         } catch (IOException e) {
@@ -243,7 +236,6 @@ public class DecafInvoker extends Invoker {
             } catch (IOException e) {
                 // Nothing to do
             }
->>>>>>> Invokers don't use Generic invoker class
         }
         return filename;
     }

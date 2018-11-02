@@ -214,8 +214,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     @Override
     public void receivedNewTask(NIONode master, NIOTask task, List<String> obsoleteFiles) {
         WORKER_LOGGER.info("Received Job " + task);
-<<<<<<< daea01ee12cc918475047bbfb7d30a7455190cfb
-=======
         WORKER_LOGGER.info("ARGUMENTS:");
         for (InvocationParam param : task.getParams()) {
             WORKER_LOGGER.info("    -" + param.getPrefix() + " " + param.getType() + ":" + param.getValue());
@@ -228,7 +226,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         for (InvocationParam param : task.getResults()) {
             WORKER_LOGGER.info("    -" + param.getPrefix() + " " + param.getType() + ":" + param.getValue());
         }
->>>>>>> Enabled C
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.WORKER_RECEIVED_NEW_TASK.getId(), Tracer.Event.WORKER_RECEIVED_NEW_TASK.getType());
         }

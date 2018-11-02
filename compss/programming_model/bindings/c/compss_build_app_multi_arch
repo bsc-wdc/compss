@@ -76,9 +76,9 @@ Usage: $0 [options] application_name
 * Options:
     compss_build_app_multi_arch specific:
 
-        --help, -h      Prints this help message
+        --help, -h                  Prints this help message
 
-        --opts          Show available options
+        --opts                      Show available options
 
 EOT
 

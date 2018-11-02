@@ -62,8 +62,8 @@ show_opts() {
                                             Default: Disabled
     --with_opencl=<ocl_installation_path>   Enables worker compilation with openCL installed in a certain location
                                             Default: Disabled
-    --opencl_libs="libs"		            Specifies extra opencl libraries locations
-	                    				    Default: Empty
+    --opencl_libs="libs"                    Specifies extra opencl libraries locations
+                                            Default: Empty
 EOT
 }
 

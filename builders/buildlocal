@@ -520,7 +520,6 @@ install_compss() {
     mkdir -p ${targetDir}/Runtime/scripts/system/c/
     cp ${targetDir}/Bindings/c/bin/* ${targetDir}/Runtime/scripts/system/c
     cp ./compss_build_app ${targetDir}/Runtime/scripts/user/
-    cp ./compss_build_app_multi_arch ${targetDir}/Runtime/scripts/user/
     cp -r ./cfgs ${targetDir}/Bindings/c/
     echo "- Deploying python-binding files"
     cd "${TMP_DIR}/compss/programming_model/bindings/python"

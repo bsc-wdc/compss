@@ -31,6 +31,7 @@ import es.bsc.compss.types.resources.WorkerResourceDescription;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -751,7 +752,7 @@ public abstract class AllocatableAction {
      * @throws BlockedActionException
      * @throws UnassignedActionException
      */
-    public abstract void tryToSchedule(Score actionScore) throws BlockedActionException, UnassignedActionException;
+    public abstract void tryToSchedule(Score actionScore, Set<ResourceScheduler<?>> availableWorkers) throws BlockedActionException, UnassignedActionException;
 
     /**
      * Schedules the action to a given @targetWorker with score @actionScore

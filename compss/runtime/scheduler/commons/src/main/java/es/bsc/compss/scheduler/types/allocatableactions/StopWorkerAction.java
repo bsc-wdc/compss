@@ -39,6 +39,7 @@ import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 import es.bsc.compss.types.resources.updates.PendingReduction;
 import java.util.LinkedList;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
 
 
@@ -195,7 +196,7 @@ public class StopWorkerAction extends AllocatableAction {
     }
     
     @Override
-    public void tryToSchedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
+    public void tryToSchedule(Score actionScore, Set<ResourceScheduler<? extends WorkerResourceDescription>> availableResources) throws BlockedActionException, UnassignedActionException {
         this.schedule(actionScore);
     }
 

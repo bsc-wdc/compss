@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 public class Action extends AllocatableAction {
@@ -103,7 +104,7 @@ public class Action extends AllocatableAction {
     }
     
     @Override
-    public void tryToSchedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
+    public void tryToSchedule(Score actionScore, Set<ResourceScheduler<?>> availableWorkers) throws BlockedActionException, UnassignedActionException {
 
     }
 

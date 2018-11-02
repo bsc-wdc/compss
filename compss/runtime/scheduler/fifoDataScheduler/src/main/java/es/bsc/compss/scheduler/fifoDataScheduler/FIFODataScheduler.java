@@ -100,10 +100,9 @@ public class FIFODataScheduler extends ReadyScheduler {
                 dataFreeActions.add(freeAction);
             }
         }
+        
+        super.purgeFreeActions(dataFreeActions, resourceFreeActions, blockedCandidates, resource);
 
-        List<AllocatableAction> unassignedReadyActions = this.unassignedReadyActions.getAllActions();
-        this.unassignedReadyActions.removeAllActions();
-        dataFreeActions.addAll(unassignedReadyActions);
     }
 
 }

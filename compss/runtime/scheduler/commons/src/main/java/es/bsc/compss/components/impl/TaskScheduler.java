@@ -490,7 +490,7 @@ public class TaskScheduler {
 
     protected final void tryToLaunch(AllocatableAction action) {
         try {
-            LOGGER.debug("[TaskScheduler] Trying to launch" + action);
+            LOGGER.debug("[TaskScheduler] Trying to launch " + action);
             action.tryToLaunch();
             // LOGGER.debug("[TaskScheduler] Exited from tryToLaunch without exception");
         } catch (InvalidSchedulingException ise) {

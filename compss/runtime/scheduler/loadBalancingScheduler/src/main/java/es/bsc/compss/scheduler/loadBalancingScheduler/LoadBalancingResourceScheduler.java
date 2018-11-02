@@ -95,21 +95,21 @@ public class LoadBalancingResourceScheduler<T extends WorkerResourceDescription>
     @Override
     public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl, Score resourceScore) {
         // LOGGER.debug("[LoadBalancing] Generate implementation score for action " + action);
-        if (this.hasBlockedActions()){
-            // Added for scale-down: In readyScheduler, should disable the node for scheduling more tasks? 
-            return null;
-        }
-        if (myWorker.canRunNow((T) impl.getRequirements())) {
+        //if (this.hasBlockedActions()){
+        //    // Added for scale-down: In readyScheduler, should disable the node for scheduling more tasks? 
+        //    return null;
+        //}
+        //if (myWorker.canRunNow((T) impl.getRequirements())) {
             long actionPriority = resourceScore.getActionScore();
             long resourcePriority = resourceScore.getResourceScore();
             long waitingScore = -action.getId();
             long implScore = -this.getProfile(impl).getAverageExecutionTime();
 
             return new LoadBalancingScore(actionPriority, resourcePriority, waitingScore, implScore);
-        } else {
+        //} else {
             // Implementation cannot be run
-            return null;
-        }
+        //    return null;
+        //}
     }
 
     /*

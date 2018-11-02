@@ -16,14 +16,11 @@
  */
 package es.bsc.compss.scheduler.lifoScheduler;
 
-import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.scheduler.readyScheduler.ReadyScheduler;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-
-import java.util.List;
 
 import org.json.JSONObject;
 
@@ -68,14 +65,5 @@ public class LIFOScheduler extends ReadyScheduler {
      * *********************************************************************************************************
      * *********************************************************************************************************
      */
-    @Override
-    public <T extends WorkerResourceDescription> void purgeFreeActions(List<AllocatableAction> dataFreeActions,
-            List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
-
-        List<AllocatableAction> unassignedReadyActions = this.unassignedReadyActions.getAllActions();
-        this.unassignedReadyActions.removeAllActions();
-        dataFreeActions.addAll(unassignedReadyActions);
-
-    }
 
 }

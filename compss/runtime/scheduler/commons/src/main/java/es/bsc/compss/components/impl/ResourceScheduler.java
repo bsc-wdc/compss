@@ -382,6 +382,15 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
         }
         return taskCount;
     }
+    
+    /**
+     * Returns true if this resource has available slots to run some task. False otherwise.
+     *
+     * @return
+     */
+    public final boolean canRunSomething() {
+        return this.myWorker.canRunSomething();
+    }
 
     /**
      * Returns all the hosted actions
@@ -667,7 +676,6 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
 
     public void setRemoved(boolean b) {
         removed = true;
-
     }
 
     public boolean isRemoved() {

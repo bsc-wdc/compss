@@ -28,6 +28,7 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import java.util.LinkedList;
+import java.util.Set;
 
 
 public class OptimizationAction extends AllocatableAction {
@@ -102,7 +103,7 @@ public class OptimizationAction extends AllocatableAction {
     }
     
     @Override
-    public void tryToSchedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
+    public void tryToSchedule(Score actionScore, Set<ResourceScheduler<?>> availableResources) throws BlockedActionException, UnassignedActionException {
         
     }
 

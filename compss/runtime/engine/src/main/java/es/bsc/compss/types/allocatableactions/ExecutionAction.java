@@ -54,6 +54,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -512,13 +513,13 @@ public class ExecutionAction extends AllocatableAction {
 
     @SuppressWarnings("unchecked")
     @Override
-    public final void tryToSchedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
+    public final void tryToSchedule(Score actionScore, Set<ResourceScheduler<?>> availableResources) throws BlockedActionException, UnassignedActionException {
         // COMPUTE RESOURCE CANDIDATES
         List<ResourceScheduler<? extends WorkerResourceDescription>> candidates = new LinkedList<>();
         if (this.isTargetResourceEnforced()) {
             // The scheduling is forced to a given resource
             candidates.add((ResourceScheduler<WorkerResourceDescription>) this.getEnforcedTargetResource());
-        } else if (isSchedulingConstrained()) {
+        } else if (this.isSchedulingConstrained()) {
             // The scheduling is constrained by dependencies
             for (AllocatableAction a : this.getConstrainingPredecessors()) {
                 candidates.add((ResourceScheduler<WorkerResourceDescription>) a.getAssignedResource());
@@ -531,7 +532,9 @@ public class ExecutionAction extends AllocatableAction {
             }
             for (ResourceScheduler<? extends WorkerResourceDescription> currentWorker : compatibleCandidates) {
                 if (currentWorker.getResource().hasAvailableSlots()) {
-                    candidates.add(currentWorker);
+                	if (availableResources.contains(currentWorker)) {
+                		candidates.add(currentWorker);
+                	}
                 }
             }
             if (candidates.size() == 0) {

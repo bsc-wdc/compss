@@ -309,6 +309,17 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         }
         return runnable;
     }
+    
+    @SuppressWarnings("unchecked")
+    public boolean canRunSomething() {
+        int coreCount = CoreManager.getCoreCount();
+        for (int coreId = 0; coreId < coreCount; coreId++) {
+            if (!getRunnableImplementations(coreId).isEmpty()) {
+            	return true;
+            }
+        }
+    	return false;
+    }
 
     public boolean canRunNow(T consumption) {
         // Available slots

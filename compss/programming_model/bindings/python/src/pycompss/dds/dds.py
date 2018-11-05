@@ -124,7 +124,7 @@ class DDS(object):
 
         return self
 
-    def load_files_from_dir(self, dir_path, num_of_parts=3):
+    def load_files_from_dir(self, dir_path, num_of_parts=-1):
         """
 
         :param dir_path:
@@ -133,6 +133,7 @@ class DDS(object):
         """
         files = os.listdir(dir_path)
         total = len(files)
+        num_of_parts = total if num_of_parts < 0 else num_of_parts
         partition_sizes = [(total // num_of_parts)] * num_of_parts
         extras = total % num_of_parts
         for i in range(extras):

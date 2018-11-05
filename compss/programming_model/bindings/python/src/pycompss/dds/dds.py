@@ -22,7 +22,7 @@ from collections import defaultdict, deque
 from pycompss.api.api import compss_barrier, compss_open
 from pycompss.dds.tasks import *
 
-import heapq3
+from pycompss.dds import heapq3
 
 
 class DDS(object):

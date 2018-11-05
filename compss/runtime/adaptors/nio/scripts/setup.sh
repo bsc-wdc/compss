@@ -1,5 +1,7 @@
 #!/bin/bash
 
+  NUM_PARAMS=32  
+
   ######################
   # INTERNAL FUNCTIONS
   ######################
@@ -69,8 +71,8 @@
     paramsToCOMPSsWorker=$@
 
     # Check number of parameters
-    if [ $# -ne 31 ]; then
-        echo "ERROR: Incorrect number of parameters. Expected: 31. Got: $#"
+    if [ $# -ne ${NUM_PARAMS} ]; then
+        echo "ERROR: Incorrect number of parameters. Expected: ${NUM_PARAMS}. Got: $#"
         exit 1
     fi
 

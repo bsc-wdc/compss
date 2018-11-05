@@ -1208,7 +1208,7 @@ public class NIOWorker extends NIOAgent {
         int maxRcv = Integer.parseInt(args[2]);
         String workerIP = args[3];
         int wPort = Integer.parseInt(args[4]);
-        int mName = args[5];
+        String mName = args[5];
         int mPort = Integer.parseInt(args[6]);
 
         int computingUnitsCPU = Integer.parseInt(args[7]);
@@ -1250,7 +1250,7 @@ public class NIOWorker extends NIOAgent {
 
             WORKER_LOGGER.debug("WorkerName: " + workerIP);
             WORKER_LOGGER.debug("WorkerPort: " + String.valueOf(wPort));
-            WORKER_LOGGER.debug("WorkerName: " + mName);
+            WORKER_LOGGER.debug("MasterName: " + mName);
             WORKER_LOGGER.debug("MasterPort: " + String.valueOf(mPort));
 
             WORKER_LOGGER.debug("Computing Units CPU: " + String.valueOf(computingUnitsCPU));
@@ -1317,7 +1317,7 @@ public class NIOWorker extends NIOAgent {
          * ***********************************************************************************************************
          * LAUNCH THE WORKER
          *************************************************************************************************************/
-        NIOWorker nw = new NIOWorker(maxSnd, maxRcv, workerIP, mPort, computingUnitsCPU, computingUnitsGPU, computingUnitsFPGA,
+        NIOWorker nw = new NIOWorker(maxSnd, maxRcv, workerIP, mName, mPort, computingUnitsCPU, computingUnitsGPU, computingUnitsFPGA,
                 cpuMap, gpuMap, fpgaMap, limitOfTasks, appUuid, lang, workingDir, installDir, appDir, libPath, classpath, pythonpath);
 
         NIOMessageHandler mh = new NIOMessageHandler(nw);

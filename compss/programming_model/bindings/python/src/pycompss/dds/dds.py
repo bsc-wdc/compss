@@ -22,7 +22,7 @@ from collections import defaultdict, deque
 from pycompss.api.api import compss_barrier, compss_open
 from pycompss.dds.tasks import *
 
-import heapq3
+from pycompss.dds import heapq3
 
 
 class DDS(object):
@@ -124,15 +124,17 @@ class DDS(object):
 
         return self
 
-    def load_files_from_dir(self, dir_path, num_of_parts=3):
+    def load_files_from_dir(self, dir_path, num_of_parts=-1):
         """
-
-        :param dir_path:
-        :param num_of_parts:
+        Read multiple files from a given directory. Each file and its content
+        is saved in a tuple in ('file_path', 'file_content') format.
+        :param dir_path: A directory that all files will be loaded from
+        :param num_of_parts: can be set to -1 to create one partition per file
         :return:
         """
         files = os.listdir(dir_path)
         total = len(files)
+        num_of_parts = total if num_of_parts < 0 else num_of_parts
         partition_sizes = [(total // num_of_parts)] * num_of_parts
         extras = total % num_of_parts
         for i in range(extras):

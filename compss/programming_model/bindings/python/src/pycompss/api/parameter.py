@@ -276,21 +276,24 @@ def is_vararg(x):
     :param x: String with a parameter name
     :returns: True iff the name has the form of an internal vararg name
     '''
-    return x.startswith('*vararg')
+    return x.startswith('*')
+
+def get_varargs_name(x):
+    return x.split('*')[0]
 
 def is_kwarg(x):
     '''Determine if a parameter is named as a (internal) kwargs
     :param x: String with a parameter name
     :return: True iff the name has the form of an internal kwarg name
     '''
-    return x.startswith('*kwarg')
+    return x.startswith('#kwarg')
 
 def is_return(x):
     '''Determine if a parameter is named as a (internal) return
     :param x: String with a parameter name
     :returns: True iff the name has the form of an internal return name
     '''
-    return x.startswith('*return')
+    return x.startswith('$return')
 
 def is_object(x):
     '''Determine if a parameter is an object (not a FILE)
@@ -302,26 +305,26 @@ def is_object(x):
 # Note that the given internal names to these parameters are
 # impossible to be assigned by the user because they are invalid
 # Python variable names, as they start with a star
-def get_vararg_name(i):
+def get_vararg_name(varargs_name, i):
     '''Given some integer i, return the name of the ith vararg
     :param i: A nonnegative integer
     :return: The name of the ith vararg according to our internal naming convention
     '''
-    return '*vararg_%d' % i
+    return '*%s*_%d' % (varargs_name, i)
 
 def get_kwarg_name(var):
     '''Given some variable name, get the kwarg identifier
     :param var: A string with a variable name
     :return: The name of the kwarg according to our internal naming convention
     '''
-    return '*kwarg_%s' % var
+    return '#kwarg_%s' % var
 
 def get_name_from_kwarg(var):
     '''Given some kwarg name, return the original variable name
     :param var: A string with a (internal) kwarg name
     :return: The original variable name
     '''
-    return var.replace('*kwarg_', '')
+    return var.replace('#kwarg_', '')
 
 
 def get_return_name(i):
@@ -329,7 +332,7 @@ def get_return_name(i):
     :param i: A nonnegative integer
     :return: The name of the return identifier according to our internal naming
     '''
-    return '*return_%d' % i
+    return '$return_%d' % i
 
 def get_original_name(x):
     '''Given a name with some internal prefix, remove them and return

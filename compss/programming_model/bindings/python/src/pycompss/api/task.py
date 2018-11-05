@@ -497,9 +497,6 @@ class task(object):
         # TODO: Deal with the redundant parameter passing
         from pycompss.runtime.binding import process_task
         from pycompss.runtime.binding import FunctionType
-        # If we have an OMPSs or MPI decorator above us we should have computingNodes
-        # as a kwarg, we should detect it and remove it
-        computing_nodes = kwargs.pop('computingNodes', 1)
         ret = process_task(
             self.user_function, # Ok
             self.module_name, # Ok
@@ -508,7 +505,7 @@ class task(object):
             self.parameters, # Ok
             self.returns, # Ok
             self.decorator_arguments, # Ok
-            computing_nodes, # Ok
+            self.computing_nodes, # Ok
             self.decorator_arguments['isReplicated'], # Ok
             self.decorator_arguments['isDistributed'] # OK
         )
@@ -521,7 +518,9 @@ class task(object):
         args = dir, where args is the name of the variadic args tuple, or
         varargsType = dir (for legacy reasons)
         '''
-        return self.decorator_arguments.get(self.param_varargs, 'varargsType')
+        if not self.param_varargs in self.decorator_arguments:
+            return self.decorator_arguments['varargsType']
+        return self.decorator_arguments[self.param_varargs]
 
     def get_default_direction(self, var_name):
         '''Returns the default direction for a given parameter
@@ -552,6 +551,9 @@ class task(object):
 
         from collections import OrderedDict
         parameter_values = OrderedDict()
+        # If we have an OMPSs or MPI decorator above us we should have computingNodes
+        # as a kwarg, we should detect it and remove it
+        self.computing_nodes = kwargs.pop('computingNodes', 1)
         # It is important to know the name of the first argument to determine if we
         # are dealing with a class or instance method (i.e: first argument is named self)
         self.first_arg_name = None
@@ -581,7 +583,7 @@ class task(object):
         # and their order in the case of the variadic ones
         # Process the variadic arguments
         for (i, var_arg) in enumerate(args[num_positionals:]):
-            parameter_values[parameter.get_vararg_name(i)] = var_arg
+            parameter_values[parameter.get_vararg_name(self.param_varargs, i)] = var_arg
         # Process keyword arguments
         for (name, value) in kwargs.items():
             parameter_values[parameter.get_kwarg_name(name)] = value
@@ -728,6 +730,8 @@ class task(object):
             elif parameter.is_kwarg(arg.name):
                 user_kwargs[parameter.get_name_from_kwarg(arg.name)] = arg.content
             else:
+                if parameter.is_vararg(arg.name):
+                    self.param_varargs = parameter.get_varargs_name(arg.name)
                 # Apart from the names we preserve the original order, so it is guaranteed that named positional
                 # arguments will never be swapped with variadic ones or anything similar
                 user_args.append(arg.content)
@@ -744,8 +748,8 @@ class task(object):
                 # Generalize the return case to multi-return to simplify the code
                 user_returns = [user_returns]
             import sys
-            sys.stderr.write('USER RETURNS IS %s and MULTI RETURN IS %s\n and SELF RETURNS is %s' % 
-                (str(user_returns), str(self.multi_return), str(self.returns)))
+            sys.stderr.write('USER RETURNS IS %s and MULTI RETURN IS %s\n and SELF RETURNS is %s' %
+                             (str(user_returns), str(self.multi_return), str(self.returns)))
             sys.stderr.flush()
             # Note that we are implicitly assuming that the length of the user returns matches the number
             # of return parameters
@@ -767,7 +771,6 @@ class task(object):
         for arg in [x for x in args if isinstance(x, parameter.TaskParameter) and self.is_parameter_object(x.name)]:
             original_name = parameter.get_original_name(arg.name)
             param = self.decorator_arguments.get(original_name, self.get_default_direction(original_name))
-            # ... but we do not have to deal with FILE_INOUTS
             if param.direction == parameter.DIRECTION.INOUT:
                 from pycompss.util.serializer import serialize_to_file
                 serialize_to_file(arg.content, get_file_name(arg.file_name))

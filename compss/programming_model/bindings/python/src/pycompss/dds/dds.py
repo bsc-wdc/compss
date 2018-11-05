@@ -22,7 +22,7 @@ from collections import defaultdict, deque
 from pycompss.api.api import compss_barrier, compss_open
 from pycompss.dds.tasks import *
 
-import heapq3
+from pycompss.dds import heapq3
 
 
 class DDS(object):
@@ -264,7 +264,7 @@ class DDS(object):
         """
         return len(self.partitions)
 
-    def map(self, f):
+    def map(self, f, *args, **kwargs):
         """
         Apply a function to each element of this data set.
         :param f: A function that will take each element of this data set as a
@@ -276,12 +276,15 @@ class DDS(object):
         [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
         """
 
-        def dummy(_):
-            return map(f, _)
+        def mapper(iterator):
+            results = list()
+            for item in iterator:
+                results.append(f(item, *args, **kwargs))
+            return results
 
-        return self.map_partitions(dummy)
+        return self.map_partitions(mapper)
 
-    def map_partitions(self, f):
+    def map_partitions(self, f, *args, **kwargs):
         """
         Apply a function to each partition of this data set.
         :param f: A function that takes an iterable as a parameter
@@ -292,11 +295,11 @@ class DDS(object):
         """
         future_objects = []
         for p in self.partitions:
-            future_objects.append(task_map_partition(f, p))
+            future_objects.append(task_map_partition(f, p, *args, **kwargs))
         self.partitions = future_objects
         return self
 
-    def map_and_flatten(self, f):
+    def map_and_flatten(self, f, *args, **kwargs):
         """
         Just because flat_map is an ugly name.
         Apply a function to each element and extend the derived element(s) if
@@ -309,12 +312,13 @@ class DDS(object):
         >>> sorted(dds.map_and_flatten(lambda x: range(1, x)).collect())
         [1, 1, 1, 2, 2, 3]
         """
-        from itertools import chain
+        def mapper(iterator):
+            res = list()
+            for item in iterator:
+                res.extend(f(item, *args, **kwargs))
+            return res
 
-        def dummy(iterator):
-            return list(chain.from_iterable(map(f, iterator)))
-
-        return self.map_partitions(dummy)
+        return self.map_partitions(mapper)
 
     def filter(self, f):
         """

@@ -38,7 +38,7 @@ functions return future objects (of a list or a single value).
 
 
 @task(returns=1)
-def task_map_partition(f, partition):
+def task_map_partition(f, partition, *args, **kwargs):
     """
     Apply a function to a partition in a new task. The function should take an
     iterable as a parameter and return a list.
@@ -49,7 +49,7 @@ def task_map_partition(f, partition):
     :param partition:
     :return: future object of the list containing results
     """
-    res = f(partition)
+    res = f(partition, *args, **kwargs)
     del partition
     return res
 

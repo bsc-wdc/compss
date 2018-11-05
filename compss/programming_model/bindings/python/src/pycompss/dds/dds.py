@@ -126,9 +126,10 @@ class DDS(object):
 
     def load_files_from_dir(self, dir_path, num_of_parts=-1):
         """
-
-        :param dir_path:
-        :param num_of_parts:
+        Read multiple files from a given directory. Each file and its content
+        is saved in a tuple in ('file_path', 'file_content') format.
+        :param dir_path: A directory that all files will be loaded from
+        :param num_of_parts: can be set to -1 to create one partition per file
         :return:
         """
         files = os.listdir(dir_path)

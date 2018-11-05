@@ -1063,9 +1063,11 @@ def _serialize_object_into_file(name, p):
             p.type = TYPE.OBJECT
             _turn_into_file(name, p)
     elif p.type == TYPE.STRING:
-        # Strings can be empty. If a string is empty their base64 encoding will be empty
-        # So we add a leading character to it to make it non empty
-        p.object = '#%s' % p.object
+        from pycompss.api.task import prepend_strings
+        if prepend_strings:
+            # Strings can be empty. If a string is empty their base64 encoding will be empty
+            # So we add a leading character to it to make it non empty
+            p.object = '#%s' % p.object
     return p
 
 

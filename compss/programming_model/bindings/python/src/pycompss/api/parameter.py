@@ -254,17 +254,22 @@ def is_dict_specifier(value):
     :param value: Decorator value to check
     :return: True iff value is a dictionary that specifies at least the Type of the key
     '''
-    return isinstance(value, dict) and Type in value
+    return isinstance(value, dict)
 
 def get_parameter_from_dictionary(d):
     '''Given a dictionary with fields like Type, Direction, etc
     Return an actual Parameter object'''
-    type, direction, stream, prefix = \
-        d.get(Type, None), \
-        d.get(Direction, DIRECTION.IN), \
-        d.get(Stream, STREAM.UNSPECIFIED), \
-        d.get(Prefix, PREFIX.PREFIX)
-    return Parameter(p_type = type, p_direction = direction, p_stream = stream, p_prefix = prefix)
+    if Type not in d:  # If no Type specified => IN
+        d[Type] = Parameter()
+    d[Type] = get_parameter_copy(d[Type])
+    p = d[Type]
+    if Direction in d:
+        p.direction = d.get[Direction]
+    if Stream in d:
+        p.stream = d[Stream]
+    if Prefix in d:
+        p.prefix = d[Prefix]
+    return p
 
 def is_vararg(x):
     '''Determine if a parameter is named as a (internal) vararg

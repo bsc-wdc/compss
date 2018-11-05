@@ -36,6 +36,11 @@ import threading
 # This lock allows tasks to be launched with the Threading module while ensuring
 # that no attribute is overwritten
 master_lock = threading.Lock()
+# Determine if strings should have a sharp symbol prepended or not
+prepend_strings = True
+
+from pycompss.runtime.core_element import CE
+current_core_element = CE()
 
 class task(object):
     '''This is the Task decorator implementation.
@@ -109,13 +114,14 @@ class task(object):
             #   pass
             # Transform this dictionary to a Parameter object
             if parameter.is_dict_specifier(value):
+                print('DICT TREATING %s as %s' % (str(key), str(value)))
                 # Perform user -> instance substitution
-                param = self.decorator_arguments[key][parameter.Type]
-                self.decorator_arguments[key][parameter.Type] = parameter.get_parameter_copy(param)
+                # param = self.decorator_arguments[key][parameter.Type]
                 # Replace the whole dict by a single parameter object
                 self.decorator_arguments[key] = parameter.get_parameter_from_dictionary(
                     self.decorator_arguments[key]
                 )
+                #self.decorator_arguments[key].update({parameter.Type: parameter.get_parameter_copy(param)})
         # Deal with the return part.
         self.add_return_parameters()
         # Task wont be registered until called from the master for the first time
@@ -179,7 +185,7 @@ class task(object):
         :return: The function to be executed
         '''
         self.user_function = user_function
-        @wraps(user_function)
+
         def task_decorator(*args, **kwargs):
             # Determine the context and decide what to do
             import pycompss.util.context as context
@@ -338,20 +344,29 @@ class task(object):
         impl_signature = ce_signature
         impl_constraints = {}
         impl_type = "METHOD"
-        core_element = CE(ce_signature,
-                          impl_signature,
-                          impl_constraints,
-                          impl_type,
-                          impl_type_args)
-        f.__to_register__ = core_element
 
-        # Do the task register if I am the top decorator
-        if f.__who_registers__ == __name__:
-            if __debug__:
-                logger.debug(
-                    "[@TASK] I have to do the register of function %s in module %s" % (f.__name__, self.module_name))
-                logger.debug("[@TASK] %s" % str(f.__to_register__))
-            binding.register_ce(core_element)
+        # Maybe some top decorator has already added some parameters
+        # These if statements avoid us to overwrite these already
+        # existing attributes
+        # For example, the constraint decorator adds things in the impl_constraints
+        # field, so it would be nice to not overwrite it!
+
+        if current_core_element.get_ce_signature() is None:
+            current_core_element.set_ce_signature(ce_signature)
+        if current_core_element.get_impl_signature() is None:
+            current_core_element.set_impl_signature(impl_signature)
+        if current_core_element.get_impl_constraints() is None:
+            current_core_element.set_impl_constraints(impl_constraints)
+        if current_core_element.get_impl_type() is None:
+            current_core_element.set_impl_type(impl_type)
+        if current_core_element.get_impl_type_args() is None:
+            current_core_element.set_impl_type_args(impl_type_args)
+
+        if __debug__:
+            logger.debug(
+                "[@TASK] I have to do the register of function %s in module %s" % (f.__name__, self.module_name))
+            logger.debug("[@TASK] %s" % str(f))
+        binding.register_ce(current_core_element)
 
     def inspect_user_function_arguments(self):
         '''Inspect the arguments of the user function and store them.
@@ -474,10 +489,17 @@ class task(object):
         if not self.registered:
             self.register_task(self.user_function)
             self.registered = True
+            # Reset the global core element to a full-None status, ready for the next
+            # task! (Note that this region is locked, so no race conditions will ever happen
+            # here).
+            current_core_element.reset()
         # TODO: See runtime.binding.process_task, it builds the necessary future objects
         # TODO: Deal with the redundant parameter passing
         from pycompss.runtime.binding import process_task
         from pycompss.runtime.binding import FunctionType
+        # If we have an OMPSs or MPI decorator above us we should have computingNodes
+        # as a kwarg, we should detect it and remove it
+        computing_nodes = kwargs.pop('computingNodes', 1)
         ret = process_task(
             self.user_function, # Ok
             self.module_name, # Ok
@@ -486,7 +508,7 @@ class task(object):
             self.parameters, # Ok
             self.returns, # Ok
             self.decorator_arguments, # Ok
-            self.decorator_arguments['computingNodes'], # # TODO : TEMPORARY FIX
+            computing_nodes, # Ok
             self.decorator_arguments['isReplicated'], # Ok
             self.decorator_arguments['isDistributed'] # OK
         )

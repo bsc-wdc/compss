@@ -52,6 +52,7 @@ class Constraint(object):
 
         self.args = args
         self.kwargs = kwargs
+        self.registered = False
         self.scope = context.in_pycompss()
         if self.scope and __debug__:
             logger.debug("Init @constraint decorator...")
@@ -63,65 +64,57 @@ class Constraint(object):
         :param func: Function to decorate
         :return: Decorated function.
         """
-
-        if not self.scope:
-            from pycompss.api.dummy.constraint import constraint as dummy_constraint
-            d_c = dummy_constraint(self.args, self.kwargs)
-            return d_c.__call__(func)
-
-        if context.in_master():
-            # master code
-            from pycompss.runtime.binding import register_ce
-
-            mod = inspect.getmodule(func)
-            self.module = mod.__name__  # not func.__module__
-
-            if (self.module == '__main__' or
-                    self.module == 'pycompss.runtime.launch'):
-                # The module where the function is defined was run as __main__,
-                # we need to find out the real module name.
-
-                # path=mod.__file__
-                # dirs=mod.__file__.split(os.sep)
-                # file_name=os.path.splitext(os.path.basename(mod.__file__))[0]
-
-                # Get the real module name from our launch.py variable
-                path = getattr(mod, "app_path")
-
-                dirs = path.split(os.path.sep)
-                file_name = os.path.splitext(os.path.basename(path))[0]
-                mod_name = file_name
-
-                i = len(dirs) - 1
-                while i > 0:
-                    new_l = len(path) - (len(dirs[i]) + 1)
-                    path = path[0:new_l]
-                    if "__init__.py" in os.listdir(path):
-                        # directory is a package
-                        i -= 1
-                        mod_name = dirs[i] + '.' + mod_name
-                    else:
-                        break
-                self.module = mod_name
-
-            # Include the registering info related to @constraint
-
-            # Retrieve the base core_element established at @task decorator
-            core_element = func.__to_register__
-            # Update the core element information with the constraints
-            core_element.set_impl_constraints(self.kwargs)
-            func.__to_register__ = core_element
-            # Do the task register if I am the top decorator
-            if func.__who_registers__ == __name__:
-                if __debug__:
-                    logger.debug("[@CONSTRAINT] I have to do the register of function %s in module %s" % (func.__name__, self.module))
-                register_ce(core_element)
-        else:
-            # worker code
-            pass
-
-        @wraps(func)
         def constrained_f(*args, **kwargs):
+            if not self.scope:
+                from pycompss.api.dummy.constraint import constraint as dummy_constraint
+                d_c = dummy_constraint(self.args, self.kwargs)
+                return d_c.__call__(func)
+
+            if context.in_master():
+                # master code
+                from pycompss.runtime.binding import register_ce
+
+                mod = inspect.getmodule(func)
+                self.module = mod.__name__  # not func.__module__
+
+                if (self.module == '__main__' or
+                        self.module == 'pycompss.runtime.launch'):
+                    # The module where the function is defined was run as __main__,
+                    # we need to find out the real module name.
+
+                    # path=mod.__file__
+                    # dirs=mod.__file__.split(os.sep)
+                    # file_name=os.path.splitext(os.path.basename(mod.__file__))[0]
+
+                    # Get the real module name from our launch.py variable
+                    path = getattr(mod, "app_path")
+
+                    dirs = path.split(os.path.sep)
+                    file_name = os.path.splitext(os.path.basename(path))[0]
+                    mod_name = file_name
+
+                    i = len(dirs) - 1
+                    while i > 0:
+                        new_l = len(path) - (len(dirs[i]) + 1)
+                        path = path[0:new_l]
+                        if "__init__.py" in os.listdir(path):
+                            # directory is a package
+                            i -= 1
+                            mod_name = dirs[i] + '.' + mod_name
+                        else:
+                            break
+                    self.module = mod_name
+
+                # Include the registering info related to @constraint
+                if not self.registered:
+                    self.registered = True
+                    # Retrieve the base core_element established at @task decorator
+                    from pycompss.api.task import current_core_element as core_element
+                    # Update the core element information with the constraints
+                    core_element.set_impl_constraints(self.kwargs)
+            else:
+                # worker code
+                pass
             # This is executed only when called.
             if __debug__:
                 logger.debug("Executing constrained_f wrapper.")
@@ -138,7 +131,10 @@ class Constraint(object):
                         setattr(slf, k, v)
 
             # Call the method
+            import pycompss.api.task as t
+            t.prepend_strings = False
             ret = func(*args, **kwargs)
+            t.prepend_strings = True
 
             if len(args) > 0:
                 # Put things back

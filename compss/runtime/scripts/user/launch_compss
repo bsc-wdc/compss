@@ -287,10 +287,14 @@ worker_cmd() {
   local maxSend=5
   local maxReceive=5
   local worker_port=43001
+  local mName=${master_name}
   if [ -z "${container_image}" ]; then
      WCMD="${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh"
   else
      WCMD="singularity exec $container_opts $container_image ${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh"
+  fi
+  if [ -z "${master_name}" ]; then
+     mName="null"
   fi
   WCMD="$WCMD ${library_path} \
             ${appdir} \
@@ -304,6 +308,7 @@ worker_cmd() {
             ${maxReceive} \
             ${nodeName} \
             ${worker_port} \
+            ${mName} \
             ${master_port} \
             ${cusCPU} \
             ${cusGPU} \

@@ -220,17 +220,17 @@ EOT
 }
 
 show_version() {
-  echo "COMPSs version 2.3 Daisy"
+  echo "COMPSs version 2.4 Elderflower"
   echo " "
 }
 
 show_full_version() {
   cat << EOF
-        .-~~-.--.            ____        ____
-       :         )          |___ \      |___ \\
- .~ ~ -.\       /.- ~~ .      __) |       __) |
- >       \`.   .'       <     / __/   _   ___) |
-(         .- -.         )   |_____| |_| |____/
+        .-~~-.--.            ____        _    _
+       :         )          |___ \      | |  | |
+ .~ ~ -.\       /.- ~~ .      __) |     | |__| |
+ >       \`.   .'       <     / __/  _  |____  |
+(         .- -.         )   |_____| |_|      |_|
  \`- -.-~  \`- -'  ~-.- -'
    (        :        )           _ _ .-:
     ~--.    :    .--~        .-~  .-~  }
@@ -249,28 +249,12 @@ EOF
 show_flower() {
   cat << EOF
 
-Daisy (Bellis perennis) - Flower
+Elderflower (Sambucus)
 
-Bellis perennis is a common European species of daisy, of the
-Asteraceae family, often considered the archetypal species of
-that name. Many related plants also share the name "daisy", so
-to distinguish this species from other daisies it is sometimes
-qualified as common daisy, lawn daisy or English daisy.
-
-It is a herbaceous perennial plant with short creeping rhizomes
-and rosettes of small rounded or spoon-shaped leaves that are
-from 3/4 to 2 inches (approx. 2–5 cm) long and grow flat to the
-ground. The flowerheads are composite, in the form of a
-pseudanthium, consisting of many sessile flowers about 3/4 to
-1-1/4 in (approx. 2–3 cm) in diameter, with white ray florets
-(often tipped red) and yellow disc florets. Each inflorescence
-is borne on single leafless stems 3/4 - 4 in (approx. 2–10 cm),
-rarely 6 in (approx. 15 cm) tall. The capitulum, or disc of
-florets, is surrounded by two rows of green bracts known
-as "phyllaries".
+Elderflowers are the flowers of European Elderberry. They are hermaphrodite flowers with five stamens and are borne in large, flat corymbs 10–25 cm diameter in late spring to mid summer, the individual flowers ivory white, 5–6 mm diameter, with five petals; they are pollinated by flies. 
 
 Check more information:
-   https://en.wikipedia.org/wiki/Bellis_perennis
+   https://en.wikipedia.org/wiki/Sambucus_nigra
 
 EOF
 }
@@ -278,15 +262,13 @@ EOF
 show_recipe() {
   cat << EOF
 
-Margarita (Daisy) - Cocktail
+Elderflower - Liqueur 
 
-  35 ml Tequila
-  20 ml Triple Sec
-  15 ml Lime Juice
+  10 to 20 Elderflower heads
+  1 quart vodka
+  1/4 to 1/2 cup sugar
 
-  Pour all ingredients into shaker with ice. Shake well
-  and strain into cocktail glass rimmed with salt.
-
+  Snip the flowers off the stalks into a quart Mason jar. Cover flowers with vodka. Keep in a cool, dark place for as long as you like, but at least a few days. Strain twice. Add between 1/4 cup and 1/2 cup sugar, depending on how sweet you want it. Seal the jar again and shake well to combine.
 EOF
 }
 

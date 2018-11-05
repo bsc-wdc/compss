@@ -69,6 +69,9 @@ public class WorkerStarter {
     // Deployment ID
     private static final String DEPLOYMENT_ID = System.getProperty(COMPSsConstants.DEPLOYMENT_ID);
 
+    // Master name
+    private static final String MASTER_NAME_PROPERTY = System.getProperty(COMPSsConstants.MASTER_NAME);
+    
     // Scripts configuration
     private static final String STARTER_SCRIPT_PATH = "Runtime" + File.separator + "scripts" + File.separator + "system" + File.separator
             + "adaptors" + File.separator + "nio" + File.separator;
@@ -142,7 +145,11 @@ public class WorkerStarter {
         int minPort = this.nw.getConfiguration().getMinPort();
         int maxPort = this.nw.getConfiguration().getMaxPort();
         int port = minPort;
-
+        String masterName = "null";
+        if ((MASTER_NAME_PROPERTY != null) && (!MASTER_NAME_PROPERTY.equals("")) && (!MASTER_NAME_PROPERTY.equals("null"))) {
+            // Set the hostname from the defined property
+            masterName = MASTER_NAME_PROPERTY;
+        }
         // Solves exit error 143
         synchronized (addressToWorkerStarter) {
             addressToWorkerStarter.put(name, this);
@@ -159,7 +166,7 @@ public class WorkerStarter {
             n = new NIONode(name, port);
 
             // Start the worker
-            pid = startWorker(user, name, port);
+            pid = startWorker(user, name, port, masterName);
 
             // Check worker status
             LOGGER.info("[WorkerStarter] Worker process started. Checking connectivity...");
@@ -219,7 +226,7 @@ public class WorkerStarter {
         }
     }
 
-    private int startWorker(String user, String name, int port) throws InitNodeException {
+    private int startWorker(String user, String name, int port, String masterName) throws InitNodeException {
         // Initial wait
         try {
             Thread.sleep(START_WORKER_INITIAL_WAIT);
@@ -230,7 +237,7 @@ public class WorkerStarter {
 
         // Try to launch the worker until we receive the PID or we timeout
         int pid = -1;
-        String[] command = getStartCommand(port);
+        String[] command = getStartCommand(port, masterName);
         do {
             ProcessOut po = executeCommand(user, name, command);
             if (po == null) {
@@ -292,7 +299,7 @@ public class WorkerStarter {
     }
 
     // Arguments needed for persistent_worker.sh
-    private String[] getStartCommand(int workerPort) throws InitNodeException {
+    private String[] getStartCommand(int workerPort, String masterName) throws InitNodeException {
         String workingDir = this.nw.getWorkingDir();
         String installDir = this.nw.getInstallDir();
         String appDir = this.nw.getAppDir();
@@ -434,6 +441,7 @@ public class WorkerStarter {
         cmd[nextPosition++] = String.valueOf(NIOAdaptor.MAX_RECEIVE_WORKER);
         cmd[nextPosition++] = this.nw.getName();
         cmd[nextPosition++] = String.valueOf(workerPort);
+        cmd[nextPosition++] = masterName;
         cmd[nextPosition++] = String.valueOf(NIOAdaptor.MASTER_PORT);
 
         // Worker parameters

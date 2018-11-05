@@ -220,7 +220,7 @@ EOT
 }
 
 show_version() {
-  echo "COMPSs version 2.3 Daisy"
+  echo "COMPSs version 2.4 Elderflower"
   echo " "
 }
 

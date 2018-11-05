@@ -304,6 +304,7 @@ worker_cmd() {
             ${maxReceive} \
             ${nodeName} \
             ${worker_port} \
+            ${master_name} \
             ${master_port} \
             ${cusCPU} \
             ${cusGPU} \

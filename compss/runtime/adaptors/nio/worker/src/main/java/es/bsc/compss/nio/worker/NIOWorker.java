@@ -135,7 +135,7 @@ public class NIOWorker extends NIOAgent {
         }
     }
 
-    public NIOWorker(int snd, int rcv, String hostName, int masterPort, int computingUnitsCPU, int computingUnitsGPU, int computingUnitsFPGA,
+    public NIOWorker(int snd, int rcv, String hostName, String masterName, int masterPort, int computingUnitsCPU, int computingUnitsGPU, int computingUnitsFPGA,
             String cpuMap, String gpuMap, String fpgaMap, int limitOfTasks, String appUuid, String lang, String workingDir, String installDir,
             String appDir, String libPath, String classpath, String pythonpath) {
 
@@ -157,7 +157,11 @@ public class NIOWorker extends NIOAgent {
 
         // Set master node to null (will be set afterwards to the right value)
         this.masterNode = null;
-
+        //If master name is defined set masterNode with the defined value
+        if (masterName != null && !masterName.isEmpty() && !masterName.equals("null")){
+            this.masterNode = new NIONode(masterName, masterPort);
+        }
+        
         // Start DataManager
         this.dataManager = new DataManager();
         try {
@@ -1204,38 +1208,39 @@ public class NIOWorker extends NIOAgent {
         int maxRcv = Integer.parseInt(args[2]);
         String workerIP = args[3];
         int wPort = Integer.parseInt(args[4]);
-        int mPort = Integer.parseInt(args[5]);
+        int mName = args[5];
+        int mPort = Integer.parseInt(args[6]);
 
-        int computingUnitsCPU = Integer.parseInt(args[6]);
-        int computingUnitsGPU = Integer.parseInt(args[7]);
-        int computingUnitsFPGA = Integer.parseInt(args[8]);
-        String cpuMap = args[9];
-        String gpuMap = args[10];
-        String fpgaMap = args[11];
-        int limitOfTasks = Integer.parseInt(args[12]);
+        int computingUnitsCPU = Integer.parseInt(args[7]);
+        int computingUnitsGPU = Integer.parseInt(args[8]);
+        int computingUnitsFPGA = Integer.parseInt(args[9]);
+        String cpuMap = args[10];
+        String gpuMap = args[11];
+        String fpgaMap = args[12];
+        int limitOfTasks = Integer.parseInt(args[13]);
 
-        String appUuid = args[13];
-        String lang = args[14];
-        String workingDir = args[15];
-        String installDir = args[16];
-        String appDir = args[17];
-        String libPath = args[18];
-        String classpath = args[19];
-        String pythonpath = args[20];
+        String appUuid = args[14];
+        String lang = args[15];
+        String workingDir = args[16];
+        String installDir = args[17];
+        String appDir = args[18];
+        String libPath = args[19];
+        String classpath = args[20];
+        String pythonpath = args[21];
 
-        String trace = args[21];
-        String extraeFile = args[22];
-        String host = args[23];
+        String trace = args[22];
+        String extraeFile = args[23];
+        String host = args[24];
 
-        storageConf = args[24];
-        executionType = args[25];
+        storageConf = args[25];
+        executionType = args[26];
 
-        setPersistent(Boolean.parseBoolean(args[26]));
+        setPersistent(Boolean.parseBoolean(args[27]));
 
-        pythonInterpreter = args[27];
-        pythonVersion = args[28];
-        pythonVirtualEnvironment = args[29];
-        pythonPropagateVirtualEnvironment = args[30];
+        pythonInterpreter = args[28];
+        pythonVersion = args[29];
+        pythonVirtualEnvironment = args[30];
+        pythonPropagateVirtualEnvironment = args[31];
 
 
         // Print arguments
@@ -1245,6 +1250,7 @@ public class NIOWorker extends NIOAgent {
 
             WORKER_LOGGER.debug("WorkerName: " + workerIP);
             WORKER_LOGGER.debug("WorkerPort: " + String.valueOf(wPort));
+            WORKER_LOGGER.debug("WorkerName: " + mName);
             WORKER_LOGGER.debug("MasterPort: " + String.valueOf(mPort));
 
             WORKER_LOGGER.debug("Computing Units CPU: " + String.valueOf(computingUnitsCPU));

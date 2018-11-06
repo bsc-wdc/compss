@@ -58,7 +58,7 @@ public class ObjectValue<T> implements Comparable<ObjectValue<T>> {
         } else if (Score.isBetter(o.value, this.value)) {
             return 1;
         } else {
-            return 0;
+            return Integer.compare(this.getObject().hashCode(), o.getObject().hashCode()); 
         }
     }
     

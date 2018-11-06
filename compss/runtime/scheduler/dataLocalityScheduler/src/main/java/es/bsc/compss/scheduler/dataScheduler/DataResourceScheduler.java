@@ -69,21 +69,21 @@ public class DataResourceScheduler<T extends WorkerResourceDescription> extends 
     @Override
     public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl, Score resourceScore) {
         // LOGGER.debug("[DataResourceScheduler] Generate implementation score for action " + action);
-        if (this.hasBlockedActions()){
+        //if (this.hasBlockedActions()){
             // Added for scale-down: In readyScheduler, should disable the node for scheduling more tasks? 
-            return null;
-        }
-        if (this.myWorker.canRunNow((T) impl.getRequirements())) {
+        //    return null;
+        //}
+        //if (this.myWorker.canRunNow((T) impl.getRequirements())) {
             long actionPriority = resourceScore.getActionScore();
             long waitingScore = resourceScore.getWaitingScore();
             long resourcePriority = resourceScore.getResourceScore();
             long implScore = -this.getProfile(impl).getAverageExecutionTime();
 
             return new Score(actionPriority, resourcePriority, waitingScore, implScore);
-        } else {
+        //} else {
             // Implementation cannot be run
-            return null;
-        }
+        //    return null;
+        //}
     }
 
     /*

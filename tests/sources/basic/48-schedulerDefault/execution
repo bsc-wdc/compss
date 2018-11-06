@@ -48,7 +48,7 @@
      ${runcompss_opts} \
      \
      --classpath="${base_app_dir}"/schedulerDefault.jar \
-     \
+     --scheduler=es.bsc.compss.components.impl.TaskScheduler \
      schedulerDefault.Main ${TASK_WIDTH} ${TASK_DEPTH} ${TASK_CHILDS} ${INIT_VALUE} > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
   
   # Check timeout

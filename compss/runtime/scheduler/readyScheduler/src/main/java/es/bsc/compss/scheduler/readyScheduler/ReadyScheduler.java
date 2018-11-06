@@ -19,12 +19,16 @@ package es.bsc.compss.scheduler.readyScheduler;
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.scheduler.exceptions.ActionNotFoundException;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
+import es.bsc.compss.scheduler.exceptions.InvalidSchedulingException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.ObjectValue;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
+import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.Tracer;
 
 import java.util.List;
 import java.util.Map;
@@ -73,6 +77,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
 	 * *****************************************************************************
 	 * ****************************
 	 */
+
 	@Override
 	public <T extends WorkerResourceDescription> void workerLoadUpdate(ResourceScheduler<T> resource) {
 
@@ -133,16 +138,22 @@ public abstract class ReadyScheduler extends TaskScheduler {
 	 * ****************************
 	 */
 	@Override
-	protected void scheduleAction(AllocatableAction action, Score actionScore) {
-		try {
-			action.tryToSchedule(actionScore, this.availableWorkers);
-			ResourceScheduler<? extends WorkerResourceDescription> resource = action.getAssignedResource();
-			if (!resource.canRunSomething()) {
-				this.availableWorkers.remove(resource);
+	protected void scheduleAction(AllocatableAction action, Score actionScore) throws BlockedActionException {
+		if (!action.hasDataPredecessors()) {
+			try {
+				LOGGER.debug("[ReadyScheduler] Trying to schedule action " + action);
+				action.tryToSchedule(actionScore, this.availableWorkers);
+				ResourceScheduler<? extends WorkerResourceDescription> resource = action.getAssignedResource();
+				if (!resource.canRunSomething()) {
+					this.availableWorkers.remove(resource);
+				}
+				removeActionFromSchedulerStructures(action);
+				LOGGER.debug("[ReadyScheduler] Remove action " + action + " from scheduler structures");
+			} catch (UnassignedActionException ex) {
+				LOGGER.debug("[ReadyScheduler] Introducing action " + action
+						+ " into the scheduler from try to schedule action");
+				addActionToSchedulerStructures(action);
 			}
-			removeActionFromSchedulerStructures(action);
-		} catch (UnassignedActionException | BlockedActionException ex) {
-			addActionToSchedulerStructures(action);
 		}
 	}
 
@@ -152,6 +163,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
 		// This if should be eraseble since we only handle dependency free actions
 		if (!action.hasDataPredecessors()) {
 			action.schedule(targetWorker, actionScore);
+			removeActionFromSchedulerStructures(action);
 		}
 	}
 
@@ -191,80 +203,86 @@ public abstract class ReadyScheduler extends TaskScheduler {
 
 	private void addActionToSchedulerStructures(AllocatableAction action) {
 		if (!this.unassignedReadyActions.isEmpty()) {
+			LOGGER.debug("[ReadyScheduler] Add action to scheduler structures " + action);
+			/*
+			 * Iterator<Map.Entry<ResourceScheduler<?>,
+			 * TreeSet<ObjectValue<AllocatableAction>>>> iter = unassignedReadyActions
+			 * .entrySet().iterator(); Map.Entry<ResourceScheduler<?>,
+			 * TreeSet<ObjectValue<AllocatableAction>>> currentEntry = iter.next();
+			 * TreeSet<ObjectValue<AllocatableAction>> actionList =
+			 * (TreeSet<ObjectValue<AllocatableAction>>) currentEntry .getValue();
+			 * ResourceScheduler<?> resource = currentEntry.getKey(); Score actionScore =
+			 * generateActionScore(action); Score fullScore =
+			 * action.schedulingScore(resource, actionScore); ObjectValue<AllocatableAction>
+			 * obj = new ObjectValue<>(action, fullScore); if (!actionList.add(obj)) {
+			 * return; } while (iter.hasNext()) { currentEntry = iter.next(); resource =
+			 * currentEntry.getKey(); actionList = (TreeSet<ObjectValue<AllocatableAction>>)
+			 * currentEntry.getValue(); fullScore = action.schedulingScore(resource,
+			 * actionScore); obj = new ObjectValue<>(action, fullScore);
+			 * actionList.add(obj); }
+			 */
+
 			Iterator<Map.Entry<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>>> iter = unassignedReadyActions
 					.entrySet().iterator();
-			Map.Entry<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>> currentEntry = iter.next();
-			TreeSet<ObjectValue<AllocatableAction>> actionList = (TreeSet<ObjectValue<AllocatableAction>>) currentEntry
-					.getValue();
-			ResourceScheduler<?> resource = currentEntry.getKey();
 			Score actionScore = generateActionScore(action);
-			Score fullScore = action.schedulingScore(resource, actionScore);
-			ObjectValue<AllocatableAction> obj = new ObjectValue<>(action, fullScore);
-			if (!actionList.add(obj)) {
-				return;
-			}
 			while (iter.hasNext()) {
-				currentEntry = iter.next();
-				resource = currentEntry.getKey();
-				actionList = (TreeSet<ObjectValue<AllocatableAction>>) currentEntry.getValue();
-				fullScore = action.schedulingScore(resource, actionScore);
-				obj = new ObjectValue<>(action, fullScore);
+				Map.Entry<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>> currentEntry = iter.next();
+				ResourceScheduler<?> resource = currentEntry.getKey();
+				TreeSet<ObjectValue<AllocatableAction>> actionList = currentEntry.getValue();
+				Score fullScore = action.schedulingScore(resource, actionScore);
+				ObjectValue<AllocatableAction> obj = new ObjectValue<>(action, fullScore);
 				actionList.add(obj);
 			}
 		} else {
+			LOGGER.debug("[ReadyScheduler] Cannot add action " + action + " because there are not available resources");
 			addToBlocked(action);
 		}
 	}
 
 	private void removeActionFromSchedulerStructures(AllocatableAction action) {
+		LOGGER.debug("[ReadyScheduler] Remove action from scheduler structures " + action);
 		Iterator<Map.Entry<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>>> iter = unassignedReadyActions
 				.entrySet().iterator();
-		Map.Entry<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>> currentEntry = iter.next();
-		ResourceScheduler<?> resource = currentEntry.getKey();
 		Score actionScore = generateActionScore(action);
-		Score fullScore = action.schedulingScore(resource, actionScore);
-		ObjectValue<AllocatableAction> obj = new ObjectValue<>(action, fullScore);
-		removeObjectValueFromScheduler(obj);
-	}
-
-	private void removeObjectValueFromScheduler(ObjectValue<AllocatableAction> obj) {
-		Iterator<Map.Entry<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>>> iter = unassignedReadyActions
-				.entrySet().iterator();
-		Map.Entry<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>> currentEntry = iter.next();
-		TreeSet<ObjectValue<AllocatableAction>> actionList = currentEntry.getValue();
-		if (!actionList.remove(obj)) {
-			return;
-		}
 		while (iter.hasNext()) {
-			currentEntry = iter.next();
-			actionList = currentEntry.getValue();
+			Map.Entry<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>> currentEntry = iter.next();
+			ResourceScheduler<?> resource = currentEntry.getKey();
+			TreeSet<ObjectValue<AllocatableAction>> actionList = currentEntry.getValue();
+			Score fullScore = action.schedulingScore(resource, actionScore);
+			ObjectValue<AllocatableAction> obj = new ObjectValue<>(action, fullScore);
 			actionList.remove(obj);
 		}
 	}
 
 	/**
-	 * The action is not registered in any data structure
+	 * Decreases the ready coreId counter
 	 *
 	 * @param action
 	 */
-	@Override
-	protected void lostAllocatableAction(AllocatableAction action) {
-		addActionToSchedulerStructures(action);
-	}
+	// @Override
+	// protected void removeFromReady(AllocatableAction action) {
+	// super.removeFromReady(action);
+	// removeActionFromSchedulerStructures(action);
+	// }
 
 	protected <T extends WorkerResourceDescription> void tryToLaunchFreeActions(List<AllocatableAction> dataFreeActions,
 			List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates,
 			ResourceScheduler<T> resource) {
+		LOGGER.debug("[ReadyScheduler] Try to launch free actions on resource " + resource.getName() + " with "
+				+ this.unassignedReadyActions.get(resource).size() + " candidates in this worker");
 
 		// Try to launch all the data free actions
 		for (AllocatableAction freeAction : dataFreeActions) {
 			addActionToSchedulerStructures(freeAction);
+			LOGGER.debug("[ReadyScheduler] Introducing action " + freeAction + " into the scheduler from data free");
 		}
 		dataFreeActions = new LinkedList<AllocatableAction>();
 
 		// Resource free actions should always be empty in this scheduler
 		for (AllocatableAction freeAction : resourceFreeActions) {
 			addActionToSchedulerStructures(freeAction);
+			LOGGER.debug(
+					"[ReadyScheduler] Introducing action " + freeAction + " into the scheduler from resource free");
 		}
 		resourceFreeActions = new LinkedList<AllocatableAction>();
 
@@ -272,36 +290,35 @@ public abstract class ReadyScheduler extends TaskScheduler {
 		// available resources -> They were in the blocked list
 		for (AllocatableAction freeAction : blockedCandidates) {
 			addActionToSchedulerStructures(freeAction);
+			LOGGER.debug("[ReadyScheduler] Introducing action " + freeAction + " into the scheduler from blocked");
 		}
 		blockedCandidates = new LinkedList<AllocatableAction>();
 
-		Iterator<ObjectValue<AllocatableAction>> executableActionsIterator = this.unassignedReadyActions.get(resource)
-				.descendingIterator();
+		Iterator<ObjectValue<AllocatableAction>> executableActionsIterator = this.unassignedReadyActions.get(resource).iterator();
 		HashSet<ObjectValue<AllocatableAction>> objectValueToErase = new HashSet<ObjectValue<AllocatableAction>>();
 		while (executableActionsIterator.hasNext() && !this.availableWorkers.isEmpty()) {
 			ObjectValue<AllocatableAction> obj = executableActionsIterator.next();
 			AllocatableAction freeAction = obj.getObject();
 			try {
-				try {
-					freeAction.tryToSchedule(obj.getScore(), this.availableWorkers);
-					ResourceScheduler<? extends WorkerResourceDescription> assignedResource = freeAction
-							.getAssignedResource();
-					if (!resource.canRunSomething()) {
-						this.availableWorkers.remove(assignedResource);
-					}
-					objectValueToErase.add(obj);
-				} catch (UnassignedActionException e) {
-					// This should never happen
-					addActionToSchedulerStructures(freeAction);
-				}
+				freeAction.tryToSchedule(obj.getScore(), this.availableWorkers);
+				ResourceScheduler<? extends WorkerResourceDescription> assignedResource = freeAction
+						.getAssignedResource();
 				tryToLaunch(freeAction);
+				if (!resource.canRunSomething()) {
+					this.availableWorkers.remove(assignedResource);
+				}
+				objectValueToErase.add(obj);
 			} catch (BlockedActionException e) {
 				objectValueToErase.add(obj);
 				addToBlocked(freeAction);
+			} catch (UnassignedActionException e) {
+				// Nothing to be done here since the action was already in the scheduler structures
+				//addActionToSchedulerStructures(freeAction);
 			}
 		}
 		for (ObjectValue<AllocatableAction> obj : objectValueToErase) {
-			removeObjectValueFromScheduler(obj);
+			AllocatableAction action = obj.getObject();
+			removeActionFromSchedulerStructures(action);
 		}
 	}
 }

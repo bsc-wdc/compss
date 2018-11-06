@@ -54,7 +54,7 @@ public class LIFOScheduler extends ReadyScheduler {
 
     @Override
     public Score generateActionScore(AllocatableAction action) {
-        // LOGGER.info("[LIFOScheduler] Generate Action Score for " + action);
+        LOGGER.debug("[LIFOScheduler] Generate Action Score for " + action);
         return new Score(action.getPriority(), action.getId(), 0, 0);
     }
 

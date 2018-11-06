@@ -531,7 +531,7 @@ public class ExecutionAction extends AllocatableAction {
                 throw new BlockedActionException();
             }
             for (ResourceScheduler<? extends WorkerResourceDescription> currentWorker : compatibleCandidates) {
-                if (currentWorker.getResource().hasAvailableSlots()) {
+                if (currentWorker.getResource().canRunSomething()) {
                 	if (availableResources.contains(currentWorker)) {
                 		candidates.add(currentWorker);
                 	}

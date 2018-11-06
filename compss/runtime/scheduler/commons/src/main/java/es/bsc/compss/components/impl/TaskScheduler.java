@@ -316,7 +316,7 @@ public class TaskScheduler {
      *
      * @param action
      */
-    protected final void addToReady(AllocatableAction action) {
+    protected void addToReady(AllocatableAction action) {
         LOGGER.debug("[TaskScheduler] Add action " + action + " to ready count");
         Integer coreId = action.getCoreId();
         if (coreId != null) {
@@ -332,7 +332,7 @@ public class TaskScheduler {
      *
      * @param action
      */
-    protected final void removeFromReady(AllocatableAction action) {
+    protected void removeFromReady(AllocatableAction action) {
         LOGGER.info("[TaskScheduler] Remove action " + action + " from ready count");
         if (action.getImplementations().length > 0) {
             Integer coreId = action.getImplementations()[0].getCoreId();
@@ -488,13 +488,13 @@ public class TaskScheduler {
         }
     }
 
-    protected final void tryToLaunch(AllocatableAction action) {
+    protected void tryToLaunch(AllocatableAction action) {
         try {
             LOGGER.debug("[TaskScheduler] Trying to launch " + action);
             action.tryToLaunch();
             // LOGGER.debug("[TaskScheduler] Exited from tryToLaunch without exception");
         } catch (InvalidSchedulingException ise) {
-            // LOGGER.debug("[TaskScheduler] There was a bad scheduling" + action);
+            LOGGER.debug("[TaskScheduler] There was a bad scheduling " + action);
             // Unschedule the task from that resource
             try {
                 action.getAssignedResource().unscheduleAction(action);

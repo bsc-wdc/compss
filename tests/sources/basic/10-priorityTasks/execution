@@ -36,7 +36,6 @@
      --resources="${base_app_dir}"/resources.xml \
      \
      --comm="$comm" \
-     \
      --debug \
      ${runcompss_opts} \
      \

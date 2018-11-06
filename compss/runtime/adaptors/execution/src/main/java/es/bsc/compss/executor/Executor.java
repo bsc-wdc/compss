@@ -170,27 +170,47 @@ public class Executor implements Runnable {
                 context.registerOutputs(streamsPath);
             }
 
+            long startTime = System.currentTimeMillis();
             // Set the Task working directory
             twd = createTaskSandbox(invocation);
-            
+            long createDuration = System.currentTimeMillis() - startTime;
+
             // Bind files to task sandbox working dir
             LOGGER.debug("Binding renamed files to sandboxed original names for Job " + invocation.getJobId());
+            long startSL = System.currentTimeMillis();
             bindOriginalFilenamesToRenames(invocation, twd.getWorkingDir());
+            long slDuration = System.currentTimeMillis() - startSL;
 
             // Bind Computing units
+            long startCUB = System.currentTimeMillis();
             InvocationResources assignedResources = platform.acquireComputingUnits(invocation.getJobId(), invocation.getRequirements());
+            long cubDuration = System.currentTimeMillis() - startCUB;
 
             // Execute task
             LOGGER.debug("Executing Task of Job " + invocation.getJobId());
+            long startExec = System.currentTimeMillis();
             executeTask(context, assignedResources, invocation, twd.getWorkingDir());
+            long execDuration = System.currentTimeMillis() - startExec;
 
             // Unbind files from task sandbox working dir
             LOGGER.debug("Removing renamed files to sandboxed original names for Job " + invocation.getJobId());
+            long startOrig = System.currentTimeMillis();
             unbindOriginalFileNamesToRenames(invocation);
+            long origFileDuration = System.currentTimeMillis() - startOrig;
 
             // Check job output files
             LOGGER.debug("Checking generated files for Job " + invocation.getJobId());
+            long startCheckResults = System.currentTimeMillis();
             checkJobFiles(invocation);
+            long checkResultsDuration = System.currentTimeMillis() - startCheckResults;
+
+            LOGGER.info("[Profile] createSandBox: " + createDuration
+                    + " createSimLinks: " + slDuration
+                    + " bindCU: " + cubDuration
+                    + " execution" + execDuration
+                    + " restoreSimLinks: " + origFileDuration
+                    + " checkResults: " + checkResultsDuration);
+
             if (DEBUG_ON_TASK) {
                 context.unregisterOutputs();
             }
@@ -421,8 +441,8 @@ public class Executor implements Runnable {
                         // Both files exist and are updated
                         LOGGER.debug("Repeated data for " + inSandboxPath + ". Nothing to do");
                     }
-                } else { // OUT
-                    if (inSandboxFile.exists()) {
+                } else // OUT
+                 if (inSandboxFile.exists()) {
                         if (Files.isSymbolicLink(inSandboxFile.toPath())) {
                             // Unexpected case
                             String msg = "ERROR: Unexpected case. A Problem occurred with File " + inSandboxPath
@@ -444,7 +464,6 @@ public class Executor implements Runnable {
                             throw new JobExecutionException(msg);
                         }
                     }
-                }
             }
             param.setValue(renamedFilePath);
             param.setOriginalName(originalFileName);

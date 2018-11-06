@@ -33,15 +33,10 @@ arm-linux-gnueabihf () {
 }
 
 arm-linux-gnueabihf-fpgacc () {
-    export CXX=arm-linux-gnueabihf-fpgacxx
-    export CC=arm-linux-gnueabihf-fpgacc
+    export MCXX=arm-linux-gnueabihf-fpgacxx
+    export MCC=arm-linux-gnueabihf-fpgacc
     export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-armhf
     export BOOST_LIB=/opt/install-arm/libboost
     export TARGET_HOST=arm-linux-gnueabihf
-    export LDFLAGS="$(LDFLAGS) --ompss"
-#    export MCC_FLAGS="--ompss --variable=disable_final_clause_transformation:1"
-    export CFLAGS="$(CFLAGS) --ompss"
-    export CXXFLAGS="$(CXXFLAGS) --ompss"
-    export FPGA_LDFLAGS="--ompss --Wf,--board=zedboard,--clock=100,--task_manager,--name=matmul_zedboard"
+    export FPGA_LDFLAGS="--ompss --Wf,--board=zedboard,--clock=100,--task_manager,--name=worker" #The board is now zedboard this should be modified in a future
 }
-

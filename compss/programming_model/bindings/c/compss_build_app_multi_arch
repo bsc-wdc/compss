@@ -76,9 +76,9 @@ Usage: $0 [options] application_name
 * Options:
     compss_build_app_multi_arch specific:
 
-        --help, -h      Prints this help message
+        --help, -h                  Prints this help message
 
-        --opts          Show available options
+        --opts                      Show available options
 
 EOT
 
@@ -230,17 +230,25 @@ restore_cpp_c_flags() {
 
 execute_compss_build_app() {
     local ARGUMENTS="${@:1}"
-    
+ 
     compss_build_app $ARGUMENTS
+}
 
-    local ev=$?
-    
-    if [ $ev -eq 3 ]; then #This means that some argument was not valid or name of the app. missing
-        
-        echo ""
-        show_opts
-        exit 1
+check_return() {
+    local ev=$1
+
+    #This function checks how a return value must be treated
+    #The value to exit is always the one that was checked
+
+    if [ "$ev" -eq 3 ]; then
+        usage $ev
     fi
+
+    if [ "$ev" -ne 0 ]; then
+        exit $ev
+    fi
+
+    set +x
 }
 
 #---------------------------------------------------
@@ -289,11 +297,7 @@ execute_compss_build_app() {
             execute_compss_build_app --only-master $COMPSS_BUILD_APP_ARGS $other_args
             )
 
-            ev=$?
-
-            if [ $ev -ne 0 ]; then
-                exit 1
-            fi
+            check_return $?
 
             mkdir -p ${appdir}/${i}
             mv ./master ${appdir}/${i}
@@ -331,11 +335,7 @@ execute_compss_build_app() {
             execute_compss_build_app --only-worker $COMPSS_BUILD_APP_ARGS $other_args
             )
 
-            ev=$?
-
-            if [ $ev -ne 0 ]; then
-                exit 1
-            fi
+            check_return $?
             
             mkdir -p ${appdir}/${i}
             mv ./worker ${appdir}/${i}

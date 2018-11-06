@@ -152,7 +152,7 @@ if [ "$ENABLE_CROSS" = true ]; then
     echo "[ INFO ] Building native COMPSs."
     echo "PATH: $INSTALLATION_PATH"
     native_environment 
-    $scriptDir/../../buildlocal --no-tracing --no-autoparallel $INSTALLATION_PATH #Install native COMPSs
+    $scriptDir/../../buildlocal --skip-tests --no-tracing --no-autoparallel $INSTALLATION_PATH #Install native COMPSs
 
     ev=$?
 
@@ -161,7 +161,7 @@ if [ "$ENABLE_CROSS" = true ]; then
         exit 1
     fi
      
-    targetArch=$($CC -dumpmachine)
+    targetArch=$($CC -dumpmachine) #Native architecture
     
     cd $INSTALLATION_PATH/Bindings/bindings-common/lib
 
@@ -186,7 +186,7 @@ if [ "$ENABLE_CROSS" = true ]; then
 
     target_environment
 
-    targetArch=$($CC -dumpmachine)
+    targetArch=$($CC -dumpmachine) #Target host architecture
 
     mkdir $targetArch
 
@@ -219,23 +219,25 @@ if [ "$ENABLE_CROSS" = true ]; then
 
     cp $scriptDir/../../../compss/programming_model/bindings/c/cfgs/compssrc ./Bindings/c/cfgs/
 
+    cp $scriptDir/../../../compss/programming_model/bindings/c/compss_build_app_multi_arch ${INSTALLATION_PATH}/Runtime/scripts/user/
+
     rm -rf $tmpDir #Remove temporal files
 
 elif [ "$ONLY_BINDINGS" = true ]; then
 
-   target_environment
+    target_environment
 
     $scriptDir/../../../compss/programming_model/bindings/install_bindings $INSTALLATION_PATH #This installs only the bindings
 
 else    
     
-    $scriptDir/../../buildlocal --no-tracing --no-autoparallel --no-bindings $INSTALLATION_PATH #enable tracing and so on? Add them as options?.
+    $scriptDir/../../buildlocal --skip-tests --no-tracing --no-autoparallel --no-bindings $INSTALLATION_PATH #enable tracing and so on? Add them as options?.
 
     target_environment
 
-    $scriptDir/../../../compss/programming_model/bindings/install_bindings $INSTALLATION_PATH
+    $scriptDir/../../../compss/programming_model/bindings/install_bindings ${INSTALLATION_PATH}
 
-    cp $scriptDir/../../../compss/programming_model/bindings/c/compss_build_app* $INSTALLATION_PATH/Runtime/scripts/user/
+    cp $scriptDir/../../../compss/programming_model/bindings/c/compss_build_app ${INSTALLATION_PATH}/Runtime/scripts/user/
 
 fi
 

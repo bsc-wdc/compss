@@ -271,7 +271,6 @@ New features:
                  - Autoparallel Module to automatically taskify affine loop nests
                  - Support for Python notebook execution in Supercomputers
                  - Distributed Data Set library that eases development of PyCOMPSs applications by distributing data, and/or providing most common data operations such as map, filter, reduce, etc.  
-		 - Embedded PyMPI tasks
 
          * C:
                  - Multi-architecture and Cross-compiling build support 

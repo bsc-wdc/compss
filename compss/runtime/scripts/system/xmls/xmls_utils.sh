@@ -26,16 +26,18 @@ create_xml_files() {
   # Log List of Workers
   echo "List of workers: ${worker_nodes}"
 
-  # Add worker slots on master if needed
-  if [ ! -z "${NODE_NAME_XML}" ]; then
-    master_node=$(${NODE_NAME_XML} "${master_node}" "${network}")
-  fi
+  if [ ! -z "${master_node}" ]; then
+    # Add worker slots on master if needed
+    if [ ! -z "${NODE_NAME_XML}" ]; then
+      master_node=$(${NODE_NAME_XML} "${master_node}" "${network}")
+    fi
 
-  if [ "${worker_in_master_cpus}" -ne 0 ]; then
-    # add_compute_node name cpus gpus lot memory
-    add_compute_node "${master_node}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${max_tasks_per_node}" "${worker_in_master_memory}"
+    if [ "${worker_in_master_cpus}" -ne 0 ]; then
+      # add_compute_node name cpus gpus lot memory
+      add_compute_node "${master_node}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${max_tasks_per_node}" "${worker_in_master_memory}"
+    fi
   fi
-
+  
   # Find the number of tasks to be executed on each node
   for node in ${worker_nodes}; do
       if [ ! -z "${NODE_NAME_XML}" ]; then
@@ -61,8 +63,8 @@ init_het_xml_files() {
   suffix=$1
 
   # Define the destination xml folder
-  RESOURCES_FILE=${worker_working_dir}/resources_$suffix.xml
-  PROJECT_FILE=${worker_working_dir}/project_$suffix.xml
+  RESOURCES_FILE=${PWD}/resources_$suffix.xml
+  PROJECT_FILE=${PWD}/project_$suffix.xml
 
   echo "Generating resources and project files"
   echo "Project.xml:   ${PROJECT_FILE}"
@@ -92,8 +94,8 @@ add_het_xml_files() {
   suffix=$1
 
   # Define the destination xml folder
-  RESOURCES_FILE=${worker_working_dir}/resources_$suffix.xml
-  PROJECT_FILE=${worker_working_dir}/project_$suffix.xml
+  RESOURCES_FILE=${PWD}/resources_$suffix.xml
+  PROJECT_FILE=${PWD}/project_$suffix.xml
 
   echo "Continue generating resources and project files"
   echo "Project.xml:   ${PROJECT_FILE}"
@@ -115,8 +117,8 @@ fini_het_xml_files() {
   suffix=$1
 
   # Define the destination xml folder
-  RESOURCES_FILE=${worker_working_dir}/resources_$suffix.xml
-  PROJECT_FILE=${worker_working_dir}/project_$suffix.xml
+  RESOURCES_FILE=${PWD}/resources_$suffix.xml
+  PROJECT_FILE=${PWD}/project_$suffix.xml
 
   echo "Finishing generation of resources and project files"
   echo "Project.xml:   ${PROJECT_FILE}"

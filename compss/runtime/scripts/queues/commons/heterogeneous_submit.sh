@@ -22,26 +22,33 @@ check_heterogeneous_args(){
 update_args_to_pass(){
   local xml_phase=$1
   local xml_suffix=$2
-  args_pass="${orig_args_pass}"
+  local initial_hostid=$3
+  local app_uuid=$4
+  args_pass="${original_args_pass}"
   if [ ! -z "${cpus_per_node}" ]; then
-  	args_pass="${args_pass} --cpus_per_node=${cpus_per_node}"
+  	args_pass="--cpus_per_node=${cpus_per_node} ${args_pass}"
   fi
   if [ ! -z "${gpus_per_node}" ]; then
-        args_pass="${args_pass} --gpus_per_node=${gpus_per_node}"
+        args_pass="--gpus_per_node=${gpus_per_node} ${args_pass}"
   fi
   if [ ! -z "${constraints}" ]; then
-        args_pass="${args_pass} --constraints=${constraints}"
+        args_pass="--constraints=${constraints} ${args_pass}"
   fi
   if [ ! -z "${node_memory}" ]; then
-        args_pass="${args_pass} --node_memory=${node_memory}"
+        args_pass="--node_memory=${node_memory} ${args_pass}"
   fi
   if [ ! -z "${xml_phase}" ]; then
-        args_pass="${args_pass} --xml_phase=${xml_phase}"
+        args_pass="--xmls_phase=${xml_phase} ${args_pass}"
   fi
   if [ ! -z "${xml_suffix}" ]; then
-        args_pass="${args_pass} --xml_suffix=${xml_suffix}"
+        args_pass="--xmls_suffix=${xml_suffix} ${args_pass}"
   fi
-
+  if [ ! -z "${initial_hostid}" ]; then
+        args_pass="--initial_hostid=${initial_hostid} ${args_pass}"
+  fi
+  if [ ! -z "${app_uuid}" ]; then
+       args_pass="--uuid=${app_uuid} ${args_pass}"
+  fi
   # TODO: Add other parameters to pass
 }
 
@@ -58,11 +65,7 @@ write_master_submit(){
 
 write_worker_submit(){
   add_submission_headers
-  if [ "${HETEROGENEOUS_MULTIJOB}" == "true" ]; then
-     add_only_worker_nodes
-  else
-     add_only_worker_nodes "_PACKJOB_$1"
-  fi
+  add_only_worker_nodes
   add_launch
 }
 
@@ -109,7 +112,6 @@ submit() {
   
   # Storing original arguments to pass
   original_args_pass="${args_pass}"
-
   # Load specific queue system variables
   # shellcheck source=../cfgs/default.cfg
   source "${SCRIPT_DIR}/../cfgs/${sc_cfg}"
@@ -120,6 +122,8 @@ submit() {
   
   check_heterogeneous_args
   source "${types_cfg_file}"
+  # create application uuid
+  uuid=$(cat /proc/sys/kernel/random/uuid)
  
   # Create TMP submit script
   create_tmp_submit
@@ -129,73 +133,89 @@ submit() {
   suffix=$(date +%s)
   if [ -z "${HETEROGENEOUS_MULTIJOB}" ] || [ "${HETEROGENEOUS_MULTIJOB}" = "false" ]; then
         echo "adding master node request headers ${TMP_SUBMIT_SCRIPT}"
-        
         eval $master_type
-        
         num_nodes=1
-        
         check_args
-
         set_time
-
         add_submission_headers
-        
         add_packjob_separator
-
         unset_type_vars 
   fi     
   echo " Parsing workers ${worker_types}"
   worker_num=1
+  hostid=1
   workers=$(echo "${worker_types}" | tr ',' ' ')  
   for worker in ${workers}; do
-    echo " submitting worker ${worker}"
-    worker_desc=$(echo "${worker}" | tr ':' ' ')
-    
-    eval ${worker_desc[0]}
-    
-    num_nodes=${worker_desc[1]}
-    
-    check_args
-
-    set_time
-
-    if [ ${worker_num} -eq 1 ]; then
-       update_args_to_pass "init" ${suffix}  
-    else 
-       update_args_to_pass "add" ${suffix}
+    # Create tmp file or add packjob 
+    if [ ${worker_num} -gt 1 ]; then
+       if [ "${HETEROGENEOUS_MULTIJOB}" == "true" ]; then
+          create_tmp_submit
+          echo "submit files is set in ${TMP_SUBMIT_SCRIPT}"
+          submit_files="${submit_files}${SUBMISSION_HET_SEPARATOR}${TMP_SUBMIT_SCRIPT}"
+       else
+          add_packjob_separator
+       fi
     fi
-
-    log_args
-    
-    write_worker_submit ${worker_num}
-    
-    unset_type_vars
-    
-    if [ "${HETEROGENEOUS_MULTIJOB}" == "true" ]; then
-    	create_tmp_submit
-    	echo "submit files is set in ${TMP_SUBMIT_SCRIPT}"
-    	submit_files="${submit_files}${SUBMISSION_HET_SEPARATOR}${TMP_SUBMIT_SCRIPT}"
+    # Eval worker description 
+    worker_desc=$(echo "${worker}" | tr ':' ' ')
+    eval ${worker_desc[0]}
+    num_nodes=${worker_desc[1]}
+    check_args
+    set_time
+    if [ "${HETEROGENEOUS_MULTIJOB}" == "true" ]; then    
+        if [ ${worker_num} -eq 1 ]; then
+           update_args_to_pass "init" ${suffix} ${hostid} ${uuid}
+        else
+           update_args_to_pass "add" ${suffix} ${hostid} ${uuid}
+        fi
+        log_args
+        write_worker_submit ${worker_num}
     else
-	add_packjob_separator 
+        add_submission_headers
     fi
     worker_num=$((worker_num + 1))
+    hostid=$((hostid + num_nodes))
+    unset_type_vars
   done
+
+  # Write worker launch
+  if [ -z "${HETEROGENEOUS_MULTIJOB}" ] || [ "${HETEROGENEOUS_MULTIJOB}" = "false" ]; then
+     worker_num=1
+     hostid=1
+     workers=$(echo "${worker_types}" | tr ',' ' ')
+     for worker in ${workers}; do
+        worker_desc=$(echo "${worker}" | tr ':' ' ')
+        eval ${worker_desc[0]}
+        num_nodes=${worker_desc[1]}
+        check_args
+        set_time
+        if [ ${worker_num} -eq 1 ]; then
+           update_args_to_pass "init" ${suffix} ${hostid} ${uuid}
+        else
+           update_args_to_pass "add" ${suffix} ${hostid} ${uuid}
+        fi
+        log_args
+        add_only_worker_nodes "_PACK_GROUP_${worker_num}"
+        add_launch
+        worker_num=$((worker_num + 1))
+        hostid=$((hostid + num_nodes))
+        unset_type_vars
+     done
+  fi
+
   # Write master
   eval $master_type
 
   num_nodes=1
   # Check parameters
   check_args
-
-  # Set wall clock time
   set_time
-
-  update_args_to_pass "fini" ${suffix}
-
-  # Log received arguments
+  update_args_to_pass "fini" ${suffix} ${hostid} ${uuid}
   log_args
-  
   if [ "${HETEROGENEOUS_MULTIJOB}" == "true" ]; then
+     create_tmp_submit
+     echo "submit files is set in ${TMP_SUBMIT_SCRIPT}"
+     submit_files="${submit_files}${SUBMISSION_HET_SEPARATOR}${TMP_SUBMIT_SCRIPT}"
      write_master_submit
   else
      add_only_master_node

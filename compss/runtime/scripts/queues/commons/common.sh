@@ -345,6 +345,9 @@ get_args() {
           workers=*)
             worker_types=${OPTARG//workers=/}
             ;;
+          uuid=*)
+            echo "WARNING: uuid is automatically generated. Omitting parameter"
+            ;;
           *)
             # Flag didn't match any patern. Add to COMPSs
             args_pass="$args_pass --$OPTARG"

@@ -268,6 +268,9 @@ check_args() {
     local javapath=""
     if [ -z "$java_home" ]; then
         # Setting Java folder
+        if [ -z "$JAVA_HOME" ]; then
+            display_error "[Error] Set \$JAVA_HOME or either use the --java_home argument."
+        fi
         libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
         javapath=$JAVA_HOME
     else

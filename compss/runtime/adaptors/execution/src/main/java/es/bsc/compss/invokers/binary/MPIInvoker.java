@@ -144,12 +144,15 @@ public class MPIInvoker extends Invoker {
         // Convert binary parameters and calculate binary-streams redirection
         StreamSTD streamValues = new StreamSTD();
         ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(invocation.getParams(), invocation.getTarget(), streamValues);
+        
+        // Create hostfile
+        String hostfile = writeHostfile(taskSandboxWorkingDir, workers);
 
         // Prepare command
         String[] cmd = new String[NUM_BASE_MPI_ARGS + binaryParams.size()];
         cmd[0] = this.mpiRunner;
-        cmd[1] = "-H";
-        cmd[2] = workers;
+        cmd[1] = "-hostfile";
+        cmd[2] = hostfile;
         cmd[3] = "-n";
         cmd[4] = numProcs;
         // cmd[5] = "--bind-to";

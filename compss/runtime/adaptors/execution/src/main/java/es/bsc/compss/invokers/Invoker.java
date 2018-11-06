@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.invokers;
 
+import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.log.Loggers;
@@ -31,6 +32,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -264,5 +266,30 @@ public abstract class Invoker {
     }
 
     protected abstract void invokeMethod() throws JobExecutionException;
+
+    /**
+     * Writes the given list of workers to a hostfile inside the given task sandbox
+     *
+     * @param taskSandboxWorkingDir
+     * @param workers
+     * @return
+     * @throws InvokeExecutionException
+     */
+    protected static String writeHostfile(File taskSandboxWorkingDir, String workers) throws InvokeExecutionException {
+        // Locate hostfile file
+        String uuid = UUID.randomUUID().toString();
+        String filename = taskSandboxWorkingDir.getAbsolutePath() + File.separator + uuid + ".hostfile";
+
+        // Modify the workers' list
+        String workersInLines = workers.replace(',', '\n');
+
+        // Write hostfile
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+            writer.write(workersInLines);
+        } catch (IOException ioe) {
+            throw new InvokeExecutionException("ERROR: Cannot write hostfile", ioe);
+        }
+        return filename;
+    }
 
 }

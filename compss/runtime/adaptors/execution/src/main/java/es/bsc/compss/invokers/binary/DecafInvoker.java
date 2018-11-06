@@ -32,9 +32,6 @@ import es.bsc.compss.types.implementations.DecafImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -217,27 +214,6 @@ public class DecafInvoker extends Invoker {
         }
         // Launch command
         return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, context.getThreadOutStream(), context.getThreadErrStream());
-    }
-
-    private static String writeHostfile(File taskSandboxWorkingDir, String workers) throws InvokeExecutionException {
-        String filename = taskSandboxWorkingDir.getAbsolutePath() + File.separator + ".decafHostfile";
-        String workersInLines = workers.replace(',', '\n');
-        BufferedWriter writer = null;
-        try {
-            writer = new BufferedWriter(new FileWriter(filename));
-            writer.write(workersInLines);
-        } catch (IOException e) {
-            throw new InvokeExecutionException("Error writing decaf hostfile", e);
-        } finally {
-            try {
-                if (writer != null) {
-                    writer.close();
-                }
-            } catch (IOException e) {
-                // Nothing to do
-            }
-        }
-        return filename;
     }
 
 }

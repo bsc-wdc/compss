@@ -341,7 +341,7 @@ check_args() {
 
 set_target_host() {
         #To use GNU tools, such as configure, we have to specify a target; environment variable TARGET_HOST will do the trick.
-        if [ -z "${TARGET_HOST}" ]; then
+        if [ -z "${TARGET_HOST}" && "${enable_cross}" ]; then
             #If not defined, we assume that your currently CC or CXX configured (the want you are going to use to build)
             #has the details of what architecture is the one we are targeting.
             export TARGET_HOST=$(${CC} -dumpmachine)

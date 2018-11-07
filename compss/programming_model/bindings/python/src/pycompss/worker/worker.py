@@ -35,7 +35,6 @@ from pycompss.api.parameter import TYPE, JAVA_MAX_INT, JAVA_MIN_INT
 from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.runtime.commons import IS_PYTHON3
-from pycompss.util.location import set_pycompss_context
 from pycompss.util.serializer import serialize_to_file
 from pycompss.util.serializer import deserialize_from_file
 from pycompss.util.serializer import deserialize_from_string
@@ -86,7 +85,8 @@ def compss_worker(persistent_storage):
     logger.debug("Starting Worker")
 
     # Set the binding in worker mode
-    set_pycompss_context('WORKER')
+    import pycompss.util.context as context
+    context.set_pycompss_context(context.WORKER)
 
     args = sys.argv[6:]
 

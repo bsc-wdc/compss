@@ -2,7 +2,7 @@
 
   # Obtain parameters
   output_file=$1
-  error_file=$2 
+  error_file=$2
   target_log_folder=$3
 
   # Log files
@@ -13,16 +13,23 @@
 
   # Report result status
   # If there is more than one process that matches with compss-adaptors-nio-worker.jar (take a look to the path above)
-  # the test fails, note that the grep it's showed when the ps -ef is executed, that's why we compare with a 1 
+  # the test fails, note that the grep it's showed when the ps -ef is executed, that's why we compare with a 1
 
   to_wait=10 #seconds to timeout the script
   to_match="${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio/../../../../adaptors/nio/worker/compss-adaptors-nio-worker.jar"
-  timeout --signal=15 --preserve-status $to_wait ./process_checker $to_match  
+  timeout --signal=15 --preserve-status $to_wait ./process_checker $to_match
 
   if [ "$?" -ne "0" ]; then
-	echo "[TEST] SOME PROCESSES STILL ALIVE AFTER TEST EXECUTION." | tee -a ${error_file}
-	exit 1
+	  echo "[TEST] SOME JAVA PROCESSES STILL ALIVE AFTER TEST EXECUTION." | tee -a ${error_file}
+	  exit 1
+  fi
+
+  to_match="${COMPSS_HOME}/Bindings/python/*/pycompss/worker/*worker.py"
+  timeout --signal=15 --preserve-status $to_wait ./process_checker $to_match
+
+  if [ "$?" -ne "0" ]; then
+	  echo "[TEST] SOME PYTHON PROCESSES STILL ALIVE AFTER TEST EXECUTION." | tee -a ${error_file}
+	  exit 1
   fi
 
   exit 0
-

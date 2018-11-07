@@ -8,13 +8,11 @@ limit=5
 while [ $n_occurences -ge $limit ]
 do
 	n_occurences=$(ps -ef 2> /dev/null | grep -c $1)
-	sleep 1 
+	sleep 1
 done
 
-# If has arrived here means that $n_occurences <= $limit so there's no alive java process
-# otherwise has been timedout so the exit code is different than 0  
+# If has arrived here means that $n_occurences <= $limit so there's no alive
+# java/python process otherwise has been timedout so the exit code is different
+# than 0
 
 exit 0
-
-
-

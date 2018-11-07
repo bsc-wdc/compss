@@ -107,7 +107,8 @@ def compss_main():
     global app_path
 
     # Let the Python binding know we are at master
-    set_pycompss_context('MASTER')
+    import pycompss.util.context as context
+    context.set_pycompss_context(context.MASTER)
 
     # Start the runtime, see bindings commons
     compss_start()

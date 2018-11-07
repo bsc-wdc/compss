@@ -58,6 +58,7 @@ def addtwovectors(list1, list2):
 class testImplementsDecorator(unittest.TestCase):
 
     def testFunctionalUsage(self):
+        myfunctionWithNumpy([], [])
         a = [1 for i in range(10)]
         b = [2 for i in range(10)]
         c = addtwovectors(a, b)

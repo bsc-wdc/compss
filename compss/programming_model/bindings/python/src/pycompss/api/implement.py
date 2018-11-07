@@ -116,9 +116,6 @@ class Implement(object):
                     self.registered = True
                     from pycompss.api.task import current_core_element as core_element
                     # Update the core element information with the mpi information
-                    ce_signature = core_element.get_ce_signature()
-                    impl_signature = ce_signature
-                    core_element.set_impl_signature(impl_signature)
                     another_class = self.kwargs['source_class']
                     another_method = self.kwargs['method']
                     ce_signature = another_class + '.' + another_method
@@ -147,10 +144,7 @@ class Implement(object):
                     setattr(slf, k, v)
 
             # Call the method
-            import pycompss.api.task as t
-            t.prepend_strings = False
             ret = func(*args, **kwargs)
-            t.prepend_strings = True
 
             # Put things back
             for k, v in saved.items():

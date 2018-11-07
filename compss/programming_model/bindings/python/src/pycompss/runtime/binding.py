@@ -707,7 +707,7 @@ def _build_return_objects(f_returns):
             logger.debug("Simple object return found.")
         # Build the appropriate future object
         ret_value = f_returns[parameter.get_return_name(0)].object
-        print('RET VALUE IS %s' % ret_value)
+        print('RET VALUE IS %s' % str(ret_value))
         if type(ret_value) in _python_to_compss or ret_value in _python_to_compss:  # primitives, string, dic, list, tuple
             fo = Future()
         elif inspect.isclass(ret_value):
@@ -737,6 +737,7 @@ def _build_return_objects(f_returns):
             logger.debug("Multiple objects return found.")
         for k, v in f_returns.items():
             # Build the appropriate future object
+            print("V.OBJECT IS %s" % str(v.object))
             if v.object in _python_to_compss:  # primitives, string, dic, list, tuple
                 foe = Future()
             elif inspect.isclass(v.object):
@@ -804,12 +805,10 @@ def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings)
     compss_streams = []
     compss_prefixes = []
     # Build the range of elements
+    ra = list(f_parameters.keys())
     if ftype == FunctionType.INSTANCE_METHOD or ftype == FunctionType.CLASS_METHOD:
-        ra = list(f_parameters.keys())
         slf = ra.pop(0)
         slf_name = names.pop(0)
-    else:
-        ra = list(f_parameters.keys())
     # Fill the values, compss_types, compss_directions, compss_streams and compss_prefixes from function parameters
     for i in ra:
         val, typ, direc, st, pre = _extract_parameter(f_parameters[i], code_strings)
@@ -835,7 +834,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings)
         compss_directions.append(direc)
         compss_streams.append(st)
         compss_prefixes.append(pre)
-        names.insert(len(list(f_parameters.keys())), slf_name)
+        names.append(slf_name)
     return values, names, compss_types, compss_directions, compss_streams, compss_prefixes
 
 

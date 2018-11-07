@@ -38,6 +38,7 @@ import threading
 master_lock = threading.Lock()
 # Determine if strings should have a sharp symbol prepended or not
 prepend_strings = True
+register_only = False
 
 from pycompss.runtime.core_element import CE
 current_core_element = CE()
@@ -151,7 +152,7 @@ class task(object):
                 to_return = self.decorator_arguments['returns']
             elif isinstance(self.decorator_arguments['returns'], int):
                 # The task returns a list of N objects, defined by the integer N
-                to_return = [[] for x in range(self.decorator_arguments['returns'])]
+                to_return = tuple([() for x in range(self.decorator_arguments['returns'])])
             else:
                 # The task returns a single object of a single type
                 # This is also the only case when no multiple objects are returned but only one
@@ -353,6 +354,11 @@ class task(object):
 
         if current_core_element.get_ce_signature() is None:
             current_core_element.set_ce_signature(ce_signature)
+        else:
+            # If we are here that means that we come from an implements
+            # decorator, which means that this core element has already
+            # a signature
+            current_core_element.set_impl_signature(ce_signature)
         if current_core_element.get_impl_signature() is None:
             current_core_element.set_impl_signature(impl_signature)
         if current_core_element.get_impl_constraints() is None:
@@ -367,6 +373,7 @@ class task(object):
                 "[@TASK] I have to do the register of function %s in module %s" % (f.__name__, self.module_name))
             logger.debug("[@TASK] %s" % str(f))
         binding.register_ce(current_core_element)
+        current_core_element.reset()
 
     def inspect_user_function_arguments(self):
         '''Inspect the arguments of the user function and store them.
@@ -493,6 +500,11 @@ class task(object):
             # task! (Note that this region is locked, so no race conditions will ever happen
             # here).
             current_core_element.reset()
+        # Did we call this function to only register the associated core element?
+        # (This can happen when trying)
+        if register_only:
+            master_lock.release()
+            return
         # TODO: See runtime.binding.process_task, it builds the necessary future objects
         # TODO: Deal with the redundant parameter passing
         from pycompss.runtime.binding import process_task
@@ -501,13 +513,13 @@ class task(object):
             self.user_function, # Ok
             self.module_name, # Ok
             self.class_name, # Ok
-            self.function_type, # Ok (at least theoretically)
+            self.function_type, # Ok
             self.parameters, # Ok
             self.returns, # Ok
             self.decorator_arguments, # Ok
             self.computing_nodes, # Ok
             self.decorator_arguments['isReplicated'], # Ok
-            self.decorator_arguments['isDistributed'] # OK
+            self.decorator_arguments['isDistributed'] # Ok
         )
         master_lock.release()
         return ret
@@ -681,7 +693,9 @@ class task(object):
         for arg in [x for x in args if isinstance(x, parameter.TaskParameter) and not parameter.is_return(x.name)]:
             # This case is special, as a FILE can actually mean a FILE or an
             # object that is serialized in a file
-            orig_name = parameter.get_original_name(arg.name)
+            if parameter.is_vararg(arg.name):
+                self.param_varargs = arg.name
+
             if arg.type == parameter.TYPE.FILE:
                 if self.is_parameter_object(arg.name):
                     open('~log.txt', 'w').write('Deserializing %s' % arg.name)

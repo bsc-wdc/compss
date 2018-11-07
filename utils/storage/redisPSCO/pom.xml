@@ -5,7 +5,7 @@
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>compss-runtime</artifactId>
 		<relativePath>../../../compss/runtime</relativePath>
-<version>2.3.rc1810</version>
+<version>2.4</version>
 	</parent>
 	<artifactId>compss-redisPSCO</artifactId>
 	<name>Redis PSCO implementation</name>

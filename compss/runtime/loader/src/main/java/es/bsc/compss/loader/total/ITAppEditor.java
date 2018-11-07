@@ -446,8 +446,8 @@ public class ITAppEditor extends ExprEditor {
             toAppend.append(infoParam.getType()).append(",");
             toAppend.append(infoParam.getDirection()).append(",");
             toAppend.append(infoParam.getStream()).append(",");
-            toAppend.append(infoParam.getPrefix());
-            
+            toAppend.append(infoParam.getPrefix()+",");
+            toAppend.append("\"\""); // Paramter Name
             if (i < paramAnnot.length - 1) {
                 toAppend.append(",");
             }
@@ -577,8 +577,10 @@ public class ITAppEditor extends ExprEditor {
 
             // Add binary stream
             targetObj.append(',').append(DATA_STREAM + "." + Stream.UNSPECIFIED);
-            // Add emtpy prefix
+            // Add empty prefix
             targetObj.append(',').append("\"").append(Constants.PREFIX_EMTPY).append("\"");
+            // Add empty parameter name
+            targetObj.append(',').append("\"").append("\"");
         }
 
         return targetObj.toString();
@@ -609,7 +611,7 @@ public class ITAppEditor extends ExprEditor {
                 String tempRetVar = "ret" + System.nanoTime();
                 infoToAppend.append(tempRetVar).append(',').append(DATA_TYPES + ".OBJECT_T").append(',').append(DATA_DIRECTION + ".OUT")
                         .append(',').append(DATA_STREAM + "." + Stream.UNSPECIFIED).append(',').append("\"").append(Constants.PREFIX_EMTPY)
-                        .append("\"");
+                        .append("\"").append(",").append("\"").append("\"");
 
                 String retValueCreation = "Object " + tempRetVar + " = ";
                 String cast;
@@ -678,6 +680,7 @@ public class ITAppEditor extends ExprEditor {
                 infoToAppend.append(',').append(DATA_DIRECTION + ".OUT");
                 infoToAppend.append(',').append(DATA_STREAM + ".UNSPECIFIED");
                 infoToAppend.append(',').append("\"").append(Constants.PREFIX_EMTPY).append("\"");
+                infoToAppend.append(',').append("\"").append("\"");
             } else {
                 /*
                  * ********************************* OBJECT
@@ -719,6 +722,8 @@ public class ITAppEditor extends ExprEditor {
                 infoToAppend.append(',').append(DATA_STREAM + ".UNSPECIFIED");
                 // Add empty prefix
                 infoToAppend.append(',').append("\"").append(Constants.PREFIX_EMTPY).append("\"");
+                // Add empty parameter name
+                infoToAppend.append(',').append("\"").append("\"");
             }
         }
 

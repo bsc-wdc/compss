@@ -1,6 +1,8 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	
+
 	<!-- GENERAL INFORMATION -->
 	<artifactId>compss-adaptors-nio-commons</artifactId>
 	<packaging>jar</packaging>
@@ -26,7 +28,7 @@
 		<name>BSC</name>
 		<url>http://www.bsc.es</url>
 	</organization>
-  
+
 	<!-- DEPENDENCIES -->
 	<dependencies>
 		<dependency>
@@ -39,7 +41,7 @@
 			<artifactId>comm-all</artifactId>
 		</dependency>
 	</dependencies>
-	
+
 	<!-- BUILD -->
 	<build>
 		<finalName>${project.artifactId}</finalName>
@@ -52,8 +54,8 @@
 					<target>${maven.compiler.target}</target>
 				</configuration>
 			</plugin>
-			
-			<!-- Copia les dependencies a la carpeta lib-->
+
+			<!-- Copia les dependencies a la carpeta lib -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
@@ -61,18 +63,18 @@
 					<execution>
 						<id>copy</id>
 						<phase>packaging</phase>
-						<goals> 
-							<goal>copy-dependencies</goal> 
-						</goals> 
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
 						<configuration>
-							<outputDirectory>${project.build.directory}/lib</outputDirectory> 
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
 							<silent>true</silent>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
-				    
-			<!-- Crea el Jar amb les dependencies-->
+
+			<!-- Crea el Jar amb les dependencies -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>

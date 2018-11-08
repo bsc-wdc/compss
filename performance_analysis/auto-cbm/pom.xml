@@ -39,7 +39,7 @@
 			<dependency>
 				<groupId>es.bsc.compss</groupId>
 				<version>${compss.version}</version>
-				<artifactId>es.bsc.compss.scheduler-commons</artifactId>
+				<artifactId>compss-scheduler-commons</artifactId>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

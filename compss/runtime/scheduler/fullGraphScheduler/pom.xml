@@ -32,7 +32,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>es.bsc.compss</groupId>
-			<artifactId>es.bsc.compss.scheduler-commons</artifactId>
+			<artifactId>compss-scheduler-commons</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

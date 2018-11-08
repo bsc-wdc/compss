@@ -123,7 +123,6 @@ public abstract class DataLocation implements Comparable<DataLocation> {
                 break;
             case SHARED_URI:
                 // Shared file of the form: shared://sharedDisk/path/file
-
                 int splitIndex = uri.getPath().indexOf(File.separator); // First slash occurrence
                 String diskName = uri.getPath().substring(0, splitIndex);
                 String path = uri.getPath().substring(splitIndex + 1);

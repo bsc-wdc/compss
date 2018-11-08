@@ -79,6 +79,7 @@ public class NIOWorkerNode extends COMPSsWorker {
     private boolean started = false;
     private WorkerStarter workerStarter;
 
+
     @Override
     public String getName() {
         return this.config.getHost();
@@ -188,8 +189,6 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     @Override
     public void stop(ShutdownListener sl) {
-        //synchronized (this.workerStarter) {
-
         if (workerStarter != null) {
             workerStarter.setToStop();
             LOGGER.debug("Worker " + this.getName() + " set to be stopped.");
@@ -215,8 +214,6 @@ public class NIOWorkerNode extends COMPSsWorker {
             LOGGER.debug("Worker " + this.getName() + " has not been created.");
             sl.notifyEnd();
         }
-
-        //}
     }
 
     @Override

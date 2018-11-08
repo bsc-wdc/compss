@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 # -*- coding: utf-8 -*-
 
@@ -185,11 +185,11 @@ def start(log_level='off',
     print("******************************************************")
     print("*************** PyCOMPSs Interactive *****************")
     print("******************************************************")
-    print("*          .-~~-.--.            ____        ____     *")
-    print("*         :         )          |___ \      |___ \    *")
-    print("*   .~ ~ -.\       /.- ~~ .      __) |       __) |   *")
-    print("*   >       `.   .'       <     / __/   _   ___) |   *")
-    print("*  (         .- -.         )   |_____| |_| |____/    *")
+    print("*          .-~~-.--.            ____        _    _   *")
+    print("*         :         )          |___ \      | |  | |  *")
+    print("*   .~ ~ -.\       /.- ~~ .      __) |     | |__| |  *")
+    print("*   >       `.   .'       <     / __/   _  |____  |  *")
+    print("*  (         .- -.         )   |_____| |_|      |_|  *")
     print("*   `- -.-~  `- -'  ~-.- -'                          *")
     print("*     (        :        )           _ _ .-:          *")
     print("*      ~--.    :    .--~        .-~  .-~  }          *")

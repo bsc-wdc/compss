@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
 	<!-- GENERAL INFORMATION -->
-	<artifactId>es.bsc.compss.scheduler</artifactId>
+	<artifactId>compss-scheduler</artifactId>
 	<packaging>pom</packaging>
 	<parent>
 		<groupId>es.bsc.compss</groupId>

@@ -2,13 +2,12 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-
 	<!-- GENERAL INFORMATION -->
-	<artifactId>es.bsc.compss.scheduler-commons</artifactId>
+    <artifactId>compss-scheduler-commons</artifactId>
 	<packaging>jar</packaging>
 	<parent>
 		<groupId>es.bsc.compss</groupId>
-		<artifactId>es.bsc.compss.scheduler</artifactId>
+		<artifactId>compss-scheduler</artifactId>
 <version>2.4.rc1811</version>
 		<relativePath>..</relativePath>
 	</parent>

@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- GENERAL INFORMATION -->
-	<artifactId>es.bsc.compss.connectors-default</artifactId>
+	<artifactId>compss-connector-default</artifactId>
 	<packaging>pom</packaging>
 	<parent>
 		<groupId>es.bsc.compss</groupId>

@@ -90,6 +90,8 @@ public class TaskScheduler {
 
     // Profiles from resources that have already been turned off
     private Profile[][] offVMsProfiles;
+    
+    protected static final boolean DEBUG = LOGGER.isDebugEnabled();
 
 
     /**
@@ -433,12 +435,11 @@ public class TaskScheduler {
      * @param action
      *            action raising the error
      */
-    @SuppressWarnings("unchecked")
     public final void errorOnAction(AllocatableAction action) {
         LOGGER.warn("[TaskScheduler] Error on action " + action);
 
         List<AllocatableAction> resourceFree = new LinkedList<>();
-        ResourceScheduler<WorkerResourceDescription> resource = (ResourceScheduler<WorkerResourceDescription>) action.getAssignedResource();
+        ResourceScheduler<? extends WorkerResourceDescription> resource = (ResourceScheduler<? extends WorkerResourceDescription>) action.getAssignedResource();
 
         boolean failed = false;
         // Process the action error (removes the assigned resource)
@@ -465,6 +466,7 @@ public class TaskScheduler {
             resourceFree.addAll(resource.unscheduleAction(action));
         } catch (ActionNotFoundException anfe) {
             // Once the action starts running should cannot be moved from the resource
+        	ErrorManager.fatal("[TaskScheduler] Once the action starts running should cannot be moved from the resource");
         }
         workerLoadUpdate(resource);
 

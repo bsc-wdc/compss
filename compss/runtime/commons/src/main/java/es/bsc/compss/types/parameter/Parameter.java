@@ -38,17 +38,17 @@ public abstract class Parameter implements Serializable {
     private final String prefix;
     private final String name;
 
-	public Parameter(DataType type, Direction direction, Stream stream, String prefix, String name) {
+    public Parameter(DataType type, Direction direction, Stream stream, String prefix, String name) {
         this.type = type;
         this.direction = direction;
         this.stream = stream;
         if (prefix == null || prefix.isEmpty()) {
             this.prefix = Constants.PREFIX_EMTPY;
-        } else { 
+        } else {
             this.prefix = prefix;
         }
         this.name = name;
-    } 
+    }
 
     public DataType getType() {
         return this.type;
@@ -65,11 +65,13 @@ public abstract class Parameter implements Serializable {
     public Stream getStream() {
         return this.stream;
     }
-    
+
     public String getPrefix() {
         return this.prefix;
     }
 
-    public String getName() { return this.name; }
+    public String getName() {
+        return this.name;
+    }
 
 }

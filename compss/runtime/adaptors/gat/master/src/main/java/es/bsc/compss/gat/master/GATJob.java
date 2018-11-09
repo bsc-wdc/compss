@@ -66,7 +66,6 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
-import java.util.Collection;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -565,6 +564,9 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
             prefix = Constants.PREFIX_EMTPY;
         }
         paramDesc.add(prefix);
+
+        String paramName = param.getName();
+        paramDesc.add((paramName == null) ? "null" : (paramName.isEmpty()) ? "null" : paramName);
 
         switch (type) {
             case FILE_T:

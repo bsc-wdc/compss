@@ -159,7 +159,13 @@ public abstract class ImplementationDefinition implements Invocation {
             if (prefix == null || prefix.isEmpty()) {
                 prefix = Constants.PREFIX_EMTPY;
             }
+
+            System.out.println("\t\tParameter Name = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
             name = args[appArgsIdx++];
+            if (name.compareTo("null") == 0) {
+                name = "";
+            }
+
             switch (argType) {
                 case FILE_T:
                     System.out.println("\t\tOriginal Name = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
@@ -392,7 +398,9 @@ public abstract class ImplementationDefinition implements Invocation {
         }
 
         @Override
-        public String getName() { return this.name; }
+        public String getName() {
+            return this.name;
+        }
 
         @Override
         public Stream getStream() {

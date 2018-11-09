@@ -19,7 +19,6 @@ package es.bsc.compss.types.parameter;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.Stream;
-import es.bsc.compss.types.parameter.DependencyParameter;
 
 
 public class ObjectParameter extends DependencyParameter {
@@ -53,7 +52,7 @@ public class ObjectParameter extends DependencyParameter {
 
     @Override
     public String toString() {
-        return "ObjectParameter with hash code " + this.hashCode;
+        return "ObjectParameter with hash code " + this.hashCode+ ", type " + getType() + ", direction " + getDirection();
     }
 
 }

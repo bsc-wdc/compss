@@ -16,7 +16,7 @@ usage() {
   #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   # Check parameters
-  if [ $# -ne 4 ]; then
+  if [ $# -ne 5 ]; then
     echo "ERROR: Incorrect number of parameters"
     usage 1
   fi
@@ -24,9 +24,10 @@ usage() {
   # Get version parameters
   repoGroup=$1
   repoName=$2
-  newVersion=$3
-  commitChanges=$4
-  echo "Updating ${repoGroup}/${repoName} to ${newVersion}..."
+  previousVersion=$3
+  newVersion=$4
+  commitChanges=$5
+  echo "Updating ${repoGroup}/${repoName} from ${previousVersion} to ${newVersion}..."
 
   # Define script variables
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -46,8 +47,8 @@ usage() {
   pomFiles=$(find . -name pom.xml)
   for pom in $pomFiles; do
     echo "    $pom"
-    sed -i 's/<version>.*<\/version>/<version>'"${newVersion}"'<\/version>/g' "$pom"
-    sed -i 's/<compss.version>.*<\/compss.version>/<compss.version>'"${newVersion}"'<\/compss.version>/g' "$pom"
+    sed -i 's/<version>'"${previousVersion}"'<\/version>/<version>'"${newVersion}"'<\/version>/g' "$pom"
+    sed -i 's/<compss.version>'"${previousVersion}"'<\/compss.version>/<compss.version>'"${newVersion}"'<\/compss.version>/g' "$pom"
   done
 
 
@@ -66,7 +67,7 @@ usage() {
   #---------------------------------------------------------------------
   # NOTIFY SUCCESS
   echo " "
-  echo "FINISHED! Repo ${repoGroup}/${repoName} version updated to ${newVersion}"
+  echo "FINISHED! Repo ${repoGroup}/${repoName} version updated from ${previousVersion} to ${newVersion}"
   echo " "
 
 

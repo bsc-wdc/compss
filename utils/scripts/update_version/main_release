@@ -42,8 +42,8 @@ usage() {
   ./update_trunk_version "${baseVersion}" "${version}" "${commitChanges}"
   ./update_documentation "${version}" "${commitChanges}"
   ./generate_tag "${version}" "${commitChanges}"
-  ./update_repo "bar" "apps" "${version}" "${commitChanges}"
-  ./update_repo "bar" "tutorial_apps" "${version}" "${commitChanges}"
+  ./update_repo "bar" "apps" "${baseVersion}" "${version}" "${commitChanges}"
+  ./update_repo "bar" "tutorial_apps" "${baseVersion}" "${version}" "${commitChanges}"
   ./mvn_deploy_tag "${version}"
 
   # Deploy to SCs

@@ -66,13 +66,14 @@
     local COMPSsExec=$1
     local comm=$2
     local runcompss_opts=$3
-    local COMPSsLogFolder=$4
-    local appBaseDir=$5
-    local appLogDir=$6
-    local skip=$7
-    local MAX_RETRIES=$8
-    local appName=$9
-    local pythonInterpreter=${10}
+    local summary_file=${4}
+    local COMPSsLogFolder=$5
+    local appBaseDir=$6
+    local appLogDir=$7
+    local skip=$8
+    local MAX_RETRIES=$9
+    local appName=${10}
+    local pythonInterpreter=${11}
 
     if [ "${skip}" == "true" ] && [ -f "${appBaseDir}"/skip ]; then
       # Mark test as skip
@@ -104,6 +105,27 @@
 
       # Annotate test result
       get_test_result $appName $testExitValue $retries
+
+
+      if [ "$testExitValue" -ne 0 ]; then
+        if [ "$testExitValue" -eq 88 ]; then
+          # Partially supported feature reported by test
+          echo -e "[TEST RESULT] NAME ${appName} ..................... PARTIALLY SUPPORTED\n" >> "${summary_file}"
+        elif [ "$testExitValue" -eq 99 ]; then
+          # Unsupported feature reported by test
+          echo -e "[TEST RESULT] NAME ${appName} ..................... UNSUPPORTED\n" >> "${summary_file}"
+        else
+          # Test failed
+          echo -e "[TEST RESULT] NAME ${appName} ..................... ERROR\n" >> "${summary_file}"
+        fi
+      else
+        if [ "$retries" -eq 2 ]; then
+          # Test OK on first try (but counter was increased)
+          echo -e "[TEST RESULT] NAME ${appName} ..................... OK\n" >> "${summary_file}"
+        else
+          echo -e "[TEST RESULT] NAME ${appName} ..................... OK with retries\n" >> "${summary_file}"
+        fi
+      fi
     fi
   }
 
@@ -163,4 +185,25 @@
     echo -e "\e[34m------------------------------------------------------------------------"
     echo -e "\e[34mIf there are errors, please check the WORKSPACE/logs/ files"
     echo -e "\e[0m"
+  }
+
+  #--------------------------------------------------------------------------------
+  # Print Summary file header
+  print_summary_header() {
+    local summary_file=${1}
+    echo -e "\n" >> "${summary_file}"
+    echo -e "---------------------------------------------------------------------------------------------\n" >> "${summary_file}"
+    echo -e "---------------------------------------------------------------------------------------------\n" >> "${summary_file}"
+    echo -e "   Application Name                                                               TEST STATUS\n" >> "${summary_file}" 
+  }
+
+  #--------------------------------------------------------------------------------
+  # Print Summary file footer
+  print_summary_footer() {
+    local summary_file=${1}
+    echo -e "\n" >> "${summary_file}"
+    echo -e "------------------------------------------------------------------------\n" >> "${summary_file}"
+    echo -e "------------------------------------------------------------------------\n" >> "${summary_file}" 
+    echo -e "If there are errors, please check the log files\n" >> "${summary_file}"
+    echo -e "\n" >> "${summary_file}" 
   }

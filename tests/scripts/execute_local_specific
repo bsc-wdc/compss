@@ -16,6 +16,7 @@
   echo "RUNCOMPSS_OPTS = ${runcompss_opts}"
   # Set script variables
   logsBaseDir="${baseDir}"/logs
+  summaryFile="${baseDir}"/summary
 
   exitValue=0
   results=""
@@ -34,6 +35,8 @@
   echo -e "\e[34m*******************"
   echo -e "\e[0m"
 
+  print_summary_header "${summaryFile}"
+
   if [ "$testNum" -lt 10 ]; then
      appBaseDir="${baseDir}/app0${testNum}_${lang}"
      appLogDir="${logsBaseDir}/app0${testNum}_${lang}"
@@ -43,12 +46,14 @@
   fi
 
   if [ ${lang} == "python" ]; then
-      execute_application "${COMPSsExec}" "${comm}" "${runcompss_opts}" "${COMPSsLogFolder}" "${appBaseDir}" "${appLogDir}" "${skip}" "${MAX_RETRIES}" "${appName}2" python2
-      execute_application "${COMPSsExec}" "${comm}" "${runcompss_opts}" "${COMPSsLogFolder}" "${appBaseDir}" "${appLogDir}" "${skip}" "${MAX_RETRIES}" "${appName}3" python3
+      execute_application "${COMPSsExec}" "${comm}" "${runcompss_opts}" "${summaryFile}" "${COMPSsLogFolder}" "${appBaseDir}" "${appLogDir}" "${skip}" "${MAX_RETRIES}" "${appName}2" python2 
+      execute_application "${COMPSsExec}" "${comm}" "${runcompss_opts}" "${summaryFile}" "${COMPSsLogFolder}" "${appBaseDir}" "${appLogDir}" "${skip}" "${MAX_RETRIES}" "${appName}3" python3
   else
       # If Java or C, perform simple execution
-      execute_application "${COMPSsExec}" "${comm}" "${runcompss_opts}" "${COMPSsLogFolder}" "${appBaseDir}" "${appLogDir}" "${skip}" "${MAX_RETRIES}" "${appName}"
+      execute_application "${COMPSsExec}" "${comm}" "${runcompss_opts}" "${summaryFile}" "${COMPSsLogFolder}" "${appBaseDir}" "${appLogDir}" "${skip}" "${MAX_RETRIES}" "${appName}"
   fi
+
+  print_summary_footer "${summaryFile}"
 
   # Show Result table
   print_result "BASIC SPECIFIC" "$results"

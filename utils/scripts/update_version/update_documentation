@@ -30,14 +30,17 @@ usage() {
 
   # Clone documentation repo
   cd ${trunk_dir}/..
-  git clone http://${credentials}@compss.bsc.es/gitlab/documents/documentation.git
+  rm -rf documentation
+  git clone http://${credentials}@compss.bsc.es/gitlab/documents/documentation.git documentation
 
 
 
   #---------------------------------------------------------------------
   # Update internal files version on new tag
   echo "- Update files version"
-  sed -i '/Version: /cVersion: '"${version}"'' "${documentation_dir}/${version}/README"
+  for readme in ${documentation_dir}/*/README; do
+    sed -i '/Version: /cVersion: '"${version}"'' ${readme}
+  done
 
   for doc in ${documentation_dir}/*; do
     cd "${doc}" || exit 1
@@ -96,7 +99,7 @@ usage() {
   pdfs=$(find "${documentation_dir}" -name *.pdf)
   for doc in ${pdfs}; do
     docname=$(basename "$doc")
-    if [[ *$docname* == "${allowed_pdfs}" ]]; then
+    if [[ ${allowed_pdfs} =~ ${docname} ]]; then
       echo "*** Synchronizing $doc to trunk"
       cp "$doc" "${trunk_dir}/doc/"
     fi

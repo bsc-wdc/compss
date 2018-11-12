@@ -27,9 +27,6 @@ usage() {
 
   version=$1
 
-
-
-
   # Get base version from trunk
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   trunk_dir=${SCRIPT_DIR}/../../../

@@ -165,6 +165,8 @@ class task(object):
                     parameter.Parameter(p_type = ret_type, object = elem, p_direction = parameter.OUT)
                 # Hopefully, an exception have been thrown if some invalid stuff has been put
                 # in the returns field
+        else:
+            self.update_return_if_no_returns(self.user_function)
         print('SELF RETURNS IS %s' % str(self.returns))
 
     def __call__(self, user_function):
@@ -199,6 +201,90 @@ class task(object):
             # launch_compss/enqueue_compss/runcompss, etc etc
             return self.sequential_call(*args, **kwargs)
         return task_decorator
+
+    def update_return_if_no_returns(self, f):
+        '''Checks the code looking for return statements if no returns is specified in @task decorator.
+
+        WARNING: Updates self.return if returns are found.
+
+        :param f: Function to check
+        '''
+
+        from pycompss.api.parameter import Parameter
+        from pycompss.api.parameter import DIRECTION
+        from pycompss.api.parameter import TYPE
+
+        source_code = _get_wrapped_source(f).strip()
+
+        if self.has_self_parameter or source_code.startswith('@classmethod'):
+            # TODO: WHAT IF IS CLASSMETHOD FROM BOOLEAN?
+            # It is a task defined within a class (can not parse the code with ast since the class does not
+            # exist yet. Alternatively, the only way I see is to parse it manually line by line.
+            ret_mask = []
+            code = source_code.split('\n')
+            for line in code:
+                if 'return ' in line:
+                    ret_mask.append(True)
+                else:
+                    ret_mask.append(False)
+        else:
+            code = [node for node in ast.walk(ast.parse(source_code))]
+            ret_mask = [isinstance(node, ast.Return) for node in code]
+
+        if any(ret_mask):
+            print("INFO! Return found in function " + f.__name__ + " without 'returns' statement at task definition.")
+            has_multireturn = False
+            lines = [i for i, li in enumerate(ret_mask) if li]
+            max_num_returns = 0
+            if self.has_self_parameter or source_code.startswith('@classmethod'):
+                # Parse code as string (it is a task defined within a class)
+                def _has_multireturn(statement):
+                    v = ast.parse(statement.strip())
+                    try:
+                        if len(v.body[0].value.elts) > 1:
+                            return True
+                        else:
+                            return False
+                    except (KeyError, AttributeError):
+                        # KeyError: 'elts' means that it is a multiple return.
+                        # "Ask forgiveness not permission"
+                        return False
+
+                def _get_return_elements(statement):
+                    v = ast.parse(statement.strip())
+                    return len(v.body[0].value.elts)
+
+                for i in lines:
+                    if _has_multireturn(code[i]):
+                        has_multireturn = True
+                        num_returns = _get_return_elements(code[i])
+                        if num_returns > max_num_returns:
+                            max_num_returns = num_returns
+            else:
+                # Parse code AST (it is not a task defined within a class)
+                for i in lines:
+                    try:
+                        if 'elts' in code[i].value.__dict__:
+                            has_multireturn = True
+                            num_returns = len(code[i].value.__dict__['elts'])
+                            if num_returns > max_num_returns:
+                                max_num_returns = num_returns
+                    except (KeyError, AttributeError):
+                        # KeyError: 'elts' means that it is a multiple return.
+                        # "Ask forgiveness not permission"
+                        pass
+            if has_multireturn:
+                for i in range(max_num_returns):
+                    param = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT)
+                    param.object = object()
+                    self.returns[parameter.get_return_name(i)] = param
+            else:
+                param = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT)
+                param.object = object()
+                self.returns[parameter.get_return_name(0)] = param
+        else:
+            # Return not found
+            pass
 
     def register_task(self, f):
         """

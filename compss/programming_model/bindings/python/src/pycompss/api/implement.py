@@ -54,6 +54,7 @@ class Implement(object):
         self.args = args
         self.kwargs = kwargs
         self.registered = False
+        self.first_register = False
         self.scope = context.in_pycompss()
         if self.scope and __debug__:
             logger.debug("Init @implement decorator...")
@@ -153,6 +154,14 @@ class Implement(object):
             return ret
 
         implement_f.__doc__ = func.__doc__
+
+        if context.in_master() and not self.first_register:
+            import pycompss.api.task as t
+            self.first_register = True
+            t.register_only = True
+            self.__call__(func)(self)
+            t.register_only = False
+
         return implement_f
 
 

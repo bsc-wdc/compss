@@ -666,7 +666,6 @@ class task(object):
         This function takes the arguments passed from the persistent worker and treats them
         to get the proper parameters for the user function.
         '''
-
         def storage_supports_pipelining():
             # Some storage implementations use pipelining
             # Pipelining means "accumulate the getByID queries and perform them
@@ -698,7 +697,6 @@ class task(object):
 
             if arg.type == parameter.TYPE.FILE:
                 if self.is_parameter_object(arg.name):
-                    open('~log.txt', 'w').write('Deserializing %s' % arg.name)
                     # The object is stored in some file, load and deserialize it
                     from pycompss.util.serializer import deserialize_from_file
                     arg.content = deserialize_from_file(arg.file_name.split(':')[-1])

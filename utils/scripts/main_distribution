@@ -271,7 +271,7 @@ EOT
   # Define script variables
   script_dir=$(pwd)/$(dirname "$0")
 
-  COMPSs_version=2.4
+  COMPSs_version=2.4.rc1811
 
   JENKINS_JOB_BASENAME="COMPSs_Framework_Trunk_Build_"
   JENKINS_USER="jenkins"

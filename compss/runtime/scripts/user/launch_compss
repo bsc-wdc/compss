@@ -817,8 +817,8 @@ check_args() {
     master_port=$((DEFAULT_MASTER_PORT_BASE + offset))
   fi
 
-  while lsof -i :${master_port}; do
-    echo "Port ${master_port} is already in use, incrementing port by 1"
+  while [ "$(netstat | grep TIME_WAIT | grep ${master_port} | wc -l)" -gt 0 ] || [ lsof -i :${master_port} ]; do
+    echo "Port ${master_port} is already in use or time_wait, incrementing port by 1"
     master_port=$((master_port+1))
   done
 

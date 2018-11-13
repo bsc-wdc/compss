@@ -28,9 +28,7 @@ import os
 import sys
 import logging
 import traceback
-
 from tempfile import mkdtemp
-
 
 # Let the Python binding know we are at master
 import pycompss.util.context as context
@@ -40,10 +38,20 @@ import pycompss.runtime.binding as binding
 from pycompss.api.api import compss_start, compss_stop
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.commons import IS_PYTHON3
+from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
+from pycompss.util.scs import get_master_node
+from pycompss.util.scs import get_master_port
+from pycompss.util.scs import get_xmls
+from pycompss.util.scs import get_uuid
+from pycompss.util.scs import get_base_log_dir
+from pycompss.util.scs import get_specific_log_dir
+from pycompss.util.scs import get_log_level
+from pycompss.util.scs import get_tracing
+from pycompss.util.scs import get_storage_conf
 from pycompss.util.logs import init_logging
-# from pycompss.util.jvm_parser import convert_to_dict
 from pycompss.util.serializer import SerializerException
 from pycompss.util.optional_modules import show_optional_module_warnings
+# from pycompss.util.jvm_parser import convert_to_dict
 
 # Global variable also used within decorators
 app_path = None
@@ -97,6 +105,11 @@ def compss_main():
     :return: None
     """
     global app_path
+
+    # Let the Python binding know we are at master
+    import pycompss.util.context as context
+    context.set_pycompss_context(context.MASTER)
+
     # Start the runtime, see bindings commons
     compss_start()
     # See parse_arguments, defined above
@@ -193,6 +206,7 @@ def launch_pycompss_application(app, func,
                                 resources_xml=None,
                                 summary=False,
                                 task_execution='compss',
+                                storage_impl=None,
                                 storage_conf=None,
                                 task_count=50,
                                 app_name=None,
@@ -235,6 +249,7 @@ def launch_pycompss_application(app, func,
     :param resources_xml: Resources xml file path
     :param summary: Execution summary [ True | False ] (default: False)
     :param task_execution: Task execution (default: 'compss')
+    :param storage_impl: Storage implementation path
     :param storage_conf: Storage configuration file path
     :param task_count: Task count (default: 50)
     :param app_name: Application name (default: Interactive_date)
@@ -261,6 +276,10 @@ def launch_pycompss_application(app, func,
     """
 
     global app_path
+
+    # Let the Python binding know we are at master
+    set_pycompss_context('MASTER')
+
     launch_path = os.path.dirname(os.path.abspath(__file__))
     # compss_home = launch_path without the last 4 folders:
     # (Bindings/python/pycompss/runtime)
@@ -269,6 +288,7 @@ def launch_pycompss_application(app, func,
     # Grab the existing PYTHONPATH and CLASSPATH values
     pythonpath = os.environ['PYTHONPATH']
     classpath = os.environ['CLASSPATH']
+    ld_library_path = os.environ['LD_LIBRARY_PATH']
 
     # Enable/Disable object to string conversion
     binding.object_conversion = obj_conv
@@ -276,6 +296,38 @@ def launch_pycompss_application(app, func,
     # Get the filename and its path.
     file_name = os.path.splitext(os.path.basename(app))[0]
     cp = os.path.dirname(app)
+
+    # Set storage classpath
+    if storage_impl:
+        if storage_impl == 'redis':
+            cp = cp + ':' + compss_home + '/Tools/storage/redis/compss-redisPSCO.jar'
+        else:
+            cp = cp + ':' + storage_impl
+
+    if RUNNING_IN_SUPERCOMPUTER:
+        # Since the deployment in supercomputers is done through the use of enqueue_compss
+        # and consequently launch_compss - the project and resources xmls are already created
+        project_xml, resources_xml = get_xmls()
+        # It also exported some environment variables that we need here
+        master_name = get_master_node()
+        master_port = get_master_port()
+        uuid = get_uuid()
+        base_log_dir = get_base_log_dir()
+        specific_log_dir = get_specific_log_dir()
+        storage_conf = get_storage_conf()
+        # Override debug considering the parameter defined in pycompss_interactive_sc script
+        # and exported by launch_compss
+        log_level = get_log_level()
+        if log_level == 'off':
+            debug = False
+        else:
+            debug = True
+        # Override tracing considering the parameter defined in pycompss_interactive_sc script
+        # and exported by launch_compss
+        if get_tracing():
+            trace = 1
+        else:
+            trace = 0
 
     # Build a dictionary with all variables needed for initializing the runtime.
     config = dict()
@@ -313,6 +365,7 @@ def launch_pycompss_application(app, func,
     config['scheduler'] = scheduler
     config['cp'] = cp
     config['classpath'] = classpath
+    config['ld_library_path'] = ld_library_path
     config['jvm_workers'] = jvm_workers
     config['pythonpath'] = pythonpath
     config['cpu_affinity'] = cpu_affinity
@@ -326,8 +379,9 @@ def launch_pycompss_application(app, func,
         config['external_adaptation'] = 'true'
     else:
         config['external_adaptation'] = 'false'
-    config['python_interpreter'] = 'python' + str(sys.version_info[0])
-    config['python_version'] = str(sys.version_info[0])
+    major_version = str(sys.version_info[0])
+    config['python_interpreter'] = 'python' + major_version
+    config['python_version'] = major_version
     if 'VIRTUAL_ENV' in os.environ:
         # Running within a virtual environment
         python_virtual_environment = os.environ['VIRTUAL_ENV']
@@ -344,12 +398,20 @@ def launch_pycompss_application(app, func,
     # Configure logging
     app_path = app
     log_path = get_log_path()
-    if debug:
-        # DEBUG
-        init_logging(compss_home + '/Bindings/python/log/logging.json.debug', log_path)
+    # Logging setup
+    if debug or log_level == "debug":
+        json_path = '/Bindings/python/' + major_version + '/log/logging.json.debug'
+        init_logging(compss_home + json_path, log_path)
+    elif log_level == "info":
+        json_path = '/Bindings/python/' + major_version + '/log/logging.json.off'
+        init_logging(compss_home + json_path, log_path)
+    elif log_level == "off":
+        json_path = '/Bindings/python/' + major_version + '/log/logging.json.off'
+        init_logging(compss_home + json_path, log_path)
     else:
-        # NO DEBUG
-        init_logging(compss_home + '/Bindings/python/log/logging.json', log_path)
+        # Default
+        json_path = '/Bindings/python/' + str(major_version) + '/log/logging.json'
+        init_logging(compss_home + json_path, log_path)
     logger = logging.getLogger("pycompss.runtime.launch")
 
     logger.debug('--- START ---')
@@ -381,6 +443,7 @@ def initialize_compss(config):
 
     WARNING!!! if new parameters are included in the runcompss launcher,
     they have to be considered in this configuration. Otherwise, the runtime will not start.
+
     * Current required parameters:
         - 'compss_home'      = <String>       = COMPSs installation path
         - 'debug'            = <Boolean>      = Enable/Disable debugging (True|False)
@@ -405,6 +468,7 @@ def initialize_compss(config):
         - 'scheduler'        = <String>       = Scheduler (normally: es.bsc.compss.scheduler.resourceEmptyScheduler.ResourceEmptyScheduler)
         - 'cp'               = <String>       = Application path
         - 'classpath'        = <String>       = CLASSPATH environment variable contents
+        - 'ld_library_path'  = <String>       = LD_LIBRARY_PATH environment variable contents
         - 'pythonpath'       = <String>       = PYTHONPATH environment variable contents
         - 'jvm_workers'      = <String>       = Worker's jvm configuration (example: "-Xms1024m,-Xmx1024m,-Xmn400m")
         - 'cpu_affinity'     = <String>       = CPU affinity (default: automatic)
@@ -538,6 +602,7 @@ def initialize_compss(config):
 
     # JVM OPTIONS - PYTHON
     jvm_options_file.write('-Djava.class.path=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config['classpath'] + '\n')
+    jvm_options_file.write('-Djava.library.path=' + config['ld_library_path'] + '\n')
     jvm_options_file.write('-Dcompss.worker.pythonpath=' + config['cp'] + ':' + config['pythonpath'] + '\n')
     jvm_options_file.write('-Dcompss.python.interpreter=' + config['python_interpreter'] + '\n')
     jvm_options_file.write('-Dcompss.python.version=' + config['python_version'] + '\n')
@@ -546,6 +611,12 @@ def initialize_compss(config):
         jvm_options_file.write('-Dcompss.python.propagate_virtualenvironment=true\n')
     else:
         jvm_options_file.write('-Dcompss.python.propagate_virtualenvironment=false\n')
+
+    # Uncomment for debugging purposes
+    # jvm_options_file.write('-Xcheck:jni\n')
+    # jvm_options_file.write('-verbose:jni\n')
+
+    # Close the file
     jvm_options_file.close()
     os.close(fd)
     os.environ['JVM_OPTIONS_FILE'] = temp_path

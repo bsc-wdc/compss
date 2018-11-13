@@ -61,11 +61,20 @@ def in_pycompss():
     '''
     return _WHERE != OUTOFSCOPE
 
+def during_initialization():
+    """
+    Determine if the execution is in the initialization stage.
+    :return: Boolean
+    """
+    return _WHERE == 'INITIALIZATION'
+
+
 def set_pycompss_context(where):
-    '''Set the Python Binding context (MASTER OR WORKER)
-    :param where: New context (MASTER or WORKER)
+    """
+    Set the Python Binding context (MASTER or WORKER or INITIALIZATION)
+    :param where: New context (MASTER or WORKER or INITIALIZATION)
     :return: None
-    '''
+    """
     assert where in [MASTER, WORKER], 'PyCOMPSs context should be %s or %s' % (MASTER, WORKER)
     global _WHERE
     _WHERE = where
@@ -76,3 +85,4 @@ def get_pycompss_context():
     :return: PyCOMPSs context name
     '''
     return _WHERE
+

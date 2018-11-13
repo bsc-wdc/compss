@@ -361,8 +361,8 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
     int parType         = *(int*)   params[pt];
     int parDirect       = *(int*)   params[pd];
     int parStream       = *(int*)   params[ps];
-    char *parPrefix     = (char*)   params[pp];
-    char *parName       = (char*)   params[pn];
+    void *parPrefix     =           params[pp];
+    void *parName       =           params[pn];
 
     jclass clsParType = NULL; /* es.bsc.compss.types.annotations.parameter.DataType class */
     clsParType = m_env->FindClass("es/bsc/compss/types/annotations/parameter/DataType");
@@ -619,13 +619,13 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
     }
 
     // Add param prefix
-    debug_printf ("[BINDING-COMMONS]  -  @process_param  -  PREFIX: %s\n", parPrefix);
-    jstring jobjParPrefix = m_env->NewStringUTF(parPrefix);
+    debug_printf ("[BINDING-COMMONS]  -  @process_param  -  PREFIX: %s\n", *(char**)parPrefix);
+    jstring jobjParPrefix = m_env->NewStringUTF(*(char**)parPrefix);
     m_env->SetObjectArrayElement(jobjOBJArr, pp, jobjParPrefix);
     //env->SetObjectArrayElement(jobjOBJArr, pp, jobjParPrefixEMPTY);
 
-    debug_printf ("[BINDING-COMMONS]  -  @process_param  -  NAME: %s\n", parName);
-    jstring jobjParName = m_env->NewStringUTF(parName);
+    debug_printf ("[BINDING-COMMONS]  -  @process_param  -  NAME: %s\n", *(char**)parName);
+    jstring jobjParName = m_env->NewStringUTF(*(char**)parName);
     m_env->SetObjectArrayElement(jobjOBJArr, pn, jobjParName);
 }
 

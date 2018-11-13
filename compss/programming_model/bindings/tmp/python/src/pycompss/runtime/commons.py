@@ -18,6 +18,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import os
 
 # Empty string substitution key
 EMPTY_STRING_KEY = "3mPtY57r1Ng"
@@ -47,3 +48,10 @@ try:
 except ImportError:
     ENVIRONMENT = 'terminal'
     IS_INTERACTIVE = False
+
+
+# Determine if running in a supercomputer
+RUNNING_IN_SUPERCOMPUTER = False
+if 'BSC_MACHINE' in os.environ and os.environ['BSC_MACHINE'] == 'mn4':
+    # Only supported in MN4 currently
+    RUNNING_IN_SUPERCOMPUTER = True

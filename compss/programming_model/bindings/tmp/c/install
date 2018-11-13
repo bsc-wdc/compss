@@ -1,8 +1,5 @@
 #!/bin/bash -e
 
-   #export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-armhf #We need ARM libjvm.so
-#  export CC=arm-linux-gnueabihf-gcc
-
   ERROR_AUTORECONF="Error: Some error occurred while executing autoreconf"
   ERROR_CONFIGURE="Error: Some error occurred while executing configure"
   ERROR_INSTALL="Error: Some error occurred while executing install"
@@ -36,7 +33,7 @@
       echo "${ERROR_CONFIGURE} on ${componentName}"
       exit $ev
     fi
-    make -j2 clean install
+    make clean install
     ev=$?
     if [ $ev -ne 0 ]; then
       echo "${ERROR_INSTALL} on ${componentName}"

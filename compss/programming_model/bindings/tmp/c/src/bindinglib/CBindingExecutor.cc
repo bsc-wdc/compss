@@ -26,6 +26,7 @@
 #include <pthread.h>
 #include <sys/types.h>
 #include <sys/syscall.h>
+#include <sys/time.h>
 #include <iostream>
 #include "customStream.h"
 #include <fcntl.h>
@@ -86,8 +87,12 @@ void CBindingExecutor::initThread() {
 }
 
 int CBindingExecutor::executeTask(const char * command, char *&result) {
-    if (is_debug()) {
-        cout << "[Persistent C (Th " << gettid() <<")] Command received. Reading arguments..." << endl << flush;
+	ofstream *jobOut, *jobErr;
+	int th_id = gettid();
+	struct timeval t_comp_start, t_comp_end, t_ex_end, t_read_end, t_aff_end, t_reg_end, t_cp_end;
+	gettimeofday(&t_comp_start, NULL);
+	if (is_debug()) {
+        cout << "[Persistent C (Th " << th_id <<")] Command received. Reading arguments..." << endl << flush;
     }
     string aux;
     stringstream ss(command);
@@ -102,57 +107,77 @@ int CBindingExecutor::executeTask(const char * command, char *&result) {
             executeArgs = vector<string>(commandArgs.begin() + i, commandArgs.end());
         }
     }
-    //Reading task number
+    gettimeofday(&t_read_end, NULL);
+    double read_msecs = (((t_read_end.tv_sec - t_comp_start.tv_sec) * 1000000) + (t_read_end.tv_usec - t_comp_start.tv_usec))/1000;
+
+        //Reading task number
     string task_num_str = commandArgs[1];
     cout << "[Persistent C] Executing task "<< task_num_str << "in thread " << gettid() << endl << flush;
-
     //Registering streams
     if (is_debug()) {
-        cout << "[Persistent C (Th " << gettid() <<")] Registering task output streams redirection..." << endl << flush;
+        cout << "[Persistent C (Th " << th_id <<")] Registering task output streams redirection..." << endl << flush;
+    //}
+        jobOut = new ofstream(commandArgs[2].c_str());
+        jobErr = new ofstream(commandArgs[3].c_str());
+        csOut->registerThread(jobOut->rdbuf());
+        csErr->registerThread(jobErr->rdbuf());
     }
-    ofstream * jobOut = new ofstream(commandArgs[2].c_str());
-    ofstream * jobErr = new ofstream(commandArgs[3].c_str());
-    csOut->registerThread(jobOut->rdbuf());
-    csErr->registerThread(jobErr->rdbuf());
+    gettimeofday(&t_reg_end, NULL);
+    double reg_msecs = (((t_reg_end.tv_sec - t_read_end.tv_sec) * 1000000) + (t_reg_end.tv_usec - t_read_end.tv_usec))/1000;
+
     setAffinity(commandArgs);
 
+    gettimeofday(&t_aff_end, NULL);
+    double aff_msecs = (((t_aff_end.tv_sec - t_reg_end.tv_sec) * 1000000) + (t_aff_end.tv_usec - t_reg_end.tv_usec))/1000;
+
     if (is_debug()) {
-        cout << "[Persistent C (Th " << gettid() <<")] Starting task execution..." << endl << flush;
+        cout << "[Persistent C (Th " << th_id <<")] Starting task execution..." << endl << flush;
     }
+
     char**executeArgsC = new char*[executeArgs.size()];
     for (unsigned int i = 0; i < executeArgs.size(); i++) {
         executeArgsC[i] = new char[executeArgs[i].size() + 1];
         strcpy(executeArgsC[i], executeArgs[i].c_str());
     }
 
+    gettimeofday(&t_cp_end, NULL);
+    double cp_msecs = (((t_cp_end.tv_sec - t_aff_end.tv_sec) * 1000000) + (t_cp_end.tv_usec - t_aff_end.tv_usec))/1000;
+
     /*DEBUG
     for (int i = 0; i < 5; i++){
     	cout << executeArgs[i+14] << endl;
-    }*/
+    }
     fflush(NULL);
+    */
+
     //last integer indicates if output data is going to be serialized at the end of the task execution 0=no 1=yes
     int ret = execute(executeArgs.size(), executeArgsC, (CBindingCache*)this->cache, 0);
-
     if (is_debug()) {
-        cout << "[Persistent C (Th " << gettid() <<")] Task execution finished. Unregistering task output streams redirection..." << endl << flush;
+        cout << "[Persistent C (Th " << th_id <<")] Task execution finished. Unregistering task output streams redirection..." << endl << flush;
     }
-    csOut->unregisterThread();
-    csErr->unregisterThread();
-
+    gettimeofday(&t_ex_end, NULL);
+    double ex_msecs = (((t_ex_end.tv_sec - t_cp_end.tv_sec) * 1000000) + (t_ex_end.tv_usec - t_cp_end.tv_usec))/1000;
     if (is_debug()) {
-        cout << "[Persistent C (Th " << gettid() <<")] Closing task output files..." << endl << flush;
+        cout << "[Persistent C (Th " << th_id <<")] Closing task output files..." << endl << flush;
+
+        csOut->unregisterThread();
+        csErr->unregisterThread();
+
+        jobOut->close();
+        jobErr->close();
     }
-    jobOut->close();
-    jobErr->close();
 
     if (is_debug()) {
-        cout << "[Persistent C (Th " << gettid() <<")] Writting result ..." << endl << flush;
+        cout << "[Persistent C (Th " << th_id <<")] Writting result ..." << endl << flush;
     }
     ostringstream out_ss;
     out_ss << END_TASK_TAG << " " << task_num_str << " " << ret << flush;
     result = strdup(out_ss.str().c_str());
-
-    cout << "[Persistent C (Th " << gettid() <<")] Task " << task_num_str << " finished (result: " << result <<")" << endl << flush;
+    gettimeofday(&t_comp_end, NULL);
+    double unreg_msecs = (((t_comp_end.tv_sec - t_ex_end.tv_sec) * 1000000) + (t_comp_end.tv_usec - t_ex_end.tv_usec))/1000;
+    double total_msecs = (((t_comp_end.tv_sec - t_comp_start.tv_sec) * 1000000) + (t_comp_end.tv_usec - t_comp_start.tv_usec))/1000;
+    cout << "[Persistent C (Th " << th_id <<")] COMPSs task executor times: Total " << total_msecs << " readArgs " << read_msecs << " regStd " << reg_msecs << " setAff " << aff_msecs << " exTask " << ex_msecs << " unregStd " << unreg_msecs << endl << flush;
+    cout << "[Persistent C (Th " << th_id <<")] Task " << task_num_str << " finished (result: " << result <<")" << endl << flush;
     return ret;
 }
 

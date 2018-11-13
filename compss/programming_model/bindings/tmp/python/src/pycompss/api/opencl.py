@@ -53,6 +53,7 @@ class Opencl(object):
 
         self.args = args
         self.kwargs = kwargs
+        self.registered = False
         self.scope = context.in_pycompss()
         if self.scope and __debug__:
             logger.debug("Init @opencl decorator...")
@@ -109,29 +110,25 @@ class Opencl(object):
             # Include the registering info related to @opencl
 
             # Retrieve the base core_element established at @task decorator
-            core_element = func.__to_register__
-            # Update the core element information with the mpi information
-            core_element.set_impl_type("OPENCL")
-            kernel = self.kwargs['kernel']
-            if 'workingDir' in self.kwargs:
-                working_dir = self.kwargs['workingDir']
-            else:
-                working_dir = '[unassigned]'   # Empty or '[unassigned]'
-            impl_signature = 'OPENCL.' + kernel
-            core_element.set_impl_signature(impl_signature)
-            impl_args = [kernel, working_dir]
-            core_element.set_impl_type_args(impl_args)
-            func.__to_register__ = core_element
-            # Do the task register if I am the top decorator
-            if func.__who_registers__ == __name__:
-                if __debug__:
-                    logger.debug("[@OPENCL] I have to do the register of function %s in module %s" % (func.__name__, self.module))
-                register_ce(core_element)
+            from pycompss.api.task import current_core_element as core_element
+            if not self.registered:
+                self.registered = True
+                # Update the core element information with the mpi information
+                core_element.set_impl_type("OPENCL")
+                kernel = self.kwargs['kernel']
+                if 'workingDir' in self.kwargs:
+                    working_dir = self.kwargs['workingDir']
+                else:
+                    working_dir = '[unassigned]'   # Empty or '[unassigned]'
+                impl_signature = 'OPENCL.' + kernel
+                core_element.set_impl_signature(impl_signature)
+                impl_args = [kernel, working_dir]
+                core_element.set_impl_type_args(impl_args)
+                func.__to_register__ = core_element
         else:
             # worker code
             pass
 
-        @wraps(func)
         def opencl_f(*args, **kwargs):
             # This is executed only when called.
             if __debug__:
@@ -149,7 +146,10 @@ class Opencl(object):
                         setattr(slf, k, v)
 
             # Call the method
+            import pycompss.api.task as t
+            t.prepend_strings = False
             ret = func(*args, **kwargs)
+            t.prepend_strings = True
 
             if len(args) > 0:
                 # Put things back

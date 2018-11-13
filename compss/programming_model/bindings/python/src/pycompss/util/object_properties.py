@@ -93,6 +93,23 @@ def get_top_decorator(code, decorator_keys):
     # If no decorator is found, then the current decorator is the one to register
     return __name__
 
+def get_wrapped_source(f):
+    '''Gets the text of the source code for the given function.
+
+    :param f: Input function
+    :return: Source
+    '''
+
+    if hasattr(f, "__wrapped__"):
+        # has __wrapped__, going deep
+        return get_wrapped_source(f.__wrapped__)
+    else:
+        # Returning getsource
+        import inspect
+        return inspect.getsource(f)
+
+
+
 def get_wrapped_sourcelines(f):
     '''Gets a list of source lines and starting line number for the given function.
     :param f: Input function

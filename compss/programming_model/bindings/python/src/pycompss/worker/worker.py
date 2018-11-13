@@ -333,7 +333,7 @@ def compss_worker(persistent_storage):
         exit(1)
 
 
-if __name__ == "__main__":
+def main():
     # Emit sync event if tracing is enabled
     tracing = sys.argv[1] == 'true'
     taskId = int(sys.argv[2])
@@ -390,3 +390,7 @@ if __name__ == "__main__":
     if persistent_storage:
         # Finish storage
         finishStorageAtWorker()
+
+
+if __name__ == '__main__':
+    main()

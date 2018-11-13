@@ -29,12 +29,26 @@ import logging
 from tempfile import mkdtemp
 import time
 
+# Let the Python binding know we are during libraries initialization
+from pycompss.util.location import set_pycompss_context
+set_pycompss_context('INITIALIZATION')
+
 import pycompss.runtime.binding as binding
 from pycompss.api.api import compss_start
 from pycompss.api.api import compss_stop
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.binding import pending_to_synchronize
 from pycompss.runtime.launch import initialize_compss
+from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
+from pycompss.util.scs import get_master_node
+from pycompss.util.scs import get_master_port
+from pycompss.util.scs import get_xmls
+from pycompss.util.scs import get_uuid
+from pycompss.util.scs import get_base_log_dir
+from pycompss.util.scs import get_specific_log_dir
+from pycompss.util.scs import get_log_level
+from pycompss.util.scs import get_tracing
+from pycompss.util.scs import get_storage_conf
 from pycompss.util.logs import init_logging
 
 # Warning! The name should start with 'InteractiveMode' due to @task checks
@@ -45,8 +59,6 @@ myUuid = 0
 process = None
 log_path = '/tmp/'
 graphing = False
-tracing = False
-monitoring = False
 
 
 def start(log_level='off',
@@ -59,6 +71,7 @@ def start(log_level='off',
           resources_xml=None,
           summary=False,
           task_execution='compss',
+          storage_impl=None,
           storage_conf=None,
           task_count=50,
           app_name='Interactive',
@@ -96,6 +109,7 @@ def start(log_level='off',
     :param resources_xml: Resources xml file path
     :param summary: Execution summary [ True | False ] (default: False)
     :param task_execution: Task execution (default: 'compss')
+    :param storage_impl: Storage implementation path
     :param storage_conf: Storage configuration file path
     :param task_count: Task count (default: 50)
     :param app_name: Application name (default: Interactive_date)
@@ -122,6 +136,10 @@ def start(log_level='off',
     :return: None
     """
 
+    # Let the Python binding know we are at master
+    set_pycompss_context('MASTER')
+
+    # Prepare the environment
     launch_path = os.path.dirname(os.path.realpath(__file__))
     # compss_home = launch_path without the last 4 folders:
     # Bindings/python/version/pycompss
@@ -134,35 +152,33 @@ def start(log_level='off',
     classpath = os.environ['CLASSPATH']
     ld_library_path = os.environ['LD_LIBRARY_PATH']
 
-    # Set extrae dependencies
-    extrae_home = compss_home + '/Dependencies/extrae'
-    extrae_lib = extrae_home + '/lib'
-    os.environ['EXTRAE_HOME'] = extrae_home
-    os.environ['LD_LIBRARY_PATH'] = extrae_lib + ':' + ld_library_path
+    # Set storage classpath
+    if storage_impl:
+        if storage_impl == 'redis':
+            cp = cp + ':' + compss_home + '/Tools/storage/redis/compss-redisPSCO.jar'
+        else:
+            cp = cp + ':' + storage_impl
 
-    if trace is False:
-        trace = 0
-    elif trace == 'basic' or trace is True:
-        trace = 1
-        os.environ['LD_PRELOAD'] = extrae_lib + '/libpttrace.so'
-    elif trace == 'advanced':
-        trace = 2
-        os.environ['LD_PRELOAD'] = extrae_lib + '/libpttrace.so'
+    # Set extrae dependencies
+    if not "EXTRAE_HOME" in os.environ:
+        # It can be defined by the user or by launch_compss when running in Supercomputer
+        extrae_home = compss_home + '/Dependencies/extrae'
+        os.environ['EXTRAE_HOME'] = extrae_home
     else:
-        print('ERROR: Wrong tracing parameter ( [ True | basic ] | \
-               advanced | False)')
-        return -1
+        extrae_home = os.environ['EXTRAE_HOME']
+    extrae_lib = extrae_home + '/lib'
+
+    # Include extrae into ld_library_path
+    ld_library_path = extrae_lib + ':' + ld_library_path
+    os.environ['LD_LIBRARY_PATH'] = ld_library_path
 
     if monitor is not None:
         # Enable the graph if the monitoring is enabled
         graph = True
 
+    # Export global variables
     global graphing
     graphing = graph
-    global tracing
-    tracing = trace
-    global monitoring
-    monitoring = monitor
 
     __export_globals__()
 
@@ -190,6 +206,56 @@ def start(log_level='off',
     ##############################################################
     # INITIALIZATION
     ##############################################################
+
+    if RUNNING_IN_SUPERCOMPUTER:
+        # Since the deployment in supercomputers is done through the use of enqueue_compss
+        # and consequently launch_compss - the project and resources xmls are already created
+        project_xml, resources_xml = get_xmls()
+        # It also exported some environment variables that we need here
+        master_name = get_master_node()
+        master_port = get_master_port()
+        uuid = get_uuid()
+        base_log_dir = get_base_log_dir()
+        specific_log_dir = get_specific_log_dir()
+        storage_conf = get_storage_conf()
+        # Override debug considering the parameter defined in pycompss_interactive_sc script
+        # and exported by launch_compss
+        log_level = get_log_level()
+        if log_level == 'off':
+            debug = False
+        else:
+            debug = True
+        # Override tracing considering the parameter defined in pycompss_interactive_sc script
+        # and exported by launch_compss
+        trace = get_tracing()
+        if verbose:
+            print("- Overridden project xml with: " + project_xml)
+            print("- Overridden resources xml with: " + resources_xml)
+            print("- Overridden master name with: " + master_name)
+            print("- Overridden master port with: " + master_port)
+            print("- Overridden uuid with: " + uuid)
+            print("- Overridden base log dir with: " + base_log_dir)
+            print("- Overridden specific log dir with: " + specific_log_dir)
+            print("- Overridden storage conf with: " + storage_conf)
+            print("- Overridden log level with: " + str(log_level))
+            print("- Overridden debug with: " + str(debug))
+            print("- Overridden trace with: " + str(trace))
+
+    if debug:
+        # Add environment variable to get binding-commons debug information
+        os.environ['COMPSS_BINDINGS_DEBUG'] = '1'
+
+    if trace is False:
+        trace = 0
+    elif trace == 'basic' or trace is True:
+        trace = 1
+        os.environ['LD_PRELOAD'] = extrae_lib + '/libpttrace.so'
+    elif trace == 'advanced':
+        trace = 2
+        os.environ['LD_PRELOAD'] = extrae_lib + '/libpttrace.so'
+    else:
+        print("ERROR: Wrong tracing parameter ( [ True | basic ] | advanced | False)")
+        return -1
 
     # Build a dictionary with all variables needed for initializing the runtime
     config = dict()
@@ -226,9 +292,10 @@ def start(log_level='off',
     config['master_port'] = master_port
     config['scheduler'] = scheduler
     config['cp'] = cp
-    config['classpath'] = classpath
-    config['jvm_workers'] = jvm_workers
     config['pythonpath'] = pythonpath
+    config['classpath'] = classpath
+    config['ld_library_path'] = ld_library_path
+    config['jvm_workers'] = jvm_workers
     config['cpu_affinity'] = cpu_affinity
     config['gpu_affinity'] = gpu_affinity
     config['fpga_affinity'] = fpga_affinity
@@ -261,6 +328,7 @@ def start(log_level='off',
     ##############################################################
 
     print("* - Starting COMPSs runtime...                       *")
+    sys.stdout.flush()  # Force flush
     compss_start()
 
     if o_c is True:
@@ -281,8 +349,8 @@ def start(log_level='off',
     binding.temp_dir = mkdtemp(prefix='pycompss', dir=log_path + '/tmpFiles/')
     print("* - Log path : " + log_path)
 
-    # Logging setup
-    if log_level == "debug":
+    # Logging setup - messages before this step are ignored (need log_path to configure the logger).
+    if debug or log_level == "debug":
         json_path = '/Bindings/python/' + str(major_version) + '/log/logging.json.debug'
         init_logging(os.getenv('COMPSS_HOME') + json_path, log_path)
     elif log_level == "info":
@@ -300,6 +368,7 @@ def start(log_level='off',
     __print_setup__(verbose,
                     log_level, o_c, debug, graph, trace, monitor,
                     project_xml, resources_xml, summary, task_execution, storage_conf,
+                    pythonpath, classpath, ld_library_path,
                     task_count, app_name, uuid, base_log_dir, specific_log_dir, extrae_cfg,
                     comm, conn, master_name, master_port, scheduler, jvm_workers,
                     cpu_affinity, gpu_affinity, fpga_affinity, fpga_reprogram, profile_input, profile_output,
@@ -323,6 +392,7 @@ def start(log_level='off',
 
 def __print_setup__(verbose, log_level, o_c, debug, graph, trace, monitor,
                     project_xml, resources_xml, summary, task_execution, storage_conf,
+                    pythonpath, classpath, ld_library_path,
                     task_count, app_name, uuid, base_log_dir, specific_log_dir, extrae_cfg,
                     comm, conn, master_name, master_port, scheduler, jvm_workers,
                     cpu_affinity, gpu_affinity, fpga_affinity, fpga_reprogram, profile_input, profile_output,
@@ -344,6 +414,9 @@ def __print_setup__(verbose, log_level, o_c, debug, graph, trace, monitor,
     output += "  - Summary             : " + str(summary) + "\n"
     output += "  - Task execution      : " + str(task_execution) + "\n"
     output += "  - Storage conf.       : " + str(storage_conf) + "\n"
+    output += "  - Pythonpath          : " + str(pythonpath) + "\n"
+    output += "  - Classpath           : " + str(classpath) + "\n"
+    output += "  - Ld_library_path     : " + str(ld_library_path) + "\n"
     output += "  - Task count          : " + str(task_count) + "\n"
     output += "  - Application name    : " + str(app_name) + "\n"
     output += "  - UUID                : " + str(uuid) + "\n"

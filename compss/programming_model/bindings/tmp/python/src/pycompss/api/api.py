@@ -56,10 +56,11 @@ if context.in_pycompss():
 
     if IS_PYTHON3:
         listType = list
+        dictType = dict
     else:
         import types
-
         listType = types.ListType
+        dictType = types.DictType
 
     def compss_start():
         """
@@ -146,26 +147,34 @@ if context.in_pycompss():
             compss_mode = get_compss_mode(mode)
 
             # Private function used below (recursively)
-            def wait_on_list(l):
+            def wait_on_iterable(iter_obj):
+                """
+                Wait on an iterable object.
+                Currently supports lists and dictionaries (syncs the values).
+                :param iter_obj: iterable object
+                :return: synchronized object
+                """
                 # check if the object is in our pending_to_synchronize dictionary
                 from pycompss.runtime.binding import get_object_id
-                obj_id = get_object_id(l)
+                obj_id = get_object_id(iter_obj)
                 if obj_id in pending_to_synchronize:
-                    return synchronize(l, compss_mode)
+                    return synchronize(iter_obj, compss_mode)
                 else:
-                    if type(l) == list:
-                        return [wait_on_list(x) for x in l]
+                    if type(iter_obj) == list:
+                        return [wait_on_iterable(x) for x in iter_obj]
+                    elif type(iter_obj) == dict:
+                        return {k: wait_on_iterable(v) for k, v in iter_obj.items()}
                     else:
-                        return synchronize(l, compss_mode)
+                        return synchronize(iter_obj, compss_mode)
 
-            if isinstance(obj, Future) or not isinstance(obj, listType):
+            if isinstance(obj, Future) or not (isinstance(obj, listType) or isinstance(obj, dictType)):
                 return synchronize(obj, compss_mode)
             else:
                 if len(obj) == 0:  # FUTURE OBJECT
                     return synchronize(obj, compss_mode)
                 else:
-                    # Will be a List
-                    res = wait_on_list(obj)
+                    # Will be a iterable object
+                    res = wait_on_iterable(obj)
                     return res
 
         ret = list(map(_compss_wait_on, args))

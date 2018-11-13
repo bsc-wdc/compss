@@ -165,8 +165,6 @@ class task(object):
                     parameter.Parameter(p_type = ret_type, object = elem, p_direction = parameter.OUT)
                 # Hopefully, an exception have been thrown if some invalid stuff has been put
                 # in the returns field
-        else:
-            self.update_return_if_no_returns(self.user_function)
         print('SELF RETURNS IS %s' % str(self.returns))
 
     def __call__(self, user_function):
@@ -213,10 +211,12 @@ class task(object):
         from pycompss.api.parameter import Parameter
         from pycompss.api.parameter import DIRECTION
         from pycompss.api.parameter import TYPE
+        from pycompss.util.object_properties import get_wrapped_source
+        import inspect
+        import ast
+        source_code = get_wrapped_source(f).strip()
 
-        source_code = _get_wrapped_source(f).strip()
-
-        if self.has_self_parameter or source_code.startswith('@classmethod'):
+        if self.first_arg_name == 'self' or source_code.startswith('@classmethod'):
             # TODO: WHAT IF IS CLASSMETHOD FROM BOOLEAN?
             # It is a task defined within a class (can not parse the code with ast since the class does not
             # exist yet. Alternatively, the only way I see is to parse it manually line by line.
@@ -236,7 +236,7 @@ class task(object):
             has_multireturn = False
             lines = [i for i, li in enumerate(ret_mask) if li]
             max_num_returns = 0
-            if self.has_self_parameter or source_code.startswith('@classmethod'):
+            if self.first_arg_name == 'self' or source_code.startswith('@classmethod'):
                 # Parse code as string (it is a task defined within a class)
                 def _has_multireturn(statement):
                     v = ast.parse(statement.strip())
@@ -591,10 +591,11 @@ class task(object):
         if register_only:
             master_lock.release()
             return
+        if not self.returns:
+            self.update_return_if_no_returns(self.user_function)
         # TODO: See runtime.binding.process_task, it builds the necessary future objects
         # TODO: Deal with the redundant parameter passing
         from pycompss.runtime.binding import process_task
-        from pycompss.runtime.binding import FunctionType
         ret = process_task(
             self.user_function, # Ok
             self.module_name, # Ok
@@ -817,6 +818,7 @@ class task(object):
         # Return parameters, save them apart to match the user returns with the internal parameters
         ret_params = []
 
+
         for arg in args:
             # Just fill the three data structures declared above
             # Deal with the self parameter (if any)
@@ -834,6 +836,8 @@ class task(object):
                 # arguments will never be swapped with variadic ones or anything similar
                 user_args.append(arg.content)
 
+        num_returns = len(ret_params)
+
         # Call the user function with all the reconstructed parameters, get the return values
         user_returns = self.user_function(*user_args, **user_kwargs)
 
@@ -841,14 +845,10 @@ class task(object):
             return x.split(':')[-1]
 
         # Deal with returns (if any)
-        if self.returns:
-            if len(self.returns) == 1 or not self.multi_return:
+        if num_returns > 0:
+            if num_returns == 1:
                 # Generalize the return case to multi-return to simplify the code
                 user_returns = [user_returns]
-            import sys
-            sys.stderr.write('USER RETURNS IS %s and MULTI RETURN IS %s\n and SELF RETURNS is %s' %
-                             (str(user_returns), str(self.multi_return), str(self.returns)))
-            sys.stderr.flush()
             # Note that we are implicitly assuming that the length of the user returns matches the number
             # of return parameters
             for (obj, param) in zip(user_returns, ret_params):

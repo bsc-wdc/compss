@@ -57,11 +57,13 @@ except ImportError:
 
 try:
     import numpy
+    NUMPY_AVAILABLE = True
 except ImportError:
     if IS_PYTHON3:
         import pickle as numpy
     else:
         import cPickle as numpy
+    NUMPY_AVAILABLE = False
 
 lib2idx = {
     pickle: 0,
@@ -70,6 +72,7 @@ lib2idx = {
 }
 
 idx2lib = dict([(v, k) for (k, v) in lib2idx.items()])
+
 
 class SerializerException(Exception):
     """
@@ -134,7 +137,7 @@ def serialize_to_handler(obj, handler):
         else:
             try:
                 # If it is a numpy object then use its saving mechanism
-                if serializer is numpy:
+                if serializer is numpy and NUMPY_AVAILABLE:
                     serializer.save(handler, obj)
                 else:
                     serializer.dump(obj, handler, protocol=serializer.HIGHEST_PROTOCOL)

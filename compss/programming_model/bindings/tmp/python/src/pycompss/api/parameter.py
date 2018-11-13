@@ -49,6 +49,11 @@ from pycompss.runtime.commons import IS_PYTHON3
 PYCOMPSS_LONG = int if IS_PYTHON3 else long
 
 # Numbers match both C and Java enums
+from pycompss.api.data_type import data_type
+TYPE = data_type
+
+
+# Numbers match both C and Java enums
 class DIRECTION(object):
     '''Used as enum for direction types
     '''
@@ -56,10 +61,6 @@ class DIRECTION(object):
     OUT = 1
     INOUT = 2
 
-
-# Numbers match both C and Java enums
-from pycompss.api.data_type import data_type
-TYPE = data_type
 
 # Numbers match both C and Java enums
 class STREAM(object):
@@ -99,16 +100,44 @@ class Parameter(object):
         self.is_future = is_future
 
     def __repr__(self):
-        return 'Parameter(type=%s, direction=%d, stream=%d, prefix=%s\n' \
+        return 'Parameter(type=%s, direction=%s, stream=%s, prefix=%s\n' \
                '          object=%s\n' \
                '          file_name=%s\n' \
                '          is_future=%s)' % (str(self.type),
-                                            self.direction,
-                                            self.stream,
-                                            self.prefix,
+                                            str(self.direction),
+                                            str(self.stream),
+                                            str(self.prefix),
                                             str(self.object),
                                             str(self.file_name),
                                             str(self.is_future))
+
+class TaskParameter(object):
+    '''An internal wrapper for parameters. It makes it easier for the task decorator to know
+    any aspect of the parameters (should they be updated or can changes be discarded, should they
+    be deserialized or read from some storage, etc etc)
+    '''
+
+    def __init__(self, name = None, type = None, file_name = None,
+                 key = None, content = None, stream = None, prefix = None):
+        self.name = name
+        self.type = type
+        self.file_name = file_name
+        self.key = key
+        self.content = content
+        self.stream = stream
+        self.prefix = prefix
+
+    def __repr__(self):
+        return'\nParameter %s' % self.name + '\n' + \
+              '\tType %s' % str(self.type) + '\n' + \
+              '\tFile Name %s' % self.file_name + '\n' + \
+              '\tKey %s' % str(self.key) + '\n' + \
+              '\tContent %s' % str(self.content) + '\n' + \
+              '\tStream %s' % str(self.stream) + '\n' + \
+              '\tPrefix %s' % str(self.prefix) + '\n' + \
+              '-' * 20 + '\n'
+
+
 
 # Parameter conversion dictionary.
 _param_conversion_dict_ = {
@@ -192,12 +221,14 @@ _param_conversion_dict_ = {
     }
 }
 
+
 def is_parameter(x):
     '''Check if given object is a parameter.
     Avoids internal _param_ import
     :param x: Object to check
     '''
     return isinstance(x, _param_)
+
 
 def get_new_parameter(key):
     '''Returns a brand new parameter (no copies!)
@@ -223,38 +254,46 @@ def is_dict_specifier(value):
     :param value: Decorator value to check
     :return: True iff value is a dictionary that specifies at least the Type of the key
     '''
-    return isinstance(value, dict) and Type in value
+    return isinstance(value, dict)
 
 def get_parameter_from_dictionary(d):
     '''Given a dictionary with fields like Type, Direction, etc
     Return an actual Parameter object'''
-    type, direction, stream, prefix = \
-        d.get(Type, None), \
-        d.get(Direction, DIRECTION.IN), \
-        d.get(Stream, STREAM.UNSPECIFIED), \
-        d.get(Prefix, PREFIX.PREFIX)
-    return Parameter(p_type = type, p_direction = direction, p_stream = stream, p_prefix = prefix)
+    if Type not in d:  # If no Type specified => IN
+        d[Type] = Parameter()
+    d[Type] = get_parameter_copy(d[Type])
+    p = d[Type]
+    if Direction in d:
+        p.direction = d.get[Direction]
+    if Stream in d:
+        p.stream = d[Stream]
+    if Prefix in d:
+        p.prefix = d[Prefix]
+    return p
 
 def is_vararg(x):
     '''Determine if a parameter is named as a (internal) vararg
     :param x: String with a parameter name
     :returns: True iff the name has the form of an internal vararg name
     '''
-    return x.startswith('*vararg')
+    return x.startswith('*')
+
+def get_varargs_name(x):
+    return x.split('*')[0]
 
 def is_kwarg(x):
     '''Determine if a parameter is named as a (internal) kwargs
     :param x: String with a parameter name
     :return: True iff the name has the form of an internal kwarg name
     '''
-    return x.startswith('*kwarg')
+    return x.startswith('#kwarg')
 
 def is_return(x):
     '''Determine if a parameter is named as a (internal) return
     :param x: String with a parameter name
     :returns: True iff the name has the form of an internal return name
     '''
-    return x.startswith('*return')
+    return x.startswith('$return')
 
 def is_object(x):
     '''Determine if a parameter is an object (not a FILE)
@@ -266,26 +305,26 @@ def is_object(x):
 # Note that the given internal names to these parameters are
 # impossible to be assigned by the user because they are invalid
 # Python variable names, as they start with a star
-def get_vararg_name(i):
+def get_vararg_name(varargs_name, i):
     '''Given some integer i, return the name of the ith vararg
     :param i: A nonnegative integer
     :return: The name of the ith vararg according to our internal naming convention
     '''
-    return '*vararg_%d' % i
+    return '*%s*_%d' % (varargs_name, i)
 
 def get_kwarg_name(var):
     '''Given some variable name, get the kwarg identifier
     :param var: A string with a variable name
     :return: The name of the kwarg according to our internal naming convention
     '''
-    return '*kwarg_%s' % var
+    return '#kwarg_%s' % var
 
 def get_name_from_kwarg(var):
     '''Given some kwarg name, return the original variable name
     :param var: A string with a (internal) kwarg name
     :return: The original variable name
     '''
-    return var.replace('*kwarg_', '')
+    return var.replace('#kwarg_', '')
 
 
 def get_return_name(i):
@@ -293,7 +332,7 @@ def get_return_name(i):
     :param i: A nonnegative integer
     :return: The name of the return identifier according to our internal naming
     '''
-    return '*return_%d' % i
+    return '$return_%d' % i
 
 def get_original_name(x):
     '''Given a name with some internal prefix, remove them and return

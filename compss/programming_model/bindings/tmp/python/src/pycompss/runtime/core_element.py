@@ -26,12 +26,29 @@ PyCOMPSs Core Element
 
 class CE(object):
 
-    def __init__(self, ce_signature, impl_signature, impl_constraints, impl_type, impl_type_args):
+    def __init__(self,
+                 ce_signature = None,
+                 impl_signature = None,
+                 impl_constraints = None,
+                 impl_type = None,
+                 impl_type_args = None):
         self.__ceSignature = ce_signature
         self.__implSignature = impl_signature
         self.__implConstraints = impl_constraints
         self.__implType = impl_type
         self.__implTypeArgs = impl_type_args
+
+    ###########
+    # METHODS #
+    ###########
+
+    def reset(self):
+        self.__ceSignature = None
+        self.__implSignature = None
+        self.__implConstraints = None
+        self.__implType = None
+        self.__implTypeArgs = None
+
 
     ###########
     # GETTERS #

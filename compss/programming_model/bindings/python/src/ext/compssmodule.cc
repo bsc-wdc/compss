@@ -317,14 +317,18 @@ process_task(PyObject *self, PyObject *args) {
     */
     int num_fields = 6;
     std::vector< void* > unrolled_parameters(num_fields * num_pars, NULL);
+    std::vector< char* > prefix_charp(num_pars);
+    std::vector< char* > name_charp(num_pars);
     for(int i = 0; i < num_pars; ++i) {
+        prefix_charp[i] = (char*)params[i].prefix.c_str();
+        name_charp[i]   = (char*)params[i].name.c_str();
         debug("####C#### Processing parameter %d\n", i);
         unrolled_parameters[num_fields * i + 0] = _get_void_pointer_to_content(params[i].value, params[i].type, params[i].size);
         unrolled_parameters[num_fields * i + 1] = (void*)&params[i].type;
         unrolled_parameters[num_fields * i + 2] = (void*)&params[i].direction;
         unrolled_parameters[num_fields * i + 3] = (void*)&params[i].stream;
-        unrolled_parameters[num_fields * i + 4] = (void*)params[i].prefix.c_str();
-        unrolled_parameters[num_fields * i + 5] = (void*)params[i].name.c_str();
+        unrolled_parameters[num_fields * i + 4] = (void*)&prefix_charp[i];
+        unrolled_parameters[num_fields * i + 5] = (void*)&name_charp[i];
     }
 
     debug("####C#### Calling GS_ExecuteTaskNew...\n");

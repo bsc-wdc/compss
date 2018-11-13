@@ -181,7 +181,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                     logger.debug("[PYTHON WORKER %s] Received task." % str(process_name))
                     logger.debug("[PYTHON WORKER %s] - TASK CMD: %s" % (str(process_name), str(current_line)))
 
-                # Swap logger from stream handler to file handler.   #### TODO: FIX LOGGER!
+                # Swap logger from stream handler to file handler.   #### TODO: FIX LOGGER! it may not be the first if the user defines its own.
                 logger.removeHandler(logger.handlers[0])
                 out_file_handler = logging.FileHandler(job_out)
                 out_file_handler.setLevel(level)
@@ -344,6 +344,10 @@ def execute_task(process_name, storage_conf, params):
         persistent_storage = True
         from pycompss.util.persistent_storage import storage_task_context
 
+    print('---- TASK PARAMS ----')
+    print(params)
+    print('---- END TASK PARAMS ----')
+
     # Retrieve the parameters from the params argument
     path = params[0]
     method_name = params[1]
@@ -452,8 +456,7 @@ def execute_task(process_name, storage_conf, params):
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
         logger.exception("[PYTHON WORKER %s] WORKER EXCEPTION" % process_name)
         logger.exception(''.join(line for line in lines))
-        # If exception is raised during the task execution, new_types and
-        # new_values are empty
+        # If exception is raised during the task execution, new_types and new_values are empty
         return 1, new_types, new_values
 
     if import_error:
@@ -474,33 +477,44 @@ def execute_task(process_name, storage_conf, params):
         if __debug__:
             logger.debug("[PYTHON WORKER %s] Method in class %s of module %s" % (process_name, class_name, module_name))
 
+        logger.debug('HAS TARGET IS %s' % str(has_target))
+
         if has_target == 'true':
             # Instance method
             # The self object needs to be an object in order to call the function.
             # Consequently, it can not be done in the @task decorator.
             last_elem = values.pop()
-            if is_psco(last_elem):
-                obj = last_elem
-            else:
-                file_name = last_elem.split(':')[-1]
+            logger.debug('LAST ELEM ###')
+            logger.debug(last_elem.name)
+            if last_elem.key is None:
+                file_name = last_elem.file_name.split(':')[-1]
                 if __debug__:
                     logger.debug("[PYTHON WORKER %s] Deserialize self from file." % process_name)
                 obj = deserialize_from_file(file_name)
+                logger.debug('DESERIALIZED OBJECT IS %s' % last_elem.content)
                 if __debug__:
                     logger.debug("[PYTHON WORKER %s] Processing callee, a hidden object of %s in file %s" % (
-                        process_name, file_name, type(obj)))
+                        process_name, file_name, type(last_elem.content)))
             values.insert(0, obj)
             types.pop()
-            types.insert(0, parameter.TYPE.OBJECT if not is_psco(last_elem) else parameter.TYPE.EXTERNAL_PSCO)
+            types.insert(0, parameter.TYPE.OBJECT if not is_psco(last_elem.content) else parameter.TYPE.EXTERNAL_PSCO)
 
             def task_execution_2():
                 return task_execution(logger, process_name, klass, method_name, types, values, compss_kwargs)
 
-            if persistent_storage:
-                with storage_task_context(logger, values, config_file_path=storage_conf):
+            try:
+                if persistent_storage:
+                    with storage_task_context(logger, values, config_file_path=storage_conf):
+                        new_types, new_values, is_modifier = task_execution_2()
+                else:
                     new_types, new_values, is_modifier = task_execution_2()
-            else:
-                new_types, new_values, is_modifier = task_execution_2()
+            except Exception:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                logger.exception("[PYTHON WORKER %s] WORKER EXCEPTION" % process_name)
+                logger.exception(''.join(line for line in lines))
+                # If exception is raised during the task execution, new_types and new_values are empty
+                return 1, new_types, new_values
 
             # Depending on the isModifier option, it is necessary to serialize again self or not.
             # Since this option is only visible within the task decorator, the task_execution returns
@@ -510,38 +524,45 @@ def execute_task(process_name, storage_conf, params):
                 if is_psco(last_elem):
                     # There is no update PSCO on the storage API. Consequently, the changes on the PSCO must have been
                     # pushed into the storage automatically on each PSCO modification.
-                    if __debug__:
+                    if True or __debug__:
                         # TODO: this may not be correct if the user specifies isModifier=False.
                         logger.debug("[PYTHON WORKER %s] The changes on the PSCO must have been automatically updated by the storage." % process_name)
                     pass
                 else:
-                    if __debug__:
+                    if True or __debug__:
                         logger.debug("[PYTHON WORKER %s] Serializing self to file: %s" % (process_name, file_name))
                     serialize_to_file(obj, file_name)
-                if __debug__:
+                if True or __debug__:
                     logger.debug("[PYTHON WORKER %s] Serializing self to file." % process_name)
-                serialize_to_file('self', obj, file_name)
-            if __debug__:
+                serialize_to_file(obj, file_name)
+            if True or __debug__:
                 logger.debug("[PYTHON WORKER %s] Obj: %r" % (process_name, obj))
         else:
             # Class method - class is not included in values (e.g. values = [7])
-            types.insert(0, None)  # class must be first type
+            types.append(None)  # class must be first type
 
             def task_execution_3():
                 return task_execution(logger, process_name, klass, method_name, types, values, compss_kwargs)
 
-            if persistent_storage:
-                with storage_task_context(logger, values, config_file_path=storage_conf):
+            try:
+                if persistent_storage:
+                    with storage_task_context(logger, values, config_file_path=storage_conf):
+                        new_types, new_values, is_modifier = task_execution_3()
+                else:
                     new_types, new_values, is_modifier = task_execution_3()
-            else:
-                new_types, new_values, is_modifier = task_execution_3()
+            except Exception:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                logger.exception("[PYTHON WORKER %s] WORKER EXCEPTION" % process_name)
+                logger.exception(''.join(line for line in lines))
+                # If exception is raised during the task execution, new_types and new_values are empty
+                return 1, new_types, new_values
 
     # EVERYTHING OK
     if __debug__:
         logger.debug("[PYTHON WORKER %s] End task execution. Status: Ok" % process_name)
 
     return 0, new_types, new_values  # Exit code, updated params
-
 
 
 def get_input_params(num_params, logger, args, process_name):
@@ -554,34 +575,8 @@ def get_input_params(num_params, logger, args, process_name):
     :param process_name: Process name
     :return: A list of TaskParameter objects
     """
+    from pycompss.api.parameter import TaskParameter
     pos = 0
-
-    class TaskParameter(object):
-        '''An internal wrapper for parameters. It makes it easier for the task decorator to know
-        any aspect of the parameters (should they be updated or can changes be discarded, should they
-        be deserialized or read from some storage, etc etc)
-        '''
-
-        def __init__(self, name = None, type = None, file_name = None,
-                     key = None, content = None, stream = None, prefix = None):
-            self.name = name
-            self.type = type
-            self.file_name = file_name
-            self.key = key
-            self.content = content
-            self.stream = stream
-            self.prefix = prefix
-
-        def __repr__(self):
-            return'Parameter %s' % self.name + '\n' + \
-                  '\tType %s' % str(self.type) + '\n' + \
-                  '\tFile Name %s' % self.file_name + '\n' + \
-                  '\tKey %s' % str(self.key) + '\n' + \
-                  '\tContent %s' % str(self.content) + '\n' + \
-                  '\tStream %s' % str(self.stream) + '\n' + \
-                  '\tPrefix %s' % str(self.prefix) + '\n' + \
-                  '-' * 20
-
 
     ret = []
 
@@ -659,6 +654,10 @@ def get_input_params(num_params, logger, args, process_name):
             if __debug__:
                 logger.debug("[PYTHON WORKER %s] \t * Final Value: %s" % (process_name, str(aux)))
             pos += num_substrings
+
+            if IS_PYTHON3 and isinstance(aux, bytes):
+                aux = aux.decode('utf-8')
+
             ret.append(
                 TaskParameter(
                     type = p_type,
@@ -778,6 +777,7 @@ def compss_persistent_worker():
     # Set the binding in worker mode
     import pycompss.util.context as context
     context.set_pycompss_context(context.WORKER)
+
     # Get args
     debug = (sys.argv[1] == 'true')
     global TRACING

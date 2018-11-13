@@ -23,8 +23,8 @@
 #include "backendlib.h"
 #include "types.h"
 
-#define BUFF_ELEMENTS 5
-#define ARGS_OFFSET 3
+#define BUFF_ELEMENTS 6
+#define ARGS_OFFSET 4
 typedef int bool;
 enum { false, true };
 
@@ -945,11 +945,11 @@ static void generate_parameter_buffers(FILE *outFile, function *func) {
 	fprintf(outFile, "\t debug_printf(\"Detected task %s\\n\");\n", func->name);
 	int k = 0;
     //There is a target object
-    if (( func->classname != NULL ) && (func->access_static == 0)) k = k + 5;
+    if (( func->classname != NULL ) && (func->access_static == 0)) k = k + BUFF_ELEMENTS;
     //There is a return type
-    if ( func->return_type != void_dt ) k = k + 5;
+    if ( func->return_type != void_dt ) k = k + BUFF_ELEMENTS;
 
-    fprintf(outFile, "\t void *arrayObjs[%d];\n", k + func->argument_count * 5);
+    fprintf(outFile, "\t void *arrayObjs[%d];\n", k + func->argument_count * BUFF_ELEMENTS);
     fprintf(outFile, "\t int found;\n");
     fprintf(outFile, "\n");
 }
@@ -964,6 +964,8 @@ static void add_parameter_to_taskbuffer(FILE *outFile, char* name, enum datatype
     fprintf(outFile, "%s arrayObjs[%d] = &param%d;\n", tabs, i+3,  i+3);
     fprintf(outFile, "%s char *param%d = \"null\";\n", tabs, i+4);
     fprintf(outFile, "%s arrayObjs[%d] = &param%d;\n", tabs, i+4, i+4);
+    fprintf(outFile, "%s char *param%d = \"null\";\n", tabs, i+5);
+    fprintf(outFile, "%s arrayObjs[%d] = &param%d;\n", tabs, i+5, i+5);
 }
 
 static void add_object_or_array_arg_master_treatment(FILE *outFile, argument *arg, int i, Types current_types) {

@@ -25,7 +25,8 @@ worker_c_SOURCES = worker_c.cc \
         PACKAGE-executor.cc \
         PACKAGE-functions.cc
      
-worker_c_LDFLAGS =
+#worker_c_LDFLAGS   = --Wf,"--board=zedboard,--clock=100,--task_manager,--name=worker_bitstream" #We need to customize the step and the board to use, as a workaround this should work.
+worker_c_LDFLAGS    =
 
 worker_c_LDADD = -L../../lib -lworker -ldl -L$(LIBJAVAFOLDER) -ljvm -L$(CS_HOME)/../bindings-common/lib/$(TARGET_HOST) -lbindings_common -L$(CS_HOME)/lib/$(TARGET_HOST) -lcbindings -L$(BOOST_LIB) -lboost_iostreams -lboost_serialization -lboost_system  
 

@@ -176,10 +176,6 @@ aargs_as_tuple = False
 logger = logging.getLogger(__name__)
 
 
-# logger = logging.getLogger()    # for jupyter logging  # TODO: detect if jupyter and set logger
-# logger.setLevel(logging.DEBUG)  # for jupyter logging
-
-
 # ##############################################################################
 # ############################ CLASSES #########################################
 # ##############################################################################
@@ -562,12 +558,10 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns, tas
 
     app_id = 0
 
-    # Check if the function is an instance method or a class method.
-    if ftype == FunctionType.INSTANCE_METHOD:
-        has_target = True
-    else:
-        has_target = False
+    print('F RETURNS IS %s' % str(f_returns))
 
+    # Check if the function is an instance method or a class method.
+    has_target = ftype == FunctionType.INSTANCE_METHOD
     fo = None
     if f_returns:
         fo = _build_return_objects(f_returns)
@@ -713,7 +707,8 @@ def _build_return_objects(f_returns):
             logger.debug("Simple object return found.")
         # Build the appropriate future object
         ret_value = f_returns[parameter.get_return_name(0)].object
-        if ret_value in _python_to_compss:  # primitives, string, dic, list, tuple
+        print('RET VALUE IS %s' % str(ret_value))
+        if type(ret_value) in _python_to_compss or ret_value in _python_to_compss:  # primitives, string, dic, list, tuple
             fo = Future()
         elif inspect.isclass(ret_value):
             # For objects:
@@ -742,6 +737,7 @@ def _build_return_objects(f_returns):
             logger.debug("Multiple objects return found.")
         for k, v in f_returns.items():
             # Build the appropriate future object
+            print("V.OBJECT IS %s" % str(v.object))
             if v.object in _python_to_compss:  # primitives, string, dic, list, tuple
                 foe = Future()
             elif inspect.isclass(v.object):
@@ -809,11 +805,10 @@ def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings)
     compss_streams = []
     compss_prefixes = []
     # Build the range of elements
+    ra = list(f_parameters.keys())
     if ftype == FunctionType.INSTANCE_METHOD or ftype == FunctionType.CLASS_METHOD:
-        ra = list(f_parameters.keys())
         slf = ra.pop(0)
-    else:
-        ra = list(f_parameters.keys())
+        slf_name = names.pop(0)
     # Fill the values, compss_types, compss_directions, compss_streams and compss_prefixes from function parameters
     for i in ra:
         val, typ, direc, st, pre = _extract_parameter(f_parameters[i], code_strings)
@@ -839,6 +834,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings)
         compss_directions.append(direc)
         compss_streams.append(st)
         compss_prefixes.append(pre)
+        names.append(slf_name)
     return values, names, compss_types, compss_directions, compss_streams, compss_prefixes
 
 
@@ -1066,9 +1062,11 @@ def _serialize_object_into_file(name, p):
             p.type = TYPE.OBJECT
             _turn_into_file(name, p)
     elif p.type == TYPE.STRING:
-        # Strings can be empty. If a string is empty their base64 encoding will be empty
-        # So we add a leading character to it to make it non empty
-        p.object = '#%s' % p.object
+        from pycompss.api.task import prepend_strings
+        if prepend_strings:
+            # Strings can be empty. If a string is empty their base64 encoding will be empty
+            # So we add a leading character to it to make it non empty
+            p.object = '#%s' % p.object
     return p
 
 

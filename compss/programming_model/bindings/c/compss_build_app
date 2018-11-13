@@ -269,7 +269,7 @@ check_args() {
     if [ -z "$java_home" ]; then
         # Setting Java folder
         if [ -z "$JAVA_HOME" ]; then
-            display_error "[Error] Set \$JAVA_HOME or either use the --java_home argument."
+            display_error "[ ERROR ] Set \$JAVA_HOME or either use the --java_home argument."
         fi
         libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
         javapath=$JAVA_HOME
@@ -279,11 +279,11 @@ check_args() {
     fi
    
     if [ -z "$libjava" ]; then
-        display_error "[Error] Could not find the libjvm.so in $javapath" 1
+        display_error "[ ERROR ] Could not find the libjvm.so in $javapath" 1
     fi
     export LIBJAVAFOLDER=$(dirname "$libjava")
 
-    echo "[Info] Java libraries are searched in the directory: $LIBJAVAFOLDER"
+    echo "[ INFO ] Java libraries are searched in the directory: $LIBJAVAFOLDER"
 
     local boostpath
     if [ -z "$boostlib" ]; then
@@ -291,7 +291,7 @@ check_args() {
             if [ -z "$LD_LIBRARY_PATH"  ]; then
                 boostpath="/usr/lib/"
             else
-                boostpath=$LD_LIBRARY_PATH
+                boostpath=$LD_LIBRARY_PATH:/usr/lib/
             fi
         else
             boostpath=$BOOST_LIB
@@ -301,13 +301,13 @@ check_args() {
         boostpath="$boostlib" 
     fi
 
-    echo "[Info] Boost libraries are searched in the directory: $boostpath"
+    echo "[ INFO ] Boost libraries are searched in the directory: $boostpath"
 
     #Check whether you are going to compile both master and worker or one of them
     if [ "$ONLY_MASTER" = true ] && [ "$ONLY_WORKER" = true ]; then
 
         echo " "
-        echo "[Error] Is not possible to specify both options --only-master and --only-worker, to compile both remove these arguments."
+        echo "[ ERROR ] Is not possible to specify both options --only-master and --only-worker, to compile both remove these arguments."
         
         exit 1
 
@@ -316,7 +316,7 @@ check_args() {
     if [ -z "$ompss_enabled" ] && [ -n "$cuda_enabled" ] && [ $cuda_enabled -eq 1 ]; then
 
         echo " "
-        echo "[Warning] Is not possible to use the --cuda option while not using the --ompss one, removing --cuda..."
+        echo "[ WARNING ] Is not possible to use the --cuda option while not using the --ompss one, removing --cuda..."
         cuda_enabled="" 
     
     fi 
@@ -332,7 +332,7 @@ check_args() {
         fi
         #At this point, if you defined a prefix, it will be set, if you enabled cross-compile 
         #but you did not exported CROSS_COMPILE, no effect is expected from the option.
-        echo "[Info] You enabled cross-compile and the prefix to be used is: ${CROSS_COMPILE}"
+        echo "[ INFO ] You enabled cross-compile and the prefix to be used is: ${CROSS_COMPILE}"
 
     else
         CROSS_COMPILE=""
@@ -341,17 +341,17 @@ check_args() {
 
 set_target_host() {
         #To use GNU tools, such as configure, we have to specify a target; environment variable TARGET_HOST will do the trick.
-        if [ -z "${TARGET_HOST}" && "${enable_cross}" ]; then
+        if [ -z "${TARGET_HOST}" ] & [ ! -z "${enable_cross}" ]; then
             #If not defined, we assume that your currently CC or CXX configured (the want you are going to use to build)
             #has the details of what architecture is the one we are targeting.
             export TARGET_HOST=$(${CC} -dumpmachine)
             local retVal=$?
 
             if [ $retVal -ne 0 ]; then
-                display_error "[Error] Not possible to get the target host with the ${CC} -dumpmachine command. Alternatively, define the target host with the environment variable TARGET_HOST ." 1
+                display_error "[ ERROR ] Not possible to get the target host with the ${CC} -dumpmachine command. Alternatively, define the target host with the environment variable TARGET_HOST ." 1
             fi
 
-            echo "[Info] The target host is: ${TARGET_HOST}"
+            echo "[ INFO ] The target host is: ${TARGET_HOST}"
         fi
 }
 

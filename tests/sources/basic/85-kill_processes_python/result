@@ -16,7 +16,7 @@
   # the test fails, note that the grep it's showed when the ps -ef is executed, that's why we compare with a 1
 
   to_wait=10 #seconds to timeout the script
-  to_match="${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio/../../../../adaptors/nio/worker/compss-adaptors-nio-worker.jar"
+  to_match="${COMPSS_HOME}/*Runtime/*scripts/*system/*adaptors/*nio/*../*../*../*../*adaptors/*nio/*worker/*compss-adaptors-nio-worker.jar"
   timeout --signal=15 --preserve-status $to_wait ./process_checker $to_match
 
   if [ "$?" -ne "0" ]; then
@@ -24,7 +24,7 @@
 	  exit 1
   fi
 
-  to_match="${COMPSS_HOME}/Bindings/python/*/pycompss/worker/*worker.py"
+  to_match="${COMPSS_HOME}/*Bindings/*python/*[0-9]/*pycompss/*worker/*.*worker.py"
   timeout --signal=15 --preserve-status $to_wait ./process_checker $to_match
 
   if [ "$?" -ne "0" ]; then

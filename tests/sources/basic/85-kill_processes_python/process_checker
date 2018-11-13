@@ -1,11 +1,11 @@
-#!/bin/bash -e
+#!/bin/bash
 
 #$1 the keyword to search in the grep
 
-n_occurences=6
-limit=5
+n_occurences=1 #arbitrary
+#limit=5
 
-while [ $n_occurences -ge $limit ]
+while [ $n_occurences -ne 0 ]
 do
 	n_occurences=$(ps -ef 2> /dev/null | grep -c $1)
 	sleep 1

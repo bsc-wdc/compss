@@ -112,7 +112,7 @@ setup(
         },
 
         # Build
-        package_dir={'pycompss': 'src/pycompss'},
+        package_dir={'pycompss': 'src/pycompss', 'exaqute': 'src/exaqute'},
         packages=[''] + find_packages(),
         package_data={
                 '': ['log/logging.json', 'log/logging.json.debug', 'log/logging.json.off', 'README.md', 'tests/*']

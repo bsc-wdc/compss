@@ -28,6 +28,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import es.bsc.compss.COMPSsConstants.Lang;
+import static es.bsc.compss.COMPSsConstants.Lang.JAVA;
 import es.bsc.compss.executor.types.Execution;
 import es.bsc.compss.executor.utils.ExecutionPlatformMirror;
 import es.bsc.compss.executor.utils.PipedMirror;
@@ -52,6 +53,7 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.BinaryImplementation;
 import es.bsc.compss.types.implementations.DecafImplementation;
 import es.bsc.compss.types.implementations.MPIImplementation;
@@ -144,17 +146,15 @@ public class Executor implements Runnable {
     }
 
     private boolean executeTask(Invocation invocation) {
-        switch (invocation.getLang()) {
-            case JAVA:
-            case PYTHON:
-            case C:
-                return execute(invocation, context);
-            default:
-                LOGGER.error("Incorrect language " + invocation.getLang() + " in job " + invocation.getJobId());
-                // Print to the job.err file
-                System.err.println("Incorrect language " + invocation.getLang() + " in job " + invocation.getJobId());
-                return false;
+        if (invocation.getMethodImplementation().getMethodType() == MethodType.METHOD
+                && invocation.getLang() != JAVA && invocation.getLang() != Lang.PYTHON && invocation.getLang() != Lang.C) {
+
+            LOGGER.error("Incorrect language " + invocation.getLang() + " in job " + invocation.getJobId());
+            // Print to the job.err file
+            System.err.println("Incorrect language " + invocation.getLang() + " in job " + invocation.getJobId());
+            return false;
         }
+        return execute(invocation, context);
     }
 
     private boolean execute(Invocation invocation, InvocationContext context) {

@@ -11,9 +11,9 @@
   get_host_parameters "$@"
 
   implType=${invocation[0]}
-  lang=${invocation[1]}
   case "${implType}" in
     "METHOD")
+      lang=${invocation[1]}
       cp=${invocation[2]}
       echo "[WORKER_JAVA.SH]    - classpath                          = $cp"
       className=${invocation[3]}
@@ -21,11 +21,59 @@
       methodName=${invocation[4]}
       echo "[WORKER_JAVA.SH]    - method name                        = $methodName"
       implDescription=( "${implType}" "${className}" "${methodName}" )
-      specificSandbox=false;
       arguments=(${invocation[@]:5})
       ;;
+    "MPI")
+      mpi_runner=${invocation[1]}
+      echo "[WORKER_JAVA.SH]    - mpi                                = ${mpi_runner}"
+      mpi_binary=${invocation[2]}
+      echo "[WORKER_JAVA.SH]    - mpi binary                         = ${mpi_binary}"
+      mpi_sandbox=${invocation[3]}
+      echo "[WORKER_JAVA.SH]    - sandbox                            = ${mpi_sandbox}"
+      implDescription=( "${implType}" "${mpi_runner}" "${mpi_binary}" "${mpi_sandbox}")
+      arguments=(${invocation[@]:4})
+      ;;
+    "DECAF")
+      decaf_dfScript=${invocation[1]}
+      echo "[WORKER_JAVA.SH]    - Decaf dfScript                      = ${decaf_dfScript}"
+      decaf_dfExecutor=${invocation[2]}
+      echo "[WORKER_JAVA.SH]    - Decaf dfExecutor                    = ${decaf_dfExecutor}"
+      decaf_dfLib=${invocation[3]}
+      echo "[WORKER_JAVA.SH]    - Decaf dfLib                         = ${decaf_dfLib}"
+      mpi_runner=${invocation[4]}
+      echo "[WORKER_JAVA.SH]    - mpi runner                          = ${mpi_runner}"
+      decaf_sandbox=${invocation[5]}
+      echo "[WORKER_JAVA.SH]    - sandbox                             = ${decaf_sandbox}"
+      implDescription=( "${implType}" "${decaf_dfScript}" "${decaf_dfExecutor}" "${decaf_dfLib}" "${mpi_runner}" "${decaf_sandbox}")
+      arguments=(${invocation[@]:6})
+      ;;
+    "OMPSS")
+      ompss_binary=${invocation[1]}
+      echo "[WORKER_JAVA.SH]    - ompss binary                        = ${ompss_binary}"
+      ompss_sandbox=${invocation[2]}
+      echo "[WORKER_JAVA.SH]    - sandbox                             = ${ompss_sandbox}"
+      implDescription=( "${implType}" "${ompss_binary}" "${ompss_sandbox}")
+      arguments=(${invocation[@]:3})
+      ;;
+    "OPENCL")
+      opencl_kernel=${invocation[1]}
+      echo "[WORKER_JAVA.SH]    - opencl kernel                       = ${opencl_kernel}"
+      opencl_sandbox=${invocation[2]}
+      echo "[WORKER_JAVA.SH]    - sandbox                             = ${opencl_sandbox}"
+      implDescription=( "${implType}" "${opencl_kernel}" "${opencl_sandbox}")
+      arguments=(${invocation[@]:3})
+      ;;
+    "BINARY")
+      binary=${invocation[1]}
+      echo "[WORKER_JAVA.SH]    - binary                              = ${binary}"
+      binary_sandbox=${invocation[2]}
+      echo "[WORKER_JAVA.SH]    - sandbox                             = ${binary_sandbox}"
+      implDescription=( "${implType}" "${binary}" "${binary_sandbox}")
+      arguments=(${invocation[@]:3})
+      ;;
     *)
-      echo "Parsing non-native";
+      echo 1>&2 "Unsupported implementation Type "${implType}""
+      exit 7
       ;;
   esac
 

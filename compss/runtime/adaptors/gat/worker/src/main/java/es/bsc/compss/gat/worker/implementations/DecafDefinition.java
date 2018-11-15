@@ -18,6 +18,7 @@ package es.bsc.compss.gat.worker.implementations;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.gat.worker.ImplementationDefinition;
+import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.DecafImplementation;
@@ -29,18 +30,26 @@ public class DecafDefinition extends ImplementationDefinition {
     private final String dfExecutor;
     private final String dfLib;
     private final String mpiRunner;
+    private final String workingDir;
 
     public DecafDefinition(boolean debug, String[] args, int execArgsIdx) {
-        super(debug, args, execArgsIdx + 4);
+        super(debug, args, execArgsIdx + 5);
         this.dfScript = args[execArgsIdx++];
         this.dfExecutor = args[execArgsIdx++];
         this.dfLib = args[execArgsIdx++];
         this.mpiRunner = args[execArgsIdx++];
+
+        String wDir = args[execArgsIdx];
+        if ((wDir == null || wDir.isEmpty() || wDir.equals(Constants.UNASSIGNED))) {
+            this.workingDir = null;
+        } else {
+            this.workingDir = wDir;
+        }
     }
 
     @Override
     public AbstractMethodImplementation getMethodImplementation() {
-        return new DecafImplementation(dfScript, dfExecutor, dfLib, "", mpiRunner, null, null, null);
+        return new DecafImplementation(dfScript, dfExecutor, dfLib, workingDir, mpiRunner, null, null, null);
     }
 
     @Override

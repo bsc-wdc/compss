@@ -17,8 +17,6 @@
   #               MAIN               #
   ####################################
 
-  #!/bin/bash
-
   # Get worker common functions
   SCRIPT_DIR=$(dirname "$0")
 
@@ -104,34 +102,35 @@
     type=${params[${index}]}
     stream=${params[$((index + 1))]}
     prefix=${params[$((index + 2))]}
+    name=${params[$((index + 3))]}
     case ${type} in
       [0-7]) 
-        value=${params[$((index + 3))]}
-        param=( "${type}" "${stream}" "${prefix}" "${value}" )
-        index=$((index + 4))
+        value=${params[$((index + 4))]}
+        param=( "${type}" "${stream}" "${prefix}" "${name}" "${value}" )
+        index=$((index + 5))
         ;;
       8) 
-        lengthPos=$((index + 3))
+        lengthPos=$((index + 4))
         length=${params[${lengthPos}]}
-        stringValue=${params[@]:$((index + 4)):${length}}
-        param=( "${type}" "${stream}" "${prefix}" "${length}" "${stringValue[@]}" )
-        index=$((index + length + 4))
+        stringValue=${params[@]:$((index + 5)):${length}}
+        param=( "${type}" "${stream}" "${prefix}" "${name}" "${length}" "${stringValue[@]}" )
+        index=$((index + length + 5))
         ;;
       9)
-        originalNameIdx=$((index + 3))
-        dataLocationIdx=$((index + 4))
+        originalNameIdx=$((index + 4))
+        dataLocationIdx=$((index + 5))
         originalName=${params[$originalNameIdx]}
         dataLocation=${params[${dataLocationIdx}]}
         moveFileToSandbox ${dataLocation} ${originalName}
-        param=( "${type}" "${stream}" "${prefix}" "${sandbox}/${originalName}" )
-        index=$((index + 5))
+        param=( "${type}" "${stream}" "${prefix}" "${name}" "${sandbox}/${originalName}" )
+        index=$((index + 6))
 
         ;;
       *)
-        value=${params[$((index + 3))]}
-        write=${params[$((index + 4))]}
-        param=( "${type}" "${stream}" "${prefix}" "${value}" "${write}")
-        index=$((index + 5))
+        value=${params[$((index + 4))]}
+        write=${params[$((index + 5))]}
+        param=( "${type}" "${stream}" "${prefix}" "${name}" "${value}" "${write}")
+        index=$((index + 6))
         ;;
     esac
     invocationParams=( ${invocationParams[@]} ${param[@]} )
@@ -146,6 +145,10 @@
 
   echo "[WORKER_PYTHON.SH] PYTHONPATH: ${PYTHONPATH}"
   echo "[WORKER_PYTHON.SH] EXEC CMD: $pythonInterpreter ${PYCOMPSS_HOME}/pycompss/worker/worker.py ${workerConfDescription[@]} ${implDescription[@]} ${invocationParams[@]}"
+  echo "[WORKER_PYTHON.SH] WORKER DESCRIPTION: ${workerConfDescription[@]}"
+  echo "[WORKER_PYTHON.SH] IMPL DESCRIPTION: ${implDescription[@]}"
+  echo "[WORKER_PYTHON.SH] INVOCATION PARAMS: ${invocationParams[@]}"
+
   $pythonInterpreter "${PYCOMPSS_HOME}"/pycompss/worker/worker.py ${workerConfDescription[@]} ${implDescription[@]} ${invocationParams[@]}
   ev=$?
 

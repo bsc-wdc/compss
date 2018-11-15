@@ -32,15 +32,23 @@ public class MPIDefinition extends ImplementationDefinition {
 
     public MPIDefinition(boolean debug, String[] args, int execArgsIdx) {
         super(debug, args, execArgsIdx + 3);
+
+        System.out.println("mpiRunner = args[" + execArgsIdx + "]=" + args[execArgsIdx]);
         this.mpiRunner = args[execArgsIdx++];
+        System.out.println("mpiBinary = args[" + execArgsIdx + "]=" + args[execArgsIdx]);
         this.mpiBinary = args[execArgsIdx++];
-        this.workingDir = args[execArgsIdx++];
-        boolean isSpecific = !(workingDir == null || workingDir.isEmpty() || workingDir.equals(Constants.UNASSIGNED));
+        System.out.println("workingDir = args[" + execArgsIdx + "]=" + args[execArgsIdx]);
+        String wDir = args[execArgsIdx++];
+        if ((wDir == null || wDir.isEmpty() || wDir.equals(Constants.UNASSIGNED))) {
+            this.workingDir = null;
+        } else {
+            this.workingDir = wDir;
+        }
     }
 
     @Override
     public AbstractMethodImplementation getMethodImplementation() {
-        return new MPIImplementation(mpiBinary, "", mpiRunner, null, null, null);
+        return new MPIImplementation(mpiBinary, this.workingDir, mpiRunner, null, null, null);
     }
 
     @Override

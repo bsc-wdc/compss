@@ -18,6 +18,7 @@ package es.bsc.compss.gat.worker.implementations;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.gat.worker.ImplementationDefinition;
+import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.BinaryImplementation;
@@ -26,15 +27,22 @@ import es.bsc.compss.types.implementations.BinaryImplementation;
 public class BinaryDefinition extends ImplementationDefinition {
 
     private final String binary;
+    private final String workingDir;
 
     public BinaryDefinition(boolean enableDebug, String[] args, int execArgsIdx) {
-        super(enableDebug, args, execArgsIdx + 1);
-        this.binary = args[execArgsIdx];
+        super(enableDebug, args, execArgsIdx + 2);
+        this.binary = args[execArgsIdx++];
+        String wDir = args[execArgsIdx];
+        if ((wDir == null || wDir.isEmpty() || wDir.equals(Constants.UNASSIGNED))) {
+            this.workingDir = null;
+        } else {
+            this.workingDir = wDir;
+        }
     }
 
     @Override
     public AbstractMethodImplementation getMethodImplementation() {
-        return new BinaryImplementation(binary, "", null, null, null);
+        return new BinaryImplementation(binary, workingDir, null, null, null);
     }
 
     @Override

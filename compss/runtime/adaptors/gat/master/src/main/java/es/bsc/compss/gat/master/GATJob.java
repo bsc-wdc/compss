@@ -409,7 +409,6 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
             case BINARY:
                 BinaryImplementation binaryImpl = (BinaryImplementation) absImpl;
                 sandboxDir = binaryImpl.getWorkingDir();
-                lArgs.add(sandboxDir);
                 lArgs.add(binaryImpl.getBinary());
                 lArgs.add(sandboxDir);
                 break;

@@ -18,68 +18,32 @@ package es.bsc.compss.gat.worker.implementations;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.gat.worker.ImplementationDefinition;
+import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.OmpSsImplementation;
-import es.bsc.compss.util.ErrorManager;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
 
 
 public class OMPSsDefinition extends ImplementationDefinition {
 
     private final String binary;
-
-    private final int numNodes;
-    private final String hostnames;
-    private final int cus;
+    private final String workingDir;
 
     public OMPSsDefinition(boolean debug, String[] args, int execArgsIdx) {
-        super(debug, args, execArgsIdx + 1);
+        super(debug, args, execArgsIdx + 2);
         this.binary = args[execArgsIdx++];
 
-        int numNodesTmp = Integer.parseInt(args[execArgsIdx++]);
-        ArrayList<String> hostnamesList = new ArrayList<>();
-        for (int i = 0; i < numNodesTmp; ++i) {
-            String nodeName = args[execArgsIdx++];
-            if (nodeName.endsWith("-ib0")) {
-                nodeName = nodeName.substring(0, nodeName.lastIndexOf("-ib0"));
-            }
-            hostnamesList.add(nodeName);
+        String wDir = args[execArgsIdx];
+        if ((wDir == null || wDir.isEmpty() || wDir.equals(Constants.UNASSIGNED))) {
+            this.workingDir = null;
+        } else {
+            this.workingDir = wDir;
         }
-        String hostname = "localhost";
-        try {
-            hostname = InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e1) {
-            ErrorManager.warn("Cannot obtain hostname. Loading default value " + hostname);
-        }
-        hostnamesList.add(hostname);
-        numNodesTmp++;
-        this.numNodes = numNodesTmp;
-        cus = Integer.parseInt(args[execArgsIdx++]);
-        boolean firstElement = true;
-        StringBuilder hostnamesSTR = new StringBuilder();
-        for (String nodeName : hostnamesList) {
-            // Add one host name per process to launch
-            if (firstElement) {
-                firstElement = false;
-                hostnamesSTR.append(nodeName);
-                for (int i = 1; i < cus; ++i) {
-                    hostnamesSTR.append(",").append(nodeName);
-                }
-            } else {
-                for (int i = 0; i < cus; ++i) {
-                    hostnamesSTR.append(",").append(nodeName);
-                }
-            }
-        }
-        this.hostnames = hostnamesSTR.toString();
     }
 
     @Override
     public AbstractMethodImplementation getMethodImplementation() {
-        return new OmpSsImplementation(binary, "", null, null, null);
+        return new OmpSsImplementation(binary, workingDir, null, null, null);
     }
 
     @Override

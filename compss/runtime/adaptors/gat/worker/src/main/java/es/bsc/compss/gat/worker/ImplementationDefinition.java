@@ -79,13 +79,6 @@ public abstract class ImplementationDefinition implements Invocation {
             }
             hostnames.add(nodeName);
         }
-        String hostname = "localhost";
-        try {
-            hostname = InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e1) {
-            ErrorManager.warn("Cannot obtain hostname. Loading default value " + hostname);
-        }
-        hostnames.add(hostname);
         System.out.println("Computing Units = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
         cus = Integer.parseInt(args[appArgsIdx++]);
 

@@ -11,6 +11,7 @@
   get_host_parameters "$@"
 
   implType=${invocation[0]}
+  specificSandbox=false;
   case "${implType}" in
     "METHOD")
       lang=${invocation[1]}
@@ -32,6 +33,9 @@
       echo "[WORKER_JAVA.SH]    - sandbox                            = ${mpi_sandbox}"
       implDescription=( "${implType}" "${mpi_runner}" "${mpi_binary}" "${mpi_sandbox}")
       arguments=(${invocation[@]:4})
+      if [ ! -z "${mpi_sandbox}" -a "${mpi_sandbox}" != "null" ]; then
+        specificSandbox=true;
+      fi
       ;;
     "DECAF")
       decaf_dfScript=${invocation[1]}
@@ -46,6 +50,9 @@
       echo "[WORKER_JAVA.SH]    - sandbox                             = ${decaf_sandbox}"
       implDescription=( "${implType}" "${decaf_dfScript}" "${decaf_dfExecutor}" "${decaf_dfLib}" "${mpi_runner}" "${decaf_sandbox}")
       arguments=(${invocation[@]:6})
+      if [ ! -z "${decaf_sandbox}" -a "${decaf_sandbox}" != "null" ]; then
+        specificSandbox=true;
+      fi
       ;;
     "OMPSS")
       ompss_binary=${invocation[1]}
@@ -54,6 +61,9 @@
       echo "[WORKER_JAVA.SH]    - sandbox                             = ${ompss_sandbox}"
       implDescription=( "${implType}" "${ompss_binary}" "${ompss_sandbox}")
       arguments=(${invocation[@]:3})
+      if [ ! -z "${ompss_sandbox}" -a "${ompss_sandbox}" != "null" ]; then
+        specificSandbox=true;
+      fi
       ;;
     "OPENCL")
       opencl_kernel=${invocation[1]}
@@ -62,6 +72,9 @@
       echo "[WORKER_JAVA.SH]    - sandbox                             = ${opencl_sandbox}"
       implDescription=( "${implType}" "${opencl_kernel}" "${opencl_sandbox}")
       arguments=(${invocation[@]:3})
+      if [ ! -z "${opencl_sandbox}" -a "${opencl_sandbox}" != "null" ]; then
+        specificSandbox=true;
+      fi
       ;;
     "BINARY")
       binary=${invocation[1]}
@@ -70,6 +83,9 @@
       echo "[WORKER_JAVA.SH]    - sandbox                             = ${binary_sandbox}"
       implDescription=( "${implType}" "${binary}" "${binary_sandbox}")
       arguments=(${invocation[@]:3})
+      if [ ! -z "${binary_sandbox}" -a "${binary_sandbox}" != "null" ]; then
+        specificSandbox=true;
+      fi
       ;;
     *)
       echo 1>&2 "Unsupported implementation Type "${implType}""
@@ -89,7 +105,7 @@
     -classpath "$CLASSPATH" \
     es.bsc.compss.gat.worker.GATWorker ${hostFlags[@]} ${implDescription[@]} ${invocationParams[@]}
   ev=$?
- echo "Exit value=$ev"
+
   # Exit  
   if [ $ev -eq 0 ]; then
     exit 0

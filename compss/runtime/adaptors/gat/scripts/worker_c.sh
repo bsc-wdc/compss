@@ -15,7 +15,7 @@
   lang=${invocation[1]}
   cp=${invocation[2]}
   methodName=${invocation[3]}
-  echo "[WORKER_C.SH]    - method name                        = $methodName"
+  echo "[WORKER_C.SH]       - method name                        = $methodName"
 
 
   arguments=(${invocation[@]:4})
@@ -26,7 +26,7 @@
 
 
   compute_generic_sandbox
-  echo "[WORKER_C.SH]    - sandbox                        = ${sandbox}"
+  echo "[WORKER_C.SH]       - sandbox                        = ${sandbox}"
   if [ ! -d ${sandbox} ]; then
     mkdir -p ${sandbox}
   fi
@@ -45,19 +45,19 @@
     prefix=${params[$((index + 2))]}
     name=${params[$((index + 3))]}
     case ${type} in
-      [0-7]) 
+      [0-7]) #BASIC TYPE PARAM
         value=${params[$((index + 4))]}
         param=( "${type}" "${stream}" "${prefix}" "${name}" "${value}" )
         index=$((index + 5))
         ;;
-      8) 
+      8)  # STRING PARAM
         lengthPos=$((index + 4))
         length=${params[${lengthPos}]}
         stringValue=${params[@]:$((index + 5)):${length}}
         param=( "${type}" "${stream}" "${prefix}" "${name}" "${length}" "${stringValue[@]}" )
         index=$((index + length + 5))
         ;;
-      9)
+      9) # FILE PARAM
         originalNameIdx=$((index + 4))
         dataLocationIdx=$((index + 5))
         originalName=${params[$originalNameIdx]}
@@ -66,6 +66,13 @@
         param=( "${type}" "${stream}" "${prefix}" "${name}" "${sandbox}/${originalName}" )
         index=$((index + 6))
         ;;
+      13) #BINDING OBJECT
+        bo_id=${params[$((index + 4))]} 
+        bo_type=${params[$((index + 5))]}
+        bo_elements=${params[$((index + 6))]}
+        param=( "${type}" "${stream}" "${prefix}" "${name}" "${bo_id}" "${bo_type}" "${bo_elements}" )
+        index=$((index + 7))
+      ;;
       *)
         value=${params[$((index + 4))]}
         write=${params[$((index + 5))]}

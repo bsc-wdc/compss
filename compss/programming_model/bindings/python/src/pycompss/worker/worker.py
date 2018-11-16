@@ -96,7 +96,8 @@ def compss_worker(persistent_storage):
     args = sys.argv[6:]
 
     from pycompss.worker.worker_commons import execute_task
-    execute_task("Task "+task_id, storage_conf, args, tracing)
+    exit_code, _, _ = execute_task("Task "+task_id, storage_conf, args, tracing)
+    return exit_code
 
 
 def main():
@@ -151,7 +152,7 @@ def main():
         initStorageAtWorker(config_file_path=storage_conf)
 
     # Init worker
-    compss_worker(persistent_storage)
+    exit_code = compss_worker(persistent_storage)
 
     if tracing:
         pyextrae.eventandcounters(TASK_EVENTS, 0)
@@ -161,6 +162,10 @@ def main():
     if persistent_storage:
         # Finish storage
         finishStorageAtWorker()
+
+    if exit_code == 1:
+        exit(1)
+
 
 
 if __name__ == '__main__':

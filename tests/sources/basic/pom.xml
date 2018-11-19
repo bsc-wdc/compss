@@ -120,6 +120,7 @@
 		<module>87-objectDeregisterJava</module>
 		<!-- Module 88 is 88-matmul_autoparallel_python -->
 		<!-- Module 89 is 89-gemm_autoparallel_python -->
+        <module>90-compss</module>
 
 		<!-- Add new modules below. Respect numbering -->
 	</modules>

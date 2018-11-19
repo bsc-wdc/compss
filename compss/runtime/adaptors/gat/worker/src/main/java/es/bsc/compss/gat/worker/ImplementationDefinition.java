@@ -38,8 +38,7 @@ import java.util.List;
 
 public abstract class ImplementationDefinition implements Invocation {
 
-    public static final String ERROR_INVOKE = "Error invoking requested method";
-    private static final String ERROR_APP_PARAMETERS = "ERROR: Incorrect number of parameters";
+    protected static final String ERROR_INVOKE = "Error invoking requested method";
     private static final String WARN_UNSUPPORTED_DATA_TYPE = "WARNING: Unsupported data type";
     private static final String WARN_UNSUPPORTED_STREAM = "WARNING: Unsupported data stream";
 
@@ -57,23 +56,24 @@ public abstract class ImplementationDefinition implements Invocation {
     private final Param target;
     private final LinkedList<Param> results = new LinkedList<>();
 
+
     public ImplementationDefinition(boolean enableDebug, String args[], int appArgsIdx) {
-        jobId = Integer.parseInt(args[appArgsIdx++]);
-        taskId = Integer.parseInt(args[appArgsIdx++]);
-        history = JobHistory.NEW;
+        this.jobId = Integer.parseInt(args[appArgsIdx++]);
+        this.taskId = Integer.parseInt(args[appArgsIdx++]);
+        this.history = JobHistory.NEW;
 
         this.debug = enableDebug;
 
         int numNodes = Integer.parseInt(args[appArgsIdx++]);
-        hostnames = new ArrayList<>();
+        this.hostnames = new ArrayList<>();
         for (int i = 0; i < numNodes; ++i) {
             String nodeName = args[appArgsIdx++];
             if (nodeName.endsWith("-ib0")) {
                 nodeName = nodeName.substring(0, nodeName.lastIndexOf("-ib0"));
             }
-            hostnames.add(nodeName);
+            this.hostnames.add(nodeName);
         }
-        cus = Integer.parseInt(args[appArgsIdx++]);
+        this.cus = Integer.parseInt(args[appArgsIdx++]);
 
         int numParams = Integer.parseInt(args[appArgsIdx++]);
         // Get if has target or not
@@ -116,9 +116,9 @@ public abstract class ImplementationDefinition implements Invocation {
             String prefix;
             String name;
 
-            //Object and primitiveTypes
+            // Object and primitiveTypes
             Object value = null;
-            //File
+            // File
             String originalName = "NO_NAME";
             boolean writeFinal = false;
             int argTypeIdx = Integer.parseInt(args[appArgsIdx++]);
@@ -279,8 +279,6 @@ public abstract class ImplementationDefinition implements Invocation {
 
     public abstract MethodType getType();
 
-    public abstract String toCommandString();
-
     public abstract String toLogString();
 
     @Override
@@ -324,6 +322,7 @@ public abstract class ImplementationDefinition implements Invocation {
         private final Stream stream;
         private String originalName;
         private final boolean writeFinalValue;
+
 
         public Param(DataType type, String prefix, String name, Stream stream, String originalName, boolean writeFinalValue) {
             this.type = type;
@@ -401,19 +400,19 @@ public abstract class ImplementationDefinition implements Invocation {
 
         @Override
         public String getDataMgmtId() {
-            //Unrelevant information
+            // Unrelevant information
             return null;
         }
 
         @Override
         public String getSourceDataId() {
-            //Unrelevant information
+            // Unrelevant information
             return null;
         }
 
         @Override
         public List<InvocationParamURI> getSources() {
-            //File is not available to be fetch from anywhere
+            // File is not available to be fetch from anywhere
             return null;
         }
     }

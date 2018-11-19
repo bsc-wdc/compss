@@ -68,7 +68,7 @@
     openFilesLimit=$(ulimit -Sn)
     if [ "$openFilesLimit" -eq "$openFilesLimit" ] 2>/dev/null; then
       # ulimit reported a valid number of open filesz
-      maxMpitNumber=$(($openFilesLimit - 20))
+      maxMpitNumber=$((openFilesLimit - 20))
     else
       maxMpitNumber=$MIN_MPITS_PARALLEL_MERGE
     fi

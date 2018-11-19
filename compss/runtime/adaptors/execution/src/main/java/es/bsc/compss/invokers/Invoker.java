@@ -21,6 +21,9 @@ import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
+import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -32,6 +35,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
@@ -47,29 +52,68 @@ public abstract class Invoker {
     protected static final String ERROR_UNKNOWN_TYPE = "ERROR: Unrecognised type";
 
     protected static final String OMP_NUM_THREADS = "OMP_NUM_THREADS";
+    protected static final String COMPSS_HOSTNAMES = "COMPSS_HOSTNAMES";
+    protected static final String COMPSS_NUM_NODES = "COMPSS_NUM_NODES";
+    protected static final String COMPSS_NUM_THREADS = "COMPSS_NUM_THREADS";
 
     protected final InvocationContext context;
     protected final Invocation invocation;
     protected final File taskSandboxWorkingDir;
     protected final InvocationResources assignedResources;
 
-    public Invoker(
-            InvocationContext context,
-            Invocation invocation,
-            File taskSandboxWorkingDir,
-            InvocationResources assignedResources
-    ) throws JobExecutionException {
+    protected final int computingUnits;
+    protected final String workers;
+    protected final int numWorkers;
+
+
+    public Invoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources)
+            throws JobExecutionException {
 
         this.context = context;
         this.invocation = invocation;
         this.taskSandboxWorkingDir = taskSandboxWorkingDir;
         this.assignedResources = assignedResources;
 
-        /* Invocation information **************************************** */
-        AbstractMethodImplementation impl = invocation.getMethodImplementation();
+        /* Parse execution infrastructure **************************************** */
+        // ComputingUnits flags
+        ResourceDescription rd = this.invocation.getRequirements();
+        if (this.invocation.getTaskType() == Implementation.TaskType.METHOD) {
+            this.computingUnits = ((MethodResourceDescription) rd).getTotalCPUComputingUnits();
+        } else {
+            this.computingUnits = 0;
+        }
 
+        // Multi-Node flags
+        List<String> hostnames = invocation.getSlaveNodesNames();
+        hostnames.add(context.getHostName());
+        this.numWorkers = hostnames.size();
+
+        boolean firstElement = true;
+        StringBuilder hostnamesSTR = new StringBuilder();
+        for (Iterator<String> it = hostnames.iterator(); it.hasNext();) {
+            String hostname = it.next();
+            // Remove infiniband suffix
+            if (hostname.endsWith("-ib0")) {
+                hostname = hostname.substring(0, hostname.lastIndexOf("-ib0"));
+            }
+
+            // Add one host name per process to launch
+            if (firstElement) {
+                firstElement = false;
+                hostnamesSTR.append(hostname);
+                for (int i = 1; i < computingUnits; ++i) {
+                    hostnamesSTR.append(",").append(hostname);
+                }
+            } else {
+                for (int i = 0; i < computingUnits; ++i) {
+                    hostnamesSTR.append(",").append(hostname);
+                }
+            }
+        }
+        this.workers = hostnamesSTR.toString();
 
         /* Parse the parameters ************************************ */
+        AbstractMethodImplementation impl = invocation.getMethodImplementation();
         int paramIdx = 0;
         for (InvocationParam np : invocation.getParams()) {
             processParameter(np);
@@ -231,7 +275,7 @@ public abstract class Invoker {
 
     private void storeValue(InvocationParam np) throws Exception {
         if (np.isWriteFinalValue()) {
-            //Has already been stored
+            // Has already been stored
             this.context.storeParam(np);
         }
     }
@@ -239,6 +283,7 @@ public abstract class Invoker {
     private void invoke() throws JobExecutionException {
         emitStartTask();
         try {
+            setEnvironmentVariables();
             invokeMethod();
         } catch (JobExecutionException jee) {
             throw jee;
@@ -247,10 +292,24 @@ public abstract class Invoker {
         }
     }
 
+    private void setEnvironmentVariables() {
+        // Setup properties
+        System.setProperty(COMPSS_HOSTNAMES, this.workers);
+        System.setProperty(COMPSS_NUM_NODES, String.valueOf(this.numWorkers));
+        System.setProperty(COMPSS_NUM_THREADS, String.valueOf(this.computingUnits));
+        System.setProperty(OMP_NUM_THREADS, String.valueOf(this.computingUnits));
+        
+        // LOG ENV VARS
+        System.out.println("[INVOKER] COMPSS_HOSTNAMES: " + this.workers);
+        System.out.println("[INVOKER] COMPSS_NUM_NODES: " + this.numWorkers);
+        System.out.println("[INVOKER] COMPSS_NUM_THREADS: " + this.computingUnits);
+    }
+
     private void emitStartTask() {
         // TRACING: Emit start task
         if (Tracer.isActivated()) {
-            int coreId = this.invocation.getMethodImplementation().getCoreId() + 1; // +1 Because Invocation ID can't be 0 (0 signals end task)
+            int coreId = this.invocation.getMethodImplementation().getCoreId() + 1; // +1 Because Invocation ID can't be
+                                                                                    // 0 (0 signals end task)
             int taskId = this.invocation.getTaskId();
             Tracer.emitEventAndCounters(coreId, Tracer.getTaskEventsType());
             Tracer.emitEvent(taskId, Tracer.getTaskSchedulingType());

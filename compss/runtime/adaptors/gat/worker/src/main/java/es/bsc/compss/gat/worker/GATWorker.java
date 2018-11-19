@@ -22,10 +22,12 @@ import es.bsc.compss.COMPSsConstants.TaskExecution;
 import es.bsc.compss.executor.ExecutionManager;
 import es.bsc.compss.executor.types.Execution;
 import es.bsc.compss.executor.types.ExecutionListener;
-import es.bsc.compss.gat.worker.implementations.BinaryDefinition;
-import es.bsc.compss.gat.worker.implementations.DecafDefinition;
-import es.bsc.compss.gat.worker.implementations.MPIDefinition;
 import es.bsc.compss.gat.worker.implementations.JavaMethodDefinition;
+import es.bsc.compss.gat.executor.types.ExecutionEnd;
+import es.bsc.compss.gat.worker.implementations.BinaryDefinition;
+import es.bsc.compss.gat.worker.implementations.MPIDefinition;
+import es.bsc.compss.gat.worker.implementations.COMPSsDefinition;
+import es.bsc.compss.gat.worker.implementations.DecafDefinition;
 import es.bsc.compss.gat.worker.implementations.OMPSsDefinition;
 import es.bsc.compss.gat.worker.implementations.OpenCLDefinition;
 import es.bsc.compss.types.execution.Invocation;
@@ -54,7 +56,7 @@ public class GATWorker implements InvocationContext {
     private static final String WARN_UNSUPPORTED_METHOD_TYPE = "WARNING: Unsupported method type";
     private static final String ERROR_STORAGE_CONF = "ERROR: Cannot load storage configuration file: ";
 
-    //FLAGS IDX
+    // FLAGS IDX
     private static final int DEFAULT_FLAGS_SIZE = 6;
     private static final int WORKER_NAME_IDX = 0;
     private static final int WORKING_DIR_IDX = 1;
@@ -74,6 +76,7 @@ public class GATWorker implements InvocationContext {
     // Internal components
     private final ExecutionManager executionManager;
 
+
     /**
      * Executes a method taking into account the parameters. First it parses the parameters assigning values and
      * deserializing Read/creating empty ones for Write. Invokes the desired method by reflection. and serializes all
@@ -86,14 +89,14 @@ public class GATWorker implements InvocationContext {
         String workerName = args[WORKER_NAME_IDX];
         String workingDir = args[WORKING_DIR_IDX];
         boolean debug = Boolean.valueOf(args[DEBUG_IDX]);
-        //Prepares the Loggers according to the worker debug parameter
+        // Prepares the Loggers according to the worker debug parameter
         GATLog.init(debug);
 
         String installDir = args[INSTALL_DIR_IDX];
         String appDir = args[APP_DIR_IDX];
         String libPath = "";
 
-        //Configures storage API, if necessary
+        // Configures storage API, if necessary
         String storageConf = args[STORAGE_CONF_IDX];
         // Check if we must enable the storage
         System.setProperty(COMPSsConstants.STORAGE_CONF, storageConf);
@@ -108,13 +111,16 @@ public class GATWorker implements InvocationContext {
         // Retrieve arguments
         ImplementationDefinition implDef = parseArguments(args);
 
-        GATWorker worker = new GATWorker(workerName, workingDir, debug, installDir, appDir, storageConf, libPath, implDef.getComputingUnits());
+        GATWorker worker = new GATWorker(workerName, workingDir, debug, installDir, appDir, storageConf, libPath,
+                implDef.getComputingUnits());
         if (!worker.runTask(implDef)) {
             System.exit(7);
         }
     }
 
-    public GATWorker(String workerName, String workingDir, boolean debug, String installDir, String appDir, String storageConf, String libPath, int computingUnitsCPU) {
+    public GATWorker(String workerName, String workingDir, boolean debug, String installDir, String appDir, String storageConf,
+            String libPath, int computingUnitsCPU) {
+
         this.hostName = workerName;
         this.debug = debug;
         this.appDir = appDir;
@@ -124,13 +130,12 @@ public class GATWorker implements InvocationContext {
         this.storageConf = storageConf;
 
         // Prepare execution Manager
-        this.executionManager = new ExecutionManager(this,
-                computingUnitsCPU, ThreadBinder.BINDER_DISABLED,
-                0, ThreadBinder.BINDER_DISABLED,
-                0, ThreadBinder.BINDER_DISABLED,
-                1
-        );
+        this.executionManager = new ExecutionManager(this, computingUnitsCPU, ThreadBinder.BINDER_DISABLED, 0, ThreadBinder.BINDER_DISABLED,
+                0, ThreadBinder.BINDER_DISABLED, 1);
 
+        if (this.debug) {
+            System.out.println("Initializing ExecutionManager");
+        }
         try {
             this.executionManager.init();
         } catch (InitializationException ie) {
@@ -141,9 +146,11 @@ public class GATWorker implements InvocationContext {
     /**
      * Parses the all the arguments except the application parameters
      *
-     * @param args args for the execution: arg[0]: boolean enable debug arg[1]: String with Storage configuration
-     * arg[2]: Number of nodes for multi-node tasks (N) arg[3,N]: N strings with multi-node hostnames arg[3+N+1]: Number
-     * of computing units arg[3+N+2]: Method type (M=3+N+2) arg[M,M - M+1]: Method dependant parameters Others
+     * @param args
+     *            args for the execution: arg[0]: boolean enable debug arg[1]: String with Storage configuration arg[2]:
+     *            Number of nodes for multi-node tasks (N) arg[3,N]: N strings with multi-node hostnames arg[3+N+1]:
+     *            Number of computing units arg[3+N+2]: Method type (M=3+N+2) arg[M,M - M+1]: Method dependant
+     *            parameters Others
      *
      */
     private static ImplementationDefinition parseArguments(String args[]) {
@@ -154,21 +161,22 @@ public class GATWorker implements InvocationContext {
         switch (methodType) {
             case METHOD:
                 return new JavaMethodDefinition(debug, args, argPosition);
+            case BINARY:
+                return new BinaryDefinition(debug, args, argPosition);
             case MPI:
                 return new MPIDefinition(debug, args, argPosition);
+            case COMPSs:
+                return new COMPSsDefinition(debug, args, argPosition);
             case DECAF:
                 return new DecafDefinition(debug, args, argPosition);
             case OMPSS:
                 return new OMPSsDefinition(debug, args, argPosition);
             case OPENCL:
                 return new OpenCLDefinition(debug, args, argPosition);
-            case BINARY:
-                return new BinaryDefinition(debug, args, argPosition);
-            default:
-                ErrorManager.error(WARN_UNSUPPORTED_METHOD_TYPE + methodType);
-                return null;
-
         }
+        // If we reach this point means that the methodType was unrecognised
+        ErrorManager.error(WARN_UNSUPPORTED_METHOD_TYPE + methodType);
+        return null;
     }
 
     @Override
@@ -223,18 +231,18 @@ public class GATWorker implements InvocationContext {
 
     @Override
     public LanguageParams getLanguageParams(Lang language) {
-        //Only Java methods are executed on this worker. No additional parameters required
+        // Only Java methods are executed on this worker. No additional parameters required
         return null;
     }
 
     @Override
     public void registerOutputs(String outputsBasename) {
-        //Do nothing. It uses the stdout and stderr
+        // Do nothing. It uses the stdout and stderr
     }
 
     @Override
     public void unregisterOutputs() {
-        //Do nothing.
+        // Do nothing.
     }
 
     @Override
@@ -261,10 +269,10 @@ public class GATWorker implements InvocationContext {
                 break;
             case FILE_T: // value already contains the path
             case BINDING_OBJECT_T: // value corresponds to the ID of the object on the binding (already set)
-            case EXTERNAL_PSCO_T: // value corresponds to the ID of the 
+            case EXTERNAL_PSCO_T: // value corresponds to the ID of the
                 break;
             default:
-            //Nothing to do since basic type parameters require no action
+                // Nothing to do since basic type parameters require no action
         }
     }
 
@@ -279,46 +287,36 @@ public class GATWorker implements InvocationContext {
                 throw new UnsupportedOperationException("Output PSCOs are not suported with the GAT adaptor");
             case FILE_T: // value already contains the path
             case BINDING_OBJECT_T: // value corresponds to the ID of the object on the binding (already set)
-            case EXTERNAL_PSCO_T: // value corresponds to the ID of the 
+            case EXTERNAL_PSCO_T: // value corresponds to the ID of the
                 break;
             default:
-            //Nothing to do since basic type parameters require no action
+                // Nothing to do since basic type parameters require no action
         }
     }
 
     private boolean runTask(ImplementationDefinition task) {
-        final Semaphore sem = new Semaphore(0);
-        class ExecutionEnd {
-
-            boolean success;
-
-            public ExecutionEnd() {
-            }
-
-            public void setSuccess(boolean success) {
-                this.success = success;
-            }
-
-            public boolean getSuccess() {
-                return this.success;
-            }
-        }
-        final ExecutionEnd status = new ExecutionEnd();
         // Execute the job
+        final ExecutionEnd status = new ExecutionEnd();
+        final Semaphore sem = new Semaphore(0);
         Execution e = new Execution(task, new ExecutionListener() {
+
             @Override
             public void notifyEnd(Invocation invocation, boolean success) {
                 status.setSuccess(success);
                 sem.release();
             }
         });
-        executionManager.enqueue(e);
+        this.executionManager.enqueue(e);
+
+        // Wait for completion
         try {
             sem.acquire();
         } catch (InterruptedException ex) {
 
         }
-        executionManager.stop();
+
+        // Stop and log execution result
+        this.executionManager.stop();
         return status.getSuccess();
     }
 

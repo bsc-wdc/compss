@@ -16,11 +16,6 @@
  */
 package es.bsc.compss.types.execution;
 
-
-/**
- *
- * @author flordan
- */
 public interface LanguageParams {
 
 }

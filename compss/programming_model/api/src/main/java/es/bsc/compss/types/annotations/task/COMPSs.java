@@ -42,11 +42,18 @@ public @interface COMPSs {
      */
 
     /**
-     * Returns the COMPSs main class
+     * Returns the runcompss command path
      * 
-     * @return the COMPSs main class
+     * @return the runcompss command path
      */
-    String mainClass() default Constants.UNASSIGNED;
+    String runcompss() default Constants.UNASSIGNED;
+
+    /**
+     * Returns the COMPSs application main class
+     * 
+     * @return the COMPSs application main class
+     */
+    String appName() default Constants.UNASSIGNED;
 
     /*
      * COMPSs PROPERTIES

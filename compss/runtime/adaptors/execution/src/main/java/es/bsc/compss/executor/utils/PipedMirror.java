@@ -17,16 +17,17 @@
 package es.bsc.compss.executor.utils;
 
 import es.bsc.compss.COMPSsConstants;
-import static es.bsc.compss.invokers.external.ExternalCommand.*;
+import es.bsc.compss.invokers.commands.piped.EndTaskPipeCommand;
+import es.bsc.compss.invokers.commands.piped.ErrorTaskPipeCommand;
+import es.bsc.compss.invokers.commands.piped.QuitPipeCommand;
+import es.bsc.compss.invokers.external.ExternalCommand.CommandType;
 import es.bsc.compss.invokers.external.piped.PipeCommand;
-import es.bsc.compss.invokers.external.piped.PipeCommand.EndTaskPipeCommand;
-import es.bsc.compss.invokers.external.piped.PipeCommand.ErrorTaskPipeCommand;
-import es.bsc.compss.invokers.external.piped.PipeCommand.QuitPipeCommand;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.StreamGobbler;
 import es.bsc.compss.util.Tracer;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -37,16 +38,13 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.Map;
 import java.util.UUID;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-/**
- *
- * @author flordan
- */
 public abstract class PipedMirror implements ExecutionPlatformMirror {
-    
+
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
 
     // Logger messages
@@ -56,32 +54,33 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
     private static final String ERROR_PIPE_NOT_READ = "Pipe cannot be read";
     private static final String ERROR_PB = "Error starting ProcessBuilder";
     private static final String ERROR_GC = "Error generating worker external launch command";
-    
+
     protected static final String TOKEN_NEW_LINE = "\n";
     protected static final String TOKEN_SEP = " ";
-    
+
     protected static final String PIPER_SCRIPT_RELATIVE_PATH = "Runtime" + File.separator + "scripts" + File.separator + "system"
             + File.separator + "adaptors" + File.separator + "nio" + File.separator + "pipers" + File.separator;
     private static final String PIPE_SCRIPT_NAME = "bindings_piper.sh";
     private static final String PIPE_FILE_BASENAME = "pipe_";
     private static final int PIPE_CREATION_TIME = 50; // ms
     private static final int MAX_WRITE_PIPE_RETRIES = 3;
-    
+
     protected final String mirrorId;
     protected final int size;
     protected final String basePipePath;
-    
+
     private Process piper;
     private StreamGobbler outputGobbler;
     private StreamGobbler errorGobbler;
-    
+
+
     public PipedMirror(InvocationContext context, int size) {
         mirrorId = String.valueOf(UUID.randomUUID().hashCode());
         String workingDir = context.getWorkingDir();
         basePipePath = workingDir + PIPE_FILE_BASENAME + mirrorId + "_";
         this.size = size;
     }
-    
+
     protected void init(InvocationContext context) {
         String installDir = context.getInstallDir();
         String piperScript = installDir + PIPER_SCRIPT_RELATIVE_PATH + PIPE_SCRIPT_NAME;
@@ -100,29 +99,29 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
         try {
             // Set NW environment
             Map<String, String> env = getEnvironment(context);
-            
+
             env.put(COMPSsConstants.COMPSS_WORKING_DIR, context.getWorkingDir());
             env.put(COMPSsConstants.COMPSS_APP_DIR, context.getAppDir());
-            
+
             pb.directory(new File(getPBWorkingDir(context)));
             pb.environment().putAll(env);
             pb.environment().remove(Tracer.LD_PRELOAD);
             pb.environment().remove(Tracer.EXTRAE_CONFIG_FILE);
-            
+
             if (Tracer.isActivated()) {
                 long tracingHostId = context.getTracingHostID();
                 Tracer.emitEvent(tracingHostId, Tracer.getSyncType());
             }
-            
+
             piper = pb.start();
-            
+
             LOGGER.debug("Starting stdout/stderr gobblers ...");
             try {
                 piper.getOutputStream().close();
             } catch (IOException e) {
                 // Stream closed
             }
-            
+
             outputGobbler = new StreamGobbler(piper.getInputStream(), null, LOGGER);
             errorGobbler = new StreamGobbler(piper.getErrorStream(), null, LOGGER);
             outputGobbler.start();
@@ -139,10 +138,10 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
             // No need to catch such exceptions
         }
     }
-    
+
     private String constructGeneralArgs(InvocationContext context) {
         StringBuilder cmd = new StringBuilder();
-        
+
         String computePipes = basePipePath + "compute";
         String dataPipe = basePipePath + "data";
 
@@ -174,7 +173,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
             readPipes.append(TOKEN_SEP).append(computePipes).append(i).append(".inbound");
         }
         cmd.append(readPipes.toString()).append(TOKEN_SEP);
-        
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("WRITE PIPE Files: " + writePipes.toString() + "\n");
             LOGGER.debug("READ PIPE Files: " + readPipes.toString() + "\n");
@@ -203,29 +202,29 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
      * @return
      */
     public abstract Map<String, String> getEnvironment(InvocationContext context);
-    
+
     protected String getPBWorkingDir(InvocationContext context) {
         return context.getWorkingDir();
     }
-    
+
     @Override
     public void stop() {
         stopPipes();
         stopPiper();
     }
-    
+
     private void stopPipes() {
         LOGGER.info("Stopping compute pipes for mirror " + mirrorId);
         for (int i = 0; i < size; ++i) {
             PipePair pipes = new PipePair("compute" + i);
             pipes.close();
         }
-        /*LOGGER.info("Stopping data pipes for mirror " + mirrorId);
-        PipePair pipes = new PipePair("data");
-        pipes.close();
-        LOGGER.info("All pipes for mirror " + mirrorId + " are stopped");*/
+        /*
+         * LOGGER.info("Stopping data pipes for mirror " + mirrorId); PipePair pipes = new PipePair("data");
+         * pipes.close(); LOGGER.info("All pipes for mirror " + mirrorId + " are stopped");
+         */
     }
-    
+
     private void stopPiper() {
         try {
             LOGGER.info("Waiting for finishing piper process");
@@ -262,20 +261,21 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
         // ---------------------------------------------------------------------------
         LOGGER.info("ExternalThreadPool finished");
     }
-    
+
     public PipePair getPipes(String executorId) {
         return new PipePair(executorId);
     }
-    
-    
+
+
     public class PipePair {
-        
+
         private final String pipePath;
-        
+
+
         private PipePair(String id) {
             pipePath = PipedMirror.this.basePipePath + id;
         }
-        
+
         public boolean send(PipeCommand command) {
             boolean done = false;
             int retries = 0;
@@ -308,19 +308,22 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
             }
             return done;
         }
-        
+
         @Override
         public String toString() {
             return "READ pipe: " + pipePath + ".inbound  WRITE pipe:" + pipePath + ".outbound";
         }
-        
+
         public PipeCommand read() {
             PipeCommand readCommand = null;
             try {
-                FileInputStream input = new FileInputStream(pipePath + ".inbound");// WARN: This call is blocking for NamedPipes
-                BufferedReader reader = new BufferedReader(new InputStreamReader(input));
-                String line = reader.readLine();
-                
+                FileInputStream input = new FileInputStream(pipePath + ".inbound");// WARN: This call is blocking for
+                                                                                   // NamedPipes
+
+                String line = null;
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(input))) {
+                    line = reader.readLine();
+                }
                 if (line != null) {
                     String[] result = line.split(" ");
 
@@ -330,7 +333,8 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
                         return null;
                     }
                     // Process the received tag
-                    switch (result[0]) {
+                    CommandType commandType = CommandType.valueOf(result[0].toUpperCase());
+                    switch (commandType) {
                         case QUIT:
                             // This quit is received from our proper shutdown, not from bindings. We just end
                             LOGGER.debug("Received quit message");
@@ -349,8 +353,13 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
                             // We have received a fatal error from bindings, we notify error to every waiter and end
                             readCommand = new ErrorTaskPipeCommand(result);
                             break;
+                        case EXECUTE_TASK:
+                        case REMOVE:
+                        case SERIALIZE:
+                            // Should not receive any of these tags
                         default:
-                            LOGGER.warn("Unrecognised tag: " + result[0] + ". Skipping message");
+                            LOGGER.warn("Unrecognised tag on PipedMirror: " + result[0] + ". Skipping message");
+                            break;
                     }
                 }
             } catch (FileNotFoundException fnfe) {
@@ -362,7 +371,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
             }
             return readCommand;
         }
-        
+
         public void close() {
             // Send quit tag to pipe
             String writePipe = pipePath + ".outbound";

@@ -30,10 +30,6 @@ import storage.StorageItf;
 import storage.StorageObject;
 
 
-/**
- *
- * @author flordan
- */
 public class DataRegister {
 
     // Logger
@@ -44,6 +40,7 @@ public class DataRegister {
     private String storageId;
     private final List<String> files = new LinkedList<>();
     private final List<BindingLocation> bindingLocations = new LinkedList<>();
+
 
     public DataRegister() {
     }
@@ -74,7 +71,7 @@ public class DataRegister {
             // Try if parameter is in cache
             LOGGER.debug("   - Retrieving psco " + storageId + " from Storage");
 
-            Object obj ;
+            Object obj;
             // Get Object from its ID
             if (Tracer.isActivated()) {
                 Tracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.Event.STORAGE_GETBYID.getType());
@@ -98,12 +95,12 @@ public class DataRegister {
             for (String path : files) {
                 try {
                     setValue(Serializer.deserialize(path));
+                    return this.value;
                 } catch (IOException ioe) {
                     io = ioe;
                 } catch (ClassNotFoundException cnfe) {
                     cnf = cnfe;
                 }
-                return this.value;
             }
             if (cnf != null) {
                 throw cnf;
@@ -120,7 +117,7 @@ public class DataRegister {
         if (storageId != null) {
             return StorageItf.getByID(storageId);
         }
-        Object o;
+
         if (!inMemory) {
             IOException io = null;
             ClassNotFoundException cnf = null;
@@ -142,7 +139,6 @@ public class DataRegister {
             return Serializer.deserialize(Serializer.serialize(this.value));
         }
         throw new NoSourcesException();
-
     }
 
     public void setStorageId(String storageId) {
@@ -181,7 +177,7 @@ public class DataRegister {
                 File f = new File(path);
                 f.delete();
             } catch (Exception e) {
-                //File was deleted beforehand. Do nothing
+                // File was deleted beforehand. Do nothing
             }
         }
     }
@@ -190,6 +186,7 @@ public class DataRegister {
     public static interface BindingLocation {
 
     }
+
 
     @Override
     public String toString() {
@@ -216,6 +213,9 @@ public class DataRegister {
 
 
     public static class NoSourcesException extends Exception {
+
+        private static final long serialVersionUID = 1L;
+
 
         public NoSourcesException() {
             super("No sources form where to load the value");

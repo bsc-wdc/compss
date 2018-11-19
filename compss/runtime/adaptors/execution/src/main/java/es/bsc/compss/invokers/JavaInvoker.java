@@ -40,6 +40,7 @@ public class JavaInvoker extends Invoker {
     private final String methodName;
     protected final Method method;
 
+
     public JavaInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources)
             throws JobExecutionException {
         super(context, invocation, taskSandboxWorkingDir, assignedResources);

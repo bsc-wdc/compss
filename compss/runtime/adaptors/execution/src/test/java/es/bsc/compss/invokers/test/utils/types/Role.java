@@ -16,14 +16,6 @@
  */
 package es.bsc.compss.invokers.test.utils.types;
 
-
-/**
- *
- * @author flordan
- */
 public enum Role {
-    ARGUMENT,
-    TARGET,
-    RETURN
-
+    ARGUMENT, TARGET, RETURN
 }

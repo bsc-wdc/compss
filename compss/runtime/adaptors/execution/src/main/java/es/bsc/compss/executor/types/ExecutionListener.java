@@ -19,10 +19,6 @@ package es.bsc.compss.executor.types;
 import es.bsc.compss.types.execution.Invocation;
 
 
-/**
- *
- * @author flordan
- */
 public interface ExecutionListener {
 
     public void notifyEnd(Invocation invocation, boolean success);

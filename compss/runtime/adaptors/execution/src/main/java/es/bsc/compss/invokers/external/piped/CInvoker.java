@@ -22,35 +22,35 @@ import es.bsc.compss.executor.utils.ExecutionPlatformMirror;
 import es.bsc.compss.executor.utils.PipedMirror;
 import es.bsc.compss.executor.utils.PipedMirror.PipePair;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
-import es.bsc.compss.invokers.external.ExternalCommand.ExecuteTaskExternalCommand;
-import es.bsc.compss.invokers.external.piped.PipeCommand.ExecuteTaskPipeCommand;
+import es.bsc.compss.invokers.commands.external.ExecuteTaskExternalCommand;
+import es.bsc.compss.invokers.commands.piped.ExecuteTaskPipeCommand;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 
-/**
- *
- * @author flordan
- */
 public class CInvoker extends PipedInvoker {
 
     private static final String WORKER_C_RELATIVE_PATH = File.separator + "worker" + File.separator + "worker_c";
     private static final String QUOTES = "\"";
 
-    public CInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources, PipePair pipes)
-            throws JobExecutionException {
+
+    public CInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources,
+            PipePair pipes) throws JobExecutionException {
         super(context, invocation, taskSandboxWorkingDir, assignedResources, pipes);
 
     }
 
     @Override
-    protected ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation, String sandBox, InvocationResources assignedResources) {
+    protected ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation, String sandBox,
+            InvocationResources assignedResources) {
+
         ExecuteTaskPipeCommand taskExecution = new ExecuteTaskPipeCommand(invocation.getJobId());
 
         // NX_ARGS string built from the Resource Description
@@ -110,11 +110,11 @@ public class CInvoker extends PipedInvoker {
             }
             taskset.append(assignedCoreUnits[numCUs - 1]).append(" ");
         }
-        taskExecution.appendTailArgument(cuda_visible.toString() + ";" + opencl_visible.toString() + ";" + reqs.toString());
+        taskExecution.appendArgument(cuda_visible.toString() + ";" + opencl_visible.toString() + ";" + reqs.toString());
         if (taskset.length() > 0) {
-            taskExecution.appendTailArgument(taskset.toString());
+            taskExecution.appendArgument(taskset.toString());
         }
-        taskExecution.appendTailArgument(context.getAppDir() + WORKER_C_RELATIVE_PATH);
+        taskExecution.appendArgument(context.getAppDir() + WORKER_C_RELATIVE_PATH);
 
         return taskExecution;
     }
@@ -131,8 +131,9 @@ public class CInvoker extends PipedInvoker {
         private static final String C_PIPER = "c_piper.sh";
         private static final String LIBRARY_PATH_ENV = "LD_LIBRARY_PATH";
         private static final String C_LIB_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "c" + File.separator + "lib";
-        protected static final String BINDINGS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "bindings-common" + File.separator
-                + "lib";
+        protected static final String BINDINGS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "bindings-common"
+                + File.separator + "lib";
+
 
         public CMirror(InvocationContext context, int size) {
             super(context, size);

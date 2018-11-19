@@ -369,7 +369,6 @@ public class NIOWorkerNode extends COMPSsWorker {
             LOGGER.debug("PSCO " + pscoId + " already present. Skip replica.");
         }
 
-        NIOURI uri = new NIOURI(null, pscoId, Protocol.PERSISTENT_URI);
         NIOData nd = new NIOData(srcLD);
         sc.setProposedSource(nd);
 

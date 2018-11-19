@@ -28,9 +28,6 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.implementations.OmpSsImplementation;
-import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.resources.MethodResourceDescription;
-import es.bsc.compss.types.resources.ResourceDescription;
 import java.io.PrintStream;
 import java.util.ArrayList;
 
@@ -40,9 +37,11 @@ public class OmpSsInvoker extends Invoker {
     private static final int NUM_BASE_OMPSS_ARGS = 1;
 
     private final String ompssBinary;
-    private final int computingUnits;
 
-    public OmpSsInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources) throws JobExecutionException {
+
+    public OmpSsInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources)
+            throws JobExecutionException {
+
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
         // Get method definition properties
@@ -53,12 +52,6 @@ public class OmpSsInvoker extends Invoker {
             throw new JobExecutionException(ERROR_METHOD_DEFINITION + this.invocation.getMethodImplementation().getMethodType(), e);
         }
         this.ompssBinary = ompssImpl.getBinary();
-        ResourceDescription rd = invocation.getRequirements();
-        if (invocation.getTaskType() == Implementation.TaskType.METHOD) {
-            this.computingUnits = ((MethodResourceDescription) rd).getTotalCPUComputingUnits();
-        } else {
-            this.computingUnits = 0;
-        }
     }
 
     @Override
@@ -85,7 +78,8 @@ public class OmpSsInvoker extends Invoker {
         // ./exec args
         // Convert binary parameters and calculate binary-streams redirection
         BinaryRunner.StreamSTD streamValues = new BinaryRunner.StreamSTD();
-        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(invocation.getParams(), invocation.getTarget(), streamValues);
+        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(invocation.getParams(), invocation.getTarget(),
+                streamValues);
 
         // Prepare command
         String[] cmd = new String[NUM_BASE_OMPSS_ARGS + binaryParams.size()];
@@ -94,16 +88,12 @@ public class OmpSsInvoker extends Invoker {
             cmd[NUM_BASE_OMPSS_ARGS + i] = binaryParams.get(i);
         }
 
-        // Prepare environment
-        System.setProperty(OMP_NUM_THREADS, String.valueOf(computingUnits));
-
         if (invocation.isDebugEnabled()) {
             PrintStream outLog = context.getThreadOutStream();
             outLog.println("");
             outLog.println("[OMPSS INVOKER] Begin ompss call to " + this.ompssBinary);
             outLog.println("[OMPSS INVOKER] On WorkingDir : " + this.taskSandboxWorkingDir.getAbsolutePath());
 
-            outLog.println("[OMPSS INVOKER] COMPSS_NUM_THREADS: " + computingUnits);
             // Debug command
             outLog.print("[OMPSS INVOKER] BINARY CMD: ");
             for (int i = 0; i < cmd.length; ++i) {
@@ -115,6 +105,7 @@ public class OmpSsInvoker extends Invoker {
             outLog.println("[OMPSS INVOKER] OmpSs STDERR: " + streamValues.getStdErr());
         }
         // Launch command
-        return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, context.getThreadOutStream(), context.getThreadErrStream());
+        return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, context.getThreadOutStream(),
+                context.getThreadErrStream());
     }
 }

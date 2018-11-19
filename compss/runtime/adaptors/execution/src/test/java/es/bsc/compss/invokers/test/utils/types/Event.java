@@ -16,19 +16,17 @@
  */
 package es.bsc.compss.invokers.test.utils.types;
 
-
-/**
- *
- * @author flordan
- */
 public class Event {
 
     public static enum Type {
         GET_OBJECT, GET_PERSISTENT_OBJECT, STORE_OBJECT, STORE_PERSISTENT_OBJECT, RUNNING_METHOD, METHOD_RETURN
     }
+
+
     private final Type type;
     private final Object expectedState;
     private final Object attachedReply;
+
 
     public Event(Type type, Object state, Object reply) {
         this.type = type;

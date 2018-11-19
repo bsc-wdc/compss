@@ -16,14 +16,10 @@
  */
 package es.bsc.compss.invokers.test.objects;
 
-
-/**
- *
- * @author flordan
- */
 public class TestObject implements Comparable<TestObject> {
 
     private int value;
+
 
     public TestObject(int value) {
         this.value = value;

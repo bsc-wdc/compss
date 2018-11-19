@@ -24,10 +24,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 
-/**
- *
- * @author flordan
- */
 public class FakeInvocationParam implements InvocationParam {
 
     private DataType type;
@@ -41,7 +37,9 @@ public class FakeInvocationParam implements InvocationParam {
     private final boolean writeFinalValue;
     private final String dataMgmtId;
 
-    public FakeInvocationParam(DataType type, String prefix, String name, Stream stream, String originalName, String dataMgmtId, boolean writeFinalValue) {
+
+    public FakeInvocationParam(DataType type, String prefix, String name, Stream stream, String originalName, String dataMgmtId,
+            boolean writeFinalValue) {
         this.type = type;
         this.prefix = prefix;
         this.name = name;
@@ -77,7 +75,9 @@ public class FakeInvocationParam implements InvocationParam {
     }
 
     @Override
-    public String getName() { return this.name; }
+    public String getName() {
+        return this.name;
+    }
 
     @Override
     public Stream getStream() {
@@ -126,7 +126,7 @@ public class FakeInvocationParam implements InvocationParam {
 
     @Override
     public List<InvocationParamURI> getSources() {
-        //No resource where to get the data. Value is automatically provided
+        // No resource where to get the data. Value is automatically provided
         return new LinkedList<>();
     }
 }

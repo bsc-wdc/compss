@@ -593,16 +593,20 @@ public class ITFParser {
         for (COMPSs compssAnnot : m.getAnnotationsByType(COMPSs.class)) {
             LOGGER.debug("   * Processing @COMPSs annotation");
 
-            String mainClass = EnvironmentLoader.loadFromEnvironment(compssAnnot.mainClass());
+            String runcompss = EnvironmentLoader.loadFromEnvironment(compssAnnot.runcompss());
             String flags = EnvironmentLoader.loadFromEnvironment(compssAnnot.flags());
+            String appName = EnvironmentLoader.loadFromEnvironment(compssAnnot.appName());
             String workingDir = EnvironmentLoader.loadFromEnvironment(compssAnnot.workingDir());
 
-            if (mainClass == null || mainClass.isEmpty()) {
-                ErrorManager.error("Empty mainClass in COMPSs annotation for method " + m.getName());
+            if (appName == null || appName.isEmpty()) {
+                ErrorManager.error("Empty appName in COMPSs annotation for method " + m.getName());
             }
 
-            LOGGER.debug("mainClass: " + mainClass);
-
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("runcompss: " + runcompss);
+                LOGGER.debug("flags: " + flags);
+                LOGGER.debug("appName: " + appName);
+            }
             String compssSignature = calleeMethodSignature.toString() + LoaderUtils.COMPSs_SIGNATURE;
             signatures.add(compssSignature);
 
@@ -614,7 +618,7 @@ public class ITFParser {
             }
 
             // Register method implementation
-            Implementation impl = new COMPSsImplementation(mainClass, flags, workingDir, methodId, implId, implConstraints);
+            Implementation impl = new COMPSsImplementation(runcompss, flags, appName, workingDir, methodId, implId, implConstraints);
             ++implId;
             implementations.add(impl);
         }

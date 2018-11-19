@@ -22,35 +22,22 @@ import es.bsc.compss.types.execution.InvocationParam;
 import static org.junit.Assert.fail;
 
 
-/**
- *
- * @author flordan
- */
 public class InvocationParameterAction {
 
     public static enum Field {
-        TYPE,
-        MGMT_NAME,
-        VALUE,
-        VALUE_CLASS,
-        PREFIX,
-        STREAM,
-        ORIGINAL_NAME,
-        WRITE_FINAL
+        TYPE, MGMT_NAME, VALUE, VALUE_CLASS, PREFIX, STREAM, ORIGINAL_NAME, WRITE_FINAL
     }
-
 
     public static enum Action {
-        CREATE,
-        CREATE_PERSISTENT,
-        UPDATE,
-        PERSIST
+        CREATE, CREATE_PERSISTENT, UPDATE, PERSIST
     }
+
 
     private final Role role;
     private final int paramIdx;
     private final Object value;
     private final Action action;
+
 
     public InvocationParameterAction(Role role, int paramIdx, Action action, Object value) {
         this.role = role;

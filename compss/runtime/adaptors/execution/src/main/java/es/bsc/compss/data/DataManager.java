@@ -21,10 +21,6 @@ import es.bsc.compss.types.execution.exceptions.InitializationException;
 import java.util.List;
 
 
-/**
- *
- * @author flordan
- */
 public interface DataManager {
 
     public void init() throws InitializationException;

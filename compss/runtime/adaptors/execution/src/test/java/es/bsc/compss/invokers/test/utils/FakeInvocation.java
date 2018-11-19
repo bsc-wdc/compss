@@ -28,10 +28,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 
-/**
- *
- * @author flordan
- */
 public class FakeInvocation implements Invocation {
 
     private final int jobId;
@@ -46,19 +42,11 @@ public class FakeInvocation implements Invocation {
     private final List<String> slaves;
     private final JobHistory history;
 
-    private FakeInvocation(
-            int jobId,
-            int taskId,
-            TaskType type,
-            Lang lang,
-            AbstractMethodImplementation impl,
-            ResourceDescription requirements,
-            List<InvocationParam> params,
-            InvocationParam target,
-            List<InvocationParam> results,
-            List<String> slaves,
-            JobHistory history
-    ) {
+
+    private FakeInvocation(int jobId, int taskId, TaskType type, Lang lang, AbstractMethodImplementation impl,
+            ResourceDescription requirements, List<InvocationParam> params, InvocationParam target, List<InvocationParam> results,
+            List<String> slaves, JobHistory history) {
+
         this.jobId = jobId;
         this.taskId = taskId;
         this.type = type;
@@ -137,20 +125,10 @@ public class FakeInvocation implements Invocation {
 
         final FakeInvocation inv;
 
+
         public Builder() {
-            inv = new FakeInvocation(
-                    0,
-                    0,
-                    TaskType.METHOD,
-                    Lang.JAVA,
-                    null,
-                    new MethodResourceDescription(),
-                    new LinkedList<>(),
-                    null,
-                    new LinkedList<>(),
-                    new LinkedList<>(),
-                    JobHistory.NEW
-            );
+            inv = new FakeInvocation(0, 0, TaskType.METHOD, Lang.JAVA, null, new MethodResourceDescription(), new LinkedList<>(), null,
+                    new LinkedList<>(), new LinkedList<>(), JobHistory.NEW);
         }
 
         private Builder(FakeInvocation inv) {
@@ -158,190 +136,58 @@ public class FakeInvocation implements Invocation {
         }
 
         public Builder setJobId(int jobId) {
-            return new Builder(
-                    new FakeInvocation(
-                            jobId,
-                            this.inv.taskId,
-                            this.inv.type,
-                            this.inv.lang,
-                            this.inv.impl,
-                            this.inv.requirements,
-                            this.inv.params,
-                            this.inv.target,
-                            this.inv.results,
-                            this.inv.slaves,
-                            this.inv.history
-                    ));
+            return new Builder(new FakeInvocation(jobId, this.inv.taskId, this.inv.type, this.inv.lang, this.inv.impl,
+                    this.inv.requirements, this.inv.params, this.inv.target, this.inv.results, this.inv.slaves, this.inv.history));
         }
 
         public Builder setTaskId(int taskId) {
-            return new Builder(
-                    new FakeInvocation(
-                            this.inv.jobId,
-                            taskId,
-                            this.inv.type,
-                            this.inv.lang,
-                            this.inv.impl,
-                            this.inv.requirements,
-                            this.inv.params,
-                            this.inv.target,
-                            this.inv.results,
-                            this.inv.slaves,
-                            this.inv.history
-                    ));
+            return new Builder(new FakeInvocation(this.inv.jobId, taskId, this.inv.type, this.inv.lang, this.inv.impl,
+                    this.inv.requirements, this.inv.params, this.inv.target, this.inv.results, this.inv.slaves, this.inv.history));
         }
 
         public Builder setType(TaskType type) {
-            return new Builder(
-                    new FakeInvocation(
-                            this.inv.jobId,
-                            this.inv.taskId,
-                            type,
-                            this.inv.lang,
-                            this.inv.impl,
-                            this.inv.requirements,
-                            this.inv.params,
-                            this.inv.target,
-                            this.inv.results,
-                            this.inv.slaves,
-                            this.inv.history
-                    ));
+            return new Builder(new FakeInvocation(this.inv.jobId, this.inv.taskId, type, this.inv.lang, this.inv.impl,
+                    this.inv.requirements, this.inv.params, this.inv.target, this.inv.results, this.inv.slaves, this.inv.history));
         }
 
         public Builder setLang(Lang lang) {
-            return new Builder(
-                    new FakeInvocation(
-                            this.inv.jobId,
-                            this.inv.taskId,
-                            this.inv.type,
-                            lang,
-                            this.inv.impl,
-                            this.inv.requirements,
-                            this.inv.params,
-                            this.inv.target,
-                            this.inv.results,
-                            this.inv.slaves,
-                            this.inv.history
-                    ));
+            return new Builder(new FakeInvocation(this.inv.jobId, this.inv.taskId, this.inv.type, lang, this.inv.impl,
+                    this.inv.requirements, this.inv.params, this.inv.target, this.inv.results, this.inv.slaves, this.inv.history));
         }
 
         public Builder setImpl(AbstractMethodImplementation impl) {
-            return new Builder(
-                    new FakeInvocation(
-                            this.inv.jobId,
-                            this.inv.taskId,
-                            this.inv.type,
-                            this.inv.lang,
-                            impl,
-                            this.inv.requirements,
-                            this.inv.params,
-                            this.inv.target,
-                            this.inv.results,
-                            this.inv.slaves,
-                            this.inv.history
-                    ));
+            return new Builder(new FakeInvocation(this.inv.jobId, this.inv.taskId, this.inv.type, this.inv.lang, impl,
+                    this.inv.requirements, this.inv.params, this.inv.target, this.inv.results, this.inv.slaves, this.inv.history));
         }
 
         public Builder setRequirements(ResourceDescription requirements) {
-            return new Builder(
-                    new FakeInvocation(
-                            this.inv.jobId,
-                            this.inv.taskId,
-                            this.inv.type,
-                            this.inv.lang,
-                            this.inv.impl,
-                            requirements,
-                            this.inv.params,
-                            this.inv.target,
-                            this.inv.results,
-                            this.inv.slaves,
-                            this.inv.history
-                    ));
+            return new Builder(new FakeInvocation(this.inv.jobId, this.inv.taskId, this.inv.type, this.inv.lang, this.inv.impl,
+                    requirements, this.inv.params, this.inv.target, this.inv.results, this.inv.slaves, this.inv.history));
         }
 
         public Builder setParams(List<InvocationParam> params) {
-            return new Builder(
-                    new FakeInvocation(
-                            this.inv.jobId,
-                            this.inv.taskId,
-                            this.inv.type,
-                            this.inv.lang,
-                            this.inv.impl,
-                            this.inv.requirements,
-                            params,
-                            this.inv.target,
-                            this.inv.results,
-                            this.inv.slaves,
-                            this.inv.history
-                    ));
+            return new Builder(new FakeInvocation(this.inv.jobId, this.inv.taskId, this.inv.type, this.inv.lang, this.inv.impl,
+                    this.inv.requirements, params, this.inv.target, this.inv.results, this.inv.slaves, this.inv.history));
         }
 
         public Builder setTarget(InvocationParam target) {
-            return new Builder(
-                    new FakeInvocation(
-                            this.inv.jobId,
-                            this.inv.taskId,
-                            this.inv.type,
-                            this.inv.lang,
-                            this.inv.impl,
-                            this.inv.requirements,
-                            this.inv.params,
-                            target,
-                            this.inv.results,
-                            this.inv.slaves,
-                            this.inv.history
-                    ));
+            return new Builder(new FakeInvocation(this.inv.jobId, this.inv.taskId, this.inv.type, this.inv.lang, this.inv.impl,
+                    this.inv.requirements, this.inv.params, target, this.inv.results, this.inv.slaves, this.inv.history));
         }
 
         public Builder setResult(List<InvocationParam> results) {
-            return new Builder(
-                    new FakeInvocation(
-                            this.inv.jobId,
-                            this.inv.taskId,
-                            this.inv.type,
-                            this.inv.lang,
-                            this.inv.impl,
-                            this.inv.requirements,
-                            this.inv.params,
-                            this.inv.target,
-                            results,
-                            this.inv.slaves,
-                            this.inv.history
-                    ));
+            return new Builder(new FakeInvocation(this.inv.jobId, this.inv.taskId, this.inv.type, this.inv.lang, this.inv.impl,
+                    this.inv.requirements, this.inv.params, this.inv.target, results, this.inv.slaves, this.inv.history));
         }
 
         public Builder setSlaves(List<String> slaves) {
-            return new Builder(
-                    new FakeInvocation(
-                            this.inv.jobId,
-                            this.inv.taskId,
-                            this.inv.type,
-                            this.inv.lang,
-                            this.inv.impl,
-                            this.inv.requirements,
-                            this.inv.params,
-                            this.inv.target,
-                            this.inv.results,
-                            slaves,
-                            this.inv.history
-                    ));
+            return new Builder(new FakeInvocation(this.inv.jobId, this.inv.taskId, this.inv.type, this.inv.lang, this.inv.impl,
+                    this.inv.requirements, this.inv.params, this.inv.target, this.inv.results, slaves, this.inv.history));
         }
 
         public Builder setResult(JobHistory history) {
-            return new Builder(
-                    new FakeInvocation(
-                            this.inv.jobId,
-                            this.inv.taskId,
-                            this.inv.type,
-                            this.inv.lang,
-                            this.inv.impl,
-                            this.inv.requirements,
-                            this.inv.params,
-                            this.inv.target,
-                            this.inv.results,
-                            this.inv.slaves,
-                            history
-                    ));
+            return new Builder(new FakeInvocation(this.inv.jobId, this.inv.taskId, this.inv.type, this.inv.lang, this.inv.impl,
+                    this.inv.requirements, this.inv.params, this.inv.target, this.inv.results, this.inv.slaves, history));
         }
 
         public FakeInvocation build() {

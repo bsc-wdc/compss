@@ -26,6 +26,8 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 
 public class MPIImplementation extends AbstractMethodImplementation implements Externalizable {
 
+    public static final int NUM_PARAMS = 3;
+
     private String mpiRunner;
     private String binary;
     private String workingDir;
@@ -66,8 +68,8 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
     @Override
     public String getMethodDefinition() {
         StringBuilder sb = new StringBuilder();
-        sb.append("[MPI RUNNER=").append(mpiRunner);
-        sb.append(", BINARY=").append(binary);
+        sb.append("[MPI RUNNER=").append(this.mpiRunner);
+        sb.append(", BINARY=").append(this.binary);
         sb.append("]");
 
         return sb.toString();
@@ -75,23 +77,23 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
 
     @Override
     public String toString() {
-        return super.toString() + " MPI Method with binary " + binary + " and MPIrunner " + mpiRunner;
+        return super.toString() + " MPI Method with binary " + this.binary + " and MPIrunner " + this.mpiRunner;
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         super.readExternal(in);
-        mpiRunner = (String) in.readObject();
-        binary = (String) in.readObject();
-        workingDir = (String) in.readObject();
+        this.mpiRunner = (String) in.readObject();
+        this.binary = (String) in.readObject();
+        this.workingDir = (String) in.readObject();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         super.writeExternal(out);
-        out.writeObject(mpiRunner);
-        out.writeObject(binary);
-        out.writeObject(workingDir);
+        out.writeObject(this.mpiRunner);
+        out.writeObject(this.binary);
+        out.writeObject(this.workingDir);
     }
 
 }

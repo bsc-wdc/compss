@@ -28,6 +28,7 @@ public class ThreadedPrintStream extends PrintStream {
     private final String end;
     private final PrintStream defaultStream;
 
+
     public ThreadedPrintStream(String end, PrintStream defaultStream) {
         super(defaultStream);
         this.end = end;

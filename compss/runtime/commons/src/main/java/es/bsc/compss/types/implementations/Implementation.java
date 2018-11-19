@@ -23,6 +23,7 @@ import java.io.ObjectOutput;
 
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 
+
 public abstract class Implementation implements Externalizable {
 
     public enum TaskType {
@@ -30,9 +31,11 @@ public abstract class Implementation implements Externalizable {
         SERVICE // Services type
     }
 
+
     protected Integer coreId;
     protected Integer implementationId;
     protected WorkerResourceDescription requirements;
+
 
     public Implementation() {
         // For externalizable

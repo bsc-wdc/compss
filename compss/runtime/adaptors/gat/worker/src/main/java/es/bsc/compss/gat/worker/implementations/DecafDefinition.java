@@ -31,6 +31,9 @@ public class DecafDefinition extends ImplementationDefinition {
     private final String dfLib;
     private final String mpiRunner;
     private final String workingDir;
+    
+    private final DecafImplementation impl;
+
 
     public DecafDefinition(boolean debug, String[] args, int execArgsIdx) {
         super(debug, args, execArgsIdx + 5);
@@ -45,11 +48,13 @@ public class DecafDefinition extends ImplementationDefinition {
         } else {
             this.workingDir = wDir;
         }
+        
+        this.impl = new DecafImplementation(this.dfScript, this.dfExecutor, this.dfLib, this.workingDir, this.mpiRunner, null, null, null);
     }
 
     @Override
     public AbstractMethodImplementation getMethodImplementation() {
-        return new DecafImplementation(dfScript, dfExecutor, dfLib, workingDir, mpiRunner, null, null, null);
+        return this.impl;
     }
 
     @Override
@@ -63,18 +68,8 @@ public class DecafDefinition extends ImplementationDefinition {
     }
 
     @Override
-    public String toCommandString() {
-        return dfScript + " " + dfExecutor + " " + dfLib + " " + mpiRunner;
-    }
-
-    @Override
     public String toLogString() {
-        return "["
-                + "DF SCRIPT=" + dfScript
-                + "DF EXECUTOR=" + dfExecutor
-                + "DF LIB=" + dfLib
-                + "MPI RUNNER=" + mpiRunner
-                + "]";
+        return this.impl.getMethodDefinition();
     }
 
 }

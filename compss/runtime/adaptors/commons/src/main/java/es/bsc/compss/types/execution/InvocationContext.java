@@ -23,7 +23,7 @@ import java.io.PrintStream;
 
 public interface InvocationContext {
 
-    //WORKER CONFIGURATION
+    // WORKER CONFIGURATION
     public String getHostName();
 
     public long getTracingHostID();
@@ -36,14 +36,14 @@ public interface InvocationContext {
 
     public String getWorkingDir();
 
-    //EXECUTION CONFIGURATION
+    // EXECUTION CONFIGURATION
     public TaskExecution getExecutionType();
 
     public boolean isPersistentEnabled();
 
     public LanguageParams getLanguageParams(Lang language);
 
-    //EXECUTION MANAGEMENT
+    // EXECUTION MANAGEMENT
     public void registerOutputs(String outputsBasename);
 
     public void unregisterOutputs();
@@ -54,7 +54,7 @@ public interface InvocationContext {
 
     public PrintStream getThreadErrStream();
 
-    //DATA MANAGEMENT
+    // DATA MANAGEMENT
     public String getStorageConf();
 
     public void loadParam(InvocationParam np) throws Exception;

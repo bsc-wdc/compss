@@ -25,7 +25,6 @@ import es.bsc.compss.types.execution.InvocationParam;
 
 import java.io.File;
 import java.util.concurrent.Semaphore;
-import java.util.LinkedList;
 import java.util.List;
 
 import javassist.ClassPool;
@@ -49,7 +48,10 @@ public class StorageInvoker extends JavaInvoker {
     private static final String ERROR_EXTERNAL_EXECUTION = "ERROR: External Task Execution failed";
     private static final String WARN_RET_VALUE_EXCEPTION = "WARN: Exception on externalExecution return value";
 
-    public StorageInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources) throws JobExecutionException {
+
+    public StorageInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+            InvocationResources assignedResources) throws JobExecutionException {
+
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
     }
 
@@ -154,6 +156,7 @@ public class StorageInvoker extends JavaInvoker {
 
         private CallbackEvent event;
         private Semaphore sem;
+
 
         public PSCOCallbackHandler() {
             this.sem = new Semaphore(0);

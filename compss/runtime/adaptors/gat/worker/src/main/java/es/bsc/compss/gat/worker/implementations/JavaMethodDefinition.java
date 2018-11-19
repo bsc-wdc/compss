@@ -28,15 +28,20 @@ public class JavaMethodDefinition extends ImplementationDefinition {
     private final String className;
     private final String methodName;
 
+    private final MethodImplementation impl;
+
+
     public JavaMethodDefinition(boolean debug, String[] args, int execArgsIdx) {
         super(debug, args, execArgsIdx + 2);
         this.className = args[execArgsIdx++];
         this.methodName = args[execArgsIdx];
+
+        this.impl = new MethodImplementation(this.className, this.methodName, null, null, null);
     }
 
     @Override
     public AbstractMethodImplementation getMethodImplementation() {
-        return new MethodImplementation(className, methodName, null, null, null);
+        return this.impl;
     }
 
     @Override
@@ -50,24 +55,16 @@ public class JavaMethodDefinition extends ImplementationDefinition {
     }
 
     @Override
-    public String toCommandString() {
-        return className + " " + methodName;
-    }
-
-    @Override
     public String toLogString() {
-        return "["
-                + "DECLARING CLASS=" + className
-                + ", METHOD NAME=" + methodName
-                + "]";
+        return this.impl.getMethodDefinition();
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Type: ").append(getType()).append("\n");
-        sb.append("ClassName: ").append(className).append("\n");
-        sb.append("MethodName: ").append(methodName).append("\n");
+        sb.append("ClassName: ").append(this.className).append("\n");
+        sb.append("MethodName: ").append(this.methodName).append("\n");
         sb.append(super.toString());
         return sb.toString();
     }

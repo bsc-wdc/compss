@@ -23,9 +23,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
-import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.resources.components.Processor;
-import es.bsc.compss.types.resources.components.Processor.ProcessorType;
 
 
 public class MethodResourceDescriptionTest {
@@ -41,8 +39,10 @@ public class MethodResourceDescriptionTest {
     private static final String constraints2 = "processors : ["
             + "{processorType : GPU, ComputingUnits : 1, processorInternalMemorySize:20},"
             + "{processorType : CPU, ComputingUnits : 8}];";
+    
     @ClassRule
     public static final EnvironmentVariables ENVIRONMENT_VARIABLES = new EnvironmentVariables();
+
 
     @Before
     public void setUp() throws Exception {
@@ -79,7 +79,7 @@ public class MethodResourceDescriptionTest {
                 case FPGA:
                     assertEquals(p.getComputingUnits(), 4);
                 default:
-                //Do nothing
+                    // Do nothing
             }
         }
     }

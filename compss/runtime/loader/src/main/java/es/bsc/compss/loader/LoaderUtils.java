@@ -57,9 +57,9 @@ public class LoaderUtils {
     public static final String BINARY_SIGNATURE = "binary.BINARY";
     public static final String MPI_SIGNATURE = "mpi.MPI";
     public static final String DECAF_SIGNATURE = "decaf.DECAF";
-    public static final String COMPSs_SIGNATURE = "compss.COMPSs";
+    public static final String COMPSs_SIGNATURE = "compss.NESTED";
     public static final String OMPSS_SIGNATURE = "ompss.OMPSS";
-    public static final String OPENCL_SIGNATURE = "opencl.OPPENCL";
+    public static final String OPENCL_SIGNATURE = "opencl.OPENCL";
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER_UTILS);
 

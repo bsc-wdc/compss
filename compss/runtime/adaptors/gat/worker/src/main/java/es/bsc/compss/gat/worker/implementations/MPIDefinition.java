@@ -30,6 +30,9 @@ public class MPIDefinition extends ImplementationDefinition {
     private final String mpiBinary;
     private final String workingDir;
 
+    private final MPIImplementation impl;
+
+
     public MPIDefinition(boolean debug, String[] args, int execArgsIdx) {
         super(debug, args, execArgsIdx + 3);
 
@@ -41,11 +44,13 @@ public class MPIDefinition extends ImplementationDefinition {
         } else {
             this.workingDir = wDir;
         }
+
+        this.impl = new MPIImplementation(this.mpiBinary, this.workingDir, this.mpiRunner, null, null, null);
     }
 
     @Override
     public AbstractMethodImplementation getMethodImplementation() {
-        return new MPIImplementation(mpiBinary, this.workingDir, mpiRunner, null, null, null);
+        return this.impl;
     }
 
     @Override
@@ -59,16 +64,8 @@ public class MPIDefinition extends ImplementationDefinition {
     }
 
     @Override
-    public String toCommandString() {
-        return mpiRunner + " " + mpiBinary;
-    }
-
-    @Override
     public String toLogString() {
-        return "["
-                + "MPI RUNNER=" + mpiRunner
-                + ", BINARY=" + mpiBinary
-                + "]";
+        return this.impl.getMethodDefinition();
     }
 
 }

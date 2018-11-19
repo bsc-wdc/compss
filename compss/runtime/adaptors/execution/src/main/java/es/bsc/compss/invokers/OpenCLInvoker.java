@@ -29,7 +29,9 @@ public class OpenCLInvoker extends Invoker {
 
     private final String kernel;
 
-    public OpenCLInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources) throws JobExecutionException {
+
+    public OpenCLInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+            InvocationResources assignedResources) throws JobExecutionException {
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
         // Get method definition properties

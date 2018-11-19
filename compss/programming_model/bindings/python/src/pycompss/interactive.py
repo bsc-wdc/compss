@@ -377,7 +377,7 @@ def start(log_level='off',
 
     logger.debug("--- START ---")
     logger.debug("PyCOMPSs Log path: %s" % log_path)
-    if storage_conf is not None:
+    if storage_conf is not None and not storage_conf == 'null':
         logger.debug("Storage configuration file: %s" % storage_conf)
         from storage.api import init as init_storage
         init_storage(config_file_path=storage_conf)

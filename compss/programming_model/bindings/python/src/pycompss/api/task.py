@@ -123,8 +123,6 @@ class task(object):
                     self.decorator_arguments[key]
                 )
                 #self.decorator_arguments[key].update({parameter.Type: parameter.get_parameter_copy(param)})
-        # Deal with the return part.
-        self.add_return_parameters()
         # Task wont be registered until called from the master for the first time
         self.registered = False
 
@@ -147,7 +145,22 @@ class task(object):
             # It is important to know because this will determine if we will return
             # a single object or [a single object] in some cases
             self.multi_return = True
-            if is_basic_iterable(self.decorator_arguments['returns']):
+            if isinstance(self.decorator_arguments['returns'], str):
+                # Check if the returns statement contains an string with an integer or a global variable
+                # In such case, build a list of objects of value length and set it in ret_type.
+                # Global variable or string wrapping integer value
+                try:
+                    # Return is hidden by an int as a string. i.e., returns="var_int"
+                    num_rets = int(self.decorator_arguments['returns'])
+                except ValueError:
+                    # Return is hidden by a global variable. i.e., LT_ARGS
+                    num_rets = self.user_function.__globals__.get(self.decorator_arguments['returns'])
+                # Construct hidden multireturn
+                if num_rets > 1:
+                    to_return = [tuple( [] ) for _ in range(num_rets)]
+                else:
+                    to_return = tuple( [] )
+            elif is_basic_iterable(self.decorator_arguments['returns']):
                 # The task returns a basic iterable with some types already defined
                 to_return = self.decorator_arguments['returns']
             elif isinstance(self.decorator_arguments['returns'], int):
@@ -591,6 +604,8 @@ class task(object):
         if register_only:
             master_lock.release()
             return
+        # Deal with the return part.
+        self.add_return_parameters()
         if not self.returns:
             self.update_return_if_no_returns(self.user_function)
         # TODO: See runtime.binding.process_task, it builds the necessary future objects

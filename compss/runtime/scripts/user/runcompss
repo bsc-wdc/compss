@@ -119,6 +119,7 @@ show_opts() {
     --summary                               Displays a task execution summary at the end of the application execution
                                             Default: ${DEFAULT_SUMMARY}
     --log_level=<level>, --debug, -d        Set the debug level: ${LOG_LEVEL_OFF} | ${LOG_LEVEL_INFO} | ${LOG_LEVEL_DEBUG}
+                                            Warning: Off level compiles with -O2 option disabling asserts and __debug__
                                             Default: ${DEFAULT_LOG_LEVEL}
 
   Advanced options:

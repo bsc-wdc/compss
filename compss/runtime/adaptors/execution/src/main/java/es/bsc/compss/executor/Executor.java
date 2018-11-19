@@ -66,8 +66,6 @@ import java.io.PrintStream;
 
 public class Executor implements Runnable {
 
-    private static final boolean DEBUG_ON_TASK = false;
-
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
     private static final boolean WORKER_DEBUG = LOGGER.isDebugEnabled();
 
@@ -165,11 +163,6 @@ public class Executor implements Runnable {
         TaskWorkingDir twd = null;
 
         try {
-            if (DEBUG_ON_TASK) {
-                String streamsPath = context.getStandardStreamsPath(invocation);
-                context.registerOutputs(streamsPath);
-            }
-
             long startTime = System.currentTimeMillis();
             // Set the Task working directory
             twd = createTaskSandbox(invocation);
@@ -211,9 +204,6 @@ public class Executor implements Runnable {
                     + " restoreSimLinks: " + origFileDuration
                     + " checkResults: " + checkResultsDuration);
 
-            if (DEBUG_ON_TASK) {
-                context.unregisterOutputs();
-            }
             // Return
             return true;
         } catch (Exception e) {
@@ -442,7 +432,8 @@ public class Executor implements Runnable {
                         LOGGER.debug("Repeated data for " + inSandboxPath + ". Nothing to do");
                     }
                 } else // OUT
-                 if (inSandboxFile.exists()) {
+                {
+                    if (inSandboxFile.exists()) {
                         if (Files.isSymbolicLink(inSandboxFile.toPath())) {
                             // Unexpected case
                             String msg = "ERROR: Unexpected case. A Problem occurred with File " + inSandboxPath
@@ -464,6 +455,7 @@ public class Executor implements Runnable {
                             throw new JobExecutionException(msg);
                         }
                     }
+                }
             }
             param.setValue(renamedFilePath);
             param.setOriginalName(originalFileName);
@@ -514,10 +506,8 @@ public class Executor implements Runnable {
             File taskSandboxWorkingDir
     ) throws JobExecutionException {
         /* Register outputs **************************************** */
-        if (!DEBUG_ON_TASK) {
-            String streamsPath = context.getStandardStreamsPath(invocation);
-            context.registerOutputs(streamsPath);
-        }
+        String streamsPath = context.getStandardStreamsPath(invocation);
+        context.registerOutputs(streamsPath);
         PrintStream out = context.getThreadOutStream();
 
         /* TRY TO PROCESS THE TASK ******************************** */
@@ -610,9 +600,7 @@ public class Executor implements Runnable {
             if (invocation.isDebugEnabled()) {
                 out.println("[EXECUTOR] executeTask - End task execution");
             }
-            if (!DEBUG_ON_TASK) {
-                context.unregisterOutputs();
-            }
+            context.unregisterOutputs();
         }
     }
 

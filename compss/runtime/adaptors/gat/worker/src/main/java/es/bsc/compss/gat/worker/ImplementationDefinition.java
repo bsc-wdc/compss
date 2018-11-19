@@ -30,8 +30,6 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.util.ErrorManager;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -60,35 +58,27 @@ public abstract class ImplementationDefinition implements Invocation {
     private final LinkedList<Param> results = new LinkedList<>();
 
     public ImplementationDefinition(boolean enableDebug, String args[], int appArgsIdx) {
-        System.out.println("jobId = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
         jobId = Integer.parseInt(args[appArgsIdx++]);
-        System.out.println("task = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
         taskId = Integer.parseInt(args[appArgsIdx++]);
         history = JobHistory.NEW;
 
         this.debug = enableDebug;
 
-        System.out.println("numNodes = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
         int numNodes = Integer.parseInt(args[appArgsIdx++]);
         hostnames = new ArrayList<>();
         for (int i = 0; i < numNodes; ++i) {
-            System.out.println("node " + i + " = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
             String nodeName = args[appArgsIdx++];
             if (nodeName.endsWith("-ib0")) {
                 nodeName = nodeName.substring(0, nodeName.lastIndexOf("-ib0"));
             }
             hostnames.add(nodeName);
         }
-        System.out.println("Computing Units = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
         cus = Integer.parseInt(args[appArgsIdx++]);
 
-        System.out.println("Number Arguments = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
         int numParams = Integer.parseInt(args[appArgsIdx++]);
         // Get if has target or not
-        System.out.println("Has Target = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
         hasTarget = Boolean.parseBoolean(args[appArgsIdx++]);
 
-        System.out.println("Number Returns = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
         int numReturns = Integer.parseInt(args[appArgsIdx++]);
 
         LinkedList<Param> paramsTmp;
@@ -114,14 +104,12 @@ public abstract class ImplementationDefinition implements Invocation {
     }
 
     private LinkedList<Param> parseArguments(String[] args, int appArgsIdx, int numParams, int numReturns) throws Exception {
-        System.out.println("Parameters: ");
         LinkedList<Param> paramsList = new LinkedList<>();
         DataType[] dataTypesEnum = DataType.values();
         Stream[] dataStream = Stream.values();
 
         int totalParams = numParams + numReturns + (hasTarget ? 1 : 0);
         for (int paramIdx = 0; paramIdx < totalParams; paramIdx++) {
-            System.out.println("\t - Parameter " + paramIdx);
             DataType argType;
 
             Stream stream;
@@ -133,27 +121,23 @@ public abstract class ImplementationDefinition implements Invocation {
             //File
             String originalName = "NO_NAME";
             boolean writeFinal = false;
-            System.out.println("\t\tType = args[" + appArgsIdx + "]=" + args[appArgsIdx] + " = " + dataTypesEnum[Integer.parseInt(args[appArgsIdx])]);
             int argTypeIdx = Integer.parseInt(args[appArgsIdx++]);
             if (argTypeIdx >= dataTypesEnum.length) {
                 ErrorManager.error(WARN_UNSUPPORTED_DATA_TYPE + argTypeIdx);
             }
             argType = dataTypesEnum[argTypeIdx];
 
-            System.out.println("\t\tStream = args[" + appArgsIdx + "]=" + args[appArgsIdx] + " = " + dataStream[Integer.parseInt(args[appArgsIdx])]);
             int argStreamIdx = Integer.parseInt(args[appArgsIdx++]);
             if (argStreamIdx >= dataStream.length) {
                 ErrorManager.error(WARN_UNSUPPORTED_STREAM + argStreamIdx);
             }
             stream = dataStream[argStreamIdx];
 
-            System.out.println("\t\tPrefix = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
             prefix = args[appArgsIdx++];
             if (prefix == null || prefix.isEmpty()) {
                 prefix = Constants.PREFIX_EMTPY;
             }
 
-            System.out.println("\t\tParameter Name = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
             name = args[appArgsIdx++];
             if (name.compareTo("null") == 0) {
                 name = "";
@@ -161,68 +145,53 @@ public abstract class ImplementationDefinition implements Invocation {
 
             switch (argType) {
                 case FILE_T:
-                    System.out.println("\t\tOriginal Name = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
                     originalName = args[appArgsIdx++];
-                    System.out.println("\t\tLocation = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
                     value = args[appArgsIdx++];
                     break;
                 case OBJECT_T:
                 case BINDING_OBJECT_T:
                 case PSCO_T:
-                    System.out.println("\t\tValue = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
                     String fileLocation = (String) args[appArgsIdx++];
                     value = fileLocation;
                     originalName = fileLocation;
-                    System.out.println("\t\tWrite Final = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
                     writeFinal = ((String) args[appArgsIdx++]).equals("W");
                     break;
                 case EXTERNAL_PSCO_T:
-                    System.out.println("\t\tValue = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
                     value = args[appArgsIdx++];
                     break;
                 case BOOLEAN_T:
-                    System.out.println("\t\tValue = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
                     value = Boolean.valueOf(args[appArgsIdx++]);
                     break;
                 case CHAR_T:
-                    System.out.println("\t\tValue = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
                     value = args[appArgsIdx++].charAt(0);
                     break;
                 case STRING_T:
-                    System.out.println("\t\tNum substrings = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
                     int numSubStrings = Integer.parseInt(args[appArgsIdx++]);
                     String aux = "";
                     for (int j = 0; j < numSubStrings; j++) {
                         if (j != 0) {
                             aux += " ";
                         }
-                        System.out.println("\t\t\t args[" + appArgsIdx + "]=" + args[appArgsIdx]);
                         aux += args[appArgsIdx++];
                     }
                     value = aux;
                     break;
                 case BYTE_T:
-                    System.out.println("\t\tValue = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
                     value = new Byte(args[appArgsIdx++]);
                     break;
                 case SHORT_T:
-                    System.out.println("\t\tValue = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
                     value = new Short(args[appArgsIdx++]);
                     break;
                 case INT_T:
-                    System.out.println("\t\tValue = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
                     value = new Integer(args[appArgsIdx++]);
                     break;
                 case LONG_T:
-                    System.out.println("\t\tValue = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
                     value = new Long(args[appArgsIdx++]);
                     break;
                 case FLOAT_T:
-                    System.out.println("\t\tValue = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
                     value = new Float(args[appArgsIdx++]);
                     break;
                 case DOUBLE_T:
-                    System.out.println("\t\tValue = args[" + appArgsIdx + "]=" + args[appArgsIdx]);
                     value = new Double(args[appArgsIdx++]);
                     break;
                 default:

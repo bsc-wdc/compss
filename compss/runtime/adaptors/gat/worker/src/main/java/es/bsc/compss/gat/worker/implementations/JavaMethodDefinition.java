@@ -30,9 +30,7 @@ public class JavaMethodDefinition extends ImplementationDefinition {
 
     public JavaMethodDefinition(boolean debug, String[] args, int execArgsIdx) {
         super(debug, args, execArgsIdx + 2);
-        System.out.println("Class Name = args[" + execArgsIdx + "]=" + args[execArgsIdx]);
         this.className = args[execArgsIdx++];
-        System.out.println("Method Name = args[" + execArgsIdx + "]=" + args[execArgsIdx]);
         this.methodName = args[execArgsIdx];
     }
 

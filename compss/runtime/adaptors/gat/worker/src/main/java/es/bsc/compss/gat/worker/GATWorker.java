@@ -83,16 +83,6 @@ public class GATWorker implements InvocationContext {
      * @throws java.lang.Exception
      */
     public static void main(String args[]) throws Exception {
-        for (int i = 0; i < args.length; i++) {
-            System.out.println("JAVA ARGMENT [" + i + "]=" + args[i]);
-        }
-        System.out.println("workerName = args[" + WORKER_NAME_IDX + "] = " + args[WORKER_NAME_IDX]);
-        System.out.println("workingDir = args[" + WORKING_DIR_IDX + "] = " + args[WORKING_DIR_IDX]);
-        System.out.println("Debug = args[" + DEBUG_IDX + "] = " + args[DEBUG_IDX]);
-        System.out.println("Installation Dir = args[" + INSTALL_DIR_IDX + "] = " + args[INSTALL_DIR_IDX]);
-        System.out.println("Application Dir = args[" + APP_DIR_IDX + "] = " + args[APP_DIR_IDX]);
-        System.out.println("Storage Conf = args[" + STORAGE_CONF_IDX + "] = " + args[STORAGE_CONF_IDX]);
-
         String workerName = args[WORKER_NAME_IDX];
         String workingDir = args[WORKING_DIR_IDX];
         boolean debug = Boolean.valueOf(args[DEBUG_IDX]);
@@ -160,7 +150,6 @@ public class GATWorker implements InvocationContext {
         // Default flags
         int argPosition = DEFAULT_FLAGS_SIZE;
         boolean debug = Boolean.valueOf(args[DEBUG_IDX]);
-        System.out.println("Method Type = args[" + argPosition + "]=" + args[argPosition]);
         MethodType methodType = MethodType.valueOf(args[argPosition++]);
         switch (methodType) {
             case METHOD:
@@ -260,7 +249,6 @@ public class GATWorker implements InvocationContext {
 
     @Override
     public void loadParam(InvocationParam np) throws Exception {
-        System.out.println("->>>>>>>>>>>>>>>>>>>>>>>> LOADING PARAMETER : " + np.getType() + " -> ");
         switch (np.getType()) {
             case OBJECT_T:
                 String fileLocation = (String) np.getValue();
@@ -282,12 +270,9 @@ public class GATWorker implements InvocationContext {
 
     @Override
     public void storeParam(InvocationParam np) throws Exception {
-        System.out.println("->>>>>>>>>>>>>>>>>>>>>>>> STORING PARAMETER : " + np.getType() + " -> ");
         switch (np.getType()) {
             case OBJECT_T:
-                System.out.println("storing OBJECT ");
                 String fileLocation = np.getOriginalName();
-                System.out.println("Serializing "+np.getValue()+" onto "+fileLocation);
                 Serializer.serialize(np.getValue(), fileLocation);
                 break;
             case PSCO_T: // fetch stage already set the value on the param, but we make sure to collect the last version

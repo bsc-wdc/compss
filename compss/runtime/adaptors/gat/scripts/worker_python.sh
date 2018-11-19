@@ -145,9 +145,6 @@
 
   echo "[WORKER_PYTHON.SH] PYTHONPATH: ${PYTHONPATH}"
   echo "[WORKER_PYTHON.SH] EXEC CMD: $pythonInterpreter ${PYCOMPSS_HOME}/pycompss/worker/worker.py ${workerConfDescription[@]} ${implDescription[@]} ${invocationParams[@]}"
-  echo "[WORKER_PYTHON.SH] WORKER DESCRIPTION: ${workerConfDescription[@]}"
-  echo "[WORKER_PYTHON.SH] IMPL DESCRIPTION: ${implDescription[@]}"
-  echo "[WORKER_PYTHON.SH] INVOCATION PARAMS: ${invocationParams[@]}"
 
   $pythonInterpreter "${PYCOMPSS_HOME}"/pycompss/worker/worker.py ${workerConfDescription[@]} ${implDescription[@]} ${invocationParams[@]}
   ev=$?

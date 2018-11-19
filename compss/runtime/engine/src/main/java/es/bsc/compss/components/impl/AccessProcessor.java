@@ -739,7 +739,6 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @return
      */
     private Object obtainObject(DataAccessId oaId) {
-        System.out.println("Es fa un accés al valor " + oaId.getDataId());
         // Ask for the object
         Semaphore sem = new Semaphore(0);
         TransferObjectRequest tor = new TransferObjectRequest(oaId, sem);

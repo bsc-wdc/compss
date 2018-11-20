@@ -174,7 +174,7 @@
   # Scripts
   echo "--- Copy scripts"
   cp -r "${TMP_DIR}"/compss/runtime/scripts/* "${targetDir}"/Runtime/scripts/
-  cp "${targetDir}"/Runtime/scripts/queues/cfgs/"${queues_cfg}" "${targetDir}"/Runtime/scripts/queues/cfgs/default.cfg
+  cp "${targetDir}"/Runtime/scripts/queues/supercomputers/"${queues_cfg}" "${targetDir}"/Runtime/scripts/queues/supercomputers/default.cfg
 
   # Adaptors
   echo "--- Copy adaptors"

@@ -98,11 +98,11 @@ show_opts() {
   local exitValue=$1
 
   # Load default CFG for default values
-  local defaultSC_cfg=${SCRIPT_DIR}/../queues/cfgs/${DEFAULT_SC_CFG}.cfg
-  #shellcheck source=../queues/cfgs/default.cfg
+  local defaultSC_cfg=${SCRIPT_DIR}/../queues/supercomputers/${DEFAULT_SC_CFG}.cfg
+  #shellcheck source=../queues/supercomputers/default.cfg
   source "${defaultSC_cfg}"
-  local defaultQS_cfg=${SCRIPT_DIR}/../queues/${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg
-  #shellcheck source=../queues/slurm/slurm.cfg
+  local defaultQS_cfg=${SCRIPT_DIR}/../queues/queue_systems/${QUEUE_SYSTEM}.cfg
+  #shellcheck source=../queues/queue_systems/slurm.cfg
   source "${defaultQS_cfg}"
 
   # Show usage
@@ -677,7 +677,7 @@ check_args() {
     sc_cfg=${sc_cfg}.cfg
   fi
 
-  local scCfgFullPath=${SCRIPT_DIR}/../queues/cfgs/${sc_cfg}
+  local scCfgFullPath=${SCRIPT_DIR}/../queues/supercomputers/${sc_cfg}
 
   if [ ! -f "${scCfgFullPath}" ]; then
     # CFG file doesn't exist
@@ -685,18 +685,18 @@ check_args() {
   fi
 
   # Source SC CFG env
-  # shellcheck source=../queues/cfgs/default.cfg
+  # shellcheck source=../queues/supercomputers/default.cfg
   source "${scCfgFullPath}"
 
   # Check queue configuration env
-  local queueCfgFullPath=${SCRIPT_DIR}/../queues/${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg
+  local queueCfgFullPath=${SCRIPT_DIR}/../queues/queue_systems/${QUEUE_SYSTEM}.cfg
   if [ ! -f "${queueCfgFullPath}" ]; then
     # CFG file doesn't exist
     display_error "${ERROR_CFG_Q}"
   fi
 
   # Source queue system CFG env
-  # shellcheck source=../queues/slurm/slurm.cfg
+  # shellcheck source=../queues/queue_systems/slurm.cfg
   source "${queueCfgFullPath}"
 
   ###############################################################
@@ -1292,6 +1292,7 @@ cleanup() {
   trap cleanup EXIT
 
   # Create XML files
+  # shellcheck source=../system/xmls/xmls_utils.sh
   source ${SCRIPT_DIR}/../system/xmls/xmls_utils.sh
   CREATE_WORKING_DIRS=true
   echo " Creating xml phase: '${xmls_phase}' "
@@ -1300,11 +1301,11 @@ cleanup() {
   elif [ "${xmls_phase}" == "all" ]; then
       create_xml_files
   elif [ "${xmls_phase}" == "init" ]; then
-      init_het_xml_files ${xmls_suffix}
+      init_het_xml_files "${xmls_suffix}"
   elif [ "${xmls_phase}" == "add" ]; then
-      add_het_xml_files ${xmls_suffix}
+      add_het_xml_files "${xmls_suffix}"
   elif [ "${xmls_phase}" == "fini" ]; then
-      fini_het_xml_files ${xmls_suffix}
+      fini_het_xml_files "${xmls_suffix}"
   fi
 
   # Prolog

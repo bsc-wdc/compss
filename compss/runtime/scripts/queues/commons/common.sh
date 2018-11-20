@@ -60,11 +60,11 @@ show_opts() {
   local exitValue=$1
 
   # Load default CFG for default values
-  local defaultSC_cfg="${SCRIPT_DIR}/../cfgs/${DEFAULT_SC_CFG}.cfg"
-  # shellcheck source=../cfgs/default.cfg
+  local defaultSC_cfg="${SCRIPT_DIR}/../supercomputers/${DEFAULT_SC_CFG}.cfg"
+  # shellcheck source=../supercomputers/default.cfg
   source "${defaultSC_cfg}"
-  local defaultQS_cfg="${SCRIPT_DIR}/../${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg"
-  # shellcheck source=../slurm/slurm.cfg
+  local defaultQS_cfg="${SCRIPT_DIR}/../queue_systems/${QUEUE_SYSTEM}.cfg"
+  # shellcheck source=../queue_systems/slurm.cfg
   source "${defaultQS_cfg}"
 
   # Show usage
@@ -335,7 +335,7 @@ get_args() {
             # Storage conf is automatically generated. Remove it from COMPSs flags
             echo "WARNING: storage_conf is automatically generated. Omitting parameter"
             ;;
-          #Heterogeneous submission arguments
+          # Heterogeneous submission arguments
           types_cfg=*)
             types_cfg_file=${OPTARG//types_cfg=/}
             ;;

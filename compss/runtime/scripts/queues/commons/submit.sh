@@ -15,6 +15,7 @@ ERROR_SUBMIT="Error submiting script to queue system"
 submit() {
   # Submit the job to the queue
   #eval ${SUBMISSION_CMD} ${SUBMISSION_PIPE}${TMP_SUBMIT_SCRIPT} 1>${TMP_SUBMIT_SCRIPT}.out 2>${TMP_SUBMIT_SCRIPT}.err
+  # shellcheck disable=SC2086
   eval ${SUBMISSION_CMD} ${SUBMISSION_PIPE}${TMP_SUBMIT_SCRIPT}
   result=$?
 
@@ -43,15 +44,15 @@ submit() {
   get_args "$@"
 
   # Load specific queue system variables
-  # shellcheck source=../cfgs/default.cfg
-  source "${SCRIPT_DIR}/../cfgs/${sc_cfg}"
+  # shellcheck source=../supercomputers/default.cfg
+  source "${SCRIPT_DIR}/../supercomputers/${sc_cfg}"
 
   # Check parameters
   check_args
 
   # Load specific queue system flags
-  # shellcheck source=../slurm/slurm.cfg
-  source "${SCRIPT_DIR}/../${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg"
+  # shellcheck source=../queue_systems/slurm.cfg
+  source "${SCRIPT_DIR}/../queue_systems/${QUEUE_SYSTEM}.cfg"
 
   # Set wall clock time
   set_time

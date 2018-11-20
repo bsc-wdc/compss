@@ -1,0 +1,44 @@
+#!/bin/bash
+
+  #############################################################
+  # Name: buildSalomon_aux
+  # Description: SCRIPT FOR LOCAL COMPSs BUILD in Salomon
+  # Parameters: <targetDir>           Base Target Installation folder
+  #
+  # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY
+  #            EXECUTED FROM buildSalomon script
+  #############################################################
+
+  usage() {
+    echo "Incorrect number of parameters"
+    echo " Usage: buildSalomon_aux <FullTargetPath>"
+    echo " "
+    exit 1
+  }
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -ne 1 ]; then
+    usage
+  fi
+
+  # SET SCRIPT VARIABLES
+  targetDir=$1
+  scriptDir=$(dirname $0)
+
+  modules="GCCcore/6.3.0 binutils/2.27-GCCcore-6.3.0 icc/2017.7.259-GCC-6.3.0-2.27 ifort/2017.7.259-GCC-6.3.0-2.27 iccifort/2017.7.259-GCC-6.3.0-2.27 impi/2017.4.239-iccifort-2017.7.259-GCC-6.3.0-2.27 iimpi/2017c imkl/2017.4.239-iimpi-2017c intel/2017c bzip2/1.0.6 zlib/1.2.11 Boost/1.68.0-intel-2017c-serial Java/1.8.0_144"
+  py2_modules="Boost/1.63.0-intel-2017a-Python-2.7.13 Python/2.7.13"
+  py3_modules="Boost/1.63.0-foss-2017a-Python-3.6.1 Python/3.6.1"
+  additionalExports=""
+  queues_cfg="salomon.cfg"
+  extrae_with_openmpi="false"
+  openmpi_version=""
+  extrae_with_impi="true"
+  impi_version=""
+
+  ${scriptDir}/buildSC_aux ${targetDir} "${modules}" "${py2_modules}" "${py3_modules}" "${additionalExports}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "false"
+
+  # END
+  exit 0

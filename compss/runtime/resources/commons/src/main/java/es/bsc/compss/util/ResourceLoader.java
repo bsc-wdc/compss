@@ -218,11 +218,11 @@ public class ResourceLoader {
         Processor p = new Processor();
         p.setComputingUnits(4);
         mrd.addProcessor(p);
-        ResourceManager.updateMasterConfiguration(mrd, sharedDisks);
+        /*ResourceManager.updateMasterConfiguration(mrd, sharedDisks);
         if (mrd.getTotalCPUComputingUnits() > 0) {
             ResourceManager.addStaticResource((MethodWorker) Comm.getAppHost());
             return true;
-        }
+        }*/
         return false;
     }
 

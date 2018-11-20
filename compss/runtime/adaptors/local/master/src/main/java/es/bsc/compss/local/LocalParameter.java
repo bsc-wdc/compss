@@ -108,6 +108,11 @@ public class LocalParameter implements InvocationParam {
     }
 
     @Override
+    public String getName() {
+        return this.param.getName();
+    }
+
+    @Override
     public void setType(DataType type) {
         this.param.setType(type);
     }

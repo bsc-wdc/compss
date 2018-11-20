@@ -156,6 +156,8 @@ public class LogicalData {
 
     /**
      * Add a new location where a task using the data has been scheduled
+     *
+     * @param res
      */
     public synchronized void addLocation(Resource res) {
         localLocations.add(res);
@@ -202,7 +204,7 @@ public class LogicalData {
 
     /**
      * Returns if the data is binding data
-     * 
+     *
      * @return
      */
     public synchronized boolean isBindingData() {
@@ -683,7 +685,6 @@ public class LogicalData {
 
         private final Copy c;
         private final DataLocation loc;
-
 
         public CopyInProgress(Copy c, DataLocation loc) {
             this.c = c;

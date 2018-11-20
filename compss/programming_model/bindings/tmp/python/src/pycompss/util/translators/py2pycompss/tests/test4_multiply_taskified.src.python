@@ -1,0 +1,27 @@
+import math
+def S1(i,j,k):
+    c[i][j] = multiply(c[i][j], a[i][k], b[k][j])
+
+def S2(i,j,k):
+    multiply(c[i][j], a[i][k], b[k][j])
+
+def S3(i,j,k):
+    c[i][j], d[i][j] = multiply(c[i][j], a[i][k], b[k][j])
+
+# Start of CLooG code
+if ((k_size >= 1) and (m_size >= 1) and (n_size >= 1)):
+        lbp=0
+        ubp=k_size-1
+        # parallel for PRIVATE(lbv,ubv,t2,t3) REDUCTION()
+        for t1 in range(lbp, ubp + 1):
+                lbp=0
+                ubp=n_size-1
+                for t2 in range(0, n_size - 1 + 1):
+                        lbv=0
+                        ubv=m_size-1
+                        # parallel for PRIVATE() REDUCTION()
+                        for t3 in range(lbv, ubv + 1):
+                                S1(t3,t1,t2)
+                                S2(t3,t1,t2)
+                                S3(t3,t1,t2)
+# End of CLooG code

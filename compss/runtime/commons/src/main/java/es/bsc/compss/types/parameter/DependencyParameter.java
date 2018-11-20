@@ -38,8 +38,8 @@ public class DependencyParameter extends Parameter implements Transferable {
     private String dataTarget; // Full path with PROTOCOL
 
 
-    public DependencyParameter(DataType type, Direction direction, Stream stream, String prefix) {
-        super(type, direction, stream, prefix);
+    public DependencyParameter(DataType type, Direction direction, Stream stream, String prefix, String name) {
+        super(type, direction, stream, prefix, name);
     }
 
     public DataAccessId getDataAccessId() {

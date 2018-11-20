@@ -114,7 +114,7 @@ EOF
      \
      --storage_conf=${storageConf} \
      --jvm_workers_opts="-Dcompss.worker.removeWD=true" \
-     --task_execution=external \
+     --task_execution=storage \
      \
      --classpath="${base_app_dir}"/pscos.jar:${storageImplPath} \
      \

@@ -26,7 +26,7 @@ class MyClass(object):
         return self.field
 
     @classmethod
-    @task(returns=str)
+    @task(returns = str)
     def class_method(cls):
         return cls.static_field
 

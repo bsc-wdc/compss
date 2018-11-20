@@ -27,13 +27,13 @@ import es.bsc.comm.Connection;
 
 public class CommandDataNegate extends Command implements Externalizable {
 
-    private Data d;
+    private NIOData d;
 
     // Whether the node has the file or not
     private boolean hosted;
 
 
-    public CommandDataNegate(NIOAgent ng, Data d, boolean hosted) {
+    public CommandDataNegate(NIOAgent ng, NIOData d, boolean hosted) {
         super(ng);
         this.d = d;
         this.hosted = hosted;
@@ -50,7 +50,7 @@ public class CommandDataNegate extends Command implements Externalizable {
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        d = (Data) in.readObject();
+        d = (NIOData) in.readObject();
         hosted = in.readBoolean();
     }
 

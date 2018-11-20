@@ -79,6 +79,7 @@ class testNoReturnClasses(unittest.TestCase):
         self.assertEqual(o, [3, 3, 5, 7])
         self.assertEqual(p, 5)
 
+    @unittest.skip('WIP')
     def testObjectReturnClassMethod(self):
         obj = myClass()
         v = [2, 3, 5, 7]

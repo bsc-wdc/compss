@@ -33,8 +33,8 @@ public class BindingObjectParameter extends DependencyParameter {
     private final int hashCode;
     private final BindingObject bo;
  	
-    public BindingObjectParameter(Direction direction, Stream stream, String prefix, BindingObject bo, int hashCode) {
-        super(DataType.BINDING_OBJECT_T, direction, stream, prefix);
+    public BindingObjectParameter(Direction direction, Stream stream, String prefix, String name, BindingObject bo, int hashCode) {
+        super(DataType.BINDING_OBJECT_T, direction, stream, prefix, name);
         this.bo = bo;
         this.hashCode = hashCode;
     }

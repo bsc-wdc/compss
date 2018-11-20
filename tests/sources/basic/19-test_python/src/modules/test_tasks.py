@@ -126,7 +126,6 @@ def function_files(fin, finout, fout):
 def par_func():
     print("- Function")
 
-
 # @task(o = Parameter(p_direction = Direction.INOUT))
 @task(o=INOUT, li=INOUT, dic=INOUT, tup=INOUT, cplx=INOUT)
 def function_objects(o, li, dic, tup, cplx, f):
@@ -199,7 +198,7 @@ def function_order_parameters(x, y, z=100, w=1000):
     print("\t- Parameter y: %s" % y)
     print("\t- Parameter z: %s" % z)
     print("\t- Parameter w: %s" % w)
-    return x + y + (z * w)
+    return x + y + z * w
 
 
 @task(returns=int)

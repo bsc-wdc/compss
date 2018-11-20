@@ -182,7 +182,6 @@ class testArgsKwargsInstanceMethods(unittest.TestCase):
     '''
     FUNCTION WITH ARGS, *ARGS AND **KWARGS
     '''
-
     def testVarArgKwargTask1(self):
         pending = self.varargkwargTask(1, 2, 3, 4, hello='world')
         result = compss_wait_on(pending)

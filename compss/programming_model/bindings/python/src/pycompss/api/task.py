@@ -17,373 +17,217 @@
 
 # -*- coding: utf-8 -*-
 
-"""
-PyCOMPSs API - Task
-===================
-    This file contains the class task, needed for the task definition and the
-    reveal_objects function.
-"""
-
-import inspect
-import os
-import logging
-import ast
-import copy
-
-from collections import OrderedDict
-from functools import wraps
-
-from pycompss.runtime.commons import IS_PYTHON3
-from pycompss.api.parameter import *
-
-if IS_PYTHON3:
-    # Shadow long with int
-    long = int
+'''PyCOMPSs API - Task
+    This file contains the class task, needed for the task definition.
+    Author: Sergio Rodriguez Guasch < sergio rodriguez at bsc dot es >
+    Heavily inspired by the old task.py implementation, made by Enric Tejedor,
+    Javier Conejero, Sergio Rodriguez, and many others
+'''
 
 if __debug__:
+    import logging
     logger = logging.getLogger('pycompss.api.task')
 
 
-class Task(object):
+from functools import wraps
+import pycompss.api.parameter as parameter
+import threading
 
-    def __init__(self, *args, **kwargs):
-        """
-        If there are decorator arguments, the function to be decorated is
-        not passed to the constructor!
-        """
+# This lock allows tasks to be launched with the Threading module while ensuring
+# that no attribute is overwritten
+master_lock = threading.Lock()
+# Determine if strings should have a sharp symbol prepended or not
+prepend_strings = True
+register_only = False
 
-        from pycompss.util.location import within_scope
+from pycompss.runtime.core_element import CE
+current_core_element = CE()
 
-        # Check if under the PyCOMPSs scope
-        if within_scope():
-            from pycompss.api.parameter import is_parameter, get_new_parameter
+class task(object):
+    '''This is the Task decorator implementation.
+    It is implemented as a class and consequently this implementation can be
+    divided into two natural steps: decoration process and function call.
 
-            self.scope = True
+    Decoration process is what happens when the Python parser reads a decorated
+    function. The actual function is not called, but the @task() triggers
+    the process that stores and processes the parameters of the decorator.
+    This first step corresponds to the class constructor.
 
-            if __debug__:
-                logger.debug("Init @task decorator...")
+    Function call is what happens when the user calls their function somewhere
+    in the code. A decorator simply adds pre and post steps in this function call,
+    allowing us to change and process the arguments. This second steps happens in the
+    __call__ implementation.
 
-            # Defaults
-            self.args = args  # Not used
-            self.kwargs = kwargs  # The only ones actually used: (decorators)
+    Also, the call itself does different things in the master than in the worker.
+    We must also handle the case when the user just runs the app with python and
+    no PyCOMPSs.
+    The specific implementations can be found in self.master_call(),
+    self.worker_call(), self.sequential_call()
+    '''
 
-            # Pre-process decorator arguments
+    def get_default_decorator_values(self):
+        '''Default value for decorator arguments.
+        :return: A dictionary with the default values of the non-parameter decorator fields
+        '''
+        return {
+            'isModifier': True, # Irrelevant if direction of self is explicitly defined
+            'returns': False,
+            'priority': False,
+            'isReplicated': False,
+            'isDistributed': False,
+            'computingNodes': 1,
+            'varargsType': parameter.IN # Here for legacy purposes
+        }
 
-            # Reserved PyCOMPSs keywords and default values
-            reserved_keywords = {
-                'isModifier': True,
-                'returns': False,
-                'priority': False,
-                'isReplicated': False,
-                'isDistributed': False,
-                'varargsType': IN
-            }
+    def __init__(self, comment = None, **kwargs):
+        '''This part is called in the decoration process, not as an
+        explicit function call.
 
-            # Set reserved keyword default values in self.kwargs
-            for (reserved_keyword, default_value) in reserved_keywords.items():
-                if reserved_keyword not in self.kwargs:
-                    self.kwargs[reserved_keyword] = default_value
+        We do two things here:
+        a) Assign default values to unspecified fields (see get_default_decorator_values )
+        b) Transform the parameters from user friendly types (i.e Parameter.IN, etc) to
+           a more convenient internal representation
 
-            # Instantiate the parameters as new Parameter objects into self.kwargs
-            # taking into consideration the key of the arg_value.
-            # See parameter.py conversion dict.
-            for arg_name, arg_value in self.kwargs.items():
-                # Common parameter definition
-                if is_parameter(arg_value):
-                    key = arg_value.key
-                    self.kwargs[arg_name] = get_new_parameter(key)
-                # Parameter defined as dictionary with fields
-                if isinstance(arg_value, dict) and 'type' in arg_value:
-                    key = arg_value['type'].key
-                    arg_value['type'] = get_new_parameter(key)
-                    self.kwargs[arg_name] = _from_dict_to_parameter(arg_value)
+        :param comment: Hidden to the user (non-documented).
+        :param kwargs: Decorator parameters. A task decorator has no positional arguments.
+        '''
+        self.comment = comment
+        self.decorator_arguments = kwargs
+        # Set missing values to their default ones (step a)
+        for (key, value) in self.get_default_decorator_values().items():
+            if key not in self.decorator_arguments:
+                self.decorator_arguments[key] = value
+        # Give all parameters a unique instance for them (step b)
+        # Note that when a user defines a task like
+        # @task(a = IN, b = IN, c = INOUT)
+        # both a and b point to the same IN object (the one from parameter.py)
+        # Giving them a unique instance makes life easier in further steps
+        for (key, value) in self.decorator_arguments.items():
+            # Not all decorator arguments are necessarily parameters
+            # (see self.get_default_decorator_values)
+            if parameter.is_parameter(value):
+                self.decorator_arguments[key] = parameter.get_parameter_copy(value)
+            # Specific case when value is a dictionary
+            # Use case example:
+            # @binary(binary="ls")
+            # @task(hide={Type: FILE_IN, Prefix: "--hide="}, sort={Type: IN, Prefix: "--sort="})
+            # def myLs(flag, hide, sort):
+            #   pass
+            # Transform this dictionary to a Parameter object
+            if parameter.is_dict_specifier(value):
+                # Perform user -> instance substitution
+                # param = self.decorator_arguments[key][parameter.Type]
+                # Replace the whole dict by a single parameter object
+                self.decorator_arguments[key] = parameter.get_parameter_from_dictionary(
+                    self.decorator_arguments[key]
+                )
+                #self.decorator_arguments[key].update({parameter.Type: parameter.get_parameter_copy(param)})
+        # Task wont be registered until called from the master for the first time
+        self.registered = False
 
-            if __debug__:
-                logger.debug("Init @task decorator finished.")
-        else:
-            # Not under the PyCOMPSs scope
-            self.scope = False
-            # Defaults
-            self.args = args
-            self.kwargs = kwargs
-
-    def __call__(self, f):
-        """
-        If there are decorator arguments, __call__() is only called
-        once, as part of the decoration process! You can only give
-        it a single argument, which is the function object.
-        """
-
-        # Check if under the PyCOMPSs scope
-        if not self.scope:
-            return self.__not_under_pycompss_scope(f)
-
-        # Imports
-        from pycompss.util.interactive_helpers import update_tasks_code_file
-        from pycompss.util.location import at_master
-
-        if __debug__:
-            logger.debug("Call in @task decorator...")
-
-        # Assume it is an instance method if the first parameter of the
-        # function is called 'self'
-        # "I would rely on the convention that functions that will become
-        # methods have a first argument named self, and other functions don't.
-        # Fragile, but then, there's no really solid way."
-        self.f_argspec = inspect.getargspec(f)
-
-        # Set default variables
-        self.has_self_parameter = False
-        self.has_cls_parameter = False
-        self.has_varargs = False
-        self.has_keywords = False
-        self.has_defaults = False
-        self.parameters = OrderedDict()
+    def add_return_parameters(self):
+        '''Modify the return parameters accordingly to the return statement
+        :return: Nothing, it just creates and modifies self.returns
+        '''
+        from collections import OrderedDict
         self.returns = OrderedDict()
-        self.is_replicated = False
-        self.is_distributed = False
-        self.module_name = ''
-
-        # Step 1.- Check if it is an instance method.
-        # Question: Will the first condition evaluate to false? spec_args will
-        # always be a named tuple, so it will always return true if evaluated
-        # as a bool
-        # Answer: The first condition evaluates if args exists (a list) and is
-        # not empty in the spec_args. The second checks if the first argument
-        # in that list is 'self'. In case that the args list exists and its
-        # first element is self, then the function is considered as an instance
-        # function (task defined within a class).
-        direction = DIRECTION.INOUT  # default 'self' direction
-        if self.f_argspec.args and self.f_argspec.args[0] == 'self':
-            self.has_self_parameter = True
-            if self.kwargs['isModifier']:
-                direction = DIRECTION.INOUT
+        # Note that returns is by default False
+        if self.decorator_arguments['returns']:
+            # A return statement can be the following:
+            # 1) A type. This means 'this task returns an object of this type'
+            # 2) An integer N. This means 'this task returns N objects'
+            # 3) A basic iterable (tuple, list...). This means 'this task returns an iterable
+            #    with the indicated elements inside
+            from pycompss.util.object_properties import is_basic_iterable
+            original_return = self.decorator_arguments['returns']
+            # We are returning multiple objects until otherwise proven
+            # It is important to know because this will determine if we will return
+            # a single object or [a single object] in some cases
+            self.multi_return = True
+            if isinstance(self.decorator_arguments['returns'], str):
+                # Check if the returns statement contains an string with an integer or a global variable
+                # In such case, build a list of objects of value length and set it in ret_type.
+                # Global variable or string wrapping integer value
+                try:
+                    # Return is hidden by an int as a string. i.e., returns="var_int"
+                    num_rets = int(self.decorator_arguments['returns'])
+                except ValueError:
+                    # Return is hidden by a global variable. i.e., LT_ARGS
+                    num_rets = self.user_function.__globals__.get(self.decorator_arguments['returns'])
+                # Construct hidden multireturn
+                if num_rets > 1:
+                    to_return = [tuple( [] ) for _ in range(num_rets)]
+                else:
+                    to_return = tuple( [] )
+            elif is_basic_iterable(self.decorator_arguments['returns']):
+                # The task returns a basic iterable with some types already defined
+                to_return = self.decorator_arguments['returns']
+            elif isinstance(self.decorator_arguments['returns'], int):
+                # The task returns a list of N objects, defined by the integer N
+                to_return = tuple([() for x in range(self.decorator_arguments['returns'])])
             else:
-                direction = DIRECTION.IN
+                # The task returns a single object of a single type
+                # This is also the only case when no multiple objects are returned but only one
+                self.multi_return = False
+                to_return = [self.decorator_arguments['returns']]
+            # At this point we have a list of returns
+            for (i, elem) in enumerate(to_return):
+                ret_type = parameter.get_compss_type(elem)
+                self.returns[parameter.get_return_name(i)] = \
+                    parameter.Parameter(p_type = ret_type, object = elem, p_direction = parameter.OUT)
+                # Hopefully, an exception have been thrown if some invalid stuff has been put
+                # in the returns field
 
-        # Step 2.- Check if it is a class method.
-        # The check of 'cls' may be weak but it is PEP8 style agreements.
-        if self.f_argspec.args and self.f_argspec.args[0] == 'cls':
-            self.has_cls_parameter = True
-            direction = DIRECTION.IN
+    def __call__(self, user_function):
+        '''This part is called in all explicit function calls.
+        Note that in PyCOMPSs a single function call will be transformed into
+        two calls, as both master and worker need to call the function.
 
-        # Step 1 or 2 b - Add class object parameter
-        if self.has_self_parameter or self.has_cls_parameter:
-            self.kwargs['self'] = Parameter(p_type=TYPE.OBJECT,
-                                            p_direction=direction)
+        The work to do in the master part is totally different
+        from the job to do in the worker part. This is why there are
+        some other functions like master_call, worker_call, and
+        sequential_call
 
-        # Step 3.- Check if it has varargs (contains *args?)
-        # Check if contains *args
-        if self.f_argspec.varargs is not None:
-            self.has_varargs = True
+        There is also a third case that happens when the user runs a PyCOMPSs
+        code without PyCOMPSs. This case is straightforward: just call the
+        user function with the user parameters and return whatever the user
+        code returned. Therefore, we can just return the user function.
 
-        # Step 4.- Check if it has keyword arguments (contains **kwargs?)
-        # Check if contains **kwargs
-        if self.f_argspec.keywords is not None:
-            self.has_keywords = True
+        :param user_function: Function to decorate
+        :return: The function to be executed
+        '''
+        self.user_function = user_function
 
-        # Step 5.- Check if it has default values
-        # Check if has default values
-        if self.f_argspec.defaults is not None:
-            self.has_defaults = True
+        def task_decorator(*args, **kwargs):
+            # Determine the context and decide what to do
+            import pycompss.util.context as context
+            if context.in_master():
+                return self.master_call(*args, **kwargs)
+            elif context.in_worker():
+                return self.worker_call(*args, **kwargs)
+            # We are neither in master nor in the worker
+            # Therefore, the user code is being executed with no
+            # launch_compss/enqueue_compss/runcompss, etc etc
+            return self.sequential_call(*args, **kwargs)
+        return task_decorator
 
-        # Step 6.- Check if the keyword returns has been specified by the user.
-        # Check if the keyword returns has been specified by the user.
-        if self.kwargs['returns']:
-            self.__update_return_type()
-        else:
-            # If no returns statement found, double check to see if the user has specified a return statement.
-            self.__update_return_if_no_returns(f)
-
-        # Step 7.- Check if the keyword isReplicated has been specified by the user.
-        if self.kwargs['isReplicated']:
-            self.is_replicated = True
-
-        # Step 8.- Check if the keyword isDistributed has been specified by the user.
-        if self.kwargs['isDistributed']:
-            self.is_distributed = True
-
-        # Step 9.- Get module (for invocation purposes in the worker)
-        mod = inspect.getmodule(f)
-        self.module_name = mod.__name__
-
-        if self.module_name == '__main__' or self.module_name == 'pycompss.runtime.launch':
-            # The module where the function is defined was run as __main__,
-            # We need to find out the real module name:
-
-            # Get the real module name from our launch.py app_path global variable
-            try:
-                path = getattr(mod, "app_path")
-            except AttributeError:
-                # This exception is raised when the runtime is not running and the @task decorator is used.
-                # The runtime has not been started yet.
-                return self.__not_under_pycompss_scope(f)
-
-            # Get the file name
-            file_name = os.path.splitext(os.path.basename(path))[0]
-
-            # Do any necessary pre processing action before executing any code
-            if file_name.startswith('InteractiveMode'):
-                # If the file_name starts with 'InteractiveMode' means that
-                # the user is using PyCOMPSs from jupyter-notebook.
-                # Convention between this file and interactive.py
-                # In this case it is necessary to do a pre-processing step
-                # that consists of putting all user code that may be executed
-                # in the worker on a file.
-                # This file has to be visible for all workers.
-                update_tasks_code_file(f, path)
-            else:
-                # work as always
-                pass
-
-            # Get the module
-            self.module_name = _get_module_name(path, file_name)
-
-        # The registration needs to be done only in the master node
-        if at_master():
-            self.__register_task(f)
-
-        # Modified variables until now that will be used later:
-        #   - self.f_argspec          : Function argspect (Named tuple)
-        #                               e.g. ArgSpec(args=['a', 'b', 'compss_retvalue'], varargs=None,
-        #                               keywords=None, defaults=None)
-        #   - self.has_self_parameter : Boolean - if the function is an instance (contains self in the f_argspec)
-        #   - self.has_cls_parameter  : Boolean - if the function is a class method (contains cls in the f_argspec)
-        #   - self.has_varargs        : Boolean - if the function has *args
-        #   - self.has_keywords       : Boolean - if the function has **kwargs
-        #   - self.has_defaults       : Boolean - if the function has default values
-        #   - self.parameters         : OrderedDict of function's Parameters
-        #   - self.returns            : OrderedDict of return's Parameters
-        #   - self.is_replicated      : Boolean - if the task is replicated
-        #   - self.is_distributed     : Boolean - if the task is distributed
-        #   - self.module_name        : String  - Module name (e.g. test.kmeans)
-        # Other variables that will be used:
-        #   - f                 : Decorated function
-        #   - self.args         : Decorator args tuple (usually empty)
-        #   - self.kwargs       : Decorator keywords dictionary.
-        #                         e.g. {'priority': True, 'isModifier': True, 'returns': <type 'dict'>,
-        #                               'self': <pycompss.api.parameter.Parameter instance at 0xXXXXXXXXX>,
-        #                               'compss_retvalue': <pycompss.api.parameter.Parameter instance at 0xXXXXXXXX>}
-
-        if __debug__:
-            logger.debug("Call in @task decorator finished.")
-
-        @wraps(f)
-        def wrapped_f(*args, **kwargs):
-            # args   - <Tuple>      - Contains the objects that the function has been called with (positional).
-            # kwargs - <Dictionary> - Contains the named objects that the function has been called with.
-
-            # By default, each task is set to use one core.
-            computing_nodes = 1
-            if 'computingNodes' in kwargs:
-                # There is a @mpi decorator over task that overrides the
-                # default value of computing nodes
-                computing_nodes = kwargs['computingNodes']
-                del kwargs['computingNodes']
-
-            # Check if this call is nested using the launch_pycompss_module
-            # function from launch.py.
-            is_nested = False
-            for i_s in inspect.stack():
-                if i_s[3] in ['launch_pycompss_module', 'launch_pycompss_application']:
-                    is_nested = True
-
-            # Prepare parameters and returns.
-            # Update self.parameters and self.returns with the appropriate Parameter objects.
-            self.__build_parameters_and_return_dicts(f, args, kwargs)
-
-            if not at_master() and not is_nested:
-                # Task decorator worker body code.
-                new_types, new_values, is_modifier = self.worker_code(f, args, kwargs)
-                return new_types, new_values, is_modifier
-            else:
-                # Task decorator master body code.
-                # Returns the future object that will be used instead of the
-                # actual function return.
-                fo = self.master_code(f, computing_nodes, args)
-                return fo
-
-        return wrapped_f
-
-    # ############################################################################ #
-    # ############### TASK DECORATOR PROLOG PRIVATE METHODS ###################### #
-    # ############################################################################ #
-
-    def __not_under_pycompss_scope(self, f, show_message=False):
-        """
-        Prints the warning message when running a PyCOMPSs application without the PyCOMPSs module and retrieves
-        the dummy task decorator.
-
-        :return: dummy task decorator
-        """
-
-        if show_message:
-            print("WARNING!!! You're trying to execute a python application with PyCOMPSs decorators without \
-                    the COMPSs Runtime running.")
-            print("Please, start the COMPSs Runtime before using task decorated functions in order to avoid this \
-                    message and exploit the parallelization.")
-            print("Suggestion: Use the 'runcompss' command or the 'start' function from pycompss.interactive module \
-                    depending on your needs.")
-            print("            Alternatively, use python -m pycompss run/enqueue [flags] application [parameters]")
-
-        from pycompss.api.dummy.task import task as dummy_task
-        d_t = dummy_task(self.args, self.kwargs)
-        return d_t.__call__(f)
-
-    def __update_return_type(self):
-        """
-        Updates the return types within self.returns ordered dict.
-
-        :return: None
-        """
-
-        from pycompss.api.parameter import Parameter
-        from pycompss.api.parameter import DIRECTION
-
-        # Manage Simple returns specified by the user
-        # This condition is interesting, because a user can write returns=list, lists have attribute
-        # __len__ but an exception is raised. Consequently, if users do not specify the length
-        # it will be managed as a single return
-        # When the user specifies the length, it is possible to manage the elements independently.
-        # Also, users can use a global variable to refer the arguments size (string)
-
-        ret_kwarg = self.kwargs['returns']
-        if not hasattr(ret_kwarg, '__len__') or type(ret_kwarg) is type:
-            # Simple return
-            ret_type = _get_compss_type(ret_kwarg)
-            param = Parameter(p_type=ret_type, p_direction=DIRECTION.OUT)
-            param.object = ret_kwarg
-            self.returns['compss_retvalue'] = param
-        elif isinstance(ret_kwarg, str):
-            # Multi-return in a global variable or a string wrapping an int
-            ret_type = _get_compss_type(ret_kwarg)
-            param = Parameter(p_type=ret_type, p_direction=DIRECTION.OUT)
-            param.object = ret_kwarg
-            self.returns['compss_retvalue'] = param
-        else:
-            # Multi-return (list)
-            for index, ret in enumerate(ret_kwarg):
-                ret_type = _get_compss_type(ret)
-                param = Parameter(p_type=ret_type, p_direction=DIRECTION.OUT)
-                param.object = ret
-                self.returns['compss_retvalue' + str(index)] = param
-
-    def __update_return_if_no_returns(self, f):
-        """
-        Checks the code looking for return statements if no returns is specified in @task decorator.
+    def update_return_if_no_returns(self, f):
+        '''Checks the code looking for return statements if no returns is specified in @task decorator.
 
         WARNING: Updates self.return if returns are found.
 
         :param f: Function to check
-        """
+        '''
 
         from pycompss.api.parameter import Parameter
         from pycompss.api.parameter import DIRECTION
         from pycompss.api.parameter import TYPE
+        from pycompss.util.object_properties import get_wrapped_source
+        import inspect
+        import ast
+        source_code = get_wrapped_source(f).strip()
 
-        source_code = _get_wrapped_source(f).strip()
-
-        if self.has_self_parameter or source_code.startswith('@classmethod'):
+        if self.first_arg_name == 'self' or source_code.startswith('@classmethod'):
             # TODO: WHAT IF IS CLASSMETHOD FROM BOOLEAN?
             # It is a task defined within a class (can not parse the code with ast since the class does not
             # exist yet. Alternatively, the only way I see is to parse it manually line by line.
@@ -399,11 +243,10 @@ class Task(object):
             ret_mask = [isinstance(node, ast.Return) for node in code]
 
         if any(ret_mask):
-            print("INFO! Return found in function " + f.__name__ + " without 'returns' statement at task definition.")
             has_multireturn = False
             lines = [i for i, li in enumerate(ret_mask) if li]
             max_num_returns = 0
-            if self.has_self_parameter or source_code.startswith('@classmethod'):
+            if self.first_arg_name == 'self' or source_code.startswith('@classmethod'):
                 # Parse code as string (it is a task defined within a class)
                 def _has_multireturn(statement):
                     v = ast.parse(statement.strip())
@@ -441,25 +284,19 @@ class Task(object):
                         # "Ask forgiveness not permission"
                         pass
             if has_multireturn:
-                if __debug__:
-                    logger.debug("Multireturn found: %s" % str(max_num_returns))
-                i = 0
-                for _ in range(max_num_returns):
+                for i in range(max_num_returns):
                     param = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT)
                     param.object = object()
-                    self.returns['compss_retvalue' + str(i)] = param
-                    i += 1
+                    self.returns[parameter.get_return_name(i)] = param
             else:
-                if __debug__:
-                    logger.debug("Return found")
                 param = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT)
                 param.object = object()
-                self.returns['compss_retvalue'] = param
+                self.returns[parameter.get_return_name(0)] = param
         else:
             # Return not found
             pass
 
-    def __register_task(self, f):
+    def register_task(self, f):
         """
         This function is used to register the task in the runtime.
         This registration must be done only once on the task decorator
@@ -470,6 +307,57 @@ class Task(object):
 
         from pycompss.runtime.core_element import CE
         import pycompss.runtime.binding as binding
+
+        def _get_top_decorator(code, decorator_keys):
+            """
+            Retrieves the decorator which is on top of the current task decorators stack.
+
+            :param code: Tuple which contains the task code to analyse and the number of lines of the code.
+            :param decorator_keys: Typle which contains the available decorator keys
+            :return: the decorator name in the form "pycompss.api.__name__"
+            """
+
+            # Code has two fields:
+            # code[0] = the entire function code.
+            # code[1] = the number of lines of the function code.
+            func_code = code[0]
+            decorators = [l.strip() for l in func_code if l.strip().startswith('@')]
+            # Could be improved if it stops when the first line without @ is found,
+            # but we have to be care if a decorator is commented (# before @)
+            # The strip is due to the spaces that appear before functions definitions,
+            # such as class methods.
+            for dk in decorator_keys:
+                for d in decorators:
+                    if d.startswith('@' + dk):
+                        return "pycompss.api." + dk.lower()  # each decorator __name__
+            # If no decorator is found, then the current decorator is the one to register
+            return __name__
+
+        def _get_task_type(code, decorator_filter, default):
+            """
+            Retrieves the type of the task based on the decorators stack.
+
+            :param code: Tuple which contains the task code to analyse and the number of lines of the code.
+            :param decorator_filter: Tuple which contains the filtering decorators. The one
+                                     used determines the type of the task. If none, then it is a normal task.
+            :param default: Default values
+            :return: the type of the task
+            """
+
+            # Code has two fields:
+            # code[0] = the entire function code.
+            # code[1] = the number of lines of the function code.
+            func_code = code[0]
+            full_decorators = [l.strip() for l in func_code if l.strip().startswith('@')]
+            # Get only the decorators used. Remove @ and parameters.
+            decorators = [l[1:].split('(')[0] for l in full_decorators]
+            # Look for the decorator used from the filter list and return it when found
+            for f in decorator_filter:
+                if f in decorators:
+                    return f
+            # The decorator stack did not contain any of the filtering keys, then
+            # return the default key.
+            return default
 
         # Look for the decorator that has to do the registration
         # Since the __init__ of the decorators is independent, there is no way
@@ -484,7 +372,8 @@ class Task(object):
         func = f
         while not got_func_code:
             try:
-                func_code = _get_wrapped_sourcelines(func)
+                from pycompss.util.object_properties import get_wrapped_sourcelines
+                func_code = get_wrapped_sourcelines(func)
                 got_func_code = True
             except IOError:
                 # There is one or more decorators below the @task --> undecorate
@@ -521,6 +410,7 @@ class Task(object):
 
         # Get the task signature
         # To do this, we will check the frames
+        import inspect
         frames = inspect.getouterframes(inspect.currentframe())
         # Pop the __register_task and __call__ functions from the frame
         frames = frames[2:]
@@ -538,23 +428,10 @@ class Task(object):
             ce_signature = self.module_name + "." + f.__name__
             impl_type_args = [self.module_name, f.__name__]
         else:
-            # There is more than one frame
-            # Discover if the task is defined within a class or subclass
-            # Construct the qualified class name
-            class_name = []
-            # Weak way, but I see no other way compatible with both 2 and 3.
-            for app_frame in app_frames:
-                if (app_frame[3] != '<module>' and app_frame[4] is not None and
-                        (app_frame[4][0].strip().startswith('@') or app_frame[4][0].strip().startswith('def'))):
-                    # app_frame[3] != <module> ==> functions and classes
-                    # app_frame[4] is not None ==> functions injected by the interpreter
-                    # (app_frame[4][0].strip().startswith('@') or app_frame[4][0].strip().startswith('def')) ==> Ignores functions injected by wrappers (e.g. autoparallel), but keep the classes.
-                    class_name.append(app_frame[3])
-            class_name = '.'.join(class_name)
-            if class_name:
+            if self.class_name:
                 # Within class or subclass
-                ce_signature = self.module_name + '.' + class_name + '.' + f.__name__
-                impl_type_args = [self.module_name + '.' + class_name, f.__name__]
+                ce_signature = self.module_name + '.' + self.class_name + '.' + f.__name__
+                impl_type_args = [self.module_name + '.' + self.class_name, f.__name__]
             else:
                 # Not in a class or subclass
                 # This case can be reached in Python 3, where particular frames are included, but not class names found.
@@ -564,792 +441,449 @@ class Task(object):
         impl_signature = ce_signature
         impl_constraints = {}
         impl_type = "METHOD"
-        core_element = CE(ce_signature,
-                          impl_signature,
-                          impl_constraints,
-                          impl_type,
-                          impl_type_args)
-        f.__to_register__ = core_element
 
-        # Do the task register if I am the top decorator
-        if f.__who_registers__ == __name__:
-            if __debug__:
-                logger.debug(
-                    "[@TASK] I have to do the register of function %s in module %s" % (f.__name__, self.module_name))
-                logger.debug("[@TASK] %s" % str(f.__to_register__))
-            binding.register_ce(core_element)
+        # Maybe some top decorator has already added some parameters
+        # These if statements avoid us to overwrite these already
+        # existing attributes
+        # For example, the constraint decorator adds things in the impl_constraints
+        # field, so it would be nice to not overwrite it!
 
-    def __build_parameters_and_return_dicts(self, f, args, kwargs):
-        """
-        Build parameters and return dictionaries
-
-        WARNING: Updates self.parameters dictionary
-        WARNING: Updates self.returns dictionary
-
-        :param f: Function
-        :param args: Function args
-        :param kwargs: Function kwargs
-        """
-        import pycompss.runtime.binding as binding
-
-        param_keys = self.f_argspec.args
-        param_values = args
-
-        # Step 0.- Grab the 'compss_types' information if available.
-        #          This only happens during the call function of the task decorator in the worker.
-        at_worker = False
-        worker_rets = None
-        worker_kwargs = None
-        if 'compss_types' in kwargs:
-            # Then we are being called within the worker, and the args and kwargs differ.
-            at_worker = True
-            # For instance, args contains all parameters and instead of objects, their path
-            # Also, kwargs contains worker defined keywords instead of the real dict
-            # (e.g. compss_types, compss_tracing, compss_return_length, compss_storage_conf and compss_process_name
-            param_values = list(param_values)  # Copy to list in order to use pop since it does not contain objects
-            num_rets = kwargs['compss_return_length']
-            if num_rets > 0:
-                worker_rets = param_values[-num_rets:]
-                param_values = param_values[:-num_rets]
-            if self.has_keywords:
-                worker_kwargs = param_values.pop()
-
-        # Step 1.- Check self
-        if self.has_self_parameter or self.has_cls_parameter:
-            f_self = dict()
-            self_name = param_keys[0]
-            f_self[self_name] = self.kwargs['self']
-            f_self[self_name].object = param_values[0]
-            if self.kwargs['isModifier']:
-                d = DIRECTION.INOUT
-            else:
-                d = DIRECTION.IN
-            f_self[self_name].direction = d
-            # Include in the first position
-            self.parameters.update(f_self)
-
-        # Step 2.- Build the parameters names and values lists.
-        # Be very careful with parameter position.
-        # The included are sorted by position. The rest may not.
-
-        # Check how many parameters are defined in the function
-        num_parameters = len(self.f_argspec.args)
-
-        # Check if the user has defined default values and include them
-        if self.has_defaults:
-            # There are default parameters
-            # Get the variable names and values that have been defined by default (_get_default_args(f)).
-            # default_params will have a list of pairs of the form (argument, default_value)
-            # Default values have to be always defined after undefined value parameters.
-            default_params = _get_default_args(f)
-            args_list = list(param_values)  # Given values
-            # Default parameter addition
-            for p in self.f_argspec.args[len(param_values):num_parameters]:
-                if p in kwargs:
-                    args_list.append(kwargs[p])
-                    kwargs.pop(p)
-                else:
-                    for dp in default_params:
-                        if p == dp[0]:
-                            args_list.append(dp[1])
-            param_values = tuple(args_list)
-
-        # List of parameter names
-        vals_names = list(self.f_argspec.args[:num_parameters])
-        # List of values of each parameter
-        vals_values = list(param_values[:num_parameters])  # first values of args are the parameters
-
-        # Check if there are *args or **kwargs
-        args_names = []
-        args_vals = []
-        if self.has_varargs:  # *args
-            aargs = '*' + self.f_argspec.varargs
-            if binding.aargs_as_tuple:
-                # If the *args are expected to be managed as a tuple:
-                args_names.append(aargs)  # Name used for the *args
-                # last values will compose the *args parameter
-                args_vals.append(param_values[num_parameters:])
-            else:
-                # If the *args are expected to be managed as individual elements:
-                pos = 0
-                for i in range(len(param_values[num_parameters:])):
-                    args_names.append(aargs + str(pos))  # Name used for the *args
-                    self.kwargs[aargs + str(pos)] = copy.copy(self.kwargs['varargsType'])
-                    pos += 1
-                args_vals = args_vals + list(param_values[num_parameters:])
-        if self.has_keywords:  # **kwargs
-            aakwargs = '**' + self.f_argspec.keywords  # Name used for the **kwargs
-            args_names.append(aakwargs)
-            # Check if some of the **kwargs are used as vals_values
-            if len(vals_names) > len(vals_values):
-                for i in range(len(vals_values), len(vals_names)):
-                    vals_values.append(kwargs[vals_names[i]])
-                    kwargs.pop(vals_names[i])
-            if at_worker:
-                # The **kwargs dictionary is a path to the object that contains it
-                args_vals.append(worker_kwargs)
-            else:
-                # The **kwargs dictionary is considered as a single dictionary object.
-                args_vals.append(kwargs)
-
-        # Build the final list of parameter names
-        parameter_names = vals_names + args_names
-        # Build the final list of parameter_values for each parameter
-        parameter_values = vals_values + args_vals
-
-        # Step 3.- Fill self.returns structure
-        if at_worker:
-            # WORKER SIDE: Retrieve returns from worker_rets
-            if worker_rets:
-                if len(worker_rets) == 1:
-                    self.returns['compss_retvalue'].file_name = worker_rets[0]
-                else:
-                    self.returns = OrderedDict()  # Empty any previous content
-                    for i, ret in enumerate(worker_rets):
-                        self.returns['compss_retvalue' + str(i)] = ret
+        if current_core_element.get_ce_signature() is None:
+            current_core_element.set_ce_signature(ce_signature)
         else:
-            # MASTER SIDE: Backup original expression and discover hidden returns
-            if self.returns:
-                self.returns_bkp = copy.deepcopy(self.returns)
-                self.__discover_hidden_returns(f)
+            # If we are here that means that we come from an implements
+            # decorator, which means that this core element has already
+            # a signature
+            current_core_element.set_impl_signature(ce_signature)
+        if current_core_element.get_impl_signature() is None:
+            current_core_element.set_impl_signature(impl_signature)
+        if current_core_element.get_impl_constraints() is None:
+            current_core_element.set_impl_constraints(impl_constraints)
+        if current_core_element.get_impl_type() is None:
+            current_core_element.set_impl_type(impl_type)
+        if current_core_element.get_impl_type_args() is None:
+            current_core_element.set_impl_type_args(impl_type_args)
 
-        # Step 4.- Fill self.parameters structure
-        for i, p in enumerate(parameter_names):
-            if p in self.kwargs:
-                parameter = copy.copy(self.kwargs[p])  # copy Parameter reference to self.parameters
-                #                                      # Keep the original parameter in self.kwargs
-                #                                      # It does not contain any object nor file_name.
-                if isinstance(parameter, dict):
-                    # The user has given some information about the parameter as dict
-                    self.parameters[p] = _from_dict_to_parameter(parameter)
-                else:
-                    self.parameters[p] = parameter
-            else:
-                self.parameters[p] = Parameter()
+        if __debug__:
+            logger.debug(
+                "[@TASK] I have to do the register of function %s in module %s" % (f.__name__, self.module_name))
+            logger.debug("[@TASK] %s" % str(f))
+        binding.register_ce(current_core_element)
+        current_core_element.reset()
 
-            obj = parameter_values[i]
-            if self.parameters[p].type != TYPE.FILE:
-                self.parameters[p].object = obj
-                # Then it is a primitive, get its real type
-                self.parameters[p].type = _get_compss_type(obj)
-            else:
-                self.parameters[p].file_name = obj
+    def inspect_user_function_arguments(self):
+        '''Inspect the arguments of the user function and store them.
+        Read the names of the arguments and remember their order.
+        We will also learn things like if the user function contained
+        variadic arguments, named arguments and so on.
+        This will be useful when pairing arguments with the direction
+        the user has specified for them in the decorator
+        :return: None, it just adds attributes
+        '''
+        import inspect
+        self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults = \
+            inspect.getargspec(self.user_function)
+        # It will be easier to deal with functions if we pretend that all have the
+        # signature f(positionals, *variadic, **named). This is why we are substituting
+        # Nones with default stuff
+        # As long as we remember what was the users original intention with the parameters
+        # we can internally mess with his signature as much as we want. There is no need to add
+        # self-imposed constraints here.
+        # Also, the very nature of decorators are a huge hint about how we should treat user
+        # functions, as most wrappers return a function f(*a, **k)
+        if self.param_varargs is None:
+            self.param_varargs = 'varargsType'
+        if self.param_defaults is None:
+            self.param_defaults = ()
 
-        # Step 5.- Update the Parameter type with the worker information
-        if at_worker:
-            for i, param in enumerate(self.parameters):
-                t = kwargs['compss_types']
-                self.parameters[param].type = t[i]
+    def compute_module_name(self):
+        '''Compute the user's function module name.
+        There are various cases:
+        1) The user function is defined in some file. This is easy, just get the module returned by inspect.getmodule
+        2) The user function is in the main module. Retrieve the file and build the import name from it
+        3) We are in interactive mode
 
-        # Step 6.- Clean elements that are not defined in parameter_names
-        for p in list(self.parameters.keys()):
-            # This way of iteration avoids OrderedDict mutation during iteration
-            if p not in parameter_names:
-                self.parameters.pop(p)
+        This function was taken from the old task.py and only some minor modifications were applied to it
+        :return: Nothing, it just modifies self.module_name
+        '''
+        import inspect
+        import os
+        mod = inspect.getmodule(self.user_function)
+        self.module_name = mod.__name__
+        if self.module_name == '__main__' or self.module_name == 'pycompss.runtime.launch':
+            # The module where the function is defined was run as __main__,
+            # We need to find out the real module name
+            # Get the real module name from our launch.py app_path global variable
+            # It is guaranteed that this variable will always exist because this code is only executed
+            # when we know we are in the master
+            path = getattr(mod, 'app_path')
+            # Get the file name
+            file_name = os.path.splitext(os.path.basename(path))[0]
+            # Do any necessary pre processing action before executing any code
+            if file_name.startswith('InteractiveMode'):
+                # If the file_name starts with 'InteractiveMode' means that
+                # the user is using PyCOMPSs from jupyter-notebook.
+                # Convention between this file and interactive.py
+                # In this case it is necessary to do a pre-processing step
+                # that consists of putting all user code that may be executed
+                # in the worker on a file.
+                # This file has to be visible for all workers.\
+                from pycompss.util.interactive_helpers import update_tasks_code_file
+                update_tasks_code_file(self.user_function, path)
+            # Get the module
+            from pycompss.util.object_properties import get_module_name
+            self.module_name = get_module_name(path, file_name)
 
-        # Step 7.- Extract *args and **kwargs
-        aargs = OrderedDict()
-        if '*args0' in self.parameters:
-            # Extract the *args
-            for i in list(self.parameters.keys()):
-                # This way of iteration avoids OrderedDict mutation during iteration
-                if i.startswith('*args'):
-                    aargs[i] = self.parameters.pop(i)
-        akwargs = OrderedDict()
-        if '**kwargs' in self.parameters:
-            # Extract the **kwargs
-            akwargs['**kwargs'] = self.parameters.pop('**kwargs')
-
-        # Last step: Place the args and kwargs at the end of the parameters.
-        self.parameters.update(aargs)
-        self.parameters.update(akwargs)
-
-    def __discover_hidden_returns(self, f):
-        """
-        Discover hidden returns.
-        For example, if the user defines returns=2 or returns="2"
-
-        WARNING: Updates self.returns dictionary
-
-        :param f: Original function
-        :param at_worker: <Boolean> At worker. The return, if single, will be a str instead of an int.
-        """
-
-        # Only one return defined.
-        # May hide a "int", int or type.
-        if len(self.returns) == 1:
-            num_rets = 1
-            hidden_multireturn = False
-            ret_value = self.returns['compss_retvalue'].object
-            if isinstance(ret_value, str):
-                # Check if the returns statement contains an string with an integer or a global variable
-                # In such case, build a list of objects of value length and set it in ret_type.
-
-                # Global variable or string wrapping integer value
-                try:
-                    # Return is hidden by an int as a string. i.e., returns="var_int"
-                    num_rets = int(ret_value)
-                except ValueError:
-                    # Return is hidden by a global variable. i.e., LT_ARGS
-                    num_rets = f.__globals__.get(ret_value)
-                # Construct hidden multireturn
-                hidden_multireturn = True
-                if num_rets > 1:
-                    ret_v = [object for _ in range(num_rets)]
-                else:
-                    ret_v = object
-            elif isinstance(ret_value, int):
-                # Check if the returns statement contains an integer value.
-                # In such case, build a list of objects of value length and set it in ret_type.
-                num_rets = ret_value
-                # Assume all as objects (generic type).
-                # It will not work properly when using user defined classes, since
-                # the future object built will not be of the same type as expected
-                # and may cause "AttributeError" since the 'object' does not have
-                # the attributes of the class
-                # Hidden multireturn with returns=int
-                hidden_multireturn = True
-                if num_rets > 1:
-                    ret_v = [object for _ in range(num_rets)]
-                else:
-                    ret_v = object
-            elif isinstance(ret_value, list) or isinstance(ret_value, tuple):
-                # Check if returns=[] or returns=()
-                hidden_multireturn = True
-                num_rets = len(ret_value)
-                ret_v = self.returns['compss_retvalue'].object
-            else:
-                ret_v = ret_value
-
-            # Update self.returns
-            if hidden_multireturn:
-                if num_rets > 1:
-                    parameter = self.returns['compss_retvalue']
-                    self.returns.pop('compss_retvalue')
-                    num_ret = 0
-                    for i in ret_v:
-                        if isinstance(parameter, list):
-                            # when returns=[..., ..., etc.] use the specific parameter
-                            self.returns['compss_retvalue' + str(num_ret)] = parameter[num_ret]
-                        else:
-                            # otherwise all are the kept the same
-                            self.returns['compss_retvalue' + str(num_ret)] = parameter
-                        self.returns['compss_retvalue' + str(num_ret)].object = i
-                        num_ret += 1
-                else:
-                    self.returns['compss_retvalue'].object = ret_v
-
-    # ############################################################################ #
-    # #################### TASK DECORATOR WORKER CODE ############################ #
-    # ############################################################################ #
-
-    def worker_code(self, f, args, kwargs):
-        """
-        Task decorator body executed in the workers.
-        Its main function is to execute to execute the function decorated as task.
-        Prior to the execution, the worker needs to retrieve the necessary parameters.
-        These parameters will be used for the invocation of the function.
-        When the function has been executed, stores in a file the result and finishes the worker execution.
-        Then, the runtime grabs this files and does all management among tasks that involve them.
-
-        :param f: <Function> - Function to execute
-        :param args: <Tuple> - Contains the objects that the function has been called with (positional).
-        :param kwargs: <Dictionary> - Contains the named objects that the function has been called with.
-        :return: Two lists: new_types and new_values.
-        """
-
-        from pycompss.util.serializer import serialize_objects
-        import pycompss.runtime.binding as binding
-
-        # Retrieve internal parameters from worker.py.
-        # tracing = kwargs.get('compss_tracing')  # Not used here, but kept informatively
-
-        # Discover hidden objects passed as files
-        real_values, to_serialize = self.__reveal_objects()
-
-        if binding.aargs_as_tuple:
-            # Check if there is *arg parameter in the task, so the last element (*arg tuple) has to be flattened
-            if self.has_varargs:
-                if self.has_keywords:
-                    real_values = real_values[:-2] + list(real_values[-2]) + [real_values[-1]]
-                else:
-                    real_values = real_values[:-1] + list(real_values[-1])
-        else:
-            pass
-
-        kargs = {}
-        # Check if there is **kwarg parameter in the task, so the last element (kwarg dict) has to be flattened
-        if self.has_keywords:
-            kargs = real_values[-1]  # kwargs dict
-            real_values = real_values[:-1]  # remove kwargs from real_values
-        else:
-            pass
-
-        ret = f(*real_values, **kargs)  # Real call to f function
-
-        # This will contain the same as to_serialize but we will store the whole
-        # file identifier string instead of simply the file_name
-        _output_objects = []
-
-        if self.returns:
-            # If there is multi-return then serialize each one on a different file
-            # Multi-return example: a,b,c = fun() , where fun() has a return x,y,z
-            if len(self.returns) > 1:
-                try:
-                    # Check that output has len function
-                    _ = len(ret)
-                    # Assign it to an iterable return
-                    aux = ret
-                except TypeError:
-                    # The output has not len function
-                    aux = [ret]
-
-                # Fill the extra positions (if the user has declared more than used)
-                while len(aux) < len(self.returns):
-                    print("WARN: Filling extra return positions with Empty Objects")
-                    aux.append(binding.EmptyReturn())
-
-                # Build the return file names
-                rets = args[-len(self.returns):]
-                for index, ret_filename in enumerate(rets):
-                    _output_objects.append((aux[index], ret_filename))
-                    ret_filename = ret_filename.split(':')[-1]
-                    to_serialize.append((aux[index], ret_filename))
-            else:
-                # Simple return
-                ret_filename = args[-1]
-                _output_objects.append((ret, ret_filename))
-                ret_filename = ret_filename.split(':')[-1]
-                to_serialize.append((ret, ret_filename))
-
-        # Check if the values and types have changed after the task execution:
-        # I.e.- an object that has been made persistent within the task may be
-        # detected here, and the type change done within the outputTypes list.
-        new_types, new_values, to_serialize = _check_value_changes(kwargs['compss_types'],
-                                                                   list(args),
-                                                                   to_serialize)
-
-        if len(to_serialize) > 0:
-            serialize_objects(to_serialize)
-
-        return new_types, new_values, self.kwargs['isModifier']
-
-    def __reveal_objects(self):
-        """
-        Function that goes through all parameters (self.parameters) in order to
-        find and open the files.
-
-        :return: a list with the real values and
-                 another list of objects to serialize after the task execution (INOUT/OUT)
-        """
-
-        from pycompss.api.parameter import DIRECTION
-        from pycompss.api.parameter import TYPE
-        from pycompss.util.serializer import deserialize_from_file
-
-        real_values = []
-        to_serialize = []
-
-        for param in self.parameters:
-            parameter = self.parameters[param]
-
-            if inspect.isclass(parameter.object):  # class (it's a class method)
-                real_values.append(parameter.object)
-                continue
-            else:
-                pass
-
-            if parameter.type == TYPE.FILE:
-                if parameter.file_name:
-                    # The parameter is a File (defined as FILE in the decorator)
-                    file_name = self.__extract_file_name(parameter.file_name)
-                    real_values.append(file_name)
-                else:
-                    # The parameter is a hidden object
-                    file_name = self.__extract_file_name(parameter.object)
-                    obj = deserialize_from_file(file_name)
-                    real_values.append(obj)
-                    if parameter.direction != DIRECTION.IN:
-                        to_serialize.append((obj, file_name))
-            elif parameter.type == TYPE.OBJECT and parameter.file_name:
-                # The parameter is actually an object serialized into a file
-                file_name = self.__extract_file_name(parameter.file_name)
-                obj = deserialize_from_file(file_name)
-                real_values.append(obj)
-                if parameter.direction != DIRECTION.IN:
-                    to_serialize.append((obj, file_name))
-            else:
-                # Otherwise, the parameter is a primitive
-                real_values.append(parameter.object)
-
-        return real_values, to_serialize
-
-    @staticmethod
-    def __extract_file_name(pattern):
-        """
-        Process the pattern string sent through NIO or GAT which points to a file.
-        Getting ids and file names from passed files and objects pattern is:
-            - NIO:
-                "originalDataID:destinationDataID;flagToPreserveOriginalData:flagToWrite:PathToFile"
-            - GAT:
-                "PathToFile"
-
-        :param pattern: String to process following the NIO and GAT formats
-        :return: <String> The file name hidden in the pattern
-        """
-        complete_file_name = pattern.split(':')
-        if len(complete_file_name) > 1:
-            # In NIO we get more information
-            # forig = complete_f_name[0]        # Not used yet
-            # fdest = complete_f_name[1]        # Not used yet
-            # preserve = complete_f_name[2]     # Not used yet
-            # write_final = complete_f_name[3]  # Not used yet
-            file_name = complete_file_name[4]
-            # preserve, write_final = list(map(lambda x: x == "true", [preserve, write_final]))  # Not used yet
-            # suffix_name = forig               # Not used yet
-        else:
-            # In GAT we only get the name
-            file_name = complete_file_name[0]
-        return file_name
-
-    # ############################################################################ #
-    # #################### TASK DECORATOR MASTER CODE ############################ #
-    # ############################################################################ #
-
-    def master_code(self, f, num_nodes, args):
-        """
-        Task decorator body executed in the master.
-
-        :param f: <Function> - Function to execute
-        :param num_nodes: <Integer> - Number of computing nodes
-        :param args: <Tuple> - Contains the objects that the function has been called with (positional)
-        :return: Future object that fakes the real return of the task (for its delegated execution)
-        """
-
-        from pycompss.runtime.binding import process_task
-
-        f_type, class_name = self.__check_function_type_and_class_name(f, args)
-
-        fo = process_task(f,
-                          self.module_name,
-                          class_name,
-                          f_type,
-                          self.parameters,
-                          self.returns,
-                          self.kwargs,
-                          num_nodes,
-                          self.is_replicated,
-                          self.is_distributed)
-
-        # Restore returns object
-        if self.returns:
-            self.returns = self.returns_bkp
-
-        # Starts the asynchronous creation of the task.
-        # First calling the PyCOMPSs library and then C library (bindings-commons).
-        return fo
-
-    def __check_function_type_and_class_name(self, f, args):
-        """
-        Check function type and class name in the same loop
-
-        :param f: Function
-        :param args: Function args
-        :return: <FunctionType> Function type, <String> Class name
-        """
+    def compute_function_type(self):
+        '''Compute some properties of the user function, as its name,
+        its import path, and its type (module function, instance method, class method),
+        etc...
+        '''
+        import inspect
         from pycompss.runtime.binding import FunctionType
         # Check the type of the function called.
         # inspect.ismethod(f) does not work here,
         # for methods python hasn't wrapped the function as a method yet
         # Everything is still a function here, can't distinguish yet
         # with inspect.ismethod or isfunction
-        f_type = FunctionType.FUNCTION
-        class_name = ''
-        if self.has_self_parameter:
-            f_type = FunctionType.INSTANCE_METHOD
-            class_name = type(args[0]).__name__
-        if args and inspect.isclass(args[0]):
-            for n, _ in inspect.getmembers(args[0], inspect.ismethod):
-                if n == f.__name__:
-                    f_type = FunctionType.CLASS_METHOD
-                    class_name = args[0].__name__
-        return f_type, class_name
+        self.function_type = FunctionType.FUNCTION
+        self.class_name = ''
+        if self.first_arg_name == 'self':
+            self.function_type = FunctionType.INSTANCE_METHOD
+            self.class_name = type(self.parameters['self'].object).__name__
+        elif self.first_arg_name == 'cls':
+            self.function_type = FunctionType.CLASS_METHOD
+            self.class_name = self.parameters['cls'].object.__name__
 
 
-# ############################################################################# #
-# ################### TASK DECORATOR ALTERNATIVE NAME ######################### #
-# ############################################################################# #
+    def compute_user_function_information(self):
+        '''Compute the function path p and the name n
+        such that
+        "from p import n" imports self.user_function
+        :return: None, it just sets self.user_function_path and self.user_function_name
+        '''
+        # Get the module name (the x part "from x import y"), except for the class name
+        self.compute_module_name()
+        self.compute_function_type()
+        self.function_name = self.user_function.__name__
 
-task = Task
+    def master_call(self, *args, **kwargs):
+        '''This part deals with task calls in the master's side
 
+        Also, this function must return an appropriate number of
+        future objects that point to the appropriate objects/files.
+        :return: A function that does "nothing" and returns futures
+        if needed
+        '''
+        # This lock makes this decorator able to handle various threads
+        # calling the same task concurrently
+        master_lock.acquire()
+        # Inspect the user function, get information about the arguments and their names
+        # This defines self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults
+        # And gives non-None default values to them if necessary
+        self.inspect_user_function_arguments()
+        # Process the parameters, give them a proper direction
+        self.process_master_parameters(*args, **kwargs)
+        # Compute the function path, class (if any), and name
+        self.compute_user_function_information()
+        # If we are in the master and this is the first time we call this task
+        # we need to register it into the COMPSs runtime
+        if not self.registered:
+            self.register_task(self.user_function)
+            self.registered = True
+            # Reset the global core element to a full-None status, ready for the next
+            # task! (Note that this region is locked, so no race conditions will ever happen
+            # here).
+            current_core_element.reset()
+        # Did we call this function to only register the associated core element?
+        # (This can happen when trying)
+        if register_only:
+            master_lock.release()
+            return
+        # Deal with the return part.
+        self.add_return_parameters()
+        if not self.returns:
+            self.update_return_if_no_returns(self.user_function)
+        from pycompss.runtime.binding import process_task
+        ret = process_task(
+            self.user_function,
+            self.module_name,
+            self.class_name,
+            self.function_type,
+            self.parameters,
+            self.returns,
+            self.decorator_arguments,
+            self.computing_nodes,
+            self.decorator_arguments['isReplicated'],
+            self.decorator_arguments['isDistributed']
+        )
+        master_lock.release()
+        return ret
 
-# ############################################################################# #
-# ####################### AUXILIARY FUNCTIONS ################################# #
-# ############################################################################# #
+    def get_varargs_direction(self):
+        '''Returns the direction of the varargs arguments.
+        Can be defined in the decorator in two ways:
+        args = dir, where args is the name of the variadic args tuple, or
+        varargsType = dir (for legacy reasons)
+        '''
+        if not self.param_varargs in self.decorator_arguments:
+            return self.decorator_arguments['varargsType']
+        return self.decorator_arguments[self.param_varargs]
 
-def _get_module_name(path, file_name):
-    """
-    Get the module name considering its path and filename.
+    def get_default_direction(self, var_name):
+        '''Returns the default direction for a given parameter
+        :return: An identifier of the direction
+        '''
+        # We are the 'self' or 'cls' in an instance or classmethod that modifies the given class
+        # so we are an INOUT
+        if self.decorator_arguments['isModifier'] and var_name in ['self', 'cls'] and \
+                self.param_args and self.param_args[0] == var_name:
+            return parameter.get_new_parameter('INOUT')
+        # Default, safest direction = IN
+        return parameter.get_new_parameter('IN')
 
-    Example: runcompss -d src/kmeans.py
-             path = "test/kmeans.py"
-             file_name = "kmeans" (without py extension)
-             return mod_name = "test.kmeans"
-
-    :param path: relative path until the file.py from where the runcompss has been executed
-    :param file_name: python file to be executed name (without the py extension)
-    :return: the module name
-    """
-
-    dirs = path.split(os.path.sep)
-    mod_name = file_name
-    i = len(dirs) - 1
-    while i > 0:
-        new_l = len(path) - (len(dirs[i]) + 1)
-        path = path[0:new_l]
-        if "__init__.py" in os.listdir(path):
-            # directory is a package
-            i -= 1
-            mod_name = dirs[i] + '.' + mod_name
-        else:
-            break
-    return mod_name
-
-
-def _get_top_decorator(code, decorator_keys):
-    """
-    Retrieves the decorator which is on top of the current task decorators stack.
-
-    :param code: Tuple which contains the task code to analyse and the number of lines of the code.
-    :param decorator_keys: Typle which contains the available decorator keys
-    :return: the decorator name in the form "pycompss.api.__name__"
-    """
-
-    # Code has two fields:
-    # code[0] = the entire function code.
-    # code[1] = the number of lines of the function code.
-    func_code = code[0]
-    decorators = [l.strip() for l in func_code if l.strip().startswith('@')]
-    # Could be improved if it stops when the first line without @ is found,
-    # but we have to be care if a decorator is commented (# before @)
-    # The strip is due to the spaces that appear before functions definitions,
-    # such as class methods.
-    for dk in decorator_keys:
-        for d in decorators:
-            if d.startswith('@' + dk):
-                return "pycompss.api." + dk.lower()  # each decorator __name__
-
-    # If no decorator is found, then the current decorator is the one to register
-    return __name__
-
-
-def _get_task_type(code, decorator_filter, default):
-    """
-    Retrieves the type of the task based on the decorators stack.
-
-    :param code: Tuple which contains the task code to analyse and the number of lines of the code.
-    :param decorator_filter: Tuple which contains the filtering decorators. The one
-                             used determines the type of the task. If none, then it is a normal task.
-    :param default: Default values
-    :return: the type of the task
-    """
-
-    # Code has two fields:
-    # code[0] = the entire function code.
-    # code[1] = the number of lines of the function code.
-    func_code = code[0]
-    full_decorators = [l.strip() for l in func_code if l.strip().startswith('@')]
-    # Get only the decorators used. Remove @ and parameters.
-    decorators = [l[1:].split('(')[0] for l in full_decorators]
-    # Look for the decorator used from the filter list and return it when found
-    for f in decorator_filter:
-        if f in decorators:
-            return f
-    # The decorator stack did not contain any of the filtering keys, then
-    # return the default key.
-    return default
-
-
-def _check_value_changes(types, values, to_serialize):
-    """
-    Check if the input values have changed and adapt its types accordingly.
-    Considers also changes that may affect to the to_serialize list.
-
-    NOTE: This function can also return the real_to_serialize list, which
-    contains the objects that should be serialized after checking the changes.
-    For example, if a return is a simple type (int), it can be considered
-    within the new_types and new_values, popped from the to_serialize list, and
-    returned on the task return pipe.
-    However, the runtime does not support getting values from the return pipe.
-    For this reason, we continue using the to_serialize list to serialize the
-    return object into the return file. Consequently, the real_to_serialize
-    variable is not currently used, but should be considered when the runtime
-    provides support for returning simple objects through the pipe.
-
-    WARNING: Due to the runtime does not support gathering values from the
-    output pipe at worker, all values will be set to null but the PSCOs that
-    may have changed.
-
-    :param types: List of types of the values list
-    :param values: List of values used as task input
-    :param to_serialize: List of objects to be serialized
-    :return: Three lists, the new types, new values and new to_serialize list.
-    """
-
-    assert len(types) == len(values), "Inconsistent state: type-value length mismatch."
-
-    from pycompss.api.parameter import TYPE
-    from pycompss.util.persistent_storage import get_id
-
-    # Update the existing PSCOS with their id.
-    for i in range(len(types)):
-        if types[i] == TYPE.EXTERNAL_PSCO:
-            values[i] = get_id(values[i])
-    real_to_serialize = []
-    # Analise only PSCOS from to_serialize objects list
-    for ts in to_serialize:
-        # ts[0] == real object to serialize
-        # ts[1] == file path where to serialize
-        pos = 0
-        changed = False
-        for i in values:
-            if isinstance(i, str) and _get_compss_type(ts[0]) == TYPE.EXTERNAL_PSCO and ts[1] in i:
-                # Include the PSCO id in the values list
-                values[pos] = get_id(ts[0])
-                types[pos] = TYPE.EXTERNAL_PSCO
-                changed = True
-            pos += 1
-        if not changed:
-            real_to_serialize.append(ts)
-    # Put all values that do not match the EXTERNAL_PSCO type to null
-    for i in range(len(types)):
-        if not types[i] == TYPE.EXTERNAL_PSCO:
-            values[i] = 'null'
-    return types, values, real_to_serialize
-
-
-def _get_compss_type(value):
-    """
-    Retrieve the value type mapped to COMPSs types.
-
-    :param value: Value to analyse
-    :return: The Type of the value
-    """
-
-    from pycompss.api.parameter import TYPE
-    from pycompss.util.persistent_storage import has_id, get_id
-
-    if type(value) is bool:
-        return TYPE.BOOLEAN
-    elif type(value) is str and len(value) == 1:
-        # Char does not exist as char. Only for strings of length 1.
-        return TYPE.CHAR
-    elif type(value) is str and len(value) > 1:
-        # Any file will be detected as string, since it is a path.
-        # The difference among them is defined by the parameter decoration as FILE.
-        return TYPE.STRING
-    # elif type(value) is byte:
-    #    # byte does not exist in python (instead bytes is an str alias)
-    #    return TYPE.BYTE
-    # elif type(value) is short:
-    #    # short does not exist in python... they are integers.
-    #    return TYPE.SHORT
-    elif type(value) is int:
-        return TYPE.INT
-    elif type(value) is long:
-        return TYPE.LONG
-    elif type(value) is float:
-        return TYPE.DOUBLE
-    # elif type(value) is double:  # In python, floats are doubles.
-    #     return TYPE.DOUBLE
-    elif type(value) is str:
-        return TYPE.STRING
-    # elif type(value) is :  # Unavailable - The runtime does not support python objects
-    #     return TYPE.OBJECT
-    # elif type(value) is :  # Unavailable - PSCOs not persisted will be handled as objects (as files)
-    #     return TYPE.PSCO
-    elif has_id(value):
-        # If has method getID maybe is a PSCO
-        try:
-            if get_id(value) not in [None, 'None']:  # the 'getID' + id == criteria for persistent object
-                return TYPE.EXTERNAL_PSCO
+    def process_master_parameters(self, *args, **kwargs):
+        '''Process all the input parameters.
+        Basically, processing means "build a dictionary of <name, parameter>,
+        where each parameter has an associated Parameter object".
+        This function also assigns default directions to parameters.
+        :return: None, it only modifies self.parameters
+        '''
+        from collections import OrderedDict
+        parameter_values = OrderedDict()
+        # If we have an OMPSs or MPI decorator above us we should have computingNodes
+        # as a kwarg, we should detect it and remove it
+        self.computing_nodes = kwargs.pop('computingNodes', 1)
+        # It is important to know the name of the first argument to determine if we
+        # are dealing with a class or instance method (i.e: first argument is named self)
+        self.first_arg_name = None
+        # Process the positional arguments
+        # Some of these positional arguments may have been not
+        # explicitly defined
+        num_positionals = min(len(self.param_args), len(args))
+        for (var_name, var_value) in zip(self.param_args[:num_positionals], args[:num_positionals]):
+            if self.first_arg_name is None:
+                self.first_arg_name = var_name
+            parameter_values[var_name] = var_value
+        num_defaults = len(self.param_defaults)
+        # Give default values to all the parameters that have a
+        # default value and are not already set
+        # As an important observation, defaults are matched as follows:
+        # defaults[-1] goes with positionals[-1]
+        # defaults[-2] goes with positionals[-2]
+        # ...
+        # Also, |defaults| <= |positionals|
+        for (var_name, default_value) in reversed(list(zip(list(reversed(self.param_args))[:num_defaults],
+                                                           list(reversed(self.param_defaults))))):
+            if not var_name in parameter_values:
+                parameter_values[parameter.get_kwarg_name(var_name)] = default_value
+        # Process variadic and keyword arguments
+        # Note that they are stored with custom names
+        # This will allow us to determine the class of each parameter
+        # and their order in the case of the variadic ones
+        # Process the variadic arguments
+        for (i, var_arg) in enumerate(args[num_positionals:]):
+            parameter_values[parameter.get_vararg_name(self.param_varargs, i)] = var_arg
+        # Process keyword arguments
+        for (name, value) in kwargs.items():
+            parameter_values[parameter.get_kwarg_name(name)] = value
+        # Build a dictionary of parameters
+        self.parameters = OrderedDict()
+        # Assign directions to parameters
+        for var_name in parameter_values.keys():
+            # Is the argument a vararg? Then check the direction for
+            # varargs
+            if parameter.is_vararg(var_name):
+                self.parameters[var_name] = parameter.get_parameter_copy(self.get_varargs_direction())
             else:
-                return TYPE.OBJECT
-        except TypeError:
-            # A PSCO class has been used to check its type (when checking
-            # the return). Since we still don't know if it is going to be
-            # persistent inside, we assume that it is not. It will be checked
-            # later on the worker side when the task finishes.
-            return TYPE.OBJECT
-    else:
-        # Default type
-        return TYPE.OBJECT
+                # The argument is named, check its direction
+                # Default value = IN if not class or instance method and isModifier, INOUT otherwise
+                # see self.get_default_direction
+                # Note that if we have something like @task(self = IN) it will have priority over the default
+                # direction resolution, even if this implies a contradiction with the isModifier flag
+                self.parameters[var_name] = self.decorator_arguments.get(var_name, self.get_default_direction(var_name))
+            # If the parameter is a FILE then its type will already be defined, and get_compss_type will misslabel it
+            # as a TYPE.STRING
+            if self.parameters[var_name].type is None:
+                self.parameters[var_name].type = parameter.get_compss_type(parameter_values[var_name])
+            if self.parameters[var_name].type == parameter.TYPE.FILE:
+                self.parameters[var_name].file_name = parameter_values[var_name]
+            else:
+                self.parameters[var_name].object = parameter_values[var_name]
 
 
-def _get_default_args(f):
-    """
-    Returns a dictionary of arg_name:default_values for the input function.
+    def get_parameter_direction(self, name):
+        '''Returns the direction of any parameter
+        :param name: Name of the parameter
+        :return: Its direction inside this task
+        '''
+        if parameter.is_vararg(name):
+            return self.get_varargs_direction()
+        elif parameter.is_return(name):
+            return parameter.get_new_parameter('OUT')
+        orig_name = parameter.get_name_from_kwarg(name)
+        if orig_name in self.decorator_arguments:
+            return self.decorator_arguments[orig_name]
+        return self.get_default_direction(orig_name)
 
-    :param f: Function to inspect for default parameters.
-    """
+    def update_direction_of_worker_parameters(self, args):
+        '''Update worker parameter directions, will be useful to determine if files should be written later
+        :param args: List of arguments
+        '''
+        for arg in args:
+            arg.direction = self.get_parameter_direction(arg.name)
 
-    a = inspect.getargspec(f)
-    num_params = len(a.args) - len(a.defaults)
-    return list(zip(a.args[num_params:], a.defaults))
+    def is_parameter_object(self, name):
+        '''Given the name of a parameter, determine if it is an object or not
+        :param name: Name of the parameter
+        :return: True iff the parameter is a (serializable) object
+        '''
+        original_name = parameter.get_original_name(name)
+        # Get the args parameter object
+        if parameter.is_vararg(original_name):
+            return self.get_varargs_direction().type is None
+        # Is this parameter annotated in the decorator?
+        if original_name in self.decorator_arguments:
+            return self.decorator_arguments[original_name].type is None
+        # The parameter is not annotated in the decorator, so (by default) return True
+        return True
+
+    def reveal_objects(self, args):
+        '''(The name seemed funny to me so I kept it intact from the original version)
+        This function takes the arguments passed from the persistent worker and treats them
+        to get the proper parameters for the user function.
+        '''
+        def storage_supports_pipelining():
+            # Some storage implementations use pipelining
+            # Pipelining means "accumulate the getByID queries and perform them
+            # in a single megaquery".
+            # If this feature is not available (storage does not support it)
+            # getByID operations will be performed one after the other
+            try:
+                import storage.api
+                return storage.api.__pipelining__
+            except:
+                return False
+
+        if storage_supports_pipelining():
+            # Perform the pipelined getByID operation
+            pscos = [x for x in args if x.type == parameter.TYPE.EXTERNAL_PSCO]
+            identifiers = [x.key for x in pscos]
+            from storage.api import getByID
+            objects = getByID(*identifiers)
+            # Just update the TaskParameter object with its content
+            for (obj, value) in zip(objects, pscos):
+                obj.content = value
+
+        # Deal with all the parameters that are NOT returns
+        for arg in [x for x in args if isinstance(x, parameter.TaskParameter) and not parameter.is_return(x.name)]:
+            # This case is special, as a FILE can actually mean a FILE or an
+            # object that is serialized in a file
+            if parameter.is_vararg(arg.name):
+                self.param_varargs = arg.name
+
+            if arg.type == parameter.TYPE.FILE:
+                if self.is_parameter_object(arg.name):
+                    # The object is stored in some file, load and deserialize it
+                    from pycompss.util.serializer import deserialize_from_file
+                    arg.content = deserialize_from_file(arg.file_name.split(':')[-1])
+                else:
+                    # The object is a FILE, just forward the path of the file as a string parameter
+                    arg.content = arg.file_name.split(':')[-1]
+            elif not storage_supports_pipelining() and arg.type == parameter.TYPE.EXTERNAL_PSCO:
+                # The object is a PSCO and the storage does not support pipelining, do a single getByID
+                # of the PSCO
+                from storage.api import getByID
+                arg.content = getByID(arg.key)
+                # If we have not entered in any of these cases we will assume that the object was a basic type
+                # and the content is already available and properly casted by the python worker
+
+    def worker_call(self, *args, **kwargs):
+        '''This part deals with task calls in the worker's side
+        Note that the call to the user function is made by the worker,
+        not by the user code.
+        :return: A function that calls the user function with the given
+        parameters and does the proper serializations and updates
+        the affected objects.
+        '''
+        # All parameters are in the same args list. At the moment we only know the type, the name and the
+        # "value" of the parameter. This value may be treated to get the actual object (e.g: deserialize it,
+        # query the database in case of persistent objects, etc...)
+        self.reveal_objects(args)
+        # After this line all the objects in arg have a "content" field, now we will segregate them in
+        # User positional and variadic args
+        user_args = []
+        # User named args (kwargs)
+        user_kwargs = {}
+        # Return parameters, save them apart to match the user returns with the internal parameters
+        ret_params = []
 
 
-def _get_wrapped_source(f):
-    """
-    Gets the text of the source code for the given function.
+        for arg in args:
+            # Just fill the three data structures declared above
+            # Deal with the self parameter (if any)
+            if not isinstance(arg, parameter.TaskParameter):
+                user_args.append(arg)
+            # All these other cases are all about regular parameters
+            elif parameter.is_return(arg.name):
+                ret_params.append(arg)
+            elif parameter.is_kwarg(arg.name):
+                user_kwargs[parameter.get_name_from_kwarg(arg.name)] = arg.content
+            else:
+                if parameter.is_vararg(arg.name):
+                    self.param_varargs = parameter.get_varargs_name(arg.name)
+                # Apart from the names we preserve the original order, so it is guaranteed that named positional
+                # arguments will never be swapped with variadic ones or anything similar
+                user_args.append(arg.content)
 
-    :param f: Input function
-    :return: Source
-    """
+        num_returns = len(ret_params)
 
-    if hasattr(f, "__wrapped__"):
-        # has __wrapped__, going deep
-        return _get_wrapped_source(f.__wrapped__)
-    else:
-        # Returning getsource
-        return inspect.getsource(f)
+        # Call the user function with all the reconstructed parameters, get the return values
+        user_returns = self.user_function(*user_args, **user_kwargs)
 
+        def get_file_name(x):
+            return x.split(':')[-1]
 
-def _get_wrapped_sourcelines(f):
-    """
-    Gets a list of source lines and starting line number for the given function.
+        # Deal with returns (if any)
+        if num_returns > 0:
+            if num_returns == 1:
+                # Generalize the return case to multi-return to simplify the code
+                user_returns = [user_returns]
+            # Note that we are implicitly assuming that the length of the user returns matches the number
+            # of return parameters
+            for (obj, param) in zip(user_returns, ret_params):
+                # The object is a PSCO. Set its content (which is supposedly already persisted)
+                # as its key
+                if param.type == parameter.TYPE.EXTERNAL_PSCO:
+                    from pycompss.util.persistent_storage import get_id
+                    param.content = get_id(obj)
+                # Serialize the object
+                # Note that there is no "command line optimization" in the returns, as we always pass them as files
+                # This is due to the asymmetry in worker-master communications and because it also makes it easier
+                # for us to deal with returns in that format
+                from pycompss.util.serializer import serialize_to_file
+                serialize_to_file(obj, get_file_name(param.file_name))
 
-    :param f: Input function
-    :return: Source lines
-    """
+        # Deal with INOUTs
+        # All inouts are FILEs
+        for arg in [x for x in args if isinstance(x, parameter.TaskParameter) and self.is_parameter_object(x.name)]:
+            original_name = parameter.get_original_name(arg.name)
+            param = self.decorator_arguments.get(original_name, self.get_default_direction(original_name))
+            if param.direction == parameter.DIRECTION.INOUT:
+                from pycompss.util.serializer import serialize_to_file
+                serialize_to_file(arg.content, get_file_name(arg.file_name))
 
-    if hasattr(f, "__wrapped__"):
-        # has __wrapped__, going deep
-        return _get_wrapped_sourcelines(f.__wrapped__)
-    else:
-        # Returning getsourcelines
-        return inspect.getsourcelines(f)
+        return [], [], self.decorator_arguments['isModifier']
 
+    def sequential_call(self, *args, **kwargs):
+        '''The easiest case: just call the user function and return whatever it
+        returns.
+        :return: The user function
+        '''
+        # Inspect the user function, get information about the arguments and their names
+        # This defines self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults
+        # And gives non-None default values to them if necessary
+        return self.user_function(*args, **kwargs)
 
-def _from_dict_to_parameter(d):
-    """
-    Convert a Dict defined by a user for a parameter into a real Parameter object.
-
-    :param d: Dictionary (mandatory to have 'Type' key).
-    :return:  Parameter object.
-    """
-
-    from pycompss.api.parameter import Parameter
-    from pycompss.api.parameter import Type
-    from pycompss.api.parameter import Direction
-    from pycompss.api.parameter import Stream
-    from pycompss.api.parameter import Prefix
-    if Type not in d:  # If no Type specified => IN
-        d[Type] = Parameter()
-    p = d[Type]
-    if Direction in d:
-        p.direction = d[Direction]
-    if Stream in d:
-        p.stream = d[Stream]
-    if Prefix in d:
-        p.prefix = d[Prefix]
-    return p
+# task can be also typed as Task
+Task = task

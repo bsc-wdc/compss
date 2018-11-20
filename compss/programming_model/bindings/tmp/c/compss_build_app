@@ -1,0 +1,543 @@
+#!/bin/bash
+
+# FUNCTIONS DECLARATION
+#---------------------------------------------------
+show_opts() {
+  cat <<EOT
+  General options:
+    --only-master                           Builds only the master part
+                                            Default: Disabled
+    --only-worker                           Builds only the worker part
+                                            Default: Disabled
+  Environment options:
+    --java_home                             Specifies the home of the java version
+                                            to be used, environment variable JAVA_HOME used.
+                                            Default: $JAVA_HOME
+    --boostlib                              Specifies the path of the boost libraries 
+                                            to be used, environment variable BOOST_LIB used.
+                                            Default: $BOOST_LIB
+  Tools enablers:
+    --ompss                                 Enables worker compilation with OmpSs Mercurium compiler
+                                            Default: Disabled
+    --cuda                                  Enables worker compilation with CUDA compilation flags
+                                            Default: Disabled
+    --opencl                                Enables worker compilation with openCL compilation flags
+                                            Default: Disabled
+  Specific cross compile flags:
+    --cross-compile                         Enables cross compilation.
+                                            Default: Disabled
+    --cross-compile-prefix                  Prefix to be used when cross compiling, the environment variable CROSS_COMPILE
+                                            is used to define the prefix if not set specifically.
+                                            Default: $CROSS_COMPILE
+  Autotools and Makefile options:
+    --goals=goal_1,goal_2,...,goal_N        Instead of using the goal all it uses the goals provided in the given order.
+                                            Default: all
+
+  Specific compiler and linker flags:
+    --CXX=<C++ compiler>                    Defines an specific C++ compiler (cross_compiling)
+                                            Default: $CXX
+    --CC=<C compiler>                       Defines and specific C compiler (cross_compiling)
+                                            Default: $CC
+    --CFLAGS="-cFlag_1 ... -cFlag_N"        Defines C compiler flags
+					                        Default: $CFLAGS
+    --CXXFLAGS="-cxxflag_1 ... -cxxflag_N"  Defines C++ compiler flags
+                                            Default: $CXXFLAGS
+    --CPPFLAGS="-cppflag_1 ... -cppflag_N"  Defines C pre-processor flags
+                                            Default: $CPPFLAGS
+    --LDFLAGS="-ldflag_1 ... -ldflag_N"     Defines Linker flags
+                                            Default: $LDFLAGS
+    --LIBS="-L<libPath> -l<lib> <stLib.a>"  Define libraries in the compilation
+                                            Default: $LIBS
+
+ Specific tools flags:
+    --MCC="Mercurium C compiler"            Specifies the mercurium C compiler profile (cross-compiling OmpSs)
+                                            Default: mcc
+    --MCXX="Mercurium C++ compiler"         Specifies the mercurium compiler profile (cross-compiling OmpSs)
+                                            Default: mcxx
+    --with_ompss=<ompss_installation_path>  Enables worker compilation with OmpSs Mercurium compiler installed in a certain location
+                                            Default: Disabled
+    --mercurium_flags="flags"               Specifies extra flags to pass to the mercurium compiler
+                                            Default: Empty
+    --with_cuda=<cuda_installation_path>    Enables worker compilation with CUDA installed in a certain location
+                                            Default: Disabled
+    --with_opencl=<ocl_installation_path>   Enables worker compilation with openCL installed in a certain location
+                                            Default: Disabled
+    --opencl_libs="libs"                    Specifies extra opencl libraries locations
+                                            Default: Empty
+EOT
+}
+
+usage() {
+  exitValue=$1
+
+  cat <<EOT
+Usage: $0 [options] application_name application_arguments
+
+* Options:
+  General:
+    --help, -h                              Print this help message
+
+    --opts                                  Show available options
+
+    --version, -v                           Print COMPSs version
+EOT
+  show_opts
+  exit "$exitValue"
+}
+
+show_version() {
+  echo "COMPSs version 2.3 Daisy"
+  echo " "
+}
+
+# Displays parsing arguments errors
+display_error() {
+  local error_msg=$1
+  local exitCode=$2
+
+  echo "$error_msg"
+  echo " "
+ 
+  exit $exitCode
+  #usage $exitCode 
+}
+
+# Displays runtime/application errors
+error_msg() {
+  local error_msg=$1
+
+  # Display error
+  echo
+  echo "$error_msg"
+  echo
+
+  # Exit
+  exit 1
+}
+
+get_args() {
+  # Parse COMPSs Options
+  while getopts hvgtmd-: flag; do
+    # Treat the argument
+    case "$flag" in
+      h)
+        # Display help
+        usage 0
+        ;;
+      v)
+        # Display version
+        show_version
+        exit
+        ;;
+      -)
+        # Check more complex arguments
+        case "$OPTARG" in
+          help)
+            # Display help
+            usage 0
+            ;;
+          version)
+            # Show version
+            show_full_version
+            exit 0
+            ;;
+          opts)
+            # Display help
+            show_opts
+            exit 0
+            ;;
+	      debug)
+            debug=1
+	      ;;
+          only-master)
+        	#Compile only the master
+       	 	ONLY_MASTER=true
+            ;;
+          only-worker)
+            #Compile only the worker
+           	ONLY_WORKER=true
+            ;;
+          java_home=*)
+            java_home=${OPTARG//java_home=/} 
+            ;; 
+          boostlib=*)
+            boostlib=${OPTARG//boostlib=/}
+            ;;
+	     instrument)
+            instrument=1
+            ;;
+          ompss)
+            ompss_enabled=1
+            ;;
+          cuda)
+            cuda_enabled=1
+            ;;
+          opencl)
+            opencl_enabled=1
+            ;;
+          goals=*)
+            goals=${OPTARG//goals=/}
+            ;;
+          cross-compile)
+            enable_cross=true
+            ;;
+          cross-compile-prefix=*)
+            CROSS_COMPILE_PREFIX=${OPTARG//cross-compile-prefix=/}
+            ;;
+          CC=*)
+	        defined_cc=${OPTARG//CC=/}
+            ;;
+          CXX=*)
+            defined_cxx=${OPTARG//CXX=/}
+            ;;
+          CFLAGS=*)
+            defined_cflags=${OPTARG//CFLAGS=/}
+            ;;
+          CXXFLAGS=*)
+            defined_cxxflags=${OPTARG//CXXFLAGS=/}
+            ;;
+          CPPFLAGS=*)
+            defined_cppflags=${OPTARG//CPPFLAGS=/}
+            ;;
+          LDFLAGS=*)
+            defined_ldflags=${OPTARG//LDFLAGS=/}
+            ;;
+          LIBS=*)
+            defined_libs=${OPTARG//LIBS=/}
+            ;;
+          MCC=*)
+            defined_mcc=${OPTARG//MCC=/}
+            ;;
+          MCXX=*)
+            defined_mcxx=${OPTARG//MCXX=/}
+            ;;
+          with_ompss=*)
+            ompss_enabled=1
+            ompss_prefix=${OPTARG//with_ompss=/}
+            ;;
+          mercurium_flags=*)
+            ompss_flags=${OPTARG//mercurium_flags=/}
+            ;;
+          with_cuda=*)
+            cuda_enabled=1
+            cuda_prefix=${OPTARG//with_cuda=/}
+            ;;
+          with_opencl=*)
+            opencl_enabled=1
+            opencl_prefix=${OPTARG//with_opencl=/}
+            ;;
+          opencl_libs=*)
+            opencl_libraries=${OPTARG//opencl_libs=/}
+            ;;
+          *)
+            # Flag didn't match any patern. Raise exception
+            display_error "Bad argument: $OPTARG" 3 #The 3 exit code corresponds with Bad argument
+            ;;
+        esac
+        ;;
+      *)
+        # Flag didn't match any patern. End of COMPSs flags
+        break
+        ;;
+    esac
+  done
+  # Shift COMPSs arguments
+  shift $((OPTIND-1))
+
+  # Parse application name
+  if [[ $# -eq 0 ]]; then
+    display_error "Error application name not specified" 3
+  else
+    other_args=$*
+  fi
+}
+
+get_goals() {
+    
+    local toProcess
+
+    # This function uses awk to get the first element of a string until the first comma separator
+    toProcess=$1
+
+    processed=$(echo $toProcess | awk -F, '{split($0, array,",")} END{ for (i in array) { print array [i] }}')
+
+}
+
+check_args() {
+
+    local javapath=""
+    if [ -z "$java_home" ]; then
+        # Setting Java folder
+        if [ -z "$JAVA_HOME" ]; then
+            display_error "[Error] Set \$JAVA_HOME or either use the --java_home argument."
+        fi
+        libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
+        javapath=$JAVA_HOME
+    else
+        libjava=$(find "${java_home}"/jre/lib/ -name libjvm.so | head -n 1)
+        javapath=$java_home
+    fi
+   
+    if [ -z "$libjava" ]; then
+        display_error "[Error] Could not find the libjvm.so in $javapath" 1
+    fi
+    export LIBJAVAFOLDER=$(dirname "$libjava")
+
+    echo "[Info] Java libraries are searched in the directory: $LIBJAVAFOLDER"
+
+    local boostpath
+    if [ -z "$boostlib" ]; then
+        if [ -z "$BOOST_LIB" ]; then
+            if [ -z "$LD_LIBRARY_PATH"  ]; then
+                boostpath="/usr/lib/"
+            else
+                boostpath=$LD_LIBRARY_PATH
+            fi
+        else
+            boostpath=$BOOST_LIB
+        fi
+    else
+        export BOOST_LIB="$boostlib"
+        boostpath="$boostlib" 
+    fi
+
+    echo "[Info] Boost libraries are searched in the directory: $boostpath"
+
+    #Check whether you are going to compile both master and worker or one of them
+    if [ "$ONLY_MASTER" = true ] && [ "$ONLY_WORKER" = true ]; then
+
+        echo " "
+        echo "[Error] Is not possible to specify both options --only-master and --only-worker, to compile both remove these arguments."
+        
+        exit 1
+
+    fi                                                                                                                                    
+
+    if [ -z "$ompss_enabled" ] && [ -n "$cuda_enabled" ] && [ $cuda_enabled -eq 1 ]; then
+
+        echo " "
+        echo "[Warning] Is not possible to use the --cuda option while not using the --ompss one, removing --cuda..."
+        cuda_enabled="" 
+    
+    fi 
+
+    if [ -n "$goals" ]; then
+        get_goals $goals
+        goals=$processed
+    fi
+
+    if [ "$enable_cross" == "true" ]; then
+        if [ -z "${CROSS_COMPILE}" ]; then
+            CROSS_COMPILE=${CROSS_COMPILE_PREFIX}
+        fi
+        #At this point, if you defined a prefix, it will be set, if you enabled cross-compile 
+        #but you did not exported CROSS_COMPILE, no effect is expected from the option.
+        echo "[Info] You enabled cross-compile and the prefix to be used is: ${CROSS_COMPILE}"
+
+    else
+        CROSS_COMPILE=""
+    fi
+}
+
+set_target_host() {
+        #To use GNU tools, such as configure, we have to specify a target; environment variable TARGET_HOST will do the trick.
+        if [ -z "${TARGET_HOST}" && "${enable_cross}" ]; then
+            #If not defined, we assume that your currently CC or CXX configured (the want you are going to use to build)
+            #has the details of what architecture is the one we are targeting.
+            export TARGET_HOST=$(${CC} -dumpmachine)
+            local retVal=$?
+
+            if [ $retVal -ne 0 ]; then
+                display_error "[Error] Not possible to get the target host with the ${CC} -dumpmachine command. Alternatively, define the target host with the environment variable TARGET_HOST ." 1
+            fi
+
+            echo "[Info] The target host is: ${TARGET_HOST}"
+        fi
+}
+
+ONLY_MASTER=false
+ONLY_WORKER=false
+debug=0
+instrument=0
+get_args "$@"
+check_args
+
+echo "*---------------------------------------------------------------------*"
+echo "*                                                                     *"
+echo "*               BSC - Barcelona Supercomputing Center                 *"     
+echo "*                          COMP Superscalar                           *"      
+echo "*                                                                     *" 
+echo "*                  C/C++ Applications - BUILD SCRIPT                  *"      
+echo "*                                                                     *"
+echo "*  More information at COMP Superscalar Website: http://compss.bsc.es *"
+echo "*                                                                     *"
+echo "*  Support: support-compss@bsc.es                                     *"
+echo "*                                                                     *"        
+echo "*  Dependencies: bash, csh                                            *"
+echo "*                                                                     *"
+echo "*---------------------------------------------------------------------*"
+echo ""
+
+if [ $debug -eq 1 ]; then
+   export CPPFLAGS="$CPPFLAGS -DDEBUG_BINDING"
+   ompss_flags="${ompss_flags} --debug"
+fi
+
+if [ $instrument -eq 1 ]; then
+  ompss_flags="${ompss_flags} --instrument"
+fi
+
+
+# GS HOME
+if [ -z "$CS_HOME" ]; then
+  if [ -z "$COMPSS_HOME" ]; then
+    export CS_HOME=/opt/COMPSs/Bindings/c
+  else
+    export CS_HOME=$COMPSS_HOME/Bindings/c
+  fi
+fi
+export COMPSSGEN=$CS_HOME/bin/compss_generator
+
+# Building Master and Worker
+if [ -z "${defined_cc}" ]; then
+   if [ -z "$CC" ]; then
+	defined_cc="gcc"
+   else
+	defined_cc=$CC
+   fi
+fi
+export CC=${CROSS_COMPILE}${defined_cc}
+
+if [ -z "${defined_cxx}" ]; then
+   if [ -z "$CXX" ]; then
+        defined_cxx="g++"
+   else
+        defined_cxx=$CXX
+   fi
+fi
+export CXX=${CROSS_COMPILE}${defined_cxx}
+
+if [ ! -z "${defined_cflags}" ]; then
+   export CFLAGS="${defined_cflags}"
+fi
+
+if [ ! -z "${defined_cxxflags}" ]; then
+   export CXXFLAGS="${defined_cxxflags}"
+fi
+
+if [ ! -z "${defined_cppflags}" ]; then
+   export CPPFLAGS="${defined_cppflags}"
+fi
+
+if [ ! -z "${defined_ldflags}" ]; then
+   export LDFLAGS="${defined_ldflags}"
+fi
+
+if [ ! -z "${defined_libs}" ]; then
+   export LIBS="${defined_libs}"
+fi
+
+if [ "${ompss_enabled}" != "" ]; then
+  # Flag is defined, check value
+  if [ ${ompss_enabled} == 1 ]; then
+	if [ -z "${defined_mcc}" ]; then
+	    if [ -z "${MCC}" ]; then
+	       defined_mcc="mcc"
+		else
+	       defined_mcc=${MCC}
+		fi
+	fi
+	export CC=${CROSS_COMPILE}${defined_mcc}
+	
+	if [ -z "${defined_mcxx}" ]; then
+		if [ -z "${MCXX}" ]; then
+		   defined_mcxx="mcxx"
+		else
+		   defined_mcxx=${MCXX}
+		fi
+	fi
+	export CXX=${CROSS_COMPILE}${defined_mcxx}
+
+	export CFLAGS="$CFLAGS --ompss ${ompss_flags} $COMPSS_MCXX_FLAGS"
+	export CXXFLAGS="$CXXFLAGS --ompss ${ompss_flags} $COMPSS_MCXX_FLAGS"
+	export CPPFLAGS="$CPPFLAGS -DOMPSS_ENABLED"
+
+  fi
+fi
+
+if [ "${cuda_enabled}" != "" ]; then
+  # Flag is defined, check value
+  if [ ${cuda_enabled} == 1 ]; then
+	if [ -z "${cuda_prefix}" ]; then
+		if [ -z "$CUDA_HOME" ]; then
+		   export CUDA_HOME=/usr/local/cuda/
+		fi
+	else
+		export CUDA_HOME=${cuda_prefix}
+	fi
+	export PATH=$PATH:${CUDA_HOME}/bin
+	export LDFLAGS="--cuda $LDFLAGS"
+	export LIBS="-L${CUDA_HOME}/lib64 -lcudart $LIBS"
+	export CFLAGS="$CFLAGS --cuda"
+	export CXXFLAGS="$CXXFLAGS --cuda"
+  fi
+fi
+
+if [ "${opencl_enabled}" != "" ]; then
+  # Flag is defined, check value
+  if [ ${opencl_enabled} == 1 ]; then
+	# Altera ocl flags export LDADD="$LDADD -L/home/altera/16.0.2/hld/linux64/lib -L/opt/intel_deliverable_WW49_16/bdw_fpga_pilot_opencl_bsp_v1.0/host/linux64/lib    -lalterahalmmd -laltera_qpi_mmd  -laalrt  -L/opt/aalsdk/aalsdk-5.0.2/lib"    
+	export LDFLAGS="--opencl $LDFLAGS ${opencl_libraries}"
+	export LIBS="$LIBS ${opencl_libraries}"
+	export CFLAGS="$CFLAGS --opencl"
+	export CXXFLAGS="$CXXFLAGS --opencl"
+  fi
+fi
+
+set_target_host #Tell GNU tools the target host of the build
+
+# Application src compilation
+if [ -d "./src" ]; then
+  (
+  cd ./src || exit 1
+  make $goals)
+  ev=$?
+  if [ $ev -ne 0 ]; then 
+    echo " "
+    echo "Building user application failed, please check errors above!"
+    exit $ev
+  fi
+fi
+
+if [ "$ONLY_WORKER" = false ]; then
+	# shellcheck disable=SC2086
+	"$CS_HOME"/bin/compss_build build master ${other_args}
+	ev=$?
+	if [ $ev -ne 0 ]; then
+	  echo " "
+	  echo "Building binding failed, please check errors above!"
+	  exit $ev
+	fi
+fi
+
+if [ "$ONLY_MASTER" = false ]; then
+	# shellcheck disable=SC2086
+	"$CS_HOME"/bin/compss_build build worker ${other_args}
+	ev=$?
+	if [ $ev -ne 0 ]; then
+		echo " "
+		echo "Building binding failed, please check errors above!"
+		exit $ev
+	fi
+
+fi
+
+# End
+echo ""
+echo "*---------------------------------------------------------------------*"
+echo "*                                                                     *"
+echo "*  Application successfully built!!!                                  *"
+echo "*                                                                     *"
+echo "*  More information at COMP Superscalar website: http://compss.bsc.es *"
+echo "*                                                                     *"        
+echo "*---------------------------------------------------------------------*"

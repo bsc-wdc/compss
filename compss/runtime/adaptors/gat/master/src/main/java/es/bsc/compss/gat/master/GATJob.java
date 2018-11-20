@@ -39,6 +39,7 @@ import org.gridlab.gat.resources.ResourceDescription;
 import org.gridlab.gat.resources.SoftwareDescription;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.parameter.Parameter;
@@ -72,7 +73,7 @@ import java.util.List;
 
 /**
  * Representation of a Job execution for COMPSs with GAT Adaptor
- * 
+ *
  */
 public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implements MetricListener {
 
@@ -96,8 +97,8 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
             ? System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT) : COMPSsConstants.DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT;
     private static final String PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT = System
             .getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT) != null
-                    ? System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT)
-                    : COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
+            ? System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT)
+            : COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
 
     private static final String JOBS_DIR = System.getProperty(COMPSsConstants.APP_LOG_DIR) + "jobs" + java.io.File.separator;
 
@@ -120,10 +121,9 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
     // Multi node information
     private final List<String> slaveWorkersNodeNames;
 
-
     /**
      * New GAT Job instance
-     * 
+     *
      * @param taskId
      * @param taskParams
      * @param impl
@@ -248,15 +248,13 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                         RUNNING_JOBS.remove(this);
                         listener.jobCompleted(this);
                     }
+                } else if (job.getExitStatus() == 0) {
+                    RUNNING_JOBS.remove(this);
+                    listener.jobCompleted(this);
                 } else {
-                    if (job.getExitStatus() == 0) {
-                        RUNNING_JOBS.remove(this);
-                        listener.jobCompleted(this);
-                    } else {
-                        GATjob = null;
-                        RUNNING_JOBS.remove(this);
-                        listener.jobFailed(this, JobEndStatus.EXECUTION_FAILED);
-                    }
+                    GATjob = null;
+                    RUNNING_JOBS.remove(this);
+                    listener.jobFailed(this, JobEndStatus.EXECUTION_FAILED);
                 }
             } catch (Exception e) {
                 ErrorManager.fatal(CALLBACK_PROCESSING_ERR + ": " + this, e);
@@ -301,11 +299,15 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         sd.setExecutable(targetPath + WORKER_SCRIPT_PATH + WORKER_SCRIPT_NAME);
         ArrayList<String> lArgs = new ArrayList<String>();
 
-        // Common arguments: language working_dir lib_path num_obsolete [obs1... obsN] tracing [event_type task_id
-        // slot_id]
-        lArgs.add(LANG);
-        lArgs.add(getResourceNode().getWorkingDir());
+        //Host Configuration
+        lArgs.add(getHostName());
+        lArgs.add(getResourceNode().getInstallDir());
+        lArgs.add(getResourceNode().getAppDir());
         lArgs.add(getResourceNode().getLibPath());
+        lArgs.add(getResourceNode().getWorkingDir());
+        lArgs.add(STORAGE_CONF);
+        lArgs.add(String.valueOf(debug));
+
         LogicalData[] obsoleteFiles = getResource().pollObsoletes();
         if (obsoleteFiles != null) {
             lArgs.add("" + obsoleteFiles.length);
@@ -316,95 +318,39 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         } else {
             lArgs.add("0");
         }
-        // Check sandbox working dir
-        boolean isSpecific = false;
-        String sandboxDir = null;
-        AbstractMethodImplementation absImpl = (AbstractMethodImplementation) this.impl;
-        switch (absImpl.getMethodType()) {
-            case BINARY:
-                BinaryImplementation binaryImpl = (BinaryImplementation) absImpl;
-                sandboxDir = binaryImpl.getWorkingDir();
-                isSpecific = true;
-                break;
-            case MPI:
-                MPIImplementation mpiImpl = (MPIImplementation) absImpl;
-                sandboxDir = mpiImpl.getWorkingDir();
-                isSpecific = true;
-                break;
-            case DECAF:
-                DecafImplementation decafImpl = (DecafImplementation) absImpl;
-                sandboxDir = decafImpl.getWorkingDir();
-                isSpecific = true;
-                break;
-            case OMPSS:
-                OmpSsImplementation ompssImpl = (OmpSsImplementation) absImpl;
-                sandboxDir = ompssImpl.getWorkingDir();
-                isSpecific = true;
-                break;
-            case OPENCL:
-                OpenCLImplementation openclImpl = (OpenCLImplementation) absImpl;
-                sandboxDir = openclImpl.getWorkingDir();
-                isSpecific = true;
-                break;
-            case METHOD:
-                sandboxDir = null;
-                break;
-        }
-        if (sandboxDir == null || sandboxDir.isEmpty() || sandboxDir.equals(Constants.UNASSIGNED)) {
-            sandboxDir = getResourceNode().getWorkingDir() + File.separator + "sandBox" + File.separator + "job_" + this.jobId;
-            isSpecific = false;
-        }
-
-        // Processing parameters to get symlinks pairs to create (symlinks) and how to pass parameters in the GAT
-        // Job(paramArgs)
-        ArrayList<String> symlinks = new ArrayList<>();
-        ArrayList<String> paramArgs = new ArrayList<>();
-        processParameters(sandboxDir, symlinks, paramArgs);
-
-        // Adding info to create symlinks between renamed files and original names
-        lArgs.add(Boolean.toString(isSpecific));
-        lArgs.add(sandboxDir);
-        if (symlinks.size() > 0) {
-            lArgs.add(String.valueOf(symlinks.size()));
-            lArgs.addAll(symlinks);
-        } else {
-            lArgs.add("0");
-        }
-
         lArgs.add(Boolean.toString(Tracer.isActivated()));
-        lArgs.add(getHostName());
-        if (debug) {
-            logger.debug("hostName " + getHostName());
-        }
-
         if (Tracer.isActivated()) {
+            lArgs.add(String.valueOf(Tracer.getRuntimeEventsType())); // Runtime event type
+            lArgs.add(String.valueOf(Tracer.Event.CREATING_TASK_SANDBOX.getId())); // sandbox creation id
+            lArgs.add(String.valueOf(Tracer.Event.REMOVING_TASK_SANDBOX.getId())); // sandbox removal id
+
             lArgs.add(String.valueOf(Tracer.getTaskEventsType())); // event type
-            lArgs.add(String.valueOf(this.taskParams.getId() + 1)); // task id
             int slot = Tracer.getNextSlot(targetHost);
             lArgs.add(String.valueOf(slot)); // slot id
             sd.addAttribute("slot", slot);
         }
 
-        // Language-dependent arguments: taskSandbox_dir app_dir classpath
-        // pythonpath pythonInterpreter pythonVersion PythonVirtualEnvironment debug storage_conf
-        // method_impl_type method_impl_params
-        // numSlaves [slave1,..,slaveN] numCus
-        // has_target num_params par_type_1 par_1 ... par_type_n par_n
-        lArgs.add(sandboxDir);
-        lArgs.add(getResourceNode().getAppDir());
-        lArgs.add(getClasspath());
-        lArgs.add(getPythonpath());
-        lArgs.add(PYTHON_INTERPRETER);
-        lArgs.add(PYTHON_VERSION);
-        lArgs.add(PYTHON_VIRTUAL_ENVIRONMENT);
-        lArgs.add(PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT);
-
-        lArgs.add(String.valueOf(debug));
-        lArgs.add(STORAGE_CONF);
-
+        //Implementation Description
+        AbstractMethodImplementation absImpl = (AbstractMethodImplementation) this.impl;
+        // Implementation description
         lArgs.add(String.valueOf(absImpl.getMethodType()));
         switch (absImpl.getMethodType()) {
             case METHOD:
+                lArgs.add(LANG);
+                switch (Lang.valueOf(LANG.toUpperCase())) {
+                    case JAVA:
+                        lArgs.add(getClasspath());
+                        break;
+                    case C:
+                        break;
+                    case PYTHON:
+                        lArgs.add(getPythonpath());
+                        lArgs.add(PYTHON_INTERPRETER);
+                        lArgs.add(PYTHON_VERSION);
+                        lArgs.add(PYTHON_VIRTUAL_ENVIRONMENT);
+                        lArgs.add(PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT);
+                        break;
+                }
                 MethodImplementation methodImpl = (MethodImplementation) absImpl;
                 lArgs.add(methodImpl.getDeclaringClass());
                 String methodName = methodImpl.getAlternativeMethodName();
@@ -415,18 +361,21 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 break;
             case MPI:
                 MPIImplementation mpiImpl = (MPIImplementation) absImpl;
+                String sandboxDir = mpiImpl.getWorkingDir();
                 lArgs.add(mpiImpl.getMpiRunner());
                 lArgs.add(mpiImpl.getBinary());
+                lArgs.add(sandboxDir);
                 break;
             case DECAF:
                 DecafImplementation decafImpl = (DecafImplementation) absImpl;
-                lArgs.add(targetPath + DecafImplementation.SCRIPT_PATH);
+                sandboxDir = decafImpl.getWorkingDir();
                 String dfScript = decafImpl.getDfScript();
                 if (!dfScript.startsWith(File.separator)) {
                     String appPath = getResourceNode().getAppDir();
                     dfScript = appPath + File.separator + dfScript;
                 }
                 lArgs.add(dfScript);
+
                 String dfExecutor = decafImpl.getDfExecutor();
                 if (dfExecutor == null || dfExecutor.isEmpty() || dfExecutor.equals(Constants.UNASSIGNED)) {
                     dfExecutor = "executor.sh";
@@ -435,34 +384,59 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                     dfExecutor = "./" + dfExecutor;
                 }
                 lArgs.add(dfExecutor);
+
                 String dfLib = decafImpl.getDfLib();
                 if (dfLib == null || dfLib.isEmpty()) {
                     dfLib = Constants.UNASSIGNED;
                 }
                 lArgs.add(dfLib);
+
                 lArgs.add(decafImpl.getMpiRunner());
+                lArgs.add(sandboxDir);
                 break;
             case OMPSS:
                 OmpSsImplementation ompssImpl = (OmpSsImplementation) absImpl;
+                sandboxDir = ompssImpl.getWorkingDir();
                 lArgs.add(ompssImpl.getBinary());
+                lArgs.add(sandboxDir);
                 break;
             case OPENCL:
                 OpenCLImplementation openclImpl = (OpenCLImplementation) absImpl;
+                sandboxDir = openclImpl.getWorkingDir();
                 lArgs.add(openclImpl.getKernel());
+                lArgs.add(sandboxDir);
                 break;
             case BINARY:
                 BinaryImplementation binaryImpl = (BinaryImplementation) absImpl;
+                sandboxDir = binaryImpl.getWorkingDir();
                 lArgs.add(binaryImpl.getBinary());
+                lArgs.add(sandboxDir);
                 break;
         }
+
+        // Job arguments
+        lArgs.add(String.valueOf(this.jobId));
+        lArgs.add(String.valueOf(this.taskId));
 
         // Slave nodes and cus description
         lArgs.add(String.valueOf(slaveWorkersNodeNames.size()));
         lArgs.addAll(slaveWorkersNodeNames);
         lArgs.add(String.valueOf(((MethodResourceDescription) this.impl.getRequirements()).getTotalCPUComputingUnits()));
 
-        // Add parameter arguments already processed
-        lArgs.addAll(paramArgs);
+        //Parameters
+        int numReturns = taskParams.getNumReturns();
+        int numParams = taskParams.getParameters().length;
+        numParams -= numReturns;
+        if (taskParams.hasTargetObject()) {
+            numParams--;
+        }
+        lArgs.add(Integer.toString(numParams));
+        lArgs.add(Boolean.toString(taskParams.hasTargetObject()));
+        lArgs.add(Integer.toString(numReturns));
+
+        for (Parameter param : taskParams.getParameters()) {
+            lArgs.addAll(processParameter(param));
+        }
 
         // Conversion vector -> array
         String[] arguments = new String[lArgs.size()];
@@ -579,93 +553,70 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         return getResourceNode().getName();
     }
 
-    private void processParameters(String sandboxPath, ArrayList<String> symlinks, ArrayList<String> lArgs) {
-        logger.debug("Processing parameters for GAT job " + this.jobId);
-        lArgs.add(Boolean.toString(taskParams.hasTargetObject()));
-
-        // Add return type
-        if (taskParams.hasReturnValue()) {
-            Parameter returnParam = taskParams.getParameters()[taskParams.getParameters().length - 1];
-            lArgs.add(Integer.toString(returnParam.getType().ordinal()));
-        } else {
-            lArgs.add("null");
+    private LinkedList<String> processParameter(Parameter param) {
+        LinkedList<String> paramDesc = new LinkedList<>();
+        DataType type = param.getType();
+        paramDesc.add(Integer.toString(type.ordinal()));
+        paramDesc.add(Integer.toString(param.getStream().ordinal()));
+        String prefix = param.getPrefix();
+        if (prefix == null || prefix.isEmpty()) {
+            prefix = Constants.PREFIX_EMTPY;
         }
-        lArgs.add(Integer.toString(taskParams.getNumReturns()));
+        paramDesc.add(prefix);
 
-        // Add parameters
-        int numParams = taskParams.getParameters().length;
-        if (taskParams.hasReturnValue()) {
-            numParams--;
-        }
-        lArgs.add(Integer.toString(numParams));
-        for (Parameter param : taskParams.getParameters()) {
-            DataType type = param.getType();
-            lArgs.add(Integer.toString(type.ordinal()));
-            lArgs.add(Integer.toString(param.getStream().ordinal()));
+        String paramName = param.getName();
+        paramDesc.add((paramName == null) ? "null" : (paramName.isEmpty()) ? "null" : paramName);
 
-            String prefix = param.getPrefix();
-            if (prefix == null || prefix.isEmpty()) {
-                prefix = Constants.PREFIX_EMTPY;
-            }
-            lArgs.add(param.getPrefix());
-
-            switch (type) {
-                case FILE_T:
-                    DependencyParameter dFilePar = (DependencyParameter) param;
-                    java.io.File f = new java.io.File(dFilePar.getDataTarget());
-                    if (!f.getName().equals(dFilePar.getOriginalName())) {
-                        // Add file to manage symlinks and renames
-                        String originalName = sandboxPath + File.separator + dFilePar.getOriginalName();
-                        symlinks.add(dFilePar.getDataTarget());
-                        symlinks.add(dFilePar.getOriginalName());
-                        lArgs.add(originalName);
-                    } else {
-                        // Original and target is the same nothing to do
-                        lArgs.add(dFilePar.getDataTarget());
-                    }
-                    break;
-                case PSCO_T:
-                case EXTERNAL_PSCO_T:
-                    logger.error("GAT Adaptor does not support PSCO Types");
-                    listener.jobFailed(this, JobEndStatus.SUBMISSION_FAILED);
-                    break;
-                case OBJECT_T:
-                    DependencyParameter dPar = (DependencyParameter) param;
-                    DataAccessId dAccId = dPar.getDataAccessId();
-                    lArgs.add(dPar.getDataTarget());
-                    if (dAccId instanceof RAccessId) {
-                        lArgs.add("R");
-                    } else {
-                        lArgs.add("W"); // for the worker to know it must write the object to disk
-                    }
-                    break;
-                case BINDING_OBJECT_T:
-                    DependencyParameter dExtObjPar = (DependencyParameter) param;
-                    // DataAccessId dExtObjAccId = dExtObjPar.getDataAccessId();
-                    BindingObject bo = BindingObject.generate(dExtObjPar.getDataTarget());
-                    lArgs.add(bo.getId());
-                    lArgs.add(Integer.toString(bo.getType()));
-                    lArgs.add(Integer.toString(bo.getElements()));
-                    /*
+        switch (type) {
+            case FILE_T:
+                DependencyParameter dFilePar = (DependencyParameter) param;
+                java.io.File f = new java.io.File(dFilePar.getDataTarget());
+                String originalName = dFilePar.getOriginalName();
+                paramDesc.add(originalName);
+                paramDesc.add(dFilePar.getDataTarget());
+                break;
+            case PSCO_T:
+            case EXTERNAL_PSCO_T:
+                logger.error("GAT Adaptor does not support PSCO Types");
+                listener.jobFailed(this, JobEndStatus.SUBMISSION_FAILED);
+                break;
+            case OBJECT_T:
+                DependencyParameter dPar = (DependencyParameter) param;
+                DataAccessId dAccId = dPar.getDataAccessId();
+                paramDesc.add(dPar.getDataTarget());
+                if (dAccId instanceof RAccessId) {
+                    paramDesc.add("R");
+                } else {
+                    paramDesc.add("W"); // for the worker to know it must write the object to disk
+                }
+                break;
+            case BINDING_OBJECT_T:
+                DependencyParameter dExtObjPar = (DependencyParameter) param;
+                // DataAccessId dExtObjAccId = dExtObjPar.getDataAccessId();
+                BindingObject bo = BindingObject.generate(dExtObjPar.getDataTarget());
+                paramDesc.add(bo.getId());
+                paramDesc.add(Integer.toString(bo.getType()));
+                paramDesc.add(Integer.toString(bo.getElements()));
+                /*
                      * if (dExtObjAccId instanceof RAccessId) { lArgs.add("R"); } else { lArgs.add("W"); // for the
                      * worker to know it must write the object to disk }
-                     */
-                    break;
-                case STRING_T:
-                    BasicTypeParameter btParS = (BasicTypeParameter) param;
-                    // Check spaces
-                    String value = btParS.getValue().toString();
-                    int numSubStrings = value.split(" ").length;
-                    lArgs.add(Integer.toString(numSubStrings));
-                    lArgs.add(value);
-                    break;
-                default:
-                    // Basic Types
-                    BasicTypeParameter btParB = (BasicTypeParameter) param;
-                    lArgs.add(btParB.getValue().toString());
-                    break;
-            }
+                 */
+                break;
+            case STRING_T:
+                BasicTypeParameter btParS = (BasicTypeParameter) param;
+                // Check spaces
+                String value = btParS.getValue().toString();
+                int numSubStrings = value.split(" ").length;
+                paramDesc.add(Integer.toString(numSubStrings));
+                paramDesc.add(value);
+                break;
+            default:
+                // Basic Types
+                BasicTypeParameter btParB = (BasicTypeParameter) param;
+                paramDesc.add(btParB.getValue().toString());
+                break;
         }
+        return paramDesc;
     }
 
 }

@@ -19,7 +19,6 @@ package es.bsc.compss.components.impl;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.exceptions.CannotLoadException;
-import es.bsc.compss.components.impl.TaskProducer;
 
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -102,7 +101,6 @@ public class AccessProcessor implements Runnable, TaskProducer {
     // Tasks to be processed
     protected LinkedBlockingQueue<APRequest> requestQueue;
 
-
     /**
      * Creates a new Access Processor instance
      *
@@ -175,20 +173,20 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * App : new Method Task
      *
      * @param appId
-     * @param methodClass
-     * @param methodName
+     * @param signature
      * @param isPrioritary
      * @param numNodes
      * @param isReplicated
      * @param isDistributed
+     * @param numReturns
      * @param hasTarget
      * @param parameters
      * @return
      */
     public int newTask(Long appId, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-            boolean hasTarget, boolean hasReturn, int numReturns, Parameter[] parameters) {
+            boolean hasTarget, int numReturns, Parameter[] parameters) {
 
-        Task currentTask = new Task(appId, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, hasReturn, numReturns,
+        Task currentTask = new Task(appId, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns,
                 parameters);
 
         if (!requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
@@ -207,13 +205,14 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @param operation
      * @param priority
      * @param hasTarget
+     * @param numReturns
      * @param parameters
      * @return
      */
     public int newTask(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
-            boolean hasReturn, int numReturns, Parameter[] parameters) {
+            int numReturns, Parameter[] parameters) {
 
-        Task currentTask = new Task(appId, namespace, service, port, operation, priority, hasTarget, hasReturn, numReturns, parameters);
+        Task currentTask = new Task(appId, namespace, service, port, operation, priority, hasTarget, numReturns, parameters);
 
         if (!requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "new service task");
@@ -396,7 +395,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Notifies a main access to an external PSCO {@code id}
-     * 
+     *
      * @param fileName
      * @param id
      * @param hashCode
@@ -420,7 +419,6 @@ public class AccessProcessor implements Runnable, TaskProducer {
         waitForTask(oaId.getDataId(), AccessMode.RW);
 
         // TODO: Check if the object was already piggybacked in the task notification
-
         String lastRenaming = ((DataAccessId.RWAccessId) oaId).getReadDataInstance().getRenaming();
         String newId = Comm.getData(lastRenaming).getPscoId();
 
@@ -446,7 +444,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Notifies a main access to an external PSCO {@code id}
-     * 
+     *
      * @param fileName
      * @param id
      * @param hashCode
@@ -465,7 +463,6 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
         // DataInstanceId wId = ((DataAccessId.RWAccessId) oaId).getWrittenDataInstance();
         // String wRename = wId.getRenaming();
-
         // Wait until the last writer task for the object has finished
         if (DEBUG) {
             LOGGER.debug("Waiting for last writer of " + oaId.getDataId());
@@ -475,7 +472,6 @@ public class AccessProcessor implements Runnable, TaskProducer {
         // TODO: Check if the object was already piggybacked in the task notification
 
         // String lastRenaming = ((DataAccessId.RWAccessId) oaId).getReadDataInstance().getRenaming();
-
         // return obtainBindingObject((DataAccessId.RWAccessId)oaId);
         String bindingObjectID = obtainBindingObject((DataAccessId.RAccessId) oaId);
         
@@ -743,7 +739,6 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @return
      */
     private Object obtainObject(DataAccessId oaId) {
-        LOGGER.debug("Obtain object with id " + oaId);
         // Ask for the object
         Semaphore sem = new Semaphore(0);
         TransferObjectRequest tor = new TransferObjectRequest(oaId, sem);

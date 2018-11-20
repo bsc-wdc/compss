@@ -24,6 +24,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.LinkedList;
 import java.util.List;
+import storage.StubItf;
 
 
 public class NIOTaskResult implements Externalizable {
@@ -34,7 +35,6 @@ public class NIOTaskResult implements Externalizable {
     // ATTENTION: Parameter Values will be empty if it doesn't contain a PSCO Id
     private List<Object> paramValues = new LinkedList<>();
 
-
     /**
      * Only for externalization
      */
@@ -44,18 +44,55 @@ public class NIOTaskResult implements Externalizable {
 
     /**
      * New task result from a given set of {@code params}
-     * 
+     *
      * @param jobId
-     * @param params
+     * @param arguments
+     * @param target
+     * @param results
      */
-    public NIOTaskResult(int jobId, LinkedList<NIOParam> params) {
+    public NIOTaskResult(int jobId, List<NIOParam> arguments, NIOParam target, List<NIOParam> results) {
         this.jobId = jobId;
 
-        for (NIOParam np : params) {
+        for (NIOParam np : arguments) {
             this.paramTypes.add(np.getType());
 
             switch (np.getType()) {
                 case PSCO_T:
+                    this.paramValues.add(((StubItf) np.getValue()).getID());
+                    break;
+                case EXTERNAL_PSCO_T:
+                    this.paramValues.add(np.getValue());
+                    break;
+                default:
+                    // We add a NULL for any other type
+                    this.paramValues.add(null);
+                    break;
+            }
+        }
+        if (target != null) {
+            this.paramTypes.add(target.getType());
+
+            switch (target.getType()) {
+                case PSCO_T:
+                    this.paramValues.add(((StubItf) target.getValue()).getID());
+                    break;
+                case EXTERNAL_PSCO_T:
+                    this.paramValues.add(target.getValue());
+                    break;
+                default:
+                    // We add a NULL for any other type
+                    this.paramValues.add(null);
+                    break;
+            }
+        }
+
+        for (NIOParam np : results) {
+            this.paramTypes.add(np.getType());
+
+            switch (np.getType()) {
+                case PSCO_T:
+                    this.paramValues.add(((StubItf) np.getValue()).getID());
+                    break;
                 case EXTERNAL_PSCO_T:
                     this.paramValues.add(np.getValue());
                     break;
@@ -69,7 +106,7 @@ public class NIOTaskResult implements Externalizable {
 
     /**
      * Returns the task id associated to the result
-     * 
+     *
      * @return
      */
     public int getJobId() {
@@ -78,7 +115,7 @@ public class NIOTaskResult implements Externalizable {
 
     /**
      * Returns the parameter types
-     * 
+     *
      * @return
      */
     public List<DataType> getParamTypes() {
@@ -87,7 +124,7 @@ public class NIOTaskResult implements Externalizable {
 
     /**
      * Returns the value of the parameter {@code i}
-     * 
+     *
      * @param i
      * @return
      */

@@ -13,6 +13,7 @@
   # Set script variables
   appsBaseDir="${baseDir}"/apps_basic
   logsBaseDir="${baseDir}"/logs
+  summaryFile="${baseDir}"/summary
 
   exitValue=0
   results=""
@@ -28,6 +29,8 @@
   echo "**Testing Basic Block Apps"
   echo " "
 
+  print_summary_header "${summaryFile}"
+
   for path in ${appsBaseDir}/*; do
     app=$(basename "$path")
     appBaseDir="${appsBaseDir}"/"${app}"
@@ -42,13 +45,15 @@
 
     if [ ${lang} == "python" ]; then
         # If python test ==> then check with python 2 and python 3
-        execute_application "${COMPSsExec}" "${comm}" "${runcompss_opts}" "${COMPSsLogFolder}" "${appBaseDir}" "${appLogDir}" "${skip}" "${MAX_RETRIES}" "${app}2" python2
-        execute_application "${COMPSsExec}" "${comm}" "${runcompss_opts}" "${COMPSsLogFolder}" "${appBaseDir}" "${appLogDir}" "${skip}" "${MAX_RETRIES}" "${app}3" python3
+        execute_application "${COMPSsExec}" "${comm}" "${runcompss_opts}" "${summaryFile}" "${COMPSsLogFolder}" "${appBaseDir}" "${appLogDir}" "${skip}" "${MAX_RETRIES}" "${app}2" python2
+        execute_application "${COMPSsExec}" "${comm}" "${runcompss_opts}" "${summaryFile}" "${COMPSsLogFolder}" "${appBaseDir}" "${appLogDir}" "${skip}" "${MAX_RETRIES}" "${app}3" python3
     else
         # If Java or C, perform simple execution
-        execute_application "${COMPSsExec}" "${comm}" "${runcompss_opts}" "${COMPSsLogFolder}" "${appBaseDir}" "${appLogDir}" "${skip}" "${MAX_RETRIES}" "${app}"
+        execute_application "${COMPSsExec}" "${comm}" "${runcompss_opts}" "${summaryFile}" "${COMPSsLogFolder}" "${appBaseDir}" "${appLogDir}" "${skip}" "${MAX_RETRIES}" "${app}"
     fi
   done
+
+  print_summary_footer "${summaryFile}"
 
   # Show Result table
   print_result "BASIC" "$results"

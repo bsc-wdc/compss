@@ -22,7 +22,7 @@ import java.util.List;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOTask;
-import es.bsc.compss.nio.commands.Data;
+import es.bsc.compss.nio.commands.NIOData;
 
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
@@ -42,12 +42,12 @@ import es.bsc.compss.types.job.JobListener.JobEndStatus;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.data.DataAccessId.WAccessId;
 
 
 public class NIOJob extends Job<NIOWorkerNode> {
 
     private final List<String> slaveWorkersNodeNames;
-
 
     public NIOJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res, List<String> slaveWorkersNodeNames,
             JobListener listener) {
@@ -87,18 +87,16 @@ public class NIOJob extends Job<NIOWorkerNode> {
         }
 
         boolean hasTarget = taskParams.hasTargetObject();
-        boolean hasReturn = taskParams.hasReturnValue();
+
         int numReturns = taskParams.getNumReturns();
         LinkedList<NIOParam> params = addParams();
         MethodResourceDescription reqs = absMethodImpl.getRequirements();
         int numParams = params.size();
-        if (taskParams.hasReturnValue()) {
-            numParams--;
-        }
+        numParams -= taskParams.getNumReturns();
 
         // Create NIOTask
-        NIOTask nt = new NIOTask(LANG, debug, absMethodImpl, hasTarget, hasReturn, numReturns, params, numParams, reqs,
-                this.slaveWorkersNodeNames, this.taskId, this.taskParams.getId(), this.jobId, this.history, this.transferId);
+        NIOTask nt = new NIOTask(LANG, debug, absMethodImpl, hasTarget, numReturns, params, numParams, reqs,
+                this.slaveWorkersNodeNames, this.taskId, this.taskParams.getType(), this.jobId, this.history, this.transferId);
 
         return nt;
     }
@@ -132,15 +130,21 @@ public class NIOJob extends Job<NIOWorkerNode> {
                     // Check if the parameter has a valid PSCO and change its type
                     // OUT objects are restricted by the API
                     String renaming = null;
+                    String dataMgmtId;
                     DataAccessId faId = dPar.getDataAccessId();
                     if (faId instanceof RWAccessId) {
                         // Read write mode
                         RWAccessId rwaId = (RWAccessId) faId;
                         renaming = rwaId.getReadDataInstance().getRenaming();
-                    } else if (faId instanceof RAccessId){
+                        dataMgmtId = rwaId.getWrittenDataInstance().getRenaming();
+                    } else if (faId instanceof RAccessId) {
                         // Read only mode
                         RAccessId raId = (RAccessId) faId;
                         renaming = raId.getReadDataInstance().getRenaming();
+                        dataMgmtId = renaming;
+                    } else {
+                        WAccessId waId = (WAccessId) faId;
+                        dataMgmtId = waId.getWrittenDataInstance().getRenaming();
                     }
                     if (renaming != null) {
                         String pscoId = Comm.getData(renaming).getPscoId();
@@ -158,8 +162,8 @@ public class NIOJob extends Job<NIOWorkerNode> {
 
                     // Create the NIO Param
                     boolean writeFinalValue = !(dAccId instanceof RAccessId); // Only store W and RW
-                    np = new NIOParam(type, param.getStream(), param.getPrefix(), preserveSourceData, writeFinalValue, value,
-                            (Data) dPar.getDataSource(), dPar.getOriginalName());
+                    np = new NIOParam(dataMgmtId, type, param.getStream(), param.getPrefix(), param.getName(), preserveSourceData, writeFinalValue, value,
+                            (NIOData) dPar.getDataSource(), dPar.getOriginalName());
                     break;
 
                 default:
@@ -167,7 +171,7 @@ public class NIOJob extends Job<NIOWorkerNode> {
                     value = btParB.getValue();
                     preserveSourceData = false; // Basic parameters are not preserved on Worker
                     writeFinalValue = false; // Basic parameters are not stored on Worker
-                    np = new NIOParam(type, param.getStream(), param.getPrefix(), preserveSourceData, writeFinalValue, value, null,
+                    np = new NIOParam(null, type, param.getStream(), param.getPrefix(), param.getName(), preserveSourceData, writeFinalValue, value, null,
                             DependencyParameter.NO_NAME);
                     break;
             }

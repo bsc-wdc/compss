@@ -24,6 +24,7 @@ import java.io.ObjectOutput;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.ServiceResourceDescription;
 
+
 public class ServiceImplementation extends Implementation implements Externalizable {
 
     private String operation;
@@ -45,7 +46,7 @@ public class ServiceImplementation extends Implementation implements Externaliza
     }
 
     public static String getSignature(String namespace, String serviceName, String portName, String operation, boolean hasTarget,
-            boolean hasReturn, Parameter[] parameters) {
+            int numReturns, Parameter[] parameters) {
         StringBuilder buffer = new StringBuilder();
 
         buffer.append(operation).append("(");
@@ -53,9 +54,8 @@ public class ServiceImplementation extends Implementation implements Externaliza
         if (hasTarget) {
             numPars--;
         }
-        if (hasReturn) {
-            numPars--;
-        }
+
+        numPars -= numReturns;
         if (numPars > 0) {
             buffer.append(parameters[0].getType());
             for (int i = 1; i < numPars; i++) {

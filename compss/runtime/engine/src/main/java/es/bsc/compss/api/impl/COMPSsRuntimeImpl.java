@@ -74,12 +74,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     private static final String ERROR_BINDING_OBJECT_PARAMS = "ERROR: Incorrect number of parameters for external objects";
     private static final String WARN_WRONG_DIRECTION = "WARNING: Invalid parameter direction: ";
 
-    // COMPSs Version and buildnumber attributes
+    // COMPSS Version and buildnumber attributes
     private static String COMPSs_VERSION = null;
     private static String COMPSs_BUILDNUMBER = null;
 
     // Boolean for initialization
     private static boolean initialized = false;
+
+    // Number of fields per parameter
+    private static int NUM_FIELDS_PER_PARAM = 6;
 
     // Object registry
     private static ObjectRegistry oReg;
@@ -124,7 +127,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
          */
         Comm.init();
     }
-
 
     // Code Added to support configuration files
     private static void setPropertiesFromRuntime(RuntimeConfigManager manager) {
@@ -232,7 +234,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 }
                 if (System.getProperty(COMPSsConstants.TASK_EXECUTION) == null
                         || System.getProperty(COMPSsConstants.TASK_EXECUTION).equals("")) {
-                    System.setProperty(COMPSsConstants.TASK_EXECUTION, COMPSsConstants.EXECUTION_INTERNAL);
+                    System.setProperty(COMPSsConstants.TASK_EXECUTION, COMPSsConstants.TaskExecution.COMPSS.toString());
                 }
 
                 if (manager.getContext() != null) {
@@ -280,7 +282,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             System.setProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, COMPSsConstants.DEFAULT_CUSTOM_EXTRAE_FILE);
         }
         if (System.getProperty(COMPSsConstants.TASK_EXECUTION) == null || System.getProperty(COMPSsConstants.TASK_EXECUTION).isEmpty()) {
-            System.setProperty(COMPSsConstants.TASK_EXECUTION, COMPSsConstants.EXECUTION_INTERNAL);
+            System.setProperty(COMPSsConstants.TASK_EXECUTION, COMPSsConstants.TaskExecution.COMPSS.toString());
         }
     }
 
@@ -341,7 +343,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * ********************************************************************************************************
      */
     public COMPSsRuntimeImpl() {
-        // Load COMPSs version and buildNumber
+        // Load COMPSS version and buildNumber
         try {
             Properties props = new Properties();
             props.load(this.getClass().getResourceAsStream("/version.properties"));
@@ -371,7 +373,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * ********************************************************************************************************
      */
     /**
-     * Starts the COMPSs Runtime
+     * Starts the COMPSS Runtime
      *
      */
     @Override
@@ -405,7 +407,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 // if (lang != COMPSsConstants.Lang.JAVA.name() && oReg == null) {
                 // oReg = new ObjectRegistry(this);
                 // }
-
                 // Initialize main runtime components
                 td = new TaskDispatcher();
                 ap = new AccessProcessor(td);
@@ -511,7 +512,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /**
-     * Registers a new CoreElement in the COMPSs Runtime
+     * Registers a new CoreElement in the COMPSS Runtime
      *
      */
     @Override
@@ -595,11 +596,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     /**
      * Internal execute task to make API options only as a wrapper
-     * 
+     *
      * @param appId
-     * @param hasSignature
-     *            indicates whether the signature parameter is valid or must be constructed from the methodName and
-     *            methodClass parameters
+     * @param hasSignature indicates whether the signature parameter is valid or must be constructed from the methodName
+     * and methodClass parameters
      * @param methodClass
      * @param methodName
      * @param signature
@@ -615,7 +615,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     private int executeTask(Long appId, boolean hasSignature, String methodClass, String methodName, String signature, boolean isPrioritary,
             int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount,
             Object... parameters) {
-
         // Tracing flag for task creation
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
@@ -635,43 +634,22 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
         // Process the parameters
         Parameter[] pars = processParameters(parameterCount, parameters);
-        
-        Lang l = Lang.JAVA;
 
-        String langProperty = System.getProperty(COMPSsConstants.LANG);
-        if (langProperty != null) {
-            if (langProperty.equalsIgnoreCase(COMPSsConstants.Lang.PYTHON.name())) {
-                l = Lang.PYTHON;
-            } else if (langProperty.equalsIgnoreCase(COMPSsConstants.Lang.C.name())) {
-                l = Lang.C;
-            }
-        }
-        
-        Lang LANG = l;
-        boolean hasReturn = false;
-        switch (LANG) {
-        	case PYTHON: 
-        	case JAVA:
-        		hasReturn = hasReturn(pars);
-        		if (numReturns == null) {
-                    numReturns = hasReturn ? 1 : 0;
-        		}
-        		break;
-        	case C:
-        		if (numReturns>0) {
-                	hasReturn=true;
-                }
-        		break;
+        boolean hasReturn;
+        if (numReturns == null) {
+            hasReturn = hasReturn(pars);
+            numReturns = hasReturn ? 1 : 0;
+        } else {
+            hasReturn = numReturns > 0;
         }
 
         // Create the signature if it is not created
         if (!hasSignature) {
-            signature = MethodImplementation.getSignature(methodClass, methodName, hasTarget, hasReturn, pars);
+            signature = MethodImplementation.getSignature(methodClass, methodName, hasTarget, numReturns, pars);
         }
 
         // Register the task
-        int task = ap.newTask(appId, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, hasReturn, numReturns,
-                pars);
+        int task = ap.newTask(appId, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns, pars);
 
         // End tracing event
         if (Tracer.isActivated()) {
@@ -684,7 +662,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     /**
      * Returns whether the method parameters define a return or not
-     * 
+     *
      * @param parameters
      * @return
      */
@@ -727,7 +705,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         int numReturns = hasReturn ? 1 : 0;
 
         // Register the task
-        int task = ap.newTask(appId, namespace, service, port, operation, isPrioritary, hasTarget, hasReturn, numReturns, pars);
+        int task = ap.newTask(appId, namespace, service, port, operation, isPrioritary, hasTarget, numReturns, pars);
 
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
@@ -1050,8 +1028,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     /**
      * get Binding object
-     * 
-     * @param objectId
+     *
      * @return id of the object in the cache
      */
     public String getBindingObject(String fileName) {
@@ -1066,9 +1043,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     /**
      * remove Binding object
-     * 
+     *
      * @param fileName
-     * @param objectId
      * @return
      */
     public boolean deleteBindingObject(String fileName) {
@@ -1104,12 +1080,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     private Parameter[] processParameters(int parameterCount, Object[] parameters) {
         Parameter[] pars = new Parameter[parameterCount];
         // Parameter parsing needed, object is not serializable
-        int i = 0;
-        for (int npar = 0; npar < parameterCount; ++npar) {
+        for (int npar = 0, i = 0; npar < parameterCount; ++npar, i += NUM_FIELDS_PER_PARAM) {
             DataType type = (DataType) parameters[i + 1];
             Direction direction = (Direction) parameters[i + 2];
             Stream stream = (Stream) parameters[i + 3];
             String prefix = (String) parameters[i + 4];
+            String name   = (String) parameters[i + 5];
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("  Parameter " + (npar + 1) + " has type " + type.name());
@@ -1121,7 +1097,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                         String fileName = (String) parameters[i];
                         String originalName = new File(fileName).getName();
                         DataLocation location = createLocation((String) parameters[i]);
-                        pars[npar] = new FileParameter(direction, stream, prefix, location, originalName);
+                        pars[npar] = new FileParameter(direction, stream, prefix, name, location, originalName);
                     } catch (Exception e) {
                         LOGGER.error(ERROR_FILE_NAME, e);
                         ErrorManager.fatal(ERROR_FILE_NAME, e);
@@ -1131,11 +1107,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
                 case PSCO_T:
                 case OBJECT_T:
-                    pars[npar] = new ObjectParameter(direction, stream, prefix, parameters[i], oReg.newObjectParameter(parameters[i]));
+                    pars[npar] = new ObjectParameter(direction, stream, prefix, name, parameters[i], oReg.newObjectParameter(parameters[i]));
                     break;
                 case EXTERNAL_PSCO_T:
                     String id = (String) parameters[i];
-                    pars[npar] = new ExternalPSCOParameter(direction, stream, prefix, id, externalObjectHashcode(id));
+                    pars[npar] = new ExternalPSCOParameter(direction, stream, prefix, name, id, externalObjectHashcode(id));
                     break;
                 case BINDING_OBJECT_T:
                     String value = (String) parameters[i];
@@ -1145,7 +1121,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                             String extObjectId = fields[0];
                             int extObjectType = Integer.parseInt(fields[1]);
                             int extObjectElements = Integer.parseInt(fields[2]);
-                            pars[npar] = new BindingObjectParameter(direction, stream, prefix,
+                            pars[npar] = new BindingObjectParameter(direction, stream, prefix, name,
                                     new BindingObject(extObjectId, extObjectType, extObjectElements), externalObjectHashcode(extObjectId));
                         } else {
                             LOGGER.error(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
@@ -1164,12 +1140,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                     if (direction != Direction.IN) {
                         LOGGER.warn(WARN_WRONG_DIRECTION + "Parameter " + npar + " is a basic type, therefore it must have IN direction");
                     }
-                    pars[npar] = new BasicTypeParameter(type, Direction.IN, stream, prefix, parameters[i]);
+                    pars[npar] = new BasicTypeParameter(type, Direction.IN, stream, prefix, name, parameters[i]);
                     break;
             }
-            i += 5;
         }
-
         return pars;
     }
 
@@ -1274,20 +1248,18 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         // Create location
         return DataLocation.createLocation(host, uri);
     }
-    
-   @Override
-   public void deregisterObject(Long appId, Object o) {
-	   oReg.delete(o);
-   }
-   
+
+    @Override
+    public void deregisterObject(Long appId, Object o) {
+        oReg.delete(o);
+    }
+
     public void removeObject(Object o, int hashcode) { //private?
-    	
-    	//This will remove the object from the Object Registry and the Data Info Provider
-    	//eventually allowing the garbage collector to free it (better use of memory)
-    	
-    	ap.deregisterObject(o);
-    	
-    	
+
+        //This will remove the object from the Object Registry and the Data Info Provider
+        //eventually allowing the garbage collector to free it (better use of memory)
+        ap.deregisterObject(o);
+
     }
 
 }

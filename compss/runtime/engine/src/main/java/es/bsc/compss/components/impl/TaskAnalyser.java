@@ -95,7 +95,6 @@ public class TaskAnalyser {
     private int synchronizationId;
     private boolean taskDetectedAfterSync;
 
-
     /**
      * Creates a new Task Analyser instance
      *
@@ -175,11 +174,7 @@ public class TaskAnalyser {
         // Check scheduling enforcing data
         int constrainingParam = -1;
         if (params.getType() == TaskType.SERVICE && params.hasTargetObject()) {
-            if (params.hasReturnValue()) {
-                constrainingParam = params.getParameters().length - 2;
-            } else {
-                constrainingParam = params.getParameters().length - 1;
-            }
+            constrainingParam = params.getParameters().length - 1 - params.getNumReturns();
         }
 
         Parameter[] parameters = params.getParameters();
@@ -574,17 +569,25 @@ public class TaskAnalyser {
             }
             // Add dependency
             currentTask.addDataDependency(lastWriter);
+        } else{
+            if (DEBUG) {
+            LOGGER.debug("There is no last writer for datum " + dp.getDataAccessId().getDataId());
+            }
         }
         // Handle when -g enabled
         if (IS_DRAW_GRAPH) {
             int dataVersion = -1;
             Direction d = dp.getDataAccessId().getDirection();
-            if (d.equals(Direction.R)) {
-                dataVersion = ((DataAccessId.RAccessId) dp.getDataAccessId()).getRVersionId();
-            } else if (d.equals(Direction.W)) {
-                dataVersion = ((DataAccessId.WAccessId) dp.getDataAccessId()).getWVersionId();
-            } else {
-                dataVersion = ((DataAccessId.RWAccessId) dp.getDataAccessId()).getRVersionId();
+            switch (d) {
+                case R:
+                    dataVersion = ((DataAccessId.RAccessId) dp.getDataAccessId()).getRVersionId();
+                    break;
+                case W:
+                    dataVersion = ((DataAccessId.WAccessId) dp.getDataAccessId()).getWVersionId();
+                    break;
+                default:
+                    dataVersion = ((DataAccessId.RWAccessId) dp.getDataAccessId()).getRVersionId();
+                    break;
             }
             if (lastWriter != null && lastWriter != currentTask) {
                 addEdgeFromTaskToTask(lastWriter, currentTask, dataId, dataVersion);

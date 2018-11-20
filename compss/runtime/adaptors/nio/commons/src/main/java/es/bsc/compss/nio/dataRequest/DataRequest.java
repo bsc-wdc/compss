@@ -17,23 +17,23 @@
 package es.bsc.compss.nio.dataRequest;
 
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.nio.commands.Data;
+import es.bsc.compss.nio.commands.NIOData;
 
 
 public abstract class DataRequest {
 
     private final DataType type;
-    private final Data source;
+    private final NIOData source;
     private final String target;
 
 
-    public DataRequest(DataType type, Data source, String target) {
+    public DataRequest(DataType type, NIOData source, String target) {
         this.source = source;
         this.target = target;
         this.type = type;
     }
 
-    public Data getSource() {
+    public NIOData getSource() {
         return source;
     }
 

@@ -41,10 +41,9 @@ public class StorageCopy extends DataOperation {
     private Transferable reason;
     private final boolean preserveSourceData;
 
-
     /**
      * Create a new Storage Copy
-     * 
+     *
      * @param srcData
      * @param prefSrc
      * @param prefTgt
@@ -83,7 +82,7 @@ public class StorageCopy extends DataOperation {
 
     /**
      * Returns the source data
-     * 
+     *
      * @return
      */
     public LogicalData getSourceData() {
@@ -92,16 +91,20 @@ public class StorageCopy extends DataOperation {
 
     /**
      * Returns the preferred location of the source data
-     * 
+     *
      * @return
      */
     public DataLocation getPreferredSource() {
         return this.srcLoc;
     }
 
+    public void setProposedSource(Object source) {
+        reason.setDataSource(source);
+    }
+
     /**
      * Returns the target location
-     * 
+     *
      * @return
      */
     public DataLocation getTargetLoc() {
@@ -110,7 +113,7 @@ public class StorageCopy extends DataOperation {
 
     /**
      * Returns the target data
-     * 
+     *
      * @return
      */
     public LogicalData getTargetData() {
@@ -119,7 +122,7 @@ public class StorageCopy extends DataOperation {
 
     /**
      * Returns whether the source data must be preserved or not
-     * 
+     *
      * @return
      */
     public boolean mustPreserveSourceData() {
@@ -128,7 +131,7 @@ public class StorageCopy extends DataOperation {
 
     /**
      * Sets a new final target data
-     * 
+     *
      * @param targetAbsolutePath
      */
     public void setFinalTarget(String targetAbsolutePath) {
@@ -140,11 +143,15 @@ public class StorageCopy extends DataOperation {
 
     /**
      * Returns whether the target data is registered or not
-     * 
+     *
      * @return
      */
     public boolean isRegistered() {
         return this.tgtData != null;
     }
 
+    @Override
+    public void perform() {
+        //No need to do anything. Will be performed later on.
+    }
 }

@@ -76,7 +76,6 @@ public class ExecutionAction extends AllocatableAction {
     private int transferErrors = 0;
     protected int executionErrors = 0;
 
-
     /**
      * Creates a new execution action
      *
@@ -140,7 +139,7 @@ public class ExecutionAction extends AllocatableAction {
     public boolean isToReleaseResources() {
         return true;
     }
-    
+
     @Override
     public boolean isToStopResource() {
         return false;
@@ -183,7 +182,7 @@ public class ExecutionAction extends AllocatableAction {
     }
 
     // Private method that performs data transfers
-    private final void transferJobData(DependencyParameter param, JobTransfersListener listener) {
+    private void transferJobData(DependencyParameter param, JobTransfersListener listener) {
         Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
         DataAccessId access = param.getDataAccessId();
         if (access instanceof DataAccessId.WAccessId) {
@@ -353,7 +352,7 @@ public class ExecutionAction extends AllocatableAction {
                             targetProtocol = DataLocation.Protocol.PERSISTENT_URI.getSchema();
                             break;
                         case BINDING_OBJECT_T:
-                         // Its value is the PSCO Id
+                            // Its value is the PSCO Id
                             targetProtocol = DataLocation.Protocol.BINDING_URI.getSchema();
                             break;
                         default:
@@ -629,7 +628,7 @@ public class ExecutionAction extends AllocatableAction {
         }
 
         if (// Resource is not compatible with the implementation
-        !targetWorker.getResource().canRun(impl)
+                !targetWorker.getResource().canRun(impl)
                 // already ran on the resource
                 || this.getExecutingResources().contains(targetWorker)) {
 

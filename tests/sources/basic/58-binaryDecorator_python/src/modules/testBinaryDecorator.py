@@ -17,14 +17,12 @@ from pycompss.api.api import compss_barrier, compss_open, compss_wait_on
 from pycompss.api.binary import binary
 from pycompss.api.constraint import constraint
 
-
 @binary(binary="date", workingDir="/tmp")
 @task()
 def myDate(dprefix, param):
     pass
 
-
-@constraint(ComputingUnits="2")
+@constraint(computingUnits="2")
 @binary(binary="date", workingDir="/tmp")
 @task()
 def myDateConstrained(dprefix, param):
@@ -111,7 +109,6 @@ class testBinaryDecorator(unittest.TestCase):
         ev = compss_wait_on(ev)
         self.assertEqual(ev, 123)  # own exit code for failed execution
 
-    @unittest.skip("UNSUPPORTED WITH GAT")
     def testFileManagementINOUT(self):
         inoutfile = "src/inoutfile"
         mySedINOUT('-i', 's/Hi/HELLO/g', inoutfile)

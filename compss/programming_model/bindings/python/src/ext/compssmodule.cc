@@ -52,14 +52,22 @@ struct parameter {
     int stream;
     std::string prefix;
     int size;
+    std::string name;
 
-    parameter(PyObject *v, int t, int d, int s, std::string p, int sz) :
-        value(v), type(t), direction(d), stream(s), prefix(p), size(sz) { }
+    parameter(PyObject *v, int t, int d, int s, std::string p, int sz, std::string n) {
+        value = v;
+        type = t;
+        direction = d;
+        stream = s;
+        prefix = p;
+        size = sz;
+        name = n;
+    }
 
     parameter() { }
     ~parameter() {
         // Nothing to do, as the PyObject pointed by value is owned and managed by
-        // the Python interpreter
+        // the Python interpreter (and therefore incorrect to free it)
     }
 
 };
@@ -128,6 +136,17 @@ _pystring_to_char(PyObject *c) {
 #endif
 }
 
+static std::string
+_pystring_to_string(PyObject *c) {
+    return std::string(
+#if PY_MAJOR_VERSION >= 3
+    PyBytes_AsString(PyUnicode_AsEncodedString(c, "utf-8", "Error ~"))
+#else
+    PyString_AsString(c)
+#endif
+    );
+}
+
 /*
   Given an integer that can be translated to a type according to the
   datatype enum (see param_metadata.h), return its size.
@@ -143,7 +162,7 @@ _get_type_size(int type) {
         debug("#### external_psco_dt\n");
         return sizeof(char*);
     case string_dt:
-        debug("#### std::string_dt\n");
+        debug("#### string_dt\n");
         return sizeof(char*);
     case int_dt:
         debug("#### int_dt\n");
@@ -175,25 +194,25 @@ _get_void_pointer_to_content(PyObject *val, int type, int size) {
     // to allocate the exact byte amount we want
     void *ret = new std::uint8_t[size];
     switch ((enum datatype) type) {
-    case file_dt:
-    case external_psco_dt:
-    case string_dt:
-        *(char**)ret = _pystring_to_char(val);
-        break;
-    case int_dt:
-        *(int*)ret = int(PyInt_AsLong(val));
-        break;
-    case long_dt:
-        *(long*)ret = PyLong_AsLong(val);
-        break;
-    case double_dt:
-        *(double*)ret =  PyFloat_AsDouble(val);
-        break;
-    case boolean_dt:
-        *(int*)ret = int(PyInt_AsLong(val));
-        break;
-    default:
-        break;
+        case file_dt:
+        case external_psco_dt:
+        case string_dt:
+            *(char**)ret = _pystring_to_char(val);
+            break;
+        case int_dt:
+            *(int*)ret = int(PyInt_AsLong(val));
+            break;
+        case long_dt:
+            *(long*)ret = PyLong_AsLong(val);
+            break;
+        case double_dt:
+            *(double*)ret =  PyFloat_AsDouble(val);
+            break;
+        case boolean_dt:
+            *(int*)ret = int(PyInt_AsLong(val));
+            break;
+        default:
+            break;
     }
     return ret;
 }
@@ -226,22 +245,23 @@ static PyObject *
 process_task(PyObject *self, PyObject *args) {
     /*
       Parse python object arguments and get pointers to them.
-      lsiiiiiOOOOO must be read as
+      lsiiiiiOOOOOO must be read as
       "long, string, integer, integer, integer, integer, integer,
-       Object, Object, Object, Object, Object"
+       Object, Object, Object, Object, Object, Object"
     */
     debug("####C#### PROCESS TASK\n");
     long app_id;
     char *signature;
     int priority, num_nodes, replicated, distributed, has_target, num_returns;
     PyObject *values;
+    PyObject *names;
     PyObject *compss_types;
     PyObject *compss_directions;
     PyObject *compss_streams;
     PyObject *compss_prefixes;
     //             See comment from above for the meaning of this "magic" string
-    if(!PyArg_ParseTuple(args, "lsiiiiiiOOOOO", &app_id, &signature, &priority,
-                         &num_nodes, &replicated, &distributed, &has_target, &num_returns, &values, &compss_types,
+    if(!PyArg_ParseTuple(args, "lsiiiiiiOOOOOO", &app_id, &signature, &priority,
+                         &num_nodes, &replicated, &distributed, &has_target, &num_returns, &values, &names, &compss_types,
                          &compss_directions, &compss_streams, &compss_prefixes)) {
         // Return NULL after ParseTuple automatically translates to "wrong
         // arguments were passed, we expected an integer instead"-like errors
@@ -261,21 +281,32 @@ process_task(PyObject *self, PyObject *args) {
     Py_ssize_t num_pars = PyList_Size(values);
     debug("####C#### Num pars: %d\n", int(num_pars));
     std::vector< parameter > params(num_pars);
-    // Track the total amount (in bytes) of the objects
     for(int i = 0; i < num_pars; ++i) {
+        debug("Processing parameter %d ...\n", i);
         PyObject *value      = PyList_GetItem(values, i);
         PyObject *type       = PyList_GetItem(compss_types, i);
         PyObject *direction  = PyList_GetItem(compss_directions, i);
         PyObject *stream     = PyList_GetItem(compss_streams, i);
         PyObject *prefix     = PyList_GetItem(compss_prefixes, i);
-        params[i] = {
+        PyObject *name       = PyList_GetItem(names, i);
+        std::string received_prefix = _pystring_to_string(prefix);
+        std::string received_name = _pystring_to_string(name);
+        params[i] = parameter(
             value,
             int(PyInt_AsLong(type)),
             int(PyInt_AsLong(direction)),
             int(PyInt_AsLong(stream)),
-            std::string(_pystring_to_char(prefix)),
-            _get_type_size(int(PyInt_AsLong(type)))
-        };
+            received_prefix,
+            _get_type_size(int(PyInt_AsLong(type))),
+            received_name
+        );
+        debug("----> Value is at %p\n", &params[i].value);
+        debug("----> Type is %d\n", params[i].type);
+        debug("----> Direction is %d\n", params[i].direction);
+        debug("----> Stream is %d\n", params[i].stream);
+        debug("----> Prefix is %s\n", params[i].prefix.c_str());
+        debug("----> Size is %d\n", params[i].size);
+        debug("----> Name is %s\n", params[i].name.c_str());
     }
     debug("####C#### Adapting C++ data to BC-JNI format...\n");
     /*
@@ -284,14 +315,20 @@ process_task(PyObject *self, PyObject *args) {
       are out of our control (will be scope-cleaned, or point to PyObject
       contents)
     */
-    std::vector< void* > unrolled_parameters(5 * num_pars, NULL);
+    int num_fields = 6;
+    std::vector< void* > unrolled_parameters(num_fields * num_pars, NULL);
+    std::vector< char* > prefix_charp(num_pars);
+    std::vector< char* > name_charp(num_pars);
     for(int i = 0; i < num_pars; ++i) {
+        prefix_charp[i] = (char*)params[i].prefix.c_str();
+        name_charp[i]   = (char*)params[i].name.c_str();
         debug("####C#### Processing parameter %d\n", i);
-        unrolled_parameters[5 * i + 0] = _get_void_pointer_to_content(params[i].value, params[i].type, params[i].size);
-        unrolled_parameters[5 * i + 1] = (void*)&params[i].type;
-        unrolled_parameters[5 * i + 2] = (void*)&params[i].direction;
-        unrolled_parameters[5 * i + 3] = (void*)&params[i].stream;
-        unrolled_parameters[5 * i + 4] = (void*)&params[i].prefix;
+        unrolled_parameters[num_fields * i + 0] = _get_void_pointer_to_content(params[i].value, params[i].type, params[i].size);
+        unrolled_parameters[num_fields * i + 1] = (void*)&params[i].type;
+        unrolled_parameters[num_fields * i + 2] = (void*)&params[i].direction;
+        unrolled_parameters[num_fields * i + 3] = (void*)&params[i].stream;
+        unrolled_parameters[num_fields * i + 4] = (void*)&prefix_charp[i];
+        unrolled_parameters[num_fields * i + 5] = (void*)&name_charp[i];
     }
 
     debug("####C#### Calling GS_ExecuteTaskNew...\n");

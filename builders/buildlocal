@@ -426,6 +426,7 @@ install_compss() {
   find "${TMP_DIR}/compss/runtime/adaptors" -name pom.xml -delete
   find "${TMP_DIR}/compss/runtime/adaptors" -name "*.iml" -delete
   rm -r "${TMP_DIR}/compss/runtime/adaptors/commons"
+  rm -r "${TMP_DIR}/compss/runtime/adaptors/execution"
   path_source=${TMP_DIR}/compss/runtime/adaptors
   path_target=${targetDir}/Runtime/adaptors
   for adaptor in ${path_source}/*; do

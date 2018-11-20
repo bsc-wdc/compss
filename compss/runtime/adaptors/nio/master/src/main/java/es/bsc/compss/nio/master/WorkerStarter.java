@@ -25,6 +25,7 @@ import es.bsc.compss.nio.NIOTracer;
 import es.bsc.compss.nio.commands.CommandCheckWorker;
 import es.bsc.compss.nio.master.handlers.Ender;
 import es.bsc.compss.nio.master.handlers.ProcessOut;
+import es.bsc.compss.types.execution.ThreadBinder;
 import es.bsc.compss.util.Tracer;
 
 import java.io.BufferedReader;
@@ -53,18 +54,21 @@ public class WorkerStarter {
 
     private static final boolean IS_CPU_AFFINITY_DEFINED = System.getProperty(COMPSsConstants.WORKER_CPU_AFFINITY) != null
             && !System.getProperty(COMPSsConstants.WORKER_CPU_AFFINITY).isEmpty();
-    private static final String CPU_AFFINITY = IS_CPU_AFFINITY_DEFINED ? System.getProperty(COMPSsConstants.WORKER_CPU_AFFINITY)
-            : NIOAdaptor.BINDER_DISABLED;
+    private static final String CPU_AFFINITY = IS_CPU_AFFINITY_DEFINED
+            ? System.getProperty(COMPSsConstants.WORKER_CPU_AFFINITY)
+            : ThreadBinder.BINDER_DISABLED;
 
     private static final boolean IS_GPU_AFFINITY_DEFINED = System.getProperty(COMPSsConstants.WORKER_GPU_AFFINITY) != null
             && !System.getProperty(COMPSsConstants.WORKER_GPU_AFFINITY).isEmpty();
-    private static final String GPU_AFFINITY = IS_GPU_AFFINITY_DEFINED ? System.getProperty(COMPSsConstants.WORKER_GPU_AFFINITY)
-            : NIOAdaptor.BINDER_DISABLED;
+    private static final String GPU_AFFINITY = IS_GPU_AFFINITY_DEFINED
+            ? System.getProperty(COMPSsConstants.WORKER_GPU_AFFINITY)
+            : ThreadBinder.BINDER_DISABLED;
 
     private static final boolean IS_FPGA_AFFINITY_DEFINED = System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY) != null
             && !System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY).isEmpty();
-    private static final String FPGA_AFFINITY = IS_FPGA_AFFINITY_DEFINED ? System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY)
-            : NIOAdaptor.BINDER_DISABLED;
+    private static final String FPGA_AFFINITY = IS_FPGA_AFFINITY_DEFINED
+            ? System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY)
+            : ThreadBinder.BINDER_DISABLED;
 
     // Deployment ID
     private static final String DEPLOYMENT_ID = System.getProperty(COMPSsConstants.DEPLOYMENT_ID);
@@ -76,7 +80,7 @@ public class WorkerStarter {
     private static final String STARTER_SCRIPT_PATH = "Runtime" + File.separator + "scripts" + File.separator + "system" + File.separator
             + "adaptors" + File.separator + "nio" + File.separator;
     private static final String STARTER_SCRIPT_NAME = "persistent_worker.sh";
-    
+
     private static final String CLEAN_SCRIPT_PATH = "Runtime" + File.separator + "scripts" + File.separator + "system" + File.separator
             + "adaptors" + File.separator + "nio" + File.separator;
     private static final String CLEAN_SCRIPT_NAME = "persistent_worker_clean.sh";
@@ -91,11 +95,10 @@ public class WorkerStarter {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
-    private static Map<String, WorkerStarter> addressToWorkerStarter = new TreeMap<>();
+    private static final Map<String, WorkerStarter> addressToWorkerStarter = new TreeMap<>();
     private boolean workerIsReady = false;
     private boolean toStop = false;
     private final NIOWorkerNode nw;
-
 
     /**
      * Instantiates a new WorkerStarter for a given Worker
@@ -368,7 +371,7 @@ public class WorkerStarter {
         }
         String executionType = System.getProperty(COMPSsConstants.TASK_EXECUTION);
         if (executionType == null || executionType.equals("") || executionType.equals("null")) {
-            executionType = COMPSsConstants.EXECUTION_INTERNAL;
+            executionType = COMPSsConstants.TaskExecution.COMPSS.toString();
             LOGGER.warn("No executionType passed");
         }
 
@@ -512,16 +515,14 @@ public class WorkerStarter {
         String installDir = this.nw.getInstallDir();
 
         // Send SIGTERM to allow ShutdownHooks on Worker...
-        
         // Send SIGKILL to all child processes of 'pid'
         // and send a SIGTERM to the parent process
         //ps --ppid 2796 -o pid= | awk '{ print $1 }' | xargs kill -15 <--- kills all childs of ppid
         //kill -15 2796 kills the parentpid
-
         //necessary to check whether it has file separator or not? /COMPSs////Runtime == /COMPSs/Runtime in bash 
         cmd[0] = installDir + (installDir.endsWith(File.separator) ? "" : File.separator) + CLEAN_SCRIPT_PATH + CLEAN_SCRIPT_NAME;
         cmd[1] = String.valueOf(pid);
-        
+
         return cmd;
     }
 
@@ -580,7 +581,7 @@ public class WorkerStarter {
     public void ender(NIOWorkerNode node, int pid) {
         if (pid > 0) {
             String user = node.getUser();
-            
+
             // Clean worker working directory
             String jvmWorkerOpts = System.getProperty(COMPSsConstants.WORKER_JVM_OPTS);
             String removeWDFlagDisabled = COMPSsConstants.WORKER_REMOVE_WD + "=false";

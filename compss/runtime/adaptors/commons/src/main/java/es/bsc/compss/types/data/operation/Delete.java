@@ -16,16 +16,18 @@
  */
 package es.bsc.compss.types.data.operation;
 
+import es.bsc.compss.exceptions.FileDeletionException;
 import es.bsc.compss.types.data.listener.EventListener;
-import es.bsc.compss.types.data.operation.DataOperation;
 
 import java.io.File;
 
 
 public class Delete extends DataOperation {
 
-    protected File file;
 
+
+
+    protected File file;
 
     public Delete(File file, EventListener listener) {
         super(null, listener);
@@ -34,6 +36,21 @@ public class Delete extends DataOperation {
 
     public File getFile() {
         return file;
+    }
+
+    public void perform() {
+        LOGGER.debug("THREAD " + Thread.currentThread().getName() + " Delete " + this.getFile());
+        try {
+            if (!this.getFile().delete()) {
+                FileDeletionException fde = new FileDeletionException("Error performing delete file");
+                this.end(DataOperation.OpEndState.OP_FAILED, fde);
+                return;
+            }
+        } catch (SecurityException e) {
+            this.end(DataOperation.OpEndState.OP_FAILED, e);
+            return;
+        }
+        this.end(DataOperation.OpEndState.OP_OK);
     }
 
 }

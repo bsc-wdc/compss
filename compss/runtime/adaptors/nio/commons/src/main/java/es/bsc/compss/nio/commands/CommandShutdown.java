@@ -30,13 +30,13 @@ import es.bsc.comm.Connection;
 public class CommandShutdown extends Command implements Externalizable {
 
     // List of files to send to the master before shutting down
-    private LinkedList<Data> filesToSend;
+    private LinkedList<NIOData> filesToSend;
 
 
     public CommandShutdown() {
     }
 
-    public CommandShutdown(NIOAgent agent, LinkedList<Data> l) {
+    public CommandShutdown(NIOAgent agent, LinkedList<NIOData> l) {
         super(agent);
         this.filesToSend = l;
     }
@@ -54,7 +54,7 @@ public class CommandShutdown extends Command implements Externalizable {
     @SuppressWarnings("unchecked")
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        filesToSend = (LinkedList<Data>) in.readObject();
+        filesToSend = (LinkedList<NIOData>) in.readObject();
     }
 
     @Override

@@ -4,6 +4,59 @@
   # HELPER FUNCTIONS
   ##########################
 
+  get_host_parameters () {
+    nodeName=$1
+    installDir=$2
+    appDir=$3
+    libPath=$4
+    if [ "$libPath" != "null" ]; then
+      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$libPath
+    fi
+    workingDir=$5
+    if [ ! -d "$workingDir" ]; then
+      mkdir -p "$workingDir"
+    fi
+    export COMPSS_WORKING_DIR=$workingDir
+    storageConf=$6
+    debug=$7
+    rmfilesNum=$8
+    shift $((8 + rmfilesNum))
+
+    tracing=$1
+    shift 1
+    export EXTRAE_BUFFER_SIZE=100
+    if [ "${tracing}" == "true" ]; then
+      runtimeEventType=$1
+      sandBoxCreationId=$2
+      sandBoxRemovalId=$3
+      taskEventType=$4
+      taskId=$5
+      slot=$6
+      shift 6      
+    fi
+    hostFlags=( "${nodeName}" "${workingDir}" "${debug}" "${installDir}" "${appDir}" "${storageConf}" )
+    invocation=($@)
+  }
+
+  get_invocation_params () {
+    jobId=$1
+    taskId=$2
+
+    numSlaves=$3
+    slaves=(${@:4:${numSlaves}})
+    shift $((3 + numSlaves))
+
+    cus=$1
+    numParams=$2
+    hasTarget=$3
+    numResults=$4
+
+    shift 4
+    params=($@)
+    invocationParams=( "${jobId}" "${taskId}" "$numSlaves" ${slaves[@]} "${cus}" "${numParams}" "${hasTarget}" "${numResults}" ${params[@]})
+  }
+
+
   add_to_classpath () {
     local DIRLIBS="${1}/*.jar"
     for i in ${DIRLIBS}; do
@@ -81,4 +134,71 @@
 
     # Set python home related env
     export PYCOMPSS_HOME=${bindingsDir}/python
+  }
+
+  compute_generic_sandbox () {
+    sandbox="${workingDir}/sandBox/job_${jobId}/"
+  }
+  
+  numRenames=0
+  moveFileToSandbox () {
+    if [ -f "$1" ]; then
+        if [ ! -f "${sandbox}/${2}" ]; then
+          echo "[WORKER_COMMONS.SH] Link ${1} -> ${sandbox}/${2}"
+      	  ln -s "${1}" "${sandbox}/${2}"
+        else
+          newVer=$(basename "$1" | tr "_" "\t" | awk '{ print $1 }' | tr "v" "\t" | awk '{ print $2 }')
+          oldVer=$(basename $(echo $(readlink -f "${sandbox}/${2}")) | tr "_" "\t" | awk '{ print $1 }' | tr "v" "\t" | awk '{ print $2 }')
+          if (( newVer > oldVer )); then
+            ln -sf "$1" "${sandbox}/${2}"
+            echo "[WORKER_COMMONS.SH] WARN: Updating link ${sandbox}/$2 that already exists"
+          else
+            echo "[WORKER_COMMONS.SH] WARN: Cannot create link because ${sandbox}/$2 already exists"
+          fi
+        fi
+      else
+        echo "[WORKER_COMMONS.SH] WARN: Cannot create link because $1 doesn't exists"
+      fi
+
+      # Add to treat after task management
+      if [ ${numRenames} -eq 0 ]; then
+        renames="$1 ${sandbox}/$2"
+        numRenames=1
+      else
+        renames="$renames $1 ${sandbox}/$2"
+      fi
+  }
+
+
+  moveFilesOutFromSandbox () {
+    removeOrMove=0
+    renamedFile=""
+    for element in $renames; do
+      # Check pair if first
+      if [ $removeOrMove -eq 0 ]; then
+        if [ -f "$element" ]; then
+    	    removeOrMove=1
+    	  else
+    	    removeOrMove=2
+    	    renamedFile=$element
+    	  fi
+      else
+        if [ $removeOrMove -eq 1 ]; then
+          echo "[WORKER.SH] Removing link $element"
+          if [ -f "$element" ]; then
+            rm "${element}"
+          fi
+    	elif [ $removeOrMove -eq 2 ]; then
+          echo "[WORKER.SH] Moving $element to $renamedFile"
+          if [ -f "$element" ]; then
+            mv "${element}" "${renamedFile}"
+          fi
+    	else
+    	  echo 1>&2 "Incorrect operation when managing rename symlinks "
+          exit 7
+        fi
+        removeOrMove=0
+        renamedFile=""
+      fi
+    done
   }

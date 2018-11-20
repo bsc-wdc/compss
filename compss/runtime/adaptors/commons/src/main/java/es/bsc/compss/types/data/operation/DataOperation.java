@@ -43,13 +43,12 @@ public abstract class DataOperation {
 
 
     public enum OpEndState {
-        OP_OK, 
-        OP_IN_PROGRESS, 
-        OP_FAILED, 
-        OP_PREPARATION_FAILED, 
+        OP_OK,
+        OP_IN_PROGRESS,
+        OP_FAILED,
+        OP_PREPARATION_FAILED,
         OP_WAITING_SOURCES;
     }
-
 
     public DataOperation(LogicalData ld, EventListener listener) {
         try {
@@ -161,4 +160,6 @@ public abstract class DataOperation {
             }
         }
     }
+
+    public abstract void perform();
 }

@@ -25,7 +25,7 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Support class to retrieve external processes output
- * 
+ *
  */
 public class StreamGobbler extends Thread {
 
@@ -35,10 +35,9 @@ public class StreamGobbler extends Thread {
     private final PrintStream out;
     private final Logger logger;
 
-
     /**
      * Creates a new StreamGobbler for is @in and prints information to os @out
-     * 
+     *
      * @param in
      * @param out
      * @param logger
@@ -60,9 +59,13 @@ public class StreamGobbler extends Thread {
             while ((nRead = in.read(buffer, 0, buffer.length)) != -1) {
                 byte[] readData = new byte[nRead];
                 System.arraycopy(buffer, 0, readData, 0, nRead);
-                
-                out.print(new String(readData));
-                out.flush();
+                String data = new String(readData);
+                if (out != null) {
+                    out.print(data);
+                    out.flush();
+                } else {
+                    logger.info(data);
+                }
             }
         } catch (IOException ioe) {
             logger.error("Exception during reading/writing in output Stream", ioe);

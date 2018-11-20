@@ -2,7 +2,7 @@ from exaqute.ExaquteTask import *
 
 from pycompss.api.task import task
 from pycompss.api.api import compss_wait_on
-from pycompss.api.api import compss_barrier as barrier
+from pycompss.api.api import compss_barrier
 from pycompss.api.api import compss_delete_object
 from pycompss.api.api import compss_delete_file
 
@@ -25,7 +25,7 @@ class ExaquteTask(object):
 
 
 def barrier():  # Wait
-    barrier()
+    compss_barrier()
 
 
 def get_value_from_remote(obj):  # Gather

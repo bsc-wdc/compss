@@ -15,11 +15,8 @@
 #  limitations under the License.
 #
 import bisect
-
-import heapq3
 import itertools
 import os
-import itertools
 from collections import defaultdict, deque
 
 from pycompss.api.api import compss_barrier

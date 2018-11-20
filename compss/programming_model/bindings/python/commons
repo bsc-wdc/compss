@@ -36,21 +36,44 @@ else:
     # Remove version 3 sources and setup a symbolic link to version 2
     # (the sources are the same for both versions)
 
-    set -e  # Terminate if a command fails
-
     target_dir=$1
 
     # Copy compiled sources - find recursively and copy __pycache__ folders.
-    find "${target_dir}/3" -name '__pycache__' -type d | while read line; do
+    compiled_sources=$(find "${target_dir}/3" -name '__pycache__' -type d)
+    if [ $? -ne 0 ]; then
+      echo "Failed. Could not find the compiled sources from ${target_dir}/3"
+      exit 1
+    else
+      echo "Found compiled sources in ${target_dir}/3."
+    fi
+    echo "${compiled_sources}" | while read line; do
       relative=${line#"${target_dir}/3"}
       cp -r $line "${target_dir}/2${relative}"
+      if [ $? -ne 0 ]; then
+        echo "Failed, to copy from $line to ${target_dir}/2${relative}"
+        exit 1
+      else
+        echo "Copied $line to ${target_dir}/2${relative}"
+      fi
     done
 
     # Remove and link
     rm -rf "${target_dir}/3/pycompss"
-    ln -sfn "${target_dir}/2/pycompss" "${target_dir}/3/pycompss"
+    if [ $? -ne 0 ]; then
+      echo "Failed, to remove version folder ${target_dir}/3/pycompss"
+      exit 1
+    else
+      echo "Removed folder ${target_dir}/3/pycompss"
+    fi
 
-    set +e  # Disable set -e
+    ln -sfn "${target_dir}/2/pycompss" "${target_dir}/3/pycompss"
+    if [ $? -ne 0 ]; then
+      echo "Failed, to create symbolic link from ${target_dir}/2/pycompss to ${target_dir}/3/pycompss"
+      exit 1
+    else
+      echo "Created symbolic link from ${target_dir}/2/pycompss to ${target_dir}/3/pycompss"
+    fi
+
   }
 
   create_symbolic_links (){

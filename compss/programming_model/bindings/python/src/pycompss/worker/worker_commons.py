@@ -206,10 +206,6 @@ def execute_task(process_name, storage_conf, params, TRACING):
         persistent_storage = True
         from pycompss.util.persistent_storage import storage_task_context
 
-    print('---- TASK PARAMS ----')
-    print(params)
-    print('---- END TASK PARAMS ----')
-
     # Retrieve the parameters from the params argument
     path = params[0]
     method_name = params[1]

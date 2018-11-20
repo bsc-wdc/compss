@@ -115,7 +115,6 @@ class task(object):
             #   pass
             # Transform this dictionary to a Parameter object
             if parameter.is_dict_specifier(value):
-                print('DICT TREATING %s as %s' % (str(key), str(value)))
                 # Perform user -> instance substitution
                 # param = self.decorator_arguments[key][parameter.Type]
                 # Replace the whole dict by a single parameter object
@@ -178,7 +177,6 @@ class task(object):
                     parameter.Parameter(p_type = ret_type, object = elem, p_direction = parameter.OUT)
                 # Hopefully, an exception have been thrown if some invalid stuff has been put
                 # in the returns field
-        print('SELF RETURNS IS %s' % str(self.returns))
 
     def __call__(self, user_function):
         '''This part is called in all explicit function calls.
@@ -245,7 +243,6 @@ class task(object):
             ret_mask = [isinstance(node, ast.Return) for node in code]
 
         if any(ret_mask):
-            print("INFO! Return found in function " + f.__name__ + " without 'returns' statement at task definition.")
             has_multireturn = False
             lines = [i for i, li in enumerate(ret_mask) if li]
             max_num_returns = 0
@@ -552,7 +549,6 @@ class task(object):
         self.function_type = FunctionType.FUNCTION
         self.class_name = ''
         if self.first_arg_name == 'self':
-            print('THIS IS A INSTANCE FUNCTION')
             self.function_type = FunctionType.INSTANCE_METHOD
             self.class_name = type(self.parameters['self'].object).__name__
         elif self.first_arg_name == 'cls':
@@ -608,20 +604,18 @@ class task(object):
         self.add_return_parameters()
         if not self.returns:
             self.update_return_if_no_returns(self.user_function)
-        # TODO: See runtime.binding.process_task, it builds the necessary future objects
-        # TODO: Deal with the redundant parameter passing
         from pycompss.runtime.binding import process_task
         ret = process_task(
-            self.user_function, # Ok
-            self.module_name, # Ok
-            self.class_name, # Ok
-            self.function_type, # Ok
-            self.parameters, # Ok
-            self.returns, # Ok
-            self.decorator_arguments, # Ok
-            self.computing_nodes, # Ok
-            self.decorator_arguments['isReplicated'], # Ok
-            self.decorator_arguments['isDistributed'] # Ok
+            self.user_function,
+            self.module_name,
+            self.class_name,
+            self.function_type,
+            self.parameters,
+            self.returns,
+            self.decorator_arguments,
+            self.computing_nodes,
+            self.decorator_arguments['isReplicated'],
+            self.decorator_arguments['isDistributed']
         )
         master_lock.release()
         return ret
@@ -655,14 +649,6 @@ class task(object):
         This function also assigns default directions to parameters.
         :return: None, it only modifies self.parameters
         '''
-
-
-        print('RECEIVED ARGS')
-        print(args)
-
-        print('RECEIVED KWARGS')
-        print(kwargs)
-
         from collections import OrderedDict
         parameter_values = OrderedDict()
         # If we have an OMPSs or MPI decorator above us we should have computingNodes
@@ -707,7 +693,6 @@ class task(object):
         for var_name in parameter_values.keys():
             # Is the argument a vararg? Then check the direction for
             # varargs
-            print(var_name)
             if parameter.is_vararg(var_name):
                 self.parameters[var_name] = parameter.get_parameter_copy(self.get_varargs_direction())
             else:

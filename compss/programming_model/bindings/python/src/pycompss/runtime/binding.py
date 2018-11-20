@@ -558,8 +558,6 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns, tas
 
     app_id = 0
 
-    print('F RETURNS IS %s' % str(f_returns))
-
     # Check if the function is an instance method or a class method.
     has_target = ftype == FunctionType.INSTANCE_METHOD
     fo = None
@@ -707,7 +705,6 @@ def _build_return_objects(f_returns):
             logger.debug("Simple object return found.")
         # Build the appropriate future object
         ret_value = f_returns[parameter.get_return_name(0)].object
-        print('RET VALUE IS %s' % str(ret_value))
         if type(ret_value) in _python_to_compss or ret_value in _python_to_compss:  # primitives, string, dic, list, tuple
             fo = Future()
         elif inspect.isclass(ret_value):
@@ -737,7 +734,6 @@ def _build_return_objects(f_returns):
             logger.debug("Multiple objects return found.")
         for k, v in f_returns.items():
             # Build the appropriate future object
-            print("V.OBJECT IS %s" % str(v.object))
             if v.object in _python_to_compss:  # primitives, string, dic, list, tuple
                 foe = Future()
             elif inspect.isclass(v.object):

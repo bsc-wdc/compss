@@ -561,9 +561,9 @@ get_args() {
             task_count=${OPTARG//task_count=/}
             ;;
     	  appdir=*)
-	    # Main binary directory (only for C/C++ applications)
-	    task_count=${OPTARG//appdir=/}
-	    ;;
+	        # Main binary directory (only for C/C++ applications)
+	        appdir=${OPTARG//appdir=/}
+	        ;;
           pythonpath=*)
             # Additional pythonpath
             pythonpath=${OPTARG//pythonpath=/}

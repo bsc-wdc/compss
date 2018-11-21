@@ -216,14 +216,11 @@ public class ResourceLoader {
         }
         MethodResourceDescription mrd = new MethodResourceDescription();
         Processor p = new Processor();
-        p.setComputingUnits(4);
+        p.setComputingUnits(0);
         mrd.addProcessor(p);
-        /*ResourceManager.updateMasterConfiguration(mrd, sharedDisks);
-        if (mrd.getTotalCPUComputingUnits() > 0) {
-            ResourceManager.addStaticResource((MethodWorker) Comm.getAppHost());
-            return true;
-        }*/
-        return false;
+        ResourceManager.updateMasterConfiguration(mrd, sharedDisks);
+        ResourceManager.addStaticResource((MethodWorker) Comm.getAppHost());
+        return mrd.getTotalCPUComputingUnits() > 0;
     }
 
     private static boolean loadComputeNode(ComputeNodeType cn_project, es.bsc.compss.types.resources.jaxb.ComputeNodeType cn_resources) {

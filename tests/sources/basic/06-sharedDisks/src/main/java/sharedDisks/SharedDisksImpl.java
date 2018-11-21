@@ -17,10 +17,10 @@ public class SharedDisksImpl {
             File f1 = new File(fileName);
             File f2 = new File(name);
             System.out.println("Checking filename");
-            System.out.println("--Used file name: " + f1.getAbsolutePath());
-            System.out.println("--Original file name: " + f2.getAbsolutePath());
             String f1Path = f1.getCanonicalPath();
             String f2Path = f2.getCanonicalPath();
+            System.out.println("--Used file name: " + f1Path);
+            System.out.println("--Original file name: " + f2Path);
             if (f1Path.equals(f2Path)) {
                 return 0;
             } else {

@@ -960,11 +960,13 @@ set_variables() {
 
   # SharedDisk variables
   if [ "${worker_working_dir}" == "gpfs" ]; then
+    mkdir -p "${GPFS_PREFIX}${HOME}"
     worker_working_dir=$(mktemp -d -p "${GPFS_PREFIX}${HOME}")
   elif [ "${worker_working_dir}" == "scratch" ]; then
     worker_working_dir=$TMPDIR/${!ENV_VAR_JOB_ID}
   else
     # The working dir is a custom absolute path, create tmp
+    mkdir -p "${worker_working_dir}"
     worker_working_dir=$(mktemp -d -p "${worker_working_dir}")
   fi
 

@@ -60,7 +60,7 @@ add_master_node() {
   :
 
   # Dump information to file
-  if [ -n "${shared_disks}" ]; then
+  if [ -n "${shared_disks}" ] && [ "${shared_disks}" != "NULL" ]; then
     # Create master node with shared disks
     cat >> "${PROJECT_FILE}" << EOT
   <MasterNode>
@@ -251,46 +251,66 @@ _fill_compute_node_info() {
 EOT
 
   # Add user if defined
-  if [ -n "${user}" ]; then
+  if [ -n "${user}" ] && [ "${user}" != "NULL" ]; then
     cat >> "${PROJECT_FILE}" << EOT
     <User>$user</User>
 EOT
   fi
 
   # Add application section if defined
-  if [ -n "${app_dir}" ] || [ -n "${library_path}" ] || [ -n "${classpath}" ] || [ -n "${pythonpath}" ]; then
-    cat >> "${PROJECT_FILE}" << EOT
+  init_app=0
+  if [ -n "${app_dir}" ] && [ "${app_dir}" != "NULL" ]; then
+    if [ ${init_app} -eq 0 ]; then
+      cat >> "${PROJECT_FILE}" << EOT
     <Application>
 EOT
-  fi
-  if [ -n "${app_dir}" ]; then
+      init_app=1
+    fi
     cat >> "${PROJECT_FILE}" << EOT
       <AppDir>${app_dir}</AppDir>
 EOT
   fi
-  if [ -n "${library_path}" ]; then
+  if [ -n "${library_path}" ] && [ "${library_path}" != "NULL" ]; then
+    if [ ${init_app} -eq 0 ]; then
+      cat >> "${PROJECT_FILE}" << EOT
+    <Application>
+EOT
+      init_app=1
+    fi
     cat >> "${PROJECT_FILE}" << EOT
       <LibraryPath>${library_path}</LibraryPath>
 EOT
   fi
-  if [ -n "${classpath}" ]; then
+  if [ -n "${classpath}" ] && [ "${classpath}" != "NULL" ]; then
+    if [ ${init_app} -eq 0 ]; then
+      cat >> "${PROJECT_FILE}" << EOT
+    <Application>
+EOT
+      init_app=1
+    fi
     cat >> "${PROJECT_FILE}" << EOT
       <Classpath>${classpath}</Classpath>
 EOT
   fi
-  if [ -n "${pythonpath}" ]; then
+  if [ -n "${pythonpath}" ] && [ "${pythonpath}" != "NULL" ]; then
+    if [ ${init_app} -eq 0 ]; then
+      cat >> "${PROJECT_FILE}" << EOT
+    <Application>
+EOT
+      init_app=1
+    fi
     cat >> "${PROJECT_FILE}" << EOT
       <Pythonpath>${pythonpath}</Pythonpath>
 EOT
   fi
-  if [ -n "${app_dir}" ] || [ -n "${library_path}" ] || [ -n "${classpath}" ] || [ -n "${pythonpath}" ]; then
+  if [ ${init_app} -ne 0 ]; then
     cat >> "${PROJECT_FILE}" << EOT
     </Application>
 EOT
   fi
 
   # Add limit of tasks if defined
-  if [ -n "$lot" ] && [ "$lot" -ge 0 ]; then
+  if [ -n "$lot" ] && [ "$lot" != "NULL" ] && [ "$lot" -ge 0 ]; then
     cat >> "${PROJECT_FILE}" <<EOT
     <LimitOfTasks>${lot}</LimitOfTasks>
 EOT
@@ -298,4 +318,39 @@ EOT
 
   # TODO: SKIPPING ADAPTORS SECTION
 }
+
+
+#
+# MAIN FUNCTION FOR SIMPLE PROJECT CREATION
+#
+
+create_simple_project() {
+  # Function called by the Runtime when executing COMPSs Nested
+
+  local project=$1
+  local workers_info=$2  # "name:cus:install_dir:working_dir ..."
+                         # Some parameters are used by the resources generation and skiped here
+
+  init "${project}"
+  add_header
+  add_master_node ""
+  for worker_info in ${workers_info}; do
+    IFS=":" read -ra worker_info_fields <<< "${worker_info}"
+    local worker_name=${worker_info_fields[0]}
+    #local worker_cus=${worker_info_fields[1]}
+    local worker_install_dir=${worker_info_fields[2]}
+    local worker_working_dir=${worker_info_fields[3]}
+    add_compute_node "${worker_name}" "${worker_install_dir}" "${worker_working_dir}" "" "" "" "" "" ""
+  done
+  add_footer
+}
+
+
+#
+# MAIN (when script is called directly)
+#
+
+if [ $# -ne 0 ]; then
+  create_simple_project "$@"
+fi
 

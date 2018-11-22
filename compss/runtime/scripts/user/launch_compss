@@ -1,8 +1,9 @@
 #!/bin/bash
 
-###############################################
+#---------------------------------------------------------------------------------------
 # SCRIPT CONSTANTS DECLARATION
-###############################################
+#---------------------------------------------------------------------------------------
+
 DEFAULT_SC_CFG="default"
 
 # Next default values need to be consistent with runcompss
@@ -36,9 +37,11 @@ fi
 DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT=true
 DEFAULT_JUPYTER_NOTEBOOK=false
 
-###############################################
+
+#---------------------------------------------------------------------------------------
 # ERROR CONSTANTS DECLARATION
-###############################################
+#---------------------------------------------------------------------------------------
+
 ERROR_CFG_SC="SuperComputer CFG file doesn't exist"
 ERROR_CFG_Q="Queue system CFG file doesn't exist"
 ERROR_MASTER_NODE="Missing master node parameter"
@@ -54,8 +57,9 @@ ERROR_PROLOG_ACTION="Exception executing prolog action"
 ERROR_EPILOG_ACTION="Exception executing epilog action"
 ERROR_LANGUAGE="Value of option --lang must be: java, c or python"
 
+
 #---------------------------------------------------------------------------------------
-# HELPER FUNCTIONS
+# GENERIC HELPER FUNCTIONS
 #---------------------------------------------------------------------------------------
 
 ###############################################
@@ -99,10 +103,12 @@ show_opts() {
 
   # Load default CFG for default values
   local defaultSC_cfg=${SCRIPT_DIR}/../queues/supercomputers/${DEFAULT_SC_CFG}.cfg
-  #shellcheck source=../queues/supercomputers/default.cfg
+  # shellcheck source=../queues/supercomputers/default.cfg
+  # shellcheck disable=SC1091
   source "${defaultSC_cfg}"
   local defaultQS_cfg=${SCRIPT_DIR}/../queues/queue_systems/${QUEUE_SYSTEM}.cfg
-  #shellcheck source=../queues/queue_systems/slurm.cfg
+  # shellcheck source=../queues/queue_systems/slurm.cfg
+  # shellcheck disable=SC1091
   source "${defaultQS_cfg}"
 
   # Show usage
@@ -361,9 +367,459 @@ master_cmd() {
 }
 
 
-#---------------------------------------------------
-# MAIN FUNCTIONS DECLARATION
-#---------------------------------------------------
+#---------------------------------------------------------------------------------------
+# XML HELPER FUNCTIONS (PROJECT.XML)
+#---------------------------------------------------------------------------------------
+
+###############################################
+# Setup to generate project.xml
+###############################################
+xml_project_setup() {
+  # Shared disks information
+  shared_disks_names=""
+  shared_disks_info=""
+  if [ -n "${GPFS_PREFIX}" ]; then
+    shared_disks_names="gpfs"
+    shared_disks_info="gpfs=${GPFS_PREFIX}"
+  fi
+  if [ -n "${GPFS2_PREFIX}" ] && [ "${GPFS2_PREFIX}" != "${GPFS_PREFIX}" ]; then
+    shared_disks_names="${shared_disks_names} gpfs2"
+    shared_disks_info="${shared_disks_info} gpfs2=${GPFS2_PREFIX}"
+  fi
+
+  # Init project file
+  init "${PROJECT_FILE}"
+}
+
+###############################################
+# Add worker in master to project.xml
+###############################################
+xml_project_add_worker_in_master() {
+  # Add worker in master if defined
+  if [ "${worker_in_master_cpus}" -ne 0 ]; then
+    local master_node_name
+    # Rename master node if defined
+    if [ -n "${NODE_NAME_XML}" ]; then
+      master_node_name=$(${NODE_NAME_XML} "${master_node}" "${network}")
+    elif [ -n "${NODE_NAME_QUEUE}" ]; then
+      master_node_name=$(${NODE_NAME_QUEUE} "${master_node}")
+    else
+      master_node_name=${master_node}
+    fi
+    # Create working dirs
+    if [ -z "${CREATE_WORKING_DIRS}" ] || [ "${CREATE_WORKING_DIRS}" == "true" ]; then
+      echo "Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node_name} ${CMD_SEPARATOR}bash -c \"mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}\"${CMD_SEPARATOR}"
+      # shellcheck disable=SC2086
+      ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node_name} ${CMD_SEPARATOR}bash -c "mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}"${CMD_SEPARATOR}
+    fi
+    # Add compute node
+    master_node_name=${master_node_name}${network}
+    add_compute_node "${master_node_name}" "${worker_install_dir}" "${worker_working_dir}" "NULL" "NULL" "${library_path}" "NULL" "NULL" "${max_tasks_per_node}"
+  fi
+}
+
+###############################################
+# Add workers to project.xml
+###############################################
+xml_project_add_workers() {
+  # Add workers
+  for worker_node in ${worker_nodes}; do
+    local worker_node_name
+    if [ ! -z "${NODE_NAME_XML}" ]; then
+      worker_node_name=$(${NODE_NAME_XML} "${worker_node}" "${network}")
+    elif [ -n "${NODE_NAME_QUEUE}" ]; then
+      worker_node_name=$(${NODE_NAME_QUEUE} "${worker_node}")
+    else
+      worker_node_name=${worker_node}
+    fi
+    # Create working dirs
+    if [ -z "${CREATE_WORKING_DIRS}" ] || [ "${CREATE_WORKING_DIRS}" == "true" ]; then
+      echo "Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${worker_node_name} ${CMD_SEPARATOR}bash -c \"mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}\"${CMD_SEPARATOR}"
+      # shellcheck disable=SC2086
+      ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${worker_node_name} ${CMD_SEPARATOR}bash -c "mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}"${CMD_SEPARATOR}
+    fi
+    # Add compute node
+    worker_node_name=${worker_node_name}${network}
+    add_compute_node "${worker_node_name}" "${worker_install_dir}" "${worker_working_dir}" "NULL" "NULL" "${library_path}" "NULL" "NULL" "${max_tasks_per_node}"
+  done
+}
+
+###############################################
+# Add heterogeneity to project.xml
+###############################################
+xml_project_add_elasticity() {
+  # Add elasticity if defined
+  if [ -n "${elasticity}" ]; then
+    local jvm_workers_opts_str
+    local jvm_workers_opts_size
+    local fpga_reprogram_str
+    local fpga_reprogram_size
+    jvm_workers_opts_str=$(echo "${jvm_workers_opts}" | tr "," " ")
+    jvm_workers_opts_size=$(echo "${jvm_workers_opts_str}" | wc -w)
+    fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
+    fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
+
+    local props
+    props="master_name=${master_node}"
+    props="$props master_port=${master_port}"
+    props="$props worker_debug=${debug}"
+    props="$props jvm_opts_size=${jvm_workers_opts_size}"
+    props="$props jvm_opts_str=${jvm_workers_opts_str}"
+    props="$props fpga_reprogram_size=${fpga_reprogram_size}"
+    props="$props fpga_reprogram_str=${fpga_reprogram_str}"
+    props="$props network=${network}"
+    props="$props estimated-creation-time=10"
+    if [ -z "${container_image}" ]; then
+      props="$props slurm_over_ssh=false"
+    else
+      props="$props slurm_over_ssh=true"
+    fi
+    if [ -n "${queue}" ]; then
+      props="$props queue=${queue}"
+    fi 
+    if [ -n "${reservation}" ]; then
+      props="$props reservation=${reservation}"
+    fi
+    if [ -n "${qos}" ]; then
+      props="$props qos=${qos}"
+    fi
+    if [ -n "${constraints}" ]; then
+     props="$props constraints=${constraints}"
+    fi
+    if [ -n "${container_opts}" ]; then
+      props="$props container_opts=${container_opts}"
+    fi
+    if [ -n "${cpu_affinity}" ]; then
+      props="$props cpu_affinity=${cpu_affinity}"
+    fi
+
+    add_cloud 0 0 "${elasticity}" "SLURM-Cluster" "${props}" "${container_image}" "${worker_install_dir}" "${worker_working_dir}" "NULL" "${appdir:-NULL}" "${library_path:-NULL}" "${cp:-NULL}" "${pythonpath:-NULL}" "${max_tasks_per_node}" "default"
+  fi
+}
+
+###############################################
+# Create complete project.xml
+###############################################
+create_xml_project() {
+  #
+  # GENERATE PROJECT
+  #
+  # Setup project variables and scripts
+  xml_project_setup
+
+  # Add header (from generate_project.sh)
+  add_header
+
+  # Add master information (from generate_project.sh)
+  add_master_node "${shared_disks_info}"
+
+  # Add workers
+  xml_project_add_worker_in_master
+  xml_project_add_workers
+
+  # Add elasticity
+  xml_project_add_elasticity
+
+  # Close project (from generate_project.sh)
+  add_footer
+}
+
+
+#---------------------------------------------------------------------------------------
+# XML HELPER FUNCTIONS (RESOURCES.XML)
+#---------------------------------------------------------------------------------------
+
+###############################################
+# Setup to generate resources.xml
+###############################################
+xml_resources_setup() {
+  # Shared disks information
+  shared_disks_names=""
+  shared_disks_info=""
+  if [ -n "${GPFS_PREFIX}" ]; then
+    shared_disks_names="gpfs"
+    shared_disks_info="gpfs=${GPFS_PREFIX}"
+  fi
+  if [ -n "${GPFS2_PREFIX}" ] && [ "${GPFS2_PREFIX}" != "${GPFS_PREFIX}" ]; then
+    shared_disks_names="${shared_disks_names} gpfs2"
+    shared_disks_info="${shared_disks_info} gpfs2=${GPFS2_PREFIX}"
+  fi
+
+  # Init resources file
+  init "${RESOURCES_FILE}"
+}
+
+###############################################
+# Add worker in master to resources.xml
+###############################################
+xml_resources_add_worker_in_master() {
+  # Add worker in master if defined
+  if [ "${worker_in_master_cpus}" -ne 0 ]; then
+    local master_node_name
+    # Rename master node if defined
+    if [ -n "${NODE_NAME_XML}" ]; then
+      master_node_name=$(${NODE_NAME_XML} "${master_node}" "${network}")
+    elif [ -n "${NODE_NAME_QUEUE}" ]; then
+      master_node_name=$(${NODE_NAME_QUEUE} "${master_node}")
+    else
+      master_node_name=${master_node}
+    fi
+    # Add compute node
+    master_node_name=${master_node_name}${network}
+    add_compute_node "${master_node_name}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${worker_in_master_memory}" "43001" "43002" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
+  fi
+}
+
+###############################################
+# Add workers to resources.xml
+###############################################
+xml_resources_add_workers() {
+  # Add workers
+  for worker_node in ${worker_nodes}; do
+    local worker_node_name
+    if [ ! -z "${NODE_NAME_XML}" ]; then
+      worker_node_name=$(${NODE_NAME_XML} "${worker_node}" "${network}")
+    elif [ -n "${NODE_NAME_QUEUE}" ]; then
+      worker_node_name=$(${NODE_NAME_QUEUE} "${worker_node}")                                                                                                                                                                             
+    else
+      worker_node_name=${worker_node}
+    fi
+    # Add compute node
+    worker_node_name=${worker_node_name}${network}
+    add_compute_node "${worker_node_name}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${node_memory}" "43001" "43002" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
+  done
+}
+
+###############################################
+# Add heterogeneity to resources.xml
+###############################################
+xml_resources_add_elasticity() {
+  # Add elasticity if defined
+  if [ -n "${elasticity}" ]; then
+    local instance_types="default:${cpus_per_node}:${gpus_per_node}:${fpgas_per_node}:${node_memory}:1:0.085"
+    add_cloud "SLURM-Cluster" "NULL" "slurm-conn.jar" "es.bsc.conn.slurm.SLURMConnector" "${container_image}" "${shared_disks_info:-NULL}" "10" "43001" "43002" "${REMOTE_EXECUTOR:-NULL}" "${instance_types}"
+  fi
+}
+
+###############################################
+# Create complete resources.xml
+###############################################
+create_xml_resources() {
+  #
+  # GENERATE RESOURCES FILE
+  #
+
+  # Setup resources variables and scripts
+  xml_resources_setup
+
+  # Add header (from generate_resources.sh)
+  add_header
+
+  # Add shared disks (from generate_resources.sh)
+  add_shared_disks "${shared_disks_names}"
+
+  # Add workers
+  xml_resources_add_worker_in_master
+  xml_resources_add_workers
+
+  # Add elasticity
+  xml_resources_add_elasticity
+
+  # Close resources (from generate_resources.sh)
+  add_footer
+}
+
+
+#---------------------------------------------------------------------------------------
+# XML MAIN GENERATION FUNCTIONS
+#---------------------------------------------------------------------------------------
+
+###############################################
+# Create XML files
+###############################################
+create_xml_files() {
+  echo "[XML] Begin generation of project and resources files"
+
+  local sec
+  sec=$(date +%s)
+
+  # Log Master Node
+  echo "Master will run in ${master_node}"
+  # Log List of Workers
+  echo "List of workers: ${worker_nodes}"
+
+  # Generate project file
+  # shellcheck source=../system/xmls/generate_project.sh
+  # shellcheck disable=SC1091
+  source "${SCRIPT_DIR}"/../system/xmls/generate_project.sh
+  PROJECT_FILE=${worker_working_dir}/project_$sec.xml
+  echo "[XML] Generating project at ${PROJECT_FILE}"
+  export PROJECT_FILE
+  create_xml_project
+
+  # Generate resources file
+  if [ -n "$resources" ]; then
+    # Custom user resources.xml file
+    echo "[XML] Using user-defined resources.xml file at ${resources}"
+    RESOURCES_FILE=${resources}
+  else
+    # Generate file
+    # shellcheck source=../system/xmls/generate_resources.sh
+    # shellcheck disable=SC1091
+    source "${SCRIPT_DIR}"/../system/xmls/generate_resources.sh
+    RESOURCES_FILE=${worker_working_dir}/resources_$sec.xml
+    echo "[XML] Generating resources at ${RESOURCES_FILE}"
+    export RESOURCES_FILE
+    create_xml_resources
+  fi
+
+  # LOG AND FINISH
+  echo "[XML] Generation of project and resources files finished"
+  echo "[XML] Project.xml:   ${PROJECT_FILE}"
+  echo "[XML] Resources.xml: ${RESOURCES_FILE}"
+}
+
+###############################################
+# Initialize Heterogeneous XML files
+###############################################
+init_het_xml_files() {
+  local suffix=$1
+
+  # Log Master Node
+  echo "Master will run in ${master_node}"
+  # Log List of Workers
+  echo "List of workers: ${worker_nodes}"
+
+  # LOG
+  echo "[XML] Generating project and resources files"
+
+  # GENERATE PROJECT FILE
+  # shellcheck source=../system/xmls/generate_project.sh
+  # shellcheck disable=SC1091
+  source "${SCRIPT_DIR}"/../system/xmls/generate_project.sh
+  PROJECT_FILE=${PWD}/project_$suffix.xml
+  export PROJECT_FILE
+  echo "[XML] Project.xml:   ${PROJECT_FILE}"
+
+  # Setup project variables and scripts
+  xml_project_setup
+  # Add header (from generate_project.sh)
+  add_header
+  # Add master information (from generate_project.sh)
+  add_master_node "${shared_disks_info}"
+  # Add workers
+  xml_project_add_worker_in_master
+  xml_project_add_workers
+  # Add elasticity
+  if [ -n "${elasticity}" ]; then
+    echo " WARNING: Heterogeneity with elasticity not yet supported !"
+  fi
+
+  # GENERATE RESOURCES FILE
+  # shellcheck source=../system/xmls/generate_resources.sh
+  # shellcheck disable=SC1091
+  source "${SCRIPT_DIR}"/../system/xmls/generate_resources.sh
+  RESOURCES_FILE=${PWD}/resources_$suffix.xml
+  export RESOURCES_FILE
+  echo "[XML] Resources.xml: ${RESOURCES_FILE}"
+
+  # Setup resources variables and scripts
+  xml_resources_setup
+  # Add header (from generate_resources.sh)
+  add_header
+  # Add shared disks (from generate_resources.sh)
+  add_shared_disks "${shared_disks_names}"
+  # Add workers
+  xml_resources_add_worker_in_master
+  xml_resources_add_workers
+  # Add elasticity
+  if [ -n "${elasticity}" ]; then
+    echo " WARNING: Heterogeneity with elasticity not yet supported !"
+  fi
+}
+
+###############################################
+# Add worker nodes to Heterogeneous XML files
+###############################################
+add_het_xml_files() {
+  local suffix=$1
+
+  # LOG
+  echo "[XML] Continue generating project and resources files"
+  echo "[XML] List of workers: ${worker_nodes}"
+
+  # GENERATE PROJECT FILE
+  # shellcheck source=../system/xmls/generate_project.sh
+  # shellcheck disable=SC1091
+  source "${SCRIPT_DIR}"/../system/xmls/generate_project.sh
+  PROJECT_FILE=${PWD}/project_$suffix.xml
+  export PROJECT_FILE
+  echo "[XML] Project.xml:   ${PROJECT_FILE}"
+
+  # Setup project variables and scripts
+  xml_project_setup
+  # Add workers
+  xml_project_add_workers
+
+  # GENERATE RESOURCES FILE
+  # shellcheck source=../system/xmls/generate_resources.sh
+  # shellcheck disable=SC1091
+  source "${SCRIPT_DIR}"/../system/xmls/generate_resources.sh
+  RESOURCES_FILE=${PWD}/resources_$suffix.xml
+  export RESOURCES_FILE
+  echo "[XML] Resources.xml: ${RESOURCES_FILE}"
+
+  # Setup resources variables and scripts
+  xml_resources_setup
+  # Add workers
+  xml_resources_add_workers
+}
+
+###############################################
+# Finish Heterogeneous XML files
+###############################################
+fini_het_xml_files() {
+  local suffix=$1
+
+  # LOG
+  echo "[XML] Finishing generation of project and resources files"
+  echo "[XML] Project.xml:   ${PROJECT_FILE}"
+  echo "[XML] Resources.xml: ${RESOURCES_FILE}"
+
+  # GENERATE PROJECT FILE
+  # shellcheck source=../system/xmls/generate_project.sh
+  # shellcheck disable=SC1091
+  source "${SCRIPT_DIR}"/../system/xmls/generate_project.sh
+  PROJECT_FILE=${PWD}/project_$suffix.xml
+  export PROJECT_FILE
+  echo "[XML] Project.xml:   ${PROJECT_FILE}"
+
+  # Setup project variables and scripts
+  xml_project_setup
+  # Close project (from generate_project.sh)
+  add_footer
+
+  # GENERATE RESOURCES FILE
+  # shellcheck source=../system/xmls/generate_resources.sh
+  # shellcheck disable=SC1091
+  source "${SCRIPT_DIR}"/../system/xmls/generate_resources.sh
+  RESOURCES_FILE=${PWD}/resources_$suffix.xml
+  export RESOURCES_FILE
+  echo "[XML] Resources.xml: ${RESOURCES_FILE}"
+
+  # Setup resources variables and scripts
+  xml_resources_setup
+  # Close resources (from generate_resources.sh)
+  add_footer
+
+  # LOG
+  echo "Generation of project and resources files finished"
+}
+
+
+#---------------------------------------------------------------------------------------
+# MAIN FUNCTIONS
+#---------------------------------------------------------------------------------------
 
 ###############################################
 # Function to get the arguments
@@ -665,9 +1121,9 @@ get_args() {
 # Function to check the arguments
 ###############################################
 check_args() {
-  ###############################################################
+  #
   # SC Configuration checks
-  ###############################################################
+  #
   # Check sc configuration argument
   if [ -z "${sc_cfg}" ]; then
     sc_cfg=${DEFAULT_SC_CFG}
@@ -686,6 +1142,7 @@ check_args() {
 
   # Source SC CFG env
   # shellcheck source=../queues/supercomputers/default.cfg
+  # shellcheck disable=SC1091
   source "${scCfgFullPath}"
 
   # Check queue configuration env
@@ -697,11 +1154,12 @@ check_args() {
 
   # Source queue system CFG env
   # shellcheck source=../queues/queue_systems/slurm.cfg
+  # shellcheck disable=SC1091
   source "${queueCfgFullPath}"
 
-  ###############################################################
+  #
   # Infrastructure checks
-  ###############################################################
+  #
   # Changed error by warning because in heterogeneous there can be a launch of just workers 
   if [ -z "${master_node}" ]; then
     echo "${ERROR_MASTER_NODE}"
@@ -746,9 +1204,9 @@ check_args() {
     python_propagate_virtual_environment=${DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT}
   fi
 
-  ###############################################################
+  #
   # Node checks
-  ###############################################################
+  #
   if [ -z "${max_tasks_per_node}" ]; then
     max_tasks_per_node=${DEFAULT_MAX_TASKS_PER_NODE}
   fi
@@ -817,14 +1275,14 @@ check_args() {
     master_port=$((DEFAULT_MASTER_PORT_BASE + offset))
   fi
 
-  while [ "$(netstat | grep TIME_WAIT | grep ${master_port} | wc -l)" -gt 0 ] || [ ! -z "$(lsof -i :${master_port})" ]; do
+  while [ "$(netstat | grep TIME_WAIT | grep -c ${master_port})" -gt 0 ] || [ ! -z "$(lsof -i :${master_port})" ]; do
     echo "Port ${master_port} is already in use or time_wait, incrementing port by 1"
     master_port=$((master_port+1))
   done
 
-  ###############################################################
+  #
   # Working Directory Checks
-  ###############################################################
+  #
   if [ -z "${master_working_dir}" ]; then
     master_working_dir=${DEFAULT_MASTER_WORKING_DIR}
   fi
@@ -835,9 +1293,9 @@ check_args() {
     display_error "${ERROR_WORKER_WD}"
   fi
 
-  ###############################################################
+  #
   # JVM Checks
-  ###############################################################
+  #
   if [ -z "${jvm_master_opts}" ]; then
     jvm_master_opts=${DEFAULT_JVM_MASTER}
   fi
@@ -853,9 +1311,9 @@ check_args() {
   fi
   jvm_worker_in_master_opts=${jvm_worker_in_master_opts//\"/}
 
-  ###############################################################
+  #
   # Runtime and Tools Checks
-  ###############################################################
+  #
   if [ -z "${log_level}" ]; then
     log_level=${DEFAULT_DEBUG}
   fi
@@ -876,9 +1334,9 @@ check_args() {
     jupyter_notebook=${DEFAULT_JUPYTER_NOTEBOOK}
   fi
 
-  ###############################################################
+  #
   # Application Checks
-  ###############################################################
+  #
   # Lang
   if [ -z "$lang" ]; then
     # Try to infer language
@@ -1112,7 +1570,7 @@ launch() {
         fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
         fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
         # worker_cmd id name jvmOptsSize jvmOpts cpus gpus cpuMap gpuMap lot
-        worker_cmd $hostid "${master_node}${network}" "${jvm_worker_in_master_opts_size}" "${jvm_worker_in_master_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${max_tasks_per_node}"
+        worker_cmd "$hostid" "${master_node}${network}" "${jvm_worker_in_master_opts_size}" "${jvm_worker_in_master_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${max_tasks_per_node}"
 
         if [ ! -z "${NODE_NAME_QUEUE}" ]; then
           master_node=$(${NODE_NAME_QUEUE} "${master_node}")
@@ -1292,20 +1750,15 @@ cleanup() {
   trap cleanup EXIT
 
   # Create XML files
-  # shellcheck source=../system/xmls/xmls_utils.sh
-  source ${SCRIPT_DIR}/../system/xmls/xmls_utils.sh
-  CREATE_WORKING_DIRS=true
-  echo " Creating xml phase: '${xmls_phase}' "
-  if [ -z "${xmls_phase}" ]; then
-      create_xml_files
-  elif [ "${xmls_phase}" == "all" ]; then
-      create_xml_files
+  CREATE_WORKING_DIRS=true  # used by xml_project_add_worker_in_master and xml_project_add_workers
+  if [ -z "${xmls_phase}" ] || [ "${xmls_phase}" == "all" ]; then
+    create_xml_files
   elif [ "${xmls_phase}" == "init" ]; then
-      init_het_xml_files "${xmls_suffix}"
+    init_het_xml_files "${xmls_suffix}"
   elif [ "${xmls_phase}" == "add" ]; then
-      add_het_xml_files "${xmls_suffix}"
+    add_het_xml_files "${xmls_suffix}"
   elif [ "${xmls_phase}" == "fini" ]; then
-      fini_het_xml_files "${xmls_suffix}"
+    fini_het_xml_files "${xmls_suffix}"
   fi
 
   # Prolog

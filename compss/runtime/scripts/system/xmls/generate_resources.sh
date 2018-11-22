@@ -4,6 +4,8 @@
 # SCRIPT CONSTANTS
 #
 
+DEFAULT_RESOURCES_FILENAME="resources.xml"
+
 DEFAULT_NODE_NAME=""
 DEFAULT_CUS=""
 DEFAULT_GPUS=""
@@ -59,9 +61,11 @@ add_shared_disks() {
   :
 
   # Dump information to file
-  for sd in ${sd_names}; do
-    add_shared_disk "$sd"
-  done
+  if [ -n "${sd_names}" ] && [ "${sd_names}" != "NULL" ]; then
+    for sd in ${sd_names}; do
+      add_shared_disk "$sd"
+    done
+  fi
 }
 
 add_shared_disk() {
@@ -150,7 +154,13 @@ add_cloud() {
   cat >> "${RESOURCES_FILE}" << EOT
   <CloudProvider Name="${cp_name}">
     <Endpoint>
+EOT
+  if [ -n "${server}" ] && [ "${server}" != "NULL" ]; then
+    cat >> "${RESOURCES_FILE}" << EOT
       <Server>${server}</Server>
+EOT
+  fi
+  cat >> "${RESOURCES_FILE}" << EOT
       <ConnectorJar>${connector_jar}</ConnectorJar>
       <ConnectorClass>${connector_class}</ConnectorClass>
     </Endpoint>
@@ -297,7 +307,7 @@ _fill_memory() {
   :
 
   # Dump information to file
-  if [ -n "${memory}" ]; then
+  if [ -n "${memory}" ] && [ "${memory}" != "NULL" ]; then
     cat >> "${RESOURCES_FILE}" << EOT
     <Memory>
       <Size>${memory}</Size>
@@ -369,7 +379,7 @@ _fill_adaptors() {
           <MinPort>${min_port}</MinPort>
           <MaxPort>${max_port}</MaxPort>
 EOT
-   if [ -n "${remote_executor}" ]; then
+   if [ -n "${remote_executor}" ] && [ "${remote_executor}" != "NULL" ]; then
      cat >> "${RESOURCES_FILE}" << EOT
           <RemoteExecutionCommand>${remote_executor}</RemoteExecutionCommand>
 EOT
@@ -395,7 +405,7 @@ _fill_shared_disks() {
   :
 
   # Dump information to file
-  if [ -n "${shared_disks}" ]; then
+  if [ -n "${shared_disks}" ] && [ "${shared_disks}" != "NULL" ]; then
     cat >> "${RESOURCES_FILE}" << EOT
     <SharedDisks>
 EOT
@@ -413,3 +423,37 @@ EOT
 EOT
   fi
 }
+
+
+#
+# MAIN FUNCTION FOR SIMPLE RESOURCES CREATION
+#
+
+create_simple_resources() {
+  # Function called by the Runtime when executing COMPSs Nested
+
+  local resources=$1
+  local workers_info=$2  # "name:cus:install_dir:working_dir ..."
+                         # Some parameters are used by the project generation and skiped here
+
+  init "${resources}"
+  add_header
+  for worker_info in ${workers_info}; do
+    IFS=":" read -ra worker_info_fields <<< "${worker_info}"
+    local worker_name=${worker_info_fields[0]}
+    local worker_cus=${worker_info_fields[1]}
+    #local worker_install_dir=${worker_info_fields[2]}
+    #local worker_working_dir=${worker_info_fields[3]}
+    add_compute_node "${worker_name}" "${worker_cus}" "0" "0" "" "43101" "43102" "" ""
+  done
+  add_footer
+}
+
+
+#
+# MAIN (when script is called directly)
+#
+
+if [ $# -ne 0 ]; then
+  create_simple_resources "$@"
+fi

@@ -49,7 +49,7 @@ public abstract class Tracer {
     private static final String insideTaskDesc = "Events inside tasks";
 
     protected static final String TRACE_SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts" + File.separator + "system"
-            + File.separator + "trace.sh";
+            + File.separator + "trace" + File.separator + "trace.sh";
     protected static final String traceOutRelativePath = File.separator + "trace" + File.separator + "tracer.out";
     protected static final String traceErrRelativePath = File.separator + "trace" + File.separator + "tracer.err";
 

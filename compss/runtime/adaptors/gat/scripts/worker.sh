@@ -1,32 +1,38 @@
 #!/bin/bash
 
+  # worker_commons.sh loads some variables
+  # shellcheck disable=SC2154
+
   #-------------------------------------
   # Define script variables and exports
   #-------------------------------------
   if [ -z "${COMPSS_HOME}" ]; then
-    scriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-    export COMPSS_HOME=${scriptDir}/../../../../../
+    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+    export COMPSS_HOME=${SCRIPT_DIR}/../../../../../
   else
-    scriptDir="${COMPSS_HOME}/Runtime/scripts/system/adaptors/gat"
+    SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/system/adaptors/gat"
   fi
 
-  #shellcheck source=./worker_commons.sh
-  source "${scriptDir}"/worker_commons.sh
+  # shellcheck source=./worker_commons.sh
+  # shellcheck disable=SC1091
+  source "${SCRIPT_DIR}"/worker_commons.sh
  
   #-------------------------------------
   # Remove obsolete files
   #-------------------------------------
   rmfilesNum=$8
-  obsoletes=${@:9:${rmfilesNum}}
+  obsoletes=${*:9:${rmfilesNum}}
 
   if [ "${rmfilesNum}" -gt 0 ]; then
     echo "[WORKER.SH] Removing $rmfilesNum obsolete files"
+    # shellcheck disable=SC2086
     rm -f ${obsoletes}
   fi
 
   #-------------------------------------
   # Determine Language-dependent script
   #-------------------------------------
+  # Loads variables
   get_host_parameters "$@"
 
   echo "[WORKER.SH] Starting GAT Worker"
@@ -57,7 +63,7 @@
   #-------------------------------------
   cd "$workingDir" || exit 1
   echo "[WORKER.SH] Starting language $lang script"
-  "${scriptDir}"/worker_$lang.sh "$@"
+  "${SCRIPT_DIR}"/worker_$lang.sh "$@"
   endCode=$?
   echo " "
   echo "[WORKER.SH] EndStatus = $endCode"
@@ -73,3 +79,4 @@
     echo 1>&2 "Task execution failed"
     exit 7
   fi
+

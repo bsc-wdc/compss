@@ -57,9 +57,11 @@
     fi
     if [ -f TRACE.sym ]; then
         files+=" TRACE.sym"
-    fi    
+    fi
+    # shellcheck disable=SC2086
     tar czf "${node}_compss_trace.tar.gz" $files
     endCode=$?
+    # shellcheck disable=SC2086
     rm -rf $files
   elif [ "$action" == "gentrace" ]; then
     appName=$1
@@ -85,6 +87,7 @@
         if [ ! -z "$files" ]; then
             nodeDir="$(pwd)/trace/python/"
             mkdir -p "$nodeDir"
+            # shellcheck disable=SC2086
             cp ${files} "$nodeDir"
         fi
         if [ -f "$tmpDir"/TRACE.sym ]; then

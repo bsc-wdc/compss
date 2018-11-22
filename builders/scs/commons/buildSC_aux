@@ -306,7 +306,7 @@
   # ADD RUNCOMPSS TO PROFILE
   mkdir -p "${targetDir}"/etc/profile.d/
   echo " - Adding runcompss to profile..."
-  echo "export PATH=\$PATH:${targetDir}/Runtime/scripts/user" > "${targetDir}"/etc/profile.d/compss.sh
+  echo "export PATH=\$PATH:${targetDir}/Runtime/scripts/user:/opt/COMPSs/Runtime/scripts/utils" > "${targetDir}"/etc/profile.d/compss.sh
   echo " - Runcompss added to user profile"
   echo " "
   echo " - Adding compss-engine.jar to profile..."

@@ -17,7 +17,7 @@
   runtime_dir=${compss_home}/Runtime/
   compss_classpath=${runtime_dir}/compss-engine.jar
   
-  echo -e "\n----------------- Instrumenting $fullAppName --------------------------\n"
+  echo -e "\\n----------------- Instrumenting $fullAppName --------------------------\\n"
   cd "${dest_dir}" || exit 
  
   # shellcheck disable=SC2068 

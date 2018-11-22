@@ -7,7 +7,7 @@
   verLTE() {
     local currentVersion=$1
     local baseVersion="2.38.0"
-    if [ "$currentVersion" = "$(echo -e "$currentVersion\n$baseVersion" | sort -V | head -n1)" ]; then
+    if [ "$currentVersion" = "$(echo -e "$currentVersion\\n$baseVersion" | sort -V | head -n 1)" ]; then
       isLower=1
     else
       isLower=0

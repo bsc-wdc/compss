@@ -556,7 +556,7 @@ install_compss() {
 
   echo "- Adding runcompss to profile..."
   echo "# COMPSs environment variables" >> $envFile
-  echo "export PATH=\$PATH:${targetDir}/Runtime/scripts/user" >> $envFile
+  echo "export PATH=\$PATH:${targetDir}/Runtime/scripts/user:${targetDir}/Runtime/scripts/utils" >> $envFile
   echo "- Runcompss added to user profile"
   echo " "
   echo "- Adding compss-engine.jar to profile..."

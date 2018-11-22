@@ -50,7 +50,7 @@ fi
 DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT=true
 
 NIO_ADAPTOR=es.bsc.compss.nio.master.NIOAdaptor
-GAT_ADAPTOR=es.bsc.compss.gat.master.GATAdaptor
+#GAT_ADAPTOR=es.bsc.compss.gat.master.GATAdaptor
 DEFAULT_COMMUNICATION_ADAPTOR=${NIO_ADAPTOR}
 #DEFAULT_COMMUNICATION_ADAPTOR=${GAT_ADAPTOR}
 DEFAULT_CONNECTOR=es.bsc.compss.connectors.DefaultSSHConnector
@@ -228,15 +228,15 @@ show_version() {
 show_full_version() {
   cat << EOF
         .-~~-.--.            ____        _    _
-       :         )          |___ \      | |  | |
- .~ ~ -.\       /.- ~~ .      __) |     | |__| |
- >       \`.   .'       <     / __/  _  |____  |
+       :         )          |___ \\      | |  | |
+ .~ ~ -.\\       /.- ~~ .      __) |     | |__| |
+ >       \`.   .'       <     / __/   _  |____  |
 (         .- -.         )   |_____| |_|      |_|
  \`- -.-~  \`- -'  ~-.- -'
    (        :        )           _ _ .-:
     ~--.    :    .--~        .-~  .-~  }
-        ~-.-^-.-~ \_      .~  .-~   .~
-                 \ \'     \ '_ _ -~
+        ~-.-^-.-~ \\       .~  .-~   .~
+                 \\ \\      \\ '_ _ -~
                   \`.\`.    //
          . - ~ ~-.__\`.\`-.//
      .-~   . - ~  }~ ~ ~-.~-.
@@ -847,7 +847,7 @@ check_args() {
     jvm_master_opts=${DEFAULT_JVM_MASTER}
   fi
   # Change jvm master opts separation character "," by " "
-  jvm_master_opts=$(echo $jvm_master_opts | tr "," "\n")
+  jvm_master_opts=$(echo $jvm_master_opts | tr "," "\\n")
 
   if [ -z "${jvm_workers_opts}" ] || [ "${jvm_workers_opts}" = \"\" ]; then
     jvm_workers_opts=${DEFAULT_JVM_WORKERS}
@@ -940,7 +940,7 @@ execute_runtime() {
   generate_jvm_opts_file
 
   # Init COMPSs
-  echo -e "\n----------------- Executing $appName --------------------------\n"
+  echo -e "\\n----------------- Executing $appName --------------------------\\n"
   if [ $lang = java ]; then
     add_jvm_opts_java
     exec_java

@@ -62,9 +62,11 @@ show_opts() {
   # Load default CFG for default values
   local defaultSC_cfg="${SCRIPT_DIR}/../supercomputers/${DEFAULT_SC_CFG}.cfg"
   # shellcheck source=../supercomputers/default.cfg
+  # shellcheck disable=SC1091
   source "${defaultSC_cfg}"
   local defaultQS_cfg="${SCRIPT_DIR}/../queue_systems/${QUEUE_SYSTEM}.cfg"
   # shellcheck source=../queue_systems/slurm.cfg
+  # shellcheck disable=SC1091
   source "${defaultQS_cfg}"
 
   # Show usage
@@ -174,7 +176,7 @@ display_execution_error() {
 # Function to log the arguments
 ###############################################
 log_args() {
-  # Display arguments
+  # Display generic arguments
   echo "SC Configuration:          ${sc_cfg}"
   echo "JobName:                   ${job_name}"
   echo "Queue:                     ${queue}"
@@ -184,6 +186,8 @@ log_args() {
   echo "GPUs per node:             ${gpus_per_node}"
   echo "Job dependency:            ${dependencyJob}"
   echo "Exec-Time:                 ${wc_limit}"
+
+  # Display optional arguments
   if [ -z "${DISABLE_QARG_QOS}" ] || [ "${DISABLE_QARG_QOS}" == "false" ]; then
     echo "QoS:                       ${qos}"
   fi
@@ -193,9 +197,14 @@ log_args() {
   if [ -z "${DISABLE_QARG_CONSTRAINTS}" ] || [ "${DISABLE_QARG_CONSTRAINTS}" == "false" ]; then
     echo "Constraints:               ${constraints}"
   fi
+
+  # Display storage arguments
   echo "Storage Home:              ${storage_home}"
   echo "Storage Properties:        ${storage_props}"
-  local other=$(echo ${args_pass} | sed 's/\ --/\n\t\t\t--/g')
+
+  # Display arguments to runcompss
+  local other
+  other=$(echo "${args_pass}" | sed 's/\ --/\n\t\t\t--/g')
   echo "Other:                     $other"
   echo " "
 }
@@ -337,12 +346,18 @@ get_args() {
             ;;
           # Heterogeneous submission arguments
           types_cfg=*)
+            # Used in heterogeneous_submit.sh
+            # shellcheck disable=SC2034
             types_cfg_file=${OPTARG//types_cfg=/}
             ;;
           master=*)
+            # Used in heterogeneous_submit.sh
+            # shellcheck disable=SC2034
             master_type=${OPTARG//master=/}
             ;;
           workers=*)
+            # Used in heterogeneous_submit.sh
+            # shellcheck disable=SC2034
             worker_types=${OPTARG//workers=/}
             ;;
           uuid=*)
@@ -364,7 +379,7 @@ get_args() {
   shift $((OPTIND-1))
 
   # Pass application name and args
-  args_pass="$args_pass $@"
+  args_pass="$args_pass $*"
 }
 
 ###############################################
@@ -518,6 +533,11 @@ create_tmp_submit() {
 #
 EOT
 }
+
+
+###############################################
+# MAIN ENTRY POINTS FROM SUBMIT/HETER_SUBMIT
+###############################################
 
 create_normal_tmp_submit(){
   create_tmp_submit

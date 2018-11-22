@@ -23,6 +23,7 @@ import java.io.ObjectOutput;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.Implementation.TaskType;
 
+
 public class ServiceResourceDescription extends WorkerResourceDescription {
 
     private final String serviceName;
@@ -64,6 +65,11 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
     public boolean canHostDynamic(Implementation impl) {
         int conRequired = ((ServiceResourceDescription) impl.getRequirements()).connections;
         return conRequired <= connections;
+    }
+
+    @Override
+    public void mimic(ResourceDescription rd) {
+        //Do nothing
     }
 
     @Override

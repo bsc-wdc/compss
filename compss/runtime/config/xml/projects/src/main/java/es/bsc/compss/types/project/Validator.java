@@ -27,12 +27,13 @@ import org.apache.logging.log4j.Logger;
 import es.bsc.compss.types.project.exceptions.ProjectFileValidationException;
 import es.bsc.compss.types.project.exceptions.InvalidElementException;
 import es.bsc.compss.types.project.jaxb.*;
+import java.io.Serializable;
 
 
 /**
- * 
+ *
  * Custom XML Validation for COMPSs
- * 
+ *
  */
 public class Validator {
 
@@ -41,10 +42,9 @@ public class Validator {
     // Logger
     private Logger logger;
 
-
     /**
      * Validator instantiation for ProjectFile pf
-     * 
+     *
      * @param pf
      */
     public Validator(ProjectFile pf, Logger logger) {
@@ -54,7 +54,7 @@ public class Validator {
 
     /**
      * Validates the content of the given ResourcesFile object The content is correct if no exception is raised
-     * 
+     *
      * @throws JAXBException
      * @throws ResourcesFileValidationException
      */
@@ -112,18 +112,62 @@ public class Validator {
      **********************************************/
     /**
      * Validates the MasterNode
-     * 
+     *
      * @param mn
      * @throws InvalidElementException
      */
     public void validateMasterNode(MasterNodeType mn) throws InvalidElementException {
         if (mn != null) {
-            List<Object> innerElements = mn.getSharedDisksOrPrice();
+            List<Object> innerElements = mn.getProcessorOrMemoryOrStorage();
             if (innerElements != null) {
+                boolean memoryTypeTagFound = false;
+                boolean storageTypeTagFound = false;
+                boolean osTypeTagFound = false;
+                boolean softwareListTypeTagFound = false;
                 boolean sharedDisksTagFound = false;
                 boolean priceTagFound = false;
                 for (Object obj : innerElements) {
-                    if (obj instanceof AttachedDisksListType) {
+                    if (obj instanceof ProcessorType) {
+                        //Many instance supported. Only validate
+                        ProcessorType p = (ProcessorType) obj;
+                        validateProcessor(p);
+                    } else if (obj instanceof MemoryType) {
+                        if (memoryTypeTagFound) {
+                            // Second occurency, throw exception
+                            throw new InvalidElementException("MasterNode", "Attribute " + obj.getClass(), "Appears more than once");
+                        } else {
+                            memoryTypeTagFound = true;
+                            MemoryType mem = (MemoryType) obj;
+                            validateMemory(mem);
+                        }
+                    } else if (obj instanceof StorageType) {
+                        if (storageTypeTagFound) {
+                            // Second occurency, throw exception
+                            throw new InvalidElementException("MasterNode", "Attribute " + obj.getClass(), "Appears more than once");
+                        } else {
+                            storageTypeTagFound = true;
+                            StorageType sto = (StorageType) obj;
+                            validateStorage(sto);
+                        }
+                    } else if (obj instanceof OSType) {
+                        if (osTypeTagFound) {
+                            // Second occurency, throw exception
+                            throw new InvalidElementException("MasterNode", "Attribute " + obj.getClass(), "Appears more than once");
+                        } else {
+                            osTypeTagFound = true;
+                            OSType os = (OSType) obj;
+                            validateOS(os);
+                        }
+                    } else if (obj instanceof SoftwareListType) {
+                        if (softwareListTypeTagFound) {
+                            // Second occurency, throw exception
+                            throw new InvalidElementException("MasterNode", "Attribute " + obj.getClass(), "Appears more than once");
+                        } else {
+                            softwareListTypeTagFound = true;
+                            SoftwareListType softwares = (SoftwareListType) obj;
+                            this.validateSoftwareList(softwares);
+                        }
+                    } else if (obj instanceof AttachedDisksListType) {
                         if (sharedDisksTagFound) {
                             // Second occurency, throw exception
                             throw new InvalidElementException("MasterNode", "Attribute " + obj.getClass(), "Appears more than once");
@@ -155,7 +199,7 @@ public class Validator {
 
     /**
      * Validates a ComputeNode
-     * 
+     *
      * @param cn
      * @throws InvalidElementException
      */
@@ -249,7 +293,7 @@ public class Validator {
 
     /**
      * Validates a DataNode
-     * 
+     *
      * @param dn
      * @throws InvalidElementException
      */
@@ -279,7 +323,7 @@ public class Validator {
 
     /**
      * Validates a Service
-     * 
+     *
      * @param s
      * @throws InvalidElementException
      */
@@ -295,7 +339,7 @@ public class Validator {
 
     /**
      * Validates a full Cloud tag
-     * 
+     *
      * @param c
      * @throws InvalidElementException
      */
@@ -366,7 +410,7 @@ public class Validator {
 
     /**
      * Validates a CloudProvider
-     * 
+     *
      * @param cp
      * @throws InvalidElementException
      */
@@ -437,6 +481,159 @@ public class Validator {
      * ********************************************** 
      * HELPERS FOR VALIDATION (PRIVATE METHODS)
      **********************************************/
+    private void validateProcessor(ProcessorType processor) throws InvalidElementException {
+        // Names are validated in the parent node
+
+        // Validate inner elements
+        List<JAXBElement<?>> innerElements = processor.getComputingUnitsOrArchitectureOrSpeed();
+        if (innerElements != null) {
+            boolean cuTagFound = false;
+            boolean ArchitectureTagFound = false;
+            boolean speedTagFound = false;
+            boolean typeTagFound = false;
+            boolean memTagFound = false;
+            boolean processorPropertyTagFound = false;
+            for (JAXBElement<?> obj : innerElements) {
+                if (obj.getName().equals(new QName("ComputingUnits"))) {
+                    if (cuTagFound) {
+                        throw new InvalidElementException("Processor", "Attribute ComputingUnits", "Appears more than once");
+                    } else {
+                        cuTagFound = true;
+                        int val = (Integer) obj.getValue();
+                        if (val <= 0) {
+                            throw new InvalidElementException("Processor", "Attribute ComputingUnits", "Must be greater than 0");
+                        }
+                    }
+                } else if (obj.getName().equals(new QName("Architecture"))) {
+                    if (ArchitectureTagFound) {
+                        throw new InvalidElementException("Processor", "Attribute Architecture", "Appears more than once");
+                    } else {
+                        ArchitectureTagFound = true;
+                    }
+                } else if (obj.getName().equals(new QName("Speed"))) {
+                    if (speedTagFound) {
+                        throw new InvalidElementException("Processor", "Attribute Speed", "Appears more than once");
+                    } else {
+                        speedTagFound = true;
+                        float val = (Float) obj.getValue();
+                        if (val <= 0.0) {
+                            throw new InvalidElementException("Processor", "Attribute Speed", "Must be greater than 0");
+                        }
+                    }
+                } else if (obj.getName().equals(new QName("Type"))) {
+                    if (typeTagFound) {
+                        throw new InvalidElementException("Processor", "Attribute Type", "Appears more than once");
+                    } else {
+                        typeTagFound = true;
+                    }
+                } else if (obj.getName().equals(new QName("InternalMemorySize"))) {
+                    if (memTagFound) {
+                        throw new InvalidElementException("Processor", "Attribute InternalMemorySize", "Appears more than once");
+                    } else {
+                        memTagFound = true;
+                        float val = (Float) obj.getValue();
+                        if (val <= 0.0) {
+                            throw new InvalidElementException("Processor", "Attribute InternalMemorySize", "Must be greater than 0");
+                        }
+                    }
+                } else if (obj.getName().equals(new QName("ProcessorProperty"))) {
+                    if (processorPropertyTagFound) {
+                        throw new InvalidElementException("Processor", "Attribute ProcessorProperty", "Appears more than once");
+                    } else {
+                        processorPropertyTagFound = true;
+                    }
+                } else {
+                    throw new InvalidElementException("Processor", "Attribute " + obj.getClass(), "Incorrect attribute");
+                }
+            }
+            // Check minimum appearences
+            if (!cuTagFound) {
+                throw new InvalidElementException("Processor", "Attribute ComputingUnits", "Doesn't appear");
+            }
+        } else {
+            // Empty inner elements
+            throw new InvalidElementException("Processor", "", "Content is empty");
+        }
+    }
+
+    private void validateMemory(MemoryType memory) throws InvalidElementException {
+        // Validate inner elements
+        List<Serializable> innerElements = memory.getSizeOrType();
+        if (innerElements != null) {
+            boolean sizeTagFound = false;
+            boolean typeTagFound = false;
+            for (Object obj : innerElements) {
+                if (obj instanceof Float) {
+                    if (sizeTagFound) {
+                        throw new InvalidElementException("Memory", "Attribute Size", "Appears more than once");
+                    } else {
+                        sizeTagFound = true;
+                        Float val = (Float) obj;
+                        if (val <= 0.0) {
+                            throw new InvalidElementException("Memory", "Attribute Size", "Must be greater than 0");
+                        }
+                    }
+                } else if (obj instanceof String) {
+                    if (typeTagFound) {
+                        throw new InvalidElementException("Memory", "Attribute Type", "Appears more than once");
+                    } else {
+                        typeTagFound = true;
+                    }
+                } else {
+                    throw new InvalidElementException("Memory", "Attribute " + obj.getClass(), "Incorrect attribute");
+                }
+            }
+            // Check minimum appearences
+            if (!sizeTagFound) {
+                throw new InvalidElementException("Memory ", "Attribute Size", "Doesn't appear");
+            }
+        } else {
+            // Empty inner elements
+            throw new InvalidElementException("Memory", "", "Content is empty");
+        }
+    }
+
+    private void validateStorage(StorageType s) throws InvalidElementException {
+        // Validate inner elements
+        List<Serializable> innerElements = s.getSizeOrType();
+        if (innerElements != null) {
+            boolean sizeTagFound = false;
+            boolean typeTagFound = false;
+            for (Object obj : innerElements) {
+                if (obj instanceof Float) {
+                    if (sizeTagFound) {
+                        throw new InvalidElementException("Storage", "Attribute Size", "Appears more than once");
+                    } else {
+                        sizeTagFound = true;
+                        Float val = (Float) obj;
+                        if (val <= 0.0) {
+                            throw new InvalidElementException("Storage", "Attribute Size", "Must be greater than 0");
+                        }
+                    }
+                } else if (obj instanceof String) {
+                    if (typeTagFound) {
+                        throw new InvalidElementException("Storage", "Attribute Type", "Appears more than once");
+                    } else {
+                        typeTagFound = true;
+                    }
+                } else {
+                    throw new InvalidElementException("Storage", "Attribute " + obj.getClass(), "Incorrect attribute");
+                }
+            }
+            // Check minimum appearences
+            if (!sizeTagFound) {
+                throw new InvalidElementException("Storage ", "Attribute Size", "Doesn't appear");
+            }
+        } else {
+            // Empty inner elements
+            throw new InvalidElementException("Storage", "", "Content is empty");
+        }
+    }
+
+    private void validateOS(OSType os) throws InvalidElementException {
+        // The XSD ensures the OS Type and there is nothing more to validate
+    }
+
     private void validateAttachedDisksList(AttachedDisksListType disks) throws InvalidElementException {
         // Validate inner elements
         List<AttachedDiskType> innerElements = disks.getAttachedDisk();

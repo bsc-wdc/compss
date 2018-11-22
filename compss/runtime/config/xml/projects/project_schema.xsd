@@ -23,6 +23,11 @@
                 <xsd:choice minOccurs="0" maxOccurs="unbounded">
                         <!-- Mandatory -->
                         <!-- NOT mandatory -->
+			<xsd:element name="Processor" type="ProcessorType" minOccurs="0" maxOccurs="unbounded" />
+			<xsd:element name="Memory" type="MemoryType" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="Storage" type="StorageType" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="OperatingSystem" type="OSType" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="Software" type="SoftwareListType" minOccurs="0" maxOccurs="1" />
                         <xsd:element name="SharedDisks" type="AttachedDisksListType" minOccurs="0" maxOccurs="1" />
 			<xsd:element name="Price" type="PriceType" minOccurs="0" maxOccurs="1" />
                 </xsd:choice>
@@ -80,7 +85,81 @@
         <!-- ########################################################################################## -->
         <!-- SECOND LEVEL COMPLEX TYPES -->
 
-        <!-- ATTACHED DISKS LIST TYPE -->
+        <!-- PROCESSOR TYPE -->
+        <xsd:complexType name="ProcessorType">
+		<xsd:choice minOccurs="1" maxOccurs="unbounded">
+                        <!-- Mandatory -->
+                        <xsd:element name="ComputingUnits" type="xsd:int" minOccurs="1" maxOccurs="1" />
+                        <!-- NOT mandatory -->
+                        <xsd:element name="Architecture" type="xsd:string" minOccurs="0" maxOccurs="1" />
+                        <xsd:element name="Speed" type="xsd:float" minOccurs="0" maxOccurs="1" />		<!-- GHz -->
+                        <xsd:element name="Type" type="xsd:string" minOccurs="0" maxOccurs="1" />
+                        <xsd:element name="InternalMemorySize" type="xsd:float" minOccurs="0" maxOccurs="1" />	<!-- GB -->
+                        <xsd:element name="ProcessorProperty" type="ProcessorPropertyType" minOccurs="0" maxOccurs="1" />
+                </xsd:choice>
+                <xsd:attribute name="Name" type="xsd:string" use="required"/>
+        </xsd:complexType>
+
+        <xsd:complexType name="ProcessorPropertyType">
+                <xsd:sequence>
+                        <!-- Mandatory -->
+                        <xsd:element name="Key" type="xsd:string" minOccurs="1" maxOccurs="1" />
+                        <xsd:element name="Value" type="xsd:string" minOccurs="1" maxOccurs="1" />
+                </xsd:sequence>
+        </xsd:complexType>
+
+        <!-- MEMORY TYPE -->
+        <xsd:complexType name="MemoryType">
+                <xsd:choice minOccurs="1" maxOccurs="unbounded">
+                        <!-- Mandatory -->
+                        <xsd:element name="Size" type="xsd:float" minOccurs="1" maxOccurs="1" />	<!-- GB -->
+                        <!-- NOT mandatory -->
+                        <xsd:element name="Type" type="xsd:string" minOccurs="0" maxOccurs="1" />
+                </xsd:choice>
+        </xsd:complexType>
+
+	<!-- STORAGE Type -->
+	<xsd:complexType name="StorageType">
+                <xsd:choice minOccurs="1" maxOccurs="unbounded">
+                        <!-- Mandatory -->
+                        <xsd:element name="Size" type="xsd:float" minOccurs="1" maxOccurs="1" />	<!-- GB -->
+                        <!-- NOT mandatory -->
+			<xsd:element name="Type" type="xsd:string" minOccurs="0" maxOccurs="1" />
+                </xsd:choice>
+	</xsd:complexType>
+
+        <!-- OPERATING SYSTEM TYPE -->
+        <xsd:complexType name="OSType">
+                <xsd:choice minOccurs="1" maxOccurs="unbounded">
+                        <!-- Mandatory -->
+                        <xsd:element name="Type" type="OSTypeType" minOccurs="1" maxOccurs="1" />
+                        <!-- NOT mandatory -->
+                        <xsd:element name="Distribution" type="xsd:string" minOccurs="0" maxOccurs="1" />
+                        <xsd:element name="Version" type="xsd:string" minOccurs="0" maxOccurs="1" />
+                </xsd:choice>
+        </xsd:complexType>
+
+        <xsd:simpleType name="OSTypeType">
+		<xsd:restriction base="xsd:string">
+        		<xsd:enumeration value="Linux"/>
+	       		<xsd:enumeration value="Windows"/>
+	            	<xsd:enumeration value="MacOS"/>
+	            	<xsd:enumeration value="FreeBSD"/>
+	            	<xsd:enumeration value="SunOS"/>
+        	</xsd:restriction>
+        </xsd:simpleType>
+
+
+        <!-- SOFTWARE LIST TYPE -->
+        <xsd:complexType name="SoftwareListType">
+		<xsd:sequence>
+			<!-- Mandatory -->
+			<xsd:element name="Application" type="xsd:string" minOccurs="1" maxOccurs="unbounded" />
+			<!-- NOT mandatory -->
+		</xsd:sequence>
+        </xsd:complexType>
+
+	<!-- ATTACHED DISKS LIST TYPE -->
         <xsd:complexType name="AttachedDisksListType">
                 <xsd:sequence>
                         <!-- Mandatory -->
@@ -241,15 +320,6 @@
                         <xsd:element name="IncludedSoftware" type="SoftwareListType" minOccurs="0" maxOccurs="1" />
                 </xsd:all>
         </xsd:complexType>
-
-        <xsd:complexType name="SoftwareListType">
-                <xsd:sequence>
-                        <!-- Mandatory -->
-                        <xsd:element name="Application" type="xsd:string" minOccurs="1" maxOccurs="unbounded" />
-                        <!-- NOT mandatory -->
-                </xsd:sequence>
-        </xsd:complexType>
-
 
         <!-- INSTANCES (LIST) TYPE -->
         <xsd:complexType name="InstanceTypesType">

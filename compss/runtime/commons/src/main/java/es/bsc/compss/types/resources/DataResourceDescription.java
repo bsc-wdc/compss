@@ -22,6 +22,7 @@ import java.io.ObjectOutput;
 
 import es.bsc.compss.types.implementations.Implementation;
 
+
 /**
  * Data Node representation
  *
@@ -145,6 +146,13 @@ public class DataResourceDescription extends ResourceDescription {
     public boolean canHost(Implementation impl) {
         // DataNodes can not run any implementation
         return false;
+    }
+
+    @Override
+    public void mimic(ResourceDescription rd) {
+        DataResourceDescription drd = (DataResourceDescription) rd;
+        this.storageSize = drd.storageSize;
+        this.storageType = drd.storageType;
     }
 
     @Override

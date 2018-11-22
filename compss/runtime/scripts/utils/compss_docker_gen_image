@@ -1,0 +1,124 @@
+#!/bin/bash                                                                                                                                                                 
+
+#
+# SCRIPT CONSTANTS
+#
+
+BASE_IMAGE_NAME="compss:latest" # Please put this without the "compss" user before. It is assumed by the script.
+GENERATORS_DIR=$(dirname "$0")/../system/docker/generators                                                                                                                                    
+GENERATE_APP_IMAGE=$GENERATORS_DIR/generate-app-image                                                                              
+
+
+#
+# HELPER FUNCTIONS
+#
+
+# shellcheck source=../system/docker/aux_functions.sh
+source "$GENERATORS_DIR/aux_functions.sh"
+
+showHelp() {
+  echo -e "
+::::::::::::::: [  RUNCOMPSS-DOCKER-GEN-IMAGE  -  HELP  ] ::::::::::::::::::::::
+
+Usage: $0 --context-dir='CTX_DIR' --image-name='dockerhub_user/image_name'
+
+Example: $0 --context-dir='/home/compss-user/myApp' --image-name='john123/my-app-image'
+
+
+ARGUMENTS:
+
+ --c, --context-dir:    Specify the context directory of the app.
+                        The context directory must contain the needed binaries and input files of the app.
+                        Example: --context-dir='/home/compss-user/my-app-dir'
+
+ --image-name:          Specify a name for the created image. It MUST have this format: \"DOCKERHUB_USERNAME/image_name\"
+				        Example: --image-name=\"john123/my-image-app\"
+
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+"
+}
+
+
+#
+# MAIN
+#
+
+ALL_ARGS=( "$@" )
+for arg in "${ALL_ARGS[@]}"; do
+    argName="$(echo "$arg" | cut -c 3- | cut -d= -f1)"
+    argValue="$(echo "$arg" | cut -d= -f2)"
+    
+    if [ "$argName" = "context-dir" ] || [ "$argName" = "c" ]; then
+        if [ -d "$argValue" ]; then
+            ABS_CONTEXT=$(realpath "$argValue") 
+        else
+            ABS_CONTEXT="$argValue"
+        fi
+    elif [ "$argName" = "image-name" ]; then
+    	if [ -z "$(echo "$argValue" | grep -E "\\S/\\S")" ]; then
+	    	ECHO "[  ERROR  ]: Wrong image format. Correct format: \"DOCKERHUB_USERNAME/imageName:TAG\" (the :TAG is optional)"
+		    exit
+    	fi
+    	APP_IMAGE_NAME="$argValue"
+    fi
+done
+
+# Show help message when required
+if [ -z "$1" ] || [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
+    showHelp
+    exit 2
+fi
+
+# Check parameters
+ALL_GOOD=1
+if [ -z "$ABS_CONTEXT" ]; then
+    ERROR "Indicate the path of the docker context directory ('--context-dir=\"/home/compss-user/my_app\" ')."
+    ALL_GOOD=0
+else
+    if [ ! -d "$ABS_CONTEXT" ]; then
+	    if [ ! -f "$ABS_CONTEXT" ]; then
+        	ERROR "The specified context directory '$ABS_CONTEXT' does not exist."
+	    else
+		    ERROR "The context directory must be a directory, not a file."
+	    fi
+        ALL_GOOD=0
+    fi
+fi
+
+if [ -z "$APP_IMAGE_NAME" ]; then
+    ERROR "Indicate the name of the image you want to create. (this name will be used in Dockerhub as the application image name). (--image-name='john123/my-image')"
+    ALL_GOOD=0
+fi
+
+if [ "$ALL_GOOD" = "0" ]; then
+    echo
+    ECHO "Run 'runcompss-docker --help' if you need help."
+    echo
+    exit 1
+fi
+
+# Regular workflow
+ECHO "Please login to Dockerhub to be able to push your image and share it with the workers:" ; echo
+docker login
+echo
+ASSERT "You must login to Dockerhub to create and push your image."
+
+ECHO "Creating application image to run on containers..."
+$GENERATE_APP_IMAGE "$ABS_CONTEXT" "compss/$BASE_IMAGE_NAME" "$APP_IMAGE_NAME"
+ASSERT "There was an error creating the image."
+
+ECHO "Application image created."
+
+ECHO "Pushing application image to Dockerhub..."
+ECHO "App-Image name: $APP_IMAGE_NAME" ; echo
+docker push "$APP_IMAGE_NAME"
+ASSERT "There was an error pushing the image. Is the image-name of the form 'DOCKERHUB_USERNAME/imageName' ?"
+
+echo
+ECHO "Created and pushed app image: '$APP_IMAGE_NAME'"
+ECHO "Its context dir is: '$ABS_CONTEXT'. Be sure to write it down to distribute your image."
+ECHO "Its classpath is the directory of the binary inside the context dir." 
+echo
+exit 0
+

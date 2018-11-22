@@ -4,7 +4,7 @@ RUN apt-get install -y wget && \
     wget -qO - http://compss.bsc.es/repo/debs/deb-gpg-bsc-grid.pub.key | apt-key add - && \
     apt-get update && \
     apt-get install -y compss-framework openssh-client openssh-server ssh && \
-    echo "export PATH=$PATH:/opt/COMPSs/Runtime/scripts/user/" >> /root/.bashrc && \ 
+    echo "export PATH=$PATH:/opt/COMPSs/Runtime/scripts/user/:/opt/COMPSs/Runtime/scripts/utils" >> /root/.bashrc && \ 
     mkdir /var/run/sshd && \ 
     echo 'root:screencast' | chpasswd && \ 
     sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \ 

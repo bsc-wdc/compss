@@ -1,67 +1,115 @@
 #!/bin/bash -e
 
+#
+# SCRIPT CONSTANTS
+#
 
 GENERATORS_DIR=$(dirname "$0")/../system/docker/generators
-GENERATE_APP_IMAGE=$GENERATORS_DIR/generate-app-image
 GENERATE_COMPOSE_YML=$GENERATORS_DIR/generate-compose-yml
 
-. "$GENERATORS_DIR"/aux-functions
 
-echo
+#
+# HELPER FUNCTIONS
+#
 
-function showHelp
-{
-echo -e "\
+# shellcheck source=../system/docker/aux_functions.sh
+# shellcheck disable=SC1091
+source "$GENERATORS_DIR/aux_functions.sh"
+
+showHelp() {
+  echo -e "
 ::::::::::::::: [  RUNCOMPSS-DOCKER  -  HELP  ] ::::::::::::::::::::::
 
 First of all, remember that in order to use runcompss-docker you must have a working docker swarm,
 and you need to have installed in this computer the docker engine.
 
-Usage: runcompss-docker --worker-containers=N
-                        --swarm-manager='<ip>:<port>'
-                        --image-name=\"DOCKERHUB_USER/IMG-NAME\"
+Usage: $0
+            --worker-containers=N
+            --swarm-manager='<ip>:<port>'
+            --image-name=\"DOCKERHUB_USER/IMG-NAME\"
 			[rest of classic runcompss args]
 
-
-Example: runcompss-docker --worker-containers=5
-                          --image-name='compss-user-dockerhub/my-app:1.3'
-                          --swarm-manager='129.114.108.8:4000'
-                          --classpath=/home/compss-user/my-app-dir/my-app.jar # Here begin classic runcompss arguments...
-                          -d
-                          myPackage.MyApp 3 15
+Example: $0
+            --worker-containers=5
+            --image-name='compss-user-dockerhub/my-app:1.3'
+            --swarm-manager='129.114.108.8:4000'
+            --classpath=/home/compss-user/my-app-dir/my-app.jar # Here begin classic runcompss arguments...
+            -d
+            myPackage.MyApp 3 15
 
 
 MANDATORY ARGUMENTS:
- --w, --worker-containers:     Specify the number of worker containers the app will execute on.
+
+    --w, --worker-containers:  Specify the number of worker containers the app will execute on.
                                One more container will be created to host the master.
-                                 Example: --worker-containers=2
+                               Example: --worker-containers=2
 
- --i, --image-name:            Specify the image name of the application image in Dockerhub. Remember you must generate this with runcompss-docker-gen-image.
+    --i, --image-name:         Specify the image name of the application image in Dockerhub. Remember you must generate this with runcompss-docker-gen-image.
                                Remember as well that the format must be: \"DOCKERHUB_USERNAME/APP_IMAGE_NAME:TAG\" (the :TAG is optional).
-                                 Example: --image-name='john123/my-compss-application:1.9'
+                               Example: --image-name='john123/my-compss-application:1.9'
 
- --s, --swarm-manager:         Specify the swarm manager ip and port (format:  <ip>:<port>).
-                                 Example: --swarm-manager='129.114.108.8:4000'
+    --s, --swarm-manager:      Specify the swarm manager ip and port (format:  <ip>:<port>).
+                               Example: --swarm-manager='129.114.108.8:4000'
 
- --c, --context-dir:           Specify the absolute application context directory inside the image.
-			       When using an application image, its provider must give you this information.
-                                 Example: --swarm-manager='129.114.108.8:4000'
+    --c, --context-dir:        Specify the absolute application context directory inside the image.
+	            		       When using an application image, its provider must give you this information.
+                               Example: --swarm-manager='129.114.108.8:4000'
 
 OPTIONAL ARGUMENTS:
- --c-cpu-units:                Specify the number of cpu units used by each container (default value is 4).
-				 Example: --c-cpu-units=16
 
- --c-memory:                   Specify the physical memory used by each container in GB (default value is 8 GB).
-				 Example: --c-memory=32  # (each container will use 32 GB)
+    --c-cpu-units:             Specify the number of cpu units used by each container (default value is 4).
+                               Example: --c-cpu-units=16
 
- --vm-creation-time:           Time required to create a docker container on cloud (default: 60 sec)
-                 Example: --vm-creation-time=12
- --min-vms:                    Minimum number of docker containers to run on cloud
- --max-vms:                    Maximum number of docker containers to run on cloud
+    --c-memory:                Specify the physical memory used by each container in GB (default value is 8 GB).
+                               Example: --c-memory=32  # (each container will use 32 GB)
+
+    --vm-creation-time:        Time required to create a docker container on cloud (default: 60 sec)
+                               Example: --vm-creation-time=12
+
+    --min-vms:                 Minimum number of docker containers to run on cloud
+
+    --max-vms:                 Maximum number of docker containers to run on cloud
+
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 "
 }
 
+retrieveResults() {
+    cd "${TMP_DIR}/.."
+
+    ECHO "Retrieving results from master..."
+
+    # Copying results from master container to this machine... (docker cp)
+    IMG_NAME_WITHOUT_USERNAME="$(echo "$IMAGE_NAME" | sed -e 's|[A-Za-z0-9_]*/||g')"
+    RESULTS_DIR="./${IMG_NAME_WITHOUT_USERNAME}-results"
+    DEBUG_DIR="$RESULTS_DIR/debug"
+    rm -rf "$RESULTS_DIR" &> /dev/null
+    mkdir -p "$DEBUG_DIR"
+  
+    # We obtain Master container hash id by grepping the *_master container from a docker ps on the swarm manager.
+    export DOCKER_HOST="$SWARM_MANAGER_IP"
+ 
+    DOCKER_CONTAINER_MASTER_HASH=$(docker ps -a | grep "runcompss-docker_master" | awk '{ print $1 }')
+    docker cp "${DOCKER_CONTAINER_MASTER_HASH}:${ABS_CONTEXT}" "${RESULTS_DIR}" ;
+    ASSERT "Results could not be retrieved...Master container unreachable"
+  
+    docker cp "${DOCKER_CONTAINER_MASTER_HASH}:/root/.COMPSs"  "${DEBUG_DIR}" # &> /dev/null
+    #ASSERT "Results could not be retrieved...Master container unreachable"
+  
+    # No .COMPSs hidden directory
+    mv "${DEBUG_DIR}"/.COMPSs/* "${DEBUG_DIR}"
+    rm -rf "${DEBUG_DIR}"/.COMPSs
+
+    echo ; ECHO "Results successfully retrieved!" ; echo
+    ECHO "Check the application results in '$RESULTS_DIR'"
+    ECHO "In case you had debug enabled, check: '$DEBUG_DIR'"
+    echo
+}
+
+
+#
+# MAIN
+#
 
 ALL_ARGS=( "$@" )
 COMPUTING_UNITS=4
@@ -70,65 +118,54 @@ CREATION_TIME=60
 MIN_VMS=0
 MAX_VMS=4
 RUNCOMPSS_ARGS=$* # this loop will strip from RUNCOMPSS_ARGS all the runcomps-docker args
-for ARG in "${ALL_ARGS[@]}"
-do
-    # if [ ! -z $(echo $ARG | grep -E "[\-][\-]{0,1}.*(([=].*))?")  ] # Format recognition "--asda=xc2das34"
 
+# Retrieve parameters
+for ARG in "${ALL_ARGS[@]}"; do
     argName="$(echo "$ARG" | cut -c 3- | cut -d= -f1)"
     argValue="$(echo "$ARG" | cut -d= -f2)"
 
     RD_GOOD_ARG=0
-    if [ "$argName" = "worker-containers" ] || [ "$argName" = "w" ];
-    then
-        if [ ! -z "$(echo "$argValue" | grep -E "^[1-9][0-9]{0,}$")" ]; then
+    if [ "$argName" = "worker-containers" ] || [ "$argName" = "w" ]; then
+        if echo "$argValue" | grep -q -E "^[1-9][0-9]{0,}$"; then
             NUM_WORKER_CONTAINERS=$argValue
             RD_GOOD_ARG=1
         else
             ERROR "The --worker-containers argument must be a number >= 1. It's the number of worker containers that runcompss docker will spread across nodes (without taking into account the master container)."
         fi
-
-    elif [ "$argName" = "image-name" ] || [ "$argName" = "i" ];
-    then
+    elif [ "$argName" = "image-name" ] || [ "$argName" = "i" ]; then
     	IMAGE_NAME="$argValue"
         RD_GOOD_ARG=1
-
-    elif [ "$argName" = "swarm-manager" ] || [ "$argName" = "s" ];
-    then
+    elif [ "$argName" = "swarm-manager" ] || [ "$argName" = "s" ]; then
         export DOCKER_HOST="$argValue" #<ip>:<port>
         SWARM_MANAGER_IP="$argValue"
         RD_GOOD_ARG=1
-    elif [ "$argName" = "context-dir" ] || [ "$argName" = "c" ];
-    then
+    elif [ "$argName" = "context-dir" ] || [ "$argName" = "c" ]; then
         ABS_CONTEXT="$argValue"
         RD_GOOD_ARG=1
-    elif [ "$argName" = "c-cpu-units" ];
-    then
+    elif [ "$argName" = "c-cpu-units" ]; then
         COMPUTING_UNITS="$argValue"
         RD_GOOD_ARG=1
-    elif [ "$argName" = "c-memory" ];
-    then
+    elif [ "$argName" = "c-memory" ]; then
         MEMORY="$argValue"
         RD_GOOD_ARG=1
-    elif [ "$argName" = "vm-creation-time" ];
-    then
+    elif [ "$argName" = "vm-creation-time" ]; then
         CREATION_TIME="$argValue"
         RD_GOOD_ARG=1
-    elif [ "$argName" = "min-vms" ];
-    then
+    elif [ "$argName" = "min-vms" ]; then
         MIN_VMS="$argValue"
         RD_GOOD_ARG=1
-    elif [ "$argName" = "max-vms" ];
-    then
+    elif [ "$argName" = "max-vms" ]; then
         MAX_VMS="$argValue"
         RD_GOOD_ARG=1
     fi
 
-    if [ "$RD_GOOD_ARG" = "1" ]
-    then # strip it from ALL_ARGS
-        RUNCOMPSS_ARGS=$( echo "$RUNCOMPSS_ARGS" | sed "s|${ARG}||g" )
+    if [ "$RD_GOOD_ARG" = "1" ]; then
+         # strip it from ALL_ARGS
+        RUNCOMPSS_ARGS=$(echo "$RUNCOMPSS_ARGS" | sed "s|${ARG}||g")
     fi
 done
 
+# Log parameters
 ECHO "Execution summary -----------------"
 ECHO "Contatiner cpu units: $COMPUTING_UNITS"
 ECHO "Container memory:     $MEMORY GB"
@@ -142,40 +179,7 @@ ECHO "Maximum vms to run:   $MAX_VMS"
 ECHO "-----------------------------------"
 ECHO ""
 
-function retrieveResults
-{
-    cd "${TMP_DIR}/.."
-
-    ECHO "Retrieving results from master..."
-    # Copying results from master container to this machine... (docker cp)
-
-    IMG_NAME_WITHOUT_USERNAME="$(echo "$IMAGE_NAME" | sed -e 's|[A-Za-z0-9_]*/||g')"
-    RESULTS_DIR="./${IMG_NAME_WITHOUT_USERNAME}-results"
-    DEBUG_DIR="$RESULTS_DIR/debug"
-    rm -rf "$RESULTS_DIR" &> /dev/null
-    mkdir -p "$DEBUG_DIR"
-
-    # We obtain Master container hash id by grepping the *_master container from a docker ps on the swarm manager.
-    export DOCKER_HOST="$SWARM_MANAGER_IP"
-
-    DOCKER_CONTAINER_MASTER_HASH=$(docker ps -a | grep "runcompss-docker_master" | awk '{print $1}')
-    docker cp "${DOCKER_CONTAINER_MASTER_HASH}:${ABS_CONTEXT}" "${RESULTS_DIR}" ;
-    ASSERT "Results could not be retrieved...Master container unreachable"
-
-    docker cp "${DOCKER_CONTAINER_MASTER_HASH}:/root/.COMPSs"  "${DEBUG_DIR}" # &> /dev/null
-    #ASSERT "Results could not be retrieved...Master container unreachable"
-
-    # No .COMPSs hidden directory
-    mv "${DEBUG_DIR}"/.COMPSs/* "${DEBUG_DIR}"
-    rm -rf "${DEBUG_DIR}"/.COMPSs
-
-    echo ; ECHO "Results successfully retrieved!" ; echo
-    ECHO "Check the application results in '$RESULTS_DIR'"
-    ECHO "In case you had debug enabled, check: '$DEBUG_DIR'"
-    echo
-}
-
-
+# Check parameters
 if [ -z "$1" ] || [ "$1" == "--help" ] || [ "$1" == "-h" ]
 then
     showHelp
@@ -203,14 +207,14 @@ if [ -z "$ABS_CONTEXT" ]; then
     ALL_GOOD=0
 fi
 
-if [ "$ALL_GOOD" = "0" ]
-then
+if [ "$ALL_GOOD" = "0" ]; then
     echo
     ECHO "Run 'runcompss-docker --help' if you need help."
     echo
     exit 1
 fi
 
+# Regular workflow
 TMP_DIR="$PWD/.runcompss-docker"
 rm -rf "$TMP_DIR" &> /dev/null
 mkdir "$TMP_DIR" &> /dev/null
@@ -219,18 +223,15 @@ ECHO "Generating docker-compose.yml file into '.runcompss-docker' hidden directo
 $GENERATE_COMPOSE_YML "$NUM_WORKER_CONTAINERS" "$IMAGE_NAME" "$ABS_CONTEXT" "$COMPUTING_UNITS" "$MEMORY" "$SWARM_MANAGER_IP" "$CREATION_TIME" "$MIN_VMS" "$MAX_VMS" "$RUNCOMPSS_ARGS" > "${TMP_DIR}"/docker-compose.yml
 ASSERT "There was an error creating the docker compose yml file."
 
-
-
+# Add trap for results retrieval
 trap "retrieveResults ; exit 1" SIGINT ERR
-
-cd "${TMP_DIR}"
 
 ECHO "Cleaning environment from previous executions..." ; echo
 # docker-compose down --remove-orphans
 docker stack rm runcompss-docker
 # Sometimes, although the stack is removed, the previously stopped containers remain.
 # The next command is to delete all previous containers.
-RESIDUAL_CONTAINERS=`docker ps -a | grep runcompss-docker | awk '{print $1}' | xargs`
+RESIDUAL_CONTAINERS=$(docker ps -a | grep runcompss-docker | awk '{ print $1 }' | xargs)
 if [ ! -z "$RESIDUAL_CONTAINERS" ]; then
     docker rm -f $RESIDUAL_CONTAINERS > /dev/null
 fi
@@ -251,3 +252,4 @@ echo
 ECHO "Application finished!"
 retrieveResults
 exit 0
+

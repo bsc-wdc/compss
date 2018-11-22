@@ -504,11 +504,13 @@ public class StreamRegistry {
             switch (direction) {
                 case IN:
                     /*
+                     * LEGACY CODE. 
                      * The last version of the file must be transferred to a temp directory without the Integrated
                      * Toolkit keeping track of this operation. Forthcoming streams on the same file will use this copy
                      * in the tmp dir
+                     * //renaming = itApi.getFile(path, tempDirPath);
                      */
-                    renaming = itApi.getFile(path, tempDirPath);
+                    renaming = itApi.openFile(path, Direction.IN);
                     break;
                 case OUT:
                     // Must ask the IT to open the file in W mode

@@ -247,10 +247,17 @@ public class ResourceLoader {
                 }
             }
         }
-        
+
         ResourceManager.updateMasterConfiguration(mrd, sharedDisks);
-        ResourceManager.addStaticResource((MethodWorker) Comm.getAppHost());
-        return mrd.getTotalCPUComputingUnits() > 0;
+        if (mrd.getTotalCPUComputingUnits() > 0) {
+            ResourceManager.addStaticResource((MethodWorker) Comm.getAppHost());
+            return true;
+        } else {
+            for (Map.Entry<String, String> disk : sharedDisks.entrySet()) {
+                SharedDiskManager.addSharedToMachine(disk.getKey(), disk.getValue(), Comm.getAppHost());
+            }
+            return false;
+        }
     }
 
     private static boolean loadComputeNode(ComputeNodeType cn_project, es.bsc.compss.types.resources.jaxb.ComputeNodeType cn_resources) {

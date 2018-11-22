@@ -60,7 +60,6 @@ import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.RuntimeConfigManager;
 import es.bsc.compss.util.Tracer;
-import java.util.logging.Level;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -1033,6 +1032,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      *
      * @return id of the object in the cache
      */
+    @Override
     public String getBindingObject(String fileName) {
         // Parse the file name
         LOGGER.debug(" Calling get binding object : " + fileName);
@@ -1049,6 +1049,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * @param fileName
      * @return
      */
+    @Override
     public boolean deleteBindingObject(String fileName) {
         // Check parameters
         if (fileName == null || fileName.isEmpty()) {
@@ -1087,7 +1088,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             Direction direction = (Direction) parameters[i + 2];
             Stream stream = (Stream) parameters[i + 3];
             String prefix = (String) parameters[i + 4];
-            String name   = (String) parameters[i + 5];
+            String name = (String) parameters[i + 5];
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("  Parameter " + (npar + 1) + " has type " + type.name());
@@ -1256,6 +1257,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         oReg.delete(o);
     }
 
+    @Override
     public void removeObject(Object o, int hashcode) { //private?
 
         //This will remove the object from the Object Registry and the Data Info Provider

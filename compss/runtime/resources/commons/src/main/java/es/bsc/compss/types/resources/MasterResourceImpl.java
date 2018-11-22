@@ -122,6 +122,7 @@ public class MasterResourceImpl extends DynamicMethodWorker implements MasterRes
         this.setMaxGPUTaskCount(mrd.getTotalGPUComputingUnits());
         this.setMaxFPGATaskCount(mrd.getTotalFPGAComputingUnits());
         this.setMaxOthersTaskCount(mrd.getTotalOTHERComputingUnits());
+        ((COMPSsMaster) this.getNode()).setUpExecutionCapabilities(mrd, mrd.getTotalCPUComputingUnits());
         super.sharedDisks = sharedDisks;
     }
 

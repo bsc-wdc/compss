@@ -49,6 +49,7 @@ import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.ExecutorShutdownListener;
+import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.BindingDataManager;
@@ -308,6 +309,15 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         return directory.delete();
     }
 
+    public void setUpExecutionCapabilities(MethodResourceDescription desc, int limitOfTasks) {
+        this.executionManager = new ExecutionManager(this,
+                desc.getTotalCPUComputingUnits(), "null",
+                desc.getTotalGPUComputingUnits(), "null",
+                desc.getTotalFPGAComputingUnits(), "null",
+                limitOfTasks
+        );
+    }
+
     @Override
     public void start() {
         synchronized (this) {
@@ -316,12 +326,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             }
             started = true;
         }
-        this.executionManager = new ExecutionManager(this,
-                4, "null",
-                0, "null",
-                0, "null",
-                4
-        );
         /*if (tracing_level == Tracer.BASIC_MODE) {
             Tracer.enablePThreads();
         }*/
@@ -543,13 +547,13 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     public void obtainFileData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
             EventListener listener) {
-        
+
         String targetPath = target.getURIInHost(Comm.getAppHost()).getPath();
         // Check if there are current copies in progress
         if (DEBUG) {
             LOGGER.debug("Data " + ld.getName() + " not in memory. Checking if there is a copy to the master in progress");
         }
-        ld.lockHostRemoval();        
+        ld.lockHostRemoval();
         Collection<Copy> copiesInProgress = ld.getCopiesInProgress();
         if (copiesInProgress != null && !copiesInProgress.isEmpty()) {
             for (Copy copy : copiesInProgress) {
@@ -619,12 +623,19 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             }
             if (u.getHost() == Comm.getAppHost()) {
                 try {
-                    if (DEBUG) {
-                        LOGGER.debug("Master local copy " + ld.getName() + " from " + u.getHost().getName() + " to " + targetPath);
-                    }
-                    Files.copy((new File(u.getPath())).toPath(), new File(targetPath).toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    if (tgtData != null) {
-                        tgtData.addLocation(target);
+                    if (targetPath.startsWith(this.getWorkingDir())) {
+                        if (DEBUG) {
+                            LOGGER.debug("Data " + ld.getName() + " is already accessible at " + u.getPath());
+                        }
+                        targetPath = u.getPath();
+                    } else {
+                        if (DEBUG) {
+                            LOGGER.debug("Master local copy " + ld.getName() + " from " + u.getHost().getName() + " to " + targetPath);
+                        }
+                        Files.copy((new File(u.getPath())).toPath(), new File(targetPath).toPath(), StandardCopyOption.REPLACE_EXISTING);
+                        if (tgtData != null) {
+                            tgtData.addLocation(target);
+                        }
                     }
                     LOGGER.debug("File copied. Set data target to " + targetPath);
                     reason.setDataTarget(targetPath);

@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourcesList>
+  <SharedDisk Name="gpfs" />
+  <SharedDisk Name="gpfs2" />
+  <ComputeNode Name="localhost">
+    <Processor Name="MainProcessor">
+      <ComputingUnits>4</ComputingUnits>
+      <Architecture>Intel</Architecture>
+      <Speed>2.6</Speed>
+    </Processor>
+    <Processor Name="GPU">
+      <Type>GPU</Type>
+      <ComputingUnits>1</ComputingUnits>
+      <Architecture>k80</Architecture>
+      <Speed>2.6</Speed>
+    </Processor>
+    <Processor Name="FPGA">
+      <Type>FPGA</Type>
+      <ComputingUnits>1</ComputingUnits>
+      <Architecture>altera</Architecture>
+      <Speed>1.0</Speed>
+    </Processor>
+    <Memory>
+      <Size>8192</Size>
+    </Memory>
+    <OperatingSystem>
+      <Type>Linux</Type>
+      <Distribution>SMP</Distribution>
+      <Version>3.0.101-0.35-default</Version>
+    </OperatingSystem>
+    <Software>
+      <Application>JAVA</Application>
+      <Application>PYTHON</Application>
+      <Application>EXTRAE</Application>
+      <Application>COMPSS</Application>
+    </Software>
+    <Adaptors>
+      <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+        <SubmissionSystem>
+          <Interactive/>
+        </SubmissionSystem>
+        <Ports>
+          <MinPort>43001</MinPort>
+          <MaxPort>43002</MaxPort>
+          <RemoteExecutionCommand>srun</RemoteExecutionCommand>
+        </Ports>
+      </Adaptor>
+      <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+        <SubmissionSystem>
+          <Interactive/>
+        </SubmissionSystem>
+        <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+      </Adaptor>
+    </Adaptors>
+    <SharedDisks>
+      <AttachedDisk Name="gpfs">
+        <MountPoint>/gpfs/</MountPoint>
+      </AttachedDisk>
+      <AttachedDisk Name="gpfs2">
+        <MountPoint>/.statelite/gpfs/</MountPoint>
+      </AttachedDisk>
+    </SharedDisks>
+  </ComputeNode>
+
+  <CloudProvider Name="CP">
+    <Endpoint>
+      <Server></Server>
+      <ConnectorJar>/path/to/conn.jar</ConnectorJar>
+      <ConnectorClass>myConnector.MyConnector</ConnectorClass>
+    </Endpoint>
+
+    <Images>
+      <Image Name="Image1">
+        <CreationTime>10</CreationTime>
+    <OperatingSystem>
+      <Type>Linux</Type>
+      <Distribution>SMP</Distribution>
+      <Version>3.0.101-0.35-default</Version>
+    </OperatingSystem>
+    <Software>
+      <Application>JAVA</Application>
+      <Application>PYTHON</Application>
+      <Application>EXTRAE</Application>
+      <Application>COMPSS</Application>
+    </Software>
+    <Adaptors>
+      <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+        <SubmissionSystem>
+          <Interactive/>
+        </SubmissionSystem>
+        <Ports>
+          <MinPort>43001</MinPort>
+          <MaxPort>43002</MaxPort>
+        </Ports>
+      </Adaptor>
+      <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+        <SubmissionSystem>
+          <Interactive/>
+        </SubmissionSystem>
+        <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+      </Adaptor>
+    </Adaptors>
+    <SharedDisks>
+      <AttachedDisk Name="gpfs">
+        <MountPoint>/gpfs/</MountPoint>
+      </AttachedDisk>
+      <AttachedDisk Name="gpfs2">
+        <MountPoint>/.statelite/gpfs/</MountPoint>
+      </AttachedDisk>
+    </SharedDisks>
+      </Image>
+    </Images>
+
+    <InstanceTypes>
+      <InstanceType Name="small">
+    <Processor Name="MainProcessor">
+      <ComputingUnits>1</ComputingUnits>
+      <Architecture>Intel</Architecture>
+      <Speed>2.6</Speed>
+    </Processor>
+          <Price>
+            <TimeUnit>1</TimeUnit>
+            <PricePerUnit>0.85</PricePerUnit>
+          </Price>
+      </InstanceType>
+      <InstanceType Name="medium">
+    <Processor Name="MainProcessor">
+      <ComputingUnits>4</ComputingUnits>
+      <Architecture>Intel</Architecture>
+      <Speed>2.6</Speed>
+    </Processor>
+    <Processor Name="GPU">
+      <Type>GPU</Type>
+      <ComputingUnits>2</ComputingUnits>
+      <Architecture>k80</Architecture>
+      <Speed>2.6</Speed>
+    </Processor>
+    <Memory>
+      <Size>16000</Size>
+    </Memory>
+          <Price>
+            <TimeUnit>1</TimeUnit>
+            <PricePerUnit>1.25</PricePerUnit>
+          </Price>
+      </InstanceType>
+    </InstanceTypes>
+  </CloudProvider>
+</ResourcesList>

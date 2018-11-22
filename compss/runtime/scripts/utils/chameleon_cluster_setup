@@ -39,8 +39,8 @@
   ##########################################################
   # Retrieve other information
   echo "* Retrieving configuration parameters from Chameleon..."
-  image=$(nova show "$masterName" | grep image | tr "|" "\t" | awk '{ print $2 }')
-  netId=$(neutron net-list | grep sharednet1 | tr "|" "\t" | awk '{ print $1 }')
+  image=$(nova show "$masterName" | grep image | tr "|" "\\t" | awk '{ print $2 }')
+  netId=$(neutron net-list | grep sharednet1 | tr "|" "\\t" | awk '{ print $1 }')
 
 
   ##########################################################
@@ -64,14 +64,14 @@
     printf "."
     sleep ${HALF_MIN}
   done
-  printf "\n"
+  printf "\\n"
 
   for (( i=1; i<=numWorkers; i++ )); do
     # Wait for each worker
-    cmd_status=$(nova list | grep "COMPSsWorker$i" | tr "|" "\t" | awk '{ print $3 }')
+    cmd_status=$(nova list | grep "COMPSsWorker$i" | tr "|" "\\t" | awk '{ print $3 }')
     while [ "$cmd_status" != "ACTIVE" ]; do
       sleep ${HALF_MIN}
-      cmd_status=$(nova list | grep "COMPSsWorker$i" | tr "|" "\t" | awk '{ print $3 }')
+      cmd_status=$(nova list | grep "COMPSsWorker$i" | tr "|" "\\t" | awk '{ print $3 }')
     done
     echo "   - COMPSsWorker$i is ACTIVE"
   done
@@ -84,7 +84,7 @@
   echo "# Automatically added hostnames by chameleon_cluster_setup" > $tmpFile
   workerIPs=""
   for (( i=1; i<=numWorkers; i++ )); do
-    workerIP=$(nova show COMPSsWorker$i | grep "network" | tr "|" "\t" | awk '{ print $3 }' | tr "," "\t" | awk '{ print $1 }')
+    workerIP=$(nova show COMPSsWorker$i | grep "network" | tr "|" "\\t" | awk '{ print $3 }' | tr "," "\\t" | awk '{ print $1 }')
     # Update worker list
     workerIPs="$workerIPs $workerIP"
     # Update hosts tmp file"
@@ -95,7 +95,7 @@
 
   # Adding configuration to COMPSs Master /etc/hosts file
   sudo /bin/bash -c "cat $tmpFile >> /etc/hosts"
-  masterIP=$(nova show "$masterName" | grep "network" | tr "|" "\t" | awk '{ print $3 }' | tr "," "\t" | awk '{ print $1 }')
+  masterIP=$(nova show "$masterName" | grep "network" | tr "|" "\\t" | awk '{ print $3 }' | tr "," "\\t" | awk '{ print $1 }')
   echo "$masterIP     COMPSsMaster" >> $tmpFile
 
   # Configuring COMPSs Workers
@@ -104,11 +104,13 @@
     printf "."
     sleep ${HALF_MIN}
   done
-  printf "\n"
+  printf "\\n"
 
   for workerIP in $workerIPs; do
     scp -o StrictHostKeyChecking=no $tmpFile $user@"$workerIP":$tmpFile
+    # shellcheck disable=SC2029
     ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no $user@"$workerIP" "sudo /bin/bash -c 'cat $tmpFile >> /etc/hosts'"
+    # shellcheck disable=SC2029
     ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no $user@"$workerIP" "rm -f $tmpFile"
   done 
 
@@ -126,77 +128,43 @@
   echo "Provide the application path:"
   read -r appDir
 
-  cat > $project << EOT
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Project>
-    <MasterNode/>
+  #
+  # PROJECT.XML
+  #
+  # shellcheck source=../system/xmls/generate_project.sh
+  # shellcheck disable=SC1091
+  source "${SCRIPT_DIR}"/../system/xmls/generate_project.sh
 
-EOT
+  # Init project file
+  init "${project}"
+  # Add header (from generate_project.sh)
+  add_header
+  # Add master information (from generate_project.sh)
+  add_master_node ""
+  # Add workers (from generate_project.sh)
   for (( i=1; i<=numWorkers; i++ )); do
-    cat >> $project << EOT
-    <ComputeNode Name="COMPSsWorker$i">
-        <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
-        <WorkingDir>/tmp/COMPSsWorker$i/</WorkingDir>
-        <User>$user</User>
-	<Application>
-          <AppDir>$appDir/</AppDir>
-        </Application>
-    </ComputeNode>
-
-EOT
+    add_compute_node "COMPSsWorker$i" "/opt/COMPSs/" "/tmp/COMPSsWorker$i" "$user" "$appDir" "" "" "" ""
   done
-  cat >> $project << EOT
-</Project>
-EOT
+  # Close project (from generate_project.sh)
+  add_footer
 
-  cat > $resources << EOT
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ResourcesList>
-EOT
+  #
+  # RESOURCES.XML
+  #
+  # shellcheck source=../system/xmls/generate_resources.sh
+  # shellcheck disable=SC1091
+  source "${SCRIPT_DIR}"/../system/xmls/generate_resources.sh
+  
+  # Init resources file
+  init "${resources}"
+  # Add header (from generate_resources.sh)
+  add_header
+  # Add workers
   for (( i=1; i<=numWorkers; i++ )); do
-    cat >> $resources << EOT
-    <ComputeNode Name="COMPSsWorker$i">
-        <Processor Name="MainProcessor">
-            <ComputingUnits>24</ComputingUnits>
-            <Architecture>IA32</Architecture>
-            <Speed>3.0</Speed>
-        </Processor>
-        <OperatingSystem>
-            <Type>Linux</Type>
-        </OperatingSystem>
-        <Memory>
-            <Size>125</Size>
-        </Memory>
-        <Software>
-            <Application>JAVA</Application>
-            <Application>PYTHON</Application>
-            <Application>EXTRAE</Application>
-            <Application>COMPSS</Application>
-        </Software>
-        <Adaptors>
-            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
-                <SubmissionSystem>
-                    <Interactive/>
-                </SubmissionSystem>
-                <Ports>
-                    <MinPort>43001</MinPort>
-                    <MaxPort>43102</MaxPort>
-                </Ports>
-            </Adaptor>
-            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
-                <SubmissionSystem>
-                    <Interactive/>
-                </SubmissionSystem>
-                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
-            </Adaptor>
-        </Adaptors>
-    </ComputeNode>
-
-EOT
+    add_compute_node "COMPSsWorker$i" "24" "0" "0" "125" "43001" "43102" "" ""
   done
-  cat >> $resources << EOT
-</ResourcesList>
-EOT
+  # Close resources (from generate_resources.sh)
+  add_footer
 
 
   ##########################################################

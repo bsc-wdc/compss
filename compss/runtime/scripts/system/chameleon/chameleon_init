@@ -11,10 +11,10 @@ extra_configure() {
   # Set login message
   /bin/cat > /etc/motd << EOT
   ____ ___  __  __ ____  ____
- / ___/ _ \|  \/  |  _ \/ ___| ___
-| |  | | | | |\/| | |_) \___ \/ __|
-| |__| |_| | |  | |  __/ ___) \__ \ 
- \____\___/|_|  |_|_|   |____/|___/
+ / ___/ _ \\|  \\/  |  _ \\/ ___| ___
+| |  | | | | |\\/| | |_) \\___ \\/ __|
+| |__| |_| | |  | |  __/ ___) \\__ \\ 
+\\ \\____\\___/|_|  |_|_|   |____/|___/
 
 Welcome to COMPSs v2.1 at Chameleon!
 EOT
@@ -38,7 +38,7 @@ EOT
 # Author: Cristian Ramon-Cortes Vilarrodona  <cristian.ramoncortes.at.bsc.es>
 
 NAME=chameleon_init
-PIDFILE=/var/run/$NAME.pid
+#PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
 # Carry out specific functions when asked to by the system

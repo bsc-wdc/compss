@@ -36,7 +36,7 @@ public class DecafDefinition extends ImplementationDefinition {
 
 
     public DecafDefinition(boolean debug, String[] args, int execArgsIdx) {
-        super(debug, args, execArgsIdx + 5);
+        super(debug, args, execArgsIdx + DecafImplementation.NUM_PARAMS);
         this.dfScript = args[execArgsIdx++];
         this.dfExecutor = args[execArgsIdx++];
         this.dfLib = args[execArgsIdx++];

@@ -33,7 +33,7 @@ public class BinaryDefinition extends ImplementationDefinition {
 
 
     public BinaryDefinition(boolean enableDebug, String[] args, int execArgsIdx) {
-        super(enableDebug, args, execArgsIdx + 2);
+        super(enableDebug, args, execArgsIdx + BinaryImplementation.NUM_PARAMS);
         this.binary = args[execArgsIdx++];
         String wDir = args[execArgsIdx];
         if ((wDir == null || wDir.isEmpty() || wDir.equals(Constants.UNASSIGNED))) {

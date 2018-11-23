@@ -31,7 +31,7 @@ public class OpenCLDefinition extends ImplementationDefinition {
 
 
     public OpenCLDefinition(boolean debug, String[] args, int execArgsIdx) {
-        super(debug, args, execArgsIdx + 1);
+        super(debug, args, execArgsIdx + OpenCLImplementation.NUM_PARAMS);
         this.kernel = args[execArgsIdx];
 
         this.impl = new OpenCLImplementation(this.kernel, "", null, null, null);

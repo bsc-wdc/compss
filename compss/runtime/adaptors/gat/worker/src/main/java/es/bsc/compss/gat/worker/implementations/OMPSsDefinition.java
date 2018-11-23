@@ -33,7 +33,7 @@ public class OMPSsDefinition extends ImplementationDefinition {
 
 
     public OMPSsDefinition(boolean debug, String[] args, int execArgsIdx) {
-        super(debug, args, execArgsIdx + 2);
+        super(debug, args, execArgsIdx + OmpSsImplementation.NUM_PARAMS);
         this.binary = args[execArgsIdx++];
 
         String wDir = args[execArgsIdx];

@@ -39,6 +39,7 @@ import es.bsc.compss.invokers.JavaInvoker;
 import es.bsc.compss.invokers.OpenCLInvoker;
 import es.bsc.compss.invokers.StorageInvoker;
 import es.bsc.compss.invokers.binary.BinaryInvoker;
+import es.bsc.compss.invokers.binary.COMPSsInvoker;
 import es.bsc.compss.invokers.binary.DecafInvoker;
 import es.bsc.compss.invokers.binary.MPIInvoker;
 import es.bsc.compss.invokers.binary.OmpSsInvoker;
@@ -126,7 +127,7 @@ public class Executor implements Runnable {
         // Nothing to do since everything is deleted in each task execution
         LOGGER.info("Executor finished");
     }
-    
+
     /**
      * Returns the executor id
      * 
@@ -526,7 +527,7 @@ public class Executor implements Runnable {
 
     private void executeTask(InvocationContext context, InvocationResources assignedResources, Invocation invocation,
             File taskSandboxWorkingDir) throws JobExecutionException {
-        
+
         /* Register outputs **************************************** */
         String streamsPath = context.getStandardStreamsPath(invocation);
         context.registerOutputs(streamsPath);
@@ -593,8 +594,14 @@ public class Executor implements Runnable {
                     }
                     break;
 
+                case BINARY:
+                    invoker = new BinaryInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                    break;
                 case MPI:
                     invoker = new MPIInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                    break;
+                case COMPSs:
+                    invoker = new COMPSsInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
                     break;
                 case DECAF:
                     invoker = new DecafInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
@@ -605,11 +612,6 @@ public class Executor implements Runnable {
                 case OPENCL:
                     invoker = new OpenCLInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
                     break;
-                case BINARY:
-                    invoker = new BinaryInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
-                    break;
-                default:
-                    throw new JobExecutionException("Unrecognised method type");
             }
             invoker.processTask();
         } catch (Exception jee) {

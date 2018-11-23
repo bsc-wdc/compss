@@ -32,9 +32,6 @@ public class PythonParams implements LanguageParams {
     private String pythonPath;
 
 
-    public PythonParams() {
-    }
-
     public PythonParams(String pythonInterpreter, String pythonVersion, String pythonVirtualEnvironment,
             String pythonPropagateVirtualEnvironment, String pythonPath) {
 

@@ -17,6 +17,7 @@
 package es.bsc.compss.invokers.external.piped;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.executor.Executor.ExecutorsContext;
 import es.bsc.compss.executor.utils.ExecutionPlatformMirror;
 import es.bsc.compss.executor.utils.PipedMirror;
@@ -24,6 +25,7 @@ import es.bsc.compss.executor.utils.PipedMirror.PipePair;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.invokers.commands.external.ExecuteTaskExternalCommand;
 import es.bsc.compss.invokers.commands.piped.ExecuteTaskPipeCommand;
+import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -169,10 +171,11 @@ public class CInvoker extends PipedInvoker {
         public Map<String, String> getEnvironment(InvocationContext context) {
             Map<String, String> env = new HashMap<>();
             String ldLibraryPath = System.getenv(LIBRARY_PATH_ENV);
+            CParams cParams = (CParams) context.getLanguageParams(Lang.C);
             if (ldLibraryPath == null) {
-                ldLibraryPath = context.getLibPath();
+                ldLibraryPath = cParams.getLibraryPath();
             } else {
-                ldLibraryPath = ldLibraryPath.concat(":" + context.getLibPath());
+                ldLibraryPath = ldLibraryPath.concat(":" + cParams.getLibraryPath());
             }
 
             // Add C and commons libs

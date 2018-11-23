@@ -34,12 +34,12 @@ public class MPIDefinition extends ImplementationDefinition {
 
 
     public MPIDefinition(boolean debug, String[] args, int execArgsIdx) {
-        super(debug, args, execArgsIdx + 3);
+        super(debug, args, execArgsIdx + MPIImplementation.NUM_PARAMS);
 
         this.mpiRunner = args[execArgsIdx++];
         this.mpiBinary = args[execArgsIdx++];
         String wDir = args[execArgsIdx++];
-        if ((wDir == null || wDir.isEmpty() || wDir.equals(Constants.UNASSIGNED))) {
+        if (wDir == null || wDir.isEmpty() || wDir.equals(Constants.UNASSIGNED)) {
             this.workingDir = null;
         } else {
             this.workingDir = wDir;

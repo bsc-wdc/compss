@@ -69,7 +69,6 @@ public class GATWorker implements InvocationContext {
     private final boolean debug;
     private final String appDir;
     private final String installDir;
-    private final String libPath;
     private final String workingDir;
     private final String storageConf;
 
@@ -94,7 +93,6 @@ public class GATWorker implements InvocationContext {
 
         String installDir = args[INSTALL_DIR_IDX];
         String appDir = args[APP_DIR_IDX];
-        String libPath = "";
 
         // Configures storage API, if necessary
         String storageConf = args[STORAGE_CONF_IDX];
@@ -111,21 +109,19 @@ public class GATWorker implements InvocationContext {
         // Retrieve arguments
         ImplementationDefinition implDef = parseArguments(args);
 
-        GATWorker worker = new GATWorker(workerName, workingDir, debug, installDir, appDir, storageConf, libPath,
-                implDef.getComputingUnits());
+        GATWorker worker = new GATWorker(workerName, workingDir, debug, installDir, appDir, storageConf, implDef.getComputingUnits());
         if (!worker.runTask(implDef)) {
             System.exit(7);
         }
     }
 
     public GATWorker(String workerName, String workingDir, boolean debug, String installDir, String appDir, String storageConf,
-            String libPath, int computingUnitsCPU) {
+            int computingUnitsCPU) {
 
         this.hostName = workerName;
         this.debug = debug;
         this.appDir = appDir;
         this.installDir = installDir;
-        this.libPath = libPath;
         this.workingDir = workingDir;
         this.storageConf = storageConf;
 
@@ -197,11 +193,6 @@ public class GATWorker implements InvocationContext {
     @Override
     public String getInstallDir() {
         return installDir;
-    }
-
-    @Override
-    public String getLibPath() {
-        return this.libPath;
     }
 
     @Override

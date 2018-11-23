@@ -33,7 +33,6 @@ public class FakeInvocationContext implements InvocationContext {
     private final String hostName;
     private final String appDir;
     private final String installDir;
-    private final String libPath;
     private final String workingDir;
     private final PrintStream out;
     private final PrintStream err;
@@ -44,19 +43,18 @@ public class FakeInvocationContext implements InvocationContext {
         hostName = "localhost";
         appDir = "";
         installDir = "";
-        libPath = "";
         workingDir = "";
         out = System.out;
         err = System.err;
         listener = null;
     }
 
-    private FakeInvocationContext(String hostName, String appDir, String installDir, String libPath, String wDir, PrintStream out,
-            PrintStream err, InvocationContextListener listener) {
+    private FakeInvocationContext(String hostName, String appDir, String installDir, String wDir, PrintStream out, PrintStream err,
+            InvocationContextListener listener) {
+
         this.hostName = hostName;
         this.appDir = appDir;
         this.installDir = installDir;
-        this.libPath = libPath;
         this.workingDir = wDir;
         this.out = out;
         this.err = err;
@@ -76,11 +74,6 @@ public class FakeInvocationContext implements InvocationContext {
     @Override
     public String getInstallDir() {
         return this.installDir;
-    }
-
-    @Override
-    public String getLibPath() {
-        return this.libPath;
     }
 
     @Override
@@ -216,8 +209,8 @@ public class FakeInvocationContext implements InvocationContext {
         }
 
         public Builder setListener(InvocationContextListener listener) {
-            return new Builder(new FakeInvocationContext(context.hostName, context.appDir, context.installDir, context.libPath,
-                    context.workingDir, context.out, context.err, listener));
+            return new Builder(new FakeInvocationContext(context.hostName, context.appDir, context.installDir, context.workingDir,
+                    context.out, context.err, listener));
         }
 
         public FakeInvocationContext build() {

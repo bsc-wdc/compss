@@ -35,14 +35,13 @@ public class COMPSsDefinition extends ImplementationDefinition {
 
 
     public COMPSsDefinition(boolean debug, String[] args, int execArgsIdx) {
-        super(debug, args, execArgsIdx + 3);
+        super(debug, args, execArgsIdx + COMPSsImplementation.NUM_PARAMS);
 
         this.runcompss = args[execArgsIdx++];
         this.flags = args[execArgsIdx++];
         this.appName = args[execArgsIdx++];
-
         String wDir = args[execArgsIdx++];
-        if ((wDir == null || wDir.isEmpty() || wDir.equals(Constants.UNASSIGNED))) {
+        if (wDir == null || wDir.isEmpty() || wDir.equals(Constants.UNASSIGNED)) {
             this.workingDir = null;
         } else {
             this.workingDir = wDir;

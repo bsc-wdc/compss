@@ -17,12 +17,14 @@
 package es.bsc.compss.invokers.external.piped;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.executor.utils.PipedMirror;
 import es.bsc.compss.executor.utils.PipedMirror.PipePair;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.executor.Executor.ExecutorsContext;
 import es.bsc.compss.invokers.commands.external.ExecuteTaskExternalCommand;
 import es.bsc.compss.invokers.commands.piped.ExecuteTaskPipeCommand;
+import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.execution.Invocation;
@@ -131,10 +133,11 @@ public class PythonInvoker extends PipedInvoker {
 
             // LD_LIBRARY_PATH
             String ldLibraryPath = System.getenv(ENV_LD_LIBRARY_PATH);
+            CParams cParams = (CParams) context.getLanguageParams(Lang.C);
             if (ldLibraryPath == null) {
-                ldLibraryPath = context.getLibPath();
+                ldLibraryPath = cParams.getLibraryPath();
             } else {
-                ldLibraryPath = ldLibraryPath.concat(":" + context.getLibPath());
+                ldLibraryPath = ldLibraryPath.concat(":" + cParams.getLibraryPath());
             }
             String bindingsHome = context.getInstallDir() + BINDINGS_RELATIVE_PATH;
             ldLibraryPath = ldLibraryPath.concat(":" + bindingsHome);

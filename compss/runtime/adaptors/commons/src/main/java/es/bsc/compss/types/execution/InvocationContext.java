@@ -28,13 +28,11 @@ public interface InvocationContext {
 
     public long getTracingHostID();
 
-    public String getAppDir();
-
     public String getInstallDir();
 
-    public String getLibPath();
-
     public String getWorkingDir();
+
+    public String getAppDir();
 
     // EXECUTION CONFIGURATION
     public TaskExecution getExecutionType();

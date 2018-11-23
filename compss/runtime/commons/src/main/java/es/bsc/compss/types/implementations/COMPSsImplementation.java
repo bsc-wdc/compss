@@ -48,12 +48,12 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
 
         super(coreId, implementationId, annot);
 
-        if (runcompss != null && !runcompss.isEmpty() && runcompss.equals(Constants.UNASSIGNED)) {
+        if (runcompss != null && !runcompss.isEmpty() && !runcompss.equals(Constants.UNASSIGNED)) {
             this.runcompss = runcompss;
         } else {
             this.runcompss = DEFAULT_RUNCOMPSS;
         }
-        if (flags != null && !flags.isEmpty() && flags.equals(Constants.UNASSIGNED)) {
+        if (flags != null && !flags.isEmpty() && !flags.equals(Constants.UNASSIGNED)) {
             this.flags = flags;
         } else {
             this.flags = DEFAULT_FLAGS;

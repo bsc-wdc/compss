@@ -144,9 +144,6 @@ public class CERegistration extends TDRequest {
                 String flags = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
                 String appName = EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
                 String compssWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
-                if (runcompss == null || runcompss.isEmpty()) {
-                    ErrorManager.error("Empty runcompss annotation for COMPSs method " + this.coreElementSignature);
-                }
                 if (appName == null || appName.isEmpty()) {
                     ErrorManager.error("Empty appName annotation for COMPSs method " + this.coreElementSignature);
                 }

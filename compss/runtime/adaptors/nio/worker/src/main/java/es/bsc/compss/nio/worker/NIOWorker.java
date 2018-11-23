@@ -33,22 +33,12 @@ import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.comm.stage.Transfer;
 import es.bsc.comm.stage.Transfer.Destination;
-import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.COMPSsConstants.Lang;
-import es.bsc.compss.COMPSsConstants.TaskExecution;
-import es.bsc.compss.data.DataManager;
-import es.bsc.compss.data.DataManager.LoadDataListener;
-import es.bsc.compss.data.DataProvider;
-import es.bsc.compss.executor.ExecutionManager;
-import es.bsc.compss.executor.types.Execution;
-import es.bsc.compss.executor.types.ExecutionListener;
-import es.bsc.compss.types.execution.LanguageParams;
-import es.bsc.compss.invokers.types.PythonParams;
+
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.NIOTaskResult;
-import es.bsc.compss.log.Loggers;
+import es.bsc.compss.nio.NIOTracer;
 import es.bsc.compss.nio.NIOMessageHandler;
 import es.bsc.compss.nio.commands.CommandDataReceived;
 import es.bsc.compss.nio.commands.CommandExecutorShutdownACK;
@@ -60,9 +50,23 @@ import es.bsc.compss.nio.dataRequest.DataRequest;
 import es.bsc.compss.nio.dataRequest.WorkerDataRequest;
 import es.bsc.compss.nio.dataRequest.WorkerDataRequest.TransferringTask;
 import es.bsc.compss.nio.worker.components.DataManagerImpl;
-import es.bsc.compss.types.execution.exceptions.InitializationException;
+
+import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.COMPSsConstants.TaskExecution;
+import es.bsc.compss.log.Loggers;
+import es.bsc.compss.data.DataManager;
+import es.bsc.compss.data.DataManager.LoadDataListener;
+import es.bsc.compss.data.DataProvider;
+import es.bsc.compss.executor.ExecutionManager;
+import es.bsc.compss.executor.types.Execution;
+import es.bsc.compss.executor.types.ExecutionListener;
 import es.bsc.compss.executor.utils.ThreadedPrintStream;
-import es.bsc.compss.nio.NIOTracer;
+import es.bsc.compss.invokers.types.CParams;
+import es.bsc.compss.invokers.types.JavaParams;
+import es.bsc.compss.invokers.types.PythonParams;
+import es.bsc.compss.types.execution.LanguageParams;
+import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -92,8 +96,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     private final String workingDir;
     private final String installDir;
     private final String appDir;
-    private final String libraryPath;
-    private final String classpath;
 
     private final TaskExecution executionType;
 
@@ -128,7 +130,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     public NIOWorker(boolean transferLogs, int snd, int rcv, String hostName, String masterName, int masterPort, int computingUnitsCPU,
             int computingUnitsGPU, int computingUnitsFPGA, String cpuMap, String gpuMap, String fpgaMap, int limitOfTasks, String appUuid,
             String storageConf, TaskExecution executionType, boolean persistentC, String workingDir, String installDir, String appDir,
-            String libPath, String classpath, PythonParams pyParams) {
+            JavaParams javaParams, PythonParams pyParams, CParams cParams) {
 
         super(snd, rcv, masterPort);
         times = new HashMap<Integer, Long>();
@@ -142,14 +144,14 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         this.workingDir = (workingDir.endsWith(File.separator) ? workingDir : workingDir + File.separator);
         this.installDir = (installDir.endsWith(File.separator) ? installDir : installDir + File.separator);
         this.appDir = appDir.equals("null") ? "" : appDir;
-        this.libraryPath = libPath.equals("null") ? "" : libPath;
-        this.classpath = classpath.equals("null") ? "" : classpath;
 
         this.executionType = executionType;
         System.setProperty(COMPSsConstants.STORAGE_CONF, storageConf);
         this.persistentC = persistentC;
 
+        this.langParams[Lang.JAVA.ordinal()] = javaParams;
         this.langParams[Lang.PYTHON.ordinal()] = pyParams;
+        this.langParams[Lang.C.ordinal()] = cParams;
 
         // Set master node to null (will be set afterwards to the right value)
         this.masterNode = null;
@@ -645,8 +647,11 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         String pythonVersion = args[29];
         String pythonVirtualEnvironment = args[30];
         String pythonPropagateVirtualEnvironment = args[31];
+
+        JavaParams javaParams = new JavaParams(classpath);
         PythonParams pyParams = new PythonParams(pythonInterpreter, pythonVersion, pythonVirtualEnvironment,
                 pythonPropagateVirtualEnvironment, pythonpath);
+        CParams cParams = new CParams(classpath);
 
         // Print arguments
         if (WORKER_LOGGER.isDebugEnabled()) {
@@ -715,7 +720,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
          *************************************************************************************************************/
         NIOWorker nw = new NIOWorker(debug, maxSnd, maxRcv, workerIP, mName, mPort, computingUnitsCPU, computingUnitsGPU,
                 computingUnitsFPGA, cpuMap, gpuMap, fpgaMap, limitOfTasks, appUuid, storageConf, executionType, persistentC, workingDir,
-                installDir, appDir, libPath, classpath, pyParams);
+                installDir, appDir, javaParams, pyParams, cParams);
 
         NIOMessageHandler mh = new NIOMessageHandler(nw);
 
@@ -769,10 +774,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         return false;
     }
 
-    public String getClasspath() {
-        return this.classpath;
-    }
-
     // ********************************************************************
     // *************** INVOCATION CONTEXT IMPLEMENTATIONS *****************
     // ********************************************************************
@@ -795,11 +796,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     @Override
     public String getInstallDir() {
         return this.installDir;
-    }
-
-    @Override
-    public String getLibPath() {
-        return this.libraryPath;
     }
 
     @Override

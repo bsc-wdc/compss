@@ -28,9 +28,9 @@
   targetDir=$1
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-  modules="intel/13.0.1 transfer/1.0 bsc/current PYTHON/2.7.3 BOOST/1.52.0 java/1.8.0u66 PAPI/5.4.1 gcc/7.2.0"
+  modules="intel/13.0.1 transfer/1.0 bsc/current BOOST/1.52.0_py_3.3.0 java/1.8.0u66 PAPI/5.4.1 gcc/7.2.0"
   py2_modules="PYTHON/2.7.3"
-  py3_modules="PYTHON/3.5.1-INTEL"
+  py3_modules="module load PYTHON/3.3.0 Boost/1.52.0_py_3.3.0"
   additionalExports=""
   queues_cfg="nord.cfg"
   extrae_with_openmpi="true"

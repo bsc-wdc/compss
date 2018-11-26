@@ -53,11 +53,11 @@ public abstract class ExternalInvoker extends Invoker {
 
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
-        command = getTaskExecutionCommand(context, invocation, taskSandboxWorkingDir.getAbsolutePath(), assignedResources);
-        command.appendAllArguments(getExternalCommand(invocation, context, assignedResources));
+        this.command = getTaskExecutionCommand(context, invocation, taskSandboxWorkingDir.getAbsolutePath(), assignedResources);
+        this.command.appendAllArguments(getExternalCommand(invocation, context, assignedResources));
         String streamsName = context.getStandardStreamsPath(invocation);
-        command.prependArgument(streamsName + SUFFIX_ERR);
-        command.prependArgument(streamsName + SUFFIX_OUT);
+        this.command.prependArgument(streamsName + SUFFIX_ERR);
+        this.command.prependArgument(streamsName + SUFFIX_OUT);
 
     }
 

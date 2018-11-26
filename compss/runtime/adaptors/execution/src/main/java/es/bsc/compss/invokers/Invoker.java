@@ -171,7 +171,7 @@ public abstract class Invoker {
             out.println("");
 
             out.println("  * Has Target: " + (invocation.getTarget() != null));
-            out.println("  * Has Return: " + invocation.getResults() != null);
+            out.println("  * Has Return: " + (invocation.getResults() != null));
         }
     }
 

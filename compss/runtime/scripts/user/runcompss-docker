@@ -158,7 +158,7 @@ function retrieveResults
     # We obtain Master container hash id by grepping the *_master container from a docker ps on the swarm manager.
     export DOCKER_HOST="$SWARM_MANAGER_IP"
 
-    DOCKER_CONTAINER_MASTER_HASH=$(docker ps -a | grep "runcompssdocker_master" | awk '{print $1}')
+    DOCKER_CONTAINER_MASTER_HASH=$(docker ps -a | grep "runcompss-docker_master" | awk '{print $1}')
     docker cp "${DOCKER_CONTAINER_MASTER_HASH}:${ABS_CONTEXT}" "${RESULTS_DIR}" ;
     ASSERT "Results could not be retrieved...Master container unreachable"
 
@@ -226,13 +226,24 @@ trap "retrieveResults ; exit 1" SIGINT ERR
 cd "${TMP_DIR}"
 
 ECHO "Cleaning environment from previous executions..." ; echo
-docker-compose down --remove-orphans
+# docker-compose down --remove-orphans
+docker stack rm runcompss-docker
+# Sometimes, although the stack is removed, the previously stopped containers remain.
+# The next command is to delete all previous containers.
+RESIDUAL_CONTAINERS=`docker ps -a | grep runcompss-docker | awk '{print $1}' | xargs`
+if [ ! -z "$RESIDUAL_CONTAINERS" ]; then
+    docker rm -f $RESIDUAL_CONTAINERS > /dev/null
+fi
 #docker network runcompssdocker_runcompss-docker-net down
 ASSERT "There was an error cleaning the environment from previous executions."
 echo
 
+ECHO "Waiting some seconds for the deletions to take effect"
+sleep 5
+
 ECHO "Executing application in swarm manager..." ; echo
-docker-compose up --force-recreate
+# docker-compose up --force-recreate
+docker stack deploy -c docker-compose.yml runcompss-docker
 #docker-compose scale master=1 worker=$NUM_WORKER_CONTAINERS #--force-recreate
 ASSERT "There was an error executing the application. Check the logs or the docker-compose output."
 echo

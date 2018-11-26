@@ -534,30 +534,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
         MethodResourceDescription mrd = new MethodResourceDescription(implConstraints);
         MethodType mt;
-        switch (implType) {
-            case "METHOD":
-                mt = MethodType.METHOD;
-                break;
-            case "MPI":
-                mt = MethodType.MPI;
-                break;
-            case "DECAF":
-                mt = MethodType.DECAF;
-                break;
-            case "BINARY":
-                mt = MethodType.BINARY;
-                break;
-            case "OMPSS":
-                mt = MethodType.OMPSS;
-                break;
-            case "OPENCL":
-                mt = MethodType.OPENCL;
-                break;
-            default:
-                ErrorManager.error("Unrecognised method type " + implType);
-                return;
+        try {
+            mt = MethodType.valueOf(implType);
+        } catch (IllegalArgumentException iae) {
+            ErrorManager.error("Unrecognised method type " + implType);
+            return;
         }
-
         td.registerNewCoreElement(coreElementSignature, implSignature, mrd, mt, implTypeArgs);
     }
 
@@ -618,7 +600,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     private int executeTask(Long appId, boolean hasSignature, String methodClass, String methodName, String signature, boolean isPrioritary,
             int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount,
             Object... parameters) {
-        
+
         // Tracing flag for task creation
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());

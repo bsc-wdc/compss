@@ -19,6 +19,7 @@
 #---------------------------------------------------
 DEFAULT_MONITOR=true
 DEFAULT_BINDINGS=true
+DEFAULT_PYCOMPSS=true
 DEFAULT_TRACING=true
 DEFAULT_AUTOPARALLEL=true
 DEFAULT_USER=false
@@ -29,6 +30,7 @@ MVN_SKIP_TESTS_OPT="-Dmaven.test.skip=true"
 INCORRECT_PARAMETER="Error: No such parameter"
 NO_MONITOR="Warning: No monitor specified. Loading default value"
 NO_BINDINGS="Warning: No bindings specified. Loading default value"
+NO_PYCOMPSS="Warning: No pycompss specified. Loading default value"
 NO_TRACING="Warning: No tracing specified. Loading default value"
 NO_AUTOPARALLEL="Warning: No autoparallel specified. Loading default value"
 NO_TARGET_DIR="Warning: No install directory specified. Loading default location"
@@ -54,35 +56,39 @@ show_opts() {
 
     --version, -v               Print COMPSs version
 
-    --monitor, -m	        Enable Monitor installation
-    --no-monitor, -M 	        Disable Monitor installation
-			        Default: ${DEFAULT_MONITOR}
+    --monitor, -m               Enable Monitor installation
+    --no-monitor, -M            Disable Monitor installation
+                                Default: ${DEFAULT_MONITOR}
 
-    --bindings, -b	        Enable bindings installation
+    --bindings, -b              Enable bindings installation
     --no-bindings, -B           Disable bindings installation
-			        Default: ${DEFAULT_BINDINGS}
+                                Default: ${DEFAULT_BINDINGS}
+
+    --pycompss, -p              Enable PyCOMPSs installation
+    --no-pycompss, -P           Disable PyCOMPSs installation
+                                Default: ${DEFAULT_PYCOMPSS}
 
     --tracing, -t               Enable tracing system installation
     --no-tracing, -T            Disable tracing system installation
-			        Default: ${DEFAULT_TRACING}
+                                Default: ${DEFAULT_TRACING}
 
-    --autoparallel, -p          Enable autoparallel module installation
-    --no-autoparallel, -P       Disable autoparallel module installation
+    --autoparallel, -a          Enable autoparallel module installation
+    --no-autoparallel, -A       Disable autoparallel module installation
                                 Default: ${DEFAULT_AUTOPARALLEL}
     
-    --nothing, -N	        Disable all previous options
-			        Default: unused
+    --nothing, -N               Disable all previous options
+                                Default: unused
 
     --user-exec=<str>           Enables a specific user execution for maven compilation
                                 When used the maven install is not cleaned.
-			        Default: ${DEFAULT_USER}
+                                Default: ${DEFAULT_USER}
 
     --skip-tests                Disables MVN unit tests
                                 Default: ${DEFAULT_MVN_TESTS}
 
 * Parameters:
-    targetDir		        COMPSs installation directory
-			        Default: ${DEFAULT_TARGET_DIR}
+    targetDir                   COMPSs installation directory
+                                Default: ${DEFAULT_TARGET_DIR}
                                             
 EOT
 }
@@ -120,7 +126,7 @@ display_error() {
 
 get_args() {
   # Parse COMPSs Options
-  while getopts hvmMbBtTpP-: flag; do 
+  while getopts hvmMbBpPtTaAN-: flag; do 
     # Treat the argument
     case "$flag" in
       h)
@@ -143,11 +149,22 @@ get_args() {
       b)
         # Custom bindings value
         bindings=true
+        pycompss=true
         ;;
       B)
         # Custom bindings value
         bindings=false
+        pycompss=false
         ;;
+      p)
+        # Custom PyCOMPSs value
+        pycompss=true
+        ;;
+      P)
+        # Custom PyCOMPSs value
+        pycompss=false
+        ;;
+
       t)
         # Custom tracing value
         tracing=true
@@ -156,12 +173,20 @@ get_args() {
         # Custom tracing value
         tracing=false
         ;;
-      p)
+      a)
         # Custom autoparallel value
         autoparallel=true
         ;;
-      P)
+      A)
         # Custom autoparallel value
+        autoparallel=false
+        ;;
+      N)
+        # Disables all flags
+        tracing=false
+        monitor=false
+        bindings=false
+        pycompss=false
         autoparallel=false
         ;;
       -)
@@ -192,10 +217,20 @@ get_args() {
           bindings)
             # Custom bindings value
             bindings=true
+            pycompss=true
             ;;
           no-bindings)
             # Custom bindings value
             bindings=false
+            pycompss=false
+            ;;
+          pycompss)
+            # Custom PyCOMPSs value
+            pycompss=true
+            ;;
+          no-pycompss)
+            # Custom PyCOMPSs value
+            pycompss=false
             ;;
           tracing)
             # Custom tracing value
@@ -218,6 +253,7 @@ get_args() {
             tracing=false
             monitor=false
             bindings=false
+            pycompss=false
             autoparallel=false
             ;;
           user-exec=*)
@@ -262,6 +298,11 @@ check_args() {
     bindings=${DEFAULT_BINDINGS}
   fi
 
+  if [ -z "$pycompss" ]; then
+    display_warning "${NO_PYCOMPSS}"
+    pycompss=${DEFAULT_PYCOMPSS}
+  fi
+
   if [ -z "$tracing" ]; then
     display_warning "${NO_TRACING}"
     tracing=${DEFAULT_TRACING}
@@ -302,6 +343,7 @@ warn_and_log_parameters() {
   echo "- Target DIR   = ${targetDir}"
   echo "- Monitor      = ${monitor}"
   echo "- Bindings     = ${bindings}"
+  echo "- PyCOMPSs     = ${pycompss}"
   echo "- Tracing      = ${tracing}"
   echo "- AutoParallel = ${autoparallel}"
   echo "- SCRIPT_DIR   = ${SCRIPT_DIR}"
@@ -500,7 +542,7 @@ install_compss() {
   fi
 
   # BINDINGS DEPLOYMENT
-  if [ "${bindings}" == "true" ]; then
+  if [ "${bindings}" == "true" ] || [ "${pycompss}" == "true" ]; then
     echo "- Deploying bindings-common files"
     cd "${TMP_DIR}/compss/programming_model/bindings/bindings-common"
     ./install_common "${targetDir}/Bindings/bindings-common"
@@ -510,27 +552,32 @@ install_compss() {
       exit 1
     fi
 
-    echo "- Deploying c-binding files"
-    cd "${TMP_DIR}/compss/programming_model/bindings/c"
-    ./install "${targetDir}/Bindings/c" "true"
-    ev=$?
-    if [ $ev -ne 0 ]; then
-      echo "ERROR: Failed to install C-binding"
-      exit 1
+    if [ "${bindings}" == "true" ]; then
+      echo "- Deploying c-binding files"
+      cd "${TMP_DIR}/compss/programming_model/bindings/c"
+      ./install "${targetDir}/Bindings/c" "true"
+      ev=$?
+      if [ $ev -ne 0 ]; then
+        echo "ERROR: Failed to install C-binding"
+        exit 1
+      fi
+      mkdir -p ${targetDir}/Runtime/scripts/system/c/
+      cp ${targetDir}/Bindings/c/bin/* ${targetDir}/Runtime/scripts/system/c
+      cp ./compss_build_app ${targetDir}/Runtime/scripts/user/
+      cp -r ./cfgs ${targetDir}/Bindings/c/
     fi
-    mkdir -p ${targetDir}/Runtime/scripts/system/c/
-    cp ${targetDir}/Bindings/c/bin/* ${targetDir}/Runtime/scripts/system/c
-    cp ./compss_build_app ${targetDir}/Runtime/scripts/user/
-    cp -r ./cfgs ${targetDir}/Bindings/c/
-    echo "- Deploying python-binding files"
-    cd "${TMP_DIR}/compss/programming_model/bindings/python"
-    ./install "${targetDir}/Bindings/python" true true
-    ev=$?
-    if [ $ev -ne 0 ]; then
-      echo "ERROR: Failed to install Python-binding"
-      exit 1
+
+    if [ "${pycompss}" == "true" ]; then
+      echo "- Deploying python-binding files"
+      cd "${TMP_DIR}/compss/programming_model/bindings/python"
+      ./install "${targetDir}/Bindings/python" true true
+      ev=$?
+      if [ $ev -ne 0 ]; then
+        echo "ERROR: Failed to install Python-binding"
+        exit 1
+      fi
+      cd "${SCRIPT_DIR}"
     fi
-    cd "${SCRIPT_DIR}"
   fi
 
   # ADD RUNCOMPSS TO PROFILE

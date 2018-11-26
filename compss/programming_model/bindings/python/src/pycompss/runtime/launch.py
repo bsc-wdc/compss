@@ -72,9 +72,9 @@ def get_logging_cfg_file(log_level):
 
     logging_cfg_file = 'logging.json'
     cfg_files = {
-        'debug': 'logging.json.debug',
-        'info': 'logging.json.off',
-        'off': 'logging.json.off'
+        'debug': 'logging_debug.json',
+        'info': 'logging_off.json',
+        'off': 'logging_off.json'
     }
     if log_level in cfg_files:
         logging_cfg_file = cfg_files[log_level]
@@ -400,13 +400,13 @@ def launch_pycompss_application(app, func,
     log_path = get_log_path()
     # Logging setup
     if debug or log_level == "debug":
-        json_path = '/Bindings/python/' + major_version + '/log/logging.json.debug'
+        json_path = '/Bindings/python/' + major_version + '/log/logging_debug.json'
         init_logging(compss_home + json_path, log_path)
     elif log_level == "info":
-        json_path = '/Bindings/python/' + major_version + '/log/logging.json.off'
+        json_path = '/Bindings/python/' + major_version + '/log/logging_off.json'
         init_logging(compss_home + json_path, log_path)
     elif log_level == "off":
-        json_path = '/Bindings/python/' + major_version + '/log/logging.json.off'
+        json_path = '/Bindings/python/' + major_version + '/log/logging_off.json'
         init_logging(compss_home + json_path, log_path)
     else:
         # Default

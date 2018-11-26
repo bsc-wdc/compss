@@ -115,7 +115,7 @@ setup(
         package_dir={'pycompss': 'src/pycompss'},
         packages=[''] + find_packages(),
         package_data={
-                '': ['log/logging.json', 'log/logging.json.debug', 'log/logging.json.off', 'README.md', 'tests/*']
+                '': ['log/logging.json', 'log/logging_debug.json', 'log/logging_off.json', 'README.md', 'tests/*']
         },
         ext_modules=[compssmodule, thread_affinity]
 )

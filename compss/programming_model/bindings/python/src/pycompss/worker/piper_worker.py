@@ -369,10 +369,10 @@ def compss_persistent_worker():
     worker_path = os.path.dirname(os.path.realpath(__file__))
     if debug:
         # Debug
-        init_logging_worker(worker_path + '/../../log/logging.json.debug')
+        init_logging_worker(worker_path + '/../../log/logging_debug.json')
     else:
         # Default
-        init_logging_worker(worker_path + '/../../log/logging.json.off')
+        init_logging_worker(worker_path + '/../../log/logging_off.json')
 
     if __debug__:
         logger = logging.getLogger('pycompss.worker.worker')

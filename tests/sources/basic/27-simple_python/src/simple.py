@@ -11,23 +11,22 @@ PyCOMPSs Testbench Simple
 from pycompss.api.parameter import *
 from pycompss.api.task import task
 import unittest
-import sys
 
 
-@task(filePath=FILE_INOUT)
-def increment(filePath):
+@task(file_path=FILE_INOUT)
+def increment(file_path):
     print("Init task user code")
     # Read value
-    fis = open(filePath, 'r')
+    fis = open(file_path, 'r')
     value = fis.read()
     print("Received " + value)
     fis.close()
 
     # Write value
-    fos = open(filePath, 'w')
-    newValue = str(int(value) + 1)
-    print("Computed " + newValue)
-    fos.write(newValue)
+    fos = open(file_path, 'w')
+    new_value = str(int(value) + 1)
+    print("Computed " + new_value)
+    fos.write(new_value)
     fos.close()
 
 
@@ -36,25 +35,24 @@ def usage():
     print("    Usage: simple <counterValue>")
 
 
-class KmeansTest(unittest.TestCase):
+class SimpleTest(unittest.TestCase):
     def test_simple(self):
         from pycompss.api.api import compss_open
 
-
         initial_value = '1'
-        fileName = "counter"
+        file_name = "counter"
 
         # Write value
-        fos = open(fileName, 'w')
+        fos = open(file_name, 'w')
         fos.write(initial_value)
         fos.close()
         print("Initial counter value is " + initial_value)
 
         # Execute increment
-        increment(fileName)
+        increment(file_name)
 
         # Write new value
-        fis = compss_open(fileName, 'r+')
+        fis = compss_open(file_name, 'r+')
         final_value = fis.read()
         fis.close()
         print("Final counter value is " + final_value)

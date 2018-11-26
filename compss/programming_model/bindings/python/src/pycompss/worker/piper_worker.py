@@ -50,10 +50,12 @@ PROCESSES = []
 #####################
 #  Tag variables
 #####################
-INIT = "init"  # -- worker.py debug tracing #thr pipes_CMD pipes_RESULT
-EXECUTE_TASK_TAG = "task"  # -- "task" taskId jobOut jobErr task_params
-END_TASK_TAG = "endTask"  # -- "endTask" taskId endStatus
-QUIT_TAG = "quit"  # -- "quit"
+EXECUTE_TASK_TAG = "EXECUTE_TASK"  # -- "task" taskId jobOut jobErr task_params
+END_TASK_TAG = "END_TASK"  # -- "endTask" taskId endStatus
+ERROR_TASK_TAG = "ERROR_TASK"
+QUIT_TAG = "QUIT"  # -- "quit"
+REMOVE_TAG = "REMOVE"
+SERIALIZE_TAG = "SERIALIZE"
 
 
 ######################
@@ -141,6 +143,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
 
                 def treat_host_list(host_list):
                     os.environ['COMPSS_HOSTNAMES'] = host_list
+
                 treat_host_list(host_list)
 
                 # Remove the last elements: cpu and gpu bindings
@@ -170,7 +173,8 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                     logger.debug("[PYTHON WORKER %s] Received task." % str(process_name))
                     logger.debug("[PYTHON WORKER %s] - TASK CMD: %s" % (str(process_name), str(current_line)))
 
-                # Swap logger from stream handler to file handler.   #### TODO: FIX LOGGER! it may not be the first if the user defines its own.
+                # Swap logger from stream handler to file handler.
+                # #### TODO: FIX LOGGER! it may not be the first if the user defines its own.
                 logger.removeHandler(logger.handlers[0])
                 out_file_handler = logging.FileHandler(job_out)
                 out_file_handler.setLevel(level)
@@ -191,9 +195,11 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                     sys.stdout = out
                     sys.stderr = err
                     if not affinity_ok:
-                        err.write('WARNING: This task is going to be executed with default thread affinity %s' % thread_affinity.getaffinity())
+                        err.write(
+                            'WARNING: This task is going to be executed with default thread affinity %s' % thread_affinity.getaffinity())
                     from pycompss.worker.worker_commons import execute_task
-                    exit_value, new_types, new_values = execute_task(process_name, storage_conf, current_line[9:], TRACING)
+                    exit_value, new_types, new_values = execute_task(process_name, storage_conf, current_line[9:],
+                                                                     TRACING)
                     sys.stdout = stdout
                     sys.stderr = stderr
                     sys.stdout.flush()
@@ -310,6 +316,7 @@ def build_return_params_message(params, types, values):
     message = str(total_params) + ' ' + params
     return message
 
+
 def shutdown_handler(signal, frame):
     """
     Shutdown handler (do not remove the parameters).
@@ -407,6 +414,7 @@ def compss_persistent_worker():
                                                           out_pipes[i],
                                                           storage_conf)))
             PROCESSES[i].start()
+
         create_threads()
 
     # Catch SIGTERM send by bindings_piper to exit all PROCESSES
@@ -419,7 +427,7 @@ def compss_persistent_worker():
     # Check if there is any exception message from the threads
     for i in range(0, tasks_x_node):
         if not queues[i].empty:
-            print(queues[i].get())
+            logger.error("[PYTHON WORKER] Exception in threads queue: " + str(queues[i].get()))
 
     for q in queues:
         q.close()

@@ -17,7 +17,8 @@
 
 # -*- coding: utf-8 -*-
 
-'''PyCOMPSs API - Parameter
+"""
+PyCOMPSs API - Parameter
 ========================
     This file contains the clases needed for the parameter definition.
     1. DIRECTION.
@@ -42,21 +43,24 @@
     4. PREFIX.
     5. Parameter.
     6. Aliases.
-'''
+"""
 
 # Python3 has no ints and longs, only ints that are longs
 from pycompss.runtime.commons import IS_PYTHON3
+
 PYCOMPSS_LONG = int if IS_PYTHON3 else long
 
 # Numbers match both C and Java enums
 from pycompss.api.data_type import data_type
+
 TYPE = data_type
 
 
 # Numbers match both C and Java enums
 class DIRECTION(object):
-    '''Used as enum for direction types
-    '''
+    """
+    Used as enum for direction types
+    """
     IN = 0
     OUT = 1
     INOUT = 2
@@ -64,38 +68,35 @@ class DIRECTION(object):
 
 # Numbers match both C and Java enums
 class STREAM(object):
-    '''Used as enum for stream types
-    '''
+    """
+    Used as enum for stream types
+    """
     STDIN = 0
     STDOUT = 1
     STDERR = 2
     UNSPECIFIED = 3
 
+
 # String that identifies the prefix
 class PREFIX(object):
-    '''Used as enum for prefix
-    '''
+    """
+    Used as enum for prefix
+    """
     PREFIX = 'null'
 
-class Parameter(object):
-    '''Parameter class
-    Used to group the type, direction and value of a parameter
-    '''
 
-    def __init__(
-            self,
-            p_type=None,
-            p_direction=DIRECTION.IN,
-            p_stream=STREAM.UNSPECIFIED,
-            p_prefix=PREFIX.PREFIX,
-            object = None,
-            file_name = None,
-            is_future = False):
+class Parameter(object):
+    """Parameter class
+    Used to group the type, direction and value of a parameter
+    """
+
+    def __init__(self, p_type=None, p_direction=DIRECTION.IN, p_stream=STREAM.UNSPECIFIED,
+                 p_prefix=PREFIX.PREFIX, p_object=None, file_name=None, is_future=False):
         self.type = p_type
         self.direction = p_direction
         self.stream = p_stream
         self.prefix = p_prefix
-        self.object = object # placeholder for parameter object
+        self.object = p_object  # placeholder for parameter object
         self.file_name = file_name  # placeholder for object's serialized file path
         self.is_future = is_future
 
@@ -111,16 +112,17 @@ class Parameter(object):
                                             str(self.file_name),
                                             str(self.is_future))
 
+
 class TaskParameter(object):
-    '''An internal wrapper for parameters. It makes it easier for the task decorator to know
+    """
+    An internal wrapper for parameters. It makes it easier for the task decorator to know
     any aspect of the parameters (should they be updated or can changes be discarded, should they
     be deserialized or read from some storage, etc etc)
-    '''
+    """
 
-    def __init__(self, name = None, type = None, file_name = None,
-                 key = None, content = None, stream = None, prefix = None):
+    def __init__(self, name=None, p_type=None, file_name=None, key=None, content=None, stream=None, prefix=None):
         self.name = name
-        self.type = type
+        self.type = p_type
         self.file_name = file_name
         self.key = key
         self.content = content
@@ -128,15 +130,14 @@ class TaskParameter(object):
         self.prefix = prefix
 
     def __repr__(self):
-        return'\nParameter %s' % self.name + '\n' + \
-              '\tType %s' % str(self.type) + '\n' + \
-              '\tFile Name %s' % self.file_name + '\n' + \
-              '\tKey %s' % str(self.key) + '\n' + \
-              '\tContent %s' % str(self.content) + '\n' + \
-              '\tStream %s' % str(self.stream) + '\n' + \
-              '\tPrefix %s' % str(self.prefix) + '\n' + \
-              '-' * 20 + '\n'
-
+        return '\nParameter %s' % self.name + '\n' + \
+               '\tType %s' % str(self.type) + '\n' + \
+               '\tFile Name %s' % self.file_name + '\n' + \
+               '\tKey %s' % str(self.key) + '\n' + \
+               '\tContent %s' % str(self.content) + '\n' + \
+               '\tStream %s' % str(self.stream) + '\n' + \
+               '\tPrefix %s' % str(self.prefix) + '\n' + \
+               '-' * 20 + '\n'
 
 
 # Parameter conversion dictionary.
@@ -223,24 +224,28 @@ _param_conversion_dict_ = {
 
 
 def is_parameter(x):
-    '''Check if given object is a parameter.
+    """
+    Check if given object is a parameter.
     Avoids internal _param_ import
     :param x: Object to check
-    '''
+    """
     return isinstance(x, _param_)
 
 
 def get_new_parameter(key):
-    '''Returns a brand new parameter (no copies!)
+    """
+    Returns a brand new parameter (no copies!)
     :param key: A string that is a key of a valid Parameter template
-    '''
+    """
     return Parameter(**_param_conversion_dict_[key])
 
+
 def get_parameter_copy(param):
-    '''Same as get_new_parameter but with param objects
+    """
+    Same as get_new_parameter but with param objects
     :param param: Parameter object
     :return: An equivalent Parameter copy of this object (note that it will be equivalent, but not equal)
-    '''
+    """
     if is_parameter(param):
         return Parameter(**_param_conversion_dict_[param.key])
     assert isinstance(param, Parameter), \
@@ -248,17 +253,24 @@ def get_parameter_copy(param):
     import copy
     return copy.deepcopy(param)
 
+
 def is_dict_specifier(value):
-    '''Check if a parameter of the task decorator is a dictionary that specifies at least Type
+    """
+    Check if a parameter of the task decorator is a dictionary that specifies at least Type
     (and therefore can include things like Prefix, see binary decorator test for some examples)
     :param value: Decorator value to check
     :return: True iff value is a dictionary that specifies at least the Type of the key
-    '''
+    """
     return isinstance(value, dict)
 
+
 def get_parameter_from_dictionary(d):
-    '''Given a dictionary with fields like Type, Direction, etc
-    Return an actual Parameter object'''
+    """
+    Given a dictionary with fields like Type, Direction, etc
+    returns an actual Parameter object
+    :param d: 
+    :return: an actual Parameter object
+    """
     if Type not in d:  # If no Type specified => IN
         d[Type] = Parameter()
     d[Type] = get_parameter_copy(d[Type])
@@ -271,129 +283,160 @@ def get_parameter_from_dictionary(d):
         p.prefix = d[Prefix]
     return p
 
+
 def is_vararg(x):
-    '''Determine if a parameter is named as a (internal) vararg
+    """Determine if a parameter is named as a (internal) vararg
     :param x: String with a parameter name
     :returns: True iff the name has the form of an internal vararg name
-    '''
+    """
     return x.startswith('*')
+
 
 def get_varargs_name(x):
     return x.split('*')[0]
 
+
 def is_kwarg(x):
-    '''Determine if a parameter is named as a (internal) kwargs
+    """
+    Determine if a parameter is named as a (internal) kwargs
     :param x: String with a parameter name
     :return: True iff the name has the form of an internal kwarg name
-    '''
+    """
     return x.startswith('#kwarg')
 
+
 def is_return(x):
-    '''Determine if a parameter is named as a (internal) return
+    """
+    Determine if a parameter is named as a (internal) return
     :param x: String with a parameter name
     :returns: True iff the name has the form of an internal return name
-    '''
+    """
     return x.startswith('$return')
 
+
 def is_object(x):
-    '''Determine if a parameter is an object (not a FILE)
+    """
+    Determine if a parameter is an object (not a FILE)
     :param x: Parameter to determine
     :return: True iff x represents an object (IN, INOUT, OUT)
-    '''
+    """
     return x.type is None
+
 
 # Note that the given internal names to these parameters are
 # impossible to be assigned by the user because they are invalid
 # Python variable names, as they start with a star
 def get_vararg_name(varargs_name, i):
-    '''Given some integer i, return the name of the ith vararg
+    """
+    Given some integer i, return the name of the ith vararg
+    :param varargs_name :
     :param i: A nonnegative integer
     :return: The name of the ith vararg according to our internal naming convention
-    '''
+    """
     return '*%s*_%d' % (varargs_name, i)
 
+
 def get_kwarg_name(var):
-    '''Given some variable name, get the kwarg identifier
+    """
+    Given some variable name, get the kwarg identifier
     :param var: A string with a variable name
     :return: The name of the kwarg according to our internal naming convention
-    '''
+    """
     return '#kwarg_%s' % var
 
+
 def get_name_from_kwarg(var):
-    '''Given some kwarg name, return the original variable name
+    """
+    Given some kwarg name, return the original variable name
     :param var: A string with a (internal) kwarg name
     :return: The original variable name
-    '''
+    """
     return var.replace('#kwarg_', '')
 
 
 def get_return_name(i):
-    '''Given some integer i, return the name of the ith return
+    """
+    Given some integer i, return the name of the ith return
     :param i: A nonnegative integer
     :return: The name of the return identifier according to our internal naming
-    '''
+    """
     return '$return_%d' % i
 
+
 def get_original_name(x):
-    '''Given a name with some internal prefix, remove them and return
+    """
+    Given a name with some internal prefix, remove them and return
     the original name
     :param x: Parameter name
     :return: The original name of the parameter (i.e: the one given by the user)
-    '''
+    """
     return get_name_from_kwarg(x)
 
+
 def build_command_line_parameter(name, value):
-    '''Some parameters are passed as command line arguments. In order to be able to recognize them
+    """
+    Some parameters are passed as command line arguments. In order to be able to recognize them
     they are passed following the expression below.
     Note that strings are always encoded to base64, so it is guaranteed that we will always have exactly
     two underscores on the parameter
     :param name: Name of the parameter
     :param value: Value of the parameter
     :return: *PARAM_name_value. Example, variable y equals 3 => *PARAM_y_3
-    '''
+    """
     return '*INLINE_%s_%s' % (name, str(value))
 
+
 def retrieve_command_line_parameter(cla):
-    '''Given a command line parameter, retrieve its name and its value
-    '''
+    """
+    Given a command line parameter, retrieve its name and its value
+    """
     _, name, value = cla.split('_')
     return name, value
 
+
 def is_command_line_parameter(cla):
-    '''Check if a string is a command line parameter
-    '''
+    """
+    Check if a string is a command line parameter
+    """
     import re
     return bool(re.match('\*PARAM_.+_.+', cla))
 
+
 def stringify(object_name, object_type, object_content):
-    '''Given a stringifiable object, stringify it. The destringifier who destringifies
+    """
+    Given a stringifiable object, stringify it. The destringifier who destringifies
     this object a good destringifier hell be
     :param object_name: Name of the object
     :param object_type: Type of the object
     :param object_content: The object itself
     :return: The stringified object
-    '''
+    """
     return '%s#%s#%s' % (object_name, object_type, str(object_content))
 
+
 def destringify(stringified_object):
-    '''Given a stringified object, destringify it
-    '''
+    """
+    Given a stringified object, destringify it
+    """
     return stringified_object.split('#', 2)
 
+
 class _param_(object):
-    '''Private class which hides the parameter key to be used.
-    '''
+    """
+    Private class which hides the parameter key to be used.
+    """
+
     def __init__(self, key):
         self.key = key
 
 
-
 def get_compss_type(value):
-    '''Retrieve the value type mapped to COMPSs types.
+    """
+    Retrieve the value type mapped to COMPSs types.
     This was originally in task.py
     :param value: Value to analyse
     :return: The Type of the value
-    '''
+    """
     from pycompss.util.persistent_storage import has_id, get_id
     if isinstance(value, bool):
         return TYPE.BOOLEAN
@@ -425,7 +468,6 @@ def get_compss_type(value):
     else:
         # Default type
         return TYPE.OBJECT
-
 
 
 # Aliases for objects (just direction)
@@ -461,10 +503,10 @@ STDOUT = STREAM.STDOUT
 STDERR = STREAM.STDERR
 
 # Aliases for parameter definition as dictionary
-Type = 'type'            # parameter type
+Type = 'type'  # parameter type
 Direction = 'direction'  # parameter type
-Stream = 'stream'        # parameter stream
-Prefix = 'prefix'        # parameter prefix
+Stream = 'stream'  # parameter stream
+Prefix = 'prefix'  # parameter prefix
 
 # Java max and min integer and long values
 JAVA_MAX_INT = 2147483647

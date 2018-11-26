@@ -27,11 +27,11 @@ PyCOMPSs Core Element
 class CE(object):
 
     def __init__(self,
-                 ce_signature = None,
-                 impl_signature = None,
-                 impl_constraints = None,
-                 impl_type = None,
-                 impl_type_args = None):
+                 ce_signature=None,
+                 impl_signature=None,
+                 impl_constraints=None,
+                 impl_type=None,
+                 impl_type_args=None):
         self.__ceSignature = ce_signature
         self.__implSignature = impl_signature
         self.__implConstraints = impl_constraints
@@ -48,7 +48,6 @@ class CE(object):
         self.__implConstraints = None
         self.__implType = None
         self.__implTypeArgs = None
-
 
     ###########
     # GETTERS #

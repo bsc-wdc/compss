@@ -23,7 +23,6 @@ import os
 # Empty string substitution key
 EMPTY_STRING_KEY = "3mPtY57r1Ng"
 
-
 # Coding/decoding escape
 # Global python 3 variable
 if sys.version_info >= (3, 0):
@@ -38,6 +37,7 @@ ENVIRONMENT = 'terminal'
 IS_INTERACTIVE = False
 try:
     from IPython import get_ipython
+
     ipy_str = str(type(get_ipython()))
     if 'zmqshell' in ipy_str:
         ENVIRONMENT = 'jupyter'
@@ -48,7 +48,6 @@ try:
 except ImportError:
     ENVIRONMENT = 'terminal'
     IS_INTERACTIVE = False
-
 
 # Determine if running in a supercomputer
 RUNNING_IN_SUPERCOMPUTER = False

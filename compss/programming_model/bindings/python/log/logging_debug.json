@@ -25,6 +25,12 @@
       "formatter": "medium",
       "stream": "ext://sys.stderr"
     },
+    "runtime_file_handler": {
+      "class": "logging.StreamHandler",
+      "level": "DEBUG",
+      "formatter": "simple",
+      "stream": "ext://sys.stdout"
+    },
     "debug_file_handler": {
       "class": "logging.handlers.RotatingFileHandler",
       "level": "DEBUG",
@@ -154,13 +160,6 @@
       ],
       "propagate": "no"
     },
-    "pycompss.util.translators.scop2pscop2py.translator_scop2pscop2py": {
-      "level": "DEBUG",
-      "handlers": [
-        "console"
-      ],
-      "propagate": "no"
-    },
     "pycompss.util.translators.py2scop.translator_py2scop": {
       "level": "DEBUG",
       "handlers": [
@@ -223,8 +222,7 @@
     "pycompss.worker.worker": {
       "level": "DEBUG",
       "handlers": [
-        "console",
-        "error_console"
+        "runtime_file_handler"
       ],
       "propagate": "no"
     },

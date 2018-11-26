@@ -628,7 +628,7 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns, tas
     # Check that there is the same amount of values as their types, as well as their directions, streams and prefixes.
     assert (len(values) == len(compss_types) == len(compss_directions) == len(compss_streams) == len(compss_prefixes))
 
-    '''
+    """
     Submit task to the runtime (call to the C extension):
     Parameters:
         0 - <Integer>   - application id (by default always 0 due to it is not currently needed for the signature)
@@ -641,7 +641,7 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns, tas
         7 - [<Integer>] - parameters directions (number corresponding to the direction of each parameter)
         8 - [<Integer>] - parameters streams (number corresponding to the stream of each parameter)
         9 - [<String>]  - parameters prefixes (sting corresponding to the prefix of each parameter)
-    '''
+    """
 
     compss.process_task(app_id,
                         signature,
@@ -705,7 +705,8 @@ def _build_return_objects(f_returns):
             logger.debug("Simple object return found.")
         # Build the appropriate future object
         ret_value = f_returns[parameter.get_return_name(0)].object
-        if type(ret_value) in _python_to_compss or ret_value in _python_to_compss:  # primitives, string, dic, list, tuple
+        if type(
+                ret_value) in _python_to_compss or ret_value in _python_to_compss:  # primitives,string,dic,list,tuple
             fo = Future()
         elif inspect.isclass(ret_value):
             # For objects:
@@ -762,12 +763,13 @@ def _build_return_objects(f_returns):
             f_returns[k].file_name = ret_filename
     return fo
 
+
 def _serialize_objects(f_parameters):
-    '''Infer COMPSs types for the task parameters and serialize them.
+    """Infer COMPSs types for the task parameters and serialize them.
     WARNING: Updates f_parameters dictionary
     :param f_parameters: <Dictionary> - Function parameters
     :return: Tuple of task_kwargs updated and a dictionary containing if the objects are future elements.
-    '''
+    """
     max_obj_arg_size = 320000
     for k in f_parameters:
         # Check user annotations concerning this argument
@@ -785,15 +787,16 @@ def _serialize_objects(f_parameters):
         if __debug__:
             logger.debug("Final type for parameter %s: %d" % (k, p.type))
 
+
 def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings):
-    '''
+    """
     Build the values list, the values types list and the values directions list.
     :param ftype: task function type. If it is an instance method, the first parameter will be put at the end.
     :param f_parameters: <Dictionary> Function parameters
     :param f_returns: <Dictionary> - Function returns
     :param code_strings: <Boolean> Code strings or not
     :return: <List,List,List,List,List> List of values, their types, their directions, their streams and their prefixes
-    '''
+    """
     values = []
     names = list(f_parameters.keys()) + list(f_returns.keys())
     compss_types = []
@@ -834,45 +837,45 @@ def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings)
     return values, names, compss_types, compss_directions, compss_streams, compss_prefixes
 
 
-def _extract_parameter(parameter, code_strings):
-    '''Extract the information of a single parameter
+def _extract_parameter(param, code_strings):
+    """Extract the information of a single parameter
 
-    :param parameter: Parameter object
+    :param param: Parameter object
     :param code_strings: <Boolean> Encode strings
     :return: value, type, direction stream and prefix of the given parameter
-    '''
-    if parameter.type == TYPE.STRING and not parameter.is_future and code_strings:
+    """
+    if param.type == TYPE.STRING and not param.is_future and code_strings:
         # Encode the string in order to preserve the source
         # Checks that it is not a future (which is indicated with a path)
         # Considers multiple spaces between words
-        parameter.object = base64.b64encode(parameter.object.encode()).decode()
-        if len(parameter.object) == 0:
+        param.object = base64.b64encode(param.object.encode()).decode()
+        if len(param.object) == 0:
             # Empty string - use escape string to avoid padding
             # Checked and substituted by empty string in the worker.py and piper_worker.py
-            parameter.object = base64.b64encode(EMPTY_STRING_KEY.encode()).decode()
+            param.object = base64.b64encode(EMPTY_STRING_KEY.encode()).decode()
     # If the Parameter type is file, then the object must have been serialized
     # and the Parameter must have the file_name where the object is.
-    if parameter.type == TYPE.FILE or parameter.type == TYPE.OBJECT or parameter.is_future:
-        value = parameter.file_name
+    if param.type == TYPE.FILE or param.type == TYPE.OBJECT or param.is_future:
+        value = param.file_name
         typ = TYPE.FILE
     else:
-        value = parameter.object
-        typ = parameter.type
+        value = param.object
+        typ = param.type
     # Get direction, stream and prefix
-    direction = parameter.direction
-    stream = parameter.stream
-    prefix = parameter.prefix
+    direction = param.direction
+    stream = param.stream
+    prefix = param.prefix
     return value, typ, direction, stream, prefix
 
 
 def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
-    '''Convert small objects into string that can fit into the task parameters call
+    """Convert small objects into string that can fit into the task parameters call
     :param p: Object wrapper
     :param max_obj_arg_size: max size of the object to be converted
     :param policy: policy to use: 'objectSize' for considering the size of the object or 'serializedSize' for
                    considering the size of the object serialized.
     :return: the object possibly converted to string
-    '''
+    """
 
     is_future = p.is_future
 
@@ -885,7 +888,7 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
         # in terms of time and precision
         if (p.type == TYPE.OBJECT or p.type == TYPE.STRING) and not is_future and p.direction == DIRECTION.IN:
             if not isinstance(p.object, basestring) and isinstance(p.object,
-                                                                   (list, dict, tuple, deque, set, frozenset)):
+                                                                     (list, dict, tuple, deque, set, frozenset)):
                 # check object size
                 # bytes = sys.getsizeof(p.object)  # does not work properly with recursive object
                 num_bytes = total_sizeof(p.object)
@@ -1007,7 +1010,7 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
 #         else:
 #             child_p_type = _python_to_compss.get(val_type)
 #
-#         child_parameter = Parameter(p_type=child_p_type, p_direction=p.direction, p_stream=p.stream, p_prefix=p.prefix)
+#         child_parameter=Parameter(p_type=child_p_type, p_direction=p.direction, p_stream=p.stream, p_prefix=p.prefix)
 #         child_parameter.object = child_value
 #
 #         # Recursively check
@@ -1018,11 +1021,11 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
 
 
 def _serialize_object_into_file(name, p):
-    '''Serialize an object into a file if necessary.
+    """Serialize an object into a file if necessary.
     :param name: Name of the object
     :param p: Object wrapper
     :return: p (whose type and value might be modified)
-    '''
+    """
 
     if p.type == TYPE.OBJECT or p.is_future:
         # 2nd condition: real type can be primitive, but now it's acting as a future (object)
@@ -1067,13 +1070,13 @@ def _serialize_object_into_file(name, p):
 
 
 def _manage_persistent_object(p):
-    '''Does the necessary actions over a persistent object used as task parameter.
+    """Does the necessary actions over a persistent object used as task parameter.
     Check if the object has already been used (indexed in the objid_to_filename
     dictionary).
     In particular, saves the object id provided by the persistent storage
     (getID()) into the pending_to_synchronize dictionary.
     :param p: wrapper of the object to manage
-    '''
+    """
     p.type = TYPE.EXTERNAL_PSCO
     obj_id = get_id(p.object)
     pending_to_synchronize[obj_id] = p.object  # obj_id
@@ -1083,14 +1086,14 @@ def _manage_persistent_object(p):
 
 
 def _turn_into_file(name, p):
-    '''Write a object into a file if the object has not been already written (p.object).
+    """Write a object into a file if the object has not been already written (p.object).
     Consults the objid_to_filename to check if it has already been written
     (reuses it if exists). If not, the object is serialized to file and
     registered in the objid_to_filename dictionary.
     This functions stores the object into pending_to_synchronize
     :param p: Wrapper of the object to turn into file
     :return: None
-    '''
+    """
 
     # print('XXXXXXXXXXXXXXXXX')
     # print('p           : ', p)
@@ -1127,15 +1130,16 @@ def _turn_into_file(name, p):
     # Set file name in Parameter object
     p.file_name = file_name
 
+
 def _clean_objects():
-    '''Clean the objects stored in the global dictionaries:
+    """Clean the objects stored in the global dictionaries:
         * pending_to_synchronize dict
         * _id2obj dict
         * objid_to_filename dict
         * _objs_written_by_mp dict
 
     :return: None
-    '''
+    """
 
     for filename in objid_to_filename.values():
         compss.delete_file(filename)
@@ -1146,10 +1150,10 @@ def _clean_objects():
 
 
 def _clean_temps():
-    '''Clean temporary files.
+    """Clean temporary files.
     The temporary files end with the IT extension
     :return: None
-    '''
+    """
     rmtree(temp_dir, True)
     cwd = os.getcwd()
     for f in os.listdir(cwd):

@@ -32,6 +32,7 @@ from tempfile import mkdtemp
 
 # Let the Python binding know we are at master
 import pycompss.util.context as context
+
 context.set_pycompss_context(context.MASTER)
 
 import pycompss.runtime.binding as binding
@@ -51,6 +52,7 @@ from pycompss.util.scs import get_storage_conf
 from pycompss.util.logs import init_logging
 from pycompss.util.serializer import SerializerException
 from pycompss.util.optional_modules import show_optional_module_warnings
+
 # from pycompss.util.jvm_parser import convert_to_dict
 
 # Global variable also used within decorators
@@ -263,6 +265,7 @@ def launch_pycompss_application(app, func,
     :param master_port: Master port (default: '')
     :param scheduler: Scheduler (default: LoadBalancingScheduler)
     :param jvm_workers: Java VM parameters (default: '-Xms1024m,-Xmx1024m,-Xmn400m')
+    :param obj_conv: Object conversion
     :param cpu_affinity: CPU Core affinity (default: 'automatic')
     :param gpu_affinity: GPU Core affinity (default: 'automatic')
     :param fpga_affinity: FPA Core affinity (default: 'automatic')
@@ -564,7 +567,8 @@ def initialize_compss(config):
         os.environ['EXTRAE_CONFIG_FILE'] = config['compss_home'] + '/Runtime/configuration/xml/tracing/extrae_basic.xml'
     elif config['trace'] == 2:
         jvm_options_file.write('-Dcompss.tracing=2\n')
-        os.environ['EXTRAE_CONFIG_FILE'] = config['compss_home'] + '/Runtime/configuration/xml/tracing/extrae_advanced.xml'
+        os.environ['EXTRAE_CONFIG_FILE'] = config[
+                                               'compss_home'] + '/Runtime/configuration/xml/tracing/extrae_advanced.xml'
     else:
         jvm_options_file.write('-Dcompss.tracing=0' + '\n')
 
@@ -589,7 +593,9 @@ def initialize_compss(config):
         jvm_options_file.write('-Dgat.debug=false\n')
     jvm_options_file.write('-Dgat.broker.adaptor=sshtrilead\n')
     jvm_options_file.write('-Dgat.file.adaptor=sshtrilead\n')
-    jvm_options_file.write('-Dcompss.worker.cp=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config['classpath'] + '\n')
+    jvm_options_file.write(
+        '-Dcompss.worker.cp=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config[
+            'classpath'] + '\n')
     jvm_options_file.write('-Dcompss.worker.jvm_opts=' + config['jvm_workers'] + '\n')
     jvm_options_file.write('-Dcompss.worker.cpu_affinity=' + config['cpu_affinity'] + '\n')
     jvm_options_file.write('-Dcompss.worker.gpu_affinity=' + config['gpu_affinity'] + '\n')
@@ -601,7 +607,9 @@ def initialize_compss(config):
     jvm_options_file.write('-Dcompss.external.adaptation=' + config['external_adaptation'] + '\n')
 
     # JVM OPTIONS - PYTHON
-    jvm_options_file.write('-Djava.class.path=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config['classpath'] + '\n')
+    jvm_options_file.write(
+        '-Djava.class.path=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config[
+            'classpath'] + '\n')
     jvm_options_file.write('-Djava.library.path=' + config['ld_library_path'] + '\n')
     jvm_options_file.write('-Dcompss.worker.pythonpath=' + config['cp'] + ':' + config['pythonpath'] + '\n')
     jvm_options_file.write('-Dcompss.python.interpreter=' + config['python_interpreter'] + '\n')

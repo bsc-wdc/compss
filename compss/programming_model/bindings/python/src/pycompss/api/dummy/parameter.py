@@ -106,7 +106,7 @@ class Parameter(object):
         self.direction = p_direction
         self.stream = p_stream
         self.prefix = p_prefix
-        self.object = None     # placeholder for parameter object
+        self.object = None  # placeholder for parameter object
         self.file_name = None  # placeholder for object's serialized file
         self.is_future = False
 

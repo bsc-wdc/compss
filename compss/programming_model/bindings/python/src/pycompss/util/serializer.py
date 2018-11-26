@@ -218,8 +218,14 @@ def deserialize_from_handler(handler):
     :param handler: File name from where the object is going to be deserialized.
     :return: The object deserialized.
     '''
-    # Retrieve the used library
-    serializer = idx2lib[int(handler.read(4))]
+    # Retrieve the used library (if possible)
+    try:
+        original_position = handler.tell()
+        serializer = idx2lib[int(handler.read(4))]
+    except:
+        handler.seek(original_position)
+        raise SerializerException('Handler does not refer to a valid PyCOMPSs object')
+
     try:
         ret = serializer.load(handler)
         # Special case: deserialized obj wraps a generator

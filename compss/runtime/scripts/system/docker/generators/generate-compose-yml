@@ -21,12 +21,14 @@ master_command="/bin/bash -c '"
 master_command="${master_command} /opt/COMPSs/Runtime/scripts/system/docker/generators/generate-resources-xml $NUM_WORKERS $COMPUTING_UNITS $MEMORY $SWARM_MANAGER_IP $APP_IMAGE_NAME $CREATION_TIME > $ABS_CONTEXT/resources.xml ; "
 master_command="${master_command} /opt/COMPSs/Runtime/scripts/system/docker/generators/generate-project-xml $NUM_WORKERS $APP_IMAGE_NAME $MIN_VMS $MAX_VMS > $ABS_CONTEXT/project.xml ; "
 
+
 # Add their path to the runcompss args
 RUNCOMPSS_ARGS=" --resources=\"$ABS_CONTEXT/resources.xml\" $RUNCOMPSS_ARGS"
 RUNCOMPSS_ARGS=" --project=\"$ABS_CONTEXT/project.xml\"  $RUNCOMPSS_ARGS"
+RUNCOMPSS_ARGS=" --master_name=master $RUNCOMPSS_ARGS"
 
 # Execute the runcompss command itself, from the context directory
-master_command="${master_command} cd \"${ABS_CONTEXT}\"; sleep 5 ; /opt/COMPSs/Runtime/scripts/user/runcompss $RUNCOMPSS_ARGS ; "
+master_command="${master_command} cd \"${ABS_CONTEXT}\"; sleep 5 ; /opt/COMPSs/Runtime/scripts/user/runcompss $RUNCOMPSS_ARGS 2>&1 ; "
 
 # After the execution ends, stop all the workers. This is, stop their sshd
 # Concatenating with ; to ALWAYS shutdown nodes even if the above commands fail
@@ -35,18 +37,19 @@ do
     master_command="${master_command} ssh -o StrictHostKeyChecking=no worker${i} \"pkill sshd\" ;"
 done
 
-master_command="${master_command}'" # Final quotes huehue
+master_command="${master_command}  exit 0 '" # Final quotes huehue
 
 # Now, we are going to create the Docker Compose file.
 # One service for the master, and one service for each worker
 
 # GENERAL
 echo -e "\
-version: '2'
+version: '3.7'
 
 networks:
   runcompss-docker-net:
     driver: overlay
+    attachable: true
 
 services:
 "
@@ -59,15 +62,16 @@ echo -e "\
   worker$i:
     image: $APP_IMAGE_NAME
 
-    expose:
-      - \"43000-43200\"
-      - \"22\"
-      - \"7\"
-
     command: /bin/bash -c \"/usr/sbin/sshd -D \"
-
-    mem_limit: ${MEMORY}g
-    cpu_shares: ${COMPUTING_UNITS}
+    deploy:
+      restart_policy:
+        condition: none
+        delay: 5s
+        window: 10s
+      resources:
+        limits:
+          memory: ${MEMORY}g
+          cpus: '${COMPUTING_UNITS}'
 
     networks:
       - runcompss-docker-net
@@ -81,10 +85,13 @@ echo -e "\
 
     image: $APP_IMAGE_NAME
 
-    expose:
-      - \"43000-43200\"
-
     command: ${master_command}
+
+    deploy:
+      restart_policy:
+        condition: none
+        delay: 5s
+        window: 10s
 
     networks:
       - runcompss-docker-net

@@ -19,7 +19,7 @@ public interface MainItf {
         @Parameter() int counter
     );
 
-    @COMPSs(appName = "simple.Simple", computingNodes = "2")
+    @COMPSs(runcompss = "", appName = "simple.Simple", computingNodes = "2")
     @Constraints(computingUnits = "2")
     int taskMultiNode(
         @Parameter() int counter

@@ -40,15 +40,12 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 
-/**
- *
- * @author flordan
- */
 public class TestJavaInvoker extends TestObject {
 
     public TestJavaInvoker() {
         super(0);
     }
+
 
     private static final String EXISTING_CLASS = "es.bsc.compss.invokers.test.TestJavaInvoker";
     private static final String NON_EXISTING_CLASS = "es.bsc.compss.invokers.test.NonExistentTestJavaInvoker";
@@ -79,15 +76,17 @@ public class TestJavaInvoker extends TestObject {
         TEST_TARGET_INOUT = new MethodImplementation(EXISTING_CLASS, TEST_TARGET_INOUT_METHODNAME, 0, 0, new MethodResourceDescription());
         TEST_RESULT = new MethodImplementation(EXISTING_CLASS, TEST_RESULT_METHODNAME, 0, 0, new MethodResourceDescription());
 
-        TEST_NONEXISTENT_CLASS = new MethodImplementation(NON_EXISTING_CLASS, TEST_NONEXISTENT_METHODNAME, 0, 0, new MethodResourceDescription());
-        TEST_NONEXISTENT_METHOD = new MethodImplementation(EXISTING_CLASS, TEST_NONEXISTENT_METHODNAME, 0, 0, new MethodResourceDescription());
+        TEST_NONEXISTENT_CLASS = new MethodImplementation(NON_EXISTING_CLASS, TEST_NONEXISTENT_METHODNAME, 0, 0,
+                new MethodResourceDescription());
+        TEST_NONEXISTENT_METHOD = new MethodImplementation(EXISTING_CLASS, TEST_NONEXISTENT_METHODNAME, 0, 0,
+                new MethodResourceDescription());
     }
 
     private static HashMap<Long, ExecutionReport> executions = new HashMap<>();
     private final ExecutionFlowVerifier expectedEvents = new ExecutionFlowVerifier();
 
-    private static File createTempDirectory()
-            throws IOException {
+
+    private static File createTempDirectory() throws IOException {
         final File temp;
 
         temp = File.createTempFile("temp", Long.toString(System.nanoTime()));
@@ -129,7 +128,7 @@ public class TestJavaInvoker extends TestObject {
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
         try {
-            Invoker invoker = new JavaInvoker(context, invocation, sandBoxDir, null);
+            new JavaInvoker(context, invocation, sandBoxDir, null);
         } catch (JobExecutionException jee) {
             if (jee.getMessage().compareTo(JavaInvoker.ERROR_CLASS_REFLECTION) != 0) {
                 fail("Test should fail because class could not be found. Obtained error is " + jee.getMessage());
@@ -151,7 +150,7 @@ public class TestJavaInvoker extends TestObject {
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
         try {
-            Invoker invoker = new JavaInvoker(context, invocation, sandBoxDir, null);
+            new JavaInvoker(context, invocation, sandBoxDir, null);
         } catch (JobExecutionException jee) {
             if (jee.getMessage().compareTo(JavaInvoker.ERROR_METHOD_REFLECTION) != 0) {
                 fail("Test should fail because method could not be found. Obtained error is " + jee.getMessage());
@@ -162,7 +161,6 @@ public class TestJavaInvoker extends TestObject {
 
     @Test
     public void parameterMissmatch() throws InvalidMapException, IOException, JobExecutionException {
-        long executorId = Thread.currentThread().getId();
         File sandBoxDir = createTempDirectory();
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
@@ -185,7 +183,7 @@ public class TestJavaInvoker extends TestObject {
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
         try {
-            Invoker invoker = new JavaInvoker(context, invocation, sandBoxDir, null);
+            new JavaInvoker(context, invocation, sandBoxDir, null);
         } catch (JobExecutionException jee) {
             if (jee.getMessage().compareTo(JavaInvoker.ERROR_METHOD_REFLECTION) != 0) {
                 fail("Test should fail because method could not be found. Obtained error is " + jee.getMessage());
@@ -214,7 +212,7 @@ public class TestJavaInvoker extends TestObject {
         invoker.processTask();
 
         ExecutionReport report = executions.remove(executorId);
-        report.checkReport(TEST_EMPTY_METHODNAME, true, new Object[]{}, null, null);
+        report.checkReport(TEST_EMPTY_METHODNAME, true, new Object[] {}, null, null);
         deleteSandbox(sandBoxDir);
 
     }
@@ -224,7 +222,7 @@ public class TestJavaInvoker extends TestObject {
         ExecutionReport report = executions.remove(executorId);
         report.checkReport(TEST_EMPTY_METHODNAME, false, new Object[0], null, null);
 
-        //DO WHATEVER THE METHOD DOES
+        // DO WHATEVER THE METHOD DOES
         ExecutionReport result = new ExecutionReport(TEST_EMPTY_METHODNAME, true, new Object[0], null, null);
         executions.put(executorId, result);
     }
@@ -256,22 +254,22 @@ public class TestJavaInvoker extends TestObject {
 
         Invoker invoker = new JavaInvoker(context, invocation, sandBoxDir, null);
 
-        ExecutionReport result = new ExecutionReport(TEST_READS_METHODNAME, false, new Object[]{value1, value2}, null, null);
+        ExecutionReport result = new ExecutionReport(TEST_READS_METHODNAME, false, new Object[] { value1, value2 }, null, null);
         executions.put(executorId, result);
         invoker.processTask();
 
         ExecutionReport report = executions.remove(executorId);
-        report.checkReport(TEST_READS_METHODNAME, true, new Object[]{value1, value2}, null, null);
+        report.checkReport(TEST_READS_METHODNAME, true, new Object[] { value1, value2 }, null, null);
         deleteSandbox(sandBoxDir);
     }
 
     public static void testReads(TestObject a, TestObject b) {
         long executorId = Thread.currentThread().getId();
         ExecutionReport report = executions.remove(executorId);
-        report.checkReport(TEST_READS_METHODNAME, false, new Object[]{a, b}, null, null);
+        report.checkReport(TEST_READS_METHODNAME, false, new Object[] { a, b }, null, null);
 
-        //DO WHATEVER THE METHOD DOES
-        ExecutionReport result = new ExecutionReport(TEST_READS_METHODNAME, true, new Object[]{a, b}, null, null);
+        // DO WHATEVER THE METHOD DOES
+        ExecutionReport result = new ExecutionReport(TEST_READS_METHODNAME, true, new Object[] { a, b }, null, null);
         executions.put(executorId, result);
     }
 
@@ -302,7 +300,7 @@ public class TestJavaInvoker extends TestObject {
 
         Invoker invoker = new JavaInvoker(context, invocation, sandBoxDir, null);
 
-        ExecutionReport result = new ExecutionReport(TEST_INOUT_METHODNAME, false, new Object[]{value1, value2}, null, null);
+        ExecutionReport result = new ExecutionReport(TEST_INOUT_METHODNAME, false, new Object[] { value1, value2 }, null, null);
         executions.put(executorId, result);
         TestObject out1 = new TestObject(4);
         TestObject out2 = new TestObject(4);
@@ -311,18 +309,18 @@ public class TestJavaInvoker extends TestObject {
         invoker.processTask();
 
         ExecutionReport report = executions.remove(executorId);
-        report.checkReport(TEST_INOUT_METHODNAME, true, new Object[]{out1, out2}, null, null);
+        report.checkReport(TEST_INOUT_METHODNAME, true, new Object[] { out1, out2 }, null, null);
         deleteSandbox(sandBoxDir);
     }
 
     public static void testInouts(TestObject a, TestObject b) {
         long executorId = Thread.currentThread().getId();
         ExecutionReport report = executions.remove(executorId);
-        report.checkReport(TEST_INOUT_METHODNAME, false, new Object[]{a, b}, null, null);
+        report.checkReport(TEST_INOUT_METHODNAME, false, new Object[] { a, b }, null, null);
         a.updateValue(a.getValue() + 1);
         b.updateValue(b.getValue() + 2);
-        //DO WHATEVER THE METHOD DOES
-        ExecutionReport result = new ExecutionReport(TEST_INOUT_METHODNAME, true, new Object[]{a, b}, null, null);
+        // DO WHATEVER THE METHOD DOES
+        ExecutionReport result = new ExecutionReport(TEST_INOUT_METHODNAME, true, new Object[] { a, b }, null, null);
         executions.put(executorId, result);
     }
 
@@ -342,7 +340,7 @@ public class TestJavaInvoker extends TestObject {
         try {
             invoker.processTask();
         } catch (NullPointerException npe) {
-            //Executing a instance method on null -> Raise Exception
+            // Executing a instance method on null -> Raise Exception
         }
         deleteSandbox(sandBoxDir);
     }
@@ -370,13 +368,13 @@ public class TestJavaInvoker extends TestObject {
 
         Invoker invoker = new JavaInvoker(context, invocation, sandBoxDir, null);
 
-        ExecutionReport result = new ExecutionReport(TEST_TARGET_IN_METHODNAME, false, new Object[]{}, target, null);
+        ExecutionReport result = new ExecutionReport(TEST_TARGET_IN_METHODNAME, false, new Object[] {}, target, null);
         executions.put(executorId, result);
 
         invoker.processTask();
 
         ExecutionReport report = executions.remove(executorId);
-        report.checkReport(TEST_TARGET_IN_METHODNAME, true, new Object[]{}, target, null);
+        report.checkReport(TEST_TARGET_IN_METHODNAME, true, new Object[] {}, target, null);
         deleteSandbox(sandBoxDir);
 
     }
@@ -384,10 +382,10 @@ public class TestJavaInvoker extends TestObject {
     public void testTargetIn() {
         long executorId = Thread.currentThread().getId();
         ExecutionReport report = executions.remove(executorId);
-        report.checkReport(TEST_TARGET_IN_METHODNAME, false, new Object[]{}, this, null);
+        report.checkReport(TEST_TARGET_IN_METHODNAME, false, new Object[] {}, this, null);
 
-        //DO WHATEVER THE METHOD DOES
-        ExecutionReport result = new ExecutionReport(TEST_TARGET_IN_METHODNAME, true, new Object[]{}, this, null);
+        // DO WHATEVER THE METHOD DOES
+        ExecutionReport result = new ExecutionReport(TEST_TARGET_IN_METHODNAME, true, new Object[] {}, this, null);
         executions.put(executorId, result);
     }
 
@@ -415,23 +413,23 @@ public class TestJavaInvoker extends TestObject {
 
         Invoker invoker = new JavaInvoker(context, invocation, sandBoxDir, null);
 
-        ExecutionReport result = new ExecutionReport(TEST_TARGET_INOUT_METHODNAME, false, new Object[]{}, target, null);
+        ExecutionReport result = new ExecutionReport(TEST_TARGET_INOUT_METHODNAME, false, new Object[] {}, target, null);
         executions.put(executorId, result);
 
         expectedEvents.add(Event.Type.STORE_OBJECT, renaming, 5);
         invoker.processTask();
         ExecutionReport report = executions.remove(executorId);
-        report.checkReport(TEST_TARGET_INOUT_METHODNAME, true, new Object[]{}, target, null);
+        report.checkReport(TEST_TARGET_INOUT_METHODNAME, true, new Object[] {}, target, null);
         deleteSandbox(sandBoxDir);
     }
 
     public void testTargetInout() {
         long executorId = Thread.currentThread().getId();
         ExecutionReport report = executions.remove(executorId);
-        report.checkReport(TEST_TARGET_INOUT_METHODNAME, false, new Object[]{}, this, null);
+        report.checkReport(TEST_TARGET_INOUT_METHODNAME, false, new Object[] {}, this, null);
         this.updateValue(this.getValue() + 1);
-        //DO WHATEVER THE METHOD DOES
-        ExecutionReport result = new ExecutionReport(TEST_TARGET_INOUT_METHODNAME, true, new Object[]{}, this, null);
+        // DO WHATEVER THE METHOD DOES
+        ExecutionReport result = new ExecutionReport(TEST_TARGET_INOUT_METHODNAME, true, new Object[] {}, this, null);
         executions.put(executorId, result);
     }
 
@@ -457,24 +455,24 @@ public class TestJavaInvoker extends TestObject {
 
         Invoker invoker = new JavaInvoker(context, invocation, sandBoxDir, null);
 
-        ExecutionReport result = new ExecutionReport(TEST_RESULT_METHODNAME, false, new Object[]{}, null, new TestObject(5));
+        ExecutionReport result = new ExecutionReport(TEST_RESULT_METHODNAME, false, new Object[] {}, null, new TestObject(5));
         executions.put(executorId, result);
 
         expectedEvents.add(Event.Type.STORE_OBJECT, renaming, 5);
         invoker.processTask();
 
         ExecutionReport report = executions.remove(executorId);
-        report.checkReport(TEST_RESULT_METHODNAME, true, new Object[]{}, null, null);
+        report.checkReport(TEST_RESULT_METHODNAME, true, new Object[] {}, null, null);
         deleteSandbox(sandBoxDir);
     }
 
     public static TestObject testResult() {
         long executorId = Thread.currentThread().getId();
         ExecutionReport report = executions.remove(executorId);
-        report.checkReport(TEST_RESULT_METHODNAME, false, new Object[]{}, null, null);
+        report.checkReport(TEST_RESULT_METHODNAME, false, new Object[] {}, null, null);
 
         TestObject returnValue = new TestObject(5);
-        ExecutionReport result = new ExecutionReport(TEST_RESULT_METHODNAME, true, new Object[]{}, null, returnValue);
+        ExecutionReport result = new ExecutionReport(TEST_RESULT_METHODNAME, true, new Object[] {}, null, returnValue);
         executions.put(executorId, result);
         return returnValue;
     }
@@ -487,6 +485,7 @@ public class TestJavaInvoker extends TestObject {
         private final Object[] arguments;
         private final Object target;
         private final Object result;
+
 
         public ExecutionReport(String method, boolean executed, Object[] arguments, Object target, Object result) {
             this.method = method;
@@ -502,42 +501,31 @@ public class TestJavaInvoker extends TestObject {
                 fail("Wrong method execution. Expecting" + method + " instead of " + this.method);
             }
 
-            assertEquals("Unexpected execution state."
-                    + (executed
-                            ? "Obtained " + executed + " and " + this.executed + " expected."
-                            : "Obtained " + this.executed + " and " + executed + " expected."),
-                    this.executed, executed
-            );
+            assertEquals("Unexpected execution state." + (executed ? "Obtained " + executed + " and " + this.executed + " expected."
+                    : "Obtained " + this.executed + " and " + executed + " expected."), this.executed, executed);
 
-            assertEquals("The number of read does not match the expected. "
-                    + (executed
-                            ? "Obtained " + arguments.length + " and " + this.arguments.length + " expected."
-                            : "Obtained " + this.arguments.length + " and " + arguments.length + " expected."),
-                    this.arguments.length, arguments.length
-            );
+            assertEquals(
+                    "The number of read does not match the expected. "
+                            + (executed ? "Obtained " + arguments.length + " and " + this.arguments.length + " expected."
+                                    : "Obtained " + this.arguments.length + " and " + arguments.length + " expected."),
+                    this.arguments.length, arguments.length);
 
             for (int argIdx = 0; argIdx < arguments.length; argIdx++) {
-                assertEquals("Unexpected value for parameter " + argIdx + " on " + method + "."
-                        + (executed
-                                ? "Obtained " + arguments[argIdx] + " and " + this.arguments[argIdx] + " expected."
-                                : "Obtained " + this.arguments[argIdx] + " and " + arguments[argIdx] + " expected."),
+                assertEquals(
+                        "Unexpected value for parameter " + argIdx + " on " + method + "."
+                                + (executed ? "Obtained " + arguments[argIdx] + " and " + this.arguments[argIdx] + " expected."
+                                        : "Obtained " + this.arguments[argIdx] + " and " + arguments[argIdx] + " expected."),
                         this.arguments[argIdx], arguments[argIdx]);
             }
 
             if (this.target == null && target == null) {
-                assertEquals("Unexpected target value. "
-                        + (executed
-                                ? "Obtained " + target + " and " + this.target + " expected."
-                                : "Obtained " + this.target + " and " + target + " expected."),
-                        this.target, target);
+                assertEquals("Unexpected target value. " + (executed ? "Obtained " + target + " and " + this.target + " expected."
+                        : "Obtained " + this.target + " and " + target + " expected."), this.target, target);
             }
 
             if (this.result == null && result == null) {
-                assertEquals("Unexpected result value. "
-                        + (executed
-                                ? "Obtained " + result + " and " + this.result + " expected."
-                                : "Obtained " + this.result + " and " + result + " expected."),
-                        this.result, result);
+                assertEquals("Unexpected result value. " + (executed ? "Obtained " + result + " and " + this.result + " expected."
+                        : "Obtained " + this.result + " and " + result + " expected."), this.result, result);
             }
         }
     }

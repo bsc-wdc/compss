@@ -19,10 +19,6 @@ package es.bsc.compss.types.execution;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
 
 
-/**
- *
- * @author flordan
- */
 public interface InvocationParamURI {
 
     public boolean isHost(String hostName);

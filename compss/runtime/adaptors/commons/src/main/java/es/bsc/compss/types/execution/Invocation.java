@@ -24,10 +24,6 @@ import es.bsc.compss.types.resources.ResourceDescription;
 import java.util.List;
 
 
-/**
- *
- * @author flordan
- */
 public interface Invocation {
 
     public int getJobId();

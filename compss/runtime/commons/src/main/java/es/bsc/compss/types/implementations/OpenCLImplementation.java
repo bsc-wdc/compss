@@ -26,6 +26,8 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 
 public class OpenCLImplementation extends AbstractMethodImplementation implements Externalizable {
 
+    public static final int NUM_PARAMS = 2;
+
     private String kernel;
     private String workingDir;
 
@@ -60,7 +62,7 @@ public class OpenCLImplementation extends AbstractMethodImplementation implement
     @Override
     public String getMethodDefinition() {
         StringBuilder sb = new StringBuilder();
-        sb.append("[KERNEL=").append(kernel);
+        sb.append("[KERNEL=").append(this.kernel);
         sb.append("]");
 
         return sb.toString();
@@ -68,21 +70,21 @@ public class OpenCLImplementation extends AbstractMethodImplementation implement
 
     @Override
     public String toString() {
-        return super.toString() + " OpenCL Method with kernel " + kernel;
+        return super.toString() + " OpenCL Method with kernel " + this.kernel;
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         super.readExternal(in);
-        kernel = (String) in.readObject();
-        workingDir = (String) in.readObject();
+        this.kernel = (String) in.readObject();
+        this.workingDir = (String) in.readObject();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         super.writeExternal(out);
-        out.writeObject(kernel);
-        out.writeObject(workingDir);
+        out.writeObject(this.kernel);
+        out.writeObject(this.workingDir);
     }
 
 }

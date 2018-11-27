@@ -27,7 +27,6 @@ PyCOMPSs API - DECAF
 import inspect
 import logging
 import os
-from functools import wraps
 import pycompss.util.context as context
 
 if __debug__:
@@ -86,6 +85,7 @@ class Decaf(object):
         :param func: Function to decorate
         :return: Decorated function.
         """
+
         def decaf_f(*args, **kwargs):
             if not self.scope:
                 # from pycompss.api.dummy.decaf import decaf as dummy_decaf
@@ -95,13 +95,11 @@ class Decaf(object):
 
             if context.in_master():
                 # master code
-                from pycompss.runtime.binding import register_ce
-
                 mod = inspect.getmodule(func)
                 self.module = mod.__name__  # not func.__module__
 
                 if (self.module == '__main__' or
-                            self.module == 'pycompss.runtime.launch'):
+                        self.module == 'pycompss.runtime.launch'):
                     # The module where the function is defined was run as __main__,
                     # we need to find out the real module name.
 
@@ -152,7 +150,7 @@ class Decaf(object):
                     if 'dfLib' in self.kwargs:
                         df_lib = self.kwargs['dfLib']
                     else:
-                        df_lib = '[unassigned]'   # Empty or '[unassigned]'
+                        df_lib = '[unassigned]'  # Empty or '[unassigned]'
                     impl_signature = 'DECAF.' + df_script
                     core_element.set_impl_signature(impl_signature)
                     impl_args = [df_script, df_executor, df_lib, working_dir, runner]

@@ -17,72 +17,8 @@
 package es.bsc.compss.invokers.external.piped;
 
 import es.bsc.compss.invokers.external.ExternalCommand;
-import es.bsc.compss.invokers.types.ExternalTaskStatus;
 
 
-/**
- *
- * @author flordan
- */
 public interface PipeCommand extends ExternalCommand {
 
-    public class ExecuteTaskPipeCommand extends ExecuteTaskExternalCommand implements PipeCommand {
-
-        public final Integer jobId;
-
-        public ExecuteTaskPipeCommand(Integer jobId) {
-            this.jobId = jobId;
-        }
-
-        @Override
-        public String getAsString() {
-
-            StringBuilder sb = new StringBuilder(EXECUTE_TASK);
-            sb.append(TOKEN_SEP);
-            sb.append(String.valueOf(jobId));
-            for (String c : arguments) {
-                sb.append(TOKEN_SEP);
-                sb.append(c);
-            }
-            return sb.toString();
-        }
-    }
-
-
-    public class EndTaskPipeCommand extends EndTaskExternalCommand implements PipeCommand {
-
-        public final Integer jobId;
-        public final ExternalTaskStatus taskStatus;
-
-        public EndTaskPipeCommand(String[] line) {
-            jobId = Integer.parseInt(line[1]);
-            if (line.length > 3) {
-                taskStatus = new ExternalTaskStatus(line);
-            } else {
-                int exitValue = Integer.parseInt(line[2]);
-                taskStatus = new ExternalTaskStatus(exitValue);
-            }
-        }
-
-        public ExternalTaskStatus getTaskStatus() {
-            return taskStatus;
-        }
-    }
-
-
-    public class ErrorTaskPipeCommand extends ErrorTaskExternalCommand implements PipeCommand {
-
-        public ErrorTaskPipeCommand(String[] result) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        public ExternalTaskStatus getTaskStatus() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-    }
-
-
-    public class QuitPipeCommand extends QuitExternalCommand implements PipeCommand {
-
-    }
 }

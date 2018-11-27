@@ -26,6 +26,7 @@ import java.util.concurrent.Semaphore;
 
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.BinaryImplementation;
+import es.bsc.compss.types.implementations.COMPSsImplementation;
 import es.bsc.compss.types.implementations.DecafImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MPIImplementation;
@@ -90,13 +91,13 @@ public class CERegistration extends TDRequest {
         }
 
         // Retrieve the new implementation number
-        int implId = CoreManager.getNumberCoreImplementations(coreId);
+        Integer implId = CoreManager.getNumberCoreImplementations(coreId);
 
         // Create the implementation
         Implementation m = null;
         switch (implType) {
             case METHOD:
-                if (this.implTypeArgs.length != 2) {
+                if (this.implTypeArgs.length != MethodImplementation.NUM_PARAMS) {
                     ErrorManager.error("Incorrect parameters for type METHOD on " + this.coreElementSignature);
                 }
                 String declaringClass = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
@@ -109,8 +110,19 @@ public class CERegistration extends TDRequest {
                 }
                 m = new MethodImplementation(declaringClass, methodName, coreId, implId, implConstraints);
                 break;
+            case BINARY:
+                if (this.implTypeArgs.length != BinaryImplementation.NUM_PARAMS) {
+                    ErrorManager.error("Incorrect parameters for type BINARY on " + this.coreElementSignature);
+                }
+                String binary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
+                String binaryWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
+                if (binary == null || binary.isEmpty()) {
+                    ErrorManager.error("Empty binary annotation for BINARY method " + this.coreElementSignature);
+                }
+                m = new BinaryImplementation(binary, binaryWorkingDir, coreId, implId, implConstraints);
+                break;
             case MPI:
-                if (this.implTypeArgs.length != 3) {
+                if (this.implTypeArgs.length != MPIImplementation.NUM_PARAMS) {
                     ErrorManager.error("Incorrect parameters for type MPI on " + this.coreElementSignature);
                 }
                 String mpiBinary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
@@ -124,8 +136,21 @@ public class CERegistration extends TDRequest {
                 }
                 m = new MPIImplementation(mpiBinary, mpiWorkingDir, mpiRunner, coreId, implId, this.implConstraints);
                 break;
+            case COMPSs:
+                if (this.implTypeArgs.length != COMPSsImplementation.NUM_PARAMS) {
+                    ErrorManager.error("Incorrect parameters for type MPI on " + this.coreElementSignature);
+                }
+                String runcompss = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
+                String flags = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
+                String appName = EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
+                String compssWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
+                if (appName == null || appName.isEmpty()) {
+                    ErrorManager.error("Empty appName annotation for COMPSs method " + this.coreElementSignature);
+                }
+                m = new COMPSsImplementation(runcompss, flags, appName, compssWorkingDir, coreId, implId, this.implConstraints);
+                break;
             case DECAF:
-                if (this.implTypeArgs.length != 5) {
+                if (this.implTypeArgs.length != DecafImplementation.NUM_PARAMS) {
                     ErrorManager.error("Incorrect parameters for type DECAF on " + this.coreElementSignature);
                 }
                 String dfScript = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
@@ -142,19 +167,8 @@ public class CERegistration extends TDRequest {
                 m = new DecafImplementation(dfScript, dfExecutor, dfLib, decafWorkingDir, decafRunner, coreId, implId,
                         this.implConstraints);
                 break;
-            case BINARY:
-                if (this.implTypeArgs.length != 2) {
-                    ErrorManager.error("Incorrect parameters for type BINARY on " + this.coreElementSignature);
-                }
-                String binary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
-                String binaryWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
-                if (binary == null || binary.isEmpty()) {
-                    ErrorManager.error("Empty binary annotation for BINARY method " + this.coreElementSignature);
-                }
-                m = new BinaryImplementation(binary, binaryWorkingDir, coreId, implId, implConstraints);
-                break;
             case OMPSS:
-                if (this.implTypeArgs.length != 2) {
+                if (this.implTypeArgs.length != OmpSsImplementation.NUM_PARAMS) {
                     ErrorManager.error("Incorrect parameters for type OMPSS on " + this.coreElementSignature);
                 }
                 String ompssBinary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
@@ -165,7 +179,7 @@ public class CERegistration extends TDRequest {
                 m = new OmpSsImplementation(ompssBinary, ompssWorkingDir, coreId, implId, implConstraints);
                 break;
             case OPENCL:
-                if (this.implTypeArgs.length != 2) {
+                if (this.implTypeArgs.length != OpenCLImplementation.NUM_PARAMS) {
                     ErrorManager.error("Incorrect parameters for type OPENCL on " + this.coreElementSignature);
                 }
                 String openclKernel = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
@@ -174,9 +188,6 @@ public class CERegistration extends TDRequest {
                     ErrorManager.error("Empty kernel annotation for OpenCL method " + this.coreElementSignature);
                 }
                 m = new OpenCLImplementation(openclKernel, openclWorkingDir, coreId, implId, implConstraints);
-                break;
-            default:
-                ErrorManager.error("Unrecognised implementation type");
                 break;
         }
 

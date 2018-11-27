@@ -26,6 +26,8 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 
 public class OmpSsImplementation extends AbstractMethodImplementation implements Externalizable {
 
+    public static final int NUM_PARAMS = 2;
+
     private String binary;
     private String workingDir;
 
@@ -59,7 +61,7 @@ public class OmpSsImplementation extends AbstractMethodImplementation implements
     @Override
     public String getMethodDefinition() {
         StringBuilder sb = new StringBuilder();
-        sb.append("[BINARY=").append(binary);
+        sb.append("[BINARY=").append(this.binary);
         sb.append("]");
 
         return sb.toString();
@@ -67,21 +69,21 @@ public class OmpSsImplementation extends AbstractMethodImplementation implements
 
     @Override
     public String toString() {
-        return super.toString() + " OmpSs Method with binary " + binary;
+        return super.toString() + " OmpSs Method with binary " + this.binary;
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         super.readExternal(in);
-        binary = (String) in.readObject();
-        workingDir = (String) in.readObject();
+        this.binary = (String) in.readObject();
+        this.workingDir = (String) in.readObject();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         super.writeExternal(out);
-        out.writeObject(binary);
-        out.writeObject(workingDir);
+        out.writeObject(this.binary);
+        out.writeObject(this.workingDir);
     }
 
 }

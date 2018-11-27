@@ -14,20 +14,24 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 # 
+
+import sys
+
 from pycompss.util.serializer import SerializerException
 from pycompss.runtime.commons import IS_PYTHON3
 import pycompss.api.parameter as parameter
-import sys
+
 
 def get_input_params(num_params, logger, args, process_name):
-    '''Get and prepare the input parameters from string to lists.
+    """
+    Get and prepare the input parameters from string to lists.
 
     :param num_params: Number of parameters
     :param logger: Logger
     :param args: Arguments (complete list of parameters with type, stream, prefix and value)
     :param process_name: Process name
     :return: A list of TaskParameter objects
-    '''
+    """
     from pycompss.api.parameter import TaskParameter
     pos = 0
 
@@ -54,21 +58,21 @@ def get_input_params(num_params, logger, args, process_name):
             # when processing parameters in the task decorator
             ret.append(
                 TaskParameter(
-                    type = p_type,
-                    stream = p_stream,
-                    prefix = p_prefix,
-                    name = p_name,
-                    file_name = p_value
+                    p_type=p_type,
+                    stream=p_stream,
+                    prefix=p_prefix,
+                    name=p_name,
+                    file_name=p_value
                 )
             )
         elif p_type == parameter.TYPE.EXTERNAL_PSCO:
             ret.append(
                 TaskParameter(
-                    type = p_type,
-                    stream = p_stream,
-                    prefix = p_prefix,
-                    name = p_name,
-                    key = p_value
+                    p_type=p_type,
+                    stream=p_stream,
+                    prefix=p_prefix,
+                    name=p_name,
+                    key=p_value
                 )
             )
             pos += 1  # Skip info about direction (R, W)
@@ -116,16 +120,17 @@ def get_input_params(num_params, logger, args, process_name):
 
             ret.append(
                 TaskParameter(
-                    type = p_type,
-                    stream = p_stream,
-                    prefix = p_prefix,
-                    name = p_name,
-                    content = aux
+                    p_type=p_type,
+                    stream=p_stream,
+                    prefix=p_prefix,
+                    name=p_name,
+                    content=aux
                 )
             )
         else:
             # Basic numeric types. These are passed as command line arguments and only
             # a cast is needed
+            val = None
             if p_type == parameter.TYPE.INT:
                 val = int(p_value)
             elif p_type == parameter.TYPE.LONG:
@@ -141,11 +146,11 @@ def get_input_params(num_params, logger, args, process_name):
                 val = (p_value == 'true')
             ret.append(
                 TaskParameter(
-                    type = p_type,
-                    stream = p_stream,
-                    prefix = p_prefix,
-                    name = p_name,
-                    content = val
+                    p_type=p_type,
+                    stream=p_stream,
+                    prefix=p_prefix,
+                    name=p_name,
+                    content=val
                 )
             )
         pos += 5
@@ -154,7 +159,8 @@ def get_input_params(num_params, logger, args, process_name):
 
 
 def task_execution(logger, process_name, module, method_name, types, values, compss_kwargs):
-    '''Task execution function.
+    """
+    Task execution function.
 
     :param logger: Logger
     :param process_name: Process name
@@ -164,7 +170,7 @@ def task_execution(logger, process_name, module, method_name, types, values, com
     :param values: List of the parameter's values
     :param compss_kwargs: PyCOMPSs keywords
     :return: new types, new_values, and isModifier
-    '''
+    """
 
     if __debug__:
         logger.debug("[PYTHON WORKER %s] Starting task execution" % process_name)
@@ -177,11 +183,12 @@ def task_execution(logger, process_name, module, method_name, types, values, com
     # the new_types and new_values will be within a tuple at position 0.
     # Force users that use decorators on top of @task to return the task results first.
     # This is tested with the timeit decorator in test 19.
-    task_output = getattr(module, method_name)(*values, compss_types = types, **compss_kwargs)
+    task_output = getattr(module, method_name)(*values, compss_types=types, **compss_kwargs)
 
     if isinstance(task_output[0], tuple):  # Weak but effective way to check it without doing inspect.
         # Another decorator has added another return thing.
-        # TODO: Should we consider here to create a list with all elements and serialize it to a file with the real task output plus the decorator results? == task_output[1:]
+        # TODO: Should we consider here to create a list with all elements and serialize it to a file with
+        # the real task output plus the decorator results? == task_output[1:]
         # TODO: Currently, the extra result is ignored.
         new_types = task_output[0][0]
         new_values = task_output[0][1]
@@ -202,13 +209,14 @@ def task_execution(logger, process_name, module, method_name, types, values, com
     return new_types, new_values, is_modifier
 
 
-def execute_task(process_name, storage_conf, params, TRACING):
+def execute_task(process_name, storage_conf, params, tracing):
     """
     ExecuteTask main method.
 
     :param process_name: Process name
     :param storage_conf: Storage configuration file path
     :param params: List of parameters
+    :param tracing: Tracing flag
     :return: exit code, new types and new values
     """
     import logging
@@ -244,7 +252,7 @@ def execute_task(process_name, storage_conf, params, TRACING):
 
     # COMPSs keywords for tasks (ie: tracing, process name...)
     compss_kwargs = {
-        'compss_tracing': TRACING,
+        'compss_tracing': tracing,
         'compss_process_name': process_name,
         'compss_storage_conf': storage_conf,
         'compss_return_length': return_length
@@ -267,7 +275,7 @@ def execute_task(process_name, storage_conf, params, TRACING):
     if __debug__:
         logger.debug("[PYTHON WORKER %s] Processing parameters:" % process_name)
     from pycompss.worker.worker_commons import get_input_params
-    values  = get_input_params(num_params, logger, args, process_name)
+    values = get_input_params(num_params, logger, args, process_name)
     types = [x.type for x in values]
 
     if __debug__:
@@ -320,7 +328,8 @@ def execute_task(process_name, storage_conf, params, TRACING):
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
         logger.exception("[PYTHON WORKER %s] WORKER EXCEPTION - Attribute Error Exception" % process_name)
         logger.exception(''.join(line for line in lines))
-        logger.exception("[PYTHON WORKER %s] Check that all parameters have been defined with an absolute import path (even if in the same file)" % process_name)
+        logger.exception(
+            "[PYTHON WORKER %s] Check that all parameters have been defined with an absolute import path (even if in the same file)" % process_name)
         # If exception is raised during the task execution, new_types and
         # new_values are empty
         return 1, new_types, new_values
@@ -364,6 +373,8 @@ def execute_task(process_name, storage_conf, params, TRACING):
             last_elem = values.pop()
             logger.debug('LAST ELEM ###')
             logger.debug(last_elem.name)
+            obj = None
+            file_name = None
             if last_elem.key is None:
                 file_name = last_elem.file_name.split(':')[-1]
                 if __debug__:
@@ -376,7 +387,7 @@ def execute_task(process_name, storage_conf, params, TRACING):
                         process_name, file_name, type(last_elem.content)))
             values.insert(0, obj)
             types.pop()
-            from pycompss.util.persistent_storage import is_psco, get_by_id
+            from pycompss.util.persistent_storage import is_psco
             types.insert(0, parameter.TYPE.OBJECT if not is_psco(last_elem.content) else parameter.TYPE.EXTERNAL_PSCO)
 
             def task_execution_2():
@@ -403,13 +414,14 @@ def execute_task(process_name, storage_conf, params, TRACING):
             # the value of isModifier in order to know here if self has to be serialized.
             # This solution avoids to use inspect.
             if is_modifier:
-                from pycompss.util.persistent_storage import is_psco, get_by_id
+                from pycompss.util.persistent_storage import is_psco
                 if is_psco(last_elem):
                     # There is no update PSCO on the storage API. Consequently, the changes on the PSCO must have been
                     # pushed into the storage automatically on each PSCO modification.
                     if True or __debug__:
                         # TODO: this may not be correct if the user specifies isModifier=False.
-                        logger.debug("[PYTHON WORKER %s] The changes on the PSCO must have been automatically updated by the storage." % process_name)
+                        logger.debug(
+                            "[PYTHON WORKER %s] The changes on the PSCO must have been automatically updated by the storage." % process_name)
                     pass
                 else:
                     if True or __debug__:

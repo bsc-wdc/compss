@@ -129,6 +129,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         Comm.init(new MasterResourceImpl());
     }
 
+
     // Code Added to support configuration files
     private static void setPropertiesFromRuntime(RuntimeConfigManager manager) {
         try {
@@ -533,30 +534,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
         MethodResourceDescription mrd = new MethodResourceDescription(implConstraints);
         MethodType mt;
-        switch (implType) {
-            case "METHOD":
-                mt = MethodType.METHOD;
-                break;
-            case "MPI":
-                mt = MethodType.MPI;
-                break;
-            case "DECAF":
-                mt = MethodType.DECAF;
-                break;
-            case "BINARY":
-                mt = MethodType.BINARY;
-                break;
-            case "OMPSS":
-                mt = MethodType.OMPSS;
-                break;
-            case "OPENCL":
-                mt = MethodType.OPENCL;
-                break;
-            default:
-                ErrorManager.error("Unrecognised method type " + implType);
-                return;
+        try {
+            mt = MethodType.valueOf(implType);
+        } catch (IllegalArgumentException iae) {
+            ErrorManager.error("Unrecognised method type " + implType);
+            return;
         }
-
         td.registerNewCoreElement(coreElementSignature, implSignature, mrd, mt, implTypeArgs);
     }
 
@@ -599,8 +582,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Internal execute task to make API options only as a wrapper
      *
      * @param appId
-     * @param hasSignature indicates whether the signature parameter is valid or must be constructed from the methodName
-     * and methodClass parameters
+     * @param hasSignature
+     *            indicates whether the signature parameter is valid or must be constructed from the methodName and
+     *            methodClass parameters
      * @param methodClass
      * @param methodName
      * @param signature
@@ -616,6 +600,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     private int executeTask(Long appId, boolean hasSignature, String methodClass, String methodName, String signature, boolean isPrioritary,
             int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount,
             Object... parameters) {
+
         // Tracing flag for task creation
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
@@ -1110,7 +1095,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
                 case PSCO_T:
                 case OBJECT_T:
-                    pars[npar] = new ObjectParameter(direction, stream, prefix, name, parameters[i], oReg.newObjectParameter(parameters[i]));
+                    pars[npar] = new ObjectParameter(direction, stream, prefix, name, parameters[i],
+                            oReg.newObjectParameter(parameters[i]));
                     break;
                 case EXTERNAL_PSCO_T:
                     String id = (String) parameters[i];
@@ -1258,12 +1244,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     @Override
-    public void removeObject(Object o, int hashcode) { //private?
-
-        //This will remove the object from the Object Registry and the Data Info Provider
-        //eventually allowing the garbage collector to free it (better use of memory)
+    public void removeObject(Object o, int hashcode) { // private?
+        // This will remove the object from the Object Registry and the Data Info Provider
+        // eventually allowing the garbage collector to free it (better use of memory)
         ap.deregisterObject(o);
-
     }
 
 }

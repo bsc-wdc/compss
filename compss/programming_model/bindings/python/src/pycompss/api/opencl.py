@@ -27,7 +27,6 @@ PyCOMPSs API - OPENCL
 import inspect
 import logging
 import os
-from functools import wraps
 import pycompss.util.context as context
 
 if __debug__:
@@ -74,8 +73,6 @@ class Opencl(object):
 
         if context.in_master():
             # master code
-            from pycompss.runtime.binding import register_ce
-
             mod = inspect.getmodule(func)
             self.module = mod.__name__  # not func.__module__
 
@@ -119,7 +116,7 @@ class Opencl(object):
                 if 'workingDir' in self.kwargs:
                     working_dir = self.kwargs['workingDir']
                 else:
-                    working_dir = '[unassigned]'   # Empty or '[unassigned]'
+                    working_dir = '[unassigned]'  # Empty or '[unassigned]'
                 impl_signature = 'OPENCL.' + kernel
                 core_element.set_impl_signature(impl_signature)
                 impl_args = [kernel, working_dir]

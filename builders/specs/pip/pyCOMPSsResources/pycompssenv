@@ -13,6 +13,7 @@ pre_COMPSs_environment () {
 setup_COMPSs_environment () {
     export COMPSS_HOME=##COMPSS_PATH##
     export PATH=$PATH:##COMPSS_PATH##/Runtime/scripts/user
+    export PATH=$PATH:##COMPSS_PATH##/Runtime/scripts/utils
     export PATH=$PATH:##COMPSS_PATH##/Bindings/c/bin
     export CLASSPATH=$CLASSPATH:##COMPSS_PATH##/Runtime/compss-engine.jar
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:##COMPSS_PATH##/Bindings/bindings-common/lib:##JAVA_HOME##/jre/lib/amd64/server

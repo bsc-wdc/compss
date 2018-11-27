@@ -26,24 +26,24 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import java.io.File;
 
-/**
- *
- * @author flordan
- */
+
 public abstract class PersistentInvoker extends ExternalInvoker {
 
     static {
         System.loadLibrary("bindings_common");
     }
 
-    public PersistentInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources) throws JobExecutionException {
+
+    public PersistentInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+            InvocationResources assignedResources) throws JobExecutionException {
+
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
     }
 
     @Override
     protected void invokeMethod() throws JobExecutionException {
         int jobId = invocation.getJobId();
-        String taskCMD =  command.getAsString(); 
+        String taskCMD = command.getAsString();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Executing in binding: " + taskCMD);
         }

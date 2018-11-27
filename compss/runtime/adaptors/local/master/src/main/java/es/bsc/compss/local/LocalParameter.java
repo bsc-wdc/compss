@@ -31,10 +31,6 @@ import es.bsc.compss.types.parameter.Parameter;
 import java.util.List;
 
 
-/**
- *
- * @author flordan
- */
 public class LocalParameter implements InvocationParam {
 
     private final Parameter param;

@@ -56,23 +56,23 @@ trap CTRL_C INT
 
 function CTRL_C() {
   echo "* CTRL + C pressed - Quit!"
-  if [ -z ${RUNNING_PORT_FORWARDING_PID} ]; then
-    echo -e "\t - Killing port forwarding..."
-    kill ${RUNNING_PORT_FORWARDING_PID}
+  if [ -z "${RUNNING_PORT_FORWARDING_PID}" ]; then
+    echo -e "\\t - Killing port forwarding..."
+    kill "${RUNNING_PORT_FORWARDING_PID}"
   fi
-  if [ -z ${job_id} ]; then
-    echo -e "\t - Cancelling job..."
-    ${DEFAULT_SSH} ${username}@${supercomputer} "${REMOTE_SCRIPT_DIR}/cancel_jupyter_job.sh $job_id" > /dev/null 2>&1
+  if [ -z "${job_id}" ]; then
+    echo -e "\\t - Cancelling job..."
+    ${DEFAULT_SSH} "${username}@${supercomputer}" "${REMOTE_SCRIPT_DIR}/cancel_jupyter_job.sh $job_id" > /dev/null 2>&1
   fi
   echo "* Finished"
 }
 
 check_connectivity() {
   echo "Checking connectivity..."
-  ${DEFAULT_SSH} ${username}@${supercomputer} -o PasswordAuthentication=no -o BatchMode=yes exit &>/dev/null
+  ${DEFAULT_SSH} "${username}@${supercomputer}" -o PasswordAuthentication=no -o BatchMode=yes exit &>/dev/null
   test_exit_code=$?
   if [ "${test_exit_code}" = 255 ]; then
-    display_error ${ERROR_CONNECTING}
+    display_error "${ERROR_CONNECTING}"
     exit ${test_exit_code}
   fi
 }
@@ -300,7 +300,7 @@ check_args() {
 
   # Check user name argument
   if [ -z "${username}" ]; then
-    display_warning ${WARNING_USER_NAME_NOT_PROVIDED}
+    display_warning "${WARNING_USER_NAME_NOT_PROVIDED}"
     username=${DEFAULT_USER_NAME}
   fi
 
@@ -335,7 +335,7 @@ check_args() {
   if [ -z "${log_level}" ]; then
     log_level=${DEFAULT_LOG_LEVEL}
   elif [ "${log_level}" != "${LOG_LEVEL_OFF}" ] && [ "${log_level}" != "${LOG_LEVEL_INFO}" ] && [ "${log_level}" != "${LOG_LEVEL_DEBUG}" ]; then
-    display_error ${ERROR_WRONG_DEBUG_FLAG}
+    display_error "${ERROR_WRONG_DEBUG_FLAG}"
   fi
 
   # Check tracing argument
@@ -380,7 +380,7 @@ check_args() {
     storage_home=${DEFAULT_STORAGE_HOME}
     storage_props=${DEFAULT_STORAGE_PROPS}
   elif [ "${storage}" != "None" ] && [ "${storage}" != "redis" ]; then
-    display_error ${ERROR_UNSUPPORTED_STORAGE_SHORTCUT}
+    display_error "${ERROR_UNSUPPORTED_STORAGE_SHORTCUT}"
     exit 1
   else
     storage_home=${DEFAULT_STORAGE_HOME}
@@ -402,11 +402,11 @@ check_args() {
 
   which_enqueue_compss=$(${DEFAULT_SSH} ${username}@${supercomputer} "which enqueue_compss" 2>&1)
   ENQUEUE_COMPSS_PATH=$(echo "$which_enqueue_compss" | grep "enqueue_compss")
-  if [ -z ${ENQUEUE_COMPSS_PATH} ]; then
-    display_error ${ERROR_COMPSS_NOT_DEFINED}
+  if [ -z "${ENQUEUE_COMPSS_PATH}" ]; then
+    display_error "${ERROR_COMPSS_NOT_DEFINED}"
     exit 1
   fi
-  SCRIPTS_DIR=$(dirname ${ENQUEUE_COMPSS_PATH})
+  SCRIPTS_DIR=$(dirname "${ENQUEUE_COMPSS_PATH}")
   REMOTE_SCRIPT_DIR=${SCRIPTS_DIR}/../system/jupyter
 
   # Submit command and get connection info
@@ -426,21 +426,21 @@ check_args() {
   node_line=$(echo "$connection_info" | grep "MainNode:")    # beware with this grep - must be the same as in submit_jupyter_job.sh
   token_line=$(echo "$connection_info" | grep "Token:")      # beware with this grep - must be the same as in submit_jupyter_job.sh
   # Convert to list splitting by :
-  job_id=(${job_id_line//:/ })
+  job_id_arr=(${job_id_line//:/ })
   node=(${node_line//:/ })
   token=(${token_line//:/ })
-  job_id=${job_id[1]}
+  job_id=${job_id_arr[1]}
   # Check if job was well Submitted
-  if [ ${job_id} = "FAILED" ]; then
-      echo ${connection_info}
-      display_error ${ERROR_SUBMITTING_JOB}
+  if [ "${job_id}" = "FAILED" ]; then
+      echo "${connection_info}"
+      display_error "${ERROR_SUBMITTING_JOB}"
       exit 1
   fi
   # Get the node name and token
   node=${node[1]}
   token=${token[1]}
-  echo -e "\t - Job id: ${job_id}"
-  echo -e "\t - Token: ${token}"
+  echo -e "\\t - Job id: ${job_id}"
+  echo -e "\\t - Token: ${token}"
 
   # Establish the port forwarding
   echo "Establishing port forwarding..."
@@ -465,13 +465,13 @@ check_args() {
   wait
 
   echo "* Quit!"
-  echo -e "\t - Killing port forwarding..."
+  echo -e "\\t - Killing port forwarding..."
   kill ${RUNNING_PORT_FORWARDING_PID}
-  echo -e "\t - Cancelling job..."
+  echo -e "\\t - Cancelling job..."
   ${DEFAULT_SSH} ${username}@${supercomputer} "${REMOTE_SCRIPT_DIR}/cancel_jupyter_job.sh $job_id" > /dev/null 2>&1
 
   if [ -z "${SSHPASS}" ]; then
-    echo -e "\t - Cleaning environment variables..."
+    echo -e "\\t - Cleaning environment variables..."
     unset SSHPASS
   fi
 

@@ -30,22 +30,27 @@ public class MPIDefinition extends ImplementationDefinition {
     private final String mpiBinary;
     private final String workingDir;
 
+    private final MPIImplementation impl;
+
+
     public MPIDefinition(boolean debug, String[] args, int execArgsIdx) {
-        super(debug, args, execArgsIdx + 3);
+        super(debug, args, execArgsIdx + MPIImplementation.NUM_PARAMS);
 
         this.mpiRunner = args[execArgsIdx++];
         this.mpiBinary = args[execArgsIdx++];
         String wDir = args[execArgsIdx++];
-        if ((wDir == null || wDir.isEmpty() || wDir.equals(Constants.UNASSIGNED))) {
+        if (wDir == null || wDir.isEmpty() || wDir.equals(Constants.UNASSIGNED)) {
             this.workingDir = null;
         } else {
             this.workingDir = wDir;
         }
+
+        this.impl = new MPIImplementation(this.mpiBinary, this.workingDir, this.mpiRunner, null, null, null);
     }
 
     @Override
     public AbstractMethodImplementation getMethodImplementation() {
-        return new MPIImplementation(mpiBinary, this.workingDir, mpiRunner, null, null, null);
+        return this.impl;
     }
 
     @Override
@@ -59,16 +64,8 @@ public class MPIDefinition extends ImplementationDefinition {
     }
 
     @Override
-    public String toCommandString() {
-        return mpiRunner + " " + mpiBinary;
-    }
-
-    @Override
     public String toLogString() {
-        return "["
-                + "MPI RUNNER=" + mpiRunner
-                + ", BINARY=" + mpiBinary
-                + "]";
+        return this.impl.getMethodDefinition();
     }
 
 }

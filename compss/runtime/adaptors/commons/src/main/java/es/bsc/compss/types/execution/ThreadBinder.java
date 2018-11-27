@@ -20,10 +20,10 @@ import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUn
 
 
 public interface ThreadBinder {
-    
-    
+
     public static final String BINDER_DISABLED = "disabled";
     public static final String BINDER_AUTOMATIC = "automatic";
+
 
     /**
      * Binds @numCUs computing units of a @jobId

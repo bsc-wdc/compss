@@ -126,7 +126,7 @@ echo "* Installing COMPSs Runtime Engine..."
 echo " "
 
 echo " - Adding runcompss to profile..."
-echo "export PATH=\$PATH:/opt/COMPSs/Runtime/scripts/user" > /etc/profile.d/compss.sh
+echo "export PATH=\$PATH:/opt/COMPSs/Runtime/scripts/user:/opt/COMPSs/Runtime/scripts/utils" > /etc/profile.d/compss.sh
 echo " - Runcompss added to user profile"
 echo " "
 

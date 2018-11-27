@@ -8,12 +8,16 @@ ERROR_NO_MASTER_TYPE="Master type not defined"
 ERROR_NO_WORKER_TYPES="Worker types not defined"
 
 check_heterogeneous_args(){
+  # WARN: variable are loaded from common.sh get_args
+  # shellcheck disable=SC2154
   if [ -z "${types_cfg_file}" ]; then
      display_error "${ERROR_NO_TYPES_CFG_FILE}" 1
   fi
+  # shellcheck disable=SC2154
   if [ -z "${master_type}" ]; then
      display_error "${ERROR_NO_MASTER_TYPE}" 1
   fi
+  # shellcheck disable=SC2154
   if [ -z "${worker_types}" ]; then
      display_error "${ERROR_NO_WORKER_TYPES}" 1
   fi
@@ -25,15 +29,21 @@ update_args_to_pass(){
   local initial_hostid=$3
   local app_uuid=$4
   args_pass="${original_args_pass}"
+
+  # WARN: Checked variables are loaded from common.sh get_args
+  # shellcheck disable=SC2154
   if [ ! -z "${cpus_per_node}" ]; then
   	args_pass="--cpus_per_node=${cpus_per_node} ${args_pass}"
   fi
+  # shellcheck disable=SC2154
   if [ ! -z "${gpus_per_node}" ]; then
         args_pass="--gpus_per_node=${gpus_per_node} ${args_pass}"
   fi
+  # shellcheck disable=SC2154
   if [ ! -z "${constraints}" ]; then
         args_pass="--constraints=${constraints} ${args_pass}"
   fi
+  # shellcheck disable=SC2154
   if [ ! -z "${node_memory}" ]; then
         args_pass="--node_memory=${node_memory} ${args_pass}"
   fi
@@ -73,6 +83,7 @@ write_worker_submit(){
 # Function to clean TMP files
 ###############################################
 cleanup() {
+  # shellcheck disable=SC2086
   rm -rf $submit_files
 }
 
@@ -84,12 +95,13 @@ submit() {
   #eval ${SUBMISSION_CMD} ${SUBMISSION_PIPE}${TMP_SUBMIT_SCRIPT} 1>${TMP_SUBMIT_SCRIPT}.out 2>${TMP_SUBMIT_SCRIPT}.err
   
   echo "Submit command: ${SUBMISSION_CMD}${SUBMISSION_HET_PIPE}${submit_files}"
+  # shellcheck disable=SC2086
   eval ${SUBMISSION_CMD}${SUBMISSION_HET_PIPE}${submit_files}
   result=$?
 
   # Check if submission failed
   if [ $result -ne 0 ]; then
-    submit_err=$(cat ${TMP_SUBMIT_SCRIPT}.err)
+    submit_err=$(cat "${TMP_SUBMIT_SCRIPT}".err)
     echo "${ERROR_SUBMIT}${submit_err}"
     exit 1
   fi
@@ -105,22 +117,28 @@ submit() {
      SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/queues/commons"
   fi
   # shellcheck source=common.sh
+  # shellcheck disable=SC1091
   source "${SCRIPT_DIR}/common.sh"
 
-  # Get command args
+  # Get command args (from common.sh, includes sc_cfg)
   get_args "$@"
   
   # Storing original arguments to pass
   original_args_pass="${args_pass}"
   # Load specific queue system variables
   # shellcheck source=../cfgs/default.cfg
+  # shellcheck disable=SC1091
+  # shellcheck disable=SC2154
   source "${SCRIPT_DIR}/../cfgs/${sc_cfg}"
 
   # Load specific queue system flags
   # shellcheck source=../slurm/slurm.cfg
+  # shellcheck disable=SC1091
   source "${SCRIPT_DIR}/../${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg"
   
   check_heterogeneous_args
+  # shellcheck source=./user/defined/file
+  # shellcheck disable=SC1091
   source "${types_cfg_file}"
   # create application uuid
   uuid=$(cat /proc/sys/kernel/random/uuid)
@@ -164,9 +182,9 @@ submit() {
     set_time
     if [ "${HETEROGENEOUS_MULTIJOB}" == "true" ]; then    
         if [ ${worker_num} -eq 1 ]; then
-           update_args_to_pass "init" ${suffix} ${hostid} ${uuid}
+           update_args_to_pass "init" "${suffix}" "${hostid}" "${uuid}"
         else
-           update_args_to_pass "add" ${suffix} ${hostid} ${uuid}
+           update_args_to_pass "add" "${suffix}" "${hostid}" "${uuid}"
         fi
         log_args
         write_worker_submit ${worker_num}
@@ -190,9 +208,9 @@ submit() {
         check_args
         set_time
         if [ ${worker_num} -eq 1 ]; then
-           update_args_to_pass "init" ${suffix} ${hostid} ${uuid}
+           update_args_to_pass "init" "${suffix}" "${hostid}" "${uuid}"
         else
-           update_args_to_pass "add" ${suffix} ${hostid} ${uuid}
+           update_args_to_pass "add" "${suffix}" "${hostid}" "${uuid}"
         fi
         log_args
         add_only_worker_nodes "_PACK_GROUP_${worker_num}"
@@ -204,13 +222,13 @@ submit() {
   fi
 
   # Write master
-  eval $master_type
+  eval ${master_type}
 
   num_nodes=1
   # Check parameters
   check_args
   set_time
-  update_args_to_pass "fini" ${suffix} ${hostid} ${uuid}
+  update_args_to_pass "fini" "${suffix}" "${hostid}" "${uuid}"
   log_args
   if [ "${HETEROGENEOUS_MULTIJOB}" == "true" ]; then
      create_tmp_submit

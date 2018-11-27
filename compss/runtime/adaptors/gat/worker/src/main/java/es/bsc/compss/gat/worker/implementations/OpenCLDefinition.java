@@ -27,14 +27,19 @@ public class OpenCLDefinition extends ImplementationDefinition {
 
     private final String kernel;
 
+    private final OpenCLImplementation impl;
+
+
     public OpenCLDefinition(boolean debug, String[] args, int execArgsIdx) {
-        super(debug, args, execArgsIdx + 1);
+        super(debug, args, execArgsIdx + OpenCLImplementation.NUM_PARAMS);
         this.kernel = args[execArgsIdx];
+
+        this.impl = new OpenCLImplementation(this.kernel, "", null, null, null);
     }
 
     @Override
     public AbstractMethodImplementation getMethodImplementation() {
-        return new OpenCLImplementation(kernel, "", null, null, null);
+        return this.impl;
     }
 
     @Override
@@ -48,15 +53,8 @@ public class OpenCLDefinition extends ImplementationDefinition {
     }
 
     @Override
-    public String toCommandString() {
-        return kernel;
-    }
-
-    @Override
     public String toLogString() {
-        return "["
-                + "BINARY=" + kernel
-                + "]";
+        return this.impl.getMethodDefinition();
     }
 
 }

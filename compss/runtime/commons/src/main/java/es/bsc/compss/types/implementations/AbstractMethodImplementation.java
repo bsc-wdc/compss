@@ -36,12 +36,14 @@ public abstract class AbstractMethodImplementation extends Implementation implem
 
     public enum MethodType {
         METHOD, // For native methods
-        MPI, // For MPI methods
-        OMPSS, // For OmpSs methods
-        OPENCL, // For OpenCL methods
         BINARY, // For binary methods
-        DECAF // For decaf methods
+        MPI, // For MPI methods
+        COMPSs, // For COMPSs nested applications
+        DECAF, // For decaf methods
+        OMPSS, // For OmpSs methods
+        OPENCL // For OpenCL methods
     }
+
 
     static {
         // Compute language
@@ -59,6 +61,7 @@ public abstract class AbstractMethodImplementation extends Implementation implem
         LANG = l;
     }
 
+
     public AbstractMethodImplementation() {
         // For externalizable
         super();
@@ -68,8 +71,7 @@ public abstract class AbstractMethodImplementation extends Implementation implem
         super(coreId, implementationId, annot);
     }
 
-    public static String getSignature(String declaringClass, String methodName, boolean hasTarget, int numReturns,
-            Parameter[] parameters) {
+    public static String getSignature(String declaringClass, String methodName, boolean hasTarget, int numReturns, Parameter[] parameters) {
 
         StringBuilder buffer = new StringBuilder();
         buffer.append(methodName).append("(");
@@ -113,7 +115,7 @@ public abstract class AbstractMethodImplementation extends Implementation implem
 
     @Override
     public MethodResourceDescription getRequirements() {
-        return (MethodResourceDescription) requirements;
+        return (MethodResourceDescription) this.requirements;
     }
 
     @Override

@@ -17,21 +17,20 @@
 
 # -*- coding: utf-8 -*-
 
-'''PyCOMPSs API - Task
-    This file contains the class task, needed for the task definition.
-    Author: Sergio Rodriguez Guasch < sergio rodriguez at bsc dot es >
-    Heavily inspired by the old task.py implementation, made by Enric Tejedor,
-    Javier Conejero, Sergio Rodriguez, and many others
-'''
+"""
+PyCOMPSs API - Task
+This file contains the class task, needed for the task definition.
+"""
+
+import threading
+
+import pycompss.api.parameter as parameter
+from pycompss.runtime.core_element import CE
 
 if __debug__:
     import logging
+
     logger = logging.getLogger('pycompss.api.task')
-
-
-from functools import wraps
-import pycompss.api.parameter as parameter
-import threading
 
 # This lock allows tasks to be launched with the Threading module while ensuring
 # that no attribute is overwritten
@@ -40,11 +39,12 @@ master_lock = threading.Lock()
 prepend_strings = True
 register_only = False
 
-from pycompss.runtime.core_element import CE
 current_core_element = CE()
 
+
 class task(object):
-    '''This is the Task decorator implementation.
+    """
+    This is the Task decorator implementation.
     It is implemented as a class and consequently this implementation can be
     divided into two natural steps: decoration process and function call.
 
@@ -63,24 +63,26 @@ class task(object):
     no PyCOMPSs.
     The specific implementations can be found in self.master_call(),
     self.worker_call(), self.sequential_call()
-    '''
+    """
 
     def get_default_decorator_values(self):
-        '''Default value for decorator arguments.
+        """
+        Default value for decorator arguments.
         :return: A dictionary with the default values of the non-parameter decorator fields
-        '''
+        """
         return {
-            'isModifier': True, # Irrelevant if direction of self is explicitly defined
+            'isModifier': True,  # Irrelevant if direction of self is explicitly defined
             'returns': False,
             'priority': False,
             'isReplicated': False,
             'isDistributed': False,
             'computingNodes': 1,
-            'varargsType': parameter.IN # Here for legacy purposes
+            'varargsType': parameter.IN  # Here for legacy purposes
         }
 
-    def __init__(self, comment = None, **kwargs):
-        '''This part is called in the decoration process, not as an
+    def __init__(self, comment=None, **kwargs):
+        """
+        This part is called in the decoration process, not as an
         explicit function call.
 
         We do two things here:
@@ -90,7 +92,7 @@ class task(object):
 
         :param comment: Hidden to the user (non-documented).
         :param kwargs: Decorator parameters. A task decorator has no positional arguments.
-        '''
+        """
         self.comment = comment
         self.decorator_arguments = kwargs
         # Set missing values to their default ones (step a)
@@ -121,14 +123,33 @@ class task(object):
                 self.decorator_arguments[key] = parameter.get_parameter_from_dictionary(
                     self.decorator_arguments[key]
                 )
-                #self.decorator_arguments[key].update({parameter.Type: parameter.get_parameter_copy(param)})
+                # self.decorator_arguments[key].update({parameter.Type: parameter.get_parameter_copy(param)})
+
+        # Add more argument related attributes that will be useful later
+        self.parameters = None
+        self.param_args = None
+        self.param_varargs = None
+        self.param_kwargs = None
+        self.param_defaults = None
+        self.first_arg_name = None
+        # Add functon related attributed that will be useful later
+        self.module_name = None
+        self.function_name = None
+        self.function_type = None
+        self.class_name = None
+        self.computing_nodes = None
+        # Add returns related attributes that will be useful later
+        self.returns = None
+        self.multi_return = False
+
         # Task wont be registered until called from the master for the first time
         self.registered = False
 
     def add_return_parameters(self):
-        '''Modify the return parameters accordingly to the return statement
+        """
+        Modify the return parameters accordingly to the return statement
         :return: Nothing, it just creates and modifies self.returns
-        '''
+        """
         from collections import OrderedDict
         self.returns = OrderedDict()
         # Note that returns is by default False
@@ -139,7 +160,6 @@ class task(object):
             # 3) A basic iterable (tuple, list...). This means 'this task returns an iterable
             #    with the indicated elements inside
             from pycompss.util.object_properties import is_basic_iterable
-            original_return = self.decorator_arguments['returns']
             # We are returning multiple objects until otherwise proven
             # It is important to know because this will determine if we will return
             # a single object or [a single object] in some cases
@@ -156,15 +176,15 @@ class task(object):
                     num_rets = self.user_function.__globals__.get(self.decorator_arguments['returns'])
                 # Construct hidden multireturn
                 if num_rets > 1:
-                    to_return = [tuple( [] ) for _ in range(num_rets)]
+                    to_return = [tuple([]) for _ in range(num_rets)]
                 else:
-                    to_return = tuple( [] )
+                    to_return = tuple([])
             elif is_basic_iterable(self.decorator_arguments['returns']):
                 # The task returns a basic iterable with some types already defined
                 to_return = self.decorator_arguments['returns']
             elif isinstance(self.decorator_arguments['returns'], int):
                 # The task returns a list of N objects, defined by the integer N
-                to_return = tuple([() for x in range(self.decorator_arguments['returns'])])
+                to_return = tuple([() for _ in range(self.decorator_arguments['returns'])])
             else:
                 # The task returns a single object of a single type
                 # This is also the only case when no multiple objects are returned but only one
@@ -173,13 +193,15 @@ class task(object):
             # At this point we have a list of returns
             for (i, elem) in enumerate(to_return):
                 ret_type = parameter.get_compss_type(elem)
-                self.returns[parameter.get_return_name(i)] = \
-                    parameter.Parameter(p_type = ret_type, object = elem, p_direction = parameter.OUT)
+                self.returns[parameter.get_return_name(i)] = parameter.Parameter(p_type=ret_type,
+                                                                                 p_object=elem,
+                                                                                 p_direction=parameter.OUT)
                 # Hopefully, an exception have been thrown if some invalid stuff has been put
                 # in the returns field
 
     def __call__(self, user_function):
-        '''This part is called in all explicit function calls.
+        """
+        This part is called in all explicit function calls.
         Note that in PyCOMPSs a single function call will be transformed into
         two calls, as both master and worker need to call the function.
 
@@ -195,7 +217,7 @@ class task(object):
 
         :param user_function: Function to decorate
         :return: The function to be executed
-        '''
+        """
         self.user_function = user_function
 
         def task_decorator(*args, **kwargs):
@@ -209,21 +231,22 @@ class task(object):
             # Therefore, the user code is being executed with no
             # launch_compss/enqueue_compss/runcompss, etc etc
             return self.sequential_call(*args, **kwargs)
+
         return task_decorator
 
     def update_return_if_no_returns(self, f):
-        '''Checks the code looking for return statements if no returns is specified in @task decorator.
+        """
+        Checks the code looking for return statements if no returns is specified in @task decorator.
 
         WARNING: Updates self.return if returns are found.
 
         :param f: Function to check
-        '''
+        """
 
         from pycompss.api.parameter import Parameter
         from pycompss.api.parameter import DIRECTION
         from pycompss.api.parameter import TYPE
         from pycompss.util.object_properties import get_wrapped_source
-        import inspect
         import ast
         source_code = get_wrapped_source(f).strip()
 
@@ -305,59 +328,58 @@ class task(object):
         :param f: Function to be registered
         """
 
-        from pycompss.runtime.core_element import CE
         import pycompss.runtime.binding as binding
 
-        def _get_top_decorator(code, decorator_keys):
+        def _get_top_decorator(code, dec_keys):
             """
             Retrieves the decorator which is on top of the current task decorators stack.
 
             :param code: Tuple which contains the task code to analyse and the number of lines of the code.
-            :param decorator_keys: Typle which contains the available decorator keys
+            :param dec_keys: Typle which contains the available decorator keys
             :return: the decorator name in the form "pycompss.api.__name__"
             """
 
             # Code has two fields:
             # code[0] = the entire function code.
             # code[1] = the number of lines of the function code.
-            func_code = code[0]
-            decorators = [l.strip() for l in func_code if l.strip().startswith('@')]
+            dec_func_code = code[0]
+            decorators = [l.strip() for l in dec_func_code if l.strip().startswith('@')]
             # Could be improved if it stops when the first line without @ is found,
             # but we have to be care if a decorator is commented (# before @)
             # The strip is due to the spaces that appear before functions definitions,
             # such as class methods.
-            for dk in decorator_keys:
+            for dk in dec_keys:
                 for d in decorators:
                     if d.startswith('@' + dk):
                         return "pycompss.api." + dk.lower()  # each decorator __name__
             # If no decorator is found, then the current decorator is the one to register
             return __name__
 
-        def _get_task_type(code, decorator_filter, default):
+        def _get_task_type(code, dec_filter, default_values):
             """
             Retrieves the type of the task based on the decorators stack.
 
             :param code: Tuple which contains the task code to analyse and the number of lines of the code.
-            :param decorator_filter: Tuple which contains the filtering decorators. The one
+            :param dec_filter: Tuple which contains the filtering decorators. The one
                                      used determines the type of the task. If none, then it is a normal task.
-            :param default: Default values
+            :param default_values: Default values
             :return: the type of the task
             """
 
             # Code has two fields:
             # code[0] = the entire function code.
             # code[1] = the number of lines of the function code.
-            func_code = code[0]
-            full_decorators = [l.strip() for l in func_code if l.strip().startswith('@')]
+            dec_func_code = code[0]
+            full_decorators = [l.strip() for l in dec_func_code if l.strip().startswith('@')]
             # Get only the decorators used. Remove @ and parameters.
             decorators = [l[1:].split('(')[0] for l in full_decorators]
             # Look for the decorator used from the filter list and return it when found
-            for f in decorator_filter:
-                if f in decorators:
-                    return f
+            for filt in dec_filter:
+                if filt in decorators:
+                    return filt
             # The decorator stack did not contain any of the filtering keys, then
             # return the default key.
-            return default
+            return default_values
 
         # Look for the decorator that has to do the registration
         # Since the __init__ of the decorators is independent, there is no way
@@ -472,14 +494,15 @@ class task(object):
         current_core_element.reset()
 
     def inspect_user_function_arguments(self):
-        '''Inspect the arguments of the user function and store them.
+        """
+        Inspect the arguments of the user function and store them.
         Read the names of the arguments and remember their order.
         We will also learn things like if the user function contained
         variadic arguments, named arguments and so on.
         This will be useful when pairing arguments with the direction
         the user has specified for them in the decorator
         :return: None, it just adds attributes
-        '''
+        """
         import inspect
         self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults = \
             inspect.getargspec(self.user_function)
@@ -497,7 +520,8 @@ class task(object):
             self.param_defaults = ()
 
     def compute_module_name(self):
-        '''Compute the user's function module name.
+        """
+        Compute the user's function module name.
         There are various cases:
         1) The user function is defined in some file. This is easy, just get the module returned by inspect.getmodule
         2) The user function is in the main module. Retrieve the file and build the import name from it
@@ -505,7 +529,7 @@ class task(object):
 
         This function was taken from the old task.py and only some minor modifications were applied to it
         :return: Nothing, it just modifies self.module_name
-        '''
+        """
         import inspect
         import os
         mod = inspect.getmodule(self.user_function)
@@ -535,11 +559,11 @@ class task(object):
             self.module_name = get_module_name(path, file_name)
 
     def compute_function_type(self):
-        '''Compute some properties of the user function, as its name,
+        """
+        Compute some properties of the user function, as its name,
         its import path, and its type (module function, instance method, class method),
         etc...
-        '''
-        import inspect
+        """
         from pycompss.runtime.binding import FunctionType
         # Check the type of the function called.
         # inspect.ismethod(f) does not work here,
@@ -555,26 +579,27 @@ class task(object):
             self.function_type = FunctionType.CLASS_METHOD
             self.class_name = self.parameters['cls'].object.__name__
 
-
     def compute_user_function_information(self):
-        '''Compute the function path p and the name n
+        """
+        Compute the function path p and the name n
         such that
         "from p import n" imports self.user_function
         :return: None, it just sets self.user_function_path and self.user_function_name
-        '''
+        """
         # Get the module name (the x part "from x import y"), except for the class name
         self.compute_module_name()
         self.compute_function_type()
         self.function_name = self.user_function.__name__
 
     def master_call(self, *args, **kwargs):
-        '''This part deals with task calls in the master's side
+        """
+        This part deals with task calls in the master's side
 
         Also, this function must return an appropriate number of
         future objects that point to the appropriate objects/files.
         :return: A function that does "nothing" and returns futures
         if needed
-        '''
+        """
         # This lock makes this decorator able to handle various threads
         # calling the same task concurrently
         master_lock.acquire()
@@ -621,19 +646,21 @@ class task(object):
         return ret
 
     def get_varargs_direction(self):
-        '''Returns the direction of the varargs arguments.
+        """
+        Returns the direction of the varargs arguments.
         Can be defined in the decorator in two ways:
         args = dir, where args is the name of the variadic args tuple, or
         varargsType = dir (for legacy reasons)
-        '''
-        if not self.param_varargs in self.decorator_arguments:
+        """
+        if self.param_varargs not in self.decorator_arguments:
             return self.decorator_arguments['varargsType']
         return self.decorator_arguments[self.param_varargs]
 
     def get_default_direction(self, var_name):
-        '''Returns the default direction for a given parameter
+        """
+        Returns the default direction for a given parameter
         :return: An identifier of the direction
-        '''
+        """
         # We are the 'self' or 'cls' in an instance or classmethod that modifies the given class
         # so we are an INOUT
         if self.decorator_arguments['isModifier'] and var_name in ['self', 'cls'] and \
@@ -643,12 +670,13 @@ class task(object):
         return parameter.get_new_parameter('IN')
 
     def process_master_parameters(self, *args, **kwargs):
-        '''Process all the input parameters.
+        """
+        Process all the input parameters.
         Basically, processing means "build a dictionary of <name, parameter>,
         where each parameter has an associated Parameter object".
         This function also assigns default directions to parameters.
         :return: None, it only modifies self.parameters
-        '''
+        """
         from collections import OrderedDict
         parameter_values = OrderedDict()
         # If we have an OMPSs or MPI decorator above us we should have computingNodes
@@ -675,7 +703,7 @@ class task(object):
         # Also, |defaults| <= |positionals|
         for (var_name, default_value) in reversed(list(zip(list(reversed(self.param_args))[:num_defaults],
                                                            list(reversed(self.param_defaults))))):
-            if not var_name in parameter_values:
+            if var_name not in parameter_values:
                 parameter_values[parameter.get_kwarg_name(var_name)] = default_value
         # Process variadic and keyword arguments
         # Note that they are stored with custom names
@@ -711,12 +739,12 @@ class task(object):
             else:
                 self.parameters[var_name].object = parameter_values[var_name]
 
-
     def get_parameter_direction(self, name):
-        '''Returns the direction of any parameter
+        """
+        Returns the direction of any parameter
         :param name: Name of the parameter
         :return: Its direction inside this task
-        '''
+        """
         if parameter.is_vararg(name):
             return self.get_varargs_direction()
         elif parameter.is_return(name):
@@ -727,17 +755,19 @@ class task(object):
         return self.get_default_direction(orig_name)
 
     def update_direction_of_worker_parameters(self, args):
-        '''Update worker parameter directions, will be useful to determine if files should be written later
+        """
+        Update worker parameter directions, will be useful to determine if files should be written later
         :param args: List of arguments
-        '''
+        """
         for arg in args:
             arg.direction = self.get_parameter_direction(arg.name)
 
     def is_parameter_object(self, name):
-        '''Given the name of a parameter, determine if it is an object or not
+        """
+        Given the name of a parameter, determine if it is an object or not
         :param name: Name of the parameter
         :return: True iff the parameter is a (serializable) object
-        '''
+        """
         original_name = parameter.get_original_name(name)
         # Get the args parameter object
         if parameter.is_vararg(original_name):
@@ -749,10 +779,12 @@ class task(object):
         return True
 
     def reveal_objects(self, args):
-        '''(The name seemed funny to me so I kept it intact from the original version)
+        """
+        (The name seemed funny to me so I kept it intact from the original version)
         This function takes the arguments passed from the persistent worker and treats them
         to get the proper parameters for the user function.
-        '''
+        """
+
         def storage_supports_pipelining():
             # Some storage implementations use pipelining
             # Pipelining means "accumulate the getByID queries and perform them
@@ -762,7 +794,7 @@ class task(object):
             try:
                 import storage.api
                 return storage.api.__pipelining__
-            except:
+            except Exception:
                 return False
 
         if storage_supports_pipelining():
@@ -799,13 +831,14 @@ class task(object):
                 # and the content is already available and properly casted by the python worker
 
     def worker_call(self, *args, **kwargs):
-        '''This part deals with task calls in the worker's side
+        """
+        This part deals with task calls in the worker's side
         Note that the call to the user function is made by the worker,
         not by the user code.
         :return: A function that calls the user function with the given
         parameters and does the proper serializations and updates
         the affected objects.
-        '''
+        """
         # All parameters are in the same args list. At the moment we only know the type, the name and the
         # "value" of the parameter. This value may be treated to get the actual object (e.g: deserialize it,
         # query the database in case of persistent objects, etc...)
@@ -817,7 +850,6 @@ class task(object):
         user_kwargs = {}
         # Return parameters, save them apart to match the user returns with the internal parameters
         ret_params = []
-
 
         for arg in args:
             # Just fill the three data structures declared above
@@ -841,8 +873,8 @@ class task(object):
         # Call the user function with all the reconstructed parameters, get the return values
         user_returns = self.user_function(*user_args, **user_kwargs)
 
-        def get_file_name(x):
-            return x.split(':')[-1]
+        def get_file_name(file_path):
+            return file_path.split(':')[-1]
 
         # Deal with returns (if any)
         if num_returns > 0:
@@ -876,14 +908,16 @@ class task(object):
         return [], [], self.decorator_arguments['isModifier']
 
     def sequential_call(self, *args, **kwargs):
-        '''The easiest case: just call the user function and return whatever it
+        """
+        The easiest case: just call the user function and return whatever it
         returns.
         :return: The user function
-        '''
+        """
         # Inspect the user function, get information about the arguments and their names
         # This defines self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults
         # And gives non-None default values to them if necessary
         return self.user_function(*args, **kwargs)
+
 
 # task can be also typed as Task
 Task = task

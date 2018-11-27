@@ -1,0 +1,174 @@
+#!/bin/bash -e
+
+  #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  #
+  # Script Name: chameleon_cluster_setup
+  # Author:      COMPSs Support <support-compss@bsc.es>
+  #              Barcelona SuperComputing Center (BSC-CNS)
+  #
+  # Description: Script to setup a COMPSs cluster within a
+  #              Chameleon lease
+  #
+  #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  ##########################################################
+  # Script variables
+  user=cc
+  instanceCreationTime=10        # Iterations over 30s
+  sshUpTime=8			# Iterations over 30s
+  randomID=$RANDOM
+  tmpFile=/tmp/compss-workers-${randomID}.tmp
+  HALF_MIN=30s
+  SLEEP_BETWEEN_WORKER_CREATION=5
+
+  ##########################################################
+  # Prompt warning message
+  echo "!! WARNING: Remember to source the OpenStack RC File"
+  echo " "
+  sleep 2s
+
+  # Prompt messages to get information
+  echo "Provide the name of the COMPSs Master Instance (this instance):"
+  read -r masterName
+  echo "Provide the reservation ID to deploy COMPSs:"
+  read -r reservationId
+  echo "Provide the number of COMPSs Workers:"
+  read -r numWorkers
+  echo " "
+
+  ##########################################################
+  # Retrieve other information
+  echo "* Retrieving configuration parameters from Chameleon..."
+  image=$(nova show "$masterName" | grep image | tr "|" "\\t" | awk '{ print $2 }')
+  netId=$(neutron net-list | grep sharednet1 | tr "|" "\\t" | awk '{ print $1 }')
+
+
+  ##########################################################
+  # Launch workers 
+  echo "* Launching workers..."
+  # Insert COMPSs Master key to OpenStack. Create workers with COMPSsMaster key authorized
+  nova keypair-add --pub_key /home/cc/.ssh/id_rsa.pub COMPSsMaster${randomID}
+
+  # Create workers
+  for (( i=1; i<=numWorkers; i++ )); do
+    cmd="nova boot --flavor baremetal --image $image --key-name COMPSsMaster${randomID} --nic net-id=$netId --hint reservation=$reservationId COMPSsWorker$i"
+    echo "$cmd"
+    $cmd
+    sleep $SLEEP_BETWEEN_WORKER_CREATION
+  done
+
+  ##########################################################
+  # Waiting Workers creation
+  echo "* Waiting for COMPSs Workers creation (eta 5 min)"
+  for (( i=1; i<=instanceCreationTime; i++ )); do
+    printf "."
+    sleep ${HALF_MIN}
+  done
+  printf "\\n"
+
+  for (( i=1; i<=numWorkers; i++ )); do
+    # Wait for each worker
+    cmd_status=$(nova list | grep "COMPSsWorker$i" | tr "|" "\\t" | awk '{ print $3 }')
+    while [ "$cmd_status" != "ACTIVE" ]; do
+      sleep ${HALF_MIN}
+      cmd_status=$(nova list | grep "COMPSsWorker$i" | tr "|" "\\t" | awk '{ print $3 }')
+    done
+    echo "   - COMPSsWorker$i is ACTIVE"
+  done
+
+
+  ##########################################################
+  # Retrieving COMPSs Workers information
+  echo "* Retrieving COMPSs Workers information..."
+
+  echo "# Automatically added hostnames by chameleon_cluster_setup" > $tmpFile
+  workerIPs=""
+  for (( i=1; i<=numWorkers; i++ )); do
+    workerIP=$(nova show COMPSsWorker$i | grep "network" | tr "|" "\\t" | awk '{ print $3 }' | tr "," "\\t" | awk '{ print $1 }')
+    # Update worker list
+    workerIPs="$workerIPs $workerIP"
+    # Update hosts tmp file"
+    echo "$workerIP	COMPSsWorker$i" >> $tmpFile
+    # Log worker IP
+    echo "   - COMPSsWorker$i has IP = $workerIP"
+  done
+
+  # Adding configuration to COMPSs Master /etc/hosts file
+  sudo /bin/bash -c "cat $tmpFile >> /etc/hosts"
+  masterIP=$(nova show "$masterName" | grep "network" | tr "|" "\\t" | awk '{ print $3 }' | tr "," "\\t" | awk '{ print $1 }')
+  echo "$masterIP     COMPSsMaster" >> $tmpFile
+
+  # Configuring COMPSs Workers
+  echo "* Configuring COMPSs Workers... (eta 4 min)"
+  for (( i=1; i<=sshUpTime; i++ )); do
+    printf "."
+    sleep ${HALF_MIN}
+  done
+  printf "\\n"
+
+  for workerIP in $workerIPs; do
+    scp -o StrictHostKeyChecking=no $tmpFile $user@"$workerIP":$tmpFile
+    # shellcheck disable=SC2029
+    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no $user@"$workerIP" "sudo /bin/bash -c 'cat $tmpFile >> /etc/hosts'"
+    # shellcheck disable=SC2029
+    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no $user@"$workerIP" "rm -f $tmpFile"
+  done 
+
+  # Clean tmpfile
+  rm -f $tmpFile
+
+
+  ##########################################################
+  # Update COMPSs project / resources files
+  echo "* Updating COMPSs project and resources files..."
+  project=/opt/COMPSs/Runtime/configuration/xml/projects/default_project.xml
+  resources=/opt/COMPSs/Runtime/configuration/xml/resources/default_resources.xml
+
+  echo ""
+  echo "Provide the application path:"
+  read -r appDir
+
+  #
+  # PROJECT.XML
+  #
+  # shellcheck source=../system/xmls/generate_project.sh
+  # shellcheck disable=SC1091
+  source "${SCRIPT_DIR}"/../system/xmls/generate_project.sh
+
+  # Init project file
+  init "${project}"
+  # Add header (from generate_project.sh)
+  add_header
+  # Add master information (from generate_project.sh)
+  add_master_node ""
+  # Add workers (from generate_project.sh)
+  for (( i=1; i<=numWorkers; i++ )); do
+    add_compute_node "COMPSsWorker$i" "/opt/COMPSs/" "/tmp/COMPSsWorker$i" "$user" "$appDir" "" "" "" ""
+  done
+  # Close project (from generate_project.sh)
+  add_footer
+
+  #
+  # RESOURCES.XML
+  #
+  # shellcheck source=../system/xmls/generate_resources.sh
+  # shellcheck disable=SC1091
+  source "${SCRIPT_DIR}"/../system/xmls/generate_resources.sh
+  
+  # Init resources file
+  init "${resources}"
+  # Add header (from generate_resources.sh)
+  add_header
+  # Add workers
+  for (( i=1; i<=numWorkers; i++ )); do
+    add_compute_node "COMPSsWorker$i" "24" "0" "0" "125" "43001" "43102" "" ""
+  done
+  # Close resources (from generate_resources.sh)
+  add_footer
+
+
+  ##########################################################
+  # End
+  echo "SUCCESS!"
+  exit
+

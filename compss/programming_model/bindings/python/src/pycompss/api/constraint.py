@@ -27,8 +27,8 @@ PyCOMPSs API - CONSTRAINT
 import inspect
 import logging
 import os
-from functools import wraps
 import pycompss.util.context as context
+
 if __debug__:
     logger = logging.getLogger(__name__)
 
@@ -64,6 +64,7 @@ class Constraint(object):
         :param func: Function to decorate
         :return: Decorated function.
         """
+
         def constrained_f(*args, **kwargs):
             if not self.scope:
                 from pycompss.api.dummy.constraint import constraint as dummy_constraint
@@ -72,8 +73,6 @@ class Constraint(object):
 
             if context.in_master():
                 # master code
-                from pycompss.runtime.binding import register_ce
-
                 mod = inspect.getmodule(func)
                 self.module = mod.__name__  # not func.__module__
 

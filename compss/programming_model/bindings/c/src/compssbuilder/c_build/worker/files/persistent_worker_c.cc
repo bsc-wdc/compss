@@ -39,11 +39,13 @@ using namespace std;
 
 CBindingCache *cache;
 
-string END_TASK_TAG = "endTask";
-string QUIT_TAG = "quit";
-string EXECUTE_TASK_TAG = "task";
-string REMOVE_TAG = "remove";
-string SERIALIZE_TAG = "serialize";
+string EXECUTE_TASK_TAG = "EXECUTE_TASK";
+string END_TASK_TAG = "END_TASK";
+string ERROR_TASK_TAG = "ERROR_TASK";
+string QUIT_TAG = "QUIT";
+string REMOVE_TAG = "REMOVE";
+string SERIALIZE_TAG = "SERIALIZE";
+
 
 int endedThreads;
 

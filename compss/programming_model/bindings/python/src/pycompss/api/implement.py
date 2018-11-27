@@ -27,7 +27,6 @@ PyCOMPSs API - Implement (Versioning)
 import inspect
 import logging
 import os
-from functools import wraps
 import pycompss.util.context as context
 
 if __debug__:
@@ -77,13 +76,11 @@ class Implement(object):
 
             if context.in_master():
                 # master code
-                from pycompss.runtime.binding import register_ce
-
                 mod = inspect.getmodule(func)
                 self.module = mod.__name__  # not func.__module__
 
                 if (self.module == '__main__' or
-                            self.module == 'pycompss.runtime.launch'):
+                        self.module == 'pycompss.runtime.launch'):
                     # The module where the function is defined was run as __main__,
                     # we need to find out the real module name.
 
@@ -129,7 +126,6 @@ class Implement(object):
             else:
                 # worker code
                 pass
-
 
             if __debug__:
                 logger.debug("Executing implement_f wrapper.")

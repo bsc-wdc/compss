@@ -16,12 +16,15 @@
  */
 package es.bsc.compss.invokers.util;
 
+import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
+import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
+import es.bsc.compss.types.resources.components.Processor.ProcessorType;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -34,16 +37,19 @@ import org.apache.logging.log4j.Logger;
 
 public class CExecutionCommandGenerator {
 
-    private static final String BINDINGS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "bindings-common" + File.separator + "lib";
+    private static final String BINDINGS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "bindings-common" + File.separator
+            + "lib";
     private static final String C_LIB_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "c" + File.separator + "lib";
     private static final String WORKER_C_RELATIVE_PATH = File.separator + "worker" + File.separator + "worker_c";
     private static final String LIBRARY_PATH_ENV = "LD_LIBRARY_PATH";
-    private static final String QUOTES="\"";
-    
+    private static final String QUOTES = "\"";
+
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
     protected static final boolean WORKER_DEBUG = LOGGER.isDebugEnabled();
 
-    public static ArrayList<String> getTaskExecutionCommand(InvocationContext context, Invocation invocation, String sandBox, InvocationResources assignedResources) {
+
+    public static ArrayList<String> getTaskExecutionCommand(InvocationContext context, Invocation invocation, String sandBox,
+            InvocationResources assignedResources) {
         int[] assignedCoreUnits = assignedResources.getAssignedCPUs();
         int[] assignedGPUs = assignedResources.getAssignedGPUs();
         int[] assignedFPGAs = assignedResources.getAssignedFPGAs();
@@ -64,9 +70,9 @@ public class CExecutionCommandGenerator {
         }
 
         StringBuilder cuda_visible = new StringBuilder();
-        StringBuilder opencl_visible = new StringBuilder();    
+        StringBuilder opencl_visible = new StringBuilder();
         cuda_visible.append("CUDA_VISIBLE_DEVICES=").append(QUOTES);
-            opencl_visible.append("GPU_DEVICE_ORDINAL=").append(QUOTES);
+        opencl_visible.append("GPU_DEVICE_ORDINAL=").append(QUOTES);
         if (assignedGPUs.length > 0) {
             reqs.append("#--gpu-warmup=no");
             for (int i = 0; i < (assignedGPUs.length - 1); i++) {
@@ -78,7 +84,7 @@ public class CExecutionCommandGenerator {
 
             for (int j = 0; j < requirements.getProcessors().size(); j++) {
                 Processor p = requirements.getProcessors().get(j);
-                if (p.getType().equals("GPU") && p.getInternalMemory() > 0.00001) {
+                if (p.getType().equals(ProcessorType.GPU) && p.getInternalMemory() > 0.00001) {
                     float bytes = p.getInternalMemory() * 1048576; // MB to byte conversion
                     int b_int = Math.round(bytes);
                     reqs.append("#--gpu-max-memory=").append(b_int);
@@ -105,18 +111,19 @@ public class CExecutionCommandGenerator {
             taskset.append(assignedCoreUnits[numCUs - 1]).append(" ");
         }
 
-        lArgs.add(cuda_visible.toString() +";"+opencl_visible.toString() +";"+ reqs.toString() + " "+ taskset.toString() + context.getAppDir()
-                + WORKER_C_RELATIVE_PATH);
+        lArgs.add(cuda_visible.toString() + ";" + opencl_visible.toString() + ";" + reqs.toString() + " " + taskset.toString()
+                + context.getAppDir() + WORKER_C_RELATIVE_PATH);
         return lArgs;
     }
 
     public static Map<String, String> getEnvironment(InvocationContext context) {
         Map<String, String> env = new HashMap<>();
         String ldLibraryPath = System.getenv(LIBRARY_PATH_ENV);
+        CParams cParams = (CParams) context.getLanguageParams(Lang.C);
         if (ldLibraryPath == null) {
-            ldLibraryPath = context.getLibPath();
+            ldLibraryPath = cParams.getLibraryPath();
         } else {
-            ldLibraryPath = ldLibraryPath.concat(":" + context.getLibPath());
+            ldLibraryPath = ldLibraryPath.concat(":" + cParams.getLibraryPath());
         }
 
         // Add C and commons libs

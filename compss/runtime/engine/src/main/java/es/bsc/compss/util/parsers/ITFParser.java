@@ -26,6 +26,7 @@ import es.bsc.compss.types.annotations.Constraints;
 import es.bsc.compss.types.annotations.Parameter;
 import es.bsc.compss.types.annotations.SchedulerHints;
 import es.bsc.compss.types.annotations.task.Binary;
+import es.bsc.compss.types.annotations.task.COMPSs;
 import es.bsc.compss.types.annotations.task.Decaf;
 import es.bsc.compss.types.annotations.task.MPI;
 import es.bsc.compss.types.annotations.task.Method;
@@ -36,10 +37,12 @@ import es.bsc.compss.types.annotations.task.repeatables.Binaries;
 import es.bsc.compss.types.annotations.task.repeatables.Decafs;
 import es.bsc.compss.types.annotations.task.repeatables.MPIs;
 import es.bsc.compss.types.annotations.task.repeatables.Methods;
+import es.bsc.compss.types.annotations.task.repeatables.MultiCOMPSs;
 import es.bsc.compss.types.annotations.task.repeatables.MultiOmpSs;
 import es.bsc.compss.types.annotations.task.repeatables.OpenCLs;
 import es.bsc.compss.types.annotations.task.repeatables.Services;
 import es.bsc.compss.types.implementations.BinaryImplementation;
+import es.bsc.compss.types.implementations.COMPSsImplementation;
 import es.bsc.compss.types.implementations.DecafImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MPIImplementation;
@@ -138,16 +141,15 @@ public class ITFParser {
         /*
          * Register all implementations
          */
-        
+
         final String ERROR_ITF = "[ERROR] Impossible to parse the method " + "'" + methodName + "' check your Itf file.";
-        
+
         try {
-        	CoreManager.registerNewImplementations(methodId, implementations, signatures);
+            CoreManager.registerNewImplementations(methodId, implementations, signatures);
+        } catch (RuntimeException e) {
+            ErrorManager.fatal(ERROR_ITF, e);
         }
-        catch (RuntimeException e) {
-        	ErrorManager.fatal(ERROR_ITF, e); 
-        }
-        
+
         /*
          * Returns the assigned methodId
          */
@@ -170,6 +172,7 @@ public class ITFParser {
                     && !annot.annotationType().getName().equals(Service.class.getName())
                     && !annot.annotationType().getName().equals(MPI.class.getName())
                     && !annot.annotationType().getName().equals(Decaf.class.getName())
+                    && !annot.annotationType().getName().equals(COMPSs.class.getName())
                     && !annot.annotationType().getName().equals(OmpSs.class.getName())
                     && !annot.annotationType().getName().equals(OpenCL.class.getName())
                     && !annot.annotationType().getName().equals(Binary.class.getName())
@@ -177,6 +180,7 @@ public class ITFParser {
                     && !annot.annotationType().getName().equals(Methods.class.getName())
                     && !annot.annotationType().getName().equals(Services.class.getName())
                     && !annot.annotationType().getName().equals(Decafs.class.getName())
+                    && !annot.annotationType().getName().equals(MultiCOMPSs.class.getName())
                     && !annot.annotationType().getName().equals(MultiOmpSs.class.getName())
                     && !annot.annotationType().getName().equals(OpenCLs.class.getName())
                     && !annot.annotationType().getName().equals(Binaries.class.getName())
@@ -201,12 +205,14 @@ public class ITFParser {
         for (Annotation annot : m.getAnnotations()) {
             if (annot.annotationType().getName().equals(MPI.class.getName())
                     || annot.annotationType().getName().equals(Decaf.class.getName())
+                    || annot.annotationType().getName().equals(COMPSs.class.getName())
                     || annot.annotationType().getName().equals(OmpSs.class.getName())
                     || annot.annotationType().getName().equals(OpenCL.class.getName())
                     || annot.annotationType().getName().equals(Binary.class.getName())
                     // Repeatable annotations
                     || annot.annotationType().getName().equals(MPIs.class.getName())
                     || annot.annotationType().getName().equals(Decafs.class.getName())
+                    || annot.annotationType().getName().equals(MultiCOMPSs.class.getName())
                     || annot.annotationType().getName().equals(MultiOmpSs.class.getName())
                     || annot.annotationType().getName().equals(OpenCLs.class.getName())
                     || annot.annotationType().getName().equals(Binaries.class.getName())) {
@@ -577,6 +583,42 @@ public class ITFParser {
             // Register method implementation
             Implementation impl = new DecafImplementation(dfScript, dfExecutor, dfLib, workingDir, mpiRunner, methodId, implId,
                     implConstraints);
+            ++implId;
+            implementations.add(impl);
+        }
+
+        /*
+         * COMPSs
+         */
+        for (COMPSs compssAnnot : m.getAnnotationsByType(COMPSs.class)) {
+            LOGGER.debug("   * Processing @COMPSs annotation");
+
+            String runcompss = EnvironmentLoader.loadFromEnvironment(compssAnnot.runcompss());
+            String flags = EnvironmentLoader.loadFromEnvironment(compssAnnot.flags());
+            String appName = EnvironmentLoader.loadFromEnvironment(compssAnnot.appName());
+            String workingDir = EnvironmentLoader.loadFromEnvironment(compssAnnot.workingDir());
+
+            if (appName == null || appName.isEmpty()) {
+                ErrorManager.error("Empty appName in COMPSs annotation for method " + m.getName());
+            }
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("runcompss: " + runcompss);
+                LOGGER.debug("flags: " + flags);
+                LOGGER.debug("appName: " + appName);
+            }
+            String compssSignature = calleeMethodSignature.toString() + LoaderUtils.COMPSs_SIGNATURE;
+            signatures.add(compssSignature);
+
+            // Load specific method constraints if present
+            MethodResourceDescription implConstraints = defaultConstraints;
+            if (compssAnnot.constraints() != null) {
+                implConstraints = new MethodResourceDescription(compssAnnot.constraints());
+                implConstraints.mergeMultiConstraints(defaultConstraints);
+            }
+
+            // Register method implementation
+            Implementation impl = new COMPSsImplementation(runcompss, flags, appName, workingDir, methodId, implId, implConstraints);
             ++implId;
             implementations.add(impl);
         }

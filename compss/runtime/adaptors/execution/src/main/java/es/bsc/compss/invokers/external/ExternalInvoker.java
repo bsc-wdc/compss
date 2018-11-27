@@ -16,10 +16,9 @@
  */
 package es.bsc.compss.invokers.external;
 
-import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.invokers.Invoker;
-import es.bsc.compss.invokers.external.ExternalCommand.ExecuteTaskExternalCommand;
+import es.bsc.compss.invokers.commands.external.ExecuteTaskExternalCommand;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -32,16 +31,13 @@ import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.Tracer;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 
-/**
- *
- * @author flordan
- */
 public abstract class ExternalInvoker extends Invoker {
 
     private static final String ERROR_UNSUPPORTED_JOB_TYPE = "Bindings don't support non-native tasks";
@@ -51,22 +47,25 @@ public abstract class ExternalInvoker extends Invoker {
 
     protected final ExecuteTaskExternalCommand command;
 
-    public ExternalInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources)
-            throws JobExecutionException {
+
+    public ExternalInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+            InvocationResources assignedResources) throws JobExecutionException {
+
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
-        command = getTaskExecutionCommand(context, invocation, taskSandboxWorkingDir.getAbsolutePath(), assignedResources);
-        command.appendAllTail(getExternalCommand(invocation, context, assignedResources));
+        this.command = getTaskExecutionCommand(context, invocation, taskSandboxWorkingDir.getAbsolutePath(), assignedResources);
+        this.command.appendAllArguments(getExternalCommand(invocation, context, assignedResources));
         String streamsName = context.getStandardStreamsPath(invocation);
-        command.appendHeadArgument(streamsName + SUFFIX_ERR);
-        command.appendHeadArgument(streamsName + SUFFIX_OUT);
+        this.command.prependArgument(streamsName + SUFFIX_ERR);
+        this.command.prependArgument(streamsName + SUFFIX_OUT);
 
     }
 
-    protected abstract ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation, String sandBox, InvocationResources assignedResources);
+    protected abstract ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation, String sandBox,
+            InvocationResources assignedResources);
 
-    private static ArrayList<String> getExternalCommand(Invocation invocation, InvocationContext context, InvocationResources assignedResources)
-            throws JobExecutionException {
+    private static ArrayList<String> getExternalCommand(Invocation invocation, InvocationContext context,
+            InvocationResources assignedResources) throws JobExecutionException {
         ArrayList<String> args = new ArrayList<>();
 
         args.addAll(addArguments(context, invocation));
@@ -183,7 +182,8 @@ public abstract class ExternalInvoker extends Invoker {
                     // destfile should be the same as the input.
                     destData = originalData;
                 }
-                paramArgs.add(originalData + ":" + destData + ":" + np.isPreserveSourceData() + ":" + np.isWriteFinalValue() + ":" + np.getOriginalName());
+                paramArgs.add(originalData + ":" + destData + ":" + np.isPreserveSourceData() + ":" + np.isWriteFinalValue() + ":"
+                        + np.getOriginalName());
                 paramArgs.add(Integer.toString(bo.getType()));
                 paramArgs.add(Integer.toString(bo.getElements()));
                 break;

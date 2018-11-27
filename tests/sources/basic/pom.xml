@@ -1,125 +1,128 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-    <!-- GENERAL INFORMATION -->
-    <artifactId>compss-tests-basic</artifactId>
-    <packaging>pom</packaging>
-    <parent>
-        <groupId>es.bsc.compss.tests</groupId>
-        <artifactId>compss-tests</artifactId>
-        <version>2.4.rc1811</version>
-        <relativePath>..</relativePath>
-    </parent>
+	<!-- GENERAL INFORMATION -->
+	<artifactId>compss-tests-basic</artifactId>
+	<packaging>pom</packaging>
+	<parent>
+		<groupId>es.bsc.compss.tests</groupId>
+		<artifactId>compss-tests</artifactId>
+		<version>2.4.rc1811</version>
+		<relativePath>..</relativePath>
+	</parent>
 
-    <!-- PROJECT INFORMATION -->
-    <name>COMP Superscalar Tests - Basic</name>
-    <description>COMPSs Framework Tests - Basic Local</description>
-    <url>http://compss.bsc.es</url>
-    <inceptionYear>2014</inceptionYear>
-    <licenses>
-        <license>
-            <name>Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
-        </license>
-    </licenses>
-    <organization>
-        <name>BSC</name>
-        <url>http://www.bsc.es</url>
-    </organization>
+	<!-- PROJECT INFORMATION -->
+	<name>COMP Superscalar Tests - Basic</name>
+	<description>COMPSs Framework Tests - Basic Local</description>
+	<url>http://compss.bsc.es</url>
+	<inceptionYear>2014</inceptionYear>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+		</license>
+	</licenses>
+	<organization>
+		<name>BSC</name>
+		<url>http://www.bsc.es</url>
+	</organization>
 
-    <!-- SUB-MODULES -->
-    <modules>
-        <module>01-simple</module>
-        <module>02-basicTasks</module>
-        <module>03-basicTypes</module>
-        <module>04-objectTest</module>
-        <module>05-constraintsTest</module>
-        <module>06-sharedDisks</module>
-        <module>07-groupService</module>
-        <module>08-servicesTest</module>
-        <module>09-errorManagement</module>
-        <module>10-priorityTasks</module>
-        <module>11-dataLocality</module>
-        <module>12-cache</module>
-        <module>13-tracing</module>
-        <module>14-advanced_tracing</module>
-        <module>15-kmeans</module>
-        <module>16-matmul</module>
-        <module>17-sparseLU</module>
-        <!-- Module 18 is 18-test_c -->
-        <!-- Module 19 is 19-test_python -->
-        <!-- Module 20 is 20-basic_python -->
-        <!-- Module 21 is 21-advance_python -->
-        <!-- Module 22 is 22-kmeans_python -->
-        <module>23-concurrent</module>
-        <module>24-noTask</module>
-        <!-- Module 25 is 25-task_tracing_python -->
-        <module>26-java_api_calls</module>
-        <!-- Module 27 is 27-simple_python -->
-        <!-- Module 28 is 28-simple_c -->
-        <module>29-pscos</module>
-        <module>30-mpi</module>
-        <module>31-graph</module>
-        <module>32-remoteFile</module>
-        <!-- Module 33 is 33-implementations_c -->
-        <module>34-noEmptyConstructor</module>
-        <module>35-replicatedTask</module>
-        <module>36-environmentVariables</module>
-        <module>37-nonNativeTasks</module>
-        <!-- Module 38 is 38-environmentVariables_python -->
-        <!-- Module 39 is 39-barrier_python -->
-        <module>40-deleteFileJava</module>
-        <!-- Module 41 is 41-deleteFile_python -->
-        <module>42-monitor</module>
-        <module>43-distributedTask</module>
-        <!-- Module 44 is 44-argskwargs_python -->
-        <!-- Module 45 is 45-pscos_python -->
-        <!-- Module 46 is 46-files_python -->
-        <module>47-ompss</module>
-        <module>48-schedulerDefault</module>
-        <!-- Module 49 is 49-local_python -->
-        <!-- Module 50 is 50-matmul_objects_c -->
-        <!-- Module 51 is 51-matmul_files_c -->
-        <!-- Module 52 is 52-deleteFile_c -->
-        <module>53-schedulerFifo</module>
-        <module>54-schedulerLifo</module>
-        <module>55-schedulerFifoData</module>
-        <module>56-schedulerData</module>
-        <module>57-multiImplementations</module>
-        <!-- Module 58 is 58-binaryDecorator_python -->
-        <!-- Module 59 is 59-ompssDecorator_python -->
-        <!-- Module 60 is 60-mpiDecorator_python -->
-        <!-- Module 61 is 61-openclDecorator_python -->
-        <!-- Module 62 is 62-implementsDecorator_python -->
-        <module>63-decaf</module>
-        <!-- Module 64 is 64-decaf_python -->
-        <!-- Module 65 is 65-testStatic_c -->
-        <module>66-limitOfTasks</module>
-        <module>67-elasticityJava</module>
-        <!-- Module 68 is 68 is 68-elasticity_python -->
-        <!-- Module 69 is 69-multithread_c -->
-        <module>70-pscosRedis</module>
-        <!-- Module 71 is 71-argparse_python -->
-        <!-- Module 72 is 72-jupyterNotebook_python -->
-        <!-- Module 73 is 73-pscosRedis_python -->
-        <!-- Module 74 is 74-exceptions_python -->
-        <module>75-workerEnvironment</module>
-        <!-- Module 76 is 76-varargstype_python -->
-        <module>77-streams</module>
-        <!-- Module 78 is 78-matmul_mo_sched_profile_config_c -->
-        <module>80-externalAdaptationJava</module>
-        <!-- Module 81 is 81-noreturns_python -->
-        <!-- Module 82 is 82-module_python -->
-        <!-- Module 83 is 83-gpu_fpga_implementation_c -->
-        <!-- Module 84 is 84-interpreters_python -->
-        <!-- Module 85 is 85-kill_processes_python -->
-        <!-- Module 86 is 86-testArrays_c -->
-        <module>87-objectDeregisterJava</module>
-        <!-- Module 88 is 88-matmul_autoparallel_python -->
-        <!-- Module 89 is 89-gemm_autoparallel_python -->
+	<!-- SUB-MODULES -->
+	<modules>
+		<module>01-simple</module>
+		<module>02-basicTasks</module>
+		<module>03-basicTypes</module>
+		<module>04-objectTest</module>
+		<module>05-constraintsTest</module>
+		<module>06-sharedDisks</module>
+		<module>07-groupService</module>
+		<module>08-servicesTest</module>
+		<module>09-errorManagement</module>
+		<module>10-priorityTasks</module>
+		<module>11-dataLocality</module>
+		<module>12-cache</module>
+		<module>13-tracing</module>
+		<module>14-advanced_tracing</module>
+		<module>15-kmeans</module>
+		<module>16-matmul</module>
+		<module>17-sparseLU</module>
+		<!-- Module 18 is 18-test_c -->
+		<!-- Module 19 is 19-test_python -->
+		<!-- Module 20 is 20-basic_python -->
+		<!-- Module 21 is 21-advance_python -->
+		<!-- Module 22 is 22-kmeans_python -->
+		<module>23-concurrent</module>
+		<module>24-noTask</module>
+		<!-- Module 25 is 25-task_tracing_python -->
+		<module>26-java_api_calls</module>
+		<!-- Module 27 is 27-simple_python -->
+		<!-- Module 28 is 28-simple_c -->
+		<module>29-pscos</module>
+		<module>30-mpi</module>
+		<module>31-graph</module>
+		<module>32-remoteFile</module>
+		<!-- Module 33 is 33-implementations_c -->
+		<module>34-noEmptyConstructor</module>
+		<module>35-replicatedTask</module>
+		<module>36-environmentVariables</module>
+		<module>37-nonNativeTasks</module>
+		<!-- Module 38 is 38-environmentVariables_python -->
+		<!-- Module 39 is 39-barrier_python -->
+		<module>40-deleteFileJava</module>
+		<!-- Module 41 is 41-deleteFile_python -->
+		<module>42-monitor</module>
+		<module>43-distributedTask</module>
+		<!-- Module 44 is 44-argskwargs_python -->
+		<!-- Module 45 is 45-pscos_python -->
+		<!-- Module 46 is 46-files_python -->
+		<module>47-ompss</module>
+		<module>48-schedulerDefault</module>
+		<!-- Module 49 is 49-local_python -->
+		<!-- Module 50 is 50-matmul_objects_c -->
+		<!-- Module 51 is 51-matmul_files_c -->
+		<!-- Module 52 is 52-deleteFile_c -->
+		<module>53-schedulerFifo</module>
+		<module>54-schedulerLifo</module>
+		<module>55-schedulerFifoData</module>
+		<module>56-schedulerData</module>
+		<module>57-multiImplementations</module>
+		<!-- Module 58 is 58-binaryDecorator_python -->
+		<!-- Module 59 is 59-ompssDecorator_python -->
+		<!-- Module 60 is 60-mpiDecorator_python -->
+		<!-- Module 61 is 61-openclDecorator_python -->
+		<!-- Module 62 is 62-implementsDecorator_python -->
+		<module>63-decaf</module>
+		<!-- Module 64 is 64-decaf_python -->
+		<!-- Module 65 is 65-testStatic_c -->
+		<module>66-limitOfTasks</module>
+		<module>67-elasticityJava</module>
+		<!-- Module 68 is 68 is 68-elasticity_python -->
+		<!-- Module 69 is 69-multithread_c -->
+		<module>70-pscosRedis</module>
+		<!-- Module 71 is 71-argparse_python -->
+		<!-- Module 72 is 72-jupyterNotebook_python -->
+		<!-- Module 73 is 73-pscosRedis_python -->
+		<!-- Module 74 is 74-exceptions_python -->
+		<module>75-workerEnvironment</module>
+		<!-- Module 76 is 76-varargstype_python -->
+		<module>77-streams</module>
+		<!-- Module 78 is 78-matmul_mo_sched_profile_config_c -->
+		<module>80-externalAdaptationJava</module>
+		<!-- Module 81 is 81-noreturns_python -->
+		<!-- Module 82 is 82-module_python -->
+		<!-- Module 83 is 83-gpu_fpga_implementation_c -->
+		<!-- Module 84 is 84-interpreters_python -->
+		<!-- Module 85 is 85-kill_processes_python -->
+		<!-- Module 86 is 86-testArrays_c -->
+		<module>87-objectDeregisterJava</module>
+		<!-- Module 88 is 88-matmul_autoparallel_python -->
+		<!-- Module 89 is 89-gemm_autoparallel_python -->
+        <module>90-compss</module>
+        <!-- Module 91 is 91-compssDecorator_python -->
 
-        <!-- Add new modules below. Respect numbering -->
-    </modules>
+		<!-- Add new modules below. Respect numbering -->
+	</modules>
 </project>

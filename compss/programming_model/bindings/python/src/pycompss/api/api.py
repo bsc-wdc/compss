@@ -59,8 +59,10 @@ if context.in_pycompss():
         dictType = dict
     else:
         import types
+
         listType = types.ListType
         dictType = types.DictType
+
 
     def compss_start():
         """
@@ -70,6 +72,7 @@ if context.in_pycompss():
         """
         start_runtime()
 
+
     def compss_stop():
         """
         Stops the runtime.
@@ -77,6 +80,7 @@ if context.in_pycompss():
         :return: None
         """
         stop_runtime()
+
 
     def compss_open(file_name, mode='r'):
         """
@@ -92,6 +96,7 @@ if context.in_pycompss():
         compss_name = get_file(file_name, compss_mode)
         return open(compss_name, mode)
 
+
     def compss_delete_file(file_name):
         """
         Delete a file -> Calls runtime.
@@ -101,6 +106,7 @@ if context.in_pycompss():
         """
 
         return delete_file(file_name)
+
 
     def compss_delete_object(obj):
         """
@@ -112,6 +118,7 @@ if context.in_pycompss():
 
         return delete_object(obj)
 
+
     def compss_barrier(no_more_tasks=False):
         """
         Perform a barrier when called.
@@ -121,6 +128,7 @@ if context.in_pycompss():
         """
 
         barrier(no_more_tasks)
+
 
     def compss_wait_on(*args):
         """
@@ -201,23 +209,30 @@ else:
     from pycompss.api.dummy.api import compss_barrier as __dummy_compss_barrier__
     from pycompss.api.dummy.api import compss_wait_on as __dummy_compss_wait_on__
 
+
     def compss_start():
         __dummy_compss_start__()
+
 
     def compss_stop():
         __dummy_compss_stop__()
 
+
     def compss_open(file_name, mode='r'):
         return __dummy_compss_open__(file_name, mode)
+
 
     def compss_delete_file(file_name):
         return __dummy_compss_delete_file__(file_name)
 
+
     def compss_delete_object(obj):
         return __dummy_compss_delete_object__(obj)
 
+
     def compss_barrier(no_more_tasks=False):
         __dummy_compss_barrier__(no_more_tasks)
+
 
     def compss_wait_on(*args):
         return __dummy_compss_wait_on__(*args)

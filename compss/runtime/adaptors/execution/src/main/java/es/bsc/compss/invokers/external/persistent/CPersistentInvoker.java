@@ -17,29 +17,29 @@
 package es.bsc.compss.invokers.external.persistent;
 
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
-import es.bsc.compss.invokers.external.ExternalCommand.ExecuteTaskExternalCommand;
+import es.bsc.compss.invokers.commands.external.ExecuteTaskExternalCommand;
 import es.bsc.compss.invokers.util.CExecutionCommandGenerator;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
+
 import java.io.File;
 
 
-/**
- *
- * @author flordan
- */
 public class CPersistentInvoker extends PersistentInvoker {
 
-    public CPersistentInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources)
-            throws JobExecutionException {
+    public CPersistentInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+            InvocationResources assignedResources) throws JobExecutionException {
+
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
     }
 
     @Override
-    protected ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation, String sandBox, InvocationResources assignedResources) {
+    protected ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation, String sandBox,
+            InvocationResources assignedResources) {
+
         ExecuteTaskExternalCommand command = new ExecuteTaskExternalCommand();
-        command.appendAllTail(CExecutionCommandGenerator.getTaskExecutionCommand(context, invocation, sandBox, assignedResources));
+        command.appendAllArguments(CExecutionCommandGenerator.getTaskExecutionCommand(context, invocation, sandBox, assignedResources));
         return command;
     }
 

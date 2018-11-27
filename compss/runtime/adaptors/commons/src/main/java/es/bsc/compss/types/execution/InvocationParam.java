@@ -21,10 +21,6 @@ import es.bsc.compss.types.annotations.parameter.Stream;
 import java.util.List;
 
 
-/**
- *
- * @author flordan
- */
 public interface InvocationParam {
 
     public void setType(DataType type);

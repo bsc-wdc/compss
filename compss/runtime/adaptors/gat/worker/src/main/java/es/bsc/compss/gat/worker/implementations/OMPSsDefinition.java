@@ -29,8 +29,11 @@ public class OMPSsDefinition extends ImplementationDefinition {
     private final String binary;
     private final String workingDir;
 
+    private final OmpSsImplementation impl;
+
+
     public OMPSsDefinition(boolean debug, String[] args, int execArgsIdx) {
-        super(debug, args, execArgsIdx + 2);
+        super(debug, args, execArgsIdx + OmpSsImplementation.NUM_PARAMS);
         this.binary = args[execArgsIdx++];
 
         String wDir = args[execArgsIdx];
@@ -39,11 +42,13 @@ public class OMPSsDefinition extends ImplementationDefinition {
         } else {
             this.workingDir = wDir;
         }
+
+        this.impl = new OmpSsImplementation(this.binary, this.workingDir, null, null, null);
     }
 
     @Override
     public AbstractMethodImplementation getMethodImplementation() {
-        return new OmpSsImplementation(binary, workingDir, null, null, null);
+        return this.impl;
     }
 
     @Override
@@ -57,14 +62,7 @@ public class OMPSsDefinition extends ImplementationDefinition {
     }
 
     @Override
-    public String toCommandString() {
-        return binary;
-    }
-
-    @Override
     public String toLogString() {
-        return "["
-                + "BINARY=" + binary
-                + "]";
+        return this.impl.getMethodDefinition();
     }
 }

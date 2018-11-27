@@ -37,6 +37,7 @@ public class ExternalTaskStatus {
     private final List<DataType> updatedParameterTypes;
     private final List<String> updatedParameterValues;
 
+
     /**
      * Creates a new task status instance with exitValue
      *
@@ -62,7 +63,7 @@ public class ExternalTaskStatus {
             if (4 + 2 * numParams != line.length) {
                 LOGGER.warn("WARN: Skipping endTask parameters because of malformation.");
                 numParams = (line.length - 4) / 2;
-            } 
+            }
             // Process parameters
             for (int i = 0; i < numParams; ++i) {
                 int paramTypeOrdinalIndex = 0;

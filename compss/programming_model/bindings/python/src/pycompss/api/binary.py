@@ -27,7 +27,6 @@ PyCOMPSs API - BINARY
 import inspect
 import logging
 import os
-from functools import wraps
 import pycompss.util.context as context
 
 if __debug__:
@@ -75,8 +74,6 @@ class Binary(object):
 
             if context.in_master():
                 # master code
-                from pycompss.runtime.binding import register_ce
-
                 mod = inspect.getmodule(func)
                 self.module = mod.__name__  # not func.__module__
 
@@ -119,7 +116,7 @@ class Binary(object):
                     if 'workingDir' in self.kwargs:
                         working_dir = self.kwargs['workingDir']
                     else:
-                        working_dir = '[unassigned]'   # Empty or '[unassigned]'
+                        working_dir = '[unassigned]'  # Empty or '[unassigned]'
                     impl_signature = 'BINARY.' + _binary
                     core_element.set_impl_signature(impl_signature)
                     impl_args = [_binary, working_dir]

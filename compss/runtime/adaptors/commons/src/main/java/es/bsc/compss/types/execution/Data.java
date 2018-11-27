@@ -23,17 +23,13 @@ import java.io.ObjectOutput;
 import java.util.LinkedList;
 
 
-/**
- *
- * @author flordan
- * @param <T>
- */
 public abstract class Data<T extends InvocationParamURI> implements Externalizable {
 
     // Name of the data to send
     private String dataMgmtId;
     // Sources list
     private LinkedList<T> sources;
+
 
     public Data() {
         this.dataMgmtId = "";

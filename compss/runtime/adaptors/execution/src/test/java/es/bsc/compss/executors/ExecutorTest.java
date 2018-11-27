@@ -35,13 +35,10 @@ import java.util.HashMap;
 import org.junit.Test;
 
 
-/**
- *
- * @author flordan
- */
 public class ExecutorTest {
 
     private final ExecutionFlowVerifier expectedEvents = new ExecutionFlowVerifier();
+
 
     @Test
     public void emptyExecutor() throws InterruptedException, InvalidMapException {
@@ -69,7 +66,8 @@ public class ExecutorTest {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         invBr = invBr.setLang(Lang.JAVA);
-        invBr = invBr.setImpl(new MethodImplementation(this.getClass().getCanonicalName(), "javaTest", 0, 0, new MethodResourceDescription()));
+        invBr = invBr
+                .setImpl(new MethodImplementation(this.getClass().getCanonicalName(), "javaTest", 0, 0, new MethodResourceDescription()));
         Invocation invocation1 = invBr.build();
         Execution exec = new Execution(invocation1, null);
         p.execute(exec);
@@ -86,6 +84,7 @@ public class ExecutorTest {
 
         private final HashMap<Class<?>, ExecutionPlatformMirror> mirrors = new HashMap<>();
         private final RequestQueue<Execution> queue = new RequestQueue<>();
+
 
         @Override
         public ExecutionPlatformMirror getMirror(Class<?> invoker) {
@@ -113,13 +112,13 @@ public class ExecutorTest {
 
         @Override
         public InvocationResources acquireComputingUnits(int jobId, ResourceDescription requirements) {
-            //No need to do anything
+            // No need to do anything
             return null;
         }
 
         @Override
         public void releaseComputingUnits(int jobId) {
-            //No need to do anything
+            // No need to do anything
         }
 
     }

@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.executor.utils;
 
-
 public interface ExecutionPlatformMirror {
 
     public void stop();

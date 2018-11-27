@@ -43,6 +43,7 @@ public class BinaryRunner {
     private static final String ERROR_ERRORREADER = "ERROR: Cannot retrieve command error";
     private static final String ERROR_PROC_EXEC = "ERROR: Exception executing Binary command";
 
+
     /**
      * Converts the values to the CMD standard and calculates with are the streamValues
      *
@@ -52,8 +53,8 @@ public class BinaryRunner {
      * @return
      * @throws InvokeExecutionException
      */
-    public static ArrayList<String> createCMDParametersFromValues(List<? extends InvocationParam> parameters, InvocationParam target, StreamSTD streamValues)
-            throws InvokeExecutionException {
+    public static ArrayList<String> createCMDParametersFromValues(List<? extends InvocationParam> parameters, InvocationParam target,
+            StreamSTD streamValues) throws InvokeExecutionException {
         ArrayList<String> binaryParams = new ArrayList<>();
         for (InvocationParam param : parameters) {
             binaryParams.addAll(processParam(param, streamValues));
@@ -80,7 +81,8 @@ public class BinaryRunner {
                 if (!param.getPrefix().equals(Constants.PREFIX_SKIP)) {
                     if (param.getValue() != null && param.getValue().getClass().isArray()) {
                         try {
-                            if (param.getPrefix() != null && !param.getPrefix().isEmpty() && !param.getPrefix().equals(Constants.PREFIX_EMTPY)) {
+                            if (param.getPrefix() != null && !param.getPrefix().isEmpty()
+                                    && !param.getPrefix().equals(Constants.PREFIX_EMTPY)) {
                                 binaryParam.add(param.getPrefix());
                             }
                             binaryParam.addAll(serializeArrayParam(param.getValue()));
@@ -90,7 +92,8 @@ public class BinaryRunner {
                         }
                     } else if (param.getValue() != null && param.getValue() instanceof Collection<?>) {
                         try {
-                            if (param.getPrefix() != null && !param.getPrefix().isEmpty() && !param.getPrefix().equals(Constants.PREFIX_EMTPY)) {
+                            if (param.getPrefix() != null && !param.getPrefix().isEmpty()
+                                    && !param.getPrefix().equals(Constants.PREFIX_EMTPY)) {
                                 binaryParam.add(param.getPrefix());
                             }
                             binaryParam.addAll(serializeCollectionParam((Collection<?>) param.getValue()));
@@ -99,11 +102,11 @@ public class BinaryRunner {
                             throw new InvokeExecutionException(ERROR_PARAM_NOT_STRING, e);
                         }
                     } else // The value can be serialized to string directly
-                     if (param.getPrefix() != null && !param.getPrefix().isEmpty() && !param.getPrefix().equals(Constants.PREFIX_EMTPY)) {
-                            binaryParam.add(param.getPrefix() + String.valueOf(param.getValue()));
-                        } else {
-                            binaryParam.add(String.valueOf(param.getValue()));
-                        }
+                    if (param.getPrefix() != null && !param.getPrefix().isEmpty() && !param.getPrefix().equals(Constants.PREFIX_EMTPY)) {
+                        binaryParam.add(param.getPrefix() + String.valueOf(param.getValue()));
+                    } else {
+                        binaryParam.add(String.valueOf(param.getValue()));
+                    }
                 }
                 break;
         }
@@ -172,8 +175,8 @@ public class BinaryRunner {
         return exitValue;
     }
 
-    private static void logBinaryExecution(Process process, String fileOutPath, String fileErrPath, PrintStream outLog,
-            PrintStream errLog) throws InvokeExecutionException {
+    private static void logBinaryExecution(Process process, String fileOutPath, String fileErrPath, PrintStream outLog, PrintStream errLog)
+            throws InvokeExecutionException {
         StreamGobbler errorGobbler = null;
         StreamGobbler outputGobbler = null;
         outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
@@ -347,6 +350,7 @@ public class BinaryRunner {
         private String stdIn = null;
         private String stdOut = null;
         private String stdErr = null;
+
 
         public StreamSTD() {
             // Nothing to do since all attributes have been initialized

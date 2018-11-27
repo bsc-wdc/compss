@@ -44,7 +44,7 @@
 		</dependency>
 		<dependency>
 			<groupId>es.bsc.compss</groupId>
-			<artifactId>es.bsc.compss.scheduler-commons</artifactId>
+			<artifactId>compss-scheduler-commons</artifactId>
 		</dependency>
 	</dependencies>
 	<!-- BUILD SETTINGS -->

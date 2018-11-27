@@ -17,36 +17,38 @@
 package es.bsc.compss.invokers.external.piped;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.executor.utils.PipedMirror;
 import es.bsc.compss.executor.utils.PipedMirror.PipePair;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
+import es.bsc.compss.executor.Executor.ExecutorsContext;
+import es.bsc.compss.invokers.commands.external.ExecuteTaskExternalCommand;
+import es.bsc.compss.invokers.commands.piped.ExecuteTaskPipeCommand;
+import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import es.bsc.compss.executor.Executor.ExecutorsContext;
-import es.bsc.compss.invokers.external.ExternalCommand.ExecuteTaskExternalCommand;
-import es.bsc.compss.invokers.external.piped.PipeCommand.ExecuteTaskPipeCommand;
 
 
-/**
- *
- * @author flordan
- */
 public class PythonInvoker extends PipedInvoker {
 
-    public PythonInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources, PipePair pipes)
-            throws JobExecutionException {
+    public PythonInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+            InvocationResources assignedResources, PipePair pipes) throws JobExecutionException {
+
         super(context, invocation, taskSandboxWorkingDir, assignedResources, pipes);
     }
 
     @Override
-    protected ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation, String sandBox, InvocationResources assignedResources) {
+    protected ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation, String sandBox,
+            InvocationResources assignedResources) {
+
         ExecuteTaskPipeCommand taskExecution = new ExecuteTaskPipeCommand(invocation.getJobId());
         return taskExecution;
     }
@@ -59,16 +61,18 @@ public class PythonInvoker extends PipedInvoker {
 
     private static class PythonMirror extends PipedMirror {
 
-        protected static final String BINDINGS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "bindings-common" + File.separator
-                + "lib";
+        protected static final String BINDINGS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "bindings-common"
+                + File.separator + "lib";
         public static final String PYCOMPSS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "python";
-        private static final String WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator + "worker" + File.separator + "piper_worker.py";
+        private static final String WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator + "worker" + File.separator
+                + "piper_worker.py";
 
         private static final String ENV_LD_LIBRARY_PATH = "LD_LIBRARY_PATH";
         private static final String ENV_PYTHONPATH = "PYTHONPATH";
 
         private final PythonParams pyParams;
         private final String pyCOMPSsHome;
+
 
         public PythonMirror(InvocationContext context, int size) {
             super(context, size);
@@ -129,10 +133,11 @@ public class PythonInvoker extends PipedInvoker {
 
             // LD_LIBRARY_PATH
             String ldLibraryPath = System.getenv(ENV_LD_LIBRARY_PATH);
+            CParams cParams = (CParams) context.getLanguageParams(Lang.C);
             if (ldLibraryPath == null) {
-                ldLibraryPath = context.getLibPath();
+                ldLibraryPath = cParams.getLibraryPath();
             } else {
-                ldLibraryPath = ldLibraryPath.concat(":" + context.getLibPath());
+                ldLibraryPath = ldLibraryPath.concat(":" + cParams.getLibraryPath());
             }
             String bindingsHome = context.getInstallDir() + BINDINGS_RELATIVE_PATH;
             ldLibraryPath = ldLibraryPath.concat(":" + bindingsHome);

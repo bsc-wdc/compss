@@ -32,13 +32,10 @@ import static org.junit.Assert.*;
 import storage.StubItf;
 
 
-/**
- *
- * @author flordan
- */
 public class ExecutionFlowVerifier implements InvocationContextListener, InvokerListener {
 
-    LinkedList<Event> expectedEvents = new LinkedList<>();
+    private LinkedList<Event> expectedEvents = new LinkedList<>();
+
 
     public ExecutionFlowVerifier() {
 
@@ -63,14 +60,14 @@ public class ExecutionFlowVerifier implements InvocationContextListener, Invoker
         assertNotNull("Running the method when no more events where expected", e);
         assertEquals("Running the method before expected", e.getType(), Event.Type.RUNNING_METHOD);
 
-        LinkedList<InvocationParameterAssertion> asserts;
-        asserts = (LinkedList<InvocationParameterAssertion>) e.getExpectedState();
+        @SuppressWarnings("unchecked")
+        LinkedList<InvocationParameterAssertion> asserts = (LinkedList<InvocationParameterAssertion>) e.getExpectedState();
         for (InvocationParameterAssertion assertion : asserts) {
             assertion.validate(inv);
         }
 
-        LinkedList<InvocationParameterAction> actions;
-        actions = (LinkedList<InvocationParameterAction>) e.getAttachedReply();
+        @SuppressWarnings("unchecked")
+        LinkedList<InvocationParameterAction> actions = (LinkedList<InvocationParameterAction>) e.getAttachedReply();
 
         LinkedList<Object> results = new LinkedList<>();
         for (InvocationParameterAction action : actions) {
@@ -114,6 +111,7 @@ public class ExecutionFlowVerifier implements InvocationContextListener, Invoker
         Event e = expectedEvents.pollFirst();
         assertNotNull("Method completed when no more events where expected", e);
         assertEquals("Event of execution completed not expected yet", e.getType(), Event.Type.METHOD_RETURN);
+        @SuppressWarnings("unchecked")
         List<Object> expectedResults = (List<Object>) e.getExpectedState();
         if (results.size() != expectedResults.size()) {
             fail("Unexpected number of results. Expecting " + expectedResults.size() + " and obtained " + results.size());
@@ -122,8 +120,8 @@ public class ExecutionFlowVerifier implements InvocationContextListener, Invoker
         Iterator<Object> resultsItr = results.iterator();
         for (Object expectedResult : expectedResults) {
             Object result = resultsItr.next();
-            assertEquals("Unexpected value for result value #" + resIdx + " the method execution",
-                    ((TestObject) expectedResult).getValue(), ((TestObject) result).getValue());
+            assertEquals("Unexpected value for result value #" + resIdx + " the method execution", ((TestObject) expectedResult).getValue(),
+                    ((TestObject) result).getValue());
             resIdx++;
         }
     }

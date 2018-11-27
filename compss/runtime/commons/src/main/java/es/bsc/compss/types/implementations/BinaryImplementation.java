@@ -26,6 +26,8 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 
 public class BinaryImplementation extends AbstractMethodImplementation implements Externalizable {
 
+    public static final int NUM_PARAMS = 2;
+
     private String binary;
     private String workingDir;
 
@@ -68,21 +70,21 @@ public class BinaryImplementation extends AbstractMethodImplementation implement
 
     @Override
     public String toString() {
-        return super.toString() + " Binary Method with binary " + binary;
+        return super.toString() + " Binary Method with binary " + this.binary;
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         super.readExternal(in);
-        binary = (String) in.readObject();
-        workingDir = (String) in.readObject();
+        this.binary = (String) in.readObject();
+        this.workingDir = (String) in.readObject();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         super.writeExternal(out);
-        out.writeObject(binary);
-        out.writeObject(workingDir);
+        out.writeObject(this.binary);
+        out.writeObject(this.workingDir);
     }
 
 }

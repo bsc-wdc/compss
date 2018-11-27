@@ -29,6 +29,7 @@ public class BindToResource implements ThreadBinder {
 
     private final int[] bindedComputingUnits;
 
+
     /**
      * Creates a new thread binder for unaware binds
      *

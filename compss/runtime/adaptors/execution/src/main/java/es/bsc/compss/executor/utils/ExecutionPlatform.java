@@ -49,12 +49,14 @@ public class ExecutionPlatform implements ExecutorsContext {
     protected final Semaphore sem;
     protected final Map<Class<?>, ExecutionPlatformMirror> mirrors;
 
+
     /**
      * Constructs a new thread pool but not the threads inside it.
      *
      * @param platformName
      * @param context
-     * @param size number of threads that will be in the pool
+     * @param size
+     *            number of threads that will be in the pool
      * @param resManager
      */
     public ExecutionPlatform(String platformName, InvocationContext context, int size, ResourceManager resManager) {
@@ -74,6 +76,7 @@ public class ExecutionPlatform implements ExecutorsContext {
         for (int i = 0; i < size; i++) {
             Thread t;
             Executor executor = new Executor(context, this, "compute" + i) {
+
                 @Override
                 public void run() {
                     super.run();
@@ -167,7 +170,8 @@ public class ExecutionPlatform implements ExecutorsContext {
     }
 
     @Override
-    public InvocationResources acquireComputingUnits(int jobId, ResourceDescription requirements) throws UnsufficientAvailableComputingUnitsException {
+    public InvocationResources acquireComputingUnits(int jobId, ResourceDescription requirements)
+            throws UnsufficientAvailableComputingUnitsException {
         return rm.acquireComputingUnits(jobId, requirements);
     }
 

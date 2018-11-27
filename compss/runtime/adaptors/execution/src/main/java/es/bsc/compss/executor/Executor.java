@@ -39,6 +39,7 @@ import es.bsc.compss.invokers.JavaInvoker;
 import es.bsc.compss.invokers.OpenCLInvoker;
 import es.bsc.compss.invokers.StorageInvoker;
 import es.bsc.compss.invokers.binary.BinaryInvoker;
+import es.bsc.compss.invokers.binary.COMPSsInvoker;
 import es.bsc.compss.invokers.binary.DecafInvoker;
 import es.bsc.compss.invokers.binary.MPIInvoker;
 import es.bsc.compss.invokers.binary.OmpSsInvoker;
@@ -55,6 +56,7 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.BinaryImplementation;
+import es.bsc.compss.types.implementations.COMPSsImplementation;
 import es.bsc.compss.types.implementations.DecafImplementation;
 import es.bsc.compss.types.implementations.MPIImplementation;
 import es.bsc.compss.types.implementations.OmpSsImplementation;
@@ -76,12 +78,20 @@ public class Executor implements Runnable {
     private final InvocationContext context;
     // Attached component Request queue
     protected final ExecutorsContext platform;
-    //Executor Id
+    // Executor Id
     protected final String id;
 
     protected PipePair cPipes;
     protected PipePair pyPipes;
 
+
+    /**
+     * Instantiates a new Executor
+     * 
+     * @param context
+     * @param platform
+     * @param executorId
+     */
     public Executor(InvocationContext context, ExecutorsContext platform, String executorId) {
         LOGGER.info("Executor init");
         this.context = context;
@@ -89,10 +99,10 @@ public class Executor implements Runnable {
         this.id = executorId;
     }
 
-    public String getId() {
-        return this.id;
-    }
-
+    /**
+     * Starts the executor execution
+     * 
+     */
     public void start() {
         // Nothing to do since everything is deleted in each task execution
         LOGGER.info("Executor started");
@@ -116,6 +126,15 @@ public class Executor implements Runnable {
     public void finish() {
         // Nothing to do since everything is deleted in each task execution
         LOGGER.info("Executor finished");
+    }
+
+    /**
+     * Returns the executor id
+     * 
+     * @return executor id
+     */
+    public String getId() {
+        return this.id;
     }
 
     private void processRequests() {
@@ -144,8 +163,8 @@ public class Executor implements Runnable {
     }
 
     private boolean executeTask(Invocation invocation) {
-        if (invocation.getMethodImplementation().getMethodType() == MethodType.METHOD
-                && invocation.getLang() != JAVA && invocation.getLang() != Lang.PYTHON && invocation.getLang() != Lang.C) {
+        if (invocation.getMethodImplementation().getMethodType() == MethodType.METHOD && invocation.getLang() != JAVA
+                && invocation.getLang() != Lang.PYTHON && invocation.getLang() != Lang.C) {
 
             LOGGER.error("Incorrect language " + invocation.getLang() + " in job " + invocation.getJobId());
             // Print to the job.err file
@@ -197,18 +216,14 @@ public class Executor implements Runnable {
             checkJobFiles(invocation);
             long checkResultsDuration = System.currentTimeMillis() - startCheckResults;
 
-            LOGGER.info("[Profile] createSandBox: " + createDuration
-                    + " createSimLinks: " + slDuration
-                    + " bindCU: " + cubDuration
-                    + " execution" + execDuration
-                    + " restoreSimLinks: " + origFileDuration
-                    + " checkResults: " + checkResultsDuration);
+            LOGGER.info("[Profile] createSandBox: " + createDuration + " createSimLinks: " + slDuration + " bindCU: " + cubDuration
+                    + " execution" + execDuration + " restoreSimLinks: " + origFileDuration + " checkResults: " + checkResultsDuration);
 
             // Return
             return true;
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
-            //Writing in the task .err/.out 
+            // Writing in the task .err/.out
             context.getThreadOutStream().println("Exception executing task " + e.getMessage());
             e.printStackTrace(context.getThreadErrStream());
             return false;
@@ -228,7 +243,8 @@ public class Executor implements Runnable {
     /**
      * Creates a sandbox for a task
      *
-     * @param invocation task description
+     * @param invocation
+     *            task description
      * @return Sandbox dir
      * @throws IOException
      * @throws Exception
@@ -244,6 +260,10 @@ public class Executor implements Runnable {
             case MPI:
                 MPIImplementation mpiImpl = (MPIImplementation) invocation.getMethodImplementation();
                 specificWD = mpiImpl.getWorkingDir();
+                break;
+            case COMPSs:
+                COMPSsImplementation compssImpl = (COMPSsImplementation) invocation.getMethodImplementation();
+                specificWD = compssImpl.getWorkingDir();
                 break;
             case DECAF:
                 DecafImplementation decafImpl = (DecafImplementation) invocation.getMethodImplementation();
@@ -308,10 +328,12 @@ public class Executor implements Runnable {
     /**
      * Check whether file1 corresponds to a file with a higher version than file2
      *
-     * @param file1 first file name
-     * @param file2 second file name
+     * @param file1
+     *            first file name
+     * @param file2
+     *            second file name
      * @return True if file1 has a higher version. False otherwise (This includes the case where the name file's format
-     * is not correct)
+     *         is not correct)
      */
     private boolean isMajorVersion(String file1, String file2) {
         String[] version1array = file1.split("_")[0].split("v");
@@ -337,10 +359,13 @@ public class Executor implements Runnable {
     /**
      * Create symbolic links from files with the original name in task sandbox to the renamed file
      *
-     * @param invocation task description
-     * @param sandbox created sandbox
+     * @param invocation
+     *            task description
+     * @param sandbox
+     *            created sandbox
      * @throws IOException
-     * @throws Exception returns exception is a problem occurs during creation
+     * @throws Exception
+     *             returns exception is a problem occurs during creation
      */
     private void bindOriginalFilenamesToRenames(Invocation invocation, File sandbox) throws IOException {
         for (InvocationParam param : invocation.getParams()) {
@@ -373,8 +398,7 @@ public class Executor implements Runnable {
                         Files.createSymbolicLink(inSandboxFile.toPath(), renamedFile.toPath());
                     } else if (Files.isSymbolicLink(inSandboxFile.toPath())) {
                         Path oldRenamed = Files.readSymbolicLink(inSandboxFile.toPath());
-                        LOGGER.debug(
-                                "Checking if " + renamedFile.getName() + " is equal to " + oldRenamed.getFileName().toString());
+                        LOGGER.debug("Checking if " + renamedFile.getName() + " is equal to " + oldRenamed.getFileName().toString());
                         if (isMajorVersion(renamedFile.getName(), oldRenamed.getFileName().toString())) {
                             Files.delete(inSandboxFile.toPath());
                             Files.createSymbolicLink(inSandboxFile.toPath(), renamedFile.toPath());
@@ -388,10 +412,12 @@ public class Executor implements Runnable {
     /**
      * Undo symbolic links and renames done with the original names in task sandbox to the renamed file
      *
-     * @param invocation task description
+     * @param invocation
+     *            task description
      * @throws IOException
      * @throws JobExecutionException
-     * @throws Exception returns exception is an unexpected case is found.
+     * @throws Exception
+     *             returns exception is an unexpected case is found.
      */
     private void unbindOriginalFileNamesToRenames(Invocation invocation) throws IOException, JobExecutionException {
         for (InvocationParam param : invocation.getParams()) {
@@ -481,7 +507,7 @@ public class Executor implements Runnable {
             if (param.getType().equals(DataType.FILE_T)) {
                 String filepath = (String) param.getValue();
                 File f = new File(filepath);
-                //If using C binding we ignore potential errors
+                // If using C binding we ignore potential errors
                 if (!f.exists() && (invocation.getLang() != Lang.C)) {
                     StringBuilder errMsg = new StringBuilder();
                     errMsg.append("ERROR: File with path '").append(filepath);
@@ -499,12 +525,9 @@ public class Executor implements Runnable {
 
     }
 
-    private void executeTask(
-            InvocationContext context,
-            InvocationResources assignedResources,
-            Invocation invocation,
-            File taskSandboxWorkingDir
-    ) throws JobExecutionException {
+    private void executeTask(InvocationContext context, InvocationResources assignedResources, Invocation invocation,
+            File taskSandboxWorkingDir) throws JobExecutionException {
+
         /* Register outputs **************************************** */
         String streamsPath = context.getStandardStreamsPath(invocation);
         context.registerOutputs(streamsPath);
@@ -532,7 +555,7 @@ public class Executor implements Runnable {
                             break;
                         case PYTHON:
                             if (pyPipes == null) {
-                                //Double checking to avoid syncrhonizations when the pipes are already defined
+                                // Double checking to avoid synchronizations when the pipes are already defined
                                 synchronized (PythonInvoker.class) {
                                     if (pyPipes == null) {
                                         PipedMirror mirror = (PipedMirror) platform.getMirror(PythonInvoker.class);
@@ -551,7 +574,7 @@ public class Executor implements Runnable {
                                 invoker = new CPersistentInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
                             } else {
                                 if (cPipes == null) {
-                                    //Double checking to avoid syncrhonizations when the pipes are already defined
+                                    // Double checking to avoid syncrhonizations when the pipes are already defined
                                     synchronized (CInvoker.class) {
                                         if (cPipes == null) {
                                             PipedMirror mirror = (PipedMirror) platform.getMirror(CInvoker.class);
@@ -571,8 +594,14 @@ public class Executor implements Runnable {
                     }
                     break;
 
+                case BINARY:
+                    invoker = new BinaryInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                    break;
                 case MPI:
                     invoker = new MPIInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                    break;
+                case COMPSs:
+                    invoker = new COMPSsInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
                     break;
                 case DECAF:
                     invoker = new DecafInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
@@ -583,11 +612,6 @@ public class Executor implements Runnable {
                 case OPENCL:
                     invoker = new OpenCLInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
                     break;
-                case BINARY:
-                    invoker = new BinaryInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
-                    break;
-                default:
-                    throw new JobExecutionException("Unrecognised method type");
             }
             invoker.processTask();
         } catch (Exception jee) {
@@ -610,6 +634,7 @@ public class Executor implements Runnable {
         private final File workingDir;
         private final boolean isSpecific;
 
+
         public TaskWorkingDir(File workingDir, boolean isSpecific) {
             this.workingDir = workingDir;
             this.isSpecific = isSpecific;
@@ -624,7 +649,6 @@ public class Executor implements Runnable {
         }
     }
 
-
     public static interface ExecutorsContext {
 
         public ExecutionPlatformMirror getMirror(Class<?> invoker);
@@ -635,7 +659,8 @@ public class Executor implements Runnable {
 
         public Execution getJob();
 
-        public InvocationResources acquireComputingUnits(int jobId, ResourceDescription requirements) throws UnsufficientAvailableComputingUnitsException;
+        public InvocationResources acquireComputingUnits(int jobId, ResourceDescription requirements)
+                throws UnsufficientAvailableComputingUnitsException;
 
         public void releaseComputingUnits(int jobId);
     }

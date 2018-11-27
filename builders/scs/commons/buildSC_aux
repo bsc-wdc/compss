@@ -174,7 +174,7 @@
   # Scripts
   echo "--- Copy scripts"
   cp -r "${TMP_DIR}"/compss/runtime/scripts/* "${targetDir}"/Runtime/scripts/
-  cp "${targetDir}"/Runtime/scripts/queues/cfgs/"${queues_cfg}" "${targetDir}"/Runtime/scripts/queues/cfgs/default.cfg
+  cp "${targetDir}"/Runtime/scripts/queues/supercomputers/"${queues_cfg}" "${targetDir}"/Runtime/scripts/queues/supercomputers/default.cfg
 
   # Adaptors
   echo "--- Copy adaptors"
@@ -306,7 +306,7 @@
   # ADD RUNCOMPSS TO PROFILE
   mkdir -p "${targetDir}"/etc/profile.d/
   echo " - Adding runcompss to profile..."
-  echo "export PATH=\$PATH:${targetDir}/Runtime/scripts/user" > "${targetDir}"/etc/profile.d/compss.sh
+  echo "export PATH=\$PATH:${targetDir}/Runtime/scripts/user:/opt/COMPSs/Runtime/scripts/utils" > "${targetDir}"/etc/profile.d/compss.sh
   echo " - Runcompss added to user profile"
   echo " "
   echo " - Adding compss-engine.jar to profile..."

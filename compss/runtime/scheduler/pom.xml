@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
 	<!-- GENERAL INFORMATION -->
-	<artifactId>es.bsc.compss.scheduler</artifactId>
+	<artifactId>compss-scheduler</artifactId>
 	<packaging>pom</packaging>
 	<parent>
 		<groupId>es.bsc.compss</groupId>
@@ -11,35 +13,33 @@
 <version>2.4.rc1811</version>
 		<relativePath>..</relativePath>
 	</parent>
-	
-    <!-- PROJECT INFORMATION -->
-    <name>COMPSs Scheduler</name>
-    <description>Collection of available schedulers to execute tasks on remote workers.</description>
-    <url>http://www.bsc.es</url>
-    <inceptionYear>2015</inceptionYear>
-    <licenses>
-        <license>
-            <name>Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
-        </license>
-    </licenses>
-    <organization>
-        <name>BSC</name>
-        <url>http://www.bsc.es</url>
-    </organization>
 
-    <!-- SUB-MODULES -->
-    <modules>
-        <module>commons</module>
-        <!--
-        <module>fullGraphScheduler</module>
-        -->
-        <module>multiobjectiveScheduler</module>
-        <module>readyScheduler</module>
-        <module>dataLocalityScheduler</module>     
-        <module>fifoScheduler</module>
-        <module>lifoScheduler</module>
-        <module>fifoDataScheduler</module>
-        <module>loadBalancingScheduler</module>
-    </modules>
+	<!-- PROJECT INFORMATION -->
+	<name>COMPSs Scheduler</name>
+	<description>Collection of available schedulers to execute tasks on remote workers.</description>
+	<url>http://www.bsc.es</url>
+	<inceptionYear>2015</inceptionYear>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+		</license>
+	</licenses>
+	<organization>
+		<name>BSC</name>
+		<url>http://www.bsc.es</url>
+	</organization>
+
+	<!-- SUB-MODULES -->
+	<modules>
+		<module>commons</module>
+		<!-- <module>fullGraphScheduler</module> -->
+		<module>multiobjectiveScheduler</module>
+		<module>readyScheduler</module>
+		<module>dataLocalityScheduler</module>
+		<module>fifoScheduler</module>
+		<module>lifoScheduler</module>
+		<module>fifoDataScheduler</module>
+		<module>loadBalancingScheduler</module>
+	</modules>
 </project>

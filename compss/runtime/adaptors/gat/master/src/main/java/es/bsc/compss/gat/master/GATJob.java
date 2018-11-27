@@ -53,6 +53,7 @@ import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.BinaryImplementation;
+import es.bsc.compss.types.implementations.COMPSsImplementation;
 import es.bsc.compss.types.implementations.DecafImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.Implementation.TaskType;
@@ -90,15 +91,18 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
 
     // Python interpreter
     private static final String PYTHON_INTERPRETER = System.getProperty(COMPSsConstants.PYTHON_INTERPRETER) != null
-            ? System.getProperty(COMPSsConstants.PYTHON_INTERPRETER) : COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
+            ? System.getProperty(COMPSsConstants.PYTHON_INTERPRETER)
+            : COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
     private static final String PYTHON_VERSION = System.getProperty(COMPSsConstants.PYTHON_VERSION) != null
-            ? System.getProperty(COMPSsConstants.PYTHON_VERSION) : COMPSsConstants.DEFAULT_PYTHON_VERSION;
+            ? System.getProperty(COMPSsConstants.PYTHON_VERSION)
+            : COMPSsConstants.DEFAULT_PYTHON_VERSION;
     private static final String PYTHON_VIRTUAL_ENVIRONMENT = System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT) != null
-            ? System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT) : COMPSsConstants.DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT;
+            ? System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT)
+            : COMPSsConstants.DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT;
     private static final String PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT = System
             .getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT) != null
-            ? System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT)
-            : COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
+                    ? System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT)
+                    : COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
 
     private static final String JOBS_DIR = System.getProperty(COMPSsConstants.APP_LOG_DIR) + "jobs" + java.io.File.separator;
 
@@ -120,6 +124,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
     private final boolean userNeeded;
     // Multi node information
     private final List<String> slaveWorkersNodeNames;
+
 
     /**
      * New GAT Job instance
@@ -299,7 +304,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         sd.setExecutable(targetPath + WORKER_SCRIPT_PATH + WORKER_SCRIPT_NAME);
         ArrayList<String> lArgs = new ArrayList<String>();
 
-        //Host Configuration
+        // Host Configuration
         lArgs.add(getHostName());
         lArgs.add(getResourceNode().getInstallDir());
         lArgs.add(getResourceNode().getAppDir());
@@ -318,6 +323,8 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         } else {
             lArgs.add("0");
         }
+
+        // Tracing flags
         lArgs.add(Boolean.toString(Tracer.isActivated()));
         if (Tracer.isActivated()) {
             lArgs.add(String.valueOf(Tracer.getRuntimeEventsType())); // Runtime event type
@@ -330,9 +337,8 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
             sd.addAttribute("slot", slot);
         }
 
-        //Implementation Description
+        // Implementation Description
         AbstractMethodImplementation absImpl = (AbstractMethodImplementation) this.impl;
-        // Implementation description
         lArgs.add(String.valueOf(absImpl.getMethodType()));
         switch (absImpl.getMethodType()) {
             case METHOD:
@@ -359,11 +365,25 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 }
                 lArgs.add(methodName);
                 break;
+            case BINARY:
+                BinaryImplementation binaryImpl = (BinaryImplementation) absImpl;
+                String sandboxDir = binaryImpl.getWorkingDir();
+                lArgs.add(binaryImpl.getBinary());
+                lArgs.add(sandboxDir);
+                break;
             case MPI:
                 MPIImplementation mpiImpl = (MPIImplementation) absImpl;
-                String sandboxDir = mpiImpl.getWorkingDir();
+                sandboxDir = mpiImpl.getWorkingDir();
                 lArgs.add(mpiImpl.getMpiRunner());
                 lArgs.add(mpiImpl.getBinary());
+                lArgs.add(sandboxDir);
+                break;
+            case COMPSs:
+                COMPSsImplementation compssImpl = (COMPSsImplementation) absImpl;
+                sandboxDir = compssImpl.getWorkingDir();
+                lArgs.add(compssImpl.getRuncompss());
+                lArgs.add(compssImpl.getFlags());
+                lArgs.add(compssImpl.getAppName());
                 lArgs.add(sandboxDir);
                 break;
             case DECAF:
@@ -406,12 +426,6 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 lArgs.add(openclImpl.getKernel());
                 lArgs.add(sandboxDir);
                 break;
-            case BINARY:
-                BinaryImplementation binaryImpl = (BinaryImplementation) absImpl;
-                sandboxDir = binaryImpl.getWorkingDir();
-                lArgs.add(binaryImpl.getBinary());
-                lArgs.add(sandboxDir);
-                break;
         }
 
         // Job arguments
@@ -423,7 +437,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         lArgs.addAll(slaveWorkersNodeNames);
         lArgs.add(String.valueOf(((MethodResourceDescription) this.impl.getRequirements()).getTotalCPUComputingUnits()));
 
-        //Parameters
+        // Parameters
         int numReturns = taskParams.getNumReturns();
         int numParams = taskParams.getParameters().length;
         numParams -= numReturns;
@@ -570,7 +584,6 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         switch (type) {
             case FILE_T:
                 DependencyParameter dFilePar = (DependencyParameter) param;
-                java.io.File f = new java.io.File(dFilePar.getDataTarget());
                 String originalName = dFilePar.getOriginalName();
                 paramDesc.add(originalName);
                 paramDesc.add(dFilePar.getDataTarget());
@@ -598,8 +611,8 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 paramDesc.add(Integer.toString(bo.getType()));
                 paramDesc.add(Integer.toString(bo.getElements()));
                 /*
-                     * if (dExtObjAccId instanceof RAccessId) { lArgs.add("R"); } else { lArgs.add("W"); // for the
-                     * worker to know it must write the object to disk }
+                 * if (dExtObjAccId instanceof RAccessId) { lArgs.add("R"); } else { lArgs.add("W"); // for the worker
+                 * to know it must write the object to disk }
                  */
                 break;
             case STRING_T:

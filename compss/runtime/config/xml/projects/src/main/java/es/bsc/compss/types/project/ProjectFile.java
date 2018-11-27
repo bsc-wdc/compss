@@ -68,7 +68,6 @@ import es.bsc.compss.types.project.jaxb.ProcessorType;
 import es.bsc.compss.types.project.jaxb.ProjectType;
 import es.bsc.compss.types.project.jaxb.PropertyAdaptorType;
 import es.bsc.compss.types.project.jaxb.ServiceType;
-import es.bsc.compss.types.project.jaxb.SoftwareListType;
 import es.bsc.compss.types.project.jaxb.StorageType;
 import es.bsc.compss.types.project.jaxb.SubmissionSystemType;
 import java.io.Serializable;
@@ -91,9 +90,10 @@ public class ProjectFile {
     // Logger
     private Logger logger;
 
+
     /*
-	 * ************************************** CONSTRUCTORS
-	 **************************************/
+     * ************************************** CONSTRUCTORS
+     **************************************/
     /**
      * Creates a ProjectFile instance from a given XML file. The XML is validated against the given schema and
      * internally validated
@@ -131,8 +131,7 @@ public class ProjectFile {
      * @throws JAXBException
      * @throws ProjectFileValidationException
      */
-    public ProjectFile(String xmlString, Schema xsd, Logger logger)
-            throws JAXBException, ProjectFileValidationException {
+    public ProjectFile(String xmlString, Schema xsd, Logger logger) throws JAXBException, ProjectFileValidationException {
         this.logger = logger;
         this.logger.info("Init Project.xml parsing");
         this.context = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
@@ -161,8 +160,7 @@ public class ProjectFile {
      * @throws JAXBException
      * @throws ProjectFileValidationException
      */
-    public ProjectFile(File xml, String xsdPath, Logger logger)
-            throws SAXException, JAXBException, ProjectFileValidationException {
+    public ProjectFile(File xml, String xsdPath, Logger logger) throws SAXException, JAXBException, ProjectFileValidationException {
         this.logger = logger;
         this.logger.info("Init Project.xml parsing");
         this.context = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
@@ -192,8 +190,7 @@ public class ProjectFile {
      * @throws JAXBException
      * @throws ProjectFileValidationException
      */
-    public ProjectFile(String xmlString, String xsdPath, Logger logger)
-            throws SAXException, JAXBException, ProjectFileValidationException {
+    public ProjectFile(String xmlString, String xsdPath, Logger logger) throws SAXException, JAXBException, ProjectFileValidationException {
         this.logger = logger;
         this.logger.info("Init Project.xml parsing");
         this.context = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
@@ -213,8 +210,7 @@ public class ProjectFile {
         this.logger.info("Project.xml finished");
     }
 
-    public ProjectFile(String xsdPath, Logger logger)
-            throws SAXException, JAXBException, ProjectFileValidationException {
+    public ProjectFile(String xsdPath, Logger logger) throws SAXException, JAXBException, ProjectFileValidationException {
         this.logger = logger;
         this.logger.info("Init Project.xml parsing");
         this.context = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
@@ -253,8 +249,8 @@ public class ProjectFile {
     }
 
     /*
-	 * ************************************** DUMPERS
-	 **************************************/
+     * ************************************** DUMPERS
+     **************************************/
     /**
      * Stores the current Project object to the given file
      *
@@ -292,8 +288,8 @@ public class ProjectFile {
     }
 
     /*
-	 * ************************************** GETTERS: MAIN ELEMENTS LISTS
-	 **************************************/
+     * ************************************** GETTERS: MAIN ELEMENTS LISTS
+     **************************************/
     /**
      * Returns the JAXB class representing the all XML file content
      *
@@ -419,8 +415,8 @@ public class ProjectFile {
     }
 
     /*
-	 * ************************************** GETTERS: MAIN ELEMENTS HASH-MAPS
-	 **************************************/
+     * ************************************** GETTERS: MAIN ELEMENTS HASH-MAPS
+     **************************************/
     /**
      * Returns the number of Compunting Units of a given processor @p
      *
@@ -725,9 +721,8 @@ public class ProjectFile {
     }
 
     /*
-	 * ************************************** GETTERS: MAIN ELEMENTS KEY-VALUES
-	 * (NAME)
-	 **************************************/
+     * ************************************** GETTERS: MAIN ELEMENTS KEY-VALUES (NAME)
+     **************************************/
     /**
      * Returns a List of the names of the declared ComputeNodes
      *
@@ -814,8 +809,8 @@ public class ProjectFile {
     }
 
     /*
-	 * ************************************** GETTERS: MAIN ELEMENTS SINGLE
-	 **************************************/
+     * ************************************** GETTERS: MAIN ELEMENTS SINGLE
+     **************************************/
     /**
      * Returns the ComputeNode with name = @name. Null if name doesn't exist
      *
@@ -1334,8 +1329,7 @@ public class ProjectFile {
         if (innerElements != null) {
             // Loop for submission system
             for (JAXBElement<?> adaptorElement : innerElements) {
-                if (adaptorElement.getName().equals(new QName("Ports"))
-                        || adaptorElement.getName().equals(new QName("BrokerAdaptor"))
+                if (adaptorElement.getName().equals(new QName("Ports")) || adaptorElement.getName().equals(new QName("BrokerAdaptor"))
                         || adaptorElement.getName().equals(new QName("Properties"))) {
 
                     return (Object) adaptorElement.getValue();
@@ -1347,8 +1341,8 @@ public class ProjectFile {
     }
 
     /*
-	 * ************************************** ADDERS: MAIN ELEMENTS
-	 **************************************/
+     * ************************************** ADDERS: MAIN ELEMENTS
+     **************************************/
     /**
      * Adds the given ComputeNodeType @cn to the project file
      *
@@ -1376,18 +1370,16 @@ public class ProjectFile {
      * @param adaptors
      * @return
      */
-    public ComputeNodeType addComputeNode(String name, String installDir, String workingDir, String user,
-            ApplicationType app, int limitOfTasks, AdaptorsListType adaptors) throws InvalidElementException {
+    public ComputeNodeType addComputeNode(String name, String installDir, String workingDir, String user, ApplicationType app,
+            int limitOfTasks, AdaptorsListType adaptors) throws InvalidElementException {
 
         ComputeNodeType cn = new ComputeNodeType();
         cn.setName(name);
 
         // Mandatory elements
-        JAXBElement<String> installDir_jaxb = new JAXBElement<String>(new QName("InstallDir"), String.class,
-                installDir);
+        JAXBElement<String> installDir_jaxb = new JAXBElement<String>(new QName("InstallDir"), String.class, installDir);
         cn.getInstallDirOrWorkingDirOrUser().add(installDir_jaxb);
-        JAXBElement<String> workingDir_jaxb = new JAXBElement<String>(new QName("WorkingDir"), String.class,
-                workingDir);
+        JAXBElement<String> workingDir_jaxb = new JAXBElement<String>(new QName("WorkingDir"), String.class, workingDir);
         cn.getInstallDirOrWorkingDirOrUser().add(workingDir_jaxb);
 
         // Non mandatory elements
@@ -1396,18 +1388,16 @@ public class ProjectFile {
             cn.getInstallDirOrWorkingDirOrUser().add(user_jaxb);
         }
         if (app != null) {
-            JAXBElement<ApplicationType> apps_jaxb = new JAXBElement<ApplicationType>(new QName("Application"),
-                    ApplicationType.class, app);
+            JAXBElement<ApplicationType> apps_jaxb = new JAXBElement<ApplicationType>(new QName("Application"), ApplicationType.class, app);
             cn.getInstallDirOrWorkingDirOrUser().add(apps_jaxb);
         }
         if (limitOfTasks >= 0) {
-            JAXBElement<Integer> limitOfTasks_jaxb = new JAXBElement<Integer>(new QName("LimitOfTasks"), Integer.class,
-                    limitOfTasks);
+            JAXBElement<Integer> limitOfTasks_jaxb = new JAXBElement<Integer>(new QName("LimitOfTasks"), Integer.class, limitOfTasks);
             cn.getInstallDirOrWorkingDirOrUser().add(limitOfTasks_jaxb);
         }
         if (adaptors != null) {
-            JAXBElement<AdaptorsListType> adaptors_jaxb = new JAXBElement<AdaptorsListType>(new QName("Adaptors"),
-                    AdaptorsListType.class, adaptors);
+            JAXBElement<AdaptorsListType> adaptors_jaxb = new JAXBElement<AdaptorsListType>(new QName("Adaptors"), AdaptorsListType.class,
+                    adaptors);
             cn.getInstallDirOrWorkingDirOrUser().add(adaptors_jaxb);
         }
 
@@ -1425,8 +1415,8 @@ public class ProjectFile {
      * @return
      * @throws InvalidElementException
      */
-    public ComputeNodeType addComputeNode(String name, String installDir, String workingDir, String user,
-            int limitOfTasks) throws InvalidElementException {
+    public ComputeNodeType addComputeNode(String name, String installDir, String workingDir, String user, int limitOfTasks)
+            throws InvalidElementException {
         return addComputeNode(name, installDir, workingDir, user, null, limitOfTasks, (AdaptorsListType) null);
     }
 
@@ -1439,8 +1429,7 @@ public class ProjectFile {
      * @param user
      * @return
      */
-    public ComputeNodeType addComputeNode(String name, String installDir, String workingDir, String user)
-            throws InvalidElementException {
+    public ComputeNodeType addComputeNode(String name, String installDir, String workingDir, String user) throws InvalidElementException {
         return addComputeNode(name, installDir, workingDir, user, null, -1, (AdaptorsListType) null);
     }
 
@@ -1456,8 +1445,8 @@ public class ProjectFile {
      * @param adaptors
      * @return
      */
-    public ComputeNodeType addComputeNode(String name, String installDir, String workingDir, String user,
-            ApplicationType app, int limitOfTasks, List<AdaptorType> adaptors) throws InvalidElementException {
+    public ComputeNodeType addComputeNode(String name, String installDir, String workingDir, String user, ApplicationType app,
+            int limitOfTasks, List<AdaptorType> adaptors) throws InvalidElementException {
 
         AdaptorsListType adaptorsList = new AdaptorsListType();
         if (adaptors != null) {
@@ -1485,9 +1474,8 @@ public class ProjectFile {
      * @return
      * @throws InvalidElementException
      */
-    public ComputeNodeType addComputeNode(String name, String installDir, String workingDir, String user, String appDir,
-            String libPath, String cp, String pypath, int limitOfTasks, List<AdaptorType> adaptors)
-            throws InvalidElementException {
+    public ComputeNodeType addComputeNode(String name, String installDir, String workingDir, String user, String appDir, String libPath,
+            String cp, String pypath, int limitOfTasks, List<AdaptorType> adaptors) throws InvalidElementException {
 
         AdaptorsListType adaptorsList = new AdaptorsListType();
         if (adaptors != null) {
@@ -1496,8 +1484,7 @@ public class ProjectFile {
             }
         }
 
-        return addComputeNode(name, installDir, workingDir, user, appDir, libPath, cp, pypath, limitOfTasks,
-                adaptorsList);
+        return addComputeNode(name, installDir, workingDir, user, appDir, libPath, cp, pypath, limitOfTasks, adaptorsList);
     }
 
     /**
@@ -1516,9 +1503,8 @@ public class ProjectFile {
      * @return
      * @throws InvalidElementException
      */
-    public ComputeNodeType addComputeNode(String name, String installDir, String workingDir, String user, String appDir,
-            String libPath, String cp, String pypath, int limitOfTasks, AdaptorsListType adaptors)
-            throws InvalidElementException {
+    public ComputeNodeType addComputeNode(String name, String installDir, String workingDir, String user, String appDir, String libPath,
+            String cp, String pypath, int limitOfTasks, AdaptorsListType adaptors) throws InvalidElementException {
 
         ApplicationType app = createApplication(appDir, libPath, cp, pypath);
 
@@ -1684,8 +1670,7 @@ public class ProjectFile {
      * @return
      * @throws InvalidElementException
      */
-    public CloudType addCloud(List<CloudProviderType> cps, int initialVMs, int minVMs, int maxVMs)
-            throws InvalidElementException {
+    public CloudType addCloud(List<CloudProviderType> cps, int initialVMs, int minVMs, int maxVMs) throws InvalidElementException {
         CloudType c = new CloudType();
 
         // Mandatory elements
@@ -1699,8 +1684,7 @@ public class ProjectFile {
 
         // Optional parameters
         if (initialVMs >= 0) {
-            JAXBElement<Integer> initialVMs_jaxb = new JAXBElement<Integer>(new QName("InitialVMs"), Integer.class,
-                    initialVMs);
+            JAXBElement<Integer> initialVMs_jaxb = new JAXBElement<Integer>(new QName("InitialVMs"), Integer.class, initialVMs);
             c.getCloudProviderOrInitialVMsOrMinimumVMs().add(initialVMs_jaxb);
         }
         if (minVMs >= 0) {
@@ -1742,8 +1726,8 @@ public class ProjectFile {
             CloudType c = new CloudType();
             this.project.getMasterNodeOrComputeNodeOrDataNode().add(c);
             // Add the requested provider
-            JAXBElement<CloudProviderType> cp_jaxb = new JAXBElement<CloudProviderType>(new QName("CloudProvider"),
-                    CloudProviderType.class, cp);
+            JAXBElement<CloudProviderType> cp_jaxb = new JAXBElement<CloudProviderType>(new QName("CloudProvider"), CloudProviderType.class,
+                    cp);
             c.getCloudProviderOrInitialVMsOrMinimumVMs().add(cp_jaxb);
 
         }
@@ -1759,8 +1743,7 @@ public class ProjectFile {
      * @return
      * @throws InvalidElementException
      */
-    public CloudProviderType addCloudProvider(String name, ImagesType images, InstanceTypesType instances)
-            throws InvalidElementException {
+    public CloudProviderType addCloudProvider(String name, ImagesType images, InstanceTypesType instances) throws InvalidElementException {
         return addCloudProvider(name, images, instances, -1, null);
     }
 
@@ -1845,8 +1828,8 @@ public class ProjectFile {
      * @return
      * @throws InvalidElementException
      */
-    public CloudProviderType addCloudProvider(String name, List<ImageType> images, InstanceTypesType instances,
-            int limitOfVMs, CloudPropertiesType properties) throws InvalidElementException {
+    public CloudProviderType addCloudProvider(String name, List<ImageType> images, InstanceTypesType instances, int limitOfVMs,
+            CloudPropertiesType properties) throws InvalidElementException {
 
         ImagesType imagesList = new ImagesType();
         if (images != null) {
@@ -1869,8 +1852,8 @@ public class ProjectFile {
      * @return
      * @throws InvalidElementException
      */
-    public CloudProviderType addCloudProvider(String name, ImagesType images, List<InstanceTypeType> instances,
-            int limitOfVMs, CloudPropertiesType properties) throws InvalidElementException {
+    public CloudProviderType addCloudProvider(String name, ImagesType images, List<InstanceTypeType> instances, int limitOfVMs,
+            CloudPropertiesType properties) throws InvalidElementException {
 
         InstanceTypesType instancesList = new InstanceTypesType();
         if (instances != null) {
@@ -1893,8 +1876,8 @@ public class ProjectFile {
      * @return
      * @throws InvalidElementException
      */
-    public CloudProviderType addCloudProvider(String name, List<ImageType> images, List<InstanceTypeType> instances,
-            int limitOfVMs, CloudPropertiesType properties) throws InvalidElementException {
+    public CloudProviderType addCloudProvider(String name, List<ImageType> images, List<InstanceTypeType> instances, int limitOfVMs,
+            CloudPropertiesType properties) throws InvalidElementException {
 
         ImagesType imagesList = new ImagesType();
         if (images != null) {
@@ -1923,8 +1906,8 @@ public class ProjectFile {
      * @return
      * @throws InvalidElementException
      */
-    public CloudProviderType addCloudProvider(String name, ImagesType images, InstanceTypesType instances,
-            int limitOfVMs, CloudPropertiesType properties) throws InvalidElementException {
+    public CloudProviderType addCloudProvider(String name, ImagesType images, InstanceTypesType instances, int limitOfVMs,
+            CloudPropertiesType properties) throws InvalidElementException {
 
         CloudProviderType cp = new CloudProviderType();
 
@@ -1945,9 +1928,8 @@ public class ProjectFile {
     }
 
     /*
-	 * ************************************** SETTERS: HELPERS FOR SECOND LEVEL
-	 * ELEMENTS
-	 **************************************/
+     * ************************************** SETTERS: HELPERS FOR SECOND LEVEL ELEMENTS
+     **************************************/
     /**
      * Sets the general cloud properties to an existing cloud Returns true if all modifications have been performed,
      * false otherwise
@@ -1976,18 +1958,15 @@ public class ProjectFile {
             return false;
         } else {
             if (initialVMs >= 0) {
-                JAXBElement<Integer> initialVMs_jaxb = new JAXBElement<Integer>(new QName("InitialVMs"), Integer.class,
-                        initialVMs);
+                JAXBElement<Integer> initialVMs_jaxb = new JAXBElement<Integer>(new QName("InitialVMs"), Integer.class, initialVMs);
                 cloud.getCloudProviderOrInitialVMsOrMinimumVMs().add(initialVMs_jaxb);
             }
             if (minVMs >= 0) {
-                JAXBElement<Integer> minVMs_jaxb = new JAXBElement<Integer>(new QName("MinimumVMs"), Integer.class,
-                        minVMs);
+                JAXBElement<Integer> minVMs_jaxb = new JAXBElement<Integer>(new QName("MinimumVMs"), Integer.class, minVMs);
                 cloud.getCloudProviderOrInitialVMsOrMinimumVMs().add(minVMs_jaxb);
             }
             if (maxVMs >= 0) {
-                JAXBElement<Integer> maxVMs_jaxb = new JAXBElement<Integer>(new QName("MaximumVMs"), Integer.class,
-                        maxVMs);
+                JAXBElement<Integer> maxVMs_jaxb = new JAXBElement<Integer>(new QName("MaximumVMs"), Integer.class, maxVMs);
                 cloud.getCloudProviderOrInitialVMsOrMinimumVMs().add(maxVMs_jaxb);
             }
         }
@@ -2108,18 +2087,16 @@ public class ProjectFile {
         return createImage(name, installDir, workingDir, null, null, null, null, null, limitOfTasks, null, null);
     }
 
-    public static ImageType createImage(String name, String installDir, String workingDir, String user, String appDir,
-            String libPath, String cp, String pypath, int limitOfTasks, PackageType pack, AdaptorsListType adaptors) {
+    public static ImageType createImage(String name, String installDir, String workingDir, String user, String appDir, String libPath,
+            String cp, String pypath, int limitOfTasks, PackageType pack, AdaptorsListType adaptors) {
 
         ImageType image = new ImageType();
 
         // Mandatory elements
         image.setName(name);
-        JAXBElement<String> installDir_jaxb = new JAXBElement<String>(new QName("InstallDir"), String.class,
-                installDir);
+        JAXBElement<String> installDir_jaxb = new JAXBElement<String>(new QName("InstallDir"), String.class, installDir);
         image.getInstallDirOrWorkingDirOrUser().add(installDir_jaxb);
-        JAXBElement<String> workingDir_jaxb = new JAXBElement<String>(new QName("WorkingDir"), String.class,
-                workingDir);
+        JAXBElement<String> workingDir_jaxb = new JAXBElement<String>(new QName("WorkingDir"), String.class, workingDir);
         image.getInstallDirOrWorkingDirOrUser().add(workingDir_jaxb);
 
         // Non mandatory elements
@@ -2128,22 +2105,19 @@ public class ProjectFile {
             image.getInstallDirOrWorkingDirOrUser().add(user_jaxb);
         }
         ApplicationType app = createApplication(appDir, libPath, cp, pypath);
-        JAXBElement<ApplicationType> apps_jaxb = new JAXBElement<ApplicationType>(new QName("Application"),
-                ApplicationType.class, app);
+        JAXBElement<ApplicationType> apps_jaxb = new JAXBElement<ApplicationType>(new QName("Application"), ApplicationType.class, app);
         image.getInstallDirOrWorkingDirOrUser().add(apps_jaxb);
         if (limitOfTasks >= 0) {
-            JAXBElement<Integer> limitOfTasks_jaxb = new JAXBElement<Integer>(new QName("LimitOfTasks"), Integer.class,
-                    limitOfTasks);
+            JAXBElement<Integer> limitOfTasks_jaxb = new JAXBElement<Integer>(new QName("LimitOfTasks"), Integer.class, limitOfTasks);
             image.getInstallDirOrWorkingDirOrUser().add(limitOfTasks_jaxb);
         }
         if (pack != null) {
-            JAXBElement<PackageType> pack_jaxb = new JAXBElement<PackageType>(new QName("Package"), PackageType.class,
-                    pack);
+            JAXBElement<PackageType> pack_jaxb = new JAXBElement<PackageType>(new QName("Package"), PackageType.class, pack);
             image.getInstallDirOrWorkingDirOrUser().add(pack_jaxb);
         }
         if (adaptors != null) {
-            JAXBElement<AdaptorsListType> adaptors_jaxb = new JAXBElement<AdaptorsListType>(new QName("Adaptors"),
-                    AdaptorsListType.class, adaptors);
+            JAXBElement<AdaptorsListType> adaptors_jaxb = new JAXBElement<AdaptorsListType>(new QName("Adaptors"), AdaptorsListType.class,
+                    adaptors);
             image.getInstallDirOrWorkingDirOrUser().add(adaptors_jaxb);
         }
         return image;
@@ -2166,13 +2140,12 @@ public class ProjectFile {
      * @param user
      * @return
      */
-    public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys,
-            NIOAdaptorProperties nioproperties, String user) {
+    public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys, NIOAdaptorProperties nioproperties, String user) {
         AdaptorType adaptor = new AdaptorType();
         adaptor.setName(name);
 
-        JAXBElement<SubmissionSystemType> subsysElement = new JAXBElement<SubmissionSystemType>(
-                new QName("SubmissionSystem"), SubmissionSystemType.class, subsys);
+        JAXBElement<SubmissionSystemType> subsysElement = new JAXBElement<SubmissionSystemType>(new QName("SubmissionSystem"),
+                SubmissionSystemType.class, subsys);
         adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(subsysElement);
 
         JAXBElement<NIOAdaptorProperties> propertiesElement = new JAXBElement<NIOAdaptorProperties>(new QName("Ports"),
@@ -2197,17 +2170,15 @@ public class ProjectFile {
      * @param user
      * @return
      */
-    public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys, String gatproperties,
-            String user) {
+    public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys, String gatproperties, String user) {
         AdaptorType adaptor = new AdaptorType();
         adaptor.setName(name);
 
-        JAXBElement<SubmissionSystemType> subsysElement = new JAXBElement<SubmissionSystemType>(
-                new QName("SubmissionSystem"), SubmissionSystemType.class, subsys);
+        JAXBElement<SubmissionSystemType> subsysElement = new JAXBElement<SubmissionSystemType>(new QName("SubmissionSystem"),
+                SubmissionSystemType.class, subsys);
         adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(subsysElement);
 
-        JAXBElement<String> propertiesElement = new JAXBElement<String>(new QName("BrokerAdaptor"), String.class,
-                gatproperties);
+        JAXBElement<String> propertiesElement = new JAXBElement<String>(new QName("BrokerAdaptor"), String.class, gatproperties);
         adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(propertiesElement);
 
         // Optional parameters
@@ -2228,18 +2199,18 @@ public class ProjectFile {
      * @param user
      * @return
      */
-    public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys,
-            ExternalAdaptorProperties externalproperties, String user) {
+    public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys, ExternalAdaptorProperties externalproperties,
+            String user) {
 
         AdaptorType adaptor = new AdaptorType();
         adaptor.setName(name);
 
-        JAXBElement<SubmissionSystemType> subsysElement = new JAXBElement<SubmissionSystemType>(
-                new QName("SubmissionSystem"), SubmissionSystemType.class, subsys);
+        JAXBElement<SubmissionSystemType> subsysElement = new JAXBElement<SubmissionSystemType>(new QName("SubmissionSystem"),
+                SubmissionSystemType.class, subsys);
         adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(subsysElement);
 
-        JAXBElement<ExternalAdaptorProperties> propertiesElement = new JAXBElement<ExternalAdaptorProperties>(
-                new QName("Properties"), ExternalAdaptorProperties.class, externalproperties);
+        JAXBElement<ExternalAdaptorProperties> propertiesElement = new JAXBElement<ExternalAdaptorProperties>(new QName("Properties"),
+                ExternalAdaptorProperties.class, externalproperties);
         adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(propertiesElement);
 
         // Optional parameters
@@ -2260,14 +2231,14 @@ public class ProjectFile {
      * @param user
      * @return
      */
-    public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys,
-            List<PropertyAdaptorType> externalProperties, String user) {
+    public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys, List<PropertyAdaptorType> externalProperties,
+            String user) {
 
         AdaptorType adaptor = new AdaptorType();
         adaptor.setName(name);
 
-        JAXBElement<SubmissionSystemType> subsysElement = new JAXBElement<SubmissionSystemType>(
-                new QName("SubmissionSystem"), SubmissionSystemType.class, subsys);
+        JAXBElement<SubmissionSystemType> subsysElement = new JAXBElement<SubmissionSystemType>(new QName("SubmissionSystem"),
+                SubmissionSystemType.class, subsys);
         adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(subsysElement);
 
         ExternalAdaptorProperties externalproperties_list = new ExternalAdaptorProperties();
@@ -2276,8 +2247,8 @@ public class ProjectFile {
                 externalproperties_list.getProperty().add(pa);
             }
         }
-        JAXBElement<ExternalAdaptorProperties> propertiesElement = new JAXBElement<ExternalAdaptorProperties>(
-                new QName("Properties"), ExternalAdaptorProperties.class, externalproperties_list);
+        JAXBElement<ExternalAdaptorProperties> propertiesElement = new JAXBElement<ExternalAdaptorProperties>(new QName("Properties"),
+                ExternalAdaptorProperties.class, externalproperties_list);
         adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(propertiesElement);
 
         // Optional parameters
@@ -2332,8 +2303,8 @@ public class ProjectFile {
      * @param user
      * @return
      */
-    public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive,
-            String gatproperties, String user) {
+    public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive, String gatproperties,
+            String user) {
 
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
@@ -2421,8 +2392,8 @@ public class ProjectFile {
     }
 
     /*
-	 * ************************************** DELETERS: MAIN ELEMENTS
-	 **************************************/
+     * ************************************** DELETERS: MAIN ELEMENTS
+     **************************************/
     /**
      * Deletes the MasterNode Returns true if deletion is successfull, false otherwise
      *

@@ -96,7 +96,7 @@ def compss_worker(persistent_storage):
     args = sys.argv[6:]
 
     from pycompss.worker.worker_commons import execute_task
-    exit_code, _, _ = execute_task("Task "+task_id, storage_conf, args, tracing)
+    exit_code, _, _ = execute_task("Task " + task_id, storage_conf, args, tracing)
     return exit_code
 
 
@@ -117,7 +117,7 @@ def main():
     # num_params = int(sys.argv[i+3])
     # params = sys.argv[i+4..]
 
-    print("tracing = "+str(tracing))
+    print("tracing = " + str(tracing))
     print("taskId = " + str(taskId))
     print("log_level = " + str(log_level))
     print("storage_conf = " + str(storage_conf))
@@ -139,10 +139,10 @@ def main():
     worker_path = os.path.dirname(os.path.realpath(__file__))
     if log_level == 'true' or log_level == "debug":
         # Debug
-        init_logging_worker(worker_path + '/../../log/logging.json.debug')
+        init_logging_worker(worker_path + '/../../log/logging_debug.json')
     elif log_level == "info" or log_level == "off":
         # Info or no debug
-        init_logging_worker(worker_path + '/../../log/logging.json.off')
+        init_logging_worker(worker_path + '/../../log/logging_off.json')
     else:
         # Default
         init_logging_worker(worker_path + '/../../log/logging.json')
@@ -165,7 +165,6 @@ def main():
 
     if exit_code == 1:
         exit(1)
-
 
 
 if __name__ == '__main__':

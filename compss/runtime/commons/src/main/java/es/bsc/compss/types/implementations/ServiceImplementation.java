@@ -29,6 +29,7 @@ public class ServiceImplementation extends Implementation implements Externaliza
 
     private String operation;
 
+
     public ServiceImplementation() {
         // For externalizable
         super();
@@ -42,7 +43,7 @@ public class ServiceImplementation extends Implementation implements Externaliza
     }
 
     public String getOperation() {
-        return operation;
+        return this.operation;
     }
 
     public static String getSignature(String namespace, String serviceName, String portName, String operation, boolean hasTarget,
@@ -74,14 +75,14 @@ public class ServiceImplementation extends Implementation implements Externaliza
 
     @Override
     public ServiceResourceDescription getRequirements() {
-        return (ServiceResourceDescription) requirements;
+        return (ServiceResourceDescription) this.requirements;
     }
 
     @Override
     public String toString() {
         ServiceResourceDescription description = (ServiceResourceDescription) this.requirements;
         return super.toString() + " Service in namespace " + description.getNamespace() + " with name " + description.getPort()
-                + " on port " + description.getPort() + "and operation " + operation;
+                + " on port " + description.getPort() + "and operation " + this.operation;
     }
 
     @Override

@@ -29,13 +29,8 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.implementations.DecafImplementation;
-import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.resources.MethodResourceDescription;
-import es.bsc.compss.types.resources.ResourceDescription;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 
 public class DecafInvoker extends Invoker {
@@ -51,11 +46,10 @@ public class DecafInvoker extends Invoker {
     private String dfExecutor;
     private String dfLib;
 
-    private final String workers;
-    private final int numNodes;
-    private final int computingUnits;
 
-    public DecafInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources) throws JobExecutionException {
+    public DecafInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources)
+            throws JobExecutionException {
+
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
         // Get method definition properties
@@ -69,41 +63,6 @@ public class DecafInvoker extends Invoker {
         this.dfScript = decafImpl.getDfScript();
         this.dfExecutor = decafImpl.getDfExecutor();
         this.dfLib = decafImpl.getDfLib();
-
-        List<String> hostnames = invocation.getSlaveNodesNames();
-        hostnames.add(context.getHostName());
-        this.numNodes = hostnames.size();
-
-        ResourceDescription rd = invocation.getRequirements();
-        if (invocation.getTaskType() == Implementation.TaskType.METHOD) {
-            this.computingUnits = ((MethodResourceDescription) rd).getTotalCPUComputingUnits();
-        } else {
-            this.computingUnits = 0;
-        }
-
-        boolean firstElement = true;
-        StringBuilder hostnamesSTR = new StringBuilder();
-        for (Iterator<String> it = hostnames.iterator(); it.hasNext();) {
-            String hostname = it.next();
-            // Remove infiniband suffix
-            if (hostname.endsWith("-ib0")) {
-                hostname = hostname.substring(0, hostname.lastIndexOf("-ib0"));
-            }
-
-            // Add one host name per process to launch
-            if (firstElement) {
-                firstElement = false;
-                hostnamesSTR.append(hostname);
-                for (int i = 1; i < computingUnits; ++i) {
-                    hostnamesSTR.append(",").append(hostname);
-                }
-            } else {
-                for (int i = 0; i < computingUnits; ++i) {
-                    hostnamesSTR.append(",").append(hostname);
-                }
-            }
-        }
-        this.workers = hostnamesSTR.toString();
     }
 
     @Override
@@ -157,11 +116,12 @@ public class DecafInvoker extends Invoker {
         // export OMP_NUM_THREADS=1 ; mpirun -H COMPSsWorker01,COMPSsWorker02 -n
         // 2 (--bind-to core) exec args
         // Get COMPSS ENV VARS
-        String numProcs = String.valueOf(numNodes * computingUnits);
+        String numProcs = String.valueOf(this.numWorkers * this.computingUnits);
 
         // Convert binary parameters and calculate binary-streams redirection
         BinaryRunner.StreamSTD streamValues = new BinaryRunner.StreamSTD();
-        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(invocation.getParams(), invocation.getTarget(), streamValues);
+        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(invocation.getParams(), invocation.getTarget(),
+                streamValues);
         String hostfile = writeHostfile(this.taskSandboxWorkingDir, workers);
         // Prepare command
         String args = new String();
@@ -193,15 +153,11 @@ public class DecafInvoker extends Invoker {
         }
 
         // Prepare environment
-        System.setProperty(OMP_NUM_THREADS, String.valueOf(computingUnits));
         if (invocation.isDebugEnabled()) {
             PrintStream outLog = context.getThreadOutStream();
             outLog.println("");
             outLog.println("[DECAF INVOKER] Begin DECAF call to " + this.dfScript);
             outLog.println("[DECAF INVOKER] On WorkingDir : " + this.taskSandboxWorkingDir.getAbsolutePath());
-            outLog.println("[DECAF INVOKER] COMPSS HOSTNAMES: " + workers);
-            outLog.println("[DECAF INVOKER] COMPSS_NUM_NODES: " + numNodes);
-            outLog.println("[DECAF INVOKER] COMPSS_NUM_THREADS: " + computingUnits);
             // Debug command
             outLog.print("[DECAF INVOKER] Decaf CMD: ");
             for (int i = 0; i < cmd.length; ++i) {
@@ -213,7 +169,8 @@ public class DecafInvoker extends Invoker {
             outLog.println("[DECAF INVOKER] Decaf STDERR: " + streamValues.getStdErr());
         }
         // Launch command
-        return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, context.getThreadOutStream(), context.getThreadErrStream());
+        return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, context.getThreadOutStream(),
+                context.getThreadErrStream());
     }
 
 }

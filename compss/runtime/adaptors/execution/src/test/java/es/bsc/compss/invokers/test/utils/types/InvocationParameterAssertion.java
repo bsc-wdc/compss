@@ -24,27 +24,18 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 
-/**
- *
- * @author flordan
- */
 public class InvocationParameterAssertion {
 
     public static enum Field {
-        TYPE,
-        MGMT_NAME,
-        VALUE,
-        VALUE_CLASS,
-        PREFIX,
-        STREAM,
-        ORIGINAL_NAME,
-        WRITE_FINAL
+        TYPE, MGMT_NAME, VALUE, VALUE_CLASS, PREFIX, STREAM, ORIGINAL_NAME, WRITE_FINAL
     }
+
 
     private final Role role;
     private final int paramIdx;
     private final Field field;
     private final Object value;
+
 
     public InvocationParameterAssertion(Role role, int paramIdx, Field field, Object value) {
         this.role = role;
@@ -89,28 +80,37 @@ public class InvocationParameterAssertion {
         }
         switch (field) {
             case TYPE:
-                assertEquals("Unexpected type for " + caseId + " (expected " + value + " and got " + param.getType() + ")", param.getType(), value);
+                assertEquals("Unexpected type for " + caseId + " (expected " + value + " and got " + param.getType() + ")", param.getType(),
+                        value);
                 break;
             case VALUE:
-                assertEquals("Unexpected value for " + caseId + " (expected " + value + " and got " + param.getValue() + ")", param.getValue(), value);
+                assertEquals("Unexpected value for " + caseId + " (expected " + value + " and got " + param.getValue() + ")",
+                        param.getValue(), value);
                 break;
             case VALUE_CLASS:
-                assertEquals("Unexpected class for " + caseId + " (expected " + value + " and got " + param.getValueClass() + ")", param.getValueClass(), value);
+                assertEquals("Unexpected class for " + caseId + " (expected " + value + " and got " + param.getValueClass() + ")",
+                        param.getValueClass(), value);
                 break;
             case PREFIX:
-                assertEquals("Unexpected prefix for " + caseId + " (expected " + value + " and got " + param.getPrefix() + ")", param.getPrefix(), value);
+                assertEquals("Unexpected prefix for " + caseId + " (expected " + value + " and got " + param.getPrefix() + ")",
+                        param.getPrefix(), value);
                 break;
             case STREAM:
-                assertEquals("Unexpected stream for " + caseId + " (expected " + value + " and got " + param.getStream() + ")", param.getStream(), value);
+                assertEquals("Unexpected stream for " + caseId + " (expected " + value + " and got " + param.getStream() + ")",
+                        param.getStream(), value);
                 break;
             case ORIGINAL_NAME:
-                assertEquals("Unexpected name for " + caseId + " (expected " + value + " and got " + param.getOriginalName() + ")", param.getOriginalName(), value);
+                assertEquals("Unexpected name for " + caseId + " (expected " + value + " and got " + param.getOriginalName() + ")",
+                        param.getOriginalName(), value);
                 break;
             case MGMT_NAME:
-                assertEquals("Unexpected RENAME/PSCO ID for " + caseId + " (expected " + value + " and got " + param.getDataMgmtId() + ")", param.getDataMgmtId(), value);
+                assertEquals("Unexpected RENAME/PSCO ID for " + caseId + " (expected " + value + " and got " + param.getDataMgmtId() + ")",
+                        param.getDataMgmtId(), value);
                 break;
-            default://WRITE_FINAL
-                assertEquals("Unexpected isWriteFinal for " + caseId + " (expected " + value + " and got " + param.isWriteFinalValue() + ")", param.isWriteFinalValue(), value);
+            default:// WRITE_FINAL
+                assertEquals(
+                        "Unexpected isWriteFinal for " + caseId + " (expected " + value + " and got " + param.isWriteFinalValue() + ")",
+                        param.isWriteFinalValue(), value);
                 break;
         }
     }

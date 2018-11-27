@@ -29,13 +29,8 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.implementations.MPIImplementation;
-import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.resources.MethodResourceDescription;
-import es.bsc.compss.types.resources.ResourceDescription;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 
 public class MPIInvoker extends Invoker {
@@ -49,11 +44,10 @@ public class MPIInvoker extends Invoker {
     private final String mpiRunner;
     private final String mpiBinary;
 
-    private final String workers;
-    private final int numNodes;
-    private final int computingUnits;
 
-    public MPIInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources) throws JobExecutionException {
+    public MPIInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources)
+            throws JobExecutionException {
+
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
         // Get method definition properties
         MPIImplementation mpiImpl = null;
@@ -62,43 +56,10 @@ public class MPIInvoker extends Invoker {
         } catch (Exception e) {
             throw new JobExecutionException(ERROR_METHOD_DEFINITION + this.invocation.getMethodImplementation().getMethodType(), e);
         }
+
+        // MPI flags
         this.mpiRunner = mpiImpl.getMpiRunner();
         this.mpiBinary = mpiImpl.getBinary();
-
-        List<String> hostnames = invocation.getSlaveNodesNames();
-        hostnames.add(context.getHostName());
-        this.numNodes = hostnames.size();
-
-        ResourceDescription rd = invocation.getRequirements();
-        if (invocation.getTaskType() == Implementation.TaskType.METHOD) {
-            this.computingUnits = ((MethodResourceDescription) rd).getTotalCPUComputingUnits();
-        } else {
-            this.computingUnits = 0;
-        }
-
-        boolean firstElement = true;
-        StringBuilder hostnamesSTR = new StringBuilder();
-        for (Iterator<String> it = hostnames.iterator(); it.hasNext();) {
-            String hostname = it.next();
-            // Remove infiniband suffix
-            if (hostname.endsWith("-ib0")) {
-                hostname = hostname.substring(0, hostname.lastIndexOf("-ib0"));
-            }
-
-            // Add one host name per process to launch
-            if (firstElement) {
-                firstElement = false;
-                hostnamesSTR.append(hostname);
-                for (int i = 1; i < computingUnits; ++i) {
-                    hostnamesSTR.append(",").append(hostname);
-                }
-            } else {
-                for (int i = 0; i < computingUnits; ++i) {
-                    hostnamesSTR.append(",").append(hostname);
-                }
-            }
-        }
-        this.workers = hostnamesSTR.toString();
     }
 
     private void checkArguments() throws JobExecutionException {
@@ -134,17 +95,17 @@ public class MPIInvoker extends Invoker {
     }
 
     private Object runInvocation() throws InvokeExecutionException {
-
         // Command similar to
         // export OMP_NUM_THREADS=1 ; mpirun -H COMPSsWorker01,COMPSsWorker02 -n
         // 2 (--bind-to core) exec args
         // Get COMPSS ENV VARS
-        String numProcs = String.valueOf(numNodes * computingUnits);
+        String numProcs = String.valueOf(this.numWorkers * this.computingUnits);
 
         // Convert binary parameters and calculate binary-streams redirection
         StreamSTD streamValues = new StreamSTD();
-        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(invocation.getParams(), invocation.getTarget(), streamValues);
-        
+        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(invocation.getParams(), invocation.getTarget(),
+                streamValues);
+
         // Create hostfile
         String hostfile = writeHostfile(taskSandboxWorkingDir, workers);
 
@@ -163,15 +124,11 @@ public class MPIInvoker extends Invoker {
         }
 
         // Prepare environment
-        System.setProperty(OMP_NUM_THREADS, String.valueOf(computingUnits));
         if (invocation.isDebugEnabled()) {
             PrintStream outLog = context.getThreadOutStream();
             outLog.println("");
             outLog.println("[MPI INVOKER] Begin MPI call to " + this.mpiBinary);
             outLog.println("[MPI INVOKER] On WorkingDir : " + this.taskSandboxWorkingDir.getAbsolutePath());
-            outLog.println("[MPI INVOKER] COMPSS HOSTNAMES: " + workers);
-            outLog.println("[MPI INVOKER] COMPSS_NUM_NODES: " + numNodes);
-            outLog.println("[MPI INVOKER] COMPSS_NUM_THREADS: " + computingUnits);
             // Debug command
             outLog.print("[MPI INVOKER] MPI CMD: ");
             for (int i = 0; i < cmd.length; ++i) {
@@ -182,7 +139,9 @@ public class MPIInvoker extends Invoker {
             outLog.println("[MPI INVOKER] MPI STDOUT: " + streamValues.getStdOut());
             outLog.println("[MPI INVOKER] MPI STDERR: " + streamValues.getStdErr());
         }
+
         // Launch command
-        return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, context.getThreadOutStream(), context.getThreadErrStream());
+        return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, context.getThreadOutStream(),
+                context.getThreadErrStream());
     }
 }

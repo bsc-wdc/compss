@@ -19,14 +19,11 @@ package es.bsc.compss.executor.types;
 import es.bsc.compss.types.execution.Invocation;
 
 
-/**
- *
- * @author flordan
- */
 public class Execution {
 
     private final Invocation invocation;
     private final ExecutionListener listener;
+
 
     public Execution(Invocation invocation, ExecutionListener listener) {
         this.invocation = invocation;

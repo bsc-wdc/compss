@@ -18,8 +18,10 @@
 # -*- coding: utf-8 -*-
 
 
-'''Information about available resources and functions in PyCOMPSs
-'''
+"""
+
+Information about available resources and functions in PyCOMPSs
+"""
 
 available_decorators = (
     'implement',

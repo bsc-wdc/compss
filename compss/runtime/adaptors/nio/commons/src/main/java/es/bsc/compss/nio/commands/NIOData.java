@@ -56,7 +56,6 @@ public class NIOData extends Data<NIOURI> implements Externalizable {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         super.readExternal(in);

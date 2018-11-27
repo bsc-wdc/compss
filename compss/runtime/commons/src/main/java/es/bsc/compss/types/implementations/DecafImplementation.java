@@ -27,13 +27,17 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 
 public class DecafImplementation extends AbstractMethodImplementation implements Externalizable {
 
+    public static final int NUM_PARAMS = 5;
+
     public static final String SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts" + File.separator + "system"
             + File.separator + "decaf" + File.separator + "run_decaf.sh";
+
     private String mpiRunner;
     private String dfScript;
     private String dfExecutor;
     private String dfLib;
     private String workingDir;
+
 
     public DecafImplementation() {
         // For externalizable
@@ -80,10 +84,10 @@ public class DecafImplementation extends AbstractMethodImplementation implements
     @Override
     public String getMethodDefinition() {
         StringBuilder sb = new StringBuilder();
-        sb.append("[MPI RUNNER=").append(mpiRunner);
-        sb.append(", DF_SCRIPT=").append(dfScript);
-        sb.append(", DF_EXECUTOR=").append(dfExecutor);
-        sb.append(", DF_LIBRARY=").append(dfLib);
+        sb.append("[MPI RUNNER=").append(this.mpiRunner);
+        sb.append(", DF_SCRIPT=").append(this.dfScript);
+        sb.append(", DF_EXECUTOR=").append(this.dfExecutor);
+        sb.append(", DF_LIBRARY=").append(this.dfLib);
         sb.append("]");
 
         return sb.toString();
@@ -91,28 +95,28 @@ public class DecafImplementation extends AbstractMethodImplementation implements
 
     @Override
     public String toString() {
-        return super.toString() + " Decaf Method with script " + dfScript + ", executor " + dfScript + ", library " + dfLib
-                + " and MPIrunner " + mpiRunner;
+        return super.toString() + " Decaf Method with script " + this.dfScript + ", executor " + this.dfScript + ", library " + this.dfLib
+                + " and MPIrunner " + this.mpiRunner;
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         super.readExternal(in);
-        mpiRunner = (String) in.readObject();
-        dfScript = (String) in.readObject();
-        dfExecutor = (String) in.readObject();
-        dfLib = (String) in.readObject();
-        workingDir = (String) in.readObject();
+        this.mpiRunner = (String) in.readObject();
+        this.dfScript = (String) in.readObject();
+        this.dfExecutor = (String) in.readObject();
+        this.dfLib = (String) in.readObject();
+        this.workingDir = (String) in.readObject();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         super.writeExternal(out);
-        out.writeObject(mpiRunner);
-        out.writeObject(dfScript);
-        out.writeObject(dfExecutor);
-        out.writeObject(dfLib);
-        out.writeObject(workingDir);
+        out.writeObject(this.mpiRunner);
+        out.writeObject(this.dfScript);
+        out.writeObject(this.dfExecutor);
+        out.writeObject(this.dfLib);
+        out.writeObject(this.workingDir);
     }
 
 }

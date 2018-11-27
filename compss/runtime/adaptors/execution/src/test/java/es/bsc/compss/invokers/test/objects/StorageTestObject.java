@@ -19,37 +19,35 @@ package es.bsc.compss.invokers.test.objects;
 import storage.StubItf;
 
 
-/**
- *
- * @author flordan
- */
 public class StorageTestObject extends TestObject implements StubItf {
 
-        private String ID = null;
+    private String ID = null;
 
-        public StorageTestObject(int value) {
-            super(value);
-            this.ID = null;
-        }
 
-        public StorageTestObject(String id, int value) {
-            super(value);
-            this.ID = id;
-        }
-
-        @Override
-        public String getID() {
-            return ID;
-        }
-
-        @Override
-        public void makePersistent(String id) {
-            this.ID = id;
-        }
-
-        @Override
-        public void deletePersistent() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
+    public StorageTestObject(int value) {
+        super(value);
+        this.ID = null;
     }
+
+    public StorageTestObject(String id, int value) {
+        super(value);
+        this.ID = id;
+    }
+
+    @Override
+    public String getID() {
+        return ID;
+    }
+
+    @Override
+    public void makePersistent(String id) {
+        this.ID = id;
+    }
+
+    @Override
+    public void deletePersistent() {
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
+    }
+
+}

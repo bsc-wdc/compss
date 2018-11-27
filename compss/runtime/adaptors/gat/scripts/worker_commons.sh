@@ -147,8 +147,8 @@
           echo "[WORKER_COMMONS.SH] Link ${1} -> ${sandbox}/${2}"
       	  ln -s "${1}" "${sandbox}/${2}"
         else
-          newVer=$(basename "$1" | tr "_" "\t" | awk '{ print $1 }' | tr "v" "\t" | awk '{ print $2 }')
-          oldVer=$(basename $(echo $(readlink -f "${sandbox}/${2}")) | tr "_" "\t" | awk '{ print $1 }' | tr "v" "\t" | awk '{ print $2 }')
+          newVer=$(basename "$1" | tr "_" "\\t" | awk '{ print $1 }' | tr "v" "\\t" | awk '{ print $2 }')
+          oldVer=$(basename readlink -f "${sandbox}/${2}" | tr "_" "\\t" | awk '{ print $1 }' | tr "v" "\\t" | awk '{ print $2 }')
           if (( newVer > oldVer )); then
             ln -sf "$1" "${sandbox}/${2}"
             echo "[WORKER_COMMONS.SH] WARN: Updating link ${sandbox}/$2 that already exists"
@@ -168,7 +168,6 @@
         renames="$renames $1 ${sandbox}/$2"
       fi
   }
-
 
   moveFilesOutFromSandbox () {
     removeOrMove=0

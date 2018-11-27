@@ -22,7 +22,6 @@ import es.bsc.compss.types.execution.LanguageParams;
 /**
  * Python related variables
  *
- * @author flordan
  */
 public class PythonParams implements LanguageParams {
 
@@ -32,10 +31,10 @@ public class PythonParams implements LanguageParams {
     private String pythonPropagateVirtualEnvironment;
     private String pythonPath;
 
-    public PythonParams() {
-    }
 
-    public PythonParams(String pythonInterpreter, String pythonVersion, String pythonVirtualEnvironment, String pythonPropagateVirtualEnvironment, String pythonPath) {
+    public PythonParams(String pythonInterpreter, String pythonVersion, String pythonVirtualEnvironment,
+            String pythonPropagateVirtualEnvironment, String pythonPath) {
+
         this.pythonInterpreter = pythonInterpreter;
         this.pythonVersion = pythonVersion;
         this.pythonVirtualEnvironment = pythonVirtualEnvironment;

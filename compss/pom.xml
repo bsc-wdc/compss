@@ -1,295 +1,296 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-    <!-- GENERAL INFORMATION -->
-    <artifactId>compss-framework</artifactId>
-    <packaging>pom</packaging>
-    <parent>
-        <groupId>es.bsc.compss</groupId>
-        <artifactId>compss-trunk</artifactId>
-        <version>2.4.rc1811</version>
-        <relativePath>..</relativePath>
-    </parent>
+	<!-- GENERAL INFORMATION -->
+	<artifactId>compss-framework</artifactId>
+	<packaging>pom</packaging>
+	<parent>
+		<groupId>es.bsc.compss</groupId>
+		<artifactId>compss-trunk</artifactId>
+		<version>2.4.rc1811</version>
+		<relativePath>..</relativePath>
+	</parent>
 
-    <!-- PROJECT INFORMATION -->
-    <name>COMP Superscalar Framework</name>
-    <description>COMPSs Framework</description>
-    <url>http://www.bsc.es</url>
-    <inceptionYear>2014</inceptionYear>
-    <licenses>
-        <license>
-            <name>Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
-        </license>
-    </licenses>
-    <organization>
-        <name>BSC</name>
-        <url>http://www.bsc.es</url>
-    </organization>
+	<!-- PROJECT INFORMATION -->
+	<name>COMP Superscalar Framework</name>
+	<description>COMPSs Framework</description>
+	<url>http://www.bsc.es</url>
+	<inceptionYear>2014</inceptionYear>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+		</license>
+	</licenses>
+	<organization>
+		<name>BSC</name>
+		<url>http://www.bsc.es</url>
+	</organization>
 
-    <!-- PROPERTIES -->
-    <properties>
-        <!-- BSC Components versions -->
-        <cepbatools-extrae.version>1.4</cepbatools-extrae.version>
-        <comm.version>1.5-12</comm.version>
-        <conn.version>1.5-27</conn.version>
-        <storage.version>1.0</storage.version>
+	<!-- PROPERTIES -->
+	<properties>
+		<!-- BSC Components versions -->
+		<cepbatools-extrae.version>1.4</cepbatools-extrae.version>
+		<comm.version>1.5-12</comm.version>
+		<conn.version>1.5-27</conn.version>
+		<storage.version>1.0</storage.version>
 
-        <!-- ZK version -->
-        <zk.version>8.0.2.2</zk.version>
+		<!-- ZK version -->
+		<zk.version>8.0.2.2</zk.version>
 
-        <!--JSON version -->
-        <json.version>20171018</json.version>
+		<!--JSON version -->
+		<json.version>20171018</json.version>
 
-        <!--Log4j version -->
-        <log4j.version>2.9.1</log4j.version>
+		<!--Log4j version -->
+		<log4j.version>2.9.1</log4j.version>
 
-        <!-- Jaxb version-->
-        <jaxb-api.version>2.3.0</jaxb-api.version>
-        <jaxb-xjc.version>2.3.0</jaxb-xjc.version>
-        <cxf.version>3.1.6</cxf.version>
-        <cxf.api.version>2.7.18</cxf.api.version>
+		<!-- Jaxb version -->
+		<jaxb-api.version>2.3.0</jaxb-api.version>
+		<jaxb-xjc.version>2.3.0</jaxb-xjc.version>
+		<cxf.version>3.1.6</cxf.version>
+		<cxf.api.version>2.7.18</cxf.api.version>
 
-        <!-- Apache commons versions -->
-        <apache-commons-configuration.version>1.10</apache-commons-configuration.version>
-        <apache-commons-io.version>2.6</apache-commons-io.version>
+		<!-- Apache commons versions -->
+		<apache-commons-configuration.version>1.10</apache-commons-configuration.version>
+		<apache-commons-io.version>2.6</apache-commons-io.version>
 
-        <!-- Javassist -->
-        <javassist.version>3.21.0-GA</javassist.version>
-        <!-- SSH -->
-        <jsch.version>0.1.54</jsch.version>
-        <!-- Java GAT -->
-        <gat.version>2.1.3</gat.version>
-        <ibis.version>2.3-pre</ibis.version>
-        <org.slf4j.version>1.7.25</org.slf4j.version>
+		<!-- Javassist -->
+		<javassist.version>3.21.0-GA</javassist.version>
+		<!-- SSH -->
+		<jsch.version>0.1.54</jsch.version>
+		<!-- Java GAT -->
+		<gat.version>2.1.3</gat.version>
+		<ibis.version>2.3-pre</ibis.version>
+		<org.slf4j.version>1.7.25</org.slf4j.version>
 
-        <!-- buildnumber -->
-        <buildnumber-maven-plugin.version>1.4</buildnumber-maven-plugin.version>
-    </properties>
+		<!-- buildnumber -->
+		<buildnumber-maven-plugin.version>1.4</buildnumber-maven-plugin.version>
+	</properties>
 
-    <!-- DEPENDENCIES -->
-    <dependencyManagement>
-        <dependencies>
-            <!-- Extrae -->
-            <dependency>
-                <groupId>es.bsc.cepbatools</groupId>
-                <artifactId>extrae</artifactId>
-                <version>${cepbatools-extrae.version}</version>
-            </dependency>
-            <!-- comm -->
-            <dependency>
-                <groupId>es.bsc.comm</groupId>
-                <artifactId>comm-all</artifactId>
-                <version>${comm.version}</version>
-            </dependency>
+	<!-- DEPENDENCIES -->
+	<dependencyManagement>
+		<dependencies>
+			<!-- Extrae -->
+			<dependency>
+				<groupId>es.bsc.cepbatools</groupId>
+				<artifactId>extrae</artifactId>
+				<version>${cepbatools-extrae.version}</version>
+			</dependency>
+			<!-- comm -->
+			<dependency>
+				<groupId>es.bsc.comm</groupId>
+				<artifactId>comm-all</artifactId>
+				<version>${comm.version}</version>
+			</dependency>
 
-            <!-- Storage -->
-            <dependency>
-                <groupId>es.bsc.storage</groupId>
-                <artifactId>storageInterface</artifactId>
-                <version>${storage.version}</version>
-            </dependency>
+			<!-- Storage -->
+			<dependency>
+				<groupId>es.bsc.storage</groupId>
+				<artifactId>storageInterface</artifactId>
+				<version>${storage.version}</version>
+			</dependency>
 
-            <!-- JSON -->
-            <dependency>
-                <groupId>org.json</groupId>
-                <artifactId>json</artifactId>
-                <version>${json.version}</version>
-            </dependency>
+			<!-- JSON -->
+			<dependency>
+				<groupId>org.json</groupId>
+				<artifactId>json</artifactId>
+				<version>${json.version}</version>
+			</dependency>
 
-            <!-- LOG4j -->
-            <dependency>
-                <groupId>org.apache.logging.log4j</groupId>
-                <artifactId>log4j-core</artifactId>
-                <version>${log4j.version}</version>
-            </dependency>
+			<!-- LOG4j -->
+			<dependency>
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-core</artifactId>
+				<version>${log4j.version}</version>
+			</dependency>
 
-            <!-- Apache Commons -->
-            <dependency>
-                <groupId>commons-configuration</groupId>
-                <artifactId>commons-configuration</artifactId>
-                <version>${apache-commons-configuration.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-io</groupId>
-                <artifactId>commons-io</artifactId>
-                <version>${apache-commons-io.version}</version>
-            </dependency>
+			<!-- Apache Commons -->
+			<dependency>
+				<groupId>commons-configuration</groupId>
+				<artifactId>commons-configuration</artifactId>
+				<version>${apache-commons-configuration.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>commons-io</groupId>
+				<artifactId>commons-io</artifactId>
+				<version>${apache-commons-io.version}</version>
+			</dependency>
 
-            <!-- JAXB -->
-            <dependency>
-                <groupId>javax.xml.bind</groupId>
-                <artifactId>jaxb-api</artifactId>
-                <version>${jaxb-api.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.sun.xml.bind</groupId>
-                <artifactId>jaxb-xjc</artifactId>
-                <version>${jaxb-xjc.version}</version>
-            </dependency>
+			<!-- JAXB -->
+			<dependency>
+				<groupId>javax.xml.bind</groupId>
+				<artifactId>jaxb-api</artifactId>
+				<version>${jaxb-api.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.sun.xml.bind</groupId>
+				<artifactId>jaxb-xjc</artifactId>
+				<version>${jaxb-xjc.version}</version>
+			</dependency>
 
-            <!-- CXF -->
-            <dependency>
-                <groupId>org.apache.cxf</groupId>
-                <artifactId>cxf-rt-frontend-jaxws</artifactId>
-                <version>${cxf.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.apache.geronimo.specs</groupId>
-                        <artifactId>geronimo-javamail_1.4_spec</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.geronimo.specs</groupId>
-                        <artifactId>geronimo-activation_1.1_spec</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.geronimo.specs</groupId>
-                        <artifactId>geronimo-servlet_2.5_spec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.cxf</groupId>
-                <artifactId>cxf-rt-transports-http</artifactId>
-                <version>${cxf.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.cxf</groupId>
-                <artifactId>cxf-api</artifactId>
-                <version>${cxf.api.version}</version>
-            </dependency>
+			<!-- CXF -->
+			<dependency>
+				<groupId>org.apache.cxf</groupId>
+				<artifactId>cxf-rt-frontend-jaxws</artifactId>
+				<version>${cxf.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>org.apache.geronimo.specs</groupId>
+						<artifactId>geronimo-javamail_1.4_spec</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.apache.geronimo.specs</groupId>
+						<artifactId>geronimo-activation_1.1_spec</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.apache.geronimo.specs</groupId>
+						<artifactId>geronimo-servlet_2.5_spec</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.cxf</groupId>
+				<artifactId>cxf-rt-transports-http</artifactId>
+				<version>${cxf.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.cxf</groupId>
+				<artifactId>cxf-api</artifactId>
+				<version>${cxf.api.version}</version>
+			</dependency>
 
-            <!-- JUNIT -->
-            <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>${junit.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.github.stefanbirkner</groupId>
-                <artifactId>system-rules</artifactId>
-                <version>${junit.rules.version}</version>
-                <scope>test</scope>
-            </dependency>
+			<!-- JUNIT -->
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>${junit.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.github.stefanbirkner</groupId>
+				<artifactId>system-rules</artifactId>
+				<version>${junit.rules.version}</version>
+				<scope>test</scope>
+			</dependency>
 
-            <!-- Javassist -->
-            <dependency>
-                <groupId>org.javassist</groupId>
-                <artifactId>javassist</artifactId>
-                <version>${javassist.version}</version>
-            </dependency>
+			<!-- Javassist -->
+			<dependency>
+				<groupId>org.javassist</groupId>
+				<artifactId>javassist</artifactId>
+				<version>${javassist.version}</version>
+			</dependency>
 
-            <!-- Java GAT -->
-            <dependency>
-                <groupId>org.gridlab.gat</groupId>
-                <artifactId>javagat-api</artifactId>
-                <version>${gat.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.gridlab.gat</groupId>
-                <artifactId>javagat-engine</artifactId>
-                <version>${gat.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>ibis.util</groupId>
-                <artifactId>ibis-util</artifactId>
-                <version>${ibis.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${org.slf4j.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-log4j12</artifactId>
-                <version>${org.slf4j.version}</version>
-            </dependency>
-            <!-- SSH -->
-            <dependency>
-                <groupId>com.jcraft</groupId>
-                <artifactId>jsch</artifactId>
-                <version>${jsch.version}</version>
-            </dependency>
+			<!-- Java GAT -->
+			<dependency>
+				<groupId>org.gridlab.gat</groupId>
+				<artifactId>javagat-api</artifactId>
+				<version>${gat.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.gridlab.gat</groupId>
+				<artifactId>javagat-engine</artifactId>
+				<version>${gat.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>ibis.util</groupId>
+				<artifactId>ibis-util</artifactId>
+				<version>${ibis.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>${org.slf4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-log4j12</artifactId>
+				<version>${org.slf4j.version}</version>
+			</dependency>
+			<!-- SSH -->
+			<dependency>
+				<groupId>com.jcraft</groupId>
+				<artifactId>jsch</artifactId>
+				<version>${jsch.version}</version>
+			</dependency>
 
-            <!-- ZK Framework -->
-            <dependency>
-                <groupId>org.zkoss.zk</groupId>
-                <artifactId>zkplus</artifactId>
-                <version>${zk.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.zkoss.zk</groupId>
-                <artifactId>zhtml</artifactId>
-                <version>${zk.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.zkoss.zk</groupId>
-                <artifactId>zkbind</artifactId>
-                <version>${zk.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.zkoss.zk</groupId>
-                <artifactId>zul</artifactId>
-                <version>${zk.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+			<!-- ZK Framework -->
+			<dependency>
+				<groupId>org.zkoss.zk</groupId>
+				<artifactId>zkplus</artifactId>
+				<version>${zk.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.zkoss.zk</groupId>
+				<artifactId>zhtml</artifactId>
+				<version>${zk.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.zkoss.zk</groupId>
+				<artifactId>zkbind</artifactId>
+				<version>${zk.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.zkoss.zk</groupId>
+				<artifactId>zul</artifactId>
+				<version>${zk.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
-    <!-- SOURCE CONTROL MANAGEMENT -->
-    <scm>
-        <connection>scm:git:http://compss.bsc.es/gitlab/compss/framework.git</connection>
-        <developerConnection>scm:git:http://compss.bsc.es/gitlab/compss/framework.git</developerConnection>
-        <url>http://compss.bsc.es/gitlab/compss/framework.git</url>
-    </scm>
+	<!-- SOURCE CONTROL MANAGEMENT -->
+	<scm>
+		<connection>scm:git:http://compss.bsc.es/gitlab/compss/framework.git</connection>
+		<developerConnection>scm:git:http://compss.bsc.es/gitlab/compss/framework.git</developerConnection>
+		<url>http://compss.bsc.es/gitlab/compss/framework.git</url>
+	</scm>
 
-    <!-- REPOSITORIES -->
-    <repositories>
-        <repository>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>central</id>
-            <name>Central Repository</name>
-            <url>http://central.maven.org/maven2/</url>
-        </repository>
-        <repository>
-            <id>compss-repo</id>
-            <name>BSC Workflows and Distributed Computing group</name>
-            <url>http://compss.bsc.es/artifactory/libs-release</url>
-        </repository>
-    </repositories>
+	<!-- REPOSITORIES -->
+	<repositories>
+		<repository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>central</id>
+			<name>Central Repository</name>
+			<url>http://central.maven.org/maven2/</url>
+		</repository>
+		<repository>
+			<id>compss-repo</id>
+			<name>BSC Workflows and Distributed Computing group</name>
+			<url>http://compss.bsc.es/artifactory/libs-release</url>
+		</repository>
+	</repositories>
 
-    <pluginRepositories>
-        <pluginRepository>
-            <releases>
-                <updatePolicy>never</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>central</id>
-            <name>Central Repository</name>
-            <url>http://central.maven.org/maven2/</url>
-        </pluginRepository>
-    </pluginRepositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<releases>
+				<updatePolicy>never</updatePolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>central</id>
+			<name>Central Repository</name>
+			<url>http://central.maven.org/maven2/</url>
+		</pluginRepository>
+	</pluginRepositories>
 
-    <!-- DISTRIBUTION MANAGEMENT -->
-    <distributionManagement>
-        <repository>
-            <id>compss-repo</id>
-            <name>BSC Workflows and Distributed Computing group</name>
-            <url>http://compss.bsc.es/artifactory/libs-release</url>
-        </repository>
-    </distributionManagement>
+	<!-- DISTRIBUTION MANAGEMENT -->
+	<distributionManagement>
+		<repository>
+			<id>compss-repo</id>
+			<name>BSC Workflows and Distributed Computing group</name>
+			<url>http://compss.bsc.es/artifactory/libs-release</url>
+		</repository>
+	</distributionManagement>
 
-    <!-- SUB-MODULES -->
-    <modules>
-        <module>tools</module>
-        <module>programming_model</module>
-        <module>runtime</module>
-    </modules>
+	<!-- SUB-MODULES -->
+	<modules>
+		<module>tools</module>
+		<module>programming_model</module>
+		<module>runtime</module>
+	</modules>
 </project>

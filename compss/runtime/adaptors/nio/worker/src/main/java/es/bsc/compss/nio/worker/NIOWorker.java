@@ -33,22 +33,12 @@ import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.comm.stage.Transfer;
 import es.bsc.comm.stage.Transfer.Destination;
-import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.COMPSsConstants.Lang;
-import es.bsc.compss.COMPSsConstants.TaskExecution;
-import es.bsc.compss.data.DataManager;
-import es.bsc.compss.data.DataManager.LoadDataListener;
-import es.bsc.compss.data.DataProvider;
-import es.bsc.compss.executor.ExecutionManager;
-import es.bsc.compss.executor.types.Execution;
-import es.bsc.compss.executor.types.ExecutionListener;
-import es.bsc.compss.types.execution.LanguageParams;
-import es.bsc.compss.invokers.types.PythonParams;
+
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.NIOTaskResult;
-import es.bsc.compss.log.Loggers;
+import es.bsc.compss.nio.NIOTracer;
 import es.bsc.compss.nio.NIOMessageHandler;
 import es.bsc.compss.nio.commands.CommandDataReceived;
 import es.bsc.compss.nio.commands.CommandExecutorShutdownACK;
@@ -60,9 +50,23 @@ import es.bsc.compss.nio.dataRequest.DataRequest;
 import es.bsc.compss.nio.dataRequest.WorkerDataRequest;
 import es.bsc.compss.nio.dataRequest.WorkerDataRequest.TransferringTask;
 import es.bsc.compss.nio.worker.components.DataManagerImpl;
-import es.bsc.compss.types.execution.exceptions.InitializationException;
+
+import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.COMPSsConstants.TaskExecution;
+import es.bsc.compss.log.Loggers;
+import es.bsc.compss.data.DataManager;
+import es.bsc.compss.data.DataManager.LoadDataListener;
+import es.bsc.compss.data.DataProvider;
+import es.bsc.compss.executor.ExecutionManager;
+import es.bsc.compss.executor.types.Execution;
+import es.bsc.compss.executor.types.ExecutionListener;
 import es.bsc.compss.executor.utils.ThreadedPrintStream;
-import es.bsc.compss.nio.NIOTracer;
+import es.bsc.compss.invokers.types.CParams;
+import es.bsc.compss.invokers.types.JavaParams;
+import es.bsc.compss.invokers.types.PythonParams;
+import es.bsc.compss.types.execution.LanguageParams;
+import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -92,8 +96,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     private final String workingDir;
     private final String installDir;
     private final String appDir;
-    private final String libraryPath;
-    private final String classpath;
 
     private final TaskExecution executionType;
 
@@ -108,8 +110,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     private static ThreadedPrintStream err;
     public static final String SUFFIX_OUT = ".out";
     public static final String SUFFIX_ERR = ".err";
-    private Map<Integer, Long> times; 
-    
+    private Map<Integer, Long> times;
 
     static {
         try {
@@ -125,13 +126,11 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         REMOVE_WD = removeWDFlagDefined ? Boolean.valueOf(removeWDFlag) : true;
     }
 
-    public NIOWorker(boolean transferLogs, int snd, int rcv, String hostName,String masterName, int masterPort,
-            int computingUnitsCPU, int computingUnitsGPU, int computingUnitsFPGA,
-            String cpuMap, String gpuMap, String fpgaMap,
-            int limitOfTasks, String appUuid,
-            String storageConf, TaskExecution executionType, boolean persistentC,
-            String workingDir, String installDir, String appDir, String libPath, String classpath, PythonParams pyParams) {
 
+    public NIOWorker(boolean transferLogs, int snd, int rcv, String hostName, String masterName, int masterPort, int computingUnitsCPU,
+            int computingUnitsGPU, int computingUnitsFPGA, String cpuMap, String gpuMap, String fpgaMap, int limitOfTasks, String appUuid,
+            String storageConf, TaskExecution executionType, boolean persistentC, String workingDir, String installDir, String appDir,
+            JavaParams javaParams, PythonParams pyParams, CParams cParams) {
 
         super(snd, rcv, masterPort);
         times = new HashMap<Integer, Long>();
@@ -145,22 +144,22 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         this.workingDir = (workingDir.endsWith(File.separator) ? workingDir : workingDir + File.separator);
         this.installDir = (installDir.endsWith(File.separator) ? installDir : installDir + File.separator);
         this.appDir = appDir.equals("null") ? "" : appDir;
-        this.libraryPath = libPath.equals("null") ? "" : libPath;
-        this.classpath = classpath.equals("null") ? "" : classpath;
 
         this.executionType = executionType;
         System.setProperty(COMPSsConstants.STORAGE_CONF, storageConf);
         this.persistentC = persistentC;
 
+        this.langParams[Lang.JAVA.ordinal()] = javaParams;
         this.langParams[Lang.PYTHON.ordinal()] = pyParams;
+        this.langParams[Lang.C.ordinal()] = cParams;
 
         // Set master node to null (will be set afterwards to the right value)
         this.masterNode = null;
-        //If master name is defined set masterNode with the defined value
-        if (masterName != null && !masterName.isEmpty() && !masterName.equals("null")){
+        // If master name is defined set masterNode with the defined value
+        if (masterName != null && !masterName.isEmpty() && !masterName.equals("null")) {
             this.masterNode = new NIONode(masterName, masterPort);
         }
-        
+
         // Start DataManagerImpl
         this.dataManager = new DataManagerImpl(host, workingDir, this);
 
@@ -170,12 +169,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             ErrorManager.error(DATA_MANAGER_ERROR, ie);
         }
 
-        this.executionManager = new ExecutionManager(this,
-                computingUnitsCPU, cpuMap,
-                computingUnitsGPU, gpuMap,
-                computingUnitsFPGA, fpgaMap,
-                limitOfTasks
-        );
+        this.executionManager = new ExecutionManager(this, computingUnitsCPU, cpuMap, computingUnitsGPU, gpuMap, computingUnitsFPGA,
+                fpgaMap, limitOfTasks);
 
         if (tracing_level == Tracer.BASIC_MODE) {
             Tracer.enablePThreads();
@@ -219,7 +214,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
         WORKER_LOGGER.info("TARGET:");
         if (task.getTarget() != null) {
-            WORKER_LOGGER.info("    -" + task.getTarget().getPrefix() + " " + task.getTarget().getType() + ":" + task.getTarget().getValue());
+            WORKER_LOGGER
+                    .info("    -" + task.getTarget().getPrefix() + " " + task.getTarget().getType() + ":" + task.getTarget().getValue());
         }
         WORKER_LOGGER.info("RESULTS:");
         for (InvocationParam param : task.getResults()) {
@@ -245,7 +241,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             WORKER_LOGGER.info("Checking parameter " + param);
             if (param.getData() != null) {
                 // Parameter has associated data
-                if (WORKER_LOGGER_DEBUG){
+                if (WORKER_LOGGER_DEBUG) {
                     WORKER_LOGGER.debug("- Checking transfers for data " + param.getDataMgmtId() + " for target parameter" + i);
                 }
                 dataManager.fetchParam(param, i, tt);
@@ -273,7 +269,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
         long paramsEnd = System.currentTimeMillis();
         long paramsDuration = paramsEnd - obsolEnd;
-        WORKER_LOGGER.info("[Profile] Obsolete Processing: " +obsolDuration+ "Processing " + paramsDuration);
+        WORKER_LOGGER.info("[Profile] Obsolete Processing: " + obsolDuration + "Processing " + paramsDuration);
         times.put(task.getJobId(), paramsEnd);
         if (tt.getParams() == 0) {
             executeTask(tt.getTask());
@@ -286,7 +282,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     @Override
     public void askForTransfer(InvocationParam param, int index, LoadDataListener tt) {
-        DataRequest dr = new WorkerDataRequest((TransferringTask) tt, param.getType(), ((NIOParam) param).getData(), (String) param.getValue());
+        DataRequest dr = new WorkerDataRequest((TransferringTask) tt, param.getType(), ((NIOParam) param).getData(),
+                (String) param.getValue());
         addTransferRequest(dr);
     }
 
@@ -295,14 +292,9 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         // Now only manage at C (python could do the same when cache available)
         WORKER_LOGGER.debug("handling data not available");
         /*
-        if (Lang.valueOf(lang.toUpperCase()) == Lang.C) {
-            String path = d.getFirstURI().getPath();
-            WORKER_LOGGER.debug("about to serialize");
-            if (executionManager.serializeExternalData(d.getDataMgmtId(), path)) {
-                c.sendDataFile(path);
-                return;
-            }
-        }
+         * if (Lang.valueOf(lang.toUpperCase()) == Lang.C) { String path = d.getFirstURI().getPath();
+         * WORKER_LOGGER.debug("about to serialize"); if (executionManager.serializeExternalData(d.getDataMgmtId(),
+         * path)) { c.sendDataFile(path); return; } }
          */
         // If error or not external
         ErrorManager.warn("Data " + d.getDataMgmtId() + "in this worker " + this.getHostName() + " could not be sent to master.");
@@ -358,7 +350,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
                 if (!wdr.getTransferringTask().getError()) {
                     NIOTask task = wdr.getTransferringTask().getTask();
                     Long stTime = times.get(task.getJobId());
-                    if (stTime!=null){
+                    if (stTime != null) {
                         long duration = System.currentTimeMillis() - stTime.longValue();
                         WORKER_LOGGER.info(" [Profile] Transfer: " + duration);
                     }
@@ -388,9 +380,11 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         if (transferLogs || !successful) {
             // Check that output files already exists. If not exists generate an empty one.
             String taskFileOutName = this.getStandardStreamsPath(invocation) + ".out";
-            checkStreamFileExistence(taskFileOutName, "out", "Autogenerated Empty file. An error was produced before generating any log in the stdout");
+            checkStreamFileExistence(taskFileOutName, "out",
+                    "Autogenerated Empty file. An error was produced before generating any log in the stdout");
             String taskFileErrName = this.getStandardStreamsPath(invocation) + ".err";
-            checkStreamFileExistence(taskFileErrName, "err", "Autogenerated Empty file. An error was produced before generating any log in the stderr");
+            checkStreamFileExistence(taskFileErrName, "err",
+                    "Autogenerated Empty file. An error was produced before generating any log in the stderr");
             WORKER_LOGGER.debug("Sending file " + taskFileOutName);
             c.sendDataFile(taskFileOutName);
             WORKER_LOGGER.debug("Sending file " + taskFileErrName);
@@ -398,7 +392,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
 
         c.finishConnection();
-        
+
         WORKER_LOGGER.debug("Job " + jobId + "(Task " + taskId + ") send job done");
     }
 
@@ -420,6 +414,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         // Execute the job
         Execution e = new Execution(task, new ExecutionListener() {
+
             @Override
             public void notifyEnd(Invocation invocation, boolean success) {
                 sendTaskDone(invocation, success);
@@ -581,13 +576,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
                 WORKER_LOGGER.error("Exception", e);
             }
         } else {
-            /* 
-            TODO: Sending a file with "Empty file" is a patch because the comm library fails when transferring an empty file.
-            try {
-                out.createNewFile();
-            } catch (IOException ex) {
-                WORKER_LOGGER.error("Exception", ex);
-            }*/
+            // TODO: Sending a file with "Empty file" is a patch because the comm library fails when transferring an
+            // empty file
             FileOutputStream fos = null;
             try {
                 fos = new FileOutputStream(targetPath);
@@ -636,7 +626,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         int limitOfTasks = Integer.parseInt(args[13]);
 
         String appUuid = args[14];
-        String lang = args[15];
+        // String lang = args[15];
         String workingDir = args[16];
         String installDir = args[17];
         String appDir = args[18];
@@ -648,8 +638,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         String extraeFile = args[23];
         String host = args[24];
 
-       String storageConf = args[25];
-       TaskExecution executionType = TaskExecution.valueOf(args[26].toUpperCase());
+        String storageConf = args[25];
+        TaskExecution executionType = TaskExecution.valueOf(args[26].toUpperCase());
 
         boolean persistentC = Boolean.parseBoolean(args[27]);
 
@@ -657,7 +647,11 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         String pythonVersion = args[29];
         String pythonVirtualEnvironment = args[30];
         String pythonPropagateVirtualEnvironment = args[31];
-        PythonParams pyParams = new PythonParams(pythonInterpreter, pythonVersion, pythonVirtualEnvironment, pythonPropagateVirtualEnvironment, pythonpath);
+
+        JavaParams javaParams = new JavaParams(classpath);
+        PythonParams pyParams = new PythonParams(pythonInterpreter, pythonVersion, pythonVirtualEnvironment,
+                pythonPropagateVirtualEnvironment, pythonpath);
+        CParams cParams = new CParams(classpath);
 
         // Print arguments
         if (WORKER_LOGGER.isDebugEnabled()) {
@@ -724,10 +718,9 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
          * ***********************************************************************************************************
          * LAUNCH THE WORKER
          *************************************************************************************************************/
-        NIOWorker nw = new NIOWorker(debug, maxSnd, maxRcv, workerIP, mName, mPort,
-                computingUnitsCPU, computingUnitsGPU, computingUnitsFPGA, cpuMap, gpuMap, fpgaMap, limitOfTasks,
-                appUuid, storageConf, executionType, persistentC,
-                workingDir, installDir, appDir, libPath, classpath, pyParams);
+        NIOWorker nw = new NIOWorker(debug, maxSnd, maxRcv, workerIP, mName, mPort, computingUnitsCPU, computingUnitsGPU,
+                computingUnitsFPGA, cpuMap, gpuMap, fpgaMap, limitOfTasks, appUuid, storageConf, executionType, persistentC, workingDir,
+                installDir, appDir, javaParams, pyParams, cParams);
 
         NIOMessageHandler mh = new NIOMessageHandler(nw);
 
@@ -781,14 +774,10 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         return false;
     }
 
-    public String getClasspath() {
-        return this.classpath;
-    }
-
     // ********************************************************************
     // *************** INVOCATION CONTEXT IMPLEMENTATIONS *****************
     // ********************************************************************
-    //WORKER CONFIGURATION
+    // WORKER CONFIGURATION
     @Override
     public String getHostName() {
         return this.host;
@@ -810,16 +799,11 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     }
 
     @Override
-    public String getLibPath() {
-        return this.libraryPath;
-    }
-
-    @Override
     public String getWorkingDir() {
         return workingDir;
     }
 
-    //EXECUTION CONFIGURATION
+    // EXECUTION CONFIGURATION
     @Override
     public COMPSsConstants.TaskExecution getExecutionType() {
         return executionType;
@@ -831,7 +815,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         return this.langParams[lang.ordinal()];
     }
 
-    //EXECUTION MANAGEMENT
+    // EXECUTION MANAGEMENT
     @Override
     public void registerOutputs(String path) {
         err.registerThread(path);
@@ -870,7 +854,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         return out.getStream();
     }
 
-    //DATA MANAGEMENT
+    // DATA MANAGEMENT
     @Override
     public String getStorageConf() {
         return dataManager.getStorageConf();

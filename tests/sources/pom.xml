@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	
+
 	<!-- GENERAL INFORMATION -->
 	<groupId>es.bsc.compss.tests</groupId>
 	<artifactId>compss-tests</artifactId>
@@ -9,10 +11,10 @@
 	<parent>
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>compss-trunk</artifactId>
-<version>2.4.rc1811</version>
+		<version>2.4.rc1811</version>
 		<relativePath>../../</relativePath>
 	</parent>
-	
+
 	<!-- PROJECT INFORMATION -->
 	<name>COMP Superscalar Tests</name>
 	<description>COMPSs Framework Tests</description>
@@ -28,42 +30,42 @@
 		<name>BSC</name>
 		<url>http://www.bsc.es</url>
 	</organization>
-	
+
 	<!-- PROPERTIES -->
 	<properties>
 		<jaxws.version>2.2.10</jaxws.version>
 	</properties>
 
-        <!-- DEPENDENCIES MANAGEMENT -->
-        <dependencyManagement>
-                <dependencies>
-                        <dependency>
-                                <groupId>es.bsc.compss</groupId>
+	<!-- DEPENDENCIES MANAGEMENT -->
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>es.bsc.compss</groupId>
 				<artifactId>compss-api</artifactId>
-                                <version>${compss.version}</version>
-                        </dependency>
-		        <dependency>
-			        <groupId>es.bsc.compss</groupId>
-		             	<artifactId>compss-engine</artifactId>
-                                <version>${compss.version}</version>
-		        </dependency>
-                        <dependency>
-                                <groupId>es.bsc.compss</groupId>
+				<version>${compss.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>es.bsc.compss</groupId>
+				<artifactId>compss-engine</artifactId>
+				<version>${compss.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>es.bsc.compss</groupId>
 				<artifactId>compss-resources-commons</artifactId>
-                                <version>${compss.version}</version>
-                        </dependency>
-			 <dependency>
-                                <groupId>es.bsc.compss</groupId>
-				<artifactId>es.bsc.compss.scheduler-commons</artifactId>
-                                <version>${compss.version}</version>
-                        </dependency>
-                        <dependency>
-                                <groupId>com.sun.xml.ws</groupId>
-                                <artifactId>jaxws-rt</artifactId>
-                                <version>${jaxws.version}</version>
-                        </dependency>
-                </dependencies>
-        </dependencyManagement>
+				<version>${compss.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>es.bsc.compss</groupId>
+				<artifactId>compss-scheduler-commons</artifactId>
+				<version>${compss.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.sun.xml.ws</groupId>
+				<artifactId>jaxws-rt</artifactId>
+				<version>${jaxws.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<!-- SOURCE CONTROL MANAGEMENT -->
 	<scm>
@@ -71,7 +73,7 @@
 		<developerConnection>scm:svn:http://compss.bsc.es/svn/compss/tests/sources</developerConnection>
 		<url>http://compss.bsc.es/svn/compss/tests/sources</url>
 	</scm>
-	
+
 	<!-- REPOSITORIES -->
 	<repositories>
 		<repository>
@@ -83,10 +85,10 @@
 			<url>http://central.maven.org/maven2/</url>
 		</repository>
 		<repository>
-            <id>compss-repo</id>
-            <name>BSC Workflows and Distributed Computing group</name>
-            <url>http://compss.bsc.es/artifactory/libs-release</url>
-	   	 </repository>
+			<id>compss-repo</id>
+			<name>BSC Workflows and Distributed Computing group</name>
+			<url>http://compss.bsc.es/artifactory/libs-release</url>
+		</repository>
 	</repositories>
 
 	<pluginRepositories>
@@ -105,13 +107,13 @@
 
 	<!-- DISTRIBUTION MANAGEMENT -->
 	<distributionManagement>
-	    <repository>
-             <id>compss-repo</id>
-             <name>BSC Workflows and Distributed Computing group</name>
-             <url>http://compss.bsc.es/artifactory/libs-release</url>
-   	    </repository>
+		<repository>
+			<id>compss-repo</id>
+			<name>BSC Workflows and Distributed Computing group</name>
+			<url>http://compss.bsc.es/artifactory/libs-release</url>
+		</repository>
 	</distributionManagement>
-    
+
 	<!-- SUB-MODULES -->
 	<modules>
 		<module>basic</module>

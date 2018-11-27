@@ -11,7 +11,7 @@ RUN wget "http://compss.bsc.es/releases/repofiles/repo_deb_ubuntu_x86-64${repo}.
     apt-get update && \
     apt-get install -y compss-framework
 
-RUN echo "export PATH=$PATH:/opt/COMPSs/Runtime/scripts/user/" >> /root/.bashrc && \
+RUN echo "export PATH=$PATH:/opt/COMPSs/Runtime/scripts/user/:/opt/COMPSs/Runtime/scripts/utils" >> /root/.bashrc && \
     echo "export VISIBLE=now" >> /etc/profile && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
     yes yes | ssh-keygen -f /root/.ssh/id_rsa -t rsa -N '' > /dev/null && \

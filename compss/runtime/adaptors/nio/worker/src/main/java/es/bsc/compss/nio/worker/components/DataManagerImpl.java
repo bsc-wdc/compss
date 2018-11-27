@@ -44,22 +44,20 @@ import storage.StorageItf;
 
 public class DataManagerImpl implements DataManager {
 
-    private static final String ERROR_SERIALIZED_OBJ = "ERROR: Cannot obtain object";
-    private static final String ERROR_PERSISTENT_OBJ = "ERROR: Cannot getById persistent object";
-
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER);
 
     // Data Provider
     private final DataProvider provider;
-    //String hostName
+    // String hostName
     private final String hostName;
-    //Default data folder
+    // Default data folder
     private final String baseFolder;
-    //Storage configuration file
+    // Storage configuration file
     private final String storageConf;
 
     private final HashMap<String, DataRegister> registry;
+
 
     /**
      * Instantiates a new Data Manager
@@ -137,13 +135,13 @@ public class DataManagerImpl implements DataManager {
                         LOGGER.error("Error removing file " + f.getAbsolutePath());
                     }
                     // Now only manage at C (python could do the same when cache available)
-                    //if (COMPSsConstants.Lang.valueOf(lang.toUpperCase()) == COMPSsConstants.Lang.C && persistentC) {
-                    //    if (BindingDataManager.removeData(f.getName()) != 0) {
-                    //        LOGGER.error("Error removing data " + f.getName() + " from Binding");
-                    //    } else {
-                    //        LOGGER.debug("Data removed from cache " + f.getName());
-                    //    }
-                    //}
+                    // if (COMPSsConstants.Lang.valueOf(lang.toUpperCase()) == COMPSsConstants.Lang.C && persistentC) {
+                    // if (BindingDataManager.removeData(f.getName()) != 0) {
+                    // LOGGER.error("Error removing data " + f.getName() + " from Binding");
+                    // } else {
+                    // LOGGER.debug("Data removed from cache " + f.getName());
+                    // }
+                    // }
 
                 }
                 String dataName = new File(name).getName();
@@ -184,8 +182,8 @@ public class DataManagerImpl implements DataManager {
                 tt.loadedValue();
                 break;
             default:
-            //Nothing to do since basic type parameters require no action
-            }
+                // Nothing to do since basic type parameters require no action
+        }
     }
 
     private DataRegister getOriginalDataRegister(InvocationParam param) {
@@ -218,8 +216,7 @@ public class DataManagerImpl implements DataManager {
                         case BINDING_URI:
                             if (loc.isHost(hostName)) {
                                 LOGGER.error("WORKER IS NOT AWARE OF THE PRESENCE OF A"
-                                        + (loc.getProtocol() == Protocol.OBJECT_URI ? "N OBJECT " : " BINDING OBJECT ")
-                                );
+                                        + (loc.getProtocol() == Protocol.OBJECT_URI ? "N OBJECT " : " BINDING OBJECT "));
                             }
                             break;
                         case SHARED_URI:
@@ -313,7 +310,7 @@ public class DataManagerImpl implements DataManager {
                     break;
                 }
             }
-            //TODO is it better to transfer again or to load from file??
+            // TODO is it better to transfer again or to load from file??
             if (!locationsInCache) {
                 // Try if any of the object locations is in the host
                 boolean existInHost = false;
@@ -321,7 +318,8 @@ public class DataManagerImpl implements DataManager {
                 for (InvocationParamURI loc : param.getSources()) {
                     if (loc.isHost(hostName)) {
                         BindingObject bo = BindingObject.generate(loc.getPath());
-                        LOGGER.debug("   - Parameter " + index + "(" + name + ") found at host with location " + loc.getPath() + " Checking if in cache...");
+                        LOGGER.debug("   - Parameter " + index + "(" + name + ") found at host with location " + loc.getPath()
+                                + " Checking if in cache...");
                         if (BindingDataManager.isInBinding(bo.getId())) {
                             // Object found
                             LOGGER.debug("   - Parameter " + index + "(" + value + ") location found in cache.");
@@ -401,10 +399,7 @@ public class DataManagerImpl implements DataManager {
                     File source = new File(path);
                     try {
                         LOGGER.debug("   - Parameter " + index + "(" + expectedFileLocation + ") "
-                                + (param.isPreserveSourceData()
-                                        ? "preserves sources. COPYING"
-                                        : "erases sources. MOVING")
-                        );
+                                + (param.isPreserveSourceData() ? "preserves sources. COPYING" : "erases sources. MOVING"));
                         LOGGER.debug("         Source: " + source);
                         LOGGER.debug("         Target: " + target);
                         if (param.isPreserveSourceData()) {
@@ -444,10 +439,10 @@ public class DataManagerImpl implements DataManager {
                 break;
             case FILE_T: // value already contains the path
             case BINDING_OBJECT_T: // value corresponds to the ID of the object on the binding (already set)
-            case EXTERNAL_PSCO_T: // value corresponds to the ID of the 
+            case EXTERNAL_PSCO_T: // value corresponds to the ID of the
                 break;
             default:
-            //Nothing to do since basic type parameters require no action
+                // Nothing to do since basic type parameters require no action
         }
     }
 
@@ -472,15 +467,17 @@ public class DataManagerImpl implements DataManager {
                 break;
             case PSCO_T:
             case EXTERNAL_PSCO_T:
-                //storePSCO(param);
+                // storePSCO(param);
                 break;
             case BINDING_OBJECT_T:
-                //Already stored on the binding
+                // Already stored on the binding
                 break;
             case FILE_T:
-                //Already stored
+                // Already stored
                 break;
-
+            default:
+                // For char, strings and others. Nothing to do
+                break;
         }
     }
 

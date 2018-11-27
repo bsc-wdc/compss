@@ -1,0 +1,27 @@
+#!/bin/bash
+
+GENERATORS_DIR=$(dirname "$0")
+# shellcheck source=./aux_functions.sh
+source "$GENERATORS_DIR/aux_functions.sh"
+
+ABS_CONTEXT=$1
+BASE_IMAGE_NAME=$2
+APP_IMAGE_NAME=$3
+
+ECHO "Generating Dockerfile..."
+echo -e "\
+FROM $BASE_IMAGE_NAME
+RUN mkdir -p $ABS_CONTEXT \
+    yes yes | ssh-keygen -f /root/.ssh/id_rsa -t rsa -N '' > /dev/null ; \
+    cat /root/.ssh/id_rsa.pub > /root/.ssh/authorized_keys
+COPY . \"$ABS_CONTEXT\"
+" > "$ABS_CONTEXT"/Dockerfile
+    
+ECHO "Building application image '$APP_IMAGE_NAME'..." ; echo
+docker build --tag="$APP_IMAGE_NAME" "$ABS_CONTEXT"
+rm "$ABS_CONTEXT"/Dockerfile
+ASSERT "There was a problem creating the image"
+
+echo
+
+exit 0

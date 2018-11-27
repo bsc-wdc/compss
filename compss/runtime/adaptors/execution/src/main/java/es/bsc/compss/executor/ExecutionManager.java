@@ -28,10 +28,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-/**
- *
- * @author flordan
- */
 public class ExecutionManager {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXEC_MANAGER);
@@ -40,11 +36,22 @@ public class ExecutionManager {
     public int runningTasks;
     public final ExecutionPlatform cpuExecutors;
 
-    public ExecutionManager(InvocationContext context,
-            int computingUnitsCPU, String cpuMap,
-            int computingUnitsGPU, String gpuMap,
-            int computingUnitsFPGA, String fpgaMap,
-            int limitOfTasks) {
+
+    /**
+     * Instantiates a new Execution Manager
+     * 
+     * @param context
+     * @param computingUnitsCPU
+     * @param cpuMap
+     * @param computingUnitsGPU
+     * @param gpuMap
+     * @param computingUnitsFPGA
+     * @param fpgaMap
+     * @param limitOfTasks
+     */
+    public ExecutionManager(InvocationContext context, int computingUnitsCPU, String cpuMap, int computingUnitsGPU, String gpuMap,
+            int computingUnitsFPGA, String fpgaMap, int limitOfTasks) {
+
         this.limitOfTasks = limitOfTasks;
         ResourceManager rm = null;
         try {

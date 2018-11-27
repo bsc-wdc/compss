@@ -351,13 +351,13 @@ def start(log_level='off',
 
     # Logging setup - messages before this step are ignored (need log_path to configure the logger).
     if debug or log_level == "debug":
-        json_path = '/Bindings/python/' + str(major_version) + '/log/logging.json.debug'
+        json_path = '/Bindings/python/' + str(major_version) + '/log/logging_debug.json'
         init_logging(os.getenv('COMPSS_HOME') + json_path, log_path)
     elif log_level == "info":
-        json_path = '/Bindings/python/' + str(major_version) + '/log/logging.json.off'
+        json_path = '/Bindings/python/' + str(major_version) + '/log/logging_off.json'
         init_logging(os.getenv('COMPSS_HOME') + json_path, log_path)
     elif log_level == "off":
-        json_path = '/Bindings/python/' + str(major_version) + '/log/logging.json.off'
+        json_path = '/Bindings/python/' + str(major_version) + '/log/logging_off.json'
         init_logging(os.getenv('COMPSS_HOME') + json_path, log_path)
     else:
         # Default

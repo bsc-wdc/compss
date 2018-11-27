@@ -31,20 +31,17 @@ import org.apache.logging.log4j.core.config.builder.api.RootLoggerComponentBuild
 import org.apache.logging.log4j.core.config.builder.impl.BuiltConfiguration;
 
 
-/**
- *
- * @author flordan
- */
 class GATLog {
 
     private static final String appenderName = "Stdout";
     private static final String pattern = "[(%r)(%d) %19c{1}]    @%-15.15M  -  %m%n";
 
+
     public static void init(boolean debug) {
         Level level = debug ? Level.DEBUG : Level.OFF;
-        ConfigurationBuilder< BuiltConfiguration> builder = ConfigurationFactory.newConfigurationBuilder();
+        ConfigurationBuilder<BuiltConfiguration> builder = ConfigurationFactory.newConfigurationBuilder();
 
-        //Creating Appender
+        // Creating Appender
         AppenderRefComponentBuilder appender = builder.newAppenderRef(appenderName);
         AppenderComponentBuilder appenderBuilder = builder.newAppender(appenderName, "CONSOLE");
         appenderBuilder.addAttribute("target", ConsoleAppender.Target.SYSTEM_OUT);
@@ -53,12 +50,12 @@ class GATLog {
         appenderBuilder.add(layoutBuilder);
         builder.add(appenderBuilder);
 
-        //ADD ROOT LEVEL
+        // ADD ROOT LEVEL
         RootLoggerComponentBuilder rootLogger = builder.newRootLogger(level);
         rootLogger.add(appender);
         builder.add(rootLogger);
 
-        //ADD LOGGERS
+        // ADD LOGGERS
         addLogger(Loggers.WORKER, level, appender, builder);
         addLogger(Loggers.WORKER_INVOKER, level, appender, builder);
 
@@ -66,7 +63,7 @@ class GATLog {
         Configurator.initialize(conf);
     }
 
-    private static void addLogger(String name, Level level, AppenderRefComponentBuilder appender, ConfigurationBuilder builder) {
+    private static void addLogger(String name, Level level, AppenderRefComponentBuilder appender, ConfigurationBuilder<?> builder) {
         LoggerComponentBuilder logger = builder.newLogger(name, level);
         logger.add(appender);
         logger.addAttribute("additivity", false);

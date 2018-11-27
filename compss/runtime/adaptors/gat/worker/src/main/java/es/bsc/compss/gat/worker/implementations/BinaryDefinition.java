@@ -29,8 +29,11 @@ public class BinaryDefinition extends ImplementationDefinition {
     private final String binary;
     private final String workingDir;
 
+    private final BinaryImplementation impl;
+
+
     public BinaryDefinition(boolean enableDebug, String[] args, int execArgsIdx) {
-        super(enableDebug, args, execArgsIdx + 2);
+        super(enableDebug, args, execArgsIdx + BinaryImplementation.NUM_PARAMS);
         this.binary = args[execArgsIdx++];
         String wDir = args[execArgsIdx];
         if ((wDir == null || wDir.isEmpty() || wDir.equals(Constants.UNASSIGNED))) {
@@ -38,11 +41,13 @@ public class BinaryDefinition extends ImplementationDefinition {
         } else {
             this.workingDir = wDir;
         }
+
+        this.impl = new BinaryImplementation(this.binary, this.workingDir, null, null, null);
     }
 
     @Override
     public AbstractMethodImplementation getMethodImplementation() {
-        return new BinaryImplementation(binary, workingDir, null, null, null);
+        return this.impl;
     }
 
     @Override
@@ -56,15 +61,8 @@ public class BinaryDefinition extends ImplementationDefinition {
     }
 
     @Override
-    public String toCommandString() {
-        return binary;
-    }
-
-    @Override
     public String toLogString() {
-        return "["
-                + "BINARY=" + binary
-                + "]";
+        return this.impl.getMethodDefinition();
     }
 
 }

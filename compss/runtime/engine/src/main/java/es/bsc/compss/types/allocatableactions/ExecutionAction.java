@@ -41,6 +41,7 @@ import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener.JobEndStatus;
 import es.bsc.compss.types.parameter.DependencyParameter;
+import es.bsc.compss.types.parameter.ExternalPSCOParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.job.JobStatusListener;
 import es.bsc.compss.types.resources.Worker;
@@ -187,6 +188,11 @@ public class ExecutionAction extends AllocatableAction {
         DataAccessId access = param.getDataAccessId();
         if (access instanceof DataAccessId.WAccessId) {
             String tgtName = ((DataAccessId.WAccessId) access).getWrittenDataInstance().getRenaming();
+            // Workaround for return objects in bindings converted to PSCOs inside tasks
+            if (param instanceof ExternalPSCOParameter) {
+                ExternalPSCOParameter epp = (ExternalPSCOParameter) param;
+                tgtName = epp.getId();
+            }
             if (DEBUG) {
                 JOB_LOGGER.debug("Setting data target job transfer: " + w.getCompleteRemotePath(param.getType(), tgtName));
             }

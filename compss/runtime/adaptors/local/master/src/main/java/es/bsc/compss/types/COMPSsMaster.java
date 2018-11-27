@@ -81,9 +81,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     private static final String ERROR_WORKERS_DIR = "ERROR: Cannot create workers directory";
     private static final String WARN_FOLDER_OVERLOAD = "WARNING: Reached maximum number of executions for this application. To avoid this warning please clean .COMPSs folder";
     private static final String EXECUTION_MANAGER_ERR = "Error starting ExecutionManager";
-    private static final String DATA_MANAGER_ERROR = "Error starting DataManager";
-    private static final String ERROR_INCORRECT_NUM_PARAMS = "Error: Incorrect number of parameters";
-    private static final String ERROR_UNKNOWN_HOST = "ERROR: Cannot determine the IP address of the local host";
 
     private static final int MAX_OVERLOAD = 100; // Maximum number of executions of same application
     public static final String SUFFIX_OUT = ".out";
@@ -106,6 +103,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     private final ThreadedPrintStream out;
     private final ThreadedPrintStream err;
     private boolean started = false;
+
 
     /**
      * New COMPSs Master
@@ -310,12 +308,8 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     public void setUpExecutionCapabilities(MethodResourceDescription desc, int limitOfTasks) {
-        this.executionManager = new ExecutionManager(this,
-                desc.getTotalCPUComputingUnits(), "null",
-                desc.getTotalGPUComputingUnits(), "null",
-                desc.getTotalFPGAComputingUnits(), "null",
-                limitOfTasks
-        );
+        this.executionManager = new ExecutionManager(this, desc.getTotalCPUComputingUnits(), "null", desc.getTotalGPUComputingUnits(),
+                "null", desc.getTotalFPGAComputingUnits(), "null", limitOfTasks);
     }
 
     @Override
@@ -326,18 +320,18 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             }
             started = true;
         }
-        /*if (tracing_level == Tracer.BASIC_MODE) {
-            Tracer.enablePThreads();
-        }*/
+        /*
+         * if (tracing_level == Tracer.BASIC_MODE) { Tracer.enablePThreads(); }
+         */
         try {
             this.executionManager.init();
         } catch (InitializationException ie) {
             ErrorManager.error(EXECUTION_MANAGER_ERR, ie);
         }
 
-        /*if (tracing_level == Tracer.BASIC_MODE) {
-            Tracer.disablePThreads();
-        }*/
+        /*
+         * if (tracing_level == Tracer.BASIC_MODE) { Tracer.disablePThreads(); }
+         */
     }
 
     @Override
@@ -354,7 +348,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     @Override
     public void stop(ShutdownListener sl) {
-        //ExecutionManager was already shutdown
+        // ExecutionManager was already shutdown
         sl.notifyEnd();
     }
 
@@ -876,21 +870,22 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     @Override
     public void updateTaskCount(int processorCoreCount) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public void announceDestruction() throws AnnounceException {
-        //No need to do it. The master no it's always up
+        // No need to do it. The master no it's always up
     }
 
     @Override
     public void announceCreation() throws AnnounceException {
-        //No need to do it. The master no it's always up
+        // No need to do it. The master no it's always up
     }
 
     public void runJob(LocalJob job) {
         Execution exec = new Execution(job, new ExecutionListener() {
+
             @Override
             public void notifyEnd(Invocation invocation, boolean success) {
                 job.getListener().jobCompleted(job);
@@ -906,22 +901,17 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     @Override
     public long getTracingHostID() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public String getAppDir() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public String getInstallDir() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public String getLibPath() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -936,12 +926,12 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     @Override
     public boolean isPersistentEnabled() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public LanguageParams getLanguageParams(COMPSsConstants.Lang language) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -983,7 +973,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
         switch (localParam.getType()) {
             case FILE_T:
-                //No need to load anything. Value already on a file
+                // No need to load anything. Value already on a file
                 break;
             case OBJECT_T:
                 DependencyParameter dpar = (DependencyParameter) localParam.getParam();
@@ -999,9 +989,9 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             case PSCO_T:
             case EXTERNAL_PSCO_T:
             case BINDING_OBJECT_T:
-                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.        
+                throw new UnsupportedOperationException("Not supported yet.");
             default:
-            //Already contains the proper value on the param
+                // Already contains the proper value on the param
         }
     }
 
@@ -1011,7 +1001,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         Parameter param = localParam.getParam();
         switch (param.getType()) {
             case FILE_T:
-                //No need to store anything. Already stored on disk
+                // No need to store anything. Already stored on disk
                 break;
             case OBJECT_T:
                 String resultName = localParam.getDataMgmtId();
@@ -1019,7 +1009,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 ld.setValue(invParam.getValue());
                 break;
             default:
-                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.        
+                throw new UnsupportedOperationException("Not supported yet.");
         }
     }
 

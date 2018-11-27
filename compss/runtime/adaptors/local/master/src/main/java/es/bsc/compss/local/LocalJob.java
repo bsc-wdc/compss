@@ -35,20 +35,20 @@ import java.util.LinkedList;
 import java.util.List;
 
 
-/**
- *
- * @author flordan
- */
 public class LocalJob extends Job<COMPSsMaster> implements Invocation {
 
-    private static final Lang lang = Lang.valueOf(Job.LANG.toUpperCase());
+    private static final Lang LANG = Lang.valueOf(Job.LANG.toUpperCase());
+
     private final List<LocalParameter> arguments;
     private LocalParameter target;
     private LinkedList<LocalParameter> results;
     private MethodResourceDescription reqs;
     private final List<String> slaveWorkersNodeNames;
 
-    public LocalJob(int taskId, TaskDescription task, Implementation impl, Resource res, List<String> slaveWorkersNodeNames, JobListener listener) {
+
+    public LocalJob(int taskId, TaskDescription task, Implementation impl, Resource res, List<String> slaveWorkersNodeNames,
+            JobListener listener) {
+
         super(taskId, task, impl, res, listener);
         boolean hasTarget = taskParams.hasTargetObject();
         int numReturns = taskParams.getNumReturns();
@@ -56,7 +56,7 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
         this.results = new LinkedList<>();
         Parameter[] params = task.getParameters();
         int paramsCount = params.length;
-        if (this.lang == Lang.PYTHON) {
+        if (LANG.equals(Lang.PYTHON)) {
             if (hasTarget) {
                 Parameter p = params[params.length - 1];
                 target = new LocalParameter(p);
@@ -68,6 +68,7 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
             }
             paramsCount -= numReturns;
         } else {
+            // Java or C/C++
             for (int rIdx = 0; rIdx < numReturns; rIdx++) {
                 Parameter p = params[params.length - numReturns + rIdx];
                 results.addFirst(new LocalParameter(p));
@@ -97,7 +98,8 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
 
     @Override
     public void stop() throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
 
     @Override
@@ -127,7 +129,7 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
 
     @Override
     public Lang getLang() {
-        return lang;
+        return LANG;
     }
 
     @Override

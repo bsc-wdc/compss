@@ -71,18 +71,16 @@ public class StreamRegistry {
 
     private boolean onWindows;
 
-    private String tempDirPath;
-
     private static final Logger logger = LogManager.getLogger(Loggers.LOADER);
     private static final boolean debug = logger.isDebugEnabled();
     private static final String lineSep = System.getProperty("line.separator");
+
 
     public StreamRegistry(LoaderAPI api) {
         this.itApi = api;
         this.fileToStreams = new TreeMap<>();
         this.taskFiles = new HashSet<String>();
         this.onWindows = File.separatorChar == '\\';
-        this.tempDirPath = api.getTempDir();
     }
 
     // FileInputStream
@@ -504,11 +502,9 @@ public class StreamRegistry {
             switch (direction) {
                 case IN:
                     /*
-                     * LEGACY CODE. 
-                     * The last version of the file must be transferred to a temp directory without the Integrated
-                     * Toolkit keeping track of this operation. Forthcoming streams on the same file will use this copy
-                     * in the tmp dir
-                     * //renaming = itApi.getFile(path, tempDirPath);
+                     * LEGACY CODE. The last version of the file must be transferred to a temp directory without the
+                     * Integrated Toolkit keeping track of this operation. Forthcoming streams on the same file will use
+                     * this copy in the tmp dir //renaming = itApi.getFile(path, tempDirPath);
                      */
                     renaming = itApi.openFile(path, Direction.IN);
                     break;
@@ -655,6 +651,7 @@ public class StreamRegistry {
         private boolean written;
         private List<Object> list;
         private List<FileDescriptor> fds;
+
 
         public StreamList(String renaming, Direction direction) {
             this.fileRenaming = renaming;

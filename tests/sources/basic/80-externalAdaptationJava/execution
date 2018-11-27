@@ -50,14 +50,14 @@
 
   sleep $creationTime
   sleep 1
-  adapt_compss_resources localhost simple.SimpleExtAdaptation_0"${retryNum}" CREATE BSC small image_2 > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+  compss_adapt_resources localhost simple.SimpleExtAdaptation_0"${retryNum}" CREATE BSC small image_2 > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
   sleep 1
-  adapt_compss_resources localhost simple.SimpleExtAdaptation_0"${retryNum}" CREATE BSC small image_3 > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+  compss_adapt_resources localhost simple.SimpleExtAdaptation_0"${retryNum}" CREATE BSC small image_3 > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
   sleep $creationTime
   sleep 10
-  adapt_compss_resources localhost simple.SimpleExtAdaptation_0"${retryNum}" REMOVE BSC 127.0.0.100 > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+  compss_adapt_resources localhost simple.SimpleExtAdaptation_0"${retryNum}" REMOVE BSC 127.0.0.100 > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
   sleep 1
-  adapt_compss_resources localhost simple.SimpleExtAdaptation_0"${retryNum}" REMOVE BSC 127.0.0.101 > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+  compss_adapt_resources localhost simple.SimpleExtAdaptation_0"${retryNum}" REMOVE BSC 127.0.0.101 > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
   fg %1
 
   # Check timeout

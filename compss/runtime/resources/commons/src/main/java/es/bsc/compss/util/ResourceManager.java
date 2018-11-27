@@ -131,7 +131,7 @@ public class ResourceManager {
         } catch (NoResourceAvailableException e) {
             ErrorManager.fatal(ERROR_NO_RES, e);
         }
-      
+
     }
 
     /**
@@ -149,16 +149,11 @@ public class ResourceManager {
     /**
      * Reconfigures the master node adding its shared disks
      *
+     * @param mrd Features of the Master node
      * @param sharedDisks Shared Disk descriptions (diskName->mountpoint)
      */
-    public static void updateMasterConfiguration(Map<String, String> sharedDisks) {
-        Comm.getAppHost().updateSharedDisk(sharedDisks);
-        try {
-            Comm.getAppHost().start();
-        } catch (InitNodeException e) {
-            ErrorManager.error("Error updating master configuration", e);
-
-        }
+    public static void updateMasterConfiguration(MethodResourceDescription mrd, Map<String, String> sharedDisks) {
+        Comm.getAppHost().updateResource(mrd, sharedDisks);
     }
 
     /**

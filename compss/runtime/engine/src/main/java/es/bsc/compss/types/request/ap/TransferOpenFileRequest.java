@@ -32,6 +32,7 @@ import es.bsc.compss.types.data.DataAccessId.RWAccessId;
 import es.bsc.compss.types.data.DataAccessId.WAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.OneOpWithSemListener;
 import es.bsc.compss.types.uri.SimpleURI;
@@ -57,14 +58,11 @@ public class TransferOpenFileRequest extends APRequest {
      */
     private Semaphore sem;
 
-
     /**
      * Constructs a new TransferOpenFileRequest
      *
-     * @param faId
-     *            Data Id and version of the requested file
-     * @param sem
-     *            Semaphore where to synchronize until the operation is done
+     * @param faId Data Id and version of the requested file
+     * @param sem Semaphore where to synchronize until the operation is done
      */
     public TransferOpenFileRequest(DataAccessId faId, Semaphore sem) {
         this.faId = faId;
@@ -83,8 +81,7 @@ public class TransferOpenFileRequest extends APRequest {
     /**
      * Sets the semaphore where to synchronize until the operation is done
      *
-     * @param sem
-     *            Semaphore where to synchronize until the operation is done
+     * @param sem Semaphore where to synchronize until the operation is done
      */
     public void setSemaphore(Semaphore sem) {
         this.sem = sem;
@@ -102,8 +99,7 @@ public class TransferOpenFileRequest extends APRequest {
     /**
      * Sets the data Id and version of the requested file
      *
-     * @param faId
-     *            Data Id and version of the requested file
+     * @param faId Data Id and version of the requested file
      */
     public void setFaId(DataAccessId faId) {
         this.faId = faId;
@@ -121,8 +117,7 @@ public class TransferOpenFileRequest extends APRequest {
     /**
      * Sets the location where to leave the requested file
      *
-     * @param location
-     *            Location where to leave the requested file
+     * @param location Location where to leave the requested file
      */
     public void setLocation(DataLocation location) {
         this.location = location;
@@ -156,16 +151,10 @@ public class TransferOpenFileRequest extends APRequest {
 
         // Create location
         DataLocation targetLocation = null;
-
         String pscoId = Comm.getData(targetName).getPscoId();
-        if (pscoId == null) {
-            try {
-                SimpleURI targetURI = new SimpleURI(DataLocation.Protocol.FILE_URI.getSchema() + targetPath);
-                targetLocation = DataLocation.createLocation(Comm.getAppHost(), targetURI);
-            } catch (IOException ioe) {
-                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, ioe);
-            }
-        } else {
+
+        // Ask for transfer when required
+        if (pscoId != null) {
             // It is an external object persisted inside the task
             try {
                 SimpleURI targetURI = new SimpleURI(DataLocation.Protocol.PERSISTENT_URI.getSchema() + pscoId);
@@ -173,31 +162,40 @@ public class TransferOpenFileRequest extends APRequest {
             } catch (IOException ioe) {
                 ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, ioe);
             }
-        }
-
-        // Register target location
-        LOGGER.debug("Setting target location to " + targetLocation);
-        setLocation(targetLocation);
-
-        // Ask for transfer when required
-        if (pscoId != null) {
+            Comm.registerLocation(targetName, targetLocation);
+            // Register target location
+            LOGGER.debug("Setting target location to " + targetLocation);
+            setLocation(targetLocation);
             LOGGER.debug("External object detected. Auto-release");
             Comm.registerLocation(targetName, targetLocation);
             sem.release();
-        } else if (faId instanceof WAccessId) {
-            LOGGER.debug("Write only mode. Auto-release");
-            Comm.registerLocation(targetName, targetLocation);
-            sem.release();
-        } else if (faId instanceof RWAccessId) {
-            LOGGER.debug("RW mode. Asking for transfer");
-            RWAccessId rwaId = (RWAccessId) faId;
-            String srcName = rwaId.getReadDataInstance().getRenaming();
-            Comm.getAppHost().getData(srcName, targetName, (LogicalData) null, new FileTransferable(), new OneOpWithSemListener(sem));
         } else {
-            LOGGER.debug("Read only mode. Asking for transfer");
-            RAccessId raId = (RAccessId) faId;
-            String srcName = raId.getReadDataInstance().getRenaming();
-            Comm.getAppHost().getData(srcName, srcName, new FileTransferable(), new OneOpWithSemListener(sem));
+            try {
+                SimpleURI targetURI = new SimpleURI(DataLocation.Protocol.FILE_URI.getSchema() + targetPath);
+                targetLocation = DataLocation.createLocation(Comm.getAppHost(), targetURI);
+            } catch (IOException ioe) {
+                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, ioe);
+            }
+            if (faId instanceof WAccessId) {
+                LOGGER.debug("Write only mode. Auto-release");
+                Comm.registerLocation(targetName, targetLocation);
+                // Register target location
+                LOGGER.debug("Setting target location to " + targetLocation);
+                setLocation(targetLocation);
+                sem.release();
+            } else if (faId instanceof RWAccessId) {
+                LOGGER.debug("RW mode. Asking for transfer");
+                RWAccessId rwaId = (RWAccessId) faId;
+                String srcName = rwaId.getReadDataInstance().getRenaming();
+                FileTransferable ft = new FileTransferable();
+                Comm.getAppHost().getData(srcName, targetName, (LogicalData) null, ft, new CopyListener(ft, sem));
+            } else {
+                LOGGER.debug("Read only mode. Asking for transfer");
+                RAccessId raId = (RAccessId) faId;
+                String srcName = raId.getReadDataInstance().getRenaming();
+                FileTransferable ft = new FileTransferable();
+                Comm.getAppHost().getData(srcName, srcName, ft, new CopyListener(ft, sem));
+            }
         }
     }
 
@@ -206,4 +204,28 @@ public class TransferOpenFileRequest extends APRequest {
         return APRequestType.TRANSFER_OPEN_FILE;
     }
 
+
+    private class CopyListener extends OneOpWithSemListener {
+
+        private final FileTransferable reason;
+
+        public CopyListener(FileTransferable reason, Semaphore sem) {
+            super(sem);
+            this.reason = reason;
+        }
+
+        @Override
+        public void notifyEnd(DataOperation fOp) {
+            String targetPath = reason.getDataTarget();
+            try {
+                SimpleURI targetURI = new SimpleURI(DataLocation.Protocol.FILE_URI.getSchema() + targetPath);
+                DataLocation targetLocation = DataLocation.createLocation(Comm.getAppHost(), targetURI);
+                setLocation(targetLocation);
+            } catch (IOException ioe) {
+                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, ioe);
+            }
+
+            super.notifyEnd(fOp);
+        }
+    }
 }

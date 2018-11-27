@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- GENERAL INFORMATION -->
-	<artifactId>compss-adaptors</artifactId>
+	<artifactId>compss-adaptors-local</artifactId>
 	<packaging>pom</packaging>
 	<parent>
 		<groupId>es.bsc.compss</groupId>
-		<artifactId>compss-runtime</artifactId>
-<version>2.4.rc1811</version>
+		<artifactId>compss-adaptors</artifactId>
+		<version>2.4.rc1811</version>
 		<relativePath>..</relativePath>
 	</parent>
+	
 
 	<!-- PROJECT INFORMATION -->
-	<name>COMPSs Back-end Adaptors</name>
-	<description>Collection of available adaptors to execute tasks on remote workers.</description>
+	<name>COMPSs Back-end Local Adaptor</name>
+	<description>COMPSs Back-end adaptor to transfer data and submit job executions on the master process.</description>
 	<url>http://www.bsc.es</url>
 	<inceptionYear>2015</inceptionYear>
 	<licenses>
@@ -31,11 +31,6 @@
 
 	<!-- SUB-MODULES -->
 	<modules>
-		<module>commons</module>
-		<module>gat</module>
-		<module>nio</module>
-		<module>ws</module>
-		<module>execution</module>
-		<module>local</module>
+		<module>master</module>
 	</modules>
 </project>

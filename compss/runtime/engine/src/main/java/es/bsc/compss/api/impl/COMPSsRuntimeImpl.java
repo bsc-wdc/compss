@@ -22,7 +22,6 @@ import java.io.InputStream;
 import java.util.Properties;
 
 import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.BindingObject;
@@ -52,8 +51,10 @@ import es.bsc.compss.types.parameter.ExternalPSCOParameter;
 import es.bsc.compss.types.parameter.FileParameter;
 import es.bsc.compss.types.parameter.ObjectParameter;
 import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.resources.MasterResourceImpl;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.types.resources.ResourcesPool;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
@@ -125,7 +126,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         /*
          * Initializes the COMM library and the MasterResource (Master reconfigures the logger)
          */
-        Comm.init();
+        Comm.init(new MasterResourceImpl());
     }
 
     // Code Added to support configuration files
@@ -1031,6 +1032,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      *
      * @return id of the object in the cache
      */
+    @Override
     public String getBindingObject(String fileName) {
         // Parse the file name
         LOGGER.debug(" Calling get binding object : " + fileName);
@@ -1047,6 +1049,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * @param fileName
      * @return
      */
+    @Override
     public boolean deleteBindingObject(String fileName) {
         // Check parameters
         if (fileName == null || fileName.isEmpty()) {
@@ -1085,7 +1088,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             Direction direction = (Direction) parameters[i + 2];
             Stream stream = (Stream) parameters[i + 3];
             String prefix = (String) parameters[i + 4];
-            String name   = (String) parameters[i + 5];
+            String name = (String) parameters[i + 5];
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("  Parameter " + (npar + 1) + " has type " + type.name());
@@ -1239,7 +1242,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         Resource host = Comm.getAppHost();
         String hostName = uri.getHost();
         if (hostName != null && !hostName.isEmpty()) {
-            host = Resource.getResource(hostName);
+            host = ResourcesPool.getResource(hostName);
             if (host == null) {
                 ErrorManager.error("Host " + hostName + " not found when creating data location.");
             }
@@ -1254,6 +1257,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         oReg.delete(o);
     }
 
+    @Override
     public void removeObject(Object o, int hashcode) { //private?
 
         //This will remove the object from the Object Registry and the Data Info Provider

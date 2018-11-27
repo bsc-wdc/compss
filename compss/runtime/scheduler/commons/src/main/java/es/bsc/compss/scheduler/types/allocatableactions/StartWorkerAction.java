@@ -29,7 +29,6 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.ServiceImplementation;
 import es.bsc.compss.types.resources.MethodResourceDescription;
-import es.bsc.compss.types.resources.Resource.Type;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.ErrorManager;
@@ -51,11 +50,14 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
     public StartWorkerAction(SchedulingInformation schedulingInformation, ResourceScheduler<T> worker, TaskScheduler ts) {
         super(schedulingInformation, ts.getOrchestrator());
         this.worker = worker;
-        if (worker.getResource().getType() == Type.WORKER) {
-            Worker<T> mw = worker.getResource();
-            impl = new MethodImplementation("", "", null, null, (MethodResourceDescription) mw.getDescription());
-        } else {
-            impl = new ServiceImplementation(null, "", "", "", "");
+        switch (worker.getResource().getType()) {
+            case WORKER:
+            case MASTER:
+                Worker<T> mw = worker.getResource();
+                impl = new MethodImplementation("", "", null, null, (MethodResourceDescription) mw.getDescription());
+                break;
+            default:
+                impl = new ServiceImplementation(null, "", "", "", "");
         }
     }
 
@@ -73,7 +75,7 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
     public boolean isToReleaseResources() {
         return true;
     }
-    
+
     @Override
     public boolean isToStopResource() {
         return false;
@@ -151,7 +153,7 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
 
     @Override
     public Implementation[] getImplementations() {
-        Implementation[] impls = new Implementation[] { impl };
+        Implementation[] impls = new Implementation[]{impl};
         return impls;
     }
 
@@ -179,7 +181,7 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
         schedule((ResourceScheduler<WorkerResourceDescription>) this.worker, this.impl);
     }
-    
+
     @Override
     public void tryToSchedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
         this.schedule(actionScore);

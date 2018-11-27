@@ -17,9 +17,17 @@
 package es.bsc.compss.types;
 
 import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.COMPSsConstants.TaskExecution;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.CommAdaptor;
+import es.bsc.compss.exceptions.AnnounceException;
+import es.bsc.compss.executor.ExecutionManager;
+import es.bsc.compss.executor.types.Execution;
+import es.bsc.compss.executor.types.ExecutionListener;
+import es.bsc.compss.executor.utils.ThreadedPrintStream;
+import es.bsc.compss.local.LocalJob;
+import es.bsc.compss.local.LocalParameter;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
@@ -28,12 +36,20 @@ import es.bsc.compss.types.data.location.DataLocation.Type;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.operation.copy.Copy;
+import es.bsc.compss.types.execution.Invocation;
+import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.types.execution.LanguageParams;
+import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
+import es.bsc.compss.types.parameter.DependencyParameter;
+import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.ExecutorShutdownListener;
+import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.BindingDataManager;
@@ -42,56 +58,286 @@ import es.bsc.compss.util.Serializer;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
 
 
 /**
  * Representation of the COMPSs Master Node Only 1 instance per execution
  *
  */
-public class COMPSsMaster extends COMPSsNode {
+public final class COMPSsMaster extends COMPSsWorker implements InvocationContext {
 
-    protected static final String ERROR_UNKNOWN_HOST = "ERROR: Cannot determine the IP address of the local host";
+    private static final String ERROR_COMPSs_LOG_BASE_DIR = "ERROR: Cannot create .COMPSs base log directory";
+    private static final String ERROR_APP_OVERLOAD = "ERROR: Cannot erase overloaded directory";
+    private static final String ERROR_APP_LOG_DIR = "ERROR: Cannot create application log directory";
+    private static final String ERROR_TEMP_DIR = "ERROR: Cannot create temp directory";
+    private static final String ERROR_JOBS_DIR = "ERROR: Cannot create jobs directory";
+    private static final String ERROR_WORKERS_DIR = "ERROR: Cannot create workers directory";
+    private static final String WARN_FOLDER_OVERLOAD = "WARNING: Reached maximum number of executions for this application. To avoid this warning please clean .COMPSs folder";
+    private static final String EXECUTION_MANAGER_ERR = "Error starting ExecutionManager";
+    private static final String DATA_MANAGER_ERROR = "Error starting DataManager";
+    private static final String ERROR_INCORRECT_NUM_PARAMS = "Error: Incorrect number of parameters";
+    private static final String ERROR_UNKNOWN_HOST = "ERROR: Cannot determine the IP address of the local host";
 
-    private static final String MASTER_NAME_PROPERTY = System.getProperty(COMPSsConstants.MASTER_NAME);
-    private static final String UNDEFINED_MASTER_NAME = "master";
+    private static final int MAX_OVERLOAD = 100; // Maximum number of executions of same application
+    public static final String SUFFIX_OUT = ".out";
+    public static final String SUFFIX_ERR = ".err";
 
     private final String name;
 
+    private final String storageConf;
+    private final TaskExecution executionType;
+
+    private final String userExecutionDirPath;
+    private final String COMPSsLogBaseDirPath;
+    private final String appLogDirPath;
+
+    private final String tempDirPath;
+    private final String jobsDirPath;
+    private final String workersDirPath;
+
+    private ExecutionManager executionManager;
+    private final ThreadedPrintStream out;
+    private final ThreadedPrintStream err;
+    private boolean started = false;
+
     /**
      * New COMPSs Master
+     *
+     * @param hostName
      */
-    public COMPSsMaster() {
-        super();
+    public COMPSsMaster(String hostName) {
+        super(hostName, null);
+        name = hostName;
 
-        // Initializing host attributes
-        String hostName = "";
-        if ((MASTER_NAME_PROPERTY != null) && (!MASTER_NAME_PROPERTY.equals("")) && (!MASTER_NAME_PROPERTY.equals("null"))) {
-            // Set the hostname from the defined property
-            hostName = MASTER_NAME_PROPERTY;
+        // Gets user execution directory
+        userExecutionDirPath = System.getProperty("user.dir");
+
+        /* Creates base Runtime structure directories ************************** */
+        boolean mustCreateExecutionSandbox = true;
+        // Checks if specific log base dir has been given
+        String specificOpt = System.getProperty(COMPSsConstants.SPECIFIC_LOG_DIR);
+        if (specificOpt != null && !specificOpt.isEmpty()) {
+            COMPSsLogBaseDirPath = specificOpt.endsWith(File.separator) ? specificOpt : specificOpt + File.separator;
+            mustCreateExecutionSandbox = false; // This is the only case where
+            // the sandbox is provided
         } else {
-            // The MASTER_NAME_PROPERTY has not been defined, try load from machine
-            try {
-                InetAddress localHost = InetAddress.getLocalHost();
-                hostName = localHost.getCanonicalHostName();
-            } catch (UnknownHostException e) {
-                // Sets a default hsotName value
-                ErrorManager.warn("ERROR_UNKNOWN_HOST: " + e.getLocalizedMessage());
-                hostName = UNDEFINED_MASTER_NAME;
+            // Checks if base log dir has been given
+            String baseOpt = System.getProperty(COMPSsConstants.BASE_LOG_DIR);
+            if (baseOpt != null && !baseOpt.isEmpty()) {
+                baseOpt = baseOpt.endsWith(File.separator) ? baseOpt : baseOpt + File.separator;
+                COMPSsLogBaseDirPath = baseOpt + ".COMPSs" + File.separator;
+            } else {
+                // No option given - load default (user home)
+                COMPSsLogBaseDirPath = System.getProperty("user.home") + File.separator + ".COMPSs" + File.separator;
             }
         }
 
-        name = hostName;
+        if (!new File(COMPSsLogBaseDirPath).exists()) {
+            if (!new File(COMPSsLogBaseDirPath).mkdir()) {
+                ErrorManager.error(ERROR_COMPSs_LOG_BASE_DIR);
+            }
+        }
+
+        // Load working directory. Different for regular applications and
+        // services
+        if (mustCreateExecutionSandbox) {
+            String appName = System.getProperty(COMPSsConstants.APP_NAME);
+            if (System.getProperty(COMPSsConstants.SERVICE_NAME) != null) {
+                /*
+                 * SERVICE - Gets appName - Overloads the service folder for different executions - MAX_OVERLOAD raises
+                 * warning - Changes working directory to serviceName !!!!
+                 */
+                String serviceName = System.getProperty(COMPSsConstants.SERVICE_NAME);
+                int overloadCode = 1;
+                String appLog = COMPSsLogBaseDirPath + serviceName + "_0" + String.valueOf(overloadCode) + File.separator;
+                String oldest = appLog;
+                while ((new File(appLog).exists()) && (overloadCode <= MAX_OVERLOAD)) {
+                    // Check oldest file (for overload if needed)
+                    if (new File(oldest).lastModified() > new File(appLog).lastModified()) {
+                        oldest = appLog;
+                    }
+                    // Next step
+                    overloadCode = overloadCode + 1;
+                    if (overloadCode < 10) {
+                        appLog = COMPSsLogBaseDirPath + serviceName + "_0" + String.valueOf(overloadCode) + File.separator;
+                    } else {
+                        appLog = COMPSsLogBaseDirPath + serviceName + "_" + String.valueOf(overloadCode) + File.separator;
+                    }
+                }
+                if (overloadCode > MAX_OVERLOAD) {
+                    // Select the last modified folder
+                    appLog = oldest;
+
+                    // Overload
+                    System.err.println(WARN_FOLDER_OVERLOAD);
+                    System.err.println("Overwriting entry: " + appLog);
+
+                    // Clean previous results to avoid collisions
+                    if (!deleteDirectory(new File(appLog))) {
+                        ErrorManager.error(ERROR_APP_OVERLOAD);
+                    }
+                }
+
+                // We have the final appLogDirPath
+                appLogDirPath = appLog;
+                if (!new File(appLogDirPath).mkdir()) {
+                    ErrorManager.error(ERROR_APP_LOG_DIR);
+                }
+            } else {
+                /*
+                 * REGULAR APPLICATION - Gets appName - Overloads the app folder for different executions - MAX_OVERLOAD
+                 * raises warning - Changes working directory to appName !!!!
+                 */
+                int overloadCode = 1;
+                String appLog = COMPSsLogBaseDirPath + appName + "_0" + String.valueOf(overloadCode) + File.separator;
+                String oldest = appLog;
+                while ((new File(appLog).exists()) && (overloadCode <= MAX_OVERLOAD)) {
+                    // Check oldest file (for overload if needed)
+                    if (new File(oldest).lastModified() > new File(appLog).lastModified()) {
+                        oldest = appLog;
+                    }
+                    // Next step
+                    overloadCode = overloadCode + 1;
+                    if (overloadCode < 10) {
+                        appLog = COMPSsLogBaseDirPath + appName + "_0" + String.valueOf(overloadCode) + File.separator;
+                    } else {
+                        appLog = COMPSsLogBaseDirPath + appName + "_" + String.valueOf(overloadCode) + File.separator;
+                    }
+                }
+                if (overloadCode > MAX_OVERLOAD) {
+                    // Select the last modified folder
+                    appLog = oldest;
+
+                    // Overload
+                    System.err.println(WARN_FOLDER_OVERLOAD);
+                    System.err.println("Overwriting entry: " + appLog);
+
+                    // Clean previous results to avoid collisions
+                    if (!deleteDirectory(new File(appLog))) {
+                        ErrorManager.error(ERROR_APP_OVERLOAD);
+                    }
+                }
+
+                // We have the final appLogDirPath
+                appLogDirPath = appLog;
+                if (!new File(appLogDirPath).mkdir()) {
+                    ErrorManager.error(ERROR_APP_LOG_DIR);
+                }
+            }
+        } else {
+            // The option specific_log_dir has been given. NO sandbox created
+            appLogDirPath = COMPSsLogBaseDirPath;
+        }
+
+        // Set the environment property (for all cases) and reload logger
+        // configuration
+        System.setProperty(COMPSsConstants.APP_LOG_DIR, appLogDirPath);
+        ((LoggerContext) LogManager.getContext(false)).reconfigure();
+
+        /*
+         * Create a tmp directory where to store: - Files whose first opened stream is an input one - Object files
+         */
+        tempDirPath = appLogDirPath + "tmpFiles" + File.separator;
+        if (!new File(tempDirPath).mkdir()) {
+            ErrorManager.error(ERROR_TEMP_DIR);
+        }
+
+        /*
+         * Create a jobs dir where to store: - Jobs output files - Jobs error files
+         */
+        jobsDirPath = appLogDirPath + "jobs" + File.separator;
+        if (!new File(jobsDirPath).mkdir()) {
+            ErrorManager.error(ERROR_JOBS_DIR);
+        }
+
+        /*
+         * Create a workers dir where to store: - Worker out files - Worker error files
+         */
+        workersDirPath = appLogDirPath + "workers" + File.separator;
+        if (!new File(workersDirPath).mkdir()) {
+            System.err.println(ERROR_WORKERS_DIR);
+            System.exit(1);
+        }
+
+        // Configure worker debug level
+        // Configure storage
+        String storageConf = System.getProperty(COMPSsConstants.STORAGE_CONF);
+        if (storageConf == null || storageConf.equals("") || storageConf.equals("null")) {
+            storageConf = "null";
+            LOGGER.warn("No storage configuration file passed");
+        }
+        this.storageConf = storageConf;
+
+        String executionType = System.getProperty(COMPSsConstants.TASK_EXECUTION);
+        if (executionType == null || executionType.equals("") || executionType.equals("null")) {
+            executionType = COMPSsConstants.TaskExecution.COMPSS.toString();
+            LOGGER.warn("No executionType passed");
+        } else {
+            executionType = executionType.toUpperCase();
+        }
+        this.executionType = TaskExecution.valueOf(executionType);
+
+        out = new ThreadedPrintStream(SUFFIX_OUT, System.out);
+        err = new ThreadedPrintStream(SUFFIX_ERR, System.err);
+        System.setErr(err);
+        System.setOut(out);
+    }
+
+    private boolean deleteDirectory(File directory) {
+        if (!directory.exists()) {
+            return false;
+        }
+
+        File[] files = directory.listFiles();
+        if (files != null) {
+            for (File f : files) {
+                if (f.isDirectory()) {
+                    deleteDirectory(f);
+                } else if (!f.delete()) {
+                    return false;
+                }
+            }
+        }
+
+        return directory.delete();
+    }
+
+    public void setUpExecutionCapabilities(MethodResourceDescription desc, int limitOfTasks) {
+        this.executionManager = new ExecutionManager(this,
+                desc.getTotalCPUComputingUnits(), "null",
+                desc.getTotalGPUComputingUnits(), "null",
+                desc.getTotalFPGAComputingUnits(), "null",
+                limitOfTasks
+        );
     }
 
     @Override
     public void start() {
-        // Do nothing.
+        synchronized (this) {
+            if (started) {
+                return;
+            }
+            started = true;
+        }
+        /*if (tracing_level == Tracer.BASIC_MODE) {
+            Tracer.enablePThreads();
+        }*/
+        try {
+            this.executionManager.init();
+        } catch (InitializationException ie) {
+            ErrorManager.error(EXECUTION_MANAGER_ERR, ie);
+        }
+
+        /*if (tracing_level == Tracer.BASIC_MODE) {
+            Tracer.disablePThreads();
+        }*/
     }
 
     @Override
@@ -108,7 +354,8 @@ public class COMPSsMaster extends COMPSsNode {
 
     @Override
     public void stop(ShutdownListener sl) {
-        // NO need to do anything
+        //ExecutionManager was already shutdown
+        sl.notifyEnd();
     }
 
     @Override
@@ -376,12 +623,19 @@ public class COMPSsMaster extends COMPSsNode {
             }
             if (u.getHost() == Comm.getAppHost()) {
                 try {
-                    if (DEBUG) {
-                        LOGGER.debug("Master local copy " + ld.getName() + " from " + u.getHost().getName() + " to " + targetPath);
-                    }
-                    Files.copy((new File(u.getPath())).toPath(), new File(targetPath).toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    if (tgtData != null) {
-                        tgtData.addLocation(target);
+                    if (targetPath.startsWith(this.getWorkingDir())) {
+                        if (DEBUG) {
+                            LOGGER.debug("Data " + ld.getName() + " is already accessible at " + u.getPath());
+                        }
+                        targetPath = u.getPath();
+                    } else {
+                        if (DEBUG) {
+                            LOGGER.debug("Master local copy " + ld.getName() + " from " + u.getHost().getName() + " to " + targetPath);
+                        }
+                        Files.copy((new File(u.getPath())).toPath(), new File(targetPath).toPath(), StandardCopyOption.REPLACE_EXISTING);
+                        if (tgtData != null) {
+                            tgtData.addLocation(target);
+                        }
                     }
                     LOGGER.debug("File copied. Set data target to " + targetPath);
                     reason.setDataTarget(targetPath);
@@ -466,7 +720,6 @@ public class COMPSsMaster extends COMPSsNode {
     @Override
     public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
             EventListener listener) {
-
         LOGGER.info("Obtain Data " + ld.getName());
         if (DEBUG) {
             if (ld != null) {
@@ -538,9 +791,7 @@ public class COMPSsMaster extends COMPSsNode {
     @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res, List<String> slaveWorkersNodeNames,
             JobListener listener) {
-
-        // Cannot run jobs
-        return null;
+        return new LocalJob(taskId, taskParams, impl, res, slaveWorkersNodeNames, listener);
     }
 
     @Override
@@ -604,6 +855,199 @@ public class COMPSsMaster extends COMPSsNode {
     @Override
     public void shutdownExecutionManager(ExecutorShutdownListener sl) {
         // Should not be executed on a COMPSsMaster
+        this.executionManager.stop();
+        sl.notifyEnd();
     }
 
+    @Override
+    public String getUser() {
+        return "";
+    }
+
+    @Override
+    public String getClasspath() {
+        return "";
+    }
+
+    @Override
+    public String getPythonpath() {
+        return "";
+    }
+
+    @Override
+    public void updateTaskCount(int processorCoreCount) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void announceDestruction() throws AnnounceException {
+        //No need to do it. The master no it's always up
+    }
+
+    @Override
+    public void announceCreation() throws AnnounceException {
+        //No need to do it. The master no it's always up
+    }
+
+    public void runJob(LocalJob job) {
+        Execution exec = new Execution(job, new ExecutionListener() {
+            @Override
+            public void notifyEnd(Invocation invocation, boolean success) {
+                job.getListener().jobCompleted(job);
+            }
+        });
+        executionManager.enqueue(exec);
+    }
+
+    @Override
+    public String getHostName() {
+        return this.name;
+    }
+
+    @Override
+    public long getTracingHostID() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String getAppDir() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String getInstallDir() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String getLibPath() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String getWorkingDir() {
+        return Comm.getAppHost().getTempDirPath();
+    }
+
+    @Override
+    public COMPSsConstants.TaskExecution getExecutionType() {
+        return this.executionType;
+    }
+
+    @Override
+    public boolean isPersistentEnabled() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public LanguageParams getLanguageParams(COMPSsConstants.Lang language) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void registerOutputs(String path) {
+        err.registerThread(path);
+        out.registerThread(path);
+    }
+
+    @Override
+    public void unregisterOutputs() {
+        err.unregisterThread();
+        out.unregisterThread();
+    }
+
+    @Override
+    public String getStandardStreamsPath(Invocation invocation) {
+        // Set outputs paths (Java will register them, ExternalExec will redirect processes outputs)
+        return Comm.getAppHost().getJobsDirPath() + File.separator + "job" + invocation.getJobId() + "_" + invocation.getHistory();
+    }
+
+    @Override
+    public PrintStream getThreadOutStream() {
+        return out.getStream();
+    }
+
+    @Override
+    public PrintStream getThreadErrStream() {
+        return err.getStream();
+    }
+
+    @Override
+    public String getStorageConf() {
+        return this.storageConf;
+    }
+
+    @Override
+    public void loadParam(InvocationParam invParam) throws Exception {
+        LocalParameter localParam = (LocalParameter) invParam;
+
+        switch (localParam.getType()) {
+            case FILE_T:
+                //No need to load anything. Value already on a file
+                break;
+            case OBJECT_T:
+                DependencyParameter dpar = (DependencyParameter) localParam.getParam();
+                String dataId = (String) localParam.getValue();
+                LogicalData ld = Comm.getData(dataId);
+                if (ld.isInMemory()) {
+                    invParam.setValue(ld.getValue());
+                } else {
+                    Object o = Serializer.deserialize(dpar.getDataTarget());
+                    invParam.setValue(o);
+                }
+                break;
+            case PSCO_T:
+            case EXTERNAL_PSCO_T:
+            case BINDING_OBJECT_T:
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.        
+            default:
+            //Already contains the proper value on the param
+        }
+    }
+
+    @Override
+    public void storeParam(InvocationParam invParam) throws Exception {
+        LocalParameter localParam = (LocalParameter) invParam;
+        Parameter param = localParam.getParam();
+        switch (param.getType()) {
+            case FILE_T:
+                //No need to store anything. Already stored on disk
+                break;
+            case OBJECT_T:
+                String resultName = localParam.getDataMgmtId();
+                LogicalData ld = Comm.getData(resultName);
+                ld.setValue(invParam.getValue());
+                break;
+            default:
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.        
+        }
+    }
+
+    public String getCOMPSsLogBaseDirPath() {
+        return this.COMPSsLogBaseDirPath;
+    }
+
+    public String getWorkingDirectory() {
+        return this.tempDirPath;
+    }
+
+    public String getUserExecutionDirPath() {
+        return this.userExecutionDirPath;
+    }
+
+    public String getAppLogDirPath() {
+        return this.appLogDirPath;
+    }
+
+    public String getTempDirPath() {
+        return this.tempDirPath;
+    }
+
+    public String getJobsDirPath() {
+        return this.jobsDirPath;
+    }
+
+    public String getWorkersDirPath() {
+        return this.workersDirPath;
+    }
 }

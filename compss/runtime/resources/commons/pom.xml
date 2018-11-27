@@ -36,6 +36,10 @@
         </dependency>
         <dependency>
             <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-adaptors-local-master</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
             <artifactId>compss-resources-schema</artifactId>
         </dependency>
         <dependency>

@@ -58,7 +58,7 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Representation of the Communication interface of the Runtime
- * 
+ *
  */
 public class Comm {
 
@@ -77,7 +77,6 @@ public class Comm {
     // Master information
     private static MasterResource appHost;
 
-
     /**
      * Private constructor to avoid instantiation
      */
@@ -87,9 +86,11 @@ public class Comm {
 
     /**
      * Communications initializer
+     *
+     * @param master
      */
-    public static void init() {
-        appHost = new MasterResource();
+    public static void init(MasterResource master) {
+        appHost = master;
         try {
             if (STORAGE_CONF == null || STORAGE_CONF.equals("") || STORAGE_CONF.equals("null")) {
                 LOGGER.warn("No storage configuration file passed");
@@ -117,7 +118,7 @@ public class Comm {
 
     /**
      * Initializes the internal adaptor and constructs a comm configuration
-     * 
+     *
      * @param adaptorName
      * @param project_properties
      * @param resources_properties
@@ -134,8 +135,7 @@ public class Comm {
             try {
                 Constructor<?> constrAdaptor = Class.forName(adaptorName).getConstructor();
                 adaptor = (CommAdaptor) constrAdaptor.newInstance();
-            } catch (NoSuchMethodException | SecurityException | ClassNotFoundException | InstantiationException | IllegalAccessException
-                    | IllegalArgumentException | InvocationTargetException e) {
+            } catch (NoSuchMethodException | SecurityException | ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 
                 throw new ConstructConfigurationException(e);
             }
@@ -157,7 +157,7 @@ public class Comm {
 
     /**
      * Returns the resource assigned as master node
-     * 
+     *
      * @return
      */
     public static MasterResource getAppHost() {
@@ -166,7 +166,7 @@ public class Comm {
 
     /**
      * Initializes a worker with name @name and configuration @config
-     * 
+     *
      * @param name
      * @param config
      * @return
@@ -204,7 +204,7 @@ public class Comm {
 
     /**
      * Registers a new data with id @dataId
-     * 
+     *
      * @param dataId
      * @return
      */
@@ -219,7 +219,7 @@ public class Comm {
 
     /**
      * Registers a new location @location for the data with id @dataId dataId must exist
-     * 
+     *
      * @param dataId
      * @param location
      * @return
@@ -236,7 +236,7 @@ public class Comm {
 
     /**
      * Registers a new value @value for the data with id @dataId dataId must exist
-     * 
+     *
      * @param dataId
      * @param value
      * @return
@@ -270,7 +270,7 @@ public class Comm {
 
     /**
      * Registers a new External PSCO id @id for the data with id @dataId dataId must exist
-     * 
+     *
      * @param dataId
      * @param id
      * @return
@@ -281,18 +281,19 @@ public class Comm {
 
         return ld;
     }
+
     /**
      * Registers a new Binding Object id @id for the data with id @dataId dataId must exist
-     * 
+     *
      * @param dataId
      * @param extObjectId
      * @return
      */
-	public static synchronized LogicalData registerBindingObject(String dataId, BindingObject bo) {
-	    String targetPath = Protocol.BINDING_URI.getSchema() + bo.toString();
+    public static synchronized LogicalData registerBindingObject(String dataId, BindingObject bo) {
+        String targetPath = Protocol.BINDING_URI.getSchema() + bo.toString();
         DataLocation location = null;
         try {
-            
+
             SimpleURI uri = new SimpleURI(targetPath);
             location = DataLocation.createLocation(appHost, uri);
         } catch (IOException ioe) {
@@ -301,14 +302,13 @@ public class Comm {
 
         LogicalData logicalData = data.get(dataId);
         logicalData.addLocation(location);
-        logicalData.setValue(dataId+"#"+bo.getType()+"#"+bo.getElements());
-		return logicalData;
-	}
+        logicalData.setValue(dataId + "#" + bo.getType() + "#" + bo.getElements());
+        return logicalData;
+    }
 
-	
     /**
      * Registers a new PSCO id @id for the data with id @dataId dataId must exist
-     * 
+     *
      * @param dataId
      * @param id
      * @return
@@ -331,7 +331,7 @@ public class Comm {
 
     /**
      * Clears the value of the data id @dataId
-     * 
+     *
      * @param dataId
      * @return
      */
@@ -344,7 +344,7 @@ public class Comm {
 
     /**
      * Checks if a given dataId @renaming exists
-     * 
+     *
      * @param renaming
      * @return
      */
@@ -354,13 +354,13 @@ public class Comm {
 
     /**
      * Returns the data with id @dataId
-     * 
+     *
      * @param dataId
      * @return
      */
     public static synchronized LogicalData getData(String dataId) {
         LogicalData retVal = data.get(dataId);
-        if (retVal==null) {
+        if (retVal == null) {
             LOGGER.warn("Get data " + dataId + " is null.");
         }
         return retVal;
@@ -368,7 +368,7 @@ public class Comm {
 
     /**
      * Dumps the stored data (only for testing)
-     * 
+     *
      * @return
      */
     public static synchronized String dataDump() {
@@ -397,7 +397,7 @@ public class Comm {
 
     /**
      * Returns all the data stored in a host @host
-     * 
+     *
      * @param host
      * @return
      */
@@ -408,7 +408,7 @@ public class Comm {
 
     /**
      * Removes the data with id @renaming
-     * 
+     *
      * @param renaming
      */
     public static synchronized void removeData(String renaming) {
@@ -433,7 +433,7 @@ public class Comm {
 
     /**
      * Return the active adaptors
-     * 
+     *
      * @return
      */
     public static Map<String, CommAdaptor> getAdaptors() {
@@ -442,7 +442,7 @@ public class Comm {
 
     /**
      * Stops all the submitted jobs
-     * 
+     *
      */
     public static void stopSubmittedjobs() {
         for (CommAdaptor adaptor : adaptors.values()) {
@@ -465,7 +465,5 @@ public class Comm {
             LOGGER.warn("WARN_MSG = [Adaptors folder not defined, no adaptors loaded.]");
         }
     }
-
-
 
 }

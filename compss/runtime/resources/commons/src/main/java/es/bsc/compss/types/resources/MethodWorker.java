@@ -33,17 +33,16 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     // Task count
     private int usedCPUTaskCount = 0;
-    private final int maxCPUTaskCount;
+    private int maxCPUTaskCount;
     private int usedGPUTaskCount = 0;
-    private final int maxGPUTaskCount;
+    private int maxGPUTaskCount;
     private int usedFPGATaskCount = 0;
-    private final int maxFPGATaskCount;
+    private int maxFPGATaskCount;
     private int usedOthersTaskCount = 0;
-    private final int maxOthersTaskCount;
-
+    private int maxOthersTaskCount;
 
     public MethodWorker(String name, MethodResourceDescription description, COMPSsWorker worker, int limitOfTasks,
-            int limitGPUTasks, int limitFPGATasks, int limitOTHERTasks,Map<String, String> sharedDisks) {
+            int limitGPUTasks, int limitFPGATasks, int limitOTHERTasks, Map<String, String> sharedDisks) {
 
         super(name, description, worker, limitOfTasks, sharedDisks);
         this.name = name;
@@ -143,12 +142,20 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
                 || (this.usedFPGATaskCount < this.maxFPGATaskCount) || (this.usedOthersTaskCount < this.maxOthersTaskCount));
     }
 
+    public void setMaxCPUTaskCount(int maxCPUTaskCount) {
+        this.maxCPUTaskCount = maxCPUTaskCount;
+    }
+
     public int getMaxCPUTaskCount() {
         return this.maxCPUTaskCount;
     }
 
     public int getUsedCPUTaskCount() {
         return this.usedCPUTaskCount;
+    }
+
+    public void setMaxGPUTaskCount(int maxGPUTaskCount) {
+        this.maxGPUTaskCount = maxGPUTaskCount;
     }
 
     public int getMaxGPUTaskCount() {
@@ -159,12 +166,20 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
         return this.usedGPUTaskCount;
     }
 
+    public void setMaxFPGATaskCount(int maxFPGATaskCount) {
+        this.maxFPGATaskCount = maxFPGATaskCount;
+    }
+
     public int getMaxFPGATaskCount() {
         return this.maxFPGATaskCount;
     }
 
     public int getUsedFPGATaskCount() {
         return this.usedFPGATaskCount;
+    }
+
+    public void setMaxOthersTaskCount(int maxOthersTaskCount) {
+        this.maxOthersTaskCount = maxOthersTaskCount;
     }
 
     public int getMaxOthersTaskCount() {

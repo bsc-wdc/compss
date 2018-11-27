@@ -30,7 +30,8 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public abstract class Worker<T extends WorkerResourceDescription> extends Resource {
+
+public abstract class Worker<T extends WorkerResourceDescription> extends ResourceImpl {
 
     // Logger
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.RM_COMP);
@@ -335,7 +336,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     public abstract Integer fitCount(Implementation impl);
 
     public abstract boolean hasAvailable(T consumption);
-    
+
     public abstract boolean hasAvailableSlots();
 
     public abstract T reserveResource(T consumption);

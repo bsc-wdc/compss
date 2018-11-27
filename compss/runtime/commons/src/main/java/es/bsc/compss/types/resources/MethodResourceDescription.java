@@ -33,6 +33,7 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 
+
 public class MethodResourceDescription extends WorkerResourceDescription {
 
     // Constant for weight difference (dynamic increase/decrease)
@@ -99,7 +100,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /* Internal fields ************************************************** */
     protected Float value = 0.0f;
-    
+
     /*
      * ******************************************* CONSTRUCTORS
      *******************************************/
@@ -158,7 +159,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
             String cuSTR = constraints.computingUnits();
             cuSTR = EnvironmentLoader.loadFromEnvironment(cuSTR);
-            
+
             // When loading from constraints, always use at least one computing unit
             int cu = (cuSTR != null && !cuSTR.isEmpty() && !cuSTR.equals(UNASSIGNED_STR)) ? Integer.valueOf(cuSTR) : ONE_INT;
             p.setComputingUnits(cu);
@@ -308,11 +309,11 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
         String cuSTR = processorConstraints.computingUnits();
         cuSTR = EnvironmentLoader.loadFromEnvironment(cuSTR);
-        
+
         // When loading from constraints, always use at least one computing unit
         int cu = (cuSTR != null && !cuSTR.isEmpty() && !cuSTR.equals(UNASSIGNED_STR)) ? Integer.valueOf(cuSTR) : ONE_INT;
         p.setComputingUnits(cu);
-           
+
         String speedSTR = processorConstraints.speed();
         speedSTR = EnvironmentLoader.loadFromEnvironment(speedSTR);
         float speed = (speedSTR != null && !speedSTR.isEmpty() && !speedSTR.equals(UNASSIGNED_STR)) ? Float.valueOf(speedSTR)
@@ -456,7 +457,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
      */
     public MethodResourceDescription(String[] constraints, String processorString) {
         super();
-        
+
         Processor proc = new Processor();
         if (processorString != null && !processorString.isEmpty()) {
             String[] processors = StringUtils.split(processorString, "@");
@@ -509,7 +510,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
      */
     private void addConstraints(String key, String val, Processor proc) {
         val = EnvironmentLoader.loadFromEnvironment(val);
-        
+
         if (val != null && !val.isEmpty()) {
             switch (key.toLowerCase()) {
                 case PROC_NAME:
@@ -578,14 +579,13 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                     ErrorManager.error("ERROR: Unrecognised constraint " + key);
                     return;
             }
-        } 
-        else {
-        	//Set the default values
-        	switch (key.toLowerCase()) {
-	        	case COMPUTING_UNITS:
-	                proc.setComputingUnits(ONE_INT);
-	                break;
-        	}
+        } else {
+            //Set the default values
+            switch (key.toLowerCase()) {
+                case COMPUTING_UNITS:
+                    proc.setComputingUnits(ONE_INT);
+                    break;
+            }
         }
     }
 
@@ -1204,6 +1204,55 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         rd.storageSize = this.storageSize * amount;
 
         return rd;
+    }
+
+    @Override
+    public void mimic(ResourceDescription rd) {
+        MethodResourceDescription mrd2 = (MethodResourceDescription) rd;
+        this.processors.clear();
+        this.totalCPUComputingUnits = 0;
+        this.totalGPUComputingUnits = 0;
+        this.totalFPGAComputingUnits = 0;
+        this.totalOTHERComputingUnits = 0;
+
+        for (Processor p2 : mrd2.getProcessors()) {
+            this.addProcessor(new Processor(p2));
+        }
+
+        //Memory
+        this.memorySize = mrd2.memorySize;
+        this.storageType = mrd2.storageType;
+
+        // Storage
+        this.storageSize = mrd2.storageSize;
+        this.storageType = mrd2.storageType;
+
+        // OperatingSystem
+        this.operatingSystemType = mrd2.operatingSystemType;
+        this.operatingSystemDistribution = mrd2.operatingSystemDistribution;
+        this.operatingSystemVersion = mrd2.operatingSystemVersion;
+
+        // Applications
+        this.appSoftware.clear();
+        for (String app : mrd2.appSoftware) {
+            this.appSoftware.add(app);
+        }
+
+        // Host queues
+        this.hostQueues.clear();
+        for (String queue : mrd2.hostQueues) {
+            this.hostQueues.add(queue);
+        }
+
+        // Price
+        this.pricePerUnit = mrd2.pricePerUnit;
+        this.priceTimeUnit = mrd2.priceTimeUnit;
+
+        // WallClock limit
+        this.wallClockLimit = mrd2.wallClockLimit;
+
+        // Internal fields
+        this.value = mrd2.value;
     }
 
     // This method expands the implicit value with the ones defined by mr2

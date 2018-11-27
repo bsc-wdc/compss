@@ -28,6 +28,7 @@ import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.ResourceCreationRequest;
 import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.MasterResource;
+import es.bsc.compss.types.resources.MasterResourceImpl;
 import es.bsc.compss.types.resources.MethodWorker;
 import es.bsc.compss.types.resources.description.CloudImageDescription;
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
@@ -56,12 +57,11 @@ public class ExternalAdaptationManager extends Thread {
     private boolean running = false;
     private boolean canBeStarted = false;
 
-
     public ExternalAdaptationManager() {
         MasterResource master = Comm.getAppHost();
         if (master == null) {
             // Testing purposes
-            master = new MasterResource();
+            master = new MasterResourceImpl();
         }
 
         this.adaptationDir = master.getAppLogDirPath() + "adaptation" + File.separator;
@@ -106,7 +106,7 @@ public class ExternalAdaptationManager extends Thread {
 
     /**
      * Shutdown the adaptation manager
-     * 
+     *
      */
     public void shutdown() {
         if (this.canBeStarted) {
@@ -119,7 +119,7 @@ public class ExternalAdaptationManager extends Thread {
         if (!new File(this.adaptationDir).mkdir()) {
             ErrorManager.error("ERROR: Error creating adaptation dir");
         }
-        String[] command = new String[] { "mkfifo", commandPipe, resultPipe };
+        String[] command = new String[]{"mkfifo", commandPipe, resultPipe};
         try {
             Process process = new ProcessBuilder(command).inheritIO().start();
             int result = process.waitFor();
@@ -148,7 +148,7 @@ public class ExternalAdaptationManager extends Thread {
 
     /**
      * Manages remove messages
-     * 
+     *
      * @param params
      */
     private void manageRemove(String[] params) {
@@ -170,7 +170,7 @@ public class ExternalAdaptationManager extends Thread {
 
     /**
      * Manages create messages
-     * 
+     *
      * @param params
      */
     private void manageCreate(String[] params) {
@@ -248,7 +248,7 @@ public class ExternalAdaptationManager extends Thread {
                     RUNTIME_LOGGER.info(
                             LOG_PREFIX + "Submited external request for creating (" + typeName + ", " + imageName + ") in " + providerName);
                     rcr.print(RESOURCES_LOGGER, DEBUG);
-                    writePipe(resultPipe, ACK +" " + rcr.getRequestID());
+                    writePipe(resultPipe, ACK + " " + rcr.getRequestID());
                 } else {
                     RUNTIME_LOGGER.error(LOG_PREFIX + "ERROR: Creating resource (" + typeName + ", " + imageName + ") in " + providerName);
                     writePipe(resultPipe, "ERROR: Error creating resource(" + typeName + ", " + imageName + ") in " + providerName);

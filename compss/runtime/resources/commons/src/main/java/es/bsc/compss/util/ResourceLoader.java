@@ -71,7 +71,6 @@ public class ResourceLoader {
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.RM_COMP);
 
-
     public static void load(String resources_XML, String resources_XSD, String project_XML, String project_XSD)
             throws ResourcesFileValidationException, ProjectFileValidationException, NoResourceAvailableException {
 
@@ -125,7 +124,8 @@ public class ResourceLoader {
 
         // Load master node information
         MasterNodeType master = ResourceLoader.project.getMasterNode();
-        loadMaster(master);
+        boolean exist = loadMaster(master);
+        computeNodeExist = (computeNodeExist || exist);
 
         // Load ComputeNodes
         List<ComputeNodeType> computeNodes = ResourceLoader.project.getComputeNodes_list();
@@ -134,21 +134,20 @@ public class ResourceLoader {
                 es.bsc.compss.types.resources.jaxb.ComputeNodeType cn_resources = ResourceLoader.resources
                         .getComputeNode(cn_project.getName());
                 if (cn_resources != null) {
-                    boolean exist = loadComputeNode(cn_project, cn_resources);
+                    exist = loadComputeNode(cn_project, cn_resources);
                     computeNodeExist = (computeNodeExist || exist);
                 } else {
                     ErrorManager.warn("ComputeNode " + cn_project.getName() + " not defined in the resources file");
                 }
             }
         }
-
         // Load Services
         List<ServiceType> services = ResourceLoader.project.getServices_list();
         if (services != null) {
             for (ServiceType s_project : services) {
                 es.bsc.compss.types.resources.jaxb.ServiceType s_resources = ResourceLoader.resources.getService(s_project.getWsdl());
                 if (s_resources != null) {
-                    boolean exist = loadService(s_project, s_resources);
+                    exist = loadService(s_project, s_resources);
                     serviceExist = (serviceExist || exist);
                 } else {
                     ErrorManager.warn("Service " + s_project.getWsdl() + " not defined in the resources file");
@@ -181,12 +180,46 @@ public class ResourceLoader {
         }
     }
 
-    private static void loadMaster(MasterNodeType master) {
+    private static boolean loadMaster(MasterNodeType master) {
         Map<String, String> sharedDisks = new HashMap<>();
-        List<Object> masterInformation = master.getSharedDisksOrPrice();
+        List<Object> masterInformation = master.getProcessorOrMemoryOrStorage();
+        MethodResourceDescription mrd = new MethodResourceDescription();
         if (masterInformation != null) {
             for (Object obj : masterInformation) {
-                if (obj instanceof AttachedDisksListType) {
+                if (obj instanceof es.bsc.compss.types.project.jaxb.ProcessorType) {
+                    es.bsc.compss.types.project.jaxb.ProcessorType procNode = (es.bsc.compss.types.project.jaxb.ProcessorType) obj;
+                    String procName = procNode.getName();
+                    int computingUnits = project.getProcessorComputingUnits(procNode);
+                    String architecture = project.getProcessorArchitecture(procNode);
+                    float speed = project.getProcessorSpeed(procNode);
+                    String type = project.getProcessorType(procNode);
+                    float internalMemory = project.getProcessorMemorySize(procNode);
+                    es.bsc.compss.types.project.jaxb.ProcessorPropertyType procProp = project.getProcessorProperty(procNode);
+                    String propKey = (procProp != null) ? procProp.getKey() : "";
+                    String propValue = (procProp != null) ? procProp.getValue() : "";
+                    mrd.addProcessor(procName, computingUnits, architecture, speed, type, internalMemory, propKey, propValue);
+                } else if (obj instanceof es.bsc.compss.types.project.jaxb.MemoryType) {
+                    es.bsc.compss.types.project.jaxb.MemoryType memNode = (es.bsc.compss.types.project.jaxb.MemoryType) obj;
+                    mrd.setMemorySize(project.getMemorySize(memNode));
+                    mrd.setMemoryType(project.getMemoryType(memNode));
+                } else if (obj instanceof es.bsc.compss.types.project.jaxb.StorageType) {
+                    es.bsc.compss.types.project.jaxb.StorageType strNode = (es.bsc.compss.types.project.jaxb.StorageType) obj;
+                    mrd.setStorageSize(project.getStorageSize(strNode));
+                    mrd.setStorageType(project.getStorageType(strNode));
+                } else if (obj instanceof es.bsc.compss.types.project.jaxb.OSType) {
+                    es.bsc.compss.types.project.jaxb.OSType osNode = (es.bsc.compss.types.project.jaxb.OSType) obj;
+                    mrd.setOperatingSystemType(project.getOperatingSystemType(osNode));
+                    mrd.setOperatingSystemDistribution(project.getOperatingSystemDistribution(osNode));
+                    mrd.setOperatingSystemVersion(project.getOperatingSystemVersion(osNode));
+                } else if (obj instanceof es.bsc.compss.types.project.jaxb.SoftwareListType) {
+                    es.bsc.compss.types.project.jaxb.SoftwareListType softwares = (es.bsc.compss.types.project.jaxb.SoftwareListType) obj;
+                    List<String> apps = softwares.getApplication();
+                    if (apps != null) {
+                        for (String appName : apps) {
+                            mrd.addApplication(appName);
+                        }
+                    }
+                } else if (obj instanceof AttachedDisksListType) {
                     AttachedDisksListType disks = (AttachedDisksListType) obj;
                     if (disks != null) {
                         List<AttachedDiskType> disksList = disks.getAttachedDisk();
@@ -214,7 +247,17 @@ public class ResourceLoader {
                 }
             }
         }
-        ResourceManager.updateMasterConfiguration(sharedDisks);
+
+        ResourceManager.updateMasterConfiguration(mrd, sharedDisks);
+        if (mrd.getTotalCPUComputingUnits() > 0) {
+            ResourceManager.addStaticResource((MethodWorker) Comm.getAppHost());
+            return true;
+        } else {
+            for (Map.Entry<String, String> disk : sharedDisks.entrySet()) {
+                SharedDiskManager.addSharedToMachine(disk.getKey(), disk.getValue(), Comm.getAppHost());
+            }
+            return false;
+        }
     }
 
     private static boolean loadComputeNode(ComputeNodeType cn_project, es.bsc.compss.types.resources.jaxb.ComputeNodeType cn_resources) {

@@ -16,7 +16,7 @@ from pycompss.api.constraint import constraint
 from pycompss.api.api import compss_wait_on
 
 
-@compss(runcompss="runcompss", flags="-d", app_name="${APP_DIR}/simple.py", computing_nodes="1")
+@compss(runcompss="${RUNCOMPSS}", flags="-d", app_name="${APP_DIR}/simple.py", computing_nodes="1")
 @constraint(ComputingUnits="2")
 @task(returns=int)
 def simple(value):

@@ -7,7 +7,7 @@ import es.bsc.compss.types.annotations.task.COMPSs;
 
 public interface MainItf {
 
-    @COMPSs(appName = "simple.Simple", computingNodes = "1")
+    @COMPSs(runcompss = "$RUNCOMPSS", appName = "simple.Simple", computingNodes = "1")
     @Constraints(computingUnits = "2")
     int taskSingleNode(
         @Parameter() int counter
@@ -19,13 +19,13 @@ public interface MainItf {
         @Parameter() int counter
     );
 
-    @COMPSs(runcompss = "", appName = "simple.Simple", computingNodes = "2")
+    @COMPSs(runcompss = "$RUNCOMPSS", appName = "simple.Simple", computingNodes = "2")
     @Constraints(computingUnits = "2")
     int taskMultiNode(
         @Parameter() int counter
     );
 
-    @COMPSs(appName = "simple.Simple", computingNodes = "2")
+    @COMPSs(runcompss = "$RUNCOMPSS", appName = "simple.Simple", computingNodes = "2")
     @Constraints(computingUnits = "2")
     Integer taskConcurrentMultiNode(
         @Parameter() int counter

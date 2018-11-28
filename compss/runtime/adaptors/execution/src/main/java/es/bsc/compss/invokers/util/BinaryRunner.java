@@ -82,7 +82,7 @@ public class BinaryRunner {
                     if (param.getValue() != null && param.getValue().getClass().isArray()) {
                         try {
                             if (param.getPrefix() != null && !param.getPrefix().isEmpty()
-                                    && !param.getPrefix().equals(Constants.PREFIX_EMTPY)) {
+                                    && !param.getPrefix().equals(Constants.PREFIX_EMPTY)) {
                                 binaryParam.add(param.getPrefix());
                             }
                             binaryParam.addAll(serializeArrayParam(param.getValue()));
@@ -93,7 +93,7 @@ public class BinaryRunner {
                     } else if (param.getValue() != null && param.getValue() instanceof Collection<?>) {
                         try {
                             if (param.getPrefix() != null && !param.getPrefix().isEmpty()
-                                    && !param.getPrefix().equals(Constants.PREFIX_EMTPY)) {
+                                    && !param.getPrefix().equals(Constants.PREFIX_EMPTY)) {
                                 binaryParam.add(param.getPrefix());
                             }
                             binaryParam.addAll(serializeCollectionParam((Collection<?>) param.getValue()));
@@ -102,7 +102,7 @@ public class BinaryRunner {
                             throw new InvokeExecutionException(ERROR_PARAM_NOT_STRING, e);
                         }
                     } else // The value can be serialized to string directly
-                    if (param.getPrefix() != null && !param.getPrefix().isEmpty() && !param.getPrefix().equals(Constants.PREFIX_EMTPY)) {
+                    if (param.getPrefix() != null && !param.getPrefix().isEmpty() && !param.getPrefix().equals(Constants.PREFIX_EMPTY)) {
                         binaryParam.add(param.getPrefix() + String.valueOf(param.getValue()));
                     } else {
                         binaryParam.add(String.valueOf(param.getValue()));

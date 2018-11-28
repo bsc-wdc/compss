@@ -219,10 +219,6 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
             PipePair pipes = new PipePair("compute" + i);
             pipes.close();
         }
-        /*
-         * LOGGER.info("Stopping data pipes for mirror " + mirrorId); PipePair pipes = new PipePair("data");
-         * pipes.close(); LOGGER.info("All pipes for mirror " + mirrorId + " are stopped");
-         */
     }
 
     private void stopPiper() {

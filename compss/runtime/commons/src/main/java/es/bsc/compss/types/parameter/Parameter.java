@@ -43,7 +43,7 @@ public abstract class Parameter implements Serializable {
         this.direction = direction;
         this.stream = stream;
         if (prefix == null || prefix.isEmpty()) {
-            this.prefix = Constants.PREFIX_EMTPY;
+            this.prefix = Constants.PREFIX_EMPTY;
         } else {
             this.prefix = prefix;
         }

@@ -18,10 +18,10 @@ package es.bsc.compss.invokers.external.piped;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.executor.ExecutorContext;
 import es.bsc.compss.executor.utils.PipedMirror;
 import es.bsc.compss.executor.utils.PipedMirror.PipePair;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
-import es.bsc.compss.executor.Executor.ExecutorsContext;
 import es.bsc.compss.invokers.commands.external.ExecuteTaskExternalCommand;
 import es.bsc.compss.invokers.commands.piped.ExecuteTaskPipeCommand;
 import es.bsc.compss.invokers.types.CParams;
@@ -53,7 +53,7 @@ public class PythonInvoker extends PipedInvoker {
         return taskExecution;
     }
 
-    public static PipedMirror getMirror(InvocationContext context, ExecutorsContext platform) {
+    public static PipedMirror getMirror(InvocationContext context, ExecutorContext platform) {
         int threads = platform.getSize();
         return new PythonMirror(context, threads);
     }
@@ -72,7 +72,6 @@ public class PythonInvoker extends PipedInvoker {
 
         private final PythonParams pyParams;
         private final String pyCOMPSsHome;
-
 
         public PythonMirror(InvocationContext context, int size) {
             super(context, size);

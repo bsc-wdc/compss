@@ -18,7 +18,7 @@ package es.bsc.compss.invokers.external.piped;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
-import es.bsc.compss.executor.Executor.ExecutorsContext;
+import es.bsc.compss.executor.ExecutorContext;
 import es.bsc.compss.executor.utils.ExecutionPlatformMirror;
 import es.bsc.compss.executor.utils.PipedMirror;
 import es.bsc.compss.executor.utils.PipedMirror.PipePair;
@@ -121,7 +121,7 @@ public class CInvoker extends PipedInvoker {
         return taskExecution;
     }
 
-    public static ExecutionPlatformMirror getMirror(InvocationContext context, ExecutorsContext platform) {
+    public static ExecutionPlatformMirror getMirror(InvocationContext context, ExecutorContext platform) {
         int numThreads = platform.getSize();
         return new CMirror(context, numThreads);
     }

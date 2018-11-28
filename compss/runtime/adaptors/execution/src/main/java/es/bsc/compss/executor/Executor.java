@@ -30,7 +30,6 @@ import org.apache.logging.log4j.Logger;
 import es.bsc.compss.COMPSsConstants.Lang;
 import static es.bsc.compss.COMPSsConstants.Lang.JAVA;
 import es.bsc.compss.executor.types.Execution;
-import es.bsc.compss.executor.utils.ExecutionPlatformMirror;
 import es.bsc.compss.executor.utils.PipedMirror;
 import es.bsc.compss.executor.utils.PipedMirror.PipePair;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
@@ -53,7 +52,6 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
-import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.BinaryImplementation;
 import es.bsc.compss.types.implementations.COMPSsImplementation;
@@ -61,7 +59,6 @@ import es.bsc.compss.types.implementations.DecafImplementation;
 import es.bsc.compss.types.implementations.MPIImplementation;
 import es.bsc.compss.types.implementations.OmpSsImplementation;
 import es.bsc.compss.types.implementations.OpenCLImplementation;
-import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.Tracer;
 import java.io.PrintStream;
 
@@ -77,7 +74,7 @@ public class Executor implements Runnable {
     // Attached component NIOWorker
     private final InvocationContext context;
     // Attached component Request queue
-    protected final ExecutorsContext platform;
+    protected final ExecutorContext platform;
     // Executor Id
     protected final String id;
 
@@ -92,7 +89,7 @@ public class Executor implements Runnable {
      * @param platform
      * @param executorId
      */
-    public Executor(InvocationContext context, ExecutorsContext platform, String executorId) {
+    public Executor(InvocationContext context, ExecutorContext platform, String executorId) {
         LOGGER.info("Executor init");
         this.context = context;
         this.platform = platform;
@@ -171,10 +168,10 @@ public class Executor implements Runnable {
             System.err.println("Incorrect language " + invocation.getLang() + " in job " + invocation.getJobId());
             return false;
         }
-        return execute(invocation, context);
+        return execute(invocation);
     }
 
-    private boolean execute(Invocation invocation, InvocationContext context) {
+    private boolean execute(Invocation invocation) {
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.TASK_RUNNING.getId(), Tracer.Event.TASK_RUNNING.getType());
         }
@@ -201,7 +198,7 @@ public class Executor implements Runnable {
             // Execute task
             LOGGER.debug("Executing Task of Job " + invocation.getJobId());
             long startExec = System.currentTimeMillis();
-            executeTask(context, assignedResources, invocation, twd.getWorkingDir());
+            executeTask(assignedResources, invocation, twd.getWorkingDir());
             long execDuration = System.currentTimeMillis() - startExec;
 
             // Unbind files from task sandbox working dir
@@ -458,8 +455,7 @@ public class Executor implements Runnable {
                         LOGGER.debug("Repeated data for " + inSandboxPath + ". Nothing to do");
                     }
                 } else // OUT
-                {
-                    if (inSandboxFile.exists()) {
+                 if (inSandboxFile.exists()) {
                         if (Files.isSymbolicLink(inSandboxFile.toPath())) {
                             // Unexpected case
                             String msg = "ERROR: Unexpected case. A Problem occurred with File " + inSandboxPath
@@ -481,7 +477,6 @@ public class Executor implements Runnable {
                             throw new JobExecutionException(msg);
                         }
                     }
-                }
             }
             param.setValue(renamedFilePath);
             param.setOriginalName(originalFileName);
@@ -525,9 +520,9 @@ public class Executor implements Runnable {
 
     }
 
-    private void executeTask(InvocationContext context, InvocationResources assignedResources, Invocation invocation,
-            File taskSandboxWorkingDir) throws JobExecutionException {
 
+    private void executeTask(InvocationResources assignedResources, Invocation invocation,
+            File taskSandboxWorkingDir) throws JobExecutionException {
         /* Register outputs **************************************** */
         String streamsPath = context.getStandardStreamsPath(invocation);
         context.registerOutputs(streamsPath);
@@ -647,21 +642,5 @@ public class Executor implements Runnable {
         public boolean isSpecific() {
             return this.isSpecific;
         }
-    }
-
-    public static interface ExecutorsContext {
-
-        public ExecutionPlatformMirror getMirror(Class<?> invoker);
-
-        public void registerMirror(Class<?> invoker, ExecutionPlatformMirror mirror);
-
-        public int getSize();
-
-        public Execution getJob();
-
-        public InvocationResources acquireComputingUnits(int jobId, ResourceDescription requirements)
-                throws UnsufficientAvailableComputingUnitsException;
-
-        public void releaseComputingUnits(int jobId);
     }
 }

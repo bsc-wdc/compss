@@ -90,7 +90,7 @@ public class ITAppEditor extends ExprEditor {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER);
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
-    private static final String ERROR_NO_EMTPY_CONSTRUCTOR = "ERROR: No empty constructor on object class ";
+    private static final String ERROR_NO_EMPTY_CONSTRUCTOR = "ERROR: No empty constructor on object class ";
 
 
     public ITAppEditor(Method[] remoteMethods, CtMethod[] instrCandidates, String itApiVar, String itSRVar, String itORVar,
@@ -578,7 +578,7 @@ public class ITAppEditor extends ExprEditor {
             // Add binary stream
             targetObj.append(',').append(DATA_STREAM + "." + Stream.UNSPECIFIED);
             // Add empty prefix
-            targetObj.append(',').append("\"").append(Constants.PREFIX_EMTPY).append("\"");
+            targetObj.append(',').append("\"").append(Constants.PREFIX_EMPTY).append("\"");
             // Add empty parameter name
             targetObj.append(',').append("\"").append("\"");
         }
@@ -610,7 +610,7 @@ public class ITAppEditor extends ExprEditor {
                  */
                 String tempRetVar = "ret" + System.nanoTime();
                 infoToAppend.append(tempRetVar).append(',').append(DATA_TYPES + ".OBJECT_T").append(',').append(DATA_DIRECTION + ".OUT")
-                        .append(',').append(DATA_STREAM + "." + Stream.UNSPECIFIED).append(',').append("\"").append(Constants.PREFIX_EMTPY)
+                        .append(',').append(DATA_STREAM + "." + Stream.UNSPECIFIED).append(',').append("\"").append(Constants.PREFIX_EMPTY)
                         .append("\"").append(",").append("\"").append("\"");
 
                 String retValueCreation = "Object " + tempRetVar + " = ";
@@ -679,7 +679,7 @@ public class ITAppEditor extends ExprEditor {
                 infoToAppend.append("$_,").append(DATA_TYPES + ".OBJECT_T");
                 infoToAppend.append(',').append(DATA_DIRECTION + ".OUT");
                 infoToAppend.append(',').append(DATA_STREAM + ".UNSPECIFIED");
-                infoToAppend.append(',').append("\"").append(Constants.PREFIX_EMTPY).append("\"");
+                infoToAppend.append(',').append("\"").append(Constants.PREFIX_EMPTY).append("\"");
                 infoToAppend.append(',').append("\"").append("\"");
             } else {
                 /*
@@ -709,7 +709,7 @@ public class ITAppEditor extends ExprEditor {
                     try {
                         Class.forName(typeName).getConstructor();
                     } catch (NoSuchMethodException | SecurityException | ClassNotFoundException e) {
-                        throw new CannotCompileException(ERROR_NO_EMTPY_CONSTRUCTOR + typeName);
+                        throw new CannotCompileException(ERROR_NO_EMPTY_CONSTRUCTOR + typeName);
                     }
 
                     infoToPrepend.insert(0, "$_ = new " + typeName + "();");
@@ -721,7 +721,7 @@ public class ITAppEditor extends ExprEditor {
                 // Add stream binary
                 infoToAppend.append(',').append(DATA_STREAM + ".UNSPECIFIED");
                 // Add empty prefix
-                infoToAppend.append(',').append("\"").append(Constants.PREFIX_EMTPY).append("\"");
+                infoToAppend.append(',').append("\"").append(Constants.PREFIX_EMPTY).append("\"");
                 // Add empty parameter name
                 infoToAppend.append(',').append("\"").append("\"");
             }

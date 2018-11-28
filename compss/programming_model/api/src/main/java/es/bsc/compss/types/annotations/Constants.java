@@ -99,7 +99,7 @@ public class Constants {
     /**
      * Empty prefix for parameters
      */
-    public static final String PREFIX_EMTPY = "null";
+    public static final String PREFIX_EMPTY = "null";
 
     /**
      * Skip prefix for parameters

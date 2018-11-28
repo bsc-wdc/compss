@@ -17,7 +17,7 @@
 package es.bsc.compss.executor.utils;
 
 import es.bsc.compss.executor.Executor;
-import es.bsc.compss.executor.Executor.ExecutorsContext;
+import es.bsc.compss.executor.ExecutorContext;
 import es.bsc.compss.executor.types.Execution;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import java.util.concurrent.Semaphore;
@@ -37,7 +37,7 @@ import java.util.Map;
 /**
  * The thread pool is an utility to manage a set of threads for job execution
  */
-public class ExecutionPlatform implements ExecutorsContext {
+public class ExecutionPlatform implements ExecutorContext {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_POOL);
 

@@ -61,6 +61,6 @@ public @interface Parameter {
      * 
      * @return the prefix of the parameter
      */
-    String prefix() default Constants.PREFIX_EMTPY;
+    String prefix() default Constants.PREFIX_EMPTY;
 
 }

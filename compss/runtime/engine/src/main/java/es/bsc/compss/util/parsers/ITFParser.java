@@ -282,7 +282,7 @@ public class ITFParser {
                         break;
                 }
                 hasStreams = hasStreams || !par.stream().equals(Stream.UNSPECIFIED);
-                hasPrefixes = hasPrefixes || !par.prefix().equals(Constants.PREFIX_EMTPY);
+                hasPrefixes = hasPrefixes || !par.prefix().equals(Constants.PREFIX_EMPTY);
 
                 // Check parameter annotation (warnings and errors)
                 checkParameterAnnotation(m, par, i, hasNonNative);

@@ -135,7 +135,7 @@ public abstract class ImplementationDefinition implements Invocation {
 
             prefix = args[appArgsIdx++];
             if (prefix == null || prefix.isEmpty()) {
-                prefix = Constants.PREFIX_EMTPY;
+                prefix = Constants.PREFIX_EMPTY;
             }
 
             name = args[appArgsIdx++];

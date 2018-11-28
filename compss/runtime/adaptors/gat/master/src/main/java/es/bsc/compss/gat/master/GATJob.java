@@ -574,7 +574,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         paramDesc.add(Integer.toString(param.getStream().ordinal()));
         String prefix = param.getPrefix();
         if (prefix == null || prefix.isEmpty()) {
-            prefix = Constants.PREFIX_EMTPY;
+            prefix = Constants.PREFIX_EMPTY;
         }
         paramDesc.add(prefix);
 

@@ -18,7 +18,7 @@ package es.bsc.compss.executors;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.executor.Executor;
-import es.bsc.compss.executor.Executor.ExecutorsContext;
+import es.bsc.compss.executor.ExecutorContext;
 import es.bsc.compss.executor.types.Execution;
 import es.bsc.compss.executor.utils.ExecutionPlatformMirror;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
@@ -80,7 +80,7 @@ public class ExecutorTest {
     }
 
 
-    public static class Platform implements ExecutorsContext {
+    public static class Platform implements ExecutorContext {
 
         private final HashMap<Class<?>, ExecutionPlatformMirror> mirrors = new HashMap<>();
         private final RequestQueue<Execution> queue = new RequestQueue<>();

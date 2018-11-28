@@ -77,7 +77,7 @@ public class Executor implements Runnable {
     // Attached component NIOWorker
     private final InvocationContext context;
     // Attached component Request queue
-    protected final ExecutorsContext platform;
+    protected final ExecutorContext platform;
     // Executor Id
     protected final String id;
 
@@ -92,7 +92,7 @@ public class Executor implements Runnable {
      * @param platform
      * @param executorId
      */
-    public Executor(InvocationContext context, ExecutorsContext platform, String executorId) {
+    public Executor(InvocationContext context, ExecutorContext platform, String executorId) {
         LOGGER.info("Executor init");
         this.context = context;
         this.platform = platform;
@@ -647,21 +647,5 @@ public class Executor implements Runnable {
         public boolean isSpecific() {
             return this.isSpecific;
         }
-    }
-
-    public static interface ExecutorsContext {
-
-        public ExecutionPlatformMirror getMirror(Class<?> invoker);
-
-        public void registerMirror(Class<?> invoker, ExecutionPlatformMirror mirror);
-
-        public int getSize();
-
-        public Execution getJob();
-
-        public InvocationResources acquireComputingUnits(int jobId, ResourceDescription requirements)
-                throws UnsufficientAvailableComputingUnitsException;
-
-        public void releaseComputingUnits(int jobId);
     }
 }

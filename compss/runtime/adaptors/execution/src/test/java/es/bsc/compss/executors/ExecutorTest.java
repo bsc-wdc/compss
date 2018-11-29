@@ -111,13 +111,13 @@ public class ExecutorTest {
         }
 
         @Override
-        public InvocationResources acquireComputingUnits(int jobId, ResourceDescription requirements) {
+        public InvocationResources acquireResources(int jobId, ResourceDescription requirements) {
             // No need to do anything
             return null;
         }
 
         @Override
-        public void releaseComputingUnits(int jobId) {
+        public void releaseResources(int jobId) {
             // No need to do anything
         }
 

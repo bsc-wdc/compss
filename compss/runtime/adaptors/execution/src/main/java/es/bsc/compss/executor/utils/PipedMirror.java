@@ -73,7 +73,6 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
     private StreamGobbler outputGobbler;
     private StreamGobbler errorGobbler;
 
-
     public PipedMirror(InvocationContext context, int size) {
         mirrorId = String.valueOf(UUID.randomUUID().hashCode());
         String workingDir = context.getWorkingDir();
@@ -216,7 +215,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
     private void stopPipes() {
         LOGGER.info("Stopping compute pipes for mirror " + mirrorId);
         for (int i = 0; i < size; ++i) {
-            PipePair pipes = new PipePair("compute" + i);
+            PipePair pipes = new PipePair(this.basePipePath, "compute" + i);
             pipes.close();
         }
     }
@@ -259,124 +258,6 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
     }
 
     public PipePair getPipes(String executorId) {
-        return new PipePair(executorId);
-    }
-
-
-    public class PipePair {
-
-        private final String pipePath;
-
-
-        private PipePair(String id) {
-            pipePath = PipedMirror.this.basePipePath + id;
-        }
-
-        public boolean send(PipeCommand command) {
-            boolean done = false;
-            int retries = 0;
-            String taskCMD = command.getAsString();
-            String writePipe = pipePath + ".outbound";
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("EXECUTOR COMMAND: " + taskCMD + " @ " + writePipe);
-            }
-            taskCMD = taskCMD + TOKEN_NEW_LINE;
-            while (!done && retries < MAX_WRITE_PIPE_RETRIES) {
-                // Send to pipe : task tID command(jobOut jobErr externalCMD) \n
-                OutputStream output = null;
-                try {
-                    output = new FileOutputStream(writePipe, true);
-                    output.write(taskCMD.getBytes());
-                    output.flush();
-                    done = true;
-                } catch (Exception e) {
-                    LOGGER.debug("Error on pipe write. Retry");
-                    ++retries;
-                } finally {
-                    if (output != null) {
-                        try {
-                            output.close();
-                        } catch (Exception e) {
-                            ErrorManager.error(ERROR_PIPE_CLOSE + writePipe, e);
-                        }
-                    }
-                }
-            }
-            return done;
-        }
-
-        @Override
-        public String toString() {
-            return "READ pipe: " + pipePath + ".inbound  WRITE pipe:" + pipePath + ".outbound";
-        }
-
-        public PipeCommand read() {
-            PipeCommand readCommand = null;
-            try {
-                FileInputStream input = new FileInputStream(pipePath + ".inbound");// WARN: This call is blocking for
-                                                                                   // NamedPipes
-
-                String line = null;
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(input))) {
-                    line = reader.readLine();
-                }
-                if (line != null) {
-                    String[] result = line.split(" ");
-
-                    // Skip if line is not well formed
-                    if (result.length < 1) {
-                        LOGGER.warn("Skipping line: " + line);
-                        return null;
-                    }
-                    // Process the received tag
-                    CommandType commandType = CommandType.valueOf(result[0].toUpperCase());
-                    switch (commandType) {
-                        case QUIT:
-                            // This quit is received from our proper shutdown, not from bindings. We just end
-                            LOGGER.debug("Received quit message");
-                            break;
-                        case END_TASK:
-                            LOGGER.debug("Received endTask message: " + line);
-                            if (result.length < 3) {
-                                LOGGER.warn("WARN: Skipping endTask line because is malformed");
-                                break;
-                            }
-                            // Line of the form: "endTask" ID STATUS D paramType1 paramValue1 ... paramTypeD paramValueD
-                            readCommand = new EndTaskPipeCommand(result);
-                            break;
-                        case ERROR_TASK:
-                            LOGGER.debug("Received errorTask message: " + line);
-                            // We have received a fatal error from bindings, we notify error to every waiter and end
-                            readCommand = new ErrorTaskPipeCommand(result);
-                            break;
-                        case EXECUTE_TASK:
-                        case REMOVE:
-                        case SERIALIZE:
-                            // Should not receive any of these tags
-                        default:
-                            LOGGER.warn("Unrecognised tag on PipedMirror: " + result[0] + ". Skipping message");
-                            break;
-                    }
-                }
-            } catch (FileNotFoundException fnfe) {
-                // This exception is only handled at the beginning of the execution
-                // when the pipe is not created yet. Only display on debug
-                LOGGER.debug(ERROR_PIPE_NOT_FOUND + " " + pipePath + ".inbound");
-            } catch (IOException ioe) {
-                LOGGER.error(ERROR_PIPE_NOT_READ);
-            }
-            return readCommand;
-        }
-
-        public void close() {
-            // Send quit tag to pipe
-            String writePipe = pipePath + ".outbound";
-            if (new File(writePipe).exists()) {
-                boolean done = this.send(new QuitPipeCommand());
-                if (!done) {
-                    ErrorManager.error(ERROR_PIPE_QUIT + writePipe);
-                }
-            }
-        }
+        return new PipePair(this.basePipePath, executorId);
     }
 }

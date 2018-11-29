@@ -20,6 +20,8 @@ import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.data.DataManager;
 import es.bsc.compss.data.DataProvider;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.nio.NIOParam;
+import es.bsc.compss.nio.NIOURI;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -45,7 +47,8 @@ import storage.StorageItf;
 public class DataManagerImpl implements DataManager {
 
     // Logger
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER);
+    private static final Logger WORKER_LOGGER = LogManager.getLogger(Loggers.WORKER);
+    private static final boolean WORKER_LOGGER_DEBUG = WORKER_LOGGER.isDebugEnabled();
 
     // Data Provider
     private final DataProvider provider;
@@ -91,7 +94,7 @@ public class DataManagerImpl implements DataManager {
                 ErrorManager.fatal("Error loading storage configuration file: " + storageConf, e);
             }
         } else {
-            LOGGER.warn("No storage configuration file passed");
+            WORKER_LOGGER.warn("No storage configuration file passed");
         }
         // All structures are already instanciated
     }
@@ -117,7 +120,7 @@ public class DataManagerImpl implements DataManager {
             try {
                 StorageItf.finish();
             } catch (StorageException e) {
-                LOGGER.error("Error releasing storage library: " + e.getMessage(), e);
+                WORKER_LOGGER.error("Error releasing storage library: " + e.getMessage(), e);
             }
         }
     }
@@ -128,10 +131,10 @@ public class DataManagerImpl implements DataManager {
         try {
             for (String name : obsoletes) {
                 if (name.startsWith(File.separator)) {
-                    LOGGER.debug("Removing file " + name);
+                    WORKER_LOGGER.debug("Removing file " + name);
                     File f = new File(name);
                     if (!f.delete()) {
-                        LOGGER.error("Error removing file " + f.getAbsolutePath());
+                        WORKER_LOGGER.error("Error removing file " + f.getAbsolutePath());
                     }
                     // Now only manage at C (python could do the same when cache available)
                     // if (COMPSsConstants.Lang.valueOf(lang.toUpperCase()) == COMPSsConstants.Lang.C && persistentC) {
@@ -147,17 +150,17 @@ public class DataManagerImpl implements DataManager {
                 DataRegister register = null;
                 synchronized (registry) {
                     register = registry.remove(dataName);
-                    LOGGER.debug(dataName + " removed from cache.");
+                    WORKER_LOGGER.debug(dataName + " removed from cache.");
                 }
                 if (register != null) {
                     synchronized (register) {
                         register.clear();
                     }
                 }
-                LOGGER.debug(name + " removed from cache.");
+                WORKER_LOGGER.debug(name + " removed from cache.");
             }
         } catch (Exception e) {
-            LOGGER.error("Exception", e);
+            WORKER_LOGGER.error("Exception", e);
         }
     }
 
@@ -233,17 +236,17 @@ public class DataManagerImpl implements DataManager {
     private void fetchObject(InvocationParam param, int index, FetchDataListener tt) {
         final String finalRename = param.getDataMgmtId();
         final String originalRename = param.getSourceDataId();
-        LOGGER.debug("   - " + finalRename + " registered as object.");
+        WORKER_LOGGER.debug("   - " + finalRename + " registered as object.");
         DataRegister originalRegister = getOriginalDataRegister(param);
         // Try if parameter is in cache
-        LOGGER.debug("   - Checking if " + finalRename + " is in cache.");
+        WORKER_LOGGER.debug("   - Checking if " + finalRename + " is in cache.");
         synchronized (originalRegister) {
             if (originalRegister.isLocal()) {
                 if (finalRename.equals(originalRename)) {
                     try {
                         originalRegister.loadValue();
                     } catch (Exception e) {
-                        LOGGER.error(e);
+                        WORKER_LOGGER.error(e);
                     }
                 } else {
                     try {
@@ -258,7 +261,7 @@ public class DataManagerImpl implements DataManager {
                         dr.setValue(o);
                         registry.put(finalRename, dr);
                     } catch (Exception e) {
-                        LOGGER.error(e);
+                        WORKER_LOGGER.error(e);
                     }
                 }
                 fetchedLocalParameter(param, index, tt);
@@ -278,30 +281,40 @@ public class DataManagerImpl implements DataManager {
         boolean askTransfer = false;
 
         // Try if parameter is in cache
-        LOGGER.debug("   - Checking if " + value + " is in binding cache.");
+        if (WORKER_LOGGER_DEBUG) {
+            WORKER_LOGGER.debug("   - Checking if " + value + " is in binding cache.");
+        }
         boolean cached = BindingDataManager.isInBinding(value);
         if (!cached) {
             // Try if any of the object locations is in cache
             boolean locationsInCache = false;
-            LOGGER.debug("   - Checking if " + value + " locations are catched");
+            if (WORKER_LOGGER_DEBUG) {
+                WORKER_LOGGER.debug("   - Checking if " + value + " locations are catched");
+            }
+
             for (InvocationParamURI loc : param.getSources()) {
-                String locName = loc.getPath();
-                BindingObject bo = BindingObject.generate(locName);
-                if (BindingDataManager.isInBinding(bo.getId())) {
+                BindingObject bo = BindingObject.generate(loc.getPath());
+                if (BindingDataManager.isInBinding(bo.getName())) {
                     // Object found
-                    LOGGER.debug("   - Parameter " + index + "(" + value + ") location found in cache.");
+                    if (WORKER_LOGGER_DEBUG) {
+                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") location found in cache.");
+                    }
                     if (param.isPreserveSourceData()) {
-                        LOGGER.debug("   - Parameter " + index + "(" + value + ") preserves sources. CACHE-COPYING");
-                        int res = BindingDataManager.copyCachedData(bo.getId(), value);
+                        if (WORKER_LOGGER_DEBUG) {
+                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") preserves sources. CACHE-COPYING");
+                        }
+                        int res = BindingDataManager.copyCachedData(bo.getName(), value);
                         if (res != 0) {
-                            LOGGER.error("CACHE-COPY from " + bo.getId() + " to " + value + " has failed. ");
+                            WORKER_LOGGER.error("CACHE-COPY from " + bo.getName() + " to " + value + " has failed. ");
                             break;
                         }
                     } else {
-                        LOGGER.debug("   - Parameter " + index + "(" + value + ") erases sources. CACHE-MOVING");
-                        int res = BindingDataManager.moveCachedData(bo.getId(), value);
+                        if (WORKER_LOGGER_DEBUG) {
+                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") erases sources. CACHE-MOVING");
+                        }
+                        int res = BindingDataManager.moveCachedData(bo.getName(), value);
                         if (res != 0) {
-                            LOGGER.error("CACHE-MOVE from " + locName + " to " + value + " has failed. ");
+                            WORKER_LOGGER.error("CACHE-MOVE from " + bo.getName() + " to " + value + " has failed. ");
                             break;
                         }
                     }
@@ -313,43 +326,76 @@ public class DataManagerImpl implements DataManager {
             if (!locationsInCache) {
                 // Try if any of the object locations is in the host
                 boolean existInHost = false;
-                LOGGER.debug("   - Checking if " + name + " locations are in host");
+                if (WORKER_LOGGER_DEBUG) {
+                    WORKER_LOGGER.debug("   - Checking if " + param.getValue() + " locations are in host");
+                }
                 for (InvocationParamURI loc : param.getSources()) {
                     if (loc.isHost(hostName)) {
                         BindingObject bo = BindingObject.generate(loc.getPath());
-                        LOGGER.debug("   - Parameter " + index + "(" + name + ") found at host with location " + loc.getPath()
-                                + " Checking if in cache...");
-                        if (BindingDataManager.isInBinding(bo.getId())) {
-                            // Object found
-                            LOGGER.debug("   - Parameter " + index + "(" + value + ") location found in cache.");
+                        if (WORKER_LOGGER_DEBUG) {
+                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + param.getValue() + ") found at host with location "
+                                    + loc.getPath() + " Checking if id " + bo.getName() + " is in cache...");
+                        }
+                        if (BindingDataManager.isInBinding(bo.getName())) {
+
+                            // Object found and it is in
+                            if (WORKER_LOGGER_DEBUG) {
+                                WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") location found in cache.");
+                            }
+                            
                             if (param.isPreserveSourceData()) {
-                                LOGGER.debug("   - Parameter " + index + "(" + value + ") preserves sources. CACHE-COPYING");
-                                int res = BindingDataManager.copyCachedData(bo.getId(), value);
+                                if (WORKER_LOGGER_DEBUG) {
+                                    WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") preserves sources. CACHE-COPYING");
+                                }
+                                int res = BindingDataManager.copyCachedData(bo.getName(), value);
                                 if (res != 0) {
-                                    LOGGER.error("CACHE-COPY from " + bo.getId() + " to " + value + " has failed. ");
+                                    WORKER_LOGGER.error("CACHE-COPY from " + bo.getName() + " to " + value + " has failed. ");
                                 }
                             } else {
-                                LOGGER.debug("   - Parameter " + index + "(" + value + ") erases sources. CACHE-MOVING");
-                                int res = BindingDataManager.moveCachedData(bo.getId(), value);
+                                if (WORKER_LOGGER_DEBUG) {
+                                    WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") erases sources. CACHE-MOVING");
+                                }
+                                int res = BindingDataManager.moveCachedData(bo.getName(), value);
                                 if (res != 0) {
-                                    LOGGER.error("CACHE-MOVE from " + bo.getId() + " to " + value + " has failed. ");
+                                    WORKER_LOGGER.error("CACHE-MOVE from " + bo.getName() + " to " + value + " has failed. ");
                                 }
                             }
                             existInHost = true;
-                        } else {
-                            LOGGER.debug("   - Parameter " + index + "(" + name + ") not in cache.");
 
-                            if (new File(baseFolder + File.separator + loc.getPath()).exists()) {
-                                int res = BindingDataManager.loadFromFile(value, loc.getPath(), type, elements);
-                                if (res == 0) {
-                                    existInHost = true;
-                                } else {
-                                    LOGGER.error("Error loading " + param.getValue() + " from file " + loc.getPath());
+                        } else {
+
+                            if (WORKER_LOGGER_DEBUG) {
+                                WORKER_LOGGER.debug("   - Parameter " + index + "(" + param.getValue() + ") not in cache with id "
+                                        + bo.getName());
+                            }
+
+                            File inFile = new File(bo.getId());
+                            if (!inFile.isAbsolute()) {
+                                //inFile = new File(workingDir + File.separator + loc.getPath());
+                                inFile = new File(baseFolder + File.separator + bo.getId()); // ???
+                            }
+
+                            String path = inFile.getAbsolutePath();
+                            if (inFile.exists()) {
+                                existInHost = true;
+                                if (WORKER_LOGGER_DEBUG) {
+                                    WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") loaded from file "
+                                            + path + ".");
+                                }
+                                int res = BindingDataManager.loadFromFile(value, path, type, elements);
+                                if (res != 0) {
+                                    WORKER_LOGGER.error("Error loading " + value + " from file " + path);
+                                }
+                            } else {
+                                if (WORKER_LOGGER_DEBUG) {
+                                    WORKER_LOGGER.warn("   - Parameter " + index + "(" + (String) param.getValue() + ") File " + path
+                                            + " not found.");
                                 }
                             }
                         }
                     }
                 }
+
                 if (!existInHost) {
                     // We must transfer the file
                     askTransfer = true;
@@ -365,7 +411,7 @@ public class DataManagerImpl implements DataManager {
     private void fetchPSCO(InvocationParam param, int paramIdx, FetchDataListener tt) {
         String finalRename = param.getDataMgmtId();
         String pscoId = (String) param.getValue();
-        LOGGER.debug("   - " + pscoId + " registered as PSCO.");
+        WORKER_LOGGER.debug("   - " + pscoId + " registered as PSCO.");
         // The replica must have been ordered by the master so the real object must be
         // catched or can be retrieved by the ID
 
@@ -375,39 +421,54 @@ public class DataManagerImpl implements DataManager {
         tt.fetchedValue();
     }
 
+<<<<<<< HEAD
     private void fetchFile(InvocationParam param, int index, FetchDataListener tt) {
         LOGGER.debug("   - " + (String) param.getValue() + " registered as file.");
+=======
+    private void fetchFile(InvocationParam param, int index, LoadDataListener tt) {
+        WORKER_LOGGER.debug("   - " + (String) param.getValue() + " registered as file.");
+>>>>>>> Errors with communication solved
         final String originalName = param.getSourceDataId();
         final String expectedFileLocation = param.getValue().toString();
-        LOGGER.debug("   - Checking if file " + (String) param.getValue() + " exists.");
+        WORKER_LOGGER.debug("   - Checking if file " + (String) param.getValue() + " exists.");
         File f = new File(expectedFileLocation);
         if (f.exists()) {
-            LOGGER.info("- Parameter " + index + "(" + expectedFileLocation + ") already exists.");
+            WORKER_LOGGER.info("- Parameter " + index + "(" + expectedFileLocation + ") already exists.");
             fetchedLocalParameter(param, index, tt);
             return;
         }
-        LOGGER.debug("   - Checking if " + expectedFileLocation + " exists in worker");
+        WORKER_LOGGER.debug("   - Checking if " + expectedFileLocation + " exists in worker");
         DataRegister originalRegister = getOriginalDataRegister(param);
         synchronized (originalRegister) {
             if (originalRegister.isLocal()) {
-                LOGGER.debug("   - Parameter " + index + "(" + expectedFileLocation + ") found at host.");
+                WORKER_LOGGER.debug("   - Parameter " + index + "(" + expectedFileLocation + ") found at host.");
 
                 File target = new File(expectedFileLocation);
                 List<String> files = originalRegister.getFileLocations();
                 for (String path : files) {
                     File source = new File(path);
                     try {
+<<<<<<< HEAD
                         LOGGER.debug("   - Parameter " + index + "(" + expectedFileLocation + ") "
                                 + (param.isPreserveSourceData() ? "preserves sources. COPYING" : "erases sources. MOVING"));
                         LOGGER.debug("         Source: " + source);
                         LOGGER.debug("         Target: " + target);
+=======
+                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + expectedFileLocation + ") "
+                                + (param.isPreserveSourceData()
+                                        ? "preserves sources. COPYING"
+                                        : "erases sources. MOVING")
+                        );
+                        WORKER_LOGGER.debug("         Source: " + source);
+                        WORKER_LOGGER.debug("         Target: " + target);
+>>>>>>> Errors with communication solved
                         if (param.isPreserveSourceData()) {
                             Files.copy(source.toPath(), target.toPath());
                         } else {
                             try {
                                 Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
                             } catch (AtomicMoveNotSupportedException amnse) {
-                                LOGGER.warn(
+                                WORKER_LOGGER.warn(
                                         "WARN: AtomicMoveNotSupportedException. File cannot be atomically moved. Trying to move without atomic");
                                 Files.move(source.toPath(), target.toPath());
                             }
@@ -419,11 +480,11 @@ public class DataManagerImpl implements DataManager {
                         fetchedLocalParameter(param, index, tt);
                         return;
                     } catch (IOException ioe) {
-                        LOGGER.error("IOException", ioe);
+                        WORKER_LOGGER.error("IOException", ioe);
                     }
                 }
             } else {
-                LOGGER.info("- Parameter " + index + "(" + expectedFileLocation + ") does not exist, requesting data transfer");
+                WORKER_LOGGER.info("- Parameter " + index + "(" + expectedFileLocation + ") does not exist, requesting data transfer");
                 transferParameter(param, index, tt);
             }
         }

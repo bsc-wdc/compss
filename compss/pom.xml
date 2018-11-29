@@ -29,15 +29,13 @@
 		<name>BSC</name>
 		<url>http://www.bsc.es</url>
 	</organization>
-
-	<!-- PROPERTIES -->
-	<properties>
-		<!-- BSC Components versions -->
-		<cepbatools-extrae.version>1.4</cepbatools-extrae.version>
-		<comm.version>1.5-12</comm.version>
-		<conn.version>1.5-27</conn.version>
-		<storage.version>1.0</storage.version>
-
+    <!-- PROPERTIES -->
+    <properties>
+        <!-- BSC Components versions -->
+        <cepbatools-extrae.version>1.4</cepbatools-extrae.version>
+        <comm.version>1.6</comm.version>
+        <conn.version>1.5-27</conn.version>
+        <storage.version>1.0</storage.version>
 		<!-- ZK version -->
 		<zk.version>8.0.2.2</zk.version>
 

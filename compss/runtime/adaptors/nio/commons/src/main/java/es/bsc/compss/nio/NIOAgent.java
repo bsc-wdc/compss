@@ -442,7 +442,7 @@ public abstract class NIOAgent {
                 sendFile(c, bo.getId(), d);
             } else {
                 ErrorManager.warn(
-                        "Can't send binding data '" + path + "' via connection " + c.hashCode() + " because file doesn't exists.");
+                        "Can't send binding data '" + bo.getId() + "' via connection " + c.hashCode() + " because file doesn't exists.");
                 handleDataToSendNotAvailable(c, d);
             }
 

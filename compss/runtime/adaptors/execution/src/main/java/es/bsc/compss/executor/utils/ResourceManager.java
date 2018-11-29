@@ -120,7 +120,7 @@ public class ResourceManager {
      * @return
      * @throws UnsufficientAvailableComputingUnitsException
      */
-    public InvocationResources acquireComputingUnits(int jobId, ResourceDescription rd)
+    public InvocationResources acquireResources(int jobId, ResourceDescription rd)
             throws UnsufficientAvailableComputingUnitsException {
         int cpus;
         int gpus;
@@ -148,7 +148,7 @@ public class ResourceManager {
      *
      * @param jobId
      */
-    public void releaseComputingUnits(int jobId) {
+    public void releaseResources(int jobId) {
         this.binderCPUs.releaseComputingUnits(jobId);
         this.binderGPUs.releaseComputingUnits(jobId);
         this.binderFPGAs.releaseComputingUnits(jobId);

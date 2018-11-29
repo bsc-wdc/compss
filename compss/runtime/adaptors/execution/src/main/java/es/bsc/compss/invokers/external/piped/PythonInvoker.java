@@ -20,7 +20,7 @@ import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.executor.ExecutorContext;
 import es.bsc.compss.executor.utils.PipedMirror;
-import es.bsc.compss.executor.utils.PipedMirror.PipePair;
+import es.bsc.compss.executor.utils.PipePair;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.invokers.commands.external.ExecuteTaskExternalCommand;
 import es.bsc.compss.invokers.commands.piped.ExecuteTaskPipeCommand;

@@ -31,7 +31,7 @@ import es.bsc.compss.COMPSsConstants.Lang;
 import static es.bsc.compss.COMPSsConstants.Lang.JAVA;
 import es.bsc.compss.executor.types.Execution;
 import es.bsc.compss.executor.utils.PipedMirror;
-import es.bsc.compss.executor.utils.PipedMirror.PipePair;
+import es.bsc.compss.executor.utils.PipePair;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.JavaInvoker;
@@ -81,10 +81,9 @@ public class Executor implements Runnable {
     protected PipePair cPipes;
     protected PipePair pyPipes;
 
-
     /**
      * Instantiates a new Executor
-     * 
+     *
      * @param context
      * @param platform
      * @param executorId
@@ -98,7 +97,7 @@ public class Executor implements Runnable {
 
     /**
      * Starts the executor execution
-     * 
+     *
      */
     public void start() {
         // Nothing to do since everything is deleted in each task execution
@@ -127,7 +126,7 @@ public class Executor implements Runnable {
 
     /**
      * Returns the executor id
-     * 
+     *
      * @return executor id
      */
     public String getId() {
@@ -192,7 +191,7 @@ public class Executor implements Runnable {
 
             // Bind Computing units
             long startCUB = System.currentTimeMillis();
-            InvocationResources assignedResources = platform.acquireComputingUnits(invocation.getJobId(), invocation.getRequirements());
+            InvocationResources assignedResources = platform.acquireResources(invocation.getJobId(), invocation.getRequirements());
             long cubDuration = System.currentTimeMillis() - startCUB;
 
             // Execute task
@@ -228,7 +227,7 @@ public class Executor implements Runnable {
             // Always clean the task sandbox working dir
             cleanTaskSandbox(twd);
             // Always release the binded computing units
-            platform.releaseComputingUnits(invocation.getJobId());
+            platform.releaseResources(invocation.getJobId());
 
             // Always end task tracing
             if (Tracer.isActivated()) {
@@ -240,8 +239,7 @@ public class Executor implements Runnable {
     /**
      * Creates a sandbox for a task
      *
-     * @param invocation
-     *            task description
+     * @param invocation task description
      * @return Sandbox dir
      * @throws IOException
      * @throws Exception
@@ -325,12 +323,10 @@ public class Executor implements Runnable {
     /**
      * Check whether file1 corresponds to a file with a higher version than file2
      *
-     * @param file1
-     *            first file name
-     * @param file2
-     *            second file name
+     * @param file1 first file name
+     * @param file2 second file name
      * @return True if file1 has a higher version. False otherwise (This includes the case where the name file's format
-     *         is not correct)
+     * is not correct)
      */
     private boolean isMajorVersion(String file1, String file2) {
         String[] version1array = file1.split("_")[0].split("v");
@@ -356,13 +352,10 @@ public class Executor implements Runnable {
     /**
      * Create symbolic links from files with the original name in task sandbox to the renamed file
      *
-     * @param invocation
-     *            task description
-     * @param sandbox
-     *            created sandbox
+     * @param invocation task description
+     * @param sandbox created sandbox
      * @throws IOException
-     * @throws Exception
-     *             returns exception is a problem occurs during creation
+     * @throws Exception returns exception is a problem occurs during creation
      */
     private void bindOriginalFilenamesToRenames(Invocation invocation, File sandbox) throws IOException {
         for (InvocationParam param : invocation.getParams()) {
@@ -409,12 +402,10 @@ public class Executor implements Runnable {
     /**
      * Undo symbolic links and renames done with the original names in task sandbox to the renamed file
      *
-     * @param invocation
-     *            task description
+     * @param invocation task description
      * @throws IOException
      * @throws JobExecutionException
-     * @throws Exception
-     *             returns exception is an unexpected case is found.
+     * @throws Exception returns exception is an unexpected case is found.
      */
     private void unbindOriginalFileNamesToRenames(Invocation invocation) throws IOException, JobExecutionException {
         for (InvocationParam param : invocation.getParams()) {
@@ -455,7 +446,8 @@ public class Executor implements Runnable {
                         LOGGER.debug("Repeated data for " + inSandboxPath + ". Nothing to do");
                     }
                 } else // OUT
-                 if (inSandboxFile.exists()) {
+                {
+                    if (inSandboxFile.exists()) {
                         if (Files.isSymbolicLink(inSandboxFile.toPath())) {
                             // Unexpected case
                             String msg = "ERROR: Unexpected case. A Problem occurred with File " + inSandboxPath
@@ -477,6 +469,7 @@ public class Executor implements Runnable {
                             throw new JobExecutionException(msg);
                         }
                     }
+                }
             }
             param.setValue(renamedFilePath);
             param.setOriginalName(originalFileName);
@@ -519,7 +512,6 @@ public class Executor implements Runnable {
         }
 
     }
-
 
     private void executeTask(InvocationResources assignedResources, Invocation invocation,
             File taskSandboxWorkingDir) throws JobExecutionException {
@@ -628,7 +620,6 @@ public class Executor implements Runnable {
 
         private final File workingDir;
         private final boolean isSpecific;
-
 
         public TaskWorkingDir(File workingDir, boolean isSpecific) {
             this.workingDir = workingDir;

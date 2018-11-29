@@ -19,7 +19,7 @@ import itertools
 import os
 from collections import defaultdict, deque
 
-from pycompss.api.api import compss_barrier, compss_open
+from pycompss.api.api import compss_barrier
 from pycompss.dds.tasks import *
 
 from pycompss.dds import heapq3
@@ -47,8 +47,9 @@ class DDS(object):
         >>> DDS().load(range(10), 5).num_of_partitions()
         5
         """
-        if isinstance(iterator, xrange) or not hasattr(iterator, "__len__"):
-            iterator = list(iterator)
+        # TODO: Review Python 2 controls
+        # if isinstance(iterator, xrange) or not hasattr(iterator, "__len__"):
+        #     iterator = list(iterator)
 
         self.create_partitions(iterator, num_of_parts)
         return self
@@ -76,7 +77,7 @@ class DDS(object):
                     file_path, parsed, chunk_size))
                 parsed += chunk_size
         else:
-            f = compss_open(file_path, 'r')
+            f = open(file_path, 'r')
             chunk = f.read(chunk_size)
             while chunk:
                 self.partitions.append(task_load(chunk))
@@ -84,12 +85,14 @@ class DDS(object):
 
         return self
 
-    def load_text_file(self, file_name, chunk_size=1024, in_bytes=True):
+    def load_text_file(self, file_name, chunk_size=1024, in_bytes=True,
+                       strip=True):
         """
         Load a text file into partitions with 'chunk_size' lines on each.
         :param file_name: a path to a file to be loaded
         :param chunk_size: size of chunks in bytes
         :param in_bytes: if chunk size is in bytes or in number of lines.
+        :param strip: if line separators should be stripped from lines
         :return:
 
         >>> with open("test.txt", "w") as testFile:
@@ -99,11 +102,11 @@ class DDS(object):
         ['First Line! ', 'Second Line! ']
         """
         if in_bytes:
-            self.partitions.extend(map(task_load, read_in_chunks(file_name,
-                                                                 chunk_size)))
+            self.partitions.extend(map(task_load, read_in_chunks(
+                file_name, chunk_size, strip=strip)))
         else:
-            self.partitions.extend(map(task_load, read_lines(file_name,
-                                                             chunk_size)))
+            self.partitions.extend(map(task_load, read_lines(
+                file_name, chunk_size, strip=strip)))
         return self
 
     def load_and_map_partitions(self, file_name, map_func, chunk_size=1024,
@@ -183,14 +186,15 @@ class DDS(object):
         for i in range(extras):
             chunk_sizes[i] += 1
 
-        if isinstance(iterator, basestring):
-            start, end = 0, 0
-            for size in chunk_sizes:
-                end = start + size
-                temp = task_load(iterator[start:end])
-                start = end
-                self.partitions.append(temp)
-            return
+        # TODO: Review Python 2 controls
+        # if isinstance(iterator, basestring):
+        #     start, end = 0, 0
+        #     for size in chunk_sizes:
+        #         end = start + size
+        #         temp = task_load(iterator[start:end])
+        #         start = end
+        #         self.partitions.append(temp)
+        #     return
 
         start = 0
         for size in chunk_sizes:
@@ -783,15 +787,16 @@ class DDS(object):
         return partitioned.map_partitions(sort_partition)
 
 
-def read_in_chunks(file_name, chunk_size=1024):
+def read_in_chunks(file_name, chunk_size=1024, strip=True):
     """Lazy function (generator) to read a file piece by piece.
     Default chunk size: 1k."""
     partition = list()
-    f = compss_open(file_name)
+    f = open(file_name)
     collected = 0
     for line in f:
-        partition.append(line.rstrip("\n"))
-        collected += sys.getsizeof(line)
+        _line = line.rstrip("\n") if strip else line
+        partition.append(_line)
+        collected += sys.getsizeof(_line)
         if collected > chunk_size:
             yield partition
             partition = []
@@ -801,17 +806,19 @@ def read_in_chunks(file_name, chunk_size=1024):
         yield partition
 
 
-def read_lines(file_name, num_of_lines=1024):
+def read_lines(file_name, num_of_lines=1024, strip=True):
     """
     Lazy function (generator) to read a file line by line.
     :param file_name:
     :param num_of_lines: total number of lines in each partition
+    :param strip: if line separators should be stripped from lines
     """
     partition = list()
-    f = compss_open(file_name)
+    f = open(file_name)
     collected = 0
     for line in f:
-        partition.append(line.rstrip("\n"))
+        _line = line.rstrip("\n") if strip else line
+        partition.append(_line)
         collected += 1
         if collected > num_of_lines:
             yield partition

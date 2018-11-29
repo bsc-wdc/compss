@@ -94,7 +94,7 @@ def task_reduce_partition(f, partition):
     except StopIteration:
         return
 
-    for el in partition:
+    for el in iterator:
         res = f(res, el)
 
     return res
@@ -302,12 +302,12 @@ def get_next_partition(iterable, start, end):
     :return:
     """
     ret = list()
-
+    # TODO: Review Python 2 controls
     # Strings are immutable, just add them to a list
-    if isinstance(iterable, basestring):
-        yield iterable[start:end]
+    # if isinstance(iterable, basestring):
+    #     yield iterable[start:end]
     # If it's a dict
-    elif isinstance(iterable, dict):
+    if isinstance(iterable, dict):
         sorted_keys = sorted(iterable.keys())
         for key in sorted_keys[start:end]:
             yield key

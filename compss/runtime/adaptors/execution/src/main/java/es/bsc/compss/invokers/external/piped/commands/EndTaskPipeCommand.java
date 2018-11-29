@@ -14,9 +14,9 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.invokers.commands.piped;
+package es.bsc.compss.invokers.external.piped.commands;
 
-import es.bsc.compss.invokers.commands.external.EndTaskExternalCommand;
+import es.bsc.compss.invokers.external.commands.EndTaskExternalCommand;
 import es.bsc.compss.invokers.external.piped.PipeCommand;
 import es.bsc.compss.invokers.types.ExternalTaskStatus;
 

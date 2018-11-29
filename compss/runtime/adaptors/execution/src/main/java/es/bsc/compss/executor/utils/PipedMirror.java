@@ -17,9 +17,9 @@
 package es.bsc.compss.executor.utils;
 
 import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.invokers.commands.piped.EndTaskPipeCommand;
-import es.bsc.compss.invokers.commands.piped.ErrorTaskPipeCommand;
-import es.bsc.compss.invokers.commands.piped.QuitPipeCommand;
+import es.bsc.compss.invokers.external.piped.commands.EndTaskPipeCommand;
+import es.bsc.compss.invokers.external.piped.commands.ErrorTaskPipeCommand;
+import es.bsc.compss.invokers.external.piped.commands.QuitPipeCommand;
 import es.bsc.compss.invokers.external.ExternalCommand.CommandType;
 import es.bsc.compss.invokers.external.piped.PipeCommand;
 import es.bsc.compss.log.Loggers;

@@ -18,8 +18,8 @@ package es.bsc.compss.invokers.external.piped;
 
 import es.bsc.compss.executor.utils.PipePair;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
-import es.bsc.compss.invokers.commands.piped.EndTaskPipeCommand;
-import es.bsc.compss.invokers.commands.piped.ErrorTaskPipeCommand;
+import es.bsc.compss.invokers.external.piped.commands.EndTaskPipeCommand;
+import es.bsc.compss.invokers.external.piped.commands.ErrorTaskPipeCommand;
 import es.bsc.compss.invokers.external.ExternalInvoker;
 import es.bsc.compss.invokers.types.ExternalTaskStatus;
 import es.bsc.compss.types.annotations.parameter.DataType;

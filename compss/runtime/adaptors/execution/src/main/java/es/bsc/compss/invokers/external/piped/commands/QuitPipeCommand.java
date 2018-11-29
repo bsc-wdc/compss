@@ -14,21 +14,12 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.invokers.commands.external;
+package es.bsc.compss.invokers.external.piped.commands;
 
-import es.bsc.compss.invokers.external.ExternalCommand;
+import es.bsc.compss.invokers.external.commands.QuitExternalCommand;
+import es.bsc.compss.invokers.external.piped.PipeCommand;
 
 
-public class ErrorTaskExternalCommand implements ExternalCommand {
-
-    @Override
-    public CommandType getType() {
-        return CommandType.ERROR_TASK;
-    }
-
-    @Override
-    public String getAsString() {
-        return CommandType.ERROR_TASK.name();
-    }
+public class QuitPipeCommand extends QuitExternalCommand implements PipeCommand {
 
 }

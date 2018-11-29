@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import es.bsc.compss.exceptions.InvokeExecutionException;
+import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.util.StreamGobbler;
@@ -127,10 +128,15 @@ public class BinaryRunner {
     public static Object executeCMD(String[] cmd, StreamSTD streamValues, File taskSandboxWorkingDir, PrintStream outLog,
             PrintStream errLog) throws InvokeExecutionException {
 
-        // Prepare command execution with redirections
+        // Prepare command working dir, environment and STD redirections
         ProcessBuilder builder = new ProcessBuilder(cmd);
         builder.directory(taskSandboxWorkingDir);
+
         builder.environment().remove(Tracer.LD_PRELOAD);
+        builder.environment().put(Invoker.COMPSS_HOSTNAMES, System.getProperty(Invoker.COMPSS_HOSTNAMES));
+        builder.environment().put(Invoker.COMPSS_NUM_NODES, System.getProperty(Invoker.COMPSS_NUM_NODES));
+        builder.environment().put(Invoker.COMPSS_NUM_THREADS, System.getProperty(Invoker.COMPSS_NUM_THREADS));
+        builder.environment().put(Invoker.OMP_NUM_THREADS, System.getProperty(Invoker.OMP_NUM_THREADS));
 
         String fileInPath = streamValues.getStdIn();
         if (fileInPath != null) {

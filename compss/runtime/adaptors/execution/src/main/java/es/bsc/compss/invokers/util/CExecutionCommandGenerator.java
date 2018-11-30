@@ -31,10 +31,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-
 public class CExecutionCommandGenerator {
 
     private static final String BINDINGS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "bindings-common" + File.separator
@@ -43,9 +39,6 @@ public class CExecutionCommandGenerator {
     private static final String WORKER_C_RELATIVE_PATH = File.separator + "worker" + File.separator + "worker_c";
     private static final String LIBRARY_PATH_ENV = "LD_LIBRARY_PATH";
     private static final String QUOTES = "\"";
-
-    protected static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
-    protected static final boolean WORKER_DEBUG = LOGGER.isDebugEnabled();
 
 
     public static ArrayList<String> getTaskExecutionCommand(InvocationContext context, Invocation invocation, String sandBox,
@@ -65,7 +58,7 @@ public class CExecutionCommandGenerator {
             reqs.append(" " + compss_nx_args);
         }
         // Debug mode on
-        if (WORKER_DEBUG) {
+        if (invocation.isDebugEnabled()) {
             reqs.append("#--summary#--verbose-copies#--verbose");
         }
 

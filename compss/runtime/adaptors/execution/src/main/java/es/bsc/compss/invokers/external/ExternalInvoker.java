@@ -18,7 +18,7 @@ package es.bsc.compss.invokers.external;
 
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.invokers.Invoker;
-import es.bsc.compss.invokers.commands.external.ExecuteTaskExternalCommand;
+import es.bsc.compss.invokers.external.commands.ExecuteTaskExternalCommand;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.DataType;

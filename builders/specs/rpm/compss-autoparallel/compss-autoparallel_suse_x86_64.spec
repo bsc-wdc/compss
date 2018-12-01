@@ -1,5 +1,5 @@
 %define name	 	compss-autoparallel 
-%define version		2.4.rc1811
+%define version		2.4.rc1812
 %define release		1
 
 Requires: compss-engine, compss-python-binding, automake, libtool, make, gcc-c++, gmp-devel, flex, bison, texinfo

@@ -46,28 +46,37 @@ OUTOFSCOPE = 'OUTOFSCOPE'
 
 _WHERE = OUTOFSCOPE
 
-def in_master():
-    '''Determine if the execution is being performed in the master node
-    '''
-    return _WHERE == MASTER
-
-def in_worker():
-    '''Determine if the execution is being performed in a worker node.
-    '''
-    return _WHERE == WORKER
-
-def in_pycompss():
-    '''Determine if the execution is being performed within the PyCOMPSs scope.
-    :return:  <Boolean> - True if under scope. False on the contrary.
-    '''
-    return _WHERE != OUTOFSCOPE
 
 def during_initialization():
     """
     Determine if the execution is in the initialization stage.
-    :return: Boolean
+    :return:  <Boolean> - True if during initialization. False on the contrary.
     """
     return _WHERE == 'INITIALIZATION'
+
+
+def in_master():
+    """
+    Determine if the execution is being performed in the master node
+    :return:  <Boolean> - True if in master. False on the contrary.
+    """
+    return _WHERE == MASTER
+
+
+def in_worker():
+    """
+    Determine if the execution is being performed in a worker node.
+    :return:  <Boolean> - True if in worker. False on the contrary.
+    """
+    return _WHERE == WORKER
+
+
+def in_pycompss():
+    """
+    Determine if the execution is being performed within the PyCOMPSs scope.
+    :return:  <Boolean> - True if under scope. False on the contrary.
+    """
+    return _WHERE != OUTOFSCOPE
 
 
 def set_pycompss_context(where):
@@ -82,10 +91,11 @@ def set_pycompss_context(where):
     global _WHERE
     _WHERE = where
 
-def get_pycompss_context():
-    '''Returns PyCOMPSs context name.
-    For debugging purposes.
-    :return: PyCOMPSs context name
-    '''
-    return _WHERE
 
+def get_pycompss_context():
+    """
+    Returns PyCOMPSs context name.
+    * For debugging purposes.
+    :return: PyCOMPSs context name
+    """
+    return _WHERE

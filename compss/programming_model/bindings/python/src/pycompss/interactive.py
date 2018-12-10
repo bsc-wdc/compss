@@ -30,7 +30,7 @@ from tempfile import mkdtemp
 import time
 
 # Let the Python binding know we are during libraries initialization
-from pycompss.util.location import set_pycompss_context
+from pycompss.util.context import set_pycompss_context
 set_pycompss_context('INITIALIZATION')
 
 import pycompss.runtime.binding as binding

@@ -39,6 +39,7 @@ DECORATORS_TO_CHECK = ['pycompss/api/binary.py',
                        'pycompss/api/parallel.py',
                        'pycompss/api/task.py']
 
+INITIALIZATION = 'INITIALIZATION'
 MASTER = 'MASTER'
 WORKER = 'WORKER'
 OUTOFSCOPE = 'OUTOFSCOPE'
@@ -75,7 +76,9 @@ def set_pycompss_context(where):
     :param where: New context (MASTER or WORKER or INITIALIZATION)
     :return: None
     """
-    assert where in [MASTER, WORKER], 'PyCOMPSs context should be %s or %s' % (MASTER, WORKER)
+    assert where in [INITIALIZATION, MASTER, WORKER], 'PyCOMPSs context should be %s, %s or %s' % (INITIALIZATION,
+                                                                                                   MASTER,
+                                                                                                   WORKER)
     global _WHERE
     _WHERE = where
 

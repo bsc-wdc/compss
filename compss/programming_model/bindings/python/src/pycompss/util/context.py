@@ -25,34 +25,13 @@ PyCOMPSs Utils - Context
 """
 
 import inspect
-from pycompss.runtime.commons import IS_PYTHON3
-from pycompss.runtime.commons import IS_INTERACTIVE
 
-# wtf is this
-DECORATORS_TO_CHECK = ['pycompss/api/binary.py',
-                       'pycompss/api/constraint.py',
-                       'pycompss/api/decaf.py',
-                       'pycompss/api/implement.py',
-                       'pycompss/api/mpi.py',
-                       'pycompss/api/ompss.py',
-                       'pycompss/api/opencl.py',
-                       'pycompss/api/parallel.py',
-                       'pycompss/api/task.py']
-
-INITIALIZATION = 'INITIALIZATION'
 MASTER = 'MASTER'
 WORKER = 'WORKER'
 OUTOFSCOPE = 'OUTOFSCOPE'
 
+_WHO = OUTOFSCOPE
 _WHERE = OUTOFSCOPE
-
-
-def during_initialization():
-    """
-    Determine if the execution is in the initialization stage.
-    :return:  <Boolean> - True if during initialization. False on the contrary.
-    """
-    return _WHERE == 'INITIALIZATION'
 
 
 def in_master():
@@ -85,11 +64,13 @@ def set_pycompss_context(where):
     :param where: New context (MASTER or WORKER or INITIALIZATION)
     :return: None
     """
-    assert where in [INITIALIZATION, MASTER, WORKER], 'PyCOMPSs context should be %s, %s or %s' % (INITIALIZATION,
-                                                                                                   MASTER,
-                                                                                                   WORKER)
+    assert where in [MASTER, WORKER], 'PyCOMPSs context must be %s or %s' % (MASTER, WORKER)
     global _WHERE
     _WHERE = where
+    global _WHO
+    caller_stack = inspect.stack()[1]
+    caller_module = inspect.getmodule(caller_stack[0])
+    _WHO = caller_module
 
 
 def get_pycompss_context():
@@ -99,3 +80,12 @@ def get_pycompss_context():
     :return: PyCOMPSs context name
     """
     return _WHERE
+
+
+def get_who_contextualized():
+    """
+    Returns PyCOMPSs contextualization caller.
+    * For debugging purposes.
+    :return: PyCOMPSs contextualization caller name
+    """
+    return _WHO

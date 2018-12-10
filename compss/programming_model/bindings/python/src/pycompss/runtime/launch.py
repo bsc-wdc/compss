@@ -30,13 +30,8 @@ import logging
 import traceback
 from tempfile import mkdtemp
 
-# Let the Python binding know we are at master
 import pycompss.util.context as context
-
-context.set_pycompss_context(context.MASTER)
-
 import pycompss.runtime.binding as binding
-from pycompss.api.api import compss_start, compss_stop
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
@@ -53,7 +48,6 @@ from pycompss.util.logs import init_logging
 from pycompss.util.serializer import SerializerException
 from pycompss.util.optional_modules import show_optional_module_warnings
 
-# from pycompss.util.jvm_parser import convert_to_dict
 
 # Global variable also used within decorators
 app_path = None
@@ -109,8 +103,9 @@ def compss_main():
     global app_path
 
     # Let the Python binding know we are at master
-    import pycompss.util.context as context
     context.set_pycompss_context(context.MASTER)
+    # Then we can import the appropriate start and stop functions from the API
+    from pycompss.api.api import compss_start, compss_stop
 
     # Start the runtime, see bindings commons
     compss_start()
@@ -152,6 +147,7 @@ def compss_main():
 
     # Get JVM options
     # jvm_opts = os.environ['JVM_OPTIONS_FILE']
+    # from pycompss.util.jvm_parser import convert_to_dict
     # opts = convert_to_dict(jvm_opts)
     # storage_conf = opts.get('-Dcompss.storage.conf')
 
@@ -281,7 +277,9 @@ def launch_pycompss_application(app, func,
     global app_path
 
     # Let the Python binding know we are at master
-    set_pycompss_context('MASTER')
+    context.set_pycompss_context(context.MASTER)
+    # Then we can import the appropriate start and stop functions from the API
+    from pycompss.api.api import compss_start, compss_stop
 
     launch_path = os.path.dirname(os.path.abspath(__file__))
     # compss_home = launch_path without the last 4 folders:

@@ -44,7 +44,8 @@
 		</dependency>
 		<dependency>
 			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-default-connector-commons</artifactId>
+			<artifactId>compss-connector-default-commons</artifactId>
+            <version>${compss.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>

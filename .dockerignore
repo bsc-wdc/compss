@@ -1,0 +1,13 @@
+# ignore .git and .cache folders
+.git
+.cache
+
+# python files
+**/*.pyc
+**/*.pyo
+
+# jetbrains
+.idea
+*.iml
+
+./builders/tmp

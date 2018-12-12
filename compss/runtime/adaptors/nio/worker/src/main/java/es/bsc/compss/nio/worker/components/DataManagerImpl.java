@@ -217,7 +217,7 @@ public class DataManagerImpl implements DataManager {
                         case OBJECT_URI:
                         case BINDING_URI:
                             if (loc.isHost(hostName)) {
-                                LOGGER.error("WORKER IS NOT AWARE OF THE PRESENCE OF A"
+                                WORKER_LOGGER.error("WORKER IS NOT AWARE OF THE PRESENCE OF A"
                                         + (loc.getProtocol() == Protocol.OBJECT_URI ? "N OBJECT " : " BINDING OBJECT "));
                             }
                             break;
@@ -322,6 +322,7 @@ public class DataManagerImpl implements DataManager {
                     break;
                 }
             }
+
             // TODO is it better to transfer again or to load from file??
             if (!locationsInCache) {
                 // Try if any of the object locations is in the host
@@ -332,6 +333,7 @@ public class DataManagerImpl implements DataManager {
                 for (InvocationParamURI loc : param.getSources()) {
                     if (loc.isHost(hostName)) {
                         BindingObject bo = BindingObject.generate(loc.getPath());
+
                         if (WORKER_LOGGER_DEBUG) {
                             WORKER_LOGGER.debug("   - Parameter " + index + "(" + param.getValue() + ") found at host with location "
                                     + loc.getPath() + " Checking if id " + bo.getName() + " is in cache...");
@@ -342,7 +344,7 @@ public class DataManagerImpl implements DataManager {
                             if (WORKER_LOGGER_DEBUG) {
                                 WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") location found in cache.");
                             }
-                            
+
                             if (param.isPreserveSourceData()) {
                                 if (WORKER_LOGGER_DEBUG) {
                                     WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") preserves sources. CACHE-COPYING");
@@ -448,12 +450,7 @@ public class DataManagerImpl implements DataManager {
                 for (String path : files) {
                     File source = new File(path);
                     try {
-<<<<<<< HEAD
-                        LOGGER.debug("   - Parameter " + index + "(" + expectedFileLocation + ") "
-                                + (param.isPreserveSourceData() ? "preserves sources. COPYING" : "erases sources. MOVING"));
-                        LOGGER.debug("         Source: " + source);
-                        LOGGER.debug("         Target: " + target);
-=======
+
                         WORKER_LOGGER.debug("   - Parameter " + index + "(" + expectedFileLocation + ") "
                                 + (param.isPreserveSourceData()
                                         ? "preserves sources. COPYING"
@@ -461,7 +458,7 @@ public class DataManagerImpl implements DataManager {
                         );
                         WORKER_LOGGER.debug("         Source: " + source);
                         WORKER_LOGGER.debug("         Target: " + target);
->>>>>>> Errors with communication solved
+
                         if (param.isPreserveSourceData()) {
                             Files.copy(source.toPath(), target.toPath());
                         } else {

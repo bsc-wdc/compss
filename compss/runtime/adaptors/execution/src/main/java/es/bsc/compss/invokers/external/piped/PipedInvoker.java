@@ -56,35 +56,33 @@ public abstract class PipedInvoker extends ExternalInvoker {
         while (true) {
             PipeCommand rcvdCommand = pipes.read();
             if (rcvdCommand != null) {
-                if (ExternalCommand.ERROR_TASK.equals(rcvdCommand.getType())) {
-                    taskStatus = ((ErrorTaskPipeCommand) rcvdCommand).getTaskStatus();
-                    Integer exitValue = taskStatus.getExitValue();
-                    throw new JobExecutionException("Exit values is " + exitValue);
-                }
-                if (ExternalCommand.END_TASK.equals(rcvdCommand.getType())) {
-                    taskStatus = ((EndTaskPipeCommand) rcvdCommand).getTaskStatus();
-                    Integer exitValue = taskStatus.getExitValue();
-                    LOGGER.debug("Received status for job "+ this.invocation.getJobId() + " is " + taskStatus.getExitValue());
-                    if (taskStatus.getExitValue() != 0) {
+                switch (rcvdCommand.getType()) {
+                    case ERROR_TASK:
+                        taskStatus = ((ErrorTaskPipeCommand) rcvdCommand).getTaskStatus();
+                        Integer exitValue = taskStatus.getExitValue();
                         throw new JobExecutionException("Exit values is " + exitValue);
-                    }
-                    // Update parameters
-                    LOGGER.debug("Updating parameters for job " + this.invocation.getJobId());
-                    int parIdx = 0;
-                    for (InvocationParam param : this.invocation.getParams()) {
-                        updateParam(param, taskStatus, parIdx);
-                        parIdx++;
-                    }
-                    InvocationParam target = this.invocation.getTarget();
-                    if (target != null) {
-                        updateParam(target, taskStatus, parIdx);
-                        parIdx++;
-                    }
-                    for (InvocationParam param : this.invocation.getResults()) {
-                        updateParam(param, taskStatus, parIdx);
-                        parIdx++;
-                    }
-                    return;
+                    case END_TASK:
+                        taskStatus = ((EndTaskPipeCommand) rcvdCommand).getTaskStatus();
+                        // Update parameters
+                        LOGGER.debug("Updating parameters for job " + this.invocation.getJobId());
+                        int parIdx = 0;
+                        for (InvocationParam param : this.invocation.getParams()) {
+                            updateParam(param, taskStatus, parIdx);
+                            parIdx++;
+                        }
+                        InvocationParam target = this.invocation.getTarget();
+                        if (target != null) {
+                            updateParam(target, taskStatus, parIdx);
+                            parIdx++;
+                        }
+                        for (InvocationParam param : this.invocation.getResults()) {
+                            updateParam(param, taskStatus, parIdx);
+                            parIdx++;
+                        }
+                        return;
+                    default:
+                        LOGGER.warn("Unrecognised tag on PipedInvoker: " + rcvdCommand + ". Skipping message");
+                        break;
                 }
             }
         }

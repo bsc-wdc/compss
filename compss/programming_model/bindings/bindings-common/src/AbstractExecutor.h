@@ -23,10 +23,10 @@
 using namespace std;
 
 
-class AbstractExecutor {
+class AbstractExecutor { 
 
-  protected :
-    AbstractCache *cache = NULL;
+  protected:
+    AbstractCache *cache;
 
   public:
     AbstractExecutor(AbstractCache *cache) {

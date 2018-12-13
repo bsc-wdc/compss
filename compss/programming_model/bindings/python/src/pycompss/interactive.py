@@ -29,13 +29,8 @@ import logging
 from tempfile import mkdtemp
 import time
 
-# Let the Python binding know we are during libraries initialization
-from pycompss.util.location import set_pycompss_context
-set_pycompss_context('INITIALIZATION')
-
+import pycompss.util.context as context
 import pycompss.runtime.binding as binding
-from pycompss.api.api import compss_start
-from pycompss.api.api import compss_stop
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.binding import pending_to_synchronize
 from pycompss.runtime.launch import initialize_compss
@@ -137,7 +132,9 @@ def start(log_level='off',
     """
 
     # Let the Python binding know we are at master
-    set_pycompss_context('MASTER')
+    context.set_pycompss_context(context.MASTER)
+    # Then we can import the appropriate start and stop functions from the API
+    from pycompss.api.api import compss_start
 
     # Prepare the environment
     launch_path = os.path.dirname(os.path.realpath(__file__))
@@ -454,6 +451,8 @@ def stop(sync=False):
     :param sync: Scope variables synchronization [ True | False ] (default: False)
     :return: None
     """
+    from pycompss.api.api import compss_stop
+
     print("****************************************************")
     print("*************** STOPPING PyCOMPSs ******************")
     print("****************************************************")

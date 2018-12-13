@@ -551,7 +551,7 @@ class task(object):
                 # In this case it is necessary to do a pre-processing step
                 # that consists of putting all user code that may be executed
                 # in the worker on a file.
-                # This file has to be visible for all workers.\
+                # This file has to be visible for all workers.
                 from pycompss.util.interactive_helpers import update_tasks_code_file
                 update_tasks_code_file(self.user_function, path)
             # Get the module
@@ -581,8 +581,7 @@ class task(object):
 
     def compute_user_function_information(self):
         """
-        Compute the function path p and the name n
-        such that
+        Compute the function path p and the name n such that
         "from p import n" imports self.user_function
         :return: None, it just sets self.user_function_path and self.user_function_name
         """
@@ -597,8 +596,7 @@ class task(object):
 
         Also, this function must return an appropriate number of
         future objects that point to the appropriate objects/files.
-        :return: A function that does "nothing" and returns futures
-        if needed
+        :return: A function that does "nothing" and returns futures if needed
         """
         # This lock makes this decorator able to handle various threads
         # calling the same task concurrently

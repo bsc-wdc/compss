@@ -109,15 +109,9 @@ def _get_raw_code():
 
     :return: the list of the blocks defined by the user that are currently loaded in globals
     """
-
-    # globals()['In'] # is not in this scope
-    # Retrieve the self of ipython where to look
-    ipython = globals()['__builtins__']['get_ipython']()
-    # If you want to show the contents of the ipython object for analysis
-    # file.write(str(ipython.__dict__))
-    # import pprint
-    # pprint.pprint(ipython.__dict__, width=1)
-    raw_code = ipython.__dict__['user_ns']['In']
+    import IPython
+    ipython = IPython.get_ipython()
+    raw_code = ipython.user_ns['In']
     return raw_code
 
 

@@ -31,6 +31,8 @@ PyCOMPSs API
         - wait_on
     functions.
     Also includes the redirection to the dummy API.
+
+    CAUTION: If the context has not been defined, it will load the dummy API.
 """
 
 import pycompss.util.context as context

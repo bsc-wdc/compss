@@ -23,7 +23,7 @@
 using namespace std;
 
 
-class AbstractExecutor {
+class AbstractExecutor { 
 
   protected:
     AbstractCache *cache;

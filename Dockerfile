@@ -14,6 +14,10 @@ RUN apt-get update && \
     wget \
     openssh-server \
     sudo && \
+# Create Jenkins User
+    useradd jenkins -m -s /bin/bash && \
+# Add the jenkins user to sudoers
+    echo "jenkins  ALL=(ALL)  NOPASSWD:ALL" >> /etc/sudoers && \
 # Enable ssh to localhost for user root & jenkins
     yes yes | ssh-keygen -f /root/.ssh/id_rsa -t rsa -N '' > /dev/null && \
     cat /root/.ssh/id_rsa.pub > /root/.ssh/authorized_keys && \
@@ -53,16 +57,11 @@ RUN apt-get update && \
     yes jenkins2017 | passwd && \
 # AutoParallel dependencies
     apt-get -y install libgmp3-dev flex bison libbison-dev texinfo libffi-dev && \
-    pip2 install astor sympy enum34 islpy
-
+    pip2 install astor sympy enum34 islpy && \
 # Configure user environment
 # =============================================================================
 # System configuration
 # =============================================================================
-# Create Jenkins User
-RUN useradd jenkins -m -s /bin/bash && \
-# Add the jenkins user to sudoers
-    echo "jenkins  ALL=(ALL)  NOPASSWD:ALL" >> /etc/sudoers && \
 # Add environment variables
     echo "JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/" >> /etc/environment && \
     echo "MPI_HOME=/usr/lib/openmpi" >> /etc/environment && \
@@ -89,7 +88,7 @@ USER jenkins
 
 # Expose SSH port and run SSHD
 EXPOSE 22
-CMD ["/usr/sbin/sshd","-D"]
+CMD ["sudo", "/usr/sbin/sshd","-D"]
 
 # If container is run in interactive, entrypoint runs the sshd server
 ENTRYPOINT ["/entrypoint.sh"]

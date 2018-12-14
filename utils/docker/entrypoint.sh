@@ -1,5 +1,5 @@
 #!/bin/bash -e
 
-/usr/sbin/sshd -D &
+sudo /usr/sbin/sshd -D &
 exec "$@"
 

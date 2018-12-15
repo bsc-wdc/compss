@@ -1,5 +1,7 @@
 #!/bin/bash
 
+scriptDir=$(pwd)/$(dirname $0)
+
 # Check if an image called 'compss' is available locally
 if [ -z $(docker images -q compss) ]; then
     echo "Docker image 'compss' does not exist. Build it before trying to run the tests with:"
@@ -15,12 +17,11 @@ if [ "$(docker ps | grep compss_test)" ]; then
 else
     # container can be stopped and give name conflict, so remove it just in case
     docker rm -f compss_test &> /dev/null  || true # no need to output errors if the container wasn't found
-    docker run -d --name=compss_test -v "$(pwd)/../../":/framework compss
+    docker run -d --name=compss_test compss
     while [ -z "$(docker ps | grep compss_test)" ]; do
         sleep 1 # just in case the container is not up yet 
     done
-    docker exec compss_test sudo mvn clean --file /framework/tests/sources/pom.xml
     docker exec compss_test sudo /framework/tests/scripts/configure_hosts_insert
 fi
 
-docker exec compss_test /framework/tests/scripts/main "$@"
+docker exec --user jenkins compss_test /framework/tests/scripts/main "$@"

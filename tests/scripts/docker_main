@@ -10,18 +10,11 @@ if [ -z $(docker images -q compss) ]; then
     exit 1
 fi
 
-# Check if there is already a container named 'compss' running
-if [ "$(docker ps | grep compss_test)" ]; then
-    echo "COMPSs test container already running, reusing it. If you want to use a fresh container remove this one with:"
-    echo "$ docker rm -f compss_test"
-else
-    # container can be stopped and give name conflict, so remove it just in case
-    docker rm -f compss_test &> /dev/null  || true # no need to output errors if the container wasn't found
-    docker run -d --name=compss_test compss
-    while [ -z "$(docker ps | grep compss_test)" ]; do
-        sleep 1 # just in case the container is not up yet 
-    done
-    docker exec compss_test sudo /framework/tests/scripts/configure_hosts_insert
-fi
+# container can be stopped and give name conflict, so remove it just in case
+docker rm -f compss_test &> /dev/null  || true # no need to output errors if the container wasn't found
+docker run -d --name=compss_test compss
+docker cp ${scriptDir}/../../. compss_test:/framework/
+docker exec compss_test sudo /framework/tests/scripts/configure_hosts_insert
+docker exec compss_test sudo chown -R jenkins: /framework
 
 docker exec --user jenkins compss_test /framework/tests/scripts/main "$@"

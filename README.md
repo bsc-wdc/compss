@@ -10,13 +10,26 @@
 </h1>
 
 <h3 align="center">Component Superscalar framework and programming model for HPC.</h3>
+<p align="center">
 
+  <a href='http://bscgrid05.bsc.es/jenkins/job/COMPSs_Framework-Docker_testing'>
+    <img src='http://bscgrid05.bsc.es/jenkins/job/COMPSs_Framework-Docker_testing/badge/icon'
+         alt="Build Status">
+  </a>
+
+</p>
+
+
+<p align="center"><b>
+    <a href="https://www.bsc.es/research-and-development/software-and-apps/software-list/comp-superscalar/">Website</a> •  
+    <a href="https://www.bsc.es/research-and-development/software-and-apps/software-list/comp-superscalar/documentationr">Documentation</a> •
+    <a href="https://github.com/bsc-wdc/compss/releasess">Releases</a>
+</b></p>
 
 COMP Superscalar (COMPSs) is a programming model which aims to ease the development
 of applications for distributed infrastructures, such as Clusters, Grids and Clouds.
 COMP Superscalar also features a runtime system that exploits the inherent parallelism
 of applications at execution time.
-
 
 ## Documentation
 

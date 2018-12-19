@@ -1,4 +1,16 @@
-# COMP SUPERSCALAR FRAMEWORK
+<h1 align="center">
+  <br>
+  <a href="https://www.bsc.es/">
+    <img src="bsc_logo.png" alt="Barcelona Supercomputing Center" height="60px">
+  </a>
+  <br>
+  <br>
+  COMPSs Framework
+  <br>
+</h1>
+
+<h3 align="center">Component Superscalar framework and programming model for HPC.</h3>
+
 
 COMP Superscalar (COMPSs) is a programming model which aims to ease the development
 of applications for distributed infrastructures, such as Clusters, Grids and Clouds.
@@ -93,6 +105,50 @@ cd builders/
 INSTALL_DIR=$HOME/opt/COMPSs/
 ./buildlocal [options] ${INSTALL_DIR}
 ```
+
+## Running docker tests 
+
+### 1. Install Docker and docker-py
+
+
+Follow these instructions
+
+ - [Docker for Mac](https://store.docker.com/editions/community/docker-ce-desktop-mac). Or, if you prefer to use [Homebrew](https://brew.sh/).
+ - [Docker for Ubuntu](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce-1).
+ - [Docker for Arch Linux](https://wiki.archlinux.org/index.php/Docker#Installation).
+
+
+Add user to docker group to run docker as non-root user.
+
+ - [Instructions](https://docs.docker.com/install/linux/linux-postinstall/).
+    
+
+### 2. Build the docker image 
+
+Run the following command at the root of the project to build the image that will used for testing. The command create an image named **compss** and install the current branch into the image.
+
+```
+docker build -t compss .
+```
+
+### 3. Run the tests
+
+To run the tests inside the docker image use the script found in `./tests/scripts/docker_main`. This command is a wrapper for the `./main` test command
+so it has de the syntax and options. For example, you can run the first test without retrials as follows:
+```
+./docker_main -R local_1 local.cfg
+```
+The docker main command creates a new docker container each time you run it (replacing the last one used). It copies the current framework inside it
+and runs its tests. **Note**: the testing scripts assumes you have named the testing image `compss`.
+
+
+**Please be aware that:**
+ 
+* Code changes affecting the tests sources, config files (e.g. `local.cfg`, and scripts (like `./local`) __will be__ visible inside the newly created container.
+* Code changes affecting the installation __will not be__ visible in the installation because framework is not reinstalled. To do that rebuild the docker image as explained in step 3.
+* If you run the command once, the container will be available for manual inspection (such as logs). You can log into in issuing `docker exec --user jenkins -it compss_test bash` and use the CLI as usual.
+* To delete the created image issue `docker rmi compss`
+* To delete the compss_test container use `docker rm -f compss_test`.
 
 # Contact
 

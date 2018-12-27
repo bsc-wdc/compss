@@ -142,7 +142,9 @@ class task(object):
         self.returns = None
         self.multi_return = False
 
-        # Task wont be registered until called from the master for the first time
+        # Task wont be registered until called from the master for the first time or
+        # have a different signature
+        self.signature = None
         self.registered = False
 
     def add_return_parameters(self):
@@ -319,16 +321,15 @@ class task(object):
             # Return not found
             pass
 
-    def register_task(self, f):
+    def prepare_core_element_information(self, f):
         """
-        This function is used to register the task in the runtime.
-        This registration must be done only once on the task decorator
-        initialization
+        This function is used to prepare the core element.
+        The information is needed in order to compare the implementation signature,
+        so that if it has been registered with a different signature, it can be
+        re-registered with the new one (enable inheritance).
 
         :param f: Function to be registered
         """
-
-        import pycompss.runtime.binding as binding
 
         def _get_top_decorator(code, dec_keys):
             """
@@ -486,12 +487,21 @@ class task(object):
         if current_core_element.get_impl_type_args() is None:
             current_core_element.set_impl_type_args(impl_type_args)
 
+        return impl_signature
+
+    def register_task(self, f):
+        """
+        This function is used to register the task in the runtime.
+        This registration must be done only once on the task decorator
+        initialization
+
+        :param f: Function to be registered
+        """
+        import pycompss.runtime.binding as binding
         if __debug__:
-            logger.debug(
-                "[@TASK] I have to do the register of function %s in module %s" % (f.__name__, self.module_name))
+            logger.debug("[@TASK] I have to do the register of function %s in module %s" % (f.__name__, self.module_name))
             logger.debug("[@TASK] %s" % str(f))
         binding.register_ce(current_core_element)
-        current_core_element.reset()
 
     def inspect_user_function_arguments(self):
         """
@@ -609,15 +619,17 @@ class task(object):
         self.process_master_parameters(*args, **kwargs)
         # Compute the function path, class (if any), and name
         self.compute_user_function_information()
-        # If we are in the master and this is the first time we call this task
-        # we need to register it into the COMPSs runtime
-        if not self.registered:
+        # Process the decorators to get the core element information
+        # It is necessary to decide whether to register or not (the task may be inherited,
+        # and in this case it has to be registered again with the new implementation signature).
+        impl_signature = self.prepare_core_element_information(self.user_function)
+        if not self.registered or self.signature != impl_signature:
             self.register_task(self.user_function)
             self.registered = True
-            # Reset the global core element to a full-None status, ready for the next
-            # task! (Note that this region is locked, so no race conditions will ever happen
-            # here).
-            current_core_element.reset()
+            self.signature = impl_signature
+        # Reset the global core element to a full-None status, ready for the next task!
+        # (Note that this region is locked, so no race conditions will ever happen here).
+        current_core_element.reset()
         # Did we call this function to only register the associated core element?
         # (This can happen when trying)
         if register_only:

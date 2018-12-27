@@ -56,7 +56,6 @@ class testInheritance(unittest.TestCase):
         obj = compss_wait_on(obj)
         self.assertEqual(obj.get_value(), 1234 * 4)
 
-    @unittest.skip("not supported yet - bug")
     def testInheritance_multilevel_non_modifier(self):
         obj = inheritedClassMultilevelOverridedExtended()
         o = obj.increment_non_modifier(4)
@@ -66,7 +65,6 @@ class testInheritance(unittest.TestCase):
         self.assertEqual(o, 2 * (1234 + 4))
         self.assertEqual(p, 1234 / 4)
 
-    @unittest.skip("not supported yet - bug")
     def testInheritance_multilevel_modifier(self):
         obj = inheritedClassMultilevelOverridedExtended()
         obj.increment_modifier(4)

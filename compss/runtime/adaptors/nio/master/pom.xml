@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>compss-adaptors-nio</artifactId>
-<version>2.4.rc1812</version>
+<version>2.4.rc1901</version>
 		<relativePath>..</relativePath>
 	</parent>
 

@@ -25,10 +25,10 @@ COMPSs documentation can be found at http://compss.bsc.es or at the Doc/ folder
 Installation
 ------------
 1.- Unzip the package
-    $ tar -xvf COMPSs_2.4.rc1812.tar.gz
+    $ tar -xvf COMPSs_2.4.rc1901.tar.gz
 
 2.- Execute the installation script
-    $ cd COMPSs_2.4.rc1812/; ./install <targetDir> [queues_cfg]
+    $ cd COMPSs_2.4.rc1901/; ./install <targetDir> [queues_cfg]
 
 
 Dependencies

@@ -5,7 +5,7 @@ usage() {
 
   echo " "
   echo "Usage ./main_internal_release new_version"
-  echo "E.g. ./main_internal_release 2.4.rc1812"
+  echo "E.g. ./main_internal_release 2.4.rc1901"
   echo " "
 
   exit "$exitValue"

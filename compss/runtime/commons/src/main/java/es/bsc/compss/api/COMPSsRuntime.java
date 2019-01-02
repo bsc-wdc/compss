@@ -116,6 +116,25 @@ public interface COMPSsRuntime {
             boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters);
 
     /**
+     * New Method Task for Loader
+     *
+     * @param appId
+     * @param monitor
+     * @param methodClass
+     * @param methodName
+     * @param isPrioritary
+     * @param numNodes
+     * @param isReplicated
+     * @param isDistributed
+     * @param hasTarget
+     * @param parameterCount
+     * @param parameters
+     * @return
+     */
+    public int executeTask(Long appId, TaskMonitor monitor, String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated,
+            boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters);
+
+    /**
      * New service task
      *
      * @param appId
@@ -133,6 +152,27 @@ public interface COMPSsRuntime {
      * @return
      */
     public int executeTask(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary, int numNodes,
+            boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters);
+
+    /**
+     * New service task
+     *
+     * @param appId
+     * @param monitor
+     * @param namespace
+     * @param service
+     * @param port
+     * @param operation
+     * @param isPrioritary
+     * @param numNodes
+     * @param isReplicated
+     * @param isDistributed
+     * @param hasTarget
+     * @param parameterCount
+     * @param parameters
+     * @return
+     */
+    public int executeTask(Long appId, TaskMonitor monitor, String namespace, String service, String port, String operation, boolean isPrioritary, int numNodes,
             boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters);
 
     /**
@@ -161,6 +201,7 @@ public interface COMPSsRuntime {
     /**
      * Deregisters an object to eventually free its memory
      *
+     * @param appId
      * @param o
      */
     public void deregisterObject(Long appId, Object o);

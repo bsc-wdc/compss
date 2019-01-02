@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types;
 
+import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.allocatableactions.ExecutionAction;
 import es.bsc.compss.types.colors.ColorConfiguration;
@@ -69,6 +70,9 @@ public class Task implements Comparable<Task> {
     // Execution count information
     private int executionCount;
 
+    // Task Monitor
+    private final TaskMonitor taskMonitor;
+
     /**
      * Creates a new METHOD task with the given parameters
      *
@@ -81,10 +85,10 @@ public class Task implements Comparable<Task> {
      * @param numReturns
      * @param hasTarget
      * @param parameters
+     * @param monitor
      */
     public Task(Long appId, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-            boolean hasTarget, int numReturns, Parameter[] parameters) {
-
+            boolean hasTarget, int numReturns, Parameter[] parameters, TaskMonitor monitor) {
         this.appId = appId;
         this.taskId = nextTaskId.getAndIncrement();
         this.status = TaskState.TO_ANALYSE;
@@ -92,6 +96,7 @@ public class Task implements Comparable<Task> {
         this.predecessors = new LinkedList<>();
         this.successors = new LinkedList<>();
         this.executions = new LinkedList<>();
+        this.taskMonitor = monitor;
     }
 
     /**
@@ -106,10 +111,10 @@ public class Task implements Comparable<Task> {
      * @param hasTarget
      * @param numReturns
      * @param parameters
+     * @param monitor
      */
     public Task(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary, boolean hasTarget,
-            int numReturns, Parameter[] parameters) {
-
+            int numReturns, Parameter[] parameters, TaskMonitor monitor) {
         this.appId = appId;
         this.taskId = nextTaskId.getAndIncrement();
         this.status = TaskState.TO_ANALYSE;
@@ -117,6 +122,7 @@ public class Task implements Comparable<Task> {
         this.predecessors = new LinkedList<>();
         this.successors = new LinkedList<>();
         this.executions = new LinkedList<>();
+        this.taskMonitor = monitor;
     }
 
     /**
@@ -363,6 +369,15 @@ public class Task implements Comparable<Task> {
      */
     public List<ExecutionAction> getExecutions() {
         return executions;
+    }
+
+    /**
+     * Returns the monitor associated to the Task
+     *
+     * @return
+     */
+    public TaskMonitor getTaskMonitor() {
+        return taskMonitor;
     }
 
     @Override

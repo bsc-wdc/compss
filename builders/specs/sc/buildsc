@@ -72,7 +72,7 @@
   path_target=${COMPSs_target}/Runtime/adaptors
   adaptors=$(ls ${path_source})
   for adaptor in $adaptors; do
-    if [ "$adaptor" != "commons" ] && [ "$adaptor" != "pom.xml" ]; then
+    if [ "$adaptor" != "commons" ] && [ "$adaptor" != "execution" ] && [ "$adaptor" != "pom.xml" ]; then
       mkdir ${path_target}/"$adaptor"
       mkdir ${path_target}/"$adaptor"/master
       cp ${path_source}/"$adaptor"/master/*.jar ${path_target}/"$adaptor"/master

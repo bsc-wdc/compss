@@ -3,8 +3,8 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Testbench
-========================
+PyCOMPSs Inheritance Testbench
+==============================
 """
 
 # Imports

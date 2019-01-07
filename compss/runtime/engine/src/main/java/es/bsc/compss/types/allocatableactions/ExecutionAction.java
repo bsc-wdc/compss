@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.allocatableactions;
 
+import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.components.impl.TaskProducer;
@@ -151,16 +152,18 @@ public class ExecutionAction extends AllocatableAction {
         JOB_LOGGER.info("Ordering transfers to " + getAssignedResource() + " to run task: " + task.getId());
         transferErrors = 0;
         executionErrors = 0;
+        TaskMonitor monitor = task.getTaskMonitor();
+        monitor.onSubmission();
         doInputTransfers();
     }
 
-    private final void doInputTransfers() {
+    private void doInputTransfers() {
         JobTransfersListener listener = new JobTransfersListener(this);
         transferInputData(listener);
         listener.enable();
     }
 
-    private final void transferInputData(JobTransfersListener listener) {
+    private void transferInputData(JobTransfersListener listener) {
         TaskDescription taskDescription = task.getTaskDescription();
         for (Parameter p : taskDescription.getParameters()) {
             JOB_LOGGER.debug("    * " + p);
@@ -319,8 +322,9 @@ public class ExecutionAction extends AllocatableAction {
     private final void doOutputTransfers(Job<?> job) {
         // Job finished, update info about the generated/updated data
         Worker<? extends WorkerResourceDescription> w = this.getAssignedResource().getResource();
-
-        for (Parameter p : job.getTaskParams().getParameters()) {
+        Parameter[] params = job.getTaskParams().getParameters();
+        for (int paramId = 0; paramId < params.length; paramId++) {
+            Parameter p = params[paramId];
             if (p instanceof DependencyParameter) {
                 // OUT or INOUT: we must tell the FTM about the
                 // generated/updated datum
@@ -376,10 +380,14 @@ public class ExecutionAction extends AllocatableAction {
                         ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + dp.getDataTarget(), e);
                     }
                     Comm.registerLocation(name, outLoc);
+                    TaskMonitor monitor = task.getTaskMonitor();
+                    monitor.valueGenerated(paramId, dp.getType(), outLoc);
                 } else {
                     // Service
                     Object value = job.getReturnValue();
                     Comm.registerValue(name, value);
+                    TaskMonitor monitor = task.getTaskMonitor();
+                    monitor.valueGenerated(paramId, dp.getType(), value);
                 }
             }
         }
@@ -394,6 +402,9 @@ public class ExecutionAction extends AllocatableAction {
     protected void doCompleted() {
         // Profile the resource
         this.getAssignedResource().profiledExecution(this.getAssignedImplementation(), profile);
+
+        TaskMonitor monitor = task.getTaskMonitor();
+        monitor.onSuccesfulExecution();
 
         // Decrease the execution counter and set the task as finished and notify the producer
         task.decreaseExecutionCount();
@@ -412,6 +423,9 @@ public class ExecutionAction extends AllocatableAction {
                     + " has failed; rescheduling task execution. (changing worker)");
             LOGGER.warn("Task " + task.getId() + " execution on worker " + this.getAssignedResource().getName()
                     + " has failed; rescheduling task execution. (changing worker)");
+            TaskMonitor monitor = task.getTaskMonitor();
+            monitor.onErrorExecution();
+
         }
     }
 
@@ -439,6 +453,8 @@ public class ExecutionAction extends AllocatableAction {
         sb.append(" \n");
 
         ErrorManager.warn(sb.toString());
+        TaskMonitor monitor = task.getTaskMonitor();
+        monitor.onFailedExecution();
 
         // Notify task failure
         task.decreaseExecutionCount();
@@ -648,6 +664,9 @@ public class ExecutionAction extends AllocatableAction {
         this.assignImplementation(impl);
         assignResource(targetWorker);
         targetWorker.scheduleAction(this);
+        
+        TaskMonitor monitor = task.getTaskMonitor();
+        monitor.onSchedule();
     }
 
     /*

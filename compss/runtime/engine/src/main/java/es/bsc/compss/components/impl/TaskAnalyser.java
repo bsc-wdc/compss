@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.components.impl;
 
+import es.bsc.compss.api.TaskMonitor;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
@@ -293,6 +294,8 @@ public class TaskAnalyser {
         }
         if (taskState == TaskState.FAILED) {
             ErrorManager.error(TASK_FAILED + task);
+            TaskMonitor registeredMonitor = task.getTaskMonitor();
+            registeredMonitor.onFailure();
             return;
         }
 
@@ -345,6 +348,8 @@ public class TaskAnalyser {
 
         // Release data dependent tasks
         task.releaseDataDependents();
+        TaskMonitor registeredMonitor = task.getTaskMonitor();
+        registeredMonitor.onCompletion();
     }
 
     /**
@@ -569,10 +574,8 @@ public class TaskAnalyser {
             }
             // Add dependency
             currentTask.addDataDependency(lastWriter);
-        } else{
-            if (DEBUG) {
+        } else if (DEBUG) {
             LOGGER.debug("There is no last writer for datum " + dp.getDataAccessId().getDataId());
-            }
         }
         // Handle when -g enabled
         if (IS_DRAW_GRAPH) {

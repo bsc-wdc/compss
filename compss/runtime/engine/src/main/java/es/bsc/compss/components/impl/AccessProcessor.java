@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.components.impl;
 
+import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.exceptions.CannotLoadException;
@@ -173,6 +174,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * App : new Method Task
      *
      * @param appId
+     * @param monitor
      * @param signature
      * @param isPrioritary
      * @param numNodes
@@ -183,12 +185,13 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @param parameters
      * @return
      */
-    public int newTask(Long appId, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
+    public int newTask(Long appId, TaskMonitor monitor, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
             boolean hasTarget, int numReturns, Parameter[] parameters) {
 
         Task currentTask = new Task(appId, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns,
-                parameters);
-
+                parameters, monitor);
+        TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
+        registeredMonitor.onCreation();
         if (!requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "new method task");
         }
@@ -199,6 +202,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * App : new Service task
      *
      * @param appId
+     * @param monitor
      * @param namespace
      * @param service
      * @param port
@@ -209,11 +213,12 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @param parameters
      * @return
      */
-    public int newTask(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
+    public int newTask(Long appId, TaskMonitor monitor, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
             int numReturns, Parameter[] parameters) {
 
-        Task currentTask = new Task(appId, namespace, service, port, operation, priority, hasTarget, numReturns, parameters);
-
+        Task currentTask = new Task(appId, namespace, service, port, operation, priority, hasTarget, numReturns, parameters, monitor);
+        TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
+        registeredMonitor.onCreation();
         if (!requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "new service task");
         }
@@ -474,12 +479,12 @@ public class AccessProcessor implements Runnable, TaskProducer {
         // String lastRenaming = ((DataAccessId.RWAccessId) oaId).getReadDataInstance().getRenaming();
         // return obtainBindingObject((DataAccessId.RWAccessId)oaId);
         String bindingObjectID = obtainBindingObject((DataAccessId.RAccessId) oaId);
-        
+
         finishBindingObjectAccess(oap);
-        
+
         return bindingObjectID;
     }
-    
+
     private void finishBindingObjectAccess(AccessParams.BindingObjectAccessParams boAP) {
         if (!requestQueue.offer(new FinishBindingObjectAccessRequest(boAP))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "finishing binding object access");

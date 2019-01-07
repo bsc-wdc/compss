@@ -89,8 +89,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     private static int NUM_FIELDS_PER_PARAM = 6;
 
     // Language
-    protected static final String DEFAULT_LANG_STR = System.getProperty(COMPSsConstants.LANG).toUpperCase();
-    protected static final Lang DEFAULT_LANG = DEFAULT_LANG_STR == null ? Lang.JAVA : Lang.valueOf(System.getProperty(COMPSsConstants.LANG).toUpperCase());
+    protected static final String DEFAULT_LANG_STR = System.getProperty(COMPSsConstants.LANG);
+    protected static final Lang DEFAULT_LANG = ((DEFAULT_LANG_STR == null)
+            ? Lang.JAVA
+            : Lang.valueOf(DEFAULT_LANG_STR.toUpperCase()));
 
     // Object registry
     private static ObjectRegistry oReg;
@@ -387,6 +389,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      */
     @Override
     public synchronized void startIT() {
+        System.out.println("Starting runtime");
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
             Tracer.emitEvent(Tracer.Event.START.getId(), Tracer.Event.START.getType());
@@ -602,7 +605,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      *
      * @param appId
      * @param monitor
-     * @param hasSignature
+     * @param hasSignature indicates whether the signature parameter is valid or must be constructed from the methodName
+     * and methodClass parameters
      * @param methodClass
      * @param methodName
      * @param signature
@@ -874,6 +878,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     /**
      * Returns a copy of the last object version
+     *
+     * @param obj
+     * @param hashCode
+     * @param destDir
      */
     @Override
     public Object getObject(Object obj, int hashCode, String destDir) {

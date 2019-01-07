@@ -549,10 +549,9 @@ class task(object):
         # This avoids conflicts with task inheritance.
         if self.first_arg_name == 'self':
             mod = inspect.getmodule(type(self.parameters['self'].object))
+            self.module_name = mod.__name__
         elif self.first_arg_name == 'cls':
-            mod = inspect.getmodule(type(self.parameters['cls'].object))
-        # Get the module name for the core element register
-        self.module_name = mod.__name__
+            self.module_name = self.parameters['cls'].object.__module__
         if self.module_name == '__main__' or self.module_name == 'pycompss.runtime.launch':
             # The module where the function is defined was run as __main__,
             # We need to find out the real module name

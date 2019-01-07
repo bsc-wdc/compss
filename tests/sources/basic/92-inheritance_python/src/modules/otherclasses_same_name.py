@@ -1,3 +1,8 @@
+"""
+PyCOMPSs Testbench derived Classes with the same names
+======================================================
+"""
+
 # Imports
 from pycompss.api.task import task
 from .myclass import myClass
@@ -19,6 +24,11 @@ class inheritedClassWithOverride(myClass):
         print("V: ", v)
         self.value = 2 * (self.value + v)
 
+    @classmethod
+    @task(returns = int)
+    def increment(cls, v):
+        return 2 * (cls.static_value + v)
+
 class inheritedClassExtended(myClass):
     @task(returns = int)
     def multiplier_non_modifier(self, v):
@@ -32,6 +42,11 @@ class inheritedClassExtended(myClass):
         print("V: ", v)
         self.value = self.value * v
 
+    @classmethod
+    @task(returns = int)
+    def multiplier(cls, v):
+        return cls.static_value * v
+
 class inheritedClassMultilevelOverridedExtended(inheritedClassWithOverride):
     @task(returns = int)
     def divider_non_modifier(self, v):
@@ -44,3 +59,8 @@ class inheritedClassMultilevelOverridedExtended(inheritedClassWithOverride):
         print("self.value: ", self.value)
         print("V: ", v)
         self.value = self.value / v
+
+    @classmethod
+    @task(returns = int)
+    def divider(cls, v):
+        return cls.static_value / v

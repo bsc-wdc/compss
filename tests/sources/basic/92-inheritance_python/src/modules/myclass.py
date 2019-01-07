@@ -1,17 +1,14 @@
-#!/usr/bin/python
-
-# -*- coding: utf-8 -*-
-
 """
-PyCOMPSs Testbench Tasks
-========================
+PyCOMPSs Testbench Main Classes
+===============================
 """
 
 # Imports
 from pycompss.api.task import task
 
-
 class myClass(object):
+
+    static_value = 4321
 
     def __init__(self):
         self.value = 1234
@@ -27,6 +24,11 @@ class myClass(object):
         print("self.value: ", self.value)
         print("V: ", v)
         self.value = self.value + v
+
+    @classmethod
+    @task(returns = int)
+    def increment(cls, v):
+        return cls.static_value + v
 
     def get_value(self):
         return self.value
@@ -48,6 +50,11 @@ class inheritedClassWithOverride(myClass):
         print("V: ", v)
         self.value = 2 * (self.value + v)
 
+    @classmethod
+    @task(returns = int)
+    def increment(cls, v):
+        return 2 * (cls.static_value + v)
+
 class inheritedClassExtended(myClass):
     @task(returns = int)
     def multiplier_non_modifier(self, v):
@@ -61,6 +68,11 @@ class inheritedClassExtended(myClass):
         print("V: ", v)
         self.value = self.value * v
 
+    @classmethod
+    @task(returns = int)
+    def multiplier(cls, v):
+        return cls.static_value * v
+
 class inheritedClassMultilevelOverridedExtended(inheritedClassWithOverride):
     @task(returns = int)
     def divider_non_modifier(self, v):
@@ -73,3 +85,8 @@ class inheritedClassMultilevelOverridedExtended(inheritedClassWithOverride):
         print("self.value: ", self.value)
         print("V: ", v)
         self.value = self.value / v
+
+    @classmethod
+    @task(returns = int)
+    def divider(cls, v):
+        return cls.static_value / v

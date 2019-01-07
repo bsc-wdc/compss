@@ -32,6 +32,12 @@ class testInheritance(unittest.TestCase):
         obj = compss_wait_on(obj)
         self.assertEqual(obj.get_value(), 1235)
 
+    def test_simple_inheritance_classmethod(self):
+        from .myclass import inheritedClass
+        o = inheritedClass.increment(1)
+        o = compss_wait_on(o)
+        self.assertEqual(o, 4322)
+
     def test_inheritance_overriding_task_non_modifier(self):
         from .myclass import inheritedClassWithOverride
         obj = inheritedClassWithOverride()
@@ -96,6 +102,12 @@ class testInheritance(unittest.TestCase):
         obj = compss_wait_on(obj)
         self.assertEqual(obj.get_value(), 1235)
 
+    def test_simple_inheritance_other_module_same_classname_classmethod(self):
+        from .otherclasses_same_name import inheritedClass
+        o = inheritedClass.increment(1)
+        o = compss_wait_on(o)
+        self.assertEqual(o, 4322)
+
     def test_inheritance_other_module_same_classname_overriding_task_non_modifier(self):
         from .otherclasses_same_name import inheritedClassWithOverride
         obj = inheritedClassWithOverride()
@@ -159,6 +171,12 @@ class testInheritance(unittest.TestCase):
         obj.increment_modifier(1)
         obj = compss_wait_on(obj)
         self.assertEqual(obj.get_value(), 1235)
+
+    def test_simple_inheritance_other_module_different_classname_classmethod(self):
+        from .otherclasses_diff_name import inheritedClass2
+        o = inheritedClass2.increment(1)
+        o = compss_wait_on(o)
+        self.assertEqual(o, 4322)
 
     def test_inheritance_other_module_different_classname_overriding_task_non_modifier(self):
         from .otherclasses_diff_name import inheritedClassWithOverride2

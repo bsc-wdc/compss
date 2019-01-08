@@ -184,14 +184,14 @@ void init_master_jni_types() {
     midAppDir = m_env->GetMethodID(clsITimpl, "getApplicationDirectory", "()Ljava/lang/String;");
     check_and_treat_exception(m_env, "Looking for getApplicationDirectory method");
 
-    // executeTask method - Deprecated
-    midExecute = m_env->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;ZIZZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
+    // executeTask method - C binding
+    midExecute = m_env->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;ZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
         exit(1);
     }
 
-    // executeTask New method
+    // executeTask method - Python binding
     midExecuteNew = m_env->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;ZIZZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
@@ -789,11 +789,6 @@ void GS_ExecuteTask(long _appId, char *class_name, char *method_name, int priori
 
     debug_printf ("[BINDING-COMMONS]  -  @GS_ExecuteTask - Processing task execution in bindings-common. \n");
     //Default values
-    bool _hasSignature = false;
-    int num_nodes = 1;
-    bool _isDistributed = false;
-    bool _isReplicated = false;
-
     bool _priority = false;
     if (priority != 0) _priority = true;
 
@@ -818,7 +813,7 @@ void GS_ExecuteTask(long _appId, char *class_name, char *method_name, int priori
         process_param(params, i, jobjOBJArr);
     }
 
-    m_env->CallVoidMethod(jobjIT, midExecute, appId, _hasSignature, m_env->NewStringUTF(class_name), m_env->NewStringUTF(method_name),  m_env->NewStringUTF(""), _priority, num_nodes, _isReplicated, _isDistributed, _has_target, num_returns_integer, num_params, jobjOBJArr);
+    m_env->CallVoidMethod(jobjIT, midExecute, appId, m_env->NewStringUTF(class_name), m_env->NewStringUTF(method_name), _priority, _has_target, num_returns_integer, num_params, jobjOBJArr);
     if (m_env->ExceptionOccurred()) {
         debug_printf("[BINDING-COMMONS]  -  @GS_ExecuteTask  -  Error: Exception received when calling executeTask.\n");
         m_env->ExceptionDescribe();

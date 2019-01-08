@@ -328,6 +328,7 @@ public class ITAppEditor extends ExprEditor {
         StringBuilder executeTask = new StringBuilder();
         executeTask.append(itApiVar).append(EXECUTE_TASK);
         executeTask.append(itAppIdVar).append(',');
+        executeTask.append("null").append(','); // TaskMonitor set to null
 
         // Common values
         boolean isPrioritary = Boolean.parseBoolean(Constants.IS_NOT_PRIORITARY_TASK);
@@ -356,14 +357,16 @@ public class ITAppEditor extends ExprEditor {
                 // Parse computingNodes from environment if needed
                 String numNodesSTR = EnvironmentLoader.loadFromEnvironment(mpiAnnot.computingNodes());
                 numNodes = (numNodesSTR != null && !numNodesSTR.isEmpty() && !numNodesSTR.equals(Constants.UNASSIGNED))
-                        ? Integer.valueOf(numNodesSTR) : Constants.SINGLE_NODE;
+                        ? Integer.valueOf(numNodesSTR)
+                        : Constants.SINGLE_NODE;
             } else if (declaredMethod.isAnnotationPresent(Decaf.class)) {
                 Decaf decafAnnot = declaredMethod.getAnnotation(Decaf.class);
                 isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(decafAnnot.priority()));
                 // Parse computingNodes from environment if needed
                 String numNodesSTR = EnvironmentLoader.loadFromEnvironment(decafAnnot.computingNodes());
                 numNodes = (numNodesSTR != null && !numNodesSTR.isEmpty() && !numNodesSTR.equals(Constants.UNASSIGNED))
-                        ? Integer.valueOf(numNodesSTR) : Constants.SINGLE_NODE;
+                        ? Integer.valueOf(numNodesSTR)
+                        : Constants.SINGLE_NODE;
             } else if (declaredMethod.isAnnotationPresent(OmpSs.class)) {
                 OmpSs ompssAnnot = declaredMethod.getAnnotation(OmpSs.class);
                 isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(ompssAnnot.priority()));
@@ -446,7 +449,7 @@ public class ITAppEditor extends ExprEditor {
             toAppend.append(infoParam.getType()).append(",");
             toAppend.append(infoParam.getDirection()).append(",");
             toAppend.append(infoParam.getStream()).append(",");
-            toAppend.append(infoParam.getPrefix()+",");
+            toAppend.append(infoParam.getPrefix() + ",");
             toAppend.append("\"\""); // Paramter Name
             if (i < paramAnnot.length - 1) {
                 toAppend.append(",");

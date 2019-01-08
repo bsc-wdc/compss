@@ -223,3 +223,55 @@ class testInheritance(unittest.TestCase):
         obj.divider_modifier(4)
         obj = compss_wait_on(obj)
         self.assertEqual(obj.get_value(), 2 * (1234 + 4) / 4)
+
+    '''
+    NESTED INHERITANCE
+    '''
+
+    def test_nested_inheritance(self):
+        from .myclass import nestedInheritance
+        increment = 2019
+        main_obj = nestedInheritance()
+        main_obj.mc.increment_modifier(increment)
+        obj = main_obj.mc.increment_non_modifier(increment)
+        main_obj.mc = compss_wait_on(main_obj.mc)
+        obj = compss_wait_on(obj)
+        # main_obj.mc.get_value() returns the increased self.value
+        # Since the increment_non_modifier task takes this value as reference,
+        # the main.mc.get_value() is increased by "increment" in the assert.
+        self.assertEqual(obj, main_obj.mc.get_value() + increment)
+
+    '''
+    MULTIPLE INHERITANCE
+    '''
+
+    def test_multiple_inheritance(self):
+        from .myclass import multipleInheritanceClass
+        initial_value = 2019
+        increment = 2
+        decrement = 1
+        obj = multipleInheritanceClass(initial_value)
+
+        # Test modifier methods
+        obj.increment_modifier(increment)
+        obj.decrement_modifier(decrement)
+        obj = compss_wait_on(obj)
+        value = obj.get_value()
+        other_value = obj.get_other_value()
+        self.assertEqual(value, 1234 + increment)
+        self.assertEqual(other_value, initial_value - decrement)
+
+        # Test non modifier methods
+        value2 = obj.increment_non_modifier(increment)
+        other_value2 = obj.decrement_non_modifier(decrement)
+        value2 = compss_wait_on(value2)
+        other_value2 = compss_wait_on(other_value2)
+        self.assertEqual(value2, value + increment)
+        self.assertEqual(other_value2, other_value - decrement)
+
+        # Test joiner class
+        joined = obj.multiplier_non_modifier()
+        obj.multiplier_modifier()
+        joined = compss_wait_on(joined)
+        obj = compss_wait_on(obj)
+        self.assertEqual(joined, obj.joined_value)

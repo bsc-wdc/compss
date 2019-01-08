@@ -1603,7 +1603,7 @@ launch() {
     fi
 
     # Sleep a little before launching master
-    sleep 10s
+    sleep 10s # dependant of the number of workers?
   fi
   if [ ! -z "${master_node}" ]; then
     # Launch master

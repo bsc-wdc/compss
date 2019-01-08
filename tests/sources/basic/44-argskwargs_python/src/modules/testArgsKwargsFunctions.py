@@ -12,6 +12,8 @@ import unittest
 
 from pycompss.api.api import compss_wait_on
 from pycompss.api.task import task
+from pycompss.api.parameter import FILE_IN
+from pycompss.api.parameter import FILE_OUT
 
 
 @task(returns=int)
@@ -82,6 +84,28 @@ def taskUnrollDictWithDefaults(a=1, b=2, **kwargs):
     print("b: ", b)
     print("kwargs: ", kwargs)
     return a + b + len(kwargs)
+
+
+@task(output=FILE_OUT)
+def producer(output, **kwargs):
+    print("output: ", output)
+    print("kwargs: ", kwargs)
+    with open(output, "w") as f:
+        f.write(str(kwargs))
+
+
+@task(input=FILE_IN, returns=str)
+def consumer(input, **kwargs):
+    print("input: ", input)
+    print("kwargs: ", kwargs)
+    data = ""
+    with open(input, "r") as f:
+        data = f.read()
+    print("data: ", data)
+    # Get the dictionary from the str representation to avoid unordered error
+    import ast
+    reconstructed = ast.literal_eval(data)
+    return reconstructed
 
 
 class testArgsKwargsFunctions(unittest.TestCase):
@@ -263,3 +287,16 @@ class testArgsKwargsFunctions(unittest.TestCase):
         pending = taskUnrollDictWithDefaults()
         result = compss_wait_on(pending)
         self.assertEqual(result, 3)
+
+    '''
+    FUNCTION WITH **KWARGS, DICT UNROLLING AND FILES
+    '''
+
+    def testKwargsDictUnrollingWithFiles(self):
+        fout = "message.txt"
+        info = {"message": "Information to be shared",
+                "message2": "More information to be shared"}
+        producer(output=fout, **info)
+        result = consumer(input=fout, **info)
+        result = compss_wait_on(result)
+        self.assertEqual(info, result)

@@ -101,8 +101,8 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
             : COMPSsConstants.DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT;
     private static final String PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT = System
             .getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT) != null
-                    ? System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT)
-                    : COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
+            ? System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT)
+            : COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
 
     private static final String JOBS_DIR = System.getProperty(COMPSsConstants.APP_LOG_DIR) + "jobs" + java.io.File.separator;
 
@@ -124,7 +124,6 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
     private final boolean userNeeded;
     // Multi node information
     private final List<String> slaveWorkersNodeNames;
-
 
     /**
      * New GAT Job instance
@@ -342,8 +341,9 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         lArgs.add(String.valueOf(absImpl.getMethodType()));
         switch (absImpl.getMethodType()) {
             case METHOD:
-                lArgs.add(LANG);
-                switch (Lang.valueOf(LANG.toUpperCase())) {
+                Lang lang = getLang();
+                lArgs.add(lang.toString());
+                switch (lang) {
                     case JAVA:
                         lArgs.add(getClasspath());
                         break;

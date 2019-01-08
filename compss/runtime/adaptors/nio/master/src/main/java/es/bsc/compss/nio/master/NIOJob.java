@@ -95,7 +95,7 @@ public class NIOJob extends Job<NIOWorkerNode> {
         numParams -= taskParams.getNumReturns();
 
         // Create NIOTask
-        NIOTask nt = new NIOTask(LANG, debug, absMethodImpl, hasTarget, numReturns, params, numParams, reqs,
+        NIOTask nt = new NIOTask(this.getLang(), debug, absMethodImpl, hasTarget, numReturns, params, numParams, reqs,
                 this.slaveWorkersNodeNames, this.taskId, this.taskParams.getType(), this.jobId, this.history, this.transferId);
 
         return nt;

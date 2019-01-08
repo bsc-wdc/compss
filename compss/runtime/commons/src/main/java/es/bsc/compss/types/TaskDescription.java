@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types;
 
+import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.implementations.ServiceImplementation;
@@ -34,6 +35,7 @@ public class TaskDescription implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private final TaskType type;
+    private final Lang lang;
     private final String signature;
     private final Integer coreId;
 
@@ -49,6 +51,7 @@ public class TaskDescription implements Serializable {
     /**
      * Task description creation for METHODS
      *
+     * @param lang
      * @param signature
      * @param isPrioritary
      * @param numNodes
@@ -58,10 +61,11 @@ public class TaskDescription implements Serializable {
      * @param numReturns
      * @param parameters
      */
-    public TaskDescription(String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
+    public TaskDescription(Lang lang, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
             boolean hasTarget, int numReturns, Parameter[] parameters) {
 
         this.type = TaskType.METHOD;
+        this.lang = lang;
         this.signature = signature;
         this.coreId = CoreManager.getCoreId(signature);
 
@@ -94,7 +98,7 @@ public class TaskDescription implements Serializable {
     public TaskDescription(String namespace, String service, String port, String operation, boolean isPrioritary, boolean hasTarget, int numReturns, Parameter[] parameters) {
 
         this.type = TaskType.SERVICE;
-
+        this.lang = Lang.UNKNOWN;
         this.priority = isPrioritary;
         this.numNodes = Constants.SINGLE_NODE;
         this.mustReplicate = Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK);
@@ -115,6 +119,16 @@ public class TaskDescription implements Serializable {
      */
     public Integer getId() {
         return this.coreId;
+    }
+
+    /**
+     * Returns the language to execute the task
+     *
+     * @return
+     */
+
+    public Lang getLang() {
+        return lang;
     }
 
     /**

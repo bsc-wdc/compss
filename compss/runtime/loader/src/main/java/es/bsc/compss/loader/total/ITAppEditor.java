@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.loader.total;
 
+import es.bsc.compss.COMPSsConstants.Lang;
 import java.io.FilterInputStream;
 import java.io.FilterOutputStream;
 import java.io.PrintStream;
@@ -83,6 +84,8 @@ public class ITAppEditor extends ExprEditor {
     private static final String DATA_DIRECTION = Direction.class.getCanonicalName();
     private static final String DATA_STREAM = Stream.class.getCanonicalName();
 
+    private static final String LANG = Lang.class.getCanonicalName() + ".JAVA";
+
     private static final String CHECK_SCO_TYPE = "LoaderUtils.checkSCOType(";
     private static final String RUN_METHOD_ON_OBJECT = "LoaderUtils.runMethodOnObject(";
 
@@ -91,7 +94,6 @@ public class ITAppEditor extends ExprEditor {
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     private static final String ERROR_NO_EMPTY_CONSTRUCTOR = "ERROR: No empty constructor on object class ";
-
 
     public ITAppEditor(Method[] remoteMethods, CtMethod[] instrCandidates, String itApiVar, String itSRVar, String itORVar,
             String itAppIdVar, CtClass appClass) {
@@ -112,9 +114,8 @@ public class ITAppEditor extends ExprEditor {
 
     /**
      * Instruments the creation of streams and stream wrappers
-     * 
-     * @param ne
-     *            New expression
+     *
+     * @param ne New expression
      */
     @Override
     public void edit(NewExpr ne) throws CannotCompileException {
@@ -175,7 +176,7 @@ public class ITAppEditor extends ExprEditor {
 
     /**
      * Class creation inspection
-     * 
+     *
      * @param className
      * @param callPars
      * @return
@@ -209,7 +210,7 @@ public class ITAppEditor extends ExprEditor {
 
     /**
      * Replaces calls to remote methods by calls to executeTask or black-boxes methods
-     * 
+     *
      */
     public void edit(MethodCall mc) throws CannotCompileException {
         LOGGER.debug("---- BEGIN EDIT METHOD CALL " + mc.getMethodName() + " ----");
@@ -284,21 +285,16 @@ public class ITAppEditor extends ExprEditor {
             }
 
             mc.replace(modifiedCall);
-        } else {
-            // The method is an instrumented method
-            if (DEBUG) {
+        } else // The method is an instrumented method
+         if (DEBUG) {
                 LOGGER.debug("Skipping instrumented method " + mc.getMethodName());
-            }
-
-            // Nothing to do
-        }
-
+            } // Nothing to do
         LOGGER.debug("---- END EDIT METHOD CALL ----");
     }
 
     /**
      * Replaces calls to local methods by executeTask
-     * 
+     *
      * @param methodName
      * @param className
      * @param declaredMethod
@@ -329,7 +325,6 @@ public class ITAppEditor extends ExprEditor {
         executeTask.append(itApiVar).append(EXECUTE_TASK);
         executeTask.append(itAppIdVar).append(',');
         executeTask.append("null").append(','); // TaskMonitor set to null
-
         // Common values
         boolean isPrioritary = Boolean.parseBoolean(Constants.IS_NOT_PRIORITARY_TASK);
         int numNodes = Constants.SINGLE_NODE;
@@ -346,6 +341,8 @@ public class ITAppEditor extends ExprEditor {
         // Specific implementation values
         boolean isMethod = !(declaredMethod.isAnnotationPresent(Service.class) || declaredMethod.isAnnotationPresent(Services.class));
         if (isMethod) {
+            executeTask.append(LANG).append(','); // language set to null
+
             // Method: native, MPI, OMPSs, Binary, OpenCL, etc.
             if (declaredMethod.isAnnotationPresent(es.bsc.compss.types.annotations.task.Method.class)) {
                 es.bsc.compss.types.annotations.task.Method methodAnnot = declaredMethod
@@ -416,7 +413,7 @@ public class ITAppEditor extends ExprEditor {
 
     /**
      * Process the parameters, the target object and the return value of a given method
-     * 
+     *
      * @param declaredMethod
      * @param paramAnnot
      * @param paramTypes
@@ -473,7 +470,7 @@ public class ITAppEditor extends ExprEditor {
 
     /**
      * Process the parameter values of a method call
-     * 
+     *
      * @param paramIndex
      * @param formalType
      * @param annotType
@@ -540,7 +537,7 @@ public class ITAppEditor extends ExprEditor {
 
     /**
      * Process the target object of a given method call
-     * 
+     *
      * @param declaredMethod
      * @param isStatic
      * @param numParams
@@ -591,7 +588,7 @@ public class ITAppEditor extends ExprEditor {
 
     /**
      * Process the return parameter of a given method call
-     * 
+     *
      * @param isVoid
      * @param numParams
      * @param retType
@@ -736,7 +733,7 @@ public class ITAppEditor extends ExprEditor {
 
     /**
      * Replaces the close stream call
-     * 
+     *
      * @return
      */
     private String replaceCloseStream() {
@@ -746,7 +743,7 @@ public class ITAppEditor extends ExprEditor {
 
     /**
      * Replaces the delete file call
-     * 
+     *
      * @return
      */
     private String replaceDeleteFile() {
@@ -756,7 +753,7 @@ public class ITAppEditor extends ExprEditor {
 
     /**
      * Replaces the API calls
-     * 
+     *
      * @return
      * @throws NotFoundException
      */
@@ -796,7 +793,7 @@ public class ITAppEditor extends ExprEditor {
 
     /**
      * Replaces the blackBox calls
-     * 
+     *
      * @return
      */
     private String replaceBlackBox(String methodName, String className, CtMethod method) throws CannotCompileException {
@@ -828,7 +825,8 @@ public class ITAppEditor extends ExprEditor {
                 StringBuilder aux1 = new StringBuilder("new Object[] {");
                 for (CtClass parType : paramTypes) {
                     if (i > 1) {
-                        aux1.append(','); /* aux2.append(','); */
+                        aux1.append(',');
+                        /* aux2.append(','); */
                     }
                     String parId = "$" + i;
                     if (parType.isPrimitive()) {
@@ -918,7 +916,7 @@ public class ITAppEditor extends ExprEditor {
 
     /**
      * Check the access to fields of objects
-     * 
+     *
      */
     @Override
     public void edit(FieldAccess fa) throws CannotCompileException {
@@ -976,7 +974,6 @@ public class ITAppEditor extends ExprEditor {
         private final Stream stream;
         private final String prefix;
 
-
         public ParameterInformation(String toAppend, String toPrepend, String type, Direction direction, Stream stream, String prefix) {
             this.toAppend = toAppend;
             this.toPrepend = toPrepend;
@@ -1012,12 +1009,12 @@ public class ITAppEditor extends ExprEditor {
 
     }
 
+
     private class ReturnInformation {
 
         private final String toAppend;
         private final String toPrepend;
         private final String afterExecution;
-
 
         public ReturnInformation(String toAppend, String toPrepend, String afterExecution) {
             this.toAppend = toAppend;
@@ -1039,11 +1036,11 @@ public class ITAppEditor extends ExprEditor {
 
     }
 
+
     private class CallInformation {
 
         private final String toAppend;
         private final String toPrepend;
-
 
         public CallInformation(String toAppend, String toPrepend) {
             this.toAppend = toAppend;

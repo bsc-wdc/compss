@@ -79,9 +79,9 @@ public class NIOTask implements Externalizable, Invocation {
      * @param hist
      * @param transferGroupId
      */
-    public NIOTask(String lang, boolean workerDebug, AbstractMethodImplementation impl, boolean hasTarget, int numReturns, LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs, List<String> slaveWorkersNodeNames,
+    public NIOTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, boolean hasTarget, int numReturns, LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs, List<String> slaveWorkersNodeNames,
             int taskId, TaskType taskType, int jobId, JobHistory hist, int transferGroupId) {
-        this.lang = Lang.valueOf(lang.toUpperCase());
+        this.lang = lang;
         this.workerDebug = workerDebug;
         this.impl = impl;
         this.arguments = new LinkedList<>();

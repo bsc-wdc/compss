@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.api;
 
+import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.types.annotations.parameter.Direction;
 
 
@@ -72,6 +73,7 @@ public interface COMPSsRuntime {
      * @param methodName
      * @param isPrioritary
      * @param hasTarget
+     * @param numReturns
      * @param parameterCount
      * @param parameters
      * @return
@@ -102,6 +104,7 @@ public interface COMPSsRuntime {
      *
      * @param appId
      * @param monitor
+     * @param lang
      * @param methodClass
      * @param methodName
      * @param isPrioritary
@@ -113,7 +116,7 @@ public interface COMPSsRuntime {
      * @param parameters
      * @return
      */
-    public int executeTask(Long appId, TaskMonitor monitor, String methodClass, String methodName, boolean isPrioritary, int numNodes,
+    public int executeTask(Long appId, TaskMonitor monitor, Lang lang, String methodClass, String methodName, boolean isPrioritary, int numNodes,
             boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters);
 
     /**
@@ -187,7 +190,7 @@ public interface COMPSsRuntime {
      *
      * @param fileName
      * @param mode
-     * @return
+     *
      */
     public void closeFile(String fileName, Direction mode);
 
@@ -202,7 +205,7 @@ public interface COMPSsRuntime {
     /**
      * Returns the renaming of the binding object version opened
      *
-     * @param objectName
+     * @param bindingObjectName
      * @return id in the cache
      */
     public String getBindingObject(String bindingObjectName);
@@ -210,7 +213,7 @@ public interface COMPSsRuntime {
     /**
      * removes the binding object from runtime
      *
-     * @param objectName
+     * @param bindingObjectName
      * @return id in the cache
      */
     public boolean deleteBindingObject(String bindingObjectName);

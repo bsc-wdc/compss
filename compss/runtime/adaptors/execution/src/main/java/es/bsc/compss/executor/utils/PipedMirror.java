@@ -17,25 +17,14 @@
 package es.bsc.compss.executor.utils;
 
 import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.invokers.external.piped.commands.EndTaskPipeCommand;
-import es.bsc.compss.invokers.external.piped.commands.ErrorTaskPipeCommand;
-import es.bsc.compss.invokers.external.piped.commands.QuitPipeCommand;
-import es.bsc.compss.invokers.external.ExternalCommand.CommandType;
-import es.bsc.compss.invokers.external.piped.PipeCommand;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.StreamGobbler;
 import es.bsc.compss.util.Tracer;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.util.Map;
 import java.util.UUID;
 
@@ -48,10 +37,6 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
 
     // Logger messages
-    private static final String ERROR_PIPE_CLOSE = "Error on closing pipe ";
-    private static final String ERROR_PIPE_QUIT = "Error finishing readPipeFile ";
-    private static final String ERROR_PIPE_NOT_FOUND = "Pipe cannot be found";
-    private static final String ERROR_PIPE_NOT_READ = "Pipe cannot be read";
     private static final String ERROR_PB = "Error starting ProcessBuilder";
     private static final String ERROR_GC = "Error generating worker external launch command";
 
@@ -63,7 +48,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
     private static final String PIPE_SCRIPT_NAME = "bindings_piper.sh";
     private static final String PIPE_FILE_BASENAME = "pipe_";
     private static final int PIPE_CREATION_TIME = 50; // ms
-    private static final int MAX_WRITE_PIPE_RETRIES = 3;
+    // private static final int MAX_WRITE_PIPE_RETRIES = 3;
 
     protected final String mirrorId;
     protected final int size;
@@ -72,6 +57,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
     private Process piper;
     private StreamGobbler outputGobbler;
     private StreamGobbler errorGobbler;
+
 
     public PipedMirror(InvocationContext context, int size) {
         mirrorId = String.valueOf(UUID.randomUUID().hashCode());

@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
@@ -86,6 +87,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     // Number of fields per parameter
     private static int NUM_FIELDS_PER_PARAM = 6;
+
+    // Language
+    protected static final String DEFAULT_LANG_STR = System.getProperty(COMPSsConstants.LANG).toUpperCase();
+    protected static final Lang DEFAULT_LANG = DEFAULT_LANG_STR == null ? Lang.JAVA : Lang.valueOf(System.getProperty(COMPSsConstants.LANG).toUpperCase());
 
     // Object registry
     private static ObjectRegistry oReg;
@@ -546,15 +551,33 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /**
-     * Execute task: methods
+     * Execute task: methods for C binding
      */
     @Override
-    public int executeTask(Long appId, String methodClass, String methodName, boolean isPrioritary, boolean hasTarget, int parameterCount,
-            Object... parameters) {
+    public int executeTask(
+            Long appId,
+            String methodClass, String methodName,
+            boolean isPrioritary,
+            boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters
+    ) {
 
-        return executeTask(appId, null, false, methodClass, methodName, null, isPrioritary, Constants.SINGLE_NODE,
+        return executeTask(appId, null, null, false, methodClass, methodName, null, isPrioritary, Constants.SINGLE_NODE,
                 Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK), Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK), hasTarget,
-                null, parameterCount, parameters);
+                numReturns, parameterCount, parameters);
+    }
+
+    /**
+     * Execute task: methods for Python binding
+     */
+    @Override
+    public int executeTask(
+            Long appId,
+            String signature,
+            boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
+            boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters) {
+
+        return executeTask(appId, null, null, true, null, null, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget,
+                numReturns, parameterCount, parameters);
     }
 
     /**
@@ -562,38 +585,24 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      *
      */
     @Override
-    public int executeTask(Long appId, String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated,
-            boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters) {
+    public int executeTask(
+            Long appId,
+            TaskMonitor monitor,
+            Lang lang, String methodClass, String methodName,
+            boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
+            boolean hasTarget, int parameterCount, Object... parameters
+    ) {
 
-        return executeTask(appId, null, false, methodClass, methodName, null, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget,
-                null, parameterCount, parameters);
-    }
-
-    @Override
-    public int executeTask(Long appId, TaskMonitor monitor, String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated,
-            boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters) {
-
-        return executeTask(appId, null, false, methodClass, methodName, null, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget,
-                null, parameterCount, parameters);
-    }
-
-    /**
-     * Execute task: methods with signature (for bindings)
-     */
-    @Override
-    public int executeTask(Long appId, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-            boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters) {
-
-        return executeTask(appId, null, true, null, null, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns,
-                parameterCount, parameters);
+        return executeTask(appId, monitor, lang, false, methodClass, methodName, null, isPrioritary, numNodes, isReplicated, isDistributed,
+                hasTarget, null, parameterCount, parameters);
     }
 
     /**
      * Internal execute task to make API options only as a wrapper
      *
      * @param appId
-     * @param hasSignature indicates whether the signature parameter is valid or must be constructed from the methodName
-     * and methodClass parameters
+     * @param monitor
+     * @param hasSignature
      * @param methodClass
      * @param methodName
      * @param signature
@@ -607,17 +616,14 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * @param parameters
      * @return
      */
-    public int executeTask(Long appId, boolean hasSignature, String methodClass, String methodName, String signature, boolean isPrioritary,
-            int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount,
-            Object... parameters) {
-        return executeTask(appId, null, hasSignature, methodClass, methodName, signature, isPrioritary,
-                numNodes, isReplicated, isDistributed, hasTarget, numReturns, parameterCount,
-                parameters);
-    }
+    private int executeTask(
+            Long appId,
+            TaskMonitor monitor,
+            Lang lang, boolean hasSignature, String methodClass, String methodName, String signature,
+            boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
+            boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters
+    ) {
 
-    private int executeTask(Long appId, TaskMonitor monitor, boolean hasSignature, String methodClass, String methodName, String signature, boolean isPrioritary,
-            int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount,
-            Object... parameters) {
         // Tracing flag for task creation
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
@@ -650,11 +656,16 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         if (!hasSignature) {
             signature = MethodImplementation.getSignature(methodClass, methodName, hasTarget, numReturns, pars);
         }
+
         if (monitor == null) {
             monitor = DO_NOTHING_MONITOR;
         }
+
+        if (lang == null) {
+            lang = DEFAULT_LANG;
+        }
         // Register the task
-        int task = ap.newTask(appId, monitor, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns, pars);
+        int task = ap.newTask(appId, monitor, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns, pars);
 
         // End tracing event
         if (Tracer.isActivated()) {
@@ -687,17 +698,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Execute task: services
      */
     @Override
-    public int executeTask(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary, int numNodes,
-            boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters) {
-        return executeTask(appId, null, namespace, service, port, operation, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, parameterCount, parameters);
-    }
+    public int executeTask(Long appId, TaskMonitor monitor, String namespace, String service, String port, String operation,
+            boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount,
+            Object... parameters) {
 
-    /**
-     * Execute task: services
-     */
-    @Override
-    public int executeTask(Long appId, TaskMonitor monitor, String namespace, String service, String port, String operation, boolean isPrioritary, int numNodes,
-            boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters) {
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
         }

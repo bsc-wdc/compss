@@ -41,9 +41,10 @@ public class COMPSsConstants {
      * Languages
      */
     public static enum Lang {
-        JAVA, // For Java applications
-        C, // For C or C++ applications
-        PYTHON // For Python applications
+        JAVA,   // For Java applications
+        C,      // For C or C++ applications
+        PYTHON, // For Python applications
+        UNKNOWN //For Services
     }
 
 

@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.api;
 
+import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.types.annotations.parameter.Direction;
 
 
@@ -72,12 +73,13 @@ public interface COMPSsRuntime {
      * @param methodName
      * @param isPrioritary
      * @param hasTarget
+     * @param numReturns
      * @param parameterCount
      * @param parameters
      * @return
      */
-    public int executeTask(Long appId, String methodClass, String methodName, boolean isPrioritary, boolean hasTarget, int parameterCount,
-            Object... parameters);
+    public int executeTask(Long appId, String methodClass, String methodName, boolean isPrioritary, boolean hasTarget, Integer numReturns,
+            int parameterCount, Object... parameters);
 
     /**
      * New Method task for Python Binding
@@ -101,25 +103,8 @@ public interface COMPSsRuntime {
      * New Method Task for Loader
      *
      * @param appId
-     * @param methodClass
-     * @param methodName
-     * @param isPrioritary
-     * @param numNodes
-     * @param isReplicated
-     * @param isDistributed
-     * @param hasTarget
-     * @param parameterCount
-     * @param parameters
-     * @return
-     */
-    public int executeTask(Long appId, String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated,
-            boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters);
-
-    /**
-     * New Method Task for Loader
-     *
-     * @param appId
      * @param monitor
+     * @param lang
      * @param methodClass
      * @param methodName
      * @param isPrioritary
@@ -131,27 +116,7 @@ public interface COMPSsRuntime {
      * @param parameters
      * @return
      */
-    public int executeTask(Long appId, TaskMonitor monitor, String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated,
-            boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters);
-
-    /**
-     * New service task
-     *
-     * @param appId
-     * @param namespace
-     * @param service
-     * @param port
-     * @param operation
-     * @param isPrioritary
-     * @param numNodes
-     * @param isReplicated
-     * @param isDistributed
-     * @param hasTarget
-     * @param parameterCount
-     * @param parameters
-     * @return
-     */
-    public int executeTask(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary, int numNodes,
+    public int executeTask(Long appId, TaskMonitor monitor, Lang lang, String methodClass, String methodName, boolean isPrioritary, int numNodes,
             boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters);
 
     /**
@@ -172,8 +137,9 @@ public interface COMPSsRuntime {
      * @param parameters
      * @return
      */
-    public int executeTask(Long appId, TaskMonitor monitor, String namespace, String service, String port, String operation, boolean isPrioritary, int numNodes,
-            boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters);
+    public int executeTask(Long appId, TaskMonitor monitor, String namespace, String service, String port, String operation,
+            boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount,
+            Object... parameters);
 
     /**
      * Notifies the Runtime that there are no more tasks created by the current appId
@@ -224,7 +190,7 @@ public interface COMPSsRuntime {
      *
      * @param fileName
      * @param mode
-     * @return
+     *
      */
     public void closeFile(String fileName, Direction mode);
 
@@ -239,7 +205,7 @@ public interface COMPSsRuntime {
     /**
      * Returns the renaming of the binding object version opened
      *
-     * @param objectName
+     * @param bindingObjectName
      * @return id in the cache
      */
     public String getBindingObject(String bindingObjectName);
@@ -247,7 +213,7 @@ public interface COMPSsRuntime {
     /**
      * removes the binding object from runtime
      *
-     * @param objectName
+     * @param bindingObjectName
      * @return id in the cache
      */
     public boolean deleteBindingObject(String bindingObjectName);

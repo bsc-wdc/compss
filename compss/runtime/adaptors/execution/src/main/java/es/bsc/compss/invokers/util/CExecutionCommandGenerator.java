@@ -19,7 +19,6 @@ package es.bsc.compss.invokers.util;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.invokers.types.CParams;
-import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -30,6 +29,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
 
 public class CExecutionCommandGenerator {
 

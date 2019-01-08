@@ -20,6 +20,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.TaskDescription;
@@ -39,9 +40,6 @@ public abstract class Job<T extends COMPSsWorker> {
     protected static final int FIRST_JOB_ID = 1;
     protected static int nextJobId = FIRST_JOB_ID;
 
-    // Language
-    protected static final String LANG = System.getProperty(COMPSsConstants.LANG);
-
     // Environment variables for job execution
     private static final String classpathFromEnvironment = (System.getProperty(COMPSsConstants.WORKER_CP) != null
             && !System.getProperty(COMPSsConstants.WORKER_CP).equals("")) ? System.getProperty(COMPSsConstants.WORKER_CP) : "\"\"";
@@ -60,7 +58,6 @@ public abstract class Job<T extends COMPSsWorker> {
         FAILED // Completely failed (can create new job for reschedule)
     }
 
-
     // Information of the job
     protected int jobId;
 
@@ -75,7 +72,6 @@ public abstract class Job<T extends COMPSsWorker> {
 
     protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
     protected static final boolean debug = logger.isDebugEnabled();
-
 
     /**
      * Creates a new job instance with the given parameters
@@ -98,7 +94,7 @@ public abstract class Job<T extends COMPSsWorker> {
         /*
          * Setup job environment variables ****************************************
          */
-        /*
+ /*
          * This variables are only used by GAT since NIO loads them from the worker rather than specific variables per
          * job
          */
@@ -126,6 +122,15 @@ public abstract class Job<T extends COMPSsWorker> {
         } else {
             this.workerPythonpath = pythonpathFromEnvironment;
         }
+    }
+
+    /**
+     * Returns the language of the task
+     *
+     * @return language of the task
+     */
+    public Lang getLang() {
+        return this.taskParams.getLang();
     }
 
     /**

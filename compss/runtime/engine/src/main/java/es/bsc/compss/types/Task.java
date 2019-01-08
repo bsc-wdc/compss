@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types;
 
+import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.allocatableactions.ExecutionAction;
@@ -77,6 +78,7 @@ public class Task implements Comparable<Task> {
      * Creates a new METHOD task with the given parameters
      *
      * @param appId
+     * @param lang
      * @param signature
      * @param isPrioritary
      * @param numNodes
@@ -87,12 +89,12 @@ public class Task implements Comparable<Task> {
      * @param parameters
      * @param monitor
      */
-    public Task(Long appId, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
+    public Task(Long appId, Lang lang, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
             boolean hasTarget, int numReturns, Parameter[] parameters, TaskMonitor monitor) {
         this.appId = appId;
         this.taskId = nextTaskId.getAndIncrement();
         this.status = TaskState.TO_ANALYSE;
-        this.taskDescription = new TaskDescription(signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns, parameters);
+        this.taskDescription = new TaskDescription(lang, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns, parameters);
         this.predecessors = new LinkedList<>();
         this.successors = new LinkedList<>();
         this.executions = new LinkedList<>();

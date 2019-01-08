@@ -256,11 +256,10 @@ class testArgsKwargsFunctions(unittest.TestCase):
         result = compss_wait_on(pending)
         self.assertEqual(result, 10)
 
-    # TODO: Supported if not executed with the previous - but check that works with the previous with the new parameter naming implementation.
-    # def testVarArgDefaultKwargTask5(self):
-    #     pending = varargdefaultkwargTask(1, 2, 3, 4, 5, six=6, seven=7)
-    #     result = compss_wait_on(pending)
-    #     self.assertEqual(result, 16)
+    def testVarArgDefaultKwargTask5(self):
+        pending = varargdefaultkwargTask(1, 2, 3, 4, 5, six=6, seven=7)
+        result = compss_wait_on(pending)
+        self.assertEqual(result, 16)
 
     '''
     FUNCTION WITH **KWARGS AND DICT UNROLLING

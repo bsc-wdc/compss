@@ -741,10 +741,8 @@ class task(object):
             if parameter.is_vararg(var_name):
                 self.parameters[var_name] = parameter.get_parameter_copy(self.get_varargs_direction())
             elif parameter.is_kwarg(var_name):
-                # remove #kwarg_ from var_name to check if its Parameter has been defined.
-                # Otherwise, take the default.
-                prefix, real_name = var_name.split("_", 1)
-                self.parameters[var_name] = self.decorator_arguments.get(real_name, self.get_default_direction(var_name))
+                real_name = parameter.get_name_from_kwarg(var_name)
+                self.parameters[var_name] = self.decorator_arguments.get(real_name, self.get_default_direction(real_name))
             else:
                 # The argument is named, check its direction
                 # Default value = IN if not class or instance method and isModifier, INOUT otherwise

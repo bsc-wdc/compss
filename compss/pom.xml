@@ -292,5 +292,6 @@
 		<module>tools</module>
 		<module>programming_model</module>
 		<module>runtime</module>
+		<module>agent</module>
 	</modules>
 </project>

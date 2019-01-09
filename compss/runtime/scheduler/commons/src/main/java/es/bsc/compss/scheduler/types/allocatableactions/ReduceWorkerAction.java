@@ -29,7 +29,6 @@ import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.ServiceImplementation;
 import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
-import es.bsc.compss.types.resources.Resource.Type;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.updates.PendingReduction;
@@ -59,7 +58,7 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
         this.worker = worker;
         this.ts = ts;
         this.ru = (PendingReduction<T>) modification;
-        if (worker.getResource().getType() == Type.WORKER) {
+        if (modification.getModification() instanceof MethodResourceDescription) {
             impl = new MethodImplementation("", "", null, null, (MethodResourceDescription) modification.getModification());
         } else {
             impl = new ServiceImplementation(null, "", "", "", "");
@@ -80,7 +79,7 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     public boolean isToReleaseResources() {
         return false;
     }
-    
+
     @Override
     public boolean isToStopResource() {
         return false;
@@ -145,7 +144,7 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
 
     @Override
     public Implementation[] getImplementations() {
-        Implementation[] impls = new Implementation[] { impl };
+        Implementation[] impls = new Implementation[]{impl};
         return impls;
     }
 
@@ -173,7 +172,7 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
         schedule((ResourceScheduler<WorkerResourceDescription>) worker, impl);
     }
-    
+
     @Override
     public void tryToSchedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
         this.schedule(actionScore);

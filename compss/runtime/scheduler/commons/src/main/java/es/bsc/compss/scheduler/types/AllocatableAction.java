@@ -499,6 +499,8 @@ public abstract class AllocatableAction {
     @SuppressWarnings("unchecked")
     private boolean areEnoughResources() {
         Worker<WorkerResourceDescription> w = (Worker<WorkerResourceDescription>) selectedResource.getResource();
+        System.out.println("Worker description "+ w.getDescription().getClass().getName());
+        System.out.println("Task Requirements "+ selectedImpl.getRequirements().getClass().getName());
         return w.canRunNow(selectedImpl.getRequirements());
     }
 

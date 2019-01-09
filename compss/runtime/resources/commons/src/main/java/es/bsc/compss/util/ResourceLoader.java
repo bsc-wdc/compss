@@ -75,8 +75,13 @@ public class ResourceLoader {
             throws ResourcesFileValidationException, ProjectFileValidationException, NoResourceAvailableException {
 
         init(resources_XML, resources_XSD, project_XML, project_XSD);
-        loadFiles();
-        loadRuntime();
+        if ((ResourceLoader.resources_XML != null) && (ResourceLoader.project_XML != null)) {
+            loadFiles();
+            loadRuntime();
+        } else {
+            System.out.println("No resource/project file detected. Starting runtime without computing resources.");
+            LOGGER.warn("No resource/project file detected. Starting runtime without computing resources.");
+        }
     }
 
     private static void init(String resources_XML, String resources_XSD, String project_XML, String project_XSD) {

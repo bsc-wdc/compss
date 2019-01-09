@@ -81,6 +81,11 @@ def myLs(flag, hide, sort):
 def myLsWithoutType(flag, hide, sort):
     pass
 
+@mpi(binary="./checkNames.sh", workingDir=os.getcwd() + '/src/scripts/', runner="mpirun", computingNodes=1)
+@task(f=FILE_IN, fp={Type: FILE_IN, Prefix: "--prefix="}, returns=int)
+def checkFileNames(f, fp, name):
+    pass
+
 
 class testMpiDecorator(unittest.TestCase):
 
@@ -140,3 +145,11 @@ class testMpiDecorator(unittest.TestCase):
         sort = "time"
         myLsWithoutType(flag, infile, sort)
         compss_barrier()
+
+    def testCheckFileNames(self):
+        f = "src/infile"
+        fp = "src/infile"
+        name = "infile"
+        exit_value = checkFileNames(f, fp, name)
+        exit_value = compss_wait_on(exit_value)
+        self.assertEqual(exit_value, 213, "At least one file name is NOT as expected: {}, {}, {}".format(f, fp, name))

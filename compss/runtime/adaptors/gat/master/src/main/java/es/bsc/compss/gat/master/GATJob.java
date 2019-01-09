@@ -51,6 +51,7 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.RAccessId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
+import es.bsc.compss.types.exceptions.LangNotDefinedException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.BinaryImplementation;
 import es.bsc.compss.types.implementations.COMPSsImplementation;
@@ -101,8 +102,8 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
             : COMPSsConstants.DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT;
     private static final String PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT = System
             .getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT) != null
-            ? System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT)
-            : COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
+                    ? System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT)
+                    : COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
 
     private static final String JOBS_DIR = System.getProperty(COMPSsConstants.APP_LOG_DIR) + "jobs" + java.io.File.separator;
 
@@ -124,6 +125,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
     private final boolean userNeeded;
     // Multi node information
     private final List<String> slaveWorkersNodeNames;
+
 
     /**
      * New GAT Job instance
@@ -356,6 +358,8 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                         lArgs.add(PYTHON_VIRTUAL_ENVIRONMENT);
                         lArgs.add(PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT);
                         break;
+                    case UNKNOWN:
+                        throw new LangNotDefinedException();
                 }
                 MethodImplementation methodImpl = (MethodImplementation) absImpl;
                 lArgs.add(methodImpl.getDeclaringClass());

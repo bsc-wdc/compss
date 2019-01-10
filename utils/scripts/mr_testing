@@ -17,7 +17,7 @@ if git commit -m 'merged and added headers'; then
     exit 1; # exit with error to forbid auto-merging after adding headers
 
 else
-	echo "All files contained headers, proceeding witht Tests"
+	echo "All files contained headers, proceeding with Tests"
     # Fix jaxb problem
     rm -rf ./compss/runtime/config/xml/projects
     rm -rf ./compss/runtime/config/xml/resources

@@ -80,7 +80,7 @@ public class AddOrchestration {
         /*
          * Class<?> dynamiqueBeanClass = cc.toClass();
          * 
-         * //instanciating the updated class AddOrchestration ao = (AddOrchestration) dynamiqueBeanClass.newInstance();
+         * //instantiating the updated class AddOrchestration ao = (AddOrchestration) dynamiqueBeanClass.newInstance();
          * 
          * try{ Method fooMethod = ao.getClass().getDeclaredMethod(methodName, new Class<?>[] { int.class }); //getting
          * the annotation Orchestration o = (Orchestration) fooMethod.getAnnotation(Orchestration.class);

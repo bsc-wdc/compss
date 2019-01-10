@@ -122,6 +122,8 @@
 		<!-- Module 89 is 89-gemm_autoparallel_python -->
         <module>90-compss</module>
         <!-- Module 91 is 91-compssDecorator_python -->
+        <!-- Module 92 is 92-inheritance_python -->
+        <module>93-multinode</module>
 
 		<!-- Add new modules below. Respect numbering -->
 	</modules>

@@ -31,6 +31,7 @@ import es.bsc.compss.types.implementations.DecafImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MPIImplementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.implementations.MultiNodeImplementation;
 import es.bsc.compss.types.implementations.OmpSsImplementation;
 import es.bsc.compss.types.implementations.OpenCLImplementation;
 import es.bsc.compss.util.ResourceManager;
@@ -166,6 +167,20 @@ public class CERegistration extends TDRequest {
                 }
                 m = new DecafImplementation(dfScript, dfExecutor, dfLib, decafWorkingDir, decafRunner, coreId, implId,
                         this.implConstraints);
+                break;
+            case MULTI_NODE:
+                if (this.implTypeArgs.length != MultiNodeImplementation.NUM_PARAMS) {
+                    ErrorManager.error("Incorrect parameters for type MultiNode on " + this.coreElementSignature);
+                }
+                String multiNodeClass = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
+                String multiNodeName = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
+                if (multiNodeClass == null || multiNodeClass.isEmpty()) {
+                    ErrorManager.error("Empty declaringClass annotation for method " + this.coreElementSignature);
+                }
+                if (multiNodeName == null || multiNodeName.isEmpty()) {
+                    ErrorManager.error("Empty methodName annotation for method " + this.coreElementSignature);
+                }
+                m = new MultiNodeImplementation(multiNodeClass, multiNodeName, coreId, implId, this.implConstraints);
                 break;
             case OMPSS:
                 if (this.implTypeArgs.length != OmpSsImplementation.NUM_PARAMS) {

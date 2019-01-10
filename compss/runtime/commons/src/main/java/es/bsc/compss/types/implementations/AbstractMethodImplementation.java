@@ -41,6 +41,7 @@ public abstract class AbstractMethodImplementation extends Implementation implem
         MPI, // For MPI methods
         COMPSs, // For COMPSs nested applications
         DECAF, // For decaf methods
+        MULTI_NODE, // For native multi-node methods
         OMPSS, // For OmpSs methods
         OPENCL // For OpenCL methods
     }

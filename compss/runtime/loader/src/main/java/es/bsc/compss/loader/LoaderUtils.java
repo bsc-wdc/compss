@@ -23,6 +23,7 @@ import es.bsc.compss.types.annotations.task.COMPSs;
 import es.bsc.compss.types.annotations.task.Decaf;
 import es.bsc.compss.types.annotations.task.MPI;
 import es.bsc.compss.types.annotations.task.Method;
+import es.bsc.compss.types.annotations.task.MultiNode;
 import es.bsc.compss.types.annotations.task.OmpSs;
 import es.bsc.compss.types.annotations.task.OpenCL;
 import es.bsc.compss.types.annotations.task.Service;
@@ -31,6 +32,7 @@ import es.bsc.compss.types.annotations.task.repeatables.Decafs;
 import es.bsc.compss.types.annotations.task.repeatables.MPIs;
 import es.bsc.compss.types.annotations.task.repeatables.Methods;
 import es.bsc.compss.types.annotations.task.repeatables.MultiCOMPSs;
+import es.bsc.compss.types.annotations.task.repeatables.MultiMultiNode;
 import es.bsc.compss.types.annotations.task.repeatables.MultiOmpSs;
 import es.bsc.compss.types.annotations.task.repeatables.OpenCLs;
 import es.bsc.compss.types.annotations.task.repeatables.Services;
@@ -83,112 +85,127 @@ public class LoaderUtils {
     public static java.lang.reflect.Method checkRemote(CtMethod method, java.lang.reflect.Method[] remoteMethods) throws NotFoundException {
         LOGGER.info("Checking Method " + method.getName());
 
-        for (java.lang.reflect.Method remoteMethod_javaLang : remoteMethods) {
-            LOGGER.info("   ** To remote Method " + remoteMethod_javaLang.getName());
-            if (remoteMethod_javaLang.isAnnotationPresent(Method.class)) {
+        for (java.lang.reflect.Method remoteMethod : remoteMethods) {
+            LOGGER.info("   ** To remote Method " + remoteMethod.getName());
+            if (remoteMethod.isAnnotationPresent(Method.class)) {
                 // METHOD
-                Method remoteMethodAnnotation = remoteMethod_javaLang.getAnnotation(Method.class);
-                if (isSelectedMethod(method, remoteMethod_javaLang, remoteMethodAnnotation)) {
-                    return remoteMethod_javaLang;
+                Method remoteMethodAnnotation = remoteMethod.getAnnotation(Method.class);
+                if (isSelectedMethod(method, remoteMethod, remoteMethodAnnotation.declaringClass(), remoteMethodAnnotation.name())) {
+                    return remoteMethod;
                 }
             }
-            if (remoteMethod_javaLang.isAnnotationPresent(Service.class)) {
+            if (remoteMethod.isAnnotationPresent(Service.class)) {
                 // SERVICE
-                Service remoteMethodAnnotation = remoteMethod_javaLang.getAnnotation(Service.class);
-                if (isSelectedService(method, remoteMethod_javaLang, remoteMethodAnnotation)) {
-                    return remoteMethod_javaLang;
+                Service remoteMethodAnnotation = remoteMethod.getAnnotation(Service.class);
+                if (isSelectedService(method, remoteMethod, remoteMethodAnnotation)) {
+                    return remoteMethod;
                 }
             }
-            if (remoteMethod_javaLang.isAnnotationPresent(Binary.class)) {
+            if (remoteMethod.isAnnotationPresent(Binary.class)) {
                 // BINARY
-                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, BINARY_SIGNATURE)) {
-                    return remoteMethod_javaLang;
+                if (isSelectedNonNativeMethod(method, remoteMethod, BINARY_SIGNATURE)) {
+                    return remoteMethod;
                 }
             }
-            if (remoteMethod_javaLang.isAnnotationPresent(MPI.class)) {
+            if (remoteMethod.isAnnotationPresent(MPI.class)) {
                 // MPI
-                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, MPI_SIGNATURE)) {
-                    return remoteMethod_javaLang;
+                if (isSelectedNonNativeMethod(method, remoteMethod, MPI_SIGNATURE)) {
+                    return remoteMethod;
                 }
             }
-            if (remoteMethod_javaLang.isAnnotationPresent(COMPSs.class)) {
+            if (remoteMethod.isAnnotationPresent(COMPSs.class)) {
                 // COMPSs
-                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, COMPSs_SIGNATURE)) {
-                    return remoteMethod_javaLang;
+                if (isSelectedNonNativeMethod(method, remoteMethod, COMPSs_SIGNATURE)) {
+                    return remoteMethod;
                 }
             }
-            if (remoteMethod_javaLang.isAnnotationPresent(Decaf.class)) {
+            if (remoteMethod.isAnnotationPresent(MultiNode.class)) {
+                // MultiNode
+                MultiNode remoteMethodAnnotation = remoteMethod.getAnnotation(MultiNode.class);
+                if (isSelectedMethod(method, remoteMethod, remoteMethodAnnotation.declaringClass(), remoteMethodAnnotation.name())) {
+                    return remoteMethod;
+                }
+            }
+            if (remoteMethod.isAnnotationPresent(Decaf.class)) {
                 // DECAF
-                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, DECAF_SIGNATURE)) {
-                    return remoteMethod_javaLang;
+                if (isSelectedNonNativeMethod(method, remoteMethod, DECAF_SIGNATURE)) {
+                    return remoteMethod;
                 }
             }
-            if (remoteMethod_javaLang.isAnnotationPresent(OmpSs.class)) {
+            if (remoteMethod.isAnnotationPresent(OmpSs.class)) {
                 // OMPSS
-                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, OMPSS_SIGNATURE)) {
-                    return remoteMethod_javaLang;
+                if (isSelectedNonNativeMethod(method, remoteMethod, OMPSS_SIGNATURE)) {
+                    return remoteMethod;
                 }
             }
-            if (remoteMethod_javaLang.isAnnotationPresent(OpenCL.class)) {
+            if (remoteMethod.isAnnotationPresent(OpenCL.class)) {
                 // OPENCL
-                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, OPENCL_SIGNATURE)) {
-                    return remoteMethod_javaLang;
+                if (isSelectedNonNativeMethod(method, remoteMethod, OPENCL_SIGNATURE)) {
+                    return remoteMethod;
                 }
             }
             // REPEATABLES
-            if (remoteMethod_javaLang.isAnnotationPresent(Methods.class)) {
+            if (remoteMethod.isAnnotationPresent(Methods.class)) {
                 // METHODS
-                Methods methodsAnnotation = remoteMethod_javaLang.getAnnotation(Methods.class);
+                Methods methodsAnnotation = remoteMethod.getAnnotation(Methods.class);
                 for (Method remoteMethodAnnotation : methodsAnnotation.value()) {
-                    if (isSelectedMethod(method, remoteMethod_javaLang, remoteMethodAnnotation)) {
-                        return remoteMethod_javaLang;
+                    if (isSelectedMethod(method, remoteMethod, remoteMethodAnnotation.declaringClass(), remoteMethodAnnotation.name())) {
+                        return remoteMethod;
                     }
                 }
-
             }
-            if (remoteMethod_javaLang.isAnnotationPresent(Services.class)) {
+            if (remoteMethod.isAnnotationPresent(Services.class)) {
                 // SERVICES
-                Services servicesAnnotation = remoteMethod_javaLang.getAnnotation(Services.class);
+                Services servicesAnnotation = remoteMethod.getAnnotation(Services.class);
                 for (Service remoteServiceAnnotation : servicesAnnotation.value()) {
-                    if (isSelectedService(method, remoteMethod_javaLang, remoteServiceAnnotation)) {
-                        return remoteMethod_javaLang;
+                    if (isSelectedService(method, remoteMethod, remoteServiceAnnotation)) {
+                        return remoteMethod;
                     }
                 }
             }
-            if (remoteMethod_javaLang.isAnnotationPresent(Binaries.class)) {
+            if (remoteMethod.isAnnotationPresent(Binaries.class)) {
                 // BINARIES
-                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, BINARY_SIGNATURE)) {
-                    return remoteMethod_javaLang;
+                if (isSelectedNonNativeMethod(method, remoteMethod, BINARY_SIGNATURE)) {
+                    return remoteMethod;
                 }
             }
-            if (remoteMethod_javaLang.isAnnotationPresent(MPIs.class)) {
+            if (remoteMethod.isAnnotationPresent(MPIs.class)) {
                 // MPIS
-                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, MPI_SIGNATURE)) {
-                    return remoteMethod_javaLang;
+                if (isSelectedNonNativeMethod(method, remoteMethod, MPI_SIGNATURE)) {
+                    return remoteMethod;
                 }
             }
-            if (remoteMethod_javaLang.isAnnotationPresent(MultiCOMPSs.class)) {
+            if (remoteMethod.isAnnotationPresent(MultiCOMPSs.class)) {
                 // MULTI-COMPSs
-                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, COMPSs_SIGNATURE)) {
-                    return remoteMethod_javaLang;
+                if (isSelectedNonNativeMethod(method, remoteMethod, COMPSs_SIGNATURE)) {
+                    return remoteMethod;
                 }
             }
-            if (remoteMethod_javaLang.isAnnotationPresent(Decafs.class)) {
+            if (remoteMethod.isAnnotationPresent(Decafs.class)) {
                 // DECAFS
-                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, DECAF_SIGNATURE)) {
-                    return remoteMethod_javaLang;
+                if (isSelectedNonNativeMethod(method, remoteMethod, DECAF_SIGNATURE)) {
+                    return remoteMethod;
                 }
             }
-            if (remoteMethod_javaLang.isAnnotationPresent(MultiOmpSs.class)) {
+            if (remoteMethod.isAnnotationPresent(MultiMultiNode.class)) {
+                // MULTI-MULTINODE
+                MultiMultiNode methodsAnnotation = remoteMethod.getAnnotation(MultiMultiNode.class);
+                for (MultiNode remoteMethodAnnotation : methodsAnnotation.value()) {
+                    if (isSelectedMethod(method, remoteMethod, remoteMethodAnnotation.declaringClass(), remoteMethodAnnotation.name())) {
+                        return remoteMethod;
+                    }
+                }
+            }
+            if (remoteMethod.isAnnotationPresent(MultiOmpSs.class)) {
                 // MULTI-OMPSS
-                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, OMPSS_SIGNATURE)) {
-                    return remoteMethod_javaLang;
+                if (isSelectedNonNativeMethod(method, remoteMethod, OMPSS_SIGNATURE)) {
+                    return remoteMethod;
                 }
             }
-            if (remoteMethod_javaLang.isAnnotationPresent(OpenCLs.class)) {
+            if (remoteMethod.isAnnotationPresent(OpenCLs.class)) {
                 // OPENCLS
-                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, OPENCL_SIGNATURE)) {
-                    return remoteMethod_javaLang;
+                if (isSelectedNonNativeMethod(method, remoteMethod, OPENCL_SIGNATURE)) {
+                    return remoteMethod;
                 }
             }
         }
@@ -197,21 +214,22 @@ public class LoaderUtils {
         return null;
     }
 
-    private static boolean isSelectedMethod(CtMethod method, java.lang.reflect.Method remote, Method methodAnnot) throws NotFoundException {
-        // Check if methods have the same name
-        String nameRemote = methodAnnot.name();
-        if (nameRemote.equals(Constants.UNASSIGNED)) {
-            nameRemote = remote.getName();
+    private static boolean isSelectedMethod(CtMethod method, java.lang.reflect.Method remote, String remoteMethodClass,
+            String remoteMethodName) throws NotFoundException {
+        // Patch remote method name if required
+        if (remoteMethodName == null || remoteMethodName.isEmpty() || remoteMethodName.equals(Constants.UNASSIGNED)) {
+            remoteMethodName = remote.getName();
         }
 
-        LOGGER.debug("  - Checking " + method.getName() + " against " + nameRemote);
-        if (!nameRemote.equals(method.getName())) {
+        // Check if method names are equal
+        LOGGER.debug("  - Checking " + method.getName() + " against " + remoteMethodName);
+        if (!remoteMethodName.equals(method.getName())) {
             return false;
         }
 
         // Check if methods belong to the same class
-        LOGGER.debug("  - Checking classes " + method.getDeclaringClass().getName() + " against " + methodAnnot.declaringClass());
-        boolean matchesClass = methodAnnot.declaringClass().equals(method.getDeclaringClass().getName());
+        LOGGER.debug("  - Checking classes " + method.getDeclaringClass().getName() + " against " + remoteMethodClass);
+        boolean matchesClass = remoteMethodClass.equals(method.getDeclaringClass().getName());
         if (!matchesClass) {
             return false;
         }

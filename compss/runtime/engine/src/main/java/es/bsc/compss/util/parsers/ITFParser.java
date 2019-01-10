@@ -30,6 +30,7 @@ import es.bsc.compss.types.annotations.task.COMPSs;
 import es.bsc.compss.types.annotations.task.Decaf;
 import es.bsc.compss.types.annotations.task.MPI;
 import es.bsc.compss.types.annotations.task.Method;
+import es.bsc.compss.types.annotations.task.MultiNode;
 import es.bsc.compss.types.annotations.task.OmpSs;
 import es.bsc.compss.types.annotations.task.OpenCL;
 import es.bsc.compss.types.annotations.task.Service;
@@ -38,6 +39,7 @@ import es.bsc.compss.types.annotations.task.repeatables.Decafs;
 import es.bsc.compss.types.annotations.task.repeatables.MPIs;
 import es.bsc.compss.types.annotations.task.repeatables.Methods;
 import es.bsc.compss.types.annotations.task.repeatables.MultiCOMPSs;
+import es.bsc.compss.types.annotations.task.repeatables.MultiMultiNode;
 import es.bsc.compss.types.annotations.task.repeatables.MultiOmpSs;
 import es.bsc.compss.types.annotations.task.repeatables.OpenCLs;
 import es.bsc.compss.types.annotations.task.repeatables.Services;
@@ -47,6 +49,7 @@ import es.bsc.compss.types.implementations.DecafImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MPIImplementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.implementations.MultiNodeImplementation;
 import es.bsc.compss.types.implementations.OmpSsImplementation;
 import es.bsc.compss.types.implementations.OpenCLImplementation;
 import es.bsc.compss.types.implementations.ServiceImplementation;
@@ -170,20 +173,23 @@ public class ITFParser {
                     // Simple annotations
                     && !annot.annotationType().getName().equals(Method.class.getName())
                     && !annot.annotationType().getName().equals(Service.class.getName())
+                    && !annot.annotationType().getName().equals(Binary.class.getName())
                     && !annot.annotationType().getName().equals(MPI.class.getName())
                     && !annot.annotationType().getName().equals(Decaf.class.getName())
                     && !annot.annotationType().getName().equals(COMPSs.class.getName())
+                    && !annot.annotationType().getName().equals(MultiNode.class.getName())
                     && !annot.annotationType().getName().equals(OmpSs.class.getName())
                     && !annot.annotationType().getName().equals(OpenCL.class.getName())
-                    && !annot.annotationType().getName().equals(Binary.class.getName())
                     // Repeatable annotations
                     && !annot.annotationType().getName().equals(Methods.class.getName())
                     && !annot.annotationType().getName().equals(Services.class.getName())
+                    && !annot.annotationType().getName().equals(Binaries.class.getName())
+                    && !annot.annotationType().getName().equals(MPIs.class.getName())
                     && !annot.annotationType().getName().equals(Decafs.class.getName())
                     && !annot.annotationType().getName().equals(MultiCOMPSs.class.getName())
+                    && !annot.annotationType().getName().equals(MultiMultiNode.class.getName())
                     && !annot.annotationType().getName().equals(MultiOmpSs.class.getName())
                     && !annot.annotationType().getName().equals(OpenCLs.class.getName())
-                    && !annot.annotationType().getName().equals(Binaries.class.getName())
                     // Scheduler hints
                     && !annot.annotationType().getName().equals(SchedulerHints.class.getName())) {
 
@@ -203,19 +209,21 @@ public class ITFParser {
          * Checks if there is a non-native annotation or not
          */
         for (Annotation annot : m.getAnnotations()) {
-            if (annot.annotationType().getName().equals(MPI.class.getName())
+            if (annot.annotationType().getName().equals(Binary.class.getName())
+                    || annot.annotationType().getName().equals(MPI.class.getName())
                     || annot.annotationType().getName().equals(Decaf.class.getName())
                     || annot.annotationType().getName().equals(COMPSs.class.getName())
+                    || annot.annotationType().getName().equals(MultiNode.class.getName())
                     || annot.annotationType().getName().equals(OmpSs.class.getName())
                     || annot.annotationType().getName().equals(OpenCL.class.getName())
-                    || annot.annotationType().getName().equals(Binary.class.getName())
                     // Repeatable annotations
+                    || annot.annotationType().getName().equals(Binaries.class.getName())
                     || annot.annotationType().getName().equals(MPIs.class.getName())
                     || annot.annotationType().getName().equals(Decafs.class.getName())
                     || annot.annotationType().getName().equals(MultiCOMPSs.class.getName())
+                    || annot.annotationType().getName().equals(MultiMultiNode.class.getName())
                     || annot.annotationType().getName().equals(MultiOmpSs.class.getName())
-                    || annot.annotationType().getName().equals(OpenCLs.class.getName())
-                    || annot.annotationType().getName().equals(Binaries.class.getName())) {
+                    || annot.annotationType().getName().equals(OpenCLs.class.getName())) {
 
                 return true;
             }
@@ -467,7 +475,6 @@ public class ITFParser {
             }
 
             String declaringClass = methodAnnot.declaringClass();
-
             String methodSignature = calleeMethodSignature.toString() + declaringClass;
             signatures.add(methodSignature);
 
@@ -511,6 +518,34 @@ public class ITFParser {
         }
 
         /*
+         * BINARY
+         */
+        for (Binary binaryAnnot : m.getAnnotationsByType(Binary.class)) {
+            LOGGER.debug("   * Processing @Binary annotation");
+            String binary = EnvironmentLoader.loadFromEnvironment(binaryAnnot.binary());
+            String workingDir = EnvironmentLoader.loadFromEnvironment(binaryAnnot.workingDir());
+
+            if (binary == null || binary.isEmpty()) {
+                ErrorManager.error("Empty binary annotation for method " + m.getName());
+            }
+
+            String binarySignature = calleeMethodSignature.toString() + LoaderUtils.BINARY_SIGNATURE;
+            signatures.add(binarySignature);
+
+            // Load specific method constraints if present
+            MethodResourceDescription implConstraints = defaultConstraints;
+            if (binaryAnnot.constraints() != null) {
+                implConstraints = new MethodResourceDescription(binaryAnnot.constraints());
+                implConstraints.mergeMultiConstraints(defaultConstraints);
+            }
+
+            // Register method implementation
+            Implementation impl = new BinaryImplementation(binary, workingDir, methodId, implId, implConstraints);
+            ++implId;
+            implementations.add(impl);
+        }
+
+        /*
          * MPI
          */
         for (MPI mpiAnnot : m.getAnnotationsByType(MPI.class)) {
@@ -527,8 +562,10 @@ public class ITFParser {
                 ErrorManager.error("Empty binary annotation for method " + m.getName());
             }
 
-            LOGGER.debug("Binary: " + binary);
-            LOGGER.debug("mpiRunner: " + mpiRunner);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Binary: " + binary);
+                LOGGER.debug("mpiRunner: " + mpiRunner);
+            }
 
             String mpiSignature = calleeMethodSignature.toString() + LoaderUtils.MPI_SIGNATURE;
             signatures.add(mpiSignature);
@@ -565,10 +602,12 @@ public class ITFParser {
                 ErrorManager.error("Empty binary annotation for method " + m.getName());
             }
 
-            LOGGER.debug("DF Script: " + dfScript);
-            LOGGER.debug("DF Executor: " + dfExecutor);
-            LOGGER.debug("DF Lib: " + dfLib);
-            LOGGER.debug("mpiRunner: " + mpiRunner);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("DF Script: " + dfScript);
+                LOGGER.debug("DF Executor: " + dfExecutor);
+                LOGGER.debug("DF Lib: " + dfLib);
+                LOGGER.debug("mpiRunner: " + mpiRunner);
+            }
 
             String mpiSignature = calleeMethodSignature.toString() + LoaderUtils.DECAF_SIGNATURE;
             signatures.add(mpiSignature);
@@ -607,6 +646,7 @@ public class ITFParser {
                 LOGGER.debug("flags: " + flags);
                 LOGGER.debug("appName: " + appName);
             }
+
             String compssSignature = calleeMethodSignature.toString() + LoaderUtils.COMPSs_SIGNATURE;
             signatures.add(compssSignature);
 
@@ -619,6 +659,41 @@ public class ITFParser {
 
             // Register method implementation
             Implementation impl = new COMPSsImplementation(runcompss, flags, appName, workingDir, methodId, implId, implConstraints);
+            ++implId;
+            implementations.add(impl);
+        }
+
+        /*
+         * MultiNode
+         */
+        for (MultiNode multiNodeAnnot : m.getAnnotationsByType(MultiNode.class)) {
+            LOGGER.debug("   * Processing @MultiNode annotation");
+
+            // Warning for ignoring streams
+            if (hasStreams) {
+                ErrorManager
+                        .warn("Java multi-node method " + methodName + " does not support stream annotations. SKIPPING stream annotation");
+            }
+
+            // Warning for ignoring prefixes
+            if (hasPrefixes) {
+                ErrorManager
+                        .warn("Java multi-node method " + methodName + " does not support prefix annotations. SKIPPING prefix annotation");
+            }
+
+            String declaringClass = multiNodeAnnot.declaringClass();
+            String methodSignature = calleeMethodSignature.toString() + declaringClass;
+            signatures.add(methodSignature);
+
+            // Load specific method constraints if present
+            MethodResourceDescription implConstraints = defaultConstraints;
+            if (multiNodeAnnot.constraints() != null) {
+                implConstraints = new MethodResourceDescription(multiNodeAnnot.constraints());
+                implConstraints.mergeMultiConstraints(defaultConstraints);
+            }
+
+            // Register method implementation
+            Implementation impl = new MultiNodeImplementation(declaringClass, methodName, methodId, implId, implConstraints);
             ++implId;
             implementations.add(impl);
         }
@@ -679,33 +754,6 @@ public class ITFParser {
             implementations.add(impl);
         }
 
-        /*
-         * BINARY
-         */
-        for (Binary binaryAnnot : m.getAnnotationsByType(Binary.class)) {
-            LOGGER.debug("   * Processing @Binary annotation");
-            String binary = EnvironmentLoader.loadFromEnvironment(binaryAnnot.binary());
-            String workingDir = EnvironmentLoader.loadFromEnvironment(binaryAnnot.workingDir());
-
-            if (binary == null || binary.isEmpty()) {
-                ErrorManager.error("Empty binary annotation for method " + m.getName());
-            }
-
-            String binarySignature = calleeMethodSignature.toString() + LoaderUtils.BINARY_SIGNATURE;
-            signatures.add(binarySignature);
-
-            // Load specific method constraints if present
-            MethodResourceDescription implConstraints = defaultConstraints;
-            if (binaryAnnot.constraints() != null) {
-                implConstraints = new MethodResourceDescription(binaryAnnot.constraints());
-                implConstraints.mergeMultiConstraints(defaultConstraints);
-            }
-
-            // Register method implementation
-            Implementation impl = new BinaryImplementation(binary, workingDir, methodId, implId, implConstraints);
-            ++implId;
-            implementations.add(impl);
-        }
     }
 
 }

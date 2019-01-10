@@ -26,8 +26,10 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.implementations.MultiNodeImplementation;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.Tracer;
@@ -83,16 +85,33 @@ public abstract class ExternalInvoker extends Invoker {
         lArgs.add(Boolean.toString(invocation.isDebugEnabled()));
         lArgs.add(context.getStorageConf());
 
-        // The implementation to execute externally can only be METHOD but we double check it
-        if (invocation.getMethodImplementation().getMethodType() != AbstractMethodImplementation.MethodType.METHOD) {
+        // The implementation to execute externally can only be METHOD or MULTI_NODE but we double check it
+        if (invocation.getMethodImplementation().getMethodType() != AbstractMethodImplementation.MethodType.METHOD
+                && invocation.getMethodImplementation().getMethodType() != AbstractMethodImplementation.MethodType.MULTI_NODE) {
             throw new JobExecutionException(ERROR_UNSUPPORTED_JOB_TYPE);
         }
 
         // Add method classname and methodname
-        MethodImplementation impl = (MethodImplementation) invocation.getMethodImplementation();
-        lArgs.add(String.valueOf(impl.getMethodType()));
-        lArgs.add(impl.getDeclaringClass());
-        lArgs.add(impl.getAlternativeMethodName());
+        MethodType methodType = invocation.getMethodImplementation().getMethodType();
+        String methodClass;
+        String methodName;
+        switch (methodType) {
+            case METHOD:
+                MethodImplementation methodImpl = (MethodImplementation) invocation.getMethodImplementation();
+                methodClass = methodImpl.getDeclaringClass();
+                methodName = methodImpl.getAlternativeMethodName();
+                break;
+            case MULTI_NODE:
+                MultiNodeImplementation multiNodeImpl = (MultiNodeImplementation) invocation.getMethodImplementation();
+                methodClass = multiNodeImpl.getDeclaringClass();
+                methodName = multiNodeImpl.getMethodName();
+                break;
+            default:
+                throw new JobExecutionException(ERROR_UNSUPPORTED_JOB_TYPE);
+        }
+        lArgs.add(String.valueOf(methodType));
+        lArgs.add(methodClass);
+        lArgs.add(methodName);
 
         // Slave nodes and cus description
         lArgs.add(String.valueOf(invocation.getSlaveNodesNames().size()));

@@ -139,6 +139,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         Comm.init(new MasterResourceImpl());
     }
 
+
     // Code Added to support configuration files
     private static void setPropertiesFromRuntime(RuntimeConfigManager manager) {
         try {
@@ -557,12 +558,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Execute task: methods for C binding
      */
     @Override
-    public int executeTask(
-            Long appId,
-            String methodClass, String methodName,
-            boolean isPrioritary,
-            boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters
-    ) {
+    public int executeTask(Long appId, String methodClass, String methodName, boolean isPrioritary, boolean hasTarget, Integer numReturns,
+            int parameterCount, Object... parameters) {
 
         return executeTask(appId, null, null, false, methodClass, methodName, null, isPrioritary, Constants.SINGLE_NODE,
                 Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK), Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK), hasTarget,
@@ -573,10 +570,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Execute task: methods for Python binding
      */
     @Override
-    public int executeTask(
-            Long appId,
-            String signature,
-            boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
+    public int executeTask(Long appId, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
             boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters) {
 
         return executeTask(appId, null, null, true, null, null, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget,
@@ -588,13 +582,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      *
      */
     @Override
-    public int executeTask(
-            Long appId,
-            TaskMonitor monitor,
-            Lang lang, String methodClass, String methodName,
-            boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-            boolean hasTarget, int parameterCount, Object... parameters
-    ) {
+    public int executeTask(Long appId, TaskMonitor monitor, Lang lang, String methodClass, String methodName, boolean isPrioritary,
+            int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters) {
 
         return executeTask(appId, monitor, lang, false, methodClass, methodName, null, isPrioritary, numNodes, isReplicated, isDistributed,
                 hasTarget, null, parameterCount, parameters);
@@ -620,13 +609,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * @param parameters
      * @return
      */
-    private int executeTask(
-            Long appId,
-            TaskMonitor monitor,
-            Lang lang, boolean hasSignature, String methodClass, String methodName, String signature,
-            boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-            boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters
-    ) {
+    private int executeTask(Long appId, TaskMonitor monitor, Lang lang, boolean hasSignature, String methodClass, String methodName,
+            String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget,
+            Integer numReturns, int parameterCount, Object... parameters) {
 
         // Tracing flag for task creation
         if (Tracer.isActivated()) {
@@ -669,7 +654,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             lang = DEFAULT_LANG;
         }
         // Register the task
-        int task = ap.newTask(appId, monitor, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns, pars);
+        int task = ap.newTask(appId, monitor, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns,
+                pars);
 
         // End tracing event
         if (Tracer.isActivated()) {

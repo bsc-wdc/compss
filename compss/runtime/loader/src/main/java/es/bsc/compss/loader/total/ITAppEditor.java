@@ -47,8 +47,10 @@ import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.Parameter;
 import es.bsc.compss.types.annotations.SchedulerHints;
 import es.bsc.compss.types.annotations.task.Binary;
+import es.bsc.compss.types.annotations.task.COMPSs;
 import es.bsc.compss.types.annotations.task.Decaf;
 import es.bsc.compss.types.annotations.task.MPI;
+import es.bsc.compss.types.annotations.task.MultiNode;
 import es.bsc.compss.types.annotations.task.OmpSs;
 import es.bsc.compss.types.annotations.task.OpenCL;
 import es.bsc.compss.types.annotations.task.Service;
@@ -95,6 +97,7 @@ public class ITAppEditor extends ExprEditor {
 
     private static final String ERROR_NO_EMPTY_CONSTRUCTOR = "ERROR: No empty constructor on object class ";
 
+
     public ITAppEditor(Method[] remoteMethods, CtMethod[] instrCandidates, String itApiVar, String itSRVar, String itORVar,
             String itAppIdVar, CtClass appClass) {
 
@@ -115,7 +118,8 @@ public class ITAppEditor extends ExprEditor {
     /**
      * Instruments the creation of streams and stream wrappers
      *
-     * @param ne New expression
+     * @param ne
+     *            New expression
      */
     @Override
     public void edit(NewExpr ne) throws CannotCompileException {
@@ -286,9 +290,9 @@ public class ITAppEditor extends ExprEditor {
 
             mc.replace(modifiedCall);
         } else // The method is an instrumented method
-         if (DEBUG) {
-                LOGGER.debug("Skipping instrumented method " + mc.getMethodName());
-            } // Nothing to do
+        if (DEBUG) {
+            LOGGER.debug("Skipping instrumented method " + mc.getMethodName());
+        } // Nothing to do
         LOGGER.debug("---- END EDIT METHOD CALL ----");
     }
 
@@ -343,11 +347,14 @@ public class ITAppEditor extends ExprEditor {
         if (isMethod) {
             executeTask.append(LANG).append(','); // language set to null
 
-            // Method: native, MPI, OMPSs, Binary, OpenCL, etc.
+            // Method: native, Binary, MPI, COMPSs, Multi-Node, OMPSs, OpenCL
             if (declaredMethod.isAnnotationPresent(es.bsc.compss.types.annotations.task.Method.class)) {
                 es.bsc.compss.types.annotations.task.Method methodAnnot = declaredMethod
                         .getAnnotation(es.bsc.compss.types.annotations.task.Method.class);
                 isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(methodAnnot.priority()));
+            } else if (declaredMethod.isAnnotationPresent(Binary.class)) {
+                Binary binaryAnnot = declaredMethod.getAnnotation(Binary.class);
+                isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(binaryAnnot.priority()));
             } else if (declaredMethod.isAnnotationPresent(MPI.class)) {
                 MPI mpiAnnot = declaredMethod.getAnnotation(MPI.class);
                 isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(mpiAnnot.priority()));
@@ -364,15 +371,28 @@ public class ITAppEditor extends ExprEditor {
                 numNodes = (numNodesSTR != null && !numNodesSTR.isEmpty() && !numNodesSTR.equals(Constants.UNASSIGNED))
                         ? Integer.valueOf(numNodesSTR)
                         : Constants.SINGLE_NODE;
+            } else if (declaredMethod.isAnnotationPresent(COMPSs.class)) {
+                COMPSs compssAnnot = declaredMethod.getAnnotation(COMPSs.class);
+                isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(compssAnnot.priority()));
+                // Parse computingNodes from environment if needed
+                String numNodesSTR = EnvironmentLoader.loadFromEnvironment(compssAnnot.computingNodes());
+                numNodes = (numNodesSTR != null && !numNodesSTR.isEmpty() && !numNodesSTR.equals(Constants.UNASSIGNED))
+                        ? Integer.valueOf(numNodesSTR)
+                        : Constants.SINGLE_NODE;
+            } else if (declaredMethod.isAnnotationPresent(MultiNode.class)) {
+                MultiNode multiNodeAnnot = declaredMethod.getAnnotation(MultiNode.class);
+                isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(multiNodeAnnot.priority()));
+                // Parse computingNodes from environment if needed
+                String numNodesSTR = EnvironmentLoader.loadFromEnvironment(multiNodeAnnot.computingNodes());
+                numNodes = (numNodesSTR != null && !numNodesSTR.isEmpty() && !numNodesSTR.equals(Constants.UNASSIGNED))
+                        ? Integer.valueOf(numNodesSTR)
+                        : Constants.SINGLE_NODE;
             } else if (declaredMethod.isAnnotationPresent(OmpSs.class)) {
                 OmpSs ompssAnnot = declaredMethod.getAnnotation(OmpSs.class);
                 isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(ompssAnnot.priority()));
             } else if (declaredMethod.isAnnotationPresent(OpenCL.class)) {
                 OpenCL openCLAnnot = declaredMethod.getAnnotation(OpenCL.class);
                 isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(openCLAnnot.priority()));
-            } else if (declaredMethod.isAnnotationPresent(Binary.class)) {
-                Binary binaryAnnot = declaredMethod.getAnnotation(Binary.class);
-                isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(binaryAnnot.priority()));
             }
 
             executeTask.append("\"").append(className).append("\"").append(',');
@@ -447,7 +467,7 @@ public class ITAppEditor extends ExprEditor {
             toAppend.append(infoParam.getDirection()).append(",");
             toAppend.append(infoParam.getStream()).append(",");
             toAppend.append(infoParam.getPrefix() + ",");
-            toAppend.append("\"\""); // Paramter Name
+            toAppend.append("\"\""); // Parameter Name
             if (i < paramAnnot.length - 1) {
                 toAppend.append(",");
             }
@@ -563,15 +583,27 @@ public class ITAppEditor extends ExprEditor {
             // Add direction
             // Check if the method will modify the target object (default yes)
             if (isMethod) {
-                es.bsc.compss.types.annotations.task.Method methodAnnot = declaredMethod
-                        .getAnnotation(es.bsc.compss.types.annotations.task.Method.class);
-                boolean isModifier = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(methodAnnot.isModifier()));
+                String isModifierField = null;
+                if (declaredMethod.isAnnotationPresent(es.bsc.compss.types.annotations.task.Method.class)) {
+                    es.bsc.compss.types.annotations.task.Method methodAnnot = declaredMethod
+                            .getAnnotation(es.bsc.compss.types.annotations.task.Method.class);
+                    isModifierField = methodAnnot.isModifier();
+                } else if (declaredMethod.isAnnotationPresent(MultiNode.class)) {
+                    MultiNode multiNodeAnnot = declaredMethod.getAnnotation(MultiNode.class);
+                    isModifierField = multiNodeAnnot.isModifier();
+                }
+
+                boolean isModifier = false;
+                if (isModifierField != null) {
+                    isModifier = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(isModifierField));
+                }
                 if (isModifier) {
                     targetObj.append(',').append(DATA_DIRECTION + ".INOUT");
                 } else {
                     targetObj.append(',').append(DATA_DIRECTION + ".IN");
                 }
-            } else {// Service
+            } else {
+                // Service
                 targetObj.append(',').append(DATA_DIRECTION + ".INOUT");
             }
 
@@ -974,6 +1006,7 @@ public class ITAppEditor extends ExprEditor {
         private final Stream stream;
         private final String prefix;
 
+
         public ParameterInformation(String toAppend, String toPrepend, String type, Direction direction, Stream stream, String prefix) {
             this.toAppend = toAppend;
             this.toPrepend = toPrepend;
@@ -1009,12 +1042,12 @@ public class ITAppEditor extends ExprEditor {
 
     }
 
-
     private class ReturnInformation {
 
         private final String toAppend;
         private final String toPrepend;
         private final String afterExecution;
+
 
         public ReturnInformation(String toAppend, String toPrepend, String afterExecution) {
             this.toAppend = toAppend;
@@ -1036,11 +1069,11 @@ public class ITAppEditor extends ExprEditor {
 
     }
 
-
     private class CallInformation {
 
         private final String toAppend;
         private final String toPrepend;
+
 
         public CallInformation(String toAppend, String toPrepend) {
             this.toAppend = toAppend;

@@ -23,6 +23,7 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.implementations.MultiNodeImplementation;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -40,19 +41,28 @@ public class JavaInvoker extends Invoker {
     private final String methodName;
     protected final Method method;
 
+
     public JavaInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources)
             throws JobExecutionException {
+
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
-        // Get method definition properties
-        MethodImplementation methodImpl = null;
-        try {
-            methodImpl = (MethodImplementation) invocation.getMethodImplementation();
-        } catch (Exception e) {
-            throw new JobExecutionException(ERROR_METHOD_DEFINITION + invocation.getMethodImplementation().getMethodType(), e);
+        // Get method class and name
+        switch (invocation.getMethodImplementation().getMethodType()) {
+            case METHOD:
+                MethodImplementation methodImpl = (MethodImplementation) invocation.getMethodImplementation();
+                this.className = methodImpl.getDeclaringClass();
+                this.methodName = methodImpl.getAlternativeMethodName();
+                break;
+            case MULTI_NODE:
+                MultiNodeImplementation multiNodeImpl = (MultiNodeImplementation) invocation.getMethodImplementation();
+                this.className = multiNodeImpl.getDeclaringClass();
+                this.methodName = multiNodeImpl.getMethodName();
+                break;
+            default:
+                // We have received an incorrect implementation type
+                throw new JobExecutionException(ERROR_METHOD_DEFINITION + invocation.getMethodImplementation().getMethodType());
         }
-        this.className = methodImpl.getDeclaringClass();
-        this.methodName = methodImpl.getAlternativeMethodName();
 
         // Use reflection to get the requested method
         this.method = findMethod();
@@ -67,7 +77,7 @@ public class JavaInvoker extends Invoker {
         }
         try {
             Method method = null;
-            List<? extends InvocationParam> params = invocation.getParams();
+            List<? extends InvocationParam> params = this.invocation.getParams();
             try {
                 Class<?>[] types = new Class<?>[params.size()];
                 int paramIdx = 0;
@@ -154,14 +164,14 @@ public class JavaInvoker extends Invoker {
     }
 
     protected Object runMethod() throws JobExecutionException {
-        List<? extends InvocationParam> params = invocation.getParams();
+        List<? extends InvocationParam> params = this.invocation.getParams();
         Object[] values = new Object[params.size()];
         int paramIdx = 0;
         for (InvocationParam param : params) {
             values[paramIdx++] = param.getValue();
         }
 
-        InvocationParam targetParam = invocation.getTarget();
+        InvocationParam targetParam = this.invocation.getTarget();
         Object target = null;
         if (targetParam != null) {
             target = targetParam.getValue();
@@ -169,8 +179,9 @@ public class JavaInvoker extends Invoker {
 
         Object retValue = null;
         try {
-            LOGGER.info("Invoked " + method.getName() + (target == null ? "" : " on object " + target) + " in " + context.getHostName());
-            retValue = method.invoke(target, values);
+            LOGGER.info("Invoked " + this.method.getName() + (target == null ? "" : " on object " + target) + " in "
+                    + this.context.getHostName());
+            retValue = this.method.invoke(target, values);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
             throw new JobExecutionException(ERROR_TASK_EXECUTION, e);
         }

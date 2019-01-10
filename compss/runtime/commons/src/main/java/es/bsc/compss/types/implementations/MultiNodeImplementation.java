@@ -24,27 +24,25 @@ import java.io.ObjectOutput;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
 
-public class MethodImplementation extends AbstractMethodImplementation implements Externalizable {
+public class MultiNodeImplementation extends AbstractMethodImplementation implements Externalizable {
 
     public static final int NUM_PARAMS = 2;
 
     private String declaringClass;
-    // In C implementations could have different method names
-    private String alternativeMethod;
+    private String methodName;
 
 
-    public MethodImplementation() {
+    public MultiNodeImplementation() {
         // For externalizable
         super();
     }
 
-    public MethodImplementation(String methodClass, String altMethodName, Integer coreId, Integer implementationId,
+    public MultiNodeImplementation(String methodClass, String methodName, Integer coreId, Integer implementationId,
             MethodResourceDescription requirements) {
 
         super(coreId, implementationId, requirements);
-
         this.declaringClass = methodClass;
-        this.alternativeMethod = altMethodName;
+        this.methodName = methodName;
     }
 
     public String getDeclaringClass() {
@@ -55,24 +53,24 @@ public class MethodImplementation extends AbstractMethodImplementation implement
         this.declaringClass = declaringClass;
     }
 
-    public String getAlternativeMethodName() {
-        return alternativeMethod;
+    public String getMethodName() {
+        return this.methodName;
     }
 
-    public void setAlternativeMethodName(String alternativeMethod) {
-        this.alternativeMethod = alternativeMethod;
+    public void setMethodName(String methodName) {
+        this.methodName = methodName;
     }
 
     @Override
     public MethodType getMethodType() {
-        return MethodType.METHOD;
+        return MethodType.MULTI_NODE;
     }
 
     @Override
     public String getMethodDefinition() {
         StringBuilder sb = new StringBuilder();
         sb.append("[DECLARING CLASS=").append(this.declaringClass);
-        sb.append(", METHOD NAME=").append(this.alternativeMethod);
+        sb.append(", METHOD NAME=").append(this.methodName);
         sb.append("]");
 
         return sb.toString();
@@ -80,7 +78,7 @@ public class MethodImplementation extends AbstractMethodImplementation implement
 
     @Override
     public String toString() {
-        return super.toString() + " Method declared in class " + this.declaringClass + "." + alternativeMethod + ": "
+        return super.toString() + " Multi-Node Method declared in class " + this.declaringClass + "." + methodName + ": "
                 + this.requirements.toString();
     }
 
@@ -88,14 +86,14 @@ public class MethodImplementation extends AbstractMethodImplementation implement
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         super.readExternal(in);
         this.declaringClass = (String) in.readObject();
-        this.alternativeMethod = (String) in.readObject();
+        this.methodName = (String) in.readObject();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         super.writeExternal(out);
         out.writeObject(this.declaringClass);
-        out.writeObject(this.alternativeMethod);
+        out.writeObject(this.methodName);
     }
 
 }

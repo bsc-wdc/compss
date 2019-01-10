@@ -60,6 +60,7 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.implementations.MPIImplementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.implementations.MultiNodeImplementation;
 import es.bsc.compss.types.implementations.OmpSsImplementation;
 import es.bsc.compss.types.implementations.OpenCLImplementation;
 import es.bsc.compss.types.job.JobListener;
@@ -417,6 +418,11 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
 
                 lArgs.add(decafImpl.getMpiRunner());
                 lArgs.add(sandboxDir);
+                break;
+            case MULTI_NODE:
+                MultiNodeImplementation multiNodeImpl = (MultiNodeImplementation) absImpl;
+                lArgs.add(multiNodeImpl.getDeclaringClass());
+                lArgs.add(multiNodeImpl.getMethodName());
                 break;
             case OMPSS:
                 OmpSsImplementation ompssImpl = (OmpSsImplementation) absImpl;

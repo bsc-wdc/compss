@@ -103,6 +103,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
     // Tasks to be processed
     protected LinkedBlockingQueue<APRequest> requestQueue;
 
+
     /**
      * Creates a new Access Processor instance
      *
@@ -187,7 +188,8 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @param parameters
      * @return
      */
-    public int newTask(Long appId, TaskMonitor monitor, Lang lang, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns, Parameter[] parameters) {
+    public int newTask(Long appId, TaskMonitor monitor, Lang lang, String signature, boolean isPrioritary, int numNodes,
+            boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns, Parameter[] parameters) {
 
         Task currentTask = new Task(appId, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns,
                 parameters, monitor);
@@ -214,8 +216,8 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @param parameters
      * @return
      */
-    public int newTask(Long appId, TaskMonitor monitor, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
-            int numReturns, Parameter[] parameters) {
+    public int newTask(Long appId, TaskMonitor monitor, String namespace, String service, String port, String operation, boolean priority,
+            boolean hasTarget, int numReturns, Parameter[] parameters) {
 
         Task currentTask = new Task(appId, namespace, service, port, operation, priority, hasTarget, numReturns, parameters, monitor);
         TaskMonitor registeredMonitor = currentTask.getTaskMonitor();

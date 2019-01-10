@@ -81,7 +81,7 @@ public class Agent {
         AGENT_NAME = hostName;
     }
 
-    public static void runMain(Lang lang, String ceiClass, String className, String methodName, Object[] params, Resource[] resources, AppMonitor monitor) throws AgentException {
+    public static long runMain(Lang lang, String ceiClass, String className, String methodName, Object[] params, Resource[] resources, AppMonitor monitor) throws AgentException {
 
         long appId = Math.abs(APP_ID_GENERATOR.nextLong());
         long mainAppId = Math.abs(APP_ID_GENERATOR.nextLong());
@@ -109,10 +109,10 @@ public class Agent {
                     params, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "params"
                 }
         );
-
+        return mainAppId;
     }
 
-    public static void runTask(Lang lang, String className, String methodName, ApplicationParameter[] sarParams, ApplicationParameter target, boolean hasResult, Resource[] resources, AppMonitor monitor) throws AgentException {
+    public static long runTask(Lang lang, String className, String methodName, ApplicationParameter[] sarParams, ApplicationParameter target, boolean hasResult, Resource[] resources, AppMonitor monitor) throws AgentException {
         long appId = Math.abs(APP_ID_GENERATOR.nextLong());
         monitor.setAppId(appId);
         try {
@@ -185,6 +185,7 @@ public class Agent {
         } catch (Exception e) {
             throw new AgentException(e);
         }
+        return appId;
     }
 
 

@@ -5,18 +5,18 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- GENERAL INFORMATION -->
-	<artifactId>compss-adaptors</artifactId>
+	<artifactId>compss-adaptors-agent-rest</artifactId>
 	<packaging>pom</packaging>
 	<parent>
 		<groupId>es.bsc.compss</groupId>
-		<artifactId>compss-runtime</artifactId>
-<version>2.4.rc1901</version>
+		<artifactId>compss-adaptors-agent</artifactId>
+		<version>2.4.rc1901</version>
 		<relativePath>..</relativePath>
 	</parent>
 
 	<!-- PROJECT INFORMATION -->
-	<name>COMPSs Back-end Adaptors</name>
-	<description>Collection of available adaptors to execute tasks on remote workers.</description>
+	<name>COMPSs Back-end REST Agent Adaptor</name>
+	<description>COMPSs Back-end adaptor using the COMPSs runtime as an agent with interaction through a REST API.</description>
 	<url>http://www.bsc.es</url>
 	<inceptionYear>2015</inceptionYear>
 	<licenses>
@@ -33,11 +33,7 @@
 	<!-- SUB-MODULES -->
 	<modules>
 		<module>commons</module>
-		<module>gat</module>
-		<module>nio</module>
-		<module>ws</module>
-		<module>execution</module>
-		<module>local</module>
-		<module>agent</module>
+		<module>master</module>
+		<module>worker</module>
 	</modules>
 </project>

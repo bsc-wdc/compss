@@ -68,6 +68,7 @@ public abstract class ExternalInvoker extends Invoker {
 
     private static ArrayList<String> getExternalCommand(Invocation invocation, InvocationContext context,
             InvocationResources assignedResources) throws JobExecutionException {
+
         ArrayList<String> args = new ArrayList<>();
 
         args.addAll(addArguments(context, invocation));
@@ -79,17 +80,18 @@ public abstract class ExternalInvoker extends Invoker {
     }
 
     private static ArrayList<String> addArguments(InvocationContext context, Invocation invocation) throws JobExecutionException {
-        ArrayList<String> lArgs = new ArrayList<>();
-        lArgs.add(Boolean.toString(Tracer.isActivated()));
-        lArgs.add(Integer.toString(invocation.getTaskId()));
-        lArgs.add(Boolean.toString(invocation.isDebugEnabled()));
-        lArgs.add(context.getStorageConf());
-
         // The implementation to execute externally can only be METHOD or MULTI_NODE but we double check it
         if (invocation.getMethodImplementation().getMethodType() != AbstractMethodImplementation.MethodType.METHOD
                 && invocation.getMethodImplementation().getMethodType() != AbstractMethodImplementation.MethodType.MULTI_NODE) {
             throw new JobExecutionException(ERROR_UNSUPPORTED_JOB_TYPE);
         }
+
+        // Add general task arguments
+        ArrayList<String> lArgs = new ArrayList<>();
+        lArgs.add(Boolean.toString(Tracer.isActivated()));
+        lArgs.add(Integer.toString(invocation.getTaskId()));
+        lArgs.add(Boolean.toString(invocation.isDebugEnabled()));
+        lArgs.add(context.getStorageConf());
 
         // Add method classname and methodname
         MethodType methodType = invocation.getMethodImplementation().getMethodType();
@@ -164,6 +166,7 @@ public abstract class ExternalInvoker extends Invoker {
 
     private static ArrayList<String> convertParameter(InvocationParam np) {
         ArrayList<String> paramArgs = new ArrayList<>();
+
         DataType type = np.getType();
         paramArgs.add(Integer.toString(type.ordinal()));
         paramArgs.add(Integer.toString(np.getStream().ordinal()));

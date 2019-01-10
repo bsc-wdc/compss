@@ -138,14 +138,6 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
 
                 bind_gpus(binded_gpus)
 
-                # Host list
-                host_list = line[-1]
-
-                def treat_host_list(host_list):
-                    os.environ['COMPSS_HOSTNAMES'] = host_list
-
-                treat_host_list(host_list)
-
                 # Remove the last elements: cpu and gpu bindings
                 current_line = current_line[0:-3]
 
@@ -153,19 +145,19 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                 job_id = current_line[1]
                 job_out = current_line[2]
                 job_err = current_line[3]
-                # line[4] = <boolean> = tracing
-                # line[5] = <integer> = task id
-                # line[6] = <boolean> = debug
-                # line[7] = <string>  = storage conf.
-                # line[8] = <string>  = operation type (e.g. METHOD)
-                # line[9] = <string>  = module
-                # line[10]= <string>  = method
-                # line[11]= <integer> = Number of slaves (worker nodes) == #nodes
+                # current_line[4] = <boolean> = tracing
+                # current_line[5] = <integer> = task id
+                # current_line[6] = <boolean> = debug
+                # current_line[7] = <string>  = storage conf.
+                # current_line[8] = <string>  = operation type (e.g. METHOD)
+                # current_line[9] = <string>  = module
+                # current_line[10]= <string>  = method
+                # current_line[11]= <integer> = Number of slaves (worker nodes) == #nodes
                 # <<list of slave nodes>>
-                # line[11 + #nodes] = <integer> = computing units
-                # line[12 + #nodes] = <boolean> = has target
-                # line[13 + #nodes] = <string>  = has return (always 'null')
-                # line[14 + #nodes] = <integer> = Number of parameters
+                # current_line[11 + #nodes] = <integer> = computing units
+                # current_line[12 + #nodes] = <boolean> = has target
+                # current_line[13 + #nodes] = <string>  = has return (always 'null')
+                # current_line[14 + #nodes] = <integer> = Number of parameters
                 # <<list of parameters>>
                 #       !---> type, stream, prefix , value
 
@@ -190,16 +182,32 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                     logger.debug("[PYTHON WORKER %s] - TASK CMD: %s" % (str(process_name), str(current_line)))
 
                 try:
+                    # Setup out/err wrappers
                     out = open(job_out, 'a')
                     err = open(job_err, 'a')
                     sys.stdout = out
                     sys.stderr = err
+
+                    # Check thread affinity
                     if not affinity_ok:
                         err.write(
-                            'WARNING: This task is going to be executed with default thread affinity %s' % thread_affinity.getaffinity())
+                            "WARNING: This task is going to be executed with default thread affinity %s" % thread_affinity.getaffinity())
+
+                    # Setup process environment
+                    cn = int(current_line[11])
+                    cn_names = ','.join(current_line[12:12 + cn])
+                    cu = current_line[12 + cn]
+                    os.environ["COMPSS_NUM_NODES"] = str(cn)
+                    os.environ["COMPSS_HOSTNAMES"] = cn_names
+                    os.environ["COMPSS_NUM_THREADS"] = cu
+                    os.environ["OMP_NUM_THREADS"] = cu
+
+                    # Execute task
                     from pycompss.worker.worker_commons import execute_task
                     exit_value, new_types, new_values = execute_task(process_name, storage_conf, current_line[9:],
                                                                      TRACING)
+
+                    # Restore out/err wrappers
                     sys.stdout = stdout
                     sys.stderr = stderr
                     sys.stdout.flush()

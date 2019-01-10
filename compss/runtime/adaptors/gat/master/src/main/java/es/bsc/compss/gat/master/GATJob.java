@@ -159,7 +159,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
     @Override
     public void submit() throws Exception {
         // Prepare the job
-        logger.info("Submit GATJob with ID " + jobId);
+        LOGGER.info("Submit GATJob with ID " + jobId);
         JobDescription jobDescr = null;
 
         jobDescr = prepareJob();
@@ -192,19 +192,19 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
     }
 
     protected static void stopAll() {
-        logger.debug("GAT stopping all jobs");
+        LOGGER.debug("GAT stopping all jobs");
         for (GATJob job : RUNNING_JOBS) {
             try {
                 job.stop();
             } catch (Exception e) {
-                logger.error(TERM_ERR, e);
+                LOGGER.error(TERM_ERR, e);
             }
         }
     }
 
     @Override
     public void stop() throws Exception {
-        logger.debug("GAT stop job " + this.jobId);
+        LOGGER.debug("GAT stop job " + this.jobId);
         if (GATjob != null) {
             MetricDefinition md = GATjob.getMetricDefinitionByName(JOB_STATUS);
             Metric m = md.createMetric();
@@ -222,7 +222,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         SoftwareDescription sd = jd.getSoftwareDescription();
         Integer jobId = (Integer) sd.getAttributes().get("jobId");
 
-        logger.debug("Processing job ID = " + jobId);
+        LOGGER.debug("Processing job ID = " + jobId);
         /*
          * Check if either the job has finished or there has been a submission error. We don't care about other state
          * transitions
@@ -249,7 +249,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                         ErrorManager.warn("Error when creating file.");
                         listener.jobFailed(this, JobEndStatus.EXECUTION_FAILED);
                     } else {
-                        if (!debug) {
+                        if (!DEBUG) {
                             localFile.delete();
                         }
                         RUNNING_JOBS.remove(this);
@@ -290,7 +290,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
 
     private JobDescription prepareJob() throws Exception {
         // Get the information related to the job
-        logger.debug("Preparing GAT Job " + this.jobId);
+        LOGGER.debug("Preparing GAT Job " + this.jobId);
         TaskDescription taskParams = this.taskParams;
 
         String targetPath = getResourceNode().getInstallDir();
@@ -313,7 +313,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         lArgs.add(getResourceNode().getLibPath());
         lArgs.add(getResourceNode().getWorkingDir());
         lArgs.add(STORAGE_CONF);
-        lArgs.add(String.valueOf(debug));
+        lArgs.add(String.valueOf(DEBUG));
 
         LogicalData[] obsoleteFiles = getResource().pollObsoletes();
         if (obsoleteFiles != null) {
@@ -500,7 +500,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 }
                 i++;
             }
-            logger.error(sb.toString());
+            LOGGER.error(sb.toString());
             listener.jobFailed(this, JobEndStatus.SUBMISSION_FAILED);
         }
         sd.addAttribute("jobId", jobId);
@@ -524,13 +524,13 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
          * sd.addAttribute(SoftwareDescription.SANDBOX_POSTSTAGE_STDOUT, "false");
          * sd.addAttribute(SoftwareDescription.SANDBOX_POSTSTAGE_STDERR, "false");
          */
-        if (debug) { // Set standard output file for job
+        if (DEBUG) { // Set standard output file for job
             File outFile = GAT.createFile(context,
                     Protocol.ANY_URI.getSchema() + File.separator + JOBS_DIR + "job" + jobId + "_" + this.getHistory() + ".out");
             sd.setStdout(outFile);
         }
 
-        if (debug || usingGlobus) {
+        if (DEBUG || usingGlobus) {
             // Set standard error file for job
             File errFile = GAT.createFile(context,
                     Protocol.ANY_URI.getSchema() + File.separator + JOBS_DIR + "job" + jobId + "_" + this.getHistory() + ".err");
@@ -542,16 +542,16 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         attributes.put("Jobname", "compss_remote_job_" + jobId);
         ResourceDescription rd = new HardwareResourceDescription(attributes);
 
-        if (debug) {
-            logger.debug("Ready to submit job " + jobId + ":");
-            logger.debug("  * Host: " + targetHost);
-            logger.debug("  * Executable: " + sd.getExecutable());
+        if (DEBUG) {
+            LOGGER.debug("Ready to submit job " + jobId + ":");
+            LOGGER.debug("  * Host: " + targetHost);
+            LOGGER.debug("  * Executable: " + sd.getExecutable());
 
             StringBuilder sb = new StringBuilder("  - Arguments:");
             for (String arg : sd.getArguments()) {
                 sb.append(" ").append(arg);
             }
-            logger.debug(sb.toString());
+            LOGGER.debug(sb.toString());
         }
 
         JobDescription jd = new JobDescription(sd, rd);
@@ -600,7 +600,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 break;
             case PSCO_T:
             case EXTERNAL_PSCO_T:
-                logger.error("GAT Adaptor does not support PSCO Types");
+                LOGGER.error("GAT Adaptor does not support PSCO Types");
                 listener.jobFailed(this, JobEndStatus.SUBMISSION_FAILED);
                 break;
             case OBJECT_T:

@@ -405,7 +405,7 @@ class task(object):
                 # @task decorator.
                 func = func.__wrapped__
 
-        decorator_keys = ("implement", "constraint", "decaf", "mpi", "ompss", "binary", "opencl", "task")
+        decorator_keys = ("implement", "constraint", "task", "binary", "mpi", "compss", "decaf", "ompss", "opencl")
 
         top_decorator = _get_top_decorator(func_code, decorator_keys)
         if __debug__:
@@ -418,7 +418,7 @@ class task(object):
         # not usual tasks - handled by the runtime without invoking the PyCOMPSs
         # worker. Needed to filter in order not to code the strings when using
         # them in these type of tasks
-        decorator_filter = ("decaf", "mpi", "ompss", "binary", "opencl")
+        decorator_filter = ("binary", "mpi", "compss", "decaf", "ompss", "opencl")
         default = 'task'
         task_type = _get_task_type(func_code, decorator_filter, default)
         if __debug__:
@@ -499,7 +499,8 @@ class task(object):
         """
         import pycompss.runtime.binding as binding
         if __debug__:
-            logger.debug("[@TASK] I have to do the register of function %s in module %s" % (f.__name__, self.module_name))
+            logger.debug(
+                "[@TASK] I have to do the register of function %s in module %s" % (f.__name__, self.module_name))
             logger.debug("[@TASK] %s" % str(f))
         binding.register_ce(current_core_element)
 
@@ -697,8 +698,8 @@ class task(object):
         """
         from collections import OrderedDict
         parameter_values = OrderedDict()
-        # If we have an OMPSs or MPI decorator above us we should have computingNodes
-        # as a kwarg, we should detect it and remove it
+        # If we have an MPI, COMPSs or MultiNode decorator above us we should have computingNodes
+        # as a kwarg, we should detect it and remove it. Otherwise we set it to 1
         self.computing_nodes = kwargs.pop('computingNodes', 1)
         # It is important to know the name of the first argument to determine if we
         # are dealing with a class or instance method (i.e: first argument is named self)

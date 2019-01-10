@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - COMPSs
+PyCOMPSs API - MultiNode
 ==================
-    This file contains the class COMPSs, needed for the compss
+    This file contains the class MultiNode, needed for the MultiNode
     definition through the decorator.
 """
 
@@ -33,10 +33,10 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 
-class COMPSs(object):
+class MultiNode(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
-    __call__ methods, useful on compss task creation.
+    __call__ methods, useful on MultiNode task creation.
     """
 
     def __init__(self, *args, **kwargs):
@@ -44,7 +44,7 @@ class COMPSs(object):
         Store arguments passed to the decorator
         # self = itself.
         # args = not used.
-        # kwargs = dictionary with the given COMPSs parameters
+        # kwargs = dictionary with the given MultiNode parameters
 
         :param args: Arguments
         :param kwargs: Keyword arguments
@@ -56,7 +56,7 @@ class COMPSs(object):
         self.scope = context.in_pycompss()
         if self.scope:
             if __debug__:
-                logger.debug("Init @compss decorator...")
+                logger.debug("Init @multinode decorator...")
 
             # Get the computing nodes: This parameter will have to go down until
             # execution when invoked.
@@ -85,26 +85,27 @@ class COMPSs(object):
                         except ValueError:
                             raise Exception("ERROR: ComputingNodes value cannot be cast from string to int")
                 else:
-                    raise Exception("ERROR: Wrong Computing Nodes value at COMPSs decorator.")
+                    raise Exception("ERROR: Wrong Computing Nodes value at MultiNode decorator.")
             if __debug__:
-                logger.debug("This COMPSs task will have " + str(self.kwargs['computingNodes']) + " computing nodes.")
+                logger.debug(
+                    "This MultiNode task will have " + str(self.kwargs['computingNodes']) + " computing nodes.")
         else:
             pass
 
     def __call__(self, func):
         """
-        Parse and set the compss parameters within the task core element.
+        Parse and set the multinode parameters within the task core element.
 
         :param func: Function to decorate
         :return: Decorated function.
         """
 
-        def compss_f(*args, **kwargs):
+        def multinode_f(*args, **kwargs):
             if not self.scope:
                 # from pycompss.api.dummy.compss import COMPSs as dummy_compss
                 # d_m = dummy_compss(self.args, self.kwargs)
                 # return d_m.__call__(func)
-                raise Exception("The compss decorator only works within PyCOMPSs framework.")
+                raise Exception("The multiNode decorator only works within PyCOMPSs framework.")
 
             if context.in_master():
                 # master code
@@ -139,37 +140,16 @@ class COMPSs(object):
                 from pycompss.api.task import current_core_element as core_element
                 if not self.registered:
                     self.registered = True
-                    # Update the core element information with the compss information
-                    core_element.set_impl_type("COMPSs")
-
-                    if 'runcompss' in self.kwargs:
-                        runcompss = self.kwargs['runcompss']
-                    else:
-                        runcompss = '[unassigned]'  # Empty or '[unassigned]'
-
-                    if 'flags' in self.kwargs:
-                        flags = self.kwargs['flags']
-                    else:
-                        flags = '[unassigned]'  # Empty or '[unassigned]'
-
-                    app_name = self.kwargs['app_name']
-
-                    if 'workingDir' in self.kwargs:
-                        working_dir = self.kwargs['workingDir']
-                    else:
-                        working_dir = '[unassigned]'  # Empty or '[unassigned]'
-
-                    impl_signature = 'COMPSs.' + app_name
-                    core_element.set_impl_signature(impl_signature)
-                    impl_args = [runcompss, flags, app_name, working_dir]
-                    core_element.set_impl_type_args(impl_args)
+                    # Update the core element information with the MultiNode information
+                    core_element.set_impl_type("MULTI_NODE")
+                    # Signature and implementation args are set by the @task decorator
             else:
                 # worker code
                 pass
 
             # This is executed only when called.
             if __debug__:
-                logger.debug("Executing compss_f wrapper.")
+                logger.debug("Executing multinode_f wrapper.")
 
             # Set the computingNodes variable in kwargs for its usage
             # in @task decorator
@@ -199,12 +179,12 @@ class COMPSs(object):
 
             return ret
 
-        compss_f.__doc__ = func.__doc__
-        return compss_f
+        multinode_f.__doc__ = func.__doc__
+        return multinode_f
 
 
 # ############################################################################# #
-# ###################### COMPSs DECORATOR ALTERNATIVE NAME ####################### #
+# ################### MultiNode DECORATOR ALTERNATIVE NAME #################### #
 # ############################################################################# #
 
-compss = COMPSs
+multinode = MultiNode

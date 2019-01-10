@@ -18,26 +18,36 @@ package es.bsc.compss.gat.worker.implementations;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.gat.worker.ImplementationDefinition;
+import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
-import es.bsc.compss.types.implementations.MultiNodeImplementation;
+import es.bsc.compss.types.implementations.COMPSsImplementation;
 
 
 public class COMPSsDefinition extends ImplementationDefinition {
 
-    private final String methodClass;
-    private final String methodName;
+    private final String runcompss;
+    private final String flags;
+    private final String appName;
+    private final String workingDir;
 
-    private final MultiNodeImplementation impl;
+    private final COMPSsImplementation impl;
 
 
     public COMPSsDefinition(boolean debug, String[] args, int execArgsIdx) {
-        super(debug, args, execArgsIdx + MultiNodeImplementation.NUM_PARAMS);
+        super(debug, args, execArgsIdx + COMPSsImplementation.NUM_PARAMS);
 
-        this.methodClass = args[execArgsIdx++];
-        this.methodName = args[execArgsIdx++];
+        this.runcompss = args[execArgsIdx++];
+        this.flags = args[execArgsIdx++];
+        this.appName = args[execArgsIdx++];
+        String wDir = args[execArgsIdx++];
+        if (wDir == null || wDir.isEmpty() || wDir.equals(Constants.UNASSIGNED)) {
+            this.workingDir = null;
+        } else {
+            this.workingDir = wDir;
+        }
 
-        this.impl = new MultiNodeImplementation(this.methodClass, this.methodName, null, null, null);
+        this.impl = new COMPSsImplementation(this.runcompss, this.flags, this.appName, this.workingDir, null, null, null);
     }
 
     @Override
@@ -47,7 +57,7 @@ public class COMPSsDefinition extends ImplementationDefinition {
 
     @Override
     public MethodType getType() {
-        return MethodType.MULTI_NODE;
+        return MethodType.COMPSs;
     }
 
     @Override

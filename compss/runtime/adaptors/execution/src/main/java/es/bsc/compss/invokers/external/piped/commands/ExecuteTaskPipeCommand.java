@@ -26,6 +26,8 @@ public class ExecuteTaskPipeCommand extends ExecuteTaskExternalCommand implement
 
 
     public ExecuteTaskPipeCommand(Integer jobId) {
+        super();
+        
         this.jobId = jobId;
     }
 
@@ -33,7 +35,7 @@ public class ExecuteTaskPipeCommand extends ExecuteTaskExternalCommand implement
     public String getAsString() {
         StringBuilder sb = new StringBuilder(CommandType.EXECUTE_TASK.name());
         sb.append(TOKEN_SEP);
-        sb.append(String.valueOf(jobId));
+        sb.append(String.valueOf(this.jobId));
         for (String c : this.arguments) {
             sb.append(TOKEN_SEP);
             sb.append(c);

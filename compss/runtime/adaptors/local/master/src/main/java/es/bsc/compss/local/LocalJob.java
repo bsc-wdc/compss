@@ -25,12 +25,15 @@ import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.implementations.MultiNodeImplementation;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ResourceDescription;
+import es.bsc.compss.util.ErrorManager;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -43,43 +46,47 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
     private MethodResourceDescription reqs;
     private final List<String> slaveWorkersNodeNames;
 
+
     public LocalJob(int taskId, TaskDescription task, Implementation impl, Resource res, List<String> slaveWorkersNodeNames,
             JobListener listener) {
 
         super(taskId, task, impl, res, listener);
-        boolean hasTarget = taskParams.hasTargetObject();
-        int numReturns = taskParams.getNumReturns();
+
+        // Construct parameters
+        boolean hasTarget = this.taskParams.hasTargetObject();
+        int numReturns = this.taskParams.getNumReturns();
         this.arguments = new LinkedList<>();
         this.results = new LinkedList<>();
         Parameter[] params = task.getParameters();
         int paramsCount = params.length;
         if (super.getLang().equals(Lang.PYTHON)) {
+            // Python parameters are in a different order
             if (hasTarget) {
                 Parameter p = params[params.length - 1];
-                target = new LocalParameter(p);
+                this.target = new LocalParameter(p);
                 paramsCount--;
             }
             for (int rIdx = 0; rIdx < numReturns; rIdx++) {
                 Parameter p = params[params.length - (hasTarget ? 1 : 0) - numReturns + rIdx];
-                results.addFirst(new LocalParameter(p));
+                this.results.addFirst(new LocalParameter(p));
             }
             paramsCount -= numReturns;
         } else {
             // Java or C/C++
             for (int rIdx = 0; rIdx < numReturns; rIdx++) {
                 Parameter p = params[params.length - numReturns + rIdx];
-                results.addFirst(new LocalParameter(p));
+                this.results.addFirst(new LocalParameter(p));
             }
             paramsCount -= numReturns;
             if (hasTarget) {
                 Parameter p = params[params.length - numReturns - 1];
-                target = new LocalParameter(p);
+                this.target = new LocalParameter(p);
                 paramsCount--;
             }
         }
 
         for (int paramIdx = 0; paramIdx < paramsCount; paramIdx++) {
-            arguments.add(new LocalParameter(params[paramIdx]));
+            this.arguments.add(new LocalParameter(params[paramIdx]));
         }
 
         this.slaveWorkersNodeNames = slaveWorkersNodeNames;
@@ -114,37 +121,58 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
 
     @Override
     public String toString() {
-        MethodImplementation method = (MethodImplementation) this.impl;
+        AbstractMethodImplementation absMethodImpl = (AbstractMethodImplementation) this.impl;
+        String className;
+        switch (absMethodImpl.getMethodType()) {
+            case METHOD:
+                MethodImplementation method = (MethodImplementation) this.impl;
+                className = method.getDeclaringClass();
+                break;
+            case MULTI_NODE:
+                MultiNodeImplementation multiNodeMethod = (MultiNodeImplementation) this.impl;
+                className = multiNodeMethod.getDeclaringClass();
+                break;
+            default:
+                ErrorManager.error("ERROR: Unrecognised methodtype " + absMethodImpl.getMethodType() + " on local adaptor");
+                return null;
+        }
 
-        String className = method.getDeclaringClass();
-        String methodName = taskParams.getName();
-
+        String methodName = this.taskParams.getName();
         return "LocalJob JobId" + this.jobId + " for method " + methodName + " at class " + className;
     }
 
     @Override
     public AbstractMethodImplementation getMethodImplementation() {
-        return (MethodImplementation) this.impl;
+        AbstractMethodImplementation absMethodImpl = (AbstractMethodImplementation) this.impl;
+        switch (absMethodImpl.getMethodType()) {
+            case METHOD:
+                return (MethodImplementation) this.impl;
+            case MULTI_NODE:
+                return (MultiNodeImplementation) this.impl;
+            default:
+                ErrorManager.error("ERROR: Unrecognised methodtype " + absMethodImpl.getMethodType() + " on local adaptor");
+                return null;
+        }
     }
 
     @Override
     public boolean isDebugEnabled() {
-        return debug;
+        return DEBUG;
     }
 
     @Override
     public List<? extends InvocationParam> getParams() {
-        return arguments;
+        return this.arguments;
     }
 
     @Override
     public InvocationParam getTarget() {
-        return target;
+        return this.target;
     }
 
     @Override
     public List<? extends InvocationParam> getResults() {
-        return results;
+        return this.results;
     }
 
     @Override

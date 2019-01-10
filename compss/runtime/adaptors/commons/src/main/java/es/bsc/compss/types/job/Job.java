@@ -36,20 +36,6 @@ import es.bsc.compss.types.resources.Resource;
  */
 public abstract class Job<T extends COMPSsWorker> {
 
-    // Job identifier management
-    protected static final int FIRST_JOB_ID = 1;
-    protected static int nextJobId = FIRST_JOB_ID;
-
-    // Environment variables for job execution
-    private static final String classpathFromEnvironment = (System.getProperty(COMPSsConstants.WORKER_CP) != null
-            && !System.getProperty(COMPSsConstants.WORKER_CP).equals("")) ? System.getProperty(COMPSsConstants.WORKER_CP) : "\"\"";
-    private final String workerClasspath;
-
-    private static final String pythonpathFromEnvironment = (System.getProperty(COMPSsConstants.WORKER_PP) != null
-            && !System.getProperty(COMPSsConstants.WORKER_PP).equals("")) ? System.getProperty(COMPSsConstants.WORKER_PP) : "\"\"";
-    private final String workerPythonpath;
-
-
     // Job history
     public enum JobHistory {
         NEW, // New job
@@ -57,6 +43,24 @@ public abstract class Job<T extends COMPSsWorker> {
         RESUBMITTED, // Resubmit job
         FAILED // Completely failed (can create new job for reschedule)
     }
+
+
+    // Job identifier management
+    protected static final int FIRST_JOB_ID = 1;
+    protected static int nextJobId = FIRST_JOB_ID;
+
+    // Environment variables for job execution
+    private static final String CLASSPATH_FROM_ENV = (System.getProperty(COMPSsConstants.WORKER_CP) != null
+            && !System.getProperty(COMPSsConstants.WORKER_CP).equals("")) ? System.getProperty(COMPSsConstants.WORKER_CP) : "\"\"";
+    private final String workerClasspath;
+
+    private static final String PYTHONPATH_FROM_ENV = (System.getProperty(COMPSsConstants.WORKER_PP) != null
+            && !System.getProperty(COMPSsConstants.WORKER_PP).equals("")) ? System.getProperty(COMPSsConstants.WORKER_PP) : "\"\"";
+    private final String workerPythonpath;
+
+    // Logger
+    protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
+    protected static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     // Information of the job
     protected int jobId;
@@ -70,8 +74,6 @@ public abstract class Job<T extends COMPSsWorker> {
     protected JobHistory history;
     protected int transferId;
 
-    protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
-    protected static final boolean debug = logger.isDebugEnabled();
 
     /**
      * Creates a new job instance with the given parameters
@@ -83,7 +85,7 @@ public abstract class Job<T extends COMPSsWorker> {
      * @param listener
      */
     public Job(int taskId, TaskDescription task, Implementation impl, Resource res, JobListener listener) {
-        jobId = nextJobId++;
+        this.jobId = nextJobId++;
         this.taskId = taskId;
         this.history = JobHistory.NEW;
         this.taskParams = task;
@@ -93,34 +95,34 @@ public abstract class Job<T extends COMPSsWorker> {
 
         /*
          * Setup job environment variables ****************************************
-         */
- /*
+         * 
          * This variables are only used by GAT since NIO loads them from the worker rather than specific variables per
          * job
          */
+
         // Merge command classpath and worker defined classpath
         String classpathFromFile = getResourceNode().getClasspath();
 
         if (!classpathFromFile.equals("")) {
-            if (!classpathFromEnvironment.equals("")) {
-                this.workerClasspath = classpathFromEnvironment + ":" + classpathFromFile;
+            if (!CLASSPATH_FROM_ENV.equals("")) {
+                this.workerClasspath = CLASSPATH_FROM_ENV + ":" + classpathFromFile;
             } else {
                 this.workerClasspath = classpathFromFile;
             }
         } else {
-            this.workerClasspath = classpathFromEnvironment;
+            this.workerClasspath = CLASSPATH_FROM_ENV;
         }
 
         // Merge command pythonpath and worker defined pythonpath
         String pythonpathFromFile = getResourceNode().getPythonpath();
         if (!pythonpathFromFile.equals("")) {
-            if (!pythonpathFromEnvironment.equals("")) {
-                this.workerPythonpath = pythonpathFromEnvironment + ":" + pythonpathFromFile;
+            if (!PYTHONPATH_FROM_ENV.equals("")) {
+                this.workerPythonpath = PYTHONPATH_FROM_ENV + ":" + pythonpathFromFile;
             } else {
                 this.workerPythonpath = pythonpathFromFile;
             }
         } else {
-            this.workerPythonpath = pythonpathFromEnvironment;
+            this.workerPythonpath = PYTHONPATH_FROM_ENV;
         }
     }
 
@@ -152,7 +154,7 @@ public abstract class Job<T extends COMPSsWorker> {
     }
 
     /**
-     * Returns the task params
+     * Returns the task parameters
      *
      * @return
      */

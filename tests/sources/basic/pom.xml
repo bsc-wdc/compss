@@ -124,6 +124,7 @@
         <!-- Module 91 is 91-compssDecorator_python -->
         <!-- Module 92 is 92-inheritance_python -->
         <module>93-multinode</module>
+        <!-- Module 94 is 94-multinodeDecorator_python -->
 
 		<!-- Add new modules below. Respect numbering -->
 	</modules>

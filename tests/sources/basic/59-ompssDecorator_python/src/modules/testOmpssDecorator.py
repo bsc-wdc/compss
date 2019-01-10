@@ -82,8 +82,8 @@ def myLsWithoutType(flag, hide, sort):
     pass
 
 @ompss(binary="./checkNames.sh", workingDir=os.getcwd() + '/src/scripts/')
-@task(f=FILE_IN, fp={Type: FILE_IN, Prefix: "--prefix="}, returns=int)
-def checkFileNames(f, fp, name):
+@task(f=FILE_IN, fp={Type: FILE_IN, Prefix: "--prefix="}, fout={Type: FILE_OUT}, returns=int)
+def checkFileNames(f, fp, name, fout):
     pass
 
 
@@ -150,6 +150,10 @@ class testOmpssDecorator(unittest.TestCase):
         f = "src/infile"
         fp = "src/infile"
         name = "infile"
-        exit_value = checkFileNames(f, fp, name)
+        fout = "checkFileNamesResult.txt"
+        exit_value = checkFileNames(f, fp, name, fout)
         exit_value = compss_wait_on(exit_value)
+        with compss_open(fout) as result:
+            data = result.read()
+        print("CheckFileNamesResult: " + str(data))
         self.assertEqual(exit_value, 0, "At least one file name is NOT as expected: {}, {}, {}".format(f, fp, name))

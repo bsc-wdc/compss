@@ -17,16 +17,30 @@
 package es.bsc.compss.agent.rest;
 
 import es.bsc.compss.agent.Agent.AppMonitor;
+import es.bsc.compss.agent.rest.types.Orchestrator;
+import es.bsc.compss.agent.rest.types.messages.EndApplicationNotification;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.job.JobListener.JobEndStatus;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import org.glassfish.jersey.client.ClientConfig;
 
 
 public class AppTaskMonitor extends AppMonitor {
 
+    private static final Client client = ClientBuilder.newClient(new ClientConfig());
+
+    private final Orchestrator orchestrator;
     private final String[] paramResults;
     private boolean successful;
 
-    public AppTaskMonitor(int numParams) {
+    public AppTaskMonitor(int numParams, Orchestrator orchestrator) {
         super();
+        this.orchestrator = orchestrator;
         this.successful = false;
         this.paramResults = new String[numParams];
     }
@@ -66,35 +80,30 @@ public class AppTaskMonitor extends AppMonitor {
         successful = true;
     }
 
-    /*@Override
-    public void completed() {
-        try {
-            if (orchestrator != null) {
-                String masterId = orchestrator.getHost();
-                String operation = orchestrator.getOperation();
-                WebTarget target = client.target(masterId);
-                WebTarget wt = target.path(operation);
-                EndApplicationNotification ean = new EndApplicationNotification(
-                        "" + getAppId(),
-                        successful ? JobEndStatus.OK : JobEndStatus.EXECUTION_FAILED,
-                        paramResults);
-                Debugger.debug("AGENT", "Submitting Job End");
-                Debugger.debugAsXML(ean);
-
-                Response response = wt
-                        .request(MediaType.APPLICATION_JSON)
-                        .put(Entity.xml(ean), Response.class);
-                if (response.getStatusInfo().getStatusCode() != 200) {
-                    Debugger.err("AGENT", "Could not notify Application " + getAppId() + " end to " + wt);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }*/
     @Override
     public void onCompletion() {
+        if (successful) {
+            System.out.println("Task job completed!");
+        } else {
+            System.out.println("Task job failed!");
+        }
+        if (orchestrator != null) {
+            String masterId = orchestrator.getHost();
+            String operation = orchestrator.getOperation();
+            WebTarget target = client.target(masterId);
+            WebTarget wt = target.path(operation);
+            EndApplicationNotification ean = new EndApplicationNotification(
+                    "" + getAppId(),
+                    successful ? JobEndStatus.OK : JobEndStatus.EXECUTION_FAILED,
+                    paramResults);
 
+            Response response = wt
+                    .request(MediaType.APPLICATION_JSON)
+                    .put(Entity.xml(ean), Response.class);
+            if (response.getStatusInfo().getStatusCode() != 200) {
+                System.out.println("AGENT Could not notify Application " + getAppId() + " end to " + wt);
+            }
+        }
     }
 
     @Override

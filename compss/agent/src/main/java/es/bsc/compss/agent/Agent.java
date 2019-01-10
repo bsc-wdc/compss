@@ -20,12 +20,17 @@ import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
 import es.bsc.compss.loader.total.ObjectRegistry;
+import es.bsc.compss.loader.total.StreamRegistry;
 import es.bsc.compss.types.ApplicationParameter;
-import es.bsc.compss.types.Resource;
+import es.bsc.compss.types.CoreElementDefinition;
+import es.bsc.compss.types.ImplementationDefinition;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.util.parsers.ITFParser;
 import java.net.InetAddress;
+import java.util.List;
 import java.util.Random;
 import storage.StorageException;
 import storage.StorageItf;
@@ -61,14 +66,18 @@ public class Agent {
 
         RUNTIME = new COMPSsRuntimeImpl();
         RUNTIME.setObjectRegistry(new ObjectRegistry(RUNTIME));
+        RUNTIME.setStreamRegistry(new StreamRegistry(RUNTIME));
         RUNTIME.startIT();
-        RUNTIME.registerCoreElement(
-                "load(OBJECT_T,OBJECT_T,STRING_T,LONG_T,STRING_T,STRING_T,OBJECT_T)",
-                "load(OBJECT_T,OBJECT_T,STRING_T,LONG_T,STRING_T,STRING_T,OBJECT_T)es.bsc.compss.agent.loader.Loader",
-                "",
+
+        CoreElementDefinition ced = new CoreElementDefinition();
+        ced.setCeSignature("load(OBJECT_T,OBJECT_T,STRING_T,LONG_T,STRING_T,STRING_T,OBJECT_T)");
+        ImplementationDefinition implDef = ImplementationDefinition.defineImplementation(
                 "METHOD",
-                new String[]{"es.bsc.compss.agent.loader.Loader", "load"}
-        );
+                "load(OBJECT_T,OBJECT_T,STRING_T,LONG_T,STRING_T,STRING_T,OBJECT_T)es.bsc.compss.agent.loader.Loader",
+                new MethodResourceDescription(""),
+                "es.bsc.compss.agent.loader.Loader", "load");
+        ced.addImplementation(implDef);
+        RUNTIME.registerCoreElement(ced);
 
         String hostName = System.getProperty(Constants.COMPSS_AGENT_NAME);
         if (hostName == null) {
@@ -81,7 +90,7 @@ public class Agent {
         AGENT_NAME = hostName;
     }
 
-    public static long runMain(Lang lang, String ceiClass, String className, String methodName, Object[] params, Resource[] resources, AppMonitor monitor) throws AgentException {
+    public static long runMain(Lang lang, String ceiClass, String className, String methodName, Object[] params, AppMonitor monitor) throws AgentException {
 
         long appId = Math.abs(APP_ID_GENERATOR.nextLong());
         long mainAppId = Math.abs(APP_ID_GENERATOR.nextLong());
@@ -89,6 +98,10 @@ public class Agent {
 
         try {
             Class<?> cei = Class.forName(ceiClass);
+            List<CoreElementDefinition> ceds = ITFParser.parseITFMethods(cei);
+            for (CoreElementDefinition ced : ceds) {
+                RUNTIME.registerCoreElement(ced);
+            }
         } catch (ClassNotFoundException cnfe) {
             throw new AgentException("Could not find class " + ceiClass + " to detect internal methods.");
         }
@@ -112,7 +125,7 @@ public class Agent {
         return mainAppId;
     }
 
-    public static long runTask(Lang lang, String className, String methodName, ApplicationParameter[] sarParams, ApplicationParameter target, boolean hasResult, Resource[] resources, AppMonitor monitor) throws AgentException {
+    public static long runTask(Lang lang, String className, String methodName, ApplicationParameter[] sarParams, ApplicationParameter target, boolean hasResult, AppMonitor monitor) throws AgentException {
         long appId = Math.abs(APP_ID_GENERATOR.nextLong());
         monitor.setAppId(appId);
         try {
@@ -166,13 +179,17 @@ public class Agent {
 
             String paramsTypes = typesSB.toString();
 
-            RUNTIME.registerCoreElement(
-                    methodName + "(" + paramsTypes + ")",
-                    methodName + "(" + paramsTypes + ")" + className,
-                    "",
+            String ceSignature = methodName + "(" + paramsTypes + ")";
+            String implSignature = methodName + "(" + paramsTypes + ")" + className;
+            CoreElementDefinition ced = new CoreElementDefinition();
+            ced.setCeSignature(ceSignature);
+            ImplementationDefinition implDef = ImplementationDefinition.defineImplementation(
                     "METHOD",
-                    new String[]{className, methodName}
-            );
+                    implSignature,
+                    new MethodResourceDescription(""),
+                    className, methodName);
+            ced.addImplementation(implDef);
+            RUNTIME.registerCoreElement(ced);
 
             RUNTIME.executeTask(
                     appId,

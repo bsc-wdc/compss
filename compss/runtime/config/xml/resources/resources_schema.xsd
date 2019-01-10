@@ -6,7 +6,7 @@
         <!-- ########################################################################################## -->
 	<!-- RESOURCES LIST Description -->
 	<xsd:complexType name="ResourcesListType">
-         	<xsd:choice minOccurs="1" maxOccurs="unbounded">
+         	<xsd:choice minOccurs="0" maxOccurs="unbounded">
                        	<xsd:element name="SharedDisk" type="SharedDiskType"/>
                        	<xsd:element name="DataNode" type="DataNodeType"/>
                        	<xsd:element name="ComputeNode" type="ComputeNodeType"/>

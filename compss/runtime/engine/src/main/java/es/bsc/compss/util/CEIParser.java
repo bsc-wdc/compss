@@ -19,10 +19,12 @@ package es.bsc.compss.util;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.exceptions.LangNotDefinedException;
 import es.bsc.compss.types.exceptions.UndefinedConstraintsSourceException;
 import es.bsc.compss.util.parsers.IDLParser;
 import es.bsc.compss.util.parsers.ITFParser;
+import java.util.LinkedList;
 
 import java.util.List;
 
@@ -66,7 +68,7 @@ public class CEIParser {
                     } catch (ClassNotFoundException ex) {
                         throw new UndefinedConstraintsSourceException(appName + "Itf class cannot be found.");
                     }
-                }else{
+                } else {
                     System.out.println("No defined Application Name. COMPSs is not loading any CEI.");
                     LOGGER.warn("No defined Application Name. COMPSs is not loading any CEI.");
                 }
@@ -94,7 +96,13 @@ public class CEIParser {
      */
     public static List<Integer> loadJava(Class<?> annotItfClass) {
         LOGGER.debug("Loading Java Annotation Interface");
-        return ITFParser.parseITFMethods(annotItfClass);
+        List<Integer> updatedCEs = new LinkedList<>();
+        List<CoreElementDefinition> ceds = ITFParser.parseITFMethods(annotItfClass);
+        for (CoreElementDefinition ced : ceds) {
+            Integer methodId = CoreManager.registerNewCoreElement(ced);
+            updatedCEs.add(methodId);
+        }
+        return updatedCEs;
     }
 
     /*

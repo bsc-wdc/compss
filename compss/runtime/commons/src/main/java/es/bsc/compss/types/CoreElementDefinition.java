@@ -14,13 +14,33 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.agent.test;
+package es.bsc.compss.types;
 
-import es.bsc.compss.types.annotations.task.Method;
+import java.util.LinkedList;
 
 
-public interface TestItf {
+public class CoreElementDefinition {
 
-    @Method(declaringClass = "es.bsc.compss.agent.test.Test")
-    public void test();
+    private String ceSignature;
+    private final LinkedList<ImplementationDefinition> implementations = new LinkedList<>();
+
+    public CoreElementDefinition() {
+    }
+
+    public void setCeSignature(String ceSignature) {
+        this.ceSignature = ceSignature;
+    }
+
+    public String getCeSignature() {
+        return ceSignature;
+    }
+
+    public void addImplementation(ImplementationDefinition impl) {
+        implementations.add(impl);
+    }
+
+    public LinkedList<ImplementationDefinition> getImplementations() {
+        return implementations;
+    }
+
 }

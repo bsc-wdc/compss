@@ -46,6 +46,7 @@ public class Validator {
      * Validator instantiation for ProjectFile pf
      *
      * @param pf
+     * @param logger
      */
     public Validator(ProjectFile pf, Logger logger) {
         this.logger = logger;
@@ -55,50 +56,42 @@ public class Validator {
     /**
      * Validates the content of the given ResourcesFile object The content is correct if no exception is raised
      *
-     * @throws JAXBException
-     * @throws ResourcesFileValidationException
+     * @throws es.bsc.compss.types.project.exceptions.ProjectFileValidationException
      */
     public void validate() throws ProjectFileValidationException {
         logger.info("Validating <Project> tag");
         // Check inner elements
         List<Object> objList = pf.getProject().getMasterNodeOrComputeNodeOrDataNode();
         if (objList != null) {
-            try {
-                boolean masterNodeTagFound = false;
-                boolean minimumUsableElementFound = false;
-                for (Object obj : pf.getProject().getMasterNodeOrComputeNodeOrDataNode()) {
-                    if (obj instanceof MasterNodeType) {
-                        if (masterNodeTagFound) {
-                            throw new InvalidElementException("Project", "Attribute MasterNode", "Appears more than once");
-                        } else {
-                            masterNodeTagFound = true;
-                            validateMasterNode(((MasterNodeType) obj));
-                        }
-                    } else if (obj instanceof ComputeNodeType) {
-                        minimumUsableElementFound = true;
-                        validateComputeNode(((ComputeNodeType) obj));
-                    } else if (obj instanceof DataNodeType) {
-                        validateDataNode(((DataNodeType) obj));
-                    } else if (obj instanceof ServiceType) {
-                        minimumUsableElementFound = true;
-                        validateService(((ServiceType) obj));
-                    } else if (obj instanceof CloudType) {
-                        minimumUsableElementFound = true;
-                        validateCloud(((CloudType) obj));
-                    } else {
-                        throw new InvalidElementException("Project", "Attribute" + obj.getClass(), "Incorrect attribute");
-                    }
+            boolean masterNodeTagFound = false;
+            boolean minimumUsableElementFound = false;
+            for (Object obj : pf.getProject().getMasterNodeOrComputeNodeOrDataNode()) {
+                if (obj instanceof MasterNodeType) {
+                    masterNodeTagFound = true;
+                    minimumUsableElementFound = validateMasterNode(((MasterNodeType) obj));
+                } else if (obj instanceof ComputeNodeType) {
+                    minimumUsableElementFound = true;
+                    validateComputeNode(((ComputeNodeType) obj));
+                } else if (obj instanceof DataNodeType) {
+                    validateDataNode(((DataNodeType) obj));
+                } else if (obj instanceof ServiceType) {
+                    minimumUsableElementFound = true;
+                    validateService(((ServiceType) obj));
+                } else if (obj instanceof CloudType) {
+                    minimumUsableElementFound = true;
+                    validateCloud(((CloudType) obj));
+                } else {
+                    throw new InvalidElementException("Project", "Attribute" + obj.getClass(), "Incorrect attribute");
                 }
-
-                if (!masterNodeTagFound) {
-                    throw new InvalidElementException("Project", "Attribute MasterNode", "Doesn't appear");
-                }
-                if (!minimumUsableElementFound) {
-                    throw new InvalidElementException("Resources", "", "Any computational (computeNode, service or cloud) resources found");
-                }
-            } catch (InvalidElementException iee) {
-                throw ((ProjectFileValidationException) iee);
             }
+
+            if (!masterNodeTagFound) {
+                throw new ProjectFileValidationException("Doesn't appear any <MasterNode> element");
+            }
+            if (!minimumUsableElementFound) {
+                throw new ProjectFileValidationException("No computational (masterNode, computeNode, service or cloud) resources found");
+            }
+
         } else {
             // If resources is empty, raise exception
             throw new ProjectFileValidationException("Empty project file");
@@ -116,7 +109,8 @@ public class Validator {
      * @param mn
      * @throws InvalidElementException
      */
-    public void validateMasterNode(MasterNodeType mn) throws InvalidElementException {
+    public boolean validateMasterNode(MasterNodeType mn) throws InvalidElementException {
+        boolean hasComputingPower = false;
         if (mn != null) {
             List<Object> innerElements = mn.getProcessorOrMemoryOrStorage();
             if (innerElements != null) {
@@ -131,6 +125,7 @@ public class Validator {
                         //Many instance supported. Only validate
                         ProcessorType p = (ProcessorType) obj;
                         validateProcessor(p);
+                        hasComputingPower = true;
                     } else if (obj instanceof MemoryType) {
                         if (memoryTypeTagFound) {
                             // Second occurency, throw exception
@@ -195,6 +190,7 @@ public class Validator {
             // The MasterNode itself is null, raise exception
             throw new InvalidElementException("Project", "Attribute MasterNode", "is null");
         }
+        return hasComputingPower;
     }
 
     /**

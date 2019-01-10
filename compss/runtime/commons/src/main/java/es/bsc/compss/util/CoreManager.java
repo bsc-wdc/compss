@@ -17,9 +17,12 @@
 package es.bsc.compss.util;
 
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.CoreElementDefinition;
+import es.bsc.compss.types.ImplementationDefinition;
 import es.bsc.compss.types.exceptions.NonInstantiableException;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.ResourceDescription;
+import java.util.Iterator;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -29,6 +32,7 @@ import java.util.Map.Entry;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 
 public class CoreManager {
 
@@ -71,6 +75,61 @@ public class CoreManager {
     }
 
     /**
+     * Registers or updates a Core Element according to the description passed in as a {@code ced} parameter.
+     *
+     * @param ced Core Element Definition with its implementations
+     *
+     * @return coreId assigned to the registered Core Element
+     */
+    public static Integer registerNewCoreElement(CoreElementDefinition ced) {
+        String ceSignature = ced.getCeSignature();
+
+        // Check that the signature is valid
+        if (ceSignature == null || ceSignature.isEmpty()) {
+            LOGGER.warn(ERROR_INVALID_SIGNATURE);
+            return null;
+        }
+
+        // Check that the signature does not exist
+        Integer coreId = SIGNATURE_TO_CORE_ID.get(ceSignature);
+        if (coreId == null) {
+            coreId = insertCoreElement(ceSignature);
+        }
+
+        List<Implementation> coreImplementations = IMPLEMENTATIONS.get(coreId);
+        List<String> coreSignatures = SIGNATURES.get(coreId);
+
+        for (ImplementationDefinition implDef : ced.getImplementations()) {
+
+            String implSignature = implDef.getSignature();
+            if (implSignature != null && !implSignature.isEmpty()) {
+
+                //Check whether the implementation is already registered
+                boolean alreadyExisting = false;
+                Iterator<String> it = coreSignatures.iterator();
+                it.next();//Skip method signature with no implementation
+                while (it.hasNext()) {
+                    String registeredImplSign = it.next();
+                    if (implSignature.compareTo(registeredImplSign) == 0) {
+                        alreadyExisting = true;
+                        break;
+                    }
+                }
+
+                if (!alreadyExisting) {
+                    //Register Implementation
+                    int implId = coreImplementations.size();
+                    Implementation impl = implDef.getImpl(coreId, implId);
+                    coreImplementations.add(impl);
+                    coreSignatures.add(implSignature);
+                    SIGNATURE_TO_CORE_ID.put(implSignature, coreId);
+                }
+            }
+        }
+        return coreId;
+    }
+
+    /**
      * Registers a new Method as Core Element if it doesn't exist
      *
      * @param signature
@@ -92,7 +151,14 @@ public class CoreManager {
         }
 
         // Insert new core element
-        methodId = coreCount;
+        methodId = insertCoreElement(signature);
+
+        return methodId;
+    }
+
+    private static Integer insertCoreElement(String signature) {
+        // Insert new core element
+        Integer methodId = coreCount;
         // Increase the coreCount counter
         ++coreCount;
         // Register the coreElement
@@ -109,9 +175,8 @@ public class CoreManager {
     }
 
     /**
-     * Registers a new Implementation for a given CoreElement The coreElement
-     * MUST have been previously registered The impls and signs must have the
-     * same size and are sorted
+     * Registers a new Implementation for a given CoreElement The coreElement MUST have been previously registered The
+     * impls and signs must have the same size and are sorted
      *
      * @param coreId
      * @param impls
@@ -150,8 +215,7 @@ public class CoreManager {
     }
 
     /**
-     * Returns the CoreId associated to a registered signature The coreId MUST
-     * have been previously registered
+     * Returns the CoreId associated to a registered signature The coreId MUST have been previously registered
      *
      * @param signature
      * @return
@@ -174,9 +238,8 @@ public class CoreManager {
     }
 
     /**
-     * Returns the signature of a given implementationId of a give coreElementId
-     * The coreId MUST have been previously registered The implId MUST have been
-     * previously registered
+     * Returns the signature of a given implementationId of a give coreElementId The coreId MUST have been previously
+     * registered The implId MUST have been previously registered
      *
      * @param coreId
      * @param implId
@@ -226,6 +289,7 @@ public class CoreManager {
     /**
      * Returns all the implementations of a core Element
      *
+     * @param coreId
      * @return the implementations for a Core Element
      */
     public static List<Implementation> getCoreImplementations(int coreId) {
@@ -253,13 +317,12 @@ public class CoreManager {
     }
 
     /**
-     * Looks for all the cores from in the annotated Interface which constraint
-     * are fullfilled by the resource description passed as a parameter
+     * Looks for all the cores from in the annotated Interface which constraint are fullfilled by the resource
+     * description passed as a parameter
      *
      * @param rd ResourceDescription to find cores compatible to
      *
-     * @return the list of cores which constraints are fulfilled by th described
-     * resource
+     * @return the list of cores which constraints are fulfilled by th described resource
      */
     public static List<Integer> findExecutableCores(ResourceDescription rd) {
         List<Integer> executableList = new LinkedList<>();

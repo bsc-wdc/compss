@@ -27,8 +27,9 @@ import es.bsc.compss.types.resources.ServiceResourceDescription;
 
 public class ServiceImplementation extends Implementation implements Externalizable {
 
+    public static final int NUM_PARAMS = 4;
+    
     private String operation;
-
 
     public ServiceImplementation() {
         // For externalizable

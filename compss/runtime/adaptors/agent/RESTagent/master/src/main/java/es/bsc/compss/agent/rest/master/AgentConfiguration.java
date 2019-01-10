@@ -14,52 +14,26 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types;
+package es.bsc.compss.agent.rest.master;
 
 import es.bsc.compss.types.resources.MethodResourceDescription;
-import java.io.Serializable;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
+import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 
 
-@XmlRootElement
-public class Resource implements Serializable {
+public class AgentConfiguration extends MethodConfiguration {
 
-    private String name;
-    private String adaptor;
     private MethodResourceDescription description;
 
-    public Resource() {
+    public AgentConfiguration(String adaptorName) {
+        super(adaptorName);
     }
 
-    @XmlAttribute
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getAdaptor() {
-        return adaptor;
-    }
-
-    public void setAdaptor(String adaptor) {
-        this.adaptor = adaptor;
+    public void setDescription(MethodResourceDescription mrd) {
+        this.description = mrd;
     }
 
     public MethodResourceDescription getDescription() {
         return description;
-    }
-
-    public void setDescription(MethodResourceDescription description) {
-        this.description = description;
-    }
-
-    @Override
-    public String toString() {
-        return "\nName:" + name + "\nDescription:" + description;
     }
 
 }

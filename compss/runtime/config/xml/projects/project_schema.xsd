@@ -6,7 +6,7 @@
         <!-- ########################################################################################## -->
 	<!-- RESOURCES LIST Description -->
 	<xsd:complexType name="ProjectType">
-         	<xsd:choice minOccurs="2" maxOccurs="unbounded">
+         	<xsd:choice minOccurs="1" maxOccurs="unbounded">
 			<xsd:element name="MasterNode" type="MasterNodeType" minOccurs="1" maxOccurs="1" />
                         <xsd:element name="ComputeNode" type="ComputeNodeType" minOccurs="0" maxOccurs="unbounded" />
                        	<xsd:element name="DataNode" type="DataNodeType" minOccurs="0" maxOccurs="unbounded" />

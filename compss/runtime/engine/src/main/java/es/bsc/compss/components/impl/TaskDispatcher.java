@@ -33,6 +33,8 @@ import es.bsc.compss.types.Task;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
+import es.bsc.compss.types.CoreElementDefinition;
+import es.bsc.compss.types.ImplementationDefinition;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.request.td.PrintCurrentLoadRequest;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -308,20 +310,16 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     /**
      * Adds a new request to register a new CoreElement
      *
-     * @param coreElementSignature
-     * @param implSignature
-     * @param implConstraints
-     * @param implType
-     * @param implTypeArgs
+     * @param ced
      */
-    public void registerNewCoreElement(String coreElementSignature, String implSignature, MethodResourceDescription implConstraints,
-            MethodType implType, String[] implTypeArgs) {
+    public void registerNewCoreElement(CoreElementDefinition ced) {
 
         if (DEBUG) {
             LOGGER.debug("Registering new CoreElement");
         }
         Semaphore sem = new Semaphore(0);
-        CERegistration request = new CERegistration(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs, sem);
+
+        CERegistration request = new CERegistration(ced, sem);
         addRequest(request);
 
         // Waiting for registration

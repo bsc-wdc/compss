@@ -70,8 +70,7 @@
             <artifactId>jersey-container-servlet-core</artifactId>
             <version>2.7</version>
         </dependency>
-        
-        <!--dependency>
+        <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-jetty-http</artifactId>
             <version>2.7</version>
@@ -86,7 +85,7 @@
             <artifactId>httpclient</artifactId>
             <version>4.5.5</version>
         </dependency>
-        <dependency>
+        <!--dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>2.9.5</version>
@@ -138,6 +137,16 @@
                         </goals>
                         <configuration>
                             <finalName>${project.artifactId}</finalName>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>

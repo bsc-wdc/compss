@@ -25,7 +25,32 @@
     echo " "
     exit 1
   }
-
+# INSTALLS ALL THE NECESSARY JARS FOR AN ADAPTOR. 
+# REQUIRES 2 PARAMETERS: 
+#  $1 THE PATH TO THE COMPILED ADAPTOR ROOT FOLDER
+#  $2 PATH WHERE TO INSTALL THE ADAPTOR
+  install_adaptor() {
+    adaptor_name=$(basename "$1")
+    echo "------ Copying ${adaptor_name} adaptor"
+      mkdir "$2/${adaptor_name}"
+      mkdir "$2/${adaptor_name}"/master
+      cp "$1"/master/*.jar "$2"/"${adaptor_name}"/master
+      
+    if [ -f "$1"/master/properties ]; then
+      cp "$1"/master/properties "$2"/"${adaptor_name}"/master
+    fi
+    if [ -d "$1"/worker/ ]; then
+      mkdir "$2/${adaptor_name}"/worker
+      cp "$1"/worker/*.jar "$2"/"${adaptor_name}"/worker
+    fi
+    if [ -f "$1"/worker/properties ]; then 
+      cp "$1"/worker/properties "$2"/"${adaptor_name}"/worker
+    fi
+    if [ -d "$1"/scripts/ ]; then
+      mkdir -p "${COMPSs_target}"/Runtime/scripts/system/adaptors/"${adaptor_name}"
+      cp -r "$1"/scripts/* "${COMPSs_target}"/Runtime/scripts/system/adaptors/"${adaptor_name}"
+    fi
+  }
   ####################
   # MAIN
   ####################
@@ -185,23 +210,13 @@
   path_source=${TMP_DIR}/compss/runtime/adaptors
   path_target=${targetDir}/Runtime/adaptors
   for adaptor in ${path_source}/*; do
-    adaptor_name=$(basename "$adaptor")
-    mkdir "${path_target}/${adaptor_name}"
-    mkdir "${path_target}/${adaptor_name}"/master
-    cp "$adaptor"/master/*.jar "${path_target}"/"${adaptor_name}"/master
-    if [ -f "$adaptor"/master/properties ]; then
-      cp "$adaptor"/master/properties "${path_target}"/"${adaptor_name}"/master
-    fi
-    if [ -d "$adaptor"/worker/ ]; then
-      mkdir "${path_target}/${adaptor_name}"/worker
-      cp "$adaptor"/worker/*.jar "${path_target}"/"${adaptor_name}"/worker
-    fi
-    if [ -f "$adaptor"/worker/properties ]; then
-      cp "$adaptor"/worker/properties "${path_target}"/"${adaptor_name}"/worker
-    fi
-    if [ -d "$adaptor"/scripts/ ]; then
-      mkdir -p "${targetDir}"/Runtime/scripts/system/adaptors/"${adaptor_name}"
-      cp -r "$adaptor"/scripts/* "${targetDir}"/Runtime/scripts/system/adaptors/"${adaptor_name}"
+    adaptor_name=$(basename "${adaptor}")
+    if [ "${adaptor_name}" != "agent" ]; then
+      install_adaptor "${adaptor}" "${path_target}"
+    else
+      for agent in ${adaptor}/*; do
+          install_adaptor "${agent}" "${path_target}"
+      done
     fi
   done
 

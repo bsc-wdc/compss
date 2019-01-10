@@ -18,9 +18,11 @@ package es.bsc.compss.agent.rest;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.agent.Agent;
-import es.bsc.compss.agent.rest.messages.StartApplicationRequest;
+import es.bsc.compss.agent.rest.types.Orchestrator;
+import es.bsc.compss.agent.rest.types.messages.StartApplicationRequest;
+import es.bsc.compss.agent.rest.types.messages.EndApplicationNotification;
 import es.bsc.compss.types.ApplicationParameter;
-import es.bsc.compss.types.Resource;
+import es.bsc.compss.types.job.JobListener.JobEndStatus;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -40,11 +42,10 @@ public class RESTAgent {
 
     public static final String COMPSS_AGENT_PORT = "COMPSS_AGENT_PORT";
 
-//    private static final ClientConfig config = new ClientConfig();
-//    private static final Client client = ClientBuilder.newClient(config);
     @GET
     @Path("test/")
     public Response test() {
+        System.out.println("test invoked");
         return Response.ok().build();
     }
 
@@ -77,11 +78,10 @@ public class RESTAgent {
                     "Could not recover an input parameter value. " + cnfe.getLocalizedMessage()
             ).build();
         }
-        Resource[] resources = request.getResources();
         AppMainMonitor monitor = new AppMainMonitor(serviceInstanceId, methodName);
         long appId;
         try {
-            appId = Agent.runMain(Lang.JAVA, ceiClass, className, methodName, params, resources, monitor);
+            appId = Agent.runMain(Lang.JAVA, ceiClass, className, methodName, params, monitor);
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
@@ -94,11 +94,11 @@ public class RESTAgent {
         ApplicationParameter[] sarParams = request.getParams();
         ApplicationParameter target = request.getTarget();
         boolean hasResult = request.isHasResult();
-        Resource[] resources = request.getResources();
         long appId;
-        AppTaskMonitor monitor = new AppTaskMonitor(sarParams.length);
+        Orchestrator orchestrator = request.getOrchestrator();
+        AppTaskMonitor monitor = new AppTaskMonitor(sarParams.length, orchestrator);
         try {
-            appId = Agent.runTask(Lang.JAVA, className, methodName, sarParams, target, hasResult, resources, monitor);
+            appId = Agent.runTask(Lang.JAVA, className, methodName, sarParams, target, hasResult, monitor);
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
@@ -108,7 +108,11 @@ public class RESTAgent {
     @PUT
     @Path("endApplication/")
     @Consumes(MediaType.APPLICATION_XML)
-    public Response endApplication() {
+    public Response endApplication(EndApplicationNotification notification) {
+        String jobId = notification.getJobId();
+        JobEndStatus endStatus = notification.getEndStatus();
+        String[] paramsResults = notification.getParamResults();
+        System.out.println("JOB " + jobId + " finished with status " + endStatus);
         return Response.ok().build();
     }
 
@@ -125,8 +129,7 @@ public class RESTAgent {
         jerseyServlet.setInitOrder(0);
 
         // Tells the Jersey Servlet which REST service/class to load.
-        jerseyServlet.setInitParameter("jersey.config.server.provider.classnames",
-                RESTAgent.class.getCanonicalName());
+        jerseyServlet.setInitParameter("jersey.config.server.provider.classnames", RESTAgent.class.getCanonicalName());
 
         try {
             jettyServer.start();

@@ -18,6 +18,8 @@ package es.bsc.compss.util.parsers;
 
 import es.bsc.compss.loader.LoaderUtils;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.CoreElementDefinition;
+import es.bsc.compss.types.ImplementationDefinition;
 import es.bsc.compss.types.annotations.parameter.Type;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.Stream;
@@ -43,18 +45,10 @@ import es.bsc.compss.types.annotations.task.repeatables.MultiMultiNode;
 import es.bsc.compss.types.annotations.task.repeatables.MultiOmpSs;
 import es.bsc.compss.types.annotations.task.repeatables.OpenCLs;
 import es.bsc.compss.types.annotations.task.repeatables.Services;
-import es.bsc.compss.types.implementations.BinaryImplementation;
-import es.bsc.compss.types.implementations.COMPSsImplementation;
-import es.bsc.compss.types.implementations.DecafImplementation;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.MPIImplementation;
-import es.bsc.compss.types.implementations.MethodImplementation;
-import es.bsc.compss.types.implementations.MultiNodeImplementation;
-import es.bsc.compss.types.implementations.OmpSsImplementation;
-import es.bsc.compss.types.implementations.OpenCLImplementation;
-import es.bsc.compss.types.implementations.ServiceImplementation;
+import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
-import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
 
@@ -71,18 +65,16 @@ public class ITFParser {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
     private static final boolean debug = LOGGER.isDebugEnabled();
 
-
     /**
      *
      * Loads the annotated class and initializes the data structures that contain the constraints. For each method found
      * in the annotated interface creates its signature and adds the constraints to the structures.
      *
-     * @param annotItfClass
-     *            package and name of the Annotated Interface class
+     * @param annotItfClass package and name of the Annotated Interface class
      * @return
      */
-    public static List<Integer> parseITFMethods(Class<?> annotItfClass) {
-        List<Integer> updatedMethods = new LinkedList<Integer>();
+    public static List<CoreElementDefinition> parseITFMethods(Class<?> annotItfClass) {
+        List<CoreElementDefinition> updatedMethods = new LinkedList<>();
 
         int coreCount = annotItfClass.getDeclaredMethods().length;
         if (debug) {
@@ -90,8 +82,10 @@ public class ITFParser {
         }
 
         for (java.lang.reflect.Method m : annotItfClass.getDeclaredMethods()) {
-            Integer methodId = parseITFMethod(m);
-            updatedMethods.add(methodId);
+            CoreElementDefinition ced = parseITFMethod(m);
+            if (!ced.getImplementations().isEmpty()) {
+                updatedMethods.add(ced);
+            }
         }
 
         return updatedMethods;
@@ -103,7 +97,8 @@ public class ITFParser {
      * @param m
      * @return
      */
-    private static Integer parseITFMethod(java.lang.reflect.Method m) {
+    private static CoreElementDefinition parseITFMethod(java.lang.reflect.Method m) {
+        CoreElementDefinition ced = new CoreElementDefinition();
         /*
          * Computes the callee method signature and checks parameter annotations
          */
@@ -133,30 +128,22 @@ public class ITFParser {
         /*
          * Check all annotations present at the method for versioning
          */
-        Integer methodId = CoreManager.registerNewCoreElement(calleeMethodSignature.toString());
         if (debug) {
-            LOGGER.debug("   * Method methodId = " + methodId + " has " + m.getAnnotations().length + " annotations");
+            LOGGER.debug("   * Method method " + methodName + " has " + m.getAnnotations().length + " annotations");
         }
-        List<Implementation> implementations = new LinkedList<>();
-        List<String> signatures = new LinkedList<>();
-        checkDefinedImplementations(m, methodId, calleeMethodSignature, hasStreams, hasPrefixes, implementations, signatures);
+
+        checkDefinedImplementations(m, calleeMethodSignature, hasStreams, hasPrefixes, ced);
 
         /*
          * Register all implementations
          */
-
         final String ERROR_ITF = "[ERROR] Impossible to parse the method " + "'" + methodName + "' check your Itf file.";
 
-        try {
-            CoreManager.registerNewImplementations(methodId, implementations, signatures);
-        } catch (RuntimeException e) {
-            ErrorManager.fatal(ERROR_ITF, e);
-        }
-
+        ced.setCeSignature(calleeMethodSignature.toString());
         /*
          * Returns the assigned methodId
          */
-        return methodId;
+        return ced;
     }
 
     /**
@@ -298,7 +285,7 @@ public class ITFParser {
         }
         calleeMethodSignature.append(")");
 
-        boolean[] hasAnnotation = { hasStreams, hasPrefixes };
+        boolean[] hasAnnotation = {hasStreams, hasPrefixes};
         return hasAnnotation;
     }
 
@@ -306,10 +293,8 @@ public class ITFParser {
      * Infers the type of a parameter. If the parameter is annotated as a FILE or a STRING, the type is taken from the
      * annotation. If the annotation is UNSPECIFIED, the type is taken from the formal type.
      *
-     * @param formalType
-     *            Formal type of the parameter
-     * @param annotType
-     *            Annotation type of the parameter
+     * @param formalType Formal type of the parameter
+     * @param annotType Annotation type of the parameter
      * @return A String representing the type of the parameter
      */
     private static String inferType(Class<?> formalType, Type annotType) {
@@ -345,14 +330,10 @@ public class ITFParser {
     /**
      * Treats and display errors and warning related to the annotation of 1 parameter of a method/service
      *
-     * @param m
-     *            The method or service to be checked for warnings
-     * @param par
-     *            The parameter to analyse
-     * @param i
-     *            The position of the parameter (0 for the first parameter, 1 for the second, etc.)
-     * @param hasNonNative
-     *            Indicates if the method has non-native annotations or not
+     * @param m The method or service to be checked for warnings
+     * @param par The parameter to analyse
+     * @param i The position of the parameter (0 for the first parameter, 1 for the second, etc.)
+     * @param hasNonNative Indicates if the method has non-native annotations or not
      */
     private static void checkParameterAnnotation(java.lang.reflect.Method m, Parameter par, int i, boolean hasNonNative) {
         final String WARNING_LOCATION = "In parameter number " + (i + 1) + " of method '" + m.getName() + "' in interface '"
@@ -435,14 +416,13 @@ public class ITFParser {
      * Check all the defined implementations of the same method
      *
      * @param m
-     * @param methodId
      * @param calleeMethodSignature
      * @param hasStreams
-     * @param implementations
-     * @param signatures
+     * @param hasPrefixes
+     * @param ced
      */
-    private static void checkDefinedImplementations(java.lang.reflect.Method m, Integer methodId, StringBuilder calleeMethodSignature,
-            boolean hasStreams, boolean hasPrefixes, List<Implementation> implementations, List<String> signatures) {
+    private static void checkDefinedImplementations(java.lang.reflect.Method m, StringBuilder calleeMethodSignature,
+            boolean hasStreams, boolean hasPrefixes, CoreElementDefinition ced) {
 
         /*
          * Global constraints of the method
@@ -456,7 +436,6 @@ public class ITFParser {
          * Check all annotations present at the method for versioning
          */
         String methodName = m.getName();
-        int implId = 0;
 
         /*
          * METHOD
@@ -476,7 +455,6 @@ public class ITFParser {
 
             String declaringClass = methodAnnot.declaringClass();
             String methodSignature = calleeMethodSignature.toString() + declaringClass;
-            signatures.add(methodSignature);
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
@@ -486,9 +464,13 @@ public class ITFParser {
             }
 
             // Register method implementation
-            Implementation impl = new MethodImplementation(declaringClass, methodName, methodId, implId, implConstraints);
-            ++implId;
-            implementations.add(impl);
+            ImplementationDefinition implDef = null;
+            try {
+                implDef = ImplementationDefinition.defineImplementation(MethodType.METHOD.toString(), methodSignature, implConstraints, declaringClass, methodName);
+            } catch (Exception e) {
+                ErrorManager.error(e.getMessage());
+            }
+            ced.addImplementation(implDef);
         }
 
         /*
@@ -508,13 +490,15 @@ public class ITFParser {
             calleeMethodSignature.append(serviceAnnot.port());
 
             String serviceSignature = calleeMethodSignature.toString();
-            signatures.add(serviceSignature);
 
             // Register service implementation
-            Implementation impl = new ServiceImplementation(methodId, serviceAnnot.namespace(), serviceAnnot.name(), serviceAnnot.port(),
-                    serviceAnnot.operation());
-            ++implId;
-            implementations.add(impl);
+            ImplementationDefinition implDef = null;
+            try {
+                implDef = ImplementationDefinition.defineImplementation(TaskType.SERVICE.toString(), serviceSignature, null, serviceAnnot.namespace(), serviceAnnot.name(), serviceAnnot.operation(), serviceAnnot.port());
+            } catch (Exception e) {
+                ErrorManager.error(e.getMessage());
+            }
+            ced.addImplementation(implDef);
         }
 
         /*
@@ -530,7 +514,6 @@ public class ITFParser {
             }
 
             String binarySignature = calleeMethodSignature.toString() + LoaderUtils.BINARY_SIGNATURE;
-            signatures.add(binarySignature);
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
@@ -539,10 +522,15 @@ public class ITFParser {
                 implConstraints.mergeMultiConstraints(defaultConstraints);
             }
 
-            // Register method implementation
-            Implementation impl = new BinaryImplementation(binary, workingDir, methodId, implId, implConstraints);
-            ++implId;
-            implementations.add(impl);
+            // Register service implementation
+            ImplementationDefinition implDef = null;
+            try {
+                implDef = ImplementationDefinition.defineImplementation(MethodType.BINARY.toString(), binarySignature, implConstraints, binary, workingDir);
+            } catch (Exception e) {
+                ErrorManager.error(e.getMessage());
+            }
+
+            ced.addImplementation(implDef);
         }
 
         /*
@@ -568,7 +556,6 @@ public class ITFParser {
             }
 
             String mpiSignature = calleeMethodSignature.toString() + LoaderUtils.MPI_SIGNATURE;
-            signatures.add(mpiSignature);
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
@@ -577,10 +564,14 @@ public class ITFParser {
                 implConstraints.mergeMultiConstraints(defaultConstraints);
             }
 
-            // Register method implementation
-            Implementation impl = new MPIImplementation(binary, workingDir, mpiRunner, methodId, implId, implConstraints);
-            ++implId;
-            implementations.add(impl);
+            // Register service implementation
+            ImplementationDefinition implDef = null;
+            try {
+                implDef = ImplementationDefinition.defineImplementation(MethodType.MPI.toString(), mpiSignature, implConstraints, binary, workingDir, mpiRunner);
+            } catch (Exception e) {
+                ErrorManager.error(e.getMessage());
+            }
+            ced.addImplementation(implDef);
         }
 
         /*
@@ -609,8 +600,7 @@ public class ITFParser {
                 LOGGER.debug("mpiRunner: " + mpiRunner);
             }
 
-            String mpiSignature = calleeMethodSignature.toString() + LoaderUtils.DECAF_SIGNATURE;
-            signatures.add(mpiSignature);
+            String decafSignature = calleeMethodSignature.toString() + LoaderUtils.DECAF_SIGNATURE;
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
@@ -619,11 +609,14 @@ public class ITFParser {
                 implConstraints.mergeMultiConstraints(defaultConstraints);
             }
 
-            // Register method implementation
-            Implementation impl = new DecafImplementation(dfScript, dfExecutor, dfLib, workingDir, mpiRunner, methodId, implId,
-                    implConstraints);
-            ++implId;
-            implementations.add(impl);
+            // Register service implementation
+            ImplementationDefinition implDef = null;
+            try {
+                implDef = ImplementationDefinition.defineImplementation(MethodType.DECAF.toString(), decafSignature, implConstraints, dfScript, dfExecutor, dfLib, workingDir, mpiRunner);
+            } catch (Exception e) {
+                ErrorManager.error(e.getMessage());
+            }
+            ced.addImplementation(implDef);
         }
 
         /*
@@ -648,7 +641,6 @@ public class ITFParser {
             }
 
             String compssSignature = calleeMethodSignature.toString() + LoaderUtils.COMPSs_SIGNATURE;
-            signatures.add(compssSignature);
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
@@ -657,10 +649,15 @@ public class ITFParser {
                 implConstraints.mergeMultiConstraints(defaultConstraints);
             }
 
-            // Register method implementation
-            Implementation impl = new COMPSsImplementation(runcompss, flags, appName, workingDir, methodId, implId, implConstraints);
-            ++implId;
-            implementations.add(impl);
+            // Register service implementation
+            ImplementationDefinition implDef = null;
+            try {
+                implDef = ImplementationDefinition.defineImplementation(MethodType.COMPSs.toString(), compssSignature, implConstraints, runcompss, flags, appName, workingDir);
+            } catch (Exception e) {
+                ErrorManager.error(e.getMessage());
+            }
+
+            ced.addImplementation(implDef);
         }
 
         /*
@@ -683,7 +680,6 @@ public class ITFParser {
 
             String declaringClass = multiNodeAnnot.declaringClass();
             String methodSignature = calleeMethodSignature.toString() + declaringClass;
-            signatures.add(methodSignature);
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
@@ -693,9 +689,14 @@ public class ITFParser {
             }
 
             // Register method implementation
-            Implementation impl = new MultiNodeImplementation(declaringClass, methodName, methodId, implId, implConstraints);
-            ++implId;
-            implementations.add(impl);
+            ImplementationDefinition implDef = null;
+            try {
+                implDef = ImplementationDefinition.defineImplementation(MethodType.MULTI_NODE.toString(), methodSignature, implConstraints, declaringClass, methodName);
+            } catch (Exception e) {
+                ErrorManager.error(e.getMessage());
+            }
+            ced.addImplementation(implDef);
+
         }
 
         /*
@@ -711,7 +712,6 @@ public class ITFParser {
             }
 
             String ompssSignature = calleeMethodSignature.toString() + LoaderUtils.OMPSS_SIGNATURE;
-            signatures.add(ompssSignature);
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
@@ -720,10 +720,14 @@ public class ITFParser {
                 implConstraints.mergeMultiConstraints(defaultConstraints);
             }
 
-            // Register method implementation
-            Implementation impl = new OmpSsImplementation(binary, workingDir, methodId, implId, implConstraints);
-            ++implId;
-            implementations.add(impl);
+            // Register service implementation
+            ImplementationDefinition implDef = null;
+            try {
+                implDef = ImplementationDefinition.defineImplementation(MethodType.OMPSS.toString(), ompssSignature, implConstraints, binary, workingDir);
+            } catch (Exception e) {
+                ErrorManager.error(e.getMessage());
+            }
+            ced.addImplementation(implDef);
         }
 
         /*
@@ -739,7 +743,6 @@ public class ITFParser {
             }
 
             String openclSignature = calleeMethodSignature.toString() + LoaderUtils.OPENCL_SIGNATURE;
-            signatures.add(openclSignature);
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
@@ -748,12 +751,15 @@ public class ITFParser {
                 implConstraints.mergeMultiConstraints(defaultConstraints);
             }
 
-            // Register method implementation
-            Implementation impl = new OpenCLImplementation(kernel, workingDir, methodId, implId, implConstraints);
-            ++implId;
-            implementations.add(impl);
+            // Register service implementation
+            ImplementationDefinition implDef = null;
+            try {
+                implDef = ImplementationDefinition.defineImplementation(MethodType.OPENCL.toString(), openclSignature, implConstraints, kernel, workingDir);
+            } catch (Exception e) {
+                ErrorManager.error(e.getMessage());
+            }
+
+            ced.addImplementation(implDef);
         }
-
     }
-
 }

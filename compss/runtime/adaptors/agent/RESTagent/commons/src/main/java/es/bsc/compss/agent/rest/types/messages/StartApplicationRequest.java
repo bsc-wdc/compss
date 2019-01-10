@@ -14,22 +14,20 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.agent.rest.messages;
+package es.bsc.compss.agent.rest.types.messages;
 
+import es.bsc.compss.agent.rest.types.Orchestrator;
 import es.bsc.compss.types.ApplicationParameter;
 import es.bsc.compss.types.ApplicationParameterValue;
 import es.bsc.compss.types.ApplicationParameterValue.ArrayParameter;
 import es.bsc.compss.types.ApplicationParameterValue.ElementParameter;
-import es.bsc.compss.types.Resource;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.Stream;
 import es.bsc.compss.types.parameter.Parameter;
 import java.io.Serializable;
-import java.util.Arrays;
-import javax.xml.bind.annotation.XmlElement;
+
 import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlRootElement;
 
 
@@ -43,7 +41,7 @@ public class StartApplicationRequest implements Serializable {
     private ApplicationParameter[] params = new ApplicationParameter[0];
     private ApplicationParameter target;
     private boolean hasResult;
-    private Resource[] resources;
+    private Orchestrator orchestrator;
 
     public StartApplicationRequest() {
 
@@ -55,17 +53,6 @@ public class StartApplicationRequest implements Serializable {
 
     public String getServiceInstanceId() {
         return serviceInstanceId;
-    }
-
-    @XmlElementWrapper(name = "resources")
-    @XmlElements({
-        @XmlElement(name = "resource")})
-    public Resource[] getResources() {
-        return resources;
-    }
-
-    public void setResources(Resource[] resources) {
-        this.resources = resources;
     }
 
     public String getCeiClass() {
@@ -228,8 +215,20 @@ public class StartApplicationRequest implements Serializable {
                 sb.append(param.getType());
             }
         }
-        sb.append(") defined in CEI ").append(ceiClass).append(" using ").append(Arrays.toString(resources));
+        sb.append(") defined in CEI ").append(ceiClass);
         return sb.toString();
+    }
+
+    public void setOrchestrator(String host, Orchestrator.HttpMethod method, String operation) {
+        this.orchestrator = new Orchestrator(host, method, operation);
+    }
+
+    public void setOrchestrator(Orchestrator orchestrator) {
+        this.orchestrator = orchestrator;
+    }
+
+    public Orchestrator getOrchestrator() {
+        return orchestrator;
     }
 
 }

@@ -17,12 +17,13 @@
 package es.bsc.compss.agent.rest;
 
 import es.bsc.compss.agent.Agent.AppMonitor;
+import es.bsc.compss.agent.rest.types.TaskProfile;
 import es.bsc.compss.types.annotations.parameter.DataType;
 
 
 public class AppMainMonitor extends AppMonitor {
 
-    //private final TaskProfile profile;
+    private final TaskProfile profile;
     private final String serviceInstanceId;
     private final String operation;
 
@@ -33,27 +34,27 @@ public class AppMainMonitor extends AppMonitor {
         super();
         this.serviceInstanceId = serviceInstanceId;
         this.operation = operation;
-        //this.profile = new TaskProfile();
+        this.profile = new TaskProfile();
     }
 
     @Override
     public void onCreation() {
-        //profile.created();
+        profile.created();
     }
 
     @Override
     public void onAccessesProcessed() {
-        //profile.processedAccesses();
+        profile.processedAccesses();
     }
 
     @Override
     public void onSchedule() {
-        //profile.scheduled();
+        profile.scheduled();
     }
 
     @Override
     public void onSubmission() {
-        //profile.submitted();
+        profile.submitted();
     }
 
     @Override
@@ -63,25 +64,28 @@ public class AppMainMonitor extends AppMonitor {
 
     @Override
     public void onErrorExecution() {
-        //profile.finished();
+        profile.finished();
     }
 
     @Override
     public void onFailedExecution() {
-        //profile.finished();
+        profile.finished();
     }
 
     @Override
     public void onSuccesfulExecution() {
-        //profile.finished();
+        profile.finished();
     }
 
     @Override
     public void onCompletion() {
-        //profile.end();
+        profile.end();
+        System.out.println("Main Job completed after " + profile.getTotalTime());
     }
 
     @Override
     public void onFailure() {
+        profile.end();
+        System.out.println("Main Job failed after " + profile.getTotalTime());
     }
 }

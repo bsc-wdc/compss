@@ -1,8 +1,8 @@
 #!/bin/bash
 
-  #Obtain parameters
+  # Obtain parameters
   output_file=$1
-  error_file=$2 
+  error_file=$2
   target_log_folder=$3
   basedir=$4
   
@@ -27,7 +27,6 @@
     echo "ERROR: ERRMGR RAISED A FATAL ERROR. TEST FAILED." | tee -a ${output_file}
     exit 1
   fi
-  
   
   #----------------------------------------------------------------------------------
   # Grep for unit test errors (ERROR or FAIL)

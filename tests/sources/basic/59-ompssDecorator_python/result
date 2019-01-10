@@ -28,6 +28,15 @@
   fi
 
   #----------------------------------------------------------------------------------
+  # Grep for unit test errors (ERROR or FAIL)
+  errors=$(cat "${output_file}" "${error_file}" | grep "ERROR" | cat)
+  fails=$(cat "${output_file}" "${error_file}" | grep "FAIL" | cat)
+  if [ "${errors}" != "" ] || [ "${fails}" != "" ]; then
+      echo "ERROR: UNIT TEST RAISED AN ERROR." | tee -a ${output_file}
+      exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
 
   jobs_logs="${target_log_folder}/jobs"
 
@@ -118,15 +127,6 @@
       echo "ERROR: TASK FAILED: testFilesAndPrefixWithoutType function appearances check failed." | tee -a ${output_file}
       exit 1
     fi
-  fi
-
-  #----------------------------------------------------------------------------------
-  # Grep for unit test errors (ERROR or FAIL)
-  errors=$(cat "${output_file}" "${error_file}" | grep "ERROR" | cat)
-  fails=$(cat "${output_file}" "${error_file}" | grep "FAIL" | cat)
-  if [ "${errors}" != "" ] || [ "${fails}" != "" ]; then
-    echo "ERROR: UNIT TEST RAISED AN ERROR." | tee -a ${output_file}
-    exit 1
   fi
 
   exit 0

@@ -230,14 +230,12 @@ class KmeansTest(unittest.TestCase):
         expected_centers = [np.array([0.56849316, 0.70270945]),
                             np.array([0.3036273, 0.31187001])]
 
-
         if not np.allclose(centers, expected_centers):
             print("Kmeans centers results are incorrect.")
             print("Expected: \n %s" % expected_centers)
             print("Got: \n %s" % centers)
         self.assertTrue(np.allclose(centers, expected_centers))
-        # self.assertEquals(centers, expected_centers)
-        # self.assertTrue(False)
+
 
 if __name__ == '__main__':
     unittest.main()

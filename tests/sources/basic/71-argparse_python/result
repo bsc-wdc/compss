@@ -14,7 +14,7 @@
      result_expected="------------------------------------------------------------"
      test_result=$(tail -1 ${output_file})
      if [ "${result_expected}" != "${test_result}" ]; then
-        echo "SOME ERROR WAS FOUND. CHECK ERROsRS ABOVE." | tee -a ${output_file}
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
         exit 1
      fi
   else
@@ -28,9 +28,17 @@
   fi
 
   #----------------------------------------------------------------------------------
+  # Grep for unit test errors (ERROR or FAIL)
+  errors=$(cat "${output_file}" "${error_file}" | grep "ERROR" | cat)
+  fails=$(cat "${output_file}" "${error_file}" | grep "FAIL" | cat)
+  if [ "${errors}" != "" ] || [ "${fails}" != "" ]; then
+      echo "ERROR: UNIT TEST RAISED AN ERROR." | tee -a ${output_file}
+      exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
   # Compute result status
   correct=$(cat ${output_file} | grep "Argparse received the expected arguments and values")
-
 
   # Report result status
   if [ "${correct}" == "" ]; then

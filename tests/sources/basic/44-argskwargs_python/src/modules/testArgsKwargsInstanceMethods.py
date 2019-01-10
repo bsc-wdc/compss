@@ -12,6 +12,8 @@ import unittest
 
 from pycompss.api.api import compss_wait_on
 from pycompss.api.task import task
+from pycompss.api.parameter import FILE_IN
+from pycompss.api.parameter import FILE_OUT
 
 
 class testArgsKwargsInstanceMethods(unittest.TestCase):
@@ -76,6 +78,26 @@ class testArgsKwargsInstanceMethods(unittest.TestCase):
         print("b: ", b)
         print("kwargs: ", kwargs)
         return a + b + len(kwargs)
+
+    @task(output=FILE_OUT)
+    def producer(self, output, **kwargs):
+        print("output: ", output)
+        print("kwargs: ", kwargs)
+        with open(output, "w") as f:
+            f.write(str(kwargs))
+
+    @task(input=FILE_IN, returns=str)
+    def consumer(self, input, **kwargs):
+        print("input: ", input)
+        print("kwargs: ", kwargs)
+        data = ""
+        with open(input, "r") as f:
+            data = f.read()
+        print("data: ", data)
+        # Get the dictionary from the str representation to avoid unordered error
+        import ast
+        reconstructed = ast.literal_eval(data)
+        return reconstructed
 
     '''
     FUNCTION WITH *ARGS
@@ -216,11 +238,10 @@ class testArgsKwargsInstanceMethods(unittest.TestCase):
         result = compss_wait_on(pending)
         self.assertEqual(result, 10)
 
-    # TODO: Supported if not executed with the previous - but check that works with the previous with the new parameter naming implementation.
-    # def testVarArgDefaultKwargTask5(self):
-    #     pending = self.varargdefaultkwargTask(1, 2, 3, 4, 5, six=6, seven=7)
-    #     result = compss_wait_on(pending)
-    #     self.assertEqual(result, 16)
+    def testVarArgDefaultKwargTask5(self):
+        pending = self.varargdefaultkwargTask(1, 2, 3, 4, 5, six=6, seven=7)
+        result = compss_wait_on(pending)
+        self.assertEqual(result, 16)
 
     '''
     FUNCTION WITH **KWARGS AND DICT UNROLLING
@@ -247,3 +268,16 @@ class testArgsKwargsInstanceMethods(unittest.TestCase):
         pending = self.taskUnrollDictWithDefaults()
         result = compss_wait_on(pending)
         self.assertEqual(result, 3)
+
+    '''
+    FUNCTION WITH **KWARGS, DICT UNROLLING AND FILES
+    '''
+
+    def testKwargsDictUnrollingWithFiles(self):
+        fout = "message.txt"
+        info = {"message": "Information to be shared",
+                "message2": "More information to be shared"}
+        self.producer(output=fout, **info)
+        result = self.consumer(input=fout, **info)
+        result = compss_wait_on(result)
+        self.assertEqual(info, result)

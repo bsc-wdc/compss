@@ -81,6 +81,11 @@ def myLs(flag, hide, sort):
 def myLsWithoutType(flag, hide, sort):
     pass
 
+@mpi(binary="./checkNames.sh", workingDir=os.getcwd() + '/src/scripts/', runner="mpirun", computingNodes=1)
+@task(f=FILE_IN, fp={Type: FILE_IN, Prefix: "--prefix="}, fout={Type: FILE_OUT}, returns=int)
+def checkFileNames(f, fp, name, fout):
+    pass
+
 
 class testMpiDecorator(unittest.TestCase):
 
@@ -109,7 +114,7 @@ class testMpiDecorator(unittest.TestCase):
     def testFailedBinaryExitValue(self):
         ev = failedBinary(123)
         ev = compss_wait_on(ev)
-        self.assertEqual(ev, 213)  # own exit code for failed execution
+        self.assertEqual(ev, 123)
 
     @unittest.skip("UNSUPPORTED WITH GAT")
     def testFileManagementINOUT(self):
@@ -140,3 +145,15 @@ class testMpiDecorator(unittest.TestCase):
         sort = "time"
         myLsWithoutType(flag, infile, sort)
         compss_barrier()
+
+    def testCheckFileNames(self):
+        f = "src/infile"
+        fp = "src/infile"
+        name = "infile"
+        fout = "checkFileNamesResult.txt"
+        exit_value = checkFileNames(f, fp, name, fout)
+        exit_value = compss_wait_on(exit_value)
+        with compss_open(fout) as result:
+            data = result.read()
+        print("CheckFileNamesResult: " + str(data))
+        self.assertEqual(exit_value, 0, "At least one file name is NOT as expected: {}, {}, {}".format(f, fp, name))

@@ -378,8 +378,7 @@ public class Executor implements Runnable {
             } else {
                 String inSandboxPath = sandbox.getAbsolutePath() + File.separator + param.getOriginalName();
                 LOGGER.debug("Setting Original Name to " + inSandboxPath);
-                param.setValue(inSandboxPath);
-                param.setOriginalName(renamedFilePath);
+                param.setOriginalName(inSandboxPath);
                 File inSandboxFile = new File(inSandboxPath);
                 if (renamedFile.exists()) {
                     // IN or INOUT File creating a symbolic link
@@ -421,8 +420,8 @@ public class Executor implements Runnable {
 
     private void unbindOriginalFilenameToRename(InvocationParam param, Lang lang) throws IOException, JobExecutionException {
         if (param.getType().equals(DataType.FILE_T)) {
-            String inSandboxPath = (String) param.getValue();
-            String renamedFilePath = param.getOriginalName();
+            String inSandboxPath = param.getOriginalName();
+            String renamedFilePath = (String) param.getValue();
 
             LOGGER.debug("Treating file " + inSandboxPath);
             File inSandboxFile = new File(inSandboxPath);

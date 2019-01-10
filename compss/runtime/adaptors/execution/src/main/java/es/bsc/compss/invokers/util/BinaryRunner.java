@@ -28,6 +28,7 @@ import java.util.Iterator;
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.types.annotations.Constants;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.util.StreamGobbler;
 import es.bsc.compss.log.Loggers;
@@ -104,9 +105,17 @@ public class BinaryRunner {
                         }
                     } else // The value can be serialized to string directly
                     if (param.getPrefix() != null && !param.getPrefix().isEmpty() && !param.getPrefix().equals(Constants.PREFIX_EMPTY)) {
-                        binaryParam.add(param.getPrefix() + String.valueOf(param.getValue()));
+                        if (param.getType().equals(DataType.FILE_T)){
+                            binaryParam.add(param.getPrefix() + String.valueOf(param.getOriginalName()));
+                        }else {
+                            binaryParam.add(param.getPrefix() + String.valueOf(param.getValue()));
+                        }
                     } else {
-                        binaryParam.add(String.valueOf(param.getValue()));
+                        if (param.getType().equals(DataType.FILE_T)){
+                            binaryParam.add(String.valueOf(param.getOriginalName()));
+                        }else {
+                            binaryParam.add(String.valueOf(param.getValue()));
+                        }
                     }
                 }
                 break;

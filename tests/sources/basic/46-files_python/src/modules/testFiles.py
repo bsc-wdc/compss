@@ -16,6 +16,15 @@ from pycompss.api.parameter import *
 
 class testFiles(unittest.TestCase):
 
+    @task(fin=FILE_IN, returns=str)
+    def checkName(self, fin, name):
+        print("TEST FILE NAME")
+        if fin.endswith(name):
+            print("The file name is OK: " + str(fin))
+        else:
+            raise Exception("FILENAME NOT AS EXPECTED: " + str(fin) + " != " + str(name))
+        return name
+
     @task(fin=FILE, returns=str)
     def fileIn(self, fin):
         print("TEST FILE IN")
@@ -81,6 +90,17 @@ class testFiles(unittest.TestCase):
         fout_d1.close()
         fout_d2.close()
         return filename1, filename2
+
+    def testFileNAME(self):
+        """ Test FILE NAME """
+        from pycompss.api.api import compss_wait_on
+        fin = "complex_name.txt"
+        content = "FILE CONTENT"
+        with open(fin, 'w') as f:
+            f.write(content)
+        res = self.checkName(fin, fin)
+        res = compss_wait_on(res)
+        self.assertEqual(res, fin, "File names are not equal: {}, {}".format(res, fin))
 
     def testFileIN(self):
         """ Test FILE_IN """

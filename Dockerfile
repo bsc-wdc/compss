@@ -1,6 +1,8 @@
 FROM compss/base:latest
 MAINTAINER COMPSs Support <support-compss@bsc.es>
 
+ARG release=false
+
 # Copy framework files for installation and testing
 COPY . /framework
 
@@ -14,8 +16,11 @@ RUN cd /framework && \
     ./submodules_get.sh && \
     ./submodules_patch.sh && \
     sudo -E /framework/builders/buildlocal /opt/COMPSs && \
-    rm -rf /framework /root/.cache 
-    #/root/.m2
+    mv /root/.m2 /home/jenkins/ && \
+    rm -rf /root/.cache && \
+    sudo chown -R jenkins: /framework && \
+    sudo chown -R jenkins: /home/jenkins/ && \
+    if [ "$release" = "true" ]; then rm -rf /framework /home/jenkins/.m2 /root/.m2; fi
 
 # Expose SSH port and run SSHD
 EXPOSE 22

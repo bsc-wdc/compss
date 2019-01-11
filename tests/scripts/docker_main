@@ -13,8 +13,6 @@ fi
 # container can be stopped and give name conflict, so remove it just in case
 docker rm -f compss_test &> /dev/null  || true # no need to output errors if the container wasn't found
 docker run -d --name=compss_test compss
-docker cp ${scriptDir}/../../. compss_test:/framework/
 docker exec compss_test sudo /framework/tests/scripts/configure_hosts_insert
-docker exec compss_test sudo chown -R jenkins: /framework
 
 docker exec --user jenkins compss_test /framework/tests/scripts/main "$@"

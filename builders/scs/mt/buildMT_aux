@@ -28,8 +28,8 @@
   targetDir=$1
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-  modules="java gcc/4.9.4 mkl/2018.1 bullxmpi/bullxmpi-1.2.9.1 python/2.7.2 boost/1.57"
-  py2_modules="python/2.7.2"
+  modules="java gcc/7.1.0 mkl/2018.1 bullxmpi/bullxmpi-1.2.9.1 python/2.7.14 boost/1.67.0"
+  py2_modules="python/2.7.14"
   py3_modules="python/3.5.2-INTEL"
   additionalExports="export BOOST_CPPFLAGS=-I\${BOOST_INCLUDE} PATH=/apps/BSCTOOLS/deps/libxml/2.9.4/bin:$PATH"
   queues_cfg="mt.cfg"

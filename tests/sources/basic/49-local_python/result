@@ -2,7 +2,7 @@
 
   # Obtain parameters
   output_file=$1
-  error_file=$2 
+  error_file=$2
   target_log_folder=$3
 
   # Log files
@@ -28,10 +28,6 @@
   fi
 
   #----------------------------------------------------------------------------------
-  # TODO: Check inout and output files consolidation
-
-
-  #----------------------------------------------------------------------------------
   # Grep for unit test errors (ERROR or FAIL)
   errors=$(cat "${output_file}" "${error_file}" | grep "ERROR" | cat)
   fails=$(cat "${output_file}" "${error_file}" | grep "FAIL" | cat)
@@ -39,6 +35,9 @@
     echo "ERROR: UNIT TEST RAISED AN ERROR." | tee -a ${output_file}
     exit 1
   fi
+
+  #----------------------------------------------------------------------------------
+  # TODO: Check inout and output files consolidation
 
   exit 0
 

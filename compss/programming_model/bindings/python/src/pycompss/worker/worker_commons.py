@@ -183,6 +183,7 @@ def task_execution(logger, process_name, module, method_name, types, values, com
     # the new_types and new_values will be within a tuple at position 0.
     # Force users that use decorators on top of @task to return the task results first.
     # This is tested with the timeit decorator in test 19.
+
     task_output = getattr(module, method_name)(*values, compss_types=types, **compss_kwargs)
 
     if isinstance(task_output[0], tuple):  # Weak but effective way to check it without doing inspect.

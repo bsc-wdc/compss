@@ -27,6 +27,7 @@ import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.exceptions.LangNotDefinedException;
 
 
 public abstract class AbstractMethodImplementation extends Implementation implements Externalizable {
@@ -40,6 +41,7 @@ public abstract class AbstractMethodImplementation extends Implementation implem
         MPI, // For MPI methods
         COMPSs, // For COMPSs nested applications
         DECAF, // For decaf methods
+        MULTI_NODE, // For native multi-node methods
         OMPSS, // For OmpSs methods
         OPENCL // For OpenCL methods
     }
@@ -98,6 +100,8 @@ public abstract class AbstractMethodImplementation extends Implementation implem
             case PYTHON:
                 // There is no function overloading in Python
                 break;
+            case UNKNOWN:
+                throw new LangNotDefinedException();
         }
 
         buffer.append(")").append(declaringClass);

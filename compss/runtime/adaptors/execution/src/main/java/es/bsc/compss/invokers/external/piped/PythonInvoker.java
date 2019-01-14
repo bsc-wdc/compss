@@ -73,11 +73,12 @@ public class PythonInvoker extends PipedInvoker {
         private final PythonParams pyParams;
         private final String pyCOMPSsHome;
 
+
         public PythonMirror(InvocationContext context, int size) {
             super(context, size);
-            pyParams = (PythonParams) context.getLanguageParams(COMPSsConstants.Lang.PYTHON);
+            this.pyParams = (PythonParams) context.getLanguageParams(COMPSsConstants.Lang.PYTHON);
             String installDir = context.getInstallDir();
-            pyCOMPSsHome = installDir + PYCOMPSS_RELATIVE_PATH + File.separator + pyParams.getPythonVersion();
+            this.pyCOMPSsHome = installDir + PYCOMPSS_RELATIVE_PATH + File.separator + pyParams.getPythonVersion();
             init(context);
         }
 
@@ -89,25 +90,25 @@ public class PythonInvoker extends PipedInvoker {
             StringBuilder cmd = new StringBuilder();
 
             cmd.append(COMPSsConstants.Lang.PYTHON).append(TOKEN_SEP);
-            cmd.append(pyParams.getPythonVirtualEnvironment()).append(TOKEN_SEP);
-            cmd.append(pyParams.getPythonPropagateVirtualEnvironment()).append(TOKEN_SEP);
+            cmd.append(this.pyParams.getPythonVirtualEnvironment()).append(TOKEN_SEP);
+            cmd.append(this.pyParams.getPythonPropagateVirtualEnvironment()).append(TOKEN_SEP);
 
             cmd.append(Tracer.isActivated()).append(TOKEN_SEP);
 
-            cmd.append(pyParams.getPythonInterpreter()).append(TOKEN_SEP).append("-u").append(TOKEN_SEP);
-            cmd.append(pyCOMPSsHome).append(WORKER_PY_RELATIVE_PATH).append(TOKEN_SEP);
+            cmd.append(this.pyParams.getPythonInterpreter()).append(TOKEN_SEP).append("-u").append(TOKEN_SEP);
+            cmd.append(this.pyCOMPSsHome).append(WORKER_PY_RELATIVE_PATH).append(TOKEN_SEP);
 
             cmd.append(LOGGER.isDebugEnabled()).append(TOKEN_SEP);
             cmd.append(Tracer.isActivated()).append(TOKEN_SEP);
             cmd.append(context.getStorageConf()).append(TOKEN_SEP);
-            cmd.append(size).append(TOKEN_SEP);
-            String computePipes = basePipePath + "compute";
+            cmd.append(this.size).append(TOKEN_SEP);
+            String computePipes = this.basePipePath + "compute";
 
-            for (int i = 0; i < size; ++i) {
+            for (int i = 0; i < this.size; ++i) {
                 cmd.append(computePipes).append(i).append(".outbound").append(TOKEN_SEP);
             }
 
-            for (int i = 0; i < size; ++i) {
+            for (int i = 0; i < this.size; ++i) {
                 cmd.append(computePipes).append(i).append(".inbound").append(TOKEN_SEP);
             }
 
@@ -118,14 +119,14 @@ public class PythonInvoker extends PipedInvoker {
         public Map<String, String> getEnvironment(InvocationContext context) {
             // PyCOMPSs HOME
             Map<String, String> env = new HashMap<>();
-            env.put("PYCOMPSS_HOME", pyCOMPSsHome);
+            env.put("PYCOMPSS_HOME", this.pyCOMPSsHome);
 
             // PYTHONPATH
             String pythonPath = System.getenv(ENV_PYTHONPATH);
             if (pythonPath == null) {
-                pythonPath = pyCOMPSsHome + ":" + pyParams.getPythonPath() + ":" + context.getAppDir();
+                pythonPath = this.pyCOMPSsHome + ":" + this.pyParams.getPythonPath() + ":" + context.getAppDir();
             } else {
-                pythonPath = pyCOMPSsHome + ":" + pyParams.getPythonPath() + ":" + context.getAppDir() + pythonPath;
+                pythonPath = this.pyCOMPSsHome + ":" + this.pyParams.getPythonPath() + ":" + context.getAppDir() + pythonPath;
             }
 
             env.put(ENV_PYTHONPATH, pythonPath);

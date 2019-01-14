@@ -90,6 +90,7 @@ public class NIOTask implements Externalizable, Invocation {
         Iterator<NIOParam> paramItr = params.descendingIterator();
 
         if (this.lang == Lang.PYTHON) {
+            // Python params are in a different order
             if (hasTarget) {
                 NIOParam p = paramItr.next();
                 target = p;
@@ -99,6 +100,7 @@ public class NIOTask implements Externalizable, Invocation {
                 results.addFirst(p);
             }
         } else {
+            // C and Java params
             for (int rIdx = 0; rIdx < numReturns; rIdx++) {
                 NIOParam p = paramItr.next();
                 results.addFirst(p);

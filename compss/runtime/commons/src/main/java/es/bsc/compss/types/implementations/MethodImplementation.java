@@ -25,7 +25,7 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 
 
 public class MethodImplementation extends AbstractMethodImplementation implements Externalizable {
-    
+
     public static final int NUM_PARAMS = 2;
 
     private String declaringClass;

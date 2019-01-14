@@ -26,6 +26,7 @@ import es.bsc.compss.gat.worker.implementations.JavaMethodDefinition;
 import es.bsc.compss.gat.executor.types.ExecutionEnd;
 import es.bsc.compss.gat.worker.implementations.BinaryDefinition;
 import es.bsc.compss.gat.worker.implementations.MPIDefinition;
+import es.bsc.compss.gat.worker.implementations.MultiNodeDefinition;
 import es.bsc.compss.gat.worker.implementations.COMPSsDefinition;
 import es.bsc.compss.gat.worker.implementations.DecafDefinition;
 import es.bsc.compss.gat.worker.implementations.OMPSsDefinition;
@@ -165,12 +166,14 @@ public class GATWorker implements InvocationContext {
                 return new COMPSsDefinition(debug, args, argPosition);
             case DECAF:
                 return new DecafDefinition(debug, args, argPosition);
+            case MULTI_NODE:
+                return new MultiNodeDefinition(debug, args, argPosition);
             case OMPSS:
                 return new OMPSsDefinition(debug, args, argPosition);
             case OPENCL:
                 return new OpenCLDefinition(debug, args, argPosition);
         }
-        // If we reach this point means that the methodType was unrecognised
+        // If we reach this point means that the methodType was unrecognized
         ErrorManager.error(WARN_UNSUPPORTED_METHOD_TYPE + methodType);
         return null;
     }

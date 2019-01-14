@@ -1,6 +1,6 @@
 #!/bin/bash
 
-  #Obtain parameters
+  # Obtain parameters
   output_file=$1
   error_file=$2
   target_log_folder=$3
@@ -46,7 +46,6 @@
       exit 1
   fi
 
-
   #----------------------------------------------------------------------------------
   # Report result status
-  exit ${exitValue}
+  exit 0

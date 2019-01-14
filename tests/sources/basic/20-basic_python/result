@@ -1,7 +1,7 @@
 #!/bin/bash
 
-  #Obtain parameters
-  output_file=$1 
+  # Obtain parameters
+  output_file=$1
   error_file=$2
   target_log_folder=$3
 

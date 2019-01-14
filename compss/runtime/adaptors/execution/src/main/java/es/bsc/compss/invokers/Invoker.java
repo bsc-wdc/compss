@@ -51,10 +51,10 @@ public abstract class Invoker {
     protected static final String ERROR_TASK_EXECUTION = "ERROR: Exception executing task (user code)";
     protected static final String ERROR_UNKNOWN_TYPE = "ERROR: Unrecognised type";
 
-    public static final String OMP_NUM_THREADS = "OMP_NUM_THREADS";
-    public static final String COMPSS_HOSTNAMES = "COMPSS_HOSTNAMES";
     public static final String COMPSS_NUM_NODES = "COMPSS_NUM_NODES";
+    public static final String COMPSS_HOSTNAMES = "COMPSS_HOSTNAMES";
     public static final String COMPSS_NUM_THREADS = "COMPSS_NUM_THREADS";
+    public static final String OMP_NUM_THREADS = "OMP_NUM_THREADS";
 
     protected final InvocationContext context;
     protected final Invocation invocation;
@@ -294,11 +294,11 @@ public abstract class Invoker {
 
     private void setEnvironmentVariables() {
         // Setup properties
-        System.setProperty(COMPSS_HOSTNAMES, this.workers);
         System.setProperty(COMPSS_NUM_NODES, String.valueOf(this.numWorkers));
+        System.setProperty(COMPSS_HOSTNAMES, this.workers);
         System.setProperty(COMPSS_NUM_THREADS, String.valueOf(this.computingUnits));
         System.setProperty(OMP_NUM_THREADS, String.valueOf(this.computingUnits));
-        
+
         // LOG ENV VARS
         System.out.println("[INVOKER] COMPSS_HOSTNAMES: " + this.workers);
         System.out.println("[INVOKER] COMPSS_NUM_NODES: " + this.numWorkers);

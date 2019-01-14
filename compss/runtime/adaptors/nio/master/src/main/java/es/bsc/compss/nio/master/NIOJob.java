@@ -32,14 +32,13 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.RAccessId;
 import es.bsc.compss.types.data.DataAccessId.RWAccessId;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
-import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.implementations.MultiNodeImplementation;
 import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.job.JobListener.JobEndStatus;
-import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.DataAccessId.WAccessId;
@@ -48,6 +47,7 @@ import es.bsc.compss.types.data.DataAccessId.WAccessId;
 public class NIOJob extends Job<NIOWorkerNode> {
 
     private final List<String> slaveWorkersNodeNames;
+
 
     public NIOJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res, List<String> slaveWorkersNodeNames,
             JobListener listener) {
@@ -69,7 +69,7 @@ public class NIOJob extends Job<NIOWorkerNode> {
     @Override
     public void submit() throws Exception {
         // Prepare the job
-        logger.info("Submit NIOJob with ID " + jobId);
+        LOGGER.info("Submit NIOJob with ID " + jobId);
         NIOAdaptor.submitTask(this);
     }
 
@@ -77,26 +77,35 @@ public class NIOJob extends Job<NIOWorkerNode> {
         AbstractMethodImplementation absMethodImpl = (AbstractMethodImplementation) this.impl;
 
         // If it is a native method, check that methodname is defined (otherwise define it from job parameters)
-        // This is a workarround for Python
-        if (absMethodImpl.getMethodType().equals(MethodType.METHOD)) {
-            MethodImplementation mImpl = (MethodImplementation) absMethodImpl;
-            String methodName = mImpl.getAlternativeMethodName();
-            if (methodName == null || methodName.isEmpty()) {
-                mImpl.setAlternativeMethodName(taskParams.getName());
-            }
+        // This is a workaround for Python
+        switch (absMethodImpl.getMethodType()) {
+            case METHOD:
+                MethodImplementation methodImpl = (MethodImplementation) absMethodImpl;
+                String methodName = methodImpl.getAlternativeMethodName();
+                if (methodName == null || methodName.isEmpty()) {
+                    methodImpl.setAlternativeMethodName(this.taskParams.getName());
+                }
+                break;
+            case MULTI_NODE:
+                MultiNodeImplementation multiNodeImpl = (MultiNodeImplementation) absMethodImpl;
+                String multiNodeMethodName = multiNodeImpl.getMethodName();
+                if (multiNodeMethodName == null || multiNodeMethodName.isEmpty()) {
+                    multiNodeImpl.setMethodName(this.taskParams.getName());
+                }
+                break;
+            default:
+                // It is a non-native method, nothing to do
+                break;
         }
 
-        boolean hasTarget = taskParams.hasTargetObject();
-
-        int numReturns = taskParams.getNumReturns();
+        // Compute the task parameters
         LinkedList<NIOParam> params = addParams();
-        MethodResourceDescription reqs = absMethodImpl.getRequirements();
-        int numParams = params.size();
-        numParams -= taskParams.getNumReturns();
+        int numParams = params.size() - taskParams.getNumReturns();
 
         // Create NIOTask
-        NIOTask nt = new NIOTask(this.getLang(), debug, absMethodImpl, hasTarget, numReturns, params, numParams, reqs,
-                this.slaveWorkersNodeNames, this.taskId, this.taskParams.getType(), this.jobId, this.history, this.transferId);
+        NIOTask nt = new NIOTask(this.getLang(), DEBUG, absMethodImpl, taskParams.hasTargetObject(), taskParams.getNumReturns(), params,
+                numParams, absMethodImpl.getRequirements(), this.slaveWorkersNodeNames, this.taskId, this.taskParams.getType(), this.jobId,
+                this.history, this.transferId);
 
         return nt;
     }
@@ -162,8 +171,8 @@ public class NIOJob extends Job<NIOWorkerNode> {
 
                     // Create the NIO Param
                     boolean writeFinalValue = !(dAccId instanceof RAccessId); // Only store W and RW
-                    np = new NIOParam(dataMgmtId, type, param.getStream(), param.getPrefix(), param.getName(), preserveSourceData, writeFinalValue, value,
-                            (NIOData) dPar.getDataSource(), dPar.getOriginalName());
+                    np = new NIOParam(dataMgmtId, type, param.getStream(), param.getPrefix(), param.getName(), preserveSourceData,
+                            writeFinalValue, value, (NIOData) dPar.getDataSource(), dPar.getOriginalName());
                     break;
 
                 default:
@@ -171,8 +180,8 @@ public class NIOJob extends Job<NIOWorkerNode> {
                     value = btParB.getValue();
                     preserveSourceData = false; // Basic parameters are not preserved on Worker
                     writeFinalValue = false; // Basic parameters are not stored on Worker
-                    np = new NIOParam(null, type, param.getStream(), param.getPrefix(), param.getName(), preserveSourceData, writeFinalValue, value, null,
-                            DependencyParameter.NO_NAME);
+                    np = new NIOParam(null, type, param.getStream(), param.getPrefix(), param.getName(), preserveSourceData,
+                            writeFinalValue, value, null, DependencyParameter.NO_NAME);
                     break;
             }
 

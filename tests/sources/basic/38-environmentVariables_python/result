@@ -1,6 +1,6 @@
 #!/bin/bash
 
-  #Obtain parameters
+  # Obtain parameters
   output_file=$1 
   target_log_folder=$2
   comm=$3
@@ -25,6 +25,15 @@
   if $(cat "${output_file}" "${runtime_log}" | tr '\n' ' ' | grep -E -q "[ERRMGR].*(ERROR|FATAL):.*.*Shutting"); then
     echo "ERROR: ERRMGR RAISED A FATAL ERROR. TEST FAILED." | tee -a ${output_file}
     exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Grep for unit test errors (ERROR or FAIL)
+  errors=$(cat "${output_file}" "${error_file}" | grep "ERROR" | cat)
+  fails=$(cat "${output_file}" "${error_file}" | grep "FAIL" | cat)
+  if [ "${errors}" != "" ] || [ "${fails}" != "" ]; then
+      echo "ERROR: UNIT TEST RAISED AN ERROR." | tee -a ${output_file}
+      exit 1
   fi
   
   #----------------------------------------------------------------------------------

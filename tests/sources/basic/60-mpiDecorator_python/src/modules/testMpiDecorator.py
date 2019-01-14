@@ -38,7 +38,7 @@ def myDateConstrainedWithEnvVar(dprefix, param):
     pass
 
 
-@mpi(binary="sed", workingDir=".", runner="mpirun", computingNodes=4)
+@mpi(binary="sed", workingDir=".", runner="mpirun", computingNodes="4")
 @task(file=FILE_IN)
 def mySedIN(expression, file):
     pass

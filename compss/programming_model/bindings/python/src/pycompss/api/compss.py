@@ -63,16 +63,29 @@ class COMPSs(object):
             if 'computingNodes' not in self.kwargs:
                 self.kwargs['computingNodes'] = 1
             else:
-                computing_nodes = kwargs['computingNodes']
+                computing_nodes = self.kwargs['computingNodes']
                 if isinstance(computing_nodes, int):
-                    self.kwargs['computingNodes'] = kwargs['computingNodes']
-                elif isinstance(computing_nodes, str) and computing_nodes.strip().startswith('$'):
-                    env_var = computing_nodes.strip()[1:]  # Remove $
-                    if env_var.startswith('{'):
-                        env_var = env_var[1:-1]  # remove brackets
-                    self.kwargs['computingNodes'] = int(os.environ[env_var])
+                    # Nothing to do
+                    pass
+                elif isinstance(computing_nodes, str):
+                    # Check if it is an environment variable to be loaded
+                    if computing_nodes.strip().startswith('$'):
+                        # Computing nodes is an ENV variable, load it
+                        env_var = computing_nodes.strip()[1:]  # Remove $
+                        if env_var.startswith('{'):
+                            env_var = env_var[1:-1]  # remove brackets
+                        try:
+                            self.kwargs['computingNodes'] = int(os.environ[env_var])
+                        except ValueError:
+                            raise Exception("ERROR: ComputingNodes value cannot be cast from ENV variable to int")
+                    else:
+                        # ComputingNodes is in string form, cast it
+                        try:
+                            self.kwargs['computingNodes'] = int(computing_nodes)
+                        except ValueError:
+                            raise Exception("ERROR: ComputingNodes value cannot be cast from string to int")
                 else:
-                    raise Exception("Wrong Computing Nodes value at COMPSs decorator.")
+                    raise Exception("ERROR: Wrong Computing Nodes value at COMPSs decorator.")
             if __debug__:
                 logger.debug("This COMPSs task will have " + str(self.kwargs['computingNodes']) + " computing nodes.")
         else:

@@ -28,7 +28,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import es.bsc.compss.COMPSsConstants.Lang;
-import static es.bsc.compss.COMPSsConstants.Lang.JAVA;
 import es.bsc.compss.executor.types.Execution;
 import es.bsc.compss.executor.utils.PipedMirror;
 import es.bsc.compss.executor.utils.PipePair;
@@ -80,6 +79,7 @@ public class Executor implements Runnable {
 
     protected PipePair cPipes;
     protected PipePair pyPipes;
+
 
     /**
      * Instantiates a new Executor
@@ -159,7 +159,7 @@ public class Executor implements Runnable {
     }
 
     private boolean executeTask(Invocation invocation) {
-        if (invocation.getMethodImplementation().getMethodType() == MethodType.METHOD && invocation.getLang() != JAVA
+        if (invocation.getMethodImplementation().getMethodType() == MethodType.METHOD && invocation.getLang() != Lang.JAVA
                 && invocation.getLang() != Lang.PYTHON && invocation.getLang() != Lang.C) {
 
             LOGGER.error("Incorrect language " + invocation.getLang() + " in job " + invocation.getJobId());
@@ -239,7 +239,8 @@ public class Executor implements Runnable {
     /**
      * Creates a sandbox for a task
      *
-     * @param invocation task description
+     * @param invocation
+     *            task description
      * @return Sandbox dir
      * @throws IOException
      * @throws Exception
@@ -259,6 +260,10 @@ public class Executor implements Runnable {
             case COMPSs:
                 COMPSsImplementation compssImpl = (COMPSsImplementation) invocation.getMethodImplementation();
                 specificWD = compssImpl.getWorkingDir();
+                break;
+            case MULTI_NODE:
+                // It is executed as a regular native method
+                specificWD = null;
                 break;
             case DECAF:
                 DecafImplementation decafImpl = (DecafImplementation) invocation.getMethodImplementation();
@@ -323,10 +328,12 @@ public class Executor implements Runnable {
     /**
      * Check whether file1 corresponds to a file with a higher version than file2
      *
-     * @param file1 first file name
-     * @param file2 second file name
+     * @param file1
+     *            first file name
+     * @param file2
+     *            second file name
      * @return True if file1 has a higher version. False otherwise (This includes the case where the name file's format
-     * is not correct)
+     *         is not correct)
      */
     private boolean isMajorVersion(String file1, String file2) {
         String[] version1array = file1.split("_")[0].split("v");
@@ -352,10 +359,13 @@ public class Executor implements Runnable {
     /**
      * Create symbolic links from files with the original name in task sandbox to the renamed file
      *
-     * @param invocation task description
-     * @param sandbox created sandbox
+     * @param invocation
+     *            task description
+     * @param sandbox
+     *            created sandbox
      * @throws IOException
-     * @throws Exception returns exception is a problem occurs during creation
+     * @throws Exception
+     *             returns exception is a problem occurs during creation
      */
     private void bindOriginalFilenamesToRenames(Invocation invocation, File sandbox) throws IOException {
         for (InvocationParam param : invocation.getParams()) {
@@ -401,10 +411,12 @@ public class Executor implements Runnable {
     /**
      * Undo symbolic links and renames done with the original names in task sandbox to the renamed file
      *
-     * @param invocation task description
+     * @param invocation
+     *            task description
      * @throws IOException
      * @throws JobExecutionException
-     * @throws Exception returns exception is an unexpected case is found.
+     * @throws Exception
+     *             returns exception is an unexpected case is found.
      */
     private void unbindOriginalFileNamesToRenames(Invocation invocation) throws IOException, JobExecutionException {
         for (InvocationParam param : invocation.getParams()) {
@@ -512,8 +524,8 @@ public class Executor implements Runnable {
 
     }
 
-    private void executeTask(InvocationResources assignedResources, Invocation invocation,
-            File taskSandboxWorkingDir) throws JobExecutionException {
+    private void executeTask(InvocationResources assignedResources, Invocation invocation, File taskSandboxWorkingDir)
+            throws JobExecutionException {
         /* Register outputs **************************************** */
         String streamsPath = context.getStandardStreamsPath(invocation);
         context.registerOutputs(streamsPath);
@@ -527,59 +539,8 @@ public class Executor implements Runnable {
             Invoker invoker = null;
             switch (invocation.getMethodImplementation().getMethodType()) {
                 case METHOD:
-                    switch (invocation.getLang()) {
-                        case JAVA:
-                            switch (context.getExecutionType()) {
-                                case COMPSS:
-                                    invoker = new JavaInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
-                                    break;
-                                case STORAGE:
-                                    invoker = new StorageInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
-                                    break;
-                                default:
-                            }
-                            break;
-                        case PYTHON:
-                            if (pyPipes == null) {
-                                // Double checking to avoid synchronizations when the pipes are already defined
-                                synchronized (PythonInvoker.class) {
-                                    if (pyPipes == null) {
-                                        PipedMirror mirror = (PipedMirror) platform.getMirror(PythonInvoker.class);
-                                        if (mirror == null) {
-                                            mirror = PythonInvoker.getMirror(context, platform);
-                                            platform.registerMirror(PythonInvoker.class, mirror);
-                                        }
-                                        pyPipes = mirror.getPipes(id);
-                                    }
-                                }
-                            }
-                            invoker = new PythonInvoker(context, invocation, taskSandboxWorkingDir, assignedResources, pyPipes);
-                            break;
-                        case C:
-                            if (context.isPersistentEnabled()) {
-                                invoker = new CPersistentInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
-                            } else {
-                                if (cPipes == null) {
-                                    // Double checking to avoid syncrhonizations when the pipes are already defined
-                                    synchronized (CInvoker.class) {
-                                        if (cPipes == null) {
-                                            PipedMirror mirror = (PipedMirror) platform.getMirror(CInvoker.class);
-                                            if (mirror == null) {
-                                                mirror = (PipedMirror) CInvoker.getMirror(context, platform);
-                                                platform.registerMirror(CInvoker.class, mirror);
-                                            }
-                                            cPipes = mirror.getPipes(id);
-                                        }
-                                    }
-                                }
-                                invoker = new CInvoker(context, invocation, taskSandboxWorkingDir, assignedResources, cPipes);
-                            }
-                            break;
-                        default:
-                            throw new JobExecutionException("Unrecognised lang for a method type invocation");
-                    }
+                    invoker = selectNativeMethodInvoker(invocation, taskSandboxWorkingDir, assignedResources);
                     break;
-
                 case BINARY:
                     invoker = new BinaryInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
                     break;
@@ -591,6 +552,9 @@ public class Executor implements Runnable {
                     break;
                 case DECAF:
                     invoker = new DecafInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                    break;
+                case MULTI_NODE:
+                    invoker = selectNativeMethodInvoker(invocation, taskSandboxWorkingDir, assignedResources);
                     break;
                 case OMPSS:
                     invoker = new OmpSsInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
@@ -614,11 +578,68 @@ public class Executor implements Runnable {
         }
     }
 
+    private Invoker selectNativeMethodInvoker(Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources)
+            throws JobExecutionException {
+
+        switch (invocation.getLang()) {
+            case JAVA:
+                Invoker javaInvoker = null;
+                switch (context.getExecutionType()) {
+                    case COMPSS:
+                        javaInvoker = new JavaInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                        break;
+                    case STORAGE:
+                        javaInvoker = new StorageInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                        break;
+                }
+                return javaInvoker;
+            case PYTHON:
+                if (pyPipes == null) {
+                    // Double checking to avoid synchronizations when the pipes are already defined
+                    synchronized (PythonInvoker.class) {
+                        if (pyPipes == null) {
+                            PipedMirror mirror = (PipedMirror) platform.getMirror(PythonInvoker.class);
+                            if (mirror == null) {
+                                mirror = PythonInvoker.getMirror(context, platform);
+                                platform.registerMirror(PythonInvoker.class, mirror);
+                            }
+                            pyPipes = mirror.getPipes(id);
+                        }
+                    }
+                }
+                return new PythonInvoker(context, invocation, taskSandboxWorkingDir, assignedResources, pyPipes);
+            case C:
+                Invoker cInvoker = null;
+                if (context.isPersistentEnabled()) {
+                    cInvoker = new CPersistentInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                } else {
+                    if (cPipes == null) {
+                        // Double checking to avoid syncrhonizations when the pipes are already defined
+                        synchronized (CInvoker.class) {
+                            if (cPipes == null) {
+                                PipedMirror mirror = (PipedMirror) platform.getMirror(CInvoker.class);
+                                if (mirror == null) {
+                                    mirror = (PipedMirror) CInvoker.getMirror(context, platform);
+                                    platform.registerMirror(CInvoker.class, mirror);
+                                }
+                                cPipes = mirror.getPipes(id);
+                            }
+                        }
+                    }
+                    cInvoker = new CInvoker(context, invocation, taskSandboxWorkingDir, assignedResources, cPipes);
+                }
+                return cInvoker;
+            default:
+                throw new JobExecutionException("Unrecognised lang for a method type invocation");
+        }
+    }
+
 
     private class TaskWorkingDir {
 
         private final File workingDir;
         private final boolean isSpecific;
+
 
         public TaskWorkingDir(File workingDir, boolean isSpecific) {
             this.workingDir = workingDir;

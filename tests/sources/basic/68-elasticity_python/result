@@ -1,28 +1,44 @@
 #!/bin/bash
 
-  #Obtain parameters
+  # Obtain parameters
   output_file=$1 
   target_log_folder=$2
   minVM=$3
   maxVM=$4
   
-  #Log files
+  # Log files
   runtime_log="${target_log_folder}/runtime.log"
   
-  #Check output standard out status
-  if [ -f ${output_log} ]; then
+  #----------------------------------------------------------------------------------
+  # Check output standard out status
+  if [ -f ${output_file} ]; then
      result_expected="------------------------------------------------------------"
      test_result=$(tail -1 ${output_file})
      if [ "${result_expected}" != "${test_result}" ]; then
-        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee ${output_file}
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
         exit 1
      fi
   else
-     echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee ${output_file}
+     echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
      exit 1
   fi
-  
-  #Compute result status
+  # Check that ErrorManager has not generated any ERROR or FATAL message.
+  if $(cat "${output_file}" "${runtime_log}" | tr '\n' ' ' | grep -E -q "[ERRMGR].*(ERROR|FATAL):.*.*Shutting"); then
+    echo "ERROR: ERRMGR RAISED A FATAL ERROR. TEST FAILED." | tee -a ${output_file}
+    exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Grep for unit test errors (ERROR or FAIL)
+  errors=$(cat "${output_file}" "${error_file}" | grep "ERROR" | cat)
+  fails=$(cat "${output_file}" "${error_file}" | grep "FAIL" | cat)
+  if [ "${errors}" != "" ] || [ "${fails}" != "" ]; then
+      echo "ERROR: UNIT TEST RAISED AN ERROR." | tee -a ${output_file}
+      exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Compute result status
   test_value=$(cat ${output_file} | grep "** Application values OK **" )
   if [ -z "${test_value}" ]; then
     echo "[ERROR] Some error found. See errors above." | tee ${output_file}
@@ -58,5 +74,5 @@
     exit 6
   fi
 
-  #Report result status
+  # Report result status
   exit 0

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-  #Obtain parameters
+  # Obtain parameters
   output_file=$1
   target_log_folder=$2
   comm=$3

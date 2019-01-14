@@ -1,5 +1,32 @@
 #!/bin/bash -e
 
+# INSTALLS ALL THE NECESSARY JARS FOR AN ADAPTOR. 
+# REQUIRES 2 PARAMETERS: 
+#  $1 THE PATH TO THE COMPILED ADAPTOR ROOT FOLDER
+#  $2 PATH WHERE TO INSTALL THE ADAPTOR
+install_adaptor() {
+    adaptor_name=$(basename "$1")
+    echo "------ Copying ${adaptor_name} adaptor"
+      mkdir "$2/${adaptor_name}"
+      mkdir "$2/${adaptor_name}"/master
+      cp "$1"/master/*.jar "$2"/"${adaptor_name}"/master
+      
+    if [ -f "$1"/master/properties ]; then
+      cp "$1"/master/properties "$2"/"${adaptor_name}"/master
+    fi
+    if [ -d "$1"/worker/ ]; then
+      mkdir "$2/${adaptor_name}"/worker
+      cp "$1"/worker/*.jar "$2"/"${adaptor_name}"/worker
+    fi
+    if [ -f "$1"/worker/properties ]; then 
+      cp "$1"/worker/properties "$2"/"${adaptor_name}"/worker
+    fi
+    if [ -d "$1"/scripts/ ]; then
+      mkdir -p "${COMPSs_target}"/Runtime/scripts/system/adaptors/"${adaptor_name}"
+      cp -r "$1"/scripts/* "${COMPSs_target}"/Runtime/scripts/system/adaptors/"${adaptor_name}"
+    fi
+}
+
   COMPSs_version=$1
   distribution=sc
 
@@ -70,25 +97,15 @@
   echo "--- Copy adaptors"
   path_source=${trunk_rel_path}/compss/runtime/adaptors
   path_target=${COMPSs_target}/Runtime/adaptors
-  adaptors=$(ls ${path_source})
-  for adaptor in $adaptors; do
-    if [ "$adaptor" != "commons" ] && [ "$adaptor" != "execution" ] && [ "$adaptor" != "pom.xml" ]; then
-      mkdir ${path_target}/"$adaptor"
-      mkdir ${path_target}/"$adaptor"/master
-      cp ${path_source}/"$adaptor"/master/*.jar ${path_target}/"$adaptor"/master
-      if [ -f ${path_source}/"$adaptor"/master/properties ]; then
-        cp ${path_source}/"$adaptor"/master/properties ${path_target}/"$adaptor"/master
-      fi
-      if [ -d ${path_source}/"$adaptor"/worker/ ]; then
-        mkdir ${path_target}/"$adaptor"/worker
-        cp ${path_source}/"$adaptor"/worker/*.jar ${path_target}/"$adaptor"/worker
-      fi
-      if [ -f ${path_source}/"$adaptor"/worker/properties ]; then
-        cp ${path_source}/"$adaptor"/worker/properties ${path_target}/"$adaptor"/worker
-      fi
-      if [ -d ${path_source}/"$adaptor"/scripts/ ]; then
-        mkdir -p ${COMPSs_target}/Runtime/scripts/system/adaptors/"$adaptor"/
-        cp -r ${path_source}/"$adaptor"/scripts/* ${COMPSs_target}/Runtime/scripts/system/adaptors/"$adaptor"/
+  for adaptor in ${path_source}/*; do
+      adaptor_name=$(basename "${adaptor}")
+    if [ "$adaptor_name" != "commons" ] && [ "$adaptor_name" != "execution" ] && [ "$adaptor_name" != "pom.xml" ]; then
+      if [ "${adaptor_name}" != "agent" ]; then
+          install_adaptor "${adaptor}" "${path_target}"
+      else
+          for agent in ${adaptor}/*; do
+              install_adaptor "${agent}" "${path_target}"
+          done
       fi
     fi
   done

@@ -66,9 +66,6 @@ public class Loader {
 
             Class<?> app = appClass.toClass();
             appClass.defrost();
-
-            System.out.println("CEI SHOULD BE REGISTERED");
-            //runtime.startIT(ceiClass);
             
             Method setter = app.getDeclaredMethod("setCOMPSsVariables",
                     new Class<?>[]{

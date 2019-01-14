@@ -89,28 +89,20 @@ public class Validator {
         List<Object> objList = rf.getResources().getSharedDiskOrDataNodeOrComputeNode();
         if (objList != null) {
             try {
-                boolean minimumUsableElementFound = false;
                 for (Object obj : objList) {
                     if (obj instanceof SharedDiskType) {
                         validateSharedDisk(((SharedDiskType) obj));
                     } else if (obj instanceof DataNodeType) {
                         validateDataNode(((DataNodeType) obj));
                     } else if (obj instanceof ComputeNodeType) {
-                        minimumUsableElementFound = true;
                         validateComputeNode(((ComputeNodeType) obj));
                     } else if (obj instanceof ServiceType) {
-                        minimumUsableElementFound = true;
                         validateService(((ServiceType) obj));
                     } else if (obj instanceof CloudProviderType) {
-                        minimumUsableElementFound = true;
                         validateCloudProvider(((CloudProviderType) obj));
                     } else {
                         throw new InvalidElementException("Resources", "Attribute" + obj.getClass(), "Incorrect attribute");
                     }
-                }
-
-                if (!minimumUsableElementFound) {
-                    throw new InvalidElementException("Resources", "", "Any computational (computeNode, service or cloud) resources found");
                 }
             } catch (InvalidElementException iee) {
                 throw ((ResourcesFileValidationException) iee);

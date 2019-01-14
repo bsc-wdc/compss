@@ -34,9 +34,12 @@ import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.components.monitor.impl.RuntimeMonitor;
 import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.loader.total.ObjectRegistry;
+import es.bsc.compss.loader.total.StreamRegistry;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
+import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.DoNothingTaskMonitor;
+import es.bsc.compss.types.ImplementationDefinition;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.Stream;
@@ -46,7 +49,6 @@ import es.bsc.compss.types.data.AccessParams.FileAccessParams;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.data.location.PersistentLocation;
-import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.BindingObjectParameter;
@@ -94,8 +96,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             ? Lang.JAVA
             : Lang.valueOf(DEFAULT_LANG_STR.toUpperCase()));
 
-    // Object registry
+    // Registries
     private static ObjectRegistry oReg;
+    private static StreamRegistry sReg;
 
     // Components
     private static AccessProcessor ap;
@@ -544,14 +547,27 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
 
         MethodResourceDescription mrd = new MethodResourceDescription(implConstraints);
-        MethodType mt;
-        try {
-            mt = MethodType.valueOf(implType);
-        } catch (IllegalArgumentException iae) {
-            ErrorManager.error("Unrecognised method type " + implType);
-            return;
+
+        CoreElementDefinition ced = new CoreElementDefinition();
+        ced.setCeSignature(coreElementSignature);
+        ImplementationDefinition implDef = ImplementationDefinition.defineImplementation(implType, implSignature, mrd, implTypeArgs);
+        ced.addImplementation(implDef);
+
+        td.registerNewCoreElement(ced);
+    }
+
+    public void registerCoreElement(CoreElementDefinition ced) {
+
+        LOGGER.info("Registering CoreElement " + ced.getCeSignature());
+        if (LOGGER.isDebugEnabled()) {
+            int implId = 0;
+            for (ImplementationDefinition implDef : ced.getImplementations()) {
+                LOGGER.debug("\t - Implementation " + implId + ":");
+                LOGGER.debug(implDef.toString());
+            }
         }
-        td.registerNewCoreElement(coreElementSignature, implSignature, mrd, mt, implTypeArgs);
+
+        td.registerNewCoreElement(ced);
     }
 
     /**
@@ -626,19 +642,14 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(
-                    "There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
+            LOGGER.debug("There " + (parameterCount == 1 ? "is " : "are ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
         }
 
         // Process the parameters
         Parameter[] pars = processParameters(parameterCount, parameters);
 
-        boolean hasReturn;
         if (numReturns == null) {
-            hasReturn = hasReturn(pars);
-            numReturns = hasReturn ? 1 : 0;
-        } else {
-            hasReturn = numReturns > 0;
+            numReturns = hasReturn(pars) ? 1 : 0;
         }
 
         // Create the signature if it is not created
@@ -904,12 +915,34 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         // throw new NotImplementedException();
     }
 
+    @Override
+    public ObjectRegistry getObjectRegistry() {
+        return oReg;
+    }
+
+    @Override
+    public StreamRegistry getStreamRegistry() {
+        return sReg;
+    }
+
     /**
      * Sets the Object Registry
+     *
+     * @param oReg
      */
     @Override
     public void setObjectRegistry(ObjectRegistry oReg) {
         COMPSsRuntimeImpl.oReg = oReg;
+    }
+
+    /**
+     * Sets the Stream Registry
+     *
+     * @param sReg
+     */
+    @Override
+    public void setStreamRegistry(StreamRegistry sReg) {
+        COMPSsRuntimeImpl.sReg = sReg;
     }
 
     /**

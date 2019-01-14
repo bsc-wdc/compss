@@ -16,7 +16,11 @@
  */
 package es.bsc.compss.agent.test;
 
+import es.bsc.compss.types.annotations.task.Method;
+
 
 public interface TestItf {
-    
+
+    @Method(declaringClass = "es.bsc.compss.agent.test.Test")
+    public void test();
 }

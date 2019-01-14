@@ -53,7 +53,7 @@ public class LoaderConstants {
     public static final String CLASS_APP_ID = Long.class.getCanonicalName();
     public static final String CLASS_ARRAY_ACCESS_WATCHER = ArrayAccessWatcher.class.getCanonicalName();
     public static final String CLASS_COMPSS_API_IMPL = "COMPSsRuntimeImpl";
-    public static final String CLASS_LOADERAPI = "LoaderAPI";
+    public static final String CLASS_LOADERAPI = LoaderAPI.class.getCanonicalName();
     public static final String CLASS_ANNOTATIONS_ORCHESTRATION = Orchestration.class.getCanonicalName();
     public static final String CLASS_COMPSS_CONSTANTS = COMPSsConstants.class.getCanonicalName();
 

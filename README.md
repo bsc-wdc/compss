@@ -1,7 +1,7 @@
 <h1 align="center">
   <br>
   <a href="https://www.bsc.es/">
-    <img src="bsc_logo.png" alt="Barcelona Supercomputing Center" height="60px">
+    <img src="doc/logos/bsc_logo.png" alt="Barcelona Supercomputing Center" height="60px">
   </a>
   <br>
   <br>

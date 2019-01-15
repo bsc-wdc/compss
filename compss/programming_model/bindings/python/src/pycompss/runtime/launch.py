@@ -159,7 +159,10 @@ def compss_main():
             if __debug__:
                 logger.debug('Storage configuration file: %s' % storage_conf)
             init_storage(config_file_path=storage_conf)
-        show_optional_module_warnings()
+        if __debug__:
+          # PyCOMPSs has some libraries that, if installed, they improve the performance and/or
+          # the scope of some already-existing features
+          show_optional_module_warnings()
         # MAIN EXECUTION
         if IS_PYTHON3:
             exec (compile(open(app_path).read(), app_path, 'exec'), globals())

@@ -433,7 +433,6 @@ class _param_(object):
 def get_compss_type(value):
     """
     Retrieve the value type mapped to COMPSs types.
-    This was originally in task.py
     :param value: Value to analyse
     :return: The Type of the value
     """
@@ -441,10 +440,10 @@ def get_compss_type(value):
     if isinstance(value, bool):
         return TYPE.BOOLEAN
     elif isinstance(value, str):
-        # Char does not exist as char. Only for strings of length 1.
-        # Any file will be detected as string, since it is a path.
+        # Char does not exist as char, only strings.
+        # Files will be detected as string, since it is a path.
         # The difference among them is defined by the parameter decoration as FILE.
-        return TYPE.CHAR if len(value) == 1 else TYPE.STRING
+        return TYPE.STRING
     elif isinstance(value, int):
         return TYPE.INT
     elif isinstance(value, PYCOMPSS_LONG):

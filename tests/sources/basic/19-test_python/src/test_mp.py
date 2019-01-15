@@ -24,7 +24,7 @@ from modules.test_tasks import function_lambda_return, function_generator_return
 from modules.test_tasks import multireturn, power, merge
 from modules.test_tasks import function_moduleObject, Foo
 from modules.test_tasks import create_block, update_block
-from modules.test_tasks import empty_string
+from modules.test_tasks import empty_string, char_to_int
 
 
 def test_function_primitives():
@@ -686,6 +686,16 @@ def test_empty_string():
         print("- Test empty string: ERROR")
 
 
+def test_character():
+    mychar = 'c'
+    result = char_to_int(mychar)
+    result = compss_wait_on(result)
+    if result == ord(mychar):
+        print("- Test character: OK")
+    else:
+        print("- Test character: ERROR")
+        assert result == ord(mychar)
+
 def main_program():
     test_function_primitives()
     test_function_files()
@@ -727,6 +737,7 @@ def main_program():
     test_inouts()
 
     test_empty_string()
+    test_character()
 
 if __name__ == "__main__":
     main_program()

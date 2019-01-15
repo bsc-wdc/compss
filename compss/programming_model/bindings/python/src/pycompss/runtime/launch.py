@@ -159,7 +159,8 @@ def compss_main():
             if __debug__:
                 logger.debug('Storage configuration file: %s' % storage_conf)
             init_storage(config_file_path=storage_conf)
-        show_optional_module_warnings()
+        if __debug__:
+            show_optional_module_warnings()
         # MAIN EXECUTION
         if IS_PYTHON3:
             exec (compile(open(app_path).read(), app_path, 'exec'), globals())

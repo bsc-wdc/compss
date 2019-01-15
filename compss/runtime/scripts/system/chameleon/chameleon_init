@@ -35,7 +35,7 @@ EOT
 # Description:       COMPSs start configuration for Chameleon
 ### END INIT INFO
 
-# Author: Cristian Ramon-Cortes Vilarrodona  <cristian.ramoncortes.at.bsc.es>
+# Author: COMPSs Support <support-compss@bsc.es>
 
 NAME=chameleon_init
 #PIDFILE=/var/run/$NAME.pid

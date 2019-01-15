@@ -116,7 +116,7 @@ erase() {
 # Description:       COMPSs Monitor Daemon
 ### END INIT INFO
 
-# Author: Cristian Ramon-Cortes Vilarrodona  <cristian.ramoncortes.at.bsc.es>
+# Author: COMPSs Support <support-compss@bsc.es>
 
 NAME=compss-monitor
 PIDFILE=/var/run/$NAME.pid

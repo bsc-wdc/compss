@@ -62,17 +62,17 @@ class TYPE(object):
     Used as anum for parameter types
     """
     BOOLEAN = 0
-    CHAR = 1
+    # CHAR = 1          # Does not exist in python - string instead.
     # BYTE = 2          # Does not exist in python
     # SHORT = 3         # Does not exist in python
     INT = 4
     LONG = 5
     # FLOAT = 6		    # C double --> in python, use double for floats
-    DOUBLE = 7  # In python, floats are doubles
+    DOUBLE = 7          # In python, floats are doubles
     STRING = 8
     FILE = 9
-    OBJECT = 10  # Unavailable (cannot pass an object directly to Java)
-    PSCO = 11  # Unavailable (this type is reserved for Java PSCOs)
+    OBJECT = 10         # Unavailable (cannot pass an object directly to Java)
+    PSCO = 11           # Unavailable (this type is reserved for Java PSCOs)
     EXTERNAL_PSCO = 12  # PSCO (type for PSCOs from bindings)
 
 

@@ -591,22 +591,11 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns, tas
     if __debug__:
         # Log the task submission values for debugging purposes.
         if logger.isEnabledFor(logging.DEBUG):
-            values_str = ''
-            types_str = ''
-            direct_str = ''
-            streams_str = ''
-            prefixes_str = ''
-            for v in values:
-                values_str += str(v) + ' '
-            for t in compss_types:
-                types_str += str(t) + ' '
-            for d in compss_directions:
-                direct_str += str(d) + ' '
-            for s in compss_streams:
-                streams_str += str(s) + ' '
-            for p in compss_prefixes:
-                prefixes_str += str(p) + ' '
-            # TODO: CHANGE FOR LOOPS FOR JOIN AS BELOW
+            values_str = ' '.join(str(v) for v in values)
+            types_str = ' '.join(str(t) for t in compss_types)
+            direct_str = ' '.join(str(d) for d in compss_directions)
+            streams_str = ' '.join(str(s) for s in compss_streams)
+            prefixes_str = ' '.join(str(p) for p in compss_prefixes)
             names_str = ' '.join(x for x in names)
             logger.debug("Processing task:")
             logger.debug("\t- App id: " + str(app_id))

@@ -380,3 +380,8 @@ def update_block(x, y):
 @task(returns=str)
 def empty_string(s):
     return "XX" + s + "XX"
+
+
+@task(returns=int)
+def char_to_int(mychar):
+    return ord(mychar)

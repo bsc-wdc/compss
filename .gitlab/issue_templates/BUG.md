@@ -4,6 +4,11 @@
 ## Component
 **RUNTIME / PYTHON BINDING / C BINDING / MONITOR / TRACING / TESTS / INFRASTRUCTURE**
 
+## Environment
+* COMPSs version
+* Java / Python / C version
+* Operating System
+
 ## Description
 A few sentences describing the overall bug.
 

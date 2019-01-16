@@ -16,7 +16,11 @@
  */
 package es.bsc.compss.agent.rest.master;
 
+import es.bsc.compss.agent.RESTAgentConstants;
+import es.bsc.compss.agent.rest.types.Orchestrator;
+import es.bsc.compss.agent.rest.types.RemoteJobListener;
 import es.bsc.compss.agent.rest.types.messages.StartApplicationRequest;
+import es.bsc.compss.agent.util.RemoteJobsRegistry;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -27,13 +31,13 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
+import es.bsc.compss.types.job.JobListener.JobEndStatus;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.SimpleURI;
 import java.io.IOException;
-import java.util.HashMap;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
@@ -41,29 +45,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 
-public class RemoteAgentJob extends Job<RemoteAgent> {
+public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
 
-    private static final String MF2C_LOCALHOST_RESOURCE = "http://" + System.getProperty("MF2C_HOST") + ":" + System.getProperty("MF2C_PORT") + "/";
-    private final RemoteAgent executor;
-    private static final HashMap<String, RemoteAgentJob> SUBMITTED_JOBS = new HashMap<>();
+    private static final String REST_AGENT_URL = "http://" + System.getProperty(RESTAgentConstants.COMPSS_AGENT_NAME) + ":" + System.getProperty(RESTAgentConstants.COMPSS_AGENT_PORT) + "/";
+    private final RemoteRESTAgent executor;
 
-    /*
-    
-
-    public static void finishedRemoteJob(String jobId, JobListener.JobEndStatus endStatus, String[] paramResults) {
-        RemoteAgentJob job = SUBMITTED_JOBS.remove(jobId);
-        if (job == null) {
-            return;
-        }
-        job.stageout(paramResults);
-        if (endStatus == JobEndStatus.OK) {
-            job.getListener().jobCompleted(job);
-        } else {
-            job.getListener().jobFailed(job, endStatus);
-        }
-    }
-     */
-    public RemoteAgentJob(RemoteAgent executor, int taskId, TaskDescription task, Implementation impl, Resource res, JobListener listener) {
+    public RemoteRESTAgentJob(RemoteRESTAgent executor, int taskId, TaskDescription task, Implementation impl, Resource res, JobListener listener) {
         super(taskId, task, impl, res, listener);
         this.executor = executor;
     }
@@ -183,8 +170,7 @@ public class RemoteAgentJob extends Job<RemoteAgent> {
                     sar.addParameter(btParB, value);
             }
         }
-
-        System.out.println(sar.toString());
+        sar.setOrchestrator(REST_AGENT_URL, Orchestrator.HttpMethod.PUT, "COMPSs/endApplication/");
 
         Response response = wt
                 .request(MediaType.APPLICATION_JSON)
@@ -194,7 +180,18 @@ public class RemoteAgentJob extends Job<RemoteAgent> {
             this.getListener().jobFailed(this, JobListener.JobEndStatus.SUBMISSION_FAILED);
         } else {
             String jobId = response.readEntity(String.class);
-            SUBMITTED_JOBS.put(jobId, this);
+            RemoteJobsRegistry.registerJobListener(jobId, new RemoteJobListener() {
+                @Override
+                public void finishedExecution(JobListener.JobEndStatus endStatus, String[] paramResults) {
+                    stageout(paramResults);
+                    if (endStatus == JobEndStatus.OK) {
+                        getListener().jobCompleted(RemoteRESTAgentJob.this);
+                    } else {
+                        getListener().jobFailed(RemoteRESTAgentJob.this, endStatus);
+                    }
+                }
+            });
+
         }
     }
 

@@ -17,9 +17,7 @@
 package es.bsc.compss.agent;
 
 
-public class Constants {
+public class RESTAgentConstants extends AgentConstants {
 
-    public static final String DATACLAY_CONFIG_PATH = "dataclay.configpath";
-    public static final String COMPSS_AGENT_NAME = "compss.agent.name";
-
+    public static final String COMPSS_AGENT_PORT = "compss.agent.port";
 }

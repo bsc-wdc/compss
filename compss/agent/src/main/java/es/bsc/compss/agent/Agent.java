@@ -28,6 +28,7 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.Stream;
 import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.util.parsers.ITFParser;
 import java.net.InetAddress;
 import java.util.List;
@@ -40,10 +41,9 @@ public class Agent {
 
     private static final COMPSsRuntimeImpl RUNTIME;
     private static final Random APP_ID_GENERATOR = new Random();
-    private static final String AGENT_NAME;
 
     static {
-        String dcConfigPath = System.getProperty(Constants.DATACLAY_CONFIG_PATH);
+        String dcConfigPath = System.getProperty(AgentConstants.DATACLAY_CONFIG_PATH);
         System.out.println("DataClay configuration: " + dcConfigPath);
         if (dcConfigPath != null) {
             try {
@@ -71,6 +71,10 @@ public class Agent {
 
         CoreElementDefinition ced = new CoreElementDefinition();
         ced.setCeSignature("load(OBJECT_T,OBJECT_T,STRING_T,LONG_T,STRING_T,STRING_T,OBJECT_T)");
+        MethodResourceDescription mrd = new MethodResourceDescription("");
+        for (Processor p : mrd.getProcessors()) {
+            p.setName("LocalProcessor");
+        }
         ImplementationDefinition implDef = ImplementationDefinition.defineImplementation(
                 "METHOD",
                 "load(OBJECT_T,OBJECT_T,STRING_T,LONG_T,STRING_T,STRING_T,OBJECT_T)es.bsc.compss.agent.loader.Loader",
@@ -79,7 +83,7 @@ public class Agent {
         ced.addImplementation(implDef);
         RUNTIME.registerCoreElement(ced);
 
-        String hostName = System.getProperty(Constants.COMPSS_AGENT_NAME);
+        String hostName = System.getProperty(AgentConstants.COMPSS_AGENT_NAME);
         if (hostName == null) {
             try {
                 hostName = InetAddress.getLocalHost().getHostName();
@@ -87,7 +91,7 @@ public class Agent {
                 hostName = "localhost";
             }
         }
-        AGENT_NAME = hostName;
+        System.setProperty(AgentConstants.COMPSS_AGENT_NAME, hostName);
     }
 
     public static long runMain(Lang lang, String ceiClass, String className, String methodName, Object[] params, AppMonitor monitor) throws AgentException {

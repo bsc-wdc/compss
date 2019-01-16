@@ -18,11 +18,14 @@ package es.bsc.compss.agent.rest;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.agent.Agent;
+import es.bsc.compss.agent.RESTAgentConstants;
 import es.bsc.compss.agent.rest.types.Orchestrator;
 import es.bsc.compss.agent.rest.types.messages.StartApplicationRequest;
 import es.bsc.compss.agent.rest.types.messages.EndApplicationNotification;
+import es.bsc.compss.agent.util.RemoteJobsRegistry;
 import es.bsc.compss.types.ApplicationParameter;
 import es.bsc.compss.types.job.JobListener.JobEndStatus;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -39,8 +42,6 @@ import org.eclipse.jetty.servlet.ServletHolder;
 
 @Path("/COMPSs")
 public class RESTAgent {
-
-    public static final String COMPSS_AGENT_PORT = "COMPSS_AGENT_PORT";
 
     @GET
     @Path("test/")
@@ -112,7 +113,7 @@ public class RESTAgent {
         String jobId = notification.getJobId();
         JobEndStatus endStatus = notification.getEndStatus();
         String[] paramsResults = notification.getParamResults();
-        System.out.println("JOB " + jobId + " finished with status " + endStatus);
+        RemoteJobsRegistry.notifyJobEnd(jobId, endStatus, paramsResults);
         return Response.ok().build();
     }
 
@@ -121,7 +122,7 @@ public class RESTAgent {
         context.setContextPath("/");
 
         int port = Integer.parseInt(args[0]);
-        System.setProperty("COMPSS_AGENT_PORT", args[0]);
+        System.setProperty(RESTAgentConstants.COMPSS_AGENT_PORT, args[0]);
         Server jettyServer = new Server(port);
         jettyServer.setHandler(context);
 

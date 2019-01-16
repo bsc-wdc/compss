@@ -21,6 +21,7 @@ import es.bsc.compss.agent.rest.types.Orchestrator;
 import es.bsc.compss.agent.rest.types.messages.EndApplicationNotification;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.job.JobListener.JobEndStatus;
+import es.bsc.compss.util.ErrorManager;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -82,11 +83,6 @@ public class AppTaskMonitor extends AppMonitor {
 
     @Override
     public void onCompletion() {
-        if (successful) {
-            System.out.println("Task job completed!");
-        } else {
-            System.out.println("Task job failed!");
-        }
         if (orchestrator != null) {
             String masterId = orchestrator.getHost();
             String operation = orchestrator.getOperation();
@@ -101,7 +97,7 @@ public class AppTaskMonitor extends AppMonitor {
                     .request(MediaType.APPLICATION_JSON)
                     .put(Entity.xml(ean), Response.class);
             if (response.getStatusInfo().getStatusCode() != 200) {
-                System.out.println("AGENT Could not notify Application " + getAppId() + " end to " + wt);
+                ErrorManager.warn("AGENT Could not notify Application " + getAppId() + " end to " + wt);
             }
         }
     }

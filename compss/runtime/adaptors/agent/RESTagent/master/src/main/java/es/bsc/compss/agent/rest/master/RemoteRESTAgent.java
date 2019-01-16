@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.agent.rest.master;
 
+import es.bsc.compss.agent.rest.types.Orchestrator;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
@@ -51,20 +52,22 @@ import storage.StorageItf;
  *
  * @author flordan
  */
-public class RemoteAgent extends COMPSsWorker {
+public class RemoteRESTAgent extends COMPSsWorker {
 
     private final String name;
     private final AgentConfiguration config;
     private static final Client client = ClientBuilder.newClient(new ClientConfig());
     private final WebTarget target;
 
-    public RemoteAgent(String name, AgentConfiguration config) {
+    public RemoteRESTAgent(String name, AgentConfiguration config) {
         super(name, config);
         this.name = name;
         this.config = config;
         String host = config.getHost();
+        String port = config.getProperty("Port");
+        System.out.println("Adding resource:" + host + " through port " + port);
         if (!host.startsWith("http://")) {
-            host = "http://" + host;
+            host = "http://" + host + ":" + port;
         }
         target = client.target(host);
     }
@@ -122,7 +125,7 @@ public class RemoteAgent extends COMPSsWorker {
 
     @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res, List<String> slaveWorkersNodeNames, JobListener listener) {
-        return new RemoteAgentJob(this, taskId, taskParams, impl, res, listener);
+        return new RemoteRESTAgentJob(this, taskId, taskParams, impl, res, listener);
     }
 
     @Override

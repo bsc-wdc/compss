@@ -20,4 +20,3 @@ Exception/error obtained.
 
 ## Expected behaviour
 Description of the expected behaviour.
-

@@ -314,7 +314,7 @@ public class DataManagerImpl implements DataManager {
                         int res;
                         if (param.isPreserveSourceData()) {
                             if (WORKER_LOGGER_DEBUG) {
-                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") preserves sources. CACHE-COPYING");
+                                WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") preserves sources. CACHE-COPYING");
                             }
 
                             res = BindingDataManager.copyCachedData(bo.getName(), value);
@@ -360,8 +360,7 @@ public class DataManagerImpl implements DataManager {
                     BindingObject bo = BindingObject.generate(loc.getPath());
 
                     if (WORKER_LOGGER_DEBUG) {
-                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + param.getValue() + ") found at host with location "
-                                    + loc.getPath() + " Checking if id " + bo.getName() + " is in host...");
+                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + param.getValue() + ") found at host with location " + loc.getPath() + " Checking if id " + bo.getName() + " is in host...");
                     }
 
                     File inFile = new File(bo.getId());
@@ -379,7 +378,7 @@ public class DataManagerImpl implements DataManager {
                             res = BindingDataManager.loadFromFile(value, path, type, elements);
                             if (res != 0) {
                                 existInHost = false;
-                                WORKER_LOGGER.error("Error loading " + value + " from file " + path);
+                                WORKER_LOGGER.error("   - Error loading " + value + " from file " + path);
                             }
                             else {
                                 break;
@@ -392,20 +391,21 @@ public class DataManagerImpl implements DataManager {
                                 if (param.isPreserveSourceData()) {
                                     Files.copy(inFile.toPath(), outFile.toPath());
                                     break;
-                                } else {
+                                }
+                                else {
                                     try {
                                         Files.move(inFile.toPath(), outFile.toPath(), StandardCopyOption.ATOMIC_MOVE);
                                     }
                                     catch (AtomicMoveNotSupportedException amnse) {
                                         WORKER_LOGGER.warn(
-                                                "WARN: AtomicMoveNotSupportedException. File cannot be atomically moved. Trying to move without atomic");
+                                                "   - AtomicMoveNotSupportedException. File cannot be atomically moved. Trying to move without atomic");
                                         Files.move(inFile.toPath(), outFile.toPath());
                                     }
                                     break;
                                 }
                             }
                             catch (IOException e) {
-                                WORKER_LOGGER.error("Error copying or moving " + bo.getName() + " to " + value);
+                                WORKER_LOGGER.error("   - Error copying or moving " + bo.getName() + " to " + value);
                                 WORKER_LOGGER.error(e);
                                 existInHost = false;
                             }
@@ -417,6 +417,14 @@ public class DataManagerImpl implements DataManager {
 
         if (!cached && !locationsInCache && !existInHost) {
             //Only if all three options failed, we must transfer the data
+            if (WORKER_LOGGER_DEBUG) {
+                WORKER_LOGGER.debug("   - The state of " + value + " in the worker is : \n"
+                                        + "\t Cached: " + cached                            + "\n"
+                                        + "\t Renamed in cache:     "   + locationsInCache  + "\n"
+                                        + "\t In host as a file:    "   + existInHost);
+                WORKER_LOGGER.debug("   - Not possible to fetch     "   + value + " in the current node, requesting for transfer.");
+            }
+
             askTransfer = true;
         }
 

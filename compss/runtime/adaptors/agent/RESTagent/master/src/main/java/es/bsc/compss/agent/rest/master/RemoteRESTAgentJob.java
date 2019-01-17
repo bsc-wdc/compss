@@ -170,6 +170,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                     sar.addParameter(btParB, value);
             }
         }
+        System.out.println("SUBMISSION         Stage in completed.");
         sar.setOrchestrator(REST_AGENT_URL, Orchestrator.HttpMethod.PUT, "COMPSs/endApplication/");
 
         Response response = wt
@@ -177,6 +178,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                 .put(Entity.xml(sar), Response.class);
 
         if (response.getStatusInfo().getStatusCode() != 200) {
+            System.out.println(response.readEntity(String.class));
             this.getListener().jobFailed(this, JobListener.JobEndStatus.SUBMISSION_FAILED);
         } else {
             String jobId = response.readEntity(String.class);

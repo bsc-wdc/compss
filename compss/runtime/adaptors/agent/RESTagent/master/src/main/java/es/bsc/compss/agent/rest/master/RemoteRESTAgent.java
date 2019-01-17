@@ -16,10 +16,10 @@
  */
 package es.bsc.compss.agent.rest.master;
 
-import es.bsc.compss.agent.rest.types.Orchestrator;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -56,7 +56,7 @@ public class RemoteRESTAgent extends COMPSsWorker {
 
     private final String name;
     private final AgentConfiguration config;
-    private static final Client client = ClientBuilder.newClient(new ClientConfig());
+    // REST endpoint for the node
     private final WebTarget target;
 
     public RemoteRESTAgent(String name, AgentConfiguration config) {
@@ -69,6 +69,7 @@ public class RemoteRESTAgent extends COMPSsWorker {
         if (!host.startsWith("http://")) {
             host = "http://" + host + ":" + port;
         }
+        Client client = ClientBuilder.newClient(new ClientConfig());
         target = client.target(host);
     }
 

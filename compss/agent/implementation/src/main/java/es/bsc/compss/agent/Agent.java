@@ -145,7 +145,7 @@ public class Agent {
                 paramsCount++;
             }
 
-            Object[] params = new Object[5 * paramsCount];
+            Object[] params = new Object[6 * paramsCount];
             int position = 0;
             for (ApplicationParameter param : sarParams) {
                 if (typesSB.length() > 0) {
@@ -160,8 +160,9 @@ public class Agent {
                 params[position + 1] = param.getType();
                 params[position + 2] = param.getDirection();
                 params[position + 3] = Stream.UNSPECIFIED;
-                params[position + 4] = "";
-                position += 5;
+                params[position + 4] = ""; // Prefix
+                params[position + 5] = ""; // Parameter Name
+                position += 6;
             }
 
             if (target != null) {
@@ -170,7 +171,8 @@ public class Agent {
                 params[position + 2] = target.getDirection();
                 params[position + 3] = Stream.UNSPECIFIED;
                 params[position + 4] = "";
-                position += 5;
+                params[position + 5] = ""; // Parameter Name
+                position += 6;
             }
 
             if (hasResult) {
@@ -179,7 +181,8 @@ public class Agent {
                 params[position + 2] = Direction.OUT;
                 params[position + 3] = Stream.UNSPECIFIED;
                 params[position + 4] = "";
-                position += 5;
+                params[position + 5] = "";
+                position += 6;
             }
 
             String paramsTypes = typesSB.toString();

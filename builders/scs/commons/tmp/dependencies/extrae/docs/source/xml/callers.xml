@@ -1,5 +1,0 @@
-<callers enabled="yes">
-  <mpi enabled="yes">1-3</mpi>
-  <sampling enabled="no">1-5</sampling>
-  <dynamic-memory enabled="no">1-5</dynamic-memory>
-</callers>

@@ -1,4 +1,0 @@
-<openmp enabled="yes">
-  <locks enabled="no" />
-  <counters enabled="yes" />
-</openmp>

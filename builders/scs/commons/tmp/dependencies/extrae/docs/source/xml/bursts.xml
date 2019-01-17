@@ -1,4 +1,0 @@
-<bursts enabled="no">
-  <threshold enabled="yes">500u</threshold>
-  <mpi-statistics enabled="yes" />
-</bursts>

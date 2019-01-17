@@ -1,5 +1,0 @@
-SUBDIRS  = API
-
-if HAVE_MPI
-SUBDIRS += MPI
-endif

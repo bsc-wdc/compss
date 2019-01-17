@@ -30,14 +30,11 @@ import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.components.ResourceUser;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Task;
-import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.CoreElementDefinition;
-import es.bsc.compss.types.ImplementationDefinition;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.request.td.PrintCurrentLoadRequest;
-import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.updates.PerformedIncrease;
@@ -83,6 +80,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
 
     private static final String ERR_LOAD_SCHEDULER = "Error loading scheduler";
     private static final String ERROR_QUEUE_OFFER = "ERROR: TaskDispatcher queue offer error on ";
+
 
     /**
      * Creates a new task dispatcher instance

@@ -14,8 +14,9 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types;
+package es.bsc.compss.agent.rest.types;
 
+import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.Stream;
@@ -24,7 +25,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElements;
 
 
-public class ApplicationParameter {
+public class ApplicationParameterImpl implements ApplicationParameter {
 
     private int paramId;
     private ApplicationParameterValue value;
@@ -32,11 +33,11 @@ public class ApplicationParameter {
     private DataType type;
     private Stream stream;
 
-    public ApplicationParameter() {
+    public ApplicationParameterImpl() {
 
     }
 
-    public ApplicationParameter(Object val, Direction dir, DataType type, Stream stream) {
+    public ApplicationParameterImpl(Object val, Direction dir, DataType type, Stream stream) {
         this.value = ApplicationParameterValue.createParameterValue(val);
         this.direction = dir;
         this.stream = stream;
@@ -52,6 +53,7 @@ public class ApplicationParameter {
         this.paramId = paramId;
     }
 
+    @Override
     public Direction getDirection() {
         return direction;
     }
@@ -60,6 +62,7 @@ public class ApplicationParameter {
         this.direction = direction;
     }
 
+    @Override
     public DataType getType() {
         return type;
     }
@@ -87,4 +90,8 @@ public class ApplicationParameter {
         this.value = value;
     }
 
+    @Override
+    public Object getValueContent() throws Exception {
+        return value.getContent();
+    }
 }

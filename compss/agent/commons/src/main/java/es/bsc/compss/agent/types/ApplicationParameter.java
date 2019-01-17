@@ -14,13 +14,17 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.agent.test;
+package es.bsc.compss.agent.types;
 
-import es.bsc.compss.types.annotations.task.Method;
+import es.bsc.compss.types.annotations.parameter.DataType;
 
 
-public interface TestItf {
+public interface ApplicationParameter {
 
-    @Method(declaringClass = "es.bsc.compss.agent.test.Test")
-    public void test();
+    public DataType getType();
+
+    public Object getDirection();
+
+    public Object getValueContent() throws Exception;
+
 }

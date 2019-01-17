@@ -17,10 +17,10 @@
 package es.bsc.compss.agent.rest.types.messages;
 
 import es.bsc.compss.agent.rest.types.Orchestrator;
-import es.bsc.compss.types.ApplicationParameter;
-import es.bsc.compss.types.ApplicationParameterValue;
-import es.bsc.compss.types.ApplicationParameterValue.ArrayParameter;
-import es.bsc.compss.types.ApplicationParameterValue.ElementParameter;
+import es.bsc.compss.agent.rest.types.ApplicationParameterImpl;
+import es.bsc.compss.agent.rest.types.ApplicationParameterValue;
+import es.bsc.compss.agent.rest.types.ApplicationParameterValue.ArrayParameter;
+import es.bsc.compss.agent.rest.types.ApplicationParameterValue.ElementParameter;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.Stream;
@@ -38,8 +38,8 @@ public class StartApplicationRequest implements Serializable {
     private String ceiClass;
     private String className;
     private String methodName;
-    private ApplicationParameter[] params = new ApplicationParameter[0];
-    private ApplicationParameter target;
+    private ApplicationParameterImpl[] params = new ApplicationParameterImpl[0];
+    private ApplicationParameterImpl target;
     private boolean hasResult;
     private Orchestrator orchestrator;
 
@@ -79,11 +79,11 @@ public class StartApplicationRequest implements Serializable {
         this.methodName = methodName;
     }
 
-    public ApplicationParameter getTarget() {
+    public ApplicationParameterImpl getTarget() {
         return target;
     }
 
-    public void setTarget(ApplicationParameter target) {
+    public void setTarget(ApplicationParameterImpl target) {
         this.target = target;
     }
 
@@ -136,7 +136,7 @@ public class StartApplicationRequest implements Serializable {
     }
 
     public void addPersistedParameter(String id, Direction direction) {
-        ApplicationParameter p = addParameter(id, direction, DataType.PSCO_T);
+        ApplicationParameterImpl p = addParameter(id, direction, DataType.PSCO_T);
         ((ElementParameter) p.getValue()).setClassName("storage.StubItf");
     }
 
@@ -144,12 +144,12 @@ public class StartApplicationRequest implements Serializable {
         addParameter(value, p.getDirection(), p.getType());
     }
 
-    private ApplicationParameter addParameter(Object value, Direction direction, DataType type) {
-        ApplicationParameter p = new ApplicationParameter(value, direction, type, Stream.UNSPECIFIED);
+    private ApplicationParameterImpl addParameter(Object value, Direction direction, DataType type) {
+        ApplicationParameterImpl p = new ApplicationParameterImpl(value, direction, type, Stream.UNSPECIFIED);
         p.setParamId(params.length);
 
-        ApplicationParameter[] oldParams = params;
-        params = new ApplicationParameter[oldParams.length + 1];
+        ApplicationParameterImpl[] oldParams = params;
+        params = new ApplicationParameterImpl[oldParams.length + 1];
         if (oldParams.length > 0) {
             System.arraycopy(oldParams, 0, params, 0, oldParams.length);
         }
@@ -158,18 +158,18 @@ public class StartApplicationRequest implements Serializable {
     }
 
     @XmlElementWrapper(name = "parameters")
-    public ApplicationParameter[] getParams() {
+    public ApplicationParameterImpl[] getParams() {
         return params;
     }
 
-    public void setParams(ApplicationParameter[] params) {
+    public void setParams(ApplicationParameterImpl[] params) {
         this.params = params;
     }
 
     public ApplicationParameterValue[] getParamsValues() throws ClassNotFoundException {
         int paramsCount = params.length;
         ApplicationParameterValue[] paramValues = new ApplicationParameterValue[paramsCount];
-        for (ApplicationParameter param : params) {
+        for (ApplicationParameterImpl param : params) {
             int paramIdx = param.getParamId();
             paramValues[paramIdx] = param.getValue();
         }
@@ -179,7 +179,7 @@ public class StartApplicationRequest implements Serializable {
     public Object[] getParamsValuesContent() throws Exception {
         int paramsCount = params.length;
         Object[] paramValues = new Object[paramsCount];
-        for (ApplicationParameter param : params) {
+        for (ApplicationParameterImpl param : params) {
             int paramIdx = param.getParamId();
             paramValues[paramIdx] = param.getValue().getContent();
         }
@@ -204,7 +204,7 @@ public class StartApplicationRequest implements Serializable {
                 .append("(");
 
         int count = 0;
-        for (ApplicationParameter param : this.params) {
+        for (ApplicationParameterImpl param : this.params) {
             if (count > 0) {
                 sb.append(", ");
             }

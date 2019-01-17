@@ -1,0 +1,58 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- GENERAL INFORMATION -->
+    <artifactId>compss-agent-impl</artifactId>
+    <packaging>jar</packaging>
+    <parent>
+        <groupId>es.bsc.compss</groupId>
+        <artifactId>compss-agent</artifactId>
+        <version>2.4.rc1901</version>
+        <relativePath>..</relativePath>
+    </parent>
+
+
+    <!-- PROJECT INFORMATION -->
+    <name>COMPSs Agent Implementation</name>
+    <description>Implementation of the service wrapping the runtime</description>
+    <url>http://www.bsc.es</url>
+    <inceptionYear>2014</inceptionYear>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+        </license>
+    </licenses>
+    <organization>
+        <name>BSC</name>
+        <url>http://www.bsc.es</url>
+    </organization>
+
+    <!-- DEPENDENCIES -->
+    <dependencies>
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-agent-commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>  
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-engine</artifactId>
+            <version>${project.version}</version>
+        </dependency>   
+    </dependencies>
+    
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <configuration>
+                    <mainClass>es.bsc.compss.agent.Agent</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

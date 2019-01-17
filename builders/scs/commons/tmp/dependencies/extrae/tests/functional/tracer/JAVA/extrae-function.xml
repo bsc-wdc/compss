@@ -1,0 +1,18 @@
+<?xml version='1.0'?>
+
+<trace enabled="yes"
+ home="/home/harald/development/testing/pkg-b-2.4-compss"
+ initial-mode="detail"
+ type="paraver"
+>
+
+  <user-functions enabled="yes" list="user-functions" exclude-automatic-functions="no">
+      <counters enabled="no" />
+  </user-functions>
+
+  <pthread enabled="yes">
+    <locks enabled="no" />
+    <counters enabled="yes" />
+  </pthread>
+
+</trace>

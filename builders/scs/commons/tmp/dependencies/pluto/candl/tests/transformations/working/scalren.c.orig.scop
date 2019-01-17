@@ -1,0 +1,218 @@
+[Clan] Info: parsing file #1 (./transformations/working/scalren.c)
+
+<OpenScop>
+
+# =============================================== Global
+# Language
+C
+
+# Context
+CONTEXT
+0 3 0 0 0 1
+
+# Parameters are provided
+1
+<strings>
+N
+</strings>
+
+# Number of statements
+4
+
+# =============================================== Statement 1
+# Number of relations describing the statement:
+3
+
+# ----------------------------------------------  1.1 Domain
+DOMAIN
+3 4 1 0 0 1
+# e/i|  i |  N |  1  
+   1    1    0    0    ## i >= 0
+   1   -1    1    0    ## -i+N >= 0
+   1    0    1    0    ## N >= 0
+
+# ----------------------------------------------  1.2 Scattering
+SCATTERING
+3 7 3 1 0 1
+# e/i| c1   c2   c3 |  i |  N |  1  
+   0   -1    0    0    0    0    0    ## c1 == 0
+   0    0   -1    0    1    0    0    ## c2 == i
+   0    0    0   -1    0    0    0    ## c3 == 0
+
+# ----------------------------------------------  1.3 Access
+WRITE
+1 5 1 1 0 1
+# e/i| Arr|  i |  N |  1  
+   0   -1    0    0    3    ## Arr == t
+
+# ----------------------------------------------  1.4 Statement Extensions
+# Number of Statement Extensions
+1
+<body>
+# Number of original iterators
+1
+# List of original iterators
+i
+# Statement body expression
+t = 0;
+</body>
+
+# =============================================== Statement 2
+# Number of relations describing the statement:
+4
+
+# ----------------------------------------------  2.1 Domain
+DOMAIN
+3 4 1 0 0 1
+# e/i|  i |  N |  1  
+   1    1    0    0    ## i >= 0
+   1   -1    1    0    ## -i+N >= 0
+   1    0    1    0    ## N >= 0
+
+# ----------------------------------------------  2.2 Scattering
+SCATTERING
+3 7 3 1 0 1
+# e/i| c1   c2   c3 |  i |  N |  1  
+   0   -1    0    0    0    0    0    ## c1 == 0
+   0    0   -1    0    1    0    0    ## c2 == i
+   0    0    0   -1    0    0    1    ## c3 == 1
+
+# ----------------------------------------------  2.3 Access
+WRITE
+2 6 2 1 0 1
+# e/i| Arr  [1]|  i |  N |  1  
+   0   -1    0    0    0    4    ## Arr == a
+   0    0   -1    1    0    0    ## [1] == i
+
+READ
+1 5 1 1 0 1
+# e/i| Arr|  i |  N |  1  
+   0   -1    0    0    3    ## Arr == t
+
+# ----------------------------------------------  2.4 Statement Extensions
+# Number of Statement Extensions
+1
+<body>
+# Number of original iterators
+1
+# List of original iterators
+i
+# Statement body expression
+a[i] = t;
+</body>
+
+# =============================================== Statement 3
+# Number of relations describing the statement:
+3
+
+# ----------------------------------------------  3.1 Domain
+DOMAIN
+3 4 1 0 0 1
+# e/i|  i |  N |  1  
+   1    1    0    0    ## i >= 0
+   1   -1    1    0    ## -i+N >= 0
+   1    0    1    0    ## N >= 0
+
+# ----------------------------------------------  3.2 Scattering
+SCATTERING
+3 7 3 1 0 1
+# e/i| c1   c2   c3 |  i |  N |  1  
+   0   -1    0    0    0    0    1    ## c1 == 1
+   0    0   -1    0    1    0    0    ## c2 == i
+   0    0    0   -1    0    0    0    ## c3 == 0
+
+# ----------------------------------------------  3.3 Access
+WRITE
+1 5 1 1 0 1
+# e/i| Arr|  i |  N |  1  
+   0   -1    0    0    3    ## Arr == t
+
+# ----------------------------------------------  3.4 Statement Extensions
+# Number of Statement Extensions
+1
+<body>
+# Number of original iterators
+1
+# List of original iterators
+i
+# Statement body expression
+t = 0;
+</body>
+
+# =============================================== Statement 4
+# Number of relations describing the statement:
+4
+
+# ----------------------------------------------  4.1 Domain
+DOMAIN
+3 4 1 0 0 1
+# e/i|  i |  N |  1  
+   1    1    0    0    ## i >= 0
+   1   -1    1    0    ## -i+N >= 0
+   1    0    1    0    ## N >= 0
+
+# ----------------------------------------------  4.2 Scattering
+SCATTERING
+3 7 3 1 0 1
+# e/i| c1   c2   c3 |  i |  N |  1  
+   0   -1    0    0    0    0    1    ## c1 == 1
+   0    0   -1    0    1    0    0    ## c2 == i
+   0    0    0   -1    0    0    1    ## c3 == 1
+
+# ----------------------------------------------  4.3 Access
+WRITE
+2 6 2 1 0 1
+# e/i| Arr  [1]|  i |  N |  1  
+   0   -1    0    0    0    5    ## Arr == b
+   0    0   -1    1    0    0    ## [1] == i
+
+READ
+1 5 1 1 0 1
+# e/i| Arr|  i |  N |  1  
+   0   -1    0    0    3    ## Arr == t
+
+# ----------------------------------------------  4.4 Statement Extensions
+# Number of Statement Extensions
+1
+<body>
+# Number of original iterators
+1
+# List of original iterators
+i
+# Statement body expression
+b[i] = t;
+</body>
+
+# =============================================== Extensions
+<scatnames>
+b0 i b1
+</scatnames>
+
+<arrays>
+# Number of arrays
+5
+# Mapping array-identifiers/array-names
+1 i
+2 N
+3 t
+4 a
+5 b
+</arrays>
+
+<coordinates>
+# File name
+./transformations/working/scalren.c
+# Starting line and column
+4 0
+# Ending line and column
+15 0
+# Indentation
+0
+</coordinates>
+
+<clay>
+reorder([], [1,0]);
+</clay>
+
+</OpenScop>
+

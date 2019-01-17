@@ -1,0 +1,13 @@
+# mat1=readMat["(t,p->t-2p)"]; 
+# dom0=readDom["{t,p| p=0}"];
+# DomMatrixSimplify[mat1,DomEqualities[dom1]]
+# D1 = readDom["{j,N | 0<=j<=N-1; 2<=N}"]
+M 1
+1 3
+0 1 0
+M 1
+2 3
+1 -2 0 
+0 0 1
+F 10
+

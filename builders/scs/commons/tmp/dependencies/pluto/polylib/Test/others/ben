@@ -1,0 +1,20 @@
+
+# Benoit's problem, 32 bits overflow in testrank.
+# (polyparam.c) Solved calling GNU MP.
+# Another overflow in MatInverse. MatInverse_mp to be written.
+
+9 8
+ 
+0  1  1  0  0  0 -1 -1
+0  1  0  1  0 -1  0  2
+0  0  1  1 -1  0  0  0
+1  1  0  0  0  0  0 -1
+1 -1  0  0  0  0  0  150000
+1 -1  1  0  0  0  0  0
+1  2 -1  0  0  0  0 -1
+1 -1  1  1  0  0  0  0
+1  1  1 -1  0  0  0  0
+ 
+ 
+0 5
+

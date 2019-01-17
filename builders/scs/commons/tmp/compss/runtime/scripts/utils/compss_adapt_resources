@@ -1,0 +1,61 @@
+#!/bin/bash
+
+########################################
+# SCRIPT HELPER FUNCTIONS
+########################################
+get_args() {
+  # Sets global node, appId and params variables
+
+  node=$1
+  appId=$2
+  shift 2
+
+  params=$*
+}
+
+read_result() {
+  local result
+  local ev
+  local cmd
+  local tag
+
+  echo "[Adaptation] Reading result $resultPipe"
+  result=$(ssh -o StrictHostKeyChecking=no "$node" "read line < ${resultPipe} ; echo \$line")
+  ev=$?
+  if [ $ev -ne 0 ] ; then
+    echo "[Adaptation] ssh command execution failed"
+    exit $ev
+  fi
+
+  echo "[Adaptation] Read $result"
+  cmd=($result)
+  tag=${cmd[0]}	
+  if [ "$tag" = "ACK" ]; then
+     echo "[Adaptation] Action successfully done."
+     exit 0
+  else
+     echo "[Adaptation] ${cmd[*]}"
+     exit 1
+  fi
+}
+
+write_command() {
+  echo "[Adaptation] writting command $params on $commandPipe"
+  ssh -o StrictHostKeyChecking=no "$node" "echo $params >> $commandPipe"
+}
+
+
+########################################
+# MAIN
+########################################
+
+# Script variables
+# Arguments (1) app_master_node (2) appId (3)ADD/REMOVE (4) action args
+get_args "$@"
+
+# Launch one process per CMDPipe
+commandPipe=$HOME/.COMPSs/${appId}/adaptation/command_pipe
+resultPipe=$HOME/.COMPSs/${appId}/adaptation/result_pipe
+write_command
+read_result
+

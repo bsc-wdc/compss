@@ -1,0 +1,75 @@
+<OpenScop>
+
+# =============================================== Global
+# Language
+C
+
+# Context
+CONTEXT
+0 2 0 0 0 0
+
+# Parameter names are not provided
+0
+
+# No statement
+0
+
+# =============================================== Options
+<symbols>
+# Number of symbols
+2
+# ===========================================
+# 1 Data for symbol number 1
+# 1.1 Symbol type
+Iterator
+# 1.2 Generated Boolean
+0
+# 1.3 Number of dimensions
+1
+# 1.4 Identifier
+<strings>
+i
+</strings>
+# 1.5 Datatype
+<strings>
+int
+</strings>
+# 1.6 Scope
+<null>
+</null>
+# 1.7 Extent
+<null>
+</null>
+# ===========================================
+# 2 Data for symbol number 2
+# 2.1 Symbol type
+Iterator
+# 2.2 Generated Boolean
+0
+# 2.3 Number of dimensions
+2
+# 2.4 Identifier
+<strings>
+A
+</strings>
+# 2.5 Datatype
+<strings>
+double **
+</strings>
+# 2.6 Scope
+<null>
+</null>
+# 2.7 Extent
+<relation>
+WRITE
+5 6 3 0 0 1
+# e/i  Arr  [1]  [2]   N    1
+   0   -1    0    0    0    1  ## Arr = A
+   1    0    1    0    0    0  ## [1] >= 0
+   1    0   -1    0    1    0  ## [1] <= N
+   1    0    0    1    0    0  ## [2] >= 0
+   1    0    0   -1    1    0  ## [2] <= N
+</relation>
+</symbols>
+</OpenScop>
+

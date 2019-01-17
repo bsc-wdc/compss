@@ -1,0 +1,45 @@
+c1 = readDom["{i,N,M|1<=M<=N }"]
+
+d1 = readDom["{i,N,M|i=1;N=M}|{i,N,M|1<=i<=(N,M+1)}|{i,N,M|1<=i<=N}"]
+d2 = DomConvex[d1]
+ashow[d2]
+d2 = DomConvex[DomIntersection[d1,c1]]
+ashow[d2]
+
+d1 = readDom["{i,N,M|i=1;N=M}|{i,N,M|1<=i<=(N,M+1)}"]
+d2 = DomConvex[d1]
+ashow[d2]
+d2 = DomConvex[DomIntersection[d1,c1]]
+ashow[d2]
+
+d1 = readDom["{i,N,M|i=1;N=M}|{i,N,M|1<=i<=N}"]
+d2 = DomConvex[d1]
+ashow[d2]
+d2 = DomConvex[DomIntersection[d1,c1]]
+ashow[d2]
+
+d1 = readDom["{i,N,M|1<=i<=(N,M+1)}|{i,N,M|1<=i<=N}"]
+d2 = DomConvex[d1]
+ashow[d2]
+d2 = DomConvex[DomIntersection[d1,c1]]
+ashow[d2]
+
+(* simplest case *)
+d1 = readDom["{i,N|i=1}|{i,N|1<=i<=N}"]
+d2 = DomConvex[d1]
+ashow[d2]
+(* with context included, its OK *)
+d1 = readDom["{i,N|i=1;1<=N}|{i,N|1<=i<=N}"]
+d2 = DomConvex[d1]
+ashow[d2]
+
+(* intersection and convex are not interchangeable *)
+d1 = readDom["{i,N|i=1; 0<=N}|{i,N|1<=i<=N}"]
+d1 = readDom["{i,N|i=1}|{i,N|1<=i<=N}"]
+d2 = readDom["{i,N|N=4}"]
+d3 = DomIntersection[d1,d2]
+d4 = DomConvex[d3]
+ashow[d4]
+d5 = DomConvex[d1]
+d6 = DomIntersection[d5,d2]
+ashow[d6]

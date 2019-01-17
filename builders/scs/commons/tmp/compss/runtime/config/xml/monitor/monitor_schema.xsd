@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+	<!-- MAIN ELEMENT -->
+	<xsd:element name="COMPSsState" type="COMPSsStateType" />
+	<xsd:complexType name="COMPSsStateType">
+		<xsd:sequence>
+			<xsd:element name="TasksInfo" type="TasksInfoType" />
+			<xsd:element name="CoresInfo" type="CoresInfoType" />
+			<xsd:element name="ResourceInfo" type="ResourceInfoType" />
+			<xsd:element name="AccumulatedCost" type="xsd:float" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<!-- ########################################################################################## -->
+	<!-- RESOURCES INFORMATION TYPES -->
+	<xsd:complexType name="ResourceInfoType">
+		<xsd:sequence>
+			<xsd:element maxOccurs="unbounded" name="Resource" type="ResourceType" />
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="ResourceType">
+		<xsd:sequence>
+			<xsd:element minOccurs="1" name="TotalComputingUnits"
+				type="xsd:int" />
+			<xsd:element minOccurs="0" name="Memory" type="xsd:float" />
+			<xsd:element minOccurs="0" name="Disk" type="xsd:float" />
+			<xsd:element minOccurs="0" name="Status" type="xsd:string" />
+			<xsd:element minOccurs="0" name="Provider" type="xsd:string" />
+			<xsd:element minOccurs="0" name="Image" type="xsd:string" />
+			<xsd:element minOccurs="0" name="Actions" type="ActionsType" />
+		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:string" use="required" />
+	</xsd:complexType>
+	<xsd:complexType name="ActionsType">
+		<xsd:sequence>
+			<xsd:element minOccurs="0" name="Action" type="xsd:string" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+
+	<!-- ########################################################################################## -->
+	<!-- CORES INFORMATION TYPES -->
+	<xsd:complexType name="CoresInfoType">
+		<xsd:sequence>
+			<xsd:element maxOccurs="unbounded" name="Core" type="CoreType" />
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="CoreType">
+		<xsd:sequence>
+			<xsd:element name="MeanExecutionTime" type="xsd:int" />
+			<xsd:element name="MinExecutionTime" type="xsd:int" />
+			<xsd:element name="MaxExecutionTime" type="xsd:int" />
+			<xsd:element name="ExecutedCount" type="xsd:int" />
+		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:int" use="required" />
+		<xsd:attribute name="signature" type="xsd:string" use="required" />
+	</xsd:complexType>
+
+	<!-- ########################################################################################## -->
+	<!-- TASKS INFORMATION TYPES -->
+	<xsd:complexType name="TasksInfoType">
+		<xsd:sequence>
+			<xsd:element maxOccurs="unbounded" name="Application"
+				type="ApplicationType" />
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="ApplicationType">
+		<xsd:sequence>
+			<xsd:element name="TotalCount" type="xsd:int" />
+			<xsd:element name="InProgress" type="xsd:int" />
+			<xsd:element name="Completed" type="xsd:int" />
+		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:int" use="required" />
+	</xsd:complexType>
+
+</xsd:schema>

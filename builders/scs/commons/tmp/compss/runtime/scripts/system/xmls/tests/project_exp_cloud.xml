@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project>
+  <MasterNode>
+    <SharedDisks>
+      <AttachedDisk Name="gpfs">
+        <MountPoint>/gpfs/</MountPoint>
+      </AttachedDisk>
+      <AttachedDisk Name="gpfs2">
+        <MountPoint>/.statelite/gpfs/</MountPoint>
+      </AttachedDisk>
+    </SharedDisks>
+  </MasterNode>
+
+  <ComputeNode Name="localhost">
+    <InstallDir>/opt/COMPSs/</InstallDir>
+    <WorkingDir>/tmp/COMPSsWorker</WorkingDir>
+    <User>user</User>
+    <Application>
+      <AppDir>/tmp/</AppDir>
+      <LibraryPath>/usr/lib/</LibraryPath>
+      <Classpath>/opt/COMPSs/Runtime/compss-engine.jar</Classpath>
+      <Pythonpath>/opt/COMPSs/Bindings/python/2</Pythonpath>
+    </Application>
+    <LimitOfTasks>2</LimitOfTasks>
+  </ComputeNode>
+ 
+  <Cloud>
+    <InitialVMs>0</InitialVMs>
+    <MinimumVMs>1</MinimumVMs>
+    <MaximumVMs>3</MaximumVMs>
+    <CloudProvider Name="CP">
+      <LimitOfVMs>3</LimitOfVMs>
+      <Properties>
+        <Property>
+          <Name>prop1</Name>
+          <Value>value1</Value>
+        </Property>
+        <Property>
+          <Name>prop2</Name>
+          <Value>/my/value/2</Value>
+        </Property>
+      </Properties>
+      <Images>
+        <Image Name="COMPSsImage">
+    <InstallDir>/opt/COMPSs/</InstallDir>
+    <WorkingDir>/tmp/COMPSsWorker</WorkingDir>
+    <User>/opt/COMPSs/Runtime/compss-engine.jar</User>
+    <Application>
+      <AppDir>small</AppDir>
+      <LibraryPath>medium</LibraryPath>
+      <Classpath>big</Classpath>
+    </Application>
+        </Image>
+      </Images>
+      <InstanceTypes>
+        <InstanceType Name="small"/>
+        <InstanceType Name="medium"/>
+        <InstanceType Name="big"/>
+      </InstanceTypes>
+    </CloudProvider>
+  </Cloud>
+</Project>

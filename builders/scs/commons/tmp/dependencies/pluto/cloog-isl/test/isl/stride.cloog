@@ -1,0 +1,28 @@
+# CLooG script generated automatically by PLUTO 0.7.0
+# language: C
+c
+
+[m] -> {:}
+
+0
+
+# Number of statements
+1
+
+[m] -> { [i0, i1, i2, i3] : 0 <= i2 <= 2 and 1 <= i3 <= m - 2 and i3 >= 4i0 - 2i2 and i3 <= 3 + 4i0 - 2i2 and i3 <= -4i1 + 2i2 and i3 >= -3 - 4i1 + 2i2 }
+
+0 0 0
+
+# we want cloog to set the iterator names
+0
+
+# of scattering functions
+1
+[m] -> { [i0, i1, i2, i3] -> [s0, i1, s2, s3]:
+	i0 = s0 - i1 and 4i2 = -2 + s2 + s3 and 2i3 = s2 - s3 }
+
+
+
+# we will set the scattering dimension names
+0
+

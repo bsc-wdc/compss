@@ -1,0 +1,5 @@
+#!/bin/bash
+
+  # shellcheck disable=SC2009
+  ps -elfa | grep -E "COMPSsWorker|pipers|worker.py|nio_worker_c|worker_c" | awk '{ print $4 }' | xargs kill -9
+

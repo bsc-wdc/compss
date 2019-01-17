@@ -1,0 +1,268 @@
+version 0.11.4
+
+date: Wed Oct 28 20:30:13 IST 2015
+
+- Update to intra-tile-opt cost model
+- Update diamond tiling implementation: automatically find 
+  concurrent start face + other generalization/fixes
+- Numerous other minor bug fixes and improvements
+- See git history for all changes
+
+
+version 0.11.3
+
+date: 2015-02-08 01:10:21 -0800
+
+- Diamond tiling code update 
+- Minor bug fixes. See git history for all changes
+
+
+version 0.11.2
+
+date: 2014-12-22 18:01:30 +0530
+
+- Minor fixes. See git history for all changes
+
+version 0.11.1
+
+date: 2014-12-01 09:52:37 +0530
+
+- Clean up command-line options, better debug and progress output
+
+- Misc minor fixes and changes
+
+See git history for all changes
+http://repo.or.cz/w/pluto.git/shortlog
+
+version 0.11.0
+
+date: 2014-05-30 13:39:20 +0530
+
+- add all inner loop iterators in private vars of omp parallel pragma
+
+- migration to openscop (osl) from scoplib as frontend
+
+- see git history for remaining changes
+
+
+version 0.10.1
+
+- add all inner loop iterators in private vars of omp parallel pragma
+
+- migration to openscop (osl) from scoplib as frontend
+
+- see git history for remaining changes
+
+
+version 0.10.0
+
+date: 2013-12-28 00:09:17 +0530
+
+- Pluto algorithm update (extended), and bug fixes.
+
+- See git history for all changes.
+
+version 0.9.0
+
+date: 2012-08-23 15:29:14 +0530
+
+- Making parallelization, tiling, and other transformations work with bands 
+  and poly scattering tree prefixes as opposed to depths. Mark parallel and 
+  vectorizable loops via clast processing instead of scripts. All of this 
+  gets rid of a long-standing limitation. 
+
+- See git history for all changes.
+
+version 0.8.1
+
+date: 2012-02-29 16:46:14 +0530
+
+- Minor bug fixes; see git log. Bail out with identity transformation on a
+  failure.
+
+version 0.8.0
+
+date: 2012-02-24 17:32:14 +0530
+
+- Make it easier for users to apply their own transformations. Separate 
+  transformation porperty detection from pluto_auto_transform. See git history 
+  for all changes.
+
+version 0.7.0
+
+date: 2011-06-09 21:46:52 +0530
+
+- From git commit 'Update version to 0.7.0' 
+  8cce20118b895b0ea538df65894fc7c85806d1c9
+  See git history for a log of changes. Bug fixes, better data structuring, more
+  modular. 
+
+
+version 0.6.0 BETA
+
+date: 2010-02-16
+
+1. Switch to Cloog-isl (from Cloog-polylib). ISL (Author: Sven Verdoolaege) is 
+   integer-aware for its polyhedral operations unlike polylib, and relies on
+   different algorithms/machinery for its operations. Cloog with ISL 
+   as backend leads to better code generation and code. (1) Generated code is of much 
+   better quality (simpler bounds, simpler conditionals, shorter cleanup code, 
+   no spurious integer empty domains), (2) no value overflows when handling 
+   deep loop nests or large tile sizes, and (3) faster code generation 
+   typically for complex cases (deep loop nests, complex transformations, 
+   large tile sizes and with both L1 and L2 tiling). 
+
+2. Pluto core bug fix (bounding function problem in certain cases)
+
+3. Do not put any context on parameters by default (use --context 
+for minimum value on parameters).
+
+4. Bug fix in orthogonal subspace computation
+
+5. Some new examples
+
+
+version 0.5.1 BETA
+
+date: 2010-02-09
+
+1. Minor bug fix: Bug in generation of OpenMP pragma in some cases (when the first hyperplane
+is a parallel scalar dimension)
+
+2. Minor bug fix: Bug in setting tile sizes from 'tile.sizes' when a permutable band
+contains a scalar dimension. No tile size should have been read for the 
+scalar dimension. 
+
+3. Orio bug fix for unroll-jamming non-rectangular code
+
+4. Minor inscop fix
+
+5. Pluto core bug fix (bounding function problem in certain cases)
+
+6. Support for privatization: thanks to Louis-Noel Pouchet; almost 
+everything is done in Candl
+
+7. Do not put any context on parameters by default (use --context 
+for minimum value on parameters).
+
+8. Option --nofuse now behaves correctly: distributing at inner levels too
+
+9. Minor bug fix in orthogonal subspace computation
+
+
+version 0.5.0 BETA
+
+date: 2010-05-02
+
+1. New polyhedral frontend and dependence tester (Clan/Candl) integrated. 
+All LooPo components are out of Pluto now. Thanks to Clan, affine 
+conditionals are now handled, besides pure function calls (assumed to be 
+pure). Speed of the tool has also increased with this due to a much faster 
+dependence tester. Use #pragma scop and #pragma endscop to demarcate 
+portions to be extracted and optimized. Parameters are automatically 
+detected. /* pluto start <parameter list> */ /* pluto end */ are no longer 
+needed or supported.
+
+2. Command-line options can now be specified at any position, before or after 
+the file name
+
+3. --indent option to indent output code
+
+4. Several minor bug fixes
+
+version 0.4.2 BETA
+
+date: 2009-03-18
+
+* Minor bug fixes
+
+version 0.4.1 BETA
+
+date: 2008-11-30
+
+* Build issues on Mac OS X resolved
+
+* Moved to Piplib 1.3.7
+
+* Support for Bee+Cl@k tool with option --bee. Pragmas are inserted that the
+Bee tool can handle and optimize for storage.
+
+version 0.4.0 BETA
+
+date: 2008-09-10
+
+* Computation of transformations is much faster now (up to 7x in some cases)
+due to optimizations in building the formulation, and better memory
+allocation.  SPECFP2000 swim code can be transformed (end-to-end) in 11s
+instead of 41s with transformation computation time reduced to 2.8s from
+31.8s.
+
+* Band detection for tiling now more advanced (dependences satisfied at
+scalar dimensions are skipped to allow identifying tilable bands across scalar
+dimensions: the scalar dimension is not preserved when the band is tiled. See
+test/matmul-seq.c or test/doitgen.c tiling for example
+
+* Transformed iterator names changed to t0, t1, t2, ... from c1, c2,  ..
+
+* Transformed iterator names are indexed 0 to <num-1> instead of <1> to <num>
+
+* Added plutune script that just steps through the command-line space of Pluto
+and runs each version of the code: can be used to figure out the best set of
+command-line options for a code. Just run with "./plutune <source.c>"
+
+* Some register tiling bugs fixed (affected a few cases)
+
+
+version 0.3.0 BETA
+
+date: 2008-07-09
+
+* GCC's preprocessor is now run on the Cloog code to replace statement text
+
+* Ability to complete partially specified transformations through a '.precut' 
+file. User can himself specify a .precut file if a particular custom fusion 
+structure or a partial transformation should be used to start from. Pluto can 
+then complete it; also, allows integration with the Letsee tool which can 
+enumerate .precut files.
+
+* Inscop fixed so that includes are not inserted as part of the optimized
+program section but at the top of the file (Thanks to Piotr and Louis-Noël)
+
+* Bug in computing SCCs fixed
+
+* Bugs in register tiling fixed
+
+* Changes to --maxfuse and --smartfuse
+
+* Unroll and unroll-jam factor can be set with --ufactor=<factor>; 8 is the
+default
+
+* Code cleanup (less worse now)
+
+
+version 0.2.0 BETA
+
+* Added --smartfuse option (this is the default), --nofuse and --maxfuse 
+are the other two
+
+* Added 'install'. Installation can now be done with './install'
+
+* Fixed compilation on 32-bit systems due to libpolylib64.a not being built
+
+* PipLib, PolyLib, and Cloog are now included. No need to download or install
+them separately
+
+* Fusion algorithm implementation for the general case is now complete (but
+still not tuned). Custom fusion structures can be forced with the .fst file
+
+* --nofuse option now to treat all SCCs separately (no fusion across SCCs even
+if it is possible)
+
+* Changes to LooPo's C++ sources to make everything compile with GCC 4.3.0
+
+* Lots of other minor fixes
+
+
+version 0.1.0 BETA
+
+First release

@@ -1,0 +1,12 @@
+# This test is a line at X=1 in (X,N) space.
+1 4
+0 -1 0 1	X=1
+1 3
+1  1 0		N>=0
+---------------------------------------
+Domain :
+         P  >= 0
+          1 >= 0
+ 
+Vertices :
+[ 1 ]

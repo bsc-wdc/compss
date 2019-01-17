@@ -1,0 +1,6 @@
+interface Matmul
+{
+        void Block::init(in int bSize, in double initVal);
+		static void Block::generate(inout Block b, in int bSize, in double value);
+        static Block Block::create(in int bSize, in double value);
+};

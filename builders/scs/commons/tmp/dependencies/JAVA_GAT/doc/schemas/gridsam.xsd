@@ -1,0 +1,156 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://www.icenigrid.org/service/gridsam"
+    xmlns:tns="http://www.icenigrid.org/service/gridsam"
+    xmlns:jsdl="http://schemas.ggf.org/jsdl/2005/11/jsdl"
+    xmlns="http://www.icenigrid.org/service/gridsam" 
+    elementFormDefault="qualified">
+    <!-- import the JSDL schema -->
+    <xsd:import namespace="http://schemas.ggf.org/jsdl/2005/11/jsdl"
+    schemaLocation="jsdl.xsd"/>
+    <xsd:import namespace="http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"
+    schemaLocation="jsdl-posix.xsd"/>
+    <xsd:import namespace="urn:gridsam:myproxy"
+    schemaLocation="jsdl-myproxy.xsd"/>
+    <xsd:import namespace="urn:gridsam:mpi"
+    schemaLocation="jsdl-mpi.xsd"/>
+    <xsd:import namespace="http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcp"
+    schemaLocation="jsdl-hpcp.xsd"/>
+    
+    <!-- data type used by the GridSAM documents -->
+    <xsd:complexType name="JobStatusType">
+        <xsd:sequence>
+            <xsd:element ref="JobIdentifier" minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="Stage" minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element ref="Property" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="StateType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="pending"/>
+            <xsd:enumeration value="staging-in"/>
+            <xsd:enumeration value="staged-in"/>
+            <xsd:enumeration value="staging-out"/>
+            <xsd:enumeration value="staged-out"/>
+            <xsd:enumeration value="active"/>
+            <xsd:enumeration value="executed"/>
+            <xsd:enumeration value="failed"/>
+            <xsd:enumeration value="done"/>
+            <xsd:enumeration value="terminating"/>
+            <xsd:enumeration value="terminated"/>
+            <xsd:enumeration value="undefined"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="JobIdentifierType">
+        <xsd:sequence>
+            <xsd:element name="ID" type="xsd:anyURI" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="JobDescriptionType">
+        <xsd:sequence>
+            <xsd:element ref="jsdl:JobDefinition" minOccurs="1" maxOccurs="1"/>
+            <xsd:any namespace="##any" processContents="skip"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="Property">
+        <xsd:complexType mixed="true">
+            <xsd:sequence>
+                <xsd:any namespace="##any" processContents="skip"/>
+            </xsd:sequence>
+            <xsd:attribute name="name" type="xsd:anyURI"/>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="Stage">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="State" type="tns:StateType"/>
+                <xsd:element name="Description" type="xsd:string"/>
+                <xsd:element name="Time" type="xsd:dateTime"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="JobIdentifier" type="tns:JobIdentifierType"/>
+    <xsd:element name="JobDescription" type="tns:JobDescriptionType"/>
+    <xsd:element name="JobStatus" type="tns:JobStatusType"/>
+
+    <!-- GridSAM actions -->
+    <xsd:element name="submitJob">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="tns:JobDescription" minOccurs="1" maxOccurs="unbounded"/>
+            </xsd:sequence>
+            <xsd:attribute name="startSuspended" type="xsd:boolean" use="optional" default="false"/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="submitJobResponse">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="tns:JobIdentifier"  minOccurs="1" maxOccurs="unbounded"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="getJobStatus">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="tns:JobIdentifier"  minOccurs="1" maxOccurs="unbounded"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="getJobStatusResponse">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="tns:JobStatus" minOccurs="1" maxOccurs="unbounded"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="terminateJob">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="tns:JobIdentifier" minOccurs="1" maxOccurs="unbounded"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="terminateJobResponse">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="tns:JobStatus" minOccurs="1" maxOccurs="unbounded"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+            
+    <xsd:element name="startJob">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="tns:JobIdentifier" minOccurs="1" maxOccurs="unbounded"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="startJobResponse">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="tns:JobStatus" minOccurs="1" maxOccurs="unbounded"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="JobSubmissionFault" type="xsd:string"/>
+    <xsd:element name="JobStartFault" type="xsd:string"/>
+    <xsd:element name="JobMonitoringFault" type="xsd:string"/>
+    <xsd:element name="JobTerminationFault" type="xsd:string"/>
+    <xsd:element name="AuthorisationFault" type="xsd:string"/>
+    <xsd:element name="UnknownJobFault">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="JobIdentifier" type="tns:JobIdentifierType" minOccurs="1" maxOccurs="unbounded"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+
+</xsd:schema>

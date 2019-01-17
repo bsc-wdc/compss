@@ -1,0 +1,13 @@
+[FuncName:generate_matrix, Complexity:3
+ FuncName:generate_identity, Complexity:5
+ FuncName:create_block, Complexity:3
+ FuncName:qr_blocked, Complexity:168
+ FuncName:qr, Complexity:2
+ FuncName:dot, Complexity:4
+ FuncName:little_qr, Complexity:2
+ FuncName:multiply_single_block, Complexity:2
+ FuncName:copy_blocked, Complexity:12
+ FuncName:split_matrix, Complexity:12
+ FuncName:join_matrix, Complexity:5
+ FuncName:check_result, Complexity:2
+]

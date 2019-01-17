@@ -1,0 +1,45 @@
+#!/bin/bash
+
+  if [ $# -lt 6 ]; then
+    echo
+    echo "Usage:"
+    echo "$0 full_application_name app_classpath runtime_inst_dir dest_dir is_webservice_flag is_mainclass_flag"
+    exit 127
+  fi
+  
+  fullAppName=$1
+  appClassPath=$2
+  runtimeInstDir=$3
+  destDir=$4
+  isWs=$5
+  isMainClass=$6
+  
+  libDir=$runtimeInstDir/Runtime/
+  export COMPSS_HOME=$runtimeInstDir
+  
+  echo -e "\\n----------------- Instrumenting $fullAppName (isWs=$isWs, isMain=$isMainClass) --------------------------\\n"
+  
+  cd "$destDir" || exit 1
+  runtimeClassPath=$libDir/compss-engine.jar
+  java \
+    -XX:+PerfDisableSharedMem \
+    -XX:-UsePerfData \
+    -XX:+UseG1GC \
+    -XX:+UseThreadPriorities \
+    -XX:ThreadPriorityPolicy=42 \
+    -Dlog4j.configurationFile="$runtimeInstDir"/Runtime/configuration/log/COMPSsMaster-log4j.instrument \
+    -Dcompss.to.file=true \
+    -Dcompss.is.ws="$isWs" \
+    -Dcompss.is.mainclass="$isMainClass" \
+    -classpath "$appClassPath":"$runtimeClassPath" \
+    es.bsc.compss.loader.ITAppLoader total "$fullAppName"
+ 
+  ev=$? 
+  if [ $ev -ne 0 ]; then
+    echo "Error instrumenting class"
+    exit $ev
+  fi
+  
+  echo
+  echo ------------------------------------------------------------
+

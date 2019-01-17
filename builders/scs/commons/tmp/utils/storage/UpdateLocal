@@ -1,0 +1,33 @@
+#
+# This script update the DataClay library at localhost
+#
+# carlos.diaz@bsc.es
+#
+#!/bin/bash
+
+export TARBALLNAME=DataClayTarball
+export STORAGE=dataclay
+export JAVA_HOME=$HOME/java-8-oracle/
+export TRUNK=${HOME}/workspaceFinal/trunk
+
+echo "JAVA VERSION"
+java -version
+
+#rm -f ${TARBALLNAME}.tgz
+
+scp bscgrid05.bsc.es:/home/dgasull/${TARBALLNAME}.tgz .
+#scp bsc19589@mn1.bsc.es:/apps/COMPSs/DATACLAY/jars/dataclayclient.jar .
+
+tar xvf ${TARBALLNAME}.tgz
+
+cp -r ${TARBALLNAME}/* ${TRUNK}/files/${STORAGE}/
+#cp dataclayclient.jar ${TRUNK}/files/${STORAGE}/
+
+#DELETE FIRST TO UPDATE COMPSs REPOSITORY
+#rm -rf ${HOME}/.m2
+
+#INSTALL DATACLAY LIBRARY
+mvn --debug install:install-file -Dfile=${TRUNK}/files/${STORAGE}/${STORAGE}client.jar -DgroupId=severo.storage -DartifactId=${STORAGE} -Dversion=1.0 -Dpackaging=jar
+
+cd ${TRUNK}/builders/
+./buildlocal ${HOME}/opt/COMPSs

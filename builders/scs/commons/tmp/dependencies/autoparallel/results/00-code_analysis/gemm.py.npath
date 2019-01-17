@@ -1,0 +1,9 @@
+[FuncName:initialize_variables, Complexity:1
+ FuncName:create_matrix, Complexity:3
+ FuncName:create_entry, Complexity:1
+ FuncName:matmul, Complexity:112
+ FuncName:scale, Complexity:1
+ FuncName:multiply, Complexity:1
+ FuncName:seq_multiply, Complexity:7
+ FuncName:check_result, Complexity:2
+]

@@ -1,0 +1,42 @@
+#!/bin/bash
+
+############################
+#       DEFAULT.CFG        #
+############################
+# This file specifies the environment in which an
+# application is going to be built. 
+# Is useful to specify compilers and environment
+# variables, thus cross compiling can be performed 
+# without changing the inner scripts of COMPSs. 
+
+# For COMPSs we need the following :
+#   * Environment variables:
+#
+#       For compilers:      CC, CXX
+#       For JAVA:           JAVA_HOME
+#       For LIBS:           BOOST_LIB
+#       For GNU Configure:  TARGET_HOST 
+
+x86_64-linux-gnu () {
+    export CC=gcc
+    export CXX=g++
+    export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
+    export TARGET_HOST=x86_64-linux-gnu
+}
+
+arm-linux-gnueabihf () {
+    export CC=arm-linux-gnueabihf-gcc
+    export CXX=arm-linux-gnueabihf-g++ 
+    export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-armhf
+    export BOOST_LIB=/opt/install-arm/libboost
+    export TARGET_HOST=arm-linux-gnueabihf
+}
+
+arm-linux-gnueabihf-fpgacc () {
+    export MCXX=arm-linux-gnueabihf-fpgacxx
+    export MCC=arm-linux-gnueabihf-fpgacc
+    export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-armhf
+    export BOOST_LIB=/opt/install-arm/libboost
+    export TARGET_HOST=arm-linux-gnueabihf
+    export FPGA_LDFLAGS="--ompss --Wf,--board=zedboard,--clock=100,--task_manager,--name=worker" #The board is now zedboard this should be modified in a future
+}

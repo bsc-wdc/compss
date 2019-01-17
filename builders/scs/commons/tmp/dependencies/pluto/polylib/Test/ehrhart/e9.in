@@ -1,0 +1,16 @@
+# Pugh's more elaborate example
+# 1 <= i
+# j <= n
+# 2i <= 3j
+#--------------
+
+3 5
+1 1 0 0 -1
+1 0 -1 1 0
+1 -2 3 0 0
+
+1 3
+1 1 -1
+
+n
+Pugh's example

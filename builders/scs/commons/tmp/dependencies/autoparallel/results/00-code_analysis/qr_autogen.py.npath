@@ -1,0 +1,35 @@
+[FuncName:generate_matrix, Complexity:3
+ FuncName:generate_identity, Complexity:5
+ FuncName:create_block_task, Complexity:1
+ FuncName:create_block, Complexity:3
+ FuncName:S1, Complexity:1
+ FuncName:S2, Complexity:1
+ FuncName:S3, Complexity:1
+ FuncName:S4, Complexity:1
+ FuncName:S5, Complexity:1
+ FuncName:S6, Complexity:1
+ FuncName:S7, Complexity:1
+ FuncName:S8, Complexity:1
+ FuncName:S9, Complexity:1
+ FuncName:S10, Complexity:1
+ FuncName:S11, Complexity:1
+ FuncName:S12, Complexity:1
+ FuncName:S13, Complexity:1
+ FuncName:S14, Complexity:1
+ FuncName:S15, Complexity:1
+ FuncName:S16, Complexity:1
+ FuncName:S17, Complexity:1
+ FuncName:S18, Complexity:1
+ FuncName:S19, Complexity:1
+ FuncName:S20, Complexity:1
+ FuncName:qr_blocked, Complexity:344
+ FuncName:qr, Complexity:2
+ FuncName:dot, Complexity:4
+ FuncName:little_qr, Complexity:2
+ FuncName:multiply_single_block, Complexity:2
+ FuncName:copy_blocked, Complexity:12
+ FuncName:copy_reference, Complexity:1
+ FuncName:split_matrix, Complexity:12
+ FuncName:join_matrix, Complexity:5
+ FuncName:check_result, Complexity:2
+]

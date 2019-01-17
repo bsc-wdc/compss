@@ -1,0 +1,10 @@
+# two parameters: 2M=N test
+
+2 5
+1  1 0 0 0
+1 -1 1 0 0
+
+1 4
+0 2 -1 0
+
+M N

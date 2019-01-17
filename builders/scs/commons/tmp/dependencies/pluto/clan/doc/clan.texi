@@ -1,0 +1,1238 @@
+\input texinfo
+@c %
+@c %  /**-----------------------------------------------------------------**
+@c %   **                               Clan                              **
+@c %   **-----------------------------------------------------------------**
+@c %   **                             clan.texi                           **
+@c %   **-----------------------------------------------------------------**
+@c %   **                 First version: september 10th 2006              **
+@c %   **-----------------------------------------------------------------**/
+@c %
+@c % release 0.0: May 4th 2008
+@c %
+@c %/**************************************************************************
+@c % *               Clan: the Chunky Loop Analyzer (experimental)            *
+@c % **************************************************************************/
+
+
+@c % /*************************************************************************
+@c %  *                              PART I: HEADER                           *
+@c %  *************************************************************************/
+@c %**start of header
+@setfilename clan.info
+@settitle Clan - a polyhedral representation extractor for high level programs
+
+@set EDITION 1.0
+@set VERSION 0.8.1
+@set UPDATED April 11th 2017
+@c @set UPDATED Coming soon
+@setchapternewpage odd
+
+@c % This is to ask for A4 instead of Letter size document.
+@iftex
+     @afourpaper
+@end iftex
+
+@c %**end of header
+
+@c % /*************************************************************************
+@c %  *                 PART II: SUMMARY DESCRIPTION AND COPYRIGHT            *
+@c %  *************************************************************************/
+
+@copying
+This manual is for Clan version @value{VERSION}, a software
+which extracts the polyhedral representation of some parts of
+high level programs written in C, C++, C# or Java.
+
+It would be quite kind to refer the following paper in any publication that
+results from the use of the Clan software or its library (the reason to cite
+it is, amongst many other interesting things, it defines what is a @emph{SCoP},
+or @emph{static control part}):
+
+@example
+@@InProceedings@{Bas03,
+@ @ author =@ @ @ @ @{C\'edric Bastoul and Albert Cohen and Sylvain Girbal and
+@ @ @ @ @ @ @ @ @ @ @ @ @ @ @ Saurabh Sharma and Olivier Temam@},
+@ @ title =@ @ @ @ @ @{Putting Polyhedral Loop Transformations to Work@},
+@ @ booktitle =@ @{LCPC'16 International Workshop on Languages and
+@ @ @ @ @ @ @ @ @ @ @ @ @ @ @ Compilers for Parallel Computers, LNCS 2958@},
+@ @ pages =@ @ @ @ @ @{209--225@},
+@ @ month =@ @ @ @ @ @{october@},
+@ @ year =@ @ @ @ @ @ 2003,
+@ @ address =@ @ @ @{College Station, Texas@}
+@}
+@end example
+
+Copyright @copyright{} 2012 C@'edric Bastoul.
+
+@c quotation
+Permission is granted to copy, distribute and/or modify this document under
+the terms of the GNU Free Documentation License, Version 1.2
+published by the Free Software Foundation. To receive a copy of the
+GNU Free Documentation License, write to the Free Software Foundation, Inc.,
+59 Temple Place, Suite 330, Boston, MA  02111-1307 USA.
+@c end quotation
+@end copying
+
+@c % /*************************************************************************
+@c %  *                 PART III: TITLEPAGE, CONTENTS, COPYRIGHT              *
+@c %  *************************************************************************/
+@titlepage
+@title Clan
+@subtitle A Polyhedral Representation Extractor for High Level Programs
+@subtitle Edition @value{EDITION}, for Clan @value{VERSION}
+@subtitle @value{UPDATED}
+@author C@'edric Bastoul
+
+@c The following two commands start the copyright page.
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@c Output the table of contents at the beginning.
+@contents
+
+@c % /*************************************************************************
+@c %  *                     PART IV: TOP NODE AND MASTER MENU                 *
+@c %  *************************************************************************/
+@ifnottex
+@node Top
+@top Clan
+
+@insertcopying
+@end ifnottex
+
+@menu
+* Introduction::
+* Clan Software::
+* Clan Library::
+@c * Hacking::
+* Installing::
+* Documentation::
+* Development::
+* References::
+@end menu
+
+
+
+@c % /*************************************************************************
+@c %  *                       PART V: BODY OF THE DOCUMENT                    *
+@c %  *************************************************************************/
+
+@c %  ****************************** INTRODUCTION ******************************
+@node Introduction
+@chapter Introduction
+Clan is a free software and library which translates some particular parts of
+high level programs written in C, C++, C# or Java into a polyhedral
+representation, namely OpenScop (@pxref{Bas12}).
+This representation may be manipulated by other tools to, e.g., achieve
+complex analyses or program restructurations (for optimization,
+parallelization or any other kind of manipulation).
+It has been created to avoid tedious and
+error-prone input file writing for polyhedral tools (such as CLooG, LeTSeE,
+Candl etc.). Using Clan, the user has to deal with source codes based on C
+grammar only (as C, C++, C# or Java).
+
+Clan stands for @emph{Chunky Loop ANalyzer}: it is a part of the Chunky
+project, a research tool for data locality improvement (@pxref{Bas03a}).
+It is designed to be the front-end of any source-to-source automatic optimizers
+and/or parallelizers. The OpenScop output format has been chosen to be polyhedral
+library independent, so Clan may integrate any polyhedral compilation
+framework easily. Clan has been successfuly integrated to
+PoCC (@url{http://pocc.sourceforge.net}) and Pluto
+(@url{http://pluto-compiler.sourceforge.net}) high-level compilers.
+The OpenScop format for polyhedral
+representation of programs, as well as an introduction to the polyhedral model
+for dummies, is presented in an external document, @pxref{Bas12}. If the
+reader is not familiar with such a representation, we highly recommend him/her
+to read that document first.
+
+Clan is a very basic tool since it is only a translator from a given program
+representation to another representation. Nevertheless the current version is
+still under evaluation, and there is no guarantee that the upward compatibility
+will be respected, even if we do think so. A lot of reports are necessary
+to freeze the library API and it is much probable that Clan will accept
+larger and larger subsets of C over time (which should not introduce upward
+compatibility problem). You are very welcome and encouraged to send reports
+on bugs, wishes, critics, comments, suggestions or (please !) successful
+experiences to @email{clan-development@@googlegroups.com}.
+
+
+@c %  *********************** Using the Clan Software **************************
+@node Clan Software
+@chapter Using the Clan Software
+
+@menu
+* A First Example::
+* Writing The Input File::
+* Reading The Output File::
+* Calling Clan::
+* Clan Options::
+@end menu
+
+@c %/*************************************************************************
+@c % *                              A FIRST EXAMPLE                          *
+@c % *************************************************************************/
+@node A First Example
+@section A First Example
+Clan takes as input a source code file than can be written in either C or
+C++ or C# or Java (or any other imperative language close enough
+to C). It translates some parts of the program to a polyhedral, matrix-based,
+representation called OpenScop.
+We call such a program part a @emph{static control part}, or SCoP fo short.
+
+Clan can find automatically the program parts that it is able to translate.
+However, as it will be detailed momentarily, to be a real SCoP, those code
+parts must have some properties which are beyond the analysis power of Clan
+(like pointer alias or function side-effects analysis).
+More complex tools like the GRAPHITE
+framework of GCC (@url{http://gcc.gnu.org/wiki/Graphite}) or the Polly
+framework of LLVM (@url{http://polly.grosser.es}) are devoted to such a
+complex, highly technical problem. Using Clan, the user should rather specify
+thanks to pragmas where begin the SCoPs to process, and where they finish.
+
+For instance, let us consider the following source code in C of a matrix-matrix
+multiply program that reads two matrices, achieves the multiply then prints
+the result. Let us also consider that the user is only interested in the
+matrix-matrix multiply kernel:
+
+@example
+/* matmul.c 128*128 matrix multiply */
+#include <stdio.h>
+#define N 128
+
+int main() @{
+  int   i,j,k;
+  float a[N][N], b[N][N], c[N][N];
+
+  /* We read matrix a then matrix b */
+  for (i = 0; i < N; i++)
+    for (j = 0; j < N; j++)
+      scanf(" %f",&a[i][j]);
+  for (i = 0; i < N; i++)
+    for (j = 0; j < N; j++)
+      scanf(" %f",&b[i][j]);
+
+  /* c = a * b */
+#pragma scop
+  for (i = 0; i < N; i++)
+    for (j = 0; j < N; j++) @{
+      c[i][j] = 0.0;
+      for (k = 0; k < N; k++)
+        c[i][j] = c[i][j] + a[i][k]*b[k][j];
+    @}
+#pragma endscop
+
+  /* We print matrix c */
+  for (i = 0; i < N; i++) @{
+    for (j = 0; j < N; j++)
+      printf("%6.2f ",c[i][j]);
+    printf("\n");
+  @}
+
+  return 0;
+@}
+@end example
+
+The tags to ask Clan to consider a given part of the code are provided thanks
+to the pragmas @code{#pragma scop} and  @code{#pragma endscop}. It can have
+different forms depending on the input language. This is explained in
+a further section (@pxref{Writing The Input File}).
+
+This source code file may be called @samp{matmul.c}
+(this example is provided in the Clan distribution as
+@code{test/matmul.c}) and we can ask Clan to process it
+and to generate the polyhedral representation by a simple call to Clan
+with this file as input: @samp{clan matmul.c}. By default, Clan will print
+the OpenScop polyhedral representation on the standard output:
+
+@example
+# [File Generated by Clan 0.7.0]
+<OpenScop>
+
+# =============================================== Global
+# Language
+C
+
+# Context
+CONTEXT
+0 3 0 0 0 1
+
+# Parameters are provided
+1
+<strings>
+N
+</strings>
+
+# Number of statements
+2
+
+# =============================================== Statement 1
+# Number of relations describing the statement:
+3
+
+# ----------------------------------------------  1.1 Domain
+DOMAIN
+4 5 2 0 0 1
+# e/i| i   j | N | 1  
+   1   1   0   0   0    ## i >= 0
+   1  -1   0   1  -1    ## -i+N-1 >= 0
+   1   0   1   0   0    ## j >= 0
+   1   0  -1   1  -1    ## -j+N-1 >= 0
+
+# ----------------------------------------------  1.2 Scattering
+SCATTERING
+5 10 5 2 0 1
+# e/i|s1  s2  s3  s4  s5 | i   j | N | 1  
+   0  -1   0   0   0   0   0   0   0   0    ## s1 == 0
+   0   0  -1   0   0   0   1   0   0   0    ## s2 == i
+   0   0   0  -1   0   0   0   0   0   0    ## s3 == 0
+   0   0   0   0  -1   0   0   1   0   0    ## s4 == j
+   0   0   0   0   0  -1   0   0   0   0    ## s5 == 0
+
+# ----------------------------------------------  1.3 Access
+WRITE
+3 8 3 2 0 1
+# e/i|Arr [1] [2]| i   j | N | 1  
+   0  -1   0   0   0   0   0   1    ## Arr == c
+   0   0  -1   0   1   0   0   0    ## [1] == i
+   0   0   0  -1   0   1   0   0    ## [2] == j
+
+# ----------------------------------------------  1.4 Body
+# Statement body is provided
+1
+<body>
+# Number of original iterators
+2
+# List of original iterators
+i j
+# Statement body expression
+c[i][j] = 0.0;
+</body>
+
+# =============================================== Statement 2
+# Number of relations describing the statement:
+6
+
+# ----------------------------------------------  2.1 Domain
+DOMAIN
+6 6 3 0 0 1
+# e/i| i   j   k | N | 1  
+   1   1   0   0   0   0    ## i >= 0
+   1  -1   0   0   1  -1    ## -i+N-1 >= 0
+   1   0   1   0   0   0    ## j >= 0
+   1   0  -1   0   1  -1    ## -j+N-1 >= 0
+   1   0   0   1   0   0    ## k >= 0
+   1   0   0  -1   1  -1    ## -k+N-1 >= 0
+
+# ----------------------------------------------  2.2 Scattering
+SCATTERING
+7 13 7 3 0 1
+# e/i|s1  s2  s3  s4  s5  s6  s7 | i   j   k | N | 1  
+   0  -1   0   0   0   0   0   0   0   0   0   0   0    ## s1 == 0
+   0   0  -1   0   0   0   0   0   1   0   0   0   0    ## s2 == i
+   0   0   0  -1   0   0   0   0   0   0   0   0   0    ## s3 == 0
+   0   0   0   0  -1   0   0   0   0   1   0   0   0    ## s4 == j
+   0   0   0   0   0  -1   0   0   0   0   0   0   1    ## s5 == 1
+   0   0   0   0   0   0  -1   0   0   0   1   0   0    ## s6 == k
+   0   0   0   0   0   0   0  -1   0   0   0   0   0    ## s7 == 0
+
+# ----------------------------------------------  2.3 Access
+WRITE
+3 9 3 3 0 1
+# e/i|Arr [1] [2]| i   j   k | N | 1  
+   0  -1   0   0   0   0   0   0   1    ## Arr == c
+   0   0  -1   0   1   0   0   0   0    ## [1] == i
+   0   0   0  -1   0   1   0   0   0    ## [2] == j
+
+READ
+3 9 3 3 0 1
+# e/i|Arr [1] [2]| i   j   k | N | 1  
+   0  -1   0   0   0   0   0   0   1    ## Arr == c
+   0   0  -1   0   1   0   0   0   0    ## [1] == i
+   0   0   0  -1   0   1   0   0   0    ## [2] == j
+
+READ
+3 9 3 3 0 1
+# e/i|Arr [1] [2]| i   j   k | N | 1  
+   0  -1   0   0   0   0   0   0   2    ## Arr == a
+   0   0  -1   0   1   0   0   0   0    ## [1] == i
+   0   0   0  -1   0   0   1   0   0    ## [2] == k
+
+READ
+3 9 3 3 0 1
+# e/i|Arr [1] [2]| i   j   k | N | 1  
+   0  -1   0   0   0   0   0   0   3    ## Arr == b
+   0   0  -1   0   0   0   1   0   0    ## [1] == k
+   0   0   0  -1   0   1   0   0   0    ## [2] == j
+
+# ----------------------------------------------  2.4 Body
+# Statement body is provided
+1
+<body>
+# Number of original iterators
+3
+# List of original iterators
+i j k
+# Statement body expression
+c[i][j] = c[i][j] + a[i][k]*b[k][j];
+</body>
+
+</OpenScop>
+@end example
+
+We will not describe here the structure and the components of this
+output. This is done in depth in a separated document, along with
+a complete introduction to the polyhedral representation of programs
+for the dummies (@pxref{Bas12}). This file format, called @code{OpenScop} has
+been designed to be the possible input file format of most polyhedral tools.
+If you have the minimum knowledge about the polyhedral representation
+of programs, you should probably already feel familiar with this file format.
+
+
+@c %/*************************************************************************
+@c % *                                Input file                             *
+@c % *************************************************************************/
+@node Writing The Input File
+@section Writing The Input File
+
+@menu
+* SCoP Pragmas::
+* Semantical Restrictions::
+* Syntactical Restrictions::
+@end menu
+
+The input file of Clan is a source code written in any language based on
+C for the @code{for} loop, the @code{if} and for the array accesses.
+C, C++, Java and C# are good examples that should work pretty well with Clan,
+as long as the code parts to translate would be correct in C.
+Clan will only translate program parts which must respect syntactical and
+semantical restrictions over plain C, and which are delimited with specific
+pragmas. Those pragmas and restrictions are detailed in the next sections.
+
+@node SCoP Pragmas
+@subsection SCoP Pragmas
+The input file may contain several code parts to translate delimited
+@strong{by the user} thanks to pragmas. Those pragmas indicate to Clan
+which program parts needs to be translated, and more important, which
+program parts can be translated to a polyhedral representation.
+We call them SCoPs (for Static Control Parts). Those parts must respect
+several syntactical and semantical properties which ensure an easy and safe
+translation to a polyhedral representation.
+
+In C, C++ and C#, the pragma to tag the beginning of a SCoP is:
+@example
+@group
+#pragma scop
+@end group
+@end example
+@noindent and the pragma to tag the end of a SCoP is:
+@example
+@group
+#pragma endscop
+@end group
+@end example
+
+In Java, the pragma to tag the beginning of a SCoP is:
+@example
+@group
+/*@@ scop */
+@end group
+@end example
+@noindent and the pragma to tag the end of a SCoP is:
+@example
+@group
+/*@@ end scop */
+@end group
+@end example
+
+Clan trusts the user: it will not check hardly whether a program part to
+translate is actually a SCoP or not. It will only try to translate the program
+part to a polyhedral representation. If there is a syntactical issue, it will
+complain and try to provide the user with some hints about the problem. If
+there is a semantical issue, it will not detect it. Hence, SCoP pragmas must
+be placed with caution.
+
+@node Semantical Restrictions
+@subsection Semantical Restrictions
+
+There are a few but very important semantical restrictions a program part
+between SCoP pragmas must satisfy:
+@itemize @bullet
+@item All functions called within the SCoP are pure, i.e., they work only
+      with their respective input parameters and local variables and have
+      no side effects, e.g., they will not use a global variable or
+      step outside array boundaries.
+@item No aliasing of array names is possible within the SCoP, e.g., if two
+      arrays (or pointers) refer to the same memory location, they must
+      have different names.
+@item Pointer references behave like variables or arrays, e.g., function
+      pointers are not allowed.
+@end itemize
+Clan doesn't have (and will much probably never have) the analysis power
+to check for those properties, hence, it is the responsibility of the
+user to ensure they are satisfied. The action of setting the SCoP pragmas
+states explicitely that they are respected. If they are not, Clan's
+behavior is undefined.
+
+@node Syntactical Restrictions
+@subsection Syntactical Restrictions
+
+@menu
+* Loop Initialization::
+* Loop and if Condition::
+* Loop Step::
+* Array Subscript::
+@end menu
+
+Clan only accepts a subset of C between SCoP pragmas. The big picture is,
+Clan is able to translate loop-based codes where loop bounds, @code{if}
+conditions and array subscripts are made of affine expressions involving
+only outer loop iterators, integer constants (a.k.a. parameters) and
+integer literals. The following general restrictions apply to all the
+code between SCoP pragmas:
+@itemize @bullet
+@item The only allowed control keywords are @code{for}, @code{while},
+      @code{if} and @code{else}, with restrictions as described below.
+@item Declarations are not allowed.
+@item Any C instruction without control keywords is accepted, with
+      restrictions for array subscripts as described below.
+@end itemize
+
+More specific restrictions apply to the control statements and the
+array subscript. They refer to affine expressions and specific operators:
+@itemize @bullet
+@item Affine expressions are additive forms of loop iterators
+      (e.g., @code{i}), parameters (e.g., @code{N}) and integers, with
+      integer coefficients, e.g., @code{7*i + 13*N + 42}. Expressions
+      which simplify to affine forms are accepted as valid affine
+      expresions, e.g., @code{3*(i*2 + N)}, as long as the only operators
+      in such expressions are @code{+}, @code{-} and @code{*}.
+@item Four particular operators may be used in some expressions: (1) the
+      @code{max} operator returns the maximum between an affine
+      expression or a @code{max} expression and another affine expression
+      or @code{max} expression, e.g., @code{max(i+1,max(j,n))} is
+      possible. (2) The @code{min} operator works like the @code{max}
+      operator but for minimum. (3) The @code{ceild} operator gives
+      the integer ceiling of an affine expression divided by an integer,
+      e.g., @code{ceild(2*i+n, 3)} is a correct use or the operator.
+      (4) The @code{floord} operator gives the integer floor of an affine
+      expression divided by an integer, e.g., @code{floord(2*i+n, 3)} is
+      a correct use of the operator.
+@end itemize
+
+Four specific zones in SCoP codes are restricted:
+@example
+for (initialization; condition; step)
+  if (condition)
+    ... [subscript] ...
+@end example
+
+@itemize @bullet
+@item the first part of @code{for} loop expressions, called loop initialization,
+@item the second part of @code{for} loop expressions, called loop condition, and
+      the condition of @code{if} conditionals, share the same kind of restriction,
+@item the third part of @code{for} loop expressions, called loop step,
+@item the array subscripts.
+@end itemize
+Those restrictions are detailed in the next sections.
+
+@node Loop Initialization
+@subsubsection Loop Initialization
+Each loop initialization must be an assignment of the loop counter such that the
+right hand side is one or several affine expressions aggregated with @code{max}
+(resp. @code{min}) operators if the loop step is positive (resp. negative).
+Optionally, the loop iterator can be declared (as an @code{int}) in the loop
+initialization part.
+
+For instance:
+@itemize @bullet
+@item @code{j = 3*i + 2*N} is correct.
+@item @code{int j = 3*i + 2*N} is correct.
+@item @code{j = ceild(i + N, 10)} is correct if the @code{j}-loop step is positive.
+@item @code{j = max(i, ceild(N, 3))} is correct if the @code{j}-loop step is positive.
+@item @code{j = min(min(N,10), 7*i)} is correct if the @code{j}-loop step is negative.
+@item @code{j = min(max(i, 1), N)} is NOT correct: mixed @code{min} and @code{max}.
+@end itemize
+
+@node Loop and if Condition
+@subsubsection Loop and @code{if} Condition
+
+Each loop or @code{if} condition must be a (composition of) constraint(s) on
+affine expressions only.
+@itemize @bullet
+@item Supported C operators are @code{>}, @code{>=}, @code{<}, @code{<=},
+      @code{==}, @code{!=}, @code{!}, @code{&&} and @code{||}.
+@item @code{min} and @code{max} operators can be used to aggregate expressions
+      in @code{>}, @code{>=}, @code{<} and @code{<=} constraints. @code{min}
+      (resp. @code{max}) expressions must be in the greater (resp. lower)
+      side of the constraints.
+@item Constraints involving the modulo operator are possible in the following
+      form only: let @code{a} be an affine expression and @code{x} and @code{y} two
+      positive integers, then the condition @code{(a % x == y)} is accepted.
+@item Function calls alone can be used as valid @code{if} conditions.
+@end itemize
+
+For instance:
+@itemize @bullet
+@item @code{i + 2*j < N} is correct.
+@item @code{max(i, j) < floord(N, 7)} is correct.
+@item @code{N>i && !(j>0 || N!=1)} is correct.
+@item @code{((2*i+1)%3 == 1) && i>j} is correct.
+@item @code{func(A[i], b)} is correct in a @code{if} condition.
+@item @code{min(2*i, N) < 0} is NOT correct: @code{min} on the lower side.
+@item @code{i + 2} is NOT correct: use @code{(i + 2) != 0} instead.
+@end itemize
+
+@node Loop Step
+@subsubsection Loop Step
+Updating the loop iterator is only allowed in the loop step part.
+It must be done by adding an integer to the previous
+iterator value. Let @code{i} be a loop iterator and @code{x} an integer
+(a literal like @code{42}, not an integer variable),
+the following forms are accepted for the loop step part:
+@code{i++}, @code{++i}, @code{i--}, @code{--i}, @code{i += x}, @code{i -= x},
+@code{i = i+x} and @code{i = i-x}. The iterator can optionally be enclosed
+in parentheses in this part: @code{++(i)}.
+
+@node Array Subscript
+@subsubsection Array Subscript
+Array subscripts must be affine expressions.
+
+
+
+@c %/*************************************************************************
+@c % *                               Output file                             *
+@c % *************************************************************************/
+@node Reading The Output File
+@section Reading The Output File
+
+The output text file of Clan provides an explicit polyhedral representation of
+a static control part. The output file format is OpenScop, @pxref{Bas12}.
+It has been designed by various researchers in polyhedral compilation from
+various institutions. It builds on previous popular polyhedral file formats
+like @emph{.cloog} to provide a unique, extensible file format to every
+polyhedral compilation tools (including CLooG) while
+being polyhedral library independent. To guarantee an up-to-date
+information, the reader is invited to read the OpenScop document
+directly @pxref{Bas12}.
+
+
+
+@c %/*************************************************************************
+@c % *                              Calling Clan                             *
+@c % *************************************************************************/
+@node Calling Clan
+@section Calling Clan
+Clan is called by the following command:
+@example
+       clan [ options | file... ]
+@end example
+The default behavior of Clan is to read the input source code from a file and
+to print the generated OpenScop file on the standard output.
+Clan's behavior and the output file are under the user control thanks
+to some options which will be detailed momentarily (@pxref{Clan Options}).
+@code{file} is the input file list (Clan may extract SCoPs from several input files).
+@code{stdin} is a special value: when used, input is the standard input and no
+other input file can be provided. For instance, we can call Clan to process the
+input file @code{basic.c} with default options by typing:
+@code{clan basic.c} or @code{more basic.c | clan stdin}
+(usual @code{more basic.c | clan -} works too).
+
+
+@c %/*************************************************************************
+@c % *                              Clan Options                             *
+@c % *************************************************************************/
+@node Clan Options
+@section Clan Options
+
+@menu
+* Output::
+* Autoscop::
+* Autopragma::
+* Autoinsert::
+* Inputscop::
+* Precision::
+* Bounded Context::
+* No Loop Context::
+* No Domain Simplify::
+* Extbody::
+* Help::
+* Version ::
+@end menu
+
+@node Output
+@subsection Output @code{-o <output>}
+
+     @code{-o <output>}: this option sets the output file. @code{stdout} is a
+     special value: when used, output is standard output.
+     Default value is @code{stdout}.
+
+@node Autoscop
+@subsection Autoscop @code{-autoscop}
+
+@code{-autoscop}: this option asks Clan to automatically find SCoPs within
+the input souce file. This options should be used with care because Clan
+will only ensure the syntactical restrictions are respected
+(@pxref{Semantical Restrictions}), but not the semantical restrictions
+(@pxref{Semantical Restrictions}). If the input file already contains
+SCoP pragmas, this option will leave them unmodified (as a consequence
+it will not be possible to include the user-SCoPs to larger automatically
+detected SCoPs).
+
+@node Autopragma
+@subsection Autopragma @code{-autopragma}
+
+@code{-autopragma}: this option asks Clan to automatically generate a
+copy of the input file with SCoP pragmas inserted around
+automatically detected SCoPs. This options works in the same way
+as Autoscop (@pxref{Autoscop}), but outputs a code instead of the
+OpenScop representation.
+
+@node Autoinsert
+@subsection Autoinsert @code{-autoinsert}
+
+@code{-autoinsert}: this option is equivalent to @code{-autopragma}
+but it inserts SCoP pragmas directly in the input file. Use with care:
+check with @code{-autopragma} first.
+
+@node Inputscop
+@subsection Inputscop @code{-inputscop}
+
+@code{-inputscop}: this option asks Clan to use an OpenScop input
+instead of a source code (this is supposed to be a pass-through
+process).
+
+@node Precision
+@subsection Precision @code{-precision <value>}
+
+@code{-precision}: this option asks Clan to work using a given
+precision for the various integer elements, @code{value} may be
+@code{32} for 32 bits, @code{64} for 64 bits (the default) or
+@code{0} fot GMP (the installed OpenScop library must have been
+compiled with GMP support for this option to apply).
+
+@node Bounded Context
+@subsection Bounded Context @code{-boundedctxt}
+
+@code{-boundedctxt}: this option asks Clan to generate context
+relations such that every parameter is considered to be >= -1.
+
+@node No Loop Context
+@subsection No Loop Context @code{-noloopctxt}
+
+@code{-noloopctxt}: this option asks Clan to avoid generating
+additional constraints to ensure the initial values of the loop
+iterators respect the loop conditions. This option allows to
+generate simpler iteration domains, however it should be
+used with care. For instance without this option, a loop such
+as @code{for (i = 0; i > 2; i++)} cannot be detected as an
+empty loop.
+
+@node No Domain Simplify
+@subsection No Domain Simplify @code{-nosimplify}
+
+@code{-nosimplify}: this option asks Clan to avoid trying to
+simplify the iteration domains. Clan is not linked to a polyhedral
+library, hence it is just able to remove trivially redundant
+constraints and union parts. However, for debugging or time
+saving reason, this step can be disabled using this option.
+
+@node Extbody
+@subsection Extbody @code{-extbody}
+
+@code{-extbody}: this option asks Clan to use the extbody extension
+(see OpenScop's documentation) instead of the basic body for
+each statement.
+
+@node Help
+@subsection Help @code{--help} or @code{-h}
+
+     @code{--help} or @code{-h}: this option asks Clan to print a short help.
+
+@node Version
+@subsection Version @code{--version} or @code{-v}
+
+     @code{--version} or @code{-v}: this option asks Clan to print some
+     release and version informations.
+
+
+@c %/*************************************************************************
+@c % *                            Clan Library                               *
+@c % *************************************************************************/
+@node Clan Library
+@chapter Using the Clan Library
+The Clan Library was implemented to allow the user to call Clan
+directly from his programs, without file accesses or system calls. The
+user only needs to link his programs with C libraries. The Clan
+library mainly provides one function (@code{clan_scop_extract})
+which takes as input the source code file to process with some options,
+and returns the data structure corresponding
+to the SCoP (an @code{osl_scop_t} structure from the OpenScop Library
+Clan depends on) which contains the polyhedral representation of the SCoP.
+Some other functions are provided for convenience reasons.
+
+@menu
+* Clan Data Structures::
+* Clan Functions::
+* Example of Library Use::
+@end menu
+
+
+@node Clan Data Structures
+@section Clan Data Structures Description
+In this section, we describe the data structures relevant for an user
+to use Clan as a library.  As this is not a developer's
+guide, data structure devoted to internal use as well as internal use
+fields are not described here.
+
+@menu
+* clan_options_t::
+@end menu
+
+@node clan_options_t
+@subsection clan_options_t
+
+@example
+@group
+struct clan_options @{
+  char * name ;   /* Name of the input file */
+  int castle;     /* 1 to print the Clan Castle, 0 otherwise */
+  int structure;  /* 1 to dump the SCoP structure, 0 otherwise */
+  int autoscop;   /* 1 to extract SCoPs automatically, 0 otherwise */
+  int autopragma; /* 1 to insert SCoP pragmas in the code, 0 otherwise */
+  int inputscop;  /* 1 to read an OpenScop file, 0 for a source code */
+  int precision;  /* 0 for GMP, 32 for 32 bits, 64 for 64 bits */
+  int bounded_context; /* 1 to set all parameters to >= -1, 0 otherwise */
+@};
+typedef struct clan_options   clan_options_t;
+typedef struct clan_options * clan_options_p;
+@end group
+@end example
+
+@noindent The @code{clan_options_t} structure contains all the possible
+options to rule Clan's behaviour (@pxref{Calling Clan}).  
+The default values for the various fields set by the
+@code{clan_options_malloc()} function
+(@pxref{Allocation and Initialization Functions}) are the following:
+
+@itemize @bullet
+@item @code{name}: NULL.
+@item @code{castle}: 1 (do print the castle).
+@item @code{structure}: 0 (do not dump the internal data structure).
+@item @code{autoscop}: 0 (automatic SCoP extraction disabled).
+@item @code{autopragma}: 0 (automatic pragma insertion disabled).
+@item @code{inputscop}: 0 (read a source file by default).
+@item @code{precision}: 64 (use 64 bits precision by default).
+@item @code{bounded_context}: 0 (ubounded parameters by default).
+@end itemize
+
+@node Clan Functions
+@section Clan Functions Description
+
+@menu
+* clan_scop_extract::
+* clan_scop_insert_pragmas::
+* clan_scop_print::
+* Allocation and Initialization Functions::
+* Memory Deallocation Functions::
+* Printing Functions::
+@end menu
+
+
+@node clan_scop_extract
+@subsection clan_scop_extract
+@example
+@group
+osl_scop_p clan_scop_extract(FILE * input, clan_options_p options);
+@end group
+@end example
+
+@noindent The @code{clan_scop_extract} function extracts the polyhedral
+representation of a SCoP in the file provided thanks to the @code{input}
+pointer (the file, possibly @code{stdin}, has to be open for reading),
+according to some options
+provided thanks to the pointer @code{options} to a @code{clan_options_t}
+data structure (@pxref{clan_options_t}). It returns a pointer to the
+extracted SCoP, translated into
+an @code{osl_scop_t} data structure (@pxref{Bas12}).
+
+@node clan_scop_insert_pragmas
+@subsection clan_scop_insert_pragmas
+@example
+@group
+void clan_scop_insert_pragmas(osl_scop_p scop, char* file, int test);
+@end group
+@end example
+
+@noindent The @code{clan_scop_insert_pragmas} function inserts SCoP
+pragmas (@code{#pragma scop} and @code{#pragma endscop}) in the file
+named @code{file} around the SCoPs described in the @code{scop} list,
+except if they are already surrounded with such pragmas. The boolean
+@code{test}, when set to 1, allows to only test the function and to
+generate a temporary file (the name of the file is in the
+@code{CLAN_AUTOPRAGMA} file) instead of modifying @code{file}.
+
+@node clan_scop_print
+@subsection clan_scop_print
+@example
+@group
+void clan_scop_print (
+  FILE * output,
+  osl_scop_p scop,
+  clan_options_p options
+);
+@end group
+@end example
+
+@noindent The function @code{clan_scop_print} is a pretty printer for
+@code{osl_scop_t} structures. It dumps the @code{scop} informations in
+OpenScop format (@pxref{Bas12}) in the file provided thanks to
+the pointer @code{output} (the file, possibly @code{stdout}, has to be open
+for writing), according to some options provided thanks to the pointer
+@code{options} to a @code{clan_options_t} data structure
+(@pxref{clan_options_t}).
+
+
+@node Allocation and Initialization Functions
+@subsection Allocation and Initialization Functions
+@example
+clan_structure_p clan_structure_malloc();
+@end example
+@noindent Each Clan data structure has an allocation and initialization
+function as shown above, where @code{structure} has to
+be replaced by the name of the convenient structure (without @samp{clan}
+prefix and @samp{_t} suffix) for
+instance @code{clan_options_p clan_options_malloc();}. These functions return
+pointers to an allocated structure with fields set to convenient default
+values. @strong{Using those functions is mandatory} to support internal
+management fields and to avoid upward compatibility problems if
+new fields appear.
+
+
+@node Memory Deallocation Functions
+@subsection Memory Deallocation Functions
+@example
+void clan_structure_free(clan_structure_p);
+@end example
+@noindent Each Clan data structure has a deallocation function as shown above,
+where @code{structure} have to
+be replaced by the name of the convenient structure (without @samp{clan}
+prefix and @samp{_t} suffix) for
+instance @code{void clan_options_free(clan_options_p);}. These functions
+free the allocated memory for the structure provided as input. They free
+memory recursively, i.e. they also free the allocated memory for the internal
+structures.
+@strong{Using those functions is mandatory} to avoid memory leaks on internal
+management fields and to avoid upward compatibility problems if
+new fields appear.
+
+
+@node Printing Functions
+@subsection Printing Functions
+@example
+void clan_structure_print(FILE *, clan_structure_p) ;
+@end example
+@noindent Each Clan data structure has a printing function as shown above,
+where @code{structure} have to
+be replaced by the name of the convenient structure (without @samp{clan}
+prefix and @samp{_t} suffix) for
+instance @code{void clan_options_print(FILE *, clan_options_p);}. These functions
+print the pointed structure (and its fields recursively) to the file provided
+as input (the file, possibly @code{stdout}, has to be open
+for writing).
+
+
+@node Example of Library Use
+@section Example of Library Use
+Here is a basic example showing how it is possible to use the Clan library,
+assuming that a standard installation has been done (note that this includes
+installing the OpenScop Library, @code{osl}, @pxref{Installing}).
+The following C program reads a source code input file on the standard input,
+then prints the solution on the standard output.
+Options are preselected to the default values of the Clan software.
+@example
+/* example.c */
+# include <stdio.h>
+# include <osl/osl.h>
+# include <clan/clan.h>
+
+int main() @{
+  osl_scop_p scop;
+  clan_options_p options;
+
+  /* Default option setting. */
+  options = clan_options_malloc() ;
+
+  /* Extraction of the SCoP. */
+  scop = clan_scop_extract(stdin, options);
+
+  /* Output of the OpenScop file. */
+  osl_scop_print(stdout, scop);
+
+  /* Save the planet. */
+  clan_options_free(options);
+  osl_scop_free(scop);
+
+  return 0;
+@}
+@end example
+
+@noindent The compilation command could be:
+@example
+gcc example.c -lclan -o example
+@end example
+@noindent A calling command with the input file test.c could be:
+@example
+more test.c | ./example
+@end example
+
+
+@c %  ****************************** INSTALLING ********************************
+@node Installing
+@chapter Installing Clan
+
+@menu
+* License::
+* Requirements::
+* Basic Installation::
+* Optional Features::
+* Uninstallation::
+@end menu
+
+@node License
+@section License
+First of all, it would be very kind to refer the following paper in any
+publication that result from the use of the Clan software or its library,
+@pxref{Bas03} (a bibtex entry is provided behind the title page of this
+manual, along with copyright notice).
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public License
+as published by the Free Software Foundation,
+either version 3 of the  License, or (at your option) any later version.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+@code{http://www.gnu.org/copyleft/lgpl.html}
+
+
+@node Requirements
+@section Requirements
+
+
+Clan relies on the OpenScop Library, or @code{osl} for everything related to
+the OpenScop format. For convenience, an embedded version of osl is
+bundled along with Clan so it is not necessary for the user to do any
+additional step to install osl. However it is obviously possible to use
+an already installed version of osl as long as it is recent enough for
+Clan needs.
+
+
+@menu
+* OpenScop Library::
+@end menu
+
+@node OpenScop Library
+@subsection OpenScop Library (bundled)
+
+OpenScop is a simple, polyhedral-library independent format to ease
+polyhedral representation transfers between the various elements of
+a polyhedral framework. The OpenScop Library, or @code{osl}, is an
+implementation of the OpenScop standard with utility functions. It can
+be freely downloaded from @url{http://www.lri.fr/~bastoul}. Since
+a convenient version of osl is bundled in Clan, it is not necessary to
+install it. However a user may wish to use a separate installation of
+osl. The user can compile it by typing the following commands on the
+osl root directory:
+
+@itemize @bullet
+@item @code{./configure}
+@item @code{make}
+@item And as root: @code{make install}
+@end itemize
+
+The osl default installation is @code{/usr/local}. This directory may
+not be inside your library path. To fix the problem, the user should set
+@example
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+@end example
+@noindent if your shell is, e.g., bash or
+@example
+setenv LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/lib
+@end example
+@noindent if your shell is, e.g., tcsh. Add the line to your .bashrc or .tcshrc (or
+whatever convenient file) to make this change permanent. Another solution
+is to ask osl to install in the standard path by using the prefix
+option of the configure script:
+@samp{./configure --prefix=/usr}.
+
+Clan has to be built using the osl library by specifying the convenient
+configure script options (@pxref{Optional Features}).
+
+@node Basic Installation
+@section Clan Basic Installation
+
+Once downloaded and unpacked
+(e.g. using the @samp{tar -zxvf clan-@value{VERSION}.tar.gz} command),
+you can compile Clan by typing the following commands on the Clan's root
+directory:
+
+@itemize @bullet
+@item @code{./configure}
+@item @code{make}
+@item And as root: @code{make install}
+@end itemize
+
+The program binaries and object files can be removed from the
+source code directory by typing @code{make clean}. To also remove the
+files that the @code{configure} script created (so you can compile the
+package for a different kind of computer) type @code{make distclean}.
+
+@node Optional Features
+@section Optional Features
+The @code{configure} shell script attempts to guess correct values for
+various system-dependent variables and user options used during compilation.
+It uses those values to create the @code{Makefile}. Various user options
+are provided by the Clan's configure script. They are summarized in the
+following list and may be printed by typing @code{./configure --help} in the
+Clan top-level directory.
+
+@itemize @bullet
+@item By default, the installation directory is @code{/usr/local}:
+@code{make install} will install the package's files in
+@code{/usr/local/bin}, @code{/usr/local/lib} and @code{/usr/local/include}.
+The user can specify an installation prefix other than @code{/usr/local} by
+giving @code{configure} the option @code{--prefix=PATH}.
+
+@item By default,
+@code{configure} will use the bundled OpenScop Library (osl).
+Using the @code{--with-osl} option of @code{configure}
+the user can specify that @code{no} osl,
+a previously installed (@code{system}) osl, a @code{bundled} osl, or a
+@code{build} osl should be used.
+In the latter case, the user should also specify the build location
+using @code{--with-osl-builddir=PATH}.
+In case of an installed osl,
+the installation location can be specified using the
+@code{--with-osl-prefix=PATH} and
+@code{--with-osl-exec-prefix=PATH} options of @code{configure}.
+@end itemize
+
+@node Uninstallation
+@section Uninstallation
+The user can easily remove the Clan software and library from his system
+by typing (as root if necessary) from the Clan top-level directory
+@code{make uninstall}.
+
+@c %  **************************** DOCUMENTATION ******************************
+@node Documentation
+@chapter Documentation
+The Clan distribution provides several documentation sources. First, the
+source code itself is as documented as possible. The code comments use a
+Doxygen-compatible presentation (something similar to what JavaDoc does for
+JAVA). The user may install Doxygen
+(see @code{http://www.stack.nl/~dimitri/doxygen}) to automatically
+generate a technical documentation by typing @code{make doc} or
+@code{doxygen ./autoconf/Doxyfile} at the Clan top-level directory after
+running the configure script (@pxref{Installing}). Doxygen will generate
+documentation sources (in HTML, LaTeX and man) in the @code{doc/source}
+directory of the Clan distribution.
+
+The Texinfo sources of the present document are also provided in the @code{doc}
+directory. You can build it in PDF format
+(by typing @code{texi2pdf clan.texi} or @code{make pdf}) or HTML format
+(by typing @code{makeinfo --html clan.texi}, using @code{--no-split}
+option to generate a single HTML file) or info format
+(by typing @code{makeinfo clan.texi}).
+
+@c %  **************************** DEVELOPPING ********************************
+@node Development
+@chapter Development
+
+@menu
+* Copyright Issue::
+* Repository::
+* Coding Style::
+@end menu
+
+@node Copyright Issue 
+@section Copyright Issue
+
+Clan is an Open Source project and you should feel free to contribute by adding
+functionalities, correcting bugs or improving documentation. However, for
+painful administrative reasons, the copyright should not be impacted by your work.
+Hence, if you are doing a significant contribution to
+the main part, Clan's maintainer may ask you for an agreement
+about this copyright. If you plan to do such a significant contribution, it
+may be wise to discuss this issue with the maintainer first.
+
+@node Repository 
+@section Repository
+
+The main repository of Clan is
+@url{http://repo.or.cz/w/clan.git}. Developers may ask Clan's
+maintainer to open them a write access to this repository. Only the maintainer
+should ever change the @code{master} branch. Developers should work on their
+own branches. To avoid any problem developers should use the @emph{fork}
+functionality of the repository.
+
+@node Coding Style 
+@section Coding Style  
+
+Clan is written in C using an object oriented style. Each
+important data structure (e.g., @code{struct foo}) has its own header file
+(@code{include/clan/foo.h}) where lies the definition of
+the data structure, the two typedefs for the data structure (one for the
+structure, @code{clan_foo_t}, and one for a pointer
+to the structure, @code{clan_foo_p}), the prototypes of the various
+functions related to this data structure, all named using the
+prefix "@code{clan_foo_}". The source code of the functions is provided in a
+separated C file (@code{source/foo.c}).
+  
+Utility functions independent from the main data structures may be placed in
+separate source files (e.g., definition in @code{include/clan/util.h}
+and code in @code{source/util.c}). Tool-wide preprocessor directives are
+placed in @code{include/clan/macros.h}, macros are prefixed with
+"@code{CLAN_}".
+
+The core code itself has to be written according to the Google C++ Coding Style:
+@url{http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml} (for
+what can apply to C), plus the naming conventions discussed above with
+highest priority.
+
+
+@c %  ****************************** REFERENCES ********************************
+@node References
+@chapter References
+
+@itemize
+@item
+@anchor{Bas03a}[Bas03a] C. Bastoul, P. Feautrier. Improving data locality
+by chunking. CC'12 International Conference on Compiler Construction,
+LNCS 2622, pages 320-335, Warsaw, april 2003.
+
+@item
+@anchor{Bas03}[Bas03] C. Bastoul and A. Cohen and S. Girbal and
+S. Sharma and O. Temam. Putting Polyhedral Loop Transformations to
+Work, LCPC'16 International Workshop on Languages and
+Compilers for Parallel Computers, LNCS 2958, pages 209--225,
+College Station, Texas, october 2003.
+
+@item
+@anchor{Bas12}[Bas12] C. Bastoul. A Specification and a Library for Data 
+Exchange in Polyhedral Compilation Tools. Technical Report,
+Paris-Sud University, France, September 2012.
+
+@end itemize
+
+@c % /*************************************************************************
+@c %  *                       PART VI: END OF THE DOCUMENT                    *
+@c %  *************************************************************************/
+@c @unnumbered Index
+
+@c @printindex cp
+
+@bye

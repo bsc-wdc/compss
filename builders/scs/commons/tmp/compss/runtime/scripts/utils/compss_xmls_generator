@@ -1,0 +1,44 @@
+#!/bin/bash
+
+  # Set script variables
+  if [ -z "$COMPSS_HOME" ]; then
+     SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+     COMPSS_HOME=${SCRIPT_DIR}/../../../
+  else
+     SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/user"
+  fi
+
+  # Import launch_compss to  avoid replicating code
+  # shellcheck source=../user/launch_compss
+  # shellcheck disable=SC1091
+  source "${SCRIPT_DIR}"/../user/launch_compss
+
+  # Get command args (defined in launch_compss)
+  get_args "$@"
+
+  # Check other command args (defined in launch_compss)
+  check_args
+
+  # Set job variables (defined in launch_compss)
+  set_variables
+
+  # Log variables (defined in launch_compss)
+  log_variables
+
+  # Write log usage
+  write_log_usage
+
+  # Create XML files
+  export CREATE_WORKING_DIRS=false  # used by xml_project_add_worker_in_master and xml_project_add_workers
+  # xmls_phase xmls_suffix provided by launch_compss get_args
+  # shellcheck disable=SC2154
+  if [ -z "${xmls_phase}" ] || [ "${xmls_phase}" == "all" ]; then
+    create_xml_files
+  elif [ "${xmls_phase}" == "init" ]; then
+    init_het_xml_files "${xmls_suffix}"
+  elif [ "${xmls_phase}" == "add" ]; then
+    add_het_xml_files "${xmls_suffix}"
+  elif [ "${xmls_phase}" == "fini" ]; then
+    fini_het_xml_files "${xmls_suffix}"
+  fi
+

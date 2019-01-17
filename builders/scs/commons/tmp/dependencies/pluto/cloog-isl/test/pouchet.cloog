@@ -1,0 +1,76 @@
+# CLooG -> CLooG
+# This is an automatic dump of a CLooG input file from a CloogInput data
+# structure.
+
+# Language: C
+c
+
+# Context:
+1
+
+0 3 0 0 0 1
+
+1 # Parameter name(s)
+Ny
+
+# Statement number:
+2
+
+# Iteration domain of statement 2 ((null)).
+1
+
+8 8 5 0 0 1
+1     0     0     1     0     0     0     0
+1     0     0    -1     0     0     0     2
+1     0     0     0     1     0     0    -1
+1     0     0     0    -1     0     1    -1
+1     0     0     0     0     1     0    -1
+1     0     0     0     0    -1     0     2
+0    -2     0     1     0     0     0     0
+0     0    -2     1     1     0     0     0
+
+0 0 0 # For future options.
+
+# Iteration domain of statement 4 ((null)).
+1
+
+8 8 5 0 0 1
+1     0     0     1     0     0     0     0
+1     0     0    -1     0     0     0     2
+1     0     0     0     1     0     0    -1
+1     0     0     0    -1     0     1    -1
+1     0     0     0     0     1     0    -1
+1     0     0     0     0    -1     0     2
+0    -2     0     1     0     0     0     0
+0     0    -2     1     1     0     0     1
+
+0 0 0 # For future options.
+
+0 # Iterator name(s)
+# --------------------- SCATTERING --------------------
+2 # Scattering functions
+
+# Scattering of statement 2 ((null)).
+1
+
+6 14 6 5 0 1
+0     0     0     0     0     0     1      0     0     0     0    -1     0     0
+0     0     0     0     0     1     0      0     0     0    -1     0     0     0
+0     0     0     0     1     0     0      0     0    -1     0     0     0     0
+0     0     0     1     0     0     0      0     0     0     0    -1     0     0
+0     0     1     0     0     0     0      0    -1     0     0     0     0     0
+0     1     0     0     0     0     0     -1    -1     0     0     0     0     0
+
+# Scattering of statement 4 ((null)).
+1
+
+6 14 6 5 0 1
+0     0     0     0     0     0     1      0     0     0     0    -1     0    -1
+0     0     0     0     0     1     0      0     0     0    -1     0     0    -1
+0     0     0     0     1     0     0      0     0    -1     0     0     0     0
+0     0     0     1     0     0     0      0     0     0     0    -1     0     0
+0     0     1     0     0     0     0      0    -1     0     0     0     0     0
+0     1     0     0     0     0     0     -1    -1     0     0     0     0     0
+
+1 # Scattering dimension name(s)
+c0 c1 c2 c3 c4 c5

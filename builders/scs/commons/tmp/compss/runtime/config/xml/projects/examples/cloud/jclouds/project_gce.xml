@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project>
+    <MasterNode/>
+    <Cloud>
+        <InitialVMs>0</InitialVMs>
+        <MinimumVMs>0</MinimumVMs>
+        <MaximumVMs>2</MaximumVMs>
+        <CloudProvider Name="google-compute-engine">
+            <LimitOfVMs>2</LimitOfVMs>
+            <Properties>
+                <Property>
+                    <Name>provider</Name>
+                    <Value>google-compute-engine</Value>
+                </Property>
+                <Property>
+                    <Name>provider-user-credential</Name>
+                    <Value>/PATH/TO/GCE/CREDENTIAL/PROJECT-NAME-CERT-xxxx.json</Value>
+                </Property>
+                <Property>
+                    <Name>provider-user</Name>
+                    <Value>XXXXXX@developer.gserviceaccount.com</Value>
+                </Property>
+                <Property>
+                    <Name>vm-user</Name>
+                    <Value>jclouds</Value>
+                </Property>
+                <Property>
+                    <Name>vm-keypair-name</Name>
+                    <Value>id_rsa</Value>
+                </Property>
+                <Property>
+                    <Name>vm-keypair-location</Name>
+                    <Value>/PATH/TO/RSA/KEYS/</Value>
+                </Property>
+                <Property>
+                    <Name>time-slot</Name>
+                    <Value>300</Value>
+                </Property>
+                <Property>
+                    <Name>estimated-creation-time</Name>
+                    <Value>100</Value>
+                </Property>
+            </Properties>
+            <Images>
+                <Image Name="https://www.googleapis.com/compute/v1/projects/PROJECT-NAME/global/images/IMAGE-NAME">
+                    <InstallDir>/opt/COMPSs/</InstallDir>
+                    <WorkingDir>/home/jclouds/</WorkingDir>
+                    <Application>
+                        <AppDir>/home/jclouds/</AppDir>
+                    </Application>
+                    <User>/home/jclouds</User>
+                    <Package>
+                        <Source>/home/user/apps/APPNAME.tar.gz</Source>
+                        <Target>/home/user/apps/</Target>
+                    </Package>
+                </Image>
+            </Images>
+            <InstanceTypes>
+                <InstanceType Name="https://www.googleapis.com/compute/v1/projects/PROJECT-NAME/zones/GCE-ZONE/machineTypes/GCE-VM-TYPE"/>
+            </InstanceTypes>
+        </CloudProvider>
+    </Cloud>
+</Project>

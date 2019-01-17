@@ -1,0 +1,16 @@
+<hbox width="80%" align="center" pack="center" widths="30%,70%">
+	<div align="center">
+        <a href="http://www.bsc.es" target="_blank"> 
+        	<image src="/images/bsc/logo.jpg" height="120px" />
+        </a>
+	</div>
+	
+	<div align="center">
+        <image src="/images/bsc/monitor.png" height="60px" />
+        <!--<label value="COMPSs Monitor">
+			<attribute name="style">
+				font-size: 30px; font-weight: bold;
+			</attribute>
+		</label>-->
+	</div>
+</hbox>

@@ -1,0 +1,161 @@
+digraph {
+  rankdir=TB;
+  labeljust="l";
+  subgraph dependence_graph {
+    ranksep=0.20;
+    node[height=0.75];
+
+1[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+2[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+3[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+4[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+5[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+6[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+7[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+8[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+9[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+10[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+Synchro1[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+1 -> Synchro1[ label="d1v2" ];
+2 -> Synchro1[ label="d2v2" ];
+3 -> Synchro1[ label="d3v2" ];
+4 -> Synchro1[ label="d4v2" ];
+5 -> Synchro1[ label="d5v2" ];
+6 -> Synchro1[ label="d6v2" ];
+7 -> Synchro1[ label="d7v2" ];
+8 -> Synchro1[ label="d8v2" ];
+9 -> Synchro1[ label="d9v2" ];
+10 -> Synchro1[ label="d10v2" ];
+Synchro2[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro1 -> Synchro2;
+11[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+Synchro2 -> 11[ label="d11v1" ];
+12[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+11 -> 12[ label="d12v2" ];
+Synchro2 -> 12[ label="d13v1" ];
+13[shape=circle, style=filled fillcolor="#ff00ae" fontcolor="#000000"];
+14[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+12 -> 14[ label="d14v2" ];
+12 -> 14[ label="d14v2" ];
+Synchro2 -> 14[ label="d16v1" ];
+15[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+14 -> 15[ label="d17v2" ];
+16[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+11 -> 16[ label="d12v2" ];
+Synchro2 -> 16[ label="d19v1" ];
+17[shape=circle, style=filled fillcolor="#ff00ae" fontcolor="#000000"];
+18[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+16 -> 18[ label="d20v2" ];
+12 -> 18[ label="d14v2" ];
+Synchro2 -> 18[ label="d22v1" ];
+19[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+16 -> 19[ label="d20v2" ];
+16 -> 19[ label="d20v2" ];
+Synchro2 -> 19[ label="d24v1" ];
+20[shape=circle, style=filled fillcolor="#ff00ae" fontcolor="#000000"];
+21[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+15 -> 21[ label="d18v2" ];
+18 -> 21[ label="d23v2" ];
+22[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+21 -> 22[ label="d27v2" ];
+21 -> 22[ label="d27v2" ];
+19 -> 22[ label="d25v2" ];
+23[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+11 -> 23[ label="d12v2" ];
+Synchro2 -> 23[ label="d29v1" ];
+24[shape=circle, style=filled fillcolor="#ff00ae" fontcolor="#000000"];
+25[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+23 -> 25[ label="d30v2" ];
+12 -> 25[ label="d14v2" ];
+Synchro2 -> 25[ label="d32v1" ];
+26[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+23 -> 26[ label="d30v2" ];
+16 -> 26[ label="d20v2" ];
+Synchro2 -> 26[ label="d34v1" ];
+27[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+23 -> 27[ label="d30v2" ];
+23 -> 27[ label="d30v2" ];
+Synchro2 -> 27[ label="d36v1" ];
+28[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+22 -> 28[ label="d28v2" ];
+29[shape=circle, style=filled fillcolor="#ff00ae" fontcolor="#000000"];
+30[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+15 -> 30[ label="d18v2" ];
+25 -> 30[ label="d33v2" ];
+31[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+30 -> 31[ label="d40v2" ];
+21 -> 31[ label="d27v2" ];
+26 -> 31[ label="d35v2" ];
+32[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+30 -> 32[ label="d40v2" ];
+30 -> 32[ label="d40v2" ];
+27 -> 32[ label="d37v2" ];
+33[shape=circle, style=filled fillcolor="#ff00ae" fontcolor="#000000"];
+34[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+28 -> 34[ label="d38v2" ];
+31 -> 34[ label="d41v2" ];
+35[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+34 -> 35[ label="d44v2" ];
+34 -> 35[ label="d44v2" ];
+32 -> 35[ label="d42v2" ];
+36[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+35 -> 36[ label="d45v2" ];
+Synchro3[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro2 -> Synchro3;
+34 -> Synchro3;
+24 -> Synchro3;
+27 -> Synchro3;
+31 -> Synchro3;
+20 -> Synchro3;
+16 -> Synchro3;
+28 -> Synchro3;
+13 -> Synchro3;
+21 -> Synchro3;
+30 -> Synchro3;
+11 -> Synchro3;
+33 -> Synchro3;
+35 -> Synchro3;
+17 -> Synchro3;
+26 -> Synchro3;
+15 -> Synchro3;
+18 -> Synchro3;
+22 -> Synchro3;
+19 -> Synchro3;
+23 -> Synchro3;
+29 -> Synchro3;
+32 -> Synchro3;
+36 -> Synchro3;
+25 -> Synchro3;
+12 -> Synchro3;
+14 -> Synchro3;  }
+  subgraph legend {
+    rank=sink;
+    node [shape=plaintext, height=0.75];
+    ranksep=0.20;
+    label = "Legend";
+    key [label=<
+      <table border="0" cellpadding="2" cellspacing="0" cellborder="1">
+<tr>
+<td align="right">cholesky.create_block</td>
+<td bgcolor="#0000ff">&nbsp;</td>
+</tr>
+<tr>
+<td align="right">cholesky.S1</td>
+<td bgcolor="#ffffff">&nbsp;</td>
+</tr>
+<tr>
+<td align="right">cholesky.S2</td>
+<td bgcolor="#ff0000">&nbsp;</td>
+</tr>
+<tr>
+<td align="right">cholesky.S3</td>
+<td bgcolor="#ff00ae">&nbsp;</td>
+</tr>
+<tr>
+<td align="right">cholesky.S4</td>
+<td bgcolor="#b30000">&nbsp;</td>
+</tr>
+      </table>
+    >]
+  }
+}

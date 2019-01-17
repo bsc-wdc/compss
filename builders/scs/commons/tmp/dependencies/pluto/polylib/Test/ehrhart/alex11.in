@@ -1,0 +1,18 @@
+# test file from alexandru modified by vin100
+# -> corrected a bug in cherche_min (ehrhart.c)
+
+ 6 7
+#   i  j   P  Q  R   c
+ 1  3 -1   0  0  0  -5
+ 1  0 -1   1  0  0   0
+ 1  0  1   0  0  0  -1
+ 1 -3  1   0  1  0   1
+ 1  0  0   0  0  0   1
+ 1 -1  0   0  0  1  -1
+
+
+0 5
+
+P Q R
+
+

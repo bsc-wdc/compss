@@ -1,0 +1,8 @@
+<body>
+# Number of original iterators
+3
+# List of original iterators
+i j k 
+# Statement body expression
+c[i][j] += a[i][k]*b[k][j];
+</body>

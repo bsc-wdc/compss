@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<!-- MAIN ELEMENT -->
+	<xsd:element name="Project" type="ProjectType"/>
+
+        <!-- ########################################################################################## -->
+	<!-- RESOURCES LIST Description -->
+	<xsd:complexType name="ProjectType">
+         	<xsd:choice minOccurs="2" maxOccurs="unbounded">
+			<xsd:element name="MasterNode" type="MasterNodeType" minOccurs="1" maxOccurs="1" />
+                        <xsd:element name="ComputeNode" type="ComputeNodeType" minOccurs="0" maxOccurs="unbounded" />
+                       	<xsd:element name="DataNode" type="DataNodeType" minOccurs="0" maxOccurs="unbounded" />
+                       	<xsd:element name="Service" type="ServiceType" minOccurs="0" maxOccurs="unbounded" />
+                       	<xsd:element name="Cloud" type="CloudType" minOccurs="0" maxOccurs="1" />
+               	</xsd:choice>
+    	</xsd:complexType>
+
+	<!-- ########################################################################################## -->
+	<!-- FIRST LEVEL COMPLEX TYPES -->
+
+        <!-- DATA NODE Description -->
+        <xsd:complexType name="MasterNodeType">
+                <xsd:choice minOccurs="0" maxOccurs="unbounded">
+                        <!-- Mandatory -->
+                        <!-- NOT mandatory -->
+                        <xsd:element name="SharedDisks" type="AttachedDisksListType" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="Price" type="PriceType" minOccurs="0" maxOccurs="1" />
+                </xsd:choice>
+        </xsd:complexType>
+
+        <!-- COMPUTE NODE Description -->
+        <xsd:complexType name="ComputeNodeType">
+                <xsd:choice minOccurs="2" maxOccurs="unbounded">
+                        <!-- Mandatory -->
+			<xsd:element name="InstallDir" type="xsd:string" minOccurs="1" maxOccurs="1" />
+			<xsd:element name="WorkingDir" type="xsd:string" minOccurs="1" maxOccurs="1" />
+			<!-- NOT mandatory -->
+			<xsd:element name="User" type="xsd:string" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="Application" type="ApplicationType" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="LimitOfTasks" type="xsd:int" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="Adaptors" type="AdaptorsListType" minOccurs="0" maxOccurs="1" />
+                </xsd:choice>
+                <xsd:attribute name="Name" type="xsd:string" use="required"/>
+        </xsd:complexType>
+
+        <!-- DATA NODE Description -->
+        <xsd:complexType name="DataNodeType">
+                <xsd:choice minOccurs="0" maxOccurs="unbounded">
+                        <!-- Mandatory -->
+                        <!-- NOT mandatory -->
+                        <xsd:element name="Adaptors" type="AdaptorsListType" minOccurs="0" maxOccurs="1" />
+                </xsd:choice>
+                <xsd:attribute name="Name" type="xsd:string" use="required"/>
+        </xsd:complexType>
+
+
+        <!-- SERVICE Description -->
+        <xsd:complexType name="ServiceType">
+                <xsd:all>
+                        <!-- Mandatory -->
+                        <!-- NOT mandatory -->
+			<xsd:element name="LimitOfTasks" type="xsd:int" minOccurs="0" maxOccurs="1" />
+                </xsd:all>
+                <xsd:attribute name="wsdl" type="xsd:anyURI" use="required"/>
+        </xsd:complexType>
+
+        <!-- CLOUD Description -->
+        <xsd:complexType name="CloudType">
+                <xsd:choice minOccurs="0" maxOccurs="unbounded">
+                        <!-- Mandatory -->
+			<xsd:element name="CloudProvider" type="CloudProviderType" minOccurs="1" maxOccurs="unbounded" />
+                        <!-- NOT mandatory -->
+                        <xsd:element name="InitialVMs" type="xsd:int" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="MinimumVMs" type="xsd:int" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="MaximumVMs" type="xsd:int" minOccurs="0" maxOccurs="1" />
+                </xsd:choice>
+        </xsd:complexType>
+
+
+        <!-- ########################################################################################## -->
+        <!-- SECOND LEVEL COMPLEX TYPES -->
+
+        <!-- ATTACHED DISKS LIST TYPE -->
+        <xsd:complexType name="AttachedDisksListType">
+                <xsd:sequence>
+                        <!-- Mandatory -->
+                        <xsd:element name="AttachedDisk" type="AttachedDiskType" minOccurs="1" maxOccurs="unbounded" />
+                        <!-- NOT mandatory -->
+                </xsd:sequence>
+        </xsd:complexType>
+
+        <xsd:complexType name="AttachedDiskType">
+                <xsd:sequence>
+                        <!-- Mandatory -->
+                        <xsd:element name="MountPoint" type="xsd:string" minOccurs="1" maxOccurs="1" />
+                        <!-- NOT mandatory -->
+                </xsd:sequence>
+                <xsd:attribute name="Name" type="xsd:string" use="required"/>
+        </xsd:complexType>
+
+
+        <!-- PRICE TYPE -->
+        <xsd:complexType name="PriceType">
+                <xsd:all>
+                        <!-- Mandatory -->
+                        <xsd:element name="TimeUnit" type="xsd:int" minOccurs="1" maxOccurs="1" />      <!-- NUMBER OF MINUTES -->
+                        <xsd:element name="PricePerUnit" type="xsd:float" minOccurs="1" maxOccurs="1" />
+                        <!-- NOT mandatory -->
+                </xsd:all>
+        </xsd:complexType>
+
+
+	<!-- APPLICATION TYPE -->
+	<xsd:complexType name="ApplicationType">
+                <xsd:all>
+                        <!-- Mandatory -->
+                        <!-- NOT mandatory -->
+			<xsd:element name="AppDir" type="xsd:string" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="LibraryPath" type="xsd:string" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="Classpath" type="xsd:string" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="Pythonpath" type="xsd:string" minOccurs="0" maxOccurs="1" />
+                </xsd:all>
+	</xsd:complexType>
+
+	<!-- ADAPTORS TYPE -->
+        <xsd:complexType name="AdaptorsListType">
+                <xsd:sequence>
+                        <xsd:element name="Adaptor" type="AdaptorType" minOccurs="1" maxOccurs="unbounded" />
+                </xsd:sequence>
+        </xsd:complexType>
+
+        <xsd:complexType name="AdaptorType">
+                <xsd:choice minOccurs="1" maxOccurs="unbounded">
+                        <!-- Mandatory -->
+                        <xsd:element name="SubmissionSystem" type="SubmissionSystemType" minOccurs="1" maxOccurs="1" />
+                        <!-- One of them mandatory -->
+                        <xsd:choice minOccurs="1" maxOccurs="1">
+                                <xsd:element name="Ports" type="NIOAdaptorProperties" minOccurs="0" maxOccurs="1" />
+                                <xsd:element name="BrokerAdaptor" type="xsd:string" minOccurs="0" maxOccurs="1" />
+                                <xsd:element name="Properties" type="ExternalAdaptorProperties" minOccurs="0" maxOccurs="1" />
+                        </xsd:choice>
+                        <!-- NOT mandatory -->
+                        <xsd:element name="User" type="xsd:string" minOccurs="0" maxOccurs="1" />
+                </xsd:choice>
+                <xsd:attribute name="Name" type="xsd:string" use="required" />
+        </xsd:complexType>
+
+        <!-- Submission type -->
+        <xsd:complexType name="SubmissionSystemType">
+                <xsd:choice minOccurs="1" maxOccurs="unbounded">
+                        <xsd:element name="Batch" type="BatchType" minOccurs="0" maxOccurs="1" />
+                        <xsd:element name="Interactive" type="InteractiveType" minOccurs="0" maxOccurs="1" />
+                </xsd:choice>
+        </xsd:complexType>
+
+        <xsd:complexType name="BatchType">
+                <xsd:sequence>
+                        <!-- Mandatory -->
+                        <xsd:element name="Queue" type="xsd:string" minOccurs="1" maxOccurs="unbounded"/>
+                        <!-- NOT mandatory -->
+                </xsd:sequence>
+        </xsd:complexType>
+
+        <xsd:complexType name="InteractiveType">
+                <!-- Mandatory -->
+                <!-- NOT mandatory -->
+        </xsd:complexType>
+
+        <!-- AdaptorProperties type -->
+        <xsd:complexType name="NIOAdaptorProperties">
+                <xsd:sequence>
+                        <!-- Mandatory -->
+                        <xsd:element name="MinPort" type="xsd:int" minOccurs="1" maxOccurs="1"/>
+                        <xsd:element name="MaxPort" type="xsd:int" minOccurs="1" maxOccurs="1"/>
+                        <!-- NOT mandatory -->
+                </xsd:sequence>
+        </xsd:complexType>
+
+        <xsd:complexType name="ExternalAdaptorProperties">
+                <xsd:sequence>
+                        <!-- Mandatory -->
+                        <!-- NOT mandatory -->
+                        <xsd:element name="Property" type="PropertyAdaptorType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+        </xsd:complexType>
+
+        <xsd:complexType name="PropertyAdaptorType">
+                <xsd:sequence>
+                        <!-- Mandatory -->
+                        <xsd:element name="Name" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+                        <xsd:element name="Value" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+                        <!-- NOT mandatory -->
+                </xsd:sequence>
+        </xsd:complexType>
+
+
+        <!-- CLOUD PROVIDER Description -->
+        <xsd:complexType name="CloudProviderType">
+                <xsd:choice minOccurs="2" maxOccurs="unbounded">
+                        <!-- Mandatory -->
+                        <xsd:element name="Images" type="ImagesType" minOccurs="1" maxOccurs="1" />
+			<xsd:element name="InstanceTypes" type="InstanceTypesType" minOccurs="1" maxOccurs="1" />
+                        <!-- NOT mandatory -->
+                        <xsd:element name="LimitOfVMs" type="xsd:int" minOccurs="0" maxOccurs="1" />
+                        <xsd:element name="Properties" type="CloudPropertiesType" minOccurs="0" maxOccurs="1" />
+                </xsd:choice>
+                <xsd:attribute name="Name" type="xsd:string" use="required"/>
+        </xsd:complexType>
+
+
+        <!-- IMAGES (LIST) TYPE -->
+        <xsd:complexType name="ImagesType">
+		<xsd:sequence>
+                	<!-- Mandatory -->
+			<xsd:element name="Image" type="ImageType" minOccurs="1" maxOccurs="unbounded" />
+			<!-- NOT mandatory -->
+		</xsd:sequence>
+        </xsd:complexType>
+
+        <xsd:complexType name="ImageType">
+		<xsd:choice minOccurs="2" maxOccurs="unbounded">
+                        <!-- Mandatory -->
+                        <xsd:element name="InstallDir" type="xsd:string" minOccurs="1" maxOccurs="1" />
+                        <xsd:element name="WorkingDir" type="xsd:string" minOccurs="1" maxOccurs="1" />
+                        <!-- NOT mandatory -->
+			<xsd:element name="User" type="xsd:string" minOccurs="0" maxOccurs="1" />
+                        <xsd:element name="Application" type="ApplicationType" minOccurs="0" maxOccurs="1" />
+                        <xsd:element name="LimitOfTasks" type="xsd:int" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="Package" type="PackageType" minOccurs="0" maxOccurs="unbounded" />
+			<xsd:element name="Adaptors" type="AdaptorsListType" minOccurs="0" maxOccurs="1" />
+		</xsd:choice>
+                <xsd:attribute name="Name" type="xsd:string" use="required"/>
+        </xsd:complexType>
+
+	<xsd:complexType name="PackageType">
+                <xsd:all>
+                        <!-- Mandatory -->
+                        <xsd:element name="Source" type="xsd:string" minOccurs="1" maxOccurs="1" />
+                        <xsd:element name="Target" type="xsd:string" minOccurs="1" maxOccurs="1" />
+			<!-- NOT mandatory -->
+                        <xsd:element name="IncludedSoftware" type="SoftwareListType" minOccurs="0" maxOccurs="1" />
+                </xsd:all>
+        </xsd:complexType>
+
+        <xsd:complexType name="SoftwareListType">
+                <xsd:sequence>
+                        <!-- Mandatory -->
+                        <xsd:element name="Application" type="xsd:string" minOccurs="1" maxOccurs="unbounded" />
+                        <!-- NOT mandatory -->
+                </xsd:sequence>
+        </xsd:complexType>
+
+
+        <!-- INSTANCES (LIST) TYPE -->
+        <xsd:complexType name="InstanceTypesType">
+                <xsd:sequence>
+			<!-- Mandatory -->
+			<xsd:element name="InstanceType" type="InstanceTypeType" minOccurs="1" maxOccurs="unbounded" />
+                	<!-- NOT mandatory -->
+		</xsd:sequence>
+        </xsd:complexType>
+
+        <xsd:complexType name="InstanceTypeType">
+		<xsd:attribute name="Name" type="xsd:string" use="required"/>
+        </xsd:complexType>
+
+
+	<!-- PROPERTIES (LIST) TYPE -->
+        <xsd:complexType name="CloudPropertiesType">
+                <xsd:sequence>
+                        <!-- Mandatory -->
+                        <xsd:element name="Property" type="CloudPropertyType" minOccurs="1" maxOccurs="unbounded" />
+                        <!-- NOT mandatory -->
+                </xsd:sequence>
+        </xsd:complexType>
+
+	<xsd:complexType name="CloudPropertyType">
+        	<xsd:sequence>
+			<!-- Mandatory -->
+                	<xsd:element name="Name" type="xsd:string" minOccurs="1"  maxOccurs="1"/>
+                	<xsd:element name="Value" type="xsd:string" minOccurs="1"  maxOccurs="1"/>
+			<!-- NOT mandatory -->
+        	</xsd:sequence>
+        	<xsd:attribute name="Context" type="xsd:string"/>
+	</xsd:complexType>
+
+</xsd:schema>

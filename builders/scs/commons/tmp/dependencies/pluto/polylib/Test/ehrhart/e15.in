@@ -1,0 +1,16 @@
+# Vincent's example
+7 7
+#   i  j  k   P Q
+1  -1  0  0   0 0   0           # -P <= i <= 0
+1   1  0  0   1 0   0           #
+1   0 -1  0   0 0   0           # i <= j <= 0
+1  -1  1  0   0 0   0           #
+1   0  0 -1   0 0   0           # i-j <= k <= 0
+1  -1  1  1   0 0   0           #
+0   1  1  1   0 -1  0           # Q = i+j+k
+
+0 4
+
+P Q
+Little parameter domain example
+

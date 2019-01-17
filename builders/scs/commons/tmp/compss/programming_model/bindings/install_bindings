@@ -1,0 +1,78 @@
+#!/bin/bash -e
+
+  ######################################################
+  # FUNCTIONS
+  ######################################################
+  usage() {
+    echo " " 
+    echo "ERROR: Incorrect number of parameters"
+    echo " Usage: ./install_bindings <COMPSS_HOME>"
+    echo "        COMPSS_HOME must be a full path"
+    echo " "
+    exit 1
+  }
+
+
+  ######################################################
+  # MAIN PROGRAM
+  ######################################################
+
+  # Get parameters
+  if [ $# -ne 1 ]; then
+    usage
+  fi
+  targetDir=$1
+
+  # Check environment
+  if [ -z "${JAVA_HOME}" ]; then
+    echo "Please define \$JAVA_HOME"
+    exit 1
+  fi
+
+  # Define script variables
+  scriptDir=$(cd "$(dirname $0)"; pwd -P)
+  currentDir=$(pwd)
+  tmpDir=${currentDir}/tmp
+
+  # Cleaning previous versions
+  echo " "
+  echo " * Cleaning previous installation"
+  rm -rf ${targetDir}/Bindings
+  mkdir -p ${targetDir}/Bindings
+  mkdir -p ${targetDir}/Bindings/c
+  mkdir -p ${targetDir}/Bindings/python
+  rm -rf ${tmpDir}
+
+  # Copy bindings
+  echo " "
+  echo " * Deploying files to tmp folder..."
+  cd $scriptDir
+  mkdir -p $tmpDir
+  cp -r bindings-common $tmpDir
+  cp -r c $tmpDir
+  cp -r python $tmpDir
+
+  # Install bindings
+  echo " "
+  echo " * Installing bindings..."
+  echo "   - Bindings-common"
+  cd ${tmpDir}/bindings-common
+  ./install_common ${targetDir}/Bindings/bindings-common
+  echo "   - C-binding"
+  cd ${tmpDir}/c
+  ./install ${targetDir}/Bindings/c true
+  echo "   - Python-binding"
+  cd ${tmpDir}/python
+  ./install ${targetDir}/Bindings/python false
+  cd ${currentDir}
+
+  # Clean tmp files
+  echo " "
+  echo " * Cleaning tmp files"
+#  rm -rf ${tmpDir}
+
+  # All ok. Exit
+  echo " "
+  echo " *** INSTALLATION COMPLETED ***"
+  exit 0
+

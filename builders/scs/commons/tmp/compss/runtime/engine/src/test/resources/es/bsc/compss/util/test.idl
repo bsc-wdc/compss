@@ -1,0 +1,63 @@
+﻿interface Test {
+        @Constraints(ComputingUnits=2, ProcessorArchitecture=x86_64);
+        void Test01(in File fileIn, in char charIn, in wchar wcharIn, 
+        	in boolean booleanIn, in short shortIn, in long longIn, 
+        	in int intIn,  in float floatIn, in double doubleIn, 
+        	in string stringIn, in wstring wstringIn);
+        
+        @Constraints(MemorySize=2, 
+        	StorageSize=10);
+        # Ignored
+        void Test02(out string stringOut);
+
+	  @Constraints(ComputingUnits=2, MemorySize=4);
+	  @Implements(Test02);
+	  void Test02_impl_1(out string stringOut);
+        
+        
+	  @Implements(Test02);
+	  void Test02_impl_2(out string stringOut);
+        
+        //Comment
+        void Test03(out File fileOut, out char charOut, out wchar wcharOut,
+            out boolean booleanOut, out short shortOut, out long longOut, 
+            out int intOut, out float floatOut, out double doubleOut, 
+            out string stringOut, out wstring wstringOut);
+        /*comment1*/
+        /*comment line 1 
+         Comment line2*/
+         void Test04(inout File fileInout, inout char charInout, inout wchar wcharInout,
+            inout boolean booleanInout, inout short shortInout, inout long longInout, 
+            inout int intInout, inout float floatInout, inout double doubleInout,
+            inout string stringInout, inout wstring wstringInout);
+
+		@Constraints(processors={
+               @Processor(ProcessorType=CPU, ComputingUnits=2, ProcessorArchitecture=x86_64, ProcessorInternalMemorySize=0.600),
+               @Processor(ProcessorType=GPU, ComputingUnits=256, ProcessorArchitecture=k40, ProcessorInternalMemorySize=0.024)},
+               memorySize=23);
+        void Test05(out string stringOut);
+
+		
+		@Constraints(processors={
+               @Processor(ProcessorType=CPU, ComputingUnits=2)});
+        void Test06(out string stringOut);
+
+
+		@Constraints(processors={
+               @Processor(ProcessorType=CPU, ComputingUnits=4)});
+        void Test07(out string stringOut);
+
+	    @Constraints(processors={
+               @Processor(ProcessorType=CPU, ComputingUnits=2),
+			   @Processor(ProcessorType=CPU, ComputingUnits=2)});
+	    @Implements(Test07);
+	    void Test07_impl_1(out string stringOut);
+        
+		@Constraints(processors={
+               @Processor(ProcessorType=CPU, ComputingUnits=1),
+			   @Processor(ProcessorType=GPU, ComputingUnits=1)});
+        @Implements(Test07);
+	    void Test07_impl_2(out string stringOut);
+
+};
+

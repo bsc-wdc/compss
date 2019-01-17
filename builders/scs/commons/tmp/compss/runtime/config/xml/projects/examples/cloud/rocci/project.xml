@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project>
+    <MasterNode/>
+    <Cloud>
+        <InitialVMs>0</InitialVMs>
+        <MinimumVMs>0</MinimumVMs>
+        <MaximumVMs>1</MaximumVMs>
+        <CloudProvider Name="ProviderName">
+            <LimitOfVMs>1</LimitOfVMs>
+            <Properties>
+                <Property>
+                    <Name>auth</Name>
+                    <Value>x509</Value>
+                </Property>
+                <Property>
+                    <Name>ca-path</Name>
+                    <Value>/etc/grid-security/certificates</Value>
+                </Property>
+                <Property>
+                    <Name>user-cred</Name>
+                    <Value>/home/user/certs/usercert.pem</Value>
+                </Property>
+                <Property>
+                    <Name>password</Name>
+                    <Value>MYCERTPASSWORD</Value>
+                </Property>
+                <Property>
+                    <Name>owner</Name>
+                    <Value>USERNAME</Value>
+                </Property>
+                <Property>
+                    <Name>jobname</Name>
+                    <Value>MYJOBUUID</Value>
+                </Property>
+                <Property>
+                    <Name>max-vm-creation-time</Name>
+                    <Value>10</Value>
+                </Property>
+                <Property>
+                    <Name>max-connection-errors</Name>
+                    <Value>15</Value>
+                </Property>
+                <Property>
+                    <Name>vm-user</Name>
+                    <Value>user</Value>
+                </Property>
+            </Properties>
+            <Images>
+                <Image Name="EGI_compss">
+                    <InstallDir>/opt/COMPSs/</InstallDir>
+                    <WorkingDir>/tmp/Worker/</WorkingDir>
+                    <User>user</User>
+                    <Package>
+                        <Source>/home/user/apps/APPNAME.tar.gz</Source>
+                        <Target>/home/user/apps/</Target>
+                    </Package>
+                </Image>
+            </Images>
+            <InstanceTypes>
+                <InstanceType Name="small"/>
+                <InstanceType Name="medium"/>
+                <InstanceType Name="large"/>
+                <InstanceType Name="extra_large"/>
+            </InstanceTypes>
+        </CloudProvider>
+    </Cloud>
+</Project>

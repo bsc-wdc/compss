@@ -1,0 +1,14 @@
+# Here's an example where we need to check to see if constraint is inequality
+5 5
+0  1   1   0  -1
+1  0   1   1  -1
+1  0  -1   1   0
+1  0   0   1  -1
+1  0   0   0   1
+ 
+2 3
+1 1 -2
+1 0  1
+
+P
+6th example

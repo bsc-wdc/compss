@@ -1,0 +1,165 @@
+[Clan] Info: parsing file #1 (./unitary/matmul.c)
+
+<OpenScop>
+
+# =============================================== Global
+# Language
+C
+
+# Context
+CONTEXT
+0 3 0 0 0 1
+
+# Parameters are provided
+1
+<strings>
+n
+</strings>
+
+# Number of statements
+2
+
+# =============================================== Statement 1
+# Number of relations describing the statement:
+3
+
+# ----------------------------------------------  1.1 Domain
+DOMAIN
+5 5 2 0 0 1
+# e/i|  i    j |  n |  1  
+   1    1    0    0    0    ## i >= 0
+   1   -1    0    1    0    ## -i+n >= 0
+   1    0    0    1    0    ## n >= 0
+   1    0    1    0    0    ## j >= 0
+   1    0   -1    1    0    ## -j+n >= 0
+
+# ----------------------------------------------  1.2 Scattering
+SCATTERING
+5 10 5 2 0 1
+# e/i| c1   c2   c3   c4   c5 |  i    j |  n |  1  
+   0   -1    0    0    0    0    0    0    0    0    ## c1 == 0
+   0    0   -1    0    0    0    1    0    0    0    ## c2 == i
+   0    0    0   -1    0    0    0    0    0    0    ## c3 == 0
+   0    0    0    0   -1    0    0    1    0    0    ## c4 == j
+   0    0    0    0    0   -1    0    0    0    0    ## c5 == 0
+
+# ----------------------------------------------  1.3 Access
+WRITE
+3 8 3 2 0 1
+# e/i| Arr  [1]  [2]|  i    j |  n |  1  
+   0   -1    0    0    0    0    0    4    ## Arr == C
+   0    0   -1    0    1    0    0    0    ## [1] == i
+   0    0    0   -1    0    1    0    0    ## [2] == j
+
+# ----------------------------------------------  1.4 Statement Extensions
+# Number of Statement Extensions
+1
+<body>
+# Number of original iterators
+2
+# List of original iterators
+i j
+# Statement body expression
+C[i][j] = 0;
+</body>
+
+# =============================================== Statement 2
+# Number of relations describing the statement:
+6
+
+# ----------------------------------------------  2.1 Domain
+DOMAIN
+7 6 3 0 0 1
+# e/i|  i    j    k |  n |  1  
+   1    1    0    0    0    0    ## i >= 0
+   1   -1    0    0    1    0    ## -i+n >= 0
+   1    0    0    0    1    0    ## n >= 0
+   1    0    1    0    0    0    ## j >= 0
+   1    0   -1    0    1    0    ## -j+n >= 0
+   1    0    0    1    0    0    ## k >= 0
+   1    0    0   -1    1    0    ## -k+n >= 0
+
+# ----------------------------------------------  2.2 Scattering
+SCATTERING
+7 13 7 3 0 1
+# e/i| c1   c2   c3   c4   c5   c6   c7 |  i    j    k |  n |  1  
+   0   -1    0    0    0    0    0    0    0    0    0    0    0    ## c1 == 0
+   0    0   -1    0    0    0    0    0    1    0    0    0    0    ## c2 == i
+   0    0    0   -1    0    0    0    0    0    0    0    0    0    ## c3 == 0
+   0    0    0    0   -1    0    0    0    0    1    0    0    0    ## c4 == j
+   0    0    0    0    0   -1    0    0    0    0    0    0    1    ## c5 == 1
+   0    0    0    0    0    0   -1    0    0    0    1    0    0    ## c6 == k
+   0    0    0    0    0    0    0   -1    0    0    0    0    0    ## c7 == 0
+
+# ----------------------------------------------  2.3 Access
+WRITE
+3 9 3 3 0 1
+# e/i| Arr  [1]  [2]|  i    j    k |  n |  1  
+   0   -1    0    0    0    0    0    0    4    ## Arr == C
+   0    0   -1    0    1    0    0    0    0    ## [1] == i
+   0    0    0   -1    0    1    0    0    0    ## [2] == j
+
+READ
+3 9 3 3 0 1
+# e/i| Arr  [1]  [2]|  i    j    k |  n |  1  
+   0   -1    0    0    0    0    0    0    4    ## Arr == C
+   0    0   -1    0    1    0    0    0    0    ## [1] == i
+   0    0    0   -1    0    1    0    0    0    ## [2] == j
+
+READ
+3 9 3 3 0 1
+# e/i| Arr  [1]  [2]|  i    j    k |  n |  1  
+   0   -1    0    0    0    0    0    0    6    ## Arr == A
+   0    0   -1    0    1    0    0    0    0    ## [1] == i
+   0    0    0   -1    0    0    1    0    0    ## [2] == k
+
+READ
+3 9 3 3 0 1
+# e/i| Arr  [1]  [2]|  i    j    k |  n |  1  
+   0   -1    0    0    0    0    0    0    7    ## Arr == B
+   0    0   -1    0    0    0    1    0    0    ## [1] == k
+   0    0    0   -1    0    1    0    0    0    ## [2] == j
+
+# ----------------------------------------------  2.4 Statement Extensions
+# Number of Statement Extensions
+1
+<body>
+# Number of original iterators
+3
+# List of original iterators
+i j k
+# Statement body expression
+C[i][j] = C[i][j] + A[i][k] * B[k][j];
+</body>
+
+# =============================================== Extensions
+<scatnames>
+b0 i b1 j b2 k b3
+</scatnames>
+
+<arrays>
+# Number of arrays
+7
+# Mapping array-identifiers/array-names
+1 i
+2 n
+3 j
+4 C
+5 k
+6 A
+7 B
+</arrays>
+
+<coordinates>
+# File name
+./unitary/matmul.c
+# Starting line and column
+2 0
+# Ending line and column
+9 0
+# Indentation
+0
+</coordinates>
+
+</OpenScop>
+

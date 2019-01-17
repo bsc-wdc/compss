@@ -1,0 +1,29 @@
+# Philippe's simple example
+#--------------------------
+# 1 <= i <= N
+# 1 <= j <= N
+# 1 <= k <= N
+# i+j+k-2 = M
+#--------------------------
+7 7
+#  i  j  k  N  M  1
+1  1  0  0  0  0 -1
+1 -1  0  0  1  0  0
+1  0  1  0  0  0 -1
+1  0 -1  0  1  0  0
+1  0  0  1  0  0 -1
+1  0  0 -1  1  0  0
+0 -1 -1 -1  0  1  2
+#--------------------------
+0 4
+
+N M
+Philippe's simple example
+
+#--------------------------
+# I have done the work by hand, and here is the right
+# answer :
+#
+# If 1 <= M <= N then EP(N,M) = 1/2 M^2 + 1/2 M
+# If N <= M <= 2N-1 then EP(N,M) = -3/2 N^2 - M^2 + 3NM - M
+# If 2N-1 <= M <= 3N-2 then EP(N,M) = 9/2 N^2 + 1/2 M^2 - 3NM - 3/2 N + 1/2 M

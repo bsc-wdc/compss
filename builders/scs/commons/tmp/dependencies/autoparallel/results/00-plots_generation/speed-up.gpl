@@ -1,0 +1,42 @@
+#!/bin/gnuplot
+
+# This GNU Plot script requires the following variables:
+#   - application : Name of the application
+# 
+# Call example:
+#   gnuplot -e "application='cholesky'" speed-up.gpl
+# 
+
+reset
+
+# Output format
+set terminal pdf enhanced font "sans,16"
+
+# Set output file
+set output "output/" . application . "_speedup.pdf"
+
+# Caption position
+set key inside right top vertical noreverse noenhanced autotitle nobox
+
+# Set labels
+set xlabel "#Workers (#cores)"
+set ylabel "Speed-up (u)"
+
+# Style
+set style histogram cluster gap 1
+set style data histograms
+
+set boxwidth 0.9 absolute
+set style fill solid 0.5 
+set bars front
+
+set yrange [0.5:4]
+set logscale y 2
+set grid ytics
+
+# Plot
+plot "data/" . application . ".data" using 2:xticlabels(1) title "UserParallel" linecolor rgb "#004586", \
+        '' using 6 title "AutoParallel" lt 1 lc rgb "#3cb371", \
+        '' using 2:xticlabels(1) with lines linecolor rgb "#2b5272" title "", \
+        '' using 6:xticlabels(1) with lines linecolor rgb "#29aa63" title ""
+ 

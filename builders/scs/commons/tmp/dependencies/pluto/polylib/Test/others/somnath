@@ -1,0 +1,15 @@
+# An example provided by
+# Somnath Ghosh <sghosh@phoenix.Princeton.EDU>
+
+6 8
+#  h_d   i_d    b   n      P  Q   cst
+1   1     0     0   0      0  0    -1
+1   -1    0     0   0      0  0    29
+0   0     1     0   0      0  0    0
+1   0     0     0   1      0  0    0
+1   0     0     0   -1     1  0    0
+0   197   1     -1  -1024  0  1    0
+
+
+# context: two free parameters
+0 4

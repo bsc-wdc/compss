@@ -1,0 +1,11 @@
+# HNF of this Matrix (not a lattice)
+M 1
+5 5
+0 0 0 1 0
+4 0 4 0 -4
+4 0 4 0 -4
+4 0 4 0 -4
+0 0 0  0 1
+D 0
+F 2
+

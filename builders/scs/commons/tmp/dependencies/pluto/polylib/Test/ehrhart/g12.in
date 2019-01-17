@@ -1,0 +1,41 @@
+# Gauss Anticipated memory: second dependence
+#
+# lambda = ( 0 1 1 )
+#
+# sigma(X and Y) = ( 1 0 0 )
+#                  ( 0 1 0 )
+
+# P = i0, Q = j0, R = k0
+# S = N
+# T = a0, U = a1
+#  i  j  k  P  Q  R  S  T  U  cte
+#          i0 j0 k0  N a0 a1
+8 11
+0  1  0  0  0  0  0  0 -1  0   0   # i = a_0
+0  0  1 -1  0  0  0  0  0  0  -1   # j = k+1
+1  0 -1  0  0  0  1  0  0  0   1   # j <=  k0 + 1
+1  0  1  0  0 -1 -1  0  0  1  -1   # j >= j0 + k0 - a1 + 1
+1  0  1  0  0  0  0  0  0  0  -1   # j>= 1
+1  0 -1  0  0  0  0  1  0  0  -1   # j<= N-1
+1  0 -1  0  0  0  0  0  1  0  -1   # j<= a0-1
+1  0 -1  0  0  0  0  0  0  1  -1   # j<= a1-1
+
+
+# 6 params
+#  P  Q  R  S  T  U cte
+# i0 j0 k0  N a0 a1
+9 8
+1  0  0  0  1  0  0  1   # N >= 1
+1  1  0 -1  0  0  0 -2   # i0 >= k0+2    (i0,j0,k0) an emission point
+1 -1  0  0  1  0  0  0   # i0 <= N
+0  0  1 -1  0  0  0 -1   # j0 = k0 + 1
+1  0  0  1  0  0  0  0   # k0 >= 0
+1  0  0 -1  1  0  0 -2   # k0 <= N-2
+0  1  0  0  0 -1  0  0   # a0 = i0        (a0,a1) a utilization proc.
+1  0  0 -1  0  0  1 -2   # a1 >= k0 + 2
+1  0  0  0  1  0 -1  1   # a1 <= N + 1
+
+
+i0 j0 k0 N a0 a1
+Memory - Gauss Pivot
+

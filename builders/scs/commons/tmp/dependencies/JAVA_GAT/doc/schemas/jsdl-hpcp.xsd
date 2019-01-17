@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcp" xmlns:jsdl-hpcp="http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcp" targetNamespace="http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcp" elementFormDefault="qualified">
+	<!--========================================================================-->
+	<xsd:complexType name="Environment_Type">
+		<xsd:simpleContent>
+			<xsd:extension base="xsd:string">
+				<xsd:attribute name="name" type="xsd:NCName" use="required"/>
+				<xsd:anyAttribute namespace="##other" processContents="lax"/>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<!--========================================================================-->
+	<xsd:complexType name="Argument_Type">
+		<xsd:simpleContent>
+			<xsd:extension base="xsd:string">
+				<xsd:anyAttribute namespace="##other" processContents="lax"/>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<!--========================================================================-->
+	<xsd:complexType name="FileName_Type">
+		<xsd:simpleContent>
+			<xsd:extension base="xsd:string">
+				<xsd:anyAttribute namespace="##other" processContents="lax"/>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<!--========================================================================-->
+	<xsd:complexType name="DirectoryName_Type">
+		<xsd:simpleContent>
+			<xsd:extension base="xsd:string">
+				<xsd:anyAttribute namespace="##other" processContents="lax"/>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<!--========================================================================-->
+	<xsd:complexType name="UserName_Type">
+		<xsd:simpleContent>
+			<xsd:extension base="xsd:string">
+				<xsd:anyAttribute namespace="##other" processContents="lax"/>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<!--========================================================================-->
+	<xsd:complexType name="HPCProfileApplication_Type">
+		<xsd:sequence>
+			<xsd:element ref="jsdl-hpcp:Executable"/>
+			<xsd:element ref="jsdl-hpcp:Argument" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element ref="jsdl-hpcp:Input" minOccurs="0"/>
+			<xsd:element ref="jsdl-hpcp:Output" minOccurs="0"/>
+			<xsd:element ref="jsdl-hpcp:Error" minOccurs="0"/>
+			<xsd:element ref="jsdl-hpcp:WorkingDirectory" minOccurs="0"/>
+			<xsd:element ref="jsdl-hpcp:Environment" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element ref="jsdl-hpcp:UserName" minOccurs="0"/>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:NCName" use="optional"/>
+		<xsd:anyAttribute namespace="##other" processContents="lax"/>
+	</xsd:complexType>
+	<!--========================================================================-->
+	<xsd:element name="HPCProfileApplication" type="jsdl-hpcp:HPCProfileApplication_Type"/>
+	<xsd:element name="Executable" type="jsdl-hpcp:FileName_Type"/>
+	<xsd:element name="Argument" type="jsdl-hpcp:Argument_Type"/>
+	<xsd:element name="Input" type="jsdl-hpcp:FileName_Type"/>
+	<xsd:element name="Output" type="jsdl-hpcp:FileName_Type"/>
+	<xsd:element name="Error" type="jsdl-hpcp:FileName_Type"/>
+	<xsd:element name="WorkingDirectory" type="jsdl-hpcp:DirectoryName_Type"/>
+	<xsd:element name="Environment" type="jsdl-hpcp:Environment_Type"/>
+	<xsd:element name="UserName" type="jsdl-hpcp:UserName_Type"/>
+</xsd:schema>

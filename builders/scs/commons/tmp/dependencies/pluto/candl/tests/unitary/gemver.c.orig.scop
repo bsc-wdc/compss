@@ -1,0 +1,319 @@
+[Clan] Info: parsing file #1 (./unitary/gemver.c)
+
+<OpenScop>
+
+# =============================================== Global
+# Language
+C
+
+# Context
+CONTEXT
+0 3 0 0 0 1
+
+# Parameters are provided
+1
+<strings>
+N
+</strings>
+
+# Number of statements
+4
+
+# =============================================== Statement 1
+# Number of relations describing the statement:
+8
+
+# ----------------------------------------------  1.1 Domain
+DOMAIN
+5 5 2 0 0 1
+# e/i|  i    j |  N |  1  
+   1    1    0    0    0    ## i >= 0
+   1   -1    0    1   -1    ## -i+N-1 >= 0
+   1    0    0    1   -1    ## N-1 >= 0
+   1    0    1    0    0    ## j >= 0
+   1    0   -1    1   -1    ## -j+N-1 >= 0
+
+# ----------------------------------------------  1.2 Scattering
+SCATTERING
+5 10 5 2 0 1
+# e/i| c1   c2   c3   c4   c5 |  i    j |  N |  1  
+   0   -1    0    0    0    0    0    0    0    0    ## c1 == 0
+   0    0   -1    0    0    0    1    0    0    0    ## c2 == i
+   0    0    0   -1    0    0    0    0    0    0    ## c3 == 0
+   0    0    0    0   -1    0    0    1    0    0    ## c4 == j
+   0    0    0    0    0   -1    0    0    0    0    ## c5 == 0
+
+# ----------------------------------------------  1.3 Access
+WRITE
+3 8 3 2 0 1
+# e/i| Arr  [1]  [2]|  i    j |  N |  1  
+   0   -1    0    0    0    0    0    4    ## Arr == A
+   0    0   -1    0    1    0    0    0    ## [1] == i
+   0    0    0   -1    0    1    0    0    ## [2] == j
+
+READ
+3 8 3 2 0 1
+# e/i| Arr  [1]  [2]|  i    j |  N |  1  
+   0   -1    0    0    0    0    0    4    ## Arr == A
+   0    0   -1    0    1    0    0    0    ## [1] == i
+   0    0    0   -1    0    1    0    0    ## [2] == j
+
+READ
+2 7 2 2 0 1
+# e/i| Arr  [1]|  i    j |  N |  1  
+   0   -1    0    0    0    0    5    ## Arr == u1
+   0    0   -1    1    0    0    0    ## [1] == i
+
+READ
+2 7 2 2 0 1
+# e/i| Arr  [1]|  i    j |  N |  1  
+   0   -1    0    0    0    0    6    ## Arr == v1
+   0    0   -1    0    1    0    0    ## [1] == j
+
+READ
+2 7 2 2 0 1
+# e/i| Arr  [1]|  i    j |  N |  1  
+   0   -1    0    0    0    0    7    ## Arr == u2
+   0    0   -1    1    0    0    0    ## [1] == i
+
+READ
+2 7 2 2 0 1
+# e/i| Arr  [1]|  i    j |  N |  1  
+   0   -1    0    0    0    0    8    ## Arr == v2
+   0    0   -1    0    1    0    0    ## [1] == j
+
+# ----------------------------------------------  1.4 Statement Extensions
+# Number of Statement Extensions
+1
+<body>
+# Number of original iterators
+2
+# List of original iterators
+i j
+# Statement body expression
+A[i][j] = A[i][j] + u1[i]*v1[j] + u2[i]*v2[j];
+</body>
+
+# =============================================== Statement 2
+# Number of relations describing the statement:
+7
+
+# ----------------------------------------------  2.1 Domain
+DOMAIN
+5 5 2 0 0 1
+# e/i|  i    j |  N |  1  
+   1    1    0    0    0    ## i >= 0
+   1   -1    0    1   -1    ## -i+N-1 >= 0
+   1    0    0    1   -1    ## N-1 >= 0
+   1    0    1    0    0    ## j >= 0
+   1    0   -1    1   -1    ## -j+N-1 >= 0
+
+# ----------------------------------------------  2.2 Scattering
+SCATTERING
+5 10 5 2 0 1
+# e/i| c1   c2   c3   c4   c5 |  i    j |  N |  1  
+   0   -1    0    0    0    0    0    0    0    1    ## c1 == 1
+   0    0   -1    0    0    0    1    0    0    0    ## c2 == i
+   0    0    0   -1    0    0    0    0    0    0    ## c3 == 0
+   0    0    0    0   -1    0    0    1    0    0    ## c4 == j
+   0    0    0    0    0   -1    0    0    0    0    ## c5 == 0
+
+# ----------------------------------------------  2.3 Access
+WRITE
+2 7 2 2 0 1
+# e/i| Arr  [1]|  i    j |  N |  1  
+   0   -1    0    0    0    0    9    ## Arr == x
+   0    0   -1    1    0    0    0    ## [1] == i
+
+READ
+2 7 2 2 0 1
+# e/i| Arr  [1]|  i    j |  N |  1  
+   0   -1    0    0    0    0    9    ## Arr == x
+   0    0   -1    1    0    0    0    ## [1] == i
+
+READ
+1 6 1 2 0 1
+# e/i| Arr|  i    j |  N |  1  
+   0   -1    0    0    0   10    ## Arr == beta
+
+READ
+3 8 3 2 0 1
+# e/i| Arr  [1]  [2]|  i    j |  N |  1  
+   0   -1    0    0    0    0    0    4    ## Arr == A
+   0    0   -1    0    1    0    0    0    ## [1] == i
+   0    0    0   -1    0    1    0    0    ## [2] == j
+
+READ
+2 7 2 2 0 1
+# e/i| Arr  [1]|  i    j |  N |  1  
+   0   -1    0    0    0    0   11    ## Arr == y
+   0    0   -1    0    1    0    0    ## [1] == j
+
+# ----------------------------------------------  2.4 Statement Extensions
+# Number of Statement Extensions
+1
+<body>
+# Number of original iterators
+2
+# List of original iterators
+i j
+# Statement body expression
+x[i] = x[i] + beta* A[i][j]*y[j];
+</body>
+
+# =============================================== Statement 3
+# Number of relations describing the statement:
+5
+
+# ----------------------------------------------  3.1 Domain
+DOMAIN
+3 4 1 0 0 1
+# e/i|  i |  N |  1  
+   1    1    0    0    ## i >= 0
+   1   -1    1   -1    ## -i+N-1 >= 0
+   1    0    1   -1    ## N-1 >= 0
+
+# ----------------------------------------------  3.2 Scattering
+SCATTERING
+3 7 3 1 0 1
+# e/i| c1   c2   c3 |  i |  N |  1  
+   0   -1    0    0    0    0    2    ## c1 == 2
+   0    0   -1    0    1    0    0    ## c2 == i
+   0    0    0   -1    0    0    0    ## c3 == 0
+
+# ----------------------------------------------  3.3 Access
+WRITE
+2 6 2 1 0 1
+# e/i| Arr  [1]|  i |  N |  1  
+   0   -1    0    0    0    9    ## Arr == x
+   0    0   -1    1    0    0    ## [1] == i
+
+READ
+2 6 2 1 0 1
+# e/i| Arr  [1]|  i |  N |  1  
+   0   -1    0    0    0    9    ## Arr == x
+   0    0   -1    1    0    0    ## [1] == i
+
+READ
+2 6 2 1 0 1
+# e/i| Arr  [1]|  i |  N |  1  
+   0   -1    0    0    0   12    ## Arr == z
+   0    0   -1    1    0    0    ## [1] == i
+
+# ----------------------------------------------  3.4 Statement Extensions
+# Number of Statement Extensions
+1
+<body>
+# Number of original iterators
+1
+# List of original iterators
+i
+# Statement body expression
+x[i] = x[i] + z[i];
+</body>
+
+# =============================================== Statement 4
+# Number of relations describing the statement:
+7
+
+# ----------------------------------------------  4.1 Domain
+DOMAIN
+5 5 2 0 0 1
+# e/i|  i    j |  N |  1  
+   1    1    0    0    0    ## i >= 0
+   1   -1    0    1   -1    ## -i+N-1 >= 0
+   1    0    0    1   -1    ## N-1 >= 0
+   1    0    1    0    0    ## j >= 0
+   1    0   -1    1   -1    ## -j+N-1 >= 0
+
+# ----------------------------------------------  4.2 Scattering
+SCATTERING
+5 10 5 2 0 1
+# e/i| c1   c2   c3   c4   c5 |  i    j |  N |  1  
+   0   -1    0    0    0    0    0    0    0    3    ## c1 == 3
+   0    0   -1    0    0    0    1    0    0    0    ## c2 == i
+   0    0    0   -1    0    0    0    0    0    0    ## c3 == 0
+   0    0    0    0   -1    0    0    1    0    0    ## c4 == j
+   0    0    0    0    0   -1    0    0    0    0    ## c5 == 0
+
+# ----------------------------------------------  4.3 Access
+WRITE
+2 7 2 2 0 1
+# e/i| Arr  [1]|  i    j |  N |  1  
+   0   -1    0    0    0    0   13    ## Arr == w
+   0    0   -1    1    0    0    0    ## [1] == i
+
+READ
+2 7 2 2 0 1
+# e/i| Arr  [1]|  i    j |  N |  1  
+   0   -1    0    0    0    0   13    ## Arr == w
+   0    0   -1    1    0    0    0    ## [1] == i
+
+READ
+1 6 1 2 0 1
+# e/i| Arr|  i    j |  N |  1  
+   0   -1    0    0    0   14    ## Arr == alpha
+
+READ
+3 8 3 2 0 1
+# e/i| Arr  [1]  [2]|  i    j |  N |  1  
+   0   -1    0    0    0    0    0    4    ## Arr == A
+   0    0   -1    0    1    0    0    0    ## [1] == i
+   0    0    0   -1    0    1    0    0    ## [2] == j
+
+READ
+2 7 2 2 0 1
+# e/i| Arr  [1]|  i    j |  N |  1  
+   0   -1    0    0    0    0    9    ## Arr == x
+   0    0   -1    0    1    0    0    ## [1] == j
+
+# ----------------------------------------------  4.4 Statement Extensions
+# Number of Statement Extensions
+1
+<body>
+# Number of original iterators
+2
+# List of original iterators
+i j
+# Statement body expression
+w[i] = w[i] + alpha* A[i][j]*x[j];
+</body>
+
+# =============================================== Extensions
+<scatnames>
+b0 i b1 j b2
+</scatnames>
+
+<arrays>
+# Number of arrays
+14
+# Mapping array-identifiers/array-names
+1 i
+2 N
+3 j
+4 A
+5 u1
+6 v1
+7 u2
+8 v2
+9 x
+10 beta
+11 y
+12 z
+13 w
+14 alpha
+</arrays>
+
+<coordinates>
+# File name
+./unitary/gemver.c
+# Starting line and column
+10 0
+# Ending line and column
+25 0
+# Indentation
+2
+</coordinates>
+
+</OpenScop>
+

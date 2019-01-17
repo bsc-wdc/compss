@@ -1,0 +1,45 @@
+<OpenScop>
+
+# =============================================== Global
+# Language
+C
+
+# Context
+CONTEXT
+0 2 0 0 0 0
+
+# Parameter names are not provided
+0
+
+# No statement
+0
+
+# =============================================== Options
+<symbols>
+# Number of symbols
+1
+# ===========================================
+# 1 Data for symbol number 1
+# 1.1 Symbol type
+Iterator
+# 1.2 Generated Boolean
+0
+# 1.3 Number of dimensions
+1
+# 1.4 Identifier
+<strings>
+i
+</strings>
+# 1.5 Datatype
+<strings>
+int
+</strings>
+# 1.6 Scope
+<null>
+</null>
+# 1.7 Extent
+<null>
+</null>
+</symbols>
+</OpenScop>
+

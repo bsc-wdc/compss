@@ -1,0 +1,16 @@
+int i, *A;
+
+
+#pragma scop
+for (i = N; i < M; ++i)
+{
+  {
+    {
+      {
+        A[i] = i;
+      }
+    }/**/
+  /**/}
+}
+#pragma endscop
+ 

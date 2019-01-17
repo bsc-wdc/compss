@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:gridsam:myproxy" targetNamespace="urn:gridsam:myproxy" elementFormDefault="qualified">
+
+    <xsd:complexType name="MyProxyType">
+        <xsd:sequence>
+            <xsd:element name="ProxyServer" type="xsd:string" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="ProxyServerDN" type="xsd:string" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="ProxyServerPort" type="xsd:int" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="ProxyServerUserName" type="xsd:string" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="ProxyServerPassPhrase" type="xsd:string" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="ProxyServerLifetime" type="xsd:int" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="MyProxy" type="MyProxyType"/> 
+
+</xsd:schema>

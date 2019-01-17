@@ -1,0 +1,13 @@
+<?xml version='1.0'?>
+
+<trace enabled="yes"
+ home="/home/harald/aplic/extrae/3.3.0rc"
+ initial-mode="detail"
+ type="paraver"
+>
+
+  <pthread enabled="yes">
+    <counters enabled="no" />
+  </pthread>
+
+</trace>

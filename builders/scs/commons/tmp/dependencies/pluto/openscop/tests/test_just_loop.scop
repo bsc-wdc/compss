@@ -1,0 +1,71 @@
+<OpenScop>
+
+# =============================================== Global
+# Language
+C
+
+# Context
+CONTEXT
+0 2 0 0 0 0
+
+# Parameter names are not provided
+0
+
+# No statement
+0
+
+# =============================================== Options
+<loop>
+# Number of loops
+4
+# ===========================================
+# Loop number 1 
+# Iterator name
+t2
+# Number of stmts
+1
+# Statement identifiers
+1
+# Private variables
+lbv,ubv
+# Directive
+1
+# ===========================================
+# Loop number 2 
+# Iterator name
+t2
+# Number of stmts
+1
+# Statement identifiers
+2
+# Private variables
+lbv, ubv
+# Directive
+1
+# ===========================================
+# Loop number 3 
+# Iterator name
+t9
+# Number of stmts
+1
+# Statement identifiers
+1
+# Private variables
+(null)
+# Directive
+8 (null)
+# ===========================================
+# Loop number 4 
+# Iterator name
+t9
+# Number of stmts
+1
+# Statement identifiers
+2
+# Private variables
+(null)
+# Directive
+8 user_defined_pragma (arg1, arg2)
+</loop>
+
+</OpenScop>

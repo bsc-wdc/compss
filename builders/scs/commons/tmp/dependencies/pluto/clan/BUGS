@@ -1,0 +1,44 @@
+------------------------------------------------------------------------------
+1. BLOCKER
+
+
+------------------------------------------------------------------------------
+2. CRITICAL
+
+
+------------------------------------------------------------------------------
+3. MAJOR
+
+
+------------------------------------------------------------------------------
+4. NORMAL
+
+---
+4.1 Memory leak with -autoscop/-autopragma (reported by C. Bastoul)
+---
+Some memory leaks are possible when using -autoscop/-autopragma depending
+where the parse errors happen. E.g., or a code like:
+for (i = 42; i+1 < N*M; i++)
+  S(i);
+there will be 3 leaks:
+- the "i" symbol stored in the parser_iterators array while the
+  parser_loop_depth has not been updated yet,
+- the "i >= 42" relation,
+- the "i+1" relation.
+Everything can be freed by adding the following destructors:
+
+%destructor { clan_symbol_free(parser_iterators[parser_loop_depth]);
+              osl_relation_free($$);
+            } loop_initialization
+%destructor { osl_relation_free($$); } <setex>
+
+Those destructors would be wonderful, and it's probably the way to go,
+however they may cause some double frees. Try, e.g.,
+tests/autoscop/matmul_2_non_static_fences.c	
+I still don't see what to do...
+ 
+------------------------------------------------------------------------------
+5. MINOR
+
+
+

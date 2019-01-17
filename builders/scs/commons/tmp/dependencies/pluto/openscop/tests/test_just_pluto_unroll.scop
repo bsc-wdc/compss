@@ -1,0 +1,37 @@
+<OpenScop>
+
+# =============================================== Global
+# Language
+C
+
+# Context
+CONTEXT
+0 2 0 0 0 0
+
+# Parameter names are not provided
+0
+
+# No statement
+0
+
+# =============================================== Options
+<pluto_unroll>
+1
+# Iterator name
+t3
+# Jam
+1
+# Factor
+4
+# Next
+1
+# Iterator name
+t4
+# Jam
+0
+# Factor
+4
+# Next
+0
+</pluto_unroll>
+</OpenScop>

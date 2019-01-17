@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="640"
+   height="480"
+   id="svg3039"
+   version="1.1"
+   inkscape:version="0.48.5 r10040"
+   sodipodi:docname="unselected_graph.svg">
+  <metadata
+     id="metadata3053">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs3051" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1197"
+     inkscape:window-height="663"
+     id="namedview3049"
+     showgrid="false"
+     inkscape:zoom="0.49166667"
+     inkscape:cx="320"
+     inkscape:cy="240"
+     inkscape:window-x="2142"
+     inkscape:window-y="144"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg3039" />
+  <!-- Created with SVG-edit - http://svg-edit.googlecode.com/ -->
+  <g
+     id="g3041">
+    <title
+       id="title3043">Layer 1</title>
+    <rect
+       id="svg_1"
+       height="480"
+       width="639"
+       y="-1"
+       x="0"
+       stroke-width="5"
+       stroke="#02327a"
+       fill="#02327a" />
+    <text
+       transform="matrix(22.58357810974121,0,0,1,3158.2845155894756,0) "
+       xml:space="preserve"
+       text-anchor="middle"
+       font-family="serif"
+       font-size="24"
+       id="svg_2"
+       y="224"
+       x="-141"
+       stroke-width="0"
+       stroke="#02327a"
+       fill="#ffffff" />
+    <text
+       xml:space="preserve"
+       text-anchor="middle"
+       font-family="serif"
+       font-size="24"
+       id="svg_3"
+       y="183"
+       x="263"
+       stroke-linecap="null"
+       stroke-linejoin="null"
+       stroke-width="0"
+       stroke="#02327a"
+       fill="#ffffff" />
+    <text
+       xml:space="preserve"
+       text-anchor="middle"
+       font-family="serif"
+       font-size="47"
+       id="svg_4"
+       y="252"
+       x="318"
+       stroke-linecap="null"
+       stroke-linejoin="null"
+       stroke-width="0"
+       stroke="#02327a"
+       fill="#ffffff">Please select an application</text>
+  </g>
+  <rect
+     style="fill:#02327a;fill-opacity:1"
+     id="rect3057"
+     width="561.35596"
+     height="150.50847"
+     x="44.745762"
+     y="178.98305" />
+  <text
+     xml:space="preserve"
+     style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Sans"
+     x="319.07111"
+     y="144.40677"
+     id="text3059"
+     sodipodi:linespacing="125%"><tspan
+       sodipodi:role="line"
+       id="tspan3061"
+       x="319.07111"
+       y="144.40677"
+       style="text-align:center;text-anchor:middle">The complete graph has not</tspan><tspan
+       sodipodi:role="line"
+       x="319.07111"
+       y="194.40677"
+       id="tspan3063"
+       style="text-align:center;text-anchor:middle">been generated yet.</tspan><tspan
+       sodipodi:role="line"
+       x="319.07111"
+       y="244.40677"
+       id="tspan3065"
+       style="text-align:center;text-anchor:middle" /><tspan
+       sodipodi:role="line"
+       x="319.07111"
+       y="294.40677"
+       id="tspan3067"
+       style="text-align:center;text-anchor:middle">Please wait until the</tspan><tspan
+       sodipodi:role="line"
+       x="319.07111"
+       y="344.40677"
+       id="tspan3069"
+       style="text-align:center;text-anchor:middle">application execution ends.</tspan></text>
+</svg>

@@ -1,0 +1,47 @@
+This is a non-complete list of JavaGAT users.
+JavaGAT can be downloaded anonymously, so we really don't know who is using it.
+We are aware of some users, those are listed below. 
+In many cases we don't exactly know what JavaGAT is used for.
+
+
+- Max Planck Institute for Astrophysics in Garching (Alexander Beck-Ratzka)
+
+- Louisiane State University, University of Texas (Rion Dooley)
+  A computational chemistry middleware project that needs a lot of grid-type features.
+
+- AMOLF, the Institute for Atomic and Molecular Physics, The Netherlands 
+  (Marco Konijnenburg).
+  Using JavaGAT in a Fourier Transform Mass Spectrometry (FTMS) analysis application.
+  The FTMS dataset can be streamed to compute resources with the JavaGAT, with ssh, sftp 
+  and gridftp.
+
+- The JavaGAT is currently developed as a part of the Dutch Virtual Labs for E-science 
+  project (Vl-e) middleware.
+
+- The workflow system Triana (University of Cardiff) can use GAT to start jobs on the grid 
+  (Ian Wang).
+
+- Georgia State University (Milan Pandya)
+
+- Vrije Universiteit Amsterdam. JavaGAT is developed here. Several of our grid projects 
+  use it. We also use it for the Grid Computing course here, students have to write grid 
+  programs with the JavaGAT.
+  
+- The Multimedian project (http://www.multimedian.nl) uses JavaGAT to start parallel jobs 
+  on the grid (Frank Seinstra).
+
+- Zuse Institute Berlin, Germany (Artur Andrzejak)
+
+- INRIA, France (Mario Leyton)
+
+- The TextGrid project: http://www.textgrid.de (Frank Knoll)
+
+- Jylab
+
+- VUMC (Keith Cover)
+
+- The Integrade Project (http://www.integrade.org.br)
+	Integrade adaptor set (an object oriented grid middleware layer), an Eclipse based IDE
+
+- ...
+

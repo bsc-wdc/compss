@@ -1,0 +1,3 @@
+/home/mdomingu/git/framework/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/mdomingu/git/framework/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/mdomingu/git/framework/cmake-build-debug/CMakeFiles/framework.dir

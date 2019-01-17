@@ -1,0 +1,478 @@
+#!/bin/bash
+
+#---------------------------------------------------
+# SCRIPT CONSTANTS DECLARATION
+#---------------------------------------------------
+DEFAULT_EXEC_TIME="1"        # 1 minute
+DEFAULT_JOB_NAME="Jupyter"
+DEFAULT_NUM_NODES=2
+DEFAULT_USER_NAME="undefined"
+DEFAULT_GET_PASSWORD=false   # default is using passwordless
+DEFAULT_SUPERCOMPUTER="mn2.bsc.es"
+DEFAULT_BROWSER="firefox"
+DEFAULT_QOS=""
+DEFAULT_TRACING="false"
+DEFAULT_PORT_FORWARDING="3333"
+DEFAULT_CLASSPATH="."
+DEFAULT_PYTHONPATH="."
+DEFAULT_STORAGE_HOME="undefined"
+DISABLED_STORAGE_HOME="undefined"
+DEFAULT_STORAGE_PROPS="undefined"
+DEFAULT_STORAGE="None"
+
+DEFAULT_LOG_LEVEL=off
+DEFAULT_LOG_LEVEL_ARGUMENT=debug
+LOG_LEVEL_DEBUG=debug
+LOG_LEVEL_INFO=info
+LOG_LEVEL_OFF=off
+
+#---------------------------------------------------
+# SCRIPT TOOLS
+#---------------------------------------------------
+DEFAULT_SSH="ssh"  # When password provided, use sshpass -e before ssh
+
+#---------------------------------------------------
+# WARNING CONSTANTS DECLARATION
+#---------------------------------------------------
+WARNING_USER_NAME_NOT_PROVIDED="Username not provided. Using default: ${DEFAULT_USER_NAME}"
+
+#---------------------------------------------------
+# ERROR CONSTANTS DECLARATION
+#---------------------------------------------------
+ERROR_CONNECTING="Could not connect to the supercomputer. Please check the connectivity, user name and password."
+ERROR_COMPSS_NOT_DEFINED="COMPSs is not available in the supercomputer. Please check that you have propperly configured the module load in your .bashrc."
+ERROR_SUBMITTING_JOB="Could not submit the job to the supercomputer. Please check that you are able to submit jobs to the supercomputer."
+ERROR_STORAGE_PROPS="--storage_props flag not defined."
+ERROR_UNSUPPORTED_STORAGE_SHORTCUT="Non supported external storage shortcut."
+ERROR_WRONG_DEBUG_FLAG="Non supported debug flag. Please use: ${LOG_LEVEL_OFF} | ${LOG_LEVEL_INFO} | ${LOG_LEVEL_DEBUG}"
+
+
+#---------------------------------------------------------------------------------------
+# HELPER FUNCTIONS
+#---------------------------------------------------------------------------------------
+
+# Trap CTRL+C and call CTRL_C()
+trap CTRL_C INT
+
+function CTRL_C() {
+  echo "* CTRL + C pressed - Quit!"
+  if [ -z "${RUNNING_PORT_FORWARDING_PID}" ]; then
+    echo -e "\\t - Killing port forwarding..."
+    kill "${RUNNING_PORT_FORWARDING_PID}"
+  fi
+  if [ -z "${job_id}" ]; then
+    echo -e "\\t - Cancelling job..."
+    ${DEFAULT_SSH} "${username}@${supercomputer}" "${REMOTE_SCRIPT_DIR}/cancel_jupyter_job.sh $job_id" > /dev/null 2>&1
+  fi
+  echo "* Finished"
+}
+
+check_connectivity() {
+  echo "Checking connectivity..."
+  ${DEFAULT_SSH} "${username}@${supercomputer}" -o PasswordAuthentication=no -o BatchMode=yes exit &>/dev/null
+  test_exit_code=$?
+  if [ "${test_exit_code}" = 255 ]; then
+    display_error "${ERROR_CONNECTING}"
+    exit ${test_exit_code}
+  fi
+}
+
+###############################################
+# Displays usage
+###############################################
+usage() {
+  exitValue=$1
+
+  # Show usage
+  cat <<EOT
+Usage: $0 [Options]
+
+* Options:
+  General:
+    --help, -h                              Print this help message
+    --opts                                  Show available options
+    --version, -v                           Print COMPSs version
+
+  Submission configuration:
+    --exec_time=<int>                       Session duration (minutes)
+                                            Default: ${DEFAULT_EXEC_TIME}
+    --job_name=<string>                     Job name
+                                            Default: ${DEFAULT_JOB_NAME}
+    --num_nodes=<int>                       Amount of num_nodes to use
+                                            Default: ${DEFAULT_NUM_NODES}
+    --username=<string>                     User name to login into the supercomputer (mandatory)
+                                            Default: ${DEFAULT_USER_NAME}
+    --password                              Request user password to login into the supercomputer
+    --supercomputer=<string>                Supercomputer to connect
+                                            Default: ${DEFAULT_SUPERCOMPUTER}
+    --browser=<path>                        Web browser
+                                            Default: ${DEFAULT_BROWSER}
+    --qos=<string>                          Quality of Service.
+                                            Default: ""
+    --log_level=<level>, --debug, -d        Set the debug level: ${LOG_LEVEL_OFF} | ${LOG_LEVEL_INFO} | ${LOG_LEVEL_DEBUG}
+                                            Default: ${DEFAULT_LOG_LEVEL}
+    --tracing=<string>                      Enable/Disable tracing environment [true | false]
+                                            Default: ${DEFAULT_TRACING}
+    --port_forwarding=<int>                 Set a specific port for port forwarding.
+                                            Default: ${DEFAULT_PORT_FORWARDING}
+    --classpath=<path>                      Path for the application classes / modules
+                                            Default: Working Directory
+    --pythonpath=<path>                     Additional folders or paths to add to the PYTHONPATH
+                                            Default: Working Directory
+    --storage_home=<path>                   Absolute path at supercomputer of the storage implementation.
+                                            Default: ${DEFAULT_STORAGE_HOME}
+    --storage_props=<path>                  Absolute path at supercomputer of the storage properties file.
+                                            Mandatory if storage_home is defined
+    --storage=<string>                      External storage selection shortcut.
+                                            Overrides storage_home and needed classpath/pythonpath flags,
+                                            uses storage_props.cfg from home if exists.
+                                            Otherwise creates and uses an empty one.
+                                            Available options: None | redis
+                                            Defauult: ${DEFAULT_STORAGE}
+EOT
+
+  exit "$exitValue"
+}
+
+###############################################
+# Displays version
+###############################################
+display_version() {
+  local exitValue=$1
+
+  runcompss --version
+
+  exit "$exitValue"
+}
+
+###############################################
+# Displays warnings treating arguments
+###############################################
+display_warning() {
+  local warning_msg=$*
+
+  echo " "
+  echo "WARNING: $warning_msg"
+  echo " "
+}
+
+###############################################
+# Displays errors treating arguments
+###############################################
+display_error() {
+  local error_msg=$*
+
+  echo " "
+  echo "ERROR: $error_msg"
+  echo " "
+
+  usage 1
+}
+
+#---------------------------------------------------------------------------------------
+# MAIN FUNCTIONS
+#---------------------------------------------------------------------------------------
+
+###############################################
+# Get arguments
+###############################################
+get_args() {
+  # Avoid enqueue if there is no application
+  if [ $# -eq 0 ]; then
+    usage 1
+  fi
+
+  # Parse COMPSs Options
+  while getopts hvgtmd-: flag; do
+    # Treat the argument
+    case "$flag" in
+      h)
+        # Display help
+        usage 0
+        ;;
+      v)
+        # Display version
+        display_version 0
+        ;;
+      d)
+        # Enable debug in log level
+        log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
+        ;;
+      -)
+        # Check more complex arguments
+        case "$OPTARG" in
+          help)
+            # Display help
+            usage 0
+            ;;
+          version)
+            # Display COMPSs version
+            display_version 0
+            ;;
+          exec_time=*)
+            exec_time=${OPTARG//exec_time=/}
+            ;;
+          job_name=*)
+            job_name=${OPTARG//job_name=/}
+            ;;
+          num_nodes=*)
+            num_nodes=${OPTARG//num_nodes=/}
+            ;;
+          username=*)
+            username=${OPTARG//username=/}
+            ;;
+          password)
+            DEFAULT_GET_PASSWORD=true
+            ;;
+          supercomputer=*)
+            supercomputer=${OPTARG//supercomputer=/}
+            ;;
+          browser=*)
+            browser=${OPTARG//browser=/}
+            ;;
+          qos=*)
+            qos=${OPTARG//qos=/}
+            ;;
+          log_level=*)
+            # Enable different log_levels by user selection
+            log_level=${OPTARG//log_level=/}
+            ;;
+          debug*)
+            # Enable debug in log level
+            log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
+            ;;
+          tracing=*)
+            tracing=${OPTARG//tracing=/}
+            ;;
+          port_forwarding=*)
+            port_forwarding=${OPTARG//port_forwarding=/}
+            ;;
+          classpath=*)
+            classpath=${OPTARG//classpath=/}
+            ;;
+          pythonpath=*)
+            pythonpath=${OPTARG//pythonpath=/}
+            ;;
+          storage_home=*)
+            storage_home=${OPTARG//storage_home=/}
+            ;;
+          storage_props=*)
+            storage_props=${OPTARG//storage_props=/}
+            ;;
+          storage=*)
+            storage=${OPTARG//storage=/}
+            ;;
+          *)
+            # Flag didn't match any pattern.
+            ;;
+        esac
+        ;;
+      *)
+        # Flag didn't match any pattern. End of COMPSs flags
+        ;;
+    esac
+  done
+}
+
+###############################################
+# Checks arguments
+###############################################
+check_args() {
+
+  # Check exec_time argument
+  if [ -z "${exec_time}" ]; then
+    exec_time=${DEFAULT_EXEC_TIME}
+  fi
+  # Convert exec_time in minutes to hh:mm:ss format
+  # ((hour=$exec_time/60))
+  # ((min=$exec_time-$hour*60))
+  # exec_time=$(printf "%02d:%02d:00" $hour $min)
+
+  # Check job name argument
+  if [ -z "${job_name}" ]; then
+    job_name=${DEFAULT_JOB_NAME}
+  fi
+
+  # Check num_nodes argument
+  if [ -z "${num_nodes}" ]; then
+    num_nodes=${DEFAULT_NUM_NODES}
+  fi
+
+  # Check user name argument
+  if [ -z "${username}" ]; then
+    display_warning "${WARNING_USER_NAME_NOT_PROVIDED}"
+    username=${DEFAULT_USER_NAME}
+  fi
+
+  # Check supercomputer argument
+  if [ -z "${supercomputer}" ]; then
+    supercomputer=${DEFAULT_SUPERCOMPUTER}
+  fi
+
+  # Check user password argument
+  if [ "${DEFAULT_GET_PASSWORD}" = true ]; then
+    # The user requested to provide the password
+    read -s -p "Password: " password
+    export SSHPASS=${password}
+    DEFAULT_SSH="sshpass -e ${DEFAULT_SSH}"
+    check_connectivity
+  else
+    # check if really there is passwordless... otherwise exit and let the user know that the username or the password defined is wrong.
+    check_connectivity
+  fi
+
+  # Check browser argument
+  if [ -z "${browser}" ]; then
+    browser=${DEFAULT_BROWSER}
+  fi
+
+  # Check qos argument
+  if [ -z "${qos}" ]; then
+    qos=${DEFAULT_QOS}
+  fi
+
+  # Check tracing argument
+  if [ -z "${log_level}" ]; then
+    log_level=${DEFAULT_LOG_LEVEL}
+  elif [ "${log_level}" != "${LOG_LEVEL_OFF}" ] && [ "${log_level}" != "${LOG_LEVEL_INFO}" ] && [ "${log_level}" != "${LOG_LEVEL_DEBUG}" ]; then
+    display_error "${ERROR_WRONG_DEBUG_FLAG}"
+  fi
+
+  # Check tracing argument
+  if [ -z "${tracing}" ]; then
+    tracing=${DEFAULT_TRACING}
+  fi
+
+  # Check port_forwarding argument
+  if [ -z "${port_forwarding}" ]; then
+    port_forwarding=${DEFAULT_PORT_FORWARDING}
+  fi
+
+  ###############################################################
+  # Environment checks
+  ###############################################################
+  if [ -z "${classpath}" ]; then
+    classpath=${DEFAULT_CLASSPATH}
+  fi
+
+  if [ -z "${pythonpath}" ]; then
+    pythonpath=${DEFAULT_PYTHONPATH}
+  fi
+
+  ###############################################################
+  # Storage checks
+  ###############################################################
+  if [ -z "${storage_home}" ]; then
+    storage_home=${DEFAULT_STORAGE_HOME}
+  fi
+
+  if [ "${storage_home}" != "${DISABLED_STORAGE_HOME}" ]; then
+    # Check storage props is defined
+    if [ -z "${storage_props}" ]; then
+      display_error "${ERROR_STORAGE_PROPS}"
+      exit 1
+    fi
+  fi
+
+  if [ -z "${storage}" ]; then
+    # Shortcut to select external storage implementation
+    storage=${DEFAULT_STORAGE}
+    storage_home=${DEFAULT_STORAGE_HOME}
+    storage_props=${DEFAULT_STORAGE_PROPS}
+  elif [ "${storage}" != "None" ] && [ "${storage}" != "redis" ]; then
+    display_error "${ERROR_UNSUPPORTED_STORAGE_SHORTCUT}"
+    exit 1
+  else
+    storage_home=${DEFAULT_STORAGE_HOME}
+    storage_props=${DEFAULT_STORAGE_PROPS}
+  fi
+
+}
+
+
+#---------------------------------------------------
+# MAIN EXECUTION
+#---------------------------------------------------
+
+  # Get command args
+  get_args "$@"
+
+  # Check other command args
+  check_args
+
+  which_enqueue_compss=$(${DEFAULT_SSH} ${username}@${supercomputer} "which enqueue_compss" 2>&1)
+  ENQUEUE_COMPSS_PATH=$(echo "$which_enqueue_compss" | grep "enqueue_compss")
+  if [ -z "${ENQUEUE_COMPSS_PATH}" ]; then
+    display_error "${ERROR_COMPSS_NOT_DEFINED}"
+    exit 1
+  fi
+  SCRIPTS_DIR=$(dirname "${ENQUEUE_COMPSS_PATH}")
+  REMOTE_SCRIPT_DIR=${SCRIPTS_DIR}/../system/jupyter
+
+  # Submit command and get connection info
+  echo "Submitting jupyter job and waiting for it to start..."
+  submit_command="${DEFAULT_SSH} ${username}@${supercomputer} ${REMOTE_SCRIPT_DIR}/submit_jupyter_job.sh ${job_name} ${exec_time} ${num_nodes} ${qos} ${log_level} ${tracing} ${classpath} ${pythonpath} ${storage_home} ${storage_props} ${storage}"
+  if [ "${log_level}" == "${LOG_LEVEL_DEBUG}" ]; then
+    echo "[DEBUG] Command: ${submit_command}"
+    connection_info=$(${submit_command})
+    echo "[DEBUG] Connection info: ${connection_info}"
+  else
+    connection_info=$(${submit_command} 2>&1)
+  fi
+
+  # Parse connection info
+  echo "Getting connection information..."
+  job_id_line=$(echo "$connection_info" | grep "JobId:")     # beware with this grep - must be the same as in submit_jupyter_job.sh
+  node_line=$(echo "$connection_info" | grep "MainNode:")    # beware with this grep - must be the same as in submit_jupyter_job.sh
+  token_line=$(echo "$connection_info" | grep "Token:")      # beware with this grep - must be the same as in submit_jupyter_job.sh
+  # Convert to list splitting by :
+  job_id_arr=(${job_id_line//:/ })
+  node=(${node_line//:/ })
+  token=(${token_line//:/ })
+  job_id=${job_id_arr[1]}
+  # Check if job was well Submitted
+  if [ "${job_id}" = "FAILED" ]; then
+      echo "${connection_info}"
+      display_error "${ERROR_SUBMITTING_JOB}"
+      exit 1
+  fi
+  # Get the node name and token
+  node=${node[1]}
+  token=${token[1]}
+  echo -e "\\t - Job id: ${job_id}"
+  echo -e "\\t - Token: ${token}"
+
+  # Establish the port forwarding
+  echo "Establishing port forwarding..."
+  #${DEFAULT_SSH} -t -t ${username}@${supercomputer} -L 8888:localhost:${port_forwarding} ssh ${node} -L ${port_forwarding}:localhost:8888 > /dev/null 2>&1 &
+  ${DEFAULT_SSH} -t -t ${username}@${supercomputer} -L 8888:localhost:${port_forwarding} ssh ${node} -L ${port_forwarding}:localhost:8888 > /dev/null 2>&1 &
+  RUNNING_PORT_FORWARDING_PID=$!
+
+  # Wait 5 seconds to establish the port forwarding
+  echo "Wait... it is almost ready"
+  sleep 5
+
+  # Open the web browser
+  echo "Opening the web browser..."
+  # ${browser} localhost:8888  # without token
+  ${browser} http://localhost:8888/?token=${token}
+  echo "Ready to work!"
+  echo ""
+  echo "Waiting for ${browser} to be closed..."
+  echo "To force quit: CTRL + C"
+
+  sleep 3
+  wait
+
+  echo "* Quit!"
+  echo -e "\\t - Killing port forwarding..."
+  kill ${RUNNING_PORT_FORWARDING_PID}
+  echo -e "\\t - Cancelling job..."
+  ${DEFAULT_SSH} ${username}@${supercomputer} "${REMOTE_SCRIPT_DIR}/cancel_jupyter_job.sh $job_id" > /dev/null 2>&1
+
+  if [ -z "${SSHPASS}" ]; then
+    echo -e "\\t - Cleaning environment variables..."
+    unset SSHPASS
+  fi
+
+  echo "* Finished"

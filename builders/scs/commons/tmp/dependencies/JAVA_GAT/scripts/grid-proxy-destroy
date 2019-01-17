@@ -1,0 +1,26 @@
+#!/bin/bash
+
+if [ -z "$GAT_LOCATION" ] ; then
+#        echo GAT_LOCATION variable not set, using $PWD
+	GAT_LOCATION=$PWD
+fi
+
+add_to_gat_classpath () {
+	DIRLIBS=${1}/*.jar
+	for i in ${DIRLIBS}
+	do
+		 # if the directory is empty, then it will return the input string
+		 # this is stupid, so case for it
+		 if [ "$i" != "${DIRLIBS}" ] ; then
+			if [ -z "$GAT_CLASSPATH" ] ; then
+		GAT_CLASSPATH=$i
+			else
+		GAT_CLASSPATH="$i":$GAT_CLASSPATH
+			fi
+		 fi
+	done
+}
+
+add_to_gat_classpath ${GAT_LOCATION}/lib/adaptors/shared
+
+java -DUID=${UID} -classpath ${GAT_LOCATION}/lib/adaptors/GlobusAdaptor/GlobusAdaptor.jar:${GAT_CLASSPATH} org.globus.tools.ProxyDestroy "$@"

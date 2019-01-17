@@ -1,0 +1,27 @@
+#Difference of Lattice intersection woth different lattices
+M 2
+3 3
+2 0 0 
+2 1 0
+0 0 1
+3 3
+3 0 0
+2 1 0
+0 0 1
+#readDom["{i,j| 1<= i,j<=10}"]
+#readDom["{i,j| 1<= i,j<=10}"]
+D 2
+4 4
+	  1 1 0 -1
+          1 0 1 -1
+          1 -1 0 100
+          1 0 -1 100
+ 4 4
+	  1 1 0 -1
+          1 0 1 -1
+          1 -1 0 100
+          1 0 -1 100
+F 9
+
+
+

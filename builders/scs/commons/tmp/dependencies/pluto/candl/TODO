@@ -1,0 +1,59 @@
+
+- unchecked -commute 
+
+- lastwriter not finished
+  see the FIXME in the function candl_dep_compute_lastwriter
+
+- compilation error with ISL :
+  To test it, in isl-wrapper change #ifdef CANDL_SUPPORTS_ISL to
+  #ifndef CANDL_SUPPORTS_ISL
+  
+  The error is :
+  source/isl-wrapper.c: In function ‘isl_constraint_read_from_matrix’:
+  source/isl-wrapper.c:79: warning: passing argument 1 of ‘isl_equality_alloc’ from incompatible pointer type
+  /home/jpoudroux/usr/include/isl/constraint.h:28: note: expected ‘struct isl_local_space *’ but argument is of type ‘struct isl_space *’
+  source/isl-wrapper.c:81: warning: passing argument 1 of ‘isl_inequality_alloc’ from incompatible pointer type
+  /home/jpoudroux/usr/include/isl/constraint.h:29: note: expected ‘struct isl_local_space *’ but argument is of type ‘struct isl_space *’
+
+- prunnning not finish (prunning.c: line 258 to 328)
+  Uncomment the CANDL_COMPILE_PRUNNING in candl.h, or remove the ifdef in
+  prunning.c
+
+- change the type of the dependence/violation domain
+  (at the end of candl_dependence_build_system and candl_matrix_violation)
+  today it's : OSL_UNDEFINED
+  
+- candl_usr_init
+  the statements must be sorted to compute the statement label
+  the problem is if the scop is reordered, the second transformed scop
+  must be "aligned" with it (the first statement need to corresponds to the first
+  statement of the second scop, but the scattering could be different)
+
+  Functions of clay, which could return a non ordered scop :
+  (they create new statements)
+  iss, unroll, peel
+
+- in pip_has_rational_point:
+  -> FIXME (dependence.c:2243)
+
+- autocorrect not implemented yet 
+
+- compilation warning with gmp :
+  /usr/bin/ld: warning: libgmp.so.3, needed by /home/jpoudroux/usr/lib/libosl.so, may conflict with libgmp.so.10
+
+- autoreconf error in the piplib module
+  -> piplib must be installed in /
+  
+  or execute these commands :
+  $ cd piplib
+  $ echo "AM_PROG_CC_C_O" >>configure.in
+  $ touch NEWS AUTHORS ChangeLog
+  $ cd ..
+  $ ./redo.sh
+
+  If you want to set piplib as "bundled", uncomment these lines in the
+  configure.ac :
+  295: if test $with_piplib = bundled; then
+  296:   AC_CONFIG_SUBDIRS(piplib)
+  297: fi
+

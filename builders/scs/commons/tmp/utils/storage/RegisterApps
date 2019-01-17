@@ -1,0 +1,69 @@
+export STORAGE=dataclay
+export TRUNK=${HOME}/workspaceFinal/trunk
+
+echo "COMPSs SCO APPLICATION REGISTRATION SCRIPT"
+echo ""
+
+echo "JAVA VERSION"
+java -version
+
+#echo ""
+#echo "CLEAN & BUILD MOLECULE APP"
+#echo ""
+cd ${TRUNK}/apps/COMPSs-SCO/DataModels/Molecule
+ant clean lib
+cd
+
+#echo ""
+#echo "CLEAN & BUILD KMEANS_FRAG APP"
+#echo ""
+#cd ${HOME}/workspaceS/KmeansFrag
+#ant clean lib_stubs
+#cd
+
+echo ""
+echo "CLEAN & BUILD REGISTRATOR APP"
+echo ""
+cd ${TRUNK}/apps/COMPSs-SCO/DataModelProviders/Registrator
+ant clean lib
+cd
+
+echo ""
+echo "REGISTER CLASSES"
+echo ""
+export DATACLAYCLIENTCONFIG=${TRUNK}/apps/COMPSs-SCO/DataModelProviders/Registrator/cfgfiles/client.properties
+#java -cp ${TRUNK}/files/${STORAGE}/${STORAGE}client.jar:${TRUNK}/apps/COMPSs-SCO/DataModelProviders/Registrator/lib/registrator.jar severo.registrator.Registrator severo.molecule.Molecule ${TRUNK}/apps/COMPSs-SCO/DataModels/Molecule/lib/molecule.jar
+#java -cp ${TRUNK}/files/${STORAGE}/${STORAGE}client.jar:${TRUNK}/apps/COMPSs-SCO/DataModelProviders/Registrator/lib/registrator.jar severo.registrator.Registrator severo.moleculeEmbedded.Molecule ${TRUNK}/apps/COMPSs-SCO/DataModels/Molecule/lib/molecule.jar
+java -cp ${TRUNK}/files/${STORAGE}/${STORAGE}client.jar:${TRUNK}/apps/COMPSs-SCO/DataModelProviders/Registrator/lib/registrator.jar severo.registrator.Registrator severo.moleculeArray.Molecule ${TRUNK}/apps/COMPSs-SCO/DataModels/Molecule/lib/molecule.jar
+#java -cp ${TRUNK}/files/${STORAGE}/${STORAGE}client.jar:${TRUNK}/apps/COMPSs-SCO/DataModelProviders/Registrator/lib/registrator.jar severo.registrator.Registrator kmeans_frag.Fragment ${HOME}/workspaceS/KmeansFrag/lib/kmeans_frag.jar
+
+echo ""
+echo "GET STUBS"
+echo ""
+export DATACLAYCLIENTCONFIG=${TRUNK}/apps/COMPSs-SCO/Tools/GetStubs/cfgfiles/client.properties
+java -cp ${TRUNK}/files/${STORAGE}/${STORAGE}client.jar:${TRUNK}/apps/COMPSs-SCO/Tools/GetStubs/lib/getstubs.jar severo.getstubs.GetStubs Producer Producer ${TRUNK}/apps/COMPSs-SCO/DataClients/Producer/stubs
+#java -cp ${TRUNK}/files/${STORAGE}/${STORAGE}client.jar:${TRUNK}/apps/COMPSs-SCO/Tools/GetStubs/lib/getstubs.jar severo.getstubs.GetStubs Consumer Consumer ${TRUNK}/apps/COMPSs-SCO/DataClients/Consumer/stubs
+#java -cp ${TRUNK}/files/${STORAGE}/${STORAGE}client.jar:${TRUNK}/apps/COMPSs-SCO/Tools/GetStubs/lib/getstubs.jar severo.getstubs.GetStubs Producer Producer ${HOME}/workspaceS/KmeansFrag/stubs
+
+#echo ""
+#echo "CLEAN & BUILD PRODUCER APP"
+#echo ""
+cd ${TRUNK}/apps/COMPSs-SCO/DataClients/Producer
+ant clean lib
+cd
+
+#echo ""
+#echo "CLEAN & BUILD CONSUMER APP"
+#echo ""
+#cd ${TRUNK}/apps/COMPSs-SCO/DataClients/Consumer
+#ant clean lib
+#cd
+
+#echo ""
+#echo "CLEAN & BUILD KMEANS_FRAG APP"
+#echo ""
+#cd ${HOME}/workspaceS/KmeansFrag
+#ant clean lib
+#cd
+
+echo "ALL DONE!"

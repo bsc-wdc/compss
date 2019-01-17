@@ -1,0 +1,32 @@
+#!/bin/sh
+
+if [ -z "$GAT_LOCATION" ] ; then
+#        echo GAT_LOCATION variable not set, using $PWD
+	GAT_LOCATION=$PWD
+fi
+
+
+# ---- do not touch anything below this line ----
+
+GAT_LIB_LOCATION=$GAT_LOCATION/lib
+GAT_ADAPTOR_LOCATION=$GAT_LIB_LOCATION/adaptors
+
+add_to_gat_classpath () {
+	DIRLIBS=${1}/*.jar
+	for i in ${DIRLIBS}
+	do
+		 # if the directory is empty, then it will return the input string
+		 # this is stupid, so case for it
+		 if [ "$i" != "${DIRLIBS}" ] ; then
+			if [ -z "$GAT_CLASSPATH" ] ; then
+		GAT_CLASSPATH=$i
+			else
+		GAT_CLASSPATH="$i":$GAT_CLASSPATH
+			fi
+		 fi
+	done
+}
+
+add_to_gat_classpath $GAT_LIB_LOCATION
+
+java -cp $CLASSPATH:$GAT_CLASSPATH -Dlog4j.configuration=file:$GAT_LOCATION/log4j.properties -Djava.endorsed.dirs=$GAT_ADAPTOR_LOCATION/GridsamAdaptor/endorsed -Dgat.adaptor.path=$GAT_ADAPTOR_LOCATION "$@"

@@ -188,7 +188,12 @@ public abstract class ExternalInvoker extends Invoker {
                 String extObjValue = np.getValue().toString();
                 LOGGER.debug("Generating command args for Binding_object " + extObjValue);
                 BindingObject bo = BindingObject.generate(extObjValue);
-                String originalData = np.getOriginalName();
+
+                String originalData = "";
+                if (np.getSourceDataId() != null) { //IN or INOUT
+                    originalData = np.getSourceDataId();
+                }
+
                 String destData = bo.getName();
                 if (!isRuntimeRenamed(destData)) {
                     // TODO: check if it happens also with binding_objects

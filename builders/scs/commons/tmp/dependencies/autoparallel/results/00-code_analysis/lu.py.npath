@@ -1,0 +1,10 @@
+[FuncName:generate_matrix, Complexity:3
+ FuncName:create_block, Complexity:1
+ FuncName:lu_blocked, Complexity:79872
+ FuncName:invert_triangular, Complexity:1
+ FuncName:multiply, Complexity:12
+ FuncName:dgemm, Complexity:1
+ FuncName:custom_lu, Complexity:1
+ FuncName:join_matrix, Complexity:5
+ FuncName:check_result, Complexity:2
+]

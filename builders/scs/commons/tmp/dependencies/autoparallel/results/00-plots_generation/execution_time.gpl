@@ -1,0 +1,42 @@
+#!/bin/gnuplot
+
+# This GNU Plot script requires the following variables:
+#   - application : Name of the application
+# 
+# Call example:
+#   gnuplot -e "application='cholesky'" execution_time.gpl
+#
+
+reset
+
+# Output format
+set terminal pdf enhanced font "sans,16"
+
+# Set output file
+set output "output/" . application . "_execution_time.pdf"
+
+# Caption position
+set key inside right top vertical noreverse noenhanced autotitle nobox
+
+# Set labels
+set xlabel "#Workers (#cores)"
+set ylabel "Execution Time (s)"
+
+# Style
+set style histogram errorbars linewidth 1 gap 1
+set style data histograms
+
+set boxwidth 0.9 absolute
+set style fill solid 0.5 
+set bars front
+
+set yrange [0:*]
+set ytics 100
+set grid ytics
+
+# Plot
+plot "data/" . application . ".data" using 5:3:4:xticlabels(1) title "UserParallel" linecolor rgb "#004586", \
+        '' using 9:7:8 title "AutoParallel" lt 1 lc rgb "#3cb371", \
+        '' using 5:xticlabels(1) with lines linecolor rgb "#2b5272" title "", \
+        '' using 9:xticlabels(1) with lines linecolor rgb "#29aa63" title ""
+ 

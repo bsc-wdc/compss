@@ -1,0 +1,13 @@
+# This is the first example in the Ehrhart paper
+4 6
+1  1  0 0 0 0	i >= 0
+1 -2  0 1 0 0	-2i + P >= 0
+1  0  1 0 0 0	j >= 0
+1  0 -2 0 1 0	-2j + Q >= 0
+
+2 4
+1 1 0 0		P >= 0
+1 0 1 0		Q >= 0
+
+P Q
+CL'96 example

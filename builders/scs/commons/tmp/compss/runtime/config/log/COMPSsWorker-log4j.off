@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration name="COMPSsWorker" status="WARN">
+
+  <!-- Logger console and files configuration -->
+  <Appenders>
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="[(%r)(%d) %19c{1}]    @%-15.15M  -  %m%n"/>
+    </Console>
+  </Appenders>
+
+  <!-- Configure runtime loggers -->
+  <Loggers>
+    <Root level="error">
+      <AppenderRef ref="Console"/>
+    </Root>
+
+    <!-- RUNTIME ROOT -->
+    <!-- es.bsc.compss: DEFAULT = OFF -->
+    <Logger name="es.bsc.compss" additivity="FALSE" level="error">
+      <AppenderRef ref="Console"/>
+    </Logger>
+
+    <!-- COMMUNICATION -->
+    <!-- es.bsc.compss.Communication: DEFAULT = OFF -->
+    <Logger name="Communication" additivity="FALSE" level="error">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="es.bsc.compss.Communication" additivity="FALSE" level="error">
+      <AppenderRef ref="Console"/>
+    </Logger>
+
+    <!-- es.bsc.compss.Components.Tracing: DEFAULT = ERROR -->
+    <Logger name="es.bsc.compss.Components.Tracing" additivity="FALSE" level="error">
+      <AppenderRef ref="Console"/>
+    </Logger>
+
+    <!-- WORKER -->
+    <!-- IntegratedToolkit.Worker: DEFAULT = ERROR -->
+    <Logger name="es.bsc.compss.Worker" additivity="FALSE" level="info">
+      <AppenderRef ref="Console"/>
+    </Logger>
+
+    <!-- WORKER SUBCOMPONENTS. DEFAULT = OFF -->
+    <Logger name="es.bsc.compss.Worker.ExecManager" additivity="FALSE" level="error">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="es.bsc.compss.Worker.DataManager" additivity="FALSE" level="error">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="es.bsc.compss.Worker.ThreadPool" additivity="FALSE" level="error">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="es.bsc.compss.Worker.Executor" additivity="FALSE" level="info">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="es.bsc.compss.Worker.ThreadBinder" additivity="FALSE" level="error">
+      <AppenderRef ref="Console"/>
+    </Logger>
+
+    <!-- STORAGE -->
+    <!-- es.bsc.compss.Storage: DEFAULT = OFF -->
+    <Logger name="es.bsc.compss.Storage" additivity="FALSE" level="error">
+      <AppenderRef ref="Console"/>
+    </Logger>
+
+  </Loggers>
+</Configuration>
+

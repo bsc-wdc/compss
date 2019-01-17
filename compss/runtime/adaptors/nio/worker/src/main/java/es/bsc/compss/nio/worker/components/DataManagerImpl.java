@@ -272,6 +272,10 @@ public class DataManagerImpl implements DataManager {
     }
 
     private void fetchBindingObject(InvocationParam param, int index, FetchDataListener tt) {
+        if (WORKER_LOGGER_DEBUG) {
+            WORKER_LOGGER.debug("   - " + param.getValue() + " registered as binding object.");
+        }
+        
         String name = (String) param.getValue();
         LOGGER.debug("   - " + name + " registered as binding object.");
         String[] extObjVals = (name).split("#");
@@ -280,132 +284,143 @@ public class DataManagerImpl implements DataManager {
         int elements = Integer.parseInt(extObjVals[2]);
         boolean askTransfer = false;
 
-        // Try if parameter is in cache
-        if (WORKER_LOGGER_DEBUG) {
-            WORKER_LOGGER.debug("   - Checking if " + value + " is in binding cache.");
-        }
-        boolean cached = BindingDataManager.isInBinding(value);
-        if (!cached) {
-            // Try if any of the object locations is in cache
-            boolean locationsInCache = false;
+        boolean cached = false;
+        boolean locationsInCache = false;
+
+        if (provider.isPersistentEnabled()) {
+
+            // Try if parameter is in cache
             if (WORKER_LOGGER_DEBUG) {
-                WORKER_LOGGER.debug("   - Checking if " + value + " locations are catched");
+                WORKER_LOGGER.debug("   - fetching Binding object for persistent worker.");
+                WORKER_LOGGER.debug("   - Checking if " + value + " is in binding cache.");
+            }
+
+            cached = BindingDataManager.isInBinding(value);
+
+            //If is not cached and the worker is persistent
+            if (!cached) {
+                if (WORKER_LOGGER_DEBUG) {
+                    WORKER_LOGGER.debug("   - Checking if " + value + " locations are cached.");
+                }
+
+                for (InvocationParamURI loc : param.getSources()) {
+                    BindingObject bo = BindingObject.generate(loc.getPath());
+                    if (loc.isHost(hostName) && BindingDataManager.isInBinding(bo.getName())) {
+                        //The value we want is not directly cached, but one its source is
+                        if (WORKER_LOGGER_DEBUG) {
+                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") sources location found in cache.");
+                        }
+
+                        int res;
+                        if (param.isPreserveSourceData()) {
+                            if (WORKER_LOGGER_DEBUG) {
+                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") preserves sources. CACHE-COPYING");
+                            }
+
+                            res = BindingDataManager.copyCachedData(bo.getName(), value);
+                            if (res != 0) {
+                                WORKER_LOGGER.error("CACHE-COPY from " + bo.getName() + " to " + value + " has failed. ");
+                                break;
+                            }
+                        }
+                        else {
+                            if (WORKER_LOGGER_DEBUG) {
+                                WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") overwrites sources. CACHE-MOVING");
+                            }
+                            res = BindingDataManager.moveCachedData(bo.getName(), value);
+                            if (res != 0) {
+                                WORKER_LOGGER.error("CACHE-MOVE from " + bo.getName() + " to " + value + " has failed. ");
+                                break;
+                            }
+                        }
+                        locationsInCache = true;
+                        break;
+                    }
+                }
+            }
+        }
+        else {
+            if (WORKER_LOGGER_DEBUG) {
+                WORKER_LOGGER.debug("   - fetching Binding object for NOT persistent worker.");
+            }
+        }
+
+        // TODO is it better to transfer again or to load from file??
+        boolean existInHost = false;
+        if (!locationsInCache) {
+            //The condition can be read as:
+            //If persistent and value is not renamed in cache ---> surely is persistent and not renamed or is not persistent
+
+            if (WORKER_LOGGER_DEBUG) {
+                WORKER_LOGGER.debug("   - Checking if " + value + " is in host as file.");
             }
 
             for (InvocationParamURI loc : param.getSources()) {
-                BindingObject bo = BindingObject.generate(loc.getPath());
-                if (BindingDataManager.isInBinding(bo.getName())) {
-                    // Object found
+                if (loc.isHost(hostName)) {
+                    BindingObject bo = BindingObject.generate(loc.getPath());
+
                     if (WORKER_LOGGER_DEBUG) {
-                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") location found in cache.");
+                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + param.getValue() + ") found at host with location "
+                                    + loc.getPath() + " Checking if id " + bo.getName() + " is in host...");
                     }
-                    if (param.isPreserveSourceData()) {
-                        if (WORKER_LOGGER_DEBUG) {
-                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") preserves sources. CACHE-COPYING");
-                        }
-                        int res = BindingDataManager.copyCachedData(bo.getName(), value);
-                        if (res != 0) {
-                            WORKER_LOGGER.error("CACHE-COPY from " + bo.getName() + " to " + value + " has failed. ");
-                            break;
-                        }
-                    } else {
-                        if (WORKER_LOGGER_DEBUG) {
-                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") erases sources. CACHE-MOVING");
-                        }
-                        int res = BindingDataManager.moveCachedData(bo.getName(), value);
-                        if (res != 0) {
-                            WORKER_LOGGER.error("CACHE-MOVE from " + bo.getName() + " to " + value + " has failed. ");
-                            break;
-                        }
+
+                    File inFile = new File(bo.getId());
+                    if (!inFile.isAbsolute()) {
+                        inFile = new File(baseFolder + File.separator + bo.getId());
                     }
-                    locationsInCache = true;
-                    break;
-                }
-            }
 
-            // TODO is it better to transfer again or to load from file??
-            if (!locationsInCache) {
-                // Try if any of the object locations is in the host
-                boolean existInHost = false;
-                if (WORKER_LOGGER_DEBUG) {
-                    WORKER_LOGGER.debug("   - Checking if " + param.getValue() + " locations are in host");
-                }
-                for (InvocationParamURI loc : param.getSources()) {
-                    if (loc.isHost(hostName)) {
-                        BindingObject bo = BindingObject.generate(loc.getPath());
+                    String path = inFile.getAbsolutePath();
+                    if (inFile.exists()) {
+                        existInHost = true;
 
-                        if (WORKER_LOGGER_DEBUG) {
-                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + param.getValue() + ") found at host with location "
-                                    + loc.getPath() + " Checking if id " + bo.getName() + " is in cache...");
+                        int res;
+                        if (provider.isPersistentEnabled()) {
+                            //Load data from file into cache
+                            res = BindingDataManager.loadFromFile(value, path, type, elements);
+                            if (res != 0) {
+                                existInHost = false;
+                                WORKER_LOGGER.error("Error loading " + value + " from file " + path);
+                            }
+                            else {
+                                break;
+                            }
                         }
-                        if (BindingDataManager.isInBinding(bo.getName())) {
-
-                            // Object found and it is in
-                            if (WORKER_LOGGER_DEBUG) {
-                                WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") location found in cache.");
-                            }
-
-                            if (param.isPreserveSourceData()) {
-                                if (WORKER_LOGGER_DEBUG) {
-                                    WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") preserves sources. CACHE-COPYING");
-                                }
-                                int res = BindingDataManager.copyCachedData(bo.getName(), value);
-                                if (res != 0) {
-                                    WORKER_LOGGER.error("CACHE-COPY from " + bo.getName() + " to " + value + " has failed. ");
-                                }
-                            } else {
-                                if (WORKER_LOGGER_DEBUG) {
-                                    WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") erases sources. CACHE-MOVING");
-                                }
-                                int res = BindingDataManager.moveCachedData(bo.getName(), value);
-                                if (res != 0) {
-                                    WORKER_LOGGER.error("CACHE-MOVE from " + bo.getName() + " to " + value + " has failed. ");
+                        else {
+                            //Copy or move file
+                            File outFile = new File(value);
+                            try {
+                                if (param.isPreserveSourceData()) {
+                                    Files.copy(inFile.toPath(), outFile.toPath());
+                                    break;
+                                } else {
+                                    try {
+                                        Files.move(inFile.toPath(), outFile.toPath(), StandardCopyOption.ATOMIC_MOVE);
+                                    }
+                                    catch (AtomicMoveNotSupportedException amnse) {
+                                        WORKER_LOGGER.warn(
+                                                "WARN: AtomicMoveNotSupportedException. File cannot be atomically moved. Trying to move without atomic");
+                                        Files.move(inFile.toPath(), outFile.toPath());
+                                    }
+                                    break;
                                 }
                             }
-                            existInHost = true;
-
-                        } else {
-
-                            if (WORKER_LOGGER_DEBUG) {
-                                WORKER_LOGGER.debug("   - Parameter " + index + "(" + param.getValue() + ") not in cache with id "
-                                        + bo.getName());
-                            }
-
-                            File inFile = new File(bo.getId());
-                            if (!inFile.isAbsolute()) {
-                                //inFile = new File(workingDir + File.separator + loc.getPath());
-                                inFile = new File(baseFolder + File.separator + bo.getId()); // ???
-                            }
-
-                            String path = inFile.getAbsolutePath();
-                            if (inFile.exists()) {
-                                existInHost = true;
-                                if (WORKER_LOGGER_DEBUG) {
-                                    WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") loaded from file "
-                                            + path + ".");
-                                }
-                                int res = BindingDataManager.loadFromFile(value, path, type, elements);
-                                if (res != 0) {
-                                    WORKER_LOGGER.error("Error loading " + value + " from file " + path);
-                                }
-                            } else {
-                                if (WORKER_LOGGER_DEBUG) {
-                                    WORKER_LOGGER.warn("   - Parameter " + index + "(" + (String) param.getValue() + ") File " + path
-                                            + " not found.");
-                                }
+                            catch (IOException e) {
+                                WORKER_LOGGER.error("Error copying or moving " + bo.getName() + " to " + value);
+                                WORKER_LOGGER.error(e);
+                                existInHost = false;
                             }
                         }
                     }
-                }
-
-                if (!existInHost) {
-                    // We must transfer the file
-                    askTransfer = true;
                 }
             }
         }
 
-        // Request the transfer if needed
+        if (!cached && !locationsInCache && !existInHost) {
+            //Only if all three options failed, we must transfer the data
+            askTransfer = true;
+        }
+
+        //Request the transfer if needed
         askForTransfer(askTransfer, param, index, tt);
 
     }
@@ -423,13 +438,8 @@ public class DataManagerImpl implements DataManager {
         tt.fetchedValue();
     }
 
-<<<<<<< HEAD
-    private void fetchFile(InvocationParam param, int index, FetchDataListener tt) {
-        LOGGER.debug("   - " + (String) param.getValue() + " registered as file.");
-=======
     private void fetchFile(InvocationParam param, int index, LoadDataListener tt) {
         WORKER_LOGGER.debug("   - " + (String) param.getValue() + " registered as file.");
->>>>>>> Errors with communication solved
         final String originalName = param.getSourceDataId();
         final String expectedFileLocation = param.getValue().toString();
         WORKER_LOGGER.debug("   - Checking if file " + (String) param.getValue() + " exists.");

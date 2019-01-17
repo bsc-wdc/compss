@@ -1,0 +1,106 @@
+[Clan] Info: parsing file #1 (./unitary/simple.c)
+
+<OpenScop>
+
+# =============================================== Global
+# Language
+C
+
+# Context
+CONTEXT
+0 2 0 0 0 0
+
+# Parameters are not provided
+0
+
+
+# Number of statements
+2
+
+# =============================================== Statement 1
+# Number of relations describing the statement:
+3
+
+# ----------------------------------------------  1.1 Domain
+DOMAIN
+0 2 0 0 0 0
+
+# ----------------------------------------------  1.2 Scattering
+SCATTERING
+1 3 1 0 0 0
+# e/i| c1 |  1  
+   0   -1    0    ## c1 == 0
+
+# ----------------------------------------------  1.3 Access
+WRITE
+1 3 1 0 0 0
+# e/i| Arr|  1  
+   0   -1    1    ## Arr == a
+
+# ----------------------------------------------  1.4 Statement Extensions
+# Number of Statement Extensions
+1
+<body>
+# Number of original iterators
+0
+# Statement body expression
+a = 0;
+</body>
+
+# =============================================== Statement 2
+# Number of relations describing the statement:
+4
+
+# ----------------------------------------------  2.1 Domain
+DOMAIN
+0 2 0 0 0 0
+
+# ----------------------------------------------  2.2 Scattering
+SCATTERING
+1 3 1 0 0 0
+# e/i| c1 |  1  
+   0   -1    1    ## c1 == 1
+
+# ----------------------------------------------  2.3 Access
+WRITE
+1 3 1 0 0 0
+# e/i| Arr|  1  
+   0   -1    2    ## Arr == b
+
+READ
+1 3 1 0 0 0
+# e/i| Arr|  1  
+   0   -1    1    ## Arr == a
+
+# ----------------------------------------------  2.4 Statement Extensions
+# Number of Statement Extensions
+1
+<body>
+# Number of original iterators
+0
+# Statement body expression
+b = a;
+</body>
+
+# =============================================== Extensions
+<arrays>
+# Number of arrays
+2
+# Mapping array-identifiers/array-names
+1 a
+2 b
+</arrays>
+
+<coordinates>
+# File name
+./unitary/simple.c
+# Starting line and column
+2 0
+# Ending line and column
+4 0
+# Indentation
+2
+</coordinates>
+
+</OpenScop>
+

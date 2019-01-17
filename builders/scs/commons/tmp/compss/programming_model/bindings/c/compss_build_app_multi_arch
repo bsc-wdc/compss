@@ -1,0 +1,350 @@
+#!/bin/bash
+
+#This script builds an application for several applications
+#Is used for the C/C++ binding.
+
+#---------------------------------------------------
+# SCRIPT CONSTANTS DECLARATION
+#---------------------------------------------------
+
+if [ -z "$COMPSS_HOME" ]; then
+    COMPSS_HOME=/opt/COMPSs
+fi
+
+DEFAULT_ARCHITECTURE=$(gcc -dumpmachine) #x86_64-linux-gnu #$(lscpu | awk 'NR==1{print $NF}')
+DEFAULT_CFG=${COMPSS_HOME}/Bindings/c/cfgs/compssrc #This file contains the x86-64 and armhf environment
+DEFAULT_ONLY_MASTER=false
+DEFAULT_ONLY_WORKER=false
+
+APPLICATION_ERROR="Error: Application name not provided"
+ONLY_MASTER_AND_WORKER_ERROR="Error: Is not possible to specify both options --only-master and --only-worker, to compile both remove these arguments."
+ARCH_CONFIGURATION_FUNCTION_NOT_FOUND="Error: The function to configurate one of the desired architectures has not been found, ensure that is defined in the configuration file."
+
+COMPSS_BUILD_APP_ARGS="" #We are going to assume that every mismatching options is of compss_build_app
+
+#---------------------------------------------------
+# FUNCTIONS DECLARATION
+#---------------------------------------------------
+
+show_supported_archs() {
+    cat <<EOT
+
+        * Supported architectures:
+            
+            x86_64 : Intel 64 bits 
+            armhf  : Arm hard float
+
+            Note that this is the pure architecture, to introduce the parameters worker and master
+            use the GNU Linux like names, i.e x86_64-linux-gnu , arm-linux-gnueabihf...
+            You can check yours as follows, COMPILER -dumpmachine , this will print the
+            architecture for which this compiler is going to compile the sources.
+
+EOT
+
+}
+
+show_opts() {
+    cat <<EOT
+
+        --supported_arch            Show supported architectures            
+
+        --master=<arch1,arch2,...>  Specifies the target architectures for which the master is
+                                    going to be build. Each architecture separated by ",".
+                                    Default: ${DEFAULT_ARCHITECTURE}
+
+        --worker=<arch1,arch2,...>  Specifies the target architectures for which the worker is
+                                    going to be build. Each architecture separated by ",".
+                                    Default: ${DEFAULT_ARCHITECTURE}
+
+        --cfg=<path>                Specifies the location of the configuration file that contains
+                                    the environment to execute when cross-compiling the application.
+                                    In this BASH script functions named as the target architecture are
+                                    needed to set up the environment.
+                                    Default: ${DEFAULT_CFG}
+
+EOT
+
+}
+
+usage() {
+
+        exitValue=$1
+
+        cat <<EOT
+Usage: $0 [options] application_name
+
+* Options:
+    compss_build_app_multi_arch specific:
+
+        --help, -h                  Prints this help message
+
+        --opts                      Show available options
+
+EOT
+
+    show_opts
+
+    compss_build_app -h #Show ALL the options
+
+    exit "$exitValue"
+}
+
+display_error() {
+    local error_msg=$1
+
+    echo "$error_msg"
+    echo " "
+
+    usage 1
+}
+
+get_args() {
+        while getopts h-: flag; do
+            case "$flag" in
+                   h)
+                        #Display help message
+                        usage 0
+                        ;;
+                   -)
+                        #The rest of possible arguments that did not match (starting by -)
+                        case "$OPTARG" in
+                            help)
+                                #Display help
+                                usage 0
+                                ;;
+                            opts)
+                                #Display opts
+                                show_opts
+                                exit 0
+                                ;;
+                            supported_arch)
+                                #Display supported architectures
+                                show_supported_archs
+                                exit 0
+                                ;;
+                            master=*)
+                                #Get architectures to build master
+                                MASTER_BUILD_ARCHS=${OPTARG//master=/}
+                                ;;
+                            worker=*)
+                                #Get architectures to build worker
+                                WORKER_BUILD_ARCHS=${OPTARG//worker=/}
+                                ;;
+                            only-master)
+                                #Compile only the master
+                                ONLY_MASTER=true
+                                ;;
+                            only-worker)
+                                #Compile only the worker
+                                ONLY_WORKER=true
+                                ;;
+                            cfg=*)
+                                #Get configuration file
+                                CFG_PATH=${OPTARG//cfg=/}
+                                ;;
+                            *)
+                                COMPSS_BUILD_APP_ARGS="${COMPSS_BUILD_APP_ARGS} --${OPTARG}" #Appends the unrecognised args...
+                                ;;
+                            esac
+                            ;;
+                      *)
+                        break
+                        ;;
+            esac
+        done
+
+        # Shift COMPSs arguments
+        shift $((OPTIND-1))
+
+        # Parse application name
+        if [[ $# -eq 0 ]]; then
+            display_error "${APPLICATION_ERROR}"
+        else
+            other_args=$*
+        fi
+
+}
+
+check_args() {
+
+    if [ -z "$CFG_PATH" ]; then
+        echo "[ INFO ] Using default configuration file: ${DEFAULT_CFG}."
+        CFG_PATH=${DEFAULT_CFG}
+    fi
+
+    if [ -n "$ONLY_MASTER" ] && [ -n "$ONLY_WORKER" ]; then
+        echo ""
+        display_error "${ONLY_MASTER_AND_WORKER_ERROR}" #Is not possible to compile only both...
+    elif [ -z "$ONLY_MASTER" ] && [ -z "$ONLY_WORKER" ]; then
+        ONLY_WORKER=$DEFAULT_ONLY_WORKER
+        ONLY_MASTER=$DEFAULT_ONLY_MASTER
+    fi
+
+    if [ -n "$ONLY_MASTER" ] && [ "$ONLY_MASTER" = true ]; then
+        echo "[ INFO ] Building only the master."
+        ONLY_WORKER=$DEFAULT_ONLY_WORKER
+    fi
+
+    if [ -n "$ONLY_WORKER" ] && [ "$ONLY_WORKER" = true ]; then
+        echo "[ INFO ] Building only the worker."
+        ONLY_MASTER=$DEFAULT_ONLY_MASTER
+    fi
+
+    if [ -z "$MASTER_BUILD_ARCHS" ] && [ "$ONLY_WORKER" = false ]; then
+        echo "[ INFO ] Using default architecture to build master: ${DEFAULT_ARCHITECTURE}."
+        MASTER_BUILD_ARCHS=${DEFAULT_ARCHITECTURE}
+    fi
+
+    if [ -z "$WORKER_BUILD_ARCHS" ] && [ "$ONLY_MASTER" = false ]; then
+        echo "[ INFO ] Using default architecture to build worker: ${DEFAULT_ARCHITECTURE}."
+        WORKER_BUILD_ARCHS=${DEFAULT_ARCHITECTURE}
+    fi
+
+}
+
+extract_archs() {
+
+    local toProcess
+
+    # This function uses awk to get the first element of a string until the first comma separator
+    toProcess=$1
+
+    processed=$(echo $toProcess | awk -F, '{split($0, array,",")} END{ for (i in array) { print array [i] }}')
+
+}
+
+save_cpp_c_flags() {
+    export DEFAULT_CPPFLAGS=$CPPFLAGS
+    export DEFAULT_CFLAGS=$CFLAGS
+}
+
+set_text_serialization() {
+    export CPPFLAGS="$CPPFLAGS -DTEXT_SERIALIZATION"
+    export CFLAGS="$CFLAGS -DTEXT_SERIALIZATION"
+}
+
+restore_cpp_c_flags() {
+    export CPPFLAGS=$DEFAULT_CPPFLAGS
+    export CFLAGS=$DEFAULT_CFLAGS
+}
+
+execute_compss_build_app() {
+    local ARGUMENTS="${@:1}"
+ 
+    compss_build_app $ARGUMENTS
+}
+
+check_return() {
+    local ev=$1
+
+    #This function checks how a return value must be treated
+    #The value to exit is always the one that was checked
+
+    if [ "$ev" -eq 3 ]; then
+        usage $ev
+    fi
+
+    if [ "$ev" -ne 0 ]; then
+        exit $ev
+    fi
+
+    set +x
+}
+
+#---------------------------------------------------
+# MAIN EXECUTION
+#---------------------------------------------------
+
+    # Arguments
+
+    get_args "$@"
+    check_args
+
+    save_cpp_c_flags
+    set_text_serialization #For arm-linux... (to enable portability between architectures)
+
+    appdir=$(pwd)
+    tmpdir=$(mktemp -d)
+
+    cp -rf $appdir/* $tmpdir
+
+    # Build master
+    if [ "$ONLY_WORKER" = false ]; then
+
+        extract_archs $MASTER_BUILD_ARCHS
+
+        source $CFG_PATH #This file contains the build configuration
+
+        cd $tmpdir
+
+        for i in $processed; do
+
+            if [ -d ${appdir}/${i}/master ]; then
+                echo "The master directory of the $i architecture already exists from a previous build. Removing."
+                rm -rf ${appdir}/${i}/master
+            fi
+
+            mkdir -p $i
+
+            if [ ! $(type -t $i) = "function" ]; then
+                display_error "${ARCH_CONFIGURATION_FUNCTION_NOT_FOUND}"
+            fi
+
+            (
+            set -e
+            $i #Function to export al the needed env. variables
+
+            execute_compss_build_app --only-master $COMPSS_BUILD_APP_ARGS $other_args
+            )
+
+            check_return $?
+
+            mkdir -p ${appdir}/${i}
+            mv ./master ${appdir}/${i}
+
+        done
+
+    fi
+
+    # Build worker
+    if [ "$ONLY_MASTER" = false ]; then
+
+        extract_archs $WORKER_BUILD_ARCHS
+
+        source $CFG_PATH
+
+        cd $tmpdir
+
+        for i in $processed; do
+
+            if [ -d ${appdir}/${i}/worker ]; then
+                echo "The worker directory of the $i architecture already exists from a previous build. Removing."
+                rm -rf ${appdir}/${i}/worker
+            fi
+
+            mkdir -p $i
+
+            if [ ! $(type -t $i) = "function" ]; then
+                display_error "${ARCH_CONFIGURATION_FUNCTION_NOT_FOUND}"
+            fi
+
+            (
+            set -e
+            $i #Function to export al the needed env. variables
+
+            execute_compss_build_app --only-worker $COMPSS_BUILD_APP_ARGS $other_args
+            )
+
+            check_return $?
+            
+            mkdir -p ${appdir}/${i}
+            mv ./worker ${appdir}/${i}
+
+        done
+
+    fi
+
+    rm -rf $tmpdir
+
+    exit 0
+                             

@@ -1,0 +1,76 @@
+ACKNOWLEDGMENTS
+
+1.  NSF grants 0121676 and 0509467
+
+2.  Martin Griebl and the LooPo team for the LooPo system modules of which
+    were used in earlier versions of Pluto.
+    [Fakultät für Mathematik und Informatik 
+    Universität Passau, Germany]
+
+3.  Cédric Bastoul for CLooG
+    Université Paris-Sud 11, Orsay, France
+
+4.  Cédric Bastoul and Louis-Noel Pouchet for Clan and Candl
+
+5.  Louis-Noel Pouchet for miscellaneous collaborative development
+
+6.  Sven Verdoolaege for Cloog-isl, isl, and isl-based lastwriter support
+
+7.  All other contributors of Cloog, Candl, Clan, and PipLib
+
+8.  Albert Hartono and Boyana Norris for Orio
+
+9.  Nicolas Vasilache
+
+10. Youcef Bouchebaba
+
+11. Prasanth Chatarasi for symbol table support for clan/scoplib
+
+12. Tobias Grosser for libpluto support in LLVM/Polly
+
+13. Roshan Dathathri for FOIFI and FOP communication schemes,
+    dynamic scheduling, and other distributed-memory codegen support
+
+14. Chandan G for FOIFI, FOP communication schemes
+
+15. Vinayaka Bandishti for a part of the diamond-tiling implementation
+
+16. Irshad Pananilath
+
+17. Arvind M and Anoop with libPluto and LLVM/Polly integration
+
+18. Aravind Acharya for a part of Pluto+ implementation
+
+19. Taj Muhammad Khan for migration to OpenSCoP (osl)
+
+
+Bugs and fixes
+
+1. Piotr Lesnicki and Louis-Noël Pouchet for an inscop fix
+
+2. Jeff Hammond for pointing out an autoconf problem
+
+
+Citing Pluto
+
+Please refer to the following papers when citing Pluto. Thank you.
+
+@inproceedings{uday08cc,
+    author = {Uday Bondhugula and Muthu Baskaran and Sriram
+        Krishnamoorthy and J. Ramanujam and A. Rountev and P.
+            Sadayappan},
+    title = {Automatic Transformations for Communication-Minimized Parallelization and Locality Optimization in the Polyhedral Model},
+    booktitle = {International Conference on Compiler Construction (ETAPS CC)},
+    year = 2008,
+    month = apr,
+}
+
+@inproceedings{uday08pldi,
+    author = {Uday Bondhugula and Albert Hartono
+        and J. Ramanujam and P. Sadayappan},
+    title = {A Practical Automatic Polyhedral Program Optimization System},
+    booktitle = {ACM SIGPLAN Conference on Programming Language Design and
+        Implementation (PLDI)},
+    year = 2008,
+    month = jun
+}

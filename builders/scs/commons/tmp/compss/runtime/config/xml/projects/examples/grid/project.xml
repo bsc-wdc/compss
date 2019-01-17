@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project>
+    <MasterNode/>
+    <ComputeNode Name="hostname1.domain.es">
+        <InstallDir>/opt/COMPSs/</InstallDir>
+        <WorkingDir>/tmp/COMPSsWorker1/</WorkingDir>
+        <User>user</User>
+        <LimitOfTasks>2</LimitOfTasks>
+    </ComputeNode>
+    <ComputeNode Name="hostname2.domain.es">
+        <InstallDir>/opt/COMPSs/</InstallDir>
+        <WorkingDir>/tmp/COMPSsWorker2/</WorkingDir>
+        <User>user</User>
+        <LimitOfTasks>2</LimitOfTasks>
+    </ComputeNode>
+</Project>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--<?xml-stylesheet type="text/xsl" href="/opt/COMPSs/Runtime/scripts/user/../../xml/monitor/monitor.xsl"?> -->
+<COMPSsState>
+	<TasksInfo>
+		<Application id="1">
+			<TotalCount>45</TotalCount>
+			<InProgress>0</InProgress>
+			<Completed>45</Completed>
+		</Application>
+		<Application id="2">
+			<TotalCount>20</TotalCount>
+			<InProgress>0</InProgress>
+			<Completed>10</Completed>
+		</Application>
+	</TasksInfo>
+	<CoresInfo>
+		<Core id="7"
+			signature="om_test(FILE_T,OBJECT_T,FILE_T,STRING_T,BOOLEAN_T)modeller.ModellerImpl">
+			<MeanExecutionTime>4947</MeanExecutionTime>
+			<MinExecutionTime>0</MinExecutionTime>
+			<MaxExecutionTime>5106</MaxExecutionTime>
+			<ExecutedCount>5106</ExecutedCount>
+		</Core>
+		<Core id="4"
+			signature="collectResults(STRING_T,STRING_T,OBJECT_T,FILE_T,FILE_T)modeller.ModellerImpl">
+			<MeanExecutionTime>2623</MeanExecutionTime>
+			<MinExecutionTime>0</MinExecutionTime>
+			<MaxExecutionTime>2970</MaxExecutionTime>
+			<ExecutedCount>2970</ExecutedCount>
+		</Core>
+		<Core id="5"
+			signature="collectResults(STRING_T,OBJECT_T,FILE_T)modeller.ModellerImpl">
+			<MeanExecutionTime>0</MeanExecutionTime>
+			<MinExecutionTime>0</MinExecutionTime>
+			<MaxExecutionTime>0</MaxExecutionTime>
+			<ExecutedCount>0</ExecutedCount>
+		</Core>
+		<Core id="1"
+			signature="om_project(FILE_T,FILE_T,FILE_T,STRING_T,BOOLEAN_T)modeller.ModellerImpl">
+			<MeanExecutionTime>0</MeanExecutionTime>
+			<MinExecutionTime>0</MinExecutionTime>
+			<MaxExecutionTime>0</MaxExecutionTime>
+			<ExecutedCount>0</ExecutedCount>
+		</Core>
+		<Core id="8"
+			signature="om_model(FILE_T,FILE_T,STRING_T,BOOLEAN_T)modeller.ModellerImpl">
+			<MeanExecutionTime>15344</MeanExecutionTime>
+			<MinExecutionTime>0</MinExecutionTime>
+			<MaxExecutionTime>32043</MaxExecutionTime>
+			<ExecutedCount>32043</ExecutedCount>
+		</Core>
+		<Core id="3"
+			signature="proj_colourTranslation(FILE_T,FILE_T,FILE_T,STRING_T,STRING_T,BOOLEAN_T)modeller.ModellerImpl">
+			<MeanExecutionTime>0</MeanExecutionTime>
+			<MinExecutionTime>0</MinExecutionTime>
+			<MaxExecutionTime>0</MaxExecutionTime>
+			<ExecutedCount>0</ExecutedCount>
+		</Core>
+		<Core id="6"
+			signature="om_test(FILE_T,FILE_T,STRING_T,BOOLEAN_T)modeller.ModellerImpl">
+			<MeanExecutionTime>0</MeanExecutionTime>
+			<MinExecutionTime>0</MinExecutionTime>
+			<MaxExecutionTime>0</MaxExecutionTime>
+			<ExecutedCount>0</ExecutedCount>
+		</Core>
+		<Core id="2"
+			signature="proj_translation(FILE_T,FILE_T,STRING_T,STRING_T,BOOLEAN_T)modeller.ModellerImpl">
+			<MeanExecutionTime>0</MeanExecutionTime>
+			<MinExecutionTime>0</MinExecutionTime>
+			<MaxExecutionTime>0</MaxExecutionTime>
+			<ExecutedCount>0</ExecutedCount>
+		</Core>
+		<Core id="0"
+			signature="om_project(FILE_T,OBJECT_T,FILE_T,FILE_T,STRING_T,BOOLEAN_T)modeller.ModellerImpl">
+			<MeanExecutionTime>524606</MeanExecutionTime>
+			<MinExecutionTime>0</MinExecutionTime>
+			<MaxExecutionTime>556512</MaxExecutionTime>
+			<ExecutedCount>556512</ExecutedCount>
+		</Core>
+	</CoresInfo>
+	<ResourceInfo>
+		<Resource id="172.16.8.211">
+			<TotalComputingUnits>2</TotalComputingUnits>
+			<Memory>3.0</Memory>
+			<Disk>5.0</Disk>
+			<Actions>
+				<Action>10</Action>
+			</Actions>
+		</Resource>
+		<Resource id="172.16.8.200">
+			<TotalComputingUnits>2</TotalComputingUnits>
+			<Memory>3.0</Memory>
+			<Disk>5.0</Disk>
+			<Actions>
+				<Action>30</Action>
+				<Action>2</Action>
+			</Actions>
+		</Resource>
+		<Resource id="http://bscgrid05.bsc.es:20390/hmmerobj/hmmerobj?wsdl">
+			<TotalComputingUnits></TotalComputingUnits>
+			<Actions></Actions>
+		</Resource>
+	</ResourceInfo>
+</COMPSsState>

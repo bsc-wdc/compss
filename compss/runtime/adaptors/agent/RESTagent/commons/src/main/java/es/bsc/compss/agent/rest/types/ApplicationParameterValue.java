@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types;
+package es.bsc.compss.agent.rest.types;
 
 import java.lang.reflect.Array;
 import javax.xml.bind.annotation.XmlAttribute;

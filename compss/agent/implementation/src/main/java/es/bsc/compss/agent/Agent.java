@@ -17,11 +17,12 @@
 package es.bsc.compss.agent;
 
 import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
 import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.loader.total.StreamRegistry;
-import es.bsc.compss.types.ApplicationParameter;
+
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.ImplementationDefinition;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -155,7 +156,7 @@ public class Agent {
                 } else {
                     typesSB.append("OBJECT_T");
                 }
-                params[position] = param.getValue().getContent();
+                params[position] = param.getValueContent();
                 params[position + 1] = param.getType();
                 params[position + 2] = param.getDirection();
                 params[position + 3] = Stream.UNSPECIFIED;
@@ -164,7 +165,7 @@ public class Agent {
             }
 
             if (target != null) {
-                params[position] = target.getValue().getContent();
+                params[position] = target.getValueContent();
                 params[position + 1] = target.getType();
                 params[position + 2] = target.getDirection();
                 params[position + 3] = Stream.UNSPECIFIED;

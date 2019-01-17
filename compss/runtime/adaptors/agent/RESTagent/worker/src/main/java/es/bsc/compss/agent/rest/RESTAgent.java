@@ -23,7 +23,7 @@ import es.bsc.compss.agent.rest.types.Orchestrator;
 import es.bsc.compss.agent.rest.types.messages.StartApplicationRequest;
 import es.bsc.compss.agent.rest.types.messages.EndApplicationNotification;
 import es.bsc.compss.agent.util.RemoteJobsRegistry;
-import es.bsc.compss.types.ApplicationParameter;
+import es.bsc.compss.agent.rest.types.ApplicationParameterImpl;
 import es.bsc.compss.types.job.JobListener.JobEndStatus;
 
 import javax.ws.rs.Consumes;
@@ -92,8 +92,8 @@ public class RESTAgent {
     private static Response runTask(StartApplicationRequest request) {
         String className = request.getClassName();
         String methodName = request.getMethodName();
-        ApplicationParameter[] sarParams = request.getParams();
-        ApplicationParameter target = request.getTarget();
+        ApplicationParameterImpl[] sarParams = request.getParams();
+        ApplicationParameterImpl target = request.getTarget();
         boolean hasResult = request.isHasResult();
         long appId;
         Orchestrator orchestrator = request.getOrchestrator();

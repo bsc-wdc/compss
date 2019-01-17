@@ -37,9 +37,15 @@
             <artifactId>compss-adaptors-agent-rest-commons</artifactId>
             <version>${project.version}</version>
         </dependency>
+        
         <dependency>
             <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-agent</artifactId>
+            <artifactId>compss-agent-commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-agent-impl</artifactId>
             <version>${project.version}</version>
         </dependency>
         

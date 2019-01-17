@@ -167,10 +167,7 @@ class MultiNode(object):
                         setattr(slf, k, v)
 
             # Call the method
-            import pycompss.api.task as t
-            t.prepend_strings = False
             ret = func(*args, **kwargs)
-            t.prepend_strings = True
 
             if len(args) > 0:
                 # Put things back

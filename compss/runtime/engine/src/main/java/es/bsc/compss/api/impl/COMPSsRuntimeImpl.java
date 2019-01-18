@@ -762,6 +762,14 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /**
+     * Freezes the task generation until all previous tasks have been executed
+     */
+    @Override
+    public void barrierConcurrent(Long appId) {
+        barrier(appId, false);
+    }
+    
+    /**
      * Freezes the task generation until all previous tasks have been executed. The noMoreTasks parameter indicates
      * whether to expect new tasks after the barrier or not
      */
@@ -984,6 +992,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             case INOUT:
                 am = AccessMode.RW;
                 break;
+
         }
 
         // Request AP that the application wants to access a FILE or a EXTERNAL_PSCO
@@ -1042,6 +1051,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             case INOUT:
                 am = AccessMode.RW;
                 break;
+
         }
 
         // Request AP that the application wants to access a FILE or a EXTERNAL_PSCO

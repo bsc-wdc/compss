@@ -347,7 +347,8 @@ public class ExecutionAction extends AllocatableAction {
                 DataInstanceId dId = null;
                 DependencyParameter dp = (DependencyParameter) p;
                 switch (p.getDirection()) {
-                    case IN:
+                	case CONCURRENT:
+                	case IN:
                         // FTM already knows about this datum
                         continue;
                     case OUT:

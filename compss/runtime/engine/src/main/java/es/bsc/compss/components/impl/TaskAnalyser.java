@@ -133,6 +133,7 @@ public class TaskAnalyser {
     private DataAccessId registerParameterAccessAndAddDependencies(Task currentTask, boolean isConstraining, Parameter p) {        // Conversion: direction -> access mode
         AccessMode am = AccessMode.R;
         switch (p.getDirection()) {
+            case CONCURRENT:
             case IN:
                 am = AccessMode.R;
                 break;

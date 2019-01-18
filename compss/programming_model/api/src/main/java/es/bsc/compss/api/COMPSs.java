@@ -33,6 +33,11 @@ public class COMPSs {
         // This is only a handler, it is never executed
         System.out.println(SKIP_MESSAGE);
     }
+    
+    public static void barrierConcurrent() {
+        // This is only a handler, it is never executed
+        System.out.println(SKIP_MESSAGE);
+    }
 
     public static void barrier(boolean noMoreTasks) {
         // This is only a handler, it is never executed

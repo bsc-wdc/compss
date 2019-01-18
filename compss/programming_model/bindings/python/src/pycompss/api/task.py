@@ -897,6 +897,14 @@ class task(object):
         def get_file_name(file_path):
             return file_path.split(':')[-1]
 
+        # Deal with INOUTs
+        for arg in [x for x in args if isinstance(x, parameter.TaskParameter) and self.is_parameter_object(x.name)]:
+            original_name = parameter.get_original_name(arg.name)
+            param = self.decorator_arguments.get(original_name, self.get_default_direction(original_name))
+            if param.direction == parameter.DIRECTION.INOUT:
+                from pycompss.util.serializer import serialize_to_file
+                serialize_to_file(arg.content, get_file_name(arg.file_name))
+
         # Deal with returns (if any)
         if num_returns > 0:
             if num_returns == 1:
@@ -917,16 +925,38 @@ class task(object):
                 from pycompss.util.serializer import serialize_to_file
                 serialize_to_file(obj, get_file_name(param.file_name))
 
-        # Deal with INOUTs
-        # All inouts are FILEs
-        for arg in [x for x in args if isinstance(x, parameter.TaskParameter) and self.is_parameter_object(x.name)]:
-            original_name = parameter.get_original_name(arg.name)
-            param = self.decorator_arguments.get(original_name, self.get_default_direction(original_name))
-            if param.direction == parameter.DIRECTION.INOUT:
-                from pycompss.util.serializer import serialize_to_file
-                serialize_to_file(arg.content, get_file_name(arg.file_name))
+        # We must notify COMPSs when types are updated
+        # Potential update candidates are returns and INOUTs
+        # But the whole types and values list must be returned
+        new_types, new_values = [], []
 
-        return [], [], self.decorator_arguments['isModifier']
+        def get_object_information(obj):
+            """ Returns a pair (t, v) with the new type and value of
+            some object
+            :param obj:
+            :return:
+            """
+            ret_type = parameter.get_compss_type(obj)
+            return ret_type, obj.getID() if ret_type == parameter.TYPE.EXTERNAL_PSCO else 'null'
+
+        pending_to_swap = False
+
+        for arg in args:
+            is_task_param = isinstance(arg, parameter.TaskParameter)
+            obj = arg.content if is_task_param else arg
+            # Do we have a self? Then well have to swap these two lists in the future
+            pending_to_swap |= is_task_param
+            t, v = get_object_information(obj)
+            new_types.append(t)
+            new_values.append(v)
+
+        if pending_to_swap:
+            # We have a self parameter, we should respect the original order of the parameters as in
+            # the Java COMPSs implementation
+            for L in [new_types, new_values]:
+                L.append(L.pop(0))
+
+        return new_types, new_values, self.decorator_arguments['isModifier']
 
     def sequential_call(self, *args, **kwargs):
         """

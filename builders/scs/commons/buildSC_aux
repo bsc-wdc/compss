@@ -47,8 +47,8 @@
       cp "$1"/worker/properties "$2"/"${adaptor_name}"/worker
     fi
     if [ -d "$1"/scripts/ ]; then
-      mkdir -p "${COMPSs_target}"/Runtime/scripts/system/adaptors/"${adaptor_name}"
-      cp -r "$1"/scripts/* "${COMPSs_target}"/Runtime/scripts/system/adaptors/"${adaptor_name}"
+      mkdir -p "${targetDir}"/Runtime/scripts/system/adaptors/"${adaptor_name}"
+      cp -r "$1"/scripts/* "${targetDir}"/Runtime/scripts/system/adaptors/"${adaptor_name}"
     fi
   }
   ####################

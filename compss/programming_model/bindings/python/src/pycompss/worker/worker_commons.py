@@ -188,8 +188,7 @@ def task_execution(logger, process_name, module, method_name, types, values, com
 
     if isinstance(task_output[0], tuple):  # Weak but effective way to check it without doing inspect.
         # Another decorator has added another return thing.
-        # TODO: Should we consider here to create a list with all elements and serialize it to a file with
-        # the real task output plus the decorator results? == task_output[1:]
+        # TODO: Should we consider here to create a list with all elements and serialize it to a file with the real task output plus the decorator results? == task_output[1:]
         # TODO: Currently, the extra result is ignored.
         new_types = task_output[0][0]
         new_values = task_output[0][1]
@@ -364,32 +363,34 @@ def execute_task(process_name, storage_conf, params, tracing):
 
         if __debug__:
             logger.debug("[PYTHON WORKER %s] Method in class %s of module %s" % (process_name, class_name, module_name))
-
-        logger.debug('HAS TARGET IS %s' % str(has_target))
+            logger.debug("[PYTHON WORKER %s] Has target: %s" % (process_name, str(has_target)))
 
         if has_target == 'true':
             # Instance method
             # The self object needs to be an object in order to call the function.
             # Consequently, it can not be done in the @task decorator.
             last_elem = values.pop()
-            logger.debug('LAST ELEM ###')
-            logger.debug(last_elem.name)
-            obj = None
-            file_name = None
-            if last_elem.key is None:
-                file_name = last_elem.file_name.split(':')[-1]
+            last_type = types.pop()
+            if last_type == parameter.TYPE.EXTERNAL_PSCO:
                 if __debug__:
-                    logger.debug("[PYTHON WORKER %s] Deserialize self from file." % process_name)
-                from pycompss.util.serializer import deserialize_from_file
-                obj = deserialize_from_file(file_name)
-                logger.debug('DESERIALIZED OBJECT IS %s' % last_elem.content)
-                if __debug__:
-                    logger.debug("[PYTHON WORKER %s] Processing callee, a hidden object of %s in file %s" % (
-                        process_name, file_name, type(last_elem.content)))
+                    logger.debug("[PYTHON WORKER %s] Last element (self) is a PSCO with id: %s" % (process_name, str(last_elem.key)))
+                from pycompss.util.persistent_storage import get_by_id
+                obj = get_by_id(last_elem.key)
+            else:
+                obj = None
+                file_name = None
+                if last_elem.key is None:
+                    file_name = last_elem.file_name.split(':')[-1]
+                    if __debug__:
+                        logger.debug("[PYTHON WORKER %s] Deserialize self from file." % process_name)
+                    from pycompss.util.serializer import deserialize_from_file
+                    obj = deserialize_from_file(file_name)
+                    logger.debug('DESERIALIZED OBJECT IS %s' % last_elem.content)
+                    if __debug__:
+                        logger.debug("[PYTHON WORKER %s] Processing callee, a hidden object of %s in file %s" % (
+                            process_name, file_name, type(last_elem.content)))
             values.insert(0, obj)
-            types.pop()
-            from pycompss.util.persistent_storage import is_psco
-            types.insert(0, parameter.TYPE.OBJECT if not is_psco(last_elem.content) else parameter.TYPE.EXTERNAL_PSCO)
+            types.insert(0, parameter.TYPE.OBJECT if not last_type == parameter.TYPE.EXTERNAL_PSCO else parameter.TYPE.EXTERNAL_PSCO)
 
             def task_execution_2():
                 from pycompss.worker.worker_commons import task_execution
@@ -417,24 +418,25 @@ def execute_task(process_name, storage_conf, params, tracing):
             if is_modifier:
                 from pycompss.util.persistent_storage import is_psco
                 if is_psco(last_elem):
-                    # There is no update PSCO on the storage API. Consequently, the changes on the PSCO must have been
-                    # pushed into the storage automatically on each PSCO modification.
-                    if True or __debug__:
-                        # TODO: this may not be correct if the user specifies isModifier=False.
-                        logger.debug(
-                            "[PYTHON WORKER %s] The changes on the PSCO must have been automatically updated by the storage." % process_name)
+                    # There is no explicit update if self is a PSCO.
+                    # Consequently, the changes on the PSCO must have been pushed into the storage automatically
+                    # on each PSCO modification.
+                    # This may lead to errors if isModifier=False, because it will not happen. The changes will
+                    # be made, and the storage must deal with concurrent modifications.
+                    if __debug__:
+                        logger.debug("[PYTHON WORKER %s] The changes on the PSCO must have been automatically updated by the storage." % process_name)
                     pass
                 else:
-                    if True or __debug__:
+                    if __debug__:
                         logger.debug("[PYTHON WORKER %s] Serializing self to file: %s" % (process_name, file_name))
                     from pycompss.util.serializer import serialize_to_file
                     serialize_to_file(obj, file_name)
-                if True or __debug__:
+                if __debug__:
                     logger.debug("[PYTHON WORKER %s] Serializing self to file." % process_name)
                 from pycompss.util.serializer import serialize_to_file
                 serialize_to_file(obj, file_name)
-            if True or __debug__:
-                logger.debug("[PYTHON WORKER %s] Obj: %r" % (process_name, obj))
+                if __debug__:
+                    logger.debug("[PYTHON WORKER %s] Obj: %r" % (process_name, obj))
         else:
             # Class method - class is not included in values (e.g. values = [7])
             types.append(None)  # class must be first type

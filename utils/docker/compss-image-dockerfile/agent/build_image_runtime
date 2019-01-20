@@ -1,0 +1,139 @@
+#!/bin/bash -e
+
+# INSTALLS ALL THE NECESSARY JARS FOR AN ADAPTOR. 
+# REQUIRES 2 PARAMETERS: 
+#  $1 THE PATH TO THE COMPILED ADAPTOR ROOT FOLDER
+#  $2 PATH WHERE TO INSTALL THE ADAPTOR
+install_adaptor() {
+    adaptor_name=$(basename "$1")
+    echo "------ Copying ${adaptor_name} adaptor"
+    mkdir "$2/${adaptor_name}"
+    mkdir "$2/${adaptor_name}"/master
+    cp "$1"/master/*.jar "$2"/"${adaptor_name}"/master
+    if [ -f "$1"/master/properties ]; then
+      cp "$1"/master/properties "$2"/"${adaptor_name}"/master
+    fi
+    if [ -d "$1"/worker/ ]; then
+      mkdir "$2/${adaptor_name}"/worker
+      cp "$1"/worker/*.jar "$2"/"${adaptor_name}"/worker
+    fi
+    if [ -f "$1"/worker/properties ]; then 
+      cp "$1"/worker/properties "$2"/"${adaptor_name}"/worker
+    fi
+    if [ -d "$1"/scripts/ ]; then
+      mkdir -p "${CONTAINER_ROOT}/opt/COMPSs/Runtime/scripts/system/adaptors/${adaptor_name}"
+      cp -r "$1"/scripts/* "${CONTAINER_ROOT}/opt/COMPSs/Runtime/scripts/system/adaptors/${adaptor_name}"
+    fi
+}
+
+SANDBOX="/tmp/agent_container"
+rm -rf ${SANDBOX}
+mkdir -p ${SANDBOX}
+
+INIT_DIR=$(pwd)
+RUNTIME_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../../.. && pwd )"
+
+cp "${RUNTIME_DIR}/utils/docker/compss-image-dockerfile/agent/Dockerfile_runtime" ${SANDBOX}/Dockerfile
+
+# COMPILE
+echo "- Compile sources"
+cd "${RUNTIME_DIR}/compss"
+mvn -DskipTests clean install
+
+TMP_DIR=${SANDBOX}/Runtime
+# COPY TRUNK
+echo "- Copy trunk to tmpdir"
+rm -rf "${TMP_DIR}"
+mkdir -p "${TMP_DIR}"
+cp "${RUNTIME_DIR}/changelog" "${TMP_DIR}"
+cp -r "${RUNTIME_DIR}/compss" "${TMP_DIR}"
+cp -r "${RUNTIME_DIR}/dependencies" "${TMP_DIR}"
+cp -r "${RUNTIME_DIR}/doc" "${TMP_DIR}"
+cp -r "${RUNTIME_DIR}/files" "${TMP_DIR}"
+cp -r "${RUNTIME_DIR}/utils" "${TMP_DIR}"
+cp "${RUNTIME_DIR}/LICENSE" "${TMP_DIR}"
+cp "${RUNTIME_DIR}/NOTICE" "${TMP_DIR}"
+cp "${RUNTIME_DIR}/pom.xml" "${TMP_DIR}"
+cp "${RUNTIME_DIR}/README.md" "${TMP_DIR}"
+cp "${RUNTIME_DIR}/RELEASE_NOTES" "${TMP_DIR}"
+find "${TMP_DIR}" -name ".git*" -print0 -exec rm -rf {} \; | cat # Clean git files
+RUNTIME_DIR=${TMP_DIR}
+
+
+# RUNTIME DEPLOYMENT
+echo "- Copy Runtime deployment files"
+echo "--- Generate folder structure"
+CONTAINER_ROOT="${SANDBOX}/content"
+TARGET_DIR=/opt/COMPSs
+COMPSS_PATH=${CONTAINER_ROOT}${TARGET_DIR}
+mkdir -p ${COMPSS_PATH}
+mkdir -p ${COMPSS_PATH}/Doc
+mkdir -p ${COMPSS_PATH}/Runtime/adaptors
+mkdir -p ${COMPSS_PATH}/Runtime/configuration
+mkdir -p ${COMPSS_PATH}/Runtime/scheduler
+mkdir -p ${COMPSS_PATH}/Runtime/scripts
+
+# Doc
+echo "--- Copy docs"
+find "${RUNTIME_DIR}/doc/" -name "*.html" -delete
+cp -r "${RUNTIME_DIR}"/doc/* ${COMPSS_PATH}/Doc
+cp "${RUNTIME_DIR}/changelog" ${COMPSS_PATH}
+cp "${RUNTIME_DIR}/LICENSE" ${COMPSS_PATH}
+cp "${RUNTIME_DIR}/NOTICE" ${COMPSS_PATH}
+cp "${RUNTIME_DIR}/README.md" ${COMPSS_PATH}
+cp "${RUNTIME_DIR}/RELEASE_NOTES" ${COMPSS_PATH}
+
+
+# Config
+echo "--- Copy configuration"
+find "${RUNTIME_DIR}"/compss/runtime/config -name src -type d -prune -exec rm -r "{}" \;
+find "${RUNTIME_DIR}"/compss/runtime/config -name target -type d -prune -exec rm -r "{}" \;
+find "${RUNTIME_DIR}"/compss/runtime/config -name pom.xml -delete
+cp -r "${RUNTIME_DIR}"/compss/runtime/config/* ${COMPSS_PATH}/Runtime/configuration/
+rm -r "${COMPSS_PATH}"/Runtime/configuration/xml/projects/*
+cp -r "${RUNTIME_DIR}"/compss/runtime/config/xml/projects/project_schema.xsd ${COMPSS_PATH}/Runtime/configuration/xml/projects/project_schema.xsd
+rm -r "${COMPSS_PATH}"/Runtime/configuration/xml/resources/*
+cp -r "${RUNTIME_DIR}"/compss/runtime/config/xml/resources/resources_schema.xsd ${COMPSS_PATH}/Runtime/configuration/xml/resources/resources_schema.xsd
+
+cat << EOF >>"${COMPSS_PATH}/Runtime/configuration/xml/resources/default_resources.xml"
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourcesList>
+</ResourcesList>
+EOF
+
+cat << EOF >>"${COMPSS_PATH}/Runtime/configuration/xml/projects/default_project.xml"
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project>
+
+    <MasterNode>
+        <Processor Name="MainProcessor">
+            <ComputingUnits>10</ComputingUnits>
+        </Processor>
+    </MasterNode>
+</Project>
+EOF
+
+# Scripts
+echo "--- Copy scripts"
+cp -r "${RUNTIME_DIR}"/compss/runtime/scripts/* ${COMPSS_PATH}/Runtime/scripts/
+
+
+
+# Adaptors
+echo "--- Copy adaptors"
+find "${RUNTIME_DIR}/compss/runtime/adaptors" -name pom.xml -delete
+find "${RUNTIME_DIR}/compss/runtime/adaptors" -name "*.iml" -delete
+
+for agent in ${RUNTIME_DIR}/compss/runtime/adaptors/agent/*; do
+    install_adaptor "${agent}" "${COMPSS_PATH}/Runtime/adaptors"
+done
+
+# Schedulers
+echo "--- Copy schedulers"
+rm -r "${TMP_DIR}/compss/runtime/scheduler/commons"
+find "${TMP_DIR}/compss/runtime/scheduler/" -name "*.jar" -exec cp {} ${COMPSS_PATH}/Runtime/scheduler/ \;
+
+cd ${SANDBOX}
+docker build -t compss/compss-agent:2.4 .
+rm -rf ${SANDBOX}
+cd ${INIT_DIR}

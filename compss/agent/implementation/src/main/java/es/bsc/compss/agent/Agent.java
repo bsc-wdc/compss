@@ -53,17 +53,17 @@ public class Agent {
                 se.printStackTrace(System.err);
                 System.err.println("Continuing...");
             }
-        }
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            public void run() {
-                try {
-                    StorageItf.finish();
-                } catch (StorageException se) {
-                    se.printStackTrace(System.err);
-                    System.err.println("Continuing...");
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                public void run() {
+                    try {
+                        StorageItf.finish();
+                    } catch (StorageException se) {
+                        se.printStackTrace(System.err);
+                        System.err.println("Continuing...");
+                    }
                 }
-            }
-        });
+            });
+        }
 
         RUNTIME = new COMPSsRuntimeImpl();
         RUNTIME.setObjectRegistry(new ObjectRegistry(RUNTIME));

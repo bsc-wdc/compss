@@ -25,11 +25,11 @@ public class RemoteJobsRegistry {
 
     public static final HashMap<String, RemoteJobListener> REGISTERED_JOBS = new HashMap<>();
 
-    public static void registerJobListener(String jobId, RemoteJobListener o) {
+    public static synchronized void registerJobListener(String jobId, RemoteJobListener o) {
         REGISTERED_JOBS.put(jobId, o);
     }
 
-    public static void notifyJobEnd(String jobId, JobListener.JobEndStatus endStatus, String[] paramResults) {
+    public static synchronized void notifyJobEnd(String jobId, JobListener.JobEndStatus endStatus, String[] paramResults) {
         RemoteJobListener listener = REGISTERED_JOBS.remove(jobId);
         listener.finishedExecution(endStatus, paramResults);
     }

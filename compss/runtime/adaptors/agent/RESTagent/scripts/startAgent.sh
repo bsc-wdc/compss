@@ -221,16 +221,20 @@ fi
 CURRENT_DIR=/tmp/${uuid}
 rm -rf "${CURRENT_DIR}"
 mkdir -p "${CURRENT_DIR}"
-cd ${CURRENT_DIR}
+cd "${CURRENT_DIR}"
 
 
 
 # Loading all necessary jars on classpath
-CLASSPATH="${APPLICATION_PATH}"
-APPLICATION_FOLDER="$( cd "$( dirname "${APPLICATION_PATH}" )" && pwd )"
-CLASSPATH="${CLASSPATH}:${APPLICATION_FOLDER}/lib/*"
+if [ -f "${APPLICATION_PATH}" ]; then
+  CLASSPATH="${APPLICATION_PATH}"
+  APPLICATION_FOLDER="$( cd "$( dirname "${APPLICATION_PATH}" )" && pwd )"
+  CLASSPATH="${CLASSPATH}:${APPLICATION_FOLDER}/lib/*"
+fi
+
 CLASSPATH="${CLASSPATH}:${COMPSS_HOME}/Runtime/adaptors/RESTagent/worker/compss-adaptors-agent-rest-worker.jar"
 CLASSPATH="${CLASSPATH}:${COMPSS_HOME}/Runtime/adaptors/RESTagent/master/compss-adaptors-agent-rest-master.jar"
+
 
 
 if [ "$DC_ENABLED" = true ] ; then
@@ -238,11 +242,12 @@ if [ "$DC_ENABLED" = true ] ; then
 	generate_client_properties
 	generate_session_properties
 
-	echo "Preparing DataClay environment"
-	generate_dataclay_stubs
-	CLASSPATH="${CURRENT_DIR}/stubs:${CLASSPATH}"
+  if [ -f "${APPLICATION_PATH}" ]; then
+	  echo "Preparing DataClay environment"
+	  generate_dataclay_stubs
+	  CLASSPATH="${CURRENT_DIR}/stubs:${CLASSPATH}"
+  fi
 fi
-echo "CLASSPATH: ${CLASSPATH}"
 
 echo "Launching COMPSs agent on Worker ${AGENT_HOSTNAME} and port ${AGENT_PORT} with debug level ${DEBUG}"
 if [ "$DC_ENABLED" = true ] ; then
@@ -255,11 +260,11 @@ fi
 java \
 -cp "${CLASSPATH}" \
 -Dcompss.agent.name="localhost" \
--Dcompss.uuid=${uuid} \
--Dcompss.appLogDir=/tmp/${uuid} \
+-Dcompss.uuid="${uuid}" \
+-Dcompss.appLogDir="/tmp/${uuid}" \
 -Dcompss.lang=JAVA \
--Dcompss.project.file=/home/flordan/agentTest/project.xml \
--Dcompss.resources.file=/home/flordan/agentTest/resources.xml \
+-Dcompss.project.file="${COMPSS_HOME}/Runtime/configuration/xml/projects/default_project.xml" \
+-Dcompss.resources.file="${COMPSS_HOME}/Runtime/configuration/xml/resources/default_resources.xml" \
 -Dcompss.project.schema="${COMPSS_HOME}/Runtime/configuration/xml/projects/project_schema.xsd" \
 -Dcompss.resources.schema="${COMPSS_HOME}/Runtime/configuration/xml/resources/resources_schema.xsd" \
 -Dlog4j.configurationFile="${COMPSS_HOME}/Runtime/configuration/log/COMPSsMaster-log4j.${DEBUG}" \

@@ -19,8 +19,8 @@ cat << EOF
 Usage: $0 [OPTION]...
 
 Mandatory options:
-  -h, --hostname           	name of the mF2C hostname
-	-a, --app                 application jar
+  -h, --hostname            name of the mF2C hostname
+  -a, --app                 application jar
 
 COMPSs options:  
   -p, --port                port on which the agent listens. Default value 46100
@@ -48,19 +48,19 @@ parse_options() {
 
   while true; do
     case "$1" in
-      -h	| --hostname )		
+      -h    | --hostname )        
         NODE_HOSTNAME=$2;
         shift 2;;
 
-      -a	| --app )		
+      -a    | --app )        
         APPLICATION_PATH=$2;
         shift 2;;
 
-      -p 	| --port ) 	
+      -p     | --port )     
         AGENT_PORT=$2;
         shift 2;;
 
-      -d	| --debug )
+      -d    | --debug )
         DEBUG=$2;
         shift 2;;
 
@@ -68,109 +68,108 @@ parse_options() {
         DC_ENABLED=false
         shift 1;;
 
-	  	-lm	| --logicmodule )
+          -lm    | --logicmodule )
         OLD_IFS=${IFS}
         IFS=':' read -ra ADDR <<< "$2"
         if [ "${ADDR[0]}" != "" ]; then
           DC_LOGICMODULE_HOST="${ADDR[0]}"
         fi
-				if [ "${ADDR[1]}" != "" ]; then
-				  DC_LOGICMODULE_PORT="${ADDR[1]}"
-				fi
-				IFS=${OLD_IFS}
-				shift 2;;
+        if [ "${ADDR[1]}" != "" ]; then
+          DC_LOGICMODULE_PORT="${ADDR[1]}"
+        fi
+        IFS=${OLD_IFS}
+        shift 2;;
 
-      -u 	| --user ) 
+      -u     | --user ) 
         DC_USERNAME=$2;
         shift 2;;
 
-      -pwd 	| --password )
+      -pwd     | --password )
         DC_PASSWORD=$2;
         shift 2;;
 
-      -ds 	| --dataset )
+      -ds     | --dataset )
         DC_DATASET=$2;
         shift 2;;
 
-      -ns	| --namespace )
+      -ns    | --namespace )
         DC_NAMESPACE=$2;
         shift 2;;
 
-      --help)	
+      --help)    
         usage;
-        exit;;					
+        exit;;                    
       -- ) 
         shift; 
         break;;
       * ) 
-			  shift; 
+        shift; 
         break ;;
     esac
   done
 
   if [[ -z "${NODE_HOSTNAME}" ]]; then
-	  echo "ERROR! MF2C_HOSTNAME not set"
-		usage
-	  exit
+    echo "ERROR! MF2C_HOSTNAME not set"
+    usage
+    exit
   fi
-	if [[ -z "${APPLICATION_PATH}" ]]; then
-	  echo "ERROR! APPLICATION_PATH not set"
-		usage
-	  exit
+    if [[ -z "${APPLICATION_PATH}" ]]; then
+      echo "ERROR! APPLICATION_PATH not set"
+      usage
+      exit
   fi
 
   if [[ -z "${AGENT_PORT}" ]]; then
     AGENT_PORT="${DEFAULT_AGENT_PORT}"
   fi
-	if [[ -z "${DEBUG}" ]]; then
+  if [[ -z "${DEBUG}" ]]; then
     DEBUG="${DEFAULT_DEBUG}"
-	fi
-	if [ "$DC_ENABLED" = true ] ; then
-	  if [[ -z "${DC_LOGICMODULE_HOST}" ]]; then
-      DC_LOGICMODULE_HOST="${DEFAULT_DC_LOGICMODULE_HOST}"
-	  fi
-	  if [[ -z "${DC_LOGICMODULE_PORT}" ]]; then
-      DC_LOGICMODULE_PORT="${DEFAULT_DC_LOGICMODULE_PORT}"
-	  fi
-	  if [[ -z "${DC_USERNAME}" ]]; then
-      DC_USERNAME="${DEFAULT_DC_USERNAME}"
-	  fi
-	  if [[ -z "${DC_PASSWORD}" ]]; then
-      DC_PASSWORD="${DEFAULT_DC_PASSWORD}"
-	  fi
-  	if [[ -z "${DC_DATASET}" ]]; then
-      DC_DATASET="${DEFAULT_DC_DATASET}"
-	  fi
-  	if [[ -z "${DC_NAMESPACE}" ]]; then
-      DC_NAMESPACE="${DEFAULT_DC_NAMESPACE}"
-	  fi
   fi
-	echo  "NODE_HOSTNAME: ${NODE_HOSTNAME}"
-	echo  "AGENT_PORT: ${AGENT_PORT}"
-	echo  "DEBUG: ${DEBUG}"
   if [ "$DC_ENABLED" = true ] ; then
-		echo  "DC_LOGICMODULE_HOST: ${DC_LOGICMODULE_HOST}"
-	  echo  "DC_LOGICMODULE_PORT: ${DC_LOGICMODULE_PORT}"
-	  echo  "DC_USERNAME: ${DC_USERNAME}"
-	  echo  "DC_PASSWORD: ${DC_PASSWORD}"
-	  echo  "DC_DATASET: ${DC_DATASET}"
-	  echo  "DC_NAMESPACE: ${DC_NAMESPACE}"
+    if [[ -z "${DC_LOGICMODULE_HOST}" ]]; then
+      DC_LOGICMODULE_HOST="${DEFAULT_DC_LOGICMODULE_HOST}"
+    fi
+    if [[ -z "${DC_LOGICMODULE_PORT}" ]]; then
+      DC_LOGICMODULE_PORT="${DEFAULT_DC_LOGICMODULE_PORT}"
+    fi
+    if [[ -z "${DC_USERNAME}" ]]; then
+      DC_USERNAME="${DEFAULT_DC_USERNAME}"
+    fi
+    if [[ -z "${DC_PASSWORD}" ]]; then
+      DC_PASSWORD="${DEFAULT_DC_PASSWORD}"
+    fi
+    if [[ -z "${DC_DATASET}" ]]; then
+      DC_DATASET="${DEFAULT_DC_DATASET}"
+    fi
+    if [[ -z "${DC_NAMESPACE}" ]]; then
+      DC_NAMESPACE="${DEFAULT_DC_NAMESPACE}"
+    fi
   fi
-
+  echo  "NODE_HOSTNAME: ${NODE_HOSTNAME}"
+  echo  "AGENT_PORT: ${AGENT_PORT}"
+  echo  "DEBUG: ${DEBUG}"
+  if [ "$DC_ENABLED" = true ] ; then
+    echo  "DC_LOGICMODULE_HOST: ${DC_LOGICMODULE_HOST}"
+    echo  "DC_LOGICMODULE_PORT: ${DC_LOGICMODULE_PORT}"
+    echo  "DC_USERNAME: ${DC_USERNAME}"
+    echo  "DC_PASSWORD: ${DC_PASSWORD}"
+    echo  "DC_DATASET: ${DC_DATASET}"
+    echo  "DC_NAMESPACE: ${DC_NAMESPACE}"
+  fi
 }
 
 generate_client_properties() {
-	echo "    * Creating client.properties at ${CURRENT_DIR}"
-	mkdir -p "${CURRENT_DIR}/cfgfiles"
-	cat << EOF >> ${CURRENT_DIR}/cfgfiles/client.properties
+  echo "    * Creating client.properties at ${CURRENT_DIR}"
+  mkdir -p "${CURRENT_DIR}/cfgfiles"
+  cat << EOF >> ${CURRENT_DIR}/cfgfiles/client.properties
 HOST=${DC_LOGICMODULE_HOST}
 TCPPORT=${DC_LOGICMODULE_PORT}
 EOF
 }
 
 generate_session_properties() {
-	echo "    * Creating session.properties at ${CURRENT_DIR}"
-	cat << EOF >> ${CURRENT_DIR}/cfgfiles/session.properties
+  echo "    * Creating session.properties at ${CURRENT_DIR}"
+  cat << EOF >> ${CURRENT_DIR}/cfgfiles/session.properties
 Account=${DC_USERNAME}
 Password=${DC_PASSWORD}
 StubsClasspath=${CURRENT_DIR}/stubs
@@ -182,32 +181,32 @@ EOF
 
 generate_dataclay_stubs() {
   # Registering User
-	${DC_TOOL} dataclay.tool.NewAccount ${DC_USERNAME} ${DC_PASSWORD}
-	#Registering DATASET
-	${DC_TOOL} dataclay.tool.NewDataContract ${DC_USERNAME} ${DC_PASSWORD} ${DC_DATASET} ${DC_USERNAME}
+  ${DC_TOOL} dataclay.tool.NewAccount ${DC_USERNAME} ${DC_PASSWORD}
+  #Registering DATASET
+  ${DC_TOOL} dataclay.tool.NewDataContract ${DC_USERNAME} ${DC_PASSWORD} ${DC_DATASET} ${DC_USERNAME}
 
-	#Registering Application classes
-	${DC_TOOL} dataclay.tool.NewNamespace ${DC_USERNAME} ${DC_PASSWORD} ${DC_NAMESPACE} java
+  #Registering Application classes
+  ${DC_TOOL} dataclay.tool.NewNamespace ${DC_USERNAME} ${DC_PASSWORD} ${DC_NAMESPACE} java
 
-	mkdir classes
-	cd classes
-	jar xf /app/app.jar
-	ls | grep -v datamodel | xargs rm -rf
-	cd ..
+  mkdir classes
+  cd classes
+  jar xf /app/app.jar
+  ls | grep -v datamodel | xargs rm -rf
+  cd ..
 
   ${DC_TOOL} dataclay.tool.NewModel ${DC_USERNAME} ${DC_PASSWORD} ${DC_NAMESPACE} classes
-	rm -rf classes
+  rm -rf classes
 
-	#Obtaining stubs
-	${DC_TOOL} dataclay.tool.AccessNamespace ${DC_USERNAME} ${DC_PASSWORD} ${DC_NAMESPACE}
-	${DC_TOOL} dataclay.tool.GetStubs ${DC_USERNAME} ${DC_PASSWORD} ${DC_NAMESPACE} "${CURRENT_DIR}/stubs"
+  #Obtaining stubs
+  ${DC_TOOL} dataclay.tool.AccessNamespace ${DC_USERNAME} ${DC_PASSWORD} ${DC_NAMESPACE}
+  ${DC_TOOL} dataclay.tool.GetStubs ${DC_USERNAME} ${DC_PASSWORD} ${DC_NAMESPACE} "${CURRENT_DIR}/stubs"
 }
 
 parse_options "$@"
 
 # Obtain COMPSs installation root
 if [ -z "${COMPSS_HOME}" ]; then
-	COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../../../../ && pwd )"
+  COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../../../../ && pwd )"
 fi
 export COMPSS_HOME=${COMPSS_HOME}
 echo "Using COMPSs installation on ${COMPSS_HOME}"
@@ -215,7 +214,7 @@ echo "Using COMPSs installation on ${COMPSS_HOME}"
 
 uuid=$(uuidgen)
 if [ -z "$uuid" ]; then
-	uuid=$(cat /proc/sys/kernel/random/uuid)
+  uuid=$(cat /proc/sys/kernel/random/uuid)
 fi
 
 CURRENT_DIR=/tmp/${uuid}
@@ -235,17 +234,15 @@ fi
 CLASSPATH="${CLASSPATH}:${COMPSS_HOME}/Runtime/adaptors/RESTagent/worker/compss-adaptors-agent-rest-worker.jar"
 CLASSPATH="${CLASSPATH}:${COMPSS_HOME}/Runtime/adaptors/RESTagent/master/compss-adaptors-agent-rest-master.jar"
 
-
-
 if [ "$DC_ENABLED" = true ] ; then
-	echo "GENERATING DATACLAY CONFIGURATION FILES..."
-	generate_client_properties
-	generate_session_properties
+  echo "GENERATING DATACLAY CONFIGURATION FILES..."
+  generate_client_properties
+  generate_session_properties
 
   if [ -f "${APPLICATION_PATH}" ]; then
-	  echo "Preparing DataClay environment"
-	  generate_dataclay_stubs
-	  CLASSPATH="${CURRENT_DIR}/stubs:${CLASSPATH}"
+    echo "Preparing DataClay environment"
+    generate_dataclay_stubs
+    CLASSPATH="${CURRENT_DIR}/stubs:${CLASSPATH}"
   fi
 fi
 

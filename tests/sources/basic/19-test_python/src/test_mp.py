@@ -135,9 +135,9 @@ def test_mp_object_access():
     function_objects(o, li, dic, tup, cplx, par_func)
     o = compss_wait_on(o)
     if o.field == val * 2:
-        print("- Object access from MP: OK")
+        print("- Object access from MP 1: OK")
     else:
-        print("- Object access from MP: ERROR")
+        print("- Object access from MP 1: ERROR")
 
     o.field = val * 4
     function_objects(o, li, dic, tup, cplx, par_func)
@@ -154,9 +154,9 @@ def test_instance_method():
 
     o = compss_wait_on(o)
     if o.field == val * 4:
-        print("- Object access from MP: OK")
+        print("- Object access from MP 2: OK")
     else:
-        print("- Object access from MP: ERROR")
+        print("- Object access from MP 2: ERROR")
 
 
 def test_class_method():
@@ -185,9 +185,9 @@ def test_function_return_object():
 
     o = compss_wait_on(o)
     if o.field == val * 2:
-        print("- Object access from MP: OK")
+        print("- Object access from MP 3: OK")
     else:
-        print("- Object access from MP: ERROR")
+        print("- Object access from MP 3: ERROR")
 
 
 def test_function_as_parameter():
@@ -570,9 +570,9 @@ def test_all_class_tasks():
     o.instance_method(88)  # 3
     o = compss_wait_on(o)
     if o.field == val * 4:
-        print("- Object access from MP: OK")
+        print("- Object access from MP 4: OK")
     else:
-        print("- Object access from MP: ERROR")
+        print("- Object access from MP 4: ERROR")
 
     print("test_class_method")
     MyClass.class_method()  # 4

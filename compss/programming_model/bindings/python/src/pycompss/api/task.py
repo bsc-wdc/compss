@@ -898,10 +898,13 @@ class task(object):
             return file_path.split(':')[-1]
 
         # Deal with INOUTs
+        from pycompss.util.persistent_storage import is_psco
         for arg in [x for x in args if isinstance(x, parameter.TaskParameter) and self.is_parameter_object(x.name)]:
             original_name = parameter.get_original_name(arg.name)
             param = self.decorator_arguments.get(original_name, self.get_default_direction(original_name))
-            if param.direction == parameter.DIRECTION.INOUT:
+            if param.direction == parameter.DIRECTION.INOUT and not arg.type == parameter.TYPE.EXTERNAL_PSCO and not is_psco(arg.content):
+                # If it si INOUT and not PSCO, serialize to file
+                # We can not use here param.type != parameter.TYPE.EXTERNAL_PSCO since param.type will has the old type
                 from pycompss.util.serializer import serialize_to_file
                 serialize_to_file(arg.content, get_file_name(arg.file_name))
 
@@ -913,11 +916,9 @@ class task(object):
             # Note that we are implicitly assuming that the length of the user returns matches the number
             # of return parameters
             for (obj, param) in zip(user_returns, ret_params):
-                # The object is a PSCO. Set its content (which is supposedly already persisted)
-                # as its key
-                if param.type == parameter.TYPE.EXTERNAL_PSCO:
-                    from pycompss.util.persistent_storage import get_id
-                    param.content = get_id(obj)
+                # If the object is a PSCO, do not serialize to file
+                if param.type == parameter.TYPE.EXTERNAL_PSCO or is_psco(obj):
+                    continue
                 # Serialize the object
                 # Note that there is no "command line optimization" in the returns, as we always pass them as files
                 # This is due to the asymmetry in worker-master communications and because it also makes it easier
@@ -931,10 +932,17 @@ class task(object):
         new_types, new_values = [], []
 
         for arg in args:
-            new_types.append(arg.type)
             if arg.type == parameter.TYPE.EXTERNAL_PSCO:
+                # It was originally a persistent object
+                new_types.append(parameter.TYPE.EXTERNAL_PSCO)
                 new_values.append(arg.key)
+            elif is_psco(arg.content):
+                # It was persisted in the task
+                new_types.append(parameter.TYPE.EXTERNAL_PSCO)
+                new_values.append(arg.content.getID())
             else:
+                # Any other return object
+                new_types.append(arg.type)
                 new_values.append('null')
 
         return new_types, new_values, self.decorator_arguments['isModifier']

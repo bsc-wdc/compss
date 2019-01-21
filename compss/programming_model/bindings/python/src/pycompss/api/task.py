@@ -930,31 +930,12 @@ class task(object):
         # But the whole types and values list must be returned
         new_types, new_values = [], []
 
-        def get_object_information(obj):
-            """ Returns a pair (t, v) with the new type and value of
-            some object
-            :param obj:
-            :return:
-            """
-            ret_type = parameter.get_compss_type(obj)
-            return ret_type, obj.getID() if ret_type == parameter.TYPE.EXTERNAL_PSCO else 'null'
-
-        pending_to_swap = False
-
         for arg in args:
-            is_task_param = isinstance(arg, parameter.TaskParameter)
-            obj = arg.content if is_task_param else arg
-            # Do we have a self? Then well have to swap these two lists in the future
-            pending_to_swap |= is_task_param
-            t, v = get_object_information(obj)
-            new_types.append(t)
-            new_values.append(v)
-
-        if pending_to_swap:
-            # We have a self parameter, we should respect the original order of the parameters as in
-            # the Java COMPSs implementation
-            for L in [new_types, new_values]:
-                L.append(L.pop(0))
+            new_types.append(arg.type)
+            if arg.type == parameter.TYPE.EXTERNAL_PSCO:
+                new_values.append(arg.key)
+            else:
+                new_values.append('null')
 
         return new_types, new_values, self.decorator_arguments['isModifier']
 

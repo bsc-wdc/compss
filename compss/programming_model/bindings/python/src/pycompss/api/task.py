@@ -902,7 +902,7 @@ class task(object):
         for arg in [x for x in args if isinstance(x, parameter.TaskParameter) and self.is_parameter_object(x.name)]:
             original_name = parameter.get_original_name(arg.name)
             param = self.decorator_arguments.get(original_name, self.get_default_direction(original_name))
-            if param.direction == parameter.DIRECTION.INOUT and not arg.type == parameter.TYPE.EXTERNAL_PSCO and not is_psco(arg.content):
+            if param.direction == parameter.DIRECTION.INOUT and not (arg.type == parameter.TYPE.EXTERNAL_PSCO or is_psco(arg.content)):
                 # If it si INOUT and not PSCO, serialize to file
                 # We can not use here param.type != parameter.TYPE.EXTERNAL_PSCO since param.type will has the old type
                 from pycompss.util.serializer import serialize_to_file
@@ -931,7 +931,7 @@ class task(object):
         # But the whole types and values list must be returned
         new_types, new_values = [], []
 
-        for arg in args:
+        for arg in [x for x in args if isinstance(x, parameter.TaskParameter)]:
             if arg.type == parameter.TYPE.EXTERNAL_PSCO:
                 # It was originally a persistent object
                 new_types.append(parameter.TYPE.EXTERNAL_PSCO)

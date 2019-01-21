@@ -252,11 +252,12 @@ if [ "$DC_ENABLED" = true ] ; then
   echo "DataClay will use the ${DC_DATASET} dataset and the namespace ${DC_NAMESPACE}"
   DATACLAY_CONFIG_OPT="-Ddataclay.configpath=${CURRENT_DIR}/cfgfiles/session.properties " 
 fi
-
-
+echo "------------------------"
+echo "HOSTNAME: ${NODE_HOSTNAME}"
+echo "------------------------"
 java \
 -cp "${CLASSPATH}" \
--Dcompss.agent.name="localhost" \
+-Dcompss.agent.name="${NODE_HOSTNAME}" \
 -Dcompss.uuid="${uuid}" \
 -Dcompss.appLogDir="/tmp/${uuid}" \
 -Dcompss.lang=JAVA \

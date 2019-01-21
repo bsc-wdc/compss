@@ -60,11 +60,11 @@ def reduce_example():
 def word_count():
 
     path_file = sys.argv[1]
-    size_block = int(sys.argv[3])
 
     start = time.time()
-    result = DDS().load_file(path_file, chunk_size=size_block, worker_read=True)\
-        .map_and_flatten(lambda x: x.split()).count_by_value(as_dict=True)
+    result = DDS().load_files_from_dir(path_file)\
+        .map_and_flatten(lambda x: x[1].split()).count_by_value(arity=4,
+                                                                as_dict=True)
 
     print("Elapsed Time: ", time.time()-start)
     return
@@ -249,10 +249,10 @@ def main_program():
     # example_5()
     # pi_estimation()
     # See 'launch.sh' for WordCount example.
-    # word_count()
+    word_count()
     # reduce_example()
     # load_n_map_example()
-    run_terasort()
+    # run_terasort()
 
 
 if __name__ == '__main__':

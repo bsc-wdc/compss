@@ -115,7 +115,6 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     private Semaphore tracingGeneration = new Semaphore(0);
     private Semaphore workersDebugInfo = new Semaphore(0);
 
-
     /**
      * New NIOAdaptor instance
      *
@@ -176,7 +175,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         NIOConfiguration config = new NIOConfiguration(this.getClass().getName());
 
         es.bsc.compss.types.project.jaxb.NIOAdaptorProperties props_project = (es.bsc.compss.types.project.jaxb.NIOAdaptorProperties) project_properties;
-        es.bsc.compss.types.resources.jaxb.NIOAdaptorProperties props_resources = (es.bsc.compss.types.resources.jaxb.NIOAdaptorProperties) resources_properties;
+        es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties props_resources = (es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties) resources_properties;
 
         // Get ports
         int min_project = (props_project != null) ? props_project.getMinPort() : -1;
@@ -682,23 +681,21 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         private final NIOWorkerNode worker;
         private final ShutdownListener listener;
 
-
         public ClosingWorker(NIOWorkerNode w, ShutdownListener l) {
             worker = w;
             listener = l;
         }
     }
 
+
     private class ClosingExecutor {
 
         private final ExecutorShutdownListener listener;
-
 
         public ClosingExecutor(ExecutorShutdownListener l) {
             listener = l;
         }
     }
-
 
     @Override
     public void receivedBindingObjectAsFile(String filename, String target) {

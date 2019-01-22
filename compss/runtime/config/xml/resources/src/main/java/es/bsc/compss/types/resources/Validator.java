@@ -27,14 +27,14 @@ import es.bsc.compss.types.resources.jaxb.CloudProviderType;
 import es.bsc.compss.types.resources.jaxb.ComputeNodeType;
 import es.bsc.compss.types.resources.jaxb.DataNodeType;
 import es.bsc.compss.types.resources.jaxb.EndpointType;
-import es.bsc.compss.types.resources.jaxb.ExternalAdaptorProperties;
+import es.bsc.compss.types.resources.jaxb.ResourcesExternalAdaptorProperties;
 import es.bsc.compss.types.resources.jaxb.ImageType;
 import es.bsc.compss.types.resources.jaxb.ImagesType;
 import es.bsc.compss.types.resources.jaxb.InstanceTypeType;
 import es.bsc.compss.types.resources.jaxb.InstanceTypesType;
 import es.bsc.compss.types.resources.jaxb.InteractiveType;
 import es.bsc.compss.types.resources.jaxb.MemoryType;
-import es.bsc.compss.types.resources.jaxb.NIOAdaptorProperties;
+import es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties;
 import es.bsc.compss.types.resources.jaxb.OSType;
 import es.bsc.compss.types.resources.jaxb.PriceType;
 import es.bsc.compss.types.resources.jaxb.ProcessorType;
@@ -522,7 +522,7 @@ public class Validator {
                                 "An adaptor property (GAT or External) was already defined");
                     } else {
                         portsTagFound = true;
-                        validateNIOAdaptorProperties(((NIOAdaptorProperties) obj.getValue()));
+                        validateNIOAdaptorProperties(((ResourcesNIOAdaptorProperties) obj.getValue()));
                     }
                 } else if (obj.getName().equals(new QName("BrokerAdaptor"))) {
                     if (brokerAdaptorTagFound) {
@@ -546,7 +546,7 @@ public class Validator {
                                 "An adaptor property (NIO or GAT) was already defined");
                     } else {
                         propertiesTagFound = true;
-                        validateExternalAdaptorProperties(((ExternalAdaptorProperties) obj.getValue()));
+                        validateExternalAdaptorProperties(((ResourcesExternalAdaptorProperties) obj.getValue()));
                     }
                 } else if (obj.getName().equals(new QName("User"))) {
                     if (userTagFound) {
@@ -616,7 +616,7 @@ public class Validator {
         // The interactive type is empty and thus, always valid
     }
 
-    private void validateNIOAdaptorProperties(NIOAdaptorProperties props) throws InvalidElementException {
+    private void validateNIOAdaptorProperties(ResourcesNIOAdaptorProperties props) throws InvalidElementException {
         if (props.getMaxPort() < 0) {
             throw new InvalidElementException("Properties of NIO Adaptor", "Attribute MaxPort", "Invalid value");
         }
@@ -634,7 +634,7 @@ public class Validator {
         }
     }
 
-    private void validateExternalAdaptorProperties(ExternalAdaptorProperties props) throws InvalidElementException {
+    private void validateExternalAdaptorProperties(ResourcesExternalAdaptorProperties props) throws InvalidElementException {
         // The list of properties is a user defined List< (Name,Value) >
         // Since the list is not empty (XSD validation) and the user can add any property
         // we consider that it is always valid.

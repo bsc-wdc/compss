@@ -111,9 +111,9 @@
                         <xsd:element name="SubmissionSystem" type="SubmissionSystemType" minOccurs="1" maxOccurs="1" />
 			<!-- One of them mandatory -->
 			<xsd:choice minOccurs="1" maxOccurs="1">
-				<xsd:element name="Ports" type="NIOAdaptorProperties" minOccurs="0" maxOccurs="1" />
+				<xsd:element name="Ports" type="ResourcesNIOAdaptorProperties" minOccurs="0" maxOccurs="1" />
 				<xsd:element name="BrokerAdaptor" type="xsd:string" minOccurs="0" maxOccurs="1" />
-				<xsd:element name="Properties" type="ExternalAdaptorProperties" minOccurs="0" maxOccurs="1" />
+				<xsd:element name="Properties" type="ResourcesExternalAdaptorProperties" minOccurs="0" maxOccurs="1" />
 			</xsd:choice>
 			<!-- NOT mandatory -->
 			<xsd:element name="User" type="xsd:string" minOccurs="0" maxOccurs="1" />
@@ -143,7 +143,7 @@
         </xsd:complexType>
 
 	<!-- AdaptorProperties type -->
-	<xsd:complexType name="NIOAdaptorProperties">
+	<xsd:complexType name="ResourcesNIOAdaptorProperties">
 		<xsd:sequence>
                 	<!-- Mandatory -->
                         <xsd:element name="MinPort" type="xsd:int" minOccurs="1" maxOccurs="1"/>
@@ -153,15 +153,15 @@
                 </xsd:sequence>
 	</xsd:complexType>
 
-        <xsd:complexType name="ExternalAdaptorProperties">
+        <xsd:complexType name="ResourcesExternalAdaptorProperties">
 		<xsd:sequence>
                        	<!-- Mandatory -->
 		        <!-- NOT mandatory -->
-	        	<xsd:element name="Property" type="PropertyAdaptorType" minOccurs="0" maxOccurs="unbounded"/>
+	        	<xsd:element name="Property" type="ResourcesPropertyAdaptorType" minOccurs="0" maxOccurs="unbounded"/>
 		</xsd:sequence>
         </xsd:complexType>
 
-        <xsd:complexType name="PropertyAdaptorType">
+        <xsd:complexType name="ResourcesPropertyAdaptorType">
                 <xsd:sequence>
                         <!-- Mandatory -->
                         <xsd:element name="Name" type="xsd:string" minOccurs="1" maxOccurs="1"/>

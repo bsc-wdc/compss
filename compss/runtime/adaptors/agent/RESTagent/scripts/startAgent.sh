@@ -49,7 +49,7 @@ parse_options() {
   while true; do
     case "$1" in
       -h    | --hostname )        
-        NODE_HOSTNAME=$2;
+        AGENT_HOSTNAME=$2;
         shift 2;;
 
       -a    | --app )        
@@ -108,7 +108,7 @@ parse_options() {
     esac
   done
 
-  if [[ -z "${NODE_HOSTNAME}" ]]; then
+  if [[ -z "${AGENT_HOSTNAME}" ]]; then
     echo "ERROR! MF2C_HOSTNAME not set"
     usage
     exit
@@ -145,7 +145,7 @@ parse_options() {
       DC_NAMESPACE="${DEFAULT_DC_NAMESPACE}"
     fi
   fi
-  echo  "NODE_HOSTNAME: ${NODE_HOSTNAME}"
+  echo  "AGENT_HOSTNAME: ${AGENT_HOSTNAME}"
   echo  "AGENT_PORT: ${AGENT_PORT}"
   echo  "DEBUG: ${DEBUG}"
   if [ "$DC_ENABLED" = true ] ; then
@@ -253,11 +253,11 @@ if [ "$DC_ENABLED" = true ] ; then
   DATACLAY_CONFIG_OPT="-Ddataclay.configpath=${CURRENT_DIR}/cfgfiles/session.properties " 
 fi
 echo "------------------------"
-echo "HOSTNAME: ${NODE_HOSTNAME}"
+echo "HOSTNAME: ${AGENT_HOSTNAME}"
 echo "------------------------"
 java \
 -cp "${CLASSPATH}" \
--Dcompss.agent.name="${NODE_HOSTNAME}" \
+-Dcompss.agent.name="${AGENT_HOSTNAME}" \
 -Dcompss.uuid="${uuid}" \
 -Dcompss.appLogDir="/tmp/${uuid}" \
 -Dcompss.lang=JAVA \

@@ -21,7 +21,7 @@ import es.bsc.compss.types.resources.ResourcesFile;
 import es.bsc.compss.types.resources.exceptions.ResourcesFileValidationException;
 import es.bsc.compss.types.resources.jaxb.AdaptorType;
 import es.bsc.compss.types.resources.jaxb.ComputeNodeType;
-import es.bsc.compss.types.resources.jaxb.NIOAdaptorProperties;
+import es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties;
 import es.bsc.compss.types.resources.jaxb.OSTypeType;
 import es.bsc.compss.types.resources.jaxb.ProcessorPropertyType;
 import es.bsc.compss.types.resources.jaxb.ProcessorType;
@@ -493,10 +493,10 @@ public class ResourcesFileTest {
         assertEquals(storageSize, resources.getStorageSize(cn), 0);
 
         assertEquals(osType, resources.getOperatingSystemType(cn));
-        assertEquals(NIOAdaptorProperties.class, resources.getAdaptorProperties(cn, adaptorName).getClass());
-        assertEquals(minPort, ((NIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName)).getMinPort());
-        assertEquals(maxPort, ((NIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName)).getMaxPort());
-        assertEquals(executor, ((NIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName)).getRemoteExecutionCommand());
+        assertEquals(ResourcesNIOAdaptorProperties.class, resources.getAdaptorProperties(cn, adaptorName).getClass());
+        assertEquals(minPort, ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName)).getMinPort());
+        assertEquals(maxPort, ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName)).getMaxPort());
+        assertEquals(executor, ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName)).getRemoteExecutionCommand());
     }
 
     @Test

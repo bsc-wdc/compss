@@ -111,12 +111,12 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
             throw new UnsupportedOperationException("Instance methods not supported yet.");
         }
 
-        System.out.println("SUBMISSION Parameters:");
+        System.out.println("SUBMISSION[" + this.getJobId() + "] Parameters:");
         for (int parIdx = 0; parIdx < numParams; parIdx++) {
-            System.out.println("SUBMISSION     * Parameter " + parIdx + ": ");
+            System.out.println("SUBMISSION[" + this.getJobId() + "]     * Parameter " + parIdx + ": ");
             Parameter param = params[parIdx];
             DataType type = param.getType();
-            System.out.println("SUBMISSION         Type " + type);
+            System.out.println("SUBMISSION[" + this.getJobId() + "]         Type " + type);
             switch (type) {
                 case FILE_T:
                 case OBJECT_T:
@@ -155,9 +155,9 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                     }
                     if (type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T) {
                         Object value;
-                        System.out.println("SUBMISSION         Access " + dAccId);
+                        System.out.println("SUBMISSION[" + this.getJobId() + "]         Access " + dAccId);
                         value = dPar.getDataTarget();
-                        System.out.println("SUBMISSION         ID " + value);
+                        System.out.println("SUBMISSION[" + this.getJobId() + "]         ID " + value);
                         sar.addPersistedParameter((String) value, param.getDirection());
                     } else {
                         throw new UnsupportedOperationException("Non-persisted DependencyParameters are not supported yet");
@@ -166,11 +166,11 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                 default:
                     BasicTypeParameter btParB = (BasicTypeParameter) param;
                     Object value = btParB.getValue();
-                    System.out.println("SUBMISSION         Value " + value);
+                    System.out.println("SUBMISSION[" + this.getJobId() + "]         Value " + value);
                     sar.addParameter(btParB, value);
             }
         }
-        System.out.println("SUBMISSION         Stage in completed.");
+        System.out.println("SUBMISSION[" + this.getJobId() + "]         Stage in completed.");
         sar.setOrchestrator(REST_AGENT_URL, Orchestrator.HttpMethod.PUT, "COMPSs/endApplication/");
 
         Response response = wt
@@ -181,10 +181,12 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
             System.out.println(response.readEntity(String.class));
             this.getListener().jobFailed(this, JobListener.JobEndStatus.SUBMISSION_FAILED);
         } else {
+            System.out.println("SUBMISSION[" + this.getJobId() + "]         Job submitted.");
             String jobId = response.readEntity(String.class);
             RemoteJobsRegistry.registerJobListener(jobId, new RemoteJobListener() {
                 @Override
                 public void finishedExecution(JobListener.JobEndStatus endStatus, String[] paramResults) {
+                    System.out.println("SUBMISSION[" + getJobId() + "]         Job completed.");
                     stageout(paramResults);
                     if (endStatus == JobEndStatus.OK) {
                         getListener().jobCompleted(RemoteRESTAgentJob.this);

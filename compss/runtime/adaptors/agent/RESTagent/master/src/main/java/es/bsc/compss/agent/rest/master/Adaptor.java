@@ -20,9 +20,9 @@ import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.data.operation.DataOperation;
-import es.bsc.compss.types.resources.jaxb.ExternalAdaptorProperties;
+import es.bsc.compss.types.resources.jaxb.ResourcesExternalAdaptorProperties;
 import es.bsc.compss.types.resources.configuration.Configuration;
-import es.bsc.compss.types.resources.jaxb.PropertyAdaptorType;
+import es.bsc.compss.types.resources.jaxb.ResourcesPropertyAdaptorType;
 import es.bsc.compss.types.uri.MultiURI;
 import java.util.LinkedList;
 import java.util.List;
@@ -40,8 +40,8 @@ public class Adaptor implements CommAdaptor {
 
         AgentConfiguration ac = new AgentConfiguration(this.getClass().getName());
 
-        ExternalAdaptorProperties eap = (ExternalAdaptorProperties) resources_properties;
-        for (PropertyAdaptorType prop : eap.getProperty()) {
+        ResourcesExternalAdaptorProperties eap = (ResourcesExternalAdaptorProperties) resources_properties;
+        for (ResourcesPropertyAdaptorType prop : eap.getProperty()) {
             ac.addProperty(prop.getName(), prop.getValue());
         }
         /*ac.setHost((String) props.get("host"));

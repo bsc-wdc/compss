@@ -28,10 +28,14 @@ import es.bsc.compss.types.ImplementationDefinition;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
+import es.bsc.compss.types.resources.configuration.MethodConfiguration;
+import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.parsers.ITFParser;
 import java.net.InetAddress;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import storage.StorageException;
@@ -211,6 +215,11 @@ public class Agent {
             throw new AgentException(e);
         }
         return appId;
+    }
+
+    public static void addResource(String workerName, MethodConfiguration ac, MethodResourceDescription mrd) {
+        DynamicMethodWorker mw = new DynamicMethodWorker(workerName, mrd, ac, new HashMap());
+        ResourceManager.addDynamicWorker(mw, mrd);
     }
 
 

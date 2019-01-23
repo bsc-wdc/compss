@@ -1,18 +1,15 @@
 package concurrent;
 
-import java.io.FileInputStream;
+//import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
 public class ConcurrentMImpl {
-	public static void plusone(String fileName) {
+	public static void write_one(String fileName) {
 		try {
-			FileInputStream fis = new FileInputStream(fileName);
-			int number = fis.read();
-			fis.close();
-			FileOutputStream fos = new FileOutputStream(fileName);
-			fos.write(++number);
+			FileOutputStream fos = new FileOutputStream(fileName, true);
+			fos.write(1);
 			fos.close();
 			Thread.sleep(2000);
 		} catch (FileNotFoundException fnfe) {

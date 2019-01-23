@@ -25,6 +25,7 @@ PyCOMPSs API - Parameter
         - IN
         - OUT
         - INOUT
+        - CONCURRENT
     2. TYPE.
         - FILE
         - BOOLEAN
@@ -64,6 +65,7 @@ class DIRECTION(object):
     IN = 0
     OUT = 1
     INOUT = 2
+    CONCURRENT = 3
 
 
 # Numbers match both C and Java enums
@@ -149,6 +151,9 @@ _param_conversion_dict_ = {
     'INOUT': {
         'p_direction': DIRECTION.INOUT
     },
+    'CONCURRENT': {
+        'p_direction': DIRECTION.CONCURRENT
+    },
     'FILE': {
         'p_type': TYPE.FILE
     },
@@ -162,6 +167,10 @@ _param_conversion_dict_ = {
     'FILE_INOUT': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.INOUT
+    },
+    'FILE_CONCURRENT': {
+        'p_type': TYPE.FILE,
+        'p_direction': DIRECTION.CONCURRENT
     },
     'FILE_STDIN': {
         'p_type': TYPE.FILE,
@@ -218,6 +227,21 @@ _param_conversion_dict_ = {
     'FILE_INOUT_STDOUT': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.INOUT,
+        'p_stream': STREAM.STDOUT
+    },
+    'FILE_CONCURRENT_STDIN': {
+        'p_type': TYPE.FILE,
+        'p_direction': DIRECTION.CONCURRENT,
+        'p_stream': STREAM.STDIN
+    },
+    'FILE_CONCURRENT_STDERR': {
+        'p_type': TYPE.FILE,
+        'p_direction': DIRECTION.CONCURRENT,
+        'p_stream': STREAM.STDERR
+    },
+    'FILE_CONCURRENT_STDOUT': {
+        'p_type': TYPE.FILE,
+        'p_direction': DIRECTION.CONCURRENT,
         'p_stream': STREAM.STDOUT
     },
     'COLLECTION': {
@@ -480,12 +504,14 @@ def get_compss_type(value):
 IN = _param_('IN')
 OUT = _param_('OUT')
 INOUT = _param_('INOUT')
+CONCURRENT = _param_('CONCURRENT')
 
 # Aliases for files with direction
 FILE = _param_('FILE')
 FILE_IN = _param_('FILE_IN')
 FILE_OUT = _param_('FILE_OUT')
 FILE_INOUT = _param_('FILE_INOUT')
+FILE_CONCURRENT =_param_('FILE_CONCURRENT')
 
 # Aliases for files with stream
 FILE_STDIN = _param_('FILE_STDIN')
@@ -502,6 +528,9 @@ FILE_OUT_STDOUT = _param_('FILE_OUT_STDOUT')
 FILE_INOUT_STDIN = _param_('FILE_INOUT_STDIN')
 FILE_INOUT_STDERR = _param_('FILE_INOUT_STDERR')
 FILE_INOUT_STDOUT = _param_('FILE_INOUT_STDOUT')
+FILE_CONCURRENT_STDIN = _param_('FILE_CONCURRENT_STDIN')
+FILE_CONCURRENT_STDERR = _param_('FILE_CONCURRENT_STDERR')
+FILE_CONCURRENT_STDOUT = _param_('FILE_CONCURRENT_STDOUT')
 
 # Aliases for collections
 COLLECTION = _param_('COLLECTION')

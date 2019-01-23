@@ -50,13 +50,15 @@ jmethodID midDeleteFile;            /* ID of the deleteFile method in the es.bsc
 
 jmethodID midBarrier; 		        /* ID of the barrier method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midBarrierNew;            /* ID of the barrier method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midBarrierConcurrent;     /* ID of the barrierConcurrent method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
 jmethodID midgetBindingObject;		/* ID of the getBindingObject method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
 jmethodID midDeleteBindingObject; 	/* ID of the deleteBindingObject method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
 
 jobject jobjParDirIN; 		        /* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
-jobject jobjParDirINOUT; 	        /* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
 jobject jobjParDirOUT; 		        /* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
+jobject jobjParDirINOUT; 	        /* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
+jobject jobjParDirCONCURRENT; 		/* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
 
 jobject jobjParStreamSTDIN;         /* Instance of the es.bsc.compss.types.annotations.parameter.Stream class */
 jobject jobjParStreamSTDOUT;        /* Instance of the es.bsc.compss.types.annotations.parameter.Stream class */
@@ -212,6 +214,13 @@ void init_master_jni_types() {
         exit(1);
     }
 
+    // barrier concurrent method
+    midBarrierConcurrent =  m_env->GetMethodID(clsITimpl, "barrierConcurrent", "(Ljava/lang/Long;)V");
+    if (m_env->ExceptionOccurred()) {
+        m_env->ExceptionDescribe();
+        exit(1);
+    }
+
     // EmitEvent method
     midEmitEvent = m_env->GetMethodID(clsITimpl, "emitEvent", "(IJ)V");
     if (m_env->ExceptionOccurred()) {
@@ -281,14 +290,21 @@ void init_master_jni_types() {
     jobjParDirIN = (jobject)m_env->NewGlobalRef(objLocal);
     check_and_treat_exception(m_env, "Error getting Direction.IN object");
 
+    objLocal =  m_env->CallStaticObjectMethod(clsParDir, midParDirCon, m_env->NewStringUTF("OUT"));
+    check_and_treat_exception(m_env, "Error getting Direction.OUT object");
+    jobjParDirOUT = (jobject)m_env->NewGlobalRef(objLocal);
+    check_and_treat_exception(m_env, "Error getting Direction.OUT object");
+
     objLocal = m_env->CallStaticObjectMethod(clsParDir, midParDirCon, m_env->NewStringUTF("INOUT"));
     check_and_treat_exception(m_env, "Error getting Direction.INOUT object");
     jobjParDirINOUT = (jobject)m_env->NewGlobalRef(objLocal);
     check_and_treat_exception(m_env, "Error getting Direction.INOUT object");
 
-    objLocal =  m_env->CallStaticObjectMethod(clsParDir, midParDirCon, m_env->NewStringUTF("OUT"));
-    check_and_treat_exception(m_env, "Error getting Direction.OUT object");
-    jobjParDirOUT = (jobject)m_env->NewGlobalRef(objLocal);
+    objLocal =  m_env->CallStaticObjectMethod(clsParDir, midParDirCon, m_env->NewStringUTF("CONCURRENT"));
+    check_and_treat_exception(m_env, "Error getting Direction.CONCURRENT object");
+    jobjParDirCONCURRENT = (jobject)m_env->NewGlobalRef(objLocal);
+    check_and_treat_exception(m_env, "Error getting Direction.CONCURRENT object");
+
 
     // Parameter streams
 
@@ -613,6 +629,9 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
     case inout_dir:
         m_env->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirINOUT);
         break;
+    case concurrent_dir:
+        m_env->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirCONCURRENT);
+        break;
     default:
         break;
     }
@@ -847,8 +866,6 @@ void GS_ExecuteTaskNew(long _appId, char *signature, int priority, int num_nodes
 
     jobjectArray jobjOBJArr; /* array of Objects to be passed to executeTask */
 
-
-
     debug_printf ("[BINDING-COMMONS]  -  @GS_ExecuteTaskNew - Processing task execution in bindings-common. \n");
 
     bool _priority = false;
@@ -876,8 +893,7 @@ void GS_ExecuteTaskNew(long _appId, char *signature, int priority, int num_nodes
     }
 
     // Create array of parameters
-    jobjOBJArr = (jobjectArray)m_env->NewObjectArray(num_params * NUM_FIELDS, clsObject, m_env->NewObject(clsObject,midObjCon));
-
+    jobjOBJArr = (jobjectArray)m_env->NewObjectArray(num_params * NUM_FIELDS, clsObject, m_env->NewObject(clsObject, midObjCon));
 
     for (int i = 0; i < num_params; i++) {
         debug_printf("[BINDING-COMMONS]  -  @GS_ExecuteTaskNew  -  Processing parameter %d\n", i);
@@ -971,6 +987,9 @@ void GS_Get_File(char *file_name, int mode, char **buf) {
     case inout_dir:
         jstr = (jstring)local_env->CallObjectMethod(jobjIT, midOpenFile, filename_str, jobjParDirINOUT);
         break;
+    case concurrent_dir:
+        jstr = (jstring)local_env->CallObjectMethod(jobjIT, midOpenFile, filename_str, jobjParDirCONCURRENT);
+        break;
     default:
         break;
     }
@@ -1003,6 +1022,9 @@ void GS_Close_File(char *file_name, int mode) {
         break;
     case inout_dir:
         m_env->CallVoidMethod(jobjIT, midCloseFile, m_env->NewStringUTF(file_name), jobjParDirINOUT);
+        break;
+    case concurrent_dir:
+        m_env->CallVoidMethod(jobjIT, midCloseFile, m_env->NewStringUTF(file_name), jobjParDirCONCURRENT);
         break;
     default:
         break;
@@ -1128,6 +1150,26 @@ void GS_BarrierNew(long _appId, int noMoreTasks) {
         m_jvm->DetachCurrentThread();
     }
     debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  APP id: %lu\n", appId);
+}
+
+void GS_BarrierConcurrent(long _appId) {
+    debug_printf("[BINDING-COMMONS]  -  @GS_BarrierConcurrent  -  Waiting tasks for APP id: %lu\n", appId);
+    get_lock();
+    JNIEnv* local_env = m_env;
+    int isAttached = check_and_attach(m_jvm, local_env);
+	release_lock();
+
+	local_env->CallVoidMethod(jobjIT, midBarrierConcurrent, appId);
+
+    if (local_env->ExceptionOccurred()) {
+        local_env->ExceptionDescribe();
+        exit(1);
+    }
+
+    if (isAttached==1) {
+        m_jvm->DetachCurrentThread();
+    }
+    debug_printf("[BINDING-COMMONS]  -  @GS_BarrierConcurrent  -  APP id: %lu\n", appId);
 }
 
 void GS_EmitEvent(int type, long id) {

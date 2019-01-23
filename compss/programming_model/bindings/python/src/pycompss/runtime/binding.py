@@ -31,7 +31,6 @@ from pycompss.api.parameter import JAVA_MIN_INT, JAVA_MAX_INT
 from pycompss.api.parameter import JAVA_MIN_LONG, JAVA_MAX_LONG
 from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.runtime.commons import STR_ESCAPE
-from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.serializer import *
 from pycompss.util.sizer import total_sizeof
 from pycompss.util.persistent_storage import is_psco, get_id, get_by_id
@@ -50,7 +49,7 @@ from collections import *
 from shutil import rmtree
 
 # Import main C module extension for the communication with the runtime
-# See ext/compssmodule.c
+# See ext/compssmodule.cc
 import compss
 
 # Types conversion dictionary from python to COMPSs
@@ -343,6 +342,22 @@ def barrier(no_more_tasks=False):
 
     # Call the Runtime barrier (appId 0, not needed for the signature)
     compss.barrier(0, no_more_tasks)
+
+
+def barrier_concurrent():
+    """
+    Calls the external python library (that calls the bindings-common)
+    in order to request a barrier concurrent.
+    Wait for all tasks.
+
+    :return: None
+    """
+
+    if __debug__:
+        logger.debug("Barrier Concurrent")
+
+    # Call the Runtime barrier (appId 0, not needed for the signature)
+    compss.barrier_concurrent(0)
 
 
 def get_log_path():
@@ -665,6 +680,8 @@ def get_compss_mode(pymode):
         return DIRECTION.OUT
     elif pymode.startswith('r+') or pymode.startswith('a'):
         return DIRECTION.INOUT
+    elif pymode.startswith('c'):
+        return DIRECTION.CONCURRENT
     else:
         return DIRECTION.IN
 

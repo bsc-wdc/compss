@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourcesList>
-     <SharedDisk Name="Disk1">
+   <SharedDisk Name="Disk1">
         <Storage>
             <Size>100.0</Size>
         </Storage>

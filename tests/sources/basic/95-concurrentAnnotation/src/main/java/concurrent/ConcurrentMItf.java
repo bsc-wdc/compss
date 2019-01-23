@@ -10,7 +10,7 @@ public interface ConcurrentMItf {
 
 	@Constraints(computingUnits = "1")
 	@Method(declaringClass = "concurrent.ConcurrentMImpl")
-	void plusone(
+	void write_one(
 		@Parameter(type = Type.FILE, direction = Direction.CONCURRENT) String fileName
 	);
 }

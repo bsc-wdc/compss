@@ -1,16 +1,15 @@
 package concurrent;
 
-import java.io.FileOutputStream;
+import java.io.File;
 import java.io.IOException;
 import es.bsc.compss.api.COMPSs;
 
 public class ConcurrentM {
 
 	public static int MAX_AVAILABLE = 1;
-	public static String fileName = "text.txt";
+	public static String fileName = "/tmp/sharedDisk/file.txt";
 
 	public static void main(String[] args) throws InterruptedException, IOException {
-		int number;
 
 		System.out.println("START");
 		
@@ -24,7 +23,7 @@ public class ConcurrentM {
 		
 		new File(fileName);
 		for (int i = 0; i < 15; i++) {
-			ConcurrentMImpl.plusone(fileName);
+			ConcurrentMImpl.write_one(fileName);
 		}
 
 		COMPSs.barrierConcurrent();

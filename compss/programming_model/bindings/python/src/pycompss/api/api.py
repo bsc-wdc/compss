@@ -49,6 +49,7 @@ if context.in_pycompss():
     from pycompss.runtime.binding import delete_file
     from pycompss.runtime.binding import delete_object
     from pycompss.runtime.binding import barrier
+    from pycompss.runtime.binding import barrier_concurrent
     from pycompss.runtime.binding import synchronize
     from pycompss.runtime.binding import get_compss_mode
     from pycompss.runtime.binding import pending_to_synchronize
@@ -131,6 +132,14 @@ if context.in_pycompss():
 
         barrier(no_more_tasks)
 
+    def compss_barrier_concurrent():
+        """
+        Perform a barrier concurrent when called.
+        Stop until all the submitted tasks have finished.
+        """
+
+        barrier_concurrent()
+
 
     def compss_wait_on(*args):
         """
@@ -209,6 +218,7 @@ else:
     from pycompss.api.dummy.api import compss_delete_file as __dummy_compss_delete_file__
     from pycompss.api.dummy.api import compss_delete_object as __dummy_compss_delete_object__
     from pycompss.api.dummy.api import compss_barrier as __dummy_compss_barrier__
+    from pycompss.api.dummy.api import compss_barrier_concurrent as __dummy_compss_barrier_concurrent__
     from pycompss.api.dummy.api import compss_wait_on as __dummy_compss_wait_on__
 
 
@@ -234,6 +244,9 @@ else:
 
     def compss_barrier(no_more_tasks=False):
         __dummy_compss_barrier__(no_more_tasks)
+
+    def compss_barrier_concurrent():
+        __dummy_compss_barrier_concurrent__()
 
 
     def compss_wait_on(*args):

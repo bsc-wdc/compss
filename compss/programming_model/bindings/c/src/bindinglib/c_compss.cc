@@ -83,15 +83,15 @@ FILE* compss_fopen(char * filename, char * mode) {
         dir = out_dir;
     } else if (strcmp(mode, "a+") == 0) {
         dir = inout_dir;
+    } else if (strcmp(mode, "c") == 0) {
+        dir = concurrent_dir;
     }
-
 
     GS_Get_File(filename, dir, &runtime_filename);
 
     debug_printf("[C-BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
 
     file = fopen(runtime_filename, mode);
-
 
     return file;
 }
@@ -113,6 +113,12 @@ void compss_barrier_new(int no_more_tasks) {
     GS_BarrierNew(l_app_id, no_more_tasks);
 }
 
+void compss_barrier_concurrent() {
+    //long l_app_id = (long)app_id;
+    long int l_app_id = 0;
+    GS_BarrierConcurrent(l_app_id);
+}
+
 int compss_register(void *ref, datatype type, direction dir, char *classname, char * &filename, int object_type, int elements) {
     Entry entry;
     int result = 0;
@@ -124,7 +130,7 @@ int compss_register(void *ref, datatype type, direction dir, char *classname, ch
         dir = out_dir;
     }
 
-    if (dir != in_dir) {
+    if (dir != in_dir && dir != concurrent_dir) {
         // OUT / INOUT. Create new version
         entry = objectMap[ref];
         if (entry.filename == NULL) {
@@ -163,7 +169,7 @@ int compss_register(void *ref, datatype type, direction dir, char *classname, ch
         debug_printf("[C-BINDING]  -  @GS_register  -  setting filename: %s\n", filename);
 
     } else {
-        // IN
+        // IN or CONCURRENT
         if ((datatype)type == object_dt ||
                 ((datatype)type >= array_char_dt && (datatype)type <= array_double_dt )) {
 

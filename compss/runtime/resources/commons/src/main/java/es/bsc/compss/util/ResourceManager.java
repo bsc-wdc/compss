@@ -106,8 +106,7 @@ public class ResourceManager {
      * username, working directory,... Only the images that have been described in both files are added to the
      * cloudManager
      *
-     * @param resUser
-     *            object to notify resource changes
+     * @param resUser object to notify resource changes
      *
      */
     public static void load(ResourceUser resUser) {
@@ -137,8 +136,7 @@ public class ResourceManager {
     /**
      * Reinitializes the ResourceManager
      *
-     * @param resUser
-     *            object to notify resource changes
+     * @param resUser object to notify resource changes
      */
     public static void clear(ResourceUser resUser) {
         resourceUser = resUser;
@@ -150,10 +148,8 @@ public class ResourceManager {
     /**
      * Reconfigures the master node adding its shared disks
      *
-     * @param mrd
-     *            Features of the Master node
-     * @param sharedDisks
-     *            Shared Disk descriptions (diskName->mountpoint)
+     * @param mrd Features of the Master node
+     * @param sharedDisks Shared Disk descriptions (diskName->mountpoint)
      */
     public static void updateMasterConfiguration(MethodResourceDescription mrd, Map<String, String> sharedDisks) {
         Comm.getAppHost().updateResource(mrd, sharedDisks);
@@ -313,12 +309,9 @@ public class ResourceManager {
     /**
      * Sets the boundaries on the cloud elasticity
      *
-     * @param minVMs
-     *            lower number of VMs allowed
-     * @param initialVMs
-     *            initial number of VMs
-     * @param maxVMs
-     *            higher number of VMs allowed
+     * @param minVMs lower number of VMs allowed
+     * @param initialVMs initial number of VMs
+     * @param maxVMs higher number of VMs allowed
      */
     public static void setCloudVMsBoundaries(Integer minVMs, Integer initialVMs, Integer maxVMs) {
         cloudManager.setInitialVMs(initialVMs);
@@ -443,6 +436,12 @@ public class ResourceManager {
     public static void reduceCloudWorker(CloudMethodWorker worker, CloudMethodResourceDescription reduction) {
         ResourceUpdate<MethodResourceDescription> modification = new PendingReduction<>(reduction);
         resourceUser.updatedResource(worker, modification);
+    }
+
+    public static void reduceWholeWorker(String name) {
+        Worker worker = pool.getResource(name);
+        WorkerResourceDescription descr = worker.getDescription();
+        resourceUser.updatedResource(worker, new PendingReduction((WorkerResourceDescription) descr.copy()));
     }
 
     public static void reduceWholeWorker(MethodWorker worker) {

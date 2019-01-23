@@ -22,17 +22,19 @@ import es.bsc.compss.agent.RESTAgentConstants;
 import es.bsc.compss.agent.rest.types.ApplicationParameterImpl;
 import es.bsc.compss.agent.rest.types.Orchestrator;
 import es.bsc.compss.agent.rest.types.messages.EndApplicationNotification;
-import es.bsc.compss.agent.rest.types.messages.NewResourceNotification;
 import es.bsc.compss.agent.rest.types.messages.StartApplicationRequest;
 import es.bsc.compss.agent.rest.types.Resource;
+import es.bsc.compss.agent.rest.types.messages.NewNodeNotification;
+import es.bsc.compss.agent.rest.types.messages.RemoveNodeRequest;
 import es.bsc.compss.agent.util.RemoteJobsRegistry;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 
 import es.bsc.compss.types.job.JobListener.JobEndStatus;
 import es.bsc.compss.types.resources.MethodResourceDescription;
-import es.bsc.compss.types.resources.configuration.Configuration;
+import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
+import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -50,39 +52,64 @@ import org.eclipse.jetty.servlet.ServletHolder;
 
 @Path("/COMPSs")
 public class RESTAgent {
-    
+
     @GET
     @Path("test/")
     public Response test() {
         System.out.println("test invoked");
         return Response.ok().build();
     }
-    
+
     @PUT
-    @Path("addResource/")
+    @Path("addNode/")
     @Consumes(MediaType.APPLICATION_XML)
-    public Response addResource(NewResourceNotification notification) {
+    public Response addResource(NewNodeNotification notification) {
         Resource r = notification.getResource();
-        MethodResourceDescription mrd = r.getDescription();
+        //Updating processors
+        MethodResourceDescription description = r.getDescription();
+        List<Processor> procs = description.getProcessors();
+        description.setProcessors(procs);
+        
         String adaptor = r.getAdaptor();
         Object projectConf = r.getProjectConf();
         Object resourcesConf = r.getResourcesConf();
-        System.out.println("Add Resource arrived " + r.getName());
-        System.out.println("ResourceDescription = " + mrd.toString());
-        System.out.println("Adaptor: " + adaptor);
-        System.out.println("Project conf: " + projectConf);
-        System.out.println("Resources conf: " + resourcesConf);
-        MethodConfiguration conf;
+        MethodConfiguration mc;
         try {
-            conf = (MethodConfiguration) Comm.constructConfiguration(adaptor, projectConf, resourcesConf);
+            mc = (MethodConfiguration) Comm.constructConfiguration(adaptor, projectConf, resourcesConf);
         } catch (ConstructConfigurationException ex) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).build();
         }
-        conf.setHost(r.getName());
-        Agent.addResource(r.getName(), conf, mrd);
+
+        int limitOfTasks = mc.getLimitOfTasks();
+        int computingUnits = description.getTotalCPUComputingUnits();
+        if (limitOfTasks < 0 && computingUnits < 0) {
+            mc.setLimitOfTasks(0);
+            mc.setTotalComputingUnits(0);
+        } else {
+            mc.setLimitOfTasks(Math.max(limitOfTasks, computingUnits));
+            mc.setTotalComputingUnits(Math.max(limitOfTasks, computingUnits));
+        }
+        mc.setLimitOfGPUTasks(description.getTotalGPUComputingUnits());
+        mc.setTotalGPUComputingUnits(description.getTotalGPUComputingUnits());
+        mc.setLimitOfFPGATasks(description.getTotalFPGAComputingUnits());
+        mc.setTotalFPGAComputingUnits(description.getTotalFPGAComputingUnits());
+        mc.setLimitOfOTHERSTasks(description.getTotalOTHERComputingUnits());
+        mc.setTotalOTHERComputingUnits(description.getTotalOTHERComputingUnits());
+
+        mc.setHost(r.getName());
+        Agent.addNode(r.getName(), mc, description);
         return Response.ok().build();
     }
-    
+
+    @PUT
+    @Path("removeNode/")
+    @Consumes(MediaType.APPLICATION_XML)
+    public Response removeResource(RemoveNodeRequest request) {
+        String name = request.getWorkerName();
+        Agent.removeNode(name);
+        return Response.ok().build();
+    }
+
     @PUT
     @Path("startApplication/")
     @Consumes(MediaType.APPLICATION_XML)
@@ -97,11 +124,11 @@ public class RESTAgent {
         }
         return response;
     }
-    
+
     private static Response runMain(StartApplicationRequest request) {
         String serviceInstanceId = request.getServiceInstanceId();
         String ceiClass = request.getCeiClass();
-        
+
         String className = request.getClassName();
         String methodName = request.getMethodName();
         Object[] params;
@@ -121,7 +148,7 @@ public class RESTAgent {
         }
         return Response.ok(appId, MediaType.TEXT_PLAIN).build();
     }
-    
+
     private static Response runTask(StartApplicationRequest request) {
         String className = request.getClassName();
         String methodName = request.getMethodName();
@@ -138,7 +165,7 @@ public class RESTAgent {
         }
         return Response.ok(appId, MediaType.TEXT_PLAIN).build();
     }
-    
+
     @PUT
     @Path("endApplication/")
     @Consumes(MediaType.APPLICATION_XML)
@@ -149,22 +176,22 @@ public class RESTAgent {
         RemoteJobsRegistry.notifyJobEnd(jobId, endStatus, paramsResults);
         return Response.ok().build();
     }
-    
+
     public static void main(String[] args) throws Exception {
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
-        
+
         int port = Integer.parseInt(args[0]);
         System.setProperty(RESTAgentConstants.COMPSS_AGENT_PORT, args[0]);
         Server jettyServer = new Server(port);
         jettyServer.setHandler(context);
-        
+
         ServletHolder jerseyServlet = context.addServlet(org.glassfish.jersey.servlet.ServletContainer.class, "/*");
         jerseyServlet.setInitOrder(0);
 
         // Tells the Jersey Servlet which REST service/class to load.
         jerseyServlet.setInitParameter("jersey.config.server.provider.classnames", RESTAgent.class.getCanonicalName());
-        
+
         try {
             jettyServer.start();
             jettyServer.join();

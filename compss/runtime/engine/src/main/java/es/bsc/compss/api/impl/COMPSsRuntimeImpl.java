@@ -142,7 +142,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         Comm.init(new MasterResourceImpl());
     }
 
-
     // Code Added to support configuration files
     private static void setPropertiesFromRuntime(RuntimeConfigManager manager) {
         try {
@@ -1138,7 +1137,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             String name = (String) parameters[i + 5];
 
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("  Parameter " + (npar + 1) + " has type " + type.name());
+                LOGGER.debug("  Parameter " + (npar + 1) + "(" + name + ") has type " + type.name());
             }
 
             switch (type) {

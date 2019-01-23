@@ -787,7 +787,9 @@ def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings)
     :return: <List,List,List,List,List> List of values, their types, their directions, their streams and their prefixes
     """
     values = []
-    names = list(f_parameters.keys()) + list(f_returns.keys())
+    names = []
+    arg_names = list(f_parameters.keys())
+    result_names = list(f_returns.keys())
     compss_types = []
     compss_directions = []
     compss_streams = []
@@ -796,7 +798,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings)
     ra = list(f_parameters.keys())
     if ftype == FunctionType.INSTANCE_METHOD or ftype == FunctionType.CLASS_METHOD:
         slf = ra.pop(0)
-        slf_name = names.pop(0)
+        slf_name = arg_names.pop(0)
     # Fill the values, compss_types, compss_directions, compss_streams and compss_prefixes from function parameters
     for i in ra:
         val, typ, direc, st, pre = _extract_parameter(f_parameters[i], code_strings)
@@ -805,6 +807,8 @@ def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings)
         compss_directions.append(direc)
         compss_streams.append(st)
         compss_prefixes.append(pre)
+        param_name = arg_names.pop(0)
+        names.append(param_name)
     # Fill the values, compss_types, compss_directions, compss_streams and compss_prefixes from self (if exist)
     if ftype == FunctionType.INSTANCE_METHOD:
         # self is always an object
@@ -823,6 +827,8 @@ def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings)
         compss_directions.append(p.direction)
         compss_streams.append(p.stream)
         compss_prefixes.append(p.prefix)
+        param_name = result_names.pop(0)
+        names.append(param_name)
     return values, names, compss_types, compss_directions, compss_streams, compss_prefixes
 
 

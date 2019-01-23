@@ -56,7 +56,6 @@ import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.COMPSsConstants.TaskExecution;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.data.DataManager;
-import es.bsc.compss.data.DataManager.LoadDataListener;
 import es.bsc.compss.data.DataProvider;
 import es.bsc.compss.executor.ExecutionManager;
 import es.bsc.compss.executor.types.Execution;
@@ -72,6 +71,7 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
+import es.bsc.compss.data.DataManager.FetchDataListener;
 
 
 public class NIOWorker extends NIOAgent implements InvocationContext, DataProvider {
@@ -125,7 +125,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         boolean removeWDFlagDefined = removeWDFlag != null && !removeWDFlag.isEmpty();
         REMOVE_WD = removeWDFlagDefined ? Boolean.valueOf(removeWDFlag) : true;
     }
-
 
     public NIOWorker(boolean transferLogs, int snd, int rcv, String hostName, String masterName, int masterPort, int computingUnitsCPU,
             int computingUnitsGPU, int computingUnitsFPGA, String cpuMap, String gpuMap, String fpgaMap, int limitOfTasks, String appUuid,
@@ -247,8 +246,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
                 dataManager.fetchParam(param, i, tt);
 
             } else {
-                // OUT parameter. Has no associated data. Decrease the parameter counter (we already have it)
-                tt.loadedValue();
+                // OUT or basic-type parameter. Has no associated data. Decrease the parameter counter (we already have it)
+                tt.fetchedValue();
             }
         }
         WORKER_LOGGER.info("Checking target");
@@ -281,7 +280,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     }
 
     @Override
-    public void askForTransfer(InvocationParam param, int index, LoadDataListener tt) {
+    public void askForTransfer(InvocationParam param, int index, FetchDataListener tt) {
         DataRequest dr = new WorkerDataRequest((TransferringTask) tt, param.getType(), ((NIOParam) param).getData(),
                 (String) param.getValue());
         addTransferRequest(dr);
@@ -309,7 +308,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     public void handleRequestedDataNotAvailableError(List<DataRequest> failedRequests, String dataId) {
         for (DataRequest dr : failedRequests) { // For every task pending on this request, flag it as an error
             WorkerDataRequest wdr = (WorkerDataRequest) dr;
-            wdr.getTransferringTask().loadedValue();
+            wdr.getTransferringTask().fetchedValue();
 
             // Mark as an error task. When all the params've been consumed, sendTaskDone unsuccessful
             wdr.getTransferringTask().setError(true);
@@ -342,7 +341,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
         for (DataRequest dr : achievedRequests) {
             WorkerDataRequest wdr = (WorkerDataRequest) dr;
-            wdr.getTransferringTask().loadedValue();
+            wdr.getTransferringTask().fetchedValue();
             if (NIOTracer.isActivated()) {
                 NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
             }
@@ -351,7 +350,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
                     NIOTask task = wdr.getTransferringTask().getTask();
                     Long stTime = times.get(task.getJobId());
                     if (stTime != null) {
-                        long duration = System.currentTimeMillis() - stTime.longValue();
+                        long duration = System.currentTimeMillis() - stTime;
                         WORKER_LOGGER.info(" [Profile] Transfer: " + duration);
                     }
                     executeTask(wdr.getTransferringTask().getTask());

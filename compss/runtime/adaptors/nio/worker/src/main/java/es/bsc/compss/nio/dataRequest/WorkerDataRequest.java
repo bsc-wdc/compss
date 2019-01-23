@@ -37,7 +37,7 @@ public class WorkerDataRequest extends DataRequest {
     }
 
 
-    public static class TransferringTask implements DataManager.LoadDataListener {
+    public static class TransferringTask implements DataManager.FetchDataListener {
 
         private final NIOTask task;
         private int params;
@@ -64,7 +64,7 @@ public class WorkerDataRequest extends DataRequest {
         }
 
         @Override
-        public void loadedValue() {
+        public void fetchedValue() {
             --this.params;
         }
 

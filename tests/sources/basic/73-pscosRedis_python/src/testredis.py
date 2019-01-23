@@ -10,11 +10,13 @@ PyCOMPSs Testbench
 # Imports
 import unittest
 
-from modules.testRedis import TestRedis
+#from modules.testRedis import TestRedis
+from modules.testRedisApp import TestRedisApp
 
 
 def main():
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestRedis)
+    #suite = unittest.TestLoader().loadTestsFromTestCase(TestRedis)
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestRedisApp)
     unittest.TextTestRunner(verbosity=2).run(suite)
 
 

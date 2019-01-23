@@ -89,28 +89,15 @@ public class NIOTask implements Externalizable, Invocation {
 
         Iterator<NIOParam> paramItr = params.descendingIterator();
 
-        if (this.lang == Lang.PYTHON) {
-            // Python params are in a different order
-            if (hasTarget) {
-                NIOParam p = paramItr.next();
-                target = p;
-            }
-            for (int rIdx = 0; rIdx < numReturns; rIdx++) {
-                NIOParam p = paramItr.next();
-                results.addFirst(p);
-            }
-        } else {
-            // C and Java params
-            for (int rIdx = 0; rIdx < numReturns; rIdx++) {
-                NIOParam p = paramItr.next();
-                results.addFirst(p);
-            }
-            if (hasTarget) {
-                NIOParam p = paramItr.next();
-                target = p;
-            }
+        // C, Java and Python params (arguments + self + results)
+        for (int rIdx = 0; rIdx < numReturns; rIdx++) {
+            NIOParam p = paramItr.next();
+            results.addFirst(p);
         }
-
+        if (hasTarget) {
+            NIOParam p = paramItr.next();
+            target = p;
+        }
         while (paramItr.hasNext()) {
             NIOParam p = paramItr.next();
             this.arguments.addFirst(p);

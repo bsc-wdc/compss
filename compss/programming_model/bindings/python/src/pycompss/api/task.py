@@ -801,9 +801,10 @@ class task(object):
 
     def reveal_objects(self, args):
         """
-        (The name seemed funny to me so I kept it intact from the original version)
         This function takes the arguments passed from the persistent worker and treats them
         to get the proper parameters for the user function.
+        :param args: Arguments
+        :return: None
         """
 
         def storage_supports_pipelining():

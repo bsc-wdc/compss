@@ -140,24 +140,25 @@ public abstract class ExternalInvoker extends Invoker {
             invArgs.addAll(convertParameter(np));
         }
 
-        if (invocation.getLang() != es.bsc.compss.COMPSsConstants.Lang.PYTHON) {
+        // TODO: CAMBIAR EL ORDEN DE PARAMETROS DE ENTRADA EN EL BINDING DE PYTHON PARA QUE TARGET SEA EL PRIMERO
+        if (invocation.getLang() != es.bsc.compss.COMPSsConstants.Lang.PYTHON) {  // BORRAR ESTA LINEA
             // Add target
             if (invocation.getTarget() != null) {
                 numParams++;
                 invArgs.addAll(convertParameter(invocation.getTarget()));
             }
-        }
+        }  // BORRAR ESTA LINEA
         for (InvocationParam np : invocation.getResults()) {
             numParams++;
             invArgs.addAll(convertParameter(np));
         }
-        if (invocation.getLang() == es.bsc.compss.COMPSsConstants.Lang.PYTHON) {
-            // Add target
-            if (invocation.getTarget() != null) {
-                numParams++;
-                invArgs.addAll(convertParameter(invocation.getTarget()));
-            }
-        }
+        if (invocation.getLang() == es.bsc.compss.COMPSsConstants.Lang.PYTHON) {   // BORRAR ESTA LINEA
+            // Add target  // BORRAR ESTA LINEA
+            if (invocation.getTarget() != null) {  // BORRAR ESTA LINEA
+                numParams++;  // BORRAR ESTA LINEA
+                invArgs.addAll(convertParameter(invocation.getTarget()));  // BORRAR ESTA LINEA
+            }  // BORRAR ESTA LINEA
+        }  // BORRAR ESTA LINEA
         lArgs.add(Integer.toString(numParams));
         lArgs.addAll(invArgs);
 

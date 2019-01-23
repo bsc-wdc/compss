@@ -21,6 +21,6 @@ import es.bsc.compss.types.execution.InvocationParam;
 
 public interface DataProvider {
 
-    public void askForTransfer(InvocationParam param, int index, DataManager.LoadDataListener tt);
+    public void askForTransfer(InvocationParam param, int index, DataManager.FetchDataListener tt);
 
 }

@@ -31,7 +31,7 @@ public interface DataManager {
 
     public void removeObsoletes(List<String> obsoletes);
 
-    public void fetchParam(InvocationParam param, int i, LoadDataListener tt);
+    public void fetchParam(InvocationParam param, int i, FetchDataListener tt);
 
     public void loadParam(InvocationParam param) throws Exception;
 
@@ -44,9 +44,9 @@ public interface DataManager {
     public void storeFile(String dataId, String string);
 
 
-    public static interface LoadDataListener {
+    public static interface FetchDataListener {
 
-        public void loadedValue();
+        public void fetchedValue();
 
     }
 }

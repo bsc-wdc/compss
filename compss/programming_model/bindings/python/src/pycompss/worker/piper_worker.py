@@ -218,7 +218,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                     if exit_value == 0:
                         # Task has finished without exceptions
                         # endTask jobId exitValue message
-                        params = build_return_params_message(current_line[9:], new_types, new_values)
+                        params = build_return_params_message(new_types, new_values)
                         message = END_TASK_TAG + " " + str(job_id) \
                                   + " " + str(exit_value) \
                                   + " " + str(params) + "\n"
@@ -232,15 +232,21 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                                                                                             str(message)))
                     # The return message is:
                     #
-                    # TaskResult ==> jobId exitValue List<Object>
+                    # TaskResult ==> jobId exitValue D List<Object>
                     #
-                    # Where List<Object> has D length:
-                    # D = #parameters + (has_target ? 1 : 0) + (has_return ? 1 : 0)
-                    # And contains:
-                    # - Null if it NOT a PSCO
-                    # - PSCOId (String) if is a PSCO
+                    # Where List<Object> has D * 2 length:
+                    # D = #parameters == #task_parameters + (has_target ? 1 : 0) + #returns
+                    # And contains a pair of elements per parameter:
+                    #     - Parameter new type.
+                    #     - Parameter new value:
+                    #         - 'null' if it is NOT a PSCO
+                    #         - PSCOId (String) if is a PSCO
+                    # Example:
+                    #     4 null 9 null 12 <pscoid>
                     #
-                    # This is sent through the pipe with the endTask message.
+                    # The order of the elements is: parameters + self + returns
+                    #
+                    # This is sent through the pipe with the END_TASK message.
                     # If the task had an object or file as parameter and the worker returns the id,
                     # the runtime can change the type (and locations) to a EXTERNAL_OBJ_T.
 
@@ -287,41 +293,22 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
     print("[PYTHON WORKER] Exiting process ", process_name)
 
 
-def build_return_params_message(params, types, values):
+def build_return_params_message(types, values):
     """
     Build the return message with the parameters output.
 
-    :param params: List of parameters
     :param types: List of the parameter's types
     :param values: List of the parameter's values
     :return: Message as string
     """
 
     assert len(types) == len(values), 'Inconsistent state: return type-value length mismatch for return message.'
-
-    # Analyse the input parameters to get has_target and has_return
-    # More information that requested can be gathered and returned in the return message if necessary.
-    num_slaves = int(params[2])
-    arg_position = 3 + num_slaves
-    args = params[arg_position + 1:]
-    has_target = args[0]
-    if has_target == 'false':
-        has_target = False
-    else:
-        has_target = True
-    return_type = args[1]
-    if return_type == 'null':
-        has_return = False
-    else:
-        has_return = True
-
     pairs = list(zip(types, values))
     num_params = len(pairs)
     params = ''
     for p in pairs:
         params = params + str(p[0]) + ' ' + str(p[1]) + ' '
-    total_params = num_params + (1 if has_target else 0) + (1 if has_return else 0)
-    message = str(total_params) + ' ' + params
+    message = str(num_params) + ' ' + params
     return message
 
 

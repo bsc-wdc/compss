@@ -14,6 +14,7 @@ from .psco import PSCO
 from .psco_with_tasks import PSCOWithTasks
 
 from pycompss.api.task import task
+from pycompss.api.parameter import INOUT
 
 
 @task(returns=int)
@@ -44,6 +45,18 @@ def selfConcat(a, b):
 def inc(x):
     x.content += 1
     return x
+
+
+@task(returns=str)
+def psco_persister(psco):
+    psco.make_persistent()
+    return psco.getID()
+
+
+@task(psco=INOUT, returns=str)
+def psco_persister_inout(psco):
+    psco.make_persistent()
+    return psco.getID()
 
 
 class TestRedis(unittest.TestCase):
@@ -128,3 +141,26 @@ class TestRedis(unittest.TestCase):
         p = inc(p)
         p = sync(p)
         self.assertEqual(2, p.get_content())
+
+    def testTaskPersister(self):
+        from pycompss.api.api import compss_wait_on as sync
+        a = PSCO('Persisted in task')
+        ID = psco_persister(a)
+        ID = sync(ID)
+        from storage.api import getByID
+        an = getByID(ID)
+        self.assertEqual('Persisted in task', an.get_content())
+
+    def testTaskPersister_inout(self):
+        from pycompss.api.api import compss_wait_on as sync
+        a = PSCO('Persisted in task')
+        newId = psco_persister_inout(a)
+        b = sync(a)
+        newId = sync(newId)
+        self.assertEqual(a.getID(), None)
+        self.assertNotEqual(b.getID(), None)
+        self.assertNotEqual(a.getID(), b.getID())
+        self.assertEqual(b.getID(), newId)
+        from storage.api import getByID
+        bn = getByID(newId)
+        self.assertEqual(a.get_content(), b.get_content(), bn.get_content())

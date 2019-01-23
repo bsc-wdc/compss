@@ -58,7 +58,6 @@ public class DataManagerImpl implements DataManager {
 
     private final HashMap<String, DataRegister> registry;
 
-
     /**
      * Instantiates a new Data Manager
      *
@@ -163,26 +162,26 @@ public class DataManagerImpl implements DataManager {
     }
 
     @Override
-    public void fetchParam(InvocationParam param, int i, LoadDataListener tt) {
+    public void fetchParam(InvocationParam param, int paramIdx, FetchDataListener tt) {
         switch (param.getType()) {
             case OBJECT_T:
-                fetchObject(param, i, tt);
+                fetchObject(param, paramIdx, tt);
                 break;
             case PSCO_T:
-                fetchPSCO(param, i, tt);
+                fetchPSCO(param, paramIdx, tt);
                 break;
             case BINDING_OBJECT_T:
-                fetchBindingObject(param, i, tt);
+                fetchBindingObject(param, paramIdx, tt);
                 break;
             case FILE_T:
-                fetchFile(param, i, tt);
+                fetchFile(param, paramIdx, tt);
                 break;
             case EXTERNAL_PSCO_T:
                 // Nothing to do since external parameters send their ID directly
-                tt.loadedValue();
+                tt.fetchedValue();
                 break;
             default:
-                // Nothing to do since basic type parameters require no action
+            // Nothing to do since basic type parameters require no action
         }
     }
 
@@ -231,7 +230,7 @@ public class DataManagerImpl implements DataManager {
         return originalRegister;
     }
 
-    private void fetchObject(InvocationParam param, int index, LoadDataListener tt) {
+    private void fetchObject(InvocationParam param, int index, FetchDataListener tt) {
         final String finalRename = param.getDataMgmtId();
         final String originalRename = param.getSourceDataId();
         LOGGER.debug("   - " + finalRename + " registered as object.");
@@ -269,7 +268,7 @@ public class DataManagerImpl implements DataManager {
         }
     }
 
-    private void fetchBindingObject(InvocationParam param, int index, LoadDataListener tt) {
+    private void fetchBindingObject(InvocationParam param, int index, FetchDataListener tt) {
         String name = (String) param.getValue();
         LOGGER.debug("   - " + name + " registered as binding object.");
         String[] extObjVals = (name).split("#");
@@ -363,7 +362,7 @@ public class DataManagerImpl implements DataManager {
 
     }
 
-    private void fetchPSCO(InvocationParam param, int paramIdx, LoadDataListener tt) {
+    private void fetchPSCO(InvocationParam param, int paramIdx, FetchDataListener tt) {
         String finalRename = param.getDataMgmtId();
         String pscoId = (String) param.getValue();
         LOGGER.debug("   - " + pscoId + " registered as PSCO.");
@@ -373,10 +372,10 @@ public class DataManagerImpl implements DataManager {
         DataRegister dr = new DataRegister();
         dr.setStorageId(pscoId);
         registry.put(finalRename, dr);
-        tt.loadedValue();
+        tt.fetchedValue();
     }
 
-    private void fetchFile(InvocationParam param, int index, LoadDataListener tt) {
+    private void fetchFile(InvocationParam param, int index, FetchDataListener tt) {
         LOGGER.debug("   - " + (String) param.getValue() + " registered as file.");
         final String originalName = param.getSourceDataId();
         final String expectedFileLocation = param.getValue().toString();
@@ -442,7 +441,7 @@ public class DataManagerImpl implements DataManager {
             case EXTERNAL_PSCO_T: // value corresponds to the ID of the
                 break;
             default:
-                // Nothing to do since basic type parameters require no action
+            // Nothing to do since basic type parameters require no action
         }
     }
 
@@ -542,7 +541,7 @@ public class DataManagerImpl implements DataManager {
      * ****************************************************************************************************************
      * STORE METHODS
      *****************************************************************************************************************/
-    private void askForTransfer(boolean askTransfer, InvocationParam param, int index, LoadDataListener tt) {
+    private void askForTransfer(boolean askTransfer, InvocationParam param, int index, FetchDataListener tt) {
         if (askTransfer) {
             transferParameter(param, index, tt);
         } else {
@@ -550,12 +549,12 @@ public class DataManagerImpl implements DataManager {
         }
     }
 
-    private void fetchedLocalParameter(InvocationParam param, int index, LoadDataListener tt) {
+    private void fetchedLocalParameter(InvocationParam param, int index, FetchDataListener tt) {
         LOGGER.info("- Parameter " + index + "(" + (String) param.getValue() + ") already exists.");
-        tt.loadedValue();
+        tt.fetchedValue();
     }
 
-    private void transferParameter(InvocationParam param, int index, LoadDataListener tt) {
+    private void transferParameter(InvocationParam param, int index, FetchDataListener tt) {
         LOGGER.info("- Parameter " + index + "(" + (String) param.getValue() + ") does not exist, requesting data transfer");
         provider.askForTransfer(param, index, tt);
     }

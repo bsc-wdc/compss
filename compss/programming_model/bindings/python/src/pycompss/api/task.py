@@ -801,9 +801,10 @@ class task(object):
 
     def reveal_objects(self, args):
         """
-        (The name seemed funny to me so I kept it intact from the original version)
         This function takes the arguments passed from the persistent worker and treats them
         to get the proper parameters for the user function.
+        :param args: Arguments
+        :return: None
         """
 
         def storage_supports_pipelining():
@@ -897,6 +898,17 @@ class task(object):
         def get_file_name(file_path):
             return file_path.split(':')[-1]
 
+        # Deal with INOUTs
+        from pycompss.util.persistent_storage import is_psco
+        for arg in [x for x in args if isinstance(x, parameter.TaskParameter) and self.is_parameter_object(x.name)]:
+            original_name = parameter.get_original_name(arg.name)
+            param = self.decorator_arguments.get(original_name, self.get_default_direction(original_name))
+            if param.direction == parameter.DIRECTION.INOUT and not (arg.type == parameter.TYPE.EXTERNAL_PSCO or is_psco(arg.content)):
+                # If it si INOUT and not PSCO, serialize to file
+                # We can not use here param.type != parameter.TYPE.EXTERNAL_PSCO since param.type will has the old type
+                from pycompss.util.serializer import serialize_to_file
+                serialize_to_file(arg.content, get_file_name(arg.file_name))
+
         # Deal with returns (if any)
         if num_returns > 0:
             if num_returns == 1:
@@ -905,11 +917,9 @@ class task(object):
             # Note that we are implicitly assuming that the length of the user returns matches the number
             # of return parameters
             for (obj, param) in zip(user_returns, ret_params):
-                # The object is a PSCO. Set its content (which is supposedly already persisted)
-                # as its key
-                if param.type == parameter.TYPE.EXTERNAL_PSCO:
-                    from pycompss.util.persistent_storage import get_id
-                    param.content = get_id(obj)
+                # If the object is a PSCO, do not serialize to file
+                if param.type == parameter.TYPE.EXTERNAL_PSCO or is_psco(obj):
+                    continue
                 # Serialize the object
                 # Note that there is no "command line optimization" in the returns, as we always pass them as files
                 # This is due to the asymmetry in worker-master communications and because it also makes it easier
@@ -917,16 +927,66 @@ class task(object):
                 from pycompss.util.serializer import serialize_to_file
                 serialize_to_file(obj, get_file_name(param.file_name))
 
-        # Deal with INOUTs
-        # All inouts are FILEs
-        for arg in [x for x in args if isinstance(x, parameter.TaskParameter) and self.is_parameter_object(x.name)]:
-            original_name = parameter.get_original_name(arg.name)
-            param = self.decorator_arguments.get(original_name, self.get_default_direction(original_name))
-            if param.direction == parameter.DIRECTION.INOUT:
-                from pycompss.util.serializer import serialize_to_file
-                serialize_to_file(arg.content, get_file_name(arg.file_name))
+        # We must notify COMPSs when types are updated
+        # Potential update candidates are returns and INOUTs
+        # But the whole types and values list must be returned
+        # new_types and new_values correspond to "parameters self returns"
+        new_types, new_values = [], []
 
-        return [], [], self.decorator_arguments['isModifier']
+        # Check if there is self, so that we can add it  after the parameters
+        has_self = False
+        if not isinstance(args[0], parameter.TaskParameter):
+            # Then the first arg is self
+            has_self = True
+            self_type = parameter.get_compss_type(args[0])
+            if self_type == parameter.TYPE.EXTERNAL_PSCO:
+                self_value = args[0].getID()
+            else:
+                self_value = 'null'
+
+        # Add parameter types and value
+        params_start = 1 if has_self else 0
+        params_end = len(args) - num_returns + 1
+        # Update new_types and new_values with the args list
+        # The results parameter is a boolean to distinguish the error message.
+        for arg in args[params_start:params_end - 1]:
+            # Loop through the arguments and update new_types and new_values
+            if not isinstance(arg, parameter.TaskParameter):
+                raise Exception('ERROR: A task parameter arrived as an object instead as a TaskParameter ' +
+                                'when building the task result message.')
+            else:
+                if arg.type == parameter.TYPE.EXTERNAL_PSCO:
+                    # It was originally a persistent object
+                    new_types.append(parameter.TYPE.EXTERNAL_PSCO)
+                    new_values.append(arg.key)
+                elif is_psco(arg.content):
+                    # It was persisted in the task
+                    new_types.append(parameter.TYPE.EXTERNAL_PSCO)
+                    new_values.append(arg.content.getID())
+                else:
+                    # Any other return object
+                    new_types.append(arg.type)
+                    new_values.append('null')
+
+        # Add self type and value if exist
+        if has_self:
+            new_types.append(self_type)
+            new_values.append(self_value)
+
+        # Add return types and values
+        # Loop through the rest of the arguments and update new_types and new_values
+        # assert len(args[params_end - 1:]) == len(user_returns)
+        # add_parameter_new_types_and_values(args[params_end - 1:], True)
+        if num_returns > 0:
+            for ret in user_returns:
+                ret_type = parameter.get_compss_type(ret)
+                new_types.append(ret_type)
+                if ret_type == parameter.TYPE.EXTERNAL_PSCO:
+                    new_values.append(ret.getID())
+                else:
+                    new_values.append('null')
+
+        return new_types, new_values, self.decorator_arguments['isModifier']
 
     def sequential_call(self, *args, **kwargs):
         """

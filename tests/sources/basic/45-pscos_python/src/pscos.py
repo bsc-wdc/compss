@@ -437,7 +437,7 @@ def main():
     results['wordcount'] = WordCount()
     results['wordcount2'] = WordCount2()
     results['tiramisu'] = TiramisuMockup()
-    # results['tiramisu2'] = TiramisuMockup2() # Why do OUT PSCOS fail? A Trello card has already been created into the PyCOMPSs board to check it in August.
+    results['tiramisu2'] = TiramisuMockup2()
     results['persistInTask'] = evaluateMakePersistentInTask()
     results['persistInTask2'] = evaluateMakePersistentInTask2()
 

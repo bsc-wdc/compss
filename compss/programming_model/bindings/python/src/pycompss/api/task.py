@@ -931,33 +931,6 @@ class task(object):
         # Potential update candidates are returns and INOUTs
         # But the whole types and values list must be returned
         # new_types and new_values correspond to "parameters self returns"
-        # TODO: changing the order to "self parameters returns" will make easier the process here since we will need
-        #       only to loop through args and build the new_types and new_values in the same order, as:
-        # new_types, new_values = [], []
-        # for arg in args:
-        #     if not isinstance(arg, parameter.TaskParameter):
-        #         # Must be self
-        #         self_type = parameter.get_compss_type(arg)
-        #         new_types.append(self_type)
-        #         if self_type == parameter.TYPE.EXTERNAL_PSCO:
-        #             new_values.append(arg.getID())
-        #         else:
-        #             new_values.append('null')
-        #     else:
-        #         # Any other parameter
-        #         if arg.type == parameter.TYPE.EXTERNAL_PSCO:
-        #             # It was originally a persistent object
-        #             new_types.append(parameter.TYPE.EXTERNAL_PSCO)
-        #             new_values.append(arg.key)
-        #         elif is_psco(arg.content):
-        #             # It was persisted in the task
-        #             new_types.append(parameter.TYPE.EXTERNAL_PSCO)
-        #             new_values.append(arg.content.getID())
-        #         else:
-        #             # Any other return object
-        #             new_types.append(arg.type)
-        #             new_values.append('null')
-        # return new_types, new_values, self.decorator_arguments['isModifier']
         new_types, new_values = [], []
 
         # Check if there is self, so that we can add it  after the parameters
@@ -971,37 +944,29 @@ class task(object):
             else:
                 self_value = 'null'
 
-        # Auxiliary function to avoid repeating the loop adding parameters and returns
-        def add_parameter_new_types_and_values(arguments, results):
-            # Update new_types and new_values with the args list
-            # The results parameter is a boolean to distinguish the error message.
-            for arg in arguments:
-                # Loop through the arguments and update new_types and new_values
-                if not isinstance(arg, parameter.TaskParameter):
-                    if results:
-                        raise Exception('ERROR: A task parameter arrived as an object instead as a TaskParameter' +
-                                        'when building the task result message.')
-                    else:
-                        raise Exception('ERROR: A task parameter arrived as an object instead as a TaskParameter ' +
-                                        'when building the task result message.')
-                else:
-                    if arg.type == parameter.TYPE.EXTERNAL_PSCO:
-                        # It was originally a persistent object
-                        new_types.append(parameter.TYPE.EXTERNAL_PSCO)
-                        new_values.append(arg.key)
-                    elif is_psco(arg.content):
-                        # It was persisted in the task
-                        new_types.append(parameter.TYPE.EXTERNAL_PSCO)
-                        new_values.append(arg.content.getID())
-                    else:
-                        # Any other return object
-                        new_types.append(arg.type)
-                        new_values.append('null')
-
         # Add parameter types and value
         params_start = 1 if has_self else 0
-        params_end = len(args) - num_returns + params_start
-        add_parameter_new_types_and_values(args[params_start:params_end - 1], False)
+        params_end = len(args) - num_returns + 1
+        # Update new_types and new_values with the args list
+        # The results parameter is a boolean to distinguish the error message.
+        for arg in args[params_start:params_end - 1]:
+            # Loop through the arguments and update new_types and new_values
+            if not isinstance(arg, parameter.TaskParameter):
+                raise Exception('ERROR: A task parameter arrived as an object instead as a TaskParameter ' +
+                                'when building the task result message.')
+            else:
+                if arg.type == parameter.TYPE.EXTERNAL_PSCO:
+                    # It was originally a persistent object
+                    new_types.append(parameter.TYPE.EXTERNAL_PSCO)
+                    new_values.append(arg.key)
+                elif is_psco(arg.content):
+                    # It was persisted in the task
+                    new_types.append(parameter.TYPE.EXTERNAL_PSCO)
+                    new_values.append(arg.content.getID())
+                else:
+                    # Any other return object
+                    new_types.append(arg.type)
+                    new_values.append('null')
 
         # Add self type and value if exist
         if has_self:
@@ -1010,7 +975,16 @@ class task(object):
 
         # Add return types and values
         # Loop through the rest of the arguments and update new_types and new_values
-        add_parameter_new_types_and_values(args[params_end - 1:], True)
+        # assert len(args[params_end - 1:]) == len(user_returns)
+        # add_parameter_new_types_and_values(args[params_end - 1:], True)
+        if num_returns > 0:
+            for ret in user_returns:
+                ret_type = parameter.get_compss_type(ret)
+                new_types.append(ret_type)
+                if ret_type == parameter.TYPE.EXTERNAL_PSCO:
+                    new_values.append(ret.getID())
+                else:
+                    new_values.append('null')
 
         return new_types, new_values, self.decorator_arguments['isModifier']
 

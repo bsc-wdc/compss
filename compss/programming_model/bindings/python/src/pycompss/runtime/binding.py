@@ -807,8 +807,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings)
         compss_directions.append(direc)
         compss_streams.append(st)
         compss_prefixes.append(pre)
-        param_name = arg_names.pop(0)
-        names.append(param_name)
+        names.append(arg_names.pop(0))
     # Fill the values, compss_types, compss_directions, compss_streams and compss_prefixes from self (if exist)
     if ftype == FunctionType.INSTANCE_METHOD:
         # self is always an object
@@ -827,8 +826,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings)
         compss_directions.append(p.direction)
         compss_streams.append(p.stream)
         compss_prefixes.append(p.prefix)
-        param_name = result_names.pop(0)
-        names.append(param_name)
+        names.append(result_names.pop(0))
     return values, names, compss_types, compss_directions, compss_streams, compss_prefixes
 
 

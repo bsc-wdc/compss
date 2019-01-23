@@ -369,28 +369,31 @@ def execute_task(process_name, storage_conf, params, tracing):
             # Instance method
             # The self object needs to be an object in order to call the function.
             # Consequently, it can not be done in the @task decorator.
-            last_elem = values.pop()
-            last_type = types.pop()
-            if last_type == parameter.TYPE.EXTERNAL_PSCO:
+            # Since the args structure is parameters + self + returns we pop the corresponding considering the
+            # return_length notified by the runtime (-1 due to index starts from 0).
+            self_index = num_params - return_length - 1
+            self_elem = values.pop(self_index)
+            self_type = types.pop(self_index)
+            if self_type == parameter.TYPE.EXTERNAL_PSCO:
                 if __debug__:
-                    logger.debug("[PYTHON WORKER %s] Last element (self) is a PSCO with id: %s" % (process_name, str(last_elem.key)))
+                    logger.debug("[PYTHON WORKER %s] Last element (self) is a PSCO with id: %s" % (process_name, str(self_elem.key)))
                 from pycompss.util.persistent_storage import get_by_id
-                obj = get_by_id(last_elem.key)
+                obj = get_by_id(self_elem.key)
             else:
                 obj = None
                 file_name = None
-                if last_elem.key is None:
-                    file_name = last_elem.file_name.split(':')[-1]
+                if self_elem.key is None:
+                    file_name = self_elem.file_name.split(':')[-1]
                     if __debug__:
                         logger.debug("[PYTHON WORKER %s] Deserialize self from file." % process_name)
                     from pycompss.util.serializer import deserialize_from_file
                     obj = deserialize_from_file(file_name)
-                    logger.debug('DESERIALIZED OBJECT IS %s' % last_elem.content)
+                    logger.debug('DESERIALIZED OBJECT IS %s' % self_elem.content)
                     if __debug__:
                         logger.debug("[PYTHON WORKER %s] Processing callee, a hidden object of %s in file %s" % (
-                            process_name, file_name, type(last_elem.content)))
+                            process_name, file_name, type(self_elem.content)))
             values.insert(0, obj)
-            types.insert(0, parameter.TYPE.OBJECT if not last_type == parameter.TYPE.EXTERNAL_PSCO else parameter.TYPE.EXTERNAL_PSCO)
+            types.insert(0, parameter.TYPE.OBJECT if not self_type == parameter.TYPE.EXTERNAL_PSCO else parameter.TYPE.EXTERNAL_PSCO)
 
             def task_execution_2():
                 from pycompss.worker.worker_commons import task_execution
@@ -417,7 +420,7 @@ def execute_task(process_name, storage_conf, params, tracing):
             # This solution avoids to use inspect.
             if is_modifier:
                 from pycompss.util.persistent_storage import is_psco
-                if is_psco(last_elem):
+                if is_psco(self_elem):
                     # There is no explicit update if self is a PSCO.
                     # Consequently, the changes on the PSCO must have been pushed into the storage automatically
                     # on each PSCO modification.

@@ -28,6 +28,7 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.ServiceImplementation;
 import es.bsc.compss.types.resources.CloudMethodWorker;
+import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
@@ -93,7 +94,7 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
             @Override
             public void run() {
                 Thread.currentThread().setName(worker.getName() + " stopper");
-                CloudMethodWorker w = (CloudMethodWorker) worker.getResource();
+                DynamicMethodWorker w = (DynamicMethodWorker) worker.getResource();
                 PendingReduction<WorkerResourceDescription> crd = (PendingReduction<WorkerResourceDescription>) ru;
                 ResourceManager.reduceResource(w, crd);
                 w.endTask((MethodResourceDescription) getResourceConsumption());

@@ -18,6 +18,7 @@ package es.bsc.compss.agent.rest;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.agent.Agent;
+import es.bsc.compss.agent.AgentException;
 import es.bsc.compss.agent.RESTAgentConstants;
 import es.bsc.compss.agent.rest.types.ApplicationParameterImpl;
 import es.bsc.compss.agent.rest.types.Orchestrator;
@@ -27,13 +28,10 @@ import es.bsc.compss.agent.rest.types.Resource;
 import es.bsc.compss.agent.rest.types.messages.NewNodeNotification;
 import es.bsc.compss.agent.rest.types.messages.RemoveNodeRequest;
 import es.bsc.compss.agent.util.RemoteJobsRegistry;
-import es.bsc.compss.comm.Comm;
-import es.bsc.compss.exceptions.ConstructConfigurationException;
 
 import es.bsc.compss.types.job.JobListener.JobEndStatus;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
-import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -69,35 +67,16 @@ public class RESTAgent {
         MethodResourceDescription description = r.getDescription();
         List<Processor> procs = description.getProcessors();
         description.setProcessors(procs);
-        
+
         String adaptor = r.getAdaptor();
         Object projectConf = r.getProjectConf();
         Object resourcesConf = r.getResourcesConf();
-        MethodConfiguration mc;
+
         try {
-            mc = (MethodConfiguration) Comm.constructConfiguration(adaptor, projectConf, resourcesConf);
-        } catch (ConstructConfigurationException ex) {
+            Agent.addNode(r.getName(), description, adaptor, projectConf, resourcesConf);
+        } catch (AgentException ex) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).build();
         }
-
-        int limitOfTasks = mc.getLimitOfTasks();
-        int computingUnits = description.getTotalCPUComputingUnits();
-        if (limitOfTasks < 0 && computingUnits < 0) {
-            mc.setLimitOfTasks(0);
-            mc.setTotalComputingUnits(0);
-        } else {
-            mc.setLimitOfTasks(Math.max(limitOfTasks, computingUnits));
-            mc.setTotalComputingUnits(Math.max(limitOfTasks, computingUnits));
-        }
-        mc.setLimitOfGPUTasks(description.getTotalGPUComputingUnits());
-        mc.setTotalGPUComputingUnits(description.getTotalGPUComputingUnits());
-        mc.setLimitOfFPGATasks(description.getTotalFPGAComputingUnits());
-        mc.setTotalFPGAComputingUnits(description.getTotalFPGAComputingUnits());
-        mc.setLimitOfOTHERSTasks(description.getTotalOTHERComputingUnits());
-        mc.setTotalOTHERComputingUnits(description.getTotalOTHERComputingUnits());
-
-        mc.setHost(r.getName());
-        Agent.addNode(r.getName(), mc, description);
         return Response.ok().build();
     }
 
@@ -106,7 +85,12 @@ public class RESTAgent {
     @Consumes(MediaType.APPLICATION_XML)
     public Response removeResource(RemoveNodeRequest request) {
         String name = request.getWorkerName();
-        Agent.removeNode(name);
+        try {
+            Agent.removeNode(name);
+        } catch (AgentException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+
+        }
         return Response.ok().build();
     }
 
@@ -143,7 +127,7 @@ public class RESTAgent {
         long appId;
         try {
             appId = Agent.runMain(Lang.JAVA, ceiClass, className, methodName, params, monitor);
-        } catch (Exception e) {
+        } catch (AgentException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
         return Response.ok(appId, MediaType.TEXT_PLAIN).build();
@@ -160,7 +144,7 @@ public class RESTAgent {
         AppTaskMonitor monitor = new AppTaskMonitor(sarParams.length, orchestrator);
         try {
             appId = Agent.runTask(Lang.JAVA, className, methodName, sarParams, target, hasResult, monitor);
-        } catch (Exception e) {
+        } catch (AgentException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
         return Response.ok(appId, MediaType.TEXT_PLAIN).build();

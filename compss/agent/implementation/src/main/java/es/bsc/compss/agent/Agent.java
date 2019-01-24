@@ -20,6 +20,8 @@ import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
+import es.bsc.compss.comm.Comm;
+import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.loader.total.StreamRegistry;
 
@@ -217,13 +219,40 @@ public class Agent {
         return appId;
     }
 
-    public static void addNode(String workerName, MethodConfiguration ac, MethodResourceDescription mrd) {
-        DynamicMethodWorker mw = new DynamicMethodWorker(workerName, mrd, ac, new HashMap());
-        ResourceManager.addDynamicWorker(mw, mrd);
+    public static void addNode(String workerName, MethodResourceDescription description, String adaptor, Object projectConf, Object resourcesConf) throws AgentException {
+        MethodConfiguration mc;
+        try {
+            mc = (MethodConfiguration) Comm.constructConfiguration(adaptor, projectConf, resourcesConf);
+        } catch (ConstructConfigurationException e) {
+            throw new AgentException(e.getMessage(), e);
+        }
+        int limitOfTasks = mc.getLimitOfTasks();
+        int computingUnits = description.getTotalCPUComputingUnits();
+        if (limitOfTasks < 0 && computingUnits < 0) {
+            mc.setLimitOfTasks(0);
+            mc.setTotalComputingUnits(0);
+        } else {
+            mc.setLimitOfTasks(Math.max(limitOfTasks, computingUnits));
+            mc.setTotalComputingUnits(Math.max(limitOfTasks, computingUnits));
+        }
+        mc.setLimitOfGPUTasks(description.getTotalGPUComputingUnits());
+        mc.setTotalGPUComputingUnits(description.getTotalGPUComputingUnits());
+        mc.setLimitOfFPGATasks(description.getTotalFPGAComputingUnits());
+        mc.setTotalFPGAComputingUnits(description.getTotalFPGAComputingUnits());
+        mc.setLimitOfOTHERSTasks(description.getTotalOTHERComputingUnits());
+        mc.setTotalOTHERComputingUnits(description.getTotalOTHERComputingUnits());
+
+        mc.setHost(workerName);
+        DynamicMethodWorker mw = new DynamicMethodWorker(workerName, description, mc, new HashMap());
+        ResourceManager.addDynamicWorker(mw, description);
     }
 
-    public static void removeNode(String name) {
-        ResourceManager.reduceWholeWorker(name);
+    public static void removeNode(String name) throws AgentException {
+        try {
+            ResourceManager.reduceWholeWorker(name);
+        } catch (NullPointerException e) {
+            throw new AgentException("Resource " + name + "was not set up for this agent. Ignoring request.");
+        }
     }
 
 

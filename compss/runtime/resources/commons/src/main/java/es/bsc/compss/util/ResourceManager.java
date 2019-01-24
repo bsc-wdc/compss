@@ -457,7 +457,7 @@ public class ResourceManager {
      * @param modification
      */
     @SuppressWarnings("unchecked")
-    public static <R extends WorkerResourceDescription> void reduceResource(CloudMethodWorker worker, PendingReduction<R> modification) {
+    public static <R extends WorkerResourceDescription> void reduceResource(DynamicMethodWorker worker, PendingReduction<R> modification) {
         synchronized (pool) {
             int[] maxTaskCount = worker.getSimultaneousTasks();
             for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {

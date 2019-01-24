@@ -214,7 +214,7 @@ def transform1(o1, o2):
 
 
 @task(o2=INOUT)
-def transform2(o1, o2):
+def transform2(o2, o1):
     add1 = {}
     images = o1.get()
     for k, v in images.items():
@@ -259,7 +259,7 @@ def TiramisuMockup():
 
     result = ''
     transform1(myobj, out1)
-    transform2(out1, out2)
+    transform2(out2, out1)  # INOUT in first position
     result = transform3(out2, out3)
 
     result = compss_wait_on(result)

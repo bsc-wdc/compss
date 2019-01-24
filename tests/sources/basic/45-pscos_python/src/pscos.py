@@ -214,7 +214,7 @@ def transform1(o1, o2):
 
 
 @task(o2=INOUT)
-def transform2(o1, o2):
+def transform2(o2, o1):
     add1 = {}
     images = o1.get()
     for k, v in images.items():
@@ -259,19 +259,23 @@ def TiramisuMockup():
 
     result = ''
     transform1(myobj, out1)
-    transform2(out1, out2)
+    transform2(out2, out1)  # INOUT in first position
     result = transform3(out2, out3)
 
     result = compss_wait_on(result)
-    outTrans1 = compss_wait_on(out1)
-    outTrans2 = compss_wait_on(out2)
-    outTrans3 = compss_wait_on(out3)
+    out1 = compss_wait_on(out1)
+    out2 = compss_wait_on(out2)
+    out3 = compss_wait_on(out3)
 
-    print("OUTPUTS:")
-    print("Transformation 1: ", outTrans1.get())
-    print("Transformation 2: ", outTrans2.get())
-    print("Transformation 3: ", outTrans3.get())
+    print("INOUTS:")
+    print("Transformation 1: ", out1.get())
+    print("Transformation 2: ", out2.get())
+    print("Transformation 3: ", out3.get())
     print("RESULT: ", result.get())
+
+    assert out1.get() == {'first': [1, 1, 1, 1], 'second': [4, 4, 4, 4], 'third': [9, 9, 9, 9], 'fourth': [16, 16, 16, 16]}
+    assert out2.get() == {'first': [2, 2, 2, 2], 'second': [5, 5, 5, 5], 'third': [10, 10, 10, 10], 'fourth': [17, 17, 17, 17]}
+    assert out3.get() == {'first': [6, 6, 6, 6], 'second': [15, 15, 15, 15], 'third': [30, 30, 30, 30], 'fourth': [51, 51, 51, 51]}
 
     finalResults = result.get()
     if all(x == 6 for x in finalResults['first']) and all(x == 15 for x in finalResults['second']) and all(
@@ -298,7 +302,7 @@ def transform1_2(o1, o2):
 
 
 @task(o2=OUT)
-def transform2_2(o1, o2):
+def transform2_2(o2, o1):
     add1 = {}
     images = o1.get()
     for k, v in images.items():
@@ -343,20 +347,24 @@ def TiramisuMockup2():
 
     result = ''
     transform1_2(myobj, out1)
-    transform2_2(out1, out2)
+    transform2_2(out2, out1)  # OUT in first position
     result = transform3_2(out2, out3)
 
     result = compss_wait_on(result)
 
-    outTrans1 = compss_wait_on(out1)
-    outTrans2 = compss_wait_on(out2)
-    outTrans3 = compss_wait_on(out3)
+    out1 = compss_wait_on(out1)
+    out2 = compss_wait_on(out2)
+    out3 = compss_wait_on(out3)
 
     print("OUTPUTS:")
-    print("Transformation 1: ", outTrans1.get())
-    print("Transformation 2: ", outTrans2.get())
-    print("Transformation 3: ", outTrans3.get())
+    print("Transformation 1: ", out1.get())
+    print("Transformation 2: ", out2.get())
+    print("Transformation 3: ", out3.get())
     print("RESULT: ", result.get())
+
+    assert out1.get() == {'first': [1, 1, 1, 1], 'second': [4, 4, 4, 4], 'third': [9, 9, 9, 9], 'fourth': [16, 16, 16, 16]}
+    assert out2.get() == {'first': [2, 2, 2, 2], 'second': [5, 5, 5, 5], 'third': [10, 10, 10, 10], 'fourth': [17, 17, 17, 17]}
+    assert out3.get() == {'first': [6, 6, 6, 6], 'second': [15, 15, 15, 15], 'third': [30, 30, 30, 30], 'fourth': [51, 51, 51, 51]}
 
     finalResults = result.get()
     if all(x == 6 for x in finalResults['first']) and all(x == 15 for x in finalResults['second']) and all(

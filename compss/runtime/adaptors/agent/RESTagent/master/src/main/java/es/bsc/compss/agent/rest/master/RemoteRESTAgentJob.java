@@ -111,6 +111,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
             throw new UnsupportedOperationException("Instance methods not supported yet.");
         }
 
+        System.out.println("SUBMISSION[" + this.getJobId() + "] Remote Agent :" + executor.getName());
         System.out.println("SUBMISSION[" + this.getJobId() + "] Parameters:");
         for (int parIdx = 0; parIdx < numParams; parIdx++) {
             System.out.println("SUBMISSION[" + this.getJobId() + "]     * Parameter " + parIdx + ": ");

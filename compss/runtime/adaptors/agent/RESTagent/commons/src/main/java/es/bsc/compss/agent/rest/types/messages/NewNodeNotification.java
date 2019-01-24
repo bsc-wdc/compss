@@ -24,14 +24,14 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 
 @XmlRootElement(name = "newResource")
-public class NewResourceNotification {
+public class NewNodeNotification {
 
     private Resource resource;
 
-    public NewResourceNotification() {
+    public NewNodeNotification() {
     }
 
-    public NewResourceNotification(String name, MethodResourceDescription mrd, String adaptor, Object resourcesConf, Object projectConf) {
+    public NewNodeNotification(String name, MethodResourceDescription mrd, String adaptor, Object resourcesConf, Object projectConf) {
         this.resource = Resource.createResource(name, mrd, adaptor, resourcesConf, projectConf);
     }
 

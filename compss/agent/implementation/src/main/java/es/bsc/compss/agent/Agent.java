@@ -217,9 +217,13 @@ public class Agent {
         return appId;
     }
 
-    public static void addResource(String workerName, MethodConfiguration ac, MethodResourceDescription mrd) {
+    public static void addNode(String workerName, MethodConfiguration ac, MethodResourceDescription mrd) {
         DynamicMethodWorker mw = new DynamicMethodWorker(workerName, mrd, ac, new HashMap());
         ResourceManager.addDynamicWorker(mw, mrd);
+    }
+
+    public static void removeNode(String name) {
+        ResourceManager.reduceWholeWorker(name);
     }
 
 

@@ -360,7 +360,7 @@ def start(log_level='off',
         # Default
         json_path = '/Bindings/python/' + str(major_version) + '/log/logging.json'
         init_logging(os.getenv('COMPSS_HOME') + json_path, log_path)
-    logger = logging.getLogger("pycompss.runtime.launch")
+    logger = logging.getLogger(__name__)
 
     __print_setup__(verbose,
                     log_level, o_c, debug, graph, trace, monitor,
@@ -396,7 +396,7 @@ def __print_setup__(verbose, log_level, o_c, debug, graph, trace, monitor,
                     scheduler_config, external_adaptation, python_interpreter, python_version,
                     python_virtual_environment, python_propagate_virtual_environment):
 
-    logger = logging.getLogger("pycompss.runtime.launch")
+    logger = logging.getLogger(__name__)
     output = ""
     output += "******************************************************\n"
     output += " CONFIGURATION: \n"
@@ -457,7 +457,7 @@ def stop(sync=False):
     print("*************** STOPPING PyCOMPSs ******************")
     print("****************************************************")
 
-    logger = logging.getLogger("pycompss.runtime.launch")
+    logger = logging.getLogger(__name__)
 
     if sync:
         print("Synchronizing all future objects left on the user scope.")

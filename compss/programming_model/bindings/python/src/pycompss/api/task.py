@@ -30,7 +30,7 @@ from pycompss.runtime.core_element import CE
 if __debug__:
     import logging
 
-    logger = logging.getLogger('pycompss.api.task')
+    logger = logging.getLogger(__name__)
 
 # This lock allows tasks to be launched with the Threading module while ensuring
 # that no attribute is overwritten

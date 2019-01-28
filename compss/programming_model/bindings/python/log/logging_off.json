@@ -47,6 +47,8 @@
     }
   },
   "loggers": {
+    "pycompss.interactive":       { "level": "ERROR", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
+
     "pycompss.api.task":       { "level": "ERROR", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.api.constraint": { "level": "ERROR", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.api.decaf":      { "level": "ERROR", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },

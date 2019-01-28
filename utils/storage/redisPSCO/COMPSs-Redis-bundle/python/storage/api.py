@@ -22,6 +22,7 @@ As a reminder, objects are stored as a serialized byte array.
 import uuid
 import redis
 import rediscluster
+import logging
 from pycompss.util.serializer import serialize_to_string, deserialize_from_string, deserialize_from_handler
 __name__ = "redispycompss"
 
@@ -36,6 +37,7 @@ They are declared only for visibility purposes
 '''
 redis_connection = None
 hosts = None
+logger = logging.getLogger('redis')
 
 
 class StorageException(Exception):
@@ -48,6 +50,8 @@ def init(config_file_path=None, **kwargs):
     '''Init the storage client. Basically, we set the Redis client and connects it
     to the instance/cluster
     '''
+    if __debug__:
+        logger.debug("[REDIS-PyCOMPSs API] Initializing the storage client.")
     global redis_connection
     global hosts
     # If config_file_path is None we will assume that we only have localhost
@@ -85,17 +89,26 @@ def init(config_file_path=None, **kwargs):
     # Beware py2 vs py3 - b'string' works for both.
     assert redis_connection.get('PYCOMPSS_TEST') == b'OK'
     redis_connection.delete('PYCOMPSS_TEST')
+    if __debug__:
+        logger.debug("[REDIS-PyCOMPSs API] Initialization finished successfully.")
 
 def initWorker(config_file_path=None):
     '''Per-worker init function
     '''
+    if __debug__:
+        logger.debug("[REDIS-PyCOMPSs API] Initializing the storage client in worker process.")
     init(config_file_path)
+    if __debug__:
+        logger.debug("[REDIS-PyCOMPSs API] Initialization in worker process finished successfully.")
+
 
 init_worker = initWorker
 
 def finishWorker(*args, **kwargs):
     '''Same as finish. No additional actions are needed
     '''
+    if __debug__:
+        logger.debug("[REDIS-PyCOMPSs API] Finalization at worker process. Not needed.")
     pass
 
 finish_worker = finishWorker
@@ -104,6 +117,8 @@ def finish(**kwargs):
     '''Finish the storage: Nothing to do, as Python redis clients have no
     close method.
     '''
+    if __debug__:
+        logger.debug("[REDIS-PyCOMPSs API] Finalization at worker. Not needed.")
     pass
 
 def getByIDOld(identifier):
@@ -112,6 +127,7 @@ def getByIDOld(identifier):
     that correspond to this key, deserializes it and returns the reconstructed
     object.
     '''
+    logger.warn("[REDIS-PyCOMPSs API] Call to getByIDOld.")
     global redis_connection
     import io
     with io.BytesIO() as bio:
@@ -127,6 +143,8 @@ def getByIDOld(identifier):
 def getByID(*identifiers):
     '''Retrieves a set of objects from their identifiers by pipelining the get commands
     '''
+    if __debug__:
+        logger.debug("[REDIS-PyCOMPSs API] Call to getByID of: " + str(identifiers))
     global redis_connection
     p = redis_connection.pipeline()
     # Stack the pipe calls
@@ -151,8 +169,12 @@ def makePersistent(obj, identifier = None):
     '''Persists an object to the Redis backend. Does nothing if the object
     is already persisted.
     '''
+    if __debug__:
+        logger.debug("[REDIS-PyCOMPSs API] Make persistent of: " + str(obj))
     if obj.pycompss_psco_identifier is not None:
         # Non null identifier -> object is already persisted
+        if __debug__:
+            logger.warn("[REDIS-PyCOMPSs API] The object is already persistent.")
         return
     # The object has no identifier, we need to assign it one
     obj.pycompss_psco_identifier = str(uuid.uuid4()) if identifier is None \
@@ -169,6 +191,8 @@ def makePersistent(obj, identifier = None):
         )
     # Object is now synced with backend
     obj.pycompss_mark_as_unmodified()
+    if __debug__:
+        logger.debug("[REDIS-PyCOMPSs API] Object persisted with id: " + str(obj.pycompss_psco_identifier))
 
 make_persistent = makePersistent
 
@@ -176,15 +200,23 @@ def deletePersistent(obj):
     '''Deletes a persisted object. If the object was not persisted, then
     nothing will be done.
     '''
+    if __debug__:
+        logger.debug("[REDIS-PyCOMPSs API] Delete persistent of: " + str(obj))
     if obj.pycompss_psco_identifier is None:
         # The object was not persisted, there is nothing to do
+        if __debug__:
+            logger.warn("[REDIS-PyCOMPSs API] The object is not persistent.")
         return
+    if __debug__:
+        logger.debug("[REDIS-PyCOMPSs API] Persistent object to delete id: " + str(obj.pycompss_psco_identifier))
     # Delete the object from the backend
     redis_connection.delete(obj.pycompss_psco_identifier)
     # Set key to None
     obj.pycompss_psco_identifier = None
     # Mark as unmodified
     obj.pycompss_mark_as_unmodified()
+    if __debug__:
+        logger.debug("[REDIS-PyCOMPSs API] Object deleted")
 
 delete_persistent = deletePersistent
 

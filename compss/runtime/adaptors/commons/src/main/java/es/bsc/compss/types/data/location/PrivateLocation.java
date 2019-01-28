@@ -60,7 +60,7 @@ public class PrivateLocation extends DataLocation {
 
     @Override
     public MultiURI getURIInHost(Resource targetHost) {
-        if (this.uri.getHost().equals(targetHost)) {
+        if (this.uri.getHost().getNode().equals(targetHost.getNode())) {
             return this.uri;
         } else {
             return null;

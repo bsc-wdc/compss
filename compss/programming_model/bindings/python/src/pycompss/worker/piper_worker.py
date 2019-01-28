@@ -27,6 +27,7 @@ import logging
 import os
 import signal
 import sys
+import copy
 from multiprocessing import Process
 from multiprocessing import Queue
 import thread_affinity
@@ -79,9 +80,11 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
     """
 
     logger = logging.getLogger('pycompss.worker.worker')
-    handler = logger.handlers[0]
-    level = logger.getEffectiveLevel()
-    formatter = logging.Formatter(handler.formatter._fmt)
+
+    # Get a copy of the necessary information from the logger to re-establish after each task
+    logger_handlers = copy.copy(logger.handlers)
+    logger_level = logger.getEffectiveLevel()
+    logger_formatter = logging.Formatter(logger_handlers[0].formatter._fmt)
 
     if storage_conf != 'null':
         try:
@@ -165,16 +168,16 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                     logger.debug("[PYTHON WORKER %s] Received task." % str(process_name))
                     logger.debug("[PYTHON WORKER %s] - TASK CMD: %s" % (str(process_name), str(current_line)))
 
-                # Swap logger from stream handler to file handler.
-                # #### TODO: FIX LOGGER! it may not be the first if the user defines its own.
-                logger.removeHandler(logger.handlers[0])
+                # Swap logger from stream handler to file handler - All task output will be redirected to job.out/err
+                for log_handler in logger_handlers:
+                    logger.removeHandler(log_handler)
                 out_file_handler = logging.FileHandler(job_out)
-                out_file_handler.setLevel(level)
-                out_file_handler.setFormatter(formatter)
+                out_file_handler.setLevel(logger_level)
+                out_file_handler.setFormatter(logger_formatter)
                 logger.addHandler(out_file_handler)
                 err_file_handler = logging.FileHandler(job_err)
                 err_file_handler.setLevel(logging.ERROR)
-                err_file_handler.setFormatter(formatter)
+                err_file_handler.setFormatter(logger_formatter)
                 logger.addHandler(err_file_handler)
 
                 if __debug__:
@@ -263,10 +266,12 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                     del os.environ['CUDA_VISIBLE_DEVICES']
                     del os.environ['GPU_DEVICE_ORDINAL']
                 del os.environ['COMPSS_HOSTNAMES']
+
                 # Restore logger
                 logger.removeHandler(out_file_handler)
                 logger.removeHandler(err_file_handler)
-                logger.addHandler(handler)
+                for handler in logger_handlers:
+                    logger.addHandler(handler)
 
             elif current_line[0] == QUIT_TAG:
                 # Received quit message -> Suicide

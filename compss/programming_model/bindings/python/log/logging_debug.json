@@ -80,9 +80,7 @@
 
     "pycompss.worker.worker": { "level": "DEBUG", "handlers": ["runtime_file_handler"], "propagate": "no" },
 
-    "dataclay": { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "yes"},
-    "hecuba":   { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "yes"},
-    "redis":    { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "yes"}
+    "storage": { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "yes"}
   },
   "root": {
     "level": "DEBUG"

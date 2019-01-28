@@ -74,9 +74,7 @@
 
     "pycompss.worker.worker": {"level": "ERROR", "handlers": ["runtime_file_handler"], "propagate": "no"},
 
-    "dataclay": { "level": "ERROR", "handlers": ["console"], "propagate": "yes" },
-    "hecuba":   { "level": "ERROR", "handlers": ["console"], "propagate": "yes" },
-    "redis":    { "level": "ERROR", "handlers": ["console"], "propagate": "yes" }
+    "storage": { "level": "ERROR", "handlers": ["console"], "propagate": "yes" }
   },
   "root": {
     "level": "ERROR"

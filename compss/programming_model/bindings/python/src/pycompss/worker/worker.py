@@ -28,26 +28,15 @@ PyCOMPSs Worker
 import logging
 import os
 import sys
-import traceback
-import base64
 
-from pycompss.api.parameter import TYPE, JAVA_MAX_INT, JAVA_MIN_INT
-from pycompss.runtime.commons import EMPTY_STRING_KEY
-from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.runtime.commons import IS_PYTHON3
-from pycompss.util.serializer import serialize_to_file
-from pycompss.util.serializer import deserialize_from_file
-from pycompss.util.serializer import deserialize_from_string
-from pycompss.util.serializer import SerializerException
 from pycompss.util.logs import init_logging_worker
-from pycompss.util.persistent_storage import get_by_id
+from pycompss.worker.worker_commons import execute_task
 
 if IS_PYTHON3:
     long = int
 else:
     # Exception moved to built-in
-    from exceptions import ValueError
-
     str_escape = 'string_escape'
 
 SYNC_EVENTS = 8000666
@@ -63,9 +52,6 @@ LOGGING = 104
 MODULES_IMPORT = 105
 WORKER_END = 106
 PROCESS_DESTRUCTION = 107
-
-if sys.version_info >= (2, 7):
-    import importlib
 
 
 # Uncomment the next line if you do not want to reuse pyc files.
@@ -95,7 +81,6 @@ def compss_worker(persistent_storage):
 
     args = sys.argv[6:]
 
-    from pycompss.worker.worker_commons import execute_task
     exit_code, _, _ = execute_task("Task " + task_id, storage_conf, args, tracing)
     return exit_code
 

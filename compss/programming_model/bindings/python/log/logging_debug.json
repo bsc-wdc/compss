@@ -53,195 +53,36 @@
     }
   },
   "loggers": {
-    "pycompss.api.task": {
-      "level": "DEBUG",
-      "handlers": [
-        "debug_file_handler",
-        "error_file_handler"
-      ],
-      "propagate": "no"
-    },
-    "pycompss.api.constraint": {
-      "level": "DEBUG",
-      "handlers": [
-        "debug_file_handler",
-        "error_file_handler"
-      ],
-      "propagate": "no"
-    },
-    "pycompss.api.decaf": {
-      "level": "DEBUG",
-      "handlers": [
-        "debug_file_handler",
-        "error_file_handler"
-      ],
-      "propagate": "no"
-    },
-    "pycompss.api.mpi": {
-      "level": "DEBUG",
-      "handlers": [
-        "debug_file_handler",
-        "error_file_handler"
-      ],
-      "propagate": "no"
-    },
-    "pycompss.api.compss": {
-      "level": "DEBUG",
-      "handlers": [
-        "debug_file_handler",
-        "error_file_handler"
-      ],
-      "propagate": "no"
-    },
-    "pycompss.api.binary": {
-      "level": "DEBUG",
-      "handlers": [
-        "debug_file_handler",
-        "error_file_handler"
-      ],
-      "propagate": "no"
-    },
-    "pycompss.api.ompss": {
-      "level": "DEBUG",
-      "handlers": [
-        "debug_file_handler",
-        "error_file_handler"
-      ],
-      "propagate": "no"
-    },
-    "pycompss.api.opencl": {
-      "level": "DEBUG",
-      "handlers": [
-        "debug_file_handler",
-        "error_file_handler"
-      ],
-      "propagate": "no"
-    },
-    "pycompss.api.implement": {
-      "level": "DEBUG",
-      "handlers": [
-        "debug_file_handler",
-        "error_file_handler"
-      ],
-      "propagate": "no"
-    },
-    "pycompss.api.parallel": {
-      "level": "DEBUG",
-      "handlers": [
-        "console"
-      ],
-      "propagate": "no"
-    },
-    "pycompss.util.translators.arg_utils.arg_utils": {
-      "level": "DEBUG",
-      "handlers": [
-        "console"
-      ],
-      "propagate": "no"
-    },
-    "pycompss.util.translators.code_reuser.code_reuser": {
-      "level": "DEBUG",
-      "handlers": [
-        "console"
-      ],
-      "propagate": "no"
-    },
-    "pycompss.util.translators.code_loader.code_loader": {
-      "level": "DEBUG",
-      "handlers": [
-        "console"
-      ],
-      "propagate": "no"
-    },
-    "pycompss.util.translators.code_replacer.code_replacer": {
-      "level": "DEBUG",
-      "handlers": [
-        "console"
-      ],
-      "propagate": "no"
-    },
-    "pycompss.util.translators.py2scop.translator_py2scop": {
-      "level": "DEBUG",
-      "handlers": [
-        "console"
-      ],
-      "propagate": "no"
-    },
-    "pycompss.util.translators.scop2pscop2py.translator_scop2pscop2py": {
-      "level": "DEBUG",
-      "handlers": [
-        "console"
-      ],
-      "propagate": "no"
-    },
-    "pycompss.util.translators.py2pycompss.translator_py2pycompss": {
-      "level": "DEBUG",
-      "handlers": [
-        "console"
-      ],
-      "propagate": "no"
-    },
-    "pycompss.util.translators.py2pycompss.components.loop_taskificator": {
-      "level": "DEBUG",
-      "handlers": [
-        "console"
-      ],
-      "propagate": "no"
-    },
-    "pycompss.util.translators.py2pycompss.components.calculator": {
-      "level": "DEBUG",
-      "handlers": [
-        "console"
-      ],
-      "propagate": "no"
-    },
-    "pycompss.runtime.launch": {
-      "level": "DEBUG",
-      "handlers": [
-        "debug_file_handler",
-        "error_file_handler"
-      ],
-      "propagate": "no"
-    },
-    "pycompss.runtime.binding": {
-      "level": "DEBUG",
-      "handlers": [
-        "debug_file_handler",
-        "error_file_handler"
-      ],
-      "propagate": "no"
-    },
-    "pycompss.util.serializer": {
-      "level": "DEBUG",
-      "handlers": [
-        "debug_file_handler",
-        "error_file_handler"
-      ],
-      "propagate": "no"
-    },
-    "pycompss.worker.worker": {
-      "level": "DEBUG",
-      "handlers": [
-        "runtime_file_handler"
-      ],
-      "propagate": "no"
-    },
-    "dataclay": {
-      "level": "DEBUG",
-      "handlers": [
-        "console",
-        "error_console"
-      ],
-      "propagate": "yes"
-    },
-    "hecuba": {
-      "level": "DEBUG",
-      "handlers": [
-        "console",
-        "error_console"
-      ],
-      "propagate": "yes"
-    }
+    "pycompss.api.task":       { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
+    "pycompss.api.constraint": { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
+    "pycompss.api.decaf":      { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
+    "pycompss.api.mpi":        { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
+    "pycompss.api.compss":     { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
+    "pycompss.api.binary":     { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
+    "pycompss.api.ompss":      { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
+    "pycompss.api.opencl":     { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
+    "pycompss.api.implement":  { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
+
+    "pycompss.api.parallel":                                              { "level": "DEBUG", "handlers": ["console"], "propagate": "no" },
+    "pycompss.util.translators.arg_utils.arg_utils":                      { "level": "DEBUG", "handlers": ["console"], "propagate": "no" },
+    "pycompss.util.translators.code_reuser.code_reuser":                  { "level": "DEBUG", "handlers": ["console"], "propagate": "no" },
+    "pycompss.util.translators.code_loader.code_loader":                  { "level": "DEBUG", "handlers": ["console"], "propagate": "no" },
+    "pycompss.util.translators.code_replacer.code_replacer":              { "level": "DEBUG", "handlers": ["console"], "propagate": "no" },
+    "pycompss.util.translators.py2scop.translator_py2scop":               { "level": "DEBUG", "handlers": ["console"], "propagate": "no" },
+    "pycompss.util.translators.scop2pscop2py.translator_scop2pscop2py":   { "level": "DEBUG", "handlers": ["console"], "propagate": "no" },
+    "pycompss.util.translators.py2pycompss.translator_py2pycompss":       { "level": "DEBUG", "handlers": ["console"], "propagate": "no" },
+    "pycompss.util.translators.py2pycompss.components.loop_taskificator": { "level": "DEBUG", "handlers": ["console"], "propagate": "no" },
+    "pycompss.util.translators.py2pycompss.components.calculator":        { "level": "DEBUG", "handlers": ["console"], "propagate": "no" },
+
+    "pycompss.runtime.launch":  { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
+    "pycompss.runtime.binding": { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
+    "pycompss.util.serializer": { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
+
+    "pycompss.worker.worker": { "level": "DEBUG", "handlers": ["runtime_file_handler"], "propagate": "no" },
+
+    "dataclay": { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "yes"},
+    "hecuba":   { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "yes"},
+    "redis":    { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "yes"}
   },
   "root": {
     "level": "DEBUG"

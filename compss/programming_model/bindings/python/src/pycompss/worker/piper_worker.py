@@ -62,7 +62,7 @@ SERIALIZE_TAG = "SERIALIZE"
 ######################
 #  Processes body
 ######################
-def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
+def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger):
     """
     Thread main body - Overrides Threading run method.
     Iterates over the input pipe in order to receive tasks (with their
@@ -76,10 +76,9 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
     :param input_pipe: Input pipe for the thread. To receive messages from the runtime.
     :param output_pipe: Output pipe for the thread. To send messages to the runtime.
     :param storage_conf: Storage configuration file
+    :param logger: Logger
     :return: None
     """
-
-    logger = logging.getLogger('pycompss.worker.worker')
 
     # Get a copy of the necessary information from the logger to re-establish after each task
     logger_handlers = copy.copy(logger.handlers)
@@ -412,7 +411,8 @@ def compss_persistent_worker():
                                                           process_name,
                                                           in_pipes[i],
                                                           out_pipes[i],
-                                                          storage_conf)))
+                                                          storage_conf,
+                                                          logger)))
             PROCESSES[i].start()
 
         create_threads()

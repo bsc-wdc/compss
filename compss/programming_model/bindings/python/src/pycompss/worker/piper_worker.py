@@ -181,8 +181,8 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
                 logger.addHandler(out_file_handler)
                 storage_logger.addHandler(out_file_handler)
                 err_file_handler = logging.FileHandler(job_err)
-                err_file_handler.setLevel(logging.ERROR)
-                err_file_handler.setFormatter(logger_formatter)
+                err_file_handler.setLevel(storage_logger_level)
+                err_file_handler.setFormatter(storage_logger_formatter)
                 logger.addHandler(err_file_handler)
                 storage_logger.addHandler(err_file_handler)
 

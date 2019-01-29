@@ -48,19 +48,39 @@ parse_options() {
 
   while true; do
     case "$1" in
-      -h    | --hostname )        
+      -h    | --hostname )
+        if [ "$#" -lt 2 ]; then
+          echo "Illegal number of params"
+          usage
+          exit
+        fi
         AGENT_HOSTNAME=$2;
         shift 2;;
 
-      -a    | --app )        
+      -a    | --app )   
+        if [ "$#" -lt 2 ]; then
+          echo "Illegal number of params"
+          usage
+          exit
+        fi
         APPLICATION_PATH=$2;
         shift 2;;
 
-      -p     | --port )     
+      -p     | --port ) 
+        if [ "$#" -lt 2 ]; then
+          echo "Illegal number of params"
+          usage
+          exit
+        fi    
         AGENT_PORT=$2;
         shift 2;;
 
       -d    | --debug )
+        if [ "$#" -lt 2 ]; then
+          echo "Illegal number of params"
+          usage
+          exit
+        fi
         DEBUG=$2;
         shift 2;;
 
@@ -68,7 +88,12 @@ parse_options() {
         DC_ENABLED=false
         shift 1;;
 
-          -lm    | --logicmodule )
+      -lm    | --logicmodule )
+        if [ "$#" -lt 2 ]; then
+          echo "Illegal number of params"
+          usage
+          exit
+        fi
         OLD_IFS=${IFS}
         IFS=':' read -ra ADDR <<< "$2"
         if [ "${ADDR[0]}" != "" ]; then
@@ -81,18 +106,38 @@ parse_options() {
         shift 2;;
 
       -u     | --user ) 
+        if [ "$#" -lt 2 ]; then
+          echo "Illegal number of params"
+          usage
+          exit
+        fi
         DC_USERNAME=$2;
         shift 2;;
 
       -pwd     | --password )
+        if [ "$#" -lt 2 ]; then
+          echo "Illegal number of params"
+          usage
+          exit
+        fi
         DC_PASSWORD=$2;
         shift 2;;
 
       -ds     | --dataset )
+        if [ "$#" -lt 2 ]; then
+          echo "Illegal number of params"
+          usage
+          exit
+        fi
         DC_DATASET=$2;
         shift 2;;
 
       -ns    | --namespace )
+        if [ "$#" -lt 2 ]; then
+          echo "Illegal number of params"
+          usage
+          exit
+        fi
         DC_NAMESPACE=$2;
         shift 2;;
 
@@ -270,3 +315,4 @@ java \
 -Dcompss.comm=es.bsc.compss.agent.rest.master.Adaptor \
 "${DATACLAY_CONFIG_OPT}"\
 es.bsc.compss.agent.rest.RESTAgent ${AGENT_PORT}
+

@@ -80,6 +80,8 @@ public class TaskAnalyser {
     private HashMap<Long, TreeSet<Integer>> appIdToSCOWrittenIds;
     // Tasks being waited on: taskId -> list of semaphores where to notify end of task
     private Hashtable<Task, List<Semaphore>> waitedTasks;
+    // Concurrent tasks being waited on: taskId -> semaphore where to notify end of task
+    private Hashtable<Task, Semaphore> waitedConcurrent;
 
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TA_COMP);
@@ -105,7 +107,8 @@ public class TaskAnalyser {
         this.appIdToWrittenFiles = new HashMap<>();
         this.appIdToSCOWrittenIds = new HashMap<>();
         this.waitedTasks = new Hashtable<>();
-
+        this.waitedConcurrent = new Hashtable<>();
+        
         synchronizationId = 0;
         taskDetectedAfterSync = false;
 
@@ -369,6 +372,7 @@ public class TaskAnalyser {
                     FileParameter fp = (FileParameter) p;
                     switch (fp.getDirection()) {
                         case IN:
+                        case CONCURRENT:
                             break;
                         case INOUT:
                             DataInstanceId dId = ((RWAccessId) fp.getDataAccessId()).getWrittenDataInstance();
@@ -445,6 +449,7 @@ public class TaskAnalyser {
         }
     }
 
+   
     /**
      * Barrier
      *

@@ -80,7 +80,8 @@
     "pycompss.runtime.binding": { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.util.serializer": { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
 
-    "pycompss.worker.worker": { "level": "DEBUG", "handlers": ["runtime_file_handler"], "propagate": "no" },
+    "pycompss.worker.piper_worker": { "level": "DEBUG", "handlers": ["runtime_file_handler"], "propagate": "no" },
+    "pycompss.worker.worker":       { "level": "DEBUG", "handlers": ["runtime_file_handler"], "propagate": "no" },
 
     "storage": { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "yes"}
   },

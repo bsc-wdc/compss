@@ -81,7 +81,7 @@ def compss_worker(persistent_storage):
 
     args = sys.argv[6:]
 
-    exit_code, _, _ = execute_task("Task " + task_id, storage_conf, args, tracing)
+    exit_code, _, _ = execute_task("Task " + task_id, storage_conf, args, tracing, logger)
     return exit_code
 
 

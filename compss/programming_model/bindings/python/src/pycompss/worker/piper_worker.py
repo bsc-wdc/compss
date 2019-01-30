@@ -214,7 +214,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
                     # Execute task
                     from pycompss.worker.worker_commons import execute_task
                     exit_value, new_types, new_values = execute_task(process_name, storage_conf, current_line[9:],
-                                                                     TRACING)
+                                                                     TRACING, logger)
 
                     # Restore out/err wrappers
                     sys.stdout = stdout
@@ -392,7 +392,7 @@ def compss_persistent_worker():
         init_logging_worker(worker_path + '/../../log/logging_off.json')
 
     # Define logger facilities
-    logger = logging.getLogger('pycompss.worker.worker')
+    logger = logging.getLogger('pycompss.worker.piper_worker')
     storage_logger = logging.getLogger('storage')
 
     if __debug__:

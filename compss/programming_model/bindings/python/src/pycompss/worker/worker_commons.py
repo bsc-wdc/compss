@@ -209,7 +209,7 @@ def task_execution(logger, process_name, module, method_name, types, values, com
     return new_types, new_values, is_modifier
 
 
-def execute_task(process_name, storage_conf, params, tracing):
+def execute_task(process_name, storage_conf, params, tracing, logger):
     """
     ExecuteTask main method.
 
@@ -217,10 +217,9 @@ def execute_task(process_name, storage_conf, params, tracing):
     :param storage_conf: Storage configuration file path
     :param params: List of parameters
     :param tracing: Tracing flag
+    :param logger: Logger to use
     :return: exit code, new types and new values
     """
-    import logging
-    logger = logging.getLogger('pycompss.worker.worker')
 
     if __debug__:
         logger.debug("[PYTHON WORKER %s] Begin task execution" % process_name)

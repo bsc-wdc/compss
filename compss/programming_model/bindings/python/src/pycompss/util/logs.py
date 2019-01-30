@@ -44,10 +44,12 @@ def init_logging(log_config_file, log_path):
     if os.path.exists(log_config_file):
         f = open(log_config_file, 'rt')
         conf = json.loads(f.read())
-        errors_file = conf["handlers"]["error_file_handler"].get("filename")
-        conf["handlers"]["error_file_handler"]["filename"] = log_path + errors_file
-        debug_file = conf["handlers"]["debug_file_handler"].get("filename")
-        conf["handlers"]["debug_file_handler"]["filename"] = log_path + debug_file
+        if "error_file_handler" in conf["handlers"]:
+            errors_file = conf["handlers"]["error_file_handler"].get("filename")
+            conf["handlers"]["error_file_handler"]["filename"] = log_path + errors_file
+        if "error_file_handler" in conf["handlers"]:
+            debug_file = conf["handlers"]["debug_file_handler"].get("filename")
+            conf["handlers"]["debug_file_handler"]["filename"] = log_path + debug_file
         CONFIG_FUNC(conf)
     else:
         logging.basicConfig(level=logging.INFO)

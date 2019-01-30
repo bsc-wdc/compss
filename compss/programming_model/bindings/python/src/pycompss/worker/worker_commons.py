@@ -22,14 +22,13 @@ from pycompss.runtime.commons import IS_PYTHON3
 import pycompss.api.parameter as parameter
 
 
-def get_input_params(num_params, logger, args, process_name):
+def get_input_params(num_params, logger, args):
     """
     Get and prepare the input parameters from string to lists.
 
     :param num_params: Number of parameters
     :param logger: Logger
     :param args: Arguments (complete list of parameters with type, stream, prefix and value)
-    :param process_name: Process name
     :return: A list of TaskParameter objects
     """
     from pycompss.api.parameter import TaskParameter
@@ -45,12 +44,12 @@ def get_input_params(num_params, logger, args, process_name):
         p_value = args[pos + 4]
 
         if __debug__:
-            logger.debug("[PYTHON WORKER] [%s] Parameter : %s" % (process_name, str(i)))
-            logger.debug("[PYTHON WORKER] [%s] \t * Type : %s" % (process_name, str(p_type)))
-            logger.debug("[PYTHON WORKER] [%s] \t * Stream : %s" % (process_name, str(p_stream)))
-            logger.debug("[PYTHON WORKER] [%s] \t * Prefix : %s" % (process_name, str(p_prefix)))
-            logger.debug("[PYTHON WORKER] [%s] \t * Name : %s" % (process_name, str(p_name)))
-            logger.debug("[PYTHON WORKER] [%s] \t * Value: %r" % (process_name, p_value))
+            logger.debug("Parameter : %s" % str(i))
+            logger.debug("\t * Type : %s" % str(p_type))
+            logger.debug("\t * Stream : %s" % str(p_stream))
+            logger.debug("\t * Prefix : %s" % str(p_prefix))
+            logger.debug("\t * Name : %s" % str(p_name))
+            logger.debug("\t * Value: %r" % p_value)
 
         if p_type == parameter.TYPE.FILE:
             # Maybe the file is a object, we dont care about this here
@@ -112,7 +111,7 @@ def get_input_params(num_params, logger, args, process_name):
                     aux = str(real_value.decode())
                     #######
             if __debug__:
-                logger.debug("[PYTHON WORKER] [%s] \t * Final Value: %s" % (process_name, str(aux)))
+                logger.debug("\t * Final Value: %s" % str(aux))
             pos += num_substrings
 
             if IS_PYTHON3 and isinstance(aux, bytes):
@@ -158,12 +157,11 @@ def get_input_params(num_params, logger, args, process_name):
     return ret
 
 
-def task_execution(logger, process_name, module, method_name, types, values, compss_kwargs):
+def task_execution(logger, module, method_name, types, values, compss_kwargs):
     """
     Task execution function.
 
     :param logger: Logger
-    :param process_name: Process name
     :param module: Module which contains the function
     :param method_name: Function to invoke
     :param types: List of the parameter's types
@@ -173,9 +171,9 @@ def task_execution(logger, process_name, module, method_name, types, values, com
     """
 
     if __debug__:
-        logger.debug("[PYTHON WORKER] [%s] Starting task execution" % process_name)
-        logger.debug("[PYTHON WORKER] [%s] Types : %s " % (process_name, str(types)))
-        logger.debug("[PYTHON WORKER] [%s] Values: %s " % (process_name, str(values)))
+        logger.debug("Starting task execution")
+        logger.debug("Types : %s " % str(types))
+        logger.debug("Values: %s " % str(values))
 
     # WARNING: the following call will not work if a user decorator overrides the return of the task decorator.
     # new_types, new_values = getattr(module, method_name)(*values, compss_types=types, **compss_kwargs)
@@ -201,10 +199,10 @@ def task_execution(logger, process_name, module, method_name, types, values, com
 
     if __debug__:
         # The types may change (e.g. if the user does a makePersistent within the task)
-        logger.debug("[PYTHON WORKER] [%s] Return Types : %s " % (process_name, str(new_types)))
-        logger.debug("[PYTHON WORKER] [%s] Return Values: %s " % (process_name, str(new_values)))
-        logger.debug("[PYTHON WORKER] [%s] Return isModifier: %s " % (process_name, str(is_modifier)))
-        logger.debug("[PYTHON WORKER] [%s] Finished task execution" % process_name)
+        logger.debug("Return Types : %s " % str(new_types))
+        logger.debug("Return Values: %s " % str(new_values))
+        logger.debug("Return isModifier: %s " % str(is_modifier))
+        logger.debug("Finished task execution")
 
     return new_types, new_values, is_modifier
 
@@ -222,7 +220,7 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
     """
 
     if __debug__:
-        logger.debug("[PYTHON WORKER] [%s] Begin task execution" % process_name)
+        logger.debug("Begin task execution in %s" % process_name)
 
     persistent_storage = False
     if storage_conf != 'null':
@@ -258,37 +256,37 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
     }
 
     if __debug__:
-        logger.debug("[PYTHON WORKER] [%s] Storage conf: %s" % (str(process_name), str(storage_conf)))
-        logger.debug("[PYTHON WORKER] [%s] Params: %s" % (str(process_name), str(params)))
-        logger.debug("[PYTHON WORKER] [%s] Path: %s" % (str(process_name), str(path)))
-        logger.debug("[PYTHON WORKER] [%s] Method name: %s" % (str(process_name), str(method_name)))
-        logger.debug("[PYTHON WORKER] [%s] Num slaves: %s" % (str(process_name), str(num_slaves)))
-        logger.debug("[PYTHON WORKER] [%s] Slaves: %s" % (str(process_name), str(slaves)))
-        logger.debug("[PYTHON WORKER] [%s] Cus: %s" % (str(process_name), str(cus)))
-        logger.debug("[PYTHON WORKER] [%s] Has target: %s" % (str(process_name), str(has_target)))
-        logger.debug("[PYTHON WORKER] [%s] Num Params: %s" % (str(process_name), str(num_params)))
-        logger.debug("[PYTHON WORKER] [%s] Return Length: %s" % (str(process_name), str(return_length)))
-        logger.debug("[PYTHON WORKER] [%s] Args: %r" % (str(process_name), args))
+        logger.debug("Storage conf: %s" % str(storage_conf))
+        logger.debug("Params: %s" % str(params))
+        logger.debug("Path: %s" % str(path))
+        logger.debug("Method name: %s" % str(method_name))
+        logger.debug("Num slaves: %s" % str(num_slaves))
+        logger.debug("Slaves: %s" % str(slaves))
+        logger.debug("Cus: %s" % str(cus))
+        logger.debug("Has target: %s" % str(has_target))
+        logger.debug("Num Params: %s" % str(num_params))
+        logger.debug("Return Length: %s" % str(return_length))
+        logger.debug("Args: %r" % args)
 
     # Get all parameter values
     if __debug__:
-        logger.debug("[PYTHON WORKER] [%s] Processing parameters:" % process_name)
+        logger.debug("Processing parameters:")
     from pycompss.worker.worker_commons import get_input_params
-    values = get_input_params(num_params, logger, args, process_name)
+    values = get_input_params(num_params, logger, args)
     types = [x.type for x in values]
 
     if __debug__:
-        logger.debug("[PYTHON WORKER] [%s] RUN TASK with arguments: " % process_name)
-        logger.debug("[PYTHON WORKER] [%s] \t- Path: %s" % (process_name, path))
-        logger.debug("[PYTHON WORKER] [%s] \t- Method/function name: %s" % (process_name, method_name))
-        logger.debug("[PYTHON WORKER] [%s] \t- Has target: %s" % (process_name, str(has_target)))
-        logger.debug("[PYTHON WORKER] [%s] \t- # parameters: %s" % (process_name, str(num_params)))
-        logger.debug("[PYTHON WORKER] [%s] \t- Values:" % process_name)
+        logger.debug("RUN TASK with arguments:")
+        logger.debug("\t- Path: %s" % path)
+        logger.debug("\t- Method/function name: %s" % method_name)
+        logger.debug("\t- Has target: %s" % str(has_target))
+        logger.debug("\t- # parameters: %s" % str(num_params))
+        logger.debug("\t- Values:")
         for v in values:
-            logger.debug("[PYTHON WORKER] [%s] \t\t %r" % (process_name, v))
-        logger.debug("[PYTHON WORKER] [%s] \t- COMPSs types:" % process_name)
+            logger.debug("\t\t %r" % v)
+        logger.debug("\t- COMPSs types:")
         for t in types:
-            logger.debug("[PYTHON WORKER] [%s] \t\t %s" % (process_name, str(t)))
+            logger.debug("\t\t %s" % str(t))
 
     import_error = False
 
@@ -298,20 +296,20 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
     try:
         # Try to import the module (for functions)
         if __debug__:
-            logger.debug("[PYTHON WORKER] [%s] Trying to import the user module: %s" % (process_name, path))
+            logger.debug("Trying to import the user module: %s" % path)
         if sys.version_info >= (2, 7):
             import importlib
             module = importlib.import_module(path)  # Python 2.7
             if __debug__:
-                logger.debug("[PYTHON WORKER] [%s] Module successfully loaded (Python version >= 2.7)" % process_name)
+                logger.debug("Module successfully loaded (Python version >= 2.7)")
         else:
             module = __import__(path, globals(), locals(), [path], -1)
             if __debug__:
-                logger.debug("[PYTHON WORKER] [%s] Module successfully loaded (Python version < 2.7" % process_name)
+                logger.debug("Module successfully loaded (Python version < 2.7")
 
         def task_execution_1():
             from pycompss.worker.worker_commons import task_execution
-            return task_execution(logger, process_name, module, method_name, types, values, compss_kwargs)
+            return task_execution(logger, module, method_name, types, values, compss_kwargs)
 
         if persistent_storage:
             with storage_task_context(logger, values, config_file_path=storage_conf):
@@ -325,10 +323,9 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
         exc_type, exc_value, exc_traceback = sys.exc_info()
         import traceback
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-        logger.exception("[PYTHON WORKER] [%s] WORKER EXCEPTION - Attribute Error Exception" % process_name)
+        logger.exception("WORKER EXCEPTION IN %s - Attribute Error Exception" % process_name)
         logger.exception(''.join(line for line in lines))
-        logger.exception(
-            "[PYTHON WORKER] [%s] Check that all parameters have been defined with an absolute import path (even if in the same file)" % process_name)
+        logger.exception("Check that all parameters have been defined with an absolute import path (even if in the same file)")
         # If exception is raised during the task execution, new_types and
         # new_values are empty
         return 1, new_types, new_values
@@ -340,14 +337,14 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
         exc_type, exc_value, exc_traceback = sys.exc_info()
         import traceback
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-        logger.exception("[PYTHON WORKER] [%s] WORKER EXCEPTION" % process_name)
+        logger.exception("WORKER EXCEPTION IN %s" % process_name)
         logger.exception(''.join(line for line in lines))
         # If exception is raised during the task execution, new_types and new_values are empty
         return 1, new_types, new_values
 
     if import_error:
         if __debug__:
-            logger.debug("[PYTHON WORKER] [%s] Could not import the module. Reason: Method in class." % process_name)
+            logger.debug("Could not import the module. Reason: Method in class.")
 
         # Not the path of a module, it ends with a class name
         class_name = path.split('.')[-1]
@@ -361,8 +358,8 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
         klass = getattr(module, class_name)
 
         if __debug__:
-            logger.debug("[PYTHON WORKER] [%s] Method in class %s of module %s" % (process_name, class_name, module_name))
-            logger.debug("[PYTHON WORKER] [%s] Has target: %s" % (process_name, str(has_target)))
+            logger.debug("Method in class %s of module %s" % (class_name, module_name))
+            logger.debug("Has target: %s" % str(has_target))
 
         if has_target == 'true':
             # Instance method
@@ -375,7 +372,7 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
             self_type = types.pop(self_index)
             if self_type == parameter.TYPE.EXTERNAL_PSCO:
                 if __debug__:
-                    logger.debug("[PYTHON WORKER] [%s] Last element (self) is a PSCO with id: %s" % (process_name, str(self_elem.key)))
+                    logger.debug("Last element (self) is a PSCO with id: %s" % str(self_elem.key))
                 from pycompss.util.persistent_storage import get_by_id
                 obj = get_by_id(self_elem.key)
             else:
@@ -384,19 +381,18 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
                 if self_elem.key is None:
                     file_name = self_elem.file_name.split(':')[-1]
                     if __debug__:
-                        logger.debug("[PYTHON WORKER] [%s] Deserialize self from file." % process_name)
+                        logger.debug("Deserialize self from file.")
                     from pycompss.util.serializer import deserialize_from_file
                     obj = deserialize_from_file(file_name)
                     logger.debug('DESERIALIZED OBJECT IS %s' % self_elem.content)
                     if __debug__:
-                        logger.debug("[PYTHON WORKER] [%s] Processing callee, a hidden object of %s in file %s" % (
-                            process_name, file_name, type(self_elem.content)))
+                        logger.debug("Processing callee, a hidden object of %s in file %s" % (file_name, type(self_elem.content)))
             values.insert(0, obj)
             types.insert(0, parameter.TYPE.OBJECT if not self_type == parameter.TYPE.EXTERNAL_PSCO else parameter.TYPE.EXTERNAL_PSCO)
 
             def task_execution_2():
                 from pycompss.worker.worker_commons import task_execution
-                return task_execution(logger, process_name, klass, method_name, types, values, compss_kwargs)
+                return task_execution(logger, klass, method_name, types, values, compss_kwargs)
 
             try:
                 if persistent_storage:
@@ -408,7 +404,7 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 import traceback
                 lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-                logger.exception("[PYTHON WORKER] [%s] WORKER EXCEPTION" % process_name)
+                logger.exception("WORKER EXCEPTION IN %s" % process_name)
                 logger.exception(''.join(line for line in lines))
                 # If exception is raised during the task execution, new_types and new_values are empty
                 return 1, new_types, new_values
@@ -426,26 +422,26 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
                     # This may lead to errors if isModifier=False, because it will not happen. The changes will
                     # be made, and the storage must deal with concurrent modifications.
                     if __debug__:
-                        logger.debug("[PYTHON WORKER] [%s] The changes on the PSCO must have been automatically updated by the storage." % process_name)
+                        logger.debug("The changes on the PSCO must have been automatically updated by the storage.")
                     pass
                 else:
                     if __debug__:
-                        logger.debug("[PYTHON WORKER] [%s] Serializing self to file: %s" % (process_name, file_name))
+                        logger.debug("Serializing self to file: %s" % file_name)
                     from pycompss.util.serializer import serialize_to_file
                     serialize_to_file(obj, file_name)
                 if __debug__:
-                    logger.debug("[PYTHON WORKER] [%s] Serializing self to file." % process_name)
+                    logger.debug("Serializing self to file.")
                 from pycompss.util.serializer import serialize_to_file
                 serialize_to_file(obj, file_name)
                 if __debug__:
-                    logger.debug("[PYTHON WORKER] [%s] Obj: %r" % (process_name, obj))
+                    logger.debug("Obj: %r" % obj)
         else:
             # Class method - class is not included in values (e.g. values = [7])
             types.append(None)  # class must be first type
 
             def task_execution_3():
                 from pycompss.worker.worker_commons import task_execution
-                return task_execution(logger, process_name, klass, method_name, types, values, compss_kwargs)
+                return task_execution(logger, klass, method_name, types, values, compss_kwargs)
 
             try:
                 if persistent_storage:
@@ -457,13 +453,13 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 import traceback
                 lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-                logger.exception("[PYTHON WORKER] [%s] WORKER EXCEPTION" % process_name)
+                logger.exception("WORKER EXCEPTION IN %s" % process_name)
                 logger.exception(''.join(line for line in lines))
                 # If exception is raised during the task execution, new_types and new_values are empty
                 return 1, new_types, new_values
 
     # EVERYTHING OK
     if __debug__:
-        logger.debug("[PYTHON WORKER] [%s] End task execution. Status: Ok" % process_name)
+        logger.debug("End task execution. Status: Ok")
 
     return 0, new_types, new_values  # Exit code, updated params

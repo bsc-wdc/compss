@@ -44,9 +44,6 @@ WORKER_RUNNING = 102
 TRACING = False
 PROCESSES = []
 
-# if sys.version_info >= (2, 7):
-#     import importlib
-
 
 #####################
 #  Tag variables
@@ -92,14 +89,14 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
             initStorageAtWorkerPostFork()
         except ImportError:
             if __debug__:
-                logger.info("[PYTHON WORKER] Could not find initWorkerPostFork storage call. Ignoring it.")
+                logger.info("[PYTHON WORKER] [%s] Could not find initWorkerPostFork storage call. Ignoring it." % str(process_name))
 
     alive = True
     stdout = sys.stdout
     stderr = sys.stderr
 
     if __debug__:
-        logger.debug("[PYTHON WORKER] Starting process " + str(process_name))
+        logger.debug("[PYTHON WORKER] [%s] Starting process" % str(process_name))
 
     while alive:
         in_pipe = open(input_pipe, 'r')  # , 0) # 0 just for python 2
@@ -108,7 +105,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
 
         def process_task(current_line, pipe):
             if __debug__:
-                logger.debug("[PYTHON WORKER] Received message: %s" % str(current_line))
+                logger.debug("[PYTHON WORKER] [%s] Received message: %s" % (str(process_name), str(current_line)))
             current_line = current_line.split()
             pipe.close()
             if current_line[0] == EXECUTE_TASK_TAG:
@@ -119,13 +116,13 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
                     if binded_cpus != "-":
                         os.environ['COMPSS_BINDED_CPUS'] = binded_cpus
                         if __debug__:
-                            logger.debug("[PYTHON WORKER] Assigning affinity %s" % str(binded_cpus))
+                            logger.debug("[PYTHON WORKER] [%s] Assigning affinity %s" % (str(process_name), str(binded_cpus)))
                         binded_cpus = list(map(int, binded_cpus.split(",")))
                         try:
                             thread_affinity.setaffinity(binded_cpus)
                         except Exception:
                             if __debug__:
-                                logger.error("[PYTHON WORKER] Warning: could not assign affinity %s" % str(binded_cpus))
+                                logger.error("[PYTHON WORKER] [%s] Warning: could not assign affinity %s" % (str(process_name), str(binded_cpus)))
                             affinity_ok = False
 
                 bind_cpus(binded_cpus)
@@ -185,8 +182,8 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
                 storage_logger.addHandler(err_file_handler)
 
                 if __debug__:
-                    logger.debug("[PYTHON WORKER] [%s] Received task." % str(process_name))
-                    logger.debug("[PYTHON WORKER] [%s] - TASK CMD: %s" % (str(process_name), str(current_line)))
+                    logger.debug("Received task in process: %s" % str(process_name))
+                    logger.debug(" - TASK CMD: %s" % str(current_line))
 
                 try:
                     # Setup out/err wrappers
@@ -234,9 +231,9 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
                         message = END_TASK_TAG + " " + str(job_id) + " " + str(exit_value) + "\n"
 
                     if __debug__:
-                        logger.debug("[PYTHON WORKER] [%s] - Pipe %s END TASK MESSAGE: %s" % (str(process_name),
-                                                                                              str(output_pipe),
-                                                                                              str(message)))
+                        logger.debug("%s - Pipe %s END TASK MESSAGE: %s" % (str(process_name),
+                                                                            str(output_pipe),
+                                                                            str(message)))
                     # The return message is:
                     #
                     # TaskResult ==> jobId exitValue D List<Object>
@@ -260,7 +257,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
                     with open(output_pipe, 'w') as out_pipe:
                         out_pipe.write(message)
                 except Exception as e:
-                    logger.exception("[PYTHON WORKER] [%s] Exception %s" % (str(process_name), str(e)))
+                    logger.exception("%s - Exception %s" % (str(process_name), str(e)))
                     queue.put("EXCEPTION")
 
                 if binded_cpus != "-":
@@ -299,11 +296,11 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
             finishStorageAtWorkerPostFork()
         except ImportError:
             if __debug__:
-                logger.info("[PYTHON WORKER] Could not find finishWorkerPostFork storage call. Ignoring it.")
+                logger.info("[PYTHON WORKER] [%s] Could not find finishWorkerPostFork storage call. Ignoring it." % (str(process_name)))
 
     sys.stdout.flush()
     sys.stderr.flush()
-    print("[PYTHON WORKER] Exiting process ", process_name)
+    print("[PYTHON WORKER] [%s] Exiting process " % str(process_name))
 
 
 def build_return_params_message(types, values):

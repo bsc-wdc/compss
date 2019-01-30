@@ -165,8 +165,8 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
                 #       !---> type, stream, prefix , value
 
                 if __debug__:
-                    logger.debug("[PYTHON WORKER %s] Received task." % str(process_name))
-                    logger.debug("[PYTHON WORKER %s] - TASK CMD: %s" % (str(process_name), str(current_line)))
+                    logger.debug("[PYTHON WORKER] [%s] Received task." % str(process_name))
+                    logger.debug("[PYTHON WORKER] [%s] - TASK CMD: %s" % (str(process_name), str(current_line)))
 
                 # Swap logger from stream handler to file handler - All task output will be redirected to job.out/err
                 for log_handler in logger_handlers:
@@ -185,8 +185,8 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
                 storage_logger.addHandler(err_file_handler)
 
                 if __debug__:
-                    logger.debug("[PYTHON WORKER %s] Received task." % str(process_name))
-                    logger.debug("[PYTHON WORKER %s] - TASK CMD: %s" % (str(process_name), str(current_line)))
+                    logger.debug("[PYTHON WORKER] [%s] Received task." % str(process_name))
+                    logger.debug("[PYTHON WORKER] [%s] - TASK CMD: %s" % (str(process_name), str(current_line)))
 
                 try:
                     # Setup out/err wrappers
@@ -234,9 +234,9 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
                         message = END_TASK_TAG + " " + str(job_id) + " " + str(exit_value) + "\n"
 
                     if __debug__:
-                        logger.debug("[PYTHON WORKER %s] - Pipe %s END TASK MESSAGE: %s" % (str(process_name),
-                                                                                            str(output_pipe),
-                                                                                            str(message)))
+                        logger.debug("[PYTHON WORKER] [%s] - Pipe %s END TASK MESSAGE: %s" % (str(process_name),
+                                                                                              str(output_pipe),
+                                                                                              str(message)))
                     # The return message is:
                     #
                     # TaskResult ==> jobId exitValue D List<Object>
@@ -260,7 +260,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
                     with open(output_pipe, 'w') as out_pipe:
                         out_pipe.write(message)
                 except Exception as e:
-                    logger.exception("[PYTHON WORKER %s] Exception %s" % (str(process_name), str(e)))
+                    logger.exception("[PYTHON WORKER] [%s] Exception %s" % (str(process_name), str(e)))
                     queue.put("EXCEPTION")
 
                 if binded_cpus != "-":
@@ -284,7 +284,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
             elif current_line[0] == QUIT_TAG:
                 # Received quit message -> Suicide
                 if __debug__:
-                    logger.debug("[PYTHON WORKER %s] Received quit." % str(process_name))
+                    logger.debug("[PYTHON WORKER] [%s] Received quit." % str(process_name))
                 return False
             return True
 

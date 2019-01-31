@@ -81,7 +81,7 @@
      cp -rf "${COMPSs_log_folder}"/environmentVariables.py_0"${retryNum}"/* "${target_log_folder}"
 
      # Check result
-     "${base_app_dir}"/result "${output_log}" "${target_log_folder}" "${comm}"
+     "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}" "${comm}"
      exitValue=$?
   fi
 

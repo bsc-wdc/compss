@@ -32,22 +32,24 @@ from logging import config
 CONFIG_FUNC = config.dictConfig
 
 
-def init_logging(log_config_file, storage_path):
+def init_logging(log_config_file, log_path):
     """
     Logging initialization.
 
     :param log_config_file: Log file name.
-    :param storage_path: Json log files path.
+    :param log_path: Json log files path.
     :return: None
     """
 
     if os.path.exists(log_config_file):
         f = open(log_config_file, 'rt')
         conf = json.loads(f.read())
-        errors_file = conf["handlers"]["error_file_handler"].get("filename")
-        debug_file = conf["handlers"]["debug_file_handler"].get("filename")
-        conf["handlers"]["error_file_handler"]["filename"] = storage_path + errors_file
-        conf["handlers"]["debug_file_handler"]["filename"] = storage_path + debug_file
+        if "error_file_handler" in conf["handlers"]:
+            errors_file = conf["handlers"]["error_file_handler"].get("filename")
+            conf["handlers"]["error_file_handler"]["filename"] = log_path + errors_file
+        if "error_file_handler" in conf["handlers"]:
+            debug_file = conf["handlers"]["debug_file_handler"].get("filename")
+            conf["handlers"]["debug_file_handler"]["filename"] = log_path + debug_file
         CONFIG_FUNC(conf)
     else:
         logging.basicConfig(level=logging.INFO)

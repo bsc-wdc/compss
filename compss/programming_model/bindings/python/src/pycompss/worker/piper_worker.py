@@ -27,6 +27,7 @@ import logging
 import os
 import signal
 import sys
+import copy
 from multiprocessing import Process
 from multiprocessing import Queue
 import thread_affinity
@@ -43,9 +44,6 @@ WORKER_RUNNING = 102
 TRACING = False
 PROCESSES = []
 
-# if sys.version_info >= (2, 7):
-#     import importlib
-
 
 #####################
 #  Tag variables
@@ -61,7 +59,7 @@ SERIALIZE_TAG = "SERIALIZE"
 ######################
 #  Processes body
 ######################
-def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
+def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, storage_loggers):
     """
     Thread main body - Overrides Threading run method.
     Iterates over the input pipe in order to receive tasks (with their
@@ -75,13 +73,18 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
     :param input_pipe: Input pipe for the thread. To receive messages from the runtime.
     :param output_pipe: Output pipe for the thread. To send messages to the runtime.
     :param storage_conf: Storage configuration file
+    :param logger: Main logger
+    :param storage_loggers: List of supported storage loggers (empty if not running with storage).
     :return: None
     """
 
-    logger = logging.getLogger('pycompss.worker.worker')
-    handler = logger.handlers[0]
-    level = logger.getEffectiveLevel()
-    formatter = logging.Formatter(handler.formatter._fmt)
+    # Get a copy of the necessary information from the logger to re-establish after each task
+    logger_handlers = copy.copy(logger.handlers)
+    logger_level = logger.getEffectiveLevel()
+    logger_formatter = logging.Formatter(logger_handlers[0].formatter._fmt)
+    storage_loggers_handlers = []
+    for storage_logger in storage_loggers:
+        storage_loggers_handlers.append(copy.copy(storage_logger.handlers))
 
     if storage_conf != 'null':
         try:
@@ -89,14 +92,14 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
             initStorageAtWorkerPostFork()
         except ImportError:
             if __debug__:
-                logger.info("[PYTHON WORKER] Could not find initWorkerPostFork storage call. Ignoring it.")
+                logger.info("[PYTHON WORKER] [%s] Could not find initWorkerPostFork storage call. Ignoring it." % str(process_name))
 
     alive = True
     stdout = sys.stdout
     stderr = sys.stderr
 
     if __debug__:
-        logger.debug("[PYTHON WORKER] Starting process " + str(process_name))
+        logger.debug("[PYTHON WORKER] [%s] Starting process" % str(process_name))
 
     while alive:
         in_pipe = open(input_pipe, 'r')  # , 0) # 0 just for python 2
@@ -105,7 +108,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
 
         def process_task(current_line, pipe):
             if __debug__:
-                logger.debug("[PYTHON WORKER] Received message: %s" % str(current_line))
+                logger.debug("[PYTHON WORKER] [%s] Received message: %s" % (str(process_name), str(current_line)))
             current_line = current_line.split()
             pipe.close()
             if current_line[0] == EXECUTE_TASK_TAG:
@@ -116,13 +119,13 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                     if binded_cpus != "-":
                         os.environ['COMPSS_BINDED_CPUS'] = binded_cpus
                         if __debug__:
-                            logger.debug("[PYTHON WORKER] Assigning affinity %s" % str(binded_cpus))
+                            logger.debug("[PYTHON WORKER] [%s] Assigning affinity %s" % (str(process_name), str(binded_cpus)))
                         binded_cpus = list(map(int, binded_cpus.split(",")))
                         try:
                             thread_affinity.setaffinity(binded_cpus)
                         except Exception:
                             if __debug__:
-                                logger.error("[PYTHON WORKER] Warning: could not assign affinity %s" % str(binded_cpus))
+                                logger.error("[PYTHON WORKER] [%s] Warning: could not assign affinity %s" % (str(process_name), str(binded_cpus)))
                             affinity_ok = False
 
                 bind_cpus(binded_cpus)
@@ -135,6 +138,8 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                         os.environ['COMPSS_BINDED_GPUS'] = current_binded_gpus
                         os.environ['CUDA_VISIBLE_DEVICES'] = current_binded_gpus
                         os.environ['GPU_DEVICE_ORDINAL'] = current_binded_gpus
+                        if __debug__:
+                            logger.debug("[PYTHON WORKER] [%s] Assigning GPU %s" % (str(process_name), str(current_binded_gpus)))
 
                 bind_gpus(binded_gpus)
 
@@ -162,24 +167,30 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                 #       !---> type, stream, prefix , value
 
                 if __debug__:
-                    logger.debug("[PYTHON WORKER %s] Received task." % str(process_name))
-                    logger.debug("[PYTHON WORKER %s] - TASK CMD: %s" % (str(process_name), str(current_line)))
+                    logger.debug("[PYTHON WORKER] [%s] Received task with id: %s" % (str(process_name), str(job_id)))
+                    logger.debug("[PYTHON WORKER] [%s] - TASK CMD: %s" % (str(process_name), str(current_line)))
 
-                # Swap logger from stream handler to file handler.
-                # #### TODO: FIX LOGGER! it may not be the first if the user defines its own.
-                logger.removeHandler(logger.handlers[0])
+                # Swap logger from stream handler to file handler - All task output will be redirected to job.out/err
+                for log_handler in logger_handlers:
+                    logger.removeHandler(log_handler)
+                for storage_logger in storage_loggers:
+                    for log_handler in storage_logger.handlers:
+                        storage_logger.removeHandler(log_handler)
                 out_file_handler = logging.FileHandler(job_out)
-                out_file_handler.setLevel(level)
-                out_file_handler.setFormatter(formatter)
-                logger.addHandler(out_file_handler)
+                out_file_handler.setLevel(logger_level)
+                out_file_handler.setFormatter(logger_formatter)
                 err_file_handler = logging.FileHandler(job_err)
-                err_file_handler.setLevel(logging.ERROR)
-                err_file_handler.setFormatter(formatter)
+                err_file_handler.setLevel("ERROR")
+                err_file_handler.setFormatter(logger_formatter)
+                logger.addHandler(out_file_handler)
                 logger.addHandler(err_file_handler)
+                for storage_logger in storage_loggers:
+                    storage_logger.addHandler(out_file_handler)
+                    storage_logger.addHandler(err_file_handler)
 
                 if __debug__:
-                    logger.debug("[PYTHON WORKER %s] Received task." % str(process_name))
-                    logger.debug("[PYTHON WORKER %s] - TASK CMD: %s" % (str(process_name), str(current_line)))
+                    logger.debug("Received task in process: %s" % str(process_name))
+                    logger.debug(" - TASK CMD: %s" % str(current_line))
 
                 try:
                     # Setup out/err wrappers
@@ -190,8 +201,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
 
                     # Check thread affinity
                     if not affinity_ok:
-                        err.write(
-                            "WARNING: This task is going to be executed with default thread affinity %s" % thread_affinity.getaffinity())
+                        err.write("WARNING: This task is going to be executed with default thread affinity %s" % thread_affinity.getaffinity())
 
                     # Setup process environment
                     cn = int(current_line[11])
@@ -201,11 +211,16 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                     os.environ["COMPSS_HOSTNAMES"] = cn_names
                     os.environ["COMPSS_NUM_THREADS"] = cu
                     os.environ["OMP_NUM_THREADS"] = cu
+                    if __debug__:
+                        logger.debug("Process environment:")
+                        logger.debug("\t - Number of nodes: %s" % (str(cn)))
+                        logger.debug("\t - Hostnames: %s" % str(cn_names))
+                        logger.debug("\t - Number of threads: %s" % (str(cu)))
 
                     # Execute task
                     from pycompss.worker.worker_commons import execute_task
                     exit_value, new_types, new_values = execute_task(process_name, storage_conf, current_line[9:],
-                                                                     TRACING)
+                                                                     TRACING, logger)
 
                     # Restore out/err wrappers
                     sys.stdout = stdout
@@ -220,16 +235,16 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                         # endTask jobId exitValue message
                         params = build_return_params_message(new_types, new_values)
                         message = END_TASK_TAG + " " + str(job_id) \
-                                  + " " + str(exit_value) \
-                                  + " " + str(params) + "\n"
+                                               + " " + str(exit_value) \
+                                               + " " + str(params) + "\n"
                     else:
                         # An exception has been raised in task
                         message = END_TASK_TAG + " " + str(job_id) + " " + str(exit_value) + "\n"
 
                     if __debug__:
-                        logger.debug("[PYTHON WORKER %s] - Pipe %s END TASK MESSAGE: %s" % (str(process_name),
-                                                                                            str(output_pipe),
-                                                                                            str(message)))
+                        logger.debug("%s - Pipe %s END TASK MESSAGE: %s" % (str(process_name),
+                                                                            str(output_pipe),
+                                                                            str(message)))
                     # The return message is:
                     #
                     # TaskResult ==> jobId exitValue D List<Object>
@@ -253,9 +268,12 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                     with open(output_pipe, 'w') as out_pipe:
                         out_pipe.write(message)
                 except Exception as e:
-                    logger.exception("[PYTHON WORKER %s] Exception %s" % (str(process_name), str(e)))
+                    logger.exception("%s - Exception %s" % (str(process_name), str(e)))
                     queue.put("EXCEPTION")
 
+                # Clean environment variables
+                if __debug__:
+                    logger.debug("Cleaning environment.")
                 if binded_cpus != "-":
                     del os.environ['COMPSS_BINDED_CPUS']
                 if binded_gpus != "-":
@@ -263,15 +281,28 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                     del os.environ['CUDA_VISIBLE_DEVICES']
                     del os.environ['GPU_DEVICE_ORDINAL']
                 del os.environ['COMPSS_HOSTNAMES']
-                # Restore logger
+
+                # Restore loggers
+                if __debug__:
+                    logger.debug("Restoring loggers.")
                 logger.removeHandler(out_file_handler)
                 logger.removeHandler(err_file_handler)
-                logger.addHandler(handler)
+                for handler in logger_handlers:
+                    logger.addHandler(handler)
+                i = 0
+                for storage_logger in storage_loggers:
+                    storage_logger.removeHandler(out_file_handler)
+                    storage_logger.removeHandler(err_file_handler)
+                    for handler in storage_loggers_handlers[i]:
+                        storage_logger.addHandler(handler)
+                    i += 1
+                if __debug__:
+                    logger.debug("[PYTHON WORKER] [%s] Finished task with id: %s" % (str(process_name), str(job_id)))
 
             elif current_line[0] == QUIT_TAG:
                 # Received quit message -> Suicide
                 if __debug__:
-                    logger.debug("[PYTHON WORKER %s] Received quit." % str(process_name))
+                    logger.debug("[PYTHON WORKER] [%s] Received quit." % str(process_name))
                 return False
             return True
 
@@ -286,11 +317,12 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
             finishStorageAtWorkerPostFork()
         except ImportError:
             if __debug__:
-                logger.info("[PYTHON WORKER] Could not find finishWorkerPostFork storage call. Ignoring it.")
+                logger.info("[PYTHON WORKER] [%s] Could not find finishWorkerPostFork storage call. Ignoring it." % (str(process_name)))
 
     sys.stdout.flush()
     sys.stderr.flush()
-    print("[PYTHON WORKER] Exiting process ", process_name)
+    if __debug__:
+        logger.debug("[PYTHON WORKER] [%s] Exiting process " % str(process_name))
 
 
 def build_return_params_message(types, values):
@@ -376,8 +408,16 @@ def compss_persistent_worker():
         # Default
         init_logging_worker(worker_path + '/../../log/logging_off.json')
 
+    # Define logger facilities
+    logger = logging.getLogger('pycompss.worker.piper_worker')
+    storage_loggers = []
+    if persistent_storage:
+        storage_loggers.append(logging.getLogger('dataclay'))
+        storage_loggers.append(logging.getLogger('hecuba'))
+        storage_loggers.append(logging.getLogger('redis'))
+        storage_loggers.append(logging.getLogger('storage'))
+
     if __debug__:
-        logger = logging.getLogger('pycompss.worker.worker')
         logger.debug("[PYTHON WORKER] piper_worker.py wake up")
         logger.debug("[PYTHON WORKER] -----------------------------")
         logger.debug("[PYTHON WORKER] Persistent worker parameters:")
@@ -407,7 +447,9 @@ def compss_persistent_worker():
                                                           process_name,
                                                           in_pipes[i],
                                                           out_pipes[i],
-                                                          storage_conf)))
+                                                          storage_conf,
+                                                          logger,
+                                                          storage_loggers)))
             PROCESSES[i].start()
 
         create_threads()

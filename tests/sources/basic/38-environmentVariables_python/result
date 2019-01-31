@@ -1,10 +1,11 @@
 #!/bin/bash
 
   # Obtain parameters
-  output_file=$1 
-  target_log_folder=$2
-  comm=$3
-  
+  output_file=$1
+  error_file=$2
+  target_log_folder=$3
+  comm=$4
+
   # Log files
   runtime_log="${target_log_folder}/runtime.log"
 
@@ -35,7 +36,7 @@
       echo "ERROR: UNIT TEST RAISED AN ERROR." | tee -a ${output_file}
       exit 1
   fi
-  
+
   #----------------------------------------------------------------------------------
   # Check Task description
   # WARNING: Checks are performed only in NIO because in GAT we don't know the job description
@@ -52,16 +53,16 @@
     queuesExpected="HOST_QUEUES SEQUENTIAL, DEBUG, BSC, "
     pricesExpected="PRICE TIME_UNIT=-1 PRICE_PER_TIME=-1.0"
     wallclockExpected="WALLCLOCK=10"
-    
+
     processorGot=$(cat ${runtime_log} | grep "Finished sending new Task" | tr "[" "\n" | tail -n 10 | head -n 1 | tr "]" "\n" | head -n 1)
     generalGot=$(cat ${runtime_log} | grep "Finished sending new Task" | tr "[" "\n" | tail -n 9 | head -n 1 | tr "]" "\n" | head -n 1)
     memoryGot=$(cat ${runtime_log} | grep "Finished sending new Task" | tr "[" "\n" | tail -n 8 | head -n 1 | tr "]" "\n" | head -n 1)
     storageGot=$(cat ${runtime_log} | grep "Finished sending new Task" | tr "[" "\n" | tail -n 7 | head -n 1 | tr "]" "\n" | head -n 1)
     osGot=$(cat ${runtime_log} | grep "Finished sending new Task" | tr "[" "\n" | tail -n 6 | head -n 1 | tr "]" "\n" | head -n 1)
     softwareGot=$(cat ${runtime_log} | grep "Finished sending new Task" | tr "[" "\n" | tail -n 5 | head -n 1 | tr "]" "\n" | head -n 1)
-    queuesGot=$(cat ${runtime_log} | grep "Finished sending new Task" | tr "[" "\n" | tail -n 4 | head -n 1 | tr "]" "\n" | head -n 1) 
+    queuesGot=$(cat ${runtime_log} | grep "Finished sending new Task" | tr "[" "\n" | tail -n 4 | head -n 1 | tr "]" "\n" | head -n 1)
     pricesGot=$(cat ${runtime_log} | grep "Finished sending new Task" | tr "[" "\n" | tail -n 3 | head -n 1 | tr "]" "\n" | head -n 1)
-    wallclockGot=$(cat ${runtime_log} | grep "Finished sending new Task" | tr "[" "\n" | tail -n 2 | head -n 1 | tr "]" "\n" | head -n 1) 
+    wallclockGot=$(cat ${runtime_log} | grep "Finished sending new Task" | tr "[" "\n" | tail -n 2 | head -n 1 | tr "]" "\n" | head -n 1)
 
     if [ "${processorGot}" != "${processorExpected}" ]; then
       echo "ERROR: Processor constraints do not match"
@@ -69,56 +70,56 @@
       echo "EXPECTED: ${processorExpected}"
       exitValue=1
     fi
-    
+
     if [ "${generalGot}" != "${generalExpected}" ]; then
       echo "ERROR: General constraints do not match"
       echo "GOT: ${generalGot}"
       echo "EXPECTED: ${generalExpected}"
       exitValue=1
     fi
-    
+
     if [ "${memoryGot}" != "${memoryExpected}" ]; then
       echo "ERROR: Memory constraints do not match"
       echo "GOT: ${memoryGot}"
       echo "EXPECTED: ${memoryExpected}"
       exitValue=1
     fi
-    
+
     if [ "${storageGot}" != "${storageExpected}" ]; then
       echo "ERROR: Storage constraints do not match"
       echo "GOT: ${storageGot}"
       echo "EXPECTED: ${storageExpected}"
       exitValue=1
     fi
-    
+
     if [ "${osGot}" != "${osExpected}" ]; then
       echo "ERROR: OS constraints do not match"
       echo "GOT: ${osGot}"
       echo "EXPECTED: ${osExpected}"
       exitValue=1
     fi
-    
+
     if [ "${softwareGot}" != "${softwareExpected}" ]; then
       echo "ERROR: Software constraints do not match"
       echo "GOT: ${softwareGot}"
       echo "EXPECTED: ${softwareExpected}"
       exitValue=1
     fi
-    
+
     if [ "${queuesGot}" != "${queuesExpected}" ]; then
       echo "ERROR: Queue constraints do not match"
       echo "GOT: ${queuesGot}"
       echo "EXPECTED: ${queuesExpected}"
       exitValue=1
     fi
-    
+
     if [ "${pricesGot}" != "${pricesExpected}" ]; then
       echo "ERROR: Price constraints do not match"
       echo "GOT: ${pricesGot}"
       echo "EXPECTED: ${pricesExpected}"
       exitValue=1
     fi
-    
+
     if [ "${wallclockGot}" != "${wallclockExpected}" ]; then
       echo "ERROR: Wallclock constraints do not match"
       echo "GOT: ${wallclockGot}"
@@ -126,7 +127,7 @@
       exitValue=1
     fi
   fi
-  
+
   #----------------------------------------------------------------------------------
-  # Report result status  
+  # Report result status
   exit ${exitValue}

@@ -138,6 +138,8 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
                         os.environ['COMPSS_BINDED_GPUS'] = current_binded_gpus
                         os.environ['CUDA_VISIBLE_DEVICES'] = current_binded_gpus
                         os.environ['GPU_DEVICE_ORDINAL'] = current_binded_gpus
+                        if __debug__:
+                            logger.debug("[PYTHON WORKER] [%s] Assigning GPU %s" % (str(process_name), str(current_binded_gpus)))
 
                 bind_gpus(binded_gpus)
 
@@ -165,7 +167,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
                 #       !---> type, stream, prefix , value
 
                 if __debug__:
-                    logger.debug("[PYTHON WORKER] [%s] Received task." % str(process_name))
+                    logger.debug("[PYTHON WORKER] [%s] Received task with id: %s" % (str(process_name), str(job_id)))
                     logger.debug("[PYTHON WORKER] [%s] - TASK CMD: %s" % (str(process_name), str(current_line)))
 
                 # Swap logger from stream handler to file handler - All task output will be redirected to job.out/err
@@ -199,8 +201,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
 
                     # Check thread affinity
                     if not affinity_ok:
-                        err.write(
-                            "WARNING: This task is going to be executed with default thread affinity %s" % thread_affinity.getaffinity())
+                        err.write("WARNING: This task is going to be executed with default thread affinity %s" % thread_affinity.getaffinity())
 
                     # Setup process environment
                     cn = int(current_line[11])
@@ -210,6 +211,11 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
                     os.environ["COMPSS_HOSTNAMES"] = cn_names
                     os.environ["COMPSS_NUM_THREADS"] = cu
                     os.environ["OMP_NUM_THREADS"] = cu
+                    if __debug__:
+                        logger.debug("Process environment:")
+                        logger.debug("\t - Number of nodes: %s" % (str(cn)))
+                        logger.debug("\t - Hostnames: %s" % str(cn_names))
+                        logger.debug("\t - Number of threads: %s" % (str(cu)))
 
                     # Execute task
                     from pycompss.worker.worker_commons import execute_task
@@ -229,8 +235,8 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
                         # endTask jobId exitValue message
                         params = build_return_params_message(new_types, new_values)
                         message = END_TASK_TAG + " " + str(job_id) \
-                                  + " " + str(exit_value) \
-                                  + " " + str(params) + "\n"
+                                               + " " + str(exit_value) \
+                                               + " " + str(params) + "\n"
                     else:
                         # An exception has been raised in task
                         message = END_TASK_TAG + " " + str(job_id) + " " + str(exit_value) + "\n"
@@ -265,6 +271,9 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
                     logger.exception("%s - Exception %s" % (str(process_name), str(e)))
                     queue.put("EXCEPTION")
 
+                # Clean environment variables
+                if __debug__:
+                    logger.debug("Cleaning environment.")
                 if binded_cpus != "-":
                     del os.environ['COMPSS_BINDED_CPUS']
                 if binded_gpus != "-":
@@ -273,7 +282,9 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
                     del os.environ['GPU_DEVICE_ORDINAL']
                 del os.environ['COMPSS_HOSTNAMES']
 
-                # Restore logger
+                # Restore loggers
+                if __debug__:
+                    logger.debug("Restoring loggers.")
                 logger.removeHandler(out_file_handler)
                 logger.removeHandler(err_file_handler)
                 for handler in logger_handlers:
@@ -285,6 +296,8 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
                     for handler in storage_loggers_handlers[i]:
                         storage_logger.addHandler(handler)
                     i += 1
+                if __debug__:
+                    logger.debug("[PYTHON WORKER] [%s] Finished task with id: %s" % (str(process_name), str(job_id)))
 
             elif current_line[0] == QUIT_TAG:
                 # Received quit message -> Suicide
@@ -308,7 +321,8 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
 
     sys.stdout.flush()
     sys.stderr.flush()
-    print("[PYTHON WORKER] [%s] Exiting process " % str(process_name))
+    if __debug__:
+        logger.debug("[PYTHON WORKER] [%s] Exiting process " % str(process_name))
 
 
 def build_return_params_message(types, values):

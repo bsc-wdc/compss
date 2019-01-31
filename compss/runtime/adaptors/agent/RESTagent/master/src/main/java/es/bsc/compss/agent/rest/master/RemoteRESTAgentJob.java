@@ -171,7 +171,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                     sar.addParameter(btParB, value);
             }
         }
-        System.out.println("SUBMISSION[" + this.getJobId() + "]         Stage in completed.");
+        System.out.println("SUBMISSION[" + this.getJobId() + "] Stage in completed.");
         sar.setOrchestrator(REST_AGENT_URL, Orchestrator.HttpMethod.PUT, "COMPSs/endApplication/");
 
         Response response = wt
@@ -182,12 +182,12 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
             System.out.println(response.readEntity(String.class));
             this.getListener().jobFailed(this, JobListener.JobEndStatus.SUBMISSION_FAILED);
         } else {
-            System.out.println("SUBMISSION[" + this.getJobId() + "]         Job submitted.");
+            System.out.println("SUBMISSION[" + this.getJobId() + "] Job submitted.");
             String jobId = response.readEntity(String.class);
             RemoteJobsRegistry.registerJobListener(jobId, new RemoteJobListener() {
                 @Override
                 public void finishedExecution(JobListener.JobEndStatus endStatus, String[] paramResults) {
-                    System.out.println("SUBMISSION[" + getJobId() + "]         Job completed.");
+                    System.out.println("SUBMISSION[" + getJobId() + "] Job completed.");
                     stageout(paramResults);
                     if (endStatus == JobEndStatus.OK) {
                         getListener().jobCompleted(RemoteRESTAgentJob.this);

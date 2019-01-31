@@ -19,7 +19,6 @@ package es.bsc.compss.agent.rest.master;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
-import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -46,6 +45,8 @@ import javax.ws.rs.client.WebTarget;
 import org.glassfish.jersey.client.ClientConfig;
 import storage.StorageException;
 import storage.StorageItf;
+import storage.StubItf;
+
 
 
 /**
@@ -165,7 +166,14 @@ public class RemoteRESTAgent extends COMPSsWorker {
         // If it has a PSCO location, it is a PSCO -> Order new StorageCopy
         if (ld.getPscoId() != null) {
             orderStorageCopy(new StorageCopy(ld, source, target, tgtData, reason, listener));
-        } else {
+        } else if (ld.isInMemory() && ld.getValue() instanceof StubItf) {
+            StubItf stub = (StubItf) ld.getValue();
+            stub.makePersistent(ld.getName());
+            String pscoId = stub.getID();
+            System.out.println("Object " + ld.getName() + " registered as " + pscoId);
+            ld.setPscoId(pscoId);
+            orderStorageCopy(new StorageCopy(ld, source, target, tgtData, reason, listener));
+         } else {
             listener.notifyFailure(new DeferredCopy(ld, source, target, tgtData, reason, listener), new Exception("Regular objects are not supported yet"));
         }
     }

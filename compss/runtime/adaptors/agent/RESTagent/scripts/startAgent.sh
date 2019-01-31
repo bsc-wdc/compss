@@ -5,7 +5,8 @@ DEFAULT_AGENT_PORT=46100
 DEFAULT_DEBUG="off"
 
 #DataClay Options
-DC_TOOL="java -Dorg.apache.logging.log4j.simplelog.StatusLogger.level=OFF -cp /app/dataclay.jar"
+DC_CLASSPATH="$(for i in /opt/COMPSs/storage/lib/*.jar ; do echo -n ${i}: ; done)/opt/COMPSs/storage/dataclay.jar"
+DC_TOOL="java -Dorg.apache.logging.log4j.simplelog.StatusLogger.level=OFF -cp ${DC_CLASSPATH}"
 
 DEFAULT_DC_LOGICMODULE_HOST="127.0.0.1"
 DEFAULT_DC_LOGICMODULE_PORT="11034"
@@ -235,7 +236,7 @@ generate_dataclay_stubs() {
 
   mkdir classes
   cd classes
-  jar xf /app/app.jar
+  jar xf "${APPLICATION_PATH}"
   ls | grep -v datamodel | xargs rm -rf
   cd ..
 
@@ -287,7 +288,7 @@ if [ "$DC_ENABLED" = true ] ; then
   if [ -f "${APPLICATION_PATH}" ]; then
     echo "Preparing DataClay environment"
     generate_dataclay_stubs
-    CLASSPATH="${CURRENT_DIR}/stubs:${CLASSPATH}"
+    CLASSPATH="${CURRENT_DIR}/stubs:${DC_CLASSPATH}:${CLASSPATH}"
   fi
 fi
 
@@ -313,6 +314,6 @@ java \
 -Dlog4j.configurationFile="${COMPSS_HOME}/Runtime/configuration/log/COMPSsMaster-log4j.${DEBUG}" \
 -Dcompss.scheduler=es.bsc.compss.scheduler.loadBalancingScheduler.LoadBalancingScheduler \
 -Dcompss.comm=es.bsc.compss.agent.rest.master.Adaptor \
-"${DATACLAY_CONFIG_OPT}"\
+${DATACLAY_CONFIG_OPT}\
 es.bsc.compss.agent.rest.RESTAgent ${AGENT_PORT}
 

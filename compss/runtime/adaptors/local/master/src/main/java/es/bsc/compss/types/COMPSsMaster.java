@@ -65,6 +65,7 @@ import java.util.Collection;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
+import storage.StorageItf;
 
 
 /**
@@ -727,8 +728,12 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                         + source.getURIs().get(0));
             }
             if (target != null) {
-                LOGGER.debug("Target Data location" + target.getType().toString() + " " + target.getProtocol().toString() + " "
-                        + target.getURIs().get(0));
+                if (target.getProtocol() != Protocol.PERSISTENT_URI) {
+                    LOGGER.debug("Target Data location" + target.getType().toString() + " " + target.getProtocol().toString() + " "
+                            + target.getURIs().get(0));
+                } else {
+                    LOGGER.debug("Target Data location" + target.getType().toString() + " " + target.getProtocol().toString());
+                }
             }
             if (tgtData != null) {
                 LOGGER.debug("tgtData: " + tgtData.toString());
@@ -975,7 +980,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             case FILE_T:
                 // No need to load anything. Value already on a file
                 break;
-            case OBJECT_T:
+            case OBJECT_T: {
                 DependencyParameter dpar = (DependencyParameter) localParam.getParam();
                 String dataId = (String) localParam.getValue();
                 LogicalData ld = Comm.getData(dataId);
@@ -985,13 +990,19 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                     Object o = Serializer.deserialize(dpar.getDataTarget());
                     invParam.setValue(o);
                 }
-                break;
-            case PSCO_T:
+            }
+            break;
+            case PSCO_T: {
+                String pscoId = (String)localParam.getValue();
+                Object o = StorageItf.getByID(pscoId);
+                invParam.setValue(o);
+            }
+            break;
             case EXTERNAL_PSCO_T:
             case BINDING_OBJECT_T:
                 throw new UnsupportedOperationException("Not supported yet.");
             default:
-                // Already contains the proper value on the param
+            // Already contains the proper value on the param
         }
     }
 

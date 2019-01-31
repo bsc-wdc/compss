@@ -39,6 +39,7 @@ public class LocalParameter implements InvocationParam {
     private final boolean writeFinalValue;
 
     private final String dataMgmtId;
+    private final String sourceDataMgmtId;
     private String originalName;
 
     private Object value;
@@ -70,24 +71,24 @@ public class LocalParameter implements InvocationParam {
 
                 // Check if the parameter has a valid PSCO and change its type
                 // OUT objects are restricted by the API
-                String renaming = null;
                 DataAccessId faId = dPar.getDataAccessId();
                 if (faId instanceof RWAccessId) {
                     // Read write mode
                     RWAccessId rwaId = (RWAccessId) faId;
-                    renaming = rwaId.getReadDataInstance().getRenaming();
-                    dataMgmtId = rwaId.getWrittenDataInstance().getRenaming();
+                    this.sourceDataMgmtId = rwaId.getReadDataInstance().getRenaming();
+                    this.dataMgmtId = rwaId.getWrittenDataInstance().getRenaming();
                 } else if (faId instanceof RAccessId) {
                     // Read only mode
                     RAccessId raId = (RAccessId) faId;
-                    renaming = raId.getReadDataInstance().getRenaming();
-                    dataMgmtId = renaming;
+                    this.sourceDataMgmtId = raId.getReadDataInstance().getRenaming();
+                    dataMgmtId = this.sourceDataMgmtId;
                 } else {
                     WAccessId waId = (WAccessId) faId;
+                    this.sourceDataMgmtId = null;
                     dataMgmtId = waId.getWrittenDataInstance().getRenaming();
                 }
-                if (renaming != null) {
-                    String pscoId = Comm.getData(renaming).getPscoId();
+                if (this.sourceDataMgmtId != null) {
+                    String pscoId = Comm.getData(this.sourceDataMgmtId).getPscoId();
                     if (pscoId != null) {
                         if (type.equals(DataType.OBJECT_T)) {
                             // Change Object type if it is a PSCO
@@ -110,6 +111,7 @@ public class LocalParameter implements InvocationParam {
                 this.value = btParB.getValue();
                 this.preserveSourceData = false;
                 this.writeFinalValue = false;
+                this.sourceDataMgmtId = null;
                 this.dataMgmtId = null;
         }
     }
@@ -186,7 +188,7 @@ public class LocalParameter implements InvocationParam {
 
     @Override
     public String getSourceDataId() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return this.sourceDataMgmtId;
     }
 
     @Override

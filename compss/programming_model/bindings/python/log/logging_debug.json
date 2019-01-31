@@ -53,12 +53,13 @@
     }
   },
   "loggers": {
-    "pycompss": { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
+    "pycompss":                     { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
+    "pycompss.runtime.launch":      { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
 
     "pycompss.worker.piper_worker": { "level": "DEBUG", "handlers": ["runtime_file_handler"], "propagate": "no" },
     "pycompss.worker.worker":       { "level": "DEBUG", "handlers": ["runtime_file_handler"], "propagate": "no" },
 
-    "storage": { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no"},
+    "storage":                      { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no"},
 
     "pycompss.api.parallel":                                              { "level": "DEBUG", "handlers": ["console"], "propagate": "no" },
     "pycompss.util.translators.arg_utils.arg_utils":                      { "level": "DEBUG", "handlers": ["console"], "propagate": "no" },

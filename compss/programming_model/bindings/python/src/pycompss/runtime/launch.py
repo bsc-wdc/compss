@@ -143,7 +143,7 @@ def compss_main():
 
     init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
     if __debug__:
-        logger = logging.getLogger(__name__)
+        logger = logging.getLogger("pycompss.runtime.launch")
 
     # Get JVM options
     # jvm_opts = os.environ['JVM_OPTIONS_FILE']
@@ -414,7 +414,7 @@ def launch_pycompss_application(app, func,
         # Default
         json_path = '/Bindings/python/' + str(major_version) + '/log/logging.json'
         init_logging(compss_home + json_path, log_path)
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger("pycompss.runtime.launch")
 
     logger.debug('--- START ---')
     logger.debug('PyCOMPSs Log path: %s' % log_path)

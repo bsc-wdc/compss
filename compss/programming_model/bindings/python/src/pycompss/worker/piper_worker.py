@@ -59,7 +59,7 @@ SERIALIZE_TAG = "SERIALIZE"
 ######################
 #  Processes body
 ######################
-def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, storage_logger):
+def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, storage_loggers):
     """
     Thread main body - Overrides Threading run method.
     Iterates over the input pipe in order to receive tasks (with their
@@ -73,7 +73,8 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
     :param input_pipe: Input pipe for the thread. To receive messages from the runtime.
     :param output_pipe: Output pipe for the thread. To send messages to the runtime.
     :param storage_conf: Storage configuration file
-    :param logger: Logger
+    :param logger: Main logger
+    :param storage_loggers: List of supported storage loggers (empty if not running with storage).
     :return: None
     """
 
@@ -81,7 +82,9 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
     logger_handlers = copy.copy(logger.handlers)
     logger_level = logger.getEffectiveLevel()
     logger_formatter = logging.Formatter(logger_handlers[0].formatter._fmt)
-    storage_logger_handlers = copy.copy(storage_logger.handlers)
+    storage_loggers_handlers = []
+    for storage_logger in storage_loggers:
+        storage_loggers_handlers.append(copy.copy(storage_logger.handlers))
 
     if storage_conf != 'null':
         try:
@@ -168,18 +171,20 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
                 # Swap logger from stream handler to file handler - All task output will be redirected to job.out/err
                 for log_handler in logger_handlers:
                     logger.removeHandler(log_handler)
-                for log_handler in storage_logger_handlers:
-                    storage_logger.removeHandler(log_handler)
+                for storage_logger in storage_loggers:
+                    for log_handler in storage_logger.handlers:
+                        storage_logger.removeHandler(log_handler)
                 out_file_handler = logging.FileHandler(job_out)
                 out_file_handler.setLevel(logger_level)
                 out_file_handler.setFormatter(logger_formatter)
-                logger.addHandler(out_file_handler)
-                storage_logger.addHandler(out_file_handler)
                 err_file_handler = logging.FileHandler(job_err)
                 err_file_handler.setLevel("ERROR")
                 err_file_handler.setFormatter(logger_formatter)
+                logger.addHandler(out_file_handler)
                 logger.addHandler(err_file_handler)
-                storage_logger.addHandler(err_file_handler)
+                for storage_logger in storage_loggers:
+                    storage_logger.addHandler(out_file_handler)
+                    storage_logger.addHandler(err_file_handler)
 
                 if __debug__:
                     logger.debug("Received task in process: %s" % str(process_name))
@@ -271,12 +276,15 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf, logger, s
                 # Restore logger
                 logger.removeHandler(out_file_handler)
                 logger.removeHandler(err_file_handler)
-                storage_logger.removeHandler(out_file_handler)
-                storage_logger.removeHandler(err_file_handler)
                 for handler in logger_handlers:
                     logger.addHandler(handler)
-                for handler in storage_logger_handlers:
-                    storage_logger.addHandler(handler)
+                i = 0
+                for storage_logger in storage_loggers:
+                    storage_logger.removeHandler(out_file_handler)
+                    storage_logger.removeHandler(err_file_handler)
+                    for handler in storage_loggers_handlers[i]:
+                        storage_logger.addHandler(handler)
+                    i += 1
 
             elif current_line[0] == QUIT_TAG:
                 # Received quit message -> Suicide
@@ -388,7 +396,12 @@ def compss_persistent_worker():
 
     # Define logger facilities
     logger = logging.getLogger('pycompss.worker.piper_worker')
-    storage_logger = logging.getLogger('storage')
+    storage_loggers = []
+    if persistent_storage:
+        storage_loggers.append(logging.getLogger('dataclay'))
+        storage_loggers.append(logging.getLogger('hecuba'))
+        storage_loggers.append(logging.getLogger('redis'))
+        storage_loggers.append(logging.getLogger('storage'))
 
     if __debug__:
         logger.debug("[PYTHON WORKER] piper_worker.py wake up")
@@ -422,7 +435,7 @@ def compss_persistent_worker():
                                                           out_pipes[i],
                                                           storage_conf,
                                                           logger,
-                                                          storage_logger)))
+                                                          storage_loggers)))
             PROCESSES[i].start()
 
         create_threads()

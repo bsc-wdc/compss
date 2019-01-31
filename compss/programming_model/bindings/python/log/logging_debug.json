@@ -59,6 +59,9 @@
     "pycompss.worker.piper_worker": { "level": "DEBUG", "handlers": ["runtime_file_handler"], "propagate": "no" },
     "pycompss.worker.worker":       { "level": "DEBUG", "handlers": ["runtime_file_handler"], "propagate": "no" },
 
+    "dataclay":                     { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no"},
+    "hecuba":                       { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no"},
+    "redis":                        { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no"},
     "storage":                      { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no"},
 
     "pycompss.api.parallel":                                              { "level": "DEBUG", "handlers": ["console"], "propagate": "no" },

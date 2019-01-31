@@ -37,7 +37,7 @@ They are declared only for visibility purposes
 '''
 redis_connection = None
 hosts = None
-logger = logging.getLogger('storage')
+logger = logging.getLogger('redis')
 
 
 class StorageException(Exception):

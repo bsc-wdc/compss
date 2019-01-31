@@ -53,6 +53,9 @@
     "pycompss.worker.piper_worker": { "level": "ERROR", "handlers": ["runtime_file_handler"], "propagate": "no"},
     "pycompss.worker.worker":       { "level": "ERROR", "handlers": ["runtime_file_handler"], "propagate": "no"},
 
+    "dataclay":                     { "level": "ERROR", "handlers": ["console"], "propagate": "no" },
+    "hecuba":                       { "level": "ERROR", "handlers": ["console"], "propagate": "no" },
+    "redis":                        { "level": "ERROR", "handlers": ["console"], "propagate": "no" },
     "storage":                      { "level": "ERROR", "handlers": ["console"], "propagate": "no" },
 
     "pycompss.api.parallel":                                              { "level": "ERROR", "handlers": ["console"], "propagate": "no" },

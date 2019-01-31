@@ -72,26 +72,26 @@ Sample_Applications manual available at the [COMPSs Webpage][1] or at the
 ## Building COMPSs
 
 * COMPSs Dependencies:
-        * openjdk-8-jre
-        * openjdk-8-jdk
-        * graphviz
-        * xdg-utils
-        * libxml2
-        * libxml2-dev
-        * python (>=2.7)
-        * libpython2.7
-        * build-essential
-        * autoconf
-        * automake
-        * autotools-dev
-        * libtool
-        * libboost-serialization-dev
-        * libboost-iostreams-dev
-        * gfortran
+  * openjdk-8-jre
+  * openjdk-8-jdk
+  * graphviz
+  * xdg-utils
+  * libxml2
+  * libxml2-dev
+  * python (>=2.7)
+  * libpython2.7
+  * build-essential
+  * autoconf
+  * automake
+  * autotools-dev
+  * libtool
+  * libboost-serialization-dev
+  * libboost-iostreams-dev
+  * gfortran
 
 * Building dependencies
-	* wget
-	* maven (3.0.x version)
+  * wget
+  * maven (3.0.x version)
 
 * Getting submodule dependencies:
 

@@ -64,12 +64,14 @@ public class ITFParser {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
     private static final boolean debug = LOGGER.isDebugEnabled();
 
+
     /**
      *
      * Loads the annotated class and initializes the data structures that contain the constraints. For each method found
      * in the annotated interface creates its signature and adds the constraints to the structures.
      *
-     * @param annotItfClass package and name of the Annotated Interface class
+     * @param annotItfClass
+     *            package and name of the Annotated Interface class
      * @return
      */
     public static List<CoreElementDefinition> parseITFMethods(Class<?> annotItfClass) {
@@ -136,9 +138,8 @@ public class ITFParser {
         /*
          * Register all implementations
          */
-        final String ERROR_ITF = "[ERROR] Impossible to parse the method " + "'" + methodName + "' check your Itf file.";
-
         ced.setCeSignature(calleeMethodSignature.toString());
+
         /*
          * Returns the assigned methodId
          */
@@ -284,7 +285,7 @@ public class ITFParser {
         }
         calleeMethodSignature.append(")");
 
-        boolean[] hasAnnotation = {hasStreams, hasPrefixes};
+        boolean[] hasAnnotation = { hasStreams, hasPrefixes };
         return hasAnnotation;
     }
 
@@ -292,8 +293,10 @@ public class ITFParser {
      * Infers the type of a parameter. If the parameter is annotated as a FILE or a STRING, the type is taken from the
      * annotation. If the annotation is UNSPECIFIED, the type is taken from the formal type.
      *
-     * @param formalType Formal type of the parameter
-     * @param annotType Annotation type of the parameter
+     * @param formalType
+     *            Formal type of the parameter
+     * @param annotType
+     *            Annotation type of the parameter
      * @return A String representing the type of the parameter
      */
     private static String inferType(Class<?> formalType, Type annotType) {
@@ -329,10 +332,14 @@ public class ITFParser {
     /**
      * Treats and display errors and warning related to the annotation of 1 parameter of a method/service
      *
-     * @param m The method or service to be checked for warnings
-     * @param par The parameter to analyse
-     * @param i The position of the parameter (0 for the first parameter, 1 for the second, etc.)
-     * @param hasNonNative Indicates if the method has non-native annotations or not
+     * @param m
+     *            The method or service to be checked for warnings
+     * @param par
+     *            The parameter to analyse
+     * @param i
+     *            The position of the parameter (0 for the first parameter, 1 for the second, etc.)
+     * @param hasNonNative
+     *            Indicates if the method has non-native annotations or not
      */
     private static void checkParameterAnnotation(java.lang.reflect.Method m, Parameter par, int i, boolean hasNonNative) {
         final String WARNING_LOCATION = "In parameter number " + (i + 1) + " of method '" + m.getName() + "' in interface '"
@@ -420,8 +427,8 @@ public class ITFParser {
      * @param hasPrefixes
      * @param ced
      */
-    private static void checkDefinedImplementations(java.lang.reflect.Method m, StringBuilder calleeMethodSignature,
-            boolean hasStreams, boolean hasPrefixes, CoreElementDefinition ced) {
+    private static void checkDefinedImplementations(java.lang.reflect.Method m, StringBuilder calleeMethodSignature, boolean hasStreams,
+            boolean hasPrefixes, CoreElementDefinition ced) {
 
         /*
          * Global constraints of the method
@@ -465,7 +472,8 @@ public class ITFParser {
             // Register method implementation
             ImplementationDefinition implDef = null;
             try {
-                implDef = ImplementationDefinition.defineImplementation(MethodType.METHOD.toString(), methodSignature, implConstraints, declaringClass, methodName);
+                implDef = ImplementationDefinition.defineImplementation(MethodType.METHOD.toString(), methodSignature, implConstraints,
+                        declaringClass, methodName);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -493,7 +501,8 @@ public class ITFParser {
             // Register service implementation
             ImplementationDefinition implDef = null;
             try {
-                implDef = ImplementationDefinition.defineImplementation(TaskType.SERVICE.toString(), serviceSignature, null, serviceAnnot.namespace(), serviceAnnot.name(), serviceAnnot.operation(), serviceAnnot.port());
+                implDef = ImplementationDefinition.defineImplementation(TaskType.SERVICE.toString(), serviceSignature, null,
+                        serviceAnnot.namespace(), serviceAnnot.name(), serviceAnnot.operation(), serviceAnnot.port());
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -524,7 +533,8 @@ public class ITFParser {
             // Register service implementation
             ImplementationDefinition implDef = null;
             try {
-                implDef = ImplementationDefinition.defineImplementation(MethodType.BINARY.toString(), binarySignature, implConstraints, binary, workingDir);
+                implDef = ImplementationDefinition.defineImplementation(MethodType.BINARY.toString(), binarySignature, implConstraints,
+                        binary, workingDir);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -566,7 +576,8 @@ public class ITFParser {
             // Register service implementation
             ImplementationDefinition implDef = null;
             try {
-                implDef = ImplementationDefinition.defineImplementation(MethodType.MPI.toString(), mpiSignature, implConstraints, binary, workingDir, mpiRunner);
+                implDef = ImplementationDefinition.defineImplementation(MethodType.MPI.toString(), mpiSignature, implConstraints, binary,
+                        workingDir, mpiRunner);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -611,7 +622,8 @@ public class ITFParser {
             // Register service implementation
             ImplementationDefinition implDef = null;
             try {
-                implDef = ImplementationDefinition.defineImplementation(MethodType.DECAF.toString(), decafSignature, implConstraints, dfScript, dfExecutor, dfLib, workingDir, mpiRunner);
+                implDef = ImplementationDefinition.defineImplementation(MethodType.DECAF.toString(), decafSignature, implConstraints,
+                        dfScript, dfExecutor, dfLib, workingDir, mpiRunner);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -651,7 +663,8 @@ public class ITFParser {
             // Register service implementation
             ImplementationDefinition implDef = null;
             try {
-                implDef = ImplementationDefinition.defineImplementation(MethodType.COMPSs.toString(), compssSignature, implConstraints, runcompss, flags, appName, workingDir);
+                implDef = ImplementationDefinition.defineImplementation(MethodType.COMPSs.toString(), compssSignature, implConstraints,
+                        runcompss, flags, appName, workingDir);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -690,7 +703,8 @@ public class ITFParser {
             // Register method implementation
             ImplementationDefinition implDef = null;
             try {
-                implDef = ImplementationDefinition.defineImplementation(MethodType.MULTI_NODE.toString(), methodSignature, implConstraints, declaringClass, methodName);
+                implDef = ImplementationDefinition.defineImplementation(MethodType.MULTI_NODE.toString(), methodSignature, implConstraints,
+                        declaringClass, methodName);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -722,7 +736,8 @@ public class ITFParser {
             // Register service implementation
             ImplementationDefinition implDef = null;
             try {
-                implDef = ImplementationDefinition.defineImplementation(MethodType.OMPSS.toString(), ompssSignature, implConstraints, binary, workingDir);
+                implDef = ImplementationDefinition.defineImplementation(MethodType.OMPSS.toString(), ompssSignature, implConstraints,
+                        binary, workingDir);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -753,7 +768,8 @@ public class ITFParser {
             // Register service implementation
             ImplementationDefinition implDef = null;
             try {
-                implDef = ImplementationDefinition.defineImplementation(MethodType.OPENCL.toString(), openclSignature, implConstraints, kernel, workingDir);
+                implDef = ImplementationDefinition.defineImplementation(MethodType.OPENCL.toString(), openclSignature, implConstraints,
+                        kernel, workingDir);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }

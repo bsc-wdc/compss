@@ -30,7 +30,6 @@ import os
 import sys
 
 from pycompss.runtime.commons import IS_PYTHON3
-from pycompss.runtime.commons import TRACING
 from pycompss.util.logs import init_logging_worker
 from pycompss.worker.worker_commons import execute_task
 
@@ -59,14 +58,14 @@ PROCESS_DESTRUCTION = 107
 # sys.dont_write_bytecode = True
 
 
-def compss_worker(tracing, task_id, storage_conf, args):
+def compss_worker(tracing, task_id, storage_conf, params):
     """
     Worker main method (invocated from __main__).
 
     :param tracing: Tracing boolean
     :param task_id: Task identifier
     :param storage_conf: Storage configuration file
-    :param args: Arguments following the common order
+    :param params: Parameters following the common order of the workers
     :return: Exit code
     """
 
@@ -78,7 +77,7 @@ def compss_worker(tracing, task_id, storage_conf, args):
     import pycompss.util.context as context
     context.set_pycompss_context(context.WORKER)
 
-    exit_code, _, _ = execute_task("Task " + task_id, storage_conf, args, tracing, logger)
+    exit_code, _, _ = execute_task("Task " + task_id, storage_conf, params, tracing, logger)
 
     if __debug__:
         logger.debug("Finishing Worker")
@@ -88,12 +87,12 @@ def compss_worker(tracing, task_id, storage_conf, args):
 
 def main():
     # Emit sync event if tracing is enabled
-    TRACING = sys.argv[1] == 'true'
+    tracing = sys.argv[1] == 'true'
     task_id = int(sys.argv[2])
     log_level = sys.argv[3]
     storage_conf = sys.argv[4]
     method_type = sys.argv[5]
-    args = sys.argv[6:]
+    params = sys.argv[6:]
     # class_name = sys.argv[6]
     # method_name = sys.argv[7]
     # num_slaves = sys.argv[8]
@@ -104,7 +103,7 @@ def main():
     # num_params = int(sys.argv[i+3])
     # params = sys.argv[i+4..]
 
-    print("tracing = " + str(TRACING))
+    print("tracing = " + str(tracing))
     print("task_id = " + str(task_id))
     print("log_level = " + str(log_level))
     print("storage_conf = " + str(storage_conf))
@@ -115,7 +114,7 @@ def main():
         from storage.api import initWorker as initStorageAtWorker
         from storage.api import finishWorker as finishStorageAtWorker
 
-    if TRACING:
+    if tracing:
         import pyextrae.multiprocessing as pyextrae
 
         pyextrae.eventandcounters(SYNC_EVENTS, task_id)
@@ -139,9 +138,9 @@ def main():
         initStorageAtWorker(config_file_path=storage_conf)
 
     # Init worker
-    exit_code = compss_worker(TRACING, str(task_id), storage_conf, args)
+    exit_code = compss_worker(tracing, str(task_id), storage_conf, params)
 
-    if TRACING:
+    if tracing:
         pyextrae.eventandcounters(TASK_EVENTS, 0)
         # pyextrae.eventandcounters(TASK_EVENTS, PROCESS_DESTRUCTION)
         pyextrae.eventandcounters(SYNC_EVENTS, task_id)

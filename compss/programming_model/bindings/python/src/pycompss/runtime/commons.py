@@ -54,6 +54,3 @@ RUNNING_IN_SUPERCOMPUTER = False
 if 'BSC_MACHINE' in os.environ and os.environ['BSC_MACHINE'] == 'mn4':
     # Only supported in MN4 currently
     RUNNING_IN_SUPERCOMPUTER = True
-
-# Determine if tracing
-TRACING = False

@@ -24,3 +24,11 @@ class PSCOWithTasks(StorageObject):
     @task()
     def set_content(self, content):
         self.content = content
+
+    @task(isModifier=True)
+    def persist_isModifier(self):
+        self.make_persistent()
+
+    @task(isModifier=False)
+    def persist_notIsModifier(self):
+        self.make_persistent()

@@ -894,6 +894,23 @@ class task(object):
 
         num_returns = len(ret_params)
 
+        # Save the self object type and value before executing the task
+        # (it could be persisted inside if its a persistent object)
+        has_self = False
+        if not isinstance(args[0], parameter.TaskParameter):
+            # Then the first arg is self
+            has_self = True
+            self_type = parameter.get_compss_type(args[0])
+            if self_type == parameter.TYPE.EXTERNAL_PSCO:
+                self_value = args[0].getID()
+            else:
+                # Since we are checking the type of the deserialized self parameter, get_compss_type will return
+                # that its type is parameter.TYPE.OBJECT, which although it is an object, self is always a file for
+                # the runtime. So we must force its type to avoid that the return message notifies that it has a
+                # new type "object" which is not supported for python objects in the runtime.
+                self_type = parameter.TYPE.FILE
+                self_value = 'null'
+
         # Tracing hook is disabled by default during the user code of the task.
         # The user can enable it with tracingHook=True in @task decorator for specific tasks or globally with the
         # COMPSS_TRACING_HOOK=true environment variable.
@@ -933,7 +950,7 @@ class task(object):
             param = self.decorator_arguments.get(original_name, self.get_default_direction(original_name))
             if param.direction == parameter.DIRECTION.INOUT and not (arg.type == parameter.TYPE.EXTERNAL_PSCO or is_psco(arg.content)):
                 # If it si INOUT and not PSCO, serialize to file
-                # We can not use here param.type != parameter.TYPE.EXTERNAL_PSCO since param.type will has the old type
+                # We can not use here param.type != parameter.TYPE.EXTERNAL_PSCO since param.type has the old type
                 from pycompss.util.serializer import serialize_to_file
                 serialize_to_file(arg.content, get_file_name(arg.file_name))
 
@@ -961,17 +978,6 @@ class task(object):
         # new_types and new_values correspond to "parameters self returns"
         new_types, new_values = [], []
 
-        # Check if there is self, so that we can add it  after the parameters
-        has_self = False
-        if not isinstance(args[0], parameter.TaskParameter):
-            # Then the first arg is self
-            has_self = True
-            self_type = parameter.get_compss_type(args[0])
-            if self_type == parameter.TYPE.EXTERNAL_PSCO:
-                self_value = args[0].getID()
-            else:
-                self_value = 'null'
-
         # Add parameter types and value
         params_start = 1 if has_self else 0
         params_end = len(args) - num_returns + 1
@@ -983,21 +989,33 @@ class task(object):
                 raise Exception('ERROR: A task parameter arrived as an object instead as a TaskParameter ' +
                                 'when building the task result message.')
             else:
+                original_name = parameter.get_original_name(arg.name)
+                param = self.decorator_arguments.get(original_name, self.get_default_direction(original_name))
                 if arg.type == parameter.TYPE.EXTERNAL_PSCO:
                     # It was originally a persistent object
                     new_types.append(parameter.TYPE.EXTERNAL_PSCO)
                     new_values.append(arg.key)
-                elif is_psco(arg.content):
+                elif is_psco(arg.content) and param.direction != parameter.DIRECTION.IN:
                     # It was persisted in the task
                     new_types.append(parameter.TYPE.EXTERNAL_PSCO)
                     new_values.append(arg.content.getID())
                 else:
-                    # Any other return object
+                    # Any other return object: same type and null value
                     new_types.append(arg.type)
                     new_values.append('null')
 
         # Add self type and value if exist
         if has_self:
+            if self.decorator_arguments['isModifier']:
+                # Check if self is a PSCO that has been persisted inside the task and isModifier
+                # Update self type and value
+                self_type = parameter.get_compss_type(args[0])
+                if self_type == parameter.TYPE.EXTERNAL_PSCO:
+                    self_value = args[0].getID()
+                else:
+                    # Self can only be of type FILE, so avoid the last update of self_type
+                    self_type = parameter.TYPE.FILE
+                    self_value = 'null'
             new_types.append(self_type)
             new_values.append(self_value)
 
@@ -1008,11 +1026,14 @@ class task(object):
         if num_returns > 0:
             for ret in user_returns:
                 ret_type = parameter.get_compss_type(ret)
-                new_types.append(ret_type)
                 if ret_type == parameter.TYPE.EXTERNAL_PSCO:
-                    new_values.append(ret.getID())
+                    ret_value = ret.getID()
                 else:
-                    new_values.append('null')
+                    # Retuns can only be of type FILE, so avoid the las update of ret_type
+                    ret_type = parameter.TYPE.FILE
+                    ret_value = 'null'
+                new_types.append(ret_type)
+                new_values.append(ret_value)
 
         return new_types, new_values, self.decorator_arguments['isModifier']
 

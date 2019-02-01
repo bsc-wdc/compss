@@ -1,4 +1,4 @@
-/*         
+/*
  *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,12 +16,9 @@
  */
 package es.bsc.compss.executor.utils;
 
-import es.bsc.compss.executor.Executor;
-import es.bsc.compss.executor.ExecutorContext;
-import es.bsc.compss.executor.types.Execution;
-import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
-
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
@@ -31,9 +28,11 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
 import es.bsc.compss.types.resources.ResourceDescription;
-import es.bsc.compss.util.RequestQueue;
-import java.util.HashMap;
-import java.util.Map;
+import es.bsc.compss.executor.Executor;
+import es.bsc.compss.executor.ExecutorContext;
+import es.bsc.compss.executor.types.Execution;
+import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
+import es.bsc.compss.invokers.util.JobQueue;
 
 
 /**
@@ -47,7 +46,7 @@ public class ExecutionPlatform implements ExecutorContext {
     protected final int size;
     protected final ResourceManager rm;
     protected final Thread[] workerThreads;
-    protected final RequestQueue<Execution> queue;
+    protected final JobQueue queue;
     protected final Semaphore sem;
     protected final Map<Class<?>, ExecutionPlatformMirror> mirrors;
 
@@ -70,13 +69,12 @@ public class ExecutionPlatform implements ExecutorContext {
         System.setProperties(new ThreadedProperties(System.getProperties()));
 
         // Instantiate the message queue and the stop semaphore
-        this.queue = new RequestQueue<>();
+        this.queue = new JobQueue();
         this.sem = new Semaphore(size);
 
         // Instantiate worker thread structure
         this.workerThreads = new Thread[size];
-        for (int i = 0; i < size; i++) {
-            Thread t;
+        for (int i = 0; i < size; ++i) {
             Executor executor = new Executor(context, this, "compute" + i) {
 
                 @Override
@@ -85,12 +83,12 @@ public class ExecutionPlatform implements ExecutorContext {
                     ExecutionPlatform.this.sem.release();
                 }
             };
-            t = new Thread(executor);
+            Thread t = new Thread(executor);
             t.setName(platformName + " compute thread # " + i);
-            workerThreads[i] = t;
+            this.workerThreads[i] = t;
         }
         this.rm = resManager;
-        mirrors = new HashMap<>();
+        this.mirrors = new HashMap<>();
     }
 
     /**
@@ -99,9 +97,7 @@ public class ExecutionPlatform implements ExecutorContext {
      * @param exec
      */
     public void execute(Execution exec) {
-        synchronized (queue) {
-            this.queue.enqueue(exec);
-        }
+        this.queue.enqueue(exec);
     }
 
     /**
@@ -111,8 +107,9 @@ public class ExecutionPlatform implements ExecutorContext {
      */
     public void start() {
         LOGGER.info("Start threads of ThreadPool");
-        for (Thread t : workerThreads) {
-            t.start();
+        // Start is in inverse order so that Thread 1 is the last available
+        for (int i = this.workerThreads.length - 1; i >= 0; --i) {
+            this.workerThreads[i].start();
         }
 
         sem.acquireUninterruptibly(this.size);
@@ -127,22 +124,20 @@ public class ExecutionPlatform implements ExecutorContext {
         /*
          * Empty queue to discard any pending requests and make threads finish
          */
-        synchronized (queue) {
-            for (int i = 0; i < this.size; i++) {
-                queue.addToFront(null);
-            }
-            queue.wakeUpAll();
+        for (int i = 0; i < this.size; i++) {
+            this.queue.enqueue(null);
         }
+        this.queue.wakeUpAll();
 
         // Wait until all threads have completed their last request
-        sem.acquireUninterruptibly(this.size);
+        this.sem.acquireUninterruptibly(this.size);
 
         // Stop specific language components
         joinThreads();
         LOGGER.info("ThreadPool stopped");
 
         LOGGER.info("Stopping mirrors");
-        for (ExecutionPlatformMirror mirror : mirrors.values()) {
+        for (ExecutionPlatformMirror mirror : this.mirrors.values()) {
             mirror.stop();
         }
     }
@@ -158,38 +153,40 @@ public class ExecutionPlatform implements ExecutorContext {
                 }
             }
         }
+        // For tracing
         Runtime.getRuntime().gc();
     }
 
     @Override
     public int getSize() {
-        return size;
+        return this.size;
     }
 
     @Override
     public Execution getJob() {
-        return queue.dequeue();
+        return this.queue.dequeue();
     }
 
     @Override
     public InvocationResources acquireResources(int jobId, ResourceDescription requirements)
             throws UnsufficientAvailableComputingUnitsException {
-        return rm.acquireResources(jobId, requirements);
+
+        return this.rm.acquireResources(jobId, requirements);
     }
 
     @Override
     public void releaseResources(int jobId) {
-        rm.releaseResources(jobId);
+        this.rm.releaseResources(jobId);
     }
 
     @Override
     public ExecutionPlatformMirror getMirror(Class<?> invoker) {
-        return mirrors.get(invoker);
+        return this.mirrors.get(invoker);
     }
 
     @Override
     public void registerMirror(Class<?> invoker, ExecutionPlatformMirror mirror) {
-        mirrors.put(invoker, mirror);
+        this.mirrors.put(invoker, mirror);
     }
 
     @Override

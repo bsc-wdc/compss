@@ -49,29 +49,29 @@ public class CommandNIOTaskDone extends Command implements Externalizable {
 
     @Override
     public void handle(Connection c) {
-        NIOAgent nm = (NIOAgent) agent;
-        nm.receivedNIOTaskDone(c, tr, successful);
+        NIOAgent nm = (NIOAgent) this.agent;
+        nm.receivedNIOTaskDone(c, this.tr, this.successful);
     }
 
     public boolean isSuccessful() {
-        return successful;
+        return this.successful;
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        successful = in.readBoolean();
-        tr = (NIOTaskResult) in.readObject();
+        this.successful = in.readBoolean();
+        this.tr = (NIOTaskResult) in.readObject();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeBoolean(successful);
-        out.writeObject(tr);
+        out.writeBoolean(this.successful);
+        out.writeObject(this.tr);
     }
 
     @Override
     public String toString() {
-        return "Job" + tr.getJobId() + " finishes " + (successful ? "properly" : "with some errors");
+        return "Job" + this.tr.getJobId() + " finishes " + (this.successful ? "properly" : "with some errors");
     }
 
 }

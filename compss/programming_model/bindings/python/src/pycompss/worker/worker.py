@@ -89,7 +89,7 @@ def compss_worker(tracing, task_id, storage_conf, args):
 def main():
     # Emit sync event if tracing is enabled
     TRACING = sys.argv[1] == 'true'
-    taskId = int(sys.argv[2])
+    task_id = int(sys.argv[2])
     log_level = sys.argv[3]
     storage_conf = sys.argv[4]
     method_type = sys.argv[5]
@@ -105,7 +105,7 @@ def main():
     # params = sys.argv[i+4..]
 
     print("tracing = " + str(TRACING))
-    print("taskId = " + str(taskId))
+    print("task_id = " + str(task_id))
     print("log_level = " + str(log_level))
     print("storage_conf = " + str(storage_conf))
 
@@ -118,7 +118,7 @@ def main():
     if TRACING:
         import pyextrae.multiprocessing as pyextrae
 
-        pyextrae.eventandcounters(SYNC_EVENTS, taskId)
+        pyextrae.eventandcounters(SYNC_EVENTS, task_id)
         # pyextrae.eventandcounters(TASK_EVENTS, 0)
         pyextrae.eventandcounters(TASK_EVENTS, WORKER_INITIALIZATION)
 
@@ -139,12 +139,12 @@ def main():
         initStorageAtWorker(config_file_path=storage_conf)
 
     # Init worker
-    exit_code = compss_worker(TRACING, taskId, storage_conf, args)
+    exit_code = compss_worker(TRACING, str(task_id), storage_conf, args)
 
     if TRACING:
         pyextrae.eventandcounters(TASK_EVENTS, 0)
         # pyextrae.eventandcounters(TASK_EVENTS, PROCESS_DESTRUCTION)
-        pyextrae.eventandcounters(SYNC_EVENTS, taskId)
+        pyextrae.eventandcounters(SYNC_EVENTS, task_id)
 
     if persistent_storage:
         # Finish storage

@@ -1,0 +1,176 @@
+#!/bin/bash
+
+#--------------------------------------------------------------------------------
+# Clean orphans
+clean_orphans() {
+  # Sleep before cleanning test environment
+  sleep 1s
+
+  # Clean possible remaining test processes
+  ps x -o  "%r %c" | grep "runcompss" | awk '{ print $1 }' | xargs -r -i kill -9 -{}
+  ps -elfa | grep "java" | grep "es.bsc.compss.nio.worker.NIOWorker" | awk '{ print $4 }' | xargs -r kill -9
+  ps -elfa | grep piper | grep -v grep | awk '{ print $4 }' | xargs -r kill -9
+
+  # Sleep after cleanning test environment
+  sleep 1s
+}
+
+#--------------------------------------------------------------------------------
+# Execute application
+function execute () {
+  local app=$1
+  local target_log_folder="$2/${app}"
+  local retryNum=$3
+  local expectedTime=$4
+  local base_app_dir=$5
+  local comm=$6
+  local COMPSs_log_folder=$7
+  local runcompss_opts=$8
+
+  mkdir -p ${target_log_folder}
+
+  local output_log="${target_log_folder}/${app}_python_test_0${retryNum}.outputlog"
+  local error_log="${target_log_folder}/${app}_python_test_0${retryNum}.errorlog"
+
+  # shellcheck disable=SC2086
+  timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+     --project="${base_app_dir}"/project.xml \
+     --resources="${base_app_dir}"/resources.xml \
+     \
+     --comm="$comm" \
+     \
+     --debug \
+     --tracing \
+     ${runcompss_opts} \
+     \
+     --lang=python \
+     --python_interpreter="$pythonInterpreter" \
+     --pythonpath="${base_app_dir}"/src \
+     \
+     "${base_app_dir}"/src/"${app}".py > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+
+  # Take the latest log folder as retry number
+  # Fixes the possiblity to test with both python 2 and 3 one after the other
+  retryNum=$(find "${COMPSs_log_folder}" -name ${app}.py* -type d | wc -l)
+
+  # Check timeout
+  if [[ "$?" = "124" ]]; then
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}"/"${app}".py_0"${retryNum}"/* "${target_log_folder}"
+     # Report timeout
+     echo "[WARNING] Python Application timed out" >> "${output_log}"
+     exit 124
+  else
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}"/"${app}".py_0"${retryNum}"/* "${target_log_folder}"
+  fi
+  echo "Execution of $app finished."
+
+  if [ $app == "task_tracing_delayer_tracingHookEnabled" ] ||
+     [ $app == "task_tracing_delayer_tracingHookDisabled" ]; then
+    # Get the time and return it to compare later
+    elapsed_time=$("${base_app_dir}"/result "$app" "${output_log}" "${target_log_folder}" "${comm}" "${pythonInterpreter}")
+    echo "Elapsed time: ${elapsed_time}"
+  else
+    # Check result of execution
+    "${base_app_dir}"/result "$app" "${output_log}" "${target_log_folder}" "${comm}" "${pythonInterpreter}"
+    result_exit_code=$?
+    echo "Result exit code: $result_exit_code"
+    if [[ $result_exit_code != 0 ]]; then
+      exit $result_exit_code;
+    fi
+  fi
+}
+
+  #----------------------------------------------------------------------------------
+  # Obtain parameters
+  COMPSs_exec=$1
+  comm=$2
+  runcompss_opts=$3
+  base_app_dir=$4
+  COMPSs_log_folder=$5
+  target_log_folder=$6
+  retryNum=$7
+  pythonInterpreter=$8
+
+  #----------------------------------------------------------------------------------
+  # Global exit variable
+  exitValue=0
+
+  #----------------------------------------------------------------------------------
+  # Generate Project.xml according to system
+  sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/project.xml
+
+  #----------------------------------------------------------------------------------
+  # Create all working dir folders
+  mkdir -p /tmp/COMPSsWorker01/
+
+  #----------------------------------------------------------------------------------
+  # Run application 1 - task_tracing_userEvents_tracingHookEnabled.py
+  app="task_tracing_userEvents_tracingHookEnabled"
+  expectedTime=180s
+  echo
+  echo "*** RUNNING PYTHON TASK's TRACING TEST WITH userEvents WITH TRACING HOOK ENABLED"
+  execute "$app" "${target_log_folder}" "$retryNum" "$expectedTime" "${base_app_dir}" "$comm" "${COMPSs_log_folder}" "$runcompss_opts"
+  accumulated="${accumulated}\nTest $app - OK"
+
+  #----------------------------------------------------------------------------------
+  # Run application 2 - task_tracing_userEvents_tracingHookDisabled.py
+  app="task_tracing_userEvents_tracingHookDisabled"
+  expectedTime=180s
+  echo
+  echo "*** RUNNING PYTHON TASK's TRACING TEST WITH userEvents WITH TRACING HOOK DISABLED"
+  execute "$app" "${target_log_folder}" "$retryNum" "$expectedTime" "${base_app_dir}" "$comm" "${COMPSs_log_folder}" "$runcompss_opts"
+  accumulated="${accumulated}\nTest $app - OK"
+
+  #----------------------------------------------------------------------------------
+  # Run application 3 - task_tracing_delayer_tracingHookEnabled.py
+  app="task_tracing_delayer_tracingHookEnabled"
+  expectedTime=180s
+  echo
+  echo "*** RUNNING PYTHON TASK's TRACING TEST WITH DELAYER APP WITH TRACING HOOK ENABLED"
+  execute "$app" "${target_log_folder}" "$retryNum" "$expectedTime" "${base_app_dir}" "$comm" "${COMPSs_log_folder}" "$runcompss_opts"
+  accumulated="${accumulated}\nTest $app - OK - Elapsed time: $elapsed_time"
+  elapsed_time_tracingHookEnabled=${elapsed_time}
+
+  #----------------------------------------------------------------------------------
+  # Run application 4 - task_tracing_delayer_tracingHookDisabled.py
+  app="task_tracing_delayer_tracingHookDisabled"
+  expectedTime=180s
+  echo
+  echo "*** RUNNING PYTHON TASK's TRACING TEST WITH DELAYER APP WITH TRACING HOOK DISABLED"
+  execute "$app" "${target_log_folder}" "$retryNum" "$expectedTime" "${base_app_dir}" "$comm" "${COMPSs_log_folder}" "$runcompss_opts"
+  accumulated="${accumulated}\nTest $app - OK - Elapsed time: $elapsed_time"
+  elapsed_time_tracingHookDisabled=${elapsed_time}
+
+  #----------------------------------------------------------------------------------
+  # Compare the time needed with hook and without. Must be less without Hook to ensure it works.
+  if [[ $elapsed_time_tracingHookDisabled -lt $elapsed_time_tracingHookEnabled ]]; then
+    echo "Disabling the tracing hook achieved better performance."
+    echo "Elapsed time with tracing hook   : $elapsed_time_tracingHookEnabled"
+    echo "Elapsed time without tracing hook: $elapsed_time_tracingHookDisabled"
+  else
+    echo "ERROR: DISABLING THE TRACING HOOK HAS NOT ACHIEVED BETTER PERFORMANCE."
+    echo "       PLEASE, ENSURE THAT THE TRACING HOOK IS WELL MANAGED IN task.py"
+    echo "Elapsed time with tracing hook   : $elapsed_time_tracingHookEnabled"
+    echo "Elapsed time without tracing hook: $elapsed_time_tracingHookDisabled"
+    clean_orphans
+    exit 1
+  fi
+
+
+  #----------------------------------------------------------------------------------
+  # Show accumulated results:
+  echo
+  echo "-------------"
+  echo "TESTS RESULT:"
+  echo "-------------"
+  echo -e "$accumulated"
+
+  #----------------------------------------------------------------------------------
+  # Clean orphans
+  clean_orphans
+
+  #----------------------------------------------------------------------------------
+  # Return execution status
+  exit 0

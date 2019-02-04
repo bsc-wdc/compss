@@ -49,7 +49,8 @@ function check_unit_test () {
   runtime_log="${target_log_folder}/runtime.log"
 
   if [ $subtest == "module_0_basic" ] || [ $subtest == "module_1_class" ] ||
-     [ $subtest == "module_2_constraint" ] || [ $subtest == "module_9_app_kmeans" ]; then
+     [ $subtest == "module_2_constraint" ] || [ $subtest == "module_7_implements" ] ||
+     [ $subtest == "module_9_app_kmeans" ]; then
     #----------------------------------------------------------------------------------
     # Check no exceptions in sequential execution
     if grep -q "Exception" "$output_file_seq" | grep -q "segmentation" "$output_file_seq"; then
@@ -70,7 +71,6 @@ function check_unit_test () {
        [ $subtest == "module_4_ompss" ] || [ $subtest == "module_4_ompss_constrained" ] ||
        [ $subtest == "module_5_mpi" ] || [ $subtest == "module_5_mpi_constrained" ] ||
        [ $subtest == "module_6_opencl" ] || [ $subtest == "module_6_opencl_constrained" ] ||
-       [ $subtest == "module_7_implements" ] ||
        [ $subtest == "module_8_decaf" ] || [ $subtest == "module_8_decaf_constrained" ]; then
 
      #----------------------------------------------------------------------------------

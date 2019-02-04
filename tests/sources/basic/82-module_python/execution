@@ -46,13 +46,15 @@ function seq_app () {
 # Execute application
 function execute () {
   local app=$1
-  local target_log_folder=$2
+  local target_log_folder="$2/${app}"
   local retryNum=$3
   local expectedTime=$4
   local base_app_dir=$5
   local comm=$6
   local COMPSs_log_folder=$7
   local runcompss_opts=$8
+
+  mkdir -p ${target_log_folder}
 
   local output_log="${target_log_folder}/${app}_python_test_0${retryNum}.outputlog"
   local error_log="${target_log_folder}/${app}_python_test_0${retryNum}.errorlog"
@@ -108,6 +110,11 @@ function execute () {
 
   # Check result of both sequential and parallel executions
   "${base_app_dir}"/result "$app" "${output_log}" "${error_log}" "${output_log_seq}" "${error_log_seq}" "${target_log_folder}"
+  result_exit_code=$?
+  echo "Result exit code: $result_exit_code"
+  if [[ $result_exit_code != 0 ]]; then
+    exit $result_exit_code;
+  fi
 }
 
   # Obtain parameters
@@ -125,7 +132,7 @@ function execute () {
   python -c "import pycompss"
   errCode=$?
   if [ $errCode -ne  0 ] ; then
-    echo "THE pycompss MODULE IS NOT AVAILABLE IN THE SYSTEM."
+    echo "[ERROR] THE pycompss MODULE IS NOT AVAILABLE IN THE SYSTEM."
     echo "CHECK THAT PYTHONPATH CONTAINS THE APPROPIATE MODULE PATH."
     exit $errCode
   fi

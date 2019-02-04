@@ -22,6 +22,7 @@ PyCOMPSs API - Task
 This file contains the class task, needed for the task definition.
 """
 
+import sys
 import threading
 
 import pycompss.api.parameter as parameter
@@ -29,7 +30,6 @@ from pycompss.runtime.core_element import CE
 
 if __debug__:
     import logging
-
     logger = logging.getLogger(__name__)
 
 # This lock allows tasks to be launched with the Threading module while ensuring
@@ -77,6 +77,7 @@ class task(object):
             'isReplicated': False,
             'isDistributed': False,
             'computingNodes': 1,
+            'tracingHook': False,
             'varargsType': parameter.IN  # Here for legacy purposes
         }
 
@@ -892,9 +893,30 @@ class task(object):
 
         num_returns = len(ret_params)
 
+        # Tracing hook is disabled by default during the user code of the task.
+        # The user can enable it with tracingHook=True in @task decorator
+        restore_hook = False
+        if kwargs['compss_tracing']:
+            if self.decorator_arguments['tracingHook']:
+                # The user wants to keep the tracing hook
+                pass
+            else:
+                # When Extrae library implements the function to disable, use it, as:
+                # import pyextrae
+                # pro_f = pyextrae.shutdown()
+                # Since it is not available yet, we manage the tracing hook by ourselves
+                pro_f = sys.getprofile()
+                sys.setprofile(None)
+                restore_hook = True
+
         # Call the user function with all the reconstructed parameters, get the return values
         user_returns = self.user_function(*user_args, **user_kwargs)
 
+        # Reestablish the hook if it was disabled
+        if restore_hook:
+            sys.setprofile(pro_f)
+
+        # Manage all the possible outputs of the task and build the return new types and values
         def get_file_name(file_path):
             return file_path.split(':')[-1]
 
@@ -997,7 +1019,9 @@ class task(object):
         # Inspect the user function, get information about the arguments and their names
         # This defines self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults
         # And gives non-None default values to them if necessary
-        return self.user_function(*args, **kwargs)
+        from pycompss.api.dummy.task import task as dummy_task
+        d_t = dummy_task(args, kwargs)
+        return d_t.__call__(self.user_function)(*args, **kwargs)
 
 
 # task can be also typed as Task

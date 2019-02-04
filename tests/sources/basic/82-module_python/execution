@@ -125,7 +125,7 @@ function execute () {
   python -c "import pycompss"
   errCode=$?
   if [ $errCode -ne  0 ] ; then
-    echo "THE pycompss MODULE IS NOT AVAILABLE IN THE SYSTEM."
+    echo "[ERROR] THE pycompss MODULE IS NOT AVAILABLE IN THE SYSTEM."
     echo "CHECK THAT PYTHONPATH CONTAINS THE APPROPIATE MODULE PATH."
     exit $errCode
   fi

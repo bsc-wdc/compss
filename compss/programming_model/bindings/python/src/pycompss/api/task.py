@@ -895,11 +895,11 @@ class task(object):
 
         # Tracing hook is disabled by default during the user code of the task.
         # The user can enable it with tracingHook=True in @task decorator
-        tracing_hook = False
+        restore_hook = False
         if kwargs['compss_tracing']:
             if self.decorator_arguments['tracingHook']:
                 # The user wants to keep the tracing hook
-                tracing_hook = True
+                pass
             else:
                 # When Extrae library implements the function to disable, use it, as:
                 # import pyextrae
@@ -907,13 +907,13 @@ class task(object):
                 # Since it is not available yet, we manage the tracing hook by ourselves
                 pro_f = sys.getprofile()
                 sys.setprofile(None)
-                tracing_hook = False
+                restore_hook = True
 
         # Call the user function with all the reconstructed parameters, get the return values
         user_returns = self.user_function(*user_args, **user_kwargs)
 
         # Reestablish the hook if it was disabled
-        if not tracing_hook:
+        if restore_hook:
             sys.setprofile(pro_f)
 
         # Manage all the possible outputs of the task and build the return new types and values

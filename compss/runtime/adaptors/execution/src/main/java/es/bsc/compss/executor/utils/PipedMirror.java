@@ -246,4 +246,9 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
     public PipePair getPipes(String executorId) {
         return new PipePair(this.basePipePath, executorId);
     }
+
+    @Override
+    public void unregisterExecutor(String id) {
+
+    }
 }

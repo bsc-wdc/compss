@@ -31,6 +31,8 @@ import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.RequestQueue;
+
+import java.util.Collection;
 import java.util.HashMap;
 import org.junit.Test;
 
@@ -121,5 +123,9 @@ public class ExecutorTest {
             // No need to do anything
         }
 
+        @Override
+        public Collection<ExecutionPlatformMirror> getMirrors() {
+            return mirrors.values();
+        }
     }
 }

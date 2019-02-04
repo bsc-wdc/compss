@@ -23,6 +23,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
+import es.bsc.compss.executor.utils.PersistentMirror;
+import es.bsc.compss.executor.utils.ExecutionPlatformMirror;
+import es.bsc.compss.invokers.external.persistent.PersistentInvoker;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -60,6 +63,7 @@ import es.bsc.compss.types.implementations.OmpSsImplementation;
 import es.bsc.compss.types.implementations.OpenCLImplementation;
 import es.bsc.compss.util.Tracer;
 import java.io.PrintStream;
+import java.util.Collection;
 
 
 public class Executor implements Runnable {
@@ -77,6 +81,7 @@ public class Executor implements Runnable {
     // Executor Id
     protected final String id;
 
+    protected boolean isRegistered;
     protected PipePair cPipes;
     protected PipePair pyPipes;
 
@@ -93,6 +98,7 @@ public class Executor implements Runnable {
         this.context = context;
         this.platform = platform;
         this.id = executorId;
+        this.isRegistered = false;
     }
 
     /**
@@ -122,6 +128,11 @@ public class Executor implements Runnable {
     public void finish() {
         // Nothing to do since everything is deleted in each task execution
         LOGGER.info("Executor finished");
+        Collection<ExecutionPlatformMirror> mirrors = platform.getMirrors();
+        for (ExecutionPlatformMirror mirror: mirrors) {
+            mirror.unregisterExecutor(id);
+        }
+
     }
 
     /**
@@ -540,6 +551,66 @@ public class Executor implements Runnable {
             switch (invocation.getMethodImplementation().getMethodType()) {
                 case METHOD:
                     invoker = selectNativeMethodInvoker(invocation, taskSandboxWorkingDir, assignedResources);
+                    switch (invocation.getLang()) {
+                        case JAVA:
+                            switch (context.getExecutionType()) {
+                                case COMPSS:
+                                    invoker = new JavaInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                                    break;
+                                case STORAGE:
+                                    invoker = new StorageInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                                    break;
+                                default:
+                            }
+                            break;
+                        case PYTHON:
+                            if (pyPipes == null) {
+                                // Double checking to avoid synchronizations when the pipes are already defined
+                                synchronized (PythonInvoker.class) {
+                                    if (pyPipes == null) {
+                                        PipedMirror mirror = (PipedMirror) platform.getMirror(PythonInvoker.class);
+                                        if (mirror == null) {
+                                            mirror = PythonInvoker.getMirror(context, platform);
+                                            platform.registerMirror(PythonInvoker.class, mirror);
+                                        }
+                                        pyPipes = mirror.getPipes(id);
+                                    }
+                                }
+                            }
+                            invoker = new PythonInvoker(context, invocation, taskSandboxWorkingDir, assignedResources, pyPipes);
+                            break;
+                        case C:
+                            if (context.isPersistentEnabled()) {
+                                invoker = new CPersistentInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                                if (!isRegistered) {
+                                    PersistentMirror mirror = (PersistentMirror) platform.getMirror(CPersistentInvoker.class);
+                                    if (mirror == null) {
+                                        mirror = PersistentInvoker.getMirror(context, platform);
+                                        platform.registerMirror(PersistentInvoker.class, mirror);
+                                    }
+                                    mirror.registerExecutor(id);
+                                    isRegistered = true;
+                                }
+                            } else {
+                                if (cPipes == null) {
+                                    // Double checking to avoid syncrhonizations when the pipes are already defined
+                                    synchronized (CInvoker.class) {
+                                        if (cPipes == null) {
+                                            PipedMirror mirror = (PipedMirror) platform.getMirror(CInvoker.class);
+                                            if (mirror == null) {
+                                                mirror = (PipedMirror) CInvoker.getMirror(context, platform);
+                                                platform.registerMirror(CInvoker.class, mirror);
+                                            }
+                                            cPipes = mirror.getPipes(id);
+                                        }
+                                    }
+                                }
+                                invoker = new CInvoker(context, invocation, taskSandboxWorkingDir, assignedResources, cPipes);
+                            }
+                            break;
+                        default:
+                            throw new JobExecutionException("Unrecognised lang for a method type invocation");
+                    }
                     break;
                 case BINARY:
                     invoker = new BinaryInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);

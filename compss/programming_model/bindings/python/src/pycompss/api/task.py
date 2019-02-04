@@ -1019,7 +1019,9 @@ class task(object):
         # Inspect the user function, get information about the arguments and their names
         # This defines self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults
         # And gives non-None default values to them if necessary
-        return self.user_function(*args, **kwargs)
+        from pycompss.api.dummy.task import task as dummy_task
+        d_t = dummy_task(args, kwargs)
+        return d_t.__call__(self.user_function)(*args, **kwargs)
 
 
 # task can be also typed as Task

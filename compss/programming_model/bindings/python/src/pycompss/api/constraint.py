@@ -69,7 +69,7 @@ class Constraint(object):
             if not self.scope:
                 from pycompss.api.dummy.constraint import constraint as dummy_constraint
                 d_c = dummy_constraint(self.args, self.kwargs)
-                return d_c.__call__(func)
+                return d_c.__call__(func)(*args, **kwargs)
 
             if context.in_master():
                 # master code

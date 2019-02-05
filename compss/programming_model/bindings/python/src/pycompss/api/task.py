@@ -22,6 +22,7 @@ PyCOMPSs API - Task
 This file contains the class task, needed for the task definition.
 """
 
+import os
 import sys
 import threading
 
@@ -894,10 +895,15 @@ class task(object):
         num_returns = len(ret_params)
 
         # Tracing hook is disabled by default during the user code of the task.
-        # The user can enable it with tracingHook=True in @task decorator
+        # The user can enable it with tracingHook=True in @task decorator for specific tasks or globally with the
+        # COMPSS_TRACING_HOOK=true environment variable.
         restore_hook = False
         if kwargs['compss_tracing']:
-            if self.decorator_arguments['tracingHook']:
+            from pycompss.runtime.commons import TRACING_HOOK_ENV_VAR
+            global_tracing_hook = False
+            if TRACING_HOOK_ENV_VAR in os.environ:
+                global_tracing_hook = os.environ[TRACING_HOOK_ENV_VAR] == "true"
+            if self.decorator_arguments['tracingHook'] or global_tracing_hook:
                 # The user wants to keep the tracing hook
                 pass
             else:

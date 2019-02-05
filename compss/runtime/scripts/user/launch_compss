@@ -476,7 +476,7 @@ xml_project_add_elasticity() {
     fi
     if [ -n "${queue}" ]; then
       props="$props queue=${queue}"
-    fi 
+    fi
     if [ -n "${reservation}" ]; then
       props="$props reservation=${reservation}"
     fi
@@ -580,7 +580,7 @@ xml_resources_add_workers() {
     if [ ! -z "${NODE_NAME_XML}" ]; then
       worker_node_name=$(${NODE_NAME_XML} "${worker_node}" "${network}")
     elif [ -n "${NODE_NAME_QUEUE}" ]; then
-      worker_node_name=$(${NODE_NAME_QUEUE} "${worker_node}")                                                                                                                                                                             
+      worker_node_name=$(${NODE_NAME_QUEUE} "${worker_node}")
     else
       worker_node_name=${worker_node}
     fi
@@ -1160,7 +1160,7 @@ check_args() {
   #
   # Infrastructure checks
   #
-  # Changed error by warning because in heterogeneous there can be a launch of just workers 
+  # Changed error by warning because in heterogeneous there can be a launch of just workers
   if [ -z "${master_node}" ]; then
     echo "${ERROR_MASTER_NODE}"
   fi
@@ -1582,6 +1582,7 @@ launch() {
         hostid=$((hostid+1))
       fi
     fi
+
     if [ ! -z "${worker_nodes}" ]; then
       local jvm_workers_opts_str
       local jvm_workers_opts_size
@@ -1603,8 +1604,24 @@ launch() {
     fi
 
     # Sleep a little before launching master
-    sleep 10s # dependant of the number of workers?
+    local num_workers=$((hostid-1))
+    local sleep_time
+    if [ ${num_workers} -ge 1 ] && [ ${num_workers} -lt 100 ]; then
+      sleep_time="10s"
+    else
+      if [ ${num_workers} -ge 100 ] && [ ${num_workers} -lt 800 ]; then
+        sleep_time="$((num_workers/10))s"
+      else
+        sleep_time="80s"
+      fi
+    fi
+
+    echo "Number of workers: $num_workers"
+    echo "Waiting ${sleep_time} ..."
+    sleep ${sleep_time}
   fi
+
+  # Launching the master
   if [ ! -z "${master_node}" ]; then
     # Launch master
     if [ "${jupyter_notebook}" = false ]; then
@@ -1621,7 +1638,7 @@ launch() {
       export COMPSS_LOG_LEVEL=${log_level}
       export COMPSS_TRACING=${tracing}
       if [ -v "$tracing" ] && [ $tracing != "false" ]; then
-          load_tracing_env
+        load_tracing_env
       fi
       # Export project and resources xmls as environment variables to be used from PyCOMPSs binding
       # Also export the master name, master port, and worker nodes to be used from PyCOMPSs binding

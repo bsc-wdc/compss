@@ -23,6 +23,6 @@ public interface DataProvider {
 
     public boolean isPersistentEnabled();
 
-    public void askForTransfer(InvocationParam param, int index, DataManager.LoadDataListener tt);
+    public void askForTransfer(InvocationParam param, int index, DataManager.FetchDataListener tt);
 
 }

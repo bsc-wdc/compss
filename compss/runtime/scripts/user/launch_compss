@@ -1582,6 +1582,7 @@ launch() {
         hostid=$((hostid+1))
       fi
     fi
+
     if [ ! -z "${worker_nodes}" ]; then
       local jvm_workers_opts_str
       local jvm_workers_opts_size
@@ -1602,24 +1603,25 @@ launch() {
       done
     fi
 
-    local num_workers=$((hostid-1))
-
     # Sleep a little before launching master
-    echo "Number of workers: $num_workers"
-    if ((1<=$num_workers && $num_workers<100))
-    then
-        echo "Waiting 10 seconds..."
-        sleep 10s
-    elif ((100<=$num_workers && $num_workers<800))
-    then
-        wait_time=$(($num_workers/10))
-        echo "Waiting ${wait_time} seconds..."
-        sleep "${wait_time}s"
+    local num_workers=$((hostid-1))
+    local sleep_time
+    if [ ${num_workers} -ge 1 ] && [ ${num_workers} -lt 100 ]; then
+      sleep_time="10s"
     else
-        echo "Waiting 80 seconds..."
-        sleep 80s
+      if [ ${num_workers} -ge 100 ] && [ ${num_workers} -lt 800 ]; then
+        sleep_time="$((num_workers/10))s"
+      else
+        sleep_time="80s"
+      fi
     fi
+
+    echo "Number of workers: $num_workers"
+    echo "Waiting ${sleep_time} ..."
+    sleep ${sleep_time}
   fi
+
+  # Launching the master
   if [ ! -z "${master_node}" ]; then
     # Launch master
     if [ "${jupyter_notebook}" = false ]; then
@@ -1636,7 +1638,7 @@ launch() {
       export COMPSS_LOG_LEVEL=${log_level}
       export COMPSS_TRACING=${tracing}
       if [ -v "$tracing" ] && [ $tracing != "false" ]; then
-          load_tracing_env
+        load_tracing_env
       fi
       # Export project and resources xmls as environment variables to be used from PyCOMPSs binding
       # Also export the master name, master port, and worker nodes to be used from PyCOMPSs binding

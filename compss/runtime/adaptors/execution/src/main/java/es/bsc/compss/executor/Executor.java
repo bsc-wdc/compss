@@ -551,66 +551,6 @@ public class Executor implements Runnable {
             switch (invocation.getMethodImplementation().getMethodType()) {
                 case METHOD:
                     invoker = selectNativeMethodInvoker(invocation, taskSandboxWorkingDir, assignedResources);
-                    switch (invocation.getLang()) {
-                        case JAVA:
-                            switch (context.getExecutionType()) {
-                                case COMPSS:
-                                    invoker = new JavaInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
-                                    break;
-                                case STORAGE:
-                                    invoker = new StorageInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
-                                    break;
-                                default:
-                            }
-                            break;
-                        case PYTHON:
-                            if (pyPipes == null) {
-                                // Double checking to avoid synchronizations when the pipes are already defined
-                                synchronized (PythonInvoker.class) {
-                                    if (pyPipes == null) {
-                                        PipedMirror mirror = (PipedMirror) platform.getMirror(PythonInvoker.class);
-                                        if (mirror == null) {
-                                            mirror = PythonInvoker.getMirror(context, platform);
-                                            platform.registerMirror(PythonInvoker.class, mirror);
-                                        }
-                                        pyPipes = mirror.getPipes(id);
-                                    }
-                                }
-                            }
-                            invoker = new PythonInvoker(context, invocation, taskSandboxWorkingDir, assignedResources, pyPipes);
-                            break;
-                        case C:
-                            if (context.isPersistentEnabled()) {
-                                invoker = new CPersistentInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
-                                if (!isRegistered) {
-                                    PersistentMirror mirror = (PersistentMirror) platform.getMirror(CPersistentInvoker.class);
-                                    if (mirror == null) {
-                                        mirror = PersistentInvoker.getMirror(context, platform);
-                                        platform.registerMirror(PersistentInvoker.class, mirror);
-                                    }
-                                    mirror.registerExecutor(id);
-                                    isRegistered = true;
-                                }
-                            } else {
-                                if (cPipes == null) {
-                                    // Double checking to avoid syncrhonizations when the pipes are already defined
-                                    synchronized (CInvoker.class) {
-                                        if (cPipes == null) {
-                                            PipedMirror mirror = (PipedMirror) platform.getMirror(CInvoker.class);
-                                            if (mirror == null) {
-                                                mirror = (PipedMirror) CInvoker.getMirror(context, platform);
-                                                platform.registerMirror(CInvoker.class, mirror);
-                                            }
-                                            cPipes = mirror.getPipes(id);
-                                        }
-                                    }
-                                }
-                                invoker = new CInvoker(context, invocation, taskSandboxWorkingDir, assignedResources, cPipes);
-                            }
-                            break;
-                        default:
-                            throw new JobExecutionException("Unrecognised lang for a method type invocation");
-                    }
                     break;
                 case BINARY:
                     invoker = new BinaryInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
@@ -651,7 +591,6 @@ public class Executor implements Runnable {
 
     private Invoker selectNativeMethodInvoker(Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources)
             throws JobExecutionException {
-
         switch (invocation.getLang()) {
             case JAVA:
                 Invoker javaInvoker = null;
@@ -683,6 +622,15 @@ public class Executor implements Runnable {
                 Invoker cInvoker = null;
                 if (context.isPersistentEnabled()) {
                     cInvoker = new CPersistentInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                    if (!isRegistered) {
+                        PersistentMirror mirror = (PersistentMirror) platform.getMirror(CPersistentInvoker.class);
+                        if (mirror == null) {
+                            mirror = PersistentInvoker.getMirror(context, platform);
+                            platform.registerMirror(PersistentInvoker.class, mirror);
+                        }
+                        mirror.registerExecutor(id);
+                        isRegistered = true;
+                    }
                 } else {
                     if (cPipes == null) {
                         // Double checking to avoid syncrhonizations when the pipes are already defined

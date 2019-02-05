@@ -145,15 +145,20 @@ function execute () {
 
   #----------------------------------------------------------------------------------
   # Compare the time needed with hook and without. Must be less without Hook to ensure it works.
-  if [[ $elapsed_time_tracingHookDisabled -lt $elapsed_time_tracingHookEnabled ]]; then
-    echo "Disabling the tracing hook achieved better performance."
+  margin="20000000000"  # 20 seconds in nanoseconds
+  elapsed_time_tracingHookDisabled_with_margin=$(($elapsed_time_tracingHookDisabled + $margin))
+  if [[ $elapsed_time_tracingHookDisabled_with_margin -lt $elapsed_time_tracingHookEnabled ]]; then
+    echo "Disabling the tracing hook achieved better performance (more than the margin)."
     echo "Elapsed time with tracing hook   : $elapsed_time_tracingHookEnabled"
     echo "Elapsed time without tracing hook: $elapsed_time_tracingHookDisabled"
+    echo "Margin considered                : $margin"
   else
     echo "ERROR: DISABLING THE TRACING HOOK HAS NOT ACHIEVED BETTER PERFORMANCE."
-    echo "       PLEASE, ENSURE THAT THE TRACING HOOK IS WELL MANAGED IN task.py"
+    echo "       PLEASE, ENSURE THAT THE ELAPSED TIMES ARE CORRECT CONSIDERING THE"
+    echo "       MARGIN AND CHECK THAT THE TRACING HOOK IS WELL MANAGED IN task.py"
     echo "Elapsed time with tracing hook   : $elapsed_time_tracingHookEnabled"
     echo "Elapsed time without tracing hook: $elapsed_time_tracingHookDisabled"
+    echo "Margin considered                : $margin"
     clean_orphans
     exit 1
   fi

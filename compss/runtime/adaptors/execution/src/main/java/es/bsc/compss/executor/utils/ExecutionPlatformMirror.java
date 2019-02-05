@@ -20,4 +20,6 @@ public interface ExecutionPlatformMirror {
 
     public void stop();
 
+    public void unregisterExecutor(String id);
+
 }

@@ -1186,11 +1186,11 @@ static void generate_execute_task_call(FILE *outFile, function *func) {
 
 static void add_checkinCache_and_management(FILE *outFile, const char* name, const char* dataType, const char * elements, int position, bool preserveData) {
     //Check if dest is in cache
-    fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Checking if object %s with id \"<< %s_dest_id_str << \" is in cache.\" << endl << flush;\n", name, name);
+    fprintf(outFile, "\t\t\t\t if(is_debug()) cout << \"[C Binding] Checking if object %s with id \"<< %s_dest_id_str << \" is in cache.\" << endl << flush;\n", name, name);
     fprintf(outFile, "\t\t\t\t bool found = cache->isInCache(%s_dest_id);\n", name);
     //If dest id not found -> try if origin is in cache
     fprintf(outFile, "\t\t\t\t if (!found){\n");
-    fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Destination id not found in cache. Checking if object %s with id \"<< %s_orig_id_str << \" is in cache.\" << endl << flush;\n", name, name);
+    fprintf(outFile, "\t\t\t\t\t if(is_debug()) cout << \"[C Binding] Destination id not found in cache. Checking if object %s with id \"<< %s_orig_id_str << \" is in cache.\" << endl << flush;\n", name, name);
     fprintf(outFile, "\t\t\t\t\t found = cache->isInCache(%s_orig_id);\n", name);
 
     //If origin id not found -> deserialize form file
@@ -1204,7 +1204,7 @@ static void add_checkinCache_and_management(FILE *outFile, const char* name, con
     fprintf(outFile, "\t\t\t\t\t\t int res = cache->pullFromFile(%s_dest_id, %s_dest_id, cp);\n", name, name);
 
     fprintf(outFile, "\t\t\t\t\t\t if (res != 0){\n"); // If error pulling from dest_id -> try with origin id
-    fprintf(outFile, "\t\t\t\t\t\t\t cout << \"[C Binding] Error Deserializing object %s as \"<< %s_dest_id_str <<\". Deserializing object %s from \" << %s_orig_id_str << \" as \" << %s_dest_id_str << endl << flush;\n", name, name, name, name, name);
+    fprintf(outFile, "\t\t\t\t\t\t\t if(is_debug()) cout << \"[C Binding] Error Deserializing object %s as \"<< %s_dest_id_str <<\". Deserializing object %s from \" << %s_orig_id_str << \" as \" << %s_dest_id_str << endl << flush;\n", name, name, name, name, name);
     fprintf(outFile, "\t\t\t\t\t\t\t res = cache->pullFromFile(%s_dest_id, %s_orig_id, cp);\n", name, name);
 
     fprintf(outFile, "\t\t\t\t\t\t\t if (res != 0){\n"); // If error pulling from origin_id -> return error
@@ -1213,14 +1213,14 @@ static void add_checkinCache_and_management(FILE *outFile, const char* name, con
     fprintf(outFile, "\t\t\t\t\t\t\t }\n");
     fprintf(outFile, "\t\t\t\t\t\t }\n");
     fprintf(outFile, "\t\t\t\t\t\t %s = (%s*)cp.pointer;\n", name, dataType);
-    fprintf(outFile, "\t\t\t\t\t\t cout << \"[C Binding] Object %s has been added to the cache as \" << %s_dest_id_str << \" with type %d.\"  << endl << flush;\n", name, name,position);
+    fprintf(outFile, "\t\t\t\t\t\t if(is_debug()) cout << \"[C Binding] Object %s has been added to the cache as \" << %s_dest_id_str << \" with type %d.\"  << endl << flush;\n", name, name,position);
 
     //if found with origin id -> move or copy in cache to dest id evaluating preserve data.
     fprintf(outFile, "\t\t\t\t\t } else {  // found as origin id -> move or copy \n");
     if (preserveData) {
         // if preserve data -> make a memory copy
         fprintf(outFile, "\t\t\t\t\t\t if (string(%s_pres_data) == \"true\"){\n", name);
-        fprintf(outFile, "\t\t\t\t\t\t\t cout << \"[C Binding] Copying object %s in cache. From \" << %s_orig_id << \" to \"<< %s_dest_id << endl << flush;\n", name, name, name);
+        fprintf(outFile, "\t\t\t\t\t\t\t if(is_debug()) cout << \"[C Binding] Copying object %s in cache. From \" << %s_orig_id << \" to \"<< %s_dest_id << endl << flush;\n", name, name, name);
         fprintf(outFile, "\t\t\t\t\t\t\t compss_pointer %s_to;\n", name);
         fprintf(outFile, "\t\t\t\t\t\t\t int res = cache->copyInCache(%s_orig_id, %s_dest_id, %s_to);\n", name, name, name);
 
@@ -1232,14 +1232,14 @@ static void add_checkinCache_and_management(FILE *outFile, const char* name, con
 
         // else -> make a cache move
         fprintf(outFile, "\t\t\t\t\t\t } else { \n");
-        fprintf(outFile, "\t\t\t\t\t\t\t cout << \"[C Binding] Moving object %s in cache. From \" << %s_orig_id << \" to \"<< %s_dest_id << endl << flush;\n", name, name, name);
+        fprintf(outFile, "\t\t\t\t\t\t\t if(is_debug()) cout << \"[C Binding] Moving object %s in cache. From \" << %s_orig_id << \" to \"<< %s_dest_id << endl << flush;\n", name, name, name);
         fprintf(outFile, "\t\t\t\t\t\t\t int res = cache->moveInCache(%s_orig_id, %s_dest_id);\n", name, name);
         fprintf(outFile, "\t\t\t\t\t\t\t if (res != 0){\n"); //If error moving -> return error
         fprintf(outFile, "\t\t\t\t\t\t\t\t cerr << \"[C Binding] Error copying object %s in \"<< %s_orig_id << endl << flush;\n", name, name);
         fprintf(outFile, "\t\t\t\t\t\t\t\t return res;\n");
         fprintf(outFile, "\t\t\t\t\t\t\t }\n"); //End error
         // and get the object pointer from cache
-        fprintf(outFile, "\t\t\t\t\t\t\t cout << \"[C Binding] Object %s has been added to the cache as\" << %s_dest_id_str << \" with type %d. Previous version is kept as \" << %s_orig_id_str << endl << flush;\n", name, name, position, name);
+        fprintf(outFile, "\t\t\t\t\t\t\t if(is_debug()) cout << \"[C Binding] Object %s has been added to the cache as\" << %s_dest_id_str << \" with type %d. Previous version is kept as \" << %s_orig_id_str << endl << flush;\n", name, name, position, name);
         fprintf(outFile, "\t\t\t\t\t\t\t compss_pointer cp;\n");
         fprintf(outFile, "\t\t\t\t\t\t\t res = cache->getFromCache(%s_dest_id, cp);\n", name);
         fprintf(outFile, "\t\t\t\t\t\t\t if (res != 0){\n"); //If error getting -> return error
@@ -1259,14 +1259,14 @@ static void add_checkinCache_and_management(FILE *outFile, const char* name, con
     fprintf(outFile, "\t\t\t\t\t\t return res;\n");
     fprintf(outFile, "\t\t\t\t\t }\n"); //end error
     fprintf(outFile, "\t\t\t\t\t %s = (%s*)cp.pointer;\n", name, dataType);
-    fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Object %s has been read from the cache as\" << %s_dest_id_str << endl << flush;\n", name, name);
+    fprintf(outFile, "\t\t\t\t\t if(is_debug()) cout << \"[C Binding] Object %s has been read from the cache as\" << %s_dest_id_str << endl << flush;\n", name, name);
     fprintf(outFile, "\t\t\t\t } //end found as dest id \n"); //end else
 
     //TODO Check if it is needed
     if (preserveData) {
         fprintf(outFile, "\t\t\t\t if (string(%s_pres_data) == \"false\"){\n", name);
         fprintf(outFile, "\t\t\t\t\t cache->deleteFromCache(%s_orig_id, false);\n", name);
-        fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Object \" << %s_orig_id_str << \" has been removed from the cache.\" << endl << flush;\n", name);
+        fprintf(outFile, "\t\t\t\t\t if(is_debug()) cout << \"[C Binding] Object \" << %s_orig_id_str << \" has been removed from the cache.\" << endl << flush;\n", name);
         fprintf(outFile, "\t\t\t\t }\n");
     }
 }
@@ -1277,7 +1277,7 @@ static void add_object_or_array_arg_worker_treatment(FILE *outFile, argument *ar
 
     fprintf(outFile, "\t\t\t char* %s_filename_og = strdup(argv[arg_offset]);\n", arg->name);
     fprintf(outFile, "\t\t\t arg_offset ++;\n");
-    fprintf(outFile, "\t\t\t cout <<\"[C Binding] Received value : \"<< %s_filename_og << endl;\n",arg->name);
+    fprintf(outFile, "\t\t\t if(is_debug()) cout <<\"[C Binding] Received value : \"<< %s_filename_og << endl;\n",arg->name);
     fprintf(outFile, "\t\t\t int %s_type = atoi(argv[arg_offset]);\n", arg->name);
     fprintf(outFile, "\t\t\t arg_offset ++;\n");
     fprintf(outFile, "\t\t\t int %s_elements = atoi(argv[arg_offset]);\n", arg->name);
@@ -1296,7 +1296,7 @@ static void add_object_or_array_arg_worker_treatment(FILE *outFile, argument *ar
 
     //Check if there is data id information in the value
     fprintf(outFile, "\t\t\t if (%s_orig_id != NULL && %s_filename != NULL){ // Obtain object from cache\n", arg->name, arg->name);
-    fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Managing object data id for %s ...\" << endl << flush;\n", arg->name);
+    fprintf(outFile, "\t\t\t\t if(is_debug()) cout << \"[C Binding] Managing object data id for %s ...\" << endl << flush;\n", arg->name);
     fprintf(outFile, "\t\t\t\t %s_dest_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
     fprintf(outFile, "\t\t\t\t %s_pres_data = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
     fprintf(outFile, "\t\t\t\t %s_write_data = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
@@ -1325,7 +1325,7 @@ static void add_object_or_array_arg_worker_treatment(FILE *outFile, argument *ar
 
         fprintf(outFile, "\t\t\t\t if (serializeOuts < 1){\n");
         fprintf(outFile, "\t\t\t\t\t remove(%s_dest_id);\n", arg->name);
-        fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Removed file \" << %s_dest_id << endl;\n", arg->name);
+        fprintf(outFile, "\t\t\t\t\t if(is_debug()) cout << \"[C Binding] Removed file \" << %s_dest_id << endl;\n", arg->name);
         fprintf(outFile, "\t\t\t\t }\n");
 
         break;
@@ -1339,10 +1339,10 @@ static void add_object_or_array_arg_worker_treatment(FILE *outFile, argument *ar
             fprintf(outFile, "\t\t\t\t %s_cp.size = %s_cp.elements*sizeof(%s);\n", arg->name, arg->name, arg->classname);
             fprintf(outFile, "\t\t\t\t int res = cache->storeInCache(%s_dest_id, %s_cp);\n", arg->name, arg->name);
             fprintf(outFile, "\t\t\t\t if (res != 0){\n");
-            fprintf(outFile, "\t\t\t\t\t cout << \"[C Binding] Error storing object %s as \"<< %s_dest_id_str <<\" in cache \" << endl << flush;\n", arg->name, arg->name);
+            fprintf(outFile, "\t\t\t\t\t cerr << \"[C Binding] Error storing object %s as \"<< %s_dest_id_str <<\" in cache \" << endl << flush;\n", arg->name, arg->name);
             fprintf(outFile, "\t\t\t\t\t return res;\n");
             fprintf(outFile, "\t\t\t\t }\n");
-            fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Object \" << %s_dest_id_str << \" has been added to the cache with type %d.\" << endl << flush;\n", arg->name, position);
+            fprintf(outFile, "\t\t\t\t if(is_debug()) cout << \"[C Binding] Object \" << %s_dest_id_str << \" has been added to the cache with type %d.\" << endl << flush;\n", arg->name, position);
             //File not created is out
             /*fprintf(outFile, "\t\t\t\t if (serializeOuts < 1){\n");
             fprintf(outFile, "\t\t\t\t\t remove(%s_dest_id);\n", arg->name);
@@ -1357,7 +1357,7 @@ static void add_object_or_array_arg_worker_treatment(FILE *outFile, argument *ar
 
     //No data information case (required for GAT Adaptor)
     fprintf(outFile, "\t\t\t } else { //Obtain object as file \n");
-    fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Data ID for parameter %s not found in argument value. Reseting filename to \" << %s_filename_og << endl << flush;\n", arg->name, arg->name);
+    fprintf(outFile, "\t\t\t\t if(is_debug()) cout << \"[C Binding] Data ID for parameter %s not found in argument value. Reseting filename to \" << %s_filename_og << endl << flush;\n", arg->name, arg->name);
     fprintf(outFile, "\t\t\t\t %s_filename = %s_filename_og ;\n", arg->name, arg->name);
     fprintf(outFile, "\t\t\t\t %s_dest_id = %s_filename_og ;\n", arg->name, arg->name);
     if (arg->dir != out_dir){
@@ -1678,9 +1678,9 @@ static void add_return_object_store(FILE *outFile, argument *arg, Types current_
     fprintf(outFile, "\t\t\t\t %s_cp.elements= %s_elements;\n", arg->name, arg->name);
     fprintf(outFile, "\t\t\t\t %s_cp.pointer = (void*)%s;\n", arg->name, arg->name);
     fprintf(outFile, "\t\t\t\t %s_cp.size = %s_cp.elements*sizeof(%s);\n", arg->name, arg->name, arg->classname);
-    fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Storing object \" << %s_dest_id << \" to cache with type %d.\" << endl << flush;\n", arg->name, position);
+    fprintf(outFile, "\t\t\t\t if(is_debug()) cout << \"[C Binding] Storing object \" << %s_dest_id << \" to cache with type %d.\" << endl << flush;\n", arg->name, position);
     fprintf(outFile, "\t\t\t\t cache->storeInCache(%s_dest_id, %s_cp);\n", arg->name, arg->name);
-    fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Object \" << %s_dest_id << \" has been added to cache with type %d.\" << endl << flush;\n", arg->name, position);
+    fprintf(outFile, "\t\t\t\t if(is_debug()) cout << \"[C Binding] Object \" << %s_dest_id << \" has been added to cache with type %d.\" << endl << flush;\n", arg->name, position);
     fprintf(outFile, "\t\t\t } \n");
 }
 
@@ -1734,7 +1734,7 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
     //Add function call
     printf("\t\t Adding function call unmarshalling...\n");
     fflush(NULL);
-    fprintf(outFile, "\t\t\t cout << \"[C Binding] Calling function %s.%s\" << endl << flush;\n", func->classname, func->methodname);
+    fprintf(outFile, "\t\t\t if(is_debug()) cout << \"[C Binding] Calling function %s.%s\" << endl << flush;\n", func->classname, func->methodname);
 
     if (( func->classname != NULL ) && (func->access_static == 0) && (func->return_type == void_dt)) {
         fprintf(outFile, "\t\t\t %s->%s(", th->name, func->methodname);
@@ -1761,7 +1761,7 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
         arg = arg->next_argument;
     }
     fprintf(outFile, ");\n");
-    fprintf(outFile, "\t\t\t cout << \"[C Binding] Execution of function %s.%s finished.\" << endl << flush;\n", func->classname, func->methodname);
+    fprintf(outFile, "\t\t\t if(is_debug()) cout << \"[C Binding] Execution of function %s.%s finished.\" << endl << flush;\n", func->classname, func->methodname);
     fprintf(outFile, "\n");
 
     //Add return_type store in cache
@@ -1774,15 +1774,15 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
     //Add output serialization if required
     fprintf(outFile, "\t\t\t if (serializeOuts){\n");
 
-    fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Object will be serialized as output.\" << endl << flush;\n");
+    fprintf(outFile, "\t\t\t\t if(is_debug()) cout << \"[C Binding] Object will be serialized as output.\" << endl << flush;\n");
     if (( func->classname != NULL ) && (func->access_static == 0)) {
-        fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Treating target object\" << endl << flush;\n");
+        fprintf(outFile, "\t\t\t\t if(is_debug()) cout << \"[C Binding] Treating target object\" << endl << flush;\n");
         add_argument_serialization_worker(outFile, th, "_dest_id", "_elements", "\t\t\t\t");
         j++;
     }
 
     if (func->return_type != void_dt) {
-        fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Treating return object\" << endl << flush;\n");
+        fprintf(outFile, "\t\t\t\t if(is_debug()) cout << \"[C Binding] Treating return object\" << endl << flush;\n");
         add_argument_serialization_worker(outFile, ret, "_dest_id", "_elements", "\t\t\t\t");
         j++;
     }
@@ -1796,7 +1796,7 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
         j++;
     }
 
-    fprintf(outFile, "\t\t\t cout << \"[C Binding] Object has been serialized as output.\" << endl << flush;\n");
+    fprintf(outFile, "\t\t\t if(is_debug()) cout << \"[C Binding] Object has been serialized as output.\" << endl << flush;\n");
 
     fprintf(outFile, "\t\t\t }\n"); //end of if serialization clause
 

@@ -125,7 +125,7 @@ int AbstractCache::getFromCache(const char* id, compss_pointer &cp) {
 int AbstractCache::storeInCache(const char* _id, compss_pointer cp) {
 	string id(_id);
 	if (is_debug()) {
-		cout << "[AbstractCache] Storing object "<< id << " from cache. " << hex << cp.pointer << endl;
+		cout << "[AbstractCache] Storing object "<< id << " in cache. " << hex << cp.pointer << endl;
 	}
 	get_lock();
     cache[id]=cp;

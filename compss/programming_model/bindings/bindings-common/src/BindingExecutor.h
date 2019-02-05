@@ -31,16 +31,16 @@ extern "C" {
  * Method:    executeInBinding
  * Signature: (I[Ljava/lang/String;)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_es_bsc_compss_nio_worker_executors_PersistentExternalExecutor_executeInBinding
-// (JNIEnv *, jclass, jint, jobjectArray);
+JNIEXPORT jstring JNICALL Java_es_bsc_compss_invokers_external_persistent_PersistentInvoker_executeInBinding
 (JNIEnv *, jclass, jstring);
+// (JNIEnv *, jclass, jint, jobjectArray);
 
 /*
  * Class:     es_bsc_compss_nio_worker_executors_PersistentExternalExecutor
  * Method:    finishThread
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_es_bsc_compss_nio_worker_executors_PersistentExternalExecutor_finishThread
+JNIEXPORT void JNICALL Java_es_bsc_compss_invokers_external_persistent_PersistentInvoker_finishThread
 (JNIEnv *, jclass);
 
 /*
@@ -48,7 +48,7 @@ JNIEXPORT void JNICALL Java_es_bsc_compss_nio_worker_executors_PersistentExterna
  * Method:    initThread
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_es_bsc_compss_nio_worker_executors_PersistentExternalExecutor_initThread
+JNIEXPORT void JNICALL Java_es_bsc_compss_invokers_external_persistent_PersistentInvoker_initThread
 (JNIEnv *, jclass);
 #ifdef __cplusplus
 }

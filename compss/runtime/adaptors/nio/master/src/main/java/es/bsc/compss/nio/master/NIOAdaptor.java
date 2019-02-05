@@ -164,8 +164,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         }
 
         // Start the Transfer Manager thread (starts the EventManager)
-        LOGGER.debug("  Starting TransferManager Thread");
-        TM.start();
+        //LOGGER.debug("  Starting TransferManager Thread");
+        //TM.start();
     }
 
     @Override

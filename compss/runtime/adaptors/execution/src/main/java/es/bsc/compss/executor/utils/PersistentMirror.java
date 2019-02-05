@@ -14,15 +14,28 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.data;
+package es.bsc.compss.executor.utils;
 
-import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.invokers.external.persistent.PersistentInvoker;
+import es.bsc.compss.types.execution.InvocationContext;
 
+public class PersistentMirror implements ExecutionPlatformMirror {
 
-public interface DataProvider {
+    public PersistentMirror(InvocationContext context, int size) {
 
-    public boolean isPersistentEnabled();
+    }
 
-    public void askForTransfer(InvocationParam param, int index, DataManager.FetchDataListener tt);
+    @Override
+    public void stop() {
 
+    }
+
+    @Override
+    public void unregisterExecutor(String id) {
+        PersistentInvoker.finishThread();
+    }
+
+    public void registerExecutor(String id) {
+        PersistentInvoker.initThread();
+    }
 }

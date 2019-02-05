@@ -16,6 +16,9 @@
  */
 package es.bsc.compss.invokers.external.persistent;
 
+import es.bsc.compss.executor.ExecutorContext;
+import es.bsc.compss.executor.utils.ExecutionPlatformMirror;
+import es.bsc.compss.executor.utils.PersistentMirror;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.invokers.external.ExternalInvoker;
 import es.bsc.compss.invokers.types.ExternalTaskStatus;
@@ -79,4 +82,13 @@ public abstract class PersistentInvoker extends ExternalInvoker {
     }
 
     public static native String executeInBinding(String args);
+
+    public static native void initThread();
+
+    public static native void finishThread();
+
+    public static PersistentMirror getMirror(InvocationContext context, ExecutorContext platform) {
+        int threads = platform.getSize();
+        return new PersistentMirror(context, threads);
+    }
 }

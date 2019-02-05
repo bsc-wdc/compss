@@ -20,6 +20,8 @@ import es.bsc.compss.executor.Executor;
 import es.bsc.compss.executor.ExecutorContext;
 import es.bsc.compss.executor.types.Execution;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
+
+import java.util.Collection;
 import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
@@ -190,4 +192,8 @@ public class ExecutionPlatform implements ExecutorContext {
         mirrors.put(invoker, mirror);
     }
 
+    @Override
+    public Collection<ExecutionPlatformMirror> getMirrors() {
+        return mirrors.values();
+    }
 }

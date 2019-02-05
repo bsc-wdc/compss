@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
     CBindingCache *cache = new CBindingCache();
     CBindingExecutor *executor = new CBindingExecutor(cache);
     worker_start(cache, executor, argc-1, arg_nio);
-    delete(executor);
-    delete(cache);
+    //delete(executor);
+    //delete(cache);
 
 }

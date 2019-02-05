@@ -22,6 +22,8 @@ import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
 import es.bsc.compss.types.resources.ResourceDescription;
 
+import java.util.Collection;
+
 
 public interface ExecutorContext {
 
@@ -36,4 +38,7 @@ public interface ExecutorContext {
     public InvocationResources acquireResources(int jobId, ResourceDescription requirements) throws UnsufficientAvailableComputingUnitsException;
 
     public void releaseResources(int jobId);
+
+    public Collection<ExecutionPlatformMirror> getMirrors();
+
 }

@@ -30,7 +30,7 @@ void init_executor(AbstractExecutor *aExecutor) {
  * Method:    executeInBinding
  * Signature: (I[Ljava/lang/String;)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_es_bsc_compss_nio_worker_executors_PersistentExternalExecutor_executeInBinding
+JNIEXPORT jstring JNICALL Java_es_bsc_compss_invokers_external_persistent_PersistentInvoker_executeInBinding
 //(JNIEnv *env, jclass jClass, jint argc_java, jobjectArray args_java){
 (JNIEnv *env, jclass jClass, jstring args_java) {
     char *result;
@@ -60,7 +60,7 @@ JNIEXPORT jstring JNICALL Java_es_bsc_compss_nio_worker_executors_PersistentExte
  * Method:    finishThread
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_es_bsc_compss_nio_worker_executors_PersistentExternalExecutor_finishThread
+JNIEXPORT void JNICALL Java_es_bsc_compss_invokers_external_persistent_PersistentInvoker_finishThread
 (JNIEnv *env, jclass jClass) {
     debug_printf("Receiving command to finish a worker thread");
     executor->finishThread();
@@ -71,7 +71,7 @@ JNIEXPORT void JNICALL Java_es_bsc_compss_nio_worker_executors_PersistentExterna
  * Method:    initThread
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_es_bsc_compss_nio_worker_executors_PersistentExternalExecutor_initThread
+JNIEXPORT void JNICALL Java_es_bsc_compss_invokers_external_persistent_PersistentInvoker_initThread
 (JNIEnv *env, jclass jClass) {
     debug_printf("Receiving command to initialize a worker thread");
     executor->initThread();

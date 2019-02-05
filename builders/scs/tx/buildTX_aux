@@ -42,4 +42,4 @@
 
   echo "- The module command has been loaded by sourcing /etc/profile.d/modules.sh"
 
-  . "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${py2_modules}" "${py3_modules}" "${additionalExports}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "true"
+  . "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${py2_modules}" "${py3_modules}" "${additionalExports}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "false"

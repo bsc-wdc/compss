@@ -308,7 +308,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         if (reason.getType() == DataType.BINDING_OBJECT_T) {
             if (ld.getValue() == null) {
                 LOGGER.warn("[Resource] Getting data: " + newName
-                        + ", source logical data value is null. Triying with data target from reason ");
+                        + ", source logical data value is null. Trying with data target from reason ");
                 BindingObject bo = BindingObject.generate((String) reason.getDataTarget());
                 newName = newName + "#" + bo.getType() + "#" + bo.getElements();
             } else {

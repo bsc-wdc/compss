@@ -476,7 +476,7 @@ xml_project_add_elasticity() {
     fi
     if [ -n "${queue}" ]; then
       props="$props queue=${queue}"
-    fi 
+    fi
     if [ -n "${reservation}" ]; then
       props="$props reservation=${reservation}"
     fi
@@ -580,7 +580,7 @@ xml_resources_add_workers() {
     if [ ! -z "${NODE_NAME_XML}" ]; then
       worker_node_name=$(${NODE_NAME_XML} "${worker_node}" "${network}")
     elif [ -n "${NODE_NAME_QUEUE}" ]; then
-      worker_node_name=$(${NODE_NAME_QUEUE} "${worker_node}")                                                                                                                                                                             
+      worker_node_name=$(${NODE_NAME_QUEUE} "${worker_node}")
     else
       worker_node_name=${worker_node}
     fi
@@ -1160,7 +1160,7 @@ check_args() {
   #
   # Infrastructure checks
   #
-  # Changed error by warning because in heterogeneous there can be a launch of just workers 
+  # Changed error by warning because in heterogeneous there can be a launch of just workers
   if [ -z "${master_node}" ]; then
     echo "${ERROR_MASTER_NODE}"
   fi
@@ -1602,8 +1602,23 @@ launch() {
       done
     fi
 
+    local num_workers=$((hostid-1))
+
     # Sleep a little before launching master
-    sleep 10s # dependant of the number of workers?
+    echo "Number of workers: $num_workers"
+    if ((1<=$num_workers && $num_workers<100))
+    then
+        echo "Waiting 10 seconds..."
+        sleep 10s
+    elif ((100<=$num_workers && $num_workers<800))
+    then
+        wait_time=$(($num_workers/10))
+        echo "Waiting ${wait_time} seconds..."
+        sleep "${wait_time}s"
+    else
+        echo "Waiting 80 seconds..."
+        sleep 80s
+    fi
   fi
   if [ ! -z "${master_node}" ]; then
     # Launch master

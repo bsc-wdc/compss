@@ -277,11 +277,14 @@ public class DataManagerImpl implements DataManager {
         }
         
         String name = (String) param.getValue();
-        LOGGER.debug("   - " + name + " registered as binding object.");
-        String[] extObjVals = (name).split("#");
-        String value = extObjVals[0];
-        int type = Integer.parseInt(extObjVals[1]);
-        int elements = Integer.parseInt(extObjVals[2]);
+        WORKER_LOGGER.debug("   - " + name + " registered as binding object.");
+
+        BindingObject dest_bo = BindingObject.generate(name);
+        String value = dest_bo.getName();
+        int type = dest_bo.getType();
+        int elements = dest_bo.getElements();
+
+
         boolean askTransfer = false;
 
         boolean cached = false;
@@ -306,7 +309,7 @@ public class DataManagerImpl implements DataManager {
                 for (InvocationParamURI loc : param.getSources()) {
                     BindingObject bo = BindingObject.generate(loc.getPath());
                     if (loc.isHost(hostName) && BindingDataManager.isInBinding(bo.getName())) {
-                        //The value we want is not directly cached, but one its source is
+                        //The value we want is not directly cached, but one of it sources is
                         if (WORKER_LOGGER_DEBUG) {
                             WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") sources location found in cache.");
                         }
@@ -315,6 +318,7 @@ public class DataManagerImpl implements DataManager {
                         if (param.isPreserveSourceData()) {
                             if (WORKER_LOGGER_DEBUG) {
                                 WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") preserves sources. CACHE-COPYING");
+                                WORKER_LOGGER.debug("   - Parameters to issue the copy are: " + bo.getName() + " and " + value);
                             }
 
                             res = BindingDataManager.copyCachedData(bo.getName(), value);
@@ -446,7 +450,7 @@ public class DataManagerImpl implements DataManager {
         tt.fetchedValue();
     }
 
-    private void fetchFile(InvocationParam param, int index, LoadDataListener tt) {
+    private void fetchFile(InvocationParam param, int index, FetchDataListener tt) {
         WORKER_LOGGER.debug("   - " + (String) param.getValue() + " registered as file.");
         final String originalName = param.getSourceDataId();
         final String expectedFileLocation = param.getValue().toString();
@@ -626,12 +630,12 @@ public class DataManagerImpl implements DataManager {
     }
 
     private void fetchedLocalParameter(InvocationParam param, int index, FetchDataListener tt) {
-        LOGGER.info("- Parameter " + index + "(" + (String) param.getValue() + ") already exists.");
+        WORKER_LOGGER.info("- Parameter " + index + "(" + (String) param.getValue() + ") already exists.");
         tt.fetchedValue();
     }
 
     private void transferParameter(InvocationParam param, int index, FetchDataListener tt) {
-        LOGGER.info("- Parameter " + index + "(" + (String) param.getValue() + ") does not exist, requesting data transfer");
+        WORKER_LOGGER.info("- Parameter " + index + "(" + (String) param.getValue() + ") does not exist, requesting data transfer");
         provider.askForTransfer(param, index, tt);
     }
 

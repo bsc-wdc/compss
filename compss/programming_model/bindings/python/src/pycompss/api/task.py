@@ -569,8 +569,13 @@ class task(object):
         :return: None, it just adds attributes
         """
         import inspect
-        self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults = \
-            inspect.getargspec(self.user_function)
+        try:
+            self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults = \
+                inspect.getargspec(self.user_function)
+        except TypeError:
+            # This is a numba jit declared task
+            self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults = \
+                inspect.getargspec(self.user_function.py_func)
         # It will be easier to deal with functions if we pretend that all have the
         # signature f(positionals, *variadic, **named). This is why we are substituting
         # Nones with default stuff
@@ -1020,8 +1025,8 @@ class task(object):
         # Call the user function with all the reconstructed parameters, get the return values
         from numba import jit
         #user_returns = jit(self.user_function, cache=True, nopython=True)(*user_args, **user_kwargs)
-        user_returns = jit(cache=True, nopython=True)(self.user_function)(*user_args, **user_kwargs)
-        #user_returns = self.user_function(*user_args, **user_kwargs)
+        #user_returns = jit(cache=True, nopython=True)(self.user_function)(*user_args, **user_kwargs)
+        user_returns = self.user_function(*user_args, **user_kwargs)
 
         # Reestablish the hook if it was disabled
         if restore_hook:

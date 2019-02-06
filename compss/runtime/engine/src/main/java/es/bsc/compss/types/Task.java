@@ -152,7 +152,9 @@ public class Task implements Comparable<Task> {
      */
     public void releaseDataDependents() {
         for (Task t : this.successors) {
-            t.predecessors.remove(this);
+            synchronized(t){
+                t.predecessors.remove(this);
+            }
         }
         this.successors.clear();
     }

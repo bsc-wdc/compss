@@ -1152,26 +1152,6 @@ void GS_BarrierNew(long _appId, int noMoreTasks) {
     debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  APP id: %lu\n", appId);
 }
 
-void GS_BarrierConcurrent(long _appId) {
-    debug_printf("[BINDING-COMMONS]  -  @GS_BarrierConcurrent  -  Waiting tasks for APP id: %lu\n", appId);
-    get_lock();
-    JNIEnv* local_env = m_env;
-    int isAttached = check_and_attach(m_jvm, local_env);
-	release_lock();
-
-	local_env->CallVoidMethod(jobjIT, midBarrierConcurrent, appId);
-
-    if (local_env->ExceptionOccurred()) {
-        local_env->ExceptionDescribe();
-        exit(1);
-    }
-
-    if (isAttached==1) {
-        m_jvm->DetachCurrentThread();
-    }
-    debug_printf("[BINDING-COMMONS]  -  @GS_BarrierConcurrent  -  APP id: %lu\n", appId);
-}
-
 void GS_EmitEvent(int type, long id) {
 	get_lock();
 	int isAttached = check_and_attach(m_jvm, m_env);

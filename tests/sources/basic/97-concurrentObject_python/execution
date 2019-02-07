@@ -56,7 +56,7 @@ EOF
      --resources="${base_app_dir}"/resources.xml \
      \
      --comm="$comm" \
-     \
+     -g\
      --debug \
      ${runcompss_opts} \
      \

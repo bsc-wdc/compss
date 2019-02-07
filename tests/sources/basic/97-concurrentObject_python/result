@@ -36,5 +36,57 @@
     exit 1
   fi
 
-  exit 0
+#----------------------------------------------------------------------------------
+ FILES=15
 
+ if [ -f result.txt ]; then
+	 rm result.txt
+ fi
+
+ result=$(cat /tmp/sharedDisk/file.txt)
+ if [ ${#result} -ne 7 ]; then
+	 echo "ERROR: Final result is not correct. ${#result} "
+	 exit 1
+ fi
+
+ version=$(ls ~/.COMPSs/ | grep "testConcurrentObj.py_" | tail -1)
+
+ if [ ! -f ~/.COMPSs/$version/jobs/job"$FILES"_NEW.out ]; then
+        echo "ERROR: All tasks have not completed succesfully."
+        exit 1
+ fi
+
+ if [ -f ~/.COMPSS/testConcurrentObj."$version"/jobs/job"$FILES+1"_NEW.out ]; then
+         echo "ERROR: More tasks than expected have been executed."
+         exit 1
+ fi
+
+ # check concurrent execution
+
+
+ output1=$(cat $output_file | grep "Opening /" | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }' | head -n +1)
+ output2=$(cat $output_file | grep "File target Location: " | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }' | head -n +1)
+
+  if [ $output2 -lt $(($output1+10000)) ]; then
+         echo "ERROR: It does not wait for all tasks to be finished"
+         exit 1
+  fi
+
+ output1=$(cat $output_file | grep "Opening storage:" | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }'| head -n +1)
+ output2=$(cat $output_file| grep "External PSCO target Location" | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }' | head -n +1)
+
+  if [ $(($output2-8000)) -ge $(($output1)) ]; then
+         echo "ERROR: Concurrent type not working"
+         exit 1
+  fi
+
+ # check inout execution
+ output3=$(cat $output_file | grep "Opening /" | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }' | head -n +2 | tail -n 1)
+ output4=$(cat $output_file | grep "File target Location: " | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }' | head -n +2 | tail -n 1)
+
+ if [ $(($output4-8000)) -lt $(($output3)) ]; then
+        echo "ERROR: It does not wait for all tasks to be finished"
+        exit 1
+ fi
+
+  exit 0

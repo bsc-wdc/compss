@@ -20,6 +20,7 @@
   # Create all working dir folders
   mkdir -p /tmp/COMPSsWorker01/
   mkdir -p /tmp/COMPSsWorker02/
+  mkdir -p /tmp/sharedDisk/
   
   #----------------------------------------------------------------------------------
   # Create storage Conf
@@ -31,7 +32,7 @@ EOF
   
   # Add trap to clean folder
   clean() {
-    rm -rf /tmp/concurrentObject/
+    rm -rf /tmp/PSCO/
   }
   trap clean EXIT
 
@@ -51,7 +52,7 @@ EOF
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \
      --project="${base_app_dir}"/project.xml \
      --resources="${base_app_dir}"/resources.xml \
-     \
+     -g \
      --comm="$comm" \
      \
      --debug \
@@ -71,7 +72,7 @@ EOF
      
      # Report time out
      echo "[WARNING] Java Application timed out" >> "${output_log}"
-     ev1=124
+     exitValue=124
   else
      # Copy LOG files
      cp -rf "${COMPSs_log_folder}"/testConcurrent.TestConcurrent_0"${retryNum}"/* "${target_log_folder}"

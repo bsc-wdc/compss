@@ -1,11 +1,12 @@
-package concurrent;
+package testConcurrent;
 
 //import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.Thread;
 
-public class ConcurrentMImpl {
+public class TestConcurrentImpl {
 	public static void write_one(String fileName) {
 		try {
 			FileOutputStream fos = new FileOutputStream(fileName, true);
@@ -17,7 +18,6 @@ public class ConcurrentMImpl {
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -32,7 +32,6 @@ public class ConcurrentMImpl {
         } catch (IOException ioe) {
             ioe.printStackTrace();
         } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }

@@ -132,14 +132,6 @@ if context.in_pycompss():
 
         barrier(no_more_tasks)
 
-    def compss_barrier_concurrent():
-        """
-        Perform a barrier concurrent when called.
-        Stop until all the submitted tasks have finished.
-        """
-
-        barrier_concurrent()
-
 
     def compss_wait_on(*args):
         """

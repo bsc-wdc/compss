@@ -315,6 +315,7 @@ public class DataInfoProvider {
             // Inform the File Transfer Manager about the new file containing the object
             if (mode != AccessMode.W) {
                 Comm.registerExternalPSCO(renaming, pscoId);
+                LOGGER.debug("MARTA: registerExternalPSCOAccess");
             }
         } else {
             // The datum has already been accessed
@@ -421,6 +422,7 @@ public class DataInfoProvider {
         Integer wVersionId;
         boolean deleted = false;
         switch (dAccId.getDirection()) {
+            case C:
             case R:
                 rVersionId = ((RAccessId) dAccId).getReadDataInstance().getVersionId();
                 deleted = di.versionHasBeenRead(rVersionId);

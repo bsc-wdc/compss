@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- GENERAL INFORMATION -->
-	<artifactId>98-concurrentObjectTest</artifactId>
+	<artifactId>96-concurrentObjectTest</artifactId>
 	<packaging>jar</packaging>
 	<parent>
 		<groupId>es.bsc.compss.tests</groupId>

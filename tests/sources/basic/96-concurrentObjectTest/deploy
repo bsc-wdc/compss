@@ -13,7 +13,7 @@
   cp "${source_base_dir}"/../../../../utils/storage/dummyPSCO/target/compss-dummyPSCO.jar "${target_base_dir}"/jars/compss-dummyPSCO.jar
   
   # Copy files
-  cp "${source_base_dir}"/target/98-concurrentObjectTest.jar "${target_base_dir}"/concurrentObjectTest.jar
+  cp "${source_base_dir}"/target/96-concurrentObjectTest.jar "${target_base_dir}"/concurrentObjectTest.jar
                   
   cp "${source_base_dir}"/project.xml "${target_base_dir}"/project.xml          
   cp "${source_base_dir}"/resources.xml "${target_base_dir}"/resources.xml

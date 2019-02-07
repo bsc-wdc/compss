@@ -89,15 +89,6 @@ def compss_barrier(no_more_tasks=False):
     pass
 
 
-def compss_barrier_concurrent():
-    """
-    Dummy barrier concurrent.
-
-    :return: None
-    """
-    pass
-
-
 def compss_wait_on(*args):
     """
     Dummy compss_wait_on

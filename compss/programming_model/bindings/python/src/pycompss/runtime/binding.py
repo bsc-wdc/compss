@@ -343,23 +343,6 @@ def barrier(no_more_tasks=False):
     # Call the Runtime barrier (appId 0, not needed for the signature)
     compss.barrier(0, no_more_tasks)
 
-
-def barrier_concurrent():
-    """
-    Calls the external python library (that calls the bindings-common)
-    in order to request a barrier concurrent.
-    Wait for all tasks.
-
-    :return: None
-    """
-
-    if __debug__:
-        logger.debug("Barrier Concurrent")
-
-    # Call the Runtime barrier (appId 0, not needed for the signature)
-    compss.barrier_concurrent(0)
-
-
 def get_log_path():
     """
     Requests the logging path to the external python library (that calls

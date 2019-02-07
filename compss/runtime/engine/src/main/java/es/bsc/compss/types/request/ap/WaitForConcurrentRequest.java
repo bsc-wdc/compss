@@ -22,6 +22,7 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.types.data.AccessParams.AccessMode;
 
 public class WaitForConcurrentRequest extends APRequest {
 
@@ -29,12 +30,13 @@ public class WaitForConcurrentRequest extends APRequest {
     private Semaphore sem;
     private Semaphore semTask;
     private int numWaits;
-
-    public WaitForConcurrentRequest(int dataId, Semaphore sem, Semaphore semTasks) {
+    private final AccessMode am;
+    
+    public WaitForConcurrentRequest(int dataId, AccessMode mode, Semaphore sem, Semaphore semTasks) {
         this.dataId = dataId;
         this.sem = sem;
         this.semTask = semTasks;
-                
+        this.am = mode;           
     }
 
     public int getDataId() {
@@ -69,6 +71,10 @@ public class WaitForConcurrentRequest extends APRequest {
 
     public Semaphore getTaskSemaphore() {
         return semTask;
+    }
+
+    public AccessMode getAccessMode() {
+        return am;
     }
 
 }

@@ -210,7 +210,7 @@ public class TaskAnalyser {
         DataAccessId daId = dp.getDataAccessId();
         switch (am) {
             case R:  
-                if (!dataIsAccessConcurrent(daId.getDataId())) {
+                if (!dataWasAccessedConcurrent(daId.getDataId())) {
                     checkDependencyForRead(currentTask, dp);
                 } else {
                     checkDependencyForConcurrent(currentTask, dp);
@@ -226,7 +226,12 @@ public class TaskAnalyser {
                 }
             break;
             case RW:
-                checkDependencyForRead(currentTask, dp);
+                if (!dataWasAccessedConcurrent(daId.getDataId())) {
+                    checkDependencyForRead(currentTask, dp);
+                } else {
+                    checkDependencyForConcurrent(currentTask, dp);
+                    removeFromConcurrentAccess(dp.getDataAccessId().getDataId());
+                }
                 if (isConstraining) {
                     DataAccessId.RWAccessId raId = (DataAccessId.RWAccessId) dp.getDataAccessId();
                     DataInstanceId dependingDataId = raId.getReadDataInstance();
@@ -239,9 +244,13 @@ public class TaskAnalyser {
                 registerOutputValues(currentTask, dp);
                 break;
             case W:
+                if (dataWasAccessedConcurrent(daId.getDataId())) {
+                    removeFromConcurrentAccess(dp.getDataAccessId().getDataId());
+                }
                 registerOutputValues(currentTask, dp);
                 break;
             case C:
+                checkDependencyForRead(currentTask, dp);
                 List<Task> tasks= this.concurrentAccessMap.get(daId.getDataId());
                 if (tasks == null) {
                     tasks = new LinkedList<Task>();
@@ -354,8 +363,6 @@ public class TaskAnalyser {
                 sem.release();
             }
         }
-        
-        LOGGER.debug("MARTA: A semaphore has been released");
 
         for (Parameter param : task.getTaskDescription().getParameters()) {
             DataType type = param.getType();
@@ -441,24 +448,9 @@ public class TaskAnalyser {
         AccessMode am = request.getAccessMode();
         Semaphore sem = request.getSemaphore();
         Task lastWriter = this.writers.get(dataId);
-        
-        LOGGER.error("MARTA: Find waited task");
 
         if (lastWriter != null) {
-            // Add to writers if needed
-            if (am == AccessMode.RW) {
-                this.writers.put(dataId, null);
-                LOGGER.error("MARTA:  Task in writers");
-            }
-
-            // Add graph description
-            if (IS_DRAW_GRAPH) {
-                TreeSet<Integer> toPass = new TreeSet<>();
-                toPass.add(dataId);
-                DataInstanceId dii = DIP.getLastVersions(toPass).get(0);
-                int dataVersion = dii.getVersionId();
-                addEdgeFromTaskToMain(lastWriter, dataId, dataVersion);
-            }
+            treatDataAccess(lastWriter, am, dataId);
         }
 
         // Release task if possible. Otherwise add to waiting
@@ -475,11 +467,34 @@ public class TaskAnalyser {
     }
     
     /**
+     * Checks how the data was accessed
+     *
+     * @param lastWriter
+     * @param am
+     * @param dataId
+     */
+    private void treatDataAccess(Task lastWriter, AccessMode am, int dataId) {
+     // Add to writers if needed
+        if (am == AccessMode.RW) {
+            this.writers.put(dataId, null);
+        }
+
+        // Add graph description
+        if (IS_DRAW_GRAPH) {
+            TreeSet<Integer> toPass = new TreeSet<>();
+            toPass.add(dataId);
+            DataInstanceId dii = DIP.getLastVersions(toPass).get(0);
+            int dataVersion = dii.getVersionId();
+            addEdgeFromTaskToMain(lastWriter, dataId, dataVersion);
+        }
+    }
+
+    /**
      * Check if data is of type concurrent
      *
      * @param daId
      */
-    public boolean dataIsAccessConcurrent(int daId) {
+    public boolean dataWasAccessedConcurrent(int daId) {
         List<Task> concurrentAccess = this.concurrentAccessMap.get(daId);
         if (concurrentAccess != null) {
             return true;
@@ -487,6 +502,7 @@ public class TaskAnalyser {
             return false;
         }
     }
+    
     /**
      * Returns the concurrent tasks dependent to the requested task
      *
@@ -494,32 +510,24 @@ public class TaskAnalyser {
      */
     public void findWaitedConcurrent(WaitForConcurrentRequest request) {
         int dataId = request.getDataId();
+        AccessMode am = request.getAccessMode();
         List<Task> concurrentAccess = this.concurrentAccessMap.get(dataId);
         if (concurrentAccess != null) {
             // Add to writers if needed
             this.concurrentAccessMap.put(dataId, null);
-
-//           
         }
         
         Semaphore semTasks = request.getTaskSemaphore();
-        
         int n=0;
         for (Task task:concurrentAccess){ 
-            // Add graph description
-            if (IS_DRAW_GRAPH) {
-                TreeSet<Integer> toPass = new TreeSet<>();
-                toPass.add(dataId);
-                DataInstanceId dii = DIP.getLastVersions(toPass).get(0);
-                int dataVersion = dii.getVersionId();
-                addEdgeFromTaskToMain(task, dataId, dataVersion);
-            }
+            treatDataAccess(task, am, dataId);
             if (task.getStatus() != TaskState.FINISHED){
                 n++;
                 List<Semaphore> list=waitedTasks.get(task);
-                if (list==null)
+                if (list==null) {
                     list = new LinkedList<>();
                     this.waitedTasks.put(task, list);
+                }
                 list.add(semTasks);
             }
         }
@@ -527,7 +535,6 @@ public class TaskAnalyser {
         request.getSemaphore().release();
     }
 
-   
     /**
      * Barrier
      *
@@ -639,6 +646,18 @@ public class TaskAnalyser {
         }
     }
 
+    
+    /**
+     * Removes the tasks that have accessed the data in a concurrent way
+     *
+     * @param dataId
+     */
+      public void removeFromConcurrentAccess(int dataId) {
+        List<Task> returnedValue = this.concurrentAccessMap.remove(dataId);
+        if (returnedValue == null) {
+            LOGGER.debug("The concurrent list could not be removed" );
+        }
+    }
     /*
      **************************************************************************************************************
      * DATA DEPENDENCY MANAGEMENT PRIVATE METHODS
@@ -665,25 +684,37 @@ public class TaskAnalyser {
         }
         // Handle when -g enabled
         if (IS_DRAW_GRAPH) {
-            int dataVersion = -1;
-            Direction d = dp.getDataAccessId().getDirection();
-            switch (d) {
-                case C:
-                case R:
-                    dataVersion = ((DataAccessId.RAccessId) dp.getDataAccessId()).getRVersionId();
-                    break;
-                case W:
-                    dataVersion = ((DataAccessId.WAccessId) dp.getDataAccessId()).getWVersionId();
-                    break;
-                default:
-                    dataVersion = ((DataAccessId.RWAccessId) dp.getDataAccessId()).getRVersionId();
-                    break;
-            }
-            if (lastWriter != null && lastWriter != currentTask) {
-                addEdgeFromTaskToTask(lastWriter, currentTask, dataId, dataVersion);
-            } else {
-                addEdgeFromMainToTask(currentTask, dataId, dataVersion);
-            }
+            drawEdges(currentTask, dp, dataId, lastWriter);
+        }
+    }
+    
+    /**
+     * Adds edges to graph
+     *
+     * @param currentTask
+     * @param dp
+     * @param dataId
+     * @param lastWriter
+     */
+    private void drawEdges(Task currentTask, DependencyParameter dp, int dataId, Task lastWriter) {
+        int dataVersion = -1;
+        Direction d = dp.getDataAccessId().getDirection();
+        switch (d) {
+            case C:
+            case R:
+                dataVersion = ((DataAccessId.RAccessId) dp.getDataAccessId()).getRVersionId();
+                break;
+            case W:
+                dataVersion = ((DataAccessId.WAccessId) dp.getDataAccessId()).getWVersionId();
+                break;
+            default:
+                dataVersion = ((DataAccessId.RWAccessId) dp.getDataAccessId()).getRVersionId();
+                break;
+        }
+        if (lastWriter != null && lastWriter != currentTask) {
+            addEdgeFromTaskToTask(lastWriter, currentTask, dataId, dataVersion);
+        } else {
+            addEdgeFromMainToTask(currentTask, dataId, dataVersion);
         }
     }
 
@@ -696,8 +727,7 @@ public class TaskAnalyser {
     private void checkDependencyForConcurrent(Task currentTask, DependencyParameter dp) {
         int dataId = dp.getDataAccessId().getDataId();
         List<Task> tasks = this.concurrentAccessMap.get(dataId);
-        LOGGER.debug("MARTA: There are " + tasks.size() + " tasks in the list");
-        
+      
         if (concurrentAccessMap!= null && tasks.contains(currentTask) == false) {
             if (DEBUG) {
                 LOGGER.debug("There was a concurrent access for datum " + dataId);
@@ -706,32 +736,15 @@ public class TaskAnalyser {
             for (Task t:tasks) {
              // Add dependency
                 currentTask.addDataDependency(t);
-                LOGGER.debug("MARTA: Data Dependency for concurrent task");
                 if (IS_DRAW_GRAPH) {
-                    int dataVersion = -1;
-                    Direction d = dp.getDataAccessId().getDirection();
-                    switch (d) {
-                        case C:
-                        case R:
-                            dataVersion = ((DataAccessId.RAccessId) dp.getDataAccessId()).getRVersionId();
-                            break;
-                        case W:
-                            dataVersion = ((DataAccessId.WAccessId) dp.getDataAccessId()).getWVersionId();
-                            break;
-                        default:
-                            dataVersion = ((DataAccessId.RWAccessId) dp.getDataAccessId()).getRVersionId();
-                            break;
-                    }
-                    addEdgeFromTaskToTask(t, currentTask, dataId, dataVersion);
-               
+                    drawEdges(currentTask, dp, dataId, t);}
                 }
-            }
-            
-        } else if (DEBUG) {
+          } else if (DEBUG) {
             LOGGER.debug("There is no last writer for datum " + dataId);
         }
-        
     }
+
+    
     /**
      * Registers the output values of the task @currentTask
      *

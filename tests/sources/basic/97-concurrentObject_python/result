@@ -32,48 +32,9 @@
   errors=$(cat "${output_file}" "${error_file}" | grep "ERROR" | cat)
   fails=$(cat "${output_file}" "${error_file}" | grep "FAIL" | cat)
   if [ "${errors}" != "" ] || [ "${fails}" != "" ]; then
-      echo "ERROR: UNIT TEST RAISED AN ERROR." | tee -a ${output_file}
-      exit 1
+    echo "ERROR: UNIT TEST RAISED AN ERROR." | tee -a ${output_file}
+    exit 1
   fi
-
-  #---------------------------------------------------------------------------------- 
- FILES=15
-
- if [ -f result.txt ]; then
-	 rm result.txt
- fi
-
- result=$(cat /tmp/sharedDisk/file.txt)
- if [ ${#result} -ne 16 ]; then
-	 echo "ERROR: Final result is not correct. ${#result} "
-	 exit 1
- fi
-
- version=$(ls ~/.COMPSs/ | grep "concurrent.py_" | tail -1)
-
- if [ ! -f ~/.COMPSs/$version/jobs/job"$FILES"_NEW.err ]; then
-        echo "ERROR: All tasks have not completed succesfully."
-        exit 1
- fi
-
- if [ -f ~/.COMPSS/concurrent.ConcurrentM_01/jobs/job"$FILES+1"_NEW.err ]; then
-         echo "ERROR: More tasks than expected have been executed."
-         exit 1
- fi
-
-
- exec &> result.txt
- 
- output1=cat result.txt | grep "Barrier for app" | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }'
- output2=cat result.txt | grep "No more tasks" | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }'
-
-
-  if [ $output2 -ne $output1 + 2000 ]; then
-         echo "ERROR: It does not wait for all tasks to be finished"
-         exit 1
-  fi
-
- rm result.txt
 
   exit 0
 

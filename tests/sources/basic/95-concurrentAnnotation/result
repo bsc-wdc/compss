@@ -28,14 +28,14 @@
 
   #---------------------------------------------------------------------------------- 
  
- FILES=15
+ FILES=6
  
  if [ -f result.txt ]; then
          rm result.txt
  fi
 
  result=$(cat /tmp/sharedDisk/file.txt)
- if [ ${#result} -ne 15 ]; then
+ if [ ${#result} -ne $FILES ]; then
          echo "ERROR: Final result is not correct. ${#result} "
          exit 1
  fi
@@ -53,8 +53,8 @@
  fi
  
  exec &> result.txt
- output1=cat result.txt | grep "Barrier for app" | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }'
- output2=cat result.txt | grep "No more tasks" | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }'
+ output1=cat result.txt | grep "Opening " | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }'
+ output2=cat result.txt | grep "File target Location" | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }'
 
  if [ $output2 -ne $output1 + 2000 ]; then
 	 echo "ERROR: It does not wait for all tasks to be finished"
@@ -62,7 +62,8 @@
  fi
 
  rm result.txt
-
+ rm /tmp/sharedDisk/file.txt
+ 
   # All ok
   exit 0
   

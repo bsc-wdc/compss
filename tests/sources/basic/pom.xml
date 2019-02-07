@@ -127,7 +127,9 @@
         <!-- Module 94 is 94-multinodeDecorator_python -->
         <module>95-concurrentAnnotation</module>
         <!-- Module 96 is 96-concurrentAnnotation_python -->
-
+        <!-- Module 97 is 97-97-concurrentObject_python -->
+		<module>98-concurrentObjectTest</module>
+		
         <!-- Add new modules below. Respect numbering -->
     </modules>
 </project>

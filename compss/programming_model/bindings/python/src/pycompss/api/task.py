@@ -73,7 +73,8 @@ class task(object):
         :return: A dictionary with the default values of the non-parameter decorator fields
         """
         return {
-            'isModifier': True,  # Irrelevant if direction of self is explicitly defined
+#            'isModifier': True,  # Irrelevant if direction of self is explicitly defined
+            'targetDirection': "INOUT",
             'returns': False,
             'priority': False,
             'isReplicated': False,
@@ -695,13 +696,17 @@ class task(object):
         Returns the default direction for a given parameter
         :return: An identifier of the direction
         """
+
         # We are the 'self' or 'cls' in an instance or classmethod that modifies the given class
         # so we are an INOUT
-        if self.decorator_arguments['isModifier'] and var_name in ['self', 'cls'] and \
+        if self.decorator_arguments['targetDirection'] == "INOUT" and var_name in ['self', 'cls'] and \
                 self.param_args and self.param_args[0] == var_name:
             return parameter.get_new_parameter('INOUT')
-        # Default, safest direction = IN
-        return parameter.get_new_parameter('IN')
+        directions = ['IN', 'INOUT', 'CONCURRENT']
+        if self.decorator_arguments['targetDirection'] in directions:
+            return parameter.get_new_parameter(self.decorator_arguments['targetDirection'])
+        else:
+            raise ValueError('The direction specified is not valid ', self.decorator_arguments['targetDirection'])
 
     def process_master_parameters(self, *args, **kwargs):
         """
@@ -1066,7 +1071,8 @@ class task(object):
                 new_types.append(ret_type)
                 new_values.append(ret_value)
 
-        return new_types, new_values, self.decorator_arguments['isModifier']
+
+        return new_types, new_values, self.decorator_arguments['targetDirection']
 
     def sequential_call(self, *args, **kwargs):
         """

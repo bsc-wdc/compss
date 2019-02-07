@@ -72,7 +72,9 @@ public @interface MultiNode {
      * 
      * @return boolean indicating whether the method is modifier or not
      */
-    String isModifier() default Constants.IS_MODIFIER;
+   // String isModifier() default Constants.IS_MODIFIER;
+    
+    String targetDirection() default Constants.TARGET_DIRECTION;
 
     /*
      * COMMON PROPERTIES

@@ -67,6 +67,7 @@ import es.bsc.compss.types.request.ap.TasksStateRequest;
 import es.bsc.compss.types.request.ap.TransferObjectRequest;
 import es.bsc.compss.types.request.ap.TransferOpenFileRequest;
 import es.bsc.compss.types.request.ap.UnblockResultFilesRequest;
+import es.bsc.compss.types.request.ap.WaitForConcurrentRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.WaitForTaskRequest;
 import es.bsc.compss.types.request.ap.DeregisterObject;
@@ -275,10 +276,14 @@ public class AccessProcessor implements Runnable, TaskProducer {
         DataAccessId faId = registerDataAccess(fap);
         DataLocation tgtLocation = sourceLocation;
 
-        if (fap.getMode() != AccessMode.W) {
+        if (fap.getMode() != AccessMode.W || fap.getMode() == AccessMode.C) {
             // Wait until the last writer task for the file has finished
             LOGGER.debug("File " + faId.getDataId() + " mode contains R, waiting until the last writer has finished");
-            waitForTask(faId.getDataId(), AccessMode.R);
+            if (taskAnalyser.dataIsAccessConcurrent(faId.getDataId())) {
+                waitForConcurrent(faId.getDataId());
+            } else {
+                waitForTask(faId.getDataId(), AccessMode.R);
+            }
             if (destDir == null) {
                 tgtLocation = transferFileOpen(faId);
             } else {
@@ -325,7 +330,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
             }
             Comm.registerLocation(rename, tgtLocation);
         }
-
+        
         if (DEBUG) {
             LOGGER.debug("File " + faId.getDataId() + " located on " + tgtLocation.toString());
         }
@@ -385,8 +390,12 @@ public class AccessProcessor implements Runnable, TaskProducer {
         if (DEBUG) {
             LOGGER.debug("Waiting for last writer of " + oaId.getDataId() + " with renaming " + wRename);
         }
-        waitForTask(oaId.getDataId(), AccessMode.RW);
-
+        
+        if (taskAnalyser.dataIsAccessConcurrent(oaId.getDataId())) {
+            waitForConcurrent(oaId.getDataId());
+        } else {
+            waitForTask(oaId.getDataId(), AccessMode.RW);
+        }
         // TODO: Check if the object was already piggybacked in the task notification
         // Ask for the object
         if (DEBUG) {
@@ -424,8 +433,11 @@ public class AccessProcessor implements Runnable, TaskProducer {
         if (DEBUG) {
             LOGGER.debug("Waiting for last writer of " + oaId.getDataId() + " with renaming " + wRename);
         }
-        waitForTask(oaId.getDataId(), AccessMode.RW);
-
+        if (taskAnalyser.dataIsAccessConcurrent(oaId.getDataId())) {
+            waitForConcurrent(oaId.getDataId());
+        } else {
+            waitForTask(oaId.getDataId(), AccessMode.RW);
+        }
         // TODO: Check if the object was already piggybacked in the task notification
         String lastRenaming = ((DataAccessId.RWAccessId) oaId).getReadDataInstance().getRenaming();
         String newId = Comm.getData(lastRenaming).getPscoId();
@@ -475,10 +487,14 @@ public class AccessProcessor implements Runnable, TaskProducer {
         if (DEBUG) {
             LOGGER.debug("Waiting for last writer of " + oaId.getDataId());
         }
-        // waitForTask(oaId.getDataId(), AccessMode.RW);
-        waitForTask(oaId.getDataId(), AccessMode.R);
-        // TODO: Check if the object was already piggybacked in the task notification
-
+        
+        if (taskAnalyser.dataIsAccessConcurrent(oaId.getDataId())) {
+            waitForConcurrent(oaId.getDataId());
+        } else {
+            // waitForTask(oaId.getDataId(), AccessMode.RW);
+            waitForTask(oaId.getDataId(), AccessMode.R);
+            // TODO: Check if the object was already piggybacked in the task notification
+        }
         // String lastRenaming = ((DataAccessId.RWAccessId) oaId).getReadDataInstance().getRenaming();
         // return obtainBindingObject((DataAccessId.RWAccessId)oaId);
         String bindingObjectID = obtainBindingObject((DataAccessId.RAccessId) oaId);
@@ -565,6 +581,31 @@ public class AccessProcessor implements Runnable, TaskProducer {
         LOGGER.info("End of waited task for data " + dataId);
     }
 
+    /**
+     * Synchronism for a concurrent task
+     *
+     * @param dataId
+     * @param mode
+     */
+    private void waitForConcurrent(int dataId) {
+        Semaphore sem = new Semaphore(0);
+        Semaphore semTasks = new Semaphore(0);
+        WaitForConcurrentRequest request = new WaitForConcurrentRequest(dataId, sem, semTasks);
+        if (!requestQueue.offer(request)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "wait for concurrent task");
+        }
+
+        // Wait for response
+        sem.acquireUninterruptibly();
+        int n = request.getNumWaitedTasks();
+       // while (n>0){
+             semTasks.acquireUninterruptibly(n);
+            // n--;
+          //}
+        
+        LOGGER.info("End of waited task for data " + dataId);
+    }
+    
     /**
      * Registers a new data access
      *

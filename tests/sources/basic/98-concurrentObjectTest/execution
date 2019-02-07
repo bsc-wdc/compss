@@ -15,45 +15,66 @@
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
   sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/project.xml
-
+  
   #----------------------------------------------------------------------------------
   # Create all working dir folders
   mkdir -p /tmp/COMPSsWorker01/
+  mkdir -p /tmp/COMPSsWorker02/
   
   #----------------------------------------------------------------------------------
-  # Run application 1 - Concurrent Annotation
+  # Create storage Conf
+  storageConf=${target_log_folder}/storage.conf
+  cat > "$storageConf" << EOF
+COMPSsWorker01
+COMPSsWorker02
+EOF
+  
+  # Add trap to clean folder
+  clean() {
+    rm -rf /tmp/concurrentObject/
+  }
+  trap clean EXIT
+
+  #----------------------------------------------------------------------------------
+  # Set Storage implementation location
+  storageImplPath=${base_app_dir}/jars/compss-dummyPSCO.jar
+  
+  #----------------------------------------------------------------------------------
+  # Run application 1 - Concurrent type object PSCOs
   echo
-  echo "*** RUNNING JAVA APPLICATION CONCURRENT ANNOTATION"
-  output_log="${target_log_folder}/concurrentAnnotation_0${retryNum}.outputlog"
-  error_log="${target_log_folder}/concurrentAnnotation_0${retryNum}.errorlog"
+  echo "*** RUNNING JAVA APPLICATION PSCOs TYPE CONCURRENT"
+  output_log="${target_log_folder}/concurrentObject_0${retryNum}.outputlog"
+  error_log="${target_log_folder}/concurrentObject_0${retryNum}.errorlog"
   expectedTime=60s
   
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \
-     -g --project="${base_app_dir}"/project.xml \
+     --project="${base_app_dir}"/project.xml \
      --resources="${base_app_dir}"/resources.xml \
      \
      --comm="$comm" \
      \
      --debug \
-     --summary \
      ${runcompss_opts} \
      \
-     --classpath="${base_app_dir}"/concurrentAnnotation.jar \
+     --storage_conf=${storageConf} \
+     --jvm_workers_opts="-Dcompss.worker.removeWD=true" \
      \
-     concurrent.ConcurrentM > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+     --classpath="${base_app_dir}"/concurrentObjectTest.jar:${storageImplPath} \
+     \
+     testConcurrent.TestConcurrent > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
   
   # Check timeout
   if [[ "$?" = "124" ]]; then
      # Copy LOG files
-     cp -rf "${COMPSs_log_folder}"/concurrent.ConcurrentM_0"${retryNum}"/* "${target_log_folder}"
+     cp -rf "${COMPSs_log_folder}"/testConcurrent.TestConcurrent_0"${retryNum}"/* "${target_log_folder}"
      
      # Report time out
      echo "[WARNING] Java Application timed out" >> "${output_log}"
-     exitValue=124
+     ev1=124
   else
      # Copy LOG files
-     cp -rf "${COMPSs_log_folder}"/concurrent.ConcurrentM_0"${retryNum}"/* "${target_log_folder}"
+     cp -rf "${COMPSs_log_folder}"/testConcurrent.TestConcurrent_0"${retryNum}"/* "${target_log_folder}"
   
      # Check result
      "${base_app_dir}"/result "${output_log}" "${target_log_folder}"

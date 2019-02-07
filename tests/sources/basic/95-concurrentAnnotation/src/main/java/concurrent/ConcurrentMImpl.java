@@ -14,13 +14,26 @@ public class ConcurrentMImpl {
 			Thread.sleep(2000);
 		} catch (FileNotFoundException fnfe) {
 			fnfe.printStackTrace();
-			System.exit(-1);
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
-			System.exit(-1);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
+	public static void write_two(String fileName) {
+        try {
+            FileOutputStream fos = new FileOutputStream(fileName, true);
+            fos.write(2);
+            fos.close();
+            Thread.sleep(2000);
+        } catch (FileNotFoundException fnfe) {
+            fnfe.printStackTrace();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
 }

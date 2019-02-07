@@ -30,9 +30,9 @@ public abstract class DataAccessId implements Serializable {
     public static enum Direction {
         R, // Read
         RW, // Read and write
-        W // Write
+        W, // Write
+        C
     }
-
 
     public abstract int getDataId();
 

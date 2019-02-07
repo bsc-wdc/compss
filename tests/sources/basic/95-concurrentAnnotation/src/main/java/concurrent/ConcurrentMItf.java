@@ -13,4 +13,10 @@ public interface ConcurrentMItf {
 	void write_one(
 		@Parameter(type = Type.FILE, direction = Direction.CONCURRENT) String fileName
 	);
+	
+	@Constraints(computingUnits = "1")
+    @Method(declaringClass = "concurrent.ConcurrentMImpl")
+    void write_two(
+        @Parameter(type = Type.FILE, direction = Direction.IN) String fileName
+    );
 }

@@ -106,6 +106,8 @@ public class Constants {
      */
     public static final String PREFIX_SKIP = "#";
 
+    public static final String TARGET_DIRECTION = "INOUT";
+
 
     // Private constructor to avoid instantiation
     private Constants() {

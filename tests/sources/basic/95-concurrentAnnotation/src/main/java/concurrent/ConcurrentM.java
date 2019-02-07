@@ -1,8 +1,8 @@
 package concurrent;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import es.bsc.compss.api.COMPSs;
 
 public class ConcurrentM {
 
@@ -22,10 +22,20 @@ public class ConcurrentM {
 		file.createNewFile();
 		
 		new File(fileName);
-		for (int i = 0; i < 15; i++) {
+		for (int i = 0; i < 3; i++) {
 			ConcurrentMImpl.write_one(fileName);
 		}
+		
+		for (int i=0; i < 3; i++) {
+		    ConcurrentMImpl.write_two(fileName);
+		}//COMPSs.barrierConcurrent();
+        
+		FileInputStream fis = new FileInputStream(fileName);
+		int lines = 0;
+		while (fis.read()>0) lines++;
+        System.out.println("Final counter value is " + lines);
+        fis.close();
 
-		COMPSs.barrierConcurrent();
+	 
 	}
 }

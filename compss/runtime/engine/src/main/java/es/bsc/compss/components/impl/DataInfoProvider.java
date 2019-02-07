@@ -333,6 +333,7 @@ public class DataInfoProvider {
         // Version management
         DataAccessId daId = null;
         switch (mode) {
+            case C:
             case R:
                 di.willBeRead();
                 daId = new RAccessId(di.getCurrentDataVersion());
@@ -386,10 +387,10 @@ public class DataInfoProvider {
         DataVersion currentInstance = di.getCurrentDataVersion();
         if (currentInstance != null) {
             switch (mode) {
+                case C:
                 case R:
                     daId = new RAccessId(currentInstance);
                     break;
-
                 case W:
                     daId = new WAccessId(di.getCurrentDataVersion());
                     break;

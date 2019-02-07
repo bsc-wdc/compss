@@ -193,6 +193,8 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
      * @param task
      */
     public void executeTask(TaskProducer producer, Task task) {
+        
+        LOGGER.error("MARTA: Execute task request");
         if (DEBUG) {
             StringBuilder sb = new StringBuilder("Schedule task: ");
             sb.append(task.getTaskDescription().getName()).append("(").append(task.getId()).append(") ");
@@ -205,6 +207,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     // Notification thread
     @Override
     public void actionCompletion(AllocatableAction action) {
+        LOGGER.error("MARTA: Action completed");
         ActionUpdate request = new ActionUpdate(action, ActionUpdate.Update.COMPLETED);
         addRequest(request);
     }

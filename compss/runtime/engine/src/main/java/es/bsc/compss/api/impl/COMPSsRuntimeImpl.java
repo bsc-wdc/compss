@@ -138,6 +138,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         Comm.init(new MasterResourceImpl());
     }
 
+
     // Code Added to support configuration files
     private static void setPropertiesFromRuntime(RuntimeConfigManager manager) {
         try {
@@ -765,14 +766,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /**
-     * Freezes the task generation until all previous tasks have been executed
-     */
-    @Override
-    public void barrierConcurrent(Long appId) {
-        barrier(appId, false);
-    }
-
-    /**
      * Freezes the task generation until all previous tasks have been executed. The noMoreTasks parameter indicates
      * whether to expect new tasks after the barrier or not
      */
@@ -795,6 +788,14 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.WAIT_FOR_ALL_TASKS.getType());
         }
+    }
+
+    /**
+     * Freezes the task generation until all previous tasks have been executed
+     */
+    @Override
+    public void barrierConcurrent(Long appId) {
+        barrier(appId, false);
     }
 
     /**
@@ -997,7 +998,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 break;
             case CONCURRENT:
                 // TODO: Change access mode to support CONCURRENT
-                am = AccessMode.R;
+                am = AccessMode.C;
                 break;
         }
 
@@ -1060,7 +1061,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 break;
             case CONCURRENT:
                 // TODO: Change access mode to support CONCURRENT
-                am = AccessMode.R;
+                am = AccessMode.C;
                 break;
         }
 

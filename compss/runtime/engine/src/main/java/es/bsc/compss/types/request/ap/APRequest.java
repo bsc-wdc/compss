@@ -43,6 +43,7 @@ public abstract class APRequest extends Request {
         ANALYSE_TASK,
         UPDATE_GRAPH,
         WAIT_FOR_TASK,
+        WAIT_FOR_CONCURRENT,
         WAIT_FOR_ALL_TASKS,
         END_OF_APP,
         ALREADY_ACCESSED,

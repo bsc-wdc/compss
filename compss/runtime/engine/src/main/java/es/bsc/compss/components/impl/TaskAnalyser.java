@@ -20,6 +20,10 @@ import es.bsc.compss.api.TaskMonitor;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeMap;
@@ -47,6 +51,7 @@ import es.bsc.compss.types.data.DataAccessId.*;
 import es.bsc.compss.types.data.operation.ResultListener;
 import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
+import es.bsc.compss.types.request.ap.WaitForConcurrentRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.WaitForTaskRequest;
 import es.bsc.compss.util.ErrorManager;
@@ -81,7 +86,7 @@ public class TaskAnalyser {
     // Tasks being waited on: taskId -> list of semaphores where to notify end of task
     private Hashtable<Task, List<Semaphore>> waitedTasks;
     // Concurrent tasks being waited on: taskId -> semaphore where to notify end of task
-    private Hashtable<Task, Semaphore> waitedConcurrent;
+    private TreeMap<Integer, List<Task>> concurrentAccessMap;
 
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TA_COMP);
@@ -107,7 +112,7 @@ public class TaskAnalyser {
         this.appIdToWrittenFiles = new HashMap<>();
         this.appIdToSCOWrittenIds = new HashMap<>();
         this.waitedTasks = new Hashtable<>();
-        this.waitedConcurrent = new Hashtable<>();
+        this.concurrentAccessMap = new TreeMap<>();
         
         synchronizationId = 0;
         taskDetectedAfterSync = false;
@@ -136,7 +141,6 @@ public class TaskAnalyser {
     private DataAccessId registerParameterAccessAndAddDependencies(Task currentTask, boolean isConstraining, Parameter p) {        // Conversion: direction -> access mode
         AccessMode am = AccessMode.R;
         switch (p.getDirection()) {
-            case CONCURRENT:
             case IN:
                 am = AccessMode.R;
                 break;
@@ -145,6 +149,9 @@ public class TaskAnalyser {
                 break;
             case INOUT:
                 am = AccessMode.RW;
+                break;
+            case CONCURRENT:
+                am = AccessMode.C;
                 break;
         }
         // Inform the Data Manager about the new accesses
@@ -200,9 +207,14 @@ public class TaskAnalyser {
 
     private void addDependencies(AccessMode am, Task currentTask, boolean isConstraining, DependencyParameter dp) {
         // Add dependencies to the graph and register output values for future dependencies
+        DataAccessId daId = dp.getDataAccessId();
         switch (am) {
-            case R:
-                checkDependencyForRead(currentTask, dp);
+            case R:  
+                if (!dataIsAccessConcurrent(daId.getDataId())) {
+                    checkDependencyForRead(currentTask, dp);
+                } else {
+                    checkDependencyForConcurrent(currentTask, dp);
+                }   
                 if (isConstraining) {
                     DataAccessId.RAccessId raId = (DataAccessId.RAccessId) dp.getDataAccessId();
                     DataInstanceId dependingDataId = raId.getReadDataInstance();
@@ -212,7 +224,7 @@ public class TaskAnalyser {
                         }
                     }
                 }
-                break;
+            break;
             case RW:
                 checkDependencyForRead(currentTask, dp);
                 if (isConstraining) {
@@ -228,6 +240,14 @@ public class TaskAnalyser {
                 break;
             case W:
                 registerOutputValues(currentTask, dp);
+                break;
+            case C:
+                List<Task> tasks= this.concurrentAccessMap.get(daId.getDataId());
+                if (tasks == null) {
+                    tasks = new LinkedList<Task>();
+                    this.concurrentAccessMap.put(daId.getDataId(), tasks);
+                }
+                tasks.add(currentTask);
                 break;
         }
     }
@@ -334,6 +354,8 @@ public class TaskAnalyser {
                 sem.release();
             }
         }
+        
+        LOGGER.debug("MARTA: A semaphore has been released");
 
         for (Parameter param : task.getTaskDescription().getParameters()) {
             DataType type = param.getType();
@@ -419,11 +441,14 @@ public class TaskAnalyser {
         AccessMode am = request.getAccessMode();
         Semaphore sem = request.getSemaphore();
         Task lastWriter = this.writers.get(dataId);
+        
+        LOGGER.error("MARTA: Find waited task");
 
         if (lastWriter != null) {
             // Add to writers if needed
             if (am == AccessMode.RW) {
                 this.writers.put(dataId, null);
+                LOGGER.error("MARTA:  Task in writers");
             }
 
             // Add graph description
@@ -447,6 +472,59 @@ public class TaskAnalyser {
             }
             list.add(sem);
         }
+    }
+    
+    /**
+     * Check if data is of type concurrent
+     *
+     * @param daId
+     */
+    public boolean dataIsAccessConcurrent(int daId) {
+        List<Task> concurrentAccess = this.concurrentAccessMap.get(daId);
+        if (concurrentAccess != null) {
+            return true;
+        }else {
+            return false;
+        }
+    }
+    /**
+     * Returns the concurrent tasks dependent to the requested task
+     *
+     * @param request
+     */
+    public void findWaitedConcurrent(WaitForConcurrentRequest request) {
+        int dataId = request.getDataId();
+        List<Task> concurrentAccess = this.concurrentAccessMap.get(dataId);
+        if (concurrentAccess != null) {
+            // Add to writers if needed
+            this.concurrentAccessMap.put(dataId, null);
+
+//           
+        }
+        
+        Semaphore semTasks = request.getTaskSemaphore();
+        
+        int n=0;
+        for (Task task:concurrentAccess){ 
+            // Add graph description
+            if (IS_DRAW_GRAPH) {
+                TreeSet<Integer> toPass = new TreeSet<>();
+                toPass.add(dataId);
+                DataInstanceId dii = DIP.getLastVersions(toPass).get(0);
+                int dataVersion = dii.getVersionId();
+                addEdgeFromTaskToMain(task, dataId, dataVersion);
+            }
+            if (task.getStatus() != TaskState.FINISHED){
+                n++;
+                List<Semaphore> list=waitedTasks.get(task);
+                if (list==null)
+                    list = new LinkedList<>();
+                    this.waitedTasks.put(task, list);
+                list.add(semTasks);
+            }
+        }
+        request.setNumWaitedTasks(n);
+        request.getSemaphore().release();
     }
 
    
@@ -590,6 +668,7 @@ public class TaskAnalyser {
             int dataVersion = -1;
             Direction d = dp.getDataAccessId().getDirection();
             switch (d) {
+                case C:
                 case R:
                     dataVersion = ((DataAccessId.RAccessId) dp.getDataAccessId()).getRVersionId();
                     break;
@@ -608,6 +687,51 @@ public class TaskAnalyser {
         }
     }
 
+    /**
+     * Checks the dependencies of a task @currentTask considering the parameter @dp
+     *
+     * @param currentTask
+     * @param dp
+     */
+    private void checkDependencyForConcurrent(Task currentTask, DependencyParameter dp) {
+        int dataId = dp.getDataAccessId().getDataId();
+        List<Task> tasks = this.concurrentAccessMap.get(dataId);
+        LOGGER.debug("MARTA: There are " + tasks.size() + " tasks in the list");
+        
+        if (concurrentAccessMap!= null && tasks.contains(currentTask) == false) {
+            if (DEBUG) {
+                LOGGER.debug("There was a concurrent access for datum " + dataId);
+                LOGGER.debug("Adding dependency between list and task " + currentTask.getId());
+            }
+            for (Task t:tasks) {
+             // Add dependency
+                currentTask.addDataDependency(t);
+                LOGGER.debug("MARTA: Data Dependency for concurrent task");
+                if (IS_DRAW_GRAPH) {
+                    int dataVersion = -1;
+                    Direction d = dp.getDataAccessId().getDirection();
+                    switch (d) {
+                        case C:
+                        case R:
+                            dataVersion = ((DataAccessId.RAccessId) dp.getDataAccessId()).getRVersionId();
+                            break;
+                        case W:
+                            dataVersion = ((DataAccessId.WAccessId) dp.getDataAccessId()).getWVersionId();
+                            break;
+                        default:
+                            dataVersion = ((DataAccessId.RWAccessId) dp.getDataAccessId()).getRVersionId();
+                            break;
+                    }
+                    addEdgeFromTaskToTask(t, currentTask, dataId, dataVersion);
+               
+                }
+            }
+            
+        } else if (DEBUG) {
+            LOGGER.debug("There is no last writer for datum " + dataId);
+        }
+        
+    }
     /**
      * Registers the output values of the task @currentTask
      *

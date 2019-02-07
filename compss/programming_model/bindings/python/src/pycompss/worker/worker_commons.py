@@ -200,7 +200,7 @@ def task_execution(logger, process_name, module, method_name, types, values, com
         # The types may change (e.g. if the user does a makePersistent within the task)
         logger.debug("[PYTHON WORKER %s] Return Types : %s " % (process_name, str(new_types)))
         logger.debug("[PYTHON WORKER %s] Return Values: %s " % (process_name, str(new_values)))
-        logger.debug("[PYTHON WORKER %s] Return isModifier: %s " % (process_name, str(is_modifier)))
+        logger.debug("[PYTHON WORKER %s] Return targetDirection: %s " % (process_name, str(targetDirection)))
         logger.debug("[PYTHON WORKER %s] Finished task execution" % process_name)
 
     return new_types, new_values, is_modifier
@@ -411,7 +411,7 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
             # Since this option is only visible within the task decorator, the task_execution returns
             # the value of isModifier in order to know here if self has to be serialized.
             # This solution avoids to use inspect.
-            if is_modifier:
+            if targetDirection == "INOUT":
                 from pycompss.util.persistent_storage import is_psco
                 if is_psco(self_elem):
                     # There is no explicit update if self is a PSCO.

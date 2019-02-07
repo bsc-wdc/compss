@@ -430,6 +430,7 @@ public class ExecutionAction extends AllocatableAction {
         task.decreaseExecutionCount();
         task.setStatus(TaskState.FINISHED);
         producer.notifyTaskEnd(task);
+        LOGGER.debug("MARTA: Task end");
     }
 
     @Override

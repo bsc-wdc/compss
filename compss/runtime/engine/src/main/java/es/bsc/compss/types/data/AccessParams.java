@@ -28,7 +28,8 @@ public class AccessParams implements Serializable {
     public static enum AccessMode {
         R, // Read
         W, // Write
-        RW // ReadWrite
+        RW, // ReadWrite
+        C // Concurrent
     }
 
 

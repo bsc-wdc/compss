@@ -63,7 +63,7 @@ public interface ObjectTestItf {
 		int i
 	);
 	
-	@Method(declaringClass = "objectTest.A", isModifier = Constants.IS_MODIFIER)
+	@Method(declaringClass = "objectTest.A", targetDirection = "INOUT")
 	Integer getAndSetIntField(
 		@Parameter(type = Type.INT, direction = Direction.IN)
 		int i

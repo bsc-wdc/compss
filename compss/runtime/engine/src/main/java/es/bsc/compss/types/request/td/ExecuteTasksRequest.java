@@ -100,6 +100,7 @@ public class ExecuteTasksRequest extends TDRequest {
             }
 
             task.setExecutionCount(numNodes);
+            LOGGER.error("MARTA: Task submitted");
             submitTask(ts, numNodes, selectedResource);
         } else {
             // Normal task

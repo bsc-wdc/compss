@@ -58,7 +58,7 @@ public class AppMainMonitor extends AppMonitor {
     }
 
     @Override
-    public void valueGenerated(int paramId, DataType type, Object value) {
+    public void valueGenerated(int paramId, DataType type, String name, Object location) {
 
     }
 

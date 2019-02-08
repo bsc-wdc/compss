@@ -28,6 +28,7 @@ import es.bsc.compss.agent.rest.types.Resource;
 import es.bsc.compss.agent.rest.types.messages.NewNodeNotification;
 import es.bsc.compss.agent.rest.types.messages.RemoveNodeRequest;
 import es.bsc.compss.agent.util.RemoteJobsRegistry;
+import es.bsc.compss.types.annotations.parameter.DataType;
 
 import es.bsc.compss.types.job.JobListener.JobEndStatus;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -141,7 +142,15 @@ public class RESTAgent {
         boolean hasResult = request.isHasResult();
         long appId;
         Orchestrator orchestrator = request.getOrchestrator();
-        AppTaskMonitor monitor = new AppTaskMonitor(sarParams.length, orchestrator);
+        int numParams = sarParams.length;
+        if (target != null) {
+            numParams++;
+        }
+        if (hasResult) {
+            numParams++;
+        }
+        AppTaskMonitor monitor = new AppTaskMonitor(numParams, orchestrator);
+
         try {
             appId = Agent.runTask(Lang.JAVA, className, methodName, sarParams, target, hasResult, monitor);
         } catch (AgentException e) {
@@ -156,8 +165,10 @@ public class RESTAgent {
     public Response endApplication(EndApplicationNotification notification) {
         String jobId = notification.getJobId();
         JobEndStatus endStatus = notification.getEndStatus();
-        String[] paramsResults = notification.getParamResults();
-        RemoteJobsRegistry.notifyJobEnd(jobId, endStatus, paramsResults);
+        DataType[] resultTypes = notification.getParamTypes();
+        String[] resultLocations = notification.getParamLocations();
+        RemoteJobsRegistry.notifyJobEnd(jobId, endStatus, resultTypes, resultLocations);
+
         return Response.ok().build();
     }
 

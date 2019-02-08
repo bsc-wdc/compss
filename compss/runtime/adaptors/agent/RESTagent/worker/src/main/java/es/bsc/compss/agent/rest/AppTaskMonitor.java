@@ -19,8 +19,12 @@ package es.bsc.compss.agent.rest;
 import es.bsc.compss.agent.Agent.AppMonitor;
 import es.bsc.compss.agent.rest.types.Orchestrator;
 import es.bsc.compss.agent.rest.types.messages.EndApplicationNotification;
+import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.job.JobListener.JobEndStatus;
+import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -29,6 +33,7 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.glassfish.jersey.client.ClientConfig;
+import storage.StubItf;
 
 
 public class AppTaskMonitor extends AppMonitor {
@@ -36,14 +41,17 @@ public class AppTaskMonitor extends AppMonitor {
     private static final Client client = ClientBuilder.newClient(new ClientConfig());
 
     private final Orchestrator orchestrator;
-    private final String[] paramResults;
+    private final DataType[] paramTypes;
+    private final String[] paramLocations;
     private boolean successful;
 
     public AppTaskMonitor(int numParams, Orchestrator orchestrator) {
         super();
         this.orchestrator = orchestrator;
         this.successful = false;
-        this.paramResults = new String[numParams];
+        this.paramTypes = new DataType[numParams];
+        this.paramLocations = new String[numParams];
+
     }
 
     @Override
@@ -63,8 +71,25 @@ public class AppTaskMonitor extends AppMonitor {
     }
 
     @Override
-    public void valueGenerated(int paramId, DataType type, Object value) {
-        paramResults[paramId] = value.toString();
+    public void valueGenerated(int paramId, DataType type, String name, Object value) {
+        paramTypes[paramId] = type;
+        if (type == DataType.OBJECT_T) {
+            LogicalData ld = Comm.getData(name);
+            StubItf psco = (StubItf) ld.getValue();
+            psco.makePersistent(ld.getName());
+            paramTypes[paramId] = DataType.PSCO_T;
+            ld.setPscoId(psco.getID());
+            DataLocation outLoc = null;
+            try {
+                SimpleURI targetURI = new SimpleURI(DataLocation.Protocol.PERSISTENT_URI.getSchema() + psco.getID());
+                outLoc = DataLocation.createLocation(Comm.getAppHost(), targetURI);
+                paramLocations[paramId] = outLoc.toString();
+            } catch (Exception e) {
+                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + name, e);
+            }
+        } else {
+            paramLocations[paramId] = value.toString();
+        }
     }
 
     @Override
@@ -91,7 +116,7 @@ public class AppTaskMonitor extends AppMonitor {
             EndApplicationNotification ean = new EndApplicationNotification(
                     "" + getAppId(),
                     successful ? JobEndStatus.OK : JobEndStatus.EXECUTION_FAILED,
-                    paramResults);
+                    paramTypes, paramLocations);
 
             Response response = wt
                     .request(MediaType.APPLICATION_JSON)

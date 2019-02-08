@@ -186,9 +186,9 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
             String jobId = response.readEntity(String.class);
             RemoteJobsRegistry.registerJobListener(jobId, new RemoteJobListener() {
                 @Override
-                public void finishedExecution(JobListener.JobEndStatus endStatus, String[] paramResults) {
+                public void finishedExecution(JobListener.JobEndStatus endStatus, DataType[] paramTypes, String[] paramLocations) {
                     System.out.println("SUBMISSION[" + getJobId() + "] Job completed.");
-                    stageout(paramResults);
+                    stageout(paramTypes, paramLocations);
                     if (endStatus == JobEndStatus.OK) {
                         getListener().jobCompleted(RemoteRESTAgentJob.this);
                     } else {
@@ -204,7 +204,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
     public void stop() throws Exception {
     }
 
-    private void stageout(String[] paramResults) {
+    private void stageout(DataType[] paramTypes, String[] paramLocations) {
         Parameter[] params = taskParams.getParameters();
         int numParams = params.length;
 
@@ -214,8 +214,10 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
         if (hasReturn) {
             numParams--;
             DependencyParameter returnParameter = (DependencyParameter) taskParams.getParameters()[numParams];
-            DataType type = returnParameter.getType();
-            String locString = paramResults[numParams];
+            DataType type = paramTypes[numParams];
+            String locString = paramLocations[numParams];
+            System.out.println("STAGE OUT[" + this.getJobId() + "]         * Return type: " + type + " Value: " + locString);
+
             if (locString != null) {
                 SimpleURI uri = new SimpleURI(locString);
                 try {
@@ -228,18 +230,18 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                         }
                         returnParameter.setType(type);
                         returnParameter.setDataTarget(pscoId);
-                        System.out.println("STAGE OUT         * Return : ");
-                        System.out.println("STAGE OUT             Type: " + type);
-                        System.out.println("STAGE OUT             ID: " + pscoId);
+                        System.out.println("STAGE OUT[" + this.getJobId() + "]         * Return : ");
+                        System.out.println("STAGE OUT[" + this.getJobId() + "]             Type: " + type);
+                        System.out.println("STAGE OUT[" + this.getJobId() + "]             ID: " + pscoId);
                     } else {
                         returnParameter.setType(type);
-                        System.out.println("STAGE OUT         * Return : ");
-                        System.out.println("STAGE OUT             Type: " + type);
-                        System.out.println("STAGE OUT             Value location: " + loc);
+                        System.out.println("STAGE OUT[" + this.getJobId() + "]         * Return : ");
+                        System.out.println("STAGE OUT[" + this.getJobId() + "]             Type: " + type);
+                        System.out.println("STAGE OUT[" + this.getJobId() + "]             Value location: " + loc);
 
                     }
                 } catch (IOException ioe) {
-                    System.err.println("STAGE OUT ERROR PROCESSING TASK RESULT");
+                    System.err.println("STAGE OUT[" + this.getJobId() + "] ERROR PROCESSING TASK RESULT");
                 }
             }
         }
@@ -247,8 +249,8 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
         if (hasTarget) {
             numParams--;
             DependencyParameter targetParameter = (DependencyParameter) taskParams.getParameters()[numParams];
-            DataType type = targetParameter.getType();
-            String locString = paramResults[numParams];
+            DataType type = paramTypes[numParams];
+            String locString = paramLocations[numParams];
             if (locString != null) {
                 SimpleURI uri = new SimpleURI(locString);
                 try {
@@ -261,27 +263,25 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                         }
                         targetParameter.setType(type);
                         targetParameter.setDataTarget(pscoId);
-                        System.out.println("STAGE OUT         * Return : ");
-                        System.out.println("STAGE OUT             Type: " + type);
-                        System.out.println("STAGE OUT             ID: " + pscoId);
+                        System.out.println("STAGE OUT[" + this.getJobId() + "]         * Return : ");
+                        System.out.println("STAGE OUT[" + this.getJobId() + "]             Type: " + type);
+                        System.out.println("STAGE OUT[" + this.getJobId() + "]             ID: " + pscoId);
                     } else {
                         targetParameter.setType(type);
-                        System.out.println("STAGE OUT         * Return : ");
-                        System.out.println("STAGE OUT             Type: " + type);
-                        System.out.println("STAGE OUT             Value location: " + loc);
+                        System.out.println("STAGE OUT[" + this.getJobId() + "]         * Return : ");
+                        System.out.println("STAGE OUT[" + this.getJobId() + "]             Type: " + type);
+                        System.out.println("STAGE OUT[" + this.getJobId() + "]             Value location: " + loc);
 
                     }
                 } catch (IOException ioe) {
-                    System.err.println("STAGE OUT ERROR PROCESSING TASK TARGET");
+                    System.err.println("STAGE OUT[" + this.getJobId() + "] ERROR PROCESSING TASK TARGET");
                 }
             }
         }
 
-        System.out.println("STAGE OUT     Parameters:");
+        System.out.println("STAGE OUT[" + this.getJobId() + "]     Parameters:");
         for (int parIdx = 0; parIdx < numParams; parIdx++) {
-            Parameter param = params[parIdx];
-            DataType type = param.getType();
-
+            DataType type = paramTypes[parIdx];
             switch (type) {
                 case FILE_T:
                 case EXTERNAL_PSCO_T:
@@ -289,7 +289,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                 case PSCO_T:
 
                     DependencyParameter dp = (DependencyParameter) params[parIdx];
-                    String locString = paramResults[parIdx];
+                    String locString = paramLocations[parIdx];
                     if (locString != null) {
                         SimpleURI uri = new SimpleURI(locString);
                         try {
@@ -306,9 +306,9 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                                 }
                                 dp.setType(type);
                                 dp.setDataTarget(pscoId);
-                                System.out.println("STAGE OUT         * Parameter " + parIdx + ": ");
-                                System.out.println("STAGE OUT             Type: " + type);
-                                System.out.println("STAGE OUT             ID: " + pscoId);
+                                System.out.println("STAGE OUT[" + this.getJobId() + "]         * Parameter " + parIdx + ": ");
+                                System.out.println("STAGE OUT[" + this.getJobId() + "]             Type: " + type);
+                                System.out.println("STAGE OUT[" + this.getJobId() + "]             ID: " + pscoId);
                             } else {
                                 switch (type) {
                                     case EXTERNAL_PSCO_T:
@@ -320,12 +320,12 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                                     default:
                                 }
                                 dp.setType(type);
-                                System.out.println("STAGE OUT          * Parameter " + parIdx + ": ");
-                                System.out.println("STAGE OUT              Type: " + type);
-                                System.out.println("STAGE OUT              Value location: " + loc);
+                                System.out.println("STAGE OUT[" + this.getJobId() + "]          * Parameter " + parIdx + ": ");
+                                System.out.println("STAGE OUT[" + this.getJobId() + "]              Type: " + type);
+                                System.out.println("STAGE OUT[" + this.getJobId() + "]              Value location: " + loc);
                             }
                         } catch (IOException ioe) {
-                            System.err.println("STAGE OUT ERROR PROCESSING TASK PARAMETER " + parIdx);
+                            System.err.println("STAGE OUT[" + this.getJobId() + "] ERROR PROCESSING TASK PARAMETER " + parIdx);
                         }
                         break;
                     }

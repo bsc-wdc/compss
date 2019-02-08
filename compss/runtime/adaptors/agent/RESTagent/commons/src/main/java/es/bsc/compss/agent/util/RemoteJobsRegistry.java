@@ -17,6 +17,7 @@
 package es.bsc.compss.agent.util;
 
 import es.bsc.compss.agent.rest.types.RemoteJobListener;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.job.JobListener;
 import java.util.HashMap;
 
@@ -29,8 +30,8 @@ public class RemoteJobsRegistry {
         REGISTERED_JOBS.put(jobId, o);
     }
 
-    public static synchronized void notifyJobEnd(String jobId, JobListener.JobEndStatus endStatus, String[] paramResults) {
+    public static synchronized void notifyJobEnd(String jobId, JobListener.JobEndStatus endStatus, DataType[] paramTypes, String[] paramLocations) {
         RemoteJobListener listener = REGISTERED_JOBS.remove(jobId);
-        listener.finishedExecution(endStatus, paramResults);
+        listener.finishedExecution(endStatus, paramTypes, paramLocations);
     }
 }

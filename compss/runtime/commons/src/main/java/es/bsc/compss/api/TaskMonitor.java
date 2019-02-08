@@ -29,7 +29,7 @@ public interface TaskMonitor {
 
     public void onSubmission();
 
-    public void valueGenerated(int paramId, DataType type, Object value);
+    public void valueGenerated(int paramId, DataType type, String name, Object location);
 
     public void onErrorExecution();
 

@@ -381,13 +381,15 @@ public class ExecutionAction extends AllocatableAction {
                     }
                     Comm.registerLocation(name, outLoc);
                     TaskMonitor monitor = task.getTaskMonitor();
-                    monitor.valueGenerated(paramId, dp.getType(), outLoc);
+                    monitor.valueGenerated(paramId, dp.getType(), name, outLoc);
                 } else {
                     // Service
                     Object value = job.getReturnValue();
-                    Comm.registerValue(name, value);
+                    LogicalData ld = Comm.registerValue(name, value);
                     TaskMonitor monitor = task.getTaskMonitor();
-                    monitor.valueGenerated(paramId, dp.getType(), value);
+                    for (DataLocation loc : ld.getLocations()) {
+                        monitor.valueGenerated(paramId, dp.getType(), name, loc);
+                    }
                 }
             }
         }
@@ -664,7 +666,7 @@ public class ExecutionAction extends AllocatableAction {
         this.assignImplementation(impl);
         assignResource(targetWorker);
         targetWorker.scheduleAction(this);
-        
+
         TaskMonitor monitor = task.getTaskMonitor();
         monitor.onSchedule();
     }

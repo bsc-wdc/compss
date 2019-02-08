@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.agent.rest.types.messages;
 
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.job.JobListener.JobEndStatus;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -25,15 +26,17 @@ public class EndApplicationNotification {
 
     private String jobId;
     private JobEndStatus endStatus;
-    private String[] paramResults;
+    private DataType[] paramTypes;
+    private String[] paramLocations;
 
     public EndApplicationNotification() {
     }
 
-    public EndApplicationNotification(String jobId, JobEndStatus status, String[] paramResults) {
+    public EndApplicationNotification(String jobId, JobEndStatus status, DataType[] paramTypes, String[] paramLocations) {
         this.jobId = jobId;
         this.endStatus = status;
-        this.paramResults = paramResults;
+        this.paramTypes = paramTypes;
+        this.paramLocations = paramLocations;
     }
 
     public void setJobId(String jobId) {
@@ -52,12 +55,20 @@ public class EndApplicationNotification {
         return endStatus;
     }
 
-    public void setParamResults(String[] paramResults) {
-        this.paramResults = paramResults;
+    public DataType[] getParamTypes() {
+        return paramTypes;
     }
 
-    public String[] getParamResults() {
-        return paramResults;
+    public void setParamTypes(DataType[] paramTypes) {
+        this.paramTypes = paramTypes;
+    }
+
+    public String[] getParamLocations() {
+        return paramLocations;
+    }
+
+    public void setParamLocations(String[] paramLocations) {
+        this.paramLocations = paramLocations;
     }
 
 }

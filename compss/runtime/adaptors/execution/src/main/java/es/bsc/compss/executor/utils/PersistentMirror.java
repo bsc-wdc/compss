@@ -19,10 +19,14 @@ package es.bsc.compss.executor.utils;
 import es.bsc.compss.invokers.external.persistent.PersistentInvoker;
 import es.bsc.compss.types.execution.InvocationContext;
 
+import java.io.PrintStream;
+
 public class PersistentMirror implements ExecutionPlatformMirror {
 
-    public PersistentMirror(InvocationContext context, int size) {
+    InvocationContext context;
 
+    public PersistentMirror(InvocationContext context, int size) {
+        this.context = context;
     }
 
     @Override
@@ -32,10 +36,14 @@ public class PersistentMirror implements ExecutionPlatformMirror {
 
     @Override
     public void unregisterExecutor(String id) {
+        PrintStream out = context.getThreadOutStream();
+        out.println("[PersistentMirror] Thread unregistration has been done."); //WARNING: Do not remove this log, is used for runtime testing
         PersistentInvoker.finishThread();
     }
 
     public void registerExecutor(String id) {
+        PrintStream out = context.getThreadOutStream();
+        out.println("[PersistentMirror] Thread registration has been done."); //WARNING: Do not remove this log, is used for runtime testing
         PersistentInvoker.initThread();
     }
 }

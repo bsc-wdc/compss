@@ -100,10 +100,13 @@ public class ExecutionAction extends AllocatableAction {
         this.task.addExecution(this);
 
         // Register data dependencies events
-        for (Task predecessor : this.task.getPredecessors()) {
-            for (ExecutionAction e : predecessor.getExecutions()) {
-                if (e != null && e.isPending()) {
-                    addDataPredecessor(e);
+        //
+        synchronized(this.task){
+            for (Task predecessor : this.task.getPredecessors()) {
+                for (ExecutionAction e : predecessor.getExecutions()) {
+                    if (e != null && e.isPending()) {
+                        addDataPredecessor(e);
+                    }
                 }
             }
         }
@@ -576,9 +579,13 @@ public class ExecutionAction extends AllocatableAction {
         for (ResourceScheduler<? extends WorkerResourceDescription> worker : candidates) {
             if (this.getExecutingResources().contains(worker)) {
                 if (DEBUG) {
-                    LOGGER.debug("Task already ran on worker " + worker.getName());
+                    LOGGER.debug("Task " + this.task.getId() + " already ran on worker " + worker.getName());
                 }
-                continue;
+                if (candidates.size()>1){
+                    continue;
+                }else{
+                    LOGGER.debug("No more candidate resources for task " + this.task.getId() + ". Trying to use worker " + worker.getName() +" again ... ");
+                }
             }
             Score resourceScore = worker.generateResourceScore(this, task.getTaskDescription(), actionScore);
             ++usefulResources;

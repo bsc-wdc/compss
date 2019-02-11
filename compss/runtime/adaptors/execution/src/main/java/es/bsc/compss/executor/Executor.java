@@ -483,7 +483,7 @@ public class Executor implements Runnable {
                         }
                     } else {
                         // Error output file does not exist
-                        String msg = "ERROR: Output file " + renamedFilePath + " does not exist";
+                        String msg = "ERROR: Output file " + inSandboxFile.toPath() + " does not exist";
                         // Unexpected case (except for C binding when not serializing outputs)
                         if (lang != Lang.C) {
                             LOGGER.error(msg);

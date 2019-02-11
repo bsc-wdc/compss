@@ -48,6 +48,7 @@ public class PipePair {
     protected static final String TOKEN_SEP = " ";
 
     private static final int MAX_WRITE_PIPE_RETRIES = 3;
+    private static final int PIPE_ERROR_WAIT_TIME = 50;
     private final String pipePath;
 
     public PipePair(String basePipePath, String id) {
@@ -65,24 +66,35 @@ public class PipePair {
         taskCMD = taskCMD + TOKEN_NEW_LINE;
         while (!done && retries < MAX_WRITE_PIPE_RETRIES) {
             // Send to pipe : task tID command(jobOut jobErr externalCMD) \n
-            OutputStream output = null;
-            try {
-                output = new FileOutputStream(writePipe, true);
-                output.write(taskCMD.getBytes());
-                output.flush();
-                done = true;
-            } catch (Exception e) {
-                LOGGER.debug("Error on pipe write. Retry");
+            if (!new File(writePipe).exists()) {
+                LOGGER.debug("Warn pipe doesn't exist. Retry");
                 ++retries;
-            } finally {
-                if (output != null) {
-                    try {
-                        output.close();
-                    } catch (Exception e) {
-                        ErrorManager.error(ERROR_PIPE_CLOSE + writePipe, e);
+            } else {
+                OutputStream output = null;
+                try {
+                    output = new FileOutputStream(writePipe, true);
+                    output.write(taskCMD.getBytes());
+                    output.flush();
+                    done = true;
+                } catch (Exception e) {
+                    LOGGER.debug("Error on pipe write. Retry");
+                    ++retries;
+                } finally {
+                    if (output != null) {
+                        try {
+                            output.close();
+                        } catch (Exception e) {
+                            ErrorManager.error(ERROR_PIPE_CLOSE + writePipe, e);
+                        }
                     }
                 }
             }
+            try {
+                Thread.sleep(PIPE_ERROR_WAIT_TIME);
+            } catch (InterruptedException e) {
+                // No need to catch such exceptions
+            }
+
         }
         return done;
     }

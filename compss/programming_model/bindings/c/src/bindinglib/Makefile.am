@@ -19,7 +19,7 @@ include_HEADERS = generated_executor.h customStream.h c_compss.h c_compss_common
 lib_LTLIBRARIES = libcbindings.la
 
 libcbindings_la_SOURCES = CBindingExecutor.cc c_compss.cc c_compss_base64.c
-libcbindings_la_CPPFLAGS = -Wall -I../../../bindings-common/include -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux/ ${BOOST_CPPFLAGS} $(DEFINE)
+libcbindings_la_CPPFLAGS = -Wall -I../../../bindings-common/include -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux/ -I${BOOST_INCLUDE} ${BOOST_CPPFLAGS} $(DEFINE)
 libcbindings_la_LDFLAGS = -L../../../bindings-common/lib -lbindings_common -lpthread 
 
 ACLOCAL_AMFLAGS =-I m4

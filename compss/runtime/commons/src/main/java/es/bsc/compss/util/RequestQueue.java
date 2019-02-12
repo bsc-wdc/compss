@@ -22,7 +22,7 @@ import java.util.List;
 
 /**
  * The RequestQueue class is an utility to enqueue requests from a certain type. Any component can add a Request to the
- * queue at the end or priorize the treatment of that request by adding it to the head of the queue. At any point of the
+ * queue at the end or prioritize the treatment of that request by adding it to the head of the queue. At any point of the
  * execution a thread can dequeue a Request from the queue to treat it, if there are no requests on the queue it falls
  * asleep until a new request is enqueued.
  * 
@@ -42,8 +42,8 @@ public class RequestQueue<T> {
      * Constructs a new RequestQueue without any pending request nor asleep threads waiting for requests
      */
     public RequestQueue() {
-        queue = new LinkedList<>();
-        waiting = 0;
+        this.queue = new LinkedList<>();
+        this.waiting = 0;
     }
 
     /**
@@ -53,7 +53,7 @@ public class RequestQueue<T> {
      *            Request to be added
      */
     public synchronized void enqueue(T request) {
-        queue.add(request);
+        this.queue.add(request);
         notify();
     }
 
@@ -64,17 +64,17 @@ public class RequestQueue<T> {
      * @return the first request from the queue
      */
     public synchronized T dequeue() {
-        while (queue.isEmpty()) {
-            waiting++;
+        while (this.queue.isEmpty()) {
+            this.waiting++;
             try {
                 wait();
             } catch (InterruptedException e) {
                 return null;
             }
-            waiting--;
+            this.waiting--;
         }
 
-        return queue.poll();
+        return this.queue.poll();
 
     }
 
@@ -85,7 +85,7 @@ public class RequestQueue<T> {
      *            Request to be removed from the queue
      */
     public synchronized void remove(T request) {
-        queue.remove(request);
+        this.queue.remove(request);
     }
 
     /**
@@ -95,7 +95,7 @@ public class RequestQueue<T> {
      *            Request to be added
      */
     public synchronized void addToFront(T request) {
-        queue.addFirst(request);
+        this.queue.addFirst(request);
         notify();
     }
 
@@ -105,7 +105,7 @@ public class RequestQueue<T> {
      * @return number of pending requests in the queue
      */
     public synchronized int getNumRequests() {
-        return queue.size();
+        return this.queue.size();
     }
 
     /**
@@ -114,7 +114,7 @@ public class RequestQueue<T> {
      * @return the queue of pending requests
      */
     public synchronized List<T> getQueue() {
-        return queue;
+        return this.queue;
     }
 
     /**
@@ -123,7 +123,7 @@ public class RequestQueue<T> {
      * @return true if there are no requests waiting on the queue
      */
     public synchronized boolean isEmpty() {
-        return queue.isEmpty();
+        return this.queue.isEmpty();
     }
 
     /**
@@ -132,14 +132,14 @@ public class RequestQueue<T> {
      * @return number of threads waiting for a request
      */
     public synchronized int getWaiting() {
-        return waiting;
+        return this.waiting;
     }
 
     /**
      * Removes all the requests from the queue
      */
     public synchronized void clear() {
-        queue.clear();
+        this.queue.clear();
     }
 
     /**

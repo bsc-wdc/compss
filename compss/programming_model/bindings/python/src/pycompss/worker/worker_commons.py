@@ -384,8 +384,8 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
                         logger.debug("Deserialize self from file.")
                     from pycompss.util.serializer import deserialize_from_file
                     obj = deserialize_from_file(file_name)
-                    logger.debug('DESERIALIZED OBJECT IS %s' % self_elem.content)
                     if __debug__:
+                        logger.debug('Deserialized self object is: %s' % self_elem.content)
                         logger.debug("Processing callee, a hidden object of %s in file %s" % (file_name, type(self_elem.content)))
             values.insert(0, obj)
             types.insert(0, parameter.TYPE.OBJECT if not self_type == parameter.TYPE.EXTERNAL_PSCO else parameter.TYPE.EXTERNAL_PSCO)

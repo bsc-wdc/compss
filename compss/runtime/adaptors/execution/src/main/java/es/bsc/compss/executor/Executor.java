@@ -122,9 +122,12 @@ public class Executor implements Runnable {
 
         // Close language specific properties
         finish();
-
     }
 
+    /**
+     * Stop executor
+     * 
+     */
     public void finish() {
         // Nothing to do since everything is deleted in each task execution
         LOGGER.info("Executor finished");
@@ -147,7 +150,7 @@ public class Executor implements Runnable {
     private void processRequests() {
         Execution execution;
         while (true) {
-            execution = platform.getJob(); // Get tasks until there are no more tasks pending
+            execution = this.platform.getJob(); // Get tasks until there are no more tasks pending
 
             if (execution == null) {
                 LOGGER.debug("Dequeued job is null");

@@ -35,6 +35,7 @@ public class NIOTaskResult implements Externalizable {
     // ATTENTION: Parameter Values will be empty if it doesn't contain a PSCO Id
     private List<Object> paramValues = new LinkedList<>();
 
+
     /**
      * Only for externalization
      */
@@ -55,34 +56,46 @@ public class NIOTaskResult implements Externalizable {
 
         for (NIOParam np : arguments) {
             this.paramTypes.add(np.getType());
-
-            switch (np.getType()) {
-                case PSCO_T:
-                    this.paramValues.add(((StubItf) np.getValue()).getID());
-                    break;
-                case EXTERNAL_PSCO_T:
-                    this.paramValues.add(np.getValue());
-                    break;
-                default:
-                    // We add a NULL for any other type
-                    this.paramValues.add(null);
-                    break;
+            
+            if (np.isWriteFinalValue()) {
+                // Object has direction INOUT or OUT
+                switch (np.getType()) {
+                    case PSCO_T:
+                        this.paramValues.add(((StubItf) np.getValue()).getID());
+                        break;
+                    case EXTERNAL_PSCO_T:
+                        this.paramValues.add(np.getValue());
+                        break;
+                    default:
+                        // We add a NULL for any other type
+                        this.paramValues.add(null);
+                        break;
+                }
+            } else {
+                // Object has direction IN
+                this.paramValues.add(null);
             }
         }
         if (target != null) {
             this.paramTypes.add(target.getType());
-
-            switch (target.getType()) {
-                case PSCO_T:
-                    this.paramValues.add(((StubItf) target.getValue()).getID());
-                    break;
-                case EXTERNAL_PSCO_T:
-                    this.paramValues.add(target.getValue());
-                    break;
-                default:
-                    // We add a NULL for any other type
-                    this.paramValues.add(null);
-                    break;
+            
+            if (target.isWriteFinalValue()) {
+                // Target is marked with isModifier = true
+                switch (target.getType()) {
+                    case PSCO_T:
+                        this.paramValues.add(((StubItf) target.getValue()).getID());
+                        break;
+                    case EXTERNAL_PSCO_T:
+                        this.paramValues.add(target.getValue());
+                        break;
+                    default:
+                        // We add a NULL for any other type
+                        this.paramValues.add(null);
+                        break;
+                }
+            } else {
+                // Target is marked with isModifier = false
+                this.paramValues.add(null);
             }
         }
 

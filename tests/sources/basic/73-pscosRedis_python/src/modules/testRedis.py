@@ -53,6 +53,12 @@ def psco_persister(psco):
     return psco.getID()
 
 
+@task(returns=PSCO)
+def psco_persister_return(psco):
+    psco.make_persistent()
+    return psco
+
+
 @task(psco=INOUT, returns=str)
 def psco_persister_inout(psco):
     psco.make_persistent()
@@ -88,11 +94,10 @@ class TestRedis(unittest.TestCase):
         myPSCO = sync(myPSCO)
         self.assertEqual('Goodbye world', myPSCO.get_content())
 
-    @unittest.skip("TEMPORARY")
     def testPSCOisCorrectlyCreatedInsideTask(self):
         from pycompss.api.api import compss_wait_on as sync
-        myPSCO = creator_task(obj)
         obj = list(range(100))
+        myPSCO = creator_task(obj)
         myPSCO = sync(myPSCO)
         self.assertEqual(list(range(100)), myPSCO.get_content())
 
@@ -127,12 +132,24 @@ class TestRedis(unittest.TestCase):
         obj = PSCOWithTasks("Hello world")
         obj.make_persistent()
         initialContent = obj.get_content()
+        self.assertEqual('Hello world', initialContent)
         obj.set_content("Goodbye world")
         modifiedContent = obj.get_content()
         iC = sync(initialContent)
         mC = sync(modifiedContent)
         self.assertEqual('Hello world', iC)
         self.assertEqual('Goodbye world', mC)
+
+    def testPSCOwithTasksPersist(self):
+        from pycompss.api.api import compss_wait_on as sync
+        obj = PSCOWithTasks("Hello world")
+        obj.persist_notIsModifier()
+        obj = sync(obj)
+        self.assertTrue(obj.getID() is None)
+        obj = PSCOWithTasks("Hello world2")
+        obj.persist_isModifier()
+        obj = sync(obj)
+        self.assertTrue(obj.getID() is not None)
 
     def testAutoModification(self):
         from pycompss.api.api import compss_wait_on as sync
@@ -150,6 +167,15 @@ class TestRedis(unittest.TestCase):
         from storage.api import getByID
         an = getByID(ID)
         self.assertEqual('Persisted in task', an.get_content())
+
+    def testTaskPersisterReturn(self):
+        from pycompss.api.api import compss_wait_on as sync
+        a = PSCO('Persisted in task')
+        self.assertTrue(a.getID() is None)
+        b = psco_persister_return(a)
+        b = sync(b)
+        self.assertTrue(b.getID() is not None)
+        self.assertEqual('Persisted in task', b.get_content())
 
     def testTaskPersister_inout(self):
         from pycompss.api.api import compss_wait_on as sync

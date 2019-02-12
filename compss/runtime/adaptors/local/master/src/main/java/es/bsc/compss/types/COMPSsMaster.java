@@ -486,7 +486,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 if (node != this) {
                     try {
                         if (DEBUG) {
-                            LOGGER.debug("Sending data " + ld.getName() + " from " + sourcePath + " to " + tgtBO.getName());
+                            LOGGER.debug("Sending data " + ld.getName() + " from (" + node.getName() + ") " + sourcePath + " to (master) " + tgtBO.getName());
                         }
                         node.sendData(ld, source, target, tgtData, reason, listener);
                     } catch (Exception e) {
@@ -524,7 +524,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             COMPSsNode node = sourceRes.getNode();
             if (node != this) {
                 try {
-                    LOGGER.debug("Sending data " + ld.getName() + " from " + sourceRes.getName() + " to " + tgtBO.getName());
+                    LOGGER.debug("Sending data " + ld.getName() + " from (" + node.getName() + ") " + sourceRes.getName() + " to (master)" + tgtBO.getName());
                     node.sendData(ld, source, target, tgtData, reason, listener);
                 } catch (Exception e) {
                     LOGGER.error("Error: exception sending data", e);

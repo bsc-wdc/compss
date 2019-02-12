@@ -274,7 +274,7 @@ JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_setByteArray(J
         cp.size = (long)env->GetDirectBufferCapacity(jobj);
         cp.type = (int)type;
         cp.elements = (int)elements;
-        debug_printf("[BindingDataManager] Storing in cache Buff: %p size: %d\n", cp.pointer, cp.size);
+        debug_printf("[BindingDataManager] Storing %s in cache Buff: %p size: %d\n", id_str, cp.pointer, cp.size);
         jint res = (jint)cache->storeInCache(id_str, cp);
         env->ReleaseStringUTFChars( id, id_str);
         return res;

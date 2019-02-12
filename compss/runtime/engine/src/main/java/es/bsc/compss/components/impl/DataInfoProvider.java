@@ -20,6 +20,7 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.data.location.PersistentLocation;
 
 import java.util.ArrayList;
@@ -421,7 +422,10 @@ public class DataInfoProvider {
                 break;
             case RW:
                 rVersionId = ((RWAccessId) dAccId).getReadDataInstance().getVersionId();
-                di.versionHasBeenRead(rVersionId);
+                if(!di.versionHasBeenRead(rVersionId)){
+                    //read data version can be removed
+                    di.tryRemoveVersion(rVersionId);
+                }
                 wVersionId = ((RWAccessId) dAccId).getWrittenDataInstance().getVersionId();
                 deleted = di.versionHasBeenWritten(wVersionId);
                 break;
@@ -779,8 +783,17 @@ public class DataInfoProvider {
             }
 
             // If no PSCO location is found, perform normal getData
-            listener.addOperation();
-            Comm.getAppHost().getData(renaming, rf.getOriginalLocation(), new FileTransferable(), listener);
+            
+            if (rf.getOriginalLocation().getProtocol()== Protocol.BINDING_URI){
+                //Comm.getAppHost().getData(renaming, rf.getOriginalLocation(), new BindingObjectTransferable(), listener);
+                if (DEBUG) {
+                    LOGGER.debug("Discarding data d" + dataId + " as a result beacuse it is a binding object");
+                }
+            }else{
+                listener.addOperation();
+                Comm.getAppHost().getData(renaming, rf.getOriginalLocation(), new FileTransferable(), listener);
+            }
+            
             return rf;
         } else if (fileInfo != null && fileInfo.isCurrentVersionToDelete()) {
             if (DEBUG) {

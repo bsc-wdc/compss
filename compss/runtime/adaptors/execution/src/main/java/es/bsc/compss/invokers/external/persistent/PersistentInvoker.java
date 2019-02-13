@@ -17,7 +17,6 @@
 package es.bsc.compss.invokers.external.persistent;
 
 import es.bsc.compss.executor.ExecutorContext;
-import es.bsc.compss.executor.utils.ExecutionPlatformMirror;
 import es.bsc.compss.executor.utils.PersistentMirror;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.invokers.external.ExternalInvoker;

@@ -1422,13 +1422,13 @@ static void add_other_arg_worker_treatment(FILE *outFile, argument *arg, Types c
         case float_dt:
             fprintf(outFile, "\t\t\t istringstream %sss(argv[arg_offset]);\n", arg->name);
             fprintf(outFile, "\t\t\t if (!(%sss >> %s)) { \n", arg->name, arg->name);
-            fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Error converting %s, string to float\" << endl << flush;");
+            fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Error converting %s, string to float\" << endl << flush;", arg->name);
             fprintf(outFile, "\t\t\t \n}");
             break;
         case double_dt:
             fprintf(outFile, "\t\t\t istringstream %sss(argv[arg_offset]);\n", arg->name);
             fprintf(outFile, "\t\t\t if (!(%sss >> %s)) { \n", arg->name, arg->name);
-            fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Error converting %s, string to double\" << endl << flush;");
+            fprintf(outFile, "\t\t\t\t cout << \"[C Binding] Error converting %s, string to double\" << endl << flush;", arg->name);
             fprintf(outFile, "\t\t\t \n}");
             break;
         case string_dt:

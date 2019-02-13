@@ -268,7 +268,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
         long paramsEnd = System.currentTimeMillis();
         long paramsDuration = paramsEnd - obsolEnd;
-        WORKER_LOGGER.info("[Profile] Obsolete Processing: " + obsolDuration + "Processing " + paramsDuration);
+        WORKER_LOGGER.info("[Profile] Obsolete Processing: " + obsolDuration + " Processing " + paramsDuration);
         times.put(task.getJobId(), paramsEnd);
         if (tt.getParams() == 0) {
             executeTask(tt.getTask());

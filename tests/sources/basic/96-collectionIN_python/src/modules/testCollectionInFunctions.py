@@ -35,7 +35,7 @@ class testCollectionInFunctions(unittest.TestCase):
         self.assertTrue(
             np.allclose(
                 matrix[4],
-                fifth_row
+                compss_wait_on(fifth_row)
             )
         )
 

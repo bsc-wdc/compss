@@ -502,16 +502,25 @@ set_target_host #Tell GNU tools the target host of the build
 if [ -d "./src" ]; then
   (
   cd ./src || exit 1
-  make $goals)
+  make $goals
+  )
+
   ev=$?
   if [ $ev -ne 0 ]; then 
     echo " "
     echo "Building user application failed, please check errors above!"
     exit $ev
   fi
+
+  MASTER_LIBS="-L$(pwd)/lib -lmaster"
+  WORKER_LIBS="-L$(pwd)/lib -lworker"
+
 fi
 
 if [ "$ONLY_WORKER" = false ]; then
+
+    export LIBS="$LIBS $MASTER_LIBS"
+
 	# shellcheck disable=SC2086
 	"$CS_HOME"/bin/compss_build build master ${other_args}
 	ev=$?
@@ -523,6 +532,9 @@ if [ "$ONLY_WORKER" = false ]; then
 fi
 
 if [ "$ONLY_MASTER" = false ]; then
+
+    export LIBS="$LIBS $WORKER_LIBS"
+
     define_worker_only_env
 	# shellcheck disable=SC2086
 	"$CS_HOME"/bin/compss_build build worker ${other_args}
@@ -532,7 +544,6 @@ if [ "$ONLY_MASTER" = false ]; then
 		echo "Building binding failed, please check errors above!"
 		exit $ev
 	fi
-
 fi
 
 # End

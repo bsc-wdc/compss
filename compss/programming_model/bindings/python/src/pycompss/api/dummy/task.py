@@ -63,6 +63,11 @@ class task(object):
 
     def __call__(self, f):
         def wrapped_f(*args, **kwargs):
+            if __debug__:
+                import pickle
+                pick_args = pickle.loads(pickle.dumps(args))
+                pick_kwargs = pickle.loads(pickle.dumps(kwargs))
+                return f(*pick_args, **pick_kwargs)
             return f(*args, **kwargs)
 
         return wrapped_f

@@ -48,5 +48,21 @@
      exit 1
   fi
 
+  #Okay, now, it worked, but the threads were registered correctly? At least printed the messages?
+  THREAD_REGISTRATION_MESSAGE="\[PersistentMirror\] Thread registration has been done."
+  THREAD_UNREGISTRATION_MESSAGE="\[PersistentMirror\] Thread unregistration has been done."
+
+  #The prior test that we can do is that the number of registrations is == to number of unregistrations...
+
+  OCCURRENCES_TRM=$(rgrep "$THREAD_REGISTRATION_MESSAGE" $target_log_folder | wc -l)
+  OCCURRENCES_TUM=$(rgrep "$THREAD_UNREGISTRATION_MESSAGE" $target_log_folder | wc -l)
+
+  if [ "$OCURRENCES_TRM" = "0" ] || [ "$OCCURRENCES_TUM" = "0" ] || [ "$OCCURRENCES_TRM" != "$OCCURRENCES_TUM" ]; then
+    echo "ERROR ON THREAD REGISTRATION, THE NUMBER OF REGISTERS/UNREGISTERS IS 0 OR IS NOT THE SAME NUMBER."
+    echo "Nº THREAD REGISTER    MSG: $OCCURRENCES_TRM"
+    echo "Nº THREAD UNREGISTER  MSG: $OCCURRENCES_TUM"
+    exit 1
+  fi
+  
   exit 0
 

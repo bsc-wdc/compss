@@ -53,6 +53,7 @@
      ${runcompss_opts} \
      \
      --lang=c \
+     --persistent_worker_c=true \
      \
      "${base_app_dir}"/master/Matmul_obj $N $M $val > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
   

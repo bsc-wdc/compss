@@ -168,6 +168,7 @@ public class DataManagerImpl implements DataManager {
     public void fetchParam(InvocationParam param, int paramIdx, FetchDataListener tt) {
         switch (param.getType()) {
             case OBJECT_T:
+            case COLLECTION_T:
                 fetchObject(param, paramIdx, tt);
                 break;
             case PSCO_T:

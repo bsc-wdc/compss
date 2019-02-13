@@ -47,5 +47,6 @@ public enum DataType {
     ARRAY_LONG_T,
     ARRAY_FLOAT_T,
     ARRAY_DOUBLE_T,
+    COLLECTION_T,
     NULL_T
 }

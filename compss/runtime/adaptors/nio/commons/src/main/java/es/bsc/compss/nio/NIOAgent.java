@@ -221,6 +221,9 @@ public abstract class NIOAgent {
                             receiveBindingObjectAsFile(c, dr);
                         }
                         break;
+                    case COLLECTION_T:
+                        c.receiveDataObject();
+                        c.finishConnection();
                     default:
                         c.receiveDataObject();
                         c.finishConnection();

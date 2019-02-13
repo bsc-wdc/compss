@@ -45,11 +45,8 @@ import es.bsc.compss.util.Tracer;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.LogManager;
@@ -269,6 +266,16 @@ public class Comm {
     }
 
     /**
+     * Registers a new value @value for the data with id @dataId dataId must exist
+     * @param dataId Identifier of the collection
+     * @param parameters Parameters of the collection
+     * @return LogicalData
+     */
+    public static synchronized LogicalData registerCollection(String dataId, List<?> parameters) {
+        return registerValue(dataId, parameters);
+    }
+
+    /**
      * Registers a new External PSCO id @id for the data with id @dataId dataId must exist
      *
      * @param dataId
@@ -286,7 +293,6 @@ public class Comm {
      * Registers a new Binding Object id @id for the data with id @dataId dataId must exist
      *
      * @param dataId
-     * @param extObjectId
      * @return
      */
     public static synchronized LogicalData registerBindingObject(String dataId, BindingObject bo) {

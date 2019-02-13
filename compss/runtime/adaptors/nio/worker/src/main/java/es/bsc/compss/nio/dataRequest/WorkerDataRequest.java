@@ -17,6 +17,7 @@
 package es.bsc.compss.nio.dataRequest;
 
 import es.bsc.compss.data.DataManager;
+import es.bsc.compss.nio.worker.NIOWorker;
 import es.bsc.compss.types.annotations.parameter.DataType;
 
 import es.bsc.compss.nio.NIOTask;
@@ -45,10 +46,7 @@ public class WorkerDataRequest extends DataRequest {
 
         public TransferringTask(NIOTask task) {
             this.task = task;
-            params = task.getParams().size();
-            if (task.getTarget() != null) {
-                params++;
-            }
+            this.params = 0;
         }
 
         public NIOTask getTask() {
@@ -66,6 +64,10 @@ public class WorkerDataRequest extends DataRequest {
         @Override
         public void fetchedValue() {
             --this.params;
+        }
+
+        public void addOperation() {
+            ++this.params;
         }
 
         public void setError(boolean error) {

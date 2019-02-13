@@ -42,6 +42,7 @@ import es.bsc.compss.types.job.JobListener.JobEndStatus;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.DataAccessId.WAccessId;
+import es.bsc.compss.util.NIOParamFactory;
 
 
 public class NIOJob extends Job<NIOWorkerNode> {
@@ -113,79 +114,7 @@ public class NIOJob extends Job<NIOWorkerNode> {
     private LinkedList<NIOParam> addParams() {
         LinkedList<NIOParam> params = new LinkedList<>();
         for (Parameter param : taskParams.getParameters()) {
-            DataType type = param.getType();
-            NIOParam np;
-            switch (type) {
-                case FILE_T:
-                case OBJECT_T:
-                case PSCO_T:
-                case EXTERNAL_PSCO_T:
-                case BINDING_OBJECT_T:
-                    DependencyParameter dPar = (DependencyParameter) param;
-                    DataAccessId dAccId = dPar.getDataAccessId();
-                    Object value = dPar.getDataTarget();
-                    boolean preserveSourceData = true;
-                    if (dAccId instanceof RAccessId) {
-                        // Parameter is a R, has sources
-                        preserveSourceData = ((RAccessId) dAccId).isPreserveSourceData();
-                    } else if (dAccId instanceof RWAccessId) {
-                        // Parameter is a RW, has sources
-                        preserveSourceData = ((RWAccessId) dAccId).isPreserveSourceData();
-                    } else {
-                        // Parameter is a W, it has no sources
-                        preserveSourceData = false;
-                    }
-
-                    // Check if the parameter has a valid PSCO and change its type
-                    // OUT objects are restricted by the API
-                    String renaming = null;
-                    String dataMgmtId;
-                    DataAccessId faId = dPar.getDataAccessId();
-                    if (faId instanceof RWAccessId) {
-                        // Read write mode
-                        RWAccessId rwaId = (RWAccessId) faId;
-                        renaming = rwaId.getReadDataInstance().getRenaming();
-                        dataMgmtId = rwaId.getWrittenDataInstance().getRenaming();
-                    } else if (faId instanceof RAccessId) {
-                        // Read only mode
-                        RAccessId raId = (RAccessId) faId;
-                        renaming = raId.getReadDataInstance().getRenaming();
-                        dataMgmtId = renaming;
-                    } else {
-                        WAccessId waId = (WAccessId) faId;
-                        dataMgmtId = waId.getWrittenDataInstance().getRenaming();
-                    }
-                    if (renaming != null) {
-                        String pscoId = Comm.getData(renaming).getPscoId();
-                        if (pscoId != null) {
-                            if (type.equals(DataType.OBJECT_T)) {
-                                // Change Object type if it is a PSCO
-                                param.setType(DataType.PSCO_T);
-                            } else if (type.equals(DataType.FILE_T)) {
-                                // Change external object type (Workaround for Python PSCO return objects)
-                                param.setType(DataType.EXTERNAL_PSCO_T);
-                            }
-                            type = param.getType();
-                        }
-                    }
-
-                    // Create the NIO Param
-                    boolean writeFinalValue = !(dAccId instanceof RAccessId); // Only store W and RW
-                    np = new NIOParam(dataMgmtId, type, param.getStream(), param.getPrefix(), param.getName(), preserveSourceData,
-                            writeFinalValue, value, (NIOData) dPar.getDataSource(), dPar.getOriginalName());
-                    break;
-
-                default:
-                    BasicTypeParameter btParB = (BasicTypeParameter) param;
-                    value = btParB.getValue();
-                    preserveSourceData = false; // Basic parameters are not preserved on Worker
-                    writeFinalValue = false; // Basic parameters are not stored on Worker
-                    np = new NIOParam(null, type, param.getStream(), param.getPrefix(), param.getName(), preserveSourceData,
-                            writeFinalValue, value, null, DependencyParameter.NO_NAME);
-                    break;
-            }
-
-            params.add(np);
+            params.add(NIOParamFactory.fromParameter(param));
         }
         return params;
     }

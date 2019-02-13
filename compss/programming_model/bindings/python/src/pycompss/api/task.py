@@ -844,13 +844,11 @@ class task(object):
             for (obj, value) in zip(objects, pscos):
                 obj.content = value
 
-        # Deal with all the parameters that are NOT returns
-        for arg in [x for x in args if isinstance(x, parameter.TaskParameter) and not parameter.is_return(x.name)]:
+        def retrieve_content(arg, name_prefix):
             # This case is special, as a FILE can actually mean a FILE or an
             # object that is serialized in a file
             if parameter.is_vararg(arg.name):
                 self.param_varargs = arg.name
-
             if arg.type == parameter.TYPE.FILE:
                 if self.is_parameter_object(arg.name):
                     # The object is stored in some file, load and deserialize it
@@ -859,6 +857,22 @@ class task(object):
                 else:
                     # The object is a FILE, just forward the path of the file as a string parameter
                     arg.content = arg.file_name.split(':')[-1]
+            elif arg.type == parameter.TYPE.COLLECTION:
+                arg.content = []
+                for (i, line) in enumerate(open(arg.file_name.split(':')[-1], 'r')):
+                    content_type, content_file = line.strip().split(' ')
+                    # Same naming convention as in COMPSsRuntimeImpl.java
+                    sub_name = "%s.%d" % (arg.name, i)
+                    if name_prefix:
+                        sub_name = "%s.%s" % (name_prefix, arg.name)
+                    else:
+                        sub_name = "@%s" % sub_name
+                    from pycompss.worker.worker_commons import build_task_parameter
+                    sub_arg, _ = build_task_parameter(int(content_type), None, "", sub_name, content_file)
+                    # Recursively call the retrieve method, fill the content field in our new taskParameter object
+                    retrieve_content(sub_arg, sub_name)
+                    from pycompss.util.serializer import deserialize_from_file
+                    arg.content.append(sub_arg.content)
             elif not storage_supports_pipelining() and arg.type == parameter.TYPE.EXTERNAL_PSCO:
                 # The object is a PSCO and the storage does not support pipelining, do a single getByID
                 # of the PSCO
@@ -866,6 +880,10 @@ class task(object):
                 arg.content = getByID(arg.key)
                 # If we have not entered in any of these cases we will assume that the object was a basic type
                 # and the content is already available and properly casted by the python worker
+
+        # Deal with all the parameters that are NOT returns
+        for arg in [x for x in args if isinstance(x, parameter.TaskParameter) and not parameter.is_return(x.name)]:
+            retrieve_content(arg, "")
 
     def worker_call(self, *args, **kwargs):
         """

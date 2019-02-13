@@ -40,6 +40,7 @@ import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.ObjectTransferable;
 import es.bsc.compss.types.data.operation.OneOpWithSemListener;
 import es.bsc.compss.types.data.operation.ResultListener;
+import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.request.ap.TransferBindingObjectRequest;
 import es.bsc.compss.types.request.ap.TransferObjectRequest;
 import es.bsc.compss.types.uri.MultiURI;
@@ -67,6 +68,8 @@ public class DataInfoProvider {
 
     // Map: filename:host:path -> file identifier
     private TreeMap<String, Integer> nameToId;
+    // Map: collectionName -> collection identifier
+    private TreeMap<String, Integer> collectionToId;
     // Map: hash code -> object identifier
     private TreeMap<Integer, Integer> codeToId;
     // Map: file identifier -> file information
@@ -84,6 +87,7 @@ public class DataInfoProvider {
      */
     public DataInfoProvider() {
         nameToId = new TreeMap<>();
+        collectionToId = new TreeMap<>();
         codeToId = new TreeMap<>();
         idToData = new TreeMap<>();
         renamingToValue = new TreeMap<>();
@@ -815,5 +819,33 @@ public class DataInfoProvider {
     public void shutdown() {
         // Nothing to do
     }
-
+    /**
+     * Registers the access to a collection
+     * @param am AccesMode
+     * @param cp CollectionParameter
+     * @return DataAccessId Representation of the access to the collection
+     */
+    public DataAccessId registerCollectionAccess(AccessMode am, CollectionParameter cp) {
+        String collectionId = cp.getCollectionId();
+        Integer oId = collectionToId.get(collectionId);
+        CollectionInfo cInfo;
+        if(oId == null) {
+            cInfo = new CollectionInfo(collectionId);
+            oId = cInfo.getDataId();
+            collectionToId.put(collectionId, oId);
+            idToData.put(oId, cInfo);
+            // Serialize this first version of the object to a file
+            DataInstanceId lastDID = cInfo.getCurrentDataVersion().getDataInstanceId();
+            String renaming = lastDID.getRenaming();
+            // Inform the File Transfer Manager about the new file containing the object
+            if (am != AccessMode.W) {
+                LOGGER.debug("Collection " + cp.getCollectionId() + " contains " + cp.getParameters().size() + " accesses");
+                // Null until the two-step transfer method is implemented
+                Comm.registerCollection(renaming, null);
+            }
+        } else {
+            cInfo = (CollectionInfo) idToData.get(oId);
+        }
+        return willAccess(am, cInfo);
+    }
 }

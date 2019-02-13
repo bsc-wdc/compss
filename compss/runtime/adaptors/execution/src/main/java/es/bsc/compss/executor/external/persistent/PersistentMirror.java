@@ -14,14 +14,15 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.executor.utils;
+package es.bsc.compss.executor.external.persistent;
 
+import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.invokers.external.persistent.PersistentInvoker;
 import es.bsc.compss.types.execution.InvocationContext;
-
 import java.io.PrintStream;
 
-public class PersistentMirror implements ExecutionPlatformMirror {
+public class PersistentMirror implements ExecutionPlatformMirror<Void> {
+
 
     InvocationContext context;
 
@@ -41,9 +42,10 @@ public class PersistentMirror implements ExecutionPlatformMirror {
         PersistentInvoker.finishThread();
     }
 
-    public void registerExecutor(String id) {
+    public Void registerExecutor(String id) {
         PrintStream out = context.getThreadOutStream();
         out.println("[PersistentMirror] Thread registration has been done."); //WARNING: Do not remove this log, is used for runtime testing
         PersistentInvoker.initThread();
+        return null;
     }
 }

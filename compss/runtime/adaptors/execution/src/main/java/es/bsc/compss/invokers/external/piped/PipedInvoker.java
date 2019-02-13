@@ -16,10 +16,11 @@
  */
 package es.bsc.compss.invokers.external.piped;
 
-import es.bsc.compss.executor.utils.PipePair;
+import es.bsc.compss.executor.external.piped.commands.PipeCommand;
+import es.bsc.compss.executor.external.piped.PipedExecutor;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
-import es.bsc.compss.invokers.external.piped.commands.EndTaskPipeCommand;
-import es.bsc.compss.invokers.external.piped.commands.ErrorTaskPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.EndTaskPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.ErrorTaskPipeCommand;
 import es.bsc.compss.invokers.external.ExternalInvoker;
 import es.bsc.compss.invokers.types.ExternalTaskStatus;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -33,10 +34,10 @@ import java.io.File;
 
 public abstract class PipedInvoker extends ExternalInvoker {
 
-    private final PipePair pipes;
+    private final PipedExecutor pipes;
 
     public PipedInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources,
-            PipePair pipes) throws JobExecutionException {
+            PipedExecutor pipes) throws JobExecutionException {
 
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
         this.pipes = pipes;
@@ -44,7 +45,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
 
     @Override
     public void invokeMethod() throws JobExecutionException {
-        boolean send = pipes.send((PipeCommand) command);
+        boolean send = pipes.sendCommand((PipeCommand) command);
         if (!send) {
             int jobId = invocation.getJobId();
             LOGGER.error("ERROR: Could not execute job " + jobId + " because cannot write in pipe");
@@ -54,7 +55,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
         ExternalTaskStatus taskStatus;
         // Process pipe while we are not asked to stop or there are waiting processes
         while (true) {
-            PipeCommand rcvdCommand = pipes.read();
+            PipeCommand rcvdCommand = pipes.readCommand();
             if (rcvdCommand != null) {
                 switch (rcvdCommand.getType()) {
                     case ERROR_TASK:

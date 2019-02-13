@@ -14,10 +14,9 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.invokers.external.piped.commands;
+package es.bsc.compss.executor.external.piped.commands;
 
-import es.bsc.compss.invokers.external.commands.QuitExternalCommand;
-import es.bsc.compss.invokers.external.piped.PipeCommand;
+import es.bsc.compss.executor.external.commands.QuitExternalCommand;
 
 
 public class QuitPipeCommand extends QuitExternalCommand implements PipeCommand {

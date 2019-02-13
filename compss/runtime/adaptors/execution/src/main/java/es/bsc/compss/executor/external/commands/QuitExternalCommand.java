@@ -14,21 +14,19 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.invokers.external.commands;
-
-import es.bsc.compss.invokers.external.ExternalCommand;
+package es.bsc.compss.executor.external.commands;
 
 
-public class EndTaskExternalCommand implements ExternalCommand {
+public class QuitExternalCommand implements ExternalCommand {
 
     @Override
     public CommandType getType() {
-        return CommandType.END_TASK;
+        return CommandType.QUIT;
     }
 
     @Override
     public String getAsString() {
-        return CommandType.END_TASK.name();
+        return CommandType.QUIT.name();
     }
 
 }

@@ -14,12 +14,11 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.invokers.external.commands;
+package es.bsc.compss.executor.external.commands;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import es.bsc.compss.invokers.external.ExternalCommand;
 
 
 public class ExecuteTaskExternalCommand implements ExternalCommand {

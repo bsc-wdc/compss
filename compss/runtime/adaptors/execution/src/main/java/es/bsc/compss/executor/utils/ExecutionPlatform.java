@@ -16,23 +16,26 @@
  */
 package es.bsc.compss.executor.utils;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.Semaphore;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.executor.Executor;
 import es.bsc.compss.executor.ExecutorContext;
+import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.executor.types.Execution;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.invokers.util.JobQueue;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Semaphore;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.TreeSet;
 
 
 /**
@@ -42,53 +45,55 @@ public class ExecutionPlatform implements ExecutorContext {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_POOL);
 
-    protected final InvocationContext context;
-    protected final int size;
-    protected final ResourceManager rm;
-    protected final Thread[] workerThreads;
-    protected final JobQueue queue;
-    protected final Semaphore sem;
-    protected final Map<Class<?>, ExecutionPlatformMirror> mirrors;
+    private final String platformName;
+    private final InvocationContext context;
+    private final ResourceManager rm;
 
+    private final JobQueue queue;
+
+    private boolean started = false;
+    private int nextThreadId = 0;
+    private final TreeSet<Thread> workerThreads;
+    private final LinkedList<Thread> finishedWorkerThreads;
+
+    private final Semaphore startSemaphore;
+    private final Semaphore stopSemaphore;
+    private final Map<Class<?>, ExecutionPlatformMirror> mirrors;
 
     /**
      * Constructs a new thread pool but not the threads inside it.
      *
      * @param platformName
      * @param context
-     * @param size
-     *            number of threads that will be in the pool
+     * @param initialSize
      * @param resManager
      */
-    public ExecutionPlatform(String platformName, InvocationContext context, int size, ResourceManager resManager) {
-        LOGGER.info("Init JobsThreadPool");
+    public ExecutionPlatform(String platformName, InvocationContext context, int initialSize, ResourceManager resManager) {
+        LOGGER.info("Initializing execution platform " + platformName);
+        this.platformName = platformName;
+
         this.context = context;
-        this.size = size;
+        this.rm = resManager;
+        this.mirrors = new HashMap<>();
 
         // Make system properties local to each thread
         System.setProperties(new ThreadedProperties(System.getProperties()));
 
         // Instantiate the message queue and the stop semaphore
         this.queue = new JobQueue();
-        this.sem = new Semaphore(size);
+        this.startSemaphore = new Semaphore(0);
+        this.stopSemaphore = new Semaphore(0);
 
         // Instantiate worker thread structure
-        this.workerThreads = new Thread[size];
-        for (int i = 0; i < size; ++i) {
-            Executor executor = new Executor(context, this, "compute" + i) {
+        this.workerThreads = new TreeSet<>(new Comparator<Thread>() {
+            @Override
+            public int compare(Thread t1, Thread t2) {
+                return Long.compare(t1.getId(), t2.getId());
+            }
+        });
+        this.finishedWorkerThreads = new LinkedList<>();
+        addWorkerThreads(initialSize);
 
-                @Override
-                public void run() {
-                    super.run();
-                    ExecutionPlatform.this.sem.release();
-                }
-            };
-            Thread t = new Thread(executor);
-            t.setName(platformName + " compute thread # " + i);
-            this.workerThreads[i] = t;
-        }
-        this.rm = resManager;
-        this.mirrors = new HashMap<>();
     }
 
     /**
@@ -105,48 +110,95 @@ public class ExecutionPlatform implements ExecutorContext {
      *
      *
      */
-    public void start() {
-        LOGGER.info("Start threads of ThreadPool");
+    public final synchronized void start() {
+        LOGGER.info("Starting execution platform " + this.platformName);
         // Start is in inverse order so that Thread 1 is the last available
-        for (int i = this.workerThreads.length - 1; i >= 0; --i) {
-            this.workerThreads[i].start();
+        for (Thread t : this.workerThreads.descendingSet()) {
+            t.start();
         }
-
-        sem.acquireUninterruptibly(this.size);
+        int size = this.workerThreads.size();
+        this.startSemaphore.acquireUninterruptibly(size);
+        LOGGER.info("Started execution platform " + this.platformName + " with " + size);
     }
 
     /**
      * Stops all the threads. Inserts as many null objects to the queue as threads are managed. It wakes up all the
      * threads and wait until they process the null objects inserted which will stop them.
      */
-    public void stop() {
-        LOGGER.info("Stopping Jobs Thread Pool");
+    public final synchronized void stop() {
+        LOGGER.info("Stopping execution platform " + this.platformName);
         /*
          * Empty queue to discard any pending requests and make threads finish
          */
-        for (int i = 0; i < this.size; i++) {
+        int size = this.workerThreads.size();
+        removeWorkerThreads(size);
+
+        LOGGER.info("Stopping mirrors for execution platform " + this.platformName);
+        for (ExecutionPlatformMirror mirror : this.mirrors.values()) {
+            mirror.stop();
+        }
+        mirrors.clear();
+
+        started = false;
+        LOGGER.info("Stopped execution platform " + this.platformName);
+    }
+
+    public final synchronized void addWorkerThreads(int numWorkerThreads) {
+        Semaphore startSem;
+        if (started) {
+            startSem = new Semaphore(numWorkerThreads);
+        } else {
+            startSem = this.startSemaphore;
+        }
+        for (int i = 0; i < numWorkerThreads; i++) {
+            int id = nextThreadId++;
+            Executor executor = new Executor(context, this, "compute" + id) {
+
+                @Override
+                public void run() {
+                    startSem.release();
+                    super.run();
+                    ExecutionPlatform.this.finishedWorkerThreads.add(Thread.currentThread());
+                    ExecutionPlatform.this.stopSemaphore.release();
+                }
+            };
+            Thread t = new Thread(executor);
+            t.setName(platformName + " compute thread # " + id);
+            workerThreads.add(t);
+            if (started) {
+                t.start();
+            }
+        }
+        if (started) {
+            startSem.acquireUninterruptibly(numWorkerThreads);
+        }
+    }
+
+    public synchronized final void removeWorkerThreads(int numWorkerThreads) {
+        LOGGER.info("Stopping " + numWorkerThreads + " executors from execution platform " + this.platformName);
+        //Request N threads to finish
+        for (int i = 0; i < numWorkerThreads; i++) {
             this.queue.enqueue(null);
         }
         this.queue.wakeUpAll();
 
         // Wait until all threads have completed their last request
-        this.sem.acquireUninterruptibly(this.size);
+        this.stopSemaphore.acquireUninterruptibly(numWorkerThreads);
 
         // Stop specific language components
         joinThreads();
-        LOGGER.info("ThreadPool stopped");
-
-        LOGGER.info("Stopping mirrors");
-        for (ExecutionPlatformMirror mirror : this.mirrors.values()) {
-            mirror.stop();
-        }
+        LOGGER.info("Stopped " + numWorkerThreads + " executors from execution platform " + this.platformName);
     }
 
     private void joinThreads() {
-        for (Thread t : this.workerThreads) {
+        Iterator<Thread> iter = this.finishedWorkerThreads.iterator();
+        while (iter.hasNext()) {
+            Thread t = iter.next();
             if (t != null) {
                 try {
                     t.join();
+                    iter.remove();
+                    this.workerThreads.remove(t);
                     t = null;
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
@@ -159,7 +211,7 @@ public class ExecutionPlatform implements ExecutorContext {
 
     @Override
     public int getSize() {
-        return this.size;
+        return this.workerThreads.size();
     }
 
     @Override

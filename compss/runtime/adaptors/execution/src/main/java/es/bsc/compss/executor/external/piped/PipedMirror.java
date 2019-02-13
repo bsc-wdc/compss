@@ -14,9 +14,10 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.executor.utils;
+package es.bsc.compss.executor.external.piped;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.util.ErrorManager;
@@ -32,7 +33,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public abstract class PipedMirror implements ExecutionPlatformMirror {
+public abstract class PipedMirror implements ExecutionPlatformMirror<PipedExecutor> {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
 
@@ -57,7 +58,6 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
     private Process piper;
     private StreamGobbler outputGobbler;
     private StreamGobbler errorGobbler;
-
 
     public PipedMirror(InvocationContext context, int size) {
         mirrorId = String.valueOf(UUID.randomUUID().hashCode());
@@ -201,7 +201,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
     private void stopPipes() {
         LOGGER.info("Stopping compute pipes for mirror " + mirrorId);
         for (int i = 0; i < size; ++i) {
-            PipePair pipes = new PipePair(this.basePipePath, "compute" + i);
+            PipedExecutor pipes = new PipedExecutor(this.basePipePath, "compute" + i);
             pipes.close();
         }
     }
@@ -243,8 +243,9 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
         LOGGER.info("ExternalThreadPool finished");
     }
 
-    public PipePair getPipes(String executorId) {
-        return new PipePair(this.basePipePath, executorId);
+    @Override
+    public PipedExecutor registerExecutor(String executorId) {
+        return new PipedExecutor(this.basePipePath, executorId);
     }
 
     @Override

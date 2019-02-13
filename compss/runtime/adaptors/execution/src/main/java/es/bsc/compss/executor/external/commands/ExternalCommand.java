@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.invokers.external;
+package es.bsc.compss.executor.external.commands;
 
 public interface ExternalCommand {
 

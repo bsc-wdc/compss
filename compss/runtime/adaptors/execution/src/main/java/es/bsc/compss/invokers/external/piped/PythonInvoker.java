@@ -16,14 +16,14 @@
  */
 package es.bsc.compss.invokers.external.piped;
 
+import es.bsc.compss.executor.external.piped.PipedExecutor;
+import es.bsc.compss.executor.external.piped.PipedMirror;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.executor.ExecutorContext;
-import es.bsc.compss.executor.utils.PipedMirror;
-import es.bsc.compss.executor.utils.PipePair;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
-import es.bsc.compss.invokers.external.commands.ExecuteTaskExternalCommand;
-import es.bsc.compss.invokers.external.piped.commands.ExecuteTaskPipeCommand;
+import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
+import es.bsc.compss.executor.external.piped.commands.ExecuteTaskPipeCommand;
 import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
@@ -40,7 +40,7 @@ import java.util.Map;
 public class PythonInvoker extends PipedInvoker {
 
     public PythonInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
-            InvocationResources assignedResources, PipePair pipes) throws JobExecutionException {
+            InvocationResources assignedResources, PipedExecutor pipes) throws JobExecutionException {
 
         super(context, invocation, taskSandboxWorkingDir, assignedResources, pipes);
     }

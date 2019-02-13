@@ -14,30 +14,19 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.invokers.external.piped.commands;
+package es.bsc.compss.executor.external.piped.commands;
 
-import es.bsc.compss.invokers.external.commands.EndTaskExternalCommand;
-import es.bsc.compss.invokers.external.piped.PipeCommand;
+import es.bsc.compss.executor.external.commands.ErrorTaskExternalCommand;
 import es.bsc.compss.invokers.types.ExternalTaskStatus;
 
 
-public class EndTaskPipeCommand extends EndTaskExternalCommand implements PipeCommand {
+public class ErrorTaskPipeCommand extends ErrorTaskExternalCommand implements PipeCommand {
 
-    public final Integer jobId;
-    public final ExternalTaskStatus taskStatus;
-
-
-    public EndTaskPipeCommand(String[] line) {
-        jobId = Integer.parseInt(line[1]);
-        if (line.length > 3) {
-            taskStatus = new ExternalTaskStatus(line);
-        } else {
-            int exitValue = Integer.parseInt(line[2]);
-            taskStatus = new ExternalTaskStatus(exitValue);
-        }
+    public ErrorTaskPipeCommand(String[] result) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     public ExternalTaskStatus getTaskStatus() {
-        return taskStatus;
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

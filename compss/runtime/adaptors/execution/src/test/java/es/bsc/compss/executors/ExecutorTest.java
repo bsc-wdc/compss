@@ -20,7 +20,7 @@ import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.executor.Executor;
 import es.bsc.compss.executor.ExecutorContext;
 import es.bsc.compss.executor.types.Execution;
-import es.bsc.compss.executor.utils.ExecutionPlatformMirror;
+import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.invokers.test.utils.ExecutionFlowVerifier;
 import es.bsc.compss.invokers.test.utils.FakeInvocation;

@@ -28,6 +28,7 @@ import threading
 
 import pycompss.api.parameter as parameter
 from pycompss.runtime.core_element import CE
+from pycompss.runtime.commons import IS_PYTHON3
 
 if __debug__:
     import logging
@@ -599,6 +600,17 @@ class task(object):
         elif self.first_arg_name == 'cls':
             self.function_type = FunctionType.CLASS_METHOD
             self.class_name = self.parameters['cls'].object.__name__
+        # Finally, check if the function type is really a module function or a static method.
+        # Static methods are ONLY supported with Python 3 due to __qualname__ feature, which enables to know
+        # to which class they belong. The class name is needed in order to define properly the class_name for
+        # the correct registration and later invoke.
+        # Since these methods don't have self, nor cls, they are considered as FUNCTIONS to the runtime
+        if IS_PYTHON3:
+            name = self.function_name
+            qualified_name = self.user_function.__qualname__
+            if name != qualified_name:
+                # Then there is a class definition before the name in the qualified name
+                self.class_name = qualified_name[:-len(name) - 1]  # -1 to remove the last point
 
     def compute_user_function_information(self):
         """
@@ -606,10 +618,11 @@ class task(object):
         "from p import n" imports self.user_function
         :return: None, it just sets self.user_function_path and self.user_function_name
         """
+        self.function_name = self.user_function.__name__
         # Get the module name (the x part "from x import y"), except for the class name
         self.compute_module_name()
+        # Get the function type (function, instance method, class method)
         self.compute_function_type()
-        self.function_name = self.user_function.__name__
 
     def master_call(self, *args, **kwargs):
         """

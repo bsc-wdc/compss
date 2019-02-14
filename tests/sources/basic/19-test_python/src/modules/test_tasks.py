@@ -79,6 +79,13 @@ class MyClass(object):
         print("- Class method of class", cls)
         print("- Static field:", cls.static_field)
 
+    @staticmethod
+    @task(returns=int)
+    def static_method(a, b, c):
+        print("TEST")
+        print("- Static method of MyClass")
+        return (a + b) * c
+
     @task(returns=int)
     def return_value_square(self, v):
         print("TEST")

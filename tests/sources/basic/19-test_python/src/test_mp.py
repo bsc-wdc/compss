@@ -164,6 +164,17 @@ def test_class_method():
     MyClass.class_method()
 
 
+def test_static_method():
+    print("test_static_method")
+    o = MyClass(1)
+    result = o.static_method(2, 4, 8)
+    result = compss_wait_on(result)
+    if result == (2+4) * 8:
+        print("- Static method: OK")
+    else:
+        print("- Static method: ERROR")
+
+
 def test_function_return_primitive():
     print("test_function_return_primitive")
     val = 1
@@ -705,6 +716,9 @@ def main_program():
     test_instance_method()
 
     test_class_method()
+    if sys.version_info >= (3, 0):
+        # Static methods are only supported with python 3
+        test_static_method()
 
     test_function_return_primitive()
     test_function_return_object()

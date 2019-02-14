@@ -273,6 +273,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         if (targetParam != null) {
             // Parameter has associated data
             WORKER_LOGGER.debug("- Checking transfers for data " + targetParam.getDataMgmtId() + " for target parameter");
+            tt.addOperation();
             dataManager.fetchParam(targetParam, -1, tt);
         }
 

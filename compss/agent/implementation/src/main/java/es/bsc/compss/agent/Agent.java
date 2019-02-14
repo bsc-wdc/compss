@@ -18,6 +18,7 @@ package es.bsc.compss.agent;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.agent.types.ApplicationParameter;
+import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
 import es.bsc.compss.comm.Comm;
@@ -37,6 +38,8 @@ import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.parsers.ITFParser;
 import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
@@ -46,6 +49,7 @@ import storage.StorageItf;
 
 public class Agent {
 
+    private static final String AGENT_NAME = System.getProperty(AgentConstants.COMPSS_AGENT_NAME);
     private static final COMPSsRuntimeImpl RUNTIME;
     private static final Random APP_ID_GENERATOR = new Random();
 
@@ -219,7 +223,29 @@ public class Agent {
         return appId;
     }
 
-    public static void addNode(String workerName, MethodResourceDescription description, String adaptor, Object projectConf, Object resourcesConf) throws AgentException {
+    private static boolean isMaster(Resource r) {
+        String name = r.getName();
+        String hostName = name;
+        try {
+            if (!hostName.contains("://")) {
+                hostName = "http://" + hostName;
+            }
+            URI u = new URI(hostName);
+            hostName = u.getHost();
+        } catch (URISyntaxException ex) {
+            hostName = name;
+        }
+
+        return (name.equals(AGENT_NAME) || hostName.equals(AGENT_NAME) || name.equals("localhost"));
+    }
+
+    public static void addNode(Resource r) throws AgentException {
+        String workerName = r.getName();
+        String adaptor = r.getAdaptor();
+        MethodResourceDescription description = r.getDescription();
+        Object projectConf = r.getProjectConf();
+        Object resourcesConf = r.getResourceConf();
+
         MethodConfiguration mc;
         try {
             mc = (MethodConfiguration) Comm.constructConfiguration(adaptor, projectConf, resourcesConf);

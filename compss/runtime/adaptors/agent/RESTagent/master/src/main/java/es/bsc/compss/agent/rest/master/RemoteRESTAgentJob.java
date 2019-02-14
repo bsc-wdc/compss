@@ -48,18 +48,19 @@ import javax.ws.rs.core.Response;
 public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
 
     private static final String REST_AGENT_URL = "http://" + System.getProperty(RESTAgentConstants.COMPSS_AGENT_NAME) + ":" + System.getProperty(RESTAgentConstants.COMPSS_AGENT_PORT) + "/";
-    private final RemoteRESTAgent executor;
 
     public RemoteRESTAgentJob(RemoteRESTAgent executor, int taskId, TaskDescription task, Implementation impl, Resource res, JobListener listener) {
         super(taskId, task, impl, res, listener);
-        this.executor = executor;
     }
 
     @Override
     public void submit() throws Exception {
         StartApplicationRequest sar = new StartApplicationRequest();
 
-        WebTarget wt = executor.getTarget();
+        Resource executorResource = this.getResource();
+        RemoteRESTAgent executorNode = this.getResourceNode();
+
+        WebTarget wt = executorNode.getTarget();
         wt = wt.path("/COMPSs/startApplication/");
 
         MethodImplementation mImpl = (MethodImplementation) this.impl;
@@ -111,7 +112,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
             throw new UnsupportedOperationException("Instance methods not supported yet.");
         }
 
-        System.out.println("SUBMISSION[" + this.getJobId() + "] Remote Agent :" + executor.getName());
+        System.out.println("SUBMISSION[" + this.getJobId() + "] Remote Agent :" + executorNode.getName());
         System.out.println("SUBMISSION[" + this.getJobId() + "] Parameters:");
         for (int parIdx = 0; parIdx < numParams; parIdx++) {
             System.out.println("SUBMISSION[" + this.getJobId() + "]     * Parameter " + parIdx + ": ");

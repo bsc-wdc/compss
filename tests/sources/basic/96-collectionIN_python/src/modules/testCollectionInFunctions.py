@@ -30,12 +30,12 @@ class testCollectionInFunctions(unittest.TestCase):
         matrix = [
             np.random.rand(5) for _ in range(10)
         ]
-        fifth_row = select_element(matrix, 4)
+        fifth_row = compss_wait_on(select_element(matrix, 4))
 
         self.assertTrue(
             np.allclose(
                 matrix[4],
-                compss_wait_on(fifth_row)
+                fifth_row
             )
         )
 
@@ -43,11 +43,13 @@ class testCollectionInFunctions(unittest.TestCase):
         matrix = [
             generate_object(i) for i in range(10)
         ]
-        fifth_row = select_element(matrix, 4)
+        fifth_row = compss_wait_on(select_element(matrix, 4))
+
+        print(fifth_row)
 
         self.assertTrue(
             np.allclose(
-                matrix[4],
-                compss_wait_on(fifth_row)
+                compss_wait_on(matrix[4]),
+                fifth_row
             )
         )

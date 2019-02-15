@@ -1,11 +1,11 @@
 /*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+ *  Copyright 2002*2018 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE*2.0
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,6 +35,7 @@ import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
+import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.parsers.ITFParser;
 import java.net.InetAddress;
@@ -246,31 +247,36 @@ public class Agent {
         Object projectConf = r.getProjectConf();
         Object resourcesConf = r.getResourceConf();
 
-        MethodConfiguration mc;
-        try {
-            mc = (MethodConfiguration) Comm.constructConfiguration(adaptor, projectConf, resourcesConf);
-        } catch (ConstructConfigurationException e) {
-            throw new AgentException(e.getMessage(), e);
-        }
-        int limitOfTasks = mc.getLimitOfTasks();
-        int computingUnits = description.getTotalCPUComputingUnits();
-        if (limitOfTasks < 0 && computingUnits < 0) {
-            mc.setLimitOfTasks(0);
-            mc.setTotalComputingUnits(0);
+        DynamicMethodWorker worker = ResourceManager.getDynamicResource(workerName);
+        if (worker != null) {
+            ResourceManager.increasedDynamicWorker(worker, description);
         } else {
-            mc.setLimitOfTasks(Math.max(limitOfTasks, computingUnits));
-            mc.setTotalComputingUnits(Math.max(limitOfTasks, computingUnits));
-        }
-        mc.setLimitOfGPUTasks(description.getTotalGPUComputingUnits());
-        mc.setTotalGPUComputingUnits(description.getTotalGPUComputingUnits());
-        mc.setLimitOfFPGATasks(description.getTotalFPGAComputingUnits());
-        mc.setTotalFPGAComputingUnits(description.getTotalFPGAComputingUnits());
-        mc.setLimitOfOTHERSTasks(description.getTotalOTHERComputingUnits());
-        mc.setTotalOTHERComputingUnits(description.getTotalOTHERComputingUnits());
+            MethodConfiguration mc;
+            try {
+                mc = (MethodConfiguration) Comm.constructConfiguration(adaptor, projectConf, resourcesConf);
+            } catch (ConstructConfigurationException e) {
+                throw new AgentException(e.getMessage(), e);
+            }
+            int limitOfTasks = mc.getLimitOfTasks();
+            int computingUnits = description.getTotalCPUComputingUnits();
+            if (limitOfTasks < 0 && computingUnits < 0) {
+                mc.setLimitOfTasks(0);
+                mc.setTotalComputingUnits(0);
+            } else {
+                mc.setLimitOfTasks(Math.max(limitOfTasks, computingUnits));
+                mc.setTotalComputingUnits(Math.max(limitOfTasks, computingUnits));
+            }
+            mc.setLimitOfGPUTasks(description.getTotalGPUComputingUnits());
+            mc.setTotalGPUComputingUnits(description.getTotalGPUComputingUnits());
+            mc.setLimitOfFPGATasks(description.getTotalFPGAComputingUnits());
+            mc.setTotalFPGAComputingUnits(description.getTotalFPGAComputingUnits());
+            mc.setLimitOfOTHERSTasks(description.getTotalOTHERComputingUnits());
+            mc.setTotalOTHERComputingUnits(description.getTotalOTHERComputingUnits());
 
-        mc.setHost(workerName);
-        DynamicMethodWorker mw = new DynamicMethodWorker(workerName, description, mc, new HashMap());
-        ResourceManager.addDynamicWorker(mw, description);
+            mc.setHost(workerName);
+            DynamicMethodWorker mw = new DynamicMethodWorker(workerName, description, mc, new HashMap());
+            ResourceManager.addDynamicWorker(mw, description);
+        }
     }
 
     public static void removeNode(String name) throws AgentException {

@@ -81,7 +81,6 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     private static final String ERR_LOAD_SCHEDULER = "Error loading scheduler";
     private static final String ERROR_QUEUE_OFFER = "ERROR: TaskDispatcher queue offer error on ";
 
-
     /**
      * Creates a new task dispatcher instance
      *
@@ -372,6 +371,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         TaskScheduler scheduler = null;
         try {
             String schedFQN = System.getProperty(COMPSsConstants.SCHEDULER);
+            System.out.println("****************************************** Scheduler Name:" + schedFQN);
             Class<?> schedClass = Class.forName(schedFQN);
             Constructor<?> schedCnstr = schedClass.getDeclaredConstructors()[0];
             scheduler = (TaskScheduler) schedCnstr.newInstance();

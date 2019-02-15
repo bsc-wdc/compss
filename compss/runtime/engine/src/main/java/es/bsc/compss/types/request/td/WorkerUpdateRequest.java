@@ -22,9 +22,9 @@ import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
 
+
 /**
- * The AddCloudNodeRequest represents a request to add a new resource ready to
- * execute to the resource pool
+ * The AddCloudNodeRequest represents a request to add a new resource ready to execute to the resource pool
  */
 public class WorkerUpdateRequest<T extends WorkerResourceDescription> extends TDRequest {
 
@@ -49,6 +49,7 @@ public class WorkerUpdateRequest<T extends WorkerResourceDescription> extends TD
 
     @Override
     public void process(TaskScheduler ts) throws ShutdownException {
+        System.out.println("Updating resource " + worker.getName());
         ts.updateWorker(worker, ru);
     }
 

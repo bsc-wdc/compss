@@ -115,14 +115,15 @@ public class MasterResourceImpl extends DynamicMethodWorker implements MasterRes
     }
 
     @Override
-    public void updateResource(MethodResourceDescription mrd, Map<String, String> sharedDisks) {
+    public void updateDisks(Map<String, String> sharedDisks) {
+        /*(MethodResourceDescription mrd,)
         this.description.mimic(mrd);
         this.available.mimic(mrd);
         this.setMaxCPUTaskCount(mrd.getTotalCPUComputingUnits());
         this.setMaxGPUTaskCount(mrd.getTotalGPUComputingUnits());
         this.setMaxFPGATaskCount(mrd.getTotalFPGAComputingUnits());
         this.setMaxOthersTaskCount(mrd.getTotalOTHERComputingUnits());
-        ((COMPSsMaster) this.getNode()).setUpExecutionCapabilities(mrd, mrd.getTotalCPUComputingUnits());
+        ((COMPSsMaster) this.getNode()).setUpExecutionCapabilities(mrd, mrd.getTotalCPUComputingUnits());*/
         super.sharedDisks = sharedDisks;
     }
 

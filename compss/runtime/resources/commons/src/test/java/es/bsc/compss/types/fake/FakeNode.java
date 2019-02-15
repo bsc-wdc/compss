@@ -36,6 +36,7 @@ import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import java.util.List;
 
+
 public class FakeNode extends COMPSsWorker {
 
     private final String name;
@@ -131,6 +132,16 @@ public class FakeNode extends COMPSsWorker {
     @Override
     public boolean generateWorkersDebugInfo() {
         return false;
+    }
+
+    @Override
+    public void increaseComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+
+    }
+
+    @Override
+    public void reduceComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+
     }
 
 }

@@ -79,7 +79,6 @@ public class NIOWorkerNode extends COMPSsWorker {
     private boolean started = false;
     private WorkerStarter workerStarter;
 
-
     @Override
     public String getName() {
         return this.config.getHost();
@@ -566,4 +565,13 @@ public class NIOWorkerNode extends COMPSsWorker {
         started = b;
     }
 
+    @Override
+    public void increaseComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void reduceComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

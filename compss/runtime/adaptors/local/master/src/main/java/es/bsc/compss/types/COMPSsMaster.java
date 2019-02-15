@@ -40,6 +40,7 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
+import es.bsc.compss.types.execution.ThreadBinder;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;
@@ -49,7 +50,6 @@ import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.ExecutorShutdownListener;
-import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.BindingDataManager;
@@ -104,7 +104,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     private final ThreadedPrintStream out;
     private final ThreadedPrintStream err;
     private boolean started = false;
-
 
     /**
      * New COMPSs Master
@@ -287,6 +286,13 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         err = new ThreadedPrintStream(SUFFIX_ERR, System.err);
         System.setErr(err);
         System.setOut(out);
+
+        this.executionManager = new ExecutionManager(this, 0, ThreadBinder.BINDER_DISABLED, 0, ThreadBinder.BINDER_DISABLED, 0, ThreadBinder.BINDER_DISABLED, 0);
+        try {
+            this.executionManager.init();
+        } catch (InitializationException ie) {
+            ErrorManager.error(EXECUTION_MANAGER_ERR, ie);
+        }
     }
 
     private boolean deleteDirectory(File directory) {
@@ -308,11 +314,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         return directory.delete();
     }
 
-    public void setUpExecutionCapabilities(MethodResourceDescription desc, int limitOfTasks) {
-        this.executionManager = new ExecutionManager(this, desc.getTotalCPUComputingUnits(), "null", desc.getTotalGPUComputingUnits(),
-                "null", desc.getTotalFPGAComputingUnits(), "null", limitOfTasks);
-    }
-
     @Override
     public void start() {
         synchronized (this) {
@@ -321,18 +322,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             }
             started = true;
         }
-        /*
-         * if (tracing_level == Tracer.BASIC_MODE) { Tracer.enablePThreads(); }
-         */
-        try {
-            this.executionManager.init();
-        } catch (InitializationException ie) {
-            ErrorManager.error(EXECUTION_MANAGER_ERR, ie);
-        }
-
-        /*
-         * if (tracing_level == Tracer.BASIC_MODE) { Tracer.disablePThreads(); }
-         */
     }
 
     @Override
@@ -994,7 +983,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             }
             break;
             case PSCO_T: {
-                String pscoId = (String)localParam.getValue();
+                String pscoId = (String) localParam.getValue();
                 Object o = StorageItf.getByID(pscoId);
                 invParam.setValue(o);
             }
@@ -1051,5 +1040,15 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     public String getWorkersDirPath() {
         return this.workersDirPath;
+    }
+
+    @Override
+    public void increaseComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+        this.executionManager.increaseCapabilities(CPUCount, GPUCount, FPGACount, otherCount);
+    }
+
+    @Override
+    public void reduceComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+        this.executionManager.reduceCapabilities(CPUCount, GPUCount, FPGACount, otherCount);
     }
 }

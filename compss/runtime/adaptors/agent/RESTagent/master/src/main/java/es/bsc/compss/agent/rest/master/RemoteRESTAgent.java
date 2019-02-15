@@ -328,4 +328,15 @@ public class RemoteRESTAgent extends COMPSsWorker {
         // Notify successful end
         sc.end(DataOperation.OpEndState.OP_OK);
     }
+
+    @Override
+    public void increaseComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+        throw new UnsupportedOperationException("Not supported yet."); 
+    }
+
+    @Override
+    public void reduceComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+        throw new UnsupportedOperationException("Not supported yet."); 
+    }
+    
 }

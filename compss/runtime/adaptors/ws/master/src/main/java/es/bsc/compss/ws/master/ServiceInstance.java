@@ -45,7 +45,6 @@ public class ServiceInstance extends COMPSsWorker {
 
     private WSConfiguration config;
 
-
     public ServiceInstance(String name, WSConfiguration config) {
         super(name, config);
         this.config = config;
@@ -95,9 +94,9 @@ public class ServiceInstance extends COMPSsWorker {
     }
 
     @Override
-    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res, 
+    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
             List<String> slaveWorkersNodeNames, JobListener listener) {
-        
+
         return new WSJob(taskId, taskParams, impl, res, listener);
     }
 
@@ -116,7 +115,7 @@ public class ServiceInstance extends COMPSsWorker {
     @Override
     public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
             EventListener listener) {
-        
+
         // Delegate on the master to obtain the data value
         String path = target.getProtocol().getSchema() + target.getPath();
         DataLocation tgtLoc = null;
@@ -182,7 +181,7 @@ public class ServiceInstance extends COMPSsWorker {
 
     @Override
     public boolean generatePackage() {
-    	return false;
+        return false;
     }
 
     @Override
@@ -192,7 +191,7 @@ public class ServiceInstance extends COMPSsWorker {
 
     @Override
     public boolean generateWorkersDebugInfo() {
-    	return false;
+        return false;
     }
 
     @Override
@@ -207,4 +206,15 @@ public class ServiceInstance extends COMPSsWorker {
         return "";
     }
 
+    @Override
+    public void increaseComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+        //Does not apply.
+        //The computing capabilities of a service is not controlled by the service user
+    }
+
+    @Override
+    public void reduceComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+        //Does not apply.
+        //The computing capabilities of a service is not controlled by the service user
+    }
 }

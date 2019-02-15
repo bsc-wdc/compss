@@ -31,6 +31,6 @@ public interface MasterResource extends Resource {
 
     public String getWorkingDirectory();
 
-    public void updateResource(MethodResourceDescription rd, Map<String, String> sharedDisks);
+    public void updateDisks(Map<String, String> sharedDisks);
 
 }

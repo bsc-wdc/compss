@@ -643,6 +643,9 @@ public class TaskScheduler {
             ui = addWorker(worker, jsm.getJSONForResource(worker), jsm.getJSONForImplementations());
             startWorker(ui);
             workerDetected(ui);
+            System.out.println("Adding new worker " + ui.getName());
+        } else {
+            System.out.println("Worker " + ui.getName() + " already exists");
         }
 
         if (rs.checkCompleted()) {

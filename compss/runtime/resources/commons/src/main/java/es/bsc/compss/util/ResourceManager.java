@@ -17,7 +17,6 @@
 package es.bsc.compss.util;
 
 import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.ResourceUser;
 import es.bsc.compss.connectors.ConnectorException;
 import es.bsc.compss.exceptions.NoResourceAvailableException;
@@ -107,8 +106,12 @@ public class ResourceManager {
      * username, working directory,... Only the images that have been described in both files are added to the
      * cloudManager
      *
+<<<<<<< a52e0b7921d3f16bf142361004aa0fb93e61caed
      * @param resUser
      *                object to notify resource changes
+=======
+     * @param resUser object to notify resource changes
+>>>>>>> Local Platform start + Dynamic Resource Mgmt
      *
      */
     public static void load(ResourceUser resUser) {
@@ -146,18 +149,6 @@ public class ResourceManager {
         pool = new WorkerPool();
         poolCoreMaxConcurrentTasks = new int[CoreManager.getCoreCount()];
         cloudManager = new CloudManager();
-    }
-
-    /**
-     * Reconfigures the master node adding its shared disks
-     *
-     * @param mrd
-     *                    Features of the Master node
-     * @param sharedDisks
-     *                    Shared Disk descriptions (diskName->mountpoint)
-     */
-    public static void updateMasterConfiguration(MethodResourceDescription mrd, Map<String, String> sharedDisks) {
-        Comm.getAppHost().updateResource(mrd, sharedDisks);
     }
 
     /**
@@ -383,40 +374,20 @@ public class ResourceManager {
      * @param granted
      */
     public static void addCloudWorker(ResourceCreationRequest origin, CloudMethodWorker worker, CloudMethodResourceDescription granted) {
-        synchronized (pool) {
-            CloudProvider cloudProvider = origin.getProvider();
-            cloudProvider.confirmedCreation(origin, worker, granted);
-            worker.updatedFeatures();
-            pool.addDynamicResource(worker);
-            pool.defineCriticalSet();
-
-            int[] maxTaskCount = worker.getSimultaneousTasks();
-            for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {
-                poolCoreMaxConcurrentTasks[coreId] += maxTaskCount[coreId];
-            }
-        }
-        ResourceUpdate<MethodResourceDescription> ru = new PerformedIncrease<>(worker.getDescription());
-        resourceUser.updatedResource(worker, ru);
-
-        // Log new resource
-        RESOURCES_LOGGER.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
-        RESOURCES_LOGGER.info("INFO_MSG = [New resource available in the pool. Name = " + worker.getName() + "]");
-        RUNTIME_LOGGER.info("New resource available in the pool. Name = " + worker.getName());
+        CloudProvider cloudProvider = origin.getProvider();
+        cloudProvider.confirmedCreation(origin, worker, granted);
+        addDynamicWorker(worker, granted);
     }
 
     /**
-     * Increases the capabilities of a given cloud worker
+     * Increases the capabilities of a given dynamic worker
      *
-     * @param origin
      * @param worker
      * @param extension
      */
-    public static void increasedCloudWorker(ResourceCreationRequest origin, CloudMethodWorker worker,
-            CloudMethodResourceDescription extension) {
+    public static void increasedDynamicWorker(DynamicMethodWorker worker, MethodResourceDescription extension) {
 
         synchronized (pool) {
-            CloudProvider cloudProvider = origin.getProvider();
-            cloudProvider.confirmedCreation(origin, worker, extension);
             int[] maxTaskCount = worker.getSimultaneousTasks();
             for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {
                 poolCoreMaxConcurrentTasks[coreId] -= maxTaskCount[coreId];
@@ -436,6 +407,20 @@ public class ResourceManager {
         RESOURCES_LOGGER.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
         RESOURCES_LOGGER.info("INFO_MSG = [Resource modified. Name = " + worker.getName() + "]");
         RUNTIME_LOGGER.info("Resource modified. Name = " + worker.getName());
+    }
+
+    /**
+     * Increases the capabilities of a given cloud worker
+     *
+     * @param origin
+     * @param worker
+     * @param extension
+     */
+    public static void increasedCloudWorker(ResourceCreationRequest origin, CloudMethodWorker worker,
+            CloudMethodResourceDescription extension) {
+        CloudProvider cloudProvider = origin.getProvider();
+        cloudProvider.confirmedCreation(origin, worker, extension);
+        increasedDynamicWorker(worker, extension);
     }
 
     /**

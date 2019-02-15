@@ -28,6 +28,7 @@ import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.ActionSet;
 import java.util.LinkedList;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
 
@@ -45,6 +46,8 @@ public abstract class ReadyScheduler extends TaskScheduler {
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
 
     protected final ActionSet unassignedReadyActions;
+
+   
 
     /**
      * Constructs a new Ready Scheduler instance
@@ -64,7 +67,8 @@ public abstract class ReadyScheduler extends TaskScheduler {
      */
     @Override
     public <T extends WorkerResourceDescription> void workerLoadUpdate(ResourceScheduler<T> resource) {
-
+        List<AllocatableAction> compatibleActions = this.unassignedReadyActions.removeAllCompatibleActions(resource.getResource());
+        tryToLaunchFreeActions(compatibleActions, new LinkedList<>(), resource);
     }
 
     @Override
@@ -114,14 +118,14 @@ public abstract class ReadyScheduler extends TaskScheduler {
             List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
 
         purgeFreeActions(dataFreeActions, resourceFreeActions, blockedCandidates, resource);
-        tryToLaunchFreeActions(dataFreeActions, resourceFreeActions, blockedCandidates, resource);
+        tryToLaunchFreeActions(dataFreeActions, resourceFreeActions, resource);
     }
 
     protected abstract <T extends WorkerResourceDescription> void purgeFreeActions(List<AllocatableAction> dataFreeActions,
             List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource);
 
     private <T extends WorkerResourceDescription> void tryToLaunchFreeActions(List<AllocatableAction> dataFreeActions,
-            List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
+            List<AllocatableAction> resourceFreeActions, ResourceScheduler<T> resource) {
 
         // Try to launch all the data free actions and the resource free actions
         PriorityQueue<ObjectValue<AllocatableAction>> executableActions = new PriorityQueue<>();

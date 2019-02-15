@@ -118,6 +118,7 @@ public class ExecutionPlatform implements ExecutorContext {
         }
         int size = this.workerThreads.size();
         this.startSemaphore.acquireUninterruptibly(size);
+        this.started = true;
         LOGGER.info("Started execution platform " + this.platformName + " with " + size);
     }
 

@@ -47,10 +47,9 @@ public class DummyWorkerNode extends COMPSsWorker {
 
     private final String name;
 
-
     /**
      * New DummyWorker node with name @name and configuration @config
-     * 
+     *
      * @param name
      * @param config
      */
@@ -84,9 +83,9 @@ public class DummyWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res, 
+    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
             List<String> slaveWorkersNodeNames, JobListener listener) {
-        
+
         return null;
     }
 
@@ -143,4 +142,11 @@ public class DummyWorkerNode extends COMPSsWorker {
         return false;
     }
 
+    @Override
+    public void increaseComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+    }
+
+    @Override
+    public void reduceComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+    }
 }

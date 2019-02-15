@@ -411,7 +411,7 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
             # Since this option is only visible within the task decorator, the task_execution returns
             # the value of isModifier in order to know here if self has to be serialized.
             # This solution avoids to use inspect.
-            if targetDirection == "INOUT":
+            if targetDirection.direction == parameter.DIRECTION.INOUT:
                 from pycompss.util.persistent_storage import is_psco
                 if is_psco(self_elem):
                     # There is no explicit update if self is a PSCO.

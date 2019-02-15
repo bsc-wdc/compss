@@ -406,6 +406,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
 
                 DataLocation safeLoc = null;
                 String safePath = null;
+                boolean isBindingData=false;
                 if (lastLoc.getType().equals(DataLocation.Type.BINDING)) {
                     BindingObject bo = BindingObject.generate(lastLoc.getPath());
                     safePath = Protocol.BINDING_URI.getSchema() + Comm.getAppHost().getTempDirPath() + ld.getName() + "#" + bo.getType()
@@ -419,8 +420,12 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
                 } catch (Exception e) {
                     ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + safePath, e);
                 }
-
-                masterNode.obtainData(ld, lastLoc, safeLoc, ld, new SafeCopyTransferable(), listener);
+                
+                if (isBindingData){
+                    masterNode.obtainData(ld, lastLoc, safeLoc, ld, new SafeCopyTransferable(DataType.BINDING_OBJECT_T), listener);
+                }else{
+                    masterNode.obtainData(ld, lastLoc, safeLoc, ld, new SafeCopyTransferable(), listener);
+                }
             }
         }
 

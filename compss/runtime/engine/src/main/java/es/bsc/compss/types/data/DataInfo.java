@@ -175,6 +175,16 @@ public abstract class DataInfo {
     public DataVersion getFirstVersion(){
         return versions.get(1);
     }
+
+    public void tryRemoveVersion(Integer versionId) {
+        DataVersion readVersion = versions.get(versionId);
+        
+        if (readVersion != null && readVersion.delete()){
+            Comm.removeData(readVersion.getDataInstanceId().getRenaming());
+            versions.remove(versionId);
+        }
+        
+    }
     
     
 }

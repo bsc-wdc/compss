@@ -428,6 +428,7 @@ public class Comm {
                 }
             }
         }
+        ld.removeValue();
 
     }
 

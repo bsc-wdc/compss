@@ -463,21 +463,22 @@ public class TaskScheduler {
             // Once the action starts running should cannot be moved from the resource
         }
         workerLoadUpdate(resource);
-
+        List<AllocatableAction> list = new LinkedList<>();
         if (!failed) {
+            list.add(action);
             // Try to re-schedule the action
-            Score actionScore = generateActionScore(action);
-            try {
+            /* Score actionScore = generateActionScore(action);
+            try {    
                 scheduleAction(action, actionScore);
                 tryToLaunch(action);
             } catch (BlockedActionException bae) {
                 removeFromReady(action);
                 addToBlocked(action);
-            }
+            }*/
         }
 
         List<AllocatableAction> blockedCandidates = new LinkedList<>();
-        handleDependencyFreeActions(new LinkedList<>(), resourceFree, blockedCandidates, resource);
+        handleDependencyFreeActions(list, resourceFree, blockedCandidates, resource);
         for (AllocatableAction aa : blockedCandidates) {
             removeFromReady(aa);
             addToBlocked(aa);
@@ -748,29 +749,35 @@ public class TaskScheduler {
 
     @SuppressWarnings("unchecked")
     private <T extends WorkerResourceDescription> void reducedWorkerResources(ResourceScheduler<T> worker, ResourceUpdate<T> modification) {
+        LOGGER.info("Reducing resources for worker " +worker.getName());
         DynamicMethodWorker dynamicWorker = (DynamicMethodWorker) worker.getResource();
         if (dynamicWorker.shouldBeStopped()) {
             synchronized (workers) {
                 workers.remove(((ResourceScheduler<WorkerResourceDescription>) worker).getResource());
-                int coreCount = CoreManager.getCoreCount();
-                List<Implementation>[] runningCoreImpls = worker.getExecutableImpls();
+                int coreCount = CoreManager.getCoreCount();                
                 for (int coreId = 0; coreId < coreCount; coreId++) {
-                    for (Implementation impl : runningCoreImpls[coreId]) {
-                        Profile p = worker.getProfile(impl);
+                    int implCount = CoreManager.getNumberCoreImplementations(coreId);
+                    for (int implId = 0; implId < implCount; implId++) {
+                        
+                        LOGGER.debug("Removed Workers profile for CoreId: "+coreId+", ImplId: "+implId+ " before removing:" + offVMsProfiles[coreId][implId]);
+                        Profile p = worker.getProfile(coreId,implId);
                         if (p != null) {
-                            offVMsProfiles[coreId][impl.getImplementationId()].accumulate(p);
+                            LOGGER.info(" Accumulating worker profile data for CoreId: "+coreId+", ImplId: "+implId+ " in removed workers profile");
+                            offVMsProfiles[coreId][implId].accumulate(p);
                         }
+                        LOGGER.debug("Removed Workers profile for CoreId: "+coreId+", ImplId: "+implId+ " after removing:" + offVMsProfiles[coreId][implId]);
                     }
                 }
             }
             this.workerRemoved((ResourceScheduler<WorkerResourceDescription>) worker);
-
+            LOGGER.info("Starting stop process for worker " +worker.getName());
             StopWorkerAction action = new StopWorkerAction(generateSchedulingInformation(worker), worker, this, modification);
             try {
                 action.schedule((ResourceScheduler<WorkerResourceDescription>) worker, (Score) null);
                 action.tryToLaunch();
             } catch (BlockedActionException | UnassignedActionException | InvalidSchedulingException e) {
                 // Can not be blocked nor unassigned
+                LOGGER.error("WARN: Stop action has been blocked or unassigned. It should happen!");
             }
         } else {
             dynamicWorker.destroyResources(modification.getModification());

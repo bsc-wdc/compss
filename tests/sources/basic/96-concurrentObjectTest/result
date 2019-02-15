@@ -31,60 +31,47 @@
   FILES=17
   resultN=6
 
-#creates an empty file to write 
- if [ -f result.txt ]; then
-         rm result.txt
- fi
-
-#checks if the file has been writen as many times as expected
- result=$(cat /tmp/sharedDisk/file.txt)
- if [ ${#result} -ne $resultN ]; then
-         echo "ERROR: The number of writing tasks is not correct. ${#result} "
-         exit 1
- fi
-
-#checks if all the tasks have been executed through the creation of a job for each
- version=$(ls ~/.COMPSs/ | grep "testConcurrent.TestConcurrent_" | tail -1)
-
- if [ ! -f ~/.COMPSs/$version/jobs/job"$FILES"_NEW.out ]; then
-	echo "ERROR: All tasks have not completed succesfully."
- 	exit 1
- fi
-
- if [ -f ~/.COMPSS/concurrent.ConcurrentM_01/jobs/job"$FILES+1"_NEW.out ]; then
-	 echo "ERROR: More tasks than expected have been executed."
-	 exit 1
- fi
-
-  # check concurrent execution output. It checks the time betweek concurrent and no concurrent executions
-
- output1=$(cat $output_file | grep "Opening /" | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }' | head -n +1)
- output2=$(cat $output_file | grep "File target Location: " | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }' | head -n +1)
-
-  if [ $output2 -lt $(($output1+10000)) ]; then
-         echo "ERROR: It does not wait for all tasks to be finished"
-         #exit 1
+  # Checks if the file has been writen as many times as expected
+  result=$(cat /tmp/sharedDisk/file.txt)
+  if [ ${#result} -ne $resultN ]; then
+    echo "ERROR: The number of writing tasks is not correct. ${#result} "
+    exit 1
   fi
 
- output1=$(cat $output_file | grep "Getting object with hash code" | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }' | head -n +1)
- output2=$(cat $output_file | grep "Object obtained " | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }' | head -n +1)
-
-  if [ $(($output1+6000)) -gt $(($output2)) ]; then
-         echo "ERROR: Concurrent type not working"
-         #exit 1
+  # Checks if all the tasks have been executed through the creation of a job for each
+  if [ ! -f "${target_log_folder}"/jobs/job"$FILES"_NEW.out ]; then
+    echo "ERROR: All tasks have not completed succesfully."
+    exit 1
   fi
 
- # check inout execution
- output3=$(cat $output_file | grep "Getting object with hash code" | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }' | head -n +2 | tail -n 1)
- output4=$(cat $output_file | grep "Object obtained " | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }' | head -n +3 | tail -n 1)
+  if [ -f "${target_log_folder}/jobs/job$((FILES+1))_NEW.out" ]; then
+    echo "ERROR: More tasks than expected have been executed."
+    exit 1
+  fi
 
- if [ $(($output4-6000)) -lt $(($output3)) ]; then
-        echo "ERROR: It does not wait for all tasks to be finished"
-       # exit 1
- fi
+  # Check concurrent execution output. It checks the time betweek concurrent and no concurrent executions
+  output1=$(grep "Opening /" "${output_file}" | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }' | head -n +1)
+  output2=$(grep "File target Location: " "${output_file}" | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }' | head -n +1)
+  if [ "$output2" -lt $((output1+10000)) ]; then
+    echo "ERROR: It does not wait for all tasks to be finished"
+    exit 1
+  fi
 
- #rm /tmp/sharedDisk/file.txt
+  output1=$(grep "Getting object with hash code" "${output_file}" | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }' | head -n +1)
+  output2=$(grep "Object obtained " "${output_file}" | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }' | head -n +1)
+  if [ $((output1+6000)) -gt "$output2" ]; then
+    echo "ERROR: Concurrent type not working"
+    exit 1
+  fi
+
+  # Check inout execution
+  output3=$(grep "Getting object with hash code" "${output_file}" | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }' | head -n +2 | tail -n 1)
+  output4=$(grep "Object obtained " "${output_file}" | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }' | head -n +3 | tail -n 1)
+  if [ $((output4-6000)) -lt "$output3" ]; then
+    echo "ERROR: It does not wait for all tasks to be finished"
+    exit 1
+  fi
+
   #---------------------------------------------------------------------------------- 
   # ALL OK. Report result status
   exit 0
-  

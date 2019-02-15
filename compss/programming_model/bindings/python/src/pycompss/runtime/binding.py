@@ -343,6 +343,7 @@ def barrier(no_more_tasks=False):
     # Call the Runtime barrier (appId 0, not needed for the signature)
     compss.barrier(0, no_more_tasks)
 
+
 def get_log_path():
     """
     Requests the logging path to the external python library (that calls

@@ -8,14 +8,20 @@ PyCOMPSs Testbench Tasks
 """
 
 # Imports
-from models import MyFile
-from pycompss.api.api import compss_wait_on
 import os
-from pycompss.api.parameter import *
+import time
+
+from pycompss.api.api import compss_wait_on
+from pycompss.api.parameter import FILE_INOUT, FILE_CONCURRENT
 from pycompss.api.task import task
 from pycompss.api.api import compss_open
-import socket
-import time
+
+from models import MyFile
+
+NUM_TASKS = 4
+TASK_SLEEP_TIME = 2
+STORAGE_PATH = "/tmp/sharedDisk/"
+
 
 @task(file_path=FILE_CONCURRENT)
 def write_one(file_path):
@@ -23,7 +29,8 @@ def write_one(file_path):
     with open(file_path, 'a') as fos:
         new_value = str(1)
         fos.write(new_value)
-    time.sleep(2)
+    time.sleep(TASK_SLEEP_TIME)
+
 
 @task(file_path=FILE_INOUT)
 def write_two(file_path):
@@ -31,68 +38,77 @@ def write_two(file_path):
     with open(file_path, 'a') as fos:
         new_value = str(2)
         fos.write(new_value)
-    time.sleep(2)
+    time.sleep(TASK_SLEEP_TIME)
 
-storage_path = '/tmp/sharedDisk/'
 
-def testDirectionConcurrent(file_name):
-
-    if not os.path.exists(storage_path):
-        os.mkdir(storage_path)
+def test_direction_concurrent(file_name):
+    # Clean previous ocurrences of the file
     if os.path.exists(file_name):
         os.remove(file_name)
+    # Create file
+    if not os.path.exists(STORAGE_PATH):
+        os.mkdir(STORAGE_PATH)
     open(file_name, 'w').close()
 
-    for i in range(4):
-        # Execute increment
+    # Launch NUM_TASKS CONCURRENT
+    for i in range(NUM_TASKS):
         write_one(file_name)
 
-    for i in range(3):
+    # Launch NUM_TASKS INOUT
+    for i in range(NUM_TASKS):
         write_two(file_name)
 
-    # Read final value
+    # Synchronize final value
     with compss_open(file_name, 'r') as fis:
         final_value = fis.read()
     total = final_value.count('1')
     total2 = final_value.count('2')
     print("Final counter value is " + str(total) + " ones and " + str(total2) + "twos")
 
-def testPSCOConcurrent(file_name):
 
+def test_psco_concurrent(file_name):
+    # Initialize file
     open(file_name, 'w').close()
 
-    file = MyFile(file_name)
+    # Initialize PSCO object
+    file_psco = MyFile(file_name)
+    file_psco.makePersistent()
 
-    file.makePersistent()
-
-    for i in range(4):
+    # Launch NUM_TASKS CONCURRENT
+    for i in range(NUM_TASKS):
         # Execute increment
-        file.writeThree()
+        file_psco.write_three()
 
-    file = compss_wait_on(file)
-
-    total = file.countThrees()
+    # Synchronize
+    file_psco = compss_wait_on(file_psco)
+    total = file_psco.count_threes()
     print("Final counter value is " + str(total) + " three")
-    file.deletePersistent()
+    file_psco.deletePersistent()
 
+    # Re-create the file
     file2 = MyFile(file_name)
     open(file_name, 'a').close()
 
-    for i in range(4):
+    # Launch NUM_TASKS INOUT
+    for i in range(NUM_TASKS):
         # Execute increment
-        file2.writeFour()
+        file2.write_four()
 
+    # Synchronize
     file2 = compss_wait_on(file2)
-
-    total = file2.countFours()
+    total = file2.count_fours()
     print("Final counter value is " + str(total) + " fours")
 
+
 def main():
-    file_name = "/tmp/sharedDisk/file.txt"
+    file_name = STORAGE_PATH + "file.txt"
+
     print ("[LOG] Test DIRECTION CONCURRENT")
-    testDirectionConcurrent(file_name)
+    test_direction_concurrent(file_name)
+
     print ("[LOG] Test PSCO CONCURRENT")
-    testPSCOConcurrent(file_name)
+    test_psco_concurrent(file_name)
+
 
 if __name__ == '__main__':
     main()

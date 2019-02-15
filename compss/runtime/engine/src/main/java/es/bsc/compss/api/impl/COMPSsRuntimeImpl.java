@@ -306,8 +306,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             if (stream != null) {
                 return stream;
             } else {
-                // System.err.println("IT properties file not defined. Looking at classLoader
-                // ...");
+                // System.err.println("IT properties file not defined. Looking at classLoader...");
                 stream = COMPSsRuntimeImpl.class.getClassLoader().getResourceAsStream(COMPSsConstants.COMPSS_CONFIG);
                 if (stream != null) {
                     return stream;
@@ -316,9 +315,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                     if (stream != null) {
                         return stream;
                     } else {
-                        // System.err.println("IT properties file not found in classloader. Looking at
-                        // system resource
-                        // ...");
+                        // System.err.println("IT properties file not found in classloader. Looking at system
+                        // resource...");
                         stream = ClassLoader.getSystemResourceAsStream(COMPSsConstants.COMPSS_CONFIG);
                         if (stream != null) {
                             return stream;
@@ -327,8 +325,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                             if (stream != null) {
                                 return stream;
                             } else {
-                                // System.err.println("IT properties file not found. Looking at parent
-                                // ClassLoader");
+                                // System.err.println("IT properties file not found. Looking at parent ClassLoader");
                                 stream = COMPSsRuntimeImpl.class.getClassLoader().getParent()
                                         .getResourceAsStream(COMPSsConstants.COMPSS_CONFIG);
                                 if (stream != null) {
@@ -352,9 +349,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /*
-     * ***************************************************************************** ***************************
-     * CONSTRUCTOR *****************************************************************************
-     * ***************************
+     * *********************************************************************************************************
+     * ************************************* CONSTRUCTOR *************************************
+     * *********************************************************************************************************
      */
     public COMPSsRuntimeImpl() {
         // Load COMPSS version and buildNumber
@@ -382,9 +379,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /*
-     * ***************************************************************************** ***************************
+     * *********************************************************************************************************
      * COMPSsRuntime INTERFACE IMPLEMENTATION
-     * ***************************************************************************** ***************************
+     * *********************************************************************************************************
      */
     /**
      * Starts the COMPSS Runtime
@@ -832,9 +829,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /*
-     * ***************************************************************************** ***************************
-     * LoaderAPI INTERFACE IMPLEMENTATION *****************************************************************************
-     * ***************************
+     * *********************************************************************************************************
+     * *********************************** LoaderAPI INTERFACE IMPLEMENTATION **********************************
+     * *********************************************************************************************************
      */
     /**
      * Returns a copy of the last file version
@@ -954,9 +951,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /*
-     * ***************************************************************************** ******************************
-     * COMMON IN BOTH APIs *****************************************************************************
-     * ***************************
+     * *********************************************************************************************************
+     * *********************************** COMMON IN BOTH APIs ***********************************
+     * *********************************************************************************************************
      */
     /**
      * Returns the renaming of the file version opened
@@ -989,7 +986,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 am = AccessMode.RW;
                 break;
             case CONCURRENT:
-                // TODO: Change access mode to support CONCURRENT
                 am = AccessMode.C;
                 break;
         }
@@ -1052,7 +1048,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 am = AccessMode.RW;
                 break;
             case CONCURRENT:
-                // TODO: Change access mode to support CONCURRENT
                 am = AccessMode.C;
                 break;
         }
@@ -1232,9 +1227,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /*
-     * ***************************************************************************** *******************************
-     * PRIVATE HELPER METHODS *****************************************************************************
-     * ***************************
+     * *********************************************************************************************************
+     * *********************************** PRIVATE HELPER METHODS **********************************************
+     * *********************************************************************************************************
      */
     private Parameter[] processParameters(int parameterCount, Object[] parameters) {
         ArrayList< Parameter > pars = new ArrayList<>();
@@ -1372,8 +1367,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     @Override
     public void removeObject(Object o, int hashcode) { // private?
-        // This will remove the object from the Object Registry and the Data Info
-        // Provider
+        // This will remove the object from the Object Registry and the Data Info Provider
         // eventually allowing the garbage collector to free it (better use of memory)
         ap.deregisterObject(o);
     }

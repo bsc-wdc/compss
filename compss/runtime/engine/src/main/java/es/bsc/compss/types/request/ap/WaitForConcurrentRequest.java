@@ -24,6 +24,7 @@ import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.data.AccessParams.AccessMode;
 
+
 public class WaitForConcurrentRequest extends APRequest {
 
     private int dataId;
@@ -31,16 +32,17 @@ public class WaitForConcurrentRequest extends APRequest {
     private Semaphore semTask;
     private int numWaits;
     private final AccessMode am;
-    
+
+
     public WaitForConcurrentRequest(int dataId, AccessMode mode, Semaphore sem, Semaphore semTasks) {
         this.dataId = dataId;
         this.sem = sem;
         this.semTask = semTasks;
-        this.am = mode;           
+        this.am = mode;
     }
 
     public int getDataId() {
-        return dataId;
+        return this.dataId;
     }
 
     public void setDataId(int dataId) {
@@ -58,23 +60,23 @@ public class WaitForConcurrentRequest extends APRequest {
     }
 
     public int getNumWaitedTasks() {
-        return numWaits;
+        return this.numWaits;
     }
 
     public void setNumWaitedTasks(int n) {
-        numWaits=n;
+        this.numWaits = n;
     }
 
     public Semaphore getSemaphore() {
-        return sem;    
+        return this.sem;
     }
 
     public Semaphore getTaskSemaphore() {
-        return semTask;
+        return this.semTask;
     }
 
     public AccessMode getAccessMode() {
-        return am;
+        return this.am;
     }
 
 }

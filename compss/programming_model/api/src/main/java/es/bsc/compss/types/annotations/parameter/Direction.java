@@ -23,7 +23,6 @@ package es.bsc.compss.types.annotations.parameter;
 public enum Direction {
     IN, // Read
     OUT, // Write
-    INOUT, // Read-write 
-	CONCURRENT; //Read-write concurrent
-
+    INOUT, // Read-write
+    CONCURRENT; // Read-write concurrent
 }

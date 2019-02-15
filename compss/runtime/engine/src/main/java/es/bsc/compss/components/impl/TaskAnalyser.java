@@ -16,14 +16,9 @@
  */
 package es.bsc.compss.components.impl;
 
-import es.bsc.compss.api.TaskMonitor;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeMap;
@@ -35,7 +30,7 @@ import es.bsc.compss.types.parameter.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import storage.StubItf;
+import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -55,6 +50,8 @@ import es.bsc.compss.types.request.ap.WaitForConcurrentRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.WaitForTaskRequest;
 import es.bsc.compss.util.ErrorManager;
+
+import storage.StubItf;
 
 
 /**
@@ -98,6 +95,7 @@ public class TaskAnalyser {
     private int synchronizationId;
     private boolean taskDetectedAfterSync;
 
+
     /**
      * Creates a new Task Analyser instance
      *
@@ -113,7 +111,7 @@ public class TaskAnalyser {
         this.appIdToSCOWrittenIds = new HashMap<>();
         this.waitedTasks = new Hashtable<>();
         this.concurrentAccessMap = new TreeMap<>();
-        
+
         synchronizationId = 0;
         taskDetectedAfterSync = false;
 
@@ -465,7 +463,7 @@ public class TaskAnalyser {
             list.add(sem);
         }
     }
-    
+
     /**
      * Checks how the data was accessed
      *
@@ -474,7 +472,7 @@ public class TaskAnalyser {
      * @param dataId
      */
     private void treatDataAccess(Task lastWriter, AccessMode am, int dataId) {
-     // Add to writers if needed
+        // Add to writers if needed
         if (am == AccessMode.RW) {
             this.writers.put(dataId, null);
         }
@@ -498,11 +496,11 @@ public class TaskAnalyser {
         List<Task> concurrentAccess = this.concurrentAccessMap.get(daId);
         if (concurrentAccess != null) {
             return true;
-        }else {
+        } else {
             return false;
         }
     }
-    
+
     /**
      * Returns the concurrent tasks dependent to the requested task
      *
@@ -516,15 +514,15 @@ public class TaskAnalyser {
             // Add to writers if needed
             this.concurrentAccessMap.put(dataId, null);
         }
-        
+
         Semaphore semTasks = request.getTaskSemaphore();
-        int n=0;
-        for (Task task:concurrentAccess){ 
+        int n = 0;
+        for (Task task : concurrentAccess) {
             treatDataAccess(task, am, dataId);
-            if (task.getStatus() != TaskState.FINISHED){
+            if (task.getStatus() != TaskState.FINISHED) {
                 n++;
-                List<Semaphore> list=waitedTasks.get(task);
-                if (list==null) {
+                List<Semaphore> list = waitedTasks.get(task);
+                if (list == null) {
                     list = new LinkedList<>();
                     this.waitedTasks.put(task, list);
                 }
@@ -646,18 +644,18 @@ public class TaskAnalyser {
         }
     }
 
-    
     /**
      * Removes the tasks that have accessed the data in a concurrent way
      *
      * @param dataId
      */
-      public void removeFromConcurrentAccess(int dataId) {
+    public void removeFromConcurrentAccess(int dataId) {
         List<Task> returnedValue = this.concurrentAccessMap.remove(dataId);
         if (returnedValue == null) {
-            LOGGER.debug("The concurrent list could not be removed" );
+            LOGGER.debug("The concurrent list could not be removed");
         }
     }
+
     /*
      **************************************************************************************************************
      * DATA DEPENDENCY MANAGEMENT PRIVATE METHODS
@@ -687,7 +685,7 @@ public class TaskAnalyser {
             drawEdges(currentTask, dp, dataId, lastWriter);
         }
     }
-    
+
     /**
      * Adds edges to graph
      *
@@ -727,24 +725,24 @@ public class TaskAnalyser {
     private void checkDependencyForConcurrent(Task currentTask, DependencyParameter dp) {
         int dataId = dp.getDataAccessId().getDataId();
         List<Task> tasks = this.concurrentAccessMap.get(dataId);
-      
-        if (concurrentAccessMap!= null && tasks.contains(currentTask) == false) {
+
+        if (concurrentAccessMap != null && tasks.contains(currentTask) == false) {
             if (DEBUG) {
                 LOGGER.debug("There was a concurrent access for datum " + dataId);
                 LOGGER.debug("Adding dependency between list and task " + currentTask.getId());
             }
-            for (Task t:tasks) {
-             // Add dependency
+            for (Task t : tasks) {
+                // Add dependency
                 currentTask.addDataDependency(t);
                 if (IS_DRAW_GRAPH) {
-                    drawEdges(currentTask, dp, dataId, t);}
+                    drawEdges(currentTask, dp, dataId, t);
                 }
-          } else if (DEBUG) {
+            }
+        } else if (DEBUG) {
             LOGGER.debug("There is no last writer for datum " + dataId);
         }
     }
 
-    
     /**
      * Registers the output values of the task @currentTask
      *

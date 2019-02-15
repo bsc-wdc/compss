@@ -98,6 +98,7 @@ public class AccessParams implements Serializable {
             return hashCode;
         }
     }
+
     public static class BindingObjectAccessParams extends AccessParams {
 
         /**

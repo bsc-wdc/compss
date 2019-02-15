@@ -24,6 +24,7 @@ import java.lang.annotation.Target;
 
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.Constraints;
+import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.task.repeatables.Methods;
 
 
@@ -61,13 +62,11 @@ public @interface Method {
      */
 
     /**
-     * Returns whether the method is modifier or not. Avoids synchronization on implicit parameter
+     * Returns the access mode of the target object
      * 
-     * @return boolean indicating whether the method is modifier or not
+     * @return Direction object indicating the access mode of the target object
      */
-    //String isModifier() default Constants.IS_MODIFIER;
-    
-    String targetDirection() default Constants.TARGET_DIRECTION;
+    Direction targetDirection() default Direction.INOUT;
 
     /*
      * COMMON PROPERTIES

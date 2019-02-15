@@ -29,6 +29,7 @@ import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.Worker;
 
+
 /**
  * Action score representation
  *
@@ -39,6 +40,7 @@ public class Score implements Comparable<Score> {
     protected long resourceScore; // Resource Priority
     protected long waitingScore; // Resource Blocked Priority
     protected long implementationScore; // Implementation Priority
+
 
     /**
      * Constructor
@@ -104,8 +106,7 @@ public class Score implements Comparable<Score> {
     }
 
     /**
-     * Checks whether a score is better than another. Returns true if @a is
-     * better than @b
+     * Checks whether a score is better than another. Returns true if @a is better than @b
      *
      * @param a
      * @param b
@@ -195,6 +196,7 @@ public class Score implements Comparable<Score> {
                     DependencyParameter dp = (DependencyParameter) p;
                     DataInstanceId dId = null;
                     switch (dp.getDirection()) {
+                        case CONCURRENT:
                         case IN:
                             DataAccessId.RAccessId raId = (DataAccessId.RAccessId) dp.getDataAccessId();
                             dId = raId.getReadDataInstance();
@@ -228,12 +230,8 @@ public class Score implements Comparable<Score> {
 
     @Override
     public String toString() {
-        return "[Score = ["
-                + "action:" + this.actionScore + ", "
-                + "resource:" + this.resourceScore + ", "
-                + "load:" + this.waitingScore + ", "
-                + "implementation:" + this.implementationScore
-                + "]" + "]";
+        return "[Score = [" + "action:" + this.actionScore + ", " + "resource:" + this.resourceScore + ", " + "load:" + this.waitingScore
+                + ", " + "implementation:" + this.implementationScore + "]" + "]";
     }
 
 }

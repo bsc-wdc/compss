@@ -20,12 +20,15 @@
   #----------------------------------------------------------------------------------
   # Create all working dir folders
   mkdir -p /tmp/COMPSsWorker01/
+  mkdir -p /tmp/COMPSsWorker02/
+  mkdir -p /tmp/sharedDisk/
 
   #----------------------------------------------------------------------------------
   # Create storage Conf
   storageConf=${target_log_folder}/storage.conf
   cat > "$storageConf" << EOF
 COMPSsWorker01
+COMPSsWorker02
 EOF
 
   # Add trap to clean folder

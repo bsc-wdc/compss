@@ -759,7 +759,8 @@ class task(object):
                 self.parameters[var_name] = parameter.get_parameter_copy(self.get_varargs_direction())
             elif parameter.is_kwarg(var_name):
                 real_name = parameter.get_name_from_kwarg(var_name)
-                self.parameters[var_name] = self.decorator_arguments.get(real_name, self.get_default_direction(real_name))
+                self.parameters[var_name] = self.decorator_arguments.get(real_name,
+                                                                         self.get_default_direction(real_name))
             else:
                 # The argument is named, check its direction
                 # Default value = IN if not class or instance method and isModifier, INOUT otherwise
@@ -980,7 +981,8 @@ class task(object):
         for arg in [x for x in args if isinstance(x, parameter.TaskParameter) and self.is_parameter_object(x.name)]:
             original_name = parameter.get_original_name(arg.name)
             param = self.decorator_arguments.get(original_name, self.get_default_direction(original_name))
-            if param.direction == parameter.DIRECTION.INOUT and not (arg.type == parameter.TYPE.EXTERNAL_PSCO or is_psco(arg.content)):
+            if param.direction == parameter.DIRECTION.INOUT and not (
+                    arg.type == parameter.TYPE.EXTERNAL_PSCO or is_psco(arg.content)):
                 # If it si INOUT and not PSCO, serialize to file
                 # We can not use here param.type != parameter.TYPE.EXTERNAL_PSCO since param.type has the old type
                 from pycompss.util.serializer import serialize_to_file
@@ -1066,7 +1068,6 @@ class task(object):
                     ret_value = 'null'
                 new_types.append(ret_type)
                 new_values.append(ret_value)
-
 
         return new_types, new_values, self.decorator_arguments['targetDirection']
 

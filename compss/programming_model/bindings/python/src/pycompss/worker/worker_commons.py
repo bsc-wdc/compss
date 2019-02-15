@@ -386,7 +386,8 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
                         logger.debug('Deserialized self object is: %s' % self_elem.content)
                         logger.debug("Processing callee, a hidden object of %s in file %s" % (file_name, type(self_elem.content)))
             values.insert(0, obj)
-            types.insert(0, parameter.TYPE.OBJECT if not self_type == parameter.TYPE.EXTERNAL_PSCO else parameter.TYPE.EXTERNAL_PSCO)
+            types.insert(0,
+                         parameter.TYPE.OBJECT if not self_type == parameter.TYPE.EXTERNAL_PSCO else parameter.TYPE.EXTERNAL_PSCO)
 
             def task_execution_2():
                 from pycompss.worker.worker_commons import task_execution

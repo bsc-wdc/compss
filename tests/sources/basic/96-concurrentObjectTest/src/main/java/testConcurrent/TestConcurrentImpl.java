@@ -6,27 +6,29 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.Thread;
 
+
 public class TestConcurrentImpl {
-	public static void write_one(String fileName) {
-		try {
-			FileOutputStream fos = new FileOutputStream(fileName, true);
-			fos.write(1);
-			fos.close();
-			Thread.sleep(2000);
-		} catch (FileNotFoundException fnfe) {
-			fnfe.printStackTrace();
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-	}
-	public static void write_two(String fileName) {
-        try {
-            FileOutputStream fos = new FileOutputStream(fileName, true);
+
+    private static final int TASK_SLEEP_TIME = 2_000; // ms
+
+
+    public static void writeOne(String fileName) {
+        try (FileOutputStream fos = new FileOutputStream(fileName, true)) {
+            fos.write(1);
+            Thread.sleep(TASK_SLEEP_TIME);
+        } catch (FileNotFoundException fnfe) {
+            fnfe.printStackTrace();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void writeTwo(String fileName) {
+        try (FileOutputStream fos = new FileOutputStream(fileName, true)) {
             fos.write(2);
-            fos.close();
-            Thread.sleep(2000);
+            Thread.sleep(TASK_SLEEP_TIME);
         } catch (FileNotFoundException fnfe) {
             fnfe.printStackTrace();
         } catch (IOException ioe) {

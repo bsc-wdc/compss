@@ -50,7 +50,6 @@ jmethodID midDeleteFile;            /* ID of the deleteFile method in the es.bsc
 
 jmethodID midBarrier; 		        /* ID of the barrier method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midBarrierNew;            /* ID of the barrier method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midBarrierConcurrent;     /* ID of the barrierConcurrent method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
 jmethodID midgetBindingObject;		/* ID of the getBindingObject method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
 jmethodID midDeleteBindingObject; 	/* ID of the deleteBindingObject method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
@@ -209,13 +208,6 @@ void init_master_jni_types() {
 
     // barrier method (with no more tasks flag)
     midBarrierNew = m_env->GetMethodID(clsITimpl, "barrier", "(Ljava/lang/Long;Z)V");
-    if (m_env->ExceptionOccurred()) {
-        m_env->ExceptionDescribe();
-        exit(1);
-    }
-
-    // barrier concurrent method
-    midBarrierConcurrent =  m_env->GetMethodID(clsITimpl, "barrierConcurrent", "(Ljava/lang/Long;)V");
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
         exit(1);

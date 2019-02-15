@@ -154,13 +154,6 @@ public interface COMPSsRuntime {
      * @param appId
      */
     public void barrier(Long appId);
-    
-    /**
-     * Freezes the task generation until all previous tasks have been executed
-     *
-     * @param appId
-     */
-    public void barrierConcurrent(Long appId);
 
     /**
      * Freezes the task generation until all previous tasks have been executed. The noMoreTasks parameter indicates

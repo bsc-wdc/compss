@@ -113,12 +113,6 @@ void compss_barrier_new(int no_more_tasks) {
     GS_BarrierNew(l_app_id, no_more_tasks);
 }
 
-void compss_barrier_concurrent() {
-    //long l_app_id = (long)app_id;
-    long int l_app_id = 0;
-    GS_BarrierConcurrent(l_app_id);
-}
-
 int compss_register(void *ref, datatype type, direction dir, char *classname, char * &filename, int object_type, int elements) {
     Entry entry;
     int result = 0;

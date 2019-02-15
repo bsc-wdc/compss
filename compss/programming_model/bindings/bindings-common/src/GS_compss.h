@@ -66,7 +66,6 @@ extern "C" void GS_Delete_File(char *file_name);
 // COMPSs API Calls
 extern "C" void GS_Barrier(long appId);
 extern "C" void GS_BarrierNew(long appId, int noMoreTasks);
-extern "C" void GS_BarrierConcurrent(long appId);
 
 // Misc functions
 extern "C" void GS_Get_AppDir(char **buf);

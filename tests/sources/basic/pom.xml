@@ -125,7 +125,6 @@
         <!-- Module 92 is 92-inheritance_python -->
         <module>93-multinode</module>
         <!-- Module 94 is 94-multinodeDecorator_python -->
-        <module>95-concurrentAnotation</module>
         <module>96-concurrentObjectTest</module>
         <!-- Module 97 is 97-concurrentObject_python -->
 		

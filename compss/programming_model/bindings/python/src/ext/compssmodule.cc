@@ -425,23 +425,6 @@ barrier(PyObject *self, PyObject *args) {
 }
 
 /*
-  Notify the runtime that our current application wants to "execute" a barrier concurrent.
-  Program will be blocked in GS_BarrierConcurrent until all running tasks have ended.
-*/
-static PyObject *
-barrier_concurrent(PyObject *self, PyObject *args) {
-    debug("####C#### BARRIER CONCURRENT \n");
-    long app_id;
-
-    if(!PyArg_ParseTuple(args, "l", &app_id)) {
-        return NULL;
-    }
-    debug("####C#### COMPSs barrier for AppId: %ld \n", (app_id));
-    GS_BarrierConcurrent(app_id);
-    Py_RETURN_NONE;
-}
-
-/*
   Returns the logging path.
 */
 static PyObject *
@@ -504,7 +487,6 @@ static PyMethodDef CompssMethods[] = {
     { "delete_file", delete_file, METH_VARARGS, "Delete a file." },
     { "close_file", close_file, METH_VARARGS, "Close a file." },
     { "barrier", barrier, METH_VARARGS, "Perform a barrier until the tasks already submitted have finished." },
-    { "barrier_concurrent", barrier_concurrent, METH_VARARGS, "Perform a barrier until the concurrent tasks already submitted have finished." },
     { "get_logging_path", get_logging_path, METH_VARARGS, "Requests the app log path." },
     { "register_core_element", register_core_element, METH_VARARGS, "Registers a task in the Runtime." },
     { NULL, NULL } /* sentinel */

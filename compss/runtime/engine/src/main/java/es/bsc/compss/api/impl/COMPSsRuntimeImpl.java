@@ -791,14 +791,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /**
-     * Freezes the task generation until all previous tasks have been executed
-     */
-    @Override
-    public void barrierConcurrent(Long appId) {
-        barrier(appId, false);
-    }
-
-    /**
      * Deletes the specified version of a file
      */
     @Override

@@ -515,6 +515,7 @@ public class DataManagerImpl implements DataManager {
         switch (param.getType()) {
             case OBJECT_T:
             case PSCO_T: // fetch stage already set the value on the param, but we make sure to collect the last version
+            case COLLECTION_T:
                 loadObject(param);
                 break;
             case FILE_T: // value already contains the path

@@ -70,7 +70,6 @@ public class DataRegister {
         if (storageId != null) {
             // Try if parameter is in cache
             LOGGER.debug("   - Retrieving psco " + storageId + " from Storage");
-
             Object obj;
             // Get Object from its ID
             if (Tracer.isActivated()) {

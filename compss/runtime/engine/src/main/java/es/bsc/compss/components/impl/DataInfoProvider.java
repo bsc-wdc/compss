@@ -422,10 +422,9 @@ public class DataInfoProvider {
                 break;
             case RW:
                 rVersionId = ((RWAccessId) dAccId).getReadDataInstance().getVersionId();
-                if(!di.versionHasBeenRead(rVersionId)){
-                    //read data version can be removed
-                    di.tryRemoveVersion(rVersionId);
-                }
+                di.versionHasBeenRead(rVersionId);
+                //read data version can be removed
+                di.tryRemoveVersion(rVersionId);
                 wVersionId = ((RWAccessId) dAccId).getWrittenDataInstance().getVersionId();
                 deleted = di.versionHasBeenWritten(wVersionId);
                 break;

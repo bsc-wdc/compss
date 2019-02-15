@@ -178,7 +178,8 @@ public abstract class DataInfo {
 
     public void tryRemoveVersion(Integer versionId) {
         DataVersion readVersion = versions.get(versionId);
-        if (readVersion.delete()){
+        
+        if (readVersion != null && readVersion.delete()){
             Comm.removeData(readVersion.getDataInstanceId().getRenaming());
             versions.remove(versionId);
         }

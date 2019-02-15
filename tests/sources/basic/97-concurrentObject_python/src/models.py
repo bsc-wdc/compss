@@ -9,6 +9,7 @@ PyCOMPSs Testbench PSCO Models
 
 # Imports
 from pycompss.api.task import task
+from pycompss.api.parameter import *
 from storage.Object import SCO
 import time
 
@@ -18,14 +19,14 @@ class MyFile(SCO):
     def __init__(self, path):
         self.path=path
 
-    @task(targetDirection='CONCURRENT')
+    @task(targetDirection=CONCURRENT)
     def writeThree(self):
         # Write value
         with open(self.path, 'a') as file:
             file.write("3")
         time.sleep(2)
 
-    @task(targetDirection='INOUT')
+    @task(targetDirection=INOUT)
     def writeFour(self):
         # Write value
         with open(self.path, 'a') as file:

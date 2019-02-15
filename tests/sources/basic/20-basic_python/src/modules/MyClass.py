@@ -9,6 +9,7 @@ PyCOMPSs Testbench Tasks
 
 # Imports
 from pycompss.api.task import task
+from pycompss.api.parameter import IN
 
 
 class MyClass(object):
@@ -21,7 +22,7 @@ class MyClass(object):
     def instance_method(self):
         self.field = self.field * 2
 
-    @task(returns=int, isModifier=False)
+    @task(returns=int, targetDirection=IN)
     def instance_method_nonmodifier(self):
         return self.field
 
@@ -43,7 +44,7 @@ class MyClassRetInt(object):
 
     # WARNING!!! WHEN DOING THIS, THE FUTURE OBJECT BUILT WILL BE OF 'OBJECT'
     # TYPE, ANT THE INTERNAL FUNCTIONS WILL NOT BE AVAILABLE.
-    @task(returns=1, isModifier=False)
+    @task(returns=1, targetDirection=IN)
     def instance_method_nonmodifier(self):
         return self.field
 

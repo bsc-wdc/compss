@@ -22,7 +22,7 @@
 
     <!-- COMMUNICATION -->
     <!-- es.bsc.compss.Communication: DEFAULT = OFF -->
-    <Logger name="Communication" additivity="FALSE" level="error">
+    <Logger name="es.bsc.comm" additivity="FALSE" level="error">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="es.bsc.compss.Communication" additivity="FALSE" level="error">

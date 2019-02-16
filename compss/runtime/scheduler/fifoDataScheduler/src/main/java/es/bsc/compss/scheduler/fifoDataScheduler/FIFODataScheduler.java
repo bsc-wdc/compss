@@ -93,8 +93,7 @@ public class FIFODataScheduler extends ReadyScheduler {
                 scheduleAction(freeAction, resource, obj.getScore());
                 tryToLaunch(freeAction);
             } catch (BlockedActionException e) {
-                removeFromReady(freeAction);
-                addToBlocked(freeAction);
+                blockedCandidates.add(freeAction);
             } catch (UnassignedActionException e) {
                 dataFreeActions.add(freeAction);
             }

@@ -319,7 +319,7 @@ public class TaskScheduler {
      *
      * @param action
      */
-    protected final void addToReady(AllocatableAction action) {
+    private void addToReady(AllocatableAction action) {
         LOGGER.debug("[TaskScheduler] Add action " + action + " to ready count");
         Integer coreId = action.getCoreId();
         if (coreId != null) {
@@ -335,7 +335,7 @@ public class TaskScheduler {
      *
      * @param action
      */
-    protected final void removeFromReady(AllocatableAction action) {
+    private void removeFromReady(AllocatableAction action) {
         LOGGER.info("[TaskScheduler] Remove action " + action + " from ready count");
         if (action.getImplementations().length > 0) {
             Integer coreId = action.getImplementations()[0].getCoreId();
@@ -353,7 +353,7 @@ public class TaskScheduler {
      *
      * @param action
      */
-    protected final void addToBlocked(AllocatableAction action) {
+    private void addToBlocked(AllocatableAction action) {
         LOGGER.warn("[TaskScheduler] Blocked Action: " + action);
         this.blockedActions.addAction(action);
     }
@@ -453,7 +453,10 @@ public class TaskScheduler {
             // Free all the dependent tasks
             for (AllocatableAction failedAction : action.failed()) {
                 try {
-                    resourceFree.addAll(resource.unscheduleAction(failedAction));
+                    ResourceScheduler failedResource = failedAction.getAssignedResource();
+                    if (failedResource != null) {
+                        resourceFree.addAll(failedResource.unscheduleAction(failedAction));
+                    }
                 } catch (ActionNotFoundException anfe) {
                     // Once the action starts running should cannot be moved from the resource
                 }

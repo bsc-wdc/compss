@@ -140,8 +140,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
                 scheduleAction(freeAction, actionScore);
                 tryToLaunch(freeAction);
             } catch (BlockedActionException e) {
-                removeFromReady(freeAction);
-                addToBlocked(freeAction);
+                blockedCandidates.add(freeAction);
             }
         }
     }

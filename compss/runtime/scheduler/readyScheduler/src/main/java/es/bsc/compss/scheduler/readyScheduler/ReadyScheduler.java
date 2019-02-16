@@ -81,7 +81,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
     protected void scheduleAction(AllocatableAction action, Score actionScore) throws BlockedActionException {
         if (!action.hasDataPredecessors()) {
             try {
-                action.tryToSchedule(actionScore);
+                action.schedule(actionScore);
             } catch (UnassignedActionException ex) {
                 this.unassignedReadyActions.addAction(action);
             }

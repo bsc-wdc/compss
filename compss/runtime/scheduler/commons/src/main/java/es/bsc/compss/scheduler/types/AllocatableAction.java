@@ -736,15 +736,6 @@ public abstract class AllocatableAction {
     public abstract void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException;
 
     /**
-     * Schedules the action considering the @actionScore. Actions can only scheduled on workers with free slots
-     *
-     * @param actionScore
-     * @throws BlockedActionException
-     * @throws UnassignedActionException
-     */
-    public abstract void tryToSchedule(Score actionScore) throws BlockedActionException, UnassignedActionException;
-
-    /**
      * Schedules the action to a given @targetWorker with score @actionScore
      *
      * @param <T>

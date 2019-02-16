@@ -144,7 +144,7 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
 
     @Override
     public Implementation[] getImplementations() {
-        Implementation[] impls = new Implementation[] { impl };
+        Implementation[] impls = new Implementation[]{impl};
         return impls;
     }
 
@@ -171,11 +171,6 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     @Override
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
         schedule((ResourceScheduler<WorkerResourceDescription>) worker, impl);
-    }
-
-    @Override
-    public void tryToSchedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
-        this.schedule(actionScore);
     }
 
     @SuppressWarnings("unchecked")

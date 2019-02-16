@@ -38,7 +38,6 @@ public class FakeAllocatableAction extends AllocatableAction {
 
     private int fakeId;
 
-
     public FakeAllocatableAction(ActionOrchestrator td, int id) {
         super(new FakeSI(null), td);
         this.fakeId = id;
@@ -127,7 +126,7 @@ public class FakeAllocatableAction extends AllocatableAction {
     public boolean isToReleaseResources() {
         return false;
     }
-    
+
     @Override
     public boolean isToStopResource() {
         return false;
@@ -135,11 +134,6 @@ public class FakeAllocatableAction extends AllocatableAction {
 
     @Override
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
-
-    }
-    
-    @Override
-    public void tryToSchedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
 
     }
 

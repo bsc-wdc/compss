@@ -82,7 +82,7 @@ public class StopWorkerAction extends AllocatableAction {
     public boolean isToReleaseResources() {
         return false;
     }
-    
+
     @Override
     public boolean isToStopResource() {
         return true;
@@ -122,20 +122,20 @@ public class StopWorkerAction extends AllocatableAction {
      */
     @Override
     protected void doCompleted() {
-    	removeResource();
+        removeResource();
     }
 
     private void removeResource() {
-    	Worker<? extends WorkerResourceDescription> w = worker.getResource();
-    	if (w instanceof CloudMethodWorker){
-    		CloudMethodWorker cmw = (CloudMethodWorker)w ;
-    		ResourceManager.terminateCloudResource(cmw, (CloudMethodResourceDescription) ru.getModification());
-    	}else{
-    		ResourceManager.removeWorker(w);
-    	}
-	}
+        Worker<? extends WorkerResourceDescription> w = worker.getResource();
+        if (w instanceof CloudMethodWorker) {
+            CloudMethodWorker cmw = (CloudMethodWorker) w;
+            ResourceManager.terminateCloudResource(cmw, (CloudMethodResourceDescription) ru.getModification());
+        } else {
+            ResourceManager.removeWorker(w);
+        }
+    }
 
-	@Override
+    @Override
     protected void doError() throws FailedActionException {
         throw new FailedActionException();
     }
@@ -192,11 +192,6 @@ public class StopWorkerAction extends AllocatableAction {
     @Override
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
         schedule((ResourceScheduler<WorkerResourceDescription>) worker, impl);
-    }
-    
-    @Override
-    public void tryToSchedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
-        this.schedule(actionScore);
     }
 
     @SuppressWarnings("unchecked")

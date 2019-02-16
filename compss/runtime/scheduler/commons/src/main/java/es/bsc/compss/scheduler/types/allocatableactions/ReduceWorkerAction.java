@@ -58,6 +58,7 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
         this.worker = worker;
         this.ts = ts;
         this.ru = (PendingReduction<T>) modification;
+        System.out.println("Creant ReduceWorkerAction amb descripcio " + modification.getModification());
         if (modification.getModification() instanceof MethodResourceDescription) {
             impl = new MethodImplementation("", "", null, null, (MethodResourceDescription) modification.getModification());
         } else {
@@ -92,6 +93,7 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
             @SuppressWarnings("unchecked")
             @Override
             public void run() {
+                System.out.println("Executant la reduction action");
                 Thread.currentThread().setName(worker.getName() + " stopper");
                 DynamicMethodWorker w = (DynamicMethodWorker) worker.getResource();
                 PendingReduction<WorkerResourceDescription> crd = (PendingReduction<WorkerResourceDescription>) ru;

@@ -158,7 +158,9 @@ public class ExecutionPlatform implements ExecutorContext {
                 @Override
                 public void run() {
                     startSem.release();
+                    System.out.println("********************************************Started Executor " + this.id);
                     super.run();
+                    System.out.println("********************************************Stopping Executor " + this.id);
                     ExecutionPlatform.this.finishedWorkerThreads.add(Thread.currentThread());
                     ExecutionPlatform.this.stopSemaphore.release();
                 }
@@ -180,6 +182,7 @@ public class ExecutionPlatform implements ExecutorContext {
         //Request N threads to finish
         for (int i = 0; i < numWorkerThreads; i++) {
             this.queue.enqueue(null);
+            System.out.println("Enqueued null");
         }
         this.queue.wakeUpAll();
 

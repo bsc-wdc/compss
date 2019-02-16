@@ -101,6 +101,7 @@ public class ExecutionManager {
     }
 
     public void reduceCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+        System.out.println("Removing " + CPUCount + "worker threads");
         /*
          * if (tracing_level == Tracer.BASIC_MODE) { Tracer.enablePThreads(); }
          */

@@ -942,7 +942,7 @@ public class MOResourceOptimizer extends ResourceOptimizer {
             RUNTIME_LOGGER.debug("[MOResourceOptimizer] Performing Remove action " + this);
             CloudMethodWorker worker = (CloudMethodWorker) this.res.getResource();
             CloudMethodResourceDescription reduction = new CloudMethodResourceDescription(this.citd, worker.getDescription().getImage());
-            ResourceManager.reduceCloudWorker(worker, reduction);
+            ResourceManager.reduceDynamicWorker(worker, reduction);
         }
     }
 

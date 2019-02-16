@@ -306,12 +306,18 @@ public class ResourceManager {
     /**
      * Sets the boundaries on the cloud elasticity
      *
+<<<<<<< 27c837d13576cb632c6a3a55569638ed93e38e32
      * @param minVMs
      *                   lower number of VMs allowed
      * @param initialVMs
      *                   initial number of VMs
      * @param maxVMs
      *                   higher number of VMs allowed
+=======
+     * @param minVMs     lower number of VMs allowed
+     * @param initialVMs initial number of VMs
+     * @param maxVMs     higher number of VMs allowed
+>>>>>>> Local resource dynamicity implemented and published on agent
      */
     public static void setCloudVMsBoundaries(Integer minVMs, Integer initialVMs, Integer maxVMs) {
         cloudManager.setInitialVMs(initialVMs);
@@ -429,7 +435,7 @@ public class ResourceManager {
      * @param worker
      * @param reduction
      */
-    public static void reduceCloudWorker(CloudMethodWorker worker, CloudMethodResourceDescription reduction) {
+    public static void reduceDynamicWorker(DynamicMethodWorker worker, MethodResourceDescription reduction) {
         ResourceUpdate<MethodResourceDescription> modification = new PendingReduction<>(reduction);
         resourceUser.updatedResource(worker, modification);
     }

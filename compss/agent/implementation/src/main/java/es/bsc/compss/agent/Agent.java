@@ -240,7 +240,7 @@ public class Agent {
         return (name.equals(AGENT_NAME) || hostName.equals(AGENT_NAME) || name.equals("localhost"));
     }
 
-    public static void addNode(Resource r) throws AgentException {
+    public static void addResources(Resource r) throws AgentException {
         String workerName = r.getName();
         String adaptor = r.getAdaptor();
         MethodResourceDescription description = r.getDescription();
@@ -279,11 +279,20 @@ public class Agent {
         }
     }
 
+    public static void removeResources(String workerName, MethodResourceDescription reduction) throws AgentException {
+        DynamicMethodWorker worker = ResourceManager.getDynamicResource(workerName);
+        if (worker != null) {
+            ResourceManager.reduceDynamicWorker(worker, reduction);
+        } else {
+            throw new AgentException("Resource " + workerName + " was not set up for this agent. Ignoring request.");
+        }
+    }
+
     public static void removeNode(String name) throws AgentException {
         try {
             ResourceManager.reduceWholeWorker(name);
         } catch (NullPointerException e) {
-            throw new AgentException("Resource " + name + "was not set up for this agent. Ignoring request.");
+            throw new AgentException("Resource " + name + " was not set up for this agent. Ignoring request.");
         }
     }
 

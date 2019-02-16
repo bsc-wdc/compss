@@ -28,9 +28,7 @@ import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.ResourceOptimizer;
 import es.bsc.compss.util.SchedulingOptimizer;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.json.JSONObject;
 
@@ -75,13 +73,19 @@ public class MOScheduler extends TaskScheduler {
         super.shutdown();
         /*
          * Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers = this.getWorkers();
-         * System.out.println("End Profiles:"); for (ResourceScheduler<?> worker : workers) { System.out.println("\t" +
-         * worker.getName()); for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) { for (Implementation
-         * impl : CoreManager.getCoreImplementations(coreId)) { System.out.println("\t\t" +
-         * CoreManager.getSignature(coreId, impl.getImplementationId())); MOProfile profile = (MOProfile)
-         * worker.getProfile(impl); System.out.println("\t\t\tTime " + profile.getAverageExecutionTime() + " ms");
-         * System.out.println("\t\t\tPower " + profile.getPower() + " W"); System.out.println("\t\t\tCost " +
-         * profile.getPrice() + " €"); } } }
+         * System.out.println("End Profiles:");
+         * for (ResourceScheduler<?> worker : workers) {
+         *      System.out.println("\t" +         * worker.getName());
+         *      for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
+         *          for (Implementation impl : CoreManager.getCoreImplementations(coreId)) {
+         *              System.out.println("\t\t" + CoreManager.getSignature(coreId, impl.getImplementationId()));
+         *              MOProfile profile = (MOProfile) worker.getProfile(impl);
+         *              System.out.println("\t\t\tTime " + profile.getAverageExecutionTime() + " ms");
+         *              System.out.println("\t\t\tPower " + profile.getPower() + " W");
+         *              System.out.println("\t\t\tCost " + profile.getPrice() + " €"); 
+         *          }
+         *      }
+         *  }
          */
     }
 
@@ -112,10 +116,10 @@ public class MOScheduler extends TaskScheduler {
     public <T extends WorkerResourceDescription> void handleDependencyFreeActions(List<AllocatableAction> dataFreeActions,
             List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
         LOGGER.debug("[MOScheduler] Treating dependency free actions on resource " + resource.getName());
-        Set<AllocatableAction> freeTasks = new HashSet<>();
-        freeTasks.addAll(dataFreeActions);
-        freeTasks.addAll(resourceFreeActions);
-        for (AllocatableAction freeAction : freeTasks) {
+        for (AllocatableAction freeAction : dataFreeActions) {
+            tryToLaunch(freeAction);
+        }
+        for (AllocatableAction freeAction : resourceFreeActions) {
             tryToLaunch(freeAction);
         }
     }

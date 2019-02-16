@@ -45,7 +45,6 @@ public abstract class ReadyScheduler extends TaskScheduler {
 
     protected final ActionSet unassignedReadyActions;
 
-
     /**
      * Constructs a new Ready Scheduler instance
      *
@@ -134,10 +133,11 @@ public abstract class ReadyScheduler extends TaskScheduler {
         while (!executableActions.isEmpty()) {
             ObjectValue<AllocatableAction> obj = executableActions.poll();
             AllocatableAction freeAction = obj.getObject();
+            Score actionScore = obj.getScore();
 
             // LOGGER.debug("Trying to launch action " + freeAction);
             try {
-                scheduleAction(freeAction, obj.getScore());
+                scheduleAction(freeAction, actionScore);
                 tryToLaunch(freeAction);
             } catch (BlockedActionException e) {
                 removeFromReady(freeAction);

@@ -28,7 +28,7 @@
 
     <!-- COMMUNICATION -->
     <!-- es.bsc.compss.Communication: DEFAULT = ERROR -->
-    <Logger name="Communication" additivity="FALSE" level="error">
+    <Logger name="es.bsc.comm" additivity="FALSE" level="error">
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
     <Logger name="es.bsc.compss.Communication" additivity="FALSE" level="error">

@@ -75,8 +75,7 @@ public class LoadBalancingScheduler extends ReadyScheduler {
     public <T extends WorkerResourceDescription> void purgeFreeActions(List<AllocatableAction> dataFreeActions,
             List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
 
-        List<AllocatableAction> unassignedReadyActions = this.unassignedReadyActions.getAllActions();
-        this.unassignedReadyActions.removeAllActions();
+        List<AllocatableAction> unassignedReadyActions = this.unassignedReadyActions.removeAllActions();
         dataFreeActions.addAll(unassignedReadyActions);
     }
 

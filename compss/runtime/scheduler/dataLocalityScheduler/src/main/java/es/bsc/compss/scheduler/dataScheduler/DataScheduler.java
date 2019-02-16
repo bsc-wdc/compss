@@ -76,8 +76,7 @@ public class DataScheduler extends ReadyScheduler {
         // Schedules all possible free actions (LIFO type)
         LOGGER.debug("[DataScheduler] Treating dependency free actions");
 
-        List<AllocatableAction> unassignedReadyActions = this.unassignedReadyActions.getAllActions();
-        this.unassignedReadyActions.removeAllActions();
+        List<AllocatableAction> unassignedReadyActions = this.unassignedReadyActions.removeAllActions();
         dataFreeActions.addAll(unassignedReadyActions);
     }
 

@@ -771,13 +771,15 @@ public class TaskScheduler {
                     scheduleAction(action, actionScore);
                     tryToLaunch(action);
                 } catch (BlockedActionException bae) {
-                    removeFromReady(action);
+                    if (!action.hasDataPredecessors()) {
+                        removeFromReady(action);
+                    }
                     addToBlocked(action);
                 }
             }
 
-            // Update worker load
-            this.workerLoadUpdate(worker);
+            // Update worker features
+            this.workerFeaturesUpdate(worker, modification.getModification());
         }
     }
 
@@ -851,6 +853,19 @@ public class TaskScheduler {
         }
         resource.setRemoved(true);
 
+    }
+
+    /**
+     * Notifies to the scheduler that there have been changes in the capabilities of a resource.
+     *
+     * @param <T>
+     * @param worker updated resource
+     * @param modification changes performed on the resource
+     */
+    public <T extends WorkerResourceDescription> void workerFeaturesUpdate(ResourceScheduler<T> worker, T modification) {
+        LOGGER.info("[TaskScheduler] Updated features on worker " + worker.getName());
+        // Resource capabilities had already been taken into account when assigning the actions. No need to change the
+        // scheduling.
     }
 
     /*

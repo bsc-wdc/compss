@@ -26,6 +26,7 @@ import es.bsc.compss.scheduler.types.ObjectValue;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.ActionSet;
+import java.util.LinkedList;
 
 import java.util.List;
 import java.util.PriorityQueue;
@@ -64,6 +65,15 @@ public abstract class ReadyScheduler extends TaskScheduler {
     @Override
     public <T extends WorkerResourceDescription> void workerLoadUpdate(ResourceScheduler<T> resource) {
 
+    }
+
+    @Override
+    public <T extends WorkerResourceDescription> void workerFeaturesUpdate(ResourceScheduler<T> worker, T modification) {
+        LinkedList<AllocatableAction> dataFreeActions = new LinkedList<>();
+        LinkedList<AllocatableAction> resourceFreeActions = new LinkedList<>();
+        LinkedList<AllocatableAction> blockedCandidates = new LinkedList<>();
+        purgeFreeActions(dataFreeActions, resourceFreeActions, blockedCandidates, worker);
+        tryToLaunchFreeActions(dataFreeActions, resourceFreeActions, blockedCandidates, worker);
     }
 
     @Override

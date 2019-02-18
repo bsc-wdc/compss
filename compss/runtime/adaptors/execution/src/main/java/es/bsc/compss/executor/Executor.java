@@ -386,6 +386,7 @@ public class Executor implements Runnable {
             bindOriginalFilenameToRenames(param, sandbox);
         }
         if (invocation.getTarget() != null) {
+            LOGGER.debug("Invocation has non-null target");
             bindOriginalFilenameToRenames(invocation.getTarget(), sandbox);
         }
         for (InvocationParam param : invocation.getResults()) {
@@ -402,9 +403,11 @@ public class Executor implements Runnable {
             } else {
                 String inSandboxPath = sandbox.getAbsolutePath() + File.separator + param.getOriginalName();
                 LOGGER.debug("Setting Original Name to " + inSandboxPath);
+                LOGGER.debug("Renamed File Path is " + renamedFilePath);
                 param.setOriginalName(inSandboxPath);
                 File inSandboxFile = new File(inSandboxPath);
                 if (renamedFile.exists()) {
+                    LOGGER.debug("File exists");
                     // IN or INOUT File creating a symbolic link
                     if (!inSandboxFile.exists()) {
                         LOGGER.debug("Creating symlink " + inSandboxFile.toPath() + " pointing to " + renamedFile.toPath());

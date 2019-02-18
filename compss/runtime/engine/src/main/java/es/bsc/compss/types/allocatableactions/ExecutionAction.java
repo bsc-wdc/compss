@@ -24,6 +24,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.Task.TaskState;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.FailedActionException;
@@ -41,6 +42,7 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener.JobEndStatus;
+import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.ExternalPSCOParameter;
 import es.bsc.compss.types.parameter.Parameter;
@@ -190,6 +192,17 @@ public class ExecutionAction extends AllocatableAction {
 
     // Private method that performs data transfers
     private void transferJobData(DependencyParameter param, JobTransfersListener listener) {
+
+        if(param.getType() == DataType.COLLECTION_T) {
+            CollectionParameter cp = (CollectionParameter) param;
+            JOB_LOGGER.debug("Detected CollectionParameter " + cp);
+            // TODO: Handle basic data types
+            for(Parameter p : cp.getParameters()) {
+                DependencyParameter dp = (DependencyParameter) p;
+                transferJobData(dp, listener);
+            }
+        }
+
         Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
         DataAccessId access = param.getDataAccessId();
         if (access instanceof DataAccessId.WAccessId) {
@@ -202,8 +215,8 @@ public class ExecutionAction extends AllocatableAction {
             if (DEBUG) {
                 JOB_LOGGER.debug("Setting data target job transfer: " + w.getCompleteRemotePath(param.getType(), tgtName));
             }
+            JOB_LOGGER.debug("Setting data target job transfer: " + w.getCompleteRemotePath(param.getType(), tgtName));
             param.setDataTarget(w.getCompleteRemotePath(param.getType(), tgtName).getPath());
-
             return;
         }
 
@@ -355,6 +368,7 @@ public class ExecutionAction extends AllocatableAction {
                             targetProtocol = DataLocation.Protocol.FILE_URI.getSchema();
                             break;
                         case OBJECT_T:
+                        case COLLECTION_T:
                             targetProtocol = DataLocation.Protocol.OBJECT_URI.getSchema();
                             break;
                         case PSCO_T:

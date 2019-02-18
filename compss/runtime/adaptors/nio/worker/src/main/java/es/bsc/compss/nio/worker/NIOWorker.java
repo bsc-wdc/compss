@@ -16,15 +16,13 @@
  */
 package es.bsc.compss.nio.worker;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import es.bsc.compss.nio.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -34,12 +32,6 @@ import es.bsc.comm.nio.NIONode;
 import es.bsc.comm.stage.Transfer;
 import es.bsc.comm.stage.Transfer.Destination;
 
-import es.bsc.compss.nio.NIOAgent;
-import es.bsc.compss.nio.NIOParam;
-import es.bsc.compss.nio.NIOTask;
-import es.bsc.compss.nio.NIOTaskResult;
-import es.bsc.compss.nio.NIOTracer;
-import es.bsc.compss.nio.NIOMessageHandler;
 import es.bsc.compss.nio.commands.CommandDataReceived;
 import es.bsc.compss.nio.commands.CommandExecutorShutdownACK;
 import es.bsc.compss.nio.commands.CommandShutdownACK;
@@ -204,6 +196,37 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         return uuid.equals(this.deploymentId) && nodeName.equals(this.host);
     }
 
+    private int processNioParam(NIOParam param, int offset, TransferringTask tt) throws FileNotFoundException, UnsupportedEncodingException {
+        WORKER_LOGGER.info("Checking parameter " + param);
+        int currentIndex = offset;
+        if (param.getData() != null) {
+            // Parameter has associated data
+            if (WORKER_LOGGER_DEBUG) {
+                WORKER_LOGGER.debug("- Checking transfers for data " + param.getDataMgmtId() + " for target parameter " +
+                        currentIndex);
+            }
+            tt.addOperation();
+            dataManager.fetchParam(param, currentIndex, tt);
+        } else {
+            // OUT parameter. Has no associated data. Decrease the parameter counter (we already have it)
+            //tt.loadedValue();
+        }
+        ++currentIndex;
+        if(param instanceof NIOParamCollection) {
+            String pathToWrite = (String) param.getValue();
+            PrintWriter writer = new PrintWriter(pathToWrite, "UTF-8");
+            NIOParamCollection npc = (NIOParamCollection) param;
+            WORKER_LOGGER.info("Checking NIOParamCollection (received " + npc.getCollectionParameters().size() +
+                    " params)");
+            for(NIOParam subNioParam : npc.getCollectionParameters()) {
+                currentIndex = processNioParam(subNioParam, currentIndex, tt);
+                writer.println(subNioParam.getType().ordinal() + " " + subNioParam.getValue());
+            }
+            writer.close();
+        }
+        return currentIndex;
+    }
+
     @Override
     public void receivedNewTask(NIONode master, NIOTask task, List<String> obsoleteFiles) {
         WORKER_LOGGER.info("Received Job " + task);
@@ -234,20 +257,15 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         // Demand files
         WORKER_LOGGER.info("Checking parameters");
         TransferringTask tt = new TransferringTask(task);
-        int i = 0;
+        int currentOffset = 0;
         for (NIOParam param : task.getParams()) {
-            i++;
-            WORKER_LOGGER.info("Checking parameter " + param);
-            if (param.getData() != null) {
-                // Parameter has associated data
-                if (WORKER_LOGGER_DEBUG) {
-                    WORKER_LOGGER.debug("- Checking transfers for data " + param.getDataMgmtId() + " for target parameter" + i);
-                }
-                dataManager.fetchParam(param, i, tt);
-
-            } else {
-                // OUT or basic-type parameter. Has no associated data. Decrease the parameter counter (we already have it)
-                tt.fetchedValue();
+            WORKER_LOGGER.info("--------------------");
+            try {
+                currentOffset = processNioParam(param, currentOffset, tt);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
             }
         }
         WORKER_LOGGER.info("Checking target");
@@ -255,6 +273,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         if (targetParam != null) {
             // Parameter has associated data
             WORKER_LOGGER.debug("- Checking transfers for data " + targetParam.getDataMgmtId() + " for target parameter");
+            tt.addOperation();
             dataManager.fetchParam(targetParam, -1, tt);
         }
 
@@ -269,6 +288,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         long paramsEnd = System.currentTimeMillis();
         long paramsDuration = paramsEnd - obsolEnd;
         WORKER_LOGGER.info("[Profile] Obsolete Processing: " + obsolDuration + " Processing " + paramsDuration);
+        WORKER_LOGGER.info("[Profile] Pending parameters: " + tt.getParams());
         times.put(task.getJobId(), paramsEnd);
         if (tt.getParams() == 0) {
             executeTask(tt.getTask());
@@ -345,6 +365,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             if (NIOTracer.isActivated()) {
                 NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
             }
+            WORKER_LOGGER.debug("Pending parameters: " + wdr.getTransferringTask().getParams());
             if (wdr.getTransferringTask().getParams() == 0) {
                 if (!wdr.getTransferringTask().getError()) {
                     NIOTask task = wdr.getTransferringTask().getTask();

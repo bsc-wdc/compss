@@ -474,6 +474,7 @@ public class NIOWorkerNode extends COMPSsWorker {
                 path = Protocol.FILE_URI.getSchema() + config.getSandboxWorkingDir() + name;
                 break;
             case OBJECT_T:
+            case COLLECTION_T:
                 path = Protocol.OBJECT_URI.getSchema() + name;
                 break;
             case PSCO_T:

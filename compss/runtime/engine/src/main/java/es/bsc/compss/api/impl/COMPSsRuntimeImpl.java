@@ -19,6 +19,9 @@ package es.bsc.compss.api.impl;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 import es.bsc.compss.COMPSsConstants;
@@ -50,12 +53,7 @@ import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.data.location.PersistentLocation;
 import es.bsc.compss.types.implementations.MethodImplementation;
-import es.bsc.compss.types.parameter.BasicTypeParameter;
-import es.bsc.compss.types.parameter.BindingObjectParameter;
-import es.bsc.compss.types.parameter.ExternalPSCOParameter;
-import es.bsc.compss.types.parameter.FileParameter;
-import es.bsc.compss.types.parameter.ObjectParameter;
-import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.parameter.*;
 import es.bsc.compss.types.resources.MasterResourceImpl;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
@@ -1121,80 +1119,136 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         return true;
     }
 
+    private void addParameter(Object content, DataType type, Direction direction, Stream stream, String prefix, String name, ArrayList< Parameter > pars) {
+        switch (type) {
+            case FILE_T:
+                try {
+                    String fileName = (String) content;
+                    String originalName = new File(fileName).getName();
+                    DataLocation location = createLocation((String) content);
+                    pars.add(new FileParameter(direction, stream, prefix, name, location, originalName));
+                } catch (Exception e) {
+                    LOGGER.error(ERROR_FILE_NAME, e);
+                    ErrorManager.fatal(ERROR_FILE_NAME, e);
+                }
+                break;
+            case PSCO_T:
+            case OBJECT_T:
+                pars.add(new ObjectParameter(direction, stream, prefix, name, content,
+                        oReg.newObjectParameter(content)));
+                break;
+            case EXTERNAL_PSCO_T:
+                String id = (String) content;
+                pars.add(new ExternalPSCOParameter(direction, stream, prefix, name, id, externalObjectHashcode(id)));
+                break;
+            case BINDING_OBJECT_T:
+                String value = (String) content;
+                if (value.contains(":")) {
+                    String[] fields = value.split(":");
+                    if (fields.length == 3) {
+                        String extObjectId = fields[0];
+                        int extObjectType = Integer.parseInt(fields[1]);
+                        int extObjectElements = Integer.parseInt(fields[2]);
+                        pars.add(new BindingObjectParameter(direction, stream, prefix, name,
+                                new BindingObject(extObjectId, extObjectType, extObjectElements), externalObjectHashcode(extObjectId)));
+                    } else {
+                        LOGGER.error(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
+                        ErrorManager.fatal(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
+                    }
+                } else {
+                    LOGGER.error(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
+                    ErrorManager.fatal(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
+                }
+                break;
+            case COLLECTION_T:
+                // A collection value contains the file of the collection object and the collection
+                // elements, separated by spaces
+                String[] values = ((String) content).split(" ");
+                String collectionId = values[0];
+                int numOfElements = Integer.parseInt(values[1]);
+                // The elements of the collection are all the elements of the list except for the first one
+                // Each element is defined by a pair TYPE VALUE
+                // Also note the +2 offset!
+                List< String > collectionElements = new ArrayList<>(Arrays.asList(values)).subList(2, 2 * numOfElements + 2);
+
+                int n = collectionElements.size() / 2;
+
+                List< DataType > contentTypes = new ArrayList<>();
+                List< String > contentIds = new ArrayList<>();
+                ArrayList< Parameter> collectionParameters = new ArrayList<>();
+                for(int j = 0; j < n; ++j) {
+                    // First element is the type, translate it to the  corresponding DataType field by direct indexing
+                    int idx = Integer.parseInt(collectionElements.get(2 * j));
+                    DataType dataType = DataType.values()[idx];
+                    contentTypes.add(dataType);
+                    // Second element is the content
+                    contentIds.add(collectionElements.get(2 * j + 1));
+                    // Prepare stuff for recursive call
+                    Object    elemContent = contentIds.get(j);
+                    DataType  elemType = contentTypes.get(j);
+                    Direction elemDir = direction;
+                    // N/A to non-direct parameters
+                    Stream    elemStream = Stream.UNSPECIFIED;
+                    String    elemPrefix = Constants.PREFIX_EMPTY;
+                    String    elemName = name + "." + j;
+                    // Add @ only for the first time
+                    // This names elements as @collection.0, @collection.1, etc
+                    // Easily extended in the case of nested collections
+                    // @collection1.0.1.2
+                    // Means that this is the third element of the second element of the first element
+                    // of the named collection "collection1"
+                    if(!elemName.startsWith("@")) {
+                        elemName = "@" + elemName;
+                    }
+                    addParameter(elemContent, elemType, elemDir, elemStream, elemPrefix, elemName, collectionParameters);
+                }
+                CollectionParameter cp = new CollectionParameter(collectionId, collectionParameters, direction, stream, prefix, name);
+                LOGGER.debug("Add COLLECTION_T with " + cp.getParameters().size() + " parameters");
+                LOGGER.debug(cp.toString());
+                pars.add(cp);
+                break;
+            default:
+                /*
+                 * Basic types (including String). The only possible direction is IN, warn otherwise
+                 */
+                if (direction != Direction.IN) {
+                    LOGGER.warn(WARN_WRONG_DIRECTION + "Parameter " + name + " is a basic type, therefore it must have IN direction");
+                }
+                pars.add(new BasicTypeParameter(type, Direction.IN, stream, prefix, name, content));
+                break;
+        }
+    }
+
     /*
      * ************************************************************************************************************
      * PRIVATE HELPER METHODS
      * ********************************************************************************************************
      */
     private Parameter[] processParameters(int parameterCount, Object[] parameters) {
-        Parameter[] pars = new Parameter[parameterCount];
+        ArrayList< Parameter > pars = new ArrayList<>();
         // Parameter parsing needed, object is not serializable
-        for (int npar = 0, i = 0; npar < parameterCount; ++npar, i += NUM_FIELDS_PER_PARAM) {
-            DataType type = (DataType) parameters[i + 1];
-            Direction direction = (Direction) parameters[i + 2];
-            Stream stream = (Stream) parameters[i + 3];
-            String prefix = (String) parameters[i + 4];
-            String name = (String) parameters[i + 5];
-
+        for (int i = 0; i < parameterCount; ++i) {
+            Object content      =             parameters[NUM_FIELDS_PER_PARAM * i    ];
+            DataType type       = (DataType)  parameters[NUM_FIELDS_PER_PARAM * i + 1];
+            Direction direction = (Direction) parameters[NUM_FIELDS_PER_PARAM * i + 2];
+            Stream stream       = (Stream)    parameters[NUM_FIELDS_PER_PARAM * i + 3];
+            String prefix       = (String)    parameters[NUM_FIELDS_PER_PARAM * i + 4];
+            String name         = (String)    parameters[NUM_FIELDS_PER_PARAM * i + 5];
+            // Add parameter to list
+            // This function call is isolated for better readability and to easily
+            // allow recursion in the case of collections
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("  Parameter " + (npar + 1) + "(" + name + ") has type " + type.name());
+                LOGGER.debug("  Parameter " + (NUM_FIELDS_PER_PARAM * i + 1) + " has type " + type.name());
             }
-
-            switch (type) {
-                case FILE_T:
-                    try {
-                        String fileName = (String) parameters[i];
-                        String originalName = new File(fileName).getName();
-                        DataLocation location = createLocation((String) parameters[i]);
-                        pars[npar] = new FileParameter(direction, stream, prefix, name, location, originalName);
-                    } catch (Exception e) {
-                        LOGGER.error(ERROR_FILE_NAME, e);
-                        ErrorManager.fatal(ERROR_FILE_NAME, e);
-                    }
-
-                    break;
-
-                case PSCO_T:
-                case OBJECT_T:
-                    pars[npar] = new ObjectParameter(direction, stream, prefix, name, parameters[i],
-                            oReg.newObjectParameter(parameters[i]));
-                    break;
-                case EXTERNAL_PSCO_T:
-                    String id = (String) parameters[i];
-                    pars[npar] = new ExternalPSCOParameter(direction, stream, prefix, name, id, externalObjectHashcode(id));
-                    break;
-                case BINDING_OBJECT_T:
-                    String value = (String) parameters[i];
-                    if (value.contains(":")) {
-                        String[] fields = value.split(":");
-                        if (fields.length == 3) {
-                            String extObjectId = fields[0];
-                            int extObjectType = Integer.parseInt(fields[1]);
-                            int extObjectElements = Integer.parseInt(fields[2]);
-                            pars[npar] = new BindingObjectParameter(direction, stream, prefix, name,
-                                    new BindingObject(extObjectId, extObjectType, extObjectElements), externalObjectHashcode(extObjectId));
-                        } else {
-                            LOGGER.error(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
-                            ErrorManager.fatal(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
-                        }
-                    } else {
-                        LOGGER.error(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
-                        ErrorManager.fatal(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
-                    }
-                    break;
-
-                default:
-                    /*
-                     * Basic types (including String). The only possible direction is IN, warn otherwise
-                     */
-                    if (direction != Direction.IN) {
-                        LOGGER.warn(WARN_WRONG_DIRECTION + "Parameter " + npar + " is a basic type, therefore it must have IN direction");
-                    }
-                    pars[npar] = new BasicTypeParameter(type, Direction.IN, stream, prefix, name, parameters[i]);
-                    break;
-            }
+            addParameter(content, type, direction, stream, prefix, name, pars);
         }
-        return pars;
+        // Method returned ARRAY, not ArrayList
+        // Convert it before returning
+        Parameter[] ret = new Parameter[pars.size()];
+        for(int i = 0; i < ret.length; ++i) {
+            ret[i] = pars.get(i);
+        }
+        return ret;
     }
 
     private int externalObjectHashcode(String id) {

@@ -27,6 +27,7 @@ import java.util.TreeSet;
 import java.util.Map.Entry;
 import java.util.concurrent.Semaphore;
 
+import es.bsc.compss.types.parameter.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -43,14 +44,8 @@ import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.AccessParams.*;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.*;
-import es.bsc.compss.types.parameter.BindingObjectParameter;
-import es.bsc.compss.types.parameter.Parameter;
-import es.bsc.compss.types.parameter.DependencyParameter;
-import es.bsc.compss.types.parameter.ExternalPSCOParameter;
 import es.bsc.compss.types.data.operation.ResultListener;
 import es.bsc.compss.types.implementations.Implementation.TaskType;
-import es.bsc.compss.types.parameter.FileParameter;
-import es.bsc.compss.types.parameter.ObjectParameter;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.WaitForTaskRequest;
@@ -135,6 +130,104 @@ public class TaskAnalyser {
         this.GM = GM;
     }
 
+    private DataAccessId registerParameterAccessAndAddDependencies(Task currentTask, boolean isConstraining, Parameter p) {        // Conversion: direction -> access mode
+        AccessMode am = AccessMode.R;
+        switch (p.getDirection()) {
+            case IN:
+                am = AccessMode.R;
+                break;
+            case OUT:
+                am = AccessMode.W;
+                break;
+            case INOUT:
+                am = AccessMode.RW;
+                break;
+        }
+        // Inform the Data Manager about the new accesses
+        DataAccessId daId = null;
+        switch (p.getType()) {
+            case FILE_T:
+                FileParameter fp = (FileParameter) p;
+                daId = this.DIP.registerFileAccess(am, fp.getLocation());
+                break;
+            case PSCO_T:
+                ObjectParameter pscop = (ObjectParameter) p;
+                // Check if its PSCO class and persisted to infer its type
+                pscop.setType(DataType.PSCO_T);
+                daId = this.DIP.registerObjectAccess(am, pscop.getValue(), pscop.getCode());
+                break;
+            case EXTERNAL_PSCO_T:
+                ExternalPSCOParameter externalPSCOparam = (ExternalPSCOParameter) p;
+                // Check if its PSCO class and persisted to infer its type
+                externalPSCOparam.setType(DataType.EXTERNAL_PSCO_T);
+                daId = DIP.registerExternalPSCOAccess(am, externalPSCOparam.getId(), externalPSCOparam.getCode());
+                break;
+            case BINDING_OBJECT_T:
+                BindingObjectParameter bindingObjectparam = (BindingObjectParameter) p;
+                // Check if its Binding OBJ and register its access
+                bindingObjectparam.setType(DataType.BINDING_OBJECT_T);
+                daId = DIP.registerBindingObjectAccess(am, bindingObjectparam.getBindingObject(),
+                        bindingObjectparam.getCode());
+                break;
+            case OBJECT_T:
+                ObjectParameter op = (ObjectParameter) p;
+                // Check if its PSCO class and persisted to infer its type
+                if (op.getValue() instanceof StubItf && ((StubItf) op.getValue()).getID() != null) {
+                    op.setType(DataType.PSCO_T);
+                }
+                daId = this.DIP.registerObjectAccess(am, op.getValue(), op.getCode());
+                break;
+            case COLLECTION_T:
+                CollectionParameter cp = (CollectionParameter) p;
+                for(Parameter content : cp.getParameters()) {
+                    registerParameterAccessAndAddDependencies(currentTask, isConstraining, content);
+                }
+                daId = DIP.registerCollectionAccess(am, cp);
+                break;
+            default:
+                // This is a basic type, there are no accesses to register
+                return null;
+        }
+        DependencyParameter dp = (DependencyParameter) p;
+        dp.setDataAccessId(daId);
+        addDependencies(am, currentTask, isConstraining, dp);
+        return daId;
+    }
+
+    private void addDependencies(AccessMode am, Task currentTask, boolean isConstraining, DependencyParameter dp) {
+        // Add dependencies to the graph and register output values for future dependencies
+        switch (am) {
+            case R:
+                checkDependencyForRead(currentTask, dp);
+                if (isConstraining) {
+                    DataAccessId.RAccessId raId = (DataAccessId.RAccessId) dp.getDataAccessId();
+                    DataInstanceId dependingDataId = raId.getReadDataInstance();
+                    if (dependingDataId != null) {
+                        if (dependingDataId.getVersionId() > 1) {
+                            currentTask.setEnforcingTask(this.writers.get(dependingDataId.getDataId()));
+                        }
+                    }
+                }
+                break;
+            case RW:
+                checkDependencyForRead(currentTask, dp);
+                if (isConstraining) {
+                    DataAccessId.RWAccessId raId = (DataAccessId.RWAccessId) dp.getDataAccessId();
+                    DataInstanceId dependingDataId = raId.getReadDataInstance();
+                    if (dependingDataId != null) {
+                        if (dependingDataId.getVersionId() > 1) {
+                            currentTask.setEnforcingTask(this.writers.get(dependingDataId.getDataId()));
+                        }
+                    }
+                }
+                registerOutputValues(currentTask, dp);
+                break;
+            case W:
+                registerOutputValues(currentTask, dp);
+                break;
+        }
+    }
+
     /**
      * Process the dependencies of a new task @currentTask
      *
@@ -180,98 +273,7 @@ public class TaskAnalyser {
 
         Parameter[] parameters = params.getParameters();
         for (int paramIdx = 0; paramIdx < parameters.length; paramIdx++) {
-            Parameter p = parameters[paramIdx];
-            if (DEBUG) {
-                LOGGER.debug("* Parameter : " + p);
-            }
-
-            // Conversion: direction -> access mode
-            AccessMode am = AccessMode.R;
-            switch (p.getDirection()) {
-                case IN:
-                    am = AccessMode.R;
-                    break;
-                case OUT:
-                    am = AccessMode.W;
-                    break;
-                case INOUT:
-                    am = AccessMode.RW;
-                    break;
-            }
-
-            // Inform the Data Manager about the new accesses
-            DataAccessId daId;
-            switch (p.getType()) {
-                case FILE_T:
-                    FileParameter fp = (FileParameter) p;
-                    daId = this.DIP.registerFileAccess(am, fp.getLocation());
-                    break;
-                case PSCO_T:
-                    ObjectParameter pscop = (ObjectParameter) p;
-                    // Check if its PSCO class and persisted to infer its type
-                    pscop.setType(DataType.PSCO_T);
-                    daId = this.DIP.registerObjectAccess(am, pscop.getValue(), pscop.getCode());
-                    break;
-                case EXTERNAL_PSCO_T:
-                    ExternalPSCOParameter externalPSCOparam = (ExternalPSCOParameter) p;
-                    // Check if its PSCO class and persisted to infer its type
-                    externalPSCOparam.setType(DataType.EXTERNAL_PSCO_T);
-                    daId = DIP.registerExternalPSCOAccess(am, externalPSCOparam.getId(), externalPSCOparam.getCode());
-                    break;
-                case BINDING_OBJECT_T:
-                    BindingObjectParameter bindingObjectparam = (BindingObjectParameter) p;
-                    // Check if its Binding OBJ and register its access
-                    bindingObjectparam.setType(DataType.BINDING_OBJECT_T);
-                    daId = DIP.registerBindingObjectAccess(am, bindingObjectparam.getBindingObject(), bindingObjectparam.getCode());
-                    break;
-                case OBJECT_T:
-                    ObjectParameter op = (ObjectParameter) p;
-                    // Check if its PSCO class and persisted to infer its type
-                    if (op.getValue() instanceof StubItf && ((StubItf) op.getValue()).getID() != null) {
-                        op.setType(DataType.PSCO_T);
-                    }
-                    daId = this.DIP.registerObjectAccess(am, op.getValue(), op.getCode());
-                    break;
-                default:
-                    /*
-                     * Basic types (including String). The only possible access mode is R (already checked by the API)
-                     */
-                    continue;
-            }
-
-            // Add dependencies to the graph and register output values for future dependencies
-            DependencyParameter dp = (DependencyParameter) p;
-            dp.setDataAccessId(daId);
-            switch (am) {
-                case R:
-                    checkDependencyForRead(currentTask, dp);
-                    if (paramIdx == constrainingParam) {
-                        DataAccessId.RAccessId raId = (DataAccessId.RAccessId) dp.getDataAccessId();
-                        DataInstanceId dependingDataId = raId.getReadDataInstance();
-                        if (dependingDataId != null) {
-                            if (dependingDataId.getVersionId() > 1) {
-                                currentTask.setEnforcingTask(this.writers.get(dependingDataId.getDataId()));
-                            }
-                        }
-                    }
-                    break;
-                case RW:
-                    checkDependencyForRead(currentTask, dp);
-                    if (paramIdx == constrainingParam) {
-                        DataAccessId.RWAccessId raId = (DataAccessId.RWAccessId) dp.getDataAccessId();
-                        DataInstanceId dependingDataId = raId.getReadDataInstance();
-                        if (dependingDataId != null) {
-                            if (dependingDataId.getVersionId() > 1) {
-                                currentTask.setEnforcingTask(this.writers.get(dependingDataId.getDataId()));
-                            }
-                        }
-                    }
-                    registerOutputValues(currentTask, dp);
-                    break;
-                case W:
-                    registerOutputValues(currentTask, dp);
-                    break;
-            }
+            registerParameterAccessAndAddDependencies(currentTask, paramIdx == constrainingParam, parameters[paramIdx]);
         }
     }
 

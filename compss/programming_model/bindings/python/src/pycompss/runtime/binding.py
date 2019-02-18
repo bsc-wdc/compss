@@ -851,6 +851,20 @@ def _extract_parameter(param, code_strings):
     if param.type == TYPE.FILE or param.type == TYPE.OBJECT or param.is_future:
         value = param.file_name
         typ = TYPE.FILE
+    elif param.type == TYPE.COLLECTION:
+        # The content of a collection is sent via JNI to the master, and the format is the following
+        # collectionId numberOfElements
+        # type1 Id1
+        # ...
+        # typeN IdN
+        value = '%s %d' % (get_object_id(param.object), len(param.object))
+        typ = TYPE.COLLECTION
+        for (i, x) in enumerate(param.object):
+            x_value, x_type, _, _, _ = _extract_parameter(
+                x,
+                code_strings
+            )
+            value += ' %s %s' % (x_type, x_value)
     else:
         value = param.object
         typ = param.type
@@ -881,7 +895,7 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
         # in terms of time and precision
         if (p.type == TYPE.OBJECT or p.type == TYPE.STRING) and not is_future and p.direction == DIRECTION.IN:
             if not isinstance(p.object, basestring) and isinstance(p.object,
-                                                                     (list, dict, tuple, deque, set, frozenset)):
+                                                                   (list, dict, tuple, deque, set, frozenset)):
                 # check object size
                 # bytes = sys.getsizeof(p.object)  # does not work properly with recursive object
                 num_bytes = total_sizeof(p.object)
@@ -1059,6 +1073,25 @@ def _serialize_object_into_file(name, p):
             # Strings can be empty. If a string is empty their base64 encoding will be empty
             # So we add a leading character to it to make it non empty
             p.object = '#%s' % p.object
+    elif p.type == TYPE.COLLECTION:
+        # Just make contents available as serialized files (or objects)
+        # We will build the value field later
+        # (which will be used to reconstruct the collection in the worker)
+        from pycompss.api.parameter import get_compss_type
+        new_object = [
+            _serialize_object_into_file(
+                name,
+                Parameter(
+                    p_type = get_compss_type(x),
+                    p_direction = p.direction,
+                    p_object = x
+                )
+            )
+            for x in p.object
+        ]
+        p.object = new_object
+        # Give this object an identifier inside the binding
+        get_object_id(p.object, True, False)
     return p
 
 

@@ -67,7 +67,13 @@
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-adaptors-nio-commons</artifactId>
+            <version>2.4.rc1902</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
 
 	<!-- BUILD -->
 	<build>

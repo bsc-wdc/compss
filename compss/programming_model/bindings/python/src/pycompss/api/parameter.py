@@ -219,6 +219,13 @@ _param_conversion_dict_ = {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.INOUT,
         'p_stream': STREAM.STDOUT
+    },
+    'COLLECTION': {
+        'p_type': TYPE.COLLECTION
+    },
+    'COLLECTION_IN': {
+        'p_type': TYPE.COLLECTION,
+        'p_direction': DIRECTION.IN
     }
 }
 
@@ -495,6 +502,10 @@ FILE_OUT_STDOUT = _param_('FILE_OUT_STDOUT')
 FILE_INOUT_STDIN = _param_('FILE_INOUT_STDIN')
 FILE_INOUT_STDERR = _param_('FILE_INOUT_STDERR')
 FILE_INOUT_STDOUT = _param_('FILE_INOUT_STDOUT')
+
+# Aliases for collections
+COLLECTION = _param_('COLLECTION')
+COLLECTION_IN = _param_('COLLECTION_IN')
 
 # Aliases for streams (just stream direction)
 STDIN = STREAM.STDIN

@@ -168,6 +168,7 @@ public class DataManagerImpl implements DataManager {
     public void fetchParam(InvocationParam param, int paramIdx, FetchDataListener tt) {
         switch (param.getType()) {
             case OBJECT_T:
+            case COLLECTION_T:
                 fetchObject(param, paramIdx, tt);
                 break;
             case PSCO_T:
@@ -516,6 +517,7 @@ public class DataManagerImpl implements DataManager {
             case PSCO_T: // fetch stage already set the value on the param, but we make sure to collect the last version
                 loadObject(param);
                 break;
+            case COLLECTION_T:
             case FILE_T: // value already contains the path
             case BINDING_OBJECT_T: // value corresponds to the ID of the object on the binding (already set)
             case EXTERNAL_PSCO_T: // value corresponds to the ID of the

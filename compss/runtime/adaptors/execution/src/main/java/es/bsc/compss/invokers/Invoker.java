@@ -212,6 +212,7 @@ public abstract class Invoker {
                     np.setValueClass(String.class);
                     break;
                 case OBJECT_T:
+                case COLLECTION_T:
                 case PSCO_T:
                     // Get object
                     if (obj != null) {

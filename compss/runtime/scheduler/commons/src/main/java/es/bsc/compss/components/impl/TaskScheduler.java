@@ -39,6 +39,7 @@ import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
+import es.bsc.compss.types.resources.updates.PerformedReduction;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
 import es.bsc.compss.util.ActionSet;
 import es.bsc.compss.util.CoreManager;
@@ -544,7 +545,7 @@ public class TaskScheduler {
      * @param blockedCandidates   OUT, list of blocked candidates
      * @param resource            Resource where the previous task was executed
      */
-    public <T extends WorkerResourceDescription> void handleDependencyFreeActions(List<AllocatableAction> dataFreeActions,
+    protected <T extends WorkerResourceDescription> void handleDependencyFreeActions(List<AllocatableAction> dataFreeActions,
             List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
         LOGGER.debug("[TaskScheduler] Treating dependency free actions on resource " + resource.getName());
         // All actions should have already been assigned to a resource, no need
@@ -616,7 +617,7 @@ public class TaskScheduler {
      * @param <T>
      * @param resource updated resource
      */
-    public <T extends WorkerResourceDescription> void workerLoadUpdate(ResourceScheduler<T> resource) {
+    protected <T extends WorkerResourceDescription> void workerLoadUpdate(ResourceScheduler<T> resource) {
         LOGGER.info("[TaskScheduler] Update load on worker " + resource.getName());
         // Resource capabilities had already been taken into account when assigning the actions. No need to change the
         // assignation.
@@ -682,18 +683,6 @@ public class TaskScheduler {
         }
     }
 
-    /**
-     * New worker has been detected; the Task Scheduler is notified to modify any internal structure using that
-     * information.
-     *
-     * @param <T>
-     * @param resource new worker
-     */
-    protected <T extends WorkerResourceDescription> void workerDetected(ResourceScheduler<T> resource) {
-        // There are no internal structures worker-related. No need to do
-        // anything.
-    }
-
     private <T extends WorkerResourceDescription> void pendingResourceUpdate(ResourceScheduler<T> worker, ResourceUpdate<T> modification) {
         switch (modification.getType()) {
             case INCREASE:
@@ -726,7 +715,7 @@ public class TaskScheduler {
      * @param modification
      */
     @SuppressWarnings("unchecked")
-    public final <T extends WorkerResourceDescription> void completedResourceUpdate(ResourceScheduler<T> worker,
+    private <T extends WorkerResourceDescription> void completedResourceUpdate(ResourceScheduler<T> worker,
             ResourceUpdate<T> modification) {
         worker.completedModification(modification);
         SchedulingInformation.changesOnWorker((ResourceScheduler<WorkerResourceDescription>) worker);
@@ -735,7 +724,7 @@ public class TaskScheduler {
                 increasedWorkerResources(worker, modification);
                 break;
             case REDUCE:
-                reducedWorkerResources(worker, modification);
+                reducedWorkerResources(worker, (PerformedReduction<T>) modification);
                 break;
             default:
 
@@ -784,28 +773,16 @@ public class TaskScheduler {
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends WorkerResourceDescription> void reducedWorkerResources(ResourceScheduler<T> worker, ResourceUpdate<T> modification) {
-        LOGGER.info("Reducing resources for worker " + worker.getName());
+    private <T extends WorkerResourceDescription> void reducedWorkerResources(ResourceScheduler<T> worker, PerformedReduction<T> modification) {
+
+        // Update worker features
+        this.workerFeaturesUpdate(worker, modification.getModification());
+
+        LOGGER.info("Resources for worker " + worker.getName() + " have been reduced");
         DynamicMethodWorker dynamicWorker = (DynamicMethodWorker) worker.getResource();
         if (dynamicWorker.shouldBeStopped()) {
-            synchronized (workers) {
-                workers.remove(((ResourceScheduler<WorkerResourceDescription>) worker).getResource());
-                int coreCount = CoreManager.getCoreCount();
-                for (int coreId = 0; coreId < coreCount; coreId++) {
-                    int implCount = CoreManager.getNumberCoreImplementations(coreId);
-                    for (int implId = 0; implId < implCount; implId++) {
+            this.workerStopped((ResourceScheduler<WorkerResourceDescription>) worker);
 
-                        LOGGER.debug("Removed Workers profile for CoreId: " + coreId + ", ImplId: " + implId + " before removing:" + offVMsProfiles[coreId][implId]);
-                        Profile p = worker.getProfile(coreId, implId);
-                        if (p != null) {
-                            LOGGER.info(" Accumulating worker profile data for CoreId: " + coreId + ", ImplId: " + implId + " in removed workers profile");
-                            offVMsProfiles[coreId][implId].accumulate(p);
-                        }
-                        LOGGER.debug("Removed Workers profile for CoreId: " + coreId + ", ImplId: " + implId + " after removing:" + offVMsProfiles[coreId][implId]);
-                    }
-                }
-            }
-            this.workerRemoved((ResourceScheduler<WorkerResourceDescription>) worker);
             LOGGER.info("Starting stop process for worker " + worker.getName());
             StopWorkerAction action = new StopWorkerAction(generateSchedulingInformation(worker), worker, this, modification);
             try {
@@ -813,7 +790,7 @@ public class TaskScheduler {
                 action.tryToLaunch();
             } catch (BlockedActionException | UnassignedActionException | InvalidSchedulingException e) {
                 // Can not be blocked nor unassigned
-                LOGGER.error("WARN: Stop action has been blocked or unassigned. It should happen!");
+                LOGGER.error("WARN: Stop action has been blocked or unassigned. It should not happen!");
             }
         } else {
             dynamicWorker.destroyResources(modification.getModification());
@@ -821,15 +798,49 @@ public class TaskScheduler {
     }
 
     /**
-     * One worker has been removed from the pool; the Task Scheduler is notified to modify any internal structure using
-     * that information.
+     * One worker has been removed from the pool; actions on the node are moved out from it and the Task Scheduler is
+     * notified about it.
      *
      * @param <T>
      * @param resource removed worker
      */
-    protected <T extends WorkerResourceDescription> void workerRemoved(ResourceScheduler<T> resource) {
-        LOGGER.info("[TaskScheduler] Remove worker " + resource.getName());
-        // There are no internal structures worker-related. No need to do anything.
+    private <T extends WorkerResourceDescription> void workerStopped(ResourceScheduler<T> resource) {
+        workers.remove(((ResourceScheduler<WorkerResourceDescription>) resource).getResource());
+        int coreCount = CoreManager.getCoreCount();
+        for (int coreId = 0; coreId < coreCount; coreId++) {
+            int implCount = CoreManager.getNumberCoreImplementations(coreId);
+            for (int implId = 0; implId < implCount; implId++) {
+
+                LOGGER.debug("Removed Workers profile for CoreId: " + coreId + ", ImplId: " + implId + " before removing:" + offVMsProfiles[coreId][implId]);
+                Profile p = resource.getProfile(coreId, implId);
+                if (p != null) {
+                    LOGGER.info(" Accumulating worker profile data for CoreId: " + coreId + ", ImplId: " + implId + " in removed workers profile");
+                    offVMsProfiles[coreId][implId].accumulate(p);
+                }
+                LOGGER.debug("Removed Workers profile for CoreId: " + coreId + ", ImplId: " + implId + " after removing:" + offVMsProfiles[coreId][implId]);
+            }
+        }
+
+        AllocatableAction[] runningOnResource = resource.getHostedActions();
+        for (AllocatableAction action : runningOnResource) {
+            try {
+                resource.unscheduleAction(action);
+            } catch (ActionNotFoundException ex) {
+                // Task was already moved from the worker. Do nothing!
+                continue;
+            }
+
+            Score actionScore = generateActionScore(action);
+            try {
+                scheduleAction(action, actionScore);
+                tryToLaunch(action);
+            } catch (BlockedActionException bae) {
+                if (!action.hasDataPredecessors()) {
+                    removeFromReady(action);
+                }
+                addToBlocked(action);
+            }
+        }
         PriorityQueue<AllocatableAction> blockedOnResource = resource.getBlockedActions();
 
         for (AllocatableAction action : blockedOnResource) {
@@ -853,16 +864,41 @@ public class TaskScheduler {
         }
         resource.setRemoved(true);
 
+        this.workerRemoved(resource);
+    }
+
+    /**
+     * New worker has been detected; the Task Scheduler is notified to modify any internal structure using that
+     * information.
+     *
+     * @param <T>
+     * @param resource new worker
+     */
+    protected <T extends WorkerResourceDescription> void workerDetected(ResourceScheduler<T> resource) {
+        // There are no internal structures worker-related. No need to do
+        // anything.
+    }
+
+    /**
+     * One worker has been removed from the pool; the Task Scheduler is notified to modify any internal structure using
+     * that information.
+     *
+     * @param <T>
+     * @param resource removed worker
+     */
+    protected <T extends WorkerResourceDescription> void workerRemoved(ResourceScheduler<T> resource) {
+        LOGGER.info("[TaskScheduler] Remove worker " + resource.getName());
+        // There are no internal structures worker-related. No need to do anything.
     }
 
     /**
      * Notifies to the scheduler that there have been changes in the capabilities of a resource.
      *
      * @param <T>
-     * @param worker updated resource
+     * @param worker       updated resource
      * @param modification changes performed on the resource
      */
-    public <T extends WorkerResourceDescription> void workerFeaturesUpdate(ResourceScheduler<T> worker, T modification) {
+    protected <T extends WorkerResourceDescription> void workerFeaturesUpdate(ResourceScheduler<T> worker, T modification) {
         LOGGER.info("[TaskScheduler] Updated features on worker " + worker.getName());
         // Resource capabilities had already been taken into account when assigning the actions. No need to change the
         // scheduling.
@@ -926,6 +962,7 @@ public class TaskScheduler {
     /**
      * Returns the blocked actions assigned to a given resource
      *
+     * @param <T>
      * @param worker
      *
      * @return

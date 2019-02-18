@@ -116,7 +116,7 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
      */
     @Override
     protected void doCompleted() {
-        ts.completedResourceUpdate(worker, ru);
+        
     }
 
     @Override
@@ -127,7 +127,6 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     @Override
     protected void doFailed() {
         LOGGER.error("Error waiting for tasks to end");
-        ts.completedResourceUpdate(worker, ru);
     }
 
     @Override

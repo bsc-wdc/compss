@@ -101,13 +101,14 @@ def test_psco_concurrent(file_name):
 
 
 def main():
-    file_name = STORAGE_PATH + "file.txt"
+    file_name1 = STORAGE_PATH + "file1.txt"
+    file_name2 = STORAGE_PATH + "file2.txt"
 
     print ("[LOG] Test DIRECTION CONCURRENT")
-    test_direction_concurrent(file_name)
+    test_direction_concurrent(file_name1)
 
     print ("[LOG] Test PSCO CONCURRENT")
-    test_psco_concurrent(file_name)
+    test_psco_concurrent(file_name2)
 
 
 if __name__ == '__main__':

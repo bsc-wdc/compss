@@ -37,9 +37,9 @@
   fi
 
   #----------------------------------------------------------------------------------
-  FILES=15
+  FILES=16
   result=$(cat /tmp/sharedDisk/file.txt)
-  if [ ${#result} -ne 7 ]; then
+  if [ ${#result} -ne 8 ]; then
     echo "ERROR: Final result is not correct. ${#result} "
     exit 1
   fi

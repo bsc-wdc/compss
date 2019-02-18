@@ -38,7 +38,7 @@ public class NIOMessageHandler implements MessageHandler {
 
 
     /**
-     * Instantiates a NIO Message Handler associated to a given NIOAqgent @agent
+     * Instantiates a NIO Message Handler associated to a given NIOAgent @agent
      * 
      * @param agent
      */

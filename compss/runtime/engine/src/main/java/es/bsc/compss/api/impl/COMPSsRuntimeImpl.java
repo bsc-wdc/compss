@@ -390,7 +390,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      */
     @Override
     public synchronized void startIT() {
-        System.out.println("Starting runtime");
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
             Tracer.emitEvent(Tracer.Event.START.getId(), Tracer.Event.START.getType());

@@ -20,8 +20,6 @@ import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.data.DataManager;
 import es.bsc.compss.data.DataProvider;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.nio.NIOParam;
-import es.bsc.compss.nio.NIOURI;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -60,6 +58,7 @@ public class DataManagerImpl implements DataManager {
     private final String storageConf;
 
     private final HashMap<String, DataRegister> registry;
+
 
     /**
      * Instantiates a new Data Manager
@@ -127,7 +126,6 @@ public class DataManagerImpl implements DataManager {
 
     @Override
     public void removeObsoletes(List<String> obsoletes) {
-
         try {
             for (String name : obsoletes) {
                 if (name.startsWith(File.separator)) {
@@ -185,7 +183,7 @@ public class DataManagerImpl implements DataManager {
                 tt.fetchedValue();
                 break;
             default:
-            // Nothing to do since basic type parameters require no action
+                // Nothing to do since basic type parameters require no action
         }
     }
 
@@ -276,7 +274,7 @@ public class DataManagerImpl implements DataManager {
         if (WORKER_LOGGER_DEBUG) {
             WORKER_LOGGER.debug("   - " + param.getValue() + " registered as binding object.");
         }
-        
+
         String name = (String) param.getValue();
         WORKER_LOGGER.debug("   - " + name + " registered as binding object.");
 
@@ -284,7 +282,6 @@ public class DataManagerImpl implements DataManager {
         String value = dest_bo.getName();
         int type = dest_bo.getType();
         int elements = dest_bo.getElements();
-
 
         boolean askTransfer = false;
 
@@ -301,7 +298,7 @@ public class DataManagerImpl implements DataManager {
 
             cached = BindingDataManager.isInBinding(value);
 
-            //If is not cached and the worker is persistent
+            // If is not cached and the worker is persistent
             if (!cached) {
                 if (WORKER_LOGGER_DEBUG) {
                     WORKER_LOGGER.debug("   - Checking if " + value + " locations are cached.");
@@ -310,7 +307,7 @@ public class DataManagerImpl implements DataManager {
                 for (InvocationParamURI loc : param.getSources()) {
                     BindingObject bo = BindingObject.generate(loc.getPath());
                     if (loc.isHost(hostName) && BindingDataManager.isInBinding(bo.getName())) {
-                        //The value we want is not directly cached, but one of it sources is
+                        // The value we want is not directly cached, but one of it sources is
                         if (WORKER_LOGGER_DEBUG) {
                             WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") sources location found in cache.");
                         }
@@ -327,8 +324,7 @@ public class DataManagerImpl implements DataManager {
                                 WORKER_LOGGER.error("CACHE-COPY from " + bo.getName() + " to " + value + " has failed. ");
                                 break;
                             }
-                        }
-                        else {
+                        } else {
                             if (WORKER_LOGGER_DEBUG) {
                                 WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") overwrites sources. CACHE-MOVING");
                             }
@@ -343,8 +339,7 @@ public class DataManagerImpl implements DataManager {
                     }
                 }
             }
-        }
-        else {
+        } else {
             if (WORKER_LOGGER_DEBUG) {
                 WORKER_LOGGER.debug("   - fetching Binding object for NOT persistent worker.");
             }
@@ -353,8 +348,9 @@ public class DataManagerImpl implements DataManager {
         // TODO is it better to transfer again or to load from file??
         boolean existInHost = false;
         if (!locationsInCache) {
-            //The condition can be read as:
-            //If persistent and value is not renamed in cache ---> surely is persistent and not renamed or is not persistent
+            // The condition can be read as:
+            // If persistent and value is not renamed in cache ---> surely is persistent and not renamed or is not
+            // persistent
 
             if (WORKER_LOGGER_DEBUG) {
                 WORKER_LOGGER.debug("   - Checking if " + value + " is in host as file.");
@@ -365,7 +361,8 @@ public class DataManagerImpl implements DataManager {
                     BindingObject bo = BindingObject.generate(loc.getPath());
 
                     if (WORKER_LOGGER_DEBUG) {
-                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + param.getValue() + ") found at host with location " + loc.getPath() + " Checking if id " + bo.getName() + " is in host...");
+                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + param.getValue() + ") found at host with location "
+                                + loc.getPath() + " Checking if id " + bo.getName() + " is in host...");
                     }
 
                     File inFile = new File(bo.getId());
@@ -379,37 +376,32 @@ public class DataManagerImpl implements DataManager {
 
                         int res;
                         if (provider.isPersistentEnabled()) {
-                            //Load data from file into cache
+                            // Load data from file into cache
                             res = BindingDataManager.loadFromFile(value, path, type, elements);
                             if (res != 0) {
                                 existInHost = false;
                                 WORKER_LOGGER.error("   - Error loading " + value + " from file " + path);
-                            }
-                            else {
+                            } else {
                                 break;
                             }
-                        }
-                        else {
-                            //Copy or move file
+                        } else {
+                            // Copy or move file
                             File outFile = new File(value);
                             try {
                                 if (param.isPreserveSourceData()) {
                                     Files.copy(inFile.toPath(), outFile.toPath());
                                     break;
-                                }
-                                else {
+                                } else {
                                     try {
                                         Files.move(inFile.toPath(), outFile.toPath(), StandardCopyOption.ATOMIC_MOVE);
-                                    }
-                                    catch (AtomicMoveNotSupportedException amnse) {
+                                    } catch (AtomicMoveNotSupportedException amnse) {
                                         WORKER_LOGGER.warn(
                                                 "   - AtomicMoveNotSupportedException. File cannot be atomically moved. Trying to move without atomic");
                                         Files.move(inFile.toPath(), outFile.toPath());
                                     }
                                     break;
                                 }
-                            }
-                            catch (IOException e) {
+                            } catch (IOException e) {
                                 WORKER_LOGGER.error("   - Error copying or moving " + bo.getName() + " to " + value);
                                 WORKER_LOGGER.error(e);
                                 existInHost = false;
@@ -421,19 +413,17 @@ public class DataManagerImpl implements DataManager {
         }
 
         if (!cached && !locationsInCache && !existInHost) {
-            //Only if all three options failed, we must transfer the data
+            // Only if all three options failed, we must transfer the data
             if (WORKER_LOGGER_DEBUG) {
-                WORKER_LOGGER.debug("   - The state of " + value + " in the worker is : \n"
-                                        + "\t Cached: " + cached                            + "\n"
-                                        + "\t Renamed in cache:     "   + locationsInCache  + "\n"
-                                        + "\t In host as a file:    "   + existInHost);
-                WORKER_LOGGER.debug("   - Not possible to fetch     "   + value + " in the current node, requesting for transfer.");
+                WORKER_LOGGER.debug("   - The state of " + value + " in the worker is : \n" + "\t Cached: " + cached + "\n"
+                        + "\t Renamed in cache:     " + locationsInCache + "\n" + "\t In host as a file:    " + existInHost);
+                WORKER_LOGGER.debug("   - Not possible to fetch     " + value + " in the current node, requesting for transfer.");
             }
 
             askTransfer = true;
         }
 
-        //Request the transfer if needed
+        // Request the transfer if needed
         askForTransfer(askTransfer, param, index, tt);
 
     }
@@ -473,12 +463,8 @@ public class DataManagerImpl implements DataManager {
                 for (String path : files) {
                     File source = new File(path);
                     try {
-
                         WORKER_LOGGER.debug("   - Parameter " + index + "(" + expectedFileLocation + ") "
-                                + (param.isPreserveSourceData()
-                                        ? "preserves sources. COPYING"
-                                        : "erases sources. MOVING")
-                        );
+                                + (param.isPreserveSourceData() ? "preserves sources. COPYING" : "erases sources. MOVING"));
                         WORKER_LOGGER.debug("         Source: " + source);
                         WORKER_LOGGER.debug("         Target: " + target);
 
@@ -523,7 +509,7 @@ public class DataManagerImpl implements DataManager {
             case EXTERNAL_PSCO_T: // value corresponds to the ID of the
                 break;
             default:
-            // Nothing to do since basic type parameters require no action
+                // Nothing to do since basic type parameters require no action
         }
     }
 

@@ -34,7 +34,6 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.*;
 import es.bsc.compss.types.data.AccessParams.*;
 import es.bsc.compss.types.data.DataAccessId.*;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.data.operation.BindingObjectTransferable;
 import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.ObjectTransferable;
@@ -80,6 +79,7 @@ public class DataInfoProvider {
     // Component logger - No need to configure, ProActive does
     private static final Logger LOGGER = LogManager.getLogger(Loggers.DIP_COMP);
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
+
 
     /**
      * New Data Info Provider instance
@@ -172,10 +172,10 @@ public class DataInfoProvider {
         dataHasBeenAccessed(daid);
 
     }
-    
+
     public void finishBindingObjectAccess(AccessMode mode, int code) {
         DataInfo boInfo;
-        
+
         Integer aoId = codeToId.get(code);
 
         // First access to this file
@@ -427,7 +427,7 @@ public class DataInfoProvider {
             case RW:
                 rVersionId = ((RWAccessId) dAccId).getReadDataInstance().getVersionId();
                 di.versionHasBeenRead(rVersionId);
-                //read data version can be removed
+                // read data version can be removed
                 di.tryRemoveVersion(rVersionId);
                 wVersionId = ((RWAccessId) dAccId).getWrittenDataInstance().getVersionId();
                 deleted = di.versionHasBeenWritten(wVersionId);
@@ -606,7 +606,8 @@ public class DataInfoProvider {
     /**
      * Transfers the value of an object
      *
-     * @param toRequest transfer object request
+     * @param toRequest
+     *            transfer object request
      * @return
      */
     public void transferObjectValue(TransferObjectRequest toRequest) {
@@ -682,11 +683,11 @@ public class DataInfoProvider {
         Semaphore sem = toRequest.getSemaphore();
         DataAccessId daId = toRequest.getDaId();
 
-        //RWAccessId rwaId = (RWAccessId) daId;
+        // RWAccessId rwaId = (RWAccessId) daId;
         RAccessId rwaId = (RAccessId) daId;
 
         String sourceName = rwaId.getReadDataInstance().getRenaming();
-        //String targetName = rwaId.getWrittenDataInstance().getRenaming();
+        // String targetName = rwaId.getWrittenDataInstance().getRenaming();
 
         if (DEBUG) {
             LOGGER.debug("[DataInfoProvider] Requesting getting object " + sourceName);
@@ -786,17 +787,18 @@ public class DataInfoProvider {
             }
 
             // If no PSCO location is found, perform normal getData
-            
-            if (rf.getOriginalLocation().getProtocol()== Protocol.BINDING_URI){
-                //Comm.getAppHost().getData(renaming, rf.getOriginalLocation(), new BindingObjectTransferable(), listener);
+
+            if (rf.getOriginalLocation().getProtocol() == Protocol.BINDING_URI) {
+                // Comm.getAppHost().getData(renaming, rf.getOriginalLocation(), new BindingObjectTransferable(),
+                // listener);
                 if (DEBUG) {
                     LOGGER.debug("Discarding data d" + dataId + " as a result beacuse it is a binding object");
                 }
-            }else{
+            } else {
                 listener.addOperation();
                 Comm.getAppHost().getData(renaming, rf.getOriginalLocation(), new FileTransferable(), listener);
             }
-            
+
             return rf;
         } else if (fileInfo != null && fileInfo.isCurrentVersionToDelete()) {
             if (DEBUG) {

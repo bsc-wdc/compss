@@ -16,8 +16,6 @@
  */
 package es.bsc.compss.invokers.external.persistent;
 
-import es.bsc.compss.executor.ExecutorContext;
-import es.bsc.compss.executor.utils.ExecutionPlatformMirror;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.invokers.external.commands.ExecuteTaskExternalCommand;
 import es.bsc.compss.invokers.util.CExecutionCommandGenerator;
@@ -44,7 +42,5 @@ public class CPersistentInvoker extends PersistentInvoker {
         command.appendAllArguments(CExecutionCommandGenerator.getTaskExecutionCommand(context, invocation, sandBox, assignedResources));
         return command;
     }
-
-
 
 }

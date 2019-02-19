@@ -103,7 +103,7 @@ public class ExecutionAction extends AllocatableAction {
 
         // Register data dependencies events
         //
-        synchronized(this.task){
+        synchronized (this.task) {
             for (Task predecessor : this.task.getPredecessors()) {
                 for (ExecutionAction e : predecessor.getExecutions()) {
                     if (e != null && e.isPending()) {
@@ -550,38 +550,7 @@ public class ExecutionAction extends AllocatableAction {
         this.schedule(actionScore, candidates);
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public final void tryToSchedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
-        // COMPUTE RESOURCE CANDIDATES
-        List<ResourceScheduler<? extends WorkerResourceDescription>> candidates = new LinkedList<>();
-        if (this.isTargetResourceEnforced()) {
-            // The scheduling is forced to a given resource
-            candidates.add((ResourceScheduler<WorkerResourceDescription>) this.getEnforcedTargetResource());
-        } else if (isSchedulingConstrained()) {
-            // The scheduling is constrained by dependencies
-            for (AllocatableAction a : this.getConstrainingPredecessors()) {
-                candidates.add((ResourceScheduler<WorkerResourceDescription>) a.getAssignedResource());
-            }
-        } else {
-            // Free scheduling
-            List<ResourceScheduler<? extends WorkerResourceDescription>> compatibleCandidates = getCompatibleWorkers();
-            if (compatibleCandidates.size() == 0) {
-                throw new BlockedActionException();
-            }
-            for (ResourceScheduler<? extends WorkerResourceDescription> currentWorker : compatibleCandidates) {
-                if (currentWorker.getResource().hasAvailableSlots()) {
-                    candidates.add(currentWorker);
-                }
-            }
-            if (candidates.size() == 0) {
-                throw new UnassignedActionException();
-            }
-        }
-        this.schedule(actionScore, candidates);
-    }
-
-    private final <T extends WorkerResourceDescription> void schedule(Score actionScore,
+    private <T extends WorkerResourceDescription> void schedule(Score actionScore,
             List<ResourceScheduler<? extends WorkerResourceDescription>> candidates)
             throws BlockedActionException, UnassignedActionException {
         // COMPUTE BEST WORKER AND IMPLEMENTATION
@@ -595,24 +564,27 @@ public class ExecutionAction extends AllocatableAction {
                 if (DEBUG) {
                     LOGGER.debug("Task " + this.task.getId() + " already ran on worker " + worker.getName());
                 }
-                if (candidates.size()>1){
+                if (candidates.size() > 1) {
                     continue;
-                }else{
-                    LOGGER.debug("No more candidate resources for task " + this.task.getId() + ". Trying to use worker " + worker.getName() +" again ... ");
+                } else {
+                    LOGGER.debug("No more candidate resources for task " + this.task.getId() + ". Trying to use worker " + worker.getName() + " again ... ");
                 }
             }
+
             Score resourceScore = worker.generateResourceScore(this, task.getTaskDescription(), actionScore);
             ++usefulResources;
-            for (Implementation impl : getCompatibleImplementations(worker)) {
-                Score implScore = worker.generateImplementationScore(this, task.getTaskDescription(), impl, resourceScore);
-                if (DEBUG) {
-                    debugString.append(" Resource ").append(worker.getName()).append(" ").append(" Implementation ")
-                            .append(impl.getImplementationId()).append(" ").append(" Score ").append(implScore).append("\n");
-                }
-                if (Score.isBetter(implScore, bestScore)) {
-                    bestWorker = worker;
-                    bestImpl = impl;
-                    bestScore = implScore;
+            if (resourceScore != null) {
+                for (Implementation impl : getCompatibleImplementations(worker)) {
+                    Score implScore = worker.generateImplementationScore(this, task.getTaskDescription(), impl, resourceScore);
+                    if (DEBUG) {
+                        debugString.append(" Resource ").append(worker.getName()).append(" ").append(" Implementation ")
+                                .append(impl.getImplementationId()).append(" ").append(" Score ").append(implScore).append("\n");
+                    }
+                    if (Score.isBetter(implScore, bestScore)) {
+                        bestWorker = worker;
+                        bestImpl = impl;
+                        bestScore = implScore;
+                    }
                 }
             }
         }
@@ -622,9 +594,13 @@ public class ExecutionAction extends AllocatableAction {
             LOGGER.debug(debugString.toString());
         }
 
-        if (bestWorker == null && usefulResources == 0) {
-            LOGGER.warn("No worker can run " + this);
-            throw new BlockedActionException();
+        if (bestWorker == null) {
+            if (usefulResources == 0) {
+                LOGGER.warn("No worker can run " + this);
+                throw new BlockedActionException();
+            } else {
+                throw new UnassignedActionException();
+            }
         }
 
         schedule(bestWorker, bestImpl);

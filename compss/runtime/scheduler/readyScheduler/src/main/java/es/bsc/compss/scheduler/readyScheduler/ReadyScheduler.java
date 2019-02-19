@@ -26,6 +26,7 @@ import es.bsc.compss.scheduler.types.ObjectValue;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.ActionSet;
+import java.util.LinkedList;
 
 import java.util.List;
 import java.util.PriorityQueue;
@@ -44,7 +45,6 @@ public abstract class ReadyScheduler extends TaskScheduler {
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
 
     protected final ActionSet unassignedReadyActions;
-
 
     /**
      * Constructs a new Ready Scheduler instance
@@ -68,6 +68,15 @@ public abstract class ReadyScheduler extends TaskScheduler {
     }
 
     @Override
+    public <T extends WorkerResourceDescription> void workerFeaturesUpdate(ResourceScheduler<T> worker, T modification) {
+        LinkedList<AllocatableAction> dataFreeActions = new LinkedList<>();
+        LinkedList<AllocatableAction> resourceFreeActions = new LinkedList<>();
+        LinkedList<AllocatableAction> blockedCandidates = new LinkedList<>();
+        purgeFreeActions(dataFreeActions, resourceFreeActions, blockedCandidates, worker);
+        tryToLaunchFreeActions(dataFreeActions, resourceFreeActions, blockedCandidates, worker);
+    }
+
+    @Override
     public abstract Score generateActionScore(AllocatableAction action);
 
     /*
@@ -81,7 +90,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
     protected void scheduleAction(AllocatableAction action, Score actionScore) throws BlockedActionException {
         if (!action.hasDataPredecessors()) {
             try {
-                action.tryToSchedule(actionScore);
+                action.schedule(actionScore);
             } catch (UnassignedActionException ex) {
                 this.unassignedReadyActions.addAction(action);
             }
@@ -134,14 +143,14 @@ public abstract class ReadyScheduler extends TaskScheduler {
         while (!executableActions.isEmpty()) {
             ObjectValue<AllocatableAction> obj = executableActions.poll();
             AllocatableAction freeAction = obj.getObject();
+            Score actionScore = obj.getScore();
 
             // LOGGER.debug("Trying to launch action " + freeAction);
             try {
-                scheduleAction(freeAction, obj.getScore());
+                scheduleAction(freeAction, actionScore);
                 tryToLaunch(freeAction);
             } catch (BlockedActionException e) {
-                removeFromReady(freeAction);
-                addToBlocked(freeAction);
+                blockedCandidates.add(freeAction);
             }
         }
     }

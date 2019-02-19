@@ -30,14 +30,13 @@ import es.bsc.compss.types.resources.Resource.Type;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-import es.bsc.compss.types.resources.updates.ResourceUpdate;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
-import es.bsc.compss.types.resources.updates.PendingReduction;
+import es.bsc.compss.types.resources.updates.PerformedReduction;
 import java.util.LinkedList;
 import java.util.concurrent.Semaphore;
 
@@ -46,7 +45,7 @@ public class StopWorkerAction extends AllocatableAction {
 
     private final ResourceScheduler<? extends WorkerResourceDescription> worker;
     private final Implementation impl;
-    private final PendingReduction<WorkerResourceDescription> ru;
+    private final PerformedReduction<WorkerResourceDescription> ru;
 
 
     /*
@@ -56,11 +55,11 @@ public class StopWorkerAction extends AllocatableAction {
      */
     @SuppressWarnings("unchecked")
     public StopWorkerAction(SchedulingInformation schedulingInformation, ResourceScheduler<? extends WorkerResourceDescription> worker,
-            TaskScheduler ts, ResourceUpdate<? extends WorkerResourceDescription> modification) {
+            TaskScheduler ts, PerformedReduction<? extends WorkerResourceDescription> modification) {
 
         super(schedulingInformation, ts.getOrchestrator());
         this.worker = worker;
-        this.ru = (PendingReduction<WorkerResourceDescription>) modification;
+        this.ru = (PerformedReduction<WorkerResourceDescription>) modification;
         if (worker.getResource().getType() == Type.WORKER) {
             impl = new MethodImplementation("", "", null, null, new MethodResourceDescription());
         } else {
@@ -82,7 +81,7 @@ public class StopWorkerAction extends AllocatableAction {
     public boolean isToReleaseResources() {
         return false;
     }
-    
+
     @Override
     public boolean isToStopResource() {
         return true;
@@ -122,20 +121,20 @@ public class StopWorkerAction extends AllocatableAction {
      */
     @Override
     protected void doCompleted() {
-    	removeResource();
+        removeResource();
     }
 
     private void removeResource() {
-    	Worker<? extends WorkerResourceDescription> w = worker.getResource();
-    	if (w instanceof CloudMethodWorker){
-    		CloudMethodWorker cmw = (CloudMethodWorker)w ;
-    		ResourceManager.terminateCloudResource(cmw, (CloudMethodResourceDescription) ru.getModification());
-    	}else{
-    		ResourceManager.removeWorker(w);
-    	}
-	}
+        Worker<? extends WorkerResourceDescription> w = worker.getResource();
+        if (w instanceof CloudMethodWorker) {
+            CloudMethodWorker cmw = (CloudMethodWorker) w;
+            ResourceManager.terminateCloudResource(cmw, (CloudMethodResourceDescription) ru.getModification());
+        } else {
+            ResourceManager.removeWorker(w);
+        }
+    }
 
-	@Override
+    @Override
     protected void doError() throws FailedActionException {
         throw new FailedActionException();
     }
@@ -192,11 +191,6 @@ public class StopWorkerAction extends AllocatableAction {
     @Override
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
         schedule((ResourceScheduler<WorkerResourceDescription>) worker, impl);
-    }
-    
-    @Override
-    public void tryToSchedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
-        this.schedule(actionScore);
     }
 
     @SuppressWarnings("unchecked")

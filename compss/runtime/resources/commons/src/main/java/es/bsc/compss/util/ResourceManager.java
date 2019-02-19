@@ -37,6 +37,7 @@ import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 import es.bsc.compss.types.resources.exceptions.ResourcesFileValidationException;
 import es.bsc.compss.types.resources.updates.PendingReduction;
 import es.bsc.compss.types.resources.updates.PerformedIncrease;
+import es.bsc.compss.types.resources.updates.PerformedReduction;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
 
 import java.util.Arrays;
@@ -107,7 +108,7 @@ public class ResourceManager {
      * cloudManager
      *
      * @param resUser
-     *            object to notify resource changes
+     *                object to notify resource changes
      *
      */
     public static void load(ResourceUser resUser) {
@@ -138,7 +139,7 @@ public class ResourceManager {
      * Reinitializes the ResourceManager
      *
      * @param resUser
-     *            object to notify resource changes
+     *                object to notify resource changes
      */
     public static void clear(ResourceUser resUser) {
         resourceUser = resUser;
@@ -151,9 +152,9 @@ public class ResourceManager {
      * Reconfigures the master node adding its shared disks
      *
      * @param mrd
-     *            Features of the Master node
+     *                    Features of the Master node
      * @param sharedDisks
-     *            Shared Disk descriptions (diskName->mountpoint)
+     *                    Shared Disk descriptions (diskName->mountpoint)
      */
     public static void updateMasterConfiguration(MethodResourceDescription mrd, Map<String, String> sharedDisks) {
         Comm.getAppHost().updateResource(mrd, sharedDisks);
@@ -219,6 +220,7 @@ public class ResourceManager {
      * Returns a worker instance with the given name @name
      *
      * @param name
+     *
      * @return
      */
     public static Worker<? extends WorkerResourceDescription> getWorker(String name) {
@@ -314,11 +316,11 @@ public class ResourceManager {
      * Sets the boundaries on the cloud elasticity
      *
      * @param minVMs
-     *            lower number of VMs allowed
+     *                   lower number of VMs allowed
      * @param initialVMs
-     *            initial number of VMs
+     *                   initial number of VMs
      * @param maxVMs
-     *            higher number of VMs allowed
+     *                   higher number of VMs allowed
      */
     public static void setCloudVMsBoundaries(Integer minVMs, Integer initialVMs, Integer maxVMs) {
         cloudManager.setInitialVMs(initialVMs);
@@ -335,7 +337,9 @@ public class ResourceManager {
      * @param connectorJarPath
      * @param connectorMainClass
      * @param connectorProperties
+     *
      * @return
+     *
      * @throws es.bsc.compss.connectors.ConnectorException
      */
     public static CloudProvider registerCloudProvider(String providerName, Integer limitOfVMs, String runtimeConnectorClass,
@@ -462,16 +466,16 @@ public class ResourceManager {
      *
      * @param <R>
      * @param worker
-     * @param modification
+     * @param reduction
      */
     @SuppressWarnings("unchecked")
-    public static <R extends WorkerResourceDescription> void reduceResource(DynamicMethodWorker worker, PendingReduction<R> modification) {
+    public static <R extends WorkerResourceDescription> void reduceResource(DynamicMethodWorker worker, PendingReduction<R> reduction) {
         synchronized (pool) {
             int[] maxTaskCount = worker.getSimultaneousTasks();
             for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {
                 poolCoreMaxConcurrentTasks[coreId] -= maxTaskCount[coreId];
             }
-            worker.applyReduction((PendingReduction<MethodResourceDescription>) modification);
+            worker.applyReduction((PendingReduction<MethodResourceDescription>) reduction);
             maxTaskCount = worker.getSimultaneousTasks();
             for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {
                 poolCoreMaxConcurrentTasks[coreId] += maxTaskCount[coreId];
@@ -482,7 +486,10 @@ public class ResourceManager {
             RESOURCES_LOGGER.info("INFO_MSG = [Resource modified. Name = " + worker.getName() + "]");
             RUNTIME_LOGGER.info("Resource modified. Name = " + worker.getName());
         }
-
+        
+        MethodResourceDescription modification = (MethodResourceDescription) reduction.getModification();
+        ResourceUpdate<MethodResourceDescription> ru = new PerformedReduction<>(modification);
+        resourceUser.updatedResource(worker, ru);
     }
 
     public static void terminateDynamicResource(DynamicMethodWorker worker, MethodResourceDescription reduction) {
@@ -513,6 +520,7 @@ public class ResourceManager {
      * Returns the mean creation time
      *
      * @return
+     *
      * @throws Exception
      */
     public static Long getCreationTime() throws Exception {
@@ -644,6 +652,7 @@ public class ResourceManager {
      * Returns the dynamic resource with name = @name
      *
      * @param name
+     *
      * @return
      */
     public static DynamicMethodWorker getDynamicResource(String name) {
@@ -673,6 +682,7 @@ public class ResourceManager {
      * Prints out the information about the pending requests
      *
      * @param prefix
+     *
      * @return
      */
     public static String getPendingRequestsMonitorData(String prefix) {
@@ -776,6 +786,7 @@ public class ResourceManager {
      * Returns the current state of the resources pool
      *
      * @param prefix
+     *
      * @return
      */
     public static String getCurrentState(String prefix) {

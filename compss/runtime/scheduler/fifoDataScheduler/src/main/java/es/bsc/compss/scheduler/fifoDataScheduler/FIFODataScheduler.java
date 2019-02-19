@@ -82,8 +82,7 @@ public class FIFODataScheduler extends ReadyScheduler {
         PriorityQueue<ObjectValue<AllocatableAction>> executableActions = new PriorityQueue<>();
         for (AllocatableAction action : dataFreeActions) {
             Score actionScore = this.generateActionScore(action);
-            Score fullScore = action.schedulingScore(resource, actionScore);
-            ObjectValue<AllocatableAction> obj = new ObjectValue<>(action, fullScore);
+            ObjectValue<AllocatableAction> obj = new ObjectValue<>(action, actionScore);
             executableActions.add(obj);
         }
         dataFreeActions.clear();
@@ -94,15 +93,13 @@ public class FIFODataScheduler extends ReadyScheduler {
                 scheduleAction(freeAction, resource, obj.getScore());
                 tryToLaunch(freeAction);
             } catch (BlockedActionException e) {
-                removeFromReady(freeAction);
-                addToBlocked(freeAction);
+                blockedCandidates.add(freeAction);
             } catch (UnassignedActionException e) {
                 dataFreeActions.add(freeAction);
             }
         }
 
-        List<AllocatableAction> unassignedReadyActions = this.unassignedReadyActions.getAllActions();
-        this.unassignedReadyActions.removeAllActions();
+        List<AllocatableAction> unassignedReadyActions = this.unassignedReadyActions.removeAllActions();
         dataFreeActions.addAll(unassignedReadyActions);
     }
 

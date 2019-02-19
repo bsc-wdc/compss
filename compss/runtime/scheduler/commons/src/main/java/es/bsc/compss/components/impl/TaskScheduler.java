@@ -39,6 +39,7 @@ import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
+import es.bsc.compss.types.resources.updates.PerformedReduction;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
 import es.bsc.compss.util.ActionSet;
 import es.bsc.compss.util.CoreManager;
@@ -207,6 +208,7 @@ public class TaskScheduler {
      * Generates a profile for an action
      *
      * @param json
+     *
      * @return
      */
     public Profile generateProfile(JSONObject json) {
@@ -220,6 +222,7 @@ public class TaskScheduler {
      * @param w
      * @param defaultResources
      * @param defaultImplementations
+     *
      * @return
      */
     public <T extends WorkerResourceDescription> ResourceScheduler<T> generateSchedulerForResource(Worker<T> w, JSONObject defaultResources,
@@ -233,6 +236,7 @@ public class TaskScheduler {
      *
      * @param <T>
      * @param rs
+     *
      * @return
      */
     public <T extends WorkerResourceDescription> SchedulingInformation generateSchedulingInformation(ResourceScheduler<T> rs) {
@@ -244,6 +248,7 @@ public class TaskScheduler {
      * Generates a action score
      *
      * @param action
+     *
      * @return
      */
     public Score generateActionScore(AllocatableAction action) {
@@ -315,7 +320,7 @@ public class TaskScheduler {
      *
      * @param action
      */
-    protected final void addToReady(AllocatableAction action) {
+    private void addToReady(AllocatableAction action) {
         LOGGER.debug("[TaskScheduler] Add action " + action + " to ready count");
         Integer coreId = action.getCoreId();
         if (coreId != null) {
@@ -331,7 +336,7 @@ public class TaskScheduler {
      *
      * @param action
      */
-    protected final void removeFromReady(AllocatableAction action) {
+    private void removeFromReady(AllocatableAction action) {
         LOGGER.info("[TaskScheduler] Remove action " + action + " from ready count");
         if (action.getImplementations().length > 0) {
             Integer coreId = action.getImplementations()[0].getCoreId();
@@ -349,7 +354,7 @@ public class TaskScheduler {
      *
      * @param action
      */
-    protected final void addToBlocked(AllocatableAction action) {
+    private void addToBlocked(AllocatableAction action) {
         LOGGER.warn("[TaskScheduler] Blocked Action: " + action);
         this.blockedActions.addAction(action);
     }
@@ -449,7 +454,10 @@ public class TaskScheduler {
             // Free all the dependent tasks
             for (AllocatableAction failedAction : action.failed()) {
                 try {
-                    resourceFree.addAll(resource.unscheduleAction(failedAction));
+                    ResourceScheduler failedResource = failedAction.getAssignedResource();
+                    if (failedResource != null) {
+                        resourceFree.addAll(failedResource.unscheduleAction(failedAction));
+                    }
                 } catch (ActionNotFoundException anfe) {
                     // Once the action starts running should cannot be moved from the resource
                 }
@@ -513,8 +521,9 @@ public class TaskScheduler {
      * hurriedly since it blocks the runtime thread and this initial allocation can be modified by the scheduler later
      * on the execution.
      *
-     * @param action Action whose execution has to be allocated
+     * @param action      Action whose execution has to be allocated
      * @param actionScore
+     *
      * @throws es.bsc.compss.scheduler.exceptions.BlockedActionException
      *
      */
@@ -531,12 +540,12 @@ public class TaskScheduler {
      * Notifies to the scheduler that some actions have become free of data dependencies or resource dependencies.
      *
      * @param <T>
-     * @param dataFreeActions IN, list of actions free of data dependencies
+     * @param dataFreeActions     IN, list of actions free of data dependencies
      * @param resourceFreeActions IN, list of actions free of resource dependencies
-     * @param blockedCandidates OUT, list of blocked candidates
-     * @param resource Resource where the previous task was executed
+     * @param blockedCandidates   OUT, list of blocked candidates
+     * @param resource            Resource where the previous task was executed
      */
-    public <T extends WorkerResourceDescription> void handleDependencyFreeActions(List<AllocatableAction> dataFreeActions,
+    protected <T extends WorkerResourceDescription> void handleDependencyFreeActions(List<AllocatableAction> dataFreeActions,
             List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
         LOGGER.debug("[TaskScheduler] Treating dependency free actions on resource " + resource.getName());
         // All actions should have already been assigned to a resource, no need
@@ -546,14 +555,12 @@ public class TaskScheduler {
         PriorityQueue<ObjectValue<AllocatableAction>> executableActions = new PriorityQueue<>();
         for (AllocatableAction freeAction : dataFreeActions) {
             Score actionScore = generateActionScore(freeAction);
-            Score fullScore = freeAction.schedulingScore(resource, actionScore);
-            ObjectValue<AllocatableAction> obj = new ObjectValue<>(freeAction, fullScore);
+            ObjectValue<AllocatableAction> obj = new ObjectValue<>(freeAction, actionScore);
             executableActions.add(obj);
         }
         for (AllocatableAction freeAction : resourceFreeActions) {
             Score actionScore = generateActionScore(freeAction);
-            Score fullScore = freeAction.schedulingScore(resource, actionScore);
-            ObjectValue<AllocatableAction> obj = new ObjectValue<>(freeAction, fullScore);
+            ObjectValue<AllocatableAction> obj = new ObjectValue<>(freeAction, actionScore);
             if (!executableActions.contains(obj)) {
                 executableActions.add(obj);
             }
@@ -561,8 +568,35 @@ public class TaskScheduler {
 
         while (!executableActions.isEmpty()) {
             ObjectValue<AllocatableAction> obj = executableActions.poll();
+            Score score = obj.getScore();
             AllocatableAction freeAction = obj.getObject();
-            tryToLaunch(freeAction);
+            if (freeAction.getAssignedResource() != null) {
+                if (freeAction.getAssignedImplementation() != null) {
+                    tryToLaunch(freeAction);
+                } else {
+                    try {
+                        freeAction.schedule(freeAction.getAssignedResource(), score);
+                    } catch (UnassignedActionException uae) {
+                        this.lostAllocatableAction(freeAction);
+                    } catch (BlockedActionException bae) {
+                        this.addToBlocked(freeAction);
+                    }
+                }
+            } else {
+                // Task has no resource.
+                List<ResourceScheduler<? extends WorkerResourceDescription>> compatibleWorkers = freeAction.getCompatibleWorkers();
+                if (compatibleWorkers.isEmpty()) {
+                    // Because it is blocked
+                    this.addToBlocked(freeAction);
+                } else {
+                    List<ResourceScheduler<? extends WorkerResourceDescription>> hostWorkers = freeAction.getExecutingResources();
+                    if (hostWorkers.containsAll(compatibleWorkers)) {
+                        this.addToBlocked(freeAction);
+                    } else {
+                        this.lostAllocatableAction(freeAction);
+                    }
+                }
+            }
         }
     }
 
@@ -583,7 +617,7 @@ public class TaskScheduler {
      * @param <T>
      * @param resource updated resource
      */
-    public <T extends WorkerResourceDescription> void workerLoadUpdate(ResourceScheduler<T> resource) {
+    protected <T extends WorkerResourceDescription> void workerLoadUpdate(ResourceScheduler<T> resource) {
         LOGGER.info("[TaskScheduler] Update load on worker " + resource.getName());
         // Resource capabilities had already been taken into account when assigning the actions. No need to change the
         // assignation.
@@ -622,6 +656,7 @@ public class TaskScheduler {
      * Registers a new Worker node for the scheduler to use it and creates the corresponding ResourceScheduler
      *
      * @param worker Worker to incorporate
+     *
      * @return the ResourceScheduler that will manage the scheduling for the given worker
      */
     private <T extends WorkerResourceDescription> ResourceScheduler<T> addWorker(Worker<T> worker, JSONObject jsonResource,
@@ -646,18 +681,6 @@ public class TaskScheduler {
         } catch (BlockedActionException | UnassignedActionException | InvalidSchedulingException e) {
             // Can not be blocked nor unassigned
         }
-    }
-
-    /**
-     * New worker has been detected; the Task Scheduler is notified to modify any internal structure using that
-     * information.
-     *
-     * @param <T>
-     * @param resource new worker
-     */
-    protected <T extends WorkerResourceDescription> void workerDetected(ResourceScheduler<T> resource) {
-        // There are no internal structures worker-related. No need to do
-        // anything.
     }
 
     private <T extends WorkerResourceDescription> void pendingResourceUpdate(ResourceScheduler<T> worker, ResourceUpdate<T> modification) {
@@ -692,7 +715,7 @@ public class TaskScheduler {
      * @param modification
      */
     @SuppressWarnings("unchecked")
-    public final <T extends WorkerResourceDescription> void completedResourceUpdate(ResourceScheduler<T> worker,
+    private <T extends WorkerResourceDescription> void completedResourceUpdate(ResourceScheduler<T> worker,
             ResourceUpdate<T> modification) {
         worker.completedModification(modification);
         SchedulingInformation.changesOnWorker((ResourceScheduler<WorkerResourceDescription>) worker);
@@ -701,7 +724,7 @@ public class TaskScheduler {
                 increasedWorkerResources(worker, modification);
                 break;
             case REDUCE:
-                reducedWorkerResources(worker, modification);
+                reducedWorkerResources(worker, (PerformedReduction<T>) modification);
                 break;
             default:
 
@@ -737,47 +760,37 @@ public class TaskScheduler {
                     scheduleAction(action, actionScore);
                     tryToLaunch(action);
                 } catch (BlockedActionException bae) {
-                    removeFromReady(action);
+                    if (!action.hasDataPredecessors()) {
+                        removeFromReady(action);
+                    }
                     addToBlocked(action);
                 }
             }
 
-            // Update worker load
-            this.workerLoadUpdate(worker);
+            // Update worker features
+            this.workerFeaturesUpdate(worker, modification.getModification());
         }
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends WorkerResourceDescription> void reducedWorkerResources(ResourceScheduler<T> worker, ResourceUpdate<T> modification) {
-        LOGGER.info("Reducing resources for worker " +worker.getName());
+    private <T extends WorkerResourceDescription> void reducedWorkerResources(ResourceScheduler<T> worker, PerformedReduction<T> modification) {
+
+        // Update worker features
+        this.workerFeaturesUpdate(worker, modification.getModification());
+
+        LOGGER.info("Resources for worker " + worker.getName() + " have been reduced");
         DynamicMethodWorker dynamicWorker = (DynamicMethodWorker) worker.getResource();
         if (dynamicWorker.shouldBeStopped()) {
-            synchronized (workers) {
-                workers.remove(((ResourceScheduler<WorkerResourceDescription>) worker).getResource());
-                int coreCount = CoreManager.getCoreCount();                
-                for (int coreId = 0; coreId < coreCount; coreId++) {
-                    int implCount = CoreManager.getNumberCoreImplementations(coreId);
-                    for (int implId = 0; implId < implCount; implId++) {
-                        
-                        LOGGER.debug("Removed Workers profile for CoreId: "+coreId+", ImplId: "+implId+ " before removing:" + offVMsProfiles[coreId][implId]);
-                        Profile p = worker.getProfile(coreId,implId);
-                        if (p != null) {
-                            LOGGER.info(" Accumulating worker profile data for CoreId: "+coreId+", ImplId: "+implId+ " in removed workers profile");
-                            offVMsProfiles[coreId][implId].accumulate(p);
-                        }
-                        LOGGER.debug("Removed Workers profile for CoreId: "+coreId+", ImplId: "+implId+ " after removing:" + offVMsProfiles[coreId][implId]);
-                    }
-                }
-            }
-            this.workerRemoved((ResourceScheduler<WorkerResourceDescription>) worker);
-            LOGGER.info("Starting stop process for worker " +worker.getName());
+            this.workerStopped((ResourceScheduler<WorkerResourceDescription>) worker);
+
+            LOGGER.info("Starting stop process for worker " + worker.getName());
             StopWorkerAction action = new StopWorkerAction(generateSchedulingInformation(worker), worker, this, modification);
             try {
                 action.schedule((ResourceScheduler<WorkerResourceDescription>) worker, (Score) null);
                 action.tryToLaunch();
             } catch (BlockedActionException | UnassignedActionException | InvalidSchedulingException e) {
                 // Can not be blocked nor unassigned
-                LOGGER.error("WARN: Stop action has been blocked or unassigned. It should happen!");
+                LOGGER.error("WARN: Stop action has been blocked or unassigned. It should not happen!");
             }
         } else {
             dynamicWorker.destroyResources(modification.getModification());
@@ -785,15 +798,49 @@ public class TaskScheduler {
     }
 
     /**
-     * One worker has been removed from the pool; the Task Scheduler is notified to modify any internal structure using
-     * that information.
+     * One worker has been removed from the pool; actions on the node are moved out from it and the Task Scheduler is
+     * notified about it.
      *
      * @param <T>
      * @param resource removed worker
      */
-    protected <T extends WorkerResourceDescription> void workerRemoved(ResourceScheduler<T> resource) {
-        LOGGER.info("[TaskScheduler] Remove worker " + resource.getName());
-        // There are no internal structures worker-related. No need to do anything.
+    private <T extends WorkerResourceDescription> void workerStopped(ResourceScheduler<T> resource) {
+        workers.remove(((ResourceScheduler<WorkerResourceDescription>) resource).getResource());
+        int coreCount = CoreManager.getCoreCount();
+        for (int coreId = 0; coreId < coreCount; coreId++) {
+            int implCount = CoreManager.getNumberCoreImplementations(coreId);
+            for (int implId = 0; implId < implCount; implId++) {
+
+                LOGGER.debug("Removed Workers profile for CoreId: " + coreId + ", ImplId: " + implId + " before removing:" + offVMsProfiles[coreId][implId]);
+                Profile p = resource.getProfile(coreId, implId);
+                if (p != null) {
+                    LOGGER.info(" Accumulating worker profile data for CoreId: " + coreId + ", ImplId: " + implId + " in removed workers profile");
+                    offVMsProfiles[coreId][implId].accumulate(p);
+                }
+                LOGGER.debug("Removed Workers profile for CoreId: " + coreId + ", ImplId: " + implId + " after removing:" + offVMsProfiles[coreId][implId]);
+            }
+        }
+
+        AllocatableAction[] runningOnResource = resource.getHostedActions();
+        for (AllocatableAction action : runningOnResource) {
+            try {
+                resource.unscheduleAction(action);
+            } catch (ActionNotFoundException ex) {
+                // Task was already moved from the worker. Do nothing!
+                continue;
+            }
+
+            Score actionScore = generateActionScore(action);
+            try {
+                scheduleAction(action, actionScore);
+                tryToLaunch(action);
+            } catch (BlockedActionException bae) {
+                if (!action.hasDataPredecessors()) {
+                    removeFromReady(action);
+                }
+                addToBlocked(action);
+            }
+        }
         PriorityQueue<AllocatableAction> blockedOnResource = resource.getBlockedActions();
 
         for (AllocatableAction action : blockedOnResource) {
@@ -817,6 +864,44 @@ public class TaskScheduler {
         }
         resource.setRemoved(true);
 
+        this.workerRemoved(resource);
+    }
+
+    /**
+     * New worker has been detected; the Task Scheduler is notified to modify any internal structure using that
+     * information.
+     *
+     * @param <T>
+     * @param resource new worker
+     */
+    protected <T extends WorkerResourceDescription> void workerDetected(ResourceScheduler<T> resource) {
+        // There are no internal structures worker-related. No need to do
+        // anything.
+    }
+
+    /**
+     * One worker has been removed from the pool; the Task Scheduler is notified to modify any internal structure using
+     * that information.
+     *
+     * @param <T>
+     * @param resource removed worker
+     */
+    protected <T extends WorkerResourceDescription> void workerRemoved(ResourceScheduler<T> resource) {
+        LOGGER.info("[TaskScheduler] Remove worker " + resource.getName());
+        // There are no internal structures worker-related. No need to do anything.
+    }
+
+    /**
+     * Notifies to the scheduler that there have been changes in the capabilities of a resource.
+     *
+     * @param <T>
+     * @param worker       updated resource
+     * @param modification changes performed on the resource
+     */
+    protected <T extends WorkerResourceDescription> void workerFeaturesUpdate(ResourceScheduler<T> worker, T modification) {
+        LOGGER.info("[TaskScheduler] Updated features on worker " + worker.getName());
+        // Resource capabilities had already been taken into account when assigning the actions. No need to change the
+        // scheduling.
     }
 
     /*
@@ -861,6 +946,7 @@ public class TaskScheduler {
      *
      * @param <T>
      * @param worker
+     *
      * @return
      */
     public final <T extends WorkerResourceDescription> AllocatableAction[] getHostedActions(Worker<T> worker) {
@@ -876,7 +962,9 @@ public class TaskScheduler {
     /**
      * Returns the blocked actions assigned to a given resource
      *
+     * @param <T>
      * @param worker
+     *
      * @return
      */
     public final <T extends WorkerResourceDescription> PriorityQueue<AllocatableAction> getBlockedActionsOnResource(Worker<T> worker) {
@@ -1057,6 +1145,7 @@ public class TaskScheduler {
      * @param <T>
      * @param worker
      * @param prefix
+     *
      * @return
      */
     public final <T extends WorkerResourceDescription> String getRunningActionMonitorData(Worker<T> worker, String prefix) {
@@ -1082,6 +1171,7 @@ public class TaskScheduler {
      * Returns the coreElement information with the given @prefix
      *
      * @param prefix
+     *
      * @return
      */
     public final String getCoresMonitoringData(String prefix) {

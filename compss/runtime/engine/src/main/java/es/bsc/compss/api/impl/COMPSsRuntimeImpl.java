@@ -837,11 +837,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Returns a copy of the last file version
      */
     @Override
-    public String getFile(String fileName, String destDir) {
+    public String getFile(String fileName) {
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.GET_FILE.getId(), Tracer.Event.GET_FILE.getType());
         }
-
+        String destDir=Comm.getAppHost().getTempDirPath();
         // Parse the destination path
         if (!destDir.endsWith(File.separator)) {
             destDir += File.separator;
@@ -859,13 +859,27 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             ErrorManager.fatal(ERROR_FILE_NAME);
             return null;
         }
+        
+        String finalPath = openFile(fileName, Direction.IN);
+       
+        ap.markForDeletion(sourceLocation);
+        
 
+        String savedPath=destDir+fileName;
+        File fileToMove = new File(savedPath);
+        boolean isMoved = fileToMove.renameTo(new File(fileName));
         // Ask the AP to
         String finalPath = mainAccessToFile(fileName, sourceLocation, AccessMode.R, destDir);
 
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
+        
+        ap.markForDeletion(sourceLocation);
+        
+            String savedPath=destDir+fileName;
+            File fileToMove = new File(savedPath);
+            boolean isMoved = fileToMove.renameTo(new File(fileName));
 
         return finalPath;
     }

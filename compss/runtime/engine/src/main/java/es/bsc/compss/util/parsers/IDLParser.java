@@ -201,6 +201,7 @@ public class IDLParser {
             implementedTaskSignatureBuffer.append(methodName).append("(");
         }
         implementationSignatureBuffer.append(methodName).append("(");
+
         /*
          * if (declaringClass != "NULL" && !isStatic){
          * implementedTaskSignatureBuffer.append("BINDING_OBJECT_T").append(",");
@@ -253,10 +254,14 @@ public class IDLParser {
             implementedTaskSignatureBuffer.append(type).append(",");
             implementationSignatureBuffer.append(type).append(",");
         }
-        implementedTaskSignatureBuffer.deleteCharAt(implementedTaskSignatureBuffer.lastIndexOf(","));
-        implementationSignatureBuffer.deleteCharAt(implementationSignatureBuffer.lastIndexOf(","));
+
+        if (splits.length > 2) {
+            implementedTaskSignatureBuffer.deleteCharAt(implementedTaskSignatureBuffer.lastIndexOf(","));
+            implementationSignatureBuffer.deleteCharAt(implementationSignatureBuffer.lastIndexOf(","));
+        }
         implementedTaskSignatureBuffer.append(")");
         implementationSignatureBuffer.append(")");
+
         if (implementation != null) {
             implementedTaskSignatureBuffer.append(implementation.getClassName());
         } else {

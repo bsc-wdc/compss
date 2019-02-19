@@ -70,6 +70,9 @@ public class WorkerStarter {
             ? System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY)
             : ThreadBinder.BINDER_DISABLED;
 
+    private static final String WORKER_APPDIR_FROM_ENVIRONMENT = System.getProperty(COMPSsConstants.WORKER_APPDIR) != null
+            && !System.getProperty(COMPSsConstants.WORKER_APPDIR).isEmpty() ? System.getProperty(COMPSsConstants.WORKER_APPDIR) : "";
+
     // Deployment ID
     private static final String DEPLOYMENT_ID = System.getProperty(COMPSsConstants.DEPLOYMENT_ID);
 
@@ -408,7 +411,6 @@ public class WorkerStarter {
             LOGGER.warn("No python propagate virtual environment passed");
         }
 
-
         /*
          * ************************************************************************************************************
          * BUILD COMMAND
@@ -422,7 +424,21 @@ public class WorkerStarter {
 
         /* Values ONLY for persistent_worker.sh ****************** */
         cmd[1] = workerLibPath.isEmpty() ? "null" : workerLibPath;
-        cmd[2] = appDir.isEmpty() ? "null" : appDir;
+
+        if (WORKER_APPDIR_FROM_ENVIRONMENT.isEmpty() && appDir.isEmpty()) {
+            LOGGER.warn("No path passed via appdir option neither xml AppDir field");
+            cmd[2] = "null";
+        }
+        else if (!appDir.isEmpty()) {
+            if (!WORKER_APPDIR_FROM_ENVIRONMENT.isEmpty()) {
+                LOGGER.warn("Path passed via appdir option and xml AppDir field, the path provided by the xml will be used");
+            }
+            cmd[2] = appDir;
+        }
+        else if (!WORKER_APPDIR_FROM_ENVIRONMENT.isEmpty()) {
+            cmd[2] = WORKER_APPDIR_FROM_ENVIRONMENT;
+        }
+
         cmd[3] = workerClasspath.isEmpty() ? "null" : workerClasspath;
         cmd[4] = String.valueOf(jvmFlags.length);
         for (int i = 0; i < jvmFlags.length; ++i) {
@@ -461,7 +477,8 @@ public class WorkerStarter {
         cmd[nextPosition++] = System.getProperty(COMPSsConstants.LANG);
         cmd[nextPosition++] = workingDir;
         cmd[nextPosition++] = this.nw.getInstallDir();
-        cmd[nextPosition++] = appDir.isEmpty() ? "null" : appDir;
+
+        cmd[nextPosition++] = cmd[2];
         cmd[nextPosition++] = workerLibPath.isEmpty() ? "null" : workerLibPath;
         cmd[nextPosition++] = workerClasspath.isEmpty() ? "null" : workerClasspath;
         cmd[nextPosition++] = workerPythonpath.isEmpty() ? "null" : workerPythonpath;

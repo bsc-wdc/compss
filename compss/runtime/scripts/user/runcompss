@@ -1030,6 +1030,7 @@ add_jvm_opts_c() {
 -Djava.library.path=${LD_LIBRARY_PATH}
 -Dcompss.constraints.file=$fullAppPath.idl
 -Dcompss.worker.persistent.c=${persistent_worker_c}
+-Dcompss.worker.appdir=${appdir}
 EOT
 }
 

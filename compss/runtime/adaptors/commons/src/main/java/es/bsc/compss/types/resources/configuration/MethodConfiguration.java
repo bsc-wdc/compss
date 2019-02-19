@@ -169,11 +169,10 @@ public class MethodConfiguration extends Configuration {
     }
 
     public void setAppDir(String appDir) {
-        if (appDir == null) {
+        if (appDir == null || appDir.isEmpty()) {
             this.appDir = "";
-        } else if (appDir.isEmpty()) {
-            this.appDir = "";
-        } else if (!appDir.endsWith(File.separator)) {
+        }
+        else if (!appDir.endsWith(File.separator)) {
             this.appDir = appDir + File.separator;
         } else {
             this.appDir = appDir;

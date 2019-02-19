@@ -4,8 +4,5 @@
     <ComputeNode Name="COMPSsWorker01">
         <InstallDir>/opt/COMPSs/</InstallDir>
         <WorkingDir>/tmp/COMPSsWorker01/</WorkingDir>
-        <Application>
-        	<AppDir></AppDir>
-        </Application>
     </ComputeNode>
 </Project>

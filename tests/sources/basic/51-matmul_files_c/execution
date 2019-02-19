@@ -53,9 +53,12 @@
      ${runcompss_opts} \
      \
      --lang=c \
+     --appdir="/testing/path/" \
      \
      "${base_app_dir}"/master/Matmul_files $N $M $val > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
-  
+ 
+  #Appdir path is intended, for testing purposes
+ 
   # Check timeout
   if [[ "$?" = "124" ]]; then
      # Copy LOG files
@@ -63,6 +66,7 @@
 
      # Report time out
      echo "[WARNING] C Application timed out" >> "${output_log}"
+     echo "[WARNING] Is possible that the mechanisms to provide the appdir path failed."
      exitValue=124
   else
      # Copy LOG files

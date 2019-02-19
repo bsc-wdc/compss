@@ -82,7 +82,8 @@ public class FIFODataScheduler extends ReadyScheduler {
         PriorityQueue<ObjectValue<AllocatableAction>> executableActions = new PriorityQueue<>();
         for (AllocatableAction action : dataFreeActions) {
             Score actionScore = this.generateActionScore(action);
-            ObjectValue<AllocatableAction> obj = new ObjectValue<>(action, actionScore);
+            Score fullScore = action.schedulingScore(resource, actionScore);
+            ObjectValue<AllocatableAction> obj = new ObjectValue<>(action, fullScore);
             executableActions.add(obj);
         }
         dataFreeActions.clear();

@@ -31,8 +31,22 @@
   FILES=18
   resultN=6
 
-  # Checks if the file has been writen as many times as expected
-  result=$(cat /tmp/sharedDisk/file.txt)
+  # Checks if the first file has been writen as many times as expected
+  result=$(cat /tmp/sharedDisk/file1.txt)
+  if [ ${#result} -ne $resultN ]; then
+    echo "ERROR: The number of writing tasks is not correct. ${#result} "
+    exit 1
+  fi
+
+# Checks if the second file has been writen as many times as expected
+  result=$(cat /tmp/sharedDisk/file2.txt)
+  if [ ${#result} -ne $resultN ]; then
+    echo "ERROR: The number of writing tasks is not correct. ${#result} "
+    exit 1
+  fi
+
+# Checks if the third file has been writen as many times as expected
+  result=$(cat /tmp/sharedDisk/file3.txt)
   if [ ${#result} -ne $resultN ]; then
     echo "ERROR: The number of writing tasks is not correct. ${#result} "
     exit 1

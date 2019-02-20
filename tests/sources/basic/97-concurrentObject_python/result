@@ -38,12 +38,23 @@
 
   #----------------------------------------------------------------------------------
   FILES=16
-  result=$(cat /tmp/sharedDisk/file.txt)
-  if [ ${#result} -ne 8 ]; then
+  writers=8
+
+  #Checks first file to write
+  result=$(cat /tmp/sharedDisk/file1.txt)
+  if [ ${#result} -ne $writers ]; then
     echo "ERROR: Final result is not correct. ${#result} "
     exit 1
   fi
 
+  #Checks second file to write
+   result=$(cat /tmp/sharedDisk/file2.txt)
+  if [ ${#result} -ne $writers ]; then
+    echo "ERROR: Final result is not correct. ${#result} "
+    exit 1
+  fi
+
+  #Checks that all tasks have been completed
   if [ ! -f "${target_log_folder}/jobs/job${FILES}_NEW.out" ]; then
     echo "ERROR: All tasks have not completed succesfully."
     exit 1

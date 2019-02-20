@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.invokers.external.piped;
 
-import es.bsc.compss.executor.external.piped.PipedExecutor;
+import es.bsc.compss.executor.external.piped.PipePair;
 import es.bsc.compss.executor.external.piped.PipedMirror;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
@@ -40,7 +40,7 @@ import java.util.Map;
 public class PythonInvoker extends PipedInvoker {
 
     public PythonInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
-            InvocationResources assignedResources, PipedExecutor pipes) throws JobExecutionException {
+            InvocationResources assignedResources, PipePair pipes) throws JobExecutionException {
 
         super(context, invocation, taskSandboxWorkingDir, assignedResources, pipes);
     }

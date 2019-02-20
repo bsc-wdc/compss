@@ -371,7 +371,6 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         TaskScheduler scheduler = null;
         try {
             String schedFQN = System.getProperty(COMPSsConstants.SCHEDULER);
-            System.out.println("****************************************** Scheduler Name:" + schedFQN);
             Class<?> schedClass = Class.forName(schedFQN);
             Constructor<?> schedCnstr = schedClass.getDeclaredConstructors()[0];
             scheduler = (TaskScheduler) schedCnstr.newInstance();

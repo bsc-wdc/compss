@@ -34,9 +34,10 @@ import java.io.OutputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import es.bsc.compss.executor.external.ExternalExecutor;
+import es.bsc.compss.executor.external.piped.commands.PongPipeCommand;
 
 
-public class PipedExecutor implements ExternalExecutor<PipeCommand> {
+public class PipePair implements ExternalExecutor<PipeCommand> {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
     // Logger messages
@@ -52,7 +53,7 @@ public class PipedExecutor implements ExternalExecutor<PipeCommand> {
     private static final int PIPE_ERROR_WAIT_TIME = 50;
     private final String pipePath;
 
-    public PipedExecutor(String basePipePath, String id) {
+    public PipePair(String basePipePath, String id) {
         pipePath = basePipePath + id;
     }
 
@@ -109,8 +110,9 @@ public class PipedExecutor implements ExternalExecutor<PipeCommand> {
     @Override
     public PipeCommand readCommand() {
         PipeCommand readCommand = null;
+        String readPipe = pipePath + ".inbound";
         try {
-            FileInputStream input = new FileInputStream(pipePath + ".inbound");// WARN: This call is blocking for
+            FileInputStream input = new FileInputStream(readPipe);// WARN: This call is blocking for
             // NamedPipes
 
             String line = null;
@@ -128,6 +130,9 @@ public class PipedExecutor implements ExternalExecutor<PipeCommand> {
                 // Process the received tag
                 ExternalCommand.CommandType commandType = ExternalCommand.CommandType.valueOf(result[0].toUpperCase());
                 switch (commandType) {
+                    case PONG:
+                        readCommand = new PongPipeCommand();
+                        break;
                     case QUIT:
                         // This quit is received from our proper shutdown, not from bindings. We just end
                         LOGGER.debug("Received quit message");
@@ -146,6 +151,7 @@ public class PipedExecutor implements ExternalExecutor<PipeCommand> {
                         // We have received a fatal error from bindings, we notify error to every waiter and end
                         readCommand = new ErrorTaskPipeCommand(result);
                         break;
+                    case PING:
                     case EXECUTE_TASK:
                     case REMOVE:
                     case SERIALIZE:
@@ -161,6 +167,9 @@ public class PipedExecutor implements ExternalExecutor<PipeCommand> {
             LOGGER.debug(ERROR_PIPE_NOT_FOUND + " " + pipePath + ".inbound");
         } catch (IOException ioe) {
             LOGGER.error(ERROR_PIPE_NOT_READ);
+        }
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("EXECUTOR COMMAND: " + readCommand + " @ " + readPipe);
         }
         return readCommand;
     }

@@ -17,7 +17,7 @@
 package es.bsc.compss.invokers.external.piped;
 
 import es.bsc.compss.executor.external.piped.commands.PipeCommand;
-import es.bsc.compss.executor.external.piped.PipedExecutor;
+import es.bsc.compss.executor.external.piped.PipePair;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.executor.external.piped.commands.EndTaskPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ErrorTaskPipeCommand;
@@ -34,10 +34,10 @@ import java.io.File;
 
 public abstract class PipedInvoker extends ExternalInvoker {
 
-    private final PipedExecutor pipes;
+    private final PipePair pipes;
 
     public PipedInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources,
-            PipedExecutor pipes) throws JobExecutionException {
+            PipePair pipes) throws JobExecutionException {
 
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
         this.pipes = pipes;

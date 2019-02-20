@@ -17,22 +17,16 @@
 package es.bsc.compss.executor.external.commands;
 
 
-public interface ExternalCommand {
+public class PongExternalCommand implements ExternalCommand {
 
-    public static enum CommandType {
-        PING, PONG,     // Validate the communication channel
-        EXECUTE_TASK,   // Execute a task
-        END_TASK,       // Task finished
-        ERROR_TASK,     // Error in task execution
-        QUIT,           // Finish execution
-        REMOVE,         // Remove data
-        SERIALIZE;      // Serialize data
+    @Override
+    public CommandType getType() {
+        return CommandType.PONG;
     }
 
-    public static final String TOKEN_SEP = " ";
-
-    public CommandType getType();
-
-    public String getAsString();
+    @Override
+    public String getAsString() {
+        return CommandType.PONG.name();
+    }
 
 }

@@ -28,7 +28,6 @@ import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.ActionSet;
 import java.util.LinkedList;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
 
@@ -67,8 +66,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
      */
     @Override
     public <T extends WorkerResourceDescription> void workerLoadUpdate(ResourceScheduler<T> resource) {
-        List<AllocatableAction> compatibleActions = this.unassignedReadyActions.removeAllCompatibleActions(resource.getResource());
-        tryToLaunchFreeActions(compatibleActions, new LinkedList<>(), resource);
+
     }
 
     @Override

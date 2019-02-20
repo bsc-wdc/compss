@@ -33,7 +33,7 @@ import org.apache.logging.log4j.Logger;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.executor.types.Execution;
 import es.bsc.compss.executor.external.piped.PipedMirror;
-import es.bsc.compss.executor.external.piped.PipedExecutor;
+import es.bsc.compss.executor.external.piped.PipePair;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.JavaInvoker;
@@ -82,8 +82,8 @@ public class Executor implements Runnable {
     protected final String id;
 
     protected boolean isRegistered;
-    protected PipedExecutor cPipes;
-    protected PipedExecutor pyPipes;
+    protected PipePair cPipes;
+    protected PipePair pyPipes;
 
     
     /**

@@ -14,25 +14,13 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.executor.external.commands;
+package es.bsc.compss.executor.external.piped.commands;
+
+import es.bsc.compss.executor.external.commands.PingExternalCommand;
 
 
-public interface ExternalCommand {
 
-    public static enum CommandType {
-        PING, PONG,     // Validate the communication channel
-        EXECUTE_TASK,   // Execute a task
-        END_TASK,       // Task finished
-        ERROR_TASK,     // Error in task execution
-        QUIT,           // Finish execution
-        REMOVE,         // Remove data
-        SERIALIZE;      // Serialize data
-    }
 
-    public static final String TOKEN_SEP = " ";
-
-    public CommandType getType();
-
-    public String getAsString();
+public class PingPipeCommand extends PingExternalCommand implements PipeCommand {
 
 }

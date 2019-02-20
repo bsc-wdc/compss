@@ -1040,7 +1040,7 @@ class task(object):
 
         # Add self type and value if exist
         if has_self:
-            if self.decorator_arguments['isModifier']:
+            if self.decorator_arguments['targetDirection'].direction == parameter.DIRECTION.INOUT:
                 # Check if self is a PSCO that has been persisted inside the task and isModifier
                 # Update self type and value
                 self_type = parameter.get_compss_type(args[0])

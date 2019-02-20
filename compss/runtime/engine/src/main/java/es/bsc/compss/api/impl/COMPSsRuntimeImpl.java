@@ -19,6 +19,11 @@ package es.bsc.compss.api.impl;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -834,10 +839,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * *********************************************************************************************************
      */
     /**
-     * Returns a copy of the last file version
+     * Returns the last file version moved to its original location
      */
     @Override
-    public String getFile(String fileName) {
+    public void getFile(Long appId, String fileName) {
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.GET_FILE.getId(), Tracer.Event.GET_FILE.getType());
         }
@@ -848,40 +853,49 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
 
         // Parse the file name
-        DataLocation sourceLocation;
+        DataLocation sourceLocation = null;
         try {
             sourceLocation = createLocation(fileName);
         } catch (IOException ioe) {
             ErrorManager.fatal(ERROR_FILE_NAME, ioe);
-            return null;
         }
         if (sourceLocation == null) {
             ErrorManager.fatal(ERROR_FILE_NAME);
-            return null;
         }
         
-        String finalPath = openFile(fileName, Direction.IN);
-       
+        String renamedPath = openFile(fileName, Direction.IN);
+        String intermediateTmpPath = renamedPath +".tmp";
+        rename(renamedPath, intermediateTmpPath);
+        closeFile(fileName, Direction.IN);
         ap.markForDeletion(sourceLocation);
-        
-
-        String savedPath=destDir+fileName;
-        File fileToMove = new File(savedPath);
-        boolean isMoved = fileToMove.renameTo(new File(fileName));
-        // Ask the AP to
-        String finalPath = mainAccessToFile(fileName, sourceLocation, AccessMode.R, destDir);
-
+        rename(intermediateTmpPath, fileName);
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
-        
-        ap.markForDeletion(sourceLocation);
-        
-            String savedPath=destDir+fileName;
-            File fileToMove = new File(savedPath);
-            boolean isMoved = fileToMove.renameTo(new File(fileName));
-
-        return finalPath;
+    }
+    
+    /**
+     * Moves the file to its target location
+     *
+     * @param source
+     * @param target
+     */
+    private void rename(String source, String target) {
+        Path sourcePath      = Paths.get(source);
+        Path destinationPath = Paths.get(target);
+        LOGGER.info("Moving file from " + source + " to " + target);
+         try {
+            Files.move(sourcePath, destinationPath,
+                    StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException e) {
+            try {
+                Files.move(sourcePath, destinationPath);
+            } catch (IOException e1) {
+                LOGGER.error("Move not possible ", e1 );
+            }
+        }    catch (IOException e) {
+            LOGGER.error("Atomic move not possible ", e );
+        }        
     }
 
     /**

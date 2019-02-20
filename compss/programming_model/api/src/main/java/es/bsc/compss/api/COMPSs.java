@@ -53,5 +53,10 @@ public class COMPSs {
         // This is only a handler, it is never executed
         System.out.println(SKIP_MESSAGE);
     }
-
+    
+    public static void getFile(String fileName) {
+     // This is only a handler, it is never executed
+        System.out.println(SKIP_MESSAGE);
+    }
+    
 }

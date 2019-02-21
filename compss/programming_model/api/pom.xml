@@ -14,7 +14,7 @@
 	</parent>
 
 	<!-- PROJECT INFORMATION -->
-	<name>Programming Model API and Annotations</name>
+	<name>COMPSs Programming Model API and Annotations</name>
 	<description>COMPSs Runtime API and Annotations</description>
 	<url>http://www.bsc.es</url>
 	<inceptionYear>2014</inceptionYear>

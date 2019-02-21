@@ -11,7 +11,7 @@
 	</parent>
 
 	<artifactId>compss-storage</artifactId>
-	<name>Compss storage API</name>
+	<name>COMPSs Storage API</name>
 	<description>Dummy implementation of the storage API to compile the runtime and default execution when there are no storage backend defined</description>
 
 	<!-- DEPENDENCIES -->

@@ -202,8 +202,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         if (param.getData() != null) {
             // Parameter has associated data
             if (WORKER_LOGGER_DEBUG) {
-                WORKER_LOGGER.debug("- Checking transfers for data " + param.getDataMgmtId() + " for target parameter " +
-                        currentIndex);
+                WORKER_LOGGER.debug("- Checking transfers for data " + param.getDataMgmtId() + " for target parameter "
+                        + currentIndex);
             }
             tt.addOperation();
             dataManager.fetchParam(param, currentIndex, tt);
@@ -212,13 +212,13 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             //tt.loadedValue();
         }
         ++currentIndex;
-        if(param instanceof NIOParamCollection) {
+        if (param instanceof NIOParamCollection) {
             String pathToWrite = (String) param.getValue();
             PrintWriter writer = new PrintWriter(pathToWrite, "UTF-8");
             NIOParamCollection npc = (NIOParamCollection) param;
-            WORKER_LOGGER.info("Checking NIOParamCollection (received " + npc.getCollectionParameters().size() +
-                    " params)");
-            for(NIOParam subNioParam : npc.getCollectionParameters()) {
+            WORKER_LOGGER.info("Checking NIOParamCollection (received " + npc.getCollectionParameters().size()
+                    + " params)");
+            for (NIOParam subNioParam : npc.getCollectionParameters()) {
                 currentIndex = processNioParam(subNioParam, currentIndex, tt);
                 writer.println(subNioParam.getType().ordinal() + " " + subNioParam.getValue());
             }
@@ -894,6 +894,16 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     public Object getObject(String name) {
         String realName = name.substring(name.lastIndexOf('/') + 1);
         return dataManager.getObject(realName);
+    }
+
+    @Override
+    public void increaseResources() {
+        executionManager.increaseCapabilities(0, 0, 0, 0);
+    }
+
+    @Override
+    public void reduceResources() {
+        executionManager.reduceCapabilities(0, 0, 0, 0);
     }
 
 }

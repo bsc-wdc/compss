@@ -27,7 +27,9 @@ import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.NIOTracer;
 import es.bsc.compss.nio.NIOURI;
 import es.bsc.compss.nio.commands.CommandExecutorShutdown;
+import es.bsc.compss.nio.commands.CommandIncreaseResources;
 import es.bsc.compss.nio.commands.CommandNewTask;
+import es.bsc.compss.nio.commands.CommandReduceResources;
 import es.bsc.compss.nio.commands.CommandShutdown;
 import es.bsc.compss.nio.commands.NIOData;
 import es.bsc.compss.nio.commands.tracing.CommandGeneratePackage;
@@ -567,11 +569,17 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     @Override
     public void increaseComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        CommandIncreaseResources cmd = new CommandIncreaseResources();
+        Connection c = NIOAgent.getTransferManager().startConnection(node);
+        c.sendCommand(cmd);
+        c.finishConnection();
     }
 
     @Override
     public void reduceComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        CommandReduceResources cmd = new CommandReduceResources();
+        Connection c = NIOAgent.getTransferManager().startConnection(node);
+        c.sendCommand(cmd);
+        c.finishConnection();
     }
 }

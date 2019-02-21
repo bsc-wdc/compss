@@ -97,6 +97,7 @@ class task(object):
             'is_distributed': False,
             'computing_nodes': 1,
             'tracing_hook': False,
+            'numba': False,
             'varargs_type': parameter.IN  # Here for legacy purposes
         }
 
@@ -1023,10 +1024,14 @@ class task(object):
                 restore_hook = True
 
         # Call the user function with all the reconstructed parameters, get the return values
-        from numba import jit
-        #user_returns = jit(self.user_function, cache=True, nopython=True)(*user_args, **user_kwargs)
-        #user_returns = jit(cache=True, nopython=True)(self.user_function)(*user_args, **user_kwargs)
-        user_returns = self.user_function(*user_args, **user_kwargs)
+        if self.decorator_arguments['numba']:
+            from numba import jit
+            # by default we set nopython=True to avoid the fallback when an error is found compiling.
+            # this enables to detect if the code is fully compliant with numba
+            user_returns = jit(self.user_function, cache=True, nopython=True)(*user_args, **user_kwargs)
+            # user_returns = jit(cache=True, nopython=True)(self.user_function)(*user_args, **user_kwargs)
+        else:
+            user_returns = self.user_function(*user_args, **user_kwargs)
 
         # Reestablish the hook if it was disabled
         if restore_hook:

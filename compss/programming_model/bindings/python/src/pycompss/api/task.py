@@ -1023,14 +1023,10 @@ class task(object):
                 restore_hook = True
 
         # Call the user function with all the reconstructed parameters, get the return values
-        from time import time
-        ts = time()
         from numba import jit
         #user_returns = jit(self.user_function, cache=True, nopython=True)(*user_args, **user_kwargs)
         #user_returns = jit(cache=True, nopython=True)(self.user_function)(*user_args, **user_kwargs)
         user_returns = self.user_function(*user_args, **user_kwargs)
-        te = time()
-        print('Elapsed time: %2.6f sec' % (te - ts))
 
         # Reestablish the hook if it was disabled
         if restore_hook:

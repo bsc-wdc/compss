@@ -11,6 +11,8 @@ PyCOMPSs Testbench
 from storage.storage_object import StorageObject
 from pycompss.api.task import task
 
+from pycompss.api.parameter import *
+
 
 class PSCOWithTasks(StorageObject):
     def __init__(self, content="Content"):
@@ -25,10 +27,10 @@ class PSCOWithTasks(StorageObject):
     def set_content(self, content):
         self.content = content
 
-    @task(isModifier=True)
+    @task(targetDirection=INOUT)
     def persist_isModifier(self):
         self.make_persistent()
 
-    @task(isModifier=False)
+    @task(targetDirection=INOUT)
     def persist_notIsModifier(self):
         self.make_persistent()

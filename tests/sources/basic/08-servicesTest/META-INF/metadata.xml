@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project_metadata main_package="main.java.servicesTest" name="servicesTest" runtime_location="/opt/COMPSs" source_dir="src">
-  <dependency imported="false" location="/opt/COMPSs/Runtime/rt/compss-rt.jar" other_info="" type="JAR Library"/>
-</project_metadata>

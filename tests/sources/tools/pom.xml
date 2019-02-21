@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<!-- GENERAL INFORMATION -->
+	<artifactId>compss-tests-tools</artifactId>
+	<packaging>pom</packaging>
+	<parent>
+		<groupId>es.bsc.compss.tests</groupId>
+		<artifactId>compss-tests</artifactId>
+		<version>2.4.rc1902</version>
+		<relativePath>..</relativePath>
+	</parent>
+
+	<!-- PROJECT INFORMATION -->
+	<name>COMPSs Framework Test - Tools</name>
+	<description>COMPSs Framework Tests - Tools</description>
+	<url>http://compss.bsc.es</url>
+	<inceptionYear>2014</inceptionYear>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+		</license>
+	</licenses>
+	<organization>
+		<name>BSC</name>
+		<url>http://www.bsc.es</url>
+	</organization>
+
+	<!-- SUB-MODULES -->
+    <modules>
+        <module>0_graph</module>
+        <module>0_monitor</module>
+        <module>0_tracing_basic_java</module>
+        <!-- 0_tracing_basic_python -->
+        <module>1_tracing_advanced_java</module>
+        <!-- 1_tracing_hook_eval_python -->
+        <!-- 1_tracing_userevents_hook_python -->
+        <!-- 1_tracing_userevents_nohook_python -->
+
+		<!-- Add new modules below -->
+	</modules>
+</project>

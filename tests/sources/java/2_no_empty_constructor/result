@@ -1,0 +1,38 @@
+#!/bin/bash -e
+
+  # Obtain parameters
+  output_file=$1
+  error_file=$2
+  target_log_folder=$3
+
+  # Log files
+  runtime_log="${target_log_folder}/runtime.log"
+  resources_log="${target_log_folder}/resources.log"
+
+  #----------------------------------------------------------------------------------
+  # Check output file exists
+  if [ ! -f "${output_file}" ]; then
+    echo "[ERROR] Output file not found" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  # Check that application has failed because of LoaderAPI error
+  expectedError="There was an error when loading or executing your application"
+  gotError=$(grep "${expectedError}" "${output_file}" | cat)
+  if [ -z "$gotError" ]; then
+    echo "ERROR: Application didn't fail as expected" | tee -a "${output_file}"
+    echo "${gotError}" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  # Check that the error is because InvalidTask and not because validTask
+  expectedTaskFailed="ERROR: No empty constructor on object class customObjectClasses.InvalidObject"
+  gotTaskFailed=$(grep "${expectedTaskFailed}" "${output_file}" | cat)
+  if [ -z "$gotTaskFailed" ]; then
+    echo "ERROR: Application task didn't fail as expected" | tee -a "${output_file}"
+    echo "${gotTaskFailed}" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  # Report result status 
+  exit 0

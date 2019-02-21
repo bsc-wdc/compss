@@ -1,0 +1,91 @@
+#!/bin/bash -e
+
+  # Obtain parameters
+  output_file=$1
+  error_file=$2
+  target_log_folder=$3
+
+  # Log files
+  runtime_log="${target_log_folder}/runtime.log"
+
+  #----------------------------------------------------------------------------------
+  # Check output standard out status
+  if [ -f "${output_file}" ]; then
+     result_expected="------------------------------------------------------------"
+     test_result=$(tail -1 "${output_file}")
+     if [ "${result_expected}" != "${test_result}" ]; then
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
+        exit 1
+     fi
+  else
+     echo "[ERROR] Output file not found" | tee -a "${output_file}"
+     exit 1
+  fi
+  # Check that ErrorManager has not raised any ERROR or FATAL message
+  if [ -f "${error_file}" ]; then
+    if grep -E "\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs)" "${error_file}"; then
+      echo "ERROR: ErrorManager has raised a fatal error" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    # Empty error file, no exceptions could have been raised
+    :
+  fi
+  # Check that the Runtime has not registered any fatal error
+  if [ -f "${runtime_log}" ]; then
+    if grep -E "ErrorManager\\].*\\[ERRMGR\\].*Error detected. Shutting down COMPSs" "${runtime_log}"; then
+      echo "ERROR: ErrorManager has registered a fatal error in the runtime.log" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    echo "[ERROR] runtime.log not found" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Check that JNI has not raised an error
+  jni_error=$(grep "Exception in thread" "${error_file}" | cat)
+  if [ -n "${jni_error}" ]; then
+    echo "ERROR: JNI HAS RAISED A FATAL ERROR. TEST FAILED." | tee -a "${output_file}"
+    exit 1
+  fi
+
+  #---------------------------------------------------------------------------------- 
+  # Compute result status
+  result=$(grep "The result is" "${output_file}" | cut -c 15-)
+  expected_result=4872.82 
+
+  result=${result::-1}
+
+  # Check if CPU, GPU and FPGA tasks were used
+  usesCPU=$(grep -rnw "CPU" "${target_log_folder}"/jobs/ | wc -l)
+  usesFPGA=$(grep -rnw "FPGA" "${target_log_folder}"/jobs/ | wc -l)
+  usesGPU=$(grep -rnw "GPU" "${target_log_folder}"/jobs/ | wc -l)
+  FPGAreprogrammed=$(grep -rnwe 'Reprogramming FPGA with the command  This is an FPGA reprogram test' "${target_log_folder}" | wc -l)
+
+  echo "${usesCPU} CPU tasks were executed" | tee -a "${output_file}"
+  echo "${usesGPU} GPU tasks were executed" | tee -a "${output_file}"
+  echo "${usesFPGA} FPGA tasks were executed" | tee -a "${output_file}"
+  echo "${FPGAreprogrammed} FPGAs reprogrammed" | tee -a "${output_file}"
+
+  # Report result status
+  if [ "$result" != "$expected_result" ] || [ "$usesCPU" -lt 1 ] || [ "$usesGPU" -lt 1 ] || [ "$usesFPGA" -lt 1 ] || [ "$FPGAreprogrammed" -eq 0 ]; then
+     echo "ERROR ON TASKS SCHEDULE" | tee -a "${output_file}"
+     echo "EXPECTED RESULT: $expected_result" | tee -a "${output_file}"
+     echo "GOT: $result" | tee -a "${output_file}"
+     if [ "$usesCPU" -lt 1 ] ; then
+       echo "No CPU tasks were executed!"
+     fi
+     if [ "$usesGPU" -lt 1 ] ; then
+       echo "No GPU tasks were executed!"
+     fi
+     if [ "$usesFPGA" -lt 1 ] ; then
+       echo "No FPGA tasks were executed!"
+     fi
+     if [ "$FPGAreprogrammed" -eq 0 ] ; then
+       echo "Failed to reprogram the FPGA!"
+     fi
+     exit 1
+  fi
+
+  exit 0

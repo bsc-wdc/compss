@@ -1,0 +1,149 @@
+#!/bin/bash -e
+
+  # Obtain parameters
+  output_file=$1
+  error_file=$2
+  target_log_folder=$3
+
+  # Log files
+  runtime_log="${target_log_folder}/runtime.log"
+  resources_log="${target_log_folder}/resources.log"
+
+  #----------------------------------------------------------------------------------
+  # Check output standard out status
+  if [ -f "${output_file}" ]; then
+     result_expected="------------------------------------------------------------"
+     test_result=$(tail -1 "${output_file}")
+     if [ "${result_expected}" != "${test_result}" ]; then
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
+        exit 1
+     fi
+  else
+     echo "[ERROR] Output file not found" | tee -a "${output_file}"
+     exit 1
+  fi
+  # Check that ErrorManager has not raised any ERROR or FATAL message
+  if [ -f "${error_file}" ]; then
+    if grep -E "\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs)" "${error_file}"; then
+      echo "ERROR: ErrorManager has raised a fatal error" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    # Empty error file, no exceptions could have been raised
+    :
+  fi
+  # Check that the Runtime has not registered any fatal error
+  if [ -f "${runtime_log}" ]; then
+    if grep -E "ErrorManager\\].*\\[ERRMGR\\].*Error detected. Shutting down COMPSs" "${runtime_log}"; then
+      echo "ERROR: ErrorManager has registered a fatal error in the runtime.log" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    echo "[ERROR] runtime.log not found" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Compute result status
+  exitValue=0
+
+  j2_A_expected="A int: 7"
+  j2_A_value=$(grep "A int:" "${target_log_folder}"/jobs/job2_NEW.out)
+  j2_B_expected="B string: OPTIMIS"
+  j2_B_value=$(grep "B string:" "${target_log_folder}"/jobs/job2_NEW.out)
+  j4_params_expected="17 OPTIMIS-CLOUD 3 -PROJECT"
+  j4_params_value=$(grep "Parameter values: " "${target_log_folder}"/jobs/job4_NEW.out | cut -c 23-)
+  j5_A_expected="A int: 20"
+  j5_A_value=$(grep "A int:" "${target_log_folder}"/jobs/job5_NEW.out)
+  j5_B_expected="B string: OVERWRITE"
+  j5_B_value=$(grep "B string:" "${target_log_folder}"/jobs/job5_NEW.out)
+  log_A_expected="int: 20"
+  log_A_value=$(grep "Updated A" "${output_file}" | cut -c 11-)
+  log_B_expected="string: OPTIMIS-CLOUD-PROJECT"
+  log_B_value=$(grep "Updated B" "${output_file}" | cut -c 11-)
+
+  if [ "$j2_A_value" != "$j2_A_expected" ] || [ "$j2_B_value" != "$j2_B_expected" ] || [ "$j4_params_value" != "$j4_params_expected" ] || [ "$j5_A_value" != "$j5_A_expected" ] || [ "$j5_B_value" != "$j5_B_expected" ] || [ "$log_A_value" != "$log_A_expected" ] || [ "$log_B_value" != "$log_B_expected" ]; then
+     echo "ERROR ON TEST USER OBJECTS" | tee -a "${output_file}"
+     exitValue=1
+  else
+    echo "[RESULT_CHECK] User objects passed" | tee -a "${output_file}"
+  fi
+
+  #-------------------------------------------------------------------------------------------------------
+  j8_types_expected="java.lang.Integer java.lang.String"
+  j8_types_value=$(grep "Parameter types: " "${target_log_folder}"/jobs/job8_NEW.out | cut -c 22-)
+  j8_params_expected="125 SDOSDOSDO"
+  j8_params_value=$(grep "Parameter values: " "${target_log_folder}"/jobs/job8_NEW.out | cut -c 23-)
+  log_A_expected="125"
+  log_A_value=$(grep "Integer value:" "${output_file}" | cut -c 16-)
+  log_B_expected="SDOSDOSDO"
+  log_B_value=$(grep "String value:" "${output_file}" | cut -c 15-)
+
+  if [ "$j8_types_value" != "$j8_types_expected" ] || [ "$j8_params_value" != "$j8_params_expected" ] || [ "$log_A_value" != "$log_A_expected" ] || [ "$log_B_value" != "$log_B_expected" ]; then
+     echo "ERROR ON IMMUTABLE OBJECTS" | tee -a "${output_file}"
+     exitValue=1
+  else
+    echo "[RESULT_CHECK] Immutable objects passed" | tee -a "${output_file}"
+  fi
+
+  #-------------------------------------------------------------------------------------------------------
+  log_before_int_expected="32"
+  log_before_int_value=$(grep "Integer before:" "${output_file}" | cut -c 17-)
+  log_before_string_expected="Old value"
+  log_before_string_value=$(grep "String before:" "${output_file}" | cut -c 16-)
+  log_after_int_expected="64, old value was 32"
+  log_after_int_value=$(grep "Integer after:" "${output_file}" | cut -c 16-)
+  log_after_string_expected="New value"
+  log_after_string_value=$(grep "String after:" "${output_file}" | cut -c 15-)
+
+  if [ "$log_before_int_value" != "$log_before_int_expected" ] || [ "$log_before_string_value" != "$log_before_string_expected" ] || [ "$log_after_int_value" != "$log_after_int_expected" ] || [ "$log_after_string_value" != "$log_after_string_expected" ]; then
+     echo "ERROR ON TARGET OBJECTS" | tee -a "${output_file}"
+     exitValue=1
+  else
+    echo "[RESULT_CHECK] Target objects passed" | tee -a "${output_file}"
+  fi
+
+  #-------------------------------------------------------------------------------------------------------
+  log_square_4_expected="16"
+  log_square_4_value=$(grep "Square of 4" "${output_file}" | cut -c 16-)
+  log_square_5_expected="25"
+  log_square_5_value=$(grep "Square of 5" "${output_file}" | cut -c 16-)
+
+  if [ "$log_square_4_value" != "$log_square_4_expected" ] || [ "$log_square_5_value" != "$log_square_5_expected" ]; then
+     echo "ERROR ON PRIMITIVE RETURN" | tee -a "${output_file}"
+     exitValue=1
+  else
+    echo "[RESULT_CHECK] Primitive return objects passed" | tee -a "${output_file}"
+  fi
+
+  #-------------------------------------------------------------------------------------------------------
+  log_constructor_c_expected="In C constructor, creating C with A 6 and B CONSTRUCTOR TEST"
+  log_constructor_c_value=$(grep "In C constructor," "${output_file}")
+  log_constructor_app_expected="In app, A is 6 and B is CONSTRUCTOR TEST"
+  log_constructor_app_value=$(grep "In app," "${output_file}")
+
+  if [ "$log_constructor_c_value" != "$log_constructor_c_expected" ] || [ "$log_constructor_app_value" != "$log_constructor_app_expected" ]; then
+     echo "ERROR ON CONSTRUCTOR" | tee -a "${output_file}"
+     exitValue=1
+  else
+    echo "[RESULT_CHECK] Constructor passed" | tee -a "${output_file}"
+  fi
+
+  #-------------------------------------------------------------------------------------------------------
+  log_first_array_before=$(grep "First array: 9 18 27" "${target_log_folder}"/jobs/job17_NEW.out)
+  log_second_array_before=$(grep "Second array: 11 22" "${target_log_folder}"/jobs/job17_NEW.out)
+  log_element1=$(grep "Element in position 1 is 18" "${output_file}")
+  log_element10=$(grep "Element in position 0,1 is 22" "${output_file}")
+  log_first_array_after=$(grep "First array: 9 99 27" "${target_log_folder}"/jobs/job18_NEW.out)
+  log_second_array_after=$(grep "Second array: 11 99" "${target_log_folder}"/jobs/job18_NEW.out)
+
+  if [ -z "$log_first_array_before" ] || [ -z "$log_second_array_before" ]  || [ -z "$log_element1" ] || [ -z "$log_element10" ] || [ -z "$log_first_array_after" ] || [ -z "$log_second_array_after" ]; then
+     echo "ERROR ON ARRAYS" | tee -a "${output_file}"
+     exitValue=1
+  else
+    echo "[RESULT_CHECK] Arrays passed" | tee -a "${output_file}"
+  fi
+
+  #-------------------------------------------------------------------------------------------------------
+  # Report result status
+  exit $exitValue

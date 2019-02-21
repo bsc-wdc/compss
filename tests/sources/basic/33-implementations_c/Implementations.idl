@@ -1,8 +1,0 @@
-interface implementations {
-	@Constraints(ComputingUnits=8);
-	void increment(inout File filename);
-
-	@Constraints(ComputingUnits=1);
-	@Implements(increment);
-        void increment_2(inout File filename);
-};

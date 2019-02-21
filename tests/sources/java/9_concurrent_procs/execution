@@ -1,0 +1,108 @@
+#!/bin/bash
+
+  # Obtain parameters
+  COMPSs_exec=$1
+  comm=$2
+  runcompss_opts=$3
+  base_app_dir=$4
+  COMPSs_log_folder=$5
+  target_log_folder=$6
+  retry_num=$7
+  execution_envs=$8
+  
+  # Global variables
+  exit_value=1
+  jar_name="9_concurrent_procs.jar"
+  app_name="applicationConcurrent.Concurrent"
+  
+  #----------------------------------------------------------------------------------
+  # Generate Project.xml according to system
+  sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/project.xml
+  
+  #----------------------------------------------------------------------------------
+  # Create all working dir folders
+  mkdir -p /tmp/COMPSsWorker01/
+  
+  #----------------------------------------------------------------------------------
+  # Run application
+  echo
+  echo "*** RUNNING JAVA APPLICATION CONCURRENT"
+  output_log_app1="${target_log_folder}/applicationConcurrent1_0${retry_num}.outputlog"
+  error_log_app1="${target_log_folder}/applicationConcurrent1_0${retry_num}.errorlog"
+  log_folder_app1="${target_log_folder}/app1"
+  mkdir -p "${log_folder_app1}"
+  output_log_app2="${target_log_folder}/applicationConcurrent2_0${retry_num}.outputlog"
+  error_log_app2="${target_log_folder}/applicationConcurrent2_0${retry_num}.errorlog"
+  log_folder_app2="${target_log_folder}/app2"
+  mkdir -p "${log_folder_app2}"
+
+  expectedTime=60s
+  
+  # shellcheck disable=SC2086
+  timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+     --project="${base_app_dir}"/project.xml \
+     --resources="${base_app_dir}"/resources.xml \
+     \
+     --comm="$comm" \
+     \
+     --debug \
+     ${runcompss_opts} \
+     \
+     --classpath="${base_app_dir}/${jar_name}" \
+     \
+     "${app_name}" 1 > >(tee "${output_log_app1}") 2> >(tee "${error_log_app1}" >&2) &
+  pid1=$!
+
+  # shellcheck disable=SC2086
+  timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+     --project="${base_app_dir}"/project.xml \
+     --resources="${base_app_dir}"/resources.xml \
+     \
+     --comm="$comm" \
+     \
+     --debug \
+     ${runcompss_opts} \
+     \
+     --classpath="${base_app_dir}/${jar_name}" \
+     \
+     "${app_name}" 2 > >(tee "${output_log_app2}") 2> >(tee "${error_log_app2}" >&2) &
+  pid2=$!
+
+  # Wait for completion
+  wait $pid1
+  status1=$?
+  wait $pid2
+  status2=$?
+  
+  # Check timeout
+  execNum2=$((retry_num*2))
+  execNum1=$((execNum2 - 1))
+  if [[ "$status1" = "124" ]] || [[ "$status2" = "124" ]]; then
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}/${app_name}_0${execNum1}"/* "${log_folder_app1}"
+     cp -rf "${COMPSs_log_folder}/${app_name}_0${execNum2}"/* "${log_folder_app2}"
+ 
+     # Report time out
+     echo "[WARNING] Java Application timed out" >> "${output_log_app1}"
+     echo "[WARNING] Java Application timed out" >> "${output_log_app2}"
+     exit_value=124
+  else
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}/${app_name}_0${execNum1}"/* "${log_folder_app1}"
+     cp -rf "${COMPSs_log_folder}/${app_name}_0${execNum2}"/* "${log_folder_app2}"
+
+     # Check result
+     "${base_app_dir}"/result "${output_log_app1}" "${error_log_app1}" "${log_folder_app1}"
+     res1=$?
+     "${base_app_dir}"/result "${output_log_app2}" "${error_log_app2}" "${log_folder_app2}"
+     res2=$?
+     if [ $res1 -gt $res2 ]; then
+       exit_value=$res1
+     else
+       exit_value=$res2
+     fi
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Return execution status
+  exit ${exit_value}

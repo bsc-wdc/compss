@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<!-- GENERAL INFORMATION -->
+	<artifactId>compss-tests-python</artifactId>
+	<packaging>pom</packaging>
+	<parent>
+		<groupId>es.bsc.compss.tests</groupId>
+		<artifactId>compss-tests</artifactId>
+		<version>2.4.rc1902</version>
+		<relativePath>..</relativePath>
+	</parent>
+
+	<!-- PROJECT INFORMATION -->
+	<name>COMPSs Framework Tests - Python</name>
+	<description>COMPSs Framework Tests - Python</description>
+	<url>http://compss.bsc.es</url>
+	<inceptionYear>2014</inceptionYear>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+		</license>
+	</licenses>
+	<organization>
+		<name>BSC</name>
+		<url>http://www.bsc.es</url>
+	</organization>
+
+	<!-- SUB-MODULES -->
+	<modules>
+        <!-- 0_annotation_concurrent -->
+        <!-- 0_api_barrier -->
+        <!-- 0_api_delete -->
+        <!-- 0_args_kwargs -->
+        <!-- 0_basic1 -->
+        <!-- 0_basic2 -->
+        <!-- 0_files -->
+        <!-- 0_multireturn -->
+        <!-- 0_no_returns -->
+        <!-- 0_varargs_type -->
+        <!-- 1_collections_in -->
+        <!-- 1_decorator_binary -->
+        <!-- 1_decorator_compss -->
+        <!-- 1_decorator_decaf -->
+        <!-- 1_decorator_implements -->
+        <!-- 1_decorator_local -->
+        <!-- 1_decorator_mpi -->
+        <!-- 1_decorator_multinode -->
+        <!-- 1_decorator_ompss -->
+        <!-- 1_decorator_opencl -->
+        <!-- 1_environment_vars -->
+        <!-- 2_advanced -->
+        <!-- 2_argparse -->
+        <!-- 2_exceptions_after_sync -->
+        <!-- 2_exceptions_before_sync -->
+        <!-- 2_exceptions_before_tasks -->
+        <!-- 2_exceptions_in_worker -->
+        <!-- 2_inheritance -->
+        <!-- 2_kill_processes -->
+        <!-- 3_module_basic -->
+        <!-- 3_module_binary -->
+        <!-- 3_module_binary_constrained -->
+        <!-- 3_module_class -->
+        <!-- 3_module_constraint -->
+        <!-- 3_module_decaf -->
+        <!-- 3_module_decaf_constrained -->
+        <!-- 3_module_implements -->
+        <!-- 3_module_kmeans -->
+        <!-- 3_module_mpi -->
+        <!-- 3_module_mpi_constrained -->
+        <!-- 3_module_ompss -->
+        <!-- 3_module_ompss_constrained -->
+        <!-- 3_module_opencl -->
+        <!-- 3_module_opencl_constrained -->
+        <!-- 9_interpreters -->
+        <!-- 9_jupyter_notebook -->
+
+		<!-- Add new modules below -->
+	</modules>
+</project>

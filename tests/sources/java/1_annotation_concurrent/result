@@ -1,0 +1,109 @@
+#!/bin/bash -e
+
+  # Obtain parameters
+  output_file=$1
+  error_file=$2
+  target_log_folder=$3
+
+  # Log files
+  runtime_log="${target_log_folder}/runtime.log"
+  resources_log="${target_log_folder}/resources.log"                                                                                                                                                                                                                          
+
+  #----------------------------------------------------------------------------------
+  # Check output standard out status
+  if [ -f "${output_file}" ]; then
+     result_expected="------------------------------------------------------------"
+     test_result=$(tail -1 "${output_file}")
+     if [ "${result_expected}" != "${test_result}" ]; then
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
+        exit 1 
+     fi
+  else
+     echo "[ERROR] Output file not found" | tee -a "${output_file}"
+     exit 1 
+  fi
+  # Check that ErrorManager has not raised any ERROR or FATAL message
+  if [ -f "${error_file}" ]; then
+    if grep -E "\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs)" "${error_file}"; then
+      echo "ERROR: ErrorManager has raised a fatal error" | tee -a "${output_file}"
+      exit 1 
+    fi
+  else
+    # Empty error file, no exceptions could have been raised
+    : 
+  fi
+  # Check that the Runtime has not registered any fatal error
+  if [ -f "${runtime_log}" ]; then
+    if grep -E "ErrorManager\\].*\\[ERRMGR\\].*Error detected. Shutting down COMPSs" "${runtime_log}"; then
+      echo "ERROR: ErrorManager has registered a fatal error in the runtime.log" | tee -a "${output_file}"
+      exit 1 
+    fi
+  else
+    echo "[ERROR] runtime.log not found" | tee -a "${output_file}"
+    exit 1 
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Compute result status
+
+  FILES=18
+  resultN=6
+
+  # Checks if the first file has been writen as many times as expected
+  result=$(cat /tmp/sharedDisk/file1.txt)
+  if [ ${#result} -ne $resultN ]; then
+    echo "ERROR: The number of writing tasks is not correct. ${#result} "
+    exit 1
+  fi
+
+  # Checks if the second file has been writen as many times as expected
+  result=$(cat /tmp/sharedDisk/file2.txt)
+  if [ ${#result} -ne $resultN ]; then
+    echo "ERROR: The number of writing tasks is not correct. ${#result} "
+    exit 1
+  fi
+
+  # Checks if the third file has been writen as many times as expected
+  result=$(cat /tmp/sharedDisk/file3.txt)
+  if [ ${#result} -ne $resultN ]; then
+    echo "ERROR: The number of writing tasks is not correct. ${#result} "
+    exit 1
+  fi
+
+  # Checks if all the tasks have been executed through the creation of a job for each
+  if [ ! -f "${target_log_folder}"/jobs/job"$FILES"_NEW.out ]; then
+    echo "ERROR: All tasks have not completed succesfully."
+    exit 1
+  fi
+
+  if [ -f "${target_log_folder}/jobs/job$((FILES+1))_NEW.out" ]; then
+    echo "ERROR: More tasks than expected have been executed."
+    exit 1
+  fi
+
+  # Check concurrent execution output. It checks the time betweek concurrent and no concurrent executions
+  output1=$(grep "Opening /" "${output_file}" | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }' | head -n +1)
+  output2=$(grep "File target Location: " "${output_file}" | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }' | head -n +1)
+  if [ "$output2" -lt $((output1+10000)) ]; then
+    echo "ERROR: It does not wait for all tasks to be finished"
+    exit 1
+  fi
+
+  output1=$(grep "Getting object with hash code" "${output_file}" | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }' | head -n +1)
+  output2=$(grep "Object obtained " "${output_file}" | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }' | head -n +1)
+  if [ $((output1+6000)) -gt "$output2" ]; then
+    echo "ERROR: Concurrent type not working"
+    exit 1
+  fi
+
+  # Check inout execution
+  output3=$(grep "Getting object with hash code" "${output_file}" | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }' | head -n +2 | tail -n 1)
+  output4=$(grep "Object obtained " "${output_file}" | tr "[" " " | tr "(" " " | tr ")" " " | awk '{ print $1 }' | head -n +3 | tail -n 1)
+  if [ $((output4-6000)) -lt "$output3" ]; then
+    echo "ERROR: It does not wait for all tasks to be finished"
+    exit 1
+  fi
+
+  #---------------------------------------------------------------------------------- 
+  # ALL OK. Report result status
+  exit 0

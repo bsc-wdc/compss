@@ -1,0 +1,20 @@
+#!/bin/bash -e
+  
+  # Obtain parameters
+  source_base_dir=$1
+  target_base_dir=$2
+  
+  # Compile C sub-program with MPI
+  mkdir "${target_base_dir}"/bin/
+  mpicc -o "${target_base_dir}"/bin/addVector "${source_base_dir}"/src/main/c/addVector.c
+
+  # Copy files
+  app_name="1_annotation_mpi"
+
+  cp "${source_base_dir}"/target/${app_name}.jar "${target_base_dir}"/${app_name}.jar
+
+  cp "${source_base_dir}"/project.xml "${target_base_dir}"/project.xml
+  cp "${source_base_dir}"/resources.xml "${target_base_dir}"/resources.xml
+
+  cp "${source_base_dir}"/execution "${target_base_dir}"/execution
+  cp "${source_base_dir}"/result "${target_base_dir}"/result

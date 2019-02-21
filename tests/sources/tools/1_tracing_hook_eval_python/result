@@ -1,0 +1,131 @@
+#!/bin/bash -e
+
+  # Obtain parameters
+  output_file_enabled=$1
+  error_file_enabled=$2
+  target_log_folder_enabled=$3
+  output_file_disabled=$4
+  error_file_disabled=$5
+  target_log_folder_disabled=$6
+  elapsed_th_enabled=$7
+  elapsed_th_disabled=$8
+  margin=$9
+
+  # Log files
+  runtime_log_enabled="${target_log_folder_enabled}/runtime.log"
+  runtime_log_disabled="${target_log_folder_disabled}/runtime.log"
+
+  #----------------------------------------------------------------------------------
+  # Check output standard out status
+  if [ -f "${output_file_enabled}" ]; then
+     result_expected="------------------------------------------------------------"
+     test_result=$(tail -1 "${output_file_enabled}")
+     if [ "${result_expected}" != "${test_result}" ]; then
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file_enabled}"
+        exit 1
+     fi
+  else
+     echo "[ERROR] Output file not found" | tee -a "${output_file_enabled}"
+     exit 1
+  fi
+  # Check that ErrorManager has not raised any ERROR or FATAL message
+  if [ -f "${error_file_enabled}" ]; then
+    if grep -E "\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs)" "${error_file_enabled}"; then
+      echo "ERROR: ErrorManager has raised a fatal error" | tee -a "${output_file_enabled}"
+      exit 1
+    fi
+  else
+    # Empty error file, no exceptions could have been raised
+    :
+  fi
+  # Check that the Runtime has not registered any fatal error
+  if [ -f "${runtime_log_enabled}" ]; then
+    if grep -E "ErrorManager\\].*\\[ERRMGR\\].*Error detected. Shutting down COMPSs" "${runtime_log_enabled}"; then
+      echo "ERROR: ErrorManager has registered a fatal error in the runtime.log" | tee -a "${output_file_enabled}"
+      exit 1
+    fi
+  else
+    echo "[ERROR] runtime.log not found" | tee -a "${output_file_enabled}"
+    exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Grep for unit test errors (ERROR or FAIL)
+  errors=$(cat "${output_file_enabled}" "${error_file_enabled}" | grep "ERROR" | cat)
+  fails=$(cat "${output_file_enabled}" "${error_file_enabled}" | grep "FAIL" | cat)
+  if [ "${errors}" != "" ] || [ "${fails}" != "" ]; then
+      echo "ERROR: UNIT TEST RAISED AN ERROR." | tee -a "${output_file_enabled}"
+      exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Check output standard out status
+  if [ -f "${output_file_disabled}" ]; then
+     result_expected="------------------------------------------------------------"
+     test_result=$(tail -1 "${output_file_disabled}")
+     if [ "${result_expected}" != "${test_result}" ]; then
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file_disabled}"
+        exit 1
+     fi
+  else
+     echo "[ERROR] Output file not found" | tee -a "${output_file_disabled}"
+     exit 1
+  fi
+  # Check that ErrorManager has not generated any ERROR or FATAL message.
+  if [ -f "${runtime_log_disabled}" ]; then
+    if cat "${output_file_disabled}" "${runtime_log_disabled}" | tr '\n' ' ' | grep -E -q "[ERRMGR].*(ERROR|FATAL):.*.*Shutting"; then
+      echo "ERROR: ERRMGR RAISED A FATAL ERROR. TEST FAILED." | tee -a "${output_file_disabled}"
+      exit 1
+    fi
+  else
+    echo "[ERROR] runtime.log not found" | tee -a "${output_file_disabled}"
+    exit 1
+  fi
+    # Check that ErrorManager has not raised any ERROR or FATAL message
+  if [ -f "${error_file_disabled}" ]; then
+    if grep -E "\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs)" "${error_file_disabled}"; then
+      echo "ERROR: ErrorManager has raised a fatal error" | tee -a "${output_file_disabled}"
+      exit 1
+    fi
+  else
+    # Empty error file, no exceptions could have been raised
+    :
+  fi
+  # Check that the Runtime has not registered any fatal error
+  if [ -f "${runtime_log_disabled}" ]; then
+    if grep -E "ErrorManager\\].*\\[ERRMGR\\].*Error detected. Shutting down COMPSs" "${runtime_log_disabled}"; then
+      echo "ERROR: ErrorManager has registered a fatal error in the runtime.log" | tee -a "${output_file_disabled}"
+      exit 1
+    fi
+  else
+    echo "[ERROR] runtime.log not found" | tee -a "${output_file_disabled}"
+    exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Grep for unit test errors (ERROR or FAIL)
+  errors=$(cat "${output_file_disabled}" "${error_file_disabled}" | grep "ERROR" | cat)
+  fails=$(cat "${output_file_disabled}" "${error_file_disabled}" | grep "FAIL" | cat)
+  if [ "${errors}" != "" ] || [ "${fails}" != "" ]; then
+      echo "ERROR: UNIT TEST RAISED AN ERROR." | tee -a "${output_file_disabled}"
+      exit 1
+  fi
+
+
+  #----------------------------------------------------------------------------------
+  # Check output standard out status
+  expected_th_enabled=$((elapsed_th_disabled + margin))
+  if [ "${expected_th_enabled}" -lt "${elapsed_th_enabled}" ]; then
+    echo "Disabling the tracing hook achieved better performance (more than the margin)." | tee -a "${output_file_enabled}"
+    echo "Elapsed time with tracing hook   : ${elapsed_th_enabled}" | tee -a "${output_file_enabled}"
+    echo "Elapsed time without tracing hook: ${elapsed_th_disabled}" | tee -a "${output_file_enabled}"
+    echo "Margin considered                : $margin" | tee -a "${output_file_enabled}"
+  else
+    echo "ERROR: DISABLING THE TRACING HOOK HAS NOT ACHIEVED BETTER PERFORMANCE." | tee -a "${output_file_enabled}"
+    echo "       PLEASE, ENSURE THAT THE ELAPSED TIMES ARE CORRECT CONSIDERING THE" | tee -a "${output_file_enabled}"
+    echo "       MARGIN AND CHECK THAT THE TRACING HOOK IS WELL MANAGED IN task.py" | tee -a "${output_file_enabled}"
+    echo "Elapsed time with tracing hook   : ${elapsed_th_enabled}" | tee -a "${output_file_enabled}"
+    echo "Elapsed time without tracing hook: ${elapsed_th_disabled}" | tee -a "${output_file_enabled}"
+    echo "Margin considered                : $margin" | tee -a "${output_file_enabled}"
+    exit 1
+  fi

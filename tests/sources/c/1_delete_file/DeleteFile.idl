@@ -1,0 +1,4 @@
+interface DeleteFile
+{
+	void increment(inout File filename);
+};

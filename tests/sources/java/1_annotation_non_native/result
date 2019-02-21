@@ -1,0 +1,195 @@
+#!/bin/bash -e
+
+  # Obtain parameters
+  output_file=$1
+  error_file=$2
+  target_log_folder=$3
+
+  # Log files
+  runtime_log="${target_log_folder}/runtime.log"
+  resources_log="${target_log_folder}/resources.log"
+
+  #----------------------------------------------------------------------------------
+  # Check output standard out status
+  if [ -f "${output_file}" ]; then
+     result_expected="------------------------------------------------------------"
+     test_result=$(tail -1 "${output_file}")
+     if [ "${result_expected}" != "${test_result}" ]; then
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
+        exit 1
+     fi
+  else
+     echo "[ERROR] Output file not found" | tee -a "${output_file}"
+     exit 1
+  fi
+  # Check that ErrorManager has not raised any ERROR or FATAL message
+  if [ -f "${error_file}" ]; then
+    if grep -E "\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs)" "${error_file}"; then
+      echo "ERROR: ErrorManager has raised a fatal error" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    # Empty error file, no exceptions could have been raised
+    :
+  fi
+  # Check that the Runtime has not registered any fatal error
+  if [ -f "${runtime_log}" ]; then
+    if grep -E "ErrorManager\\].*\\[ERRMGR\\].*Error detected. Shutting down COMPSs" "${runtime_log}"; then
+      echo "ERROR: ErrorManager has registered a fatal error in the runtime.log" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    echo "[ERROR] runtime.log not found" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Compute result status
+  
+  # Check that EV is 0 for all executions
+  evs=$(grep "EV = " "${output_file}" | tr "=" "\\t" | awk '{ print $NF }')
+  for ev in $evs; do
+    if [ "$ev" -ne 0 ]; then
+      echo "ERROR: EV of some execution is non-zero" | tee -a "${output_file}"
+      echo "  GOT: $evs" | tee -a "${output_file}"
+      echo "  EXPECTED: $evs" | tee -a "${output_file}"
+      exit 1
+    fi
+  done
+  
+  # Check prefix message
+  msg="--message=Hello World"
+  outJob4=$(grep -A 1 "CMD OUTPUT" "${target_log_folder}/jobs/job4_NEW.out" | tail -n 1)
+  if [ "${outJob4}" != "$msg" ]; then
+    echo "ERROR: Invalid prefix input redirection" | tee -a "${output_file}"
+    echo "  GOT: $outJob4" | tee -a "${output_file}"
+    echo "  EXPECTED: $msg" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  # Check STDIN redirection from jobs (4 and 5)
+  msg=$'Hello World\nGood\nBye'
+  outJob5=$(grep -A 3 "CMD OUTPUT" "${target_log_folder}/jobs/job5_NEW.out" | tail -n 3)
+  if [ "${outJob5}" != "$msg" ]; then
+    echo "ERROR: Invalid input redirection" | tee -a "${output_file}"
+    echo "  GOT: $outJob5" | tee -a "${output_file}"
+    echo "  EXPECTED: $msg" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  outJob6=$(grep -A 3 "CMD OUTPUT" "${target_log_folder}/jobs/job6_NEW.out" | tail -n 3)
+  if [ "${outJob6}" != "$msg" ]; then
+    echo "ERROR: Invalid input redirection" | tee -a "${output_file}"
+    echo "  GOT: $outJob6" | tee -a "${output_file}"
+    echo "  EXPECTED: $msg" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  # Check STDOUT redirection
+  msg="Hello World"
+  outRedir=$(grep -A 1 "\\[LOG\\] Content FILE OUT redirection:" "${output_file}" | tail -n 1)
+  if [ "${outRedir}" != "$msg" ]; then
+    echo "ERROR: Invalid output redirection" | tee -a "${output_file}"
+    echo "  GOT: $outRedir" | tee -a "${output_file}"
+    echo "  EXPECTED: $msg" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  outRedirEV=$(grep -A 1 "\\[LOG\\] Content FILE OUT redirection - EV:" "${output_file}" | tail -n 1)
+  if [ "${outRedirEV}" != "$msg" ]; then
+    echo "ERROR: Invalid output redirection for EV" | tee -a "${output_file}"
+    echo "  GOT: $outRedirEV" | tee -a "${output_file}"
+    echo "  EXPECTED: $msg" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  msg=$'Hello World\nHello World'
+  outRedirAppend=$(grep -A2 "\\[LOG\\] Content FILE OUT redirection append:" "${output_file}" | tail -n 2)
+  if [ "${outRedirAppend}" != "$msg" ]; then
+    echo "ERROR: Invalid output redirection for EV Append" | tee -a "${output_file}"
+    echo "  GOT: $outRedirAppend" | tee -a "${output_file}"
+    echo "  EXPECTED: $msg" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  msg=$'Hello World\nHello World\nHello World'
+  outRedirEVAppend=$(grep -A 3 "\\[LOG\\] Content FILE OUT redirection append - EV:" "${output_file}" | tail -n 3)
+  if [ "${outRedirEVAppend}" != "$msg" ]; then
+    echo "ERROR: Invalid output redirection for EV Append" | tee -a "${output_file}"
+    echo "  GOT: $outRedirEVAppend" | tee -a "${output_file}"
+    echo "  EXPECTED: $msg" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  # Check STDERR redirection
+  msg="Can you read this"
+  errRedir=$(grep -A 1 "\\[LOG\\] Content FILE ERR redirection:" "${output_file}" | tail -n 1)
+  if [ "${errRedir}" != "$msg" ]; then
+    echo "ERROR: Invalid error redirection" | tee -a "${output_file}"
+    echo "  GOT: $errRedir" | tee -a "${output_file}"
+    echo "  EXPECTED: $msg" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  errRedirEV=$(grep -A 1 "\\[LOG\\] Content FILE ERR redirection - EV:" "${output_file}" | tail -n 1)
+  if [ "${errRedirEV}" != "$msg" ]; then
+    echo "ERROR: Invalid error redirection for EV" | tee -a "${output_file}"
+    echo "  GOT: $errRedirEV" | tee -a "${output_file}"
+    echo "  EXPECTED: $msg" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  msg=$'Can you read this\nCan you read this'
+  errRedirAppend=$(grep -A 2 "\\[LOG\\] Content FILE ERR redirection append:" "${output_file}" | tail -n 2)
+  if [ "${errRedirAppend}" != "$msg" ]; then
+    echo "ERROR: Invalid error redirection for EV Append" | tee -a "${output_file}"
+    echo "  GOT: $errRedirAppend" | tee -a "${output_file}"
+    echo "  EXPECTED: $msg" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  msg=$'Can you read this\nCan you read this\nCan you read this'
+  errRedirEVAppend=$(grep -A 3 "\\[LOG\\] Content FILE ERR redirection append - EV:" "${output_file}" | tail -n 3)
+  if [ "${errRedirEVAppend}" != "$msg" ]; then
+    echo "ERROR: Invalid error redirection for EV Append" | tee -a "${output_file}"
+    echo "  GOT: $errRedirEVAppend" | tee -a "${output_file}"
+    echo "  EXPECTED: $msg" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  # Check FULL redirection
+  msg=$'Hello World\nGood\nBye'
+  errMsg="Can you read this"
+  fullOut=$(grep -A 3 "\\[LOG\\] Content FULL OUT:" "${output_file}" | tail -n 3)
+  if [ "${fullOut}" != "$msg" ]; then
+    echo "ERROR: Invalid full output redirection" | tee -a "${output_file}"
+    echo "  GOT: $fullOut" | tee -a "${output_file}"
+    echo "  EXPECTED: $msg" | tee -a"${output_file}"
+    exit 1
+  fi
+  fullErr=$(grep -A 1 "\\[LOG\\] Content FULL ERR:" "${output_file}" | tail -n 1)
+  if [ "${fullErr}" != "$errMsg" ]; then
+    echo "ERROR: Invalid full error redirection" | tee -a "${output_file}"
+    echo "  GOT: $fullErr" | tee -a "${output_file}"
+    echo "  EXPECTED: $errMsg" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  fullOut2=$(grep -A 3 "\\[LOG\\] Content FULL2 OUT:" "${output_file}" | tail -n 3)
+  if [ "${fullOut2}" != "$msg" ]; then
+    echo "ERROR: Invalid full2 output redirection" | tee -a "${output_file}"
+    echo "  GOT: $fullOut2" | tee -a "${output_file}"
+    echo "  EXPECTED: $msg" | tee -a "${output_file}"
+    exit 1
+  fi
+  fullErr2=$(grep -A 1 "\\[LOG\\] Content FULL2 ERR:" "${output_file}" | tail -n 1)
+  if [ "${fullErr2}" != "$errMsg" ]; then
+    echo "ERROR: Invalid full2 error redirection" | tee -a "${output_file}"
+    echo "  GOT: $fullErr2" | tee -a "${output_file}"
+    echo "  EXPECTED: $errMsg" | tee -a "${output_file}"
+    exit 1
+  fi
+    
+  #----------------------------------------------------------------------------------
+  # Report result status  
+  exit 0

@@ -1,0 +1,90 @@
+#!/bin/bash -e
+
+  # Obtain parameters
+  output_file=$1
+  error_file=$2
+  target_log_folder=$3
+  base_app_dir=$4
+  comm=$5
+
+  # Log files
+  runtime_log="${target_log_folder}/runtime.log"
+  resources_log="${target_log_folder}/resources.log"
+
+  #----------------------------------------------------------------------------------
+  # Check output and runtime.log exist
+  if [ ! -f "${output_file}" ]; then
+     echo "[ERROR] Output file not found" | tee -a "${output_file}"
+     exit 1
+  fi
+  if [ ! -f "${runtime_log}" ]; then
+    echo "[ERROR] runtime.log not found" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Check output standard out status of simple.ipynb or simpleGAT.ipynb
+  if [[ $comm == *"GAT"* ]]; then
+    html="${base_app_dir}/src/simpleGAT.html"
+  else
+    html="${base_app_dir}/src/simple.html"
+  fi
+
+  if [ -f "${html}" ]; then
+     result_expected="RESULT=EXPECTED"
+     test_result=$(grep -oE '\bRESULT=\w*' "${html}" | tail -n 1)
+     if [ "${result_expected}" != "${test_result}" ]; then
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
+        exit 1
+     fi
+  else
+     echo "SOME ERROR WAS FOUND. HTML FILE NOT EXISTS." | tee -a "${output_file}"
+     exit 1
+  fi
+
+  # Check that ErrorManager has not raised any ERROR or FATAL message
+  if [ -f "${error_file}" ]; then
+    if grep -E "\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs)" "${error_file}"; then
+      echo "ERROR: ErrorManager has raised a fatal error" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    # Empty error file, no exceptions could have been raised
+    :
+  fi
+  # Check that the Runtime has not registered any fatal error
+  if [ -f "${runtime_log}" ]; then
+    if grep -E "ErrorManager\\].*\\[ERRMGR\\].*Error detected. Shutting down COMPSs" "${runtime_log}"; then
+      echo "ERROR: ErrorManager has registered a fatal error in the runtime.log" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    echo "[ERROR] runtime.log not found" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Grep for unit test errors (ERROR or FAIL)
+  errors=$(cat "${output_file}" "${error_file}" | grep "ERROR" | cat)
+  fails=$(cat "${output_file}" "${error_file}" | grep "FAIL" | cat)
+  if [ "${errors}" != "" ] || [ "${fails}" != "" ]; then
+      echo "ERROR: UNIT TEST RAISED AN ERROR." | tee -a "${output_file}"
+      exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Check that graph has been generated
+  if [ ! -f "${target_log_folder}"/monitor/complete_graph.dot ]; then
+     echo "SOME ERROR WAS FOUND. GRAPH NOT GENERATED." | tee -a "${output_file}"
+     exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Check that trace has been generated
+  # shellcheck disable=SC2144 #because we know there is 0 or 1 match only
+  if [ ! -f "${target_log_folder}"/trace/*.prv ] || [ ! -f "${target_log_folder}"/trace/*.pcf ] || [ ! -f "${target_log_folder}"/trace/*.row ]; then
+     echo "SOME ERROR WAS FOUND. TRACE NOT GENERATED." | tee -a "${output_file}"
+     exit 1
+  fi
+
+  exit 0

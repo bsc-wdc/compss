@@ -1,0 +1,22 @@
+#!/bin/bash -e
+  
+  # Obtain parameter
+  source_base_dir=$1
+  target_base_dir=$2
+
+  # Compile and deploy MPI
+  mpiCC -o "${target_base_dir}"/increment.mpi "${source_base_dir}"/src/main/c/increment.c
+
+  # Deploy binary
+  cp "${source_base_dir}"/src/main/binary/increment.sh "${target_base_dir}"
+
+  # Copy files
+  app_name="1_annotation_implementations"
+
+  cp "${source_base_dir}"/target/${app_name}.jar "${target_base_dir}"/${app_name}.jar
+
+  cp "${source_base_dir}"/project.xml "${target_base_dir}"/project.xml
+  cp "${source_base_dir}"/resources.xml "${target_base_dir}"/resources.xml
+
+  cp "${source_base_dir}"/execution "${target_base_dir}"/execution
+  cp "${source_base_dir}"/result "${target_base_dir}"/result

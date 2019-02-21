@@ -1,0 +1,6 @@
+interface TestStatic
+{
+	static void Block::generate(out Block b, in int bSize, in double value);
+	static Block Block::create(in int bSize, in double value);
+	void Block::multiply(in Block a, in Block b);
+};

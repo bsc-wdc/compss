@@ -1,0 +1,23 @@
+#!/bin/bash -e
+  
+  # Obtain parameter
+  source_base_dir=$1
+  target_base_dir=$2
+  
+  # Compile C sub-programs
+  mkdir "${target_base_dir}"/bin/
+  in_out_err_binary="${target_base_dir}"/bin/testIN_OUT_ERR
+  out_err_binary="${target_base_dir}"/bin/testOUT_ERR
+  g++ -o "${in_out_err_binary}" "${source_base_dir}"/src/main/c/testIN_OUT_ERR.cc
+  g++ -o "${out_err_binary}" "${source_base_dir}"/src/main/c/testOUT_ERR.cc
+  
+  # Copy files
+  app_name="1_annotation_non_native"
+
+  cp "${source_base_dir}"/target/${app_name}.jar "${target_base_dir}"/${app_name}.jar
+
+  cp "${source_base_dir}"/project.xml "${target_base_dir}"/project.xml
+  cp "${source_base_dir}"/resources.xml "${target_base_dir}"/resources.xml
+
+  cp "${source_base_dir}"/execution "${target_base_dir}"/execution
+  cp "${source_base_dir}"/result "${target_base_dir}"/result

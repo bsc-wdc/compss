@@ -1,7 +1,7 @@
 from pycompss.api.task import task
 from pycompss.api.constraint import constraint
 from storage.storage_object import StorageObject
-from pycompss.api.parameters import IN
+from pycompss.api.parameter import *
 
 class TNet(StorageObject):
 

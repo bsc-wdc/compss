@@ -73,7 +73,7 @@ class task(object):
         :return: A dictionary with the default values of the non-parameter decorator fields
         """
         return {
-            'isModifier': True,  # Irrelevant if direction of self is explicitly defined
+            'targetDirection': parameter.INOUT,
             'returns': False,
             'priority': False,
             'isReplicated': False,
@@ -695,12 +695,13 @@ class task(object):
         Returns the default direction for a given parameter
         :return: An identifier of the direction
         """
+
         # We are the 'self' or 'cls' in an instance or classmethod that modifies the given class
-        # so we are an INOUT
-        if self.decorator_arguments['isModifier'] and var_name in ['self', 'cls'] and \
+        # so we are an INOUT or CONCURRENT
+        self_dirs = [parameter.DIRECTION.INOUT, parameter.DIRECTION.CONCURRENT]
+        if self.decorator_arguments['targetDirection'].direction in self_dirs and var_name in ['self', 'cls'] and \
                 self.param_args and self.param_args[0] == var_name:
-            return parameter.get_new_parameter('INOUT')
-        # Default, safest direction = IN
+            return self.decorator_arguments['targetDirection']
         return parameter.get_new_parameter('IN')
 
     def process_master_parameters(self, *args, **kwargs):
@@ -758,7 +759,8 @@ class task(object):
                 self.parameters[var_name] = parameter.get_parameter_copy(self.get_varargs_direction())
             elif parameter.is_kwarg(var_name):
                 real_name = parameter.get_name_from_kwarg(var_name)
-                self.parameters[var_name] = self.decorator_arguments.get(real_name, self.get_default_direction(real_name))
+                self.parameters[var_name] = self.decorator_arguments.get(real_name,
+                                                                         self.get_default_direction(real_name))
             else:
                 # The argument is named, check its direction
                 # Default value = IN if not class or instance method and isModifier, INOUT otherwise
@@ -979,7 +981,8 @@ class task(object):
         for arg in [x for x in args if isinstance(x, parameter.TaskParameter) and self.is_parameter_object(x.name)]:
             original_name = parameter.get_original_name(arg.name)
             param = self.decorator_arguments.get(original_name, self.get_default_direction(original_name))
-            if param.direction == parameter.DIRECTION.INOUT and not (arg.type == parameter.TYPE.EXTERNAL_PSCO or is_psco(arg.content)):
+            if param.direction == parameter.DIRECTION.INOUT and not (
+                    arg.type == parameter.TYPE.EXTERNAL_PSCO or is_psco(arg.content)):
                 # If it si INOUT and not PSCO, serialize to file
                 # We can not use here param.type != parameter.TYPE.EXTERNAL_PSCO since param.type has the old type
                 from pycompss.util.serializer import serialize_to_file
@@ -1037,7 +1040,7 @@ class task(object):
 
         # Add self type and value if exist
         if has_self:
-            if self.decorator_arguments['isModifier']:
+            if self.decorator_arguments['targetDirection'].direction == parameter.DIRECTION.INOUT:
                 # Check if self is a PSCO that has been persisted inside the task and isModifier
                 # Update self type and value
                 self_type = parameter.get_compss_type(args[0])
@@ -1066,7 +1069,7 @@ class task(object):
                 new_types.append(ret_type)
                 new_values.append(ret_value)
 
-        return new_types, new_values, self.decorator_arguments['isModifier']
+        return new_types, new_values, self.decorator_arguments['targetDirection']
 
     def sequential_call(self, *args, **kwargs):
         """

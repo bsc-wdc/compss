@@ -52,7 +52,7 @@ public class DeleteFileRequest extends APRequest {
             File f = new File(filePath);
             if (f.exists()){
                 if (f.delete()) {
-                    LOGGER.info("[DeleteFileRequest] File " + filePath + "deleted");
+                    LOGGER.info("[DeleteFileRequest] File " + filePath + " deleted");
                 } else {
                     LOGGER.error("[DeleteFileRequest] Error on deleting file " + filePath);
                 }

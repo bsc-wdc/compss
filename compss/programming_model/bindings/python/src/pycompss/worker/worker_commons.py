@@ -189,21 +189,21 @@ def task_execution(logger, process_name, module, method_name, types, values, com
         # TODO: Currently, the extra result is ignored.
         new_types = task_output[0][0]
         new_values = task_output[0][1]
-        is_modifier = task_output[0][2]
+        targetDirection = task_output[0][2]
     else:
         # The task_output is composed by the new_types and new_values returned by the task decorator.
         new_types = task_output[0]
         new_values = task_output[1]
-        is_modifier = task_output[2]
+        targetDirection = task_output[2]
 
     if __debug__:
         # The types may change (e.g. if the user does a makePersistent within the task)
         logger.debug("[PYTHON WORKER %s] Return Types : %s " % (process_name, str(new_types)))
         logger.debug("[PYTHON WORKER %s] Return Values: %s " % (process_name, str(new_values)))
-        logger.debug("[PYTHON WORKER %s] Return isModifier: %s " % (process_name, str(is_modifier)))
+        logger.debug("[PYTHON WORKER %s] Return targetDirection: %s " % (process_name, str(targetDirection)))
         logger.debug("[PYTHON WORKER %s] Finished task execution" % process_name)
 
-    return new_types, new_values, is_modifier
+    return new_types, new_values, targetDirection
 
 def execute_task(process_name, storage_conf, params, tracing, logger):
     """
@@ -311,9 +311,9 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
 
         if persistent_storage:
             with storage_task_context(logger, values, config_file_path=storage_conf):
-                new_types, new_values, is_modifier = task_execution_1()
+                new_types, new_values, targetDirection = task_execution_1()
         else:
-            new_types, new_values, is_modifier = task_execution_1()
+            new_types, new_values, targetDirection = task_execution_1()
 
     # ==========================================================================
     except AttributeError:
@@ -386,7 +386,8 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
                         logger.debug('Deserialized self object is: %s' % self_elem.content)
                         logger.debug("Processing callee, a hidden object of %s in file %s" % (file_name, type(self_elem.content)))
             values.insert(0, obj)
-            types.insert(0, parameter.TYPE.OBJECT if not self_type == parameter.TYPE.EXTERNAL_PSCO else parameter.TYPE.EXTERNAL_PSCO)
+            types.insert(0,
+                         parameter.TYPE.OBJECT if not self_type == parameter.TYPE.EXTERNAL_PSCO else parameter.TYPE.EXTERNAL_PSCO)
 
             def task_execution_2():
                 from pycompss.worker.worker_commons import task_execution
@@ -395,9 +396,9 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
             try:
                 if persistent_storage:
                     with storage_task_context(logger, values, config_file_path=storage_conf):
-                        new_types, new_values, is_modifier = task_execution_2()
+                        new_types, new_values, targetDirection = task_execution_2()
                 else:
-                    new_types, new_values, is_modifier = task_execution_2()
+                    new_types, new_values, targetDirection = task_execution_2()
             except Exception:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 import traceback
@@ -407,11 +408,11 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
                 # If exception is raised during the task execution, new_types and new_values are empty
                 return 1, new_types, new_values
 
-            # Depending on the isModifier option, it is necessary to serialize again self or not.
+            # Depending on the targetDirection option, it is necessary to serialize again self or not.
             # Since this option is only visible within the task decorator, the task_execution returns
             # the value of isModifier in order to know here if self has to be serialized.
             # This solution avoids to use inspect.
-            if is_modifier:
+            if targetDirection.direction == parameter.DIRECTION.INOUT:
                 from pycompss.util.persistent_storage import is_psco
                 if is_psco(self_elem):
                     # There is no explicit update if self is a PSCO.
@@ -444,9 +445,9 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
             try:
                 if persistent_storage:
                     with storage_task_context(logger, values, config_file_path=storage_conf):
-                        new_types, new_values, is_modifier = task_execution_3()
+                        new_types, new_values, targetDirection = task_execution_3()
                 else:
-                    new_types, new_values, is_modifier = task_execution_3()
+                    new_types, new_values, targetDirection = task_execution_3()
             except Exception:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 import traceback

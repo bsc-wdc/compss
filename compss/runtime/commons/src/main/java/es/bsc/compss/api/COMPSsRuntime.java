@@ -116,8 +116,8 @@ public interface COMPSsRuntime {
      * @param parameters
      * @return
      */
-    public int executeTask(Long appId, TaskMonitor monitor, Lang lang, String methodClass, String methodName, boolean isPrioritary, int numNodes,
-            boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters);
+    public int executeTask(Long appId, TaskMonitor monitor, Lang lang, String methodClass, String methodName, boolean isPrioritary,
+            int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters);
 
     /**
      * New service task
@@ -165,7 +165,7 @@ public interface COMPSsRuntime {
     public void barrier(Long appId, boolean noMoreTasks);
 
     /**
-     * Deregisters an object to eventually free its memory
+     * Unregisters an object to eventually free its memory
      *
      * @param appId
      * @param o

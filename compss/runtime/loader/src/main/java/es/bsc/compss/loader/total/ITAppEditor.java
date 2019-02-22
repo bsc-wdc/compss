@@ -583,25 +583,16 @@ public class ITAppEditor extends ExprEditor {
             // Add direction
             // Check if the method will modify the target object (default yes)
             if (isMethod) {
-                String isModifierField = null;
+                Direction targetDirection = null;
                 if (declaredMethod.isAnnotationPresent(es.bsc.compss.types.annotations.task.Method.class)) {
                     es.bsc.compss.types.annotations.task.Method methodAnnot = declaredMethod
                             .getAnnotation(es.bsc.compss.types.annotations.task.Method.class);
-                    isModifierField = methodAnnot.isModifier();
+                    targetDirection = methodAnnot.targetDirection();
                 } else if (declaredMethod.isAnnotationPresent(MultiNode.class)) {
                     MultiNode multiNodeAnnot = declaredMethod.getAnnotation(MultiNode.class);
-                    isModifierField = multiNodeAnnot.isModifier();
+                    targetDirection = multiNodeAnnot.targetDirection();
                 }
-
-                boolean isModifier = false;
-                if (isModifierField != null) {
-                    isModifier = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(isModifierField));
-                }
-                if (isModifier) {
-                    targetObj.append(',').append(DATA_DIRECTION + ".INOUT");
-                } else {
-                    targetObj.append(',').append(DATA_DIRECTION + ".IN");
-                }
+                targetObj.append(',').append(DATA_DIRECTION + "." + targetDirection.name());
             } else {
                 // Service
                 targetObj.append(',').append(DATA_DIRECTION + ".INOUT");

@@ -25,6 +25,7 @@ PyCOMPSs API - Parameter
         - IN
         - OUT
         - INOUT
+        - CONCURRENT
     2. TYPE.
         - FILE
         - BOOLEAN
@@ -54,6 +55,7 @@ class DIRECTION(object):
     IN = 0
     OUT = 1
     INOUT = 2
+    CONCURRENT = 3
 
 
 # Numbers match both C and Java enums
@@ -115,6 +117,7 @@ class Parameter(object):
 IN = Parameter()
 OUT = Parameter(p_direction=DIRECTION.OUT)
 INOUT = Parameter(p_direction=DIRECTION.INOUT)
+CONCURRENT = Parameter(p_direction=DIRECTION.CONCURRENT)
 
 # Aliases for streams (just stream direction)
 STDIN = STREAM.STDIN
@@ -126,6 +129,7 @@ FILE = Parameter(p_type=TYPE.FILE)
 FILE_IN = Parameter(p_type=TYPE.FILE)
 FILE_OUT = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT)
 FILE_INOUT = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.INOUT)
+FILE_CONCURRENT = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.CONCURRENT)
 
 # Aliases for files with stream
 FILE_STDIN = Parameter(p_type=TYPE.FILE, p_stream=STREAM.STDIN)
@@ -142,6 +146,9 @@ FILE_OUT_STDOUT = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT, p_strea
 FILE_INOUT_STDIN = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.INOUT, p_stream=STREAM.STDIN)
 FILE_INOUT_STDERR = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.INOUT, p_stream=STREAM.STDERR)
 FILE_INOUT_STDOUT = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.INOUT, p_stream=STREAM.STDOUT)
+FILE_CONCURRENT_STDIN = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.CONCURRENT, p_stream=STREAM.STDIN)
+FILE_CONCURRENT_STDERR = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.CONCURRENT, p_stream=STREAM.STDERR)
+FILE_CONCURRENT_STDOUT = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.CONCURRENT, p_stream=STREAM.STDOUT)
 
 # Aliases for parameter definition as dictionary
 Type = "type"  # parameter type

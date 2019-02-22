@@ -31,7 +31,6 @@ from pycompss.api.parameter import JAVA_MIN_INT, JAVA_MAX_INT
 from pycompss.api.parameter import JAVA_MIN_LONG, JAVA_MAX_LONG
 from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.runtime.commons import STR_ESCAPE
-from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.serializer import *
 from pycompss.util.sizer import total_sizeof
 from pycompss.util.persistent_storage import is_psco, get_id, get_by_id
@@ -50,7 +49,7 @@ from collections import *
 from shutil import rmtree
 
 # Import main C module extension for the communication with the runtime
-# See ext/compssmodule.c
+# See ext/compssmodule.cc
 import compss
 
 # Types conversion dictionary from python to COMPSs
@@ -665,6 +664,8 @@ def get_compss_mode(pymode):
         return DIRECTION.OUT
     elif pymode.startswith('r+') or pymode.startswith('a'):
         return DIRECTION.INOUT
+    elif pymode.startswith('c'):
+        return DIRECTION.CONCURRENT
     else:
         return DIRECTION.IN
 

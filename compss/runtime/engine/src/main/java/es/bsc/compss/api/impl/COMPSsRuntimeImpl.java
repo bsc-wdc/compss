@@ -90,9 +90,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     // Language
     protected static final String DEFAULT_LANG_STR = System.getProperty(COMPSsConstants.LANG);
-    protected static final Lang DEFAULT_LANG = ((DEFAULT_LANG_STR == null)
-            ? Lang.JAVA
-            : Lang.valueOf(DEFAULT_LANG_STR.toUpperCase()));
+    protected static final Lang DEFAULT_LANG = ((DEFAULT_LANG_STR == null) ? Lang.JAVA : Lang.valueOf(DEFAULT_LANG_STR.toUpperCase()));
 
     // Registries
     private static ObjectRegistry oReg;
@@ -139,6 +137,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
          */
         Comm.init(new MasterResourceImpl());
     }
+
 
     // Code Added to support configuration files
     private static void setPropertiesFromRuntime(RuntimeConfigManager manager) {
@@ -307,7 +306,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             if (stream != null) {
                 return stream;
             } else {
-                // System.err.println("IT properties file not defined. Looking at classLoader ...");
+                // System.err.println("IT properties file not defined. Looking at classLoader...");
                 stream = COMPSsRuntimeImpl.class.getClassLoader().getResourceAsStream(COMPSsConstants.COMPSS_CONFIG);
                 if (stream != null) {
                     return stream;
@@ -316,8 +315,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                     if (stream != null) {
                         return stream;
                     } else {
-                        // System.err.println("IT properties file not found in classloader. Looking at system resource
-                        // ...");
+                        // System.err.println("IT properties file not found in classloader. Looking at system
+                        // resource...");
                         stream = ClassLoader.getSystemResourceAsStream(COMPSsConstants.COMPSS_CONFIG);
                         if (stream != null) {
                             return stream;
@@ -350,9 +349,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /*
-     * ********************************************************************************************************
-     * CONSTRUCTOR
-     * ********************************************************************************************************
+     * *********************************************************************************************************
+     * ************************************* CONSTRUCTOR *************************************
+     * *********************************************************************************************************
      */
     public COMPSsRuntimeImpl() {
         // Load COMPSS version and buildNumber
@@ -380,9 +379,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /*
-     * ********************************************************************************************************
+     * *********************************************************************************************************
      * COMPSsRuntime INTERFACE IMPLEMENTATION
-     * ********************************************************************************************************
+     * *********************************************************************************************************
      */
     /**
      * Starts the COMPSS Runtime
@@ -606,8 +605,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      *
      * @param appId
      * @param monitor
-     * @param hasSignature indicates whether the signature parameter is valid or must be constructed from the methodName
-     * and methodClass parameters
+     * @param hasSignature
+     *            indicates whether the signature parameter is valid or must be constructed from the methodName and
+     *            methodClass parameters
      * @param methodClass
      * @param methodName
      * @param signature
@@ -638,7 +638,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("There " + (parameterCount == 1 ? "is " : "are ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
+            LOGGER.debug(
+                    "There " + (parameterCount == 1 ? "is " : "are ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
         }
 
         // Process the parameters
@@ -828,9 +829,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /*
-     * ********************************************************************************************************
-     * LoaderAPI INTERFACE IMPLEMENTATION
-     * ********************************************************************************************************
+     * *********************************************************************************************************
+     * *********************************** LoaderAPI INTERFACE IMPLEMENTATION **********************************
+     * *********************************************************************************************************
      */
     /**
      * Returns a copy of the last file version
@@ -950,9 +951,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /*
-     * ***********************************************************************************************************
-     * COMMON IN BOTH APIs
-     * ********************************************************************************************************
+     * *********************************************************************************************************
+     * *********************************** COMMON IN BOTH APIs ***********************************
+     * *********************************************************************************************************
      */
     /**
      * Returns the renaming of the file version opened
@@ -983,6 +984,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 break;
             case INOUT:
                 am = AccessMode.RW;
+                break;
+            case CONCURRENT:
+                am = AccessMode.C;
                 break;
         }
 
@@ -1017,7 +1021,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     @Override
     public void closeFile(String fileName, Direction mode) {
         // if (Tracer.isActivated()) {
-        // Tracer.emitEvent(Tracer.Event.CLOSE_FILE.getId(), Tracer.Event.CLOSE_FILE.getType());
+        // Tracer.emitEvent(Tracer.Event.CLOSE_FILE.getId(),
+        // Tracer.Event.CLOSE_FILE.getType());
         // }
 
         LOGGER.info("Closing " + fileName + " in mode " + mode);
@@ -1041,6 +1046,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 break;
             case INOUT:
                 am = AccessMode.RW;
+                break;
+            case CONCURRENT:
+                am = AccessMode.C;
                 break;
         }
 
@@ -1219,9 +1227,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /*
-     * ************************************************************************************************************
-     * PRIVATE HELPER METHODS
-     * ********************************************************************************************************
+     * *********************************************************************************************************
+     * *********************************** PRIVATE HELPER METHODS **********************************************
+     * *********************************************************************************************************
      */
     private Parameter[] processParameters(int parameterCount, Object[] parameters) {
         ArrayList< Parameter > pars = new ArrayList<>();

@@ -80,6 +80,7 @@ public class ExecutionAction extends AllocatableAction {
     private int transferErrors = 0;
     protected int executionErrors = 0;
 
+
     /**
      * Creates a new execution action
      *
@@ -347,6 +348,7 @@ public class ExecutionAction extends AllocatableAction {
                 DataInstanceId dId = null;
                 DependencyParameter dp = (DependencyParameter) p;
                 switch (p.getDirection()) {
+                    case CONCURRENT:
                     case IN:
                         // FTM already knows about this datum
                         continue;
@@ -649,7 +651,7 @@ public class ExecutionAction extends AllocatableAction {
         }
 
         if (// Resource is not compatible with the implementation
-                !targetWorker.getResource().canRun(impl)
+        !targetWorker.getResource().canRun(impl)
                 // already ran on the resource
                 || this.getExecutingResources().contains(targetWorker)) {
 

@@ -34,14 +34,24 @@ public class COMPSs {
         System.out.println(SKIP_MESSAGE);
     }
 
+    /**
+     * Barrier with noMoreTasks flag to avoid file transfers
+     * 
+     * @param noMoreTasks
+     */
     public static void barrier(boolean noMoreTasks) {
         // This is only a handler, it is never executed
         System.out.println(SKIP_MESSAGE);
     }
-    
+
+    /**
+     * Unregister the given object from the Runtime
+     * 
+     * @param o
+     */
     public static void deregisterObject(Object o) {
-    	// This is only a handler, it is never executed
+        // This is only a handler, it is never executed
         System.out.println(SKIP_MESSAGE);
     }
-    
+
 }

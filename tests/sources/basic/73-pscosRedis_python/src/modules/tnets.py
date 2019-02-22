@@ -1,6 +1,7 @@
 from pycompss.api.task import task
 from pycompss.api.constraint import constraint
 from storage.storage_object import StorageObject
+from pycompss.api.parameter import *
 
 class TNet(StorageObject):
 
@@ -16,6 +17,6 @@ class EA(TNet):
         super(EA, self).__init__()
 
     @constraint(ComputingUnits="1")
-    @task(isModifier=False, returns=object)
+    @task(targetDirection=IN, returns=object)
     def extract_features(self, bs, image_paths, pooled, mean):
         return self.main_extract_features(bs, image_paths, pooled, mean)

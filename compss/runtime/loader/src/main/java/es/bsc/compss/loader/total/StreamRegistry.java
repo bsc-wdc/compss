@@ -71,16 +71,16 @@ public class StreamRegistry {
 
     private boolean onWindows;
 
-    private static final Logger logger = LogManager.getLogger(Loggers.LOADER);
-    private static final boolean debug = logger.isDebugEnabled();
-    private static final String lineSep = System.getProperty("line.separator");
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER);
+    private static final boolean DEBUG = LOGGER.isDebugEnabled();
+    private static final String LINE_SEP = System.getProperty("line.separator");
 
 
     public StreamRegistry(LoaderAPI api) {
         this.itApi = api;
         this.fileToStreams = new TreeMap<>();
         this.taskFiles = new HashSet<String>();
-        this.onWindows = File.separatorChar == '\\';
+        this.onWindows = (File.separatorChar == '\\');
     }
 
     // FileInputStream
@@ -98,7 +98,7 @@ public class StreamRegistry {
             list.addFD(fis.getFD());
         } catch (IOException e) {
             // We must go up as a FileNotFoundException, since it is the one that the application deals with
-            throw new FileNotFoundException("Loader - Error creating FileInputStream for file " + file + lineSep + e.getMessage());
+            throw new FileNotFoundException("Loader - Error creating FileInputStream for file " + file + LINE_SEP + e.getMessage());
         }
 
         return fis;
@@ -130,7 +130,7 @@ public class StreamRegistry {
             list.addFD(fos.getFD());
         } catch (IOException e) {
             // We must go up as a FileNotFoundException, since it is the one that the application deals with
-            throw new FileNotFoundException("Loader - Error creating FileOutputStream for file " + file + lineSep + e.getMessage());
+            throw new FileNotFoundException("Loader - Error creating FileOutputStream for file " + file + LINE_SEP + e.getMessage());
         }
 
         return fos;
@@ -186,7 +186,7 @@ public class StreamRegistry {
             list.addFD(raf.getFD());
         } catch (IOException e) {
             // We must go up as a FileNotFoundException, since it is the one that the application deals with
-            throw new FileNotFoundException("Loader - Error creating RandomAccessFile for file " + file + lineSep + e.getMessage());
+            throw new FileNotFoundException("Loader - Error creating RandomAccessFile for file " + file + LINE_SEP + e.getMessage());
         }
 
         return raf;
@@ -493,13 +493,14 @@ public class StreamRegistry {
         StreamList list = fileToStreams.get(path);
         if (list == null) {
             // First stream opened for this file
-            if (debug) {
-                logger.debug("First stream on the list for file " + path + " with direction " + direction);
+            if (DEBUG) {
+                LOGGER.debug("First stream on the list for file " + path + " with direction " + direction);
             }
 
             // Obtain the renaming
             String renaming = null;
             switch (direction) {
+                case CONCURRENT:
                 case IN:
                     /*
                      * LEGACY CODE. The last version of the file must be transferred to a temp directory without the
@@ -528,8 +529,8 @@ public class StreamRegistry {
             list.setWritten(true);
         }
 
-        if (debug) {
-            logger.debug("New stream for file " + path + " with renaming " + list.getRenaming() + " and direction " + direction);
+        if (DEBUG) {
+            LOGGER.debug("New stream for file " + path + " with renaming " + list.getRenaming() + " and direction " + direction);
         }
 
         return list;
@@ -539,8 +540,8 @@ public class StreamRegistry {
     private StreamList obtainList(FileDescriptor fd) {
         for (StreamList list : fileToStreams.values()) {
             if (list.containsFD(fd)) {
-                if (debug) {
-                    logger.debug("Found list for file descriptor " + fd + ": file " + list.getRenaming());
+                if (DEBUG) {
+                    LOGGER.debug("Found list for file descriptor " + fd + ": file " + list.getRenaming());
                 }
 
                 return list;
@@ -561,8 +562,8 @@ public class StreamRegistry {
                 if (listStream.equals(oldStream)) {
                     listIt.set(newStream);
 
-                    if (debug) {
-                        logger.debug("Replaced stream of " + oldStream.getClass() + " by another of " + newStream.getClass());
+                    if (DEBUG) {
+                        LOGGER.debug("Replaced stream of " + oldStream.getClass() + " by another of " + newStream.getClass());
                     }
 
                     continue;
@@ -589,8 +590,8 @@ public class StreamRegistry {
             }
 
             if (found) {
-                if (debug) {
-                    logger.debug("Found closed stream of " + stream.getClass());
+                if (DEBUG) {
+                    LOGGER.debug("Found closed stream of " + stream.getClass());
                 }
 
                 // Check if it was the last stream to be closed
@@ -601,8 +602,8 @@ public class StreamRegistry {
                      * move the file to the application's working directory
                      */
 
-                    if (debug) {
-                        logger.debug("Empty stream list");
+                    if (DEBUG) {
+                        LOGGER.debug("Empty stream list");
                     }
 
                     if (list.isFirstStreamInput() && list.getWritten()) {
@@ -611,11 +612,11 @@ public class StreamRegistry {
                         String newRen = itApi.openFile(filePath, Direction.OUT);
                         File f = new File(oldRen);
                         if (!f.renameTo(new File(newRen))) {
-                            logger.error("Error on file renaming to " + newRen);
+                            LOGGER.error("Error on file renaming to " + newRen);
                         }
 
-                        if (debug) {
-                            logger.debug("Renamed and moved file from " + oldRen + " to " + newRen);
+                        if (DEBUG) {
+                            LOGGER.debug("Renamed and moved file from " + oldRen + " to " + newRen);
                         }
                     }
                     entryIt.remove();

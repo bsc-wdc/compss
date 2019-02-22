@@ -30,7 +30,8 @@ public abstract class DataAccessId implements Serializable {
     public static enum Direction {
         R, // Read
         RW, // Read and write
-        W // Write
+        W, // Write
+        C
     }
 
 
@@ -51,7 +52,7 @@ public abstract class DataAccessId implements Serializable {
         private static final long serialVersionUID = 1L;
 
         // File version read
-        //private DataInstanceId readDataInstance;
+        // private DataInstanceId readDataInstance;
         private DataVersion readDataVersion;
         // Source data preservation flag
         private boolean preserveSourceData = true;
@@ -166,7 +167,7 @@ public abstract class DataAccessId implements Serializable {
         // File version written
         private DataVersion writtenDataVersion;
         // Source data preservation flag
-        //private boolean preserveSourceData = false;
+        // private boolean preserveSourceData = false;
 
 
         public RWAccessId() {
@@ -205,7 +206,7 @@ public abstract class DataAccessId implements Serializable {
         }
 
         public boolean isPreserveSourceData() {
-        	return readDataVersion.isOnlyReader();
+            return readDataVersion.isOnlyReader();
         }
 
         @Override

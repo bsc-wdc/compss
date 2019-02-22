@@ -27,6 +27,7 @@ enum direction {
     in_dir = 0,
     out_dir,
     inout_dir,
+    concurrent_dir,
     null_dir
 };
 

@@ -62,7 +62,8 @@ import org.apache.logging.log4j.Logger;
 public class ITFParser {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
-    private static final boolean debug = LOGGER.isDebugEnabled();
+    private static final boolean DEBUG = LOGGER.isDebugEnabled();
+
 
 
     /**
@@ -78,7 +79,7 @@ public class ITFParser {
         List<CoreElementDefinition> updatedMethods = new LinkedList<>();
 
         int coreCount = annotItfClass.getDeclaredMethods().length;
-        if (debug) {
+        if (DEBUG) {
             LOGGER.debug("Detected methods " + coreCount);
         }
 
@@ -100,49 +101,35 @@ public class ITFParser {
      */
     private static CoreElementDefinition parseITFMethod(java.lang.reflect.Method m) {
         CoreElementDefinition ced = new CoreElementDefinition();
-        /*
-         * Computes the callee method signature and checks parameter annotations
-         */
+
+        // Computes the callee method signature and checks parameter annotations
         LOGGER.info("Evaluating method " + m.getName());
 
         StringBuilder calleeMethodSignature = new StringBuilder();
         String methodName = m.getName();
         calleeMethodSignature.append(methodName).append("(");
 
-        /*
-         * Check all annotations are valid
-         */
+        // Check all annotations are valid
         checkMethodAnnotation(m);
 
-        /*
-         * Load if there is any non-native annotation or not
-         */
+        // Load if there is any non-native annotation or not
         boolean hasNonNative = checkNonNativeAnnotation(m);
 
-        /*
-         * Construct signature and check parameters
-         */
+        // Construct signature and check parameters
         boolean[] hasAnnotations = constructSignatureAndCheckParameters(m, hasNonNative, calleeMethodSignature);
         boolean hasStreams = hasAnnotations[0];
         boolean hasPrefixes = hasAnnotations[1];
 
-        /*
-         * Check all annotations present at the method for versioning
-         */
-        if (debug) {
+        // Check all annotations present at the method for versioning
+        if (DEBUG) {
             LOGGER.debug("   * Method method " + methodName + " has " + m.getAnnotations().length + " annotations");
         }
-
         checkDefinedImplementations(m, calleeMethodSignature, hasStreams, hasPrefixes, ced);
 
-        /*
-         * Register all implementations
-         */
+        // Register all implementations
         ced.setCeSignature(calleeMethodSignature.toString());
 
-        /*
-         * Returns the assigned methodId
-         */
+        // Returns the assigned methodId
         return ced;
     }
 

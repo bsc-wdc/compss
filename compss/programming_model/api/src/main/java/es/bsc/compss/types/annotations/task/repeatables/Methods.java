@@ -31,7 +31,7 @@ import es.bsc.compss.types.annotations.task.Method;
  *
  */
 public @interface Methods {
-    
+
     Method[] value();
-    
+
 }

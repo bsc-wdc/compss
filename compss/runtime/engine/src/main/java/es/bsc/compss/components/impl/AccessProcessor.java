@@ -67,6 +67,7 @@ import es.bsc.compss.types.request.ap.TasksStateRequest;
 import es.bsc.compss.types.request.ap.TransferObjectRequest;
 import es.bsc.compss.types.request.ap.TransferOpenFileRequest;
 import es.bsc.compss.types.request.ap.UnblockResultFilesRequest;
+import es.bsc.compss.types.request.ap.WaitForConcurrentRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.WaitForTaskRequest;
 import es.bsc.compss.types.request.ap.DeregisterObject;
@@ -278,7 +279,12 @@ public class AccessProcessor implements Runnable, TaskProducer {
         if (fap.getMode() != AccessMode.W) {
             // Wait until the last writer task for the file has finished
             LOGGER.debug("File " + faId.getDataId() + " mode contains R, waiting until the last writer has finished");
+
             waitForTask(faId.getDataId(), AccessMode.R);
+            if (taskAnalyser.dataWasAccessedConcurrent(faId.getDataId())) {
+                waitForConcurrent(faId.getDataId(), fap.getMode());
+                taskAnalyser.removeFromConcurrentAccess(faId.getDataId());
+            }
             if (destDir == null) {
                 tgtLocation = transferFileOpen(faId);
             } else {
@@ -304,7 +310,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
             }
         }
 
-        if (fap.getMode() != AccessMode.R) {
+        if (fap.getMode() != AccessMode.R && fap.getMode() != AccessMode.C) {
             // Mode contains W
             LOGGER.debug("File " + faId.getDataId() + " mode contains W, register new writer");
             DataInstanceId daId;
@@ -385,8 +391,15 @@ public class AccessProcessor implements Runnable, TaskProducer {
         if (DEBUG) {
             LOGGER.debug("Waiting for last writer of " + oaId.getDataId() + " with renaming " + wRename);
         }
-        waitForTask(oaId.getDataId(), AccessMode.RW);
 
+        // Defaut access is read because the binding object is removed after accessing it
+        waitForTask(oaId.getDataId(), AccessMode.RW);
+        if (taskAnalyser.dataWasAccessedConcurrent(oaId.getDataId())) {
+            waitForConcurrent(oaId.getDataId(), AccessMode.RW);
+            if (oaId.getDirection() != DataAccessId.Direction.R || oaId.getDirection() != DataAccessId.Direction.RW) {
+                taskAnalyser.removeFromConcurrentAccess(oaId.getDataId());
+            }
+        }
         // TODO: Check if the object was already piggybacked in the task notification
         // Ask for the object
         if (DEBUG) {
@@ -424,7 +437,14 @@ public class AccessProcessor implements Runnable, TaskProducer {
         if (DEBUG) {
             LOGGER.debug("Waiting for last writer of " + oaId.getDataId() + " with renaming " + wRename);
         }
+
         waitForTask(oaId.getDataId(), AccessMode.RW);
+        if (taskAnalyser.dataWasAccessedConcurrent(oaId.getDataId())) {
+            waitForConcurrent(oaId.getDataId(), AccessMode.RW);
+            if (oaId.getDirection() != DataAccessId.Direction.R || oaId.getDirection() != DataAccessId.Direction.RW) {
+                taskAnalyser.removeFromConcurrentAccess(oaId.getDataId());
+            }
+        }
 
         // TODO: Check if the object was already piggybacked in the task notification
         String lastRenaming = ((DataAccessId.RWAccessId) oaId).getReadDataInstance().getRenaming();
@@ -475,10 +495,16 @@ public class AccessProcessor implements Runnable, TaskProducer {
         if (DEBUG) {
             LOGGER.debug("Waiting for last writer of " + oaId.getDataId());
         }
-        // waitForTask(oaId.getDataId(), AccessMode.RW);
-        waitForTask(oaId.getDataId(), AccessMode.R);
-        // TODO: Check if the object was already piggybacked in the task notification
 
+        // Defaut access is read because the binding object is removed after accessing it
+        waitForTask(oaId.getDataId(), AccessMode.R);
+        if (taskAnalyser.dataWasAccessedConcurrent(oaId.getDataId())) {
+            // Defaut access is read because the binding object is removed after accessing it
+            waitForConcurrent(oaId.getDataId(), AccessMode.R);
+            if (oaId.getDirection() != DataAccessId.Direction.R || oaId.getDirection() != DataAccessId.Direction.RW) {
+                taskAnalyser.removeFromConcurrentAccess(oaId.getDataId());
+            }
+        }
         // String lastRenaming = ((DataAccessId.RWAccessId) oaId).getReadDataInstance().getRenaming();
         // return obtainBindingObject((DataAccessId.RWAccessId)oaId);
         String bindingObjectID = obtainBindingObject((DataAccessId.RAccessId) oaId);
@@ -563,6 +589,27 @@ public class AccessProcessor implements Runnable, TaskProducer {
         sem.acquireUninterruptibly();
 
         LOGGER.info("End of waited task for data " + dataId);
+    }
+
+    /**
+     * Synchronism for a concurrent task
+     *
+     * @param dataId
+     * @param accessMode
+     */
+    private void waitForConcurrent(int dataId, AccessMode accessMode) {
+        Semaphore sem = new Semaphore(0);
+        Semaphore semTasks = new Semaphore(0);
+        WaitForConcurrentRequest request = new WaitForConcurrentRequest(dataId, accessMode, sem, semTasks);
+        if (!requestQueue.offer(request)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "wait for concurrent task");
+        }
+
+        // Wait for response
+        sem.acquireUninterruptibly();
+        int n = request.getNumWaitedTasks();
+        semTasks.acquireUninterruptibly(n);
+        LOGGER.info("End of waited concurrent task for data " + dataId);
     }
 
     /**

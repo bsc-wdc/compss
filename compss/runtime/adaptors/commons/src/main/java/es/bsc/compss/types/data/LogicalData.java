@@ -228,6 +228,10 @@ public class LogicalData {
      */
     public synchronized void addLocation(DataLocation loc) {
         this.isBeingSaved = false;
+    	if (DEBUG) {
+    		LOGGER.debug(DBG_PREFIX + "Add location " + loc + " to " + this.getName());
+        	LOGGER.debug(new Exception().getStackTrace());
+    	}
         this.locations.add(loc);
         switch (loc.getType()) {
             case PRIVATE:
@@ -355,6 +359,10 @@ public class LogicalData {
         SimpleURI targetURI = new SimpleURI(targetPathWithSchema);
         DataLocation loc = DataLocation.createLocation(Comm.getAppHost(), targetURI);
         this.isBeingSaved = false;
+    	if (DEBUG) {
+    		LOGGER.debug(DBG_PREFIX + "Add written object location " + loc + " to " + this.getName());
+        	LOGGER.debug(new Exception().getStackTrace());
+    	}
         this.locations.add(loc);
         for (Resource r : loc.getHosts()) {
             switch (loc.getType()) {
@@ -391,6 +399,10 @@ public class LogicalData {
         }
 
         for (DataLocation loc : this.locations) {
+        	if (DEBUG) {
+        		LOGGER.debug(DBG_PREFIX + "Add load from storage location " + loc + " to " + this.getName());
+            	LOGGER.debug(new Exception().getStackTrace());
+        	}
             switch (loc.getType()) {
                 case PRIVATE:
                 case SHARED:

@@ -31,6 +31,6 @@ class PSCOWithTasks(StorageObject):
     def persist_isModifier(self):
         self.make_persistent()
 
-    @task(targetDirection=INOUT)
+    @task(targetDirection=IN)
     def persist_notIsModifier(self):
         self.make_persistent()

@@ -162,7 +162,6 @@ public abstract class ApplicationParameterValue {
                 val = value;
             } else {
                 val = StorageItf.getByID((String) value);
-                System.out.println("Requested DataClay object " + (String) value + " and obtained " + val);
             }
             return val;
         }

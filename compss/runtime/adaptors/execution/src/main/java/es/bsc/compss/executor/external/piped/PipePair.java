@@ -14,13 +14,13 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.executor.utils;
+package es.bsc.compss.executor.external.piped;
 
-import es.bsc.compss.invokers.external.piped.commands.EndTaskPipeCommand;
-import es.bsc.compss.invokers.external.piped.commands.ErrorTaskPipeCommand;
-import es.bsc.compss.invokers.external.piped.commands.QuitPipeCommand;
-import es.bsc.compss.invokers.external.ExternalCommand;
-import es.bsc.compss.invokers.external.piped.PipeCommand;
+import es.bsc.compss.executor.external.piped.commands.PipeCommand;
+import es.bsc.compss.executor.external.piped.commands.EndTaskPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.ErrorTaskPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.QuitPipeCommand;
+import es.bsc.compss.executor.external.commands.ExternalCommand;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.util.ErrorManager;
 import java.io.BufferedReader;
@@ -33,9 +33,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import es.bsc.compss.executor.external.ExternalExecutor;
+import es.bsc.compss.executor.external.piped.commands.PongPipeCommand;
 
 
-public class PipePair {
+public class PipePair implements ExternalExecutor<PipeCommand> {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
     // Logger messages
@@ -55,7 +57,8 @@ public class PipePair {
         pipePath = basePipePath + id;
     }
 
-    public boolean send(PipeCommand command) {
+    @Override
+    public boolean sendCommand(PipeCommand command) {
         boolean done = false;
         int retries = 0;
         String taskCMD = command.getAsString();
@@ -104,10 +107,12 @@ public class PipePair {
         return "READ pipe: " + pipePath + ".inbound  WRITE pipe:" + pipePath + ".outbound";
     }
 
-    public PipeCommand read() {
+    @Override
+    public PipeCommand readCommand() {
         PipeCommand readCommand = null;
+        String readPipe = pipePath + ".inbound";
         try {
-            FileInputStream input = new FileInputStream(pipePath + ".inbound");// WARN: This call is blocking for
+            FileInputStream input = new FileInputStream(readPipe);// WARN: This call is blocking for
             // NamedPipes
 
             String line = null;
@@ -125,6 +130,9 @@ public class PipePair {
                 // Process the received tag
                 ExternalCommand.CommandType commandType = ExternalCommand.CommandType.valueOf(result[0].toUpperCase());
                 switch (commandType) {
+                    case PONG:
+                        readCommand = new PongPipeCommand();
+                        break;
                     case QUIT:
                         // This quit is received from our proper shutdown, not from bindings. We just end
                         LOGGER.debug("Received quit message");
@@ -143,6 +151,7 @@ public class PipePair {
                         // We have received a fatal error from bindings, we notify error to every waiter and end
                         readCommand = new ErrorTaskPipeCommand(result);
                         break;
+                    case PING:
                     case EXECUTE_TASK:
                     case REMOVE:
                     case SERIALIZE:
@@ -159,6 +168,9 @@ public class PipePair {
         } catch (IOException ioe) {
             LOGGER.error(ERROR_PIPE_NOT_READ);
         }
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("EXECUTOR COMMAND: " + readCommand + " @ " + readPipe);
+        }
         return readCommand;
     }
 
@@ -166,7 +178,7 @@ public class PipePair {
         // Send quit tag to pipe
         String writePipe = pipePath + ".outbound";
         if (new File(writePipe).exists()) {
-            boolean done = this.send(new QuitPipeCommand());
+            boolean done = this.sendCommand(new QuitPipeCommand());
             if (!done) {
                 ErrorManager.error(ERROR_PIPE_QUIT + writePipe);
             }

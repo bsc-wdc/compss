@@ -16,19 +16,22 @@
  */
 package es.bsc.compss.agent.rest.types.messages;
 
+import es.bsc.compss.types.resources.MethodResourceDescription;
 import javax.xml.bind.annotation.XmlRootElement;
 
 
-@XmlRootElement(name = "removeNode")
-public class RemoveNodeRequest {
+@XmlRootElement(name = "reduceNode")
+public class ReduceNodeRequest {
 
     private String workerName;
+    private MethodResourceDescription resources;
 
-    public RemoveNodeRequest() {
+    public ReduceNodeRequest() {
     }
 
-    public RemoveNodeRequest(String workerName) {
+    public ReduceNodeRequest(String workerName, MethodResourceDescription mrd) {
         this.workerName = workerName;
+        this.resources = mrd;
     }
 
     public String getWorkerName() {
@@ -39,4 +42,11 @@ public class RemoveNodeRequest {
         this.workerName = workerName;
     }
 
+    public MethodResourceDescription getResources() {
+        return resources;
+    }
+
+    public void setResources(MethodResourceDescription resources) {
+        this.resources = resources;
+    }
 }

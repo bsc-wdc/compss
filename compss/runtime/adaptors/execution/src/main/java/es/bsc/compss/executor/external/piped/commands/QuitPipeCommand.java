@@ -14,21 +14,11 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.invokers.external.commands;
+package es.bsc.compss.executor.external.piped.commands;
 
-import es.bsc.compss.invokers.external.ExternalCommand;
+import es.bsc.compss.executor.external.commands.QuitExternalCommand;
 
 
-public class QuitExternalCommand implements ExternalCommand {
-
-    @Override
-    public CommandType getType() {
-        return CommandType.QUIT;
-    }
-
-    @Override
-    public String getAsString() {
-        return CommandType.QUIT.name();
-    }
+public class QuitPipeCommand extends QuitExternalCommand implements PipeCommand {
 
 }

@@ -94,4 +94,11 @@ public class FakeNode extends COMPSsNode {
         return false;
     }
 
+    @Override
+    public void increaseComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+    }
+
+    @Override
+    public void reduceComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+    }
 }

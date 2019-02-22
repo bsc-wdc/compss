@@ -51,12 +51,10 @@ public class SharedDiskManager {
      */
     private static final Map<String, Set<LogicalData>> sharedDisk2SharedFiles = new TreeMap<>();
 
-
     /**
      * Adds a new resource to be managed
      *
-     * @param host
-     *            Resource
+     * @param host Resource
      */
     public static synchronized void addMachine(Resource host) {
         Machine m = new Machine();
@@ -66,12 +64,9 @@ public class SharedDiskManager {
     /**
      * Links a shared disk with a resource
      *
-     * @param diskName
-     *            shared disk identifier
-     * @param mountpoint
-     *            path where the shared disk is mounted
-     * @param host
-     *            containing resource
+     * @param diskName shared disk identifier
+     * @param mountpoint path where the shared disk is mounted
+     * @param host containing resource
      */
     public static synchronized void addSharedToMachine(String diskName, String mountpoint, Resource host) {
         machine2Shareds.get(host).addSharedDisk(diskName, mountpoint);
@@ -80,20 +75,18 @@ public class SharedDiskManager {
             machines = new LinkedList<Resource>();
             shared2Machines.put(diskName, machines);
         }
-        synchronized(machines){
-        	machines.add(host);
+        synchronized (machines) {
+            machines.add(host);
         }
     }
 
     /**
      * Gets the name of a shared disk which contains the files in a resource path
      *
-     * @param host
-     *            Name of the resource
-     * @param path
-     *            File path contained by the disk
+     * @param host Name of the resource
+     * @param path File path contained by the disk
      * @return null if there is no shared disk containing that file path on the resource. The shared disk identifier
-     *         containing that file path.
+     * containing that file path.
      */
     public static synchronized String getSharedName(Resource host, String path) {
         Machine m = machine2Shareds.get(host);
@@ -133,8 +126,7 @@ public class SharedDiskManager {
     /**
      * Returns a list with all the name of all the shared disks mounted on a resource
      *
-     * @param host
-     *            resource
+     * @param host resource
      * @return a list with all the name of all the shared disks mounted on a resource
      */
     public static synchronized List<String> getAllSharedNames(Resource host) {
@@ -148,10 +140,8 @@ public class SharedDiskManager {
     /**
      * Returns the mountpoint of a shared disk in a resource
      *
-     * @param host
-     *            resource
-     * @param sharedDisk
-     *            shared disk name
+     * @param host resource
+     * @param sharedDisk shared disk name
      * @return mountpoint of the shared disk in the resource
      */
     public static synchronized String getMounpoint(Resource host, String sharedDisk) {
@@ -165,8 +155,7 @@ public class SharedDiskManager {
     /**
      * Returns a list of machines with a shared disk mounted
      *
-     * @param diskName
-     *            name of the shared disk we are looking for
+     * @param diskName name of the shared disk we are looking for
      * @return list of machines with a shared disk mounted
      */
     public static synchronized List<Resource> getAllMachinesfromDisk(String diskName) {
@@ -176,8 +165,7 @@ public class SharedDiskManager {
     /**
      * Removes all the information of a resource
      *
-     * @param host
-     *            Machine to remove
+     * @param host Machine to remove
      *
      * @return returns the correlation diskName->mountpoint
      */
@@ -186,10 +174,10 @@ public class SharedDiskManager {
         m = machine2Shareds.remove(host);
         if (m != null) {
             for (String sharedName : m.allShared) {
-            	List<Resource> machines = shared2Machines.get(sharedName);
-            	synchronized(machines){
-            		machines.remove(host);
-            	}
+                List<Resource> machines = shared2Machines.get(sharedName);
+                synchronized (machines) {
+                    machines.remove(host);
+                }
             }
         }
         if (m != null) {
@@ -201,7 +189,7 @@ public class SharedDiskManager {
 
     /**
      * Adds a LogicalData to a diskName
-     * 
+     *
      * @param diskName
      * @param ld
      */
@@ -219,7 +207,7 @@ public class SharedDiskManager {
     /**
      * Removes all the obsolete logical data appearances in the given shared disk. It doesn't have any effect if the
      * diskName or the logicalData don't exist
-     * 
+     *
      * @param r
      * @param obsolete
      */
@@ -232,7 +220,7 @@ public class SharedDiskManager {
 
     /**
      * Recovers all the data of a given sharedDisk
-     * 
+     *
      * @param diskName
      * @return
      */
@@ -248,7 +236,6 @@ public class SharedDiskManager {
         private HashMap<String, String> mountpoint2Name;
         private HashMap<String, String> name2Mountpoint;
 
-
         public Machine() {
             allShared = new LinkedList<>();
             mountpoint2Name = new HashMap<>();
@@ -256,7 +243,9 @@ public class SharedDiskManager {
         }
 
         public void addSharedDisk(String diskName, String mountpoint) {
-            allShared.add(diskName);
+            if (!allShared.contains(diskName)) {
+                allShared.add(diskName);
+            }
             if (!mountpoint.endsWith(File.separator)) {
                 mountpoint += File.separator;
             }

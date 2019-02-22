@@ -36,6 +36,7 @@ import es.bsc.compss.types.project.ProjectFile;
 import es.bsc.compss.types.project.exceptions.ProjectFileValidationException;
 import es.bsc.compss.types.project.jaxb.*;
 import es.bsc.compss.types.resources.DataResourceDescription;
+import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.MethodWorker;
 import es.bsc.compss.types.resources.ResourcesFile;
@@ -253,14 +254,19 @@ public class ResourceLoader {
             }
         }
 
-        ResourceManager.updateMasterConfiguration(mrd, sharedDisks);
+        //Enabling Execution Capabilities (if any)
+        ((DynamicMethodWorker) Comm.getAppHost()).increaseFeatures(mrd);
+        
+        //Registering Master's shared disks
+        Comm.getAppHost().updateDisks(sharedDisks);
+        for (Map.Entry<String, String> disk : sharedDisks.entrySet()) {
+            SharedDiskManager.addSharedToMachine(disk.getKey(), disk.getValue(), Comm.getAppHost());
+        }
+        
         if (mrd.getTotalCPUComputingUnits() > 0) {
-            ResourceManager.addStaticResource((MethodWorker) Comm.getAppHost());
+            ResourceManager.addDynamicWorker((DynamicMethodWorker) Comm.getAppHost(), mrd);
             return true;
         } else {
-            for (Map.Entry<String, String> disk : sharedDisks.entrySet()) {
-                SharedDiskManager.addSharedToMachine(disk.getKey(), disk.getValue(), Comm.getAppHost());
-            }
             return false;
         }
     }

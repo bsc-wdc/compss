@@ -14,9 +14,14 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.executor.utils;
+package es.bsc.compss.executor.external.piped;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.executor.external.ExecutionPlatformMirror;
+import es.bsc.compss.executor.external.commands.ExternalCommand.CommandType;
+import es.bsc.compss.executor.external.piped.commands.PingPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.PipeCommand;
+import es.bsc.compss.executor.external.piped.commands.QuitPipeCommand;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.util.ErrorManager;
@@ -32,7 +37,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public abstract class PipedMirror implements ExecutionPlatformMirror {
+public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
 
@@ -55,9 +60,9 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
     protected final String basePipePath;
 
     private Process piper;
+    private PipePair controlPipe;
     private StreamGobbler outputGobbler;
     private StreamGobbler errorGobbler;
-
 
     public PipedMirror(InvocationContext context, int size) {
         mirrorId = String.valueOf(UUID.randomUUID().hashCode());
@@ -66,7 +71,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
         this.size = size;
     }
 
-    protected void init(InvocationContext context) {
+    protected final void init(InvocationContext context) {
         String installDir = context.getInstallDir();
         String piperScript = installDir + PIPER_SCRIPT_RELATIVE_PATH + PIPE_SCRIPT_NAME;
         LOGGER.debug("PIPE Script: " + piperScript);
@@ -106,36 +111,40 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
             } catch (IOException e) {
                 // Stream closed
             }
+            //Active wait to be sure that the piper has started
+            while (!piper.isAlive()) {
+            }
 
             outputGobbler = new StreamGobbler(piper.getInputStream(), null, LOGGER);
             errorGobbler = new StreamGobbler(piper.getErrorStream(), null, LOGGER);
             outputGobbler.start();
             errorGobbler.start();
+
+            controlPipe = new PipePair(this.basePipePath, "control");
+            controlPipe.sendCommand(new PingPipeCommand());
+
+            PipeCommand reply = controlPipe.readCommand();
+            if (reply.getType() != CommandType.PONG) {
+                ErrorManager.fatal(ERROR_PB);
+            }
         } catch (IOException e) {
             ErrorManager.error(ERROR_PB, e);
         }
 
-        // The ProcessBuilder is non-blocking but we block the thread for a short period of time to allow the
-        // bash script to create the needed environment (pipes)
-        try {
-            Thread.sleep(PIPE_CREATION_TIME * size);
-        } catch (InterruptedException e) {
-            // No need to catch such exceptions
-        }
     }
 
     private String constructGeneralArgs(InvocationContext context) {
         StringBuilder cmd = new StringBuilder();
 
         String computePipes = basePipePath + "compute";
-        String dataPipe = basePipePath + "data";
+        String controlPipe = basePipePath + "control";
 
         // NUM THREADS
         cmd.append(size).append(TOKEN_SEP);
 
         // Data pipes
-        cmd.append(dataPipe).append(".outbound").append(TOKEN_SEP);
-        cmd.append(dataPipe).append(".inbound").append(TOKEN_SEP);
+        cmd.append(controlPipe).append(".outbound").append(TOKEN_SEP);
+        cmd.append(controlPipe).append(".inbound").append(TOKEN_SEP);
 
         // Write Pipes
         cmd.append(size).append(TOKEN_SEP);
@@ -164,8 +173,8 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
             LOGGER.debug("READ PIPE Files: " + readPipes.toString() + "\n");
 
             // Data pipes
-            LOGGER.debug("WRITE DATA PIPE: " + dataPipe + ".outbound");
-            LOGGER.debug("READ DATA PIPE: " + dataPipe + ".inbound");
+            LOGGER.debug("WRITE DATA PIPE: " + controlPipe + ".outbound");
+            LOGGER.debug("READ DATA PIPE: " + controlPipe + ".inbound");
         }
 
         // General Args are of the form: NUM_THREADS dataPipeW dataPipeR 2 pipeW1 pipeW2 2 pipeR1 pipeR2
@@ -176,6 +185,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
      * Returns the launch command for every binding
      *
      * @param context
+     *
      * @return
      */
     public abstract String getLaunchCommand(InvocationContext context);
@@ -184,6 +194,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
      * Returns the specific environment variables of each binding
      *
      * @param context
+     *
      * @return
      */
     public abstract Map<String, String> getEnvironment(InvocationContext context);
@@ -207,6 +218,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
     }
 
     private void stopPiper() {
+        controlPipe.sendCommand(new QuitPipeCommand());
         try {
             LOGGER.info("Waiting for finishing piper process");
             int exitCode = piper.waitFor();
@@ -243,7 +255,8 @@ public abstract class PipedMirror implements ExecutionPlatformMirror {
         LOGGER.info("ExternalThreadPool finished");
     }
 
-    public PipePair getPipes(String executorId) {
+    @Override
+    public PipePair registerExecutor(String executorId) {
         return new PipePair(this.basePipePath, executorId);
     }
 

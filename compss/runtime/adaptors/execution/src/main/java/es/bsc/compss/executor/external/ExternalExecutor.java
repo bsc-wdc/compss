@@ -14,12 +14,14 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.executor.utils;
+package es.bsc.compss.executor.external;
 
-public interface ExecutionPlatformMirror {
+import es.bsc.compss.executor.external.commands.ExternalCommand;
 
-    public void stop();
 
-    public void unregisterExecutor(String id);
+public interface ExternalExecutor<T extends ExternalCommand> {
+    
+    public boolean sendCommand(T command);
 
+    public T readCommand();
 }

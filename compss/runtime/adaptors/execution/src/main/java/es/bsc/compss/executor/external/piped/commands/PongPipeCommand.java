@@ -14,23 +14,11 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.resources;
+package es.bsc.compss.executor.external.piped.commands;
 
-import java.util.Map;
+import es.bsc.compss.executor.external.commands.PongExternalCommand;
 
 
-public interface MasterResource extends Resource {
-
-    public String getTempDirPath();
-
-    public String getAppLogDirPath();
-
-    public String getJobsDirPath();
-
-    public String getWorkersDirPath();
-
-    public String getWorkingDirectory();
-
-    public void updateDisks(Map<String, String> sharedDisks);
+public class PongPipeCommand extends PongExternalCommand implements PipeCommand {
 
 }

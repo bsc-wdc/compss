@@ -32,14 +32,13 @@ public class ExecutionManager {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXEC_MANAGER);
 
-    public final int limitOfTasks;
-    public int runningTasks;
-    public final ExecutionPlatform cpuExecutors;
-
+    private final int limitOfTasks;
+    private int runningTasks;
+    private final ExecutionPlatform cpuExecutors;
 
     /**
      * Instantiates a new Execution Manager
-     * 
+     *
      * @param context
      * @param computingUnitsCPU
      * @param cpuMap
@@ -89,5 +88,25 @@ public class ExecutionManager {
         LOGGER.info("Stopping Threads...");
         // Stop the job threads
         this.cpuExecutors.stop();
+    }
+
+    public void increaseCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+        /*
+         * if (tracing_level == Tracer.BASIC_MODE) { Tracer.enablePThreads(); }
+         */
+        this.cpuExecutors.addWorkerThreads(CPUCount);
+        /*
+         * if (tracing_level == Tracer.BASIC_MODE) { Tracer.disablePThreads(); }
+         */
+    }
+
+    public void reduceCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+        /*
+         * if (tracing_level == Tracer.BASIC_MODE) { Tracer.enablePThreads(); }
+         */
+        this.cpuExecutors.removeWorkerThreads(CPUCount);
+        /*
+         * if (tracing_level == Tracer.BASIC_MODE) { Tracer.disablePThreads(); }
+         */
     }
 }

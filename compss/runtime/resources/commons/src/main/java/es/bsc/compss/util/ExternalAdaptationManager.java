@@ -211,7 +211,7 @@ public class ExternalAdaptationManager extends Thread {
             if (cp != null) {
                 CloudMethodWorker cmw = cp.getHostedWorker(name);
                 if (cmw != null) {
-                    ResourceManager.reduceCloudWorker(cmw, cmw.getDescription());
+                    ResourceManager.reduceDynamicWorker(cmw, cmw.getDescription());
                     RUNTIME_LOGGER.info(LOG_PREFIX + "Submited external request for removing " + name + " in " + providerName);
                     writePipe(resultPipe, ACK);
                 } else {

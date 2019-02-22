@@ -14,12 +14,13 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.invokers.external.piped.commands;
+package es.bsc.compss.executor.external.piped.commands;
 
-import es.bsc.compss.invokers.external.commands.QuitExternalCommand;
-import es.bsc.compss.invokers.external.piped.PipeCommand;
+import es.bsc.compss.executor.external.commands.PingExternalCommand;
 
 
-public class QuitPipeCommand extends QuitExternalCommand implements PipeCommand {
+
+
+public class PingPipeCommand extends PingExternalCommand implements PipeCommand {
 
 }

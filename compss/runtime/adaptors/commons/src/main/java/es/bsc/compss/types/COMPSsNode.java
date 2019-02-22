@@ -38,9 +38,9 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+
 /**
- * Abstract representation of a COMPSs Node. Can be a master, a worker or a
- * service
+ * Abstract representation of a COMPSs Node. Can be a master, a worker or a service
  *
  */
 public abstract class COMPSsNode implements Comparable<COMPSsNode> {
@@ -184,5 +184,9 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
     public int hashCode() {
         return getName().hashCode();
     }
+
+    public abstract void increaseComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount);
+
+    public abstract void reduceComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount);
 
 }

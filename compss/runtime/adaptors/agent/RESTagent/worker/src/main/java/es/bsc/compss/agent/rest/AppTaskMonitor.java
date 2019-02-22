@@ -38,7 +38,7 @@ import storage.StubItf;
 
 public class AppTaskMonitor extends AppMonitor {
 
-    private static final Client client = ClientBuilder.newClient(new ClientConfig());
+    private static final Client CLIENT = ClientBuilder.newClient(new ClientConfig());
 
     private final Orchestrator orchestrator;
     private final DataType[] paramTypes;
@@ -111,7 +111,7 @@ public class AppTaskMonitor extends AppMonitor {
         if (orchestrator != null) {
             String masterId = orchestrator.getHost();
             String operation = orchestrator.getOperation();
-            WebTarget target = client.target(masterId);
+            WebTarget target = CLIENT.target(masterId);
             WebTarget wt = target.path(operation);
             EndApplicationNotification ean = new EndApplicationNotification(
                     "" + getAppId(),

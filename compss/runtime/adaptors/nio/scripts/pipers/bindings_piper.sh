@@ -8,8 +8,8 @@
     numThreads=$1
     shift 1
     # Get Data pipes
-    dataCMDpipe=$1
-    dataRESULTpipe=$2
+    controlCMDpipe=$1
+    controlRESULTpipe=$2
     shift 2
 
     # Get CMD pipes
@@ -68,7 +68,7 @@
       kill -15 "$bindingPID" &> /dev/null
     fi
     # remove data pipes
-    rm -f "${dataCMDpipe}" "${dataRESULTpipe}"
+    rm -f "${controlCMDpipe}" "${controlRESULTpipe}"
 
     # remove job pipes
     for i in "${CMDpipes[@]}"; do
@@ -97,13 +97,13 @@
   echo "[BINDINGS PIPER] NumThreads: $numThreads"
 
   # Clean and Create data pipes
-  echo "[BINDINGS PIPER] Data CMD Pipe: $dataCMDpipe"
-  rm -f "$dataCMDpipe"
-  mkfifo "$dataCMDpipe"
+  echo "[BINDINGS PIPER] Control CMD Pipe: $controlCMDpipe"
+  rm -f "$controlCMDpipe"
+  mkfifo "$controlCMDpipe"
 
-  echo "[BINDINGS PIPER] Data RESULT Pipe: $dataRESULTpipe"
-  rm -f "$dataRESULTpipe"
-  mkfifo "$dataRESULTpipe"
+  echo "[BINDINGS PIPER] Control RESULT Pipe: $controlRESULTpipe"
+  rm -f "$controlRESULTpipe"
+  mkfifo "$controlRESULTpipe"
 
   # Clean and Create CMD Pipes
   for i in "${CMDpipes[@]}"; do
@@ -144,6 +144,34 @@
 
   eval $bindingExecutable $bindingArgs &
   bindingPID=$!
+
+  stop_received=false
+  while [ "${stop_received}" = false ]; do
+    read line < "$controlCMDpipe"
+    echo "Obtained line ${line}"
+    command=$(echo "$line" | tr " " "\t" | awk '{ print $1 }')
+    case "${command}" in
+      "PING")
+        echo "PONG" > "${controlRESULTpipe}"
+        ;;
+      "NEW_PIPE")
+        pipe_name=$(echo "$line" | tr " " "\t" | awk '{ print $2 }')
+        echo "[BINDINGS PIPER] Creating new pipe pair ${pipe_name}"
+        rm -f "${pipe_name}.outbound"
+        rm -f "${pipe_name}.inbound"
+        mkfifo "${pipe_name}.inbound"
+        mkfifo "${pipe_name}.outbound"
+        echo "CREATED_PIPE ${pipe_name}" > "${controlRESULTpipe}"
+        ;;
+      "QUIT")
+        echo "We should stop the piper"
+        stop_received=true
+        ;;
+      *)
+        echo "UNKNOWN COMMAND"
+    esac
+    echo "[BINDINGS PIPER] Next Command"
+  done
 
   # Wait for binding executable completion
   wait $bindingPID

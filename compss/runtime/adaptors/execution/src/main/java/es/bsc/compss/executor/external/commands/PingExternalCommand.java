@@ -14,23 +14,19 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.resources;
-
-import java.util.Map;
+package es.bsc.compss.executor.external.commands;
 
 
-public interface MasterResource extends Resource {
+public class PingExternalCommand implements ExternalCommand {
 
-    public String getTempDirPath();
+    @Override
+    public CommandType getType() {
+        return CommandType.PING;
+    }
 
-    public String getAppLogDirPath();
-
-    public String getJobsDirPath();
-
-    public String getWorkersDirPath();
-
-    public String getWorkingDirectory();
-
-    public void updateDisks(Map<String, String> sharedDisks);
+    @Override
+    public String getAsString() {
+        return CommandType.PING.name();
+    }
 
 }

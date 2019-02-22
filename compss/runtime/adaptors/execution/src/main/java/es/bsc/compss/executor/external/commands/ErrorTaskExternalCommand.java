@@ -14,9 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.invokers.external.commands;
-
-import es.bsc.compss.invokers.external.ExternalCommand;
+package es.bsc.compss.executor.external.commands;
 
 
 public class ErrorTaskExternalCommand implements ExternalCommand {

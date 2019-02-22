@@ -14,11 +14,25 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.invokers.external.piped;
-
-import es.bsc.compss.invokers.external.ExternalCommand;
+package es.bsc.compss.executor.external.commands;
 
 
-public interface PipeCommand extends ExternalCommand {
+public interface ExternalCommand {
+
+    public static enum CommandType {
+        PING, PONG,     // Validate the communication channel
+        EXECUTE_TASK,   // Execute a task
+        END_TASK,       // Task finished
+        ERROR_TASK,     // Error in task execution
+        QUIT,           // Finish execution
+        REMOVE,         // Remove data
+        SERIALIZE;      // Serialize data
+    }
+
+    public static final String TOKEN_SEP = " ";
+
+    public CommandType getType();
+
+    public String getAsString();
 
 }

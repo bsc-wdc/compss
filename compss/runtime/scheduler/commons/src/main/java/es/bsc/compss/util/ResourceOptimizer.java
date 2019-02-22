@@ -1523,7 +1523,7 @@ public class ResourceOptimizer extends Thread {
 
             CloudMethodResourceDescription finalDescription = new CloudMethodResourceDescription(type, cid);
             finalDescription.setName(res.getName());
-            ResourceManager.reduceCloudWorker(res, finalDescription);
+            ResourceManager.reduceDynamicWorker(res, finalDescription);
         }
     }
 

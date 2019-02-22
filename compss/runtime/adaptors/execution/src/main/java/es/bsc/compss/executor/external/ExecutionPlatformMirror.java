@@ -14,23 +14,16 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.resources;
+package es.bsc.compss.executor.external;
 
-import java.util.Map;
+public interface ExecutionPlatformMirror<T> {
+    
+    
+    public T registerExecutor(String id);
+    
+    public void unregisterExecutor(String id);
 
+    public void stop();
 
-public interface MasterResource extends Resource {
-
-    public String getTempDirPath();
-
-    public String getAppLogDirPath();
-
-    public String getJobsDirPath();
-
-    public String getWorkersDirPath();
-
-    public String getWorkingDirectory();
-
-    public void updateDisks(Map<String, String> sharedDisks);
 
 }

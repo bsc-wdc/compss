@@ -16,7 +16,10 @@
  */
 package es.bsc.compss.agent.rest.types.messages;
 
-import es.bsc.compss.agent.rest.types.Resource;
+import es.bsc.compss.agent.rest.types.ExternalAdaptorResource;
+import es.bsc.compss.agent.rest.types.NIOAdaptorResource;
+import es.bsc.compss.agent.rest.types.RESTResource;
+import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElements;
@@ -24,15 +27,15 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 
 @XmlRootElement(name = "newResource")
-public class NewNodeNotification {
+public class IncreaseNodeNotification {
 
     private Resource resource;
 
-    public NewNodeNotification() {
+    public IncreaseNodeNotification() {
     }
 
-    public NewNodeNotification(String name, MethodResourceDescription mrd, String adaptor, Object resourcesConf, Object projectConf) {
-        this.resource = Resource.createResource(name, mrd, adaptor, resourcesConf, projectConf);
+    public IncreaseNodeNotification(String name, MethodResourceDescription mrd, String adaptor, Object resourcesConf, Object projectConf) {
+        this.resource = RESTResource.createResource(name, mrd, adaptor, resourcesConf, projectConf);
     }
 
     public void setResource(Resource resource) {
@@ -40,8 +43,8 @@ public class NewNodeNotification {
     }
 
     @XmlElements({
-        @XmlElement(name = "externalResource", type = Resource.ExternalAdaptorResource.class, required = false),
-        @XmlElement(name = "nioResource", type = Resource.NIOAdaptorResource.class, required = false),})
+        @XmlElement(name = "externalResource", type = ExternalAdaptorResource.class, required = false),
+        @XmlElement(name = "nioResource", type = NIOAdaptorResource.class, required = false),})
     public Resource getResource() {
         return resource;
     }

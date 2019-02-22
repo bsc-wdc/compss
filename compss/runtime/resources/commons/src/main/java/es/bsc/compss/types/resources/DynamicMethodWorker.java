@@ -73,12 +73,22 @@ public class DynamicMethodWorker extends MethodWorker {
     }
 
     public void increaseFeatures(MethodResourceDescription increment) {
+        int CPUCount = increment.getTotalCPUComputingUnits();
+        int GPUCount = increment.getTotalGPUComputingUnits();
+        int FPGACount = increment.getTotalFPGAComputingUnits();
+        int otherCount = increment.getTotalOTHERComputingUnits();
+        this.getNode().increaseComputingCapabilities(CPUCount, GPUCount, FPGACount, otherCount);
         synchronized (available) {
             available.increase(increment);
         }
         synchronized (description) {
             ((MethodResourceDescription) this.description).increase(increment);
         }
+
+        this.setMaxCPUTaskCount(this.getMaxCPUTaskCount() + CPUCount);
+        this.setMaxGPUTaskCount(this.getMaxGPUTaskCount() + GPUCount);
+        this.setMaxFPGATaskCount(this.getMaxFPGATaskCount() + FPGACount);
+        this.setMaxOthersTaskCount(this.getMaxOthersTaskCount() + otherCount);
         updatedFeatures();
     }
 
@@ -127,6 +137,14 @@ public class DynamicMethodWorker extends MethodWorker {
 
     public synchronized void applyReduction(PendingReduction<MethodResourceDescription> pRed) {
         MethodResourceDescription reduction = pRed.getModification();
+
+        int CPUCount = reduction.getTotalCPUComputingUnits();
+        int GPUCount = reduction.getTotalGPUComputingUnits();
+        int FPGACount = reduction.getTotalFPGAComputingUnits();
+        int otherCount = reduction.getTotalOTHERComputingUnits();
+        System.out.println("Reducing Computing capabilities");
+        this.getNode().reduceComputingCapabilities(CPUCount, GPUCount, FPGACount, otherCount);
+
         synchronized (description) {
             this.getDescription().reduce(reduction);
         }
@@ -149,7 +167,11 @@ public class DynamicMethodWorker extends MethodWorker {
                 pRed.notifyCompletion();
             }
         }
-
+        this.setMaxCPUTaskCount(this.getMaxCPUTaskCount() - CPUCount);
+        this.setMaxGPUTaskCount(this.getMaxGPUTaskCount() - GPUCount);
+        this.setMaxFPGATaskCount(this.getMaxFPGATaskCount() - FPGACount);
+        this.setMaxOthersTaskCount(this.getMaxOthersTaskCount() - otherCount);
+        
         updatedFeatures();
     }
 

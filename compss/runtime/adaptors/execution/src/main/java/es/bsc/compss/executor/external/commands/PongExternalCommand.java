@@ -14,25 +14,19 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.invokers.external;
+package es.bsc.compss.executor.external.commands;
 
-public interface ExternalCommand {
 
-    public static enum CommandType {
-        EXECUTE_TASK, // Execute a task
-        END_TASK, // Task finished
-        ERROR_TASK, // Error in task execution
-        QUIT, // Finish execution
-        REMOVE, // Remove data
-        SERIALIZE; // Serialize data
+public class PongExternalCommand implements ExternalCommand {
+
+    @Override
+    public CommandType getType() {
+        return CommandType.PONG;
     }
 
-
-    public static final String TOKEN_SEP = " ";
-
-
-    public CommandType getType();
-
-    public String getAsString();
+    @Override
+    public String getAsString() {
+        return CommandType.PONG.name();
+    }
 
 }

@@ -23,8 +23,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
-import es.bsc.compss.executor.utils.PersistentMirror;
-import es.bsc.compss.executor.utils.ExecutionPlatformMirror;
+import es.bsc.compss.executor.external.persistent.PersistentMirror;
+import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.invokers.external.persistent.PersistentInvoker;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
@@ -32,8 +32,8 @@ import org.apache.logging.log4j.Logger;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.executor.types.Execution;
-import es.bsc.compss.executor.utils.PipedMirror;
-import es.bsc.compss.executor.utils.PipePair;
+import es.bsc.compss.executor.external.piped.PipedMirror;
+import es.bsc.compss.executor.external.piped.PipePair;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.JavaInvoker;
@@ -85,7 +85,7 @@ public class Executor implements Runnable {
     protected PipePair cPipes;
     protected PipePair pyPipes;
 
-
+    
     /**
      * Instantiates a new Executor
      *
@@ -126,13 +126,13 @@ public class Executor implements Runnable {
 
     /**
      * Stop executor
-     * 
+     *
      */
     public void finish() {
         // Nothing to do since everything is deleted in each task execution
         LOGGER.info("Executor finished");
         Collection<ExecutionPlatformMirror> mirrors = platform.getMirrors();
-        for (ExecutionPlatformMirror mirror: mirrors) {
+        for (ExecutionPlatformMirror mirror : mirrors) {
             mirror.unregisterExecutor(id);
         }
 
@@ -619,7 +619,7 @@ public class Executor implements Runnable {
                                 mirror = PythonInvoker.getMirror(context, platform);
                                 platform.registerMirror(PythonInvoker.class, mirror);
                             }
-                            pyPipes = mirror.getPipes(id);
+                            pyPipes = mirror.registerExecutor(id);
                         }
                     }
                 }
@@ -647,7 +647,7 @@ public class Executor implements Runnable {
                                     mirror = (PipedMirror) CInvoker.getMirror(context, platform);
                                     platform.registerMirror(CInvoker.class, mirror);
                                 }
-                                cPipes = mirror.getPipes(id);
+                                cPipes = mirror.registerExecutor(id);
                             }
                         }
                     }

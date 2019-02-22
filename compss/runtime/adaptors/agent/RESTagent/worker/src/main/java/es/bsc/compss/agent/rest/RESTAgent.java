@@ -24,9 +24,10 @@ import es.bsc.compss.agent.rest.types.ApplicationParameterImpl;
 import es.bsc.compss.agent.rest.types.Orchestrator;
 import es.bsc.compss.agent.rest.types.messages.EndApplicationNotification;
 import es.bsc.compss.agent.rest.types.messages.StartApplicationRequest;
-import es.bsc.compss.agent.rest.types.Resource;
-import es.bsc.compss.agent.rest.types.messages.NewNodeNotification;
+import es.bsc.compss.agent.rest.types.messages.IncreaseNodeNotification;
+import es.bsc.compss.agent.rest.types.messages.ReduceNodeRequest;
 import es.bsc.compss.agent.rest.types.messages.RemoveNodeRequest;
+import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.agent.util.RemoteJobsRegistry;
 import es.bsc.compss.types.annotations.parameter.DataType;
 
@@ -60,23 +61,36 @@ public class RESTAgent {
     }
 
     @PUT
-    @Path("addNode/")
+    @Path("addResources/")
     @Consumes(MediaType.APPLICATION_XML)
-    public Response addResource(NewNodeNotification notification) {
+    public Response addResource(IncreaseNodeNotification notification) {
         Resource r = notification.getResource();
         //Updating processors
         MethodResourceDescription description = r.getDescription();
         List<Processor> procs = description.getProcessors();
         description.setProcessors(procs);
 
-        String adaptor = r.getAdaptor();
-        Object projectConf = r.getProjectConf();
-        Object resourcesConf = r.getResourcesConf();
-
         try {
-            Agent.addNode(r.getName(), description, adaptor, projectConf, resourcesConf);
+            Agent.addResources(r);
         } catch (AgentException ex) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).build();
+        }
+        return Response.ok().build();
+    }
+
+    @PUT
+    @Path("removeResources/")
+    @Consumes(MediaType.APPLICATION_XML)
+    public Response removeResources(ReduceNodeRequest request) {
+        String name = request.getWorkerName();
+        MethodResourceDescription mrd = request.getResources();
+        List<Processor> procs = mrd.getProcessors();
+        mrd.setProcessors(procs);
+        try {
+            Agent.removeResources(name, mrd);
+        } catch (AgentException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+
         }
         return Response.ok().build();
     }

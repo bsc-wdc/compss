@@ -64,10 +64,9 @@ public class GATWorkerNode extends COMPSsWorker {
     private GATConfiguration config;
     private org.gridlab.gat.resources.Job tracingJob;
 
-
     /**
      * New GAT Worker Node with name @name and configuration @config
-     * 
+     *
      * @param name
      * @param config
      */
@@ -149,7 +148,7 @@ public class GATWorkerNode extends COMPSsWorker {
 
     /**
      * Returns the hostname
-     * 
+     *
      * @return
      */
     public String getHost() {
@@ -158,7 +157,7 @@ public class GATWorkerNode extends COMPSsWorker {
 
     /**
      * Returns the installation dir
-     * 
+     *
      * @return
      */
     public String getInstallDir() {
@@ -167,7 +166,7 @@ public class GATWorkerNode extends COMPSsWorker {
 
     /**
      * Returns the working dir
-     * 
+     *
      * @return
      */
     public String getWorkingDir() {
@@ -176,7 +175,7 @@ public class GATWorkerNode extends COMPSsWorker {
 
     /**
      * Returns the application dir
-     * 
+     *
      * @return
      */
     public String getAppDir() {
@@ -188,7 +187,7 @@ public class GATWorkerNode extends COMPSsWorker {
 
     /**
      * Returns the library path
-     * 
+     *
      * @return
      */
     public String getLibPath() {
@@ -200,7 +199,7 @@ public class GATWorkerNode extends COMPSsWorker {
 
     /**
      * Returns the total number of computing units
-     * 
+     *
      * @return
      */
     public int getTotalComputingUnits() {
@@ -209,7 +208,7 @@ public class GATWorkerNode extends COMPSsWorker {
 
     /**
      * Returns the GAT context
-     * 
+     *
      * @return
      */
     public GATContext getContext() {
@@ -218,7 +217,7 @@ public class GATWorkerNode extends COMPSsWorker {
 
     /**
      * Returns if globus is enabled or not
-     * 
+     *
      * @return
      */
     public boolean isUsingGlobus() {
@@ -227,7 +226,7 @@ public class GATWorkerNode extends COMPSsWorker {
 
     /**
      * Returns if user is needed to login the worker or not
-     * 
+     *
      * @return
      */
     public boolean isUserNeeded() {
@@ -344,7 +343,7 @@ public class GATWorkerNode extends COMPSsWorker {
                 path = Protocol.FILE_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
                 break;
             case BINDING_OBJECT_T:
-            	path = Protocol.BINDING_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
+                path = Protocol.BINDING_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
                 break;
             default:
                 return null;
@@ -406,5 +405,17 @@ public class GATWorkerNode extends COMPSsWorker {
     public void shutdownExecutionManager(ExecutorShutdownListener sl) {
         // GAT has no execution managers, release listener immediately
         sl.notifyEnd();
+    }
+
+    @Override
+    public void increaseComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+        //Does not apply.
+        //Workers are created with all the resources to run a task. After that the worker dies
+    }
+
+    @Override
+    public void reduceComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+        //Does not apply.
+        //Workers are created with all the resources to run a task. After that the worker dies
     }
 }

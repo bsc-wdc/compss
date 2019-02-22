@@ -675,6 +675,16 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         c.finishConnection();
     }
 
+    @Override
+    public void increaseResources() {
+        // Should never receive this message. Ignore
+    }
+
+    @Override
+    public void reduceResources() {
+        // Should never receive this message. Ignore
+    }
+
 
     private class ClosingWorker {
 

@@ -81,7 +81,6 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     private static final String ERR_LOAD_SCHEDULER = "Error loading scheduler";
     private static final String ERROR_QUEUE_OFFER = "ERROR: TaskDispatcher queue offer error on ";
 
-
     /**
      * Creates a new task dispatcher instance
      *

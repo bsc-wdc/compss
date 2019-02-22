@@ -159,7 +159,9 @@ public class ExecutionPlatform implements ExecutorContext {
                 public void run() {
                     startSem.release();
                     super.run();
-                    ExecutionPlatform.this.finishedWorkerThreads.add(Thread.currentThread());
+                    synchronized (ExecutionPlatform.this.finishedWorkerThreads) {
+                        ExecutionPlatform.this.finishedWorkerThreads.add(Thread.currentThread());
+                    }
                     ExecutionPlatform.this.stopSemaphore.release();
                 }
             };

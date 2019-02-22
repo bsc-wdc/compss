@@ -8,11 +8,11 @@ import java.io.FileNotFoundException;
 
 public class GetFileImpl {
 
-    public static void writeInFile(String file) {
+    public static void writeInFile(String file, int i) {
         try {
-            String str = "New writter\n";
+            String str = "New writter";
             BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
-            writer.write(str);
+            writer.write(str + " " + String.valueOf(i) + "\n");
              
             writer.close();
         } catch (FileNotFoundException fnfe) {

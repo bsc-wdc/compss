@@ -12,7 +12,8 @@ public interface GetFileItf {
     @Constraints(computingUnits = "1")
     @Method(declaringClass = "getFile.GetFileImpl")
     void writeInFile(
-        @Parameter(type = Type.FILE, direction = Direction.INOUT) String file
+        @Parameter(type = Type.FILE, direction = Direction.INOUT) String file,
+        @Parameter(direction=Direction.IN) int i
     );
 
 }

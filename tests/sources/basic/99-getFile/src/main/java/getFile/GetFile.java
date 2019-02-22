@@ -13,8 +13,9 @@ public class GetFile {
    
     private static final String FILE_NAME="/tmp/text.txt";
     private static final int TASK_SLEEP_TIME = 2_000; // ms
+    private static final int M = 5; // number of tasks to be executed
     
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         
        // Initialize test file
         try {
@@ -24,19 +25,13 @@ public class GetFile {
         }
 
         //Execute task loop
-        for (int i=0; i<5; i++) {
-            GetFileImpl.writeInFile(FILE_NAME);
+        for (int i=0; i<M; i++) {
+            GetFileImpl.writeInFile(FILE_NAME, i);
         }
         
         //Get the renamed file
         COMPSs.getFile(FILE_NAME);
-        
-//        try {
-//            Thread.sleep(TASK_SLEEP_TIME);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-        
+       
         //Shell commands to execute to check contents of file
         ArrayList<String> commands = new ArrayList<String>();
         commands.add("/bin/cat");
@@ -53,7 +48,7 @@ public class GetFile {
         }
         
         //Read file content
-        String out = readContents(process);
+        readContents(process);
 
         //Check result
         try {
@@ -63,8 +58,6 @@ public class GetFile {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-        System.err.println("Final contents of file: " + out);
         System.exit(1);
     }
 
@@ -83,21 +76,26 @@ public class GetFile {
         }
     }
     
-    private static String readContents (Process process) {
+    private static void readContents (Process process) throws Exception {
        //Read output of file
         StringBuilder out = new StringBuilder();
         BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
         String line = null, previous = null;
+        int count = 0;
         try {
             while ((line = br.readLine()) != null)
                 if (!line.equals(previous)) {
                     previous = line;
                     out.append(line).append('\n');
+                    count = count + 1;
                 }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return out.toString();
+        //Exception if number of writers has not been correct
+        if (count != M) {
+            throw new Exception("Incorrect number of writers " + count);
+        }
     }
 
 }

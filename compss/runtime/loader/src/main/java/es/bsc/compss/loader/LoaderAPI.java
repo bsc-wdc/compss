@@ -33,15 +33,6 @@ public interface LoaderAPI {
     public String openFile(String fileName, Direction mode);
 
     /**
-     * Returns the renaming of the last file version just transferred
-     *
-     * @param fileName
-     * @param destDir
-     * @return
-     */
-    public String getFile(String fileName, String destDir);
-
-    /**
      * Returns a copy of the last object version
      *
      * @param o

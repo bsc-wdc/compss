@@ -128,6 +128,7 @@
         <module>96-concurrentObjectTest</module>
         <!-- Module 97 is 97-concurrentObject_python -->
         <!-- Module 98 is 98-collectionIN_python -->		
-        <!-- Add new modules below. Respect numbering -->
-    </modules>
+	<module>99-getFile</module>
+	<!-- Add new modules below. Respect numbering -->
+	</modules>
 </project>

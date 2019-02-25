@@ -203,6 +203,14 @@ public interface COMPSsRuntime {
     public boolean deleteFile(String fileName);
 
     /**
+     * Returns last version of file with its original name
+     *
+     * @param fileName
+     * @return
+     */
+    public void getFile(Long appId, String fileName);
+    
+    /**
      * Returns the renaming of the binding object version opened
      *
      * @param bindingObjectName

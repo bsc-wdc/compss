@@ -149,7 +149,7 @@ show_opts() {
                                             Default: ${DEFAULT_PYTHONPATH}
     --base_log_dir=<path>                   Base directory to store COMPSs log files (a .COMPSs/ folder will be created inside this location)
                                             Default: User home
-    --specific_log_dir=<path>               Use a specific directory to store COMPSs log files (the folder MUST exist and no sandbox is created)
+    --specific_log_dir=<path>               Use a specific directory to store COMPSs log files (no sandbox is created)
                                             Warning: Overwrites --base_log_dir option
                                             Default: Disabled
     --uuid=<int>                            Preset an application UUID
@@ -710,6 +710,11 @@ check_args() {
 
   if [ -z "$graph" ]; then
     graph=${DEFAULT_GRAPH}
+  fi
+
+  # If specific_log_dir is provided, ensure it exists
+  if [ -n "${specific_log_dir}" ]; then
+    mkdir -p "${specific_log_dir}"
   fi
 
   # TRACING file option

@@ -10,6 +10,7 @@ import os
 from enum import Enum
 
 from constants import RUNCOMPSS_REL_PATH
+from constants import CLEAN_PROCS_REL_PATH
 
 
 ############################################
@@ -43,7 +44,8 @@ class TestExecutionError(Exception):
 class ExitValue(Enum):
     OK = 0,
     OK_RETRY = 1,
-    FAIL = 2
+    FAIL = 2,
+    UNSUPPORTED = 3
 
 
 def _merge_exit_values(ev1, ev2):
@@ -78,7 +80,7 @@ def execute_tests(cmd_args, compss_cfg):
 
     # Execute all the deployed tests
     results = []
-    for test_dir in os.listdir(execution_sanbdox):
+    for test_dir in sorted(os.listdir(execution_sanbdox)):
         test_path = os.path.join(execution_sanbdox, test_dir)
         ev = _execute_test(test_dir, test_path, compss_logs_root, cmd_args, compss_cfg)
         results.append((test_dir, ev))
@@ -152,7 +154,10 @@ def _execute_test(test_name, test_path, compss_logs_root, cmd_args, compss_cfg):
         except OSError:
             raise TestExecutionError("[ERROR] Cannot create application log dir " + str(test_logs_path))
         # Execute test specific execution file
-        test_ev = _execute_cmd(test_path, test_logs_path, compss_logs_root, retry, compss_cfg)
+        test_ev = _execute_test_cmd(test_path, test_logs_path, compss_logs_root, retry, compss_cfg)
+        # Clean orphan processes (if any)
+        _clean_procs(compss_cfg)
+        # Increase retry counter
         retry = retry + 1
 
     # Return test exit value
@@ -160,7 +165,7 @@ def _execute_test(test_name, test_path, compss_logs_root, cmd_args, compss_cfg):
     return test_ev
 
 
-def _execute_cmd(test_path, test_logs_path, compss_logs_root, retry, compss_cfg):
+def _execute_test_cmd(test_path, test_logs_path, compss_logs_root, retry, compss_cfg):
     """
     Executes the execution script of a given test
 
@@ -203,6 +208,8 @@ def _execute_cmd(test_path, test_logs_path, compss_logs_root, retry, compss_cfg)
 
     # Invoke execution script
     import subprocess
+    output = None
+    error = None
     try:
         exec_env = os.environ.copy()
         exec_env["JAVA_HOME"] = compss_cfg.get_java_home()
@@ -215,15 +222,44 @@ def _execute_cmd(test_path, test_logs_path, compss_logs_root, retry, compss_cfg)
 
     # Log command exit_value/output/error
     print("[INFO] Text execution command EXIT_VALUE: " + str(exit_value))
-    print("[DEBUG] Text execution command OUTPUT: ")
+    print("[INFO] Text execution command OUTPUT: ")
     print(output)
-    print("----------------------------------------")
-    print("[ERROR] Text execution command ERROR: ")
-    print(error)
-    print("----------------------------------------")
+    if error is not None:
+        print("----------------------------------------")
+        print("[ERROR] Text execution command ERROR: ")
+        print(error)
+        print("----------------------------------------")
 
-    if p.returncode == 0:
+    # Return exit status
+    if exit_value == 0:
         if retry == 1:
             return ExitValue.OK
         return ExitValue.OK_RETRY
+    if exit_value == 99:
+        return ExitValue.UNSUPPORTED
     return ExitValue.FAIL
+
+
+def _clean_procs(compss_cfg):
+    clean_procs_bin = compss_cfg.get_compss_home() + CLEAN_PROCS_REL_PATH
+    cmd = [clean_procs_bin]
+
+    import subprocess
+    output = None
+    error = None
+    try:
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        output, error = p.communicate()
+        exit_value = p.returncode
+    except Exception:
+        exit_value = -1
+
+    if __debug__ or exit_value != 0:
+        print("[WARN] Captured error while executing clean_compss_procs between test executions. Proceeding anyways...")
+        print("[WARN] clean_compss_procs command EXIT_VALUE: " + str(exit_value))
+        print("[WARN] clean_compss_procs command OUTPUT: ")
+        print(output)
+        print("----------------------------------------")
+        print("[WARN] clean_compss_procs command ERROR: ")
+        print(error)
+        print("----------------------------------------")

@@ -35,3 +35,4 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TESTS_DIR = os.path.join(SCRIPT_DIR, "../sources")
 CONFIGURATIONS_DIR = os.path.join(SCRIPT_DIR, "../configurations")
 RUNCOMPSS_REL_PATH = "Runtime/scripts/user/runcompss"
+CLEAN_PROCS_REL_PATH = "Runtime/scripts/utils/compss_clean_procs"

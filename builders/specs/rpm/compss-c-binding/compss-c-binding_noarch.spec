@@ -2,7 +2,7 @@
 %define version		2.4.rc1902
 %define release		1
 
-Requires: compss-bindings-common, libxml2-devel, boost-devel, tcsh
+Requires: compss-bindings-common, libxml2-devel, boost-devel
 Summary: The BSC COMP Superscalar C-Binding
 Name: %{name}
 Version: %{version}

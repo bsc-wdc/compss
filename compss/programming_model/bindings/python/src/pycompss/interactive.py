@@ -149,6 +149,10 @@ def start(log_level='off',
     classpath = os.environ['CLASSPATH']
     ld_library_path = os.environ['LD_LIBRARY_PATH']
 
+    # Enable/Disable object to string conversion
+    # set cross-module variable
+    binding.object_conversion = o_c
+
     # Set storage classpath
     if storage_impl:
         if storage_impl == 'redis':
@@ -334,13 +338,6 @@ def start(log_level='off',
     print("* - Starting COMPSs runtime...                       *")
     sys.stdout.flush()  # Force flush
     compss_start()
-
-    if o_c is True:
-        # set cross-module variable
-        binding.object_conversion = True
-    else:
-        # set cross-module variable
-        binding.object_conversion = False
 
     # Remove launch.py, log_level and object_conversion from sys.argv,
     # It will be inherited by the app through execfile

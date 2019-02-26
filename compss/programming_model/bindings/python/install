@@ -37,6 +37,15 @@
     #export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-armhf
 
     if command_exists python$1 ; then
+      # Check that the python version is higher than 2.6 is being used.
+      py_version=$(python$1 -V 2>&1)
+      echo "INFO: Installing PyCOMPSs for python$1"
+      collapsed_py_version=$(echo ${py_version} | sed 's/.* \([0-9]\).\([0-9]\).*/\1\2/')
+      if [ "${collapsed_py_version}" -lt "27" ]; then
+        echo "ERROR: Cannot install PyCOMPSs for Python version: ${py_version}"
+        echo "       PyCOMPSs requires python 2.7 or greater"
+        exit 1
+      fi
       # Check that the sources can be byte-compiled - this avoids syntax errors
       # that are not checked on the installation
       python$1 -m compileall ${SCRIPT_DIR}/src/pycompss
@@ -66,7 +75,6 @@
       exit 1
     fi
   }
-
 
   #
   # MAIN

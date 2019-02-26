@@ -168,14 +168,7 @@ def _compile_and_deploy_all(cmd_args, compss_cfg):
         print("[INFO] Deploying all tests in family " + family)
         for test_num, test_info in cmd_args.test_numbers[family].items():
             test_dir, test_path, test_global_num = test_info
-
-            # Check if it must be skipped
-            skip_file_path = os.path.join(test_path, "skip")
-            if cmd_args.skip and os.path.isfile(skip_file_path):
-                print("[WARN] Skipping test " + test_dir)
-            else:
-                print("[INFO] Deploying test " + str(test_dir))
-                _deploy(test_path, tests_exec_sandbox, test_global_num, compss_cfg)
+            _deploy(test_path, tests_exec_sandbox, test_global_num, cmd_args, compss_cfg)
     print("[INFO] Tests deployed")
 
 
@@ -199,25 +192,11 @@ def _compile_and_deploy_specific(cmd_args, compss_cfg):
         # Test can be a global number or a family number
         try:
             test_num = int(test)
-            # Global number, retrieve test folder
-            if test_num not in cmd_args.test_numbers["global"].keys():
-                raise TestCompilationError("[ERROR] Invalid test number " + str(test_num))
-            test_dir, test_path, family_dir, num_family = cmd_args.test_numbers["global"][test_num]
-            # Check if it must be skipped
-            skip_file_path = os.path.join(test_path, "skip")
-            if cmd_args.skip and os.path.isfile(skip_file_path):
-                print("[WARN] Skipping test " + test_dir)
-            else:
-                # Compile otherwise
-                print("[INFO] Compiling specific test")
-                print("[INFO]   - number: " + str(test_num))
-                print("[INFO]   - family: " + str(family_dir))
-                print("[INFO]   - family_number: " + str(num_family))
-                print("[INFO]   - name: " + str(test_dir))
-                print("[INFO]   - path: " + str(test_path))
-                _compile(test_path, compss_cfg)
-                compiled_tests.append((test_dir, test_path, test_num))
+            is_family = False
         except ValueError:
+            is_family = True
+
+        if is_family:
             # Family number, retrieve family and number
             family_dir = "".join(x for x in test if not x.isdigit())
             num_family = int("".join(x for x in test if x.isdigit()))
@@ -226,20 +205,27 @@ def _compile_and_deploy_specific(cmd_args, compss_cfg):
             if num_family not in cmd_args.test_numbers[family_dir].keys():
                 raise TestCompilationError("[ERROR] Invalid family number " + str(num_family) + " on specific test")
             test_dir, test_path, test_num = cmd_args.test_numbers[family_dir][num_family]
-            # Check if it must be skipped
-            skip_file_path = os.path.join(test_path, "skip")
-            if cmd_args.skip and os.path.isfile(skip_file_path):
-                print("[WARN] Skipping test " + test_dir)
-            else:
-                # Compile otherwise
-                print("[INFO] Compiling specific test")
-                print("[INFO]   - number: " + str(test_num))
-                print("[INFO]   - family: " + str(family_dir))
-                print("[INFO]   - family_number: " + str(num_family))
-                print("[INFO]   - name: " + str(test_dir))
-                print("[INFO]   - path: " + str(test_path))
-                _compile(test_path, compss_cfg)
-                compiled_tests.append((test_dir, test_path, test_num))
+        else:
+            # Global number, retrieve test folder
+            if test_num not in cmd_args.test_numbers["global"].keys():
+                raise TestCompilationError("[ERROR] Invalid test number " + str(test_num))
+            test_dir, test_path, family_dir, num_family = cmd_args.test_numbers["global"][test_num]
+
+        # Check if it must be skipped
+        skip_file_path = os.path.join(test_path, "skip")
+        if cmd_args.skip and os.path.isfile(skip_file_path):
+            print("[WARN] Test " + test_dir + " will be skipped")
+        else:
+            # Compile otherwise
+            print("[INFO] Compiling specific test")
+            print("[INFO]   - number: " + str(test_num))
+            print("[INFO]   - family: " + str(family_dir))
+            print("[INFO]   - family_number: " + str(num_family))
+            print("[INFO]   - name: " + str(test_dir))
+            print("[INFO]   - path: " + str(test_path))
+            _compile(test_path, compss_cfg)
+        # Add the test for deployment (in any case)
+        compiled_tests.append((test_dir, test_path, test_num))
     print("[INFO] Tests compiled")
 
     print()
@@ -251,7 +237,7 @@ def _compile_and_deploy_specific(cmd_args, compss_cfg):
     count = 1
     for test_dir, test_path, test_global_num in compiled_tests:
         print("[INFO] Deploying test " + str(test_dir))
-        _deploy(test_path, tests_exec_sandbox, test_global_num, compss_cfg)
+        _deploy(test_path, tests_exec_sandbox, test_global_num, cmd_args, compss_cfg)
         count = count + 1
 
 
@@ -297,13 +283,15 @@ def _compile(working_dir, compss_cfg):
         print("[INFO] Compilation of " + working_dir + " successful")
 
 
-def _deploy(source_path, test_exec_sandbox_global, test_num, compss_cfg):
+def _deploy(source_path, test_exec_sandbox_global, test_num, cmd_args, compss_cfg):
     """
     Executes the test deployment script
 
     :param source_path: Test source path
     :param test_exec_sandbox_global: Execution deployment path
     :param test_num: Global test number
+    :param cmd_args: Object representing the command line arguments
+        + type: argparse.Namespace
     :param compss_cfg:  Object representing the COMPSs test configuration options available in the given cfg file
         + type: COMPSsConfiguration
     :return:
@@ -317,33 +305,42 @@ def _deploy(source_path, test_exec_sandbox_global, test_num, compss_cfg):
 
     print("[INFO] Deploying " + str(source_path) + " to " + str(test_exec_sandbox))
 
-    # Search deploy script
-    deploy_script_path = os.path.join(source_path, "deploy")
-    if not os.path.isfile(deploy_script_path):
-        raise TestDeploymentError("[ERROR] Cannot find deploy script " + str(deploy_script_path))
+    # Check if test will be skipped
+    skip_file_path = os.path.join(source_path, "skip")
+    if cmd_args.skip and os.path.isfile(skip_file_path):
+        # Deploy only the skip file
+        from shutil import copyfile
+        copyfile(skip_file_path, os.path.join(test_exec_sandbox, "skip"))
+    else:
+        # Regular deploy
 
-    # Invoke deploy script
-    import subprocess
-    cmd = [deploy_script_path, source_path, test_exec_sandbox]
-    exec_env = os.environ.copy()
-    exec_env["JAVA_HOME"] = compss_cfg.get_java_home()
-    exec_env["COMPSS_HOME"] = compss_cfg.get_compss_home()
-    p = subprocess.Popen(cmd, cwd=source_path, env=exec_env, stdout=subprocess.PIPE)
-    output, error = p.communicate()
-    exit_value = p.returncode
+        # Search deploy script
+        deploy_script_path = os.path.join(source_path, "deploy")
+        if not os.path.isfile(deploy_script_path):
+            raise TestDeploymentError("[ERROR] Cannot find deploy script " + str(deploy_script_path))
 
-    # Log command exit_value/output/error
-    print("[INFO] Deployment command EXIT_VALUE: " + str(exit_value))
-    if exit_value != 0 or __debug__:
-        print("[DEBUG] Deployment command OUTPUT: ")
-        print(output)
-        if error is not None:
-            print("----------------------------------------")
-            print("[ERROR] Deployment command ERROR: ")
-            print(error)
-            print("----------------------------------------")
+        # Invoke deploy script
+        import subprocess
+        cmd = [deploy_script_path, source_path, test_exec_sandbox]
+        exec_env = os.environ.copy()
+        exec_env["JAVA_HOME"] = compss_cfg.get_java_home()
+        exec_env["COMPSS_HOME"] = compss_cfg.get_compss_home()
+        p = subprocess.Popen(cmd, cwd=source_path, env=exec_env, stdout=subprocess.PIPE)
+        output, error = p.communicate()
+        exit_value = p.returncode
 
-    # Raise an exception if command has failed
-    if exit_value != 0:
-        raise TestDeploymentError("[ERROR] Deployment command has failed with exit value: " + str(exit_value))
-    print("[INFO] Deployment of " + str(source_path) + " completed")
+        # Log command exit_value/output/error
+        print("[INFO] Deployment command EXIT_VALUE: " + str(exit_value))
+        if exit_value != 0 or __debug__:
+            print("[DEBUG] Deployment command OUTPUT: ")
+            print(output)
+            if error is not None:
+                print("----------------------------------------")
+                print("[ERROR] Deployment command ERROR: ")
+                print(error)
+                print("----------------------------------------")
+
+        # Raise an exception if command has failed
+        if exit_value != 0:
+            raise TestDeploymentError("[ERROR] Deployment command has failed with exit value: " + str(exit_value))
+        print("[INFO] Deployment of " + str(source_path) + " completed")

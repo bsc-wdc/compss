@@ -44,8 +44,9 @@ class TestExecutionError(Exception):
 class ExitValue(Enum):
     OK = 0,
     OK_RETRY = 1,
-    FAIL = 2,
-    UNSUPPORTED = 3
+    SKIP = 2,
+    UNSUPPORTED = 3,
+    FAIL = 4
 
 
 def str_exit_value_coloured(exit_value):
@@ -62,14 +63,16 @@ def str_exit_value_coloured(exit_value):
     colour_green = "\033[32m"
     colour_orange = "\033[33m"
     colour_blue = "\033[34m"
-    # colour_purple = "\033[35m"
+    colour_purple = "\033[35m"
 
     if exit_value == ExitValue.OK:
         return colour_green + exit_value.name + colour_white
     if exit_value == ExitValue.OK_RETRY:
         return colour_orange + exit_value.name + colour_white
-    if exit_value == ExitValue.UNSUPPORTED:
+    if exit_value == ExitValue.SKIP:
         return colour_blue + exit_value.name + colour_white
+    if exit_value == ExitValue.UNSUPPORTED:
+        return colour_purple + exit_value.name + colour_white
     # FAIL
     return colour_red + exit_value.name + colour_white
 
@@ -177,6 +180,12 @@ def _execute_test(test_name, test_path, compss_logs_root, cmd_args, compss_cfg):
         + type: ExitValue
     :raise TestExecutionError: If an error is encountered when creating the necessary structures to launch the test
     """
+    skip_file = os.path.join(test_path, "skip")
+    if os.path.isfile(skip_file):
+        print("[INFO] Skipping test " + str(test_name))
+        return ExitValue.SKIP
+
+    # Else, execute test normally
     print("[INFO] Executing test " + str(test_name))
 
     target_base_dir = compss_cfg.get_target_base_dir()

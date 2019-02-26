@@ -48,7 +48,43 @@ class ExitValue(Enum):
     UNSUPPORTED = 3
 
 
+def str_exit_value_coloured(exit_value):
+    """
+    Returns the coloured string representation of the exit_value object
+
+    :param exit_value: ExitValue object
+        + type: ExitValue
+    :return: The coloured string representation of the exit_value object
+        + type: String
+    """
+    colour_white = "\033[0m"
+    colour_red = "\033[31m"
+    colour_green = "\033[32m"
+    colour_orange = "\033[33m"
+    colour_blue = "\033[34m"
+    # colour_purple = "\033[35m"
+
+    if exit_value == ExitValue.OK:
+        return colour_green + exit_value.name + colour_white
+    if exit_value == ExitValue.OK_RETRY:
+        return colour_orange + exit_value.name + colour_white
+    if exit_value == ExitValue.UNSUPPORTED:
+        return colour_blue + exit_value.name + colour_white
+    # FAIL
+    return colour_red + exit_value.name + colour_white
+
+
 def _merge_exit_values(ev1, ev2):
+    """
+    Merges the given two exit values preserving the worst result
+
+    :param ev1: First ExitValue
+        + type: ExitValue
+    :param ev2: Second ExitValue
+        + type: ExitValue
+    :return: ExitValue representing the merge of the two given exit values preserving the worst result
+        + type: ExitValue
+    """
     if ev1 == ExitValue.FAIL or ev2 == ExitValue.FAIL:
         return ExitValue.FAIL
     if ev1 == ExitValue.OK_RETRY or ev2 == ExitValue.OK_RETRY:
@@ -96,10 +132,15 @@ def execute_tests(cmd_args, compss_cfg):
     results_info = []
     global_ev = ExitValue.OK
     for test_dir, ev in results:
+        # Update global exit value
         global_ev = _merge_exit_values(global_ev, ev)
+        # Colour the test exit value
+        ev_color_str = str_exit_value_coloured(ev)
+        # Retrieve test information
         test_global_num = int("".join(x for x in test_dir if x.isdigit()))
         test_name, _, family_dir, num_family = cmd_args.test_numbers["global"][test_global_num]
-        results_info.append([test_global_num, family_dir, num_family, test_name, test_dir, ev.name])
+        # Append all information for rendering
+        results_info.append([test_global_num, family_dir, num_family, test_name, test_dir, ev_color_str])
 
     # Print result summary table
     from tabulate import tabulate
@@ -241,6 +282,13 @@ def _execute_test_cmd(test_path, test_logs_path, compss_logs_root, retry, compss
 
 
 def _clean_procs(compss_cfg):
+    """
+    Cleans the remaining compss processes if any
+
+    :param compss_cfg: Object representing the COMPSs test configuration options available in the given cfg file
+        + type: COMPSsConfiguration
+    :return:
+    """
     clean_procs_bin = compss_cfg.get_compss_home() + CLEAN_PROCS_REL_PATH
     cmd = [clean_procs_bin]
 
@@ -254,12 +302,13 @@ def _clean_procs(compss_cfg):
     except Exception:
         exit_value = -1
 
-    if __debug__ or exit_value != 0:
+    if exit_value != 0:
         print("[WARN] Captured error while executing clean_compss_procs between test executions. Proceeding anyways...")
         print("[WARN] clean_compss_procs command EXIT_VALUE: " + str(exit_value))
         print("[WARN] clean_compss_procs command OUTPUT: ")
         print(output)
-        print("----------------------------------------")
-        print("[WARN] clean_compss_procs command ERROR: ")
-        print(error)
-        print("----------------------------------------")
+        if error is not None:
+            print("----------------------------------------")
+            print("[WARN] clean_compss_procs command ERROR: ")
+            print(error)
+            print("----------------------------------------")

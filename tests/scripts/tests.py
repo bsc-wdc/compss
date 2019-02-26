@@ -17,6 +17,7 @@ from compilation_and_deployment import TestDeploymentError
 from compilation_and_deployment import compile_and_deploy_tests
 from execution import TestExecutionError
 from execution import execute_tests
+from execution import str_exit_value_coloured
 
 
 def launch_tests():
@@ -97,7 +98,7 @@ def main():
         print()
         print("----------------------------------------")
         print("[INFO] Tests finished")
-        print("[INFO]    - Success = " + str(ev.name))
+        print("[INFO]    - Success = " + str_exit_value_coloured(ev))
         print("[INFO]    - Elapsed time = " + str(elapsed_time))
         print("----------------------------------------")
 

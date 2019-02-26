@@ -219,7 +219,6 @@ def launch_pycompss_application(app, func,
                                 master_port='',
                                 scheduler='es.bsc.compss.scheduler.loadBalancingScheduler.LoadBalancingScheduler',
                                 jvm_workers='-Xms1024m,-Xmx1024m,-Xmn400m',
-                                obj_conv=False,
                                 cpu_affinity='automatic',
                                 gpu_affinity='automatic',
                                 fpga_affinity='automatic',
@@ -262,7 +261,6 @@ def launch_pycompss_application(app, func,
     :param master_port: Master port (default: '')
     :param scheduler: Scheduler (default: LoadBalancingScheduler)
     :param jvm_workers: Java VM parameters (default: '-Xms1024m,-Xmx1024m,-Xmn400m')
-    :param obj_conv: Object conversion
     :param cpu_affinity: CPU Core affinity (default: 'automatic')
     :param gpu_affinity: GPU Core affinity (default: 'automatic')
     :param fpga_affinity: FPA Core affinity (default: 'automatic')
@@ -293,7 +291,8 @@ def launch_pycompss_application(app, func,
     ld_library_path = os.environ['LD_LIBRARY_PATH']
 
     # Enable/Disable object to string conversion
-    binding.object_conversion = obj_conv
+    # set cross-module variable
+    binding.object_conversion = o_c
 
     # Get the filename and its path.
     file_name = os.path.splitext(os.path.basename(app))[0]
@@ -336,10 +335,23 @@ def launch_pycompss_application(app, func,
             debug = False
         # Override tracing considering the parameter defined in pycompss_interactive_sc script
         # and exported by launch_compss
-        if get_tracing():
-            trace = 1
-        else:
-            trace = 0
+        trace = get_tracing()
+
+    if debug:
+        # Add environment variable to get binding-commons debug information
+        os.environ['COMPSS_BINDINGS_DEBUG'] = '1'
+
+    if trace is False:
+        trace = 0
+    elif trace == 'basic' or trace is True:
+        trace = 1
+        os.environ['LD_PRELOAD'] = extrae_lib + '/libpttrace.so'
+    elif trace == 'advanced':
+        trace = 2
+        os.environ['LD_PRELOAD'] = extrae_lib + '/libpttrace.so'
+    else:
+        print("ERROR: Wrong tracing parameter ( [ True | basic ] | advanced | False)")
+        return -1
 
     # Build a dictionary with all variables needed for initializing the runtime.
     config = dict()
@@ -405,15 +417,12 @@ def launch_pycompss_application(app, func,
 
     initialize_compss(config)
 
+    ##############################################################
+    # RUNTIME START
+    ##############################################################
+
     # Runtime start
     compss_start()
-
-    if o_c is True:
-        # set cross-module variable
-        binding.object_conversion = True
-    else:
-        # set cross-module variable
-        binding.object_conversion = False
 
     # Configure logging
     app_path = app

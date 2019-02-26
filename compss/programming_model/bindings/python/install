@@ -37,7 +37,7 @@
     #export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-armhf
 
     if command_exists python$1 ; then
-      # Check that the python version is higher than 2.6 is being used.
+      # Check that the python version used is higher than 2.6.
       py_version=$(python$1 -V 2>&1)
       echo "INFO: Installing PyCOMPSs for python$1"
       collapsed_py_version=$(echo ${py_version} | sed 's/.* \([0-9]\).\([0-9]\).*/\1\2/')

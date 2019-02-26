@@ -116,7 +116,6 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, args = Non
             name=p_name,
             content=val
         ), 0
-    raise ValueError("Unreachable statement... reached!")
 
 
 def get_input_params(num_params, logger, args, process_name):
@@ -141,19 +140,18 @@ def get_input_params(num_params, logger, args, process_name):
         p_value = args[pos + 4]
 
         if __debug__:
-            logger.debug("[PYTHON WORKER %s] Parameter : %s" % (process_name, str(i)))
-            logger.debug("[PYTHON WORKER %s] \t * Type : %s" % (process_name, str(p_type)))
-            logger.debug("[PYTHON WORKER %s] \t * Stream : %s" % (process_name, str(p_stream)))
-            logger.debug("[PYTHON WORKER %s] \t * Prefix : %s" % (process_name, str(p_prefix)))
-            logger.debug("[PYTHON WORKER %s] \t * Name : %s" % (process_name, str(p_name)))
-            logger.debug("[PYTHON WORKER %s] \t * Value: %r" % (process_name, p_value))
+            logger.debug("Parameter : %s" % str(i))
+            logger.debug("\t * Type : %s" % str(p_type))
+            logger.debug("\t * Stream : %s" % str(p_stream))
+            logger.debug("\t * Prefix : %s" % str(p_prefix))
+            logger.debug("\t * Name : %s" % str(p_name))
+            logger.debug("\t * Value: %r" % p_value)
 
         task_param, offset = build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, args, pos)
         ret.append(task_param)
         pos += offset + 5
 
     return ret
-
 
 def task_execution(logger, process_name, module, method_name, types, values, compss_kwargs):
     """
@@ -170,9 +168,9 @@ def task_execution(logger, process_name, module, method_name, types, values, com
     """
 
     if __debug__:
-        logger.debug("[PYTHON WORKER %s] Starting task execution" % process_name)
-        logger.debug("[PYTHON WORKER %s] Types : %s " % (process_name, str(types)))
-        logger.debug("[PYTHON WORKER %s] Values: %s " % (process_name, str(values)))
+        logger.debug("Starting task execution")
+        logger.debug("Types : %s " % str(types))
+        logger.debug("Values: %s " % str(values))
 
     # WARNING: the following call will not work if a user decorator overrides the return of the task decorator.
     # new_types, new_values = getattr(module, method_name)(*values, compss_types=types, **compss_kwargs)
@@ -198,10 +196,10 @@ def task_execution(logger, process_name, module, method_name, types, values, com
 
     if __debug__:
         # The types may change (e.g. if the user does a makePersistent within the task)
-        logger.debug("[PYTHON WORKER %s] Return Types : %s " % (process_name, str(new_types)))
-        logger.debug("[PYTHON WORKER %s] Return Values: %s " % (process_name, str(new_values)))
-        logger.debug("[PYTHON WORKER %s] Return targetDirection: %s " % (process_name, str(targetDirection)))
-        logger.debug("[PYTHON WORKER %s] Finished task execution" % process_name)
+        logger.debug("Return Types : %s " % str(new_types))
+        logger.debug("Return Values: %s " % str(new_values))
+        logger.debug("Return targetDirection: %s " % str(targetDirection))
+        logger.debug("Finished task execution")
 
     return new_types, new_values, targetDirection
 

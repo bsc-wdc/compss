@@ -33,7 +33,7 @@ import pycompss.util.context as context
 import pycompss.runtime.binding as binding
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.binding import pending_to_synchronize
-from pycompss.runtime.launch import initialize_compss
+from pycompss.runtime.launch import create_init_config_file
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
 from pycompss.util.scs import get_master_node
 from pycompss.util.scs import get_master_port
@@ -329,7 +329,7 @@ def start(log_level='off',
     config['python_virtual_environment'] = python_virtual_environment
     config['python_propagate_virtual_environment'] = propagate_virtual_environment
 
-    initialize_compss(config)
+    create_init_config_file(config)
 
     ##############################################################
     # RUNTIME START

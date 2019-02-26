@@ -415,7 +415,7 @@ def launch_pycompss_application(app, func,
     config['python_virtual_environment'] = python_virtual_environment
     config['python_propagate_virtual_environment'] = python_propagate_virtual_environment
 
-    initialize_compss(config)
+    create_init_config_file(config)
 
     ##############################################################
     # RUNTIME START
@@ -465,7 +465,7 @@ def launch_pycompss_application(app, func,
     return result
 
 
-def initialize_compss(config):
+def create_init_config_file(config):
     """
     Creates the initialization files for the runtime start (java options file).
     Receives a dictionary (config) with the configuration parameters.

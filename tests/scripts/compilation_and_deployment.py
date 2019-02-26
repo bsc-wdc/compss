@@ -262,20 +262,12 @@ def _compile(working_dir, compss_cfg):
         exec_env = os.environ.copy()
         exec_env["JAVA_HOME"] = compss_cfg.get_java_home()
         exec_env["COMPSS_HOME"] = compss_cfg.get_compss_home()
-        p = subprocess.Popen(cmd, cwd=working_dir, env=exec_env, stdout=subprocess.PIPE)
-        output, error = p.communicate()
+        p = subprocess.Popen(cmd, cwd=working_dir, env=exec_env)
+        p.communicate()
         exit_value = p.returncode
 
         # Log command exit_value/output/error
         print("[INFO] Compilation command EXIT_VALUE: " + str(exit_value))
-        if exit_value != 0 or __debug__:
-            print("[DEBUG] Compilation command OUTPUT: ")
-            print(output)
-            if error is not None:
-                print("----------------------------------------")
-                print("[ERROR] Compilation command ERROR: ")
-                print(error)
-                print("----------------------------------------")
 
         # Raise an exception if command has failed
         if exit_value != 0:
@@ -325,20 +317,12 @@ def _deploy(source_path, test_exec_sandbox_global, test_num, cmd_args, compss_cf
         exec_env = os.environ.copy()
         exec_env["JAVA_HOME"] = compss_cfg.get_java_home()
         exec_env["COMPSS_HOME"] = compss_cfg.get_compss_home()
-        p = subprocess.Popen(cmd, cwd=source_path, env=exec_env, stdout=subprocess.PIPE)
-        output, error = p.communicate()
+        p = subprocess.Popen(cmd, cwd=source_path, env=exec_env)
+        p.communicate()
         exit_value = p.returncode
 
         # Log command exit_value/output/error
         print("[INFO] Deployment command EXIT_VALUE: " + str(exit_value))
-        if exit_value != 0 or __debug__:
-            print("[DEBUG] Deployment command OUTPUT: ")
-            print(output)
-            if error is not None:
-                print("----------------------------------------")
-                print("[ERROR] Deployment command ERROR: ")
-                print(error)
-                print("----------------------------------------")
 
         # Raise an exception if command has failed
         if exit_value != 0:

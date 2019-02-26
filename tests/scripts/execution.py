@@ -258,27 +258,18 @@ def _execute_test_cmd(test_path, test_logs_path, compss_logs_root, retry, compss
 
     # Invoke execution script
     import subprocess
-    output = None
-    error = None
     try:
         exec_env = os.environ.copy()
         exec_env["JAVA_HOME"] = compss_cfg.get_java_home()
         exec_env["COMPSS_HOME"] = compss_cfg.get_compss_home()
-        p = subprocess.Popen(cmd, cwd=test_path, env=exec_env, stdout=subprocess.PIPE)
-        output, error = p.communicate()
+        p = subprocess.Popen(cmd, cwd=test_path, env=exec_env)
+        p.communicate()
         exit_value = p.returncode
     except Exception:
         exit_value = -1
 
     # Log command exit_value/output/error
     print("[INFO] Text execution command EXIT_VALUE: " + str(exit_value))
-    print("[INFO] Text execution command OUTPUT: ")
-    print(output)
-    if error is not None:
-        print("----------------------------------------")
-        print("[ERROR] Text execution command ERROR: ")
-        print(error)
-        print("----------------------------------------")
 
     # Return exit status
     if exit_value == 0:
@@ -302,11 +293,9 @@ def _clean_procs(compss_cfg):
     cmd = [clean_procs_bin]
 
     import subprocess
-    output = None
-    error = None
     try:
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-        output, error = p.communicate()
+        p = subprocess.Popen(cmd)
+        p.communicate()
         exit_value = p.returncode
     except Exception:
         exit_value = -1
@@ -314,10 +303,3 @@ def _clean_procs(compss_cfg):
     if exit_value != 0:
         print("[WARN] Captured error while executing clean_compss_procs between test executions. Proceeding anyways...")
         print("[WARN] clean_compss_procs command EXIT_VALUE: " + str(exit_value))
-        print("[WARN] clean_compss_procs command OUTPUT: ")
-        print(output)
-        if error is not None:
-            print("----------------------------------------")
-            print("[WARN] clean_compss_procs command ERROR: ")
-            print(error)
-            print("----------------------------------------")

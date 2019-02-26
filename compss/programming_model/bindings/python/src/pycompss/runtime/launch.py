@@ -238,9 +238,9 @@ def launch_pycompss_application(app, func,
     :param func: Function
     :param args: Arguments
     :param kwargs: Keyword arguments
-    :param log_level: Logging level [ 'on' | 'off'] (default: 'off')
+    :param log_level: Logging level [ 'off' | 'info'  | 'debug' ] (default: 'off')
     :param o_c: Objects to string conversion [ True | False ] (default: False)
-    :param debug: Debug mode [ True | False ] (default: False)
+    :param debug: Debug mode [ True | False ] (default: False) (overrides log_level)
     :param graph: Generate graph [ True | False ] (default: False)
     :param trace: Generate trace [ True | False ] (default: False)
     :param monitor: Monitor refresh rate (default: None)
@@ -306,6 +306,16 @@ def launch_pycompss_application(app, func,
         else:
             cp = cp + ':' + storage_impl
 
+    if monitor is not None:
+        # Enable the graph if the monitoring is enabled
+        graph = True
+        # Set log level info
+        log_level = 'info'
+
+    if debug:
+        # If debug is enabled, the output is more verbose
+        log_level = 'debug'
+
     if RUNNING_IN_SUPERCOMPUTER:
         # Since the deployment in supercomputers is done through the use of enqueue_compss
         # and consequently launch_compss - the project and resources xmls are already created
@@ -320,10 +330,10 @@ def launch_pycompss_application(app, func,
         # Override debug considering the parameter defined in pycompss_interactive_sc script
         # and exported by launch_compss
         log_level = get_log_level()
-        if log_level == 'off':
-            debug = False
-        else:
+        if log_level == 'debug':
             debug = True
+        else:
+            debug = False
         # Override tracing considering the parameter defined in pycompss_interactive_sc script
         # and exported by launch_compss
         if get_tracing():
@@ -335,6 +345,7 @@ def launch_pycompss_application(app, func,
     config = dict()
     config['compss_home'] = compss_home
     config['debug'] = debug
+    config['log_level'] = log_level
     if project_xml is None:
         project_xml = 'Runtime/configuration/xml/projects/default_project.xml'
         config['project_xml'] = compss_home + os.path.sep + project_xml
@@ -397,6 +408,13 @@ def launch_pycompss_application(app, func,
     # Runtime start
     compss_start()
 
+    if o_c is True:
+        # set cross-module variable
+        binding.object_conversion = True
+    else:
+        # set cross-module variable
+        binding.object_conversion = False
+
     # Configure logging
     app_path = app
     log_path = get_log_path()
@@ -448,7 +466,8 @@ def initialize_compss(config):
 
     * Current required parameters:
         - 'compss_home'      = <String>       = COMPSs installation path
-        - 'debug'            = <Boolean>      = Enable/Disable debugging (True|False)
+        - 'debug'            = <Boolean>      = Enable/Disable debugging (True|False) (overrides log_level)
+        - 'log_level'        = <String>       = Define the log level ('off' (default) | 'info' | 'debug')
         - 'project_xml'      = <String>       = Specific project.xml path
         - 'resources_xml'    = <String>       = Specific resources.xml path
         - 'summary'          = <Boolean>      = Enable/Disable summary (True|False)
@@ -499,9 +518,12 @@ def initialize_compss(config):
     jvm_options_file.write('-XX:+UseG1GC\n')
     jvm_options_file.write('-XX:+UseThreadPriorities\n')
     jvm_options_file.write('-XX:ThreadPriorityPolicy=42\n')
-    if config['debug']:
+    if config['debug'] or config['log_level'] == 'debug':
         jvm_options_file.write('-Dlog4j.configurationFile=' + config[
             'compss_home'] + '/Runtime/configuration/log/COMPSsMaster-log4j.debug\n')  # DEBUG
+    elif config['monitor'] is not None or config['log_level'] == 'info':
+        jvm_options_file.write('-Dlog4j.configurationFile=' + config[
+            'compss_home'] + '/Runtime/configuration/log/COMPSsMaster-log4j.info\n')  # INFO
     else:
         jvm_options_file.write('-Dlog4j.configurationFile=' + config[
             'compss_home'] + '/Runtime/configuration/log/COMPSsMaster-log4j\n')  # NO DEBUG

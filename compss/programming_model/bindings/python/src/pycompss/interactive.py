@@ -57,8 +57,8 @@ graphing = False
 
 
 def start(log_level='off',
-          o_c=False,
           debug=False,
+          o_c=False,
           graph=False,
           trace=False,
           monitor=None,
@@ -94,9 +94,9 @@ def start(log_level='off',
     """
     Start the runtime in interactive mode.
 
-    :param log_level: Logging level [ 'on' | 'off'] (default: 'off')
+    :param log_level: Logging level [ 'off' | 'info' | 'debug' ] (default: 'off')
+    :param debug: Debug mode [ True | False ] (default: False) (overrides log-level)
     :param o_c: Objects to string conversion [ True | False ] (default: False)
-    :param debug: Debug mode [ True | False ] (default: False)
     :param graph: Generate graph [ True | False ] (default: False)
     :param trace: Generate trace [ True | False ] (default: False)
     :param monitor: Monitor refresh rate (default: None)
@@ -169,10 +169,6 @@ def start(log_level='off',
     ld_library_path = extrae_lib + ':' + ld_library_path
     os.environ['LD_LIBRARY_PATH'] = ld_library_path
 
-    if monitor is not None:
-        # Enable the graph if the monitoring is enabled
-        graph = True
-
     # Export global variables
     global graphing
     graphing = graph
@@ -204,6 +200,16 @@ def start(log_level='off',
     # INITIALIZATION
     ##############################################################
 
+    if monitor is not None:
+        # Enable the graph if the monitoring is enabled
+        graph = True
+        # Set log level info
+        log_level = 'info'
+
+    if debug:
+        # If debug is enabled, the output is more verbose
+        log_level = 'debug'
+
     if RUNNING_IN_SUPERCOMPUTER:
         # Since the deployment in supercomputers is done through the use of enqueue_compss
         # and consequently launch_compss - the project and resources xmls are already created
@@ -218,10 +224,10 @@ def start(log_level='off',
         # Override debug considering the parameter defined in pycompss_interactive_sc script
         # and exported by launch_compss
         log_level = get_log_level()
-        if log_level == 'off':
-            debug = False
-        else:
+        if log_level == 'debug':
             debug = True
+        else:
+            debug = False
         # Override tracing considering the parameter defined in pycompss_interactive_sc script
         # and exported by launch_compss
         trace = get_tracing()
@@ -258,6 +264,7 @@ def start(log_level='off',
     config = dict()
     config['compss_home'] = compss_home
     config['debug'] = debug
+    config['log_level'] = log_level
     if project_xml is None:
         project_path = 'Runtime/configuration/xml/projects/default_project.xml'
         config['project_xml'] = compss_home + os.path.sep + project_path

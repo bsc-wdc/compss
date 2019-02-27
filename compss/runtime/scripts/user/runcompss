@@ -48,6 +48,7 @@ else
   DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT="${VIRTUAL_ENV}"
 fi
 DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT=true
+DEFAULT_PYTHON_MPI_WORKER=false
 
 NIO_ADAPTOR=es.bsc.compss.nio.master.NIOAdaptor
 #GAT_ADAPTOR=es.bsc.compss.gat.master.GATAdaptor
@@ -190,6 +191,8 @@ show_opts() {
                                             Default: $DEFAULT_PYTHON_INTERPRETER Version: ${DEFAULT_PYTHON_VERSION}
     --python_propagate_virtual_environment=<true>  Propagate the master virtual environment to the workers (true/false).
                                                    Default: $DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT
+    --python_mpi_worker=<false>             Use MPI to run the python worker instead of multiprocessing. (true/false).
+                                            Default: $DEFAULT_PYTHON_MPI_WORKER
 
 * Application name:
     For Java applications:   Fully qualified name of the application
@@ -601,6 +604,10 @@ get_args() {
             # Enable or disable the virtual environment propagation
             python_propagate_virtual_environment=${OPTARG//python_propagate_virtual_environment=/}
             ;;
+          python_mpi_worker=*)
+            # Enable or disable the virtual environment propagation
+            python_mpi_worker=${OPTARG//python_mpi_worker=/}
+            ;;
   	  *)
 	    # Flag didn't match any patern. Raise exception
 	    display_error "Bad argument: $OPTARG"
@@ -914,6 +921,9 @@ check_args() {
   if [ -z "$python_propagate_virtual_environment" ]; then
 	  python_propagate_virtual_environment=$DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT
   fi
+  if [ -z "$python_mpi_worker" ]; then
+	  python_mpi_worker=$DEFAULT_PYTHON_MPI_WORKER
+  fi
 
   # Options ONLY for C
   if [ "$lang" = "c" ]; then
@@ -1050,6 +1060,7 @@ add_jvm_opts_python() {
 -Dcompss.python.version=${python_version}
 -Dcompss.python.virtualenvironment=${DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT}
 -Dcompss.python.propagate_virtualenvironment=${python_propagate_virtual_environment}
+-Dcompss.python.mpi_worker=${python_mpi_worker}
 EOT
 }
 
@@ -1164,7 +1175,7 @@ exec_python() {
   $python_interpreter ${py_flags} "$PYCOMPSS_HOME"/pycompss/runtime/launch.py $log_level $PyObject_serialize $storageConf "$fullAppPath" ${application_args}
   endCode=$?
   if [ $tracing -gt 0 ]; then
-      unset LD_PRELOAD  # no tracing check because if not set does nothing
+      unset LD_PRELOAD
   fi
   if [ $endCode -ne 0 ]; then
     error_msg "${RUNTIME_ERROR}"

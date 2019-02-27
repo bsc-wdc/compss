@@ -411,6 +411,12 @@ public class WorkerStarter {
             LOGGER.warn("No python propagate virtual environment passed");
         }
 
+        String python_mpi_worker = System.getProperty(COMPSsConstants.PYTHON_MPI_WORKER);
+        if (python_mpi_worker == null || python_mpi_worker.isEmpty() || python_mpi_worker.equals("null")) {
+            python_mpi_worker = COMPSsConstants.DEFAULT_PYTHON_MPI_WORKER;
+            LOGGER.warn("No python MPI worker flag passed.");
+        }
+
         /*
          * ************************************************************************************************************
          * BUILD COMMAND
@@ -509,6 +515,8 @@ public class WorkerStarter {
         cmd[nextPosition++] = python_virtual_environment;
         // Python propagate virtual environment parameter
         cmd[nextPosition++] = python_propagate_virtual_environment;
+        // Python use MPI worker parameter
+        cmd[nextPosition++] = python_mpi_worker;
 
         if (cmd.length != nextPosition) {
             throw new InitNodeException("ERROR: Incorrect number of parameters. Expected: " + cmd.length +

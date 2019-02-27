@@ -30,16 +30,18 @@ public class PythonParams implements LanguageParams {
     private String pythonVirtualEnvironment;
     private String pythonPropagateVirtualEnvironment;
     private String pythonPath;
+    private Boolean pythonMpiWorker;
 
 
     public PythonParams(String pythonInterpreter, String pythonVersion, String pythonVirtualEnvironment,
-            String pythonPropagateVirtualEnvironment, String pythonPath) {
+            String pythonPropagateVirtualEnvironment, String pythonPath, String pythonMpiWorker) {
 
         this.pythonInterpreter = pythonInterpreter;
         this.pythonVersion = pythonVersion;
         this.pythonVirtualEnvironment = pythonVirtualEnvironment;
         this.pythonPropagateVirtualEnvironment = pythonPropagateVirtualEnvironment;
         this.pythonPath = pythonPath.equals("null") ? "" : pythonPath;
+        this.pythonMpiWorker = Boolean.parseBoolean(pythonMpiWorker);
     }
 
     public String getPythonInterpreter() {
@@ -77,9 +79,12 @@ public class PythonParams implements LanguageParams {
     public String getPythonPath() {
         return pythonPath;
     }
-
     public void setPythonPath(String pythonPath) {
         this.pythonPath = pythonPath;
+    }
+
+    public Boolean usePythonMpiWorker() {
+        return this.pythonMpiWorker;
     }
 
 }

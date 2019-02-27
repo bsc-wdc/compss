@@ -639,7 +639,7 @@ public class Executor implements Runnable {
                     }
                 } else {
                     if (cPipes == null) {
-                        // Double checking to avoid syncrhonizations when the pipes are already defined
+                        // Double checking to avoid synchronizations when the pipes are already defined
                         synchronized (CInvoker.class) {
                             if (cPipes == null) {
                                 PipedMirror mirror = (PipedMirror) platform.getMirror(CInvoker.class);

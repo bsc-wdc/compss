@@ -47,6 +47,7 @@ jmethodID midEmitEvent;             /* ID of the EmitEvent method in the es.bsc.
 jmethodID midOpenFile;              /* ID of the openFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midCloseFile;             /* ID of the closeFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midDeleteFile;            /* ID of the deleteFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midGetFile;               /* ID of the getFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
 jmethodID midBarrier; 		        /* ID of the barrier method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midBarrierNew;            /* ID of the barrier method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
@@ -243,6 +244,13 @@ void init_master_jni_types() {
 
     // deleteFile method
     midDeleteFile = m_env->GetMethodID(clsITimpl, "deleteFile", "(Ljava/lang/String;)Z");
+    if (m_env->ExceptionOccurred()) {
+        m_env->ExceptionDescribe();
+        exit(1);
+    }
+
+    // getFile method
+    midGetFile = m_env->GetMethodID(clsITimpl, "getFile", "(Ljava/lang/Long;Ljava/lang/String;)V");
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
         exit(1);
@@ -956,7 +964,7 @@ void GS_RegisterCE(char *CESignature, char *ImplSignature, char *ImplConstraints
 }
 
 
-void GS_Get_File(char *file_name, int mode, char **buf) {
+void GS_Open_File(char *file_name, int mode, char **buf) {
 
     const char *cstr;
     jstring jstr = NULL;
@@ -965,7 +973,7 @@ void GS_Get_File(char *file_name, int mode, char **buf) {
     get_lock();
     JNIEnv* local_env = m_env;
     int isAttached = check_and_attach(m_jvm, local_env);
-    debug_printf("[BINDING-COMMONS]  -  @GS_Get_File  -  Calling runtime OpenFile method  for %s and mode %d ...\n", file_name, mode);
+    debug_printf("[BINDING-COMMONS]  -  @GS_Open_File  -  Calling runtime OpenFile method  for %s and mode %d ...\n", file_name, mode);
     jstring filename_str = local_env->NewStringUTF(file_name);
     check_and_treat_exception(local_env, "Error getting String UTF");
     release_lock();
@@ -999,7 +1007,7 @@ void GS_Get_File(char *file_name, int mode, char **buf) {
     if (isAttached==1) {
         m_jvm->DetachCurrentThread();
     }
-    debug_printf("[BINDING-COMMONS]  -  @GS_Get_File  -  COMPSs filename: %s\n", *buf);
+    debug_printf("[BINDING-COMMONS]  -  @GS_Open_File  -  COMPSs filename: %s\n", *buf);
 }
 
 void GS_Close_File(char *file_name, int mode) {
@@ -1049,6 +1057,25 @@ void GS_Delete_File(char *file_name) {
     }
     release_lock();
     debug_printf("[BINDING-COMMONS]  -  @GS_Delete_File  -  COMPSs filename: %s\n", file_name);
+}
+
+void GS_Get_File(long _appId, char *file_name) {
+
+    get_lock();
+    JNIEnv* local_env = m_env;
+    int isAttached = check_and_attach(m_jvm, local_env);
+    release_lock();
+
+    local_env->CallVoidMethod(jobjIT, midGetFile, appId, m_env->NewStringUTF(file_name));
+    if (local_env->ExceptionOccurred()) {
+        local_env->ExceptionDescribe();
+        exit(1);
+    }
+    if (isAttached==1) {
+        m_jvm->DetachCurrentThread();
+    }
+
+    debug_printf("[BINDING-COMMONS]  -  @GS_Get_File  -  COMPSs filename: %s\n", file_name);
 }
 
 void GS_Get_Object(char *file_name, char**buf) {

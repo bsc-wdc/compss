@@ -45,11 +45,11 @@
 
   #----------------------------------------------------------------------------------
   # Compute result status
-  FILES=5
+  FILES=11
 
   # Checks if the file has been writen as many times as expected
   result=$(wc -l < /tmp/text.txt)
-  if [ "$result" -ne $FILES ]; then
+  if [ "$result" -ne 1 ]; then
     echo "ERROR: The number of writing tasks is not correct. $result "
     exit 1
   fi

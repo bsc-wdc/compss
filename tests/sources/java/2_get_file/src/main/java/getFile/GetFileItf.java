@@ -15,5 +15,11 @@ public interface GetFileItf {
         @Parameter(type = Type.FILE, direction = Direction.INOUT) String file,
         @Parameter(direction=Direction.IN) int i
     );
+    
+    @Constraints(computingUnits = "1")
+    @Method(declaringClass = "getFile.GetFileImpl")
+    void readInFile(
+        @Parameter(type = Type.FILE, direction = Direction.IN) String file
+    );
 
 }

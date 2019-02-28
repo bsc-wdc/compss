@@ -18,7 +18,7 @@ from constants import TESTS_DIR
 
 
 ############################################
-# ERROR CLASS
+# ERROR AND EXIT CLASSES
 ############################################
 
 class ArgumentError(Exception):
@@ -41,6 +41,21 @@ class ArgumentError(Exception):
         return "[ERROR] ArgumentError with exitValue = " + repr(self.exit_value)
 
 
+class ArgumentExit(Exception):
+    """
+    Class representing an success exit while processing the command line arguments
+    """
+
+    def __init__(self):
+        """
+        Initializes the ArgumentExit class 
+        """
+        pass
+
+    def __str__(self):
+        return "[DONE] ArgumentExit"
+
+
 ############################################
 # PUBLIC METHODS
 ############################################
@@ -52,6 +67,7 @@ def get_args():
     :return: Object representing the command line arguments
         + type: argparse.Namespace
     :raise ArgumentError: Error parsing command line arguments
+    :raise ArgumentExit: Exit parsing command line arguments
     :exit 0: This method exits when test numbering is provided
     """
     print()
@@ -164,6 +180,8 @@ def get_args():
     try:
         args = parser.parse_args()
     except SystemExit as se:
+        if se.code is None or se.code == 0:
+            raise ArgumentExit()
         raise ArgumentError(se)
 
     # Check arguments

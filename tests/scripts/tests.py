@@ -8,15 +8,19 @@ from __future__ import print_function
 # Imports
 import time
 
-from arguments import ArgumentError
 from arguments import get_args
-from configuration import ConfigurationError
+from arguments import ArgumentExit
+from arguments import ArgumentError
+
 from configuration import load_configuration_file
+from configuration import ConfigurationError
+
+from compilation_and_deployment import compile_and_deploy_tests
 from compilation_and_deployment import TestCompilationError
 from compilation_and_deployment import TestDeploymentError
-from compilation_and_deployment import compile_and_deploy_tests
-from execution import TestExecutionError
+
 from execution import execute_tests
+from execution import TestExecutionError
 from execution import str_exit_value_coloured
 
 
@@ -26,6 +30,7 @@ def launch_tests():
     :return: Exit value indicating whether the tests have failed or not
         + int
     :raise ArgumentError: Error parsing command line arguments
+    :raise ArgumentExit: Exit parsing command line arguments
     :raise ConfigurationError: If the provided file path is invalid or there is an error when loading the cfg content
     :raise TestCompilationError: If any error is found during compilation
     :raise TestDeploymentError: If any error is found during deployment
@@ -63,6 +68,10 @@ def main():
     # Launch main function
     try:
         ev = launch_tests()
+    except ArgumentExit as ae:
+        print("----------------------------------------")
+        print(ae)
+        print("----------------------------------------")
     except ArgumentError as ae:
         print("----------------------------------------")
         print("[ERROR] Parsing arguments")

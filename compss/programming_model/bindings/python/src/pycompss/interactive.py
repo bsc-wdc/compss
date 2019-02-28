@@ -131,6 +131,8 @@ def start(log_level='off',
     :return: None
     """
 
+    global app_path
+
     # Let the Python binding know we are at master
     context.set_pycompss_context(context.MASTER)
     # Then we can import the appropriate start and stop functions from the API
@@ -143,8 +145,7 @@ def start(log_level='off',
     compss_home = os.path.sep.join(launch_path.split(os.path.sep)[:-4])
     os.environ['COMPSS_HOME'] = compss_home
 
-    # Get environment variables
-    cp = os.getcwd() + '/'
+    # Grab the existing PYTHONPATH, CLASSPATH and LD_LIBRARY_PATH environment variables values
     pythonpath = os.environ['PYTHONPATH']
     classpath = os.environ['CLASSPATH']
     ld_library_path = os.environ['LD_LIBRARY_PATH']
@@ -152,6 +153,9 @@ def start(log_level='off',
     # Enable/Disable object to string conversion
     # set cross-module variable
     binding.object_conversion = o_c
+
+    # Get the interactive session path.
+    cp = os.getcwd() + '/'
 
     # Set storage classpath
     if storage_impl:
@@ -170,8 +174,7 @@ def start(log_level='off',
     extrae_lib = extrae_home + '/lib'
 
     # Include extrae into ld_library_path
-    ld_library_path = extrae_lib + ':' + ld_library_path
-    os.environ['LD_LIBRARY_PATH'] = ld_library_path
+    os.environ['LD_LIBRARY_PATH'] = extrae_lib + ':' + ld_library_path
 
     # Export global variables
     global graphing

@@ -231,7 +231,7 @@ def launch_pycompss_application(app, func,
                                 *args, **kwargs
                                 ):
     """
-    Launch pycompss application.
+    Launch PyCOMPSs application from function.
 
     :param app: Application path
     :param func: Function
@@ -284,8 +284,9 @@ def launch_pycompss_application(app, func,
     # compss_home = launch_path without the last 4 folders:
     # (Bindings/python/pycompss/runtime)
     compss_home = os.path.sep.join(launch_path.split(os.path.sep)[:-4])
+    os.environ['COMPSS_HOME'] = compss_home
 
-    # Grab the existing PYTHONPATH and CLASSPATH values
+    # Grab the existing PYTHONPATH, CLASSPATH and LD_LIBRARY_PATH environment variables values
     pythonpath = os.environ['PYTHONPATH']
     classpath = os.environ['CLASSPATH']
     ld_library_path = os.environ['LD_LIBRARY_PATH']
@@ -313,6 +314,13 @@ def launch_pycompss_application(app, func,
     else:
         extrae_home = os.environ['EXTRAE_HOME']
     extrae_lib = extrae_home + '/lib'
+
+    # Include extrae into ld_library_path
+    os.environ['LD_LIBRARY_PATH'] = extrae_lib + ':' + ld_library_path
+
+    ##############################################################
+    # INITIALIZATION
+    ##############################################################
 
     if monitor is not None:
         # Enable the graph if the monitoring is enabled
@@ -445,6 +453,13 @@ def launch_pycompss_application(app, func,
 
     logger.debug('--- START ---')
     logger.debug('PyCOMPSs Log path: %s' % log_path)
+
+    if storage_conf is not None and not storage_conf == 'null':
+        logger.debug("Storage configuration file: %s" % storage_conf)
+        from storage.api import init as init_storage
+        init_storage(config_file_path=storage_conf)
+        persistent_storage = True
+
     saved_argv = sys.argv
     sys.argv = args
     # Execution:
@@ -458,6 +473,11 @@ def launch_pycompss_application(app, func,
         result = method_to_call(*args, **kwargs)
     # Recover the system arguments
     sys.argv = saved_argv
+
+    if persistent_storage is True:
+        from storage.api import finish as finish_storage
+        finish_storage()
+
     logger.debug('--- END ---')
 
     compss_stop()

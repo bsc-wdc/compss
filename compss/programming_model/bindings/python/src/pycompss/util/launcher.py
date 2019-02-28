@@ -29,6 +29,7 @@ import sys
 import logging
 from tempfile import mkstemp
 import pycompss.runtime.binding as binding
+from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
 from pycompss.util.scs import get_master_node
 from pycompss.util.scs import get_master_port
 from pycompss.util.scs import get_xmls
@@ -439,3 +440,27 @@ def setup_logger(debug, log_level, major_version, compss_home, log_path):
         json_path = '/Bindings/python/' + str(major_version) + '/log/logging.json'
         init_logging(compss_home + json_path, log_path)
     return logging.getLogger("pycompss.runtime.launch")
+
+
+def init_storage(storage_conf, logger):
+    """
+    Initializes the external storage with the given storage configuration file.
+    The storage will be initialized if storage_conf is not None nor 'null'
+    :param storage_conf: Storage configuration file.
+    :param logger: Logger where to log the messages.
+    :return: True if initialized. False on the contrary.
+    """
+    if storage_conf is not None and not storage_conf == 'null':
+        if __debug__:
+            logger.debug("Storage configuration file: %s" % storage_conf)
+        from storage.api import init
+        init(config_file_path=storage_conf)
+        return True
+    else:
+        return False
+
+
+def stop_storage():
+    from storage.api import finish
+    finish()
+

@@ -42,6 +42,8 @@ from pycompss.util.launcher import prepare_tracing_environment
 from pycompss.util.launcher import check_infrastructure_variables
 from pycompss.util.launcher import create_init_config_file
 from pycompss.util.launcher import setup_logger
+from pycompss.util.launcher import init_storage
+from pycompss.util.launcher import stop_storage
 from pycompss.util.logs import init_logging
 from pycompss.util.serializer import SerializerException
 from pycompss.util.optional_modules import show_optional_module_warnings
@@ -124,11 +126,6 @@ def compss_main():
 
     # Get storage configuration at master
     storage_conf = args.storage_configuration
-    persistent_storage = False
-    if storage_conf != 'null':
-        persistent_storage = True
-        from storage.api import init as init_storage
-        from storage.api import finish as finish_storage
 
     # Get application execution path
     app_path = args.app_path
@@ -153,10 +150,7 @@ def compss_main():
         if __debug__:
             logger.debug('--- START ---')
             logger.debug('PyCOMPSs Log path: %s' % binding_log_path)
-        if persistent_storage:
-            if __debug__:
-                logger.debug('Storage configuration file: %s' % storage_conf)
-            init_storage(config_file_path=storage_conf)
+        persistent_storage = init_storage(storage_conf, logger)
         if __debug__:
             show_optional_module_warnings()
         # MAIN EXECUTION
@@ -165,7 +159,7 @@ def compss_main():
         else:
             execfile(app_path, globals())  # MAIN EXECUTION
         if persistent_storage:
-            finish_storage()
+            stop_storage()
         if __debug__:
             logger.debug('--- END ---')
     except SystemExit as e:
@@ -267,10 +261,10 @@ def launch_pycompss_application(app, func,
     :param scheduler_config: Scheduler configuration  (default: '')
     :param external_adaptation: External adaptation [ True | False ] (default: False)
     :param propagate_virtual_environment: Propagate virtual environment [ True | False ] (default: False)
+    :param args: Positional arguments
+    :param kwargs: Named arguments
     :return: Execution result
     """
-
-    global app_path
 
     # Let the Python binding know we are at master
     context.set_pycompss_context(context.MASTER)
@@ -349,11 +343,7 @@ def launch_pycompss_application(app, func,
 
     logger.debug('--- START ---')
     logger.debug('PyCOMPSs Log path: %s' % log_path)
-    if storage_conf is not None and not storage_conf == 'null':
-        logger.debug("Storage configuration file: %s" % storage_conf)
-        from storage.api import init as init_storage
-        init_storage(config_file_path=storage_conf)
-        persistent_storage = True
+    persistent_storage = init_storage(storage_conf, logger)
 
     saved_argv = sys.argv
     sys.argv = args
@@ -369,9 +359,8 @@ def launch_pycompss_application(app, func,
     # Recover the system arguments
     sys.argv = saved_argv
 
-    if persistent_storage is True:
-        from storage.api import finish as finish_storage
-        finish_storage()
+    if persistent_storage:
+        stop_storage()
 
     logger.debug('--- END ---')
 

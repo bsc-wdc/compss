@@ -40,7 +40,10 @@ from pycompss.util.launcher import updated_variables_in_sc
 from pycompss.util.launcher import prepare_tracing_environment
 from pycompss.util.launcher import check_infrastructure_variables
 from pycompss.util.launcher import create_init_config_file
+from pycompss.util.launcher import pycompss_start
 from pycompss.util.launcher import setup_logger
+from pycompss.util.launcher import init_storage
+from pycompss.util.launcher import stop_storage
 
 # Warning! The name should start with 'InteractiveMode' due to @task checks
 # it explicitly. If changed, it is necessary to update the task decorator.
@@ -84,7 +87,7 @@ def start(log_level='off',
           profile_output='',
           scheduler_config='',
           external_adaptation=False,
-          propagate_virtual_environment=False,
+          propagate_virtual_environment=True,
           verbose=False
           ):
     """
@@ -127,7 +130,12 @@ def start(log_level='off',
     :return: None
     """
 
-    global app_path
+    # Export global variables
+    global graphing
+    graphing = graph
+    __export_globals__()
+
+    __show_flower__()
 
     # Let the Python binding know we are at master
     context.set_pycompss_context(context.MASTER)
@@ -137,13 +145,6 @@ def start(log_level='off',
     # Prepare the environment
     env_vars = prepare_environment(True, o_c, storage_impl, None, debug)
     compss_home, pythonpath, classpath, ld_library_path, cp, extrae_home, extrae_lib, file_name = env_vars
-
-    # Export global variables
-    global graphing
-    graphing = graph
-    __export_globals__()
-
-    __show_flower__()
 
     ##############################################################
     # INITIALIZATION
@@ -239,12 +240,8 @@ def start(log_level='off',
 
     logger.debug("--- START ---")
     logger.debug("PyCOMPSs Log path: %s" % log_path)
-    if storage_conf is not None and not storage_conf == 'null':
-        logger.debug("Storage configuration file: %s" % storage_conf)
-        from storage.api import init as init_storage
-        init_storage(config_file_path=storage_conf)
-        global persistent_storage
-        persistent_storage = True
+    global persistent_storage
+    persistent_storage = init_storage(storage_conf, logger)
 
     # MAIN EXECUTION
     # let the user write an interactive application
@@ -377,9 +374,8 @@ def stop(sync=False):
         print("Warning: some of the variables used with PyCOMPSs may")
         print("         have not been brought to the master.")
 
-    if persistent_storage is True:
-        from storage.api import finish as finish_storage
-        finish_storage()
+    if persistent_storage:
+        stop_storage()
 
     compss_stop()
 

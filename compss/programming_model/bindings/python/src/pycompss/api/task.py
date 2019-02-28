@@ -566,7 +566,7 @@ class task(object):
             # Get the file name
             file_name = os.path.splitext(os.path.basename(path))[0]
             # Do any necessary pre processing action before executing any code
-            if file_name.startswith('InteractiveMode'):
+            if file_name.startswith('InteractiveMode') and not self.registered:
                 # If the file_name starts with 'InteractiveMode' means that
                 # the user is using PyCOMPSs from jupyter-notebook.
                 # Convention between this file and interactive.py

@@ -31,6 +31,7 @@ import time
 
 import pycompss.util.context as context
 import pycompss.runtime.binding as binding
+import pycompss.util.interactive_helpers as interactive_helpers
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.binding import pending_to_synchronize
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
@@ -133,6 +134,8 @@ def start(log_level='off',
     global graphing
     graphing = graph
     __export_globals__()
+
+    interactive_helpers.VERBOSE = verbose
 
     __show_flower__()
 

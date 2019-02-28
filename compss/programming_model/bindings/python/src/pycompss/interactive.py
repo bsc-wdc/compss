@@ -33,8 +33,8 @@ import pycompss.util.context as context
 import pycompss.runtime.binding as binding
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.binding import pending_to_synchronize
-from pycompss.runtime.launch import create_init_config_file
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
+from pycompss.util.configurators import create_init_config_file
 from pycompss.util.scs import get_master_node
 from pycompss.util.scs import get_master_port
 from pycompss.util.scs import get_xmls

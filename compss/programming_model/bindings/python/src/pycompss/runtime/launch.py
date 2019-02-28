@@ -42,8 +42,8 @@ from pycompss.util.launcher import prepare_tracing_environment
 from pycompss.util.launcher import check_infrastructure_variables
 from pycompss.util.launcher import create_init_config_file
 from pycompss.util.launcher import setup_logger
-from pycompss.util.launcher import init_storage
-from pycompss.util.launcher import stop_storage
+from pycompss.util.persistent_storage import init_storage
+from pycompss.util.persistent_storage import stop_storage
 from pycompss.util.logs import init_logging
 from pycompss.util.serializer import SerializerException
 from pycompss.util.optional_modules import show_optional_module_warnings

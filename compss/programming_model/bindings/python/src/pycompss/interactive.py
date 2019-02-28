@@ -40,10 +40,9 @@ from pycompss.util.launcher import updated_variables_in_sc
 from pycompss.util.launcher import prepare_tracing_environment
 from pycompss.util.launcher import check_infrastructure_variables
 from pycompss.util.launcher import create_init_config_file
-from pycompss.util.launcher import pycompss_start
 from pycompss.util.launcher import setup_logger
-from pycompss.util.launcher import init_storage
-from pycompss.util.launcher import stop_storage
+from pycompss.util.persistent_storage import init_storage
+from pycompss.util.persistent_storage import stop_storage
 
 # Warning! The name should start with 'InteractiveMode' due to @task checks
 # it explicitly. If changed, it is necessary to update the task decorator.

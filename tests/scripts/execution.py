@@ -95,6 +95,15 @@ def _merge_exit_values(ev1, ev2):
     return ExitValue.OK
 
 
+def get_exit_code(exit_value):
+    if exit_value == ExitValue.OK or exit_value == ExitValue.OK_RETRY:
+        return 0
+    if exit_value == ExitValue.UNSUPPORTED or exit_value == ExitValue.SKIP:
+        return 99
+    # FAIL
+    return 1
+
+
 ############################################
 # PUBLIC METHODS
 ############################################

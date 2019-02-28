@@ -22,6 +22,7 @@ from compilation_and_deployment import TestDeploymentError
 from execution import execute_tests
 from execution import TestExecutionError
 from execution import str_exit_value_coloured
+from execution import get_exit_code
 
 
 def launch_tests():
@@ -72,26 +73,31 @@ def main():
         print("----------------------------------------")
         print(ae)
         print("----------------------------------------")
+        exit(0)  # no error
     except ArgumentError as ae:
         print("----------------------------------------")
         print("[ERROR] Parsing arguments")
         print(ae)
         print("----------------------------------------")
+        exit(10)
     except ConfigurationError as ce:
         print("----------------------------------------")
         print("[ERROR] Cannot load configuration file")
         print(ce)
         print("----------------------------------------")
+        exit(11)
     except TestCompilationError as tce:
         print("----------------------------------------")
         print("[ERROR] Cannot compile tests")
         print(tce)
         print("----------------------------------------")
+        exit(12)
     except TestDeploymentError as tde:
         print("----------------------------------------")
         print("[ERROR] Cannot deploy tests")
         print(tde)
         print("----------------------------------------")
+        exit(13)
     except TestExecutionError as tee:
         # WARN: This is received when there is an infrastructure issue executing the tests, not when the
         # tests fail themselves
@@ -99,7 +105,7 @@ def main():
         print("[ERROR] Cannot execute tests")
         print(tee)
         print("----------------------------------------")
-        pass
+        exit(14)
     else:
         # All tests executed, they may have failed though
         end_time = time.time()
@@ -110,6 +116,7 @@ def main():
         print("[INFO]    - Success = " + str_exit_value_coloured(ev))
         print("[INFO]    - Elapsed time = " + str(elapsed_time))
         print("----------------------------------------")
+        exit(get_exit_code(ev))
 
 
 ############################################

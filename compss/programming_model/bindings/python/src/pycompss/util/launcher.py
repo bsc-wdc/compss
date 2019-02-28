@@ -29,7 +29,6 @@ import sys
 import logging
 from tempfile import mkstemp
 import pycompss.runtime.binding as binding
-from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
 from pycompss.util.scs import get_master_node
 from pycompss.util.scs import get_master_port
 from pycompss.util.scs import get_xmls
@@ -85,7 +84,7 @@ def prepare_environment(interactive, o_c, storage_impl, app, debug):
             cp = cp + ':' + storage_impl
 
     # Set extrae dependencies
-    if not "EXTRAE_HOME" in os.environ:
+    if "EXTRAE_HOME" not in os.environ:
         # It can be defined by the user or by launch_compss when running in Supercomputer
         extrae_home = compss_home + '/Dependencies/extrae'
         os.environ['EXTRAE_HOME'] = extrae_home
@@ -471,7 +470,3 @@ def setup_logger(debug, log_level, major_version, compss_home, log_path):
         json_path = '/Bindings/python/' + str(major_version) + '/log/logging.json'
         init_logging(compss_home + json_path, log_path)
     return logging.getLogger("pycompss.runtime.launch")
-
-
-
-

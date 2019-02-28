@@ -1,0 +1,16 @@
+#!/bin/bash
+
+  # Check if an image called 'compss' is available locally
+  if [ -z "$(docker images -q compss)" ]; then
+      echo "Docker image 'compss' does not exist. Build it before trying to run the tests with:"
+      echo "$ docker build -t compss ."
+      echo "NOTE: the command should be run at the root of the repo."
+      exit 1
+  fi
+  
+  # Container can be stopped and give name conflict, so remove it just in case
+  docker rm -f compss_test &> /dev/null  || true # no need to output errors if the container wasn't found
+  docker run -d --name=compss_test compss
+  docker exec compss_test sudo /framework/tests/scripts/configure_hosts_insert
+  
+  docker exec --user jenkins compss_test python3 /framework/tests/scripts/tests.py -FF "$@"

@@ -80,8 +80,10 @@ def get_args():
         print("[DEBUG] Creating argument parser...")
 
     parser = argparse.ArgumentParser(description="Launch COMPSs tests",
-                                     version="2.4.rc1902",
                                      add_help=True)
+
+    # Add version
+    parser.add_argument('--version', action='version', version='2.4.rc1902')
 
     # Add skip options
     parser.add_argument("-s", "--skip",

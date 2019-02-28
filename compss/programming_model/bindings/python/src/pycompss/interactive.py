@@ -264,72 +264,60 @@ def start(log_level='off',
         print("ERROR: Wrong tracing parameter ( [ True | basic ] | advanced | False)")
         return -1
 
-    # Build a dictionary with all variables needed for initializing the runtime
-    config = dict()
-    config['compss_home'] = compss_home
-    config['debug'] = debug
-    config['log_level'] = log_level
     if project_xml is None:
-        project_path = 'Runtime/configuration/xml/projects/default_project.xml'
-        config['project_xml'] = compss_home + os.path.sep + project_path
-    else:
-        config['project_xml'] = project_xml
+        project_xml = compss_home + os.path.sep + 'Runtime/configuration/xml/projects/default_project.xml'
     if resources_xml is None:
-        resources_path = 'Runtime/configuration/xml/resources/default_resources.xml'
-        config['resources_xml'] = compss_home + os.path.sep + resources_path
-    else:
-        config['resources_xml'] = resources_xml
-    config['summary'] = summary
-    config['task_execution'] = task_execution
-    config['storage_conf'] = storage_conf
-    config['task_count'] = task_count
-    if app_name is None:
-        config['app_name'] = 'Interactive'
-    else:
-        config['app_name'] = app_name
-    config['uuid'] = uuid
-    config['base_log_dir'] = base_log_dir
-    config['specific_log_dir'] = specific_log_dir
-    config['graph'] = graph
-    config['monitor'] = monitor
-    config['trace'] = trace
-    config['extrae_cfg'] = extrae_cfg
-    config['comm'] = comm
-    config['conn'] = conn
-    config['master_name'] = master_name
-    config['master_port'] = master_port
-    config['scheduler'] = scheduler
-    config['cp'] = cp
-    config['pythonpath'] = pythonpath
-    config['classpath'] = classpath
-    config['ld_library_path'] = ld_library_path
-    config['jvm_workers'] = jvm_workers
-    config['cpu_affinity'] = cpu_affinity
-    config['gpu_affinity'] = gpu_affinity
-    config['fpga_affinity'] = fpga_affinity
-    config['fpga_reprogram'] = fpga_reprogram
-    config['profile_input'] = profile_input
-    config['profile_output'] = profile_output
-    config['scheduler_config'] = scheduler_config
-    if external_adaptation:
-        config['external_adaptation'] = 'true'
-    else:
-        config['external_adaptation'] = 'false'
-
-    major_version = sys.version_info[0]
-    python_interpreter = 'python' + str(major_version)
-    config['python_interpreter'] = python_interpreter
-    config['python_version'] = str(major_version)
-
+        resources_xml = compss_home + os.path.sep + 'Runtime/configuration/xml/resources/default_resources.xml'
+    app_name = 'Interactive' if app_name is None else app_name
+    external_adaptation = 'true' if external_adaptation else 'false'
+    major_version = str(sys.version_info[0])
+    python_interpreter = 'python' + major_version
+    python_version = major_version
+    # Check if running within a virtual environment
     if 'VIRTUAL_ENV' in os.environ:
-        # Running within a virtual environment
         python_virtual_environment = os.environ['VIRTUAL_ENV']
     else:
         python_virtual_environment = 'null'
-    config['python_virtual_environment'] = python_virtual_environment
-    config['python_propagate_virtual_environment'] = propagate_virtual_environment
 
-    create_init_config_file(config)
+    create_init_config_file(compss_home,
+                            debug,
+                            log_level,
+                            project_xml,
+                            resources_xml,
+                            summary,
+                            task_execution,
+                            storage_conf,
+                            task_count,
+                            app_name,
+                            uuid,
+                            base_log_dir,
+                            specific_log_dir,
+                            graph,
+                            monitor,
+                            trace,
+                            extrae_cfg,
+                            comm,
+                            conn,
+                            master_name,
+                            master_port,
+                            scheduler,
+                            cp,
+                            classpath,
+                            ld_library_path,
+                            pythonpath,
+                            jvm_workers,
+                            cpu_affinity,
+                            gpu_affinity,
+                            fpga_affinity,
+                            fpga_reprogram,
+                            profile_input,
+                            profile_output,
+                            scheduler_config,
+                            external_adaptation,
+                            python_interpreter,
+                            python_version,
+                            python_virtual_environment,
+                            propagate_virtual_environment)
 
     ##############################################################
     # RUNTIME START

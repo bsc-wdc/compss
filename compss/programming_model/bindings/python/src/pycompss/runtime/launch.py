@@ -227,7 +227,7 @@ def launch_pycompss_application(app, func,
                                 profile_output='',
                                 scheduler_config='',
                                 external_adaptation=False,
-                                python_propagate_virtual_environment=True,
+                                propagate_virtual_environment=True,
                                 *args, **kwargs
                                 ):
     """
@@ -269,7 +269,7 @@ def launch_pycompss_application(app, func,
     :param profile_output: Output profile  (default: '')
     :param scheduler_config: Scheduler configuration  (default: '')
     :param external_adaptation: External adaptation [ True | False ] (default: False)
-    :param python_propagate_virtual_environment: Propagate virtual environment [ True | False ] (default: False)
+    :param propagate_virtual_environment: Propagate virtual environment [ True | False ] (default: False)
     :return: Execution result
     """
 
@@ -304,6 +304,15 @@ def launch_pycompss_application(app, func,
             cp = cp + ':' + compss_home + '/Tools/storage/redis/compss-redisPSCO.jar'
         else:
             cp = cp + ':' + storage_impl
+
+    # Set extrae dependencies
+    if not "EXTRAE_HOME" in os.environ:
+        # It can be defined by the user or by launch_compss when running in Supercomputer
+        extrae_home = compss_home + '/Dependencies/extrae'
+        os.environ['EXTRAE_HOME'] = extrae_home
+    else:
+        extrae_home = os.environ['EXTRAE_HOME']
+    extrae_lib = extrae_home + '/lib'
 
     if monitor is not None:
         # Enable the graph if the monitoring is enabled
@@ -353,69 +362,60 @@ def launch_pycompss_application(app, func,
         print("ERROR: Wrong tracing parameter ( [ True | basic ] | advanced | False)")
         return -1
 
-    # Build a dictionary with all variables needed for initializing the runtime.
-    config = dict()
-    config['compss_home'] = compss_home
-    config['debug'] = debug
-    config['log_level'] = log_level
     if project_xml is None:
-        project_xml = 'Runtime/configuration/xml/projects/default_project.xml'
-        config['project_xml'] = compss_home + os.path.sep + project_xml
-    else:
-        config['project_xml'] = project_xml
+        project_xml = compss_home + os.path.sep + 'Runtime/configuration/xml/projects/default_project.xml'
     if resources_xml is None:
-        resources_xml = 'Runtime/configuration/xml/resources/default_resources.xml'
-        config['resources_xml'] = compss_home + os.path.sep + resources_xml
-    else:
-        config['resources_xml'] = resources_xml
-    config['summary'] = summary
-    config['task_execution'] = task_execution
-    config['storage_conf'] = storage_conf
-    config['task_count'] = task_count
-    if app_name is None:
-        config['app_name'] = file_name
-    else:
-        config['app_name'] = app_name
-    config['uuid'] = uuid
-    config['base_log_dir'] = base_log_dir
-    config['specific_log_dir'] = specific_log_dir
-    config['graph'] = graph
-    config['monitor'] = monitor
-    config['trace'] = trace
-    config['extrae_cfg'] = extrae_cfg
-    config['comm'] = comm
-    config['conn'] = conn
-    config['master_name'] = master_name
-    config['master_port'] = master_port
-    config['scheduler'] = scheduler
-    config['cp'] = cp
-    config['classpath'] = classpath
-    config['ld_library_path'] = ld_library_path
-    config['jvm_workers'] = jvm_workers
-    config['pythonpath'] = pythonpath
-    config['cpu_affinity'] = cpu_affinity
-    config['gpu_affinity'] = gpu_affinity
-    config['fpga_affinity'] = fpga_affinity
-    config['fpga_reprogram'] = fpga_reprogram
-    config['profile_input'] = profile_input
-    config['profile_output'] = profile_output
-    config['scheduler_config'] = scheduler_config
-    if external_adaptation:
-        config['external_adaptation'] = 'true'
-    else:
-        config['external_adaptation'] = 'false'
+        resources_xml = compss_home + os.path.sep + 'Runtime/configuration/xml/resources/default_resources.xml'
+    app_name = file_name if app_name is None else app_name
+    external_adaptation = 'true' if external_adaptation else 'false'
     major_version = str(sys.version_info[0])
-    config['python_interpreter'] = 'python' + major_version
-    config['python_version'] = major_version
+    python_interpreter = 'python' + major_version
+    python_version = major_version
+    # Check if running within a virtual environment
     if 'VIRTUAL_ENV' in os.environ:
-        # Running within a virtual environment
         python_virtual_environment = os.environ['VIRTUAL_ENV']
     else:
         python_virtual_environment = 'null'
-    config['python_virtual_environment'] = python_virtual_environment
-    config['python_propagate_virtual_environment'] = python_propagate_virtual_environment
 
-    create_init_config_file(config)
+    create_init_config_file(compss_home,
+                            debug,
+                            log_level,
+                            project_xml,
+                            resources_xml,
+                            summary,
+                            task_execution,
+                            storage_conf,
+                            task_count,
+                            app_name,
+                            uuid,
+                            base_log_dir,
+                            specific_log_dir,
+                            graph,
+                            monitor,
+                            trace,
+                            extrae_cfg,
+                            comm,
+                            conn,
+                            master_name,
+                            master_port,
+                            scheduler,
+                            cp,
+                            classpath,
+                            ld_library_path,
+                            pythonpath,
+                            jvm_workers,
+                            cpu_affinity,
+                            gpu_affinity,
+                            fpga_affinity,
+                            fpga_reprogram,
+                            profile_input,
+                            profile_output,
+                            scheduler_config,
+                            external_adaptation,
+                            python_interpreter,
+                            python_version,
+                            python_virtual_environment,
+                            propagate_virtual_environment)
 
     ##############################################################
     # RUNTIME START
@@ -465,56 +465,87 @@ def launch_pycompss_application(app, func,
     return result
 
 
-def create_init_config_file(config):
+def create_init_config_file(compss_home,
+                            debug,
+                            log_level,
+                            project_xml,
+                            resources_xml,
+                            summary,
+                            task_execution,
+                            storage_conf,
+                            task_count,
+                            app_name,
+                            uuid,
+                            base_log_dir,
+                            specific_log_dir,
+                            graph,
+                            monitor,
+                            trace,
+                            extrae_cfg,
+                            comm,
+                            conn,
+                            master_name,
+                            master_port,
+                            scheduler,
+                            cp,
+                            classpath,
+                            ld_library_path,
+                            pythonpath,
+                            jvm_workers,
+                            cpu_affinity,
+                            gpu_affinity,
+                            fpga_affinity,
+                            fpga_reprogram,
+                            profile_input,
+                            profile_output,
+                            scheduler_config,
+                            external_adaptation,
+                            python_interpreter,
+                            python_version,
+                            python_virtual_environment,
+                            propagate_virtual_environment):
     """
     Creates the initialization files for the runtime start (java options file).
-    Receives a dictionary (config) with the configuration parameters.
 
-    WARNING!!! if new parameters are included in the runcompss launcher,
-    they have to be considered in this configuration. Otherwise, the runtime will not start.
-
-    * Current required parameters:
-        - 'compss_home'      = <String>       = COMPSs installation path
-        - 'debug'            = <Boolean>      = Enable/Disable debugging (True|False) (overrides log_level)
-        - 'log_level'        = <String>       = Define the log level ('off' (default) | 'info' | 'debug')
-        - 'project_xml'      = <String>       = Specific project.xml path
-        - 'resources_xml'    = <String>       = Specific resources.xml path
-        - 'summary'          = <Boolean>      = Enable/Disable summary (True|False)
-        - 'task_execution'   = <String>       = Who performs the task execution (normally "compss")
-        - 'storage_conf'     = None|<String>  = Storage configuration file path
-        - 'task_count'       = <Integer>      = Number of tasks (for structure initialization purposes)
-        - 'app_name'         = <String>       = Application name
-        - 'uuid'             = None|<String>  = Application UUID
-        - 'base_log_dir'     = None|<String>  = Base log path
-        - 'specific_log_dir' = None|<String>  = Specific log path
-        - 'graph'            = <Boolean>      = Enable/Disable graph generation
-        - 'monitor'          = None|<Integer> = Disable/Frequency of the monitor
-        - 'trace'            = <Boolean>      = Enable/Disable trace generation
-        - 'extrae_cfg'       = None|<String>  = Default extrae configuration/User specific extrae configuration
-        - 'comm'             = <String>       = GAT/NIO
-        - 'conn'             = <String>       = Connector (normally: es.bsc.compss.connectors.DefaultSSHConnector)
-        - 'master_name'      = <String>       = Master node name
-        - 'master_port'      = <String>       = Master node port
-        - 'scheduler'        = <String>       = Scheduler (normally: es.bsc.compss.scheduler.resourceEmptyScheduler.ResourceEmptyScheduler)
-        - 'cp'               = <String>       = Application path
-        - 'classpath'        = <String>       = CLASSPATH environment variable contents
-        - 'ld_library_path'  = <String>       = LD_LIBRARY_PATH environment variable contents
-        - 'pythonpath'       = <String>       = PYTHONPATH environment variable contents
-        - 'jvm_workers'      = <String>       = Worker's jvm configuration (example: "-Xms1024m,-Xmx1024m,-Xmn400m")
-        - 'cpu_affinity'     = <String>       = CPU affinity (default: automatic)
-        - 'gpu_affinity'     = <String>       = GPU affinity (default: automatic)
-        - 'fpga_affinity'    = <String>       = FPGA affinity (default: automatic)
-        - 'fpga_reprogram'   = <String>       = FPGA reprogram command (default: '')
-        - 'profile_input'    = <String>       = profiling input
-        - 'profile_output'   = <String>       = profiling output
-        - 'scheduler_config'    = <String>    = Path to the file which contains the scheduler configuration.
-        - 'external_adaptation' = <String>    = Enable external adaptation. This option will disable the Resource Optimizer
-        - 'python_interpreter'  = <String>    = Python interpreter
-        - 'python_version'      = <String>    = Python interpreter version
-        - 'python_virtual_environment'            = <String>  = Python virtual environment path
-        - 'python_propagate_virtual_environment'  = <Boolean> = Propagate python virtual environment to workers
-
-    :param config: Configuration parameters dictionary
+    :param compss_home: <String> COMPSs installation path
+    :param debug:  <Boolean> Enable/Disable debugging (True|False) (overrides log_level)
+    :param log_level: <String> Define the log level ('off' (default) | 'info' | 'debug')
+    :param project_xml: <String> Specific project.xml path
+    :param resources_xml: <String> Specific resources.xml path
+    :param summary: <Boolean> Enable/Disable summary (True|False)
+    :param task_execution: <String> Who performs the task execution (normally "compss")
+    :param storage_conf: None|<String> Storage configuration file path
+    :param task_count: <Integer> Number of tasks (for structure initialization purposes)
+    :param app_name: <String> Application name
+    :param uuid: None|<String> Application UUID
+    :param base_log_dir: None|<String> Base log path
+    :param specific_log_dir: None|<String> Specific log path
+    :param graph: <Boolean> Enable/Disable graph generation
+    :param monitor: None|<Integer> Disable/Frequency of the monitor
+    :param trace: <Boolean> Enable/Disable trace generation
+    :param extrae_cfg: None|<String> Default extrae configuration/User specific extrae configuration
+    :param comm: <String> GAT/NIO
+    :param conn: <String> Connector (normally: es.bsc.compss.connectors.DefaultSSHConnector)
+    :param master_name: <String> Master node name
+    :param master_port: <String> Master node port
+    :param scheduler: <String> Scheduler (normally: es.bsc.compss.scheduler.resourceEmptyScheduler.ResourceEmptyScheduler)
+    :param cp: <String>  Application path
+    :param classpath: <String> CLASSPATH environment variable contents
+    :param ld_library_path: <String> LD_LIBRARY_PATH environment variable contents
+    :param pythonpath: <String> PYTHONPATH environment variable contents
+    :param jvm_workers: <String> Worker's jvm configuration (example: "-Xms1024m,-Xmx1024m,-Xmn400m")
+    :param cpu_affinity: <String> CPU affinity (default: automatic)
+    :param gpu_affinity: <String> GPU affinity (default: automatic)
+    :param fpga_affinity: <String> FPGA affinity (default: automatic)
+    :param fpga_reprogram: <String> FPGA reprogram command (default: '')
+    :param profile_input: <String> profiling input
+    :param profile_output: <String> profiling output
+    :param scheduler_config: <String> Path to the file which contains the scheduler configuration.
+    :param external_adaptation: <String> Enable external adaptation. This option will disable the Resource Optimizer
+    :param python_interpreter: <String> Python interpreter
+    :param python_version: <String> Python interpreter version
+    :param python_virtual_environment: <String> Python virtual environment path
+    :param propagate_virtual_environment: <Boolean> = Propagate python virtual environment to workers
     :return: None
     """
     from tempfile import mkstemp
@@ -527,125 +558,114 @@ def create_init_config_file(config):
     jvm_options_file.write('-XX:+UseG1GC\n')
     jvm_options_file.write('-XX:+UseThreadPriorities\n')
     jvm_options_file.write('-XX:ThreadPriorityPolicy=42\n')
-    if config['debug'] or config['log_level'] == 'debug':
-        jvm_options_file.write('-Dlog4j.configurationFile=' + config[
-            'compss_home'] + '/Runtime/configuration/log/COMPSsMaster-log4j.debug\n')  # DEBUG
-    elif config['monitor'] is not None or config['log_level'] == 'info':
-        jvm_options_file.write('-Dlog4j.configurationFile=' + config[
-            'compss_home'] + '/Runtime/configuration/log/COMPSsMaster-log4j.info\n')  # INFO
+    if debug or log_level == 'debug':
+        jvm_options_file.write('-Dlog4j.configurationFile=' + compss_home + '/Runtime/configuration/log/COMPSsMaster-log4j.debug\n')  # DEBUG
+    elif monitor is not None or log_level == 'info':
+        jvm_options_file.write('-Dlog4j.configurationFile=' + compss_home + '/Runtime/configuration/log/COMPSsMaster-log4j.info\n')  # INFO
     else:
-        jvm_options_file.write('-Dlog4j.configurationFile=' + config[
-            'compss_home'] + '/Runtime/configuration/log/COMPSsMaster-log4j\n')  # NO DEBUG
+        jvm_options_file.write('-Dlog4j.configurationFile=' + compss_home + '/Runtime/configuration/log/COMPSsMaster-log4j\n')  # NO DEBUG
     jvm_options_file.write('-Dcompss.to.file=false\n')
-    jvm_options_file.write('-Dcompss.project.file=' + config['project_xml'] + '\n')
-    jvm_options_file.write('-Dcompss.resources.file=' + config['resources_xml'] + '\n')
-    jvm_options_file.write(
-        '-Dcompss.project.schema=' + config['compss_home'] + '/Runtime/configuration/xml/projects/project_schema.xsd\n')
-    jvm_options_file.write(
-        '-Dcompss.resources.schema=' + config[
-            'compss_home'] + '/Runtime/configuration/xml/resources/resources_schema.xsd\n')
+    jvm_options_file.write('-Dcompss.project.file=' + project_xml + '\n')
+    jvm_options_file.write('-Dcompss.resources.file=' + resources_xml + '\n')
+    jvm_options_file.write('-Dcompss.project.schema=' + compss_home + '/Runtime/configuration/xml/projects/project_schema.xsd\n')
+    jvm_options_file.write('-Dcompss.resources.schema=' + compss_home + '/Runtime/configuration/xml/resources/resources_schema.xsd\n')
     jvm_options_file.write('-Dcompss.lang=python\n')
-    if config['summary']:
+    if summary:
         jvm_options_file.write('-Dcompss.summary=true\n')
     else:
         jvm_options_file.write('-Dcompss.summary=false\n')
-    jvm_options_file.write('-Dcompss.task.execution=' + config['task_execution'] + '\n')
-    if config['storage_conf'] is None:
+    jvm_options_file.write('-Dcompss.task.execution=' + task_execution + '\n')
+    if storage_conf is None:
         jvm_options_file.write('-Dcompss.storage.conf=null\n')
     else:
-        jvm_options_file.write('-Dcompss.storage.conf=' + config['storage_conf'] + '\n')
+        jvm_options_file.write('-Dcompss.storage.conf=' + storage_conf + '\n')
 
-    jvm_options_file.write('-Dcompss.core.count=' + str(config['task_count']) + '\n')
+    jvm_options_file.write('-Dcompss.core.count=' + str(task_count) + '\n')
 
-    jvm_options_file.write('-Dcompss.appName=' + config['app_name'] + '\n')
+    jvm_options_file.write('-Dcompss.appName=' + app_name + '\n')
 
-    if config['uuid'] is None:
+    if uuid is None:
         import uuid
         my_uuid = str(uuid.uuid4())
     else:
-        my_uuid = config['uuid']
+        my_uuid = uuid
 
     jvm_options_file.write('-Dcompss.uuid=' + my_uuid + '\n')
 
-    if config['base_log_dir'] is None:
+    if base_log_dir is None:
         # it will be within $HOME/.COMPSs
         jvm_options_file.write('-Dcompss.baseLogDir=\n')
     else:
-        jvm_options_file.write('-Dcompss.baseLogDir=' + config['base_log_dir'] + '\n')
+        jvm_options_file.write('-Dcompss.baseLogDir=' + base_log_dir + '\n')
 
-    if config['specific_log_dir'] is None:
+    if specific_log_dir is None:
         jvm_options_file.write('-Dcompss.specificLogDir=\n')
     else:
-        jvm_options_file.write('-Dcompss.specificLogDir=' + config['specific_log_dir'] + '\n')
+        jvm_options_file.write('-Dcompss.specificLogDir=' + specific_log_dir + '\n')
 
     jvm_options_file.write('-Dcompss.appLogDir=/tmp/' + my_uuid + '/\n')
 
-    if config['graph']:
+    if graph:
         jvm_options_file.write('-Dcompss.graph=true\n')
     else:
         jvm_options_file.write('-Dcompss.graph=false\n')
 
-    if config['monitor'] is None:
+    if monitor is None:
         jvm_options_file.write('-Dcompss.monitor=0\n')
     else:
-        jvm_options_file.write('-Dcompss.monitor=' + str(config['monitor']) + '\n')
+        jvm_options_file.write('-Dcompss.monitor=' + str(monitor) + '\n')
 
-    if not config['trace'] or config['trace'] == 0:
+    if not trace or trace == 0:
         jvm_options_file.write('-Dcompss.tracing=0' + '\n')
-    elif config['trace'] == 1:
+    elif trace == 1:
         jvm_options_file.write('-Dcompss.tracing=1\n')
-        os.environ['EXTRAE_CONFIG_FILE'] = config['compss_home'] + '/Runtime/configuration/xml/tracing/extrae_basic.xml'
-    elif config['trace'] == 2:
+        os.environ['EXTRAE_CONFIG_FILE'] = compss_home + '/Runtime/configuration/xml/tracing/extrae_basic.xml'
+    elif trace == 2:
         jvm_options_file.write('-Dcompss.tracing=2\n')
-        os.environ['EXTRAE_CONFIG_FILE'] = config[
-                                               'compss_home'] + '/Runtime/configuration/xml/tracing/extrae_advanced.xml'
+        os.environ['EXTRAE_CONFIG_FILE'] = compss_home + '/Runtime/configuration/xml/tracing/extrae_advanced.xml'
     else:
         jvm_options_file.write('-Dcompss.tracing=0' + '\n')
 
-    if config['extrae_cfg'] is None:
+    if extrae_cfg is None:
         jvm_options_file.write('-Dcompss.extrae.file=null\n')
     else:
-        jvm_options_file.write('-Dcompss.extrae.file=' + config['extrae_cfg'] + '\n')
+        jvm_options_file.write('-Dcompss.extrae.file=' + extrae_cfg + '\n')
 
-    if config['comm'] == 'GAT':
+    if comm == 'GAT':
         jvm_options_file.write('-Dcompss.comm=es.bsc.compss.gat.master.GATAdaptor\n')
     else:
         jvm_options_file.write('-Dcompss.comm=es.bsc.compss.nio.master.NIOAdaptor\n')
 
-    jvm_options_file.write('-Dcompss.conn=' + config['conn'] + '\n')
-    jvm_options_file.write('-Dcompss.masterName=' + config['master_name'] + '\n')
-    jvm_options_file.write('-Dcompss.masterPort=' + config['master_port'] + '\n')
-    jvm_options_file.write('-Dcompss.scheduler=' + config['scheduler'] + '\n')
-    jvm_options_file.write('-Dgat.adaptor.path=' + config['compss_home'] + '/Dependencies/JAVA_GAT/lib/adaptors\n')
-    if config['debug']:
+    jvm_options_file.write('-Dcompss.conn=' + conn + '\n')
+    jvm_options_file.write('-Dcompss.masterName=' + master_name + '\n')
+    jvm_options_file.write('-Dcompss.masterPort=' + master_port + '\n')
+    jvm_options_file.write('-Dcompss.scheduler=' + scheduler + '\n')
+    jvm_options_file.write('-Dgat.adaptor.path=' + compss_home + '/Dependencies/JAVA_GAT/lib/adaptors\n')
+    if debug:
         jvm_options_file.write('-Dgat.debug=true\n')
     else:
         jvm_options_file.write('-Dgat.debug=false\n')
     jvm_options_file.write('-Dgat.broker.adaptor=sshtrilead\n')
     jvm_options_file.write('-Dgat.file.adaptor=sshtrilead\n')
-    jvm_options_file.write(
-        '-Dcompss.worker.cp=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config[
-            'classpath'] + '\n')
-    jvm_options_file.write('-Dcompss.worker.jvm_opts=' + config['jvm_workers'] + '\n')
-    jvm_options_file.write('-Dcompss.worker.cpu_affinity=' + config['cpu_affinity'] + '\n')
-    jvm_options_file.write('-Dcompss.worker.gpu_affinity=' + config['gpu_affinity'] + '\n')
-    jvm_options_file.write('-Dcompss.worker.fpga_affinity=' + config['fpga_affinity'] + '\n')
-    jvm_options_file.write('-Dcompss.worker.fpga_reprogram=' + config['fpga_reprogram'] + '\n')
-    jvm_options_file.write('-Dcompss.profile.input=' + config['profile_input'] + '\n')
-    jvm_options_file.write('-Dcompss.profile.output=' + config['profile_output'] + '\n')
-    jvm_options_file.write('-Dcompss.scheduler.config=' + config['scheduler_config'] + '\n')
-    jvm_options_file.write('-Dcompss.external.adaptation=' + config['external_adaptation'] + '\n')
+    jvm_options_file.write('-Dcompss.worker.cp=' + cp + ':' + compss_home + '/Runtime/compss-engine.jar:' + classpath + '\n')
+    jvm_options_file.write('-Dcompss.worker.jvm_opts=' + jvm_workers + '\n')
+    jvm_options_file.write('-Dcompss.worker.cpu_affinity=' + cpu_affinity + '\n')
+    jvm_options_file.write('-Dcompss.worker.gpu_affinity=' + gpu_affinity + '\n')
+    jvm_options_file.write('-Dcompss.worker.fpga_affinity=' + fpga_affinity + '\n')
+    jvm_options_file.write('-Dcompss.worker.fpga_reprogram=' + fpga_reprogram + '\n')
+    jvm_options_file.write('-Dcompss.profile.input=' + profile_input + '\n')
+    jvm_options_file.write('-Dcompss.profile.output=' + profile_output + '\n')
+    jvm_options_file.write('-Dcompss.scheduler.config=' + scheduler_config + '\n')
+    jvm_options_file.write('-Dcompss.external.adaptation=' + external_adaptation + '\n')
 
     # JVM OPTIONS - PYTHON
-    jvm_options_file.write(
-        '-Djava.class.path=' + config['cp'] + ':' + config['compss_home'] + '/Runtime/compss-engine.jar:' + config[
-            'classpath'] + '\n')
-    jvm_options_file.write('-Djava.library.path=' + config['ld_library_path'] + '\n')
-    jvm_options_file.write('-Dcompss.worker.pythonpath=' + config['cp'] + ':' + config['pythonpath'] + '\n')
-    jvm_options_file.write('-Dcompss.python.interpreter=' + config['python_interpreter'] + '\n')
-    jvm_options_file.write('-Dcompss.python.version=' + config['python_version'] + '\n')
-    jvm_options_file.write('-Dcompss.python.virtualenvironment=' + config['python_virtual_environment'] + '\n')
-    if config['python_propagate_virtual_environment']:
+    jvm_options_file.write('-Djava.class.path=' + cp + ':' + compss_home + '/Runtime/compss-engine.jar:' + classpath + '\n')
+    jvm_options_file.write('-Djava.library.path=' + ld_library_path + '\n')
+    jvm_options_file.write('-Dcompss.worker.pythonpath=' + cp + ':' + pythonpath + '\n')
+    jvm_options_file.write('-Dcompss.python.interpreter=' + python_interpreter + '\n')
+    jvm_options_file.write('-Dcompss.python.version=' + python_version + '\n')
+    jvm_options_file.write('-Dcompss.python.virtualenvironment=' + python_virtual_environment + '\n')
+    if propagate_virtual_environment:
         jvm_options_file.write('-Dcompss.python.propagate_virtualenvironment=true\n')
     else:
         jvm_options_file.write('-Dcompss.python.propagate_virtualenvironment=false\n')

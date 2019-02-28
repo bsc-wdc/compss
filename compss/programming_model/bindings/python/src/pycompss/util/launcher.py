@@ -50,7 +50,8 @@ def prepare_environment(interactive, o_c, storage_impl, app, debug):
     :param storage_impl: Storage implementation
     :param app: Appname
     :param debug: True | False If debug is enabled
-    :return: compss_home, pythonpath, classpath, ld_library_path, cp, extrae_home, extrae_lib and file_name
+    :return: Dictionary contanining the compss_home, pythonpath, classpath, ld_library_path,
+             cp, extrae_home, extrae_lib and file_name values.
     """
     launch_path = os.path.dirname(os.path.realpath(__file__))
     if interactive:
@@ -99,7 +100,15 @@ def prepare_environment(interactive, o_c, storage_impl, app, debug):
         # Add environment variable to get binding-commons debug information
         os.environ['COMPSS_BINDINGS_DEBUG'] = '1'
 
-    return compss_home, pythonpath, classpath, ld_library_path, cp, extrae_home, extrae_lib, file_name
+    env_vars = {'compss_home': compss_home,
+                'pythonpath': pythonpath,
+                'classpath': classpath,
+                'ld_library_path': ld_library_path,
+                'cp': cp,
+                'extrae_home': extrae_home,
+                'extrae_lib': extrae_lib,
+                'file_name': file_name}
+    return env_vars
 
 
 def prepare_loglevel_graph_for_monitoring(monitor, graph, debug, log_level):
@@ -110,7 +119,7 @@ def prepare_loglevel_graph_for_monitoring(monitor, graph, debug, log_level):
     :param graph: True | False If graph is enabled or disabled.
     :param debug: True | False If debug is enabled or disabled.
     :param log_level: Defined log level
-    :return: Updated monitor, graph and log_level values.
+    :return: Dictionary containing the updated monitor, graph and log_level values.
     """
     if monitor is not None:
         # Enable the graph if the monitoring is enabled
@@ -122,15 +131,18 @@ def prepare_loglevel_graph_for_monitoring(monitor, graph, debug, log_level):
         # If debug is enabled, the output is more verbose
         log_level = 'debug'
 
-    return monitor, graph, log_level
+    monitoring_vars = {'monitor': monitor,
+                       'graph': graph,
+                       'log_level': log_level}
+    return monitoring_vars
 
 
 def updated_variables_in_sc():
     """
     Retrieve the updated variable values whithin SCs.
-    :return: Updated variables (project_xml, resources_xml, master_name, master_port,
-             uuid, base_log_dir, specific_log_dir, storage_conf, log_level, debug and
-             trace.
+    :return: Dictionary containing the updated variables (project_xml, resources_xml,
+             master_name, master_port, uuid, base_log_dir, specific_log_dir, storage_conf,
+             log_level, debug and trace.
     """
     # Since the deployment in supercomputers is done through the use of enqueue_compss
     # and consequently launch_compss - the project and resources xmls are already created
@@ -152,9 +164,18 @@ def updated_variables_in_sc():
     # Override tracing considering the parameter defined in pycompss_interactive_sc script
     # and exported by launch_compss
     trace = get_tracing()
-    return project_xml, resources_xml, master_name, master_port,\
-           uuid, base_log_dir, specific_log_dir, storage_conf, \
-           log_level, debug, trace
+    updated_vars = {'project_xml': project_xml,
+                    'resources_xml': resources_xml,
+                    'master_name': master_name,
+                    'master_port': master_port,
+                    'uuid': uuid,
+                    'base_log_dir': base_log_dir,
+                    'specific_log_dir': specific_log_dir,
+                    'storage_conf': storage_conf,
+                    'log_level': log_level,
+                    'debug': debug,
+                    'trace': trace}
+    return updated_vars
 
 
 def prepare_tracing_environment(trace, extrae_lib):
@@ -204,7 +225,15 @@ def check_infrastructure_variables(project_xml, resources_xml, compss_home, app_
         python_virtual_environment = os.environ['VIRTUAL_ENV']
     else:
         python_virtual_environment = 'null'
-    return project_xml, resources_xml, app_name, external_adaptation, major_version, python_interpreter, python_version, python_virtual_environment
+    inf_vars = {'project_xml': project_xml,
+                'resources_xml': resources_xml,
+                'app_name': app_name,
+                'external_adaptation': external_adaptation,
+                'major_version': major_version,
+                'python_interpreter': python_interpreter,
+                'python_version': python_version,
+                'python_virtual_environment': python_virtual_environment}
+    return inf_vars
 
 
 def create_init_config_file(compss_home,
@@ -245,7 +274,8 @@ def create_init_config_file(compss_home,
                             python_interpreter,
                             python_version,
                             python_virtual_environment,
-                            propagate_virtual_environment):
+                            propagate_virtual_environment,
+                            **kwargs):
     """
     Creates the initialization files for the runtime start (java options file).
 
@@ -288,6 +318,7 @@ def create_init_config_file(compss_home,
     :param python_version: <String> Python interpreter version
     :param python_virtual_environment: <String> Python virtual environment path
     :param propagate_virtual_environment: <Boolean> = Propagate python virtual environment to workers
+    :param kwargs: Other nominal parameters
     :return: None
     """
     fd, temp_path = mkstemp()

@@ -271,64 +271,67 @@ def launch_pycompss_application(app, func,
     # Then we can import the appropriate start and stop functions from the API
     from pycompss.api.api import compss_start, compss_stop
 
-    # Prepare the environment
-    env_vars = prepare_environment(True, o_c, storage_impl, app, debug)
-    compss_home, pythonpath, classpath, ld_library_path, cp, extrae_home, extrae_lib, file_name = env_vars
-
     ##############################################################
     # INITIALIZATION
     ##############################################################
 
-    monitor, graph, log_level = prepare_loglevel_graph_for_monitoring(monitor, graph, debug, log_level)
+    # Initial dictionary with the user defined parameters
+    all_vars = {'log_level': log_level,
+                'debug': debug,
+                'o_c': o_c,
+                'graph': graph,
+                'trace': trace,
+                'monitor': monitor,
+                'project_xml': project_xml,
+                'resources_xml': resources_xml,
+                'summary': summary,
+                'task_execution': task_execution,
+                'storage_impl': storage_impl,
+                'storage_conf': storage_conf,
+                'task_count': task_count,
+                'app_name': app_name,
+                'uuid': uuid,
+                'base_log_dir': base_log_dir,
+                'specific_log_dir': specific_log_dir,
+                'extrae_cfg': extrae_cfg,
+                'comm': comm,
+                'conn': conn,
+                'master_name': master_name,
+                'master_port': master_port,
+                'scheduler': scheduler,
+                'jvm_workers': jvm_workers,
+                'cpu_affinity': cpu_affinity,
+                'gpu_affinity': gpu_affinity,
+                'fpga_affinity': fpga_affinity,
+                'fpga_reprogram': fpga_reprogram,
+                'profile_input': profile_input,
+                'profile_output': profile_output,
+                'scheduler_config': scheduler_config,
+                'external_adaptation': external_adaptation,
+                'propagate_virtual_environment': propagate_virtual_environment}
+
+    # Prepare the environment
+    env_vars = prepare_environment(True, o_c, storage_impl, app, debug)
+    all_vars.update(env_vars)
+
+    monitoring_vars = prepare_loglevel_graph_for_monitoring(monitor, graph, debug, log_level)
+    all_vars.update(monitoring_vars)
 
     if RUNNING_IN_SUPERCOMPUTER:
         updated_vars = updated_variables_in_sc()
-        project_xml, resources_xml, master_name, master_port, uuid, base_log_dir, specific_log_dir, storage_conf, log_level, debug, trace = updated_vars
+        all_vars.update(updated_vars)
 
-    trace = prepare_tracing_environment(trace, extrae_lib)
+    all_vars['trace'] = prepare_tracing_environment(all_vars['trace'], all_vars['extrae_lib'])
 
-    updated_vars = check_infrastructure_variables(project_xml, resources_xml, compss_home, app_name, file_name, external_adaptation)
-    project_xml, resources_xml, app_name, external_adaptation, major_version, python_interpreter, python_version, python_virtual_environment = updated_vars
+    inf_vars = check_infrastructure_variables(all_vars['project_xml'],
+                                              all_vars['resources_xml'],
+                                              all_vars['compss_home'],
+                                              all_vars['app_name'],
+                                              all_vars['file_name'],
+                                              all_vars['external_adaptation'])
+    all_vars.update(inf_vars)
 
-    create_init_config_file(compss_home,
-                            debug,
-                            log_level,
-                            project_xml,
-                            resources_xml,
-                            summary,
-                            task_execution,
-                            storage_conf,
-                            task_count,
-                            app_name,
-                            uuid,
-                            base_log_dir,
-                            specific_log_dir,
-                            graph,
-                            monitor,
-                            trace,
-                            extrae_cfg,
-                            comm,
-                            conn,
-                            master_name,
-                            master_port,
-                            scheduler,
-                            cp,
-                            classpath,
-                            ld_library_path,
-                            pythonpath,
-                            jvm_workers,
-                            cpu_affinity,
-                            gpu_affinity,
-                            fpga_affinity,
-                            fpga_reprogram,
-                            profile_input,
-                            profile_output,
-                            scheduler_config,
-                            external_adaptation,
-                            python_interpreter,
-                            python_version,
-                            python_virtual_environment,
-                            propagate_virtual_environment)
+    create_init_config_file(**all_vars)
 
     ##############################################################
     # RUNTIME START
@@ -339,11 +342,13 @@ def launch_pycompss_application(app, func,
 
     # Configure logging
     log_path = get_log_path()
+    major_version = all_vars['major_version']
+    compss_home = all_vars['compss_home']
     logger = setup_logger(debug, log_level, major_version, compss_home, log_path)
 
     logger.debug('--- START ---')
     logger.debug('PyCOMPSs Log path: %s' % log_path)
-    persistent_storage = init_storage(storage_conf, logger)
+    persistent_storage = init_storage(all_vars['storage_conf'], logger)
 
     saved_argv = sys.argv
     sys.argv = args
@@ -353,7 +358,7 @@ def launch_pycompss_application(app, func,
         result = None
     else:
         import imp
-        imported_module = imp.load_source(file_name, app)
+        imported_module = imp.load_source(all_vars['file_name'], app)
         method_to_call = getattr(imported_module, func)
         result = method_to_call(*args, **kwargs)
     # Recover the system arguments
@@ -363,6 +368,10 @@ def launch_pycompss_application(app, func,
         stop_storage()
 
     logger.debug('--- END ---')
+
+    ##############################################################
+    # RUNTIME STOP
+    ##############################################################
 
     compss_stop()
 

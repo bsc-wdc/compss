@@ -141,76 +141,85 @@ def start(log_level='off',
     # Then we can import the appropriate start and stop functions from the API
     from pycompss.api.api import compss_start
 
-    # Prepare the environment
-    env_vars = prepare_environment(True, o_c, storage_impl, None, debug)
-    compss_home, pythonpath, classpath, ld_library_path, cp, extrae_home, extrae_lib, file_name = env_vars
-
     ##############################################################
     # INITIALIZATION
     ##############################################################
 
-    monitor, graph, log_level = prepare_loglevel_graph_for_monitoring(monitor, graph, debug, log_level)
+    # Initial dictionary with the user defined parameters
+    all_vars = {'log_level': log_level,
+                'debug': debug,
+                'o_c': o_c,
+                'graph': graph,
+                'trace': trace,
+                'monitor': monitor,
+                'project_xml': project_xml,
+                'resources_xml': resources_xml,
+                'summary': summary,
+                'task_execution': task_execution,
+                'storage_impl': storage_impl,
+                'storage_conf': storage_conf,
+                'task_count': task_count,
+                'app_name': app_name,
+                'uuid': uuid,
+                'base_log_dir': base_log_dir,
+                'specific_log_dir': specific_log_dir,
+                'extrae_cfg': extrae_cfg,
+                'comm': comm,
+                'conn': conn,
+                'master_name': master_name,
+                'master_port': master_port,
+                'scheduler': scheduler,
+                'jvm_workers': jvm_workers,
+                'cpu_affinity': cpu_affinity,
+                'gpu_affinity': gpu_affinity,
+                'fpga_affinity': fpga_affinity,
+                'fpga_reprogram': fpga_reprogram,
+                'profile_input': profile_input,
+                'profile_output': profile_output,
+                'scheduler_config': scheduler_config,
+                'external_adaptation': external_adaptation,
+                'propagate_virtual_environment': propagate_virtual_environment}
 
+    # Prepare the environment
+    env_vars = prepare_environment(True, o_c, storage_impl, None, debug)
+    all_vars.update(env_vars)
+
+    # Update the log level and graph values if monitoring is enabled
+    monitoring_vars = prepare_loglevel_graph_for_monitoring(monitor, graph, debug, log_level)
+    all_vars.update(monitoring_vars)
+
+    # Check if running in supercomputer and update the variables accordingly with the defined
+    # in the launcher and exported in environment variables.
     if RUNNING_IN_SUPERCOMPUTER:
         updated_vars = updated_variables_in_sc()
-        project_xml, resources_xml, master_name, master_port, uuid, base_log_dir, specific_log_dir, storage_conf, log_level, debug, trace = updated_vars
         if verbose:
-            print("- Overridden project xml with: " + project_xml)
-            print("- Overridden resources xml with: " + resources_xml)
-            print("- Overridden master name with: " + master_name)
-            print("- Overridden master port with: " + master_port)
-            print("- Overridden uuid with: " + uuid)
-            print("- Overridden base log dir with: " + base_log_dir)
-            print("- Overridden specific log dir with: " + specific_log_dir)
-            print("- Overridden storage conf with: " + storage_conf)
-            print("- Overridden log level with: " + str(log_level))
-            print("- Overridden debug with: " + str(debug))
-            print("- Overridden trace with: " + str(trace))
+            print("- Overridden project xml with: " + updated_vars['project_xml'])
+            print("- Overridden resources xml with: " + updated_vars['resources_xml'])
+            print("- Overridden master name with: " + updated_vars['master_name'])
+            print("- Overridden master port with: " + updated_vars['master_port'])
+            print("- Overridden uuid with: " + updated_vars['uuid'])
+            print("- Overridden base log dir with: " + updated_vars['base_log_dir'])
+            print("- Overridden specific log dir with: " + updated_vars['specific_log_dir'])
+            print("- Overridden storage conf with: " + updated_vars['storage_conf'])
+            print("- Overridden log level with: " + str(updated_vars['log_level']))
+            print("- Overridden debug with: " + str(updated_vars['debug']))
+            print("- Overridden trace with: " + str(updated_vars['trace']))
+        all_vars.update(updated_vars)
 
-    trace = prepare_tracing_environment(trace, extrae_lib)
+    # Update the tracing environment if set and set the apropriate trace integer value
+    all_vars['trace'] = prepare_tracing_environment(all_vars['trace'], all_vars['extrae_lib'])
 
-    updated_vars = check_infrastructure_variables(project_xml, resources_xml, compss_home, app_name, file_name, external_adaptation)
-    project_xml, resources_xml, app_name, external_adaptation, major_version, python_interpreter, python_version, python_virtual_environment = updated_vars
+    # Update the infrastructure variables if necessary
+    inf_vars = check_infrastructure_variables(all_vars['project_xml'],
+                                              all_vars['resources_xml'],
+                                              all_vars['compss_home'],
+                                              all_vars['app_name'],
+                                              all_vars['file_name'],
+                                              all_vars['external_adaptation'])
+    all_vars.update(inf_vars)
 
-    create_init_config_file(compss_home,
-                            debug,
-                            log_level,
-                            project_xml,
-                            resources_xml,
-                            summary,
-                            task_execution,
-                            storage_conf,
-                            task_count,
-                            app_name,
-                            uuid,
-                            base_log_dir,
-                            specific_log_dir,
-                            graph,
-                            monitor,
-                            trace,
-                            extrae_cfg,
-                            comm,
-                            conn,
-                            master_name,
-                            master_port,
-                            scheduler,
-                            cp,
-                            classpath,
-                            ld_library_path,
-                            pythonpath,
-                            jvm_workers,
-                            cpu_affinity,
-                            gpu_affinity,
-                            fpga_affinity,
-                            fpga_reprogram,
-                            profile_input,
-                            profile_output,
-                            scheduler_config,
-                            external_adaptation,
-                            python_interpreter,
-                            python_version,
-                            python_virtual_environment,
-                            propagate_virtual_environment)
+    # With all this information, create the configuration file for the runtime start
+    create_init_config_file(**all_vars)
 
     ##############################################################
     # RUNTIME START
@@ -225,22 +234,16 @@ def start(log_level='off',
     binding.temp_dir = mkdtemp(prefix='pycompss', dir=log_path + '/tmpFiles/')
     print("* - Log path : " + log_path)
 
+    major_version = all_vars['major_version']
+    compss_home = all_vars['compss_home']
     logger = setup_logger(debug, log_level, major_version, compss_home, log_path)
 
-    __print_setup__(verbose,
-                    log_level, o_c, debug, graph, trace, monitor,
-                    project_xml, resources_xml, summary, task_execution, storage_conf,
-                    pythonpath, classpath, ld_library_path,
-                    task_count, app_name, uuid, base_log_dir, specific_log_dir, extrae_cfg,
-                    comm, conn, master_name, master_port, scheduler, jvm_workers,
-                    cpu_affinity, gpu_affinity, fpga_affinity, fpga_reprogram, profile_input, profile_output,
-                    scheduler_config, external_adaptation, python_interpreter, major_version,
-                    python_virtual_environment, propagate_virtual_environment)
+    __print_setup__(verbose, all_vars)
 
     logger.debug("--- START ---")
     logger.debug("PyCOMPSs Log path: %s" % log_path)
     global persistent_storage
-    persistent_storage = init_storage(storage_conf, logger)
+    persistent_storage = init_storage(all_vars['storage_conf'], logger)
 
     # MAIN EXECUTION
     # let the user write an interactive application
@@ -251,6 +254,7 @@ def start(log_level='off',
 def __show_flower__():
     """
     Shows the flower and version through stdout.
+
     :return: None
     """
     print("******************************************************")
@@ -275,57 +279,21 @@ def __show_flower__():
     print("******************************************************")
 
 
-def __print_setup__(verbose, log_level, o_c, debug, graph, trace, monitor,
-                    project_xml, resources_xml, summary, task_execution, storage_conf,
-                    pythonpath, classpath, ld_library_path,
-                    task_count, app_name, uuid, base_log_dir, specific_log_dir, extrae_cfg,
-                    comm, conn, master_name, master_port, scheduler, jvm_workers,
-                    cpu_affinity, gpu_affinity, fpga_affinity, fpga_reprogram, profile_input, profile_output,
-                    scheduler_config, external_adaptation, python_interpreter, python_version,
-                    python_virtual_environment, python_propagate_virtual_environment):
+def __print_setup__(verbose, all_vars):
+    """
+    Print the setup variables through stdout (only if verbose is True).
+    However, it shows them through the logger.
 
+    :param verbose: Verbose mode [True | False]
+    :param all_vars: Dictionary containing all variables.
+    :return: None
+    """
     logger = logging.getLogger(__name__)
     output = ""
     output += "******************************************************\n"
     output += " CONFIGURATION: \n"
-    output += "  - Log level           : " + str(log_level) + "\n"
-    output += "  - Object conversion   : " + str(o_c) + "\n"
-    output += "  - Debug               : " + str(debug) + "\n"
-    output += "  - Graph               : " + str(graph) + "\n"
-    output += "  - Trace               : " + str(trace) + "\n"
-    output += "  - Monitor             : " + str(monitor) + "\n"
-    output += "  - Project XML         : " + str(project_xml) + "\n"
-    output += "  - Resources XML       : " + str(resources_xml) + "\n"
-    output += "  - Summary             : " + str(summary) + "\n"
-    output += "  - Task execution      : " + str(task_execution) + "\n"
-    output += "  - Storage conf.       : " + str(storage_conf) + "\n"
-    output += "  - Pythonpath          : " + str(pythonpath) + "\n"
-    output += "  - Classpath           : " + str(classpath) + "\n"
-    output += "  - Ld_library_path     : " + str(ld_library_path) + "\n"
-    output += "  - Task count          : " + str(task_count) + "\n"
-    output += "  - Application name    : " + str(app_name) + "\n"
-    output += "  - UUID                : " + str(uuid) + "\n"
-    output += "  - Base log dir.       : " + str(base_log_dir) + "\n"
-    output += "  - Specific log dir.   : " + str(specific_log_dir) + "\n"
-    output += "  - Extrae CFG          : " + str(extrae_cfg) + "\n"
-    output += "  - COMM library        : " + str(comm) + "\n"
-    output += "  - CONN library        : " + str(conn) + "\n"
-    output += "  - Master name         : " + str(master_name) + "\n"
-    output += "  - Master port         : " + str(master_port) + "\n"
-    output += "  - Scheduler           : " + str(scheduler) + "\n"
-    output += "  - JVM Workers         : " + str(jvm_workers) + "\n"
-    output += "  - CPU affinity        : " + str(cpu_affinity) + "\n"
-    output += "  - GPU affinity        : " + str(gpu_affinity) + "\n"
-    output += "  - FPGA affinity       : " + str(fpga_affinity) + "\n"
-    output += "  - FPGA reprogram      : " + str(fpga_reprogram) + "\n"
-    output += "  - Profile input       : " + str(profile_input) + "\n"
-    output += "  - Profile output      : " + str(profile_output) + "\n"
-    output += "  - Scheduler config    : " + str(scheduler_config) + "\n"
-    output += "  - External adaptation : " + str(external_adaptation) + "\n"
-    output += "  - Python interpreter  : " + str(python_interpreter) + "\n"
-    output += "  - Python version      : " + str(python_version) + "\n"
-    output += "  - Python virtualenv   : " + str(python_virtual_environment) + "\n"
-    output += "  - Python propagate virtualenv : " + str(python_propagate_virtual_environment) + "\n"
+    for k, v in sorted(all_vars.items()):
+        output += '  - {0:20} : {1} \n'.format(k, v)
     output += "******************************************************"
     if verbose:
         print(output)

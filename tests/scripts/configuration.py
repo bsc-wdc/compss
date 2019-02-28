@@ -77,26 +77,44 @@ class COMPSsConfiguration:
         :param comm: Adaptor class to be loaded on tests execution
         :param runcompss_opts: Extra options for the runcompss command
         :param execution_envs: List of different execution environments for each test
+        :raise ConfigurationError: If some mandatory variable is undefined
         """
+
+        # Either we receive a user from cfg or we load it from current user (always defined)
         if user is None:
             import getpass
             self.user = getpass.getuser()
         else:
             self.user = user
 
+        # Either we receive a java_home or we load it from environment, if not defined we raise an exception
+        if java_home is not None:
+            self.java_home = java_home
+        else:
+            # Load from env
+            self.java_home = os.getenv("JAVA_HOME", None)
+            if self.java_home is None:
+                raise ConfigurationError(
+                    "[ERROR] Undefined variable JAVA_HOME in both the configuration file and the environment")
+
+        # Store COMPSs_HOME (always defined because it has a default value)
+        self.compss_home = compss_home
+
+        # Define compss_base_log_dir
         user_home = os.path.expanduser("~")
         self.compss_base_log_dir = os.path.join(user_home, ".COMPSs")
 
+        # Either we receive the target_base_dir or we compute it from user home
         if target_base_dir is None:
             self.target_base_dir = os.path.join(user_home, "tests_execution_sandbox")
         else:
             self.target_base_dir = target_base_dir
 
-        self.java_home = java_home
-        self.compss_home = compss_home
-
+        # Receive comm (always defined, has default value)
         self.comm = comm
+        # Receive comm (can be None)
         self.runcompss_opts = runcompss_opts
+        # Receive comm (always defined, has default value)
         self.execution_envs = execution_envs
 
     def get_user(self):

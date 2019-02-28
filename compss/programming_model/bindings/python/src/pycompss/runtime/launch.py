@@ -35,16 +35,13 @@ import pycompss.runtime.binding as binding
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
-from pycompss.util.configurators import create_init_config_file
-from pycompss.util.scs import get_master_node
-from pycompss.util.scs import get_master_port
-from pycompss.util.scs import get_xmls
-from pycompss.util.scs import get_uuid
-from pycompss.util.scs import get_base_log_dir
-from pycompss.util.scs import get_specific_log_dir
-from pycompss.util.scs import get_log_level
-from pycompss.util.scs import get_tracing
-from pycompss.util.scs import get_storage_conf
+from pycompss.util.launcher import prepare_environment
+from pycompss.util.launcher import prepare_loglevel_graph_for_monitoring
+from pycompss.util.launcher import updated_variables_in_sc
+from pycompss.util.launcher import prepare_tracing_environment
+from pycompss.util.launcher import check_infrastructure_variables
+from pycompss.util.launcher import create_init_config_file
+from pycompss.util.launcher import setup_logger
 from pycompss.util.logs import init_logging
 from pycompss.util.serializer import SerializerException
 from pycompss.util.optional_modules import show_optional_module_warnings
@@ -280,110 +277,24 @@ def launch_pycompss_application(app, func,
     # Then we can import the appropriate start and stop functions from the API
     from pycompss.api.api import compss_start, compss_stop
 
-    launch_path = os.path.dirname(os.path.abspath(__file__))
-    # compss_home = launch_path without the last 4 folders:
-    # (Bindings/python/pycompss/runtime)
-    compss_home = os.path.sep.join(launch_path.split(os.path.sep)[:-4])
-    os.environ['COMPSS_HOME'] = compss_home
-
-    # Grab the existing PYTHONPATH, CLASSPATH and LD_LIBRARY_PATH environment variables values
-    pythonpath = os.environ['PYTHONPATH']
-    classpath = os.environ['CLASSPATH']
-    ld_library_path = os.environ['LD_LIBRARY_PATH']
-
-    # Enable/Disable object to string conversion
-    # set cross-module variable
-    binding.object_conversion = o_c
-
-    # Get the filename and its path.
-    file_name = os.path.splitext(os.path.basename(app))[0]
-    cp = os.path.dirname(app)
-
-    # Set storage classpath
-    if storage_impl:
-        if storage_impl == 'redis':
-            cp = cp + ':' + compss_home + '/Tools/storage/redis/compss-redisPSCO.jar'
-        else:
-            cp = cp + ':' + storage_impl
-
-    # Set extrae dependencies
-    if not "EXTRAE_HOME" in os.environ:
-        # It can be defined by the user or by launch_compss when running in Supercomputer
-        extrae_home = compss_home + '/Dependencies/extrae'
-        os.environ['EXTRAE_HOME'] = extrae_home
-    else:
-        extrae_home = os.environ['EXTRAE_HOME']
-    extrae_lib = extrae_home + '/lib'
-
-    # Include extrae into ld_library_path
-    os.environ['LD_LIBRARY_PATH'] = extrae_lib + ':' + ld_library_path
+    # Prepare the environment
+    env_vars = prepare_environment(True, o_c, storage_impl, app, debug)
+    compss_home, pythonpath, classpath, ld_library_path, cp, extrae_home, extrae_lib, file_name = env_vars
 
     ##############################################################
     # INITIALIZATION
     ##############################################################
 
-    if monitor is not None:
-        # Enable the graph if the monitoring is enabled
-        graph = True
-        # Set log level info
-        log_level = 'info'
-
-    if debug:
-        # If debug is enabled, the output is more verbose
-        log_level = 'debug'
+    monitor, graph, log_level = prepare_loglevel_graph_for_monitoring(monitor, graph, debug, log_level)
 
     if RUNNING_IN_SUPERCOMPUTER:
-        # Since the deployment in supercomputers is done through the use of enqueue_compss
-        # and consequently launch_compss - the project and resources xmls are already created
-        project_xml, resources_xml = get_xmls()
-        # It also exported some environment variables that we need here
-        master_name = get_master_node()
-        master_port = get_master_port()
-        uuid = get_uuid()
-        base_log_dir = get_base_log_dir()
-        specific_log_dir = get_specific_log_dir()
-        storage_conf = get_storage_conf()
-        # Override debug considering the parameter defined in pycompss_interactive_sc script
-        # and exported by launch_compss
-        log_level = get_log_level()
-        if log_level == 'debug':
-            debug = True
-        else:
-            debug = False
-        # Override tracing considering the parameter defined in pycompss_interactive_sc script
-        # and exported by launch_compss
-        trace = get_tracing()
+        updated_vars = updated_variables_in_sc()
+        project_xml, resources_xml, master_name, master_port, uuid, base_log_dir, specific_log_dir, storage_conf, log_level, debug, trace = updated_vars
 
-    if debug:
-        # Add environment variable to get binding-commons debug information
-        os.environ['COMPSS_BINDINGS_DEBUG'] = '1'
+    trace = prepare_tracing_environment(trace, extrae_lib)
 
-    if trace is False:
-        trace = 0
-    elif trace == 'basic' or trace is True:
-        trace = 1
-        os.environ['LD_PRELOAD'] = extrae_lib + '/libpttrace.so'
-    elif trace == 'advanced':
-        trace = 2
-        os.environ['LD_PRELOAD'] = extrae_lib + '/libpttrace.so'
-    else:
-        print("ERROR: Wrong tracing parameter ( [ True | basic ] | advanced | False)")
-        return -1
-
-    if project_xml is None:
-        project_xml = compss_home + os.path.sep + 'Runtime/configuration/xml/projects/default_project.xml'
-    if resources_xml is None:
-        resources_xml = compss_home + os.path.sep + 'Runtime/configuration/xml/resources/default_resources.xml'
-    app_name = file_name if app_name is None else app_name
-    external_adaptation = 'true' if external_adaptation else 'false'
-    major_version = str(sys.version_info[0])
-    python_interpreter = 'python' + major_version
-    python_version = major_version
-    # Check if running within a virtual environment
-    if 'VIRTUAL_ENV' in os.environ:
-        python_virtual_environment = os.environ['VIRTUAL_ENV']
-    else:
-        python_virtual_environment = 'null'
+    updated_vars = check_infrastructure_variables(project_xml, resources_xml, compss_home, app_name, file_name, external_adaptation)
+    project_xml, resources_xml, app_name, external_adaptation, major_version, python_interpreter, python_version, python_virtual_environment = updated_vars
 
     create_init_config_file(compss_home,
                             debug,
@@ -433,27 +344,11 @@ def launch_pycompss_application(app, func,
     compss_start()
 
     # Configure logging
-    app_path = app
     log_path = get_log_path()
-    # Logging setup
-    if debug or log_level == "debug":
-        json_path = '/Bindings/python/' + major_version + '/log/logging_debug.json'
-        init_logging(compss_home + json_path, log_path)
-    elif log_level == "info":
-        json_path = '/Bindings/python/' + major_version + '/log/logging_off.json'
-        init_logging(compss_home + json_path, log_path)
-    elif log_level == "off":
-        json_path = '/Bindings/python/' + major_version + '/log/logging_off.json'
-        init_logging(compss_home + json_path, log_path)
-    else:
-        # Default
-        json_path = '/Bindings/python/' + str(major_version) + '/log/logging.json'
-        init_logging(compss_home + json_path, log_path)
-    logger = logging.getLogger("pycompss.runtime.launch")
+    logger = setup_logger(debug, log_level, major_version, compss_home, log_path)
 
     logger.debug('--- START ---')
     logger.debug('PyCOMPSs Log path: %s' % log_path)
-
     if storage_conf is not None and not storage_conf == 'null':
         logger.debug("Storage configuration file: %s" % storage_conf)
         from storage.api import init as init_storage

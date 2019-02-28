@@ -173,11 +173,8 @@ compss/runtime/config/xml/resources/src/main/java/es/bsc/compss/types/resources/
 # Ignore configuration files
 tests/configurations/*.cfg
 tests/scripts/hosts.backup
-!tests/configurations/cloud.cfg
-!tests/configurations/cloudvpn.cfg
-!tests/configurations/cloudvpn-vmm.cfg
-!tests/configurations/devel_example.cfg
-!tests/configurations/local.cfg
+!tests/configurations/NIO_local.cfg
+!tests/configurations/GAT_local.cfg
 
 # Ignore PyCOMPSs AutoParallel submodule patches
 compss/programming_model/bindings/python/src/pycompss/api/parallel.py

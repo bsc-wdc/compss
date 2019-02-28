@@ -92,6 +92,7 @@ public class TaskScheduler {
     // Profiles from resources that have already been turned off
     private Profile[][] offVMsProfiles;
 
+
     /**
      * Construct a new Task Scheduler
      *
@@ -369,7 +370,8 @@ public class TaskScheduler {
     /**
      * Introduces a new action in the Scheduler system. The method should place the action in a resource hurriedly
      *
-     * @param action Action to be scheduled.
+     * @param action
+     *            Action to be scheduled.
      */
     public final void newAllocatableAction(AllocatableAction action) {
         LOGGER.info("[TaskScheduler] Registering new AllocatableAction " + action);
@@ -390,7 +392,8 @@ public class TaskScheduler {
     /**
      * Registers an action as completed and releases all the resource and data dependencies.
      *
-     * @param action action that has finished
+     * @param action
+     *            action that has finished
      */
     @SuppressWarnings("unchecked")
     public final void actionCompleted(AllocatableAction action) {
@@ -432,7 +435,8 @@ public class TaskScheduler {
      * Registers an error on the action given as a parameter. The action itself processes the error and triggers with
      * any possible solution to re-execute it. This code is executed only on re-schedule (no resubmit)
      *
-     * @param action action raising the error
+     * @param action
+     *            action raising the error
      */
     @SuppressWarnings("unchecked")
     public final void errorOnAction(AllocatableAction action) {
@@ -454,7 +458,7 @@ public class TaskScheduler {
             // Free all the dependent tasks
             for (AllocatableAction failedAction : action.failed()) {
                 try {
-                    ResourceScheduler failedResource = failedAction.getAssignedResource();
+                    ResourceScheduler<?> failedResource = failedAction.getAssignedResource();
                     if (failedResource != null) {
                         resourceFree.addAll(failedResource.unscheduleAction(failedAction));
                     }
@@ -475,14 +479,11 @@ public class TaskScheduler {
         if (!failed) {
             list.add(action);
             // Try to re-schedule the action
-            /* Score actionScore = generateActionScore(action);
-            try {    
-                scheduleAction(action, actionScore);
-                tryToLaunch(action);
-            } catch (BlockedActionException bae) {
-                removeFromReady(action);
-                addToBlocked(action);
-            }*/
+            /*
+             * Score actionScore = generateActionScore(action); try { scheduleAction(action, actionScore);
+             * tryToLaunch(action); } catch (BlockedActionException bae) { removeFromReady(action);
+             * addToBlocked(action); }
+             */
         }
 
         List<AllocatableAction> blockedCandidates = new LinkedList<>();
@@ -521,7 +522,8 @@ public class TaskScheduler {
      * hurriedly since it blocks the runtime thread and this initial allocation can be modified by the scheduler later
      * on the execution.
      *
-     * @param action      Action whose execution has to be allocated
+     * @param action
+     *            Action whose execution has to be allocated
      * @param actionScore
      *
      * @throws es.bsc.compss.scheduler.exceptions.BlockedActionException
@@ -540,10 +542,14 @@ public class TaskScheduler {
      * Notifies to the scheduler that some actions have become free of data dependencies or resource dependencies.
      *
      * @param <T>
-     * @param dataFreeActions     IN, list of actions free of data dependencies
-     * @param resourceFreeActions IN, list of actions free of resource dependencies
-     * @param blockedCandidates   OUT, list of blocked candidates
-     * @param resource            Resource where the previous task was executed
+     * @param dataFreeActions
+     *            IN, list of actions free of data dependencies
+     * @param resourceFreeActions
+     *            IN, list of actions free of resource dependencies
+     * @param blockedCandidates
+     *            OUT, list of blocked candidates
+     * @param resource
+     *            Resource where the previous task was executed
      */
     protected <T extends WorkerResourceDescription> void handleDependencyFreeActions(List<AllocatableAction> dataFreeActions,
             List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
@@ -615,7 +621,8 @@ public class TaskScheduler {
      * Notifies to the scheduler that there have been changes in the load of a resource.
      *
      * @param <T>
-     * @param resource updated resource
+     * @param resource
+     *            updated resource
      */
     protected <T extends WorkerResourceDescription> void workerLoadUpdate(ResourceScheduler<T> resource) {
         LOGGER.info("[TaskScheduler] Update load on worker " + resource.getName());
@@ -658,7 +665,8 @@ public class TaskScheduler {
     /**
      * Registers a new Worker node for the scheduler to use it and creates the corresponding ResourceScheduler
      *
-     * @param worker Worker to incorporate
+     * @param worker
+     *            Worker to incorporate
      *
      * @return the ResourceScheduler that will manage the scheduling for the given worker
      */
@@ -674,7 +682,8 @@ public class TaskScheduler {
     /**
      * Contextualizes the worker by creating a new action StartWorker
      *
-     * @param ui ResourceScheduler whose worker is to contextualize.
+     * @param ui
+     *            ResourceScheduler whose worker is to contextualize.
      */
     private <T extends WorkerResourceDescription> void startWorker(ResourceScheduler<T> ui) {
         StartWorkerAction<T> action = new StartWorkerAction<>(generateSchedulingInformation(ui), ui, this);
@@ -776,7 +785,8 @@ public class TaskScheduler {
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends WorkerResourceDescription> void reducedWorkerResources(ResourceScheduler<T> worker, PerformedReduction<T> modification) {
+    private <T extends WorkerResourceDescription> void reducedWorkerResources(ResourceScheduler<T> worker,
+            PerformedReduction<T> modification) {
 
         // Update worker features
         this.workerFeaturesUpdate(worker, modification.getModification());
@@ -805,22 +815,29 @@ public class TaskScheduler {
      * notified about it.
      *
      * @param <T>
-     * @param resource removed worker
+     * @param resource
+     *            removed worker
      */
     private <T extends WorkerResourceDescription> void workerStopped(ResourceScheduler<T> resource) {
-        workers.remove(((ResourceScheduler<WorkerResourceDescription>) resource).getResource());
+        @SuppressWarnings("unchecked")
+        ResourceScheduler<WorkerResourceDescription> workerRS = (ResourceScheduler<WorkerResourceDescription>) resource;
+        Worker<WorkerResourceDescription> workerResource = workerRS.getResource();
+        this.workers.remove(workerResource);
         int coreCount = CoreManager.getCoreCount();
         for (int coreId = 0; coreId < coreCount; coreId++) {
             int implCount = CoreManager.getNumberCoreImplementations(coreId);
             for (int implId = 0; implId < implCount; implId++) {
 
-                LOGGER.debug("Removed Workers profile for CoreId: " + coreId + ", ImplId: " + implId + " before removing:" + offVMsProfiles[coreId][implId]);
+                LOGGER.debug("Removed Workers profile for CoreId: " + coreId + ", ImplId: " + implId + " before removing:"
+                        + offVMsProfiles[coreId][implId]);
                 Profile p = resource.getProfile(coreId, implId);
                 if (p != null) {
-                    LOGGER.info(" Accumulating worker profile data for CoreId: " + coreId + ", ImplId: " + implId + " in removed workers profile");
+                    LOGGER.info(" Accumulating worker profile data for CoreId: " + coreId + ", ImplId: " + implId
+                            + " in removed workers profile");
                     offVMsProfiles[coreId][implId].accumulate(p);
                 }
-                LOGGER.debug("Removed Workers profile for CoreId: " + coreId + ", ImplId: " + implId + " after removing:" + offVMsProfiles[coreId][implId]);
+                LOGGER.debug("Removed Workers profile for CoreId: " + coreId + ", ImplId: " + implId + " after removing:"
+                        + offVMsProfiles[coreId][implId]);
             }
         }
 
@@ -875,7 +892,8 @@ public class TaskScheduler {
      * information.
      *
      * @param <T>
-     * @param resource new worker
+     * @param resource
+     *            new worker
      */
     protected <T extends WorkerResourceDescription> void workerDetected(ResourceScheduler<T> resource) {
         // There are no internal structures worker-related. No need to do
@@ -887,7 +905,8 @@ public class TaskScheduler {
      * that information.
      *
      * @param <T>
-     * @param resource removed worker
+     * @param resource
+     *            removed worker
      */
     protected <T extends WorkerResourceDescription> void workerRemoved(ResourceScheduler<T> resource) {
         LOGGER.info("[TaskScheduler] Remove worker " + resource.getName());
@@ -898,8 +917,10 @@ public class TaskScheduler {
      * Notifies to the scheduler that there have been changes in the capabilities of a resource.
      *
      * @param <T>
-     * @param worker       updated resource
-     * @param modification changes performed on the resource
+     * @param worker
+     *            updated resource
+     * @param modification
+     *            changes performed on the resource
      */
     protected <T extends WorkerResourceDescription> void workerFeaturesUpdate(ResourceScheduler<T> worker, T modification) {
         LOGGER.info("[TaskScheduler] Updated features on worker " + worker.getName());
@@ -1311,6 +1332,7 @@ public class TaskScheduler {
     private class WorkersMap {
 
         private final HashMap<Worker<? extends WorkerResourceDescription>, ResourceScheduler<? extends WorkerResourceDescription>> map = new HashMap<>();
+
 
         public <T extends WorkerResourceDescription> void put(Worker<T> w, ResourceScheduler<T> rs) {
             map.put(w, rs);

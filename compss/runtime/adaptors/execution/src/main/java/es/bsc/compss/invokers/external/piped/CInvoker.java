@@ -54,7 +54,7 @@ public class CInvoker extends PipedInvoker {
         return taskExecution;
     }
 
-    public static ExecutionPlatformMirror getMirror(InvocationContext context, ExecutorContext platform) {
+    public static ExecutionPlatformMirror<?> getMirror(InvocationContext context, ExecutorContext platform) {
         int numThreads = platform.getSize();
         return new CMirror(context, numThreads);
     }
@@ -68,6 +68,7 @@ public class CInvoker extends PipedInvoker {
         private static final String C_LIB_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "c" + File.separator + "lib";
         protected static final String BINDINGS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "bindings-common"
                 + File.separator + "lib";
+
 
         public CMirror(InvocationContext context, int size) {
             super(context, size);

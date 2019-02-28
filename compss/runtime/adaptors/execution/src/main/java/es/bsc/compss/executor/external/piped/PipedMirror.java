@@ -52,7 +52,6 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             + File.separator + "adaptors" + File.separator + "nio" + File.separator + "pipers" + File.separator;
     private static final String PIPE_SCRIPT_NAME = "bindings_piper.sh";
     private static final String PIPE_FILE_BASENAME = "pipe_";
-    private static final int PIPE_CREATION_TIME = 50; // ms
     // private static final int MAX_WRITE_PIPE_RETRIES = 3;
 
     protected final String mirrorId;
@@ -63,6 +62,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
     private PipePair controlPipe;
     private StreamGobbler outputGobbler;
     private StreamGobbler errorGobbler;
+
 
     public PipedMirror(InvocationContext context, int size) {
         mirrorId = String.valueOf(UUID.randomUUID().hashCode());
@@ -111,7 +111,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             } catch (IOException e) {
                 // Stream closed
             }
-            //Active wait to be sure that the piper has started
+            // Active wait to be sure that the piper has started
             while (!piper.isAlive()) {
             }
 

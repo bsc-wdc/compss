@@ -42,7 +42,6 @@ import java.util.LinkedList;
 public class ReduceWorkerAction<T extends WorkerResourceDescription> extends AllocatableAction {
 
     private final ResourceScheduler<T> worker;
-    private final TaskScheduler ts;
     private final Implementation impl;
     private final PendingReduction<T> ru;
 
@@ -56,7 +55,6 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
             ResourceUpdate<T> modification) {
         super(schedulingInformation, ts.getOrchestrator());
         this.worker = worker;
-        this.ts = ts;
         this.ru = (PendingReduction<T>) modification;
         System.out.println("Creant ReduceWorkerAction amb descripcio " + modification.getModification());
         if (modification.getModification() instanceof MethodResourceDescription) {
@@ -118,7 +116,7 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
      */
     @Override
     protected void doCompleted() {
-        
+
     }
 
     @Override
@@ -145,7 +143,7 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
 
     @Override
     public Implementation[] getImplementations() {
-        Implementation[] impls = new Implementation[]{impl};
+        Implementation[] impls = new Implementation[] { impl };
         return impls;
     }
 

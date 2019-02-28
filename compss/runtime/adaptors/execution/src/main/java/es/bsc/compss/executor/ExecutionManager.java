@@ -32,9 +32,8 @@ public class ExecutionManager {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXEC_MANAGER);
 
-    private final int limitOfTasks;
-    private int runningTasks;
     private final ExecutionPlatform cpuExecutors;
+
 
     /**
      * Instantiates a new Execution Manager
@@ -51,14 +50,13 @@ public class ExecutionManager {
     public ExecutionManager(InvocationContext context, int computingUnitsCPU, String cpuMap, int computingUnitsGPU, String gpuMap,
             int computingUnitsFPGA, String fpgaMap, int limitOfTasks) {
 
-        this.limitOfTasks = limitOfTasks;
         ResourceManager rm = null;
         try {
             rm = new ResourceManager(computingUnitsCPU, cpuMap, computingUnitsGPU, gpuMap, computingUnitsFPGA, fpgaMap);
         } catch (InvalidMapException ime) {
             ErrorManager.fatal(ime);
         }
-        cpuExecutors = new ExecutionPlatform("CPUThreadPool", context, computingUnitsCPU, rm);
+        this.cpuExecutors = new ExecutionPlatform("CPUThreadPool", context, computingUnitsCPU, rm);
     }
 
     /**

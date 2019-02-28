@@ -85,7 +85,7 @@ public class Executor implements Runnable {
     protected PipePair cPipes;
     protected PipePair pyPipes;
 
-    
+
     /**
      * Instantiates a new Executor
      *
@@ -131,8 +131,8 @@ public class Executor implements Runnable {
     public void finish() {
         // Nothing to do since everything is deleted in each task execution
         LOGGER.info("Executor finished");
-        Collection<ExecutionPlatformMirror> mirrors = platform.getMirrors();
-        for (ExecutionPlatformMirror mirror : mirrors) {
+        Collection<ExecutionPlatformMirror<?>> mirrors = platform.getMirrors();
+        for (ExecutionPlatformMirror<?> mirror : mirrors) {
             mirror.unregisterExecutor(id);
         }
 

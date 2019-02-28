@@ -84,18 +84,18 @@ public class ExecutorTest {
 
     public static class Platform implements ExecutorContext {
 
-        private final HashMap<Class<?>, ExecutionPlatformMirror> mirrors = new HashMap<>();
+        private final HashMap<Class<?>, ExecutionPlatformMirror<?>> mirrors = new HashMap<>();
         private final RequestQueue<Execution> queue = new RequestQueue<>();
 
 
         @Override
-        public ExecutionPlatformMirror getMirror(Class<?> invoker) {
-            return mirrors.get(invoker);
+        public ExecutionPlatformMirror<?> getMirror(Class<?> invoker) {
+            return this.mirrors.get(invoker);
         }
 
         @Override
-        public void registerMirror(Class<?> invoker, ExecutionPlatformMirror mirror) {
-            mirrors.put(invoker, mirror);
+        public void registerMirror(Class<?> invoker, ExecutionPlatformMirror<?> mirror) {
+            this.mirrors.put(invoker, mirror);
         }
 
         @Override
@@ -105,11 +105,11 @@ public class ExecutorTest {
 
         @Override
         public Execution getJob() {
-            return queue.dequeue();
+            return this.queue.dequeue();
         }
 
         public void execute(Execution job) {
-            queue.enqueue(job);
+            this.queue.enqueue(job);
         }
 
         @Override
@@ -124,8 +124,8 @@ public class ExecutorTest {
         }
 
         @Override
-        public Collection<ExecutionPlatformMirror> getMirrors() {
-            return mirrors.values();
+        public Collection<ExecutionPlatformMirror<?>> getMirrors() {
+            return this.mirrors.values();
         }
     }
 }

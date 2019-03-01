@@ -31,20 +31,19 @@ import time
 
 import pycompss.util.context as context
 import pycompss.runtime.binding as binding
+import pycompss.util.interactive_helpers as interactive_helpers
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.binding import pending_to_synchronize
-from pycompss.runtime.launch import initialize_compss
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
-from pycompss.util.scs import get_master_node
-from pycompss.util.scs import get_master_port
-from pycompss.util.scs import get_xmls
-from pycompss.util.scs import get_uuid
-from pycompss.util.scs import get_base_log_dir
-from pycompss.util.scs import get_specific_log_dir
-from pycompss.util.scs import get_log_level
-from pycompss.util.scs import get_tracing
-from pycompss.util.scs import get_storage_conf
-from pycompss.util.logs import init_logging
+from pycompss.util.launcher import prepare_environment
+from pycompss.util.launcher import prepare_loglevel_graph_for_monitoring
+from pycompss.util.launcher import updated_variables_in_sc
+from pycompss.util.launcher import prepare_tracing_environment
+from pycompss.util.launcher import check_infrastructure_variables
+from pycompss.util.launcher import create_init_config_file
+from pycompss.util.launcher import setup_logger
+from pycompss.util.persistent_storage import init_storage
+from pycompss.util.persistent_storage import stop_storage
 
 # Warning! The name should start with 'InteractiveMode' due to @task checks
 # it explicitly. If changed, it is necessary to update the task decorator.
@@ -57,8 +56,8 @@ graphing = False
 
 
 def start(log_level='off',
-          o_c=False,
           debug=False,
+          o_c=False,
           graph=False,
           trace=False,
           monitor=None,
@@ -88,15 +87,15 @@ def start(log_level='off',
           profile_output='',
           scheduler_config='',
           external_adaptation=False,
-          propagate_virtual_environment=False,
+          propagate_virtual_environment=True,
           verbose=False
           ):
     """
     Start the runtime in interactive mode.
 
-    :param log_level: Logging level [ 'on' | 'off'] (default: 'off')
+    :param log_level: Logging level [ 'off' | 'info' | 'debug' ] (default: 'off')
+    :param debug: Debug mode [ True | False ] (default: False) (overrides log-level)
     :param o_c: Objects to string conversion [ True | False ] (default: False)
-    :param debug: Debug mode [ True | False ] (default: False)
     :param graph: Generate graph [ True | False ] (default: False)
     :param trace: Generate trace [ True | False ] (default: False)
     :param monitor: Monitor refresh rate (default: None)
@@ -131,62 +130,144 @@ def start(log_level='off',
     :return: None
     """
 
+    # Export global variables
+    global graphing
+    graphing = graph
+    __export_globals__()
+
+    interactive_helpers.VERBOSE = verbose
+
+    __show_flower__()
+
     # Let the Python binding know we are at master
     context.set_pycompss_context(context.MASTER)
     # Then we can import the appropriate start and stop functions from the API
     from pycompss.api.api import compss_start
 
+    ##############################################################
+    # INITIALIZATION
+    ##############################################################
+
+    # Initial dictionary with the user defined parameters
+    all_vars = {'log_level': log_level,
+                'debug': debug,
+                'o_c': o_c,
+                'graph': graph,
+                'trace': trace,
+                'monitor': monitor,
+                'project_xml': project_xml,
+                'resources_xml': resources_xml,
+                'summary': summary,
+                'task_execution': task_execution,
+                'storage_impl': storage_impl,
+                'storage_conf': storage_conf,
+                'task_count': task_count,
+                'app_name': app_name,
+                'uuid': uuid,
+                'base_log_dir': base_log_dir,
+                'specific_log_dir': specific_log_dir,
+                'extrae_cfg': extrae_cfg,
+                'comm': comm,
+                'conn': conn,
+                'master_name': master_name,
+                'master_port': master_port,
+                'scheduler': scheduler,
+                'jvm_workers': jvm_workers,
+                'cpu_affinity': cpu_affinity,
+                'gpu_affinity': gpu_affinity,
+                'fpga_affinity': fpga_affinity,
+                'fpga_reprogram': fpga_reprogram,
+                'profile_input': profile_input,
+                'profile_output': profile_output,
+                'scheduler_config': scheduler_config,
+                'external_adaptation': external_adaptation,
+                'propagate_virtual_environment': propagate_virtual_environment}
+
     # Prepare the environment
-    launch_path = os.path.dirname(os.path.realpath(__file__))
-    # compss_home = launch_path without the last 4 folders:
-    # Bindings/python/version/pycompss
-    compss_home = os.path.sep.join(launch_path.split(os.path.sep)[:-4])
-    os.environ['COMPSS_HOME'] = compss_home
+    env_vars = prepare_environment(True, o_c, storage_impl, None, debug)
+    all_vars.update(env_vars)
 
-    # Get environment variables
-    cp = os.getcwd() + '/'
-    pythonpath = os.environ['PYTHONPATH']
-    classpath = os.environ['CLASSPATH']
-    ld_library_path = os.environ['LD_LIBRARY_PATH']
+    # Update the log level and graph values if monitoring is enabled
+    monitoring_vars = prepare_loglevel_graph_for_monitoring(monitor, graph, debug, log_level)
+    all_vars.update(monitoring_vars)
 
-    # Set storage classpath
-    if storage_impl:
-        if storage_impl == 'redis':
-            cp = cp + ':' + compss_home + '/Tools/storage/redis/compss-redisPSCO.jar'
-        else:
-            cp = cp + ':' + storage_impl
+    # Check if running in supercomputer and update the variables accordingly with the defined
+    # in the launcher and exported in environment variables.
+    if RUNNING_IN_SUPERCOMPUTER:
+        updated_vars = updated_variables_in_sc()
+        if verbose:
+            print("- Overridden project xml with: " + updated_vars['project_xml'])
+            print("- Overridden resources xml with: " + updated_vars['resources_xml'])
+            print("- Overridden master name with: " + updated_vars['master_name'])
+            print("- Overridden master port with: " + updated_vars['master_port'])
+            print("- Overridden uuid with: " + updated_vars['uuid'])
+            print("- Overridden base log dir with: " + updated_vars['base_log_dir'])
+            print("- Overridden specific log dir with: " + updated_vars['specific_log_dir'])
+            print("- Overridden storage conf with: " + updated_vars['storage_conf'])
+            print("- Overridden log level with: " + str(updated_vars['log_level']))
+            print("- Overridden debug with: " + str(updated_vars['debug']))
+            print("- Overridden trace with: " + str(updated_vars['trace']))
+        all_vars.update(updated_vars)
 
-    # Set extrae dependencies
-    if not "EXTRAE_HOME" in os.environ:
-        # It can be defined by the user or by launch_compss when running in Supercomputer
-        extrae_home = compss_home + '/Dependencies/extrae'
-        os.environ['EXTRAE_HOME'] = extrae_home
-    else:
-        extrae_home = os.environ['EXTRAE_HOME']
-    extrae_lib = extrae_home + '/lib'
+    # Update the tracing environment if set and set the apropriate trace integer value
+    all_vars['trace'] = prepare_tracing_environment(all_vars['trace'], all_vars['extrae_lib'])
 
-    # Include extrae into ld_library_path
-    ld_library_path = extrae_lib + ':' + ld_library_path
-    os.environ['LD_LIBRARY_PATH'] = ld_library_path
+    # Update the infrastructure variables if necessary
+    inf_vars = check_infrastructure_variables(all_vars['project_xml'],
+                                              all_vars['resources_xml'],
+                                              all_vars['compss_home'],
+                                              all_vars['app_name'],
+                                              all_vars['file_name'],
+                                              all_vars['external_adaptation'])
+    all_vars.update(inf_vars)
 
-    if monitor is not None:
-        # Enable the graph if the monitoring is enabled
-        graph = True
+    # With all this information, create the configuration file for the runtime start
+    create_init_config_file(**all_vars)
 
-    # Export global variables
-    global graphing
-    graphing = graph
+    ##############################################################
+    # RUNTIME START
+    ##############################################################
 
-    __export_globals__()
+    print("* - Starting COMPSs runtime...                       *")
+    sys.stdout.flush()  # Force flush
+    compss_start()
 
+    global log_path
+    log_path = get_log_path()
+    binding.temp_dir = mkdtemp(prefix='pycompss', dir=log_path + '/tmpFiles/')
+    print("* - Log path : " + log_path)
+
+    major_version = all_vars['major_version']
+    compss_home = all_vars['compss_home']
+    logger = setup_logger(debug, log_level, major_version, compss_home, log_path)
+
+    __print_setup__(verbose, all_vars)
+
+    logger.debug("--- START ---")
+    logger.debug("PyCOMPSs Log path: %s" % log_path)
+    global persistent_storage
+    persistent_storage = init_storage(all_vars['storage_conf'], logger)
+
+    # MAIN EXECUTION
+    # let the user write an interactive application
+    print("* - PyCOMPSs Runtime started... Have fun!            *")
+    print("******************************************************")
+
+
+def __show_flower__():
+    """
+    Shows the flower and version through stdout.
+
+    :return: None
+    """
     print("******************************************************")
     print("*************** PyCOMPSs Interactive *****************")
     print("******************************************************")
-    print("*          .-~~-.--.            ____        _    _   *")
-    print("*         :         )          |___ \      | |  | |  *")
-    print("*   .~ ~ -.\       /.- ~~ .      __) |     | |__| |  *")
-    print("*   >       `.   .'       <     / __/   _  |____  |  *")
-    print("*  (         .- -.         )   |_____| |_|      |_|  *")
+    print("*          .-~~-.--.            ____        _____    *")
+    print("*         :         )          |___ \      |  ___|   *")
+    print("*   .~ ~ -.\       /.- ~~ .      __) |     |___ \    *")
+    print("*   >       `.   .'       <     / __/   _   ___) |   *")
+    print("*  (         .- -.         )   |_____| |_| |____/    *")
     print("*   `- -.-~  `- -'  ~-.- -'                          *")
     print("*     (        :        )           _ _ .-:          *")
     print("*      ~--.    :    .--~        .-~  .-~  }          *")
@@ -200,244 +281,22 @@ def start(log_level='off',
     print("*                                     ~-.<           *")
     print("******************************************************")
 
-    ##############################################################
-    # INITIALIZATION
-    ##############################################################
 
-    if RUNNING_IN_SUPERCOMPUTER:
-        # Since the deployment in supercomputers is done through the use of enqueue_compss
-        # and consequently launch_compss - the project and resources xmls are already created
-        project_xml, resources_xml = get_xmls()
-        # It also exported some environment variables that we need here
-        master_name = get_master_node()
-        master_port = get_master_port()
-        uuid = get_uuid()
-        base_log_dir = get_base_log_dir()
-        specific_log_dir = get_specific_log_dir()
-        storage_conf = get_storage_conf()
-        # Override debug considering the parameter defined in pycompss_interactive_sc script
-        # and exported by launch_compss
-        log_level = get_log_level()
-        if log_level == 'off':
-            debug = False
-        else:
-            debug = True
-        # Override tracing considering the parameter defined in pycompss_interactive_sc script
-        # and exported by launch_compss
-        trace = get_tracing()
-        if verbose:
-            print("- Overridden project xml with: " + project_xml)
-            print("- Overridden resources xml with: " + resources_xml)
-            print("- Overridden master name with: " + master_name)
-            print("- Overridden master port with: " + master_port)
-            print("- Overridden uuid with: " + uuid)
-            print("- Overridden base log dir with: " + base_log_dir)
-            print("- Overridden specific log dir with: " + specific_log_dir)
-            print("- Overridden storage conf with: " + storage_conf)
-            print("- Overridden log level with: " + str(log_level))
-            print("- Overridden debug with: " + str(debug))
-            print("- Overridden trace with: " + str(trace))
+def __print_setup__(verbose, all_vars):
+    """
+    Print the setup variables through stdout (only if verbose is True).
+    However, it shows them through the logger.
 
-    if debug:
-        # Add environment variable to get binding-commons debug information
-        os.environ['COMPSS_BINDINGS_DEBUG'] = '1'
-
-    if trace is False:
-        trace = 0
-    elif trace == 'basic' or trace is True:
-        trace = 1
-        os.environ['LD_PRELOAD'] = extrae_lib + '/libpttrace.so'
-    elif trace == 'advanced':
-        trace = 2
-        os.environ['LD_PRELOAD'] = extrae_lib + '/libpttrace.so'
-    else:
-        print("ERROR: Wrong tracing parameter ( [ True | basic ] | advanced | False)")
-        return -1
-
-    # Build a dictionary with all variables needed for initializing the runtime
-    config = dict()
-    config['compss_home'] = compss_home
-    config['debug'] = debug
-    if project_xml is None:
-        project_path = 'Runtime/configuration/xml/projects/default_project.xml'
-        config['project_xml'] = compss_home + os.path.sep + project_path
-    else:
-        config['project_xml'] = project_xml
-    if resources_xml is None:
-        resources_path = 'Runtime/configuration/xml/resources/default_resources.xml'
-        config['resources_xml'] = compss_home + os.path.sep + resources_path
-    else:
-        config['resources_xml'] = resources_xml
-    config['summary'] = summary
-    config['task_execution'] = task_execution
-    config['storage_conf'] = storage_conf
-    config['task_count'] = task_count
-    if app_name is None:
-        config['app_name'] = 'Interactive'
-    else:
-        config['app_name'] = app_name
-    config['uuid'] = uuid
-    config['base_log_dir'] = base_log_dir
-    config['specific_log_dir'] = specific_log_dir
-    config['graph'] = graph
-    config['monitor'] = monitor
-    config['trace'] = trace
-    config['extrae_cfg'] = extrae_cfg
-    config['comm'] = comm
-    config['conn'] = conn
-    config['master_name'] = master_name
-    config['master_port'] = master_port
-    config['scheduler'] = scheduler
-    config['cp'] = cp
-    config['pythonpath'] = pythonpath
-    config['classpath'] = classpath
-    config['ld_library_path'] = ld_library_path
-    config['jvm_workers'] = jvm_workers
-    config['cpu_affinity'] = cpu_affinity
-    config['gpu_affinity'] = gpu_affinity
-    config['fpga_affinity'] = fpga_affinity
-    config['fpga_reprogram'] = fpga_reprogram
-    config['profile_input'] = profile_input
-    config['profile_output'] = profile_output
-    config['scheduler_config'] = scheduler_config
-    if external_adaptation:
-        config['external_adaptation'] = 'true'
-    else:
-        config['external_adaptation'] = 'false'
-
-    major_version = sys.version_info[0]
-    python_interpreter = 'python' + str(major_version)
-    config['python_interpreter'] = python_interpreter
-    config['python_version'] = str(major_version)
-
-    if 'VIRTUAL_ENV' in os.environ:
-        # Running within a virtual environment
-        python_virtual_environment = os.environ['VIRTUAL_ENV']
-    else:
-        python_virtual_environment = 'null'
-    config['python_virtual_environment'] = python_virtual_environment
-    config['python_propagate_virtual_environment'] = propagate_virtual_environment
-
-    initialize_compss(config)
-
-    ##############################################################
-    # RUNTIME START
-    ##############################################################
-
-    print("* - Starting COMPSs runtime...                       *")
-    sys.stdout.flush()  # Force flush
-    compss_start()
-
-    if o_c is True:
-        # set cross-module variable
-        binding.object_conversion = True
-    else:
-        # set cross-module variable
-        binding.object_conversion = False
-
-    # Remove launch.py, log_level and object_conversion from sys.argv,
-    # It will be inherited by the app through execfile
-    # sys.argv = sys.argv[3:]
-    # Get application execution path
-    # app_path = sys.argv[0]  # not needed in interactive mode
-
-    global log_path
-    log_path = get_log_path()
-    binding.temp_dir = mkdtemp(prefix='pycompss', dir=log_path + '/tmpFiles/')
-    print("* - Log path : " + log_path)
-
-    # Logging setup - messages before this step are ignored (need log_path to configure the logger).
-    if debug or log_level == "debug":
-        json_path = '/Bindings/python/' + str(major_version) + '/log/logging_debug.json'
-        init_logging(os.getenv('COMPSS_HOME') + json_path, log_path)
-    elif log_level == "info":
-        json_path = '/Bindings/python/' + str(major_version) + '/log/logging_off.json'
-        init_logging(os.getenv('COMPSS_HOME') + json_path, log_path)
-    elif log_level == "off":
-        json_path = '/Bindings/python/' + str(major_version) + '/log/logging_off.json'
-        init_logging(os.getenv('COMPSS_HOME') + json_path, log_path)
-    else:
-        # Default
-        json_path = '/Bindings/python/' + str(major_version) + '/log/logging.json'
-        init_logging(os.getenv('COMPSS_HOME') + json_path, log_path)
-    logger = logging.getLogger(__name__)
-
-    __print_setup__(verbose,
-                    log_level, o_c, debug, graph, trace, monitor,
-                    project_xml, resources_xml, summary, task_execution, storage_conf,
-                    pythonpath, classpath, ld_library_path,
-                    task_count, app_name, uuid, base_log_dir, specific_log_dir, extrae_cfg,
-                    comm, conn, master_name, master_port, scheduler, jvm_workers,
-                    cpu_affinity, gpu_affinity, fpga_affinity, fpga_reprogram, profile_input, profile_output,
-                    scheduler_config, external_adaptation, python_interpreter, major_version,
-                    python_virtual_environment, propagate_virtual_environment)
-
-    logger.debug("--- START ---")
-    logger.debug("PyCOMPSs Log path: %s" % log_path)
-    if storage_conf is not None and not storage_conf == 'null':
-        logger.debug("Storage configuration file: %s" % storage_conf)
-        from storage.api import init as init_storage
-        init_storage(config_file_path=storage_conf)
-        global persistent_storage
-        persistent_storage = True
-
-    # MAIN EXECUTION
-    # let the user write an interactive application
-    print("* - PyCOMPSs Runtime started... Have fun!            *")
-    print("******************************************************")
-
-
-def __print_setup__(verbose, log_level, o_c, debug, graph, trace, monitor,
-                    project_xml, resources_xml, summary, task_execution, storage_conf,
-                    pythonpath, classpath, ld_library_path,
-                    task_count, app_name, uuid, base_log_dir, specific_log_dir, extrae_cfg,
-                    comm, conn, master_name, master_port, scheduler, jvm_workers,
-                    cpu_affinity, gpu_affinity, fpga_affinity, fpga_reprogram, profile_input, profile_output,
-                    scheduler_config, external_adaptation, python_interpreter, python_version,
-                    python_virtual_environment, python_propagate_virtual_environment):
-
+    :param verbose: Verbose mode [True | False]
+    :param all_vars: Dictionary containing all variables.
+    :return: None
+    """
     logger = logging.getLogger(__name__)
     output = ""
     output += "******************************************************\n"
     output += " CONFIGURATION: \n"
-    output += "  - Log level           : " + str(log_level) + "\n"
-    output += "  - Object conversion   : " + str(o_c) + "\n"
-    output += "  - Debug               : " + str(debug) + "\n"
-    output += "  - Graph               : " + str(graph) + "\n"
-    output += "  - Trace               : " + str(trace) + "\n"
-    output += "  - Monitor             : " + str(monitor) + "\n"
-    output += "  - Project XML         : " + str(project_xml) + "\n"
-    output += "  - Resources XML       : " + str(resources_xml) + "\n"
-    output += "  - Summary             : " + str(summary) + "\n"
-    output += "  - Task execution      : " + str(task_execution) + "\n"
-    output += "  - Storage conf.       : " + str(storage_conf) + "\n"
-    output += "  - Pythonpath          : " + str(pythonpath) + "\n"
-    output += "  - Classpath           : " + str(classpath) + "\n"
-    output += "  - Ld_library_path     : " + str(ld_library_path) + "\n"
-    output += "  - Task count          : " + str(task_count) + "\n"
-    output += "  - Application name    : " + str(app_name) + "\n"
-    output += "  - UUID                : " + str(uuid) + "\n"
-    output += "  - Base log dir.       : " + str(base_log_dir) + "\n"
-    output += "  - Specific log dir.   : " + str(specific_log_dir) + "\n"
-    output += "  - Extrae CFG          : " + str(extrae_cfg) + "\n"
-    output += "  - COMM library        : " + str(comm) + "\n"
-    output += "  - CONN library        : " + str(conn) + "\n"
-    output += "  - Master name         : " + str(master_name) + "\n"
-    output += "  - Master port         : " + str(master_port) + "\n"
-    output += "  - Scheduler           : " + str(scheduler) + "\n"
-    output += "  - JVM Workers         : " + str(jvm_workers) + "\n"
-    output += "  - CPU affinity        : " + str(cpu_affinity) + "\n"
-    output += "  - GPU affinity        : " + str(gpu_affinity) + "\n"
-    output += "  - FPGA affinity       : " + str(fpga_affinity) + "\n"
-    output += "  - FPGA reprogram      : " + str(fpga_reprogram) + "\n"
-    output += "  - Profile input       : " + str(profile_input) + "\n"
-    output += "  - Profile output      : " + str(profile_output) + "\n"
-    output += "  - Scheduler config    : " + str(scheduler_config) + "\n"
-    output += "  - External adaptation : " + str(external_adaptation) + "\n"
-    output += "  - Python interpreter  : " + str(python_interpreter) + "\n"
-    output += "  - Python version      : " + str(python_version) + "\n"
-    output += "  - Python virtualenv   : " + str(python_virtual_environment) + "\n"
-    output += "  - Python propagate virtualenv : " + str(python_propagate_virtual_environment) + "\n"
+    for k, v in sorted(all_vars.items()):
+        output += '  - {0:20} : {1} \n'.format(k, v)
     output += "******************************************************"
     if verbose:
         print(output)
@@ -485,9 +344,8 @@ def stop(sync=False):
         print("Warning: some of the variables used with PyCOMPSs may")
         print("         have not been brought to the master.")
 
-    if persistent_storage is True:
-        from storage.api import finish as finish_storage
-        finish_storage()
+    if persistent_storage:
+        stop_storage()
 
     compss_stop()
 

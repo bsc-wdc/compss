@@ -26,13 +26,20 @@ PyCOMPSs Utils - External Storage
 
 try:
     # Try to import the external storage API module methods
+    from storage.api import init
+    from storage.api import finish
     from storage.api import getByID
     from storage.api import TaskContext
-
     print("INFO: Storage API successfully imported.")
 except ImportError:
     # print("INFO: No storage API defined.")
     # Defined methods throwing exceptions.
+
+    def init(config_file_path=None):
+        raise Exception('Unexpected call to init from storage.')
+
+    def finish():
+        raise Exception('Unexpected call to finish from storage.')
 
     def getByID(id):
         raise Exception('Unexpected call to getByID.')
@@ -104,3 +111,28 @@ def get_by_id(id):
     """
 
     return getByID(id)
+
+
+def init_storage(storage_conf, logger):
+    """
+    Initializes the persistent storage with the given storage configuration file.
+    The storage will be initialized if storage_conf is not None nor 'null'
+    :param storage_conf: Storage configuration file.
+    :param logger: Logger where to log the messages.
+    :return: True if initialized. False on the contrary.
+    """
+    if storage_conf is not None and not storage_conf == 'null':
+        if __debug__:
+            logger.debug("Storage configuration file: %s" % storage_conf)
+        init(config_file_path=storage_conf)
+        return True
+    else:
+        return False
+
+
+def stop_storage():
+    """
+    Stops the persistent storage
+    :return: None
+    """
+    finish()

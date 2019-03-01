@@ -189,6 +189,8 @@ def _execute_test(test_name, test_path, compss_logs_root, cmd_args, compss_cfg):
         + type: ExitValue
     :raise TestExecutionError: If an error is encountered when creating the necessary structures to launch the test
     """
+    import time
+
     skip_file = os.path.join(test_path, "skip")
     if os.path.isfile(skip_file):
         print("[INFO] Skipping test " + str(test_name))
@@ -216,6 +218,8 @@ def _execute_test(test_name, test_path, compss_logs_root, cmd_args, compss_cfg):
         test_ev = _execute_test_cmd(test_path, test_logs_path, compss_logs_root, retry, compss_cfg)
         # Clean orphan processes (if any)
         _clean_procs(compss_cfg)
+        # Sleep between executions
+        time.sleep(2)
         # Increase retry counter
         retry = retry + 1
 

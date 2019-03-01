@@ -150,15 +150,27 @@ void generate_worker_prolog() {
 }
 
 /*
- * Generate prototype for the initThread method at worker
+ * Generate the needed preprocessor conditions to intialize Nanos++ or Nanos6
  */
-void generate_initThread_prototype(FILE *outFile) {
-	fprintf(outFile, "void GE_initThread() {\n");
-    fprintf(outFile, "\n");
-}
+void generate_nanos_initialization() {
 
-void generate_worker_initThread() {
-	generate_initThread_prototype(workerFile);
+    //Check if both OmpSs2 and OmpSs are enabled
+    fprintf(workerFile, "#ifdef OMPSS2_ENABLED && OMPSS_ENABLED\n");
+    fprintf(workerFile, "#error Only one of both OmpSs2 and OmpSs can be enabled.\n")
+    fprintf(workerFile, "#endif\n")
+
+    //OmpSs2 Nanos6 initialization
+    fprintf(workerFile, "#ifdef OMPSS2_ENABLED\n");
+
+    fprintf(workerFile, "\t\tchar const *error = nanos6_library_mode_init();\n");
+    fprintf(workerFile, "\t\tif (error != NULL) {\n");
+    fprintf(workerFile, "\t\t\t cout << \"Error while intializing Nanos6: \" << error << endl;");
+    fprintf(workerFile, "\t\t\t return 1;\n");
+    fprintf(workerFile, "\t\t}");
+
+    fprintf(workerFile, "\t\t cout << \"Nanos6 intialized...\" << endl;");
+
+    fprintf(workerFile, "#endif")
 
     fprintf(workerFile, "#ifdef OMPSS_ENABLED\n");
     fprintf(workerFile, "\t\t nanos_admit_current_thread();\n");
@@ -167,14 +179,17 @@ void generate_worker_initThread() {
 
 }
 
-void generate_finishThread_prototype(FILE *outFile) {
-	fprintf(outFile, "void GE_finishThread() {\n");
-    fprintf(outFile, "\n");
-}
+/*
+ * Generate the needed preprocessor conditions to shutdown Nanos++ or Nanos6
+ */
+void generate_nanos_shutdown() {
 
-void generate_worker_finishThread() {
-	generate_finishThread_prototype(workerFile);
+    //OmpSs-2 Nanos6 shutdown
+    fprintf(workerFile, "#ifdef OMPSS2_ENABLED\n");
+    fprintf(workerFile, "\t\tnanos6_shutdown();");
+    fprintf(workerFile, "#endif");
 
+    //OmpSs Nanos++ shutdown
     fprintf(workerFile, "#ifdef OMPSS_ENABLED\n");
     fprintf(workerFile, "\t\t nanos_leave_team();\n");
     fprintf(workerFile, "\t\t nanos_expel_current_thread();\n");
@@ -183,8 +198,31 @@ void generate_worker_finishThread() {
 
 }
 
+/*
+ * Generate prototype for the initThread method at worker
+ */
+void generate_initThread_prototype(FILE *outFile) {
+    fprintf(outFile, "void GE_initThread() {\n");
+    fprintf(outFile, "\n");
+}
+
+void generate_worker_initThread() {
+	generate_initThread_prototype(workerFile);
+    generate_nanos_initialization();
+}
+
+void generate_finishThread_prototype(FILE *outFile) {
+    fprintf(outFile, "void GE_finishThread() {\n");
+    fprintf(outFile, "\n");
+}
+
+void generate_worker_finishThread() {
+    generate_finishThread_prototype(workerFile);
+    generate_nanos_shutdown();
+}
+
 void generate_initThread_empty(FILE *outFile) {
-	generate_initThread_prototype(outFile);
+    generate_initThread_prototype(outFile);
 	fprintf(outFile, "return;\n");
 	fprintf(outFile, "}\n");
 }

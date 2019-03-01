@@ -164,7 +164,7 @@ def reduce_centers(a, b):
 
 
 def has_converged(mu, oldmu, epsilon, iter, max_iterations):
-    if oldmu != []:
+    if len(oldmu) > 0:
         if iter < max_iterations:
             aux = [np.linalg.norm(oldmu[i] - mu[i]) for i in range(len(mu))]
             distancia = sum(aux)
@@ -174,6 +174,9 @@ def has_converged(mu, oldmu, epsilon, iter, max_iterations):
                 return False
         else:
             return True
+    else:
+        # Only empty on the first check
+        return False
 
 
 def kmeans_frag(X, num_points, num_centers, dimensions, epsilon, max_iterations,

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<!-- GENERAL INFORMATION -->
+	<artifactId>compss-tests-c</artifactId>
+	<packaging>pom</packaging>
+	<parent>
+		<groupId>es.bsc.compss.tests</groupId>
+		<artifactId>compss-tests</artifactId>
+		<version>2.4.rc1902</version>
+		<relativePath>..</relativePath>
+	</parent>
+
+	<!-- PROJECT INFORMATION -->
+	<name>COMPSs Framework Tests - C</name>
+	<description>COMPSs Framework Tests - C</description>
+	<url>http://compss.bsc.es</url>
+	<inceptionYear>2014</inceptionYear>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+		</license>
+	</licenses>
+	<organization>
+		<name>BSC</name>
+		<url>http://www.bsc.es</url>
+	</organization>
+
+	<!-- SUB-MODULES -->
+	<modules>
+        <!-- 0_arrays -->
+        <!-- 0_basic -->
+        <!-- 0_static -->
+        <!-- 1_delete_file -->
+        <!-- 1_implementations -->
+        <!-- 2_matmul_mo_sched_profile_config -->
+        <!-- 9_gpu_fpga_implementation -->
+        <!-- 9_multithread -->
+
+		<!-- Add new modules below -->
+	</modules>
+</project>

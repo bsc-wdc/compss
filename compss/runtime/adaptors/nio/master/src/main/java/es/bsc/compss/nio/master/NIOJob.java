@@ -19,18 +19,10 @@ package es.bsc.compss.nio.master;
 import java.util.LinkedList;
 import java.util.List;
 
-import es.bsc.compss.comm.Comm;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOTask;
-import es.bsc.compss.nio.commands.NIOData;
-
-import es.bsc.compss.types.parameter.BasicTypeParameter;
-import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.TaskDescription;
-import es.bsc.compss.types.data.DataAccessId;
-import es.bsc.compss.types.data.DataAccessId.RAccessId;
-import es.bsc.compss.types.data.DataAccessId.RWAccessId;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
@@ -40,8 +32,6 @@ import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.job.JobListener.JobEndStatus;
 import es.bsc.compss.types.resources.Resource;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.data.DataAccessId.WAccessId;
 import es.bsc.compss.util.NIOParamFactory;
 
 

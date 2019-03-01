@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<!-- GENERAL INFORMATION -->
+	<artifactId>compss-tests-java</artifactId>
+	<packaging>pom</packaging>
+	<parent>
+		<groupId>es.bsc.compss.tests</groupId>
+		<artifactId>compss-tests</artifactId>
+		<version>2.4.rc1902</version>
+		<relativePath>..</relativePath>
+	</parent>
+
+	<!-- PROJECT INFORMATION -->
+	<name>COMPSs Framework Test - Java</name>
+	<description>COMPSs Framework Tests - Java</description>
+	<url>http://compss.bsc.es</url>
+	<inceptionYear>2014</inceptionYear>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+		</license>
+	</licenses>
+	<organization>
+		<name>BSC</name>
+		<url>http://www.bsc.es</url>
+	</organization>
+
+	<!-- SUB-MODULES -->
+	<modules>
+        <module>0_api_calls</module>
+        <module>0_basic_tasks</module>
+        <module>0_basic_types</module>
+        <module>0_error_manager_all_blocked</module>
+        <module>0_error_manager_no_in_file</module>
+        <module>0_error_manager_reschedule_fail</module>
+        <module>0_no_task</module>
+        <module>0_objects</module>
+        <module>0_priority_tasks</module>
+        <module>1_annotation_compss</module>
+        <module>1_annotation_concurrent</module>
+        <module>1_annotation_decaf</module>
+        <module>1_annotation_distributed</module>
+        <module>1_annotation_implementations</module>
+        <module>1_annotation_mpi</module>
+        <module>1_annotation_multinode</module>
+        <module>1_annotation_non_native</module>
+        <module>1_annotation_ompss</module>
+        <module>1_annotation_replicated</module>
+        <module>1_constraints_cloud</module>
+        <module>1_constraints_cloud_dynamic</module>
+        <module>1_constraints_cm</module>
+        <module>1_constraints_multiproc_available</module>
+        <module>1_constraints_rm_available</module>
+        <module>1_constraints_rm_compatible</module>
+        <module>2_cache</module>
+        <module>2_delete_file</module>
+        <module>2_environment_variables</module>
+        <module>2_get_file</module>
+        <module>2_limit_of_tasks</module>
+        <module>2_no_empty_constructor</module>
+        <module>2_shared_disks</module>
+        <module>3_object_deregister</module>
+        <module>3_remote_file</module>
+        <module>3_worker_environment</module>
+        <module>4_data_locality_basic</module>
+        <module>4_data_locality_complex</module>
+        <module>4_scheduler_data</module>
+        <module>4_scheduler_default</module>
+        <module>4_scheduler_fifo</module>
+        <module>4_scheduler_fifodata</module>
+        <module>4_scheduler_lifo</module>
+        <module>9_concurrent_procs</module>
+        <module>9_concurrent_threads</module>
+        <module>9_services</module>
+        <module>9_streams</module>
+
+		<!-- Add new modules below -->
+	</modules>
+</project>

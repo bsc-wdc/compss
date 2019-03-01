@@ -13,8 +13,8 @@
 	</parent>
 
 	<!-- PROJECT INFORMATION -->
-	<name>Monitor Schema</name>
-	<description>Monitor schema</description>
+	<name>COMPSs XML Monitor Schema</name>
+	<description>COMPSs XML Monitor schema</description>
 	<url>http://www.bsc.es</url>
 	<inceptionYear>2014</inceptionYear>
 	<licenses>

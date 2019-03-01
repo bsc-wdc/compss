@@ -61,6 +61,9 @@ can be found on the `builders/packages/` directory.
   * **dependencies** : COMPSs embeded dependencies
   * **doc** : COMPSs documentation
   * **files** : Dependency files (i.e. paraver configurations)
+  * **tests** : COMPSs integration tests
+  * **utils** : Misc utils (i.e. OVA scripts, Docker generation, Storage implementations)
+
 
 ## Sample Applications
 

@@ -13,8 +13,8 @@
 	</parent>
 
 	<!-- PROJECT INFORMATION -->
-	<name>Project Schema</name>
-	<description>Project schema</description>
+	<name>COMPSs XML Project Schema</name>
+	<description>COMPSs XML Project schema</description>
 	<url>http://www.bsc.es</url>
 	<inceptionYear>2014</inceptionYear>
 	<licenses>

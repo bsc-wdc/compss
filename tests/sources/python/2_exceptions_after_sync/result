@@ -1,0 +1,36 @@
+#!/bin/bash -e
+
+  # Obtain parameters
+  output_file=$1
+  error_file=$2
+  target_log_folder=$3
+
+  # Log files
+  runtime_log="${target_log_folder}/runtime.log"
+  resources_log="${target_log_folder}/resources.log"
+
+  #----------------------------------------------------------------------------------
+  # Do not check standard out/err status since test must fail
+  # Do not check unit tests status since test must fail
+
+  #----------------------------------------------------------------------------------
+  # Compute result status
+  if grep -q "ERROR" "${output_file}"; then
+    echo "An ERROR occurred running the test - INVALID RESULT." | tee -a "${output_file}"
+    exit 2
+  fi
+
+  if grep -q "Traceback" "${error_file}"; then
+    echo "Traceback found - OK" | tee -a "${output_file}"
+    if grep -q "Exception: GENERAL EXCEPTION RAISED - HAPPENED AFTER SUBMITTING TASKS AT MASTER BUT AFTER SYNC." "${error_file}"; then
+      echo "Exception found - OK" | tee -a "${output_file}"
+    else
+      echo "Exception not found - ERROR" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    echo "Traceback not found - ERROR" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  exit 0

@@ -27,18 +27,19 @@ import java.util.Collection;
 
 public interface ExecutorContext {
 
-    public ExecutionPlatformMirror getMirror(Class<?> invoker);
+    public ExecutionPlatformMirror<?> getMirror(Class<?> invoker);
 
-    public void registerMirror(Class<?> invoker, ExecutionPlatformMirror mirror);
+    public void registerMirror(Class<?> invoker, ExecutionPlatformMirror<?> mirror);
 
     public int getSize();
 
     public Execution getJob();
 
-    public InvocationResources acquireResources(int jobId, ResourceDescription requirements) throws UnsufficientAvailableComputingUnitsException;
+    public InvocationResources acquireResources(int jobId, ResourceDescription requirements)
+            throws UnsufficientAvailableComputingUnitsException;
 
     public void releaseResources(int jobId);
 
-    public Collection<ExecutionPlatformMirror> getMirrors();
+    public Collection<ExecutionPlatformMirror<?>> getMirrors();
 
 }

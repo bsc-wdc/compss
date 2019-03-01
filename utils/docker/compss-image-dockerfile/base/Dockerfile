@@ -55,6 +55,8 @@ RUN apt-get update && \
 # AutoParallel dependencies
     apt-get install -y --no-install-recommends libgmp3-dev flex bison libbison-dev texinfo libffi-dev && \
     pip2 install astor sympy enum34 islpy && \
+# Testing dependencies
+    pip3 install enum34 tabulate && \
 # Configure user environment
 # =============================================================================
 # System configuration

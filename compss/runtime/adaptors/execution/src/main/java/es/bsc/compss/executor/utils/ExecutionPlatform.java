@@ -58,7 +58,8 @@ public class ExecutionPlatform implements ExecutorContext {
 
     private final Semaphore startSemaphore;
     private final Semaphore stopSemaphore;
-    private final Map<Class<?>, ExecutionPlatformMirror> mirrors;
+    private final Map<Class<?>, ExecutionPlatformMirror<?>> mirrors;
+
 
     /**
      * Constructs a new thread pool but not the threads inside it.
@@ -86,6 +87,7 @@ public class ExecutionPlatform implements ExecutorContext {
 
         // Instantiate worker thread structure
         this.workerThreads = new TreeSet<>(new Comparator<Thread>() {
+
             @Override
             public int compare(Thread t1, Thread t2) {
                 return Long.compare(t1.getId(), t2.getId());
@@ -135,7 +137,7 @@ public class ExecutionPlatform implements ExecutorContext {
         removeWorkerThreads(size);
 
         LOGGER.info("Stopping mirrors for execution platform " + this.platformName);
-        for (ExecutionPlatformMirror mirror : this.mirrors.values()) {
+        for (ExecutionPlatformMirror<?> mirror : this.mirrors.values()) {
             mirror.stop();
         }
         mirrors.clear();
@@ -179,7 +181,7 @@ public class ExecutionPlatform implements ExecutorContext {
 
     public synchronized final void removeWorkerThreads(int numWorkerThreads) {
         LOGGER.info("Stopping " + numWorkerThreads + " executors from execution platform " + this.platformName);
-        //Request N threads to finish
+        // Request N threads to finish
         for (int i = 0; i < numWorkerThreads; i++) {
             this.queue.enqueue(null);
         }
@@ -235,17 +237,17 @@ public class ExecutionPlatform implements ExecutorContext {
     }
 
     @Override
-    public ExecutionPlatformMirror getMirror(Class<?> invoker) {
+    public ExecutionPlatformMirror<?> getMirror(Class<?> invoker) {
         return this.mirrors.get(invoker);
     }
 
     @Override
-    public void registerMirror(Class<?> invoker, ExecutionPlatformMirror mirror) {
+    public void registerMirror(Class<?> invoker, ExecutionPlatformMirror<?> mirror) {
         this.mirrors.put(invoker, mirror);
     }
 
     @Override
-    public Collection<ExecutionPlatformMirror> getMirrors() {
+    public Collection<ExecutionPlatformMirror<?>> getMirrors() {
         return mirrors.values();
     }
 }

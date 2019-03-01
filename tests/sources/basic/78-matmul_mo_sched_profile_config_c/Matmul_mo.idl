@@ -1,7 +1,0 @@
-interface Matmul 
-{
-	void multiplyBlocks(inout Block block1, in Block block2, in Block block3);
-
-        void initBlock(out Block block, in int bSize, in double initVal);
-
-};

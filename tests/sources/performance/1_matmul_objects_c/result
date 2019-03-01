@@ -1,0 +1,82 @@
+#!/bin/bash -e
+
+  # Obtain parameters
+  output_file=$1
+  error_file=$2
+  target_log_folder=$3
+
+  # Log files
+  runtime_log="${target_log_folder}/runtime.log"
+
+  #----------------------------------------------------------------------------------
+  # Check output standard out status
+  if [ -f "${output_file}" ]; then
+     result_expected="------------------------------------------------------------"
+     test_result=$(tail -1 "${output_file}")
+     if [ "${result_expected}" != "${test_result}" ]; then
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
+        exit 1
+     fi
+  else
+     echo "[ERROR] Output file not found" | tee -a "${output_file}"
+     exit 1
+  fi
+  # Check that ErrorManager has not raised any ERROR or FATAL message
+  if [ -f "${error_file}" ]; then
+    if grep -E "\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs)" "${error_file}"; then
+      echo "ERROR: ErrorManager has raised a fatal error" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    # Empty error file, no exceptions could have been raised
+    :
+  fi
+  # Check that the Runtime has not registered any fatal error
+  if [ -f "${runtime_log}" ]; then
+    if grep -E "ErrorManager\\].*\\[ERRMGR\\].*Error detected. Shutting down COMPSs" "${runtime_log}"; then
+      echo "ERROR: ErrorManager has registered a fatal error in the runtime.log" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    echo "[ERROR] runtime.log not found" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Check that JNI has not raised an error
+  jni_error=$(grep "Exception in thread" "${error_file}" | cat)
+  if [ -n "${jni_error}" ]; then
+    echo "ERROR: JNI HAS RAISED A FATAL ERROR. TEST FAILED." | tee -a "${output_file}"
+    exit 1
+  fi
+
+  #---------------------------------------------------------------------------------- 
+  # Compute result status
+  result=$(grep "The result is" "${output_file}" | cut -c 15-)
+  expected_result=4872.82 
+
+  result=${result::-1}
+
+  # Report result status
+  if [ "$result" != "$expected_result" ]; then
+     echo "ERROR ON TASKS SCHEDULE" | tee -a "${output_file}"
+     echo "EXPECTED RESULT: $expected_result" | tee -a "${output_file}"
+     echo "GOT: $result" | tee -a "${output_file}"
+     exit 1
+  fi
+
+  # Okay, now, it worked, but the threads were registered correctly? At least printed the messages?
+  THREAD_REGISTRATION_MESSAGE="\\[PersistentMirror\\] Thread registration has been done."
+  THREAD_UNREGISTRATION_MESSAGE="\\[PersistentMirror\\] Thread unregistration has been done."
+
+  # The prior test that we can do is that the number of registrations is == to number of unregistrations...
+  OCCURRENCES_TRM=$(grep -R "$THREAD_REGISTRATION_MESSAGE" "$target_log_folder" | wc -l)
+  OCCURRENCES_TUM=$(grep -R "$THREAD_UNREGISTRATION_MESSAGE" "$target_log_folder" | wc -l)
+  if [ "$OCCURRENCES_TRM" = "0" ] || [ "$OCCURRENCES_TUM" = "0" ] || [ "$OCCURRENCES_TRM" != "$OCCURRENCES_TUM" ]; then
+    echo "ERROR ON THREAD REGISTRATION, THE NUMBER OF REGISTERS/UNREGISTERS IS 0 OR IS NOT THE SAME NUMBER." | tee -a "${output_file}"
+    echo "Nº THREAD REGISTER    MSG: $OCCURRENCES_TRM" | tee -a "${output_file}"
+    echo "Nº THREAD UNREGISTER  MSG: $OCCURRENCES_TUM" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  exit 0

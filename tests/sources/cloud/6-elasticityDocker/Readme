@@ -1,2 +1,0 @@
-It's very important that you have a Docker engine running somewhere...It can even be in your local machine.
-You must specify its address in the resources cloud base xml

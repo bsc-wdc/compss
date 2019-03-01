@@ -1,0 +1,108 @@
+#!/bin/bash
+
+  # Obtain parameters
+  COMPSs_exec=$1
+  comm=$2
+  runcompss_opts=$3
+  base_app_dir=$4
+  COMPSs_log_folder=$5
+  target_log_folder=$6
+  retry_num=$7
+  execution_envs=$8
+
+  # Global variables
+  exit_value=0
+  jar_name="1_redis_java.jar"
+  app_name="testPSCO.Redis"
+
+  #----------------------------------------------------------------------------------
+  # Generate Project.xml according to system
+  sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/project.xml
+
+  #----------------------------------------------------------------------------------
+  # Create all working dir folders
+  mkdir -p /tmp/COMPSsWorker01/
+
+  #----------------------------------------------------------------------------------
+  # Create storage Conf
+  storageConf=${target_log_folder}/storage.conf
+  cat > "$storageConf" << EOF
+COMPSsWorker01
+EOF
+
+  # Add trap to kill redis instance/s
+  clean() {
+    pkill redis
+  }
+  trap clean EXIT
+
+  #----------------------------------------------------------------------------------
+  # Set Storage implementation location
+  storageImplPath=${base_app_dir}/jars/compss-redisPSCO.jar
+
+  # Download the specified Redis Version, unzip it, compile the redis-server
+  # utility, move it to the main folder and execute the main test
+  REDIS_VERSION=$(cat REDIS-VERSION)
+  REDIS_URL=http://download.redis.io/releases
+  REDIS_FOLDER=redis-${REDIS_VERSION}
+  REDIS_TAR_NAME=${REDIS_FOLDER}.tar.gz
+  # Download Redis
+  wget ${REDIS_URL}/"${REDIS_TAR_NAME}"
+  # Uncompress it
+  tar -xzvf "${REDIS_TAR_NAME}"
+  rm "${REDIS_TAR_NAME}"
+  # Go to the Redis directory and compile the redis-server utility
+  (
+  cd "${REDIS_FOLDER}" || exit 1
+  make redis-server
+  )
+  # Move the redis-server executable to the main folder
+  cp "${REDIS_FOLDER}"/src/redis-server redis-server
+  rm -rf "${REDIS_FOLDER}"
+
+  # Set a single standalone Redis instance
+  ./redis-server --daemonize yes
+
+  #----------------------------------------------------------------------------------
+  # Run application
+  echo
+  echo "*** RUNNING JAVA APPLICATION PSCOs Redis"
+  output_log="${target_log_folder}/testPSCO_redis_0${retry_num}.outputlog"
+  error_log="${target_log_folder}/testPSCO_redis_0${retry_num}.errorlog"
+  expectedTime=60s
+
+  # shellcheck disable=SC2086
+  timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+     --project="${base_app_dir}"/project.xml \
+     --resources="${base_app_dir}"/resources.xml \
+     \
+     --comm="$comm" \
+     \
+     --debug \
+     ${runcompss_opts} \
+     \
+     --storage_conf=${storageConf} \
+     \
+     --classpath="${base_app_dir}/${jar_name}":${storageImplPath}:"${base_app_dir}"/jedis.jar \
+     \
+     "${app_name}" 1 > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+
+  # Check timeout
+  if [[ "$?" = "124" ]]; then
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
+
+     # Report time out
+     echo "[WARNING] Java Application timed out" >> "${output_log}"
+     exit_value=124
+  else
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
+
+     # Check result
+     "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}"
+     exit_value=$?
+  fi
+
+  #----------------------------------------------------------------------------------
+  exit ${exit_value}

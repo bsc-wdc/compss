@@ -15,8 +15,8 @@
 	</parent>
 
 	<!-- PROJECT INFORMATION -->
-	<name>XML Schemas</name>
-	<description>XML schemas</description>
+	<name>COMPSs XML Schemas</name>
+	<description>COMPSs XML schemas</description>
 	<url>http://www.bsc.es</url>
 	<inceptionYear>2014</inceptionYear>
 	<licenses>

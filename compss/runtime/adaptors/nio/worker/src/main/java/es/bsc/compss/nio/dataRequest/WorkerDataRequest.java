@@ -17,16 +17,15 @@
 package es.bsc.compss.nio.dataRequest;
 
 import es.bsc.compss.data.DataManager;
-import es.bsc.compss.nio.worker.NIOWorker;
-import es.bsc.compss.types.annotations.parameter.DataType;
-
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.commands.NIOData;
+import es.bsc.compss.types.annotations.parameter.DataType;
 
 
 public class WorkerDataRequest extends DataRequest {
 
     private final TransferringTask task;
+
 
     public WorkerDataRequest(TransferringTask task, DataType type, NIOData source, String target) {
         super(type, source, target);
@@ -43,6 +42,7 @@ public class WorkerDataRequest extends DataRequest {
         private final NIOTask task;
         private int params;
         private boolean error;
+
 
         public TransferringTask(NIOTask task) {
             this.task = task;

@@ -1,0 +1,86 @@
+#!/bin/bash -e
+
+  # Obtain parameters
+  output_file=$1
+  error_file=$2
+  target_log_folder=$3
+  minVM=$4
+  maxVM=$5
+
+  # Log files
+  runtime_log="${target_log_folder}/runtime.log"
+  resources_log="${target_log_folder}/resources.log"
+
+  #----------------------------------------------------------------------------------
+  # Check output standard out status
+  if [ -f "${output_file}" ]; then
+     result_expected="------------------------------------------------------------"
+     test_result=$(tail -1 "${output_file}")
+     if [ "${result_expected}" != "${test_result}" ]; then
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
+        exit 1
+     fi
+  else
+     echo "[ERROR] Output file not found" | tee -a "${output_file}"
+     exit 1
+  fi
+  # Check that ErrorManager has not raised any ERROR or FATAL message
+  if [ -f "${error_file}" ]; then
+    if grep -E "\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs)" "${error_file}"; then
+      echo "ERROR: ErrorManager has raised a fatal error" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    # Empty error file, no exceptions could have been raised
+    :
+  fi
+  # Check that the Runtime has not registered any fatal error
+  if [ -f "${runtime_log}" ]; then
+    if grep -E "ErrorManager\\].*\\[ERRMGR\\].*Error detected. Shutting down COMPSs" "${runtime_log}"; then
+      echo "ERROR: ErrorManager has registered a fatal error in the runtime.log" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    echo "[ERROR] runtime.log not found" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Compute result status
+  test_value=$(grep "Application values OK" "${output_file}" )
+  if [ -z "${test_value}" ]; then
+    echo "[ERROR] Some error found. See errors above." | tee "${output_file}"
+    exit 2
+  fi
+  
+  #elasticity_value_GOT=$(grep "CURRENT_VM" "${resources_log}" | rev | cut -c -1 | sort | tail -n 1)
+  #elasticity_value_EXPECTED="$maxVM"
+  elasticity_creation_GOT=$(grep -c "RESOURCE_GRANTED" "${resources_log}")
+  elasticity_creation_EXPECTED="$maxVM"
+  elasticity_destruction_GOT=$(grep -c "Resource removed from the pool" "${resources_log}")
+  elasticity_destruction_EXPECTED=$((maxVM - minVM))
+  elasticity_termination_GOT=$(grep -c "Destroying VM" "${runtime_log}")
+  elasticity_termination_EXPECTED=$minVM
+
+  #if [ "${elasticity_value_GOT}" != "${elasticity_value_EXPECTED}" ]; then
+  #  echo "[ERROR] Elasticity not reaching maxVM" | tee ${output_file}
+  #  exit 3
+  #fi
+  
+  if [ "${elasticity_creation_GOT}" != "${elasticity_creation_EXPECTED}" ]; then
+    echo "[ERROR] Elasticity not adquiring maxVM" | tee "${output_file}"
+    exit 4
+  fi
+  
+  if [ "${elasticity_destruction_GOT}" != "${elasticity_destruction_EXPECTED}" ]; then
+    echo "[ERROR] Elasticity not terminating intermediate VMs (${elasticity_destruction_GOT}-> Expected: ${elasticity_destruction_EXPECTED})" | tee "${output_file}"
+    exit 5
+  fi
+  
+  if [ "${elasticity_termination_GOT}" != "${elasticity_termination_EXPECTED}" ]; then
+    echo "[ERROR] Elasticity not reaching minVM at the end (${elasticity_termination_GOT} -> Expected: ${elasticity_termination_EXPECTED}" | tee "${output_file}"
+    exit 6
+  fi
+
+  # Report result status
+  exit 0

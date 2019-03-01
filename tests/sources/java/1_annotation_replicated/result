@@ -1,0 +1,84 @@
+#!/bin/bash -e
+
+  # Obtain parameters
+  output_file=$1
+  error_file=$2
+  target_log_folder=$3
+  comm=$4
+  final_graph_expected=$5
+
+  # Log files
+  runtime_log="${target_log_folder}/runtime.log"
+  resources_log="${target_log_folder}/resources.log"
+
+  #----------------------------------------------------------------------------------
+  # Check output standard out status
+  if [ -f "${output_file}" ]; then
+     result_expected="------------------------------------------------------------"
+     test_result=$(tail -1 "${output_file}")
+     if [ "${result_expected}" != "${test_result}" ]; then
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
+        exit 1
+     fi
+  else
+     echo "[ERROR] Output file not found" | tee -a "${output_file}"
+     exit 1
+  fi
+  # Check that ErrorManager has not raised any ERROR or FATAL message
+  if [ -f "${error_file}" ]; then
+    if grep -E "\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs)" "${error_file}"; then
+      echo "ERROR: ErrorManager has raised a fatal error" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    # Empty error file, no exceptions could have been raised
+    :
+  fi
+  # Check that the Runtime has not registered any fatal error
+  if [ -f "${runtime_log}" ]; then
+    if grep -E "ErrorManager\\].*\\[ERRMGR\\].*Error detected. Shutting down COMPSs" "${runtime_log}"; then
+      echo "ERROR: ErrorManager has registered a fatal error in the runtime.log" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    echo "[ERROR] runtime.log not found" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Check transfers on worker files
+  if [[ $comm == *"GAT"* ]]; then
+    numTransfers=$(grep "GATCopy" "${runtime_log}" | grep -E "localhost|$(hostname)" | grep -v "out" | grep -v "err" | grep -c -v "tar\\.gz")
+  else
+    numTransfers=$(grep -R "does not exist, requesting data transfer" "${target_log_folder}"/workers/ | wc -l)
+  fi
+  expectedNumTransfers=2
+  if [ "${numTransfers}" -ne ${expectedNumTransfers} ]; then
+    echo "[ERROR] The number of transfers is incorrect." | tee -a "${output_file}"
+    echo "  GOT: ${numTransfers}" | tee -a "${output_file}"
+    echo "  EXPECTED ${expectedNumTransfers}" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  #----------------------------------------------------------------------------------
+  # Check dot file
+  final_graph_got=${target_log_folder}/monitor/complete_graph.dot
+  graph_status=$(diff -U 0 "${final_graph_expected}" "${final_graph_got}" | grep -v ^@ | grep -v "#" | tail -n+3)
+  if [ ! -z "${graph_status}" ]; then
+    echo "[ERROR] Obtained graph file is not as expected" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  #----------------------------------------------------------------------------------
+  # Check PRV file
+  tasksOrderExpected=$'1\n2\n2\n3\n3\n3\n3\n3\n3\n3\n3'
+  tasksOrder=$(grep "8000000" "${target_log_folder}"/trace/*.prv | grep -v "8000000:0" | tr ":" "\\t" | awk '{ print $NF }')
+  if [ "${tasksOrderExpected}" != "${tasksOrder}" ]; then
+    echo "[ERROR] Obtained trace file is not as expected" | tee -a "${output_file}"
+    echo "[ERROR] GOT ${tasksOrder}" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  #----------------------------------------------------------------------------------
+  # Report result status  
+  exit 0

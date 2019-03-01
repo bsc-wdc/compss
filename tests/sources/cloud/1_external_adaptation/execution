@@ -26,7 +26,7 @@
   output_log="${target_log_folder}/oneProvider.outputlog"
   error_log="${target_log_folder}/oneProvider.errorlog"
   
-  expectedTime=300
+  expectedTime=300s
   counterVal=1
   numTasks=15
   minVM=1

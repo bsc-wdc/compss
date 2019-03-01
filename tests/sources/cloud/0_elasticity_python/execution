@@ -41,6 +41,12 @@
     minVM=1
     maxVM=3
 
+    if [ "${python_interpreter}" != 'python2' ]; then
+      # No need to launch elasticity with python3
+      echo "WARN: SKIPPING ${python_interpreter}" | tee -a "${output_log}"
+      continue
+    fi
+
     # shellcheck disable=SC2086
     timeout --signal=2 $expectedTime "${COMPSs_exec}" \
       --project="${base_app_dir}"/project.xml \

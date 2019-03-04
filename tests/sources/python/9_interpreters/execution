@@ -35,10 +35,20 @@
     mkdir -p "${exec_target_log_folder}"
     expectedTime=120s
 
-    if [ "${python_interpreter}" == "python2" ]; then
+    if [[ ${python_interpreter} == "python2"* ]]; then
       app_name="py2.py"
     else
       app_name="py3.py"
+    fi
+
+    python_mpi_worker=""
+    if [ "$python_interpreter" == 'python2_mpi' ]; then
+        python_interpreter="python2"
+        python_mpi_worker="--python_mpi_worker=true"
+    fi
+    if [ "$python_interpreter" == 'python3_mpi' ]; then
+        python_interpreter="python3"
+        python_mpi_worker="--python_mpi_worker=true"
     fi
 
     # shellcheck disable=SC2086
@@ -55,6 +65,7 @@
       --python_interpreter="${python_interpreter}" \
       --pythonpath="${base_app_dir}"/src \
       --specific_log_dir="${specific_log_dir}" \
+      ${python_mpi_worker} \
       \
       "${base_app_dir}/src/${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 

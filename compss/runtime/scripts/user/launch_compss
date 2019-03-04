@@ -35,6 +35,7 @@ else
   DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT="${VIRTUAL_ENV}"
 fi
 DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT=true
+DEFAULT_PYTHON_MPI_WORKER=false
 DEFAULT_JUPYTER_NOTEBOOK=false
 
 
@@ -340,7 +341,8 @@ worker_cmd() {
             ${python_interpreter} \
             ${python_version} \
             ${DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT} \
-            ${python_propagate_virtual_environment}"
+            ${python_propagate_virtual_environment}\
+            ${python_mpi_worker}"
 }
 
 ###############################################
@@ -1016,6 +1018,11 @@ get_args() {
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
+        python_mpi_worker=*)
+          python_mpi_worker=${OPTARG//python_mpi_worker=/}
+          # Keep it for runcompss (to add them to master)
+          args_pass="$args_pass --$OPTARG"
+          ;;
         prolog=*)
           action=${OPTARG//prolog=/}
           prologActions[numPrologActions]="$action"
@@ -1202,6 +1209,10 @@ check_args() {
 
   if [ -z "${python_propagate_virtual_environment}" ]; then
     python_propagate_virtual_environment=${DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT}
+  fi
+
+  if [ -z "${python_mpi_worker}" ]; then
+    python_mpi_worker=${DEFAULT_PYTHON_MPI_WORKER}
   fi
 
   #
@@ -1514,6 +1525,7 @@ log_variables() {
   echo "Python version:            ${python_version}"
   echo "Python virtual env:        ${DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT}"
   echo "Python propagate virt env.:${python_propagate_virtual_environment}"
+  echo "Python use MPI worker    .:${python_mpi_worker}"
   echo "COMM:                      ${comm}"
   echo "Prolog:                    ${prologActions[*]}"
   echo "Epilog:                    ${epilogActions[*]}"

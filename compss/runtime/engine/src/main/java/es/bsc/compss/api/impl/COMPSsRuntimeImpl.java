@@ -257,6 +257,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                     System.setProperty(COMPSsConstants.COMPSS_CONTEXT, manager.getContext());
                 }
                 System.setProperty(COMPSsConstants.COMPSS_TO_FILE, Boolean.toString(manager.isToFile()));
+
             } else {
                 setDefaultProperties();
             }

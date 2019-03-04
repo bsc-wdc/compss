@@ -79,6 +79,7 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
                     output.write(taskCMD.getBytes());
                     output.flush();
                     done = true;
+                    LOGGER.debug("Written " + taskCMD + " into " + writePipe);
                 } catch (Exception e) {
                     LOGGER.debug("Error on pipe write. Retry");
                     ++retries;
@@ -95,6 +96,7 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
             try {
                 Thread.sleep(PIPE_ERROR_WAIT_TIME);
             } catch (InterruptedException e) {
+                LOGGER.debug("Pipe error wait time.");
                 // No need to catch such exceptions
             }
 

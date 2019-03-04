@@ -36,6 +36,12 @@
     mkdir -p "${exec_target_log_folder}"
     expectedTime=60s
 
+    if [[ $python_interpreter == *"mpi"* ]]; then
+      # Jupyter not supported with MPI worker
+      echo "WARN: UNSUPPORTED FOR ${python_interpreter}" | tee -a "${output_log}"
+      continue
+    fi
+
     if [[ $comm == *"GAT"* ]]; then
       echo "Running a jupyter notebook test with GAT"
       app_ipynb="simpleGAT.ipynb"

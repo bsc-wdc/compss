@@ -27,6 +27,7 @@
   echo "*** RUNNING PYTHON APPLICATION TRACING USER EVENTS WITH HOOK"
 
   for python_interpreter in ${execution_envs}; do
+
     echo "   - Running with Interpreter: ${python_interpreter}"
 
     # APPLICATION 1
@@ -37,6 +38,12 @@
     exec_target_log_folder1="${target_log_folder}/${app_name1}_${python_interpreter}_0${retry_num}"
     mkdir -p "${exec_target_log_folder1}"
     expectedTime=180s
+
+    if [[ $python_interpreter == *"mpi"* ]]; then
+      # Tracing not supported with MPI worker
+      echo "WARN: UNSUPPORTED FOR ${python_interpreter}" | tee -a "${output_log}"
+      continue
+    fi
 
     # shellcheck disable=SC2086
     timeout --signal=2 $expectedTime "${COMPSs_exec}" \

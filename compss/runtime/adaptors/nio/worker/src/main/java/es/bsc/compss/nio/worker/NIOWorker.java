@@ -667,10 +667,11 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         String pythonVersion = args[29];
         String pythonVirtualEnvironment = args[30];
         String pythonPropagateVirtualEnvironment = args[31];
+        String pythonMpiWorker = args[32];
 
         JavaParams javaParams = new JavaParams(classpath);
         PythonParams pyParams = new PythonParams(pythonInterpreter, pythonVersion, pythonVirtualEnvironment,
-                pythonPropagateVirtualEnvironment, pythonpath);
+                pythonPropagateVirtualEnvironment, pythonpath, pythonMpiWorker);
         CParams cParams = new CParams(classpath);
 
         // Print arguments
@@ -712,6 +713,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             WORKER_LOGGER.debug("Python version: " + pythonVersion);
             WORKER_LOGGER.debug("Python virtual environment: " + pythonVirtualEnvironment);
             WORKER_LOGGER.debug("Python propagate virtual environment: " + pythonPropagateVirtualEnvironment);
+            WORKER_LOGGER.debug("Python use MPI worker: " + pythonMpiWorker);
 
             WORKER_LOGGER.debug("Remove Sanbox WD: " + REMOVE_WD);
         }

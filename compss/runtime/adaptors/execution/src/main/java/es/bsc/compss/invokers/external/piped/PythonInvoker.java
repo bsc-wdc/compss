@@ -66,6 +66,8 @@ public class PythonInvoker extends PipedInvoker {
         public static final String PYCOMPSS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "python";
         private static final String WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator + "worker" + File.separator
                 + "piper_worker.py";
+        private static final String MPI_WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator + "worker" + File.separator
+                + "mpi_piper_worker.py";
 
         private static final String ENV_LD_LIBRARY_PATH = "LD_LIBRARY_PATH";
         private static final String ENV_PYTHONPATH = "PYTHONPATH";
@@ -95,9 +97,17 @@ public class PythonInvoker extends PipedInvoker {
 
             cmd.append(Tracer.isActivated()).append(TOKEN_SEP);
 
+            if (this.pyParams.usePythonMpiWorker()) {
+                cmd.append("mpirun").append(TOKEN_SEP).append("-np").append(TOKEN_SEP).append(this.size).append(TOKEN_SEP);
+            }
             cmd.append(this.pyParams.getPythonInterpreter()).append(TOKEN_SEP).append("-u").append(TOKEN_SEP);
-            cmd.append(this.pyCOMPSsHome).append(WORKER_PY_RELATIVE_PATH).append(TOKEN_SEP);
+            cmd.append(this.pyCOMPSsHome);
 
+            if (this.pyParams.usePythonMpiWorker()) {
+                cmd.append(MPI_WORKER_PY_RELATIVE_PATH).append(TOKEN_SEP);
+            } else {
+                cmd.append(WORKER_PY_RELATIVE_PATH).append(TOKEN_SEP);
+            }
             cmd.append(LOGGER.isDebugEnabled()).append(TOKEN_SEP);
             cmd.append(Tracer.isActivated()).append(TOKEN_SEP);
             cmd.append(context.getStorageConf()).append(TOKEN_SEP);

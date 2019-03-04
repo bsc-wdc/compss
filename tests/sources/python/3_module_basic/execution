@@ -43,7 +43,7 @@
     errCode=$?
     if [ $errCode -ne  0 ] ; then
       echo "[ERROR] THE pycompss MODULE IS NOT AVAILABLE IN THE SYSTEM." | tee -a "${output_log}"
-      echo "CHECK THAT PYTHONPATH CONTAINS THE APPROPIATE MODULE PATH." | tee -a "${output_log}"
+      echo "CHECK THAT PYTHONPATH CONTAINS THE APPROPRIATE MODULE PATH." | tee -a "${output_log}"
       exit $errCode
     fi
 
@@ -69,6 +69,16 @@
     fi
 
     # COMPSs execution
+    python_mpi_worker=""
+    if [ "$python_interpreter" == 'python2_mpi' ]; then
+        python_interpreter="python2"
+        python_mpi_worker="--python_mpi_worker=true"
+    fi
+    if [ "$python_interpreter" == 'python3_mpi' ]; then
+        python_interpreter="python3"
+        python_mpi_worker="--python_mpi_worker=true"
+    fi
+
     # shellcheck disable=SC2086
     timeout --signal=2 $expectedTime "${COMPSs_exec}" \
       --project="${base_app_dir}"/project.xml \
@@ -81,6 +91,7 @@
       \
       --lang=python \
       --python_interpreter="${python_interpreter}" \
+      ${python_mpi_worker} \
       --pythonpath="${base_app_dir}"/src \
       --specific_log_dir="${specific_log_dir}" \
       \

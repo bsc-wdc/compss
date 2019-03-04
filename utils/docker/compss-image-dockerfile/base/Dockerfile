@@ -44,8 +44,8 @@ RUN apt-get update && \
     openmpi-bin openmpi-doc libopenmpi-dev uuid-runtime curl bc \
 # Python-binding dependencies
     python-dev python3-dev libpython2.7 python-pip python3-pip python-setuptools python3-setuptools && \
-    pip2 install wheel numpy==1.15.4 dill guppy decorator && \
-    pip3 install wheel numpy==1.15.4 dill decorator  && \
+    pip2 install wheel numpy==1.15.4 dill guppy decorator mpi4py==1.3.1 && \
+    pip3 install wheel numpy==1.15.4 dill decorator mpi4py==3.0.1 && \
 # Python-redis dependencies
     pip2 install redis==2.10.6 redis-py-cluster && \
     pip3 install redis==2.10.6 redis-py-cluster && \

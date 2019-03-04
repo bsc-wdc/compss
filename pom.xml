@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -28,8 +29,24 @@
     <!-- PROPERTIES -->
     <properties>
         <compss.version>2.4.rc1903</compss.version>
+
+        <!-- Log4j version -->
+        <log4j.version>2.9.1</log4j.version>
+
+        <!-- JUNIT -->
         <junit.version>4.12</junit.version>
         <junit.rules.version>1.16.1</junit.rules.version>
+
+        <!-- Apache commons versions -->
+        <apache-commons-configuration.version>1.10</apache-commons-configuration.version>
+        <apache-commons-io.version>2.6</apache-commons-io.version>
+
+        <!-- Javassist -->
+        <javassist.version>3.21.0-GA</javassist.version>
+
+        <!-- Checkstyle -->
+        <maven-checkstyle-plugin.version>3.0.0</maven-checkstyle-plugin.version>
+        <puppycrawl-tools-checkstyle.version>8.18</puppycrawl-tools-checkstyle.version>
 
         <!-- Maven Plugins -->
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -42,6 +59,7 @@
         <tomcat7-maven-plugin.version>2.1</tomcat7-maven-plugin.version>
         <maven-jaxb2-plugin.version>0.12.1</maven-jaxb2-plugin.version>
         <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
+
         <!-- Project encoding -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -94,11 +112,57 @@
         </repository>
     </distributionManagement>
 
+    <!-- DEPENDENCIES -->
+    <dependencyManagement>
+        <dependencies>
+            <!-- LOG4j -->
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${log4j.version}</version>
+            </dependency>
+
+            <!-- JUNIT -->
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.github.stefanbirkner</groupId>
+                <artifactId>system-rules</artifactId>
+                <version>${junit.rules.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <!-- Apache Commons -->
+            <dependency>
+                <groupId>commons-configuration</groupId>
+                <artifactId>commons-configuration</artifactId>
+                <version>${apache-commons-configuration.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${apache-commons-io.version}</version>
+            </dependency>
+
+            <!-- Javassist -->
+            <dependency>
+                <groupId>org.javassist</groupId>
+                <artifactId>javassist</artifactId>
+                <version>${javassist.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <!-- SUB-MODULES -->
     <modules>
+        <module>maven-plugins</module>
         <module>compss</module>
         <module>tests/sources</module>
+        <module>utils/storage</module>
         <module>performance_analysis/auto-cbm</module>
-        <module>maven-plugins/instrumentation</module>
     </modules>
 </project>

@@ -249,7 +249,7 @@ def _get_test_numbers():
             num_family = 1
             for test_dir in sorted(os.listdir(family_path)):
                 test_path = os.path.join(family_path, test_dir)
-                if test_dir != ".target" and test_dir != ".settings" and os.path.isdir(test_path):
+                if test_dir != ".target" and test_dir != ".settings" and test_dir != "target" and os.path.isdir(test_path):
                     test_numbers["global"][num_global] = (test_dir, test_path, family_dir, num_family)
                     test_numbers[family_dir][num_family] = (test_dir, test_path, num_global)
                     num_global = num_global + 1

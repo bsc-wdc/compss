@@ -1,47 +1,124 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<name>auto-cbm</name>
-	<artifactId>auto-cbm</artifactId>
-	<packaging>pom</packaging>
-	<parent>
-		<groupId>es.bsc.compss</groupId>
-		<artifactId>compss-trunk</artifactId>
-<version>2.4.rc1903</version>
-		<relativePath>../..</relativePath>
-	</parent>
+    <name>auto-cbm</name>
+    <artifactId>auto-cbm</artifactId>
+    <packaging>pom</packaging>
+    <parent>
+        <groupId>es.bsc.compss</groupId>
+        <artifactId>compss-trunk</artifactId>
+        <version>2.4.rc1903</version>
+        <relativePath>../..</relativePath>
+    </parent>
 
-	<modules>
-		<module>apps/cbm1</module>
-		<module>apps/cbm2</module>
-		<module>apps/cbm3</module>
-		<!--module>apps/matmul</module> <module>apps/kmeans</module -->
-	</modules>
+    <!-- DEPENDENCIES -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
+                <version>${compss.version}</version>
+                <artifactId>compss-api</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
+                <version>${compss.version}</version>
+                <artifactId>compss-commons</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
+                <version>${compss.version}</version>
+                <artifactId>compss-resources-commons</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
+                <version>${compss.version}</version>
+                <artifactId>compss-scheduler-commons</artifactId>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>es.bsc.compss</groupId>
-				<version>${compss.version}</version>
-				<artifactId>compss-api</artifactId>
-			</dependency>
-			<dependency>
-				<groupId>es.bsc.compss</groupId>
-				<version>${compss.version}</version>
-				<artifactId>compss-commons</artifactId>
-			</dependency>
-			<dependency>
-				<groupId>es.bsc.compss</groupId>
-				<version>${compss.version}</version>
-				<artifactId>compss-resources-commons</artifactId>
-			</dependency>
-			<dependency>
-				<groupId>es.bsc.compss</groupId>
-				<version>${compss.version}</version>
-				<artifactId>compss-scheduler-commons</artifactId>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
+    <!-- BUILD -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${maven-checkstyle-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <phase>validate</phase>
+                        <configuration>
+                            <configLocation>checkstyle/checkstyle.xml</configLocation>
+                            <suppressionsLocation>checkstyle/suppressed_files.xml</suppressionsLocation>
+                            <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
+                            <encoding>UTF-8</encoding>
+                            <consoleOutput>true</consoleOutput>
+                            <failsOnError>true</failsOnError>
+                            <linkXRef>false</linkXRef>
+                        </configuration>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>${maven-checkstyle-plugin.version}</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>es.bsc.compss</groupId>
+                            <artifactId>checkstyle</artifactId>
+                            <version>${project.version}</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>com.puppycrawl.tools</groupId>
+                            <artifactId>checkstyle</artifactId>
+                            <version>${puppycrawl-tools-checkstyle.version}</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+                <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself. -->
+                <plugin>
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>1.0.0</version>
+                    <configuration>
+                        <lifecycleMappingMetadata>
+                            <pluginExecutions>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.apache.maven.plugins</groupId>
+                                        <artifactId>maven-checkstyle-plugin</artifactId>
+                                        <versionRange>[1.0,)</versionRange>
+                                        <goals>
+                                            <goal>check</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore></ignore>
+                                    </action>
+                                </pluginExecution>
+                            </pluginExecutions>
+                        </lifecycleMappingMetadata>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <!-- SUB-MODULES -->
+    <modules>
+        <module>apps/cbm1</module>
+        <module>apps/cbm2</module>
+        <module>apps/cbm3</module>
+        <!--module>apps/matmul</module> <module>apps/kmeans</module -->
+    </modules>
 
 </project>

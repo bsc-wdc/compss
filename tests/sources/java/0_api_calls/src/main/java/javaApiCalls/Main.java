@@ -1,4 +1,4 @@
-package java_api_calls;
+package javaApiCalls;
 
 import es.bsc.compss.api.COMPSs;
 
@@ -8,7 +8,7 @@ import java.io.IOException;
 
 
 /**
- * Three tasks without dependencies that are scheduled one after the other because of the barrier call
+ * Three tasks without dependencies that are scheduled one after the other because of the barrier call.
  * 
  */
 public class Main {
@@ -38,10 +38,12 @@ public class Main {
         }
     }
 
-    /*
-     * API TESTS
+    /**
+     * API Test.
+     * 
+     * @param initialValue
+     *            Initial test value
      */
-
     public static void testBarrier(int initialValue) {
         // Initialize independent counters
         String counterName1 = "counter1";
@@ -71,10 +73,12 @@ public class Main {
         printCounter(counterName3);
     }
 
-    /*
-     * MAIN
+    /**
+     * Test main method.
+     * 
+     * @param args
+     *            System arguments
      */
-
     public static void main(String[] args) {
         // Check and get parameters
         if (args.length != 1) {

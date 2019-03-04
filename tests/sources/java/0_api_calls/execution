@@ -13,7 +13,7 @@
   # Global variables
   exit_value=0
   jar_name="0_api_calls.jar"
-  app_name="java_api_calls.Main"
+  app_name="javaApiCalls.Main"
   
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system

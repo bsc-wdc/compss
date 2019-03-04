@@ -75,6 +75,16 @@ EOF
     mkdir -p "${exec_target_log_folder}"
     expectedTime=360s
 
+    python_mpi_worker=""
+    if [ "$python_interpreter" == 'python2_mpi' ]; then
+        python_interpreter="python2"
+        python_mpi_worker="--python_mpi_worker=true"
+    fi
+    if [ "$python_interpreter" == 'python3_mpi' ]; then
+        python_interpreter="python3"
+        python_mpi_worker="--python_mpi_worker=true"
+    fi
+
     # shellcheck disable=SC2086
     timeout --signal=2 $expectedTime "${COMPSs_exec}" \
       --project="${base_app_dir}"/project.xml \
@@ -88,6 +98,7 @@ EOF
       --python_interpreter="${python_interpreter}" \
       --pythonpath="${base_app_dir}"/src: \
       --specific_log_dir="${specific_log_dir}" \
+      ${python_mpi_worker} \
       \
       --debug \
       -g \

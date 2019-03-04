@@ -35,7 +35,7 @@ usage() {
 
   echo "- Deploying mvn"
   cd "${trunk_dir}"
-  mvn -U deploy
+  mvn deploy
   cd "${SCRIPT_DIR}"
 
   #---------------------------------------------------------------------

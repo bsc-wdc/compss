@@ -29,7 +29,7 @@ DEFAULT_CFG_FILE = "NIO_local.cfg"
 DEFAULT_CFG_EXTENSION = ".cfg"
 DEFAULT_COMPSS_HOME = "/opt/COMPSs/"
 DEFAULT_COMM = "es.bsc.compss.nio.master.NIOAdaptor"
-DEFAULT_EXECUTION_ENVS = ["python2", "python3"]
+DEFAULT_EXECUTION_ENVS = ["python2", "python3", "python2_mpi", "python3_mpi"]
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TESTS_DIR = os.path.join(SCRIPT_DIR, "../sources")

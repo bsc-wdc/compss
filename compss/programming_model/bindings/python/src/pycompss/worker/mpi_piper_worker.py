@@ -447,7 +447,7 @@ def compss_persistent_worker():
         # Initialize storage
         initStorageAtWorker(config_file_path=storage_conf)
 
-    process_name = 'Process-' + str(rank)
+    process_name = 'Rank-' + str(rank)
 
 
     # Catch SIGTERM send by bindings_piper so that each process exits

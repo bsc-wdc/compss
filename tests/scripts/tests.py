@@ -114,7 +114,7 @@ def main():
         print("----------------------------------------")
         print("[INFO] Tests finished")
         print("[INFO]    - Success = " + str_exit_value_coloured(ev))
-        print("[INFO]    - Elapsed time = " + str(elapsed_time))
+        print("[INFO]    - Elapsed time = %.2f" % elapsed_time)
         print("----------------------------------------")
         exit(get_exit_code(ev))
 

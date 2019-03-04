@@ -137,6 +137,7 @@ def compss_main():
     logging_cfg_file = get_logging_cfg_file(log_level)
 
     init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
+    logger = None
     if __debug__:
         logger = logging.getLogger("pycompss.runtime.launch")
 

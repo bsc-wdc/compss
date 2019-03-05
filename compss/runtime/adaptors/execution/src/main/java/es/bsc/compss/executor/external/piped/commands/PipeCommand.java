@@ -19,6 +19,8 @@ package es.bsc.compss.executor.external.piped.commands;
 import es.bsc.compss.executor.external.commands.ExternalCommand;
 
 
-public interface PipeCommand extends ExternalCommand {
+public interface PipeCommand extends ExternalCommand, Comparable<PipeCommand> {
+
+    public void join(PipeCommand receivedCommand);
 
 }

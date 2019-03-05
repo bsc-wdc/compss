@@ -20,8 +20,8 @@ import es.bsc.compss.executor.external.commands.ExternalCommand;
 
 
 public interface ExternalExecutor<T extends ExternalCommand> {
-    
+
     public boolean sendCommand(T command);
 
-    public T readCommand();
+    public T readCommand() throws ExternalExecutorException;
 }

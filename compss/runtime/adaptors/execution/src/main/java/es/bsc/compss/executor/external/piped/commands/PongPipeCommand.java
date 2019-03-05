@@ -21,4 +21,13 @@ import es.bsc.compss.executor.external.commands.PongExternalCommand;
 
 public class PongPipeCommand extends PongExternalCommand implements PipeCommand {
 
+    @Override
+    public int compareTo(PipeCommand t) {
+        return Integer.compare(this.getType().ordinal(), t.getType().ordinal());
+    }
+
+    @Override
+    public void join(PipeCommand receivedCommand) {
+        //Do nothing
+    }
 }

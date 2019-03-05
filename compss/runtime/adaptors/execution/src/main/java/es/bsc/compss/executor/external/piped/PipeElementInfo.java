@@ -14,39 +14,20 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.invokers.test.objects;
-
-import storage.StubItf;
+package es.bsc.compss.executor.external.piped;
 
 
-public class StorageTestObject extends TestObject implements StubItf {
+public class PipeElementInfo {
 
-    private String ID = null;
+    
+    private final Integer pid;
 
-
-    public StorageTestObject(int value) {
-        super(value);
-        this.ID = null;
+    public PipeElementInfo(Integer pid) {
+        this.pid = pid;
     }
 
-    public StorageTestObject(String id, int value) {
-        super(value);
-        this.ID = id;
-    }
-
-    @Override
-    public String getID() {
-        return ID;
-    }
-
-    @Override
-    public void makePersistent(String id) {
-        this.ID = id;
-    }
-
-    @Override
-    public void deletePersistent() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public int getPID() {
+        return pid;
     }
 
 }

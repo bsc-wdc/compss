@@ -14,39 +14,19 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.invokers.test.objects;
-
-import storage.StubItf;
+package es.bsc.compss.executor.external.commands;
 
 
-public class StorageTestObject extends TestObject implements StubItf {
+public class ErrorExternalCommand implements ExternalCommand {
 
-    private String ID = null;
-
-
-    public StorageTestObject(int value) {
-        super(value);
-        this.ID = null;
-    }
-
-    public StorageTestObject(String id, int value) {
-        super(value);
-        this.ID = id;
+    @Override
+    public CommandType getType() {
+        return CommandType.ERROR;
     }
 
     @Override
-    public String getID() {
-        return ID;
-    }
-
-    @Override
-    public void makePersistent(String id) {
-        this.ID = id;
-    }
-
-    @Override
-    public void deletePersistent() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public String getAsString() {
+        return CommandType.ERROR.name();
     }
 
 }

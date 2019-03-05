@@ -14,19 +14,24 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.executor.external.commands;
+package es.bsc.compss.executor.external;
 
 
-public class ErrorTaskExternalCommand implements ExternalCommand {
+public class ExternalExecutorException extends Exception {
 
-    @Override
-    public CommandType getType() {
-        return CommandType.ERROR_TASK;
+    public ExternalExecutorException() {
+        super();
     }
 
-    @Override
-    public String getAsString() {
-        return CommandType.ERROR_TASK.name();
+    public ExternalExecutorException(String msg) {
+        super(msg);
     }
 
+    public ExternalExecutorException(Exception e) {
+        super(e);
+    }
+
+    public ExternalExecutorException(String msg, Exception e) {
+        super(msg, e);
+    }
 }

@@ -18,10 +18,24 @@ package es.bsc.compss.executor.external.piped;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
+import es.bsc.compss.executor.external.ExternalExecutorException;
+import es.bsc.compss.executor.external.commands.ExternalCommand;
 import es.bsc.compss.executor.external.commands.ExternalCommand.CommandType;
+import es.bsc.compss.executor.external.piped.commands.AddExecutorPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.AddedExecutorPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.ChannelCreatedPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.CreateChannelPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.ExecutorPIDQueryPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.ExecutorPIDReplyPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.PingPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.PipeCommand;
+import es.bsc.compss.executor.external.piped.commands.PongPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.QuitPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.RemoveExecutorPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.RemovedExecutorPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.StartWorkerPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.WorkerStartedPipeCommand;
+import es.bsc.compss.executor.external.piped.exceptions.ClosedPipeException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.util.ErrorManager;
@@ -30,6 +44,8 @@ import es.bsc.compss.util.Tracer;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.UUID;
 
@@ -42,7 +58,11 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
 
     // Logger messages
-    private static final String ERROR_PB = "Error starting ProcessBuilder";
+    private static final String ERROR_PB_START = "Error starting ProcessBuilder";
+    private static final String ERROR_PB_PIPE = "Error ProcessBuilder pipe";
+    private static final String ERROR_W_START = "Error starting Worker";
+    private static final String ERROR_W_PIPE = "Error on Worker pipe";
+    private static final String ERROR_PIPE = "Error starting pipe";
     private static final String ERROR_GC = "Error generating worker external launch command";
 
     protected static final String TOKEN_NEW_LINE = "\n";
@@ -52,40 +72,50 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             + File.separator + "adaptors" + File.separator + "nio" + File.separator + "pipers" + File.separator;
     private static final String PIPE_SCRIPT_NAME = "bindings_piper.sh";
     private static final String PIPE_FILE_BASENAME = "pipe_";
-    // private static final int MAX_WRITE_PIPE_RETRIES = 3;
 
     protected final String mirrorId;
     protected final int size;
+    private final HashMap<String, PipePair> pipePool;
     protected final String basePipePath;
 
-    private Process piper;
-    private PipePair controlPipe;
-    private StreamGobbler outputGobbler;
-    private StreamGobbler errorGobbler;
+    private final MirrorMonitor monitor;
 
+    private Process pipeBuilderProcess;
+    private ControlPipePair pipeBuilderPipe;
+    private StreamGobbler pipeBuildeOutGobbler;
+    private StreamGobbler pipeBuildeErrGobbler;
+
+    private ControlPipePair pipeWorkerPipe;
 
     public PipedMirror(InvocationContext context, int size) {
         mirrorId = String.valueOf(UUID.randomUUID().hashCode());
         String workingDir = context.getWorkingDir();
+        if (!workingDir.endsWith(File.separator)) {
+            workingDir += File.separator;
+        }
         basePipePath = workingDir + PIPE_FILE_BASENAME + mirrorId + "_";
         this.size = size;
+        this.pipePool = new HashMap<>();
+        this.monitor = new MirrorMonitor();
+    }
+
+    public String getMirrorId() {
+        return this.mirrorId;
     }
 
     protected final void init(InvocationContext context) {
+        monitor.start();
+        startPipeBuilder(context);
+        startWorker(context);
+    }
+
+    private void startPipeBuilder(InvocationContext context) {
         String installDir = context.getInstallDir();
         String piperScript = installDir + PIPER_SCRIPT_RELATIVE_PATH + PIPE_SCRIPT_NAME;
         LOGGER.debug("PIPE Script: " + piperScript);
-
-        // Init PB to launch commands to bindings
-        // Command of the form: bindings_piper.sh NUM_THREADS 2 pipeW1 pipeW2 2 pipeR1 pipeR2 binding args
-        String generalArgs = constructGeneralArgs(context);
-        String specificArgs = getLaunchCommand(context);
-        if (specificArgs == null) {
-            ErrorManager.error(ERROR_GC);
-            return;
-        }
-        LOGGER.info("Init piper ProcessBuilder");
-        ProcessBuilder pb = new ProcessBuilder(piperScript, generalArgs, specificArgs);
+        String args = constructPipeBuilderArgs(context);
+        LOGGER.info("Init piper PipeBuilder");
+        ProcessBuilder pb = new ProcessBuilder(piperScript, args);
         try {
             // Set NW environment
             Map<String, String> env = getEnvironment(context);
@@ -103,92 +133,116 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
                 Tracer.emitEvent(tracingHostId, Tracer.getSyncType());
             }
 
-            piper = pb.start();
-
+            pipeBuilderProcess = pb.start();
             LOGGER.debug("Starting stdout/stderr gobblers ...");
             try {
-                piper.getOutputStream().close();
+                pipeBuilderProcess.getOutputStream().close();
             } catch (IOException e) {
-                // Stream closed
-            }
-            // Active wait to be sure that the piper has started
-            while (!piper.isAlive()) {
+                // Stream no Longer Exists
             }
 
-            outputGobbler = new StreamGobbler(piper.getInputStream(), null, LOGGER);
-            errorGobbler = new StreamGobbler(piper.getErrorStream(), null, LOGGER);
-            outputGobbler.start();
-            errorGobbler.start();
+            //Active wait until the process is created and the pipes are ready
+            while (pipeBuilderProcess.isAlive() && !new File(pipeBuilderPipe.getOutboundPipe()).exists()) {
+                //TODO: SHOULD WE ADD A TIMEOUT AT THIS POINT??
+            }
 
-            controlPipe = new PipePair(this.basePipePath, "control");
-            controlPipe.sendCommand(new PingPipeCommand());
+            if (!pipeBuilderProcess.isAlive()) {
+                ErrorManager.fatal(ERROR_PB_START);
+            }
 
-            PipeCommand reply = controlPipe.readCommand();
-            if (reply.getType() != CommandType.PONG) {
-                ErrorManager.fatal(ERROR_PB);
+            pipeBuildeOutGobbler = new StreamGobbler(pipeBuilderProcess.getInputStream(), null, LOGGER);
+            pipeBuildeErrGobbler = new StreamGobbler(pipeBuilderProcess.getErrorStream(), null, LOGGER);
+            pipeBuildeOutGobbler.start();
+            pipeBuildeErrGobbler.start();
+
+            monitor.mainProcess(pipeBuilderProcess, pipeBuilderPipe);
+
+            if (pipeBuilderPipe.sendCommand(new PingPipeCommand())) {
+                try {
+                    pipeBuilderPipe.waitForCommand(new PongPipeCommand());
+                } catch (ClosedPipeException ie) {
+                    ErrorManager.fatal(ERROR_PB_START);
+                }
+            } else {
+                ErrorManager.fatal(ERROR_PB_START);
             }
         } catch (IOException e) {
-            ErrorManager.error(ERROR_PB, e);
+            ErrorManager.error(ERROR_PB_START, e);
         }
-
     }
 
-    private String constructGeneralArgs(InvocationContext context) {
+    private String constructPipeBuilderArgs(InvocationContext context) {
         StringBuilder cmd = new StringBuilder();
 
-        String computePipes = basePipePath + "compute";
-        String controlPipe = basePipePath + "control";
+        // Control pipes
+        pipeBuilderPipe = new ControlPipePair(basePipePath, "control");
+        cmd.append(pipeBuilderPipe.getOutboundPipe()).append(TOKEN_SEP);
+        cmd.append(pipeBuilderPipe.getInboundPipe()).append(TOKEN_SEP);
 
-        // NUM THREADS
-        cmd.append(size).append(TOKEN_SEP);
-
-        // Data pipes
-        cmd.append(controlPipe).append(".outbound").append(TOKEN_SEP);
-        cmd.append(controlPipe).append(".inbound").append(TOKEN_SEP);
+        // Executor Pipes
+        StringBuilder writePipes = new StringBuilder();
+        StringBuilder readPipes = new StringBuilder();
+        for (int i = 0; i < size; ++i) {
+            String pipeName = "compute" + i;
+            PipePair computePipe = new PipePair(basePipePath, pipeName);
+            this.pipePool.put(pipeName, computePipe);
+            writePipes.append(computePipe.getOutboundPipe()).append(TOKEN_SEP);
+            readPipes.append(computePipe.getInboundPipe()).append(TOKEN_SEP);
+        }
 
         // Write Pipes
         cmd.append(size).append(TOKEN_SEP);
-        StringBuilder writePipes = new StringBuilder();
-        if (size > 0) {
-            writePipes.append(computePipes).append("0.outbound");
-        }
-        for (int i = 1; i < size; ++i) {
-            writePipes.append(TOKEN_SEP).append(computePipes).append(i).append(".outbound");
-        }
-        cmd.append(writePipes.toString()).append(TOKEN_SEP);
+        cmd.append(writePipes.toString());
 
         // Read Pipes
         cmd.append(size).append(TOKEN_SEP);
-        StringBuilder readPipes = new StringBuilder();
-        if (size > 0) {
-            readPipes.append(computePipes).append("0.inbound");
-        }
-        for (int i = 1; i < size; ++i) {
-            readPipes.append(TOKEN_SEP).append(computePipes).append(i).append(".inbound");
-        }
-        cmd.append(readPipes.toString()).append(TOKEN_SEP);
+        cmd.append(readPipes.toString());
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("WRITE PIPE Files: " + writePipes.toString() + "\n");
             LOGGER.debug("READ PIPE Files: " + readPipes.toString() + "\n");
 
             // Data pipes
-            LOGGER.debug("WRITE DATA PIPE: " + controlPipe + ".outbound");
-            LOGGER.debug("READ DATA PIPE: " + controlPipe + ".inbound");
+            LOGGER.debug("WRITE DATA PIPE: " + pipeBuilderPipe + ".outbound");
+            LOGGER.debug("READ DATA PIPE: " + pipeBuilderPipe + ".inbound");
         }
 
-        // General Args are of the form: NUM_THREADS dataPipeW dataPipeR 2 pipeW1 pipeW2 2 pipeR1 pipeR2
+        cmd.append(Tracer.isActivated()).append(TOKEN_SEP);
+
+        cmd.append(getPipeBuilderContext());
+
+        // General Args are of the form: controlPipeW controlPipeR workerPipeW workerPipeR 2 pipeW1 pipeW2 2 pipeR1 pipeR2
         return cmd.toString();
+    }
+
+    public abstract String getPipeBuilderContext();
+
+    private void startWorker(InvocationContext context) {
+        pipeWorkerPipe = new ControlPipePair(basePipePath, "control_worker");
+        String cmd = getLaunchWorkerCommand(context, pipeWorkerPipe);
+        if (pipeBuilderPipe.sendCommand(new StartWorkerPipeCommand(cmd, pipeWorkerPipe))) {
+            WorkerStartedPipeCommand startedCMD = new WorkerStartedPipeCommand();
+            try {
+                pipeBuilderPipe.waitForCommand(startedCMD);
+            } catch (ClosedPipeException ie) {
+                ErrorManager.fatal(ERROR_W_START);
+            }
+            int workerPID = startedCMD.getPid();
+            monitor.registerWorker(mirrorId, workerPID, pipeWorkerPipe);
+        } else {
+            ErrorManager.fatal(ERROR_W_START);
+        }
     }
 
     /**
      * Returns the launch command for every binding
      *
      * @param context
+     * @param pipe
      *
      * @return
      */
-    public abstract String getLaunchCommand(InvocationContext context);
+    public abstract String getLaunchWorkerCommand(InvocationContext context, ControlPipePair pipe);
 
     /**
      * Returns the specific environment variables of each binding
@@ -205,63 +259,180 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
 
     @Override
     public void stop() {
-        stopPipes();
+        stopWorker();
         stopPiper();
+        monitor.stop();
     }
 
-    private void stopPipes() {
+    private void stopExecutors() {
         LOGGER.info("Stopping compute pipes for mirror " + mirrorId);
-        for (int i = 0; i < size; ++i) {
-            PipePair pipes = new PipePair(this.basePipePath, "compute" + i);
-            pipes.close();
+        for (String executorId : new LinkedList<>(pipePool.keySet())) {
+            unregisterExecutor(executorId);
         }
     }
 
+    private void stopWorker() {
+        stopExecutors();
+        LOGGER.info("Stopping mirror " + mirrorId);
+        if (pipeWorkerPipe.sendCommand(new QuitPipeCommand())) {
+            try {
+                pipeWorkerPipe.waitForCommand(new QuitPipeCommand());
+            } catch (ClosedPipeException cpe) {
+                // Worker is already closed
+            }
+        } else {
+            // Worker is already closed
+        }
+        monitor.unregisterWorker(mirrorId);
+        pipeWorkerPipe.delete();
+    }
+
     private void stopPiper() {
-        controlPipe.sendCommand(new QuitPipeCommand());
+        LOGGER.info("Stopping piper process");
+        if (pipeBuilderPipe.sendCommand(new QuitPipeCommand())) {
+            try {
+                pipeBuilderPipe.waitForCommand(new QuitPipeCommand());
+            } catch (ClosedPipeException cpe) {
+                ErrorManager.fatal(ERROR_W_PIPE);
+            }
+        } else {
+            ErrorManager.fatal(ERROR_W_PIPE);
+        }
+
         try {
             LOGGER.info("Waiting for finishing piper process");
-            int exitCode = piper.waitFor();
+            int exitCode = pipeBuilderProcess.waitFor();
             if (Tracer.isActivated()) {
                 Tracer.emitEvent(Tracer.EVENT_END, Tracer.getSyncType());
             }
-            outputGobbler.join();
-            errorGobbler.join();
+            pipeBuildeOutGobbler.join();
+            pipeBuildeErrGobbler.join();
             if (exitCode != 0) {
                 ErrorManager.error("ExternalExecutor piper ended with " + exitCode + " status");
             }
         } catch (InterruptedException e) {
             // No need to handle such exception
         } finally {
-            if (piper != null) {
-                if (piper.getInputStream() != null) {
+            if (pipeBuilderProcess != null) {
+                if (pipeBuilderProcess.getInputStream() != null) {
                     try {
-                        piper.getInputStream().close();
+                        pipeBuilderProcess.getInputStream().close();
                     } catch (IOException e) {
                         // No need to handle such exception
                     }
                 }
-                if (piper.getErrorStream() != null) {
+                if (pipeBuilderProcess.getErrorStream() != null) {
                     try {
-                        piper.getErrorStream().close();
+                        pipeBuilderProcess.getErrorStream().close();
                     } catch (IOException e) {
                         // No need to handle such exception
                     }
                 }
             }
         }
-
+        pipeBuilderPipe.delete();
         // ---------------------------------------------------------------------------
         LOGGER.info("ExternalThreadPool finished");
     }
 
     @Override
     public PipePair registerExecutor(String executorId) {
-        return new PipePair(this.basePipePath, executorId);
+        boolean createExecutor = false;
+        PipePair pp;
+        synchronized (this.pipePool) {
+            pp = this.pipePool.get(executorId);
+            if (pp == null) {
+                pp = new PipePair(this.basePipePath, executorId);
+                createExecutor = true;
+                this.pipePool.put(executorId, pp);
+            }
+        }
+        int executorPID = -1;
+        if (createExecutor) {
+            // Create pipe    
+            if (pipeBuilderPipe.sendCommand(new CreateChannelPipeCommand(pp))) {
+                ChannelCreatedPipeCommand createdPipe = new ChannelCreatedPipeCommand(pp);
+                try {
+                    pipeBuilderPipe.waitForCommand(createdPipe);
+                } catch (ClosedPipeException ie) {
+                    throw new UnsupportedOperationException("Not yet implemented. Specific exception should be raised");
+                }
+            } else {
+                throw new UnsupportedOperationException("Not yet implemented. Specific exception should be raised");
+            }
+
+            //Launch executor
+            if (pipeWorkerPipe.sendCommand(new AddExecutorPipeCommand(pp))) {
+                try {
+                    AddedExecutorPipeCommand reply = new AddedExecutorPipeCommand(pp);
+                    pipeWorkerPipe.waitForCommand(reply);
+                    executorPID = reply.getPid();
+
+                } catch (ClosedPipeException ie) {
+                    throw new UnsupportedOperationException("Not yet implemented. Specific exception should be raised");
+                }
+            } else {
+                throw new UnsupportedOperationException("Not yet implemented. Specific exception should be raised");
+            }
+        } else {
+            // Query executor PID
+            if (pipeWorkerPipe.sendCommand(new ExecutorPIDQueryPipeCommand(pp))) {
+                try {
+                    ExecutorPIDReplyPipeCommand reply = new ExecutorPIDReplyPipeCommand(pp);
+                    pipeWorkerPipe.waitForCommand(reply);
+                    executorPID = reply.getPids().get(0);
+                } catch (ClosedPipeException ie) {
+                    throw new UnsupportedOperationException("Not yet implemented. Specific exception should be raised");
+                }
+            } else {
+                throw new UnsupportedOperationException("Not yet implemented. Specific exception should be raised");
+            }
+        }
+        monitor.registerExecutor(this, executorId, executorPID, pp);
+
+        return pp;
     }
 
     @Override
-    public void unregisterExecutor(String id) {
+    public void unregisterExecutor(String executorId) {
+        PipePair pp;
+        synchronized (this.pipePool) {
+            pp = this.pipePool.remove(executorId);
+        }
+        if (pp == null) {
+            // Executor not alive on the mirror
+            return;
+        }
 
+        boolean closed = false;
+        // Shutting down executor
+        if (pp.sendCommand(new QuitPipeCommand())) {
+            try {
+                PipeCommand command = null;
+                while (command == null) {
+                    command = pp.readCommand();
+                    if (command.getType() != CommandType.QUIT) {
+                        closed = true;
+                        break;
+                    }
+                }
+            } catch (ExternalExecutorException cpe) {
+                // Executor is already dead -> Do nothing
+            }
+        }
+        // Executor is down, no need to keep monitoring it
+        monitor.unregisterExecutor(this, executorId);
+
+        // Making sure that it is off through the Worker
+        if (pipeWorkerPipe.sendCommand(new RemoveExecutorPipeCommand(pp))) {
+            try {
+                pipeWorkerPipe.waitForCommand(new RemovedExecutorPipeCommand(pp));
+            } catch (ClosedPipeException cpe) {
+                ErrorManager.fatal(ERROR_W_PIPE);
+            }
+        } // else : Worker is dead and executor probably too since it is not responding. Ignore
+
+        pp.delete();
+        LOGGER.debug("EXECUTOR "+executorId+" shut down!");
     }
 }

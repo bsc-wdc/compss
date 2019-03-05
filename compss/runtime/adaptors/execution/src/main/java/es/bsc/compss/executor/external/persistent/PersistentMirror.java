@@ -42,6 +42,7 @@ public class PersistentMirror implements ExecutionPlatformMirror<Void> {
         PersistentInvoker.finishThread();
     }
 
+    @Override
     public Void registerExecutor(String id) {
         PrintStream out = context.getThreadOutStream();
         out.println("[PersistentMirror] Thread registration has been done."); //WARNING: Do not remove this log, is used for runtime testing

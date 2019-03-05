@@ -18,7 +18,6 @@ package es.bsc.compss.executor.external.piped;
 
 import es.bsc.compss.executor.external.piped.commands.PipeCommand;
 import es.bsc.compss.executor.external.piped.commands.EndTaskPipeCommand;
-import es.bsc.compss.executor.external.piped.commands.ErrorTaskPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.QuitPipeCommand;
 import es.bsc.compss.executor.external.commands.ExternalCommand;
 import es.bsc.compss.log.Loggers;
@@ -34,7 +33,20 @@ import java.io.OutputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import es.bsc.compss.executor.external.ExternalExecutor;
+import es.bsc.compss.executor.external.ExternalExecutorException;
+import es.bsc.compss.executor.external.piped.commands.AddedExecutorPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.AliveReplyPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.ChannelCreatedPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.ErrorPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.ExecutorPIDReplyPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.PongPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.RemovedExecutorPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.WorkerStartedPipeCommand;
+import es.bsc.compss.executor.external.piped.exceptions.ClosedPipeException;
+import es.bsc.compss.executor.external.piped.exceptions.UnknownCommandException;
+import java.util.Arrays;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 public class PipePair implements ExternalExecutor<PipeCommand> {
@@ -45,16 +57,52 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
     private static final String ERROR_PIPE_QUIT = "Error finishing readPipeFile ";
     private static final String ERROR_PIPE_NOT_FOUND = "Pipe cannot be found";
     private static final String ERROR_PIPE_NOT_READ = "Pipe cannot be read";
+    private static final String WRITE_PIPE_CLOSING_NOT_EXISTS = "Deleted pipe being written blocks the execution";
+    private static final String READ_PIPE_CLOSING_NOT_EXISTS = "Deleted pipe read written blocks the execution";
+
+    private static final String CLOSED_PIPE_ERROR = "CLOSED_PIPE_ERROR";
 
     protected static final String TOKEN_NEW_LINE = "\n";
     protected static final String TOKEN_SEP = " ";
 
     private static final int MAX_WRITE_PIPE_RETRIES = 3;
     private static final int PIPE_ERROR_WAIT_TIME = 50;
+    private static final long PIPE_READ_COMMAND_PERIOD = 20;
+
     private final String pipePath;
+
+    // Number of threads waiting to write on the pipe
+    private BufferedReader reader;
+    private final Lock sendMutex = new ReentrantLock();
+    private int senders;
+    private int readers;
+    private boolean closed = false;
 
     public PipePair(String basePipePath, String id) {
         pipePath = basePipePath + id;
+    }
+
+    public final String getPipesLocation() {
+        return pipePath;
+    }
+
+    public final String getInboundPipe() {
+        return pipePath + ".inbound";
+    }
+
+    public final String getOutboundPipe() {
+        return pipePath + ".outbound";
+    }
+
+    public final void delete() {
+        File f = new File(pipePath + ".inbound");
+        if (f.exists()) {
+            f.delete();
+        }
+        f = new File(pipePath + ".outbound");
+        if (f.exists()) {
+            f.delete();
+        }
     }
 
     @Override
@@ -74,16 +122,27 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
                 ++retries;
             } else {
                 OutputStream output = null;
+                synchronized (this) {
+                    senders++;
+                }
+                sendMutex.lock();
                 try {
                     output = new FileOutputStream(writePipe, true);
                     output.write(taskCMD.getBytes());
                     output.flush();
-                    done = true;
+                    synchronized (this) {
+                        senders--;
+                        done = !closed;
+                    }
                     LOGGER.debug("Written " + taskCMD + " into " + writePipe);
-                } catch (Exception e) {
+                } catch (IOException e) {
+                    synchronized (this) {
+                        senders--;
+                    }
                     LOGGER.debug("Error on pipe write. Retry");
                     ++retries;
                 } finally {
+                    sendMutex.unlock();
                     if (output != null) {
                         try {
                             output.close();
@@ -96,7 +155,7 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
             try {
                 Thread.sleep(PIPE_ERROR_WAIT_TIME);
             } catch (InterruptedException e) {
-                LOGGER.debug("Pipe error wait time.");
+                LOGGER.debug("Pipe error wait time for message " + command + " on pipe " + this.getPipesLocation());
                 // No need to catch such exceptions
             }
 
@@ -110,80 +169,176 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
     }
 
     @Override
-    public PipeCommand readCommand() {
+    public PipeCommand readCommand() throws ClosedPipeException, ExternalExecutorException {
         PipeCommand readCommand = null;
-        String readPipe = pipePath + ".inbound";
-        try {
-            FileInputStream input = new FileInputStream(readPipe);// WARN: This call is blocking for
-            // NamedPipes
-
-            String line = null;
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(input))) {
-                line = reader.readLine();
+        synchronized (this) {
+            if (closed) {
+                throw new ClosedPipeException();
             }
-            if (line != null) {
-                String[] result = line.split(" ");
-
-                // Skip if line is not well formed
-                if (result.length < 1) {
-                    LOGGER.warn("Skipping line: " + line);
-                    return null;
-                }
-                // Process the received tag
-                ExternalCommand.CommandType commandType = ExternalCommand.CommandType.valueOf(result[0].toUpperCase());
-                switch (commandType) {
-                    case PONG:
-                        readCommand = new PongPipeCommand();
-                        break;
-                    case QUIT:
-                        // This quit is received from our proper shutdown, not from bindings. We just end
-                        LOGGER.debug("Received quit message");
-                        break;
-                    case END_TASK:
-                        LOGGER.debug("Received endTask message: " + line);
-                        if (result.length < 3) {
-                            LOGGER.warn("WARN: Skipping endTask line because is malformed");
-                            break;
-                        }
-                        // Line of the form: "endTask" ID STATUS D paramType1 paramValue1 ... paramTypeD paramValueD
-                        readCommand = new EndTaskPipeCommand(result);
-                        break;
-                    case ERROR_TASK:
-                        LOGGER.debug("Received errorTask message: " + line);
-                        // We have received a fatal error from bindings, we notify error to every waiter and end
-                        readCommand = new ErrorTaskPipeCommand(result);
-                        break;
-                    case PING:
-                    case EXECUTE_TASK:
-                    case REMOVE:
-                    case SERIALIZE:
-                    // Should not receive any of these tags
-                    default:
-                        LOGGER.warn("Unrecognised tag on PipedMirror: " + result[0] + ". Skipping message");
-                        break;
-                }
-            }
-        } catch (FileNotFoundException fnfe) {
-            // This exception is only handled at the beginning of the execution
-            // when the pipe is not created yet. Only display on debug
-            LOGGER.debug(ERROR_PIPE_NOT_FOUND + " " + pipePath + ".inbound");
-        } catch (IOException ioe) {
-            LOGGER.error(ERROR_PIPE_NOT_READ);
+            readers++;
         }
+        if (reader == null) {
+            try {
+                String readPipe = getInboundPipe();
+                FileInputStream input = new FileInputStream(readPipe);// WARN: This call is blocking for NamedPipes
+                reader = new BufferedReader(new InputStreamReader(input));
+            } catch (FileNotFoundException fnfe) {
+                throw new ExternalExecutorException(fnfe);
+            }
+        }
+        synchronized (this) {
+            readers--;
+        }
+
+        try {
+            String line = null;
+            while (line == null || line.length() == 0) {
+                if (closed) {
+                    throw new ClosedPipeException();
+                }
+                line = reader.readLine();
+                if (line == null) {
+                    try {
+                        Thread.sleep(PIPE_READ_COMMAND_PERIOD);
+                    } catch (InterruptedException ie) {
+                        //Do nothing
+                    }
+                }
+            }
+            LOGGER.debug(Thread.currentThread().getName() + " READS -" + line + "-(" + line.length() + ")");
+            readCommand = readCommand(line, line.split(" "));
+
+        } catch (IOException ioe) {
+            throw new ExternalExecutorException(ioe);
+        }
+
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("EXECUTOR COMMAND: " + readCommand + " @ " + readPipe);
+            LOGGER.debug("EXECUTOR COMMAND: " + readCommand + " @ " + getInboundPipe());
         }
         return readCommand;
     }
 
-    public void close() {
-        // Send quit tag to pipe
-        String writePipe = pipePath + ".outbound";
-        if (new File(writePipe).exists()) {
-            boolean done = this.sendCommand(new QuitPipeCommand());
-            if (!done) {
-                ErrorManager.error(ERROR_PIPE_QUIT + writePipe);
+    private PipeCommand readCommand(String cmd, String[] command) throws ClosedPipeException, UnknownCommandException {
+        PipeCommand readCommand = null;
+        String commandTypeTag = command[0].toUpperCase();
+        if (commandTypeTag.compareTo(CLOSED_PIPE_ERROR) == 0) {
+            throw new ClosedPipeException();
+        }
+        // Process the received tag
+        ExternalCommand.CommandType commandType = ExternalCommand.CommandType.valueOf(commandTypeTag);
+        switch (commandType) {
+            case PONG:
+                readCommand = new PongPipeCommand();
+                break;
+            case WORKER_STARTED:
+                readCommand = new WorkerStartedPipeCommand(command);
+                break;
+            case ALIVE_REPLY:
+                readCommand = new AliveReplyPipeCommand(command);
+                break;
+            case CHANNEL_CREATED:
+                readCommand = new ChannelCreatedPipeCommand(command);
+                break;
+            case REPLY_EXECUTOR_ID:
+                readCommand = new ExecutorPIDReplyPipeCommand(command);
+                break;
+
+            case ADDED_EXECUTOR:
+                readCommand = new AddedExecutorPipeCommand(command);
+                break;
+            case REMOVED_EXECUTOR:
+                readCommand = new RemovedExecutorPipeCommand(command);
+                break;
+            case QUIT:
+                // This quit is received from our proper shutdown, not from bindings. We just end
+                LOGGER.debug("Received quit message");
+                readCommand = new QuitPipeCommand();
+                break;
+            case END_TASK:
+                if (command.length < 3) {
+                    LOGGER.warn("WARN: Skipping endTask line because is malformed");
+                    break;
+                }
+                // Line of the form: "endTask" ID STATUS D paramType1 paramValue1 ... paramTypeD paramValueD
+                readCommand = new EndTaskPipeCommand(command);
+                LOGGER.debug("Received endTask message: " + readCommand.getAsString());
+                break;
+            case ERROR:
+                String[] expected = Arrays.copyOfRange(command, 1, command.length);
+                PipeCommand expectedCommand = readCommand(cmd, expected);
+                readCommand = new ErrorPipeCommand(expectedCommand);
+                break;
+            case PING:
+            case EXECUTE_TASK:
+            case REMOVE:
+            case SERIALIZE:
+
+            // Should not receive any of these tags
+            default:
+                throw new UnknownCommandException(cmd);
+        }
+        return readCommand;
+    }
+
+    public void noLongerExists() {
+        int senders;
+        int readers;
+        synchronized (this) {
+            closed = true;
+            senders = this.senders;
+            readers = this.readers;
+        }
+        String readPipe = pipePath + ".outbound";
+        while (senders > 0) {
+            try {
+                FileInputStream input = new FileInputStream(readPipe);
+                input.read();
+            } catch (FileNotFoundException ex) {
+                ErrorManager.fatal(WRITE_PIPE_CLOSING_NOT_EXISTS);
+            } catch (IOException ioe) {
+            }
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException ie) {
+            }
+            synchronized (this) {
+                senders = this.senders;
+            }
+        }
+
+        String writePipe = pipePath + ".inbound";
+        if (readers > 0) {
+            FileOutputStream fos = null;
+            File pipe = new File(writePipe);
+            if (!pipe.exists()) {
+                ErrorManager.fatal(READ_PIPE_CLOSING_NOT_EXISTS);
+            } else {
+                try {
+                    String message = CLOSED_PIPE_ERROR + "\n";
+                    fos = new FileOutputStream(writePipe);
+                    fos.write(message.getBytes());
+                    fos.flush();
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                } finally {
+                    if (fos != null) {
+                        try {
+                            fos.close();
+                        } catch (Exception e) {
+                            ErrorManager.error(ERROR_PIPE_CLOSE + writePipe, e);
+                        }
+                    }
+                }
+            }
+        }
+        if (reader != null) {
+            try {
+                reader.close();
+                reader = null;
+            } catch (IOException ioe) {
+                //Already closed. Do nothing
             }
         }
     }
+
 }

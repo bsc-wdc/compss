@@ -16,10 +16,28 @@
  */
 package es.bsc.compss.executor.external.piped.commands;
 
-import es.bsc.compss.executor.external.commands.PingExternalCommand;
+import es.bsc.compss.executor.external.commands.AliveGetExternalCommand;
+import es.bsc.compss.executor.external.piped.PipeElementInfo;
+import java.util.List;
 
 
-public class PingPipeCommand extends PingExternalCommand implements PipeCommand {
+public class AliveGetPipeCommand extends AliveGetExternalCommand implements PipeCommand {
+
+    private final List<PipeElementInfo> elements;
+
+    public AliveGetPipeCommand(List<PipeElementInfo> elements) {
+        this.elements = elements;
+    }
+
+    @Override
+    public String getAsString() {
+        StringBuilder sb = new StringBuilder(super.getAsString());
+        for (PipeElementInfo element : elements) {
+            sb.append(TOKEN_SEP).append(element.getPID());
+        }
+
+        return sb.toString();
+    }
 
     @Override
     public int compareTo(PipeCommand t) {
@@ -30,5 +48,4 @@ public class PingPipeCommand extends PingExternalCommand implements PipeCommand 
     public void join(PipeCommand receivedCommand) {
         //Do nothing
     }
-
 }

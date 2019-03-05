@@ -24,14 +24,18 @@ import es.bsc.compss.executor.ExecutorContext;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
+import es.bsc.compss.executor.external.piped.ControlPipePair;
 import es.bsc.compss.executor.external.piped.commands.ExecuteTaskPipeCommand;
 import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.invokers.util.CExecutionCommandGenerator;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.types.execution.LanguageParams;
 
 import java.io.File;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -69,20 +73,23 @@ public class CInvoker extends PipedInvoker {
         protected static final String BINDINGS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "bindings-common"
                 + File.separator + "lib";
 
-
         public CMirror(InvocationContext context, int size) {
             super(context, size);
             init(context);
         }
 
         @Override
-        public String getLaunchCommand(InvocationContext context) {
+        public String getPipeBuilderContext() {
+            StringBuilder cmd = new StringBuilder();
+            return cmd.toString();
+        }
+
+        @Override
+        public String getLaunchWorkerCommand(InvocationContext context, ControlPipePair pipe) {
             // Specific launch command is of the form: binding bindingExecutor bindingArgs
             StringBuilder cmd = new StringBuilder();
 
             String installDir = context.getInstallDir();
-
-            cmd.append(COMPSsConstants.Lang.C).append(TOKEN_SEP);
 
             cmd.append(installDir).append(PIPER_SCRIPT_RELATIVE_PATH).append(C_PIPER).append(TOKEN_SEP);
 
@@ -96,7 +103,8 @@ public class CInvoker extends PipedInvoker {
             for (int i = 0; i < size; ++i) {
                 cmd.append(computePipes).append(i).append(".inbound").append(TOKEN_SEP);
             }
-
+            cmd.append(pipe.getOutboundPipe()).append(TOKEN_SEP);
+            cmd.append(pipe.getInboundPipe());
             return cmd.toString();
         }
 
@@ -119,4 +127,5 @@ public class CInvoker extends PipedInvoker {
             return env;
         }
     }
+	
 }

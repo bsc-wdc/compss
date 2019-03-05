@@ -16,10 +16,26 @@
  */
 package es.bsc.compss.executor.external.piped.commands;
 
-import es.bsc.compss.executor.external.commands.PingExternalCommand;
+import es.bsc.compss.executor.external.commands.CreateChannelExternalCommand;
+import static es.bsc.compss.executor.external.commands.ExternalCommand.TOKEN_SEP;
+import es.bsc.compss.executor.external.piped.PipePair;
 
 
-public class PingPipeCommand extends PingExternalCommand implements PipeCommand {
+public class CreateChannelPipeCommand extends CreateChannelExternalCommand implements PipeCommand {
+
+    private final PipePair pipe;
+
+    public CreateChannelPipeCommand(PipePair pipe) {
+        this.pipe = pipe;
+    }
+
+    @Override
+    public String getAsString() {
+        StringBuilder sb = new StringBuilder(super.getAsString());
+        sb.append(TOKEN_SEP).append(pipe.getOutboundPipe());
+        sb.append(TOKEN_SEP).append(pipe.getInboundPipe());
+        return sb.toString();
+    }
 
     @Override
     public int compareTo(PipeCommand t) {

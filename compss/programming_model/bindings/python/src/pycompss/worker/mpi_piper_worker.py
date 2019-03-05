@@ -22,342 +22,31 @@ PyCOMPSs Persistent Worker
 ===========================
     This file contains the worker code.
 """
-
-import logging
-import os
 import signal
-import sys
-import copy
-import thread_affinity
-from pycompss.util.logs import init_logging_worker
 
+from pycompss.worker.pipe_constants import *
+from pycompss.worker.piper_executor import Pipe
+from pycompss.worker.piper_executor import ExecutorConf
+from pycompss.worker.piper_executor import executor
+from pycompss.worker.piper_worker import load_loggers
+from pycompss.worker.piper_worker import PiperWorkerConfiguration
 from mpi4py import MPI
 
+
+# Persistent worker global variables
 comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
 
-SYNC_EVENTS = 8000666
+PROCESSES = {} # IN_PIPE -> PROCESS ID
 
-# Should be equal to Tracer.java definitions (but only worker running all other are trace through
-# with function-list
-TASK_EVENTS = 60000100
-WORKER_RUNNING = 102
-
-# Persistent worker global variables
-TRACING = False
-
-#####################
-#  Tag variables
-#####################
-EXECUTE_TASK_TAG = "EXECUTE_TASK"  # -- "task" taskId jobOut jobErr task_params
-END_TASK_TAG = "END_TASK"  # -- "endTask" taskId endStatus
-ERROR_TASK_TAG = "ERROR_TASK"
-QUIT_TAG = "QUIT"  # -- "quit"
-REMOVE_TAG = "REMOVE"
-SERIALIZE_TAG = "SERIALIZE"
-
-
-######################
-#  Processes body
-######################
-def worker(process_name, input_pipe, output_pipe, storage_conf, logger, storage_loggers):
+def is_worker():
     """
-    Thread main body - Overrides Threading run method.
-    Iterates over the input pipe in order to receive tasks (with their
-    parameters) and process them.
-    Notifies the runtime when each task  has finished with the
-    corresponding output value.
-    Finishes when the "quit" message is received.
+    Returns whether the process should act as a worker
 
-    :param process_name: Process name (Thread-X, where X is the thread id).
-    :param input_pipe: Input pipe for the thread. To receive messages from the runtime.
-    :param output_pipe: Output pipe for the thread. To send messages to the runtime.
-    :param storage_conf: Storage configuration file
-    :param logger: Main logger
-    :param storage_loggers: List of supported storage loggers (empty if not running with storage).
-    :return: None
+    :return: the process should act as a worker
     """
-
-    # Get a copy of the necessary information from the logger to re-establish after each task
-    logger_handlers = copy.copy(logger.handlers)
-    logger_level = logger.getEffectiveLevel()
-    logger_formatter = logging.Formatter(logger_handlers[0].formatter._fmt)
-    storage_loggers_handlers = []
-    for storage_logger in storage_loggers:
-        storage_loggers_handlers.append(copy.copy(storage_logger.handlers))
-
-    if storage_conf != 'null':
-        try:
-            from storage.api import initWorkerPostFork as initStorageAtWorkerPostFork
-            initStorageAtWorkerPostFork()
-        except ImportError:
-            if __debug__:
-                logger.info(
-                    "[PYTHON WORKER] [%s] Could not find initWorkerPostFork storage call. Ignoring it." % str(
-                        process_name))
-
-    alive = True
-    stdout = sys.stdout
-    stderr = sys.stderr
-
-    if __debug__:
-        logger.debug("[PYTHON WORKER] [%s] Starting process" % str(process_name))
-
-    while alive:
-        in_pipe = open(input_pipe, 'r')  # , 0) # 0 just for python 2
-
-        affinity_ok = True
-
-        def process_task(current_line, pipe):
-            if __debug__:
-                logger.debug("[PYTHON WORKER] [%s] Received message: %s" % (
-                str(process_name), str(current_line)))
-            current_line = current_line.split()
-            pipe.close()
-            if current_line[0] == EXECUTE_TASK_TAG:
-                # CPU binding
-                binded_cpus = current_line[-3]
-
-                def bind_cpus(binded_cpus):
-                    if binded_cpus != "-":
-                        os.environ['COMPSS_BINDED_CPUS'] = binded_cpus
-                        if __debug__:
-                            logger.debug("[PYTHON WORKER] [%s] Assigning affinity %s" % (
-                            str(process_name), str(binded_cpus)))
-                        binded_cpus = list(map(int, binded_cpus.split(",")))
-                        try:
-                            thread_affinity.setaffinity(binded_cpus)
-                        except Exception:
-                            if __debug__:
-                                logger.error(
-                                    "[PYTHON WORKER] [%s] Warning: could not assign affinity %s" % (
-                                    str(process_name), str(binded_cpus)))
-                            affinity_ok = False
-
-                bind_cpus(binded_cpus)
-
-                # GPU binding
-                binded_gpus = current_line[-2]
-
-                def bind_gpus(current_binded_gpus):
-                    if current_binded_gpus != "-":
-                        os.environ['COMPSS_BINDED_GPUS'] = current_binded_gpus
-                        os.environ['CUDA_VISIBLE_DEVICES'] = current_binded_gpus
-                        os.environ['GPU_DEVICE_ORDINAL'] = current_binded_gpus
-                        if __debug__:
-                            logger.debug("[PYTHON WORKER] [%s] Assigning GPU %s" % (
-                            str(process_name), str(current_binded_gpus)))
-
-                bind_gpus(binded_gpus)
-
-                # Remove the last elements: cpu and gpu bindings
-                current_line = current_line[0:-3]
-
-                # task jobId command
-                job_id = current_line[1]
-                job_out = current_line[2]
-                job_err = current_line[3]
-                # current_line[4] = <boolean> = tracing
-                # current_line[5] = <integer> = task id
-                # current_line[6] = <boolean> = debug
-                # current_line[7] = <string>  = storage conf.
-                # current_line[8] = <string>  = operation type (e.g. METHOD)
-                # current_line[9] = <string>  = module
-                # current_line[10]= <string>  = method
-                # current_line[11]= <integer> = Number of slaves (worker nodes) == #nodes
-                # <<list of slave nodes>>
-                # current_line[11 + #nodes] = <integer> = computing units
-                # current_line[12 + #nodes] = <boolean> = has target
-                # current_line[13 + #nodes] = <string>  = has return (always 'null')
-                # current_line[14 + #nodes] = <integer> = Number of parameters
-                # <<list of parameters>>
-                #       !---> type, stream, prefix , value
-
-                if __debug__:
-                    logger.debug("[PYTHON WORKER] [%s] Received task with id: %s" % (
-                    str(process_name), str(job_id)))
-                    logger.debug("[PYTHON WORKER] [%s] - TASK CMD: %s" % (
-                    str(process_name), str(current_line)))
-
-                # Swap logger from stream handler to file handler - All task output will be redirected to job.out/err
-                for log_handler in logger_handlers:
-                    logger.removeHandler(log_handler)
-                for storage_logger in storage_loggers:
-                    for log_handler in storage_logger.handlers:
-                        storage_logger.removeHandler(log_handler)
-                out_file_handler = logging.FileHandler(job_out)
-                out_file_handler.setLevel(logger_level)
-                out_file_handler.setFormatter(logger_formatter)
-                err_file_handler = logging.FileHandler(job_err)
-                err_file_handler.setLevel("ERROR")
-                err_file_handler.setFormatter(logger_formatter)
-                logger.addHandler(out_file_handler)
-                logger.addHandler(err_file_handler)
-                for storage_logger in storage_loggers:
-                    storage_logger.addHandler(out_file_handler)
-                    storage_logger.addHandler(err_file_handler)
-
-                if __debug__:
-                    logger.debug("Received task in process: %s" % str(process_name))
-                    logger.debug(" - TASK CMD: %s" % str(current_line))
-
-                try:
-                    # Setup out/err wrappers
-                    out = open(job_out, 'a')
-                    err = open(job_err, 'a')
-                    sys.stdout = out
-                    sys.stderr = err
-
-                    # Check thread affinity
-                    if not affinity_ok:
-                        err.write(
-                            "WARNING: This task is going to be executed with default thread affinity %s" % thread_affinity.getaffinity())
-
-                    # Setup process environment
-                    cn = int(current_line[11])
-                    cn_names = ','.join(current_line[12:12 + cn])
-                    cu = current_line[12 + cn]
-                    os.environ["COMPSS_NUM_NODES"] = str(cn)
-                    os.environ["COMPSS_HOSTNAMES"] = cn_names
-                    os.environ["COMPSS_NUM_THREADS"] = cu
-                    os.environ["OMP_NUM_THREADS"] = cu
-                    if __debug__:
-                        logger.debug("Process environment:")
-                        logger.debug("\t - Number of nodes: %s" % (str(cn)))
-                        logger.debug("\t - Hostnames: %s" % str(cn_names))
-                        logger.debug("\t - Number of threads: %s" % (str(cu)))
-
-                    # Execute task
-                    from pycompss.worker.worker_commons import execute_task
-                    exit_value, new_types, new_values = execute_task(process_name, storage_conf,
-                                                                     current_line[9:],
-                                                                     TRACING, logger)
-
-                    # Restore out/err wrappers
-                    sys.stdout = stdout
-                    sys.stderr = stderr
-                    sys.stdout.flush()
-                    sys.stderr.flush()
-                    out.close()
-                    err.close()
-
-                    if exit_value == 0:
-                        # Task has finished without exceptions
-                        # endTask jobId exitValue message
-                        params = build_return_params_message(new_types, new_values)
-                        message = END_TASK_TAG + " " + str(job_id) \
-                                  + " " + str(exit_value) \
-                                  + " " + str(params) + "\n"
-                    else:
-                        # An exception has been raised in task
-                        message = END_TASK_TAG + " " + str(job_id) + " " + str(exit_value) + "\n"
-
-                    if __debug__:
-                        logger.debug("%s - Pipe %s END TASK MESSAGE: %s" % (str(process_name),
-                                                                            str(output_pipe),
-                                                                            str(message)))
-                    # The return message is:
-                    #
-                    # TaskResult ==> jobId exitValue D List<Object>
-                    #
-                    # Where List<Object> has D * 2 length:
-                    # D = #parameters == #task_parameters + (has_target ? 1 : 0) + #returns
-                    # And contains a pair of elements per parameter:
-                    #     - Parameter new type.
-                    #     - Parameter new value:
-                    #         - 'null' if it is NOT a PSCO
-                    #         - PSCOId (String) if is a PSCO
-                    # Example:
-                    #     4 null 9 null 12 <pscoid>
-                    #
-                    # The order of the elements is: parameters + self + returns
-                    #
-                    # This is sent through the pipe with the END_TASK message.
-                    # If the task had an object or file as parameter and the worker returns the id,
-                    # the runtime can change the type (and locations) to a EXTERNAL_OBJ_T.
-
-                    with open(output_pipe, 'w') as out_pipe:
-                        out_pipe.write(message)
-                except Exception as e:
-                    logger.exception("%s - Exception %s" % (str(process_name), str(e)))
-
-                # Clean environment variables
-                if __debug__:
-                    logger.debug("Cleaning environment.")
-                if binded_cpus != "-":
-                    del os.environ['COMPSS_BINDED_CPUS']
-                if binded_gpus != "-":
-                    del os.environ['COMPSS_BINDED_GPUS']
-                    del os.environ['CUDA_VISIBLE_DEVICES']
-                    del os.environ['GPU_DEVICE_ORDINAL']
-                del os.environ['COMPSS_HOSTNAMES']
-
-                # Restore loggers
-                if __debug__:
-                    logger.debug("Restoring loggers.")
-                logger.removeHandler(out_file_handler)
-                logger.removeHandler(err_file_handler)
-                for handler in logger_handlers:
-                    logger.addHandler(handler)
-                i = 0
-                for storage_logger in storage_loggers:
-                    storage_logger.removeHandler(out_file_handler)
-                    storage_logger.removeHandler(err_file_handler)
-                    for handler in storage_loggers_handlers[i]:
-                        storage_logger.addHandler(handler)
-                    i += 1
-                if __debug__:
-                    logger.debug("[PYTHON WORKER] [%s] Finished task with id: %s" % (
-                    str(process_name), str(job_id)))
-
-            elif current_line[0] == QUIT_TAG:
-                # Received quit message -> Suicide
-                if __debug__:
-                    logger.debug("[PYTHON WORKER] [%s] Received quit." % str(process_name))
-                return False
-            return True
-
-        for line in in_pipe:
-            if line != "":
-                alive = process_task(line, in_pipe)
-                break
-
-    if storage_conf != 'null':
-        try:
-            from storage.api import finishWorkerPostFork as finishStorageAtWorkerPostFork
-            finishStorageAtWorkerPostFork()
-        except ImportError:
-            if __debug__:
-                logger.info(
-                    "[PYTHON WORKER] [%s] Could not find finishWorkerPostFork storage call. Ignoring it." % (
-                    str(process_name)))
-
-    sys.stdout.flush()
-    sys.stderr.flush()
-    if __debug__:
-        logger.debug("[PYTHON WORKER] [%s] Exiting process " % str(process_name))
-
-
-def build_return_params_message(types, values):
-    """
-    Build the return message with the parameters output.
-
-    :param types: List of the parameter's types
-    :param values: List of the parameter's values
-    :return: Message as string
-    """
-
-    assert len(types) == len(
-        values), 'Inconsistent state: return type-value length mismatch for return message.'
-    pairs = list(zip(types, values))
-    num_params = len(pairs)
-    params = ''
-    for p in pairs:
-        params = params + str(p[0]) + ' ' + str(p[1]) + ' '
-    message = str(num_params) + ' ' + params
-    return message
-
+    return rank == 0
 
 def shutdown_handler(signal, frame):
     """
@@ -367,115 +56,146 @@ def shutdown_handler(signal, frame):
     :param frame: Frame
     :return: None
     """
-
-    print("[PYTHON WORKER %s] Shutdown signal handler" % rank)
+    if is_worker():
+        print("[PYTHON WORKER] Shutdown signal handler")
+    else:
+        print("[PYTHON EXECUTOR %s] Shutdown signal handler" % rank)
 
 
 ######################
 # Main method
 ######################
-
-
-def compss_persistent_worker():
+def compss_persistent_worker(config):
     """
     Persistent worker main function.
     Retrieves the initial configuration and spawns the worker processes.
 
+    :param config: Piper Worker Configuration description
     :return: None
     """
+    import os
+    pids = comm.gather(str(os.getpid()), root=0)
+
+    # Catch SIGTERM sent by bindings_piper
+    signal.signal(signal.SIGTERM, shutdown_handler)
+
 
     # Set the binding in worker mode
     import pycompss.util.context as context
     context.set_pycompss_context(context.WORKER)
 
-    # Get args
-    debug = (sys.argv[1] == 'true')
-    global TRACING
-    TRACING = (sys.argv[2] == 'true')
-    storage_conf = sys.argv[3]
-    tasks_x_node = int(sys.argv[4])
-    in_pipes = sys.argv[5:5 + tasks_x_node]
-    out_pipes = sys.argv[5 + tasks_x_node:]
-
-    if rank == 0 and TRACING:
+    if TRACING:
         import pyextrae.mpi as pyextrae
         pyextrae.eventandcounters(SYNC_EVENTS, 1)
-        # pyextrae.eventandcounters(TASK_EVENTS, WORKER_RUNNING)
+        pyextrae.eventandcounters(TASK_EVENTS, WORKER_RUNNING_EVENT)
 
-    if debug:
-        assert tasks_x_node == len(in_pipes)
-        assert tasks_x_node == len(out_pipes)
+    persistent_storage = (config.storage_conf != 'null')
 
-    persistent_storage = False
-    if storage_conf != 'null':
-        persistent_storage = True
-        from storage.api import initWorker as initStorageAtWorker
-        from storage.api import finishWorker as finishStorageAtWorker
-
-    # Load log level configuration file
-    worker_path = os.path.dirname(os.path.realpath(__file__))
-    if debug:
-        # Debug
-        init_logging_worker(worker_path + '/../../log/logging_debug.json')
-    else:
-        # Default
-        init_logging_worker(worker_path + '/../../log/logging_off.json')
-
-    # Define logger facilities
-    logger = logging.getLogger('pycompss.worker.piper_worker')
-    storage_loggers = []
-    if persistent_storage:
-        storage_loggers.append(logging.getLogger('dataclay'))
-        storage_loggers.append(logging.getLogger('hecuba'))
-        storage_loggers.append(logging.getLogger('redis'))
-        storage_loggers.append(logging.getLogger('storage'))
+    logger, storage_loggers = load_loggers(config.debug, persistent_storage)
 
     if __debug__:
         logger.debug("[PYTHON WORKER] piper_worker.py wake up")
-        logger.debug("[PYTHON WORKER] -----------------------------")
-        logger.debug("[PYTHON WORKER] Persistent worker parameters:")
-        logger.debug("[PYTHON WORKER] -----------------------------")
-        logger.debug("[PYTHON WORKER] Debug          : " + str(debug))
-        logger.debug("[PYTHON WORKER] Tracing        : " + str(TRACING))
-        logger.debug("[PYTHON WORKER] Tasks per node : " + str(tasks_x_node))
-        logger.debug("[PYTHON WORKER] In Pipes       : " + str(in_pipes))
-        logger.debug("[PYTHON WORKER] Out Pipes      : " + str(out_pipes))
-        logger.debug("[PYTHON WORKER] Storage conf.  : " + str(storage_conf))
-        logger.debug("[PYTHON WORKER] -----------------------------")
+        config.print_on_logger(logger)
 
     if persistent_storage:
         # Initialize storage
-        initStorageAtWorker(config_file_path=storage_conf)
+        from storage.api import initWorker as initStorageAtWorker
+        initStorageAtWorker(config_file_path=config.storage_conf)
 
-    process_name = 'Rank-' + str(rank)
+    for i in range(0, config.tasks_x_node):
+        child_in_pipe = config.pipes[i].input_pipe
+        child_pid = pids[i+1]
+        PROCESSES[child_in_pipe] = child_pid
+
+    # Read command from control pipe
+    alive = True
+    control_pipe = config.control_pipe
+    while alive:
+        command = control_pipe.read_command()
+        if command != "":
+            line = command.split()
+            if line[0] == REMOVE_EXECUTOR_TAG:
+                in_pipe = line[1]
+                out_pipe = line[2]
+
+                pid = PROCESSES.pop(in_pipe, None)
+                control_pipe.write(REMOVED_EXECUTOR_TAG +" "+out_pipe+" "+in_pipe)
+
+            elif line[0] == QUERY_EXECUTOR_ID_TAG:
+                in_pipe = line[1]
+                out_pipe = line[2]
+                pid = PROCESSES.get(in_pipe)
+                control_pipe.write(REPLY_EXECUTOR_ID_TAG+" "+out_pipe+" "+in_pipe+" "+str(pid))
+
+            elif line[0] == PING_TAG:
+                control_pipe.write(PONG_TAG)
+
+            elif line[0] == QUIT_TAG:
+                alive = False
+            else:
+                logger.debug("UNKNOWN COMMAND "+ command)
+
+    if persistent_storage:
+        # Finish storage
+        from storage.api import finishWorker as finishStorageAtWorker
+        finishStorageAtWorker()
+
+    if __debug__:
+        logger.debug("[PYTHON WORKER] Finished")
+
+    if TRACING:
+        pyextrae.eventandcounters(TASK_EVENTS, 0)
+        pyextrae.eventandcounters(SYNC_EVENTS, 0)
+
+    control_pipe.write(QUIT_TAG)
+    control_pipe.close()
 
 
-    # Catch SIGTERM send by bindings_piper so that each process exits
+def compss_persistent_executor(config):
+    """
+    Persistent worker main function.
+    Retrieves the initial configuration and spawns the worker processes.
+
+    :param config: Piper Worker Configuration description
+    :return: None
+    """
+    import os
+    comm.gather(str(os.getpid()), root=0)
+
+    # Catch SIGTERM sent by bindings_piper
     signal.signal(signal.SIGTERM, shutdown_handler)
 
-    worker(process_name, in_pipes[rank],
-           out_pipes[rank],
-           storage_conf,
-           logger,
-           storage_loggers)
+    # Set the binding in worker mode
+    import pycompss.util.context as context
+    context.set_pycompss_context(context.WORKER)
 
+    persistent_storage = (config.storage_conf != 'null')
 
-    if rank == 0:
+    logger, storage_loggers = load_loggers(config.debug, persistent_storage)
 
-        if persistent_storage:
-        # Finish storage
-            finishStorageAtWorker()
+    if persistent_storage:
+        # Initialize storage
+        from storage.api import initWorker as initStorageAtWorker
+        initStorageAtWorker(config_file_path=config.storage_conf)
 
-        if __debug__:
-            logger.debug("[PYTHON WORKER] Finished")
+    process_name = 'Rank-' + str(rank)
+    conf = ExecutorConf(TRACING, config.storage_conf, logger, storage_loggers)
+    executor(None, process_name, config.pipes[rank-1], conf)
 
-        if TRACING:
-            #pyextrae.eventandcounters(TASK_EVENTS, 0)
-            pyextrae.eventandcounters(SYNC_EVENTS, 0)
-
-    ############################
-    # Main -> Calls main method
-    ############################
+############################
+# Main -> Calls main method
+############################
 
 if __name__ == '__main__':
-    compss_persistent_worker()
+    import sys
+    # Get args
+    global TRACING
+    TRACING = (sys.argv[2] == 'true')
+    WORKER_CONF = PiperWorkerConfiguration()
+    WORKER_CONF.update_params(sys.argv)
+
+    if is_worker():
+        compss_persistent_worker(WORKER_CONF)
+    else:
+        compss_persistent_executor(WORKER_CONF)
+

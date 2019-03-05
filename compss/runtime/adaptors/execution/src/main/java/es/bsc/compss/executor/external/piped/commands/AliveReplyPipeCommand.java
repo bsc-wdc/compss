@@ -16,10 +16,24 @@
  */
 package es.bsc.compss.executor.external.piped.commands;
 
-import es.bsc.compss.executor.external.commands.PingExternalCommand;
+import es.bsc.compss.executor.external.commands.AliveReplyExternalCommand;
+import java.util.LinkedList;
+import java.util.List;
 
 
-public class PingPipeCommand extends PingExternalCommand implements PipeCommand {
+public class AliveReplyPipeCommand extends AliveReplyExternalCommand implements PipeCommand {
+        
+    private final List<Integer> pids = new LinkedList<>();
+
+    public AliveReplyPipeCommand(String[] command) {
+        for (int i = 1; i < command.length; i++) {
+            pids.add(Integer.parseInt(command[i]));
+        }
+    }
+
+    public AliveReplyPipeCommand() {
+
+    }
 
     @Override
     public int compareTo(PipeCommand t) {
@@ -28,7 +42,11 @@ public class PingPipeCommand extends PingExternalCommand implements PipeCommand 
 
     @Override
     public void join(PipeCommand receivedCommand) {
-        //Do nothing
+        pids.addAll(((AliveReplyPipeCommand) receivedCommand).pids);
+    }
+
+    public List<Integer> getAliveProcesses() {
+        return pids;
     }
 
 }

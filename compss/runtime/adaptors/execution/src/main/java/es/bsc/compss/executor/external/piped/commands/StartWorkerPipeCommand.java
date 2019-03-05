@@ -16,42 +16,45 @@
  */
 package es.bsc.compss.executor.external.piped.commands;
 
-import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
+import es.bsc.compss.executor.external.commands.StartWorkerExternalCommand;
+import es.bsc.compss.executor.external.piped.ControlPipePair;
 
 
-public class ExecuteTaskPipeCommand extends ExecuteTaskExternalCommand implements PipeCommand {
+/**
+ *
+ * @author flordan
+ */
+public class StartWorkerPipeCommand extends StartWorkerExternalCommand implements PipeCommand {
 
-    private final Integer jobId;
+    private final ControlPipePair pipe;
+    private final String launchWorkerCommand;
 
-    public ExecuteTaskPipeCommand(Integer jobId) {
-        super();
-
-        this.jobId = jobId;
+    public StartWorkerPipeCommand(String launchWorkerCommand, ControlPipePair pipe) {
+        this.pipe = pipe;
+        this.launchWorkerCommand = launchWorkerCommand;
     }
 
     @Override
     public String getAsString() {
-        StringBuilder sb = new StringBuilder(CommandType.EXECUTE_TASK.name());
+        StringBuilder sb = new StringBuilder(super.getAsString());
         sb.append(TOKEN_SEP);
-        sb.append(String.valueOf(this.jobId));
-        for (String c : this.arguments) {
-            sb.append(TOKEN_SEP);
-            sb.append(c);
-        }
+        sb.append(pipe.getOutboundPipe()).append(TOKEN_SEP);
+        sb.append(pipe.getInboundPipe()).append(TOKEN_SEP);
+        sb.append(launchWorkerCommand);
         return sb.toString();
     }
 
     @Override
     public int compareTo(PipeCommand t) {
         int value = Integer.compare(this.getType().ordinal(), t.getType().ordinal());
-        if (value != 0) {
-            value = Integer.compare(this.jobId, ((ExecuteTaskPipeCommand) t).jobId);
+        if (value == 0) {
+            value = pipe.getInboundPipe().compareTo(((StartWorkerPipeCommand) t).pipe.getInboundPipe());
         }
         return value;
     }
 
     @Override
     public void join(PipeCommand receivedCommand) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        //Do nothing
     }
 }

@@ -71,6 +71,9 @@ public class ObjectRegistry {
         Object objStored = this.appTaskObjects.get(objHashCode);
         while (objStored != obj) {
             if (objStored == null || objStored == EMPTY) {
+                if (DEBUG) {
+                    LOGGER.debug("Adding " + obj + " with hash code " + objHashCode + " to object registery");
+                }
                 this.appTaskObjects.put(objHashCode, obj);
                 // Store it as an internal one too. Read-only objects will always use this same instance
                 this.internalObjects.put(objHashCode, obj);
@@ -90,21 +93,28 @@ public class ObjectRegistry {
         newObjectAccess(o, true);
     }
 
-    public void newObjectAccess(Object o, boolean isWriter) {
-        if (o == null) {
-            return;
-        }
-
+    private Integer getObjectHashCode(Object o){
         int hashCode = o.hashCode();
-
         Object oStored = this.appTaskObjects.get(hashCode);
         while (oStored != o) {
             if (oStored == null) {
-                return; // Not a task parameter object
+                return null; // Not a task parameter object
             } else {
                 oStored = this.appTaskObjects.get(++hashCode);
             }
         }
+        return hashCode;
+    }
+    
+    public void newObjectAccess(Object o, boolean isWriter) {
+        if (o == null) {
+            return;
+        }
+        Integer hashCode = getObjectHashCode(o);
+        if (hashCode == null){
+             return; // Not a task parameter object
+        }
+        
         /*
          * The object has been accessed by a task before. Check with the API that the application has the last version,
          * blocking if necessary.
@@ -124,15 +134,10 @@ public class ObjectRegistry {
         if (o == null) {
             return;
         }
-
-        int hashCode = o.hashCode();
-        Object oStored = this.appTaskObjects.get(hashCode);
-        while (oStored != o) {
-            if (oStored == null) {
-                return; // Not a task parameter object
-            } else {
-                oStored = this.appTaskObjects.get(++hashCode);
-            }
+        
+        Integer hashCode = getObjectHashCode(o);
+        if (hashCode == null){
+             return; // Not a task parameter object
         }
 
         /*
@@ -150,17 +155,11 @@ public class ObjectRegistry {
         if (o == null) {
             return null;
         }
-
-        int hashCode = o.hashCode();
-        Object oStored = this.appTaskObjects.get(hashCode);
-        while (oStored != o) {
-            if (oStored == null) {
-                return null; // Not a task parameter object
-            } else {
-                oStored = this.appTaskObjects.get(++hashCode);
-            }
+        Integer hashCode = getObjectHashCode(o);
+        if (hashCode == null){
+             return null; // Not a task parameter object
         }
-
+        
         Object internal = this.internalObjects.get(hashCode);
 
         /*
@@ -175,19 +174,13 @@ public class ObjectRegistry {
     public boolean delete(Object o) {
     	if (o == null) 
             return false;
+    	 Integer hashCode = getObjectHashCode(o);
+         if (hashCode == null){
+              return false; // Not a task parameter object
+         }
         
-        int hashCode = o.hashCode();
-        Object oStored = this.appTaskObjects.get(hashCode);
-        
-        while (oStored != o) {
-            if (oStored == null) 
-                return false;
-            else 
-                oStored = this.appTaskObjects.get(++hashCode);
-        }
-
         if (DEBUG) 
-            LOGGER.debug("About to serialize locally object with hash code " + hashCode);
+            LOGGER.debug("About to remove object with hash code " + hashCode + " from object registry.");
 
         this.itApi.removeObject(o, hashCode);
         
@@ -196,27 +189,20 @@ public class ObjectRegistry {
     
     public boolean deleteFromInternal(int hashcode) {
     	
-    	Object to_delete = this.internalObjects.get(hashcode);
-    	
+    	Object to_delete = this.internalObjects.get(hashcode);    	
     	if (to_delete != null) {
     		this.internalObjects.remove(hashcode);
-    	
-    		return true;
+       		return true;
     	}
-    	
     	return false;
     }
     
     public boolean deleteFromApps(int hashcode) {
-
     	Object to_delete = this.appTaskObjects.get(hashcode);
-    	
     	if (to_delete != null) {
     		this.appTaskObjects.put(hashcode, EMPTY);
-    	
     		return true;
     	}	
-    	
     	return false;
     }
 

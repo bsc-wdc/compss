@@ -36,6 +36,7 @@ import java.io.RandomAccessFile;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
@@ -81,6 +82,8 @@ public class StreamRegistry {
         this.fileToStreams = new TreeMap<>();
         this.taskFiles = new HashSet<String>();
         this.onWindows = (File.separatorChar == '\\');
+        
+        this.itApi.setStreamRegistry(this);
     }
 
     // FileInputStream
@@ -281,7 +284,7 @@ public class StreamRegistry {
     public FileWriter newFileWriter(File file, boolean append) throws IOException {
         Direction direction = append ? Direction.INOUT : Direction.OUT;
         StreamList list = obtainList(file, direction);
-
+        
         FileWriter fw = new FileWriter(list.getRenaming(), append);
         list.addStream(fw);
 
@@ -472,6 +475,36 @@ public class StreamRegistry {
 
         return pw;
     }
+    
+    public File newCOMPSsFile(String filename){
+        File f = new File(filename);
+        return checkAndGetNewFile(f);
+    }
+    
+    public File newCOMPSsFile(String parent, String child){
+        File f = new File(parent, child);
+        return checkAndGetNewFile(f);
+    }
+    
+    public File newCOMPSsFile(File parent, String child){
+        File f = new File(parent, child);
+        return checkAndGetNewFile(f);
+    }
+    
+    public File newCOMPSsFile(URI uri){
+        File f = new File(uri);
+        return checkAndGetNewFile(f);
+    }
+    
+    private File checkAndGetNewFile(File f){
+        if (taskFiles.contains(f.getAbsolutePath())) {
+            return new COMPSsFile(itApi, f);
+        }else{
+            return f;
+        }
+    }
+    
+    
 
     // Returns the list of streams to which the newly created stream belongs (creating it if necessary)
     private StreamList obtainList(File file, Direction direction) {
@@ -522,11 +555,19 @@ public class StreamRegistry {
             // Create the list of streams
             list = new StreamList(renaming, direction);
             fileToStreams.put(path, list);
+        }else{
+            if (direction != Direction.IN || list.written){
+                ErrorManager.error("ERROR: File " + path + " is going to be accessed more than once and one of these accesses is for writting. This can produce and inconsistency");
+            }
         }
 
         // Set the written attribute of the list if the new stream writes the file
         if (direction != Direction.IN) {
             list.setWritten(true);
+        }
+        
+        if (direction == Direction.INOUT){
+            list.setAppend(true);
         }
 
         if (DEBUG) {
@@ -593,9 +634,9 @@ public class StreamRegistry {
                 if (DEBUG) {
                     LOGGER.debug("Found closed stream of " + stream.getClass());
                 }
-
+                String filePath = e.getKey();    
                 // Check if it was the last stream to be closed
-                if (list.isEmpty()) {
+                
                     /*
                      * If the stream list began with a input stream and it had at least one output stream, we must
                      * obtain the renaming from the Integrated Toolkit for the new version generated, and rename and
@@ -606,19 +647,14 @@ public class StreamRegistry {
                         LOGGER.debug("Empty stream list");
                     }
 
-                    if (list.isFirstStreamInput() && list.getWritten()) {
-                        String filePath = e.getKey();
-                        String oldRen = list.getRenaming();
-                        String newRen = itApi.openFile(filePath, Direction.OUT);
-                        File f = new File(oldRen);
-                        if (!f.renameTo(new File(newRen))) {
-                            LOGGER.error("Error on file renaming to " + newRen);
-                        }
-
-                        if (DEBUG) {
-                            LOGGER.debug("Renamed and moved file from " + oldRen + " to " + newRen);
-                        }
+                    if (list.isFirstStreamInput() && list.getWritten() && list.getAppend()) {
+                        itApi.closeFile(filePath, Direction.INOUT);
+                    }else if (list.isFirstStreamInput() && list.getWritten() && !list.getAppend()){    
+                        itApi.closeFile(filePath, Direction.OUT);
+                    }else if (list.isFirstStreamInput() && !list.getWritten()){
+                        itApi.closeFile(filePath, Direction.IN);
                     }
+                if (list.isEmpty()) {
                     entryIt.remove();
                 }
                 break;
@@ -640,8 +676,19 @@ public class StreamRegistry {
     }
 
     public void addTaskFile(String fileName) {
+        if (DEBUG){
+            LOGGER.debug("Adding File to the Stream Registry");
+        }
         File f = new File(fileName);
         taskFiles.add(f.getAbsolutePath());
+    }
+    
+    public void deleteTaskFile(String fileName) {
+        if (DEBUG){
+            LOGGER.debug("Adding File to the Stream Registry");
+        }
+        File f = new File(fileName);
+        taskFiles.remove(f.getAbsolutePath());
     }
 
 
@@ -650,6 +697,7 @@ public class StreamRegistry {
         private String fileRenaming;
         private boolean firstIsInputStream;
         private boolean written;
+        private boolean append;
         private List<Object> list;
         private List<FileDescriptor> fds;
 
@@ -658,6 +706,7 @@ public class StreamRegistry {
             this.fileRenaming = renaming;
             this.firstIsInputStream = direction == Direction.IN;
             this.written = false;
+            this.append = false;
             this.list = new LinkedList<>();
             this.fds = new LinkedList<>();
         }
@@ -681,6 +730,10 @@ public class StreamRegistry {
         public boolean getWritten() {
             return written;
         }
+        
+        public boolean getAppend(){
+            return append;
+        }
 
         public ListIterator<Object> getIterator() {
             return (ListIterator<Object>) list.iterator();
@@ -696,6 +749,10 @@ public class StreamRegistry {
 
         public void setWritten(boolean b) {
             written = b;
+        }
+        
+        public void setAppend(boolean b){
+            append = b;
         }
     }
 

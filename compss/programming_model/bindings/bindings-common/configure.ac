@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-m4_define([PACKAGE], [bindings-common])
+m4_define([PACKAGE], [libbindings_common])
 m4_define([P_MAJOR_VERSION], [2])
 m4_define([P_MINOR_VERSION], [2])
 m4_define([P_MICRO_VERSION], [0])

@@ -24,7 +24,7 @@
   fi
   # Check that ErrorManager has not raised any ERROR or FATAL message
   if [ -f "${error_file}" ]; then
-    if grep -E "\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs)" "${error_file}"; then
+    if grep -E "(\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs))|(Exception)" "${error_file}"; then
       echo "ERROR: ErrorManager has raised a fatal error" | tee -a "${output_file}"
       exit 1
     fi

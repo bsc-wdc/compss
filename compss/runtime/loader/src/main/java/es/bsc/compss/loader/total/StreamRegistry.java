@@ -554,7 +554,9 @@ public class StreamRegistry {
 
             // Create the list of streams
             list = new StreamList(renaming, direction);
-            fileToStreams.put(path, list);
+            synchronized(fileToStreams){
+                fileToStreams.put(path, list);
+            }
         }else{
             if (direction != Direction.IN || list.written){
                 ErrorManager.error("ERROR: File " + path + " is going to be accessed more than once and one of these accesses is for writting. This can produce and inconsistency");
@@ -579,13 +581,15 @@ public class StreamRegistry {
 
     // Returns the list of streams to which the newly created stream belongs
     private StreamList obtainList(FileDescriptor fd) {
-        for (StreamList list : fileToStreams.values()) {
-            if (list.containsFD(fd)) {
-                if (DEBUG) {
-                    LOGGER.debug("Found list for file descriptor " + fd + ": file " + list.getRenaming());
-                }
+        synchronized (fileToStreams){
+            for (StreamList list : fileToStreams.values()) {
+                if (list.containsFD(fd)) {
+                    if (DEBUG) {
+                        LOGGER.debug("Found list for file descriptor " + fd + ": file " + list.getRenaming());
+                    }
 
-                return list;
+                    return list;
+                }
             }
         }
         return null;
@@ -593,6 +597,7 @@ public class StreamRegistry {
 
     // Replace a given stream by another in its list (if present)
     private void replaceStream(Object oldStream, Object newStream) {
+        synchronized(fileToStreams){
         Iterator<Entry<String, StreamList>> entryIt = fileToStreams.entrySet().iterator();
         while (entryIt.hasNext()) {
             Entry<String, StreamList> e = entryIt.next();
@@ -611,53 +616,60 @@ public class StreamRegistry {
                 }
             }
         }
+        }
     }
 
     public void streamClosed(Object stream) {
         // Remove the stream from its list
-        Iterator<Entry<String, StreamList>> entryIt = fileToStreams.entrySet().iterator();
+        String filePath = null;
+        StreamList list = null;
         boolean found = false;
-        while (entryIt.hasNext()) {
-            Entry<String, StreamList> e = entryIt.next();
-            StreamList list = e.getValue();
-            ListIterator<Object> listIt = list.getIterator();
-            while (listIt.hasNext()) {
-                Object listStream = listIt.next();
-                if (listStream.equals(stream)) {
-                    listIt.remove();
-                    found = true;
-                    continue;
+        
+        synchronized(fileToStreams){    
+            Iterator<Entry<String, StreamList>> entryIt = fileToStreams.entrySet().iterator();
+            while (!found && entryIt.hasNext()) {
+                Entry<String, StreamList> e = entryIt.next();
+                filePath = e.getKey();
+                list = e.getValue();
+                ListIterator<Object> listIt = list.getIterator();
+                while (listIt.hasNext()) {
+                    Object listStream = listIt.next();
+                    if (listStream.equals(stream)) {
+                        listIt.remove();
+                        found = true;
+                        break;
+                    }
                 }
             }
+        }
+        if (found) {
+            if (DEBUG) {
+                LOGGER.debug("Found closed stream of " + stream.getClass());
+            }
 
-            if (found) {
-                if (DEBUG) {
-                    LOGGER.debug("Found closed stream of " + stream.getClass());
+            // Check if it was the last stream to be closed
+
+            /*
+             * If the stream list began with a input stream and it had at least one output stream, we must obtain the
+             * renaming from the Integrated Toolkit for the new version generated, and rename and move the file to the
+             * application's working directory
+             */
+
+            if (DEBUG) {
+                LOGGER.debug("Empty stream list");
+            }
+
+            if (list.isFirstStreamInput() && list.getWritten() && list.getAppend()) {
+                itApi.closeFile(filePath, Direction.INOUT);
+            } else if (list.isFirstStreamInput() && list.getWritten() && !list.getAppend()) {
+                itApi.closeFile(filePath, Direction.OUT);
+            } else if (list.isFirstStreamInput() && !list.getWritten()) {
+                itApi.closeFile(filePath, Direction.IN);
+            }
+            if (list.isEmpty()) {
+                synchronized (fileToStreams) {
+                    fileToStreams.remove(filePath);
                 }
-                String filePath = e.getKey();    
-                // Check if it was the last stream to be closed
-                
-                    /*
-                     * If the stream list began with a input stream and it had at least one output stream, we must
-                     * obtain the renaming from the Integrated Toolkit for the new version generated, and rename and
-                     * move the file to the application's working directory
-                     */
-
-                    if (DEBUG) {
-                        LOGGER.debug("Empty stream list");
-                    }
-
-                    if (list.isFirstStreamInput() && list.getWritten() && list.getAppend()) {
-                        itApi.closeFile(filePath, Direction.INOUT);
-                    }else if (list.isFirstStreamInput() && list.getWritten() && !list.getAppend()){    
-                        itApi.closeFile(filePath, Direction.OUT);
-                    }else if (list.isFirstStreamInput() && !list.getWritten()){
-                        itApi.closeFile(filePath, Direction.IN);
-                    }
-                if (list.isEmpty()) {
-                    entryIt.remove();
-                }
-                break;
             }
         }
     }

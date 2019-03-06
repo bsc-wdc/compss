@@ -86,6 +86,8 @@ class task(object):
     def get_default_decorator_values(self):
         """
         Default value for decorator arguments.
+        By default, do not use jit (if true -> use nopython mode, alternatively, the user can define a dictionary
+        with the specific flags - using a dictionary will be considered as the user wants to use compile with jit).
         :return: A dictionary with the default values of the non-parameter decorator fields
         """
         return {
@@ -138,13 +140,17 @@ class task(object):
             #   pass
             # Transform this dictionary to a Parameter object
             if parameter.is_dict_specifier(value):
-                # Perform user -> instance substitution
-                # param = self.decorator_arguments[key][parameter.Type]
-                # Replace the whole dict by a single parameter object
-                self.decorator_arguments[key] = parameter.get_parameter_from_dictionary(
-                    self.decorator_arguments[key]
-                )
-                # self.decorator_arguments[key].update({parameter.Type: parameter.get_parameter_copy(param)})
+                if key != 'numba':
+                    # Perform user -> instance substitution
+                    # param = self.decorator_arguments[key][parameter.Type]
+                    # Replace the whole dict by a single parameter object
+                    self.decorator_arguments[key] = parameter.get_parameter_from_dictionary(
+                        self.decorator_arguments[key]
+                    )
+                    # self.decorator_arguments[key].update({parameter.Type: parameter.get_parameter_copy(param)})
+                else:
+                    # numba is a reserved keyword and the user can define a dictionary with its flags
+                    self.decorator_arguments[key] = value
 
         # Add more argument related attributes that will be useful later
         self.parameters = None
@@ -1024,12 +1030,17 @@ class task(object):
                 restore_hook = True
 
         # Call the user function with all the reconstructed parameters, get the return values
-        if self.decorator_arguments['numba']:
+        if self.decorator_arguments['numba']:  # true or dict with flags (not empty)
             from numba import jit
-            # by default we set nopython=True to avoid the fallback when an error is found compiling.
-            # this enables to detect if the code is fully compliant with numba
-            user_returns = jit(self.user_function, cache=True, nopython=True)(*user_args, **user_kwargs)
-            # user_returns = jit(cache=True, nopython=True)(self.user_function)(*user_args, **user_kwargs)
+            if type(self.decorator_arguments['numba']) is dict:
+                # Use the flags defined by the user
+                user_returns = jit(self.user_function, **self.decorator_arguments['numba'])(*user_args, **user_kwargs)
+            else:
+                # by default we set nopython=True to avoid the fallback when an error is found compiling.
+                # this enables to detect if the code is fully compliant with numba
+                user_returns = jit(self.user_function, cache=True, nopython=True)(*user_args, **user_kwargs)
+                # Alternative way of calling:
+                # user_returns = jit(cache=True, nopython=True)(self.user_function)(*user_args, **user_kwargs)
         else:
             user_returns = self.user_function(*user_args, **user_kwargs)
 

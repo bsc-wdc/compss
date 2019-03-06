@@ -814,6 +814,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         try {
             DataLocation loc = createLocation(fileName);
             ap.markForDeletion(loc);
+            //Java case where task files are stored in the registry
+            if (sReg!= null){ 
+                sReg.deleteTaskFile(fileName);
+            }
         } catch (IOException ioe) {
             ErrorManager.fatal(ERROR_FILE_NAME, ioe);
         } finally {
@@ -869,6 +873,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         rename(renamedPath, intermediateTmpPath);
         closeFile(fileName, Direction.IN);
         ap.markForDeletion(sourceLocation);
+        //In the case of Java file can be stored in the Stream Registry
+        if (sReg != null){
+            sReg.deleteTaskFile(fileName);
+        }
         rename(intermediateTmpPath, fileName);
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());

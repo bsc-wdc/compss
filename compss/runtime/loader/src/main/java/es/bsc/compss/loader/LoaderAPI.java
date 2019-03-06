@@ -31,6 +31,31 @@ public interface LoaderAPI {
      * @return
      */
     public String openFile(String fileName, Direction mode);
+    
+    /**
+     * Close the file version opened
+     *
+     * @param fileName
+     * @param mode
+     * @return
+     */
+    public void closeFile(String fileName, Direction mode);
+    
+    /**
+     * Deletes the specified version of a file
+     *
+     * @param fileName
+     * @return
+     */
+    public boolean deleteFile(String fileName);
+    
+    /**
+     * Returns last version of file with its original name
+     *
+     * @param fileName
+     * @return
+     */
+    public void getFile(Long appId, String fileName);
 
     /**
      * Returns a copy of the last object version

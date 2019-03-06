@@ -17,6 +17,8 @@
 package es.bsc.compss.loader.total;
 
 import es.bsc.compss.COMPSsConstants.Lang;
+
+import java.io.File;
 import java.io.FilterInputStream;
 import java.io.FilterOutputStream;
 import java.io.PrintStream;
@@ -69,6 +71,8 @@ public class ITAppEditor extends ExprEditor {
     private CtClass appClass;
 
     // Inserted method calls
+    private static final String NEW_COMPSS_FILE = ".newCOMPSsFile(";
+    private static final String COMPSS_FILE_SYNCH = "COMPSsFile.synchFile(";
     private static final String GET_INTERNAL_OBJECT = ".getInternalObject(";
     private static final String NEW_OBJECT_ACCESS = ".newObjectAccess(";
     private static final String SERIALIZE_LOCALLY = ".serializeLocally(";
@@ -116,10 +120,9 @@ public class ITAppEditor extends ExprEditor {
     }
 
     /**
-     * Instruments the creation of streams and stream wrappers
+     * Instruments the creation of objects streams and stream wrappers
      *
-     * @param ne
-     *            New expression
+     * @param ne  New expression
      */
     @Override
     public void edit(NewExpr ne) throws CannotCompileException {
@@ -202,13 +205,19 @@ public class ITAppEditor extends ExprEditor {
             }
         }
         if (!found) { // Not a stream
-            String internalObject = itORVar + GET_INTERNAL_OBJECT + "$1)";
-            String par1 = internalObject + " == null ? (Object)$1 : " + internalObject;
-            modifiedExpr = PROCEED + callPars + "); " + "if ($_ instanceof " + FilterInputStream.class.getCanonicalName()
+            if(className.equals(File.class.getCanonicalName())){
+                modifiedExpr = "$_ = " + itSRVar + NEW_COMPSS_FILE + "(" + callPars + ");";
+            }else{
+                String internalObject = itORVar + GET_INTERNAL_OBJECT + "$1)";
+                String par1 = internalObject + " == null ? (Object)$1 : " + internalObject;
+                modifiedExpr = PROCEED + callPars + "); " + "if ($_ instanceof " + FilterInputStream.class.getCanonicalName()
                     + " || $_ instanceof " + FilterOutputStream.class.getCanonicalName() + ") {" + itSRVar + NEW_FILTER_STREAM + par1
                     + ", (Object)$_); }";
+            }
         }
-
+        if (DEBUG) {
+            LOGGER.debug("Modifiying creation of an object of class " + className + " with \"" + modifiedExpr + "\"" );
+        }
         return modifiedExpr;
     }
 
@@ -870,7 +879,14 @@ public class ITAppEditor extends ExprEditor {
                         } else { // if (parType.equals(CtClass.doubleType))
                             aux1.append("new Double(").append(parId).append(')');
                         }
-                    } else if (parType.getName().equals(String.class.getName())) { // This is a string
+                    }else if (parType.getName().equals(COMPSsFile.class.getName())){
+                        if (DEBUG) {
+                            LOGGER.debug(
+                                    "Parameter " + i + " of black-box method " + methodName + " is an COMPSs File, adding File synch");
+                        }
+                        aux1.append(COMPSS_FILE_SYNCH).append(itAppIdVar).append(",").append(parId).append(')');
+                        
+                    }else if (parType.getName().equals(String.class.getName())) { // This is a string
                         if (DEBUG) {
                             LOGGER.debug(
                                     "Parameter " + i + " of black-box method " + methodName + " is an String, adding File/object access");

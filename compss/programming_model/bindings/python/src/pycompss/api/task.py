@@ -202,7 +202,11 @@ class task(object):
                     num_rets = int(self.decorator_arguments['returns'])
                 except ValueError:
                     # Return is hidden by a global variable. i.e., LT_ARGS
-                    num_rets = self.user_function.__globals__.get(self.decorator_arguments['returns'])
+                    try:
+                        num_rets = self.user_function.__globals__.get(self.decorator_arguments['returns'])
+                    except AttributeError:
+                        # This is a numba jit declared task
+                        num_rets = self.user_function.py_func.__globals__.get(self.decorator_arguments['returns'])
                 # Construct hidden multireturn
                 if num_rets > 1:
                     to_return = [tuple([]) for _ in range(num_rets)]

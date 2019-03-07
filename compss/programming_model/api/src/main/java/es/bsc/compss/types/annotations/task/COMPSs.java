@@ -68,6 +68,13 @@ public @interface COMPSs {
     String flags() default Constants.UNASSIGNED;
 
     /**
+     * Returns if a worker can run on the master resource or not
+     * 
+     * @return whether the worker can run on the master resource or not
+     */
+    String workerInMaster() default Constants.WORKER_IN_MASTER;
+
+    /**
      * Returns the working directory of the binary
      * 
      * @return the binary working directory

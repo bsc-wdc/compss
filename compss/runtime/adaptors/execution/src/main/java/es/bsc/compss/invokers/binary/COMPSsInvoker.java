@@ -32,6 +32,8 @@ import es.bsc.compss.types.implementations.COMPSsImplementation;
 import es.bsc.compss.util.Tracer;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import java.io.File;
@@ -54,6 +56,7 @@ public class COMPSsInvoker extends Invoker {
     private final String runcompss;
     private final String extraFlags;
     private final String appName;
+    private final String workerInMaster;
 
 
     public COMPSsInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
@@ -72,6 +75,7 @@ public class COMPSsInvoker extends Invoker {
         this.runcompss = compssImpl.getRuncompss();
         this.extraFlags = compssImpl.getFlags();
         this.appName = compssImpl.getAppName();
+        this.workerInMaster = compssImpl.getWorkerInMaster();
     }
 
     private void checkArguments() throws JobExecutionException {
@@ -118,22 +122,55 @@ public class COMPSsInvoker extends Invoker {
         // export OMP_NUM_THREADS=1 ; runcompss --project=tmp_proj.xml --resources=tmp_res.xml [-extra_flags] appName
         // appArgs
 
+        // Retrieve workers information
+        HashMap<String, Integer> hostnames2cus = new HashMap<>();
+        for (String hostname : this.invocation.getSlaveNodesNames()) {
+            if (hostnames2cus.containsKey(hostname)) {
+                int accumComputingUnits = hostnames2cus.get(hostname) + this.computingUnits;
+                hostnames2cus.put(hostname, accumComputingUnits);
+            } else {
+                hostnames2cus.put(hostname, this.computingUnits);
+            }
+        }
+        if (!Boolean.parseBoolean(this.workerInMaster)) {
+            // User has selected a separated master, take resources from slaveNodes
+            String hostname = this.context.getHostName();
+            if (hostnames2cus.containsKey(hostname)) {
+                int accumComputingUnits = hostnames2cus.remove(hostname);
+                accumComputingUnits = accumComputingUnits - this.computingUnits;
+                if (accumComputingUnits > 0) {
+                    hostnames2cus.put(hostname, accumComputingUnits);
+                }
+            } else {
+                System.err.println("[WARN] Cannot reserve master CUs because hostname does not appear in slavenodes");
+            }
+
+            // Check that we have not run out of resources
+            if (hostnames2cus.isEmpty()) {
+                throw new InvokeExecutionException("Error no remaining resources after reserving nested master");
+            }
+        }
+
+        StringBuilder workersInfoBuilder = new StringBuilder();
+        for (Entry<String, Integer> entry : hostnames2cus.entrySet()) {
+            String hostname = entry.getKey();
+            Integer cus = entry.getValue();
+            System.out.println("[COMPSs INVOKER] Slave hostname " + hostname + " with " + String.valueOf(cus) + " cus");
+
+            workersInfoBuilder.append(hostname);
+            workersInfoBuilder.append(":").append(String.valueOf(cus));
+            workersInfoBuilder.append(":").append(this.context.getInstallDir());
+            workersInfoBuilder.append(":").append(this.taskSandboxWorkingDir.getAbsolutePath());
+            workersInfoBuilder.append(" ");
+        }
+        String workersInfo = workersInfoBuilder.toString();
+
         // Generate XML files
         String uuid = UUID.randomUUID().toString();
         String projectXml = "project_" + uuid + ".xml";
         String resourcesXml = "resources_" + uuid + ".xml";
 
-        StringBuilder workersInfoBuilder = new StringBuilder();
-        // WARN: Information could be retrieved from this.workers (without network flags and split by ,)
-        for (String hostname : this.invocation.getSlaveNodesNames()) {
-            // TODO: Information about real install_dir and working_dir of the slave nodes
-            workersInfoBuilder.append(hostname);
-            workersInfoBuilder.append(":").append(String.valueOf(this.computingUnits));
-            workersInfoBuilder.append(":").append(this.context.getInstallDir());
-            workersInfoBuilder.append(":").append(this.taskSandboxWorkingDir.getAbsolutePath());
-        }
-        String workersInfo = workersInfoBuilder.toString();
-
+        // Generate project.xml
         System.out.println("[COMPSs INVOKER] Generate project.xml at: " + projectXml);
         String generateProjectScript = this.context.getInstallDir() + RELATIVE_PATH_XML_GENERATION + GENERATE_PROJECT_SCRIPT;
         String[] cmdProject = new String[] { generateProjectScript, projectXml, workersInfo };
@@ -148,6 +185,7 @@ public class COMPSsInvoker extends Invoker {
             throw new InvokeExecutionException("Error generating project.xml file", ie);
         }
 
+        // Generate resources.xml
         System.out.println("[COMPSs INVOKER] Generate resources.xml at: " + resourcesXml);
         String generateResourcesScript = this.context.getInstallDir() + RELATIVE_PATH_XML_GENERATION + GENERATE_RESOURCES_SCRIPT;
         String[] cmdResources = new String[] { generateResourcesScript, resourcesXml, workersInfo };

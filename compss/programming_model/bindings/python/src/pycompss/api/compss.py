@@ -152,6 +152,11 @@ class COMPSs(object):
                     else:
                         flags = '[unassigned]'  # Empty or '[unassigned]'
 
+                    if 'worker_in_master' in self.kwargs:
+                        worker_in_master = self.kwargs['worker_in_master']
+                    else:
+                        worker_in_master = 'true'  # Empty or '[unassigned]'
+
                     app_name = self.kwargs['app_name']
 
                     if 'workingDir' in self.kwargs:
@@ -161,7 +166,7 @@ class COMPSs(object):
 
                     impl_signature = 'COMPSs.' + app_name
                     core_element.set_impl_signature(impl_signature)
-                    impl_args = [runcompss, flags, app_name, working_dir]
+                    impl_args = [runcompss, flags, app_name, worker_in_master, working_dir]
                     core_element.set_impl_type_args(impl_args)
             else:
                 # worker code

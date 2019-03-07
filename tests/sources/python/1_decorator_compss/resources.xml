@@ -28,7 +28,7 @@
 	</ComputeNode>
 	<ComputeNode Name="COMPSsWorker02">
 		<Processor Name="MainProcessor">
-			<ComputingUnits>2</ComputingUnits>
+			<ComputingUnits>4</ComputingUnits>
 			<Architecture>x86</Architecture>
 		</Processor>
 		<Adaptors>

@@ -45,4 +45,103 @@
 
   #----------------------------------------------------------------------------------
   # Compute result status
+  
+  # Job 1 -> cn=1, cus=2
+  expected_cn=1
+  expected_cus=2
+  cn=$(grep -c "Slave hostname" "${target_log_folder}"/jobs/job1_NEW.out)
+  cus=$(grep "Slave hostname" "${target_log_folder}"/jobs/job1_NEW.out | awk '{ print $(NF-1) }')
+  if [ "${cn}" -ne "${expected_cn}" ] || [ "${cus}" -ne "${expected_cus}" ]; then
+    echo "[ERROR] Incorrect cn/cus for single node task" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  # Job 2 -> cn=1, cus=4
+  expected_cn=1
+  expected_cus=4
+  cn=$(grep -c "Slave hostname" "${target_log_folder}"/jobs/job2_NEW.out)
+  cus=$(grep "Slave hostname" "${target_log_folder}"/jobs/job2_NEW.out | awk '{ print $(NF-1) }')
+  if [ "${cn}" -ne "${expected_cn}" ] || [ "${cus}" -ne "${expected_cus}" ]; then
+    echo "[ERROR] Incorrect cn/cus for complete node task" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  # Job 3 -> cn=2, cus=2 (Fits in cn=1, cus=4)
+  expected_cn=1
+  expected_cus=4
+  cn=$(grep -c "Slave hostname" "${target_log_folder}"/jobs/job3_NEW.out)
+  cus=$(grep "Slave hostname" "${target_log_folder}"/jobs/job3_NEW.out | awk '{ print $(NF-1) }')
+  if [ "${cn}" -ne "${expected_cn}" ] || [ "${cus}" -ne "${expected_cus}" ]; then
+    echo "[ERROR] Incorrect cn/cus for multi node fit task" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  # Job 4 -> cn=2, cus=4
+  expected_cn=2
+  expected_cus=4
+  cn=$(grep -c "Slave hostname" "${target_log_folder}"/jobs/job4_NEW.out)
+  cus1=$(grep "Slave hostname" "${target_log_folder}"/jobs/job4_NEW.out | head -n 1 | awk '{ print $(NF-1) }')
+  cus2=$(grep "Slave hostname" "${target_log_folder}"/jobs/job4_NEW.out | tail -n 1 | awk '{ print $(NF-1) }')
+  if [ "${cn}" -ne "${expected_cn}" ] || [ "${cus1}" -ne "${expected_cus}" ] || [ "${cus2}" -ne "${expected_cus}" ]; then
+    echo "[ERROR] Incorrect cn/cus for multi node no fit task" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  # Job 5 -> cn=2, cus=2 (Fits in cn=1, cus=4)
+  expected_cn=1
+  expected_cus=4
+  cn=$(grep -c "Slave hostname" "${target_log_folder}"/jobs/job5_NEW.out)
+  cus1=$(grep "Slave hostname" "${target_log_folder}"/jobs/job5_NEW.out | head -n 1 | awk '{ print $(NF-1) }')
+  cus2=$(grep "Slave hostname" "${target_log_folder}"/jobs/job5_NEW.out | tail -n 1 | awk '{ print $(NF-1) }')
+  if [ "${cn}" -ne "${expected_cn}" ] || [ "${cus1}" -ne "${expected_cus}" ] || [ "${cus2}" -ne "${expected_cus}" ]; then
+    echo "[ERROR] Incorrect cn/cus for concurrent task (1)" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  # Job 6 -> cn=2, cus=2 (Fits in cn=1, cus=4)
+  expected_cn=1
+  expected_cus=4
+  cn=$(grep -c "Slave hostname" "${target_log_folder}"/jobs/job6_NEW.out)
+  cus1=$(grep "Slave hostname" "${target_log_folder}"/jobs/job6_NEW.out | head -n 1 | awk '{ print $(NF-1) }')
+  cus2=$(grep "Slave hostname" "${target_log_folder}"/jobs/job6_NEW.out | tail -n 1 | awk '{ print $(NF-1) }')
+  if [ "${cn}" -ne "${expected_cn}" ] || [ "${cus1}" -ne "${expected_cus}" ] || [ "${cus2}" -ne "${expected_cus}" ]; then
+    echo "[ERROR] Incorrect cn/cus for concurrent task (2)" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  # Job 7 -> cn=2, cus=2, noWorkerInMaster (cn=1, cus=2)
+  expected_cn=1
+  expected_cus=2
+  cn=$(grep -c "Slave hostname" "${target_log_folder}"/jobs/job7_NEW.out)
+  cus=$(grep "Slave hostname" "${target_log_folder}"/jobs/job7_NEW.out | awk '{ print $(NF-1) }')
+  if [ "${cn}" -ne "${expected_cn}" ] || [ "${cus}" -ne "${expected_cus}" ]; then
+    echo "[ERROR] Incorrect cn/cus for noWorkerInMaster task" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  # Job 8 -> cn=2, cus=4, noWorkerInMaster (cn=1, cus=4)
+  expected_cn=1
+  expected_cus=4
+  cn=$(grep -c "Slave hostname" "${target_log_folder}"/jobs/job8_NEW.out)
+  cus=$(grep "Slave hostname" "${target_log_folder}"/jobs/job8_NEW.out | awk '{ print $(NF-1) }')
+  if [ "${cn}" -ne "${expected_cn}" ] || [ "${cus}" -ne "${expected_cus}" ]; then
+    echo "[ERROR] Incorrect cn/cus for noWorkerInMaster task" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  # Check that job2 has correctly setup the working dir
+  wd=$(grep "WORKING_DIR" "${target_log_folder}"/jobs/job2_NEW.out | tr "," "\\t" | tr "]" "\\t" | awk '{ print $NF }')
+  invalid_wd="WORKING_DIR=[unassigned]"
+  if [ "${wd}" == "${invalid_wd}" ]; then
+    echo "[ERROR] Invalid working dir flag" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  # Check that flags are correctly setup
+  if ! grep -q "FLAGS=-d" "${target_log_folder}"/jobs/job3_NEW.out; then
+    echo "[ERROR] Flags are not correctly setup" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  # All ok
   exit 0

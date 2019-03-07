@@ -1,4 +1,4 @@
-package simple;
+package compssSimple;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;

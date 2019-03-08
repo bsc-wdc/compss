@@ -23,6 +23,7 @@ import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
 import es.bsc.compss.scheduler.multiobjective.MOSchedulingInformation;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Score;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
 
 import es.bsc.compss.types.resources.Worker;
@@ -62,6 +63,11 @@ public class OptimizationAction extends AllocatableAction {
     }
 
     @Override
+    protected void doCanceled() {
+
+    }
+    
+    @Override
     public Integer getCoreId() {
         return null;
     }
@@ -90,6 +96,11 @@ public class OptimizationAction extends AllocatableAction {
     @Override
     public int getPriority() {
         return 0;
+    }
+    
+    @Override
+    public OnFailure getOnFailure() {
+        return OnFailure.RETRY;
     }
 
     @Override

@@ -227,7 +227,7 @@ public class DataInfoProvider {
             oInfo = new ObjectInfo(code);
             aoId = oInfo.getDataId();
             codeToId.put(code, aoId);
-            idToData.put(aoId, oInfo);
+            idToData.put(aoId, oInfo); 
 
             // Serialize this first version of the object to a file
             DataInstanceId lastDID = oInfo.getCurrentDataVersion().getDataInstanceId();
@@ -421,6 +421,38 @@ public class DataInfoProvider {
         return daId;
     }
 
+    public void dataAccessHasBeenCanceled(DataAccessId dAccId) {
+        Integer dataId = dAccId.getDataId();
+        DataInfo di = idToData.get(dataId);
+        Integer rVersionId;
+        Integer wVersionId;
+        boolean deleted = false;
+        switch (dAccId.getDirection()) {
+            case C:
+            case R:
+                rVersionId = ((RAccessId) dAccId).getReadDataInstance().getVersionId();
+                deleted = di.versionHasBeenRead(rVersionId);
+                break;
+            case RW:
+                rVersionId = ((RWAccessId) dAccId).getReadDataInstance().getVersionId();
+                di.versionHasBeenRead(rVersionId);
+                // read data version can be removed
+                di.tryRemoveVersion(rVersionId);
+                wVersionId = ((RWAccessId) dAccId).getWrittenDataInstance().getVersionId();
+//                deleted = di.versionHasBeenWritten(wVersionId);
+                di.tryRemoveVersion(wVersionId);
+                break;
+            default:// case W:
+                wVersionId = ((WAccessId) dAccId).getWrittenDataInstance().getVersionId();
+                di.tryRemoveVersion(wVersionId);
+//                deleted = di.versionHasBeenWritten(wVersionId);
+                break;
+        }
+
+        if (deleted) {
+//             idToData.remove(dataId);
+        }
+    }
     /**
      * Returns if a given data has been accessed or not
      *
@@ -753,6 +785,7 @@ public class DataInfoProvider {
         DataInstanceId lastVersion;
         FileInfo fileInfo = (FileInfo) idToData.get(dataId);
         if (fileInfo != null && !fileInfo.isCurrentVersionToDelete()) { // If current version is to delete do not
+            LOGGER.debug("MARTA: BlockDataAndGetResultFile of dataId : " + dataId + " of file info " + fileInfo.getDataId() + " " + fileInfo.toString());
             // transfer
             String[] splitPath = fileInfo.getOriginalLocation().getPath().split(File.separator);
             String origName = splitPath[splitPath.length - 1];

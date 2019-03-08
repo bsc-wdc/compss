@@ -24,6 +24,7 @@ import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.FailedActionException;
 import es.bsc.compss.scheduler.exceptions.InvalidSchedulingException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
@@ -51,7 +52,8 @@ public abstract class AllocatableAction {
     WAITING, // Action is waiting
     RUNNING, // Action is running
     FINISHED, // Action has been successfully completed
-    FAILED // Action has failed
+    FAILED, // Action has failed
+    CANCELED // Action has been canceled
     }
 
 
@@ -605,16 +607,16 @@ public abstract class AllocatableAction {
         this.state = State.FAILED;
 
         // Cancel action
-        boolean cancelled = false;
+        boolean canceled = false;
         if (selectedResource != null) {
-            while (!cancelled) {
+            while (!canceled) {
                 try {
                     selectedResource.cancelAction(this);
-                    cancelled = true;
+                    canceled = true;
                 } catch (ActionNotFoundException anfe) {
-                    // Action could not be cancelled since it was not scheduled to the resource
+                    // Action could not be canceled since it was not scheduled to the resource
                     // Wait until a new resource is assigned
-                    LOGGER.warn("[Allocatable Action] Action not found exception when cancelling " + this);
+                    LOGGER.warn("[Allocatable Action] Action not found exception when canceling " + this);
                     while (selectedResource == null) {
                     }
                     // Try to cancel its execution on the new resource
@@ -628,18 +630,72 @@ public abstract class AllocatableAction {
 
         // Triggering failure on Data Successors
         List<AllocatableAction> failed = new LinkedList<>();
-        for (AllocatableAction succ : dataSuccessors) {
-            failed.addAll(succ.failed());
+        if (this.getOnFailure() == OnFailure.RETRY) {
+            LOGGER.debug("[MARTA] Failing task on RETRY: " + this.getId());
+            for (AllocatableAction succ : dataSuccessors) {
+                failed.addAll(succ.failed());
+            }
+        } else {
+            LOGGER.debug("[MARTA] Failing task on IGNORE : " + this.getId());
+            for (AllocatableAction succ : dataSuccessors) {
+                failed.addAll(succ.canceled());
+            }
         }
+        // Failure notification
+        doFailed();
+
         failed.add(this);
 
         dataPredecessors.clear();
         dataSuccessors.clear();
 
-        // Action notification
-        doFailed();
-
         return failed;
+    }
+
+    /**
+     * Operations to perform when AA has totally failed and has to cancel its successors
+     *
+     * @return
+     */
+    public final List<AllocatableAction> canceled() {
+        // Mark as failed
+        this.state = State.CANCELED;
+
+        // Cancel action
+        boolean canceled = false;
+        if (selectedResource != null) {
+            while (!canceled) {
+                try {
+                    selectedResource.cancelAction(this);
+                    canceled = true;
+                } catch (ActionNotFoundException anfe) {
+                    // Action could not be canceled since it was not scheduled to the resource
+                    // Wait until a new resource is assigned
+                    LOGGER.warn("[Allocatable Action] Action not found exception when canceling " + this);
+                    while (selectedResource == null) {
+                    }
+                    // Try to cancel its execution on the new resource
+                }
+            }
+        }
+        // Predecessors -> ignore Action
+        for (AllocatableAction pred : dataPredecessors) {
+            pred.dataSuccessors.remove(this);
+        }
+
+        // Triggering failure on Data Successors
+        List<AllocatableAction> cancel = new LinkedList<>();
+        for (AllocatableAction succ : dataSuccessors) {
+            cancel.addAll(succ.canceled());
+        }
+
+        dataPredecessors.clear();
+        dataSuccessors.clear();
+
+        // Action notification
+        doCanceled();
+
+        return cancel;
     }
 
     /**
@@ -658,6 +714,11 @@ public abstract class AllocatableAction {
      * Triggers the unsuccessful action completion notification
      */
     protected abstract void doFailed();
+
+    /**
+     * Triggers the cancelation action notification
+     */
+    protected abstract void doCanceled();
 
     /*
      * ***************************************************************************************************************
@@ -705,6 +766,13 @@ public abstract class AllocatableAction {
      * @return
      */
     public abstract int getPriority();
+
+    /**
+     * Returns the behavior when action fails
+     *
+     * @return
+     */
+    public abstract OnFailure getOnFailure();
 
     /**
      * Returns the scheduling score of the action for a given worker

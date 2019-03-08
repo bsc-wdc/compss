@@ -63,6 +63,7 @@
         <module>2_get_file</module>
         <module>2_limit_of_tasks</module>
         <module>2_no_empty_constructor</module>
+	<module>2_on_failure</module>
         <module>2_shared_disks</module>
         <module>3_object_deregister</module>
         <module>3_remote_file</module>

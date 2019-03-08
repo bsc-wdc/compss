@@ -26,6 +26,7 @@ import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.Task.TaskState;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.FailedActionException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
@@ -175,12 +176,14 @@ public class ExecutionAction extends AllocatableAction {
 
     private void transferInputData(JobTransfersListener listener) {
         TaskDescription taskDescription = task.getTaskDescription();
+        JOB_LOGGER.debug("MARTA: transferInputData : " + taskDescription.getParameters() + " getTaskDescription: " + taskDescription.getType());
         for (Parameter p : taskDescription.getParameters()) {
             JOB_LOGGER.debug("    * " + p);
             if (p instanceof DependencyParameter) {
                 DependencyParameter dp = (DependencyParameter) p;
                 switch (taskDescription.getType()) {
                     case METHOD:
+                        JOB_LOGGER.debug("MARTA: Type method ");
                         transferJobData(dp, listener);
                         break;
                     case SERVICE:
@@ -207,7 +210,7 @@ public class ExecutionAction extends AllocatableAction {
                 transferJobData(dp, listener);
             }
         }
-
+        
         Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
         DataAccessId access = param.getDataAccessId();
         if (access instanceof WAccessId) {
@@ -251,9 +254,9 @@ public class ExecutionAction extends AllocatableAction {
     public final void failedTransfers(int failedtransfers) {
         JOB_LOGGER.debug("Received a notification for the transfers for task " + task.getId() + " with state FAILED");
         ++transferErrors;
-        if (transferErrors < TRANSFER_CHANCES) {
-            JOB_LOGGER.debug("Resubmitting input files for task " + task.getId() + " to host "
-                    + getAssignedResource().getName() + " since " + failedtransfers + " transfers failed.");
+        if (transferErrors < TRANSFER_CHANCES && task.getOnFail() == OnFailure.RETRY) {
+            JOB_LOGGER.debug("Resubmitting input files for task " + task.getId() + " to host " + getAssignedResource().getName() + " since "
+                    + failedtransfers + " transfers failed.");
 
             doInputTransfers();
         } else {
@@ -264,12 +267,13 @@ public class ExecutionAction extends AllocatableAction {
     }
 
     /**
-     * Code executed when all transfers have successed
+     * Code executed when all transfers have succeeded
      *
      * @param transferGroupId
      */
     public final void doSubmit(int transferGroupId) {
         JOB_LOGGER.debug("Received a notification for the transfers of task " + task.getId() + " with state DONE");
+        
         JobStatusListener listener = new JobStatusListener(this);
         Job<?> job = submitJob(transferGroupId, listener);
 
@@ -310,8 +314,10 @@ public class ExecutionAction extends AllocatableAction {
 
         int jobId = job.getJobId();
         JOB_LOGGER.error("Received a notification for job " + jobId + " with state FAILED");
+        JOB_LOGGER.error("MARTA: Received a notification for job " + jobId + " with state FAILED. The task is : " + task.getId() + " The onFailure: " + task.getOnFail());
+        
         ++executionErrors;
-        if (transferErrors + executionErrors < SUBMISSION_CHANCES) {
+        if (transferErrors + executionErrors < SUBMISSION_CHANCES && task.getOnFail() == OnFailure.RETRY) {
             JOB_LOGGER.error("Job " + job.getJobId() + " for running task " + task.getId() + " on worker "
                     + this.getAssignedResource().getName() + " has failed; resubmitting task to the same worker.");
             ErrorManager.warn("Job " + job.getJobId() + " for running task " + task.getId() + " on worker "
@@ -319,7 +325,12 @@ public class ExecutionAction extends AllocatableAction {
             job.setHistory(Job.JobHistory.RESUBMITTED);
             profile.start();
             JobDispatcher.dispatch(job);
+            JOB_LOGGER.error("MARTA: Ressscheduled " + task.getId() + " The onFailure: " + task.getOnFail());
+            
         } else {
+            //Esborrar la versions que no puc enviar
+            doOutputTransfers(job);
+            JOB_LOGGER.error("MARTA: Not essscheduled anymore. On notify error" + task.getId() + " The onFailure: " + task.getOnFail());
             notifyError();
         }
     }
@@ -346,6 +357,7 @@ public class ExecutionAction extends AllocatableAction {
         // Job finished, update info about the generated/updated data
         Worker<? extends WorkerResourceDescription> w = this.getAssignedResource().getResource();
         Parameter[] params = job.getTaskParams().getParameters();
+        LOGGER.debug("MARTA: Parameters - " + params.toString() + " " + params[0].getName() + " " + params[0].getDirection());
         for (int paramId = 0; paramId < params.length; paramId++) {
             Parameter p = params[paramId];
             if (p instanceof DependencyParameter) {
@@ -441,7 +453,7 @@ public class ExecutionAction extends AllocatableAction {
 
     @Override
     protected void doError() throws FailedActionException {
-        if (this.getExecutingResources().size() >= SCHEDULING_CHANCES) {
+        if (this.getExecutingResources().size() >= SCHEDULING_CHANCES || task.getOnFail() == OnFailure.IGNORE || task.getOnFail() == OnFailure.CANCEL_SUCCESSORS) {
             LOGGER.warn("Task " + task.getId() + " has already been rescheduled; notifying task failure.");
             ErrorManager.warn("Task " + task.getId() + " has already been rescheduled; notifying task failure.");
             throw new FailedActionException();
@@ -461,6 +473,7 @@ public class ExecutionAction extends AllocatableAction {
         // Failed message
         String taskName = task.getTaskDescription().getName();
         StringBuilder sb = new StringBuilder();
+        sb.append("MARTA: Task " ).append(task.getId()).append("\n");
         sb.append("Task '").append(taskName).append("' TOTALLY FAILED.\n");
         sb.append("Possible causes:\n");
         sb.append("     -Exception thrown by task '").append(taskName).append("'.\n");
@@ -486,6 +499,20 @@ public class ExecutionAction extends AllocatableAction {
         // Notify task failure
         task.decreaseExecutionCount();
         task.setStatus(TaskState.FAILED);
+        producer.notifyTaskEnd(task);
+    }
+    
+    @Override
+    protected void doCanceled() {
+        // Failed message
+        TaskMonitor monitor = task.getTaskMonitor();
+        monitor.onFailedExecution();
+        
+        JOB_LOGGER.debug("MARTA:Do canceled en executionaction + task " + this.getId());
+
+        // Notify task failure
+        task.decreaseExecutionCount();
+        task.setStatus(TaskState.CANCELED);
         producer.notifyTaskEnd(task);
     }
 
@@ -531,7 +558,12 @@ public class ExecutionAction extends AllocatableAction {
     public final int getPriority() {
         return task.getTaskDescription().hasPriority() ? 1 : 0;
     }
-
+    
+    @Override
+    public OnFailure getOnFailure() {
+        return task.getOnFail();
+    }
+    
     @Override
     public final <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
             Score actionScore) {

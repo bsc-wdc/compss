@@ -49,6 +49,7 @@ import es.bsc.compss.types.DoNothingTaskMonitor;
 import es.bsc.compss.types.ImplementationDefinition;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.Stream;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.data.AccessParams.AccessMode;
@@ -592,9 +593,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             Integer numReturns, int parameterCount, Object... parameters) {
 
         return executeTask(appId, null, null, false, methodClass, methodName, null, isPrioritary, Constants.SINGLE_NODE,
+
                 Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK),
                 Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK), hasTarget, numReturns, parameterCount,
-                parameters);
+                OnFailure.RETRY, parameters);
     }
 
     /**
@@ -605,7 +607,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters) {
 
         return executeTask(appId, null, null, true, null, null, signature, isPrioritary, numNodes, isReplicated,
-                isDistributed, hasTarget, numReturns, parameterCount, parameters);
+                isDistributed, hasTarget, numReturns, parameterCount, OnFailure.RETRY, parameters);
     }
 
     /**
@@ -614,10 +616,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     @Override
     public int executeTask(Long appId, TaskMonitor monitor, Lang lang, String methodClass, String methodName,
             boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget,
-            int parameterCount, Object... parameters) {
+            int parameterCount, OnFailure onFailure, Object... parameters) {
 
         return executeTask(appId, monitor, lang, false, methodClass, methodName, null, isPrioritary, numNodes,
-                isReplicated, isDistributed, hasTarget, null, parameterCount, parameters);
+                isReplicated, isDistributed, hasTarget, null, parameterCount, onFailure, parameters);
     }
 
     /**
@@ -642,7 +644,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      */
     private int executeTask(Long appId, TaskMonitor monitor, Lang lang, boolean hasSignature, String methodClass,
             String methodName, String signature, boolean isPrioritary, int numNodes, boolean isReplicated,
-            boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters) {
+            boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount, OnFailure onFailure, Object... parameters) {
+
 
         // Tracing flag for task creation
         if (Tracer.extraeEnabled()) {
@@ -682,7 +685,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
         // Register the task
         int task = ap.newTask(appId, monitor, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed,
-                hasTarget, numReturns, pars);
+                hasTarget, numReturns, pars, onFailure);
 
         // End tracing event
         if (Tracer.extraeEnabled()) {
@@ -718,7 +721,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     @Override
     public int executeTask(Long appId, TaskMonitor monitor, String namespace, String service, String port,
             String operation, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-            boolean hasTarget, int parameterCount, Object... parameters) {
+            boolean hasTarget, int parameterCount, OnFailure onFailure, Object... parameters) {
 
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
@@ -746,7 +749,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
         // Register the task
         int task = ap.newTask(appId, monitor, namespace, service, port, operation, isPrioritary, hasTarget, numReturns,
-                pars);
+                pars, onFailure);
 
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());

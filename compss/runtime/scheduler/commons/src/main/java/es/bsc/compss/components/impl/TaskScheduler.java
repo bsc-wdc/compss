@@ -34,6 +34,7 @@ import es.bsc.compss.scheduler.types.allocatableactions.ReduceWorkerAction;
 import es.bsc.compss.scheduler.types.allocatableactions.StartWorkerAction;
 import es.bsc.compss.scheduler.types.allocatableactions.StopWorkerAction;
 import es.bsc.compss.types.CloudProvider;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.Worker;
@@ -438,51 +439,63 @@ public class TaskScheduler {
                 .getAssignedResource();
 
         boolean failed = false;
-        // Process the action error (removes the assigned resource)
-        try {
-            action.error();
-        } catch (FailedActionException fae) {
-            // Action has completely failed
-            failed = true;
-            LOGGER.warn("[TaskScheduler] Action completely failed " + action);
-            removeFromReady(action);
-
-            // Free all the dependent tasks
-            for (AllocatableAction failedAction : action.failed()) {
-                try {
-                    ResourceScheduler<?> failedResource = failedAction.getAssignedResource();
-                    if (failedResource != null) {
-                        resourceFree.addAll(failedResource.unscheduleAction(failedAction));
+        
+        if (action.getOnFailure() == OnFailure.RETRY) {
+            // Process the action error (removes the assigned resource)
+            try {
+                action.error();
+            } catch (FailedActionException fae) {
+                // Action has completely failed
+                failed = true;
+                LOGGER.warn("[TaskScheduler] Action completely failed " + action);
+                removeFromReady(action);
+    
+                // Free all the dependent tasks
+                for (AllocatableAction failedAction : action.failed()) {
+                    try {
+                        ResourceScheduler<?> failedResource = failedAction.getAssignedResource();
+                        if (failedResource != null) {
+                            resourceFree.addAll(failedResource.unscheduleAction(failedAction));
+                        }
+                    } catch (ActionNotFoundException anfe) {
+                        // Once the action starts running should cannot be moved from the resource
                     }
-                } catch (ActionNotFoundException anfe) {
-                    // Once the action starts running should cannot be moved from the resource
                 }
             }
-        }
-
-        // We free the current task and get the free actions from the resource
-        try {
-            resourceFree.addAll(resource.unscheduleAction(action));
-        } catch (ActionNotFoundException anfe) {
-            // Once the action starts running should cannot be moved from the resource
-        }
-        workerLoadUpdate(resource);
-        List<AllocatableAction> list = new LinkedList<>();
-        if (!failed) {
-            list.add(action);
-            // Try to re-schedule the action
-            /*
-             * Score actionScore = generateActionScore(action); try { scheduleAction(action, actionScore);
-             * tryToLaunch(action); } catch (BlockedActionException bae) { removeFromReady(action);
-             * addToBlocked(action); }
-             */
-        }
-
-        List<AllocatableAction> blockedCandidates = new LinkedList<>();
-        handleDependencyFreeActions(list, resourceFree, blockedCandidates, resource);
-        for (AllocatableAction aa : blockedCandidates) {
-            removeFromReady(aa);
-            addToBlocked(aa);
+    
+            // We free the current task and get the free actions from the resource
+            try {
+                resourceFree.addAll(resource.unscheduleAction(action));
+            } catch (ActionNotFoundException anfe) {
+                // Once the action starts running should cannot be moved from the resource
+            }
+            workerLoadUpdate(resource);
+            List<AllocatableAction> list = new LinkedList<>();
+            if (!failed) {
+                list.add(action);
+                // Try to re-schedule the action
+                /*
+                 * Score actionScore = generateActionScore(action); try { scheduleAction(action, actionScore);
+                 * tryToLaunch(action); } catch (BlockedActionException bae) { removeFromReady(action);
+                 * addToBlocked(action); }
+                 */
+            }
+            List<AllocatableAction> blockedCandidates = new LinkedList<>();
+            handleDependencyFreeActions(list, resourceFree, blockedCandidates, resource);
+            for (AllocatableAction aa : blockedCandidates) {
+                removeFromReady(aa);
+                addToBlocked(aa);
+            }
+            LOGGER.debug("[MARTA] ErrorOnAction, case RETRY" + action);
+        } else {
+            LOGGER.debug("[MARTA] The action where the error was notified is : " + action);
+            if (action.getOnFailure() == OnFailure.CANCEL_SUCCESSORS) {
+             // Action has completely failed and its successors have to be ignored
+                action.failed();
+                LOGGER.warn("[TaskScheduler] Action failed. Cancelling successors... " + action);
+                removeFromReady(action);
+                workerLoadUpdate(resource);
+            }
         }
     }
 

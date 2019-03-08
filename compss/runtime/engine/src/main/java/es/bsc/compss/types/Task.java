@@ -20,6 +20,7 @@ import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.allocatableactions.ExecutionAction;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.colors.ColorConfiguration;
 import es.bsc.compss.types.colors.ColorNode;
 import es.bsc.compss.types.implementations.Implementation.TaskType;
@@ -43,9 +44,10 @@ public class Task implements Comparable<Task> {
      * Task states
      */
     public enum TaskState {
-        TO_ANALYSE, // Task is beeing analysed
+        TO_ANALYSE, // Task is being analysed
         TO_EXECUTE, // Task can be executed
         FINISHED, // Task has finished successfully
+        CANCELED, //Task has been canceled
         FAILED // Task has failed
     }
 
@@ -73,7 +75,9 @@ public class Task implements Comparable<Task> {
     // Task Monitor
     private final TaskMonitor taskMonitor;
 
-
+    // On failure behavior
+    private final OnFailure onFailure;
+    
     /**
      * Creates a new METHOD task with the given parameters
      *
@@ -90,7 +94,8 @@ public class Task implements Comparable<Task> {
      * @param monitor
      */
     public Task(Long appId, Lang lang, String signature, boolean isPrioritary, int numNodes, boolean isReplicated,
-            boolean isDistributed, boolean hasTarget, int numReturns, Parameter[] parameters, TaskMonitor monitor) {
+            boolean isDistributed, boolean hasTarget, int numReturns, Parameter[] parameters, TaskMonitor monitor, 
+            OnFailure onFailure) {
         this.appId = appId;
         this.taskId = nextTaskId.getAndIncrement();
         this.status = TaskState.TO_ANALYSE;
@@ -100,6 +105,7 @@ public class Task implements Comparable<Task> {
         this.successors = new LinkedList<>();
         this.executions = new LinkedList<>();
         this.taskMonitor = monitor;
+        this.onFailure = onFailure;
     }
 
     /**
@@ -117,7 +123,7 @@ public class Task implements Comparable<Task> {
      * @param monitor
      */
     public Task(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary,
-            boolean hasTarget, int numReturns, Parameter[] parameters, TaskMonitor monitor) {
+            boolean hasTarget, int numReturns, Parameter[] parameters, TaskMonitor monitor, OnFailure onFailure) {
         this.appId = appId;
         this.taskId = nextTaskId.getAndIncrement();
         this.status = TaskState.TO_ANALYSE;
@@ -127,6 +133,7 @@ public class Task implements Comparable<Task> {
         this.successors = new LinkedList<>();
         this.executions = new LinkedList<>();
         this.taskMonitor = monitor;
+        this.onFailure = onFailure;
     }
 
     /**
@@ -382,6 +389,10 @@ public class Task implements Comparable<Task> {
      */
     public TaskMonitor getTaskMonitor() {
         return taskMonitor;
+    }
+    
+    public OnFailure getOnFail() {
+        return onFailure;
     }
 
     @Override

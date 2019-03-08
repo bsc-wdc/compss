@@ -25,6 +25,7 @@ import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.ServiceImplementation;
@@ -136,6 +137,11 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
         // this.ts.updatedWorker(wNode);
     }
 
+    @Override
+    protected void doCanceled() {
+        
+    }
+    
     /*
      * ***************************************************************************************************************
      * SCHEDULING MANAGEMENT
@@ -215,4 +221,8 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
         return Integer.MAX_VALUE;
     }
 
+    @Override
+    public OnFailure getOnFailure() {
+        return OnFailure.RETRY;
+    }
 }

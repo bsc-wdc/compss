@@ -18,6 +18,7 @@ package es.bsc.compss.api;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 
 
 public interface COMPSsRuntime {
@@ -118,7 +119,7 @@ public interface COMPSsRuntime {
      */
     public int executeTask(Long appId, TaskMonitor monitor, Lang lang, String methodClass, String methodName,
             boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget,
-            int parameterCount, Object... parameters);
+            int parameterCount, OnFailure onFailure, Object... parameters);
 
     /**
      * New service task.
@@ -140,7 +141,7 @@ public interface COMPSsRuntime {
      */
     public int executeTask(Long appId, TaskMonitor monitor, String namespace, String service, String port,
             String operation, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-            boolean hasTarget, int parameterCount, Object... parameters);
+            boolean hasTarget, int parameterCount, OnFailure onFailure, Object... parameters);
 
     /**
      * Notifies the Runtime that there are no more tasks created by the current appId.

@@ -30,6 +30,7 @@ import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.ImplementationDefinition;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.Stream;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -126,7 +127,7 @@ public class Agent {
                 monitor,
                 lang, "es.bsc.compss.agent.loader.Loader", "load",
                 false, 1, false, false,
-                false, 7,
+                false, 7, OnFailure.RETRY,
                 new Object[]{
                     RUNTIME, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "runtime",
                     RUNTIME, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "api",
@@ -214,7 +215,7 @@ public class Agent {
                     monitor,
                     lang, className, methodName,
                     false, 1, false, false,
-                    target != null, paramsCount, params
+                    target != null, paramsCount, OnFailure.RETRY, params
             );
 
         } catch (Exception e) {

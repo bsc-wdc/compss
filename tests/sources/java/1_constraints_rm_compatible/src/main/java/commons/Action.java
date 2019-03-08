@@ -8,6 +8,7 @@ import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
@@ -92,6 +93,11 @@ public class Action extends AllocatableAction {
     protected void doFailed() {
 
     }
+    
+    @Override
+    protected void doCanceled() {
+
+    }
 
     @Override
     public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
@@ -146,5 +152,10 @@ public class Action extends AllocatableAction {
     @Override
     public int getPriority() {
         return 0;
+    }
+    
+    @Override
+    public OnFailure getOnFailure() {
+        return OnFailure.RETRY;
     }
 }

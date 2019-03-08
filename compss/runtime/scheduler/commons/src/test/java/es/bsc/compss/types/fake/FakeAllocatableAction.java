@@ -23,6 +23,7 @@ import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Score;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
@@ -91,6 +92,11 @@ public class FakeAllocatableAction extends AllocatableAction {
     @Override
     public void doFailed() {
         failed[this.fakeId]++;
+    }
+    
+    @Override
+    protected void doCanceled() {
+
     }
 
     @Override
@@ -165,6 +171,11 @@ public class FakeAllocatableAction extends AllocatableAction {
     @Override
     public int getPriority() {
         return 0;
+    }
+    
+    @Override
+    public OnFailure getOnFailure() {
+        return OnFailure.RETRY;
     }
 
 }

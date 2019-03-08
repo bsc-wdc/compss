@@ -73,9 +73,9 @@
   if [ "${comm}" != "es.bsc.compss.gat.master.GATAdaptor" ]; then
       evts_tasks=$(grep -c ":${TASK_EVENTS}:[1-9][0-9]*" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
       evts_tasks_end=$(grep -c "${TASK_EVENTS}:0" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
-      evts_tasks_1=$(grep -c "${TASK_EVENTS}:2\$" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
-      #evts_tasks_2=$(grep -c "${TASK_EVENTS}:2:" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv | cat)
-      evts_tasks_running=${evts_tasks_1}
+      evts_tasks_1=$(grep -c "${TASK_EVENTS}:2\$" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv | cat)
+      evts_tasks_2=$(grep -c "${TASK_EVENTS}:2:" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv | cat)
+      evts_tasks_running=$((evts_tasks_1 + evts_tasks_2))
       evts_worker_running=$(grep -c ":${TASK_EVENTS}:${WORKER_RUNNING}" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
       #evts_worker_running_end=$(grep -c "2:1:1:2:1:.*:${TASK_EVENTS}:0" "${target_log_folder}"/trace/task_tracing_kmeans.py_compss_trace_*.prv)
 

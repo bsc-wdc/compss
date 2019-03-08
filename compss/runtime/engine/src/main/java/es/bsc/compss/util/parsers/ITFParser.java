@@ -625,6 +625,7 @@ public class ITFParser {
 
             String runcompss = EnvironmentLoader.loadFromEnvironment(compssAnnot.runcompss());
             String flags = EnvironmentLoader.loadFromEnvironment(compssAnnot.flags());
+            String workerInMaster = EnvironmentLoader.loadFromEnvironment(compssAnnot.workerInMaster());
             String appName = EnvironmentLoader.loadFromEnvironment(compssAnnot.appName());
             String workingDir = EnvironmentLoader.loadFromEnvironment(compssAnnot.workingDir());
 
@@ -635,6 +636,7 @@ public class ITFParser {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("runcompss: " + runcompss);
                 LOGGER.debug("flags: " + flags);
+                LOGGER.debug("workerInMaster: " + workerInMaster);
                 LOGGER.debug("appName: " + appName);
             }
 
@@ -651,7 +653,7 @@ public class ITFParser {
             ImplementationDefinition implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(MethodType.COMPSs.toString(), compssSignature, implConstraints,
-                        runcompss, flags, appName, workingDir);
+                        runcompss, flags, appName, workerInMaster, workingDir);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }

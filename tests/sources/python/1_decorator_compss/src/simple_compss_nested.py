@@ -8,8 +8,9 @@ PyCOMPSs Testbench Simple
 """
 
 # Imports
-from pycompss.api.parameter import *
+from pycompss.api.parameter import FILE_INOUT
 from pycompss.api.task import task
+from pycompss.api.api import compss_open
 
 
 @task(file_path=FILE_INOUT)
@@ -46,7 +47,6 @@ def test_simple(initial_value):
     increment(file_name)
 
     # Write new value
-    from pycompss.api.api import compss_open
     with compss_open(file_name, 'r+') as fis:
         final_value = fis.read()
         print("Final counter value is " + final_value)

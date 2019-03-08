@@ -1,4 +1,4 @@
-package java_api_calls;
+package javaApiCalls;
 
 import es.bsc.compss.types.annotations.Parameter;
 import es.bsc.compss.types.annotations.parameter.Type;

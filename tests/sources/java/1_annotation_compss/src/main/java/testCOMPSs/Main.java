@@ -28,17 +28,34 @@ public class Main {
         // ------------------------------------------------------------------------
         System.out.println("[LOG] Test nested COMPSs single node");
         COMPSsNestedSingleNode();
-
-        // ------------------------------------------------------------------------
-        System.out.println("[LOG] Test nested COMPSs multiple nodes");
-        COMPSsNestedMultiNode();
-
-        // ------------------------------------------------------------------------
-        System.out.println("[LOG] Test multiple nested COMPSs");
-        COMPSsMultiNestedMultiNode();
-
-        // ------------------------------------------------------------------------
         COMPSs.barrier();
+
+        // ------------------------------------------------------------------------
+        System.out.println("[LOG] Test nested COMPSs multiple nodes FIT");
+        COMPSsNestedMultiNodeFit();
+        COMPSs.barrier();
+
+        // ------------------------------------------------------------------------
+        System.out.println("[LOG] Test nested COMPSs multiple nodes NO FIT");
+        COMPSsNestedMultiNodeNoFit();
+        COMPSs.barrier();
+
+        // ------------------------------------------------------------------------
+        System.out.println("[LOG] Test multiple concurrent nested COMPSs");
+        COMPSsConcurrentMultiNode();
+        COMPSs.barrier();
+
+        // ------------------------------------------------------------------------
+        System.out.println("[LOG] Test multiple concurrent nested COMPSs");
+        COMPSsNoWorkerInMasterFit();
+        COMPSs.barrier();
+        
+        // ------------------------------------------------------------------------
+        System.out.println("[LOG] Test multiple concurrent nested COMPSs");
+        COMPSsNoWorkerInMasterNoFit();
+        COMPSs.barrier();
+
+        // ------------------------------------------------------------------------
         System.out.println("[LOG] COMPSs Test finished");
     }
 
@@ -63,8 +80,8 @@ public class Main {
         }
     }
 
-    private static void COMPSsNestedMultiNode() {
-        int ev = NESTED.taskMultiNode(1);
+    private static void COMPSsNestedMultiNodeFit() {
+        int ev = NESTED.taskMultiNodeFit(1);
 
         if (ev != 0) {
             System.err.println("[ERROR] Process returned non-zero exit value: " + ev);
@@ -72,12 +89,39 @@ public class Main {
         }
     }
 
-    private static void COMPSsMultiNestedMultiNode() {
+    private static void COMPSsNestedMultiNodeNoFit() {
+        int ev = NESTED.taskMultiNodeNoFit(1);
+
+        if (ev != 0) {
+            System.err.println("[ERROR] Process returned non-zero exit value: " + ev);
+            System.exit(1);
+        }
+    }
+
+    private static void COMPSsConcurrentMultiNode() {
         Integer ev1 = NESTED.taskConcurrentMultiNode(1);
         Integer ev2 = NESTED.taskConcurrentMultiNode(1);
 
         if (ev1 != 0 || ev2 != 0) {
             System.err.println("[ERROR] One process returned non-zero exit value: " + ev1 + " or " + ev2);
+            System.exit(1);
+        }
+    }
+
+    private static void COMPSsNoWorkerInMasterFit() {
+        Integer ev = NESTED.taskNoWorkerInMasterFit(1);
+
+        if (ev != 0) {
+            System.err.println("[ERROR] Process returned non-zero exit value: " + ev);
+            System.exit(1);
+        }
+    }
+    
+    private static void COMPSsNoWorkerInMasterNoFit() {
+        Integer ev = NESTED.taskNoWorkerInMasterNoFit(1);
+
+        if (ev != 0) {
+            System.err.println("[ERROR] Process returned non-zero exit value: " + ev);
             System.exit(1);
         }
     }

@@ -46,7 +46,7 @@ public class MasterResourceImpl extends DynamicMethodWorker implements MasterRes
             // The MASTER_NAME_PROPERTY has not been defined, try load from machine
             try {
                 InetAddress localHost = InetAddress.getLocalHost();
-                hostName = localHost.getCanonicalHostName();
+                hostName = localHost.getHostName();
             } catch (UnknownHostException e) {
                 // Sets a default hsotName value
                 ErrorManager.warn("ERROR_UNKNOWN_HOST: " + e.getLocalizedMessage());

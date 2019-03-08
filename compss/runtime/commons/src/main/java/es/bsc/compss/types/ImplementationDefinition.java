@@ -37,7 +37,9 @@ public abstract class ImplementationDefinition {
 
     private final String signature;
 
-    public static final ImplementationDefinition defineImplementation(String implType, String implSignature, MethodResourceDescription implConstraints, String... implTypeArgs) throws IllegalArgumentException {
+
+    public static final ImplementationDefinition defineImplementation(String implType, String implSignature,
+            MethodResourceDescription implConstraints, String... implTypeArgs) throws IllegalArgumentException {
         ImplementationDefinition id = null;
 
         if (implType.toUpperCase().compareTo(TaskType.SERVICE.toString()) == 0) {
@@ -109,11 +111,12 @@ public abstract class ImplementationDefinition {
                     String runcompss = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
                     String flags = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
                     String appName = EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
-                    String compssWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
+                    String workerInMaster = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
+                    String compssWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[4]);
                     if (appName == null || appName.isEmpty()) {
                         throw new IllegalArgumentException("Empty appName annotation for COMPSs method " + implSignature);
                     }
-                    id = new COMPSsDefinition(implSignature, runcompss, flags, appName, compssWorkingDir, implConstraints);
+                    id = new COMPSsDefinition(implSignature, runcompss, flags, appName, workerInMaster, compssWorkingDir, implConstraints);
                     break;
 
                 case DECAF:
@@ -193,7 +196,9 @@ public abstract class ImplementationDefinition {
         private final String methodName;
         private final MethodResourceDescription implConstraints;
 
-        private MethodDefinition(String implSignature, String declaringClass, String methodName, MethodResourceDescription implConstraints) {
+
+        private MethodDefinition(String implSignature, String declaringClass, String methodName,
+                MethodResourceDescription implConstraints) {
             super(implSignature);
             this.declaringClass = declaringClass;
             this.methodName = methodName;
@@ -218,13 +223,13 @@ public abstract class ImplementationDefinition {
 
     }
 
-
     private static class ServiceDefinition extends ImplementationDefinition {
 
         private final String namespace;
         private final String serviceName;
         private final String operation;
         private final String port;
+
 
         private ServiceDefinition(String signature, String namespace, String serviceName, String operation, String port) {
             super(signature);
@@ -252,7 +257,6 @@ public abstract class ImplementationDefinition {
         }
     }
 
-
     private static class MPIDefinition extends ImplementationDefinition {
 
         private final String binary;
@@ -260,7 +264,9 @@ public abstract class ImplementationDefinition {
         private final String mpiRunner;
         private final MethodResourceDescription implConstraints;
 
-        private MPIDefinition(String signature, String binary, String workingDir, String mpiRunner, MethodResourceDescription implConstraints) {
+
+        private MPIDefinition(String signature, String binary, String workingDir, String mpiRunner,
+                MethodResourceDescription implConstraints) {
             super(signature);
             this.binary = binary;
             this.workingDir = workingDir;
@@ -286,7 +292,6 @@ public abstract class ImplementationDefinition {
         }
     }
 
-
     private static class DecafDefinition extends ImplementationDefinition {
 
         private final String dfScript;
@@ -296,7 +301,9 @@ public abstract class ImplementationDefinition {
         private final String mpiRunner;
         private final MethodResourceDescription implConstraints;
 
-        private DecafDefinition(String signature, String dfScript, String dfExecutor, String dfLib, String workingDir, String mpiRunner, MethodResourceDescription implConstraints) {
+
+        private DecafDefinition(String signature, String dfScript, String dfExecutor, String dfLib, String workingDir, String mpiRunner,
+                MethodResourceDescription implConstraints) {
             super(signature);
             this.dfScript = dfScript;
             this.dfExecutor = dfExecutor;
@@ -326,27 +333,30 @@ public abstract class ImplementationDefinition {
         }
     }
 
-
     private static class COMPSsDefinition extends ImplementationDefinition {
 
         private final String runcompss;
         private final String flags;
         private final String appName;
+        private final String workerInMaster;
         private final String workingDir;
         private final MethodResourceDescription implConstraints;
 
-        private COMPSsDefinition(String signature, String runcompss, String flags, String appName, String workingDir, MethodResourceDescription implConstraints) {
+
+        private COMPSsDefinition(String signature, String runcompss, String flags, String appName, String workerInMaster, String workingDir,
+                MethodResourceDescription implConstraints) {
             super(signature);
             this.runcompss = runcompss;
             this.flags = flags;
             this.appName = appName;
+            this.workerInMaster = workerInMaster;
             this.workingDir = workingDir;
             this.implConstraints = implConstraints;
         }
 
         @Override
         public Implementation getImpl(int coreId, int implId) {
-            return new COMPSsImplementation(runcompss, flags, appName, workingDir, coreId, implId, implConstraints);
+            return new COMPSsImplementation(runcompss, flags, appName, workerInMaster, workingDir, coreId, implId, implConstraints);
         }
 
         @Override
@@ -354,20 +364,21 @@ public abstract class ImplementationDefinition {
             StringBuilder sb = new StringBuilder();
             sb.append("COMPSs Implementation \n");
             sb.append("\t Signature: ").append(this.getSignature()).append("\n");
-            sb.append("\t Flags: ").append(flags).append("\n");
-            sb.append("\t Application name: ").append(appName).append("\n");
+            sb.append("\t Flags: ").append(this.flags).append("\n");
+            sb.append("\t Application name: ").append(this.appName).append("\n");
+            sb.append("\t Worker in Master: ").append(this.workerInMaster).append("\n");
             sb.append("\t Working directory: ").append(workingDir).append("\n");
-            sb.append("\t Constraints: ").append(implConstraints);
+            sb.append("\t Constraints: ").append(this.implConstraints);
             return sb.toString();
         }
     }
-
 
     private static class OmpSsDefinition extends ImplementationDefinition {
 
         private final String binary;
         private final String workingDir;
         private final MethodResourceDescription implConstraints;
+
 
         private OmpSsDefinition(String signature, String binary, String workingDir, MethodResourceDescription implConstraints) {
             super(signature);
@@ -393,12 +404,12 @@ public abstract class ImplementationDefinition {
         }
     }
 
-
     private static class OpenCLDefinition extends ImplementationDefinition {
 
         private final String kernel;
         private final String workingDir;
         private final MethodResourceDescription implConstraints;
+
 
         private OpenCLDefinition(String signature, String kernel, String workingDir, MethodResourceDescription implConstraints) {
             super(signature);
@@ -424,12 +435,12 @@ public abstract class ImplementationDefinition {
         }
     }
 
-
     private static class BinaryDefinition extends ImplementationDefinition {
 
         private final String binary;
         private final String workingDir;
         private final MethodResourceDescription implConstraints;
+
 
         private BinaryDefinition(String signature, String binary, String workingDir, MethodResourceDescription implConstraints) {
             super(signature);
@@ -455,14 +466,15 @@ public abstract class ImplementationDefinition {
         }
     }
 
-
     private static class MultiNodeDefinition extends ImplementationDefinition {
 
         private final String multiNodeClass;
         private final String multiNodeName;
         private final MethodResourceDescription implConstraints;
 
-        private MultiNodeDefinition(String signature, String multiNodeClass, String multiNodeName, MethodResourceDescription implConstraints) {
+
+        private MultiNodeDefinition(String signature, String multiNodeClass, String multiNodeName,
+                MethodResourceDescription implConstraints) {
             super(signature);
             this.multiNodeClass = multiNodeClass;
             this.multiNodeName = multiNodeName;

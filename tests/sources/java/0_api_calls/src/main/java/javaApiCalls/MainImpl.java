@@ -1,13 +1,19 @@
-package java_api_calls;
+package javaApiCalls;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.FileNotFoundException;
 
 
 public class MainImpl {
 
+    /**
+     * Increment task.
+     * 
+     * @param counterFile
+     *            File path
+     */
     public static void increment(String counterFile) {
         int count = -1;
 

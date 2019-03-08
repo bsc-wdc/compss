@@ -27,7 +27,7 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 
 public class COMPSsImplementation extends AbstractMethodImplementation implements Externalizable {
 
-    public static final int NUM_PARAMS = 4;
+    public static final int NUM_PARAMS = 5;
 
     private static final String DEFAULT_RUNCOMPSS = "runcompss";
     private static final String DEFAULT_FLAGS = "";
@@ -35,6 +35,7 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
     private String runcompss;
     private String flags;
     private String appName;
+    private String workerInMaster;
     private String workingDir;
 
 
@@ -43,8 +44,8 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
         super();
     }
 
-    public COMPSsImplementation(String runcompss, String flags, String appName, String workingDir, Integer coreId, Integer implementationId,
-            MethodResourceDescription annot) {
+    public COMPSsImplementation(String runcompss, String flags, String appName, String workerInMaster, String workingDir, Integer coreId,
+            Integer implementationId, MethodResourceDescription annot) {
 
         super(coreId, implementationId, annot);
 
@@ -59,6 +60,7 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
             this.flags = DEFAULT_FLAGS;
         }
         this.appName = appName;
+        this.workerInMaster = workerInMaster;
         this.workingDir = workingDir;
     }
 
@@ -72,6 +74,10 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
 
     public String getAppName() {
         return this.appName;
+    }
+
+    public String getWorkerInMaster() {
+        return this.workerInMaster;
     }
 
     public String getWorkingDir() {
@@ -89,6 +95,7 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
         sb.append("[RUNCOMPSS=").append(this.runcompss);
         sb.append(", FLAGS=").append(this.flags);
         sb.append(", APP_NAME=").append(this.appName);
+        sb.append(", WORKER_IN_MASTER=").append(this.workerInMaster);
         sb.append(", WORKING_DIR=").append(this.workingDir);
         sb.append("]");
 
@@ -106,6 +113,7 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
         this.runcompss = (String) in.readObject();
         this.flags = (String) in.readObject();
         this.appName = (String) in.readObject();
+        this.workerInMaster = (String) in.readObject();
         this.workingDir = (String) in.readObject();
     }
 
@@ -115,6 +123,7 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
         out.writeObject(this.runcompss);
         out.writeObject(this.flags);
         out.writeObject(this.appName);
+        out.writeObject(this.workerInMaster);
         out.writeObject(this.workingDir);
     }
 

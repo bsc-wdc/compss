@@ -37,14 +37,6 @@ public class Constants {
     public static final String IS_NOT_PRIORITARY_TASK = "false";
 
     /**
-     * Values for target modification
-     *
-     */
-    public static final String IS_MODIFIER = "true";
-
-    public static final String IS_NOT_MODIFIER = "false";
-
-    /**
      * Replicated task execution
      *
      */
@@ -59,6 +51,14 @@ public class Constants {
     public static final String IS_DISTRIBUTED_TASK = "true";
 
     public static final String IS_NOT_DISTRIBUTED_TASK = "false";
+
+    /**
+     * For Nested COMPSs executions
+     *
+     */
+    public static final String WORKER_IN_MASTER = "true";
+
+    public static final String WORKER_NOT_IN_MASTER = "false";
 
     /**
      * Single node value

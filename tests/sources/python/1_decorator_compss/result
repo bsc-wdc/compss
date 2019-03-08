@@ -54,4 +54,16 @@
 
   #----------------------------------------------------------------------------------
   # Report result status
+
+  # Job 1 -> cn=2, cus=2, worker_in_master=False -> cn=1, cus=2
+  expected_cn=1
+  expected_cus=2
+  cn=$(grep -c "Slave hostname" "${target_log_folder}"/jobs/job1_NEW.out)
+  cus=$(grep "Slave hostname" "${target_log_folder}"/jobs/job1_NEW.out | awk '{ print $(NF-1) }')
+  if [ "${cn}" -ne "${expected_cn}" ] || [ "${cus}" -ne "${expected_cus}" ]; then
+    echo "[ERROR] Incorrect cn/cus for nested compss task" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  # All ok
   exit 0

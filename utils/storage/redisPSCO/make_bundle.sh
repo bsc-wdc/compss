@@ -1,25 +1,56 @@
 #!/bin/bash
-# Author: Sergio Rodriguez Guasch < sergio.rodriguez at bsc dot es >
+
 # This script builds a bundle with all the needed stuff (aside from Redis backend)
 # to use the Redis storage API with COMPSs
 
-# Rebuild the Redis API. This should leave a directory target with an uber-JAR that contains
-# all the needed stuff
-mvn clean package
 
+#
+# BASH OPTIONS
+#
+
+set -e # Exit when command fails
+set -u # Exit when undefined variable
+#set -x # Enable bash trace
+
+
+#
+# SCRIPT VARIABLES
+#
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUNDLE_NAME=COMPSs-Redis-bundle
-# Delete (if any) old Bundle directory
-rm -rf $BUNDLE_NAME
-# Create the bundle directory. This will be the path that we will need to pass to enqueue_compss as
-# storage_home
-mkdir -p $BUNDLE_NAME
-# Copy the Java JAR that contains the implementation of the Redis API
-cp target/compss-redisPSCO.jar $BUNDLE_NAME
-# Remove .pyc files from Python code
-rm -f python/storage/*.pyc
-# Copy Python API
-cp -rf python $BUNDLE_NAME
-# Move the scripts folder to the bundle. The scripts "storage_init" and "storage_stop" will be executed
-# by COMPSs at the beggining and the end of the execution respectively. They build (destroy) a Redis cluster
-# They come with some examples
-cp -rf scripts $BUNDLE_NAME
+BUNDLE_PATH="${SCRIPT_DIR}/${BUNDLE_NAME}"
+
+
+#
+# MAIN
+#
+
+main() {
+  # Move to root folder
+  cd "${SCRIPT_DIR}"
+
+  # Compile JAVA sources
+  mvn -U clean package
+
+  # Clean and create bundle directory
+  rm -rf "${BUNDLE_PATH}"
+  mkdir -p "${BUNDLE_PATH}"
+
+  # Copy the Java JAR that contains the implementation of the Redis API
+  cp "${SCRIPT_DIR}"/target/compss-redisPSCO.jar "${BUNDLE_PATH}"
+  # Remove .pyc files from Python code
+  rm -f "${SCRIPT_DIR}"/python/storage/*.pyc
+  # Copy Python API
+  cp -rf "${SCRIPT_DIR}"/python "${BUNDLE_PATH}"
+
+  # Move the scripts folder to the bundle
+  cp -rf "${SCRIPT_DIR}"/scripts "${BUNDLE_PATH}"
+
+  # Restore user directory
+  cd -
+}
+
+#
+# ENTRY POINT
+#
+main

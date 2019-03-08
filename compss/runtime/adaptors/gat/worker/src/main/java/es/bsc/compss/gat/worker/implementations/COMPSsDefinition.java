@@ -29,6 +29,7 @@ public class COMPSsDefinition extends ImplementationDefinition {
     private final String runcompss;
     private final String flags;
     private final String appName;
+    private final String workerInMaster;
     private final String workingDir;
 
     private final COMPSsImplementation impl;
@@ -40,6 +41,7 @@ public class COMPSsDefinition extends ImplementationDefinition {
         this.runcompss = args[execArgsIdx++];
         this.flags = args[execArgsIdx++];
         this.appName = args[execArgsIdx++];
+        this.workerInMaster = args[execArgsIdx++];
         String wDir = args[execArgsIdx++];
         if (wDir == null || wDir.isEmpty() || wDir.equals(Constants.UNASSIGNED)) {
             this.workingDir = null;
@@ -47,7 +49,8 @@ public class COMPSsDefinition extends ImplementationDefinition {
             this.workingDir = wDir;
         }
 
-        this.impl = new COMPSsImplementation(this.runcompss, this.flags, this.appName, this.workingDir, null, null, null);
+        this.impl = new COMPSsImplementation(this.runcompss, this.flags, this.appName, this.workerInMaster, this.workingDir, null, null,
+                null);
     }
 
     @Override

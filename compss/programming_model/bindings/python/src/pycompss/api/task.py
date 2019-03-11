@@ -225,6 +225,8 @@ class task(object):
         """
         self.user_function = user_function
 
+        self.update_if_interactive()
+
         def task_decorator(*args, **kwargs):
             # Determine the context and decide what to do
             import pycompss.util.context as context
@@ -238,6 +240,37 @@ class task(object):
             return self.sequential_call(*args, **kwargs)
 
         return task_decorator
+
+    def update_if_interactive(self):
+        """
+        Update the user code if in interactive mode.
+        :return: None
+        """
+        import inspect
+        mod = inspect.getmodule(self.user_function)
+        self.module_name = mod.__name__
+        if self.module_name == '__main__' or self.module_name == 'pycompss.runtime.launch':
+            # The module where the function is defined was run as __main__,
+            # We need to find out the real module name
+            # Get the real module name from our launch.py app_path global variable
+            # It is guaranteed that this variable will always exist because this code is only executed
+            # when we know we are in the master
+            path = getattr(mod, 'app_path')
+            # Get the file name
+            file_name = os.path.splitext(os.path.basename(path))[0]
+            # Do any necessary pre processing action before executing any code
+            if file_name.startswith('InteractiveMode') and not self.registered:
+                # If the file_name starts with 'InteractiveMode' means that
+                # the user is using PyCOMPSs from jupyter-notebook.
+                # Convention between this file and interactive.py
+                # In this case it is necessary to do a pre-processing step
+                # that consists of putting all user code that may be executed
+                # in the worker on a file.
+                # This file has to be visible for all workers.
+                from pycompss.util.interactive_helpers import update_tasks_code_file
+                update_tasks_code_file(self.user_function, path)
+        else:
+            pass
 
     def update_return_if_no_returns(self, f):
         """
@@ -565,17 +598,6 @@ class task(object):
             path = getattr(mod, 'app_path')
             # Get the file name
             file_name = os.path.splitext(os.path.basename(path))[0]
-            # Do any necessary pre processing action before executing any code
-            if file_name.startswith('InteractiveMode') and not self.registered:
-                # If the file_name starts with 'InteractiveMode' means that
-                # the user is using PyCOMPSs from jupyter-notebook.
-                # Convention between this file and interactive.py
-                # In this case it is necessary to do a pre-processing step
-                # that consists of putting all user code that may be executed
-                # in the worker on a file.
-                # This file has to be visible for all workers.
-                from pycompss.util.interactive_helpers import update_tasks_code_file
-                update_tasks_code_file(self.user_function, path)
             # Get the module
             from pycompss.util.object_properties import get_module_name
             self.module_name = get_module_name(path, file_name)

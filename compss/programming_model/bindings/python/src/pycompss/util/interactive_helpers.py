@@ -178,8 +178,8 @@ def _is_variable_assignation(line):
                 line.startswith("import") or
                 line.startswith("@") or
                 line.startswith("def") or
-                line.startswith("class") or '(' in line or ')' in line) \
-                and len(parts) == 3 and parts[1] == '=':
+                line.startswith("class")) \
+                and len(parts) >= 3 and parts[1] == '=':
             # It is actually an assignation
             return True
         else:

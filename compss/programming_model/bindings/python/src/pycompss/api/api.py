@@ -132,7 +132,7 @@ if context.in_pycompss():
         barrier(no_more_tasks)
 
 
-    def compss_wait_on(*args):
+    def compss_wait_on(*args, **kwargs):
         """
         Wait for objects.
 
@@ -140,7 +140,7 @@ if context.in_pycompss():
         :return: List with the final values.
         """
 
-        def _compss_wait_on(obj, to_write=False):
+        def _compss_wait_on(obj, mode):
             """
             Waits on an object.
 
@@ -148,12 +148,6 @@ if context.in_pycompss():
             :param to_write: Write enable?. Options = [True, False]. Default = True
             :return: An object of 'file' type.
             """
-
-            # print("Waiting on", obj)
-            if to_write:
-                mode = 'r+'
-            else:
-                mode = 'r'
             compss_mode = get_compss_mode(mode)
 
             # Private function used below (recursively)
@@ -187,7 +181,7 @@ if context.in_pycompss():
                     res = wait_on_iterable(obj)
                     return res
 
-        ret = list(map(_compss_wait_on, args))
+        ret = list(map(_compss_wait_on, args, [kwargs.get("mode", "rw")] * len(args)))
         ret = ret[0] if len(ret) == 1 else ret
         # Check if there are empty elements return elements that need to be removed.
         if isinstance(ret, listType):

@@ -125,8 +125,10 @@ _current_id = 1
 # This way we avoid to have two objects from different applications having
 # the same identifier
 _runtime_id = str(uuid.uuid1())
-_id2obj = {}
-
+# All objects are segregated according to their position in memory
+# Given these positions, all objects are then reverse-mapped according
+# to their filenames
+_addr2id2obj = {}
 
 def get_object_id(obj, assign_new_key=False, force_insertion=False):
     """
@@ -145,6 +147,12 @@ def get_object_id(obj, assign_new_key=False, force_insertion=False):
     global _runtime_id
     # Force_insertion implies assign_new_key
     assert not force_insertion or assign_new_key
+
+    obj_addr = id(obj)
+
+    # Assign an empty dictionary (in case there is nothing there)
+    _id2obj = _addr2id2obj.setdefault(obj_addr, {})
+
     for identifier in _id2obj:
         if _id2obj[identifier] is obj:
             if force_insertion:
@@ -163,6 +171,18 @@ def get_object_id(obj, assign_new_key=False, force_insertion=False):
         _current_id += 1
         return new_id
     return None
+
+def pop_object_id(obj):
+    """
+    Pop an object from the nested identifier hashmap
+    :param obj: Object to pop
+    :return: Popped object, None if obj was not in _addr2id2obj
+    """
+    obj_addr = id(obj)
+    _id2obj = _addr2id2obj.setdefault(id(obj), {})
+    for (k, v) in list(_id2obj.items()):
+        _id2obj.pop(k)
+        return
 
 
 # Enable or disable the management of *args parameters as a whole tuple built
@@ -304,7 +324,7 @@ def delete_object(obj):
         return False
 
     try:
-        _id2obj.pop(obj_id)
+        pop_object_id(obj)
     except KeyError:
         pass
     try:
@@ -516,20 +536,18 @@ def synchronize(obj, mode):
         compss.close_file(file_name, mode)
     else:
         new_obj = get_by_id(compss_file)
-    new_obj_id = get_object_id(new_obj, True, True)
 
-    # The main program won't work with the old object anymore, update mapping
-    objid_to_filename[new_obj_id] = objid_to_filename[obj_id].replace(obj_id, new_obj_id)
-    _objs_written_by_mp[new_obj_id] = objid_to_filename[new_obj_id]
+    if mode == 'r':
+        new_obj_id = get_object_id(new_obj, True, True)
+        # The main program won't work with the old object anymore, update mapping
+        objid_to_filename[new_obj_id] = objid_to_filename[obj_id].replace(obj_id, new_obj_id)
+        _objs_written_by_mp[new_obj_id] = objid_to_filename[new_obj_id]
 
-    if __debug__:
-        logger.debug("Deleting obj %s (new one is %s)" % (str(obj_id), str(new_obj_id)))
-    compss.delete_file(objid_to_filename[obj_id])
-    objid_to_filename.pop(obj_id)
-    pending_to_synchronize.pop(obj_id)
-
-    if __debug__:
-        logger.debug("Now object with id %s and %s has mapping %s" % (new_obj_id, type(new_obj), file_name))
+    if mode != 'r':
+        compss.delete_file(objid_to_filename[obj_id])
+        objid_to_filename.pop(obj_id)
+        pending_to_synchronize.pop(obj_id)
+        pop_object_id(obj)
 
     return new_obj
 
@@ -1161,7 +1179,7 @@ def _turn_into_file(name, p):
 def _clean_objects():
     """Clean the objects stored in the global dictionaries:
         * pending_to_synchronize dict
-        * _id2obj dict
+        * _addr2id2obj dict
         * objid_to_filename dict
         * _objs_written_by_mp dict
 
@@ -1171,7 +1189,7 @@ def _clean_objects():
     for filename in objid_to_filename.values():
         compss.delete_file(filename)
     pending_to_synchronize.clear()
-    _id2obj.clear()
+    _addr2id2obj.clear()
     objid_to_filename.clear()
     _objs_written_by_mp.clear()
 

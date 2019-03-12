@@ -398,6 +398,7 @@ public class Executor implements Runnable {
         if (param.getType().equals(DataType.FILE_T)) {
             String renamedFilePath = (String) param.getValue();
             File renamedFile = new File(renamedFilePath);
+            param.setRenamedName(renamedFilePath);
             if (renamedFile.getName().equals(param.getOriginalName())) {
                 param.setOriginalName(renamedFilePath);
             } else {
@@ -405,6 +406,7 @@ public class Executor implements Runnable {
                 LOGGER.debug("Setting Original Name to " + inSandboxPath);
                 LOGGER.debug("Renamed File Path is " + renamedFilePath);
                 param.setOriginalName(inSandboxPath);
+                param.setValue(inSandboxPath);
                 File inSandboxFile = new File(inSandboxPath);
                 if (renamedFile.exists()) {
                     LOGGER.debug("File exists");
@@ -450,7 +452,7 @@ public class Executor implements Runnable {
     private void unbindOriginalFilenameToRename(InvocationParam param, Lang lang) throws IOException, JobExecutionException {
         if (param.getType().equals(DataType.FILE_T)) {
             String inSandboxPath = param.getOriginalName();
-            String renamedFilePath = (String) param.getValue();
+            String renamedFilePath = param.getRenamedName();
 
             LOGGER.debug("Treating file " + inSandboxPath);
             File inSandboxFile = new File(inSandboxPath);

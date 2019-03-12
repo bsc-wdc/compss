@@ -41,6 +41,7 @@ public class NIOParam implements Externalizable, InvocationParam {
     private Object value;
     private NIOData source;
     private String originalName;
+    private String renamedName;
 
     private Class<?> valueClass;
 
@@ -117,6 +118,16 @@ public class NIOParam implements Externalizable, InvocationParam {
     @Override
     public void setOriginalName(String originalName) {
         this.originalName = originalName;
+    }
+    
+    @Override
+    public String getRenamedName() {
+        return this.renamedName;
+    }
+
+    @Override
+    public void setRenamedName(String renamedName) {
+        this.renamedName = renamedName;
     }
 
     @Override

@@ -20,6 +20,7 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Stream;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamURI;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -28,6 +29,7 @@ public class FakeInvocationParam implements InvocationParam {
 
     private DataType type;
     private String originalName;
+    private String renamedName;
     private Object value;
     private Class<?> valueClass;
 
@@ -92,6 +94,16 @@ public class FakeInvocationParam implements InvocationParam {
     @Override
     public void setOriginalName(String originalName) {
         this.originalName = originalName;
+    }
+    
+    @Override
+    public String getRenamedName() {
+        return this.renamedName;
+    }
+
+    @Override
+    public void setRenamedName(String renamedName) {
+        this.renamedName = renamedName;
     }
 
     @Override

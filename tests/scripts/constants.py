@@ -25,7 +25,7 @@ DEFAULT_FAMILIES = ["autoparallel",
                     "tools"]
 DEFAULT_TESTS = []
 
-DEFAULT_CFG_FILE = "NIO_local.cfg"
+DEFAULT_CFG_FILE = "NIO.cfg"
 DEFAULT_CFG_EXTENSION = ".cfg"
 DEFAULT_COMPSS_HOME = "/opt/COMPSs/"
 DEFAULT_COMM = "es.bsc.compss.nio.master.NIOAdaptor"

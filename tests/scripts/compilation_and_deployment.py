@@ -261,8 +261,6 @@ def _compile_and_deploy_specific(cmd_args, compss_cfg):
         compiled_tests.append((test_dir, test_path, test_num))
     print("[INFO] Tests compiled")
 
-    exit(0)
-
     print()
     print("[INFO] Deploying tests...")
     target_base_dir = compss_cfg.get_target_base_dir()

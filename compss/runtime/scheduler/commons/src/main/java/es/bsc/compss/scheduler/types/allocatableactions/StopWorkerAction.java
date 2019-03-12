@@ -150,6 +150,11 @@ public class StopWorkerAction extends AllocatableAction {
     protected void doCanceled() {
         removeResource();
     }
+    
+    @Override
+    protected void doFailedIgnore() {
+        
+    }
 
     /*
      * ***************************************************************************************************************

@@ -83,6 +83,11 @@ public class Action extends AllocatableAction {
     protected void doCompleted() {
 
     }
+    
+    @Override
+    protected void doFailedIgnore() {
+        
+    }
 
     @Override
     protected void doError() throws FailedActionException {

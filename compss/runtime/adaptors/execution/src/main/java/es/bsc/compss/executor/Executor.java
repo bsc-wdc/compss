@@ -520,6 +520,7 @@ public class Executor implements Runnable {
             if (param.getType().equals(DataType.FILE_T)) {
                 String filepath = (String) param.getValue();
                 File f = new File(filepath);
+                LOGGER.warn("MARTA: FilePath to check: " + filepath + " exists: " + f.exists());
                 // If using C binding we ignore potential errors
                 if (!f.exists() && (invocation.getLang() != Lang.C)) {
                     StringBuilder errMsg = new StringBuilder();
@@ -528,6 +529,11 @@ public class Executor implements Runnable {
                             .append(invocation.getMethodImplementation().getMethodDefinition());
                     System.out.println(errMsg.toString());
                     System.err.println(errMsg.toString());
+                    try {
+                        f.createNewFile();
+                    } catch (IOException e) {
+                        System.err.println("[EXECUTOR] checkJobFiles - Error in creating a new blank file");
+                    }
                     allOutFilesCreated = false;
                 }
             }

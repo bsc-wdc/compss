@@ -68,6 +68,11 @@ public class OptimizationAction extends AllocatableAction {
     }
     
     @Override
+    protected void doFailedIgnore() {
+        
+    }
+    
+    @Override
     public Integer getCoreId() {
         return null;
     }

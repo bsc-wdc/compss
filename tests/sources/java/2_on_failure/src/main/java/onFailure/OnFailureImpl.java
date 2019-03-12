@@ -37,11 +37,13 @@ public class OnFailureImpl {
         System.out.println("The number readed is : " + n);
         
         //Exception thrown
-        if (n>=0) {
+        if (n>=1) {
+//         if (n>5) {
             throw new numberException ("The number is too low");
         }
             
-        String str = String.valueOf(rand.nextInt(5));
+        String str = String.valueOf(rand.nextInt(2));
+        System.out.println("The number written is : " + str);
         BufferedWriter writer;
         try {
             //Write the new random integer to file
@@ -79,7 +81,8 @@ public class OnFailureImpl {
         int n = Integer.parseInt(st); 
         System.out.println("The number readed is : " + n);
       //Exception thrown
-        if (n>=0) {
+//         if (n>=0) {
+        if (n>5) {
             throw new numberException ("The number is too low");
         }
         String str = String.valueOf(rand.nextInt(5));

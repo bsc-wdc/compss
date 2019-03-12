@@ -453,6 +453,7 @@ public class DataInfoProvider {
 //             idToData.remove(dataId);
         }
     }
+    
     /**
      * Returns if a given data has been accessed or not
      *
@@ -784,6 +785,7 @@ public class DataInfoProvider {
     public ResultFile blockDataAndGetResultFile(int dataId, ResultListener listener) {
         DataInstanceId lastVersion;
         FileInfo fileInfo = (FileInfo) idToData.get(dataId);
+        LOGGER.debug("MARTA: fileInfo in blockDataAndGetResultFile " + fileInfo);
         if (fileInfo != null && !fileInfo.isCurrentVersionToDelete()) { // If current version is to delete do not
             LOGGER.debug("MARTA: BlockDataAndGetResultFile of dataId : " + dataId + " of file info " + fileInfo.getDataId() + " " + fileInfo.toString());
             // transfer

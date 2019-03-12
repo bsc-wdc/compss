@@ -127,6 +127,8 @@ public class ExecutionAction extends AllocatableAction {
                 addResourceConstraint(e);
             }
         }
+        JOB_LOGGER.info("MARTA: Execution Action for task " + task.getId());
+        
     }
 
     /**
@@ -507,12 +509,28 @@ public class ExecutionAction extends AllocatableAction {
         // Failed message
         TaskMonitor monitor = task.getTaskMonitor();
         monitor.onFailedExecution();
-        
-        JOB_LOGGER.debug("MARTA:Do canceled en executionaction + task " + this.getId());
 
         // Notify task failure
         task.decreaseExecutionCount();
         task.setStatus(TaskState.CANCELED);
+        producer.notifyTaskEnd(task);
+    }
+    
+    @Override
+    protected void doFailedIgnore() {
+        // Failed message
+        String taskName = task.getTaskDescription().getName();
+        StringBuilder sb = new StringBuilder();
+        sb.append("MARTA: Task " ).append(task.getId()).append("\n");
+        sb.append("Task failed. Successors keep running.\n");
+        sb.append("\n");
+        ErrorManager.warn(sb.toString());
+        TaskMonitor monitor = task.getTaskMonitor();
+        monitor.onFailedExecution();
+
+        // Notify task failure
+        task.decreaseExecutionCount();
+        task.setStatus(TaskState.FINISHED);
         producer.notifyTaskEnd(task);
     }
 

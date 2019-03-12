@@ -133,6 +133,11 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     protected void doCanceled() {
         
     }
+    
+    @Override
+    protected void doFailedIgnore() {
+        
+    }
 
     @Override
     public Integer getCoreId() {

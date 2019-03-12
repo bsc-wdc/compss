@@ -399,7 +399,7 @@ public class TaskAnalyser {
                 DependencyParameter dPar = (DependencyParameter) param;
                 DataAccessId dAccId = dPar.getDataAccessId();
                 LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dPar.getDataTarget());
-                if (taskState == TaskState.CANCELED) {
+                if (task.getOnFail() == OnFailure.CANCEL_SUCCESSORS) {
                     this.DIP.dataAccessHasBeenCanceled(dAccId);
                 } else {
                     this.DIP.dataHasBeenAccessed(dAccId);
@@ -427,6 +427,7 @@ public class TaskAnalyser {
      * @param t
      */
     private void checkResultFileTransfer(Task t) {
+        LOGGER.debug("MARTA: CheckResultFileTransfer" );
         LinkedList<DataInstanceId> fileIds = new LinkedList<>();
         for (Parameter p : t.getTaskDescription().getParameters()) {
             switch (p.getType()) {
@@ -438,9 +439,14 @@ public class TaskAnalyser {
                             break;
                         case INOUT:
                             DataInstanceId dId = ((RWAccessId) fp.getDataAccessId()).getWrittenDataInstance();
+                            LOGGER.debug("MARTA: CheckResultFileTransfer dId: " + dId);
+                            LOGGER.debug("MARTA: CheckResultFileTransfer this.writers: " + this.writers.get(dId.getDataId()) );
+                            LOGGER.debug("MARTA: CheckResultFileTransfer t: " + t);
                             if (this.writers.get(dId.getDataId()) == t) {
                                 fileIds.add(dId);
                             }
+
+                            LOGGER.debug("MARTA: CheckResultFileTransfer Case INOUT: " + dId );
                             break;
                         case OUT:
                             dId = ((WAccessId) fp.getDataAccessId()).getWrittenDataInstance();
@@ -460,6 +466,8 @@ public class TaskAnalyser {
             // List<ResultFile> resFiles = new ArrayList<ResultFile>(numFT);
             for (DataInstanceId fileId : fileIds) {
                 try {
+
+                    LOGGER.debug("MARTA: fileId " + fileId);
                     int id = fileId.getDataId();
                     this.DIP.blockDataAndGetResultFile(id, new ResultListener(new Semaphore(0)));
                     this.DIP.unblockDataId(id);

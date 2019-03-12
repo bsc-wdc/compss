@@ -435,22 +435,20 @@ public class TaskScheduler {
         LOGGER.warn("[TaskScheduler] Error on action " + action);
 
         List<AllocatableAction> resourceFree = new LinkedList<>();
-        ResourceScheduler<WorkerResourceDescription> resource = (ResourceScheduler<WorkerResourceDescription>) action
-                .getAssignedResource();
+
+        List<AllocatableAction> dataFreeActions = new LinkedList<>();
+        ResourceScheduler<WorkerResourceDescription> resource = (ResourceScheduler<WorkerResourceDescription>) action.getAssignedResource();
 
         boolean failed = false;
-        
-        if (action.getOnFailure() == OnFailure.RETRY) {
             // Process the action error (removes the assigned resource)
-            try {
-                action.error();
-            } catch (FailedActionException fae) {
-                // Action has completely failed
-                failed = true;
-                LOGGER.warn("[TaskScheduler] Action completely failed " + action);
-                removeFromReady(action);
-    
-                // Free all the dependent tasks
+        try {
+            action.error();
+        } catch (FailedActionException fae) {
+            // Action has completely failed
+            failed = true;
+            removeFromReady(action);
+            if (action.getOnFailure() != OnFailure.IGNORE) {
+            // Free all the dependent tasks
                 for (AllocatableAction failedAction : action.failed()) {
                     try {
                         ResourceScheduler<?> failedResource = failedAction.getAssignedResource();
@@ -461,40 +459,48 @@ public class TaskScheduler {
                         // Once the action starts running should cannot be moved from the resource
                     }
                 }
+                
+                // We free the current task and get the free actions from the resource
+                try {
+                    resourceFree.addAll(resource.unscheduleAction(action));
+                } catch (ActionNotFoundException anfe) {
+                    // Once the action starts running should cannot be moved from the resource
+                }
+                
+                if (!failed) {
+                    dataFreeActions.add(action);
+                    // Try to re-schedule the action
+                    /*
+                     * Score actionScore = generateActionScore(action); try { scheduleAction(action, actionScore);
+                     * tryToLaunch(action); } catch (BlockedActionException bae) { removeFromReady(action);
+                     * addToBlocked(action); }
+                     */
+                }
+            } else {
+                try {
+                    // Get the data free actions and mark them as ready
+                    resourceFree = resource.unscheduleAction(action);
+                    dataFreeActions = action.failed();
+                    for (AllocatableAction dataFreeAction: dataFreeActions) {
+                        addToReady(dataFreeAction);
+                    }
+                } catch (ActionNotFoundException e) {
+                 // Once the action starts running should cannot be moved from the resource
+                    resourceFree = new LinkedList<>();
+                };
+                
             }
-    
-            // We free the current task and get the free actions from the resource
-            try {
-                resourceFree.addAll(resource.unscheduleAction(action));
-            } catch (ActionNotFoundException anfe) {
-                // Once the action starts running should cannot be moved from the resource
-            }
-            workerLoadUpdate(resource);
-            List<AllocatableAction> list = new LinkedList<>();
-            if (!failed) {
-                list.add(action);
-                // Try to re-schedule the action
-                /*
-                 * Score actionScore = generateActionScore(action); try { scheduleAction(action, actionScore);
-                 * tryToLaunch(action); } catch (BlockedActionException bae) { removeFromReady(action);
-                 * addToBlocked(action); }
-                 */
-            }
-            List<AllocatableAction> blockedCandidates = new LinkedList<>();
-            handleDependencyFreeActions(list, resourceFree, blockedCandidates, resource);
+        }
+
+        workerLoadUpdate(resource);
+        
+        List<AllocatableAction> blockedCandidates = new LinkedList<>();
+        
+        if (action.getOnFailure() != OnFailure.CANCEL_SUCCESSORS) {
+            handleDependencyFreeActions(dataFreeActions, resourceFree, blockedCandidates, resource);
             for (AllocatableAction aa : blockedCandidates) {
                 removeFromReady(aa);
                 addToBlocked(aa);
-            }
-            LOGGER.debug("[MARTA] ErrorOnAction, case RETRY" + action);
-        } else {
-            LOGGER.debug("[MARTA] The action where the error was notified is : " + action);
-            if (action.getOnFailure() == OnFailure.CANCEL_SUCCESSORS) {
-             // Action has completely failed and its successors have to be ignored
-                action.failed();
-                LOGGER.warn("[TaskScheduler] Action failed. Cancelling successors... " + action);
-                removeFromReady(action);
-                workerLoadUpdate(resource);
             }
         }
     }
@@ -555,7 +561,10 @@ public class TaskScheduler {
         LOGGER.debug("[TaskScheduler] Treating dependency free actions on resource " + resource.getName());
         // All actions should have already been assigned to a resource, no need
         // to change the assignation once they become free of dependencies
-
+        LOGGER.warn("MARTA: dataFreeActions: " + dataFreeActions);
+        LOGGER.warn("MARTA: resourceFreeActions: " + resourceFreeActions);
+        LOGGER.warn("MARTA: blockedCandidates: " + blockedCandidates);
+        LOGGER.warn("MARTA: resource: " + resource);
         // Try to launch all the data free actions and the resource free actions
         PriorityQueue<ObjectValue<AllocatableAction>> executableActions = new PriorityQueue<>();
         for (AllocatableAction freeAction : dataFreeActions) {

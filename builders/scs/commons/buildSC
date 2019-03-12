@@ -70,7 +70,7 @@
 
   # Compile sources
   echo "- Compile sources"
-  cd "${SOURCES_DIR}"/compss/
+  cd "${SOURCES_DIR}"
   mvn -U clean package
   cd "${SCRIPT_DIR}"
 
@@ -94,7 +94,7 @@
 
   # CLEAN TRUNK COMPILATION
   echo "- Clean sources"
-  cd "${SOURCES_DIR}"/compss/
+  cd "${SOURCES_DIR}"
   mvn -U clean
   cd "${SCRIPT_DIR}"
   # COMPSs Monitor APACHE

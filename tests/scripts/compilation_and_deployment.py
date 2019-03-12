@@ -189,27 +189,60 @@ def _compile_and_deploy_specific(cmd_args, compss_cfg):
     print("[WARN] Specific tests detected. Ignoring cmd_args.families")
     compiled_tests = []
     for test in cmd_args.tests:
-        # Test can be a global number or a family number
-        try:
-            test_num = int(test)
-            is_family = False
-        except ValueError:
-            is_family = True
+        # Test can be:
+        #   - global number
+        #   - family:number
+        #   - family:test_name
 
-        if is_family:
-            # Family number, retrieve family and number
-            family_dir = "".join(x for x in test if not x.isdigit())
-            num_family = int("".join(x for x in test if x.isdigit()))
-            if family_dir not in cmd_args.test_numbers.keys():
-                raise TestCompilationError("[ERROR] Invalid family " + str(family_dir) + " on specific test")
-            if num_family not in cmd_args.test_numbers[family_dir].keys():
-                raise TestCompilationError("[ERROR] Invalid family number " + str(num_family) + " on specific test")
-            test_dir, test_path, test_num = cmd_args.test_numbers[family_dir][num_family]
-        else:
+        # Check if its a single number
+        try:
+            int(test)
+            is_global_number = True
+        except ValueError:
+            is_global_number = False
+
+        if is_global_number:
             # Global number, retrieve test folder
+            print("[INFO] Specific test detected as global number")
+            test_num = int(test)
             if test_num not in cmd_args.test_numbers["global"].keys():
                 raise TestCompilationError("[ERROR] Invalid test number " + str(test_num))
-            test_dir, test_path, family_dir, num_family = cmd_args.test_numbers["global"][test_num]
+            test_dir, test_path, family_dir, family_num = cmd_args.test_numbers["global"][test_num]
+        else:
+            # Check if it is a valid family
+            family_dir, test_num_or_name = test.split(":")
+            if family_dir not in cmd_args.test_numbers.keys():
+                raise TestCompilationError("[ERROR] Invalid family " + str(family_dir) + " on specific test")
+
+            # Check if its a family number or name
+            try:
+                int(test_num_or_name)
+                is_family_number = True
+            except ValueError:
+                is_family_number = False
+
+            if is_family_number:
+                # Test is family:number
+                print("[INFO] Specific test detected as family number")
+                family_num = int(test_num_or_name)
+                if family_num not in cmd_args.test_numbers[family_dir].keys():
+                    raise TestCompilationError("[ERROR] Invalid family number " + str(family_num) + " on specific test")
+                test_dir, test_path, test_num = cmd_args.test_numbers[family_dir][family_num]
+            else:
+                # Test is family:name
+                print("[INFO] Specific test detected as test name")
+                test_dir = test_num_or_name
+                is_valid = False
+                for nf, (td, tp, tn) in cmd_args.test_numbers[family_dir].items():
+                    if td == test_dir:
+                        is_valid = True
+                        break
+                if is_valid:
+                    test_path = tp
+                    test_num = tn
+                    family_num = nf
+                else:
+                    raise TestCompilationError("[ERROR] Invalid test name " + str(test_dir) + " on specific test")
 
         # Check if it must be skipped
         skip_file_path = os.path.join(test_path, "skip")
@@ -220,7 +253,7 @@ def _compile_and_deploy_specific(cmd_args, compss_cfg):
             print("[INFO] Compiling specific test")
             print("[INFO]   - number: " + str(test_num))
             print("[INFO]   - family: " + str(family_dir))
-            print("[INFO]   - family_number: " + str(num_family))
+            print("[INFO]   - family_number: " + str(family_num))
             print("[INFO]   - name: " + str(test_dir))
             print("[INFO]   - path: " + str(test_path))
             _compile(test_path, compss_cfg)
@@ -228,17 +261,17 @@ def _compile_and_deploy_specific(cmd_args, compss_cfg):
         compiled_tests.append((test_dir, test_path, test_num))
     print("[INFO] Tests compiled")
 
+    exit(0)
+
     print()
     print("[INFO] Deploying tests...")
     target_base_dir = compss_cfg.get_target_base_dir()
     tests_exec_sandbox = os.path.join(target_base_dir, "apps")
     if __debug__:
         print("[DEBUG]   - target_dir : " + str(tests_exec_sandbox))
-    count = 1
     for test_dir, test_path, test_global_num in compiled_tests:
         print("[INFO] Deploying test " + str(test_dir))
         _deploy(test_path, tests_exec_sandbox, test_global_num, cmd_args, compss_cfg)
-        count = count + 1
 
 
 def _compile(working_dir, compss_cfg):

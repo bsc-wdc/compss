@@ -170,7 +170,8 @@ def get_args():
                         default=DEFAULT_TESTS,
                         help="Executes only the given specific test number.\n"
                              "If <int> is provided, executes test with global number <int>.\n"
-                             "If <str><int> is provided, executes test with local number <int> in family <str>")
+                             "If <str>:<int> is provided, executes test with local number <int> in family <str>.\n"
+                             "If <str1>:<str2> is provided, executes test with name <str2> in family <str1>.")
 
     if __debug__:
         print("[DEBUG] Argument parser created")

@@ -163,6 +163,11 @@ dkms.conf
 *.mod
 *.smod
 
+# Do ignore JAVA_GAT compiled files
+!dependencies/JAVA_GAT/api-src.zip
+!dependencies/JAVA_GAT/lib/
+!dependencies/JAVA_GAT/**/*.jar
+
 # Ignore JAXB files
 compss/runtime/config/xml/monitor/src/main/
 compss/runtime/config/xml/projects/src/main/java/META-INF/
@@ -172,9 +177,9 @@ compss/runtime/config/xml/resources/src/main/java/es/bsc/compss/types/resources/
 
 # Ignore configuration files
 tests/configurations/*.cfg
+!tests/configurations/NIO.cfg
+!tests/configurations/GAT.cfg
 tests/scripts/hosts.backup
-!tests/configurations/NIO_local.cfg
-!tests/configurations/GAT_local.cfg
 
 # Ignore PyCOMPSs AutoParallel submodule patches
 compss/programming_model/bindings/python/src/pycompss/api/parallel.py

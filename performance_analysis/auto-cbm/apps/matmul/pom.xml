@@ -1,75 +1,74 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  	<modelVersion>4.0.0</modelVersion>
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>es.bsc.compss</groupId>
-		<artifactId>auto-cbm</artifactId>
-<version>2.4.rc1903</version>
-		<relativePath>../..</relativePath>
-	</parent>
+    <!-- GENERAL INFORMATION -->
+    <groupId>es.bsc.compss</groupId>
+    <artifactId>matmul</artifactId>
+    <packaging>jar</packaging>
+    <parent>
+        <groupId>es.bsc.compss</groupId>
+        <artifactId>auto-cbm</artifactId>
+        <version>2.4.rc1903</version>
+        <relativePath>../../</relativePath>
+    </parent>
 
-	<groupId>es.bsc.compss</groupId>
-	<artifactId>matmul</artifactId>
-	<packaging>jar</packaging>
+    <!-- PROJECT INFORMATION -->
+    <name>Matmul</name>
+    <description>Matrix Multiplication application</description>
+    <url>http://www.bsc.es</url>
+    <inceptionYear>2014</inceptionYear>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+        </license>
+    </licenses>
+    <organization>
+        <name>BSC</name>
+        <url>http://www.bsc.es</url>
+    </organization>
 
-	<name>Matmul</name>
-	<description>Matrix Multiplication application</description>
-	<url>http://compss.bsc.es/projects/bar/wiki/application_pages/apps/java/matmul</url>
+    <!-- DEPENDENCIES -->
+    <dependencies>
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-annotations</artifactId>
+        </dependency>
+    </dependencies>
 
-	<dependencies>
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-annotations</artifactId>
-		</dependency>
-	</dependencies>
-	<repositories>
+    <!-- BUILD -->
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                </configuration>
+            </plugin>
 
-            <repository>
-                <snapshots>
-                    <enabled>false</enabled>
-                </snapshots>
-                <id>central</id>
-                <name>Central Repository</name>
-                <url>http://central.maven.org/maven2/</url>
-           </repository>
-           <repository>
-                <id>compss-repo</id>
-                <name>BSC Workflows and Distributed Computing group</name>
-                <url>http://compss.bsc.es/artifactory/libs-release</url>
-           </repository>
-
-        </repositories>
-
-	<build>
-		<finalName>${project.artifactId}</finalName>
-		<plugins>
-			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>${maven-compiler-plugin.version}</version>
-				<configuration>
-					<source>${maven.compiler.source}</source>
-					<target>${maven.compiler.target}</target>
-                                </configuration>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy</id>
-						<phase>validate</phase>
-						 <goals>
-		                                	<goal>copy-dependencies</goal>
-		                           	 </goals>
-						<configuration>
-							<outputDirectory>${project.build.directory}/lib</outputDirectory>
-							<silent>true</silent>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                            <silent>true</silent>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

@@ -37,12 +37,12 @@ public class OnFailureImpl {
         System.out.println("The number readed is : " + n);
         
         //Exception thrown
-        if (n>=1) {
+        if (n<=5) {
 //         if (n>5) {
             throw new numberException ("The number is too low");
         }
             
-        String str = String.valueOf(rand.nextInt(2));
+        String str = String.valueOf(rand.nextInt(5));
         System.out.println("The number written is : " + str);
         BufferedWriter writer;
         try {
@@ -82,7 +82,7 @@ public class OnFailureImpl {
         System.out.println("The number readed is : " + n);
       //Exception thrown
 //         if (n>=0) {
-        if (n>5) {
+        if (n<=5) {
             throw new numberException ("The number is too low");
         }
         String str = String.valueOf(rand.nextInt(5));

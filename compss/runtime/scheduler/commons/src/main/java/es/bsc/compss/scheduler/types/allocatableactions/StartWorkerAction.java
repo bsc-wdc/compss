@@ -143,7 +143,12 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
     }
     
     @Override
-    protected void doFailedIgnore() {
+    protected void doFailIgnored() {
+        
+    }
+    
+    @Override
+    protected void doDirectFail() {
         
     }
     

@@ -455,7 +455,8 @@ public class ExecutionAction extends AllocatableAction {
 
     @Override
     protected void doError() throws FailedActionException {
-        if (this.getExecutingResources().size() >= SCHEDULING_CHANCES || task.getOnFail() == OnFailure.IGNORE || task.getOnFail() == OnFailure.CANCEL_SUCCESSORS) {
+        LOGGER.warn("MARTA: DoError with shceduling chances : " + this.getExecutingResources().size() + " of task " + this.getTask().toString());
+        if (this.getExecutingResources().size() >= SCHEDULING_CHANCES || task.getOnFail() == OnFailure.FAIL || task.getOnFail() == OnFailure.CANCEL_SUCCESSORS || task.getOnFail() == OnFailure.IGNORE ) {
             LOGGER.warn("Task " + task.getId() + " has already been rescheduled; notifying task failure.");
             ErrorManager.warn("Task " + task.getId() + " has already been rescheduled; notifying task failure.");
             throw new FailedActionException();
@@ -517,7 +518,7 @@ public class ExecutionAction extends AllocatableAction {
     }
     
     @Override
-    protected void doFailedIgnore() {
+    protected void doFailIgnored() {
         // Failed message
         String taskName = task.getTaskDescription().getName();
         StringBuilder sb = new StringBuilder();
@@ -531,6 +532,18 @@ public class ExecutionAction extends AllocatableAction {
         // Notify task failure
         task.decreaseExecutionCount();
         task.setStatus(TaskState.FINISHED);
+        producer.notifyTaskEnd(task);
+    }
+    
+    @Override
+    protected void doDirectFail() {
+        
+        TaskMonitor monitor = task.getTaskMonitor();
+        monitor.onFailedExecution();
+
+        // Notify task failure
+        task.decreaseExecutionCount();
+        task.setStatus(TaskState.FAILED);
         producer.notifyTaskEnd(task);
     }
 

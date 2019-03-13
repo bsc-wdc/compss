@@ -68,7 +68,12 @@ public class OptimizationAction extends AllocatableAction {
     }
     
     @Override
-    protected void doFailedIgnore() {
+    protected void doFailIgnored() {
+        
+    }
+    
+    @Override
+    protected void doDirectFail() {
         
     }
     

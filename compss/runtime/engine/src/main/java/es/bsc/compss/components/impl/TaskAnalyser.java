@@ -338,7 +338,7 @@ public class TaskAnalyser {
             LOGGER.debug("Task " + taskId + " is not registered as free. Waiting for other executions to end");
             return;
         }
-        if (taskState == TaskState.FAILED && onFailure == OnFailure.RETRY) {
+        if (taskState == TaskState.FAILED && (onFailure == OnFailure.RETRY || onFailure == OnFailure.FAIL)) {
             ErrorManager.error(TASK_FAILED + task);
             TaskMonitor registeredMonitor = task.getTaskMonitor();
             registeredMonitor.onFailure();
@@ -347,18 +347,15 @@ public class TaskAnalyser {
             if  (taskState == TaskState.FAILED && (onFailure == OnFailure.IGNORE || onFailure == OnFailure.CANCEL_SUCCESSORS)) {
                 //Show warning
                 ErrorManager.warn(TASK_FAILED + task);
-                //RegisteredMonitor failure ignore
-                TaskMonitor registeredMonitor = task.getTaskMonitor();
-                registeredMonitor.onFailure();
             } else {
                 if  (taskState == TaskState.CANCELED) {
                     //Show warning
                     ErrorManager.warn(TASK_CANCELED + task);
-                    //RegisteredMonitor failure ignore
-                    TaskMonitor registeredMonitor = task.getTaskMonitor();
-                    registeredMonitor.onFailure();
                 }
             }
+          //RegisteredMonitor failure ignore
+            TaskMonitor registeredMonitor = task.getTaskMonitor();
+            registeredMonitor.onFailure();
             
         }
 
@@ -399,7 +396,7 @@ public class TaskAnalyser {
                 DependencyParameter dPar = (DependencyParameter) param;
                 DataAccessId dAccId = dPar.getDataAccessId();
                 LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dPar.getDataTarget());
-                if (task.getOnFail() == OnFailure.CANCEL_SUCCESSORS) {
+                if (task.getOnFail() == OnFailure.CANCEL_SUCCESSORS || task.getOnFail() == OnFailure.FAIL) {
                     this.DIP.dataAccessHasBeenCanceled(dAccId);
                 } else {
                     this.DIP.dataHasBeenAccessed(dAccId);

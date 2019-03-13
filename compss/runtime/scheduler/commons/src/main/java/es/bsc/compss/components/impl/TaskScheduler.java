@@ -459,14 +459,6 @@ public class TaskScheduler {
                         // Once the action starts running should cannot be moved from the resource
                     }
                 }
-                
-                // We free the current task and get the free actions from the resource
-                try {
-                    resourceFree.addAll(resource.unscheduleAction(action));
-                } catch (ActionNotFoundException anfe) {
-                    // Once the action starts running should cannot be moved from the resource
-                }
-                
                 if (!failed) {
                     dataFreeActions.add(action);
                     // Try to re-schedule the action
@@ -476,22 +468,24 @@ public class TaskScheduler {
                      * addToBlocked(action); }
                      */
                 }
+               
             } else {
-                try {
-                    // Get the data free actions and mark them as ready
-                    resourceFree = resource.unscheduleAction(action);
-                    dataFreeActions = action.failed();
-                    for (AllocatableAction dataFreeAction: dataFreeActions) {
-                        addToReady(dataFreeAction);
-                    }
-                } catch (ActionNotFoundException e) {
-                 // Once the action starts running should cannot be moved from the resource
-                    resourceFree = new LinkedList<>();
-                };
-                
+                // Get the data free actions and mark them as ready
+                dataFreeActions = action.failed();
+                for (AllocatableAction dataFreeAction: dataFreeActions) {
+                    addToReady(dataFreeAction);
+                }
             }
         }
-
+        // We free the current task and get the free actions from the resource
+        try {
+            LOGGER.debug("MARTA: changing resource ");
+            resourceFree.addAll(resource.unscheduleAction(action));
+        } catch (ActionNotFoundException anfe) {
+            // Once the action starts running should cannot be moved from the resource
+        }
+        LOGGER.debug("MARTA: resource old:  " + resource);
+        LOGGER.debug("MARTA: resource new:  " + resourceFree);
         workerLoadUpdate(resource);
         
         List<AllocatableAction> blockedCandidates = new LinkedList<>();
@@ -561,10 +555,6 @@ public class TaskScheduler {
         LOGGER.debug("[TaskScheduler] Treating dependency free actions on resource " + resource.getName());
         // All actions should have already been assigned to a resource, no need
         // to change the assignation once they become free of dependencies
-        LOGGER.warn("MARTA: dataFreeActions: " + dataFreeActions);
-        LOGGER.warn("MARTA: resourceFreeActions: " + resourceFreeActions);
-        LOGGER.warn("MARTA: blockedCandidates: " + blockedCandidates);
-        LOGGER.warn("MARTA: resource: " + resource);
         // Try to launch all the data free actions and the resource free actions
         PriorityQueue<ObjectValue<AllocatableAction>> executableActions = new PriorityQueue<>();
         for (AllocatableAction freeAction : dataFreeActions) {

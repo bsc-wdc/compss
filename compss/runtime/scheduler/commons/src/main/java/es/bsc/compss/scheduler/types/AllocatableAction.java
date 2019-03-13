@@ -392,6 +392,7 @@ public abstract class AllocatableAction {
      * @throws InvalidSchedulingException
      */
     public final void tryToLaunch() throws InvalidSchedulingException {
+        LOGGER.debug("MARTA: Trying to launch " + this.toString() + " on resource " + selectedResource);
         // Gets the lock on the action
         lock.lock();
         if ( // has an assigned resource where to run
@@ -609,15 +610,22 @@ public abstract class AllocatableAction {
         // Mark as failed
         this.state = State.FAILED;
 
-        cancel_action();
+        cancelAction();
 
         // Triggering failure on Data Successors
         List<AllocatableAction> failed = new LinkedList<>();
 
         switch(this.getOnFailure()) {
+            
             case RETRY:
                 for (AllocatableAction succ : dataSuccessors) {
                     failed.addAll(succ.failed());
+                }
+                failed.add(this);
+                break;
+            case FAIL:
+                for (AllocatableAction succ : dataSuccessors) {
+                    failed.addAll(succ.directFail());
                 }
                 failed.add(this);
                 break;
@@ -636,13 +644,15 @@ public abstract class AllocatableAction {
                     }
                 } 
                 break;
+            
         }
-        // Failure notification
-        doFailed();
         
         dataPredecessors.clear();
         dataSuccessors.clear();
-
+        
+        // Failure notification
+        doFailed();
+        
         return failed;
     }
 
@@ -655,7 +665,7 @@ public abstract class AllocatableAction {
         // Mark as canceled
         this.state = State.CANCELED;
         
-        cancel_action();
+        cancelAction();
 
         // Triggering cancelation on Data Successors
         List<AllocatableAction> cancel = new LinkedList<>();
@@ -672,29 +682,55 @@ public abstract class AllocatableAction {
         return cancel;
     }
     
+//    /**
+//     * Operations to perform when task has failed and its failure is ignored
+//     */
+//    public final  List<AllocatableAction> failIgnored() {
+//        // Mark as failed
+//        this.state = State.FAILED;
+//        
+//        cancelAction();
+//        
+//        List<AllocatableAction> ignored = new LinkedList<>();
+//        for (AllocatableAction succ : dataSuccessors) {
+//            ignored.addAll(succ.getDataSuccessors());
+//            LOGGER.warn("MARTA: ignored: "+ ignored);
+//        }
+//        
+//        // Action notification
+//        doFailIgnored();
+//        
+//        
+//        return ignored;
+//    }
+    
     /**
-     * Operations to perform when task has failed and its failure is ignored
+     * Operations to perform when a task has to fail without any resubmission
+     *
+     * @return
      */
-    public final  List<AllocatableAction> fail_ignore() {
-        // Mark as failed
+    public final List<AllocatableAction> directFail() {
+     // Mark as canceled
         this.state = State.FAILED;
         
-        cancel_action();
-        
-        List<AllocatableAction> ignored = new LinkedList<>();
+        cancelAction();
+
+        // Triggering cancellation on Data Successors
+        List<AllocatableAction> fail = new LinkedList<>();
         for (AllocatableAction succ : dataSuccessors) {
-            ignored.addAll(succ.getDataSuccessors());
-            LOGGER.warn("MARTA: ignored: "+ ignored);
+            fail.addAll(succ.directFail());
         }
-        
+
+        dataPredecessors.clear();
+        dataSuccessors.clear();
+
         // Action notification
-        doFailed();
-        
-        
-        return ignored;
+        doDirectFail();
+
+        return fail;
     }
 
-    private void cancel_action() {
+    private void cancelAction() {
         // Cancel action
         boolean canceled = false;
         if (selectedResource != null) {
@@ -748,7 +784,15 @@ public abstract class AllocatableAction {
      * Triggers the ignored unsuccessful action
      *
      */
-    protected abstract void doFailedIgnore();
+
+    protected abstract void doFailIgnored();
+    
+    /**
+     * Triggers the unsuccessful action at first chance
+     *
+     */
+    protected abstract void doDirectFail();
+    
     /*
      * ***************************************************************************************************************
      * SCHEDULING MANAGEMENT

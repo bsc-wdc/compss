@@ -47,8 +47,9 @@ public class Task implements Comparable<Task> {
         TO_ANALYSE, // Task is being analysed
         TO_EXECUTE, // Task can be executed
         FINISHED, // Task has finished successfully
-        CANCELED, //Task has been canceled
-        FAILED // Task has failed
+        CANCELED, // Task has been canceled
+        FAILED, // Task has failed
+        FAIL_IGNORED // Task has failed
     }
 
 

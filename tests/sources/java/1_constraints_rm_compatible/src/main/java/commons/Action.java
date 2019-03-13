@@ -85,7 +85,7 @@ public class Action extends AllocatableAction {
     }
     
     @Override
-    protected void doFailedIgnore() {
+    protected void doFailIgnored() {
         
     }
 
@@ -102,6 +102,11 @@ public class Action extends AllocatableAction {
     @Override
     protected void doCanceled() {
 
+    }
+    
+    @Override
+    protected void doDirectFail() {
+        
     }
 
     @Override

@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<!-- GENERAL INFORMATION -->
-	<artifactId>compss-agent</artifactId>
-	<packaging>pom</packaging>
-	<parent>
-		<groupId>es.bsc.compss</groupId>
-		<artifactId>compss-framework</artifactId>
-		<version>2.4.rc1903</version>
-		<relativePath>..</relativePath>
-	</parent>
+    <!-- GENERAL INFORMATION -->
+    <artifactId>compss-agent</artifactId>
+    <packaging>pom</packaging>
+    <parent>
+        <groupId>es.bsc.compss</groupId>
+        <artifactId>compss-framework</artifactId>
+        <version>2.4.rc1903</version>
+        <relativePath>..</relativePath>
+    </parent>
 
     <!-- PROJECT INFORMATION -->
     <name>COMPSs Agent</name>
@@ -30,20 +30,9 @@
         <url>http://www.bsc.es</url>
     </organization>
 
-
-	
-	<!-- DISTRIBUTION MANAGEMENT -->
-	<distributionManagement>
-		<repository>
-			<id>compss-repo</id>
-			<name>BSC Workflows and Distributed Computing group</name>
-			<url>http://compss.bsc.es/artifactory/libs-release</url>
-		</repository>
-	</distributionManagement>
-
-	<!-- SUB-MODULES -->
-	<modules>
-		<module>commons</module>
-		<module>implementation</module>
-	</modules>
+    <!-- SUB-MODULES -->
+    <modules>
+        <module>commons</module>
+        <module>implementation</module>
+    </modules>
 </project>

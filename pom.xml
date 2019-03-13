@@ -72,15 +72,24 @@
         <url>http://compss.bsc.es/gitlab/compss/framework.git</url>
     </scm>
 
+    <!-- DISTRIBUTION MANAGEMENT -->
+    <distributionManagement>
+        <repository>
+            <id>compss-repo</id>
+            <name>BSC Workflows and Distributed Computing group</name>
+            <url>http://compss.bsc.es/artifactory/libs-release</url>
+        </repository>
+    </distributionManagement>
+
     <!-- REPOSITORIES -->
     <repositories>
         <repository>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
             <id>central</id>
             <name>Central Repository</name>
             <url>http://central.maven.org/maven2/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
         <repository>
             <id>compss-repo</id>
@@ -102,15 +111,6 @@
             <url>http://central.maven.org/maven2/</url>
         </pluginRepository>
     </pluginRepositories>
-
-    <!-- DISTRIBUTION MANAGEMENT -->
-    <distributionManagement>
-        <repository>
-            <id>compss-repo</id>
-            <name>BSC Workflows and Distributed Computing group</name>
-            <url>http://compss.bsc.es/artifactory/libs-release</url>
-        </repository>
-    </distributionManagement>
 
     <!-- DEPENDENCIES -->
     <dependencyManagement>

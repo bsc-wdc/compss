@@ -1,156 +1,157 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<!-- GENERAL INFORMATION -->
-	<artifactId>cbm1</artifactId>
-	<packaging>jar</packaging>
-	<parent>
-		<groupId>es.bsc.compss</groupId>
-		<artifactId>auto-cbm</artifactId>
-<version>2.4.rc1903</version>
-		<relativePath>../..</relativePath>
-	</parent>
+    <!-- GENERAL INFORMATION -->
+    <artifactId>cbm1</artifactId>
+    <packaging>jar</packaging>
+    <parent>
+        <groupId>es.bsc.compss</groupId>
+        <artifactId>auto-cbm</artifactId>
+        <version>2.4.rc1903</version>
+        <relativePath>../..</relativePath>
+    </parent>
 
-	<!-- PROJECT INFORMATION -->
-	<name>cbm1</name>
-	<description>Cbm1. Embarrassingly parallel test. Almost 100% computation (negligible data tx between tasks).</description>
-	<organization>
-		<name>BSC</name>
-		<url>http://www.bsc.es</url>
-	</organization>
+    <!-- PROJECT INFORMATION -->
+    <name>cbm1</name>
+    <description>Cbm1. Embarrassingly parallel test. Almost 100% computation (negligible data tx between tasks)
+    </description>
+    <organization>
+        <name>BSC</name>
+        <url>http://www.bsc.es</url>
+    </organization>
 
-	<dependencies>
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-commons</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-resources-commons</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-scheduler-commons</artifactId>
-		</dependency>
-	</dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-commons</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-resources-commons</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-scheduler-commons</artifactId>
+        </dependency>
+    </dependencies>
 
-	<!-- BUILD SETTINGS -->
-	<build>
-		<finalName>${project.artifactId}</finalName>
-		<plugins>
+    <!-- BUILD SETTINGS -->
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
 
-			<plugin>
-				<!-- Build an executable JAR -->
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.4</version>
-				<configuration>
-					<archive>
-						<manifest>
-							<addClasspath>true</addClasspath>
-							<classpathPrefix>lib/</classpathPrefix>
-							<mainClass>cbm1.Cbm1</mainClass>
-						</manifest>
-					</archive>
-				</configuration>
-			</plugin>
+            <plugin>
+                <!-- Build an executable JAR -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <mainClass>cbm1.Cbm1</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
 
-			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>${maven-compiler-plugin.version}</version>
-				<configuration>
-					<source>${maven.compiler.source}</source>
-					<target>${maven.compiler.target}</target>
-				</configuration>
-			</plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                </configuration>
+            </plugin>
 
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy</id>
-						<phase>validate</phase>
-						<goals>
-							<goal>copy-dependencies</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${project.build.directory}/lib</outputDirectory>
-							<silent>true</silent>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                            <silent>true</silent>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
-			<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>${maven-resources-plugin.version}</version>
-				<executions>
-					<execution>
-						<id>copy-final-jar</id>
-						<phase>package</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${basedir}/jar</outputDirectory>
-							<resources>
-								<resource>
-									<directory>${project.build.directory}</directory>
-									<includes>
-										<include>${project.artifactId}.jar</include>
-									</includes>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven-resources-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>copy-final-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/jar</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.build.directory}</directory>
+                                    <includes>
+                                        <include>${project.artifactId}.jar</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
 
 
-		<pluginManagement>
-			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings 
-					only. It has no influence on the Maven build itself. -->
-				<plugin>
-					<groupId>org.eclipse.m2e</groupId>
-					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.0</version>
-					<configuration>
-						<lifecycleMappingMetadata>
-							<pluginExecutions>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>
-											org.apache.maven.plugins
-										</groupId>
-										<artifactId>
-											maven-dependency-plugin
-										</artifactId>
-										<versionRange>
-											[2.1,)
-										</versionRange>
-										<goals>
-											<goal>
-												copy-dependencies
-											</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore></ignore>
-									</action>
-								</pluginExecution>
-							</pluginExecutions>
-						</lifecycleMappingMetadata>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-	</build>
+        <pluginManagement>
+            <plugins>
+                <!--This plugin's configuration is used to store Eclipse m2e settings
+                    only. It has no influence on the Maven build itself. -->
+                <plugin>
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>1.0.0</version>
+                    <configuration>
+                        <lifecycleMappingMetadata>
+                            <pluginExecutions>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>
+                                            org.apache.maven.plugins
+                                        </groupId>
+                                        <artifactId>
+                                            maven-dependency-plugin
+                                        </artifactId>
+                                        <versionRange>
+                                            [2.1,)
+                                        </versionRange>
+                                        <goals>
+                                            <goal>
+                                                copy-dependencies
+                                            </goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore></ignore>
+                                    </action>
+                                </pluginExecution>
+                            </pluginExecutions>
+                        </lifecycleMappingMetadata>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 </project>

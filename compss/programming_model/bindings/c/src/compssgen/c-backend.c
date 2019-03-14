@@ -141,6 +141,12 @@ void generate_worker_prolog() {
     fprintf(workerFile, "#include <string.h>\n");
     fprintf(workerFile, "#include <fstream>\n");
     fprintf(workerFile, "#include <sstream>\n");
+
+    fprintf(workerFile, "#ifdef OMPSS2_ENABLED\n");
+    fprintf(workerFile, "#include <nanos6/bootstrap.h>\n");
+    fprintf(workerFile, "#include <nanos6/library-mode.h>\n");
+    fprintf(workerFile, "#endif\n");
+
     //fprintf(workerFile, "#include <compss_worker_lock.h>\n");
     fprintf(workerFile, "#include <c_compss_commons.h>\n");
     fprintf(workerFile, "#include \"%s\"\n", includeName);
@@ -154,25 +160,25 @@ void generate_worker_prolog() {
  */
 void generate_nanos_initialization() {
 
-    //Check if both OmpSs2 and OmpSs are enabled
-    fprintf(workerFile, "#ifdef OMPSS2_ENABLED && OMPSS_ENABLED\n");
-    fprintf(workerFile, "#error Only one of both OmpSs2 and OmpSs can be enabled.\n")
-    fprintf(workerFile, "#endif\n")
-
     //OmpSs2 Nanos6 initialization
     fprintf(workerFile, "#ifdef OMPSS2_ENABLED\n");
-
+    fprintf(workerFile, "\t\t#ifdef OMPSS_ENABLED\n");
+    fprintf(workerFile, "\t\t\t#error Only one of both OmpSs2 and OmpSs can be enabled.\n");
+    fprintf(workerFile, "\t\t#endif\n");
     fprintf(workerFile, "\t\tchar const *error = nanos6_library_mode_init();\n");
     fprintf(workerFile, "\t\tif (error != NULL) {\n");
-    fprintf(workerFile, "\t\t\t cout << \"Error while intializing Nanos6: \" << error << endl;");
-    fprintf(workerFile, "\t\t\t return 1;\n");
-    fprintf(workerFile, "\t\t}");
+    fprintf(workerFile, "\t\t\t cout << \"Error while intializing Nanos6: \" << error << endl;\n");
+    fprintf(workerFile, "\t\t\t return;\n");
+    fprintf(workerFile, "\t\t}\n");
 
-    fprintf(workerFile, "\t\t cout << \"Nanos6 intialized...\" << endl;");
+    fprintf(workerFile, "\t\t cout << \"Nanos6 intialized...\" << endl;\n");
 
-    fprintf(workerFile, "#endif")
+    fprintf(workerFile, "#endif\n\n");
 
     fprintf(workerFile, "#ifdef OMPSS_ENABLED\n");
+    fprintf(workerFile, "\t\t#ifdef OMPSS2_ENABLED\n");
+    fprintf(workerFile, "\t\t\t#error Only one of both OmpSs2 and OmpSs can be enabled.\n");
+    fprintf(workerFile, "\t\t#endif\n");
     fprintf(workerFile, "\t\t nanos_admit_current_thread();\n");
     fprintf(workerFile, "#endif\n");
     fprintf(workerFile, "}\n");
@@ -186,8 +192,8 @@ void generate_nanos_shutdown() {
 
     //OmpSs-2 Nanos6 shutdown
     fprintf(workerFile, "#ifdef OMPSS2_ENABLED\n");
-    fprintf(workerFile, "\t\tnanos6_shutdown();");
-    fprintf(workerFile, "#endif");
+    fprintf(workerFile, "\t\tnanos6_shutdown();\n");
+    fprintf(workerFile, "#endif\n\n");
 
     //OmpSs Nanos++ shutdown
     fprintf(workerFile, "#ifdef OMPSS_ENABLED\n");

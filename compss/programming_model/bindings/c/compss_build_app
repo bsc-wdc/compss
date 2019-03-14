@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # FUNCTIONS DECLARATION
 #---------------------------------------------------
@@ -18,6 +18,8 @@ show_opts() {
                                             Default: $BOOST_LIB
   Tools enablers:
     --ompss                                 Enables worker compilation with OmpSs Mercurium compiler
+                                            Default: Disabled
+    --ompss-2                               Enables worker compilation with OmpSs-2 Mercurium compiler
                                             Default: Disabled
     --cuda                                  Enables worker compilation with CUDA compilation flags
                                             Default: Disabled
@@ -50,20 +52,22 @@ show_opts() {
                                             Default: $LIBS
 
  Specific tools flags:
-    --MCC="Mercurium C compiler"            Specifies the mercurium C compiler profile (cross-compiling OmpSs)
-                                            Default: mcc
-    --MCXX="Mercurium C++ compiler"         Specifies the mercurium compiler profile (cross-compiling OmpSs)
-                                            Default: mcxx
-    --with_ompss=<ompss_installation_path>  Enables worker compilation with OmpSs Mercurium compiler installed in a certain location
-                                            Default: Disabled
-    --mercurium_flags="flags"               Specifies extra flags to pass to the mercurium compiler
-                                            Default: Empty
-    --with_cuda=<cuda_installation_path>    Enables worker compilation with CUDA installed in a certain location
-                                            Default: Disabled
-    --with_opencl=<ocl_installation_path>   Enables worker compilation with openCL installed in a certain location
-                                            Default: Disabled
-    --opencl_libs="libs"                    Specifies extra opencl libraries locations
-                                            Default: Empty
+    --MCC="Mercurium C compiler"                Specifies the mercurium C compiler profile (cross-compiling OmpSs)
+                                                Default: mcc
+    --MCXX="Mercurium C++ compiler"             Specifies the mercurium compiler profile (cross-compiling OmpSs)
+                                                Default: mcxx
+    --with_ompss=<ompss_installation_path>      Enables worker compilation with OmpSs Mercurium compiler installed in a certain location
+                                                Default: Disabled
+    --with_ompss-2=<ompss-2_installation_path>  Enables worker compilation with OmpSs-2 Mercurium compiler installed in a certain location
+                                                Default: Disabled
+    --mercurium_flags="flags"                   Specifies extra flags to pass to the mercurium compiler
+                                                Default: Empty
+    --with_cuda=<cuda_installation_path>        Enables worker compilation with CUDA installed in a certain location
+                                                Default: Disabled
+    --with_opencl=<ocl_installation_path>       Enables worker compilation with openCL installed in a certain location
+                                                Default: Disabled
+    --opencl_libs="libs"                        Specifies extra opencl libraries locations
+                                                Default: Empty
 EOT
 }
 
@@ -169,6 +173,9 @@ get_args() {
           ompss)
             ompss_enabled=1
             ;;
+          ompss-2)
+            ompss2_enabled=1
+            ;;
           cuda)
             cuda_enabled=1
             ;;
@@ -214,6 +221,10 @@ get_args() {
           with_ompss=*)
             ompss_enabled=1
             ompss_prefix=${OPTARG//with_ompss=/}
+            ;;
+          with_ompss-2=*)
+            ompss2_enabled=1
+            ompss2_prefix=${OPTARG//with_ompss-2=/}
             ;;
           mercurium_flags=*)
             ompss_flags=${OPTARG//mercurium_flags=/}
@@ -313,10 +324,15 @@ check_args() {
 
     fi                                                                                                                                    
 
+    if [ -n "${ompss_enabled}" ] && [ "${ompss_enabled}" -eq 1 ] && [ -n "${ompss2_enabled}" ] && [ "${ompss2_enabled}" -eq 1 ]; then
+        echo "[ ERROR ] Impossible to enable both OmpSs and OmpSs-2, disable one of them."
+        exit 1
+    fi
+
     if [ -z "$ompss_enabled" ] && [ -n "$cuda_enabled" ] && [ $cuda_enabled -eq 1 ]; then
 
         echo " "
-        echo "[ WARNING ] Is not possible to use the --cuda option while not using the --ompss one, removing --cuda..."
+        echo "[ WARNING ] Is not possible to use the --cuda option without using the --ompss one, removing --cuda..."
         cuda_enabled="" 
     
     fi 
@@ -356,33 +372,61 @@ set_target_host() {
 }
 
 define_worker_only_env(){
+
+if [ -z "${defined_mcc}" ]; then
+    if [ -z "${MCC}" ]; then
+       defined_mcc="mcc"
+        else
+       defined_mcc=${MCC}
+        fi
+fi
+
+if [ -z "${defined_mcxx}" ]; then
+        if [ -z "${MCXX}" ]; then
+           defined_mcxx="mcxx"
+        else
+           defined_mcxx=${MCXX}
+        fi
+fi
+
+if [ "${ompss2_enabled}" != "" ]; then
+    if [ ${ompss2_enabled} == 1 ]; then
+        export CC=${CROSS_COMPILE}${defined_mcc}
+        export CXX=${CROSS_COMPILE}${defined_mcxx}
+        export CFLAGS="$CFLAGS --ompss-2 ${ompss_flags} $COMPSS_MCXX_FLAGS"
+        export CXXFLAGS="$CXXFLAGS --ompss-2 ${ompss_flags} $COMPSS_MCXX_FLAGS"
+        export CPPFLAGS="$CPPFLAGS -DOMPSS2_ENABLED"
+      
+        export OMPSS2_ENABLED="enabled"
+ 
+        if [ -n "$ompss2_prefix" ]; then
+            export OMPSS2_DIR="$ompss2_prefix"
+        else
+            OMPSS2_SEARCH_COMMAND="nanos6-info --runtime-path"
+            echo "Searching OmpSs2 directory... executing \"$OMPSS2_SEARCH_COMMAND\""
+            
+            export OMPSS2_DIR="$("$OMPSS2_SEARCH_COMMAND" | awk '{ print $3; }' | sed 's@/libnanos6-optimized.so.*@@')"
+
+            if [ "$?" -ne 0 ]; then
+                exit 1;
+            fi
+        fi
+   fi
+fi
+
 if [ "${ompss_enabled}" != "" ]; then
   # Flag is defined, check value
   if [ ${ompss_enabled} == 1 ]; then
-        if [ -z "${defined_mcc}" ]; then
-            if [ -z "${MCC}" ]; then
-               defined_mcc="mcc"
-                else
-               defined_mcc=${MCC}
-                fi
-        fi
         export CC=${CROSS_COMPILE}${defined_mcc}
-
-        if [ -z "${defined_mcxx}" ]; then
-                if [ -z "${MCXX}" ]; then
-                   defined_mcxx="mcxx"
-                else
-                   defined_mcxx=${MCXX}
-                fi
-        fi
         export CXX=${CROSS_COMPILE}${defined_mcxx}
-
         export CFLAGS="$CFLAGS --ompss ${ompss_flags} $COMPSS_MCXX_FLAGS"
         export CXXFLAGS="$CXXFLAGS --ompss ${ompss_flags} $COMPSS_MCXX_FLAGS"
         export CPPFLAGS="$CPPFLAGS -DOMPSS_ENABLED"
 
+        export OMPSS_ENABLED="enabled"
   fi
 fi
+
 if [ "${cuda_enabled}" != "" ]; then
   # Flag is defined, check value
   if [ ${cuda_enabled} == 1 ]; then

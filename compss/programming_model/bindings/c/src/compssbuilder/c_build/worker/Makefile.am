@@ -15,6 +15,19 @@
 #  limitations under the License.
 #
 
+noinst_LIBRARIES = libexecutor.a 
+libexecutor_a_SOURCES = PACKAGE-executor.cc
+
+if OMPSS2
+libexecutor_a_CPPFLAGS  = --ompss2
+libexecutor_a_CFLAGS    = --ompss2
+else
+if OMPSS
+libexecutor_a_CPPFLAGS  = --ompss
+libexecutor_a_CFLAGS    = --ompss
+endif
+endif
+
 bin_PROGRAMS = nio_worker_c worker_c
 
 ACLOCAL_AMFLAGS=-I m4
@@ -38,7 +51,7 @@ nio_worker_c_SOURCES = nio_worker_c.cc \
         
 nio_worker_c_LDFLAGS = 
 
-nio_worker_c_LDADD = -L../../lib -ldl -L$(LIBJAVAFOLDER) -ljvm -L$(CS_HOME)/../bindings-common/lib/$(TARGET_HOST) -lbindings_common -L$(CS_HOME)/lib/$(TARGET_HOST) -lcbindings -L$(BOOST_LIB) -lboost_iostreams -lboost_serialization -lboost_system -lpthread 
+nio_worker_c_LDADD =  -L../../lib -ldl -L$(LIBJAVAFOLDER) -ljvm -L$(CS_HOME)/../bindings-common/lib/$(TARGET_HOST) -lbindings_common -L$(CS_HOME)/lib/$(TARGET_HOST) -lcbindings -L$(BOOST_LIB) -lboost_iostreams -lboost_serialization -lboost_system -lpthread 
 
 COMPSSGEN_FLAGS = 
 

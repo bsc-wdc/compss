@@ -58,9 +58,32 @@ set -e
 @ACLOCAL@
 @AUTOMAKE@ -a -c
 @AUTOCONF@
-./configure --host=$TARGET_HOST --with-cs-prefix=$CS_HOME
-
 EOF
+
+ldflags_aux="-L."
+cflags_aux="-I$(pwd)"
+conf_opts=""
+
+if [ -n "$OMPSS2_ENABLED" ]; then
+    ldflags_aux="$ldflags_aux -L$OMPSS2_DIR/lib"
+    cflags_aux="$cflags_aux -I$OMPSS2_DIR/include"
+    conf_opts="--with-ompss-2"
+fi
+
+if [ -n "$OMPSS_ENABLED" ]; then
+    ldflags_aux="$ldflags_aux -L$OMPSS_DIR/lib"
+    cflags_aux="$cflags_aux -I$OMPSS_DIR/include"
+    conf_opts="$conf_opts --with-ompss"
+fi
+
+if [ -n "$TARGET_HOST" ]; then
+    TARGET_HOST="--host=$TARGET_HOST"
+fi
+
+@CAT@ >> autogen.sh << EOF
+./configure $TARGET_HOST --with-cs-prefix=$CS_HOME $conf_opts CXXFLAGS="$cflags_aux" CFLAGS="$cflags_aux" LDFLAGS="$ldflags_aux"
+EOF
+
 @CHMOD@ +x autogen.sh
 }
 
@@ -123,7 +146,7 @@ copy_master_build_env() {
         appname=$2       
 
         @CP@  @prefix@/share/c_build/master/Makefile.am Makefile.am.source
-        @CAT@ @prefix@/share/c_build/master/configure.in | @SED@ -e s/PACKAGE/"$appname"/g > configure.in                                                                                             
+        @CAT@ @prefix@/share/c_build/master/configure.ac | @SED@ -e s/PACKAGE/"$appname"/g > configure.ac                                                                                             
         @CAT@ Makefile.am.source | @SED@ 's/PACKAGE/'$appname'/g' > Makefile.am
                                                                             
         generate_autogen_sh                                                                                                                                
@@ -218,9 +241,13 @@ prepare_worker_build() {
 copy_worker_build_env() {
         gsprefix=$1      
         appname=$2       
+        
+        #Workaround while OmpSs-2 team makes a library of it..
+        @AR@ rvs libcustom-nanos6.a $OMPSS2_DIR/lib/nanos6-library-mode.o
+        @RANLIB@ libcustom-nanos6.a
 
         @CP@ @prefix@/share/c_build/worker/Makefile.am Makefile.am.source
-        @CAT@ @prefix@/share/c_build/worker/configure.in | @SED@ -e s/PACKAGE/"$appname"/g  > configure.in                                                                                                                                               
+        @CAT@ @prefix@/share/c_build/worker/configure.ac | @SED@ -e s/PACKAGE/"$appname"/g  > configure.ac                                                                                                                                               
         @CAT@ Makefile.am.source | @SED@ 's/PACKAGE/'$appname'/g' > Makefile.am                             
         @CP@ @prefix@/share/c_build/worker/files/* .
         generate_autogen_sh                                                                                                                                

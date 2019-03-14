@@ -209,8 +209,10 @@ def start(log_level='off',
             print("- Overridden trace with: " + str(updated_vars['trace']))
         all_vars.update(updated_vars)
 
-    # Update the tracing environment if set and set the apropriate trace integer value
-    all_vars['trace'] = prepare_tracing_environment(all_vars['trace'], all_vars['extrae_lib'])
+    # Update the tracing environment if set and set the appropriate trace integer value
+    all_vars['trace'], all_vars['ld_library_path'] = prepare_tracing_environment(all_vars['trace'],
+                                                                                 all_vars['extrae_lib'],
+                                                                                 all_vars['ld_library_path'])
 
     # Update the infrastructure variables if necessary
     inf_vars = check_infrastructure_variables(all_vars['project_xml'],

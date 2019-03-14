@@ -322,7 +322,9 @@ def launch_pycompss_application(app, func,
         updated_vars = updated_variables_in_sc()
         all_vars.update(updated_vars)
 
-    all_vars['trace'] = prepare_tracing_environment(all_vars['trace'], all_vars['extrae_lib'])
+    all_vars['trace'], all_vars['ld_library_path'] = prepare_tracing_environment(all_vars['trace'],
+                                                                                 all_vars['extrae_lib'],
+                                                                                 all_vars['ld_library_path'])
 
     inf_vars = check_infrastructure_variables(all_vars['project_xml'],
                                               all_vars['resources_xml'],

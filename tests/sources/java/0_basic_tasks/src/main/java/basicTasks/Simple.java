@@ -6,6 +6,7 @@ import java.io.IOException;
 
 
 public class Simple {
+    public static String COUNTER_NAME = "counter";
 
     public static void main(String[] args) {
         // Check and get parameters
@@ -14,12 +15,11 @@ public class Simple {
             System.out.println("    Usage: simple.Simple <counterValue>");
             System.exit(-1);
         }
-        String counterName = "counter";
         int initialValue = Integer.parseInt(args[0]);
 
         // Write value
         try {
-            FileOutputStream fos = new FileOutputStream(counterName);
+            FileOutputStream fos = new FileOutputStream(COUNTER_NAME);
             fos.write(initialValue);
             System.out.println("Initial counter value is " + initialValue);
             fos.close();
@@ -30,13 +30,19 @@ public class Simple {
 
         // ------------------------------------------------------------------------
         // Execute increment
-        SimpleImpl.increment(counterName);
+        try {
+            SimpleImpl.increment(COUNTER_NAME);
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            System.exit(-1);
+        }
         // Read new value
         System.out.println("After Sending task");
-        String test = "Name= " + counterName;
+        String test = "Name= " + COUNTER_NAME;
         System.out.println("In method Checking result " + test);
         try {
-            FileInputStream fis = new FileInputStream(counterName);
+            FileInputStream fis = new FileInputStream(COUNTER_NAME);
             System.out.println("Final counter value is " + fis.read());
             fis.close();
         } catch (IOException ioe) {
@@ -44,15 +50,21 @@ public class Simple {
             System.exit(-1);
         }
 
-        // Execute increment
-        SimpleImpl.increment(counterName);
-        // Read from private method
-        checkResult(counterName);
+        try {
+            // Execute increment
+            SimpleImpl.increment(COUNTER_NAME);
+        
+            // Read from private method
+            checkResult(COUNTER_NAME);
 
-        // Execute increment
-        SimpleImpl.increment(counterName);
-        // Read from blackbox method
-        Reader.checkResult(counterName);
+            // Execute increment
+            SimpleImpl.increment(COUNTER_NAME);
+            // Read from blackbox method
+            Reader.checkResult(COUNTER_NAME);
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     private static void checkResult(String counterName) {

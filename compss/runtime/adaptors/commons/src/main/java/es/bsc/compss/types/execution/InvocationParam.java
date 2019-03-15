@@ -40,6 +40,10 @@ public interface InvocationParam {
     public String getOriginalName();
 
     public void setOriginalName(String originalName);
+    
+    public String getRenamedName();
+    
+    public void setRenamedName(String renamedName);
 
     public Object getValue();
 

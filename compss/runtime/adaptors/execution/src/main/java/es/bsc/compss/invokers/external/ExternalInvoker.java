@@ -169,7 +169,7 @@ public abstract class ExternalInvoker extends Invoker {
                 // Passing originalName link instead of renamed file
 
                 String originalFile = np.getOriginalName();
-                String destFile = new File(np.getValue().toString()).getName();
+                String destFile = new File(np.getRenamedName()).getName();
                 if (!isRuntimeRenamed(destFile)) {
                     // Treat corner case: Destfile is original name. Parameter is INPUT with shared disk, so
                     // destfile should be the same as the input.

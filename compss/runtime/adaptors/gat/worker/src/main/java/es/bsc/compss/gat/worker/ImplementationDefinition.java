@@ -321,6 +321,7 @@ public abstract class ImplementationDefinition implements Invocation {
         private final String name;
         private final Stream stream;
         private String originalName;
+        private String renamedName;
         private final boolean writeFinalValue;
 
 
@@ -378,6 +379,16 @@ public abstract class ImplementationDefinition implements Invocation {
             return this.originalName;
         }
 
+        @Override
+        public String getRenamedName() {
+            return this.renamedName;
+        }
+
+        @Override
+        public void setRenamedName(String renamedName) {
+            this.renamedName = renamedName;
+        }
+        
         @Override
         public Object getValue() {
             return this.value;

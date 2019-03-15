@@ -28,6 +28,7 @@ import es.bsc.compss.types.execution.InvocationParamURI;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
+
 import java.util.List;
 
 
@@ -41,6 +42,7 @@ public class LocalParameter implements InvocationParam {
     private final String dataMgmtId;
     private final String sourceDataMgmtId;
     private String originalName;
+    private String renamedName;
 
     private Object value;
     private Class<?> valueClass;
@@ -161,6 +163,16 @@ public class LocalParameter implements InvocationParam {
         this.originalName = originalName;
     }
 
+    @Override
+    public String getRenamedName() {
+        return this.renamedName;
+    }
+
+    @Override
+    public void setRenamedName(String renamedName) {
+        this.renamedName = renamedName;
+    }
+    
     @Override
     public Object getValue() {
         return this.value;

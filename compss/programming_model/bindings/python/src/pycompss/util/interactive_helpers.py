@@ -291,15 +291,17 @@ def _get_task_code(f):
     """
 
     import inspect
-    task_code = inspect.getsource(f)  # .strip()
+    task_code = inspect.getsource(f)
     if task_code.startswith((' ', '\t')):
         return {}
     else:
         name = ''
         lines = task_code.split('\n')
         for line in lines:
+            # Ignore the decorator stack
             if line.strip().startswith('def'):
                 name = line.replace('(', ' (').split(' ')[1].strip()
+                break  # Just need the first
         return {name: task_code}
 
 
@@ -402,11 +404,18 @@ def _get_old_code(file_path):
 
     # Process functions
     functions = {}
-    # Collapse all lines into a single one
-    collapsed = ''.join(file_functions).strip()
-    # Then split by "def" and filter the empty results, then iterate
-    # concatenating "def" to all results.
-    funcs = [('def ' + l) for l in [name for name in collapsed.split('def ') if name]]
+    # Clean empty lines
+    clean_functions = [l for l in file_functions if l]
+    # Iterate over the lines splitting by the ones that start with def
+    funcs = []
+    f = ''
+    for line in clean_functions:
+        if line.startswith('def'):
+            if f:
+                funcs.append(f)
+            f = line
+        else:
+            f += line
     # Add functions to dictionary by function name:
     for f in funcs:
         func_code = f.strip()

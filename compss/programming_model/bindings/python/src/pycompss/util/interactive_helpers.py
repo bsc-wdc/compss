@@ -154,11 +154,20 @@ def _get_ipython_globals():
         # We only get the lines that start with from or import and do not
         # have blank spaces before.
         lines = i.split('\n')
+        found_one = False
         for l in lines:
             # if the line starts without spaces and is a variable assignation
             if not (l.startswith(' ') or l.startswith('\t')) and _is_variable_assignation(l):
                 glob_name = l.split()[0]
                 glob_lines[glob_name] = l.strip()
+                found_one = True
+                continue
+            # if the next line/s start with space or tab belong also to the global variable
+            if found_one and (l.startswith(' ') or l.startswith('\t')):
+                # It is a multiple lines global variable definition
+                glob_lines[glob_name] += l.strip()
+            else:
+                found_one = False
     return glob_lines
 
 

@@ -29,6 +29,7 @@ import threading
 import pycompss.api.parameter as parameter
 from pycompss.runtime.core_element import CE
 from pycompss.runtime.commons import IS_PYTHON3
+import pycompss.util.context as context
 
 if __debug__:
     import logging
@@ -229,28 +230,29 @@ class task(object):
 
         def task_decorator(*args, **kwargs):
             # Determine the context and decide what to do
-            import pycompss.util.context as context
             if context.in_master():
                 return self.master_call(*args, **kwargs)
             elif context.in_worker():
                 return self.worker_call(*args, **kwargs)
-            # We are neither in master nor in the worker
+            # We are neither in master nor in the worker, or the user has
+            # stopped the interactive session.
             # Therefore, the user code is being executed with no
-            # launch_compss/enqueue_compss/runcompss, etc etc
+            # launch_compss/enqueue_compss/runcompss/interactive session
             return self.sequential_call(*args, **kwargs)
 
         return task_decorator
 
     def update_if_interactive(self):
         """
-        Update the user code if in interactive mode.
+        Update the user code if in interactive mode and the session has been started.
         :return: None
         """
         import inspect
         mod = inspect.getmodule(self.user_function)
         self.module_name = mod.__name__
-        if self.module_name == '__main__' or self.module_name == 'pycompss.runtime.launch':
-            # The module where the function is defined was run as __main__,
+        if context.in_pycompss() and (self.module_name == '__main__' or self.module_name == 'pycompss.runtime.launch'):
+            # 1.- The runtime is running.
+            # 2.- The module where the function is defined was run as __main__,
             # We need to find out the real module name
             # Get the real module name from our launch.py app_path global variable
             # It is guaranteed that this variable will always exist because this code is only executed

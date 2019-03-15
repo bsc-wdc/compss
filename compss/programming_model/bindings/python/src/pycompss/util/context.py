@@ -60,11 +60,11 @@ def in_pycompss():
 
 def set_pycompss_context(where):
     """
-    Set the Python Binding context (MASTER or WORKER or INITIALIZATION)
-    :param where: New context (MASTER or WORKER or INITIALIZATION)
+    Set the Python Binding context (MASTER or WORKER or OUTOFSCOPE)
+    :param where: New context (MASTER or WORKER or OUTOFSCOPE)
     :return: None
     """
-    assert where in [MASTER, WORKER], 'PyCOMPSs context must be %s or %s' % (MASTER, WORKER)
+    assert where in [MASTER, WORKER, OUTOFSCOPE], 'PyCOMPSs context must be %s, %s or %s' % (MASTER, WORKER, OUTOFSCOPE)
     global _WHERE
     _WHERE = where
     global _WHO

@@ -353,6 +353,9 @@ def stop(sync=False):
 
     __clean_temp_files__()
 
+    # Let the Python binding know we are not at master anymore
+    context.set_pycompss_context(context.OUTOFSCOPE)
+
     print("****************************************************")
     logger.debug("--- END ---")
     # os._exit(00)  # Explicit kernel restart # breaks Jupyter-notebook

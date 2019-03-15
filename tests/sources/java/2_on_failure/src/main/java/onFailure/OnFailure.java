@@ -4,22 +4,18 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Random;
 import es.bsc.compss.api.*;
 
 
 public class OnFailure {
 
-    private static final String FILE_NAME1 = "/tmp/sharedDisk/onFailure1.txt";
-    private static final String FILE_NAME2 = "/tmp/sharedDisk/onFailure2.txt";
+    private static final String FILE_NAME = "/tmp/sharedDisk/onFailure1.txt";
     private static final int M = 5; // number of tasks to be executed
 
 
     public static void main(String[] args){
         
-     
-        
-        // Successors cancelation behavior
+        // Successors cancellation behavior
         System.out.println("Init on failure : CANCEL SUCCESSORS");
         try {
             onCancelation();
@@ -58,117 +54,90 @@ public class OnFailure {
         }
     }
     
+    // Retry the task if failed
     private static void onRetry() throws numberException {
+        
+        // Create and write first number to file
         initFiles();
-        failingTaskRetry();
+        writeFile();
+        
+        //Process file contents and retry if execution fails
+        int i=0;
+        for (i=0;i<M;i++) {
+            OnFailureImpl.processParamRetry(FILE_NAME);
+        }
+        
+        // Wait for all tasks to finish
         COMPSs.barrier();
     }
     
+    // Cancel successor tasks
     private static void onCancelation() throws numberException {
+        
+        // Create and write first number to file
         initFiles();
-        failingTaskCancelSuccessors();
+        writeFile();
+        
+        //Process file contents and cancel successors if execution fails
+        int i=0;
+        for (i=0;i<M;i++) {
+            OnFailureImpl.processParamCancelSuccessors(FILE_NAME);
+        }
+        
+        // Wait for all tasks to finish
         COMPSs.barrier();
     }
     
+    // Ignore the task failure and continue with other tasks execution
     private static void onIgnoreFailure() throws numberException {
+        
+        // Create and write first number to file
         initFiles();
-        failingTaskIgnoreFailure();
+        writeFile();
+        
+        //Process file contents and if failed continue executing other tasks
+        int i=0;
+        for (i=0;i<M;i++) {
+            OnFailureImpl.processParamIgnoreFailure(FILE_NAME);
+        }
+        
+        // Wait for all tasks to finish
         COMPSs.barrier();
     }
     
+    // If task fails, no retries
     private static void onDirectFail() throws numberException {
+        
+        // Create and write first number to file
         initFiles();
-        failingTaskDirectFail();
+        writeFile();
+        
+        //Process file contents and end execution if a task fails
+        int i=0;
+        for (i=0;i<M;i++) {
+            OnFailureImpl.processParamDirectFail(FILE_NAME);
+        }
+        
+        // Wait for all tasks to finish
         COMPSs.barrier();
     }
 
     private static void initFiles() {
-        // Initialize two tests files
+        // Initialize the test file
         try {
-            newFile(FILE_NAME1);
-            newFile(FILE_NAME2);
+            newFile(FILE_NAME);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
     
-    private static void failingTaskRetry() throws numberException {
-        writeFile();
-      //Process file contents
-        int i=0;
-        for (i=0;i<M;i++) {
-//            //Depending on M, the executed task is different
-//            if (i % 2 == 0) {
-//                    OnFailureImpl.processParam2(FILE_NAME1);
-//                    System.out.println("FILE 1");
-//            } else {
-                    OnFailureImpl.processParamRetry(FILE_NAME1);
-//            }
-//            System.out.println("Round:  " + i );
-        }
-    }
-    
-    private static void failingTaskCancelSuccessors() throws numberException {
-        writeFile();
-      //Process file contents
-        int i=0;
-        for (i=0;i<M;i++) {
-//            //Depending on M, the executed task is different
-//            if (i % 2 == 0) {
-//                    OnFailureImpl.processParam2(FILE_NAME1);
-//                    System.out.println("FILE 1");
-//            } else {
-                    OnFailureImpl.processParamCancelSuccessors(FILE_NAME1);
-//            }
-//            System.out.println("Round:  " + i );
-        }
-    }
-    
-
-    private static void failingTaskIgnoreFailure() throws numberException {
-        writeFile();
-      //Process file contents
-        int i=0;
-        for (i=0;i<M;i++) {
-//            //Depending on M, the executed task is different
-//            if (i % 2 == 0) {
-//                    OnFailureImpl.processParam2(FILE_NAME1);
-//                    System.out.println("FILE 1");
-//            } else {
-                    OnFailureImpl.processParamIgnoreFailure(FILE_NAME1);
-//            }
-//            System.out.println("Round:  " + i );
-        }
-    }
-    
-    private static void failingTaskDirectFail() throws numberException {
-        writeFile();
-      //Process file contents
-        int i=0;
-        for (i=0;i<M;i++) {
-//            //Depending on M, the executed task is different
-//            if (i % 2 == 0) {
-//                    OnFailureImpl.processParam2(FILE_NAME1);
-//                    System.out.println("FILE 1");
-//            } else {
-                    OnFailureImpl.processParamDirectFail(FILE_NAME1);
-//            }
-//            System.out.println("Round:  " + i );
-        }
-    }
-    
     private static void writeFile() throws numberException {
-        //Create and write random number to file
-//        Random rand = new Random();
-        
+        // Write first number to file
         BufferedWriter writer;
         try {
-            writer = new BufferedWriter(new FileWriter(FILE_NAME1, false));
+            writer = new BufferedWriter(new FileWriter(FILE_NAME, false));
             writer.write(String.valueOf(1));
             writer.close();
-//            writer = new BufferedWriter(new FileWriter(FILE_NAME2, false));
-//            writer.write(String.valueOf(rand.nextInt(5)));
-//            writer.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

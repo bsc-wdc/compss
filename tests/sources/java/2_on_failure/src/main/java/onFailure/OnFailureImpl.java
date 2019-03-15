@@ -17,36 +17,42 @@ public class OnFailureImpl {
         BufferedReader br;
         String st="";
         try {
-            
-            //Read file contents
+            // Read file contents
             br = new BufferedReader(new FileReader(file));
             st = br.readLine();
+            
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
         
-        //Content of file to integer
+        // Content of file to integer
         int n = Integer.parseInt(st); 
         System.out.println("The number readed is : " + n);
         
+        // The written string is the following number
         String str = String.valueOf(n+1);
-        System.out.println("The number written is : " + str);
         BufferedWriter writer;
         try {
-            //Write the new random integer to file
-            new FileOutputStream(filename).close();
+            // Erase file previous contents
+            new FileOutputStream(filename).close(); 
+            
+            //Write the new number to the file
             writer = new BufferedWriter(new FileWriter(file, true));
             writer.write(str);
             writer.close();
-            System.out.println("Writing from a task from processParam1");
+            System.out.println("Writing to file");
+            
         } catch (IOException e) {
             e.printStackTrace();
         }
+       
+        System.out.println("The written number is : " + str);
         return n;
     }
 
+    // Function called if the execution has to continue
     private static void failOnce(int n) throws numberException {
         //Exception thrown
         if (n==1) {
@@ -54,6 +60,7 @@ public class OnFailureImpl {
         }
     }
     
+    // Function called if the execution has to fail multiple times
     private static void failMultiple(int n) throws numberException {
         //Exception thrown
         if (n < 3) {

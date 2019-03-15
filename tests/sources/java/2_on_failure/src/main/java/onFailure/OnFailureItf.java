@@ -28,9 +28,4 @@ public interface OnFailureItf {
     void processParamDirectFail(
             @Parameter(type = Type.FILE, direction = Direction.INOUT) String filename
    );
-    
-//    @Method(declaringClass = "onFailure.OnFailureImpl", onFailure=OnFailure.CANCEL_SUCCESSORS)
-//    void processParam2(
-//            @Parameter(type = Type.FILE, direction = Direction.INOUT) String filename
-//   );
 }

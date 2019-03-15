@@ -135,7 +135,7 @@ def start(log_level='off',
     graphing = graph
     __export_globals__()
 
-    interactive_helpers.VERBOSE = verbose
+    interactive_helpers.DEBUG = debug
 
     __show_flower__()
 

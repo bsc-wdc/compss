@@ -403,8 +403,6 @@ public class TaskAnalyser {
                 }
             }
         }
-        LOGGER.debug("MARTA: appIdToSemaphore : " + this.appIdToSemaphore.get(appId) );
-        LOGGER.debug("MARTA: appIdBarrierFlags : " + this.appIdBarrierFlags.contains(appId) );
         // Check if the finished task was the last writer of a file, but only if task generation has finished
         // Task generation is finished if we are on noMoreTasks but we are not on a barrier
         if (this.appIdToSemaphore.get(appId) != null && !this.appIdBarrierFlags.contains(appId)) {
@@ -424,7 +422,6 @@ public class TaskAnalyser {
      * @param t
      */
     private void checkResultFileTransfer(Task t) {
-        LOGGER.debug("MARTA: CheckResultFileTransfer" );
         LinkedList<DataInstanceId> fileIds = new LinkedList<>();
         for (Parameter p : t.getTaskDescription().getParameters()) {
             switch (p.getType()) {
@@ -436,14 +433,9 @@ public class TaskAnalyser {
                             break;
                         case INOUT:
                             DataInstanceId dId = ((RWAccessId) fp.getDataAccessId()).getWrittenDataInstance();
-                            LOGGER.debug("MARTA: CheckResultFileTransfer dId: " + dId);
-                            LOGGER.debug("MARTA: CheckResultFileTransfer this.writers: " + this.writers.get(dId.getDataId()) );
-                            LOGGER.debug("MARTA: CheckResultFileTransfer t: " + t);
                             if (this.writers.get(dId.getDataId()) == t) {
                                 fileIds.add(dId);
                             }
-
-                            LOGGER.debug("MARTA: CheckResultFileTransfer Case INOUT: " + dId );
                             break;
                         case OUT:
                             dId = ((WAccessId) fp.getDataAccessId()).getWrittenDataInstance();
@@ -463,8 +455,6 @@ public class TaskAnalyser {
             // List<ResultFile> resFiles = new ArrayList<ResultFile>(numFT);
             for (DataInstanceId fileId : fileIds) {
                 try {
-
-                    LOGGER.debug("MARTA: fileId " + fileId);
                     int id = fileId.getDataId();
                     this.DIP.blockDataAndGetResultFile(id, new ResultListener(new Semaphore(0)));
                     this.DIP.unblockDataId(id);

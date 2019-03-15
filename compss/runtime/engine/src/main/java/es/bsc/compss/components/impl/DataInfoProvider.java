@@ -420,7 +420,12 @@ public class DataInfoProvider {
         }
         return daId;
     }
-
+    
+    /**
+     * Removes versions to check if task was canceled
+     *
+     * @param dAccId
+     */
     public void dataAccessHasBeenCanceled(DataAccessId dAccId) {
         Integer dataId = dAccId.getDataId();
         DataInfo di = idToData.get(dataId);
@@ -436,16 +441,14 @@ public class DataInfoProvider {
             case RW:
                 rVersionId = ((RWAccessId) dAccId).getReadDataInstance().getVersionId();
                 di.versionHasBeenRead(rVersionId);
-                // read data version can be removed
+                // read and write data version can be removed
                 di.tryRemoveVersion(rVersionId);
                 wVersionId = ((RWAccessId) dAccId).getWrittenDataInstance().getVersionId();
-//                deleted = di.versionHasBeenWritten(wVersionId);
                 di.tryRemoveVersion(wVersionId);
                 break;
             default:// case W:
                 wVersionId = ((WAccessId) dAccId).getWrittenDataInstance().getVersionId();
                 di.tryRemoveVersion(wVersionId);
-//                deleted = di.versionHasBeenWritten(wVersionId);
                 break;
         }
 
@@ -785,9 +788,7 @@ public class DataInfoProvider {
     public ResultFile blockDataAndGetResultFile(int dataId, ResultListener listener) {
         DataInstanceId lastVersion;
         FileInfo fileInfo = (FileInfo) idToData.get(dataId);
-        LOGGER.debug("MARTA: fileInfo in blockDataAndGetResultFile " + fileInfo);
         if (fileInfo != null && !fileInfo.isCurrentVersionToDelete()) { // If current version is to delete do not
-            LOGGER.debug("MARTA: BlockDataAndGetResultFile of dataId : " + dataId + " of file info " + fileInfo.getDataId() + " " + fileInfo.toString());
             // transfer
             String[] splitPath = fileInfo.getOriginalLocation().getPath().split(File.separator);
             String origName = splitPath[splitPath.length - 1];

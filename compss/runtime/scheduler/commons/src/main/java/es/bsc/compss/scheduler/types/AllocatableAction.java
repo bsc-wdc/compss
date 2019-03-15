@@ -167,7 +167,6 @@ public abstract class AllocatableAction {
      * @return
      */
     public final List<AllocatableAction> getDataSuccessors() {
-        LOGGER.warn("MARTA: dataSuccessors of task : " + this.getId() + " are "+ dataSuccessors);
         return dataSuccessors;
     }
 
@@ -381,8 +380,6 @@ public abstract class AllocatableAction {
      * @return
      */
     public final ResourceScheduler<? extends WorkerResourceDescription> getAssignedResource() {
-
-        LOGGER.debug("MARTA: SelectedResource of task : " + this.getId() + " is " + selectedResource);
         return selectedResource;
     }
 
@@ -392,7 +389,6 @@ public abstract class AllocatableAction {
      * @throws InvalidSchedulingException
      */
     public final void tryToLaunch() throws InvalidSchedulingException {
-        LOGGER.debug("MARTA: Trying to launch " + this.toString() + " on resource " + selectedResource);
         // Gets the lock on the action
         lock.lock();
         if ( // has an assigned resource where to run
@@ -681,28 +677,6 @@ public abstract class AllocatableAction {
 
         return cancel;
     }
-    
-//    /**
-//     * Operations to perform when task has failed and its failure is ignored
-//     */
-//    public final  List<AllocatableAction> failIgnored() {
-//        // Mark as failed
-//        this.state = State.FAILED;
-//        
-//        cancelAction();
-//        
-//        List<AllocatableAction> ignored = new LinkedList<>();
-//        for (AllocatableAction succ : dataSuccessors) {
-//            ignored.addAll(succ.getDataSuccessors());
-//            LOGGER.warn("MARTA: ignored: "+ ignored);
-//        }
-//        
-//        // Action notification
-//        doFailIgnored();
-//        
-//        
-//        return ignored;
-//    }
     
     /**
      * Operations to perform when a task has to fail without any resubmission

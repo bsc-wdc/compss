@@ -49,7 +49,6 @@ public class JobTransfersListener extends EventListener {
             finished = (operation == 0);
             failed = (errors > 0);
         }
-
         if (finished) {
             if (failed) {
                 doFailures();

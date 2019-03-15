@@ -520,7 +520,6 @@ public class Executor implements Runnable {
             if (param.getType().equals(DataType.FILE_T)) {
                 String filepath = (String) param.getValue();
                 File f = new File(filepath);
-                LOGGER.warn("MARTA: FilePath to check: " + filepath + " exists: " + f.exists());
                 // If using C binding we ignore potential errors
                 if (!f.exists() && (invocation.getLang() != Lang.C)) {
                     StringBuilder errMsg = new StringBuilder();

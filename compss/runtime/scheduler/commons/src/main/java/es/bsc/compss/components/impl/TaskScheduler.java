@@ -440,7 +440,8 @@ public class TaskScheduler {
         ResourceScheduler<WorkerResourceDescription> resource = (ResourceScheduler<WorkerResourceDescription>) action.getAssignedResource();
 
         boolean failed = false;
-            // Process the action error (removes the assigned resource)
+        
+        // Process the action error (removes the assigned resource)
         try {
             action.error();
         } catch (FailedActionException fae) {
@@ -448,7 +449,7 @@ public class TaskScheduler {
             failed = true;
             removeFromReady(action);
             if (action.getOnFailure() != OnFailure.IGNORE) {
-            // Free all the dependent tasks
+                // Free all the dependent tasks
                 for (AllocatableAction failedAction : action.failed()) {
                     try {
                         ResourceScheduler<?> failedResource = failedAction.getAssignedResource();
@@ -459,16 +460,6 @@ public class TaskScheduler {
                         // Once the action starts running should cannot be moved from the resource
                     }
                 }
-                if (!failed) {
-                    dataFreeActions.add(action);
-                    // Try to re-schedule the action
-                    /*
-                     * Score actionScore = generateActionScore(action); try { scheduleAction(action, actionScore);
-                     * tryToLaunch(action); } catch (BlockedActionException bae) { removeFromReady(action);
-                     * addToBlocked(action); }
-                     */
-                }
-               
             } else {
                 // Get the data free actions and mark them as ready
                 dataFreeActions = action.failed();
@@ -477,16 +468,27 @@ public class TaskScheduler {
                 }
             }
         }
+        
         // We free the current task and get the free actions from the resource
         try {
-            LOGGER.debug("MARTA: changing resource ");
             resourceFree.addAll(resource.unscheduleAction(action));
         } catch (ActionNotFoundException anfe) {
             // Once the action starts running should cannot be moved from the resource
         }
-        LOGGER.debug("MARTA: resource old:  " + resource);
-        LOGGER.debug("MARTA: resource new:  " + resourceFree);
+        
         workerLoadUpdate(resource);
+        
+        if (action.getOnFailure() == OnFailure.RETRY) {
+            if (!failed) {
+                dataFreeActions.add(action);
+                // Try to re-schedule the action
+                /*
+                 * Score actionScore = generateActionScore(action); try { scheduleAction(action, actionScore);
+                 * tryToLaunch(action); } catch (BlockedActionException bae) { removeFromReady(action);
+                 * addToBlocked(action); }
+                 */
+            }
+        }
         
         List<AllocatableAction> blockedCandidates = new LinkedList<>();
         

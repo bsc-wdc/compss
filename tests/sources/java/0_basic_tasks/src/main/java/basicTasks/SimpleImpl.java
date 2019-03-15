@@ -12,7 +12,7 @@ public class SimpleImpl {
     public static void increment(String counterFile) throws Exception {
         //Checking if fileName is the original
         File f = new File(counterFile);
-        if (f.getName().equals(Simple.COUNTER_NAME)){
+        if (!f.getName().equals(Simple.COUNTER_NAME)){
             throw new Exception(f.getName() + " is different from the original name " + Simple.COUNTER_NAME);
         }
         try {

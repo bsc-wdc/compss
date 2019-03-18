@@ -247,11 +247,13 @@ def load_configuration_file(cfg_file):
     if "comm" not in cfg_vars.keys():
         raise ConfigurationError("[ERROR] CFG file does not define comm variable under DEFAULT scope")
     comm_adaptor = cfg_vars["comm"]
-
     if comm_adaptor not in config.sections():
         raise ConfigurationError("[ERROR] CFG file does not define adaptor scope " + str(comm_adaptor))
     comm_adaptor_vars = {k: v for k, v in config.items(comm_adaptor)}
     cfg_vars.update(comm_adaptor_vars)
+    # Fix execution environments (if any)
+    if "execution_envs" in cfg_vars.keys():
+        cfg_vars["execution_envs"] = cfg_vars["execution_envs"].strip().split(",")
 
     if __debug__:
         print("[DEBUG] Retrieved CFG variables: " + str(cfg_vars))

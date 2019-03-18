@@ -25,9 +25,10 @@ Provides auxiliar methods for the interactive mode.
 
 import os
 
-# Verbose mode
+# Debug mode
 # Changed to true from interactive.py if specified by the user when starting the runtime
-VERBOSE = False
+# Enables the explicit prints
+DEBUG = False
 
 
 SEPARATORS = {'globals_separator': "### GLOBALS ###",      # for user defined lines in the entire/global scope
@@ -59,7 +60,7 @@ def update_tasks_code_file(f, file_path):
     if not os.path.exists(file_path):
         _create_tasks_code_file(file_path)
 
-    if VERBOSE:
+    if DEBUG:
         print("Task definition detected.")
 
     # Intercept the code
@@ -154,11 +155,20 @@ def _get_ipython_globals():
         # We only get the lines that start with from or import and do not
         # have blank spaces before.
         lines = i.split('\n')
+        found_one = False
         for l in lines:
             # if the line starts without spaces and is a variable assignation
             if not (l.startswith(' ') or l.startswith('\t')) and _is_variable_assignation(l):
                 glob_name = l.split()[0]
                 glob_lines[glob_name] = l.strip()
+                found_one = True
+                continue
+            # if the next line/s start with space or tab belong also to the global variable
+            if found_one and (l.startswith(' ') or l.startswith('\t')):
+                # It is a multiple lines global variable definition
+                glob_lines[glob_name] += l.strip()
+            else:
+                found_one = False
     return glob_lines
 
 
@@ -178,8 +188,8 @@ def _is_variable_assignation(line):
                 line.startswith("import") or
                 line.startswith("@") or
                 line.startswith("def") or
-                line.startswith("class") or '(' in line or ')' in line) \
-                and len(parts) == 3 and parts[1] == '=':
+                line.startswith("class")) \
+                and len(parts) >= 3 and parts[1] == '=':
             # It is actually an assignation
             return True
         else:
@@ -281,15 +291,17 @@ def _get_task_code(f):
     """
 
     import inspect
-    task_code = inspect.getsource(f)  # .strip()
+    task_code = inspect.getsource(f)
     if task_code.startswith((' ', '\t')):
         return {}
     else:
         name = ''
         lines = task_code.split('\n')
         for line in lines:
+            # Ignore the decorator stack
             if line.strip().startswith('def'):
                 name = line.replace('(', ' (').split(' ')[1].strip()
+                break  # Just need the first
         return {name: task_code}
 
 
@@ -392,11 +404,18 @@ def _get_old_code(file_path):
 
     # Process functions
     functions = {}
-    # Collapse all lines into a single one
-    collapsed = ''.join(file_functions).strip()
-    # Then split by "def" and filter the empty results, then iterate
-    # concatenating "def" to all results.
-    funcs = [('def ' + l) for l in [name for name in collapsed.split('def ') if name]]
+    # Clean empty lines
+    clean_functions = [l for l in file_functions if l]
+    # Iterate over the lines splitting by the ones that start with def
+    funcs = []
+    f = ''
+    for line in clean_functions:
+        if line.startswith('def'):
+            if f:
+                funcs.append(f)
+            f = line
+        else:
+            f += line
     # Add functions to dictionary by function name:
     for f in funcs:
         func_code = f.strip()
@@ -474,7 +493,7 @@ def _update_globals(new_globals, old_globals):
         return new_globals
     else:
         for gName in list(new_globals.keys()):
-            if VERBOSE and gName in old_globals and (not new_globals[gName] == old_globals[gName]):
+            if DEBUG and gName in old_globals and (not new_globals[gName] == old_globals[gName]):
                 print("WARNING! Global variable " + gName + " has been redefined with changes (the previous will be deprecated).")
             old_globals[gName] = new_globals[gName]
         return old_globals
@@ -495,7 +514,7 @@ def _update_classes(new_classes, old_classes):
         return new_classes
     else:
         for cName in list(new_classes.keys()):
-            if VERBOSE and cName in old_classes and (not new_classes[cName] == old_classes[cName]):
+            if DEBUG and cName in old_classes and (not new_classes[cName] == old_classes[cName]):
                 print("WARNING! Class " + cName + " has been redefined with changes (the previous will be deprecated).")
             old_classes[cName] = new_classes[cName]
         return old_classes
@@ -516,7 +535,7 @@ def _update_functions(new_functions, old_functions):
         return new_functions
     else:
         for fName in list(new_functions.keys()):
-            if VERBOSE and fName in old_functions and (not new_functions[fName] == old_functions[fName]):
+            if DEBUG and fName in old_functions and (not new_functions[fName] == old_functions[fName]):
                 print("WARNING! Function " + fName + " has been redefined with changes (the previous will be deprecated).")
             old_functions[fName] = new_functions[fName]
         return old_functions
@@ -539,7 +558,7 @@ def _update_tasks(new_tasks, old_tasks):
         pass
     else:
         task_name = list(new_tasks.keys())[0]
-        if VERBOSE and task_name in old_tasks and (not new_tasks[task_name] == old_tasks[task_name]):
+        if DEBUG and task_name in old_tasks and (not new_tasks[task_name] == old_tasks[task_name]):
             print("WARNING! Task " + task_name + " has been redefined (the previous will be deprecated).")
         old_tasks[task_name] = new_tasks[task_name]
     return old_tasks

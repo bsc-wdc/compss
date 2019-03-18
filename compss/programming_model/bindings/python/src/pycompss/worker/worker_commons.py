@@ -153,6 +153,7 @@ def get_input_params(num_params, logger, args, process_name):
 
     return ret
 
+
 def task_execution(logger, process_name, module, method_name, types, values, compss_kwargs):
     """
     Task execution function.
@@ -169,8 +170,10 @@ def task_execution(logger, process_name, module, method_name, types, values, com
 
     if __debug__:
         logger.debug("Starting task execution")
-        logger.debug("Types : %s " % str(types))
-        logger.debug("Values: %s " % str(values))
+        logger.debug("module     : %s " % str(module))
+        logger.debug("method_name: %s " % str(method_name))
+        logger.debug("Types      : %s " % str(types))
+        logger.debug("Values     : %s " % str(values))
 
     # WARNING: the following call will not work if a user decorator overrides the return of the task decorator.
     # new_types, new_values = getattr(module, method_name)(*values, compss_types=types, **compss_kwargs)
@@ -187,21 +190,22 @@ def task_execution(logger, process_name, module, method_name, types, values, com
         # TODO: Currently, the extra result is ignored.
         new_types = task_output[0][0]
         new_values = task_output[0][1]
-        targetDirection = task_output[0][2]
+        target_direction = task_output[0][2]
     else:
         # The task_output is composed by the new_types and new_values returned by the task decorator.
         new_types = task_output[0]
         new_values = task_output[1]
-        targetDirection = task_output[2]
+        target_direction = task_output[2]
 
     if __debug__:
         # The types may change (e.g. if the user does a makePersistent within the task)
         logger.debug("Return Types : %s " % str(new_types))
         logger.debug("Return Values: %s " % str(new_values))
-        logger.debug("Return targetDirection: %s " % str(targetDirection))
+        logger.debug("Return target_direction: %s " % str(target_direction))
         logger.debug("Finished task execution")
 
-    return new_types, new_values, targetDirection
+    return new_types, new_values, target_direction
+
 
 def execute_task(process_name, storage_conf, params, tracing, logger):
     """

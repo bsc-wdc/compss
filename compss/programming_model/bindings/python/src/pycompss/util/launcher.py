@@ -177,7 +177,7 @@ def updated_variables_in_sc():
     return updated_vars
 
 
-def prepare_tracing_environment(trace, extrae_lib):
+def prepare_tracing_environment(trace, extrae_lib, ld_library_path):
     """
     Prepare the environment for tracing. Also retrieves the appropiate trace value
     for the initial configuration file (which is an integer)
@@ -190,12 +190,14 @@ def prepare_tracing_environment(trace, extrae_lib):
     elif trace == 'basic' or trace is True:
         trace_value = 1
         os.environ['LD_PRELOAD'] = extrae_lib + '/libpttrace.so'
+        ld_library_path = ld_library_path + ':' + extrae_lib
     elif trace == 'advanced':
         trace_value = 2
         os.environ['LD_PRELOAD'] = extrae_lib + '/libpttrace.so'
+        ld_library_path = ld_library_path + ':' + extrae_lib
     else:
         raise Exception("ERROR: Wrong tracing parameter ( [ True | basic ] | advanced | False)")
-    return trace_value
+    return trace_value, ld_library_path
 
 
 def check_infrastructure_variables(project_xml, resources_xml, compss_home, app_name, file_name, external_adaptation):

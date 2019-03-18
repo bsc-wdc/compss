@@ -135,7 +135,7 @@ def start(log_level='off',
     graphing = graph
     __export_globals__()
 
-    interactive_helpers.VERBOSE = verbose
+    interactive_helpers.DEBUG = debug
 
     __show_flower__()
 
@@ -209,8 +209,10 @@ def start(log_level='off',
             print("- Overridden trace with: " + str(updated_vars['trace']))
         all_vars.update(updated_vars)
 
-    # Update the tracing environment if set and set the apropriate trace integer value
-    all_vars['trace'] = prepare_tracing_environment(all_vars['trace'], all_vars['extrae_lib'])
+    # Update the tracing environment if set and set the appropriate trace integer value
+    all_vars['trace'], all_vars['ld_library_path'] = prepare_tracing_environment(all_vars['trace'],
+                                                                                 all_vars['extrae_lib'],
+                                                                                 all_vars['ld_library_path'])
 
     # Update the infrastructure variables if necessary
     inf_vars = check_infrastructure_variables(all_vars['project_xml'],
@@ -350,6 +352,9 @@ def stop(sync=False):
     compss_stop()
 
     __clean_temp_files__()
+
+    # Let the Python binding know we are not at master anymore
+    context.set_pycompss_context(context.OUTOFSCOPE)
 
     print("****************************************************")
     logger.debug("--- END ---")

@@ -9,13 +9,12 @@ job_id=$1  # Job id
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # Load default CFG for default values
 DEFAULT_SC_CFG="default"
-defaultSC_cfg=${SCRIPT_DIR}/../../queues/cfgs/${DEFAULT_SC_CFG}.cfg
-#shellcheck source=../../queues/cfgs/default.cfg
+defaultSC_cfg=${SCRIPT_DIR}/../../queues/supercomputers/${DEFAULT_SC_CFG}.cfg
+#shellcheck source=${SCRIPT_DIR}/../../queues/supercomputers/default.cfg
 source "${defaultSC_cfg}"
-defaultQS_cfg=${SCRIPT_DIR}/../../queues/${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg
-#shellcheck source=../../queues/slurm/slurm.cfg
+defaultQS_cfg=${SCRIPT_DIR}/../../queues/queue_systems/${QUEUE_SYSTEM}.cfg
+#shellcheck source=${SCRIPT_DIR}/../../queues/queue_systems/slurm.cfg
 source "${defaultQS_cfg}"
-
 
 ###############################################
 #       Cancel the jupyter notebook job       #

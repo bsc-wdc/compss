@@ -1,3 +1,4 @@
+<!-- LOGOS AND HEADER -->
 <h1 align="center">
   <br>
   <a href="https://www.bsc.es/">
@@ -14,14 +15,11 @@
 
 <h3 align="center">Component Superscalar framework and programming model for HPC.</h3>
 <p align="center">
-
   <a href='http://bscgrid05.bsc.es/jenkins/job/COMPSs_Framework-Docker_testing'>
     <img src='http://bscgrid05.bsc.es/jenkins/job/COMPSs_Framework-Docker_testing/badge/icon'
          alt="Build Status">
   </a>
-
 </p>
-
 
 <p align="center"><b>
     <a href="https://www.bsc.es/research-and-development/software-and-apps/software-list/comp-superscalar/">Website</a> •  
@@ -34,7 +32,11 @@ of applications for distributed infrastructures, such as Clusters, Grids and Clo
 COMP Superscalar also features a runtime system that exploits the inherent parallelism
 of applications at execution time.
 
-## Documentation
+
+<!-- SECTIONS -->
+
+<!-- DOCUMENTATION -->
+# Documentation
 
 COMPSs documentation can be found at the [COMPSs Webpage][1] or at 
 the `doc/` folder.
@@ -47,13 +49,15 @@ the `doc/` folder.
   * COMPSs_Developer_Manual.pdf
 
 
-## Packages
+<!-- PACKAGES -->
+# Packages
 
 The COMP Superscalar Framework packages are available at the [COMPSs Webpage][1] or 
 can be found on the `builders/packages/` directory.
 
 
-## Sources Structure
+<!-- SOURCES STRUCTURE -->
+# Sources Structure
 
   * **builders**: Packages, scripts for local installations, scripts for supercomputers
    installation and package building scripts
@@ -65,49 +69,94 @@ can be found on the `builders/packages/` directory.
   * **utils** : Misc utils (i.e. OVA scripts, Docker generation, Storage implementations)
 
 
-## Sample Applications
+<!-- SAMPLE APPLICATIONS -->
+# Sample Applications
 
 You can find extended information about COMPSs Sample applications at the 
 Sample_Applications manual available at the [COMPSs Webpage][1] or at the 
 `doc/Sample_applications.pdf`.
 
 
-## Building COMPSs
+<!-- BUILDING COMPSS -->
+# Building COMPSs
 
-* COMPSs Dependencies:
+Follow the next steps to build COMPSs in your current machine. 
+
+## 1. Install dependencies
+
+Install the listed dependencies for each component you wish to install. For a complete build please install all the dependencies.
+
+* COMPSs Runtime dependencies
   * openjdk-8-jre
-  * openjdk-8-jdk
+  * openssh-server
+  * uuid-runtime
   * graphviz
   * xdg-utils
-  * libxml2
-  * libxml2-dev
-  * python (>=2.7)
-  * libpython2.7
+* Build dependencies
+  * wget
+  * openjdk-8-jdk
+  * maven
+* Bindings-common dependencies
   * build-essential
   * autoconf
   * automake
   * autotools-dev
   * libtool
-  * libboost-serialization-dev
-  * libboost-iostreams-dev
+* C-binding dependencies
+  * libboost-all-dev 
+  * libxml2-dev 
+  * csh
+* Python-binding dependencies
+  * python-dev | python3-dev
+  * python-pip | python3-pip 
+  * python-setuptools | python3-setuptools
+  * libpython2.7
+  * wheel 
+  * numpy
+  * dill 
+  * guppy
+* Extrae dependencies
+  * libxml2
   * gfortran
+  * libpapi-dev
+  * papi-tools
+* AutoParallel dependencies
+  * libgmp3-dev
+  * flex
+  * bison
+  * libbison-dev
+  * texinfo
+  * libffi-dev
+  * astor
+  * sympy
+  * enum34
+  * islpy
+* Testing dependencies
+  * openmpi-bin
+  * openmpi-doc
+  * libopenmpi-dev
+  * bc
+  * decorator 
+  * mpi4py
+  * redis-py-cluster
+  * enum34
+  * tabulate
 
-* Building dependencies
-  * wget
-  * maven (3.0.x version)
 
-* Getting submodule dependencies:
+## 2. Get GIT submodules
 
-    Before installing COMPSs you need to download the git submodules that contain its dependencies. To do that execute the following two commands which are located at the root of the repo.
+Before installing COMPSs you need to download the git submodules that contain its dependencies. To do that execute the following two commands at the root of the repository.
 
 ```
 ./submodules_get.sh
 ./submodules_patch.sh
 ```
 
-* Building COMPSs for all users
+## 3. Build COMPSs
 
-**Note**: you need to get COMPSs dependencies before installing. See previous section 'Getting submodule dependencies'
+**Note**: Remember to install the COMPSs dependencies and to get the GIT submodules before trying to build COMPSs from sources.
+
+* Building COMPSs for all users
 
 ```
 cd builders/
@@ -117,18 +166,23 @@ sudo -E ./buildlocal [options] ${INSTALL_DIR}
 
 * Building COMPSs for current user
 
-**Note**: you need to get COMPSs dependencies before installing. See previous section 'Getting submodule dependencies'
-
 ```
 cd builders/
 INSTALL_DIR=$HOME/opt/COMPSs/
 ./buildlocal [options] ${INSTALL_DIR}
 ```
 
-## Running docker tests 
+Many COMPSs modules can be activated/deactivated during the build using different options in the `buildlocal` command. You may check the available options by running the following command:
 
-### 1. Install Docker and docker-py
+```
+cd builders
+./buildlocal -h
+```
 
+<!-- RUNNING DOCKER TESTS -->
+# Running docker tests 
+
+## 1. Install Docker and docker-py
 
 Follow these instructions
 
@@ -136,13 +190,12 @@ Follow these instructions
  - [Docker for Ubuntu](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce-1).
  - [Docker for Arch Linux](https://wiki.archlinux.org/index.php/Docker#Installation).
 
-
 Add user to docker group to run docker as non-root user.
 
  - [Instructions](https://docs.docker.com/install/linux/linux-postinstall/).
     
 
-### 2. Build the docker image 
+## 2. Build the docker image 
 
 Run the following command at the root of the project to build the image that will used for testing. The command create an image named **compss** and install the current branch into the image.
 
@@ -150,16 +203,18 @@ Run the following command at the root of the project to build the image that wil
 docker build -t compss .
 ```
 
-### 3. Run the tests
+
+## 3. Run the tests
 
 To run the tests inside the docker image use the script found in `./tests/scripts/docker_main`. This command is a wrapper for the `./main` test command
 so it has de the syntax and options. For example, you can run the first test without retrials as follows:
+
 ```
 ./docker_main -R local_1 local.cfg
 ```
+
 The docker main command creates a new docker container each time you run it (replacing the last one used). It copies the current framework inside it
 and runs its tests. **Note**: the testing scripts assumes you have named the testing image `compss`.
-
 
 **Please be aware that:**
  
@@ -169,6 +224,8 @@ and runs its tests. **Note**: the testing scripts assumes you have named the tes
 * To delete the created image issue `docker rmi compss`
 * To delete the compss_test container use `docker rm -f compss_test`.
 
+
+<!-- CONTACT -->
 # Contact
 
 :envelope: COMPSs Support <support-compss@bsc.es> :envelope:
@@ -180,4 +237,5 @@ Department of Computer Science (CS)
 Barcelona Supercomputing Center (BSC) 
 
 
+<!-- LINKS -->
 [1]: http://compss.bsc.es

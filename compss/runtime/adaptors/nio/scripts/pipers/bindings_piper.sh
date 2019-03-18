@@ -105,17 +105,16 @@
 
   stop_received=false
   while [ "${stop_received}" = false ]; do
-    read line 
-    command=$(echo "$line" | tr " " "\t" | awk '{ print $1 }')
-    echo "[BINDINGS PIPER] READ COMMAND --${line}--"
-    case "${command}" in
+    read cmd_tag line
+    echo "[BINDINGS PIPER] READ COMMAND --${cmd_tag}--"
+    case "${cmd_tag}" in
       "PING")
         echo "PONG" >> "${controlRESULTpipe}"
         ;;
 
       "CREATE_CHANNEL")
         reply="CHANNEL_CREATED"
-        for pipe_name in $(echo "${line}" | cut -d' ' -f2- | tr " " "\t"); do
+        for pipe_name in $(echo "${line}" | tr " " "\t"); do
           create_pipe "${pipe_name}"
           reply="${reply} ${pipe_name}"
         done
@@ -123,12 +122,12 @@
         ;;
 
       "START_WORKER")
-        workerCMDpipe=$(echo "$line" | tr " " "\t" | awk '{ print $2 }')
+        workerCMDpipe=$(echo "$line" | tr " " "\t" | awk '{ print $1 }')
         create_pipe ${workerCMDpipe}
-        workerRESULTpipe=$(echo "$line" | tr " " "\t" | awk '{ print $3 }')
+        workerRESULTpipe=$(echo "$line" | tr " " "\t" | awk '{ print $2 }')
         create_pipe ${workerRESULTpipe}
 
-        workerCMD=$(echo ${line} | cut -d' ' -f4-) 
+        workerCMD=$(echo ${line} | cut -d' ' -f3-) 
         eval ${workerCMD} &
         bindingPID=$!
         echo "WORKER_STARTED ${bindingPID}" >> "${controlRESULTpipe}"
@@ -137,7 +136,7 @@
       "GET_ALIVE")
         reply="ALIVE_REPLY"
         if [ "${line}" != "GET_ALIVE" ]; then
-          pids=$(echo ${line} | cut -d' ' -f2-)
+          pids=$(echo ${line} | cut -d' ' -f1-)
           alive_processes=$(ps h -o pid,stat ${pids} | awk '$2 != "Z" {print $1}')
           for alive_process in ${alive_processes}; do
             reply="${reply} ${alive_process}"

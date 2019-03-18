@@ -18,13 +18,19 @@
 noinst_LIBRARIES = libexecutor.a 
 libexecutor_a_SOURCES = PACKAGE-executor.cc
 
+#libexecutor_a_LIBADD     = -L../../lib -ldl -L$(LIBJAVAFOLDER) -ljvm -L$(CS_HOME)/../bindings-common/lib/$(TARGET_HOST) -lbindings_common -L$(CS_HOME)/lib/$(TARGET_HOST) -lcbindings -L$(BOOST_LIB) -lboost_iostreams -lboost_serialization -lboost_systemi
+
+libexecutor_a_CPPFLAGS =  -I../../src -I../../include -Wno-write-strings -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux/ -I$(CS_HOME)/../bindings-common/include -I$(CS_HOME)/include -Wall
+
+libexecutor_a_CFLAGS =
+
 if OMPSS2
-libexecutor_a_CPPFLAGS  = --ompss2
-libexecutor_a_CFLAGS    = --ompss2
+libexecutor_a_CPPFLAGS  += --ompss2
+libexecutor_a_CFLAGS    += --ompss2
 else
 if OMPSS
-libexecutor_a_CPPFLAGS  = --ompss
-libexecutor_a_CFLAGS    = --ompss
+libexecutor_a_CPPFLAGS  += --ompss
+libexecutor_a_CFLAGS    += --ompss
 endif
 endif
 

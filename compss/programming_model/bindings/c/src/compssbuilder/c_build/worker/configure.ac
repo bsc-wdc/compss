@@ -30,6 +30,7 @@ dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_INSTALL
+AC_PROG_RANLIB
 
 #AX_BOOST_BASE(1.54)
 #AX_BOOST_SERIALIZATION
@@ -49,11 +50,25 @@ AC_ARG_WITH([cs-prefix],
 	]
 )
 
+
+AM_CONDITIONAL([OMPSS], [test x$ompss = xtrue])
+AM_CONDITIONAL([OMPSS2], [test x$ompss2 = xtrue])
+
+ompss=false
+ompss2=false
+
+dnl Linking with Nanos++ libraries if necessary
+AC_ARG_WITH([ompss],
+    AS_HELP_STRING([ --with-ompss], [Enables the use of OmpSs and specificates its directory.]),
+            [
+                ompss=true
+            ]
+)
+
 dnl Linking with Nanos6 libraries if necessary
 AC_ARG_WITH([ompss-2],
     AS_HELP_STRING([ --with-ompss-2], [Enables the use of OmpSs2 and specificates its directory.]),
             [
-                AM_CONDITIONAL([OMPSS2], [test x$ompss2 = xtrue])
                 ompss2=true
 
                 AC_CHECK_LIB([pthread], [pthread_cond_signal], [],
@@ -71,7 +86,7 @@ AC_ARG_WITH([ompss-2],
                     AC_MSG_ERROR([Nanos6 library not found, is needed to enable OmpSs2.]) 
                 ])
 
-                AC_CHECK_LIB([custom-nanos6], [nanos6_library_mode_init], [],
+                AC_CHECK_LIB([custom-nanos6], [nanos6_library_mode_init],
                 [
                     AC_MSG_ERROR([nanos6-library-mode.o is needed, we make a custom library from it.])
                 ])

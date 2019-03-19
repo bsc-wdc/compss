@@ -16,42 +16,50 @@
  */
 package es.bsc.compss.executor.external.piped.commands;
 
-import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
+import es.bsc.compss.executor.external.commands.AddedExecutorExternalCommand;
+import es.bsc.compss.executor.external.piped.PipePair;
 
 
-public class ExecuteTaskPipeCommand extends ExecuteTaskExternalCommand implements PipeCommand {
+public class AddedExecutorPipeCommand extends AddedExecutorExternalCommand implements PipeCommand {
 
-    private final Integer jobId;
+    private final String inPipe;
+    private final String outPipe;
+    private int pid;
 
-    public ExecuteTaskPipeCommand(Integer jobId) {
-        super();
+    public AddedExecutorPipeCommand(String[] line) {
+        inPipe = line[1];
+        outPipe = line[2];
+        pid = Integer.parseInt(line[3]);
+    }
 
-        this.jobId = jobId;
+    public AddedExecutorPipeCommand(PipePair pp) {
+        inPipe = pp.getInboundPipe();
+        outPipe = pp.getOutboundPipe();
     }
 
     @Override
     public String getAsString() {
-        StringBuilder sb = new StringBuilder(CommandType.EXECUTE_TASK.name());
-        sb.append(TOKEN_SEP);
-        sb.append(String.valueOf(this.jobId));
-        for (String c : this.arguments) {
-            sb.append(TOKEN_SEP);
-            sb.append(c);
-        }
-        return sb.toString();
+        return super.getAsString() + " " + inPipe + " " + outPipe;
     }
 
     @Override
     public int compareTo(PipeCommand t) {
         int value = Integer.compare(this.getType().ordinal(), t.getType().ordinal());
-        if (value != 0) {
-            value = Integer.compare(this.jobId, ((ExecuteTaskPipeCommand) t).jobId);
+        if (value == 0) {
+            value = inPipe.compareTo(((AddedExecutorPipeCommand) t).inPipe);
+        }
+        if (value == 0) {
+            value = outPipe.compareTo(((AddedExecutorPipeCommand) t).outPipe);
         }
         return value;
     }
 
     @Override
     public void join(PipeCommand receivedCommand) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        pid = ((AddedExecutorPipeCommand) receivedCommand).pid;
+    }
+
+    public int getPid() {
+        return pid;
     }
 }

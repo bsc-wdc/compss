@@ -16,22 +16,20 @@
  */
 package es.bsc.compss.invokers.external.piped;
 
+import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.executor.ExecutorContext;
+import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
+import es.bsc.compss.executor.external.piped.ControlPipePair;
 import es.bsc.compss.executor.external.piped.PipePair;
 import es.bsc.compss.executor.external.piped.PipedMirror;
-import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.COMPSsConstants.Lang;
-import es.bsc.compss.executor.ExecutorContext;
-import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
-import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
 import es.bsc.compss.executor.external.piped.commands.ExecuteTaskPipeCommand;
-import es.bsc.compss.invokers.types.CParams;
+import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.invokers.types.PythonParams;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
-
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -75,7 +73,6 @@ public class PythonInvoker extends PipedInvoker {
         private final PythonParams pyParams;
         private final String pyCOMPSsHome;
 
-
         public PythonMirror(InvocationContext context, int size) {
             super(context, size);
             this.pyParams = (PythonParams) context.getLanguageParams(COMPSsConstants.Lang.PYTHON);
@@ -85,20 +82,26 @@ public class PythonInvoker extends PipedInvoker {
         }
 
         @Override
-        public String getLaunchCommand(InvocationContext context) {
-            // Specific launch command is of the form: binding bindingExecutor bindingArgs
-            // The bindingArgs are of the form python -u piper_worker.py debug tracing storageConf #threads cmdPipes
-            // resultPipes
+        public String getPipeBuilderContext() {
             StringBuilder cmd = new StringBuilder();
 
             cmd.append(COMPSsConstants.Lang.PYTHON).append(TOKEN_SEP);
             cmd.append(this.pyParams.getPythonVirtualEnvironment()).append(TOKEN_SEP);
             cmd.append(this.pyParams.getPythonPropagateVirtualEnvironment()).append(TOKEN_SEP);
 
-            cmd.append(Tracer.isActivated()).append(TOKEN_SEP);
+            return cmd.toString();
+        }
+
+        @Override
+        public String getLaunchWorkerCommand(InvocationContext context, ControlPipePair pipe) {
+            // Specific launch command is of the form: binding bindingExecutor bindingArgs
+            // The bindingArgs are of the form python -u piper_worker.py debug tracing storageConf #threads <cmdPipes>
+            // <resultPipes> controlPipeCMD controlPipeRESULT
+            StringBuilder cmd = new StringBuilder();
 
             if (this.pyParams.usePythonMpiWorker()) {
-                cmd.append("mpirun").append(TOKEN_SEP).append("-np").append(TOKEN_SEP).append(this.size).append(TOKEN_SEP);
+                //Rank 0 acts as the Piper Worker. Other processes act as piped executors
+                cmd.append("mpirun").append(TOKEN_SEP).append("-np").append(TOKEN_SEP).append(this.size + 1).append(TOKEN_SEP);
             }
             cmd.append(this.pyParams.getPythonInterpreter()).append(TOKEN_SEP).append("-u").append(TOKEN_SEP);
             cmd.append(this.pyCOMPSsHome);
@@ -122,6 +125,8 @@ public class PythonInvoker extends PipedInvoker {
                 cmd.append(computePipes).append(i).append(".inbound").append(TOKEN_SEP);
             }
 
+            cmd.append(pipe.getOutboundPipe()).append(TOKEN_SEP);
+            cmd.append(pipe.getInboundPipe());
             return cmd.toString();
         }
 
@@ -143,12 +148,6 @@ public class PythonInvoker extends PipedInvoker {
 
             // LD_LIBRARY_PATH
             String ldLibraryPath = System.getenv(ENV_LD_LIBRARY_PATH);
-            CParams cParams = (CParams) context.getLanguageParams(Lang.C);
-            if (ldLibraryPath == null) {
-                ldLibraryPath = cParams.getLibraryPath();
-            } else {
-                ldLibraryPath = ldLibraryPath.concat(":" + cParams.getLibraryPath());
-            }
             String bindingsHome = context.getInstallDir() + BINDINGS_RELATIVE_PATH;
             ldLibraryPath = ldLibraryPath.concat(":" + bindingsHome);
             env.put(ENV_LD_LIBRARY_PATH, ldLibraryPath);

@@ -16,10 +16,32 @@
  */
 package es.bsc.compss.executor.external.piped.commands;
 
-import es.bsc.compss.executor.external.commands.PingExternalCommand;
+import es.bsc.compss.executor.external.commands.WorkerStartedExternalCommand;
 
 
-public class PingPipeCommand extends PingExternalCommand implements PipeCommand {
+public class WorkerStartedPipeCommand extends WorkerStartedExternalCommand implements PipeCommand {
+
+    private int pid;
+
+    public WorkerStartedPipeCommand(String[] command) {
+        this.pid = Integer.parseInt(command[1]);
+    }
+
+    public WorkerStartedPipeCommand() {
+
+    }
+
+    public int getPid() {
+        return pid;
+    }
+
+    @Override
+    public String getAsString() {
+        StringBuilder sb = new StringBuilder(super.getAsString());
+        sb.append(TOKEN_SEP);
+        sb.append(pid);
+        return sb.toString();
+    }
 
     @Override
     public int compareTo(PipeCommand t) {
@@ -28,7 +50,11 @@ public class PingPipeCommand extends PingExternalCommand implements PipeCommand 
 
     @Override
     public void join(PipeCommand receivedCommand) {
-        //Do nothing
+        this.pid = ((WorkerStartedPipeCommand) receivedCommand).pid;
     }
 
+    @Override
+    public String toString() {
+        return "WORKER_STARTED " + pid;
+    }
 }

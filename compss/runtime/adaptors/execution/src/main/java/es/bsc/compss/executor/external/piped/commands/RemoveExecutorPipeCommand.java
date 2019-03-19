@@ -16,35 +16,34 @@
  */
 package es.bsc.compss.executor.external.piped.commands;
 
-import es.bsc.compss.executor.external.commands.EndTaskExternalCommand;
-import es.bsc.compss.invokers.types.ExternalTaskStatus;
+import es.bsc.compss.executor.external.commands.RemoveExecutorExternalCommand;
+import es.bsc.compss.executor.external.piped.PipePair;
 
 
-public class EndTaskPipeCommand extends EndTaskExternalCommand implements PipeCommand {
+public class RemoveExecutorPipeCommand extends RemoveExecutorExternalCommand implements PipeCommand {
 
-    public final Integer jobId;
-    public final ExternalTaskStatus taskStatus;
+    private final PipePair pipe;
 
-    public EndTaskPipeCommand(String[] line) {
-        jobId = Integer.parseInt(line[1]);
-        taskStatus = new ExternalTaskStatus(line);
+    public RemoveExecutorPipeCommand(PipePair pp) {
+        this.pipe = pp;
     }
 
-    public ExternalTaskStatus getTaskStatus() {
-        return taskStatus;
+    @Override
+    public String getAsString() {
+        return super.getAsString() + " " + pipe.getOutboundPipe() + " " + pipe.getInboundPipe();
     }
 
     @Override
     public int compareTo(PipeCommand t) {
         int value = Integer.compare(this.getType().ordinal(), t.getType().ordinal());
         if (value != 0) {
-            value = Integer.compare(this.jobId, ((EndTaskPipeCommand) t).jobId);
+            value = pipe.getPipesLocation().compareTo(((RemoveExecutorPipeCommand) t).pipe.getPipesLocation());
         }
         return value;
     }
 
     @Override
     public void join(PipeCommand receivedCommand) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
 }

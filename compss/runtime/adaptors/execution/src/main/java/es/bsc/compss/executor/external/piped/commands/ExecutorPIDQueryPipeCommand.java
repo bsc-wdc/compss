@@ -16,29 +16,36 @@
  */
 package es.bsc.compss.executor.external.piped.commands;
 
-import es.bsc.compss.executor.external.commands.EndTaskExternalCommand;
-import es.bsc.compss.invokers.types.ExternalTaskStatus;
+import es.bsc.compss.executor.external.commands.ExecutorPIDQueryExternalCommand;
+import es.bsc.compss.executor.external.piped.PipePair;
 
 
-public class EndTaskPipeCommand extends EndTaskExternalCommand implements PipeCommand {
+public class ExecutorPIDQueryPipeCommand extends ExecutorPIDQueryExternalCommand implements PipeCommand {
 
-    public final Integer jobId;
-    public final ExternalTaskStatus taskStatus;
+    private final PipePair[] pipes;
 
-    public EndTaskPipeCommand(String[] line) {
-        jobId = Integer.parseInt(line[1]);
-        taskStatus = new ExternalTaskStatus(line);
+    public ExecutorPIDQueryPipeCommand(PipePair... pp) {
+        this.pipes = pp;
     }
 
-    public ExternalTaskStatus getTaskStatus() {
-        return taskStatus;
+    @Override
+    public String getAsString() {
+        StringBuilder sb = new StringBuilder(super.getAsString());
+        for (PipePair pipe : pipes) {
+            sb.append(" ").append(pipe.getOutboundPipe()).append(" ").append(pipe.getInboundPipe());
+        }
+        return sb.toString();
     }
 
     @Override
     public int compareTo(PipeCommand t) {
         int value = Integer.compare(this.getType().ordinal(), t.getType().ordinal());
-        if (value != 0) {
-            value = Integer.compare(this.jobId, ((EndTaskPipeCommand) t).jobId);
+        if (value == 0) {
+            value = Integer.compare(pipes.length, ((ExecutorPIDQueryPipeCommand) t).pipes.length);
+        }
+
+        for (int idx = 0; idx < pipes.length && value == 0; idx++) {
+            value = pipes[idx].getPipesLocation().compareTo(((ExecutorPIDQueryPipeCommand) t).pipes[idx].getPipesLocation());
         }
         return value;
     }

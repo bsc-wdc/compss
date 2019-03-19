@@ -25,7 +25,6 @@ import java.nio.file.StandardCopyOption;
 
 import es.bsc.compss.executor.external.persistent.PersistentMirror;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
-import es.bsc.compss.invokers.external.persistent.PersistentInvoker;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -254,8 +253,10 @@ public class Executor implements Runnable {
      * Creates a sandbox for a task
      *
      * @param invocation
-     *            task description
+     *                   task description
+     *
      * @return Sandbox dir
+     *
      * @throws IOException
      * @throws Exception
      */
@@ -343,9 +344,10 @@ public class Executor implements Runnable {
      * Check whether file1 corresponds to a file with a higher version than file2
      *
      * @param file1
-     *            first file name
+     *              first file name
      * @param file2
-     *            second file name
+     *              second file name
+     *
      * @return True if file1 has a higher version. False otherwise (This includes the case where the name file's format
      *         is not correct)
      */
@@ -374,12 +376,13 @@ public class Executor implements Runnable {
      * Create symbolic links from files with the original name in task sandbox to the renamed file
      *
      * @param invocation
-     *            task description
+     *                   task description
      * @param sandbox
-     *            created sandbox
+     *                   created sandbox
+     *
      * @throws IOException
      * @throws Exception
-     *             returns exception is a problem occurs during creation
+     *                     returns exception is a problem occurs during creation
      */
     private void bindOriginalFilenamesToRenames(Invocation invocation, File sandbox) throws IOException {
         for (InvocationParam param : invocation.getParams()) {
@@ -431,11 +434,12 @@ public class Executor implements Runnable {
      * Undo symbolic links and renames done with the original names in task sandbox to the renamed file
      *
      * @param invocation
-     *            task description
+     *                   task description
+     *
      * @throws IOException
      * @throws JobExecutionException
      * @throws Exception
-     *             returns exception is an unexpected case is found.
+     *                               returns exception is an unexpected case is found.
      */
     private void unbindOriginalFileNamesToRenames(Invocation invocation) throws IOException, JobExecutionException {
         for (InvocationParam param : invocation.getParams()) {
@@ -613,17 +617,15 @@ public class Executor implements Runnable {
                 return javaInvoker;
             case PYTHON:
                 if (pyPipes == null) {
-                    // Double checking to avoid synchronizations when the pipes are already defined
-                    synchronized (PythonInvoker.class) {
-                        if (pyPipes == null) {
-                            PipedMirror mirror = (PipedMirror) platform.getMirror(PythonInvoker.class);
-                            if (mirror == null) {
-                                mirror = PythonInvoker.getMirror(context, platform);
-                                platform.registerMirror(PythonInvoker.class, mirror);
-                            }
-                            pyPipes = mirror.registerExecutor(id);
+                    PipedMirror mirror;
+                    synchronized (platform) {
+                        mirror = (PipedMirror) platform.getMirror(PythonInvoker.class);
+                        if (mirror == null) {
+                            mirror = PythonInvoker.getMirror(context, platform);
+                            platform.registerMirror(PythonInvoker.class, mirror);
                         }
                     }
+                    pyPipes = mirror.registerExecutor(id);
                 }
                 return new PythonInvoker(context, invocation, taskSandboxWorkingDir, assignedResources, pyPipes);
             case C:
@@ -631,27 +633,28 @@ public class Executor implements Runnable {
                 if (context.isPersistentEnabled()) {
                     cInvoker = new CPersistentInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
                     if (!isRegistered) {
-                        PersistentMirror mirror = (PersistentMirror) platform.getMirror(CPersistentInvoker.class);
-                        if (mirror == null) {
-                            mirror = PersistentInvoker.getMirror(context, platform);
-                            platform.registerMirror(PersistentInvoker.class, mirror);
+                        PersistentMirror mirror;
+                        synchronized (platform) {
+                            mirror = (PersistentMirror) platform.getMirror(CPersistentInvoker.class);
+                            if (mirror == null) {
+                                mirror = CPersistentInvoker.getMirror(context, platform);
+                                platform.registerMirror(CPersistentInvoker.class, mirror);
+                            }
                         }
                         mirror.registerExecutor(id);
                         isRegistered = true;
                     }
                 } else {
                     if (cPipes == null) {
-                        // Double checking to avoid synchronizations when the pipes are already defined
-                        synchronized (CInvoker.class) {
-                            if (cPipes == null) {
-                                PipedMirror mirror = (PipedMirror) platform.getMirror(CInvoker.class);
-                                if (mirror == null) {
-                                    mirror = (PipedMirror) CInvoker.getMirror(context, platform);
-                                    platform.registerMirror(CInvoker.class, mirror);
-                                }
-                                cPipes = mirror.registerExecutor(id);
+                        PipedMirror mirror;
+                        synchronized (platform) {
+                            mirror = (PipedMirror) platform.getMirror(CInvoker.class);
+                            if (mirror == null) {
+                                mirror = (PipedMirror) CInvoker.getMirror(context, platform);
+                                platform.registerMirror(CInvoker.class, mirror);
                             }
                         }
+                        cPipes = mirror.registerExecutor(id);
                     }
                     cInvoker = new CInvoker(context, invocation, taskSandboxWorkingDir, assignedResources, cPipes);
                 }
@@ -666,7 +669,6 @@ public class Executor implements Runnable {
 
         private final File workingDir;
         private final boolean isSpecific;
-
 
         public TaskWorkingDir(File workingDir, boolean isSpecific) {
             this.workingDir = workingDir;

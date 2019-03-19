@@ -21,4 +21,15 @@ import es.bsc.compss.executor.external.commands.QuitExternalCommand;
 
 public class QuitPipeCommand extends QuitExternalCommand implements PipeCommand {
 
+    public QuitPipeCommand() {
+    }
+
+    @Override
+    public int compareTo(PipeCommand t) {
+        return Integer.compare(this.getType().ordinal(), t.getType().ordinal());
+    }
+
+    @Override
+    public void join(PipeCommand receivedCommand) {
+    }
 }

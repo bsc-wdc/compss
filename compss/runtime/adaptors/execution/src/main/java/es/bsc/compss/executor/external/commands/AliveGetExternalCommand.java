@@ -14,19 +14,19 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.executor.external.piped.commands;
-
-import es.bsc.compss.executor.external.commands.ErrorTaskExternalCommand;
-import es.bsc.compss.invokers.types.ExternalTaskStatus;
+package es.bsc.compss.executor.external.commands;
 
 
-public class ErrorTaskPipeCommand extends ErrorTaskExternalCommand implements PipeCommand {
+public class AliveGetExternalCommand implements ExternalCommand {
 
-    public ErrorTaskPipeCommand(String[] result) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    @Override
+    public CommandType getType() {
+        return CommandType.GET_ALIVE;
     }
 
-    public ExternalTaskStatus getTaskStatus() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    @Override
+    public String getAsString() {
+        return CommandType.GET_ALIVE.name();
     }
+
 }

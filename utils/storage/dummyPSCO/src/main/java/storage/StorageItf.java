@@ -154,8 +154,8 @@ public final class StorageItf {
             if (wd.exists()) {
                 FileUtils.deleteDirectory(new File(BASE_WORKING_DIR));
             }
-        } catch (IOException e) {
-            throw new StorageException(ERROR_ERASE_WD, e);
+	} catch (Exception e) {
+            LOGGER.warn("[LOG] "+ERROR_ERASE_WD, e);
         }
 
         // Log

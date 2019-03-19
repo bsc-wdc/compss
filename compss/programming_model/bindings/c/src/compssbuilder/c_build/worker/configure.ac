@@ -50,10 +50,6 @@ AC_ARG_WITH([cs-prefix],
 	]
 )
 
-
-AM_CONDITIONAL([OMPSS], [test x$ompss = xtrue])
-AM_CONDITIONAL([OMPSS2], [test x$ompss2 = xtrue])
-
 ompss=false
 ompss2=false
 
@@ -94,6 +90,8 @@ AC_ARG_WITH([ompss-2],
                 #CPPFLAGS="-I$withval/include $CPPFLAGS"              
             ]
 )
+AM_CONDITIONAL([OMPSS], [test x$ompss = xtrue])
+AM_CONDITIONAL([OMPSS2], [test x$ompss2 = xtrue])
 
 dnl Checks for libraries.
 #AC_CHECK_LIB(GS-master, GS_On,, [ AC_MSG_ERROR([Required Master COMP Supercalar c library cannot be found]) ])

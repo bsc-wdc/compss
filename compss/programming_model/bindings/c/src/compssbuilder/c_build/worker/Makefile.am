@@ -25,13 +25,13 @@ libexecutor_a_CPPFLAGS =  -I../../src -I../../include -Wno-write-strings -I$(JAV
 libexecutor_a_CFLAGS =
 
 if OMPSS2
-libexecutor_a_CPPFLAGS  += --ompss2
-libexecutor_a_CFLAGS    += --ompss2
-else
+libexecutor_a_CPPFLAGS  += --ompss-2
+libexecutor_a_CFLAGS    += --ompss-2
+endif
+
 if OMPSS
 libexecutor_a_CPPFLAGS  += --ompss
 libexecutor_a_CFLAGS    += --ompss
-endif
 endif
 
 bin_PROGRAMS = nio_worker_c worker_c

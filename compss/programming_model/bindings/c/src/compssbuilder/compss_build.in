@@ -65,7 +65,7 @@ cflags_aux="-I$(pwd)"
 conf_opts=""
 
 if [ -n "$OMPSS2_ENABLED" ]; then
-    ldflags_aux="$ldflags_aux -L$OMPSS2_DIR/lib"
+    ldflags_aux="$ldflags_aux -L$OMPSS2_DIR/lib -Wl,-rpath,$OMPSS2_DIR/lib"
     cflags_aux="$cflags_aux -I$OMPSS2_DIR/include"
     conf_opts="--with-ompss-2"
 fi
@@ -81,7 +81,7 @@ if [ -n "$TARGET_HOST" ]; then
 fi
 
 @CAT@ >> autogen.sh << EOF
-./configure $TARGET_HOST --with-cs-prefix=$CS_HOME $conf_opts CXXFLAGS="$cflags_aux" CFLAGS="$cflags_aux" LDFLAGS="$ldflags_aux"
+./configure $TARGET_HOST --with-cs-prefix=$CS_HOME $conf_opts CXXFLAGS="$cflags_aux" CFLAGS="$cflags_aux" LDFLAGS="$ldflags_aux" 
 EOF
 
 @CHMOD@ +x autogen.sh

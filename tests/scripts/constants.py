@@ -22,7 +22,8 @@ DEFAULT_FAMILIES = ["autoparallel",
                     "performance",
                     "pscos",
                     "python",
-                    "tools"]
+                    "tools",
+                    "fault_tolerance"]
 DEFAULT_TESTS = []
 
 DEFAULT_CFG_FILE = "NIO.cfg"

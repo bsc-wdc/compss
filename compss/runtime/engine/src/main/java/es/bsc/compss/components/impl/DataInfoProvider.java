@@ -442,9 +442,10 @@ public class DataInfoProvider {
                 rVersionId = ((RWAccessId) dAccId).getReadDataInstance().getVersionId();
                 di.versionHasBeenRead(rVersionId);
                 // read and write data version can be removed
-                di.tryRemoveVersion(rVersionId);
+                //di.canceledVersion(rVersionId);
                 wVersionId = ((RWAccessId) dAccId).getWrittenDataInstance().getVersionId();
-                di.tryRemoveVersion(wVersionId);
+                di.canceledVersion(wVersionId);
+                LOGGER.debug("MARTA: Data has been canceled");
                 break;
             default:// case W:
                 wVersionId = ((WAccessId) dAccId).getWrittenDataInstance().getVersionId();
@@ -788,6 +789,7 @@ public class DataInfoProvider {
     public ResultFile blockDataAndGetResultFile(int dataId, ResultListener listener) {
         DataInstanceId lastVersion;
         FileInfo fileInfo = (FileInfo) idToData.get(dataId);
+        LOGGER.debug("MARTA: El dataId: " + dataId + " is current version to delete " + fileInfo.isCurrentVersionToDelete());
         if (fileInfo != null && !fileInfo.isCurrentVersionToDelete()) { // If current version is to delete do not
             // transfer
             String[] splitPath = fileInfo.getOriginalLocation().getPath().split(File.separator);

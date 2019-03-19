@@ -68,6 +68,15 @@ class DIRECTION(object):
     INOUT = 2
     CONCURRENT = 3
 
+# Numbers match both C and Java enums
+class ON_FAILURE(object):
+    """
+    Used as enum for direction types
+    """
+    RETRY = 0
+    FAIL = 1
+    IGNORE = 2
+    CANCEL_SUCCESSORS = 3
 
 # Numbers match both C and Java enums
 class STREAM(object):

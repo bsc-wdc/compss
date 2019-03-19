@@ -81,7 +81,7 @@ class task(object):
             'isDistributed': False,
             'computingNodes': 1,
             'tracingHook': False,
-            'varargsType': parameter.IN  # Here for legacy purposes
+            'varargsType': parameter.IN,  # Here for legacy purposes
         }
 
     def __init__(self, comment=None, **kwargs):

@@ -1,0 +1,36 @@
+----------------------------------------
+[INFO] Launching tests...
+----------------------------------------
+
+[INFO] Parsing arguments...
+[DEBUG] Creating argument parser...
+[DEBUG] Argument parser created
+[DEBUG] Executing parser on command arguments...
+[DEBUG] Get test numbering
+[DEBUG] Test numbering retrieved
+[INFO] Arguments parsed:
+[INFO]   - skip: True
+[INFO]   - retry: 1
+[INFO]   - fail_fast: False
+[INFO]   - numbering: False
+[INFO]   - families: ['autoparallel', 'c', 'cloud', 'java', 'performance', 'pscos', 'python', 'tools', 'fault_tolerance']
+[INFO]   - cfg_file: NIO_local.cfg
+[INFO]   - tests: ['018']
+
+[INFO] Loading configuration file...
+[DEBUG] Checking cfg_file path: NIO_local.cfg
+[DEBUG] Complete cfg_file path: /home/bscuser/gitlab/framework/tests/scripts/../configurations/NIO_local.cfg
+[INFO] Loading values from /home/bscuser/gitlab/framework/tests/scripts/../configurations/NIO_local.cfg
+[DEBUG] Retrieved CFG variables: {u'comm': u'es.bsc.compss.nio.master.NIOAdaptor'}
+[INFO] Configuration file loaded
+[INFO]   - user: bscuser
+[INFO]   - java_home: /usr/lib64/jvm/java-1.8.0-openjdk/
+[INFO]   - compss_home: /opt/COMPSs/
+[INFO]   - target_dir: /home/bscuser/tests_execution_sandbox
+[INFO]   - comm: es.bsc.compss.nio.master.NIOAdaptor
+[INFO]   - runcompss_opts: None
+[INFO]   - execution_envs: ['python2', 'python3']
+
+[INFO] Cleaning deployment structure...
+[WARN] Script is attempting to erase /home/bscuser/tests_execution_sandbox
+[WARN] You have 5s to abort...

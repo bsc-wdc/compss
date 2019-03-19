@@ -33,12 +33,14 @@
     #echo "trace::emit-start,  emit $slot $eventType $taskId"
     "$extraeDir"/bin/extrae-cmd emit "$slot" "$eventType" "$taskId"
     endCode=$?
+
   elif [ "$action" == "end" ]; then
     eventType=$1
     slot=$2
     #echo "trace::emit-end,  emit $slot $eventType 0"
     "$extraeDir"/bin/extrae-cmd emit "$slot" "$eventType" 0
     endCode=$?
+
   elif [ "$action" == "init" ]; then
     rm -rf TRACE.mpits set-* *_compss_trace.tar.gz
     node=$1
@@ -46,24 +48,31 @@
     #echo "trace::init, init $node $nslots"
     "$extraeDir"/bin/extrae-cmd init "$node" "$nslots"
     endCode=$?
+
   elif [ "$action" == "package" ]; then
     node=$1
     #echo "trace::packaging ${node}_compss_trace.tar.gz"
     files="TRACE.mpits set-*"
     if [ "$node" != "master" ] && [ -d "./python" ] ; then
         hostID=$2
-        "${extraeDir}"/bin/mpi2prv -f ./python/TRACE.mpits -no-syn -o "./${hostID}_python_trace.prv"
-        files+=" ${hostID}_python_trace.*"
+        if [ -f ./python/TRACE.mpits ]; then
+            "${extraeDir}"/bin/mpi2prv -f ./python/TRACE.mpits -no-syn -o "./${hostID}_python_trace.prv"
+            files+=" ${hostID}_python_trace.*"
+        else
+            mv ./python ./python_${node}
+            files+=" ./python_${node}"
+        fi
     fi
     if [ -f TRACE.sym ]; then
         files+=" TRACE.sym"
     fi
     # shellcheck disable=SC2086
-    tar czf "${node}_compss_trace.tar.gz" $files
+    tar czf "${node}_compss_trace.tar.gz" ${files}
     echo "Package created $(ls -la  ${node}_compss_trace.tar.gz)"
     endCode=$?
     # shellcheck disable=SC2086
-    rm -rf $files
+    rm -rf ${files}
+
   elif [ "$action" == "gentrace" ]; then
     appName=$1
     numberOfResources=$2

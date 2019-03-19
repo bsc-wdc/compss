@@ -1476,6 +1476,12 @@ set_variables() {
     elif [ $tracing == "advanced" ]; then
         w_tracing=2
         load_tracing_env
+    elif [ $tracing == "scorep" ]; then
+        w_tracing=-1
+    elif [ $tracing == "arm-map" ]; then
+        w_tracing=-2
+    elif [ $tracing == "arm-ddt" ]; then
+        w_tracing=-3
     fi
 
     # Adapt debug flag to worker script

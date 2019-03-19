@@ -102,6 +102,55 @@
 
     export PYTHONPATH=${SCRIPT_DIR}/../../../../../../Dependencies/extrae/libexec/:${SCRIPT_DIR}/../../../../../../Dependencies/extrae/lib/:${PYTHONPATH}
     export EXTRAE_CONFIG_FILE=${workerConfigFile}
+   elif [ "$tracing" -lt "-1" ]; then
+    # exporting variables required by map & ddt
+    export ALLINEA_MPI_INIT=MPI_Init_thread
+    export ALLINEA_MPI_INIT_PENDING=1
+    export SLURM_TASKS_PER_NODE=${numThreads}
+    export SLURM_NODELIST=${SLURM_STEP_NODELIST}
+   fi
+
+  if [ "$tracing" -eq "-1" ]; then # scorep
+    echo "[BINDINGS PIPER] Making preload call in folder $(pwd)"
+    TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../scripts/system/trace
+    source ${TRACE_SCRIPTS_PATH}/scorep.sh
+
+    app_path=$(pwd)
+    app_name=piper_worker.py
+    rm -rf $PWD/.scorep_preload
+    ${TRACE_SCRIPTS_PATH}/scorep_preload.sh build $app_path --user --io=runtime:posix --mpp=mpi --nocompiler
+    ld_preload=$(${TRACE_SCRIPTS_PATH}/scorep_preload.sh print $app_path)
+    bindingArgs=${bindingArgs#-np }
+    threads=$(expr match "$bindingArgs" '\(.[0-9]*\)')
+    bindingArgs=${bindingArgs#$numThreads python -u}
+    bindingArgs="-x LD_PRELOAD=$ld_preload -np ${numThreads} /usr/bin/python -u -m scorep --mpi $bindingArgs"
+    echo "[BINDINGS PIPER] Preload done"
+    echo "[SCOREP:BINDING-ARGS] $bindingArgs"
+
+  elif [ "$tracing" -eq "-2" ]; then # arm-map
+
+    echo "[BINDINGS PIPER] Setting up arm-map tracing in folder $(pwd)"
+    TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../scripts/system/trace
+    source ${TRACE_SCRIPTS_PATH}/arm-forge.sh
+    # Set path to the application - this even better because the submission is independent of the current working directory
+
+    bindingArgs=${bindingArgs#-np }
+    bindingExecutable="map"
+    bindingArgs=" --profile -o $(pwd)/$(hostname).map --mpi=generic -n ${numThreads} /usr/bin/python $bindingArgs"
+    echo "[BINDINGS PIPER] Arm setup for MAP done"
+
+  elif [ "$tracing" -eq "-3" ]; then # arm-ddt
+
+    echo "[BINDINGS PIPER] Setting up arm-ddt tracing in folder $(pwd)"
+    TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../scripts/system/trace
+    source ${TRACE_SCRIPTS_PATH}/arm-forge.sh
+    # Set path to the application - this even better because the submission is independent of the current working directory
+
+    bindingArgs=${bindingArgs#-np }
+    bindingArgs=${bindingArgs#$numThreads python}
+    bindingExecutable="ddt"
+    bindingArgs=" --connect --mpi=generic -n ${numThreads} /usr/bin/python $bindingArgs"
+    echo "[BINDINGS PIPER] Arm setup for DDT done"
   fi
 
   stop_received=false

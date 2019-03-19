@@ -161,6 +161,7 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
             }
 
         }
+        LOGGER.debug("Failed to send " + command + " on pipe " + this.getPipesLocation());
         return done;
     }
 

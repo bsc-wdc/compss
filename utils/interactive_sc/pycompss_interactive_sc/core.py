@@ -4,51 +4,51 @@ import argparse
 import subprocess
 import time
 import signal
+import getpass
 
-from .defaults import VERSION
-from .defaults import DECODING_FORMAT
-from .defaults import SUBMIT_SCRIPT
-from .defaults import CANCEL_SCRIPT
-from .defaults import DEFAULT_EXEC_TIME
-from .defaults import DEFAULT_JOB_NAME
-from .defaults import DEFAULT_NUM_NODES
-from .defaults import DEFAULT_USER_NAME
-from .defaults import DEFAULT_GET_PASSWORD
-from .defaults import DEFAULT_SUPERCOMPUTER
-from .defaults import DEFAULT_WEB_BROWSER
-from .defaults import DEFAULT_QOS
-from .defaults import DEFAULT_TRACING
-from .defaults import DEFAULT_PORT_FORWARDING
-from .defaults import DEFAULT_CLASSPATH
-from .defaults import DEFAULT_PYTHONPATH
-from .defaults import DEFAULT_STORAGE_HOME
-from .defaults import DISABLED_STORAGE_HOME
-from .defaults import DEFAULT_STORAGE_PROPS
-from .defaults import DEFAULT_STORAGE
-from .defaults import DEFAULT_LOG_LEVEL
-# from .defaults import DEFAULT_LOG_LEVEL_ARGUMENT
-from .defaults import LOG_LEVEL_DEBUG
-from .defaults import LOG_LEVEL_INFO
-from .defaults import LOG_LEVEL_OFF
-from .defaults import DEFAULT_VERBOSE
+from defaults import VERSION
+from defaults import DECODING_FORMAT
+from defaults import SUBMIT_SCRIPT
+from defaults import CANCEL_SCRIPT
+from defaults import DEFAULT_EXEC_TIME
+from defaults import DEFAULT_JOB_NAME
+from defaults import DEFAULT_NUM_NODES
+from defaults import DEFAULT_USER_NAME
+from defaults import DEFAULT_GET_PASSWORD
+from defaults import DEFAULT_SUPERCOMPUTER
+from defaults import DEFAULT_WEB_BROWSER
+from defaults import DEFAULT_QOS
+from defaults import DEFAULT_TRACING
+from defaults import DEFAULT_PORT_FORWARDING
+from defaults import DEFAULT_CLASSPATH
+from defaults import DEFAULT_PYTHONPATH
+from defaults import DEFAULT_STORAGE_HOME
+from defaults import DISABLED_STORAGE_HOME
+from defaults import DEFAULT_STORAGE_PROPS
+from defaults import DEFAULT_STORAGE
+from defaults import DEFAULT_LOG_LEVEL
+from defaults import LOG_LEVEL_DEBUG
+from defaults import LOG_LEVEL_INFO
+from defaults import LOG_LEVEL_OFF
+from defaults import DEFAULT_VERBOSE
 
-from .defaults import DEFAULT_SSH
+from defaults import DEFAULT_SSH
 
-from .defaults import WARNING_USER_NAME_NOT_PROVIDED
+from defaults import WARNING_USER_NAME_NOT_PROVIDED
+from defaults import WARNING_JOB_CANCELLED
 
-from .defaults import ERROR_CONNECTING
-from .defaults import ERROR_COMPSS_NOT_DEFINED
-from .defaults import ERROR_SUBMITTING_JOB
-from .defaults import ERROR_STORAGE_PROPS
-from .defaults import ERROR_UNSUPPORTED_STORAGE_SHORTCUT
-from .defaults import ERROR_PORT_FORWARDING
-from .defaults import ERROR_BROWSER
-from .defaults import ERROR_CANCELLING_JOB
+from defaults import ERROR_CONNECTING
+from defaults import ERROR_COMPSS_NOT_DEFINED
+from defaults import ERROR_SUBMITTING_JOB
+from defaults import ERROR_STORAGE_PROPS
+from defaults import ERROR_UNSUPPORTED_STORAGE_SHORTCUT
+from defaults import ERROR_BROWSER
+from defaults import ERROR_CANCELLING_JOB
 
 
 # Globals
 parser = None
-# Needed for propper cleanup
+# Needed for proper cleanup
 alive_processes = []
 user_name = None
 supercomputer = None
@@ -89,7 +89,7 @@ def _argument_parser():
                         action='store_true',
                         default=DEFAULT_GET_PASSWORD,
                         dest='password',
-                        help='Request user password to login into the supercomputer')
+                        help='Request user password to login into the supercomputer (requires sshpass)')
     parser.add_argument('-sc', '--supercomputer',
                         dest='supercomputer',
                         type=str,
@@ -145,6 +145,7 @@ def _argument_parser():
                         dest='storage',
                         type=str,
                         default=DEFAULT_STORAGE,
+                        choices=[DEFAULT_STORAGE, 'redis'],
                         help='External storage selection shortcut. \
                               Overrides storage_home and needed classpath/pythonpath flags, \
                               uses storage_props.cfg from home if exists. \
@@ -175,6 +176,40 @@ def _argument_parser():
     arguments = parser.parse_args()
     return arguments
 
+
+def _argument_checks(arguments):
+    """
+    Perform any needed argument check or update
+    :param arguments: Command line arguments parsed
+    :return: Updated arguments
+    """
+    # Check if storage home is defined and no storage props
+    if arguments.storage_home != DISABLED_STORAGE_HOME and \
+       arguments.storage_props == DEFAULT_STORAGE_PROPS:
+        display_error(ERROR_STORAGE_PROPS)
+
+    # Check if storage shortcut is defined and override
+    # storage props and storage home
+    if arguments.storage == DEFAULT_STORAGE or arguments.storage == 'redis':
+        arguments.storage_home = DEFAULT_STORAGE_HOME
+        arguments.storage_props = DEFAULT_STORAGE_PROPS
+    else:
+        # Unreachable code if choices is set in the argument parser
+        display_error(ERROR_UNSUPPORTED_STORAGE_SHORTCUT)
+
+    # Check if the user has defined the user name
+    if arguments.user_name == DEFAULT_USER_NAME:
+        display_warning(WARNING_USER_NAME_NOT_PROVIDED)
+
+    # Check if the password has to be introduced manually
+    global DEFAULT_SSH
+    if arguments.password:
+        password = getpass.getpass(prompt='Password:')
+        os.environ['SSHPASS'] = password
+        DEFAULT_SSH = 'sshpass -e ' + DEFAULT_SSH
+    return arguments
+
+
 def signal_handler(sig, frame):
     """
     Signal handler. Acts when CTRL + C is pressed.
@@ -200,6 +235,8 @@ def signal_handler(sig, frame):
         if verbose:
             print("\t - Cancelling job...")
         _cancel_job(user_name, supercomputer, scripts_path, job_id, verbose)
+    else:
+        display_warning(WARNING_JOB_CANCELLED)
     print("Finished!")
     sys.exit(0)
 
@@ -209,9 +246,16 @@ def display_error(message):
     Display error in a common format.
     :return: None
     """
-    global parser
     print("ERROR: " + message)
     exit(1)
+
+
+def display_warning(message):
+    """
+    Display warning in a common format.
+    :return: None
+    """
+    print("WARNING: " + message)
 
 
 def _check_connectivity(user_name, supercomputer, verbose):
@@ -224,10 +268,10 @@ def _check_connectivity(user_name, supercomputer, verbose):
     """
     if verbose:
         print("Checking connectivity with " + supercomputer)
-    cmd = [DEFAULT_SSH, user_name + '@' + supercomputer,
-           '-o', 'PasswordAuthentication=no',
-           '-o', 'BatchMode=yes',
-           'exit']
+    cmd = DEFAULT_SSH.split() + [user_name + '@' + supercomputer,
+                                 '-o', 'PasswordAuthentication=no',
+                                 '-o', 'BatchMode=yes',
+                                 'exit']
     return_code, stdout, stderr = _command_runner(cmd)
     if return_code != 0:
         display_error(ERROR_CONNECTING)
@@ -247,8 +291,8 @@ def _check_remote_compss(user_name, supercomputer, verbose):
     """
     if verbose:
         print("Checking remote COMPSs installation...")
-    cmd = [DEFAULT_SSH, user_name + '@' + supercomputer,
-           'which', 'enqueue_compss']
+    cmd = DEFAULT_SSH.split() + [user_name + '@' + supercomputer,
+                                 'which', 'enqueue_compss']
     return_code, stdout, stderr = _command_runner(cmd)
     if stdout == '':
         display_error(ERROR_COMPSS_NOT_DEFINED)
@@ -286,19 +330,19 @@ def _submit_command(user_name, supercomputer, scripts_path, arguments, verbose):
     :return: None
     """
     global job_id
-    cmd = [DEFAULT_SSH, user_name + '@' + supercomputer,
-           str(os.path.join(scripts_path, SUBMIT_SCRIPT)),   # TODO: THIS CAN BE A SOURCE OF ERROR IN WINDOWS IF USES THE SEPARATOR FROM WINDOWS INSTEAD OF THE REMOTE SEPARATOR
-           arguments.job_name,
-           str(arguments.exec_time),
-           str(arguments.num_nodes),
-           arguments.qos,
-           arguments.log_level,
-           str(arguments.tracing).lower(),
-           arguments.classpath,
-           arguments.pythonpath,
-           arguments.storage_home,
-           arguments.storage_props,
-           arguments.storage
+    cmd = DEFAULT_SSH.split() + [user_name + '@' + supercomputer,
+                                 str(os.path.join(scripts_path, SUBMIT_SCRIPT)),   # TODO: THIS CAN BE A SOURCE OF ERROR IN WINDOWS IF USES THE SEPARATOR FROM WINDOWS INSTEAD OF THE REMOTE SEPARATOR
+                                 arguments.job_name,
+                                 str(arguments.exec_time),
+                                 str(arguments.num_nodes),
+                                 arguments.qos,
+                                 arguments.log_level,
+                                 str(arguments.tracing).lower(),
+                                 arguments.classpath,
+                                 arguments.pythonpath,
+                                 arguments.storage_home,
+                                 arguments.storage_props,
+                                 arguments.storage
     ]
     if verbose:
         print("Submitting a new notebook:")
@@ -322,7 +366,7 @@ def _submit_command(user_name, supercomputer, scripts_path, arguments, verbose):
         print("Standard ERROR:")
         print(stderr)
         display_error(ERROR_SUBMITTING_JOB)
-    # Parse the stdout to get the jobid, token and main node
+    # Parse the stdout to get the job id, token and main node
     lines = stdout.splitlines()  # TODO: CAN BE A SOURCE OF ERRORS IN WINDOWS IF LOOKS FOR A DIFFERENT LINE BREAK
     job_info = {}
     for i in lines:
@@ -353,10 +397,10 @@ def _establish_port_forwarding(user_name, supercomputer, port, node, verbose):
     """
     if verbose:
         print("Establishing port forwarding using port: " + port)
-    cmd = [DEFAULT_SSH, user_name + '@' + supercomputer,
-           '-L', '8888:localhost:' + port,
-           'ssh',  node,
-           '-L', port + ':localhost:8888']
+    cmd = DEFAULT_SSH.split() + [user_name + '@' + supercomputer,
+                                 '-L', '8888:localhost:' + port,
+                                 'ssh',  node,
+                                 '-L', port + ':localhost:8888']
     _command_runner(cmd, blocking=False)
     if verbose:
         print("Waiting 5 seconds...")
@@ -401,9 +445,9 @@ def _cancel_job(user_name, supercomputer, scripts_path, job_id, verbose):
     """
     if verbose:
         print("Cancelling job: " + job_id)
-    cmd = [DEFAULT_SSH, user_name + '@' + supercomputer,
-           str(os.path.join(scripts_path, CANCEL_SCRIPT)),   # TODO: THIS CAN BE A SOURCE OF ERROR IN WINDOWS IF USES THE SEPARATOR FROM WINDOWS INSTEAD OF THE REMOTE SEPARATOR
-           job_id]
+    cmd = DEFAULT_SSH.split() + [user_name + '@' + supercomputer,
+                                 str(os.path.join(scripts_path, CANCEL_SCRIPT)),   # TODO: THIS CAN BE A SOURCE OF ERROR IN WINDOWS IF USES THE SEPARATOR FROM WINDOWS INSTEAD OF THE REMOTE SEPARATOR
+                                 job_id]
     return_code, stdout, stderr = _command_runner(cmd)
     if return_code != 0:
         print("Return code: " + str(return_code))
@@ -427,6 +471,10 @@ def _command_runner(cmd, blocking=True):
     :return: return code, stdout, stderr | None if non blocking
     """
     global alive_processes
+    global verbose
+    if verbose:
+        print("Executing command: ")
+        print(' '.join(cmd))
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if blocking:
         stdout, stderr = p.communicate()   # blocks until cmd is done
@@ -453,6 +501,9 @@ def main():
     verbose = arguments.verbose
     port = str(arguments.port_forwarding)
     browser = arguments.web_browser
+
+    # Do any argument check/update if needed
+    arguments = _argument_checks(arguments)
 
     # Register signal
     signal.signal(signal.SIGINT, signal_handler)
@@ -492,6 +543,7 @@ def main():
     print("To force quit: CTRL + C")
     signal.pause()
     # The signal is captured and everything cleaned and canceled (if needed)
+
 
 if __name__ == '__main__':
     main()

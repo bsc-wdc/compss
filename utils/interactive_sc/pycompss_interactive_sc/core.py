@@ -6,44 +6,44 @@ import time
 import signal
 import getpass
 
-from defaults import VERSION
-from defaults import DECODING_FORMAT
-from defaults import SUBMIT_SCRIPT
-from defaults import CANCEL_SCRIPT
-from defaults import DEFAULT_EXEC_TIME
-from defaults import DEFAULT_JOB_NAME
-from defaults import DEFAULT_NUM_NODES
-from defaults import DEFAULT_USER_NAME
-from defaults import DEFAULT_GET_PASSWORD
-from defaults import DEFAULT_SUPERCOMPUTER
-from defaults import DEFAULT_WEB_BROWSER
-from defaults import DEFAULT_QOS
-from defaults import DEFAULT_TRACING
-from defaults import DEFAULT_PORT_FORWARDING
-from defaults import DEFAULT_CLASSPATH
-from defaults import DEFAULT_PYTHONPATH
-from defaults import DEFAULT_STORAGE_HOME
-from defaults import DISABLED_STORAGE_HOME
-from defaults import DEFAULT_STORAGE_PROPS
-from defaults import DEFAULT_STORAGE
-from defaults import DEFAULT_LOG_LEVEL
-from defaults import LOG_LEVEL_DEBUG
-from defaults import LOG_LEVEL_INFO
-from defaults import LOG_LEVEL_OFF
-from defaults import DEFAULT_VERBOSE
+from pycompss_interactive_sc.defaults import VERSION
+from pycompss_interactive_sc.defaults import DECODING_FORMAT
+from pycompss_interactive_sc.defaults import SUBMIT_SCRIPT
+from pycompss_interactive_sc.defaults import CANCEL_SCRIPT
+from pycompss_interactive_sc.defaults import DEFAULT_EXEC_TIME
+from pycompss_interactive_sc.defaults import DEFAULT_JOB_NAME
+from pycompss_interactive_sc.defaults import DEFAULT_NUM_NODES
+from pycompss_interactive_sc.defaults import DEFAULT_USER_NAME
+from pycompss_interactive_sc.defaults import DEFAULT_GET_PASSWORD
+from pycompss_interactive_sc.defaults import DEFAULT_SUPERCOMPUTER
+from pycompss_interactive_sc.defaults import DEFAULT_WEB_BROWSER
+from pycompss_interactive_sc.defaults import DEFAULT_QOS
+from pycompss_interactive_sc.defaults import DEFAULT_TRACING
+from pycompss_interactive_sc.defaults import DEFAULT_PORT_FORWARDING
+from pycompss_interactive_sc.defaults import DEFAULT_CLASSPATH
+from pycompss_interactive_sc.defaults import DEFAULT_PYTHONPATH
+from pycompss_interactive_sc.defaults import DEFAULT_STORAGE_HOME
+from pycompss_interactive_sc.defaults import DISABLED_STORAGE_HOME
+from pycompss_interactive_sc.defaults import DEFAULT_STORAGE_PROPS
+from pycompss_interactive_sc.defaults import DEFAULT_STORAGE
+from pycompss_interactive_sc.defaults import DEFAULT_LOG_LEVEL
+from pycompss_interactive_sc.defaults import LOG_LEVEL_DEBUG
+from pycompss_interactive_sc.defaults import LOG_LEVEL_INFO
+from pycompss_interactive_sc.defaults import LOG_LEVEL_OFF
+from pycompss_interactive_sc.defaults import DEFAULT_VERBOSE
 
-from defaults import DEFAULT_SSH
+from pycompss_interactive_sc.defaults import DEFAULT_SSH
 
-from defaults import WARNING_USER_NAME_NOT_PROVIDED
-from defaults import WARNING_JOB_CANCELLED
+from pycompss_interactive_sc.defaults import WARNING_USER_NAME_NOT_PROVIDED
+from pycompss_interactive_sc.defaults import WARNING_JOB_CANCELLED
 
-from defaults import ERROR_CONNECTING
-from defaults import ERROR_COMPSS_NOT_DEFINED
-from defaults import ERROR_SUBMITTING_JOB
-from defaults import ERROR_STORAGE_PROPS
-from defaults import ERROR_UNSUPPORTED_STORAGE_SHORTCUT
-from defaults import ERROR_BROWSER
-from defaults import ERROR_CANCELLING_JOB
+from pycompss_interactive_sc.defaults import ERROR_CONNECTING
+from pycompss_interactive_sc.defaults import ERROR_COMPSS_NOT_DEFINED
+from pycompss_interactive_sc.defaults import ERROR_SUBMITTING_JOB
+from pycompss_interactive_sc.defaults import ERROR_STORAGE_PROPS
+from pycompss_interactive_sc.defaults import ERROR_UNSUPPORTED_STORAGE_SHORTCUT
+from pycompss_interactive_sc.defaults import ERROR_BROWSER
+from pycompss_interactive_sc.defaults import ERROR_CANCELLING_JOB
 
 
 # Globals
@@ -160,7 +160,7 @@ def _argument_parser():
     # TODO: ADD A FLAG TO CHECK THE RUNNING NOTEBOOKS STATUS
     # TODO: ADD A FLAG TO CONNECT
     # TODO: ADD A FLAG TO CANCEL
-    # TODO: Considering the previos ToDos, check which flags can be removed.
+    # TODO: Considering the previous ToDos, check which flags can be removed.
     parser.add_argument('-v', '--verbose',
                         action='store_true',
                         default=DEFAULT_VERBOSE,
@@ -486,7 +486,7 @@ def _command_runner(cmd, blocking=True):
 
 
 def main():
-    # Globals (needed to be defined for propper cleanup)
+    # Globals (needed to be defined for proper cleanup)
     global user_name
     global supercomputer
     global verbose

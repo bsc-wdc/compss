@@ -400,17 +400,18 @@ if [ "${ompss2_enabled}" != "" ]; then
         export OMPSS2_ENABLED="enabled"
  
         if [ -n "$ompss2_prefix" ]; then
-            export OMPSS2_DIR="$ompss2_prefix"
+            OMPSS2_DIR="$ompss2_prefix"
         else
-            OMPSS2_SEARCH_COMMAND="nanos6-info --runtime-path"
-            echo "Searching OmpSs2 directory... executing \"$OMPSS2_SEARCH_COMMAND\""
-            
-            export OMPSS2_DIR="$("$OMPSS2_SEARCH_COMMAND" | awk '{ print $3; }' | sed 's@/libnanos6-optimized.so.*@@')"
+            OMPSS2_DIR=$(nanos6-info --runtime-path)
+            OMPSS2_DIR=$(dirname $( dirname $(echo $OMPSS2_DIR | awk '{ print $3; }')))
+ 
+            OMPSS2_DIR="$("$OMPSS2_SEARCH_COMMAND" | awk '{ print $3; }' | sed 's@/libnanos6-optimized.so.*@@')"
 
             if [ "$?" -ne 0 ]; then
                 exit 1;
             fi
         fi
+        export OMPSS2_DIR
    fi
 fi
 

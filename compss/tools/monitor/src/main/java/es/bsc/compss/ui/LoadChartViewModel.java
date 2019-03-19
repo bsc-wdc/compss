@@ -29,7 +29,7 @@ import org.zkoss.zk.ui.util.Clients;
 
 import es.bsc.compss.commons.Loggers;
 
-import monitoringParsers.ResourcesLogParser;
+import monitoringparsers.ResourcesLogParser;
 
 
 public class LoadChartViewModel {

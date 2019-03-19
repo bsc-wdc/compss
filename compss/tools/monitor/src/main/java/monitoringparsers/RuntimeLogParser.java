@@ -14,20 +14,19 @@
  *  limitations under the License.
  *
  */
-package monitoringParsers;
 
+package monitoringparsers;
+
+import es.bsc.compss.commons.Loggers;
+import es.bsc.compss.ui.Constants;
+import es.bsc.compss.ui.ExecutionInformationTask;
+import es.bsc.compss.ui.Properties;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.Vector;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import es.bsc.compss.commons.Loggers;
-import es.bsc.compss.ui.Constants;
-import es.bsc.compss.ui.Properties;
-import es.bsc.compss.ui.ExecutionInformationTask;
 
 
 public class RuntimeLogParser {
@@ -62,6 +61,9 @@ public class RuntimeLogParser {
         return tasksWithFailedJobs;
     }
 
+    /**
+     * TODO: javadoc.
+     */
     public static void parse() {
         LOGGER.debug("Parsing runtime.log file...");
         if (!Properties.getBasePath().equals("")) {
@@ -83,7 +85,9 @@ public class RuntimeLogParser {
                     // TODO add transfer files status
                     if (i > lastParsedLine) {
                         // Check line information and add to structures
-                        if (line.contains("@processTask") && (line.contains("New method task") || line.contains("New service task"))) {
+                        if (line.contains("@processTask")
+                                && (line.contains("New method task")
+                                || line.contains("New service task"))) {
                             LOGGER.debug("* New task");
                             String[] str = line.split(" ");
                             String taskId = str[str.length - 1];
@@ -102,7 +106,8 @@ public class RuntimeLogParser {
                             tasks.get(Integer.valueOf(taskId)).setTaskStatus(Constants.STATUS_TASK_CREATING);
                         } else if (line.contains("@endTask") && line.contains(" with end status ")) {
                             LOGGER.debug("* Task End");
-                            String taskId = line.substring(line.lastIndexOf("task ") + 5, line.lastIndexOf(" with end status"));
+                            String taskId = line.substring(line.lastIndexOf("task ") + 5,
+                                    line.lastIndexOf(" with end status"));
                             String state = line.substring(line.lastIndexOf(" with end status ") + 17);
                             if (state.equals("FINISHED")) {
                                 tasks.get(Integer.valueOf(taskId)).setTaskStatus(Constants.STATUS_TASK_DONE);
@@ -116,7 +121,8 @@ public class RuntimeLogParser {
                         } else if ((line.contains("@errorOnAction")) && (line.contains("Blocked Action"))) {
                             LOGGER.debug("* Blocked Action");
                             // Task is Blocked (we mark it as failed)
-                            String taskId = line.substring(line.lastIndexOf("Task ") + 5, line.lastIndexOf(", CE name"));
+                            String taskId = line.substring(line.lastIndexOf("Task ") + 5,
+                                    line.lastIndexOf(", CE name"));
                             tasks.get(Integer.valueOf(taskId)).setTaskStatus(Constants.STATUS_TASK_FAILED);
                             if (!tasksFailed.contains(tasks.get(Integer.valueOf(taskId)))) {
                                 tasksFailed.add(tasks.get(Integer.valueOf(taskId)));
@@ -157,16 +163,19 @@ public class RuntimeLogParser {
                         } else if ((line.contains("@doSubmit")) && (line.contains("* Target host"))) {
                             LOGGER.debug("* Add target for last new job");
                             String host = line.substring(line.lastIndexOf(": ") + 1);
-                            tasks.get(jobsToTasks.get(Integer.valueOf(lastNewJobId))).setJobHost(lastNewJobId, false, host);
+                            tasks.get(jobsToTasks.get(Integer.valueOf(lastNewJobId)))
+                                    .setJobHost(lastNewJobId, false, host);
                         } else if ((line.contains("@failedJob")) && (line.contains("with state FAILED"))) {
                             LOGGER.debug("* Failed job");
                             String[] info = line.split(" ");
                             String jobId = info[info.length - 4];
-                            tasks.get(jobsToTasks.get(Integer.valueOf(jobId))).setJobStatus(Constants.STATUS_TASK_FAILED);
+                            tasks.get(jobsToTasks.get(Integer.valueOf(jobId)))
+                                    .setJobStatus(Constants.STATUS_TASK_FAILED);
                             if (!tasksWithFailedJobs.contains(tasks.get(jobsToTasks.get(Integer.valueOf(jobId))))) {
                                 tasksWithFailedJobs.add(tasks.get(jobsToTasks.get(Integer.valueOf(jobId))));
                             }
-                        } else if ((line.contains("@failedJob")) && (line.contains("resubmitting task to the same worker"))) {
+                        } else if ((line.contains("@failedJob"))
+                                && (line.contains("resubmitting task to the same worker"))) {
                             LOGGER.debug("* Job Resubmited");
                             String[] info = line.split(" ");
                             String jobId = info[info.length - 16];

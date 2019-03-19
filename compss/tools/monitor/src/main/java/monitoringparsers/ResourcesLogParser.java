@@ -14,20 +14,19 @@
  *  limitations under the License.
  *
  */
-package monitoringParsers;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.util.Vector;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+package monitoringparsers;
 
 import es.bsc.compss.commons.Loggers;
 import es.bsc.compss.ui.Constants;
 import es.bsc.compss.ui.Properties;
 import es.bsc.compss.ui.StateData;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.util.Vector;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class ResourcesLogParser {
@@ -43,8 +42,11 @@ public class ResourcesLogParser {
 
     private static final Logger logger = LogManager.getLogger(Loggers.RESOURCES_LOG_PARSER);
 
-
-    // Format: Each entry separated by " ". Entry = "time:totalLoad:numResources" (int:float:int)
+    /**
+     * Format: Each entry separated by " ". Entry = "time:totalLoad:numResources" (int:float:int)
+     * TODO: javadoc.
+     * @return String
+     */
     public static String getTotalLoad() {
         StringBuilder result = new StringBuilder("'");
         for (int i = 0; i < states.size(); i++) {
@@ -60,7 +62,11 @@ public class ResourcesLogParser {
         return result.toString();
     }
 
-    // Format: Each entry separated by " ". Entry = "time:loadC0:...:loadCN:numResources" (int:float:...:int)
+    /**
+     * Format: Each entry separated by " ". Entry = "time:loadC0:...:loadCN:numResources" (int:float:...:int)
+     * TODO: javadoc.
+     * @return String
+     */
     public static String getLoadPerCore() {
         // Calculate matrix dimensions with the maximum number of cores in a execution
         int maxCores = 0;
@@ -98,15 +104,19 @@ public class ResourcesLogParser {
         return "'" + String.valueOf(maxCores) + "'," + coreData.toString();
     }
 
-    // Format: Each entry separated by " ". Entry = "time:totalRunningCores:numResources" (int:int:int)
+    /**
+     * Format: Each entry separated by " ". Entry = "time:totalRunningCores:numResources" (int:int:int)
+     * TODO: javadoc.
+     * @return
+     */
     public static String getTotalRunningCores() {
         StringBuilder result = new StringBuilder("'");
         for (int i = 0; i < states.size(); i++) {
             if (i != 0) {
                 result.append(" ");
             }
-            result.append(states.get(i).getTimestamp()).append(":").append(states.get(i).getTotalCoresRunning()).append(":")
-                    .append(states.get(i).getTotalResources());
+            result.append(states.get(i).getTimestamp()).append(":").append(states.get(i).getTotalCoresRunning())
+                    .append(":").append(states.get(i).getTotalResources());
         }
         result.append("'");
 
@@ -114,7 +124,13 @@ public class ResourcesLogParser {
         return result.toString();
     }
 
-    // Format: Each entry separated by " ". Entry = "time:#runningCore0:...:numResources" (int:int:...:int)
+    //
+
+    /**
+     * Format: Each entry separated by " ". Entry = "time:#runningCore0:...:numResources" (int:int:...:int)
+     * TODO: javadoc.
+     * @return String
+     */
     public static String getRunningCoresPerCore() {
         // Calculate matrix dimensions with the maximum number of cores in a execution
         int maxCores = 0;
@@ -152,15 +168,19 @@ public class ResourcesLogParser {
         return "'" + String.valueOf(maxCores) + "'," + coreData.toString();
     }
 
-    // Format: Each entry separated by " ". Entry = "time:totalPendingCores:numResources" (int:int:int)
+    /**
+     * Format: Each entry separated by " ". Entry = "time:totalPendingCores:numResources" (int:int:int)
+     * TODO: javadoc.
+     * @return String
+     */
     public static String getTotalPendingCores() {
         StringBuilder result = new StringBuilder("'");
         for (int i = 0; i < states.size(); i++) {
             if (i != 0) {
                 result.append(" ");
             }
-            result.append(states.get(i).getTimestamp()).append(":").append(states.get(i).getTotalCoresPending()).append(":")
-                    .append(states.get(i).getTotalResources());
+            result.append(states.get(i).getTimestamp()).append(":").append(states.get(i).getTotalCoresPending())
+                    .append(":").append(states.get(i).getTotalResources());
         }
         result.append("'");
 
@@ -168,7 +188,11 @@ public class ResourcesLogParser {
         return result.toString();
     }
 
-    // Format: Each entry separated by " ". Entry = "time:#pendingCore0:...:numResources" (int:int:...:int)
+    /**
+     * Format: Each entry separated by " ". Entry = "time:#pendingCore0:...:numResources" (int:int:...:int)
+     * TODO: javadoc.
+     * @return String
+     */
     public static String getPendingCoresPerCore() {
         // Calculate matrix dimensions with the maximum number of cores in a execution
         int maxCores = 0;
@@ -206,7 +230,11 @@ public class ResourcesLogParser {
         return "'" + String.valueOf(maxCores) + "'," + coreData.toString();
     }
 
-    // Format: Last entry only. Entry = "time:CPU:MEM" (int:int:int)
+    /**
+     * Format: Last entry only. Entry = "time:CPU:MEM" (int:int:int)
+     * TODO: javadoc.
+     * @return String
+     */
     public static String getResourcesStatus() {
         StringBuilder result = new StringBuilder("'");
         result.append(states.lastElement().getTimestamp()).append(":");
@@ -220,6 +248,9 @@ public class ResourcesLogParser {
         return result.toString();
     }
 
+    /**
+     * TODO: javadoc.
+     */
     public static void parse() {
         logger.debug("Parsing resources.log file...");
         if (!Properties.getBasePath().equals("")) {
@@ -256,7 +287,8 @@ public class ResourcesLogParser {
                                 } else {
                                     // Generic entry. Set values as the before entry
                                     states.add(new StateData(states.lastElement()));
-                                    states.lastElement().setTimestamp(((int) (lastSeenTimestamp - referenceTimestamp)) / 1000); // seconds
+                                    states.lastElement().setTimestamp(((int) (lastSeenTimestamp - referenceTimestamp))
+                                            / 1000); // seconds
                                 }
                             } else {
                                 processInformation = false;
@@ -291,23 +323,23 @@ public class ResourcesLogParser {
                                 while ((line != null) && (line.contains("CORE_INFO = ["))) {
                                     line = br.readLine(); // id
                                     i = i + 1;
-                                    int id = Integer.valueOf(line.substring(line.lastIndexOf("=") + 2));
+                                    final int id = Integer.valueOf(line.substring(line.lastIndexOf("=") + 2));
                                     line = br.readLine(); // no_resource
                                     i = i + 1;
-                                    int no_resource = Integer.valueOf(line.substring(line.lastIndexOf("=") + 2));
+                                    final int no_resource = Integer.valueOf(line.substring(line.lastIndexOf("=") + 2));
                                     line = br.readLine(); // ready
                                     i = i + 1;
-                                    int ready = Integer.valueOf(line.substring(line.lastIndexOf("=") + 2));
+                                    final int ready = Integer.valueOf(line.substring(line.lastIndexOf("=") + 2));
                                     line = br.readLine(); // running
                                     i = i + 1;
-                                    int running = Integer.valueOf(line.substring(line.lastIndexOf("=") + 2));
+                                    final int running = Integer.valueOf(line.substring(line.lastIndexOf("=") + 2));
                                     // Skip min
                                     line = br.readLine();
                                     i = i + 1;
                                     // Get mean
                                     line = br.readLine();
                                     i = i + 1;
-                                    int mean = Integer.valueOf(line.substring(line.lastIndexOf("=") + 2));
+                                    final int mean = Integer.valueOf(line.substring(line.lastIndexOf("=") + 2));
                                     // Skip max
                                     line = br.readLine();
                                     i = i + 1;
@@ -338,10 +370,10 @@ public class ResourcesLogParser {
                                 while ((line != null) && (line.contains("RESOURCE = ["))) {
                                     line = br.readLine(); // Name
                                     i = i + 1;
-                                    String resourceName = line.substring(line.lastIndexOf("=") + 2);
+                                    final String resourceName = line.substring(line.lastIndexOf("=") + 2);
                                     line = br.readLine(); // Type
                                     i = i + 1;
-                                    String type = line.substring(line.lastIndexOf("=") + 2);
+                                    final String type = line.substring(line.lastIndexOf("=") + 2);
                                     line = br.readLine(); // CPUS
                                     i = i + 1;
                                     int cpus = Integer.valueOf(line.substring(line.lastIndexOf("=") + 2));
@@ -362,7 +394,8 @@ public class ResourcesLogParser {
                                         // int coreId = Integer.valueOf(line.substring(line.lastIndexOf("=") + 2));
                                         line = br.readLine(); // NUM_SLOTS
                                         i = i + 1;
-                                        // int numSlotsCore = Integer.valueOf(line.substring(line.lastIndexOf("=") + 2));
+                                        // int numSlotsCore = Integer.valueOf(line.substring(line.lastIndexOf("=")
+                                        // + 2));
                                         // Add core information to resource
                                         // TODO: Display runnable cores per resource
                                         // states.lastElement().addCanRunCoreSlots(coreId, numSlotsCore);
@@ -405,6 +438,9 @@ public class ResourcesLogParser {
         logger.debug("resources.log file parsed");
     }
 
+    /**
+     * TODO: javadoc.
+     */
     public static void clear() {
         resourcesLogPath = "";
 

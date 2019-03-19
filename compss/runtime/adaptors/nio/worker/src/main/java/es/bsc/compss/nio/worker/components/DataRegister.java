@@ -72,7 +72,7 @@ public class DataRegister {
             LOGGER.debug("   - Retrieving psco " + storageId + " from Storage");
             Object obj;
             // Get Object from its ID
-            if (Tracer.isActivated()) {
+            if (Tracer.extraeEnabled()) {
                 Tracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.Event.STORAGE_GETBYID.getType());
             }
             try {
@@ -82,7 +82,7 @@ public class DataRegister {
                 LOGGER.error("Cannot getByID PSCO " + storageId, e);
                 throw e;
             } finally {
-                if (Tracer.isActivated()) {
+                if (Tracer.extraeEnabled()) {
                     Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETBYID.getType());
                 }
             }

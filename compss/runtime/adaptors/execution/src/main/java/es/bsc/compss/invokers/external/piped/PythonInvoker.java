@@ -99,6 +99,8 @@ public class PythonInvoker extends PipedInvoker {
             // The bindingArgs are of the form python -u piper_worker.py debug tracing storageConf #threads <cmdPipes>
             // <resultPipes> controlPipeCMD controlPipeRESULT
             StringBuilder cmd = new StringBuilder();
+            // TODO check if this call is no longer necessary with Francesc changes
+            // cmd.append(Tracer.getLevel()).append(TOKEN_SEP);
 
             if (this.pyParams.usePythonMpiWorker()) {
                 //Rank 0 acts as the Piper Worker. Other processes act as piped executors
@@ -113,7 +115,7 @@ public class PythonInvoker extends PipedInvoker {
                 cmd.append(WORKER_PY_RELATIVE_PATH).append(TOKEN_SEP);
             }
             cmd.append(LOGGER.isDebugEnabled()).append(TOKEN_SEP);
-            cmd.append(Tracer.isActivated()).append(TOKEN_SEP);
+            cmd.append(Tracer.getLevel()).append(TOKEN_SEP);
             cmd.append(context.getStorageConf()).append(TOKEN_SEP);
             cmd.append(this.size).append(TOKEN_SEP);
             String computePipes = this.basePipePath + "compute";

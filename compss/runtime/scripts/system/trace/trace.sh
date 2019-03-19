@@ -60,13 +60,14 @@
     fi
     # shellcheck disable=SC2086
     tar czf "${node}_compss_trace.tar.gz" $files
+    echo "Package created $(ls -la  ${node}_compss_trace.tar.gz)"
     endCode=$?
     # shellcheck disable=SC2086
     rm -rf $files
   elif [ "$action" == "gentrace" ]; then
     appName=$1
     numberOfResources=$2
-    # Check machinge max open files
+    # Check machine max open files
     openFilesLimit=$(ulimit -Sn)
     if [ "$openFilesLimit" -eq "$openFilesLimit" ] 2>/dev/null; then
       # ulimit reported a valid number of open filesz

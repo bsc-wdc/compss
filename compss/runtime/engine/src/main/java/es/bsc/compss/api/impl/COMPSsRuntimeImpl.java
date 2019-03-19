@@ -395,7 +395,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      */
     @Override
     public synchronized void startIT() {
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
             Tracer.emitEvent(Tracer.Event.START.getId(), Tracer.Event.START.getType());
         }
@@ -452,7 +452,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             }
         }
 
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
 
@@ -464,7 +464,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     @Override
     public void stopIT(boolean terminate) {
         synchronized (this) {
-            if (Tracer.isActivated()) {
+            if (Tracer.extraeEnabled()) {
                 Tracer.emitEvent(Tracer.Event.STOP.getId(), Tracer.Event.STOP.getType());
             }
 
@@ -632,7 +632,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             Integer numReturns, int parameterCount, Object... parameters) {
 
         // Tracing flag for task creation
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
         }
 
@@ -672,7 +672,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 pars);
 
         // End tracing event
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
 
@@ -706,7 +706,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount,
             Object... parameters) {
 
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
         }
 
@@ -732,7 +732,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         // Register the task
         int task = ap.newTask(appId, monitor, namespace, service, port, operation, isPrioritary, hasTarget, numReturns, pars);
 
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
 
@@ -744,7 +744,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      */
     @Override
     public void noMoreTasks(Long appId) {
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.Event.NO_MORE_TASKS.getId(), Tracer.Event.NO_MORE_TASKS.getType());
         }
 
@@ -755,7 +755,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         LOGGER.debug("Getting Result Files " + appId);
         ap.getResultFiles(appId);
 
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
     }
@@ -774,7 +774,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      */
     @Override
     public void barrier(Long appId, boolean noMoreTasks) {
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.Event.WAIT_FOR_ALL_TASKS.getId(), Tracer.Event.WAIT_FOR_ALL_TASKS.getType());
         }
 
@@ -788,7 +788,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             ap.barrier(appId);
         }
 
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.WAIT_FOR_ALL_TASKS.getType());
         }
     }
@@ -806,7 +806,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         LOGGER.info("Deleting File " + fileName);
 
         // Emit event
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.Event.DELETE.getId(), Tracer.Event.DELETE.getType());
         }
 
@@ -821,7 +821,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         } catch (IOException ioe) {
             ErrorManager.fatal(ERROR_FILE_NAME, ioe);
         } finally {
-            if (Tracer.isActivated()) {
+            if (Tracer.extraeEnabled()) {
                 Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
             }
         }
@@ -848,7 +848,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      */
     @Override
     public void getFile(Long appId, String fileName) {
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.Event.GET_FILE.getId(), Tracer.Event.GET_FILE.getType());
         }
         String destDir=Comm.getAppHost().getTempDirPath();
@@ -878,7 +878,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             sReg.deleteTaskFile(fileName);
         }
         rename(intermediateTmpPath, fileName);
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
     }
@@ -920,7 +920,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
          * We know that the object has been accessed before by a task, otherwise the ObjectRegistry would have discarded
          * it and this method would not have been called.
          */
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.Event.GET_OBJECT.getId(), Tracer.Event.GET_OBJECT.getType());
         }
 
@@ -934,7 +934,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             LOGGER.debug("Object obtained " + ((oUpdated == null) ? oUpdated : oUpdated.hashCode()));
         }
 
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
 
@@ -999,7 +999,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     public String openFile(String fileName, Direction mode) {
         LOGGER.info("Opening " + fileName + " in mode " + mode);
 
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.Event.OPEN_FILE.getId(), Tracer.Event.OPEN_FILE.getType());
         }
         // Parse arguments to internal structures
@@ -1048,7 +1048,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 ErrorManager.error("ERROR: Unrecognised protocol requesting openFile " + fileName);
         }
 
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
 
@@ -1147,7 +1147,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         LOGGER.info("Deleting BindingObject " + fileName);
 
         // Emit event
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.Event.DELETE.getId(), Tracer.Event.DELETE.getType());
         }
 
@@ -1155,7 +1155,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         BindingObject bo = BindingObject.generate(fileName);
         int hashCode = externalObjectHashcode(bo.getId());
         ap.markForBindingObjectDeletion(hashCode);
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
 

@@ -125,7 +125,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             pb.environment().remove(Tracer.LD_PRELOAD);
             pb.environment().remove(Tracer.EXTRAE_CONFIG_FILE);
 
-            if (Tracer.isActivated()) {
+            if (Tracer.extraeEnabled()) {
                 long tracingHostId = context.getTracingHostID();
                 Tracer.emitEvent(tracingHostId, Tracer.getSyncType());
             }
@@ -300,6 +300,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             LOGGER.info("Waiting for finishing piper process");
             int exitCode = pipeBuilderProcess.waitFor();
             if (Tracer.isActivated()) {
+            if (Tracer.extraeEnabled()) {
                 Tracer.emitEvent(Tracer.EVENT_END, Tracer.getSyncType());
             }
             pipeBuildeOutGobbler.join();

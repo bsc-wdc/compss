@@ -341,7 +341,7 @@ worker_cmd() {
             ${python_interpreter} \
             ${python_version} \
             ${DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT} \
-            ${python_propagate_virtual_environment}\
+            ${python_propagate_virtual_environment} \
             ${python_mpi_worker}"
 }
 

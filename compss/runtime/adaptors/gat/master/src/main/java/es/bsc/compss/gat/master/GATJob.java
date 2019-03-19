@@ -180,7 +180,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
             job = broker.submitJob(jobDescr, this, JOB_STATUS);
             RUNNING_JOBS.add(this);
         } catch (Exception e) {
-            if (Tracer.isActivated()) {
+            if (Tracer.extraeEnabled()) {
                 Tracer.freeSlot(((GATWorkerNode) worker.getNode()).getHost(),
                         (Integer) jobDescr.getSoftwareDescription().getAttributes().get("slot"));
             }
@@ -228,7 +228,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
          * transitions
          */
         if (newJobState == JobState.STOPPED) {
-            if (Tracer.isActivated()) {
+            if (Tracer.extraeEnabled()) {
                 Integer slot = (Integer) sd.getAttributes().get("slot");
                 String host = getResourceNode().getHost();
                 Tracer.freeSlot(host, slot);
@@ -267,7 +267,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 ErrorManager.fatal(CALLBACK_PROCESSING_ERR + ": " + this, e);
             }
         } else if (newJobState == JobState.SUBMISSION_ERROR) {
-            if (Tracer.isActivated()) {
+            if (Tracer.extraeEnabled()) {
                 Integer slot = (Integer) sd.getAttributes().get("slot");
                 String host = getResourceNode().getHost();
                 Tracer.freeSlot(host, slot);
@@ -327,8 +327,8 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         }
 
         // Tracing flags
-        lArgs.add(Boolean.toString(Tracer.isActivated()));
-        if (Tracer.isActivated()) {
+        lArgs.add(Boolean.toString(Tracer.extraeEnabled()));
+        if (Tracer.extraeEnabled()) {
             lArgs.add(String.valueOf(Tracer.getRuntimeEventsType())); // Runtime event type
             lArgs.add(String.valueOf(Tracer.Event.CREATING_TASK_SANDBOX.getId())); // sandbox creation id
             lArgs.add(String.valueOf(Tracer.Event.REMOVING_TASK_SANDBOX.getId())); // sandbox removal id

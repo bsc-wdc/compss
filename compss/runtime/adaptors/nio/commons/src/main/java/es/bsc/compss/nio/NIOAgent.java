@@ -186,7 +186,7 @@ public abstract class NIOAgent {
             NIOData source = dr.getSource();
             NIOURI uri = source.getFirstURI();
 
-            if (NIOTracer.isActivated()) {
+            if (NIOTracer.extraeEnabled()) {
                 NIOTracer.emitDataTransferEvent(source.getDataMgmtId());
             }
             NIONode nn = uri.getHost();
@@ -206,7 +206,7 @@ public abstract class NIOAgent {
                 ongoingTransfers.put(c, dr.getSource().getDataMgmtId());
                 c.sendCommand(cdd);
 
-                if (NIOTracer.isActivated()) {
+                if (NIOTracer.extraeEnabled()) {
                     c.receive();
                 }
                 switch (dr.getType()) {
@@ -244,7 +244,7 @@ public abstract class NIOAgent {
                 }
             }
 
-            if (NIOTracer.isActivated()) {
+            if (NIOTracer.extraeEnabled()) {
                 NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
             }
         }
@@ -303,7 +303,7 @@ public abstract class NIOAgent {
      * @param receiverID
      */
     public void sendData(Connection c, NIOData d, int receiverID) {
-        if (NIOTracer.isActivated()) {
+        if (NIOTracer.extraeEnabled()) {
             int tag = abs(d.getDataMgmtId().hashCode());
             CommandTracingID cmd = new CommandTracingID(tracingID, tag);
             c.sendCommand(cmd);
@@ -329,7 +329,7 @@ public abstract class NIOAgent {
                 break;
         }
 
-        if (NIOTracer.isActivated()) {
+        if (NIOTracer.extraeEnabled()) {
             NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
         }
         c.finishConnection();
@@ -495,7 +495,7 @@ public abstract class NIOAgent {
             sameTarget.add(req);
         }
         // Add tracing event
-        if (NIOTracer.isActivated()) {
+        if (NIOTracer.extraeEnabled()) {
             int tag = abs(dataId.hashCode());
             NIOTracer.emitDataTransferEvent(dataId);
             NIOTracer.emitCommEvent(false, connection2Partner.get(c), tag, t.getSize());

@@ -133,29 +133,29 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
             try {
                 TDRequest request = requestQueue.take();
                 requestType = request.getType().toString();
-                if (Tracer.isActivated()) {
+                if (Tracer.extraeEnabled()) {
                     Tracer.emitEvent(Tracer.getTDRequestEvent(request.getType().name()).getId(), Tracer.getRuntimeEventsType());
                 }
                 request.process(scheduler);
-                if (Tracer.isActivated()) {
+                if (Tracer.extraeEnabled()) {
                     Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
                 }
             } catch (InterruptedException ie) {
-                if (Tracer.isActivated()) {
+                if (Tracer.extraeEnabled()) {
                     Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
                 }
                 Thread.currentThread().interrupt();
                 continue;
             } catch (ShutdownException se) {
                 LOGGER.debug("Exiting dispatcher because of shutting down");
-                if (Tracer.isActivated()) {
+                if (Tracer.extraeEnabled()) {
                     Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
                 }
                 se.getSemaphore().release();
                 break;
             } catch (Exception e) {
                 LOGGER.error("Error in request " + requestType, e);
-                if (Tracer.isActivated()) {
+                if (Tracer.extraeEnabled()) {
                     Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
                 }
                 continue;

@@ -474,7 +474,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             c.end(DataOperation.OpEndState.OP_OK);
         }
 
-        if (NIOTracer.isActivated()) {
+        if (NIOTracer.extraeEnabled()) {
             NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
         }
     }

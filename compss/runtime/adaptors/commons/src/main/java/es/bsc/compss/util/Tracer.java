@@ -202,14 +202,23 @@ public abstract class Tracer {
             ErrorManager.error(ERROR_TRACE_DIR);
         }
 
-        Wrapper.SetTaskID(0);
-        Wrapper.SetNumTasks(1);
-
         tracingLevel = level;
+
+        if (Tracer.extraeEnabled()){
+            if (DEBUG) {
+                LOGGER.debug("Initializing extrae Wrapper.");
+            }
+            Wrapper.SetTaskID(0);
+            Wrapper.SetNumTasks(1);
+        }
+    }
+
+    public static boolean extraeEnabled() {
+        return tracingLevel > 0;
     }
 
     public static boolean isActivated() {
-        return tracingLevel > 0;
+        return tracingLevel != 0;
     }
 
     public static boolean basicModeEnabled() {

@@ -183,7 +183,7 @@ public class Executor implements Runnable {
     }
 
     private boolean execute(Invocation invocation) {
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.Event.TASK_RUNNING.getId(), Tracer.Event.TASK_RUNNING.getType());
         }
 
@@ -242,7 +242,7 @@ public class Executor implements Runnable {
             platform.releaseResources(invocation.getJobId());
 
             // Always end task tracing
-            if (Tracer.isActivated()) {
+            if (Tracer.extraeEnabled()) {
                 Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.TASK_RUNNING.getType());
             }
         }

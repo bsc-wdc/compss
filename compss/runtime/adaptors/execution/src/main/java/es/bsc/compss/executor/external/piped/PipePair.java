@@ -142,7 +142,6 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
                     LOGGER.debug("Error on pipe write. Retry");
                     ++retries;
                 } finally {
-                    sendMutex.unlock();
                     if (output != null) {
                         try {
                             output.close();
@@ -150,6 +149,7 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
                             ErrorManager.error(ERROR_PIPE_CLOSE + writePipe, e);
                         }
                     }
+                    sendMutex.unlock();
                 }
             }
             try {

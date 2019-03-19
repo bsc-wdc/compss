@@ -128,7 +128,7 @@
         create_pipe ${workerRESULTpipe}
 
         workerCMD=$(echo ${line} | cut -d' ' -f3-) 
-        eval ${workerCMD} &
+        eval ${workerCMD} </dev/null 3>/dev/null &
         bindingPID=$!
         echo "WORKER_STARTED ${bindingPID}" >> "${controlRESULTpipe}"
         ;;
@@ -136,7 +136,7 @@
       "GET_ALIVE")
         reply="ALIVE_REPLY"
         if [ "${line}" != "GET_ALIVE" ]; then
-          pids=$(echo ${line} | cut -d' ' -f1-)
+          pids="${line}"
           alive_processes=$(ps h -o pid,stat ${pids} | awk '$2 != "Z" {print $1}')
           for alive_process in ${alive_processes}; do
             reply="${reply} ${alive_process}"

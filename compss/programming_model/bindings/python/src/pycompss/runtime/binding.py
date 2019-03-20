@@ -554,7 +554,7 @@ def synchronize(obj, mode):
 
 
 def process_task(f, module_name, class_name, ftype, f_parameters, f_returns, task_kwargs, num_nodes, replicated,
-                 distributed):
+                 distributed, on_failure):
     """
     Function that submits a task to the runtime.
 
@@ -619,6 +619,7 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns, tas
             logger.debug("\t- App id: " + str(app_id))
             logger.debug("\t- Path: " + path)
             logger.debug("\t- Function name: " + f.__name__)
+            logger.debug("\t- On failure behavior: " + on_failure)
             logger.debug("\t- Signature: " + signature)
             logger.debug("\t- Priority: " + str(has_priority))
             logger.debug("\t- Has target: " + str(has_target))
@@ -640,18 +641,20 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns, tas
     Parameters:
         0 - <Integer>   - application id (by default always 0 due to it is not currently needed for the signature)
         1 - <String>    - path of the module where the task is
-        2 - <String>    - function name of the task (to be called from the worker)
-        3 - <String>    - priority flag (true|false)
-        4 - <String>    - has target (true|false). If the task is within an object or not.
-        5 - [<String>]  - task parameters (basic types or file paths for objects)
-        6 - [<Integer>] - parameters types (number corresponding to the type of each parameter)
-        7 - [<Integer>] - parameters directions (number corresponding to the direction of each parameter)
-        8 - [<Integer>] - parameters streams (number corresponding to the stream of each parameter)
-        9 - [<String>]  - parameters prefixes (sting corresponding to the prefix of each parameter)
+        2 - <String>    - behavior if the task fails
+        3 - <String>    - function name of the task (to be called from the worker)
+        4 - <String>    - priority flag (true|false)
+        5 - <String>    - has target (true|false). If the task is within an object or not.
+        6 - [<String>]  - task parameters (basic types or file paths for objects)
+        7 - [<Integer>] - parameters types (number corresponding to the type of each parameter)
+        8 - [<Integer>] - parameters directions (number corresponding to the direction of each parameter)
+        9 - [<Integer>] - parameters streams (number corresponding to the stream of each parameter)
+        10 - [<String>]  - parameters prefixes (sting corresponding to the prefix of each parameter)
     """
 
     compss.process_task(app_id,
                         signature,
+                        on_failure,
                         has_priority,
                         num_nodes,
                         replicated,

@@ -186,14 +186,14 @@ void init_master_jni_types() {
     check_and_treat_exception(m_env, "Looking for getApplicationDirectory method");
 
     // executeTask method - C binding
-    midExecute = m_env->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;ZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
+    midExecute = m_env->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
         exit(1);
     }
 
     // executeTask method - Python binding
-    midExecuteNew = m_env->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;ZIZZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
+    midExecuteNew = m_env->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;ZIZZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
         exit(1);
@@ -853,7 +853,7 @@ void GS_ExecuteTask(long _appId, char *class_name, char *method_name, int priori
     release_lock();
 }
 
-void GS_ExecuteTaskNew(long _appId, char *signature, int priority, int num_nodes, int replicated, int distributed,
+void GS_ExecuteTaskNew(long _appId, char *signature, char *on_failure, int priority, int num_nodes, int replicated, int distributed,
                        int has_target, int num_returns, int num_params, void **params) {
 
     jobjectArray jobjOBJArr; /* array of Objects to be passed to executeTask */
@@ -897,6 +897,7 @@ void GS_ExecuteTaskNew(long _appId, char *signature, int priority, int num_nodes
                           midExecuteNew,
                           appId,
                           m_env->NewStringUTF(signature),
+                          m_env->NewStringUTF(on_failure),
                           _priority,
                           num_nodes,
                           _replicated,

@@ -252,7 +252,7 @@ process_task(PyObject *self, PyObject *args) {
     */
     debug("####C#### PROCESS TASK\n");
     long app_id;
-    char *signature;
+    char *signature, *on_failure;
     int priority, num_nodes, replicated, distributed, has_target, num_returns;
     PyObject *values;
     PyObject *names;
@@ -261,7 +261,7 @@ process_task(PyObject *self, PyObject *args) {
     PyObject *compss_streams;
     PyObject *compss_prefixes;
     //             See comment from above for the meaning of this "magic" string
-    if(!PyArg_ParseTuple(args, "lsiiiiiiOOOOOO", &app_id, &signature, &priority,
+    if(!PyArg_ParseTuple(args, "lssiiiiiiOOOOOO", &app_id, &signature, &on_failure, &priority,
                          &num_nodes, &replicated, &distributed, &has_target, &num_returns, &values, &names, &compss_types,
                          &compss_directions, &compss_streams, &compss_prefixes)) {
         // Return NULL after ParseTuple automatically translates to "wrong
@@ -270,6 +270,7 @@ process_task(PyObject *self, PyObject *args) {
     }
     debug("####C#### App id: %ld\n", app_id);
     debug("####C#### Signature: %s\n", signature);
+    debug("####C#### On Failure: %s\n", on_failure);
     debug("####C#### Priority: %d\n", priority);
     debug("####C#### MPI Num nodes: %d\n", num_nodes);
     debug("####C#### Replicated: %d\n", replicated);
@@ -339,6 +340,7 @@ process_task(PyObject *self, PyObject *args) {
     GS_ExecuteTaskNew(
         app_id,
         signature,
+        on_failure,
         priority,
         num_nodes,
         replicated,

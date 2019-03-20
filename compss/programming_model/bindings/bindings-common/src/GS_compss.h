@@ -48,6 +48,7 @@ extern "C" void GS_ExecuteTask(long appId,
                               );
 extern "C" void GS_ExecuteTaskNew(long appId,
                                   char *signature,
+                                  char *on_failure,
                                   int priority,
                                   int num_nodes,
                                   int replicated,

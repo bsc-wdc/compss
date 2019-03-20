@@ -79,8 +79,8 @@ public interface COMPSsRuntime {
      * @param parameters An object array containing the method parameters.
      * @return
      */
-    public int executeTask(Long appId, String methodClass, String methodName, boolean isPrioritary, boolean hasTarget,
-            Integer numReturns, int parameterCount, Object... parameters);
+    public int executeTask(Long appId, String methodClass,  String onFailure, String methodName, boolean isPrioritary, boolean hasTarget, Integer numReturns,
+            int parameterCount, Object... parameters);
 
     /**
      * New Method task for Python Binding.
@@ -97,8 +97,8 @@ public interface COMPSsRuntime {
      * @param parameters An object array containing the method parameters.
      * @return
      */
-    public int executeTask(Long appId, String signature, boolean isPrioritary, int numNodes, boolean isReplicated,
-            boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters);
+    public int executeTask(Long appId, String signature,  String onFailure, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
+            boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters);
 
     /**
      * New Method Task for Loader.

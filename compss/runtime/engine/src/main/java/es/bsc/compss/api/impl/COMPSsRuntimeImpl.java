@@ -589,25 +589,25 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Execute task: methods for C binding
      */
     @Override
-    public int executeTask(Long appId, String methodClass, String methodName, boolean isPrioritary, boolean hasTarget,
-            Integer numReturns, int parameterCount, Object... parameters) {
+    public int executeTask(Long appId, String methodClass, String onFailure, String methodName, boolean isPrioritary,
+            boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters) {
 
         return executeTask(appId, null, null, false, methodClass, methodName, null, isPrioritary, Constants.SINGLE_NODE,
 
                 Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK),
                 Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK), hasTarget, numReturns, parameterCount,
-                OnFailure.RETRY, parameters);
+                OnFailure.valueOf(onFailure), parameters);
     }
 
     /**
      * Execute task: methods for Python binding
      */
     @Override
-    public int executeTask(Long appId, String signature, boolean isPrioritary, int numNodes, boolean isReplicated,
-            boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters) {
 
-        return executeTask(appId, null, null, true, null, null, signature, isPrioritary, numNodes, isReplicated,
-                isDistributed, hasTarget, numReturns, parameterCount, OnFailure.RETRY, parameters);
+    public int executeTask(Long appId, String signature,  String onFailure, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
+            boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters) {
+        return executeTask(appId, null, null, true, null, null, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget,
+                numReturns, parameterCount, OnFailure.valueOf(onFailure), parameters);
     }
 
     /**
@@ -644,8 +644,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      */
     private int executeTask(Long appId, TaskMonitor monitor, Lang lang, boolean hasSignature, String methodClass,
             String methodName, String signature, boolean isPrioritary, int numNodes, boolean isReplicated,
-            boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount, OnFailure onFailure, Object... parameters) {
-
+            boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount, OnFailure onFailure,
+            Object... parameters) {
 
         // Tracing flag for task creation
         if (Tracer.extraeEnabled()) {

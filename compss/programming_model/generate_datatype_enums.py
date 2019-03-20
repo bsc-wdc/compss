@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-#  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 java_path = './api/src/main/java/es/bsc/compss/types/annotations/parameter/DataType.java'
 cpp_path = './bindings/bindings-common/src/data_type.h'
 python_path = './bindings/python/src/pycompss/api/data_type.py'

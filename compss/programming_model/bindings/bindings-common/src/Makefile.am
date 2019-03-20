@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-#  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 include_HEADERS = BindingDataManager.h BindingExecutor.h JavaNioConnStreamBuffer.h AbstractExecutor.h AbstractCache.h compss_worker.h common.h GS_compss.h param_metadata.h data_type.h
 lib_LTLIBRARIES = libbindings_common.la

@@ -41,7 +41,8 @@ import org.apache.logging.log4j.Logger;
  */
 public class CloudManager {
 
-    private static final String CONNECTORS_REL_PATH = File.separator + "Runtime" + File.separator + "connectors" + File.separator;
+    private static final String CONNECTORS_REL_PATH = File.separator + "Runtime" + File.separator + "connectors"
+            + File.separator;
 
     private static final String WARN_NO_COMPSS_HOME = "WARN: COMPSS_HOME not defined, no default connectors loaded";
     private static final String WARN_NO_COMPSS_HOME_RESOURCES = "WARN_MSG = [COMPSS_HOME NOT DEFINED, NO DEFAULT CONNECTORS LOADED]";
@@ -83,7 +84,6 @@ public class CloudManager {
 
     /**
      * Initializes the internal data structures
-     *
      */
     public CloudManager() {
         RUNTIME_LOGGER.info("Initializing Cloud Manager");
@@ -119,9 +119,9 @@ public class CloudManager {
             if (minVMs > 0) {
                 this.minVMs = minVMs;
                 if (minVMs > maxVMs) {
-                    ErrorManager
-                            .warn("Cloud: MaxVMs (" + maxVMs + ") is lower than MinVMs (" + this.minVMs + "). The current MaxVMs value ("
-                                    + maxVMs + ") is ignored until MinVMs (" + this.minVMs + ") is lower than it");
+                    ErrorManager.warn("Cloud: MaxVMs (" + maxVMs + ") is lower than MinVMs (" + this.minVMs
+                            + "). The current MaxVMs value (" + maxVMs + ") is ignored until MinVMs (" + this.minVMs
+                            + ") is lower than it");
                 }
             } else {
                 this.minVMs = 0;
@@ -137,9 +137,9 @@ public class CloudManager {
                 this.maxVMs = 0;
             }
             if (minVMs > maxVMs) {
-                ErrorManager
-                        .warn("Cloud: MaxVMs (" + this.maxVMs + ") is lower than MinVMs (" + this.minVMs + "). The current MaxVMs value ("
-                                + this.maxVMs + ") is ignored until MinVMs (" + this.minVMs + ") is higher than it");
+                ErrorManager.warn("Cloud: MaxVMs (" + this.maxVMs + ") is lower than MinVMs (" + this.minVMs
+                        + "). The current MaxVMs value (" + this.maxVMs + ") is ignored until MinVMs (" + this.minVMs
+                        + ") is higher than it");
             }
         }
     }
@@ -172,15 +172,15 @@ public class CloudManager {
      * @param connectorJarPath
      * @param connectorMainClass
      * @param connectorProperties
-     *
      * @return
      * @throws es.bsc.compss.connectors.ConnectorException
      */
     public CloudProvider registerCloudProvider(String providerName, Integer limitOfVMs, String runtimeConnectorClass,
-            String connectorJarPath, String connectorMainClass, Map<String, String> connectorProperties) throws ConnectorException {
+            String connectorJarPath, String connectorMainClass, Map<String, String> connectorProperties)
+            throws ConnectorException {
 
-        CloudProvider cp = new CloudProvider(providerName, limitOfVMs, runtimeConnectorClass, connectorJarPath, connectorMainClass,
-                connectorProperties);
+        CloudProvider cp = new CloudProvider(providerName, limitOfVMs, runtimeConnectorClass, connectorJarPath,
+                connectorMainClass, connectorProperties);
         useCloud = true;
         providers.put(cp.getName(), cp);
         return cp;
@@ -294,8 +294,7 @@ public class CloudManager {
      * Returns how long will take a resource to be ready since the CloudManager asks for it.
      *
      * @return time required for a resource to be ready
-     * @throws Exception
-     *             can not get the creation time for some providers.
+     * @throws Exception can not get the creation time for some providers.
      */
     public long getNextCreationTime() throws Exception {
         long total = 0;
@@ -343,7 +342,8 @@ public class CloudManager {
                 Map<CloudInstanceTypeDescription, int[]> composition = rcr.getRequested().getTypeComposition();
                 // REQUEST ARE COMPOSED OF A SINGLE INSTANCE TYPE
                 for (CloudInstanceTypeDescription citd : composition.keySet()) {
-                    sb.append(prefix).append("\t").append("\t").append("REQUEST = ").append(citd.getName()).append("\n");
+                    sb.append(prefix).append("\t").append("\t").append("REQUEST = ").append(citd.getName())
+                            .append("\n");
                 }
             }
         }

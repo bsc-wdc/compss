@@ -41,8 +41,8 @@ public class ConnectorProxy {
         this.connector = conn;
     }
 
-    public Object create(String name, HardwareDescription hardwareDescription, SoftwareDescription softwareDescription, Map<String, String> properties)
-            throws ConnectorException {
+    public Object create(String name, HardwareDescription hardwareDescription, SoftwareDescription softwareDescription,
+            Map<String, String> properties) throws ConnectorException {
 
         if (connector == null) {
             throw new ConnectorException(ERROR_NO_CONN);

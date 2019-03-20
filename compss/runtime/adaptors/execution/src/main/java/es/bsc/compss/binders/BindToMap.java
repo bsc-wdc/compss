@@ -35,7 +35,6 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Class to bind the threads to an specific resource map (obtained by lscpu or given by the user).
- *
  */
 public class BindToMap implements ThreadBinder {
 
@@ -47,11 +46,8 @@ public class BindToMap implements ThreadBinder {
 
     /**
      * Constructor for thread binder.
-     *
-     * <p>
-     * The format is the one followed by lscpu ("," to separate groups, "-" to separate bounds of groups) In addition,
+     * The format is the one followed by lscpu ("," to separate groups, "-" to separate bounds of groups). In addition,
      * "/" is used to separate sockets For example: "1,2,3,6-8/1,3-5" = "1-3,6,7,8/1,3,4,5"
-     * </p>
      *
      * @param numThreads   number of threads to be managed by the Binders
      * @param socketString Description of the avialablesocket
@@ -256,8 +252,7 @@ public class BindToMap implements ThreadBinder {
             // Raise exception
             if (usedSockets == null) {
                 throw new UnsufficientAvailableComputingUnitsException(
-                        "Not enough available computing units for task execution " + jobId
-                );
+                        "Not enough available computing units for task execution " + jobId);
             }
 
             // Handle assignedCoreUnits
@@ -305,11 +300,9 @@ public class BindToMap implements ThreadBinder {
         }
     }
 
-    private void auxiliarConstructor(
-            int numThreads,
-            ArrayList<ArrayList<Integer>> computingUnitsIds,
-            int totalAmountThreads
-    ) {
+    private void auxiliarConstructor(int numThreads, ArrayList<ArrayList<Integer>> computingUnitsIds,
+            int totalAmountThreads) {
+
         this.idList = computingUnitsIds;
         // Initialize de binds ArrayList
         for (ArrayList<Integer> currentSocket : this.idList) {
@@ -356,6 +349,12 @@ public class BindToMap implements ThreadBinder {
         return counter;
     }
 
+    /**
+     * @param jobId : job associated to the threads to locate
+     * @param amount : amount of threads that needs to be allocated
+     * @param index : lower socket allowed to hosts the threads
+     * @return : True if succeeded, False if failed
+     */
     private ArrayList<Integer> recursiveBindingComputingUnits(int jobId, int amount, int index) {
         // With the current index, we can fulfill the thread requirements
         int availableSlots = getAvailableSlots(this.bindedCpus.get(index));

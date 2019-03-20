@@ -86,8 +86,7 @@ public class RuntimeLogParser {
                     if (i > lastParsedLine) {
                         // Check line information and add to structures
                         if (line.contains("@processTask")
-                                && (line.contains("New method task")
-                                || line.contains("New service task"))) {
+                                && (line.contains("New method task") || line.contains("New service task"))) {
                             LOGGER.debug("* New task");
                             String[] str = line.split(" ");
                             String taskId = str[str.length - 1];
@@ -163,8 +162,8 @@ public class RuntimeLogParser {
                         } else if ((line.contains("@doSubmit")) && (line.contains("* Target host"))) {
                             LOGGER.debug("* Add target for last new job");
                             String host = line.substring(line.lastIndexOf(": ") + 1);
-                            tasks.get(jobsToTasks.get(Integer.valueOf(lastNewJobId)))
-                                    .setJobHost(lastNewJobId, false, host);
+                            tasks.get(jobsToTasks.get(Integer.valueOf(lastNewJobId))).setJobHost(lastNewJobId, false,
+                                    host);
                         } else if ((line.contains("@failedJob")) && (line.contains("with state FAILED"))) {
                             LOGGER.debug("* Failed job");
                             String[] info = line.split(" ");

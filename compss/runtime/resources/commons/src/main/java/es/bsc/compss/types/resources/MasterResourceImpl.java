@@ -39,7 +39,8 @@ public class MasterResourceImpl extends DynamicMethodWorker implements MasterRes
     static {
         // Initializing host attributes
         String hostName = "";
-        if ((MASTER_NAME_PROPERTY != null) && (!MASTER_NAME_PROPERTY.equals("")) && (!MASTER_NAME_PROPERTY.equals("null"))) {
+        if ((MASTER_NAME_PROPERTY != null) && (!MASTER_NAME_PROPERTY.equals(""))
+                && (!MASTER_NAME_PROPERTY.equals("null"))) {
             // Set the hostname from the defined property
             hostName = MASTER_NAME_PROPERTY;
         } else {
@@ -56,8 +57,10 @@ public class MasterResourceImpl extends DynamicMethodWorker implements MasterRes
         MASTER_NAME = hostName;
     }
 
+
     public MasterResourceImpl() {
-        super(MASTER_NAME, new MethodResourceDescription(), new COMPSsMaster(MASTER_NAME), 0, 0, 0, 0, new HashMap<String, String>());
+        super(MASTER_NAME, new MethodResourceDescription(), new COMPSsMaster(MASTER_NAME), 0, 0, 0, 0,
+                new HashMap<String, String>());
     }
 
     public String getCOMPSsLogBaseDirPath() {
@@ -116,14 +119,14 @@ public class MasterResourceImpl extends DynamicMethodWorker implements MasterRes
 
     @Override
     public void updateDisks(Map<String, String> sharedDisks) {
-        /*(MethodResourceDescription mrd,)
-        this.description.mimic(mrd);
-        this.available.mimic(mrd);
-        this.setMaxCPUTaskCount(mrd.getTotalCPUComputingUnits());
-        this.setMaxGPUTaskCount(mrd.getTotalGPUComputingUnits());
-        this.setMaxFPGATaskCount(mrd.getTotalFPGAComputingUnits());
-        this.setMaxOthersTaskCount(mrd.getTotalOTHERComputingUnits());
-        ((COMPSsMaster) this.getNode()).setUpExecutionCapabilities(mrd, mrd.getTotalCPUComputingUnits());*/
+        /*
+         * (MethodResourceDescription mrd,) this.description.mimic(mrd); this.available.mimic(mrd);
+         * this.setMaxCPUTaskCount(mrd.getTotalCPUComputingUnits());
+         * this.setMaxGPUTaskCount(mrd.getTotalGPUComputingUnits());
+         * this.setMaxFPGATaskCount(mrd.getTotalFPGAComputingUnits());
+         * this.setMaxOthersTaskCount(mrd.getTotalOTHERComputingUnits()); ((COMPSsMaster)
+         * this.getNode()).setUpExecutionCapabilities(mrd, mrd.getTotalCPUComputingUnits());
+         */
         super.sharedDisks = sharedDisks;
     }
 

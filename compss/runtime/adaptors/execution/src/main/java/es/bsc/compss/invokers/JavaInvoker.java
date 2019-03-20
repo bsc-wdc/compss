@@ -42,8 +42,8 @@ public class JavaInvoker extends Invoker {
     protected final Method method;
 
 
-    public JavaInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources)
-            throws JobExecutionException {
+    public JavaInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+            InvocationResources assignedResources) throws JobExecutionException {
 
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
@@ -61,7 +61,8 @@ public class JavaInvoker extends Invoker {
                 break;
             default:
                 // We have received an incorrect implementation type
-                throw new JobExecutionException(ERROR_METHOD_DEFINITION + invocation.getMethodImplementation().getMethodType());
+                throw new JobExecutionException(
+                        ERROR_METHOD_DEFINITION + invocation.getMethodImplementation().getMethodType());
         }
 
         // Use reflection to get the requested method
@@ -102,22 +103,27 @@ public class JavaInvoker extends Invoker {
                                             isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Char");
                                             break;
                                         case "short":
-                                            isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Short");
+                                            isMatch = paramValue.getClass().getCanonicalName()
+                                                    .equals("java.lang.Short");
                                             break;
                                         case "int":
-                                            isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Integer");
+                                            isMatch = paramValue.getClass().getCanonicalName()
+                                                    .equals("java.lang.Integer");
                                             break;
                                         case "long":
                                             isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Long");
                                             break;
                                         case "float":
-                                            isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Float");
+                                            isMatch = paramValue.getClass().getCanonicalName()
+                                                    .equals("java.lang.Float");
                                             break;
                                         case "double":
-                                            isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Double");
+                                            isMatch = paramValue.getClass().getCanonicalName()
+                                                    .equals("java.lang.Double");
                                             break;
                                         case "boolean":
-                                            isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Boolean");
+                                            isMatch = paramValue.getClass().getCanonicalName()
+                                                    .equals("java.lang.Boolean");
                                             break;
                                     }
                                 }

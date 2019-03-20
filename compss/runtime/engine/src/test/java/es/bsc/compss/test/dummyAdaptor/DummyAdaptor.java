@@ -27,7 +27,6 @@ import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 
 /**
  * Dummy Adaptor for testing purposes. Defined in main package because it is used in integration tests
- *
  */
 public class DummyAdaptor implements CommAdaptor {
 

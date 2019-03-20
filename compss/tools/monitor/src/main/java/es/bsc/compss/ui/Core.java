@@ -33,7 +33,8 @@ public class Core {
 
     public Core() {
         // Empty Image
-        this.setColor(File.separator + "images" + File.separator + "colors" + File.separator + Constants.CORE_COLOR_DEFAULT + ".png");
+        this.setColor(File.separator + "images" + File.separator + "colors" + File.separator
+                + Constants.CORE_COLOR_DEFAULT + ".png");
 
         this.setCoreId("0");
         this.setImplId("0");

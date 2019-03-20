@@ -74,7 +74,8 @@ public class StorageInvoker extends JavaInvoker {
 
         String descriptor;
         try {
-            descriptor = method.getName() + Descriptor.ofMethod(pool.getCtClass(method.getReturnType().getName()), ctParams);
+            descriptor = method.getName()
+                    + Descriptor.ofMethod(pool.getCtClass(method.getReturnType().getName()), ctParams);
         } catch (NotFoundException e) {
             throw new JobExecutionException(ERROR_CLASS_NOT_FOUND + " " + method.getReturnType().getName(), e);
         }
@@ -92,7 +93,8 @@ public class StorageInvoker extends JavaInvoker {
 
         // Call Storage executeTask
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.info("External ExecuteTask " + method.getName() + " with target PSCO Id " + id + " in " + context.getHostName());
+            LOGGER.info("External ExecuteTask " + method.getName() + " with target PSCO Id " + id + " in "
+                    + context.getHostName());
         } else {
             LOGGER.info("External ExecuteTask " + method.getName());
         }
@@ -150,7 +152,6 @@ public class StorageInvoker extends JavaInvoker {
 
     /**
      * Class to get the Storage Callback
-     *
      */
     private class PSCOCallbackHandler extends CallbackHandler {
 

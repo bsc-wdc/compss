@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.executor.external.commands;
 
-
 public class AliveReplyExternalCommand implements ExternalCommand {
 
     @Override

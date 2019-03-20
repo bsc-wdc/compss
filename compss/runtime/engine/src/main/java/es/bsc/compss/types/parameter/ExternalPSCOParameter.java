@@ -32,7 +32,9 @@ public class ExternalPSCOParameter extends DependencyParameter {
     private final int hashCode;
     private String pscoId;
 
-    public ExternalPSCOParameter(Direction direction, Stream stream, String prefix, String name, String pscoId, int hashCode) {
+
+    public ExternalPSCOParameter(Direction direction, Stream stream, String prefix, String name, String pscoId,
+            int hashCode) {
         super(DataType.EXTERNAL_PSCO_T, direction, stream, prefix, name);
         this.pscoId = pscoId;
         this.hashCode = hashCode;

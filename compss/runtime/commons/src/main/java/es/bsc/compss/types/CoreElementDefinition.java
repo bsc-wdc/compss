@@ -24,6 +24,7 @@ public class CoreElementDefinition {
     private String ceSignature;
     private final LinkedList<ImplementationDefinition> implementations = new LinkedList<>();
 
+
     public CoreElementDefinition() {
     }
 

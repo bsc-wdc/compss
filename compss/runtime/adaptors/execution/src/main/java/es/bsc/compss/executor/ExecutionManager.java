@@ -48,8 +48,8 @@ public class ExecutionManager {
      * @param fpgaMap
      * @param limitOfTasks
      */
-    public ExecutionManager(InvocationContext context, int computingUnitsCPU, String cpuMap, int computingUnitsGPU, String gpuMap,
-            int computingUnitsFPGA, String fpgaMap, int limitOfTasks) {
+    public ExecutionManager(InvocationContext context, int computingUnitsCPU, String cpuMap, int computingUnitsGPU,
+            String gpuMap, int computingUnitsFPGA, String fpgaMap, int limitOfTasks) {
 
         ResourceManager rm = null;
         try {
@@ -81,7 +81,6 @@ public class ExecutionManager {
 
     /**
      * Stops the Execution Manager and its pool of threads
-     *
      */
     public void stop() {
         LOGGER.info("Stopping Threads...");

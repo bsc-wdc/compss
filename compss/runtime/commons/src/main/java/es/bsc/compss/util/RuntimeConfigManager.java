@@ -28,7 +28,6 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 
 /**
  * Loads the runtime configuration
- * 
  */
 public class RuntimeConfigManager {
 
@@ -435,7 +434,7 @@ public class RuntimeConfigManager {
     public boolean isWorkerCPUAffinityEnabled() {
         return config.getBoolean(COMPSsConstants.WORKER_CPU_AFFINITY, false);
     }
-    
+
     /**
      * Sets the new GPU Affinity for the Workers
      * 

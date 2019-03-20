@@ -27,7 +27,6 @@ import es.bsc.compss.types.uri.MultiURI;
 
 /**
  * Abstract definition of a Communication Adaptor for the Runtime
- *
  */
 public interface CommAdaptor {
 

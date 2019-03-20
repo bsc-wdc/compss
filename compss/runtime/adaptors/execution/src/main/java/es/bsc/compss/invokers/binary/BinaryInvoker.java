@@ -50,7 +50,8 @@ public class BinaryInvoker extends Invoker {
         try {
             binaryImpl = (BinaryImplementation) invocation.getMethodImplementation();
         } catch (Exception e) {
-            throw new JobExecutionException(ERROR_METHOD_DEFINITION + invocation.getMethodImplementation().getMethodType(), e);
+            throw new JobExecutionException(
+                    ERROR_METHOD_DEFINITION + invocation.getMethodImplementation().getMethodType(), e);
         }
         this.binary = binaryImpl.getBinary();
     }
@@ -80,8 +81,8 @@ public class BinaryInvoker extends Invoker {
         // ./exec args
         // Convert binary parameters and calculate binary-streams redirection
         BinaryRunner.StreamSTD streamValues = new BinaryRunner.StreamSTD();
-        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(invocation.getParams(), invocation.getTarget(),
-                streamValues);
+        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(invocation.getParams(),
+                invocation.getTarget(), streamValues);
 
         // Prepare command
         String[] cmd = new String[NUM_BASE_BINARY_ARGS + binaryParams.size()];

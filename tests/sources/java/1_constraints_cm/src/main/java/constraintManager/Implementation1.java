@@ -3,8 +3,7 @@ package constraintManager;
 public class Implementation1 {
 
     /*
-     * ******************************************** 
-     * EMPTY CORE-ELEMENTS
+     * ******************************************** EMPTY CORE-ELEMENTS
      *******************************************/
     public void emptyCoreElement0() {
         printMethodInformation(this.getClass().getEnclosingMethod().getName());
@@ -15,8 +14,7 @@ public class Implementation1 {
     }
 
     /*
-     * ******************************************** 
-     * SIMPLE CONSTRAINTS CORE-ELEMENTS
+     * ******************************************** SIMPLE CONSTRAINTS CORE-ELEMENTS
      *******************************************/
     public void simpleCoreElement0() {
         printMethodInformation(this.getClass().getEnclosingMethod().getName());
@@ -98,8 +96,7 @@ public class Implementation1 {
     }
 
     /*
-     * ******************************************** 
-     * MULTI-CONSTRAINTS CORE-ELEMENTS
+     * ******************************************** MULTI-CONSTRAINTS CORE-ELEMENTS
      *******************************************/
     public void multiCoreElement0() {
         printMethodInformation(this.getClass().getEnclosingMethod().getName());

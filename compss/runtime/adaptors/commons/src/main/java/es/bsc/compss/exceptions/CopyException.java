@@ -18,7 +18,6 @@ package es.bsc.compss.exceptions;
 
 /**
  * Exception for Copy Exceptions
- *
  */
 public class CopyException extends Exception {
 

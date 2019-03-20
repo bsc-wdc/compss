@@ -33,7 +33,6 @@ import es.bsc.compss.types.annotations.task.repeatables.Methods;
 @Repeatable(Methods.class)
 /**
  * Methods definition
- *
  */
 public @interface Method {
 

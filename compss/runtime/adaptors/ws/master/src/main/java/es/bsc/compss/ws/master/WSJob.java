@@ -172,13 +172,13 @@ public class WSJob extends Job<ServiceInstance> {
                                     input.add(o);
                                     break;
                                 case FILE_T:
-                                	logger.error("Error: WS CAN'T USE BINDING FILES AS A PARAMETER!");
+                                    logger.error("Error: WS CAN'T USE BINDING FILES AS A PARAMETER!");
                                     // CAN'T USE A FILE AS A PARAMETER
                                     // SKIP!
                                     break;
                                 case BINDING_OBJECT_T:
-                                	logger.error("Error: WS CAN'T USE BINDING OBJECTS AS A PARAMETER!");
-                                	break;
+                                    logger.error("Error: WS CAN'T USE BINDING OBJECTS AS A PARAMETER!");
+                                    break;
                                 default:
                                     // Basic or String
                                     BasicTypeParameter btParB = (BasicTypeParameter) parameters[i];
@@ -251,7 +251,7 @@ public class WSJob extends Job<ServiceInstance> {
             if (!ld.isInMemory()) {
                 ld.loadFromStorage();
             }
-            
+
             return ld.getValue();
         }
     }

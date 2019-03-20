@@ -27,6 +27,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+
 public class COMPSsRuntimeImplTest {
 
     private static final String DUMMY_ADAPTOR_CLASS = "es.bsc.compss.test.dummyAdaptor.DummyAdaptor";
@@ -35,6 +36,7 @@ public class COMPSsRuntimeImplTest {
     static {
         System.setProperty(COMPSsConstants.COMM_ADAPTOR, DUMMY_ADAPTOR_CLASS);
     }
+
 
     @Before
     public void setUp() throws Exception {
@@ -59,7 +61,7 @@ public class COMPSsRuntimeImplTest {
         String implSignature = "methodClass.methodName";
         String implConstraints = "ComputingUnits:2";
         String implType = "METHOD";
-        String[] implTypeArgs = new String[]{"methodClass", "methodName"};
+        String[] implTypeArgs = new String[] { "methodClass", "methodName" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
 
         AbstractMethodImplementation mi = (AbstractMethodImplementation) CoreManager.getCoreImplementations(0).get(0);
@@ -70,7 +72,7 @@ public class COMPSsRuntimeImplTest {
         implSignature = "mpi.MPI";
         implConstraints = "StorageType:SSD";
         implType = "MPI";
-        implTypeArgs = new String[]{"mpiBinary", "mpiWorkingDir", "mpiRunner"};
+        implTypeArgs = new String[] { "mpiBinary", "mpiWorkingDir", "mpiRunner" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCoreImplementations(1).get(0);
@@ -82,7 +84,7 @@ public class COMPSsRuntimeImplTest {
         implSignature = "decaf.DECAF";
         implConstraints = "StorageSize:2.0";
         implType = "DECAF";
-        implTypeArgs = new String[]{"dfScript", "dfExceutor", "dfLib", "dfWorkingDir", "mpiRunner"};
+        implTypeArgs = new String[] { "dfScript", "dfExceutor", "dfLib", "dfWorkingDir", "mpiRunner" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCoreImplementations(1).get(1);
@@ -94,7 +96,7 @@ public class COMPSsRuntimeImplTest {
         implSignature = "binary.BINARY";
         implConstraints = "MemoryType:RAM";
         implType = "BINARY";
-        implTypeArgs = new String[]{"binary", "binaryWorkingDir"};
+        implTypeArgs = new String[] { "binary", "binaryWorkingDir" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCoreImplementations(2).get(0);
@@ -106,7 +108,7 @@ public class COMPSsRuntimeImplTest {
         implSignature = "ompss.OMPSS";
         implConstraints = "ComputingUnits:3";
         implType = "OMPSS";
-        implTypeArgs = new String[]{"ompssBinary", "ompssWorkingDir"};
+        implTypeArgs = new String[] { "ompssBinary", "ompssWorkingDir" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCoreImplementations(3).get(0);
@@ -118,7 +120,7 @@ public class COMPSsRuntimeImplTest {
         implSignature = "opencl.OPENCL";
         implConstraints = "ComputingUnits:4";
         implType = "OPENCL";
-        implTypeArgs = new String[]{"openclKernel", "openclWorkingDir"};
+        implTypeArgs = new String[] { "openclKernel", "openclWorkingDir" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCoreImplementations(4).get(0);
@@ -130,7 +132,7 @@ public class COMPSsRuntimeImplTest {
         implSignature = "anotherClass.anotherMethodName";
         implConstraints = "ComputingUnits:1";
         implType = "METHOD";
-        implTypeArgs = new String[]{"anotherClass", "anotherMethodName"};
+        implTypeArgs = new String[] { "anotherClass", "anotherMethodName" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCoreImplementations(0).get(1);

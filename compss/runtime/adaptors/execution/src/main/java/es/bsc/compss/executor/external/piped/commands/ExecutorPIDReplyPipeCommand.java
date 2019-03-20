@@ -28,44 +28,47 @@ public class ExecutorPIDReplyPipeCommand extends ExecutorPIDReplyExternalCommand
     private final String outPipe;
     private final List<Integer> pids;
 
+
     public ExecutorPIDReplyPipeCommand(String[] line) {
-        inPipe = line[1];
-        outPipe = line[2];
-        pids = new LinkedList<>();
+        this.inPipe = line[1];
+        this.outPipe = line[2];
+        this.pids = new LinkedList<>();
         for (int idx = 3; idx < line.length; idx++) {
-            pids.add(Integer.parseInt(line[idx]));
+            this.pids.add(Integer.parseInt(line[idx]));
         }
     }
 
     public ExecutorPIDReplyPipeCommand(PipePair pp) {
-        inPipe = pp.getInboundPipe();
-        outPipe = pp.getOutboundPipe();
-        pids = new LinkedList<>();
+        this.inPipe = pp.getInboundPipe();
+        this.outPipe = pp.getOutboundPipe();
+        this.pids = new LinkedList<>();
     }
 
     @Override
     public String getAsString() {
-        return super.getAsString() + " " + inPipe + " " + outPipe;
+        return super.getAsString() + " " + this.inPipe + " " + this.outPipe;
     }
 
     @Override
     public int compareTo(PipeCommand t) {
         int value = Integer.compare(this.getType().ordinal(), t.getType().ordinal());
         if (value == 0) {
-            value = inPipe.compareTo(((ExecutorPIDReplyPipeCommand) t).inPipe);
+            ExecutorPIDReplyPipeCommand rt = (ExecutorPIDReplyPipeCommand) t;
+            value = this.inPipe.compareTo(rt.inPipe);
         }
         if (value == 0) {
-            value = outPipe.compareTo(((ExecutorPIDReplyPipeCommand) t).outPipe);
+            ExecutorPIDReplyPipeCommand rt = (ExecutorPIDReplyPipeCommand) t;
+            value = this.outPipe.compareTo(rt.outPipe);
         }
         return value;
     }
 
     @Override
     public void join(PipeCommand receivedCommand) {
-        pids.addAll(((ExecutorPIDReplyPipeCommand) receivedCommand).pids);
+        this.pids.addAll(((ExecutorPIDReplyPipeCommand) receivedCommand).pids);
     }
 
     public List<Integer> getPids() {
-        return pids;
+        return this.pids;
     }
 }

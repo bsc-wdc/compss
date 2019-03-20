@@ -23,6 +23,7 @@ import es.bsc.compss.util.ResourceManager;
 
 import java.util.concurrent.Semaphore;
 
+
 /**
  * This class represents a notification to end the execution
  */
@@ -32,6 +33,7 @@ public class ShutdownRequest extends TDRequest {
      * Semaphore where to synchronize until the operation is done
      */
     private Semaphore semaphore;
+
 
     /**
      * Constructs a new ShutdownRequest
@@ -52,11 +54,9 @@ public class ShutdownRequest extends TDRequest {
     }
 
     /**
-     * Sets the semaphore where to synchronize until the requested object can be
-     * read
+     * Sets the semaphore where to synchronize until the requested object can be read
      *
-     * @param sem the semaphore where to synchronize until the requested object
-     * can be read
+     * @param sem the semaphore where to synchronize until the requested object can be read
      */
     public void setSemaphore(Semaphore sem) {
         this.semaphore = sem;

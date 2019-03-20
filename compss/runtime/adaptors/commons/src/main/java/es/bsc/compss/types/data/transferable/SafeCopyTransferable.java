@@ -26,14 +26,15 @@ public class SafeCopyTransferable implements Transferable {
     private String dataTarget;
     private DataType type;
 
-    public SafeCopyTransferable(DataType dt){
-        this.type=dt;
+
+    public SafeCopyTransferable(DataType dt) {
+        this.type = dt;
     }
-    
-    public SafeCopyTransferable(){
+
+    public SafeCopyTransferable() {
         this.type = DataType.FILE_T;
     }
-    
+
     @Override
     public Object getDataSource() {
         return dataSource;

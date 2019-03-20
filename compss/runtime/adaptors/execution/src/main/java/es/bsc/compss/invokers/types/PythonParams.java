@@ -21,7 +21,6 @@ import es.bsc.compss.types.execution.LanguageParams;
 
 /**
  * Python related variables
- *
  */
 public class PythonParams implements LanguageParams {
 
@@ -79,6 +78,7 @@ public class PythonParams implements LanguageParams {
     public String getPythonPath() {
         return pythonPath;
     }
+
     public void setPythonPath(String pythonPath) {
         this.pythonPath = pythonPath;
     }

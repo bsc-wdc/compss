@@ -54,20 +54,10 @@ public class ResourcesViewModel {
         // Import new resources
         for (String[] dr : newResourcesData) {
             /*
-             * Each entry in the new Resource data is of the form:
-             *      workerName
-             *      totalCPUu
-             *      totalGPUu
-             *      totalFPGAu
-             *      totalOTHERu
-             *      memory
-             *      disk
-             *      status
-             *      provider
-             *      image
-             *      actions
+             * Each entry in the new Resource data is of the form: workerName totalCPUu totalGPUu totalFPGAu totalOTHERu
+             * memory disk status provider image actions
              */
-            
+
             // Change format of some fields
 
             // Check memSize

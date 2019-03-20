@@ -37,7 +37,6 @@ public class ITAppLoader {
      *
      * @param chosenLoader
      * @param appName
-     *
      */
     protected static void load(String chosenLoader, String appName, String[] appArgs) throws Exception {
         /*
@@ -58,7 +57,8 @@ public class ITAppLoader {
              * The custom class loader must load the class that will modify the application and invoke the modify method
              * on an instance of this class
              */
-            String loaderName = LoaderConstants.CUSTOM_LOADER_PREFIX + chosenLoader + LoaderConstants.CUSTOM_LOADER_SUFFIX;
+            String loaderName = LoaderConstants.CUSTOM_LOADER_PREFIX + chosenLoader
+                    + LoaderConstants.CUSTOM_LOADER_SUFFIX;
             Class<?> modifierClass = myLoader.loadClass(loaderName);
 
             Object modifier = modifierClass.newInstance();

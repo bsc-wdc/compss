@@ -49,9 +49,9 @@ public class CommandCheckWorker extends Command implements Externalizable {
     @Override
     public void handle(Connection c) {
         if (agent.isMyUuid(this.uuid, this.nodeName)) {
-        	if (agent.getMaster() == null) {
-        		agent.setMaster((NIONode) c.getNode());
-        	}
+            if (agent.getMaster() == null) {
+                agent.setMaster((NIONode) c.getNode());
+            }
             CommandCheckWorkerACK cmd = new CommandCheckWorkerACK(uuid, nodeName);
             c.sendCommand(cmd);
         }

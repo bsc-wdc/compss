@@ -32,7 +32,6 @@ import es.bsc.compss.types.annotations.task.repeatables.MPIs;
 @Repeatable(MPIs.class)
 /**
  * Methods definition
- *
  */
 public @interface MPI {
 

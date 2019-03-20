@@ -92,8 +92,8 @@ public class IDLParser {
                                 LOGGER.debug("[IDL Parser] Loading implementation: " + structureString.toString());
                                 implementation = loadCImplementation(structureString.toString());
                             } else if (type.equals(CodeRegion.FUNCTION)) {
-                                LOGGER.debug(
-                                        "[IDL Parser] Loading function: " + structureString.toString() + " constraint:" + currConstraints);
+                                LOGGER.debug("[IDL Parser] Loading function: " + structureString.toString()
+                                        + " constraint:" + currConstraints);
                                 parseCFunction(structureString.toString(), currConstraints, implementation);
                                 currConstraints = new MethodResourceDescription(defaultCtr);
                                 implementation = null;
@@ -104,7 +104,8 @@ public class IDLParser {
                     }
 
                 } else {
-                    if (line.startsWith("//") || line.startsWith("#") || (line.startsWith("/*") && line.endsWith("*/"))) {
+                    if (line.startsWith("//") || line.startsWith("#")
+                            || (line.startsWith("/*") && line.endsWith("*/"))) {
                         // Line is a comment of pre-processor pragma ignoring it
                         continue;
                     } else if (line.startsWith("/*")) {
@@ -174,7 +175,8 @@ public class IDLParser {
         }
     }
 
-    private static void parseCFunction(String line, MethodResourceDescription currConstraints, CImplementation implementation) {
+    private static void parseCFunction(String line, MethodResourceDescription currConstraints,
+            CImplementation implementation) {
         StringBuilder implementedTaskSignatureBuffer = new StringBuilder();
         StringBuilder implementationSignatureBuffer = new StringBuilder();
         // TODO: Check isStatic and hasReturn information
@@ -187,9 +189,9 @@ public class IDLParser {
         if (!line.startsWith("void ")) {
             // hasReturn = true;
         }
-        //remove spaces before square-brackets
+        // remove spaces before square-brackets
         line = line.replaceAll(Pattern.quote(" ["), "[");
-        
+
         line = line.replaceAll("[(|)|,|;|\n|\t]", " ");
         String[] splits = line.split("\\s+");
         CImplementation task = loadCImplementation(splits[1]);
@@ -220,9 +222,9 @@ public class IDLParser {
         for (int i = 2; i < splits.length; i++) {
             String paramDirection = splits[i++];
             String paramType = splits[i++];
-            //String paramName = splits[i];
+            // String paramName = splits[i];
             String type = "BINDING_OBJECT_T";
-            
+
             /*
              * OLD version C-binding String type = "FILE_T";
              */
@@ -288,7 +290,8 @@ public class IDLParser {
         List<String> newSigns = new LinkedList<>();
         newSigns.add(implementationSignature);
         CoreManager.registerNewImplementations(coreId, newImpls, newSigns);
-        LOGGER.debug("[IDL Parser] Adding implementation: " + declaringClass + "." + methodName + " for CE id " + coreId);
+        LOGGER.debug(
+                "[IDL Parser] Adding implementation: " + declaringClass + "." + methodName + " for CE id " + coreId);
     }
 
     private static MethodResourceDescription loadCConstraints(String line) {

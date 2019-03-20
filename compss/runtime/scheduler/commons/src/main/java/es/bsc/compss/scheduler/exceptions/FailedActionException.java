@@ -23,6 +23,7 @@ public class FailedActionException extends Exception {
      */
     private static final long serialVersionUID = 2L;
 
+
     public FailedActionException() {
         super();
     }

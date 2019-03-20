@@ -129,7 +129,6 @@ public class GraphGenerator {
 
     /**
      * Constructs a new Graph generator
-     * 
      */
     public GraphGenerator() {
         // All attributes are initialized in the static block. Nothing to do
@@ -164,7 +163,6 @@ public class GraphGenerator {
      ****************************************************************************************************************/
     /**
      * Opens and initializes the current graph buffer file
-     * 
      */
     public BufferedWriter getAndOpenCurrentGraph() {
         try {
@@ -192,7 +190,6 @@ public class GraphGenerator {
 
     /**
      * Prints in a file the final task graph
-     * 
      */
     public void commitGraph() {
         logger.debug("Commiting graph to final location");
@@ -264,8 +261,8 @@ public class GraphGenerator {
     public void addSynchroToGraph(int synchId) {
         try {
             full_graph.newLine();
-            full_graph.write(
-                    "Synchro" + synchId + "[label=\"sync\", shape=octagon, style=filled fillcolor=\"#ff0000\" fontcolor=\"#FFFFFF\"];");
+            full_graph.write("Synchro" + synchId
+                    + "[label=\"sync\", shape=octagon, style=filled fillcolor=\"#ff0000\" fontcolor=\"#FFFFFF\"];");
         } catch (IOException e) {
             logger.error(ERROR_ADDING_DATA, e);
         }
@@ -279,8 +276,8 @@ public class GraphGenerator {
     public void addBarrierToGraph(int synchId) {
         try {
             full_graph.newLine();
-            full_graph.write(
-                    "Synchro" + synchId + "[label=\"barrier\", shape=octagon, style=filled fillcolor=\"#ff0000\" fontcolor=\"#FFFFFF\"];");
+            full_graph.write("Synchro" + synchId
+                    + "[label=\"barrier\", shape=octagon, style=filled fillcolor=\"#ff0000\" fontcolor=\"#FFFFFF\"];");
         } catch (IOException e) {
             logger.error(ERROR_ADDING_DATA, e);
         }
@@ -323,7 +320,6 @@ public class GraphGenerator {
 
     /**
      * Removes the temporary files
-     * 
      */
     public static void removeTemporaryGraph() {
         if (!new File(COMPLETE_GRAPH_TMP_FILE).delete()) {

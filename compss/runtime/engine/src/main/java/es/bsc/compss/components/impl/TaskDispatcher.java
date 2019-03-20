@@ -59,7 +59,6 @@ import org.apache.logging.log4j.Logger;
 /**
  * Component used as interface between the task analysis and the task scheduler Manage and handles requests for task
  * execution, task status, etc.
- *
  */
 public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrator {
 
@@ -81,9 +80,9 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     private static final String ERR_LOAD_SCHEDULER = "Error loading scheduler";
     private static final String ERROR_QUEUE_OFFER = "ERROR: TaskDispatcher queue offer error on ";
 
+
     /**
      * Creates a new task dispatcher instance
-     *
      */
     @SuppressWarnings("unchecked")
     public <A extends WorkerResourceDescription> TaskDispatcher() {
@@ -333,7 +332,6 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
 
     /**
      * Shuts down the component
-     *
      */
     public void shutdown() {
         Semaphore sem = new Semaphore(0);

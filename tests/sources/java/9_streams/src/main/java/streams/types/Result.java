@@ -41,7 +41,6 @@ public class Result implements Serializable {
 
     /**
      * Creates a new Result instance for externalization
-     * 
      */
     public Result() {
         // Only for externalization
@@ -52,7 +51,6 @@ public class Result implements Serializable {
 
     /**
      * Creates a new result class and initializes to 0
-     * 
      */
     public Result(int exitValue) {
         this.numValues = NUM_VALUES;

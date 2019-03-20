@@ -63,7 +63,8 @@ class GATLog {
         Configurator.initialize(conf);
     }
 
-    private static void addLogger(String name, Level level, AppenderRefComponentBuilder appender, ConfigurationBuilder<?> builder) {
+    private static void addLogger(String name, Level level, AppenderRefComponentBuilder appender,
+            ConfigurationBuilder<?> builder) {
         LoggerComponentBuilder logger = builder.newLogger(name, level);
         logger.add(appender);
         logger.addAttribute("additivity", false);

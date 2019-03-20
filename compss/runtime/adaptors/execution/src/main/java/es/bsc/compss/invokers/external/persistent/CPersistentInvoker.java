@@ -35,11 +35,12 @@ public class CPersistentInvoker extends PersistentInvoker {
     }
 
     @Override
-    protected ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation, String sandBox,
-            InvocationResources assignedResources) {
+    protected ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation,
+            String sandBox, InvocationResources assignedResources) {
 
         ExecuteTaskExternalCommand command = new ExecuteTaskExternalCommand();
-        command.appendAllArguments(CExecutionCommandGenerator.getTaskExecutionCommand(context, invocation, sandBox, assignedResources));
+        command.appendAllArguments(
+                CExecutionCommandGenerator.getTaskExecutionCommand(context, invocation, sandBox, assignedResources));
         return command;
     }
 

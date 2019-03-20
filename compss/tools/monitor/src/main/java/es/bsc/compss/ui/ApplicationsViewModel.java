@@ -60,7 +60,8 @@ public class ApplicationsViewModel {
         setSelectedApp("");
 
         // Import new resources
-        String appsLocation = ((UserCredential) Sessions.getCurrent().getAttribute("userCredential")).getCOMPSs_BASE_LOG();
+        String appsLocation = ((UserCredential) Sessions.getCurrent().getAttribute("userCredential"))
+                .getCOMPSs_BASE_LOG();
         File COMPSs_LOG_DIR = new File(appsLocation);
         if (COMPSs_LOG_DIR.exists()) {
             for (File f : COMPSs_LOG_DIR.listFiles()) {

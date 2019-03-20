@@ -31,7 +31,6 @@ import es.bsc.compss.types.annotations.task.repeatables.Services;
 @Repeatable(Services.class)
 /**
  * Services definition
- *
  */
 public @interface Service {
 

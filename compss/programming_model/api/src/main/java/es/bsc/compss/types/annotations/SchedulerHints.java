@@ -26,7 +26,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 /**
  * Scheduler hints definition
- *
  */
 public @interface SchedulerHints {
 

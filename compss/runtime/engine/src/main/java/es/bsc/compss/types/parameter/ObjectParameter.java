@@ -52,7 +52,8 @@ public class ObjectParameter extends DependencyParameter {
 
     @Override
     public String toString() {
-        return "ObjectParameter with hash code " + this.hashCode+ ", type " + getType() + ", direction " + getDirection();
+        return "ObjectParameter with hash code " + this.hashCode + ", type " + getType() + ", direction "
+                + getDirection();
     }
 
 }

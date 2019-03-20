@@ -111,7 +111,8 @@ public class Redis {
         String name = p.getName();
         int age = p.getAge();
         int numC = p.getNumComputers();
-        System.out.println("[LOG][PSCO_RETURN_NTP] Person " + name + " with age " + age + " has " + numC + " computers");
+        System.out
+                .println("[LOG][PSCO_RETURN_NTP] Person " + name + " with age " + age + " has " + numC + " computers");
         System.out.println("[LOG][PSCO_RETURN_NTP] BeginId = null EndId = " + p.getID());
     }
 
@@ -227,28 +228,30 @@ public class Redis {
     private static void testNewVersionAndConsolidate() throws StorageException {
         Person original = new Person("Original", 0, 0);
         original.makePersistent("Original");
-        Stack< String > personStack = new Stack<>();
+        Stack<String> personStack = new Stack<>();
         personStack.push("Original");
         System.out.println("[LOG][PSCO_NEW_VERSION_CONSOLIDATE] Id 0: Original");
-        for(int i=1; i<=10; ++i) {
+        for (int i = 1; i <= 10; ++i) {
             original.setAge(i);
-            original.setName("person_"+i);
+            original.setName("person_" + i);
             String oldId = original.getID();
             String newId = StorageItf.newVersion(oldId, true, "none");
-            original = (Person)StorageItf.getByID(newId);
+            original = (Person) StorageItf.getByID(newId);
             System.out.println("[LOG][PSCO_NEW_VERSION_CONSOLIDATE] Id " + i + ": " + newId);
             personStack.push(newId);
         }
         StorageItf.consolidateVersion(personStack.pop());
         boolean success = true;
-        while(!personStack.isEmpty() && success) {
+        while (!personStack.isEmpty() && success) {
             String currentId = personStack.pop();
             try {
                 StorageItf.getByID(currentId);
-                System.out.println("[LOG][PSCO_NEW_VERSION_CONSOLIDATE] Error, id " + currentId + " is still in Redis!");
+                System.out
+                        .println("[LOG][PSCO_NEW_VERSION_CONSOLIDATE] Error, id " + currentId + " is still in Redis!");
                 success = false;
-            } catch(StorageException e) {
-                System.out.println("[LOG][PSCO_NEW_VERSION_CONSOLIDATE] Ok, id " + currentId + " is no longer in Redis!");
+            } catch (StorageException e) {
+                System.out
+                        .println("[LOG][PSCO_NEW_VERSION_CONSOLIDATE] Ok, id " + currentId + " is no longer in Redis!");
             }
         }
         System.out.println("[LOG][PSCO_NEW_VERSION_CONSOLIDATE]: " + (success ? "OK" : "ERROR"));

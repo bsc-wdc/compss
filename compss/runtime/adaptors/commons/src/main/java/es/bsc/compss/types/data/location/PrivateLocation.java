@@ -111,7 +111,7 @@ public class PrivateLocation extends DataLocation {
     @Override
     public void modifyPath(String path) {
         this.uri = new MultiURI(this.uri.getProtocol(), this.uri.getHost(), path);
-        
+
     }
 
 }

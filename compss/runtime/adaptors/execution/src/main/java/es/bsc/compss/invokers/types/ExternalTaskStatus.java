@@ -28,7 +28,6 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Stores the task status information for bindings
- *
  */
 public class ExternalTaskStatus {
 

@@ -35,7 +35,8 @@ public class FakeServiceAdaptor implements CommAdaptor {
     }
 
     @Override
-    public Configuration constructConfiguration(Object project_properties, Object resources_properties) throws ConstructConfigurationException {
+    public Configuration constructConfiguration(Object project_properties, Object resources_properties)
+            throws ConstructConfigurationException {
         return new ServiceConfiguration(this.getClass().getName(), "WSDL");
     }
 

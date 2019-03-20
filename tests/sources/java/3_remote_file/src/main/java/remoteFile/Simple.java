@@ -6,10 +6,11 @@ import java.io.IOException;
 
 
 public class Simple {
-    
+
     private static final String counterIN = "file://COMPSsWorker01@/tmp/COMPSsWorker01/counter";
     private static final String counterPathIN = "/tmp/COMPSsWorker01/counter";
     private static final String counterPathOUT = "counter";
+
 
     public static void main(String[] args) {
         // Check and get parameters
@@ -18,7 +19,7 @@ public class Simple {
             System.out.println("    Usage: simple.Simple <counterValue>");
             System.exit(-1);
         }
-        
+
         int initialValue = Integer.parseInt(args[0]);
 
         // ------------------------------------------------------------------------

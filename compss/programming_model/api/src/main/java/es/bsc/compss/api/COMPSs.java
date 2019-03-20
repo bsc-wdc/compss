@@ -18,7 +18,6 @@ package es.bsc.compss.api;
 
 /**
  * COMPSs API Class for JAVA
- *
  */
 public class COMPSs {
 
@@ -27,7 +26,6 @@ public class COMPSs {
 
     /**
      * Barrier
-     * 
      */
     public static void barrier() {
         // This is only a handler, it is never executed
@@ -53,10 +51,10 @@ public class COMPSs {
         // This is only a handler, it is never executed
         System.out.println(SKIP_MESSAGE);
     }
-    
+
     public static void getFile(String fileName) {
-     // This is only a handler, it is never executed
+        // This is only a handler, it is never executed
         System.out.println(SKIP_MESSAGE);
     }
-    
+
 }

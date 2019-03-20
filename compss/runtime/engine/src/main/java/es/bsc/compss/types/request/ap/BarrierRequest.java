@@ -23,10 +23,12 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 
 import java.util.concurrent.Semaphore;
 
+
 public class BarrierRequest extends APRequest {
 
     private Semaphore sem;
     private Long appId;
+
 
     public BarrierRequest(Long appId, Semaphore sem) {
         this.appId = appId;

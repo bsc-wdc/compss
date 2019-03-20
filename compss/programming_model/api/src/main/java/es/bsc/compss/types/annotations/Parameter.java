@@ -30,7 +30,6 @@ import es.bsc.compss.types.annotations.parameter.Stream;
 @Target(ElementType.PARAMETER)
 /**
  * Parameters description
- *
  */
 public @interface Parameter {
 

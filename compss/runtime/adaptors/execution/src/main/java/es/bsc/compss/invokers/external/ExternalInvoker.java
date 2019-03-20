@@ -55,7 +55,8 @@ public abstract class ExternalInvoker extends Invoker {
 
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
-        this.command = getTaskExecutionCommand(context, invocation, taskSandboxWorkingDir.getAbsolutePath(), assignedResources);
+        this.command = getTaskExecutionCommand(context, invocation, taskSandboxWorkingDir.getAbsolutePath(),
+                assignedResources);
         this.command.appendAllArguments(getExternalCommand(invocation, context, assignedResources));
         String streamsName = context.getStandardStreamsPath(invocation);
         this.command.prependArgument(streamsName + SUFFIX_ERR);
@@ -63,8 +64,8 @@ public abstract class ExternalInvoker extends Invoker {
 
     }
 
-    protected abstract ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation, String sandBox,
-            InvocationResources assignedResources);
+    protected abstract ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context,
+            Invocation invocation, String sandBox, InvocationResources assignedResources);
 
     private static ArrayList<String> getExternalCommand(Invocation invocation, InvocationContext context,
             InvocationResources assignedResources) throws JobExecutionException {
@@ -79,10 +80,12 @@ public abstract class ExternalInvoker extends Invoker {
         return args;
     }
 
-    private static ArrayList<String> addArguments(InvocationContext context, Invocation invocation) throws JobExecutionException {
+    private static ArrayList<String> addArguments(InvocationContext context, Invocation invocation)
+            throws JobExecutionException {
         // The implementation to execute externally can only be METHOD or MULTI_NODE but we double check it
         if (invocation.getMethodImplementation().getMethodType() != AbstractMethodImplementation.MethodType.METHOD
-                && invocation.getMethodImplementation().getMethodType() != AbstractMethodImplementation.MethodType.MULTI_NODE) {
+                && invocation.getMethodImplementation()
+                        .getMethodType() != AbstractMethodImplementation.MethodType.MULTI_NODE) {
             throw new JobExecutionException(ERROR_UNSUPPORTED_JOB_TYPE);
         }
 
@@ -145,7 +148,7 @@ public abstract class ExternalInvoker extends Invoker {
             numParams++;
             invArgs.addAll(convertParameter(invocation.getTarget()));
         }
-        
+
         for (InvocationParam np : invocation.getResults()) {
             numParams++;
             invArgs.addAll(convertParameter(np));
@@ -175,8 +178,8 @@ public abstract class ExternalInvoker extends Invoker {
                     // destfile should be the same as the input.
                     destFile = originalFile;
                 }
-                paramArgs.add(originalFile + ":" + destFile + ":" + np.isPreserveSourceData() + ":" + np.isWriteFinalValue() + ":"
-                        + np.getOriginalName());
+                paramArgs.add(originalFile + ":" + destFile + ":" + np.isPreserveSourceData() + ":"
+                        + np.isWriteFinalValue() + ":" + np.getOriginalName());
                 break;
             case OBJECT_T:
             case PSCO_T:
@@ -190,7 +193,7 @@ public abstract class ExternalInvoker extends Invoker {
                 BindingObject bo = BindingObject.generate(extObjValue);
 
                 String originalData = "";
-                if (np.getSourceDataId() != null) { //IN or INOUT
+                if (np.getSourceDataId() != null) { // IN or INOUT
                     originalData = np.getSourceDataId();
                 }
 
@@ -201,8 +204,8 @@ public abstract class ExternalInvoker extends Invoker {
                     // destfile should be the same as the input.
                     destData = originalData;
                 }
-                paramArgs.add(originalData + ":" + destData + ":" + np.isPreserveSourceData() + ":" + np.isWriteFinalValue() + ":"
-                        + np.getOriginalName());
+                paramArgs.add(originalData + ":" + destData + ":" + np.isPreserveSourceData() + ":"
+                        + np.isWriteFinalValue() + ":" + np.getOriginalName());
                 paramArgs.add(Integer.toString(bo.getType()));
                 paramArgs.add(Integer.toString(bo.getElements()));
                 break;

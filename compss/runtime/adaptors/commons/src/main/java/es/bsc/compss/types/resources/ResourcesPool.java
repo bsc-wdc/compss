@@ -23,10 +23,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-/**
- *
- * @author flordan
- */
 public class ResourcesPool {
     // Log and debug
 
@@ -36,11 +32,11 @@ public class ResourcesPool {
     // List of all created resources
     private static final List<Resource> AVAILABLE_RESOURCES = new LinkedList<>();
 
+
     /**
      * Returns the Resource associated to the given name @name Null if any resource has been registered with the name
      *
      * @name
-     *
      * @param name
      * @return
      */

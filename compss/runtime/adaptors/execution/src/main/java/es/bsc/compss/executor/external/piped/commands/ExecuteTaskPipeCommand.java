@@ -23,6 +23,7 @@ public class ExecuteTaskPipeCommand extends ExecuteTaskExternalCommand implement
 
     private final Integer jobId;
 
+
     public ExecuteTaskPipeCommand(Integer jobId) {
         super();
 
@@ -52,6 +53,7 @@ public class ExecuteTaskPipeCommand extends ExecuteTaskExternalCommand implement
 
     @Override
     public void join(PipeCommand receivedCommand) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
 }

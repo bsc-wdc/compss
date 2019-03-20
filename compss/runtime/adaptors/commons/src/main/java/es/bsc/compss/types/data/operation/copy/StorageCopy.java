@@ -29,7 +29,6 @@ import es.bsc.compss.types.parameter.DependencyParameter;
 
 /**
  * Representation of a Storage Copy
- *
  */
 public class StorageCopy extends DataOperation {
 
@@ -41,6 +40,7 @@ public class StorageCopy extends DataOperation {
     private Transferable reason;
     private final boolean preserveSourceData;
 
+
     /**
      * Create a new Storage Copy
      *
@@ -51,8 +51,8 @@ public class StorageCopy extends DataOperation {
      * @param reason
      * @param listener
      */
-    public StorageCopy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData, Transferable reason,
-            EventListener listener) {
+    public StorageCopy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData,
+            Transferable reason, EventListener listener) {
 
         super(srcData, listener);
 
@@ -152,6 +152,6 @@ public class StorageCopy extends DataOperation {
 
     @Override
     public void perform() {
-        //No need to do anything. Will be performed later on.
+        // No need to do anything. Will be performed later on.
     }
 }

@@ -32,6 +32,7 @@ public class NIOBindingObjectTransferListener {
     private NIOAgent agent;
     private Transfer transfer;
 
+
     public NIOBindingObjectTransferListener(NIOAgent agent, Semaphore sem) {
         this.agent = agent;
         this.sem = sem;
@@ -98,26 +99,26 @@ public class NIOBindingObjectTransferListener {
     private void doFailures() {
         sem.release();
     }
-    
+
     public void aquire() {
-    	try {
-			sem.acquire();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+        try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
-	public Transfer getTransfer() {
-		return transfer;
-	}
-	
-	public void setTransfer(Transfer t){
-		this.transfer=t;
-	}
-	
-	public NIOAgent getAgent(){
-       return agent;
+    public Transfer getTransfer() {
+        return transfer;
+    }
+
+    public void setTransfer(Transfer t) {
+        this.transfer = t;
+    }
+
+    public NIOAgent getAgent() {
+        return agent;
     }
 
 }

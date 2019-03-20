@@ -41,7 +41,6 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Abstract representation of a COMPSs Node. Can be a master, a worker or a service
- *
  */
 public abstract class COMPSsNode implements Comparable<COMPSsNode> {
 
@@ -52,9 +51,9 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
     protected static final String DELETE_ERR = "Error deleting intermediate files";
     protected static final String URI_CREATION_ERR = "Error creating new URI";
 
+
     /**
      * Creates a new node
-     *
      */
     public COMPSsNode() {
         // Nothing to do since there are no attributes to initialize
@@ -106,8 +105,8 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
      * @param reason
      * @param listener
      */
-    public abstract void sendData(LogicalData srcData, DataLocation loc, DataLocation target, LogicalData tgtData, Transferable reason,
-            EventListener listener);
+    public abstract void sendData(LogicalData srcData, DataLocation loc, DataLocation target, LogicalData tgtData,
+            Transferable reason, EventListener listener);
 
     /**
      * Retrieves an specific data from the node
@@ -119,8 +118,8 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
      * @param reason
      * @param listener
      */
-    public abstract void obtainData(LogicalData srcData, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
-            EventListener listener);
+    public abstract void obtainData(LogicalData srcData, DataLocation source, DataLocation target, LogicalData tgtData,
+            Transferable reason, EventListener listener);
 
     /**
      * Stops the node process
@@ -140,7 +139,6 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
 
     /**
      * Deletes the temporary node folder
-     *
      */
     public abstract void deleteTemporary();
 

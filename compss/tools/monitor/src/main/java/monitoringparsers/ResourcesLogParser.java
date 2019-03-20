@@ -261,10 +261,9 @@ public class ResourcesLogParser {
                 clear();
                 resourcesLogPath = newPath;
             }
-            
+
             // Parse
-            try (FileReader fr = new FileReader(resourcesLogPath);
-                    BufferedReader br = new BufferedReader(fr)) {
+            try (FileReader fr = new FileReader(resourcesLogPath); BufferedReader br = new BufferedReader(fr)) {
 
                 String line = br.readLine(); // Parsed line
                 int i = 0; // Line counter
@@ -287,8 +286,8 @@ public class ResourcesLogParser {
                                 } else {
                                     // Generic entry. Set values as the before entry
                                     states.add(new StateData(states.lastElement()));
-                                    states.lastElement().setTimestamp(((int) (lastSeenTimestamp - referenceTimestamp))
-                                            / 1000); // seconds
+                                    states.lastElement()
+                                            .setTimestamp(((int) (lastSeenTimestamp - referenceTimestamp)) / 1000); // seconds
                                 }
                             } else {
                                 processInformation = false;

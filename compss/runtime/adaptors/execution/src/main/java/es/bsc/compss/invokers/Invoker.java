@@ -66,8 +66,8 @@ public abstract class Invoker {
     protected final int numWorkers;
 
 
-    public Invoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources)
-            throws JobExecutionException {
+    public Invoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+            InvocationResources assignedResources) throws JobExecutionException {
 
         this.context = context;
         this.invocation = invocation;

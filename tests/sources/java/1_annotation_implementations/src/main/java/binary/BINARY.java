@@ -2,7 +2,6 @@ package binary;
 
 /**
  * Dummy BINARY interface to compile BINARY methods
- *
  */
 public class BINARY {
 

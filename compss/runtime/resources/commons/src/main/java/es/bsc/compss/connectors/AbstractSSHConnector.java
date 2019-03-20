@@ -111,8 +111,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     }
 
     /**
-     * @param defaultUser
-     *            the defaultUser to set
+     * @param defaultUser the defaultUser to set
      */
     protected void setDefaultUser(String defaultUser) {
         this.defaultUser = defaultUser;
@@ -255,7 +254,8 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
             String target = p.getTarget();
 
             // Adding classpath in bashrc
-            String command = "echo \"\nfor i in " + target + "/*.jar ; do\n\texport CLASSPATH=\\$CLASSPATH:\\$i\ndone\" >> ~/.bashrc";
+            String command = "echo \"\nfor i in " + target
+                    + "/*.jar ; do\n\texport CLASSPATH=\\$CLASSPATH:\\$i\ndone\" >> ~/.bashrc";
 
             executeTask(workerIP, user, setPassword, passwordOrKeyPair, command);
         }
@@ -337,8 +337,8 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
         // Insert key to known hosts ------------------------------------------------------
         LOGGER.debug("Modifiying known hosts");
-        cmd = new String[] { "/bin/sh", "-c", "/bin/echo " + "\"" + key + "\"" + " >> " + System.getProperty("user.home") + File.separator
-                + ".ssh" + File.separator + "known_hosts" };
+        cmd = new String[] { "/bin/sh", "-c", "/bin/echo " + "\"" + key + "\"" + " >> "
+                + System.getProperty("user.home") + File.separator + ".ssh" + File.separator + "known_hosts" };
 
         synchronized (knownHosts) {
             errors = 0;
@@ -361,7 +361,8 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                     if (p.exitValue() != 0) {
                         errorString = readInputStream(outStream);
                         errors++;
-                        LOGGER.debug("Error inserting key into known_hosts. Retrying: " + errors + "/" + MAX_ALLOWED_ERRORS);
+                        LOGGER.debug(
+                                "Error inserting key into known_hosts. Retrying: " + errors + "/" + MAX_ALLOWED_ERRORS);
 
                         // Sleep until next retry
                         try {
@@ -400,15 +401,15 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
     }
 
-    private void configureKeys(String workerIP, String user, boolean setPassword, String passwordOrKeyPair, String publicKey,
-            String privateKey, String keyType) throws ConnectorException {
+    private void configureKeys(String workerIP, String user, boolean setPassword, String passwordOrKeyPair,
+            String publicKey, String privateKey, String keyType) throws ConnectorException {
 
         LOGGER.debug("Configuring keys for " + workerIP + " user: " + user);
 
         try {
-            String command = "/bin/echo \"" + publicKey + "\" > ~/.ssh/" + keyType + ".pub" + "; " + "/bin/echo \"" + privateKey
-                    + "\" > ~/.ssh/" + keyType + "; " + "chmod 600 ~/.ssh/" + keyType + "; " + "/bin/echo \"" + publicKey
-                    + "\" >> ~/.ssh/authorized_keys";
+            String command = "/bin/echo \"" + publicKey + "\" > ~/.ssh/" + keyType + ".pub" + "; " + "/bin/echo \""
+                    + privateKey + "\" > ~/.ssh/" + keyType + "; " + "chmod 600 ~/.ssh/" + keyType + "; "
+                    + "/bin/echo \"" + publicKey + "\" >> ~/.ssh/authorized_keys";
 
             executeTask(workerIP, user, setPassword, passwordOrKeyPair, command);
         } catch (ConnectorException e) {
@@ -419,8 +420,8 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
     }
 
-    private void executeTask(String workerIP, String user, boolean setPassword, String passwordOrKeyPair, String command)
-            throws ConnectorException {
+    private void executeTask(String workerIP, String user, boolean setPassword, String passwordOrKeyPair,
+            String command) throws ConnectorException {
 
         int numRetries = 0;
         ConnectorException reason = null;
@@ -461,8 +462,8 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
         throw reason;
     }
 
-    private boolean tryToExecuteCommand(String workerIP, String user, boolean setPassword, String passwordOrKeyPair, String command)
-            throws ConnectorException {
+    private boolean tryToExecuteCommand(String workerIP, String user, boolean setPassword, String passwordOrKeyPair,
+            String command) throws ConnectorException {
 
         Session session = null;
         ChannelExec exec = null;
@@ -499,9 +500,11 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                     String output = readInputStream(inputStream);
 
                     if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug(ERROR_COMMAND_EXEC + command + " in " + workerIP + ".\nReturned std error: " + output);
+                        LOGGER.debug(
+                                ERROR_COMMAND_EXEC + command + " in " + workerIP + ".\nReturned std error: " + output);
                     }
-                    throw new ConnectorException(ERROR_COMMAND_EXEC + command + " in " + workerIP + " (exit status:" + exitStatus + ")");
+                    throw new ConnectorException(
+                            ERROR_COMMAND_EXEC + command + " in " + workerIP + " (exit status:" + exitStatus + ")");
                 }
 
                 LOGGER.debug("Command still on execution");
@@ -552,7 +555,8 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
         return stringBuilder.toString();
     }
 
-    private Session getSession(String host, String user, boolean password, String keyPairOrPassword) throws ConnectorException {
+    private Session getSession(String host, String user, boolean password, String keyPairOrPassword)
+            throws ConnectorException {
         // String[] client2server =
         // ("aes256-ctr,aes192-ctr,aes128-ctr,blowfish-ctr,aes256-cbc,aes192-cbc,aes128-cbc,blowfish-cbc").split(",");
         // String[] server2client =
@@ -589,7 +593,8 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                         if (password) {
                             LOGGER.debug("Session created as " + user + "@" + host + " with password.");
                         } else {
-                            LOGGER.debug("Session created as " + user + "@" + host + " with public key " + keyPairOrPassword);
+                            LOGGER.debug("Session created as " + user + "@" + host + " with public key "
+                                    + keyPairOrPassword);
                         }
                     }
                     return session;
@@ -599,7 +604,8 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                     if (password) {
                         LOGGER.warn("Error connecting to " + user + "@" + host + " with password.");
                     } else {
-                        LOGGER.warn("Error connecting to " + user + "@" + host + " with public key" + keyPairOrPassword);
+                        LOGGER.warn(
+                                "Error connecting to " + user + "@" + host + " with public key" + keyPairOrPassword);
                     }
                     LOGGER.warn("Retrying after " + RETRY_TIME * errors + " seconds...");
                 }

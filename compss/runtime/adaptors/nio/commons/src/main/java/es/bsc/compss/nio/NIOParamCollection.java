@@ -26,17 +26,21 @@ import java.io.ObjectOutput;
 import java.util.LinkedList;
 import java.util.List;
 
+
 /**
  * Extension of the NIOParam class to handle collection types.
+ * 
  * @see NIOParam
  */
 public class NIOParamCollection extends NIOParam {
 
     // A NIOParamCollection is basically a NIOParam plus a list of NIOParams (the contents of the collection)
-    private List< NIOParam > collectionParameters = new LinkedList<>();
+    private List<NIOParam> collectionParameters = new LinkedList<>();
+
 
     /**
      * Constructor. Same as NIOParam
+     * 
      * @param dataMgmtId String
      * @param type DataType
      * @param stream Stream
@@ -50,8 +54,7 @@ public class NIOParamCollection extends NIOParam {
      * @see NIOParam Constructor
      */
     public NIOParamCollection(String dataMgmtId, DataType type, Stream stream, String prefix, String name,
-                              boolean preserveSourceData, boolean writeFinalValue, Object value,
-                              NIOData data, String originalName) {
+            boolean preserveSourceData, boolean writeFinalValue, Object value, NIOData data, String originalName) {
         super(dataMgmtId, type, stream, prefix, name, preserveSourceData, writeFinalValue, value, data, originalName);
     }
 
@@ -61,6 +64,7 @@ public class NIOParamCollection extends NIOParam {
 
     /**
      * Getter of the parameter list. Use this method to insert elements in there
+     * 
      * @return List
      */
     public List<NIOParam> getCollectionParameters() {
@@ -70,6 +74,7 @@ public class NIOParamCollection extends NIOParam {
     /**
      * Extend the readExternal from NIOParam. The implementation of this method speed up the serialization and
      * deserialization processes
+     * 
      * @param in Object to read
      * @throws IOException
      * @throws ClassNotFoundException
@@ -79,16 +84,15 @@ public class NIOParamCollection extends NIOParam {
         super.readExternal(in);
         this.collectionParameters = new LinkedList<>();
         int numParameters = in.readInt();
-        while(numParameters-- > 0) {
-            collectionParameters.add(
-                    (NIOParam)in.readObject()
-            );
+        while (numParameters-- > 0) {
+            collectionParameters.add((NIOParam) in.readObject());
         }
     }
 
     /**
      * Extend the writeExternal from NIOParam. The implementation of this method speed up the serialization and
      * deserialization processes.
+     * 
      * @param out Object in which we write the representation of the NIOParamCollection
      * @throws IOException
      */
@@ -96,7 +100,7 @@ public class NIOParamCollection extends NIOParam {
     public void writeExternal(ObjectOutput out) throws IOException {
         super.writeExternal(out);
         out.writeInt(collectionParameters.size());
-        for(NIOParam subParam : collectionParameters) {
+        for (NIOParam subParam : collectionParameters) {
             // Note that this implementation also implicitly supports nesting
             out.writeObject(subParam);
         }

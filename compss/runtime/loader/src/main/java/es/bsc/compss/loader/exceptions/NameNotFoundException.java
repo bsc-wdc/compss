@@ -18,7 +18,6 @@ package es.bsc.compss.loader.exceptions;
 
 /**
  * Exception for null or not found method/class names
- * 
  */
 public class NameNotFoundException extends Exception {
 
@@ -30,7 +29,6 @@ public class NameNotFoundException extends Exception {
 
     /**
      * New empty Name Not Found Exception
-     * 
      */
     public NameNotFoundException() {
         super();

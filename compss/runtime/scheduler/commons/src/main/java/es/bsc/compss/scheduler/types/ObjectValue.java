@@ -61,5 +61,5 @@ public class ObjectValue<T> implements Comparable<ObjectValue<T>> {
             return 0;
         }
     }
-    
+
 }

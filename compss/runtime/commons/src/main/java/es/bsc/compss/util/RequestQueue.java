@@ -22,12 +22,11 @@ import java.util.List;
 
 /**
  * The RequestQueue class is an utility to enqueue requests from a certain type. Any component can add a Request to the
- * queue at the end or prioritize the treatment of that request by adding it to the head of the queue. At any point of the
- * execution a thread can dequeue a Request from the queue to treat it, if there are no requests on the queue it falls
- * asleep until a new request is enqueued.
+ * queue at the end or prioritize the treatment of that request by adding it to the head of the queue. At any point of
+ * the execution a thread can dequeue a Request from the queue to treat it, if there are no requests on the queue it
+ * falls asleep until a new request is enqueued.
  * 
- * @param <T>
- *            Type of the Requests
+ * @param <T> Type of the Requests
  */
 public class RequestQueue<T> {
 
@@ -49,8 +48,7 @@ public class RequestQueue<T> {
     /**
      * Adds a request at the tail of the queue
      * 
-     * @param request
-     *            Request to be added
+     * @param request Request to be added
      */
     public synchronized void enqueue(T request) {
         this.queue.add(request);
@@ -81,8 +79,7 @@ public class RequestQueue<T> {
     /**
      * Removes a request from the queue
      * 
-     * @param request
-     *            Request to be removed from the queue
+     * @param request Request to be removed from the queue
      */
     public synchronized void remove(T request) {
         this.queue.remove(request);
@@ -91,8 +88,7 @@ public class RequestQueue<T> {
     /**
      * Adds a new request on the head of the queue
      * 
-     * @param request
-     *            Request to be added
+     * @param request Request to be added
      */
     public synchronized void addToFront(T request) {
         this.queue.addFirst(request);

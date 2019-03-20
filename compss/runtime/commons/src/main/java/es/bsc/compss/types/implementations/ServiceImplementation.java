@@ -28,8 +28,9 @@ import es.bsc.compss.types.resources.ServiceResourceDescription;
 public class ServiceImplementation extends Implementation implements Externalizable {
 
     public static final int NUM_PARAMS = 4;
-    
+
     private String operation;
+
 
     public ServiceImplementation() {
         // For externalizable
@@ -47,8 +48,8 @@ public class ServiceImplementation extends Implementation implements Externaliza
         return this.operation;
     }
 
-    public static String getSignature(String namespace, String serviceName, String portName, String operation, boolean hasTarget,
-            int numReturns, Parameter[] parameters) {
+    public static String getSignature(String namespace, String serviceName, String portName, String operation,
+            boolean hasTarget, int numReturns, Parameter[] parameters) {
         StringBuilder buffer = new StringBuilder();
 
         buffer.append(operation).append("(");
@@ -82,8 +83,8 @@ public class ServiceImplementation extends Implementation implements Externaliza
     @Override
     public String toString() {
         ServiceResourceDescription description = (ServiceResourceDescription) this.requirements;
-        return super.toString() + " Service in namespace " + description.getNamespace() + " with name " + description.getPort()
-                + " on port " + description.getPort() + "and operation " + this.operation;
+        return super.toString() + " Service in namespace " + description.getNamespace() + " with name "
+                + description.getPort() + " on port " + description.getPort() + "and operation " + this.operation;
     }
 
     @Override

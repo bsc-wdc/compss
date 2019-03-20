@@ -47,8 +47,8 @@ public class DecafInvoker extends Invoker {
     private String dfLib;
 
 
-    public DecafInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources)
-            throws JobExecutionException {
+    public DecafInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+            InvocationResources assignedResources) throws JobExecutionException {
 
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
@@ -57,7 +57,8 @@ public class DecafInvoker extends Invoker {
         try {
             decafImpl = (DecafImplementation) invocation.getMethodImplementation();
         } catch (Exception e) {
-            throw new JobExecutionException(ERROR_METHOD_DEFINITION + invocation.getMethodImplementation().getMethodType(), e);
+            throw new JobExecutionException(
+                    ERROR_METHOD_DEFINITION + invocation.getMethodImplementation().getMethodType(), e);
         }
         this.mpiRunner = decafImpl.getMpiRunner();
         this.dfScript = decafImpl.getDfScript();
@@ -120,8 +121,8 @@ public class DecafInvoker extends Invoker {
 
         // Convert binary parameters and calculate binary-streams redirection
         BinaryRunner.StreamSTD streamValues = new BinaryRunner.StreamSTD();
-        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(invocation.getParams(), invocation.getTarget(),
-                streamValues);
+        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(invocation.getParams(),
+                invocation.getTarget(), streamValues);
         String hostfile = writeHostfile(this.taskSandboxWorkingDir, workers);
         // Prepare command
         String args = new String();

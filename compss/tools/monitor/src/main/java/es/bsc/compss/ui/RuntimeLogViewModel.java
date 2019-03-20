@@ -81,7 +81,7 @@ public class RuntimeLogViewModel {
             }
             // Parse
             logger.debug("Parsing runtime.log file...");
-            
+
             try (BufferedReader br = new BufferedReader(new FileReader(this.runtimeLogPath))) {
                 StringBuilder sb = new StringBuilder("");
                 String line = br.readLine();

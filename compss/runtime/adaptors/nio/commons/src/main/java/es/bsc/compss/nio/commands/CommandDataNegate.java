@@ -62,7 +62,8 @@ public class CommandDataNegate extends Command implements Externalizable {
 
     @Override
     public String toString() {
-        return "Data " + d + " can't be send" + (hosted ? ", although it is in the node" : " since the node does not have it");
+        return "Data " + d + " can't be send"
+                + (hosted ? ", although it is in the node" : " since the node does not have it");
     }
 
 }

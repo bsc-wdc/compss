@@ -40,8 +40,8 @@ public class NIOJob extends Job<NIOWorkerNode> {
     private final List<String> slaveWorkersNodeNames;
 
 
-    public NIOJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res, List<String> slaveWorkersNodeNames,
-            JobListener listener) {
+    public NIOJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
+            List<String> slaveWorkersNodeNames, JobListener listener) {
 
         super(taskId, taskParams, impl, res, listener);
         this.slaveWorkersNodeNames = slaveWorkersNodeNames;
@@ -94,9 +94,10 @@ public class NIOJob extends Job<NIOWorkerNode> {
         int numParams = params.size() - taskParams.getNumReturns();
 
         // Create NIOTask
-        NIOTask nt = new NIOTask(this.getLang(), DEBUG, absMethodImpl, taskParams.hasTargetObject(), taskParams.getNumReturns(), params,
-                numParams, absMethodImpl.getRequirements(), this.slaveWorkersNodeNames, this.taskId, this.taskParams.getType(), this.jobId,
-                this.history, this.transferId);
+        NIOTask nt = new NIOTask(this.getLang(), DEBUG, absMethodImpl, taskParams.hasTargetObject(),
+                taskParams.getNumReturns(), params, numParams, absMethodImpl.getRequirements(),
+                this.slaveWorkersNodeNames, this.taskId, this.taskParams.getType(), this.jobId, this.history,
+                this.transferId);
 
         return nt;
     }

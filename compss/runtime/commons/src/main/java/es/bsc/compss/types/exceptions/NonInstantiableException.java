@@ -18,7 +18,6 @@ package es.bsc.compss.types.exceptions;
 
 /**
  * Exception for non instantiable classes
- *
  */
 public class NonInstantiableException extends RuntimeException {
 

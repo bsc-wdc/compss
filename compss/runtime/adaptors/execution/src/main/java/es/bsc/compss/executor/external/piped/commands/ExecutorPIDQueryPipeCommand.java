@@ -24,6 +24,7 @@ public class ExecutorPIDQueryPipeCommand extends ExecutorPIDQueryExternalCommand
 
     private final PipePair[] pipes;
 
+
     public ExecutorPIDQueryPipeCommand(PipePair... pp) {
         this.pipes = pp;
     }
@@ -45,13 +46,15 @@ public class ExecutorPIDQueryPipeCommand extends ExecutorPIDQueryExternalCommand
         }
 
         for (int idx = 0; idx < pipes.length && value == 0; idx++) {
-            value = pipes[idx].getPipesLocation().compareTo(((ExecutorPIDQueryPipeCommand) t).pipes[idx].getPipesLocation());
+            value = pipes[idx].getPipesLocation()
+                    .compareTo(((ExecutorPIDQueryPipeCommand) t).pipes[idx].getPipesLocation());
         }
         return value;
     }
 
     @Override
     public void join(PipeCommand receivedCommand) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
 }

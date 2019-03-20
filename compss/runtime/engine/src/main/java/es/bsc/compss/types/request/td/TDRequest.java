@@ -24,10 +24,9 @@ import es.bsc.compss.types.request.exceptions.ShutdownException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+
 /**
- * The TDRequest class represents any interaction with the TaskDispatcher
- * component.
- *
+ * The TDRequest class represents any interaction with the TaskDispatcher component.
  */
 public abstract class TDRequest extends Request {
 
@@ -43,12 +42,14 @@ public abstract class TDRequest extends Request {
         WORKER_UPDATE_REQUEST // Updates a worker definition
     }
 
+
     // Logging
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TD_COMP);
     protected static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     protected static final Logger RESOURCES_LOGGER = LogManager.getLogger(Loggers.RESOURCES);
     protected static final boolean RESOURCES_LOGGER_DEBUG = RESOURCES_LOGGER.isDebugEnabled();
+
 
     public abstract TDRequestType getType();
 

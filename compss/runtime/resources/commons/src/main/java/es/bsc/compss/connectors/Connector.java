@@ -34,7 +34,6 @@ public interface Connector {
 
     /**
      * Sets the stop flag
-     * 
      */
     public void stopReached();
 
@@ -63,7 +62,6 @@ public interface Connector {
 
     /**
      * Terminates all instances
-     * 
      */
     public void terminateAll();
 

@@ -31,12 +31,12 @@ public class WorkerUpdateRequest<T extends WorkerResourceDescription> extends TD
     private final Worker<T> worker;
     private final ResourceUpdate<T> ru;
 
+
     /**
      * Constructs a AddCloudNodeRequest with all its parameters
      *
      * @param worker Worker that has been added
      * @param update
-     *
      */
     public WorkerUpdateRequest(Worker<T> worker, ResourceUpdate<T> update) {
         this.worker = worker;

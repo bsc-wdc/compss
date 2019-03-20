@@ -45,8 +45,8 @@ public class PythonInvoker extends PipedInvoker {
     }
 
     @Override
-    protected ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation, String sandBox,
-            InvocationResources assignedResources) {
+    protected ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation,
+            String sandBox, InvocationResources assignedResources) {
 
         ExecuteTaskPipeCommand taskExecution = new ExecuteTaskPipeCommand(invocation.getJobId());
         return taskExecution;
@@ -60,19 +60,20 @@ public class PythonInvoker extends PipedInvoker {
 
     private static class PythonMirror extends PipedMirror {
 
-        protected static final String BINDINGS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "bindings-common"
-                + File.separator + "lib";
+        protected static final String BINDINGS_RELATIVE_PATH = File.separator + "Bindings" + File.separator
+                + "bindings-common" + File.separator + "lib";
         public static final String PYCOMPSS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "python";
-        private static final String WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator + "worker" + File.separator
-                + "piper_worker.py";
-        private static final String MPI_WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator + "worker" + File.separator
-                + "mpi_piper_worker.py";
+        private static final String WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator + "worker"
+                + File.separator + "piper_worker.py";
+        private static final String MPI_WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator
+                + "worker" + File.separator + "mpi_piper_worker.py";
 
         private static final String ENV_LD_LIBRARY_PATH = "LD_LIBRARY_PATH";
         private static final String ENV_PYTHONPATH = "PYTHONPATH";
 
         private final PythonParams pyParams;
         private final String pyCOMPSsHome;
+
 
         public PythonMirror(InvocationContext context, int size) {
             super(context, size);
@@ -103,8 +104,9 @@ public class PythonInvoker extends PipedInvoker {
             // cmd.append(Tracer.getLevel()).append(TOKEN_SEP);
 
             if (this.pyParams.usePythonMpiWorker()) {
-                //Rank 0 acts as the Piper Worker. Other processes act as piped executors
-                cmd.append("mpirun").append(TOKEN_SEP).append("-np").append(TOKEN_SEP).append(this.size + 1).append(TOKEN_SEP);
+                // Rank 0 acts as the Piper Worker. Other processes act as piped executors
+                cmd.append("mpirun").append(TOKEN_SEP).append("-np").append(TOKEN_SEP).append(this.size + 1)
+                        .append(TOKEN_SEP);
             }
             cmd.append(this.pyParams.getPythonInterpreter()).append(TOKEN_SEP).append("-u").append(TOKEN_SEP);
             cmd.append(this.pyCOMPSsHome);
@@ -144,7 +146,8 @@ public class PythonInvoker extends PipedInvoker {
             if (pythonPath == null) {
                 pythonPath = this.pyCOMPSsHome + ":" + this.pyParams.getPythonPath() + ":" + context.getAppDir();
             } else {
-                pythonPath = this.pyCOMPSsHome + ":" + this.pyParams.getPythonPath() + ":" + context.getAppDir() + pythonPath;
+                pythonPath = this.pyCOMPSsHome + ":" + this.pyParams.getPythonPath() + ":" + context.getAppDir()
+                        + pythonPath;
             }
 
             env.put(ENV_PYTHONPATH, pythonPath);

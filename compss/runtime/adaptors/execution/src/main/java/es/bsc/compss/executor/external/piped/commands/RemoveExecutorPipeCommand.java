@@ -24,20 +24,22 @@ public class RemoveExecutorPipeCommand extends RemoveExecutorExternalCommand imp
 
     private final PipePair pipe;
 
+
     public RemoveExecutorPipeCommand(PipePair pp) {
         this.pipe = pp;
     }
 
     @Override
     public String getAsString() {
-        return super.getAsString() + " " + pipe.getOutboundPipe() + " " + pipe.getInboundPipe();
+        return super.getAsString() + " " + this.pipe.getOutboundPipe() + " " + this.pipe.getInboundPipe();
     }
 
     @Override
     public int compareTo(PipeCommand t) {
         int value = Integer.compare(this.getType().ordinal(), t.getType().ordinal());
         if (value != 0) {
-            value = pipe.getPipesLocation().compareTo(((RemoveExecutorPipeCommand) t).pipe.getPipesLocation());
+            RemoveExecutorPipeCommand rt = (RemoveExecutorPipeCommand) t;
+            value = this.pipe.getPipesLocation().compareTo(rt.pipe.getPipesLocation());
         }
         return value;
     }

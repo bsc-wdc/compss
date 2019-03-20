@@ -31,13 +31,11 @@ import org.json.JSONObject;
 
 /**
  * Representation of a Scheduler that considers only ready tasks and uses resource empty policy
- *
  */
 public class LoadBalancingScheduler extends ReadyScheduler {
 
     /**
      * Constructs a new Ready Scheduler instance
-     *
      */
     public LoadBalancingScheduler() {
         super();
@@ -51,8 +49,8 @@ public class LoadBalancingScheduler extends ReadyScheduler {
      * *********************************************************************************************************
      */
     @Override
-    public <T extends WorkerResourceDescription> LoadBalancingResourceScheduler<T> generateSchedulerForResource(Worker<T> w,
-            JSONObject resJSON, JSONObject implJSON) {
+    public <T extends WorkerResourceDescription> LoadBalancingResourceScheduler<T> generateSchedulerForResource(
+            Worker<T> w, JSONObject resJSON, JSONObject implJSON) {
 
         // LOGGER.debug("[LoadBalancingScheduler] Generate scheduler for resource " + w.getName());
         return new LoadBalancingResourceScheduler<>(w, resJSON, implJSON);
@@ -73,7 +71,8 @@ public class LoadBalancingScheduler extends ReadyScheduler {
      */
     @Override
     public <T extends WorkerResourceDescription> void purgeFreeActions(List<AllocatableAction> dataFreeActions,
-            List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
+            List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates,
+            ResourceScheduler<T> resource) {
 
         List<AllocatableAction> unassignedReadyActions = this.unassignedReadyActions.removeAllActions();
         dataFreeActions.addAll(unassignedReadyActions);

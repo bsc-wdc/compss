@@ -18,7 +18,6 @@ package es.bsc.compss.types.resources;
 
 /**
  * Abstract representation of a Worker Resource
- *
  */
 public abstract class WorkerResourceDescription extends ResourceDescription {
 

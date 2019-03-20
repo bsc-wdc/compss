@@ -30,6 +30,7 @@ public class Dispatcher extends RequestDispatcher<DataOperation> {
     // Log and debug
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
 
+
     public Dispatcher(RequestQueue<DataOperation> queue) {
         super(queue);
     }

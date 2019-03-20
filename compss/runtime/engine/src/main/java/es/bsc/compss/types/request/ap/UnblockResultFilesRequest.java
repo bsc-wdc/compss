@@ -24,9 +24,11 @@ import es.bsc.compss.types.data.ResultFile;
 
 import java.util.List;
 
+
 public class UnblockResultFilesRequest extends APRequest {
 
     private List<ResultFile> resultFiles;
+
 
     public UnblockResultFilesRequest(List<ResultFile> resultFiles) {
         this.resultFiles = resultFiles;

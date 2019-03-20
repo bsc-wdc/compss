@@ -47,7 +47,7 @@ public class BinaryRunner {
 
 
     /**
-     * Converts the values to the CMD standard and calculates with are the streamValues
+     * Converts the values to the CMD standard and calculates with are the streamValues.
      *
      * @param parameters
      * @param target
@@ -55,8 +55,8 @@ public class BinaryRunner {
      * @return
      * @throws InvokeExecutionException
      */
-    public static ArrayList<String> createCMDParametersFromValues(List<? extends InvocationParam> parameters, InvocationParam target,
-            StreamSTD streamValues) throws InvokeExecutionException {
+    public static ArrayList<String> createCMDParametersFromValues(List<? extends InvocationParam> parameters,
+            InvocationParam target, StreamSTD streamValues) throws InvokeExecutionException {
         ArrayList<String> binaryParams = new ArrayList<>();
         for (InvocationParam param : parameters) {
             binaryParams.addAll(processParam(param, streamValues));
@@ -67,7 +67,8 @@ public class BinaryRunner {
         return binaryParams;
     }
 
-    private static ArrayList<String> processParam(InvocationParam param, StreamSTD streamValues) throws InvokeExecutionException {
+    private static ArrayList<String> processParam(InvocationParam param, StreamSTD streamValues)
+            throws InvokeExecutionException {
         ArrayList<String> binaryParam = new ArrayList<>();
         switch (param.getStream()) {
             case STDIN:
@@ -103,18 +104,21 @@ public class BinaryRunner {
                             // Exception serializing to string the object
                             throw new InvokeExecutionException(ERROR_PARAM_NOT_STRING, e);
                         }
-                    } else // The value can be serialized to string directly
-                    if (param.getPrefix() != null && !param.getPrefix().isEmpty() && !param.getPrefix().equals(Constants.PREFIX_EMPTY)) {
-                        if (param.getType().equals(DataType.FILE_T)){
-                            binaryParam.add(param.getPrefix() + String.valueOf(param.getOriginalName()));
-                        }else {
-                            binaryParam.add(param.getPrefix() + String.valueOf(param.getValue()));
-                        }
                     } else {
-                        if (param.getType().equals(DataType.FILE_T)){
-                            binaryParam.add(String.valueOf(param.getOriginalName()));
-                        }else {
-                            binaryParam.add(String.valueOf(param.getValue()));
+                        // The value can be serialized to string directly
+                        if (param.getPrefix() != null && !param.getPrefix().isEmpty()
+                                && !param.getPrefix().equals(Constants.PREFIX_EMPTY)) {
+                            if (param.getType().equals(DataType.FILE_T)) {
+                                binaryParam.add(param.getPrefix() + String.valueOf(param.getOriginalName()));
+                            } else {
+                                binaryParam.add(param.getPrefix() + String.valueOf(param.getValue()));
+                            }
+                        } else {
+                            if (param.getType().equals(DataType.FILE_T)) {
+                                binaryParam.add(String.valueOf(param.getOriginalName()));
+                            } else {
+                                binaryParam.add(String.valueOf(param.getValue()));
+                            }
                         }
                     }
                 }
@@ -134,8 +138,8 @@ public class BinaryRunner {
      * @return
      * @throws InvokeExecutionException
      */
-    public static Object executeCMD(String[] cmd, StreamSTD streamValues, File taskSandboxWorkingDir, PrintStream outLog,
-            PrintStream errLog) throws InvokeExecutionException {
+    public static Object executeCMD(String[] cmd, StreamSTD streamValues, File taskSandboxWorkingDir,
+            PrintStream outLog, PrintStream errLog) throws InvokeExecutionException {
 
         // Prepare command working dir, environment and STD redirections
         ProcessBuilder builder = new ProcessBuilder(cmd);
@@ -190,15 +194,16 @@ public class BinaryRunner {
         return exitValue;
     }
 
-    private static void logBinaryExecution(Process process, String fileOutPath, String fileErrPath, PrintStream outLog, PrintStream errLog)
-            throws InvokeExecutionException {
+    private static void logBinaryExecution(Process process, String fileOutPath, String fileErrPath, PrintStream outLog,
+            PrintStream errLog) throws InvokeExecutionException {
         StreamGobbler errorGobbler = null;
         StreamGobbler outputGobbler = null;
         outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
         outLog.println("[BINARY EXECUTION WRAPPER] CMD OUTPUT:");
         if (process != null) {
             if (fileOutPath == null) {
-                outputGobbler = new StreamGobbler(process.getInputStream(), outLog, LogManager.getLogger(Loggers.WORKER));
+                outputGobbler = new StreamGobbler(process.getInputStream(), outLog,
+                        LogManager.getLogger(Loggers.WORKER));
                 outputGobbler.start();
             } else {
                 try (FileInputStream outputStream = new FileInputStream(fileOutPath)) {
@@ -217,7 +222,8 @@ public class BinaryRunner {
         errLog.println("[BINARY EXECUTION WRAPPER] CMD ERROR:");
         if (process != null) {
             if (fileErrPath == null) {
-                errorGobbler = new StreamGobbler(process.getErrorStream(), errLog, LogManager.getLogger(Loggers.WORKER));
+                errorGobbler = new StreamGobbler(process.getErrorStream(), errLog,
+                        LogManager.getLogger(Loggers.WORKER));
                 errorGobbler.start();
             } else {
                 try (FileInputStream errStream = new FileInputStream(fileErrPath)) {

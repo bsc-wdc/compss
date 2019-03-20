@@ -19,6 +19,7 @@ public class Main {
     private static String message;
     private static String input;
 
+
     public static void main(String[] args) {
         // ----------------------------------------------------------------------------
         // Initialize data

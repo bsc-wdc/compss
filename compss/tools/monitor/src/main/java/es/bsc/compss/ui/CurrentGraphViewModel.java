@@ -50,10 +50,8 @@ public class CurrentGraphViewModel {
     @Command
     public void download() {
         try {
-            if ((graph.equals(Constants.GRAPH_NOT_FOUND_PATH)) 
-                    || (graph.equals(Constants.GRAPH_EXECUTION_DONE_PATH))
-                    || (graph.equals(Constants.UNSELECTED_GRAPH_PATH))
-                    || (graph.equals(Constants.EMPTY_GRAPH_PATH))) {
+            if ((graph.equals(Constants.GRAPH_NOT_FOUND_PATH)) || (graph.equals(Constants.GRAPH_EXECUTION_DONE_PATH))
+                    || (graph.equals(Constants.UNSELECTED_GRAPH_PATH)) || (graph.equals(Constants.EMPTY_GRAPH_PATH))) {
                 Filedownload.save(graph, null);
             } else {
                 Filedownload.save(graph.substring(0, graph.lastIndexOf("?")), null);
@@ -115,10 +113,10 @@ public class CurrentGraphViewModel {
             logger.debug("   - Monitoring target: " + target);
         }
         // Create SVG
-        String[] createSVG = { "/bin/sh", "-c", "dot -T svg " + location + " > " + System.getProperty("catalina.base") + File.separator
-                + "webapps" + File.separator + "compss-monitor" + File.separator + target };
+        String[] createSVG = { "/bin/sh", "-c", "dot -T svg " + location + " > " + System.getProperty("catalina.base")
+                + File.separator + "webapps" + File.separator + "compss-monitor" + File.separator + target };
         Process p1 = Runtime.getRuntime().exec(createSVG);
-        
+
         try {
             p1.waitFor();
         } catch (InterruptedException e) {

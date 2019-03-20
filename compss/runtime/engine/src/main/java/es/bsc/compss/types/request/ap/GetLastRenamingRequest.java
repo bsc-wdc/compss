@@ -22,11 +22,13 @@ import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import java.util.concurrent.Semaphore;
 
+
 public class GetLastRenamingRequest extends APRequest {
 
     private int code;
     private Semaphore sem;
     private String response;
+
 
     public GetLastRenamingRequest(int code, Semaphore sem) {
         this.code = code;

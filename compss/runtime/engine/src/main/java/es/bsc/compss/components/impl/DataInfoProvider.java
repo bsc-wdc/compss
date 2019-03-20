@@ -58,7 +58,6 @@ import storage.StorageItf;
 
 /**
  * Component to handle the specific data structures such as file names, versions, renamings and values
- *
  */
 public class DataInfoProvider {
 
@@ -83,7 +82,6 @@ public class DataInfoProvider {
 
     /**
      * New Data Info Provider instance
-     *
      */
     public DataInfoProvider() {
         nameToId = new TreeMap<>();
@@ -341,8 +339,8 @@ public class DataInfoProvider {
                     StringBuilder sb = new StringBuilder("");
                     sb.append("Access:").append("\n");
                     sb.append("  * Type: R").append("\n");
-                    sb.append("  * Read Datum: d").append(daId.getDataId()).append("v").append(((RAccessId) daId).getRVersionId())
-                            .append("\n");
+                    sb.append("  * Read Datum: d").append(daId.getDataId()).append("v")
+                            .append(((RAccessId) daId).getRVersionId()).append("\n");
                     LOGGER.debug(sb.toString());
                 }
                 break;
@@ -354,8 +352,8 @@ public class DataInfoProvider {
                     StringBuilder sb = new StringBuilder("");
                     sb.append("Access:").append("\n");
                     sb.append("  * Type: W").append("\n");
-                    sb.append("  * Write Datum: d").append(daId.getDataId()).append("v").append(((WAccessId) daId).getWVersionId())
-                            .append("\n");
+                    sb.append("  * Write Datum: d").append(daId.getDataId()).append("v")
+                            .append(((WAccessId) daId).getWVersionId()).append("\n");
                     LOGGER.debug(sb.toString());
                 }
                 break;
@@ -370,10 +368,10 @@ public class DataInfoProvider {
                     StringBuilder sb = new StringBuilder("");
                     sb.append("Access:").append("\n");
                     sb.append("  * Type: RW").append("\n");
-                    sb.append("  * Read Datum: d").append(daId.getDataId()).append("v").append(((RWAccessId) daId).getRVersionId())
-                            .append("\n");
-                    sb.append("  * Write Datum: d").append(daId.getDataId()).append("v").append(((RWAccessId) daId).getWVersionId())
-                            .append("\n");
+                    sb.append("  * Read Datum: d").append(daId.getDataId()).append("v")
+                            .append(((RWAccessId) daId).getRVersionId()).append("\n");
+                    sb.append("  * Write Datum: d").append(daId.getDataId()).append("v")
+                            .append(((RWAccessId) daId).getWVersionId()).append("\n");
                     LOGGER.debug(sb.toString());
                 }
                 break;
@@ -608,8 +606,7 @@ public class DataInfoProvider {
     /**
      * Transfers the value of an object
      *
-     * @param toRequest
-     *            transfer object request
+     * @param toRequest transfer object request
      * @return
      */
     public void transferObjectValue(TransferObjectRequest toRequest) {
@@ -659,7 +656,8 @@ public class DataInfoProvider {
             sem.release();
         } else {
             if (DEBUG) {
-                LOGGER.debug("Object " + sourceName + " not in memory. Requesting tranfers to " + Comm.getAppHost().getName());
+                LOGGER.debug("Object " + sourceName + " not in memory. Requesting tranfers to "
+                        + Comm.getAppHost().getName());
             }
             DataLocation targetLocation = null;
             String path = DataLocation.Protocol.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + sourceName;
@@ -670,7 +668,8 @@ public class DataInfoProvider {
                 ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
             }
             toRequest.setTargetData(ld);
-            Comm.getAppHost().getData(sourceName, targetLocation, new ObjectTransferable(), new OneOpWithSemListener(sem));
+            Comm.getAppHost().getData(sourceName, targetLocation, new ObjectTransferable(),
+                    new OneOpWithSemListener(sem));
         }
 
     }
@@ -711,7 +710,8 @@ public class DataInfoProvider {
             LOGGER.debug("Requesting tranfers binding object " + sourceName + " to " + Comm.getAppHost().getName());
         }
         BindingObject srcBO = BindingObject.generate(srcLd.getURIs().get(0).getPath());
-        BindingObject tgtBO = new BindingObject(Comm.getAppHost().getTempDirPath() + sourceName, srcBO.getType(), srcBO.getElements());
+        BindingObject tgtBO = new BindingObject(Comm.getAppHost().getTempDirPath() + sourceName, srcBO.getType(),
+                srcBO.getElements());
         /*
          * if (tgtLd == null){ Comm.registerBindingObject(targetName, tgtBO ); }
          */
@@ -762,7 +762,8 @@ public class DataInfoProvider {
                 renaming = DataInstanceId.previousVersionRenaming(renaming);
             }
             if (renaming == null) {
-                LOGGER.error(RES_FILE_TRANSFER_ERR + ": Cannot transfer file " + fId.getRenaming() + " nor any of its previous versions");
+                LOGGER.error(RES_FILE_TRANSFER_ERR + ": Cannot transfer file " + fId.getRenaming()
+                        + " nor any of its previous versions");
                 return null;
             }
 
@@ -818,13 +819,14 @@ public class DataInfoProvider {
 
     /**
      * Shuts down the component
-     *
      */
     public void shutdown() {
         // Nothing to do
     }
+
     /**
      * Registers the access to a collection
+     * 
      * @param am AccesMode
      * @param cp CollectionParameter
      * @return DataAccessId Representation of the access to the collection
@@ -833,7 +835,7 @@ public class DataInfoProvider {
         String collectionId = cp.getCollectionId();
         Integer oId = collectionToId.get(collectionId);
         CollectionInfo cInfo;
-        if(oId == null) {
+        if (oId == null) {
             cInfo = new CollectionInfo(collectionId);
             oId = cInfo.getDataId();
             collectionToId.put(collectionId, oId);
@@ -843,7 +845,8 @@ public class DataInfoProvider {
             String renaming = lastDID.getRenaming();
             // Inform the File Transfer Manager about the new file containing the object
             if (am != AccessMode.W) {
-                LOGGER.debug("Collection " + cp.getCollectionId() + " contains " + cp.getParameters().size() + " accesses");
+                LOGGER.debug(
+                        "Collection " + cp.getCollectionId() + " contains " + cp.getParameters().size() + " accesses");
                 // Null until the two-step transfer method is implemented
                 Comm.registerCollection(renaming, null);
             }

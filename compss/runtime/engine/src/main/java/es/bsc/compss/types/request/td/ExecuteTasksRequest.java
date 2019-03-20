@@ -29,6 +29,7 @@ import es.bsc.compss.types.allocatableactions.MultiNodeGroup;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 
+
 /**
  * The ExecuteTasksRequest class represents the request to execute a task
  */
@@ -36,6 +37,7 @@ public class ExecuteTasksRequest extends TDRequest {
 
     private final TaskProducer producer;
     private final Task task;
+
 
     /**
      * Constructs a new ScheduleTasks Request
@@ -116,7 +118,8 @@ public class ExecuteTasksRequest extends TDRequest {
         }
     }
 
-    private <T extends WorkerResourceDescription> void submitTask(TaskScheduler ts, int numNodes, ResourceScheduler<T> specificResource) {
+    private <T extends WorkerResourceDescription> void submitTask(TaskScheduler ts, int numNodes,
+            ResourceScheduler<T> specificResource) {
         // A task can use one or more resources
         if (numNodes == 1) {
             submitSingleTask(ts, specificResource);
@@ -125,18 +128,23 @@ public class ExecuteTasksRequest extends TDRequest {
         }
     }
 
-    private <T extends WorkerResourceDescription> void submitSingleTask(TaskScheduler ts, ResourceScheduler<T> specificResource) {
+    private <T extends WorkerResourceDescription> void submitSingleTask(TaskScheduler ts,
+            ResourceScheduler<T> specificResource) {
         LOGGER.debug("Scheduling request for task " + task.getId() + " treated as singleTask");
-        ExecutionAction action = new ExecutionAction(ts.generateSchedulingInformation(specificResource), ts.getOrchestrator(), producer, task);
+        ExecutionAction action = new ExecutionAction(ts.generateSchedulingInformation(specificResource),
+                ts.getOrchestrator(), producer, task);
         ts.newAllocatableAction(action);
     }
 
-    private <T extends WorkerResourceDescription> void submitMultiNodeTask(TaskScheduler ts, int numNodes, ResourceScheduler<T> specificResource) {
-        LOGGER.debug("Scheduling request for task " + task.getId() + " treated as multiNodeTask with " + numNodes + " nodes");
+    private <T extends WorkerResourceDescription> void submitMultiNodeTask(TaskScheduler ts, int numNodes,
+            ResourceScheduler<T> specificResource) {
+        LOGGER.debug("Scheduling request for task " + task.getId() + " treated as multiNodeTask with " + numNodes
+                + " nodes");
         // Can use one or more resources depending on the computingNodes
         MultiNodeGroup group = new MultiNodeGroup(numNodes);
         for (int i = 0; i < numNodes; ++i) {
-            MultiNodeExecutionAction action = new MultiNodeExecutionAction(ts.generateSchedulingInformation(specificResource), ts.getOrchestrator(), producer, task, group);
+            MultiNodeExecutionAction action = new MultiNodeExecutionAction(
+                    ts.generateSchedulingInformation(specificResource), ts.getOrchestrator(), producer, task, group);
             ts.newAllocatableAction(action);
         }
     }

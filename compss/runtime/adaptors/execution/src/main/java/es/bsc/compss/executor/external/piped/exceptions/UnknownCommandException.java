@@ -21,6 +21,12 @@ import es.bsc.compss.executor.external.ExternalExecutorException;
 
 public class UnknownCommandException extends ExternalExecutorException {
 
+    /**
+     * Exception Version UID are 2L in all Runtime
+     */
+    private static final long serialVersionUID = 2L;
+
+
     public UnknownCommandException(String command) {
         super(command);
     }

@@ -80,37 +80,38 @@ public class InvocationParameterAssertion {
         }
         switch (field) {
             case TYPE:
-                assertEquals("Unexpected type for " + caseId + " (expected " + value + " and got " + param.getType() + ")", param.getType(),
-                        value);
+                assertEquals(
+                        "Unexpected type for " + caseId + " (expected " + value + " and got " + param.getType() + ")",
+                        param.getType(), value);
                 break;
             case VALUE:
-                assertEquals("Unexpected value for " + caseId + " (expected " + value + " and got " + param.getValue() + ")",
+                assertEquals(
+                        "Unexpected value for " + caseId + " (expected " + value + " and got " + param.getValue() + ")",
                         param.getValue(), value);
                 break;
             case VALUE_CLASS:
-                assertEquals("Unexpected class for " + caseId + " (expected " + value + " and got " + param.getValueClass() + ")",
-                        param.getValueClass(), value);
+                assertEquals("Unexpected class for " + caseId + " (expected " + value + " and got "
+                        + param.getValueClass() + ")", param.getValueClass(), value);
                 break;
             case PREFIX:
-                assertEquals("Unexpected prefix for " + caseId + " (expected " + value + " and got " + param.getPrefix() + ")",
-                        param.getPrefix(), value);
+                assertEquals("Unexpected prefix for " + caseId + " (expected " + value + " and got " + param.getPrefix()
+                        + ")", param.getPrefix(), value);
                 break;
             case STREAM:
-                assertEquals("Unexpected stream for " + caseId + " (expected " + value + " and got " + param.getStream() + ")",
-                        param.getStream(), value);
+                assertEquals("Unexpected stream for " + caseId + " (expected " + value + " and got " + param.getStream()
+                        + ")", param.getStream(), value);
                 break;
             case ORIGINAL_NAME:
-                assertEquals("Unexpected name for " + caseId + " (expected " + value + " and got " + param.getOriginalName() + ")",
-                        param.getOriginalName(), value);
+                assertEquals("Unexpected name for " + caseId + " (expected " + value + " and got "
+                        + param.getOriginalName() + ")", param.getOriginalName(), value);
                 break;
             case MGMT_NAME:
-                assertEquals("Unexpected RENAME/PSCO ID for " + caseId + " (expected " + value + " and got " + param.getDataMgmtId() + ")",
-                        param.getDataMgmtId(), value);
+                assertEquals("Unexpected RENAME/PSCO ID for " + caseId + " (expected " + value + " and got "
+                        + param.getDataMgmtId() + ")", param.getDataMgmtId(), value);
                 break;
             default:// WRITE_FINAL
-                assertEquals(
-                        "Unexpected isWriteFinal for " + caseId + " (expected " + value + " and got " + param.isWriteFinalValue() + ")",
-                        param.isWriteFinalValue(), value);
+                assertEquals("Unexpected isWriteFinal for " + caseId + " (expected " + value + " and got "
+                        + param.isWriteFinalValue() + ")", param.isWriteFinalValue(), value);
                 break;
         }
     }

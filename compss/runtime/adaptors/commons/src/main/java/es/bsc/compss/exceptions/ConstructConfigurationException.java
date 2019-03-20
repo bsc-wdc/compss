@@ -18,7 +18,6 @@ package es.bsc.compss.exceptions;
 
 /**
  * Representation of an exception while constructing an Adaptor Configuration
- *
  */
 public class ConstructConfigurationException extends Exception {
 

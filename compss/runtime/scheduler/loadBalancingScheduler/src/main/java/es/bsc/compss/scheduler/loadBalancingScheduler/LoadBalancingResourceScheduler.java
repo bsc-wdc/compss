@@ -71,7 +71,8 @@ public class LoadBalancingResourceScheduler<T extends WorkerResourceDescription>
         // Computes the priority of the implementation (should not be computed)
         long implementationScore = -100;
 
-        LoadBalancingScore score = new LoadBalancingScore(actionPriority, resourceScore, waitingScore, implementationScore);
+        LoadBalancingScore score = new LoadBalancingScore(actionPriority, resourceScore, waitingScore,
+                implementationScore);
         // LOGGER.debug("[LoadBalancingScheduler] Resource Score " + score + " " + actionPriority + " " + resourceScore
         // + " " + waitingScore
         // + " " + implementationScore);
@@ -93,10 +94,11 @@ public class LoadBalancingResourceScheduler<T extends WorkerResourceDescription>
 
     @SuppressWarnings("unchecked")
     @Override
-    public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl, Score resourceScore) {
+    public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl,
+            Score resourceScore) {
         // LOGGER.debug("[LoadBalancing] Generate implementation score for action " + action);
-        if (this.hasBlockedActions()){
-            // Added for scale-down: In readyScheduler, should disable the node for scheduling more tasks? 
+        if (this.hasBlockedActions()) {
+            // Added for scale-down: In readyScheduler, should disable the node for scheduling more tasks?
             return null;
         }
         if (myWorker.canRunNow((T) impl.getRequirements())) {

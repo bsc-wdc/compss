@@ -42,13 +42,13 @@ public interface Resource extends Comparable<Resource> {
         SERVICE // For services
     }
 
+
     /**
      * Starts a resource execution
      *
      * @throws es.bsc.compss.exceptions.InitNodeException
      */
     public void start() throws InitNodeException;
-
 
     /**
      * Returns all the LogicalData stored in the host
@@ -116,8 +116,8 @@ public interface Resource extends Comparable<Resource> {
      * @param listener
      * @return
      */
-    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, List<String> slaveWorkersNodeNames,
-            JobListener listener);
+    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl,
+            List<String> slaveWorkersNodeNames, JobListener listener);
 
     /**
      * Retrieves a given data
@@ -159,7 +159,8 @@ public interface Resource extends Comparable<Resource> {
      * @param reason
      * @param listener
      */
-    public void getData(String dataId, String newName, LogicalData tgtData, Transferable reason, EventListener listener);
+    public void getData(String dataId, String newName, LogicalData tgtData, Transferable reason,
+            EventListener listener);
 
     /**
      * Retrieves a given data
@@ -170,7 +171,8 @@ public interface Resource extends Comparable<Resource> {
      * @param reason
      * @param listener
      */
-    public void getData(LogicalData ld, String newName, LogicalData tgtData, Transferable reason, EventListener listener);
+    public void getData(LogicalData ld, String newName, LogicalData tgtData, Transferable reason,
+            EventListener listener);
 
     /**
      * Retrieves a given data
@@ -182,7 +184,8 @@ public interface Resource extends Comparable<Resource> {
      */
     public void getData(String dataId, DataLocation target, Transferable reason, EventListener listener);
 
-    public void getData(String dataId, DataLocation target, String tgtDataId, Transferable reason, EventListener listener);
+    public void getData(String dataId, DataLocation target, String tgtDataId, Transferable reason,
+            EventListener listener);
 
     /**
      * Retrieves a given data
@@ -193,7 +196,8 @@ public interface Resource extends Comparable<Resource> {
      * @param reason
      * @param listener
      */
-    public void getData(String dataId, DataLocation target, LogicalData tgtData, Transferable reason, EventListener listener);
+    public void getData(String dataId, DataLocation target, LogicalData tgtData, Transferable reason,
+            EventListener listener);
 
     /**
      * Retrieves a given data
@@ -204,7 +208,8 @@ public interface Resource extends Comparable<Resource> {
      * @param reason
      * @param listener
      */
-    public void getData(LogicalData srcData, DataLocation target, LogicalData tgtData, Transferable reason, EventListener listener);
+    public void getData(LogicalData srcData, DataLocation target, LogicalData tgtData, Transferable reason,
+            EventListener listener);
 
     /**
      * Returns the complete remote path of a given data
@@ -224,7 +229,6 @@ public interface Resource extends Comparable<Resource> {
 
     /**
      * Deletes the intermediate data
-     *
      */
     public void deleteIntermediate();
 

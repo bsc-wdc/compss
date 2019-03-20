@@ -56,7 +56,7 @@ public class NIOTaskResult implements Externalizable {
 
         for (NIOParam np : arguments) {
             this.paramTypes.add(np.getType());
-            
+
             if (np.isWriteFinalValue()) {
                 // Object has direction INOUT or OUT
                 switch (np.getType()) {
@@ -78,7 +78,7 @@ public class NIOTaskResult implements Externalizable {
         }
         if (target != null) {
             this.paramTypes.add(target.getType());
-            
+
             if (target.isWriteFinalValue()) {
                 // Target is marked with isModifier = true
                 switch (target.getType()) {

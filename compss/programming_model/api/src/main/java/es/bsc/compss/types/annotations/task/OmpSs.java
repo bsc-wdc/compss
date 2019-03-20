@@ -32,7 +32,6 @@ import es.bsc.compss.types.annotations.task.repeatables.MultiOmpSs;
 @Repeatable(MultiOmpSs.class)
 /**
  * Methods definition
- *
  */
 public @interface OmpSs {
 

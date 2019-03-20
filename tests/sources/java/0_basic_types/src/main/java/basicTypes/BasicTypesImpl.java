@@ -6,7 +6,8 @@ import java.io.PrintStream;
 
 public class BasicTypesImpl {
 
-    public static void testBasicTypes(String file, boolean b, char c, String s, byte by, short sh, int i, long l, float f, double d) {
+    public static void testBasicTypes(String file, boolean b, char c, String s, byte by, short sh, int i, long l,
+            float f, double d) {
         try {
             PrintStream ps = new PrintStream(file);
             ps.println("TEST BASIC TYPES");

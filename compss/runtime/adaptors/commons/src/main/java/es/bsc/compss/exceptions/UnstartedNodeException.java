@@ -18,7 +18,6 @@ package es.bsc.compss.exceptions;
 
 /**
  * Exception to handle nodes that have not been started yet
- * 
  */
 public class UnstartedNodeException extends Exception {
 
@@ -30,7 +29,6 @@ public class UnstartedNodeException extends Exception {
 
     /**
      * New empty Unstarted Node Exception
-     * 
      */
     public UnstartedNodeException() {
         super();

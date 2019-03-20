@@ -20,7 +20,7 @@ import es.bsc.compss.util.CoreManager;
  * NO need to have a resources.xml / project.xml information
  */
 public class Test {
-    
+
     private static final int WAIT_FOR_RUNTIME_TIME = 10_000; // ms
 
     // Interface data
@@ -62,8 +62,8 @@ public class Test {
         java.lang.reflect.Method[] declaredMethodsItf = TestItf.class.getDeclaredMethods();
         coreCountItf = declaredMethodsItf.length;
         if (CoreManager.getCoreCount() != coreCountItf) {
-            System.out.println(
-                    "[ERROR]" + CoreManager.getCoreCount() + " CE registered in the runtime and  " + coreCountItf + " declared in the CEI");
+            System.out.println("[ERROR]" + CoreManager.getCoreCount() + " CE registered in the runtime and  "
+                    + coreCountItf + " declared in the CEI");
             System.exit(-1);
         }
 
@@ -137,16 +137,18 @@ public class Test {
 
         // Signatures store one dummy extra signature
         if (declaringClassesItf[coreId].length + 1 != idToSignatures[coreId].size()) {
-            System.out.println(coreToName[coreId] + " has " + idToSignatures[coreId].size() + " registered signatures and there are "
-                    + declaringClassesItf[coreId].length + " declaringClasses in the CEI");
+            System.out.println(coreToName[coreId] + " has " + idToSignatures[coreId].size()
+                    + " registered signatures and there are " + declaringClassesItf[coreId].length
+                    + " declaringClasses in the CEI");
             System.exit(-1);
         }
 
         List<Implementation> implementations = CoreManager.getCoreImplementations(coreId);
         System.out.println("[LOG] \t Has " + implementations.size() + " implementations registered");
         if (declaringClassesItf[coreId].length != implementations.size()) {
-            System.out.println(coreToName[coreId] + " has " + implementations.size() + " registered implementations and there are "
-                    + declaringClassesItf[coreId].length + " declaringClasses in the CEI");
+            System.out.println(
+                    coreToName[coreId] + " has " + implementations.size() + " registered implementations and there are "
+                            + declaringClassesItf[coreId].length + " declaringClasses in the CEI");
             System.exit(-1);
         }
 
@@ -159,16 +161,18 @@ public class Test {
                         + " is not included registered in the system");
                 System.exit(-1);
             }
-            String constraint = checkConstraints(generalConstraintsItf[coreId], constraintsItf[coreId][implId], m.getRequirements());
+            String constraint = checkConstraints(generalConstraintsItf[coreId], constraintsItf[coreId][implId],
+                    m.getRequirements());
             if (constraint != null) {
-                System.out.println("Constraints for " + coreToName[coreId] + "'s declaringClass " + declaringClassesItf[coreId][implId]
-                        + " does not meet the annotations (" + constraint + ")");
+                System.out.println("Constraints for " + coreToName[coreId] + "'s declaringClass "
+                        + declaringClassesItf[coreId][implId] + " does not meet the annotations (" + constraint + ")");
                 System.exit(-1);
             }
         }
     }
 
-    private static String checkConstraints(Constraints general, Constraints specific, MethodResourceDescription registered) {
+    private static String checkConstraints(Constraints general, Constraints specific,
+            MethodResourceDescription registered) {
         boolean ret = true;
 
         /*
@@ -251,7 +255,8 @@ public class Test {
         if (general == null || general.processorArchitecture().equals(Constants.UNASSIGNED)) {
             if (specific == null || specific.processorArchitecture().equals(Constants.UNASSIGNED)) {
                 // Default value
-                ret = (registered.getProcessors().get(0).getArchitecture().equals(MethodResourceDescription.UNASSIGNED_STR));
+                ret = (registered.getProcessors().get(0).getArchitecture()
+                        .equals(MethodResourceDescription.UNASSIGNED_STR));
             } else {
                 // Specific constraint value
                 ret = (registered.getProcessors().get(0).getArchitecture().equals(specific.processorArchitecture()));
@@ -272,7 +277,8 @@ public class Test {
         if (general == null || general.processorPropertyName().equals(Constants.UNASSIGNED)) {
             if (specific == null || specific.processorPropertyName().equals(Constants.UNASSIGNED)) {
                 // Default value
-                ret = (registered.getProcessors().get(0).getPropName().equals(MethodResourceDescription.UNASSIGNED_STR));
+                ret = (registered.getProcessors().get(0).getPropName()
+                        .equals(MethodResourceDescription.UNASSIGNED_STR));
             } else {
                 // Specific constraint value
                 ret = (registered.getProcessors().get(0).getPropName().equals(specific.processorPropertyName()));
@@ -293,7 +299,8 @@ public class Test {
         if (general == null || general.processorPropertyValue().equals(Constants.UNASSIGNED)) {
             if (specific == null || specific.processorPropertyValue().equals(Constants.UNASSIGNED)) {
                 // Default value
-                ret = (registered.getProcessors().get(0).getPropValue().equals(MethodResourceDescription.UNASSIGNED_STR));
+                ret = (registered.getProcessors().get(0).getPropValue()
+                        .equals(MethodResourceDescription.UNASSIGNED_STR));
             } else {
                 // Specific constraint value
                 ret = (registered.getProcessors().get(0).getPropValue().equals(specific.processorPropertyValue()));

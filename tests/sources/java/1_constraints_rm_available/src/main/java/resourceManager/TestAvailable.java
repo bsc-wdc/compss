@@ -17,7 +17,7 @@ import commons.Action;
  * unique Worker (XML files)
  */
 public class TestAvailable {
-    
+
     private static final int WAIT_FOR_RUNTIME_TIME = 10_000; // ms
 
     private static final String NAME_CORE_ELEMENT_1 = "coreElement1";
@@ -107,8 +107,10 @@ public class TestAvailable {
         System.out.println("Worker " + NAME_WORKER + ": " + worker.getDescription());
         System.out.println("Implementation 1: " + CoreManager.getCoreImplementations(ce1).get(0));
 
-        WorkerResourceDescription consumed1 = worker.runTask(CoreManager.getCoreImplementations(ce1).get(0).getRequirements());
-        WorkerResourceDescription consumed2 = worker.runTask(CoreManager.getCoreImplementations(ce1).get(0).getRequirements());
+        WorkerResourceDescription consumed1 = worker
+                .runTask(CoreManager.getCoreImplementations(ce1).get(0).getRequirements());
+        WorkerResourceDescription consumed2 = worker
+                .runTask(CoreManager.getCoreImplementations(ce1).get(0).getRequirements());
 
         System.out.println("CONSUMED: " + consumed1);
         System.out.println("CONSUMED: " + consumed2);

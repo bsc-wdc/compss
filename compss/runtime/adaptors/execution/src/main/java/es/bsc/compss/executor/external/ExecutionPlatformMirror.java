@@ -17,13 +17,11 @@
 package es.bsc.compss.executor.external;
 
 public interface ExecutionPlatformMirror<T> {
-    
-    
+
     public T registerExecutor(String id);
-    
+
     public void unregisterExecutor(String id);
 
     public void stop();
-
 
 }

@@ -32,7 +32,6 @@ import es.bsc.compss.types.annotations.task.repeatables.MultiCOMPSs;
 @Repeatable(MultiCOMPSs.class)
 /**
  * Methods definition
- *
  */
 public @interface COMPSs {
 

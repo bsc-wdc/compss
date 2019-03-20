@@ -58,6 +58,7 @@ public class TransferOpenFileRequest extends APRequest {
      */
     private Semaphore sem;
 
+
     /**
      * Constructs a new TransferOpenFileRequest
      *
@@ -208,6 +209,7 @@ public class TransferOpenFileRequest extends APRequest {
     private class CopyListener extends OneOpWithSemListener {
 
         private final FileTransferable reason;
+
 
         public CopyListener(FileTransferable reason, Semaphore sem) {
             super(sem);

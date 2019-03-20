@@ -26,7 +26,6 @@ import java.lang.annotation.ElementType;
 @Target(ElementType.METHOD)
 /**
  * Constraints definition
- *
  */
 public @interface Constraints {
 

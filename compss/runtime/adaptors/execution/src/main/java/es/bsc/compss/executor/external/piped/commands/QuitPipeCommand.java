@@ -31,5 +31,6 @@ public class QuitPipeCommand extends QuitExternalCommand implements PipeCommand 
 
     @Override
     public void join(PipeCommand receivedCommand) {
+        // Nothing to do
     }
 }

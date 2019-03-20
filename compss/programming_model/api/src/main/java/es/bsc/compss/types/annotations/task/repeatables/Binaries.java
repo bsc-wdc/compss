@@ -28,7 +28,6 @@ import es.bsc.compss.types.annotations.task.Binary;
 @Target(ElementType.METHOD)
 /**
  * Methods definition
- *
  */
 public @interface Binaries {
 

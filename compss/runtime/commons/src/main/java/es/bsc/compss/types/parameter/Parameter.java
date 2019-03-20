@@ -38,6 +38,7 @@ public abstract class Parameter implements Serializable {
     private final String prefix;
     private final String name;
 
+
     public Parameter(DataType type, Direction direction, Stream stream, String prefix, String name) {
         this.type = type;
         this.direction = direction;

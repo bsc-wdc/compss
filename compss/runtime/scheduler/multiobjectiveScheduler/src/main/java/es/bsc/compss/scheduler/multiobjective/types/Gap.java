@@ -63,7 +63,7 @@ public class Gap {
 
     @Override
     public String toString() {
-        return "<" + initialTime + "->" + endTime + ", " + origin + ", " + resources.getDynamicDescription() + ", with " + capacity
-                + " slots >";
+        return "<" + initialTime + "->" + endTime + ", " + origin + ", " + resources.getDynamicDescription() + ", with "
+                + capacity + " slots >";
     }
 }

@@ -32,7 +32,6 @@ import es.bsc.compss.types.annotations.task.repeatables.Binaries;
 @Repeatable(Binaries.class)
 /**
  * Methods definition
- *
  */
 public @interface Binary {
 

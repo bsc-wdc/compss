@@ -18,7 +18,6 @@ package es.bsc.compss.exceptions;
 
 /**
  * Exception to handle errors on node start
- * 
  */
 public class InitNodeException extends Exception {
 
@@ -30,7 +29,6 @@ public class InitNodeException extends Exception {
 
     /**
      * New empty Init Node Exception
-     * 
      */
     public InitNodeException() {
         super();

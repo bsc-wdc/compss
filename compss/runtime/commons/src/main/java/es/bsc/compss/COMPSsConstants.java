@@ -24,7 +24,6 @@ import es.bsc.compss.types.exceptions.NonInstantiableException;
 
 /**
  * COMPSS Runtime Constants
- *
  */
 public class COMPSsConstants {
 
@@ -32,21 +31,19 @@ public class COMPSsConstants {
      * Accepted Execution modes
      */
     public static enum TaskExecution {
-        COMPSS,
-        STORAGE
+    COMPSS, // Internal Execution
+    STORAGE // External execution
     }
-
 
     /**
      * Languages
      */
     public static enum Lang {
-        JAVA,   // For Java applications
-        C,      // For C or C++ applications
+        JAVA, // For Java applications
+        C, // For C or C++ applications
         PYTHON, // For Python applications
-        UNKNOWN //For Services
+        UNKNOWN // For Services
     }
-
 
     /**
      * Python Interpreters
@@ -54,7 +51,7 @@ public class COMPSsConstants {
     public static enum Pythons {
         python, // For systemwide python interpreter
         python2, // For Python 2 interpreter
-        python3   // For python 3 interpreter
+        python3 // For python 3 interpreter
     }
 
 
@@ -175,12 +172,15 @@ public class COMPSsConstants {
 
     public static final String DEFAULT_DEPLOYMENT_ID = UUID.randomUUID().toString();
 
-    public static final String DEFAULT_RES_SCHEMA = System.getenv(COMPSS_HOME) + File.separator + "Runtime" + File.separator
-            + "configuration" + File.separator + "xml" + File.separator + "resources" + File.separator + "resource_schema.xsd";
-    public static final String DEFAULT_PROJECT_SCHEMA = System.getenv(COMPSS_HOME) + File.separator + "Runtime" + File.separator
-            + "configuration" + File.separator + "xml" + File.separator + "projects" + File.separator + "project_schema.xsd";
+    public static final String DEFAULT_RES_SCHEMA = System.getenv(COMPSS_HOME) + File.separator + "Runtime"
+            + File.separator + "configuration" + File.separator + "xml" + File.separator + "resources" + File.separator
+            + "resource_schema.xsd";
+    public static final String DEFAULT_PROJECT_SCHEMA = System.getenv(COMPSS_HOME) + File.separator + "Runtime"
+            + File.separator + "configuration" + File.separator + "xml" + File.separator + "projects" + File.separator
+            + "project_schema.xsd";
 
-    public static final String DEFAULT_GAT_ADAPTOR_LOCATION = System.getenv(GAT_LOC) + File.separator + "lib" + File.separator + "adaptors";
+    public static final String DEFAULT_GAT_ADAPTOR_LOCATION = System.getenv(GAT_LOC) + File.separator + "lib"
+            + File.separator + "adaptors";
     public static final String DEFAULT_PERSISTENT_C = "false";
 
     public static final String DEFAULT_PYTHON_INTERPRETER = "python";
@@ -188,6 +188,7 @@ public class COMPSsConstants {
     public static final String DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT = "null";
     public static final String DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT = "true";
     public static final String DEFAULT_PYTHON_MPI_WORKER = "false";
+
 
     private COMPSsConstants() {
         throw new NonInstantiableException("COMPSsConstants");

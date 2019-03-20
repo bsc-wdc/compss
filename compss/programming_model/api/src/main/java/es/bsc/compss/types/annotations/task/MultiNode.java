@@ -33,7 +33,6 @@ import es.bsc.compss.types.annotations.task.repeatables.MultiMultiNode;
 @Repeatable(MultiMultiNode.class)
 /**
  * Methods definition
- *
  */
 public @interface MultiNode {
 

@@ -103,7 +103,8 @@ public class Internal {
         String name = p.getName();
         int age = p.getAge();
         int numC = p.getNumComputers();
-        System.out.println("[LOG][PSCO_RETURN_NTP] Person " + name + " with age " + age + " has " + numC + " computers");
+        System.out
+                .println("[LOG][PSCO_RETURN_NTP] Person " + name + " with age " + age + " has " + numC + " computers");
         System.out.println("[LOG][PSCO_RETURN_NTP] BeginId = null EndId = " + p.getID());
     }
 
@@ -226,7 +227,8 @@ public class Internal {
         String name = p.getName();
         int age = p.getAge();
         int numC = p.getNumComputers();
-        System.out.println("[LOG][PSCO_MULTI-TASK_MULTI-NODE] Person " + name + " with age " + age + " has " + numC + " computers");
+        System.out.println("[LOG][PSCO_MULTI-TASK_MULTI-NODE] Person " + name + " with age " + age + " has " + numC
+                + " computers");
         System.out.println("[LOG][PSCO_MULTI-TASK_MULTI-NODE] BeginId = " + id + " EndId = " + p.getID());
     }
 

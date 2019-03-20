@@ -25,13 +25,14 @@ public class EndTaskPipeCommand extends EndTaskExternalCommand implements PipeCo
     public final Integer jobId;
     public final ExternalTaskStatus taskStatus;
 
+
     public EndTaskPipeCommand(String[] line) {
-        jobId = Integer.parseInt(line[1]);
-        taskStatus = new ExternalTaskStatus(line);
+        this.jobId = Integer.parseInt(line[1]);
+        this.taskStatus = new ExternalTaskStatus(line);
     }
 
     public ExternalTaskStatus getTaskStatus() {
-        return taskStatus;
+        return this.taskStatus;
     }
 
     @Override
@@ -45,6 +46,6 @@ public class EndTaskPipeCommand extends EndTaskExternalCommand implements PipeCo
 
     @Override
     public void join(PipeCommand receivedCommand) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

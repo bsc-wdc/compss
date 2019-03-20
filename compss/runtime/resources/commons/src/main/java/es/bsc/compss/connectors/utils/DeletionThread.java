@@ -30,7 +30,6 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Support thread for VM destruction
- *
  */
 public class DeletionThread extends Thread {
 
@@ -104,7 +103,8 @@ public class DeletionThread extends Thread {
              * " should not be stopped."); }
              */
             if (DEBUG) {
-                RUNTIME_LOGGER.debug("[Deletion Thread] Worker " + cloudWorker.getName() + " stopped. Powering of the VM");
+                RUNTIME_LOGGER
+                        .debug("[Deletion Thread] Worker " + cloudWorker.getName() + " stopped. Powering of the VM");
             }
             try {
                 this.operations.poweroff(vm);

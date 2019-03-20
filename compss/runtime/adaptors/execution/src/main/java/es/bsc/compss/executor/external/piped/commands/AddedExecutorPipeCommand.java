@@ -26,6 +26,7 @@ public class AddedExecutorPipeCommand extends AddedExecutorExternalCommand imple
     private final String outPipe;
     private int pid;
 
+
     public AddedExecutorPipeCommand(String[] line) {
         inPipe = line[1];
         outPipe = line[2];

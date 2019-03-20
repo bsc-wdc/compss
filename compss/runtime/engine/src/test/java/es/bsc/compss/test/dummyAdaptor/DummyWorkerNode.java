@@ -41,11 +41,11 @@ import es.bsc.compss.types.uri.SimpleURI;
 
 /**
  * Dummy Worker Node for integration tests
- *
  */
 public class DummyWorkerNode extends COMPSsWorker {
 
     private final String name;
+
 
     /**
      * New DummyWorker node with name @name and configuration @config
@@ -98,13 +98,13 @@ public class DummyWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public void sendData(LogicalData srcData, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
-            EventListener listener) {
+    public void sendData(LogicalData srcData, DataLocation source, DataLocation target, LogicalData tgtData,
+            Transferable reason, EventListener listener) {
     }
 
     @Override
-    public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
-            EventListener listener) {
+    public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
+            Transferable reason, EventListener listener) {
     }
 
     @Override

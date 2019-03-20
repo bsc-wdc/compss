@@ -133,7 +133,6 @@ public class WorkerPool {
     }
 
     /**
-     *
      * @param res
      * @return list with all coreIds that can be executed by the resource res
      */
@@ -197,7 +196,6 @@ public class WorkerPool {
     }
 
     /**
-     *
      * @return a list with all the resources available
      */
     @SuppressWarnings("unchecked")

@@ -20,8 +20,7 @@ package es.bsc.compss.util;
  * The RequestDispatcher is an abstract utility to join a group of threads which execute the requests collected in a
  * RequestQueue
  *
- * @param <T>
- *            type of requests that the Dispatcher will process
+ * @param <T> type of requests that the Dispatcher will process
  */
 public abstract class RequestDispatcher<T> implements Runnable {
 
@@ -39,8 +38,7 @@ public abstract class RequestDispatcher<T> implements Runnable {
     /**
      * Constructs a new RequestDispatcher without a pool of threads but already assigns its RequestQueue
      *
-     * @param queue
-     *            queue where the pending requests are
+     * @param queue queue where the pending requests are
      */
     public RequestDispatcher(RequestQueue<T> queue) {
         this.queue = queue;
@@ -50,8 +48,7 @@ public abstract class RequestDispatcher<T> implements Runnable {
     /**
      * Assigns the pool of threads to the dispatcher
      *
-     * @param pool
-     *            pool of threads in charge of processing the requests
+     * @param pool pool of threads in charge of processing the requests
      */
     public void setPool(ThreadPool pool) {
         this.pool = pool;

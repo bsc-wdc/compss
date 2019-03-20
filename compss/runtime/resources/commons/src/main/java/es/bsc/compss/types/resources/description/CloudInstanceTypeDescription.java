@@ -21,12 +21,14 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.CoreManager;
 import java.util.List;
 
+
 public class CloudInstanceTypeDescription {
 
     private final String instanceTypeName;
     private final MethodResourceDescription rd;
     private int[] slotsCore;
     private int[][] slotsImpl;
+
 
     public CloudInstanceTypeDescription(String name, MethodResourceDescription rd) {
         this.instanceTypeName = name;

@@ -82,7 +82,8 @@ public class LoaderUtils {
     }
 
     // Return the called method if it is in the remote list
-    public static java.lang.reflect.Method checkRemote(CtMethod method, java.lang.reflect.Method[] remoteMethods) throws NotFoundException {
+    public static java.lang.reflect.Method checkRemote(CtMethod method, java.lang.reflect.Method[] remoteMethods)
+            throws NotFoundException {
         LOGGER.info("Checking Method " + method.getName());
 
         for (java.lang.reflect.Method remoteMethod : remoteMethods) {
@@ -90,7 +91,8 @@ public class LoaderUtils {
             if (remoteMethod.isAnnotationPresent(Method.class)) {
                 // METHOD
                 Method remoteMethodAnnotation = remoteMethod.getAnnotation(Method.class);
-                if (isSelectedMethod(method, remoteMethod, remoteMethodAnnotation.declaringClass(), remoteMethodAnnotation.name())) {
+                if (isSelectedMethod(method, remoteMethod, remoteMethodAnnotation.declaringClass(),
+                        remoteMethodAnnotation.name())) {
                     return remoteMethod;
                 }
             }
@@ -122,7 +124,8 @@ public class LoaderUtils {
             if (remoteMethod.isAnnotationPresent(MultiNode.class)) {
                 // MultiNode
                 MultiNode remoteMethodAnnotation = remoteMethod.getAnnotation(MultiNode.class);
-                if (isSelectedMethod(method, remoteMethod, remoteMethodAnnotation.declaringClass(), remoteMethodAnnotation.name())) {
+                if (isSelectedMethod(method, remoteMethod, remoteMethodAnnotation.declaringClass(),
+                        remoteMethodAnnotation.name())) {
                     return remoteMethod;
                 }
             }
@@ -149,7 +152,8 @@ public class LoaderUtils {
                 // METHODS
                 Methods methodsAnnotation = remoteMethod.getAnnotation(Methods.class);
                 for (Method remoteMethodAnnotation : methodsAnnotation.value()) {
-                    if (isSelectedMethod(method, remoteMethod, remoteMethodAnnotation.declaringClass(), remoteMethodAnnotation.name())) {
+                    if (isSelectedMethod(method, remoteMethod, remoteMethodAnnotation.declaringClass(),
+                            remoteMethodAnnotation.name())) {
                         return remoteMethod;
                     }
                 }
@@ -191,7 +195,8 @@ public class LoaderUtils {
                 // MULTI-MULTINODE
                 MultiMultiNode methodsAnnotation = remoteMethod.getAnnotation(MultiMultiNode.class);
                 for (MultiNode remoteMethodAnnotation : methodsAnnotation.value()) {
-                    if (isSelectedMethod(method, remoteMethod, remoteMethodAnnotation.declaringClass(), remoteMethodAnnotation.name())) {
+                    if (isSelectedMethod(method, remoteMethod, remoteMethodAnnotation.declaringClass(),
+                            remoteMethodAnnotation.name())) {
                         return remoteMethod;
                     }
                 }
@@ -418,8 +423,8 @@ public class LoaderUtils {
     }
 
     // Add SLA params to the executeTask call
-    public static StringBuilder modifyString(StringBuilder executeTask, int numParams, String appNameParam, String slaIdParam,
-            String urNameParam, String primaryHostParam, String transferIdParam) {
+    public static StringBuilder modifyString(StringBuilder executeTask, int numParams, String appNameParam,
+            String slaIdParam, String urNameParam, String primaryHostParam, String transferIdParam) {
 
         // Number of new params we add
         int newParams = 5;
@@ -456,8 +461,8 @@ public class LoaderUtils {
         }
     }
 
-    public static Object runMethodOnObject(Object o, Class<?> methodClass, String methodName, Object[] values, Class<?>[] types)
-            throws Throwable {
+    public static Object runMethodOnObject(Object o, Class<?> methodClass, String methodName, Object[] values,
+            Class<?>[] types) throws Throwable {
         // Use reflection to get the requested method
         java.lang.reflect.Method method = null;
         try {
@@ -466,8 +471,8 @@ public class LoaderUtils {
             ErrorManager.error("Error writing the instrumented class file", se);
             return null;
         } catch (NoSuchMethodException nsme) {
-            String errMsg = "Requested method " + methodName + " of " + methodClass + " not found\n" + "Types length is " + types.length
-                    + "\n";
+            String errMsg = "Requested method " + methodName + " of " + methodClass + " not found\n"
+                    + "Types length is " + types.length + "\n";
             for (Class<?> type : types) {
                 errMsg += "Type is " + type;
             }

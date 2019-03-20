@@ -25,6 +25,7 @@ public class ChannelCreatedPipeCommand extends ChannelCreatedExternalCommand imp
     private final String pipeIn;
     private final String pipeOut;
 
+
     public ChannelCreatedPipeCommand(PipePair pp) {
         this.pipeIn = pp.getInboundPipe();
         this.pipeOut = pp.getOutboundPipe();

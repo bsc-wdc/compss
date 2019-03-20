@@ -110,7 +110,6 @@ public class DataManagerImpl implements DataManager {
 
     /**
      * Stops the Data Manager and its sub-components
-     *
      */
     @Override
     public void stop() {
@@ -217,7 +216,8 @@ public class DataManagerImpl implements DataManager {
                         case BINDING_URI:
                             if (loc.isHost(hostName)) {
                                 WORKER_LOGGER.error("WORKER IS NOT AWARE OF THE PRESENCE OF A"
-                                        + (loc.getProtocol() == Protocol.OBJECT_URI ? "N OBJECT " : " BINDING OBJECT "));
+                                        + (loc.getProtocol() == Protocol.OBJECT_URI ? "N OBJECT "
+                                                : " BINDING OBJECT "));
                             }
                             break;
                         case SHARED_URI:
@@ -309,28 +309,34 @@ public class DataManagerImpl implements DataManager {
                     if (loc.isHost(hostName) && BindingDataManager.isInBinding(bo.getName())) {
                         // The value we want is not directly cached, but one of it sources is
                         if (WORKER_LOGGER_DEBUG) {
-                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") sources location found in cache.");
+                            WORKER_LOGGER.debug(
+                                    "   - Parameter " + index + "(" + value + ") sources location found in cache.");
                         }
 
                         int res;
                         if (param.isPreserveSourceData()) {
                             if (WORKER_LOGGER_DEBUG) {
-                                WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") preserves sources. CACHE-COPYING");
-                                WORKER_LOGGER.debug("   - Parameters to issue the copy are: " + bo.getName() + " and " + value);
+                                WORKER_LOGGER.debug(
+                                        "   - Parameter " + index + "(" + value + ") preserves sources. CACHE-COPYING");
+                                WORKER_LOGGER.debug(
+                                        "   - Parameters to issue the copy are: " + bo.getName() + " and " + value);
                             }
 
                             res = BindingDataManager.copyCachedData(bo.getName(), value);
                             if (res != 0) {
-                                WORKER_LOGGER.error("CACHE-COPY from " + bo.getName() + " to " + value + " has failed. ");
+                                WORKER_LOGGER
+                                        .error("CACHE-COPY from " + bo.getName() + " to " + value + " has failed. ");
                                 break;
                             }
                         } else {
                             if (WORKER_LOGGER_DEBUG) {
-                                WORKER_LOGGER.debug("   - Parameter " + index + "(" + value + ") overwrites sources. CACHE-MOVING");
+                                WORKER_LOGGER.debug(
+                                        "   - Parameter " + index + "(" + value + ") overwrites sources. CACHE-MOVING");
                             }
                             res = BindingDataManager.moveCachedData(bo.getName(), value);
                             if (res != 0) {
-                                WORKER_LOGGER.error("CACHE-MOVE from " + bo.getName() + " to " + value + " has failed. ");
+                                WORKER_LOGGER
+                                        .error("CACHE-MOVE from " + bo.getName() + " to " + value + " has failed. ");
                                 break;
                             }
                         }
@@ -361,8 +367,9 @@ public class DataManagerImpl implements DataManager {
                     BindingObject bo = BindingObject.generate(loc.getPath());
 
                     if (WORKER_LOGGER_DEBUG) {
-                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + param.getValue() + ") found at host with location "
-                                + loc.getPath() + " Checking if id " + bo.getName() + " is in host...");
+                        WORKER_LOGGER.debug(
+                                "   - Parameter " + index + "(" + param.getValue() + ") found at host with location "
+                                        + loc.getPath() + " Checking if id " + bo.getName() + " is in host...");
                     }
 
                     File inFile = new File(bo.getId());
@@ -415,9 +422,11 @@ public class DataManagerImpl implements DataManager {
         if (!cached && !locationsInCache && !existInHost) {
             // Only if all three options failed, we must transfer the data
             if (WORKER_LOGGER_DEBUG) {
-                WORKER_LOGGER.debug("   - The state of " + value + " in the worker is : \n" + "\t Cached: " + cached + "\n"
-                        + "\t Renamed in cache:     " + locationsInCache + "\n" + "\t In host as a file:    " + existInHost);
-                WORKER_LOGGER.debug("   - Not possible to fetch     " + value + " in the current node, requesting for transfer.");
+                WORKER_LOGGER.debug("   - The state of " + value + " in the worker is : \n" + "\t Cached: " + cached
+                        + "\n" + "\t Renamed in cache:     " + locationsInCache + "\n" + "\t In host as a file:    "
+                        + existInHost);
+                WORKER_LOGGER.debug(
+                        "   - Not possible to fetch     " + value + " in the current node, requesting for transfer.");
             }
 
             askTransfer = true;
@@ -464,7 +473,8 @@ public class DataManagerImpl implements DataManager {
                     File source = new File(path);
                     try {
                         WORKER_LOGGER.debug("   - Parameter " + index + "(" + expectedFileLocation + ") "
-                                + (param.isPreserveSourceData() ? "preserves sources. COPYING" : "erases sources. MOVING"));
+                                + (param.isPreserveSourceData() ? "preserves sources. COPYING"
+                                        : "erases sources. MOVING"));
                         WORKER_LOGGER.debug("         Source: " + source);
                         WORKER_LOGGER.debug("         Target: " + target);
 
@@ -490,7 +500,8 @@ public class DataManagerImpl implements DataManager {
                     }
                 }
             } else {
-                WORKER_LOGGER.info("- Parameter " + index + "(" + expectedFileLocation + ") does not exist, requesting data transfer");
+                WORKER_LOGGER.info("- Parameter " + index + "(" + expectedFileLocation
+                        + ") does not exist, requesting data transfer");
                 transferParameter(param, index, tt);
             }
         }
@@ -623,7 +634,8 @@ public class DataManagerImpl implements DataManager {
     }
 
     private void transferParameter(InvocationParam param, int index, FetchDataListener tt) {
-        WORKER_LOGGER.info("- Parameter " + index + "(" + (String) param.getValue() + ") does not exist, requesting data transfer");
+        WORKER_LOGGER.info("- Parameter " + index + "(" + (String) param.getValue()
+                + ") does not exist, requesting data transfer");
         provider.askForTransfer(param, index, tt);
     }
 

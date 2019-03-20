@@ -18,7 +18,6 @@ package es.bsc.compss.exceptions;
 
 /**
  * Exception for File Deletion Exceptions
- *
  */
 public class FileDeletionException extends Exception {
 

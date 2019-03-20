@@ -32,7 +32,6 @@ import es.bsc.compss.types.resources.Worker;
 
 /**
  * Action score representation
- *
  */
 public class Score implements Comparable<Score> {
 
@@ -126,7 +125,6 @@ public class Score implements Comparable<Score> {
      * Checks if the current score is better than the given. Returns true if
      *
      * @implicit is better than @other
-     *
      * @param other
      * @return
      */
@@ -158,7 +156,8 @@ public class Score implements Comparable<Score> {
         if (obj instanceof Score) {
             Score other = (Score) obj;
             return (this.actionScore == other.actionScore && this.resourceScore == other.resourceScore
-                    && this.waitingScore == other.waitingScore && this.implementationScore == other.implementationScore);
+                    && this.waitingScore == other.waitingScore
+                    && this.implementationScore == other.implementationScore);
         }
 
         return false;
@@ -176,9 +175,7 @@ public class Score implements Comparable<Score> {
     }
 
     /**
-     * Calculates the number of Parameters in @params located in a given worker
-     *
-     * @w.
+     * Calculates the number of Parameters in @params located in a given worker @w.
      *
      * @param params
      * @param w
@@ -230,8 +227,8 @@ public class Score implements Comparable<Score> {
 
     @Override
     public String toString() {
-        return "[Score = [" + "action:" + this.actionScore + ", " + "resource:" + this.resourceScore + ", " + "load:" + this.waitingScore
-                + ", " + "implementation:" + this.implementationScore + "]" + "]";
+        return "[Score = [" + "action:" + this.actionScore + ", " + "resource:" + this.resourceScore + ", " + "load:"
+                + this.waitingScore + ", " + "implementation:" + this.implementationScore + "]" + "]";
     }
 
 }

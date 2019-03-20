@@ -73,7 +73,8 @@ public abstract class AbstractMethodImplementation extends Implementation implem
         super(coreId, implementationId, annot);
     }
 
-    public static String getSignature(String declaringClass, String methodName, boolean hasTarget, int numReturns, Parameter[] parameters) {
+    public static String getSignature(String declaringClass, String methodName, boolean hasTarget, int numReturns,
+            Parameter[] parameters) {
 
         StringBuilder buffer = new StringBuilder();
         buffer.append(methodName).append("(");

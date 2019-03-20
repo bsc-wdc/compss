@@ -20,8 +20,7 @@ import java.io.Serializable;
 
 
 /**
- * A File Instance is identified by its file and version identifiers 
- *
+ * A File Instance is identified by its file and version identifiers
  */
 public class DataInstanceId implements Serializable, Comparable<DataInstanceId> {
 

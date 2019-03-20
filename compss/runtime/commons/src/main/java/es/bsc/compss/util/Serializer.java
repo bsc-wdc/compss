@@ -160,7 +160,6 @@ public class Serializer {
      *
      * @param data containing the serialized object
      * @return the object read from the data
-     *
      */
     private static Object deserializeBinary(byte[] data) throws IOException, ClassNotFoundException {
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
@@ -233,7 +232,6 @@ public class Serializer {
      *
      * @param data containing the serialized object
      * @return the object read from the data
-     *
      */
     private static Object deserializeXML(byte[] data) throws IOException, ClassNotFoundException {
         ByteArrayInputStream bis = new ByteArrayInputStream(data);

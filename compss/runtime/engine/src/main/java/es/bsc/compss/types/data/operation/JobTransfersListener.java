@@ -24,6 +24,7 @@ import org.apache.logging.log4j.Logger;
 import es.bsc.compss.types.allocatableactions.ExecutionAction;
 import es.bsc.compss.types.data.listener.EventListener;
 
+
 public class JobTransfersListener extends EventListener {
 
     private int operation = 0;
@@ -34,6 +35,7 @@ public class JobTransfersListener extends EventListener {
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     private final ExecutionAction execution;
+
 
     public JobTransfersListener(ExecutionAction execution) {
         this.execution = execution;

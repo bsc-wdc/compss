@@ -56,7 +56,6 @@ import storage.StubItf;
 
 /**
  * Class to analyze the data dependencies between tasks
- *
  */
 public class TaskAnalyser {
 
@@ -98,7 +97,6 @@ public class TaskAnalyser {
 
     /**
      * Creates a new Task Analyser instance
-     *
      */
     public TaskAnalyser() {
         this.currentTaskCount = new HashMap<>();
@@ -136,7 +134,12 @@ public class TaskAnalyser {
         this.GM = GM;
     }
 
-    private DataAccessId registerParameterAccessAndAddDependencies(Task currentTask, boolean isConstraining, Parameter p) {        // Conversion: direction -> access mode
+    private DataAccessId registerParameterAccessAndAddDependencies(Task currentTask, boolean isConstraining,
+            Parameter p) { // Conversion:
+                           // direction
+                           // ->
+                           // access
+                           // mode
         AccessMode am = AccessMode.R;
         switch (p.getDirection()) {
             case IN:
@@ -188,7 +191,7 @@ public class TaskAnalyser {
                 break;
             case COLLECTION_T:
                 CollectionParameter cp = (CollectionParameter) p;
-                for(Parameter content : cp.getParameters()) {
+                for (Parameter content : cp.getParameters()) {
                     registerParameterAccessAndAddDependencies(currentTask, isConstraining, content);
                 }
                 daId = DIP.registerCollectionAccess(am, cp);
@@ -207,12 +210,12 @@ public class TaskAnalyser {
         // Add dependencies to the graph and register output values for future dependencies
         DataAccessId daId = dp.getDataAccessId();
         switch (am) {
-            case R:  
+            case R:
                 if (!dataWasAccessedConcurrent(daId.getDataId())) {
                     checkDependencyForRead(currentTask, dp);
                 } else {
                     checkDependencyForConcurrent(currentTask, dp);
-                }   
+                }
                 if (isConstraining) {
                     DataAccessId.RAccessId raId = (DataAccessId.RAccessId) dp.getDataAccessId();
                     DataInstanceId dependingDataId = raId.getReadDataInstance();
@@ -222,7 +225,7 @@ public class TaskAnalyser {
                         }
                     }
                 }
-            break;
+                break;
             case RW:
                 if (!dataWasAccessedConcurrent(daId.getDataId())) {
                     checkDependencyForRead(currentTask, dp);
@@ -249,7 +252,7 @@ public class TaskAnalyser {
                 break;
             case C:
                 checkDependencyForRead(currentTask, dp);
-                List<Task> tasks= this.concurrentAccessMap.get(daId.getDataId());
+                List<Task> tasks = this.concurrentAccessMap.get(daId.getDataId());
                 if (tasks == null) {
                     tasks = new LinkedList<Task>();
                     this.concurrentAccessMap.put(daId.getDataId(), tasks);
@@ -266,8 +269,8 @@ public class TaskAnalyser {
      */
     public void processTask(Task currentTask) {
         TaskDescription params = currentTask.getTaskDescription();
-        LOGGER.info("New " + (params.getType() == TaskType.METHOD ? "method" : "service") + " task(" + params.getName() + "), ID = "
-                + currentTask.getId());
+        LOGGER.info("New " + (params.getType() == TaskType.METHOD ? "method" : "service") + " task(" + params.getName()
+                + "), ID = " + currentTask.getId());
 
         if (IS_DRAW_GRAPH) {
             addNewTask(currentTask);
@@ -364,8 +367,8 @@ public class TaskAnalyser {
 
         for (Parameter param : task.getTaskDescription().getParameters()) {
             DataType type = param.getType();
-            if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T
-                    || type == DataType.BINDING_OBJECT_T) {
+            if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
+                    || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T) {
                 DependencyParameter dPar = (DependencyParameter) param;
                 DataAccessId dAccId = dPar.getDataAccessId();
                 LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dPar.getDataTarget());
@@ -590,7 +593,6 @@ public class TaskAnalyser {
 
     /**
      * Shutdown
-     *
      */
     public void shutdown() {
         if (IS_DRAW_GRAPH) {
@@ -672,8 +674,10 @@ public class TaskAnalyser {
 
         if (lastWriter != null && lastWriter != currentTask) {
             if (DEBUG) {
-                LOGGER.debug("Last writer for datum " + dp.getDataAccessId().getDataId() + " is task " + lastWriter.getId());
-                LOGGER.debug("Adding dependency between task " + lastWriter.getId() + " and task " + currentTask.getId());
+                LOGGER.debug(
+                        "Last writer for datum " + dp.getDataAccessId().getDataId() + " is task " + lastWriter.getId());
+                LOGGER.debug(
+                        "Adding dependency between task " + lastWriter.getId() + " and task " + currentTask.getId());
             }
             // Add dependency
             currentTask.addDataDependency(lastWriter);

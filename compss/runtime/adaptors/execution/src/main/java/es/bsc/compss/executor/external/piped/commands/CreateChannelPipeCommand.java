@@ -17,13 +17,13 @@
 package es.bsc.compss.executor.external.piped.commands;
 
 import es.bsc.compss.executor.external.commands.CreateChannelExternalCommand;
-import static es.bsc.compss.executor.external.commands.ExternalCommand.TOKEN_SEP;
 import es.bsc.compss.executor.external.piped.PipePair;
 
 
 public class CreateChannelPipeCommand extends CreateChannelExternalCommand implements PipeCommand {
 
     private final PipePair pipe;
+
 
     public CreateChannelPipeCommand(PipePair pipe) {
         this.pipe = pipe;
@@ -44,7 +44,7 @@ public class CreateChannelPipeCommand extends CreateChannelExternalCommand imple
 
     @Override
     public void join(PipeCommand receivedCommand) {
-        //Do nothing
+        // Do nothing
     }
 
 }

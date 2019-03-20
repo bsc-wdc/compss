@@ -109,8 +109,8 @@ public class TestCompatible {
                 System.out.println("[LOG] **** Checking Resource " + resource.getName());
                 String res = checkResourcesAssignedToImpl(entry.getKey(), resource);
                 if (res != null) {
-                    String error = "Implementation: Core " + coreId + " Impl " + entry.getKey().getImplementationId() + " and Resource "
-                            + resource.getName() + ". ";
+                    String error = "Implementation: Core " + coreId + " Impl " + entry.getKey().getImplementationId()
+                            + " and Resource " + resource.getName() + ". ";
                     error = error.concat("Implementation and resource not matching on: " + res);
                     System.out.println(error);
                     System.exit(-1);
@@ -154,12 +154,14 @@ public class TestCompatible {
                 for (Processor wp : wDescription.getProcessors()) {
                     // Static checks
                     if (!ip.getName().equals(MethodResourceDescription.UNASSIGNED_STR)
-                            && !wp.getName().equals(MethodResourceDescription.UNASSIGNED_STR) && !wp.getName().equals(ip.getName())) {
+                            && !wp.getName().equals(MethodResourceDescription.UNASSIGNED_STR)
+                            && !wp.getName().equals(ip.getName())) {
                         // System.out.println("DUE TO: " + ip.getName() + " != " + wp.getName());
                         continue;
                     }
                     if (ip.getSpeed() != MethodResourceDescription.UNASSIGNED_FLOAT
-                            && wp.getSpeed() != MethodResourceDescription.UNASSIGNED_FLOAT && wp.getSpeed() < ip.getSpeed()) {
+                            && wp.getSpeed() != MethodResourceDescription.UNASSIGNED_FLOAT
+                            && wp.getSpeed() < ip.getSpeed()) {
                         // System.out.println("DUE TO: " + ip.getSpeed() + " != " + wp.getSpeed());
                         continue;
                     }
@@ -239,7 +241,8 @@ public class TestCompatible {
 
             if ((!iDescription.getOperatingSystemDistribution().equals(MethodResourceDescription.UNASSIGNED_STR))
                     && (!iDescription.getOperatingSystemDistribution().equals(MethodResourceDescription.UNASSIGNED_STR))
-                    && (!wDescription.getOperatingSystemDistribution().equals(iDescription.getOperatingSystemDistribution()))) {
+                    && (!wDescription.getOperatingSystemDistribution()
+                            .equals(iDescription.getOperatingSystemDistribution()))) {
                 return "operatingSystemDistribution";
             }
 
@@ -253,7 +256,8 @@ public class TestCompatible {
              * *********************************************************************************************************
              * APPLICATION SOFTWARE
              ***********************************************************************************************************/
-            if (!(iDescription.getAppSoftware().isEmpty()) && !(wDescription.getAppSoftware().containsAll(iDescription.getAppSoftware()))) {
+            if (!(iDescription.getAppSoftware().isEmpty())
+                    && !(wDescription.getAppSoftware().containsAll(iDescription.getAppSoftware()))) {
                 return "appSoftware";
             }
 
@@ -261,7 +265,8 @@ public class TestCompatible {
              * *********************************************************************************************************
              * HOST QUEUE
              ***********************************************************************************************************/
-            if (!(iDescription.getHostQueues().isEmpty()) && !(wDescription.getHostQueues().containsAll(iDescription.getHostQueues()))) {
+            if (!(iDescription.getHostQueues().isEmpty())
+                    && !(wDescription.getHostQueues().containsAll(iDescription.getHostQueues()))) {
                 return "hostQueues";
             }
 

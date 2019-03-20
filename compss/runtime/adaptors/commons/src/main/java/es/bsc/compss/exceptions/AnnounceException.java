@@ -18,7 +18,6 @@ package es.bsc.compss.exceptions;
 
 /**
  * Exception to creation/deletion announce errors
- * 
  */
 public class AnnounceException extends Exception {
 
@@ -30,7 +29,6 @@ public class AnnounceException extends Exception {
 
     /**
      * New empty Announce Exception
-     * 
      */
     public AnnounceException() {
         super();

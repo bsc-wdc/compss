@@ -21,7 +21,6 @@ import es.bsc.compss.types.execution.LanguageParams;
 
 /**
  * C related variables
- *
  */
 public class CParams implements LanguageParams {
 

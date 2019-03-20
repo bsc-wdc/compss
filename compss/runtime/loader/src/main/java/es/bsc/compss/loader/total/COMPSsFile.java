@@ -43,35 +43,35 @@ public class COMPSsFile extends File {
         System.out.println("COMPSs WARNING: You are creating a new file from a file " + pathname
                 + " which has been used in a task. This could make your program to not work as expected.");
         return super.createNewFile();
-    };
+    }
 
     @Override
     public long getFreeSpace() {
         System.out.println("COMPSs WARNING: You are getting the free space in file " + pathname
                 + ". This has been used in a task. This could make your program to not work as expected.");
         return super.getFreeSpace();
-    };
+    }
 
     @Override
     public long getUsableSpace() {
         System.out.println("COMPSs WARNING: You are getting the usable space in file " + pathname
                 + ". This has been used in a task. This could make your program to not work as expected.");
         return super.getUsableSpace();
-    };
+    }
 
     @Override
     public long getTotalSpace() {
         System.out.println("COMPSs WARNING: You are getting the total space in file " + pathname
                 + ". This has been used in a task. This could make your program to not work as expected.");
         return super.getTotalSpace();
-    };
+    }
 
     @Override
     public boolean exists() {
         System.out.println("COMPSs WARNING: You are checking if file " + pathname
                 + " exists. This has been used in a task. This could make your program to not work as expected.");
         return super.exists();
-    };
+    }
 
     @Override
     public boolean delete() {

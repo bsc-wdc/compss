@@ -79,7 +79,6 @@ import es.bsc.compss.util.Tracer;
 
 /**
  * Component to handle the tasks accesses to files and object
- *
  */
 public class AccessProcessor implements Runnable, TaskProducer {
 
@@ -192,8 +191,8 @@ public class AccessProcessor implements Runnable, TaskProducer {
     public int newTask(Long appId, TaskMonitor monitor, Lang lang, String signature, boolean isPrioritary, int numNodes,
             boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns, Parameter[] parameters) {
 
-        Task currentTask = new Task(appId, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns,
-                parameters, monitor);
+        Task currentTask = new Task(appId, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed,
+                hasTarget, numReturns, parameters, monitor);
         TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
         registeredMonitor.onCreation();
         if (!requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
@@ -217,10 +216,11 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @param parameters
      * @return
      */
-    public int newTask(Long appId, TaskMonitor monitor, String namespace, String service, String port, String operation, boolean priority,
-            boolean hasTarget, int numReturns, Parameter[] parameters) {
+    public int newTask(Long appId, TaskMonitor monitor, String namespace, String service, String port, String operation,
+            boolean priority, boolean hasTarget, int numReturns, Parameter[] parameters) {
 
-        Task currentTask = new Task(appId, namespace, service, port, operation, priority, hasTarget, numReturns, parameters, monitor);
+        Task currentTask = new Task(appId, namespace, service, port, operation, priority, hasTarget, numReturns,
+                parameters, monitor);
         TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
         registeredMonitor.onCreation();
         if (!requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
@@ -264,7 +264,8 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @param destDir
      * @return
      */
-    public DataLocation mainAccessToFile(DataLocation sourceLocation, AccessParams.FileAccessParams fap, String destDir) {
+    public DataLocation mainAccessToFile(DataLocation sourceLocation, AccessParams.FileAccessParams fap,
+            String destDir) {
         boolean alreadyAccessed = alreadyAccessed(sourceLocation);
 
         if (!alreadyAccessed) {
@@ -480,13 +481,15 @@ public class AccessProcessor implements Runnable, TaskProducer {
      */
     public String mainAcessToBindingObject(BindingObject bo, int hashCode) {
         if (DEBUG) {
-            LOGGER.debug("Requesting main access to binding object with bo " + bo.toString() + " and hash code " + hashCode);
+            LOGGER.debug(
+                    "Requesting main access to binding object with bo " + bo.toString() + " and hash code " + hashCode);
         }
 
         // Tell the DIP that the application wants to access an object
         // AccessParams.BindingObjectAccessParams oap = new AccessParams.BindingObjectAccessParams(AccessMode.RW, bo,
         // hashCode);
-        AccessParams.BindingObjectAccessParams oap = new AccessParams.BindingObjectAccessParams(AccessMode.R, bo, hashCode);
+        AccessParams.BindingObjectAccessParams oap = new AccessParams.BindingObjectAccessParams(AccessMode.R, bo,
+                hashCode);
         DataAccessId oaId = registerDataAccess(oap);
 
         // DataInstanceId wId = ((DataAccessId.RWAccessId) oaId).getWrittenDataInstance();
@@ -690,7 +693,6 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Shutdown request
-     *
      */
     public void shutdown() {
         Semaphore sem = new Semaphore(0);

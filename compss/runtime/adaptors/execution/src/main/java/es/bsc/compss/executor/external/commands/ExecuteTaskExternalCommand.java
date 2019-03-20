@@ -20,7 +20,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 
-
 public class ExecuteTaskExternalCommand implements ExternalCommand {
 
     protected final LinkedList<String> arguments;

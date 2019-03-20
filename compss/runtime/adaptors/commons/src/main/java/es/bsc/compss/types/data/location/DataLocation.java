@@ -37,25 +37,23 @@ public abstract class DataLocation implements Comparable<DataLocation> {
 
     /**
      * DataLocation Types
-     *
      */
     public enum Type {
-        PRIVATE, // For private objects and files
-        SHARED, // For shared locations
-        PERSISTENT, // For persistent storages
-        BINDING // For binding objects
+    PRIVATE, // For private objects and files
+    SHARED, // For shared locations
+    PERSISTENT, // For persistent storages
+    BINDING // For binding objects
     }
 
     /**
      * Supported Protocols
-     * 
      */
     public enum Protocol {
         FILE_URI("file://"), // File protocol
         SHARED_URI("shared://"), // Shared protocol
         OBJECT_URI("object://"), // Object protocol
         PERSISTENT_URI("storage://"), // Persistent protocol
-        BINDING_URI("binding://"), //Binding protocol
+        BINDING_URI("binding://"), // Binding protocol
         ANY_URI("any://"); // Other
 
         private final String schema;
@@ -118,7 +116,8 @@ public abstract class DataLocation implements Comparable<DataLocation> {
                 } catch (URISyntaxException e) {
                     canonicalPath = new File(uri.getPath()).getCanonicalPath();
                 }
-                LOGGER.debug("Creating new FileLocation: " + protocol.getSchema() + host.getName() + "@" + canonicalPath);
+                LOGGER.debug(
+                        "Creating new FileLocation: " + protocol.getSchema() + host.getName() + "@" + canonicalPath);
                 loc = createLocation(Protocol.FILE_URI, host, canonicalPath);
                 break;
             case SHARED_URI:
@@ -132,7 +131,8 @@ public abstract class DataLocation implements Comparable<DataLocation> {
             case OBJECT_URI:
                 // Object
                 String objectName = uri.getPath(); // The Object name is stored as path in the URI
-                LOGGER.debug("Creating new ObjectLocation: " + protocol.getSchema() + host.getName() + "@" + objectName);
+                LOGGER.debug(
+                        "Creating new ObjectLocation: " + protocol.getSchema() + host.getName() + "@" + objectName);
                 loc = createLocation(Protocol.OBJECT_URI, host, objectName);
                 break;
             case PERSISTENT_URI:
@@ -142,12 +142,14 @@ public abstract class DataLocation implements Comparable<DataLocation> {
                 break;
             case BINDING_URI:
                 // Object
-                BindingObject bo = BindingObject.generate(uri.getPath()); // The Object name is stored as path in the URI
+                BindingObject bo = BindingObject.generate(uri.getPath()); // The Object name is stored as path in the
+                                                                          // URI
                 LOGGER.debug("Creating new BindingObjectLocation: " + protocol.getSchema() + host.getName() + "@" + bo);
-                loc = new BindingObjectLocation( host, bo);
+                loc = new BindingObjectLocation(host, bo);
                 break;
             case ANY_URI:
-                LOGGER.debug("Creating new AnyLocation: " + Protocol.ANY_URI.getSchema() + host.getName() + "@" + uri.getPath());
+                LOGGER.debug("Creating new AnyLocation: " + Protocol.ANY_URI.getSchema() + host.getName() + "@"
+                        + uri.getPath());
                 loc = createLocation(Protocol.ANY_URI, host, uri.getPath());
                 break;
         }
@@ -185,9 +187,9 @@ public abstract class DataLocation implements Comparable<DataLocation> {
     public abstract List<Resource> getHosts();
 
     public abstract String getPath();
-    
+
     public abstract void modifyPath(String path);
-    
+
     public abstract MultiURI getURIInHost(Resource targetHost);
 
     public abstract boolean isTarget(DataLocation target);

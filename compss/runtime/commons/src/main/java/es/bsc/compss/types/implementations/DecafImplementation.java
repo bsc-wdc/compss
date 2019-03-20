@@ -29,8 +29,8 @@ public class DecafImplementation extends AbstractMethodImplementation implements
 
     public static final int NUM_PARAMS = 5;
 
-    public static final String SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts" + File.separator + "system"
-            + File.separator + "decaf" + File.separator + "run_decaf.sh";
+    public static final String SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts" + File.separator
+            + "system" + File.separator + "decaf" + File.separator + "run_decaf.sh";
 
     private String mpiRunner;
     private String dfScript;
@@ -44,8 +44,8 @@ public class DecafImplementation extends AbstractMethodImplementation implements
         super();
     }
 
-    public DecafImplementation(String dfScript, String dfExecutor, String dfLib, String workingDir, String mpiRunner, Integer coreId,
-            Integer implementationId, MethodResourceDescription annot) {
+    public DecafImplementation(String dfScript, String dfExecutor, String dfLib, String workingDir, String mpiRunner,
+            Integer coreId, Integer implementationId, MethodResourceDescription annot) {
 
         super(coreId, implementationId, annot);
 
@@ -95,8 +95,8 @@ public class DecafImplementation extends AbstractMethodImplementation implements
 
     @Override
     public String toString() {
-        return super.toString() + " Decaf Method with script " + this.dfScript + ", executor " + this.dfScript + ", library " + this.dfLib
-                + " and MPIrunner " + this.mpiRunner;
+        return super.toString() + " Decaf Method with script " + this.dfScript + ", executor " + this.dfScript
+                + ", library " + this.dfLib + " and MPIrunner " + this.mpiRunner;
     }
 
     @Override

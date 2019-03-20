@@ -102,8 +102,8 @@ public class ITAppEditor extends ExprEditor {
     private static final String ERROR_NO_EMPTY_CONSTRUCTOR = "ERROR: No empty constructor on object class ";
 
 
-    public ITAppEditor(Method[] remoteMethods, CtMethod[] instrCandidates, String itApiVar, String itSRVar, String itORVar,
-            String itAppIdVar, CtClass appClass) {
+    public ITAppEditor(Method[] remoteMethods, CtMethod[] instrCandidates, String itApiVar, String itSRVar,
+            String itORVar, String itAppIdVar, CtClass appClass) {
 
         super();
         this.remoteMethods = remoteMethods;
@@ -122,7 +122,7 @@ public class ITAppEditor extends ExprEditor {
     /**
      * Instruments the creation of objects streams and stream wrappers
      *
-     * @param ne  New expression
+     * @param ne New expression
      */
     @Override
     public void edit(NewExpr ne) throws CannotCompileException {
@@ -148,8 +148,8 @@ public class ITAppEditor extends ExprEditor {
                             callPars.append(parId);
                         } else { // Object (also array)
                             if (DEBUG) {
-                                LOGGER.debug(
-                                        "Parameter " + (i - 1) + " of constructor " + ne.getConstructor() + " is an object, adding access");
+                                LOGGER.debug("Parameter " + (i - 1) + " of constructor " + ne.getConstructor()
+                                        + " is an object, adding access");
                             }
 
                             String internalObject = itORVar + GET_INTERNAL_OBJECT + parId + ")";
@@ -173,7 +173,8 @@ public class ITAppEditor extends ExprEditor {
             }
 
             if (DEBUG) {
-                LOGGER.debug("Replacing regular constructor call of class " + fullName + " by " + modifiedExpr.toString());
+                LOGGER.debug(
+                        "Replacing regular constructor call of class " + fullName + " by " + modifiedExpr.toString());
             }
 
             // Update new expression
@@ -205,25 +206,25 @@ public class ITAppEditor extends ExprEditor {
             }
         }
         if (!found) { // Not a stream
-            if(className.equals(File.class.getCanonicalName())){
+            if (className.equals(File.class.getCanonicalName())) {
                 modifiedExpr = "$_ = " + itSRVar + NEW_COMPSS_FILE + "(" + callPars + ");";
-            }else{
+            } else {
                 String internalObject = itORVar + GET_INTERNAL_OBJECT + "$1)";
                 String par1 = internalObject + " == null ? (Object)$1 : " + internalObject;
-                modifiedExpr = PROCEED + callPars + "); " + "if ($_ instanceof " + FilterInputStream.class.getCanonicalName()
-                    + " || $_ instanceof " + FilterOutputStream.class.getCanonicalName() + ") {" + itSRVar + NEW_FILTER_STREAM + par1
-                    + ", (Object)$_); }";
+                modifiedExpr = PROCEED + callPars + "); " + "if ($_ instanceof "
+                        + FilterInputStream.class.getCanonicalName() + " || $_ instanceof "
+                        + FilterOutputStream.class.getCanonicalName() + ") {" + itSRVar + NEW_FILTER_STREAM + par1
+                        + ", (Object)$_); }";
             }
         }
         if (DEBUG) {
-            LOGGER.debug("Modifiying creation of an object of class " + className + " with \"" + modifiedExpr + "\"" );
+            LOGGER.debug("Modifiying creation of an object of class " + className + " with \"" + modifiedExpr + "\"");
         }
         return modifiedExpr;
     }
 
     /**
      * Replaces calls to remote methods by calls to executeTask or black-boxes methods
-     *
      */
     public void edit(MethodCall mc) throws CannotCompileException {
         LOGGER.debug("---- BEGIN EDIT METHOD CALL " + mc.getMethodName() + " ----");
@@ -244,7 +245,8 @@ public class ITAppEditor extends ExprEditor {
             }
 
             // Replace the call to the method by the call to executeTask
-            String executeTask = replaceTaskMethodCall(mc.getMethodName(), mc.getClassName(), declaredMethod, calledMethod);
+            String executeTask = replaceTaskMethodCall(mc.getMethodName(), mc.getClassName(), declaredMethod,
+                    calledMethod);
             if (DEBUG) {
                 LOGGER.debug("Replacing task method call by " + executeTask);
             }
@@ -314,8 +316,8 @@ public class ITAppEditor extends ExprEditor {
      * @param calledMethod
      * @return
      */
-    private String replaceTaskMethodCall(String methodName, String className, Method declaredMethod, CtMethod calledMethod)
-            throws CannotCompileException {
+    private String replaceTaskMethodCall(String methodName, String className, Method declaredMethod,
+            CtMethod calledMethod) throws CannotCompileException {
 
         if (DEBUG) {
             LOGGER.debug("Found call to remote method " + methodName);
@@ -352,7 +354,8 @@ public class ITAppEditor extends ExprEditor {
         }
 
         // Specific implementation values
-        boolean isMethod = !(declaredMethod.isAnnotationPresent(Service.class) || declaredMethod.isAnnotationPresent(Services.class));
+        boolean isMethod = !(declaredMethod.isAnnotationPresent(Service.class)
+                || declaredMethod.isAnnotationPresent(Services.class));
         if (isMethod) {
             executeTask.append(LANG).append(','); // language set to null
 
@@ -431,8 +434,8 @@ public class ITAppEditor extends ExprEditor {
             executeTask.append(",null);");
         } else {
             Annotation[][] paramAnnot = declaredMethod.getParameterAnnotations();
-            CallInformation callInformation = processParameters(declaredMethod, paramAnnot, paramTypes, isVoid, isStatic, isMethod,
-                    numParams, retType);
+            CallInformation callInformation = processParameters(declaredMethod, paramAnnot, paramTypes, isVoid,
+                    isStatic, isMethod, numParams, retType);
             executeTask.append(callInformation.getToAppend());
             executeTask.insert(0, callInformation.getToPrepend());
         }
@@ -453,8 +456,9 @@ public class ITAppEditor extends ExprEditor {
      * @param retType
      * @return
      */
-    private CallInformation processParameters(Method declaredMethod, Annotation[][] paramAnnot, Class<?>[] paramTypes, boolean isVoid,
-            boolean isStatic, boolean isMethod, int numParams, Class<?> retType) throws CannotCompileException {
+    private CallInformation processParameters(Method declaredMethod, Annotation[][] paramAnnot, Class<?>[] paramTypes,
+            boolean isVoid, boolean isStatic, boolean isMethod, int numParams, Class<?> retType)
+            throws CannotCompileException {
 
         StringBuilder toAppend = new StringBuilder("");
         StringBuilder toPrepend = new StringBuilder("");
@@ -559,8 +563,8 @@ public class ITAppEditor extends ExprEditor {
             infoToAppend.append("$").append(paramIndex + 1).append(",");
         }
 
-        ParameterInformation infoParam = new ParameterInformation(infoToAppend.toString(), infoToPrepend.toString(), type, paramDirection,
-                paramStream, paramPrefix);
+        ParameterInformation infoParam = new ParameterInformation(infoToAppend.toString(), infoToPrepend.toString(),
+                type, paramDirection, paramStream, paramPrefix);
         return infoParam;
     }
 
@@ -574,7 +578,8 @@ public class ITAppEditor extends ExprEditor {
      * @param isMethod
      * @return
      */
-    private String processTargetObject(Method declaredMethod, boolean isStatic, int numParams, boolean isVoid, boolean isMethod) {
+    private String processTargetObject(Method declaredMethod, boolean isStatic, int numParams, boolean isVoid,
+            boolean isMethod) {
         StringBuilder targetObj = new StringBuilder("");
 
         if (!isStatic) {
@@ -626,7 +631,8 @@ public class ITAppEditor extends ExprEditor {
      * @param retType
      * @return
      */
-    private ReturnInformation processReturnParameter(boolean isVoid, int numParams, Class<?> retType) throws CannotCompileException {
+    private ReturnInformation processReturnParameter(boolean isVoid, int numParams, Class<?> retType)
+            throws CannotCompileException {
         StringBuilder infoToAppend = new StringBuilder("");
         StringBuilder infoToPrepend = new StringBuilder("");
         StringBuilder afterExecute = new StringBuilder("");
@@ -641,9 +647,10 @@ public class ITAppEditor extends ExprEditor {
                  * ********************************* PRIMITIVE *********************************
                  */
                 String tempRetVar = "ret" + System.nanoTime();
-                infoToAppend.append(tempRetVar).append(',').append(DATA_TYPES + ".OBJECT_T").append(',').append(DATA_DIRECTION + ".OUT")
-                        .append(',').append(DATA_STREAM + "." + Stream.UNSPECIFIED).append(',').append("\"").append(Constants.PREFIX_EMPTY)
-                        .append("\"").append(",").append("\"").append("\"");
+                infoToAppend.append(tempRetVar).append(',').append(DATA_TYPES + ".OBJECT_T").append(',')
+                        .append(DATA_DIRECTION + ".OUT").append(',').append(DATA_STREAM + "." + Stream.UNSPECIFIED)
+                        .append(',').append("\"").append(Constants.PREFIX_EMPTY).append("\"").append(",").append("\"")
+                        .append("\"");
 
                 String retValueCreation = "Object " + tempRetVar + " = ";
                 String cast;
@@ -690,8 +697,8 @@ public class ITAppEditor extends ExprEditor {
                  * assign it to the application's primitive type var
                  */
                 afterExecute.append(itORVar).append(NEW_OBJECT_ACCESS).append(tempRetVar).append(");");
-                afterExecute.append("$_ = (").append(cast).append(itORVar).append(GET_INTERNAL_OBJECT).append(tempRetVar).append(")).")
-                        .append(converterMethod).append(";");
+                afterExecute.append("$_ = (").append(cast).append(itORVar).append(GET_INTERNAL_OBJECT)
+                        .append(tempRetVar).append(")).").append(converterMethod).append(";");
             } else if (retType.isArray()) {
                 /*
                  * ********************************* ARRAY
@@ -759,7 +766,8 @@ public class ITAppEditor extends ExprEditor {
             }
         }
 
-        ReturnInformation returnInfo = new ReturnInformation(infoToAppend.toString(), infoToPrepend.toString(), afterExecute.toString());
+        ReturnInformation returnInfo = new ReturnInformation(infoToAppend.toString(), infoToPrepend.toString(),
+                afterExecute.toString());
         return returnInfo;
     }
 
@@ -879,24 +887,25 @@ public class ITAppEditor extends ExprEditor {
                         } else { // if (parType.equals(CtClass.doubleType))
                             aux1.append("new Double(").append(parId).append(')');
                         }
-                    }else if (parType.getName().equals(COMPSsFile.class.getName())){
+                    } else if (parType.getName().equals(COMPSsFile.class.getName())) {
                         if (DEBUG) {
-                            LOGGER.debug(
-                                    "Parameter " + i + " of black-box method " + methodName + " is an COMPSs File, adding File synch");
+                            LOGGER.debug("Parameter " + i + " of black-box method " + methodName
+                                    + " is an COMPSs File, adding File synch");
                         }
                         aux1.append(COMPSS_FILE_SYNCH).append(itAppIdVar).append(",").append(parId).append(')');
-                        
-                    }else if (parType.getName().equals(String.class.getName())) { // This is a string
+
+                    } else if (parType.getName().equals(String.class.getName())) { // This is a string
                         if (DEBUG) {
-                            LOGGER.debug(
-                                    "Parameter " + i + " of black-box method " + methodName + " is an String, adding File/object access");
+                            LOGGER.debug("Parameter " + i + " of black-box method " + methodName
+                                    + " is an String, adding File/object access");
                         }
                         if (isArrayWatch && i == 3) {
                             // Prevent from synchronizing task return objects to be stored in an array position
                             aux1.append(parId);
                         } else {
                             String calledClass = className;
-                            if (calledClass.equals(PrintStream.class.getName()) || calledClass.equals(StringBuilder.class.getName())) {
+                            if (calledClass.equals(PrintStream.class.getName())
+                                    || calledClass.equals(StringBuilder.class.getName())) {
                                 // If the call is inside a PrintStream or StringBuilder, only synchronize objects files
                                 // already has the name
                                 String internalObject = itORVar + GET_INTERNAL_OBJECT + parId + ')';
@@ -910,15 +919,16 @@ public class ITAppEditor extends ExprEditor {
                                 String apiOpenFile = itApiVar + OPEN_FILE + parId + ", " + DATA_DIRECTION + ".INOUT)";
                                 modifiedCall.insert(0, itORVar + NEW_OBJECT_ACCESS + parId + ");");
                                 // Adding check of task files
-                                aux1.append(taskFile).append(" ? ").append(apiOpenFile).append(" : ").append(internalObject)
-                                        .append(" == null ? ").append(parId).append(" : ").append("(" + parType.getName() + ")")
-                                        .append(internalObject);
+                                aux1.append(taskFile).append(" ? ").append(apiOpenFile).append(" : ")
+                                        .append(internalObject).append(" == null ? ").append(parId).append(" : ")
+                                        .append("(" + parType.getName() + ")").append(internalObject);
                                 toSerialize.append(itORVar).append(SERIALIZE_LOCALLY).append(parId).append(");");
                             }
                         }
                     } else { // Object (also array)
                         if (DEBUG) {
-                            LOGGER.debug("Parameter " + i + " of black-box method " + methodName + " is an object, adding access");
+                            LOGGER.debug("Parameter " + i + " of black-box method " + methodName
+                                    + " is an object, adding access");
                         }
 
                         if (isArrayWatch && i == 3) {
@@ -941,8 +951,9 @@ public class ITAppEditor extends ExprEditor {
             throw new CannotCompileException(e);
         }
         String internalObject = itORVar + GET_INTERNAL_OBJECT + "$0)";
-        modifiedCall.append("if (").append(internalObject).append(" != null) {").append("$_ = ($r)" + RUN_METHOD_ON_OBJECT)
-                .append(internalObject).append(",$class,\"").append(methodName).append("\",").append(redirectedCallPars).append(",$sig);")
+        modifiedCall.append("if (").append(internalObject).append(" != null) {")
+                .append("$_ = ($r)" + RUN_METHOD_ON_OBJECT).append(internalObject).append(",$class,\"")
+                .append(methodName).append("\",").append(redirectedCallPars).append(",$sig);")
                 .append("}else { $_ = ($r)" + RUN_METHOD_ON_OBJECT + "$0,$class,\"").append(methodName).append("\",")
                 .append(redirectedCallPars).append(",$sig); }");
 
@@ -955,7 +966,6 @@ public class ITAppEditor extends ExprEditor {
 
     /**
      * Check the access to fields of objects
-     *
      */
     @Override
     public void edit(FieldAccess fa) throws CannotCompileException {
@@ -971,7 +981,8 @@ public class ITAppEditor extends ExprEditor {
         String fieldName = field.getName();
 
         if (DEBUG) {
-            LOGGER.debug("Keeping track of access to field " + fieldName + " of class " + field.getDeclaringClass().getName());
+            LOGGER.debug("Keeping track of access to field " + fieldName + " of class "
+                    + field.getDeclaringClass().getName());
         }
 
         boolean isWriter = fa.isWriter();
@@ -986,13 +997,15 @@ public class ITAppEditor extends ExprEditor {
         toInclude.append("if (").append(internalObject).append(" != null) {");
         if (isWriter) {
             // store a new value in the field
-            toInclude.append("((").append(objectClass).append(')').append(internalObject).append(").").append(fieldName).append(" = $1;");
+            toInclude.append("((").append(objectClass).append(')').append(internalObject).append(").").append(fieldName)
+                    .append(" = $1;");
             toInclude.append("} else { " + PROCEED + "$$); }");
             // Serialize the (internal) object locally after the access
             toInclude.append(itORVar).append(SERIALIZE_LOCALLY + "$0);");
         } else {
             // read the field value
-            toInclude.append("$_ = ((").append(objectClass).append(')').append(internalObject).append(").").append(fieldName).append(';'); // read
+            toInclude.append("$_ = ((").append(objectClass).append(')').append(internalObject).append(").")
+                    .append(fieldName).append(';'); // read
             toInclude.append("} else { " + PROCEED + "$$); }");
         }
 
@@ -1014,7 +1027,8 @@ public class ITAppEditor extends ExprEditor {
         private final String prefix;
 
 
-        public ParameterInformation(String toAppend, String toPrepend, String type, Direction direction, Stream stream, String prefix) {
+        public ParameterInformation(String toAppend, String toPrepend, String type, Direction direction, Stream stream,
+                String prefix) {
             this.toAppend = toAppend;
             this.toPrepend = toPrepend;
             this.type = type;

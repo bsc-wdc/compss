@@ -24,11 +24,13 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 public class Processor implements Serializable {
 
     public static enum ProcessorType {
-        CPU,
-        GPU,
-        FPGA,
-        OTHER
+        CPU, // CPU
+        GPU, // GPU
+        FPGA, // FPGA
+        OTHER // Other
     }
+
+
     /**
      * Runtime Objects have serialization ID 1L
      */
@@ -43,8 +45,9 @@ public class Processor implements Serializable {
     private String propName = MethodResourceDescription.UNASSIGNED_STR;
     private String propValue = MethodResourceDescription.UNASSIGNED_STR;
 
-    //This flag is to know if a processor has been created by default and not updated
+    // This flag is to know if a processor has been created by default and not updated
     private boolean modified = false;
+
 
     public Processor() {
 
@@ -71,7 +74,9 @@ public class Processor implements Serializable {
         this.setSpeed(speed);
         this.setArchitecture(arch);
     }
-    public Processor(String name, int cu, float speed, String arch, ProcessorType type, float internalMem, String propName, String propValue) {
+
+    public Processor(String name, int cu, float speed, String arch, ProcessorType type, float internalMem,
+            String propName, String propValue) {
         this.setName(name);
         this.setComputingUnits(cu);
         this.setSpeed(speed);
@@ -82,7 +87,8 @@ public class Processor implements Serializable {
         this.setPropValue(propValue);
     }
 
-    public Processor(String name, int cu, float speed, String arch, String type, float internalMem, String propName, String propValue) {
+    public Processor(String name, int cu, float speed, String arch, String type, float internalMem, String propName,
+            String propValue) {
         this.setName(name);
         this.setComputingUnits(cu);
         this.setSpeed(speed);

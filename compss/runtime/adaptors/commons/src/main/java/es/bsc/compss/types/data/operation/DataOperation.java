@@ -43,12 +43,13 @@ public abstract class DataOperation {
 
 
     public enum OpEndState {
-        OP_OK,
-        OP_IN_PROGRESS,
-        OP_FAILED,
-        OP_PREPARATION_FAILED,
-        OP_WAITING_SOURCES;
+        OP_OK, // Success
+        OP_IN_PROGRESS, // In progress
+        OP_FAILED, // Failed
+        OP_PREPARATION_FAILED, // Preparation failed
+        OP_WAITING_SOURCES; // Waiting for resources
     }
+
 
     public DataOperation(LogicalData ld, EventListener listener) {
         try {

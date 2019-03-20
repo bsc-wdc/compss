@@ -32,14 +32,15 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     protected final MethodResourceDescription available;
 
     // Task count
-    private int usedCPUTaskCount = 0;
-    private int maxCPUTaskCount;
-    private int usedGPUTaskCount = 0;
-    private int maxGPUTaskCount;
-    private int usedFPGATaskCount = 0;
-    private int maxFPGATaskCount;
+    private int usedCPUtaskCount = 0;
+    private int maxCPUtaskCount;
+    private int usedGPUtaskCount = 0;
+    private int maxGPUtaskCount;
+    private int usedFPGAtaskCount = 0;
+    private int maxFPGAtaskCount;
     private int usedOthersTaskCount = 0;
     private int maxOthersTaskCount;
+
 
     public MethodWorker(String name, MethodResourceDescription description, COMPSsWorker worker, int limitOfTasks,
             int limitGPUTasks, int limitFPGATasks, int limitOTHERTasks, Map<String, String> sharedDisks) {
@@ -48,20 +49,21 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
         this.name = name;
         available = new MethodResourceDescription(description);
 
-        this.maxCPUTaskCount = limitOfTasks;
-        this.maxGPUTaskCount = limitGPUTasks;
-        this.maxFPGATaskCount = limitFPGATasks;
+        this.maxCPUtaskCount = limitOfTasks;
+        this.maxGPUtaskCount = limitGPUTasks;
+        this.maxFPGAtaskCount = limitFPGATasks;
         this.maxOthersTaskCount = limitOTHERTasks;
     }
 
-    public MethodWorker(String name, MethodResourceDescription description, MethodConfiguration conf, Map<String, String> sharedDisks) {
+    public MethodWorker(String name, MethodResourceDescription description, MethodConfiguration conf,
+            Map<String, String> sharedDisks) {
 
         super(name, description, conf, sharedDisks);
         this.name = name;
         this.available = new MethodResourceDescription(description); // clone
-        this.maxCPUTaskCount = conf.getLimitOfTasks();
-        this.maxGPUTaskCount = conf.getLimitOfGPUTasks();
-        this.maxFPGATaskCount = conf.getLimitOfFPGATasks();
+        this.maxCPUtaskCount = conf.getLimitOfTasks();
+        this.maxGPUtaskCount = conf.getLimitOfGPUTasks();
+        this.maxFPGAtaskCount = conf.getLimitOfFPGATasks();
         this.maxOthersTaskCount = conf.getLimitOfOTHERSTasks();
     }
 
@@ -69,12 +71,12 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
         super(mw);
         this.available = mw.available.copy();
 
-        this.maxCPUTaskCount = mw.maxCPUTaskCount;
-        this.usedCPUTaskCount = mw.usedCPUTaskCount;
-        this.maxGPUTaskCount = mw.maxGPUTaskCount;
-        this.usedGPUTaskCount = mw.usedGPUTaskCount;
-        this.maxFPGATaskCount = mw.maxFPGATaskCount;
-        this.usedFPGATaskCount = mw.usedFPGATaskCount;
+        this.maxCPUtaskCount = mw.maxCPUtaskCount;
+        this.usedCPUtaskCount = mw.usedCPUtaskCount;
+        this.maxGPUtaskCount = mw.maxGPUtaskCount;
+        this.usedGPUtaskCount = mw.usedGPUtaskCount;
+        this.maxFPGAtaskCount = mw.maxFPGAtaskCount;
+        this.usedFPGAtaskCount = mw.usedFPGAtaskCount;
         this.maxOthersTaskCount = mw.maxOthersTaskCount;
         this.usedOthersTaskCount = mw.usedOthersTaskCount;
     }
@@ -138,44 +140,45 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     @Override
     public boolean hasAvailableSlots() {
-        return ((this.usedCPUTaskCount < this.maxCPUTaskCount) || (this.usedGPUTaskCount < this.maxGPUTaskCount)
-                || (this.usedFPGATaskCount < this.maxFPGATaskCount) || (this.usedOthersTaskCount < this.maxOthersTaskCount));
+        return ((this.usedCPUtaskCount < this.maxCPUtaskCount) || (this.usedGPUtaskCount < this.maxGPUtaskCount)
+                || (this.usedFPGAtaskCount < this.maxFPGAtaskCount)
+                || (this.usedOthersTaskCount < this.maxOthersTaskCount));
     }
 
     public void setMaxCPUTaskCount(int maxCPUTaskCount) {
-        this.maxCPUTaskCount = maxCPUTaskCount;
+        this.maxCPUtaskCount = maxCPUTaskCount;
     }
 
     public int getMaxCPUTaskCount() {
-        return this.maxCPUTaskCount;
+        return this.maxCPUtaskCount;
     }
 
     public int getUsedCPUTaskCount() {
-        return this.usedCPUTaskCount;
+        return this.usedCPUtaskCount;
     }
 
     public void setMaxGPUTaskCount(int maxGPUTaskCount) {
-        this.maxGPUTaskCount = maxGPUTaskCount;
+        this.maxGPUtaskCount = maxGPUTaskCount;
     }
 
     public int getMaxGPUTaskCount() {
-        return this.maxGPUTaskCount;
+        return this.maxGPUtaskCount;
     }
 
     public int getUsedGPUTaskCount() {
-        return this.usedGPUTaskCount;
+        return this.usedGPUtaskCount;
     }
 
     public void setMaxFPGATaskCount(int maxFPGATaskCount) {
-        this.maxFPGATaskCount = maxFPGATaskCount;
+        this.maxFPGAtaskCount = maxFPGATaskCount;
     }
 
     public int getMaxFPGATaskCount() {
-        return this.maxFPGATaskCount;
+        return this.maxFPGAtaskCount;
     }
 
     public int getUsedFPGATaskCount() {
-        return this.usedFPGATaskCount;
+        return this.usedFPGAtaskCount;
     }
 
     public void setMaxOthersTaskCount(int maxOthersTaskCount) {
@@ -191,27 +194,27 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     }
 
     private void decreaseUsedCPUTaskCount() {
-        this.usedCPUTaskCount--;
+        this.usedCPUtaskCount--;
     }
 
     private void increaseUsedCPUTaskCount() {
-        this.usedCPUTaskCount++;
+        this.usedCPUtaskCount++;
     }
 
     private void decreaseUsedGPUTaskCount() {
-        this.usedGPUTaskCount--;
+        this.usedGPUtaskCount--;
     }
 
     private void increaseUsedGPUTaskCount() {
-        this.usedGPUTaskCount++;
+        this.usedGPUtaskCount++;
     }
 
     private void decreaseUsedFPGATaskCount() {
-        this.usedFPGATaskCount--;
+        this.usedFPGAtaskCount--;
     }
 
     private void increaseUsedFPGATaskCount() {
-        this.usedFPGATaskCount++;
+        this.usedFPGAtaskCount++;
     }
 
     private void decreaseUsedOthersTaskCount() {
@@ -225,9 +228,9 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     @Override
     public void resetUsedTaskCounts() {
         super.resetUsedTaskCounts();
-        usedCPUTaskCount = 0;
-        usedGPUTaskCount = 0;
-        usedFPGATaskCount = 0;
+        usedCPUtaskCount = 0;
+        usedGPUtaskCount = 0;
+        usedFPGAtaskCount = 0;
         usedOthersTaskCount = 0;
     }
 
@@ -315,7 +318,8 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
         canRun = canRun && this.getUsedCPUTaskCount() < this.getMaxCPUTaskCount() || !consumption.containsCPU();
         canRun = canRun && ((this.getUsedGPUTaskCount() < this.getMaxGPUTaskCount()) || !consumption.containsGPU());
         canRun = canRun && ((this.getUsedFPGATaskCount() < this.getMaxFPGATaskCount()) || !consumption.containsFPGA());
-        canRun = canRun && ((this.getUsedOthersTaskCount() < this.getMaxOthersTaskCount()) || !consumption.containsOthers());
+        canRun = canRun
+                && ((this.getUsedOthersTaskCount() < this.getMaxOthersTaskCount()) || !consumption.containsOthers());
         canRun = canRun && this.hasAvailable(consumption);
         return canRun;
     }
@@ -368,8 +372,10 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
         sb.append(prefix).append("TYPE = WORKER").append("\n");
         sb.append(prefix).append("CPU_COMPUTING_UNITS = ").append(description.getTotalCPUComputingUnits()).append("\n");
         sb.append(prefix).append("GPU_COMPUTING_UNITS = ").append(description.getTotalGPUComputingUnits()).append("\n");
-        sb.append(prefix).append("FPGA_COMPUTING_UNITS = ").append(description.getTotalFPGAComputingUnits()).append("\n");
-        sb.append(prefix).append("OTHER_COMPUTING_UNITS = ").append(description.getTotalFPGAComputingUnits()).append("\n");
+        sb.append(prefix).append("FPGA_COMPUTING_UNITS = ").append(description.getTotalFPGAComputingUnits())
+                .append("\n");
+        sb.append(prefix).append("OTHER_COMPUTING_UNITS = ").append(description.getTotalFPGAComputingUnits())
+                .append("\n");
         sb.append(prefix).append("MEMORY = ").append(description.getMemorySize()).append("\n");
         return sb.toString();
     }
@@ -381,7 +387,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     @Override
     public String toString() {
-        return "Worker " + description + " with usedTaskCount = " + usedCPUTaskCount + " and maxTaskCount = " + maxCPUTaskCount
-                + " with the following description " + description;
+        return "Worker " + description + " with usedTaskCount = " + usedCPUtaskCount + " and maxTaskCount = "
+                + maxCPUtaskCount + " with the following description " + description;
     }
 }

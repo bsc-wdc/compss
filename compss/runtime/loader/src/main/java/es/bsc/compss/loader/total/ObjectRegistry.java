@@ -32,13 +32,13 @@ public class ObjectRegistry {
     private LoaderAPI itApi;
     // Temporary directory where the files containing objects will be stored (same as the stream registry dir)
     private String serialDir;
-    
+
     private static final String EMPTY = "EMPTY";
     // Map: hash code -> object
     // Objects
     private Map<Integer, Object> appTaskObjects;
     private Map<Integer, Object> internalObjects;
-    
+
     private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER);
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
@@ -93,7 +93,7 @@ public class ObjectRegistry {
         newObjectAccess(o, true);
     }
 
-    private Integer getObjectHashCode(Object o){
+    private Integer getObjectHashCode(Object o) {
         int hashCode = o.hashCode();
         Object oStored = this.appTaskObjects.get(hashCode);
         while (oStored != o) {
@@ -105,16 +105,16 @@ public class ObjectRegistry {
         }
         return hashCode;
     }
-    
+
     public void newObjectAccess(Object o, boolean isWriter) {
         if (o == null) {
             return;
         }
         Integer hashCode = getObjectHashCode(o);
-        if (hashCode == null){
-             return; // Not a task parameter object
+        if (hashCode == null) {
+            return; // Not a task parameter object
         }
-        
+
         /*
          * The object has been accessed by a task before. Check with the API that the application has the last version,
          * blocking if necessary.
@@ -134,10 +134,10 @@ public class ObjectRegistry {
         if (o == null) {
             return;
         }
-        
+
         Integer hashCode = getObjectHashCode(o);
-        if (hashCode == null){
-             return; // Not a task parameter object
+        if (hashCode == null) {
+            return; // Not a task parameter object
         }
 
         /*
@@ -156,10 +156,10 @@ public class ObjectRegistry {
             return null;
         }
         Integer hashCode = getObjectHashCode(o);
-        if (hashCode == null){
-             return null; // Not a task parameter object
+        if (hashCode == null) {
+            return null; // Not a task parameter object
         }
-        
+
         Object internal = this.internalObjects.get(hashCode);
 
         /*
@@ -170,40 +170,40 @@ public class ObjectRegistry {
         }
         return internal;
     }
-    
+
     public boolean delete(Object o) {
-    	if (o == null) 
+        if (o == null)
             return false;
-    	 Integer hashCode = getObjectHashCode(o);
-         if (hashCode == null){
-              return false; // Not a task parameter object
-         }
-        
-        if (DEBUG) 
+        Integer hashCode = getObjectHashCode(o);
+        if (hashCode == null) {
+            return false; // Not a task parameter object
+        }
+
+        if (DEBUG)
             LOGGER.debug("About to remove object with hash code " + hashCode + " from object registry.");
 
         this.itApi.removeObject(o, hashCode);
-        
-    	return deleteFromInternal(hashCode) && deleteFromApps(hashCode);
+
+        return deleteFromInternal(hashCode) && deleteFromApps(hashCode);
     }
-    
+
     public boolean deleteFromInternal(int hashcode) {
-    	
-    	Object to_delete = this.internalObjects.get(hashcode);    	
-    	if (to_delete != null) {
-    		this.internalObjects.remove(hashcode);
-       		return true;
-    	}
-    	return false;
+
+        Object to_delete = this.internalObjects.get(hashcode);
+        if (to_delete != null) {
+            this.internalObjects.remove(hashcode);
+            return true;
+        }
+        return false;
     }
-    
+
     public boolean deleteFromApps(int hashcode) {
-    	Object to_delete = this.appTaskObjects.get(hashcode);
-    	if (to_delete != null) {
-    		this.appTaskObjects.put(hashcode, EMPTY);
-    		return true;
-    	}	
-    	return false;
+        Object to_delete = this.appTaskObjects.get(hashcode);
+        if (to_delete != null) {
+            this.appTaskObjects.put(hashcode, EMPTY);
+            return true;
+        }
+        return false;
     }
 
 }

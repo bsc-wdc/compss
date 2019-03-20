@@ -21,7 +21,6 @@ import es.bsc.compss.types.execution.LanguageParams;
 
 /**
  * Java related variables
- *
  */
 public class JavaParams implements LanguageParams {
 

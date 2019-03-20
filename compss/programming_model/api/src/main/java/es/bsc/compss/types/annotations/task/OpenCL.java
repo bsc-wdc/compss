@@ -32,7 +32,6 @@ import es.bsc.compss.types.annotations.task.repeatables.OpenCLs;
 @Repeatable(OpenCLs.class)
 /**
  * Methods definition
- *
  */
 public @interface OpenCL {
 

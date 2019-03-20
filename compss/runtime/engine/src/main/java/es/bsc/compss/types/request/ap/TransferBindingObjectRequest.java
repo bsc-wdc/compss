@@ -26,9 +26,9 @@ import java.util.concurrent.Semaphore;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.LogicalData;
 
+
 /**
- * The TransferObjectRequest is a request for an object contained in a remote
- * worker
+ * The TransferObjectRequest is a request for an object contained in a remote worker
  */
 public class TransferBindingObjectRequest extends APRequest {
 
@@ -49,8 +49,9 @@ public class TransferBindingObjectRequest extends APRequest {
      * LogicalData referring to the final object location
      */
     private LogicalData target;
-    
+
     private String targetName;
+
 
     /**
      * Constructs a new TransferObjectRequest
@@ -91,11 +92,9 @@ public class TransferBindingObjectRequest extends APRequest {
     }
 
     /**
-     * Sets the semaphore where to synchronize until the requested object can be
-     * read
+     * Sets the semaphore where to synchronize until the requested object can be read
      *
-     * @param sem the semaphore where to synchronize until the requested object
-     * can be read
+     * @param sem the semaphore where to synchronize until the requested object can be read
      */
     public void setSemaphore(Semaphore sem) {
         this.sem = sem;
@@ -142,15 +141,13 @@ public class TransferBindingObjectRequest extends APRequest {
         this.target = ld;
 
     }
-    
+
     public void setTargetName(String name) {
         this.targetName = name;
     }
-    
+
     public String getTargetName() {
         return this.targetName;
     }
-    
-    
 
 }

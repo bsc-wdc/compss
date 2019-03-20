@@ -24,10 +24,12 @@ import es.bsc.compss.util.ResourceManager;
 import java.util.concurrent.Semaphore;
 import java.util.List;
 
+
 public class UpdateLocalCEIRequest extends TDRequest {
 
     private final Class<?> ceiClass;
     private final Semaphore sem;
+
 
     public UpdateLocalCEIRequest(Class<?> ceiClass, Semaphore sem) {
         this.ceiClass = ceiClass;

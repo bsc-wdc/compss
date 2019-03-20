@@ -44,7 +44,6 @@ import org.json.JSONObject;
 
 
 /**
- *
  * Scheduler representation for a given worker
  *
  * @param <T>
@@ -200,11 +199,8 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     /**
      * Prepares the default profiles for each implementation cores
      *
-     * @param resMap
-     *            default profile values for the resource
-     * @param implMap
-     *            default profile values for the implementation
-     *
+     * @param resMap default profile values for the resource
+     * @param implMap default profile values for the implementation
      * @return default profile structure
      */
     protected final Profile[][] loadProfiles(JSONObject resMap, JSONObject implMap) {
@@ -428,8 +424,8 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
         if (!removed) {
             this.blocked.add(action);
         } else {
-            LOGGER.warn(
-                    "[ResourceScheduler] Blocked action " + action + " on removed resource " + getName() + ". Trying to reschedule... ");
+            LOGGER.warn("[ResourceScheduler] Blocked action " + action + " on removed resource " + getName()
+                    + ". Trying to reschedule... ");
             try {
                 unscheduleAction(action);
                 action.schedule(generateBlockedScore(action));
@@ -468,7 +464,6 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
 
     /**
      * Removes the first blocked action
-     *
      */
     public final void removeFirstBlocked() {
         this.blocked.poll();
@@ -476,7 +471,6 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
 
     /**
      * Tries to launch blocked actions on resource. When an action cannot be launched, its successors are not tried
-     *
      */
     @SuppressWarnings("unchecked")
     public final void tryToLaunchBlockedActions() {
@@ -484,7 +478,8 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
         while (this.hasBlockedActions()) {
             AllocatableAction firstBlocked = this.getFirstBlocked();
             Implementation selectedImplementation = firstBlocked.getAssignedImplementation();
-            if (!firstBlocked.isToReserveResources() || myWorker.canRunNow((T) selectedImplementation.getRequirements())) {
+            if (!firstBlocked.isToReserveResources()
+                    || myWorker.canRunNow((T) selectedImplementation.getRequirements())) {
                 try {
                     firstBlocked.resumeExecution();
                     this.removeFirstBlocked();
@@ -583,7 +578,8 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * @return
      */
     @SuppressWarnings("unchecked")
-    public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl, Score resourceScore) {
+    public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl,
+            Score resourceScore) {
         // LOGGER.debug("[ResourceScheduler] Generate implementation score for action " + action);
         long actionPriority = resourceScore.getActionScore();
         long resourcePriority = resourceScore.getResourceScore();
@@ -602,7 +598,6 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      */
     /**
      * Clear internal structures
-     *
      */
     public void clear() {
         LOGGER.debug("[ResourceScheduler] Clear resource scheduler " + getName());

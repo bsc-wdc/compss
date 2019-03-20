@@ -38,8 +38,8 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
         super();
     }
 
-    public MPIImplementation(String binary, String workingDir, String mpiRunner, Integer coreId, Integer implementationId,
-            MethodResourceDescription annot) {
+    public MPIImplementation(String binary, String workingDir, String mpiRunner, Integer coreId,
+            Integer implementationId, MethodResourceDescription annot) {
 
         super(coreId, implementationId, annot);
 

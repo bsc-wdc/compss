@@ -39,7 +39,8 @@ public class OpenCLInvoker extends Invoker {
         try {
             openclImpl = (OpenCLImplementation) this.invocation.getMethodImplementation();
         } catch (Exception e) {
-            throw new JobExecutionException(ERROR_METHOD_DEFINITION + this.invocation.getMethodImplementation().getMethodType(), e);
+            throw new JobExecutionException(
+                    ERROR_METHOD_DEFINITION + this.invocation.getMethodImplementation().getMethodType(), e);
         }
         this.kernel = openclImpl.getKernel();
     }

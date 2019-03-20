@@ -16,42 +16,40 @@
  */
 package es.bsc.compss.executor.external.commands;
 
-
 public interface ExternalCommand {
 
     public static enum CommandType {
-        
-        PING, PONG,         // Test the communication channel
-        QUIT,               // Finish execution
-        
-        //REQUIRED BY THE CHANNEL BUILDER MANAGER
-        START_WORKER,       // Request to start the worker 
-        WORKER_STARTED,     // Notification that worker is ready
-        GET_ALIVE,          // Request alive subcomponents
-        ALIVE_REPLY,        // Notification with alive subcomponents    
-        CREATE_CHANNEL,     // Request the creation of the communication channel
-        CHANNEL_CREATED,    // Notify the creation of the communciation channel
-        
-        //REQUIRED BY THE WORKER
-        ADD_EXECUTOR,       // Add new executor
-        ADDED_EXECUTOR,     // Added new executor
-        QUERY_EXECUTOR_ID,  // Query the pid of the process hosting the 
-        REPLY_EXECUTOR_ID,  // Response to the executor pid query
-        REMOVE_EXECUTOR,    // Remove executor
-        REMOVED_EXECUTOR,   // Removed executor
+        PING, PONG, // Test the communication channel
+        QUIT, // Finish execution
 
-        
-        //REQUIRED BY THE EXECUTOR
-        EXECUTE_TASK,       // Execute a task
-        END_TASK,           // Task finished
-        
-        
-        REMOVE,             // Remove data
-        SERIALIZE,          // Serialize data
-        ERROR,               // Error         
+        // REQUIRED BY THE CHANNEL BUILDER MANAGER
+        START_WORKER, // Request to start the worker
+        WORKER_STARTED, // Notification that worker is ready
+        GET_ALIVE, // Request alive subcomponents
+        ALIVE_REPLY, // Notification with alive subcomponents
+        CREATE_CHANNEL, // Request the creation of the communication channel
+        CHANNEL_CREATED, // Notify the creation of the communciation channel
+
+        // REQUIRED BY THE WORKER
+        ADD_EXECUTOR, // Add new executor
+        ADDED_EXECUTOR, // Added new executor
+        QUERY_EXECUTOR_ID, // Query the pid of the process hosting the
+        REPLY_EXECUTOR_ID, // Response to the executor pid query
+        REMOVE_EXECUTOR, // Remove executor
+        REMOVED_EXECUTOR, // Removed executor
+
+        // REQUIRED BY THE EXECUTOR
+        EXECUTE_TASK, // Execute a task
+        END_TASK, // Task finished
+
+        REMOVE, // Remove data
+        SERIALIZE, // Serialize data
+        ERROR, // Error
     }
 
+
     public static final String TOKEN_SEP = " ";
+
 
     public CommandType getType();
 

@@ -31,7 +31,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Representation of a Task
- *
  */
 public class Task implements Comparable<Task> {
 
@@ -42,7 +41,6 @@ public class Task implements Comparable<Task> {
 
     /**
      * Task states
-     *
      */
     public enum TaskState {
         TO_ANALYSE, // Task is beeing analysed
@@ -50,6 +48,7 @@ public class Task implements Comparable<Task> {
         FINISHED, // Task has finished successfully
         FAILED // Task has failed
     }
+
 
     // Task fields
     private final long appId;
@@ -74,6 +73,7 @@ public class Task implements Comparable<Task> {
     // Task Monitor
     private final TaskMonitor taskMonitor;
 
+
     /**
      * Creates a new METHOD task with the given parameters
      *
@@ -89,12 +89,13 @@ public class Task implements Comparable<Task> {
      * @param parameters
      * @param monitor
      */
-    public Task(Long appId, Lang lang, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-            boolean hasTarget, int numReturns, Parameter[] parameters, TaskMonitor monitor) {
+    public Task(Long appId, Lang lang, String signature, boolean isPrioritary, int numNodes, boolean isReplicated,
+            boolean isDistributed, boolean hasTarget, int numReturns, Parameter[] parameters, TaskMonitor monitor) {
         this.appId = appId;
         this.taskId = nextTaskId.getAndIncrement();
         this.status = TaskState.TO_ANALYSE;
-        this.taskDescription = new TaskDescription(lang, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns, parameters);
+        this.taskDescription = new TaskDescription(lang, signature, isPrioritary, numNodes, isReplicated, isDistributed,
+                hasTarget, numReturns, parameters);
         this.predecessors = new LinkedList<>();
         this.successors = new LinkedList<>();
         this.executions = new LinkedList<>();
@@ -115,12 +116,13 @@ public class Task implements Comparable<Task> {
      * @param parameters
      * @param monitor
      */
-    public Task(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary, boolean hasTarget,
-            int numReturns, Parameter[] parameters, TaskMonitor monitor) {
+    public Task(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary,
+            boolean hasTarget, int numReturns, Parameter[] parameters, TaskMonitor monitor) {
         this.appId = appId;
         this.taskId = nextTaskId.getAndIncrement();
         this.status = TaskState.TO_ANALYSE;
-        this.taskDescription = new TaskDescription(namespace, service, port, operation, isPrioritary, hasTarget, numReturns, parameters);
+        this.taskDescription = new TaskDescription(namespace, service, port, operation, isPrioritary, hasTarget,
+                numReturns, parameters);
         this.predecessors = new LinkedList<>();
         this.successors = new LinkedList<>();
         this.executions = new LinkedList<>();
@@ -148,11 +150,10 @@ public class Task implements Comparable<Task> {
 
     /**
      * Release all the tasks that are data dependent to this task
-     *
      */
     public void releaseDataDependents() {
         for (Task t : this.successors) {
-            synchronized(t){
+            synchronized (t) {
                 t.predecessors.remove(this);
             }
         }
@@ -260,7 +261,6 @@ public class Task implements Comparable<Task> {
 
     /**
      * Decreases the execution count of the task
-     *
      */
     public void decreaseExecutionCount() {
         --this.executionCount;
@@ -317,8 +317,8 @@ public class Task implements Comparable<Task> {
         }
         // TODO: Future Shapes "triangle" "square" "pentagon"
 
-        return getId() + "[shape=" + shape + ", " + "style=filled fillcolor=\"" + color.getFillColor() + "\" fontcolor=\""
-                + color.getFontColor() + "\"];";
+        return getId() + "[shape=" + shape + ", " + "style=filled fillcolor=\"" + color.getFillColor()
+                + "\" fontcolor=\"" + color.getFontColor() + "\"];";
     }
 
     /**

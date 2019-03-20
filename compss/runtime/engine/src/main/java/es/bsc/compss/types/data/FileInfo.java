@@ -71,7 +71,8 @@ public class FileInfo extends DataInfo {
                                 Files.move(new File(uri.getPath()).toPath(), new File(newPath).toPath(),
                                         StandardCopyOption.REPLACE_EXISTING);
                             } catch (IOException e) {
-                                ErrorManager.warn("File " + uri.getPath() + " cannot be moved to " + newPath + "Reason: " + e.getMessage());
+                                ErrorManager.warn("File " + uri.getPath() + " cannot be moved to " + newPath
+                                        + "Reason: " + e.getMessage());
                             }
                         }
 

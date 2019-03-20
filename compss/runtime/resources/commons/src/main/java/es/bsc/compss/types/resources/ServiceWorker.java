@@ -19,9 +19,11 @@ package es.bsc.compss.types.resources;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.configuration.ServiceConfiguration;
 
+
 public class ServiceWorker extends Worker<ServiceResourceDescription> {
 
     private String wsdl;
+
 
     public ServiceWorker(String wsdl, ServiceResourceDescription description, ServiceConfiguration conf) {
         super(wsdl, description, conf, null);
@@ -67,7 +69,7 @@ public class ServiceWorker extends Worker<ServiceResourceDescription> {
     public boolean hasAvailable(ServiceResourceDescription consumption) {
         return true;
     }
-    
+
     @Override
     public boolean hasAvailableSlots() {
         return true;

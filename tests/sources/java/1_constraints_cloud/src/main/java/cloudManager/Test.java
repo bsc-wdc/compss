@@ -66,7 +66,8 @@ public class Test {
                         System.out.println("\t\t\t Checking compatible Image: " + cid_gci.getImageName());
                         String res = checkImplementationAssignedToCloudImage(mImpl.getRequirements(), cid_gci);
                         if (res != null) {
-                            String error = "[ERROR] Implementation: Core = " + coreId + " Impl = " + impl.getImplementationId() + ". ";
+                            String error = "[ERROR] Implementation: Core = " + coreId + " Impl = "
+                                    + impl.getImplementationId() + ". ";
                             error = error.concat("Implementation and cloud image not matching on: " + res);
                             System.out.println(error);
                             System.exit(-1);
@@ -79,9 +80,11 @@ public class Test {
                             continue;
                         }
                         System.out.println("\t\t\t Checking compatible Type: " + type.getName());
-                        String res = checkImplementationAssignedToType(mImpl.getRequirements(), type.getResourceDescription());
+                        String res = checkImplementationAssignedToType(mImpl.getRequirements(),
+                                type.getResourceDescription());
                         if (res != null) {
-                            String error = "[ERROR] Implementation: Core = " + coreId + " Impl = " + impl.getImplementationId() + ". ";
+                            String error = "[ERROR] Implementation: Core = " + coreId + " Impl = "
+                                    + impl.getImplementationId() + ". ";
                             error = error.concat("Implementation and type not matching on: " + res);
                             System.out.println(error);
                             System.exit(-1);
@@ -95,7 +98,8 @@ public class Test {
         System.out.println("[LOG] * CloudManager test passed");
     }
 
-    private static String checkImplementationAssignedToCloudImage(MethodResourceDescription rd, CloudImageDescription cid) {
+    private static String checkImplementationAssignedToCloudImage(MethodResourceDescription rd,
+            CloudImageDescription cid) {
         // Check Operating System
         if ((!cid.getOperatingSystemType().equals(MethodResourceDescription.UNASSIGNED_STR))
                 && (!rd.getOperatingSystemType().equals(MethodResourceDescription.UNASSIGNED_STR))
@@ -122,7 +126,8 @@ public class Test {
         return null;
     }
 
-    private static String checkImplementationAssignedToType(MethodResourceDescription rdImpl, MethodResourceDescription rdType) {
+    private static String checkImplementationAssignedToType(MethodResourceDescription rdImpl,
+            MethodResourceDescription rdType) {
         /*
          * *********************************************** COMPUTING UNITS
          ***********************************************/
@@ -141,12 +146,14 @@ public class Test {
             for (Processor wp : rdType.getProcessors()) {
                 // Static checks
                 if (!ip.getName().equals(MethodResourceDescription.UNASSIGNED_STR)
-                        && !wp.getName().equals(MethodResourceDescription.UNASSIGNED_STR) && !wp.getName().equals(ip.getName())) {
+                        && !wp.getName().equals(MethodResourceDescription.UNASSIGNED_STR)
+                        && !wp.getName().equals(ip.getName())) {
                     // System.out.println("DUE TO: " + ip.getName() + " != " + wp.getName());
                     continue;
                 }
                 if (ip.getSpeed() != MethodResourceDescription.UNASSIGNED_FLOAT
-                        && wp.getSpeed() != MethodResourceDescription.UNASSIGNED_FLOAT && wp.getSpeed() < ip.getSpeed()) {
+                        && wp.getSpeed() != MethodResourceDescription.UNASSIGNED_FLOAT
+                        && wp.getSpeed() < ip.getSpeed()) {
                     // System.out.println("DUE TO: " + ip.getSpeed() + " != " + wp.getSpeed());
                     continue;
                 }

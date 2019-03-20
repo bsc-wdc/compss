@@ -23,7 +23,7 @@ public class Pair implements Serializable {
         this.x = x;
         this.y = y;
     }
-    
+
     public Pair(Pair p) {
         this.x = p.getX();
         this.y = p.getY();

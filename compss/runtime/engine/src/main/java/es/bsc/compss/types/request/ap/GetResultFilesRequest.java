@@ -27,12 +27,14 @@ import es.bsc.compss.types.data.ResultFile;
 import es.bsc.compss.types.data.operation.ResultListener;
 import java.util.TreeSet;
 
+
 public class GetResultFilesRequest extends APRequest {
 
     private Long appId;
     private Semaphore sem;
 
     private LinkedList<ResultFile> blockedData;
+
 
     public GetResultFilesRequest(Long appId, Semaphore sem) {
         this.appId = appId;

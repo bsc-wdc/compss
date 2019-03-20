@@ -24,10 +24,8 @@ import java.io.File;
 
 public class Delete extends DataOperation {
 
-
-
-
     protected File file;
+
 
     public Delete(File file, EventListener listener) {
         super(null, listener);

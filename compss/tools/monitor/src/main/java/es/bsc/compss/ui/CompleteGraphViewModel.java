@@ -32,9 +32,9 @@ import es.bsc.compss.exceptions.EmptyCompleteGraphException;
 
 
 public class CompleteGraphViewModel {
-    
+
     private static final long COMPLETE_GRAPH_EMPTY_SIZE = 738;
-    
+
     private static final Logger logger = LogManager.getLogger(Loggers.UI_VM_GRAPH);
 
     private String completeGraph;
@@ -54,7 +54,7 @@ public class CompleteGraphViewModel {
     @Command
     public void download() {
         try {
-            if ((completeGraph.equals(Constants.GRAPH_NOT_FOUND_PATH)) 
+            if ((completeGraph.equals(Constants.GRAPH_NOT_FOUND_PATH))
                     || (completeGraph.equals(Constants.GRAPH_EXECUTION_DONE_PATH))
                     || (completeGraph.equals(Constants.UNSELECTED_GRAPH_PATH))
                     || (completeGraph.equals(Constants.EMPTY_GRAPH_PATH))) {
@@ -110,19 +110,20 @@ public class CompleteGraphViewModel {
         completeGraphLastUpdateTime = "";
     }
 
-    private String loadGraph(String location, String target) throws EmptyCompleteGraphException, IOException, InterruptedException {
+    private String loadGraph(String location, String target)
+            throws EmptyCompleteGraphException, IOException, InterruptedException {
         if (logger.isDebugEnabled()) {
             logger.debug("Loading Graph...");
             logger.debug("   - Monitoring source: " + location);
             logger.debug("   - Monitoring target: " + target);
         }
         // Create SVG
-        String targetFullPath = System.getProperty("catalina.base") + File.separator + "webapps" + File.separator 
+        String targetFullPath = System.getProperty("catalina.base") + File.separator + "webapps" + File.separator
                 + "compss-monitor" + File.separator + target;
         String[] createSVG = { "/bin/bash", "-c", "dot -T svg -Gnewrank=true " + location + " > " + targetFullPath };
         Process p1 = Runtime.getRuntime().exec(createSVG);
         p1.waitFor();
-        
+
         // If the complete graph is empty, throw exception to load empty graph image
         File graphFile = new File(targetFullPath);
         if (!graphFile.exists() || graphFile.length() <= COMPLETE_GRAPH_EMPTY_SIZE) {

@@ -28,6 +28,6 @@ public class PongPipeCommand extends PongExternalCommand implements PipeCommand 
 
     @Override
     public void join(PipeCommand receivedCommand) {
-        //Do nothing
+        // Do nothing
     }
 }

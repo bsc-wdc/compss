@@ -24,7 +24,6 @@ import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUn
 /**
  * Class to bind the threads to the resource (which is supposed to have as many cores as the given computing Units of
  * the resource).
- *
  */
 public class BindToResource implements ThreadBinder {
 
@@ -67,9 +66,7 @@ public class BindToResource implements ThreadBinder {
                 // Raise exception
                 if (numAssignedCores != numCUs) {
                     releaseComputingUnits(jobId);
-                    throw new UnsufficientAvailableComputingUnitsException(
-                            UNSUFFICIENT_CUS
-                    );
+                    throw new UnsufficientAvailableComputingUnitsException(UNSUFFICIENT_CUS);
                 }
             }
         }

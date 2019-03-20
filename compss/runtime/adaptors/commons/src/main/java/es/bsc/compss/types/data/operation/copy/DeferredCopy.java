@@ -24,15 +24,15 @@ import es.bsc.compss.types.data.location.DataLocation;
 
 public class DeferredCopy extends Copy {
 
-    public DeferredCopy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData, Transferable reason,
-            EventListener listener) {
+    public DeferredCopy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData,
+            Transferable reason, EventListener listener) {
 
         super(srcData, prefSrc, prefTgt, tgtData, reason, listener);
     }
 
     @Override
     public void perform() {
-        //No need to do anything. Will be performed later on.
+        // No need to do anything. Will be performed later on.
     }
 
 }

@@ -89,7 +89,8 @@ public class UserCredential {
             String[] cmd = { File.separator + "bin" + File.separator + "sh", "-c", "echo ~" + username };
             // Execute command
             try {
-                String userHome = new BufferedReader(new InputStreamReader(Runtime.getRuntime().exec(cmd).getInputStream())).readLine();
+                String userHome = new BufferedReader(
+                        new InputStreamReader(Runtime.getRuntime().exec(cmd).getInputStream())).readLine();
                 if (userHome != null) {
                     if (!userHome.isEmpty()) {
                         if (userHome.startsWith(File.separator)) {

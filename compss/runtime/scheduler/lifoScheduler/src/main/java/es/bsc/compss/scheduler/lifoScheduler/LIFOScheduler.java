@@ -27,16 +27,14 @@ import java.util.List;
 
 import org.json.JSONObject;
 
+
 /**
- * Representation of a Scheduler that considers only ready tasks and sorts them
- * in LIFO mode
- *
+ * Representation of a Scheduler that considers only ready tasks and sorts them in LIFO mode
  */
 public class LIFOScheduler extends ReadyScheduler {
 
     /**
      * Constructs a new Ready Scheduler instance
-     *
      */
     public LIFOScheduler() {
         super();
@@ -50,7 +48,8 @@ public class LIFOScheduler extends ReadyScheduler {
      * *********************************************************************************************************
      */
     @Override
-    public <T extends WorkerResourceDescription> LIFOResourceScheduler<T> generateSchedulerForResource(Worker<T> w, JSONObject resJSON, JSONObject implJSON) {
+    public <T extends WorkerResourceDescription> LIFOResourceScheduler<T> generateSchedulerForResource(Worker<T> w,
+            JSONObject resJSON, JSONObject implJSON) {
         // LOGGER.info("[LIFOScheduler] Generate scheduler for resource " + w.getName());
         return new LIFOResourceScheduler<>(w, resJSON, implJSON);
     }
@@ -70,7 +69,8 @@ public class LIFOScheduler extends ReadyScheduler {
      */
     @Override
     public <T extends WorkerResourceDescription> void purgeFreeActions(List<AllocatableAction> dataFreeActions,
-            List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
+            List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates,
+            ResourceScheduler<T> resource) {
 
         List<AllocatableAction> unassignedReadyActions = this.unassignedReadyActions.removeAllActions();
         dataFreeActions.addAll(unassignedReadyActions);

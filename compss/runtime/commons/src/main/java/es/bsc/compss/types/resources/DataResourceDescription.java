@@ -25,7 +25,6 @@ import es.bsc.compss.types.implementations.Implementation;
 
 /**
  * Data Node representation
- *
  */
 public class DataResourceDescription extends ResourceDescription {
 
@@ -42,9 +41,9 @@ public class DataResourceDescription extends ResourceDescription {
     protected float storageSize = UNASSIGNED_FLOAT;
     protected String storageType = UNASSIGNED_STR;
 
+
     /**
      * New empty data Resource Description
-     *
      */
     public DataResourceDescription() {
         // Only for externalization

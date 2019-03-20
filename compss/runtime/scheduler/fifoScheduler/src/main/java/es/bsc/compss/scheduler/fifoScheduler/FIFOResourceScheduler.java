@@ -70,7 +70,8 @@ public class FIFOResourceScheduler<T extends WorkerResourceDescription> extends 
 
     @SuppressWarnings("unchecked")
     @Override
-    public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl, Score resourceScore) {
+    public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl,
+            Score resourceScore) {
         // LOGGER.debug("[FIFOResourceScheduler] Generate implementation score for action " + action);
         if (this.hasBlockedActions()) {
             // Added for scale-down: In readyScheduler, should disable the node for scheduling more tasks? 

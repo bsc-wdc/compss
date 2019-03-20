@@ -42,7 +42,8 @@ public class AddOrchestration {
     private static final Logger logger = LogManager.getLogger(Loggers.LOADER);
 
 
-    public static void main(String[] args) throws NotFoundException, NameNotFoundException, CannotCompileException, IOException {
+    public static void main(String[] args)
+            throws NotFoundException, NameNotFoundException, CannotCompileException, IOException {
         if (args.length < 2) {
             ErrorManager.fatal("Error: missing arguments for loader");
         }
@@ -89,7 +90,8 @@ public class AddOrchestration {
          */
     }
 
-    private static CtClass[] getParamClasses(String label, ClassPool pool) throws NotFoundException, NameNotFoundException {
+    private static CtClass[] getParamClasses(String label, ClassPool pool)
+            throws NotFoundException, NameNotFoundException {
         List<CtClass> classes = new LinkedList<>();
         List<String> params = getParametersTypeFromLabel(label);
         if (params != null && params.size() > 0) {

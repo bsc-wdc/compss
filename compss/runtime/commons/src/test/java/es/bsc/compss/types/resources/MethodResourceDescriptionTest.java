@@ -29,17 +29,15 @@ import es.bsc.compss.types.resources.components.Processor;
 public class MethodResourceDescriptionTest {
 
     private static final String constraints1 = "ProcessorArchitecture:${processorArchitecture};ComputingUnits:${cu};"
-            + "processors : ["
-            + "{processorType : GPU, ComputingUnits : 3, processorInternalMemorySize:20}, "
-            + "{processorType : FPGA, ComputingUnits : 4}"
-            + "];"
+            + "processors : [" + "{processorType : GPU, ComputingUnits : 3, processorInternalMemorySize:20}, "
+            + "{processorType : FPGA, ComputingUnits : 4}" + "];"
             + "WallClockLimit:30;OperatingSystemType:Linux;hostQueues:debug;"
             + "memorySize:20;ProcessorName:Big;ProcessorSpeed:2.3f;StorageSize:100;AppSoftware:Paraver;";
 
     private static final String constraints2 = "processors : ["
             + "{processorType : GPU, ComputingUnits : 1, processorInternalMemorySize:20},"
             + "{processorType : CPU, ComputingUnits : 8}];";
-    
+
     @ClassRule
     public static final EnvironmentVariables ENVIRONMENT_VARIABLES = new EnvironmentVariables();
 

@@ -40,8 +40,8 @@ public class FakeInvocationParam implements InvocationParam {
     private final String dataMgmtId;
 
 
-    public FakeInvocationParam(DataType type, String prefix, String name, Stream stream, String originalName, String dataMgmtId,
-            boolean writeFinalValue) {
+    public FakeInvocationParam(DataType type, String prefix, String name, Stream stream, String originalName,
+            String dataMgmtId, boolean writeFinalValue) {
         this.type = type;
         this.prefix = prefix;
         this.name = name;
@@ -95,7 +95,7 @@ public class FakeInvocationParam implements InvocationParam {
     public void setOriginalName(String originalName) {
         this.originalName = originalName;
     }
-    
+
     @Override
     public String getRenamedName() {
         return this.renamedName;

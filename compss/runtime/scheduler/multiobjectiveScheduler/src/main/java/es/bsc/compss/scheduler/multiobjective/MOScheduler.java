@@ -45,8 +45,8 @@ public class MOScheduler extends TaskScheduler {
     }
 
     @Override
-    public <T extends WorkerResourceDescription> MOResourceScheduler<T> generateSchedulerForResource(Worker<T> w, JSONObject res,
-            JSONObject impls) {
+    public <T extends WorkerResourceDescription> MOResourceScheduler<T> generateSchedulerForResource(Worker<T> w,
+            JSONObject res, JSONObject impls) {
         // LOGGER.debug("[LoadBalancingScheduler] Generate scheduler for resource " + w.getName());
         return new MOResourceScheduler<>(w, res, impls);
     }
@@ -73,19 +73,13 @@ public class MOScheduler extends TaskScheduler {
         super.shutdown();
         /*
          * Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers = this.getWorkers();
-         * System.out.println("End Profiles:");
-         * for (ResourceScheduler<?> worker : workers) {
-         *      System.out.println("\t" +         * worker.getName());
-         *      for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
-         *          for (Implementation impl : CoreManager.getCoreImplementations(coreId)) {
-         *              System.out.println("\t\t" + CoreManager.getSignature(coreId, impl.getImplementationId()));
-         *              MOProfile profile = (MOProfile) worker.getProfile(impl);
-         *              System.out.println("\t\t\tTime " + profile.getAverageExecutionTime() + " ms");
-         *              System.out.println("\t\t\tPower " + profile.getPower() + " W");
-         *              System.out.println("\t\t\tCost " + profile.getPrice() + " €"); 
-         *          }
-         *      }
-         *  }
+         * System.out.println("End Profiles:"); for (ResourceScheduler<?> worker : workers) { System.out.println("\t" +
+         * * worker.getName()); for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) { for
+         * (Implementation impl : CoreManager.getCoreImplementations(coreId)) { System.out.println("\t\t" +
+         * CoreManager.getSignature(coreId, impl.getImplementationId())); MOProfile profile = (MOProfile)
+         * worker.getProfile(impl); System.out.println("\t\t\tTime " + profile.getAverageExecutionTime() + " ms");
+         * System.out.println("\t\t\tPower " + profile.getPower() + " W"); System.out.println("\t\t\tCost " +
+         * profile.getPrice() + " €"); } } }
          */
     }
 
@@ -103,18 +97,15 @@ public class MOScheduler extends TaskScheduler {
      * Notifies to the scheduler that some actions have become free of data dependencies or resource dependencies.
      *
      * @param <T>
-     * @param dataFreeActions
-     *            IN, list of actions free of data dependencies
-     * @param resourceFreeActions
-     *            IN, list of actions free of resource dependencies
-     * @param blockedCandidates
-     *            OUT, list of blocked candidates
-     * @param resource
-     *            Resource where the previous task was executed
+     * @param dataFreeActions IN, list of actions free of data dependencies
+     * @param resourceFreeActions IN, list of actions free of resource dependencies
+     * @param blockedCandidates OUT, list of blocked candidates
+     * @param resource Resource where the previous task was executed
      */
     @Override
-    public <T extends WorkerResourceDescription> void handleDependencyFreeActions(List<AllocatableAction> dataFreeActions,
-            List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
+    public <T extends WorkerResourceDescription> void handleDependencyFreeActions(
+            List<AllocatableAction> dataFreeActions, List<AllocatableAction> resourceFreeActions,
+            List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
         LOGGER.debug("[MOScheduler] Treating dependency free actions on resource " + resource.getName());
         for (AllocatableAction freeAction : dataFreeActions) {
             tryToLaunch(freeAction);

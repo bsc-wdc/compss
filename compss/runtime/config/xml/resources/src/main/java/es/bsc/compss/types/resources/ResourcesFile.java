@@ -59,9 +59,10 @@ public class ResourcesFile {
     // Logger
     private Logger logger;
 
+
     /*
-	 * ************************************** CONSTRUCTORS
-	 **************************************/
+     * ************************************** CONSTRUCTORS
+     **************************************/
     /**
      * Creates a ResourceFile instance from a given XML file. The XML is validated against the given schema and
      * internally validated
@@ -230,8 +231,8 @@ public class ResourcesFile {
     }
 
     /*
-	 * ************************************** DUMPERS
-	 **************************************/
+     * ************************************** DUMPERS
+     **************************************/
     /**
      * Stores the current ResourceList object to the given file
      *
@@ -269,8 +270,8 @@ public class ResourcesFile {
     }
 
     /*
-	 * ************************************** GETTERS: MAIN ELEMENTS LISTS
-	 **************************************/
+     * ************************************** GETTERS: MAIN ELEMENTS LISTS
+     **************************************/
     /**
      * Returns the JAXB class representing the all XML file content
      *
@@ -376,8 +377,8 @@ public class ResourcesFile {
     }
 
     /*
-	 * ************************************** GETTERS: MAIN ELEMENTS HASH-MAPS
-	 **************************************/
+     * ************************************** GETTERS: MAIN ELEMENTS HASH-MAPS
+     **************************************/
     /**
      * Returns a HashMap of declared Shared Disks (Key: Name, Value: SD)
      *
@@ -531,9 +532,8 @@ public class ResourcesFile {
     }
 
     /*
-	 * ************************************** GETTERS: MAIN ELEMENTS KEY-VALUES
-	 * (NAME)
-	 **************************************/
+     * ************************************** GETTERS: MAIN ELEMENTS KEY-VALUES (NAME)
+     **************************************/
     /**
      * Returns a List of the names of the declared SharedDisks
      *
@@ -652,8 +652,8 @@ public class ResourcesFile {
     }
 
     /*
-	 * ************************************** GETTERS: MAIN ELEMENTS SINGLE
-	 **************************************/
+     * ************************************** GETTERS: MAIN ELEMENTS SINGLE
+     **************************************/
     /**
      * Returns the SharedDisk with name=@name. Null if name doesn't exist
      *
@@ -1803,8 +1803,7 @@ public class ResourcesFile {
     }
 
     /*
-	 * ************************************** ADDERS: MAIN ELEMENTS
-	 * *************************************
+     * ************************************** ADDERS: MAIN ELEMENTS *************************************
      */
     /**
      * Adds the given SharedDisk @sd to the resources file
@@ -2620,9 +2619,8 @@ public class ResourcesFile {
     }
 
     /*
-	 * ************************************** SETTERS: HELPERS FOR SECOND LEVEL
-	 * ELEMENTS
-	 **************************************/
+     * ************************************** SETTERS: HELPERS FOR SECOND LEVEL ELEMENTS
+     **************************************/
     /**
      * Creates a Processor element
      *
@@ -2853,8 +2851,8 @@ public class ResourcesFile {
         AdaptorType adaptor = new AdaptorType();
         adaptor.setName(name);
 
-        JAXBElement<SubmissionSystemType> subsysElement = new JAXBElement<>(
-                new QName("SubmissionSystem"), SubmissionSystemType.class, subsys);
+        JAXBElement<SubmissionSystemType> subsysElement = new JAXBElement<>(new QName("SubmissionSystem"),
+                SubmissionSystemType.class, subsys);
         adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(subsysElement);
 
         JAXBElement<ResourcesNIOAdaptorProperties> propertiesElement = new JAXBElement<>(new QName("Ports"),
@@ -2919,8 +2917,8 @@ public class ResourcesFile {
                 new QName("SubmissionSystem"), SubmissionSystemType.class, subsys);
         adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(subsysElement);
 
-        JAXBElement<ResourcesExternalAdaptorProperties> propertiesElement = new JAXBElement<>(
-                new QName("Properties"), ResourcesExternalAdaptorProperties.class, externalproperties);
+        JAXBElement<ResourcesExternalAdaptorProperties> propertiesElement = new JAXBElement<>(new QName("Properties"),
+                ResourcesExternalAdaptorProperties.class, externalproperties);
         adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(propertiesElement);
 
         // Optional parameters
@@ -2956,8 +2954,8 @@ public class ResourcesFile {
                 externalproperties_list.getProperty().add(pa);
             }
         }
-        JAXBElement<ResourcesExternalAdaptorProperties> propertiesElement = new JAXBElement<>(
-                new QName("Properties"), ResourcesExternalAdaptorProperties.class, externalproperties_list);
+        JAXBElement<ResourcesExternalAdaptorProperties> propertiesElement = new JAXBElement<>(new QName("Properties"),
+                ResourcesExternalAdaptorProperties.class, externalproperties_list);
         adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(propertiesElement);
 
         // Optional parameters
@@ -3101,7 +3099,6 @@ public class ResourcesFile {
      * Adds the given image @image to the cloudProvider with name =
      *
      * @cloudProviderName Returns true if image is inserted, false otherwise
-     *
      * @param cloudProviderName
      * @param image
      * @return
@@ -3123,7 +3120,6 @@ public class ResourcesFile {
      * Adds the given instance @instance to the cloudProvider with name =
      *
      * @cloudProviderName Returns true if instance is inserted, false otherwise
-     *
      * @param cloudProviderName
      * @param instance
      * @return
@@ -3183,9 +3179,8 @@ public class ResourcesFile {
     }
 
     /*
-	 * ************************************** GETTERS: HELPERS FOR SECOND LEVEL
-	 * ELEMENTS
-	 **************************************/
+     * ************************************** GETTERS: HELPERS FOR SECOND LEVEL ELEMENTS
+     **************************************/
     /**
      * Returns the number of Compunting Units of a given processor @p
      *
@@ -3299,8 +3294,8 @@ public class ResourcesFile {
     }
 
     /*
-	 * ************************************** DELETERS: MAIN ELEMENTS
-	 **************************************/
+     * ************************************** DELETERS: MAIN ELEMENTS
+     **************************************/
     /**
      * Deletes the SharedDisk with name=@name Returns true if deletion is successfull, false otherwise
      *
@@ -3422,8 +3417,8 @@ public class ResourcesFile {
     }
 
     /*
-	 * ************************************** PRIVATE METHODS FOR CALCULATION
-	 **************************************/
+     * ************************************** PRIVATE METHODS FOR CALCULATION
+     **************************************/
     private float getStorageSize(StorageType storage) {
         List<Serializable> storageProps = storage.getSizeOrType();
         if (storageProps != null) {

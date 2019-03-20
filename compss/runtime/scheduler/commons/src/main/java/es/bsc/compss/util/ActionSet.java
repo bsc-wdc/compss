@@ -44,7 +44,7 @@ public class ActionSet {
             this.coreIndexed[coreId] = new LinkedList<>();
             this.counts[coreId] = 0;
         }
-        totalActions=0;
+        totalActions = 0;
     }
 
     @SuppressWarnings("unchecked")
@@ -86,7 +86,7 @@ public class ActionSet {
     public int getNumberTotalActions() {
         return this.totalActions;
     }
-    
+
     public int[] getActionCounts() {
         return this.counts;
     }
@@ -138,7 +138,7 @@ public class ActionSet {
             totalActions = totalActions - this.counts[core];
             this.coreIndexed[core] = new LinkedList<>();
             this.counts[core] = 0;
-            
+
         }
         return runnable;
     }
@@ -166,7 +166,8 @@ public class ActionSet {
         StringBuilder sb = new StringBuilder(super.toString() + "\n");
         sb.append("no Core (").append(noCore.size()).append(")-> ").append(noCore).append("\n");
         for (int coreId = 0; coreId < coreIndexed.length; coreId++) {
-            sb.append("Core ").append(coreId).append(" (").append(counts[coreId]).append(") -> ").append(coreIndexed[coreId]).append("\n");
+            sb.append("Core ").append(coreId).append(" (").append(counts[coreId]).append(") -> ")
+                    .append(coreIndexed[coreId]).append("\n");
         }
 
         return sb.toString();

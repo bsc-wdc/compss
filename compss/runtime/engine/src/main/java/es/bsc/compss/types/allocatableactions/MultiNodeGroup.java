@@ -26,9 +26,9 @@ import org.apache.logging.log4j.Logger;
 
 import es.bsc.compss.log.Loggers;
 
+
 /**
  * Represents a group of Execution Actions that allow the multi-node execution
- *
  */
 public class MultiNodeGroup {
 
@@ -43,6 +43,7 @@ public class MultiNodeGroup {
 
     private final HashMap<Integer, MultiNodeExecutionAction> registeredSlaves;
     private MultiNodeExecutionAction registeredMaster;
+
 
     /**
      * Creates a new group of @groupSize size
@@ -59,8 +60,7 @@ public class MultiNodeGroup {
     }
 
     /**
-     * Registers a new process into the group and returns its assigned process
-     * Id
+     * Registers a new process into the group and returns its assigned process Id
      *
      * @param action
      * @return
@@ -123,7 +123,6 @@ public class MultiNodeGroup {
 
     /**
      * Triggers an action completion to all the slaves registered into the group
-     *
      */
     public void actionCompletion() {
         LOGGER.debug("[MultiNodeGroup] Notify action completion to all slaves of group " + this);
@@ -134,7 +133,6 @@ public class MultiNodeGroup {
 
     /**
      * Triggers an action failure to all the slaves registered into the group
-     *
      */
     public void actionError() {
         LOGGER.debug("[MultiNodeGroup] Notify action error to all slaves of group " + this);

@@ -23,6 +23,7 @@ public class ActionNotWaitingException extends Exception {
      */
     private static final long serialVersionUID = 2L;
 
+
     public ActionNotWaitingException() {
         super();
     }

@@ -33,16 +33,17 @@ import java.util.Map;
 
 public class CExecutionCommandGenerator {
 
-    private static final String BINDINGS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "bindings-common" + File.separator
-            + "lib";
-    private static final String C_LIB_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "c" + File.separator + "lib";
+    private static final String BINDINGS_RELATIVE_PATH = File.separator + "Bindings" + File.separator
+            + "bindings-common" + File.separator + "lib";
+    private static final String C_LIB_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "c"
+            + File.separator + "lib";
     private static final String WORKER_C_RELATIVE_PATH = File.separator + "worker" + File.separator + "worker_c";
     private static final String LIBRARY_PATH_ENV = "LD_LIBRARY_PATH";
     private static final String QUOTES = "\"";
 
 
-    public static ArrayList<String> getTaskExecutionCommand(InvocationContext context, Invocation invocation, String sandBox,
-            InvocationResources assignedResources) {
+    public static ArrayList<String> getTaskExecutionCommand(InvocationContext context, Invocation invocation,
+            String sandBox, InvocationResources assignedResources) {
         int[] assignedCoreUnits = assignedResources.getAssignedCPUs();
         int[] assignedGPUs = assignedResources.getAssignedGPUs();
         int[] assignedFPGAs = assignedResources.getAssignedFPGAs();
@@ -104,8 +105,8 @@ public class CExecutionCommandGenerator {
             taskset.append(assignedCoreUnits[numCUs - 1]).append(" ");
         }
 
-        lArgs.add(cuda_visible.toString() + ";" + opencl_visible.toString() + ";" + reqs.toString() + " " + taskset.toString()
-                + context.getAppDir() + WORKER_C_RELATIVE_PATH);
+        lArgs.add(cuda_visible.toString() + ";" + opencl_visible.toString() + ";" + reqs.toString() + " "
+                + taskset.toString() + context.getAppDir() + WORKER_C_RELATIVE_PATH);
         return lArgs;
     }
 

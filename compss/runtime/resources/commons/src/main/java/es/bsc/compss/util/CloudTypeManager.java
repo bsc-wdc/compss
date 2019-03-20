@@ -54,8 +54,7 @@ public class CloudTypeManager {
     /**
      * Adds a new instance type which can be used by the Cloud Provider
      *
-     * @param type
-     *            Description of the resource
+     * @param type Description of the resource
      */
     public void addType(CloudInstanceTypeDescription type) {
         logger.debug("Add new type description " + type.getName());
@@ -65,8 +64,7 @@ public class CloudTypeManager {
     /**
      * Finds all the types provided by the Cloud Provider which fulfill the resource description.
      *
-     * @param requested
-     *            description of the features that the image must provide
+     * @param requested description of the features that the image must provide
      * @return The best instance type provided by the Cloud Provider which fulfills the resource description
      */
     public List<CloudInstanceTypeDescription> getCompatibleTypes(MethodResourceDescription requested) {
@@ -105,7 +103,6 @@ public class CloudTypeManager {
     }
 
     /**
-     *
      * @param name
      * @return instance type description associated to that name
      */
@@ -126,7 +123,7 @@ public class CloudTypeManager {
         for (CloudInstanceTypeDescription type : types.values()) {
             int[][] slotsI = new int[coreCount][];
             // Copy actual values
-            int[] slotsC = Arrays.copyOf(type.getSlotsCore(),coreCount);
+            int[] slotsC = Arrays.copyOf(type.getSlotsCore(), coreCount);
             for (int i = 0; i < type.getSlotsImplLength(); ++i) {
                 int[] slotsImpl = type.getSpecificSlotsImpl(i);
                 slotsI[i] = slotsImpl.clone();
@@ -162,7 +159,8 @@ public class CloudTypeManager {
             sb.append(prefix).append("\t").append("\t").append("CORES = [").append("\n");
             for (int i = 0; i < coreCount; i++) {
                 sb.append(prefix).append("\t").append("\t").append("\t").append("CORE = [").append("\n");
-                sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("COREID = ").append(i).append("\n");
+                sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("COREID = ").append(i)
+                        .append("\n");
                 sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("SLOTS = ")
                         .append(type.getValue().getSpecificSlotsCore(i)).append("\n");
                 sb.append(prefix).append("\t").append("\t").append("\t").append("]").append("\n");
@@ -173,8 +171,10 @@ public class CloudTypeManager {
             for (int i = 0; i < coreCount; ++i) {
                 for (int j = 0; j < CoreManager.getNumberCoreImplementations(i); ++j) {
                     sb.append(prefix).append("\t").append("\t").append("\t").append("IMPLEMENTATION = [").append("\n");
-                    sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("COREID = ").append(i).append("\n");
-                    sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("IMPLID = ").append(j).append("\n");
+                    sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("COREID = ").append(i)
+                            .append("\n");
+                    sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("IMPLID = ").append(j)
+                            .append("\n");
                     sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("SLOTS = ")
                             .append(type.getValue().getSpecificSlotsImpl(i, j)).append("\n");
                     sb.append(prefix).append("\t").append("\t").append("\t").append("]").append("\n");

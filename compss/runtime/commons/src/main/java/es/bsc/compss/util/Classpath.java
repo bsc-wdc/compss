@@ -27,7 +27,6 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Support class to load jar files to the classpath
- *
  */
 public class Classpath {
 
@@ -55,7 +54,7 @@ public class Classpath {
         if (method == null) {
             throw new FileNotFoundException();
         }
-        
+
         method.setAccessible(true);
         scanFolder(sysloader, method, directory, logger);
     }

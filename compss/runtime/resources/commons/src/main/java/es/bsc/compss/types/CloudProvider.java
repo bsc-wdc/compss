@@ -99,8 +99,7 @@ public class CloudProvider {
     /**
      * Adds an image description to the Cloud Provider
      *
-     * @param cid
-     *            Description of the features offered by that image
+     * @param cid Description of the features offered by that image
      */
     public void addCloudImage(CloudImageDescription cid) {
         imgManager.add(cid);
@@ -109,9 +108,7 @@ public class CloudProvider {
     /**
      * Adds an instance type description to a Cloud Provider
      *
-     * @param rd
-     *            Description of the features offered by that instance type
-     *
+     * @param rd Description of the features offered by that instance type
      */
     public void addInstanceType(CloudInstanceTypeDescription rd) {
         typeManager.addType(rd);
@@ -209,10 +206,11 @@ public class CloudProvider {
     public ResourceCreationRequest requestResourceCreation(CloudMethodResourceDescription instanceDescription) {
         int[][] simultaneousCounts = computeSimultaneousCounts(instanceDescription);
         String requestID = "compss" + UUID.randomUUID().toString();
-        ResourceCreationRequest rcr = new ResourceCreationRequest(instanceDescription, simultaneousCounts, this, requestID);
+        ResourceCreationRequest rcr = new ResourceCreationRequest(instanceDescription, simultaneousCounts, this,
+                requestID);
         LOGGER.debug("[Cloud Manager] Asking for resource creation " + instanceDescription.getName() + " with image "
                 + instanceDescription.getImage().getImageName());
-        
+
         boolean isRequestAccepted = connector.turnON(requestID, rcr);
         if (isRequestAccepted) {
             CloudMethodResourceDescription cmrd = rcr.getRequested();
@@ -242,7 +240,8 @@ public class CloudProvider {
             int implCount = CoreManager.getNumberCoreImplementations(coreId);
             simultaneousCounts[coreId] = new int[implCount];
         }
-        for (java.util.Map.Entry<CloudInstanceTypeDescription, int[]> typeEntry : cloudDescription.getTypeComposition().entrySet()) {
+        for (java.util.Map.Entry<CloudInstanceTypeDescription, int[]> typeEntry : cloudDescription.getTypeComposition()
+                .entrySet()) {
             CloudInstanceTypeDescription citd = typeEntry.getKey();
             int count = typeEntry.getValue()[0];
             for (int coreId = 0; coreId < coreCount; coreId++) {
@@ -271,7 +270,8 @@ public class CloudProvider {
         }
     }
 
-    public void confirmedCreation(ResourceCreationRequest rcr, CloudMethodWorker worker, CloudMethodResourceDescription granted) {
+    public void confirmedCreation(ResourceCreationRequest rcr, CloudMethodWorker worker,
+            CloudMethodResourceDescription granted) {
         CloudMethodResourceDescription cmrd = rcr.getRequested();
         for (int[] typeCount : cmrd.getTypeComposition().values()) {
             currentVMCount -= typeCount[0];
@@ -318,14 +318,14 @@ public class CloudProvider {
     public Set<CloudMethodWorker> getHostedWorkers() {
         return hostedWorkers;
     }
-    
+
     public CloudMethodWorker getHostedWorker(String name) {
-    	for (CloudMethodWorker vm : hostedWorkers) {
-    		if (vm.getName().equals(name)){
-    			return vm;
-    		}    
+        for (CloudMethodWorker vm : hostedWorkers) {
+            if (vm.getName().equals(name)) {
+                return vm;
+            }
         }
-    	return null;
+        return null;
     }
 
     /*
@@ -390,7 +390,5 @@ public class CloudProvider {
         hostedWorkers.clear();
         connector.terminateAll();
     }
-    
- 
-    
+
 }

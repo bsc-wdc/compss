@@ -78,8 +78,8 @@ public class MultiNodeImplementation extends AbstractMethodImplementation implem
 
     @Override
     public String toString() {
-        return super.toString() + " Multi-Node Method declared in class " + this.declaringClass + "." + methodName + ": "
-                + this.requirements.toString();
+        return super.toString() + " Multi-Node Method declared in class " + this.declaringClass + "." + methodName
+                + ": " + this.requirements.toString();
     }
 
     @Override

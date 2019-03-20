@@ -23,6 +23,7 @@ public class BlockedActionException extends Exception {
      */
     private static final long serialVersionUID = 2L;
 
+
     public BlockedActionException() {
         super();
     }

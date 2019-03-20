@@ -36,8 +36,9 @@ public abstract class PipedInvoker extends ExternalInvoker {
 
     private final PipePair pipes;
 
-    public PipedInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources,
-            PipePair pipes) throws JobExecutionException {
+
+    public PipedInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+            InvocationResources assignedResources, PipePair pipes) throws JobExecutionException {
 
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
         this.pipes = pipes;

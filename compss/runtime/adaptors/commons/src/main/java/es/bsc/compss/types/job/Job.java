@@ -51,11 +51,15 @@ public abstract class Job<T extends COMPSsWorker> {
 
     // Environment variables for job execution
     private static final String CLASSPATH_FROM_ENV = (System.getProperty(COMPSsConstants.WORKER_CP) != null
-            && !System.getProperty(COMPSsConstants.WORKER_CP).equals("")) ? System.getProperty(COMPSsConstants.WORKER_CP) : "\"\"";
+            && !System.getProperty(COMPSsConstants.WORKER_CP).equals(""))
+                    ? System.getProperty(COMPSsConstants.WORKER_CP)
+                    : "\"\"";
     private final String workerClasspath;
 
     private static final String PYTHONPATH_FROM_ENV = (System.getProperty(COMPSsConstants.WORKER_PP) != null
-            && !System.getProperty(COMPSsConstants.WORKER_PP).equals("")) ? System.getProperty(COMPSsConstants.WORKER_PP) : "\"\"";
+            && !System.getProperty(COMPSsConstants.WORKER_PP).equals(""))
+                    ? System.getProperty(COMPSsConstants.WORKER_PP)
+                    : "\"\"";
     private final String workerPythonpath;
 
     // Logger

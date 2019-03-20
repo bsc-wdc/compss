@@ -118,10 +118,12 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         REMOVE_WD = removeWDFlagDefined ? Boolean.valueOf(removeWDFlag) : true;
     }
 
-    public NIOWorker(boolean transferLogs, int snd, int rcv, String hostName, String masterName, int masterPort, int computingUnitsCPU,
-            int computingUnitsGPU, int computingUnitsFPGA, String cpuMap, String gpuMap, String fpgaMap, int limitOfTasks, String appUuid,
-            String storageConf, TaskExecution executionType, boolean persistentC, String workingDir, String installDir, String appDir,
-            JavaParams javaParams, PythonParams pyParams, CParams cParams) {
+
+    public NIOWorker(boolean transferLogs, int snd, int rcv, String hostName, String masterName, int masterPort,
+            int computingUnitsCPU, int computingUnitsGPU, int computingUnitsFPGA, String cpuMap, String gpuMap,
+            String fpgaMap, int limitOfTasks, String appUuid, String storageConf, TaskExecution executionType,
+            boolean persistentC, String workingDir, String installDir, String appDir, JavaParams javaParams,
+            PythonParams pyParams, CParams cParams) {
 
         super(snd, rcv, masterPort);
         times = new HashMap<Integer, Long>();
@@ -160,8 +162,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             ErrorManager.error(DATA_MANAGER_ERROR, ie);
         }
 
-        this.executionManager = new ExecutionManager(this, computingUnitsCPU, cpuMap, computingUnitsGPU, gpuMap, computingUnitsFPGA,
-                fpgaMap, limitOfTasks);
+        this.executionManager = new ExecutionManager(this, computingUnitsCPU, cpuMap, computingUnitsGPU, gpuMap,
+                computingUnitsFPGA, fpgaMap, limitOfTasks);
 
         if (tracing_level == Tracer.BASIC_MODE) {
             Tracer.enablePThreads();
@@ -196,7 +198,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         return uuid.equals(this.deploymentId) && nodeName.equals(this.host);
     }
 
-    private int processNioParam(NIOParam param, int offset, TransferringTask tt) throws FileNotFoundException, UnsupportedEncodingException {
+    private int processNioParam(NIOParam param, int offset, TransferringTask tt)
+            throws FileNotFoundException, UnsupportedEncodingException {
         WORKER_LOGGER.info("Checking parameter " + param);
         int currentIndex = offset;
         if (param.getData() != null) {
@@ -209,15 +212,15 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             dataManager.fetchParam(param, currentIndex, tt);
         } else {
             // OUT parameter. Has no associated data. Decrease the parameter counter (we already have it)
-            //tt.loadedValue();
+            // tt.loadedValue();
         }
         ++currentIndex;
         if (param instanceof NIOParamCollection) {
             String pathToWrite = (String) param.getValue();
             PrintWriter writer = new PrintWriter(pathToWrite, "UTF-8");
             NIOParamCollection npc = (NIOParamCollection) param;
-            WORKER_LOGGER.info("Checking NIOParamCollection (received " + npc.getCollectionParameters().size()
-                    + " params)");
+            WORKER_LOGGER
+                    .info("Checking NIOParamCollection (received " + npc.getCollectionParameters().size() + " params)");
             for (NIOParam subNioParam : npc.getCollectionParameters()) {
                 currentIndex = processNioParam(subNioParam, currentIndex, tt);
                 writer.println(subNioParam.getType().ordinal() + " " + subNioParam.getValue());
@@ -236,8 +239,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
         WORKER_LOGGER.info("TARGET:");
         if (task.getTarget() != null) {
-            WORKER_LOGGER
-                    .info("    -" + task.getTarget().getPrefix() + " " + task.getTarget().getType() + ":" + task.getTarget().getValue());
+            WORKER_LOGGER.info("    -" + task.getTarget().getPrefix() + " " + task.getTarget().getType() + ":"
+                    + task.getTarget().getValue());
         }
         WORKER_LOGGER.info("RESULTS:");
         for (InvocationParam param : task.getResults()) {
@@ -272,7 +275,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         NIOParam targetParam = task.getTarget();
         if (targetParam != null) {
             // Parameter has associated data
-            WORKER_LOGGER.debug("- Checking transfers for data " + targetParam.getDataMgmtId() + " for target parameter");
+            WORKER_LOGGER
+                    .debug("- Checking transfers for data " + targetParam.getDataMgmtId() + " for target parameter");
             tt.addOperation();
             dataManager.fetchParam(targetParam, -1, tt);
         }
@@ -316,7 +320,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
          * path)) { c.sendDataFile(path); return; } }
          */
         // If error or not external
-        ErrorManager.warn("Data " + d.getDataMgmtId() + "in this worker " + this.getHostName() + " could not be sent to master.");
+        ErrorManager.warn(
+                "Data " + d.getDataMgmtId() + "in this worker " + this.getHostName() + " could not be sent to master.");
         c.finishConnection();
     }
 
@@ -740,9 +745,9 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
          * ***********************************************************************************************************
          * LAUNCH THE WORKER
          *************************************************************************************************************/
-        NIOWorker nw = new NIOWorker(debug, maxSnd, maxRcv, workerIP, mName, mPort, computingUnitsCPU, computingUnitsGPU,
-                computingUnitsFPGA, cpuMap, gpuMap, fpgaMap, limitOfTasks, appUuid, storageConf, executionType, persistentC, workingDir,
-                installDir, appDir, javaParams, pyParams, cParams);
+        NIOWorker nw = new NIOWorker(debug, maxSnd, maxRcv, workerIP, mName, mPort, computingUnitsCPU,
+                computingUnitsGPU, computingUnitsFPGA, cpuMap, gpuMap, fpgaMap, limitOfTasks, appUuid, storageConf,
+                executionType, persistentC, workingDir, installDir, appDir, javaParams, pyParams, cParams);
 
         NIOMessageHandler mh = new NIOMessageHandler(nw);
 
@@ -758,8 +763,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
 
         // Start the Transfer Manager thread (starts the EventManager)
-        //WORKER_LOGGER.debug("  Starting TransferManager Thread");
-        //TM.start();
+        // WORKER_LOGGER.debug(" Starting TransferManager Thread");
+        // TM.start();
         try {
             TM.startServer(new NIONode(null, wPort));
         } catch (CommException ce) {
@@ -833,7 +838,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     @Override
     public LanguageParams getLanguageParams(Lang lang) {
-        WORKER_LOGGER.info("GETTING LANGUAGE PARAMS :" + Lang.PYTHON.ordinal() + " -> " + this.langParams[lang.ordinal()]);
+        WORKER_LOGGER
+                .info("GETTING LANGUAGE PARAMS :" + Lang.PYTHON.ordinal() + " -> " + this.langParams[lang.ordinal()]);
         return this.langParams[lang.ordinal()];
     }
 
@@ -853,7 +859,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     @Override
     public String getStandardStreamsPath(Invocation invocation) {
         // Set outputs paths (Java will register them, ExternalExec will redirect processes outputs)
-        return this.getWorkingDir() + "jobs" + File.separator + "job" + invocation.getJobId() + "_" + invocation.getHistory();
+        return this.getWorkingDir() + "jobs" + File.separator + "job" + invocation.getJobId() + "_"
+                + invocation.getHistory();
     }
 
     /**

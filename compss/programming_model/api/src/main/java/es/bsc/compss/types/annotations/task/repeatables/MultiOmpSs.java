@@ -28,7 +28,6 @@ import es.bsc.compss.types.annotations.task.OmpSs;
 @Target(ElementType.METHOD)
 /**
  * Methods definition
- *
  */
 public @interface MultiOmpSs {
 

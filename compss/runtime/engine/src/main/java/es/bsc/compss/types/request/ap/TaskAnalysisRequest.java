@@ -28,6 +28,7 @@ public class TaskAnalysisRequest extends APRequest {
 
     private Task task;
 
+
     public TaskAnalysisRequest(Task task) {
         this.task = task;
     }

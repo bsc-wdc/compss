@@ -38,7 +38,8 @@ public class ResourceManager {
     private final ThreadBinder binderFPGAs;
 
 
-    public ResourceManager(int cusCPU, String cpuMap, int cusGPU, String gpuMap, int cusFPGA, String fpgaMap) throws InvalidMapException {
+    public ResourceManager(int cusCPU, String cpuMap, int cusGPU, String gpuMap, int cusFPGA, String fpgaMap)
+            throws InvalidMapException {
         // Instantiate CPU binders
         LOGGER.debug("Instantiate CPU Binder with " + cusCPU + " CUs");
 
@@ -82,8 +83,9 @@ public class ResourceManager {
                     break;
             }
         } catch (Exception e) {
-            LOGGER.warn("Could not load the desidered mapping policy for the GPU computing units. Using default policy ("
-                    + ThreadBinder.BINDER_AUTOMATIC + ")");
+            LOGGER.warn(
+                    "Could not load the desidered mapping policy for the GPU computing units. Using default policy ("
+                            + ThreadBinder.BINDER_AUTOMATIC + ")");
             binderGPUsTmp = new BindToResource(cusGPU);
         }
         binderGPUs = binderGPUsTmp;
@@ -105,8 +107,9 @@ public class ResourceManager {
                     break;
             }
         } catch (Exception e) {
-            LOGGER.warn("Could not load the desidered mapping policy for the FPGA computing units. Using default policy ("
-                    + ThreadBinder.BINDER_AUTOMATIC + ")");
+            LOGGER.warn(
+                    "Could not load the desidered mapping policy for the FPGA computing units. Using default policy ("
+                            + ThreadBinder.BINDER_AUTOMATIC + ")");
             binderFPGAsTmp = new BindToResource(cusFPGA);
         }
         binderFPGAs = binderFPGAsTmp;

@@ -56,9 +56,7 @@ import org.apache.logging.log4j.Logger;
 
 
 /**
- *
  * Custom XML Validation for COMPSs
- *
  */
 public class Validator {
 
@@ -101,7 +99,8 @@ public class Validator {
                     } else if (obj instanceof CloudProviderType) {
                         validateCloudProvider(((CloudProviderType) obj));
                     } else {
-                        throw new InvalidElementException("Resources", "Attribute" + obj.getClass(), "Incorrect attribute");
+                        throw new InvalidElementException("Resources", "Attribute" + obj.getClass(),
+                                "Incorrect attribute");
                     }
                 }
             } catch (InvalidElementException iee) {
@@ -115,8 +114,7 @@ public class Validator {
     }
 
     /*
-     * ********************************************** 
-     * VALIDATION OF MAIN ELEMENTS
+     * ********************************************** VALIDATION OF MAIN ELEMENTS
      **********************************************/
     /**
      * Validates the given SharedDiskType @sd with the current ResourcesFileType The content is correct if no exception
@@ -217,7 +215,8 @@ public class Validator {
                         validateAttachedDisksList(((AttachedDisksListType) obj.getValue()));
                     }
                 } else {
-                    throw new InvalidElementException("DataNode " + dn.getName(), "Attribute " + obj.getName(), "Incorrect attribute");
+                    throw new InvalidElementException("DataNode " + dn.getName(), "Attribute " + obj.getName(),
+                            "Incorrect attribute");
                 }
             }
 
@@ -273,8 +272,8 @@ public class Validator {
                 if (obj instanceof ProcessorType) {
                     ProcessorType p = (ProcessorType) obj;
                     if (processorNames.contains(p.getName())) {
-                        throw new InvalidElementException("ComputeNode " + cn.getName(), "Attribute Processor" + p.getName(),
-                                "Appears more than once");
+                        throw new InvalidElementException("ComputeNode " + cn.getName(),
+                                "Attribute Processor" + p.getName(), "Appears more than once");
                     } else {
                         processorTagFound = true;
                         processorNames.add(p.getName());
@@ -344,15 +343,18 @@ public class Validator {
                         validatePrice(((PriceType) obj));
                     }
                 } else {
-                    throw new InvalidElementException("ComputeNode " + cn.getName(), "Attribute " + obj.getClass(), "Incorrect attribute");
+                    throw new InvalidElementException("ComputeNode " + cn.getName(), "Attribute " + obj.getClass(),
+                            "Incorrect attribute");
                 }
             }
             // Check minimum appearences
             if (!processorTagFound) {
-                throw new InvalidElementException("ComputeNode " + cn.getName(), "Attribute Processor", "Doesn't appear");
+                throw new InvalidElementException("ComputeNode " + cn.getName(), "Attribute Processor",
+                        "Doesn't appear");
             }
             if (!adaptorsTagFound) {
-                throw new InvalidElementException("ComputeNode " + cn.getName(), "Attribute Adaptors", "Doesn't appear");
+                throw new InvalidElementException("ComputeNode " + cn.getName(), "Attribute Adaptors",
+                        "Doesn't appear");
             }
         } else {
             // Empty inner elements
@@ -429,15 +431,15 @@ public class Validator {
             validateImages(cp.getImages());
         }
         if (cp.getInstanceTypes() == null) {
-            throw new InvalidElementException("CloudProvider " + cp.getName(), "Attribute InstanceTypes", "Doesn't appear");
+            throw new InvalidElementException("CloudProvider " + cp.getName(), "Attribute InstanceTypes",
+                    "Doesn't appear");
         } else {
             validateInstanceTypes(cp.getInstanceTypes());
         }
     }
 
     /*
-     * ********************************************** 
-     * HELPERS FOR VALIDATION (PRIVATE METHODS)
+     * ********************************************** HELPERS FOR VALIDATION (PRIVATE METHODS)
      **********************************************/
     private void validateStorage(StorageType s) throws InvalidElementException {
         // Validate inner elements
@@ -507,7 +509,8 @@ public class Validator {
                 if (obj.getName().equals(new QName("SubmissionSystem"))) {
                     if (subsysTagFound) {
                         // Second occurency, throw exception
-                        throw new InvalidElementException("Adaptor", "Attribute " + obj.getName(), "Appears more than once");
+                        throw new InvalidElementException("Adaptor", "Attribute " + obj.getName(),
+                                "Appears more than once");
                     } else {
                         subsysTagFound = true;
                         validateSubmissionSystem(((SubmissionSystemType) obj.getValue()));
@@ -515,7 +518,8 @@ public class Validator {
                 } else if (obj.getName().equals(new QName("Ports"))) {
                     if (portsTagFound) {
                         // Second occurency, throw exception
-                        throw new InvalidElementException("Adaptor", "Attribute " + obj.getName(), "Appears more than once");
+                        throw new InvalidElementException("Adaptor", "Attribute " + obj.getName(),
+                                "Appears more than once");
                     } else if (brokerAdaptorTagFound || propertiesTagFound) {
                         // Cannot define multiple adaptor properties
                         throw new InvalidElementException("Adaptor", "Attribute " + obj.getName(),
@@ -527,7 +531,8 @@ public class Validator {
                 } else if (obj.getName().equals(new QName("BrokerAdaptor"))) {
                     if (brokerAdaptorTagFound) {
                         // Second occurency, throw exception
-                        throw new InvalidElementException("Adaptor", "Attribute " + obj.getName(), "Appears more than once");
+                        throw new InvalidElementException("Adaptor", "Attribute " + obj.getName(),
+                                "Appears more than once");
                     } else if (portsTagFound || propertiesTagFound) {
                         // Cannot define multiple adaptor properties
                         throw new InvalidElementException("Adaptor", "Attribute " + obj.getName(),
@@ -539,7 +544,8 @@ public class Validator {
                 } else if (obj.getName().equals(new QName("Properties"))) {
                     if (propertiesTagFound) {
                         // Second occurency, throw exception
-                        throw new InvalidElementException("Adaptor", "Attribute " + obj.getName(), "Appears more than once");
+                        throw new InvalidElementException("Adaptor", "Attribute " + obj.getName(),
+                                "Appears more than once");
                     } else if (portsTagFound || brokerAdaptorTagFound) {
                         // Cannot define multiple adaptor properties
                         throw new InvalidElementException("Adaptor", "Attribute " + obj.getName(),
@@ -551,21 +557,24 @@ public class Validator {
                 } else if (obj.getName().equals(new QName("User"))) {
                     if (userTagFound) {
                         // Second occurency, throw exception
-                        throw new InvalidElementException("Adaptor", "Attribute " + obj.getName(), "Appears more than once");
+                        throw new InvalidElementException("Adaptor", "Attribute " + obj.getName(),
+                                "Appears more than once");
                     } else {
                         userTagFound = true;
                     }
                 } else {
-                    throw new InvalidElementException("Adaptor " + adaptor.getName(), "Attribute" + obj.getName(), "Incorrect attribute");
+                    throw new InvalidElementException("Adaptor " + adaptor.getName(), "Attribute" + obj.getName(),
+                            "Incorrect attribute");
                 }
             }
             // Check minimum appearences
             if (!subsysTagFound) {
-                throw new InvalidElementException("Adaptor " + adaptor.getName(), "Attribute SubmissionSystem", "Doesn't appear");
+                throw new InvalidElementException("Adaptor " + adaptor.getName(), "Attribute SubmissionSystem",
+                        "Doesn't appear");
             }
             if (!portsTagFound && !brokerAdaptorTagFound && !propertiesTagFound) {
-                throw new InvalidElementException("Adaptor " + adaptor.getName(), "Attribute Adaptor properties (NIO, GAT or External)",
-                        "Doesn't appear");
+                throw new InvalidElementException("Adaptor " + adaptor.getName(),
+                        "Attribute Adaptor properties (NIO, GAT or External)", "Doesn't appear");
             }
         } else {
             // Empty inner elements
@@ -581,25 +590,29 @@ public class Validator {
             for (Object obj : innerElements) {
                 if (obj instanceof BatchType) {
                     if (batchTagFound) {
-                        throw new InvalidElementException("SubmissionSystem", "Attribute Batch", "Appears more than once");
+                        throw new InvalidElementException("SubmissionSystem", "Attribute Batch",
+                                "Appears more than once");
                     } else {
                         batchTagFound = true;
                         validateBatch(((BatchType) obj));
                     }
                 } else if (obj instanceof InteractiveType) {
                     if (interactiveTagFound) {
-                        throw new InvalidElementException("SubmissionSystem", "Attribute Interactive", "Appears more than once");
+                        throw new InvalidElementException("SubmissionSystem", "Attribute Interactive",
+                                "Appears more than once");
                     } else {
                         interactiveTagFound = true;
                         validateInteractive(((InteractiveType) obj));
                     }
                 } else {
-                    throw new InvalidElementException("SubmissionSystem", "Attribute " + obj.getClass(), "Invalid type");
+                    throw new InvalidElementException("SubmissionSystem", "Attribute " + obj.getClass(),
+                            "Invalid type");
                 }
             }
             // Check minimum
             if (!batchTagFound && !interactiveTagFound) {
-                throw new InvalidElementException("SubmissionSystem", "Interactive/Batch", "At least 1 submission system must be defined");
+                throw new InvalidElementException("SubmissionSystem", "Interactive/Batch",
+                        "At least 1 submission system must be defined");
             }
         } else {
             // Empty inner elements
@@ -624,7 +637,8 @@ public class Validator {
             throw new InvalidElementException("Properties of NIO Adaptor", "Attribute MinPort", "Invalid value");
         }
         if (props.getMaxPort() <= props.getMinPort()) {
-            throw new InvalidElementException("Properties of NIO Adaptor", "Attribute MinPort-MaxPort", "Invalid range");
+            throw new InvalidElementException("Properties of NIO Adaptor", "Attribute MinPort-MaxPort",
+                    "Invalid range");
         }
     }
 
@@ -634,7 +648,8 @@ public class Validator {
         }
     }
 
-    private void validateExternalAdaptorProperties(ResourcesExternalAdaptorProperties props) throws InvalidElementException {
+    private void validateExternalAdaptorProperties(ResourcesExternalAdaptorProperties props)
+            throws InvalidElementException {
         // The list of properties is a user defined List< (Name,Value) >
         // Since the list is not empty (XSD validation) and the user can add any property
         // we consider that it is always valid.
@@ -662,7 +677,8 @@ public class Validator {
             throw new InvalidElementException("AttachedDisk" + disk.getName(), "", "Not defined as SharedDisk");
         }
         if (disk.getMountPoint() == null || disk.getMountPoint().isEmpty()) {
-            throw new InvalidElementException("AttachedDisk" + disk.getName(), "Attribute MountPoint", "Doesn't appear");
+            throw new InvalidElementException("AttachedDisk" + disk.getName(), "Attribute MountPoint",
+                    "Doesn't appear");
         }
     }
 
@@ -670,7 +686,7 @@ public class Validator {
         // Names are validated in the parent node
 
         // Validate inner elements
-    	List<JAXBElement<?>> innerElements = processor.getComputingUnitsOrArchitectureOrSpeed();
+        List<JAXBElement<?>> innerElements = processor.getComputingUnitsOrArchitectureOrSpeed();
         if (innerElements != null) {
             boolean cuTagFound = false;
             boolean ArchitectureTagFound = false;
@@ -681,17 +697,20 @@ public class Validator {
             for (JAXBElement<?> obj : innerElements) {
                 if (obj.getName().equals(new QName("ComputingUnits"))) {
                     if (cuTagFound) {
-                        throw new InvalidElementException("Processor", "Attribute ComputingUnits", "Appears more than once");
+                        throw new InvalidElementException("Processor", "Attribute ComputingUnits",
+                                "Appears more than once");
                     } else {
                         cuTagFound = true;
                         int val = (Integer) obj.getValue();
                         if (val <= 0) {
-                            throw new InvalidElementException("Processor", "Attribute ComputingUnits", "Must be greater than 0");
+                            throw new InvalidElementException("Processor", "Attribute ComputingUnits",
+                                    "Must be greater than 0");
                         }
                     }
                 } else if (obj.getName().equals(new QName("Architecture"))) {
                     if (ArchitectureTagFound) {
-                        throw new InvalidElementException("Processor", "Attribute Architecture", "Appears more than once");
+                        throw new InvalidElementException("Processor", "Attribute Architecture",
+                                "Appears more than once");
                     } else {
                         ArchitectureTagFound = true;
                     }
@@ -713,22 +732,26 @@ public class Validator {
                     }
                 } else if (obj.getName().equals(new QName("InternalMemorySize"))) {
                     if (memTagFound) {
-                        throw new InvalidElementException("Processor", "Attribute InternalMemorySize", "Appears more than once");
+                        throw new InvalidElementException("Processor", "Attribute InternalMemorySize",
+                                "Appears more than once");
                     } else {
                         memTagFound = true;
                         float val = (Float) obj.getValue();
                         if (val <= 0.0) {
-                            throw new InvalidElementException("Processor", "Attribute InternalMemorySize", "Must be greater than 0");
+                            throw new InvalidElementException("Processor", "Attribute InternalMemorySize",
+                                    "Must be greater than 0");
                         }
                     }
                 } else if (obj.getName().equals(new QName("ProcessorProperty"))) {
                     if (processorPropertyTagFound) {
-                        throw new InvalidElementException("Processor", "Attribute ProcessorProperty", "Appears more than once");
+                        throw new InvalidElementException("Processor", "Attribute ProcessorProperty",
+                                "Appears more than once");
                     } else {
                         processorPropertyTagFound = true;
                     }
                 } else {
-                    throw new InvalidElementException("Processor", "Attribute " + obj.getClass(), "Incorrect attribute");
+                    throw new InvalidElementException("Processor", "Attribute " + obj.getClass(),
+                            "Incorrect attribute");
                 }
             }
             // Check minimum appearences
@@ -840,7 +863,8 @@ public class Validator {
                     }
                 } else if (obj instanceof OSType) {
                     if (OSTagFound) {
-                        throw new InvalidElementException("Image", "Attribute OperatingSystem", "Appears more than once");
+                        throw new InvalidElementException("Image", "Attribute OperatingSystem",
+                                "Appears more than once");
                     } else {
                         OSTagFound = true;
                         validateOS(((OSType) obj));
@@ -894,7 +918,8 @@ public class Validator {
         if (instances_list != null) {
             for (InstanceTypeType i : instances.getInstanceType()) {
                 if (instanceNames.contains(i.getName())) {
-                    throw new InvalidElementException("Instances", "Attribute Instance " + i.getName(), "Name already used");
+                    throw new InvalidElementException("Instances", "Attribute Instance " + i.getName(),
+                            "Name already used");
                 } else {
                     instanceNames.add(i.getName());
                     validateInstance(i);
@@ -920,7 +945,8 @@ public class Validator {
                     processorTagFound = true;
                     ProcessorType p = (ProcessorType) obj;
                     if (processorNames.contains(p.getName())) {
-                        throw new InvalidElementException("Instance", "Attribute Processor " + p.getName(), "Appears more than once");
+                        throw new InvalidElementException("Instance", "Attribute Processor " + p.getName(),
+                                "Appears more than once");
                     } else {
                         processorNames.add(p.getName());
                         validateProcessor(((ProcessorType) obj));

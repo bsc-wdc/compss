@@ -23,6 +23,7 @@ public class WorkerStartedPipeCommand extends WorkerStartedExternalCommand imple
 
     private int pid;
 
+
     public WorkerStartedPipeCommand(String[] command) {
         this.pid = Integer.parseInt(command[1]);
     }

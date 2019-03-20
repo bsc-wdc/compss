@@ -35,7 +35,8 @@ public class FileParameter extends DependencyParameter {
     private final String originalName;
 
 
-    public FileParameter(Direction direction, Stream stream, String prefix, String name, DataLocation location, String originalName) {
+    public FileParameter(Direction direction, Stream stream, String prefix, String name, DataLocation location,
+            String originalName) {
         super(DataType.FILE_T, direction, stream, prefix, name);
         this.location = location;
         this.originalName = originalName;

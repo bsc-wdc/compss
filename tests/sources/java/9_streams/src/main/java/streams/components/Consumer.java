@@ -133,7 +133,8 @@ public class Consumer {
                 }
                 break;
             default:
-                throw new ConsumerException("ERROR: Unrecognised message type: " + msg.get(Messages.FIELD_TYPE).asText());
+                throw new ConsumerException(
+                        "ERROR: Unrecognised message type: " + msg.get(Messages.FIELD_TYPE).asText());
         }
     }
 
@@ -153,7 +154,8 @@ public class Consumer {
             case Messages.TYPE_END:
                 return true;
             default:
-                throw new ConsumerException("ERROR: Unrecognised message type: " + msg.get(Messages.FIELD_TYPE).asText());
+                throw new ConsumerException(
+                        "ERROR: Unrecognised message type: " + msg.get(Messages.FIELD_TYPE).asText());
         }
     }
 

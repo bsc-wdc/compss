@@ -22,10 +22,12 @@ import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import java.util.concurrent.Semaphore;
 
+
 public class EndOfAppRequest extends APRequest {
 
     private Long appId;
     private Semaphore sem;
+
 
     public EndOfAppRequest(Long appId, Semaphore sem) {
         this.appId = appId;

@@ -21,7 +21,6 @@ import es.bsc.compss.types.Task;
 
 /**
  * Abstract interface for task producer implementations
- *
  */
 public interface TaskProducer {
 

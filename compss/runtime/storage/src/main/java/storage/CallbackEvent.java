@@ -18,17 +18,15 @@ package storage;
 
 /**
  * Implementation of CallBacks for Storage ITF calls
- * 
  */
 public class CallbackEvent {
 
     /**
      * Callback event type
-     *
      */
     public static enum EventType {
-        FAIL, // Call failed
-        SUCCESS; // Call success
+    FAIL, // Call failed
+    SUCCESS; // Call success
 
         private EventType() {
         }

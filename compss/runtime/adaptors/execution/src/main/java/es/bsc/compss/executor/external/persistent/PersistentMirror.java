@@ -21,10 +21,11 @@ import es.bsc.compss.invokers.external.persistent.PersistentInvoker;
 import es.bsc.compss.types.execution.InvocationContext;
 import java.io.PrintStream;
 
+
 public class PersistentMirror implements ExecutionPlatformMirror<Void> {
 
+    private InvocationContext context;
 
-    InvocationContext context;
 
     public PersistentMirror(InvocationContext context, int size) {
         this.context = context;
@@ -38,14 +39,16 @@ public class PersistentMirror implements ExecutionPlatformMirror<Void> {
     @Override
     public void unregisterExecutor(String id) {
         PrintStream out = context.getThreadOutStream();
-        out.println("[PersistentMirror] Thread unregistration has been done."); //WARNING: Do not remove this log, is used for runtime testing
+        // WARNING: Do not remove this log, is used for runtime testing
+        out.println("[PersistentMirror] Thread unregistration has been done.");
         PersistentInvoker.finishThread();
     }
 
     @Override
     public Void registerExecutor(String id) {
         PrintStream out = context.getThreadOutStream();
-        out.println("[PersistentMirror] Thread registration has been done."); //WARNING: Do not remove this log, is used for runtime testing
+        // WARNING: Do not remove this log, is used for runtime testing
+        out.println("[PersistentMirror] Thread registration has been done.");
         PersistentInvoker.initThread();
         return null;
     }

@@ -30,8 +30,8 @@ import es.bsc.compss.types.uri.MultiURI;
 
 public abstract class ImmediateCopy extends Copy {
 
-    public ImmediateCopy(LogicalData ld, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData, Transferable reason,
-            EventListener listener) {
+    public ImmediateCopy(LogicalData ld, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData,
+            Transferable reason, EventListener listener) {
 
         super(ld, prefSrc, prefTgt, tgtData, reason, listener);
     }
@@ -46,8 +46,8 @@ public abstract class ImmediateCopy extends Copy {
                 if ((u = srcData.alreadyAvailable(targetHost)) != null) {
                     setFinalTarget(u.getPath());
                     end(DataOperation.OpEndState.OP_OK);
-                    LOGGER.debug("THREAD " + Thread.currentThread().getName() + " - A copy of " + getName() + " is already present at "
-                            + targetHost + " on path " + u.getPath());
+                    LOGGER.debug("THREAD " + Thread.currentThread().getName() + " - A copy of " + getName()
+                            + " is already present at " + targetHost + " on path " + u.getPath());
                     return;
                 }
                 Copy copyInProgress = null;

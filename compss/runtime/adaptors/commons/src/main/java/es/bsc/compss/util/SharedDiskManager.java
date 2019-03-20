@@ -51,6 +51,7 @@ public class SharedDiskManager {
      */
     private static final Map<String, Set<LogicalData>> sharedDisk2SharedFiles = new TreeMap<>();
 
+
     /**
      * Adds a new resource to be managed
      *
@@ -86,7 +87,7 @@ public class SharedDiskManager {
      * @param host Name of the resource
      * @param path File path contained by the disk
      * @return null if there is no shared disk containing that file path on the resource. The shared disk identifier
-     * containing that file path.
+     *         containing that file path.
      */
     public static synchronized String getSharedName(Resource host, String path) {
         Machine m = machine2Shareds.get(host);
@@ -166,7 +167,6 @@ public class SharedDiskManager {
      * Removes all the information of a resource
      *
      * @param host Machine to remove
-     *
      * @return returns the correlation diskName->mountpoint
      */
     public static synchronized Map<String, String> terminate(Resource host) {
@@ -235,6 +235,7 @@ public class SharedDiskManager {
         private List<String> allShared;
         private HashMap<String, String> mountpoint2Name;
         private HashMap<String, String> name2Mountpoint;
+
 
         public Machine() {
             allShared = new LinkedList<>();

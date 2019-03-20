@@ -75,17 +75,21 @@ public class Resource {
     public void setStatus(String status) {
         if (status.equals(Constants.STATUS_RUNNING)) {
             this.status = status;
-            this.setColor(File.separator + "images" + File.separator + "state" + File.separator + Constants.COLOR_RUNNING + ".jpg");
+            this.setColor(File.separator + "images" + File.separator + "state" + File.separator
+                    + Constants.COLOR_RUNNING + ".jpg");
         } else if (status.equals(Constants.STATUS_CREATION)) {
             this.status = status;
-            this.setColor(File.separator + "images" + File.separator + "state" + File.separator + Constants.COLOR_CREATION + ".jpg");
+            this.setColor(File.separator + "images" + File.separator + "state" + File.separator
+                    + Constants.COLOR_CREATION + ".jpg");
         } else if (status.equals(Constants.STATUS_REMOVING)) {
             this.status = status;
-            this.setColor(File.separator + "images" + File.separator + "state" + File.separator + Constants.COLOR_REMOVING + ".jpg");
+            this.setColor(File.separator + "images" + File.separator + "state" + File.separator
+                    + Constants.COLOR_REMOVING + ".jpg");
         } else {
             // Default value for error
             this.status = Constants.STATUS_REMOVING;
-            this.setColor(File.separator + "images" + File.separator + "state" + File.separator + Constants.COLOR_REMOVING + ".jpg");
+            this.setColor(File.separator + "images" + File.separator + "state" + File.separator
+                    + Constants.COLOR_REMOVING + ".jpg");
         }
     }
 

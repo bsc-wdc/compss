@@ -92,22 +92,26 @@ public class LoadChartViewModel {
                 }
                 chart_drawn = true;
                 if (this.chartType.equals(Constants.TOTAL_LOAD_CHART)) {
-                    Clients.evalJavaScript("drawTotalLoadChart('" + this.divUUID + "'," + ResourcesLogParser.getTotalLoad() + ");");
+                    Clients.evalJavaScript(
+                            "drawTotalLoadChart('" + this.divUUID + "'," + ResourcesLogParser.getTotalLoad() + ");");
                 } else if (this.chartType.equals(Constants.LOAD_PER_CORE_CHART)) {
-                    Clients.evalJavaScript("drawLoadPerCoreChart('" + this.divUUID + "'," + ResourcesLogParser.getLoadPerCore() + ");");
+                    Clients.evalJavaScript("drawLoadPerCoreChart('" + this.divUUID + "',"
+                            + ResourcesLogParser.getLoadPerCore() + ");");
                 } else if (this.chartType.equals(Constants.TOTAL_RUNNING_CHART)) {
-                    Clients.evalJavaScript("drawTotalCores('" + this.divUUID + "'," + ResourcesLogParser.getTotalRunningCores() + ");");
+                    Clients.evalJavaScript("drawTotalCores('" + this.divUUID + "',"
+                            + ResourcesLogParser.getTotalRunningCores() + ");");
                 } else if (this.chartType.equals(Constants.RUNNING_PER_CORE_CHART)) {
-                    Clients.evalJavaScript(
-                            "drawCoresPerCoreChart('" + this.divUUID + "'," + ResourcesLogParser.getRunningCoresPerCore() + ");");
+                    Clients.evalJavaScript("drawCoresPerCoreChart('" + this.divUUID + "',"
+                            + ResourcesLogParser.getRunningCoresPerCore() + ");");
                 } else if (this.chartType.equals(Constants.TOTAL_PENDING_CHART)) {
-                    Clients.evalJavaScript("drawTotalCores('" + this.divUUID + "'," + ResourcesLogParser.getTotalPendingCores() + ");");
+                    Clients.evalJavaScript("drawTotalCores('" + this.divUUID + "',"
+                            + ResourcesLogParser.getTotalPendingCores() + ");");
                 } else if (this.chartType.equals(Constants.PENDING_PER_CORE_CHART)) {
-                    Clients.evalJavaScript(
-                            "drawCoresPerCoreChart('" + this.divUUID + "'," + ResourcesLogParser.getPendingCoresPerCore() + ");");
+                    Clients.evalJavaScript("drawCoresPerCoreChart('" + this.divUUID + "',"
+                            + ResourcesLogParser.getPendingCoresPerCore() + ");");
                 } else if (this.chartType.equals(Constants.RESOURCES_STATUS_CHART)) {
-                    Clients.evalJavaScript(
-                            "drawTotalResourcesStatusChart('" + this.divUUID + "'," + ResourcesLogParser.getResourcesStatus() + ");");
+                    Clients.evalJavaScript("drawTotalResourcesStatusChart('" + this.divUUID + "',"
+                            + ResourcesLogParser.getResourcesStatus() + ");");
                 } else {
                     logger.warn("WARNING: Invalid chart type. Rendering empty graph");
                     Clients.evalJavaScript("drawEmpty('" + this.divUUID + "');");
@@ -123,7 +127,8 @@ public class LoadChartViewModel {
                 // If last step we already didn't had connection, we do nothing. Otherwise we paint the
                 // "unable to connect" image
                 if (!noConnection_drawn) {
-                    Clients.evalJavaScript("drawNoConnection('" + this.divUUID + "','" + Constants.NO_CONNECTION_IMG_PATH + "');");
+                    Clients.evalJavaScript(
+                            "drawNoConnection('" + this.divUUID + "','" + Constants.NO_CONNECTION_IMG_PATH + "');");
                     noConnection_drawn = true;
                 }
             }

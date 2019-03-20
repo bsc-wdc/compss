@@ -52,14 +52,10 @@ public class KMeansDataSet {
     /**
      * Generate a set of random points and write them to a data file
      * 
-     * @param fileName
-     *            the name of the file to create
-     * @param numPoints
-     *            the number of points to write to the file
-     * @param numDimensions
-     *            the number of dimensions each point should have
-     * @param seed
-     *            a random number seed to generate the points.
+     * @param fileName the name of the file to create
+     * @param numPoints the number of points to write to the file
+     * @param numDimensions the number of dimensions each point should have
+     * @param seed a random number seed to generate the points.
      * @return <code>true</code> on success, <code>false</code> on failure
      */
     public static boolean generateRandomPointsToFile(String fileName, int numPoints, int numDimensions, int seed) {
@@ -90,10 +86,8 @@ public class KMeansDataSet {
     /**
      * Write a set of points to a data file
      * 
-     * @param fileName
-     *            the name of the file to create
-     * @param data
-     *            the points to write
+     * @param fileName the name of the file to create
+     * @param data the points to write
      * @return <code>true</code> on success, <code>false</code> on failure
      */
     /*
@@ -111,8 +105,7 @@ public class KMeansDataSet {
     /**
      * Create numPoints random points each of dimension numDimensions.
      * 
-     * @param fileName
-     *            the name of the data file containing the points
+     * @param fileName the name of the data file containing the points
      */
     /*
      * public static KMeansDataSet readPointsFromFile(String fileName) { int i = 0; int j = 0; int numDimensions = 0;

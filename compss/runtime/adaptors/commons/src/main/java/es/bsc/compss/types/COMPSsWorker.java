@@ -22,7 +22,6 @@ import es.bsc.compss.types.resources.configuration.Configuration;
 
 /**
  * Abstract definition of a COMPSs Worker
- *
  */
 public abstract class COMPSsWorker extends COMPSsNode {
 

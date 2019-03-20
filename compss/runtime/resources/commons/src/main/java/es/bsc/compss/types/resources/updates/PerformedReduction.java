@@ -19,11 +19,6 @@ package es.bsc.compss.types.resources.updates;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 
 
-/**
- *
- * @author flordan
- * @param <T>
- */
 public class PerformedReduction<T extends WorkerResourceDescription> extends ResourceUpdate<T> {
 
     public PerformedReduction(T reduction) {

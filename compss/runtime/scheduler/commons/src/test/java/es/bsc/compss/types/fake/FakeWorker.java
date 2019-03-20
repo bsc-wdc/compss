@@ -22,6 +22,7 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.Worker;
 
+
 public class FakeWorker extends Worker<MethodResourceDescription> {
 
     public FakeWorker(MethodResourceDescription description, int limitOfTasks) {
@@ -57,7 +58,7 @@ public class FakeWorker extends Worker<MethodResourceDescription> {
     public boolean hasAvailable(MethodResourceDescription consumption) {
         return true;
     }
-    
+
     @Override
     public boolean hasAvailableSlots() {
         return true;

@@ -23,6 +23,7 @@ public class ErrorPipeCommand extends ErrorExternalCommand implements PipeComman
 
     private final PipeCommand expected;
 
+
     public ErrorPipeCommand(PipeCommand expected) {
         this.expected = expected;
     }
@@ -44,7 +45,8 @@ public class ErrorPipeCommand extends ErrorExternalCommand implements PipeComman
 
     @Override
     public void join(PipeCommand receivedCommand) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
 
 }

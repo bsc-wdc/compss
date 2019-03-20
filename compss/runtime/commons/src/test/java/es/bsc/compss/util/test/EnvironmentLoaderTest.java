@@ -28,7 +28,6 @@ import es.bsc.compss.util.EnvironmentLoader;
 
 /**
  * Tests the different possibilities of loading a environment variable
- *
  */
 public class EnvironmentLoaderTest {
 

@@ -29,7 +29,6 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Manages warnings, errors and fatal errors. Stops the IT and does a System.exit(1) in errors and fatal errors cases.
- * 
  */
 public final class ErrorManager {
 
@@ -250,7 +249,6 @@ public final class ErrorManager {
 
     /**
      * Private constructor to avoid instantiation
-     * 
      */
     private ErrorManager() {
         // No possible instantiation of this class

@@ -41,6 +41,7 @@ public class FakeNode extends COMPSsWorker {
 
     private final String name;
 
+
     public FakeNode(String name) {
         super(name, null);
         this.name = name;
@@ -92,17 +93,20 @@ public class FakeNode extends COMPSsWorker {
     }
 
     @Override
-    public Job<?> newJob(int taskId, TaskDescription taskparams, Implementation impl, Resource res, List<String> slaveWorkersNodeNames, JobListener listener) {
+    public Job<?> newJob(int taskId, TaskDescription taskparams, Implementation impl, Resource res,
+            List<String> slaveWorkersNodeNames, JobListener listener) {
         return null;
     }
 
     @Override
-    public void sendData(LogicalData srcData, DataLocation loc, DataLocation target, LogicalData tgtData, Transferable reason, EventListener listener) {
+    public void sendData(LogicalData srcData, DataLocation loc, DataLocation target, LogicalData tgtData,
+            Transferable reason, EventListener listener) {
 
     }
 
     @Override
-    public void obtainData(LogicalData srcData, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason, EventListener listener) {
+    public void obtainData(LogicalData srcData, DataLocation source, DataLocation target, LogicalData tgtData,
+            Transferable reason, EventListener listener) {
 
     }
 

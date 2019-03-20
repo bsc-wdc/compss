@@ -82,7 +82,8 @@ public class OptimizationAction extends AllocatableAction {
     }
 
     @Override
-    public <T extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(ResourceScheduler<T> r) {
+    public <T extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(
+            ResourceScheduler<T> r) {
         return null;
     }
 
@@ -92,7 +93,8 @@ public class OptimizationAction extends AllocatableAction {
     }
 
     @Override
-    public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker, Score actionScore) {
+    public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
+            Score actionScore) {
         return null;
     }
 
@@ -100,7 +102,7 @@ public class OptimizationAction extends AllocatableAction {
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
 
     }
-    
+
     @Override
     public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Score actionScore)
             throws BlockedActionException, UnassignedActionException {
@@ -122,7 +124,7 @@ public class OptimizationAction extends AllocatableAction {
     public boolean isToReleaseResources() {
         return true;
     }
-    
+
     @Override
     public boolean isToStopResource() {
         return true;

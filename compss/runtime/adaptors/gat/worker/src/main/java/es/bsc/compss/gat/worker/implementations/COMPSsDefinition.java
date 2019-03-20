@@ -49,8 +49,8 @@ public class COMPSsDefinition extends ImplementationDefinition {
             this.workingDir = wDir;
         }
 
-        this.impl = new COMPSsImplementation(this.runcompss, this.flags, this.appName, this.workerInMaster, this.workingDir, null, null,
-                null);
+        this.impl = new COMPSsImplementation(this.runcompss, this.flags, this.appName, this.workerInMaster,
+                this.workingDir, null, null, null);
     }
 
     @Override

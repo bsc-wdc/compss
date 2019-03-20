@@ -18,7 +18,6 @@ package es.bsc.compss.invokers.external.piped;
 
 import es.bsc.compss.executor.external.piped.PipePair;
 import es.bsc.compss.executor.external.piped.PipedMirror;
-import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.executor.ExecutorContext;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
@@ -31,11 +30,8 @@ import es.bsc.compss.invokers.util.CExecutionCommandGenerator;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
-import es.bsc.compss.types.execution.InvocationParam;
-import es.bsc.compss.types.execution.LanguageParams;
 
 import java.io.File;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,17 +39,18 @@ import java.util.Map;
 
 public class CInvoker extends PipedInvoker {
 
-    public CInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources,
-            PipePair pipes) throws JobExecutionException {
+    public CInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+            InvocationResources assignedResources, PipePair pipes) throws JobExecutionException {
         super(context, invocation, taskSandboxWorkingDir, assignedResources, pipes);
 
     }
 
     @Override
-    protected ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation, String sandBox,
-            InvocationResources assignedResources) {
+    protected ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation,
+            String sandBox, InvocationResources assignedResources) {
         ExecuteTaskPipeCommand taskExecution = new ExecuteTaskPipeCommand(invocation.getJobId());
-        ArrayList<String> cCommand = CExecutionCommandGenerator.getTaskExecutionCommand(context, invocation, sandBox, assignedResources);
+        ArrayList<String> cCommand = CExecutionCommandGenerator.getTaskExecutionCommand(context, invocation, sandBox,
+                assignedResources);
         taskExecution.appendAllArguments(cCommand);
         return taskExecution;
     }
@@ -69,9 +66,11 @@ public class CInvoker extends PipedInvoker {
 
         private static final String C_PIPER = "c_piper.sh";
         private static final String LIBRARY_PATH_ENV = "LD_LIBRARY_PATH";
-        private static final String C_LIB_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "c" + File.separator + "lib";
-        protected static final String BINDINGS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "bindings-common"
+        private static final String C_LIB_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "c"
                 + File.separator + "lib";
+        protected static final String BINDINGS_RELATIVE_PATH = File.separator + "Bindings" + File.separator
+                + "bindings-common" + File.separator + "lib";
+
 
         public CMirror(InvocationContext context, int size) {
             super(context, size);
@@ -127,5 +126,5 @@ public class CInvoker extends PipedInvoker {
             return env;
         }
     }
-	
+
 }

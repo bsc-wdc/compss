@@ -32,15 +32,18 @@ public class DynamicMethodWorker extends MethodWorker {
     private final LinkedList<PendingReduction<MethodResourceDescription>> pendingReductions;
     private final MethodResourceDescription toRemove;
 
+
     public DynamicMethodWorker(String name, MethodResourceDescription description, COMPSsWorker worker,
-            int limitOfTasks, int limitGPUTasks, int limitFPGATasks, int limitOTHERTasks, Map<String, String> sharedDisks) {
+            int limitOfTasks, int limitGPUTasks, int limitFPGATasks, int limitOTHERTasks,
+            Map<String, String> sharedDisks) {
 
         super(name, description, worker, limitOfTasks, limitGPUTasks, limitFPGATasks, limitOTHERTasks, sharedDisks);
         this.toRemove = new MethodResourceDescription();
         this.pendingReductions = new LinkedList<>();
     }
 
-    public DynamicMethodWorker(String name, MethodResourceDescription description, MethodConfiguration config, Map<String, String> sharedDisks) {
+    public DynamicMethodWorker(String name, MethodResourceDescription description, MethodConfiguration config,
+            Map<String, String> sharedDisks) {
 
         super(name, description, config, sharedDisks);
 
@@ -170,7 +173,7 @@ public class DynamicMethodWorker extends MethodWorker {
         this.setMaxGPUTaskCount(this.getMaxGPUTaskCount() - GPUCount);
         this.setMaxFPGATaskCount(this.getMaxFPGATaskCount() - FPGACount);
         this.setMaxOthersTaskCount(this.getMaxOthersTaskCount() - otherCount);
-        
+
         updatedFeatures();
     }
 

@@ -56,9 +56,7 @@ public class PrintCurrentGraphRequest extends TDRequest {
     /**
      * Constructs a GetCurrentScheduleRequest
      *
-     * @param sem
-     *            Semaphore to synchronize until the representation is constructed
-     *
+     * @param sem Semaphore to synchronize until the representation is constructed
      */
     public PrintCurrentGraphRequest(Semaphore sem, BufferedWriter graph) {
         this.sem = sem;
@@ -69,7 +67,6 @@ public class PrintCurrentGraphRequest extends TDRequest {
      * Returns the semaphore to synchronize until the representation is constructed
      *
      * @result Semaphore to synchronize until the representation is constructed
-     *
      */
     public Semaphore getSemaphore() {
         return sem;
@@ -78,9 +75,7 @@ public class PrintCurrentGraphRequest extends TDRequest {
     /**
      * Changes the semaphore to synchronize until the representation is constructed
      *
-     * @param sem
-     *            New semaphore to synchronize until the representation is constructed
-     *
+     * @param sem New semaphore to synchronize until the representation is constructed
      */
     public void setSemaphore(Semaphore sem) {
         this.sem = sem;

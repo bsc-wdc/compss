@@ -30,15 +30,17 @@ public class CloudMethodWorker extends DynamicMethodWorker {
 
     private final CloudProvider provider;
 
-    public CloudMethodWorker(String name, CloudProvider provider, CloudMethodResourceDescription description, COMPSsWorker worker,
-            int limitOfTasks, int limitGPUTasks, int limitFPGATasks, int limitOTHERTasks, Map<String, String> sharedDisks) {
+
+    public CloudMethodWorker(String name, CloudProvider provider, CloudMethodResourceDescription description,
+            COMPSsWorker worker, int limitOfTasks, int limitGPUTasks, int limitFPGATasks, int limitOTHERTasks,
+            Map<String, String> sharedDisks) {
 
         super(name, description, worker, limitOfTasks, limitGPUTasks, limitFPGATasks, limitOTHERTasks, sharedDisks);
         this.provider = provider;
     }
 
-    public CloudMethodWorker(String name, CloudProvider provider, CloudMethodResourceDescription description, MethodConfiguration config,
-            Map<String, String> sharedDisks) {
+    public CloudMethodWorker(String name, CloudProvider provider, CloudMethodResourceDescription description,
+            MethodConfiguration config, Map<String, String> sharedDisks) {
 
         super(name, description, config, sharedDisks);
         this.provider = provider;

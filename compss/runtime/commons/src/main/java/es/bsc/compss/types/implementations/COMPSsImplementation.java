@@ -44,8 +44,8 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
         super();
     }
 
-    public COMPSsImplementation(String runcompss, String flags, String appName, String workerInMaster, String workingDir, Integer coreId,
-            Integer implementationId, MethodResourceDescription annot) {
+    public COMPSsImplementation(String runcompss, String flags, String appName, String workerInMaster,
+            String workingDir, Integer coreId, Integer implementationId, MethodResourceDescription annot) {
 
         super(coreId, implementationId, annot);
 

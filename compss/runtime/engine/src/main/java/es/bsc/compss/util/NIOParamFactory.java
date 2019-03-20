@@ -30,18 +30,21 @@ import es.bsc.compss.types.parameter.Parameter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+
 /**
  * Build NIOParam from other data types
+ * 
  * @see NIOParam
  */
 public class NIOParamFactory {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TA_COMP);
 
+
     /**
-     * Construct a NIOParam from a Parameter object.
-     * Necessary to translate master representations of parameters to something
-     * transferable.
+     * Construct a NIOParam from a Parameter object. Necessary to translate master representations of parameters to
+     * something transferable.
+     * 
      * @param param Parameter
      * @return NIOParam representing this Parameter
      */
@@ -105,8 +108,9 @@ public class NIOParamFactory {
 
                 // Create the NIO Param
                 boolean writeFinalValue = !(dAccId instanceof DataAccessId.RAccessId); // Only store W and RW
-                np = new NIOParam(dataMgmtId, type, param.getStream(), param.getPrefix(), param.getName(), preserveSourceData, writeFinalValue, value,
-                        (NIOData) dPar.getDataSource(), dPar.getOriginalName());
+                np = new NIOParam(dataMgmtId, type, param.getStream(), param.getPrefix(), param.getName(),
+                        preserveSourceData, writeFinalValue, value, (NIOData) dPar.getDataSource(),
+                        dPar.getOriginalName());
                 break;
 
             default:
@@ -114,27 +118,18 @@ public class NIOParamFactory {
                 value = btParB.getValue();
                 preserveSourceData = false; // Basic parameters are not preserved on Worker
                 writeFinalValue = false; // Basic parameters are not stored on Worker
-                np = new NIOParam(null, type, param.getStream(), param.getPrefix(), param.getName(), preserveSourceData, writeFinalValue, value, null,
-                        DependencyParameter.NO_NAME);
+                np = new NIOParam(null, type, param.getStream(), param.getPrefix(), param.getName(), preserveSourceData,
+                        writeFinalValue, value, null, DependencyParameter.NO_NAME);
                 break;
         }
 
-        if(type == DataType.COLLECTION_T) {
+        if (type == DataType.COLLECTION_T) {
             LOGGER.debug("COLLECTION_T detected");
-            NIOParamCollection ret = new NIOParamCollection(
-                    np.getDataMgmtId(),
-                    np.getType(),
-                    np.getStream(),
-                    np.getPrefix(),
-                    np.getName(),
-                    np.isPreserveSourceData(),
-                    np.isWriteFinalValue(),
-                    np.getValue(),
-                    np.getData(),
-                    np.getOriginalName()
-            );
-            CollectionParameter cp = (CollectionParameter)param;
-            for(Parameter subParam : cp.getParameters()) {
+            NIOParamCollection ret = new NIOParamCollection(np.getDataMgmtId(), np.getType(), np.getStream(),
+                    np.getPrefix(), np.getName(), np.isPreserveSourceData(), np.isWriteFinalValue(), np.getValue(),
+                    np.getData(), np.getOriginalName());
+            CollectionParameter cp = (CollectionParameter) param;
+            for (Parameter subParam : cp.getParameters()) {
                 LOGGER.debug("Adding " + subParam);
                 ret.getCollectionParameters().add(NIOParamFactory.fromParameter(subParam));
             }

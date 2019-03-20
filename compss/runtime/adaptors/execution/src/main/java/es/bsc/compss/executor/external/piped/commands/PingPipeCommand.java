@@ -28,7 +28,7 @@ public class PingPipeCommand extends PingExternalCommand implements PipeCommand 
 
     @Override
     public void join(PipeCommand receivedCommand) {
-        //Do nothing
+        // Do nothing
     }
 
 }

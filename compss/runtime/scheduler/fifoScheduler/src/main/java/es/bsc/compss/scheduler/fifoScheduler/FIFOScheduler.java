@@ -30,13 +30,11 @@ import org.json.JSONObject;
 
 /**
  * Representation of a Scheduler that considers only ready tasks and sorts them in FIFO mode
- *
  */
 public class FIFOScheduler extends ReadyScheduler {
 
     /**
      * Constructs a new Ready Scheduler instance
-     *
      */
     public FIFOScheduler() {
         super();
@@ -50,8 +48,8 @@ public class FIFOScheduler extends ReadyScheduler {
      * *********************************************************************************************************
      */
     @Override
-    public <T extends WorkerResourceDescription> FIFOResourceScheduler<T> generateSchedulerForResource(Worker<T> w, JSONObject resJSON,
-            JSONObject implJSON) {
+    public <T extends WorkerResourceDescription> FIFOResourceScheduler<T> generateSchedulerForResource(Worker<T> w,
+            JSONObject resJSON, JSONObject implJSON) {
         // LOGGER.debug("[FIFOScheduler] Generate scheduler for resource " + w.getName());
         return new FIFOResourceScheduler<>(w, resJSON, implJSON);
     }
@@ -71,7 +69,8 @@ public class FIFOScheduler extends ReadyScheduler {
      */
     @Override
     public <T extends WorkerResourceDescription> void purgeFreeActions(List<AllocatableAction> dataFreeActions,
-            List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
+            List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates,
+            ResourceScheduler<T> resource) {
 
         List<AllocatableAction> unassignedReadyActions = this.unassignedReadyActions.removeAllActions();
         dataFreeActions.addAll(unassignedReadyActions);

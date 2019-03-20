@@ -21,7 +21,6 @@ import java.io.Serializable;
 
 /**
  * Exception representation for errors when calling the Storage ITF
- *
  */
 public class StorageException extends Exception implements Serializable {
 
@@ -30,7 +29,6 @@ public class StorageException extends Exception implements Serializable {
 
     /**
      * New empty storage exception
-     * 
      */
     public StorageException() {
 

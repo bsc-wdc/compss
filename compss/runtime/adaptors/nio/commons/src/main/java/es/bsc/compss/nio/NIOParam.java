@@ -45,12 +45,13 @@ public class NIOParam implements Externalizable, InvocationParam {
 
     private Class<?> valueClass;
 
+
     public NIOParam() {
         // Only executed by externalizable
     }
 
-    public NIOParam(String dataMgmtId, DataType type, Stream stream, String prefix, String name, boolean preserveSourceData, boolean writeFinalValue, Object value,
-            NIOData data, String originalName) {
+    public NIOParam(String dataMgmtId, DataType type, Stream stream, String prefix, String name,
+            boolean preserveSourceData, boolean writeFinalValue, Object value, NIOData data, String originalName) {
         this.dataMgmtId = dataMgmtId;
         this.type = type;
         this.stream = stream;
@@ -79,7 +80,9 @@ public class NIOParam implements Externalizable, InvocationParam {
     }
 
     @Override
-    public String getName() { return this.name; }
+    public String getName() {
+        return this.name;
+    }
 
     @Override
     public boolean isPreserveSourceData() {
@@ -119,7 +122,7 @@ public class NIOParam implements Externalizable, InvocationParam {
     public void setOriginalName(String originalName) {
         this.originalName = originalName;
     }
-    
+
     @Override
     public String getRenamedName() {
         return this.renamedName;

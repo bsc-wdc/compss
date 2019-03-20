@@ -23,7 +23,6 @@ import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUn
 
 /**
  * Class for unbinded thread affinity.
- *
  */
 public class Unbinded implements ThreadBinder {
 

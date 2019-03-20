@@ -38,6 +38,7 @@ public class FakeAllocatableAction extends AllocatableAction {
 
     private int fakeId;
 
+
     public FakeAllocatableAction(ActionOrchestrator td, int id) {
         super(new FakeSI(null), td);
         this.fakeId = id;
@@ -98,7 +99,8 @@ public class FakeAllocatableAction extends AllocatableAction {
     }
 
     @Override
-    public <T extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(ResourceScheduler<T> r) {
+    public <T extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(
+            ResourceScheduler<T> r) {
         return null;
     }
 
@@ -150,7 +152,8 @@ public class FakeAllocatableAction extends AllocatableAction {
     }
 
     @Override
-    public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker, Score actionScore) {
+    public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
+            Score actionScore) {
         return null;
     }
 

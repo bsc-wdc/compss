@@ -21,7 +21,6 @@ import es.bsc.compss.exceptions.CopyException;
 
 /**
  * Exception for GAT Copies
- *
  */
 public class GATCopyException extends CopyException {
 

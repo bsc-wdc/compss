@@ -33,6 +33,7 @@ public class NIOURI implements Externalizable, InvocationParamURI {
     private String path;
     private Protocol protocol;
 
+
     public NIOURI() {
     }
 

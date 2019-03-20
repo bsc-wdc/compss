@@ -16,11 +16,10 @@
  */
 package es.bsc.compss.executor.external.piped;
 
-
 public class PipeElementInfo {
 
-    
     private final Integer pid;
+
 
     public PipeElementInfo(Integer pid) {
         this.pid = pid;

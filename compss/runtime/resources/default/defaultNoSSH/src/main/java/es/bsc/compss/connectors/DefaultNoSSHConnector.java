@@ -39,11 +39,11 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Default SSH Connector implementation to use specific SSH connectors' interface
- *
  */
 public class DefaultNoSSHConnector extends AbstractConnector {
 
-    private static final String CONNECTORS_REL_PATH = File.separator + "Runtime" + File.separator + "cloud-conn" + File.separator;
+    private static final String CONNECTORS_REL_PATH = File.separator + "Runtime" + File.separator + "cloud-conn"
+            + File.separator;
 
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.CONNECTORS);
@@ -106,10 +106,10 @@ public class DefaultNoSSHConnector extends AbstractConnector {
             LOGGER.error("Specific connector jar file not found", fnfe);
             throw new ConnectorException("Specific Connector jar file (" + connectorJarPath + ") not found", fnfe);
         } catch (Exception e) {
-            LOGGER.error("Exception creating connector",e);
+            LOGGER.error("Exception creating connector", e);
             throw new ConnectorException(e);
         } finally {
-            if(conn == null){
+            if (conn == null) {
                 LOGGER.fatal("Connector constructor null");
             }
             connector = new ConnectorProxy(conn);
@@ -130,7 +130,8 @@ public class DefaultNoSSHConnector extends AbstractConnector {
     }
 
     @Override
-    public CloudMethodResourceDescription waitUntilCreation(Object id, CloudMethodResourceDescription requested) throws ConnectorException {
+    public CloudMethodResourceDescription waitUntilCreation(Object id, CloudMethodResourceDescription requested)
+            throws ConnectorException {
         LOGGER.debug("Waiting for " + id);
         VirtualResource vr = connector.waitUntilCreation(id);
         CloudMethodResourceDescription cmrd = Converter.toCloudMethodResourceDescription(vr, requested);

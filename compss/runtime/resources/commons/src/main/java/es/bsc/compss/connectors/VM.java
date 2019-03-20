@@ -23,7 +23,6 @@ import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 
 /**
  * Representation of a VM
- *
  */
 public class VM implements Comparable<VM> {
 
@@ -138,7 +137,6 @@ public class VM implements Comparable<VM> {
 
     /**
      * Computes the creation time (stored internally)
-     * 
      */
     public void computeCreationTime() {
         creationTime = this.startTime - this.requestTime;
@@ -197,17 +195,17 @@ public class VM implements Comparable<VM> {
 
         return mod2 - mod1;
     }
-    
+
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof VM) {
             VM vm = (VM) obj;
             return vm.getName().equals(getName());
         }
-        
+
         return false;
     }
-    
+
     @Override
     public int hashCode() {
         return getName().hashCode();
@@ -215,11 +213,12 @@ public class VM implements Comparable<VM> {
 
     @Override
     public String toString() {
-        return "VM " + envId + " (ip = " + rd.getName() + ", request time = " + requestTime + ", start time = " + startTime
-                + ", creation time = " + creationTime + ", image = " + rd.getImage().getImageName() + ", procs = CPU: "
-                + rd.getTotalCPUComputingUnits() + ", GPU: " + rd.getTotalGPUComputingUnits() + ", FPGA: " + rd.getTotalFPGAComputingUnits()
-                + ", OTHER: " + rd.getTotalOTHERComputingUnits() + ", memory = " + rd.getMemorySize() + ", disk = " + rd.getStorageSize()
-                + ", to delete = " + toDelete + ")";
+        return "VM " + envId + " (ip = " + rd.getName() + ", request time = " + requestTime + ", start time = "
+                + startTime + ", creation time = " + creationTime + ", image = " + rd.getImage().getImageName()
+                + ", procs = CPU: " + rd.getTotalCPUComputingUnits() + ", GPU: " + rd.getTotalGPUComputingUnits()
+                + ", FPGA: " + rd.getTotalFPGAComputingUnits() + ", OTHER: " + rd.getTotalOTHERComputingUnits()
+                + ", memory = " + rd.getMemorySize() + ", disk = " + rd.getStorageSize() + ", to delete = " + toDelete
+                + ")";
     }
 
 }

@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.executor.external.commands;
 
-
 public class StartWorkerExternalCommand implements ExternalCommand {
 
     @Override

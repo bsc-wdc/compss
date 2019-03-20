@@ -23,6 +23,7 @@ public class ActionNotFoundException extends Exception {
      */
     private static final long serialVersionUID = 2L;
 
+
     public ActionNotFoundException() {
         super();
     }

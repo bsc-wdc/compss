@@ -55,9 +55,6 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
     // Logger messages
     private static final String ERROR_PIPE_CLOSE = "Error on closing pipe ";
-    private static final String ERROR_PIPE_QUIT = "Error finishing readPipeFile ";
-    private static final String ERROR_PIPE_NOT_FOUND = "Pipe cannot be found";
-    private static final String ERROR_PIPE_NOT_READ = "Pipe cannot be read";
     private static final String WRITE_PIPE_CLOSING_NOT_EXISTS = "Deleted pipe being written blocks the execution";
     private static final String READ_PIPE_CLOSING_NOT_EXISTS = "Deleted pipe read written blocks the execution";
 
@@ -79,28 +76,29 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
     private int readers;
     private boolean closed = false;
 
+
     public PipePair(String basePipePath, String id) {
-        pipePath = basePipePath + id;
+        this.pipePath = basePipePath + id;
     }
 
     public final String getPipesLocation() {
-        return pipePath;
+        return this.pipePath;
     }
 
     public final String getInboundPipe() {
-        return pipePath + ".inbound";
+        return this.pipePath + ".inbound";
     }
 
     public final String getOutboundPipe() {
-        return pipePath + ".outbound";
+        return this.pipePath + ".outbound";
     }
 
     public final void delete() {
-        File f = new File(pipePath + ".inbound");
+        File f = new File(this.pipePath + ".inbound");
         if (f.exists()) {
             f.delete();
         }
-        f = new File(pipePath + ".outbound");
+        f = new File(this.pipePath + ".outbound");
         if (f.exists()) {
             f.delete();
         }
@@ -111,7 +109,7 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
         boolean done = false;
         int retries = 0;
         String taskCMD = command.getAsString();
-        String writePipe = pipePath + ".outbound";
+        String writePipe = this.pipePath + ".outbound";
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("EXECUTOR COMMAND: " + taskCMD + " @ " + writePipe);
         }
@@ -124,21 +122,21 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
             } else {
                 OutputStream output = null;
                 synchronized (this) {
-                    senders++;
+                    this.senders++;
                 }
-                sendMutex.lock();
+                this.sendMutex.lock();
                 try {
                     output = new FileOutputStream(writePipe, true);
                     output.write(taskCMD.getBytes());
                     output.flush();
                     synchronized (this) {
-                        senders--;
-                        done = !closed;
+                        this.senders--;
+                        done = !this.closed;
                     }
                     LOGGER.debug("Written " + taskCMD + " into " + writePipe);
                 } catch (IOException e) {
                     synchronized (this) {
-                        senders--;
+                        this.senders--;
                     }
                     LOGGER.debug("Error on pipe write. Retry");
                     ++retries;
@@ -150,7 +148,7 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
                             ErrorManager.error(ERROR_PIPE_CLOSE + writePipe, e);
                         }
                     }
-                    sendMutex.unlock();
+                    this.sendMutex.unlock();
                 }
             }
             try {
@@ -167,43 +165,43 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
 
     @Override
     public String toString() {
-        return "READ pipe: " + pipePath + ".inbound  WRITE pipe:" + pipePath + ".outbound";
+        return "READ pipe: " + this.pipePath + ".inbound  WRITE pipe:" + this.pipePath + ".outbound";
     }
 
     @Override
     public PipeCommand readCommand() throws ClosedPipeException, ExternalExecutorException {
         PipeCommand readCommand = null;
         synchronized (this) {
-            if (closed) {
+            if (this.closed) {
                 throw new ClosedPipeException();
             }
-            readers++;
+            this.readers++;
         }
-        if (reader == null) {
+        if (this.reader == null) {
             try {
                 String readPipe = getInboundPipe();
                 FileInputStream input = new FileInputStream(readPipe);// WARN: This call is blocking for NamedPipes
-                reader = new BufferedReader(new InputStreamReader(input));
+                this.reader = new BufferedReader(new InputStreamReader(input));
             } catch (FileNotFoundException fnfe) {
                 throw new ExternalExecutorException(fnfe);
             }
         }
         synchronized (this) {
-            readers--;
+            this.readers--;
         }
 
         try {
             String line = null;
             while (line == null || line.length() == 0) {
-                if (closed) {
+                if (this.closed) {
                     throw new ClosedPipeException();
                 }
-                line = reader.readLine();
+                line = this.reader.readLine();
                 if (line == null) {
                     try {
                         Thread.sleep(PIPE_READ_COMMAND_PERIOD);
                     } catch (InterruptedException ie) {
-                        //Do nothing
+                        // Do nothing
                     }
                 }
             }
@@ -274,8 +272,7 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
             case EXECUTE_TASK:
             case REMOVE:
             case SERIALIZE:
-
-            // Should not receive any of these tags
+                // Should not receive any of these tags
             default:
                 throw new UnknownCommandException(cmd);
         }
@@ -286,68 +283,54 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
         int senders;
         int readers;
         synchronized (this) {
-            closed = true;
+            this.closed = true;
             senders = this.senders;
             readers = this.readers;
         }
-        String readPipe = pipePath + ".outbound";
+
+        String readPipe = this.pipePath + ".outbound";
         while (senders > 0) {
-            FileInputStream input = null;
-            try {
-                input = new FileInputStream(readPipe);
+            // Try to read from pipe
+            try (FileInputStream input = new FileInputStream(readPipe)) {
                 input.read();
-            } catch (FileNotFoundException ex) {
-                ErrorManager.fatal(WRITE_PIPE_CLOSING_NOT_EXISTS);
+            } catch (FileNotFoundException fnfe) {
+                ErrorManager.fatal(WRITE_PIPE_CLOSING_NOT_EXISTS, fnfe);
             } catch (IOException ioe) {
-            } finally {
-                if (input != null) {
-                    try {
-                        input.close();
-                    } catch (IOException ioe) {
-                        ErrorManager.error(ERROR_PIPE_CLOSE + readPipe, ioe);
-                    }
-                }
+                ErrorManager.fatal(WRITE_PIPE_CLOSING_NOT_EXISTS, ioe);
             }
+
+            // Sleep
             try {
                 Thread.sleep(50);
             } catch (InterruptedException ie) {
+                // No need to catch such exception
             }
             synchronized (this) {
                 senders = this.senders;
             }
         }
 
-        String writePipe = pipePath + ".inbound";
+        String writePipe = this.pipePath + ".inbound";
         if (readers > 0) {
-            FileOutputStream fos = null;
             File pipe = new File(writePipe);
             if (!pipe.exists()) {
                 ErrorManager.fatal(READ_PIPE_CLOSING_NOT_EXISTS);
             } else {
-                try {
+                try (FileOutputStream fos = new FileOutputStream(writePipe)) {
                     String message = CLOSED_PIPE_ERROR + "\n";
-                    fos = new FileOutputStream(writePipe);
                     fos.write(message.getBytes());
                     fos.flush();
                 } catch (IOException ioe) {
                     ioe.printStackTrace();
-                } finally {
-                    if (fos != null) {
-                        try {
-                            fos.close();
-                        } catch (Exception e) {
-                            ErrorManager.error(ERROR_PIPE_CLOSE + writePipe, e);
-                        }
-                    }
                 }
             }
         }
-        if (reader != null) {
+        if (this.reader != null) {
             try {
-                reader.close();
-                reader = null;
+                this.reader.close();
+                this.reader = null;
             } catch (IOException ioe) {
-                //Already closed. Do nothing
+                // Already closed. Do nothing
             }
         }
     }

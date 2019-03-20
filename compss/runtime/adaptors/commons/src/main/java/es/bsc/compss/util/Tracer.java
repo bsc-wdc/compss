@@ -48,8 +48,8 @@ public abstract class Tracer {
     private static final String storageDesc = "Storage API";
     private static final String insideTaskDesc = "Events inside tasks";
 
-    protected static final String TRACE_SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts" + File.separator + "system"
-            + File.separator + "trace" + File.separator + "trace.sh";
+    protected static final String TRACE_SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts"
+            + File.separator + "system" + File.separator + "trace" + File.separator + "trace.sh";
     protected static final String traceOutRelativePath = File.separator + "trace" + File.separator + "tracer.out";
     protected static final String traceErrRelativePath = File.separator + "trace" + File.separator + "tracer.err";
 
@@ -79,85 +79,86 @@ public abstract class Tracer {
     private static final boolean isCustomExtraeFile = (System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE) != null)
             && !System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE).isEmpty()
             && !System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE).equals("null");
-    private static final String extraeFile = isCustomExtraeFile ? System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE) : "null";
+    private static final String extraeFile = isCustomExtraeFile ? System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE)
+            : "null";
 
 
     public enum Event {
-        STATIC_IT(1, RUNTIME_EVENTS, "Loading Runtime"), 
-        START(2, RUNTIME_EVENTS, "Start"), 
-        STOP(3, RUNTIME_EVENTS, "Stop"), 
-        TASK(4, RUNTIME_EVENTS, "Execute Task"), 
-        NO_MORE_TASKS(5, RUNTIME_EVENTS, "Waiting for tasks end"), 
-        WAIT_FOR_ALL_TASKS(6, RUNTIME_EVENTS, "Barrier"), 
-        OPEN_FILE(7, RUNTIME_EVENTS, "Waiting for open file"), 
-        GET_FILE(8, RUNTIME_EVENTS, "Waiting for get file"), 
-        GET_OBJECT(9, RUNTIME_EVENTS, "Waiting for get object"), 
-        TASK_RUNNING(11, RUNTIME_EVENTS, "Task Running"),
-        DELETE(12, RUNTIME_EVENTS, "Delete File"),
-        WORKER_RECEIVED_NEW_TASK(13, RUNTIME_EVENTS, "Received new task"),
+        STATIC_IT(1, RUNTIME_EVENTS, "Loading Runtime"), // Static COMPSs
+        START(2, RUNTIME_EVENTS, "Start"), // Start
+        STOP(3, RUNTIME_EVENTS, "Stop"), // Stop
+        TASK(4, RUNTIME_EVENTS, "Execute Task"), // Execute task
+        NO_MORE_TASKS(5, RUNTIME_EVENTS, "Waiting for tasks end"), // No more tasks
+        WAIT_FOR_ALL_TASKS(6, RUNTIME_EVENTS, "Barrier"), // Waiting for tasks
+        OPEN_FILE(7, RUNTIME_EVENTS, "Waiting for open file"), // Open file
+        GET_FILE(8, RUNTIME_EVENTS, "Waiting for get file"), // Get file
+        GET_OBJECT(9, RUNTIME_EVENTS, "Waiting for get object"), // Get Object
+        TASK_RUNNING(11, RUNTIME_EVENTS, "Task Running"), // Task running
+        DELETE(12, RUNTIME_EVENTS, "Delete File"), // Delete file
+        WORKER_RECEIVED_NEW_TASK(13, RUNTIME_EVENTS, "Received new task"), // New task at worker
 
         // Access Processor Events
-        DEBUG(17, RUNTIME_EVENTS, "Access Processor: Debug"),
-        ANALYSE_TASK(18, RUNTIME_EVENTS, "Access Processor: Analyse task"),
-        UPDATE_GRAPH(19, RUNTIME_EVENTS, "Access Processor: Update graph"),
-        WAIT_FOR_TASK(20, RUNTIME_EVENTS, "Access Processor: Wait for task"),
-        END_OF_APP(21, RUNTIME_EVENTS, "Access Processor: End of app"),
-        ALREADY_ACCESSED(22, RUNTIME_EVENTS, "Access Processor: Already accessed"),
-        REGISTER_DATA_ACCESS(23, RUNTIME_EVENTS, "Access Processor: Register data access"),
-        TRANSFER_OPEN_FILE(24, RUNTIME_EVENTS, "Access Processor: Transfer open file"),
-        TRANSFER_RAW_FILE(25, RUNTIME_EVENTS, "Access Processor: Transfer raw file"),
-        TRANSFER_OBJECT(26, RUNTIME_EVENTS, "Access Processor: Transfer object"),
-        NEW_VERSION_SAME_VALUE(27, RUNTIME_EVENTS,"Access Processor: New version same value"),
-        IS_OBJECT_HERE(28, RUNTIME_EVENTS, "Access Processor: Is object here"),
-        SET_OBJECT_VERSION_VALUE(29, RUNTIME_EVENTS, "Access Processor: Set object version value"),
-        GET_LAST_RENAMING(30, RUNTIME_EVENTS, "Access Processor: Get last renaming"),
-        BLOCK_AND_GET_RESULT_FILES(31, RUNTIME_EVENTS,"Access Processor: Block and get result files"),
-        UNBLOCK_RESULT_FILES(32, RUNTIME_EVENTS,"Access Processor: Unblock result files"),
-        SHUTDOWN(33, RUNTIME_EVENTS, "Access Processor: Shutdown"),
-        GRAPHSTATE(34, RUNTIME_EVENTS, "Access Processor: Graphstate"),
-        TASKSTATE(35, RUNTIME_EVENTS, "Access Processor: Taskstate"),
-        DELETE_FILE(36, RUNTIME_EVENTS, "Access Processor: Delete file"),
-        FINISH_ACCESS_FILE(37, RUNTIME_EVENTS, "Access Processor: Finish acess to file"),
-        
-        // Storage Events
-        STORAGE_GETBYID(38, STORAGE_TYPE, "getByID"), 
-        STORAGE_NEWREPLICA(39, STORAGE_TYPE, "newReplica"), 
-        STORAGE_NEWVERSION(40,STORAGE_TYPE, "newVersion"), 
-        STORAGE_INVOKE(41, STORAGE_TYPE, "invoke"), 
-        STORAGE_EXECUTETASK(42, STORAGE_TYPE,"executeTask"), 
-        STORAGE_GETLOCATIONS(43, STORAGE_TYPE, "getLocations"), 
-        STORAGE_CONSOLIDATE(44, STORAGE_TYPE, "consolidateVersion"),
-        
-        // Task Dispatcher Events
-        ACTION_UPDATE(45, RUNTIME_EVENTS, "Task Dispatcher: Action update"), 
-        CE_REGISTRATION(46, RUNTIME_EVENTS, "Task Dispatcher: CE registration"), 
-        EXECUTE_TASKS(47, RUNTIME_EVENTS, "Task Dispatcher: Execute tasks"), 
-        GET_CURRENT_SCHEDULE(48, RUNTIME_EVENTS, "Task Dispatcher: Get current schedule"), 
-        PRINT_CURRENT_GRAPH(49, RUNTIME_EVENTS, "Task Dispatcher: Print current graph"),
-        MONITORING_DATA(50, RUNTIME_EVENTS, "Task Dispatcher: Monitoring data"), 
-        TD_SHUTDOWN(51, RUNTIME_EVENTS, "Task Dispatcher: Shutdown"), 
-        UPDATE_CEI_LOCAL(52, RUNTIME_EVENTS, "Task Dispatcher: Update CEI local"), 
-        WORKER_UPDATE_REQUEST(53, RUNTIME_EVENTS, "Task Dispatcher: Worker update request"),
-                
-        // Task Events
-        CREATING_TASK_SANDBOX(54, RUNTIME_EVENTS, "Worker: Creating task sandbox"),
-        REMOVING_TASK_SANDBOX(55, RUNTIME_EVENTS, "Worker: Removing task sandbox"),
-        TASK_EXECUTION_PYTHON(1, INSIDE_TASKS_TYPE, "Task execution"),
-        USER_CODE_PYTHON1(2, INSIDE_TASKS_TYPE, "User code execution 1"),
-        USER_CODE_PYTHON2(3, INSIDE_TASKS_TYPE, "User code execution 2"),
-        USER_CODE_PYTHON3(4, INSIDE_TASKS_TYPE, "User code execution 3"),
-        IMPORTING_MODULES_PYTHON(5, INSIDE_TASKS_TYPE, "Importing modules"),
-        THREAD_BINDING_PYTHON(6, INSIDE_TASKS_TYPE, "Thread binding"),
-        DESERIALIZE_OBJECT_PYTHON1(7, INSIDE_TASKS_TYPE, "Deserializing object"),
-        DESERIALIZE_OBJECT_PYTHON2(8, INSIDE_TASKS_TYPE, "Deserializing object"),
-        SERIALIZE_OBJECT_PYTHON(9, INSIDE_TASKS_TYPE, "Serializing object"),
-        CREATE_THREADS_PYTHON(10, INSIDE_TASKS_TYPE, "Create persistent threads"),
-        GET_BY_ID(11, INSIDE_TASKS_TYPE, "Get by ID persistent object"),
-        MAKE_PERSISTENT(12, INSIDE_TASKS_TYPE, "Make persistent object"),
-        DELETE_PERSISTENT(13, INSIDE_TASKS_TYPE, "Delete persistent object"),
-        WORKER_RUNNING(102, INSIDE_TASKS_TYPE, "Worker running"),
+        DEBUG(17, RUNTIME_EVENTS, "Access Processor: Debug"), // Debug
+        ANALYSE_TASK(18, RUNTIME_EVENTS, "Access Processor: Analyse task"), // Analyse task
+        UPDATE_GRAPH(19, RUNTIME_EVENTS, "Access Processor: Update graph"), // Update graph
+        WAIT_FOR_TASK(20, RUNTIME_EVENTS, "Access Processor: Wait for task"), // wait for task
+        END_OF_APP(21, RUNTIME_EVENTS, "Access Processor: End of app"), // End of application
+        ALREADY_ACCESSED(22, RUNTIME_EVENTS, "Access Processor: Already accessed"), // Already accessed
+        REGISTER_DATA_ACCESS(23, RUNTIME_EVENTS, "Access Processor: Register data access"), // Register data access
+        TRANSFER_OPEN_FILE(24, RUNTIME_EVENTS, "Access Processor: Transfer open file"), // Transfer open file
+        TRANSFER_RAW_FILE(25, RUNTIME_EVENTS, "Access Processor: Transfer raw file"), // Transfer raw file
+        TRANSFER_OBJECT(26, RUNTIME_EVENTS, "Access Processor: Transfer object"), // Transfer object
+        NEW_VERSION_SAME_VALUE(27, RUNTIME_EVENTS, "Access Processor: New version same value"), // New version
+        IS_OBJECT_HERE(28, RUNTIME_EVENTS, "Access Processor: Is object here"), // Is object here
+        SET_OBJECT_VERSION_VALUE(29, RUNTIME_EVENTS, "Access Processor: Set object version value"), // Set version
+        GET_LAST_RENAMING(30, RUNTIME_EVENTS, "Access Processor: Get last renaming"), // Get last renaming
+        BLOCK_AND_GET_RESULT_FILES(31, RUNTIME_EVENTS, "Access Processor: Block and get result files"), // Get files
+        UNBLOCK_RESULT_FILES(32, RUNTIME_EVENTS, "Access Processor: Unblock result files"), // Unblock result files
+        SHUTDOWN(33, RUNTIME_EVENTS, "Access Processor: Shutdown"), // Shutdown
+        GRAPHSTATE(34, RUNTIME_EVENTS, "Access Processor: Graphstate"), // Graph state
+        TASKSTATE(35, RUNTIME_EVENTS, "Access Processor: Taskstate"), // Task state
+        DELETE_FILE(36, RUNTIME_EVENTS, "Access Processor: Delete file"), // Delete file
+        FINISH_ACCESS_FILE(37, RUNTIME_EVENTS, "Access Processor: Finish acess to file"), // Finish access to file
 
-        READY_COUNT(1, READY_COUNTS, "Ready queue count");
+        // Storage Events
+        STORAGE_GETBYID(38, STORAGE_TYPE, "getByID"), // Get By Id
+        STORAGE_NEWREPLICA(39, STORAGE_TYPE, "newReplica"), // New replica
+        STORAGE_NEWVERSION(40, STORAGE_TYPE, "newVersion"), // New version
+        STORAGE_INVOKE(41, STORAGE_TYPE, "invoke"), // Invoke
+        STORAGE_EXECUTETASK(42, STORAGE_TYPE, "executeTask"), // Execute task
+        STORAGE_GETLOCATIONS(43, STORAGE_TYPE, "getLocations"), // Get locations
+        STORAGE_CONSOLIDATE(44, STORAGE_TYPE, "consolidateVersion"), // Consolidate version
+
+        // Task Dispatcher Events
+        ACTION_UPDATE(45, RUNTIME_EVENTS, "Task Dispatcher: Action update"), // Action update
+        CE_REGISTRATION(46, RUNTIME_EVENTS, "Task Dispatcher: CE registration"), // CE registration
+        EXECUTE_TASKS(47, RUNTIME_EVENTS, "Task Dispatcher: Execute tasks"), // Execute task
+        GET_CURRENT_SCHEDULE(48, RUNTIME_EVENTS, "Task Dispatcher: Get current schedule"), // Get schedule
+        PRINT_CURRENT_GRAPH(49, RUNTIME_EVENTS, "Task Dispatcher: Print current graph"), // Print graph
+        MONITORING_DATA(50, RUNTIME_EVENTS, "Task Dispatcher: Monitoring data"), // Get monitor data
+        TD_SHUTDOWN(51, RUNTIME_EVENTS, "Task Dispatcher: Shutdown"), // Shutdown
+        UPDATE_CEI_LOCAL(52, RUNTIME_EVENTS, "Task Dispatcher: Update CEI local"), // Update CEI
+        WORKER_UPDATE_REQUEST(53, RUNTIME_EVENTS, "Task Dispatcher: Worker update request"), // Update worker
+
+        // Task Events
+        CREATING_TASK_SANDBOX(54, RUNTIME_EVENTS, "Worker: Creating task sandbox"), // Create task sandbox
+        REMOVING_TASK_SANDBOX(55, RUNTIME_EVENTS, "Worker: Removing task sandbox"), // Erase task sandbox
+        TASK_EXECUTION_PYTHON(1, INSIDE_TASKS_TYPE, "Task execution"), // Execute python task
+        USER_CODE_PYTHON1(2, INSIDE_TASKS_TYPE, "User code execution 1"), // User code 1
+        USER_CODE_PYTHON2(3, INSIDE_TASKS_TYPE, "User code execution 2"), // User code 2
+        USER_CODE_PYTHON3(4, INSIDE_TASKS_TYPE, "User code execution 3"), // User code 3
+        IMPORTING_MODULES_PYTHON(5, INSIDE_TASKS_TYPE, "Importing modules"), // Import python
+        THREAD_BINDING_PYTHON(6, INSIDE_TASKS_TYPE, "Thread binding"), // Thread binding
+        DESERIALIZE_OBJECT_PYTHON1(7, INSIDE_TASKS_TYPE, "Deserializing object"), // Deserialize
+        DESERIALIZE_OBJECT_PYTHON2(8, INSIDE_TASKS_TYPE, "Deserializing object"), // Deserialize
+        SERIALIZE_OBJECT_PYTHON(9, INSIDE_TASKS_TYPE, "Serializing object"), // Serialize
+        CREATE_THREADS_PYTHON(10, INSIDE_TASKS_TYPE, "Create persistent threads"), // Create threads python
+        GET_BY_ID(11, INSIDE_TASKS_TYPE, "Get by ID persistent object"), // Get by id
+        MAKE_PERSISTENT(12, INSIDE_TASKS_TYPE, "Make persistent object"), // Make persistent
+        DELETE_PERSISTENT(13, INSIDE_TASKS_TYPE, "Delete persistent object"), // Delete persistent
+        WORKER_RUNNING(102, INSIDE_TASKS_TYPE, "Worker running"), // Worker running
+
+        READY_COUNT(1, READY_COUNTS, "Ready queue count");// Ready count
 
         private final int id;
         private final int type;
@@ -336,7 +337,8 @@ public abstract class Tracer {
         }
 
         if (DEBUG) {
-            LOGGER.debug("Emitting synchronized event with HW counters [type, taskId] = [" + eventType + " , " + taskId + "]");
+            LOGGER.debug("Emitting synchronized event with HW counters [type, taskId] = [" + eventType + " , " + taskId
+                    + "]");
         }
 
     }
@@ -392,7 +394,8 @@ public abstract class Tracer {
                 values[i] = task.getId();
                 descriptionValues[i] = task.getSignature();
                 if (DEBUG) {
-                    LOGGER.debug("Tracing[API]: Api Event " + i + "=> value: " + values[i] + ", Desc: " + descriptionValues[i]);
+                    LOGGER.debug("Tracing[API]: Api Event " + i + "=> value: " + values[i] + ", Desc: "
+                            + descriptionValues[i]);
                 }
                 ++i;
             }
@@ -416,8 +419,8 @@ public abstract class Tracer {
             String methodName = signature.substring(signature.indexOf('.') + 1, signature.length());
             descriptionValues[i] = methodName;
             if (DEBUG) {
-                LOGGER.debug("Tracing[TASKS_FUNC_TYPE] Event [i,methodId]: [" + i + "," + methodId + "] => value: " + values[i] + ", Desc: "
-                        + descriptionValues[i]);
+                LOGGER.debug("Tracing[TASKS_FUNC_TYPE] Event [i,methodId]: [" + i + "," + methodId + "] => value: "
+                        + values[i] + ", Desc: " + descriptionValues[i]);
             }
             i++;
         }
@@ -437,7 +440,8 @@ public abstract class Tracer {
                 values[i] = task.getId();
                 descriptionValues[i] = task.getSignature();
                 if (DEBUG) {
-                    LOGGER.debug("Tracing[TASK_TRANSFERS]: Event " + i + "=> value: " + values[i] + ", Desc: " + descriptionValues[i]);
+                    LOGGER.debug("Tracing[TASK_TRANSFERS]: Event " + i + "=> value: " + values[i] + ", Desc: "
+                            + descriptionValues[i]);
                 }
                 ++i;
             }
@@ -458,7 +462,8 @@ public abstract class Tracer {
                 values[i] = task.getId();
                 descriptionValues[i] = task.getSignature();
                 if (DEBUG) {
-                    LOGGER.debug("Tracing[STORAGE_TYPE]: Event " + i + "=> value: " + values[i] + ", Desc: " + descriptionValues[i]);
+                    LOGGER.debug("Tracing[STORAGE_TYPE]: Event " + i + "=> value: " + values[i] + ", Desc: "
+                            + descriptionValues[i]);
                 }
                 ++i;
             }
@@ -479,7 +484,8 @@ public abstract class Tracer {
                 values[i] = task.getId();
                 descriptionValues[i] = task.getSignature();
                 if (DEBUG) {
-                    LOGGER.debug("Tracing[INSIDE_TASKS_EVENTS]: Event " + i + "=> value: " + values[i] + ", Desc: " + descriptionValues[i]);
+                    LOGGER.debug("Tracing[INSIDE_TASKS_EVENTS]: Event " + i + "=> value: " + values[i] + ", Desc: "
+                            + descriptionValues[i]);
                 }
                 ++i;
             }
@@ -584,8 +590,8 @@ public abstract class Tracer {
         }
         String script = System.getenv(COMPSsConstants.COMPSS_HOME) + TRACE_SCRIPT_PATH;
         String appName = System.getProperty(COMPSsConstants.APP_NAME);
-        ProcessBuilder pb = new ProcessBuilder(script, "gentrace", System.getProperty(COMPSsConstants.APP_LOG_DIR), appName,
-                String.valueOf(hostToSlots.size() + 1));
+        ProcessBuilder pb = new ProcessBuilder(script, "gentrace", System.getProperty(COMPSsConstants.APP_LOG_DIR),
+                appName, String.valueOf(hostToSlots.size() + 1));
         Process p;
         pb.environment().remove(LD_PRELOAD);
         try {
@@ -642,12 +648,11 @@ public abstract class Tracer {
             boolean deleted = f.delete();
             if (!deleted) {
                 ErrorManager.warn("Unable to remove tracing temporary files of master node.");
-            } else if (DEBUG){
+            } else if (DEBUG) {
                 LOGGER.debug("Deleted master tracing package.");
             }
         } catch (Exception e) {
-            ErrorManager.warn("Exception while trying to remove tracing temporary " +
-                    "files of master node.", e);
+            ErrorManager.warn("Exception while trying to remove tracing temporary " + "files of master node.", e);
         }
     }
 

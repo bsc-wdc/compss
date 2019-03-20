@@ -3,8 +3,7 @@ package constraintManager;
 public class Implementation2 {
 
     /*
-     * ******************************************** 
-     * MULTI-CONSTRAINTS CORE-ELEMENTS
+     * ******************************************** MULTI-CONSTRAINTS CORE-ELEMENTS
      *******************************************/
     public void multiCoreElement0() {
         printMethodInformation(this.getClass().getEnclosingMethod().getName());

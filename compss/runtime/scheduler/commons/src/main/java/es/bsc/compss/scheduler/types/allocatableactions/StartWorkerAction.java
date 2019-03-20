@@ -47,7 +47,8 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
      * CONSTRUCTOR
      * ***************************************************************************************************************
      */
-    public StartWorkerAction(SchedulingInformation schedulingInformation, ResourceScheduler<T> worker, TaskScheduler ts) {
+    public StartWorkerAction(SchedulingInformation schedulingInformation, ResourceScheduler<T> worker,
+            TaskScheduler ts) {
         super(schedulingInformation, ts.getOrchestrator());
         this.worker = worker;
         switch (worker.getResource().getType()) {
@@ -88,7 +89,8 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
             @SuppressWarnings("unchecked")
             @Override
             public void run() {
-                Worker<WorkerResourceDescription> workerResource = (Worker<WorkerResourceDescription>) worker.getResource();
+                Worker<WorkerResourceDescription> workerResource = (Worker<WorkerResourceDescription>) worker
+                        .getResource();
                 Thread.currentThread().setName(workerResource.getName() + " starter");
                 try {
                     workerResource.start();
@@ -153,7 +155,7 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
 
     @Override
     public Implementation[] getImplementations() {
-        Implementation[] impls = new Implementation[]{impl};
+        Implementation[] impls = new Implementation[] { impl };
         return impls;
     }
 
@@ -163,7 +165,8 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
     }
 
     @Override
-    public <R extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(ResourceScheduler<R> r) {
+    public <R extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(
+            ResourceScheduler<R> r) {
         LinkedList<Implementation> impls = new LinkedList<>();
         if (r == this.worker) {
             impls.add(this.impl);
@@ -172,7 +175,8 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
     }
 
     @Override
-    public <R extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<R> targetWorker, Score actionScore) {
+    public <R extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<R> targetWorker,
+            Score actionScore) {
         return null;
     }
 

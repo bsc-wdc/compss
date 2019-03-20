@@ -23,7 +23,6 @@ import es.bsc.compss.types.implementations.Implementation;
 
 /**
  * Abstract representation of a Resource
- *
  */
 public abstract class ResourceDescription implements Externalizable {
 
@@ -131,7 +130,8 @@ public abstract class ResourceDescription implements Externalizable {
      * @param constraints
      * @return
      */
-    public static ResourceDescription reduceCommonDynamics(ResourceDescription gapResource, ResourceDescription constraints) {
+    public static ResourceDescription reduceCommonDynamics(ResourceDescription gapResource,
+            ResourceDescription constraints) {
         ResourceDescription commons = gapResource.getDynamicCommons(constraints);
         gapResource.reduceDynamic(commons);
         constraints.reduceDynamic(commons);

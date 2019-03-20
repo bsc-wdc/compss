@@ -29,10 +29,10 @@ import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.OneOpWithSemListener;
 
+
 /**
- * The TransferRawFileRequest class represents a request to transfer a file
- * located in a worker to be transferred to another location without register
- * the transfer
+ * The TransferRawFileRequest class represents a request to transfer a file located in a worker to be transferred to
+ * another location without register the transfer
  */
 public class TransferRawFileRequest extends APRequest {
 
@@ -48,6 +48,7 @@ public class TransferRawFileRequest extends APRequest {
      * Semaphore where to synchronize until the operation is done
      */
     private Semaphore sem;
+
 
     /**
      * Constructs a new TransferOpenFileRequest
@@ -120,7 +121,8 @@ public class TransferRawFileRequest extends APRequest {
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         // Make a copy of the original logical file, we don't want to leave track
         String sourceName = faId.getReadDataInstance().getRenaming();
-        Comm.getAppHost().getData(sourceName, location, (LogicalData) null, new FileTransferable(), new OneOpWithSemListener(sem));
+        Comm.getAppHost().getData(sourceName, location, (LogicalData) null, new FileTransferable(),
+                new OneOpWithSemListener(sem));
     }
 
     @Override

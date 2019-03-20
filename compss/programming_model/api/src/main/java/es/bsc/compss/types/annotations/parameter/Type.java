@@ -18,7 +18,6 @@ package es.bsc.compss.types.annotations.parameter;
 
 /**
  * Parameter types
- *
  */
 public enum Type {
     FILE, // file

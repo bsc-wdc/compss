@@ -50,6 +50,7 @@ public class TransferObjectRequest extends APRequest {
      */
     private LogicalData target;
 
+
     /**
      * Constructs a new TransferObjectRequest
      *

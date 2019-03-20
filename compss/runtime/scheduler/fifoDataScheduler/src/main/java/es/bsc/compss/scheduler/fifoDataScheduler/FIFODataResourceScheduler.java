@@ -70,7 +70,8 @@ public class FIFODataResourceScheduler<T extends WorkerResourceDescription> exte
 
     @SuppressWarnings("unchecked")
     @Override
-    public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl, Score resourceScore) {
+    public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl,
+            Score resourceScore) {
 
         // LOGGER.debug("[FIFODataResourceScheduler] Generate implementation score for action " + action);
         if (this.hasBlockedActions()) {

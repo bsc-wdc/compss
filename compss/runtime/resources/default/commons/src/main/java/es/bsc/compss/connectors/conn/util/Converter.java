@@ -38,9 +38,7 @@ public class Converter {
     }
 
     /**
-     *********************************************************************************************************************
-     *************************************** COMPSs TO CONN
-     * **************************************************************
+     ********************************************************************************************************************* COMPSs TO CONN **************************************************************
      * *******************************************************************************************************************
      */
     /**
@@ -70,8 +68,8 @@ public class Converter {
 
         Map<String, String> imageProp = cmrd.getImage().getProperties();
         // FIXME Using CPU Computing units, should check all units
-        return new HardwareDescription(processors, cpuCU, gpuCU, fpgaCU, memSize, memType, storageSize, storageType, timeUnit, priceUnit,
-                imageName, instanceType, imageProp);
+        return new HardwareDescription(processors, cpuCU, gpuCU, fpgaCU, memSize, memType, storageSize, storageType,
+                timeUnit, priceUnit, imageName, instanceType, imageProp);
     }
 
     /**
@@ -110,8 +108,8 @@ public class Converter {
      * @return
      */
     private static Processor getConnectorProcessor(es.bsc.compss.types.resources.components.Processor p) {
-        return new Processor(p.getName(), p.getComputingUnits(), p.getType().toString(), p.getInternalMemory(), p.getSpeed(), p.getArchitecture(),
-                p.getPropName(), p.getPropValue());
+        return new Processor(p.getName(), p.getComputingUnits(), p.getType().toString(), p.getInternalMemory(),
+                p.getSpeed(), p.getArchitecture(), p.getPropName(), p.getPropValue());
     }
 
     /**
@@ -120,7 +118,8 @@ public class Converter {
      * @param processorList
      * @return
      */
-    private static List<Processor> getConnectorProcessors(List<es.bsc.compss.types.resources.components.Processor> processorList) {
+    private static List<Processor> getConnectorProcessors(
+            List<es.bsc.compss.types.resources.components.Processor> processorList) {
         List<Processor> processors = new LinkedList<>();
         for (es.bsc.compss.types.resources.components.Processor p : processorList) {
             processors.add(getConnectorProcessor(p));
@@ -135,17 +134,15 @@ public class Converter {
      * @return
      */
     private static InstallationDescription getInstallationDescription(MethodConfiguration config) {
-        return new InstallationDescription(config.getInstallDir(), config.getAppDir(), config.getClasspath(), config.getPythonpath(),
-                config.getLibraryPath(), config.getWorkingDir(), config.getLimitOfTasks());
+        return new InstallationDescription(config.getInstallDir(), config.getAppDir(), config.getClasspath(),
+                config.getPythonpath(), config.getLibraryPath(), config.getWorkingDir(), config.getLimitOfTasks());
     }
 
     /**
-     *********************************************************************
-     ************************ CONN TO COMPSs *****************************
+     ********************************************************************* CONN TO COMPSs *****************************
      * *********************************************************************
      */
     /**
-     *
      * @param vr
      * @param requested
      * @return
@@ -169,8 +166,8 @@ public class Converter {
      */
     private static es.bsc.compss.types.resources.components.Processor getCOMPSsProcessor(Processor p) {
         // FIXME Assuming that all processors have type CPU and no mem
-        return new es.bsc.compss.types.resources.components.Processor(p.getName(), p.getComputingUnits(), p.getSpeed(), p.getArchitecture(),
-                p.getType(), p.getInternalMemory(), p.getPropName(), p.getPropValue());
+        return new es.bsc.compss.types.resources.components.Processor(p.getName(), p.getComputingUnits(), p.getSpeed(),
+                p.getArchitecture(), p.getType(), p.getInternalMemory(), p.getPropName(), p.getPropValue());
     }
 
     /**
@@ -179,7 +176,8 @@ public class Converter {
      * @param processorList
      * @return
      */
-    private static List<es.bsc.compss.types.resources.components.Processor> getCOMPSsProcessors(List<Processor> processorList) {
+    private static List<es.bsc.compss.types.resources.components.Processor> getCOMPSsProcessors(
+            List<Processor> processorList) {
         List<es.bsc.compss.types.resources.components.Processor> processors = new LinkedList<>();
 
         for (Processor p : processorList) {

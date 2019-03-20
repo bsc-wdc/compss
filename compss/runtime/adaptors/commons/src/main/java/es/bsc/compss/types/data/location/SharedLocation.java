@@ -142,7 +142,7 @@ public class SharedLocation extends DataLocation {
     @Override
     public void modifyPath(String path) {
         this.path = path;
-        
+
     }
 
 }

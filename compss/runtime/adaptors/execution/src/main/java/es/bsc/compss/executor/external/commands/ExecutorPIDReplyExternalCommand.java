@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.executor.external.commands;
 
-
 public class ExecutorPIDReplyExternalCommand implements ExternalCommand {
 
     @Override

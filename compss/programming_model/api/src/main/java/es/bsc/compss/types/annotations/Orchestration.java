@@ -26,7 +26,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 /**
  * Orchestration definition
- *
  */
 public @interface Orchestration {
 

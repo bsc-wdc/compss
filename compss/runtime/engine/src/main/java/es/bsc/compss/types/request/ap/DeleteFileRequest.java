@@ -32,6 +32,7 @@ public class DeleteFileRequest extends APRequest {
     private final DataLocation loc;
     private final Semaphore sem;
 
+
     public DeleteFileRequest(DataLocation loc, Semaphore sem) {
         this.loc = loc;
         this.sem = sem;
@@ -50,7 +51,7 @@ public class DeleteFileRequest extends APRequest {
             // Retrieve the first valid URI location (private locations have only 1, shared locations may have more)
             String filePath = loc.getURIs().get(0).getPath();
             File f = new File(filePath);
-            if (f.exists()){
+            if (f.exists()) {
                 if (f.delete()) {
                     LOGGER.info("[DeleteFileRequest] File " + filePath + " deleted");
                 } else {

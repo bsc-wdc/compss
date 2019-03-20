@@ -54,8 +54,9 @@ public class StopWorkerAction extends AllocatableAction {
      * ***************************************************************************************************************
      */
     @SuppressWarnings("unchecked")
-    public StopWorkerAction(SchedulingInformation schedulingInformation, ResourceScheduler<? extends WorkerResourceDescription> worker,
-            TaskScheduler ts, PerformedReduction<? extends WorkerResourceDescription> modification) {
+    public StopWorkerAction(SchedulingInformation schedulingInformation,
+            ResourceScheduler<? extends WorkerResourceDescription> worker, TaskScheduler ts,
+            PerformedReduction<? extends WorkerResourceDescription> modification) {
 
         super(schedulingInformation, ts.getOrchestrator());
         this.worker = worker;
@@ -174,7 +175,8 @@ public class StopWorkerAction extends AllocatableAction {
     }
 
     @Override
-    public <T extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(ResourceScheduler<T> r) {
+    public <T extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(
+            ResourceScheduler<T> r) {
         LinkedList<Implementation> impls = new LinkedList<>();
         if (r == worker) {
             impls.add(impl);
@@ -183,7 +185,8 @@ public class StopWorkerAction extends AllocatableAction {
     }
 
     @Override
-    public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker, Score actionScore) {
+    public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
+            Score actionScore) {
         return null;
     }
 

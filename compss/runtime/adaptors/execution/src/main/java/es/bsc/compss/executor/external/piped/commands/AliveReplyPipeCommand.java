@@ -22,8 +22,9 @@ import java.util.List;
 
 
 public class AliveReplyPipeCommand extends AliveReplyExternalCommand implements PipeCommand {
-        
+
     private final List<Integer> pids = new LinkedList<>();
+
 
     public AliveReplyPipeCommand(String[] command) {
         for (int i = 1; i < command.length; i++) {

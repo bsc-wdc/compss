@@ -25,6 +25,7 @@ public class AliveGetPipeCommand extends AliveGetExternalCommand implements Pipe
 
     private final List<PipeElementInfo> elements;
 
+
     public AliveGetPipeCommand(List<PipeElementInfo> elements) {
         this.elements = elements;
     }
@@ -46,6 +47,6 @@ public class AliveGetPipeCommand extends AliveGetExternalCommand implements Pipe
 
     @Override
     public void join(PipeCommand receivedCommand) {
-        //Do nothing
+        // Do nothing
     }
 }

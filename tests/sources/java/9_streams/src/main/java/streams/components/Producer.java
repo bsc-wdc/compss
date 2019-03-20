@@ -46,8 +46,10 @@ public class Producer {
         for (int i = 0; i < numMessages; ++i) {
             // Send lots of regular messages with type message
             // Message of the form {"type":"message", t=12.234, k=1}
-            String msg = String.format(Locale.ROOT, "{\"" + Messages.FIELD_TYPE + "\":\"" + Messages.TYPE_MESSAGE + "\", \""
-                    + Messages.FIELD_T + "\":%.3f, \"" + Messages.FIELD_K + "\":%d}", System.nanoTime() * 1e-9, i);
+            String msg = String.format(
+                    Locale.ROOT, "{\"" + Messages.FIELD_TYPE + "\":\"" + Messages.TYPE_MESSAGE + "\", \""
+                            + Messages.FIELD_T + "\":%.3f, \"" + Messages.FIELD_K + "\":%d}",
+                    System.nanoTime() * 1e-9, i);
             try {
                 stream.publish(id, Topics.TOPIC_REGULAR_MESSAGES, msg);
             } catch (InvalidCredentialsException ice) {
@@ -58,8 +60,10 @@ public class Producer {
 
             // Every so often send a stats message
             if (i % FREQ_STATS_MSG == 0) {
-                String statMsg = String.format(Locale.ROOT, "{\"" + Messages.FIELD_TYPE + "\":\"" + Messages.TYPE_STATS + "\", \""
-                        + Messages.FIELD_T + "\":%.3f, \"" + Messages.FIELD_K + "\":%d}", System.nanoTime() * 1e-9, i);
+                String statMsg = String.format(
+                        Locale.ROOT, "{\"" + Messages.FIELD_TYPE + "\":\"" + Messages.TYPE_STATS + "\", \""
+                                + Messages.FIELD_T + "\":%.3f, \"" + Messages.FIELD_K + "\":%d}",
+                        System.nanoTime() * 1e-9, i);
                 try {
                     stream.publish(id, Topics.TOPIC_REGULAR_MESSAGES, statMsg);
                 } catch (InvalidCredentialsException ice) {
@@ -83,8 +87,8 @@ public class Producer {
         if (DEBUG) {
             System.out.println("[LOG] Sending end messge");
         }
-        String endMsg = String.format(Locale.ROOT, "{\"" + Messages.FIELD_TYPE + "\":\"" + Messages.TYPE_END + "\", \"" + Messages.FIELD_T
-                + "\":%.3f, \"" + Messages.FIELD_K + "\":%d}", System.nanoTime() * 1e-9, 0);
+        String endMsg = String.format(Locale.ROOT, "{\"" + Messages.FIELD_TYPE + "\":\"" + Messages.TYPE_END + "\", \""
+                + Messages.FIELD_T + "\":%.3f, \"" + Messages.FIELD_K + "\":%d}", System.nanoTime() * 1e-9, 0);
         try {
             stream.publish(id, Topics.TOPIC_SYSTEM_MESSAGES, endMsg);
         } catch (InvalidCredentialsException ice) {

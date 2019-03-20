@@ -27,8 +27,8 @@ import es.bsc.compss.log.Loggers;
 
 public class Configuration {
 
-	protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
-	
+    protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
+
     private final String adaptorName;
     private final HashMap<String, String> additionalProperties = new HashMap<String, String>();
     private int limitOfTasks = -1;
@@ -121,7 +121,6 @@ public class Configuration {
         this.limitOfTasks = limitOfTasks;
     }
 
-    
     /**
      * Gets the limit of GPU tasks
      *
@@ -139,8 +138,7 @@ public class Configuration {
     public void setLimitOfGPUTasks(int limitOfGPUTasks) {
         this.limitOfGPUTasks = limitOfGPUTasks;
     }
-    
-    
+
     /**
      * Gets the limit of FPGA tasks
      *
@@ -158,8 +156,7 @@ public class Configuration {
     public void setLimitOfFPGATasks(int limitOfFPGATasks) {
         this.limitOfFPGATasks = limitOfFPGATasks;
     }
-    
-    
+
     /**
      * Gets the limit of OTHERS tasks
      *
@@ -177,6 +174,5 @@ public class Configuration {
     public void setLimitOfOTHERSTasks(int limitOfOTHERSTasks) {
         this.limitOfOTHERSTasks = limitOfOTHERSTasks;
     }
-    
-    
+
 }

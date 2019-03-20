@@ -29,7 +29,6 @@ public class PrintCurrentLoadRequest extends TDRequest {
 
     /**
      * Constructs a PrintCurrentLoadRequest
-     *
      */
     public PrintCurrentLoadRequest() {
     }

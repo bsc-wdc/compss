@@ -56,17 +56,15 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
 
     // Logger messages
     private static final String ERROR_PB_START = "Error starting ProcessBuilder";
-    private static final String ERROR_PB_PIPE = "Error ProcessBuilder pipe";
     private static final String ERROR_W_START = "Error starting Worker";
     private static final String ERROR_W_PIPE = "Error on Worker pipe";
-    private static final String ERROR_PIPE = "Error starting pipe";
-    private static final String ERROR_GC = "Error generating worker external launch command";
 
     protected static final String TOKEN_NEW_LINE = "\n";
     protected static final String TOKEN_SEP = " ";
 
-    protected static final String PIPER_SCRIPT_RELATIVE_PATH = "Runtime" + File.separator + "scripts" + File.separator + "system"
-            + File.separator + "adaptors" + File.separator + "nio" + File.separator + "pipers" + File.separator;
+    protected static final String PIPER_SCRIPT_RELATIVE_PATH = "Runtime" + File.separator + "scripts" + File.separator
+            + "system" + File.separator + "adaptors" + File.separator + "nio" + File.separator + "pipers"
+            + File.separator;
     private static final String PIPE_SCRIPT_NAME = "bindings_piper.sh";
     private static final String PIPE_FILE_BASENAME = "pipe_";
 
@@ -83,6 +81,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
     private StreamGobbler pipeBuildeErrGobbler;
 
     private ControlPipePair pipeWorkerPipe;
+
 
     public PipedMirror(InvocationContext context, int size) {
         mirrorId = String.valueOf(UUID.randomUUID().hashCode());
@@ -138,9 +137,9 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
                 // Stream no Longer Exists
             }
 
-            //Active wait until the process is created and the pipes are ready
+            // Active wait until the process is created and the pipes are ready
             while (pipeBuilderProcess.isAlive() && !new File(pipeBuilderPipe.getOutboundPipe()).exists()) {
-                //TODO: SHOULD WE ADD A TIMEOUT AT THIS POINT??
+                // TODO: SHOULD WE ADD A TIMEOUT AT THIS POINT??
             }
 
             if (!pipeBuilderProcess.isAlive()) {
@@ -208,7 +207,8 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
 
         cmd.append(getPipeBuilderContext());
 
-        // General Args are of the form: controlPipeW controlPipeR workerPipeW workerPipeR 2 pipeW1 pipeW2 2 pipeR1 pipeR2
+        // General Args are of the form: controlPipeW controlPipeR workerPipeW workerPipeR 2 pipeW1 pipeW2 2 pipeR1
+        // pipeR2
         return cmd.toString();
     }
 
@@ -236,7 +236,6 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
      *
      * @param context
      * @param pipe
-     *
      * @return
      */
     public abstract String getLaunchWorkerCommand(InvocationContext context, ControlPipePair pipe);
@@ -245,7 +244,6 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
      * Returns the specific environment variables of each binding
      *
      * @param context
-     *
      * @return
      */
     public abstract Map<String, String> getEnvironment(InvocationContext context);
@@ -346,7 +344,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
         }
         int executorPID = -1;
         if (createExecutor) {
-            // Create pipe    
+            // Create pipe
             if (pipeBuilderPipe.sendCommand(new CreateChannelPipeCommand(pp))) {
                 ChannelCreatedPipeCommand createdPipe = new ChannelCreatedPipeCommand(pp);
                 try {
@@ -358,7 +356,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
                 throw new UnsupportedOperationException("Not yet implemented. Specific exception should be raised");
             }
 
-            //Launch executor
+            // Launch executor
             if (pipeWorkerPipe.sendCommand(new AddExecutorPipeCommand(pp))) {
                 try {
                     AddedExecutorPipeCommand reply = new AddedExecutorPipeCommand(pp);
@@ -401,7 +399,6 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             return;
         }
 
-        boolean closed = false;
         // Shutting down executor
         if (pp.sendCommand(new QuitPipeCommand())) {
             try {
@@ -409,7 +406,6 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
                 while (command == null) {
                     command = pp.readCommand();
                     if (command.getType() != CommandType.QUIT) {
-                        closed = true;
                         break;
                     }
                 }
@@ -430,6 +426,6 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
         } // else : Worker is dead and executor probably too since it is not responding. Ignore
 
         pp.delete();
-        LOGGER.debug("EXECUTOR "+executorId+" shut down!");
+        LOGGER.debug("EXECUTOR " + executorId + " shut down!");
     }
 }

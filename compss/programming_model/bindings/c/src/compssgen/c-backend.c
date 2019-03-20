@@ -204,6 +204,19 @@ void generate_nanos_shutdown() {
 
 }
 
+void generate_struct_nanos6_wrapper(FILE *outFile, function *func) {
+    argument *arg, *ret;
+    fprintf(outFile, "#ifdef OMPSS2_ENABLED\n"); 
+    fprintf(outFile, "typedef struct {\n");
+    arg = func->first_argument;
+    while (arg != NULL) {
+        fprintf(outFile, "%s %s;\n", c_out_types[arg->type], arg->name);
+        arg = arg->next_argument;
+    }
+    fprintf(outFile, "} %s_struct_t;\n", func->methodname);
+    fprintf(outFile, "#endif\n\n");
+}
+
 /*
  * Generate prototype for the initThread method at worker
  */
@@ -1789,19 +1802,39 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
     fflush(NULL);
     fprintf(outFile, "\t\t\t if(is_debug()) cout << \"[C Binding] Calling function %s.%s\" << endl << flush;\n", func->classname, func->methodname);
 
+    int printed_chars = 0;    
+    char* func_to_execute;
+
     if (( func->classname != NULL ) && (func->access_static == 0) && (func->return_type == void_dt)) {
-        fprintf(outFile, "\t\t\t %s->%s(", th->name, func->methodname);
+        printed_chars = asprintf(func_to_execute, "\t\t\t %s->%s(", th->name, func->methodname);
     } else if (( func->classname != NULL ) && (func->access_static == 0) && (func->return_type != void_dt)) {
         if (func->return_type == object_dt) {
-            fprintf(outFile, "\t\t\t *%s = %s->%s(", ret->name, th->name, func->methodname);
+            printed_chars = asprintf(func_to_execute, "\t\t\t *%s = %s->%s(", ret->name, th->name, func->methodname);
         } else {
-            fprintf(outFile, "\t\t\t %s = %s->%s(", ret->name, th->name, func->methodname);
+            printed_chars = (func_to_execute, "\t\t\t %s = %s->%s(", ret->name, th->name, func->methodname);
         }
     } else if ( func->return_type != void_dt ) {
-        fprintf(outFile, "\t\t\t %s = %s(", ret->name, func->name);
+        printed_chars = (func_to_execute, "\t\t\t %s = %s(", ret->name, func->name);
     } else {
-        fprintf(outFile, "\t\t\t %s(", func->name);
+        printed_chars = (func_to_execute, "\t\t\t %s(", func->name);
     }
+
+    if (printed_chars < 0) {
+        printf("ERROR: Not possible to generate method execution.\n");
+        free(func_to_execute);
+        exit(1);
+    }
+
+/*    //TODO
+
+    char* nanos6_spawner; 
+    printed_chars = asprintf(nanos6_spawner, "nanos6_spawn_function("); 
+
+    fprintf(workerFile, "\t\t\t#ifdef OMPSS2_ENABLED\n");
+    
+    fprintf(workerFile, "\t\t\t#endif\n");*/
+
+
     is_first_arg = 1;
     arg = func->first_argument;
     while (arg != NULL) {
@@ -1933,6 +1966,10 @@ void generate_body(void) {
         printf("\t Generating worker functions... \n");
         fflush(NULL);
         generate_worker_case(workerFile, current_types, current_function);
+
+        /* NANOS 6 MANAGEMENT */
+
+        generate_struct_nanos6_wrapper(includeFile, current_function);
 
         current_function = current_function->next_function;
     }

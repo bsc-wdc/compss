@@ -27,7 +27,7 @@ import org.zkoss.zul.ListModelList;
 
 import es.bsc.compss.commons.Loggers;
 
-import monitoringParsers.RuntimeLogParser;
+import monitoringparsers.RuntimeLogParser;
 
 
 public class ExecutionInformationViewModel {

@@ -32,7 +32,7 @@ import org.zkoss.zul.Messagebox;
 import es.bsc.compss.commons.Loggers;
 import es.bsc.compss.ui.auth.UserCredential;
 
-import monitoringParsers.*;
+import monitoringparsers.*;
 
 
 public class ViewModel {

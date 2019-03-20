@@ -14,23 +14,21 @@
  *  limitations under the License.
  *
  */
-package monitoringParsers;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+package monitoringparsers;
 
 import es.bsc.compss.commons.Loggers;
 import es.bsc.compss.ui.Constants;
 import es.bsc.compss.ui.Properties;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 
 public class MonitorXmlParser {
@@ -56,6 +54,9 @@ public class MonitorXmlParser {
         return statisticParameters;
     }
 
+    /**
+     * TODO: javadoc.
+     */
     public static void parseResources() {
         String monitorLocation = Properties.getBasePath() + Constants.MONITOR_XML_FILE;
         logger.debug("Parsing XML file...");
@@ -71,20 +72,20 @@ public class MonitorXmlParser {
             docFactory.setNamespaceAware(true);
             Document resourcesDoc = docFactory.newDocumentBuilder().parse(monitorLocation);
             NodeList nl = resourcesDoc.getChildNodes();
-            Node COMPSs = null;
+            Node compss = null;
             for (int i = 0; i < nl.getLength(); i++) {
                 if (nl.item(i).getNodeName().equals("COMPSsState")) {
-                    COMPSs = nl.item(i);
+                    compss = nl.item(i);
                     break;
                 }
             }
 
-            if (COMPSs == null) {
+            if (compss == null) {
                 // NO COMPSs item --> empty
                 return;
             }
 
-            nl = COMPSs.getChildNodes();
+            nl = compss.getChildNodes();
             for (int i = 0; i < nl.getLength(); i++) {
                 Node n = nl.item(i);
                 if (n.getNodeName().equals("ResourceInfo")) {
@@ -100,6 +101,9 @@ public class MonitorXmlParser {
         logger.debug("Success: Parse finished");
     }
 
+    /**
+     * TODO: javadoc.
+     */
     public static void parseCores() {
         String monitorLocation = Properties.getBasePath() + Constants.MONITOR_XML_FILE;
         logger.debug("Parsing XML file...");
@@ -115,20 +119,20 @@ public class MonitorXmlParser {
             docFactory.setNamespaceAware(true);
             Document resourcesDoc = docFactory.newDocumentBuilder().parse(monitorLocation);
             NodeList nl = resourcesDoc.getChildNodes();
-            Node COMPSs = null;
+            Node compss = null;
             for (int i = 0; i < nl.getLength(); i++) {
                 if (nl.item(i).getNodeName().equals("COMPSsState")) {
-                    COMPSs = nl.item(i);
+                    compss = nl.item(i);
                     break;
                 }
             }
 
-            if (COMPSs == null) {
+            if (compss == null) {
                 // NO COMPSs item --> empty
                 return;
             }
 
-            nl = COMPSs.getChildNodes();
+            nl = compss.getChildNodes();
             for (int i = 0; i < nl.getLength(); i++) {
                 Node n = nl.item(i);
                 if (n.getNodeName().equals("CoresInfo")) {
@@ -143,6 +147,9 @@ public class MonitorXmlParser {
         logger.debug("Success: Parse finished");
     }
 
+    /**
+     * TODO: javadoc.
+     */
     public static void parseStatistics() {
         String monitorLocation = Properties.getBasePath() + Constants.MONITOR_XML_FILE;
         logger.debug("Parsing XML file for statistics...");
@@ -158,20 +165,20 @@ public class MonitorXmlParser {
             docFactory.setNamespaceAware(true);
             Document resourcesDoc = docFactory.newDocumentBuilder().parse(monitorLocation);
             NodeList nl = resourcesDoc.getChildNodes();
-            Node COMPSs = null;
+            Node compss = null;
             for (int i = 0; i < nl.getLength(); i++) {
                 if (nl.item(i).getNodeName().equals("COMPSsState")) {
-                    COMPSs = nl.item(i);
+                    compss = nl.item(i);
                     break;
                 }
             }
 
-            if (COMPSs == null) {
+            if (compss == null) {
                 // NO COMPSs item --> empty
                 return;
             }
 
-            nl = COMPSs.getChildNodes();
+            nl = compss.getChildNodes();
             for (int i = 0; i < nl.getLength(); i++) {
                 Node n = nl.item(i);
                 if (n.getNodeName().equals("Statistics")) {
@@ -203,8 +210,8 @@ public class MonitorXmlParser {
         String workerName = resource.getAttributes().getNamedItem("id").getTextContent();
         logger.debug("Parse ResourceNode " + workerName);
 
-        final int MAX_PARAMS = 11;
-        String[] data = new String[MAX_PARAMS];
+        final int maxParams = 11;
+        String[] data = new String[maxParams];
         // workerName, totalCPUu, totalGPUu, totalFPGAu, totalOTHERu,
         // memory, disk, status, provider, image, actions
         for (int i = 0; i < data.length; ++i) {
@@ -288,7 +295,7 @@ public class MonitorXmlParser {
                  */
                 String[] actionInfo = n.getTextContent().split(" ");
                 String actionType = actionInfo[2];
-                switch(actionType) {
+                switch (actionType) {
                     case "Task":
                         String taskId = actionInfo[3];
                         // Remove , char
@@ -343,8 +350,8 @@ public class MonitorXmlParser {
         String implId = impl.getAttributes().getNamedItem("id").getTextContent();
         logger.debug("     - Parsing implId " + implId);
 
-        final int MAX_PARAMS = 7;
-        String[] data = new String[MAX_PARAMS];
+        final int maxParams = 7;
+        String[] data = new String[maxParams];
         // coreId, implId, signature, meanET, minET, maxET, execCount
         for (int i = 0; i < data.length; ++i) {
             data[i] = "-";
@@ -409,8 +416,8 @@ public class MonitorXmlParser {
     }
     
     private static String[] parseStatisticNode(Node statistic) {
-        final int MAX_PARAMS = 2;
-        String[] entry = new String[MAX_PARAMS];    // key,value
+        final int maxParams = 2;
+        String[] entry = new String[maxParams];    // key,value
         NodeList nl = statistic.getChildNodes();
         for (int i = 0; i < nl.getLength(); i++) {
             Node field = nl.item(i);

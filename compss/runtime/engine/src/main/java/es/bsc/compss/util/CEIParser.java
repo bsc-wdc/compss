@@ -69,7 +69,6 @@ public class CEIParser {
                         throw new UndefinedConstraintsSourceException(appName + "Itf class cannot be found.");
                     }
                 } else {
-                    System.out.println("No defined Application Name. COMPSs is not loading any CEI.");
                     LOGGER.warn("No defined Application Name. COMPSs is not loading any CEI.");
                 }
                 break;

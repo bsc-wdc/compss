@@ -80,7 +80,6 @@ public class ResourceLoader {
             loadFiles();
             loadRuntime();
         } else {
-            System.out.println("No resource/project file detected. Starting runtime without computing resources.");
             LOGGER.warn("No resource/project file detected. Starting runtime without computing resources.");
         }
     }

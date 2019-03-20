@@ -142,7 +142,6 @@ public class DynamicMethodWorker extends MethodWorker {
         int GPUCount = reduction.getTotalGPUComputingUnits();
         int FPGACount = reduction.getTotalFPGAComputingUnits();
         int otherCount = reduction.getTotalOTHERComputingUnits();
-        System.out.println("Reducing Computing capabilities");
         this.getNode().reduceComputingCapabilities(CPUCount, GPUCount, FPGACount, otherCount);
 
         synchronized (description) {

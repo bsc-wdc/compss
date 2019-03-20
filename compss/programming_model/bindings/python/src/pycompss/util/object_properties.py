@@ -154,7 +154,7 @@ def is_basic_iterable(obj):
     :param obj: Object to be analysed
     :return: Boolean -> True if obj is a basic iterable (see list below), False otherwise
     '''
-    return isinstance(obj, (tuple, bytearray, set, frozenset, dict))
+    return isinstance(obj, (list, tuple, bytearray, set, frozenset, dict))
 
 def object_belongs_to_module(obj, module_name):
     '''Checks if a given object belongs to a given module (or some sub-module).

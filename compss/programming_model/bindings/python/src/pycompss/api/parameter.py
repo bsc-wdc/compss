@@ -53,6 +53,7 @@ PYCOMPSS_LONG = int if IS_PYTHON3 else long
 
 # Numbers match both C and Java enums
 from pycompss.api.data_type import data_type
+from pycompss.util.object_properties import is_basic_iterable
 
 TYPE = data_type
 
@@ -93,7 +94,7 @@ class Parameter(object):
     """
 
     def __init__(self, p_type=None, p_direction=DIRECTION.IN, p_stream=STREAM.UNSPECIFIED,
-                 p_prefix=PREFIX.PREFIX, p_object=None, file_name=None, is_future=False):
+                 p_prefix=PREFIX.PREFIX, p_object=None, file_name=None, is_future=False, depth = 1):
         self.type = p_type
         self.direction = p_direction
         self.stream = p_stream
@@ -101,6 +102,7 @@ class Parameter(object):
         self.object = p_object  # placeholder for parameter object
         self.file_name = file_name  # placeholder for object's serialized file path
         self.is_future = is_future
+        self.depth     = depth # Recursive depth for collections
 
     def __repr__(self):
         return 'Parameter(type=%s, direction=%s, stream=%s, prefix=%s\n' \
@@ -312,6 +314,8 @@ def get_parameter_from_dictionary(d):
         p.stream = d[Stream]
     if Prefix in d:
         p.prefix = d[Prefix]
+    if Depth  in d:
+        p.depth  = d[Depth]
     return p
 
 
@@ -461,7 +465,7 @@ class _param_(object):
         self.key = key
 
 
-def get_compss_type(value):
+def get_compss_type(value, depth = 0):
     """
     Retrieve the value type mapped to COMPSs types.
     :param value: Value to analyse
@@ -495,6 +499,8 @@ def get_compss_type(value):
             # persistent inside, we assume that it is not. It will be checked
             # later on the worker side when the task finishes.
             return TYPE.OBJECT
+    elif depth > 0 and is_basic_iterable(value):
+        return TYPE.COLLECTION
     else:
         # Default type
         return TYPE.OBJECT
@@ -546,6 +552,7 @@ Type = 'type'  # parameter type
 Direction = 'direction'  # parameter type
 Stream = 'stream'  # parameter stream
 Prefix = 'prefix'  # parameter prefix
+Depth  = 'depth' # collection recursive depth
 
 # Java max and min integer and long values
 JAVA_MAX_INT = 2147483647

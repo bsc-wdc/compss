@@ -49,7 +49,6 @@ public class WorkerUpdateRequest<T extends WorkerResourceDescription> extends TD
 
     @Override
     public void process(TaskScheduler ts) throws ShutdownException {
-        System.out.println("Updating resource " + worker.getName());
         ts.updateWorker(worker, ru);
     }
 

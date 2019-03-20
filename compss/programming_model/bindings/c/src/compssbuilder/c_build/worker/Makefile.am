@@ -15,23 +15,23 @@
 #  limitations under the License.
 #
 
-noinst_LIBRARIES = libexecutor.a 
-libexecutor_a_SOURCES = PACKAGE-executor.cc
+noinst_LIBRARIES = libfunctions.a
+libfunctions_a_SOURCES = PACKAGE-functions.cc
 
-#libexecutor_a_LIBADD     = -L../../lib -ldl -L$(LIBJAVAFOLDER) -ljvm -L$(CS_HOME)/../bindings-common/lib/$(TARGET_HOST) -lbindings_common -L$(CS_HOME)/lib/$(TARGET_HOST) -lcbindings -L$(BOOST_LIB) -lboost_iostreams -lboost_serialization -lboost_systemi
+#libfunctions_a_LIBADD     = -L../../lib -ldl -L$(LIBJAVAFOLDER) -ljvm -L$(CS_HOME)/../bindings-common/lib/$(TARGET_HOST) -lbindings_common -L$(CS_HOME)/lib/$(TARGET_HOST) -lcbindings -L$(BOOST_LIB) -lboost_iostreams -lboost_serialization -lboost_systemi
 
-libexecutor_a_CPPFLAGS =  -I../../src -I../../include -Wno-write-strings -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux/ -I$(CS_HOME)/../bindings-common/include -I$(CS_HOME)/include -Wall
+libfunctions_a_CPPFLAGS =  -I../../src -I../../include -Wno-write-strings -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux/ -I$(CS_HOME)/../bindings-common/include -I$(CS_HOME)/include -Wall
 
-libexecutor_a_CFLAGS =
+libfunctions_a_CFLAGS =
 
 if OMPSS2
-libexecutor_a_CPPFLAGS  += --ompss-2
-libexecutor_a_CFLAGS    += --ompss-2
+libfunctions_a_CPPFLAGS  += --ompss-2
+libfunctions_a_CFLAGS    += --ompss-2
 endif
 
 if OMPSS
-libexecutor_a_CPPFLAGS  += --ompss
-libexecutor_a_CFLAGS    += --ompss
+libfunctions_a_CPPFLAGS  += --ompss
+libfunctions_a_CFLAGS    += --ompss
 endif
 
 bin_PROGRAMS = nio_worker_c worker_c

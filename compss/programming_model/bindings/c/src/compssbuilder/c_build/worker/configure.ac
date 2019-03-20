@@ -82,7 +82,7 @@ AC_ARG_WITH([ompss-2],
                     AC_MSG_ERROR([Nanos6 library not found, is needed to enable OmpSs2.]) 
                 ])
 
-                AC_CHECK_LIB([custom-nanos6], [nanos6_library_mode_init],
+                AC_CHECK_LIB([custom-nanos6], [nanos6_library_mode_init], [],
                 [
                     AC_MSG_ERROR([nanos6-library-mode.o is needed, we make a custom library from it.])
                 ])
@@ -90,6 +90,7 @@ AC_ARG_WITH([ompss-2],
                 #CPPFLAGS="-I$withval/include $CPPFLAGS"              
             ]
 )
+
 AM_CONDITIONAL([OMPSS], [test x$ompss = xtrue])
 AM_CONDITIONAL([OMPSS2], [test x$ompss2 = xtrue])
 

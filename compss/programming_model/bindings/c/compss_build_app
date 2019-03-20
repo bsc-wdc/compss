@@ -404,8 +404,6 @@ if [ "${ompss2_enabled}" != "" ]; then
         else
             OMPSS2_DIR=$(nanos6-info --runtime-path)
             OMPSS2_DIR=$(dirname $( dirname $(echo $OMPSS2_DIR | awk '{ print $3; }')))
- 
-            OMPSS2_DIR="$("$OMPSS2_SEARCH_COMMAND" | awk '{ print $3; }' | sed 's@/libnanos6-optimized.so.*@@')"
 
             if [ "$?" -ne 0 ]; then
                 exit 1;

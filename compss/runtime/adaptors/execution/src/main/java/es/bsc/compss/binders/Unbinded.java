@@ -14,6 +14,7 @@
  *  limitations under the License.
  *
  */
+
 package es.bsc.compss.binders;
 
 import es.bsc.compss.types.execution.ThreadBinder;
@@ -21,20 +22,20 @@ import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUn
 
 
 /**
- * Class for unbinded thread affinity
+ * Class for unbinded thread affinity.
  *
  */
 public class Unbinded implements ThreadBinder {
 
     /**
-     * Creates a new thread binder without any binding
+     * Creates a new thread binder without any binding.
      */
     public Unbinded() {
     }
 
     @Override
     public int[] bindComputingUnits(int jobId, int numCUs) throws UnsufficientAvailableComputingUnitsException {
-        return new int[] {};
+        return new int[]{};
     }
 
     @Override

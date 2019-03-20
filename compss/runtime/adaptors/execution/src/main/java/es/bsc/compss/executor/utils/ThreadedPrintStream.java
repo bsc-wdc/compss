@@ -14,6 +14,7 @@
  *  limitations under the License.
  *
  */
+
 package es.bsc.compss.executor.utils;
 
 import java.io.PrintStream;
@@ -22,19 +23,32 @@ import java.util.Locale;
 import java.util.Map;
 
 
+/**
+ * Utility to redirect one single PrintStream to different files according to the thread.
+ */
 public class ThreadedPrintStream extends PrintStream {
 
-    private Map<Long, PrintStream> threadToStream = new HashMap<>();
+    private final Map<Long, PrintStream> threadToStream = new HashMap<>();
     private final String end;
     private final PrintStream defaultStream;
 
-
+    /**
+     * Constructs a new ThreadedPrint stream.
+     *
+     * @param end           extension of the file where the stream will print on
+     * @param defaultStream PrintStream used by those threads that have not been registered
+     */
     public ThreadedPrintStream(String end, PrintStream defaultStream) {
         super(defaultStream);
         this.end = end;
         this.defaultStream = defaultStream;
     }
 
+    /**
+     * Redirects the output of the thread executing the call onto a file.
+     *
+     * @param name path of the file where to print
+     */
     public void registerThread(String name) {
         try {
             PrintStream ps = new PrintStream(name + end);
@@ -45,6 +59,9 @@ public class ThreadedPrintStream extends PrintStream {
         }
     }
 
+    /**
+     * Removes the redirection of the current thread and assigns it back to the default PrintStream.
+     */
     public void unregisterThread() {
         try {
             flush();
@@ -77,7 +94,7 @@ public class ThreadedPrintStream extends PrintStream {
     }
 
     @Override
-    public void write(byte buf[], int off, int len) {
+    public void write(byte[] buf, int off, int len) {
         getStream().write(buf, off, len);
     }
 
@@ -112,7 +129,7 @@ public class ThreadedPrintStream extends PrintStream {
     }
 
     @Override
-    public void print(char s[]) {
+    public void print(char[] s) {
         getStream().print(s);
     }
 
@@ -162,7 +179,7 @@ public class ThreadedPrintStream extends PrintStream {
     }
 
     @Override
-    public void println(char x[]) {
+    public void println(char[] x) {
         getStream().println(x);
     }
 
@@ -211,6 +228,11 @@ public class ThreadedPrintStream extends PrintStream {
         return getStream().append(c);
     }
 
+    /**
+     * Returns the PrintStream associated to the thread execution the method.
+     *
+     * @return PrintStream associated to the thread executing the method.
+     */
     public PrintStream getStream() {
         PrintStream ps = threadToStream.get(Thread.currentThread().getId());
         if (ps == null) {

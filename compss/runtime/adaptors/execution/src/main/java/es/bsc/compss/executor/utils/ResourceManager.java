@@ -49,7 +49,7 @@ public class ResourceManager {
                     binderCPUsTmp = new Unbinded();
                     break;
                 case ThreadBinder.BINDER_AUTOMATIC:
-                    String resourceMap = BindToMap.getResourceCPUDescription();
+                    String resourceMap = BindToMap.getResourceCpuDescription();
                     binderCPUsTmp = new BindToMap(cusCPU, resourceMap);
                     break;
                 default:
@@ -60,7 +60,7 @@ public class ResourceManager {
         } catch (Exception e) {
             LOGGER.warn("Could not load the desidered mapping policy for the CPU computing units. Using default policy ("
                     + ThreadBinder.BINDER_AUTOMATIC + ")");
-            String resourceMap = BindToMap.getResourceCPUDescription();
+            String resourceMap = BindToMap.getResourceCpuDescription();
             binderCPUsTmp = new BindToMap(cusCPU, resourceMap);
         }
         binderCPUs = binderCPUsTmp;
